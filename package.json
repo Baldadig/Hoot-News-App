@@ -1,0 +1,25 @@
+{
+  "name": "hoot",
+  "private": true,
+  "version": "0.3.0",
+  "type": "module",
+  "description": "Hoot — een rustige, reclamevrije nieuws-tijdlijn die jouw abonnementen bundelt tot één feed.",
+  "scripts": {
+    "dev": "vite",
+    "netlify-dev": "netlify dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "gen-icons": "node scripts/gen-icons.mjs"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "rss-parser": "^3.13.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "sharp": "^0.33.5",
+    "vite": "^5.4.11",
+    "vite-plugin-pwa": "^0.21.1"
+  }
+}

@@ -1,0 +1,22 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Schone API-route naar de aggregator-functie
+[[redirects]]
+  from = "/api/feed"
+  to = "/.netlify/functions/feed"
+  status = 200
+
+# SPA-fallback (laat de PWA alle routes afhandelen)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
