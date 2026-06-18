@@ -2,6 +2,13 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.3.1] — 2026-06-18
+
+### Gewijzigd
+
+- **Titel boven de foto** bij artikelen (serif-kop → foto → samenvatting), redactionele volgorde.
+- **Nieuw uil-icoon**: groot-ogige witte uil op blauw (eigen ontwerp), wit op blauw.
+
 ## [0.3.0] — 2026-06-18
 
 ### Gewijzigd
