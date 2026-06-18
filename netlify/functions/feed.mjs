@@ -3,16 +3,17 @@ import Anthropic from '@anthropic-ai/sdk'
 import { getStore } from '@netlify/blobs'
 
 // ---------- Bronnen ----------
+// bsky = Bluesky-handle van het officiële account, voor een mooie merk-avatar.
 const SOURCES = [
-  { id: 'nrc', name: 'NRC', urls: ['https://www.nrc.nl/rss/', 'https://www.nrc.nl/index.rss', 'https://www.nrc.nl/rss.php'] },
-  { id: 'volkskrant', name: 'de Volkskrant', urls: ['https://www.volkskrant.nl/voorpagina/rss.xml', 'https://www.volkskrant.nl/nieuws-achtergrond/rss.xml'] },
-  { id: 'nyt', name: 'NYT', urls: ['https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml'] },
-  { id: 'theverge', name: 'The Verge', urls: ['https://www.theverge.com/rss/index.xml'] },
-  { id: 'wired', name: 'Wired', urls: ['https://www.wired.com/feed/rss'] },
-  { id: 'nos', name: 'NOS', urls: ['https://feeds.nos.nl/nosnieuwsalgemeen', 'http://feeds.nos.nl/nosnieuwsalgemeen'] },
+  { id: 'nrc', name: 'NRC', bsky: 'nrc.nl', urls: ['https://www.nrc.nl/rss/', 'https://www.nrc.nl/index.rss', 'https://www.nrc.nl/rss.php'] },
+  { id: 'volkskrant', name: 'de Volkskrant', bsky: 'volkskrant.nl', urls: ['https://www.volkskrant.nl/voorpagina/rss.xml', 'https://www.volkskrant.nl/nieuws-achtergrond/rss.xml'] },
+  { id: 'nyt', name: 'NYT', bsky: 'nytimes.com', urls: ['https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml'] },
+  { id: 'theverge', name: 'The Verge', bsky: 'theverge.com', urls: ['https://www.theverge.com/rss/index.xml'] },
+  { id: 'wired', name: 'Wired', bsky: 'wired.com', urls: ['https://www.wired.com/feed/rss'] },
+  { id: 'nos', name: 'NOS', bsky: 'nos.nl', urls: ['https://feeds.nos.nl/nosnieuwsalgemeen', 'http://feeds.nos.nl/nosnieuwsalgemeen'] },
 ]
 
-// Merk-kleuren per bron (voor de gekleurde avatar-cirkel)
+// Merk-kleuren per bron (voor de avatar-cirkel)
 const BRAND = {
   nrc: '#C20E1A',
   volkskrant: '#1481C4',
@@ -137,6 +138,25 @@ function pickImage(item) {
   return m ? m[1] : null
 }
 
+// ---------- Mooie merk-avatars via Bluesky ----------
+async function bskyAvatar(handle) {
+  try {
+    const res = await fetch(`https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(handle)}`, {
+      headers: { 'User-Agent': UA },
+      signal: AbortSignal.timeout(6000),
+    })
+    if (!res.ok) return null
+    const d = await res.json()
+    return d.avatar || null
+  } catch {
+    return null
+  }
+}
+async function resolveSourceAvatars() {
+  const entries = await Promise.all(SOURCES.map(async (s) => [s.id, s.bsky ? await bskyAvatar(s.bsky) : null]))
+  return Object.fromEntries(entries)
+}
+
 // ---------- Trefwoord-onderwerpen (terugval als AI uitstaat) ----------
 const KW = [
   ['trump', /\btrump\b/i],
@@ -154,8 +174,9 @@ function keywordTopics(text) {
 const isTopic = (t) => TOPICS.includes(t)
 
 // ---------- RSS ----------
-async function loadSource(src) {
+async function loadSource(src, avatars) {
   let lastErr
+  const brandAvatar = avatars[src.id] || null
   for (const url of src.urls) {
     try {
       const feed = await parser.parseURL(url)
@@ -172,7 +193,8 @@ async function loadSource(src) {
           sourceName: src.name,
           handle: domain,
           domain,
-          avatar: favicon(domain),
+          avatar: brandAvatar || favicon(domain),
+          avatarContain: !brandAvatar,
           brandColor: BRAND[src.id] || '#21468b',
           verified: true,
           title,
@@ -242,6 +264,7 @@ function mapPost(post, author) {
     handle: '@' + handle,
     domain,
     avatar: post.author?.avatar || null,
+    avatarContain: false,
     brandColor: BSKY_BRAND,
     verified: true,
     title: '',
@@ -298,7 +321,7 @@ async function saveCache(map) {
 // ---------- AI-verrijking (Claude Sonnet) ----------
 const SYSTEM = `Je bent een Nederlandse nieuwsredacteur voor de app Hoot. Je krijgt een JSON-array met nieuwsitems (artikelen of social posts). Voor ELK item lever je een object met:
 - "id": exact overgenomen uit de invoer
-- "nl_summary": één heldere Nederlandse samenvatting van rond de 140 tekens (streef naar 130–140), één of twee zinnen, vlot en neutraal
+- "nl_summary": ALTIJD één heldere Nederlandse samenvatting van rond de 140 tekens (streef naar 130–140), één of twee complete zinnen, vlot en neutraal. Maak er ook één als de brontekst kort of leeg is — vat dan samen op basis van de titel en het onderwerp. Nooit afkappen met "…".
 - "nl_title": een korte, pakkende Nederlandse kop (maximaal ~70 tekens), zonder punt aan het eind
 - "topics": array met 0 of meer van precies deze waarden, op basis van waar het item echt over gaat:
   • "trump" — Donald Trump is de hoofdpersoon
@@ -348,7 +371,8 @@ export const handler = async () => {
   const apiKey = process.env.ANTHROPIC_API_KEY
   const anthropic = apiKey ? new Anthropic({ apiKey }) : null
 
-  const tasks = [...SOURCES.map(loadSource), ...BLUESKY_AUTHORS.map(loadBluesky)]
+  const avatars = await resolveSourceAvatars()
+  const tasks = [...SOURCES.map((s) => loadSource(s, avatars)), ...BLUESKY_AUTHORS.map(loadBluesky)]
   const results = await Promise.allSettled(tasks)
   const groups = results.map((r) => (r.status === 'fulfilled' ? r.value : { ok: false, count: 0, items: [], error: String(r.reason) }))
 
@@ -400,6 +424,7 @@ export const handler = async () => {
       handle: it.handle,
       domain: it.domain,
       avatar: it.avatar,
+      avatarContain: it.avatarContain,
       brandColor: it.brandColor,
       verified: it.verified,
       title: it.title,

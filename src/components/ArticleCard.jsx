@@ -6,10 +6,10 @@ function hideParent(e) {
   if (wrap) wrap.style.display = 'none'
 }
 
-function Avatar({ src, name, brand, kind }) {
+function Avatar({ src, name, brand, contain }) {
   const letter = (name || '?').trim().charAt(0) || '?'
   return (
-    <span className={`avatar${kind === 'article' ? ' avatar--logo' : ''}`} data-letter={letter} style={{ '--brand': brand || 'var(--accent)' }}>
+    <span className={`avatar${contain ? ' avatar--logo' : ''}`} data-letter={letter} style={{ '--brand': brand || 'var(--accent)' }}>
       {src ? <img src={src} alt="" loading="lazy" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = 'none')} /> : null}
     </span>
   )
@@ -46,7 +46,7 @@ export default function ArticleCard({ item, isRead, onOpen, onFilterSource }) {
   return (
     <a className={`card${isRead ? ' card--read' : ''}`} href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => onOpen(item.id)}>
       <div className="post__head" onClick={filter} role="button" tabIndex={-1} aria-label={`Alleen ${item.sourceName}`}>
-        <Avatar src={item.avatar} name={item.sourceName} brand={item.brandColor} kind={item.kind} />
+        <Avatar src={item.avatar} name={item.sourceName} brand={item.brandColor} contain={item.avatarContain} />
         <div className="post__id">
           <span className="post__name">
             {item.sourceName}

@@ -2,6 +2,14 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.4.1] — 2026-06-18
+
+### Gewijzigd
+
+- **Mooie merk-avatars**: het officiële profielbeeld van elke nieuwssite wordt opgehaald via de openbare Bluesky-API (met de favicon als nette terugval).
+- **Samenvatting** is nu zwarter en beter leesbaar, en wordt niet meer visueel afgekapt (hard op 140 tekens).
+- AI maakt **altijd** een Nederlandse samenvatting, ook als de brontekst leeg is (NRC/VK zonder teaser).
+
 ## [0.4.0] — 2026-06-18
 
 ### Toegevoegd
