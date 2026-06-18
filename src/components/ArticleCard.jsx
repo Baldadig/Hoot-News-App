@@ -16,8 +16,15 @@ function Avatar({ src, name }) {
 }
 
 export default function ArticleCard({ item, isRead, onOpen }) {
+  const isArticle = item.kind !== 'post'
   const title = item.nl_title || item.title
   const summary = item.nl_summary || item.summary
+
+  const media = item.image ? (
+    <div className="post__media">
+      <img src={item.image} alt="" loading="lazy" referrerPolicy="no-referrer" onError={hideParent} />
+    </div>
+  ) : null
 
   return (
     <a className={`card${isRead ? ' card--read' : ''}`} href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => onOpen(item.id)}>
@@ -34,20 +41,18 @@ export default function ArticleCard({ item, isRead, onOpen }) {
         </div>
       </div>
 
-      {summary ? <p className="post__text">{summary}</p> : null}
-
-      {item.image ? (
-        <div className="post__media">
-          <img src={item.image} alt="" loading="lazy" referrerPolicy="no-referrer" onError={hideParent} />
-        </div>
-      ) : null}
-
-      {title ? (
-        <div className="linkcard">
-          <span className="linkcard__title">{title}</span>
-          <span className="linkcard__domain">🔗 {item.domain}</span>
-        </div>
-      ) : null}
+      {isArticle ? (
+        <>
+          {title ? <h2 className="post__title">{title}</h2> : null}
+          {media}
+          {summary ? <p className="post__text">{summary}</p> : null}
+        </>
+      ) : (
+        <>
+          {summary ? <p className="post__text">{summary}</p> : null}
+          {media}
+        </>
+      )}
     </a>
   )
 }

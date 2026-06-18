@@ -2,17 +2,21 @@
   <!-- blauw vlak (Nederlandse vlag) -->
   <rect width="512" height="512" fill="#21468B" />
 
-  <!-- witte uil-silhouet (passe-partout, Twitter-stijl) -->
+  <!-- witte uil met grote ogen -->
   <g fill="#FFFFFF">
-    <!-- oortjes -->
-    <path d="M160 170 C150 116 174 92 200 102 C200 130 198 152 200 172 Z" />
-    <path d="M352 170 C362 116 338 92 312 102 C312 130 314 152 312 172 Z" />
-    <!-- kop + lichaam als één vorm -->
-    <ellipse cx="256" cy="302" rx="152" ry="172" />
+    <!-- puntige oortjes -->
+    <path d="M148 182 L188 84 L222 172 Z" />
+    <path d="M364 182 L324 84 L290 172 Z" />
+    <!-- ronde kop/gezicht -->
+    <ellipse cx="256" cy="292" rx="166" ry="150" />
   </g>
 
-  <!-- ogen + snavel als blauw negatief -->
-  <circle cx="206" cy="258" r="38" fill="#21468B" />
-  <circle cx="306" cy="258" r="38" fill="#21468B" />
-  <path d="M256 304 L238 272 Q256 264 274 272 Z" fill="#21468B" />
+  <!-- grote ogen als blauw negatief, met witte pupillen -->
+  <circle cx="198" cy="282" r="74" fill="#21468B" />
+  <circle cx="314" cy="282" r="74" fill="#21468B" />
+  <circle cx="206" cy="286" r="23" fill="#FFFFFF" />
+  <circle cx="306" cy="286" r="23" fill="#FFFFFF" />
+
+  <!-- snaveltje -->
+  <path d="M256 326 L245 302 L267 302 Z" fill="#FFFFFF" />
 </svg>
