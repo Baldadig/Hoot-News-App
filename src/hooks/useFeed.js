@@ -56,8 +56,13 @@ export function useFeed() {
       if (document.visibilityState === 'visible') load({ silent: true })
     }
     document.addEventListener('visibilitychange', onVisible)
+    // Automatisch verversen elke 15 minuten
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible') load({ silent: true })
+    }, 15 * 60 * 1000)
     return () => {
       document.removeEventListener('visibilitychange', onVisible)
+      clearInterval(timer)
       ctrl.current?.abort()
     }
   }, [load])

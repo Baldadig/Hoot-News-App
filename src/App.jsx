@@ -10,7 +10,8 @@ import usePullToRefresh from './hooks/usePullToRefresh.js'
 export default function App() {
   const { items, meta, status, refreshing, reload } = useFeed()
   const { read, markRead } = useReadState()
-  const [active, setActive] = useState(null)
+  const [activeTopic, setActiveTopic] = useState(null)
+  const [source, setSource] = useState(null) // { source, name }
   const { containerRef, pull } = usePullToRefresh(reload)
 
   const counts = useMemo(() => {
@@ -19,18 +20,25 @@ export default function App() {
     return c
   }, [items])
 
-  const visible = useMemo(
-    () => (active ? items.filter((i) => (i.topics || []).includes(active)) : items),
-    [items, active]
-  )
+  const visible = useMemo(() => {
+    let list = items
+    if (source) list = list.filter((i) => i.source === source.source)
+    if (activeTopic) list = list.filter((i) => (i.topics || []).includes(activeTopic))
+    return list
+  }, [items, activeTopic, source])
 
   const showSkeleton = status === 'loading' && items.length === 0
   const showError = status === 'error' && items.length === 0
 
+  const onFilterSource = (item) => {
+    setSource({ source: item.source, name: item.sourceName })
+    containerRef.current?.scrollTo({ top: 0 })
+  }
+
   return (
     <div className="app">
       <Header onRefresh={reload} refreshing={refreshing} />
-      <TopicFilter active={active} onChange={setActive} counts={counts} />
+      <TopicFilter active={activeTopic} onChange={setActiveTopic} counts={counts} />
 
       <main className="feed" ref={containerRef}>
         <div className="ptr" style={{ height: pull }} aria-hidden="true">
@@ -44,6 +52,17 @@ export default function App() {
           </div>
         )}
 
+        {source ? (
+          <button className="srcbar" onClick={() => setSource(null)}>
+            <span>
+              Alleen <strong>{source.name}</strong>
+            </span>
+            <span className="srcbar__x" aria-hidden="true">
+              ✕
+            </span>
+          </button>
+        ) : null}
+
         {showSkeleton ? (
           <Skeleton />
         ) : showError ? (
@@ -53,7 +72,7 @@ export default function App() {
         ) : (
           <div className="list">
             {visible.map((item) => (
-              <ArticleCard key={item.id} item={item} isRead={read.has(item.id)} onOpen={markRead} />
+              <ArticleCard key={item.id} item={item} isRead={read.has(item.id)} onOpen={markRead} onFilterSource={onFilterSource} />
             ))}
           </div>
         )}

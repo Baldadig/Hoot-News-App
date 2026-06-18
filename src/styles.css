@@ -229,8 +229,14 @@ body {
   align-items: center;
   gap: 11px;
   margin-bottom: 12px;
+  cursor: pointer;
 }
 
+.post__head:active {
+  opacity: 0.65;
+}
+
+/* Merk-gekleurde avatar-cirkel per bron */
 .avatar {
   position: relative;
   flex: 0 0 auto;
@@ -238,8 +244,8 @@ body {
   height: 42px;
   border-radius: 50%;
   overflow: hidden;
-  background: var(--surface-2);
-  box-shadow: inset 0 0 0 1px var(--line);
+  background: color-mix(in srgb, var(--brand, var(--accent)) 15%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand, var(--accent)) 28%, var(--line));
   display: grid;
   place-items: center;
 }
@@ -253,7 +259,7 @@ body {
   font-family: var(--serif);
   font-size: 18px;
   font-weight: 700;
-  color: var(--text-dim);
+  color: var(--brand, var(--accent));
 }
 
 .avatar img {
@@ -261,7 +267,12 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background: var(--surface);
+}
+
+/* Bron-logo's netjes binnen de gekleurde cirkel */
+.avatar--logo img {
+  object-fit: contain;
+  padding: 7px;
 }
 
 .post__id {
@@ -334,11 +345,43 @@ body {
   background: var(--surface-2);
 }
 
-.post__media img {
+.post__media img,
+.post__video {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.post__video {
+  background: #000;
+}
+
+/* Bron-wisbalk ("Alleen NRC ✕") */
+.srcbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin: 2px 0 12px;
+  padding: 10px 16px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.srcbar strong {
+  font-weight: 800;
+}
+
+.srcbar__x {
+  font-size: 13px;
+  opacity: 0.75;
 }
 
 /* ---------- Skeleton ---------- */

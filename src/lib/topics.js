@@ -3,7 +3,7 @@
 export const TOPICS = [
   { id: 'vs-politiek', label: 'VS-politiek', emoji: '🇺🇸' },
   { id: 'oekraine', label: 'Oekraïne', emoji: '🇺🇦' },
-  { id: 'extreemrechts', label: 'Extreemrechts', emoji: '⚠️' },
+  { id: 'geopolitiek', label: 'Geopolitiek', emoji: '🌍' },
   { id: 'ai', label: 'AI', emoji: '🤖' },
   { id: 'trump', label: 'Trump', emoji: '🎪' },
 ]

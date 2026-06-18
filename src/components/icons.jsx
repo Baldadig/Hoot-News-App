@@ -3,15 +3,15 @@ export function OwlMark({ className }) {
     <svg className={className} viewBox="0 0 48 48" width="30" height="30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <rect width="48" height="48" rx="13" fill="#21468B" />
       <g fill="#FFFFFF">
-        <path d="M13.5 17.5 L18 8.5 L21 16.8 Z" />
-        <path d="M34.5 17.5 L30 8.5 L27 16.8 Z" />
-        <ellipse cx="24" cy="27.5" rx="15.5" ry="14" />
+        <path d="M13.5 17 L18 8 L21 16 Z" />
+        <path d="M34.5 17 L30 8 L27 16 Z" />
+        <ellipse cx="24" cy="26.5" rx="15.5" ry="14" />
       </g>
-      <circle cx="18.6" cy="26.6" r="7" fill="#21468B" />
-      <circle cx="29.4" cy="26.6" r="7" fill="#21468B" />
-      <circle cx="19.4" cy="27" r="2.2" fill="#FFFFFF" />
-      <circle cx="28.6" cy="27" r="2.2" fill="#FFFFFF" />
-      <path d="M24 30.6 L22.9 28.3 L25.1 28.3 Z" fill="#FFFFFF" />
+      <circle cx="18.6" cy="25.3" r="7" fill="#21468B" />
+      <circle cx="29.4" cy="25.3" r="7" fill="#21468B" />
+      <circle cx="19.4" cy="25.7" r="2.2" fill="#FFFFFF" />
+      <circle cx="28.6" cy="25.7" r="2.2" fill="#FFFFFF" />
+      <path d="M24 29.2 L22.9 27 L25.1 27 Z" fill="#FFFFFF" />
     </svg>
   )
 }

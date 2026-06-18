@@ -6,21 +6,38 @@ function hideParent(e) {
   if (wrap) wrap.style.display = 'none'
 }
 
-function Avatar({ src, name }) {
+function Avatar({ src, name, brand, kind }) {
   const letter = (name || '?').trim().charAt(0) || '?'
   return (
-    <span className="avatar" data-letter={letter}>
+    <span className={`avatar${kind === 'article' ? ' avatar--logo' : ''}`} data-letter={letter} style={{ '--brand': brand || 'var(--accent)' }}>
       {src ? <img src={src} alt="" loading="lazy" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = 'none')} /> : null}
     </span>
   )
 }
 
-export default function ArticleCard({ item, isRead, onOpen }) {
+export default function ArticleCard({ item, isRead, onOpen, onFilterSource }) {
   const isArticle = item.kind !== 'post'
   const title = item.nl_title || item.title
   const summary = item.nl_summary || item.summary
 
-  const media = item.image ? (
+  const filter = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    onFilterSource(item)
+  }
+
+  const media = item.video ? (
+    <div className="post__media" onClick={(e) => e.preventDefault()}>
+      <video
+        className="post__video"
+        controls
+        playsInline
+        preload="none"
+        poster={item.videoPoster || undefined}
+        src={item.video}
+      />
+    </div>
+  ) : item.image ? (
     <div className="post__media">
       <img src={item.image} alt="" loading="lazy" referrerPolicy="no-referrer" onError={hideParent} />
     </div>
@@ -28,8 +45,8 @@ export default function ArticleCard({ item, isRead, onOpen }) {
 
   return (
     <a className={`card${isRead ? ' card--read' : ''}`} href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => onOpen(item.id)}>
-      <div className="post__head">
-        <Avatar src={item.avatar} name={item.sourceName} />
+      <div className="post__head" onClick={filter} role="button" tabIndex={-1} aria-label={`Alleen ${item.sourceName}`}>
+        <Avatar src={item.avatar} name={item.sourceName} brand={item.brandColor} kind={item.kind} />
         <div className="post__id">
           <span className="post__name">
             {item.sourceName}
@@ -41,18 +58,9 @@ export default function ArticleCard({ item, isRead, onOpen }) {
         </div>
       </div>
 
-      {isArticle ? (
-        <>
-          {title ? <h2 className="post__title">{title}</h2> : null}
-          {media}
-          {summary ? <p className="post__text">{summary}</p> : null}
-        </>
-      ) : (
-        <>
-          {summary ? <p className="post__text">{summary}</p> : null}
-          {media}
-        </>
-      )}
+      {summary ? <p className="post__text">{summary}</p> : null}
+      {isArticle && title ? <h2 className="post__title">{title}</h2> : null}
+      {media}
     </a>
   )
 }

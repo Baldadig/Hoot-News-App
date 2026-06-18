@@ -2,6 +2,22 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.4.0] — 2026-06-18
+
+### Toegevoegd
+
+- **Bron-filter**: tik op de bron-regel van een kaart om alleen die nieuwsbron te zien (met een wisbalk "Alleen … ✕"). Zo bekijk je netjes alles van bv. NRC, The Verge of Wired.
+- **Bluesky-video's** spelen direct in de app af (met poster), naast tekst en beeld.
+- **Merk-gekleurde avatar-cirkels** per bron, in een nette cirkel.
+- **Automatisch verversen** elke 15 minuten (en bij terugkeren in de app).
+
+### Gewijzigd
+
+- Kaartvolgorde: **samenvatting (≤140 tekens) bovenaan → titel → foto**.
+- Onderwerp **Extreemrechts → Geopolitiek** (EU, VS, China, Taiwan, Midden-Oosten, NAVO, sancties). De AI bepaalt zelf de indeling.
+- App-icoon: groot-ogige witte uil, **gecentreerd** op blauw.
+- Bluesky toont **alleen originele posts** van de gevraagde account (Aaron Rupar) — geen reposts van anderen meer.
+
 ## [0.3.1] — 2026-06-18
 
 ### Gewijzigd

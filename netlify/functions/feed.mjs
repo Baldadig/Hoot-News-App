@@ -12,17 +12,28 @@ const SOURCES = [
   { id: 'nos', name: 'NOS', urls: ['https://feeds.nos.nl/nosnieuwsalgemeen', 'http://feeds.nos.nl/nosnieuwsalgemeen'] },
 ]
 
-// Bluesky-accounts die in de feed meelopen (openbare API, geen login nodig)
+// Merk-kleuren per bron (voor de gekleurde avatar-cirkel)
+const BRAND = {
+  nrc: '#C20E1A',
+  volkskrant: '#1481C4',
+  nyt: '#1A1A1A',
+  theverge: '#5200FF',
+  wired: '#222222',
+  nos: '#B5121B',
+}
+const BSKY_BRAND = '#0085FF'
+
+// Bluesky-accounts (openbare API). Alleen eigen posts van deze auteurs.
 const BLUESKY_AUTHORS = [{ handle: 'atrupar.com', name: 'Aaron Rupar' }]
 
-const TOPICS = ['vs-politiek', 'oekraine', 'extreemrechts', 'ai', 'trump']
+const TOPICS = ['vs-politiek', 'oekraine', 'geopolitiek', 'ai', 'trump']
 const PER_SOURCE_LIMIT = 30
-const TOTAL_LIMIT = 120
+const TOTAL_LIMIT = 160
 const ENRICH_PER_REQUEST = 24
 const ENRICH_BATCH = 8
-const CACHE_MAX = 600
+const CACHE_MAX = 700
 const SUMMARY_LEN = 140
-const UA = 'HootReader/0.3 (+https://hoot.app) news aggregator'
+const UA = 'HootReader/0.4 (+https://hoot.app) news aggregator'
 
 const parser = new Parser({
   timeout: 9000,
@@ -129,9 +140,9 @@ function pickImage(item) {
 // ---------- Trefwoord-onderwerpen (terugval als AI uitstaat) ----------
 const KW = [
   ['trump', /\btrump\b/i],
-  ['vs-politiek', /\b(verkiezing|election|senate|senaat|congress|congres|white house|witte huis|republikein|republican|democraat|democrat|\bgop\b|biden|kamala|harris|supreme court|hooggerechtshof|pentagon|capitol)\b/i],
+  ['vs-politiek', /\b(verkiezing|election|senate|senaat|congress|congres|white house|witte huis|republikein|republican|democraat|democrat|\bgop\b|biden|kamala|harris|supreme court|hooggerechtshof|pentagon|capitol|vance)\b/i],
   ['oekraine', /\b(oekra|ukrain|zelensk|poetin|putin|kyiv|kiev|kremlin|donetsk|donbas|moskou|moscow)\b/i],
-  ['extreemrechts', /\b(extreemrechts|far[- ]?right|extreme[- ]?right|\bafd\b|le pen|rassemblement|vlaams belang|\bpvv\b|wilders|neonazi|neo[- ]?nazi|white nationalis|fascis|orban|orbán|meloni|baudet)\b/i],
+  ['geopolitiek', /\b(geopolit|china|taiwan|\beu\b|navo|nato|midden-oosten|israel|israël|gaza|iran|noord-korea|north korea|xi jinping|sancties|sanctions|handelsoorlog|tariff|tarieven|brussel|brussels|zuid-china)\b/i],
   ['ai', /\b(kunstmatige intelligentie|artificial intelligence|\ba\.?i\.?\b|openai|chatgpt|anthropic|\bclaude\b|gemini|\bllm\b|machine learning|deepmind|nvidia|copilot)\b/i],
 ]
 function keywordTopics(text) {
@@ -162,12 +173,15 @@ async function loadSource(src) {
           handle: domain,
           domain,
           avatar: favicon(domain),
+          brandColor: BRAND[src.id] || '#21468b',
           verified: true,
           title,
           summary,
           text: teaser,
           url: link,
           image: pickImage(it),
+          video: null,
+          videoPoster: null,
           publishedAt: it.isoDate || (it.pubDate ? safeIso(it.pubDate) : null),
         }
       })
@@ -187,10 +201,10 @@ function mapPost(post, author) {
   const rkey = (post.uri || '').split('/').pop()
   const permalink = `https://bsky.app/profile/${handle}/post/${rkey}`
   let image = null
+  let video = null
+  let videoPoster = null
   let linkUrl = permalink
-  let linkTitle = ''
   let domain = 'bsky.app'
-  const embed = post.embed
   const ext = (e) => {
     if (e?.external) {
       image = e.external.thumb || image
@@ -198,17 +212,25 @@ function mapPost(post, author) {
         linkUrl = e.external.uri
         domain = hostname(linkUrl)
       }
-      linkTitle = e.external.title || linkTitle
     }
   }
+  const vid = (e) => {
+    if (e?.playlist) {
+      video = e.playlist
+      videoPoster = e.thumbnail || null
+      image = e.thumbnail || image
+    }
+  }
+  const embed = post.embed
   if (embed) {
     const t = embed.$type || ''
-    if (t.includes('embed.external')) ext(embed)
+    if (t.includes('embed.video')) vid(embed)
+    else if (t.includes('embed.external')) ext(embed)
     else if (t.includes('embed.images') && embed.images?.length) image = embed.images[0].thumb || embed.images[0].fullsize
-    else if (t.includes('embed.video')) image = embed.thumbnail || null
     else if (t.includes('recordWithMedia') && embed.media) {
       const m = embed.media
-      if ((m.$type || '').includes('embed.images') && m.images?.length) image = m.images[0].thumb
+      if ((m.$type || '').includes('embed.video')) vid(m)
+      else if ((m.$type || '').includes('embed.images') && m.images?.length) image = m.images[0].thumb
       else if ((m.$type || '').includes('embed.external')) ext(m)
     }
   }
@@ -216,26 +238,31 @@ function mapPost(post, author) {
     id: hash('bsky|' + post.uri),
     kind: 'post',
     source: 'bsky:' + handle,
-    sourceName: post.author?.displayName || post.author?.handle || author.name,
+    sourceName: post.author?.displayName || author.name,
     handle: '@' + handle,
     domain,
     avatar: post.author?.avatar || null,
+    brandColor: BSKY_BRAND,
     verified: true,
-    title: clip(linkTitle || text, 90),
+    title: '',
     summary: clip(text, SUMMARY_LEN),
     text,
     url: linkUrl,
     image,
+    video,
+    videoPoster,
     publishedAt: safeIso(post.record.createdAt || post.indexedAt),
   }
 }
 async function loadBluesky(author) {
   try {
-    const url = `https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=${encodeURIComponent(author.handle)}&limit=30&filter=posts_no_replies`
+    const url = `https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=${encodeURIComponent(author.handle)}&limit=40&filter=posts_no_replies`
     const res = await fetch(url, { headers: { 'User-Agent': UA } })
     if (!res.ok) throw new Error('bsky ' + res.status)
     const data = await res.json()
-    const items = (data.feed || []).map(({ post }) => mapPost(post, author)).filter(Boolean)
+    // Alleen eigen, originele posts: geen reposts (reason), geen quotes/anderen
+    const own = (data.feed || []).filter((fi) => !fi.reason && fi.post?.author?.handle === author.handle)
+    const items = own.map((fi) => mapPost(fi.post, author)).filter(Boolean)
     return { id: 'bsky:' + author.handle, name: author.name, ok: true, used: author.handle, count: items.length, items }
   } catch (e) {
     return { id: 'bsky:' + author.handle, name: author.name, ok: false, used: null, count: 0, items: [], error: String((e && e.message) || e) }
@@ -247,7 +274,7 @@ let memCache = {}
 async function loadCache() {
   try {
     const store = getStore('hoot')
-    const data = await store.get('enrichments-v2', { type: 'json' })
+    const data = await store.get('enrichments-v3', { type: 'json' })
     return data || {}
   } catch {
     return memCache
@@ -262,18 +289,24 @@ async function saveCache(map) {
   }
   try {
     const store = getStore('hoot')
-    await store.setJSON('enrichments-v2', trimmed)
+    await store.setJSON('enrichments-v3', trimmed)
   } catch {
     memCache = trimmed
   }
 }
 
 // ---------- AI-verrijking (Claude Sonnet) ----------
-const SYSTEM = `Je bent een Nederlandse nieuwsredacteur. Je krijgt een JSON-array met nieuwsitems (artikelen of social posts). Voor ELK item lever je een object met:
+const SYSTEM = `Je bent een Nederlandse nieuwsredacteur voor de app Hoot. Je krijgt een JSON-array met nieuwsitems (artikelen of social posts). Voor ELK item lever je een object met:
 - "id": exact overgenomen uit de invoer
+- "nl_summary": één heldere Nederlandse samenvatting van rond de 140 tekens (streef naar 130–140), één of twee zinnen, vlot en neutraal
 - "nl_title": een korte, pakkende Nederlandse kop (maximaal ~70 tekens), zonder punt aan het eind
-- "nl_summary": één Nederlandse samenvatting van rond de 140 tekens (liefst 120–140), één of twee zinnen
-- "topics": array met 0 of meer van precies deze waarden: "vs-politiek", "oekraine", "extreemrechts", "ai", "trump". Kies alleen wat echt centraal staat. Gebruik "trump" alleen als Donald Trump het hoofdonderwerp is, "vs-politiek" voor Amerikaanse politiek of verkiezingen, "oekraine" voor de oorlog in Oekraïne, "extreemrechts" voor extreemrechtse politiek of figuren, "ai" voor kunstmatige intelligentie.
+- "topics": array met 0 of meer van precies deze waarden, op basis van waar het item echt over gaat:
+  • "trump" — Donald Trump is de hoofdpersoon
+  • "vs-politiek" — Amerikaanse binnenlandse politiek, verkiezingen, Congres, regering (niet specifiek Trump)
+  • "oekraine" — de oorlog in Oekraïne en de directe gevolgen
+  • "geopolitiek" — internationale spanningen en machtsverhoudingen: EU, VS, China, Taiwan, Midden-Oosten, NAVO, sancties, handelsconflicten
+  • "ai" — kunstmatige intelligentie: ontwikkeling, bedrijven én maatschappelijke/politieke impact
+  Kies alleen wat echt centraal staat; laat de array leeg als niets past.
 Alles in vlot Nederlands. Antwoord UITSLUITEND met een geldige JSON-array van die objecten. Geen uitleg, geen markdown, geen codeblok.`
 
 function parseJsonArray(s) {
@@ -289,7 +322,7 @@ function parseJsonArray(s) {
   }
 }
 async function enrichBatch(anthropic, items) {
-  const payload = items.map((it) => ({ id: it.id, bron: it.sourceName, type: it.kind, titel: it.kind === 'post' ? '' : it.title, tekst: it.kind === 'post' ? it.text : it.text }))
+  const payload = items.map((it) => ({ id: it.id, bron: it.sourceName, type: it.kind, titel: it.kind === 'post' ? '' : it.title, tekst: it.text }))
   const res = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 2000,
@@ -367,6 +400,7 @@ export const handler = async () => {
       handle: it.handle,
       domain: it.domain,
       avatar: it.avatar,
+      brandColor: it.brandColor,
       verified: it.verified,
       title: it.title,
       summary: it.summary,
@@ -375,6 +409,8 @@ export const handler = async () => {
       topics,
       url: it.url,
       image: it.image,
+      video: it.video,
+      videoPoster: it.videoPoster,
       publishedAt: it.publishedAt,
     }
   })
