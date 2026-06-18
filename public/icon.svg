@@ -1,0 +1,18 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- blauw vlak (Nederlandse vlag) -->
+  <rect width="512" height="512" fill="#21468B" />
+
+  <!-- witte uil-silhouet (passe-partout, Twitter-stijl) -->
+  <g fill="#FFFFFF">
+    <!-- oortjes -->
+    <path d="M160 170 C150 116 174 92 200 102 C200 130 198 152 200 172 Z" />
+    <path d="M352 170 C362 116 338 92 312 102 C312 130 314 152 312 172 Z" />
+    <!-- kop + lichaam als één vorm -->
+    <ellipse cx="256" cy="302" rx="152" ry="172" />
+  </g>
+
+  <!-- ogen + snavel als blauw negatief -->
+  <circle cx="206" cy="258" r="38" fill="#21468B" />
+  <circle cx="306" cy="258" r="38" fill="#21468B" />
+  <path d="M256 304 L238 272 Q256 264 274 272 Z" fill="#21468B" />
+</svg>

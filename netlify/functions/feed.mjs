@@ -1,0 +1,397 @@
+import Parser from 'rss-parser'
+import Anthropic from '@anthropic-ai/sdk'
+import { getStore } from '@netlify/blobs'
+
+// ---------- Bronnen ----------
+const SOURCES = [
+  { id: 'nrc', name: 'NRC', urls: ['https://www.nrc.nl/rss/', 'https://www.nrc.nl/index.rss', 'https://www.nrc.nl/rss.php'] },
+  { id: 'volkskrant', name: 'de Volkskrant', urls: ['https://www.volkskrant.nl/voorpagina/rss.xml', 'https://www.volkskrant.nl/nieuws-achtergrond/rss.xml'] },
+  { id: 'nyt', name: 'NYT', urls: ['https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml'] },
+  { id: 'theverge', name: 'The Verge', urls: ['https://www.theverge.com/rss/index.xml'] },
+  { id: 'wired', name: 'Wired', urls: ['https://www.wired.com/feed/rss'] },
+  { id: 'nos', name: 'NOS', urls: ['https://feeds.nos.nl/nosnieuwsalgemeen', 'http://feeds.nos.nl/nosnieuwsalgemeen'] },
+]
+
+// Bluesky-accounts die in de feed meelopen (openbare API, geen login nodig)
+const BLUESKY_AUTHORS = [{ handle: 'atrupar.com', name: 'Aaron Rupar' }]
+
+const TOPICS = ['vs-politiek', 'oekraine', 'extreemrechts', 'ai', 'trump']
+const PER_SOURCE_LIMIT = 30
+const TOTAL_LIMIT = 120
+const ENRICH_PER_REQUEST = 24
+const ENRICH_BATCH = 8
+const CACHE_MAX = 600
+const SUMMARY_LEN = 140
+const UA = 'HootReader/0.3 (+https://hoot.app) news aggregator'
+
+const parser = new Parser({
+  timeout: 9000,
+  headers: { 'User-Agent': UA, Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml; q=0.9, */*; q=0.8' },
+  customFields: {
+    item: [
+      ['media:content', 'mediaContent', { keepArray: true }],
+      ['media:thumbnail', 'mediaThumbnail', { keepArray: true }],
+      ['content:encoded', 'contentEncoded'],
+    ],
+  },
+})
+
+// ---------- Helpers ----------
+function hostname(u) {
+  try {
+    return new URL(u).hostname.replace(/^www\./, '')
+  } catch {
+    return ''
+  }
+}
+function favicon(domain) {
+  return domain ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128` : null
+}
+function toText(html) {
+  if (!html) return ''
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&rsquo;|&apos;/g, "'")
+    .replace(/&hellip;/g, '…')
+    .replace(/&mdash;/g, '—')
+    .replace(/&#(\d+);/g, (_, n) => {
+      try {
+        return String.fromCodePoint(parseInt(n, 10))
+      } catch {
+        return ''
+      }
+    })
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => {
+      try {
+        return String.fromCodePoint(parseInt(h, 16))
+      } catch {
+        return ''
+      }
+    })
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+function clip(s, n) {
+  if (!s) return ''
+  return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s
+}
+function cleanUrl(u) {
+  try {
+    const url = new URL(u)
+    url.hash = ''
+    for (const k of [...url.searchParams.keys()]) if (/^utm_|^cmp$|^ref$|^icid$|^cid$/i.test(k)) url.searchParams.delete(k)
+    return url.toString()
+  } catch {
+    return u
+  }
+}
+function hash(str) {
+  let h = 5381
+  for (let i = 0; i < str.length; i++) h = (((h << 5) + h) ^ str.charCodeAt(i)) >>> 0
+  return h.toString(36)
+}
+function normTitle(t) {
+  return (t || '').toLowerCase().replace(/[^a-z0-9à-ÿ]+/gi, ' ').trim()
+}
+function safeIso(d) {
+  if (!d) return null
+  const t = new Date(d).getTime()
+  return Number.isNaN(t) ? null : new Date(t).toISOString()
+}
+function chunk(arr, n) {
+  const out = []
+  for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n))
+  return out
+}
+function pickImage(item) {
+  const mc = item.mediaContent
+  if (Array.isArray(mc)) {
+    const img = mc.find((m) => m?.$?.medium === 'image' || /^image\//.test(m?.$?.type || '') || /\.(jpe?g|png|webp|gif)/i.test(m?.$?.url || ''))
+    if (img?.$?.url) return img.$.url
+  } else if (mc?.$?.url) return mc.$.url
+  const mt = item.mediaThumbnail
+  if (Array.isArray(mt)) {
+    if (mt[0]?.$?.url) return mt[0].$.url
+  } else if (mt?.$?.url) return mt.$.url
+  if (item.enclosure?.url && /^image\//.test(item.enclosure.type || '')) return item.enclosure.url
+  const html = item.contentEncoded || item.content || item.description || ''
+  const m = /<img[^>]+src=["']([^"']+)["']/i.exec(html)
+  return m ? m[1] : null
+}
+
+// ---------- Trefwoord-onderwerpen (terugval als AI uitstaat) ----------
+const KW = [
+  ['trump', /\btrump\b/i],
+  ['vs-politiek', /\b(verkiezing|election|senate|senaat|congress|congres|white house|witte huis|republikein|republican|democraat|democrat|\bgop\b|biden|kamala|harris|supreme court|hooggerechtshof|pentagon|capitol)\b/i],
+  ['oekraine', /\b(oekra|ukrain|zelensk|poetin|putin|kyiv|kiev|kremlin|donetsk|donbas|moskou|moscow)\b/i],
+  ['extreemrechts', /\b(extreemrechts|far[- ]?right|extreme[- ]?right|\bafd\b|le pen|rassemblement|vlaams belang|\bpvv\b|wilders|neonazi|neo[- ]?nazi|white nationalis|fascis|orban|orbán|meloni|baudet)\b/i],
+  ['ai', /\b(kunstmatige intelligentie|artificial intelligence|\ba\.?i\.?\b|openai|chatgpt|anthropic|\bclaude\b|gemini|\bllm\b|machine learning|deepmind|nvidia|copilot)\b/i],
+]
+function keywordTopics(text) {
+  const out = []
+  for (const [id, re] of KW) if (re.test(text)) out.push(id)
+  if (out.includes('trump') && !out.includes('vs-politiek')) out.push('vs-politiek')
+  return out
+}
+const isTopic = (t) => TOPICS.includes(t)
+
+// ---------- RSS ----------
+async function loadSource(src) {
+  let lastErr
+  for (const url of src.urls) {
+    try {
+      const feed = await parser.parseURL(url)
+      const items = (feed.items || []).slice(0, PER_SOURCE_LIMIT).map((it) => {
+        const link = cleanUrl(it.link || it.guid || '')
+        const domain = hostname(link)
+        const title = toText(it.title || '').trim()
+        const teaser = clip(toText(it.contentSnippet || it.summary || it.description || ''), 280)
+        const summary = clip(teaser, SUMMARY_LEN)
+        return {
+          id: hash(src.id + '|' + link),
+          kind: 'article',
+          source: src.id,
+          sourceName: src.name,
+          handle: domain,
+          domain,
+          avatar: favicon(domain),
+          verified: true,
+          title,
+          summary,
+          text: teaser,
+          url: link,
+          image: pickImage(it),
+          publishedAt: it.isoDate || (it.pubDate ? safeIso(it.pubDate) : null),
+        }
+      })
+      return { id: src.id, name: src.name, ok: true, used: url, count: items.length, items }
+    } catch (e) {
+      lastErr = e
+    }
+  }
+  return { id: src.id, name: src.name, ok: false, used: null, count: 0, items: [], error: String((lastErr && lastErr.message) || lastErr) }
+}
+
+// ---------- Bluesky ----------
+function mapPost(post, author) {
+  if (!post?.record) return null
+  const text = post.record.text || ''
+  const handle = post.author?.handle || author.handle
+  const rkey = (post.uri || '').split('/').pop()
+  const permalink = `https://bsky.app/profile/${handle}/post/${rkey}`
+  let image = null
+  let linkUrl = permalink
+  let linkTitle = ''
+  let domain = 'bsky.app'
+  const embed = post.embed
+  const ext = (e) => {
+    if (e?.external) {
+      image = e.external.thumb || image
+      if (e.external.uri) {
+        linkUrl = e.external.uri
+        domain = hostname(linkUrl)
+      }
+      linkTitle = e.external.title || linkTitle
+    }
+  }
+  if (embed) {
+    const t = embed.$type || ''
+    if (t.includes('embed.external')) ext(embed)
+    else if (t.includes('embed.images') && embed.images?.length) image = embed.images[0].thumb || embed.images[0].fullsize
+    else if (t.includes('embed.video')) image = embed.thumbnail || null
+    else if (t.includes('recordWithMedia') && embed.media) {
+      const m = embed.media
+      if ((m.$type || '').includes('embed.images') && m.images?.length) image = m.images[0].thumb
+      else if ((m.$type || '').includes('embed.external')) ext(m)
+    }
+  }
+  return {
+    id: hash('bsky|' + post.uri),
+    kind: 'post',
+    source: 'bsky:' + handle,
+    sourceName: author.name,
+    handle: '@' + handle,
+    domain,
+    avatar: post.author?.avatar || null,
+    verified: true,
+    title: clip(linkTitle || text, 90),
+    summary: clip(text, SUMMARY_LEN),
+    text,
+    url: linkUrl,
+    image,
+    publishedAt: safeIso(post.record.createdAt || post.indexedAt),
+  }
+}
+async function loadBluesky(author) {
+  try {
+    const url = `https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=${encodeURIComponent(author.handle)}&limit=30&filter=posts_no_replies`
+    const res = await fetch(url, { headers: { 'User-Agent': UA } })
+    if (!res.ok) throw new Error('bsky ' + res.status)
+    const data = await res.json()
+    const items = (data.feed || []).map(({ post }) => mapPost(post, author)).filter(Boolean)
+    return { id: 'bsky:' + author.handle, name: author.name, ok: true, used: author.handle, count: items.length, items }
+  } catch (e) {
+    return { id: 'bsky:' + author.handle, name: author.name, ok: false, used: null, count: 0, items: [], error: String((e && e.message) || e) }
+  }
+}
+
+// ---------- Verrijking-cache (Netlify Blobs, met geheugen-terugval) ----------
+let memCache = {}
+async function loadCache() {
+  try {
+    const store = getStore('hoot')
+    const data = await store.get('enrichments-v2', { type: 'json' })
+    return data || {}
+  } catch {
+    return memCache
+  }
+}
+async function saveCache(map) {
+  let trimmed = map
+  const keys = Object.keys(map)
+  if (keys.length > CACHE_MAX) {
+    trimmed = {}
+    for (const k of keys.slice(-CACHE_MAX)) trimmed[k] = map[k]
+  }
+  try {
+    const store = getStore('hoot')
+    await store.setJSON('enrichments-v2', trimmed)
+  } catch {
+    memCache = trimmed
+  }
+}
+
+// ---------- AI-verrijking (Claude Sonnet) ----------
+const SYSTEM = `Je bent een Nederlandse nieuwsredacteur. Je krijgt een JSON-array met nieuwsitems (artikelen of social posts). Voor ELK item lever je een object met:
+- "id": exact overgenomen uit de invoer
+- "nl_title": een korte, pakkende Nederlandse kop (maximaal ~70 tekens), zonder punt aan het eind
+- "nl_summary": één Nederlandse samenvatting van rond de 140 tekens (liefst 120–140), één of twee zinnen
+- "topics": array met 0 of meer van precies deze waarden: "vs-politiek", "oekraine", "extreemrechts", "ai", "trump". Kies alleen wat echt centraal staat. Gebruik "trump" alleen als Donald Trump het hoofdonderwerp is, "vs-politiek" voor Amerikaanse politiek of verkiezingen, "oekraine" voor de oorlog in Oekraïne, "extreemrechts" voor extreemrechtse politiek of figuren, "ai" voor kunstmatige intelligentie.
+Alles in vlot Nederlands. Antwoord UITSLUITEND met een geldige JSON-array van die objecten. Geen uitleg, geen markdown, geen codeblok.`
+
+function parseJsonArray(s) {
+  if (!s) return null
+  const a = s.indexOf('[')
+  const b = s.lastIndexOf(']')
+  if (a === -1 || b === -1 || b < a) return null
+  try {
+    const arr = JSON.parse(s.slice(a, b + 1))
+    return Array.isArray(arr) ? arr : null
+  } catch {
+    return null
+  }
+}
+async function enrichBatch(anthropic, items) {
+  const payload = items.map((it) => ({ id: it.id, bron: it.sourceName, type: it.kind, titel: it.kind === 'post' ? '' : it.title, tekst: it.kind === 'post' ? it.text : it.text }))
+  const res = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 2000,
+    thinking: { type: 'disabled' },
+    system: SYSTEM,
+    messages: [{ role: 'user', content: JSON.stringify(payload) }],
+  })
+  const text = (res.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('')
+  const arr = parseJsonArray(text)
+  if (!arr) return []
+  return arr
+    .filter((r) => r && r.id)
+    .map((r) => ({
+      id: r.id,
+      nl_title: r.nl_title ? clip(String(r.nl_title), 90) : null,
+      nl_summary: r.nl_summary ? clip(String(r.nl_summary), SUMMARY_LEN) : null,
+      topics: Array.isArray(r.topics) ? r.topics.filter(isTopic) : [],
+    }))
+}
+
+// ---------- Handler ----------
+export const handler = async () => {
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  const anthropic = apiKey ? new Anthropic({ apiKey }) : null
+
+  const tasks = [...SOURCES.map(loadSource), ...BLUESKY_AUTHORS.map(loadBluesky)]
+  const results = await Promise.allSettled(tasks)
+  const groups = results.map((r) => (r.status === 'fulfilled' ? r.value : { ok: false, count: 0, items: [], error: String(r.reason) }))
+
+  // Samenvoegen, sorteren (nieuwste eerst), dedupliceren
+  const merged = groups.flatMap((g) => g.items)
+  merged.sort((a, b) => (b.publishedAt ? Date.parse(b.publishedAt) : 0) - (a.publishedAt ? Date.parse(a.publishedAt) : 0))
+  const seenUrl = new Set()
+  const seenTitle = new Set()
+  const items = []
+  for (const it of merged) {
+    if (!it.url) continue
+    if (seenUrl.has(it.url)) continue
+    const nt = normTitle(it.title)
+    if (nt && seenTitle.has(nt)) continue
+    seenUrl.add(it.url)
+    if (nt) seenTitle.add(nt)
+    items.push(it)
+    if (items.length >= TOTAL_LIMIT) break
+  }
+
+  // Verrijking ophalen / aanvullen
+  const cache = await loadCache()
+  let enrichedNew = 0
+  if (anthropic) {
+    const missing = items.filter((it) => !cache[it.id]).slice(0, ENRICH_PER_REQUEST)
+    if (missing.length) {
+      const settled = await Promise.allSettled(chunk(missing, ENRICH_BATCH).map((b) => enrichBatch(anthropic, b)))
+      for (const s of settled) {
+        if (s.status === 'fulfilled') {
+          for (const r of s.value) {
+            cache[r.id] = { nl_title: r.nl_title, nl_summary: r.nl_summary, topics: r.topics }
+            enrichedNew++
+          }
+        }
+      }
+      if (enrichedNew) await saveCache(cache)
+    }
+  }
+
+  // Verrijking op items leggen (+ terugval)
+  const out = items.map((it) => {
+    const e = cache[it.id]
+    const topics = e && Array.isArray(e.topics) && e.topics.length ? e.topics : keywordTopics(`${it.title} ${it.text || it.summary || ''}`)
+    return {
+      id: it.id,
+      kind: it.kind,
+      source: it.source,
+      sourceName: it.sourceName,
+      handle: it.handle,
+      domain: it.domain,
+      avatar: it.avatar,
+      verified: it.verified,
+      title: it.title,
+      summary: it.summary,
+      nl_title: e?.nl_title || null,
+      nl_summary: e?.nl_summary || null,
+      topics,
+      url: it.url,
+      image: it.image,
+      publishedAt: it.publishedAt,
+    }
+  })
+
+  const meta = {
+    updatedAt: new Date().toISOString(),
+    aiEnabled: !!anthropic,
+    enrichedNew,
+    sources: groups.map(({ id, name, ok, count, used, error }) => ({ id, name, ok, count, used, error })),
+  }
+
+  return {
+    statusCode: 200,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=600',
+    },
+    body: JSON.stringify({ items: out, meta }),
+  }
+}

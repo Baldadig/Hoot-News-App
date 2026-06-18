@@ -1,0 +1,494 @@
+:root {
+  --bg: #f6f6f4;
+  --surface: #ffffff;
+  --surface-2: #efefea;
+  --text: #1a1a1a;
+  --text-dim: #6b6b6b;
+  --line: #e4e3dd;
+  --accent: #21468b;
+  --accent-soft: #e8edf6;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --maxw: 640px;
+  --serif: ui-serif, Georgia, 'Times New Roman', 'Times', serif;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101012;
+    --surface: #1a1a1d;
+    --surface-2: #25252a;
+    --text: #f1f1ef;
+    --text-dim: #9a9a98;
+    --line: #2c2c30;
+    --accent: #7fa0e6;
+    --accent-soft: #1a2440;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior-y: none;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  background: var(--bg);
+}
+
+/* ---------- Header (masthead) ---------- */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding-top: var(--safe-top);
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+
+.header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand__mark {
+  display: block;
+  border-radius: 9px;
+}
+
+.brand__name {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.iconbtn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.2s ease;
+}
+
+.iconbtn:active {
+  transform: scale(0.92);
+}
+
+.iconbtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.iconbtn--spin svg {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Onderwerp-tabs ---------- */
+.filter {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  position: sticky;
+  top: calc(56px + var(--safe-top));
+  z-index: 15;
+  background: var(--bg);
+}
+
+.filter::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.chip:active {
+  transform: scale(0.95);
+}
+
+.chip__emoji {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.chip__count {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.chip--on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.chip--on .chip__count {
+  color: var(--accent);
+}
+
+/* ---------- Feed ---------- */
+.feed {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 16px calc(28px + var(--safe-bottom));
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- Kaart (flat, redactioneel) ---------- */
+.card {
+  display: block;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.12s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.card:active {
+  transform: scale(0.99);
+}
+
+.card:hover {
+  border-color: color-mix(in srgb, var(--text) 18%, var(--line));
+}
+
+.card--read {
+  opacity: 0.5;
+}
+
+.post__head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 12px;
+}
+
+.avatar {
+  position: relative;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  display: grid;
+  place-items: center;
+}
+
+.avatar::before {
+  content: attr(data-letter);
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.avatar img {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: var(--surface);
+}
+
+.post__id {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.post__name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.verified {
+  flex: 0 0 auto;
+}
+
+.post__meta {
+  font-size: 13px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.post__text {
+  margin: 0 0 12px;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Foto's: overal even groot (vaste verhouding) */
+.post__media {
+  margin: 0 0 12px;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.post__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Link-balk met serif-kop (NYT-gevoel) */
+.linkcard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.linkcard__title {
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.28;
+  letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.linkcard__domain {
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+/* ---------- Skeleton ---------- */
+.card--skel {
+  pointer-events: none;
+}
+
+.sk__head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 12px;
+}
+
+.sk {
+  border-radius: 6px;
+  background: linear-gradient(100deg, var(--surface-2) 30%, var(--line) 50%, var(--surface-2) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s ease-in-out infinite;
+}
+
+.sk--avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.sk--name {
+  width: 140px;
+  height: 14px;
+}
+.sk--line {
+  width: 100%;
+  height: 14px;
+  margin-bottom: 8px;
+}
+.sk--short {
+  width: 65%;
+}
+.sk--media {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-sm);
+  margin-top: 4px;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ---------- Lege / fout-status ---------- */
+.state {
+  text-align: center;
+  padding: 64px 24px;
+  color: var(--text-dim);
+}
+
+.state__emoji {
+  font-size: 44px;
+  margin-bottom: 12px;
+}
+
+.state__title {
+  margin: 0 0 4px;
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.state__text {
+  margin: 0 0 18px;
+  font-size: 14.5px;
+}
+
+.btn {
+  border: none;
+  border-radius: 10px;
+  padding: 11px 18px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+/* ---------- Footer ---------- */
+.foot {
+  text-align: center;
+  padding: 22px 0 6px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+/* ---------- Pull-to-refresh + progressbalk ---------- */
+.ptr {
+  display: grid;
+  place-items: end center;
+  overflow: hidden;
+  transition: height 0.18s ease;
+}
+
+.ptr__icon {
+  font-size: 24px;
+  padding-bottom: 8px;
+}
+
+.topbar {
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent-soft);
+  overflow: hidden;
+  margin: 2px 0 10px;
+}
+
+.topbar__fill {
+  display: block;
+  height: 100%;
+  width: 40%;
+  border-radius: 2px;
+  background: var(--accent);
+  animation: slide 1.1s ease-in-out infinite;
+}
+
+@keyframes slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk,
+  .topbar__fill,
+  .iconbtn--spin svg {
+    animation: none;
+  }
+}

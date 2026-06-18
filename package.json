@@ -12,6 +12,8 @@
     "gen-icons": "node scripts/gen-icons.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.105.0",
+    "@netlify/blobs": "^10.7.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "rss-parser": "^3.13.0"
