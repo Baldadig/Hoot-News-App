@@ -216,7 +216,7 @@ function mapPost(post, author) {
     id: hash('bsky|' + post.uri),
     kind: 'post',
     source: 'bsky:' + handle,
-    sourceName: author.name,
+    sourceName: post.author?.displayName || post.author?.handle || author.name,
     handle: '@' + handle,
     domain,
     avatar: post.author?.avatar || null,
