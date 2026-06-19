@@ -9,10 +9,15 @@
 [functions]
   node_bundler = "esbuild"
 
-# Schone API-route naar de aggregator-functie
+# Schone API-routes naar de serverless functies
 [[redirects]]
   from = "/api/feed"
   to = "/.netlify/functions/feed"
+  status = 200
+
+[[redirects]]
+  from = "/api/save"
+  to = "/.netlify/functions/save"
   status = 200
 
 # SPA-fallback (laat de PWA alle routes afhandelen)

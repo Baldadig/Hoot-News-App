@@ -5,13 +5,16 @@ import ArticleCard from './components/ArticleCard.jsx'
 import { Skeleton, ErrorState, EmptyState, Footer } from './components/States.jsx'
 import { useFeed } from './hooks/useFeed.js'
 import { useReadState } from './hooks/useReadState.js'
+import { useSavedState } from './hooks/useSavedState.js'
 import usePullToRefresh from './hooks/usePullToRefresh.js'
+import { saveToInstapaper } from './lib/save.js'
 
 const HINT_KEY = 'hoot:hint-source'
 
 export default function App() {
   const { items, meta, status, refreshing, reload } = useFeed()
   const { read, markRead } = useReadState()
+  const { saved, markSaved } = useSavedState()
   const [activeTopic, setActiveTopic] = useState(null)
   const [source, setSource] = useState(null) // { source, name }
   const [hintDone, setHintDone] = useState(() => {
@@ -52,6 +55,12 @@ export default function App() {
     setSource({ source: item.source, name: item.sourceName })
     dismissHint()
     containerRef.current?.scrollTo({ top: 0 })
+  }
+
+  const saveItem = async (item) => {
+    const r = await saveToInstapaper(item)
+    if (r.ok) markSaved(item.id)
+    return r
   }
 
   const showHint = !hintDone && !source && status === 'ready' && items.length > 0
@@ -101,7 +110,15 @@ export default function App() {
         ) : (
           <div className="list">
             {visible.map((item) => (
-              <ArticleCard key={item.id} item={item} isRead={read.has(item.id)} onOpen={markRead} onFilterSource={onFilterSource} />
+              <ArticleCard
+                key={item.id}
+                item={item}
+                isRead={read.has(item.id)}
+                isSaved={saved.has(item.id)}
+                onOpen={markRead}
+                onFilterSource={onFilterSource}
+                onSave={saveItem}
+              />
             ))}
           </div>
         )}

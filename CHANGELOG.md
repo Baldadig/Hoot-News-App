@@ -2,6 +2,15 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.6.0] — 2026-06-18 — Instapaper
+
+### Toegevoegd
+
+- **Bewaar voor later → Instapaper**: een bladwijzer-knop op elke kaart zet het artikel in je Instapaper.
+  - Server-side via een nieuwe functie `/api/save` (Instapaper Simple API); inloggegevens staan veilig als Netlify-omgevingsvariabelen (`INSTAPAPER_USERNAME`, `INSTAPAPER_PASSWORD`) — nooit in de client of code.
+  - Bewaarde artikelen blijven lokaal gemarkeerd (gevulde bladwijzer); nette foutmelding als Instapaper nog niet is ingesteld.
+- De bron-regel is opgesplitst (bron-knop + leespil + bewaar-knop) zonder geneste knoppen — toegankelijk.
+
 ## [0.5.1] — 2026-06-18 — polish-ronde 2
 
 ### Gewijzigd

@@ -61,7 +61,7 @@ body {
 }
 
 /* Eén consistente focus-ring voor alle interactieve elementen */
-:where(.card__body, .post__head, .chip, .iconbtn, .btn, .srcbar, .hint):focus-visible {
+:where(.card__body, .post__source, .save, .chip, .iconbtn, .btn, .srcbar, .hint):focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
@@ -245,9 +245,18 @@ body {
 .post__head {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  width: 100%;
+  gap: var(--space-2);
   margin: 0 0 var(--space-3);
+}
+
+/* Bron-knop (avatar + naam) — filtert op deze bron */
+.post__source {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+  margin: 0;
   padding: 0;
   border: 0;
   background: none;
@@ -258,8 +267,50 @@ body {
   border-radius: var(--radius-sm);
 }
 
-.post__head:active {
+.post__source:active {
   opacity: 0.6;
+}
+
+/* Bewaar-knop (Instapaper) */
+.save {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.12s ease;
+}
+
+@media (hover: hover) {
+  .save:hover {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+}
+
+.save:active {
+  transform: scale(0.88);
+}
+
+.save--on {
+  color: var(--accent);
+}
+
+.save--err {
+  color: #d33;
+}
+
+.save--busy {
+  opacity: 0.55;
+}
+
+.save:disabled {
+  cursor: default;
 }
 
 /* Artikel-inhoud = link naar het artikel */
@@ -351,7 +402,6 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-left: var(--space-2);
   padding: 3px 9px;
   border-radius: var(--radius-pill);
   background: var(--surface-2);

@@ -33,3 +33,11 @@ export function RefreshIcon() {
     </svg>
   )
 }
+
+export function BookmarkIcon({ filled }) {
+  return (
+    <svg viewBox="0 0 24 24" width="19" height="19" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M6 4h12a1 1 0 0 1 1 1v15l-7-4-7 4V5a1 1 0 0 1 1-1z" />
+    </svg>
+  )
+}

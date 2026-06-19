@@ -5,7 +5,7 @@ Redactioneel ontwerp (New York Times × Notion): flat, serif koppen, modern klas
 
 **Bronnen:** NRC · de Volkskrant · NYT · The Verge · Wired · NOS · Bluesky-accounts (bv. [@atrupar.com](https://bsky.app/profile/atrupar.com))
 
-**Tabs zijn onderwerpen, geen bronnen:** 🇺🇸 VS-politiek · 🇺🇦 Oekraïne · ⚠️ Extreemrechts · 🤖 AI · 🎪 Trump
+**Tabs zijn onderwerpen, geen bronnen:** 🇺🇸 VS-politiek · 🇺🇦 Oekraïne · 🌍 Geopolitiek · 🤖 AI · 🎪 Trump
 
 ## Hoe lezen werkt
 
@@ -25,6 +25,18 @@ van ~140 tekens** en bepaalt de **onderwerp-tags** met Claude (Sonnet). Resultat
 - Zet hiervoor in Netlify een omgevingsvariabele **`ANTHROPIC_API_KEY`** (Site settings → Environment variables).
 - **Zonder sleutel** werkt de app door: originele titels, de RSS-teaser (140 tekens) als samenvatting,
   onderwerpen via trefwoorden. De footer toont `AI aan` / `AI uit`.
+
+## Bewaren → Instapaper
+
+Elke kaart heeft een **bewaar-knop** (bladwijzer) die het artikel in je Instapaper zet. De aanroep
+loopt server-side (`/api/save`); je inloggegevens staan alleen als Netlify-omgevingsvariabelen,
+nooit in de client of in de code:
+
+- **`INSTAPAPER_USERNAME`** — je Instapaper e-mailadres
+- **`INSTAPAPER_PASSWORD`** — je Instapaper wachtwoord (je account moet een wachtwoord ingesteld hebben)
+
+Zonder deze variabelen blijft de knop zichtbaar, maar meldt 'ie netjes dat bewaren (nog) niet lukt.
+De app onthoudt bewaarde artikelen lokaal, zodat de bladwijzer gevuld blijft.
 
 ## Ontwikkelen
 
@@ -46,8 +58,8 @@ npm run build       # output in dist/
 
 1. Push deze map naar GitHub.
 2. Koppel de repo in Netlify → build verloopt automatisch via `netlify.toml`.
-3. Zet **`ANTHROPIC_API_KEY`** bij de environment variables (voor de NL AI-laag).
-4. De aggregator draait als serverless functie op `/api/feed` (5 min CDN-cache).
+3. Zet de environment variables: **`ANTHROPIC_API_KEY`** (NL AI-laag) en **`INSTAPAPER_USERNAME`** + **`INSTAPAPER_PASSWORD`** (bewaren).
+4. De functies draaien op `/api/feed` (aggregator, 5 min CDN-cache) en `/api/save` (Instapaper).
 
 ## Bronnen & onderwerpen aanpassen
 
@@ -57,8 +69,6 @@ npm run build       # output in dist/
 
 ## Roadmap
 
-- **v0.4.0** — "Bewaar voor later" → Instapaper
-- **v0.5.0** — in-app reader voor vrij ophaalbare artikelen
-- **v0.6.0** — meer Bluesky-accounts beheren in de app + discover/trending
-- **v0.7.0** — cross-device sync (Supabase) + offline opgeslagen lezen
+- ✅ **v0.6.0** — "Bewaar voor later" → Instapaper
+- **volgende** — opgeslagen-weergave, in-app reader, meer Bluesky-accounts beheren, discover/trending, cross-device sync
 ```
