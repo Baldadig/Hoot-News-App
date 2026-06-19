@@ -65,6 +65,7 @@ npm run build       # output in dist/
 
 - **Nieuwsbronnen** (feed-URL's, met fallbacks) en **Bluesky-accounts** staan in
   [`netlify/functions/feed.mjs`](netlify/functions/feed.mjs) (`SOURCES` en `BLUESKY_AUTHORS`).
+- **Extra Trending-bronnen** (alleen voor de 🔥 Trending-tab) staan in `EXTRA_SOURCES` in dezelfde file.
 - **Onderwerp-tabs** staan in [`src/lib/topics.js`](src/lib/topics.js) (en de enum in `feed.mjs`).
 
 ## Roadmap

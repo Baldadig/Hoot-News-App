@@ -15,6 +15,7 @@ function loadCache() {
 export function useFeed() {
   const cached = loadCache()
   const [items, setItems] = useState(cached?.items ?? [])
+  const [trending, setTrending] = useState(cached?.trending ?? [])
   const [meta, setMeta] = useState(cached?.meta ?? null)
   const [status, setStatus] = useState(cached?.items?.length ? 'ready' : 'loading') // loading | ready | error
   const [refreshing, setRefreshing] = useState(false)
@@ -32,6 +33,7 @@ export function useFeed() {
       const data = await fetchFeed({ signal: controller.signal })
       const next = data.items || []
       setItems(next)
+      setTrending(data.trending || [])
       setMeta(data.meta || null)
       hasItems.current = next.length > 0
       setStatus('ready')
@@ -67,5 +69,5 @@ export function useFeed() {
     }
   }, [load])
 
-  return { items, meta, status, refreshing, reload }
+  return { items, trending, meta, status, refreshing, reload }
 }

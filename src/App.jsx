@@ -12,7 +12,7 @@ import { saveToInstapaper } from './lib/save.js'
 const HINT_KEY = 'hoot:hint-source'
 
 export default function App() {
-  const { items, meta, status, refreshing, reload } = useFeed()
+  const { items, trending, meta, status, refreshing, reload } = useFeed()
   const { read, markRead } = useReadState()
   const { saved, markSaved } = useSavedState()
   const [activeTopic, setActiveTopic] = useState(null)
@@ -41,12 +41,15 @@ export default function App() {
     return c
   }, [items])
 
+  const trendingView = activeTopic === 'trending'
+
   const visible = useMemo(() => {
+    if (trendingView) return trending
     let list = items
     if (source) list = list.filter((i) => i.source === source.source)
     if (activeTopic) list = list.filter((i) => (i.topics || []).includes(activeTopic))
     return list
-  }, [items, activeTopic, source])
+  }, [items, trending, trendingView, activeTopic, source])
 
   const showSkeleton = status === 'loading' && items.length === 0
   const showError = status === 'error' && items.length === 0
@@ -63,12 +66,12 @@ export default function App() {
     return r
   }
 
-  const showHint = !hintDone && !source && status === 'ready' && items.length > 0
+  const showHint = !hintDone && !source && !trendingView && status === 'ready' && items.length > 0
 
   return (
     <div className="app">
       <Header onRefresh={reload} refreshing={refreshing} />
-      <TopicFilter active={activeTopic} onChange={setActiveTopic} counts={counts} />
+      <TopicFilter active={activeTopic} onChange={setActiveTopic} counts={counts} trendingCount={trending.length} />
 
       <main className="feed" ref={containerRef}>
         <div className="ptr" style={{ height: pull }} aria-hidden="true">
@@ -77,7 +80,7 @@ export default function App() {
           </span>
         </div>
 
-        {source ? (
+        {source && !trendingView ? (
           <button className="srcbar" onClick={() => setSource(null)}>
             <span>
               Alleen <strong>{source.name}</strong>

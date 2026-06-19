@@ -81,7 +81,11 @@ export default function ArticleCard({ item, isRead, isSaved, onOpen, onFilterSou
             </span>
           </div>
         </button>
-        {item.readMin ? (
+        {item.trendCount ? (
+          <span className="trendbadge" title={`Ook bij: ${(item.alsoIn || []).join(', ')}`}>
+            🔥 {item.trendCount} bronnen
+          </span>
+        ) : item.readMin ? (
           <span className="readpill" aria-label={`${item.readMin} minuten lezen`}>
             📖 {item.readMin} min
           </span>

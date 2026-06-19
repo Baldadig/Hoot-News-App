@@ -21,11 +21,34 @@ const BRAND = {
   theverge: '#5200FF',
   wired: '#222222',
   nos: '#B5121B',
+  guardian: '#052962',
+  bbc: '#BB1919',
+  aljazeera: '#FA9000',
+  npr: '#1a1a1a',
+  politico: '#E5202E',
+  atlantic: '#1a1a1a',
+  economist: '#E3120B',
+  ft: '#990F3D',
+  tweakers: '#E5202C',
 }
 const BSKY_BRAND = '#0085FF'
 
 // Bluesky-accounts (openbare API). Alleen eigen posts van deze auteurs.
 const BLUESKY_AUTHORS = [{ handle: 'atrupar.com', name: 'Aaron Rupar' }]
+
+// Extra gerenommeerde bronnen — alleen voor de Trending-tab, niet in je hoofd-feed.
+const EXTRA_SOURCES = [
+  { id: 'guardian', name: 'The Guardian', x: 'guardian', urls: ['https://www.theguardian.com/world/rss'] },
+  { id: 'bbc', name: 'BBC', x: 'bbcworld', urls: ['https://feeds.bbci.co.uk/news/world/rss.xml'] },
+  { id: 'aljazeera', name: 'Al Jazeera', x: 'AJEnglish', urls: ['https://www.aljazeera.com/xml/rss/all.xml'] },
+  { id: 'npr', name: 'NPR', x: 'NPR', urls: ['https://feeds.npr.org/1001/rss.xml'] },
+  { id: 'politico', name: 'Politico', x: 'politico', urls: ['https://rss.politico.com/politics-news.xml', 'https://www.politico.com/rss/politicopicks.xml'] },
+  { id: 'atlantic', name: 'The Atlantic', x: 'TheAtlantic', urls: ['https://www.theatlantic.com/feed/all/'] },
+  { id: 'economist', name: 'The Economist', x: 'TheEconomist', urls: ['https://www.economist.com/latest/rss.xml'] },
+  { id: 'ft', name: 'Financial Times', x: 'FT', urls: ['https://www.ft.com/rss/home'] },
+  { id: 'tweakers', name: 'Tweakers', x: 'tweakers', urls: ['https://feeds.feedburner.com/tweakers/mixed', 'https://tweakers.net/feeds/mixed.xml'] },
+]
+const MAIN_IDS = new Set(SOURCES.map((s) => s.id))
 
 const TOPICS = ['vs-politiek', 'oekraine', 'geopolitiek', 'ai', 'trump']
 const PER_SOURCE_LIMIT = 30
@@ -183,6 +206,62 @@ function keywordTopics(text) {
   return out
 }
 const isTopic = (t) => TOPICS.includes(t)
+
+// ---------- Trending: cross-bron clustering ----------
+const STOP = new Set(
+  'de het een en van op in te dat die voor met als om aan bij uit ook naar maar nog wordt worden heeft hebben zijn was werd niet wel meer jaar tegen door over deze onze the and for with that this from have will your about into over after their than what when which were been they them these those where while would could should more most some such also only just like said says year week time news live video update'.split(
+    ' '
+  )
+)
+function sigWords(title) {
+  const out = new Set()
+  for (const w of (title || '').toLowerCase().normalize('NFKD').replace(/[^a-z0-9 ]/gi, ' ').split(/\s+/)) {
+    if (w.length >= 4 && !STOP.has(w)) out.add(w)
+  }
+  return out
+}
+function sharedCount(a, b) {
+  let n = 0
+  for (const w of a) if (b.has(w)) n++
+  return n
+}
+function buildTrending(articles) {
+  const clusters = []
+  for (const it of articles) {
+    const w = sigWords(it.title)
+    if (w.size < 2) continue
+    let best = null
+    let bestShared = 0
+    for (const c of clusters) {
+      const s = sharedCount(w, c.words)
+      if (s >= 3 && s > bestShared) {
+        best = c
+        bestShared = s
+      }
+    }
+    if (best) {
+      best.items.push(it)
+      for (const x of w) best.words.add(x)
+    } else {
+      clusters.push({ words: new Set(w), items: [it] })
+    }
+  }
+  const reps = []
+  for (const c of clusters) {
+    const sources = new Set(c.items.map((i) => i.source))
+    if (sources.size < 2) continue
+    const sorted = c.items.sort((a, b) => (b.publishedAt ? Date.parse(b.publishedAt) : 0) - (a.publishedAt ? Date.parse(a.publishedAt) : 0))
+    const rep = sorted.find((i) => MAIN_IDS.has(i.source)) || sorted[0]
+    const names = []
+    for (const i of sorted) {
+      if (!names.includes(i.sourceName)) names.push(i.sourceName)
+      if (names.length >= 5) break
+    }
+    reps.push({ ...rep, trendCount: sources.size, alsoIn: names })
+  }
+  reps.sort((a, b) => b.trendCount - a.trendCount || (b.publishedAt ? Date.parse(b.publishedAt) : 0) - (a.publishedAt ? Date.parse(a.publishedAt) : 0))
+  return reps.slice(0, 24)
+}
 
 // ---------- RSS ----------
 async function loadSource(src, avatars) {
@@ -382,18 +461,52 @@ async function enrichBatch(anthropic, items) {
     }))
 }
 
+// ---------- Output-mapping (verrijking op een item leggen) ----------
+function toClient(it, cache) {
+  const e = cache[it.id]
+  const topics = e && Array.isArray(e.topics) && e.topics.length ? e.topics : keywordTopics(`${it.title} ${it.text || it.summary || ''}`)
+  return {
+    id: it.id,
+    kind: it.kind,
+    source: it.source,
+    sourceName: it.sourceName,
+    handle: it.handle,
+    domain: it.domain,
+    avatar: it.avatar,
+    avatarContain: it.avatarContain,
+    brandColor: it.brandColor,
+    verified: it.verified,
+    title: it.title,
+    summary: it.summary,
+    nl_summary: it.kind === 'article' ? e?.nl_summary || null : null,
+    readMin: it.kind === 'article' ? e?.readMin || it.readMin || null : null,
+    topics,
+    url: it.url,
+    image: it.image,
+    video: it.video,
+    videoPoster: it.videoPoster,
+    publishedAt: it.publishedAt,
+  }
+}
+
 // ---------- Handler ----------
 export const handler = async () => {
   const apiKey = process.env.ANTHROPIC_API_KEY
   const anthropic = apiKey ? new Anthropic({ apiKey }) : null
 
   const avatars = await resolveSourceAvatars()
-  const tasks = [...SOURCES.map((s) => loadSource(s, avatars)), ...BLUESKY_AUTHORS.map(loadBluesky)]
-  const results = await Promise.allSettled(tasks)
-  const groups = results.map((r) => (r.status === 'fulfilled' ? r.value : { ok: false, count: 0, items: [], error: String(r.reason) }))
+  const [mainR, extraR, bskyR] = await Promise.all([
+    Promise.allSettled(SOURCES.map((s) => loadSource(s, avatars))),
+    Promise.allSettled(EXTRA_SOURCES.map((s) => loadSource(s, {}))),
+    Promise.allSettled(BLUESKY_AUTHORS.map(loadBluesky)),
+  ])
+  const val = (r) => (r.status === 'fulfilled' ? r.value : { id: '?', name: '?', ok: false, count: 0, items: [], error: String(r.reason) })
+  const mainGroups = mainR.map(val)
+  const extraGroups = extraR.map(val)
+  const bskyGroups = bskyR.map(val)
 
-  // Samenvoegen, sorteren (nieuwste eerst), dedupliceren
-  const merged = groups.flatMap((g) => g.items)
+  // Hoofd-feed: alleen jouw bronnen + Bluesky. Sorteren (nieuwste eerst), dedupliceren.
+  const merged = [...mainGroups, ...bskyGroups].flatMap((g) => g.items)
   merged.sort((a, b) => (b.publishedAt ? Date.parse(b.publishedAt) : 0) - (a.publishedAt ? Date.parse(a.publishedAt) : 0))
   const seenUrl = new Set()
   const seenTitle = new Set()
@@ -409,11 +522,22 @@ export const handler = async () => {
     if (items.length >= TOTAL_LIMIT) break
   }
 
-  // Verrijking ophalen / aanvullen
+  // Trending: clusteren over jouw bronnen + extra gerenommeerde bronnen.
+  const trending = buildTrending([...mainGroups, ...extraGroups].flatMap((g) => g.items))
+
+  // Verrijking ophalen / aanvullen (hoofd-items + trending samen, gebundeld tot de limiet).
   const cache = await loadCache()
   let enrichedNew = 0
   if (anthropic) {
-    const missing = items.filter((it) => !cache[it.id]).slice(0, ENRICH_PER_REQUEST)
+    const targets = []
+    const seen = new Set()
+    for (const it of [...items, ...trending]) {
+      if (!seen.has(it.id)) {
+        seen.add(it.id)
+        targets.push(it)
+      }
+    }
+    const missing = targets.filter((it) => !cache[it.id]).slice(0, ENRICH_PER_REQUEST)
     if (missing.length) {
       const settled = await Promise.allSettled(chunk(missing, ENRICH_BATCH).map((b) => enrichBatch(anthropic, b)))
       for (const s of settled) {
@@ -428,39 +552,14 @@ export const handler = async () => {
     }
   }
 
-  // Verrijking op items leggen (+ terugval)
-  const out = items.map((it) => {
-    const e = cache[it.id]
-    const topics = e && Array.isArray(e.topics) && e.topics.length ? e.topics : keywordTopics(`${it.title} ${it.text || it.summary || ''}`)
-    return {
-      id: it.id,
-      kind: it.kind,
-      source: it.source,
-      sourceName: it.sourceName,
-      handle: it.handle,
-      domain: it.domain,
-      avatar: it.avatar,
-      avatarContain: it.avatarContain,
-      brandColor: it.brandColor,
-      verified: it.verified,
-      title: it.title,
-      summary: it.summary,
-      nl_summary: it.kind === 'article' ? (e?.nl_summary || null) : null,
-      readMin: it.kind === 'article' ? (e?.readMin || it.readMin || null) : null,
-      topics,
-      url: it.url,
-      image: it.image,
-      video: it.video,
-      videoPoster: it.videoPoster,
-      publishedAt: it.publishedAt,
-    }
-  })
+  const out = items.map((it) => toClient(it, cache))
+  const trendOut = trending.map((it) => ({ ...toClient(it, cache), trendCount: it.trendCount, alsoIn: it.alsoIn }))
 
   const meta = {
     updatedAt: new Date().toISOString(),
     aiEnabled: !!anthropic,
     enrichedNew,
-    sources: groups.map(({ id, name, ok, count, used, error }) => ({ id, name, ok, count, used, error })),
+    sources: [...mainGroups, ...bskyGroups, ...extraGroups].map(({ id, name, ok, count, used, error }) => ({ id, name, ok, count, used, error })),
   }
 
   return {
@@ -469,6 +568,6 @@ export const handler = async () => {
       'Content-Type': 'application/json; charset=utf-8',
       'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=600',
     },
-    body: JSON.stringify({ items: out, meta }),
+    body: JSON.stringify({ items: out, trending: trendOut, meta }),
   }
 }

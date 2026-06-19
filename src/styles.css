@@ -204,6 +204,12 @@ body {
   color: var(--accent);
 }
 
+/* Trending-tab valt subtiel op */
+.chip--trending {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+
 /* ---------- Feed ---------- */
 .feed {
   flex: 1;
@@ -408,6 +414,22 @@ body {
   color: var(--text-dim);
   font-size: 12px;
   font-weight: 600;
+  white-space: nowrap;
+}
+
+/* "🔥 N bronnen" — trending-dekking */
+.trendbadge {
+  flex: 0 0 auto;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
   white-space: nowrap;
 }
 

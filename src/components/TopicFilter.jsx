@@ -1,11 +1,23 @@
 import { TOPICS } from '../lib/topics.js'
 
-export default function TopicFilter({ active, onChange, counts }) {
+export default function TopicFilter({ active, onChange, counts, trendingCount = 0 }) {
   return (
     <nav className="filter" aria-label="Filter op onderwerp">
       <button className={`chip${active === null ? ' chip--on' : ''}`} onClick={() => onChange(null)}>
         Alles
       </button>
+
+      {trendingCount > 0 ? (
+        <button
+          className={`chip chip--trending${active === 'trending' ? ' chip--on' : ''}`}
+          onClick={() => onChange(active === 'trending' ? null : 'trending')}
+        >
+          <span className="chip__emoji">🔥</span>
+          Trending
+          <span className="chip__count">{trendingCount}</span>
+        </button>
+      ) : null}
+
       {TOPICS.map((t) => (
         <button
           key={t.id}

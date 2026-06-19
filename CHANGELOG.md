@@ -2,6 +2,15 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.7.0] — 2026-06-18 — Trending / Discover
+
+### Toegevoegd
+
+- **🔥 Trending-tab**: ontdek verhalen die bij **meerdere gerenommeerde bronnen tegelijk** opduiken (cross-bron signaal).
+  - Naast je vaste bronnen worden **extra reputabele bronnen** opgehaald (The Guardian, BBC, Al Jazeera, NPR, Politico, The Atlantic, The Economist, FT, Tweakers) — alleen voor Trending, niet in je hoofd-feed.
+  - Verhalen worden geclusterd op titel-overlap; een cluster met ≥2 bronnen wordt trending. Per kaart een **"🔥 N bronnen"**-badge (hover toont welke).
+  - Gerangschikt op aantal bronnen + recentheid; representatief artikel kiest waar mogelijk je eigen bron.
+
 ## [0.6.1] — 2026-06-18
 
 ### Gewijzigd
