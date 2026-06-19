@@ -94,6 +94,17 @@ function clip(s, n) {
   if (!s) return ''
   return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s
 }
+// Past tekst netjes binnen n tekens: afronden op zin- of woordgrens, geen "…".
+function fit(s, n = 140) {
+  if (!s) return ''
+  s = s.replace(/\s+/g, ' ').trim()
+  if (s.length <= n) return s
+  const cut = s.slice(0, n)
+  const sentence = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '))
+  if (sentence >= n * 0.55) return cut.slice(0, sentence + 1).trim()
+  const space = cut.lastIndexOf(' ')
+  return (space > 0 ? cut.slice(0, space) : cut).trim()
+}
 function cleanUrl(u) {
   try {
     const url = new URL(u)
@@ -186,7 +197,7 @@ async function loadSource(src, avatars) {
         const domain = hostname(link)
         const title = toText(it.title || '').trim()
         const teaser = clip(toText(it.contentSnippet || it.summary || it.description || ''), 280)
-        const summary = clip(teaser, SUMMARY_LEN)
+        const summary = fit(teaser, SUMMARY_LEN)
         const bodyWords = toText(it.contentEncoded || it.content || it.description || '').split(/\s+/).filter(Boolean).length
         const readMin = Math.max(2, Math.round(bodyWords / 220))
         return {
@@ -272,7 +283,7 @@ function mapPost(post, author) {
     brandColor: BSKY_BRAND,
     verified: true,
     title: '',
-    summary: clip(text, SUMMARY_LEN),
+    summary: text.replace(/\s+/g, ' ').trim(),
     text,
     url: linkUrl,
     image,
@@ -302,7 +313,7 @@ let memCache = {}
 async function loadCache() {
   try {
     const store = getStore('hoot')
-    const data = await store.get('enrichments-v3', { type: 'json' })
+    const data = await store.get('enrichments-v4', { type: 'json' })
     return data || {}
   } catch {
     return memCache
@@ -317,7 +328,7 @@ async function saveCache(map) {
   }
   try {
     const store = getStore('hoot')
-    await store.setJSON('enrichments-v3', trimmed)
+    await store.setJSON('enrichments-v4', trimmed)
   } catch {
     memCache = trimmed
   }
@@ -326,9 +337,8 @@ async function saveCache(map) {
 // ---------- AI-verrijking (Claude Sonnet) ----------
 const SYSTEM = `Je bent een Nederlandse nieuwsredacteur voor de app Hoot. Je krijgt een JSON-array met nieuwsitems (artikelen of social posts). Voor ELK item lever je een object met:
 - "id": exact overgenomen uit de invoer
-- "nl_summary": ALTIJD één heldere Nederlandse samenvatting van rond de 140 tekens (streef naar 130–140), één of twee complete zinnen, vlot en neutraal. Maak er ook één als de brontekst kort of leeg is — vat dan samen op basis van de titel en het onderwerp. Nooit afkappen met "…".
-- "nl_title": een korte, pakkende Nederlandse kop (maximaal ~70 tekens), zonder punt aan het eind
-- "leesminuten": geschatte leestijd van het artikel in hele minuten (geheel getal, meestal 2–8; voor een korte social post 1)
+- "nl_summary": ALLEEN voor type "article": een korte Nederlandse samenvatting van STRIKT MAXIMAAL 140 tekens — één complete, afgeronde zin die NIET wordt afgekapt (liever korter dan over de 140). Vertaal Engelstalige bronnen naar vlot Nederlands. Voor type "post": geef een lege string "".
+- "leesminuten": alleen voor type "article": geschatte leestijd in hele minuten (geheel getal, meestal 2–8). Voor type "post": 0.
 - "topics": array met 0 of meer van precies deze waarden, op basis van waar het item echt over gaat:
   • "trump" — Donald Trump is de hoofdpersoon
   • "vs-politiek" — Amerikaanse binnenlandse politiek, verkiezingen, Congres, regering (niet specifiek Trump)
@@ -336,7 +346,7 @@ const SYSTEM = `Je bent een Nederlandse nieuwsredacteur voor de app Hoot. Je kri
   • "geopolitiek" — internationale spanningen en machtsverhoudingen: EU, VS, China, Taiwan, Midden-Oosten, NAVO, sancties, handelsconflicten
   • "ai" — kunstmatige intelligentie: ontwikkeling, bedrijven én maatschappelijke/politieke impact
   Kies alleen wat echt centraal staat; laat de array leeg als niets past.
-Alles in vlot Nederlands. Antwoord UITSLUITEND met een geldige JSON-array van die objecten. Geen uitleg, geen markdown, geen codeblok.`
+Antwoord UITSLUITEND met een geldige JSON-array van die objecten. Geen uitleg, geen markdown, geen codeblok.`
 
 function parseJsonArray(s) {
   if (!s) return null
@@ -366,8 +376,7 @@ async function enrichBatch(anthropic, items) {
     .filter((r) => r && r.id)
     .map((r) => ({
       id: r.id,
-      nl_title: r.nl_title ? clip(String(r.nl_title), 90) : null,
-      nl_summary: r.nl_summary ? clip(String(r.nl_summary), SUMMARY_LEN) : null,
+      nl_summary: r.nl_summary ? fit(String(r.nl_summary), SUMMARY_LEN) : null,
       readMin: Number.isFinite(r.leesminuten) ? Math.max(1, Math.min(60, Math.round(r.leesminuten))) : null,
       topics: Array.isArray(r.topics) ? r.topics.filter(isTopic) : [],
     }))
@@ -410,7 +419,7 @@ export const handler = async () => {
       for (const s of settled) {
         if (s.status === 'fulfilled') {
           for (const r of s.value) {
-            cache[r.id] = { nl_title: r.nl_title, nl_summary: r.nl_summary, readMin: r.readMin, topics: r.topics }
+            cache[r.id] = { nl_summary: r.nl_summary, readMin: r.readMin, topics: r.topics }
             enrichedNew++
           }
         }
@@ -436,8 +445,7 @@ export const handler = async () => {
       verified: it.verified,
       title: it.title,
       summary: it.summary,
-      nl_title: e?.nl_title || null,
-      nl_summary: e?.nl_summary || null,
+      nl_summary: it.kind === 'article' ? (e?.nl_summary || null) : null,
       readMin: it.kind === 'article' ? (e?.readMin || it.readMin || null) : null,
       topics,
       url: it.url,

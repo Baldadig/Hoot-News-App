@@ -2,6 +2,16 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.6.1] — 2026-06-18
+
+### Gewijzigd
+
+- **Samenvattingen kappen nooit meer mid-woord af** (`…`): netjes afgerond op zin-/woordgrens, strikt ≤140 tekens.
+- AI-prompt: artikel-samenvatting = **één complete Nederlandse zin (max 140), Engelse bronnen worden vertaald**.
+- **Koppen blijven in de oorspronkelijke taal** (geen vertaling meer).
+- **Bluesky-posts** blijven **origineel** van taal én lengte (geen samenvatting/vertaling), wel onderwerp-tags.
+- Verrijking-cache ververst (v4) zodat bestaande items de strakke nieuwe samenvattingen krijgen.
+
 ## [0.6.0] — 2026-06-18 — Instapaper
 
 ### Toegevoegd

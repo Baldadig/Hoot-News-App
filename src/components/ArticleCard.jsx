@@ -53,7 +53,7 @@ function SaveButton({ saved, onSave }) {
 
 export default function ArticleCard({ item, isRead, isSaved, onOpen, onFilterSource, onSave }) {
   const isArticle = item.kind !== 'post'
-  const title = item.nl_title || item.title
+  const title = item.title
   const summary = item.nl_summary || item.summary
 
   const media = item.video ? (
