@@ -2,6 +2,17 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.4.2] — 2026-06-18
+
+### Toegevoegd
+
+- **Verwachte leestijd** per artikel (📖), geschat door de AI met een heuristische terugval.
+
+### Gewijzigd
+
+- Kaartvolgorde: **titel → samenvatting (lede) → foto**, typografisch netjes.
+- **Strakker geverifieerd-vinkje** (schone cirkel met check i.p.v. het rommelige zegel).
+
 ## [0.4.1] — 2026-06-18
 
 ### Gewijzigd

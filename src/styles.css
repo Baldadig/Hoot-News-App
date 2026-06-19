@@ -306,9 +306,9 @@ body {
   text-overflow: ellipsis;
 }
 
-/* Serif-kop, boven de foto (NYT-gevoel) */
+/* Serif-kop (NYT-gevoel) */
 .post__title {
-  margin: 0 0 12px;
+  margin: 0 0 8px;
   font-family: var(--serif);
   font-size: 19px;
   font-weight: 700;
@@ -320,11 +320,16 @@ body {
   overflow: hidden;
 }
 
+/* Samenvatting als lede, tussen titel en foto */
 .post__text {
   margin: 0 0 12px;
-  font-size: 15.5px;
+  font-size: 16px;
   line-height: 1.5;
   color: var(--text);
+}
+
+.post__read {
+  white-space: nowrap;
 }
 
 /* laatste element nooit een extra ondermarge */

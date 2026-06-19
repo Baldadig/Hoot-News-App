@@ -186,6 +186,8 @@ async function loadSource(src, avatars) {
         const title = toText(it.title || '').trim()
         const teaser = clip(toText(it.contentSnippet || it.summary || it.description || ''), 280)
         const summary = clip(teaser, SUMMARY_LEN)
+        const bodyWords = toText(it.contentEncoded || it.content || it.description || '').split(/\s+/).filter(Boolean).length
+        const readMin = Math.max(2, Math.round(bodyWords / 220))
         return {
           id: hash(src.id + '|' + link),
           kind: 'article',
@@ -204,6 +206,7 @@ async function loadSource(src, avatars) {
           image: pickImage(it),
           video: null,
           videoPoster: null,
+          readMin,
           publishedAt: it.isoDate || (it.pubDate ? safeIso(it.pubDate) : null),
         }
       })
@@ -274,6 +277,7 @@ function mapPost(post, author) {
     image,
     video,
     videoPoster,
+    readMin: null,
     publishedAt: safeIso(post.record.createdAt || post.indexedAt),
   }
 }
@@ -323,6 +327,7 @@ const SYSTEM = `Je bent een Nederlandse nieuwsredacteur voor de app Hoot. Je kri
 - "id": exact overgenomen uit de invoer
 - "nl_summary": ALTIJD één heldere Nederlandse samenvatting van rond de 140 tekens (streef naar 130–140), één of twee complete zinnen, vlot en neutraal. Maak er ook één als de brontekst kort of leeg is — vat dan samen op basis van de titel en het onderwerp. Nooit afkappen met "…".
 - "nl_title": een korte, pakkende Nederlandse kop (maximaal ~70 tekens), zonder punt aan het eind
+- "leesminuten": geschatte leestijd van het artikel in hele minuten (geheel getal, meestal 2–8; voor een korte social post 1)
 - "topics": array met 0 of meer van precies deze waarden, op basis van waar het item echt over gaat:
   • "trump" — Donald Trump is de hoofdpersoon
   • "vs-politiek" — Amerikaanse binnenlandse politiek, verkiezingen, Congres, regering (niet specifiek Trump)
@@ -362,6 +367,7 @@ async function enrichBatch(anthropic, items) {
       id: r.id,
       nl_title: r.nl_title ? clip(String(r.nl_title), 90) : null,
       nl_summary: r.nl_summary ? clip(String(r.nl_summary), SUMMARY_LEN) : null,
+      readMin: Number.isFinite(r.leesminuten) ? Math.max(1, Math.min(60, Math.round(r.leesminuten))) : null,
       topics: Array.isArray(r.topics) ? r.topics.filter(isTopic) : [],
     }))
 }
@@ -403,7 +409,7 @@ export const handler = async () => {
       for (const s of settled) {
         if (s.status === 'fulfilled') {
           for (const r of s.value) {
-            cache[r.id] = { nl_title: r.nl_title, nl_summary: r.nl_summary, topics: r.topics }
+            cache[r.id] = { nl_title: r.nl_title, nl_summary: r.nl_summary, readMin: r.readMin, topics: r.topics }
             enrichedNew++
           }
         }
@@ -431,6 +437,7 @@ export const handler = async () => {
       summary: it.summary,
       nl_title: e?.nl_title || null,
       nl_summary: e?.nl_summary || null,
+      readMin: it.kind === 'article' ? (e?.readMin || it.readMin || null) : null,
       topics,
       url: it.url,
       image: it.image,

@@ -28,14 +28,7 @@ export default function ArticleCard({ item, isRead, onOpen, onFilterSource }) {
 
   const media = item.video ? (
     <div className="post__media" onClick={(e) => e.preventDefault()}>
-      <video
-        className="post__video"
-        controls
-        playsInline
-        preload="none"
-        poster={item.videoPoster || undefined}
-        src={item.video}
-      />
+      <video className="post__video" controls playsInline preload="none" poster={item.videoPoster || undefined} src={item.video} />
     </div>
   ) : item.image ? (
     <div className="post__media">
@@ -54,12 +47,13 @@ export default function ArticleCard({ item, isRead, onOpen, onFilterSource }) {
           </span>
           <span className="post__meta">
             {item.handle || item.domain} · {timeAgo(item.publishedAt)}
+            {item.readMin ? <span className="post__read"> · 📖 {item.readMin} min</span> : null}
           </span>
         </div>
       </div>
 
-      {summary ? <p className="post__text">{summary}</p> : null}
       {isArticle && title ? <h2 className="post__title">{title}</h2> : null}
+      {summary ? <p className="post__text">{summary}</p> : null}
       {media}
     </a>
   )

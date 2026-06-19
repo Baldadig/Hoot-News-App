@@ -18,12 +18,9 @@ export function OwlMark({ className }) {
 
 export function VerifiedCheck() {
   return (
-    <svg className="verified" viewBox="0 0 22 22" width="15" height="15" aria-label="geverifieerd" xmlns="http://www.w3.org/2000/svg">
-      <path
-        fill="#21468B"
-        d="M11 1.8l2.2 1.6 2.7-.2 1 2.5 2.3 1.4-.6 2.7.9 2.6-2 1.9-.4 2.7-2.7.4-1.7 2.1L11 19.7l-2.5 1-1.7-2.1-2.7-.4-.4-2.7-2-1.9.9-2.6-.6-2.7L4.1 5.7l1-2.5 2.7.2z"
-      />
-      <path fill="#FFFFFF" d="M9.7 14.2l-2.9-2.9 1.3-1.3 1.6 1.6 4-4 1.3 1.3z" />
+    <svg className="verified" viewBox="0 0 24 24" width="15" height="15" aria-label="geverifieerd" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="11" fill="#21468B" />
+      <path d="M7 12.4l3.2 3.2L17 8.8" fill="none" stroke="#FFFFFF" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
