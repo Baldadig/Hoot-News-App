@@ -5,12 +5,12 @@ import { getStore } from '@netlify/blobs'
 // ---------- Bronnen ----------
 // bsky = Bluesky-handle van het officiële account, voor een mooie merk-avatar.
 const SOURCES = [
-  { id: 'nrc', name: 'NRC', bsky: 'nrc.nl', urls: ['https://www.nrc.nl/rss/', 'https://www.nrc.nl/index.rss', 'https://www.nrc.nl/rss.php'] },
-  { id: 'volkskrant', name: 'de Volkskrant', bsky: 'volkskrant.nl', urls: ['https://www.volkskrant.nl/voorpagina/rss.xml', 'https://www.volkskrant.nl/nieuws-achtergrond/rss.xml'] },
-  { id: 'nyt', name: 'NYT', bsky: 'nytimes.com', urls: ['https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml'] },
-  { id: 'theverge', name: 'The Verge', bsky: 'theverge.com', urls: ['https://www.theverge.com/rss/index.xml'] },
-  { id: 'wired', name: 'Wired', bsky: 'wired.com', urls: ['https://www.wired.com/feed/rss'] },
-  { id: 'nos', name: 'NOS', bsky: 'nos.nl', urls: ['https://feeds.nos.nl/nosnieuwsalgemeen', 'http://feeds.nos.nl/nosnieuwsalgemeen'] },
+  { id: 'nrc', name: 'NRC', bsky: 'nrc.nl', x: 'nrc', urls: ['https://www.nrc.nl/rss/', 'https://www.nrc.nl/index.rss', 'https://www.nrc.nl/rss.php'] },
+  { id: 'volkskrant', name: 'de Volkskrant', bsky: 'volkskrant.nl', x: 'volkskrant', urls: ['https://www.volkskrant.nl/voorpagina/rss.xml', 'https://www.volkskrant.nl/nieuws-achtergrond/rss.xml'] },
+  { id: 'nyt', name: 'NYT', bsky: 'nytimes.com', x: 'nytimes', urls: ['https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml'] },
+  { id: 'theverge', name: 'The Verge', bsky: 'theverge.com', x: 'verge', urls: ['https://www.theverge.com/rss/index.xml'] },
+  { id: 'wired', name: 'Wired', bsky: 'wired.com', x: 'wired', urls: ['https://www.wired.com/feed/rss'] },
+  { id: 'nos', name: 'NOS', bsky: 'nos.nl', x: 'nos', urls: ['https://feeds.nos.nl/nosnieuwsalgemeen', 'http://feeds.nos.nl/nosnieuwsalgemeen'] },
 ]
 
 // Merk-kleuren per bron (voor de avatar-cirkel)
@@ -176,7 +176,8 @@ const isTopic = (t) => TOPICS.includes(t)
 // ---------- RSS ----------
 async function loadSource(src, avatars) {
   let lastErr
-  const brandAvatar = avatars[src.id] || null
+  // Mooie merk-avatar: 1) Bluesky-profiel, 2) X-profiel via unavatar.io, 3) favicon.
+  const brandAvatar = avatars[src.id] || (src.x ? `https://unavatar.io/x/${src.x}` : null)
   for (const url of src.urls) {
     try {
       const feed = await parser.parseURL(url)

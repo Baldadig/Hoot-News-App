@@ -2,6 +2,13 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.4.3] — 2026-06-18
+
+### Gewijzigd
+
+- **Avatars vullen nu mooi uit** (cover) i.p.v. een vierkant logo in een rondje.
+- Bronnen zonder Bluesky-account (zoals NOS) krijgen hun X-profielfoto via unavatar.io — een scherpe merk-avatar.
+
 ## [0.4.2] — 2026-06-18
 
 ### Toegevoegd
