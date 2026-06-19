@@ -20,12 +20,6 @@ export default function ArticleCard({ item, isRead, onOpen, onFilterSource }) {
   const title = item.nl_title || item.title
   const summary = item.nl_summary || item.summary
 
-  const filter = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    onFilterSource(item)
-  }
-
   const media = item.video ? (
     <div className="post__media" onClick={(e) => e.preventDefault()}>
       <video className="post__video" controls playsInline preload="none" poster={item.videoPoster || undefined} src={item.video} />
@@ -37,8 +31,8 @@ export default function ArticleCard({ item, isRead, onOpen, onFilterSource }) {
   ) : null
 
   return (
-    <a className={`card${isRead ? ' card--read' : ''}`} href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => onOpen(item.id)}>
-      <div className="post__head" onClick={filter} role="button" tabIndex={-1} aria-label={`Alleen ${item.sourceName}`}>
+    <article className={`card${isRead ? ' card--read' : ''}`}>
+      <button type="button" className="post__head" onClick={() => onFilterSource(item)} aria-label={`Toon alleen ${item.sourceName}`}>
         <Avatar src={item.avatar} name={item.sourceName} brand={item.brandColor} contain={item.avatarContain} />
         <div className="post__id">
           <span className="post__name">
@@ -50,11 +44,13 @@ export default function ArticleCard({ item, isRead, onOpen, onFilterSource }) {
             {item.readMin ? <span className="post__read"> · 📖 {item.readMin} min</span> : null}
           </span>
         </div>
-      </div>
+      </button>
 
-      {isArticle && title ? <h2 className="post__title">{title}</h2> : null}
-      {summary ? <p className="post__text">{summary}</p> : null}
-      {media}
-    </a>
+      <a className="card__body" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => onOpen(item.id)}>
+        {isArticle && title ? <h2 className="post__title">{title}</h2> : null}
+        {summary ? <p className="post__text">{summary}</p> : null}
+        {media}
+      </a>
+    </article>
   )
 }

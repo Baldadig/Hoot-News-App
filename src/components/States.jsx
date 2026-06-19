@@ -7,8 +7,9 @@ export function Skeleton() {
             <div className="sk sk--avatar" />
             <div className="sk sk--name" />
           </div>
+          <div className="sk sk--title" />
+          <div className="sk sk--title sk--short" />
           <div className="sk sk--line" />
-          <div className="sk sk--line sk--short" />
           <div className="sk sk--media" />
         </div>
       ))}
@@ -29,12 +30,24 @@ export function ErrorState({ onRetry }) {
   )
 }
 
-export function EmptyState() {
+export function EmptyState({ filtered, onReset }) {
+  if (filtered) {
+    return (
+      <div className="state">
+        <div className="state__emoji">🔍</div>
+        <p className="state__title">Niks gevonden</p>
+        <p className="state__text">Er zijn geen berichten voor dit filter.</p>
+        <button className="btn" onClick={onReset}>
+          Toon alles
+        </button>
+      </div>
+    )
+  }
   return (
     <div className="state">
       <div className="state__emoji">🦉</div>
-      <p className="state__title">Niks onder dit onderwerp</p>
-      <p className="state__text">Kies een ander onderwerp of trek omlaag om te vernieuwen.</p>
+      <p className="state__title">Nog niks hier</p>
+      <p className="state__text">Trek omlaag om te vernieuwen.</p>
     </div>
   )
 }

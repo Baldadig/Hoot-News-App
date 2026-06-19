@@ -2,6 +2,22 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.5.0] — 2026-06-18 — UI/UX polish-pass
+
+### Toegevoegd
+
+- **Toetsenbord-focus** (`:focus-visible`-ring) op alle interactieve elementen.
+- Lege staat bij een actief filter toont nu een **"Toon alles"**-knop (geen doodlopend scherm).
+- **Spacing- en radius-tokens** (`--space-*`, `--radius-pill`) voor een consistent ritme.
+
+### Gewijzigd
+
+- **Toegankelijkere kaart**: opgesplitst in een artikel-container met een echte bron-**knop** (filteren, nu ook met toetsenbord) en een artikel-**link** — geen geneste link-in-knop meer.
+- **Gelezen-status** verzacht (minder vervaagd) voor een rustiger feed.
+- **Grotere touch targets** voor de onderwerp-chips (~40px).
+- **Skeleton** komt overeen met de echte kaart (titel-placeholder toegevoegd).
+- Diverse hardcoded spacing/radii vervangen door tokens; dubbele afronding op het brand-icoon weg.
+
 ## [0.4.3] — 2026-06-18
 
 ### Gewijzigd

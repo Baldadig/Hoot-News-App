@@ -68,7 +68,13 @@ export default function App() {
         ) : showError ? (
           <ErrorState onRetry={reload} />
         ) : visible.length === 0 ? (
-          <EmptyState />
+          <EmptyState
+            filtered={!!(activeTopic || source)}
+            onReset={() => {
+              setActiveTopic(null)
+              setSource(null)
+            }}
+          />
         ) : (
           <div className="list">
             {visible.map((item) => (

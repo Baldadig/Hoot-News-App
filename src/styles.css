@@ -7,8 +7,20 @@
   --line: #e4e3dd;
   --accent: #21468b;
   --accent-soft: #e8edf6;
+
+  /* Radius-schaal */
   --radius: 14px;
   --radius-sm: 10px;
+  --radius-pill: 999px;
+
+  /* Spacing-schaal (4px-ritme) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+
   --maxw: 640px;
   --serif: ui-serif, Georgia, 'Times New Roman', 'Times', serif;
   --safe-top: env(safe-area-inset-top, 0px);
@@ -48,6 +60,12 @@ body {
   overscroll-behavior-y: none;
 }
 
+/* Eén consistente focus-ring voor alle interactieve elementen */
+:where(.card__body, .post__head, .chip, .iconbtn, .btn, .srcbar):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .app {
   display: flex;
   flex-direction: column;
@@ -74,18 +92,17 @@ body {
   align-items: center;
   justify-content: space-between;
   height: 56px;
-  padding: 0 16px;
+  padding: 0 var(--space-4);
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 .brand__mark {
   display: block;
-  border-radius: 9px;
 }
 
 .brand__name {
@@ -101,7 +118,7 @@ body {
   width: 40px;
   height: 40px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
@@ -130,8 +147,8 @@ body {
 /* ---------- Onderwerp-tabs ---------- */
 .filter {
   display: flex;
-  gap: 8px;
-  padding: 12px 16px;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -150,9 +167,10 @@ body {
   align-items: center;
   gap: 6px;
   flex: 0 0 auto;
-  padding: 7px 14px;
+  min-height: 38px;
+  padding: 8px 15px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--surface);
   color: var(--text);
   font-size: 14px;
@@ -191,49 +209,68 @@ body {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 4px 16px calc(28px + var(--safe-bottom));
+  padding: var(--space-1) var(--space-4) calc(28px + var(--safe-bottom));
 }
 
 .list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 /* ---------- Kaart (flat, redactioneel) ---------- */
 .card {
-  display: block;
-  padding: 16px;
+  padding: var(--space-4);
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  text-decoration: none;
-  color: inherit;
   transition: transform 0.12s ease, border-color 0.2s ease, opacity 0.2s ease;
 }
 
 .card:active {
-  transform: scale(0.99);
+  transform: scale(0.994);
 }
 
-.card:hover {
-  border-color: color-mix(in srgb, var(--text) 18%, var(--line));
+@media (hover: hover) {
+  .card:hover {
+    border-color: color-mix(in srgb, var(--text) 18%, var(--line));
+  }
 }
 
 .card--read {
-  opacity: 0.5;
+  opacity: 0.62;
 }
 
+/* Bron-regel = echte knop (filtert op deze bron) */
 .post__head {
   display: flex;
   align-items: center;
-  gap: 11px;
-  margin-bottom: 12px;
+  gap: var(--space-3);
+  width: 100%;
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   cursor: pointer;
+  border-radius: var(--radius-sm);
 }
 
 .post__head:active {
-  opacity: 0.65;
+  opacity: 0.6;
+}
+
+/* Artikel-inhoud = link naar het artikel */
+.card__body {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.card__body > :last-child {
+  margin-bottom: 0;
 }
 
 /* Merk-gekleurde avatar-cirkel per bron */
@@ -269,7 +306,7 @@ body {
   object-fit: cover;
 }
 
-/* Bron-logo's netjes binnen de gekleurde cirkel */
+/* Bron-logo's netjes binnen de gekleurde cirkel (favicon-terugval) */
 .avatar--logo img {
   object-fit: contain;
   padding: 7px;
@@ -306,9 +343,13 @@ body {
   text-overflow: ellipsis;
 }
 
+.post__read {
+  white-space: nowrap;
+}
+
 /* Serif-kop (NYT-gevoel) */
 .post__title {
-  margin: 0 0 8px;
+  margin: 0 0 var(--space-2);
   font-family: var(--serif);
   font-size: 19px;
   font-weight: 700;
@@ -322,24 +363,15 @@ body {
 
 /* Samenvatting als lede, tussen titel en foto */
 .post__text {
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
   font-size: 16px;
   line-height: 1.5;
   color: var(--text);
 }
 
-.post__read {
-  white-space: nowrap;
-}
-
-/* laatste element nooit een extra ondermarge */
-.card > :last-child {
-  margin-bottom: 0;
-}
-
 /* Foto's: overal even groot (vaste verhouding) */
 .post__media {
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
   aspect-ratio: 16 / 9;
   border-radius: var(--radius-sm);
   overflow: hidden;
@@ -363,12 +395,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--space-2);
   width: 100%;
-  margin: 2px 0 12px;
-  padding: 10px 16px;
+  min-height: 40px;
+  margin: 2px 0 var(--space-3);
+  padding: 10px var(--space-4);
   border: 1px solid var(--accent);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--accent-soft);
   color: var(--accent);
   font-size: 14px;
@@ -393,8 +426,8 @@ body {
 .sk__head {
   display: flex;
   align-items: center;
-  gap: 11px;
-  margin-bottom: 12px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
 }
 
 .sk {
@@ -414,19 +447,24 @@ body {
   width: 140px;
   height: 14px;
 }
+.sk--title {
+  width: 100%;
+  height: 18px;
+  margin-bottom: var(--space-2);
+}
 .sk--line {
   width: 100%;
   height: 14px;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
 }
 .sk--short {
-  width: 65%;
+  width: 60%;
 }
 .sk--media {
   width: 100%;
   aspect-ratio: 16 / 9;
   border-radius: var(--radius-sm);
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
 
 @keyframes shimmer {
@@ -438,17 +476,17 @@ body {
 /* ---------- Lege / fout-status ---------- */
 .state {
   text-align: center;
-  padding: 64px 24px;
+  padding: 56px var(--space-6);
   color: var(--text-dim);
 }
 
 .state__emoji {
   font-size: 44px;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
 }
 
 .state__title {
-  margin: 0 0 4px;
+  margin: 0 0 var(--space-1);
   font-family: var(--serif);
   font-size: 19px;
   font-weight: 700;
@@ -462,7 +500,7 @@ body {
 
 .btn {
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   padding: 11px 18px;
   background: var(--accent);
   color: #fff;
@@ -493,7 +531,7 @@ body {
 
 .ptr__icon {
   font-size: 24px;
-  padding-bottom: 8px;
+  padding-bottom: var(--space-2);
 }
 
 .topbar {
@@ -527,5 +565,11 @@ body {
   .topbar__fill,
   .iconbtn--spin svg {
     animation: none;
+  }
+  .card:active,
+  .chip:active,
+  .iconbtn:active,
+  .btn:active {
+    transform: none;
   }
 }
