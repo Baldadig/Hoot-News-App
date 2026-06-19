@@ -41,9 +41,13 @@ export default function ArticleCard({ item, isRead, onOpen, onFilterSource }) {
           </span>
           <span className="post__meta">
             {item.handle || item.domain} · {timeAgo(item.publishedAt)}
-            {item.readMin ? <span className="post__read"> · 📖 {item.readMin} min</span> : null}
           </span>
         </div>
+        {item.readMin ? (
+          <span className="readpill" aria-label={`${item.readMin} minuten lezen`}>
+            📖 {item.readMin} min
+          </span>
+        ) : null}
       </button>
 
       <a className="card__body" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => onOpen(item.id)}>

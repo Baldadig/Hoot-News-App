@@ -7,12 +7,30 @@ import { useFeed } from './hooks/useFeed.js'
 import { useReadState } from './hooks/useReadState.js'
 import usePullToRefresh from './hooks/usePullToRefresh.js'
 
+const HINT_KEY = 'hoot:hint-source'
+
 export default function App() {
   const { items, meta, status, refreshing, reload } = useFeed()
   const { read, markRead } = useReadState()
   const [activeTopic, setActiveTopic] = useState(null)
   const [source, setSource] = useState(null) // { source, name }
+  const [hintDone, setHintDone] = useState(() => {
+    try {
+      return localStorage.getItem(HINT_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
   const { containerRef, pull } = usePullToRefresh(reload)
+
+  const dismissHint = () => {
+    setHintDone(true)
+    try {
+      localStorage.setItem(HINT_KEY, '1')
+    } catch {
+      /* opslag geblokkeerd — niet erg */
+    }
+  }
 
   const counts = useMemo(() => {
     const c = {}
@@ -32,8 +50,11 @@ export default function App() {
 
   const onFilterSource = (item) => {
     setSource({ source: item.source, name: item.sourceName })
+    dismissHint()
     containerRef.current?.scrollTo({ top: 0 })
   }
+
+  const showHint = !hintDone && !source && status === 'ready' && items.length > 0
 
   return (
     <div className="app">
@@ -46,11 +67,6 @@ export default function App() {
             🦉
           </span>
         </div>
-        {refreshing && (
-          <div className="topbar">
-            <span className="topbar__fill" />
-          </div>
-        )}
 
         {source ? (
           <button className="srcbar" onClick={() => setSource(null)}>
@@ -58,6 +74,13 @@ export default function App() {
               Alleen <strong>{source.name}</strong>
             </span>
             <span className="srcbar__x" aria-hidden="true">
+              ✕
+            </span>
+          </button>
+        ) : showHint ? (
+          <button className="hint" onClick={dismissHint}>
+            <span>💡 Tik op een bron om alles van die bron te zien</span>
+            <span className="hint__x" aria-hidden="true">
               ✕
             </span>
           </button>

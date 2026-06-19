@@ -2,6 +2,15 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.5.1] — 2026-06-18 — polish-ronde 2
+
+### Gewijzigd
+
+- **Leestijd als pil** rechts in de bron-regel — kapt nooit meer af.
+- **Eenmalige tip** ("tik op een bron om te filteren") die verdwijnt zodra je 'm gebruikt of wegtikt.
+- **Desktop**: de feed staat nu als een net, gecentreerd paneel (subtiele rand + schaduw) i.p.v. een losse kolom.
+- **Eén laad-indicator**: de top-progressbalk is weg; het draaiende ververs-icoon blijft.
+
 ## [0.5.0] — 2026-06-18 — UI/UX polish-pass
 
 ### Toegevoegd
