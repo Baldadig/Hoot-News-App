@@ -2,10 +2,12 @@ import { useMemo, useState } from 'react'
 import Header from './components/Header.jsx'
 import TopicFilter from './components/TopicFilter.jsx'
 import ArticleCard from './components/ArticleCard.jsx'
+import Drawer from './components/Drawer.jsx'
 import { Skeleton, ErrorState, EmptyState, Footer } from './components/States.jsx'
 import { useFeed } from './hooks/useFeed.js'
 import { useReadState } from './hooks/useReadState.js'
 import { useSavedState } from './hooks/useSavedState.js'
+import { useTheme } from './hooks/useTheme.js'
 import usePullToRefresh from './hooks/usePullToRefresh.js'
 import { saveToInstapaper } from './lib/save.js'
 
@@ -15,6 +17,8 @@ export default function App() {
   const { items, trending, meta, status, refreshing, reload } = useFeed()
   const { read, markRead } = useReadState()
   const { saved, markSaved } = useSavedState()
+  const { theme, setTheme } = useTheme()
+  const [drawerOpen, setDrawerOpen] = useState(false)
   const [activeTopic, setActiveTopic] = useState(null)
   const [source, setSource] = useState(null) // { source, name }
   const [hintDone, setHintDone] = useState(() => {
@@ -70,7 +74,8 @@ export default function App() {
 
   return (
     <div className="app">
-      <Header onRefresh={reload} refreshing={refreshing} />
+      <Header onRefresh={reload} refreshing={refreshing} onMenu={() => setDrawerOpen(true)} />
+      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} theme={theme} setTheme={setTheme} />
       <TopicFilter active={activeTopic} onChange={setActiveTopic} counts={counts} trendingCount={trending.length} />
 
       <main className="feed" ref={containerRef}>

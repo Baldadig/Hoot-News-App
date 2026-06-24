@@ -2,6 +2,17 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.8.0] — 2026-06-24 — Slide-in menu & dark mode
+
+### Toegevoegd
+
+- **Slide-in menu** (hamburger linksboven) met **Instellingen** — uitbreidbaar voor later.
+- **Thema-keuze**: **Systeem / Licht / Donker** (segmented control). 'Systeem' volgt automatisch je iPhone; je keuze wordt onthouden. Geen "flits" bij laden (thema staat vóór render).
+
+### Gewijzigd
+
+- Donker thema werkt nu via `data-theme` i.p.v. alleen de OS-mediaquery, zodat een handmatige keuze mogelijk is.
+
 ## [0.7.1] — 2026-06-18
 
 ### Gewijzigd

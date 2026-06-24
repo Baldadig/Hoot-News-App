@@ -1,12 +1,17 @@
-import { OwlMark, RefreshIcon } from './icons.jsx'
+import { OwlMark, RefreshIcon, MenuIcon } from './icons.jsx'
 
-export default function Header({ onRefresh, refreshing }) {
+export default function Header({ onRefresh, refreshing, onMenu }) {
   return (
     <header className="header">
       <div className="header__inner">
-        <div className="brand">
-          <OwlMark className="brand__mark" />
-          <span className="brand__name">Hoot</span>
+        <div className="header__left">
+          <button className="iconbtn" onClick={onMenu} aria-label="Menu openen">
+            <MenuIcon />
+          </button>
+          <div className="brand">
+            <OwlMark className="brand__mark" />
+            <span className="brand__name">Hoot</span>
+          </div>
         </div>
         <button
           className={`iconbtn${refreshing ? ' iconbtn--spin' : ''}`}
