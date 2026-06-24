@@ -2,6 +2,12 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.8.2] — 2026-06-24 — Terug-naar-boven knop
+
+### Toegevoegd
+
+- **Terug-naar-boven knop**: verschijnt rechtsonder zodra je een stuk naar beneden scrolt en brengt je met één tik soepel terug naar de top. Past bij de bestaande icoon-knoppen (ronde knop, blauwe pijl), en verdwijnt vanzelf weer bovenaan. Werkt licht/donker mee.
+
 ## [0.8.1] — 2026-06-24 — Previews voor de Volkskrant & NRC
 
 ### Opgelost

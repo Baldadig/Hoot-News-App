@@ -10,6 +10,7 @@ import { useSavedState } from './hooks/useSavedState.js'
 import { useTheme } from './hooks/useTheme.js'
 import usePullToRefresh from './hooks/usePullToRefresh.js'
 import { saveToInstapaper } from './lib/save.js'
+import { ArrowUpIcon } from './components/icons.jsx'
 
 const HINT_KEY = 'hoot:hint-source'
 
@@ -21,6 +22,7 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [activeTopic, setActiveTopic] = useState(null)
   const [source, setSource] = useState(null) // { source, name }
+  const [showTop, setShowTop] = useState(false)
   const [hintDone, setHintDone] = useState(() => {
     try {
       return localStorage.getItem(HINT_KEY) === '1'
@@ -70,6 +72,13 @@ export default function App() {
     return r
   }
 
+  const onFeedScroll = (e) => {
+    const y = e.currentTarget.scrollTop
+    setShowTop((prev) => (prev ? y > 300 : y > 600))
+  }
+
+  const scrollToTop = () => containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+
   const showHint = !hintDone && !source && !trendingView && status === 'ready' && items.length > 0
 
   return (
@@ -78,7 +87,7 @@ export default function App() {
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} theme={theme} setTheme={setTheme} />
       <TopicFilter active={activeTopic} onChange={setActiveTopic} counts={counts} trendingCount={trending.length} />
 
-      <main className="feed" ref={containerRef}>
+      <main className="feed" ref={containerRef} onScroll={onFeedScroll}>
         <div className="ptr" style={{ height: pull }} aria-hidden="true">
           <span className="ptr__icon" style={{ opacity: Math.min(pull / 70, 1) }}>
             🦉
@@ -133,6 +142,17 @@ export default function App() {
 
         <Footer meta={meta} />
       </main>
+
+      <button
+        type="button"
+        className={`totop${showTop ? ' is-visible' : ''}`}
+        onClick={scrollToTop}
+        aria-label="Terug naar boven"
+        aria-hidden={!showTop}
+        tabIndex={showTop ? 0 : -1}
+      >
+        <ArrowUpIcon />
+      </button>
     </div>
   )
 }
