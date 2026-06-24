@@ -2,6 +2,16 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.8.1] — 2026-06-24 — Previews voor de Volkskrant & NRC
+
+### Opgelost
+
+- **de Volkskrant en NRC hadden geen previewregel.** Oorzaak: hun RSS levert alleen een kop + foto, géén samenvattingstekst (`<description>` is leeg), en de artikelpagina's blokkeren server-side ophalen. Hun Bluesky-posts herhalen enkel de kop.
+- Oplossing: de AI maakt nu voor **bron-loze artikelen** één neutrale Nederlandse zin op basis van de **kop** — met de harde regel om **geen feiten, cijfers of citaten te verzinnen** die niet in de kop staan. Bronnen mét teaser (NYT/Verge/Wired/NOS) worden zoals voorheen inhoudelijk samengevat en vertaald.
+- Verrijkings-cache naar `enrichments-v6` zodat bestaande items opnieuw worden gegenereerd met de nieuwe regel.
+
+> Werkt zodra `ANTHROPIC_API_KEY` in Netlify staat. Zonder key blijven VK/NRC-kaarten kop + foto (geen verzonnen tekst).
+
 ## [0.8.0] — 2026-06-24 — Slide-in menu & dark mode
 
 ### Toegevoegd

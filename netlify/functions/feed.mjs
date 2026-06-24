@@ -392,7 +392,7 @@ let memCache = {}
 async function loadCache() {
   try {
     const store = getStore('hoot')
-    const data = await store.get('enrichments-v5', { type: 'json' })
+    const data = await store.get('enrichments-v6', { type: 'json' })
     return data || {}
   } catch {
     return memCache
@@ -407,7 +407,7 @@ async function saveCache(map) {
   }
   try {
     const store = getStore('hoot')
-    await store.setJSON('enrichments-v5', trimmed)
+    await store.setJSON('enrichments-v6', trimmed)
   } catch {
     memCache = trimmed
   }
@@ -416,7 +416,7 @@ async function saveCache(map) {
 // ---------- AI-verrijking (Claude Sonnet) ----------
 const SYSTEM = `Je bent een Nederlandse nieuwsredacteur voor de app Hoot. Je krijgt een JSON-array met nieuwsitems (artikelen of social posts). Voor ELK item lever je een object met:
 - "id": exact overgenomen uit de invoer
-- "nl_summary": ALLEEN voor type "article": een korte Nederlandse samenvatting van STRIKT MAXIMAAL 140 tekens — één complete, afgeronde zin die NIET wordt afgekapt (liever korter dan over de 140). Vertaal Engelstalige bronnen naar vlot Nederlands. Voor type "post": geef een lege string "".
+- "nl_summary": ALLEEN voor type "article": een korte Nederlandse samenvatting van STRIKT MAXIMAAL 140 tekens — één complete, afgeronde zin die NIET wordt afgekapt (liever korter dan over de 140). Vertaal Engelstalige bronnen naar vlot Nederlands. LET OP: sommige bronnen (zoals de Volkskrant en NRC) leveren GEEN "tekst" mee — alleen een titel. Als "tekst" leeg of vrijwel leeg is, baseer je de zin UITSLUITEND op de titel: herformuleer of kader de kop tot één neutrale, vloeiende Nederlandse zin. Verzin dan ABSOLUUT GEEN feiten, cijfers, namen, citaten of uitkomsten die niet in de titel staan — beweer niets dat je niet uit de kop weet. Voor type "post": geef een lege string "".
 - "kop_kort": ALLEEN voor type "article" én ALLEEN als de originele kop langer is dan ~65 tekens: een licht ingekorte versie van de kop in DEZELFDE taal als het origineel (maximaal ~65 tekens, behoud de kern, geen punt aan het eind). Anders een lege string "".
 - "leesminuten": alleen voor type "article": geschatte leestijd in hele minuten (geheel getal, meestal 2–8). Voor type "post": 0.
 - "topics": array met 0 of meer van precies deze waarden, op basis van waar het item echt over gaat:
