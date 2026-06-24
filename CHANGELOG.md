@@ -2,6 +2,14 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.7.1] — 2026-06-18
+
+### Gewijzigd
+
+- **App-icoon** (incl. iOS-homescreen via apple-touch-icon): de uil is **iets kleiner** met meer ademruimte.
+- **Verfijnder woordmerk** "Hoot" (fijner gewicht, strakkere tracking) en kleinere uil in het header-logo.
+- **Lange koppen worden licht ingekort door de AI** (in de oorspronkelijke taal, ~max 65 tekens) zodat ze netjes passen.
+
 ## [0.7.0] — 2026-06-18 — Trending / Discover
 
 ### Toegevoegd

@@ -2,21 +2,17 @@
   <!-- blauw vlak (Nederlandse vlag) -->
   <rect width="512" height="512" fill="#21468B" />
 
-  <!-- witte uil met grote ogen, gecentreerd -->
-  <g fill="#FFFFFF">
-    <!-- puntige oortjes -->
-    <path d="M148 174 L188 84 L222 166 Z" />
-    <path d="M364 174 L324 84 L290 166 Z" />
-    <!-- ronde kop/gezicht -->
-    <ellipse cx="256" cy="280" rx="166" ry="150" />
+  <!-- witte uil met grote ogen — iets kleiner, gecentreerd -->
+  <g transform="translate(38.5 38.5) scale(0.85)">
+    <g fill="#FFFFFF">
+      <path d="M148 174 L188 84 L222 166 Z" />
+      <path d="M364 174 L324 84 L290 166 Z" />
+      <ellipse cx="256" cy="280" rx="166" ry="150" />
+    </g>
+    <circle cx="198" cy="270" r="74" fill="#21468B" />
+    <circle cx="314" cy="270" r="74" fill="#21468B" />
+    <circle cx="206" cy="274" r="23" fill="#FFFFFF" />
+    <circle cx="306" cy="274" r="23" fill="#FFFFFF" />
+    <path d="M256 312 L245 290 L267 290 Z" fill="#FFFFFF" />
   </g>
-
-  <!-- grote ogen als blauw negatief, met witte pupillen -->
-  <circle cx="198" cy="270" r="74" fill="#21468B" />
-  <circle cx="314" cy="270" r="74" fill="#21468B" />
-  <circle cx="206" cy="274" r="23" fill="#FFFFFF" />
-  <circle cx="306" cy="274" r="23" fill="#FFFFFF" />
-
-  <!-- snaveltje -->
-  <path d="M256 312 L245 290 L267 290 Z" fill="#FFFFFF" />
 </svg>
