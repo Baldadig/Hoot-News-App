@@ -2,6 +2,15 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.9.0] — 2026-06-24 — Vier nieuwe onderwerp-categorieën
+
+### Toegevoegd
+
+- **Vier nieuwe tabs**: 💻 **Tech** (Apple/Google/Meta/Musk, platforms, chips, gadgets), 🔬 **Wetenschap** (onderzoek, ruimtevaart, gezondheid), 📈 **Economie** (beurs, inflatie, bedrijven, markten) en 🇳🇱 **Nederland** (binnenlandse politiek & samenleving).
+- De tabs zijn opnieuw gegroepeerd: VS-politiek · Trump · Nederland · Oekraïne · Geopolitiek · Tech · AI · Wetenschap · Economie.
+- Voor elke nieuwe categorie is zowel de **AI-classificatie** als de **trefwoord-fallback** ingeregeld; één artikel kan meerdere onderwerpen hebben (bijv. een Nederlands AI-bedrijf → Nederland + Tech + AI).
+- Verrijkings-cache naar `enrichments-v7` zodat bestaande artikelen opnieuw worden ingedeeld met de nieuwe onderwerpen.
+
 ## [0.8.3] — 2026-06-24 — Koppen worden niet meer afgekapt
 
 ### Opgelost

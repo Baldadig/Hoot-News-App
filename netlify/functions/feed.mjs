@@ -50,7 +50,7 @@ const EXTRA_SOURCES = [
 ]
 const MAIN_IDS = new Set(SOURCES.map((s) => s.id))
 
-const TOPICS = ['vs-politiek', 'oekraine', 'geopolitiek', 'ai', 'trump']
+const TOPICS = ['vs-politiek', 'trump', 'nederland', 'oekraine', 'geopolitiek', 'tech', 'ai', 'wetenschap', 'economie']
 const PER_SOURCE_LIMIT = 30
 const TOTAL_LIMIT = 160
 const ENRICH_PER_REQUEST = 24
@@ -198,6 +198,10 @@ const KW = [
   ['oekraine', /\b(oekra|ukrain|zelensk|poetin|putin|kyiv|kiev|kremlin|donetsk|donbas|moskou|moscow)\b/i],
   ['geopolitiek', /\b(geopolit|china|taiwan|\beu\b|navo|nato|midden-oosten|israel|israël|gaza|iran|noord-korea|north korea|xi jinping|sancties|sanctions|handelsoorlog|tariff|tarieven|brussel|brussels|zuid-china)\b/i],
   ['ai', /\b(kunstmatige intelligentie|artificial intelligence|\ba\.?i\.?\b|openai|chatgpt|anthropic|\bclaude\b|gemini|\bllm\b|machine learning|deepmind|nvidia|copilot)\b/i],
+  ['tech', /\b(apple|iphone|ipad|macbook|google|alphabet|android|chrome|\bmeta\b|facebook|instagram|whatsapp|microsoft|windows|\bamazon\b|tesla|spacex|twitter|tiktok|bytedance|intel|\bamd\b|tsmc|samsung|huawei|chip|halfgeleider|semiconductor|big tech|techbedrijf|techgigant|technolog|platform|smartphone|gadget|app store|netflix|spotify|uber)\b/i],
+  ['wetenschap', /\b(wetenschap|wetenschapp|onderzoekers|scientist|researchers|\bnasa\b|\besa\b|astronom|ruimtevaart|natuurkunde|fysica|biolog|geneeskund|medisch|gezondheid|vaccin|\bdna\b|genetica|kanker|quantum|kwantum|telescoop|deeltjes|archeolog|evolutie|neurolog)\b/i],
+  ['economie', /\b(econom|beurs|aandel|inflatie|\brente\b|\becb\b|\bfed\b|federal reserve|recessie|begroting|\bbbp\b|werkloosheid|dow jones|nasdaq|wall street|kwartaalcijfers|bedrijfswinst|fusie|overname|faillis|olieprijs|gasprijs|energieprijs|valuta|wisselkoers|belasting|miljard|subsidie|koopkracht|\bbtw\b|lonen|omzet|woningmarkt|hypotheek|handelsverdrag|handelsregels)\b/i],
+  ['nederland', /\b(kabinet|tweede kamer|eerste kamer|den haag|binnenhof|catshuis|prinsjesdag|miljoenennota|rijksoverheid|gemeenteraad|provinciale staten|waterschap|coalitie|formatie|stikstof|toeslag|asielzoeker|asielbeleid|minister van|staatssecretaris|\bpvv\b|\bvvd\b|\bd66\b|groenlinks|\bpvda\b|\bcda\b|\bsgp\b|\bbbb\b|wilders|schoof|timmermans|yesilgoz|omtzigt)\b/i],
 ]
 function keywordTopics(text) {
   const out = []
@@ -392,7 +396,7 @@ let memCache = {}
 async function loadCache() {
   try {
     const store = getStore('hoot')
-    const data = await store.get('enrichments-v6', { type: 'json' })
+    const data = await store.get('enrichments-v7', { type: 'json' })
     return data || {}
   } catch {
     return memCache
@@ -407,7 +411,7 @@ async function saveCache(map) {
   }
   try {
     const store = getStore('hoot')
-    await store.setJSON('enrichments-v6', trimmed)
+    await store.setJSON('enrichments-v7', trimmed)
   } catch {
     memCache = trimmed
   }
@@ -425,7 +429,11 @@ const SYSTEM = `Je bent een Nederlandse nieuwsredacteur voor de app Hoot. Je kri
   • "oekraine" — de oorlog in Oekraïne en de directe gevolgen
   • "geopolitiek" — internationale spanningen en machtsverhoudingen: EU, VS, China, Taiwan, Midden-Oosten, NAVO, sancties, handelsconflicten
   • "ai" — kunstmatige intelligentie: ontwikkeling, bedrijven én maatschappelijke/politieke impact
-  Kies alleen wat echt centraal staat; laat de array leeg als niets past.
+  • "tech" — technologie en techbedrijven (niet specifiek AI): Apple, Google, Meta, Microsoft, Amazon, Musk/X, Tesla, chips/halfgeleiders, platforms, gadgets, techregulering
+  • "wetenschap" — wetenschappelijk onderzoek en ontdekkingen: ruimtevaart, natuurkunde, biologie, geneeskunde en gezondheid, klimaatwetenschap
+  • "economie" — economie en financiële markten: beurs, inflatie, rente, centrale banken (ECB/Fed), bedrijfscijfers, fusies en overnames, werkgelegenheid
+  • "nederland" — Nederlands binnenlands nieuws: landelijke politiek (kabinet, Tweede Kamer, partijen), beleid en samenleving in Nederland (niet sport)
+  Kies alleen wat echt centraal staat; laat de array leeg als niets past. Eén item mag meerdere onderwerpen hebben (bijv. een Nederlands AI-bedrijf: "nederland", "tech" én "ai").
 Antwoord UITSLUITEND met een geldige JSON-array van die objecten. Geen uitleg, geen markdown, geen codeblok.`
 
 function parseJsonArray(s) {
