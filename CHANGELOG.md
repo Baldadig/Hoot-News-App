@@ -2,6 +2,12 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.8.3] — 2026-06-24 — Koppen worden niet meer afgekapt
+
+### Opgelost
+
+- Lange koppen werden na 3 regels met "…" afgekapt. De regel-limiet is verwijderd: **koppen passen nu altijd volledig** (de kaart wordt simpelweg iets hoger). De AI-inkorting van lange koppen blijft eroverheen werken om ze compact te houden waar dat kan.
+
 ## [0.8.2] — 2026-06-24 — Terug-naar-boven knop
 
 ### Toegevoegd

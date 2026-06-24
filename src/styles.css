@@ -594,10 +594,7 @@ body {
   font-weight: 700;
   line-height: 1.28;
   letter-spacing: -0.01em;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  overflow-wrap: break-word;
 }
 
 /* Samenvatting als lede, tussen titel en foto */
