@@ -47,6 +47,26 @@ export default function App() {
     return c
   }, [items])
 
+  // Unieke bronnen uit de feed (voor de branded lijst in het menu)
+  const sources = useMemo(() => {
+    const seen = new Map()
+    for (const it of items) {
+      if (seen.has(it.source)) continue
+      seen.set(it.source, {
+        source: it.source,
+        name: it.sourceName,
+        avatar: it.avatar,
+        brand: it.brandColor,
+        contain: it.avatarContain,
+        verified: it.verified,
+        handle: it.handle || it.domain,
+        kind: it.kind,
+      })
+    }
+    // Nieuwsbronnen eerst, daarna Bluesky-mensen
+    return [...seen.values()].sort((a, b) => (a.kind === 'post') - (b.kind === 'post'))
+  }, [items])
+
   const trendingView = activeTopic === 'trending'
 
   const visible = useMemo(() => {
@@ -63,6 +83,15 @@ export default function App() {
   const onFilterSource = (item) => {
     setSource({ source: item.source, name: item.sourceName })
     dismissHint()
+    containerRef.current?.scrollTo({ top: 0 })
+  }
+
+  // Bron kiezen vanuit het menu: toon alleen die bron en sluit het menu
+  const pickSource = (s) => {
+    setSource({ source: s.source, name: s.name })
+    setActiveTopic(null)
+    dismissHint()
+    setDrawerOpen(false)
     containerRef.current?.scrollTo({ top: 0 })
   }
 
@@ -84,7 +113,15 @@ export default function App() {
   return (
     <div className="app">
       <Header onRefresh={reload} refreshing={refreshing} onMenu={() => setDrawerOpen(true)} />
-      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} theme={theme} setTheme={setTheme} />
+      <Drawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        theme={theme}
+        setTheme={setTheme}
+        sources={sources}
+        activeSource={source?.source ?? null}
+        onPickSource={pickSource}
+      />
       <TopicFilter active={activeTopic} onChange={setActiveTopic} counts={counts} trendingCount={trending.length} />
 
       <main className="feed" ref={containerRef} onScroll={onFeedScroll}>

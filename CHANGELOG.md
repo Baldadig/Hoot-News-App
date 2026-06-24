@@ -2,6 +2,13 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.9.1] — 2026-06-24 — Bronnen in het menu
+
+### Toegevoegd
+
+- **"Mijn bronnen" in het hamburger-menu**: al je bronnen netjes onder elkaar, branded met logo, naam, verified-vinkje en handle. Tik op een bron om alleen die bron te zien (menu sluit automatisch). De actieve bron krijgt een merk-gekleurd accent.
+- Nieuwsbronnen staan bovenaan, Bluesky-accounts eronder.
+
 ## [0.9.0] — 2026-06-24 — Vier nieuwe onderwerp-categorieën
 
 ### Toegevoegd

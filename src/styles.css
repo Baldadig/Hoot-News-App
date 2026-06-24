@@ -60,7 +60,7 @@ body {
 }
 
 /* Eén consistente focus-ring voor alle interactieve elementen */
-:where(.card__body, .post__source, .save, .chip, .iconbtn, .btn, .srcbar, .hint, .seg, .totop):focus-visible {
+:where(.card__body, .post__source, .save, .chip, .iconbtn, .btn, .srcbar, .hint, .seg, .totop, .srcrow):focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
@@ -220,6 +220,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .drawer.is-open {
@@ -250,6 +252,85 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  color: var(--text-dim);
+}
+
+/* Branded bronnenlijst in het menu */
+.srclist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.srcrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .srcrow:hover {
+    background: var(--surface-2);
+  }
+}
+
+.srcrow:active {
+  background: var(--surface-2);
+}
+
+.srcrow--on {
+  background: color-mix(in srgb, var(--brand, var(--accent)) 12%, var(--surface));
+  border-left-color: var(--brand, var(--accent));
+}
+
+.srcrow .avatar {
+  width: 38px;
+  height: 38px;
+}
+
+.srcrow__id {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.srcrow__name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.srcrow__meta {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.srcrow__chev {
+  flex: 0 0 auto;
+  font-size: 22px;
+  line-height: 1;
   color: var(--text-dim);
 }
 
