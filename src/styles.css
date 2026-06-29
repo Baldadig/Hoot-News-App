@@ -231,14 +231,91 @@ body {
 .drawer__head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--space-2);
 }
 
 .drawer__title {
+  flex: 1;
   font-family: var(--serif);
   font-size: 21px;
   font-weight: 700;
   letter-spacing: -0.01em;
+}
+
+.drawer__close {
+  margin-left: auto;
+}
+
+/* Sub-scherm-overgang */
+.drawer__page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  animation: drawerPageIn 0.24s ease;
+}
+
+@keyframes drawerPageIn {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+}
+
+/* Navigatierij naar een sub-scherm */
+.navrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+@media (hover: hover) {
+  .navrow:hover {
+    background: var(--surface-2);
+  }
+}
+
+.navrow:active {
+  background: var(--surface-2);
+}
+
+.navrow__icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.navrow__id {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.navrow__title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.navrow__meta {
+  font-size: 12.5px;
+  color: var(--text-dim);
 }
 
 .drawer__section {
@@ -376,8 +453,19 @@ body {
 
 .addsrc {
   display: flex;
+  flex-direction: column;
   gap: var(--space-2);
-  margin-top: var(--space-1);
+}
+
+.addsrc__label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.addsrc__row {
+  display: flex;
+  gap: var(--space-2);
 }
 
 .addsrc__input {
@@ -409,9 +497,19 @@ body {
 }
 
 .addsrc__error {
-  margin: var(--space-2) 0 0;
+  margin: 0;
   font-size: 13px;
   color: #d33;
+}
+
+.socialempty {
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  color: var(--text-dim);
+  text-align: center;
 }
 
 .addsrc__hint {

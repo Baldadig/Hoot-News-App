@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CloseIcon, VerifiedCheck } from './icons.jsx'
+import { CloseIcon, VerifiedCheck, BackIcon, PlusIcon } from './icons.jsx'
 import { resolveProfile } from '../lib/bluesky.js'
 
 const THEMES = [
@@ -33,7 +33,8 @@ function SourceRow({ s, active, onPick }) {
   )
 }
 
-function AddSocial({ socialSources, onAddSource, onRemoveSource }) {
+// Sub-scherm: sociale bronnen beheren
+function SocialView({ socialSources, onAddSource, onRemoveSource }) {
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -57,7 +58,32 @@ function AddSocial({ socialSources, onAddSource, onRemoveSource }) {
 
   return (
     <div className="drawer__section">
-      <div className="drawer__label">Sociale bronnen toevoegen</div>
+      <form className="addsrc" onSubmit={submit}>
+        <label className="addsrc__label" htmlFor="addsrc-input">
+          Voeg een Bluesky-account toe
+        </label>
+        <div className="addsrc__row">
+          <input
+            id="addsrc-input"
+            className="addsrc__input"
+            type="text"
+            inputMode="url"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck="false"
+            placeholder="handle of bsky.app-link"
+            value={input}
+            onChange={(e) => {
+              setInput(e.target.value)
+              if (error) setError('')
+            }}
+          />
+          <button type="submit" className="btn addsrc__btn" disabled={busy || !input.trim()}>
+            {busy ? '…' : 'Toevoegen'}
+          </button>
+        </div>
+        {error ? <p className="addsrc__error">⚠️ {error}</p> : null}
+      </form>
 
       {socialSources.length > 0 ? (
         <div className="srclist">
@@ -79,30 +105,10 @@ function AddSocial({ socialSources, onAddSource, onRemoveSource }) {
             )
           })}
         </div>
-      ) : null}
+      ) : (
+        <p className="socialempty">Nog geen accounts toegevoegd. Plak hierboven een Bluesky-handle om te beginnen.</p>
+      )}
 
-      <form className="addsrc" onSubmit={submit}>
-        <input
-          className="addsrc__input"
-          type="text"
-          inputMode="url"
-          autoCapitalize="none"
-          autoCorrect="off"
-          spellCheck="false"
-          placeholder="Bluesky-handle of -link"
-          value={input}
-          onChange={(e) => {
-            setInput(e.target.value)
-            if (error) setError('')
-          }}
-          aria-label="Bluesky-account toevoegen"
-        />
-        <button type="submit" className="btn addsrc__btn" disabled={busy || !input.trim()}>
-          {busy ? '…' : 'Toevoegen'}
-        </button>
-      </form>
-
-      {error ? <p className="addsrc__error">⚠️ {error}</p> : null}
       <p className="addsrc__hint">
         Plak een Bluesky-handle (bijv. <code>leftlaser.bsky.social</code>) of een <code>bsky.app</code>-link. Naam en avatar worden automatisch opgehaald.
         <br />
@@ -124,8 +130,11 @@ export default function Drawer({
   onAddSource,
   onRemoveSource,
 }) {
+  const [view, setView] = useState('main') // main | social
+
   useEffect(() => {
     if (!open) return
+    setView('main') // altijd op het hoofdmenu openen
     const onKey = (e) => {
       if (e.key === 'Escape') onClose()
     }
@@ -133,47 +142,75 @@ export default function Drawer({
     return () => document.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
+  const isSocial = view === 'social'
+
   return (
     <>
       <div className={`drawer-overlay${open ? ' is-open' : ''}`} onClick={onClose} aria-hidden="true" />
       <aside className={`drawer${open ? ' is-open' : ''}`} role="dialog" aria-modal="true" aria-label="Instellingen" aria-hidden={!open}>
         <div className="drawer__head">
-          <span className="drawer__title">Instellingen</span>
-          <button className="iconbtn" onClick={onClose} aria-label="Sluiten">
+          {isSocial ? (
+            <button className="iconbtn" onClick={() => setView('main')} aria-label="Terug">
+              <BackIcon />
+            </button>
+          ) : null}
+          <span className="drawer__title">{isSocial ? 'Sociale bronnen' : 'Instellingen'}</span>
+          <button className="iconbtn drawer__close" onClick={onClose} aria-label="Sluiten">
             <CloseIcon />
           </button>
         </div>
 
-        {sources.length > 0 ? (
-          <div className="drawer__section">
-            <div className="drawer__label">Mijn bronnen</div>
-            <div className="srclist">
-              {sources.map((s) => (
-                <SourceRow key={s.source} s={s} active={activeSource === s.source} onPick={onPickSource} />
-              ))}
+        {isSocial ? (
+          <div className="drawer__page" key="social">
+            <SocialView socialSources={socialSources} onAddSource={onAddSource} onRemoveSource={onRemoveSource} />
+          </div>
+        ) : (
+          <div className="drawer__page" key="main">
+            {sources.length > 0 ? (
+              <div className="drawer__section">
+                <div className="drawer__label">Mijn bronnen</div>
+                <div className="srclist">
+                  {sources.map((s) => (
+                    <SourceRow key={s.source} s={s} active={activeSource === s.source} onPick={onPickSource} />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <div className="drawer__section">
+              <button type="button" className="navrow" onClick={() => setView('social')}>
+                <span className="navrow__icon" aria-hidden="true">
+                  <PlusIcon />
+                </span>
+                <span className="navrow__id">
+                  <span className="navrow__title">Sociale bronnen</span>
+                  <span className="navrow__meta">
+                    {socialSources.length ? `${socialSources.length} toegevoegd` : 'Voeg Bluesky-accounts toe'}
+                  </span>
+                </span>
+                <span className="srcrow__chev" aria-hidden="true">›</span>
+              </button>
+            </div>
+
+            <div className="drawer__section">
+              <div className="drawer__label">Weergave</div>
+              <div className="segmented" role="group" aria-label="Thema">
+                {THEMES.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    className={`seg${theme === t.id ? ' seg--on' : ''}`}
+                    onClick={() => setTheme(t.id)}
+                    aria-pressed={theme === t.id}
+                  >
+                    <span className="seg__emoji">{t.emoji}</span>
+                    {t.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-        ) : null}
-
-        <AddSocial socialSources={socialSources} onAddSource={onAddSource} onRemoveSource={onRemoveSource} />
-
-        <div className="drawer__section">
-          <div className="drawer__label">Weergave</div>
-          <div className="segmented" role="group" aria-label="Thema">
-            {THEMES.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                className={`seg${theme === t.id ? ' seg--on' : ''}`}
-                onClick={() => setTheme(t.id)}
-                aria-pressed={theme === t.id}
-              >
-                <span className="seg__emoji">{t.emoji}</span>
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        )}
       </aside>
     </>
   )

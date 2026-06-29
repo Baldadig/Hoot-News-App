@@ -2,6 +2,13 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.11.1] — 2026-06-29 — Sociale bronnen als eigen instellingen-scherm
+
+### Gewijzigd
+
+- Het toevoegen van sociale bronnen zit nu achter een nette **drill-down** in Instellingen: het hoofdmenu toont een rij **"Sociale bronnen ›"** (met aantal), die een eigen sub-scherm opent met terug-knop, invoerveld, lijst en uitleg. Het hoofdmenu blijft zo rustig en overzichtelijk (iOS-instellingen-gevoel).
+- Toegevoegd: duidelijk label boven het invoerveld, een lege-staat ("Nog geen accounts toegevoegd"), en een vloeiende schermovergang.
+
 ## [0.11.0] — 2026-06-29 — Zelf social-bronnen toevoegen
 
 ### Toegevoegd
