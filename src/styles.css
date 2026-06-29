@@ -334,6 +334,100 @@ body {
   color: var(--text-dim);
 }
 
+/* Zelf-toegevoegde social-bronnen */
+.socialrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.socialrow .avatar {
+  width: 38px;
+  height: 38px;
+}
+
+.socialrow__rm {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.socialrow__rm svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (hover: hover) {
+  .socialrow__rm:hover {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+}
+
+.addsrc {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.addsrc__input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.addsrc__input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+.addsrc__btn {
+  flex: 0 0 auto;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.addsrc__btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.addsrc__error {
+  margin: var(--space-2) 0 0;
+  font-size: 13px;
+  color: #d33;
+}
+
+.addsrc__hint {
+  margin: var(--space-2) 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+.addsrc__hint code {
+  font-size: 12px;
+  background: var(--surface-2);
+  padding: 1px 5px;
+  border-radius: 5px;
+}
+
 /* Thema-keuze (segmented control) */
 .segmented {
   display: flex;

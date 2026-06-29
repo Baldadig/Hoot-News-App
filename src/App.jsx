@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import Header from './components/Header.jsx'
 import TopicFilter from './components/TopicFilter.jsx'
 import ArticleCard from './components/ArticleCard.jsx'
@@ -8,14 +8,32 @@ import { useFeed } from './hooks/useFeed.js'
 import { useReadState } from './hooks/useReadState.js'
 import { useSavedState } from './hooks/useSavedState.js'
 import { useTheme } from './hooks/useTheme.js'
+import { useSocialSources } from './hooks/useSocialSources.js'
 import usePullToRefresh from './hooks/usePullToRefresh.js'
 import { saveToInstapaper } from './lib/save.js'
 import { ArrowUpIcon } from './components/icons.jsx'
 
 const HINT_KEY = 'hoot:hint-source'
 
+// Server-feed + zelf-toegevoegde social-posts samenvoegen (dedup + nieuwste eerst).
+function mergeItems(server, social) {
+  if (!social.length) return server
+  const seen = new Set()
+  const out = []
+  for (const it of [...server, ...social]) {
+    if (!it.url || seen.has(it.id) || seen.has(it.url)) continue
+    seen.add(it.id)
+    seen.add(it.url)
+    out.push(it)
+  }
+  out.sort((a, b) => (b.publishedAt ? Date.parse(b.publishedAt) : 0) - (a.publishedAt ? Date.parse(a.publishedAt) : 0))
+  return out
+}
+
 export default function App() {
-  const { items, trending, meta, status, refreshing, reload } = useFeed()
+  const { items: serverItems, trending, meta, status, refreshing, reload } = useFeed()
+  const [refreshKey, setRefreshKey] = useState(0)
+  const { sources: socialSources, items: socialItems, addSource, removeSource } = useSocialSources(refreshKey)
   const { read, markRead } = useReadState()
   const { saved, markSaved } = useSavedState()
   const { theme, setTheme } = useTheme()
@@ -30,7 +48,15 @@ export default function App() {
       return false
     }
   })
-  const { containerRef, pull } = usePullToRefresh(reload)
+
+  const items = useMemo(() => mergeItems(serverItems, socialItems), [serverItems, socialItems])
+
+  const reloadAll = useCallback(() => {
+    setRefreshKey((k) => k + 1)
+    reload()
+  }, [reload])
+
+  const { containerRef, pull } = usePullToRefresh(reloadAll)
 
   const dismissHint = () => {
     setHintDone(true)
@@ -112,7 +138,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <Header onRefresh={reload} refreshing={refreshing} onMenu={() => setDrawerOpen(true)} />
+      <Header onRefresh={reloadAll} refreshing={refreshing} onMenu={() => setDrawerOpen(true)} />
       <Drawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
@@ -121,6 +147,9 @@ export default function App() {
         sources={sources}
         activeSource={source?.source ?? null}
         onPickSource={pickSource}
+        socialSources={socialSources}
+        onAddSource={addSource}
+        onRemoveSource={removeSource}
       />
       <TopicFilter active={activeTopic} onChange={setActiveTopic} counts={counts} trendingCount={trending.length} />
 

@@ -2,6 +2,14 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.11.0] — 2026-06-29 — Zelf social-bronnen toevoegen
+
+### Toegevoegd
+
+- **Voeg zelf Bluesky-accounts toe** in Instellingen (menu): plak een handle of `bsky.app`-link, Hoot haalt **automatisch de naam en avatar** op en mengt de posts (inclusief video) in je feed — geen serverwijziging nodig, alles in je eigen app (localStorage).
+- Toegevoegde accounts verschijnen ook in "Mijn bronnen" om op te filteren, en zijn met één tik weer te verwijderen.
+- **Threads/Instagram**: die hebben geen publieke feed/API, dus niet mogelijk — de uitleg in het menu wijst je naar het eventuele Bluesky-account van de maker.
+
 ## [0.10.0] — 2026-06-29 — Previewtekst voor de Volkskrant (zonder AI)
 
 ### Toegevoegd
