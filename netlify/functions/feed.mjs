@@ -526,11 +526,12 @@ export const handler = async () => {
   const bskyGroups = bskyR.map(val)
 
   // Hoofd-feed: alleen jouw bronnen + Bluesky. Sorteren (nieuwste eerst), dedupliceren.
+  const byRecency = (a, b) => (b.publishedAt ? Date.parse(b.publishedAt) : 0) - (a.publishedAt ? Date.parse(a.publishedAt) : 0)
   const merged = [...mainGroups, ...bskyGroups].flatMap((g) => g.items)
-  merged.sort((a, b) => (b.publishedAt ? Date.parse(b.publishedAt) : 0) - (a.publishedAt ? Date.parse(a.publishedAt) : 0))
+  merged.sort(byRecency)
   const seenUrl = new Set()
   const seenTitle = new Set()
-  const items = []
+  const deduped = []
   for (const it of merged) {
     if (!it.url) continue
     if (seenUrl.has(it.url)) continue
@@ -538,9 +539,23 @@ export const handler = async () => {
     if (nt && seenTitle.has(nt)) continue
     seenUrl.add(it.url)
     if (nt) seenTitle.add(nt)
-    items.push(it)
-    if (items.length >= TOTAL_LIMIT) break
+    deduped.push(it)
   }
+  // Basis = de nieuwste TOTAL_LIMIT. Daarna garanderen we per bron z'n recentste
+  // items, zodat laag-frequente kanalen (bv. Left Laser) niet volledig uit de feed
+  // én het bronnen-menu vallen wanneer hun nieuwste post een paar dagen oud is.
+  const items = deduped.slice(0, TOTAL_LIMIT)
+  const GUARANTEE_PER_SOURCE = 6
+  const have = new Set(items.map((i) => i.id))
+  const perSource = {}
+  for (const it of items) perSource[it.source] = (perSource[it.source] || 0) + 1
+  for (const it of deduped) {
+    if (have.has(it.id) || (perSource[it.source] || 0) >= GUARANTEE_PER_SOURCE) continue
+    items.push(it)
+    have.add(it.id)
+    perSource[it.source] = (perSource[it.source] || 0) + 1
+  }
+  items.sort(byRecency)
 
   // Trending: clusteren over jouw bronnen + extra gerenommeerde bronnen.
   const trending = buildTrending([...mainGroups, ...extraGroups].flatMap((g) => g.items))

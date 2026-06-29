@@ -2,6 +2,12 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.14.0] — 2026-06-29 — Bronnen vallen niet meer volledig uit de feed
+
+### Opgelost
+
+- Laag-frequente bronnen (zoals **Left Laser**) verdwenen volledig uit de feed — én uit het bronnen-menu — als hun nieuwste post een paar dagen oud was, omdat de feed alleen de ~160 nieuwste items over alle bronnen toont. Nu houdt elke bron **z'n 6 recentste items** gegarandeerd, zodat geen enkel kanaal onzichtbaar wordt. Je vindt Left Laser dus altijd terug via het bronnen-menu (en kunt erop filteren).
+
 ## [0.13.0] — 2026-06-29 — Left Laser via YouTube i.p.v. Bluesky
 
 ### Gewijzigd
