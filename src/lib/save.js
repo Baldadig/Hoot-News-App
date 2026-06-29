@@ -3,7 +3,7 @@ export async function saveToInstapaper(item) {
     const res = await fetch('/api/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: item.url, title: item.nl_title || item.title || item.sourceName }),
+      body: JSON.stringify({ url: item.url, title: item.title || item.sourceName }),
     })
     if (res.ok) return { ok: true }
     let error = 'error'

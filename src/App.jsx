@@ -8,10 +8,18 @@ import { useFeed } from './hooks/useFeed.js'
 import { useReadState } from './hooks/useReadState.js'
 import { useSavedState } from './hooks/useSavedState.js'
 import { useTheme } from './hooks/useTheme.js'
+import { useDensity } from './hooks/useDensity.js'
 import { useSocialSources } from './hooks/useSocialSources.js'
 import usePullToRefresh from './hooks/usePullToRefresh.js'
+import useKeyboardNav from './hooks/useKeyboardNav.js'
 import { saveToInstapaper } from './lib/save.js'
 import { ArrowUpIcon } from './components/icons.jsx'
+
+function formatTime(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
+}
 
 const HINT_KEY = 'hoot:hint-source'
 
@@ -31,12 +39,13 @@ function mergeItems(server, social) {
 }
 
 export default function App() {
-  const { items: serverItems, trending, meta, status, refreshing, reload } = useFeed()
+  const { items: serverItems, trending, meta, status, refreshing, refreshError, reload, pendingCount, applyPending } = useFeed()
   const [refreshKey, setRefreshKey] = useState(0)
   const { sources: socialSources, items: socialItems, addSource, removeSource } = useSocialSources(refreshKey)
   const { read, markRead } = useReadState()
   const { saved, markSaved } = useSavedState()
   const { theme, setTheme } = useTheme()
+  const { density, setDensity } = useDensity()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [activeTopic, setActiveTopic] = useState(null)
   const [source, setSource] = useState(null) // { source, name }
@@ -134,7 +143,17 @@ export default function App() {
 
   const scrollToTop = () => containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
 
+  // Wachtende nieuwe items tonen en naar boven scrollen.
+  const showNew = () => {
+    applyPending()
+    setRefreshKey((k) => k + 1)
+    containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  useKeyboardNav(containerRef, { onRefresh: reloadAll })
+
   const showHint = !hintDone && !source && !trendingView && status === 'ready' && items.length > 0
+  const freshTime = formatTime(meta?.updatedAt)
 
   return (
     <div className="app">
@@ -144,6 +163,8 @@ export default function App() {
         onClose={() => setDrawerOpen(false)}
         theme={theme}
         setTheme={setTheme}
+        density={density}
+        setDensity={setDensity}
         sources={sources}
         activeSource={source?.source ?? null}
         onPickSource={pickSource}
@@ -159,6 +180,24 @@ export default function App() {
             🦉
           </span>
         </div>
+
+        {pendingCount > 0 && !trendingView ? (
+          <button className="newpill" onClick={showNew}>
+            ↑ {pendingCount} {pendingCount === 1 ? 'nieuw bericht' : 'nieuwe berichten'}
+          </button>
+        ) : null}
+
+        {!showSkeleton && !showError ? (
+          <div className="freshbar">
+            {refreshError ? (
+              <button className="freshbar__retry" onClick={reloadAll}>
+                ⚠️ Verversen mislukt — opnieuw
+              </button>
+            ) : (
+              <span>{refreshing ? 'Verversen…' : freshTime ? `Bijgewerkt om ${freshTime}` : ''}</span>
+            )}
+          </div>
+        ) : null}
 
         {source && !trendingView ? (
           <button className="srcbar" onClick={() => setSource(null)}>
@@ -181,7 +220,7 @@ export default function App() {
         {showSkeleton ? (
           <Skeleton />
         ) : showError ? (
-          <ErrorState onRetry={reload} />
+          <ErrorState onRetry={reloadAll} />
         ) : visible.length === 0 ? (
           <EmptyState
             filtered={!!(activeTopic || source)}

@@ -10,7 +10,7 @@ export default function Header({ onRefresh, refreshing, onMenu }) {
           </button>
           <div className="brand">
             <OwlMark className="brand__mark" />
-            <span className="brand__name">Hoot</span>
+            <h1 className="brand__name">Hoot</h1>
           </div>
         </div>
         <button

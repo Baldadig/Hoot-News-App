@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CloseIcon, VerifiedCheck, BackIcon, PlusIcon } from './icons.jsx'
 import { resolveProfile } from '../lib/bluesky.js'
 
@@ -6,6 +6,11 @@ const THEMES = [
   { id: 'system', label: 'Systeem', emoji: '🖥️' },
   { id: 'light', label: 'Licht', emoji: '☀️' },
   { id: 'dark', label: 'Donker', emoji: '🌙' },
+]
+
+const DENSITIES = [
+  { id: 'comfortable', label: 'Comfortabel', emoji: '🌤️' },
+  { id: 'compact', label: 'Compact', emoji: '🧱' },
 ]
 
 function SourceRow({ s, active, onPick }) {
@@ -123,6 +128,8 @@ export default function Drawer({
   onClose,
   theme,
   setTheme,
+  density,
+  setDensity,
   sources = [],
   activeSource = null,
   onPickSource,
@@ -131,10 +138,28 @@ export default function Drawer({
   onRemoveSource,
 }) {
   const [view, setView] = useState('main') // main | social
+  const asideRef = useRef(null)
+  const restoreRef = useRef(null)
+
+  // Focus + inert: dicht = onbereikbaar voor toetsenbord/AT; open = focus naar binnen,
+  // bij sluiten focus terug naar het element dat het menu opende.
+  useEffect(() => {
+    const el = asideRef.current
+    if (el) el.inert = !open
+    if (open) {
+      restoreRef.current = document.activeElement
+      setView('main')
+      const id = requestAnimationFrame(() => el?.querySelector('.iconbtn')?.focus())
+      return () => cancelAnimationFrame(id)
+    }
+    if (restoreRef.current && typeof restoreRef.current.focus === 'function') {
+      restoreRef.current.focus()
+      restoreRef.current = null
+    }
+  }, [open])
 
   useEffect(() => {
     if (!open) return
-    setView('main') // altijd op het hoofdmenu openen
     const onKey = (e) => {
       if (e.key === 'Escape') onClose()
     }
@@ -147,7 +172,7 @@ export default function Drawer({
   return (
     <>
       <div className={`drawer-overlay${open ? ' is-open' : ''}`} onClick={onClose} aria-hidden="true" />
-      <aside className={`drawer${open ? ' is-open' : ''}`} role="dialog" aria-modal="true" aria-label="Instellingen" aria-hidden={!open}>
+      <aside ref={asideRef} className={`drawer${open ? ' is-open' : ''}`} role="dialog" aria-modal="true" aria-label="Instellingen">
         <div className="drawer__head">
           {isSocial ? (
             <button className="iconbtn" onClick={() => setView('main')} aria-label="Terug">
@@ -193,7 +218,7 @@ export default function Drawer({
             </div>
 
             <div className="drawer__section">
-              <div className="drawer__label">Weergave</div>
+              <div className="drawer__label">Thema</div>
               <div className="segmented" role="group" aria-label="Thema">
                 {THEMES.map((t) => (
                   <button
@@ -205,6 +230,24 @@ export default function Drawer({
                   >
                     <span className="seg__emoji">{t.emoji}</span>
                     {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="drawer__section">
+              <div className="drawer__label">Dichtheid</div>
+              <div className="segmented" role="group" aria-label="Dichtheid">
+                {DENSITIES.map((d) => (
+                  <button
+                    key={d.id}
+                    type="button"
+                    className={`seg${density === d.id ? ' seg--on' : ''}`}
+                    onClick={() => setDensity(d.id)}
+                    aria-pressed={density === d.id}
+                  >
+                    <span className="seg__emoji">{d.emoji}</span>
+                    {d.label}
                   </button>
                 ))}
               </div>

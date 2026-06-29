@@ -60,7 +60,7 @@ function mapPost(post, fallbackName) {
   const ext = (e) => {
     if (e?.external) {
       image = e.external.thumb || image
-      if (e.external.uri) {
+      if (e.external.uri && /^https?:\/\//i.test(e.external.uri)) {
         linkUrl = e.external.uri
         domain = hostname(linkUrl)
       }

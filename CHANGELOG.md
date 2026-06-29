@@ -2,6 +2,21 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.12.0] — 2026-06-29 — UX/UX-review-pass (density, nieuwe items, a11y, security)
+
+### Toegevoegd
+
+- **Dichtheid-keuze** (Instellingen → Dichtheid): **Comfortabel** of **Compact**. Compact halveert de fotohoogte en kapt kop/samenvatting op 2 regels → ~2× zoveel items per scherm. Onthouden in localStorage, geen flits bij laden.
+- **"↑ N nieuwe berichten"-pill**: automatische verversingen schuiven de feed niet meer weg tijdens het lezen; nieuwe items wachten tot je op de pill tikt (dan pas scrollt 'ie naar boven). Handmatig verversen (knop/pull) werkt direct zoals voorheen.
+- **Versheid bovenaan** zichtbaar ("Bijgewerkt om HH:MM") en een **"Verversen mislukt — opnieuw"** als een stille verversing faalt (niet langer een stille failure).
+- **Toetsenbord-navigatie** voor power-users: `j`/`k` volgende/vorige, `o`/Enter openen, `s` bewaren, `r` verversen, `g` naar boven.
+
+### Opgelost / Toegankelijkheid
+
+- **Security:** `javascript:`/`data:`-links uit feeds worden geweerd (alleen http(s) toegestaan) in zowel de aggregator als de Bluesky-client.
+- Onderwerp-chips hebben nu `aria-pressed`; het menu is `inert` als het dicht is (geen verdwaalde focus), met focus-beheer bij openen/sluiten; merknaam is nu een `<h1>`.
+- Grotere tap-doelen (bewaar-, chip- en verwijderknop).
+
 ## [0.11.1] — 2026-06-29 — Sociale bronnen als eigen instellingen-scherm
 
 ### Gewijzigd

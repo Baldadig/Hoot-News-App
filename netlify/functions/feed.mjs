@@ -139,11 +139,13 @@ function fit(s, n = 140) {
 function cleanUrl(u) {
   try {
     const url = new URL(u)
+    // Alleen http(s) toestaan — weert javascript:/data: links uit vijandige feeds.
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return ''
     url.hash = ''
     for (const k of [...url.searchParams.keys()]) if (/^utm_|^cmp$|^ref$|^icid$|^cid$/i.test(k)) url.searchParams.delete(k)
     return url.toString()
   } catch {
-    return u
+    return ''
   }
 }
 function hash(str) {
