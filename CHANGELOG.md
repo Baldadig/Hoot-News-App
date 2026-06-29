@@ -2,6 +2,12 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.9.2] — 2026-06-29 — Left Laser toegevoegd
+
+### Toegevoegd
+
+- **Left Laser** als bron in de feed, via hun **Bluesky**-account (`leftlaser.bsky.social`) — inclusief hun video's. Instagram zelf heeft geen publieke feed/API, dus Bluesky is de nette, betrouwbare route naar dezelfde content.
+
 ## [0.9.1] — 2026-06-24 — Bronnen in het menu
 
 ### Toegevoegd

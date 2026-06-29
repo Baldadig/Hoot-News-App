@@ -1,7 +1,7 @@
 {
   "name": "hoot",
   "private": true,
-  "version": "0.9.1",
+  "version": "0.9.2",
   "type": "module",
   "description": "Hoot — een rustige, reclamevrije nieuws-tijdlijn die jouw abonnementen bundelt tot één feed.",
   "scripts": {

@@ -34,7 +34,10 @@ const BRAND = {
 const BSKY_BRAND = '#0085FF'
 
 // Bluesky-accounts (openbare API). Alleen eigen posts van deze auteurs.
-const BLUESKY_AUTHORS = [{ handle: 'atrupar.com', name: 'Aaron Rupar' }]
+const BLUESKY_AUTHORS = [
+  { handle: 'atrupar.com', name: 'Aaron Rupar' },
+  { handle: 'leftlaser.bsky.social', name: 'Left Laser' },
+]
 
 // Extra gerenommeerde bronnen — alleen voor de Trending-tab, niet in je hoofd-feed.
 const EXTRA_SOURCES = [
