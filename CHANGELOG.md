@@ -2,6 +2,13 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.12.2] — 2026-06-29 — og-scraper verwijderd (door Volkskrant geblokkeerd)
+
+### Gewijzigd
+
+- De og:description-scraper is **verwijderd**. Diagnose was conclusief: de Volkskrant geeft Netlify's server-IP's een **harde HTTP 403** (`ogStats: tried 10, notOk 10, status 403`) — een IP/WAF-block, niet op te lossen met headers. De code leverde in productie niets op (alleen 403's), dus eruit.
+- Volkskrant-previews kunnen daardoor alléén via de AI-route (uit de kop), die geen paginafetch nodig heeft en vanaf elk IP werkt — actief zodra `ANTHROPIC_API_KEY` in Netlify staat. Zonder key blijft de Volkskrant kop + foto.
+
 ## [0.12.1] — 2026-06-29 — Diagnose: og-teasers werken niet in productie
 
 ### Opgelost / onderzoek

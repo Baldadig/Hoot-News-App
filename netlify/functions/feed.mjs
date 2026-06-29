@@ -61,11 +61,6 @@ const ENRICH_BATCH = 8
 const CACHE_MAX = 700
 const SUMMARY_LEN = 140
 const UA = 'HootReader/0.4 (+https://hoot.app) news aggregator'
-// Sommige bronnen (de Volkskrant) leveren geen RSS-teaser. Hun artikelpagina geeft
-// social-crawlers wél een og:description (de deel-tekst vóór de paywall). Die halen we op.
-const OG_UA = 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'
-const OG_PER_REQUEST = 10
-const OG_TIMEOUT = 5000
 
 const parser = new Parser({
   timeout: 9000,
@@ -427,76 +422,6 @@ async function saveCache(map) {
   }
 }
 
-// ---------- og:description-teasers (voor bronnen zonder RSS-samenvatting, bv. de Volkskrant) ----------
-let memOg = {}
-async function loadOg() {
-  try {
-    const store = getStore('hoot')
-    const data = await store.get('og-teasers-v2', { type: 'json' })
-    return data || {}
-  } catch {
-    return memOg
-  }
-}
-async function saveOg(map) {
-  let trimmed = map
-  const keys = Object.keys(map)
-  if (keys.length > CACHE_MAX) {
-    trimmed = {}
-    for (const k of keys.slice(-CACHE_MAX)) trimmed[k] = map[k]
-  }
-  try {
-    const store = getStore('hoot')
-    await store.setJSON('og-teasers-v2', trimmed)
-  } catch {
-    memOg = trimmed
-  }
-}
-function extractOg(html) {
-  if (!html) return ''
-  const pick = (re) => {
-    const m = re.exec(html)
-    return m ? m[1] : ''
-  }
-  const raw =
-    pick(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']*)["']/i) ||
-    pick(/<meta[^>]+content=["']([^"']*)["'][^>]+property=["']og:description["']/i) ||
-    pick(/<meta[^>]+name=["']twitter:description["'][^>]+content=["']([^"']*)["']/i) ||
-    pick(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i)
-  return toText(raw)
-}
-async function fetchOg(url, stats) {
-  try {
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': OG_UA,
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'nl,en;q=0.8',
-      },
-      redirect: 'follow',
-      signal: AbortSignal.timeout(OG_TIMEOUT),
-    })
-    if (stats) {
-      stats.tried++
-      stats.lastStatus = res.status
-    }
-    if (!res.ok) {
-      if (stats) stats.notOk++
-      return ''
-    }
-    const og = extractOg(await res.text())
-    if (stats) og ? stats.gotOg++ : stats.emptyOg++
-    return og
-  } catch (e) {
-    if (stats) {
-      stats.tried++
-      stats.errors++
-      stats.lastError = String((e && e.name) || e)
-    }
-    return ''
-  }
-}
-
 // ---------- AI-verrijking (Claude Sonnet) ----------
 const SYSTEM = `Je bent een Nederlandse nieuwsredacteur voor de app Hoot. Je krijgt een JSON-array met nieuwsitems (artikelen of social posts). Voor ELK item lever je een object met:
 - "id": exact overgenomen uit de invoer
@@ -613,31 +538,6 @@ export const handler = async () => {
     if (items.length >= TOTAL_LIMIT) break
   }
 
-  // og:description-teaser voor artikelen zonder RSS-samenvatting (bv. de Volkskrant).
-  const og = await loadOg()
-  for (const it of items) {
-    if (it.kind === 'article' && !it.summary && og[it.id]) {
-      it.summary = og[it.id]
-      it.text = og[it.id]
-    }
-  }
-  let ogNew = 0
-  const ogStats = { tried: 0, notOk: 0, gotOg: 0, emptyOg: 0, errors: 0, lastStatus: null, lastError: null }
-  const ogTodo = items.filter((it) => it.kind === 'article' && !it.summary && it.url && !(it.id in og)).slice(0, OG_PER_REQUEST)
-  if (ogTodo.length) {
-    const teasers = await Promise.all(ogTodo.map((it) => fetchOg(it.url, ogStats)))
-    ogTodo.forEach((it, i) => {
-      const teaser = fit(teasers[i], SUMMARY_LEN)
-      og[it.id] = teaser // ook leeg resultaat onthouden, zodat we niet blijven herproberen
-      if (teaser) {
-        it.summary = teaser
-        it.text = teaser
-        ogNew++
-      }
-    })
-    await saveOg(og)
-  }
-
   // Trending: clusteren over jouw bronnen + extra gerenommeerde bronnen.
   const trending = buildTrending([...mainGroups, ...extraGroups].flatMap((g) => g.items))
 
@@ -675,8 +575,6 @@ export const handler = async () => {
     updatedAt: new Date().toISOString(),
     aiEnabled: !!anthropic,
     enrichedNew,
-    ogFetched: ogNew,
-    ogStats,
     sources: [...mainGroups, ...bskyGroups, ...extraGroups].map(({ id, name, ok, count, used, error }) => ({ id, name, ok, count, used, error })),
   }
 
