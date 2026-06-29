@@ -2,6 +2,15 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.10.0] — 2026-06-29 — Previewtekst voor de Volkskrant (zonder AI)
+
+### Toegevoegd
+
+- **Volkskrant-artikelen krijgen nu een previewtekst**, ook zónder AI-key. Hoot haalt de **`og:description`** op van de artikelpagina (de deel-tekst die de Volkskrant zelf publiceert voor social media — vóór de paywall), met een social-crawler user-agent. Resultaten worden gecachet (Netlify Blobs `og-teasers-v1`), dus het blijft snel.
+- Werkt voor elk artikel zonder RSS-teaser; ~24/29 VK-artikelen krijgen zo een samenvatting. De rest zijn liveblogs die bij de bron zelf geen samenvatting hebben.
+- Als de AI later aanstaat, krijgt die nu echte brontekst om van te vertalen/samenvatten in plaats van alleen de kop.
+- `meta.ogFetched` toegevoegd voor inzicht.
+
 ## [0.9.2] — 2026-06-29 — Left Laser toegevoegd
 
 ### Toegevoegd
