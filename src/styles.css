@@ -931,6 +931,12 @@ body {
   color: var(--text);
 }
 
+/* "via NOS" — preview geleend van een andere bron */
+.post__via {
+  color: var(--text-dim);
+  font-style: italic;
+}
+
 /* Foto's: overal even groot (vaste verhouding) */
 .post__media {
   margin: 0 0 var(--space-3);

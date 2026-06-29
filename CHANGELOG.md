@@ -2,6 +2,14 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.15.0] — 2026-06-29 — Geleende preview voor de Volkskrant (gratis, geen AI)
+
+### Toegevoegd
+
+- Artikelen zonder eigen samenvatting (de Volkskrant) krijgen nu een **geleende previewtekst** van een Nederlandse bron (NOS/NRC) die hetzelfde verhaal dekt — gratis, zonder AI. Met bron-vermelding ("· via NRC").
+- Streng tegen verkeerde matches: alleen NL→NL (taal klopt) én bij sterke titel-overlap (≥4 gedeelde kernwoorden, of ≥3 mits ze ≥60% van de kop beslaan). Liever geen preview dan een foute.
+- Dekking is daardoor beperkt tot verhalen die óók breed gedekt worden; overige VK-kaarten blijven kop + foto.
+
 ## [0.14.0] — 2026-06-29 — Bronnen vallen niet meer volledig uit de feed
 
 ### Opgelost

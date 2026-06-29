@@ -498,6 +498,7 @@ function toClient(it, cache) {
     title: it.title,
     short_title: it.kind === 'article' ? e?.short_title || null : null,
     summary: it.summary,
+    borrowedFrom: it.borrowedFrom || null,
     nl_summary: it.kind === 'article' ? e?.nl_summary || null : null,
     readMin: it.kind === 'article' ? e?.readMin || it.readMin || null : null,
     topics,
@@ -556,6 +557,40 @@ export const handler = async () => {
     perSource[it.source] = (perSource[it.source] || 0) + 1
   }
   items.sort(byRecency)
+
+  // Preview lenen: artikelen zonder eigen samenvatting (bv. de Volkskrant) krijgen
+  // de teaser van een NL-bron die hetzelfde verhaal dekt. Streng: alleen bij sterke
+  // titel-overlap, alleen NL→NL (taal klopt), en met bron-vermelding ("via NOS").
+  const NL_SOURCES = new Set(['nrc', 'nos', 'volkskrant'])
+  const donors = [...mainGroups]
+    .flatMap((g) => g.items)
+    .filter((it) => it.kind === 'article' && it.summary && NL_SOURCES.has(it.source))
+    .map((d) => ({ d, w: sigWords(d.title) }))
+  for (const it of items) {
+    if (it.kind !== 'article' || it.summary || !NL_SOURCES.has(it.source)) continue
+    const w = sigWords(it.title)
+    if (w.size < 3) continue
+    let best = null
+    let bestN = 0
+    let bestSize = 0
+    for (const { d, w: dw } of donors) {
+      if (d.source === it.source) continue
+      const n = sharedCount(w, dw)
+      if (n > bestN) {
+        bestN = n
+        best = d
+        bestSize = dw.size
+      }
+    }
+    // Streng tegen mismatch: 4+ gedeelde woorden, of 3 mits ze ≥60% van de
+    // (kortste) kop beslaan — vangt korte koppen zonder toevallige matches.
+    const ratio = bestN / Math.max(1, Math.min(w.size, bestSize))
+    if (best && (bestN >= 4 || (bestN >= 3 && ratio >= 0.6))) {
+      it.summary = best.summary
+      it.text = best.summary
+      it.borrowedFrom = best.sourceName
+    }
+  }
 
   // Trending: clusteren over jouw bronnen + extra gerenommeerde bronnen.
   const trending = buildTrending([...mainGroups, ...extraGroups].flatMap((g) => g.items))

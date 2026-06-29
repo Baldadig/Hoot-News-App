@@ -55,6 +55,8 @@ export default function ArticleCard({ item, isRead, isSaved, onOpen, onFilterSou
   const isArticle = item.kind !== 'post'
   const title = item.short_title || item.title
   const summary = item.nl_summary || item.summary
+  // Preview geleend van een andere NL-bron (alleen als we niet de AI-samenvatting tonen).
+  const via = !item.nl_summary && item.borrowedFrom ? item.borrowedFrom : null
 
   const media = item.video ? (
     <div className="post__media" onClick={(e) => e.preventDefault()}>
@@ -95,7 +97,12 @@ export default function ArticleCard({ item, isRead, isSaved, onOpen, onFilterSou
 
       <a className="card__body" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => onOpen(item.id)}>
         {isArticle && title ? <h2 className="post__title">{title}</h2> : null}
-        {summary ? <p className="post__text">{summary}</p> : null}
+        {summary ? (
+          <p className="post__text">
+            {summary}
+            {via ? <span className="post__via"> · via {via}</span> : null}
+          </p>
+        ) : null}
         {media}
       </a>
     </article>
