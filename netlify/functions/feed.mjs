@@ -432,7 +432,7 @@ let memOg = {}
 async function loadOg() {
   try {
     const store = getStore('hoot')
-    const data = await store.get('og-teasers-v1', { type: 'json' })
+    const data = await store.get('og-teasers-v2', { type: 'json' })
     return data || {}
   } catch {
     return memOg
@@ -447,7 +447,7 @@ async function saveOg(map) {
   }
   try {
     const store = getStore('hoot')
-    await store.setJSON('og-teasers-v1', trimmed)
+    await store.setJSON('og-teasers-v2', trimmed)
   } catch {
     memOg = trimmed
   }
@@ -465,12 +465,34 @@ function extractOg(html) {
     pick(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i)
   return toText(raw)
 }
-async function fetchOg(url) {
+async function fetchOg(url, stats) {
   try {
-    const res = await fetch(url, { headers: { 'User-Agent': OG_UA, Accept: 'text/html' }, redirect: 'follow', signal: AbortSignal.timeout(OG_TIMEOUT) })
-    if (!res.ok) return ''
-    return extractOg(await res.text())
-  } catch {
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': OG_UA,
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'nl,en;q=0.8',
+      },
+      redirect: 'follow',
+      signal: AbortSignal.timeout(OG_TIMEOUT),
+    })
+    if (stats) {
+      stats.tried++
+      stats.lastStatus = res.status
+    }
+    if (!res.ok) {
+      if (stats) stats.notOk++
+      return ''
+    }
+    const og = extractOg(await res.text())
+    if (stats) og ? stats.gotOg++ : stats.emptyOg++
+    return og
+  } catch (e) {
+    if (stats) {
+      stats.tried++
+      stats.errors++
+      stats.lastError = String((e && e.name) || e)
+    }
     return ''
   }
 }
@@ -600,9 +622,10 @@ export const handler = async () => {
     }
   }
   let ogNew = 0
+  const ogStats = { tried: 0, notOk: 0, gotOg: 0, emptyOg: 0, errors: 0, lastStatus: null, lastError: null }
   const ogTodo = items.filter((it) => it.kind === 'article' && !it.summary && it.url && !(it.id in og)).slice(0, OG_PER_REQUEST)
   if (ogTodo.length) {
-    const teasers = await Promise.all(ogTodo.map((it) => fetchOg(it.url)))
+    const teasers = await Promise.all(ogTodo.map((it) => fetchOg(it.url, ogStats)))
     ogTodo.forEach((it, i) => {
       const teaser = fit(teasers[i], SUMMARY_LEN)
       og[it.id] = teaser // ook leeg resultaat onthouden, zodat we niet blijven herproberen
@@ -653,6 +676,7 @@ export const handler = async () => {
     aiEnabled: !!anthropic,
     enrichedNew,
     ogFetched: ogNew,
+    ogStats,
     sources: [...mainGroups, ...bskyGroups, ...extraGroups].map(({ id, name, ok, count, used, error }) => ({ id, name, ok, count, used, error })),
   }
 

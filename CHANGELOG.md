@@ -2,6 +2,12 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.12.1] — 2026-06-29 — Diagnose: og-teasers werken niet in productie
+
+### Opgelost / onderzoek
+
+- De og:description-teasers (Volkskrant) werkten lokaal maar **niet live** (`ogFetched: 0`, 0/24). Toegevoegd: volledigere crawler-headers (`Accept`, `Accept-Language`), cache-sleutel `og-teasers-v2` (om met-leeg vervuilde entries opnieuw te proberen) en **`meta.ogStats`** (tried/notOk/gotOg/errors/lastStatus) zodat we live exact zien of de Volkskrant Netlify's server-IP's blokkeert.
+
 ## [0.12.0] — 2026-06-29 — UX/UX-review-pass (density, nieuwe items, a11y, security)
 
 ### Toegevoegd
