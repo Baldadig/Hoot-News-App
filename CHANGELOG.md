@@ -2,6 +2,13 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.13.0] — 2026-06-29 — Left Laser via YouTube i.p.v. Bluesky
+
+### Gewijzigd
+
+- **Left Laser komt nu binnen via hun YouTube-kanaal** (native RSS, gratis, betrouwbaar) i.p.v. Bluesky. X/Twitter kan niet zonder betaalde API of fragiele scraper; YouTube heeft gewoon een publieke feed. De Bluesky-versie is verwijderd.
+- Video's tonen titel + echte YouTube-thumbnail + merk-avatar (uit hun Bluesky-profiel) en openen op YouTube. Aggregator leidt de thumbnail af uit de `yt:videoId` (YouTube-RSS levert geen `<img>`).
+
 ## [0.12.2] — 2026-06-29 — og-scraper verwijderd (door Volkskrant geblokkeerd)
 
 ### Gewijzigd

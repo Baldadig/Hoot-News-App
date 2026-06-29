@@ -11,6 +11,8 @@ const SOURCES = [
   { id: 'theverge', name: 'The Verge', bsky: 'theverge.com', x: 'verge', urls: ['https://www.theverge.com/rss/index.xml'] },
   { id: 'wired', name: 'Wired', bsky: 'wired.com', x: 'wired', urls: ['https://www.wired.com/feed/rss'] },
   { id: 'nos', name: 'NOS', bsky: 'nos.nl', x: 'nos', urls: ['https://feeds.nos.nl/nosnieuwsalgemeen', 'http://feeds.nos.nl/nosnieuwsalgemeen'] },
+  // Left Laser via YouTube-RSS (native, gratis, betrouwbaar). Avatar via hun Bluesky-profiel.
+  { id: 'leftlaser', name: 'Left Laser', bsky: 'leftlaser.bsky.social', urls: ['https://www.youtube.com/feeds/videos.xml?channel_id=UCZU-vIoeB1e3by8mVaVLwIg'] },
 ]
 
 // Merk-kleuren per bron (voor de avatar-cirkel)
@@ -21,6 +23,7 @@ const BRAND = {
   theverge: '#5200FF',
   wired: '#222222',
   nos: '#B5121B',
+  leftlaser: '#E40421',
   guardian: '#052962',
   bbc: '#BB1919',
   aljazeera: '#FA9000',
@@ -34,10 +37,7 @@ const BRAND = {
 const BSKY_BRAND = '#0085FF'
 
 // Bluesky-accounts (openbare API). Alleen eigen posts van deze auteurs.
-const BLUESKY_AUTHORS = [
-  { handle: 'atrupar.com', name: 'Aaron Rupar' },
-  { handle: 'leftlaser.bsky.social', name: 'Left Laser' },
-]
+const BLUESKY_AUTHORS = [{ handle: 'atrupar.com', name: 'Aaron Rupar' }]
 
 // Extra gerenommeerde bronnen — alleen voor de Trending-tab, niet in je hoofd-feed.
 const EXTRA_SOURCES = [
@@ -70,6 +70,7 @@ const parser = new Parser({
       ['media:content', 'mediaContent', { keepArray: true }],
       ['media:thumbnail', 'mediaThumbnail', { keepArray: true }],
       ['content:encoded', 'contentEncoded'],
+      ['yt:videoId', 'ytVideoId'],
     ],
   },
 })
@@ -288,6 +289,9 @@ async function loadSource(src, avatars) {
         const summary = fit(teaser, SUMMARY_LEN)
         const bodyWords = toText(it.contentEncoded || it.content || it.description || '').split(/\s+/).filter(Boolean).length
         const readMin = Math.max(2, Math.round(bodyWords / 220))
+        // YouTube-RSS levert geen <img>; thumbnail afleiden uit de video-id.
+        const ytId = it.ytVideoId || null
+        const image = pickImage(it) || (ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : null)
         return {
           id: hash(src.id + '|' + link),
           kind: 'article',
@@ -303,7 +307,7 @@ async function loadSource(src, avatars) {
           summary,
           text: teaser,
           url: link,
-          image: pickImage(it),
+          image,
           video: null,
           videoPoster: null,
           readMin,
