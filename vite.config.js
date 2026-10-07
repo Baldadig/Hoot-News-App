@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { readFileSync } from 'node:fs'
+
+const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
 
 // Serveert /api/feed lokaal door de Netlify-functie te draaien,
 // zodat `npm run dev` en de preview echte data tonen zonder Netlify CLI.
@@ -44,6 +47,8 @@ function devApi() {
 }
 
 export default defineConfig({
+  // Versienummer zichtbaar in het menu, zodat je ziet welke versie er draait.
+  define: { __APP_VERSION__: JSON.stringify(version) },
   plugins: [
     devApi(),
     react(),

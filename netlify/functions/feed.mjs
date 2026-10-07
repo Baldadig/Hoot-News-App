@@ -132,6 +132,38 @@ function fit(s, n = 140) {
   const space = cut.lastIndexOf(' ')
   return (space > 0 ? cut.slice(0, space) : cut).trim()
 }
+// Preview uit de RSS-teaser, altijd in hele zinnen: zoveel volledige zinnen als er
+// binnen `soft` tekens passen; is de eerste zin langer, dan die ene zin (tot `hard`).
+// Alleen als er geen zinseinde te vinden is kappen we af op een woordgrens, mét "…".
+const SENTENCE_END = /(?<![A-Z])(?<!\b(?:Mr|Mrs|Ms|Dr|St|vs|dr|mr|drs|prof|bijv|ca|nr|o\.a|d\.w\.z))[.!?]["'’”)]?(?=\s|$)/g
+function preview(s, soft = 170, hard = 260) {
+  if (!s) return ''
+  s = s.replace(/\s+/g, ' ').trim()
+  if (s.length <= soft) return s
+  const ends = []
+  for (const m of s.matchAll(SENTENCE_END)) {
+    const end = m.index + m[0].length
+    if (end > hard) break
+    ends.push(end)
+  }
+  const within = ends.filter((e) => e <= soft).pop()
+  if (within >= 60) return s.slice(0, within)
+  if (ends[0] >= 40) return s.slice(0, ends[0])
+  const cut = s.slice(0, soft)
+  const space = cut.lastIndexOf(' ')
+  return (space > 0 ? cut.slice(0, space) : cut).replace(/[\s,;:–—-]+$/, '') + '…'
+}
+function categoriesOf(it) {
+  return (it.categories || []).map((c) => (typeof c === 'string' ? c : c?._ || c?.$?.term || '')).filter(Boolean)
+}
+// Geen nieuws: koopjesgidsen/affiliate-lijstjes en puzzels horen niet in een
+// nieuws-tijdlijn (bij Wired is dat rond acties tot 70% van de feed).
+const NOISE_TITLE = /\b(prime day|black friday|cyber monday|promo codes?|coupon codes?|gift guides?)\b|\bbest\b.*\bdeals\b|\bdeals\b.*(\bsave\b|\$\d|\bunder \$)|\d+ ?(%|percent) off\b/i
+function isNoise(it, cats) {
+  if (cats.some((c) => /\bdeals\b|\bcoupons?\b|\bshopping\b/i.test(c))) return true
+  if (NOISE_TITLE.test(it.title || '')) return true
+  return /\/puzzels?\//.test(it.link || '')
+}
 function cleanUrl(u) {
   try {
     const url = new URL(u)
@@ -192,21 +224,26 @@ async function bskyAvatar(handle) {
     return null
   }
 }
+// Avatars veranderen zelden: per warme functie-instantie 6 uur onthouden.
+let avatarCache = { at: 0, map: null }
 async function resolveSourceAvatars() {
+  if (avatarCache.map && Date.now() - avatarCache.at < 6 * 60 * 60 * 1000) return avatarCache.map
   const entries = await Promise.all(SOURCES.map(async (s) => [s.id, s.bsky ? await bskyAvatar(s.bsky) : null]))
-  return Object.fromEntries(entries)
+  const map = Object.fromEntries(entries)
+  if (Object.values(map).some(Boolean)) avatarCache = { at: Date.now(), map }
+  return map
 }
 
 // ---------- Trefwoord-onderwerpen (terugval als AI uitstaat) ----------
 const KW = [
   ['trump', /\btrump\b/i],
-  ['vs-politiek', /\b(verkiezing|election|senate|senaat|congress|congres|white house|witte huis|republikein|republican|democraat|democrat|\bgop\b|biden|kamala|harris|supreme court|hooggerechtshof|pentagon|capitol|vance)\b/i],
+  ['vs-politiek', /\b(verkiezing|election|senate|senaat|congress|congres|white house|witte huis|republikein|republican|democraat|democrat|\bgop\b|biden|kamala|harris|supreme court|hooggerechtshof|pentagon|capitol|vance|united states politics|house of representatives|justice department)\b/i],
   ['oekraine', /\b(oekra|ukrain|zelensk|poetin|putin|kyiv|kiev|kremlin|donetsk|donbas|moskou|moscow)\b/i],
   ['geopolitiek', /\b(geopolit|china|taiwan|\beu\b|navo|nato|midden-oosten|israel|israël|gaza|iran|noord-korea|north korea|xi jinping|sancties|sanctions|handelsoorlog|tariff|tarieven|brussel|brussels|zuid-china)\b/i],
   ['ai', /\b(kunstmatige intelligentie|artificial intelligence|\ba\.?i\.?\b|openai|chatgpt|anthropic|\bclaude\b|gemini|\bllm\b|machine learning|deepmind|nvidia|copilot)\b/i],
-  ['tech', /\b(apple|iphone|ipad|macbook|google|alphabet|android|chrome|\bmeta\b|facebook|instagram|whatsapp|microsoft|windows|\bamazon\b|tesla|spacex|twitter|tiktok|bytedance|intel|\bamd\b|tsmc|samsung|huawei|chip|halfgeleider|semiconductor|big tech|techbedrijf|techgigant|technolog|platform|smartphone|gadget|app store|netflix|spotify|uber)\b/i],
-  ['wetenschap', /\b(wetenschap|wetenschapp|onderzoekers|scientist|researchers|\bnasa\b|\besa\b|astronom|ruimtevaart|natuurkunde|fysica|biolog|geneeskund|medisch|gezondheid|vaccin|\bdna\b|genetica|kanker|quantum|kwantum|telescoop|deeltjes|archeolog|evolutie|neurolog)\b/i],
-  ['economie', /\b(econom|beurs|aandel|inflatie|\brente\b|\becb\b|\bfed\b|federal reserve|recessie|begroting|\bbbp\b|werkloosheid|dow jones|nasdaq|wall street|kwartaalcijfers|bedrijfswinst|fusie|overname|faillis|olieprijs|gasprijs|energieprijs|valuta|wisselkoers|belasting|miljard|subsidie|koopkracht|\bbtw\b|lonen|omzet|woningmarkt|hypotheek|handelsverdrag|handelsregels)\b/i],
+  ['tech', /\b(apple|iphone|ipad|macbook|google|alphabet|android|chrome|\bmeta\b|facebook|instagram|whatsapp|microsoft|windows|\bamazon\b|tesla|spacex|twitter|tiktok|bytedance|intel|\bamd\b|tsmc|samsung|huawei|chips?|halfgeleider|semiconductor|big tech|techbedrijf|techgigant|technolog|smartphone|gadget|app store|netflix|spotify)\b/i],
+  ['wetenschap', /\b(wetenschap|wetenschapp|onderzoekers|scientist|researchers|science|nobelprijs|nobel prize|klimaatverandering|climate change|\bnasa\b|\besa\b|astronom|ruimtevaart|natuurkunde|fysica|biolog|geneeskund|gezondheid|vaccin|\bdna\b|genetica|kanker|quantum|kwantum|telescoop|deeltjes|archeolog|evolutie|neurolog)\b/i],
+  ['economie', /\b(econom|beurs|aandel|inflatie|\brente\b|\becb\b|\bfed\b|federal reserve|recessie|begroting|\bbbp\b|werkloosheid|dow jones|nasdaq|wall street|kwartaalcijfers|bedrijfswinst|fusie|overname|faillis|olieprijs|gasprijs|energieprijs|valuta|wisselkoers|belasting|subsidie|koopkracht|\bbtw\b|lonen|omzet|woningmarkt|hypotheek|handelsverdrag|handelsregels|megafusie|werkgevers|vakbond|inflation|interest rates|stock market|stocks and bonds|unemployment|layoffs|merger|acquisition|bankrupt)\b/i],
   ['nederland', /\b(kabinet|tweede kamer|eerste kamer|den haag|binnenhof|catshuis|prinsjesdag|miljoenennota|rijksoverheid|gemeenteraad|provinciale staten|waterschap|coalitie|formatie|stikstof|toeslag|asielzoeker|asielbeleid|minister van|staatssecretaris|\bpvv\b|\bvvd\b|\bd66\b|groenlinks|\bpvda\b|\bcda\b|\bsgp\b|\bbbb\b|wilders|schoof|timmermans|yesilgoz|omtzigt)\b/i],
 ]
 function keywordTopics(text) {
@@ -274,21 +311,26 @@ function buildTrending(articles) {
 }
 
 // ---------- RSS ----------
-async function loadSource(src, avatars) {
+async function loadSource(src, avatarsP) {
   let lastErr
-  // Mooie merk-avatar: 1) Bluesky-profiel, 2) X-profiel via unavatar.io, 3) favicon.
-  const brandAvatar = avatars[src.id] || (src.x ? `https://unavatar.io/x/${src.x}` : null)
   for (const url of src.urls) {
     try {
-      const feed = await parser.parseURL(url)
-      const items = (feed.items || []).slice(0, PER_SOURCE_LIMIT).map((it) => {
+      // Feed en avatars tegelijk ophalen (avatars houden de feed niet meer op).
+      const [feed, avatars] = await Promise.all([parser.parseURL(url), avatarsP])
+      // Mooie merk-avatar: 1) Bluesky-profiel, 2) X-profiel via unavatar.io, 3) favicon.
+      const brandAvatar = avatars[src.id] || (src.x ? `https://unavatar.io/x/${src.x}` : null)
+      const fresh = (feed.items || []).map((it) => [it, categoriesOf(it)]).filter(([it, cats]) => !isNoise(it, cats))
+      const items = fresh.slice(0, PER_SOURCE_LIMIT).map(([it, cats]) => {
         const link = cleanUrl(it.link || it.guid || '')
         const domain = hostname(link)
         const title = toText(it.title || '').trim()
-        const teaser = clip(toText(it.contentSnippet || it.summary || it.description || ''), 280)
-        const summary = fit(teaser, SUMMARY_LEN)
+        const fullText = toText(it.contentSnippet || it.summary || it.description || '')
+        const teaser = clip(fullText, 280)
+        const summary = preview(fullText)
+        // Leestijd alleen tonen als de feed de echte artikeltekst meelevert (NOS, The Verge);
+        // bij een losse teaser valt er niets te meten.
         const bodyWords = toText(it.contentEncoded || it.content || it.description || '').split(/\s+/).filter(Boolean).length
-        const readMin = Math.max(2, Math.round(bodyWords / 220))
+        const readMin = bodyWords >= 150 ? Math.max(1, Math.round(bodyWords / 220)) : null
         // YouTube-RSS levert geen <img>; thumbnail afleiden uit de video-id.
         const ytId = it.ytVideoId || null
         const image = pickImage(it) || (ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : null)
@@ -306,6 +348,7 @@ async function loadSource(src, avatars) {
           title,
           summary,
           text: teaser,
+          cats: cats.join(' '),
           url: link,
           image,
           video: null,
@@ -388,7 +431,7 @@ function mapPost(post, author) {
 async function loadBluesky(author) {
   try {
     const url = `https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=${encodeURIComponent(author.handle)}&limit=40&filter=posts_no_replies`
-    const res = await fetch(url, { headers: { 'User-Agent': UA } })
+    const res = await fetch(url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(8000) })
     if (!res.ok) throw new Error('bsky ' + res.status)
     const data = await res.json()
     // Alleen eigen, originele posts: geen reposts (reason), geen quotes/anderen
@@ -483,7 +526,7 @@ async function enrichBatch(anthropic, items) {
 // ---------- Output-mapping (verrijking op een item leggen) ----------
 function toClient(it, cache) {
   const e = cache[it.id]
-  const topics = e && Array.isArray(e.topics) && e.topics.length ? e.topics : keywordTopics(`${it.title} ${it.text || it.summary || ''}`)
+  const topics = e && Array.isArray(e.topics) && e.topics.length ? e.topics : keywordTopics(`${it.title} ${it.text || it.summary || ''} ${it.cats || ''}`)
   return {
     id: it.id,
     kind: it.kind,
@@ -515,10 +558,11 @@ export const handler = async () => {
   const apiKey = process.env.ANTHROPIC_API_KEY
   const anthropic = apiKey ? new Anthropic({ apiKey }) : null
 
-  const avatars = await resolveSourceAvatars()
+  const avatarsP = resolveSourceAvatars()
+  const noAvatars = Promise.resolve({})
   const [mainR, extraR, bskyR] = await Promise.all([
-    Promise.allSettled(SOURCES.map((s) => loadSource(s, avatars))),
-    Promise.allSettled(EXTRA_SOURCES.map((s) => loadSource(s, {}))),
+    Promise.allSettled(SOURCES.map((s) => loadSource(s, avatarsP))),
+    Promise.allSettled(EXTRA_SOURCES.map((s) => loadSource(s, noAvatars))),
     Promise.allSettled(BLUESKY_AUTHORS.map(loadBluesky)),
   ])
   const val = (r) => (r.status === 'fulfilled' ? r.value : { id: '?', name: '?', ok: false, count: 0, items: [], error: String(r.reason) })
@@ -628,6 +672,8 @@ export const handler = async () => {
   const meta = {
     updatedAt: new Date().toISOString(),
     aiEnabled: !!anthropic,
+    // Laat de app weten of bewaren óók naar Instapaper kan (anders alleen de eigen leeslijst).
+    instapaper: !!(process.env.INSTAPAPER_USERNAME && process.env.INSTAPAPER_PASSWORD),
     enrichedNew,
     sources: [...mainGroups, ...bskyGroups, ...extraGroups].map(({ id, name, ok, count, used, error }) => ({ id, name, ok, count, used, error })),
   }

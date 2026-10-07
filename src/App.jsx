@@ -43,7 +43,7 @@ export default function App() {
   const [refreshKey, setRefreshKey] = useState(0)
   const { sources: socialSources, items: socialItems, addSource, removeSource } = useSocialSources(refreshKey)
   const { read, markRead } = useReadState()
-  const { saved, markSaved } = useSavedState()
+  const { saved, savedList, toggleSaved } = useSavedState()
   const { theme, setTheme } = useTheme()
   const { density, setDensity } = useDensity()
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -103,14 +103,17 @@ export default function App() {
   }, [items])
 
   const trendingView = activeTopic === 'trending'
+  const savedView = activeTopic === 'saved'
+  const specialView = trendingView || savedView // eigen lijst: geen bron-filter/pill
 
   const visible = useMemo(() => {
     if (trendingView) return trending
+    if (savedView) return savedList
     let list = items
     if (source) list = list.filter((i) => i.source === source.source)
     if (activeTopic) list = list.filter((i) => (i.topics || []).includes(activeTopic))
     return list
-  }, [items, trending, trendingView, activeTopic, source])
+  }, [items, trending, trendingView, savedList, savedView, activeTopic, source])
 
   const showSkeleton = status === 'loading' && items.length === 0
   const showError = status === 'error' && items.length === 0
@@ -130,10 +133,11 @@ export default function App() {
     containerRef.current?.scrollTo({ top: 0 })
   }
 
-  const saveItem = async (item) => {
-    const r = await saveToInstapaper(item)
-    if (r.ok) markSaved(item.id)
-    return r
+  // Bewaren = eigen leeslijst (werkt altijd). Staat Instapaper ingesteld (meta.instapaper),
+  // dan gaat het artikel daar óók heen; de leeslijst blijft leidend.
+  const toggleSave = (item) => {
+    if (!saved[item.id] && meta?.instapaper) saveToInstapaper(item)
+    toggleSaved(item)
   }
 
   const onFeedScroll = (e) => {
@@ -152,7 +156,7 @@ export default function App() {
 
   useKeyboardNav(containerRef, { onRefresh: reloadAll })
 
-  const showHint = !hintDone && !source && !trendingView && status === 'ready' && items.length > 0
+  const showHint = !hintDone && !source && !specialView && status === 'ready' && items.length > 0
   const freshTime = formatTime(meta?.updatedAt)
 
   return (
@@ -172,7 +176,7 @@ export default function App() {
         onAddSource={addSource}
         onRemoveSource={removeSource}
       />
-      <TopicFilter active={activeTopic} onChange={setActiveTopic} counts={counts} trendingCount={trending.length} />
+      <TopicFilter active={activeTopic} onChange={setActiveTopic} counts={counts} trendingCount={trending.length} savedCount={savedList.length} />
 
       <main className="feed" ref={containerRef} onScroll={onFeedScroll}>
         <div className="ptr" style={{ height: pull }} aria-hidden="true">
@@ -181,7 +185,7 @@ export default function App() {
           </span>
         </div>
 
-        {pendingCount > 0 && !trendingView ? (
+        {pendingCount > 0 && !specialView ? (
           <button className="newpill" onClick={showNew}>
             ↑ {pendingCount} {pendingCount === 1 ? 'nieuw bericht' : 'nieuwe berichten'}
           </button>
@@ -199,7 +203,7 @@ export default function App() {
           </div>
         ) : null}
 
-        {source && !trendingView ? (
+        {source && !specialView ? (
           <button className="srcbar" onClick={() => setSource(null)}>
             <span>
               Alleen <strong>{source.name}</strong>
@@ -223,6 +227,7 @@ export default function App() {
           <ErrorState onRetry={reloadAll} />
         ) : visible.length === 0 ? (
           <EmptyState
+            saved={savedView}
             filtered={!!(activeTopic || source)}
             onReset={() => {
               setActiveTopic(null)
@@ -236,10 +241,10 @@ export default function App() {
                 key={item.id}
                 item={item}
                 isRead={read.has(item.id)}
-                isSaved={saved.has(item.id)}
+                isSaved={!!saved[item.id]}
                 onOpen={markRead}
                 onFilterSource={onFilterSource}
-                onSave={saveItem}
+                onToggleSave={toggleSave}
               />
             ))}
           </div>

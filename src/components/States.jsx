@@ -30,7 +30,19 @@ export function ErrorState({ onRetry }) {
   )
 }
 
-export function EmptyState({ filtered, onReset }) {
+export function EmptyState({ filtered, saved, onReset }) {
+  if (saved) {
+    return (
+      <div className="state">
+        <div className="state__emoji">🔖</div>
+        <p className="state__title">Nog niets bewaard</p>
+        <p className="state__text">Tik op het bladwijzertje bij een bericht om het hier te bewaren.</p>
+        <button className="btn" onClick={onReset}>
+          Terug naar alles
+        </button>
+      </div>
+    )
+  }
   if (filtered) {
     return (
       <div className="state">
@@ -52,16 +64,13 @@ export function EmptyState({ filtered, onReset }) {
   )
 }
 
+// Einde van de feed. Meldt alleen iets als een bron écht niet bereikbaar was.
 export function Footer({ meta }) {
   if (!meta) return null
-  const list = meta.sources || []
-  const ok = list.filter((s) => s.ok).length
-  const time = meta.updatedAt
-    ? new Date(meta.updatedAt).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
-    : ''
+  const failed = (meta.sources || []).filter((s) => !s.ok).map((s) => s.name)
   return (
     <footer className="foot">
-      {ok}/{list.length} bronnen · {meta.aiEnabled ? 'AI aan' : 'AI uit'} · bijgewerkt {time}
+      {failed.length ? `⚠️ Nu niet bereikbaar: ${failed.join(', ')}` : 'Je bent helemaal bij 🦉'}
     </footer>
   )
 }

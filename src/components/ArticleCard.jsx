@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { timeAgo } from '../lib/time.js'
 import { VerifiedCheck, BookmarkIcon } from './icons.jsx'
 
@@ -16,42 +15,16 @@ function Avatar({ src, name, brand, contain }) {
   )
 }
 
-function SaveButton({ saved, onSave }) {
-  const [busy, setBusy] = useState(false)
-  const [err, setErr] = useState(false)
-
-  const click = async (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (saved || busy) return
-    setBusy(true)
-    setErr(false)
-    const r = await onSave()
-    setBusy(false)
-    if (!r || !r.ok) {
-      setErr(true)
-      setTimeout(() => setErr(false), 2600)
-    }
-  }
-
-  const label = saved ? 'Bewaard in Instapaper' : err ? 'Bewaren mislukt — staat Instapaper ingesteld?' : 'Bewaar in Instapaper'
-
+function SaveButton({ saved, onToggle }) {
+  const label = saved ? 'Bewaard — tik om te verwijderen' : 'Bewaren voor later'
   return (
-    <button
-      type="button"
-      className={`save${saved ? ' save--on' : ''}${err ? ' save--err' : ''}${busy ? ' save--busy' : ''}`}
-      onClick={click}
-      disabled={busy || saved}
-      aria-pressed={saved}
-      aria-label={label}
-      title={label}
-    >
+    <button type="button" className={`save${saved ? ' save--on' : ''}`} onClick={onToggle} aria-pressed={saved} aria-label={label} title={label}>
       <BookmarkIcon filled={saved} />
     </button>
   )
 }
 
-export default function ArticleCard({ item, isRead, isSaved, onOpen, onFilterSource, onSave }) {
+export default function ArticleCard({ item, isRead, isSaved, onOpen, onFilterSource, onToggleSave }) {
   const isArticle = item.kind !== 'post'
   const title = item.short_title || item.title
   const summary = item.nl_summary || item.summary
@@ -92,7 +65,7 @@ export default function ArticleCard({ item, isRead, isSaved, onOpen, onFilterSou
             📖 {item.readMin} min
           </span>
         ) : null}
-        <SaveButton saved={isSaved} onSave={() => onSave(item)} />
+        <SaveButton saved={isSaved} onToggle={() => onToggleSave(item)} />
       </div>
 
       <a className="card__body" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => onOpen(item.id)}>

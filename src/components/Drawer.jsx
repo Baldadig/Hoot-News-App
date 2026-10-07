@@ -254,6 +254,8 @@ export default function Drawer({
             </div>
           </div>
         )}
+
+        <p className="drawer__version">Hoot v{__APP_VERSION__}</p>
       </aside>
     </>
   )

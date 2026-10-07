@@ -1,13 +1,16 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
-const KEY = 'hoot:saved'
+// Leeslijst in de app zelf: we bewaren het hele item, zodat het ook terug te vinden
+// is als het al uit de feed is verdwenen. { [id]: { ...item, savedAt } }
+const KEY = 'hoot:saved-items'
+const MAX = 300
 
 function load() {
   try {
-    const raw = localStorage.getItem(KEY)
-    return new Set(raw ? JSON.parse(raw) : [])
+    const obj = JSON.parse(localStorage.getItem(KEY) || '{}')
+    return obj && typeof obj === 'object' && !Array.isArray(obj) ? obj : {}
   } catch {
-    return new Set()
+    return {}
   }
 }
 
@@ -16,20 +19,28 @@ export function useSavedState() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(KEY, JSON.stringify([...saved].slice(-1000)))
+      localStorage.setItem(KEY, JSON.stringify(saved))
     } catch {
       /* opslag vol/geblokkeerd — niet erg */
     }
   }, [saved])
 
-  const markSaved = useCallback((id) => {
+  const toggleSaved = useCallback((item) => {
     setSaved((prev) => {
-      if (prev.has(id)) return prev
-      const next = new Set(prev)
-      next.add(id)
+      const next = { ...prev }
+      if (next[item.id]) delete next[item.id]
+      else next[item.id] = { ...item, savedAt: Date.now() }
+      const ids = Object.keys(next)
+      if (ids.length > MAX) {
+        ids.sort((a, b) => next[a].savedAt - next[b].savedAt)
+        for (const id of ids.slice(0, ids.length - MAX)) delete next[id]
+      }
       return next
     })
   }, [])
 
-  return { saved, markSaved }
+  // Laatst bewaard bovenaan
+  const savedList = useMemo(() => Object.values(saved).sort((a, b) => b.savedAt - a.savedAt), [saved])
+
+  return { saved, savedList, toggleSaved }
 }

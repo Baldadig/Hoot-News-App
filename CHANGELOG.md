@@ -2,6 +2,23 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.16.0] — 2026-10-07 — Frisse blik: minder ruis, eerlijkere kaarten, bewaren dat werkt
+
+### Opgelost
+
+- **Koopjes-spam eruit.** Wired bestond voor ~70% uit "Best Prime Day Deals"-lijstjes (35 van de 50 items), die zelfs in Trending opdoken. Koopjesgidsen (op RSS-categorie én kop) en NRC-puzzels worden nu weggefilterd.
+- **Previews stoppen niet meer midden in een zin.** 37 van de 104 teasers werden op 140 tekens afgekapt ("…but these discounts are still worth"). Previews bestaan nu uit hele zinnen; alleen als er geen zinseinde is, volgt een "…".
+- **Leestijd-pil was nep.** 139 van de 166 kaarten toonden "2 min" omdat de feed alleen een teaser levert. De pil staat er nu alleen nog als de bron de echte artikeltekst meestuurt (NOS, soms The Verge).
+- **Bewaren deed niets** (Instapaper is niet ingesteld, dus elke tik faalde). Bewaren is nu een eigen **leeslijst in de app**: tik op het bladwijzertje, vind alles terug onder de nieuwe tab **🔖 Bewaard**, tik nogmaals om te verwijderen. Is Instapaper ooit ingesteld, dan gaat het artikel daar óók heen.
+- **Enter opende een artikel dubbel** bij toetsenbord-navigatie.
+
+### Verbeterd
+
+- **Updates komen vanzelf binnen**: de app checkt bij elke keer openen op een nieuwe versie en ververst zichzelf (nooit midden in het lezen). Geforceerd afsluiten is niet meer nodig. Het versienummer staat onderin het menu.
+- **Sneller**: bron-avatars worden parallel met de feeds opgehaald en 6 uur onthouden; kaarten buiten beeld worden niet gerenderd.
+- **Betere onderwerpen**: RSS-categorieën (o.a. NYT) tellen mee bij het indelen; ruisige trefwoorden ("miljard", "platform") zijn weg.
+- Footer zonder jargon: "Je bent helemaal bij 🦉", of een melding als een bron écht niet bereikbaar is.
+
 ## [0.15.0] — 2026-06-29 — Geleende preview voor de Volkskrant (gratis, geen AI)
 
 ### Toegevoegd

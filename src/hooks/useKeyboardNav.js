@@ -33,8 +33,8 @@ export default function useKeyboardNav(containerRef, { onRefresh } = {}) {
           e.preventDefault()
           focus(Math.max(cursor.current - 1, 0))
           break
+        // Enter doet de browser zelf op de gefocuste link (hier ook afhandelen opende 'm dubbel).
         case 'o':
-        case 'Enter':
           cards[cursor.current]?.querySelector('.card__body')?.click()
           break
         case 's':
