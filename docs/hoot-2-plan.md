@@ -171,16 +171,12 @@ beslissing 1) — geen los Figma-bestand dat daarna uit de pas loopt.
 
 ---
 
-## Open beslissingen
+## Beslissingen (8 oktober 2026)
 
-1. **Apart bouwen of over de huidige app heen?** Voorstel: aparte branch `hoot-2`. Netlify geeft
-   die een eigen voorvertoning-link; de huidige app blijft live tot jij wisselt.
-2. **Wat is een Editie precies?** Voorstel: doorlopend — de belangrijkste verhalen van de laatste
-   24 uur, max 10, met markering wat nieuw is sinds je vorige bezoek. Alternatief: vaste
-   ochtend- en avondeditie die niet meer verandert (rustiger, maar minder actueel).
-3. **Bewaard tussen iPhone en Mac delen?** Voorstel: nu niet (per toestel). Kan later via een
-   persoonlijke sleutel in Netlify Blobs, zonder account.
-4. **Zoeken in een archief?** Voorstel: nee — zoeken in wat geladen en bewaard is. Een archief van
-   bv. 7 dagen kan in fase 2 meeliften op het verhaal-register.
-5. **Lettertype voor koppen.** Voorstel: een echte, meegeleverde serif (bv. Newsreader) in plaats
-   van de systeem-serif; kost ±60 kB eenmalig, geeft Hoot een eigen gezicht.
+1. **Gebouwd op `main`**, over de bestaande app heen.
+2. **Editie = vaste ochtend- en avondeditie** (06:00 en 17:00, Nederlandse tijd).
+3. **Bewaard wordt niet gedeeld** tussen toestellen.
+4. **Zoeken zonder archief**: alleen in wat geladen en bewaard is.
+5. **Lettertype**: geen voorkeur opgegeven; gekozen voor de systeem-serif (New York op iPhone en Mac), zonder extra download.
+
+Zie `hoot-2-verslag.md` voor wat er gebouwd is en hoe het is gecontroleerd.

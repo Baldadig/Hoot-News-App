@@ -22,7 +22,7 @@ if ('serviceWorker' in navigator) {
       hadController = true // eerste installatie: niets te verversen
       return
     }
-    const feed = document.querySelector('.feed')
+    const feed = document.querySelector('.view:not([hidden])')
     if (!feed || feed.scrollTop < 50) window.location.reload()
     else stale = true
   })

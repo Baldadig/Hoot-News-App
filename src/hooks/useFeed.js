@@ -1,85 +1,73 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchFeed } from '../lib/api.js'
+import { readJSON, writeJSON } from '../lib/store.js'
 
-const CACHE_KEY = 'hoot:feed-cache'
+const CACHE_KEY = 'hoot:feed-v2'
 
-function loadCache() {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY)
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
-}
-
-function cache(data) {
-  try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(data))
-  } catch {
-    /* opslag vol — geen ramp */
+// Eén vaste vorm, ook als de server (of een oude cache) een veld mist.
+function normalize(d) {
+  if (!d || !Array.isArray(d.items)) return null
+  return {
+    sources: Array.isArray(d.sources) ? d.sources : [],
+    items: d.items,
+    related: Array.isArray(d.related) ? d.related : [],
+    stories: Array.isArray(d.stories) ? d.stories : [],
+    edition: d.edition && Array.isArray(d.edition.entries) ? d.edition : null,
+    meta: d.meta || null,
   }
 }
 
 export function useFeed() {
-  const cached = loadCache()
-  const [items, setItems] = useState(cached?.items ?? [])
-  const [trending, setTrending] = useState(cached?.trending ?? [])
-  const [meta, setMeta] = useState(cached?.meta ?? null)
-  const [status, setStatus] = useState(cached?.items?.length ? 'ready' : 'loading') // loading | ready | error
+  const [data, setData] = useState(() => normalize(readJSON(CACHE_KEY, null)))
+  const [status, setStatus] = useState(() => (data ? 'ready' : 'loading')) // loading | ready | error
   const [refreshing, setRefreshing] = useState(false)
   const [refreshError, setRefreshError] = useState(false)
   const [pendingCount, setPendingCount] = useState(0)
 
   const ctrl = useRef(null)
-  const hasItems = useRef((cached?.items?.length ?? 0) > 0)
-  const itemsRef = useRef(items)
-  itemsRef.current = items
-  const pendingData = useRef(null)
+  const dataRef = useRef(data)
+  dataRef.current = data
+  const pending = useRef(null)
 
-  const apply = useCallback((data) => {
-    setItems(data.items || [])
-    setTrending(data.trending || [])
-    setMeta(data.meta || null)
-    hasItems.current = (data.items || []).length > 0
-    cache(data)
+  const apply = useCallback((next) => {
+    setData(next)
+    writeJSON(CACHE_KEY, next)
   }, [])
 
-  // defer=true (auto-refresh): nieuwe items wachten op een pill i.p.v. de feed te verschuiven.
+  // defer=true (automatisch verversen): nieuwe berichten wachten achter een knop,
+  // zodat de inhoud niet verspringt terwijl je leest.
   const load = useCallback(
     async ({ defer } = {}) => {
       ctrl.current?.abort()
       const controller = new AbortController()
       ctrl.current = controller
-      const isRefresh = hasItems.current
-      if (isRefresh) setRefreshing(true)
+      const had = !!dataRef.current
+      if (had) setRefreshing(true)
       else setStatus('loading')
       try {
-        const data = await fetchFeed({ signal: controller.signal })
-        const next = data.items || []
+        const next = normalize(await fetchFeed({ signal: controller.signal }))
+        if (!next) throw new Error('Onverwacht antwoord')
         setRefreshError(false)
-        if (defer && isRefresh) {
-          const curIds = new Set(itemsRef.current.map((i) => i.id))
-          const fresh = next.filter((i) => !curIds.has(i.id))
-          if (fresh.length) {
-            // Houd nieuwe items vast; toon ze via de pill. Cache wél bijwerken.
-            pendingData.current = data
-            setPendingCount(fresh.length)
-            cache(data)
+        if (defer && had) {
+          const seen = new Set(dataRef.current.items.map((i) => i.id))
+          const fresh = next.items.filter((i) => !seen.has(i.id)).length
+          if (fresh) {
+            pending.current = next
+            setPendingCount(fresh)
+            writeJSON(CACHE_KEY, next)
           } else {
-            // Niets nieuws: versheid + trending stil bijwerken (geen verschuiving).
-            setTrending(data.trending || [])
-            setMeta(data.meta || null)
-            cache(data)
+            // Niets nieuws in de Stroom: alleen de status (ophaaltijd, bronnen) bijwerken.
+            apply({ ...dataRef.current, meta: next.meta, sources: next.sources })
           }
         } else {
-          pendingData.current = null
+          pending.current = null
           setPendingCount(0)
-          apply(data)
+          apply(next)
         }
         setStatus('ready')
       } catch (e) {
         if (e.name === 'AbortError') return
-        if (!hasItems.current) setStatus('error')
+        if (!dataRef.current) setStatus('error')
         else setRefreshError(true)
       } finally {
         setRefreshing(false)
@@ -88,16 +76,14 @@ export function useFeed() {
     [apply]
   )
 
-  // Wachtende nieuwe items tonen.
   const applyPending = useCallback(() => {
-    if (pendingData.current) {
-      apply(pendingData.current)
-      pendingData.current = null
+    if (pending.current) {
+      apply(pending.current)
+      pending.current = null
     }
     setPendingCount(0)
   }, [apply])
 
-  // Handmatig verversen (knop/pull): direct toepassen, geen pill.
   const reload = useCallback(() => load({ defer: false }), [load])
 
   useEffect(() => {
@@ -116,5 +102,5 @@ export function useFeed() {
     }
   }, [load])
 
-  return { items, trending, meta, status, refreshing, refreshError, reload, pendingCount, applyPending }
+  return { data, status, refreshing, refreshError, reload, pendingCount, applyPending }
 }

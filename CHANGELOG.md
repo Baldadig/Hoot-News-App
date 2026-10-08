@@ -2,6 +2,31 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.0.0] — 2026-10-08 — Hoot 2: Editie, Stroom, Bewaard, Bronnen
+
+De app is opnieuw opgezet rond het verhaal als eenheid. Zie `docs/hoot-2-verslag.md`.
+
+### Nieuw
+
+- **Vier vaste bestemmingen** (onderin op telefoon, links op desktop): **Editie**, **Stroom**, **Bewaard**, **Bronnen**, plus **Zoeken**.
+- **Editie**: een ochtend- en een avondeditie van tien verhalen, met een einde ("Je bent bij."). Selectie op aantal bronnen, versheid en eigen bronnen; uitleg staat erbij.
+- **Verhalen**: berichten over dezelfde gebeurtenis zijn gebundeld; "+3 bronnen" opent elke publicatie apart met eigen kop, bron, tijd en link. Op desktop in een paneel naast de leeskolom.
+- **Nieuw sinds je vorige bezoek** binnen een verhaal; verhalen zijn als geheel te bewaren.
+- **Bronnen-scherm**: bronnen aan/uit, status per bron, Bluesky toevoegen, je drie onderwerpen, thema. Welkomscherm bij eerste bezoek.
+- **Drie inhoudsvormen** (hoofdverhaal, compact bericht, sociale bijdrage) en een designsysteem in de app (`#/stijl`).
+- Auteur, rubriek (de Volkskrant) en het label "Opinie" waar de bron die zelf levert.
+- Leespositie blijft behouden bij wisselen, terugkeren en herladen. Filters zijn stappen voor de terugknop.
+
+### Gewijzigd
+
+- Server levert `sources`, `items`, `related`, `stories` en `edition` gescheiden; verhaal-id's en eerst-gezien-tijden worden bewaard (Netlify Blobs); één herhaalpoging per bron.
+- Tijd-copy: "3 min geleden" naast "3 min lezen".
+- Alle aanraakdoelen minimaal 44 × 44 px; geen horizontaal scrollende rijen meer.
+
+### Verwijderd
+
+- Het "geverifieerd"-vinkje (had geen betekenis), de Trending-tab (opgegaan in Editie en verhalen), het instellingenmenu, de compact/comfortabel-keuze, omlaag-trekken om te verversen en de sneltoetsen j/k.
+
 ## [0.16.1] — 2026-10-08 — Tweede ronde: wat je ziet
 
 ### Opgelost

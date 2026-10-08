@@ -11,6 +11,8 @@ Redactioneel ontwerp (New York Times × Notion): flat, serif koppen, modern klas
 
 Koopjesgidsen ("Best Prime Day Deals") en puzzels worden uit de feed gefilterd.
 
+> **Hoot 2 (v1.0.0):** vier bestemmingen — Editie (ochtend/avond, tien verhalen met een einde), Stroom, Bewaard, Bronnen — met het verhaal als eenheid. Ontwerpkeuzes: `docs/hoot-2-plan.md`; wat er gebouwd en gecontroleerd is: `docs/hoot-2-verslag.md`; designsysteem: in de app onder `#/stijl`.
+
 ## Hoe lezen werkt
 
 Hoot is de *ontdek- en tijdlijnlaag*. De feed komt uit de openbare RSS van elke bron en uit de
