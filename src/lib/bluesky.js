@@ -53,6 +53,12 @@ function mapPost(post, fallbackName) {
   const rkey = (post.uri || '').split('/').pop()
   const permalink = `https://bsky.app/profile/${handle}/post/${rkey}`
   let image = null
+  let imageRatio = null
+  const photo = (im) => {
+    image = im.thumb || im.fullsize || image
+    const r = im.aspectRatio
+    imageRatio = r?.width && r?.height ? Math.round((r.width / r.height) * 1000) / 1000 : 4 / 3
+  }
   let video = null
   let videoPoster = null
   let linkUrl = permalink
@@ -78,11 +84,11 @@ function mapPost(post, fallbackName) {
     const t = embed.$type || ''
     if (t.includes('embed.video')) vid(embed)
     else if (t.includes('embed.external')) ext(embed)
-    else if (t.includes('embed.images') && embed.images?.length) image = embed.images[0].thumb || embed.images[0].fullsize
+    else if (t.includes('embed.images') && embed.images?.length) photo(embed.images[0])
     else if (t.includes('recordWithMedia') && embed.media) {
       const m = embed.media
       if ((m.$type || '').includes('embed.video')) vid(m)
-      else if ((m.$type || '').includes('embed.images') && m.images?.length) image = m.images[0].thumb
+      else if ((m.$type || '').includes('embed.images') && m.images?.length) photo(m.images[0])
       else if ((m.$type || '').includes('embed.external')) ext(m)
     }
   }
@@ -103,6 +109,7 @@ function mapPost(post, fallbackName) {
     topics: [],
     url: linkUrl,
     image,
+    imageRatio,
     video,
     videoPoster,
     readMin: null,

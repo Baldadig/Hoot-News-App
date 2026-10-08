@@ -64,10 +64,11 @@ export function EmptyState({ filtered, saved, onReset }) {
   )
 }
 
-// Einde van de feed. Meldt alleen iets als een bron écht niet bereikbaar was.
+// Einde van de feed. Meldt alleen iets als een bron uit je eigen feed niet bereikbaar was
+// (bronnen die alleen Trending voeden tellen niet mee).
 export function Footer({ meta }) {
   if (!meta) return null
-  const failed = (meta.sources || []).filter((s) => !s.ok).map((s) => s.name)
+  const failed = (meta.sources || []).filter((s) => !s.ok && s.main !== false).map((s) => s.name)
   return (
     <footer className="foot">
       {failed.length ? `⚠️ Nu niet bereikbaar: ${failed.join(', ')}` : 'Je bent helemaal bij 🦉'}

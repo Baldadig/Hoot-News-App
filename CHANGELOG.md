@@ -2,6 +2,19 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [0.16.1] — 2026-10-08 — Tweede ronde: wat je ziet
+
+### Opgelost
+
+- **Screenshots in Bluesky-posts werden onleesbaar afgesneden** (16:9-uitsnede). Foto's in social posts tonen nu in hun eigen verhouding, helemaal.
+- **"Nieuwe berichten"-pill** stond links over de avatar; staat nu gecentreerd. In donker thema waren de pill en de knoppen slecht leesbaar (wit op lichtblauw) — nu donkere tekst.
+- De footer waarschuwde ook als een bron haperde die alleen Trending voedt (bv. FT); nu alleen voor bronnen uit je eigen feed.
+- Bluesky-video in een browser zonder HLS (Chrome op de Mac): poster met speel-teken in plaats van een dode speler; de kaart opent de post.
+
+### Opgeruimd
+
+- Dode CSS weg; README bijgewerkt (tabs, bewaren, werking zonder AI-sleutel).
+
 ## [0.16.0] — 2026-10-07 — Frisse blik: minder ruis, eerlijkere kaarten, bewaren dat werkt
 
 ### Opgelost

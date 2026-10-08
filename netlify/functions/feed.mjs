@@ -373,10 +373,16 @@ function mapPost(post, author) {
   const rkey = (post.uri || '').split('/').pop()
   const permalink = `https://bsky.app/profile/${handle}/post/${rkey}`
   let image = null
+  let imageRatio = null // breedte/hoogte van een geplaatste foto (screenshots niet bijsnijden)
   let video = null
   let videoPoster = null
   let linkUrl = permalink
   let domain = 'bsky.app'
+  const photo = (im) => {
+    image = im.thumb || im.fullsize || image
+    const r = im.aspectRatio
+    imageRatio = r?.width && r?.height ? Math.round((r.width / r.height) * 1000) / 1000 : 4 / 3
+  }
   const ext = (e) => {
     if (e?.external) {
       image = e.external.thumb || image
@@ -398,11 +404,11 @@ function mapPost(post, author) {
     const t = embed.$type || ''
     if (t.includes('embed.video')) vid(embed)
     else if (t.includes('embed.external')) ext(embed)
-    else if (t.includes('embed.images') && embed.images?.length) image = embed.images[0].thumb || embed.images[0].fullsize
+    else if (t.includes('embed.images') && embed.images?.length) photo(embed.images[0])
     else if (t.includes('recordWithMedia') && embed.media) {
       const m = embed.media
       if ((m.$type || '').includes('embed.video')) vid(m)
-      else if ((m.$type || '').includes('embed.images') && m.images?.length) image = m.images[0].thumb
+      else if ((m.$type || '').includes('embed.images') && m.images?.length) photo(m.images[0])
       else if ((m.$type || '').includes('embed.external')) ext(m)
     }
   }
@@ -422,6 +428,7 @@ function mapPost(post, author) {
     text,
     url: linkUrl,
     image,
+    imageRatio,
     video,
     videoPoster,
     readMin: null,
@@ -547,6 +554,7 @@ function toClient(it, cache) {
     topics,
     url: it.url,
     image: it.image,
+    imageRatio: it.imageRatio || null,
     video: it.video,
     videoPoster: it.videoPoster,
     publishedAt: it.publishedAt,
@@ -675,7 +683,16 @@ export const handler = async () => {
     // Laat de app weten of bewaren óók naar Instapaper kan (anders alleen de eigen leeslijst).
     instapaper: !!(process.env.INSTAPAPER_USERNAME && process.env.INSTAPAPER_PASSWORD),
     enrichedNew,
-    sources: [...mainGroups, ...bskyGroups, ...extraGroups].map(({ id, name, ok, count, used, error }) => ({ id, name, ok, count, used, error })),
+    // main = staat in je eigen feed (extra bronnen voeden alleen Trending).
+    sources: [...mainGroups, ...bskyGroups, ...extraGroups].map(({ id, name, ok, count, used, error }, i) => ({
+      id,
+      name,
+      ok,
+      count,
+      used,
+      error,
+      main: i < mainGroups.length + bskyGroups.length,
+    })),
   }
 
   return {

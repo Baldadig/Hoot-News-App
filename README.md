@@ -5,7 +5,11 @@ Redactioneel ontwerp (New York Times × Notion): flat, serif koppen, modern klas
 
 **Bronnen:** NRC · de Volkskrant · NYT · The Verge · Wired · NOS · Bluesky-accounts (bv. [@atrupar.com](https://bsky.app/profile/atrupar.com))
 
-**Tabs zijn onderwerpen, geen bronnen:** 🇺🇸 VS-politiek · 🇺🇦 Oekraïne · 🌍 Geopolitiek · 🤖 AI · 🎪 Trump
+**Bronnen (vervolg):** Left Laser (YouTube) · zelf toe te voegen Bluesky-accounts (menu → Sociale bronnen)
+
+**Tabs zijn onderwerpen, geen bronnen:** 🔥 Trending · 🔖 Bewaard · 🇺🇸 VS-politiek · 🎪 Trump · 🇳🇱 Nederland · 🇺🇦 Oekraïne · 🌍 Geopolitiek · 💻 Tech · 🤖 AI · 🔬 Wetenschap · 📈 Economie
+
+Koopjesgidsen ("Best Prime Day Deals") en puzzels worden uit de feed gefilterd.
 
 ## Hoe lezen werkt
 
@@ -23,20 +27,23 @@ van ~140 tekens** en bepaalt de **onderwerp-tags** met Claude (Sonnet). Resultat
 **Netlify Blobs**.
 
 - Zet hiervoor in Netlify een omgevingsvariabele **`ANTHROPIC_API_KEY`** (Site settings → Environment variables).
-- **Zonder sleutel** werkt de app door: originele titels, de RSS-teaser (140 tekens) als samenvatting,
-  onderwerpen via trefwoorden. De footer toont `AI aan` / `AI uit`.
+- **Zonder sleutel** (de huidige situatie) werkt de app door: originele titels, de RSS-teaser in hele
+  zinnen als preview, onderwerpen via trefwoorden + RSS-categorieën. Bronnen zonder teaser (de Volkskrant)
+  tonen kop + foto, of lenen een preview van NOS/NRC bij hetzelfde verhaal ("· via NRC").
 
-## Bewaren → Instapaper
+## Bewaren
 
-Elke kaart heeft een **bewaar-knop** (bladwijzer) die het artikel in je Instapaper zet. De aanroep
+Elke kaart heeft een **bewaar-knop** (bladwijzer). Bewaarde berichten staan in een eigen leeslijst in
+de app (tab **🔖 Bewaard**, opgeslagen op het toestel); nog een keer tikken verwijdert ze.
+
+Optioneel gaat een bewaard artikel óók naar Instapaper. Die aanroep
 loopt server-side (`/api/save`); je inloggegevens staan alleen als Netlify-omgevingsvariabelen,
 nooit in de client of in de code:
 
 - **`INSTAPAPER_USERNAME`** — je Instapaper e-mailadres
 - **`INSTAPAPER_PASSWORD`** — je Instapaper wachtwoord (je account moet een wachtwoord ingesteld hebben)
 
-Zonder deze variabelen blijft de knop zichtbaar, maar meldt 'ie netjes dat bewaren (nog) niet lukt.
-De app onthoudt bewaarde artikelen lokaal, zodat de bladwijzer gevuld blijft.
+Zonder deze variabelen werkt alleen de eigen leeslijst; Instapaper wordt dan niet aangeroepen.
 
 ## Ontwikkelen
 

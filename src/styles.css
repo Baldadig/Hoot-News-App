@@ -7,6 +7,7 @@
   --line: #e4e3dd;
   --accent: #21468b;
   --accent-soft: #e8edf6;
+  --on-accent: #ffffff; /* tekst óp de accentkleur */
 
   /* Radius-schaal */
   --radius: 14px;
@@ -37,6 +38,7 @@
   --line: #2c2c30;
   --accent: #7fa0e6;
   --accent-soft: #1a2440;
+  --on-accent: #101012;
 }
 
 * {
@@ -566,12 +568,6 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
-.drawer__hint {
-  margin: auto 0 0;
-  font-size: 13px;
-  color: var(--text-dim);
-}
-
 .drawer__version {
   margin: auto 0 0;
   padding-top: var(--space-4);
@@ -665,16 +661,16 @@ body {
   position: sticky;
   top: var(--space-2);
   z-index: 18;
-  align-self: center;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 6px;
+  width: max-content;
   margin: 0 auto var(--space-2);
   padding: 9px 18px;
   border: 0;
   border-radius: var(--radius-pill);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
@@ -795,14 +791,6 @@ body {
 
 .save--on {
   color: var(--accent);
-}
-
-.save--err {
-  color: #d33;
-}
-
-.save--busy {
-  opacity: 0.55;
 }
 
 .save:disabled {
@@ -965,6 +953,34 @@ body {
   object-fit: cover;
 }
 
+/* Foto's in social posts zijn vaak screenshots van tekst: heel tonen, niet bijsnijden.
+   De verhouding komt per post uit de data (inline aspect-ratio). */
+.post__media--natural {
+  aspect-ratio: 4 / 3;
+  max-height: 560px;
+}
+
+.post__media--natural img {
+  object-fit: contain;
+}
+
+/* Video die deze browser niet kan afspelen (HLS buiten Safari): poster + speel-teken,
+   de kaart opent dan de post zelf. */
+.post__media--poster {
+  position: relative;
+}
+
+.post__play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.22);
+  color: #fff;
+  font-size: 44px;
+  line-height: 1;
+}
+
 .post__video {
   background: #000;
 }
@@ -1107,7 +1123,7 @@ body {
   border-radius: var(--radius-sm);
   padding: 11px 18px;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;

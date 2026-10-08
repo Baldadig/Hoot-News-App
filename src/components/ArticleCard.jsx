@@ -1,6 +1,9 @@
 import { timeAgo } from '../lib/time.js'
 import { VerifiedCheck, BookmarkIcon } from './icons.jsx'
 
+// HLS-video speelt alleen native in Safari/iOS. Elders tonen we de poster en opent de kaart de post.
+const CAN_HLS = typeof document !== 'undefined' && !!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')
+
 function hideParent(e) {
   const wrap = e.currentTarget.parentElement
   if (wrap) wrap.style.display = 'none'
@@ -31,15 +34,26 @@ export default function ArticleCard({ item, isRead, isSaved, onOpen, onFilterSou
   // Preview geleend van een andere NL-bron (alleen als we niet de AI-samenvatting tonen).
   const via = !item.nl_summary && item.borrowedFrom ? item.borrowedFrom : null
 
-  const media = item.video ? (
-    <div className="post__media" onClick={(e) => e.preventDefault()}>
-      <video className="post__video" controls playsInline preload="none" poster={item.videoPoster || undefined} src={item.video} />
-    </div>
-  ) : item.image ? (
-    <div className="post__media">
-      <img src={item.image} alt="" loading="lazy" referrerPolicy="no-referrer" onError={hideParent} />
-    </div>
-  ) : null
+  // Foto in een social post: eigen verhouding (begrensd), zodat screenshots leesbaar blijven.
+  const ratio = item.imageRatio ? Math.min(2.4, Math.max(0.7, item.imageRatio)) : null
+
+  const media =
+    item.video && CAN_HLS ? (
+      <div className="post__media" onClick={(e) => e.preventDefault()}>
+        <video className="post__video" controls playsInline preload="none" poster={item.videoPoster || undefined} src={item.video} />
+      </div>
+    ) : item.video ? (
+      <div className="post__media post__media--poster">
+        {item.videoPoster ? <img src={item.videoPoster} alt="" loading="lazy" referrerPolicy="no-referrer" /> : null}
+        <span className="post__play" aria-hidden="true">
+          ▶
+        </span>
+      </div>
+    ) : item.image ? (
+      <div className={`post__media${ratio ? ' post__media--natural' : ''}`} style={ratio ? { aspectRatio: ratio } : undefined}>
+        <img src={item.image} alt="" loading="lazy" referrerPolicy="no-referrer" onError={hideParent} />
+      </div>
+    ) : null
 
   return (
     <article className={`card${isRead ? ' card--read' : ''}`}>
