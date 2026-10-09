@@ -1674,29 +1674,80 @@ input {
 /* ---------- Editie: voorpagina ---------- */
 /* Vier verhalen in krant-vorm: het hoofdverhaal en daaronder (smal scherm) of daarnaast
    (breed scherm) drie kleinere koppen. Daarna gaat de editie verder als stroom. */
-.front__side .compact {
+.fitem {
   padding: 12px 0 0;
   border-top: 1px solid var(--rule);
-  content-visibility: visible;
 }
-.front__side .compact__title {
+/* Bron en tijd: een eigen, rustige regel die mag afbreken maar nooit wordt afgekapt */
+.fitem__src {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 8px;
+  color: var(--ink-3);
+  font-size: 0.8125rem;
+}
+.fitem__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--tap);
+  margin: -8px 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.fitem__link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  min-height: var(--tap);
+  padding-top: 4px;
+  color: inherit;
+  text-decoration: none;
+}
+.fitem__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.fitem__title {
+  font-family: var(--serif);
   font-size: 1.125rem;
+  font-weight: 700;
   line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
 }
-.front__side .compact__sum {
+.is-read .fitem__title {
+  color: var(--ink-3);
+}
+.fitem__sum {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   overflow: hidden;
+  color: var(--ink-2);
   font-size: 0.9375rem;
+  line-height: 1.45;
 }
-.front__side .thumb {
+.fitem .thumb {
+  display: block;
   width: 64px;
   height: 64px;
 }
-.front__side .meta {
-  margin-top: 2px;
+.fitem__act {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 0 -6px;
 }
 .front .lead {
   padding-top: 12px;
@@ -1726,16 +1777,119 @@ input {
     padding-left: 28px;
     border-left: 1px solid var(--rule);
   }
-  .app:not(.has-panel) .front__side .compact:first-child {
-    padding-top: 12px;
+  .app:not(.has-panel) .front__side .fitem:first-child {
     border-top: 0;
   }
   /* Naast het hoofdverhaal: tekst voorop, alleen het laatste krijgt een klein beeld */
-  .app:not(.has-panel) .front__side .compact:not(:last-child) .thumb {
+  .app:not(.has-panel) .front__side .fitem:not(:last-child) .thumb {
     display: none;
   }
   .app:not(.has-panel) .front__rest {
     max-width: 720px;
     margin: 0 auto;
   }
+}
+
+/* ---------- Vergelijkpaneel (breed scherm): compacte publicatie ---------- */
+.srcitem {
+  padding: 10px 0 14px;
+  border-top: 1px solid var(--rule);
+}
+.srcitem .meta {
+  margin-top: 0;
+}
+.srcitem__link {
+  display: block;
+  min-height: var(--tap);
+  color: inherit;
+  text-decoration: none;
+}
+.srcitem__title {
+  font-family: var(--serif);
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+.is-read .srcitem__title {
+  color: var(--ink-3);
+}
+.srcitem__sum {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  margin-top: 6px;
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+.story__back {
+  margin-right: auto;
+  padding-left: 4px;
+}
+
+/* Overzicht: een keuzelijst, geen tweede nieuwslijst */
+.sidx__head {
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+.sidx__btn {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+.sidx__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.sidx__title {
+  font-size: 1rem;
+}
+.sidx__meta {
+  color: var(--accent);
+  font-weight: 600;
+}
+.sidx__go {
+  flex: none;
+  color: var(--ink-3);
+  font-size: 1.25rem;
+}
+.sidx__btn[aria-current] {
+  padding-left: 10px;
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+/* Indeling-schakelaar: op breed scherm met tekst; de gekozen stand is ook vet en omrand */
+.seg__label {
+  display: none;
+}
+.seg__btn[aria-pressed='true'] {
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+  font-weight: 700;
+}
+@media (min-width: 960px) {
+  .seg__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: auto;
+    padding: 0 14px 0 10px;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  .seg__label {
+    display: inline;
+  }
+}
+
+.toast__x {
+  color: inherit;
 }

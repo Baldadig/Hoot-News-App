@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { HootContext } from './components/Items.jsx'
+import { CloseIcon } from './components/icons.jsx'
 import { Nav } from './components/Shell.jsx'
 import Edition from './views/Edition.jsx'
 import Stream from './views/Stream.jsx'
@@ -18,6 +19,7 @@ import { useStored, readJSON } from './lib/store.js'
 import { saveToInstapaper } from './lib/save.js'
 import { MAIN, rememberLocation, hrefFor } from './lib/context.js'
 import { sourceStatus, statusLabel } from './lib/sourceStatus.js'
+import { subscribe as onUpdate, isReady as updateReady, applyUpdate, dismissUpdate } from './lib/swUpdate.js'
 import { indexStories, resolveStory, toggleSaved, restoreSaved } from './lib/saved.js'
 
 const PAGES = ['zoek', 'stijl', 'welkom']
@@ -136,6 +138,10 @@ export default function App() {
 
   // ---- Handelingen ----
   const markRead = useCallback((id) => setReadIds((prev) => (prev.includes(id) ? prev : [...prev, id].slice(-1500))), [setReadIds])
+
+  // Nieuwe versie klaar? Stille melding; herladen gebeurt alleen als jij dat kiest.
+  const [update, setUpdate] = useState(updateReady)
+  useEffect(() => onUpdate(setUpdate), [])
 
   // Na verwijderen uit Bewaard: een paar tellen de kans om het terug te zetten.
   const [undo, setUndo] = useState(null) // { id, entry }
@@ -301,8 +307,21 @@ export default function App() {
   const layout = prefs.layout === 'krant' ? 'krant' : 'tijdlijn'
   const setLayout = useCallback((layout) => setPrefs((p) => ({ ...p, layout })), [setPrefs])
   const panelOpen = hasPanel && prefs.panel === 'open'
+  // Vanuit een verhaal terug naar het overzicht (paneel blijft open), of alles dicht.
+  const [lastStory, setLastStory] = useState(null)
+  useEffect(() => {
+    if (story) setLastStory(story.story.id)
+  }, [story])
+  const backToIndex = useCallback(() => {
+    setPrefs((p) => ({ ...p, panel: 'open' }))
+    closeStory()
+  }, [setPrefs, closeStory])
+  const closePanel = useCallback(() => {
+    setPrefs((p) => ({ ...p, panel: 'dicht' }))
+    if (story) closeStory()
+  }, [setPrefs, closeStory, story])
   const togglePanel = useCallback(() => setPrefs((p) => ({ ...p, panel: p.panel === 'open' ? 'dicht' : 'open' })), [setPrefs])
-  const panel = useMemo(() => ({ available: hasPanel, open: panelOpen || (hasPanel && !!story), toggle: story ? closeStory : togglePanel }), [hasPanel, panelOpen, story, closeStory, togglePanel])
+  const panel = useMemo(() => ({ available: hasPanel, open: panelOpen || (hasPanel && !!story), toggle: story ? closePanel : togglePanel }), [hasPanel, panelOpen, story, closePanel, togglePanel])
 
   const ctx = useMemo(
     () => ({
@@ -409,9 +428,9 @@ export default function App() {
         </main>
         <aside className={`panel${story ? ' is-open' : ''}`} hidden={!story && !panelOpen} aria-label="Verhaal" role={overlay ? 'dialog' : undefined} aria-modal={overlay ? 'true' : undefined} inert={showWelcome ? '' : undefined}>
           {story ? (
-            <Story key={story.story.id} story={story.story} items={story.items} overlay={overlay} onClose={closeStory} onSeen={markStorySeen} seenBefore={seenStories[story.story.id] || null} />
+            <Story key={story.story.id} story={story.story} items={story.items} overlay={overlay} onClose={overlay ? closeStory : closePanel} onBack={backToIndex} onSeen={markStorySeen} seenBefore={seenStories[story.story.id] || null} />
           ) : (
-            <StoryIndex stories={data?.stories} onClose={togglePanel} />
+            <StoryIndex stories={data?.stories} onClose={togglePanel} lastId={lastStory} />
           )}
         </aside>
         <div className="toasts" aria-live="polite">
@@ -420,6 +439,16 @@ export default function App() {
               <span>Verwijderd uit Bewaard</span>
               <button type="button" className="linkbtn" onClick={undoRemove}>
                 Ongedaan maken
+              </button>
+            </div>
+          ) : update ? (
+            <div className="toast">
+              <span>Nieuwe versie beschikbaar</span>
+              <button type="button" className="linkbtn" onClick={applyUpdate}>
+                Vernieuwen
+              </button>
+              <button type="button" className="iconbtn toast__x" onClick={dismissUpdate} aria-label="Melding sluiten">
+                <CloseIcon />
               </button>
             </div>
           ) : announce ? (

@@ -1,11 +1,59 @@
 import { useRef } from 'react'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty, LayoutSwitch } from '../components/Shell.jsx'
-import { LeadStory, CompactItem, useHoot } from '../components/Items.jsx'
+import { LeadStory, CompactItem, SaveButton, SourceMark, useHoot } from '../components/Items.jsx'
+import { imgProps } from '../lib/img.js'
+import { timeAgo } from '../lib/time.js'
 import { BrandMark } from '../components/Brand.jsx'
 import { longDate, clock } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 
 const FRONT = 4 // zoveel verhalen staan op de voorpagina
+
+// Klein verhaal op de voorpagina. Bron en tijd hebben een eigen regel (breekt af in plaats van
+// af te kappen); vergelijken en bewaren staan apart eronder. Bij een lange kop vervalt de
+// samenvatting — liever dat dan een afgekapte bronregel.
+function FrontItem({ item, story }) {
+  const { markRead, read, openSource, openStory, newInStory } = useHoot()
+  const others = story ? story.sourceCount - 1 : 0
+  const fresh = story ? newInStory(story) : 0
+  const title = item.short_title || item.title
+  const summary = title.length <= 90 ? item.nl_summary || item.summary : null
+  return (
+    <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
+      <p className="fitem__src">
+        <button type="button" className="fitem__name" onClick={() => openSource(item.source)} aria-label={`Alles van ${item.sourceName} bekijken`}>
+          <SourceMark source={{ name: item.sourceName, avatar: item.avatar, avatarContain: item.avatarContain, brandColor: item.brandColor }} size={20} />
+          {item.sourceName}
+        </button>
+        <time dateTime={item.publishedAt || undefined}>{timeAgo(item.publishedAt)}</time>
+        {item.type === 'opinie' ? <span className="kicker__type">Opinie</span> : null}
+      </p>
+      <a className="fitem__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+        <span className="fitem__text">
+          <span className="fitem__title" role="heading" aria-level="3">
+            {title}
+          </span>
+          {summary ? <span className="fitem__sum">{summary}</span> : null}
+        </span>
+        {item.image ? (
+          <span className="thumb">
+            <img {...imgProps(item.image, 'thumb')} alt="" width="64" height="64" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.parentElement.hidden = true)} />
+          </span>
+        ) : null}
+      </a>
+      <div className="fitem__act">
+        {others > 0 ? (
+          <button type="button" className="morebtn" onClick={() => openStory(story.id)} aria-label={`Vergelijk ${story.sourceCount} bronnen over dit verhaal${fresh ? `, ${fresh} nieuw` : ''}`}>
+            {fresh ? <span className="dot" aria-hidden="true" /> : null}+{others} {others === 1 ? 'bron' : 'bronnen'}
+          </button>
+        ) : (
+          <span />
+        )}
+        {story ? <SaveButton id={story.id} kind="story" payload={story} label="verhaal" /> : <SaveButton id={item.id} payload={item} />}
+      </div>
+    </article>
+  )
+}
 const SLOT = { ochtend: 'Ochtendeditie', avond: 'Avondeditie' }
 
 export default function Edition({ active, edition, loading, failedLoad, statusProps, onRefresh, refreshing }) {
@@ -75,7 +123,7 @@ export default function Edition({ active, edition, loading, failedLoad, statusPr
               {rows.length > 1 ? (
                 <div className="front__side">
                   {rows.slice(1, FRONT).map(({ key, item, story }) => (
-                    <CompactItem key={key} item={item} story={story} plain />
+                    <FrontItem key={key} item={item} story={story} />
                   ))}
                 </div>
               ) : null}

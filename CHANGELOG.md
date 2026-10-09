@@ -2,6 +2,19 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.7.0] — 2026-10-09 — Afwerking desktop en betrouwbare updates
+
+### Opgelost
+
+- **Nieuwe versies kwamen niet door bij verversen.** Sinds v1.3.0 wachtte een nieuwe versie tot álle tabbladen dicht waren (de instelling `injectRegister: 'script-defer'` zette het automatisch overnemen stilletjes uit). Nu staat er, zodra een nieuwe versie klaarstaat, een stille melding **"Nieuwe versie beschikbaar · Vernieuwen"**. Hoot herlaadt nooit uit zichzelf; bewaarde berichten, bronnen, filters en leespositie blijven behouden. Getest met twee builds achter elkaar (melding, vernieuwen, geen lus, wegklikken, offline).
+
+### Gewijzigd
+
+- **Vergelijkpaneel (breed scherm)**: elke publicatie toont eerst bron en tijd, dan de kop over de volle breedte en hooguit drie regels samenvatting — zonder beeld. Op telefoon en tablet blijft de ruimere weergave.
+- **Overzicht in het paneel** heet "Verhalen met meerdere bronnen"; elke regel zegt "Vergelijk N bronnen" en het laatst bekeken verhaal is gemarkeerd. Vanuit een verhaal brengt "‹ Alle verhalen" je terug; het kruisje sluit het paneel.
+- **Schakelaar Tijdlijn/Krant** heeft op breed scherm tekst bij de iconen; de gekozen stand is ook vet en omrand (niet alleen kleur).
+- **Kleine verhalen op de voorpagina**: bron en tijd op een eigen regel die niet meer wordt afgekapt; "+N bronnen" en bewaren staan apart eronder; bij een lange kop vervalt de samenvatting.
+
 ## [1.6.0] — 2026-10-09 — Editie met een voorpagina
 
 - **Voorpagina**: de eerste vier verhalen staan in krant-vorm. Op breed scherm het hoofdverhaal links (beeld, grote kop, samenvatting) en drie kleinere koppen in een smalle kolom rechts; op telefoon, of met het vergelijkpaneel open, onder elkaar als compacte koppenlijst.

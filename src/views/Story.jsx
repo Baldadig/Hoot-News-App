@@ -1,10 +1,26 @@
 import { useEffect, useRef, useState } from 'react'
-import { CompactItem, SaveButton, useHoot } from '../components/Items.jsx'
+import { CompactItem, Meta, SaveButton, useHoot } from '../components/Items.jsx'
 import { BackIcon, CloseIcon } from '../components/icons.jsx'
 import { timeAgo } from '../lib/time.js'
 
+// Eén publicatie in het smalle paneel (breed scherm): eerst bron en tijd, dan de kop over
+// de volle breedte en hooguit drie regels samenvatting. Geen beeld — dat perst de kop samen.
+function SourceItem({ item, note }) {
+  const { markRead, read } = useHoot()
+  return (
+    <article className={`entry srcitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
+      <Meta item={item} />
+      <a className="srcitem__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+        {note || item.type === 'opinie' ? <p className="kicker">{[item.type === 'opinie' ? 'Opinie' : null, note].filter(Boolean).join(' · ')}</p> : null}
+        <h3 className="srcitem__title">{item.title}</h3>
+        {item.summary ? <p className="srcitem__sum">{item.summary}</p> : null}
+      </a>
+    </article>
+  )
+}
+
 // Bronvergelijking: elke publicatie over dit verhaal apart, met eigen kop, bron, tijd en link.
-export default function Story({ story, items, overlay, onClose, onSeen, seenBefore }) {
+export default function Story({ story, items, overlay, onClose, onBack, onSeen, seenBefore }) {
   const { sourcesById } = useHoot()
   // Wat je de vorige keer al zag, vastgelegd bij het openen (zodat "nieuw" niet meteen verdwijnt).
   const [prev] = useState(() => seenBefore)
@@ -36,13 +52,18 @@ export default function Story({ story, items, overlay, onClose, onSeen, seenBefo
           <button type="button" className="iconbtn" onClick={onClose} aria-label="Terug">
             <BackIcon />
           </button>
-        ) : null}
-        <p className="story__eyebrow" tabIndex={-1} ref={headRef}>
+        ) : (
+          <button type="button" className="textbtn story__back" onClick={onBack}>
+            <BackIcon />
+            Alle verhalen
+          </button>
+        )}
+        <p className={`story__eyebrow${overlay ? '' : ' visually-hidden'}`} tabIndex={-1} ref={headRef}>
           Verhaal
         </p>
         <SaveButton id={story.id} kind="story" payload={story} label="verhaal" />
         {!overlay ? (
-          <button type="button" className="iconbtn" onClick={onClose} aria-label="Verhaal sluiten">
+          <button type="button" className="iconbtn" onClick={onClose} aria-label="Paneel sluiten">
             <CloseIcon />
           </button>
         ) : null}
@@ -69,9 +90,7 @@ export default function Story({ story, items, overlay, onClose, onSeen, seenBefo
           <>
             <h3 className="story__sub">Toegevoegd sinds je vorige bezoek</h3>
             <div className="list">
-              {fresh.map((i) => (
-                <CompactItem key={i.id} item={i} note={note(i)} plain />
-              ))}
+              {fresh.map((i) => (overlay ? <CompactItem key={i.id} item={i} note={note(i)} plain /> : <SourceItem key={i.id} item={i} note={note(i)} />))}
             </div>
             <h3 className="story__sub">Eerder beschikbaar</h3>
           </>
@@ -79,18 +98,16 @@ export default function Story({ story, items, overlay, onClose, onSeen, seenBefo
           <h3 className="story__sub">Alle publicaties, nieuwste eerst</h3>
         )}
         <div className="list">
-          {rest.map((i) => (
-            <CompactItem key={i.id} item={i} note={note(i)} plain />
-          ))}
+          {rest.map((i) => (overlay ? <CompactItem key={i.id} item={i} note={note(i)} plain /> : <SourceItem key={i.id} item={i} note={note(i)} />))}
         </div>
       </div>
     </div>
   )
 }
 
-// Vergelijken zonder dat er al een verhaal open is: de verhalen van nu waar de meeste
-// bronnen over schrijven. Kies er een om de publicaties naast elkaar te zien.
-export function StoryIndex({ stories = [], onClose }) {
+// Overzicht (geen verhaal gekozen): geen tweede nieuwslijst, maar een keuzelijst — elke regel
+// opent de bronvergelijking van dat verhaal.
+export function StoryIndex({ stories = [], onClose, lastId }) {
   const { itemsById, openStory, muted } = useHoot()
   const rows = stories
     .filter((s) => s.sourceCount > 1)
@@ -107,15 +124,22 @@ export function StoryIndex({ stories = [], onClose }) {
         </button>
       </header>
       <div className="story__body">
-        <p className="story__facts">Verhalen waar nu meerdere bronnen over schrijven. Kies er een om elke publicatie apart te zien, met eigen kop en link.</p>
+        <h2 className="sidx__head">Verhalen met meerdere bronnen</h2>
+        <p className="story__facts">Kies een verhaal om de bronnen naast elkaar te zien.</p>
         {rows.length ? (
           <ul className="sidx">
             {rows.map(({ s, lead }) => (
               <li key={s.id}>
-                <button type="button" className="sidx__btn" onClick={() => openStory(s.id)}>
-                  <span className="sidx__title">{lead.short_title || lead.title}</span>
-                  <span className="sidx__meta">
-                    {s.sourceCount} bronnen · {timeAgo(s.latestAt)}
+                <button type="button" className="sidx__btn" onClick={() => openStory(s.id)} aria-current={s.id === lastId ? 'true' : undefined}>
+                  <span className="sidx__text">
+                    <span className="sidx__title">{lead.short_title || lead.title}</span>
+                    <span className="sidx__meta">
+                      Vergelijk {s.sourceCount} bronnen · {timeAgo(s.latestAt)}
+                      {s.id === lastId ? ' · zojuist bekeken' : ''}
+                    </span>
+                  </span>
+                  <span className="sidx__go" aria-hidden="true">
+                    ›
                   </span>
                 </button>
               </li>

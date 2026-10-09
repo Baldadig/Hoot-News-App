@@ -3,7 +3,8 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { readFileSync } from 'node:fs'
 
-const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
+const version = process.env.HOOT_VERSION || pkg.version // HOOT_VERSION: alleen om lokaal twee builds te vergelijken
 
 // Serveert /api/feed lokaal door de Netlify-functie te draaien,
 // zodat `npm run dev` en de preview echte data tonen zonder Netlify CLI.
@@ -53,9 +54,11 @@ export default defineConfig({
     devApi(),
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
-      // De service worker registreren mag het eerste beeld niet ophouden.
-      injectRegister: 'script-defer',
+      // Een nieuwe versie wordt klaargezet en wácht: de app toont dan "Nieuwe versie
+      // beschikbaar" en activeert hem pas als je op Vernieuwen tikt (of alle tabbladen sluit).
+      // Registreren doet de app zelf, na het laden (src/lib/swUpdate.js).
+      registerType: 'prompt',
+      injectRegister: null,
       includeAssets: ['icon.svg', 'favicon.svg', 'apple-touch-icon.png', 'icons/favicon-32.png', 'icons/favicon-48.png'],
       manifest: {
         name: 'Hoot',
