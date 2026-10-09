@@ -4,15 +4,19 @@ import { Entry, useHoot } from '../components/Items.jsx'
 import { BackIcon } from '../components/icons.jsx'
 
 export default function Search({ onBack }) {
-  const { itemsById, saved, storiesById, muted } = useHoot()
+  const { itemsById, saved, storiesById, sourcesById, muted } = useHoot()
   const [q, setQ] = useState('')
+  const [scope, setScope] = useState('mijn') // mijn | alle
   const inputRef = useRef(null)
   useEffect(() => inputRef.current?.focus(), [])
 
   const results = useMemo(() => {
     const words = q.toLowerCase().split(/\s+/).filter((w) => w.length > 1)
     if (!words.length) return []
-    const pool = new Map(itemsById)
+    // "Mijn bronnen": wat je volgt, plus alles wat je hebt bewaard. "Alle bronnen" neemt ook
+    // de bronnen mee die alleen ter vergelijking binnen een verhaal staan.
+    const pool = new Map()
+    for (const [id, i] of itemsById) if (scope === 'alle' || sourcesById.get(i.source)?.followed !== false) pool.set(id, i)
     for (const e of Object.values(saved)) {
       if (e.item) pool.set(e.item.id, e.item)
       for (const i of e.items || []) pool.set(i.id, i)
@@ -25,7 +29,7 @@ export default function Search({ onBack }) {
       })
       .sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''))
       .slice(0, 60)
-  }, [q, itemsById, saved, muted])
+  }, [q, scope, itemsById, sourcesById, saved, muted])
 
   return (
     <section className="view view--page" aria-label="Zoeken">
@@ -38,18 +42,39 @@ export default function Search({ onBack }) {
             <label className="visually-hidden" htmlFor="q">
               Zoek in berichten
             </label>
-            <input id="q" ref={inputRef} type="search" className="input" placeholder="Zoek op woord, bron of auteur" value={q} onChange={(e) => setQ(e.target.value)} enterKeyHint="search" autoComplete="off" />
+            <input id="q" data-skip ref={inputRef} type="search" className="input" placeholder="Zoek op woord, bron of auteur" value={q} onChange={(e) => setQ(e.target.value)} enterKeyHint="search" autoComplete="off" />
           </form>
+          <div className="chips scope" role="group" aria-label="Waar zoeken">
+            <button type="button" className="chip" aria-pressed={scope === 'mijn'} onClick={() => setScope('mijn')}>
+              Mijn bronnen
+            </button>
+            <button type="button" className="chip" aria-pressed={scope === 'alle'} onClick={() => setScope('alle')}>
+              Alle bronnen
+            </button>
+          </div>
         </header>
         {!q.trim() ? (
-          <Empty title="Waar zoek je naar?">Je zoekt in de berichten die nu geladen zijn en in alles wat je hebt bewaard. Er is geen archief van eerdere dagen.</Empty>
+          <Empty title="Waar zoek je naar?">
+            {scope === 'mijn' ? 'Je zoekt in de berichten van je eigen bronnen die nu geladen zijn, en in alles wat je hebt bewaard.' : 'Je zoekt nu ook in de bronnen die je niet volgt en die alleen ter vergelijking binnen een verhaal staan.'} Er is geen archief van eerdere dagen.
+          </Empty>
         ) : results.length === 0 ? (
-          <Empty title={`Niets gevonden voor "${q.trim()}"`}>Zoeken kijkt alleen in wat nu geladen of bewaard is. Probeer een korter woord.</Empty>
+          <Empty
+            title={`Niets gevonden voor "${q.trim()}"`}
+            action={
+              scope === 'mijn' ? (
+                <button type="button" className="btn btn--quiet" onClick={() => setScope('alle')}>
+                  Zoek in alle bronnen
+                </button>
+              ) : null
+            }
+          >
+            Zoeken kijkt alleen in wat nu geladen of bewaard is. Probeer een korter woord.
+          </Empty>
         ) : (
           <>
             <p className="status" role="status">
               {results.length} {results.length === 1 ? 'resultaat' : 'resultaten'}
-              {results.length === 60 ? ' (eerste 60)' : ''}
+              {results.length === 60 ? ' (eerste 60)' : ''} in {scope === 'mijn' ? 'je eigen bronnen en bewaard' : 'alle bronnen'}
             </p>
             <div className="list">
               {results.map((i) => (

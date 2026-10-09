@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react'
 import { timeAgo, readTime } from '../lib/time.js'
 import { BookmarkIcon, PlayIcon } from './icons.jsx'
+import { savedKey } from '../lib/saved.js'
 
 // Alles wat een bericht nodig heeft om te handelen (bewaren, bron bekijken, verhaal openen).
 export const HootContext = createContext(null)
@@ -28,10 +29,12 @@ const srcOf = (item) => ({ name: item.sourceName, avatar: item.avatar, avatarCon
 
 export function SaveButton({ id, kind = 'item', payload, label = 'bericht' }) {
   const { saved, toggleSave } = useHoot()
-  const on = !!saved[id]
+  // Een verhaal dat intussen is samengegaan met een ander blijft bewaard onder zijn oude id.
+  const key = savedKey(saved, id, kind === 'story' ? payload : null)
+  const on = !!key
   const text = on ? `Bewaard — tik om dit ${label} te verwijderen` : `Bewaar dit ${label}`
   return (
-    <button type="button" className={`iconbtn save${on ? ' is-on' : ''}`} onClick={() => toggleSave(kind, id, payload)} aria-pressed={on} aria-label={text} title={text}>
+    <button type="button" className={`iconbtn save${on ? ' is-on' : ''}`} onClick={() => toggleSave(kind, key || id, payload)} aria-pressed={on} aria-label={text} title={text}>
       <BookmarkIcon filled={on} />
     </button>
   )
@@ -89,14 +92,15 @@ export function LeadStory({ item, story, note }) {
   return (
     <article className={`entry lead${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <a className="lead__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+        {/* Eerst kop en kern, dan pas het beeld (op breed scherm staat het beeld bovenaan, zie CSS). */}
+        <Kicker item={item} extra={note} />
+        <h2 className="lead__title">{item.short_title || item.title}</h2>
+        <Summary item={item} className="lead__sum" />
         {item.image ? (
           <div className="media media--lead">
             <img src={item.image} alt="" referrerPolicy="no-referrer" onError={hide} />
           </div>
         ) : null}
-        <Kicker item={item} extra={note} />
-        <h2 className="lead__title">{item.short_title || item.title}</h2>
-        <Summary item={item} className="lead__sum" />
         {item.author ? <p className="byline">Door {item.author}</p> : null}
       </a>
       <Meta item={item} story={story} />

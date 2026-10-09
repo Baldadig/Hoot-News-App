@@ -54,7 +54,7 @@ export default function Story({ story, items, overlay, onClose, onSeen, seenBefo
           {story.sourceNames.join(', ')}. Eerste bericht {timeAgo(story.firstAt)}, laatste {timeAgo(story.latestAt)}.
         </p>
         <p className="story__caveat">
-          Gebundeld op overeenkomst in de koppen. Meerdere bronnen betekent dat er veel over geschreven wordt — niet dat ze elkaar onafhankelijk bevestigen.
+          Gebundeld op overeenkomst in koppen en samenvattingen (namen, plaatsen, tijd). Meerdere bronnen betekent dat er veel over geschreven wordt — niet dat ze elkaar onafhankelijk bevestigen.
         </p>
 
         {fresh.length ? (

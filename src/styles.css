@@ -12,10 +12,12 @@
   --ink-2: #4f4f56;
   --ink-3: #6b6b72;
   --rule: #e5e2da;
-  --accent: #21468b;
+  --accent: #263c67; /* merk-inkt */
   --accent-soft: #e8edf7;
   --on-accent: #ffffff;
   --warn: #8f4300;
+  --brand: #263c67;
+  --quiet-amber: #b0802f; /* stil statuspuntje, geen alarm */
 
   /* Type */
   --serif: ui-serif, 'New York', 'Iowan Old Style', 'Palatino Linotype', Georgia, 'Times New Roman', serif;
@@ -43,6 +45,8 @@
   --accent-soft: #1c2742;
   --on-accent: #0f0f11;
   --warn: #f2b56b;
+  --brand: #f3f0e7;
+  --quiet-amber: #c9a15c;
   color-scheme: dark;
 }
 
@@ -155,6 +159,8 @@ input {
 .view {
   position: absolute;
   inset: 0;
+  /* wat focus krijgt schuift niet onder de zwevende knoppen (nieuw-pil, terug-naar-boven) */
+  scroll-padding: calc(var(--safe-t) + 64px) 0 80px;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior-y: contain;
@@ -215,6 +221,28 @@ input {
   color: var(--accent);
 }
 
+/* Merk: de kleur volgt het thema (inkt op licht, papier op donker) */
+.brand {
+  display: block;
+  flex: none;
+  color: var(--brand);
+}
+
+/* Bronstatus in de navigatie: één klein, stil puntje. Geen teller, geen beweging. */
+.nav__icon {
+  position: relative;
+  display: inline-flex;
+}
+.nav__dot {
+  position: absolute;
+  top: -2px;
+  right: -6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--quiet-amber);
+}
+
 /* Verhaal: schermvullend op telefoon/tablet, vast paneel op breed scherm */
 .panel {
   display: none;
@@ -254,10 +282,6 @@ input {
     min-height: var(--tap);
     padding: 0 12px;
     margin-bottom: 16px;
-    color: var(--ink);
-    font-family: var(--serif);
-    font-size: 1.5rem;
-    font-weight: 700;
     text-decoration: none;
   }
   .nav__list {
@@ -670,10 +694,22 @@ input {
   text-decoration: none;
 }
 
+/* Op een telefoon eerst kop en kern, dan het beeld; vanaf tabletbreedte het beeld bovenaan. */
+.lead__link {
+  display: flex;
+  flex-direction: column;
+}
 .media--lead {
-  aspect-ratio: 3 / 2;
-  margin-bottom: 14px;
+  aspect-ratio: 16 / 9;
+  margin: 14px 0 4px;
   border-radius: var(--radius);
+}
+@media (min-width: 720px) {
+  .media--lead {
+    order: -1;
+    aspect-ratio: 3 / 2;
+    margin: 0 0 14px;
+  }
 }
 
 .lead__title {
@@ -692,6 +728,22 @@ input {
   color: var(--ink-2);
   font-size: 1.0625rem;
   line-height: 1.5;
+}
+
+/* Stroom, korte weergave: twee regels per bericht om sneller te scannen (instelbaar onder Filters) */
+.list--kort .compact__sum,
+.list--kort .social__text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.list--kort .compact__sum {
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+.list--kort .social__text {
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
 }
 
 /* ---------- Vorm 2: compact bericht ---------- */
@@ -1063,6 +1115,78 @@ input {
   color: var(--warn);
   font-weight: 600;
 }
+/* Tijdelijk niet bereikbaar: gedempt, met een puntje — de tekst zegt het, niet de kleur */
+.srow__meta.is-down::before,
+.srcstatus__dot {
+  content: '';
+  display: inline-block;
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--quiet-amber);
+  vertical-align: 2px;
+}
+.srcstatus {
+  margin-top: 6px;
+  color: var(--ink-3);
+  font-size: 0.875rem;
+}
+.srcstatus summary {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: var(--tap);
+  cursor: pointer;
+  list-style: none;
+}
+.srcstatus summary::-webkit-details-marker {
+  display: none;
+}
+.srcstatus summary::after {
+  content: '›';
+  margin-left: 8px;
+  font-size: 1.1em;
+}
+.srcstatus[open] summary::after {
+  transform: rotate(90deg);
+}
+.srcstatus__dot {
+  background: var(--rule);
+}
+.srcstatus__dot.is-down {
+  background: var(--quiet-amber);
+}
+.srcstatus__body {
+  padding: 2px 0 8px 12px;
+  border-left: 2px solid var(--rule);
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+.srcstatus__body ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.srcstatus__body li + li {
+  margin-top: 8px;
+}
+.srcstatus__foot {
+  margin-top: 6px;
+  color: var(--ink-3);
+  font-size: 0.875rem;
+}
+.srcstatus__foot .linkbtn {
+  display: block;
+  padding-left: 0;
+}
+
+.scope {
+  padding-top: 10px;
+}
+
 .srow--plain {
   min-height: 48px;
   gap: 12px;

@@ -2,14 +2,19 @@ import { useEffect, useRef } from 'react'
 import { readJSON, writeJSON } from '../lib/store.js'
 
 // Onthoudt de leespositie van een scrollgebied — niet in pixels maar als "dit bericht
-// stond bovenaan", zodat hervatten ook klopt na herladen of als er inhoud bij is gekomen.
-// `stamp` verandert als de inhoud verandert; zolang je zelf nog niet hebt gescrold zetten
-// we de positie dan opnieuw (de verse feed komt vaak net ná de eerste weergave binnen).
+// stond bovenaan, zoveel pixels onder de rand", zodat hervatten ook klopt na herladen of
+// als er inhoud bij is gekomen.
+// - `key` hoort bij één lijst (bestemming + filters): elke lijst heeft zijn eigen positie.
+//   Wisselt de sleutel (ander filter, terugknop), dan zetten we de positie van die lijst
+//   terug, of beginnen bovenaan als er geen is.
+// - `stamp` verandert als de inhoud verandert; zolang je zelf nog niet hebt gescrold zetten
+//   we de positie dan opnieuw (de verse feed komt vaak net ná de eerste weergave binnen).
+// - `active`: komt het scherm weer in beeld, dan controleren we de positie opnieuw.
 const MAX_AGE = 12 * 60 * 60 * 1000
 const SETTLE = 6000
 
-export function useScrollMemory(ref, key, ready, stamp) {
-  const st = useRef({ armed: false, user: false, t0: Date.now() })
+export function useScrollMemory(ref, key, ready, stamp, active = true) {
+  const st = useRef({ armed: false, user: false, t0: Date.now(), key, active })
 
   useEffect(() => {
     const el = ref.current
@@ -44,13 +49,32 @@ export function useScrollMemory(ref, key, ready, stamp) {
 
   useEffect(() => {
     const s = st.current
-    if (!ready || s.user || Date.now() - s.t0 > SETTLE) return
+    const switched = s.key !== key
+    if (switched || (active && !s.active)) {
+      // Andere lijst, of terug op dit scherm: opnieuw plaatsen en pas daarna weer opslaan.
+      s.user = false
+      s.armed = false
+      s.t0 = Date.now()
+    }
+    s.key = key
+    s.active = active
+    if (!active || !ready) return
+    if (s.user || Date.now() - s.t0 > SETTLE) {
+      s.armed = true
+      return
+    }
     const el = ref.current
     const pos = readJSON(key, null)
+    const valid = pos && pos.y && Date.now() - pos.at <= MAX_AGE
     const place = () => {
-      if (s.user || !el || !pos || !pos.y || Date.now() - pos.at > MAX_AGE) return
+      if (s.user || !el) return
+      if (!valid) {
+        if (switched) el.scrollTop = 0
+        return
+      }
       const node = el.querySelector(`[data-id="${CSS.escape(pos.id)}"]`)
       if (node) el.scrollTop += node.getBoundingClientRect().top - el.getBoundingClientRect().top - pos.offset
+      else if (switched) el.scrollTop = 0
     }
     place()
     const t = setTimeout(() => {
@@ -58,5 +82,5 @@ export function useScrollMemory(ref, key, ready, stamp) {
       s.armed = true
     }, 350)
     return () => clearTimeout(t)
-  }, [ref, key, ready, stamp])
+  }, [ref, key, ready, stamp, active])
 }

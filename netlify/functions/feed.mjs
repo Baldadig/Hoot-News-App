@@ -1,6 +1,7 @@
 import Parser from 'rss-parser'
 import Anthropic from '@anthropic-ai/sdk'
 import { getStore, connectLambda } from '@netlify/blobs'
+import { hash, byRecency, sigWords, sharedCount, buildStories, editionSlot, selectEdition, NL_SOURCES } from '../lib/stories.mjs'
 
 // ---------- Bronnen ----------
 // bsky = Bluesky-handle van het officiële account, voor een mooie merk-avatar.
@@ -205,11 +206,6 @@ function cleanUrl(u) {
     return ''
   }
 }
-function hash(str) {
-  let h = 5381
-  for (let i = 0; i < str.length; i++) h = (((h << 5) + h) ^ str.charCodeAt(i)) >>> 0
-  return h.toString(36)
-}
 function normTitle(t) {
   return (t || '').toLowerCase().replace(/[^a-z0-9à-ÿ]+/gi, ' ').trim()
 }
@@ -282,130 +278,6 @@ function keywordTopics(text) {
   return out
 }
 const isTopic = (t) => TOPICS.includes(t)
-
-// ---------- Trending: cross-bron clustering ----------
-const STOP = new Set(
-  'de het een en van op in te dat die voor met als om aan bij uit ook naar maar nog wordt worden heeft hebben zijn was werd niet wel meer jaar tegen door over deze onze the and for with that this from have will your about into over after their than what when which were been they them these those where while would could should more most some such also only just like said says year week time news live video update'.split(
-    ' '
-  )
-)
-function sigWords(title) {
-  const out = new Set()
-  for (const w of (title || '').toLowerCase().normalize('NFKD').replace(/[^a-z0-9 ]/gi, ' ').split(/\s+/)) {
-    if (w.length >= 4 && !STOP.has(w)) out.add(w)
-  }
-  return out
-}
-function sharedCount(a, b) {
-  let n = 0
-  for (const w of a) if (b.has(w)) n++
-  return n
-}
-const byRecency = (a, b) => (b.publishedAt ? Date.parse(b.publishedAt) : 0) - (a.publishedAt ? Date.parse(a.publishedAt) : 0)
-const STORY_WINDOW = 48 * 60 * 60 * 1000
-
-// Verhalen: artikelen over dezelfde gebeurtenis bundelen. Een artikel sluit aan als het
-// ≥3 kernwoorden deelt met een lid van de bundel (en ≥40% van de kortste kop), binnen 48 uur.
-// Vergelijken gebeurt per lid, niet met een groeiende woordenpot — dat voorkomt wegdrijven.
-// `registry` (item-id → { s: verhaal-id, f: eerst gezien }) maakt de id stabiel: een bundel
-// die groeit of van samenstelling wisselt houdt de id die zijn leden al hadden.
-function buildStories(articles, registry) {
-  const clusters = []
-  for (const it of [...articles].sort(byRecency)) {
-    const w = sigWords(it.title)
-    if (w.size < 3) continue
-    const t = it.publishedAt ? Date.parse(it.publishedAt) : 0
-    let best = null
-    let bestN = 0
-    for (const c of clusters) {
-      if (Math.abs(c.latest - t) > STORY_WINDOW) continue
-      for (const mw of c.wordSets) {
-        const n = sharedCount(w, mw)
-        if (n >= 3 && n / Math.min(w.size, mw.size) >= 0.4 && n > bestN) {
-          best = c
-          bestN = n
-        }
-      }
-    }
-    if (best) {
-      best.items.push(it)
-      best.wordSets.push(w)
-    } else {
-      clusters.push({ items: [it], wordSets: [w], latest: t })
-    }
-  }
-
-  const stories = []
-  const used = new Set()
-  for (const c of clusters) {
-    const sourceIds = new Set(c.items.map((i) => i.source))
-    if (sourceIds.size < 2) continue
-    const items = c.items.sort(byRecency)
-    // Stabiele id: de id die de meeste leden al hadden, anders afgeleid van het oudste lid.
-    const votes = {}
-    for (const i of items) {
-      const sid = registry[i.id]?.s
-      if (sid) votes[sid] = (votes[sid] || 0) + 1
-    }
-    let id = Object.keys(votes).sort((a, b) => votes[b] - votes[a])[0] || 's' + hash(items[items.length - 1].id)
-    while (used.has(id)) id = 's' + hash(id + '+')
-    used.add(id)
-    const own = items.filter((i) => MAIN_IDS.has(i.source))
-    // Hoofdbericht: liefst uit je eigen bronnen, met preview en beeld.
-    const lead = own.find((i) => i.summary && i.image) || own.find((i) => i.image) || own[0] || items.find((i) => i.image) || items[0]
-    const names = []
-    for (const i of items) if (!names.includes(i.sourceName)) names.push(i.sourceName)
-    stories.push({
-      id,
-      leadId: lead.id,
-      itemIds: items.map((i) => i.id),
-      sourceCount: sourceIds.size,
-      ownCount: new Set(own.map((i) => i.source)).size,
-      sourceNames: names,
-      latestAt: items[0].publishedAt || null,
-      firstAt: items[items.length - 1].publishedAt || null,
-    })
-  }
-  return stories
-}
-
-// ---------- Editie: vaste ochtend- en avondselectie ----------
-const EDITION_SIZE = 10
-function editionSlot(now = new Date()) {
-  const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23' })
-  const parts = (d) => Object.fromEntries(fmt.formatToParts(d).map((p) => [p.type, p.value]))
-  const p = parts(now)
-  const h = Number(p.hour)
-  if (h >= 17) return { id: `${p.year}-${p.month}-${p.day}-avond`, slot: 'avond', date: `${p.year}-${p.month}-${p.day}`, next: '06:00' }
-  if (h >= 6) return { id: `${p.year}-${p.month}-${p.day}-ochtend`, slot: 'ochtend', date: `${p.year}-${p.month}-${p.day}`, next: '17:00' }
-  const y = parts(new Date(now.getTime() - 6 * 60 * 60 * 1000)) // vóór 06:00 geldt de avondeditie van gisteren
-  return { id: `${y.year}-${y.month}-${y.day}-avond`, slot: 'avond', date: `${y.year}-${y.month}-${y.day}`, next: '06:00' }
-}
-// Selectie op drie zichtbare gronden: dekking (aantal bronnen), versheid, en of je eigen
-// bronnen erover schrijven. Aangevuld met losse berichten uit je eigen bronnen, om en om per bron.
-function selectEdition(stories, streamItems, now = Date.now()) {
-  const fresh = (iso, hours) => iso && now - Date.parse(iso) < hours * 60 * 60 * 1000
-  const picked = stories
-    .filter((st) => fresh(st.latestAt, 24))
-    .sort((a, b) => (b.ownCount > 0) - (a.ownCount > 0) || b.sourceCount - a.sourceCount || Date.parse(b.latestAt) - Date.parse(a.latestAt))
-    .slice(0, EDITION_SIZE)
-  const entries = picked.map((st) => ({ kind: 'story', id: st.id }))
-  const inStory = new Set(picked.flatMap((st) => st.itemIds))
-  const bySource = {}
-  for (const it of streamItems) {
-    if (it.kind !== 'article' || it.type === 'opinie' || inStory.has(it.id) || it.storyId) continue
-    if (!fresh(it.publishedAt, 14) || !(it.summary || it.image)) continue
-    ;(bySource[it.source] ||= []).push(it)
-  }
-  const queues = Object.values(bySource)
-  for (let round = 0; entries.length < EDITION_SIZE && queues.some((q) => q[round]); round++) {
-    for (const q of queues) {
-      if (entries.length >= EDITION_SIZE) break
-      if (q[round]) entries.push({ kind: 'item', id: q[round].id })
-    }
-  }
-  return entries
-}
 
 // ---------- Opslag: Netlify Blobs, met geheugen-terugval (lokaal / als Blobs ontbreekt) ----------
 const memStore = {}
@@ -753,7 +625,6 @@ export const handler = async (event) => {
   // Preview lenen: artikelen zonder eigen samenvatting (bv. de Volkskrant) krijgen
   // de teaser van een NL-bron die hetzelfde verhaal dekt. Streng: alleen bij sterke
   // titel-overlap, alleen NL→NL (taal klopt), en met bron-vermelding ("via NOS").
-  const NL_SOURCES = new Set(['nrc', 'nos', 'volkskrant'])
   const donors = [...mainGroups]
     .flatMap((g) => g.items)
     .filter((it) => it.kind === 'article' && it.summary && NL_SOURCES.has(it.source))
@@ -786,7 +657,7 @@ export const handler = async (event) => {
   const streamIds = new Set(items.map((i) => i.id))
   const extraItems = extraGroups.flatMap((g) => g.items).filter((it) => it.url)
   const articlePool = [...items.filter((i) => i.kind === 'article'), ...extraItems]
-  const stories = buildStories(articlePool, registry)
+  const stories = buildStories(articlePool, registry, { mainIds: MAIN_IDS })
   const poolById = new Map(articlePool.map((i) => [i.id, i]))
   for (const st of stories) for (const id of st.itemIds) poolById.get(id).storyId = st.id
   // Extra-bron-artikelen sturen we alleen mee als ze bij een verhaal horen.
@@ -841,14 +712,16 @@ export const handler = async (event) => {
   // Editie: per dagdeel één keer samengesteld en daarna vast. De selectie en volgorde
   // veranderen niet meer; een verhaal dat nog loopt toont wel zijn nieuwe publicaties.
   const slot = editionSlot(new Date(now))
-  let stored = await kvGet('edition-' + slot.id)
+  // 'edition2-': sleutel verhoogd bij de nieuwe bundeling, zodat een eerder samengestelde
+  // editie met dubbele gebeurtenissen niet blijft staan.
+  let stored = await kvGet('edition2-' + slot.id)
   if (!stored || !Array.isArray(stored.entries) || !stored.entries.length) {
-    const entries = selectEdition(stories, items, now)
+    const entries = selectEdition(stories, articlePool, { mainIds: MAIN_IDS, now })
     const outById = new Map([...out, ...relatedOut].map((i) => [i.id, i]))
     const snapStories = entries.filter((e) => e.kind === 'story').map((e) => stories.find((st) => st.id === e.id))
     const snapIds = new Set([...snapStories.flatMap((st) => st.itemIds), ...entries.filter((e) => e.kind === 'item').map((e) => e.id)])
     stored = { id: slot.id, builtAt: new Date(now).toISOString(), entries, stories: snapStories, items: [...snapIds].map((id) => outById.get(id)).filter(Boolean) }
-    if (entries.length) await kvSet('edition-' + slot.id, stored)
+    if (entries.length) await kvSet('edition2-' + slot.id, stored)
   }
   // Wat intussen uit de feeds is verdwenen halen we uit de momentopname van de editie.
   const liveStoryIds = new Set(stories.map((st) => st.id))

@@ -4,6 +4,7 @@ import { Entry, SourceMark, useHoot } from '../components/Items.jsx'
 import { FilterIcon, CloseIcon, ArrowUpIcon } from '../components/icons.jsx'
 import { TOPICS } from '../lib/topics.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
+import { positionKey } from '../lib/context.js'
 
 const KINDS = [
   { id: '', label: 'Alles' },
@@ -14,7 +15,7 @@ const KINDS = [
 const topicLabel = (id) => TOPICS.find((t) => t.id === id)?.label || id
 
 // Alle filters in één paneel (native <dialog>: focus blijft binnen, Esc sluit).
-function FilterSheet({ open, onClose, params, setFilter, clear, sources, count }) {
+function FilterSheet({ open, onClose, params, setFilter, clear, sources, count, density, onDensity }) {
   const ref = useRef(null)
   useEffect(() => {
     const d = ref.current
@@ -63,6 +64,17 @@ function FilterSheet({ open, onClose, params, setFilter, clear, sources, count }
           ))}
         </div>
 
+        <h3 className="sheet__label">Weergave</h3>
+        <div className="chips" role="group" aria-label="Lengte van de voorvertoning">
+          <button type="button" className="chip" aria-pressed={density === 'kort'} onClick={() => onDensity('kort')}>
+            Kort
+          </button>
+          <button type="button" className="chip" aria-pressed={density === 'volledig'} onClick={() => onDensity('volledig')}>
+            Volledig
+          </button>
+        </div>
+        <p className="sheet__note">Kort toont twee regels per bericht, zodat je sneller door de Stroom kijkt. De volledige tekst lees je bij de bron.</p>
+
         <div className="sheet__foot">
           <button type="button" className="btn btn--quiet" onClick={clear}>
             Wis filters
@@ -76,7 +88,7 @@ function FilterSheet({ open, onClose, params, setFilter, clear, sources, count }
   )
 }
 
-export default function Stream({ active, stream, params, go, pinned, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
+export default function Stream({ active, stream, params, go, pinned, density, onDensity, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
   const { storiesById } = useHoot()
   const ref = useRef(null)
   const [sheet, setSheet] = useState(false)
@@ -99,16 +111,20 @@ export default function Stream({ active, stream, params, go, pinned, sources, lo
   )
 
   // Filters zijn stappen in de geschiedenis: de terugknop zet het vorige filter terug.
-  const setFilter = (key, value) => {
-    go('stroom', { ...filters, [key]: value })
-    ref.current?.scrollTo({ top: 0 })
+  // Elke filtercombinatie is een eigen lijst met een eigen leespositie. Kies je zelf een
+  // filter, dan begin je bovenaan; kom je terug (terugknop, navigatie), dan sta je waar je was.
+  const apply = (next) => {
+    try {
+      localStorage.removeItem(positionKey('stroom', next))
+    } catch {
+      /* niet erg */
+    }
+    go('stroom', next)
   }
-  const clear = () => {
-    go('stroom', {})
-    ref.current?.scrollTo({ top: 0 })
-  }
+  const setFilter = (key, value) => apply({ ...filters, [key]: value })
+  const clear = () => apply({})
 
-  useScrollMemory(ref, 'hoot:pos-stroom', list.length > 0 && !activeCount, list.length + ':' + (list[0]?.id || ''))
+  useScrollMemory(ref, positionKey('stroom', filters), list.length > 0, list.length + ':' + (list[0]?.id || ''), active)
 
   const srcName = (id) => sources.find((s) => s.id === id)?.name || id
   const kindName = (id) => KINDS.find((k) => k.id === id)?.label
@@ -171,7 +187,7 @@ export default function Stream({ active, stream, params, go, pinned, sources, lo
                 {stream.length === 0 ? 'Al je bronnen staan uit. Zet er een aan bij Bronnen.' : 'Er is op dit moment niets dat hieraan voldoet. De berichten zelf zijn wel geladen.'}
               </Empty>
             ) : (
-              <div className="list">
+              <div className={`list${density === 'kort' ? ' list--kort' : ''}`}>
                 {list.map((item) => (
                   <Entry key={item.id} item={item} story={item.storyId ? storiesById.get(item.storyId) : null} />
                 ))}
@@ -188,7 +204,7 @@ export default function Stream({ active, stream, params, go, pinned, sources, lo
         </button>
       ) : null}
 
-      <FilterSheet open={sheet} onClose={() => setSheet(false)} params={filters} setFilter={setFilter} clear={clear} sources={followed} count={list.length} />
+      <FilterSheet open={sheet} onClose={() => setSheet(false)} params={filters} setFilter={setFilter} clear={clear} sources={followed} count={list.length} density={density} onDensity={onDensity} />
     </section>
   )
 }

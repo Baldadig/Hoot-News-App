@@ -1,5 +1,6 @@
 import { clock } from '../lib/time.js'
-import { OwlMark, EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon } from './icons.jsx'
+import { BrandLogo } from './Brand.jsx'
+import { EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon } from './icons.jsx'
 
 export const DESTINATIONS = [
   { id: 'editie', label: 'Editie', Icon: EditionIcon },
@@ -9,19 +10,24 @@ export const DESTINATIONS = [
 ]
 
 // Vaste hoofdnavigatie: onderin op telefoon, links op desktop. Altijd dezelfde vier.
-export function Nav({ path }) {
+// `hrefs` brengt je terug naar waar je in die bestemming was (met je filters);
+// `sourceNote` is de korte tekst bij het stille statuspuntje op Bronnen.
+export function Nav({ path, hrefs = {}, sourceNote = '' }) {
   return (
     <nav className="nav" aria-label="Hoofdnavigatie">
-      <a className="nav__brand" href="#/editie" aria-label="Hoot — naar de Editie">
-        <OwlMark size={30} />
-        <span>Hoot</span>
+      <a className="nav__brand" href={hrefs.editie || '#/editie'} aria-label="Hoot — naar de Editie">
+        <BrandLogo height={38} />
       </a>
       <ul className="nav__list">
         {DESTINATIONS.map(({ id, label, Icon }) => (
           <li key={id}>
-            <a className="nav__link" href={`#/${id}`} aria-current={path === id ? 'page' : undefined}>
-              <Icon />
+            <a className="nav__link" href={hrefs[id] || `#/${id}`} aria-current={path === id ? 'page' : undefined}>
+              <span className="nav__icon">
+                <Icon />
+                {id === 'bronnen' && sourceNote ? <span className="nav__dot" aria-hidden="true" /> : null}
+              </span>
               <span>{label}</span>
+              {id === 'bronnen' && sourceNote ? <span className="visually-hidden">: {sourceNote}</span> : null}
             </a>
           </li>
         ))}
@@ -62,8 +68,9 @@ export function ViewHeader({ title, sub, onRefresh, refreshing, showSearch = tru
 }
 
 // Eén regel die eerlijk zegt hoe vers dit is — en waarom niet, als dat zo is.
-// Onderscheidt: offline · verversen mislukt · één bron uitgevallen · gewoon bijgewerkt.
-export function StatusLine({ online, refreshing, refreshError, meta, failed = [], onRetry, quiet = false }) {
+// Onderscheidt: offline · verversen mislukt · álle bronnen onbereikbaar · gewoon bijgewerkt.
+// Eén of enkele uitgevallen bronnen horen hier niet: die staan stil onder Bronnen → Bronstatus.
+export function StatusLine({ online, refreshing, refreshError, meta, allDown = false, onRetry, quiet = false }) {
   const at = clock(meta?.updatedAt)
   if (!online) return <p className="status status--warn" role="status">Je bent offline. Je ziet wat om {at || 'eerder'} is opgehaald.</p>
   if (refreshError)
@@ -76,10 +83,13 @@ export function StatusLine({ online, refreshing, refreshError, meta, failed = []
       </p>
     )
   if (refreshing) return <p className="status" role="status">Verversen…</p>
-  if (failed.length)
+  if (allDown)
     return (
       <p className="status status--warn" role="status">
-        {failed.join(' en ')} {failed.length === 1 ? 'is' : 'zijn'} nu niet bereikbaar. De rest is bijgewerkt om {at}.
+        Je bronnen zijn nu niet bereikbaar. Je ziet wat eerder is opgehaald.{' '}
+        <button type="button" className="linkbtn" onClick={onRetry}>
+          Opnieuw proberen
+        </button>
       </p>
     )
   return at && !quiet ? <p className="status">Bijgewerkt om {at}</p> : null

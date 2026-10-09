@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { LeadStory, CompactItem, useHoot } from '../components/Items.jsx'
-import { OwlMark } from '../components/icons.jsx'
+import { BrandMark } from '../components/Brand.jsx'
 import { longDate, clock } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 
@@ -15,8 +15,10 @@ export default function Edition({ active, edition, loading, failedLoad, statusPr
   const rows = (edition?.entries || [])
     .map((e) => {
       if (e.kind === 'story') {
+        // Het hoofdbericht is bij het samenstellen gekozen (eigen bron, afwisseling); staat die
+        // bron uit of is het bericht weg, dan het eerstvolgende uit het verhaal.
         const story = storiesById.get(e.id)
-        const item = story && (itemsById.get(story.leadId) || story.itemIds.map((id) => itemsById.get(id)).find(Boolean))
+        const item = story && [e.leadId, story.leadId, ...story.itemIds].map((id) => itemsById.get(id)).find((i) => i && !muted.has(i.source))
         return item ? { key: e.id, item, story } : null
       }
       const item = itemsById.get(e.id)
@@ -24,7 +26,7 @@ export default function Edition({ active, edition, loading, failedLoad, statusPr
     })
     .filter(Boolean)
 
-  useScrollMemory(ref, 'hoot:pos-editie:' + (edition?.id || ''), rows.length > 0, rows.length)
+  useScrollMemory(ref, 'hoot:pos-editie:' + (edition?.id || ''), rows.length > 0, rows.length, active)
 
   const title = edition ? SLOT[edition.slot] : 'Editie'
   const sub = edition ? longDate(edition.date) : null
@@ -56,7 +58,7 @@ export default function Edition({ active, edition, loading, failedLoad, statusPr
                 {rows.length} verhalen · samengesteld om {clock(edition.builtAt)}. Hoe is dit gekozen?
               </summary>
               <p>
-                Eerst de verhalen waar de meeste bronnen over schrijven, met voorrang voor je eigen bronnen; daarna de meest recente. Aangevuld met losse berichten, om en om per bron. Er telt geen klikgedrag mee. Een editie verandert na het samenstellen niet meer van selectie of volgorde — wel kan een lopend verhaal er publicaties bij krijgen.
+                Eerst de verhalen waar de meeste bronnen over schrijven, met voorrang voor je eigen bronnen; daarna de meest recente. Aangevuld met losse berichten, om en om per bron. Elke gebeurtenis staat er één keer in, ook als Nederlandse en Engelse bronnen er allebei over schrijven. Per verhaal zie je het bericht van een van je eigen bronnen, zo afwisselend mogelijk. Er telt geen klikgedrag mee. Een editie verandert na het samenstellen niet meer van selectie of volgorde — wel kan een lopend verhaal er publicaties bij krijgen.
               </p>
             </details>
             <div className="list">
@@ -65,7 +67,7 @@ export default function Edition({ active, edition, loading, failedLoad, statusPr
               )}
             </div>
             <div className="endcap">
-              <OwlMark size={40} />
+              <BrandMark size={44} />
               <h2 className="endcap__title">Je bent bij.</h2>
               <p className="endcap__text">
                 Dit was de {SLOT[edition.slot].toLowerCase()} van {longDate(edition.date)}. De volgende staat klaar om {edition.next}.

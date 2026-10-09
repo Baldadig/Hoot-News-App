@@ -94,7 +94,7 @@ export default function StyleGuide({ stream }) {
 
         <h2 className="sect">Toestanden</h2>
         <StatusLine {...online} />
-        <StatusLine {...online} failed={['NRC']} />
+        <StatusLine {...online} allDown onRetry={() => {}} />
         <StatusLine {...online} refreshError onRetry={() => {}} />
         <StatusLine {...online} online={false} />
         <Skeleton rows={2} />

@@ -1,11 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { ViewHeader, Empty } from '../components/Shell.jsx'
 import { Entry, CompactItem, useHoot } from '../components/Items.jsx'
 import { timeAgo } from '../lib/time.js'
+import { useScrollMemory } from '../hooks/useScrollMemory.js'
 
 export default function Saved({ active }) {
   const { saved, itemsById, storiesById } = useHoot()
   const [q, setQ] = useState('')
+  const ref = useRef(null)
 
   // Laatst bewaard bovenaan. Van een verhaal tonen we de actuele versie als die nog bestaat,
   // anders de momentopname van toen je het bewaarde.
@@ -26,9 +28,10 @@ export default function Saved({ active }) {
   }, [saved, q, itemsById, storiesById])
 
   const total = Object.keys(saved).length
+  useScrollMemory(ref, 'hoot:pos-bewaard', rows.length > 0, rows.length, active)
 
   return (
-    <section className="view" hidden={!active} aria-label="Bewaard">
+    <section className="view" hidden={!active} ref={ref} aria-label="Bewaard">
       <div className="col">
         <ViewHeader title="Bewaard" sub={total ? `${total} ${total === 1 ? 'bericht' : 'berichten'} op dit toestel` : 'Je leeslijst'} />
         {total === 0 ? (

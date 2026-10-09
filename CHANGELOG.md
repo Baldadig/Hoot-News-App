@@ -2,6 +2,29 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.1.0] — 2026-10-09 — Audit: geen dubbele verhalen, context blijft, stille bronstatus, nieuw logo
+
+### Opgelost
+
+- **Geen dubbele gebeurtenissen meer in de Editie.** Nederlandse en Engelse berichten over hetzelfde incident worden nu samengevoegd (namen, plaatsen, begrippen en tijd uit kop én samenvatting). Bij het samenstellen wordt nogmaals op dubbelen gecontroleerd: één gebeurtenis, één plek.
+- **Hoofdbericht per verhaal** komt bij voorkeur van een eigen bron, Nederlands waar het kan, geen opinie, en wisselt af (niet twee keer dezelfde bron achter elkaar als het anders kan, hooguit drie per editie).
+- **Filters en leespositie blijven** als je via de navigatie van scherm wisselt en terugkomt. Elke filtercombinatie heeft een eigen leespositie; kies je zelf een filter dan begin je bovenaan, de terugknop brengt je terug waar je was.
+- **"Naar de inhoud"** zet de focus in het scherm dat je voor je hebt, zonder de route te veranderen. Sluit je een verhaal, dan gaat de focus terug naar de knop waarmee je het opende.
+- **Zoeken** kijkt standaard in "Mijn bronnen" (plus bewaard); "Alle bronnen" is een bewuste keuze. De tekst bij Bronnen klopt daarmee.
+- Oudere sessies kregen een nieuwe versie soms niet te zien zolang je halverwege een lijst stond; vlak na het openen wordt nu wel direct ververst (leespositie blijft).
+
+### Gewijzigd
+
+- **Bronstatus is klein en stil**: geen melding meer boven Editie of Stroom bij één uitgevallen bron. Een klein puntje bij Bronnen, en daar een inklapbare regel "Bronstatus" met per bron de status, hoe vers de berichten zijn en "Opnieuw proberen". Verdwijnt vanzelf na herstel of als je de bron uitzet. Alleen als álle bronnen onbereikbaar zijn staat er één regel bovenaan.
+- Berichten die al geladen waren van een uitgevallen bron blijven staan.
+- **Nieuw logo en app-icoon** (uil + woordmerk), in licht en donker; favicon, manifest en homescreen-icoon opnieuw gegenereerd uit de vectoren. Accentkleur volgt de merk-inkt.
+- **Leesbaarheid**: op telefoon staat bij het hoofdverhaal eerst de kop en de kern, dan het beeld. De Stroom toont standaard twee regels per bericht ("Kort"); "Volledig" staat onder Filters → Weergave.
+- Bewaarde verhalen blijven vindbaar als bundels samengaan (eerdere id's blijven werken).
+
+### Techniek
+
+- Bundeling en editie-selectie staan in `netlify/lib/stories.mjs`; route/context, bronstatus en bewaard in `src/lib/`. `npm test` draait 24 regressietests.
+
 ## [1.0.0] — 2026-10-08 — Hoot 2: Editie, Stroom, Bewaard, Bronnen
 
 De app is opnieuw opgezet rond het verhaal als eenheid. Zie `docs/hoot-2-verslag.md`.

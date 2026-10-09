@@ -1,4 +1,4 @@
-import { OwlMark } from '../components/icons.jsx'
+import { BrandLogo } from '../components/Brand.jsx'
 import { SourceRow } from './Sources.jsx'
 
 // Eerste bezoek: in één scherm de belofte en de keuze welke bronnen meedoen.
@@ -7,7 +7,7 @@ export default function Welcome({ sources, muted, onToggle, onDone }) {
   return (
     <div className="welcome" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
       <div className="col welcome__col">
-        <OwlMark size={48} />
+        <BrandLogo height={52} />
         <h1 id="welcome-title" className="welcome__title">
           Begrijp wat er speelt. Lees verder waar jij dat wilt.
         </h1>

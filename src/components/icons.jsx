@@ -1,25 +1,5 @@
 const base = { viewBox: '0 0 24 24', width: 22, height: 22, fill: 'none', stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }
 
-export function OwlMark({ size = 28 }) {
-  return (
-    <svg viewBox="0 0 48 48" width={size} height={size} fill="none" aria-hidden="true">
-      <rect width="48" height="48" rx="13" fill="#21468B" />
-      <g transform="translate(2.9 2.9) scale(0.88)">
-        <g fill="#FFFFFF">
-          <path d="M13.5 17 L18 8 L21 16 Z" />
-          <path d="M34.5 17 L30 8 L27 16 Z" />
-          <ellipse cx="24" cy="26.5" rx="15.5" ry="14" />
-        </g>
-        <circle cx="18.6" cy="25.3" r="7" fill="#21468B" />
-        <circle cx="29.4" cy="25.3" r="7" fill="#21468B" />
-        <circle cx="19.4" cy="25.7" r="2.2" fill="#FFFFFF" />
-        <circle cx="28.6" cy="25.7" r="2.2" fill="#FFFFFF" />
-        <path d="M24 29.2 L22.9 27 L25.1 27 Z" fill="#FFFFFF" />
-      </g>
-    </svg>
-  )
-}
-
 export const EditionIcon = () => (
   <svg {...base}>
     <rect x="4" y="4" width="16" height="16" rx="2.5" />

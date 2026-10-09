@@ -3,6 +3,8 @@ import { ViewHeader } from '../components/Shell.jsx'
 import { SourceMark } from '../components/Items.jsx'
 import { TOPICS } from '../lib/topics.js'
 import { resolveProfile } from '../lib/bluesky.js'
+import { statusLabel } from '../lib/sourceStatus.js'
+import { clock, timeAgo } from '../lib/time.js'
 
 const THEMES = [
   { id: 'system', label: 'Systeem' },
@@ -21,15 +23,15 @@ export function Switch({ checked, onChange, label }) {
 }
 
 export function SourceRow({ s, muted, onToggle, onRemove }) {
-  const status = !s.ok ? 'Nu niet bereikbaar' : s.count ? `${s.count} berichten` : 'Geen berichten'
+  const status = !s.ok ? 'Tijdelijk niet bereikbaar' : s.count ? `${s.count} berichten` : 'Geen berichten'
   return (
     <li className="srow">
       <a className="srow__main" href={`#/stroom?bron=${encodeURIComponent(s.id)}`} aria-label={`Alles van ${s.name} in de Stroom`}>
         <SourceMark source={s} size={40} />
         <span className="srow__text">
           <span className="srow__name">{s.name}</span>
-          <span className={`srow__meta${s.ok ? '' : ' is-warn'}`}>
-            {s.handle ? `${s.handle} · ` : ''}
+          <span className={`srow__meta${s.ok || muted ? '' : ' is-down'}`}>
+            {s.handle && s.ok ? `${s.handle} · ` : ''}
             {status}
           </span>
         </span>
@@ -41,6 +43,45 @@ export function SourceRow({ s, muted, onToggle, onRemove }) {
       ) : null}
       {onToggle ? <Switch checked={!muted} onChange={(on) => onToggle(s.id, on)} label={`${s.name} ${muted ? 'aanzetten' : 'uitzetten'}`} /> : null}
     </li>
+  )
+}
+
+// Bronstatus: klein en stil. Dicht zolang je er niet om vraagt; één regel per bron die nu
+// niet bereikbaar is. Herstelt de bron of zet je hem uit, dan verdwijnt de regel vanzelf.
+function SourceStatus({ status, recovered, latestBySource, meta, onRetry, refreshing, online }) {
+  const n = status.failed.length
+  const at = clock(meta?.updatedAt)
+  const summary = !online ? 'je bent offline' : n ? statusLabel(n) : recovered ? 'alle bronnen zijn weer bereikbaar' : 'alle bronnen bereikbaar'
+  return (
+    <details className="srcstatus">
+      <summary>
+        <span className={`srcstatus__dot${n ? ' is-down' : ''}`} aria-hidden="true" />
+        <span>
+          <strong>Bronstatus</strong> · {summary}
+        </span>
+      </summary>
+      <div className="srcstatus__body" role="status">
+        {n === 0 ? (
+          <p>{recovered ? 'Alle bronnen zijn weer bereikbaar.' : 'Alle bronnen zijn bereikbaar.'}</p>
+        ) : (
+          <ul>
+            {status.failed.map((f) => (
+              <li key={f.id}>
+                <strong>{f.name}</strong> — tijdelijk niet bereikbaar. {status.allDown ? '' : 'De rest van je nieuws is bijgewerkt. '}
+                {latestBySource[f.id] ? `Het laatste bericht dat je van deze bron ziet is van ${timeAgo(latestBySource[f.id])}.` : 'Er staan nu geen berichten van deze bron.'}
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="srcstatus__foot">
+          {at ? `Laatst gecontroleerd om ${at}. ` : ''}
+          {n || !online ? 'Hoot probeert het bij elke verversing opnieuw. ' : ''}
+          <button type="button" className="linkbtn" onClick={onRetry} disabled={refreshing}>
+            {refreshing ? 'Bezig…' : 'Opnieuw proberen'}
+          </button>
+        </p>
+      </div>
+    </details>
   )
 }
 
@@ -87,7 +128,7 @@ function AddBluesky({ onAdd }) {
   )
 }
 
-export default function Sources({ active, sources, muted, onToggle, socialHandles, onAddSocial, onRemoveSocial, pinned, onPinned, theme, setTheme, meta }) {
+export default function Sources({ active, sources, muted, onToggle, socialHandles, onAddSocial, onRemoveSocial, pinned, onPinned, theme, setTheme, meta, status, recovered, latestBySource, onRetry, refreshing, online }) {
   const own = sources.filter((s) => s.followed)
   const extra = sources.filter((s) => !s.followed)
   const togglePin = (id) => onPinned(pinned.includes(id) ? pinned.filter((p) => p !== id) : pinned.length >= 3 ? pinned : [...pinned, id])
@@ -103,17 +144,18 @@ export default function Sources({ active, sources, muted, onToggle, socialHandle
           ))}
         </ul>
         <p className="hint">Tik op een bron om alleen die te lezen. Een bron die uit staat verdwijnt uit Editie, Stroom en zoeken.</p>
+        <SourceStatus status={status} recovered={recovered} latestBySource={latestBySource} meta={meta} onRetry={onRetry} refreshing={refreshing} online={online} />
 
         <AddBluesky onAdd={onAddSocial} />
 
         <h2 className="sect">Alleen ter vergelijking</h2>
-        <p className="hint">Deze bronnen volg je niet. Ze verschijnen alleen binnen een verhaal, zodat je kunt zien wie er nog meer over schrijft.</p>
+        <p className="hint">Deze bronnen volg je niet. Ze verschijnen niet in je Editie of Stroom, alleen binnen een verhaal, zodat je kunt zien wie er nog meer over schrijft. Zoeken doet dat ook alleen in je eigen bronnen, tenzij je daar zelf “Alle bronnen” kiest.</p>
         <ul className="srows srows--plain">
           {extra.map((s) => (
             <li className="srow srow--plain" key={s.id}>
               <SourceMark source={s} size={28} />
               <span className="srow__name">{s.name}</span>
-              {!s.ok ? <span className="srow__meta is-warn">nu niet bereikbaar</span> : null}
+              {!s.ok ? <span className="srow__meta">tijdelijk niet bereikbaar</span> : null}
             </li>
           ))}
         </ul>

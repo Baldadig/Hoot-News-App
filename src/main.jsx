@@ -11,19 +11,22 @@ createRoot(document.getElementById('root')).render(
 
 // App-updates zonder de app geforceerd af te sluiten: bij elke keer openen checken
 // we op een nieuwe versie. Neemt een nieuwe service worker het over, dan herladen we
-// direct als je bovenaan staat, en anders pas de volgende keer dat je de app opent
-// (nooit midden in het lezen).
+// direct als je de app net hebt geopend (de leespositie wordt daarna hersteld) of
+// bovenaan staat, en anders pas de volgende keer dat je de app opent — nooit midden in
+// het lezen. Zonder die eerste regel bleef een oude versie staan zolang je ergens
+// halverwege een lijst was.
 if ('serviceWorker' in navigator) {
   const sw = navigator.serviceWorker
   let hadController = !!sw.controller
   let stale = false
+  const t0 = Date.now()
   sw.addEventListener('controllerchange', () => {
     if (!hadController) {
       hadController = true // eerste installatie: niets te verversen
       return
     }
     const feed = document.querySelector('.view:not([hidden])')
-    if (!feed || feed.scrollTop < 50) window.location.reload()
+    if (Date.now() - t0 < 10000 || !feed || feed.scrollTop < 50) window.location.reload()
     else stale = true
   })
   document.addEventListener('visibilitychange', () => {

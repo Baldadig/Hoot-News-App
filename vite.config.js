@@ -54,14 +54,14 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg', 'apple-touch-icon.png', 'icons/favicon-32.png'],
+      includeAssets: ['icon.svg', 'favicon.svg', 'apple-touch-icon.png', 'icons/favicon-32.png', 'icons/favicon-48.png'],
       manifest: {
         name: 'Hoot',
         short_name: 'Hoot',
         description: 'Een rustige, reclamevrije nieuws-tijdlijn van jouw abonnementen.',
         lang: 'nl',
-        theme_color: '#21468b',
-        background_color: '#21468b',
+        theme_color: '#263c67',
+        background_color: '#f3f0e7',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',

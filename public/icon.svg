@@ -1,18 +1,4 @@
-<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- blauw vlak (Nederlandse vlag) -->
-  <rect width="512" height="512" fill="#21468B" />
-
-  <!-- witte uil met grote ogen — iets kleiner, gecentreerd -->
-  <g transform="translate(38.5 38.5) scale(0.85)">
-    <g fill="#FFFFFF">
-      <path d="M148 174 L188 84 L222 166 Z" />
-      <path d="M364 174 L324 84 L290 166 Z" />
-      <ellipse cx="256" cy="280" rx="166" ry="150" />
-    </g>
-    <circle cx="198" cy="270" r="74" fill="#21468B" />
-    <circle cx="314" cy="270" r="74" fill="#21468B" />
-    <circle cx="206" cy="274" r="23" fill="#FFFFFF" />
-    <circle cx="306" cy="274" r="23" fill="#FFFFFF" />
-    <path d="M256 312 L245 290 L267 290 Z" fill="#FFFFFF" />
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="Hoot"><rect width="192" height="192" rx="42" fill="#F3F0E7"/><g transform="translate(38.4 33.6) scale(2.4)"><defs><mask id="owl" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48"><g fill="white"><path d="M7 6 17 12Q24 9 31 12L41 6V28C41 37 34 43 24 46 14 43 7 37 7 28Z"/>
+<path fill="black" d="M12 21C15 17 21 18 23 23 21 29 15 30 12 26ZM36 21C33 17 27 18 25 23 27 29 33 30 36 26Z"/>
+<circle cx="18" cy="23" r="2.25"/><circle cx="30" cy="23" r="2.25"/>
+<path fill="black" d="m21 32 3 4 3-4Z"/></g></mask></defs><path fill="#263C67" mask="url(#owl)" d="M0 0h48v48H0z"/></g></svg>

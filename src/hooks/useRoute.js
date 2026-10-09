@@ -1,21 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
+import { parseHash, toHash } from '../lib/context.js'
 
 // Kleine hash-router: #/stroom?bron=nrc&verhaal=s123
 // De terugknop van de browser/telefoon werkt daardoor voorspelbaar (filters en een
 // geopend verhaal zijn gewoon stappen in de geschiedenis).
-function parse() {
-  const h = window.location.hash.replace(/^#\/?/, '')
-  const [path, query = ''] = h.split('?')
-  return { path: path || 'editie', params: Object.fromEntries(new URLSearchParams(query)) }
-}
+// Een gewoon anker (bv. #inhoud) is geen route en laat het scherm staan.
+const parse = (previous) => parseHash(window.location.hash, previous)
 
 let pushed = 0 // hoeveel stappen we zelf hebben toegevoegd (dan kan "terug" veilig)
 
 export function useRoute() {
-  const [route, setRoute] = useState(parse)
+  const [route, setRoute] = useState(() => parse())
 
   useEffect(() => {
-    const onChange = () => setRoute(parse())
+    const onChange = () => setRoute((prev) => parse(prev))
     window.addEventListener('hashchange', onChange)
     window.addEventListener('popstate', onChange)
     return () => {
@@ -25,15 +23,14 @@ export function useRoute() {
   }, [])
 
   const go = useCallback((path, params = {}, { replace = false } = {}) => {
-    const q = new URLSearchParams(Object.entries(params).filter(([, v]) => v != null && v !== '')).toString()
-    const url = '#/' + path + (q ? '?' + q : '')
+    const url = toHash(path, params)
     if (url === (window.location.hash || '#/editie')) return
     if (replace) window.history.replaceState(null, '', url)
     else {
       window.history.pushState(null, '', url)
       pushed++
     }
-    setRoute(parse())
+    setRoute((prev) => parse(prev))
   }, [])
 
   // Eén stap terug als die van ons is; anders naar `fallback` zonder de geschiedenis te vervuilen.

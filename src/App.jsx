@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { HootContext } from './components/Items.jsx'
 import { Nav } from './components/Shell.jsx'
 import Edition from './views/Edition.jsx'
@@ -16,8 +16,10 @@ import { useTheme } from './hooks/useTheme.js'
 import { useSocialSources } from './hooks/useSocialSources.js'
 import { useStored, readJSON } from './lib/store.js'
 import { saveToInstapaper } from './lib/save.js'
+import { MAIN, rememberLocation, hrefFor } from './lib/context.js'
+import { sourceStatus, statusLabel } from './lib/sourceStatus.js'
+import { indexStories, resolveStory, toggleSaved } from './lib/saved.js'
 
-const MAIN = ['editie', 'stroom', 'bewaard', 'bronnen']
 const PAGES = ['zoek', 'stijl', 'welkom']
 const byRecency = (a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || '')
 
@@ -33,6 +35,15 @@ const safe = (fn, fallback) => {
     return fn()
   } catch {
     return fallback
+  }
+}
+
+// Waar je per bestemming was (filters). Leeft zolang de app open is, ook na herladen.
+function readNav() {
+  try {
+    return JSON.parse(sessionStorage.getItem('hoot:nav')) || {}
+  } catch {
+    return {}
   }
 }
 
@@ -61,6 +72,23 @@ export default function App() {
   const [readIds, setReadIds] = useStored('hoot:read', [])
   const [seenStories, setSeenStories] = useStored('hoot:stories-seen', {})
 
+  // ---- Context per bestemming: de navigatie brengt je terug naar dezelfde lijst ----
+  const [navMem, setNavMem] = useState(readNav)
+  useEffect(() => {
+    setNavMem((m) => {
+      const next = rememberLocation(m, route)
+      if (next !== m) {
+        try {
+          sessionStorage.setItem('hoot:nav', JSON.stringify(next))
+        } catch {
+          /* niet erg */
+        }
+      }
+      return next
+    })
+  }, [route.path, route.params]) // eslint-disable-line react-hooks/exhaustive-deps
+  const hrefs = useMemo(() => Object.fromEntries(MAIN.map((d) => [d, hrefFor(navMem, d)])), [navMem])
+
   const muted = useMemo(() => new Set(prefs.muted), [prefs.muted])
   const read = useMemo(() => new Set(Array.isArray(readIds) ? readIds : []), [readIds])
 
@@ -88,20 +116,15 @@ export default function App() {
   }, [data, social.items, muted])
 
   const itemsById = useMemo(() => new Map([...(data?.related || []), ...(data?.items || []), ...social.items].map((i) => [i.id, i])), [data, social.items])
-  const storiesById = useMemo(() => new Map((data?.stories || []).map((s) => [s.id, s])), [data])
+  // Ook vindbaar op een eerdere id (als twee bundels zijn samengegaan): bladwijzers en links blijven werken.
+  const storiesById = useMemo(() => indexStories(data?.stories), [data])
 
   // ---- Handelingen ----
   const markRead = useCallback((id) => setReadIds((prev) => (prev.includes(id) ? prev : [...prev, id].slice(-1500))), [setReadIds])
 
   const toggleSave = useCallback(
     (kind, id, payload) => {
-      setSaved((prev) => {
-        const next = { ...prev }
-        if (next[id]) delete next[id]
-        else if (kind === 'story') next[id] = { kind, savedAt: Date.now(), story: payload, items: payload.itemIds.map((i) => itemsById.get(i)).filter(Boolean) }
-        else next[id] = { kind: 'item', savedAt: Date.now(), item: payload }
-        return next
-      })
+      setSaved((prev) => toggleSaved(prev, kind, id, payload, itemsById))
       if (kind === 'item' && !saved[id] && data?.meta?.instapaper) saveToInstapaper(payload)
     },
     [setSaved, itemsById, saved, data]
@@ -109,7 +132,15 @@ export default function App() {
 
   const openSource = useCallback((id) => route.go('stroom', { bron: id }), [route.go])
   const storyParam = route.params.verhaal || null
-  const openStory = useCallback((id) => route.go(route.path, { ...route.params, verhaal: id }), [route.go, route.path, route.params])
+  // Wie het verhaal opende krijgt bij sluiten de focus terug.
+  const opener = useRef(null)
+  const openStory = useCallback(
+    (id) => {
+      opener.current = document.activeElement
+      route.go(route.path, { ...route.params, verhaal: id })
+    },
+    [route.go, route.path, route.params]
+  )
   const closeStory = useCallback(() => {
     const { verhaal, ...rest } = route.params
     route.back(route.path, rest)
@@ -117,7 +148,7 @@ export default function App() {
 
   const newInStory = useCallback(
     (story) => {
-      const seen = seenStories[story.id]
+      const seen = seenStories[story.id] || (story.formerIds || []).map((id) => seenStories[id]).find(Boolean)
       return seen ? story.itemIds.filter((id) => !seen.includes(id)).length : 0
     },
     [seenStories]
@@ -151,16 +182,15 @@ export default function App() {
   const page = PAGES.includes(path) && path !== 'welkom' ? path : null
 
   // Geopend verhaal: de actuele versie, of de bewaarde momentopname als het uit de feeds is.
-  const story = useMemo(() => {
-    if (!storyParam) return null
-    const live = storiesById.get(storyParam)
-    const snap = saved[storyParam]?.kind === 'story' ? saved[storyParam] : null
-    const st = live || snap?.story
-    if (!st) return null
-    const snapItems = new Map((snap?.items || []).map((i) => [i.id, i]))
-    const items = st.itemIds.map((id) => itemsById.get(id) || snapItems.get(id)).filter(Boolean).filter((i) => !muted.has(i.source))
-    return items.length ? { story: st, items } : null
-  }, [storyParam, storiesById, saved, itemsById, muted])
+  const story = useMemo(() => resolveStory(storyParam, storiesById, saved, itemsById, muted), [storyParam, storiesById, saved, itemsById, muted])
+
+  const storyOpen = !!story
+  useEffect(() => {
+    if (storyOpen) return
+    const el = opener.current
+    opener.current = null
+    if (el && el.isConnected) el.focus({ preventScroll: true })
+  }, [storyOpen])
 
   // Onbekend verhaal in de link (verlopen)? Dan de parameter stil weghalen.
   useEffect(() => {
@@ -184,8 +214,22 @@ export default function App() {
     document.title = { editie: 'Editie', stroom: 'Stroom', bewaard: 'Bewaard', bronnen: 'Bronnen', zoek: 'Zoeken', stijl: 'Designsysteem', welkom: 'Welkom' }[path] + ' · Hoot'
   }, [path])
 
-  const failed = sources.filter((s) => s.followed && !s.ok && !muted.has(s.id)).map((s) => s.name)
-  const statusProps = { online, refreshing, refreshError, meta: data?.meta, failed, onRetry: reloadAll }
+  // Bronstatus: één uitgevallen bron is een stil puntje bij Bronnen; alleen als álles
+  // onbereikbaar is staat er een regel boven Editie en Stroom.
+  const srcStatus = useMemo(() => sourceStatus(sources, muted), [sources, muted])
+  // "Weer bereikbaar" zeggen we alleen als een bron die uitlag echt terug is (niet als je hem uitzet).
+  const [wasDown, setWasDown] = useState([])
+  useEffect(() => {
+    const ids = srcStatus.failed.map((f) => f.id).filter((id) => !wasDown.includes(id))
+    if (ids.length) setWasDown((prev) => [...prev, ...ids])
+  }, [srcStatus]) // eslint-disable-line react-hooks/exhaustive-deps
+  const recovered = !srcStatus.failed.length && wasDown.some((id) => sourcesById.get(id)?.ok && !muted.has(id))
+  const latestBySource = useMemo(() => {
+    const out = {}
+    for (const f of srcStatus.failed) out[f.id] = stream.find((i) => i.source === f.id)?.publishedAt || null
+    return out
+  }, [srcStatus, stream])
+  const statusProps = { online, refreshing, refreshError, meta: data?.meta, allDown: srcStatus.allDown, onRetry: reloadAll }
   const loading = status === 'loading' && !data
   const failedLoad = status === 'error' && !data
 
@@ -195,23 +239,36 @@ export default function App() {
   )
 
   const hideMain = overlay || showWelcome
+
+  // "Naar de inhoud": focus naar het scherm dat je voor je hebt — zonder de route te
+  // veranderen en zonder te verspringen. De volgende Tab gaat daarbinnen verder.
+  const skip = (e) => {
+    e.preventDefault()
+    const scope = showWelcome ? document.querySelector('.welcome') : overlay ? document.querySelector('.panel') : document.querySelector('.main .view:not([hidden])')
+    const target = scope?.querySelector('h1, [data-skip]') || scope
+    if (!target) return
+    if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')
+    target.focus({ preventScroll: true })
+  }
   return (
     <HootContext.Provider value={ctx}>
       <div className="app">
-        <a className="skip" href="#inhoud">
+        <a className="skip" href="#inhoud" onClick={skip}>
           Naar de inhoud
         </a>
         <div className="app__nav" inert={hideMain ? '' : undefined}>
-          <Nav path={path} />
+          <Nav path={path} hrefs={hrefs} sourceNote={statusLabel(srcStatus.failed.length)} />
         </div>
         <main id="inhoud" className="main" inert={hideMain ? '' : undefined}>
           <Edition active={path === 'editie'} edition={data?.edition} loading={loading} failedLoad={failedLoad} statusProps={statusProps} onRefresh={reloadAll} refreshing={refreshing} />
           <Stream
             active={path === 'stroom'}
             stream={stream}
-            params={route.params}
+            params={path === 'stroom' ? route.params : navMem.stroom || {}}
             go={route.go}
             pinned={prefs.pinned}
+            density={prefs.density === 'volledig' ? 'volledig' : 'kort'}
+            onDensity={(density) => setPrefs((p) => ({ ...p, density }))}
             sources={sources}
             loading={loading}
             failedLoad={failedLoad}
@@ -235,6 +292,12 @@ export default function App() {
             theme={theme}
             setTheme={setTheme}
             meta={data?.meta}
+            status={srcStatus}
+            recovered={recovered}
+            latestBySource={latestBySource}
+            onRetry={reloadAll}
+            refreshing={refreshing}
+            online={online}
           />
           {page === 'zoek' ? <Search onBack={() => route.back('editie')} /> : null}
           {page === 'stijl' ? <StyleGuide stream={stream} /> : null}

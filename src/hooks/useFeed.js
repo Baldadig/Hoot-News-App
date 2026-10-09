@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchFeed } from '../lib/api.js'
 import { readJSON, writeJSON } from '../lib/store.js'
+import { carryOver } from '../lib/sourceStatus.js'
 
 const CACHE_KEY = 'hoot:feed-v2'
 
@@ -45,8 +46,10 @@ export function useFeed() {
       if (had) setRefreshing(true)
       else setStatus('loading')
       try {
-        const next = normalize(await fetchFeed({ signal: controller.signal }))
-        if (!next) throw new Error('Onverwacht antwoord')
+        const fetched = normalize(await fetchFeed({ signal: controller.signal }))
+        if (!fetched) throw new Error('Onverwacht antwoord')
+        // Valt een bron uit, dan blijven de berichten staan die we er al van hadden.
+        const next = carryOver(dataRef.current, fetched)
         setRefreshError(false)
         if (defer && had) {
           const seen = new Set(dataRef.current.items.map((i) => i.id))
