@@ -70,7 +70,7 @@ export default function Story({ story, items, overlay, onClose, onSeen, seenBefo
             <h3 className="story__sub">Toegevoegd sinds je vorige bezoek</h3>
             <div className="list">
               {fresh.map((i) => (
-                <CompactItem key={i.id} item={i} note={note(i)} />
+                <CompactItem key={i.id} item={i} note={note(i)} plain />
               ))}
             </div>
             <h3 className="story__sub">Eerder beschikbaar</h3>
@@ -80,7 +80,7 @@ export default function Story({ story, items, overlay, onClose, onSeen, seenBefo
         )}
         <div className="list">
           {rest.map((i) => (
-            <CompactItem key={i.id} item={i} note={note(i)} />
+            <CompactItem key={i.id} item={i} note={note(i)} plain />
           ))}
         </div>
       </div>

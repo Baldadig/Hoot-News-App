@@ -15,7 +15,7 @@ const KINDS = [
 const topicLabel = (id) => TOPICS.find((t) => t.id === id)?.label || id
 
 // Alle filters in één paneel (native <dialog>: focus blijft binnen, Esc sluit).
-function FilterSheet({ open, onClose, params, setFilter, clear, sources, count, density, onDensity }) {
+function FilterSheet({ open, onClose, params, setFilter, clear, sources, count, density, onDensity, layout, onLayout }) {
   const ref = useRef(null)
   useEffect(() => {
     const d = ref.current
@@ -64,7 +64,18 @@ function FilterSheet({ open, onClose, params, setFilter, clear, sources, count, 
           ))}
         </div>
 
-        <h3 className="sheet__label">Weergave</h3>
+        <h3 className="sheet__label">Indeling</h3>
+        <div className="chips" role="group" aria-label="Indeling van berichten">
+          <button type="button" className="chip" aria-pressed={layout === 'tijdlijn'} onClick={() => onLayout('tijdlijn')}>
+            Tijdlijn
+          </button>
+          <button type="button" className="chip" aria-pressed={layout === 'krant'} onClick={() => onLayout('krant')}>
+            Krant
+          </button>
+        </div>
+        <p className="sheet__note">Tijdlijn zet de bron bovenaan en het beeld groot in het midden. Krant zet de kop links en een klein beeld rechts.</p>
+
+        <h3 className="sheet__label">Voorvertoning</h3>
         <div className="chips" role="group" aria-label="Lengte van de voorvertoning">
           <button type="button" className="chip" aria-pressed={density === 'kort'} onClick={() => onDensity('kort')}>
             Kort
@@ -88,7 +99,7 @@ function FilterSheet({ open, onClose, params, setFilter, clear, sources, count, 
   )
 }
 
-export default function Stream({ active, stream, params, go, pinned, density, onDensity, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
+export default function Stream({ active, stream, params, go, pinned, density, onDensity, layout, onLayout, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
   const { storiesById } = useHoot()
   const ref = useRef(null)
   const [sheet, setSheet] = useState(false)
@@ -204,7 +215,7 @@ export default function Stream({ active, stream, params, go, pinned, density, on
         </button>
       ) : null}
 
-      <FilterSheet open={sheet} onClose={() => setSheet(false)} params={filters} setFilter={setFilter} clear={clear} sources={followed} count={list.length} density={density} onDensity={onDensity} />
+      <FilterSheet open={sheet} onClose={() => setSheet(false)} params={filters} setFilter={setFilter} clear={clear} sources={followed} count={list.length} density={density} onDensity={onDensity} layout={layout} onLayout={onLayout} />
     </section>
   )
 }

@@ -296,6 +296,10 @@ export default function App() {
   // Twee standen op breed scherm: lezen (geen paneel, de leeskolom staat in het midden) en
   // vergelijken (paneel rechts). Het paneel komt er alleen na een bewuste klik: op
   // "Vergelijk bronnen" boven de lijst, of op "+N bronnen" bij een bericht.
+  // Indeling van berichten: 'tijdlijn' (beeld groot in het midden, bron bovenaan — zoals een
+  // sociale tijdlijn) of 'krant' (kop links, klein beeld rechts).
+  const layout = prefs.layout === 'krant' ? 'krant' : 'tijdlijn'
+  const setLayout = useCallback((layout) => setPrefs((p) => ({ ...p, layout })), [setPrefs])
   const panelOpen = hasPanel && prefs.panel === 'open'
   const togglePanel = useCallback(() => setPrefs((p) => ({ ...p, panel: p.panel === 'open' ? 'dicht' : 'open' })), [setPrefs])
   const panel = useMemo(() => ({ available: hasPanel, open: panelOpen || (hasPanel && !!story), toggle: story ? closeStory : togglePanel }), [hasPanel, panelOpen, story, closeStory, togglePanel])
@@ -303,6 +307,7 @@ export default function App() {
   const ctx = useMemo(
     () => ({
       panel,
+      layout,
       saved,
       toggleSave,
       read,
@@ -315,7 +320,7 @@ export default function App() {
       sourcesById,
       muted,
     }),
-    [panel, saved, toggleSave, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted],
+    [panel, layout, saved, toggleSave, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted],
   )
 
   const hideMain = overlay || showWelcome
@@ -361,6 +366,8 @@ export default function App() {
               pinned={prefs.pinned}
               density={prefs.density === 'volledig' ? 'volledig' : 'kort'}
               onDensity={(density) => setPrefs((p) => ({ ...p, density }))}
+              layout={layout}
+              onLayout={setLayout}
               sources={sources}
               loading={loading}
               failedLoad={failedLoad}
@@ -385,6 +392,8 @@ export default function App() {
               onPinned={(pinned) => setPrefs((p) => ({ ...p, pinned }))}
               theme={theme}
               setTheme={setTheme}
+              layout={layout}
+              onLayout={setLayout}
               meta={data?.meta}
               status={srcStatus}
               recovered={recovered}

@@ -121,10 +121,31 @@ export function LeadStory({ item, story, note, priority = false }) {
 }
 
 // ---- Vorm 2: compact bericht ----
-export function CompactItem({ item, story, note, showSave = true }) {
-  const { markRead, read } = useHoot()
+// Twee indelingen (instelbaar): "krant" — kop links, klein beeld rechts — en "tijdlijn" —
+// bron bovenaan, dan de tekst en het beeld groot in het midden. `plain` houdt de krant-vorm
+// aan, voor smalle plekken zoals het vergelijkpaneel.
+export function CompactItem({ item, story, note, showSave = true, plain = false }) {
+  const { markRead, read, layout } = useHoot()
+  const cls = `entry compact${read.has(item.id) ? ' is-read' : ''}`
+  if (layout === 'tijdlijn' && !plain) {
+    return (
+      <article className={`${cls} compact--tl`} data-id={item.id}>
+        <Meta item={item} story={story} showSave={showSave} />
+        <a className="compact__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+          <Kicker item={item} extra={note} />
+          <h3 className="compact__title">{item.short_title || item.title}</h3>
+          <Summary item={item} className="compact__sum" />
+          {item.image ? (
+            <div className="media media--tl">
+              <img {...imgProps(item.image, 'lead')} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={hide} />
+            </div>
+          ) : null}
+        </a>
+      </article>
+    )
+  }
   return (
-    <article className={`entry compact${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
+    <article className={cls} data-id={item.id}>
       <a className="compact__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         <div className="compact__text">
           <Kicker item={item} extra={note} />

@@ -128,7 +128,7 @@ function AddBluesky({ onAdd }) {
   )
 }
 
-export default function Sources({ active, sources, muted, onToggle, socialHandles, onAddSocial, onRemoveSocial, pinned, onPinned, theme, setTheme, meta, status, recovered, latestBySource, onRetry, refreshing, online }) {
+export default function Sources({ active, sources, muted, onToggle, socialHandles, onAddSocial, onRemoveSocial, pinned, onPinned, theme, setTheme, layout, onLayout, meta, status, recovered, latestBySource, onRetry, refreshing, online }) {
   const own = sources.filter((s) => s.followed)
   const extra = sources.filter((s) => !s.followed)
   const togglePin = (id) => onPinned(pinned.includes(id) ? pinned.filter((p) => p !== id) : pinned.length >= 3 ? pinned : [...pinned, id])
@@ -169,6 +169,17 @@ export default function Sources({ active, sources, muted, onToggle, socialHandle
             </button>
           ))}
         </div>
+
+        <h2 className="sect">Indeling van berichten</h2>
+        <div className="chips" role="group" aria-label="Indeling van berichten">
+          <button type="button" className="chip" aria-pressed={layout === 'tijdlijn'} onClick={() => onLayout('tijdlijn')}>
+            Tijdlijn
+          </button>
+          <button type="button" className="chip" aria-pressed={layout === 'krant'} onClick={() => onLayout('krant')}>
+            Krant
+          </button>
+        </div>
+        <p className="hint">Tijdlijn zet de bron bovenaan en het beeld groot in het midden, zoals een sociale tijdlijn. Krant zet de kop links en een klein beeld rechts.</p>
 
         <h2 className="sect">Weergave</h2>
         <div className="chips" role="group" aria-label="Thema">

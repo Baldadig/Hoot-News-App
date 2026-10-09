@@ -2,6 +2,10 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.5.0] — 2026-10-09 — Indeling: Tijdlijn of Krant
+
+- **Twee indelingen voor berichten**, te wisselen onder Stroom → Filters → Indeling en onder Bronnen. **Tijdlijn** (nu standaard): bron bovenaan, dan kop en tekst, en het beeld groot in het midden — zoals een sociale tijdlijn. **Krant**: kop links met een klein beeld rechts, zoals het was. De keuze geldt voor Editie, Stroom, Bewaard en zoeken; het vergelijkpaneel blijft compact.
+
 ## [1.4.0] — 2026-10-09 — Twee standen op breed scherm: lezen en vergelijken
 
 - **Lezen** (standaard): geen rechterkolom en geen scheidingslijn meer. De leeskolom (720 px) staat gecentreerd in de ruimte naast de navigatie; de navigatie is iets smaller.

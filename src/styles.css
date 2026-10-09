@@ -834,6 +834,25 @@ input {
   }
 }
 
+/* Indeling "tijdlijn": bron bovenaan, tekst, en het beeld groot in het midden */
+.compact--tl .compact__link {
+  display: block;
+  padding-top: 6px;
+}
+.compact--tl .compact__title {
+  font-size: 1.25rem;
+}
+.media--tl {
+  aspect-ratio: 16 / 9;
+  max-height: min(420px, 56vh);
+  margin: 12px auto 4px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+}
+.compact--tl {
+  contain-intrinsic-size: auto 420px;
+}
+
 /* ---------- Vorm 3: sociale bijdrage ---------- */
 .social__head {
   display: flex;
@@ -1595,4 +1614,12 @@ input {
     transition: none !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Tijdlijn-indeling: de bronregel staat bovenaan, dus de ruimte verschuift mee */
+.compact--tl {
+  padding: 12px 0 16px;
+}
+.compact--tl .meta {
+  margin-top: 0;
 }
