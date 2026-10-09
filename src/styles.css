@@ -1623,3 +1623,30 @@ input {
 .compact--tl .meta {
   margin-top: 0;
 }
+
+/* Schakelaar met twee standen (indeling van berichten) */
+.seg {
+  display: inline-flex;
+  margin-left: auto; /* schuift met Filters naar rechts als er ruimte is */
+  border: 1px solid var(--rule);
+  border-radius: 22px;
+  background: var(--surface);
+}
+.seg__btn {
+  display: grid;
+  place-items: center;
+  width: var(--tap);
+  height: 42px;
+  border: 0;
+  border-radius: 21px;
+  background: none;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.seg__btn[aria-pressed='true'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}

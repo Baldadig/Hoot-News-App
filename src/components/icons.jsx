@@ -60,6 +60,18 @@ export const PanelIcon = () => (
     <path d="M14.5 4.5v15" />
   </svg>
 )
+export const TimelineIcon = () => (
+  <svg {...base}>
+    <path d="M5 5h14" />
+    <rect x="5" y="9" width="14" height="10" rx="2" />
+  </svg>
+)
+export const PaperIcon = () => (
+  <svg {...base}>
+    <path d="M4 7h9M4 12h9M4 17h6" />
+    <rect x="15.5" y="6.5" width="5" height="5" rx="1" />
+  </svg>
+)
 export const PlayIcon = () => (
   <svg viewBox="0 0 24 24" width={40} height={40} aria-hidden="true">
     <circle cx="12" cy="12" r="11" fill="rgba(0,0,0,.55)" />

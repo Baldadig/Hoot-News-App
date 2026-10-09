@@ -2,6 +2,10 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.5.1] — 2026-10-09 — Indeling als schakelaar
+
+- De keuze Tijdlijn/Krant is een schakelaar met twee iconen in de balk van de Stroom, direct vóór Filters (niet meer in het filterblad). Onder Bronnen blijft de keuze ook staan.
+
 ## [1.5.0] — 2026-10-09 — Indeling: Tijdlijn of Krant
 
 - **Twee indelingen voor berichten**, te wisselen onder Stroom → Filters → Indeling en onder Bronnen. **Tijdlijn** (nu standaard): bron bovenaan, dan kop en tekst, en het beeld groot in het midden — zoals een sociale tijdlijn. **Krant**: kop links met een klein beeld rechts, zoals het was. De keuze geldt voor Editie, Stroom, Bewaard en zoeken; het vergelijkpaneel blijft compact.
