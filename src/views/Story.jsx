@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { CompactItem, SaveButton, useHoot } from '../components/Items.jsx'
-import { BackIcon, CloseIcon } from '../components/icons.jsx'
+import { BackIcon, CloseIcon, PanelIcon } from '../components/icons.jsx'
 import { timeAgo } from '../lib/time.js'
 
 // Bronvergelijking: elke publicatie over dit verhaal apart, met eigen kop, bron, tijd en link.
@@ -80,11 +80,19 @@ export default function Story({ story, items, overlay, onClose, onSeen, seenBefo
   )
 }
 
-export function PanelHint() {
+// Het lege paneel (breed scherm): in- of uitgeklapt. Ingeklapt blijft de kolom staan —
+// de leeskolom verschuift dus niet — maar is hij leeg op één knop na. Een verhaal dat je
+// opent verschijnt hier altijd, ook als het paneel is ingeklapt.
+export function PanelHint({ open, onToggle }) {
   return (
     <div className="panelhint">
-      <h2 className="panelhint__title">Bronnen vergelijken</h2>
-      <p>Kies bij een bericht "+2 bronnen" om hier te zien wie er nog meer over schrijft — elke publicatie met eigen kop en link.</p>
+      <button type="button" className="iconbtn panelhint__toggle" onClick={onToggle} aria-expanded={open} aria-controls="panel-uitleg" aria-label={open ? 'Paneel Bronnen vergelijken inklappen' : 'Paneel Bronnen vergelijken uitklappen'} title={open ? 'Inklappen' : 'Bronnen vergelijken'}>
+        <PanelIcon />
+      </button>
+      <div id="panel-uitleg" className="panelhint__body" hidden={!open}>
+        <h2 className="panelhint__title">Bronnen vergelijken</h2>
+        <p>Kies bij een bericht "+2 bronnen" om hier te zien wie er nog meer over schrijft — elke publicatie met eigen kop en link.</p>
+      </div>
     </div>
   )
 }

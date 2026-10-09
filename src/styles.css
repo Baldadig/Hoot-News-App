@@ -1282,8 +1282,18 @@ input {
   text-transform: uppercase;
 }
 .panelhint {
-  padding: 96px 28px;
   color: var(--ink-3);
+}
+.panelhint__toggle {
+  display: grid;
+  margin: 14px 12px 0 auto;
+  color: var(--ink-3);
+}
+.panelhint__toggle[aria-expanded='true'] {
+  color: var(--accent);
+}
+.panelhint__body {
+  padding: 38px 28px;
 }
 .panelhint__title {
   margin-bottom: 8px;

@@ -303,7 +303,7 @@ export default function App() {
           {page === 'stijl' ? <StyleGuide stream={stream} /> : null}
         </main>
         <aside className={`panel${story ? ' is-open' : ''}`} aria-label="Verhaal" role={overlay ? 'dialog' : undefined} aria-modal={overlay ? 'true' : undefined} inert={showWelcome ? '' : undefined}>
-          {story ? <Story key={story.story.id} story={story.story} items={story.items} overlay={overlay} onClose={closeStory} onSeen={markStorySeen} seenBefore={seenStories[story.story.id] || null} /> : <PanelHint />}
+          {story ? <Story key={story.story.id} story={story.story} items={story.items} overlay={overlay} onClose={closeStory} onSeen={markStorySeen} seenBefore={seenStories[story.story.id] || null} /> : <PanelHint open={prefs.panel === 'open'} onToggle={() => setPrefs((p) => ({ ...p, panel: p.panel === 'open' ? 'dicht' : 'open' }))} />}
         </aside>
         {showWelcome ? (
           <Welcome

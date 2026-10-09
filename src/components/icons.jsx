@@ -54,6 +54,12 @@ export const ArrowUpIcon = () => (
     <path d="M12 19V5M6 11l6-6 6 6" />
   </svg>
 )
+export const PanelIcon = () => (
+  <svg {...base}>
+    <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
+    <path d="M14.5 4.5v15" />
+  </svg>
+)
 export const PlayIcon = () => (
   <svg viewBox="0 0 24 24" width={40} height={40} aria-hidden="true">
     <circle cx="12" cy="12" r="11" fill="rgba(0,0,0,.55)" />
