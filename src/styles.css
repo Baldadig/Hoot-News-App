@@ -1655,3 +1655,18 @@ input {
   background: var(--accent-soft);
   color: var(--accent);
 }
+
+/* Editie: regel met "Hoe is dit gekozen?" links en de indeling-schakelaar rechts */
+.edbar {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.edbar .how {
+  flex: 1;
+  min-width: 0;
+}
+.edbar .seg {
+  flex: none;
+  margin-top: 4px;
+}

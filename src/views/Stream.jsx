@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
+import { ViewHeader, StatusLine, Skeleton, LoadError, Empty, LayoutSwitch } from '../components/Shell.jsx'
 import { Entry, SourceMark, useHoot } from '../components/Items.jsx'
-import { FilterIcon, CloseIcon, ArrowUpIcon, TimelineIcon, PaperIcon } from '../components/icons.jsx'
+import { FilterIcon, CloseIcon, ArrowUpIcon } from '../components/icons.jsx'
 import { TOPICS } from '../lib/topics.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { positionKey } from '../lib/context.js'
@@ -144,14 +144,7 @@ export default function Stream({ active, stream, params, go, pinned, density, on
               </button>
             ))}
             {/* Indeling: een schakelaar, direct bij de hand (geen filter, dus niet in het filterblad) */}
-            <div className="seg" role="group" aria-label="Indeling van berichten">
-              <button type="button" className="seg__btn" aria-pressed={layout === 'tijdlijn'} onClick={() => onLayout('tijdlijn')} aria-label="Tijdlijn: beeld groot in het midden" title="Tijdlijn">
-                <TimelineIcon />
-              </button>
-              <button type="button" className="seg__btn" aria-pressed={layout === 'krant'} onClick={() => onLayout('krant')} aria-label="Krant: kop links, klein beeld rechts" title="Krant">
-                <PaperIcon />
-              </button>
-            </div>
+            <LayoutSwitch />
             <button type="button" className="chip chip--more" onClick={() => setSheet(true)} aria-haspopup="dialog">
               <FilterIcon />
               Filters{activeCount ? ` (${activeCount})` : ''}

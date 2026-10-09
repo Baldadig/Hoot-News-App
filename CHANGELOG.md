@@ -2,6 +2,10 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.5.3] — 2026-10-09 — Indeling-schakelaar ook in de Editie
+
+- De schakelaar Tijdlijn/Krant staat nu ook boven de Editie, rechts naast "Hoe is dit gekozen?".
+
 ## [1.5.2] — 2026-10-09 — Compacter hoofdverhaal
 
 - Het eerste verhaal van de Editie neemt op breed scherm minder ruimte in: het beeld is een liggende strook (21:9, ± 300 px hoog in plaats van ± 480 px) en de kop iets kleiner, zodat kop en kern direct in beeld staan.
