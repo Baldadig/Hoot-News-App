@@ -1,6 +1,7 @@
 import { clock } from '../lib/time.js'
 import { BrandLogo } from './Brand.jsx'
-import { EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon } from './icons.jsx'
+import { useHoot } from './Items.jsx'
+import { EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon } from './icons.jsx'
 
 export const DESTINATIONS = [
   { id: 'editie', label: 'Editie', Icon: EditionIcon },
@@ -43,7 +44,9 @@ export function Nav({ path, hrefs = {}, sourceNote = '' }) {
 }
 
 // Kop van elk scherm: titel links, zoeken en verversen rechts (zoeken altijd op dezelfde plek).
-export function ViewHeader({ title, sub, onRefresh, refreshing, showSearch = true, children }) {
+// `compare`: toon op breed scherm de knop die het vergelijkpaneel opent en sluit.
+export function ViewHeader({ title, sub, onRefresh, refreshing, showSearch = true, compare = false, children }) {
+  const panel = useHoot()?.panel
   return (
     <header className="vh">
       <div className="vh__row">
@@ -51,6 +54,12 @@ export function ViewHeader({ title, sub, onRefresh, refreshing, showSearch = tru
           <h1 className="vh__title">{title}</h1>
           {sub ? <p className="vh__sub">{sub}</p> : null}
         </div>
+        {compare && panel?.available ? (
+          <button type="button" className="textbtn" onClick={panel.toggle} aria-pressed={panel.open}>
+            <PanelIcon />
+            {panel.open ? 'Verberg bronnen' : 'Vergelijk bronnen'}
+          </button>
+        ) : null}
         {onRefresh ? (
           <button type="button" className={`iconbtn${refreshing ? ' is-spinning' : ''}`} onClick={onRefresh} disabled={refreshing} aria-label="Verversen">
             <RefreshIcon />

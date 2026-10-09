@@ -292,7 +292,7 @@ input {
 
 @media (min-width: 960px) {
   .app {
-    grid-template-columns: 232px minmax(0, 1fr);
+    grid-template-columns: 208px minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
   }
   .app__nav {
@@ -344,13 +344,16 @@ input {
     display: none;
   }
   .col {
+    max-width: 720px;
     padding-top: 8px;
   }
 }
 
+/* Breed scherm, twee standen. Lezen: geen paneel, de leeskolom staat gecentreerd in de
+   ruimte naast de navigatie. Vergelijken: de lijst schuift op en rechts komt het paneel. */
 @media (min-width: 1200px) {
-  .app {
-    grid-template-columns: 232px minmax(0, 1fr) minmax(360px, 440px);
+  .app.has-panel {
+    grid-template-columns: 208px minmax(0, 1fr) 340px;
   }
   .panel {
     display: block;
@@ -866,7 +869,6 @@ input {
 }
 .media--social {
   position: relative;
-  max-height: 560px;
   margin-bottom: 12px;
   border-radius: var(--radius);
 }
@@ -1401,25 +1403,97 @@ input {
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
-.panelhint {
-  color: var(--ink-3);
+.sidx {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
 }
-.panelhint__toggle {
-  display: grid;
-  margin: 14px 12px 0 auto;
-  color: var(--ink-3);
+.sidx__btn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 12px 0;
+  border: 0;
+  border-top: 1px solid var(--rule);
+  background: none;
+  text-align: left;
+  cursor: pointer;
 }
-.panelhint__toggle[aria-expanded='true'] {
+.sidx__title {
+  font-family: var(--serif);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.sidx__meta {
+  color: var(--ink-3);
+  font-size: 0.8125rem;
+}
+
+/* Knop met tekst in de kop van een scherm (alleen breed scherm: het vergelijkpaneel) */
+.textbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--tap);
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.textbtn[aria-pressed='true'] {
+  background: var(--accent-soft);
   color: var(--accent);
 }
-.panelhint__body {
-  padding: 38px 28px;
+
+/* Gedeelde link in een sociale bijdrage: compacte kaart in plaats van een groot beeld */
+.linkcard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
 }
-.panelhint__title {
-  margin-bottom: 8px;
-  color: var(--ink-2);
-  font-family: var(--serif);
-  font-size: 1.25rem;
+.linkcard .thumb {
+  flex: none;
+  width: 72px;
+  height: 72px;
+}
+.linkcard__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.linkcard__title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.linkcard__domain {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-3);
+  font-size: 0.8125rem;
 }
 
 /* ---------- Zoeken ---------- */

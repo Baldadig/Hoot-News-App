@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { CompactItem, SaveButton, useHoot } from '../components/Items.jsx'
-import { BackIcon, CloseIcon, PanelIcon } from '../components/icons.jsx'
+import { BackIcon, CloseIcon } from '../components/icons.jsx'
 import { timeAgo } from '../lib/time.js'
 
 // Bronvergelijking: elke publicatie over dit verhaal apart, met eigen kop, bron, tijd en link.
@@ -88,18 +88,42 @@ export default function Story({ story, items, overlay, onClose, onSeen, seenBefo
   )
 }
 
-// Het lege paneel (breed scherm): in- of uitgeklapt. Ingeklapt blijft de kolom staan —
-// de leeskolom verschuift dus niet — maar is hij leeg op één knop na. Een verhaal dat je
-// opent verschijnt hier altijd, ook als het paneel is ingeklapt.
-export function PanelHint({ open, onToggle }) {
+// Vergelijken zonder dat er al een verhaal open is: de verhalen van nu waar de meeste
+// bronnen over schrijven. Kies er een om de publicaties naast elkaar te zien.
+export function StoryIndex({ stories = [], onClose }) {
+  const { itemsById, openStory, muted } = useHoot()
+  const rows = stories
+    .filter((s) => s.sourceCount > 1)
+    .map((s) => ({ s, lead: [s.leadId, ...s.itemIds].map((id) => itemsById.get(id)).find((i) => i && !muted.has(i.source)) }))
+    .filter((r) => r.lead)
+    .sort((a, b) => b.s.sourceCount - a.s.sourceCount || (b.s.latestAt || '').localeCompare(a.s.latestAt || ''))
+    .slice(0, 12)
   return (
-    <div className="panelhint">
-      <button type="button" className="iconbtn panelhint__toggle" onClick={onToggle} aria-expanded={open} aria-controls="panel-uitleg" aria-label={open ? 'Paneel Bronnen vergelijken inklappen' : 'Paneel Bronnen vergelijken uitklappen'} title={open ? 'Inklappen' : 'Bronnen vergelijken'}>
-        <PanelIcon />
-      </button>
-      <div id="panel-uitleg" className="panelhint__body" hidden={!open}>
-        <h2 className="panelhint__title">Bronnen vergelijken</h2>
-        <p>Kies bij een bericht "+2 bronnen" om hier te zien wie er nog meer over schrijft — elke publicatie met eigen kop en link.</p>
+    <div className="story">
+      <header className="story__head">
+        <p className="story__eyebrow">Bronnen vergelijken</p>
+        <button type="button" className="iconbtn" onClick={onClose} aria-label="Paneel sluiten">
+          <CloseIcon />
+        </button>
+      </header>
+      <div className="story__body">
+        <p className="story__facts">Verhalen waar nu meerdere bronnen over schrijven. Kies er een om elke publicatie apart te zien, met eigen kop en link.</p>
+        {rows.length ? (
+          <ul className="sidx">
+            {rows.map(({ s, lead }) => (
+              <li key={s.id}>
+                <button type="button" className="sidx__btn" onClick={() => openStory(s.id)}>
+                  <span className="sidx__title">{lead.short_title || lead.title}</span>
+                  <span className="sidx__meta">
+                    {s.sourceCount} bronnen · {timeAgo(s.latestAt)}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="hint">Er zijn op dit moment geen verhalen met meerdere bronnen.</p>
+        )}
       </div>
     </div>
   )

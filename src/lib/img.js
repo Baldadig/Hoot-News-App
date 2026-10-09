@@ -6,7 +6,7 @@
 const WIDTHS = { thumb: [176, 320], lead: [480, 720, 1080, 1360] }
 const SIZES = {
   thumb: '88px',
-  lead: '(min-width: 720px) 680px, calc(100vw - 32px)',
+  lead: '(min-width: 960px) 720px, (min-width: 720px) 680px, calc(100vw - 32px)',
 }
 
 // Geeft [[url, breedte], …] voor een beeld, of null als we geen varianten kennen.

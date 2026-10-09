@@ -133,7 +133,7 @@ export default function Stream({ active, stream, params, go, pinned, density, on
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Stroom" onScroll={(e) => setAtDepth(e.currentTarget.scrollTop > 900)}>
       <div className="col">
-        <ViewHeader title="Stroom" sub="Alles van je bronnen, nieuwste eerst" onRefresh={onRefresh} refreshing={refreshing}>
+        <ViewHeader title="Stroom" sub="Alles van je bronnen, nieuwste eerst" onRefresh={onRefresh} refreshing={refreshing} compare>
           <div className="filterbar" role="group" aria-label="Onderwerp">
             <button type="button" className="chip" aria-pressed={!filters.onderwerp} onClick={() => setFilter('onderwerp', '')}>
               Alles

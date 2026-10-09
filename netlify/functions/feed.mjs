@@ -377,6 +377,7 @@ function mapPost(post, author) {
   let video = null
   let videoPoster = null
   let linkUrl = permalink
+  let linkTitle = null // gedeelde link (geen eigen foto): titel van de pagina
   let domain = 'bsky.app'
   const photo = (im) => {
     image = im.thumb || im.fullsize || image
@@ -386,6 +387,7 @@ function mapPost(post, author) {
   const ext = (e) => {
     if (e?.external) {
       image = e.external.thumb || image
+      linkTitle = (e.external.title || '').trim() || null
       if (e.external.uri) {
         linkUrl = e.external.uri
         domain = hostname(linkUrl)
@@ -429,6 +431,7 @@ function mapPost(post, author) {
     summary: text.replace(/\s+/g, ' ').trim(),
     text,
     url: linkUrl,
+    linkTitle,
     image,
     imageRatio,
     video,
@@ -559,6 +562,7 @@ function toClient(it, cache) {
     readMin: it.kind === 'article' ? e?.readMin || it.readMin || null : null,
     topics,
     url: it.url,
+    linkTitle: it.linkTitle || null,
     image: it.image,
     imageRatio: it.imageRatio || null,
     video: it.video,

@@ -34,7 +34,7 @@ export default function Edition({ active, edition, loading, failedLoad, statusPr
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
       <div className="col">
-        <ViewHeader title={title} sub={sub} onRefresh={onRefresh} refreshing={refreshing} />
+        <ViewHeader title={title} sub={sub} onRefresh={onRefresh} refreshing={refreshing} compare />
         {loading ? (
           <Skeleton rows={4} />
         ) : failedLoad ? (

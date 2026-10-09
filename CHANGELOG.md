@@ -2,6 +2,12 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.4.0] — 2026-10-09 — Twee standen op breed scherm: lezen en vergelijken
+
+- **Lezen** (standaard): geen rechterkolom en geen scheidingslijn meer. De leeskolom (720 px) staat gecentreerd in de ruimte naast de navigatie; de navigatie is iets smaller.
+- **Vergelijken**: de knop "Vergelijk bronnen" staat bij de bediening boven Editie en Stroom. Het paneel (340 px) schuift rechts in beeld; sluiten geeft de ruimte terug. Zonder gekozen verhaal toont het de verhalen waar nu de meeste bronnen over schrijven. "+N bronnen" bij een bericht opent hetzelfde paneel. Op telefoon en tablet blijft de vergelijking schermvullend.
+- **Sociale bijdragen**: een gedeelde link is nu een compacte kaart (klein beeld, titel, domein); een eigen foto houdt zijn verhouding met begrensde hoogte; video blijft 16:9 met afspeelknop.
+
 ## [1.3.0] — 2026-10-09 — Sneller laden, rustiger welkom, kleine bewegingen
 
 ### Sneller

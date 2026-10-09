@@ -146,6 +146,11 @@ export function CompactItem({ item, story, note, showSave = true }) {
 export function SocialItem({ item }) {
   const { markRead, read, openSource } = useHoot()
   const ratio = item.imageRatio ? Math.min(2.4, Math.max(0.7, item.imageRatio)) : null
+  // Drie soorten beeld: een gedeelde link (compacte kaart), een eigen foto (ruimer, met
+  // begrensde hoogte en de echte verhouding) en video (16:9 met afspeelknop).
+  const isLink = !item.video && !item.imageRatio && !!item.domain && item.domain !== 'bsky.app'
+  // Hoogte begrenzen zonder bij te snijden: de breedte volgt uit de verhouding.
+  const bounded = (r) => ({ aspectRatio: r, maxWidth: `calc(min(420px, 56vh) * ${r})` })
   const playable = item.video && CAN_HLS
   const [playing, setPlaying] = useState(false)
   return (
@@ -165,14 +170,26 @@ export function SocialItem({ item }) {
       <a className="social__body" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         {item.summary ? <p className="social__text">{item.summary}</p> : null}
         {item.video && !playable ? (
-          <div className="media media--social media--poster" style={{ aspectRatio: 16 / 9 }}>
+          <div className="media media--social media--poster" style={bounded(16 / 9)}>
             {item.videoPoster ? <img src={item.videoPoster} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" /> : null}
             <span className="media__play">
               <PlayIcon />
             </span>
           </div>
+        ) : isLink ? (
+          <div className="linkcard">
+            {item.image ? (
+              <div className="thumb">
+                <img {...imgProps(item.image, 'thumb')} alt="" width="88" height="88" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={hide} />
+              </div>
+            ) : null}
+            <div className="linkcard__text">
+              {item.linkTitle ? <span className="linkcard__title">{item.linkTitle}</span> : null}
+              <span className="linkcard__domain">{item.domain}</span>
+            </div>
+          </div>
         ) : !item.video && item.image ? (
-          <div className={`media media--social${ratio ? ' media--natural' : ''}`} style={{ aspectRatio: ratio || 16 / 9 }}>
+          <div className={`media media--social${ratio ? ' media--natural' : ''}`} style={bounded(ratio || 16 / 9)}>
             <img src={item.image} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={hide} />
           </div>
         ) : null}
@@ -180,7 +197,7 @@ export function SocialItem({ item }) {
       {/* Video: eerst alleen het stilstaande beeld (pas geladen als het in zicht komt);
           de speler zelf komt er bij de eerste tik. */}
       {playable ? (
-        <div className="media media--social media--poster" style={{ aspectRatio: 16 / 9 }}>
+        <div className="media media--social media--poster" style={bounded(16 / 9)}>
           {playing ? (
             <video controls autoPlay playsInline poster={item.videoPoster || undefined} src={item.video} />
           ) : (

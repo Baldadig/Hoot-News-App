@@ -62,10 +62,12 @@ function mapPost(post, fallbackName) {
   let video = null
   let videoPoster = null
   let linkUrl = permalink
+  let linkTitle = null // gedeelde link (geen eigen foto): titel van de pagina
   let domain = 'bsky.app'
   const ext = (e) => {
     if (e?.external) {
       image = e.external.thumb || image
+      linkTitle = (e.external.title || '').trim() || null
       if (e.external.uri && /^https?:\/\//i.test(e.external.uri)) {
         linkUrl = e.external.uri
         domain = hostname(linkUrl)
@@ -110,6 +112,7 @@ function mapPost(post, fallbackName) {
     text,
     topics: [],
     url: linkUrl,
+    linkTitle,
     image,
     imageRatio,
     video,
