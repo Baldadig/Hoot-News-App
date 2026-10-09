@@ -2,6 +2,14 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.9.0] — 2026-10-09 — Compacte kop in de Stroom
+
+- **Onderwerpen als swipebare pillen.** Eén horizontaal scrollende rij met Alles en alle onderwerpen (36 px hoog, aanraakdoel 44), met een vervaging rechts; de gekozen pil scrolt vanzelf in beeld. Wat je onder Bronnen kiest staat vooraan ("Volgorde van onderwerpen"). Op breed scherm staan alle pillen zichtbaar in twee rijen.
+- **Filters als icoon** rechts van de rij, met een stip als er een filter op soort of bron actief is. "Onderwerp" is uit het filterblad; Soort, Bron en Voorvertoning blijven.
+- **Eén statusregel**: "Nederland · 14 berichten · bijgewerkt 20:26 · Wis" vervangt de blauwe filterbalk én de losse bijgewerkt-regel.
+- De ondertitel "Alles van je bronnen, nieuwste eerst" staat alleen nog op breed scherm.
+- De kop vóór het eerste bericht is 132 px in plaats van 235 (iPhone 16 Pro: 15% van het scherm in plaats van 27%; iPhone 13 mini: 16% in plaats van 29%).
+
 ## [1.8.0] — 2026-10-09 — Eén raster: afstand, type en vorm op schaal
 
 Geen nieuwe functies; het raster onder de app is vastgelegd en overal toegepast (zie `#/stijl` → Schaal).

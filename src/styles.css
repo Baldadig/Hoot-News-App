@@ -499,14 +499,88 @@ input {
   cursor: pointer;
 }
 
-.chips,
-.filterbar {
+.chips {
   display: flex;
-  flex-wrap: wrap; /* nooit horizontaal scrollen */
+  flex-wrap: wrap; /* in bladen en instellingen: alles zichtbaar, niets scrolt */
   gap: var(--s2);
 }
-.filterbar {
-  padding-top: var(--s3);
+
+/* Onderwerprij in de Stroom: de enige rij die horizontaal scrolt (zoals een categorierij in
+   nieuws-apps). Pillen van 36 px in een rij van 44; rechts een vast filtericoon. */
+.topics {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin-top: var(--s1);
+}
+.topics + .status,
+.topics ~ .status {
+  margin-top: var(--s1);
+}
+.topics__scroll {
+  flex: 1;
+  display: flex;
+  gap: var(--s2);
+  min-width: 0;
+  padding: var(--s1) 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  /* de rij vervaagt rechts: er is meer */
+  mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+}
+.topics__scroll::-webkit-scrollbar {
+  display: none;
+}
+.chip.chip--sm {
+  position: relative;
+  flex: none;
+  height: 36px;
+  padding: 0 var(--s3);
+  font-size: var(--t1);
+}
+.chip--sm::before {
+  content: ''; /* aanraakdoel loopt door tot 44 px */
+  position: absolute;
+  inset: -4px 0;
+}
+.topics__filter {
+  position: relative;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-pill);
+}
+.topics__filter.is-on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.topics__dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+@media (min-width: 960px) {
+  .topics__scroll {
+    flex-wrap: wrap; /* breed scherm: alles zichtbaar */
+    mask-image: none;
+  }
+}
+.linkbtn--inline {
+  min-height: 0;
+  padding: 0;
+  font-size: inherit;
+}
+.vh__sub--wide {
+  display: none;
+}
+@media (min-width: 960px) {
+  .vh__sub--wide {
+    display: block;
+  }
 }
 
 .chip {
@@ -533,9 +607,6 @@ input {
 .chip:disabled {
   opacity: 0.45;
   cursor: default;
-}
-.chip--more {
-  color: var(--ink-2);
 }
 
 .input {
@@ -1123,24 +1194,6 @@ input {
 }
 
 /* ---------- Stroom ---------- */
-.active {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0 var(--s3);
-  margin-top: var(--s3);
-  padding: var(--s1) var(--s3);
-  border-radius: var(--radius);
-  background: var(--accent-soft);
-  color: var(--ink);
-  font-size: var(--t2);
-  font-weight: 600;
-}
-.active__text {
-  flex: 1 1 12em;
-  padding: var(--s3) 0;
-}
-
 .newpill {
   position: sticky;
   top: calc(var(--safe-t) + 8px);

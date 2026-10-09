@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { clock } from '../lib/time.js'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { Entry, SourceMark, useHoot } from '../components/Items.jsx'
 import { FilterIcon, CloseIcon, ArrowUpIcon } from '../components/icons.jsx'
-import { TOPICS } from '../lib/topics.js'
+import { TOPICS, orderedTopics } from '../lib/topics.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { positionKey } from '../lib/context.js'
 
@@ -33,15 +34,6 @@ function FilterSheet({ open, onClose, params, setFilter, clear, sources, count, 
           <button type="button" className="iconbtn" onClick={onClose} aria-label="Sluiten">
             <CloseIcon />
           </button>
-        </div>
-
-        <h3 className="sheet__label">Onderwerp</h3>
-        <div className="chips">
-          {TOPICS.map((t) => (
-            <button key={t.id} type="button" className="chip" aria-pressed={params.onderwerp === t.id} onClick={() => setFilter('onderwerp', params.onderwerp === t.id ? '' : t.id)}>
-              {t.label}
-            </button>
-          ))}
         </div>
 
         <h3 className="sheet__label">Soort</h3>
@@ -129,37 +121,41 @@ export default function Stream({ active, stream, params, go, pinned, density, on
   const srcName = (id) => sources.find((s) => s.id === id)?.name || id
   const kindName = (id) => KINDS.find((k) => k.id === id)?.label
   const followed = sources.filter((s) => s.followed)
+  const filterText = [filters.onderwerp && topicLabel(filters.onderwerp), filters.bron && `Alleen ${srcName(filters.bron)}`, filters.soort && kindName(filters.soort)].filter(Boolean).join(' · ')
+  const sheetCount = [filters.bron, filters.soort].filter(Boolean).length // wat in het filterblad staat (onderwerp zit in de rij)
+
+  // De gekozen pil in beeld houden (ook als je terugkomt met een filter uit de URL).
+  const stripRef = useRef(null)
+  useEffect(() => {
+    const strip = stripRef.current
+    const on = strip?.querySelector('[aria-pressed="true"]')
+    if (!strip || !on) return
+    const left = on.offsetLeft - strip.offsetLeft
+    if (left < strip.scrollLeft || left + on.offsetWidth > strip.scrollLeft + strip.clientWidth) strip.scrollTo({ left: Math.max(0, left - 16) })
+  }, [filters.onderwerp, active])
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Stroom" onScroll={(e) => setAtDepth(e.currentTarget.scrollTop > 900)}>
       <div className="col">
-        <ViewHeader title="Stroom" sub="Alles van je bronnen, nieuwste eerst" onRefresh={onRefresh} refreshing={refreshing} compare layout>
-          <div className="filterbar" role="group" aria-label="Onderwerp">
-            <button type="button" className="chip" aria-pressed={!filters.onderwerp} onClick={() => setFilter('onderwerp', '')}>
-              Alles
-            </button>
-            {pinned.map((id) => (
-              <button key={id} type="button" className="chip" aria-pressed={filters.onderwerp === id} onClick={() => setFilter('onderwerp', filters.onderwerp === id ? '' : id)}>
-                {topicLabel(id)}
+        <ViewHeader title="Stroom" sub="Alles van je bronnen, nieuwste eerst" subWide onRefresh={onRefresh} refreshing={refreshing} compare layout>
+          {/* Eén rij: alle onderwerpen als pillen (swipen), rechts een vast filtericoon. */}
+          <div className="topics">
+            <div className="topics__scroll" role="group" aria-label="Onderwerp" ref={stripRef}>
+              <button type="button" className="chip chip--sm" aria-pressed={!filters.onderwerp} onClick={() => setFilter('onderwerp', '')}>
+                Alles
               </button>
-            ))}
-            <button type="button" className="chip chip--more" onClick={() => setSheet(true)} aria-haspopup="dialog">
+              {orderedTopics(pinned).map((t) => (
+                <button key={t.id} type="button" className="chip chip--sm" aria-pressed={filters.onderwerp === t.id} onClick={() => setFilter('onderwerp', filters.onderwerp === t.id ? '' : t.id)}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            <button type="button" className={`iconbtn topics__filter${sheetCount ? ' is-on' : ''}`} onClick={() => setSheet(true)} aria-haspopup="dialog" aria-label={`Filters${sheetCount ? `, ${sheetCount} actief` : ''}`} title="Filters: soort en bron">
               <FilterIcon />
-              Filters{activeCount ? ` (${activeCount})` : ''}
+              {sheetCount ? <span className="topics__dot" aria-hidden="true" /> : null}
             </button>
           </div>
         </ViewHeader>
-
-        {activeCount ? (
-          <div className="active" role="status">
-            <span className="active__text">
-              {[filters.bron && `Alleen ${srcName(filters.bron)}`, filters.onderwerp && topicLabel(filters.onderwerp), filters.soort && kindName(filters.soort)].filter(Boolean).join(' · ')} — {list.length} {list.length === 1 ? 'bericht' : 'berichten'}
-            </span>
-            <button type="button" className="linkbtn active__clear" onClick={clear}>
-              Wis filters
-            </button>
-          </div>
-        ) : null}
 
         {pendingCount > 0 ? (
           <button type="button" className="newpill" aria-label={`${pendingCount} ${pendingCount === 1 ? 'nieuw bericht' : 'nieuwe berichten'} tonen`} onClick={() => (onShowNew(), ref.current?.scrollTo({ top: 0 }))}>
@@ -174,7 +170,17 @@ export default function Stream({ active, stream, params, go, pinned, density, on
           <LoadError onRetry={onRefresh} />
         ) : (
           <>
-            <StatusLine {...statusProps} />
+            {activeCount && statusProps.online && !statusProps.refreshError ? (
+              <p className="status" role="status">
+                {filterText} · {list.length} {list.length === 1 ? 'bericht' : 'berichten'}
+                {statusProps.meta?.updatedAt ? ` · bijgewerkt ${clock(statusProps.meta.updatedAt)}` : ''}{' '}
+                <button type="button" className="linkbtn linkbtn--inline" onClick={clear}>
+                  Wis
+                </button>
+              </p>
+            ) : (
+              <StatusLine {...statusProps} />
+            )}
             {list.length === 0 ? (
               <Empty
                 title="Geen berichten voor dit filter"

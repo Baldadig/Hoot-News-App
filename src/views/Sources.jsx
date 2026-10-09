@@ -160,8 +160,8 @@ export default function Sources({ active, sources, muted, onToggle, socialHandle
           ))}
         </ul>
 
-        <h2 className="sect">Onderwerpen bovenaan de Stroom</h2>
-        <p className="hint">Kies er maximaal drie. De rest vind je altijd onder Filters.</p>
+        <h2 className="sect">Volgorde van onderwerpen</h2>
+        <p className="hint">De rij in de Stroom bevat alle onderwerpen; wat je hier kiest (maximaal drie) staat vooraan.</p>
         <div className="chips">
           {TOPICS.map((t) => (
             <button key={t.id} type="button" className="chip" aria-pressed={pinned.includes(t.id)} disabled={!pinned.includes(t.id) && pinned.length >= 3} onClick={() => togglePin(t.id)}>

@@ -63,14 +63,15 @@ export function LayoutSwitch() {
 
 // `compare`: toon op breed scherm de knop die het vergelijkpaneel opent en sluit.
 // `layout`: toon de schakelaar Tijdlijn/Krant in de rij (Editie en Stroom).
-export function ViewHeader({ title, sub, onRefresh, refreshing, showSearch = true, compare = false, layout = false, children }) {
+// `subWide`: de ondertitel alleen op breed scherm (op telefoon kost hij een regel die niets nieuws zegt).
+export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing, showSearch = true, compare = false, layout = false, children }) {
   const panel = useHoot()?.panel
   return (
     <header className="vh">
       <div className="vh__row">
         <div className="vh__titles">
           <h1 className="vh__title">{title}</h1>
-          {sub ? <p className="vh__sub">{sub}</p> : null}
+          {sub ? <p className={`vh__sub${subWide ? ' vh__sub--wide' : ''}`}>{sub}</p> : null}
         </div>
         {layout ? <LayoutSwitch /> : null}
         {compare && panel?.available ? (

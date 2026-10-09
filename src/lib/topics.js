@@ -11,3 +11,10 @@ export const TOPICS = [
   { id: 'wetenschap', label: 'Wetenschap', emoji: '🔬' },
   { id: 'economie', label: 'Economie', emoji: '📈' },
 ]
+
+// De rij onderwerpen in de Stroom: "Alles", dan wat je vooraan wilt (Bronnen), dan de rest.
+export function orderedTopics(pinned = []) {
+  const first = pinned.map((id) => TOPICS.find((t) => t.id === id)).filter(Boolean)
+  const rest = TOPICS.filter((t) => !pinned.includes(t.id))
+  return [...first, ...rest]
+}
