@@ -743,11 +743,16 @@ input {
   margin: 14px 0 4px;
   border-radius: var(--radius);
 }
+/* Breed scherm: een liggende strook boven de kop (± 300 px hoog), zodat kop en kern van het
+   eerste verhaal zonder scrollen in beeld staan. */
 @media (min-width: 720px) {
   .media--lead {
     order: -1;
-    aspect-ratio: 3 / 2;
+    aspect-ratio: 21 / 9;
     margin: 0 0 14px;
+  }
+  .lead__title {
+    font-size: 2rem;
   }
 }
 
