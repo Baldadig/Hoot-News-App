@@ -2,6 +2,10 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.2.0] — 2026-10-09 — The Atlantic en The Economist als vaste bron
+
+- **The Atlantic** en **The Economist** zijn nu eigen bronnen: ze doen mee in Editie, Stroom en zoeken en zijn aan/uit te zetten onder Bronnen (voorheen alleen ter vergelijking binnen een verhaal).
+
 ## [1.1.1] — 2026-10-09 — Paneel "Bronnen vergelijken" in- en uitklapbaar
 
 - Op breed scherm is het rechterpaneel standaard ingeklapt: de kolom blijft staan (de leeskolom verschuift niet), maar is leeg op één knop na. De knop klapt de uitleg uit en weer in; je keuze wordt onthouden. Een verhaal dat je opent via "+N bronnen" verschijnt er altijd.

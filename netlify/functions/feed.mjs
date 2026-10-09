@@ -12,6 +12,8 @@ const SOURCES = [
   { id: 'theverge', name: 'The Verge', bsky: 'theverge.com', x: 'verge', urls: ['https://www.theverge.com/rss/index.xml'] },
   { id: 'wired', name: 'Wired', bsky: 'wired.com', x: 'wired', urls: ['https://www.wired.com/feed/rss'] },
   { id: 'nos', name: 'NOS', bsky: 'nos.nl', x: 'nos', urls: ['https://feeds.nos.nl/nosnieuwsalgemeen', 'http://feeds.nos.nl/nosnieuwsalgemeen'] },
+  { id: 'atlantic', name: 'The Atlantic', bsky: 'theatlantic.com', x: 'TheAtlantic', urls: ['https://www.theatlantic.com/feed/all/'] },
+  { id: 'economist', name: 'The Economist', bsky: 'economist.com', x: 'TheEconomist', urls: ['https://www.economist.com/latest/rss.xml'] },
   // Left Laser via YouTube-RSS (native, gratis, betrouwbaar). Avatar via hun Bluesky-profiel.
   { id: 'leftlaser', name: 'Left Laser', bsky: 'leftlaser.bsky.social', urls: ['https://www.youtube.com/feeds/videos.xml?channel_id=UCZU-vIoeB1e3by8mVaVLwIg'] },
 ]
@@ -47,8 +49,6 @@ const EXTRA_SOURCES = [
   { id: 'aljazeera', name: 'Al Jazeera', x: 'AJEnglish', urls: ['https://www.aljazeera.com/xml/rss/all.xml'] },
   { id: 'npr', name: 'NPR', x: 'NPR', urls: ['https://feeds.npr.org/1001/rss.xml'] },
   { id: 'politico', name: 'Politico', x: 'politico', urls: ['https://rss.politico.com/politics-news.xml', 'https://www.politico.com/rss/politicopicks.xml'] },
-  { id: 'atlantic', name: 'The Atlantic', x: 'TheAtlantic', urls: ['https://www.theatlantic.com/feed/all/'] },
-  { id: 'economist', name: 'The Economist', x: 'TheEconomist', urls: ['https://www.economist.com/latest/rss.xml'] },
   { id: 'ft', name: 'Financial Times', x: 'FT', urls: ['https://www.ft.com/rss/home'] },
   { id: 'tweakers', name: 'Tweakers', x: 'tweakers', urls: ['https://feeds.feedburner.com/tweakers/mixed', 'https://tweakers.net/feeds/mixed.xml'] },
 ]
