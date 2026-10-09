@@ -1,7 +1,8 @@
-import { createContext, useContext } from 'react'
+import { createContext, useContext, useState } from 'react'
 import { timeAgo, readTime } from '../lib/time.js'
 import { BookmarkIcon, PlayIcon } from './icons.jsx'
 import { savedKey } from '../lib/saved.js'
+import { imgProps, avatarUrl } from '../lib/img.js'
 
 // Alles wat een bericht nodig heeft om te handelen (bewaren, bron bekijken, verhaal openen).
 export const HootContext = createContext(null)
@@ -9,6 +10,16 @@ export const useHoot = () => useContext(HootContext)
 
 // HLS-video speelt alleen native in Safari/iOS; elders tonen we de poster en opent de post.
 const CAN_HLS = typeof document !== 'undefined' && !!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')
+
+// Onthoudt welk hoofdbeeld je het laatst zag, zodat index.html het bij je volgende bezoek
+// al kan ophalen terwijl de app nog laadt (zie het script in index.html).
+const rememberLead = (e) => {
+  try {
+    localStorage.setItem('hoot:lcp', JSON.stringify({ u: e.currentTarget.currentSrc, at: Date.now() }))
+  } catch {
+    /* niet erg */
+  }
+}
 
 const hide = (e) => {
   const box = e.currentTarget.closest('.thumb, .media')
@@ -19,7 +30,7 @@ export function SourceMark({ source, size = 22 }) {
   const letter = (source?.name || '?').trim().charAt(0)
   return (
     <span className={`mark${source?.avatarContain ? ' mark--logo' : ''}`} style={{ '--brand': source?.brandColor || 'var(--accent)', width: size, height: size, fontSize: size * 0.5 }} data-letter={letter} aria-hidden="true">
-      {source?.avatar ? <img src={source.avatar} alt="" loading="lazy" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.hidden = true)} /> : null}
+      {source?.avatar ? <img src={avatarUrl(source.avatar)} alt="" width={size} height={size} loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.hidden = true)} /> : null}
     </span>
   )
 }
@@ -87,7 +98,8 @@ const Summary = ({ item, className }) => {
 }
 
 // ---- Vorm 1: hoofdverhaal ----
-export function LeadStory({ item, story, note }) {
+// `priority`: dit is het eerste beeld dat je ziet (alleen het zichtbare hoofdverhaal).
+export function LeadStory({ item, story, note, priority = false }) {
   const { markRead, read } = useHoot()
   return (
     <article className={`entry lead${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
@@ -98,7 +110,7 @@ export function LeadStory({ item, story, note }) {
         <Summary item={item} className="lead__sum" />
         {item.image ? (
           <div className="media media--lead">
-            <img src={item.image} alt="" referrerPolicy="no-referrer" onError={hide} />
+            <img {...imgProps(item.image, 'lead')} alt="" loading={priority ? 'eager' : 'lazy'} fetchpriority={priority ? 'high' : undefined} decoding={priority ? undefined : 'async'} referrerPolicy="no-referrer" onLoad={priority ? rememberLead : undefined} onError={hide} />
           </div>
         ) : null}
         {item.author ? <p className="byline">Door {item.author}</p> : null}
@@ -121,7 +133,7 @@ export function CompactItem({ item, story, note, showSave = true }) {
         </div>
         {item.image ? (
           <div className="thumb">
-            <img src={item.image} alt="" loading="lazy" referrerPolicy="no-referrer" onError={hide} />
+            <img {...imgProps(item.image, 'thumb')} alt="" width="88" height="88" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={hide} />
           </div>
         ) : null}
       </a>
@@ -135,6 +147,7 @@ export function SocialItem({ item }) {
   const { markRead, read, openSource } = useHoot()
   const ratio = item.imageRatio ? Math.min(2.4, Math.max(0.7, item.imageRatio)) : null
   const playable = item.video && CAN_HLS
+  const [playing, setPlaying] = useState(false)
   return (
     <article className={`entry social${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <div className="social__head">
@@ -153,20 +166,31 @@ export function SocialItem({ item }) {
         {item.summary ? <p className="social__text">{item.summary}</p> : null}
         {item.video && !playable ? (
           <div className="media media--social media--poster" style={{ aspectRatio: 16 / 9 }}>
-            {item.videoPoster ? <img src={item.videoPoster} alt="" loading="lazy" referrerPolicy="no-referrer" /> : null}
+            {item.videoPoster ? <img src={item.videoPoster} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" /> : null}
             <span className="media__play">
               <PlayIcon />
             </span>
           </div>
         ) : !item.video && item.image ? (
           <div className={`media media--social${ratio ? ' media--natural' : ''}`} style={{ aspectRatio: ratio || 16 / 9 }}>
-            <img src={item.image} alt="" loading="lazy" referrerPolicy="no-referrer" onError={hide} />
+            <img src={item.image} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={hide} />
           </div>
         ) : null}
       </a>
+      {/* Video: eerst alleen het stilstaande beeld (pas geladen als het in zicht komt);
+          de speler zelf komt er bij de eerste tik. */}
       {playable ? (
-        <div className="media media--social" style={{ aspectRatio: 16 / 9 }}>
-          <video controls playsInline preload="none" poster={item.videoPoster || undefined} src={item.video} />
+        <div className="media media--social media--poster" style={{ aspectRatio: 16 / 9 }}>
+          {playing ? (
+            <video controls autoPlay playsInline poster={item.videoPoster || undefined} src={item.video} />
+          ) : (
+            <button type="button" className="media__start" onClick={() => setPlaying(true)} aria-label={`Video van ${item.sourceName} afspelen`}>
+              {item.videoPoster ? <img src={item.videoPoster} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" /> : null}
+              <span className="media__play">
+                <PlayIcon />
+              </span>
+            </button>
+          )}
         </div>
       ) : null}
     </article>

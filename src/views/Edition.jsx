@@ -55,7 +55,10 @@ export default function Edition({ active, edition, loading, failedLoad, statusPr
             <StatusLine {...statusProps} quiet />
             <details className="how">
               <summary>
-                {rows.length} verhalen · samengesteld om {clock(edition.builtAt)}. Hoe is dit gekozen?
+                <span>
+                  {rows.length} verhalen · {clock(edition.builtAt)}
+                </span>
+                <span className="how__link">Hoe is dit gekozen?</span>
               </summary>
               <p>
                 Eerst de verhalen waar de meeste bronnen over schrijven, met voorrang voor je eigen bronnen; daarna de meest recente. Aangevuld met losse berichten, om en om per bron. Elke gebeurtenis staat er één keer in, ook als Nederlandse en Engelse bronnen er allebei over schrijven. Per verhaal zie je het bericht van een van je eigen bronnen, zo afwisselend mogelijk. Er telt geen klikgedrag mee. Een editie verandert na het samenstellen niet meer van selectie of volgorde — wel kan een lopend verhaal er publicaties bij krijgen.
@@ -63,7 +66,7 @@ export default function Edition({ active, edition, loading, failedLoad, statusPr
             </details>
             <div className="list">
               {rows.map(({ key, item, story }, i) =>
-                i === 0 ? <LeadStory key={key} item={item} story={story} note={`1 van ${rows.length}`} /> : <CompactItem key={key} item={item} story={story} note={`${i + 1} van ${rows.length}`} />
+                i === 0 ? <LeadStory key={key} item={item} story={story} note={`1 van ${rows.length}`} priority={active} /> : <CompactItem key={key} item={item} story={story} note={`${i + 1} van ${rows.length}`} />
               )}
             </div>
             <div className="endcap">

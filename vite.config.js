@@ -54,6 +54,8 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // De service worker registreren mag het eerste beeld niet ophouden.
+      injectRegister: 'script-defer',
       includeAssets: ['icon.svg', 'favicon.svg', 'apple-touch-icon.png', 'icons/favicon-32.png', 'icons/favicon-48.png'],
       manifest: {
         name: 'Hoot',

@@ -2,6 +2,24 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.3.0] — 2026-10-09 — Sneller laden, rustiger welkom, kleine bewegingen
+
+### Sneller
+
+- **Schermen worden pas opgebouwd als je er komt.** Verborgen schermen (de Stroom achter de Editie, alles achter het welkomscherm) laadden al hun beeld alvast mee — ruim honderd afbeeldingen en alle videobeelden bij het eerste bezoek. Dat is voorbij.
+- **Beeld op maat**: waar de uitgever kleinere varianten aanbiedt (Wired, NYT, The Verge, de Volkskrant, NOS, YouTube, Bluesky-profielfoto's) vraagt Hoot die op, met `srcset`/`sizes`. Een Wired-thumbnail gaat van ± 1 MB naar ± 18 kB. Het hoofdbeeld van de Volkskrant is juist scherper geworden.
+- Alleen het zichtbare hoofdbeeld krijgt voorrang; de rest laadt pas in de buurt van het scherm. **Video's** tonen eerst een stilstaand beeld; de speler komt bij de eerste tik.
+- De berichten worden al opgehaald terwijl de app zelf nog laadt; de service worker houdt het eerste beeld niet meer op; app-bestanden met een hash in de naam worden een jaar bewaard (nieuws blijft altijd vers).
+
+### Gewijzigd
+
+- **Welkomscherm**: "Naar de Editie" staat direct onder de inleiding; "Pas je bronnen aan" klapt de bronnen uit. Het scherm verspringt niet meer als de bronnen binnenkomen.
+- **Editie**: compactere regel ("10 verhalen · 09:35"); alleen "Hoe is dit gekozen?" ziet eruit als een link. Geen komende-en-gaande "Verversen…"-regel meer.
+- **Bronvergelijking**: bovenaan kort het aantal bronnen en de laatste update; de uitleg zit achter "Hoe zijn deze bronnen gekoppeld?". Kopjes heten nu "Toegevoegd sinds je vorige bezoek" en "Eerder beschikbaar".
+- **Beweging** (klein, en uit bij "verminder beweging"): bladwijzer, onderwerp-chips, het openen van een verhaal, het actief-streepje in de navigatie, het ververs-icoon.
+- **Ongedaan maken** na verwijderen uit Bewaard. De knop voor nieuwe berichten heet kort "3 nieuwe berichten"; berichten van uitgezette bronnen tellen niet mee.
+- Navigatielabels passen ook bij sterk vergrote tekst; elk bericht is minimaal 44 px hoog.
+
 ## [1.2.0] — 2026-10-09 — The Atlantic en The Economist als vaste bron
 
 - **The Atlantic** en **The Economist** zijn nu eigen bronnen: ze doen mee in Editie, Stroom en zoeken en zijn aan/uit te zetten onder Bronnen (voorheen alleen ter vergelijking binnen een verhaal).

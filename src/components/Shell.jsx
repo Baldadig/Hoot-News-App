@@ -82,7 +82,9 @@ export function StatusLine({ online, refreshing, refreshError, meta, allDown = f
         </button>
       </p>
     )
-  if (refreshing) return <p className="status" role="status">Verversen…</p>
+  // Stil scherm (Editie): het draaiende ververs-icoon zegt genoeg; een regel die komt en gaat
+  // zou de inhoud laten verspringen.
+  if (refreshing) return quiet ? <p className="visually-hidden" role="status">Verversen…</p> : <p className="status" role="status">Verversen…</p>
   if (allDown)
     return (
       <p className="status status--warn" role="status">

@@ -6,6 +6,27 @@
     <title>Hoot</title>
     <meta name="description" content="Een rustige, reclamevrije nieuws-tijdlijn van jouw abonnementen." />
     <meta name="theme-color" content="#263c67" />
+    <!-- De berichten alvast ophalen terwijl de app zelf nog laadt. -->
+    <link rel="preload" href="/api/feed" as="fetch" crossorigin="anonymous" />
+    <script>
+      // Terugkerend bezoek aan de Editie: het hoofdbeeld van de vorige keer alvast ophalen
+      // (alleen als dat recent was — een editie blijft een halve dag staan).
+      (function () {
+        try {
+          var h = location.hash
+          if (h && h !== '#/' && h.indexOf('#/editie') !== 0) return
+          var l = JSON.parse(localStorage.getItem('hoot:lcp') || 'null')
+          if (!l || !l.u || Date.now() - l.at > 12 * 60 * 60 * 1000 || !/^https:\/\//.test(l.u)) return
+          var link = document.createElement('link')
+          link.rel = 'preload'
+          link.as = 'image'
+          link.href = l.u
+          link.referrerPolicy = 'no-referrer'
+          link.fetchPriority = 'high'
+          document.head.appendChild(link)
+        } catch (e) {}
+      })()
+    </script>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="alternate icon" href="/icons/favicon-32.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

@@ -25,3 +25,21 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Bestanden met een hash in de naam veranderen nooit: een jaar bewaren.
+# (index.html, sw.js en /api/feed blijven wél altijd vers.)
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Iconen en logo's wisselen zelden.
+[[headers]]
+  for = "/icons/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/brand/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"

@@ -162,9 +162,9 @@ export default function Stream({ active, stream, params, go, pinned, density, on
         ) : null}
 
         {pendingCount > 0 ? (
-          <button type="button" className="newpill" onClick={() => (onShowNew(), ref.current?.scrollTo({ top: 0 }))}>
+          <button type="button" className="newpill" aria-label={`${pendingCount} ${pendingCount === 1 ? 'nieuw bericht' : 'nieuwe berichten'} tonen`} onClick={() => (onShowNew(), ref.current?.scrollTo({ top: 0 }))}>
             <ArrowUpIcon />
-            {pendingCount} {pendingCount === 1 ? 'nieuw bericht' : 'nieuwe berichten'} tonen
+            {pendingCount} {pendingCount === 1 ? 'nieuw bericht' : 'nieuwe berichten'}
           </button>
         ) : null}
 

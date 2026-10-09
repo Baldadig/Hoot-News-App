@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchFeed } from '../lib/api.js'
 import { readJSON, writeJSON } from '../lib/store.js'
 import { carryOver } from '../lib/sourceStatus.js'
+import { freshCount } from '../lib/fresh.js'
 
 const CACHE_KEY = 'hoot:feed-v2'
 
@@ -18,7 +19,7 @@ function normalize(d) {
   }
 }
 
-export function useFeed() {
+export function useFeed(muted) {
   const [data, setData] = useState(() => normalize(readJSON(CACHE_KEY, null)))
   const [status, setStatus] = useState(() => (data ? 'ready' : 'loading')) // loading | ready | error
   const [refreshing, setRefreshing] = useState(false)
@@ -29,6 +30,8 @@ export function useFeed() {
   const dataRef = useRef(data)
   dataRef.current = data
   const pending = useRef(null)
+  const mutedRef = useRef(muted)
+  mutedRef.current = muted
 
   const apply = useCallback((next) => {
     setData(next)
@@ -52,8 +55,7 @@ export function useFeed() {
         const next = carryOver(dataRef.current, fetched)
         setRefreshError(false)
         if (defer && had) {
-          const seen = new Set(dataRef.current.items.map((i) => i.id))
-          const fresh = next.items.filter((i) => !seen.has(i.id)).length
+          const fresh = freshCount(dataRef.current.items, next.items, mutedRef.current)
           if (fresh) {
             pending.current = next
             setPendingCount(fresh)

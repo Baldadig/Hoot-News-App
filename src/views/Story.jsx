@@ -38,7 +38,7 @@ export default function Story({ story, items, overlay, onClose, onSeen, seenBefo
           </button>
         ) : null}
         <p className="story__eyebrow" tabIndex={-1} ref={headRef}>
-          Verhaal · {story.sourceCount} bronnen
+          Verhaal
         </p>
         <SaveButton id={story.id} kind="story" payload={story} label="verhaal" />
         {!overlay ? (
@@ -51,21 +51,29 @@ export default function Story({ story, items, overlay, onClose, onSeen, seenBefo
       <div className="story__body">
         <h2 className="story__title">{lead?.title}</h2>
         <p className="story__facts">
-          {story.sourceNames.join(', ')}. Eerste bericht {timeAgo(story.firstAt)}, laatste {timeAgo(story.latestAt)}.
+          {story.sourceCount} {story.sourceCount === 1 ? 'bron' : 'bronnen'} · laatste update {timeAgo(story.latestAt)}
         </p>
-        <p className="story__caveat">
-          Gebundeld op overeenkomst in koppen en samenvattingen (namen, plaatsen, tijd). Meerdere bronnen betekent dat er veel over geschreven wordt — niet dat ze elkaar onafhankelijk bevestigen.
-        </p>
+        <details className="how">
+          <summary>
+            <span className="how__link">Hoe zijn deze bronnen gekoppeld?</span>
+          </summary>
+          <p>
+            {story.sourceNames.join(', ')}. Eerste bericht {timeAgo(story.firstAt)}.
+          </p>
+          <p>
+            Hoot bundelt berichten die over dezelfde gebeurtenis lijken te gaan, op overeenkomst in koppen en samenvattingen (namen, plaatsen, tijd). Dat gaat automatisch en kan er een keer naast zitten. Meerdere bronnen betekent dat er veel over geschreven wordt — niet dat ze elkaar onafhankelijk bevestigen: redacties nemen vaak hetzelfde persbureaubericht over.
+          </p>
+        </details>
 
         {fresh.length ? (
           <>
-            <h3 className="story__sub">Nieuw sinds je vorige bezoek</h3>
+            <h3 className="story__sub">Toegevoegd sinds je vorige bezoek</h3>
             <div className="list">
               {fresh.map((i) => (
                 <CompactItem key={i.id} item={i} note={note(i)} />
               ))}
             </div>
-            <h3 className="story__sub">Had je al gezien</h3>
+            <h3 className="story__sub">Eerder beschikbaar</h3>
           </>
         ) : (
           <h3 className="story__sub">Alle publicaties, nieuwste eerst</h3>

@@ -35,3 +35,9 @@ export function savedKey(saved, id, story) {
   for (const old of story?.formerIds || []) if (saved[old]) return old
   return null
 }
+
+// "Ongedaan maken" na verwijderen: zet precies terug wat er stond.
+export function restoreSaved(saved, id, entry) {
+  if (!entry || saved[id]) return saved
+  return { ...saved, [id]: entry }
+}
