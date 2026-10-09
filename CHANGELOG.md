@@ -2,6 +2,15 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.8.0] — 2026-10-09 — Eén raster: afstand, type en vorm op schaal
+
+Geen nieuwe functies; het raster onder de app is vastgelegd en overal toegepast (zie `#/stijl` → Schaal).
+
+- **Afstand**: één schaal van 4 px (4, 8, 12, 16, 24, 32, 48). Alle marges, paddings en gaps zijn daarop gezet; de 17 losse waarden zijn weg.
+- **Type**: zes stappen (13, 15, 17, 20, 24, 28–32) met drie regelafstanden (koppen 1,15 · bediening 1,3 · leestekst 1,5). Schermtitel 24, kop van een bericht overal 20, bronnaam en bediening 15, metadata 13.
+- **Vorm**: vier hoeken (8 knoppen en velden · 12 beeld en kaarten · 16 bladen · pil voor chips en schakelaars) in plaats van dertien. Alle bediening is 44 px hoog; "Vergelijk bronnen", chips en de Tijdlijn/Krant-schakelaar delen dezelfde pilvorm.
+- **Uitlijning**: op desktop staat de hele Editie op één linkerlijn — "Verder in deze editie" sprong 124 px in. De "+N bronnen"-knop hing 6 px buiten de kolom. De kop van een scherm is één rij van 44 px (titel, schakelaar, knoppen) met daaronder één metaregel: "Vrijdag 9 oktober · 10 verhalen · 18:15 · Hoe is dit gekozen?". Berichten in de Stroom hebben boven en onder evenveel ruimte.
+
 ## [1.7.0] — 2026-10-09 — Afwerking desktop en betrouwbare updates
 
 ### Opgelost

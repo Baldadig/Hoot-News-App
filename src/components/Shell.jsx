@@ -62,7 +62,8 @@ export function LayoutSwitch() {
 }
 
 // `compare`: toon op breed scherm de knop die het vergelijkpaneel opent en sluit.
-export function ViewHeader({ title, sub, onRefresh, refreshing, showSearch = true, compare = false, children }) {
+// `layout`: toon de schakelaar Tijdlijn/Krant in de rij (Editie en Stroom).
+export function ViewHeader({ title, sub, onRefresh, refreshing, showSearch = true, compare = false, layout = false, children }) {
   const panel = useHoot()?.panel
   return (
     <header className="vh">
@@ -71,6 +72,7 @@ export function ViewHeader({ title, sub, onRefresh, refreshing, showSearch = tru
           <h1 className="vh__title">{title}</h1>
           {sub ? <p className="vh__sub">{sub}</p> : null}
         </div>
+        {layout ? <LayoutSwitch /> : null}
         {compare && panel?.available ? (
           <button type="button" className="textbtn" onClick={panel.toggle} aria-pressed={panel.open}>
             <PanelIcon />

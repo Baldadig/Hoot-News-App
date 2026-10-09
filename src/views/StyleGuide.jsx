@@ -50,15 +50,34 @@ export default function StyleGuide({ stream }) {
           ))}
         </div>
 
+        <h2 className="sect">Schaal</h2>
+        <ul className="sg__list">
+          <li>
+            <strong>Afstand</strong>: 4, 8, 12, 16, 24, 32, 48 px (<code>--s1</code> t/m <code>--s7</code>). Elke marge, padding en gap komt hiervandaan; niets daartussen.
+          </li>
+          <li>
+            <strong>Type</strong>: 13 · 15 · 17 · 20 · 24 · 28–32 px (<code>--t1</code> t/m <code>--t6</code>). Metadata · bediening en bronnaam · leestekst · kop van een bericht · schermtitel · hoofdverhaal.
+          </li>
+          <li>
+            <strong>Regelafstand</strong>: koppen 1,15 · bedieningsregels 1,3 · lopende tekst 1,5.
+          </li>
+          <li>
+            <strong>Vorm</strong>: knoppen en velden 8 px · beeld en kaarten 12 px · bladen 16 px · chips en schakelaars een pil. Elk aanraakdoel is 44 px hoog.
+          </li>
+          <li>
+            <strong>Uitlijning</strong>: één linkerlijn per scherm; de kop van een scherm is één rij van 44 px (titel, schakelaar, knoppen) met daaronder één metaregel.
+          </li>
+        </ul>
+
         <h2 className="sect">Typografie</h2>
-        <p className="lead__title">Hoofdverhaal — serif 28–34 px</p>
-        <p className="compact__title">Gewone kop — serif 22 px</p>
-        <p className="compact__sum">Samenvatting — schreefloos 17 px, regelhoogte 1,5. Bedoeld om in één oogopslag te lezen.</p>
+        <p className="lead__title">Hoofdverhaal — serif 28–32 px (t6)</p>
+        <p className="compact__title">Kop van een bericht — serif 20 px (t4)</p>
+        <p className="compact__sum">Leestekst — schreefloos 17 px (t3), regelafstand 1,5. Bedoeld om in één oogopslag te lezen.</p>
         <p className="kicker">
-          <span>Kicker 12,5 px</span>
+          <span>Kicker 13 px (t1)</span>
           <span className="kicker__type">Opinie</span>
         </p>
-        <p className="status">Metadata en status — 14 px</p>
+        <p className="status">Metadata en status — 13 px (t1); bronnaam en bediening — 15 px (t2)</p>
 
         <h2 className="sect">Vorm 1 — Hoofdverhaal</h2>
         <div className="list">{article ? <LeadStory item={withStory || article} story={withStory ? storiesById.get(withStory.storyId) : null} note="1 van 10" /> : null}</div>

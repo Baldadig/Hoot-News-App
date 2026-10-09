@@ -26,7 +26,7 @@
   /* Maat */
   --gutter: 16px;
   --tap: 44px;
-  --radius: 10px;
+  --radius: 12px;
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-l: env(safe-area-inset-left, 0px);
@@ -37,6 +37,32 @@
   --dur-1: 140ms; /* directe reactie: bewaren, chip, navigatie */
   --dur-2: 200ms; /* iets dat in beeld komt: verhaal, melding */
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* Afstand: één schaal van 4 px. Elke marge, padding en gap komt hiervandaan. */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+
+  /* Type: zes stappen. t1 metadata · t2 bediening en bronnaam · t3 leestekst ·
+     t4 kop van een bericht · t5 schermtitel en verhaaltitel · t6 hoofdverhaal (vloeiend). */
+  --t1: 0.8125rem; /* 13 */
+  --t2: 0.9375rem; /* 15 */
+  --t3: 1.0625rem; /* 17 */
+  --t4: 1.25rem; /* 20 */
+  --t5: 1.5rem; /* 24 */
+  --t6: clamp(1.75rem, 1.4rem + 1.6vw, 2rem); /* 28–32 */
+  --lh-head: 1.15; /* koppen (serif) */
+  --lh-ui: 1.3; /* bedieningsregels, bron en tijd */
+  --lh-body: 1.5; /* lopende tekst */
+
+  /* Vorm: vier hoeken. sm knoppen en velden · md beeld en kaarten · lg bladen · pill chips en schakelaars */
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
 }
 
 /* Kleur — donker (JS zet data-theme; 'systeem' volgt het toestel) */
@@ -75,7 +101,7 @@ body {
   color: var(--ink);
   font-family: var(--sans);
   font-size: 100%;
-  line-height: 1.45;
+  line-height: var(--lh-body);
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
   text-rendering: optimizeLegibility;
@@ -106,7 +132,7 @@ input {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .visually-hidden {
@@ -123,10 +149,10 @@ input {
   top: calc(var(--safe-t) + 8px);
   left: 8px;
   z-index: 100;
-  padding: 10px 14px;
+  padding: var(--s3) var(--s4);
   background: var(--accent);
   color: var(--on-accent);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-weight: 700;
   transform: translateY(-200%);
 }
@@ -176,7 +202,7 @@ input {
 .col {
   max-width: 680px; /* leesbreedte */
   margin: 0 auto;
-  padding: var(--safe-t) calc(var(--gutter) + var(--safe-r)) 40px calc(var(--gutter) + var(--safe-l));
+  padding: var(--safe-t) calc(var(--gutter) + var(--safe-r)) var(--s7) calc(var(--gutter) + var(--safe-l));
 }
 
 /* Hoofdnavigatie: onderin (telefoon) */
@@ -214,9 +240,9 @@ input {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: var(--s1);
   min-height: 56px;
-  padding: 6px 2px;
+  padding: var(--s2) var(--s1);
   color: var(--ink-3);
   font-size: min(0.75rem, 16px); /* bij sterk vergrote tekst blijven vier labels naast elkaar passen */
   font-weight: 600;
@@ -306,20 +332,20 @@ input {
   .nav {
     height: 100%;
     border-top: 0;
-    padding: 20px 12px;
+    padding: var(--s5) var(--s3);
   }
   .nav__brand {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--s3);
     min-height: var(--tap);
-    padding: 0 12px;
-    margin-bottom: 16px;
+    padding: 0 var(--s3);
+    margin-bottom: var(--s4);
     text-decoration: none;
   }
   .nav__list {
     flex-direction: column;
-    gap: 2px;
+    gap: var(--s1);
     padding: 0;
   }
   .nav__search {
@@ -328,11 +354,11 @@ input {
   .nav__link {
     flex-direction: row;
     justify-content: flex-start;
-    gap: 12px;
+    gap: var(--s3);
     min-height: var(--tap);
-    padding: 0 12px;
-    border-radius: 8px;
-    font-size: 0.9375rem;
+    padding: 0 var(--s3);
+    border-radius: var(--radius-sm);
+    font-size: var(--t2);
   }
   .nav__link[aria-current] {
     background: var(--accent-soft);
@@ -345,7 +371,7 @@ input {
   }
   .col {
     max-width: 720px;
-    padding-top: 8px;
+    padding-top: var(--s2);
   }
 }
 
@@ -367,13 +393,13 @@ input {
 
 /* ---------- Kop van een scherm ---------- */
 .vh {
-  padding: 14px 0 6px;
+  padding: var(--s3) 0 0;
 }
 
 .vh__row {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--s1);
 }
 
 .vh__titles {
@@ -382,17 +408,21 @@ input {
 }
 
 .vh__title {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap); /* even hoog als de knoppen ernaast: de rij lijnt op het midden */
   font-family: var(--serif);
-  font-size: 1.75rem;
+  font-size: var(--t5);
   font-weight: 700;
-  line-height: 1.1;
+  line-height: var(--lh-head);
   letter-spacing: -0.015em;
 }
 
 .vh__sub {
-  margin-top: 2px;
+  margin-top: var(--s1);
   color: var(--ink-3);
-  font-size: 0.875rem;
+  font-size: var(--t2);
+  line-height: var(--lh-ui);
 }
 .vh__sub::first-letter {
   text-transform: uppercase;
@@ -406,7 +436,7 @@ input {
   width: var(--tap);
   height: var(--tap);
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--radius);
   background: none;
   color: var(--ink-2);
   cursor: pointer;
@@ -434,13 +464,13 @@ input {
   align-items: center;
   justify-content: center;
   min-height: var(--tap);
-  padding: 0 18px;
+  padding: 0 var(--s5);
   border: 1px solid var(--accent);
-  border-radius: 22px;
+  border-radius: var(--radius-pill);
   background: var(--accent);
   color: var(--on-accent);
   font-weight: 700;
-  font-size: 0.9375rem;
+  font-size: var(--t2);
   text-decoration: none;
   cursor: pointer;
 }
@@ -459,7 +489,7 @@ input {
 
 .linkbtn {
   min-height: var(--tap);
-  padding: 0 4px;
+  padding: 0 var(--s1);
   border: 0;
   background: none;
   color: var(--accent);
@@ -473,27 +503,29 @@ input {
 .filterbar {
   display: flex;
   flex-wrap: wrap; /* nooit horizontaal scrollen */
-  gap: 8px;
+  gap: var(--s2);
 }
 .filterbar {
-  padding-top: 12px;
+  padding-top: var(--s3);
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: var(--tap);
-  padding: 0 15px;
+  gap: var(--s2);
+  height: var(--tap);
+  padding: 0 var(--s4);
   border: 1px solid var(--rule);
-  border-radius: 22px;
+  border-radius: var(--radius-pill);
   background: none;
   color: var(--ink);
-  font-size: 0.9375rem;
+  font-size: var(--t2);
   font-weight: 600;
+  line-height: var(--lh-ui);
   cursor: pointer;
 }
-.chip[aria-pressed='true'] {
+.chip[aria-pressed='true'],
+.textbtn[aria-pressed='true'] {
   border-color: var(--accent);
   background: var(--accent-soft);
   color: var(--accent);
@@ -510,17 +542,17 @@ input {
   width: 100%;
   min-width: 0;
   min-height: var(--tap);
-  padding: 0 14px;
+  padding: 0 var(--s4);
   border: 1px solid var(--rule);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--ink);
-  font-size: 1rem; /* ≥16px: iOS zoomt dan niet in bij focus */
+  font-size: var(--t3); /* ≥16px: iOS zoomt dan niet in bij focus */
 }
 
 .field {
   display: block;
-  margin: 8px 0 4px;
+  margin: var(--s2) 0 var(--s1);
 }
 
 .switch {
@@ -538,7 +570,7 @@ input {
   position: relative;
   width: 50px;
   height: 30px;
-  border-radius: 15px;
+  border-radius: var(--radius);
   background: var(--rule);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 18%, transparent);
   transition: background 0.15s ease;
@@ -567,7 +599,7 @@ input {
 }
 
 .entry {
-  padding: 20px 0 4px;
+  padding: var(--s4) 0 var(--s1); /* de bronregel eronder is 44 hoog: onder oogt dat ook als 16 */
 }
 
 .mark {
@@ -606,17 +638,17 @@ input {
 .kicker {
   display: flex;
   flex-wrap: wrap;
-  gap: 0 8px;
-  margin-bottom: 6px;
+  gap: 0 var(--s2);
+  margin-bottom: var(--s2);
   color: var(--ink-3);
-  font-size: 0.78125rem;
+  font-size: var(--t1);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 .kicker span + span::before {
   content: '·';
-  margin-right: 8px;
+  margin-right: var(--s2);
   color: var(--ink-3);
 }
 .kicker__type {
@@ -629,19 +661,19 @@ input {
 }
 
 .byline {
-  margin-top: 6px;
+  margin-top: var(--s2);
   color: var(--ink-3);
-  font-size: 0.875rem;
+  font-size: var(--t1);
 }
 
 .meta {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--s1);
   min-height: var(--tap);
-  margin-top: 8px;
+  margin-top: var(--s2);
   color: var(--ink-3);
-  font-size: 0.875rem;
+  font-size: var(--t2);
 }
 .meta .srcbtn {
   flex: 1 1 0;
@@ -650,7 +682,7 @@ input {
 .srcbtn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--s2);
   min-width: 0;
   max-width: 100%;
   min-height: var(--tap);
@@ -666,7 +698,7 @@ input {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  line-height: 1.25;
+  line-height: var(--lh-ui);
 }
 .srcbtn__name,
 .srcbtn__time {
@@ -676,16 +708,16 @@ input {
 }
 .srcbtn__time {
   color: var(--ink-3);
-  font-size: 0.8125rem;
+  font-size: var(--t1);
   font-weight: 400;
 }
 
 .morebtn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--s2);
   min-height: var(--tap);
-  padding: 0 6px;
+  padding: 0 var(--s2);
   border: 0;
   background: none;
   color: var(--accent);
@@ -740,7 +772,7 @@ input {
 }
 .media--lead {
   aspect-ratio: 16 / 9;
-  margin: 14px 0 4px;
+  margin: var(--s4) 0 var(--s1);
   border-radius: var(--radius);
 }
 /* Breed scherm: een liggende strook boven de kop (± 300 px hoog), zodat kop en kern van het
@@ -749,19 +781,16 @@ input {
   .media--lead {
     order: -1;
     aspect-ratio: 21 / 9;
-    margin: 0 0 14px;
-  }
-  .lead__title {
-    font-size: 2rem;
+    margin: 0 0 var(--s4);
   }
 }
 
 .lead__title {
-  margin-bottom: 10px;
+  margin-bottom: var(--s3);
   font-family: var(--serif);
-  font-size: clamp(1.75rem, 1.3rem + 2.4vw, 2.125rem);
+  font-size: var(--t6);
   font-weight: 700;
-  line-height: 1.12;
+  line-height: var(--lh-head);
   letter-spacing: -0.018em;
   text-wrap: balance;
   overflow-wrap: anywhere;
@@ -770,8 +799,8 @@ input {
 .lead__sum,
 .compact__sum {
   color: var(--ink-2);
-  font-size: 1.0625rem;
-  line-height: 1.5;
+  font-size: var(--t3);
+  line-height: var(--lh-body);
 }
 
 /* Stroom, korte weergave: twee regels per bericht om sneller te scannen (instelbaar onder Filters) */
@@ -801,16 +830,16 @@ input {
   min-height: var(--tap); /* ook een bericht met alleen een korte kop is een volwaardig aanraakdoel */
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 14px;
+  gap: var(--s4);
   align-items: start;
 }
 
 .compact__title {
-  margin-bottom: 6px;
+  margin-bottom: var(--s2);
   font-family: var(--serif);
-  font-size: 1.375rem;
+  font-size: var(--t4);
   font-weight: 700;
-  line-height: 1.2;
+  line-height: var(--lh-head);
   letter-spacing: -0.01em;
   text-wrap: pretty;
   overflow-wrap: anywhere;
@@ -819,14 +848,11 @@ input {
 .thumb {
   width: 88px;
   height: 88px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 /* Naast een thumbnail is 22 px op een telefoon te breed voor lange koppen (getoetst met
    NRC-koppen van 150+ tekens): onder 480 px iets kleiner. */
 @media (max-width: 479px) {
-  .compact__title {
-    font-size: 1.25rem;
-  }
   .thumb {
     width: 80px;
     height: 80px;
@@ -842,17 +868,14 @@ input {
 /* Indeling "tijdlijn": bron bovenaan, tekst, en het beeld groot in het midden */
 .compact--tl .compact__link {
   display: block;
-  padding-top: 6px;
-}
-.compact--tl .compact__title {
-  font-size: 1.25rem;
+  padding-top: var(--s2);
 }
 .media--tl {
   aspect-ratio: 16 / 9;
   max-height: min(420px, 56vh);
-  margin: 12px auto 4px;
+  margin: var(--s3) auto var(--s1);
   border: 1px solid var(--rule);
-  border-radius: 14px;
+  border-radius: var(--radius);
 }
 .compact--tl {
   contain-intrinsic-size: auto 420px;
@@ -862,38 +885,38 @@ input {
 .social__head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--s2);
 }
 .srcbtn--social {
   flex: 1;
-  gap: 10px;
+  gap: var(--s3);
 }
 .social__who {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  line-height: 1.25;
+  line-height: var(--lh-ui);
 }
 .social__handle {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--ink-3);
-  font-size: 0.8125rem;
+  font-size: var(--t1);
   font-weight: 400;
 }
 .social__body {
   min-height: var(--tap); /* ook een post van één regel is een volwaardig aanraakdoel */
 }
 .social__text {
-  margin: 6px 0 12px;
-  font-size: 1.0625rem;
-  line-height: 1.5;
+  margin: var(--s2) 0 var(--s3);
+  font-size: var(--t3);
+  line-height: var(--lh-body);
   overflow-wrap: anywhere;
 }
 .media--social {
   position: relative;
-  margin-bottom: 12px;
+  margin-bottom: var(--s3);
   border-radius: var(--radius);
 }
 .media--natural img {
@@ -960,13 +983,13 @@ input {
 .toast {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--s2);
   max-width: 100%;
-  padding: 2px 10px 2px 16px;
-  border-radius: 24px;
+  padding: var(--s1) var(--s3) var(--s1) var(--s4);
+  border-radius: var(--radius-pill);
   background: var(--ink);
   color: var(--paper);
-  font-size: 0.9375rem;
+  font-size: var(--t2);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
   pointer-events: auto;
 }
@@ -981,9 +1004,9 @@ input {
 
 /* ---------- Status, lege toestanden, einde ---------- */
 .status {
-  margin-top: 8px;
+  margin-top: var(--s2);
   color: var(--ink-3);
-  font-size: 0.875rem;
+  font-size: var(--t1);
 }
 .status--warn {
   color: var(--warn);
@@ -991,40 +1014,40 @@ input {
 }
 
 .empty {
-  padding: 48px 8px;
+  padding: var(--s7) var(--s2);
   text-align: center;
 }
 .empty__title {
-  margin-bottom: 8px;
+  margin-bottom: var(--s2);
   font-family: var(--serif);
-  font-size: 1.375rem;
-  line-height: 1.2;
+  font-size: var(--t4);
+  line-height: var(--lh-head);
   text-wrap: balance;
 }
 .empty__text {
   max-width: 34em;
-  margin: 0 auto 18px;
+  margin: 0 auto var(--s4);
   color: var(--ink-2);
 }
 
 .listend {
-  padding: 28px 0 8px;
+  padding: var(--s6) 0 var(--s2);
   color: var(--ink-3);
-  font-size: 0.875rem;
+  font-size: var(--t1);
   text-align: center;
 }
 
 .endcap {
   display: grid;
   justify-items: center;
-  gap: 10px;
-  padding: 44px 8px 16px;
+  gap: var(--s3);
+  padding: var(--s7) var(--s2) var(--s4);
   text-align: center;
 }
 .endcap__title {
   font-family: var(--serif);
-  font-size: 1.75rem;
-  line-height: 1.1;
+  font-size: var(--t5);
+  line-height: var(--lh-head);
 }
 .endcap__text {
   max-width: 30em;
@@ -1032,16 +1055,16 @@ input {
 }
 
 .how {
-  margin-top: 4px;
   color: var(--ink-3);
-  font-size: 0.875rem;
+  font-size: var(--t2);
 }
 .how summary {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0 10px;
+  gap: 0 var(--s2);
   min-height: var(--tap);
+  line-height: var(--lh-ui);
   cursor: pointer;
   list-style: none;
 }
@@ -1059,29 +1082,29 @@ input {
   display: none;
 }
 .how p {
-  padding: 4px 0 12px;
+  padding: var(--s1) 0 var(--s3);
   color: var(--ink-2);
-  font-size: 0.9375rem;
-  line-height: 1.5;
+  font-size: var(--t2);
+  line-height: var(--lh-body);
 }
 
 /* Laden: skelet in de vorm van een compact bericht */
 .sk {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 88px;
-  gap: 14px;
-  padding: 22px 0;
+  gap: var(--s4);
+  padding: var(--s5) 0;
   border-bottom: 1px solid var(--rule);
 }
 .sk__bar,
 .sk__thumb {
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--rule);
   animation: pulse 1.4s ease-in-out infinite;
 }
 .sk__bar {
   height: 14px;
-  margin-bottom: 10px;
+  margin-bottom: var(--s3);
 }
 .sk__bar--title {
   height: 22px;
@@ -1104,18 +1127,18 @@ input {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0 12px;
-  margin-top: 10px;
-  padding: 2px 12px;
+  gap: 0 var(--s3);
+  margin-top: var(--s3);
+  padding: var(--s1) var(--s3);
   border-radius: var(--radius);
   background: var(--accent-soft);
   color: var(--ink);
-  font-size: 0.9375rem;
+  font-size: var(--t2);
   font-weight: 600;
 }
 .active__text {
   flex: 1 1 12em;
-  padding: 10px 0;
+  padding: var(--s3) 0;
 }
 
 .newpill {
@@ -1124,14 +1147,14 @@ input {
   z-index: 10;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--s2);
   width: max-content;
   max-width: 100%;
   min-height: var(--tap);
-  margin: 10px auto 0;
-  padding: 0 18px;
+  margin: var(--s3) auto 0;
+  padding: 0 var(--s4);
   border: 0;
-  border-radius: 22px;
+  border-radius: var(--radius-pill);
   background: var(--accent);
   color: var(--on-accent);
   font-weight: 700;
@@ -1146,7 +1169,7 @@ input {
   place-items: center;
   width: 48px;
   height: 48px;
-  margin: 0 var(--gutter) 16px auto;
+  margin: 0 var(--gutter) var(--s4) auto;
   border: 1px solid var(--rule);
   border-radius: 50%;
   background: var(--surface);
@@ -1163,7 +1186,7 @@ input {
   margin: auto auto 0;
   padding: 0;
   border: 0;
-  border-radius: 18px 18px 0 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   background: var(--surface);
   color: var(--ink);
 }
@@ -1171,7 +1194,7 @@ input {
   background: rgba(0, 0, 0, 0.5);
 }
 .sheet__in {
-  padding: 8px calc(var(--gutter) + var(--safe-r)) calc(16px + var(--safe-b)) calc(var(--gutter) + var(--safe-l));
+  padding: var(--s2) calc(var(--gutter) + var(--safe-r)) calc(var(--s4) + var(--safe-b)) calc(var(--gutter) + var(--safe-l));
 }
 .sheet__head {
   display: flex;
@@ -1180,26 +1203,26 @@ input {
 }
 .sheet__title {
   font-family: var(--serif);
-  font-size: 1.375rem;
+  font-size: var(--t4);
 }
 .sheet__label,
 .sect {
-  margin: 26px 0 10px;
+  margin: var(--s6) 0 var(--s3);
   color: var(--ink-3);
-  font-size: 0.8125rem;
+  font-size: var(--t1);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 .sheet__label {
-  margin-top: 16px;
+  margin-top: var(--s4);
 }
 .sheet__note,
 .hint {
-  margin-top: 8px;
+  margin-top: var(--s2);
   color: var(--ink-3);
-  font-size: 0.875rem;
-  line-height: 1.45;
+  font-size: var(--t1);
+  line-height: var(--lh-body);
 }
 .sheet__foot {
   position: sticky;
@@ -1207,15 +1230,15 @@ input {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 8px;
-  margin-top: 20px;
-  padding: 12px 0 0;
+  gap: var(--s2);
+  margin-top: var(--s5);
+  padding: var(--s3) 0 0;
   background: var(--surface);
 }
 @media (min-width: 720px) {
   .sheet {
     margin: auto;
-    border-radius: 18px;
+    border-radius: var(--radius-lg);
   }
 }
 
@@ -1228,7 +1251,7 @@ input {
 .srow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--s2);
   min-height: 64px;
   border-bottom: 1px solid var(--rule);
 }
@@ -1236,7 +1259,7 @@ input {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--s3);
   min-width: 0;
   min-height: 64px;
   color: inherit;
@@ -1255,7 +1278,7 @@ input {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--ink-3);
-  font-size: 0.8125rem;
+  font-size: var(--t1);
 }
 .is-warn {
   color: var(--warn);
@@ -1269,20 +1292,20 @@ input {
   flex: none;
   width: 6px;
   height: 6px;
-  margin-right: 6px;
+  margin-right: var(--s2);
   border-radius: 50%;
   background: var(--quiet-amber);
   vertical-align: 2px;
 }
 .srcstatus {
-  margin-top: 6px;
+  margin-top: var(--s2);
   color: var(--ink-3);
-  font-size: 0.875rem;
+  font-size: var(--t1);
 }
 .srcstatus summary {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--s1);
   min-height: var(--tap);
   cursor: pointer;
   list-style: none;
@@ -1292,7 +1315,7 @@ input {
 }
 .srcstatus summary::after {
   content: '›';
-  margin-left: 8px;
+  margin-left: var(--s2);
   font-size: 1.1em;
 }
 .srcstatus[open] summary::after {
@@ -1305,11 +1328,11 @@ input {
   background: var(--quiet-amber);
 }
 .srcstatus__body {
-  padding: 2px 0 8px 12px;
+  padding: var(--s1) 0 var(--s2) var(--s3);
   border-left: 2px solid var(--rule);
   color: var(--ink-2);
-  font-size: 0.9375rem;
-  line-height: 1.5;
+  font-size: var(--t2);
+  line-height: var(--lh-body);
 }
 .srcstatus__body ul {
   margin: 0;
@@ -1317,12 +1340,12 @@ input {
   list-style: none;
 }
 .srcstatus__body li + li {
-  margin-top: 8px;
+  margin-top: var(--s2);
 }
 .srcstatus__foot {
-  margin-top: 6px;
+  margin-top: var(--s2);
   color: var(--ink-3);
-  font-size: 0.875rem;
+  font-size: var(--t1);
 }
 .srcstatus__foot .linkbtn {
   display: block;
@@ -1330,46 +1353,46 @@ input {
 }
 
 .scope {
-  padding-top: 10px;
+  padding-top: var(--s3);
 }
 
 .srow--plain {
   min-height: 48px;
-  gap: 12px;
+  gap: var(--s3);
 }
 .srow--plain .srow__meta {
   margin-left: auto;
 }
 
 .add {
-  margin-top: 22px;
+  margin-top: var(--s5);
 }
 .add__label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: var(--s2);
   font-weight: 700;
 }
 .add__row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--s2);
 }
 .add__row .input {
   flex: 1 1 14em;
 }
 .add__msg {
-  margin-top: 8px;
-  font-size: 0.9375rem;
+  margin-top: var(--s2);
+  font-size: var(--t2);
   font-weight: 600;
 }
 
 .about {
-  margin-top: 32px;
-  padding-top: 16px;
+  margin-top: var(--s6);
+  padding-top: var(--s4);
   border-top: 1px solid var(--rule);
   color: var(--ink-3);
-  font-size: 0.875rem;
-  line-height: 1.6;
+  font-size: var(--t1);
+  line-height: var(--lh-body);
 }
 
 /* ---------- Verhaal (bronvergelijking) ---------- */
@@ -1379,16 +1402,16 @@ input {
   z-index: 5;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: calc(var(--safe-t) + 6px) calc(8px + var(--safe-r)) 6px calc(8px + var(--safe-l));
+  gap: var(--s1);
+  padding: calc(var(--safe-t) + var(--s2)) calc(var(--s2) + var(--safe-r)) var(--s2) calc(var(--s2) + var(--safe-l));
   background: var(--paper);
   border-bottom: 1px solid var(--rule);
 }
 .story__eyebrow {
   flex: 1;
-  padding-left: 8px;
+  padding-left: var(--s2);
   color: var(--ink-3);
-  font-size: 0.8125rem;
+  font-size: var(--t1);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1396,49 +1419,49 @@ input {
 .story__body {
   max-width: 680px;
   margin: 0 auto;
-  padding: 18px calc(var(--gutter) + var(--safe-r)) calc(40px + var(--safe-b)) calc(var(--gutter) + var(--safe-l));
+  padding: var(--s4) calc(var(--gutter) + var(--safe-r)) calc(var(--s7) + var(--safe-b)) calc(var(--gutter) + var(--safe-l));
 }
 .story__title {
   font-family: var(--serif);
-  font-size: 1.625rem;
-  line-height: 1.15;
+  font-size: var(--t5);
+  line-height: var(--lh-head);
   letter-spacing: -0.015em;
   text-wrap: balance;
   overflow-wrap: anywhere;
 }
 .story__facts {
-  margin-top: 10px;
+  margin-top: var(--s3);
   color: var(--ink-2);
-  font-size: 0.9375rem;
+  font-size: var(--t2);
 }
 .story__caveat {
-  margin-top: 10px;
-  padding-left: 12px;
+  margin-top: var(--s3);
+  padding-left: var(--s3);
   border-left: 2px solid var(--rule);
   color: var(--ink-3);
-  font-size: 0.875rem;
-  line-height: 1.5;
+  font-size: var(--t1);
+  line-height: var(--lh-body);
 }
 .story__sub {
-  margin-top: 24px;
+  margin-top: var(--s5);
   color: var(--ink-3);
-  font-size: 0.8125rem;
+  font-size: var(--t1);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 .sidx {
   list-style: none;
-  margin: 14px 0 0;
+  margin: var(--s4) 0 0;
   padding: 0;
 }
 .sidx__btn {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--s1);
   width: 100%;
   min-height: var(--tap);
-  padding: 12px 0;
+  padding: var(--s3) 0;
   border: 0;
   border-top: 1px solid var(--rule);
   background: none;
@@ -1447,27 +1470,28 @@ input {
 }
 .sidx__title {
   font-family: var(--serif);
-  font-size: 1.0625rem;
+  font-size: var(--t3);
   font-weight: 700;
-  line-height: 1.25;
+  line-height: var(--lh-head);
 }
 .sidx__meta {
   color: var(--ink-3);
-  font-size: 0.8125rem;
+  font-size: var(--t1);
 }
 
 /* Knop met tekst in de kop van een scherm (alleen breed scherm: het vergelijkpaneel) */
 .textbtn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: var(--tap);
-  padding: 0 12px;
-  border: 0;
-  border-radius: 10px;
+  gap: var(--s2);
+  height: var(--tap);
+  padding: 0 var(--s4);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-pill);
   background: none;
   color: var(--ink-2);
-  font-size: 0.9375rem;
+  font-size: var(--t2);
+  line-height: var(--lh-ui);
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -1475,18 +1499,14 @@ input {
     background-color var(--dur-1) var(--ease),
     color var(--dur-1) var(--ease);
 }
-.textbtn[aria-pressed='true'] {
-  background: var(--accent-soft);
-  color: var(--accent);
-}
 
 /* Gedeelde link in een sociale bijdrage: compacte kaart in plaats van een groot beeld */
 .linkcard {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-  padding: 10px;
+  gap: var(--s3);
+  margin-bottom: var(--s3);
+  padding: var(--s3);
   border: 1px solid var(--rule);
   border-radius: var(--radius);
   background: var(--surface);
@@ -1499,7 +1519,7 @@ input {
 .linkcard__text {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--s1);
   min-width: 0;
 }
 .linkcard__title {
@@ -1509,7 +1529,7 @@ input {
   line-clamp: 2;
   overflow: hidden;
   font-weight: 700;
-  line-height: 1.3;
+  line-height: var(--lh-ui);
   overflow-wrap: anywhere;
 }
 .linkcard__domain {
@@ -1517,14 +1537,14 @@ input {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--ink-3);
-  font-size: 0.8125rem;
+  font-size: var(--t1);
 }
 
 /* ---------- Zoeken ---------- */
 .searchbar {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--s1);
 }
 
 /* ---------- Welkom ---------- */
@@ -1536,27 +1556,27 @@ input {
   background: var(--paper);
 }
 .welcome__col {
-  padding-top: calc(var(--safe-t) + 40px);
-  padding-bottom: calc(var(--safe-b) + 32px);
+  padding-top: calc(var(--safe-t) + var(--s7));
+  padding-bottom: calc(var(--safe-b) + var(--s6));
 }
 .welcome__title {
-  margin: 18px 0 12px;
+  margin: var(--s4) 0 var(--s3);
   font-family: var(--serif);
-  font-size: clamp(1.75rem, 1.3rem + 2.4vw, 2.25rem);
-  line-height: 1.12;
+  font-size: var(--t6);
+  line-height: var(--lh-head);
   letter-spacing: -0.018em;
   text-wrap: balance;
 }
 .welcome__text {
   color: var(--ink-2);
-  font-size: 1.0625rem;
-  line-height: 1.5;
+  font-size: var(--t3);
+  line-height: var(--lh-body);
 }
 .welcome .btn--wide {
-  margin-top: 22px;
+  margin-top: var(--s5);
 }
 .welcome__more {
-  margin-top: 10px;
+  margin-top: var(--s3);
 }
 .welcome__more summary {
   display: flex;
@@ -1574,7 +1594,7 @@ input {
   display: none;
 }
 .welcome__more[open] summary {
-  margin-bottom: 6px;
+  margin-bottom: var(--s2);
 }
 .welcome .hint {
   text-align: center;
@@ -1585,29 +1605,29 @@ input {
   margin: 0;
   padding-left: 1.2em;
   color: var(--ink-2);
-  line-height: 1.6;
+  line-height: var(--lh-body);
 }
 .sg__swatches {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 12px;
+  gap: var(--s3);
 }
 .sg__sw {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 0.8125rem;
+  gap: var(--s3);
+  font-size: var(--t1);
   color: var(--ink-2);
 }
 .sg__chip {
   flex: none;
   width: 44px;
   height: 44px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 20%, transparent);
 }
 .sg p + p {
-  margin-top: 10px;
+  margin-top: var(--s3);
 }
 
 /* ---------- Minder beweging ---------- */
@@ -1623,59 +1643,60 @@ input {
 
 /* Tijdlijn-indeling: de bronregel staat bovenaan, dus de ruimte verschuift mee */
 .compact--tl {
-  padding: 12px 0 16px;
+  padding: var(--s1) 0 var(--s3); /* bronregel bovenaan (44 hoog): boven en onder ogen als 16 */
 }
 .compact--tl .meta {
   margin-top: 0;
 }
 
-/* Schakelaar met twee standen (indeling van berichten) */
+/* Schakelaar met twee standen (indeling van berichten): één pil, de keuze is een gevulde pil erin */
 .seg {
   display: inline-flex;
-  margin-left: auto; /* schuift met Filters naar rechts als er ruimte is */
+  flex: none;
+  height: var(--tap);
+  padding: 2px;
   border: 1px solid var(--rule);
-  border-radius: 22px;
+  border-radius: var(--radius-pill);
   background: var(--surface);
 }
 .seg__btn {
-  display: grid;
-  place-items: center;
-  width: var(--tap);
-  height: var(--tap);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  min-width: 38px;
+  height: 100%;
+  padding: 0 var(--s2);
   border: 0;
-  border-radius: 21px;
+  border-radius: var(--radius-pill);
   background: none;
   color: var(--ink-3);
+  font-size: var(--t2);
+  font-weight: 600;
+  line-height: var(--lh-ui);
   cursor: pointer;
   transition:
     background-color var(--dur-1) var(--ease),
     color var(--dur-1) var(--ease);
 }
+/* De knop is 38 px hoog in een pil van 44: het aanraakdoel loopt door tot de rand van de pil */
+.seg__btn::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+}
 .seg__btn[aria-pressed='true'] {
   background: var(--accent-soft);
   color: var(--accent);
-}
-
-/* Editie: regel met "Hoe is dit gekozen?" links en de indeling-schakelaar rechts */
-.edbar {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-.edbar .how {
-  flex: 1;
-  min-width: 0;
-}
-.edbar .seg {
-  flex: none;
-  margin-top: 4px;
+  font-weight: 700; /* niet alleen kleur: ook gevuld en vet */
 }
 
 /* ---------- Editie: voorpagina ---------- */
 /* Vier verhalen in krant-vorm: het hoofdverhaal en daaronder (smal scherm) of daarnaast
    (breed scherm) drie kleinere koppen. Daarna gaat de editie verder als stroom. */
 .fitem {
-  padding: 12px 0 0;
+  padding: var(--s3) 0 0;
   border-top: 1px solid var(--rule);
 }
 /* Bron en tijd: een eigen, rustige regel die mag afbreken maar nooit wordt afgekapt */
@@ -1683,44 +1704,44 @@ input {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0 8px;
+  gap: 0 var(--s2);
   color: var(--ink-3);
-  font-size: 0.8125rem;
+  font-size: var(--t1);
 }
 .fitem__name {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--s2);
   min-height: var(--tap);
   margin: -8px 0;
   padding: 0;
   border: 0;
   background: none;
   color: var(--ink);
-  font-size: 0.875rem;
+  font-size: var(--t1);
   font-weight: 700;
   cursor: pointer;
 }
 .fitem__link {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
+  gap: var(--s3);
   align-items: start;
   min-height: var(--tap);
-  padding-top: 4px;
+  padding-top: var(--s1);
   color: inherit;
   text-decoration: none;
 }
 .fitem__text {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--s1);
 }
 .fitem__title {
   font-family: var(--serif);
-  font-size: 1.125rem;
+  font-size: var(--t4);
   font-weight: 700;
-  line-height: 1.25;
+  line-height: var(--lh-head);
   letter-spacing: -0.01em;
   text-wrap: pretty;
   overflow-wrap: anywhere;
@@ -1735,8 +1756,8 @@ input {
   line-clamp: 2;
   overflow: hidden;
   color: var(--ink-2);
-  font-size: 0.9375rem;
-  line-height: 1.45;
+  font-size: var(--t2);
+  line-height: var(--lh-body);
 }
 .fitem .thumb {
   display: block;
@@ -1747,17 +1768,19 @@ input {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 0 0 0 -6px;
+}
+.fitem__act .morebtn {
+  padding-left: 0; /* tekst op dezelfde lijn als de kop erboven */
 }
 .front .lead {
-  padding-top: 12px;
+  padding-top: var(--s3);
 }
 .front__more {
-  margin: 28px 0 0;
-  padding-top: 14px;
+  margin: var(--s6) 0 0;
+  padding-top: var(--s4);
   border-top: 2px solid var(--ink);
   color: var(--ink-2);
-  font-size: 0.8125rem;
+  font-size: var(--t1);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1769,12 +1792,12 @@ input {
   .app:not(.has-panel) .front {
     display: grid;
     grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
-    gap: 28px;
+    gap: var(--s5);
     align-items: start;
-    margin-top: 6px;
+    margin-top: var(--s2);
   }
   .app:not(.has-panel) .front__side {
-    padding-left: 28px;
+    padding-left: var(--s5);
     border-left: 1px solid var(--rule);
   }
   .app:not(.has-panel) .front__side .fitem:first-child {
@@ -1784,15 +1807,16 @@ input {
   .app:not(.has-panel) .front__side .fitem:not(:last-child) .thumb {
     display: none;
   }
-  .app:not(.has-panel) .front__rest {
+  /* Onder de voorpagina: de lijn loopt over de volle breedte, de berichten houden de
+     leesbreedte en staan op dezelfde linkerlijn als het hoofdverhaal. */
+  .app:not(.has-panel) .front__rest .list {
     max-width: 720px;
-    margin: 0 auto;
   }
 }
 
 /* ---------- Vergelijkpaneel (breed scherm): compacte publicatie ---------- */
 .srcitem {
-  padding: 10px 0 14px;
+  padding: var(--s1) 0 var(--s4); /* bronregel bovenaan (44 hoog): boven oogt dan ook als 16 */
   border-top: 1px solid var(--rule);
 }
 .srcitem .meta {
@@ -1806,9 +1830,9 @@ input {
 }
 .srcitem__title {
   font-family: var(--serif);
-  font-size: 1.125rem;
+  font-size: var(--t4);
   font-weight: 700;
-  line-height: 1.25;
+  line-height: var(--lh-head);
   letter-spacing: -0.01em;
   text-wrap: pretty;
   overflow-wrap: anywhere;
@@ -1822,36 +1846,37 @@ input {
   -webkit-line-clamp: 3;
   line-clamp: 3;
   overflow: hidden;
-  margin-top: 6px;
+  margin-top: var(--s2);
   color: var(--ink-2);
-  font-size: 0.9375rem;
-  line-height: 1.45;
+  font-size: var(--t2);
+  line-height: var(--lh-body);
 }
 .story__back {
   margin-right: auto;
-  padding-left: 4px;
+  padding-left: var(--s1);
+  border: 0; /* in de paneelkop: rustig, zonder rand */
 }
 
 /* Overzicht: een keuzelijst, geen tweede nieuwslijst */
 .sidx__head {
   font-family: var(--serif);
-  font-size: 1.25rem;
-  line-height: 1.2;
+  font-size: var(--t4);
+  line-height: var(--lh-head);
 }
 .sidx__btn {
   flex-direction: row;
   align-items: center;
-  gap: 10px;
+  gap: var(--s3);
 }
 .sidx__text {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--s1);
   min-width: 0;
 }
 .sidx__title {
-  font-size: 1rem;
+  font-size: var(--t3);
 }
 .sidx__meta {
   color: var(--accent);
@@ -1860,30 +1885,19 @@ input {
 .sidx__go {
   flex: none;
   color: var(--ink-3);
-  font-size: 1.25rem;
+  font-size: var(--t4);
 }
 .sidx__btn[aria-current] {
-  padding-left: 10px;
+  padding-left: var(--s3);
   box-shadow: inset 3px 0 0 var(--accent);
 }
 
-/* Indeling-schakelaar: op breed scherm met tekst; de gekozen stand is ook vet en omrand */
 .seg__label {
   display: none;
 }
-.seg__btn[aria-pressed='true'] {
-  box-shadow: inset 0 0 0 1.5px var(--accent);
-  font-weight: 700;
-}
 @media (min-width: 960px) {
   .seg__btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    width: auto;
-    padding: 0 14px 0 10px;
-    font-size: 0.875rem;
-    font-weight: 600;
+    padding: 0 var(--s3);
   }
   .seg__label {
     display: inline;

@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { ViewHeader, StatusLine, Skeleton, LoadError, Empty, LayoutSwitch } from '../components/Shell.jsx'
+import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { LeadStory, CompactItem, SaveButton, SourceMark, useHoot } from '../components/Items.jsx'
 import { imgProps } from '../lib/img.js'
 import { timeAgo } from '../lib/time.js'
@@ -37,7 +37,16 @@ function FrontItem({ item, story }) {
         </span>
         {item.image ? (
           <span className="thumb">
-            <img {...imgProps(item.image, 'thumb')} alt="" width="64" height="64" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.parentElement.hidden = true)} />
+            <img
+              {...imgProps(item.image, 'thumb')}
+              alt=""
+              width="64"
+              height="64"
+              loading="lazy"
+              decoding="async"
+              referrerPolicy="no-referrer"
+              onError={(e) => (e.currentTarget.parentElement.hidden = true)}
+            />
           </span>
         ) : null}
       </a>
@@ -78,12 +87,12 @@ export default function Edition({ active, edition, loading, failedLoad, statusPr
   useScrollMemory(ref, 'hoot:pos-editie:' + (edition?.id || ''), rows.length > 0, rows.length, active)
 
   const title = edition ? SLOT[edition.slot] : 'Editie'
-  const sub = edition ? longDate(edition.date) : null
+  const sub = edition ? longDate(edition.date).replace(/^./, (c) => c.toUpperCase()) : null
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
       <div className="col col--front">
-        <ViewHeader title={title} sub={sub} onRefresh={onRefresh} refreshing={refreshing} compare />
+        <ViewHeader title={title} sub={edition ? null : sub} onRefresh={onRefresh} refreshing={refreshing} compare layout />
         {loading ? (
           <Skeleton rows={4} />
         ) : failedLoad ? (
@@ -102,20 +111,21 @@ export default function Edition({ active, edition, loading, failedLoad, statusPr
         ) : (
           <>
             <StatusLine {...statusProps} quiet />
-            <div className="edbar">
-              <details className="how">
-                <summary>
-                  <span>
-                    {rows.length} verhalen · {clock(edition.builtAt)}
-                  </span>
-                  <span className="how__link">Hoe is dit gekozen?</span>
-                </summary>
-                <p>
-                  De eerste vier staan op de voorpagina, de rest eronder. Eerst de verhalen waar de meeste bronnen over schrijven, met voorrang voor je eigen bronnen; daarna de meest recente. Aangevuld met losse berichten, om en om per bron. Elke gebeurtenis staat er één keer in, ook als Nederlandse en Engelse bronnen er allebei over schrijven. Per verhaal zie je het bericht van een van je eigen bronnen, zo afwisselend mogelijk. Er telt geen klikgedrag mee. Een editie verandert na het samenstellen niet meer van selectie of volgorde — wel kan een lopend verhaal er publicaties bij krijgen.
-                </p>
-              </details>
-              <LayoutSwitch />
-            </div>
+            {/* Eén metaregel onder de titel: datum, omvang, tijd en de uitleg. */}
+            <details className="how">
+              <summary>
+                <span>
+                  {sub} · {rows.length} verhalen · {clock(edition.builtAt)}
+                </span>
+                <span className="how__link">Hoe is dit gekozen?</span>
+              </summary>
+              <p>
+                De eerste vier staan op de voorpagina, de rest eronder. Eerst de verhalen waar de meeste bronnen over schrijven, met voorrang voor je eigen bronnen; daarna de meest recente. Aangevuld
+                met losse berichten, om en om per bron. Elke gebeurtenis staat er één keer in, ook als Nederlandse en Engelse bronnen er allebei over schrijven. Per verhaal zie je het bericht van een
+                van je eigen bronnen, zo afwisselend mogelijk. Er telt geen klikgedrag mee. Een editie verandert na het samenstellen niet meer van selectie of volgorde — wel kan een lopend verhaal er
+                publicaties bij krijgen.
+              </p>
+            </details>
             {/* Voorpagina: het hoofdverhaal groot, daarnaast drie kleinere — altijd in krant-vorm.
                 Op smal scherm (of met het vergelijkpaneel open) staan ze onder elkaar. */}
             <div className="front">

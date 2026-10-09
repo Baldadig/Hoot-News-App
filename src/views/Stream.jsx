@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ViewHeader, StatusLine, Skeleton, LoadError, Empty, LayoutSwitch } from '../components/Shell.jsx'
+import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { Entry, SourceMark, useHoot } from '../components/Items.jsx'
 import { FilterIcon, CloseIcon, ArrowUpIcon } from '../components/icons.jsx'
 import { TOPICS } from '../lib/topics.js'
@@ -133,7 +133,7 @@ export default function Stream({ active, stream, params, go, pinned, density, on
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Stroom" onScroll={(e) => setAtDepth(e.currentTarget.scrollTop > 900)}>
       <div className="col">
-        <ViewHeader title="Stroom" sub="Alles van je bronnen, nieuwste eerst" onRefresh={onRefresh} refreshing={refreshing} compare>
+        <ViewHeader title="Stroom" sub="Alles van je bronnen, nieuwste eerst" onRefresh={onRefresh} refreshing={refreshing} compare layout>
           <div className="filterbar" role="group" aria-label="Onderwerp">
             <button type="button" className="chip" aria-pressed={!filters.onderwerp} onClick={() => setFilter('onderwerp', '')}>
               Alles
@@ -143,8 +143,6 @@ export default function Stream({ active, stream, params, go, pinned, density, on
                 {topicLabel(id)}
               </button>
             ))}
-            {/* Indeling: een schakelaar, direct bij de hand (geen filter, dus niet in het filterblad) */}
-            <LayoutSwitch />
             <button type="button" className="chip chip--more" onClick={() => setSheet(true)} aria-haspopup="dialog">
               <FilterIcon />
               Filters{activeCount ? ` (${activeCount})` : ''}
