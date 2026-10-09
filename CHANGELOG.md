@@ -2,6 +2,11 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.6.0] — 2026-10-09 — Editie met een voorpagina
+
+- **Voorpagina**: de eerste vier verhalen staan in krant-vorm. Op breed scherm het hoofdverhaal links (beeld, grote kop, samenvatting) en drie kleinere koppen in een smalle kolom rechts; op telefoon, of met het vergelijkpaneel open, onder elkaar als compacte koppenlijst.
+- Daaronder "Verder in deze editie": verhalen 5 tot en met 10 als stroom, in de indeling van de schakelaar (Tijdlijn of Krant). De teller ("5 van 10") staat alleen nog daar.
+
 ## [1.5.3] — 2026-10-09 — Indeling-schakelaar ook in de Editie
 
 - De schakelaar Tijdlijn/Krant staat nu ook boven de Editie, rechts naast "Hoe is dit gekozen?".

@@ -1641,7 +1641,7 @@ input {
   display: grid;
   place-items: center;
   width: var(--tap);
-  height: 42px;
+  height: var(--tap);
   border: 0;
   border-radius: 21px;
   background: none;
@@ -1669,4 +1669,73 @@ input {
 .edbar .seg {
   flex: none;
   margin-top: 4px;
+}
+
+/* ---------- Editie: voorpagina ---------- */
+/* Vier verhalen in krant-vorm: het hoofdverhaal en daaronder (smal scherm) of daarnaast
+   (breed scherm) drie kleinere koppen. Daarna gaat de editie verder als stroom. */
+.front__side .compact {
+  padding: 12px 0 0;
+  border-top: 1px solid var(--rule);
+  content-visibility: visible;
+}
+.front__side .compact__title {
+  font-size: 1.125rem;
+  line-height: 1.25;
+}
+.front__side .compact__sum {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-size: 0.9375rem;
+}
+.front__side .thumb {
+  width: 64px;
+  height: 64px;
+}
+.front__side .meta {
+  margin-top: 2px;
+}
+.front .lead {
+  padding-top: 12px;
+}
+.front__more {
+  margin: 28px 0 0;
+  padding-top: 14px;
+  border-top: 2px solid var(--ink);
+  color: var(--ink-2);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+@media (min-width: 1200px) {
+  .app:not(.has-panel) .col--front {
+    max-width: 1000px;
+  }
+  .app:not(.has-panel) .front {
+    display: grid;
+    grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+    margin-top: 6px;
+  }
+  .app:not(.has-panel) .front__side {
+    padding-left: 28px;
+    border-left: 1px solid var(--rule);
+  }
+  .app:not(.has-panel) .front__side .compact:first-child {
+    padding-top: 12px;
+    border-top: 0;
+  }
+  /* Naast het hoofdverhaal: tekst voorop, alleen het laatste krijgt een klein beeld */
+  .app:not(.has-panel) .front__side .compact:not(:last-child) .thumb {
+    display: none;
+  }
+  .app:not(.has-panel) .front__rest {
+    max-width: 720px;
+    margin: 0 auto;
+  }
 }

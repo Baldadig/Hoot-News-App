@@ -5,6 +5,7 @@ import { BrandMark } from '../components/Brand.jsx'
 import { longDate, clock } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 
+const FRONT = 4 // zoveel verhalen staan op de voorpagina
 const SLOT = { ochtend: 'Ochtendeditie', avond: 'Avondeditie' }
 
 export default function Edition({ active, edition, loading, failedLoad, statusProps, onRefresh, refreshing }) {
@@ -33,7 +34,7 @@ export default function Edition({ active, edition, loading, failedLoad, statusPr
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
-      <div className="col">
+      <div className="col col--front">
         <ViewHeader title={title} sub={sub} onRefresh={onRefresh} refreshing={refreshing} compare />
         {loading ? (
           <Skeleton rows={4} />
@@ -62,16 +63,33 @@ export default function Edition({ active, edition, loading, failedLoad, statusPr
                   <span className="how__link">Hoe is dit gekozen?</span>
                 </summary>
                 <p>
-                  Eerst de verhalen waar de meeste bronnen over schrijven, met voorrang voor je eigen bronnen; daarna de meest recente. Aangevuld met losse berichten, om en om per bron. Elke gebeurtenis staat er één keer in, ook als Nederlandse en Engelse bronnen er allebei over schrijven. Per verhaal zie je het bericht van een van je eigen bronnen, zo afwisselend mogelijk. Er telt geen klikgedrag mee. Een editie verandert na het samenstellen niet meer van selectie of volgorde — wel kan een lopend verhaal er publicaties bij krijgen.
+                  De eerste vier staan op de voorpagina, de rest eronder. Eerst de verhalen waar de meeste bronnen over schrijven, met voorrang voor je eigen bronnen; daarna de meest recente. Aangevuld met losse berichten, om en om per bron. Elke gebeurtenis staat er één keer in, ook als Nederlandse en Engelse bronnen er allebei over schrijven. Per verhaal zie je het bericht van een van je eigen bronnen, zo afwisselend mogelijk. Er telt geen klikgedrag mee. Een editie verandert na het samenstellen niet meer van selectie of volgorde — wel kan een lopend verhaal er publicaties bij krijgen.
                 </p>
               </details>
               <LayoutSwitch />
             </div>
-            <div className="list">
-              {rows.map(({ key, item, story }, i) =>
-                i === 0 ? <LeadStory key={key} item={item} story={story} note={`1 van ${rows.length}`} priority={active} /> : <CompactItem key={key} item={item} story={story} note={`${i + 1} van ${rows.length}`} />
-              )}
+            {/* Voorpagina: het hoofdverhaal groot, daarnaast drie kleinere — altijd in krant-vorm.
+                Op smal scherm (of met het vergelijkpaneel open) staan ze onder elkaar. */}
+            <div className="front">
+              <LeadStory item={rows[0].item} story={rows[0].story} priority={active} />
+              {rows.length > 1 ? (
+                <div className="front__side">
+                  {rows.slice(1, FRONT).map(({ key, item, story }) => (
+                    <CompactItem key={key} item={item} story={story} plain />
+                  ))}
+                </div>
+              ) : null}
             </div>
+            {rows.length > FRONT ? (
+              <div className="front__rest">
+                <h2 className="front__more">Verder in deze editie</h2>
+                <div className="list">
+                  {rows.slice(FRONT).map(({ key, item, story }, i) => (
+                    <CompactItem key={key} item={item} story={story} note={`${i + FRONT + 1} van ${rows.length}`} />
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <div className="endcap">
               <BrandMark size={44} />
               <h2 className="endcap__title">Je bent bij.</h2>
