@@ -82,3 +82,14 @@ npm run build       # output in dist/
 - ✅ **v0.6.0** — "Bewaar voor later" → Instapaper
 - **volgende** — opgeslagen-weergave, in-app reader, meer Bluesky-accounts beheren, discover/trending, cross-device sync
 ```
+
+
+## Omgevingsvariabelen (Netlify → Site configuration → Environment variables)
+
+| Variabele | Waarvoor | Zonder |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | "De editie in één minuut" (Claude Haiku 5.5, twee keer per dag) | Het blok blijft weg; de rest werkt |
+| `INSTAPAPER_USERNAME`, `INSTAPAPER_PASSWORD` | Bewaren ook naar Instapaper (Simple API) | Alleen bewaren in Hoot |
+| `HOOT_AI_ENRICH=1` | Samenvattingen per bericht laten herschrijven door AI (kost per bericht) | Uit (aanbevolen) |
+
+Geheimen staan alleen hier, nooit in de app of in de repository. Na het toevoegen een nieuwe deploy starten (Deploys → Trigger deploy).

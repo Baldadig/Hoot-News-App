@@ -6,12 +6,6 @@ import { resolveProfile } from '../lib/bluesky.js'
 import { statusLabel } from '../lib/sourceStatus.js'
 import { clock, timeAgo } from '../lib/time.js'
 
-const THEMES = [
-  { id: 'system', label: 'Systeem' },
-  { id: 'light', label: 'Licht' },
-  { id: 'dark', label: 'Donker' },
-]
-
 export function Switch({ checked, onChange, label }) {
   return (
     <button type="button" role="switch" aria-checked={checked} aria-label={label} className="switch" onClick={() => onChange(!checked)}>
@@ -128,7 +122,7 @@ function AddBluesky({ onAdd }) {
   )
 }
 
-export default function Sources({ active, sources, muted, onToggle, socialHandles, onAddSocial, onRemoveSocial, pinned, onPinned, theme, setTheme, layout, onLayout, meta, status, recovered, latestBySource, onRetry, refreshing, online }) {
+export default function Sources({ active, sources, muted, onToggle, socialHandles, onAddSocial, onRemoveSocial, pinned, onPinned, meta, status, recovered, latestBySource, onRetry, refreshing, online }) {
   const own = sources.filter((s) => s.followed)
   const extra = sources.filter((s) => !s.followed)
   const togglePin = (id) => onPinned(pinned.includes(id) ? pinned.filter((p) => p !== id) : pinned.length >= 3 ? pinned : [...pinned, id])
@@ -170,31 +164,16 @@ export default function Sources({ active, sources, muted, onToggle, socialHandle
           ))}
         </div>
 
-        <h2 className="sect">Indeling van berichten</h2>
-        <div className="chips" role="group" aria-label="Indeling van berichten">
-          <button type="button" className="chip" aria-pressed={layout === 'tijdlijn'} onClick={() => onLayout('tijdlijn')}>
-            Tijdlijn
-          </button>
-          <button type="button" className="chip" aria-pressed={layout === 'krant'} onClick={() => onLayout('krant')}>
-            Krant
-          </button>
-        </div>
-        <p className="hint">Tijdlijn zet de bron bovenaan en het beeld groot in het midden, zoals een sociale tijdlijn. Krant zet de kop links en een klein beeld rechts.</p>
+        <h2 className="sect">Instellingen</h2>
+        <a className="setrow setrow--link" href="#/instellingen">
+          <span className="setrow__text">
+            <span className="setrow__label">Alle instellingen</span>
+            <span className="setrow__hint">Weergave, Instapaper, voorlezen, editie, buiten je bubbel.</span>
+          </span>
+          <span aria-hidden="true">›</span>
+        </a>
 
-        <h2 className="sect">Weergave</h2>
-        <div className="chips" role="group" aria-label="Thema">
-          {THEMES.map((t) => (
-            <button key={t.id} type="button" className="chip" aria-pressed={theme === t.id} onClick={() => setTheme(t.id)}>
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        <p className="about">
-          Hoot v{__APP_VERSION__} · <a href="#/stijl">Designsysteem</a> · <a href="#/welkom">Welkomscherm</a>
-          <br />
-          {meta?.storage === 'blobs' ? 'Edities en verhalen worden vast bewaard.' : 'Edities en verhalen worden op dit moment niet vast bewaard en kunnen tussentijds wisselen.'} Samenvattingen komen rechtstreeks van de bron; er wordt niets automatisch geschreven.
-        </p>
+        <p className="about">Hoot v{__APP_VERSION__}</p>
       </div>
     </section>
   )

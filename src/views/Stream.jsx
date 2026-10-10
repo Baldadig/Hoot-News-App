@@ -13,10 +13,10 @@ const KINDS = [
   { id: 'opinie', label: 'Opinie' },
   { id: 'sociaal', label: 'Sociaal' },
 ]
-const topicLabel = (id) => TOPICS.find((t) => t.id === id)?.label || id
+const topicLabel = (id) => (id === 'bubbel' ? 'Buiten je bubbel' : TOPICS.find((t) => t.id === id)?.label || id)
 
 // Alle filters in één paneel (native <dialog>: focus blijft binnen, Esc sluit).
-function FilterSheet({ open, onClose, params, setFilter, clear, sources, count, density, onDensity }) {
+function FilterSheet({ open, onClose, params, setFilter, clear, sources, count }) {
   const ref = useRef(null)
   useEffect(() => {
     const d = ref.current
@@ -56,16 +56,6 @@ function FilterSheet({ open, onClose, params, setFilter, clear, sources, count, 
           ))}
         </div>
 
-        <h3 className="sheet__label">Voorvertoning</h3>
-        <div className="chips" role="group" aria-label="Lengte van de voorvertoning">
-          <button type="button" className="chip" aria-pressed={density === 'kort'} onClick={() => onDensity('kort')}>
-            Kort
-          </button>
-          <button type="button" className="chip" aria-pressed={density === 'volledig'} onClick={() => onDensity('volledig')}>
-            Volledig
-          </button>
-        </div>
-        <p className="sheet__note">Kort toont twee regels per bericht, zodat je sneller door de Stroom kijkt. De volledige tekst lees je bij de bron.</p>
 
         <div className="sheet__foot">
           <button type="button" className="btn btn--quiet" onClick={clear}>
@@ -80,7 +70,7 @@ function FilterSheet({ open, onClose, params, setFilter, clear, sources, count, 
   )
 }
 
-export default function Stream({ active, stream, params, go, pinned, density, onDensity, layout, onLayout, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
+export default function Stream({ active, stream, params, go, pinned, bubble = [], preview = 2, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
   const { storiesById } = useHoot()
   const ref = useRef(null)
   const [sheet, setSheet] = useState(false)
@@ -91,6 +81,8 @@ export default function Stream({ active, stream, params, go, pinned, density, on
 
   const list = useMemo(
     () =>
+      // "Buiten je bubbel" is geen onderwerp maar een aparte lijst: de drie signalen van de editie.
+      filters.onderwerp === 'bubbel' ? bubble.map((b) => b.item) :
       stream.filter((i) => {
         if (filters.bron && i.source !== filters.bron) return false
         if (filters.onderwerp && !(i.topics || []).includes(filters.onderwerp)) return false
@@ -99,7 +91,7 @@ export default function Stream({ active, stream, params, go, pinned, density, on
         if (filters.soort === 'artikelen' && (i.kind === 'post' || i.type === 'opinie')) return false
         return true
       }),
-    [stream, filters.bron, filters.onderwerp, filters.soort]
+    [stream, bubble, filters.bron, filters.onderwerp, filters.soort]
   )
 
   // Filters zijn stappen in de geschiedenis: de terugknop zet het vorige filter terug.
@@ -137,13 +129,18 @@ export default function Stream({ active, stream, params, go, pinned, density, on
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Stroom" onScroll={(e) => setAtDepth(e.currentTarget.scrollTop > 900)}>
       <div className="col">
-        <ViewHeader title="Stroom" sub="Alles van je bronnen, nieuwste eerst" subWide onRefresh={onRefresh} refreshing={refreshing} compare layout>
+        <ViewHeader title="Stroom" sub="Alles van je bronnen, nieuwste eerst" subWide onRefresh={onRefresh} refreshing={refreshing} compare display>
           {/* Eén rij: alle onderwerpen als pillen (swipen), rechts een vast filtericoon. */}
           <div className="topics">
             <div className="topics__scroll" role="group" aria-label="Onderwerp" ref={stripRef}>
               <button type="button" className="chip chip--sm" aria-pressed={!filters.onderwerp} onClick={() => setFilter('onderwerp', '')}>
                 Alles
               </button>
+              {bubble.length ? (
+                <button type="button" className="chip chip--sm chip--bubble" aria-pressed={filters.onderwerp === 'bubbel'} onClick={() => setFilter('onderwerp', filters.onderwerp === 'bubbel' ? '' : 'bubbel')}>
+                  Buiten je bubbel
+                </button>
+              ) : null}
               {orderedTopics(pinned).map((t) => (
                 <button key={t.id} type="button" className="chip chip--sm" aria-pressed={filters.onderwerp === t.id} onClick={() => setFilter('onderwerp', filters.onderwerp === t.id ? '' : t.id)}>
                   {t.label}
@@ -193,7 +190,7 @@ export default function Stream({ active, stream, params, go, pinned, density, on
                 {stream.length === 0 ? 'Al je bronnen staan uit. Zet er een aan bij Bronnen.' : 'Er is op dit moment niets dat hieraan voldoet. De berichten zelf zijn wel geladen.'}
               </Empty>
             ) : (
-              <div className={`list${density === 'kort' ? ' list--kort' : ''}`}>
+              <div className={`list${preview === 'alles' ? '' : ` list--lines-${preview}`}`}>
                 {list.map((item) => (
                   <Entry key={item.id} item={item} story={item.storyId ? storiesById.get(item.storyId) : null} />
                 ))}
@@ -210,7 +207,7 @@ export default function Stream({ active, stream, params, go, pinned, density, on
         </button>
       ) : null}
 
-      <FilterSheet open={sheet} onClose={() => setSheet(false)} params={filters} setFilter={setFilter} clear={clear} sources={followed} count={list.length} density={density} onDensity={onDensity} />
+      <FilterSheet open={sheet} onClose={() => setSheet(false)} params={filters} setFilter={setFilter} clear={clear} sources={followed} count={list.length} />
     </section>
   )
 }

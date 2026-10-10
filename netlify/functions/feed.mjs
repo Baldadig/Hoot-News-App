@@ -2,6 +2,8 @@ import Parser from 'rss-parser'
 import Anthropic from '@anthropic-ai/sdk'
 import { getStore, connectLambda } from '@netlify/blobs'
 import { hash, byRecency, sigWords, sharedCount, buildStories, editionSlot, selectEdition, NL_SOURCES } from '../lib/stories.mjs'
+import { matchTrending } from '../lib/bubble.mjs'
+import { createBrief, briefRows } from '../lib/brief.mjs'
 
 // ---------- Bronnen ----------
 // bsky = Bluesky-handle van het officiële account, voor een mooie merk-avatar.
@@ -233,6 +235,40 @@ function pickImage(item) {
   const html = item.contentEncoded || item.content || item.description || ''
   const m = /<img[^>]+src=["']([^"']+)["']/i.exec(html)
   return m ? m[1] : null
+}
+
+// ---------- Buiten je bubbel: waar anderen over praten ----------
+// Drie open signalen, elk met een korte timeout; valt er een uit, dan doen de andere mee.
+async function loadTrends() {
+  const get = async (url, headers = {}) => {
+    const c = new AbortController()
+    const t = setTimeout(() => c.abort(), 6000)
+    try {
+      const r = await fetch(url, { headers, signal: c.signal })
+      if (!r.ok) throw new Error('HTTP ' + r.status)
+      return r
+    } finally {
+      clearTimeout(t)
+    }
+  }
+  const y = new Date(Date.now() - 864e5)
+  const day = `${y.getUTCFullYear()}/${String(y.getUTCMonth() + 1).padStart(2, '0')}/${String(y.getUTCDate()).padStart(2, '0')}`
+  const ua = { 'User-Agent': 'HootNews/1 (https://hootnewsapp.netlify.app)' }
+  const jobs = [
+    get('https://trends.google.com/trending/rss?geo=NL', { 'User-Agent': 'Mozilla/5.0' })
+      .then((r) => r.text())
+      .then((x) => [...x.matchAll(/<item>[\s\S]*?<title>(?:<!\[CDATA\[)?([^<\]]+)/g)].slice(0, 20).map((m, i) => ({ term: m[1].trim(), via: 'google', rank: i }))),
+    get('https://public.api.bsky.app/xrpc/app.bsky.unspecced.getTrendingTopics?limit=15', ua)
+      .then((r) => r.json())
+      .then((j) => (j.topics || []).map((t, i) => ({ term: t.topic, via: 'bluesky', rank: i }))),
+    ...['nl', 'en'].map((lang) =>
+      get(`https://wikimedia.org/api/rest_v1/metrics/pageviews/top/${lang}.wikipedia/all-access/${day}`, ua)
+        .then((r) => r.json())
+        .then((j) => (j.items?.[0]?.articles || []).slice(0, 30).map((a, i) => ({ term: a.article, via: 'wikipedia', rank: i })))
+    ),
+  ]
+  const res = await Promise.allSettled(jobs)
+  return res.flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
 }
 
 // ---------- Mooie merk-avatars via Bluesky ----------
@@ -515,9 +551,9 @@ function parseJsonArray(s) {
 async function enrichBatch(anthropic, items) {
   const payload = items.map((it) => ({ id: it.id, bron: it.sourceName, type: it.kind, titel: it.kind === 'post' ? '' : it.title, tekst: it.text }))
   const res = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
+    model: 'claude-haiku-5-5',
     max_tokens: 2000,
-    thinking: { type: 'disabled' },
+    output_config: { effort: 'low' },
     system: SYSTEM,
     messages: [{ role: 'user', content: JSON.stringify(payload) }],
   })
@@ -579,16 +615,17 @@ export const handler = async (event) => {
     /* geen Blobs-context */
   }
   const apiKey = process.env.ANTHROPIC_API_KEY
-  const anthropic = apiKey ? new Anthropic({ apiKey }) : null
+  const anthropic = apiKey ? new Anthropic({ apiKey, timeout: 25000, maxRetries: 1 }) : null
   const now = Date.now()
 
   const avatarsP = resolveSourceAvatars()
   const noAvatars = Promise.resolve({})
-  const [mainR, extraR, bskyR, registryRaw] = await Promise.all([
+  const [mainR, extraR, bskyR, registryRaw, trends] = await Promise.all([
     Promise.allSettled(SOURCES.map((s) => loadSourceWithRetry(s, avatarsP))),
     Promise.allSettled(EXTRA_SOURCES.map((s) => loadSource(s, noAvatars))),
     Promise.allSettled(BLUESKY_AUTHORS.map(loadBluesky)),
     kvGet('registry-v1'),
+    loadTrends().catch(() => []),
   ])
   const val = (r) => (r.status === 'fulfilled' ? r.value : { id: '?', name: '?', ok: false, count: 0, items: [], error: String(r.reason) })
   const mainGroups = mainR.map(val)
@@ -693,7 +730,9 @@ export const handler = async (event) => {
   // Verrijking (AI) — staat uit zonder sleutel.
   const cache = await loadCache()
   let enrichedNew = 0
-  if (anthropic) {
+  // Verrijking per bericht (samenvattingen herschrijven) kost per item; staat uit tenzij
+  // HOOT_AI_ENRICH=1. Het overzicht van de editie (hieronder) gebruikt de sleutel wél.
+  if (anthropic && process.env.HOOT_AI_ENRICH === '1') {
     const missing = [...items, ...related].filter((it) => !cache[it.id]).slice(0, ENRICH_PER_REQUEST)
     if (missing.length) {
       const settled = await Promise.allSettled(chunk(missing, ENRICH_BATCH).map((b) => enrichBatch(anthropic, b)))
@@ -727,12 +766,37 @@ export const handler = async (event) => {
     stored = { id: slot.id, builtAt: new Date(now).toISOString(), entries, stories: snapStories, items: [...snapIds].map((id) => outById.get(id)).filter(Boolean) }
     if (entries.length) await kvSet('edition2-' + slot.id, stored)
   }
+  // Bij de editie horen ook (één keer, dan vast): "Buiten je bubbel" en het AI-overzicht.
+  {
+    const outById = new Map([...out, ...relatedOut].map((i) => [i.id, i]))
+    const storyById = new Map([...stories, ...(stored.stories || [])].map((st) => [st.id, st]))
+    let changed = false
+    if (!Array.isArray(stored.bubble) && trends.length) {
+      const excludeStoryIds = new Set(stored.entries.filter((e) => e.kind === 'story').map((e) => e.id))
+      const excludeItemIds = new Set([...stored.entries.filter((e) => e.kind === 'item').map((e) => e.id), ...[...excludeStoryIds].flatMap((id) => storyById.get(id)?.itemIds || [])])
+      const coveredTitles = briefRows(stored.entries, storyById, new Map([...outById, ...stored.items.map((i) => [i.id, i])])).map((r) => r.title)
+      stored.bubble = matchTrending(trends, [...out, ...relatedOut, ...extraItems.map((it) => toClient(it, cache))], { excludeItemIds, excludeStoryIds, coveredTitles, now })
+      // De gekozen berichten bewaren bij de editie, zodat ze blijven als de feed ze loslaat.
+      const poolOut = new Map([...out, ...relatedOut, ...extraItems.map((it) => toClient(it, cache))].map((i) => [i.id, i]))
+      for (const b of stored.bubble) if (!stored.items.some((i) => i.id === b.id) && poolOut.get(b.id)) stored.items.push(poolOut.get(b.id))
+      changed = true
+    }
+    if (anthropic && !stored.brief && stored.entries.length) {
+      try {
+        stored.brief = await createBrief(anthropic, briefRows(stored.entries, storyById, new Map([...outById, ...stored.items.map((i) => [i.id, i])])), { now })
+        changed = !!stored.brief || changed
+      } catch (e) {
+        console.error('brief', String((e && e.message) || e))
+      }
+    }
+    if (changed && stored.entries.length) await kvSet('edition2-' + slot.id, stored)
+  }
   // Wat intussen uit de feeds is verdwenen halen we uit de momentopname van de editie.
   const liveStoryIds = new Set(stories.map((st) => st.id))
   const haveOut = new Set([...out, ...relatedOut].map((i) => i.id))
   storiesOut = [...stories, ...stored.stories.filter((st) => !liveStoryIds.has(st.id))]
   relatedOut = [...relatedOut, ...stored.items.filter((i) => !haveOut.has(i.id))]
-  const edition = { id: slot.id, slot: slot.slot, date: slot.date, next: slot.next, builtAt: stored.builtAt, entries: stored.entries }
+  const edition = { id: slot.id, slot: slot.slot, date: slot.date, next: slot.next, builtAt: stored.builtAt, entries: stored.entries, bubble: stored.bubble || [], brief: stored.brief || null }
 
   // Bronnenlijst (los van de berichten).
   const avatars = await avatarsP
@@ -749,6 +813,7 @@ export const handler = async (event) => {
     aiEnabled: !!anthropic,
     instapaper: !!(process.env.INSTAPAPER_USERNAME && process.env.INSTAPAPER_PASSWORD),
     enrichedNew,
+    bubbleSignals: trends.length,
     // (oude vorm, voor een nog niet bijgewerkte app)
     sources: sources.map(({ id, name, ok, count, error, followed }) => ({ id, name, ok, count, error, main: followed })),
   }

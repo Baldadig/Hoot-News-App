@@ -1,7 +1,9 @@
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { LeadStory, CompactItem, SaveButton, SourceMark, useHoot } from '../components/Items.jsx'
 import { imgProps } from '../lib/img.js'
+import { bulletinText, canSpeak, speak, stop } from '../lib/speech.js'
+import { HeadphonesIcon, StopIcon } from '../components/icons.jsx'
 import { timeAgo } from '../lib/time.js'
 import { BrandMark } from '../components/Brand.jsx'
 import { longDate, clock } from '../lib/time.js'
@@ -65,7 +67,7 @@ function FrontItem({ item, story }) {
 }
 const SLOT = { ochtend: 'Ochtendeditie', avond: 'Avondeditie' }
 
-export default function Edition({ active, edition, loading, failedLoad, statusProps, onRefresh, refreshing }) {
+export default function Edition({ active, edition, bubble = [], brief = null, readAloud = true, loading, failedLoad, statusProps, onRefresh, refreshing }) {
   const { itemsById, storiesById, muted } = useHoot()
   const ref = useRef(null)
 
@@ -84,6 +86,20 @@ export default function Edition({ active, edition, loading, failedLoad, statusPr
     })
     .filter(Boolean)
 
+  // Voorlezen met de stem van het toestel; stopt als je het scherm verlaat.
+  const [speaking, setSpeaking] = useState(false)
+  useEffect(() => () => stop(), [])
+  useEffect(() => {
+    if (!active && speaking) (stop(), setSpeaking(false))
+  }, [active, speaking])
+  const toggleSpeak = () => {
+    if (speaking) return (stop(), setSpeaking(false))
+    const parts = bulletinText({ slot: edition.slot, date: longDate(edition.date), rows: rows.map(({ item }) => ({ title: item.short_title || item.title, summary: item.nl_summary || item.summary, sourceName: item.sourceName })) })
+    speak(parts, { onEnd: () => setSpeaking(false) })
+    setSpeaking(true)
+  }
+  const showSpeak = readAloud && canSpeak()
+
   useScrollMemory(ref, 'hoot:pos-editie:' + (edition?.id || ''), rows.length > 0, rows.length, active)
 
   const title = edition ? SLOT[edition.slot] : 'Editie'
@@ -92,7 +108,7 @@ export default function Edition({ active, edition, loading, failedLoad, statusPr
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
       <div className="col col--front">
-        <ViewHeader title={title} sub={edition ? null : sub} onRefresh={onRefresh} refreshing={refreshing} compare layout />
+        <ViewHeader title={title} sub={edition ? null : sub} onRefresh={onRefresh} refreshing={refreshing} compare display />
         {loading ? (
           <Skeleton rows={4} />
         ) : failedLoad ? (
@@ -118,6 +134,12 @@ export default function Edition({ active, edition, loading, failedLoad, statusPr
                   {sub} · {rows.length} verhalen · {clock(edition.builtAt)}
                 </span>
                 <span className="how__link">Hoe is dit gekozen?</span>
+                {showSpeak ? (
+                  <button type="button" className={`textbtn textbtn--sm how__speak${speaking ? ' is-on' : ''}`} onClick={(e) => (e.preventDefault(), toggleSpeak())} aria-pressed={speaking}>
+                    {speaking ? <StopIcon /> : <HeadphonesIcon />}
+                    {speaking ? 'Stop' : 'Lees voor'}
+                  </button>
+                ) : null}
               </summary>
               <p>
                 De eerste vier staan op de voorpagina, de rest eronder. Eerst de verhalen waar de meeste bronnen over schrijven, met voorrang voor je eigen bronnen; daarna de meest recente. Aangevuld
@@ -126,6 +148,17 @@ export default function Edition({ active, edition, loading, failedLoad, statusPr
                 publicaties bij krijgen.
               </p>
             </details>
+            {brief?.text ? (
+              <section className="brief" aria-label="De editie in één minuut">
+                <h2 className="brief__head">De editie in één minuut</h2>
+                {brief.text.split(/\n\s*\n/).map((p, i) => (
+                  <p key={i} className="brief__p">
+                    {p}
+                  </p>
+                ))}
+                <p className="brief__foot">Geschreven door AI uit de koppen en samenvattingen hieronder; bevat geen andere feiten.</p>
+              </section>
+            ) : null}
             {/* Voorpagina: het hoofdverhaal groot, daarnaast drie kleinere — altijd in krant-vorm.
                 Op smal scherm (of met het vergelijkpaneel open) staan ze onder elkaar. */}
             <div className="front">
@@ -147,6 +180,17 @@ export default function Edition({ active, edition, loading, failedLoad, statusPr
                   ))}
                 </div>
               </div>
+            ) : null}
+            {bubble.length ? (
+              <section className="bubble" aria-label="Buiten je bubbel">
+                <h2 className="front__more">Buiten je bubbel</h2>
+                <p className="hint bubble__hint">Wat anderen nu lezen of zoeken en wat niet in je editie zit — ook uit bronnen die je niet volgt.</p>
+                <div className="list">
+                  {bubble.map((b) => (
+                    <CompactItem key={b.id} item={b.item} story={b.storyId ? storiesById.get(b.storyId) : null} note={`Via ${[...new Set(b.terms.map((t) => ({ google: 'Google Trends', bluesky: 'Bluesky', wikipedia: 'Wikipedia' })[t.via] || t.via))].join(' en ')}`} plain />
+                  ))}
+                </div>
+              </section>
             ) : null}
             <div className="endcap">
               <BrandMark size={44} />

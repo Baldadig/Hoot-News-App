@@ -19,10 +19,13 @@ import { useStored, readJSON } from './lib/store.js'
 import { saveToInstapaper } from './lib/save.js'
 import { MAIN, rememberLocation, hrefFor } from './lib/context.js'
 import { sourceStatus, statusLabel } from './lib/sourceStatus.js'
+import Settings from './views/Settings.jsx'
+import { DisplaySheet } from './components/Display.jsx'
+import { normalizePrefs } from './lib/prefs.js'
 import { subscribe as onUpdate, isReady as updateReady, applyUpdate, dismissUpdate } from './lib/swUpdate.js'
 import { indexStories, resolveStory, toggleSaved, restoreSaved } from './lib/saved.js'
 
-const PAGES = ['zoek', 'stijl', 'welkom']
+const PAGES = ['zoek', 'stijl', 'welkom', 'instellingen']
 const byRecency = (a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || '')
 
 // Wie de vorige versie al gebruikte slaat het welkomscherm over en houdt zijn leeslijst.
@@ -62,11 +65,16 @@ function useWide(query) {
 
 export default function App() {
   const route = useRoute()
-  const [prefs, setPrefs] = useStored('hoot:prefs', {
-    muted: [],
-    pinned: ['nederland', 'vs-politiek', 'ai'],
-    onboarded: safe(isReturning, true),
-  })
+  const [rawPrefs, setPrefs] = useStored('hoot:prefs', { muted: [], pinned: ['nederland', 'vs-politiek', 'ai'], onboarded: safe(isReturning, true) })
+  const prefs = useMemo(() => normalizePrefs(rawPrefs), [rawPrefs])
+  const setPref = useCallback((key, value) => setPrefs((p) => ({ ...p, [key]: value })), [setPrefs])
+  // Tekstgrootte en beeld werken via attributen op <html> (zie styles.css).
+  useEffect(() => {
+    document.documentElement.dataset.text = prefs.textSize
+    document.documentElement.dataset.images = prefs.images
+  }, [prefs.textSize, prefs.images])
+  const [display, setDisplay] = useState(false)
+  const openDisplay = useCallback(() => setDisplay(true), [])
   const muted = useMemo(() => new Set(prefs.muted), [prefs.muted])
   const { data, status, refreshing, refreshError, reload, pendingCount, applyPending } = useFeed(muted)
   const online = useOnline()
@@ -136,6 +144,9 @@ export default function App() {
   // Ook vindbaar op een eerdere id (als twee bundels zijn samengegaan): bladwijzers en links blijven werken.
   const storiesById = useMemo(() => indexStories(data?.stories), [data])
 
+  // "Buiten je bubbel": de berichten bij de signalen van deze editie (als ze er zijn).
+  const bubble = useMemo(() => (prefs.bubble ? (data?.edition?.bubble || []).map((b) => ({ ...b, item: itemsById.get(b.id) })).filter((b) => b.item && !muted.has(b.item.source)) : []), [prefs.bubble, data, itemsById, muted])
+
   // ---- Handelingen ----
   const markRead = useCallback((id) => setReadIds((prev) => (prev.includes(id) ? prev : [...prev, id].slice(-1500))), [setReadIds])
 
@@ -168,7 +179,7 @@ export default function App() {
         setAnnounce(kind === 'story' ? 'Verhaal bewaard' : 'Bericht bewaard')
       }
       setSaved((prev) => toggleSaved(prev, kind, id, payload, itemsById))
-      if (kind === 'item' && !saved[id] && data?.meta?.instapaper) saveToInstapaper(payload)
+      if (kind === 'item' && !saved[id] && data?.meta?.instapaper && prefs.instapaper) saveToInstapaper(payload)
     },
     [setSaved, itemsById, saved, data],
   )
@@ -269,8 +280,7 @@ export default function App() {
         bronnen: 'Bronnen',
         zoek: 'Zoeken',
         stijl: 'Designsysteem',
-        welkom: 'Welkom',
-      }[path] + ' · Hoot'
+        welkom: 'Welkom', instellingen: 'Instellingen' }[path] + ' · Hoot'
   }, [path])
 
   // Bronstatus: één uitgevallen bron is een stil puntje bij Bronnen; alleen als álles
@@ -328,6 +338,11 @@ export default function App() {
       panel,
       layout,
       setLayout,
+      prefs,
+      setPref,
+      theme,
+      setTheme,
+      openDisplay,
       saved,
       toggleSave,
       read,
@@ -340,7 +355,7 @@ export default function App() {
       sourcesById,
       muted,
     }),
-    [panel, layout, setLayout, saved, toggleSave, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted],
+    [panel, layout, setLayout, prefs, setPref, theme, setTheme, openDisplay, saved, toggleSave, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted],
   )
 
   const hideMain = overlay || showWelcome
@@ -375,19 +390,17 @@ export default function App() {
         </div>
         <main id="inhoud" className="main" inert={hideMain ? '' : undefined}>
           {was('editie') ? (
-            <Edition active={shown === 'editie'} edition={data?.edition} loading={loading} failedLoad={failedLoad} statusProps={statusProps} onRefresh={reloadAll} refreshing={refreshing} />
+            <Edition active={shown === 'editie'} bubble={bubble} brief={prefs.brief ? data?.edition?.brief : null} readAloud={prefs.readAloud} edition={data?.edition} loading={loading} failedLoad={failedLoad} statusProps={statusProps} onRefresh={reloadAll} refreshing={refreshing} />
           ) : null}
           {was('stroom') ? (
             <Stream
               active={shown === 'stroom'}
+              bubble={bubble}
+              preview={prefs.preview}
               stream={stream}
               params={path === 'stroom' ? route.params : navMem.stroom || {}}
               go={route.go}
               pinned={prefs.pinned}
-              density={prefs.density === 'volledig' ? 'volledig' : 'kort'}
-              onDensity={(density) => setPrefs((p) => ({ ...p, density }))}
-              layout={layout}
-              onLayout={setLayout}
               sources={sources}
               loading={loading}
               failedLoad={failedLoad}
@@ -410,10 +423,6 @@ export default function App() {
               onRemoveSocial={social.removeSource}
               pinned={prefs.pinned}
               onPinned={(pinned) => setPrefs((p) => ({ ...p, pinned }))}
-              theme={theme}
-              setTheme={setTheme}
-              layout={layout}
-              onLayout={setLayout}
               meta={data?.meta}
               status={srcStatus}
               recovered={recovered}
@@ -424,6 +433,7 @@ export default function App() {
             />
           ) : null}
           {page === 'zoek' ? <Search onBack={() => route.back('editie')} /> : null}
+          {page === 'instellingen' ? <Settings meta={data?.meta} onBack={() => route.back('bronnen')} /> : null}
           {page === 'stijl' ? <StyleGuide stream={stream} /> : null}
         </main>
         <aside className={`panel${story ? ' is-open' : ''}`} hidden={!story && !panelOpen} aria-label="Verhaal" role={overlay ? 'dialog' : undefined} aria-modal={overlay ? 'true' : undefined} inert={showWelcome ? '' : undefined}>
@@ -433,6 +443,7 @@ export default function App() {
             <StoryIndex stories={data?.stories} onClose={togglePanel} lastId={lastStory} />
           )}
         </aside>
+        <DisplaySheet open={display} onClose={() => setDisplay(false)} />
         <div className="toasts" aria-live="polite">
           {undo ? (
             <div className="toast">

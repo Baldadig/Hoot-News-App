@@ -2,6 +2,22 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.10.0] — 2026-10-10 — Instellingen, Instapaper, voorlezen, AI-overzicht en buiten je bubbel
+
+### Nieuw
+
+- **Weergave-paneel** (Aa-knop in de titelrij van Editie en Stroom, naar het voorbeeld van Instapaper): thema, indeling Tijdlijn/Krant, tekstgrootte (drie standen), voorvertoning (1, 2, 3 regels of alles) en beeld (aan, alleen hoofdverhaal, uit). De Tijdlijn/Krant-schakelaar is hierheen verhuisd.
+- **Pagina Instellingen** (`#/instellingen`, vanuit Bronnen en het Weergave-paneel): Weergave, Lezen (Instapaper, voorlezen), Editie (AI-overzicht, buiten je bubbel, editietijden), Bronnen, Over.
+- **Instapaper** zichtbaar als instelling: schakelaar "Bewaren ook naar Instapaper" en de koppelingsstatus. Werkt zodra `INSTAPAPER_USERNAME` en `INSTAPAPER_PASSWORD` op Netlify staan.
+- **Voorlezen**: "Lees voor" in de Editie leest kop, kern en bron van de tien verhalen voor met de Nederlandse stem van het toestel (Web Speech API, gratis, per verhaal één stuk zodat iOS niet afbreekt).
+- **De editie in één minuut**: een AI-overzicht van 120–160 woorden (Claude Haiku 5.5), geschreven uit uitsluitend de koppen en samenvattingen van de editie, één keer per editie en met de editie bewaard. Werkt zodra `ANTHROPIC_API_KEY` op Netlify staat. De eerdere verrijking per bericht staat uit tenzij `HOOT_AI_ENRICH=1`.
+- **Buiten je bubbel**: drie verhalen die anderen nu lezen of zoeken (Google Trends NL, trending op Bluesky, meestgelezen Wikipedia-pagina's NL en EN), vergeleken met alle zeventien bronnen en nooit uit de editie zelf. Als blok onder de Editie en als pil in de Stroom; per verhaal staat erbij via welk signaal het is gevonden.
+
+### Gewijzigd
+
+- Bronnen bevat geen thema- en indelingskeuze meer (nu Weergave/Instellingen); wel een regel naar alle instellingen.
+- "Kort/Volledig" is vervangen door het aantal regels voorvertoning; een bestaande keuze wordt omgezet.
+
 ## [1.9.0] — 2026-10-09 — Compacte kop in de Stroom
 
 - **Onderwerpen als swipebare pillen.** Eén horizontaal scrollende rij met Alles en alle onderwerpen (36 px hoog, aanraakdoel 44), met een vervaging rechts; de gekozen pil scrolt vanzelf in beeld. Wat je onder Bronnen kiest staat vooraan ("Volgorde van onderwerpen"). Op breed scherm staan alle pillen zichtbaar in twee rijen.

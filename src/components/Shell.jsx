@@ -1,7 +1,7 @@
 import { clock } from '../lib/time.js'
 import { BrandLogo } from './Brand.jsx'
 import { useHoot } from './Items.jsx'
-import { EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, TimelineIcon, PaperIcon } from './icons.jsx'
+import { EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, TimelineIcon, PaperIcon, TypographyIcon, BackIcon } from './icons.jsx'
 
 export const DESTINATIONS = [
   { id: 'editie', label: 'Editie', Icon: EditionIcon },
@@ -64,16 +64,27 @@ export function LayoutSwitch() {
 // `compare`: toon op breed scherm de knop die het vergelijkpaneel opent en sluit.
 // `layout`: toon de schakelaar Tijdlijn/Krant in de rij (Editie en Stroom).
 // `subWide`: de ondertitel alleen op breed scherm (op telefoon kost hij een regel die niets nieuws zegt).
-export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing, showSearch = true, compare = false, layout = false, children }) {
-  const panel = useHoot()?.panel
+// `display`: de Aa-knop die het Weergave-paneel opent. `onBack`: terugknop vóór de titel (losse pagina's).
+export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing, showSearch = true, compare = false, display = false, onBack, children }) {
+  const hoot = useHoot()
+  const panel = hoot?.panel
   return (
     <header className="vh">
       <div className="vh__row">
+        {onBack ? (
+          <button type="button" className="iconbtn" onClick={onBack} aria-label="Terug">
+            <BackIcon />
+          </button>
+        ) : null}
         <div className="vh__titles">
           <h1 className="vh__title">{title}</h1>
           {sub ? <p className={`vh__sub${subWide ? ' vh__sub--wide' : ''}`}>{sub}</p> : null}
         </div>
-        {layout ? <LayoutSwitch /> : null}
+        {display ? (
+          <button type="button" className="iconbtn" onClick={hoot?.openDisplay} aria-haspopup="dialog" aria-label="Weergave" title="Weergave: thema, indeling, tekst, beeld">
+            <TypographyIcon />
+          </button>
+        ) : null}
         {compare && panel?.available ? (
           <button type="button" className="textbtn" onClick={panel.toggle} aria-pressed={panel.open}>
             <PanelIcon />
