@@ -2,6 +2,10 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.10.1] — 2026-10-12 — Voorvertoning bij de Volkskrant
+
+- De Volkskrant levert in haar feed alleen koppen, waardoor vrijwel elk bericht zonder voorvertoning stond (23 van de 25). Hoot haalt de eigen inleiding van het artikel nu uit de zoekindex van Bing Nieuws, gekoppeld op het artikel-id, en bewaart die. Liveblogs blijven zonder (hun kop wisselt). Het lenen van een andere bron ("via NOS") blijft als aanvulling.
+
 ## [1.10.0] — 2026-10-10 — Instellingen, Instapaper, voorlezen, AI-overzicht en buiten je bubbel
 
 ### Nieuw

@@ -4,6 +4,7 @@ import { getStore, connectLambda } from '@netlify/blobs'
 import { hash, byRecency, sigWords, sharedCount, buildStories, editionSlot, selectEdition, NL_SOURCES } from '../lib/stories.mjs'
 import { matchTrending } from '../lib/bubble.mjs'
 import { createBrief, briefRows } from '../lib/brief.mjs'
+import { articleId, parseSnippets, mergeSnippets, isLiveblog } from '../lib/snippets.mjs'
 
 // ---------- Bronnen ----------
 // bsky = Bluesky-handle van het officiële account, voor een mooie merk-avatar.
@@ -235,6 +236,26 @@ function pickImage(item) {
   const html = item.contentEncoded || item.content || item.description || ''
   const m = /<img[^>]+src=["']([^"']+)["']/i.exec(html)
   return m ? m[1] : null
+}
+
+// ---------- Voorvertoning voor de Volkskrant (feed levert alleen koppen) ----------
+// De eigen inleiding van het artikel uit de zoekindex van Bing Nieuws: een algemene vraag
+// plus één per rubriek die nu in de feed staat. Mislukt het, dan blijft het zoals het was.
+async function loadVkSnippets(sections) {
+  const one = async (q, first) => {
+    const c = new AbortController()
+    const t = setTimeout(() => c.abort(), 5000)
+    try {
+      const u = `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=rss&cc=NL&setlang=nl&count=50&qft=${encodeURIComponent('sortbydate="1"')}${first ? `&first=${first}` : ''}`
+      const r = await fetch(u, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; HootNews/1)' }, signal: c.signal })
+      return r.ok ? parseSnippets(await r.text()) : []
+    } finally {
+      clearTimeout(t)
+    }
+  }
+  const jobs = [one('site:volkskrant.nl'), one('site:volkskrant.nl', 15), ...sections.slice(0, 12).map((sec) => one(`site:volkskrant.nl/${sec}`))]
+  const res = await Promise.allSettled(jobs)
+  return res.flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
 }
 
 // ---------- Buiten je bubbel: waar anderen over praten ----------
@@ -663,6 +684,25 @@ export const handler = async (event) => {
   }
   items.sort(byRecency)
 
+  // De Volkskrant: de eigen inleiding uit de zoekindex (bewaard, zodat de dekking groeit).
+  let vkSnippets = 0
+  {
+    const vk = items.filter((it) => it.source === 'volkskrant' && it.kind === 'article' && !it.summary && !isLiveblog(it.url))
+    if (vk.length) {
+      const sections = [...new Set(vk.map((it) => (it.url.split('/')[3] || '').trim()).filter((x) => /^[a-z-]+$/.test(x)))]
+      const [stored, found] = await Promise.all([kvGet('vk-snippets-v1'), loadVkSnippets(sections).catch(() => [])])
+      const store = mergeSnippets(stored && typeof stored === 'object' ? stored : {}, found, now)
+      if (found.length) await kvSet('vk-snippets-v1', store)
+      for (const it of vk) {
+        const hit = store[articleId(it.url)]
+        if (!hit) continue
+        it.summary = preview(hit.s)
+        it.text = hit.s
+        vkSnippets++
+      }
+    }
+  }
+
   // Preview lenen: artikelen zonder eigen samenvatting (bv. de Volkskrant) krijgen
   // de teaser van een NL-bron die hetzelfde verhaal dekt. Streng: alleen bij sterke
   // titel-overlap, alleen NL→NL (taal klopt), en met bron-vermelding ("via NOS").
@@ -814,6 +854,7 @@ export const handler = async (event) => {
     instapaper: !!(process.env.INSTAPAPER_USERNAME && process.env.INSTAPAPER_PASSWORD),
     enrichedNew,
     bubbleSignals: trends.length,
+    vkSnippets, // hoeveel Volkskrant-berichten een voorvertoning uit de zoekindex kregen
     // (oude vorm, voor een nog niet bijgewerkte app)
     sources: sources.map(({ id, name, ok, count, error, followed }) => ({ id, name, ok, count, error, main: followed })),
   }

@@ -60,7 +60,7 @@ export default function Settings({ meta, onBack }) {
         <p className="about">
           Hoot v{__APP_VERSION__} · <a href="#/stijl">Designsysteem</a> · <a href="#/welkom">Welkomscherm</a>
           <br />
-          {meta?.storage === 'blobs' ? 'Edities en verhalen worden vast bewaard.' : 'Edities en verhalen worden op dit moment niet vast bewaard en kunnen tussentijds wisselen.'} Samenvattingen komen rechtstreeks van de bron; alleen "De editie in één minuut" is door AI geschreven.
+          {meta?.storage === 'blobs' ? 'Edities en verhalen worden vast bewaard.' : 'Edities en verhalen worden op dit moment niet vast bewaard en kunnen tussentijds wisselen.'} Samenvattingen komen rechtstreeks van de bron. De Volkskrant levert in haar feed alleen koppen; daar komt de voorvertoning (de eigen inleiding van het artikel) uit de zoekindex van Bing, of — met "via" erbij — van een andere bron over hetzelfde nieuws. Alleen "De editie in één minuut" is door AI geschreven.
         </p>
       </div>
     </section>
