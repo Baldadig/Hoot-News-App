@@ -55,7 +55,7 @@ function Kicker({ item, extra }) {
   const bits = []
   if (extra) bits.push(<span key="x">{extra}</span>)
   if (item.type === 'opinie') bits.push(<span key="t" className="kicker__type">Opinie</span>)
-  if (item.section) bits.push(<span key="s">{item.section}</span>)
+  if (item.section && !extra) bits.push(<span key="s">{item.section}</span>) // de rubriek van de editie gaat voor die van de bron
   return bits.length ? <p className="kicker">{bits}</p> : null
 }
 

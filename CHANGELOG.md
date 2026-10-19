@@ -2,6 +2,14 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.15.0] — 2026-10-19 — Editie met rubrieken
+
+- **Vaste opbouw**: elke editie heeft per rubriek het belangrijkste verhaal van het moment — **Binnenland, Buitenland, VS, Midden-Oosten, Oekraïne, Wetenschap** — plus **één verhaal van buiten je bubbel** (op plek 6, onder het hoofdverhaal). De overige plekken gaan naar wat verder het meeste nieuws is. Voorheen telde alleen het aantal bronnen, waardoor één onderwerp (vaak de VS) de editie kon vullen.
+- **Belangrijk van het moment**: aantal bronnen weegt het zwaarst, met voorrang voor je eigen bronnen en een duw voor wat in de laatste uren gebeurde. Een verhaal telt voor de rubriek waar het vooral over gaat (minstens de helft van de publicaties); bij twijfel de specifiekere (Oekraïne en Midden-Oosten vóór VS).
+- De rubriek staat als label boven elk verhaal in de editie; bij het bubbelverhaal ook via welk signaal (Google Trends, Bluesky, Wikipedia). De twee andere bubbelverhalen staan nog in het blok onderaan.
+- Cadeaugidsen ("Best Gifts for …") tellen niet meer als nieuws.
+- De lopende editie wordt na de update één keer opnieuw samengesteld.
+
 ## [1.14.0] — 2026-10-19 — Middageditie
 
 - Drie edities per dag: **ochtend** (06:00), **middag** (12:00, nieuw) en **avond** (17:00). Elke editie wordt op dat moment samengesteld en staat daarna vast; het einde van de editie noemt de volgende. Voorlezen, welkomscherm, Instellingen en README zeggen nu "drie keer per dag". Het AI-overzicht (als de sleutel er is) wordt ook voor de middageditie geschreven: ongeveer twee tot drie euro per maand in plaats van één tot twee.

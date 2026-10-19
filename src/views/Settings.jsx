@@ -45,7 +45,7 @@ export default function Settings({ meta, onBack }) {
         <Row label="Buiten je bubbel" hint="Drie verhalen die anderen nu lezen of zoeken (Google Trends, Bluesky, Wikipedia) en die niet in je editie zitten — ook uit bronnen die je niet volgt.">
           <Switch checked={prefs.bubble} onChange={(v) => setPref('bubble', v)} label="Buiten je bubbel" />
         </Row>
-        <Row label="Edities" hint="Ochtend om 06:00, middag om 12:00, avond om 17:00, elk tien verhalen. Eerst wat de meeste bronnen brengen, met voorrang voor je eigen bronnen; elke gebeurtenis één keer, ook als Nederlandse en Engelse bronnen erover schrijven. Er telt geen klikgedrag mee, en na het samenstellen verandert een editie niet meer." />
+        <Row label="Edities" hint="Ochtend om 06:00, middag om 12:00, avond om 17:00, elk tien verhalen. Per rubriek het belangrijkste verhaal van dat moment — binnenland, buitenland, VS, Midden-Oosten, Oekraïne en wetenschap — plus één verhaal van buiten je bubbel; de overige plekken gaan naar wat verder het meeste nieuws is. Belangrijk betekent: waar de meeste bronnen over schrijven, met voorrang voor je eigen bronnen en voor wat net gebeurd is. Elke gebeurtenis staat er één keer in. Er telt geen klikgedrag mee, en na het samenstellen verandert een editie niet meer." />
 
         <h2 className="sect">Bronnen</h2>
         <a className="setrow setrow--link" href="#/bronnen">

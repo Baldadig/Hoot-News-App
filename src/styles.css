@@ -2243,3 +2243,7 @@ html[data-images='hoofd'] .media--social {
   padding: var(--s2) var(--s1) var(--s2) var(--s4);
   line-height: var(--lh-ui);
 }
+
+.fitem__kicker {
+  margin: var(--s1) 0 0;
+}

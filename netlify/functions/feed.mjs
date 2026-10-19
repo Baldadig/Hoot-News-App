@@ -2,7 +2,7 @@ import Parser from 'rss-parser'
 import Anthropic from '@anthropic-ai/sdk'
 import { getStore, connectLambda } from '@netlify/blobs'
 import { hash, byRecency, sigWords, sharedCount, buildStories, editionSlot, selectEdition, NL_SOURCES } from '../lib/stories.mjs'
-import { matchTrending } from '../lib/bubble.mjs'
+import { matchTrending, insertBubble } from '../lib/bubble.mjs'
 import { createBrief, briefRows } from '../lib/brief.mjs'
 import { articleId, parseSnippets, mergeSnippets, isLiveblog } from '../lib/snippets.mjs'
 
@@ -176,7 +176,7 @@ function categoriesOf(it) {
 }
 // Geen nieuws: koopjesgidsen/affiliate-lijstjes en puzzels horen niet in een
 // nieuws-tijdlijn (bij Wired is dat rond acties tot 70% van de feed).
-const NOISE_TITLE = /\b(prime day|black friday|cyber monday|promo codes?|coupon codes?|gift guides?)\b|\bbest\b.*\bdeals\b|\bdeals\b.*(\bsave\b|\$\d|\bunder \$)|\d+ ?(%|percent) off\b/i
+const NOISE_TITLE = /\b(prime day|black friday|cyber monday|promo codes?|coupon codes?|gift guides?|best gifts?|gifts? for (him|her|men|women|kids|dads?|moms?))\b|\bbest\b.*\bdeals\b|\bdeals\b.*(\bsave\b|\$\d|\bunder \$)|\d+ ?(%|percent) off\b/i
 function isNoise(it, cats) {
   if (cats.some((c) => /\bdeals\b|\bcoupons?\b|\bshopping\b/i.test(c))) return true
   if (NOISE_TITLE.test(it.title || '')) return true
@@ -814,9 +814,9 @@ export const handler = async (event) => {
   // Editie: per dagdeel één keer samengesteld en daarna vast. De selectie en volgorde
   // veranderen niet meer; een verhaal dat nog loopt toont wel zijn nieuwe publicaties.
   const slot = editionSlot(new Date(now))
-  // 'edition2-': sleutel verhoogd bij de nieuwe bundeling, zodat een eerder samengestelde
-  // editie met dubbele gebeurtenissen niet blijft staan.
-  let stored = await kvGet('edition2-' + slot.id)
+  // 'edition3-': sleutel verhoogd bij de opbouw met rubrieken (v1.15), zodat de lopende editie
+  // na een update opnieuw wordt samengesteld.
+  let stored = await kvGet('edition3-' + slot.id)
   if (!stored || !Array.isArray(stored.entries) || !stored.entries.length) {
     // Muziek hoort in de Stroom, niet in de editie van het nieuws.
     const newsPool = articlePool.filter((a) => !MUSIC_IDS.has(a.source))
@@ -827,7 +827,7 @@ export const handler = async (event) => {
     const snapStories = entries.filter((e) => e.kind === 'story').map((e) => stories.find((st) => st.id === e.id))
     const snapIds = new Set([...snapStories.flatMap((st) => st.itemIds), ...entries.filter((e) => e.kind === 'item').map((e) => e.id)])
     stored = { id: slot.id, builtAt: new Date(now).toISOString(), entries, stories: snapStories, items: [...snapIds].map((id) => outById.get(id)).filter(Boolean) }
-    if (entries.length) await kvSet('edition2-' + slot.id, stored)
+    if (entries.length) await kvSet('edition3-' + slot.id, stored)
   }
   // Bij de editie horen ook (één keer, dan vast): "Buiten je bubbel" en het AI-overzicht.
   {
@@ -838,10 +838,13 @@ export const handler = async (event) => {
       const excludeStoryIds = new Set(stored.entries.filter((e) => e.kind === 'story').map((e) => e.id))
       const excludeItemIds = new Set([...stored.entries.filter((e) => e.kind === 'item').map((e) => e.id), ...[...excludeStoryIds].flatMap((id) => storyById.get(id)?.itemIds || [])])
       const coveredTitles = briefRows(stored.entries, storyById, new Map([...outById, ...stored.items.map((i) => [i.id, i])])).map((r) => r.title)
-      stored.bubble = matchTrending(trends, [...out, ...relatedOut, ...extraItems.map((it) => toClient(it, cache))], { excludeItemIds, excludeStoryIds, coveredTitles, now })
+      const picks = matchTrending(trends, [...out, ...relatedOut, ...extraItems.map((it) => toClient(it, cache))], { excludeItemIds, excludeStoryIds, coveredTitles, max: 3, now })
+      // Het sterkste signaal krijgt een plek in de editie zelf; de rest staat in het blok eronder.
+      stored.entries = insertBubble(stored.entries, picks[0])
+      stored.bubble = picks.slice(1)
       // De gekozen berichten bewaren bij de editie, zodat ze blijven als de feed ze loslaat.
       const poolOut = new Map([...out, ...relatedOut, ...extraItems.map((it) => toClient(it, cache))].map((i) => [i.id, i]))
-      for (const b of stored.bubble) if (!stored.items.some((i) => i.id === b.id) && poolOut.get(b.id)) stored.items.push(poolOut.get(b.id))
+      for (const b of picks) if (!stored.items.some((i) => i.id === b.id) && poolOut.get(b.id)) stored.items.push(poolOut.get(b.id))
       changed = true
     }
     if (anthropic && !stored.brief && stored.entries.length) {
@@ -852,7 +855,7 @@ export const handler = async (event) => {
         console.error('brief', String((e && e.message) || e))
       }
     }
-    if (changed && stored.entries.length) await kvSet('edition2-' + slot.id, stored)
+    if (changed && stored.entries.length) await kvSet('edition3-' + slot.id, stored)
   }
   // Wat intussen uit de feeds is verdwenen halen we uit de momentopname van de editie.
   const liveStoryIds = new Set(stories.map((st) => st.id))

@@ -1,6 +1,8 @@
 // Verhalen (bundels), hoofdbericht en editie — pure functies, los van het ophalen,
 // zodat ze te testen zijn (zie tests/).
 
+import { DESKS, desksOf, primaryDesk, weight } from './desks.mjs'
+
 export function hash(str) {
   let h = 5381
   for (let i = 0; i < str.length; i++) h = (((h << 5) + h) ^ str.charCodeAt(i)) >>> 0
@@ -307,36 +309,48 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     return from.find((i) => i.source !== prevLead && (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from.find((i) => (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from[0]
   }
 
-  const ranked = stories
-    .filter((st) => fresh(st.latestAt, 24))
-    .sort((a, b) => (b.ownCount > 0) - (a.ownCount > 0) || b.sourceCount - a.sourceCount || Date.parse(b.latestAt) - Date.parse(a.latestAt))
-  for (const st of ranked) {
-    if (entries.length >= size) break
+  // Kandidaten: verhalen (meerdere publicaties) en losse berichten uit je eigen bronnen.
+  const cands = []
+  for (const st of stories) {
+    if (!fresh(st.latestAt, 24)) continue
     const items = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
-    if (!items.length || clashes(st.itemIds)) continue
-    const lead = pickLead(items)
-    entries.push({ kind: 'story', id: st.id, leadId: lead.id })
-    leadCount[lead.source] = (leadCount[lead.source] || 0) + 1
-    prevLead = lead.source
-    place(st.itemIds)
+    if (!items.length) continue
+    const per = items.map((it) => desksOf(it))
+    cands.push({ kind: 'story', st, items, ids: st.itemIds, desks: new Set(per.flatMap((x) => [...x])), primary: primaryDesk(per), w: weight(st, now) })
   }
-
-  // Aanvullen met losse berichten uit je eigen bronnen, om en om per bron.
-  const bySource = {}
   for (const it of pool) {
     if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || it.storyId) continue
     if (!fresh(it.publishedAt, 14) || !(it.summary || it.image)) continue
-    ;(bySource[it.source] ||= []).push(it)
+    const desks = desksOf(it)
+    cands.push({ kind: 'item', it, ids: [it.id], desks, primary: primaryDesk([desks]), w: weight({ sourceCount: 1, ownCount: 1, latestAt: it.publishedAt }, now) - 2 })
   }
-  const queues = Object.values(bySource).map((q) => q.sort(byRecency))
-  for (let round = 0; entries.length < size && queues.some((q) => q[round]); round++) {
-    for (const q of queues) {
-      const it = q[round]
-      if (entries.length >= size) break
-      if (!it || clashes([it.id])) continue
-      entries.push({ kind: 'item', id: it.id })
-      place([it.id])
-    }
+  cands.sort((a, b) => b.w - a.w)
+
+  const used = new Set()
+  const take = (c, desk) => {
+    if (used.has(c) || clashes(c.ids)) return false
+    used.add(c)
+    place(c.ids)
+    if (c.kind === 'story') {
+      const lead = pickLead(c.items)
+      leadCount[lead.source] = (leadCount[lead.source] || 0) + 1
+      prevLead = lead.source
+      entries.push({ kind: 'story', id: c.st.id, leadId: lead.id, desk, w: c.w })
+    } else entries.push({ kind: 'item', id: c.it.id, desk, w: c.w })
+    return true
   }
-  return entries
+  // 1. Per rubriek het belangrijkste verhaal.
+  //    Eerst wat er vooral over gaat; alleen als dat er niet is, iets wat het ook raakt.
+  for (const desk of DESKS) {
+    if (entries.length >= size) break
+    if (!cands.some((c) => c.primary === desk && take(c, desk))) cands.some((c) => c.desks.has(desk) && take(c, desk))
+  }
+  // 2. Aanvullen met het belangrijkste wat er verder is.
+  for (const c of cands) {
+    if (entries.length >= size) break
+    take(c, null)
+  }
+  // Volgorde: belangrijkste eerst (het hoofdverhaal is het zwaarste nieuws van het moment).
+  entries.sort((a, b) => b.w - a.w)
+  return entries.map(({ w, ...e }) => e)
 }

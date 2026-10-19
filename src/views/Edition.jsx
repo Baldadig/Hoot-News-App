@@ -10,12 +10,17 @@ import Weather from '../components/Weather.jsx'
 import { longDate } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 
+// Rubriek van elke plek in de editie (komt van de server), als label boven het verhaal.
+const DESK = { binnenland: 'Binnenland', buitenland: 'Buitenland', vs: 'VS', middenoosten: 'Midden-Oosten', oekraine: 'Oekraïne', wetenschap: 'Wetenschap', bubbel: 'Buiten je bubbel' }
+const VIA = { google: 'Google Trends', bluesky: 'Bluesky', wikipedia: 'Wikipedia' }
+const deskLabel = (e) => (e.desk === 'bubbel' && e.terms?.length ? `Buiten je bubbel · via ${[...new Set(e.terms.map((t) => VIA[t.via] || t.via))].join(' en ')}` : DESK[e.desk] || null)
+
 const FRONT = 6 // voorpagina: hoofdverhaal, drie ernaast en twee eronder
 
 // Klein verhaal op de voorpagina. Bron en tijd hebben een eigen regel (breekt af in plaats van
 // af te kappen); vergelijken en bewaren staan apart eronder. Bij een lange kop vervalt de
 // samenvatting — liever dat dan een afgekapte bronregel.
-function FrontItem({ item, story }) {
+function FrontItem({ item, story, note }) {
   const { markRead, read, openSource, openStory, newInStory } = useHoot()
   const others = story ? story.sourceCount - 1 : 0
   const fresh = story ? newInStory(story) : 0
@@ -23,6 +28,7 @@ function FrontItem({ item, story }) {
   const summary = title.length <= 90 ? item.nl_summary || item.summary : null
   return (
     <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
+      {note ? <p className="kicker fitem__kicker">{note}</p> : null}
       <p className="fitem__src">
         <button type="button" className="fitem__name" onClick={() => openSource(item.source)} aria-label={`Alles van ${item.sourceName} bekijken`}>
           <SourceMark source={{ name: item.sourceName, avatar: item.avatar, avatarContain: item.avatarContain, brandColor: item.brandColor }} size={20} />
@@ -80,10 +86,10 @@ export default function Edition({ active, edition, bubble = [], brief = null, re
         // bron uit of is het bericht weg, dan het eerstvolgende uit het verhaal.
         const story = storiesById.get(e.id)
         const item = story && [e.leadId, story.leadId, ...story.itemIds].map((id) => itemsById.get(id)).find((i) => i && !muted.has(i.source))
-        return item ? { key: e.id, item, story } : null
+        return item ? { key: e.id, item, story, note: deskLabel(e) } : null
       }
       const item = itemsById.get(e.id)
-      return item && !muted.has(item.source) ? { key: e.id, item, story: null } : null
+      return item && !muted.has(item.source) ? { key: e.id, item, story: null, note: deskLabel(e) } : null
     })
     .filter(Boolean)
 
@@ -156,11 +162,11 @@ export default function Edition({ active, edition, bubble = [], brief = null, re
             {/* Voorpagina: het hoofdverhaal groot, daarnaast drie kleinere — altijd in krant-vorm.
                 Op smal scherm (of met het vergelijkpaneel open) staan ze onder elkaar. */}
             <div className="front">
-              <LeadStory item={rows[0].item} story={rows[0].story} priority={active} />
+              <LeadStory item={rows[0].item} story={rows[0].story} note={rows[0].note} priority={active} />
               {rows.length > 1 ? (
                 <div className="front__side">
-                  {rows.slice(1, 4).map(({ key, item, story }) => (
-                    <FrontItem key={key} item={item} story={story} />
+                  {rows.slice(1, 4).map(({ key, item, story, note }) => (
+                    <FrontItem key={key} item={item} story={story} note={note} />
                   ))}
                 </div>
               ) : null}
@@ -168,8 +174,8 @@ export default function Edition({ active, edition, bubble = [], brief = null, re
                   hoogte van de kolom ernaast (geen gat onder het hoofdverhaal). */}
               {rows.length > 4 ? (
                 <div className="front__under">
-                  {rows.slice(4, FRONT).map(({ key, item, story }) => (
-                    <FrontItem key={key} item={item} story={story} />
+                  {rows.slice(4, FRONT).map(({ key, item, story, note }) => (
+                    <FrontItem key={key} item={item} story={story} note={note} />
                   ))}
                 </div>
               ) : null}
@@ -178,8 +184,8 @@ export default function Edition({ active, edition, bubble = [], brief = null, re
               <div className="front__rest">
                 <h2 className="front__more">Verder in deze editie</h2>
                 <div className="list">
-                  {rows.slice(FRONT).map(({ key, item, story }, i) => (
-                    <CompactItem key={key} item={item} story={story} note={`${i + FRONT + 1} van ${rows.length}`} />
+                  {rows.slice(FRONT).map(({ key, item, story, note }) => (
+                    <CompactItem key={key} item={item} story={story} note={note} />
                   ))}
                 </div>
               </div>

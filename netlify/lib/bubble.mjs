@@ -85,3 +85,17 @@ export function briefInput(rows) {
     .map((r, i) => `${i + 1}. [${r.sourceName}] ${r.title}${r.summary ? ` — ${r.summary}` : ''}`)
     .join('\n')
 }
+
+// Eén verhaal van buiten je bubbel krijgt een plek in de editie (op plek 6: onder het
+// hoofdverhaal op de voorpagina); het minst belangrijke aanvullende verhaal maakt plaats.
+export function insertBubble(entries, pick, { at = 5, size = 10 } = {}) {
+  if (!pick) return entries
+  const out = [...entries]
+  if (out.length >= size) {
+    let k = -1
+    for (let i = out.length - 1; i >= 0; i--) if (!out[i].desk) { k = i; break }
+    out.splice(k === -1 ? out.length - 1 : k, 1)
+  }
+  out.splice(Math.min(at, out.length), 0, { kind: 'item', id: pick.id, desk: 'bubbel', terms: pick.terms })
+  return out
+}
