@@ -66,20 +66,23 @@ export function LayoutSwitch() {
 // `layout`: toon de schakelaar Tijdlijn/Krant in de rij (Editie en Stroom).
 // `subWide`: de ondertitel alleen op breed scherm (op telefoon kost hij een regel die niets nieuws zegt).
 // `display`: de Aa-knop die het Weergave-paneel opent. `onBack`: terugknop vóór de titel (losse pagina's).
-export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing, showSearch = true, compare = false, display = false, onBack, children }) {
+// De kop is één rij van 44 px (titel + knoppen); de ondertitel staat eronder over de volle breedte,
+// zodat hij nooit tussen titel en knoppen wordt samengeperst. `onBack` + `backLabel`: een terugregel
+// boven de titel (iOS-patroon), zodat de titel op de kolomlijn blijft.
+export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing, showSearch = true, compare = false, display = false, onBack, backLabel = 'Terug', children }) {
   const hoot = useHoot()
   const panel = hoot?.panel
   return (
     <header className="vh">
+      {onBack ? (
+        <button type="button" className="vh__back" onClick={onBack}>
+          <BackIcon />
+          {backLabel}
+        </button>
+      ) : null}
       <div className="vh__row">
-        {onBack ? (
-          <button type="button" className="iconbtn" onClick={onBack} aria-label="Terug">
-            <BackIcon />
-          </button>
-        ) : null}
         <div className="vh__titles">
           <h1 className="vh__title">{title}</h1>
-          {sub ? <p className={`vh__sub${subWide ? ' vh__sub--wide' : ''}`}>{sub}</p> : null}
         </div>
         {display ? (
           <button type="button" className="iconbtn" onClick={hoot?.openDisplay} aria-haspopup="dialog" aria-label="Weergave" title="Weergave: thema, indeling, tekst, beeld">
@@ -103,6 +106,7 @@ export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing,
           </a>
         ) : null}
       </div>
+      {sub ? <p className={`vh__sub${subWide ? ' vh__sub--wide' : ''}`}>{sub}</p> : null}
       {children}
     </header>
   )

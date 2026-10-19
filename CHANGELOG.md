@@ -2,6 +2,16 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.11.1] — 2026-10-19 — Pixelcontrole
+
+Nagemeten op 375 en 1440 px (licht en donker) op Editie, Stroom, Bluesky, Bewaard, Bronnen, Instellingen, Zoeken, het Weergave-paneel en de bronvergelijking.
+
+- Alle tekst op de typeschaal: knoppen als "+3 bronnen", "Nieuwe berichten", bronnamen in Bronnen en Bluesky, labels in Instellingen en de tekst van lege toestanden stonden op 16 px (buiten de schaal) en staan nu op 15 of 17.
+- De ondertitel van een scherm staat onder de titelrij over de volle breedte; met het vergelijkpaneel open werd hij tussen titel en knoppen samengeperst tot twee regels. Op telefoon ontbreekt hij nu ook bij Bronnen (zoals bij Stroom en Bluesky).
+- Instellingen: de terugknop staat als regel "‹ Bronnen" boven de titel, zodat de titel op de kolomlijn staat (stond 48 px ingesprongen). Koppelingsteksten zonder technische namen.
+- Op smalle telefoons valt "1 min lezen" weg vóór de tijd wordt afgekapt.
+- "Lees voor" heeft een aanraakdoel van 44 px. Op breed scherm staat het filtericoon op de eerste regel pillen in plaats van ertussen.
+
 ## [1.11.0] — 2026-10-19 — Bluesky als eigen stroom, muziek, voorpagina zonder gat
 
 - **Bluesky** is een eigen bestemming in het menu (vlinder): de posts van de mensen die je volgt, met bovenaan een rij per persoon (tik = alleen die persoon) en + om iemand te volgen, met suggesties (3voor12, Atze de Vrieze). Aaron Rupar staat er als eerste. Posts staan niet meer in de Stroom; per persoon kun je "ook in de Stroom" aanzetten. Accounts toevoegen gebeurt nu hier in plaats van onder Bronnen.

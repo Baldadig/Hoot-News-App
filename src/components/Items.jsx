@@ -72,7 +72,7 @@ export function Meta({ item, story, showSave = true }) {
           <span className="srcbtn__name">{item.sourceName}</span>
           <span className="srcbtn__time">
             <time dateTime={item.publishedAt || undefined}>{timeAgo(item.publishedAt)}</time>
-            {item.readMin ? ` · ${readTime(item.readMin)}` : ''}
+            {item.readMin ? <span className="srcbtn__read"> · {readTime(item.readMin)}</span> : null}
           </span>
         </span>
       </button>

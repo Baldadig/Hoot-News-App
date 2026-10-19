@@ -25,13 +25,13 @@ export default function Settings({ meta, onBack }) {
   return (
     <section className="view view--page" aria-label="Instellingen">
       <div className="col">
-        <ViewHeader title="Instellingen" sub="Wat je één keer instelt" showSearch={false} onBack={onBack} />
+        <ViewHeader title="Instellingen" showSearch={false} onBack={onBack} backLabel="Bronnen" />
 
         <h2 className="sect">Weergave</h2>
         <DisplayControls />
 
         <h2 className="sect">Lezen</h2>
-        <Row label="Bewaren ook naar Instapaper" hint={ip ? 'Gekoppeld: het bladwijzertje stuurt een bericht ook naar je Instapaper.' : 'Nog niet gekoppeld. Zet INSTAPAPER_USERNAME en INSTAPAPER_PASSWORD als omgevingsvariabelen op Netlify; daarna werkt dit vanzelf.'}>
+        <Row label="Bewaren ook naar Instapaper" hint={ip ? 'Gekoppeld: het bladwijzertje stuurt een bericht ook naar je Instapaper.' : 'Nog niet gekoppeld. Voeg je Instapaper-gegevens toe in Netlify (stappen in de README).'}>
           <Switch checked={prefs.instapaper && ip} onChange={(v) => setPref('instapaper', v)} label="Bewaren ook naar Instapaper" />
         </Row>
         <Row label="Voorleesknop in de Editie" hint={canSpeak() ? 'Leest kop en kern van de tien verhalen voor met de Nederlandse stem van je toestel.' : 'Dit toestel heeft geen voorleesstem.'}>
@@ -39,7 +39,7 @@ export default function Settings({ meta, onBack }) {
         </Row>
 
         <h2 className="sect">Editie</h2>
-        <Row label="De editie in één minuut" hint={ai ? 'Een AI-overzicht van 150 woorden, geschreven uit de koppen en samenvattingen van de editie. Twee keer per dag.' : 'Werkt zodra ANTHROPIC_API_KEY als omgevingsvariabele op Netlify staat. Kost ongeveer één tot twee euro per maand.'}>
+        <Row label="De editie in één minuut" hint={ai ? 'Een AI-overzicht van 150 woorden, geschreven uit de koppen en samenvattingen van de editie. Twee keer per dag.' : 'Nog niet gekoppeld. Voeg je Anthropic-sleutel toe in Netlify (stappen in de README); kost ongeveer één tot twee euro per maand.'}>
           <Switch checked={prefs.brief} onChange={(v) => setPref('brief', v)} label="De editie in één minuut" />
         </Row>
         <Row label="Buiten je bubbel" hint="Drie verhalen die anderen nu lezen of zoeken (Google Trends, Bluesky, Wikipedia) en die niet in je editie zitten — ook uit bronnen die je niet volgt.">

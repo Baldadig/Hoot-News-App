@@ -419,7 +419,7 @@ input {
 }
 
 .vh__sub {
-  margin-top: var(--s1);
+  margin-top: 0;
   color: var(--ink-3);
   font-size: var(--t2);
   line-height: var(--lh-ui);
@@ -747,6 +747,7 @@ input {
   font-size: var(--t2);
 }
 .meta .srcbtn {
+  font-size: var(--t2);
   flex: 1 1 0;
 }
 
@@ -784,6 +785,7 @@ input {
 }
 
 .morebtn {
+  font-size: var(--t2);
   display: inline-flex;
   align-items: center;
   gap: var(--s2);
@@ -1098,6 +1100,7 @@ input {
   text-wrap: balance;
 }
 .empty__text {
+  font-size: var(--t3);
   max-width: 34em;
   margin: 0 auto var(--s4);
   color: var(--ink-2);
@@ -1197,6 +1200,7 @@ input {
 
 /* ---------- Stroom ---------- */
 .newpill {
+  font-size: var(--t2);
   position: sticky;
   top: calc(var(--safe-t) + 8px);
   z-index: 10;
@@ -1326,6 +1330,7 @@ input {
   min-width: 0;
 }
 .srow__name {
+  font-size: var(--t2);
   font-weight: 700;
 }
 .srow__meta {
@@ -1423,6 +1428,7 @@ input {
   margin-top: var(--s5);
 }
 .add__label {
+  font-size: var(--t2);
   display: block;
   margin-bottom: var(--s2);
   font-weight: 700;
@@ -1578,6 +1584,7 @@ input {
   min-width: 0;
 }
 .linkcard__title {
+  font-size: var(--t2);
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -1999,6 +2006,7 @@ html[data-images='hoofd'] .media--social {
   border-bottom: 0;
 }
 .drow__label {
+  font-size: var(--t2);
   flex: 1;
   min-width: 0;
   font-weight: 600;
@@ -2035,6 +2043,7 @@ html[data-images='hoofd'] .media--social {
   min-width: 0;
 }
 .setrow__label {
+  font-size: var(--t2);
   font-weight: 600;
 }
 .setrow__hint {
@@ -2079,12 +2088,18 @@ html[data-images='hoofd'] .media--social {
 
 /* Voorlezen: kleine knop in de metaregel */
 .textbtn--sm {
+  position: relative;
   height: 36px;
   padding: 0 var(--s3);
   font-size: var(--t1);
 }
 .how__speak {
   margin-left: auto;
+}
+.textbtn--sm::before {
+  content: ''; /* aanraakdoel loopt door tot 44 px */
+  position: absolute;
+  inset: -4px 0;
 }
 .how__speak.is-on {
   border-color: var(--accent);
@@ -2153,4 +2168,41 @@ html[data-images='hoofd'] .media--social {
   .app:not(.has-panel) .front__under .thumb {
     display: none;
   }
+}
+
+/* Smalle telefoon: leestijd weg vóór de bron- of tijdregel wordt afgekapt */
+@media (max-width: 400px) {
+  .srcbtn__read {
+    display: none;
+  }
+}
+
+/* Terugregel boven de titel: het pijltje staat optisch op de kolomlijn */
+.vh__back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+  min-height: var(--tap);
+  margin-left: -6px;
+  padding: 0 var(--s2) 0 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: var(--t2);
+  font-weight: 600;
+  cursor: pointer;
+}
+/* Breed scherm: pillen lopen over twee regels; de knop rechts hoort bij de eerste regel */
+@media (min-width: 960px) {
+  .topics {
+    align-items: flex-start;
+  }
+  .topics__scroll {
+    padding-top: var(--s1);
+  }
+}
+
+/* Bluesky: naam in de kop van een post op de schaal (bronnaam = t2) */
+.social__who .srcbtn__name {
+  font-size: var(--t2);
 }
