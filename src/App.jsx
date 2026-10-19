@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { HootContext } from './components/Items.jsx'
 import { CloseIcon } from './components/icons.jsx'
+
+const ShareGlyph = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="Deel" role="img" style={{ verticalAlign: '-2px' }}>
+    <path d="M12 3v12M8 7l4-4 4 4M6 11H5v9h14v-9h-1" />
+  </svg>
+)
 import { Nav } from './components/Shell.jsx'
 import Edition from './views/Edition.jsx'
 import Stream from './views/Stream.jsx'
@@ -24,6 +30,7 @@ import Bluesky from './views/Bluesky.jsx'
 import { mutedSet, toggleSource, inStream, isPost } from './lib/sourcesel.js'
 import { DisplaySheet } from './components/Display.jsx'
 import { normalizePrefs } from './lib/prefs.js'
+import { shouldShowInstallTip } from './lib/install.js'
 import { subscribe as onUpdate, isReady as updateReady, applyUpdate, dismissUpdate } from './lib/swUpdate.js'
 import { indexStories, resolveStory, toggleSaved, restoreSaved } from './lib/saved.js'
 
@@ -169,6 +176,24 @@ export default function App() {
   // Nieuwe versie klaar? Stille melding; herladen gebeurt alleen als jij dat kiest.
   const [update, setUpdate] = useState(updateReady)
   useEffect(() => onUpdate(setUpdate), [])
+
+  // Tip in Safari op iPhone/iPad: zet Hoot op het beginscherm (één keer, weg te klikken).
+  const installTip = useMemo(
+    () =>
+      safe(
+        () =>
+          shouldShowInstallTip({
+            ua: navigator.userAgent,
+            standalone: !!navigator.standalone,
+            displayStandalone: window.matchMedia('(display-mode: standalone)').matches,
+            dismissed: !!rawPrefs.installTipDone,
+            maxTouchPoints: navigator.maxTouchPoints,
+            platform: navigator.platform,
+          }),
+        false
+      ),
+    [rawPrefs.installTipDone]
+  )
 
   // Na verwijderen uit Bewaard: een paar tellen de kans om het terug te zetten.
   const [undo, setUndo] = useState(null) // { id, entry }
@@ -472,6 +497,15 @@ export default function App() {
               <span>Verwijderd uit Bewaard</span>
               <button type="button" className="linkbtn" onClick={undoRemove}>
                 Ongedaan maken
+              </button>
+            </div>
+          ) : installTip && prefs.onboarded ? (
+            <div className="toast toast--tip">
+              <span>
+                Zet Hoot op je beginscherm: tik op <ShareGlyph /> en kies <strong>Zet op beginscherm</strong>.
+              </span>
+              <button type="button" className="iconbtn toast__x" onClick={() => setPref('installTipDone', true)} aria-label="Tip sluiten">
+                <CloseIcon />
               </button>
             </div>
           ) : update ? (

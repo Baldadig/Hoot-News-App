@@ -215,7 +215,9 @@ input {
 .nav {
   background: var(--paper);
   border-top: 1px solid var(--rule);
-  padding-bottom: var(--safe-b);
+  /* Op het beginscherm: de ruimte van de home-balk (34 pt op iPhones zonder thuisknop);
+     in Safari en op toestellen zonder home-balk een kleine marge. */
+  padding-bottom: max(var(--safe-b), var(--s1));
 }
 
 .nav__brand,
@@ -240,9 +242,9 @@ input {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--s1);
-  min-height: 56px;
-  padding: var(--s2) var(--s1);
+  gap: 2px;
+  min-height: 50px; /* zoals een iOS-tabbalk (49 pt) */
+  padding: var(--s1) var(--s1) 2px;
   color: var(--ink-3);
   font-size: min(0.75rem, 16px); /* bij sterk vergrote tekst blijven vier labels naast elkaar passen */
   font-weight: 600;
@@ -1048,7 +1050,7 @@ input {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(var(--safe-b) + 68px);
+  bottom: calc(var(--safe-b) + 62px);
   z-index: 50;
   display: flex;
   justify-content: center;
@@ -2234,4 +2236,10 @@ html[data-images='hoofd'] .media--social {
 }
 .weather svg {
   flex: none;
+}
+
+/* Tip "zet op beginscherm": dezelfde melding, iets breder en met lucht voor twee regels */
+.toast--tip {
+  padding: var(--s2) var(--s1) var(--s2) var(--s4);
+  line-height: var(--lh-ui);
 }

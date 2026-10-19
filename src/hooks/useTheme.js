@@ -17,6 +17,11 @@ function systemDark() {
 function apply(pref) {
   const dark = pref === 'dark' || (pref !== 'light' && systemDark())
   document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+  // Status- en browserbalk in de kleur van het papier, ook als je zelf een thema kiest.
+  for (const m of document.querySelectorAll('meta[name="theme-color"]')) {
+    m.setAttribute('content', dark ? '#0f0f11' : '#fbfaf7')
+    m.removeAttribute('media')
+  }
 }
 
 export function useTheme() {

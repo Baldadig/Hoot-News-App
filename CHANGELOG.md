@@ -2,6 +2,14 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.13.0] — 2026-10-19 — Web-app op iPhone en iPad
+
+Getest in de iOS-simulator (iPhone 16 Pro, iPhone 13 mini) in Safari en via "Zet op beginscherm".
+
+- **Statusbalk**: stond op "black-translucent", waardoor de klok op het beginscherm wit op het lichte papier werd (onleesbaar). Nu "default" met een themakleur in de kleur van het papier (licht en donker, en mee met je eigen keuze in Weergave): donkere klok op licht papier, en in Safari geen donkerblauwe balk meer bovenin.
+- **Navigatie onderin** volgt de maat van een iOS-tabbalk: 50 pt hoog plus precies de ruimte van de home-balk (34 pt op iPhones zonder thuisknop); in Safari en op toestellen zonder home-balk een marge van 4 pt in plaats van niets.
+- **Tip "Zet op beginscherm"** in Safari op iPhone en iPad, één keer en weg te klikken; verschijnt niet als Hoot al vanaf het beginscherm draait.
+
 ## [1.12.0] — 2026-10-19 — Het weer in de kop van de Editie
 
 - De metaregel van de Editie is één regel: de datum en het weer van vandaag in Haarlem (icoon en hoogste temperatuur, via Open-Meteo, gratis en zonder sleutel; een half uur bewaard), rechts "Lees voor". Voor schermlezers staat er ook de omschrijving en de minimumtemperatuur.

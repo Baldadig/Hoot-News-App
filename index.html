@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Hoot</title>
     <meta name="description" content="Een rustige, reclamevrije nieuws-tijdlijn van jouw abonnementen." />
-    <meta name="theme-color" content="#263c67" />
+    <!-- Kleur van de statusbalk/browserbalk: het papier van het thema (wordt bij wisselen bijgewerkt). -->
+    <meta name="theme-color" content="#fbfaf7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f0f11" media="(prefers-color-scheme: dark)" />
     <!-- De berichten alvast ophalen terwijl de app zelf nog laadt. -->
     <link rel="preload" href="/api/feed" as="fetch" crossorigin="anonymous" />
     <script>
@@ -32,7 +34,9 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!-- "default": op het beginscherm staat de app onder de statusbalk en kleurt de klok mee met de
+         achtergrond. ("black-translucent" gaf witte tijd op het lichte papier: onleesbaar.) -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Hoot" />
     <script>
       // Zet het thema vóór render (geen flits): voorkeur uit localStorage, 'system' volgt het OS.
