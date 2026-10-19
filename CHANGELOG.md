@@ -2,6 +2,11 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.12.0] — 2026-10-19 — Het weer in de kop van de Editie
+
+- De metaregel van de Editie is één regel: de datum en het weer van vandaag in Haarlem (icoon en hoogste temperatuur, via Open-Meteo, gratis en zonder sleutel; een half uur bewaard), rechts "Lees voor". Voor schermlezers staat er ook de omschrijving en de minimumtemperatuur.
+- "Hoe is dit gekozen?", het aantal verhalen en de samensteltijd zijn weg; de uitleg over de selectie staat nu onder Instellingen → Editie.
+
 ## [1.11.1] — 2026-10-19 — Pixelcontrole
 
 Nagemeten op 375 en 1440 px (licht en donker) op Editie, Stroom, Bluesky, Bewaard, Bronnen, Instellingen, Zoeken, het Weergave-paneel en de bronvergelijking.

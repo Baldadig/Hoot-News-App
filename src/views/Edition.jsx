@@ -6,7 +6,8 @@ import { bulletinText, canSpeak, speak, stop } from '../lib/speech.js'
 import { HeadphonesIcon, StopIcon } from '../components/icons.jsx'
 import { timeAgo } from '../lib/time.js'
 import { BrandMark } from '../components/Brand.jsx'
-import { longDate, clock } from '../lib/time.js'
+import Weather from '../components/Weather.jsx'
+import { longDate } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 
 const FRONT = 6 // voorpagina: hoofdverhaal, drie ernaast en twee eronder
@@ -128,26 +129,19 @@ export default function Edition({ active, edition, bubble = [], brief = null, re
           <>
             <StatusLine {...statusProps} quiet />
             {/* Eén metaregel onder de titel: datum, omvang, tijd en de uitleg. */}
-            <details className="how">
-              <summary>
-                <span>
-                  {sub} · {rows.length} verhalen · {clock(edition.builtAt)}
-                </span>
-                <span className="how__link">Hoe is dit gekozen?</span>
-                {showSpeak ? (
-                  <button type="button" className={`textbtn textbtn--sm how__speak${speaking ? ' is-on' : ''}`} onClick={(e) => (e.preventDefault(), toggleSpeak())} aria-pressed={speaking}>
-                    {speaking ? <StopIcon /> : <HeadphonesIcon />}
-                    {speaking ? 'Stop' : 'Lees voor'}
-                  </button>
-                ) : null}
-              </summary>
-              <p>
-                De eerste vier staan op de voorpagina, de rest eronder. Eerst de verhalen waar de meeste bronnen over schrijven, met voorrang voor je eigen bronnen; daarna de meest recente. Aangevuld
-                met losse berichten, om en om per bron. Elke gebeurtenis staat er één keer in, ook als Nederlandse en Engelse bronnen er allebei over schrijven. Per verhaal zie je het bericht van een
-                van je eigen bronnen, zo afwisselend mogelijk. Er telt geen klikgedrag mee. Een editie verandert na het samenstellen niet meer van selectie of volgorde — wel kan een lopend verhaal er
-                publicaties bij krijgen.
-              </p>
-            </details>
+            {/* Eén metaregel: datum en het weer van vandaag; rechts voorlezen. */}
+            <div className="edmeta">
+              <span className="edmeta__text">
+                {sub}
+                <Weather />
+              </span>
+              {showSpeak ? (
+                <button type="button" className={`textbtn textbtn--sm how__speak${speaking ? ' is-on' : ''}`} onClick={toggleSpeak} aria-pressed={speaking}>
+                  {speaking ? <StopIcon /> : <HeadphonesIcon />}
+                  {speaking ? 'Stop' : 'Lees voor'}
+                </button>
+              ) : null}
+            </div>
             {brief?.text ? (
               <section className="brief" aria-label="De editie in één minuut">
                 <h2 className="brief__head">De editie in één minuut</h2>
