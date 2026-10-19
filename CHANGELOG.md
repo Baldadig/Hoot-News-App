@@ -2,6 +2,13 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.16.0] — 2026-10-19 — Natuurlijke stem voor voorlezen
+
+- "Lees voor" kan een **natuurlijke Nederlandse stem** gebruiken (Azure AI Speech, neurale stemmen Fenna, Maarten of Colette; kies onder Instellingen → Lezen). De server maakt per editie en stem één MP3 en bewaart die, dus elke editie wordt maar één keer omgezet. Als er een AI-overzicht is, begint het voorlezen daarmee.
+- Speelt door als je scherm uitgaat, met titel en knoppen (pauze, 15 seconden terug/vooruit) op je toegangsscherm.
+- Zolang de stem niet gekoppeld is, of als het ophalen mislukt, leest Hoot voor met de stem van je toestel, zoals nu.
+- Koppelen: `AZURE_SPEECH_KEY` en `AZURE_SPEECH_REGION` op Netlify (stappen in de README). Het gratis prijsplan (0,5 miljoen tekens per maand) is ruim genoeg voor drie edities per dag.
+
 ## [1.15.1] — 2026-10-19 — Ontbrekende beelden en intro's aanvullen
 
 - Wat een feed mist, haalt Hoot nu uit de zoekindex van Bing Nieuws en bewaart het: **beelden** bij de NYT (die zet het beeld vaak pas later in de feed) en The Economist (geeft nooit een beeld), en **beelden én intro's** bij de Volkskrant. Gekoppeld op het artikel (URL of artikelnummer), op maat opgevraagd (vierkant voor een thumbnail, 16:9 voor een groot beeld). Lokaal gemeten op de feed van nu, zonder opgebouwde voorraad: NYT 20 van 21 met beeld (was 19), The Economist 8 van 14 (was 0), de Volkskrant 16 van 22 met intro. Op de live-site groeit dat, omdat vondsten bewaard blijven.

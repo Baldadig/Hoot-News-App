@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { LeadStory, CompactItem, SaveButton, SourceMark, useHoot } from '../components/Items.jsx'
 import { imgProps } from '../lib/img.js'
-import { bulletinText, canSpeak, speak, stop } from '../lib/speech.js'
+import { bulletinText, canSpeak, speak, stop, playEdition } from '../lib/speech.js'
 import { HeadphonesIcon, StopIcon } from '../components/icons.jsx'
 import { timeAgo } from '../lib/time.js'
 import { BrandMark } from '../components/Brand.jsx'
@@ -74,7 +74,7 @@ function FrontItem({ item, story, note }) {
 }
 const SLOT = { ochtend: 'Ochtendeditie', middag: 'Middageditie', avond: 'Avondeditie' }
 
-export default function Edition({ active, edition, bubble = [], brief = null, readAloud = true, loading, failedLoad, statusProps, onRefresh, refreshing }) {
+export default function Edition({ active, edition, bubble = [], brief = null, readAloud = true, tts = false, voice = 'fenna', loading, failedLoad, statusProps, onRefresh, refreshing }) {
   const { itemsById, storiesById, muted } = useHoot()
   const ref = useRef(null)
 
@@ -101,11 +101,17 @@ export default function Edition({ active, edition, bubble = [], brief = null, re
   }, [active, speaking])
   const toggleSpeak = () => {
     if (speaking) return (stop(), setSpeaking(false))
-    const parts = bulletinText({ slot: edition.slot, date: longDate(edition.date), rows: rows.map(({ item }) => ({ title: item.short_title || item.title, summary: item.nl_summary || item.summary, sourceName: item.sourceName })) })
-    speak(parts, { onEnd: () => setSpeaking(false) })
+    const device = () => {
+      const parts = bulletinText({ slot: edition.slot, date: longDate(edition.date), rows: rows.map(({ item }) => ({ title: item.short_title || item.title, summary: item.nl_summary || item.summary, sourceName: item.sourceName })) })
+      if (canSpeak()) speak(parts, { onEnd: () => setSpeaking(false) })
+      else setSpeaking(false)
+    }
+    // Natuurlijke stem als die gekoppeld is; lukt dat niet, dan de stem van het toestel.
+    if (tts) playEdition({ id: edition.id, voice, title: `${SLOT[edition.slot]} · ${longDate(edition.date)}`, onEnd: () => setSpeaking(false), onError: device })
+    else device()
     setSpeaking(true)
   }
-  const showSpeak = readAloud && canSpeak()
+  const showSpeak = readAloud && (tts || canSpeak())
 
   useScrollMemory(ref, 'hoot:pos-editie:' + (edition?.id || ''), rows.length > 0, rows.length, active)
 

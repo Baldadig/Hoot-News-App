@@ -10,6 +10,7 @@ export const DEFAULT_PREFS = {
   images: 'aan', // aan | hoofd | uit
   instapaper: true, // bewaren ook naar Instapaper (als gekoppeld)
   readAloud: true, // voorleesknop in de Editie
+  voice: 'fenna', // natuurlijke stem (als gekoppeld): fenna | maarten | colette
   bubble: true, // "Buiten je bubbel" in Editie en Stroom
   brief: true, // AI-overzicht van de editie (als de sleutel er is)
   panel: 'dicht',
@@ -29,6 +30,7 @@ export function normalizePrefs(raw) {
   if (!Array.isArray(out.muted)) out.muted = []
   if (!Array.isArray(out.pinned)) out.pinned = DEFAULT_PREFS.pinned
   if (!Array.isArray(out.enabled)) out.enabled = []
+  if (!['fenna', 'maarten', 'colette'].includes(out.voice)) out.voice = 'fenna'
   if (!Array.isArray(out.bskyInStream)) out.bskyInStream = []
   return out
 }

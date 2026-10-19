@@ -90,6 +90,14 @@ npm run build       # output in dist/
 |---|---|---|
 | `ANTHROPIC_API_KEY` | "De editie in één minuut" (Claude Haiku 5.5, drie keer per dag) | Het blok blijft weg; de rest werkt |
 | `INSTAPAPER_USERNAME`, `INSTAPAPER_PASSWORD` | Bewaren ook naar Instapaper (Simple API) | Alleen bewaren in Hoot |
+| `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` | Voorlezen met een natuurlijke Nederlandse stem (Fenna, Maarten of Colette); één MP3 per editie, bewaard | De stem van het toestel |
 | `HOOT_AI_ENRICH=1` | Samenvattingen per bericht laten herschrijven door AI (kost per bericht) | Uit (aanbevolen) |
 
 Geheimen staan alleen hier, nooit in de app of in de repository. Na het toevoegen een nieuwe deploy starten (Deploys → Trigger deploy).
+
+### Natuurlijke stem (Azure AI Speech) instellen
+
+1. Ga naar portal.azure.com en maak (gratis) een account.
+2. Maak een resource **Speech** (Azure AI services → Speech service), regio **West Europe**, prijsplan **Free F0** (0,5 miljoen tekens per maand gratis; drie edities per dag is ongeveer 0,25 miljoen).
+3. Open de resource → **Keys and Endpoint**: kopieer **Key 1** en de **Location/Region** (bv. `westeurope`).
+4. Zet ze in Netlify als `AZURE_SPEECH_KEY` en `AZURE_SPEECH_REGION`, en start een nieuwe deploy.

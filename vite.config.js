@@ -27,6 +27,20 @@ function devApi() {
         }
       })
 
+      server.middlewares.use('/api/tts', async (req, res) => {
+        try {
+          const mod = await server.ssrLoadModule('/netlify/functions/tts.mjs')
+          const q = Object.fromEntries(new URL(req.url, 'http://x').searchParams)
+          const result = await mod.handler({ queryStringParameters: q })
+          res.statusCode = result.statusCode || 200
+          for (const [k, v] of Object.entries(result.headers || {})) res.setHeader(k, v)
+          res.end(result.isBase64Encoded ? Buffer.from(result.body, 'base64') : result.body)
+        } catch (e) {
+          res.statusCode = 500
+          res.end(JSON.stringify({ error: String((e && e.message) || e) }))
+        }
+      })
+
       server.middlewares.use('/api/save', async (req, res) => {
         try {
           let body = ''

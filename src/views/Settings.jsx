@@ -34,9 +34,25 @@ export default function Settings({ meta, onBack }) {
         <Row label="Bewaren ook naar Instapaper" hint={ip ? 'Gekoppeld: het bladwijzertje stuurt een bericht ook naar je Instapaper.' : 'Nog niet gekoppeld. Voeg je Instapaper-gegevens toe in Netlify (stappen in de README).'}>
           <Switch checked={prefs.instapaper && ip} onChange={(v) => setPref('instapaper', v)} label="Bewaren ook naar Instapaper" />
         </Row>
-        <Row label="Voorleesknop in de Editie" hint={canSpeak() ? 'Leest kop en kern van de tien verhalen voor met de Nederlandse stem van je toestel.' : 'Dit toestel heeft geen voorleesstem.'}>
+        <Row label="Voorleesknop in de Editie" hint={meta?.tts ? 'Leest de editie voor met een natuurlijke Nederlandse stem (ook als je scherm uitgaat, met knoppen op je toegangsscherm).' : 'Leest kop en kern voor met de stem van je toestel. Een natuurlijke stem kan via Azure (gratis tot ruim genoeg voor drie edities per dag; stappen in de README).'}>
           <Switch checked={prefs.readAloud} onChange={(v) => setPref('readAloud', v)} label="Voorleesknop in de Editie" />
         </Row>
+        {meta?.tts ? (
+          <div className="drow">
+            <span className="drow__label">Stem</span>
+            <div className="seg" role="group" aria-label="Stem">
+              {[
+                ['fenna', 'Fenna'],
+                ['maarten', 'Maarten'],
+                ['colette', 'Colette'],
+              ].map(([id, label]) => (
+                <button key={id} type="button" className="seg__btn seg__btn--text" aria-pressed={prefs.voice === id} onClick={() => setPref('voice', id)}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         <h2 className="sect">Editie</h2>
         <Row label="De editie in één minuut" hint={ai ? 'Een AI-overzicht van 150 woorden, geschreven uit de koppen en samenvattingen van de editie. Drie keer per dag.' : 'Nog niet gekoppeld. Voeg je Anthropic-sleutel toe in Netlify (stappen in de README); kost ongeveer twee tot drie euro per maand.'}>

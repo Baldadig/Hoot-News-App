@@ -57,6 +57,37 @@ export function speak(parts, { onEnd } = {}) {
   return current.stop
 }
 
+// Natuurlijke stem: de editie als MP3 van de server (Azure). Speelt ook door met het scherm
+// uit, en verschijnt met titel en knoppen op het toegangsscherm (Media Session).
+let audio = null
+export function playEdition({ id, voice, title, onEnd, onError }) {
+  stop()
+  audio = new Audio(`/api/tts?editie=${encodeURIComponent(id)}&stem=${encodeURIComponent(voice)}`)
+  audio.preload = 'auto'
+  audio.onended = () => onEnd?.()
+  audio.onerror = () => onError?.()
+  if ('mediaSession' in navigator) {
+    try {
+      navigator.mediaSession.metadata = new window.MediaMetadata({ title, artist: 'Hoot', artwork: [{ src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' }] })
+      navigator.mediaSession.setActionHandler('pause', () => audio?.pause())
+      navigator.mediaSession.setActionHandler('play', () => audio?.play())
+      navigator.mediaSession.setActionHandler('seekbackward', () => audio && (audio.currentTime = Math.max(0, audio.currentTime - 15)))
+      navigator.mediaSession.setActionHandler('seekforward', () => audio && (audio.currentTime += 15))
+    } catch {
+      /* niet ondersteund */
+    }
+  }
+  const started = audio.play()
+  if (started?.catch) started.catch(() => onError?.())
+  current.stop = () => {
+    if (audio) {
+      audio.pause()
+      audio.src = ''
+      audio = null
+    }
+  }
+}
+
 export function stop() {
   current.stop()
   current = { stop: () => {} }

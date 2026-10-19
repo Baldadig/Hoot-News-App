@@ -890,6 +890,7 @@ export const handler = async (event) => {
     storage: storageMode, // 'blobs' = edities en verhaal-id's blijven vast; 'memory' = alleen binnen één functie-instantie
     aiEnabled: !!anthropic,
     instapaper: !!(process.env.INSTAPAPER_USERNAME && process.env.INSTAPAPER_PASSWORD),
+    tts: !!(process.env.AZURE_SPEECH_KEY && process.env.AZURE_SPEECH_REGION), // natuurlijke stem voor voorlezen
     enrichedNew,
     bubbleSignals: trends.length,
     vkSnippets, // hoeveel Volkskrant-berichten een voorvertoning uit de zoekindex kregen

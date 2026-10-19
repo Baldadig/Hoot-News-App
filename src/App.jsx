@@ -424,7 +424,7 @@ export default function App() {
         </div>
         <main id="inhoud" className="main" inert={hideMain ? '' : undefined}>
           {was('editie') ? (
-            <Edition active={shown === 'editie'} bubble={bubble} brief={prefs.brief ? data?.edition?.brief : null} readAloud={prefs.readAloud} edition={data?.edition} loading={loading} failedLoad={failedLoad} statusProps={statusProps} onRefresh={reloadAll} refreshing={refreshing} />
+            <Edition active={shown === 'editie'} bubble={bubble} brief={prefs.brief ? data?.edition?.brief : null} readAloud={prefs.readAloud} tts={!!data?.meta?.tts} voice={prefs.voice} edition={data?.edition} loading={loading} failedLoad={failedLoad} statusProps={statusProps} onRefresh={reloadAll} refreshing={refreshing} />
           ) : null}
           {was('stroom') ? (
             <Stream
