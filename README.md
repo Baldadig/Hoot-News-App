@@ -11,7 +11,7 @@ Redactioneel ontwerp (New York Times × Notion): flat, serif koppen, modern klas
 
 Koopjesgidsen ("Best Prime Day Deals") en puzzels worden uit de feed gefilterd.
 
-> **Hoot 2 (v1.0.0):** vier bestemmingen — Editie (ochtend/avond, tien verhalen met een einde), Stroom, Bewaard, Bronnen — met het verhaal als eenheid. Ontwerpkeuzes: `docs/hoot-2-plan.md`; wat er gebouwd en gecontroleerd is: `docs/hoot-2-verslag.md`; designsysteem: in de app onder `#/stijl`.
+> **Hoot 2 (v1.0.0):** vier bestemmingen — Editie (ochtend/middag/avond, tien verhalen met een einde), Stroom, Bewaard, Bronnen — met het verhaal als eenheid. Ontwerpkeuzes: `docs/hoot-2-plan.md`; wat er gebouwd en gecontroleerd is: `docs/hoot-2-verslag.md`; designsysteem: in de app onder `#/stijl`.
 
 ## Hoe lezen werkt
 
@@ -88,7 +88,7 @@ npm run build       # output in dist/
 
 | Variabele | Waarvoor | Zonder |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | "De editie in één minuut" (Claude Haiku 5.5, twee keer per dag) | Het blok blijft weg; de rest werkt |
+| `ANTHROPIC_API_KEY` | "De editie in één minuut" (Claude Haiku 5.5, drie keer per dag) | Het blok blijft weg; de rest werkt |
 | `INSTAPAPER_USERNAME`, `INSTAPAPER_PASSWORD` | Bewaren ook naar Instapaper (Simple API) | Alleen bewaren in Hoot |
 | `HOOT_AI_ENRICH=1` | Samenvattingen per bericht laten herschrijven door AI (kost per bericht) | Uit (aanbevolen) |
 

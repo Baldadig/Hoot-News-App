@@ -39,13 +39,13 @@ export default function Settings({ meta, onBack }) {
         </Row>
 
         <h2 className="sect">Editie</h2>
-        <Row label="De editie in één minuut" hint={ai ? 'Een AI-overzicht van 150 woorden, geschreven uit de koppen en samenvattingen van de editie. Twee keer per dag.' : 'Nog niet gekoppeld. Voeg je Anthropic-sleutel toe in Netlify (stappen in de README); kost ongeveer één tot twee euro per maand.'}>
+        <Row label="De editie in één minuut" hint={ai ? 'Een AI-overzicht van 150 woorden, geschreven uit de koppen en samenvattingen van de editie. Drie keer per dag.' : 'Nog niet gekoppeld. Voeg je Anthropic-sleutel toe in Netlify (stappen in de README); kost ongeveer twee tot drie euro per maand.'}>
           <Switch checked={prefs.brief} onChange={(v) => setPref('brief', v)} label="De editie in één minuut" />
         </Row>
         <Row label="Buiten je bubbel" hint="Drie verhalen die anderen nu lezen of zoeken (Google Trends, Bluesky, Wikipedia) en die niet in je editie zitten — ook uit bronnen die je niet volgt.">
           <Switch checked={prefs.bubble} onChange={(v) => setPref('bubble', v)} label="Buiten je bubbel" />
         </Row>
-        <Row label="Edities" hint="Ochtend om 06:00, avond om 17:00, elk tien verhalen. Eerst wat de meeste bronnen brengen, met voorrang voor je eigen bronnen; elke gebeurtenis één keer, ook als Nederlandse en Engelse bronnen erover schrijven. Er telt geen klikgedrag mee, en na het samenstellen verandert een editie niet meer." />
+        <Row label="Edities" hint="Ochtend om 06:00, middag om 12:00, avond om 17:00, elk tien verhalen. Eerst wat de meeste bronnen brengen, met voorrang voor je eigen bronnen; elke gebeurtenis één keer, ook als Nederlandse en Engelse bronnen erover schrijven. Er telt geen klikgedrag mee, en na het samenstellen verandert een editie niet meer." />
 
         <h2 className="sect">Bronnen</h2>
         <a className="setrow setrow--link" href="#/bronnen">

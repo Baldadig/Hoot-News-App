@@ -275,8 +275,10 @@ export function editionSlot(now = new Date()) {
   const parts = (d) => Object.fromEntries(fmt.formatToParts(d).map((p) => [p.type, p.value]))
   const p = parts(now)
   const h = Number(p.hour)
+  // Drie edities per dag: ochtend (06:00), middag (12:00), avond (17:00).
   if (h >= 17) return { id: `${p.year}-${p.month}-${p.day}-avond`, slot: 'avond', date: `${p.year}-${p.month}-${p.day}`, next: '06:00' }
-  if (h >= 6) return { id: `${p.year}-${p.month}-${p.day}-ochtend`, slot: 'ochtend', date: `${p.year}-${p.month}-${p.day}`, next: '17:00' }
+  if (h >= 12) return { id: `${p.year}-${p.month}-${p.day}-middag`, slot: 'middag', date: `${p.year}-${p.month}-${p.day}`, next: '17:00' }
+  if (h >= 6) return { id: `${p.year}-${p.month}-${p.day}-ochtend`, slot: 'ochtend', date: `${p.year}-${p.month}-${p.day}`, next: '12:00' }
   const y = parts(new Date(now.getTime() - 6 * 60 * 60 * 1000)) // vóór 06:00 geldt de avondeditie van gisteren
   return { id: `${y.year}-${y.month}-${y.day}-avond`, slot: 'avond', date: `${y.year}-${y.month}-${y.day}`, next: '06:00' }
 }

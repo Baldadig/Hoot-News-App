@@ -16,7 +16,7 @@ export default function Welcome({ sources, muted, onToggle, onDone }) {
           Begrijp wat er speelt. Lees verder waar jij dat wilt.
         </h1>
         <p className="welcome__text">
-          Twee keer per dag een <strong>Editie</strong> van tien verhalen, met een einde. Daarnaast de <strong>Stroom</strong>: alles van je bronnen op volgorde van tijd. Lezen doe je bij de bron zelf.
+          Drie keer per dag een <strong>Editie</strong> van tien verhalen, met een einde. Daarnaast de <strong>Stroom</strong>: alles van je bronnen op volgorde van tijd. Lezen doe je bij de bron zelf.
         </p>
         <button type="button" className="btn btn--wide" onClick={onDone}>
           Naar de Editie

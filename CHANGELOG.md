@@ -2,6 +2,10 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.14.0] — 2026-10-19 — Middageditie
+
+- Drie edities per dag: **ochtend** (06:00), **middag** (12:00, nieuw) en **avond** (17:00). Elke editie wordt op dat moment samengesteld en staat daarna vast; het einde van de editie noemt de volgende. Voorlezen, welkomscherm, Instellingen en README zeggen nu "drie keer per dag". Het AI-overzicht (als de sleutel er is) wordt ook voor de middageditie geschreven: ongeveer twee tot drie euro per maand in plaats van één tot twee.
+
 ## [1.13.0] — 2026-10-19 — Web-app op iPhone en iPad
 
 Getest in de iOS-simulator (iPhone 16 Pro, iPhone 13 mini) in Safari en via "Zet op beginscherm".

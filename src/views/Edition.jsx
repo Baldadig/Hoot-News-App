@@ -66,7 +66,7 @@ function FrontItem({ item, story }) {
     </article>
   )
 }
-const SLOT = { ochtend: 'Ochtendeditie', avond: 'Avondeditie' }
+const SLOT = { ochtend: 'Ochtendeditie', middag: 'Middageditie', avond: 'Avondeditie' }
 
 export default function Edition({ active, edition, bubble = [], brief = null, readAloud = true, loading, failedLoad, statusProps, onRefresh, refreshing }) {
   const { itemsById, storiesById, muted } = useHoot()

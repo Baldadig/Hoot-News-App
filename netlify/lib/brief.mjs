@@ -1,5 +1,5 @@
 // "De editie in één minuut": een AI-overzicht van de tien verhalen, geschreven uit
-// uitsluitend de koppen en samenvattingen die in de editie staan. Twee keer per dag,
+// uitsluitend de koppen en samenvattingen die in de editie staan. Drie keer per dag,
 // één keer per editie (het resultaat wordt met de editie bewaard).
 import { briefInput } from './bubble.mjs'
 

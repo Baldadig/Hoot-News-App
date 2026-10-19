@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { buildStories, selectEdition } from '../netlify/lib/stories.mjs'
+import { buildStories, selectEdition, editionSlot as slotOf } from '../netlify/lib/stories.mjs'
 import { art, ice, hasan, lookalikes, MAIN, NOW } from './fixtures.mjs'
 
 const storyOf = (stories, item) => stories.find((s) => s.itemIds.includes(item.id))
@@ -108,4 +108,15 @@ test('hoofdbericht: eigen bron, Nederlands waar het kan, en afwisseling tussen b
   for (let i = 1; i < leads.length; i++) assert.notEqual(leads[i], leads[i - 1], 'nooit twee keer dezelfde bron achter elkaar als er een alternatief is')
   assert.ok(leads.filter((s) => s === 'nyt').length <= 3)
   assert.equal(items.length, 4)
+})
+
+test('drie edities per dag: ochtend 06:00, middag 12:00, avond 17:00 (Amsterdamse tijd)', () => {
+  const at = (iso) => slotOf(new Date(iso))
+  // 10 oktober 2026: zomertijd, UTC+2
+  assert.deepEqual(at('2026-10-10T05:30:00Z'), { id: '2026-10-10-ochtend', slot: 'ochtend', date: '2026-10-10', next: '12:00' })
+  assert.equal(at('2026-10-10T09:59:00Z').slot, 'ochtend')
+  assert.deepEqual(at('2026-10-10T10:00:00Z'), { id: '2026-10-10-middag', slot: 'middag', date: '2026-10-10', next: '17:00' })
+  assert.equal(at('2026-10-10T14:59:00Z').slot, 'middag')
+  assert.deepEqual(at('2026-10-10T15:00:00Z'), { id: '2026-10-10-avond', slot: 'avond', date: '2026-10-10', next: '06:00' })
+  assert.equal(at('2026-10-11T02:00:00Z').id, '2026-10-10-avond') // 04:00 's nachts: nog de avondeditie van gisteren
 })

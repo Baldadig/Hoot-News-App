@@ -5,7 +5,7 @@ const NUM = ['', 'Eén', 'Twee', 'Drie', 'Vier', 'Vijf', 'Zes', 'Zeven', 'Acht',
 
 // De editie als bulletin: per verhaal één stuk tekst (kop, dan kern, dan bron).
 export function bulletinText({ slot, date, rows }) {
-  const head = `Hoot. De ${slot === 'avond' ? 'avondeditie' : 'ochtendeditie'} van ${date}. ${rows.length === 1 ? 'Eén verhaal' : `${NUM[rows.length] || rows.length} verhalen`}.`
+  const head = `Hoot. De ${{ ochtend: 'ochtendeditie', middag: 'middageditie', avond: 'avondeditie' }[slot] || 'editie'} van ${date}. ${rows.length === 1 ? 'Eén verhaal' : `${NUM[rows.length] || rows.length} verhalen`}.`
   const parts = rows.map((r, i) => {
     const bits = [`${NUM[i + 1] || i + 1}. ${r.title.replace(/\s+/g, ' ').trim()}.`]
     if (r.summary) bits.push(r.summary.replace(/\s+/g, ' ').trim().replace(/[.…]*$/, '') + '.')
