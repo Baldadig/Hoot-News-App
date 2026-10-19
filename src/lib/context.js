@@ -1,6 +1,6 @@
 // Route en leescontext — pure functies (getest in tests/context.test.mjs).
 
-export const MAIN = ['editie', 'stroom', 'bewaard', 'bronnen']
+export const MAIN = ['editie', 'stroom', 'bluesky', 'bewaard', 'bronnen']
 const FILTER_KEYS = ['bron', 'onderwerp', 'soort']
 
 // Alleen "#/pad?…" is een route. Een gewoon anker (#inhoud) laat de route ongemoeid.

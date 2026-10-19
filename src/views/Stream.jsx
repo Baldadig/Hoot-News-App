@@ -11,7 +11,6 @@ const KINDS = [
   { id: '', label: 'Alles' },
   { id: 'artikelen', label: 'Artikelen' },
   { id: 'opinie', label: 'Opinie' },
-  { id: 'sociaal', label: 'Sociaal' },
 ]
 const topicLabel = (id) => (id === 'bubbel' ? 'Buiten je bubbel' : TOPICS.find((t) => t.id === id)?.label || id)
 
@@ -86,7 +85,6 @@ export default function Stream({ active, stream, params, go, pinned, bubble = []
       stream.filter((i) => {
         if (filters.bron && i.source !== filters.bron) return false
         if (filters.onderwerp && !(i.topics || []).includes(filters.onderwerp)) return false
-        if (filters.soort === 'sociaal' && i.kind !== 'post') return false
         if (filters.soort === 'opinie' && i.type !== 'opinie') return false
         if (filters.soort === 'artikelen' && (i.kind === 'post' || i.type === 'opinie')) return false
         return true

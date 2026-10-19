@@ -79,7 +79,7 @@ function SourceStatus({ status, recovered, latestBySource, meta, onRetry, refres
   )
 }
 
-function AddBluesky({ onAdd }) {
+export function AddBluesky({ onAdd }) {
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState(null) // { ok, text }
@@ -122,8 +122,9 @@ function AddBluesky({ onAdd }) {
   )
 }
 
-export default function Sources({ active, sources, muted, onToggle, socialHandles, onAddSocial, onRemoveSocial, pinned, onPinned, meta, status, recovered, latestBySource, onRetry, refreshing, online }) {
-  const own = sources.filter((s) => s.followed)
+export default function Sources({ active, sources, muted, onToggle, pinned, onPinned, meta, status, recovered, latestBySource, onRetry, refreshing, online }) {
+  const own = sources.filter((s) => s.followed && s.kind === 'nieuws')
+  const music = sources.filter((s) => s.kind === 'muziek')
   const extra = sources.filter((s) => !s.followed)
   const togglePin = (id) => onPinned(pinned.includes(id) ? pinned.filter((p) => p !== id) : pinned.length >= 3 ? pinned : [...pinned, id])
   return (
@@ -134,13 +135,29 @@ export default function Sources({ active, sources, muted, onToggle, socialHandle
         <h2 className="sect">Je bronnen</h2>
         <ul className="srows">
           {own.map((s) => (
-            <SourceRow key={s.id} s={s} muted={muted.has(s.id)} onToggle={onToggle} onRemove={socialHandles.has(s.id) ? () => onRemoveSocial(s.id.replace(/^bsky:/, '')) : null} />
+            <SourceRow key={s.id} s={s} muted={muted.has(s.id)} onToggle={onToggle} />
           ))}
         </ul>
         <p className="hint">Tik op een bron om alleen die te lezen. Een bron die uit staat verdwijnt uit Editie, Stroom en zoeken.</p>
         <SourceStatus status={status} recovered={recovered} latestBySource={latestBySource} meta={meta} onRetry={onRetry} refreshing={refreshing} online={online} />
 
-        <AddBluesky onAdd={onAddSocial} />
+
+        <h2 className="sect">Muziek</h2>
+        <p className="hint">Muziek staat in de Stroom (onderwerp Muziek), niet in de Editie. 3voor12 en OOR staan aan; de andere zet je aan als je ze wilt.</p>
+        <ul className="srows">
+          {music.map((s) => (
+            <SourceRow key={s.id} s={s} muted={muted.has(s.id)} onToggle={onToggle} />
+          ))}
+        </ul>
+
+        <h2 className="sect">Bluesky</h2>
+        <a className="setrow setrow--link" href="#/bluesky">
+          <span className="setrow__text">
+            <span className="setrow__label">Mensen op Bluesky</span>
+            <span className="setrow__hint">Wie je volgt, toevoegen en of iemand ook in de Stroom staat, regel je in Bluesky.</span>
+          </span>
+          <span aria-hidden="true">›</span>
+        </a>
 
         <h2 className="sect">Alleen ter vergelijking</h2>
         <p className="hint">Deze bronnen volg je niet. Ze verschijnen niet in je Editie of Stroom, alleen binnen een verhaal, zodat je kunt zien wie er nog meer over schrijft. Zoeken doet dat ook alleen in je eigen bronnen, tenzij je daar zelf “Alle bronnen” kiest.</p>

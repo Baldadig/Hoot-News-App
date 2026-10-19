@@ -1846,6 +1846,10 @@ input {
   }
   .app:not(.has-panel) .front {
     display: grid;
+    grid-template-areas:
+      'lead side'
+      'under side';
+    grid-template-rows: auto 1fr;
     grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
     gap: var(--s5);
     align-items: start;
@@ -2100,5 +2104,53 @@ html[data-images='hoofd'] .media--social {
 @media (min-width: 1200px) {
   .app:not(.has-panel) .bubble .list {
     max-width: 720px;
+  }
+}
+
+/* ---------- Bluesky ---------- */
+.chip--person {
+  gap: var(--s2);
+  padding-left: var(--s1);
+}
+.plus {
+  font-size: var(--t5);
+  font-weight: 400;
+  line-height: 1;
+}
+.bsky-add {
+  margin-top: var(--s2);
+}
+.bsky-add .add {
+  margin-top: var(--s2);
+}
+.bsky-suggest {
+  align-items: center;
+  margin-top: var(--s2);
+}
+.bsky-suggest .hint {
+  margin: 0;
+}
+.bsky-person {
+  margin-top: var(--s2);
+}
+
+/* Voorpagina: hoofdverhaal links boven, twee kleinere eronder, drie in de kolom rechts */
+@media (min-width: 1200px) {
+  .app:not(.has-panel) .front > .lead {
+    grid-area: lead;
+  }
+  .app:not(.has-panel) .front__side {
+    grid-area: side;
+    align-self: stretch;
+  }
+  .app:not(.has-panel) .front__under {
+    grid-area: under;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 var(--s5);
+    align-content: start;
+  }
+  .app:not(.has-panel) .front__under .thumb {
+    display: none;
   }
 }

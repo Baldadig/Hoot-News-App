@@ -20,6 +20,8 @@ import { saveToInstapaper } from './lib/save.js'
 import { MAIN, rememberLocation, hrefFor } from './lib/context.js'
 import { sourceStatus, statusLabel } from './lib/sourceStatus.js'
 import Settings from './views/Settings.jsx'
+import Bluesky from './views/Bluesky.jsx'
+import { mutedSet, toggleSource, inStream, isPost } from './lib/sourcesel.js'
 import { DisplaySheet } from './components/Display.jsx'
 import { normalizePrefs } from './lib/prefs.js'
 import { subscribe as onUpdate, isReady as updateReady, applyUpdate, dismissUpdate } from './lib/swUpdate.js'
@@ -75,8 +77,8 @@ export default function App() {
   }, [prefs.textSize, prefs.images])
   const [display, setDisplay] = useState(false)
   const openDisplay = useCallback(() => setDisplay(true), [])
-  const muted = useMemo(() => new Set(prefs.muted), [prefs.muted])
-  const { data, status, refreshing, refreshError, reload, pendingCount, applyPending } = useFeed(muted)
+  const baseMuted = useMemo(() => new Set(prefs.muted), [prefs.muted])
+  const { data, status, refreshing, refreshError, reload, pendingCount, applyPending } = useFeed(baseMuted)
   const online = useOnline()
   const { theme, setTheme } = useTheme()
   const hasPanel = useWide('(min-width: 1200px)')
@@ -127,17 +129,31 @@ export default function App() {
     return [...server, ...mine]
   }, [data, social.sources, social.items])
   const sourcesById = useMemo(() => new Map(sources.map((s) => [s.id, s])), [sources])
+  // Uit: wat je zelf uitzette, plus optionele bronnen die je nog niet aanzette.
+  const muted = useMemo(() => mutedSet(prefs, sources), [prefs, sources])
   const socialIds = useMemo(() => new Set(social.sources.map((s) => 'bsky:' + s.handle)), [social.sources])
 
   const stream = useMemo(() => {
     const seen = new Set()
     const out = []
     for (const it of [...(data?.items || []), ...social.items]) {
-      if (!it.url || seen.has(it.id) || muted.has(it.source)) continue
+      if (!it.url || seen.has(it.id) || muted.has(it.source) || !inStream(it, prefs)) continue
       seen.add(it.id)
       out.push(it)
     }
     return social.items.length ? out.sort(byRecency) : out
+  }, [data, social.items, muted, prefs])
+
+  // Bluesky: alle posts van de accounts die je volgt (eigen bestemming).
+  const posts = useMemo(() => {
+    const seen = new Set()
+    const out = []
+    for (const it of [...(data?.items || []), ...social.items]) {
+      if (!isPost(it) || seen.has(it.id) || muted.has(it.source)) continue
+      seen.add(it.id)
+      out.push(it)
+    }
+    return out.sort(byRecency)
   }, [data, social.items, muted])
 
   const itemsById = useMemo(() => new Map([...(data?.related || []), ...(data?.items || []), ...social.items].map((i) => [i.id, i])), [data, social.items])
@@ -219,14 +235,7 @@ export default function App() {
     [setSeenStories],
   )
 
-  const setMuted = useCallback(
-    (id, on) =>
-      setPrefs((p) => ({
-        ...p,
-        muted: on ? p.muted.filter((m) => m !== id) : [...new Set([...p.muted, id])],
-      })),
-    [setPrefs],
-  )
+  const setMuted = useCallback((id, on) => setPrefs((p) => toggleSource(normalizePrefs(p), sourcesById.get(id) || { id }, on)), [setPrefs, sourcesById])
 
   const reloadAll = useCallback(() => {
     setRefreshKey((k) => k + 1)
@@ -280,7 +289,7 @@ export default function App() {
         bronnen: 'Bronnen',
         zoek: 'Zoeken',
         stijl: 'Designsysteem',
-        welkom: 'Welkom', instellingen: 'Instellingen' }[path] + ' · Hoot'
+        welkom: 'Welkom', instellingen: 'Instellingen', bluesky: 'Bluesky' }[path] + ' · Hoot'
   }, [path])
 
   // Bronstatus: één uitgevallen bron is een stil puntje bij Bronnen; alleen als álles
@@ -411,6 +420,22 @@ export default function App() {
               onShowNew={showNew}
             />
           ) : null}
+          {was('bluesky') ? (
+            <Bluesky
+              active={shown === 'bluesky'}
+              posts={posts}
+              sources={sources.filter((s) => s.kind === 'sociaal')}
+              muted={muted}
+              onToggle={setMuted}
+              ownHandles={socialIds}
+              onAdd={social.addSource}
+              onRemove={social.removeSource}
+              params={path === 'bluesky' ? route.params : navMem.bluesky || {}}
+              go={route.go}
+              onRefresh={reloadAll}
+              refreshing={refreshing}
+            />
+          ) : null}
           {was('bewaard') ? <Saved active={shown === 'bewaard'} /> : null}
           {was('bronnen') ? (
             <Sources
@@ -418,9 +443,6 @@ export default function App() {
               sources={sources}
               muted={muted}
               onToggle={setMuted}
-              socialHandles={socialIds}
-              onAddSocial={social.addSource}
-              onRemoveSocial={social.removeSource}
               pinned={prefs.pinned}
               onPinned={(pinned) => setPrefs((p) => ({ ...p, pinned }))}
               meta={data?.meta}

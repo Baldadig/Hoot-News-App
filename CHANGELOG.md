@@ -2,6 +2,12 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.11.0] — 2026-10-19 — Bluesky als eigen stroom, muziek, voorpagina zonder gat
+
+- **Bluesky** is een eigen bestemming in het menu (vlinder): de posts van de mensen die je volgt, met bovenaan een rij per persoon (tik = alleen die persoon) en + om iemand te volgen, met suggesties (3voor12, Atze de Vrieze). Aaron Rupar staat er als eerste. Posts staan niet meer in de Stroom; per persoon kun je "ook in de Stroom" aanzetten. Accounts toevoegen gebeurt nu hier in plaats van onder Bronnen.
+- **Muziek**: nieuw onderwerp (pil in de Stroom) en eigen groep onder Bronnen. 3voor12 en OOR staan aan; The Guardian Muziek, The Quietus, Stereogum en NPR Music zet je aan als je wilt. Muziek staat in de Stroom, niet in de Editie, en telt los van het nieuws (hooguit 12 per bron), zodat er geen nieuws uit de Stroom verdwijnt.
+- **Voorpagina**: onder het hoofdverhaal staan nu twee kleinere verhalen naast elkaar, zodat de linkerkolom even lang is als de kolom ernaast (het gat onder het hoofdverhaal is weg). "Verder in deze editie" begint bij verhaal 7.
+
 ## [1.10.1] — 2026-10-12 — Voorvertoning bij de Volkskrant
 
 - De Volkskrant levert in haar feed alleen koppen, waardoor vrijwel elk bericht zonder voorvertoning stond (23 van de 25). Hoot haalt de eigen inleiding van het artikel nu uit de zoekindex van Bing Nieuws, gekoppeld op het artikel-id, en bewaart die. Liveblogs blijven zonder (hun kop wisselt). Het lenen van een andere bron ("via NOS") blijft als aanvulling.

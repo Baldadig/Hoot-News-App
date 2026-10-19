@@ -17,6 +17,13 @@ const SOURCES = [
   { id: 'nos', name: 'NOS', bsky: 'nos.nl', x: 'nos', urls: ['https://feeds.nos.nl/nosnieuwsalgemeen', 'http://feeds.nos.nl/nosnieuwsalgemeen'] },
   { id: 'atlantic', name: 'The Atlantic', bsky: 'theatlantic.com', x: 'TheAtlantic', urls: ['https://www.theatlantic.com/feed/all/'] },
   { id: 'economist', name: 'The Economist', bsky: 'economist.com', x: 'TheEconomist', urls: ['https://www.economist.com/latest/rss.xml'] },
+  // Muziek: in de Stroom (onderwerp Muziek), niet in de Editie. `optional`: staat uit tot je hem aanzet.
+  { id: '3voor12', name: '3voor12', bsky: '3voor12.bsky.social', music: true, urls: ['https://3voor12.vpro.nl/rss.xml'] },
+  { id: 'oor', name: 'OOR', music: true, urls: ['https://oor.nl/feed/'] },
+  { id: 'guardian-music', name: 'The Guardian Muziek', x: 'guardianmusic', music: true, optional: true, urls: ['https://www.theguardian.com/music/rss'] },
+  { id: 'quietus', name: 'The Quietus', x: 'TheQuietus', music: true, optional: true, urls: ['https://thequietus.com/feed'] },
+  { id: 'stereogum', name: 'Stereogum', x: 'stereogum', music: true, optional: true, urls: ['https://www.stereogum.com/feed/'] },
+  { id: 'npr-music', name: 'NPR Music', x: 'nprmusic', music: true, optional: true, urls: ['https://feeds.npr.org/1039/rss.xml'] },
   // Left Laser via YouTube-RSS (native, gratis, betrouwbaar). Avatar via hun Bluesky-profiel.
   { id: 'leftlaser', name: 'Left Laser', bsky: 'leftlaser.bsky.social', urls: ['https://www.youtube.com/feeds/videos.xml?channel_id=UCZU-vIoeB1e3by8mVaVLwIg'] },
 ]
@@ -30,6 +37,12 @@ const BRAND = {
   wired: '#222222',
   nos: '#B5121B',
   leftlaser: '#E40421',
+  '3voor12': '#E5007E',
+  oor: '#111111',
+  'guardian-music': '#052962',
+  quietus: '#1b1b1b',
+  stereogum: '#E2231A',
+  'npr-music': '#D62021',
   guardian: '#052962',
   bbc: '#BB1919',
   aljazeera: '#FA9000',
@@ -56,8 +69,9 @@ const EXTRA_SOURCES = [
   { id: 'tweakers', name: 'Tweakers', x: 'tweakers', urls: ['https://feeds.feedburner.com/tweakers/mixed', 'https://tweakers.net/feeds/mixed.xml'] },
 ]
 const MAIN_IDS = new Set(SOURCES.map((s) => s.id))
+const MUSIC_IDS = new Set(SOURCES.filter((s) => s.music).map((s) => s.id))
 
-const TOPICS = ['vs-politiek', 'trump', 'nederland', 'oekraine', 'geopolitiek', 'tech', 'ai', 'wetenschap', 'economie']
+const TOPICS = ['vs-politiek', 'trump', 'nederland', 'oekraine', 'geopolitiek', 'tech', 'ai', 'wetenschap', 'economie', 'muziek']
 const PER_SOURCE_LIMIT = 30
 const TOTAL_LIMIT = 160
 const ENRICH_PER_REQUEST = 24
@@ -326,6 +340,7 @@ const KW = [
   ['tech', /\b(apple|iphone|ipad|macbook|google|alphabet|android|chrome|\bmeta\b|facebook|instagram|whatsapp|microsoft|windows|\bamazon\b|tesla|spacex|twitter|tiktok|bytedance|intel|\bamd\b|tsmc|samsung|huawei|chips?|halfgeleider|semiconductor|big tech|techbedrijf|techgigant|technolog|smartphone|gadget|app store|netflix|spotify)\b/i],
   ['wetenschap', /\b(wetenschap|wetenschapp|onderzoekers|scientist|researchers|science|nobelprijs|nobel prize|klimaatverandering|climate change|\bnasa\b|\besa\b|astronom|ruimtevaart|natuurkunde|fysica|biolog|geneeskund|gezondheid|vaccin|\bdna\b|genetica|kanker|quantum|kwantum|telescoop|deeltjes|archeolog|evolutie|neurolog)\b/i],
   ['economie', /\b(econom|beurs|aandel|inflatie|\brente\b|\becb\b|\bfed\b|federal reserve|recessie|begroting|\bbbp\b|werkloosheid|dow jones|nasdaq|wall street|kwartaalcijfers|bedrijfswinst|fusie|overname|faillis|olieprijs|gasprijs|energieprijs|valuta|wisselkoers|belasting|subsidie|koopkracht|\bbtw\b|lonen|omzet|woningmarkt|hypotheek|handelsverdrag|handelsregels|megafusie|werkgevers|vakbond|inflation|interest rates|stock market|stocks and bonds|unemployment|layoffs|merger|acquisition|bankrupt)\b/i],
+  ['muziek', /\b(album|single|concert|festival|popmuziek|band|zanger|zangeres|rapper|songwriter|tournee|tour dates|setlist|grammy|edison|spotify-hitlijst|hitlijst|top 40|lowlands|pinkpop|paradiso|melkweg|eurovisie|eurovision|songfestival)\b/i],
   ['nederland', /\b(kabinet|tweede kamer|eerste kamer|den haag|binnenhof|catshuis|prinsjesdag|miljoenennota|rijksoverheid|gemeenteraad|provinciale staten|waterschap|coalitie|formatie|stikstof|toeslag|asielzoeker|asielbeleid|minister van|staatssecretaris|\bpvv\b|\bvvd\b|\bd66\b|groenlinks|\bpvda\b|\bcda\b|\bsgp\b|\bbbb\b|wilders|schoof|timmermans|yesilgoz|omtzigt)\b/i],
 ]
 function keywordTopics(text) {
@@ -367,7 +382,8 @@ async function loadSource(src, avatarsP) {
       // Mooie merk-avatar: 1) Bluesky-profiel, 2) X-profiel via unavatar.io, 3) favicon.
       const brandAvatar = avatars[src.id] || (src.x ? `https://unavatar.io/x/${src.x}` : null)
       const fresh = (feed.items || []).map((it) => [it, categoriesOf(it)]).filter(([it, cats]) => !isNoise(it, cats))
-      const items = fresh.slice(0, PER_SOURCE_LIMIT).map(([it, cats]) => {
+      // Muziek: minder per bron, zodat het nieuws niet wordt weggedrukt.
+      const items = fresh.slice(0, src.music ? 12 : PER_SOURCE_LIMIT).map(([it, cats]) => {
         const link = cleanUrl(it.link || it.guid || '')
         const domain = hostname(link)
         const title = toText(it.title || '').trim()
@@ -596,6 +612,7 @@ async function enrichBatch(anthropic, items) {
 function toClient(it, cache) {
   const e = cache[it.id]
   const topics = e && Array.isArray(e.topics) && e.topics.length ? e.topics : keywordTopics(`${it.title} ${it.text || it.summary || ''} ${it.cats || ''}`)
+  if (MUSIC_IDS.has(it.source) && !topics.includes('muziek')) topics.push('muziek')
   return {
     id: it.id,
     kind: it.kind,
@@ -671,7 +688,9 @@ export const handler = async (event) => {
   }
   // Basis = de nieuwste TOTAL_LIMIT. Daarna garanderen we per bron z'n recentste
   // items, zodat laag-frequente kanalen niet volledig uit de Stroom vallen.
-  const items = deduped.slice(0, TOTAL_LIMIT)
+  // Muziek telt apart (eigen limiet per bron, zie loadSource), zodat ze het nieuws niet wegdrukt.
+  const items = deduped.filter((it) => !MUSIC_IDS.has(it.source)).slice(0, TOTAL_LIMIT)
+  items.push(...deduped.filter((it) => MUSIC_IDS.has(it.source)))
   const GUARANTEE_PER_SOURCE = 6
   const have = new Set(items.map((i) => i.id))
   const perSource = {}
@@ -799,7 +818,11 @@ export const handler = async (event) => {
   // editie met dubbele gebeurtenissen niet blijft staan.
   let stored = await kvGet('edition2-' + slot.id)
   if (!stored || !Array.isArray(stored.entries) || !stored.entries.length) {
-    const entries = selectEdition(stories, articlePool, { mainIds: MAIN_IDS, now })
+    // Muziek hoort in de Stroom, niet in de editie van het nieuws.
+    const newsPool = articlePool.filter((a) => !MUSIC_IDS.has(a.source))
+    const newsIds = new Set(newsPool.map((a) => a.id))
+    const newsStories = stories.filter((st) => st.itemIds.some((id) => newsIds.has(id)))
+    const entries = selectEdition(newsStories, newsPool, { mainIds: MAIN_IDS, now })
     const outById = new Map([...out, ...relatedOut].map((i) => [i.id, i]))
     const snapStories = entries.filter((e) => e.kind === 'story').map((e) => stories.find((st) => st.id === e.id))
     const snapIds = new Set([...snapStories.flatMap((st) => st.itemIds), ...entries.filter((e) => e.kind === 'item').map((e) => e.id)])
@@ -842,7 +865,7 @@ export const handler = async (event) => {
   const avatars = await avatarsP
   const firstOf = (g) => g.items[0]
   const sources = [
-    ...mainGroups.map((g, i) => ({ id: g.id, name: g.name, kind: 'nieuws', followed: true, ok: g.ok, count: g.count, error: g.error || null, brandColor: BRAND[g.id] || '#21468b', avatar: firstOf(g)?.avatar || avatars[g.id] || (SOURCES[i]?.x ? `https://unavatar.io/x/${SOURCES[i].x}` : null), avatarContain: firstOf(g)?.avatarContain || false, handle: firstOf(g)?.domain || null })),
+    ...mainGroups.map((g, i) => ({ id: g.id, name: g.name, kind: SOURCES[i]?.music ? 'muziek' : 'nieuws', optional: !!SOURCES[i]?.optional, followed: true, ok: g.ok, count: g.count, error: g.error || null, brandColor: BRAND[g.id] || '#21468b', avatar: firstOf(g)?.avatar || avatars[g.id] || (SOURCES[i]?.x ? `https://unavatar.io/x/${SOURCES[i].x}` : null), avatarContain: firstOf(g)?.avatarContain || false, handle: firstOf(g)?.domain || null })),
     ...bskyGroups.map((g) => ({ id: g.id, name: firstOf(g)?.sourceName || g.name, kind: 'sociaal', followed: true, ok: g.ok, count: g.count, error: g.error || null, brandColor: BSKY_BRAND, avatar: firstOf(g)?.avatar || null, avatarContain: false, handle: firstOf(g)?.handle || null })),
     ...extraGroups.map((g) => ({ id: g.id, name: g.name, kind: 'extra', followed: false, ok: g.ok, count: g.count, error: g.error || null, brandColor: BRAND[g.id] || '#21468b', avatar: firstOf(g)?.avatar || null, avatarContain: firstOf(g)?.avatarContain || false, handle: firstOf(g)?.domain || null })),
   ]

@@ -10,6 +10,7 @@ export const TOPICS = [
   { id: 'ai', label: 'AI', emoji: '🤖' },
   { id: 'wetenschap', label: 'Wetenschap', emoji: '🔬' },
   { id: 'economie', label: 'Economie', emoji: '📈' },
+  { id: 'muziek', label: 'Muziek', emoji: '🎵' },
 ]
 
 // De rij onderwerpen in de Stroom: "Alles", dan wat je vooraan wilt (Bronnen), dan de rest.

@@ -9,7 +9,7 @@ import { BrandMark } from '../components/Brand.jsx'
 import { longDate, clock } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 
-const FRONT = 4 // zoveel verhalen staan op de voorpagina
+const FRONT = 6 // voorpagina: hoofdverhaal, drie ernaast en twee eronder
 
 // Klein verhaal op de voorpagina. Bron en tijd hebben een eigen regel (breekt af in plaats van
 // af te kappen); vergelijken en bewaren staan apart eronder. Bij een lange kop vervalt de
@@ -165,7 +165,16 @@ export default function Edition({ active, edition, bubble = [], brief = null, re
               <LeadStory item={rows[0].item} story={rows[0].story} priority={active} />
               {rows.length > 1 ? (
                 <div className="front__side">
-                  {rows.slice(1, FRONT).map(({ key, item, story }) => (
+                  {rows.slice(1, 4).map(({ key, item, story }) => (
+                    <FrontItem key={key} item={item} story={story} />
+                  ))}
+                </div>
+              ) : null}
+              {/* Onder het hoofdverhaal twee kleinere naast elkaar: vult de linkerkolom op tot de
+                  hoogte van de kolom ernaast (geen gat onder het hoofdverhaal). */}
+              {rows.length > 4 ? (
+                <div className="front__under">
+                  {rows.slice(4, FRONT).map(({ key, item, story }) => (
                     <FrontItem key={key} item={item} story={story} />
                   ))}
                 </div>
