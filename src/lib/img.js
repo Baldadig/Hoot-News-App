@@ -49,6 +49,12 @@ function candidates(url, kind) {
     const at = (w) => [`${m[1]}-${w}x${(w * 9) / 16}${m[2]}`, w]
     return kind === 'thumb' ? [at(256)] : [at(512), at(768), at(1024)]
   }
+  if (host === 'www.bing.com' && u.pathname === '/th') {
+    // Beeld uit de zoekindex: Bing snijdt zelf bij op de gevraagde maat.
+    const id = u.searchParams.get('id')
+    const sized = (w, h) => `https://www.bing.com/th?id=${id}&pid=News&w=${w}&h=${h}&c=7`
+    return kind === 'thumb' ? [[sized(176, 176), 176], [sized(320, 320), 320]] : widths.map((w) => [sized(w, Math.round((w * 9) / 16)), w])
+  }
   if (host === 'i.ytimg.com' && kind === 'thumb') {
     return [[url.replace('/hqdefault.', '/mqdefault.'), 320]]
   }

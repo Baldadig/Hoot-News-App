@@ -2,6 +2,11 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.15.1] — 2026-10-19 — Ontbrekende beelden en intro's aanvullen
+
+- Wat een feed mist, haalt Hoot nu uit de zoekindex van Bing Nieuws en bewaart het: **beelden** bij de NYT (die zet het beeld vaak pas later in de feed) en The Economist (geeft nooit een beeld), en **beelden én intro's** bij de Volkskrant. Gekoppeld op het artikel (URL of artikelnummer), op maat opgevraagd (vierkant voor een thumbnail, 16:9 voor een groot beeld). Lokaal gemeten op de feed van nu, zonder opgebouwde voorraad: NYT 20 van 21 met beeld (was 19), The Economist 8 van 14 (was 0), de Volkskrant 16 van 22 met intro. Op de live-site groeit dat, omdat vondsten bewaard blijven.
+- Wat nog ontbreekt zijn vooral artikelen van het laatste uur: die staan nog niet in de zoekindex en vullen zich daarna aan.
+
 ## [1.15.0] — 2026-10-19 — Editie met rubrieken
 
 - **Vaste opbouw**: elke editie heeft per rubriek het belangrijkste verhaal van het moment — **Binnenland, Buitenland, VS, Midden-Oosten, Oekraïne, Wetenschap** — plus **één verhaal van buiten je bubbel** (op plek 6, onder het hoofdverhaal). De overige plekken gaan naar wat verder het meeste nieuws is. Voorheen telde alleen het aantal bronnen, waardoor één onderwerp (vaak de VS) de editie kon vullen.

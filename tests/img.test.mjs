@@ -47,3 +47,9 @@ test('Bluesky-profielfoto: kleine variant; andere avatars ongemoeid', () => {
   assert.equal(avatarUrl('https://unavatar.io/x/nos'), 'https://unavatar.io/x/nos')
   assert.equal(avatarUrl(null), null)
 })
+
+test('Bing-beeld uit de zoekindex: vierkant als thumbnail, 16:9 als hoofdbeeld', () => {
+  const url = 'https://www.bing.com/th?id=ONUT.abc&pid=News&w=1200&h=675&c=7'
+  assert.equal(imgProps(url, 'thumb').src, 'https://www.bing.com/th?id=ONUT.abc&pid=News&w=176&h=176&c=7')
+  assert.match(imgProps(url, 'lead').srcSet, /w=720&h=405&c=7 720w/)
+})

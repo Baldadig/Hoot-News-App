@@ -4,7 +4,7 @@ import { getStore, connectLambda } from '@netlify/blobs'
 import { hash, byRecency, sigWords, sharedCount, buildStories, editionSlot, selectEdition, NL_SOURCES } from '../lib/stories.mjs'
 import { matchTrending, insertBubble } from '../lib/bubble.mjs'
 import { createBrief, briefRows } from '../lib/brief.mjs'
-import { articleId, parseSnippets, mergeSnippets, isLiveblog } from '../lib/snippets.mjs'
+import { articleKey, parseSnippets, mergeSnippets, isLiveblog } from '../lib/snippets.mjs'
 
 // ---------- Bronnen ----------
 // bsky = Bluesky-handle van het officiële account, voor een mooie merk-avatar.
@@ -255,20 +255,20 @@ function pickImage(item) {
 // ---------- Voorvertoning voor de Volkskrant (feed levert alleen koppen) ----------
 // De eigen inleiding van het artikel uit de zoekindex van Bing Nieuws: een algemene vraag
 // plus één per rubriek die nu in de feed staat. Mislukt het, dan blijft het zoals het was.
-async function loadVkSnippets(sections) {
+async function loadSnippets(queries, domain) {
   const one = async (q, first) => {
     const c = new AbortController()
     const t = setTimeout(() => c.abort(), 5000)
     try {
       const u = `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=rss&cc=NL&setlang=nl&count=50&qft=${encodeURIComponent('sortbydate="1"')}${first ? `&first=${first}` : ''}`
       const r = await fetch(u, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; HootNews/1)' }, signal: c.signal })
-      return r.ok ? parseSnippets(await r.text()) : []
+      return r.ok ? parseSnippets(await r.text(), domain) : []
     } finally {
       clearTimeout(t)
     }
   }
-  const jobs = [one('site:volkskrant.nl'), one('site:volkskrant.nl', 15), ...sections.slice(0, 12).map((sec) => one(`site:volkskrant.nl/${sec}`))]
-  const res = await Promise.allSettled(jobs)
+  // De algemene vraag (eerste in de lijst) ook de tweede pagina; rubrieken alleen de eerste.
+  const res = await Promise.allSettled([one(queries[0]), one(queries[0], 15), ...queries.slice(1, 12).map((q) => one(q))])
   return res.flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
 }
 
@@ -703,21 +703,33 @@ export const handler = async (event) => {
   }
   items.sort(byRecency)
 
-  // De Volkskrant: de eigen inleiding uit de zoekindex (bewaard, zodat de dekking groeit).
+  // Aanvullen uit de zoekindex: de Volkskrant (inleiding en beeld), de NYT (beeld dat de feed
+  // nog niet heeft) en The Economist (geen beelden in de feed). Bewaard, zodat het groeit.
   let vkSnippets = 0
+  let filled = 0
   {
-    const vk = items.filter((it) => it.source === 'volkskrant' && it.kind === 'article' && !it.summary && !isLiveblog(it.url))
-    if (vk.length) {
-      const sections = [...new Set(vk.map((it) => (it.url.split('/')[3] || '').trim()).filter((x) => /^[a-z-]+$/.test(x)))]
-      const [stored, found] = await Promise.all([kvGet('vk-snippets-v1'), loadVkSnippets(sections).catch(() => [])])
-      const store = mergeSnippets(stored && typeof stored === 'object' ? stored : {}, found, now)
-      if (found.length) await kvSet('vk-snippets-v1', store)
-      for (const it of vk) {
-        const hit = store[articleId(it.url)]
+    const GAPS = { volkskrant: 'volkskrant.nl', nyt: 'nytimes.com', economist: 'economist.com' }
+    const needs = items.filter((it) => GAPS[it.source] && it.kind === 'article' && !isLiveblog(it.url) && (!it.summary || !it.image))
+    if (needs.length) {
+      const vkSections = [...new Set(needs.filter((it) => it.source === 'volkskrant').map((it) => (it.url.split('/')[3] || '').trim()).filter((x) => /^[a-z-]+$/.test(x)))]
+      const wanted = [...new Set(needs.map((it) => it.source))]
+      const jobs = wanted.map((src) => (src === 'volkskrant' ? loadSnippets(['site:volkskrant.nl', ...vkSections.slice(0, 10).map((sec) => `site:volkskrant.nl/${sec}`)], 'volkskrant.nl') : loadSnippets([`site:${GAPS[src]}`], GAPS[src])))
+      const [stored, ...found] = await Promise.all([kvGet('gap-fill-v1'), ...jobs.map((j) => j.catch(() => []))])
+      const all = found.flat()
+      const store = mergeSnippets(stored && typeof stored === 'object' ? stored : {}, all, now)
+      if (all.length) await kvSet('gap-fill-v1', store)
+      for (const it of needs) {
+        const hit = store[articleKey(it.url)]
         if (!hit) continue
-        it.summary = preview(hit.s)
-        it.text = hit.s
-        vkSnippets++
+        if (!it.summary && hit.s) {
+          it.summary = preview(hit.s)
+          it.text = hit.s
+          if (it.source === 'volkskrant') vkSnippets++
+        }
+        if (!it.image && hit.img) {
+          it.image = hit.img
+          filled++
+        }
       }
     }
   }
@@ -881,6 +893,7 @@ export const handler = async (event) => {
     enrichedNew,
     bubbleSignals: trends.length,
     vkSnippets, // hoeveel Volkskrant-berichten een voorvertoning uit de zoekindex kregen
+    imagesFilled: filled, // hoeveel berichten een beeld uit de zoekindex kregen
     // (oude vorm, voor een nog niet bijgewerkte app)
     sources: sources.map(({ id, name, ok, count, error, followed }) => ({ id, name, ok, count, error, main: followed })),
   }
