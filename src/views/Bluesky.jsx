@@ -104,7 +104,7 @@ export default function Bluesky({ active, posts, sources, muted, onToggle, ownHa
             {list.map((item) => (
               <SocialItem key={item.id} item={item} />
             ))}
-            <p className="listend">Dit is alles van de afgelopen dagen.</p>
+            <p className="listend">Dit is alles van de afgelopen 48 uur.</p>
           </div>
         )}
       </div>

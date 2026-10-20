@@ -513,15 +513,32 @@ function mapPost(post, author) {
     publishedAt: safeIso(post.record.createdAt || post.indexedAt),
   }
 }
+// Bluesky: de afgelopen 48 uur, bladzijde voor bladzijde (100 per keer, hooguit 8 bladzijden).
+const BSKY_HOURS = 48
 async function loadBluesky(author) {
   try {
-    const url = `https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=${encodeURIComponent(author.handle)}&limit=40&filter=posts_no_replies`
-    const res = await fetch(url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(8000) })
-    if (!res.ok) throw new Error('bsky ' + res.status)
-    const data = await res.json()
-    // Alleen eigen, originele posts: geen reposts (reason), geen quotes/anderen
-    const own = (data.feed || []).filter((fi) => !fi.reason && fi.post?.author?.handle === author.handle)
-    const items = own.map((fi) => mapPost(fi.post, author)).filter(Boolean)
+    const since = Date.now() - BSKY_HOURS * 36e5
+    const own = []
+    let cursor = ''
+    for (let page = 0; page < 8; page++) {
+      const url = `https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=${encodeURIComponent(author.handle)}&limit=100&filter=posts_no_replies${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`
+      const res = await fetch(url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(8000) })
+      if (!res.ok) {
+        if (page === 0) throw new Error('bsky ' + res.status)
+        break
+      }
+      const data = await res.json()
+      const feed = data.feed || []
+      // Alleen eigen, originele posts: geen reposts (reason), geen quotes/anderen
+      own.push(...feed.filter((fi) => !fi.reason && fi.post?.author?.handle === author.handle))
+      const oldest = feed.length ? Date.parse(feed[feed.length - 1].post?.indexedAt || feed[feed.length - 1].post?.record?.createdAt || 0) : 0
+      cursor = data.cursor
+      if (!cursor || !feed.length || oldest < since) break
+    }
+    const items = own
+      .map((fi) => mapPost(fi.post, author))
+      .filter(Boolean)
+      .filter((it) => !it.publishedAt || Date.parse(it.publishedAt) >= since)
     return { id: 'bsky:' + author.handle, name: author.name, ok: true, used: author.handle, count: items.length, items }
   } catch (e) {
     return { id: 'bsky:' + author.handle, name: author.name, ok: false, used: null, count: 0, items: [], error: String((e && e.message) || e) }
@@ -688,9 +705,11 @@ export const handler = async (event) => {
   }
   // Basis = de nieuwste TOTAL_LIMIT. Daarna garanderen we per bron z'n recentste
   // items, zodat laag-frequente kanalen niet volledig uit de Stroom vallen.
-  // Muziek telt apart (eigen limiet per bron, zie loadSource), zodat ze het nieuws niet wegdrukt.
-  const items = deduped.filter((it) => !MUSIC_IDS.has(it.source)).slice(0, TOTAL_LIMIT)
-  items.push(...deduped.filter((it) => MUSIC_IDS.has(it.source)))
+  // Muziek en Bluesky tellen apart (eigen limiet per bron), zodat ze het nieuws niet wegdrukken
+  // en Bluesky de volle 48 uur houdt.
+  const separate = (it) => MUSIC_IDS.has(it.source) || it.kind === 'post'
+  const items = deduped.filter((it) => !separate(it)).slice(0, TOTAL_LIMIT)
+  items.push(...deduped.filter(separate))
   const GUARANTEE_PER_SOURCE = 6
   const have = new Set(items.map((i) => i.id))
   const perSource = {}

@@ -2,6 +2,11 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.16.1] — 2026-10-20 — Bluesky: 48 uur terug
+
+- De Bluesky-stroom haalt nu **de afgelopen 48 uur** binnen in plaats van alleen de laatste 40 posts (bij Aaron Rupar was dat maar zo'n vier uur). Hoot bladert daarvoor door de tijdlijn, 100 posts per keer.
+- Bluesky-posts tellen niet meer mee voor de limiet van de nieuwsstroom, zodat ze geen nieuws wegdrukken en zelf niet worden afgekapt. Dat geldt ook voor accounts die je zelf toevoegt.
+
 ## [1.16.0] — 2026-10-19 — Natuurlijke stem voor voorlezen
 
 - "Lees voor" kan een **natuurlijke Nederlandse stem** gebruiken (Azure AI Speech, neurale stemmen Fenna, Maarten of Colette; kies onder Instellingen → Lezen). De server maakt per editie en stem één MP3 en bewaart die, dus elke editie wordt maar één keer omgezet. Als er een AI-overzicht is, begint het voorlezen daarmee.

@@ -122,12 +122,28 @@ function mapPost(post, fallbackName) {
   }
 }
 
-export async function fetchAuthorItems(handle, name, limit = 30) {
-  const url = `${API}/app.bsky.feed.getAuthorFeed?actor=${encodeURIComponent(handle)}&limit=${limit}&filter=posts_no_replies`
-  const res = await fetch(url)
-  if (!res.ok) throw new Error('bsky ' + res.status)
-  const data = await res.json()
-  // Alleen eigen, originele posts: geen reposts (reason), geen posts van anderen
-  const own = (data.feed || []).filter((fi) => !fi.reason && fi.post?.author?.handle === handle)
-  return own.map((fi) => mapPost(fi.post, name)).filter(Boolean)
+// De afgelopen 48 uur van één account, bladzijde voor bladzijde (hooguit 8 × 100).
+export async function fetchAuthorItems(handle, name, hours = 48) {
+  const since = Date.now() - hours * 36e5
+  const own = []
+  let cursor = ''
+  for (let page = 0; page < 8; page++) {
+    const url = `${API}/app.bsky.feed.getAuthorFeed?actor=${encodeURIComponent(handle)}&limit=100&filter=posts_no_replies${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`
+    const res = await fetch(url)
+    if (!res.ok) {
+      if (page === 0) throw new Error('bsky ' + res.status)
+      break
+    }
+    const data = await res.json()
+    const feed = data.feed || []
+    // Alleen eigen, originele posts: geen reposts (reason), geen posts van anderen
+    own.push(...feed.filter((fi) => !fi.reason && fi.post?.author?.handle === handle))
+    const last = feed[feed.length - 1]?.post
+    cursor = data.cursor
+    if (!cursor || !feed.length || Date.parse(last?.indexedAt || last?.record?.createdAt || 0) < since) break
+  }
+  return own
+    .map((fi) => mapPost(fi.post, name))
+    .filter(Boolean)
+    .filter((it) => !it.publishedAt || Date.parse(it.publishedAt) >= since)
 }
