@@ -1,7 +1,12 @@
 // Beeld op maat — pure functies (getest in tests/img.test.mjs).
 // De feeds leveren vaak één (te) groot beeld. Waar de uitgever zelf kleinere varianten
-// aanbiedt vragen we die op; bij onbekende hosts blijft de oorspronkelijke URL staan.
-// Alleen patronen die op de echte CDN's zijn nagelopen (okt. 2026).
+// aanbiedt vragen we die op (alleen patronen die op de echte CDN's zijn nagelopen, okt. 2026).
+// Andere bekende bronnen gaan via de beeld-CDN van Netlify: op maat en als AVIF/WebP.
+// Mislukt dat, dan valt het <img> terug op het origineel (components/Img.jsx).
+
+// Moet gelijk lopen met [images] remote_images in netlify.toml (de test controleert dat).
+export const CDN_HOSTS = ['images.nrc.nl', 'i.guim.co.uk', 'cdn.theatlantic.com', 'images.vpro.nl', 'thequietus.com', 'lede-admin.stereogum.com', 'ichef.bbci.co.uk', 'npr.brightspotcdn.com', 'images.ft.com', 'oor.nl', 'oor-prod.slashsmart.com']
+const viaCdn = (url, w) => `/.netlify/images?url=${encodeURIComponent(url)}&w=${w}`
 
 const WIDTHS = { thumb: [176, 320], lead: [480, 720, 1080, 1360] }
 const SIZES = {
@@ -58,16 +63,19 @@ function candidates(url, kind) {
   if (host === 'i.ytimg.com' && kind === 'thumb') {
     return [[url.replace('/hqdefault.', '/mqdefault.'), 320]]
   }
+  if (CDN_HOSTS.includes(host)) return widths.map((w) => [viaCdn(url, w), w])
   return null
 }
 
-// Attributen voor <img>: { src, srcSet?, sizes? }
+// Attributen voor <img>: { src, srcSet?, sizes? }, plus `fallback` (het origineel) als we
+// via de beeld-CDN gaan.
 export function imgProps(url, kind = 'thumb') {
   if (!url) return { src: url }
   const list = candidates(url, kind)
   if (!list || !list.length) return { src: url }
-  if (list.length === 1) return { src: list[0][0] }
-  return { src: list[0][0], srcSet: list.map(([u, w]) => `${u} ${w}w`).join(', '), sizes: SIZES[kind] }
+  const fallback = list[0][0].startsWith('/.netlify/images') ? { fallback: url } : {}
+  if (list.length === 1) return { src: list[0][0], ...fallback }
+  return { src: list[0][0], srcSet: list.map(([u, w]) => `${u} ${w}w`).join(', '), sizes: SIZES[kind], ...fallback }
 }
 
 // Profielfoto's: Bluesky heeft een kleine variant (± 1 kB in plaats van 7 kB).

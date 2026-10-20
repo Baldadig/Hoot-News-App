@@ -9,21 +9,24 @@
 [functions]
   node_bundler = "esbuild"
 
-# Schone API-routes naar de serverless functies
-[[redirects]]
-  from = "/api/feed"
-  to = "/.netlify/functions/feed"
-  status = 200
+# De API-routes (/api/feed, /api/tts, /api/save) staan in de functies zelf (export const config).
 
-[[redirects]]
-  from = "/api/tts"
-  to = "/.netlify/functions/tts"
-  status = 200
-
-[[redirects]]
-  from = "/api/save"
-  to = "/.netlify/functions/save"
-  status = 200
+# Beeld op maat (AVIF/WebP) via de beeld-CDN van Netlify, alleen van deze bronnen.
+# Moet gelijk lopen met CDN_HOSTS in src/lib/img.js (tests/img.test.mjs controleert dat).
+[images]
+  remote_images = [
+    'https://images\.nrc\.nl/.*',
+    'https://i\.guim\.co\.uk/.*',
+    'https://cdn\.theatlantic\.com/.*',
+    'https://images\.vpro\.nl/.*',
+    'https://thequietus\.com/.*',
+    'https://lede-admin\.stereogum\.com/.*',
+    'https://ichef\.bbci\.co\.uk/.*',
+    'https://npr\.brightspotcdn\.com/.*',
+    'https://images\.ft\.com/.*',
+    'https://oor\.nl/.*',
+    'https://oor-prod\.slashsmart\.com/.*',
+  ]
 
 # SPA-fallback (laat de PWA alle routes afhandelen)
 [[redirects]]

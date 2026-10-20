@@ -2,14 +2,10 @@
 // Inloggegevens staan veilig als Netlify-omgevingsvariabelen (nooit in de client):
 //   INSTAPAPER_USERNAME  = je Instapaper e-mail
 //   INSTAPAPER_PASSWORD  = je Instapaper wachtwoord (account moet een wachtwoord hebben)
-const json = (status, obj) => ({
-  statusCode: status,
-  headers: { 'Content-Type': 'application/json; charset=utf-8' },
-  body: JSON.stringify(obj),
-})
+const json = (status, obj) => Response.json(obj, { status })
 
-export const handler = async (event) => {
-  if ((event.httpMethod || 'POST') !== 'POST') return json(405, { error: 'method_not_allowed' })
+export default async (req) => {
+  if (req.method !== 'POST') return json(405, { error: 'method_not_allowed' })
 
   const user = process.env.INSTAPAPER_USERNAME
   const pass = process.env.INSTAPAPER_PASSWORD
@@ -18,7 +14,7 @@ export const handler = async (event) => {
   let url
   let title
   try {
-    const b = JSON.parse(event.body || '{}')
+    const b = await req.json()
     url = b.url
     title = b.title
   } catch {
@@ -48,3 +44,5 @@ export const handler = async (event) => {
     return json(502, { error: 'network' })
   }
 }
+
+export const config = { path: '/api/save' }

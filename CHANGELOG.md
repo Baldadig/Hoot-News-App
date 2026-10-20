@@ -2,6 +2,26 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.17.0] — 2026-10-20 — Snel, slank, video's één voor één
+
+**Video's**
+- Er speelt er altijd maar één: start je een video, dan stopt de vorige (en het voorlezen).
+- Scroll je weg terwijl een video speelt, dan pauzeert hij.
+- Video's binnen anderhalf scherm staan al klaar; die in beeld buffert het begin alvast, zodat afspelen direct start. In spaarstand laadt Hoot niets vooraf.
+
+**Sneller**
+- De feed wordt niet meer samengesteld als jij de app opent (dat kostte 2 tot 4 seconden), maar elke 10 minuten vooraf. De app krijgt het resultaat in milliseconden, vanaf de CDN van Netlify, die het voor iedereen bewaart en op de achtergrond ververst. Heb je de feed al, dan is het antwoord "niets veranderd" zonder inhoud.
+- Beelden van onder meer NRC, The Guardian, The Atlantic, 3voor12, BBC en NPR komen nu op maat en als AVIF/WebP via de beeld-CDN (een NRC-foto: van ruim 300 kB naar enkele tientallen). Lukt dat niet, dan het origineel.
+- De feed is 18% kleiner (lege velden gaan niet meer mee); de app gebruikt een kwart minder geheugen.
+- Zoeken, Instellingen, het welkomscherm en het designsysteem laden pas als je ze opent.
+- Minder verkeer naar buiten: de zoekindex alleen als er iets nieuws te zoeken is, trends alleen als de editie ze nodig heeft, bronlogo's een dag bewaard.
+
+**Opgeruimd**
+- De server is opgesplitst in kleine, benoemde onderdelen (bronnen, feeds, opslag, samenstellen, serveren) in plaats van één bestand van 900 regels. Bluesky-code die dubbel stond (server en app) staat nu op één plek.
+- De functies gebruiken het moderne formaat van Netlify (Request/Response, eigen route), zonder doorverwijzingen.
+- De ongebruikte AI-herschrijving per bericht is verwijderd.
+- Gerepareerd: een paar NPR-berichten hadden als beeld het woord "undefined" of een telpixel.
+
 ## [1.16.1] — 2026-10-20 — Bluesky: 48 uur terug
 
 - De Bluesky-stroom haalt nu **de afgelopen 48 uur** binnen in plaats van alleen de laatste 40 posts (bij Aaron Rupar was dat maar zo'n vier uur). Hoot bladert daarvoor door de tijdlijn, 100 posts per keer.

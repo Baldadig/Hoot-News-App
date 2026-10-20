@@ -1,8 +1,10 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext } from 'react'
 import { timeAgo, readTime } from '../lib/time.js'
 import { BookmarkIcon, PlayIcon } from './icons.jsx'
 import { savedKey } from '../lib/saved.js'
-import { imgProps, avatarUrl } from '../lib/img.js'
+import { avatarUrl } from '../lib/img.js'
+import { Img } from './Img.jsx'
+import { Video } from './Video.jsx'
 
 // Alles wat een bericht nodig heeft om te handelen (bewaren, bron bekijken, verhaal openen).
 export const HootContext = createContext(null)
@@ -19,11 +21,6 @@ const rememberLead = (e) => {
   } catch {
     /* niet erg */
   }
-}
-
-const hide = (e) => {
-  const box = e.currentTarget.closest('.thumb, .media')
-  if (box) box.hidden = true
 }
 
 export function SourceMark({ source, size = 22 }) {
@@ -86,16 +83,13 @@ export function Meta({ item, story, showSave = true }) {
   )
 }
 
-const Summary = ({ item, className }) => {
-  const summary = item.nl_summary || item.summary
-  if (!summary) return null
-  return (
+const Summary = ({ item, className }) =>
+  item.summary ? (
     <p className={className}>
-      {summary}
-      {!item.nl_summary && item.borrowedFrom ? <span className="via"> — via {item.borrowedFrom}</span> : null}
+      {item.summary}
+      {item.borrowedFrom ? <span className="via"> — via {item.borrowedFrom}</span> : null}
     </p>
-  )
-}
+  ) : null
 
 // ---- Vorm 1: hoofdverhaal ----
 // `priority`: dit is het eerste beeld dat je ziet (alleen het zichtbare hoofdverhaal).
@@ -106,11 +100,11 @@ export function LeadStory({ item, story, note, priority = false }) {
       <a className="lead__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         {/* Eerst kop en kern, dan pas het beeld (op breed scherm staat het beeld bovenaan, zie CSS). */}
         <Kicker item={item} extra={note} />
-        <h2 className="lead__title">{item.short_title || item.title}</h2>
+        <h2 className="lead__title">{item.title}</h2>
         <Summary item={item} className="lead__sum" />
         {item.image ? (
           <div className="media media--lead">
-            <img {...imgProps(item.image, 'lead')} alt="" loading={priority ? 'eager' : 'lazy'} fetchpriority={priority ? 'high' : undefined} decoding={priority ? undefined : 'async'} referrerPolicy="no-referrer" onLoad={priority ? rememberLead : undefined} onError={hide} />
+            <Img url={item.image} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} />
           </div>
         ) : null}
         {item.author ? <p className="byline">Door {item.author}</p> : null}
@@ -133,11 +127,11 @@ export function CompactItem({ item, story, note, showSave = true, plain = false 
         <Meta item={item} story={story} showSave={showSave} />
         <a className="compact__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
           <Kicker item={item} extra={note} />
-          <h3 className="compact__title">{item.short_title || item.title}</h3>
+          <h3 className="compact__title">{item.title}</h3>
           <Summary item={item} className="compact__sum" />
           {item.image ? (
             <div className="media media--tl">
-              <img {...imgProps(item.image, 'lead')} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={hide} />
+              <Img url={item.image} kind="lead" />
             </div>
           ) : null}
         </a>
@@ -149,12 +143,12 @@ export function CompactItem({ item, story, note, showSave = true, plain = false 
       <a className="compact__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         <div className="compact__text">
           <Kicker item={item} extra={note} />
-          <h3 className="compact__title">{item.short_title || item.title}</h3>
+          <h3 className="compact__title">{item.title}</h3>
           <Summary item={item} className="compact__sum" />
         </div>
         {item.image ? (
           <div className="thumb">
-            <img {...imgProps(item.image, 'thumb')} alt="" width="88" height="88" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={hide} />
+            <Img url={item.image} width="88" height="88" />
           </div>
         ) : null}
       </a>
@@ -173,7 +167,6 @@ export function SocialItem({ item }) {
   // Hoogte begrenzen zonder bij te snijden: de breedte volgt uit de verhouding.
   const bounded = (r) => ({ aspectRatio: r, maxWidth: `calc(min(420px, 56vh) * ${r})` })
   const playable = item.video && CAN_HLS
-  const [playing, setPlaying] = useState(false)
   return (
     <article className={`entry social${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <div className="social__head">
@@ -201,7 +194,7 @@ export function SocialItem({ item }) {
           <div className="linkcard">
             {item.image ? (
               <div className="thumb">
-                <img {...imgProps(item.image, 'thumb')} alt="" width="88" height="88" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={hide} />
+                <Img url={item.image} width="88" height="88" />
               </div>
             ) : null}
             <div className="linkcard__text">
@@ -211,26 +204,11 @@ export function SocialItem({ item }) {
           </div>
         ) : !item.video && item.image ? (
           <div className={`media media--social${ratio ? ' media--natural' : ''}`} style={bounded(ratio || 16 / 9)}>
-            <img src={item.image} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={hide} />
+            <Img url={item.image} kind="lead" />
           </div>
         ) : null}
       </a>
-      {/* Video: eerst alleen het stilstaande beeld (pas geladen als het in zicht komt);
-          de speler zelf komt er bij de eerste tik. */}
-      {playable ? (
-        <div className="media media--social media--poster" style={bounded(16 / 9)}>
-          {playing ? (
-            <video controls autoPlay playsInline poster={item.videoPoster || undefined} src={item.video} />
-          ) : (
-            <button type="button" className="media__start" onClick={() => setPlaying(true)} aria-label={`Video van ${item.sourceName} afspelen`}>
-              {item.videoPoster ? <img src={item.videoPoster} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" /> : null}
-              <span className="media__play">
-                <PlayIcon />
-              </span>
-            </button>
-          )}
-        </div>
-      ) : null}
+      {playable ? <Video src={item.video} poster={item.videoPoster} label={`Video van ${item.sourceName} afspelen`} style={bounded(16 / 9)} /> : null}
     </article>
   )
 }

@@ -2,7 +2,6 @@ import { ViewHeader } from '../components/Shell.jsx'
 import { DisplayControls } from '../components/Display.jsx'
 import { useHoot } from '../components/Items.jsx'
 import { Switch } from './Sources.jsx'
-import { canSpeak } from '../lib/speech.js'
 
 // Alle instellingen op één plek. Wat je al lezend wisselt staat bovenaan (zelfde rijen als
 // het Weergave-paneel); daaronder wat je één keer instelt.

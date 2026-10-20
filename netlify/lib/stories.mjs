@@ -3,11 +3,8 @@
 
 import { DESKS, desksOf, primaryDesk, weight } from './desks.mjs'
 
-export function hash(str) {
-  let h = 5381
-  for (let i = 0; i < str.length; i++) h = (((h << 5) + h) ^ str.charCodeAt(i)) >>> 0
-  return h.toString(36)
-}
+import { hash } from '../../shared/util.mjs'
+export { hash }
 
 export const byRecency = (a, b) => (b.publishedAt ? Date.parse(b.publishedAt) : 0) - (a.publishedAt ? Date.parse(a.publishedAt) : 0)
 

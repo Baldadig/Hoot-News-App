@@ -34,10 +34,13 @@ test('NOS: vaste formaten, alleen vanaf het grote feed-beeld', () => {
   assert.deepEqual(imgProps(small, 'thumb'), { src: small })
 })
 
-test('onbekende of ondertekende beeld-URL’s blijven ongemoeid', () => {
-  for (const url of ['https://images.nrc.nl/sig=/1280x/filters:no_upscale()/s3/x.jpg', 'https://i.guim.co.uk/img/x.jpg?width=140&s=abc', 'https://static01.nyt.com/images/x-superJumbo.jpg', 'geen url']) {
+test('onbekende beeld-URL’s blijven ongemoeid; ondertekende gaan ongeschonden naar de CDN', () => {
+  for (const url of ['https://example.org/x.jpg', 'https://static01.nyt.com/images/x-superJumbo.jpg', 'geen url']) {
     assert.deepEqual(imgProps(url, 'thumb'), { src: url })
     assert.deepEqual(imgProps(url, 'lead'), { src: url })
+  }
+  for (const url of ['https://images.nrc.nl/sig=/1280x/filters:no_upscale()/s3/x.jpg', 'https://i.guim.co.uk/img/x.jpg?width=140&s=abc']) {
+    assert.equal(decodeURIComponent(imgProps(url, 'thumb').src.match(/url=([^&]+)/)[1]), url)
   }
   assert.deepEqual(imgProps(null), { src: null })
 })
@@ -52,4 +55,20 @@ test('Bing-beeld uit de zoekindex: vierkant als thumbnail, 16:9 als hoofdbeeld',
   const url = 'https://www.bing.com/th?id=ONUT.abc&pid=News&w=1200&h=675&c=7'
   assert.equal(imgProps(url, 'thumb').src, 'https://www.bing.com/th?id=ONUT.abc&pid=News&w=176&h=176&c=7')
   assert.match(imgProps(url, 'lead').srcSet, /w=720&h=405&c=7 720w/)
+})
+
+test('bronnen zonder eigen formaten gaan via de beeld-CDN, met het origineel als terugval', () => {
+  const url = 'https://images.nrc.nl/abc=/1280x/filters:no_upscale()/s3/a.jpg'
+  const p = imgProps(url, 'lead')
+  assert.equal(p.fallback, url)
+  assert.match(p.src, /^\/\.netlify\/images\?url=https%3A%2F%2Fimages\.nrc\.nl%2F.+&w=480$/)
+  assert.match(p.srcSet, /&w=1360 1360w$/)
+  assert.equal(imgProps('https://example.org/a.jpg', 'lead').fallback, undefined)
+})
+
+test('elke CDN-bron staat ook in netlify.toml (anders weigert Netlify het beeld)', async () => {
+  const { readFileSync } = await import('node:fs')
+  const { CDN_HOSTS } = await import('../src/lib/img.js')
+  const toml = readFileSync(new URL('../netlify.toml', import.meta.url), 'utf8')
+  for (const host of CDN_HOSTS) assert.ok(toml.includes(`'https://${host.replaceAll('.', '\\.')}/.*'`), host)
 })

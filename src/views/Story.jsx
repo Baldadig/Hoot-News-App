@@ -132,7 +132,7 @@ export function StoryIndex({ stories = [], onClose, lastId }) {
               <li key={s.id}>
                 <button type="button" className="sidx__btn" onClick={() => openStory(s.id)} aria-current={s.id === lastId ? 'true' : undefined}>
                   <span className="sidx__text">
-                    <span className="sidx__title">{lead.short_title || lead.title}</span>
+                    <span className="sidx__title">{lead.title}</span>
                     <span className="sidx__meta">
                       Vergelijk {s.sourceCount} bronnen · {timeAgo(s.latestAt)}
                       {s.id === lastId ? ' · zojuist bekeken' : ''}

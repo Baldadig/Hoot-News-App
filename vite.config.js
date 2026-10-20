@@ -6,57 +6,32 @@ import { readFileSync } from 'node:fs'
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
 const version = process.env.HOOT_VERSION || pkg.version // HOOT_VERSION: alleen om lokaal twee builds te vergelijken
 
-// Serveert /api/feed lokaal door de Netlify-functie te draaien,
-// zodat `npm run dev` en de preview echte data tonen zonder Netlify CLI.
+// Draait de Netlify-functies lokaal (zelfde vorm als op Netlify: Request erin, Response eruit),
+// zodat `npm run dev` echte data toont zonder Netlify CLI.
 function devApi() {
+  const routes = { '/api/feed': 'feed', '/api/tts': 'tts', '/api/save': 'save' }
   return {
     name: 'hoot-dev-api',
     apply: 'serve',
     configureServer(server) {
-      server.middlewares.use('/api/feed', async (req, res) => {
-        try {
-          const mod = await server.ssrLoadModule('/netlify/functions/feed.mjs')
-          const result = await mod.handler({ queryStringParameters: {} })
-          res.statusCode = result.statusCode || 200
-          for (const [k, v] of Object.entries(result.headers || {})) res.setHeader(k, v)
-          res.end(result.body)
-        } catch (e) {
-          res.statusCode = 500
-          res.setHeader('Content-Type', 'application/json')
-          res.end(JSON.stringify({ error: String((e && e.message) || e) }))
-        }
-      })
-
-      server.middlewares.use('/api/tts', async (req, res) => {
-        try {
-          const mod = await server.ssrLoadModule('/netlify/functions/tts.mjs')
-          const q = Object.fromEntries(new URL(req.url, 'http://x').searchParams)
-          const result = await mod.handler({ queryStringParameters: q })
-          res.statusCode = result.statusCode || 200
-          for (const [k, v] of Object.entries(result.headers || {})) res.setHeader(k, v)
-          res.end(result.isBase64Encoded ? Buffer.from(result.body, 'base64') : result.body)
-        } catch (e) {
-          res.statusCode = 500
-          res.end(JSON.stringify({ error: String((e && e.message) || e) }))
-        }
-      })
-
-      server.middlewares.use('/api/save', async (req, res) => {
-        try {
-          let body = ''
-          req.on('data', (c) => (body += c))
-          await new Promise((resolve) => req.on('end', resolve))
-          const mod = await server.ssrLoadModule('/netlify/functions/save.mjs')
-          const result = await mod.handler({ httpMethod: req.method, body })
-          res.statusCode = result.statusCode || 200
-          for (const [k, v] of Object.entries(result.headers || {})) res.setHeader(k, v)
-          res.end(result.body)
-        } catch (e) {
-          res.statusCode = 500
-          res.setHeader('Content-Type', 'application/json')
-          res.end(JSON.stringify({ error: String((e && e.message) || e) }))
-        }
-      })
+      for (const [path, name] of Object.entries(routes)) {
+        server.middlewares.use(path, async (req, res) => {
+          try {
+            const chunks = []
+            for await (const c of req) chunks.push(c)
+            const request = new Request(new URL(req.originalUrl || req.url, 'http://localhost'), { method: req.method, headers: req.headers, body: chunks.length ? Buffer.concat(chunks) : undefined })
+            const mod = await server.ssrLoadModule(`/netlify/functions/${name}.mjs`)
+            const response = await mod.default(request, { waitUntil: () => {} })
+            res.statusCode = response.status
+            response.headers.forEach((v, k) => res.setHeader(k, v))
+            res.end(Buffer.from(await response.arrayBuffer()))
+          } catch (e) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: String(e?.message || e) }))
+          }
+        })
+      }
     },
   }
 }

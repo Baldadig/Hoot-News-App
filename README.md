@@ -22,16 +22,45 @@ Tip: zet in iOS Safari per site *"Reader automatisch gebruiken"* aan (bv. nrc.nl
 
 > Hoot logt nooit namens jou in en schraapt geen betaalde content. Dat houdt de app stabiel en netjes.
 
-## AI-laag (Nederlandse titels & samenvattingen)
+## Hoe het werkt
 
-Een serverless verrijkingsstap maakt per item een **korte Nederlandse titel**, een **NL-samenvatting
-van ~140 tekens** en bepaalt de **onderwerp-tags** met Claude (Sonnet). Resultaten worden gecachet in
-**Netlify Blobs**.
+```
+ elke 10 min                         bij elke vraag (milliseconden)
+┌──────────────────────┐  opslag   ┌──────────────────┐  CDN (durable,   ┌──────────┐
+│ feed-refresh (cron)  │ ────────▶ │ /api/feed        │  stale-while-    │ de app   │
+│ lib/build.mjs:       │  Blobs    │ leest alleen het │  revalidate) ──▶ │ (PWA)    │
+│ RSS · Bluesky · Bing │           │ laatste resultaat│  ETag → 304      │          │
+│ verhalen · editie    │           └──────────────────┘                  └──────────┘
+└──────────────────────┘
+```
 
-- Zet hiervoor in Netlify een omgevingsvariabele **`ANTHROPIC_API_KEY`** (Site settings → Environment variables).
-- **Zonder sleutel** (de huidige situatie) werkt de app door: originele titels, de RSS-teaser in hele
-  zinnen als preview, onderwerpen via trefwoorden + RSS-categorieën. Bronnen zonder teaser (de Volkskrant)
-  tonen kop + foto, of lenen een preview van NOS/NRC bij hetzelfde verhaal ("· via NRC").
+- **Samenstellen** gebeurt op een vast ritme, niet als jij de app opent: `netlify/functions/feed-refresh.mjs`
+  (elke 10 minuten, 's nachts elk half uur) roept `netlify/lib/build.mjs` aan. Dat haalt alle bronnen op,
+  vult de Stroom, bundelt verhalen en legt de editie van het dagdeel vast.
+- **Serveren** (`netlify/functions/feed.mjs`) leest alleen het kant-en-klare resultaat. De CDN van Netlify
+  bewaart het voor iedereen en ververst het op de achtergrond; de browser krijgt "304, niets veranderd" als
+  hij de feed al heeft.
+- **Gedeelde code** (`shared/`) draait op de server én in de app: Bluesky-posts omzetten, id's.
+- **Beeld** gaat op maat: eigen formaten van de uitgever waar die bestaan, anders via de beeld-CDN van
+  Netlify (AVIF/WebP, `src/lib/img.js` + `[images]` in `netlify.toml`).
+- **De app** toont meteen wat hij de vorige keer had (opgeslagen op het toestel) en werkt bij als er iets
+  nieuws is. Video's: er speelt er altijd één, ze pauzeren als je wegscrolt en bufferen alvast als ze in
+  beeld komen.
+
+| Map | Wat |
+|---|---|
+| `netlify/lib/sources.mjs` | Welke bronnen en Bluesky-accounts Hoot volgt |
+| `netlify/lib/rss.mjs`, `lookups.mjs` | Feeds ophalen; zoekindex, trends en avatars |
+| `netlify/lib/stories.mjs`, `desks.mjs`, `bubble.mjs` | Verhalen bundelen, de editie samenstellen (pure functies, getest) |
+| `netlify/lib/build.mjs`, `refresh.mjs`, `kv.mjs` | Alles samenvoegen, bewaren in Netlify Blobs |
+| `src/` | De app (React + Vite, installeerbaar als web-app) |
+
+## AI-overzicht
+
+Met **`ANTHROPIC_API_KEY`** maakt Claude Haiku per editie één kort overzicht ("De editie in één minuut").
+Zonder sleutel werkt alles door: titels en teasers van de bron zelf, onderwerpen via trefwoorden. Bronnen
+zonder teaser (de Volkskrant) krijgen hun eigen inleiding uit de zoekindex, of lenen er een van een andere
+Nederlandse bron over hetzelfde verhaal ("via NOS").
 
 ## Bewaren
 
@@ -67,22 +96,19 @@ npm run build       # output in dist/
 
 1. Push deze map naar GitHub.
 2. Koppel de repo in Netlify → build verloopt automatisch via `netlify.toml`.
-3. Zet de environment variables: **`ANTHROPIC_API_KEY`** (NL AI-laag) en **`INSTAPAPER_USERNAME`** + **`INSTAPAPER_PASSWORD`** (bewaren).
-4. De functies draaien op `/api/feed` (aggregator, 5 min CDN-cache) en `/api/save` (Instapaper).
+3. Zet de environment variables (zie hieronder).
+4. De functies draaien op `/api/feed` (de feed), `/api/tts` (voorlezen) en `/api/save` (Instapaper);
+   `feed-refresh` draait vanzelf elke 10 minuten.
 
 ## Bronnen & onderwerpen aanpassen
 
 - **Nieuwsbronnen** (feed-URL's, met fallbacks) en **Bluesky-accounts** staan in
-  [`netlify/functions/feed.mjs`](netlify/functions/feed.mjs) (`SOURCES` en `BLUESKY_AUTHORS`).
-- **Extra Trending-bronnen** (alleen voor de 🔥 Trending-tab) staan in `EXTRA_SOURCES` in dezelfde file.
-- **Onderwerp-tabs** staan in [`src/lib/topics.js`](src/lib/topics.js) (en de enum in `feed.mjs`).
-
-## Roadmap
-
-- ✅ **v0.6.0** — "Bewaar voor later" → Instapaper
-- **volgende** — opgeslagen-weergave, in-app reader, meer Bluesky-accounts beheren, discover/trending, cross-device sync
-```
-
+  [`netlify/lib/sources.mjs`](netlify/lib/sources.mjs) (`SOURCES` en `BLUESKY_AUTHORS`).
+- **Extra bronnen** (alleen als "ook bij" in een verhaal) staan in `EXTRA_SOURCES` in hetzelfde bestand.
+- **Onderwerpen** staan in [`src/lib/topics.js`](src/lib/topics.js) en de trefwoorden in
+  [`netlify/lib/topics.mjs`](netlify/lib/topics.mjs).
+- Een nieuwe beeldbron via de beeld-CDN: voeg de host toe aan `CDN_HOSTS` in `src/lib/img.js` én aan
+  `remote_images` in `netlify.toml` (de test bewaakt dat ze gelijk lopen).
 
 ## Omgevingsvariabelen (Netlify → Site configuration → Environment variables)
 
@@ -91,7 +117,6 @@ npm run build       # output in dist/
 | `ANTHROPIC_API_KEY` | "De editie in één minuut" (Claude Haiku 5.5, drie keer per dag) | Het blok blijft weg; de rest werkt |
 | `INSTAPAPER_USERNAME`, `INSTAPAPER_PASSWORD` | Bewaren ook naar Instapaper (Simple API) | Alleen bewaren in Hoot |
 | `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` | Voorlezen met een natuurlijke Nederlandse stem (Fenna, Maarten of Colette); één MP3 per editie, bewaard | De stem van het toestel |
-| `HOOT_AI_ENRICH=1` | Samenvattingen per bericht laten herschrijven door AI (kost per bericht) | Uit (aanbevolen) |
 
 Geheimen staan alleen hier, nooit in de app of in de repository. Na het toevoegen een nieuwe deploy starten (Deploys → Trigger deploy).
 

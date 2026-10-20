@@ -1,0 +1,22 @@
+// Kleine hulpfuncties die server en app allebei gebruiken (één bron van waarheid).
+
+// djb2-variant: korte, stabiele id's. Server en app rekenen hetzelfde, zodat id's matchen.
+export function hash(str) {
+  let h = 5381
+  for (let i = 0; i < str.length; i++) h = (((h << 5) + h) ^ str.charCodeAt(i)) >>> 0
+  return h.toString(36)
+}
+
+export function hostname(u) {
+  try {
+    return new URL(u).hostname.replace(/^www\./, '')
+  } catch {
+    return ''
+  }
+}
+
+export function safeIso(d) {
+  if (!d) return null
+  const t = new Date(d).getTime()
+  return Number.isNaN(t) ? null : new Date(t).toISOString()
+}

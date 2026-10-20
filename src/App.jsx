@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { HootContext } from './components/Items.jsx'
 import { CloseIcon } from './components/icons.jsx'
 
@@ -13,9 +13,6 @@ import Stream from './views/Stream.jsx'
 import Saved from './views/Saved.jsx'
 import Sources from './views/Sources.jsx'
 import Story, { StoryIndex } from './views/Story.jsx'
-import Search from './views/Search.jsx'
-import Welcome from './views/Welcome.jsx'
-import StyleGuide from './views/StyleGuide.jsx'
 import { useFeed } from './hooks/useFeed.js'
 import { useRoute } from './hooks/useRoute.js'
 import { useOnline } from './hooks/useOnline.js'
@@ -25,7 +22,6 @@ import { useStored, readJSON } from './lib/store.js'
 import { saveToInstapaper } from './lib/save.js'
 import { MAIN, rememberLocation, hrefFor } from './lib/context.js'
 import { sourceStatus, statusLabel } from './lib/sourceStatus.js'
-import Settings from './views/Settings.jsx'
 import Bluesky from './views/Bluesky.jsx'
 import { mutedSet, toggleSource, inStream, isPost } from './lib/sourcesel.js'
 import { DisplaySheet } from './components/Display.jsx'
@@ -33,6 +29,12 @@ import { normalizePrefs } from './lib/prefs.js'
 import { shouldShowInstallTip } from './lib/install.js'
 import { subscribe as onUpdate, isReady as updateReady, applyUpdate, dismissUpdate } from './lib/swUpdate.js'
 import { indexStories, resolveStory, toggleSaved, restoreSaved } from './lib/saved.js'
+
+// Schermen die je zelden opent laden pas als je ze opent (de service worker heeft ze al klaarstaan).
+const Search = lazy(() => import('./views/Search.jsx'))
+const Settings = lazy(() => import('./views/Settings.jsx'))
+const StyleGuide = lazy(() => import('./views/StyleGuide.jsx'))
+const Welcome = lazy(() => import('./views/Welcome.jsx'))
 
 const PAGES = ['zoek', 'stijl', 'welkom', 'instellingen']
 const byRecency = (a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || '')
@@ -479,9 +481,11 @@ export default function App() {
               online={online}
             />
           ) : null}
-          {page === 'zoek' ? <Search onBack={() => route.back('editie')} /> : null}
-          {page === 'instellingen' ? <Settings meta={data?.meta} onBack={() => route.back('bronnen')} /> : null}
-          {page === 'stijl' ? <StyleGuide stream={stream} /> : null}
+          <Suspense fallback={null}>
+            {page === 'zoek' ? <Search onBack={() => route.back('editie')} /> : null}
+            {page === 'instellingen' ? <Settings meta={data?.meta} onBack={() => route.back('bronnen')} /> : null}
+            {page === 'stijl' ? <StyleGuide stream={stream} /> : null}
+          </Suspense>
         </main>
         <aside className={`panel${story ? ' is-open' : ''}`} hidden={!story && !panelOpen} aria-label="Verhaal" role={overlay ? 'dialog' : undefined} aria-modal={overlay ? 'true' : undefined} inert={showWelcome ? '' : undefined}>
           {story ? (
@@ -525,15 +529,17 @@ export default function App() {
           ) : null}
         </div>
         {showWelcome ? (
-          <Welcome
-            sources={sources}
-            muted={muted}
-            onToggle={setMuted}
-            onDone={() => {
-              setPrefs((p) => ({ ...p, onboarded: true }))
-              route.go('editie', {}, { replace: true })
-            }}
-          />
+          <Suspense fallback={null}>
+            <Welcome
+              sources={sources}
+              muted={muted}
+              onToggle={setMuted}
+              onDone={() => {
+                setPrefs((p) => ({ ...p, onboarded: true }))
+                route.go('editie', {}, { replace: true })
+              }}
+            />
+          </Suspense>
         ) : null}
       </div>
     </HootContext.Provider>

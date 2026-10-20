@@ -3,29 +3,19 @@
 // Sleutels staan alleen als omgevingsvariabelen op Netlify:
 //   AZURE_SPEECH_KEY    = sleutel van je Azure AI Speech-resource
 //   AZURE_SPEECH_REGION = regio van die resource, bv. westeurope
-import { getStore, connectLambda } from '@netlify/blobs'
+import { getStore } from '@netlify/blobs'
 import { ssml, editionParts, VOICES, DEFAULT_VOICE } from '../lib/tts.mjs'
 
-const json = (status, obj) => ({ statusCode: status, headers: { 'Content-Type': 'application/json; charset=utf-8' }, body: JSON.stringify(obj) })
-const mp3 = (buf) => ({
-  statusCode: 200,
-  headers: { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'public, max-age=86400, immutable' },
-  body: Buffer.from(buf).toString('base64'),
-  isBase64Encoded: true,
-})
+const json = (status, obj) => Response.json(obj, { status })
+const mp3 = (buf) => new Response(buf, { headers: { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'public, max-age=86400, immutable' } })
 
-export const handler = async (event) => {
+export default async (req) => {
   const key = process.env.AZURE_SPEECH_KEY
   const region = process.env.AZURE_SPEECH_REGION
   if (!key || !region) return json(503, { error: 'not_configured' })
-  try {
-    connectLambda(event)
-  } catch {
-    /* lokaal: geen Blobs */
-  }
-  const q = event.queryStringParameters || {}
-  const id = String(q.editie || '')
-  const voice = VOICES[q.stem] ? q.stem : DEFAULT_VOICE
+  const q = new URL(req.url).searchParams
+  const id = String(q.get('editie') || '')
+  const voice = VOICES[q.get('stem')] ? q.get('stem') : DEFAULT_VOICE
   const m = id.match(/^\d{4}-\d{2}-\d{2}-(ochtend|middag|avond)$/)
   if (!m) return json(400, { error: 'bad_edition' })
 
@@ -53,3 +43,5 @@ export const handler = async (event) => {
   if (store) await store.set(cacheKey, buf).catch(() => {})
   return mp3(buf)
 }
+
+export const config = { path: '/api/tts' }

@@ -29,7 +29,7 @@ export function editionParts(stored, slot) {
   for (const e of stored.entries || []) {
     const st = e.kind === 'story' ? stories.get(e.id) : null
     const it = st ? items.get(e.leadId) || items.get(st.leadId) || st.itemIds.map((id) => items.get(id)).find(Boolean) : items.get(e.id)
-    if (it) rows.push({ title: it.short_title || it.title, summary: it.nl_summary || it.summary, sourceName: it.sourceName })
+    if (it) rows.push({ title: it.title, summary: it.summary, sourceName: it.sourceName })
   }
   const date = LONG.format(new Date(`${stored.id.slice(0, 10)}T12:00:00Z`))
   const parts = bulletinText({ slot, date, rows })

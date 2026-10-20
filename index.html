@@ -10,6 +10,8 @@
     <meta name="theme-color" content="#0f0f11" media="(prefers-color-scheme: dark)" />
     <!-- De berichten alvast ophalen terwijl de app zelf nog laadt. -->
     <link rel="preload" href="/api/feed" as="fetch" crossorigin="anonymous" />
+    <!-- Bronlogo's en Bluesky-avatars komen hiervandaan: de verbinding alvast openen. -->
+    <link rel="preconnect" href="https://cdn.bsky.app" />
     <script>
       // Terugkerend bezoek aan de Editie: het hoofdbeeld van de vorige keer alvast ophalen
       // (alleen als dat recent was — een editie blijft een halve dag staan).

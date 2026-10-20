@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { LeadStory, CompactItem, SaveButton, SourceMark, useHoot } from '../components/Items.jsx'
-import { imgProps } from '../lib/img.js'
+import { Img } from '../components/Img.jsx'
 import { bulletinText, canSpeak, speak, stop, playEdition } from '../lib/speech.js'
 import { HeadphonesIcon, StopIcon } from '../components/icons.jsx'
 import { timeAgo } from '../lib/time.js'
@@ -24,8 +24,8 @@ function FrontItem({ item, story, note }) {
   const { markRead, read, openSource, openStory, newInStory } = useHoot()
   const others = story ? story.sourceCount - 1 : 0
   const fresh = story ? newInStory(story) : 0
-  const title = item.short_title || item.title
-  const summary = title.length <= 90 ? item.nl_summary || item.summary : null
+  const title = item.title
+  const summary = title.length <= 90 ? item.summary : null
   return (
     <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       {note ? <p className="kicker fitem__kicker">{note}</p> : null}
@@ -46,16 +46,7 @@ function FrontItem({ item, story, note }) {
         </span>
         {item.image ? (
           <span className="thumb">
-            <img
-              {...imgProps(item.image, 'thumb')}
-              alt=""
-              width="64"
-              height="64"
-              loading="lazy"
-              decoding="async"
-              referrerPolicy="no-referrer"
-              onError={(e) => (e.currentTarget.parentElement.hidden = true)}
-            />
+            <Img url={item.image} width="64" height="64" />
           </span>
         ) : null}
       </a>
@@ -102,7 +93,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, re
   const toggleSpeak = () => {
     if (speaking) return (stop(), setSpeaking(false))
     const device = () => {
-      const parts = bulletinText({ slot: edition.slot, date: longDate(edition.date), rows: rows.map(({ item }) => ({ title: item.short_title || item.title, summary: item.nl_summary || item.summary, sourceName: item.sourceName })) })
+      const parts = bulletinText({ slot: edition.slot, date: longDate(edition.date), rows: rows.map(({ item }) => ({ title: item.title, summary: item.summary, sourceName: item.sourceName })) })
       if (canSpeak()) speak(parts, { onEnd: () => setSpeaking(false) })
       else setSpeaking(false)
     }

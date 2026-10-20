@@ -2,29 +2,7 @@
 // (public.api.bsky.app is CORS-vriendelijk). Zo kun je zelf accounts toevoegen
 // zonder serverwijziging. De post-vorm is gelijk aan die van de aggregator.
 
-const API = 'https://public.api.bsky.app/xrpc'
-const BSKY_BRAND = '#0085FF'
-
-// djb2-variant — identiek aan de server, zodat id's matchen (dedup tegen serverposts).
-function hash(str) {
-  let h = 5381
-  for (let i = 0; i < str.length; i++) h = (((h << 5) + h) ^ str.charCodeAt(i)) >>> 0
-  return h.toString(36)
-}
-
-function hostname(u) {
-  try {
-    return new URL(u).hostname.replace(/^www\./, '')
-  } catch {
-    return ''
-  }
-}
-
-function safeIso(d) {
-  if (!d) return null
-  const t = new Date(d).getTime()
-  return Number.isNaN(t) ? null : new Date(t).toISOString()
-}
+import { BSKY_API as API, fetchAuthorPosts } from '../../shared/bluesky.mjs'
 
 // Accepteert "https://bsky.app/profile/xxx", "@xxx" of "xxx" -> handle
 export function parseHandle(input) {
@@ -45,105 +23,8 @@ export async function resolveProfile(input) {
   return { handle: d.handle, name: (d.displayName || '').trim() || d.handle, avatar: d.avatar || null }
 }
 
-function mapPost(post, fallbackName) {
-  if (!post?.record) return null
-  const text = post.record.text || ''
-  const handle = post.author?.handle
-  if (!handle) return null
-  const rkey = (post.uri || '').split('/').pop()
-  const permalink = `https://bsky.app/profile/${handle}/post/${rkey}`
-  let image = null
-  let imageRatio = null
-  const photo = (im) => {
-    image = im.thumb || im.fullsize || image
-    const r = im.aspectRatio
-    imageRatio = r?.width && r?.height ? Math.round((r.width / r.height) * 1000) / 1000 : 4 / 3
-  }
-  let video = null
-  let videoPoster = null
-  let linkUrl = permalink
-  let linkTitle = null // gedeelde link (geen eigen foto): titel van de pagina
-  let domain = 'bsky.app'
-  const ext = (e) => {
-    if (e?.external) {
-      image = e.external.thumb || image
-      linkTitle = (e.external.title || '').trim() || null
-      if (e.external.uri && /^https?:\/\//i.test(e.external.uri)) {
-        linkUrl = e.external.uri
-        domain = hostname(linkUrl)
-      }
-    }
-  }
-  const vid = (e) => {
-    if (e?.playlist) {
-      video = e.playlist
-      videoPoster = e.thumbnail || null
-      image = e.thumbnail || image
-    }
-  }
-  const embed = post.embed
-  if (embed) {
-    const t = embed.$type || ''
-    if (t.includes('embed.video')) vid(embed)
-    else if (t.includes('embed.external')) ext(embed)
-    else if (t.includes('embed.images') && embed.images?.length) photo(embed.images[0])
-    else if (t.includes('recordWithMedia') && embed.media) {
-      const m = embed.media
-      if ((m.$type || '').includes('embed.video')) vid(m)
-      else if ((m.$type || '').includes('embed.images') && m.images?.length) photo(m.images[0])
-      else if ((m.$type || '').includes('embed.external')) ext(m)
-    }
-  }
-  return {
-    id: hash('bsky|' + post.uri),
-    kind: 'post',
-    source: 'bsky:' + handle,
-    sourceName: post.author?.displayName || fallbackName || handle,
-    handle: '@' + handle,
-    domain,
-    avatar: post.author?.avatar || null,
-    avatarContain: false,
-    brandColor: BSKY_BRAND,
-    author: null,
-    type: 'sociaal',
-    section: null,
-    title: '',
-    summary: text.replace(/\s+/g, ' ').trim(),
-    text,
-    topics: [],
-    url: linkUrl,
-    linkTitle,
-    image,
-    imageRatio,
-    video,
-    videoPoster,
-    readMin: null,
-    publishedAt: safeIso(post.record.createdAt || post.indexedAt),
-  }
-}
-
-// De afgelopen 48 uur van één account, bladzijde voor bladzijde (hooguit 8 × 100).
-export async function fetchAuthorItems(handle, name, hours = 48) {
-  const since = Date.now() - hours * 36e5
-  const own = []
-  let cursor = ''
-  for (let page = 0; page < 8; page++) {
-    const url = `${API}/app.bsky.feed.getAuthorFeed?actor=${encodeURIComponent(handle)}&limit=100&filter=posts_no_replies${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`
-    const res = await fetch(url)
-    if (!res.ok) {
-      if (page === 0) throw new Error('bsky ' + res.status)
-      break
-    }
-    const data = await res.json()
-    const feed = data.feed || []
-    // Alleen eigen, originele posts: geen reposts (reason), geen posts van anderen
-    own.push(...feed.filter((fi) => !fi.reason && fi.post?.author?.handle === handle))
-    const last = feed[feed.length - 1]?.post
-    cursor = data.cursor
-    if (!cursor || !feed.length || Date.parse(last?.indexedAt || last?.record?.createdAt || 0) < since) break
-  }
-  return own
-    .map((fi) => mapPost(fi.post, name))
-    .filter(Boolean)
-    .filter((it) => !it.publishedAt || Date.parse(it.publishedAt) >= since)
+// De afgelopen 48 uur van één account (zelfde vorm en id's als de server: shared/bluesky.mjs).
+export async function fetchAuthorItems(handle, name) {
+  const posts = await fetchAuthorPosts(handle, { name })
+  return posts.map((p) => ({ ...p, topics: [] }))
 }

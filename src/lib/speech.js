@@ -1,5 +1,6 @@
 // Voorlezen met de stem van het toestel (Web Speech API) — gratis, offline, Nederlands.
-// bulletinText is puur (getest in tests/speech.test.mjs); de rest praat met de browser.
+// bulletinText is puur; de rest praat met de browser.
+import { claim, addSilencer } from './media.js'
 
 const NUM = ['', 'Eén', 'Twee', 'Drie', 'Vier', 'Vijf', 'Zes', 'Zeven', 'Acht', 'Negen', 'Tien', 'Elf', 'Twaalf']
 
@@ -24,12 +25,21 @@ function pickVoice() {
   return nl.find((v) => /xander|claire|ellen|premium|enhanced/i.test(v.name)) || nl[0] || null
 }
 
-let current = { stop: () => {} }
+let current = { stop: () => {}, onEnd: null }
+
+// Start er een video, dan stopt het voorlezen — en hoort de knop in de editie dat ook.
+function silence() {
+  const end = current.onEnd
+  stop()
+  end?.()
+}
+addSilencer(silence)
 
 // Spreekt een lijst stukken na elkaar uit (één utterance per stuk: lange utterances
 // breken op iOS af). Geeft een stop-functie terug; roept onEnd aan als alles klaar is.
 export function speak(parts, { onEnd } = {}) {
   stop()
+  claim(silence)
   const synth = window.speechSynthesis
   const voice = pickVoice()
   let i = 0
@@ -47,9 +57,12 @@ export function speak(parts, { onEnd } = {}) {
     u.onerror = next
     synth.speak(u)
   }
-  current.stop = () => {
-    cancelled = true
-    synth.cancel()
+  current = {
+    stop: () => {
+      cancelled = true
+      synth.cancel()
+    },
+    onEnd,
   }
   // Stemmen komen in Safari soms pas na een tik beschikbaar.
   if (!synth.getVoices().length) synth.addEventListener('voiceschanged', () => {}, { once: true })
@@ -62,6 +75,7 @@ export function speak(parts, { onEnd } = {}) {
 let audio = null
 export function playEdition({ id, voice, title, onEnd, onError }) {
   stop()
+  claim(silence)
   audio = new Audio(`/api/tts?editie=${encodeURIComponent(id)}&stem=${encodeURIComponent(voice)}`)
   audio.preload = 'auto'
   audio.onended = () => onEnd?.()
@@ -79,16 +93,19 @@ export function playEdition({ id, voice, title, onEnd, onError }) {
   }
   const started = audio.play()
   if (started?.catch) started.catch(() => onError?.())
-  current.stop = () => {
-    if (audio) {
-      audio.pause()
-      audio.src = ''
-      audio = null
-    }
+  current = {
+    stop: () => {
+      if (audio) {
+        audio.pause()
+        audio.src = ''
+        audio = null
+      }
+    },
+    onEnd,
   }
 }
 
 export function stop() {
   current.stop()
-  current = { stop: () => {} }
+  current = { stop: () => {}, onEnd: null }
 }
