@@ -5,6 +5,13 @@ import { hash, hostname, safeIso } from './util.mjs'
 export const BSKY_API = 'https://public.api.bsky.app/xrpc'
 export const BSKY_BRAND = '#0085FF'
 
+// Video's: rechtstreeks van Bluesky's video-CDN. Het gewone adres (video.bsky.app/watch/…) stuurt
+// daar alleen naartoe en reageerde op 21 okt 2026 urenlang niet; de CDN zelf wel.
+export function directVideo(url) {
+  const m = /^https:\/\/video\.bsky\.app\/watch\/([^/]+)\/([^/]+)\/(.+)$/.exec(url || '')
+  return m ? `https://video.cdn.bsky.app/hls/${decodeURIComponent(m[1])}/${m[2]}/${m[3]}` : url
+}
+
 // Eén post → één bericht. Drie soorten beeld: een gedeelde link (met titel), een eigen foto
 // (met de echte verhouding, zodat screenshots heel blijven) of een video.
 export function mapPost(post, fallbackName) {
@@ -35,9 +42,9 @@ export function mapPost(post, fallbackName) {
   }
   const clip = (e) => {
     if (!e?.playlist) return
-    video = e.playlist
-    videoPoster = e.thumbnail || null
-    image = e.thumbnail || image
+    video = directVideo(e.playlist)
+    videoPoster = directVideo(e.thumbnail) || null
+    image = videoPoster || image
   }
   const media = (e) => {
     const t = e?.$type || ''

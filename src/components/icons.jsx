@@ -106,3 +106,9 @@ export const PlayIcon = () => (
     <path d="M10 8l6 4-6 4z" fill="#fff" />
   </svg>
 )
+export const ReaderIcon = () => (
+  <svg {...base}>
+    <path d="M6 3.5h9l3 3v14H6z" />
+    <path d="M9 10h6M9 13.5h6M9 17h4" />
+  </svg>
+)

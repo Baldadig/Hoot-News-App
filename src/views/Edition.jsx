@@ -3,7 +3,8 @@ import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../component
 import { LeadStory, CompactItem, SaveButton, SourceMark, useHoot } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
 import { bulletinText, canSpeak, speak, stop, playEdition } from '../lib/speech.js'
-import { HeadphonesIcon, StopIcon } from '../components/icons.jsx'
+import { HeadphonesIcon, StopIcon, ReaderIcon } from '../components/icons.jsx'
+import { BriefReader } from '../components/BriefReader.jsx'
 import { timeAgo } from '../lib/time.js'
 import { BrandMark } from '../components/Brand.jsx'
 import Weather from '../components/Weather.jsx'
@@ -103,6 +104,8 @@ export default function Edition({ active, edition, bubble = [], brief = null, re
     setSpeaking(true)
   }
   const showSpeak = readAloud && (tts || canSpeak())
+  const [reading, setReading] = useState(false)
+  const hasBrief = !!(brief?.sections?.length || brief?.text)
 
   useScrollMemory(ref, 'hoot:pos-editie:' + (edition?.id || ''), rows.length > 0, rows.length, active)
 
@@ -138,24 +141,23 @@ export default function Edition({ active, edition, bubble = [], brief = null, re
                 {sub}
                 <Weather />
               </span>
-              {showSpeak ? (
-                <button type="button" className={`textbtn textbtn--sm how__speak${speaking ? ' is-on' : ''}`} onClick={toggleSpeak} aria-pressed={speaking}>
-                  {speaking ? <StopIcon /> : <HeadphonesIcon />}
-                  {speaking ? 'Stop' : 'Lees voor'}
-                </button>
+              {hasBrief || showSpeak ? (
+                <span className="edmeta__acts">
+                  {hasBrief ? (
+                    <button type="button" className="textbtn textbtn--sm" onClick={() => setReading(true)} aria-haspopup="dialog" aria-label="De editie in één minuut lezen">
+                      <ReaderIcon />1 minuut
+                    </button>
+                  ) : null}
+                  {showSpeak ? (
+                    <button type="button" className={`textbtn textbtn--sm how__speak${speaking ? ' is-on' : ''}`} onClick={toggleSpeak} aria-pressed={speaking}>
+                      {speaking ? <StopIcon /> : <HeadphonesIcon />}
+                      {speaking ? 'Stop' : 'Lees voor'}
+                    </button>
+                  ) : null}
+                </span>
               ) : null}
             </div>
-            {brief?.text ? (
-              <section className="brief" aria-label="De editie in één minuut">
-                <h2 className="brief__head">De editie in één minuut</h2>
-                {brief.text.split(/\n\s*\n/).map((p, i) => (
-                  <p key={i} className="brief__p">
-                    {p}
-                  </p>
-                ))}
-                <p className="brief__foot">Geschreven door AI uit de koppen en samenvattingen hieronder; bevat geen andere feiten.</p>
-              </section>
-            ) : null}
+            {hasBrief ? <BriefReader open={reading} onClose={() => setReading(false)} brief={brief} kicker={`${title} · ${longDate(edition.date)}`} /> : null}
             {/* Voorpagina: het hoofdverhaal groot, daarnaast drie kleinere — altijd in krant-vorm.
                 Op smal scherm (of met het vergelijkpaneel open) staan ze onder elkaar. */}
             <div className="front">

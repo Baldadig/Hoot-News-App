@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { mapPost } from '../shared/bluesky.mjs'
+import { mapPost, directVideo } from '../shared/bluesky.mjs'
 import { usableImage } from '../netlify/lib/rss.mjs'
 
 const post = (embed) => ({
@@ -20,8 +20,14 @@ test('post: link naar de post zelf, tekst op één regel, vaste id', () => {
 
 test('post met video: afspeellijst en stilstaand beeld', () => {
   const p = mapPost(post({ $type: 'app.bsky.embed.video#view', playlist: 'https://video.bsky.app/x/playlist.m3u8', thumbnail: 'https://video.bsky.app/x/thumbnail.jpg' }))
-  assert.equal(p.video, 'https://video.bsky.app/x/playlist.m3u8')
+  assert.equal(p.video, 'https://video.bsky.app/x/playlist.m3u8') // onbekende vorm: ongemoeid
   assert.equal(p.videoPoster, 'https://video.bsky.app/x/thumbnail.jpg')
+})
+
+test('video rechtstreeks van de CDN van Bluesky (het watch-adres hapert)', () => {
+  assert.equal(directVideo('https://video.bsky.app/watch/did%3Aplc%3Aabc/bafkrei/playlist.m3u8'), 'https://video.cdn.bsky.app/hls/did:plc:abc/bafkrei/playlist.m3u8')
+  assert.equal(directVideo('https://video.bsky.app/watch/did%3Aplc%3Aabc/bafkrei/thumbnail.jpg'), 'https://video.cdn.bsky.app/hls/did:plc:abc/bafkrei/thumbnail.jpg')
+  assert.equal(directVideo(null), null)
 })
 
 test('post met gedeelde link: gaat naar het artikel, met titel en domein', () => {

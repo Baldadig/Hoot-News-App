@@ -2063,30 +2063,90 @@ html[data-images='hoofd'] .media--social {
 }
 
 /* De editie in één minuut */
-.brief {
-  margin-top: var(--s3);
-  padding: var(--s4);
-  border-radius: var(--radius);
-  background: var(--accent-soft);
+/* "De editie in één minuut": leesvenster (native dialog). Telefoon: heel scherm; breed: kaart. */
+.reader {
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--paper);
+  color: var(--ink);
+  overscroll-behavior: contain;
 }
-.brief__head {
-  margin-bottom: var(--s2);
+.reader::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+.reader__bar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: calc(var(--s2) + var(--safe-t)) calc(var(--gutter) + var(--safe-r)) var(--s2) calc(var(--gutter) + var(--safe-l));
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper);
+}
+.reader__kicker {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-3);
+  font-size: var(--t1);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.reader__body {
+  max-width: 36rem;
+  margin: 0 auto;
+  padding: var(--s5) calc(var(--gutter) + var(--safe-r)) calc(var(--s7) + var(--safe-b)) calc(var(--gutter) + var(--safe-l));
   font-family: var(--serif);
+}
+.reader__title {
+  margin-bottom: var(--s5);
+  font-size: var(--t6);
+  line-height: var(--lh-head);
+}
+.reader__sect + .reader__sect {
+  margin-top: var(--s5);
+}
+.reader__body:focus {
+  outline: none;
+}
+.reader__head {
+  margin-bottom: var(--s2);
   font-size: var(--t4);
   line-height: var(--lh-head);
 }
-.brief__p {
-  color: var(--ink);
-  font-size: var(--t3);
+.reader__p {
+  font-size: var(--t4);
   line-height: var(--lh-body);
 }
-.brief__p + .brief__p {
-  margin-top: var(--s2);
-}
-.brief__foot {
-  margin-top: var(--s2);
+.reader__foot {
+  margin-top: var(--s6);
+  padding-top: var(--s3);
+  border-top: 1px solid var(--rule);
   color: var(--ink-3);
+  font-family: var(--sans);
   font-size: var(--t1);
+  line-height: var(--lh-body);
+}
+@media (min-width: 720px) {
+  .reader {
+    max-width: 680px;
+    height: auto;
+    max-height: 88dvh;
+    margin: auto;
+    border-radius: var(--radius-lg);
+  }
+  .reader__bar {
+    padding-top: var(--s2);
+  }
 }
 
 /* Voorlezen: kleine knop in de metaregel */
@@ -2096,7 +2156,9 @@ html[data-images='hoofd'] .media--social {
   padding: 0 var(--s3);
   font-size: var(--t1);
 }
-.how__speak {
+.edmeta__acts {
+  display: inline-flex;
+  gap: var(--s2);
   margin-left: auto;
 }
 .textbtn--sm::before {
@@ -2227,6 +2289,19 @@ html[data-images='hoofd'] .media--social {
   color: var(--ink-3);
   font-size: var(--t2);
   line-height: var(--lh-ui);
+}
+/* Smal scherm: datum en weer op één regel, de knoppen eronder */
+@media (max-width: 559px) {
+  .edmeta {
+    flex-wrap: wrap;
+    row-gap: var(--s2);
+  }
+  .edmeta__text {
+    flex-basis: 100%;
+  }
+  .edmeta__acts {
+    margin-left: 0;
+  }
 }
 .weather {
   display: inline-flex;

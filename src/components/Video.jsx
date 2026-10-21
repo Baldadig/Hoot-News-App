@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { PlayIcon } from './icons.jsx'
 import { watch } from '../lib/inview.js'
 import { saveData } from '../lib/media.js'
+import { directVideo } from '../../shared/bluesky.mjs'
 
 const fullscreen = (v) => !!(document.fullscreenElement || v?.webkitDisplayingFullscreen)
 
@@ -10,7 +11,10 @@ const fullscreen = (v) => !!(document.fullscreenElement || v?.webkitDisplayingFu
 // binnen anderhalf scherm — de speler staat klaar en haalt de afspeellijst op;
 // in beeld — hij buffert het begin alvast, zodat afspelen direct start.
 // Scroll je weg terwijl hij speelt, dan pauzeert hij. Er speelt er altijd maar één (lib/media.js).
-export function Video({ src, poster, label, style }) {
+export function Video({ src: url, poster: posterUrl, label, style }) {
+  // Ook berichten die nog van vóór de omzetting op het toestel staan.
+  const src = directVideo(url)
+  const poster = directVideo(posterUrl)
   const box = useRef(null)
   const video = useRef(null)
   const [near, setNear] = useState(false)

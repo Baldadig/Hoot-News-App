@@ -2,6 +2,13 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.18.0] — 2026-10-21 — Overzicht als leesvenster, video's weer zichtbaar
+
+- **De editie in één minuut** staat niet meer als groot blok boven de voorpagina. Er is nu een knop "1 minuut" naast Lees voor; die opent een rustig leesvenster in schreefletter, met tussenkoppen per onderwerp. Op de telefoon beslaat het het hele scherm, op een groot scherm is het een kaart in het midden.
+- Het overzicht wordt voortaan in blokken met een korte tussenkop geschreven. Het overzicht van de lopende editie wordt één keer opnieuw geschreven in die vorm. Voorlezen leest de tussenkoppen mee.
+- Op de telefoon staan datum en weer op één regel en de twee knoppen eronder.
+- **Bluesky-video's** laden weer, en de stilstaande voorbeeldbeelden verschijnen weer. Het gewone video-adres van Bluesky reageerde niet; Hoot haalt ze nu rechtstreeks van hun video-CDN.
+
 ## [1.17.0] — 2026-10-20 — Snel, slank, video's één voor één
 
 **Video's**

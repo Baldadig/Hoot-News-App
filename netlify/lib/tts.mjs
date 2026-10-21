@@ -1,6 +1,7 @@
 // Voorlezen met een natuurlijke stem (Azure AI Speech, neurale Nederlandse stemmen).
 // Pure functies; getest in tests/tts.test.mjs. De functie zelf staat in netlify/functions/tts.mjs.
 import { bulletinText } from '../../src/lib/speech.js'
+import { briefSections } from '../../shared/brief.mjs'
 
 export const VOICES = {
   fenna: { id: 'nl-NL-FennaNeural', label: 'Fenna' },
@@ -33,6 +34,7 @@ export function editionParts(stored, slot) {
   }
   const date = LONG.format(new Date(`${stored.id.slice(0, 10)}T12:00:00Z`))
   const parts = bulletinText({ slot, date, rows })
-  if (stored.brief?.text) parts.splice(1, 0, 'Eerst het overzicht.', ...stored.brief.text.split(/\n\s*\n/), 'En dan de verhalen.')
+  const brief = briefSections(stored.brief)
+  if (brief.length) parts.splice(1, 0, 'Eerst het overzicht.', ...brief.flatMap((s) => (s.head ? [`${s.head}.`, s.text] : [s.text])), 'En dan de verhalen.')
   return parts
 }

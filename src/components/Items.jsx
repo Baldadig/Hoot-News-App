@@ -5,6 +5,7 @@ import { savedKey } from '../lib/saved.js'
 import { avatarUrl } from '../lib/img.js'
 import { Img } from './Img.jsx'
 import { Video } from './Video.jsx'
+import { directVideo } from '../../shared/bluesky.mjs'
 
 // Alles wat een bericht nodig heeft om te handelen (bewaren, bron bekijken, verhaal openen).
 export const HootContext = createContext(null)
@@ -185,7 +186,7 @@ export function SocialItem({ item }) {
         {item.summary ? <p className="social__text">{item.summary}</p> : null}
         {item.video && !playable ? (
           <div className="media media--social media--poster" style={bounded(16 / 9)}>
-            {item.videoPoster ? <img src={item.videoPoster} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" /> : null}
+            {item.videoPoster ? <img src={directVideo(item.videoPoster)} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" /> : null}
             <span className="media__play">
               <PlayIcon />
             </span>

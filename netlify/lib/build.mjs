@@ -283,7 +283,8 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
       changed = true
     }
   }
-  if (anthropic && !stored.brief && stored.entries.length) {
+  // Ook een overzicht in de oude vorm (zonder tussenkoppen) wordt één keer opnieuw geschreven.
+  if (anthropic && !stored.brief?.sections && stored.entries.length) {
     try {
       stored.brief = await createBrief(anthropic, rows(), { now })
       changed ||= !!stored.brief
