@@ -2,6 +2,18 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.19.0] — 2026-10-21 — Oekraïne op Bluesky
+
+- In Bluesky staat een nieuwe groep **Oekraïne**: één tik op de chip toont alleen die posts, met daarachter de mensen uit die groep.
+  - Ter plekke: The Kyiv Independent, Ukrainska Pravda, Euromaidan Press, Christopher Miller (FT, Kyiv).
+  - Binnen Rusland: Meduza (onafhankelijke Russische redactie), Steve Rosenberg (BBC, Moskou).
+  - Analyse van het slagveld: ISW, Michael Kofman, Phillips O'Brien, Mick Ryan, Anders Puck Nielsen, Samuel Bendett (drones), Emil Kastehelmi (frontkaarten).
+  - NOELREPORTS (snel, veel frontbeelden, minder gecontroleerd) staat klaar maar uit; aanzetten via + in Bluesky.
+- Gekozen op wie de afgelopen 48 uur echt actief was op Bluesky en waarvan de posts over de oorlog gaan. Veel bekende analisten posten vooral op X; wie hier zelden iets plaatst, kost niets extra maar levert af en toe iets waardevols.
+- Accounts die je ontvolgt (of die standaard uit staan) zet je weer aan via + in Bluesky; voorheen kon dat niet.
+- Profielfoto's van gevolgde accounts komen er ook als ze een tijd niets posten.
+- Bij video-posts gaat het voorbeeldbeeld nog maar één keer mee in de feed.
+
 ## [1.18.0] — 2026-10-21 — Overzicht als leesvenster, video's weer zichtbaar
 
 - **De editie in één minuut** staat niet meer als groot blok boven de voorpagina. Er is nu een knop "1 minuut" naast Lees voor; die opent een rustig leesvenster in schreefletter, met tussenkoppen per onderwerp. Op de telefoon beslaat het het hele scherm, op een groot scherm is het een kaart in het midden.

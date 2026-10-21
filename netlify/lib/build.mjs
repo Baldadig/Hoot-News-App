@@ -8,11 +8,12 @@ import { createBrief, briefRows } from './brief.mjs'
 import { articleKey, mergeSnippets, isLiveblog } from './snippets.mjs'
 import { SOURCES, EXTRA_SOURCES, BLUESKY_AUTHORS, BLUESKY_HOURS, BRAND, BSKY_BRAND, MAIN_IDS, MUSIC_IDS, TOTAL_LIMIT, GUARANTEE_PER_SOURCE, UA } from './sources.mjs'
 import { loadSource, loadSourceWithRetry } from './rss.mjs'
-import { loadSnippets, loadTrends, loadSourceAvatars } from './lookups.mjs'
+import { loadSnippets, loadTrends, loadSourceAvatars, loadBlueskyProfiles } from './lookups.mjs'
 import { keywordTopics } from './topics.mjs'
 import { normTitle, preview } from './text.mjs'
 import { kvGet, kvSet, remember, storageMode } from './kv.mjs'
 import { fetchAuthorPosts } from '../../shared/bluesky.mjs'
+import { hash } from '../../shared/util.mjs'
 
 const MIN = 6e4
 const DAY = 864e5
@@ -23,6 +24,8 @@ export async function buildFeed({ now = Date.now() } = {}) {
 
   // 1. Ophalen — alles tegelijk; een bron die uitvalt houdt de rest niet op.
   const avatars = remember('avatars-v1', DAY, loadSourceAvatars, { now, valid: (m) => Object.values(m).some(Boolean) })
+  const handles = BLUESKY_AUTHORS.map((a) => a.handle)
+  const profiles = remember('bsky-profiles-' + hash(handles.join()), DAY, () => loadBlueskyProfiles(handles), { now, valid: (m) => Object.keys(m).length > 0 }).catch(() => ({}))
   const [mainGroups, extraGroups, bskyGroups, registry] = await Promise.all([
     settle(SOURCES, (s) => loadSourceWithRetry(s, avatars)),
     settle(EXTRA_SOURCES, (s) => loadSource(s, Promise.resolve({}))),
@@ -56,7 +59,7 @@ export async function buildFeed({ now = Date.now() } = {}) {
   const haveOut = new Set([...out, ...relatedOut].map((i) => i.id))
 
   return {
-    sources: sourceList({ mainGroups, extraGroups, bskyGroups, avatars: await avatars }),
+    sources: sourceList({ mainGroups, extraGroups, bskyGroups, avatars: await avatars, profiles: await profiles }),
     items: out,
     related: [...relatedOut, ...edition.snapshot.items.filter((i) => !haveOut.has(i.id))],
     stories: [...stories, ...edition.snapshot.stories.filter((st) => !liveStoryIds.has(st.id))],
@@ -301,7 +304,7 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
 }
 
 // ---------- Bronnenlijst ----------
-function sourceList({ mainGroups, extraGroups, bskyGroups, avatars }) {
+function sourceList({ mainGroups, extraGroups, bskyGroups, avatars, profiles }) {
   const first = (g) => g.items[0]
   const base = (g) => ({ id: g.id, name: g.name, ok: g.ok, count: g.count, error: g.error || null })
   return [
@@ -309,7 +312,11 @@ function sourceList({ mainGroups, extraGroups, bskyGroups, avatars }) {
       const s = SOURCES[i]
       return { ...base(g), kind: s.music ? 'muziek' : 'nieuws', optional: !!s.optional, followed: true, brandColor: BRAND[g.id] || '#21468b', avatar: first(g)?.avatar || avatars[g.id] || (s.x ? `https://unavatar.io/x/${s.x}` : null), avatarContain: first(g)?.avatarContain || false, handle: first(g)?.domain || null }
     }),
-    ...bskyGroups.map((g) => ({ ...base(g), name: first(g)?.sourceName || g.name, kind: 'sociaal', followed: true, brandColor: BSKY_BRAND, avatar: first(g)?.avatar || null, avatarContain: false, handle: first(g)?.handle || null })),
+    ...bskyGroups.map((g, i) => {
+      const a = BLUESKY_AUTHORS[i]
+      const p = profiles[a.handle] || {}
+      return { ...base(g), name: a.name || p.name || first(g)?.sourceName, kind: 'sociaal', group: a.group || null, optional: !!a.optional, followed: true, brandColor: BSKY_BRAND, avatar: p.avatar || first(g)?.avatar || null, avatarContain: false, handle: '@' + a.handle }
+    }),
     ...extraGroups.map((g) => ({ ...base(g), kind: 'extra', followed: false, brandColor: BRAND[g.id] || '#21468b', avatar: first(g)?.avatar || null, avatarContain: first(g)?.avatarContain || false, handle: first(g)?.domain || null })),
   ]
 }

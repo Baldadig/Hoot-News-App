@@ -12,20 +12,33 @@ const SUGGESTED = [
   { handle: 'atzedevrieze.bsky.social', name: 'Atze de Vrieze' },
 ]
 
-// Bluesky: een eigen stroom met de mensen die je volgt. Bovenaan wie je volgt (tik = alleen
-// die persoon); per persoon kies je of die ook in de gewone Stroom staat.
+const GROUPS = { oekraine: 'Oekraïne' }
+
+// Bluesky: een eigen stroom met de mensen die je volgt. Bovenaan een groep (bv. Oekraïne) en
+// wie je volgt (tik = alleen die); per persoon kies je of die ook in de gewone Stroom staat.
 export default function Bluesky({ active, posts, sources, muted, onToggle, ownHandles, onAdd, onRemove, params, go, onRefresh, refreshing }) {
   const { prefs, setPref } = useHoot()
   const ref = useRef(null)
   const [adding, setAdding] = useState(false)
   const who = params.wie || ''
+  const group = GROUPS[params.groep] ? params.groep : ''
   const people = sources.filter((s) => !muted.has(s.id))
-  const list = useMemo(() => (who ? posts.filter((p) => p.source === who) : posts), [posts, who])
+  const groups = Object.keys(GROUPS).filter((g) => people.some((s) => s.group === g))
+  const list = useMemo(() => {
+    if (who) return posts.filter((p) => p.source === who)
+    if (!group) return posts
+    const ids = new Set(sources.filter((s) => s.group === group).map((s) => s.id))
+    return posts.filter((p) => ids.has(p.source))
+  }, [posts, who, group, sources])
   const person = who ? sources.find((s) => s.id === who) : null
+  // Binnen een groep alleen de mensen uit die groep als chip.
+  const chips = group ? people.filter((s) => s.group === group) : people
+  // Weer aan te zetten: accounts die Hoot kent maar die nu uit staan (ook de optionele).
+  const dormant = sources.filter((s) => muted.has(s.id))
   const followed = new Set(sources.map((s) => s.id))
   const suggestions = SUGGESTED.filter((s) => !followed.has('bsky:' + s.handle))
 
-  useScrollMemory(ref, positionKey('bluesky', { bron: who }), list.length > 0, list.length + ':' + (list[0]?.id || ''), active)
+  useScrollMemory(ref, positionKey('bluesky', { bron: who || group }), list.length > 0, list.length + ':' + (list[0]?.id || ''), active)
 
   const inStream = (id) => (prefs.bskyInStream || []).includes(id)
   const setInStream = (id, on) => setPref('bskyInStream', on ? [...new Set([...(prefs.bskyInStream || []), id])] : (prefs.bskyInStream || []).filter((x) => x !== id))
@@ -43,11 +56,16 @@ export default function Bluesky({ active, posts, sources, muted, onToggle, ownHa
         <ViewHeader title="Bluesky" sub="De mensen die je volgt, nieuwste eerst" subWide onRefresh={onRefresh} refreshing={refreshing} display>
           <div className="topics">
             <div className="topics__scroll" role="group" aria-label="Wie">
-              <button type="button" className="chip chip--sm" aria-pressed={!who} onClick={() => go('bluesky', {})}>
+              <button type="button" className="chip chip--sm" aria-pressed={!who && !group} onClick={() => go('bluesky', {})}>
                 Iedereen
               </button>
-              {people.map((s) => (
-                <button key={s.id} type="button" className="chip chip--sm chip--person" aria-pressed={who === s.id} onClick={() => go('bluesky', who === s.id ? {} : { wie: s.id })}>
+              {groups.map((g) => (
+                <button key={g} type="button" className="chip chip--sm" aria-pressed={group === g && !who} onClick={() => go('bluesky', group === g && !who ? {} : { groep: g })}>
+                  {GROUPS[g]}
+                </button>
+              ))}
+              {chips.map((s) => (
+                <button key={s.id} type="button" className="chip chip--sm chip--person" aria-pressed={who === s.id} onClick={() => go('bluesky', who === s.id ? (group ? { groep: group } : {}) : { wie: s.id, ...(group ? { groep: group } : {}) })}>
                   <SourceMark source={s} size={22} />
                   {s.name}
                 </button>
@@ -64,9 +82,14 @@ export default function Bluesky({ active, posts, sources, muted, onToggle, ownHa
         {adding ? (
           <div className="bsky-add">
             <AddBluesky onAdd={(p) => (onAdd(p), setAdding(false))} />
-            {suggestions.length ? (
+            {dormant.length || suggestions.length ? (
               <div className="chips bsky-suggest">
                 <span className="hint">Voorgesteld:</span>
+                {dormant.map((s) => (
+                  <button key={s.id} type="button" className="chip chip--sm" onClick={() => onToggle(s.id, true)}>
+                    + {s.name}
+                  </button>
+                ))}
                 {suggestions.map((s) => (
                   <button key={s.handle} type="button" className="chip chip--sm" onClick={() => follow(s.handle)}>
                     + {s.name}
@@ -90,7 +113,7 @@ export default function Bluesky({ active, posts, sources, muted, onToggle, ownHa
               <span className="setrow__text">
                 <span className="setrow__label">{person.handle}</span>
               </span>
-              <button type="button" className="linkbtn" onClick={() => (ownHandles.has(person.id) ? onRemove(person.id.replace(/^bsky:/, '')) : onToggle(person.id, false), go('bluesky', {}))}>
+              <button type="button" className="linkbtn" onClick={() => (ownHandles.has(person.id) ? onRemove(person.id.replace(/^bsky:/, '')) : onToggle(person.id, false), go('bluesky', group ? { groep: group } : {}))}>
                 Ontvolgen
               </button>
             </div>

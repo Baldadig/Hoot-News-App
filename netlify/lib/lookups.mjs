@@ -72,6 +72,18 @@ async function bskyAvatar(handle) {
     return null
   }
 }
+// Profielfoto en naam van de gevolgde Bluesky-accounts (ook als ze 48 uur niets posten).
+export async function loadBlueskyProfiles(handles) {
+  const out = {}
+  for (let i = 0; i < handles.length; i += 25) {
+    const q = handles.slice(i, i + 25).map((h) => 'actors=' + encodeURIComponent(h)).join('&')
+    const res = await fetch(`${BSKY_API}/app.bsky.actor.getProfiles?${q}`, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(6000) })
+    if (!res.ok) continue
+    for (const p of (await res.json()).profiles || []) out[p.handle] = { avatar: p.avatar || null, name: (p.displayName || '').trim() || null }
+  }
+  return out
+}
+
 // Merk-avatars van alle bronnen (zelden anders; de bouwer bewaart ze een dag, zie build.mjs).
 export async function loadSourceAvatars() {
   const entries = await Promise.all(SOURCES.map(async (s) => [s.id, s.bsky ? await bskyAvatar(s.bsky) : null]))

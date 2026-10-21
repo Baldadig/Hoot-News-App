@@ -43,8 +43,7 @@ export function mapPost(post, fallbackName) {
   const clip = (e) => {
     if (!e?.playlist) return
     video = directVideo(e.playlist)
-    videoPoster = directVideo(e.thumbnail) || null
-    image = videoPoster || image
+    videoPoster = directVideo(e.thumbnail) || null // video's tonen alleen dit beeld, niet `image`
   }
   const media = (e) => {
     const t = e?.$type || ''
