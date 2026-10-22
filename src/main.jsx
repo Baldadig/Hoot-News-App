@@ -11,16 +11,21 @@ import '@fontsource/source-sans-3/latin-800.css'
 import './styles.css'
 import { registerUpdates } from './lib/swUpdate.js'
 import { captureInvite, captureGoogleReturn } from './lib/account.js'
+import { loadFeedCache } from './lib/feedCache.js'
 
 // Uitnodigingslink (?uitnodiging=…) en terugkomst van Google (#id_token=…): onthouden en uit de
 // adresbalk halen, vóór de app die als route leest.
 captureInvite()
 captureGoogleReturn()
 
-createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+// Eerst de feed van de vorige keer (IndexedDB, hooguit een paar honderd ms), dan pas tekenen:
+// zo staat er bij een warme start meteen inhoud, zonder flits van een lege of ladende staat.
+loadFeedCache().finally(() =>
+  createRoot(document.getElementById('root')).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  )
 )
 
 // De service worker en het bijhouden van nieuwe versies: zie src/lib/swUpdate.js.

@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchCore, fetchPart } from '../lib/api.js'
-import { readJSON, writeJSON } from '../lib/store.js'
+import { takeFeedCache, saveFeedCache } from '../lib/feedCache.js'
 import { carryOver } from '../lib/sourceStatus.js'
 import { freshCount } from '../lib/fresh.js'
 import { mutedSet } from '../lib/sourcesel.js'
 
-const CACHE_KEY = 'hoot:feed-v3'
 const byRecency = (a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || '')
 
 // Eén vaste vorm, ook als de server (of een oude cache) een veld mist.
@@ -31,7 +30,7 @@ export function wantedSources(sources, prefs) {
 // Wat je de vorige keer had staat meteen in beeld; nieuwe berichten wachten bij het
 // automatisch verversen achter een knop, zodat de inhoud niet verspringt terwijl je leest.
 export function useFeed(prefs) {
-  const [data, setData] = useState(() => normalize(readJSON(CACHE_KEY, null)))
+  const [data, setData] = useState(() => normalize(takeFeedCache()))
   const [status, setStatus] = useState(() => (data ? 'ready' : 'loading')) // loading | ready | error
   const [refreshing, setRefreshing] = useState(false)
   const [refreshError, setRefreshError] = useState(false)
@@ -47,7 +46,7 @@ export function useFeed(prefs) {
 
   const apply = useCallback((next) => {
     setData(next)
-    writeJSON(CACHE_KEY, next)
+    saveFeedCache(next)
   }, [])
 
   // De berichten van de gevolgde bronnen; een deel dat niet veranderde halen we niet opnieuw.
@@ -87,7 +86,7 @@ export function useFeed(prefs) {
         if (fresh) {
           pending.current = next
           setPendingCount(fresh)
-          writeJSON(CACHE_KEY, next)
+          saveFeedCache(next)
         } else if (defer && had) {
           // Niets nieuws in de Stroom: alleen de rest bijwerken (bronnen, editie, verhalen).
           apply({ ...next, items: dataRef.current.items })
