@@ -45,8 +45,14 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // "Buiten je bubbel" uit de algemene editie houdt zijn plek; "Waar iedereen over schrijft"
   // krijgt er één (als er iets breed gedekts buiten je interesses is); de rest kiezen we zelf.
   const bubbleEntry = global.entries.find((e) => e.desk === 'bubbel') || null
+  const storyById = new Map(stories.map((s) => [s.id, s]))
   const outside = (w) => !mine.size || !(w.topics || []).some((t) => mine.has(t))
-  const wideCands = (global.wide || []).filter(outside)
+  // Schrijft een van je eigen bronnen er al over, dan is het niet "buiten je bronnen": dan
+  // geen gratis bron van buiten ervoor in de plaats (je zag anders The Guardian over Kyiv,
+  // terwijl The Atlantic het ook bracht).
+  const ownIds = new Set(items.filter((i) => followed.has(i.source)).map((i) => i.id))
+  const covered = (w) => ownIds.has(w.item.id) || (storyById.get(w.storyId)?.itemIds || []).some((id) => ownIds.has(id))
+  const wideCands = (global.wide || []).filter((w) => outside(w) && !covered(w))
   const size = EDITION_SIZE - (bubbleEntry ? 1 : 0) - (wideCands.length ? 1 : 0)
   const extra = extraPool.length ? selectEdition(stories, extraPool, { mainIds: followed, now, size: EXTRA_MAX, bonus, strict: true }).map((e) => ({ ...e, desk: null })) : []
   // Een bericht van een vakbron (tech, economie, wetenschap) krijgt die rubriek, niet een rubriek
@@ -57,7 +63,6 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const own = [...news, ...extra]
 
   // Aanvullen uit de algemene editie, zonder dubbel verhaal of dubbele gebeurtenis.
-  const storyById = new Map(stories.map((s) => [s.id, s]))
   const membersOf = (e) => new Set([e.leadId || e.id, ...(e.kind === 'story' ? storyById.get(e.id)?.itemIds || e.itemIds || [] : [])])
   const taken = new Set(own.flatMap((e) => [...membersOf(e)]))
 

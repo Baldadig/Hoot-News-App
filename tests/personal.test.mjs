@@ -161,6 +161,21 @@ test('een breed verhaal dat anders als aanvulling zou komen, krijgt zijn eigen l
   assert.equal(all.entries.length, none.entries.length)
 })
 
+test('"Waar iedereen over schrijft" nooit over een verhaal dat je eigen bronnen ook brengen', () => {
+  // Kyiv: de Guardian (gratis) is de lead van de server, maar NOS (die je volgt) schrijft er ook over.
+  const kyiv = art('k1', 'guardian', 'Russia bombards Kyiv with missiles')
+  const nosKyiv = art('k2', 'nos', 'Rusland bestookt Kyiv met raketten', { publishedAt: ago(30) })
+  const st = [...stories, { id: 'sKyiv', leadId: 'k1', itemIds: ['k1', 'k2'], sourceCount: 6 }]
+  const g = { ...global, wide: [{ storyId: 'sKyiv', sourceCount: 6, topics: ['oekraine'], item: kyiv }] }
+  const e = composePersonal({ global: g, stories: st, items: [...items, nosKyiv], followed, now: NOW, builtAt: 'T' })
+  assert.ok(!e.entries.some((x) => x.desk === 'breed'))
+  assert.ok(!e.items.some((i) => i.source === 'guardian'))
+  // Zonder eigen bron in het verhaal komt het er wel, via de gratis bron.
+  const st2 = [...stories, { id: 'sKyiv', leadId: 'k1', itemIds: ['k1'], sourceCount: 6 }]
+  const e2 = composePersonal({ global: g, stories: st2, items, followed, now: NOW, builtAt: 'T' })
+  assert.equal(e2.entries.find((x) => x.desk === 'breed')?.id, 'sKyiv')
+})
+
 test('een bericht van een vakbron krijgt de rubriek van de bron', () => {
   const sources = [{ id: 'nos', cat: 'nl' }, { id: 'tweakers', cat: 'tech' }]
   const review = art('rv', 'tweakers', 'Review: koptelefoon van Britse fabrikant Nothing', { publishedAt: ago(0.2) })
