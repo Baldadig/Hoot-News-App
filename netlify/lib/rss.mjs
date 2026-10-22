@@ -2,7 +2,7 @@
 import Parser from 'rss-parser'
 import { hash, safeHttpUrl } from '../../shared/util.mjs'
 import { BRAND, PER_SOURCE_LIMIT, LIMIT_BY_CAT, UA } from './sources.mjs'
-import { favicon, toText, clip, preview, cleanUrl, hostname, safeIso } from './text.mjs'
+import { favicon, toText, clip, preview, cleanUrl, hostname, safeIso, plausibleTime } from './text.mjs'
 
 const parser = new Parser({
   timeout: 9000,
@@ -103,6 +103,7 @@ export async function loadSource(src, avatarsP) {
     try {
       // Feed en avatars tegelijk ophalen (avatars houden de feed niet meer op).
       const [feed, avatars] = await Promise.all([readFeed(url), avatarsP])
+      const fetchedAt = Date.now()
       // Mooie merk-avatar: 1) Bluesky-profiel, 2) X-profiel via unavatar.io, 3) favicon.
       const brandAvatar = avatars[src.id] || (src.x ? `https://unavatar.io/x/${src.x}` : null)
       const fresh = (feed.items || []).map((it) => [it, categoriesOf(it)]).filter(([it, cats]) => !isNoise(it, cats) && (!src.keep || String(it.link || '').includes(src.keep)))
@@ -143,7 +144,7 @@ export async function loadSource(src, avatarsP) {
           video: null,
           videoPoster: null,
           readMin,
-          publishedAt: it.isoDate || (it.pubDate ? safeIso(it.pubDate) : null),
+          publishedAt: plausibleTime(it.isoDate || (it.pubDate ? safeIso(it.pubDate) : null), fetchedAt),
         }
       }).filter((i) => i.url) // zonder geldige (http/https) link niet tonen
       return { id: src.id, name: src.name, ok: true, used: url, count: items.length, items }

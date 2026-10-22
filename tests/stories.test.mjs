@@ -120,3 +120,22 @@ test('drie edities per dag: ochtend 06:00, middag 12:00, avond 17:00 (Amsterdams
   assert.deepEqual(at('2026-10-10T15:00:00Z'), { id: '2026-10-10-avond', slot: 'avond', date: '2026-10-10', next: '06:00' })
   assert.equal(at('2026-10-11T02:00:00Z').id, '2026-10-10-avond') // 04:00 's nachts: nog de avondeditie van gisteren
 })
+
+test('edities om 06:00, 12:00 en 17:00 Nederlandse tijd, ook rond zomer- en wintertijd', () => {
+  const at = (iso) => slotOf(new Date(iso)).id
+  // Winter (UTC+1) en zomer (UTC+2).
+  assert.equal(at('2026-12-01T04:59:00Z'), '2026-11-30-avond')
+  assert.equal(at('2026-12-01T05:00:00Z'), '2026-12-01-ochtend')
+  assert.equal(at('2026-07-01T03:59:00Z'), '2026-06-30-avond')
+  assert.equal(at('2026-07-01T04:00:00Z'), '2026-07-01-ochtend')
+  assert.equal(at('2026-07-01T10:00:00Z'), '2026-07-01-middag')
+  assert.equal(at('2026-07-01T15:00:00Z'), '2026-07-01-avond')
+  // Nacht van de wintertijd (25 okt 2026, 03:00 → 02:00): 05:59 is nog de avond van de 24e.
+  assert.equal(at('2026-10-25T04:59:00Z'), '2026-10-24-avond')
+  assert.equal(at('2026-10-25T05:00:00Z'), '2026-10-25-ochtend')
+  // Nacht van de zomertijd (29 mrt 2026, 02:00 → 03:00).
+  assert.equal(at('2026-03-29T03:59:00Z'), '2026-03-28-avond')
+  assert.equal(at('2026-03-29T04:00:00Z'), '2026-03-29-ochtend')
+  // Jaarwisseling.
+  assert.equal(at('2027-01-01T02:00:00Z'), '2026-12-31-avond')
+})

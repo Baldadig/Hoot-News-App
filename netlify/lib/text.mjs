@@ -74,3 +74,21 @@ export function cleanUrl(u) {
 export function normTitle(t) {
   return (t || '').toLowerCase().replace(/[^a-z0-9à-ÿ]+/gi, ' ').trim()
 }
+
+// Hoeveel loopt de wandklok van `tz` voor op UTC, op moment t (ms)? (+2 u in de zomer in NL)
+export function tzOffsetMs(t, tz = 'Europe/Amsterdam') {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date(t)).map((x) => [x.type, x.value]))
+  return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - Math.floor(t / 1000) * 1000
+}
+
+// Een publicatietijd in de toekomst klopt niet. Vaak is het de lokale tijd van de bron met een
+// UTC-label (Nederlands Dagblad: "12:05 Z" om 10:05 UTC): dan rekenen we terug met de tijdzone
+// van de bron. Wat daarna nog steeds in de toekomst ligt, wordt het moment van ophalen.
+const SLACK = 5 * 60 * 1000
+export function plausibleTime(iso, now = Date.now(), tz = 'Europe/Amsterdam') {
+  const t = Date.parse(iso)
+  if (!Number.isFinite(t)) return null
+  if (t <= now + SLACK) return iso
+  const fixed = t - tzOffsetMs(t, tz)
+  return new Date(fixed <= now + SLACK ? fixed : now).toISOString()
+}

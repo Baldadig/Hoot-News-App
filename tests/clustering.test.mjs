@@ -11,9 +11,11 @@ const storyOf = (re) => stories.find((s) => s.itemIds.includes(byTitle(re)))?.id
 const together = (a, b) => storyOf(a) !== null && storyOf(a) === storyOf(b)
 
 test('Trump-rally (Volkskrant) en Macron over rellen in Frankrijk zijn twee verhalen', () => {
-  assert.ok(together(/op de vuist/, /Klappen uitgedeeld tijdens rally/))
-  assert.ok(together(/op de vuist/, /Rally Trump meermaals/))
-  assert.ok(!together(/op de vuist/, /Macron accuses/))
+  assert.ok(together(/^Voor- en tegenstanders van Trump op de vuist/, /Klappen uitgedeeld tijdens rally/))
+  assert.ok(together(/^Voor- en tegenstanders van Trump op de vuist/, /Rally Trump meermaals/))
+  assert.ok(!together(/^Voor- en tegenstanders van Trump op de vuist/, /Macron accuses/))
+  // Het liveblog van De Morgen volgt een heel onderwerp en hoort in geen enkel verhaal.
+  assert.equal(storyOf(/^▶ Live/), null)
   // "Donald" en "Benjamin" zijn voornamen van leiders, geen eigen namen die een verhaal dragen.
   assert.ok(!together(/Macron accuses/, /Israeli elections/))
 })

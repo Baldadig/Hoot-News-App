@@ -83,7 +83,7 @@ export default function Story({ story, items, overlay, onClose, onBack, onSeen, 
             {story.sourceNames.join(', ')}. Eerste bericht {timeAgo(story.firstAt)}.
           </p>
           <p>
-            Hoot bundelt berichten die over dezelfde gebeurtenis lijken te gaan, op overeenkomst in koppen en samenvattingen (namen, plaatsen, tijd). Dat gaat automatisch en kan er een keer naast zitten. Meerdere bronnen betekent dat er veel over geschreven wordt — niet dat ze elkaar onafhankelijk bevestigen: redacties nemen vaak hetzelfde persbureaubericht over.
+            Hoot bundelt berichten die over dezelfde gebeurtenis lijken te gaan, op overeenkomst in koppen en samenvattingen (namen, plaatsen, tijd). Dat gaat automatisch en kan er een keer naast zitten. Meerdere bronnen betekent dat er veel over geschreven wordt — niet dat ze elkaar onafhankelijk bevestigen: redacties nemen vaak hetzelfde persbureaubericht over. Liveblogs, die een heel onderwerp volgen, tellen niet mee.
           </p>
         </details>
 

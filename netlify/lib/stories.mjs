@@ -218,33 +218,78 @@ export function leadCandidates(items, mainIds) {
 // twee bundels samengaan; de afgevallen id's blijven vindbaar via `formerIds`.
 // Dagoverzichten en liveblogs gaan over van alles tegelijk en trekken daardoor bundels aan elkaar.
 const DIGEST = /^(wekdienst|liveblog|live:|podcast|nieuwsoverzicht|het nieuws van|the morning|morning briefing|evening briefing|what to know|five takeaways)/i
+// Liveblogs ("LIVE | …", "▶ Live - …", "… latest", …/liveblog/…) volgen een heel onderwerp, niet
+// één gebeurtenis: ze staan los in de Stroom en tellen niet mee in een verhaal.
+const LIVE_TITLE = /^\W*live\b|\blive ?blog\b|\b(war|oorlog) (latest|live)\b|\blatest:|\blatest updates\b/i
+export const isLive = (a) => LIVE_TITLE.test(a.title || '') || /\/live(blog)?[-/]|[-/]liveblog/i.test(a.url || '')
+// Een grote bundel is pas één gebeurtenis als elk bericht met meerdere andere is verbonden (twee
+// vanaf zes berichten, drie vanaf tien): wat er via één of twee schakels aan hangt (een analyse,
+// een ander nieuwtje over dezelfde mensen) valt los en vormt eventueel een eigen verhaal.
+const CORE_FROM = 6
+const coreDegree = (size) => (size >= 10 ? 3 : 2)
 
 export function buildStories(articles, registry = {}, { mainIds = new Set() } = {}) {
-  const list = articles.filter((a) => !DIGEST.test(a.title || '')).sort(byRecency)
+  const list = articles.filter((a) => !DIGEST.test(a.title || '') && !isLive(a)).sort(byRecency)
   const sig = signatures(list)
-  const parent = new Map(list.map((a) => [a.id, a.id]))
-  const find = (x) => {
-    while (parent.get(x) !== x) {
-      parent.set(x, parent.get(parent.get(x)))
-      x = parent.get(x)
-    }
-    return x
-  }
+  // 1. Alle paren die over dezelfde gebeurtenis gaan.
+  const links = new Map(list.map((a) => [a.id, new Set()]))
   for (let i = 0; i < list.length; i++) {
     const si = sig.get(list[i].id)
     if (si.words.size < 3 && si.strong.size < 1) continue
     for (let j = i + 1; j < list.length; j++) {
       const sj = sig.get(list[j].id)
       if (si.t && sj.t && si.t - sj.t > WORD_WINDOW) break // gesorteerd op tijd
-      if (find(list[i].id) !== find(list[j].id) && sameEvent(si, sj)) parent.set(find(list[j].id), find(list[i].id))
+      if (sameEvent(si, sj)) {
+        links.get(list[i].id).add(list[j].id)
+        links.get(list[j].id).add(list[i].id)
+      }
     }
   }
+  // 2. Groepen: verbonden berichten. 3. Grote groepen terug naar hun kern (zie CORE_DEGREE);
+  //    wat los valt, vormt onderling opnieuw groepjes.
   const groups = new Map()
-  for (const a of list) {
-    const root = find(a.id)
-    if (!groups.has(root)) groups.set(root, [])
-    groups.get(root).push(a)
+  const byId = new Map(list.map((a) => [a.id, a]))
+  const components = (ids) => {
+    const seen = new Set()
+    const out = []
+    for (const id of ids) {
+      if (seen.has(id)) continue
+      const comp = []
+      const stack = [id]
+      seen.add(id)
+      while (stack.length) {
+        const x = stack.pop()
+        comp.push(x)
+        for (const y of links.get(x)) if (ids.has(y) && !seen.has(y)) (seen.add(y), stack.push(y))
+      }
+      out.push(comp)
+    }
+    return out
   }
+  const settle = (ids) => {
+    for (const comp of components(ids)) {
+      if (comp.length < CORE_FROM) {
+        groups.set(comp[0], comp.map((id) => byId.get(id)))
+        continue
+      }
+      const core = new Set(comp)
+      const need = coreDegree(comp.length)
+      let pruned = true
+      while (pruned) {
+        pruned = false
+        for (const x of [...core]) if ([...links.get(x)].filter((y) => core.has(y)).length < need) (core.delete(x), (pruned = true))
+      }
+      const loose = new Set(comp.filter((x) => !core.has(x)))
+      if (core.size >= 2) {
+        const parts = components(core)
+        for (const part of parts) groups.set(part[0], part.map((id) => byId.get(id)))
+      } else for (const x of core) loose.add(x)
+      if (loose.size === comp.length) for (const id of comp) groups.set(id, [byId.get(id)]) // geen kern: allemaal los
+      else if (loose.size) settle(loose)
+    }
+  }
+  settle(new Set(list.map((a) => a.id)))
+  for (const g of groups.values()) g.sort(byRecency)
 
   const stories = []
   const used = new Set()
@@ -291,8 +336,11 @@ export function editionSlot(now = new Date()) {
   if (h >= 17) return { id: `${p.year}-${p.month}-${p.day}-avond`, slot: 'avond', date: `${p.year}-${p.month}-${p.day}`, next: '06:00' }
   if (h >= 12) return { id: `${p.year}-${p.month}-${p.day}-middag`, slot: 'middag', date: `${p.year}-${p.month}-${p.day}`, next: '17:00' }
   if (h >= 6) return { id: `${p.year}-${p.month}-${p.day}-ochtend`, slot: 'ochtend', date: `${p.year}-${p.month}-${p.day}`, next: '12:00' }
-  const y = parts(new Date(now.getTime() - 6 * 60 * 60 * 1000)) // vóór 06:00 geldt de avondeditie van gisteren
-  return { id: `${y.year}-${y.month}-${y.day}-avond`, slot: 'avond', date: `${y.year}-${y.month}-${y.day}`, next: '06:00' }
+  // Vóór 06:00 geldt de avondeditie van gisteren. Gisteren op de kalender, niet "nu min zes
+  // uur": op de nacht van de wintertijd is 05:59 min zes uur nog dezelfde datum.
+  const d = new Date(Date.UTC(+p.year, +p.month - 1, +p.day - 1))
+  const date = d.toISOString().slice(0, 10)
+  return { id: `${date}-avond`, slot: 'avond', date, next: '06:00' }
 }
 
 // Selectie op drie zichtbare gronden: dekking (aantal bronnen), versheid, en of je eigen

@@ -24,3 +24,16 @@ test('verwijderen uit Bewaard is ongedaan te maken, met dezelfde inhoud en bewaa
   const again = toggleSaved(removed, 'item', 'a', { id: 'a', title: 'Kop' }, new Map(), 999)
   assert.equal(restoreSaved(again, 'a', entry).a.savedAt, 999)
 })
+
+test('publicatietijd in de toekomst: lokale tijd met UTC-label wordt teruggerekend, de rest afgekapt', async () => {
+  const { plausibleTime, tzOffsetMs } = await import('../netlify/lib/text.mjs')
+  const now = Date.parse('2026-10-22T10:12:47Z')
+  // Nederlands Dagblad: "12:05:12 Z" is 12:05 Nederlandse tijd = 10:05 UTC (zomertijd).
+  assert.equal(plausibleTime('2026-10-22T12:05:12.000Z', now), '2026-10-22T10:05:12.000Z')
+  assert.equal(plausibleTime('2026-10-22T10:00:00.000Z', now), '2026-10-22T10:00:00.000Z') // gewoon
+  assert.equal(plausibleTime('2026-10-23T09:00:00.000Z', now), new Date(now).toISOString()) // morgen: afkappen
+  assert.equal(plausibleTime('onzin', now), null)
+  // Wintertijd: één uur verschil.
+  assert.equal(tzOffsetMs(Date.parse('2026-12-01T12:00:00Z')), 3600e3)
+  assert.equal(tzOffsetMs(Date.parse('2026-07-01T12:00:00Z')), 7200e3)
+})
