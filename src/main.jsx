@@ -8,6 +8,8 @@ import '@fontsource/source-sans-3/latin-400.css'
 import '@fontsource/source-sans-3/latin-600.css'
 import '@fontsource/source-sans-3/latin-700.css'
 import '@fontsource/source-sans-3/latin-800.css'
+// Roboto Medium alleen voor de Google-knop (hun richtlijn); wordt pas geladen als die er staat.
+import '@fontsource/roboto/latin-500.css'
 import './styles.css'
 import { registerUpdates } from './lib/swUpdate.js'
 import { captureInvite, captureGoogleReturn } from './lib/account.js'

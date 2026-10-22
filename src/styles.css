@@ -18,6 +18,10 @@
   --warn: #8f4300;
   --brand: #1a1814; /* merk: inkt, met de punt in krantenrood */
   --quiet-amber: #b0802f; /* stil statuspuntje, geen alarm */
+  /* Google-knop, donker thema (vast volgens Googles richtlijnen, in beide thema's gelijk) */
+  --g-fill: #131314;
+  --g-stroke: #8e918f;
+  --g-text: #e3e3e3;
 
   /* Type */
   /* Newsreader (koppen, 800) en Source Sans 3 (tekst): beide open source, meegeleverd in main.jsx. */
@@ -1324,6 +1328,31 @@ select {
   }
 }
 
+/* Inloggen met Google: maat en ritme van onze knoppen, kleur en letter van Google */
+.gbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: var(--tap);
+  padding: 0 var(--s5) 0 var(--s4);
+  border: 1px solid var(--g-stroke);
+  border-radius: var(--radius-pill);
+  background: var(--g-fill);
+  color: var(--g-text);
+  font: 500 14px/20px 'Roboto', var(--sans);
+  letter-spacing: 0.25px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.gbtn__logo {
+  flex: none;
+}
+.gbtn--wide {
+  min-height: 52px;
+  padding: 0 var(--s6) 0 var(--s5);
+}
+
 /* Vraag om in te loggen (na een eind lezen, zonder account) */
 .sheet--join .sheet__head .kicker {
   margin: 0;
@@ -1349,12 +1378,8 @@ select {
   gap: var(--s2) var(--s5);
   margin-top: var(--s5);
 }
-.join__btn {
-  min-height: 52px;
-  padding: 0 var(--s6);
-}
 @media (max-width: 719px) {
-  .join__btn {
+  .join__actions .gbtn {
     flex: 1 1 100%;
   }
   .join__actions .linkbtn {
@@ -1363,7 +1388,7 @@ select {
 }
 
 /* ---------- Bronnen ---------- */
-.setrow--stack {
+.setrow.setrow--stack { /* specifieker dan .setrow, dat verderop staat */
   flex-direction: column;
   align-items: stretch;
   gap: var(--s3);
