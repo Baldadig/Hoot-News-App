@@ -30,6 +30,7 @@ import { JoinSheet } from './components/Account.jsx'
 import { normalizePrefs } from './lib/prefs.js'
 import { shouldShowInstallTip } from './lib/install.js'
 import { shouldAskToJoin } from './lib/join.js'
+import { usePersonalEdition } from './hooks/usePersonalEdition.js'
 import { subscribe as onUpdate, isReady as updateReady, applyUpdate, dismissUpdate } from './lib/swUpdate.js'
 import { indexStories, resolveStory, toggleSaved, restoreSaved } from './lib/saved.js'
 
@@ -143,6 +144,8 @@ export default function App() {
   const sourcesById = useMemo(() => new Map(sources.map((s) => [s.id, s])), [sources])
   // Uit: wat je zelf uitzette, plus optionele bronnen die je nog niet aanzette.
   const muted = useMemo(() => mutedSet(prefs, sources), [prefs, sources])
+  // Jouw editie: samengesteld uit je eigen bronnen en interesses (zie src/lib/personal.js).
+  const { edition: myEdition, member } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount })
   const socialIds = useMemo(() => new Set(social.sources.map((s) => 'bsky:' + s.handle)), [social.sources])
 
   const stream = useMemo(() => {
@@ -176,9 +179,9 @@ export default function App() {
   // Zoals gepubliceerd (vast), en juist ook uit bronnen die je niet volgt: daar is dit blok voor.
   const bubble = useMemo(() => {
     if (!prefs.bubble) return []
-    const published = new Map((data?.edition?.items || []).map((i) => [i.id, i]))
+    const published = new Map([...(data?.edition?.items || []), ...(myEdition?.items || [])].map((i) => [i.id, i]))
     return (data?.edition?.bubble || []).map((b) => ({ ...b, item: published.get(b.id) || itemsById.get(b.id) })).filter((b) => b.item)
-  }, [prefs.bubble, data, itemsById])
+  }, [prefs.bubble, data, itemsById, myEdition])
 
   // ---- Handelingen ----
   const markRead = useCallback((id) => setReadIds((prev) => (prev.includes(id) ? prev : [...prev, id].slice(-1500))), [setReadIds])
@@ -489,7 +492,19 @@ export default function App() {
         </div>
         <main id="inhoud" className="main" inert={hideMain ? '' : undefined}>
           {was('editie') ? (
-            <Edition active={shown === 'editie'} bubble={bubble} brief={prefs.brief ? data?.edition?.brief : null} edition={data?.edition} loading={loading} failedLoad={failedLoad} statusProps={statusProps} onRefresh={reloadAll} refreshing={refreshing} />
+            <Edition
+              active={shown === 'editie'}
+              bubble={bubble}
+              brief={prefs.brief ? myEdition?.brief || null : null}
+              briefForMembers={prefs.brief && !member && rawAccount.status === 'out'}
+              onJoin={() => setJoinOpen(true)}
+              edition={myEdition}
+              loading={loading || (!!data?.edition && !myEdition)}
+              failedLoad={failedLoad}
+              statusProps={statusProps}
+              onRefresh={reloadAll}
+              refreshing={refreshing}
+            />
           ) : null}
           {was('stroom') ? (
             <Stream

@@ -85,6 +85,19 @@ alles ook, alleen op dit toestel.
 - **De app** bevat alleen de publieke sleutel (`src/lib/config.js`); de Supabase-code laadt pas bij
   inloggen.
 
+### Persoonlijke editie
+
+- **Samenstellen:** elke lezer krijgt per dagdeel een eigen editie, samengesteld in de app (`src/lib/personal.js`) met het selectiewerk van de server (`selectEdition`).
+  - Het nieuws komt uit je eigen bronnen.
+  - Je interesses geven voorrang.
+  - Sport, cultuur en games krijgen hooguit twee plekken, onderaan en alleen als je die interesse hebt. Een sportbericht uit een gewone nieuwsbron telt daarbij als sport.
+  - Te weinig eigen verhalen? Dan vult de algemene editie aan ("Buiten je bronnen").
+- **Vast:** de editie wordt vastgelegd op het toestel en, voor leden, in `user_state.edition`, zodat al je toestellen dezelfde tonen. Daarvoor is migratie `20261023_personal_edition.sql` nodig.
+- **Samenvatting:** leden krijgen een eigen "editie in één minuut" via `POST /api/brief`.
+  - Alleen voor leden (token en profiel worden in Supabase gecontroleerd).
+  - Hooguit 8 per dag per persoon.
+  - Identieke edities delen hun samenvatting.
+
 ### Synchroniseren
 
 - `src/lib/syncEngine.js` regelt wat er met je account gebeurt.

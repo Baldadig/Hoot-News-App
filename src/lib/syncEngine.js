@@ -221,6 +221,7 @@ export class SyncEngine {
 // Uitloggen: de gegevens van het account gaan van dit toestel af; daarna is het weer anoniem.
 export function forgetAccount(storage, setLocal, prefs) {
   setLocal(emptyAccountData(prefs))
+  write(storage, 'hoot:my-edition', null) // de persoonlijke editie hoort bij het account
   write(storage, BASE_KEY, null)
   write(storage, LEGACY_MARK, null)
   write(storage, OWNER_KEY, 'anon')

@@ -209,7 +209,8 @@ export function signatures(articles) {
 // dan met preview, met beeld, en het nieuwste.
 export function leadCandidates(items, mainIds) {
   // Een opiniestuk is nooit het hoofdbericht als er een nieuwsbericht is.
-  const score = (i) => (i.type === 'opinie' ? -16 : 0) + (mainIds.has(i.source) ? 8 : 0) + (NL_SOURCES.has(i.source) ? 4 : 0) + (i.summary ? 2 : 0) + (i.image ? 1 : 0)
+  // Een podcast of liveblog is ook nooit het hoofdbericht (een promo, of over van alles tegelijk).
+  const score = (i) => (i.type === 'opinie' ? -16 : 0) + (/\bpodcast\b/i.test(i.title || '') || isLive(i) ? -16 : 0) + (mainIds.has(i.source) ? 8 : 0) + (NL_SOURCES.has(i.source) ? 4 : 0) + (i.summary ? 2 : 0) + (i.image ? 1 : 0)
   return [...items].sort((a, b) => score(b) - score(a) || byRecency(a, b))
 }
 
@@ -348,7 +349,9 @@ export function editionSlot(now = new Date()) {
 // we elke kandidaat nogmaals tegen wat er al staat. Het hoofdbericht wisselt van bron
 // (niet twee keer dezelfde achter elkaar, hooguit drie per editie) zolang het verhaal
 // een alternatief uit je eigen bronnen heeft.
-export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE } = {}) {
+// `bonus(items)` (optioneel): extra gewicht voor een kandidaat, bijvoorbeeld voor de interesses
+// van een lezer (de persoonlijke editie in de app); de server gebruikt hem niet.
+export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, bonus = null } = {}) {
   const byId = new Map(pool.map((i) => [i.id, i]))
   const sig = signatures(pool)
   const fresh = (iso, hours) => iso && now - Date.parse(iso) < hours * 60 * 60 * 1000
@@ -377,11 +380,12 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     cands.push({ kind: 'story', st, items, ids: st.itemIds, desks: new Set(per.flatMap((x) => [...x])), primary: primaryDesk(per), w: weight(st, now) })
   }
   for (const it of pool) {
-    if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || it.storyId) continue
+    if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || it.storyId || isLive(it)) continue // een liveblog is geen editieplek
     if (!fresh(it.publishedAt, 14) || !(it.summary || it.image)) continue
     const desks = desksOf(it)
     cands.push({ kind: 'item', it, ids: [it.id], desks, primary: primaryDesk([desks]), w: weight({ sourceCount: 1, ownCount: 1, latestAt: it.publishedAt }, now) - 2 })
   }
+  if (bonus) for (const c of cands) c.w += bonus(c.kind === 'story' ? c.items : [c.it])
   cands.sort((a, b) => b.w - a.w)
 
   const used = new Set()

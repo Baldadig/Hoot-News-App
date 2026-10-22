@@ -2,6 +2,24 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.28.0] — 2026-10-22 — Je eigen editie
+
+- **Elke lezer een eigen editie,** drie keer per dag, uit je eigen bronnen en interesses:
+  - de rubrieken blijven, zodat het een krant is en geen bubbel;
+  - je interesses geven voorrang;
+  - sport en cultuur krijgen hooguit twee plekken onderaan, en alleen als je die interesse hebt;
+  - te weinig eigen verhalen? Dan vult de algemene editie aan ("Buiten je bronnen");
+  - "Buiten je bubbel" blijft staan.
+- **Na het samenstellen ligt je editie vast.** Ben je lid, dan is ze op al je toestellen gelijk.
+- **Leden krijgen een eigen "editie in één minuut"** over precies hun tien verhalen. Zonder account zie je de uitnodiging om in te loggen.
+- **De editie is nieuws:**
+  - een voetbalbericht uit een gewone nieuwsbron telt als sport;
+  - een podcast of liveblog wordt nooit hoofdbericht;
+  - een liveblog krijgt geen plek in de editie.
+
+  Dit geldt ook voor de algemene editie.
+- Een e-mailadres als auteur wordt niet meer getoond.
+
 ## [1.27.2] — 2026-10-22 — Grotere koppen in de tijdlijn op desktop
 
 - Op desktop zijn de koppen in de tijdlijn-indeling (Stroom en "Verder in deze editie") T5: 27 px in plaats van 18. Op de telefoon blijven ze 18 px.

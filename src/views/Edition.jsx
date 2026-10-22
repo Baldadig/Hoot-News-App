@@ -12,7 +12,7 @@ import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { resolveEditionEntry, EDITION_SIZE } from '../lib/edition.js'
 
 // Rubriek van elke plek in de editie (komt van de server), als label boven het verhaal.
-const DESK = { binnenland: 'Binnenland', buitenland: 'Buitenland', vs: 'VS', middenoosten: 'Midden-Oosten', oekraine: 'Oekraïne', wetenschap: 'Wetenschap', bubbel: 'Buiten je bubbel' }
+const DESK = { binnenland: 'Binnenland', buitenland: 'Buitenland', vs: 'VS', middenoosten: 'Midden-Oosten', oekraine: 'Oekraïne', wetenschap: 'Wetenschap', bubbel: 'Buiten je bubbel', extern: 'Buiten je bronnen' }
 const VIA = { google: 'Google Trends', bluesky: 'Bluesky', wikipedia: 'Wikipedia' }
 const deskLabel = (e) => (e.desk === 'bubbel' && e.terms?.length ? `Buiten je bubbel · via ${[...new Set(e.terms.map((t) => VIA[t.via] || t.via))].join(' en ')}` : DESK[e.desk] || null)
 
@@ -68,7 +68,7 @@ function FrontItem({ item, story, note }) {
 }
 const SLOT = { ochtend: 'Ochtendeditie', middag: 'Middageditie', avond: 'Avondeditie' }
 
-export default function Edition({ active, edition, bubble = [], brief = null, loading, failedLoad, statusProps, onRefresh, refreshing }) {
+export default function Edition({ active, edition, bubble = [], brief = null, briefForMembers = false, onJoin, loading, failedLoad, statusProps, onRefresh, refreshing }) {
   const { itemsById, storiesById, muted } = useHoot()
   const ref = useRef(null)
 
@@ -81,7 +81,8 @@ export default function Edition({ active, edition, bubble = [], brief = null, lo
       const r = resolveEditionEntry(e, { storiesById, itemsById, published, muted })
       if (!r) return null
       const label = deskLabel({ ...e, desk: r.desk })
-      const note = r.followed || r.desk === 'bubbel' ? label : [label, 'Volg je niet'].filter(Boolean).join(' · ')
+      // "Buiten je bubbel" en "Buiten je bronnen" zeggen het zelf al; elders een label als je de bron niet volgt.
+      const note = r.followed || r.desk === 'bubbel' || r.desk === 'extern' ? label : [label, 'Volg je niet'].filter(Boolean).join(' · ')
       return { key: e.id, index, item: r.item, story: r.story, note }
     })
     .filter(Boolean)
@@ -124,11 +125,10 @@ export default function Edition({ active, edition, bubble = [], brief = null, lo
                 <Weather />
               </span>
             </div>
-            {rows.length < EDITION_SIZE ? (
-              <p className="hint edcount">
-                Deze editie heeft {rows.length} {rows.length === 1 ? 'verhaal' : 'verhalen'}: er was niet meer nieuws dat breed genoeg werd gebracht.
-              </p>
-            ) : null}
+            <p className="hint edcount">
+              {edition.personal ? 'Samengesteld uit jouw bronnen en interesses' : 'De editie voor iedereen'}
+              {rows.length < EDITION_SIZE ? ` · ${rows.length} ${rows.length === 1 ? 'verhaal' : 'verhalen'}: er was niet meer nieuws dat breed genoeg werd gebracht` : ''}.
+            </p>
             {hasBrief ? (
               <button type="button" className="briefcta" onClick={() => setReading(true)} aria-haspopup="dialog">
                 <span className="briefcta__icon" aria-hidden="true">
@@ -137,6 +137,20 @@ export default function Edition({ active, edition, bubble = [], brief = null, lo
                 <span className="briefcta__text">
                   <span className="briefcta__title">De editie in één minuut</span>
                   <span className="briefcta__sub">Samenvatting door AI, met de bronnen erbij</span>
+                </span>
+                <span className="briefcta__go" aria-hidden="true">
+                  ›
+                </span>
+              </button>
+            ) : null}
+            {!hasBrief && briefForMembers ? (
+              <button type="button" className="briefcta" onClick={onJoin}>
+                <span className="briefcta__icon" aria-hidden="true">
+                  <SparkleIcon />
+                </span>
+                <span className="briefcta__text">
+                  <span className="briefcta__title">Jouw editie in één minuut</span>
+                  <span className="briefcta__sub">Voor leden: log in met Google</span>
                 </span>
                 <span className="briefcta__go" aria-hidden="true">
                   ›

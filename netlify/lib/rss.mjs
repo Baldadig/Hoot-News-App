@@ -45,6 +45,7 @@ function authorOf(it) {
   let a = it.creator || it['dc:creator'] || it.author
   if (a && typeof a === 'object') a = Array.isArray(a.name) ? a.name[0] : a.name
   a = toText(String(a || '')).replace(/^by\s+/i, '').trim()
+  if (/@|https?:/.test(a)) return null // een e-mailadres of link is geen naam
   return a && a.length <= 70 ? a : null
 }
 // Soort alleen als de bron het zelf aangeeft (URL-pad of RSS-categorie). Geen signaal = geen label.

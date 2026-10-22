@@ -21,7 +21,10 @@ const SOURCE = new Map(SOURCES.map((s) => [s.id, s]))
 // Telt mee voor verhalen: alles behalve regionaal (veel gedeelde stukken) en muziek.
 const inStories = (it) => it.kind === 'article' && SOURCE.get(it.source)?.cat !== 'regio' && !MUSIC_IDS.has(it.source)
 // Telt mee voor de editie: landelijk, internationaal, economie, tech en wetenschap.
-const inEdition = (it) => EDITION_CATS.has(SOURCE.get(it.source)?.cat) && !MUSIC_IDS.has(it.source)
+// De editie is nieuws: geen sport- of muziekbronnen, en ook geen sportbericht uit een gewone
+// nieuwsbron (een grote voetbalavond kwam anders via de Volkskrant toch bovenaan).
+const SPORT_TOPICS = new Set(['voetbal', 'f1', 'wielrennen', 'tennis', 'wintersport', 'olympisch'])
+const inEdition = (it) => EDITION_CATS.has(SOURCE.get(it.source)?.cat) && !MUSIC_IDS.has(it.source) && !keywordTopics(`${it.title} ${it.text || it.summary || ''}`).some((t) => SPORT_TOPICS.has(t))
 
 export async function buildFeed({ now = Date.now() } = {}) {
   const apiKey = process.env.ANTHROPIC_API_KEY
