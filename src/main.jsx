@@ -12,11 +12,19 @@ import './styles.css'
 import { registerUpdates } from './lib/swUpdate.js'
 import { captureInvite, captureGoogleReturn } from './lib/account.js'
 import { loadFeedCache } from './lib/feedCache.js'
+import { migrate } from './lib/migrate.js'
 
 // Uitnodigingslink (?uitnodiging=…) en terugkomst van Google (#id_token=…): onthouden en uit de
 // adresbalk halen, vóór de app die als route leest.
 captureInvite()
 captureGoogleReturn()
+
+// Opslag van oudere versies omzetten (één keer, zie src/lib/migrate.js).
+try {
+  migrate(localStorage)
+} catch {
+  /* geen opslag: niets om te migreren */
+}
 
 // Eerst de feed van de vorige keer (IndexedDB, hooguit een paar honderd ms), dan pas tekenen:
 // zo staat er bij een warme start meteen inhoud, zonder flits van een lege of ladende staat.

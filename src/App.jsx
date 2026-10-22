@@ -20,7 +20,7 @@ import { useTheme } from './hooks/useTheme.js'
 import { useSocialSources } from './hooks/useSocialSources.js'
 import { useAccount } from './hooks/useAccount.js'
 import { useCloudSync } from './hooks/useCloudSync.js'
-import { useStored, readJSON } from './lib/store.js'
+import { useStored } from './lib/store.js'
 import { MAIN, rememberLocation, hrefFor } from './lib/context.js'
 import { sourceStatus, statusLabel } from './lib/sourceStatus.js'
 import Bluesky from './views/Bluesky.jsx'
@@ -42,13 +42,6 @@ const Welcome = lazy(() => import('./views/Welcome.jsx'))
 const PAGES = ['zoek', 'stijl', 'welkom', 'instellingen']
 const byRecency = (a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || '')
 
-// Wie de vorige versie al gebruikte slaat het welkomscherm over en houdt zijn leeslijst.
-const isReturning = () => ['hoot:theme', 'hoot:read', 'hoot:feed-cache', 'hoot:saved-items'].some((k) => localStorage.getItem(k) !== null)
-function initialSaved() {
-  const old = readJSON('hoot:saved-items', null)
-  if (!old || typeof old !== 'object') return {}
-  return Object.fromEntries(Object.entries(old).map(([id, item]) => [id, { kind: 'item', savedAt: item.savedAt || Date.now(), item }]))
-}
 const safe = (fn, fallback) => {
   try {
     return fn()
@@ -79,7 +72,7 @@ function useWide(query) {
 
 export default function App() {
   const route = useRoute()
-  const [rawPrefs, setPrefs] = useStored('hoot:prefs', { muted: [], pinned: ['nederland', 'vs-politiek', 'ai'], onboarded: safe(isReturning, true) })
+  const [rawPrefs, setPrefs] = useStored('hoot:prefs', { muted: [], pinned: ['nederland', 'vs-politiek', 'ai'], onboarded: true }) // zonder opslag (migrate.js kon niets schrijven): geen welkom
   const prefs = useMemo(() => normalizePrefs(rawPrefs), [rawPrefs])
   const setPref = useCallback((key, value) => setPrefs((p) => ({ ...p, [key]: value })), [setPrefs])
   // Tekstgrootte en beeld werken via attributen op <html> (zie styles.css).
@@ -96,7 +89,7 @@ export default function App() {
   const [refreshKey, setRefreshKey] = useState(0)
   const social = useSocialSources(refreshKey)
 
-  const [saved, setSaved] = useStored('hoot:saved-v2', safe(initialSaved, {}))
+  const [saved, setSaved] = useStored('hoot:saved-v2', {})
   const [readIds, setReadIds] = useStored('hoot:read', [])
   const [seenStories, setSeenStories] = useStored('hoot:stories-seen', {})
 
@@ -354,15 +347,6 @@ export default function App() {
 
   const overlay = !!story && !hasPanel
 
-  // Opruimen: de cache van de vorige versie is niet meer nodig.
-  useEffect(() => {
-    try {
-      localStorage.removeItem('hoot:feed-cache')
-      localStorage.removeItem('hoot:feed-v2')
-    } catch {
-      /* niet erg */
-    }
-  }, [])
   useEffect(() => {
     document.title =
       {
