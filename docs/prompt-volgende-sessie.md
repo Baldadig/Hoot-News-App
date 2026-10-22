@@ -35,6 +35,8 @@ Je werkt verder aan **Hoot**, de nieuwslezer van Alex Vrees: een PWA met React 1
 
 ## Eerste taken
 
+0. **Databasewijziging voor de persoonlijke editie (1.28):** voer in Supabase (via Brave) `supabase/migrations/20261023_personal_edition.sql` uit. Die voegt de kolom `edition jsonb` toe aan `user_state`. Zonder die kolom werkt de persoonlijke editie wel, maar alleen per toestel.
+
 1. **Bluesky, alleen voor Alex:** laat in Bluesky alleen Aaron Rupar staan en zet de Oekraïne-accounts uit.
    - Doe dit in Supabase (Brave → SQL Editor), in `public.user_state.prefs.muted` van gebruiker `f5dff1db-7719-4188-ad51-2854b1982638`.
    - Voeg deze ids toe: `bsky:kyivindependent.com`, `bsky:pravda.ua`, `bsky:euromaidanpress.bsky.social`, `bsky:christopherjm.ft.com`, `bsky:meduza.io`, `bsky:bbcstever.bsky.social`, `bsky:thestudyofwar.bsky.social`, `bsky:michaelkofman.bsky.social`, `bsky:phillipspobrien.bsky.social`, `bsky:warinthefuture.bsky.social`, `bsky:anderspucknielsen.dk`, `bsky:sambendett.bsky.social`, `bsky:emilkastehelmi.bsky.social` en `bsky:noelreports.com`.
