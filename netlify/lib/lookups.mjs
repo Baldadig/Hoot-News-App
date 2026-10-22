@@ -40,7 +40,7 @@ export async function loadTrends() {
   }
   const y = new Date(Date.now() - 864e5)
   const day = `${y.getUTCFullYear()}/${String(y.getUTCMonth() + 1).padStart(2, '0')}/${String(y.getUTCDate()).padStart(2, '0')}`
-  const ua = { 'User-Agent': 'HootNews/1 (https://hootnewsapp.netlify.app)' }
+  const ua = { 'User-Agent': 'HootNews/1 (https://hootnews.nl)' }
   const jobs = [
     get('https://trends.google.com/trending/rss?geo=NL', { 'User-Agent': 'Mozilla/5.0' })
       .then((r) => r.text())

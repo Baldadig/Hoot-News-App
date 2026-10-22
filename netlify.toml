@@ -28,6 +28,14 @@
     'https://oor-prod\.slashsmart\.com/.*',
   ]
 
+# Eén adres: het oude Netlify-adres stuurt door naar hootnews.nl (één opslag, één service
+# worker, één inlogadres). Vóór de SPA-fallback, anders wint die.
+[[redirects]]
+  from = "https://hootnewsapp.netlify.app/*"
+  to = "https://hootnews.nl/:splat"
+  status = 301
+  force = true
+
 # SPA-fallback (laat de PWA alle routes afhandelen)
 [[redirects]]
   from = "/*"
