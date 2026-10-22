@@ -68,8 +68,6 @@ export async function buildFeed({ now = Date.now() } = {}) {
       updatedAt: new Date(now).toISOString(),
       storage: storageMode(),
       aiEnabled: !!anthropic,
-      instapaper: !!(process.env.INSTAPAPER_USERNAME && process.env.INSTAPAPER_PASSWORD),
-      tts: !!(process.env.AZURE_SPEECH_KEY && process.env.AZURE_SPEECH_REGION),
       vkSnippets: gaps.vkSnippets, // Volkskrant-berichten met een inleiding uit de zoekindex
       imagesFilled: gaps.filled, // berichten met een beeld uit de zoekindex
     },

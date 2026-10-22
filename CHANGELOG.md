@@ -2,6 +2,14 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.20.0] — 2026-10-22 — Accounts en uitnodigingen (fase 1)
+
+- **Inloggen met Google** (Instellingen → Account). Als lid gaan je instellingen, Bewaard, wat je las en welke verhalen je zag mee naar je andere toestellen. Wat je vóór het inloggen op een toestel had, gaat niet verloren: de eerste keer wordt alles samengevoegd. Indeling en tekstgrootte blijven per toestel.
+- **Op uitnodiging.** Een uitnodigingslink (`?uitnodiging=…`) wordt onthouden tot je inlogt; daarna ben je lid. Beheerders maken nieuwe links in Instellingen (één keer te gebruiken, 30 dagen geldig).
+- De database (Supabase, EU) staat in `supabase/migrations/`: iedereen ziet alleen zijn eigen gegevens.
+- De Supabase-code laadt alleen als je inlogt of al ingelogd bent; de app zelf is er niet zwaarder door.
+- **Eruit, om te focussen op Editie, AI-overzicht en Stroom:** voorlezen (ook de natuurlijke stem) en Instapaper. Bluesky staat niet meer standaard in het menu; aanzetten kan in Instellingen → Extra. Terughalen kan via versie 1.19.0.
+
 ## [1.19.0] — 2026-10-21 — Oekraïne op Bluesky
 
 - In Bluesky staat een nieuwe groep **Oekraïne**: één tik op de chip toont alleen die posts, met daarachter de mensen uit die groep.

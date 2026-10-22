@@ -2054,6 +2054,25 @@ html[data-images='hoofd'] .media--social {
   font-size: var(--t1);
   line-height: var(--lh-body);
 }
+.invite {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s3) 0;
+  border-bottom: 1px solid var(--rule);
+}
+.invite__acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+}
+.invite__acts .input {
+  flex: 1 1 200px;
+}
+.invite__link {
+  font-size: var(--t1);
+}
 .setrow--link {
   cursor: pointer;
 }
@@ -2149,7 +2168,7 @@ html[data-images='hoofd'] .media--social {
   }
 }
 
-/* Voorlezen: kleine knop in de metaregel */
+/* Kleine knop in de metaregel (AI-overzicht) */
 .textbtn--sm {
   position: relative;
   height: 36px;
@@ -2165,10 +2184,6 @@ html[data-images='hoofd'] .media--social {
   content: ''; /* aanraakdoel loopt door tot 44 px */
   position: absolute;
   inset: -4px 0;
-}
-.how__speak.is-on {
-  border-color: var(--accent);
-  color: var(--accent);
 }
 
 /* Buiten je bubbel */

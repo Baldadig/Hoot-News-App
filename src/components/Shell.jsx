@@ -11,17 +11,17 @@ export const DESTINATIONS = [
   { id: 'bronnen', label: 'Bronnen', Icon: SourcesIcon },
 ]
 
-// Vaste hoofdnavigatie: onderin op telefoon, links op desktop. Altijd dezelfde vier.
+// Vaste hoofdnavigatie: onderin op telefoon, links op desktop. Bluesky alleen als je dat aanzet.
 // `hrefs` brengt je terug naar waar je in die bestemming was (met je filters);
 // `sourceNote` is de korte tekst bij het stille statuspuntje op Bronnen.
-export function Nav({ path, hrefs = {}, sourceNote = '' }) {
+export function Nav({ path, hrefs = {}, sourceNote = '', bluesky = false }) {
   return (
     <nav className="nav" aria-label="Hoofdnavigatie">
       <a className="nav__brand" href={hrefs.editie || '#/editie'} aria-label="Hoot — naar de Editie">
         <BrandLogo height={38} />
       </a>
       <ul className="nav__list">
-        {DESTINATIONS.map(({ id, label, Icon }) => (
+        {DESTINATIONS.filter((d) => bluesky || d.id !== 'bluesky').map(({ id, label, Icon }) => (
           <li key={id}>
             <a className="nav__link" href={hrefs[id] || `#/${id}`} aria-current={path === id ? 'page' : undefined}>
               <span className="nav__icon">

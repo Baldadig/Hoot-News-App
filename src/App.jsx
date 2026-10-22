@@ -18,8 +18,9 @@ import { useRoute } from './hooks/useRoute.js'
 import { useOnline } from './hooks/useOnline.js'
 import { useTheme } from './hooks/useTheme.js'
 import { useSocialSources } from './hooks/useSocialSources.js'
+import { useAccount } from './hooks/useAccount.js'
+import { useCloudSync } from './hooks/useCloudSync.js'
 import { useStored, readJSON } from './lib/store.js'
-import { saveToInstapaper } from './lib/save.js'
 import { MAIN, rememberLocation, hrefFor } from './lib/context.js'
 import { sourceStatus, statusLabel } from './lib/sourceStatus.js'
 import Bluesky from './views/Bluesky.jsx'
@@ -97,6 +98,10 @@ export default function App() {
   const [saved, setSaved] = useStored('hoot:saved-v2', safe(initialSaved, {}))
   const [readIds, setReadIds] = useStored('hoot:read', [])
   const [seenStories, setSeenStories] = useStored('hoot:stories-seen', {})
+
+  // Account: inloggen met Google; als lid gaan instellingen, Bewaard en gelezen mee.
+  const account = useAccount()
+  const syncStatus = useCloudSync(account, { prefs: rawPrefs, setPrefs, saved, setSaved, readIds, setReadIds, seen: seenStories, setSeen: setSeenStories })
 
   // ---- Context per bestemming: de navigatie brengt je terug naar dezelfde lijst ----
   const [navMem, setNavMem] = useState(readNav)
@@ -222,7 +227,6 @@ export default function App() {
         setAnnounce(kind === 'story' ? 'Verhaal bewaard' : 'Bericht bewaard')
       }
       setSaved((prev) => toggleSaved(prev, kind, id, payload, itemsById))
-      if (kind === 'item' && !saved[id] && data?.meta?.instapaper && prefs.instapaper) saveToInstapaper(payload)
     },
     [setSaved, itemsById, saved, data],
   )
@@ -422,11 +426,11 @@ export default function App() {
           Naar de inhoud
         </a>
         <div className="app__nav" inert={hideMain ? '' : undefined}>
-          <Nav path={path} hrefs={hrefs} sourceNote={statusLabel(srcStatus.failed.length)} />
+          <Nav path={path} hrefs={hrefs} sourceNote={statusLabel(srcStatus.failed.length)} bluesky={prefs.bluesky || path === 'bluesky'} />
         </div>
         <main id="inhoud" className="main" inert={hideMain ? '' : undefined}>
           {was('editie') ? (
-            <Edition active={shown === 'editie'} bubble={bubble} brief={prefs.brief ? data?.edition?.brief : null} readAloud={prefs.readAloud} tts={!!data?.meta?.tts} voice={prefs.voice} edition={data?.edition} loading={loading} failedLoad={failedLoad} statusProps={statusProps} onRefresh={reloadAll} refreshing={refreshing} />
+            <Edition active={shown === 'editie'} bubble={bubble} brief={prefs.brief ? data?.edition?.brief : null} edition={data?.edition} loading={loading} failedLoad={failedLoad} statusProps={statusProps} onRefresh={reloadAll} refreshing={refreshing} />
           ) : null}
           {was('stroom') ? (
             <Stream
@@ -479,11 +483,12 @@ export default function App() {
               onRetry={reloadAll}
               refreshing={refreshing}
               online={online}
+              bluesky={prefs.bluesky}
             />
           ) : null}
           <Suspense fallback={null}>
             {page === 'zoek' ? <Search onBack={() => route.back('editie')} /> : null}
-            {page === 'instellingen' ? <Settings meta={data?.meta} onBack={() => route.back('bronnen')} /> : null}
+            {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} onBack={() => route.back('bronnen')} /> : null}
             {page === 'stijl' ? <StyleGuide stream={stream} /> : null}
           </Suspense>
         </main>
@@ -531,6 +536,7 @@ export default function App() {
         {showWelcome ? (
           <Suspense fallback={null}>
             <Welcome
+              account={account}
               sources={sources}
               muted={muted}
               onToggle={setMuted}

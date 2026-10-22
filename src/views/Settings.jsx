@@ -2,6 +2,7 @@ import { ViewHeader } from '../components/Shell.jsx'
 import { DisplayControls } from '../components/Display.jsx'
 import { useHoot } from '../components/Items.jsx'
 import { Switch } from './Sources.jsx'
+import { AccountSettings } from '../components/Account.jsx'
 
 // Alle instellingen op één plek. Wat je al lezend wisselt staat bovenaan (zelfde rijen als
 // het Weergave-paneel); daaronder wat je één keer instelt.
@@ -17,41 +18,19 @@ function Row({ label, hint, children }) {
   )
 }
 
-export default function Settings({ meta, onBack }) {
+export default function Settings({ meta, account, syncStatus, onBack }) {
   const { prefs, setPref } = useHoot()
   const ai = !!meta?.aiEnabled
-  const ip = !!meta?.instapaper
   return (
     <section className="view view--page" aria-label="Instellingen">
       <div className="col">
         <ViewHeader title="Instellingen" showSearch={false} onBack={onBack} backLabel="Bronnen" />
 
+        <h2 className="sect">Account</h2>
+        <AccountSettings account={account} syncStatus={syncStatus} />
+
         <h2 className="sect">Weergave</h2>
         <DisplayControls />
-
-        <h2 className="sect">Lezen</h2>
-        <Row label="Bewaren ook naar Instapaper" hint={ip ? 'Gekoppeld: het bladwijzertje stuurt een bericht ook naar je Instapaper.' : 'Nog niet gekoppeld. Voeg je Instapaper-gegevens toe in Netlify (stappen in de README).'}>
-          <Switch checked={prefs.instapaper && ip} onChange={(v) => setPref('instapaper', v)} label="Bewaren ook naar Instapaper" />
-        </Row>
-        <Row label="Voorleesknop in de Editie" hint={meta?.tts ? 'Leest de editie voor met een natuurlijke Nederlandse stem (ook als je scherm uitgaat, met knoppen op je toegangsscherm).' : 'Leest kop en kern voor met de stem van je toestel. Een natuurlijke stem kan via Azure (gratis tot ruim genoeg voor drie edities per dag; stappen in de README).'}>
-          <Switch checked={prefs.readAloud} onChange={(v) => setPref('readAloud', v)} label="Voorleesknop in de Editie" />
-        </Row>
-        {meta?.tts ? (
-          <div className="drow">
-            <span className="drow__label">Stem</span>
-            <div className="seg" role="group" aria-label="Stem">
-              {[
-                ['fenna', 'Fenna'],
-                ['maarten', 'Maarten'],
-                ['colette', 'Colette'],
-              ].map(([id, label]) => (
-                <button key={id} type="button" className="seg__btn seg__btn--text" aria-pressed={prefs.voice === id} onClick={() => setPref('voice', id)}>
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : null}
 
         <h2 className="sect">Editie</h2>
         <Row label="De editie in één minuut" hint={ai ? 'Een AI-overzicht van 150 woorden, geschreven uit de koppen en samenvattingen van de editie. Drie keer per dag.' : 'Nog niet gekoppeld. Voeg je Anthropic-sleutel toe in Netlify (stappen in de README); kost ongeveer twee tot drie euro per maand.'}>
@@ -62,11 +41,16 @@ export default function Settings({ meta, onBack }) {
         </Row>
         <Row label="Edities" hint="Ochtend om 06:00, middag om 12:00, avond om 17:00, elk tien verhalen. Per rubriek het belangrijkste verhaal van dat moment — binnenland, buitenland, VS, Midden-Oosten, Oekraïne en wetenschap — plus één verhaal van buiten je bubbel; de overige plekken gaan naar wat verder het meeste nieuws is. Belangrijk betekent: waar de meeste bronnen over schrijven, met voorrang voor je eigen bronnen en voor wat net gebeurd is. Elke gebeurtenis staat er één keer in. Er telt geen klikgedrag mee, en na het samenstellen verandert een editie niet meer." />
 
+        <h2 className="sect">Extra</h2>
+        <Row label="Bluesky in het menu" hint="Een eigen lijst met posts van mensen die je op Bluesky volgt.">
+          <Switch checked={prefs.bluesky} onChange={(v) => setPref('bluesky', v)} label="Bluesky in het menu" />
+        </Row>
+
         <h2 className="sect">Bronnen</h2>
         <a className="setrow setrow--link" href="#/bronnen">
           <span className="setrow__text">
             <span className="setrow__label">Bronnen en volgorde van onderwerpen</span>
-            <span className="setrow__hint">Welke bronnen meedoen, Bluesky-accounts, bronstatus.</span>
+            <span className="setrow__hint">Welke bronnen meedoen en of ze bereikbaar zijn.</span>
           </span>
           <span aria-hidden="true">›</span>
         </a>

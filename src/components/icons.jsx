@@ -77,18 +77,6 @@ export const TypographyIcon = () => (
     <path d="M4 18 9.5 5 15 18M6 13.5h7M15.5 18l2.5-6 2.5 6M16.3 16h3.4" />
   </svg>
 )
-export const HeadphonesIcon = () => (
-  <svg {...base}>
-    <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
-    <rect x="4" y="13" width="4" height="6" rx="1.5" />
-    <rect x="16" y="13" width="4" height="6" rx="1.5" />
-  </svg>
-)
-export const StopIcon = () => (
-  <svg {...base}>
-    <rect x="6" y="6" width="12" height="12" rx="2" />
-  </svg>
-)
 export const SettingsIcon = () => (
   <svg {...base}>
     <circle cx="12" cy="12" r="3" />

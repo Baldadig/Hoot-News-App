@@ -122,7 +122,7 @@ export function AddBluesky({ onAdd }) {
   )
 }
 
-export default function Sources({ active, sources, muted, onToggle, pinned, onPinned, meta, status, recovered, latestBySource, onRetry, refreshing, online }) {
+export default function Sources({ active, sources, muted, onToggle, pinned, onPinned, meta, status, recovered, latestBySource, onRetry, refreshing, online, bluesky = false }) {
   const own = sources.filter((s) => s.followed && s.kind === 'nieuws')
   const music = sources.filter((s) => s.kind === 'muziek')
   const extra = sources.filter((s) => !s.followed)
@@ -150,14 +150,18 @@ export default function Sources({ active, sources, muted, onToggle, pinned, onPi
           ))}
         </ul>
 
-        <h2 className="sect">Bluesky</h2>
-        <a className="setrow setrow--link" href="#/bluesky">
-          <span className="setrow__text">
-            <span className="setrow__label">Mensen op Bluesky</span>
-            <span className="setrow__hint">Wie je volgt, toevoegen en of iemand ook in de Stroom staat, regel je in Bluesky.</span>
-          </span>
-          <span aria-hidden="true">›</span>
-        </a>
+        {bluesky ? (
+          <>
+            <h2 className="sect">Bluesky</h2>
+            <a className="setrow setrow--link" href="#/bluesky">
+              <span className="setrow__text">
+                <span className="setrow__label">Mensen op Bluesky</span>
+                <span className="setrow__hint">Wie je volgt, toevoegen en of iemand ook in de Stroom staat, regel je in Bluesky.</span>
+              </span>
+              <span aria-hidden="true">›</span>
+            </a>
+          </>
+        ) : null}
 
         <h2 className="sect">Alleen ter vergelijking</h2>
         <p className="hint">Deze bronnen volg je niet. Ze verschijnen niet in je Editie of Stroom, alleen binnen een verhaal, zodat je kunt zien wie er nog meer over schrijft. Zoeken doet dat ook alleen in je eigen bronnen, tenzij je daar zelf “Alle bronnen” kiest.</p>

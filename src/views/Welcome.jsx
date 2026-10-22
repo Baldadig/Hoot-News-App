@@ -5,7 +5,7 @@ import { SourceRow } from './Sources.jsx'
 // Eerste bezoek: de belofte en meteen kunnen beginnen. Je start met alle bronnen;
 // aanpassen kan hier (uitklappen) of later onder Bronnen. De bronnenlijst zit dicht,
 // zodat het scherm niet verspringt als de bronnen binnenkomen.
-export default function Welcome({ sources, muted, onToggle, onDone }) {
+export default function Welcome({ account, sources, muted, onToggle, onDone }) {
   const own = sources.filter((s) => s.followed)
   const [open, setOpen] = useState(false) // de lijst (met logo's) pas opbouwen als je hem opent
   return (
@@ -21,6 +21,11 @@ export default function Welcome({ sources, muted, onToggle, onDone }) {
         <button type="button" className="btn btn--wide" onClick={onDone}>
           Naar de Editie
         </button>
+        {account?.invite && account.status === 'out' ? (
+          <button type="button" className="btn btn--wide btn--quiet" onClick={account.signIn}>
+            Je bent uitgenodigd · Inloggen met Google
+          </button>
+        ) : null}
         <details className="welcome__more" onToggle={(e) => setOpen(e.currentTarget.open)}>
           <summary>Pas je bronnen aan</summary>
           {!open ? null : own.length ? (

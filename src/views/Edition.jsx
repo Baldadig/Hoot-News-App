@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { LeadStory, CompactItem, SaveButton, SourceMark, useHoot } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
-import { bulletinText, canSpeak, speak, stop, playEdition } from '../lib/speech.js'
-import { HeadphonesIcon, StopIcon, ReaderIcon } from '../components/icons.jsx'
+import { ReaderIcon } from '../components/icons.jsx'
 import { BriefReader } from '../components/BriefReader.jsx'
 import { timeAgo } from '../lib/time.js'
 import { BrandMark } from '../components/Brand.jsx'
@@ -66,7 +65,7 @@ function FrontItem({ item, story, note }) {
 }
 const SLOT = { ochtend: 'Ochtendeditie', middag: 'Middageditie', avond: 'Avondeditie' }
 
-export default function Edition({ active, edition, bubble = [], brief = null, readAloud = true, tts = false, voice = 'fenna', loading, failedLoad, statusProps, onRefresh, refreshing }) {
+export default function Edition({ active, edition, bubble = [], brief = null, loading, failedLoad, statusProps, onRefresh, refreshing }) {
   const { itemsById, storiesById, muted } = useHoot()
   const ref = useRef(null)
 
@@ -85,25 +84,6 @@ export default function Edition({ active, edition, bubble = [], brief = null, re
     })
     .filter(Boolean)
 
-  // Voorlezen met de stem van het toestel; stopt als je het scherm verlaat.
-  const [speaking, setSpeaking] = useState(false)
-  useEffect(() => () => stop(), [])
-  useEffect(() => {
-    if (!active && speaking) (stop(), setSpeaking(false))
-  }, [active, speaking])
-  const toggleSpeak = () => {
-    if (speaking) return (stop(), setSpeaking(false))
-    const device = () => {
-      const parts = bulletinText({ slot: edition.slot, date: longDate(edition.date), rows: rows.map(({ item }) => ({ title: item.title, summary: item.summary, sourceName: item.sourceName })) })
-      if (canSpeak()) speak(parts, { onEnd: () => setSpeaking(false) })
-      else setSpeaking(false)
-    }
-    // Natuurlijke stem als die gekoppeld is; lukt dat niet, dan de stem van het toestel.
-    if (tts) playEdition({ id: edition.id, voice, title: `${SLOT[edition.slot]} · ${longDate(edition.date)}`, onEnd: () => setSpeaking(false), onError: device })
-    else device()
-    setSpeaking(true)
-  }
-  const showSpeak = readAloud && (tts || canSpeak())
   const [reading, setReading] = useState(false)
   const hasBrief = !!(brief?.sections?.length || brief?.text)
 
@@ -135,25 +115,17 @@ export default function Edition({ active, edition, bubble = [], brief = null, re
           <>
             <StatusLine {...statusProps} quiet />
             {/* Eén metaregel onder de titel: datum, omvang, tijd en de uitleg. */}
-            {/* Eén metaregel: datum en het weer van vandaag; rechts voorlezen. */}
+            {/* Eén metaregel: datum en het weer van vandaag; rechts het AI-overzicht. */}
             <div className="edmeta">
               <span className="edmeta__text">
                 {sub}
                 <Weather />
               </span>
-              {hasBrief || showSpeak ? (
+              {hasBrief ? (
                 <span className="edmeta__acts">
-                  {hasBrief ? (
-                    <button type="button" className="textbtn textbtn--sm" onClick={() => setReading(true)} aria-haspopup="dialog" aria-label="De editie in één minuut lezen">
-                      <ReaderIcon />1 minuut
-                    </button>
-                  ) : null}
-                  {showSpeak ? (
-                    <button type="button" className={`textbtn textbtn--sm how__speak${speaking ? ' is-on' : ''}`} onClick={toggleSpeak} aria-pressed={speaking}>
-                      {speaking ? <StopIcon /> : <HeadphonesIcon />}
-                      {speaking ? 'Stop' : 'Lees voor'}
-                    </button>
-                  ) : null}
+                  <button type="button" className="textbtn textbtn--sm" onClick={() => setReading(true)} aria-haspopup="dialog" aria-label="De editie in één minuut lezen">
+                    <ReaderIcon />1 minuut
+                  </button>
                 </span>
               ) : null}
             </div>

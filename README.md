@@ -62,19 +62,18 @@ Zonder sleutel werkt alles door: titels en teasers van de bron zelf, onderwerpen
 zonder teaser (de Volkskrant) krijgen hun eigen inleiding uit de zoekindex, of lenen er een van een andere
 Nederlandse bron over hetzelfde verhaal ("via NOS").
 
-## Bewaren
+## Accounts en uitnodigingen
 
-Elke kaart heeft een **bewaar-knop** (bladwijzer). Bewaarde berichten staan in een eigen leeslijst in
-de app (tab **🔖 Bewaard**, opgeslagen op het toestel); nog een keer tikken verwijdert ze.
+Hoot is op uitnodiging. Inloggen gaat met Google (via Supabase, EU); als lid gaan je instellingen,
+Bewaard, wat je las en welke verhalen je zag mee naar je andere toestellen. Zonder account werkt
+alles ook, alleen op dit toestel.
 
-Optioneel gaat een bewaard artikel óók naar Instapaper. Die aanroep
-loopt server-side (`/api/save`); je inloggegevens staan alleen als Netlify-omgevingsvariabelen,
-nooit in de client of in de code:
-
-- **`INSTAPAPER_USERNAME`** — je Instapaper e-mailadres
-- **`INSTAPAPER_PASSWORD`** — je Instapaper wachtwoord (je account moet een wachtwoord ingesteld hebben)
-
-Zonder deze variabelen werkt alleen de eigen leeslijst; Instapaper wordt dan niet aangeroepen.
+- **Database:** `supabase/migrations/` — één keer uitvoeren in Supabase → SQL Editor. Elke gebruiker
+  ziet alleen zijn eigen rijen (row level security); lid worden kan alleen met een geldige uitnodiging.
+- **Uitnodigen:** als beheerder in Instellingen → Account → *Iemand uitnodigen*. De link
+  (`/?uitnodiging=…`) is één keer te gebruiken en 30 dagen geldig.
+- **De app** bevat alleen de publieke sleutel (`src/lib/config.js`); de Supabase-code laadt pas bij
+  inloggen.
 
 ## Ontwikkelen
 
@@ -97,7 +96,7 @@ npm run build       # output in dist/
 1. Push deze map naar GitHub.
 2. Koppel de repo in Netlify → build verloopt automatisch via `netlify.toml`.
 3. Zet de environment variables (zie hieronder).
-4. De functies draaien op `/api/feed` (de feed), `/api/tts` (voorlezen) en `/api/save` (Instapaper);
+4. De functie `/api/feed` serveert de feed;
    `feed-refresh` draait vanzelf elke 10 minuten.
 
 ## Bronnen & onderwerpen aanpassen
@@ -115,14 +114,5 @@ npm run build       # output in dist/
 | Variabele | Waarvoor | Zonder |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | "De editie in één minuut" (Claude Haiku 5.5, drie keer per dag) | Het blok blijft weg; de rest werkt |
-| `INSTAPAPER_USERNAME`, `INSTAPAPER_PASSWORD` | Bewaren ook naar Instapaper (Simple API) | Alleen bewaren in Hoot |
-| `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` | Voorlezen met een natuurlijke Nederlandse stem (Fenna, Maarten of Colette); één MP3 per editie, bewaard | De stem van het toestel |
 
 Geheimen staan alleen hier, nooit in de app of in de repository. Na het toevoegen een nieuwe deploy starten (Deploys → Trigger deploy).
-
-### Natuurlijke stem (Azure AI Speech) instellen
-
-1. Ga naar portal.azure.com en maak (gratis) een account.
-2. Maak een resource **Speech** (Azure AI services → Speech service), regio **West Europe**, prijsplan **Free F0** (0,5 miljoen tekens per maand gratis; drie edities per dag is ongeveer 0,25 miljoen).
-3. Open de resource → **Keys and Endpoint**: kopieer **Key 1** en de **Location/Region** (bv. `westeurope`).
-4. Zet ze in Netlify als `AZURE_SPEECH_KEY` en `AZURE_SPEECH_REGION`, en start een nieuwe deploy.
