@@ -2,6 +2,12 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.30.2] — 2026-10-22 — Scherp hoofdbeeld, en echt jouw editie
+
+- **Het hoofdverhaal heeft altijd een scherp beeld.** Is het beeld te klein of ontbreekt het, dan wordt het eerstvolgende verhaal met een goed beeld het hoofdverhaal.
+- **Beelden van The Guardian komen in het grootste formaat dat de feed geeft** (460 in plaats van 140 pixels breed). Een beeld dat alleen klein bestaat, wordt nooit groot getoond.
+- **Je editie komt altijd uit je eigen bronnen.** Een editie kon worden gemaakt op een toestel dat je instellingen nog niet had geladen. Dan kwam hij met de gratis startbronnen (Guardian, BBC, RTL) in je account terecht. Elke editie onthoudt nu uit welke bronnen en interesses hij komt. Past dat niet bij je instellingen, dan wordt hij opnieuw samengesteld. Dat gebeurt ook als je zelf je bronnen of interesses verandert.
+
 ## [1.30.1] — 2026-10-22 — Alleen echt buiten je bronnen
 
 - "Waar iedereen over schrijft" kiest geen verhaal meer dat een van je eigen bronnen ook brengt. Je kreeg The Guardian over Kyiv, terwijl The Atlantic, die je volgt, er ook over schreef. Die plek is voor nieuws dat je anders zou missen.
