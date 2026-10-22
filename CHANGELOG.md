@@ -2,6 +2,14 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.29.0] — 2026-10-22 — Volgen, breed nieuws en uitleg
+
+- **Verhaal volgen.** In een verhaal tik je "Volg dit verhaal". Bovenaan de Editie staat dan "Je volgt", met wat er sinds je laatst keek bij is gekomen. Hooguit vijf verhalen tegelijk; na twee weken stopt het volgen vanzelf.
+- **Waar iedereen over schrijft.** Eén verhaal buiten je interesses waar veel bronnen over schrijven, altijd via een gratis bron. Het telt mee in je editie.
+- **Begrippen uitleggen.** Bij woorden als informateur, cassatie of Houthi's staat een knop "Uitleg". Die geeft een korte, neutrale uitleg en een link naar Wikipedia. Je vindt hem in het hoofdverhaal, op de voorpagina en in de editie in één minuut.
+- **Vergelijkpaneel als icoon.** "Vergelijk bronnen" is nu een klein icoon. Vergelijken doe je per verhaal via "+N bronnen".
+- In je eigen editie krijgt een bericht van een vakbron de rubriek van die bron, zoals Tech of Economie.
+
 ## [1.28.0] — 2026-10-22 — Je eigen editie
 
 - **Elke lezer een eigen editie,** drie keer per dag, uit je eigen bronnen en interesses:
