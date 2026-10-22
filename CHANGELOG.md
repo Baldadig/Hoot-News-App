@@ -2,6 +2,11 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.24.0] — 2026-10-22 — Vragen om in te loggen, knoppen op desktop
+
+- **Vraag om in te loggen:** heb je Hoot ingesteld maar geen account, dan verschijnt na ongeveer anderhalf scherm lezen in je Editie of Stroom een paneel: "Bewaar wat je net hebt ingesteld", met één knop om in te loggen met Google. Kies je "Niet nu", dan vraagt Hoot het na drie dagen nog één keer en daarna niet meer.
+- **Welkom op desktop:** de knop staat direct onder de tekst, niet meer onderaan een leeg scherm. Bij een lange lijst, zoals de bronnen, blijft hij onderaan in beeld.
+
 ## [1.23.0] — 2026-10-22 — Direct inloggen en een nieuw icoon
 
 - **Inloggen gaat rechtstreeks met Google.** Google vraagt nu "Doorgaan naar Hoot" in plaats van een lang Supabase-adres te tonen. Daarna kom je terug waar je was.

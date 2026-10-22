@@ -1321,6 +1321,44 @@ input {
   }
 }
 
+/* Vraag om in te loggen (na een eind lezen, zonder account) */
+.sheet--join .sheet__head .kicker {
+  margin: 0;
+}
+.join__title {
+  margin: var(--s2) 0 0;
+  font-family: var(--serif);
+  font-size: var(--t5);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+.join__text {
+  max-width: 44ch;
+  margin: var(--s3) 0 0;
+  color: var(--ink-2);
+  font-size: var(--t3);
+  line-height: var(--lh-body);
+}
+.join__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2) var(--s5);
+  margin-top: var(--s5);
+}
+.join__btn {
+  min-height: 52px;
+  padding: 0 var(--s6);
+}
+@media (max-width: 719px) {
+  .join__btn {
+    flex: 1 1 100%;
+  }
+  .join__actions .linkbtn {
+    margin: 0 auto;
+  }
+}
+
 /* ---------- Bronnen ---------- */
 .setrow--stack {
   flex-direction: column;
@@ -2077,6 +2115,28 @@ input {
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
+}
+
+/* Desktop: de knop direct onder de inhoud, niet onderaan een leeg scherm. Bij een lange lijst
+   (bronnen) blijft hij onderaan in beeld staan. */
+@media (min-width: 720px) {
+  .ob__col {
+    flex: none;
+  }
+  .ob__foot .col {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s2) var(--s5);
+  }
+  .ob__cta {
+    width: auto;
+    min-width: 260px;
+    padding: 0 var(--s6);
+  }
+  .ob__skip {
+    margin: 0;
+  }
 }
 
 /* ---------- Designsysteem-scherm ---------- */

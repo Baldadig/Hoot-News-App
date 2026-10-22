@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { CloseIcon } from './icons.jsx'
 
 // Account in Instellingen: inloggen, wie je bent, synchroniseren en (voor beheerders) uitnodigen.
 const SYNC = { syncing: 'Bezig met synchroniseren…', ok: 'Gesynchroniseerd met je andere toestellen.', error: 'Synchroniseren lukte net niet; Hoot probeert het opnieuw.' }
@@ -95,5 +96,41 @@ function InviteRow({ account }) {
         </p>
       ) : null}
     </div>
+  )
+}
+
+// Na het instellen, als je een eind aan het lezen bent: één keer vragen of je wilt inloggen.
+export function JoinSheet({ open, onClose, onSignIn }) {
+  const ref = useRef(null)
+  useEffect(() => {
+    const d = ref.current
+    if (!d) return
+    if (open && !d.open) d.showModal()
+    if (!open && d.open) d.close()
+  }, [open])
+  return (
+    <dialog ref={ref} className="sheet sheet--join" onClose={onClose} onClick={(e) => e.target === ref.current && onClose()} aria-labelledby="join-title">
+      <div className="sheet__in">
+        <div className="sheet__head">
+          <span className="kicker">Hoot op al je toestellen</span>
+          <button type="button" className="iconbtn" onClick={onClose} aria-label="Sluiten">
+            <CloseIcon />
+          </button>
+        </div>
+        <h2 id="join-title" className="join__title">
+          Bewaar wat je net hebt ingesteld
+        </h2>
+        <p className="join__text">Log in met Google. Dan gaan je bronnen, onderwerpen, Bewaard en wat je al las mee naar je telefoon, tablet en computer.</p>
+        <div className="join__actions">
+          <button type="button" className="btn join__btn" onClick={onSignIn}>
+            Inloggen met Google
+          </button>
+          <button type="button" className="linkbtn" onClick={onClose}>
+            Niet nu
+          </button>
+        </div>
+        <p className="sheet__note">Hoot krijgt van Google alleen je naam, e-mailadres en profielfoto.</p>
+      </div>
+    </dialog>
   )
 }
