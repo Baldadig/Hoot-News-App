@@ -121,7 +121,7 @@ export function LeadStory({ item, story, note, priority = false }) {
 
 // ---- Vorm 2: compact bericht ----
 // Twee indelingen (instelbaar): "krant" — kop links, klein beeld rechts — en "tijdlijn" —
-// bron bovenaan, dan de tekst en het beeld groot in het midden. `plain` houdt de krant-vorm
+// de tekst en het beeld groot, met de bronregel eronder. `plain` houdt de krant-vorm
 // aan, voor smalle plekken zoals het vergelijkpaneel.
 export function CompactItem({ item, story, note, showSave = true, plain = false }) {
   const { markRead, read, layout } = useHoot()
@@ -129,7 +129,7 @@ export function CompactItem({ item, story, note, showSave = true, plain = false 
   if (layout === 'tijdlijn' && !plain) {
     return (
       <article className={`${cls} compact--tl`} data-id={item.id}>
-        <Meta item={item} story={story} showSave={showSave} />
+        {/* Zelfde volgorde als op de voorpagina: rubriek, kop, samenvatting, beeld, dan de bron. */}
         <a className="compact__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
           <Kicker item={item} extra={note} />
           <h3 className="compact__title">{item.title}</h3>
@@ -140,6 +140,7 @@ export function CompactItem({ item, story, note, showSave = true, plain = false 
             </div>
           ) : null}
         </a>
+        <Meta item={item} story={story} showSave={showSave} />
       </article>
     )
   }

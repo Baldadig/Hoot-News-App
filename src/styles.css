@@ -960,10 +960,9 @@ select {
   }
 }
 
-/* Indeling "tijdlijn": bron bovenaan, tekst, en het beeld groot in het midden */
+/* Indeling "tijdlijn": tekst, het beeld groot, en de bronregel eronder (zoals de voorpagina) */
 .compact--tl .compact__link {
   display: block;
-  padding-top: var(--s2);
 }
 .media--tl {
   aspect-ratio: 16 / 9;
@@ -1808,7 +1807,6 @@ select {
   font: 800 2rem/1.02 var(--serif);
   letter-spacing: -0.02em;
   text-wrap: balance;
-  outline: none;
 }
 .ob__sub {
   margin-top: var(--s2);
@@ -1832,7 +1830,6 @@ select {
   font: 800 clamp(2.75rem, 2.2rem + 2.4vw, 3.5rem) / 0.98 var(--serif);
   letter-spacing: -0.025em;
   text-wrap: balance;
-  outline: none;
 }
 .ob__points {
   display: flex;
@@ -2184,13 +2181,6 @@ select {
   }
 }
 
-/* Tijdlijn-indeling: de bronregel staat bovenaan, dus de ruimte verschuift mee */
-.compact--tl {
-  padding: var(--s1) 0 var(--s3); /* bronregel bovenaan (44 hoog): boven en onder ogen als 16 */
-}
-.compact--tl .meta {
-  margin-top: 0;
-}
 
 /* Schakelaar met twee standen (indeling van berichten): één pil, de keuze is een gevulde pil erin */
 .seg {
@@ -2612,9 +2602,6 @@ html[data-images='hoofd'] .media--social {
 .reader__sect + .reader__sect {
   margin-top: var(--s5);
 }
-.reader__body:focus {
-  outline: none;
-}
 .reader__head {
   margin-bottom: var(--s2);
   font-size: var(--t4);
@@ -2783,17 +2770,14 @@ html[data-images='hoofd'] .media--social {
   font-size: var(--t2);
   line-height: var(--lh-ui);
 }
-/* Smal scherm: datum en weer op één regel, de knoppen eronder */
+/* Smal scherm: datum, weer en knop in één rij die mag doorlopen naar een tweede regel */
 @media (max-width: 559px) {
   .edmeta {
     flex-wrap: wrap;
     row-gap: var(--s2);
   }
   .edmeta__text {
-    flex-basis: 100%;
-  }
-  .edmeta__acts {
-    margin-left: 0;
+    flex: 0 1 auto;
   }
 }
 .weather {
