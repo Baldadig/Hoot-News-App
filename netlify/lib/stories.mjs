@@ -51,16 +51,20 @@ const ALIAS = {
   navo: 'nato', vn: 'un',
   poetin: 'putin', zelenski: 'zelensky', zelenskyy: 'zelensky',
   witte: 'whitehouse', white: 'whitehouse',
+  koreaanse: 'korea', koreaans: 'korea', noordkoreaanse: 'northkorea', zuidkoreaanse: 'southkorea', koreanen: 'korea', korean: 'korea', koreans: 'korea',
+  // Voornamen van wereldleiders tellen als die leider (anders is "Donald" een sterke naam).
+  donald: 'trump', benjamin: 'netanyahu', vladimir: 'putin', volodymyr: 'zelensky', emmanuel: 'macron', keir: 'starmer', friedrich: 'merz', recep: 'erdogan', narendra: 'modi', giorgia: 'meloni', viktor: 'orban', kamala: 'harris', joe: 'biden', elon: 'musk', jinping: 'xi',
 }
-// Te algemeen om op zichzelf een gebeurtenis aan te wijzen: landen, wereldleiders, diensten.
+// Te algemeen om op zichzelf een gebeurtenis aan te wijzen: landen, steden, regeringsleiders,
+// diensten. Twee verhalen die alleen zo'n naam delen gaan niet samen (zie sameEvent).
 const WEAK = new Set(
-  'us russia ukraine germany france uk china israel iran nederland europe nato un putin zelensky trump biden harris vance netanyahu musk xi pentagon congress senate senaat congres kremlin whitehouse ice fbi cia nasa who gaza taiwan india japan canada mexico brazil turkije turkey syria syrie venezuela korea texas california florida georgia washington brussel brussels londen london parijs paris moskou moscow kyiv kiev'.split(
+  'us russia ukraine germany france uk china israel iran nederland europe nato un putin zelensky trump biden harris vance netanyahu musk xi macron starmer merz erdogan modi meloni orban schoof pentagon congress senate senaat congres kremlin whitehouse ice fbi cia nasa who gaza taiwan india japan canada mexico brazil turkije turkey syria syrie venezuela korea northkorea southkorea texas california florida georgia carolina virginia ohio michigan arizona nevada pennsylvania wisconsin washington brussel brussels londen london parijs paris moskou moscow kyiv kiev berlijn berlin seoul busan pyongyang tokio tokyo peking beijing jeruzalem jerusalem teheran tehran amsterdam rotterdam'.split(
     ' '
   )
 )
 // Hoofdletterwoorden die geen naam zijn (dagen, maanden, titels, delen van namen, bronnen).
 const NOT_A_NAME = new Set(
-  'new the of van der den des het een and for with from north south east west saint san los las great united states verenigde staten house huis kamer eerste tweede president minister premier koning king queen prins prince paus pope major maj gen general sen rep dr mr mrs ms sir lord secretary department ministerie defense defensie monday tuesday wednesday thursday friday saturday sunday maandag dinsdag woensdag donderdag vrijdag zaterdag zondag january february march april may june july august september october november december januari februari maart mei juni juli augustus oktober republican republicans democrat democrats democratic republikeinen democraten gop times guardian bbc nos nrc npr volkskrant wired verge atlantic economist politico reuters associated press getty afp images photo photos foto video live update breaking opinion analyse analysis why how what when who where this that these those here there after before more most just also only nobel nobelprijs nobelcomite prize prijs literature literatuur peace vrede force air royal city stad agent police politie court national international'.split(
+  'new the of van der den des het een and for with from north south east west noord zuid oost voor tegen saint san los las great united states verenigde staten house huis kamer eerste tweede president minister premier koning king queen prins prince paus pope major maj gen general sen rep dr mr mrs ms sir lord secretary department ministerie defense defensie monday tuesday wednesday thursday friday saturday sunday maandag dinsdag woensdag donderdag vrijdag zaterdag zondag january february march april may june july august september october november december januari februari maart mei juni juli augustus oktober republican republicans democrat democrats democratic republikeinen democraten gop times guardian bbc nos nrc npr volkskrant wired verge atlantic economist politico reuters associated press getty afp images photo photos foto video live update breaking opinion analyse analysis why how what when who where this that these those here there after before more most just also only nobel nobelprijs nobelcomite prize prijs literature literatuur peace vrede force air royal city stad agent police politie court national international'.split(
     ' '
   )
 )
@@ -103,7 +107,13 @@ const CONCEPTS = [
   ['missile', /\b(raket\w*|missile\w*|rocket\w*|drone\w*)\b/, false],
 ]
 
-const tokenize = (text) => String(text || '').replace(/\b([A-Z])\.(?=[A-Z]\.)/g, '$1').replace(/\b([A-Z]{2,})\./g, '$1').replace(/[’']s\b/g, '').match(/[\p{L}\p{N}]+/gu) || []
+// Samengestelde landnamen als één woord, zodat "Noord-" en "Zuid-" geen losse namen worden.
+const COMPOUND = [
+  [/\b(Noord|North)[- ]Korea\b/g, 'Northkorea'],
+  [/\b(Zuid|South)[- ]Korea\b/g, 'Southkorea'],
+]
+const joinCompounds = (text) => COMPOUND.reduce((t, [re, to]) => t.replace(re, to), String(text || ''))
+const tokenize = (text) => joinCompounds(text).replace(/\b([A-Z])\.(?=[A-Z]\.)/g, '$1').replace(/\b([A-Z]{2,})\./g, '$1').replace(/[’']s\b/g, '').match(/[\p{L}\p{N}]+/gu) || []
 const isCap = (w) => /^\p{Lu}\p{Ll}/u.test(w)
 const isAcronym = (w) => /^\p{Lu}{2,6}$/u.test(w)
 // Koppen In Titelkast (NYT, Wired) zeggen niets over wat een naam is.
@@ -184,6 +194,9 @@ export function sameEvent(a, b) {
   if (strong >= 1 && concepts >= 1 && weak + concepts >= 2) return true
   // C. Geen naam gemeen, maar een zeldzame combinatie van gebeurtenis-woorden.
   if (rare >= 2 && concepts >= 3 && weak + strong >= 1) return true
+  // D. Zelfde taal, drie gedeelde kernwoorden in de kop en ook een gedeelde naam (lange koppen
+  //    halen de 40% van de woordregel niet altijd).
+  if (sharedCount(a.words, b.words) >= 3 && strong + weak >= 1) return true
   return false
 }
 
