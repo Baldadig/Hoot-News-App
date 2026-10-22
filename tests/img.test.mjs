@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { imgProps, avatarUrl } from '../src/lib/img.js'
+import { fitsLarge, imgProps, avatarUrl } from '../src/lib/img.js'
 
 test('Wired: thumbnail vraagt een kleine variant in plaats van het origineel (1 MB)', () => {
   const p = imgProps('https://media.wired.com/photos/abc/master/pass/2298652701', 'thumb')
@@ -51,10 +51,12 @@ test('Bluesky-profielfoto: kleine variant; andere avatars ongemoeid', () => {
   assert.equal(avatarUrl(null), null)
 })
 
-test('Bing-beeld uit de zoekindex: vierkant als thumbnail, 16:9 als hoofdbeeld', () => {
-  const url = 'https://www.bing.com/th?id=ONUT.abc&pid=News&w=1200&h=675&c=7'
+test('Bing-beeld uit de zoekindex: alleen als thumbnail, nooit groot', () => {
+  const url = 'https://www.bing.com/th?id=ONUT.abc&pid=News&w=1360&h=765&c=7'
   assert.equal(imgProps(url, 'thumb').src, 'https://www.bing.com/th?id=ONUT.abc&pid=News&w=176&h=176&c=7')
-  assert.match(imgProps(url, 'lead').srcSet, /w=720&h=405&c=7 720w/)
+  assert.equal(imgProps(url, 'lead'), null)
+  assert.equal(fitsLarge(url), false)
+  assert.equal(fitsLarge('https://i.guim.co.uk/a.jpg'), true)
 })
 
 test('bronnen zonder eigen formaten gaan via de beeld-CDN, met het origineel als terugval', () => {

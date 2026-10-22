@@ -14,6 +14,17 @@ const SIZES = {
   lead: '(min-width: 960px) 720px, (min-width: 720px) 680px, calc(100vw - 32px)',
 }
 
+const isBingThumb = (u) => u.hostname === 'www.bing.com' && u.pathname === '/th'
+
+// Mag dit beeld groot (hoofdbeeld, tijdlijn)? Niet als we weten dat het alleen klein bestaat.
+export function fitsLarge(url) {
+  try {
+    return !isBingThumb(new URL(url))
+  } catch {
+    return true
+  }
+}
+
 // Geeft [[url, breedte], …] voor een beeld, of null als we geen varianten kennen.
 function candidates(url, kind) {
   let u
@@ -54,11 +65,12 @@ function candidates(url, kind) {
     const at = (w) => [`${m[1]}-${w}x${(w * 9) / 16}${m[2]}`, w]
     return kind === 'thumb' ? [at(256)] : [at(512), at(768), at(1024)]
   }
-  if (host === 'www.bing.com' && u.pathname === '/th') {
-    // Beeld uit de zoekindex: Bing snijdt zelf bij op de gevraagde maat.
+  if (isBingThumb(u)) {
+    // Beeld uit de zoekindex: Bing snijdt zelf bij op de gevraagde maat, maar het bronbeeld is
+    // klein (groot gevraagd komt het met witte randen). Alleen als thumbnail.
     const id = u.searchParams.get('id')
     const sized = (w, h) => `https://www.bing.com/th?id=${id}&pid=News&w=${w}&h=${h}&c=7`
-    return kind === 'thumb' ? [[sized(176, 176), 176], [sized(320, 320), 320]] : widths.map((w) => [sized(w, Math.round((w * 9) / 16)), w])
+    return [[sized(176, 176), 176], [sized(320, 320), 320]]
   }
   if (host === 'i.ytimg.com' && kind === 'thumb') {
     return [[url.replace('/hqdefault.', '/mqdefault.'), 320]]
@@ -69,8 +81,10 @@ function candidates(url, kind) {
 
 // Attributen voor <img>: { src, srcSet?, sizes? }, plus `fallback` (het origineel) als we
 // via de beeld-CDN gaan.
+// Null als het beeld niet groot kan (zie fitsLarge): dan geen groot beeldvak.
 export function imgProps(url, kind = 'thumb') {
   if (!url) return { src: url }
+  if (kind === 'lead' && !fitsLarge(url)) return null
   const list = candidates(url, kind)
   if (!list || !list.length) return { src: url }
   const fallback = list[0][0].startsWith('/.netlify/images') ? { fallback: url } : {}

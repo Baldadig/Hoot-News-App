@@ -4,7 +4,9 @@ import { imgProps } from '../lib/img.js'
 // komt, zonder verwijzer. Lukt de beeld-CDN niet, dan het origineel; lukt dat ook niet, dan
 // verdwijnt het vak (geen kapot plaatje).
 export function Img({ url, kind = 'thumb', priority = false, onLoad, ...rest }) {
-  const { fallback, ...props } = imgProps(url, kind)
+  const sized = imgProps(url, kind)
+  if (!sized) return null
+  const { fallback, ...props } = sized
   const onError = (e) => {
     const img = e.currentTarget
     if (fallback && img.src !== fallback) {

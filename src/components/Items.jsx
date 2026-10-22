@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react'
 import { timeAgo, readTime } from '../lib/time.js'
 import { BookmarkIcon, PlayIcon } from './icons.jsx'
 import { savedKey } from '../lib/saved.js'
-import { avatarUrl } from '../lib/img.js'
+import { avatarUrl, fitsLarge } from '../lib/img.js'
 import { Img } from './Img.jsx'
 import { Video } from './Video.jsx'
 import { directVideo } from '../../shared/bluesky.mjs'
@@ -103,7 +103,7 @@ export function LeadStory({ item, story, note, priority = false }) {
         <Kicker item={item} extra={note} />
         <h2 className="lead__title">{item.title}</h2>
         <Summary item={item} className="lead__sum" />
-        {item.image ? (
+        {item.image && fitsLarge(item.image) ? (
           <div className="media media--lead">
             <Img url={item.image} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} />
           </div>
@@ -130,7 +130,7 @@ export function CompactItem({ item, story, note, showSave = true, plain = false 
           <Kicker item={item} extra={note} />
           <h3 className="compact__title">{item.title}</h3>
           <Summary item={item} className="compact__sum" />
-          {item.image ? (
+          {item.image && fitsLarge(item.image) ? (
             <div className="media media--tl">
               <Img url={item.image} kind="lead" />
             </div>
