@@ -13,7 +13,7 @@ import { keywordTopics } from './topics.mjs'
 import { normTitle, preview } from './text.mjs'
 import { kvGet, kvSet, remember, storageMode } from './kv.mjs'
 import { fetchAuthorPosts } from '../../shared/bluesky.mjs'
-import { hash } from '../../shared/util.mjs'
+import { hash, safeHttpUrl } from '../../shared/util.mjs'
 
 const MIN = 6e4
 const DAY = 864e5
@@ -51,7 +51,7 @@ export async function buildFeed({ now = Date.now() } = {}) {
   // 6. Eerst-gezien-tijd per bericht, en bij welk verhaal het hoort (houdt id's stabiel).
   await updateRegistry(registry, items, now)
 
-  const out = items.map(toClient)
+  const out = items.map(toClient).filter((i) => i.url) // laatste vangnet: geen link, geen bericht
 
   // 7. De editie van dit dagdeel (één keer samengesteld, daarna vast).
   const edition = await composeEdition({ now, stories, articlePool: articlePool.filter(inEdition), pool: out, anthropic })
@@ -214,7 +214,7 @@ function toClient(it) {
     sourceName: it.sourceName,
     handle: it.handle,
     domain: it.domain,
-    avatar: it.avatar,
+    avatar: safeHttpUrl(it.avatar),
     avatarContain: it.avatarContain,
     brandColor: it.brandColor,
     author: it.author,
@@ -227,12 +227,12 @@ function toClient(it) {
     borrowedFrom: it.borrowedFrom,
     readMin: it.readMin,
     topics,
-    url: it.url,
+    url: safeHttpUrl(it.url),
     linkTitle: it.linkTitle,
-    image: it.image,
+    image: safeHttpUrl(it.image),
     imageRatio: it.imageRatio,
-    video: it.video,
-    videoPoster: it.videoPoster,
+    video: safeHttpUrl(it.video),
+    videoPoster: safeHttpUrl(it.videoPoster),
     publishedAt: it.publishedAt,
   })
 }

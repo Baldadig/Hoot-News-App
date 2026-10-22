@@ -48,3 +48,21 @@ test('feeds: geen "undefined" en geen telpixels als beeld', () => {
   assert.equal(usableImage('https://media.npr.org/include/images/tracking/npr-rss-pixel.png?story=1'), null)
   assert.equal(usableImage('https://images.nrc.nl/a.jpg'), 'https://images.nrc.nl/a.jpg')
 })
+
+test('een javascript:-link in een post wordt geen href; de link valt terug op de post zelf', () => {
+  const it = mapPost({
+    ...post({ $type: 'app.bsky.embed.external#view', external: { uri: 'javascript:alert(1)', title: 'Klik', thumb: 'javascript:alert(2)' } }),
+    author: { handle: 'atrupar.com', avatar: 'data:text/html,<script>alert(3)</script>' },
+  })
+  assert.equal(it.url, 'https://bsky.app/profile/atrupar.com/post/3abc')
+  assert.equal(it.domain, 'bsky.app')
+  assert.equal(it.image, null)
+  assert.equal(it.avatar, null)
+})
+
+test('video en foto: alleen http(s)', () => {
+  const v = mapPost(post({ $type: 'app.bsky.embed.video#view', playlist: 'javascript:void(0)', thumbnail: 'https://video.bsky.app/watch/x/y/t.jpg' }))
+  assert.equal(v.video, null)
+  const f = mapPost(post({ $type: 'app.bsky.embed.images#view', images: [{ thumb: 'vbscript:x', fullsize: 'https://cdn.bsky.app/f.jpg' }] }))
+  assert.equal(f.image, 'https://cdn.bsky.app/f.jpg')
+})

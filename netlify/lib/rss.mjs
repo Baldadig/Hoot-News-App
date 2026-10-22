@@ -1,6 +1,6 @@
 // RSS/Atom-feeds ophalen en omzetten naar Hoot-berichten.
 import Parser from 'rss-parser'
-import { hash } from '../../shared/util.mjs'
+import { hash, safeHttpUrl } from '../../shared/util.mjs'
 import { BRAND, PER_SOURCE_LIMIT, LIMIT_BY_CAT, UA } from './sources.mjs'
 import { favicon, toText, clip, preview, cleanUrl, hostname, safeIso } from './text.mjs'
 
@@ -96,7 +96,7 @@ export async function loadSource(src, avatarsP) {
       const fresh = (feed.items || []).map((it) => [it, categoriesOf(it)]).filter(([it, cats]) => !isNoise(it, cats))
       // Muziek: minder per bron, zodat het nieuws niet wordt weggedrukt.
       const items = fresh.slice(0, src.music ? 12 : LIMIT_BY_CAT[src.cat] || PER_SOURCE_LIMIT).map(([it, cats]) => {
-        const link = cleanUrl(it.link || it.guid || '')
+        const link = safeHttpUrl(cleanUrl(it.link || it.guid || ''))
         const domain = hostname(link)
         const title = toText(it.title || '').trim()
         const fullText = toText(it.contentSnippet || it.summary || it.description || '')
@@ -108,7 +108,7 @@ export async function loadSource(src, avatarsP) {
         const readMin = bodyWords >= 150 ? Math.max(1, Math.round(bodyWords / 220)) : null
         // YouTube-RSS levert geen <img>; thumbnail afleiden uit de video-id.
         const ytId = it.ytVideoId || null
-        const image = usableImage(pickImage(it)) || (ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : null)
+        const image = safeHttpUrl(usableImage(pickImage(it))) || (ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : null)
         return {
           id: hash(src.id + '|' + link),
           kind: 'article',
@@ -116,7 +116,7 @@ export async function loadSource(src, avatarsP) {
           sourceName: src.name,
           handle: domain,
           domain,
-          avatar: brandAvatar || favicon(domain),
+          avatar: safeHttpUrl(brandAvatar) || favicon(domain),
           avatarContain: !brandAvatar,
           brandColor: BRAND[src.id] || '#21468b',
           author: authorOf(it),
@@ -133,7 +133,7 @@ export async function loadSource(src, avatarsP) {
           readMin,
           publishedAt: it.isoDate || (it.pubDate ? safeIso(it.pubDate) : null),
         }
-      })
+      }).filter((i) => i.url) // zonder geldige (http/https) link niet tonen
       return { id: src.id, name: src.name, ok: true, used: url, count: items.length, items }
     } catch (e) {
       lastErr = e

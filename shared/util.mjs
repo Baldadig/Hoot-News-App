@@ -7,6 +7,20 @@ export function hash(str) {
   return h.toString(36)
 }
 
+// Alleen http(s)-adressen doorlaten. Wat uit een feed of post komt, belandt in een href of src;
+// een `javascript:`-link houdt React 18 niet tegen.
+export function safeHttpUrl(u) {
+  if (typeof u !== 'string') return null
+  const t = u.trim()
+  if (!/^https?:\/\//i.test(t)) return null
+  try {
+    new URL(t)
+    return t
+  } catch {
+    return null
+  }
+}
+
 export function hostname(u) {
   try {
     return new URL(u).hostname.replace(/^www\./, '')

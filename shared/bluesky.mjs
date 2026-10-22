@@ -1,6 +1,6 @@
 // Bluesky-posts ophalen en omzetten naar Hoot-berichten. Gedeeld: de server haalt de vaste
 // accounts op, de app de accounts die je zelf toevoegt — met precies dezelfde vorm en id's.
-import { hash, hostname, safeIso } from './util.mjs'
+import { hash, hostname, safeHttpUrl, safeIso } from './util.mjs'
 
 export const BSKY_API = 'https://public.api.bsky.app/xrpc'
 export const BSKY_BRAND = '#0085FF'
@@ -27,23 +27,25 @@ export function mapPost(post, fallbackName) {
   let linkTitle = null
   let domain = 'bsky.app'
   const photo = (im) => {
-    image = im.thumb || im.fullsize || image
+    image = safeHttpUrl(im.thumb) || safeHttpUrl(im.fullsize) || image
     const r = im.aspectRatio
     imageRatio = r?.width && r?.height ? Math.round((r.width / r.height) * 1000) / 1000 : 4 / 3
   }
   const link = (e) => {
     if (!e?.external) return
-    image = e.external.thumb || image
+    image = safeHttpUrl(e.external.thumb) || image
     linkTitle = (e.external.title || '').trim() || null
-    if (e.external.uri) {
-      url = e.external.uri
+    const uri = safeHttpUrl(e.external.uri) // anders blijft de link naar de post zelf staan
+    if (uri) {
+      url = uri
       domain = hostname(url)
     }
   }
   const clip = (e) => {
-    if (!e?.playlist) return
-    video = directVideo(e.playlist)
-    videoPoster = directVideo(e.thumbnail) || null // video's tonen alleen dit beeld, niet `image`
+    const playlist = safeHttpUrl(e?.playlist)
+    if (!playlist) return
+    video = directVideo(playlist)
+    videoPoster = directVideo(safeHttpUrl(e.thumbnail)) || null // video's tonen alleen dit beeld, niet `image`
   }
   const media = (e) => {
     const t = e?.$type || ''
@@ -60,7 +62,7 @@ export function mapPost(post, fallbackName) {
     sourceName: post.author.displayName || fallbackName || handle,
     handle: '@' + handle,
     domain,
-    avatar: post.author.avatar || null,
+    avatar: safeHttpUrl(post.author.avatar),
     avatarContain: false,
     brandColor: BSKY_BRAND,
     type: 'sociaal',
