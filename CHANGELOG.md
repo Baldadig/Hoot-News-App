@@ -2,6 +2,38 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.25.0] — 2026-10-22 — Review-fixes, nieuw logo, één adres
+
+**Huisstijl**
+- Nieuw logo: "hoot." in Newsreader met een rode punt, zoals het app-icoon.
+
+**Belangrijk**
+- De editie toont altijd de bundel die bij de kop hoort. "+N bronnen" opende soms een ander verhaal, omdat verhaal-id's na een verversing konden verschuiven.
+- Security-headers: CSP (eerst alleen melden), HSTS, nosniff, referrer- en permissions-policy, geen inbedden.
+- Links uit Bluesky en feeds alleen via http(s).
+- Het verhaalpaneel toont alle bronnen. Wat je niet volgt of uit hebt staan, krijgt het label "Volg je niet".
+- In het bronfilter van de Stroom staan alleen bronnen die aanstaan. Staat een bron uit, dan is er een knop "Zet … aan".
+
+**Verder**
+- Kleine Bing-beelden worden niet meer groot getoond.
+- `/api/feed` accepteert alleen GET of HEAD; een onbekend deel geeft een fout.
+- hootnewsapp.netlify.app stuurt door naar hootnews.nl.
+- De feed op het toestel staat nu in IndexedDB.
+- Hooguit zes bron-aanvragen tegelijk.
+- Het AI-overzicht schrapt zinnen die niet in de koppen of samenvattingen staan.
+- Het weer is instelbaar: kies een plaats of "Geen weer".
+- De sync filtert zelf op gebruiker.
+
+**Klein**
+- "Nog niet beschikbaar" in plaats van ontwikkelaarstekst.
+- Op de iPhone staan datum, weer en "1 minuut" op één regel.
+- In de tijdlijn staat de bron onder het bericht.
+- `robots.txt` toegevoegd.
+- Tablets mogen liggend.
+- Oude opslag wordt eenmalig opgeruimd (schema 3).
+- Verhalen worden strakker gebundeld: "Donald", "Zuid", "Noord" en steden tellen niet meer als naam die een verhaal draagt.
+- De inlogvraag komt alleen na echt lezen in de lijst.
+
 ## [1.24.0] — 2026-10-22 — Vragen om in te loggen, knoppen op desktop
 
 - **Vraag om in te loggen:** heb je Hoot ingesteld maar geen account, dan verschijnt na ongeveer anderhalf scherm lezen in je Editie of Stroom een paneel: "Bewaar wat je net hebt ingesteld", met één knop om in te loggen met Google. Kies je "Niet nu", dan vraagt Hoot het na drie dagen nog één keer en daarna niet meer.

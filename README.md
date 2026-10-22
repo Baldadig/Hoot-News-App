@@ -47,7 +47,10 @@ Tip: zet in iOS Safari per site *"Reader automatisch gebruiken"* aan (bv. nrc.nl
 - **Gedeelde code** (`shared/`) draait op de server én in de app: Bluesky-posts omzetten, id's.
 - **Beeld** gaat op maat: eigen formaten van de uitgever waar die bestaan, anders via de beeld-CDN van
   Netlify (AVIF/WebP, `src/lib/img.js` + `[images]` in `netlify.toml`).
-- **De app** toont meteen wat hij de vorige keer had (opgeslagen op het toestel) en werkt bij als er iets
+- **Security-headers** (`dist/_headers`) worden bij elke build gemaakt door `scripts/headers.mjs`, met de
+  sha256-hashes van de inline scripts in `index.html`. De CSP staat eerst op melden
+  (`CSP_ENFORCE = false`); zet hem op `true` als er een dag geen meldingen zijn.
+- **De app** toont meteen wat hij de vorige keer had (in IndexedDB op het toestel) en werkt bij als er iets
   nieuws is. Video's: er speelt er altijd één, ze pauzeren als je wegscrolt en bufferen alvast als ze in
   beeld komen.
 
