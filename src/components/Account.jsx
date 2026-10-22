@@ -22,7 +22,7 @@ export function GoogleButton({ onClick, wide = false }) {
 }
 
 // Account in Instellingen: inloggen, wie je bent, synchroniseren en (voor beheerders) uitnodigen.
-const SYNC = { syncing: 'Bezig met synchroniseren…', ok: 'Gesynchroniseerd met je andere toestellen.', error: 'Synchroniseren lukte net niet; Hoot probeert het opnieuw.' }
+const SYNC = { syncing: 'Synchroniseren…', ok: 'Gesynchroniseerd.', error: 'Synchroniseren lukte niet; Hoot probeert het opnieuw.' }
 
 export function AccountSettings({ account, syncStatus }) {
   const { status, user, profile, signIn, signOut, invite } = account
@@ -32,7 +32,7 @@ export function AccountSettings({ account, syncStatus }) {
       <div className="setrow setrow--stack">
         <div className="setrow__text">
           <span className="setrow__label">{invite ? 'Je bent uitgenodigd' : 'Inloggen'}</span>
-          <span className="setrow__hint">{invite ? 'Log in met Google om je account te maken. Wat je hier al instelde gaat mee.' : 'Met je Google-account. Je instellingen, Bewaard en wat je las gaan dan mee naar je andere toestellen.'}</span>
+          <span className="setrow__hint">{invite ? 'Maak je account; wat je instelde gaat mee.' : 'Alles mee naar je andere toestellen.'}</span>
         </div>
         <GoogleButton onClick={signIn} />
       </div>
@@ -43,7 +43,7 @@ export function AccountSettings({ account, syncStatus }) {
       <div className="setrow">
         <div className="setrow__text">
           <span className="setrow__label">{email}</span>
-          <span className="setrow__hint">{status === 'noInvite' ? 'Dit account is nog geen lid. Hoot is op uitnodiging: open de uitnodigingslink die je kreeg, of vraag er een aan.' : SYNC[syncStatus] || SYNC.ok}</span>
+          <span className="setrow__hint">{status === 'noInvite' ? 'Nog geen lid. Open je uitnodigingslink.' : SYNC[syncStatus] || SYNC.ok}</span>
         </div>
         <button type="button" className="linkbtn" onClick={signOut}>
           Uitloggen
@@ -82,7 +82,7 @@ function InviteRow({ account }) {
   return (
     <div className="invite">
       <span className="setrow__label">Iemand uitnodigen</span>
-      <span className="setrow__hint">Een persoonlijke link, één keer te gebruiken en 30 dagen geldig.</span>
+      <span className="setrow__hint">Eén keer te gebruiken, 30 dagen geldig.</span>
       {link ? (
         <>
           <input className="input invite__link" readOnly value={link} onFocus={(e) => e.currentTarget.select()} aria-label="Uitnodigingslink" />

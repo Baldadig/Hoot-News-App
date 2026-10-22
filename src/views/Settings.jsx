@@ -34,16 +34,16 @@ export default function Settings({ meta, account, syncStatus, onBack }) {
         <DisplayControls />
 
         <h2 className="sect">Editie</h2>
-        <Row label="De editie in één minuut" hint={ai ? 'Een AI-overzicht van 150 woorden, geschreven uit de koppen en samenvattingen van de editie. Drie keer per dag.' : 'Nog niet beschikbaar.'}>
+        <Row label="De editie in één minuut" hint={ai ? 'AI-samenvatting van de editie.' : 'Nog niet beschikbaar.'}>
           <Switch checked={prefs.brief} onChange={(v) => setPref('brief', v)} label="De editie in één minuut" />
         </Row>
-        <Row label="Buiten je bubbel" hint="Drie verhalen die anderen nu lezen of zoeken (Google Trends, Bluesky, Wikipedia) en die niet in je editie zitten — ook uit bronnen die je niet volgt.">
+        <Row label="Buiten je bubbel" hint="Wat anderen nu lezen en niet in je editie staat.">
           <Switch checked={prefs.bubble} onChange={(v) => setPref('bubble', v)} label="Buiten je bubbel" />
         </Row>
         <div className="setrow setrow--stack">
           <label className="setrow__text" htmlFor="weather-place">
             <span className="setrow__label">Weer in de Editie</span>
-            <span className="setrow__hint">Het weer van vandaag naast de datum. Een vaste plaats, zonder je locatie te vragen.</span>
+            <span className="setrow__hint">Naast de datum.</span>
           </label>
           <select id="weather-place" className="input" value={prefs.weatherPlace} onChange={(e) => setPref('weatherPlace', e.target.value)}>
             {PLACES.map((p) => (
@@ -54,10 +54,10 @@ export default function Settings({ meta, account, syncStatus, onBack }) {
             <option value={NO_WEATHER}>Geen weer</option>
           </select>
         </div>
-        <Row label="Edities" hint="Ochtend om 06:00, middag om 12:00, avond om 17:00, elk tien verhalen. Per rubriek het belangrijkste verhaal van dat moment — binnenland, buitenland, VS, Midden-Oosten, Oekraïne en wetenschap — plus één verhaal van buiten je bubbel; de overige plekken gaan naar wat verder het meeste nieuws is. Belangrijk betekent: waar de meeste bronnen over schrijven, met voorrang voor je eigen bronnen en voor wat net gebeurd is. Elke gebeurtenis staat er één keer in. Er telt geen klikgedrag mee, en na het samenstellen verandert een editie niet meer." />
+        <Row label="Edities" hint="Om 6, 12 en 17 uur tien verhalen. Daarna ligt de editie vast." />
 
         <h2 className="sect">Extra</h2>
-        <Row label="Bluesky in het menu" hint="Een eigen lijst met posts van mensen die je op Bluesky volgt.">
+        <Row label="Bluesky in het menu" hint="Posts van mensen die je volgt.">
           <Switch checked={prefs.bluesky} onChange={(v) => setPref('bluesky', v)} label="Bluesky in het menu" />
         </Row>
 
@@ -65,23 +65,24 @@ export default function Settings({ meta, account, syncStatus, onBack }) {
         <a className="setrow setrow--link" href="#/welkom">
           <span className="setrow__text">
             <span className="setrow__label">Interesses opnieuw kiezen</span>
-            <span className="setrow__hint">Wat je volgt, van breed naar smal, en je bronnen.</span>
+            <span className="setrow__hint">Onderwerpen en bronnen.</span>
           </span>
           <span aria-hidden="true">›</span>
         </a>
         <a className="setrow setrow--link" href="#/bronnen">
           <span className="setrow__text">
-            <span className="setrow__label">Bronnen en volgorde van onderwerpen</span>
-            <span className="setrow__hint">Welke bronnen meedoen en of ze bereikbaar zijn.</span>
+            <span className="setrow__label">Bronnen</span>
+            <span className="setrow__hint">Aan- en uitzetten.</span>
           </span>
           <span aria-hidden="true">›</span>
         </a>
 
         <h2 className="sect">Over</h2>
         <p className="about">
-          Hoot v{__APP_VERSION__} · <a href="#/stijl">Designsysteem</a>
+          Hoot v{__APP_VERSION__} · gemaakt door Alex Vrees · <a href="#/stijl">Designsysteem</a>
           <br />
-          {meta?.storage === 'blobs' ? 'Edities en verhalen worden vast bewaard.' : 'Edities en verhalen worden op dit moment niet vast bewaard en kunnen tussentijds wisselen.'} Samenvattingen komen rechtstreeks van de bron. De Volkskrant levert in haar feed alleen koppen; daar komt de voorvertoning (de eigen inleiding van het artikel) uit de zoekindex van Bing, of — met "via" erbij — van een andere bron over hetzelfde nieuws. Alleen "De editie in één minuut" is door AI geschreven.
+          Samenvattingen komen van de bron. Alleen de editie in één minuut is door AI geschreven.
+          {meta?.storage === 'blobs' ? null : ' Edities worden nu niet vast bewaard en kunnen wisselen.'}
         </p>
       </div>
     </section>
