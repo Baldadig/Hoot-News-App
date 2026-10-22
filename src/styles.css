@@ -2873,6 +2873,49 @@ html[data-images='hoofd'] .media--social {
   font-size: var(--t2);
 }
 
+/* Begrippen uitgelegd (src/lib/glossary.js): kleine knoppen, de uitleg klapt eronder open */
+.terms {
+  margin-top: var(--s2);
+  font-family: var(--sans);
+}
+.terms__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1) var(--s2);
+}
+.terms__btn {
+  min-height: 32px;
+  padding: 0 var(--s3);
+  border: 1px dashed var(--rule);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--ink-2);
+  font-size: var(--t1);
+  font-weight: 700;
+  cursor: pointer;
+  position: relative;
+}
+.terms__btn::before {
+  content: ''; /* aanraakdoel 44 px */
+  position: absolute;
+  inset: -6px 0;
+}
+.terms__btn[aria-expanded='true'] {
+  border-style: solid;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.terms__box {
+  max-width: 60ch;
+  margin: var(--s2) 0 0;
+  padding: var(--s2) var(--s3);
+  border-left: 2px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: var(--t2);
+  line-height: var(--lh-body);
+}
+
 /* Verhalen die je volgt: een kort lijstje boven de editie */
 .following {
   margin: var(--s2) 0 0;

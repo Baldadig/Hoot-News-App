@@ -11,9 +11,10 @@ import { longDate } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { resolveEditionEntry, EDITION_SIZE } from '../lib/edition.js'
 import { followedNow } from '../lib/follow.js'
+import { TermHelp } from '../components/Terms.jsx'
 
 // Rubriek van elke plek in de editie (komt van de server), als label boven het verhaal.
-const DESK = { binnenland: 'Binnenland', buitenland: 'Buitenland', vs: 'VS', middenoosten: 'Midden-Oosten', oekraine: 'Oekraïne', wetenschap: 'Wetenschap', bubbel: 'Buiten je bubbel', extern: 'Buiten je bronnen' }
+const DESK = { binnenland: 'Binnenland', buitenland: 'Buitenland', vs: 'VS', middenoosten: 'Midden-Oosten', oekraine: 'Oekraïne', wetenschap: 'Wetenschap', tech: 'Tech', economie: 'Economie', bubbel: 'Buiten je bubbel', extern: 'Buiten je bronnen' }
 const VIA = { google: 'Google Trends', bluesky: 'Bluesky', wikipedia: 'Wikipedia' }
 const deskLabel = (e) => (e.desk === 'bubbel' && e.terms?.length ? `Buiten je bubbel · via ${[...new Set(e.terms.map((t) => VIA[t.via] || t.via))].join(' en ')}` : DESK[e.desk] || null)
 
@@ -54,6 +55,7 @@ function FrontItem({ item, story, note }) {
           </span>
         ) : null}
       </a>
+      <TermHelp text={`${title} ${summary || ''}`} max={1} />
       <div className="fitem__act">
         {others > 0 ? (
           <button type="button" className="morebtn" onClick={() => openStory(story.id)} aria-label={`Vergelijk ${story.sourceCount} bronnen over dit verhaal${fresh ? `, ${fresh} nieuw` : ''}`}>

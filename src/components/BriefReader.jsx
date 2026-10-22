@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { CloseIcon } from './icons.jsx'
 import { briefSections } from '../../shared/brief.mjs'
 import { uncovered } from '../lib/edition.js'
+import { TermHelp } from './Terms.jsx'
 
 // "De editie in één minuut" als leesvenster: schreefletter, tussenkoppen, rustige kolom.
 // Native dialog: focus blijft binnen, Esc of een tik naast het venster sluit.
@@ -46,6 +47,7 @@ export function BriefReader({ open, onClose, brief, kicker, rows = [] }) {
             <section key={i} className="reader__sect">
               {sec.head ? <h2 className="reader__head">{sec.head}</h2> : null}
               <p className="reader__p">{sec.text}</p>
+              <TermHelp text={sec.text} />
               {refs.length ? (
                 <p className="reader__refs">
                   <span className="visually-hidden">Bronnen: </span>

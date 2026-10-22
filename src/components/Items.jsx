@@ -3,6 +3,7 @@ import { timeAgo, readTime } from '../lib/time.js'
 import { BookmarkIcon, PlayIcon } from './icons.jsx'
 import { savedKey } from '../lib/saved.js'
 import { avatarUrl, fitsLarge } from '../lib/img.js'
+import { TermHelp } from './Terms.jsx'
 import { Img } from './Img.jsx'
 import { Video } from './Video.jsx'
 import { directVideo } from '../../shared/bluesky.mjs'
@@ -116,6 +117,7 @@ export function LeadStory({ item, story, note, priority = false }) {
         ) : null}
         {item.author ? <p className="byline">Door {item.author}</p> : null}
       </a>
+      <TermHelp text={`${item.title} ${item.summary || ''}`} />
       <Meta item={item} story={story} />
     </article>
   )
