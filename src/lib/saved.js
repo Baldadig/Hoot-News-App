@@ -10,14 +10,15 @@ export function indexStories(stories = []) {
 }
 
 // Een verhaal met zijn publicaties: de actuele versie als die bestaat, anders de
-// momentopname van toen het bewaard werd.
-export function resolveStory(id, storiesById, saved = {}, itemsById = new Map(), muted = new Set()) {
+// momentopname van toen het bewaard werd. Alle bronnen, ook die je uit hebt staan: het paneel
+// is er om te vergelijken (bronnen die je niet volgt krijgen daar een label).
+export function resolveStory(id, storiesById, saved = {}, itemsById = new Map()) {
   if (!id) return null
   const snap = saved[id]?.kind === 'story' ? saved[id] : null
   const story = storiesById.get(id) || snap?.story
   if (!story) return null
   const snapItems = new Map((snap?.items || []).map((i) => [i.id, i]))
-  const items = story.itemIds.map((x) => itemsById.get(x) || snapItems.get(x)).filter(Boolean).filter((i) => !muted.has(i.source))
+  const items = story.itemIds.map((x) => itemsById.get(x) || snapItems.get(x)).filter(Boolean)
   return items.length ? { story, items } : null
 }
 

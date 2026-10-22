@@ -21,7 +21,7 @@ function SourceItem({ item, note }) {
 
 // Bronvergelijking: elke publicatie over dit verhaal apart, met eigen kop, bron, tijd en link.
 export default function Story({ story, items, overlay, onClose, onBack, onSeen, seenBefore }) {
-  const { sourcesById } = useHoot()
+  const { sourcesById, muted } = useHoot()
   // Wat je de vorige keer al zag, vastgelegd bij het openen (zodat "nieuw" niet meteen verdwijnt).
   const [prev] = useState(() => seenBefore)
   const headRef = useRef(null)
@@ -38,11 +38,12 @@ export default function Story({ story, items, overlay, onClose, onBack, onSeen, 
     return () => document.removeEventListener('keydown', onKey)
   }, [overlay, onClose])
 
-  const lead = items.find((i) => i.id === story.leadId) || items[0]
+  // Niet gevolgd: de bron volg je niet, of je hebt hem uitgezet.
+  const followed = (i) => sourcesById.get(i.source)?.followed !== false && !muted.has(i.source)
+  const lead = items.find((i) => i.id === story.leadId && followed(i)) || items.find(followed) || items[0]
   const fresh = prev ? items.filter((i) => !prev.includes(i.id)) : []
   const rest = prev ? items.filter((i) => prev.includes(i.id)) : items
   const firstId = items[items.length - 1]?.id
-  const followed = (i) => sourcesById.get(i.source)?.followed !== false
   const note = (i) => [i.id === firstId && items.length > 1 ? 'Eerste bericht' : null, followed(i) ? null : 'Volg je niet'].filter(Boolean).join(' · ') || null
 
   return (

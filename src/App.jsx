@@ -324,7 +324,7 @@ export default function App() {
   }, [mayAsk, joinOpen, path, joinAsked, setPref])
 
   // Geopend verhaal: de actuele versie, of de bewaarde momentopname als het uit de feeds is.
-  const story = useMemo(() => resolveStory(storyParam, storiesById, saved, itemsById, muted), [storyParam, storiesById, saved, itemsById, muted])
+  const story = useMemo(() => resolveStory(storyParam, storiesById, saved, itemsById), [storyParam, storiesById, saved, itemsById])
 
   const storyOpen = !!story
   useEffect(() => {

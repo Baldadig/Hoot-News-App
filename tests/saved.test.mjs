@@ -33,3 +33,9 @@ test('een bewaard verhaal dat uit de feeds is verdwenen toont de momentopname', 
 test('onbekend verhaal geeft niets terug (verlopen link)', () => {
   assert.equal(resolveStory('sX', indexStories([]), {}, items), null)
 })
+
+test('het verhaalpaneel toont alle bronnen, ook die je hebt uitgezet', () => {
+  const st = story('sAll', ['a', 'b', 'c'])
+  const r = resolveStory('sAll', indexStories([st]), {}, items)
+  assert.equal(r.items.length, 3)
+})
