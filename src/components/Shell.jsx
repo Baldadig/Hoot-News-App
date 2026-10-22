@@ -85,9 +85,10 @@ export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing,
           <h1 className="vh__title">{title}</h1>
         </div>
         {compare && panel?.available ? (
-          <button type="button" className="textbtn" onClick={panel.toggle} aria-pressed={panel.open}>
+          // Klein, net als verversen en zoeken: "+N bronnen" bij elk verhaal is de gewone weg;
+          // dit opent de lijst met alle verhalen ernaast.
+          <button type="button" className="iconbtn" onClick={panel.toggle} aria-pressed={panel.open} aria-label={panel.open ? 'Verberg de verhalenlijst' : 'Alle verhalen ernaast'} title={panel.open ? 'Verberg de verhalenlijst' : 'Alle verhalen ernaast'}>
             <PanelIcon />
-            {panel.open ? 'Verberg bronnen' : 'Vergelijk bronnen'}
           </button>
         ) : null}
         {onRefresh ? (
