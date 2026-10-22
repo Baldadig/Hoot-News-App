@@ -17,5 +17,7 @@ export function Img({ url, kind = 'thumb', priority = false, onLoad, ...rest }) 
     const box = img.closest('.thumb, .media')
     if (box) box.hidden = true
   }
-  return <img {...props} alt="" loading={priority ? 'eager' : 'lazy'} fetchPriority={priority ? 'high' : undefined} decoding={priority ? undefined : 'async'} referrerPolicy="no-referrer" onLoad={onLoad} onError={onError} {...rest} />
+  // `fetchpriority` in kleine letters: React 18 kent de prop nog niet (pas vanaf 19) en geeft hem
+  // zo ongewijzigd door als attribuut.
+  return <img {...props} alt="" loading={priority ? 'eager' : 'lazy'} fetchpriority={priority ? 'high' : undefined} decoding={priority ? undefined : 'async'} referrerPolicy="no-referrer" onLoad={onLoad} onError={onError} {...rest} />
 }

@@ -1,92 +1,91 @@
-import { useEffect, useRef, useState } from 'react'
-import { mergePrefs, mergeRead, mergeSeen, mergeSaved, savedDiff, pickSynced } from '../lib/sync.js'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { pickSynced } from '../lib/sync.js'
+import { SyncEngine, forgetAccount, ownerOf } from '../lib/syncEngine.js'
 
-const MARK = 'hoot:synced-user' // dit toestel is al eens met dit account samengevoegd
-
-// Houdt instellingen, gelezen, geziene verhalen en Bewaard gelijk met je account.
-// - Eerste keer inloggen op een toestel: alles van beide kanten samenvoegen (niets gaat verloren).
-// - Daarna: wijzigingen gaan na een paar tellen naar de server; terug in de app (ander toestel
-//   gebruikt?) halen we de stand van de server op. Voor Bewaard is de server dan de waarheid,
-//   zodat iets wat je elders verwijderde ook hier verdwijnt.
+// Houdt instellingen, gelezen, geziene verhalen en Bewaard gelijk met je account (zie
+// src/lib/syncEngine.js voor de regels: van wie de gegevens zijn, wat nog openstaat, opnieuw
+// proberen). Geeft de status terug, en `forget` voor bij uitloggen.
+// status: idle | pending (wacht op verbinding of bundelt) | syncing | ok | error (probeert opnieuw)
 export function useCloudSync(account, { prefs, setPrefs, saved, setSaved, readIds, setReadIds, seen, setSeen }) {
-  const [status, setStatus] = useState('idle') // idle | syncing | ok | error
+  const [status, setStatus] = useState('idle')
   const uid = account.status === 'in' ? account.user.id : null
   const client = account.client
-  const base = useRef(null) // laatst bekende stand op de server: { saved, state }
+  const engine = useRef(null)
   const latest = useRef({})
-  latest.current = { prefs, saved, readIds, seen }
+  latest.current = { prefs, saved, read: readIds, seen }
 
-  // Ophalen en samenvoegen.
+  const getLocal = useCallback(() => latest.current, [])
+  const setLocal = useCallback(
+    (next) => {
+      latest.current = next
+      setPrefs(next.prefs)
+      setReadIds(next.read)
+      setSeen(next.seen)
+      setSaved(next.saved)
+    },
+    [setPrefs, setReadIds, setSeen, setSaved]
+  )
+
   useEffect(() => {
-    if (!uid) {
-      base.current = null
-      return
+    if (!uid || !client) return
+    // Elke query noemt de gebruiker zelf; de database (row level security) dwingt dat ook af.
+    const api = {
+      async pull() {
+        const [st, sv] = await Promise.all([client.from('user_state').select('prefs, read_ids, stories_seen').eq('user_id', uid).maybeSingle(), client.from('saved_items').select('key, entry').eq('user_id', uid)])
+        if (st.error || sv.error) throw st.error || sv.error
+        const s = st.data || {}
+        return { prefs: s.prefs || {}, read: s.read_ids || [], seen: s.stories_seen || {}, saved: Object.fromEntries((sv.data || []).map((r) => [r.key, r.entry])) }
+      },
+      async pushState(local) {
+        const { error } = await client.from('user_state').upsert({ user_id: uid, prefs: pickSynced(local.prefs), read_ids: local.read, stories_seen: local.seen, updated_at: new Date().toISOString() })
+        if (error) throw error
+      },
+      async upsertSaved(rows) {
+        const { error } = await client.from('saved_items').upsert(rows.map(([key, entry]) => ({ user_id: uid, key, entry, saved_at: new Date(entry.savedAt || Date.now()).toISOString() })))
+        if (error) throw error
+      },
+      async deleteSaved(keys) {
+        const { error } = await client.from('saved_items').delete().eq('user_id', uid).in('key', keys)
+        if (error) throw error
+      },
     }
-    let alive = true
-    const pull = async (first) => {
-      setStatus('syncing')
-      const [st, sv] = await Promise.all([client.from('user_state').select('prefs, read_ids, stories_seen').eq('user_id', uid).maybeSingle(), client.from('saved_items').select('key, entry').eq('user_id', uid)])
-      if (!alive) return
-      if (st.error || sv.error) return setStatus('error')
-      const remote = st.data || { prefs: {}, read_ids: [], stories_seen: {} }
-      const remoteSaved = Object.fromEntries((sv.data || []).map((r) => [r.key, r.entry]))
-      const cur = latest.current
-      const nextSaved = first ? mergeSaved(cur.saved, remoteSaved) : remoteSaved
-      const hasRemotePrefs = Object.keys(remote.prefs || {}).length > 0
-      setPrefs((p) => (hasRemotePrefs ? mergePrefs(p, remote.prefs) : p))
-      setReadIds((r) => mergeRead(remote.read_ids, r))
-      setSeen((s) => mergeSeen(remote.stories_seen, s))
-      setSaved(nextSaved)
-      base.current = { saved: remoteSaved, state: null }
-      try {
-        localStorage.setItem(MARK, uid)
-      } catch {
-        /* niet erg */
-      }
-      setStatus('ok')
-    }
-    let first = true
-    try {
-      first = localStorage.getItem(MARK) !== uid
-    } catch {
-      /* eerste keer */
-    }
-    pull(first)
-    const onVisible = () => document.visibilityState === 'visible' && pull(false)
+    const e = new SyncEngine({ uid, api, storage: localStorage, getLocal, setLocal, onStatus: setStatus, isOnline: () => navigator.onLine !== false })
+    engine.current = e
+    e.start()
+    const onOnline = () => e.online()
+    const onVisible = () => document.visibilityState === 'visible' && e.pull()
+    window.addEventListener('online', onOnline)
     document.addEventListener('visibilitychange', onVisible)
     return () => {
-      alive = false
+      e.stop()
+      engine.current = null
+      window.removeEventListener('online', onOnline)
       document.removeEventListener('visibilitychange', onVisible)
     }
-  }, [uid]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [uid, client, getLocal, setLocal])
 
-  // Instellingen, gelezen en geziene verhalen: na 2 seconden rust één keer opslaan.
-  const stateJson = JSON.stringify([pickSynced(prefs), readIds, seen])
+  // Ingelogd met een account dat (nog) geen lid is, terwijl hier gegevens van een ánder account
+  // staan: die horen niet bij deze gebruiker.
+  const otherUser = account.status === 'noInvite' ? account.user?.id : null
   useEffect(() => {
-    if (!uid || !base.current || base.current.state === stateJson) return
-    const t = setTimeout(async () => {
-      const { error } = await client.from('user_state').upsert({ user_id: uid, prefs: pickSynced(prefs), read_ids: readIds, stories_seen: seen, updated_at: new Date().toISOString() })
-      if (base.current) base.current.state = stateJson
-      setStatus(error ? 'error' : 'ok')
-    }, 2000)
-    return () => clearTimeout(t)
-  }, [uid, stateJson]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (!otherUser) return
+    const owner = ownerOf(localStorage)
+    if (owner !== 'anon' && owner !== otherUser) forgetAccount(localStorage, setLocal, latest.current.prefs)
+  }, [otherUser, setLocal])
 
-  // Bewaard: alleen wat veranderde, meteen. Elke query noemt de gebruiker zelf; de database
-  // (row level security) dwingt dat ook af, maar we leunen daar niet als enige op.
+  // Elke lokale wijziging: de motor bepaalt wat er openstaat (ten opzichte van de bevestigde basis).
+  const stateKey = JSON.stringify([pickSynced(prefs), readIds.length, Object.keys(seen).length])
   useEffect(() => {
-    if (!uid || !base.current) return
-    const { upserts, deletes } = savedDiff(base.current.saved, saved)
-    if (!upserts.length && !deletes.length) return
-    base.current.saved = saved
-    ;(async () => {
-      const ops = []
-      if (upserts.length) ops.push(client.from('saved_items').upsert(upserts.map((key) => ({ user_id: uid, key, entry: saved[key], saved_at: new Date(saved[key].savedAt || Date.now()).toISOString() }))))
-      if (deletes.length) ops.push(client.from('saved_items').delete().eq('user_id', uid).in('key', deletes))
-      const res = await Promise.all(ops)
-      setStatus(res.some((r) => r.error) ? 'error' : 'ok')
-    })()
-  }, [uid, saved]) // eslint-disable-line react-hooks/exhaustive-deps
+    engine.current?.changed()
+  }, [stateKey, saved, readIds, seen])
 
-  return status
+  // Uitloggen: de gegevens van dit account van het toestel halen.
+  const forget = useCallback(() => {
+    engine.current?.stop()
+    engine.current = null
+    forgetAccount(localStorage, setLocal, latest.current.prefs)
+    setStatus('idle')
+  }, [setLocal])
+
+  return { status, forget }
 }

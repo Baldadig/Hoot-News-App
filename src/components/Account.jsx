@@ -22,7 +22,7 @@ export function GoogleButton({ onClick, wide = false }) {
 }
 
 // Account in Instellingen: inloggen, wie je bent, synchroniseren en (voor beheerders) uitnodigen.
-const SYNC = { syncing: 'Synchroniseren…', ok: 'Gesynchroniseerd.', error: 'Synchroniseren lukte niet; Hoot probeert het opnieuw.' }
+const SYNC = { idle: 'Gesynchroniseerd.', pending: 'Wijzigingen wachten op verbinding.', syncing: 'Synchroniseren…', ok: 'Gesynchroniseerd.', error: 'Opslaan lukte niet. Hoot probeert het vanzelf opnieuw.' }
 
 export function AccountSettings({ account, syncStatus }) {
   const { status, user, profile, signIn, signOut, invite } = account

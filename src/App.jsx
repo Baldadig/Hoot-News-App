@@ -94,8 +94,11 @@ export default function App() {
   const [seenStories, setSeenStories] = useStored('hoot:stories-seen', {})
 
   // Account: inloggen met Google; als lid gaan instellingen, Bewaard en gelezen mee.
-  const account = useAccount()
-  const syncStatus = useCloudSync(account, { prefs: rawPrefs, setPrefs, saved, setSaved, readIds, setReadIds, seen: seenStories, setSeen: setSeenStories })
+  const rawAccount = useAccount()
+  const { status: syncStatus, forget: forgetAccount } = useCloudSync(rawAccount, { prefs: rawPrefs, setPrefs, saved, setSaved, readIds, setReadIds, seen: seenStories, setSeen: setSeenStories })
+  // Uitloggen haalt ook de gegevens van dat account van dit toestel (zie syncEngine.js).
+  const signOut = rawAccount.signOut
+  const account = useMemo(() => ({ ...rawAccount, signOut: async () => (await signOut(), forgetAccount()) }), [rawAccount, signOut, forgetAccount])
 
   // ---- Context per bestemming: de navigatie brengt je terug naar dezelfde lijst ----
   const [navMem, setNavMem] = useState(readNav)
