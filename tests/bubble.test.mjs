@@ -64,7 +64,7 @@ test('zonder passende signalen is het blok leeg; sociale posts doen niet mee', (
   assert.deepEqual(matchTrending([{ term: 'beurs', via: 'google' }], [{ ...art('p', 'beurs sluit hoger'), kind: 'post' }]), [])
 })
 
-test('de invoer voor het AI-overzicht bevat alleen bron, kop en samenvatting', () => {
+test('de invoer voor het AI-overzicht: bron, kop en samenvatting; zonder samenvatting gemarkeerd', () => {
   const s = briefInput([{ sourceName: 'NOS', title: 'Kop', summary: 'Kern.' }, { sourceName: 'NYT', title: 'Head' }])
-  assert.equal(s, '1. [NOS] Kop — Kern.\n2. [NYT] Head')
+  assert.equal(s, '1. [NOS] Kop — Kern.\n2. [NYT] Head [alleen kop]')
 })

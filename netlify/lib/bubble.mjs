@@ -80,9 +80,11 @@ export function matchTrending(rawTerms, articles, { excludeItemIds = new Set(), 
 }
 
 // Tekst voor het AI-overzicht van de editie: wat het model mag gebruiken, en niets anders.
+// Eén regel per verhaal. Zonder samenvatting staat er "[alleen kop]": daar mag het overzicht
+// niets uit afleiden (zie de regels in brief.mjs).
 export function briefInput(rows) {
   return rows
-    .map((r, i) => `${i + 1}. [${r.sourceName}] ${r.title}${r.summary ? ` — ${r.summary}` : ''}`)
+    .map((r, i) => `${i + 1}. [${r.sourceName}] ${r.title}${r.summary ? ` — ${r.summary}` : ' [alleen kop]'}`)
     .join('\n')
 }
 

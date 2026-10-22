@@ -2651,6 +2651,48 @@ html[data-images='hoofd'] .media--social {
   font-size: var(--t4);
   line-height: var(--lh-body);
 }
+.reader__label {
+  margin-bottom: var(--s1);
+  color: var(--accent);
+  font-family: var(--sans);
+  font-size: var(--t1);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+/* Bronnen onder een blok: klein, in de lettertypes van de app, als links */
+.reader__refs {
+  margin-top: var(--s1);
+  color: var(--ink-3);
+  font-family: var(--sans);
+  font-size: var(--t1);
+  line-height: var(--lh-body);
+}
+.reader__refs a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+.reader__rest ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.reader__rest li {
+  padding: var(--s2) 0;
+  border-top: 1px solid var(--rule);
+  font-size: var(--t3);
+  line-height: var(--lh-head);
+}
+.reader__rest a {
+  color: inherit;
+  font-weight: 800;
+  text-decoration: none;
+}
+.reader__src {
+  color: var(--ink-3);
+  font-family: var(--sans);
+  font-size: var(--t1);
+}
 .reader__foot {
   margin-top: var(--s6);
   padding-top: var(--s3);
@@ -2790,6 +2832,53 @@ html[data-images='hoofd'] .media--social {
 /* Bluesky: naam in de kop van een post op de schaal (bronnaam = t2) */
 .social__who .srcbtn__name {
   font-size: var(--t2);
+}
+
+/* Editie: de ingang naar het overzicht in één minuut, boven het hoofdverhaal */
+.briefcta {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  width: 100%;
+  min-height: var(--tap);
+  margin: var(--s2) 0 var(--s4);
+  padding: var(--s3) 0;
+  border: 0;
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.briefcta__icon {
+  display: inline-flex;
+  flex: none;
+  color: var(--accent);
+}
+.briefcta__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.briefcta__title {
+  font-family: var(--serif);
+  font-size: var(--t4);
+  font-weight: 800;
+  line-height: var(--lh-head);
+}
+.briefcta__sub {
+  color: var(--ink-3);
+  font-size: var(--t1);
+}
+.briefcta__go {
+  flex: none;
+  color: var(--ink-3);
+  font-size: var(--t4);
+}
+.edcount {
+  margin: 0 0 var(--s2);
 }
 
 /* Editie: één metaregel — datum en het weer links, voorlezen rechts */

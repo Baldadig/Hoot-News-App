@@ -287,20 +287,41 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
       changed = true
     }
   }
-  // Ook een overzicht in de oude vorm (zonder tussenkoppen) wordt één keer opnieuw geschreven.
-  if (anthropic && !stored.brief?.sections && stored.entries.length) {
+  // Het overzicht: één keer per editie. Lukt het (of de controle) niet, dan later nog eens,
+  // hooguit drie keer; daarna blijft het weg en staat de editie er zonder.
+  // Een overzicht van vóór 1.27 (zonder verwijzingen per blok) wordt één keer opnieuw geschreven.
+  const briefOk = stored.brief?.sections?.length && stored.brief.sections.every((x) => Array.isArray(x.refs))
+  if (anthropic && !briefOk && stored.entries.length && (stored.briefTries || 0) < 3) {
+    stored.briefTries = (stored.briefTries || 0) + 1
+    changed = true
     try {
       stored.brief = await createBrief(anthropic, rows(), { now })
-      changed ||= !!stored.brief
     } catch (e) {
       console.error('brief', String(e?.message || e))
+      stored.brief = null
     }
   }
   if (changed && stored.entries.length) await kvSet(key, stored)
 
+  // Gepubliceerd = vast: de berichten zoals ze bij het samenstellen waren (kop, intro, beeld)
+  // gaan mee als `items`; latere wijzigingen in de feed zie je in de Stroom, niet in de editie.
+  // De verwijzing naar het verhaal (de bundel achter "+N bronnen") volgt wel de actuele indeling.
+  const snapItems = new Map(stored.items.map((i) => [i.id, i]))
+  const shown = [...stored.entries.map((e) => e.leadId || e.id), ...(stored.bubble || []).map((b) => b.id)]
   return {
     snapshot: stored,
-    public: { id: slot.id, slot: slot.slot, date: slot.date, next: slot.next, builtAt: stored.builtAt, entries: relinkEdition(stored.entries, { stories, snapshot: stored.stories, byId: new Map([...stored.items.map((i) => [i.id, i]), ...byId]) }), bubble: stored.bubble || [], brief: stored.brief || null },
+    public: {
+      id: slot.id,
+      slot: slot.slot,
+      date: slot.date,
+      next: slot.next,
+      builtAt: stored.builtAt,
+      version: `${stored.id}@${stored.builtAt}`,
+      entries: relinkEdition(stored.entries, { stories, snapshot: stored.stories, byId: new Map([...snapItems, ...byId]) }),
+      items: [...new Set(shown)].map((id) => snapItems.get(id)).filter(Boolean),
+      bubble: stored.bubble || [],
+      brief: stored.brief?.sections?.length ? stored.brief : null,
+    },
   }
 }
 

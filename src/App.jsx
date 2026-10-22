@@ -169,7 +169,12 @@ export default function App() {
   const storiesById = useMemo(() => indexStories(data?.stories), [data])
 
   // "Buiten je bubbel": de berichten bij de signalen van deze editie (als ze er zijn).
-  const bubble = useMemo(() => (prefs.bubble ? (data?.edition?.bubble || []).map((b) => ({ ...b, item: itemsById.get(b.id) })).filter((b) => b.item && !muted.has(b.item.source)) : []), [prefs.bubble, data, itemsById, muted])
+  // Zoals gepubliceerd (vast), en juist ook uit bronnen die je niet volgt: daar is dit blok voor.
+  const bubble = useMemo(() => {
+    if (!prefs.bubble) return []
+    const published = new Map((data?.edition?.items || []).map((i) => [i.id, i]))
+    return (data?.edition?.bubble || []).map((b) => ({ ...b, item: published.get(b.id) || itemsById.get(b.id) })).filter((b) => b.item)
+  }, [prefs.bubble, data, itemsById])
 
   // ---- Handelingen ----
   const markRead = useCallback((id) => setReadIds((prev) => (prev.includes(id) ? prev : [...prev, id].slice(-1500))), [setReadIds])

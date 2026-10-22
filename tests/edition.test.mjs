@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { resolveEditionEntry } from '../src/lib/edition.js'
+import { resolveEditionEntry, uncovered } from '../src/lib/edition.js'
 import { relinkEdition } from '../netlify/lib/stories.mjs'
 
 // De situatie van de ochtendeditie van 22-10: het hoofdbericht (Witkoff/Poetin, qskuc4) zat bij
@@ -57,4 +57,30 @@ test('server: twee onderdelen wijzen nooit naar hetzelfde verhaal', () => {
   assert.equal(out[0].kind, 'item')
   assert.equal(out[0].id, 'qskuc4')
   assert.equal(out[1].id, 's1d777vr')
+})
+
+test('gepubliceerd is vast: dezelfde id met een nieuwe kop in de feed verandert de editie niet', () => {
+  // Audit 22-10: id met een opgeslagen Kyiv-kop kreeg live een kop over Duitse sabotage.
+  const published = new Map([['qskuc4', { ...witkoff, title: 'Russische aanvallen op Kyiv na gesprek Witkoff' }]])
+  const live = new Map([...itemsById, ['qskuc4', { ...witkoff, title: 'Duitsland waarschuwt voor sabotage' }]])
+  const r = resolveEditionEntry({ kind: 'story', id: 's1d777vr', leadId: 'qskuc4', desk: 'oekraine' }, { storiesById, itemsById: live, published })
+  assert.equal(r.item.title, 'Russische aanvallen op Kyiv na gesprek Witkoff')
+  assert.equal(r.story.id, 's1d777vr')
+})
+
+test('een bron die je niet volgt valt niet weg: het verhaal blijft, met een label', () => {
+  const r = resolveEditionEntry({ kind: 'story', id: 's1d777vr', leadId: 'qskuc4', desk: 'oekraine' }, { storiesById, itemsById, muted: new Set(['volkskrant']) })
+  assert.equal(r.item.id, 'qskuc4')
+  assert.equal(r.followed, false)
+})
+
+test('een los bericht dat inmiddels in een verhaal zit, krijgt die bundel', () => {
+  const r = resolveEditionEntry({ kind: 'item', id: 'k2', desk: 'oekraine' }, { storiesById, itemsById })
+  assert.equal(r.story.id, 's1d777vr')
+})
+
+test('wat het overzicht niet noemt komt eronder, op volgorde', () => {
+  const brief = { sections: [{ refs: [0, 2] }, { refs: [3] }] }
+  assert.deepEqual(uncovered(brief, 6), [1, 4, 5])
+  assert.deepEqual(uncovered({ sections: [{ text: 'oud, zonder refs' }] }, 6), []) // oud overzicht: niets te zeggen
 })

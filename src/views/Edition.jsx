@@ -2,14 +2,14 @@ import { useRef, useState } from 'react'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { LeadStory, CompactItem, SaveButton, SourceMark, useHoot } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
-import { ReaderIcon } from '../components/icons.jsx'
+import { SparkleIcon } from '../components/icons.jsx'
 import { BriefReader } from '../components/BriefReader.jsx'
 import { timeAgo } from '../lib/time.js'
 import { BrandMark } from '../components/Brand.jsx'
 import Weather from '../components/Weather.jsx'
 import { longDate } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
-import { resolveEditionEntry } from '../lib/edition.js'
+import { resolveEditionEntry, EDITION_SIZE } from '../lib/edition.js'
 
 // Rubriek van elke plek in de editie (komt van de server), als label boven het verhaal.
 const DESK = { binnenland: 'Binnenland', buitenland: 'Buitenland', vs: 'VS', middenoosten: 'Midden-Oosten', oekraine: 'Oekraïne', wetenschap: 'Wetenschap', bubbel: 'Buiten je bubbel' }
@@ -70,11 +70,17 @@ export default function Edition({ active, edition, bubble = [], brief = null, lo
   const { itemsById, storiesById, muted } = useHoot()
   const ref = useRef(null)
 
-  // Elke regel van de editie: een verhaal (bundel) of een los bericht.
+  // Elke plek van de editie: het gepubliceerde bericht (vast) met de bundel erachter. Alle plekken
+  // blijven staan; een bron die je niet volgt krijgt een label (behalve "Buiten je bubbel", dat
+  // daar juist voor is).
+  const published = new Map((edition?.items || []).map((i) => [i.id, i]))
   const rows = (edition?.entries || [])
-    .map((e) => {
-      const r = resolveEditionEntry(e, { storiesById, itemsById, muted })
-      return r ? { key: e.id, item: r.item, story: r.story, note: deskLabel({ ...e, desk: r.desk }) } : null
+    .map((e, index) => {
+      const r = resolveEditionEntry(e, { storiesById, itemsById, published, muted })
+      if (!r) return null
+      const label = deskLabel({ ...e, desk: r.desk })
+      const note = r.followed || r.desk === 'bubbel' ? label : [label, 'Volg je niet'].filter(Boolean).join(' · ')
+      return { key: e.id, index, item: r.item, story: r.story, note }
     })
     .filter(Boolean)
 
@@ -115,15 +121,27 @@ export default function Edition({ active, edition, bubble = [], brief = null, lo
                 {sub}
                 <Weather />
               </span>
-              {hasBrief ? (
-                <span className="edmeta__acts">
-                  <button type="button" className="textbtn textbtn--sm" onClick={() => setReading(true)} aria-haspopup="dialog" aria-label="De editie in één minuut lezen">
-                    <ReaderIcon />1 minuut
-                  </button>
-                </span>
-              ) : null}
             </div>
-            {hasBrief ? <BriefReader open={reading} onClose={() => setReading(false)} brief={brief} kicker={`${title} · ${longDate(edition.date)}`} /> : null}
+            {rows.length < EDITION_SIZE ? (
+              <p className="hint edcount">
+                Deze editie heeft {rows.length} {rows.length === 1 ? 'verhaal' : 'verhalen'}: er was niet meer nieuws dat breed genoeg werd gebracht.
+              </p>
+            ) : null}
+            {hasBrief ? (
+              <button type="button" className="briefcta" onClick={() => setReading(true)} aria-haspopup="dialog">
+                <span className="briefcta__icon" aria-hidden="true">
+                  <SparkleIcon />
+                </span>
+                <span className="briefcta__text">
+                  <span className="briefcta__title">De editie in één minuut</span>
+                  <span className="briefcta__sub">Samenvatting door AI, met de bronnen erbij</span>
+                </span>
+                <span className="briefcta__go" aria-hidden="true">
+                  ›
+                </span>
+              </button>
+            ) : null}
+            {hasBrief ? <BriefReader open={reading} onClose={() => setReading(false)} brief={brief} rows={rows} kicker={`${title} · ${longDate(edition.date)}`} /> : null}
             {/* Voorpagina: het hoofdverhaal groot, daarnaast drie kleinere — altijd in krant-vorm.
                 Op smal scherm (of met het vergelijkpaneel open) staan ze onder elkaar. */}
             <div className="front">
