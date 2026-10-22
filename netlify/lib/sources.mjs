@@ -84,7 +84,7 @@ export const SOURCES = [
   // Wetenschap
   S('quanta', 'Quanta Magazine', 'wetenschap', 'en', 'Wiskunde, natuurkunde en biologie, helder uitgelegd.', 'https://api.quantamagazine.org/feed/', { pick: true, for: ['wetenschap'], color: '#1A1A1A' }),
   S('sciam', 'Scientific American', 'wetenschap', 'en', 'Wetenschap voor iedereen.', 'http://rss.sciam.com/ScientificAmerican-Global', { paid: true, pick: true, for: ['wetenschap'], color: '#C8102E' }),
-  S('nature', 'Nature', 'wetenschap', 'en', 'Het wetenschappelijk tijdschrift: nieuws en onderzoek.', 'https://www.nature.com/nature.rss', { paid: true, color: '#1A1A1A' }),
+  S('nature', 'Nature', 'wetenschap', 'en', 'Het wetenschappelijk tijdschrift: nieuws en onderzoek.', 'https://www.nature.com/nature.rss', { paid: true, color: '#1A1A1A', keep: '/articles/d4' }), // alleen nieuws (d4…), geen onderzoekspapers (s4…) zonder intro
   S('carbonbrief', 'Carbon Brief', 'wetenschap', 'en', 'Klimaatwetenschap en -beleid.', 'https://www.carbonbrief.org/feed/', { forTopic: 'klimaat', pick: true, color: '#0F6E5A' }),
   // Sport
   S('nos-sport', 'NOS Sport', 'sport', 'nl', 'Al het sportnieuws van de NOS.', 'https://feeds.nos.nl/nossportalgemeen', { pick: true, for: ['sport'], color: '#B5121B' }),

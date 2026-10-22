@@ -2,7 +2,7 @@
 // vastleggen. Draait op een vast ritme (functions/feed-refresh.mjs); de app krijgt het
 // resultaat kant-en-klaar (functions/feed.mjs) en hoeft nooit op het ophalen te wachten.
 import Anthropic from '@anthropic-ai/sdk'
-import { byRecency, sigWords, sharedCount, buildStories, editionSlot, selectEdition, relinkEdition, NL_SOURCES } from './stories.mjs'
+import { byRecency, sigWords, sharedCount, buildStories, editionSlot, selectEdition, relinkEdition } from './stories.mjs'
 import { matchTrending, insertBubble } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
 import { articleKey, mergeSnippets, isLiveblog } from './snippets.mjs'
@@ -116,7 +116,10 @@ function streamItems(all) {
 // De Volkskrant (inleiding en beeld), de NYT (beeld dat de feed nog niet heeft) en The Economist
 // (geen beelden in de feed). Wat gevonden is wordt bewaard, dus het groeit. De zoekindex vragen
 // we alleen als er iets nieuws te zoeken is, of na een half uur opnieuw.
-const GAPS = { volkskrant: 'volkskrant.nl', nyt: 'nytimes.com', economist: 'economist.com' }
+// Bronnen waarvan de feed alleen koppen (of geen beeld) levert: de inleiding en het beeld komen
+// dan uit de zoekindex van Bing Nieuws. DPG-kranten: één vraag per rubriek die nu in de feed staat.
+const GAPS = { volkskrant: 'volkskrant.nl', trouw: 'trouw.nl', parool: 'parool.nl', demorgen: 'demorgen.be', nyt: 'nytimes.com', economist: 'economist.com' }
+const PER_SECTION = new Set(['volkskrant', 'trouw', 'parool', 'demorgen'])
 async function fillGaps(items, now) {
   const result = { vkSnippets: 0, filled: 0 }
   const needs = items.filter((it) => GAPS[it.source] && it.kind === 'article' && !isLiveblog(it.url) && (!it.summary || !it.image))
@@ -127,8 +130,8 @@ async function fillGaps(items, now) {
   const fresh = open.some((it) => Date.parse(it.publishedAt || 0) > (checkedAt || 0))
   if (open.length && (fresh || now - (checkedAt || 0) > 30 * MIN)) {
     const wanted = [...new Set(open.map((it) => it.source))]
-    const vkSections = [...new Set(open.filter((it) => it.source === 'volkskrant').map((it) => it.url.split('/')[3] || '').filter((x) => /^[a-z-]+$/.test(x)))]
-    const queries = (src) => (src === 'volkskrant' ? ['site:volkskrant.nl', ...vkSections.slice(0, 10).map((sec) => `site:volkskrant.nl/${sec}`)] : [`site:${GAPS[src]}`])
+    const sections = (src) => [...new Set(open.filter((it) => it.source === src).map((it) => it.url.split('/')[3] || '').filter((x) => /^[a-z-]+$/.test(x)))]
+    const queries = (src) => (PER_SECTION.has(src) ? [`site:${GAPS[src]}`, ...sections(src).slice(0, src === 'volkskrant' ? 10 : 6).map((sec) => `site:${GAPS[src]}/${sec}`)] : [`site:${GAPS[src]}`])
     const found = (await Promise.all(wanted.map((src) => loadSnippets(queries(src), GAPS[src]).catch(() => [])))).flat()
     store = mergeSnippets(store, found, now)
     await Promise.all([found.length ? kvSet('gap-fill-v1', store) : null, kvSet('gap-fill-at', now)])
@@ -150,12 +153,15 @@ async function fillGaps(items, now) {
 }
 
 // ---------- 4. Voorvertoning lenen ----------
-// Een Nederlands artikel zonder eigen samenvatting krijgt de teaser van een andere Nederlandse
-// bron over hetzelfde verhaal. Streng: alleen bij sterke overlap in de kop, met bronvermelding.
+// Een Nederlandstalig artikel zonder eigen samenvatting krijgt de teaser van een andere
+// Nederlandstalige bron over hetzelfde verhaal. Streng: alleen bij sterke overlap in de kop, met bronvermelding.
+// Alle Nederlandstalige bronnen doen mee, als ontvanger én als gever (Trouw, Parool, De Morgen
+// en regionale kranten leveren vaak alleen een kop).
+const dutch = (id) => SOURCE.get(id)?.lang === 'nl'
 function borrowPreviews(items, mainItems) {
-  const donors = mainItems.filter((it) => it.kind === 'article' && it.summary && NL_SOURCES.has(it.source)).map((d) => ({ d, w: sigWords(d.title) }))
+  const donors = mainItems.filter((it) => it.kind === 'article' && it.summary && !it.borrowedFrom && dutch(it.source)).map((d) => ({ d, w: sigWords(d.title) }))
   for (const it of items) {
-    if (it.kind !== 'article' || it.summary || !NL_SOURCES.has(it.source)) continue
+    if (it.kind !== 'article' || it.summary || !dutch(it.source)) continue
     const w = sigWords(it.title)
     if (w.size < 3) continue
     let best = null

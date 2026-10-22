@@ -28,6 +28,18 @@ function isNoise(it, cats) {
   if (NOISE_TITLE.test(it.title || '')) return true
   return /\/puzzels?\//.test(it.link || '')
 }
+// De intro uit de feed: de samenvatting, of anders de artikeltekst (content:encoded), zonder
+// een vaste aanhef als "Nature, Published online: …; doi:…". Herhaalt hij alleen de kop, dan
+// is er geen intro.
+export function introOf(it, title = '') {
+  const raw = it.contentSnippet || it.summary || it.description || it.contentEncoded || ''
+  const text = toText(raw)
+    .replace(/^[^.;]{0,60}Published online:[^;]*;\s*doi:\s*\S+\s*/i, '')
+    .trim()
+  const same = (a) => a.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '')
+  return text && same(text) !== same(title) ? text : ''
+}
+
 // Auteur zoals de feed die levert (string of Atom-object); niets = niets tonen.
 function authorOf(it) {
   let a = it.creator || it['dc:creator'] || it.author
@@ -93,13 +105,13 @@ export async function loadSource(src, avatarsP) {
       const [feed, avatars] = await Promise.all([readFeed(url), avatarsP])
       // Mooie merk-avatar: 1) Bluesky-profiel, 2) X-profiel via unavatar.io, 3) favicon.
       const brandAvatar = avatars[src.id] || (src.x ? `https://unavatar.io/x/${src.x}` : null)
-      const fresh = (feed.items || []).map((it) => [it, categoriesOf(it)]).filter(([it, cats]) => !isNoise(it, cats))
+      const fresh = (feed.items || []).map((it) => [it, categoriesOf(it)]).filter(([it, cats]) => !isNoise(it, cats) && (!src.keep || String(it.link || '').includes(src.keep)))
       // Muziek: minder per bron, zodat het nieuws niet wordt weggedrukt.
       const items = fresh.slice(0, src.music ? 12 : LIMIT_BY_CAT[src.cat] || PER_SOURCE_LIMIT).map(([it, cats]) => {
         const link = safeHttpUrl(cleanUrl(it.link || it.guid || ''))
         const domain = hostname(link)
         const title = toText(it.title || '').trim()
-        const fullText = toText(it.contentSnippet || it.summary || it.description || '')
+        const fullText = introOf(it, title)
         const teaser = clip(fullText, 280)
         const summary = preview(fullText)
         // Leestijd alleen tonen als de feed de echte artikeltekst meelevert (NOS, The Verge);
