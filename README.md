@@ -120,6 +120,6 @@ npm run build       # output in dist/
 
 | Variabele | Waarvoor | Zonder |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | "De editie in één minuut" (Claude Haiku 5.5, drie keer per dag) | Het blok blijft weg; de rest werkt |
+| `ANTHROPIC_API_KEY` | "De editie in één minuut" (Claude Haiku 5.5, drie keer per dag, met een controle-aanroep; ongeveer twee tot drie euro per maand) | In Instellingen staat "Nog niet beschikbaar"; de rest werkt |
 
 Geheimen staan alleen hier, nooit in de app of in de repository. Na het toevoegen een nieuwe deploy starten (Deploys → Trigger deploy).

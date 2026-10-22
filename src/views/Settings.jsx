@@ -34,7 +34,7 @@ export default function Settings({ meta, account, syncStatus, onBack }) {
         <DisplayControls />
 
         <h2 className="sect">Editie</h2>
-        <Row label="De editie in één minuut" hint={ai ? 'Een AI-overzicht van 150 woorden, geschreven uit de koppen en samenvattingen van de editie. Drie keer per dag.' : 'Nog niet gekoppeld. Voeg je Anthropic-sleutel toe in Netlify (stappen in de README); kost ongeveer twee tot drie euro per maand.'}>
+        <Row label="De editie in één minuut" hint={ai ? 'Een AI-overzicht van 150 woorden, geschreven uit de koppen en samenvattingen van de editie. Drie keer per dag.' : 'Nog niet beschikbaar.'}>
           <Switch checked={prefs.brief} onChange={(v) => setPref('brief', v)} label="De editie in één minuut" />
         </Row>
         <Row label="Buiten je bubbel" hint="Drie verhalen die anderen nu lezen of zoeken (Google Trends, Bluesky, Wikipedia) en die niet in je editie zitten — ook uit bronnen die je niet volgt.">
