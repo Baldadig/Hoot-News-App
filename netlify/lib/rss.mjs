@@ -1,7 +1,7 @@
 // RSS/Atom-feeds ophalen en omzetten naar Hoot-berichten.
 import Parser from 'rss-parser'
 import { hash } from '../../shared/util.mjs'
-import { BRAND, PER_SOURCE_LIMIT, UA } from './sources.mjs'
+import { BRAND, PER_SOURCE_LIMIT, LIMIT_BY_CAT, UA } from './sources.mjs'
 import { favicon, toText, clip, preview, cleanUrl, hostname, safeIso } from './text.mjs'
 
 const parser = new Parser({
@@ -77,17 +77,25 @@ function pickImage(item) {
   return m ? m[1] : null
 }
 
+// Zelf ophalen en dan pas lezen: sommige feeds beginnen met een onzichtbaar teken of witregels
+// (The Independent), waar de parser anders over struikelt.
+async function readFeed(url) {
+  const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml; q=0.9, */*; q=0.8' }, signal: AbortSignal.timeout(9000) })
+  if (!res.ok) throw new Error('HTTP ' + res.status)
+  return parser.parseString((await res.text()).replace(/^[\s\uFEFF]+/, ''))
+}
+
 export async function loadSource(src, avatarsP) {
   let lastErr
   for (const url of src.urls) {
     try {
       // Feed en avatars tegelijk ophalen (avatars houden de feed niet meer op).
-      const [feed, avatars] = await Promise.all([parser.parseURL(url), avatarsP])
+      const [feed, avatars] = await Promise.all([readFeed(url), avatarsP])
       // Mooie merk-avatar: 1) Bluesky-profiel, 2) X-profiel via unavatar.io, 3) favicon.
       const brandAvatar = avatars[src.id] || (src.x ? `https://unavatar.io/x/${src.x}` : null)
       const fresh = (feed.items || []).map((it) => [it, categoriesOf(it)]).filter(([it, cats]) => !isNoise(it, cats))
       // Muziek: minder per bron, zodat het nieuws niet wordt weggedrukt.
-      const items = fresh.slice(0, src.music ? 12 : PER_SOURCE_LIMIT).map(([it, cats]) => {
+      const items = fresh.slice(0, src.music ? 12 : LIMIT_BY_CAT[src.cat] || PER_SOURCE_LIMIT).map(([it, cats]) => {
         const link = cleanUrl(it.link || it.guid || '')
         const domain = hostname(link)
         const title = toText(it.title || '').trim()

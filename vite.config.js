@@ -54,8 +54,8 @@ export default defineConfig({
         short_name: 'Hoot',
         description: 'Een rustige, reclamevrije nieuws-tijdlijn van jouw abonnementen.',
         lang: 'nl',
-        theme_color: '#263c67',
-        background_color: '#f3f0e7',
+        theme_color: '#f5f1e8',
+        background_color: '#f5f1e8',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
@@ -68,6 +68,7 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: '/index.html',
+        globPatterns: ['**/*.{js,css,html,woff2,svg,png}'], // ook de lettertypes, zodat de app offline gelijk blijft
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/api/feed'),

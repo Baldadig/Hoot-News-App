@@ -1,7 +1,7 @@
 import { clock } from '../lib/time.js'
 import { BrandLogo } from './Brand.jsx'
 import { useHoot } from './Items.jsx'
-import { ButterflyIcon, EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, TimelineIcon, PaperIcon, TypographyIcon, BackIcon } from './icons.jsx'
+import { ButterflyIcon, EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, TimelineIcon, PaperIcon, BackIcon, AccountIcon } from './icons.jsx'
 
 export const DESTINATIONS = [
   { id: 'editie', label: 'Editie', Icon: EditionIcon },
@@ -84,11 +84,6 @@ export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing,
         <div className="vh__titles">
           <h1 className="vh__title">{title}</h1>
         </div>
-        {display ? (
-          <button type="button" className="iconbtn" onClick={hoot?.openDisplay} aria-haspopup="dialog" aria-label="Weergave" title="Weergave: thema, indeling, tekst, beeld">
-            <TypographyIcon />
-          </button>
-        ) : null}
         {compare && panel?.available ? (
           <button type="button" className="textbtn" onClick={panel.toggle} aria-pressed={panel.open}>
             <PanelIcon />
@@ -105,10 +100,25 @@ export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing,
             <SearchIcon />
           </a>
         ) : null}
+        {display ? <AccountButton account={hoot?.account} onClick={hoot?.openDisplay} /> : null}
       </div>
       {sub ? <p className={`vh__sub${subWide ? ' vh__sub--wide' : ''}`}>{sub}</p> : null}
       {children}
     </header>
+  )
+}
+
+// Rechtsboven op elk scherm: jouw account (met je foto of voorletter als je bent ingelogd) en
+// daarachter de weergave.
+function AccountButton({ account, onClick }) {
+  const user = account?.status === 'in' ? account.user : null
+  const photo = user?.user_metadata?.avatar_url
+  const initial = (user?.user_metadata?.full_name || user?.email || '?').trim().charAt(0).toUpperCase()
+  const label = user ? `Account en weergave (${user.email})` : 'Account en weergave'
+  return (
+    <button type="button" className={`iconbtn acct${user ? ' is-in' : ''}`} onClick={onClick} aria-haspopup="dialog" aria-label={label} title={label}>
+      {user ? photo ? <img src={photo} alt="" width="30" height="30" referrerPolicy="no-referrer" /> : <span aria-hidden="true">{initial}</span> : <AccountIcon />}
+    </button>
   )
 }
 

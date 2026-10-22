@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { ViewHeader } from '../components/Shell.jsx'
 import { SourceMark } from '../components/Items.jsx'
-import { TOPICS } from '../lib/topics.js'
 import { resolveProfile } from '../lib/bluesky.js'
 import { statusLabel } from '../lib/sourceStatus.js'
 import { clock, timeAgo } from '../lib/time.js'
@@ -122,33 +121,56 @@ export function AddBluesky({ onAdd }) {
   )
 }
 
-export default function Sources({ active, sources, muted, onToggle, pinned, onPinned, meta, status, recovered, latestBySource, onRetry, refreshing, online, bluesky = false }) {
-  const own = sources.filter((s) => s.followed && s.kind === 'nieuws')
-  const music = sources.filter((s) => s.kind === 'muziek')
-  const extra = sources.filter((s) => !s.followed)
-  const togglePin = (id) => onPinned(pinned.includes(id) ? pinned.filter((p) => p !== id) : pinned.length >= 3 ? pinned : [...pinned, id])
+// De catalogus in groepen, in de volgorde van de onboarding.
+const GROUPS = [
+  ['nl', 'Nederland'],
+  ['int', 'Internationaal'],
+  ['regio', 'Regionaal'],
+  ['vl', 'Vlaanderen'],
+  ['economie', 'Economie'],
+  ['tech', 'Tech'],
+  ['games', 'Games'],
+  ['wetenschap', 'Wetenschap'],
+  ['sport', 'Sport'],
+  ['cultuur', 'Cultuur en muziek'],
+]
+
+export default function Sources({ active, sources, muted, onToggle, meta, status, recovered, latestBySource, onRetry, refreshing, online, bluesky = false }) {
+  const catalog = sources.filter((s) => s.followed && s.kind !== 'sociaal')
+  const mine = catalog.filter((s) => !muted.has(s.id))
+  const more = catalog.filter((s) => muted.has(s.id))
   return (
     <section className="view" hidden={!active} aria-label="Bronnen">
       <div className="col">
-        <ViewHeader title="Bronnen" sub="Wat meedoet in je Editie en Stroom" subWide />
+        <ViewHeader title="Bronnen" sub="Wat meedoet in je Editie en Stroom" subWide display />
 
-        <h2 className="sect">Je bronnen</h2>
+        <h2 className="sect">Je bronnen · {mine.length}</h2>
         <ul className="srows">
-          {own.map((s) => (
-            <SourceRow key={s.id} s={s} muted={muted.has(s.id)} onToggle={onToggle} />
+          {mine.map((s) => (
+            <SourceRow key={s.id} s={s} muted={false} onToggle={onToggle} />
           ))}
         </ul>
-        <p className="hint">Tik op een bron om alleen die te lezen. Een bron die uit staat verdwijnt uit Editie, Stroom en zoeken.</p>
+        <p className="hint">Tik op een bron om alleen die te lezen. Zet je een bron uit, dan verdwijnt hij uit je Stroom en zoeken.</p>
         <SourceStatus status={status} recovered={recovered} latestBySource={latestBySource} meta={meta} onRetry={onRetry} refreshing={refreshing} online={online} />
 
-
-        <h2 className="sect">Muziek</h2>
-        <p className="hint">Muziek staat in de Stroom (onderwerp Muziek), niet in de Editie. 3voor12 en OOR staan aan; de andere zet je aan als je ze wilt.</p>
-        <ul className="srows">
-          {music.map((s) => (
-            <SourceRow key={s.id} s={s} muted={muted.has(s.id)} onToggle={onToggle} />
-          ))}
-        </ul>
+        <h2 className="sect">Meer bronnen</h2>
+        <p className="hint">Gecontroleerde bronnen die je nu niet volgt. Zet er een aan om hem toe te voegen.</p>
+        {GROUPS.map(([cat, label]) => {
+          const list = more.filter((s) => s.cat === cat)
+          return list.length ? (
+            <details key={cat} className="srcgroup">
+              <summary>
+                {label}
+                <span className="srcgroup__n">{list.length}</span>
+              </summary>
+              <ul className="srows">
+                {list.map((s) => (
+                  <SourceRow key={s.id} s={s} muted onToggle={onToggle} />
+                ))}
+              </ul>
+            </details>
+          ) : null
+        })}
 
         {bluesky ? (
           <>
@@ -163,33 +185,18 @@ export default function Sources({ active, sources, muted, onToggle, pinned, onPi
           </>
         ) : null}
 
-        <h2 className="sect">Alleen ter vergelijking</h2>
-        <p className="hint">Deze bronnen volg je niet. Ze verschijnen niet in je Editie of Stroom, alleen binnen een verhaal, zodat je kunt zien wie er nog meer over schrijft. Zoeken doet dat ook alleen in je eigen bronnen, tenzij je daar zelf “Alle bronnen” kiest.</p>
-        <ul className="srows srows--plain">
-          {extra.map((s) => (
-            <li className="srow srow--plain" key={s.id}>
-              <SourceMark source={s} size={28} />
-              <span className="srow__name">{s.name}</span>
-              {!s.ok ? <span className="srow__meta">tijdelijk niet bereikbaar</span> : null}
-            </li>
-          ))}
-        </ul>
-
-        <h2 className="sect">Volgorde van onderwerpen</h2>
-        <p className="hint">De rij in de Stroom bevat alle onderwerpen; wat je hier kiest (maximaal drie) staat vooraan.</p>
-        <div className="chips">
-          {TOPICS.map((t) => (
-            <button key={t.id} type="button" className="chip" aria-pressed={pinned.includes(t.id)} disabled={!pinned.includes(t.id) && pinned.length >= 3} onClick={() => togglePin(t.id)}>
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        <h2 className="sect">Instellingen</h2>
+        <h2 className="sect">Onderwerpen en instellingen</h2>
+        <a className="setrow setrow--link" href="#/welkom">
+          <span className="setrow__text">
+            <span className="setrow__label">Interesses opnieuw kiezen</span>
+            <span className="setrow__hint">Wat je volgt, van breed naar smal, en je bronnen.</span>
+          </span>
+          <span aria-hidden="true">›</span>
+        </a>
         <a className="setrow setrow--link" href="#/instellingen">
           <span className="setrow__text">
             <span className="setrow__label">Alle instellingen</span>
-            <span className="setrow__hint">Weergave, Instapaper, voorlezen, editie, buiten je bubbel.</span>
+            <span className="setrow__hint">Account, weergave, editie, buiten je bubbel.</span>
           </span>
           <span aria-hidden="true">›</span>
         </a>

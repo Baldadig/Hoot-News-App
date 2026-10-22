@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useHoot } from './Items.jsx'
 import { CloseIcon } from './icons.jsx'
+import { AccountSettings } from './Account.jsx'
 
 // Weergave: wat je al lezend wisselt. Dezelfde rijen in het paneel (Aa) en op Instellingen.
 function Seg({ label, value, options, onChange }) {
@@ -76,8 +77,9 @@ export function DisplayControls() {
   )
 }
 
-// Het paneel vanuit de titelrij (native dialog: focus blijft binnen, Esc sluit).
-export function DisplaySheet({ open, onClose }) {
+// Het blad achter de account-knop rechtsboven: wie je bent (inloggen) en hoe Hoot eruitziet.
+// Native dialog: focus blijft binnen, Esc sluit.
+export function DisplaySheet({ open, onClose, account, syncStatus }) {
   const ref = useRef(null)
   useEffect(() => {
     const d = ref.current
@@ -90,12 +92,14 @@ export function DisplaySheet({ open, onClose }) {
       <div className="sheet__in">
         <div className="sheet__head">
           <h2 id="display-title" className="sheet__title">
-            Weergave
+            Jij
           </h2>
           <button type="button" className="iconbtn" onClick={onClose} aria-label="Sluiten">
             <CloseIcon />
           </button>
         </div>
+        {account ? <AccountSettings account={account} syncStatus={syncStatus} /> : null}
+        <h3 className="sheet__label">Weergave</h3>
         <DisplayControls />
         <p className="sheet__note">
           <a href="#/instellingen" onClick={onClose}>

@@ -1,16 +1,34 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { writeSnapshot } from '../netlify/lib/kv.mjs'
+import { writeDoc, KEYS } from '../netlify/lib/kv.mjs'
 import serve from '../netlify/functions/feed.mjs'
 
 // Zonder Netlify Blobs valt de opslag terug op geheugen: zo is de functie los te testen.
-test('/api/feed serveert de kant-en-klare feed, en "niets veranderd" als je die al hebt', async () => {
-  await writeSnapshot({ body: '{"items":[]}', builtAt: new Date().toISOString(), etag: 'abc' })
-  const first = await serve(new Request('http://x/api/feed'), {})
+const now = () => new Date().toISOString()
+
+test('/api/feed serveert de kern, en "niets veranderd" als je die al hebt', async () => {
+  await writeDoc(KEYS.core, { body: '{"items":[]}', builtAt: now(), etag: 'abc' })
+  const first = await serve(new Request('http://x/api/feed?deel=kern'), {})
   assert.equal(first.status, 200)
   assert.equal(await first.text(), '{"items":[]}')
   assert.equal(first.headers.get('etag'), '"abc"')
   assert.match(first.headers.get('netlify-cdn-cache-control'), /durable.*stale-while-revalidate/)
-  const again = await serve(new Request('http://x/api/feed', { headers: { 'If-None-Match': '"abc"' } }), {})
+  const again = await serve(new Request('http://x/api/feed?deel=kern', { headers: { 'If-None-Match': '"abc"' } }), {})
   assert.equal(again.status, 304)
+})
+
+test('een deel met de juiste versie mag een jaar bewaard blijven; een oude versie niet', async () => {
+  await writeDoc(KEYS.core, { body: '{}', builtAt: now(), etag: 'k' })
+  await writeDoc(KEYS.part('nos'), { body: '{"items":[1]}', builtAt: now(), etag: 'p1' })
+  const fresh = await serve(new Request('http://x/api/feed?bron=nos&v=p1'), {})
+  assert.match(fresh.headers.get('cache-control'), /immutable/)
+  const old = await serve(new Request('http://x/api/feed?bron=nos&v=p0'), {})
+  assert.match(old.headers.get('cache-control'), /must-revalidate/)
+  assert.equal(await old.text(), '{"items":[1]}')
+  assert.equal((await serve(new Request('http://x/api/feed?bron=bestaat-niet'), {})).status, 404)
+})
+
+test('zonder parameters: alles in één, voor apps die nog niet zijn bijgewerkt', async () => {
+  await writeDoc(KEYS.legacy, { body: '{"items":[2]}', builtAt: now(), etag: 'l' })
+  assert.equal(await (await serve(new Request('http://x/api/feed'), {})).text(), '{"items":[2]}')
 })

@@ -1,7 +1,7 @@
 // Route en leescontext — pure functies (getest in tests/context.test.mjs).
 
 export const MAIN = ['editie', 'stroom', 'bluesky', 'bewaard', 'bronnen']
-const FILTER_KEYS = ['bron', 'onderwerp', 'soort']
+const FILTER_KEYS = ['bron', 'onderwerp', 'soort', 'rubriek']
 
 // Alleen "#/pad?…" is een route. Een gewoon anker (#inhoud) laat de route ongemoeid.
 export function parseHash(hash, previous = { path: 'editie', params: {} }) {
@@ -37,5 +37,5 @@ export function filterSig(params = {}) {
 }
 export function positionKey(dest, params = {}) {
   const sig = filterSig(params)
-  return 'hoot:pos-' + dest + (sig === '||' ? '' : ':' + sig)
+  return 'hoot:pos-' + dest + (FILTER_KEYS.some((k) => params[k]) ? ':' + sig : '')
 }

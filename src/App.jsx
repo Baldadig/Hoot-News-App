@@ -87,8 +87,7 @@ export default function App() {
   }, [prefs.textSize, prefs.images])
   const [display, setDisplay] = useState(false)
   const openDisplay = useCallback(() => setDisplay(true), [])
-  const baseMuted = useMemo(() => new Set(prefs.muted), [prefs.muted])
-  const { data, status, refreshing, refreshError, reload, pendingCount, applyPending } = useFeed(baseMuted)
+  const { data, status, refreshing, refreshError, reload, pendingCount, applyPending } = useFeed(prefs)
   const online = useOnline()
   const { theme, setTheme } = useTheme()
   const hasPanel = useWide('(min-width: 1200px)')
@@ -330,6 +329,7 @@ export default function App() {
   useEffect(() => {
     try {
       localStorage.removeItem('hoot:feed-cache')
+      localStorage.removeItem('hoot:feed-v2')
     } catch {
       /* niet erg */
     }
@@ -406,6 +406,7 @@ export default function App() {
       theme,
       setTheme,
       openDisplay,
+      account,
       saved,
       toggleSave,
       read,
@@ -418,7 +419,7 @@ export default function App() {
       sourcesById,
       muted,
     }),
-    [panel, layout, setLayout, prefs, setPref, theme, setTheme, openDisplay, saved, toggleSave, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted],
+    [panel, layout, setLayout, prefs, setPref, theme, setTheme, openDisplay, account, saved, toggleSave, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted],
   )
 
   const hideMain = overlay || showWelcome
@@ -498,8 +499,6 @@ export default function App() {
               sources={sources}
               muted={muted}
               onToggle={setMuted}
-              pinned={prefs.pinned}
-              onPinned={(pinned) => setPrefs((p) => ({ ...p, pinned }))}
               meta={data?.meta}
               status={srcStatus}
               recovered={recovered}
@@ -523,7 +522,7 @@ export default function App() {
             <StoryIndex stories={data?.stories} onClose={togglePanel} lastId={lastStory} />
           )}
         </aside>
-        <DisplaySheet open={display} onClose={() => setDisplay(false)} />
+        <DisplaySheet open={display} onClose={() => setDisplay(false)} account={account} syncStatus={syncStatus} />
         <div className="toasts" aria-live="polite">
           {undo ? (
             <div className="toast">

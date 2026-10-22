@@ -3,9 +3,13 @@ import { clock } from '../lib/time.js'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { Entry, SourceMark, useHoot } from '../components/Items.jsx'
 import { FilterIcon, CloseIcon, ArrowUpIcon } from '../components/icons.jsx'
-import { TOPICS, orderedTopics } from '../lib/topics.js'
+import { TOPICS, INTERESTS, orderedTopics, inInterest } from '../lib/topics.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { positionKey } from '../lib/context.js'
+import { readJSON } from '../lib/store.js'
+import { watch } from '../lib/inview.js'
+
+const PAGE = 60 // zoveel berichten tegelijk; de rest komt erbij terwijl je scrolt
 
 const KINDS = [
   { id: '', label: 'Alles' },
@@ -13,6 +17,7 @@ const KINDS = [
   { id: 'opinie', label: 'Opinie' },
 ]
 const topicLabel = (id) => (id === 'bubbel' ? 'Buiten je bubbel' : TOPICS.find((t) => t.id === id)?.label || id)
+const interestLabel = (id) => INTERESTS.find((i) => i.id === id)?.label || id
 
 // Alle filters in één paneel (native <dialog>: focus blijft binnen, Esc sluit).
 function FilterSheet({ open, onClose, params, setFilter, clear, sources, count }) {
@@ -70,12 +75,12 @@ function FilterSheet({ open, onClose, params, setFilter, clear, sources, count }
 }
 
 export default function Stream({ active, stream, params, go, pinned, mine = [], bubble = [], preview = 2, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
-  const { storiesById } = useHoot()
+  const { storiesById, sourcesById } = useHoot()
   const ref = useRef(null)
   const [sheet, setSheet] = useState(false)
   const [atDepth, setAtDepth] = useState(false)
 
-  const filters = { bron: params.bron || '', onderwerp: params.onderwerp || '', soort: params.soort || '' }
+  const filters = { bron: params.bron || '', onderwerp: params.onderwerp || '', rubriek: params.rubriek || '', soort: params.soort || '' }
   const activeCount = Object.values(filters).filter(Boolean).length
 
   const list = useMemo(
@@ -85,11 +90,12 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
       stream.filter((i) => {
         if (filters.bron && i.source !== filters.bron) return false
         if (filters.onderwerp && !(i.topics || []).includes(filters.onderwerp)) return false
+        if (filters.rubriek && !inInterest(i, filters.rubriek, sourcesById.get(i.source))) return false
         if (filters.soort === 'opinie' && i.type !== 'opinie') return false
         if (filters.soort === 'artikelen' && (i.kind === 'post' || i.type === 'opinie')) return false
         return true
       }),
-    [stream, bubble, filters.bron, filters.onderwerp, filters.soort]
+    [stream, bubble, filters.bron, filters.onderwerp, filters.rubriek, filters.soort, sourcesById]
   )
 
   // Filters zijn stappen in de geschiedenis: de terugknop zet het vorige filter terug.
@@ -108,10 +114,23 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
 
   useScrollMemory(ref, positionKey('stroom', filters), list.length > 0, list.length + ':' + (list[0]?.id || ''), active)
 
+  // Niet alles tegelijk tekenen: eerst één portie, de volgende zodra je het eind nadert. Kom je
+  // terug op een plek verderop, dan tekenen we in één keer tot daar (de leespositie blijft kloppen).
+  const posKey = positionKey('stroom', filters)
+  const [limit, setLimit] = useState(PAGE)
+  useEffect(() => {
+    const at = readJSON(posKey, null)?.id
+    const idx = at ? list.findIndex((i) => i.id === at) : -1
+    setLimit(Math.max(PAGE, idx + PAGE))
+  }, [posKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  const more = useRef(null)
+  const shown = list.length > limit ? list.slice(0, limit) : list
+  useEffect(() => watch(more.current, { rootMargin: '1200px 0px' }, (e) => e.isIntersecting && setLimit((n) => n + PAGE)), [shown.length < list.length])
+
   const srcName = (id) => sources.find((s) => s.id === id)?.name || id
   const kindName = (id) => KINDS.find((k) => k.id === id)?.label
   const followed = sources.filter((s) => s.followed)
-  const filterText = [filters.onderwerp && topicLabel(filters.onderwerp), filters.bron && `Alleen ${srcName(filters.bron)}`, filters.soort && kindName(filters.soort)].filter(Boolean).join(' · ')
+  const filterText = [filters.onderwerp && topicLabel(filters.onderwerp), filters.rubriek && interestLabel(filters.rubriek), filters.bron && `Alleen ${srcName(filters.bron)}`, filters.soort && kindName(filters.soort)].filter(Boolean).join(' · ')
   const sheetCount = [filters.bron, filters.soort].filter(Boolean).length // wat in het filterblad staat (onderwerp zit in de rij)
 
   // De gekozen pil in beeld houden (ook als je terugkomt met een filter uit de URL).
@@ -122,7 +141,7 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
     if (!strip || !on) return
     const left = on.offsetLeft - strip.offsetLeft
     if (left < strip.scrollLeft || left + on.offsetWidth > strip.scrollLeft + strip.clientWidth) strip.scrollTo({ left: Math.max(0, left - 16) })
-  }, [filters.onderwerp, active])
+  }, [filters.onderwerp, filters.rubriek, active])
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Stroom" onScroll={(e) => setAtDepth(e.currentTarget.scrollTop > 900)}>
@@ -131,19 +150,26 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
           {/* Eén rij: alle onderwerpen als pillen (swipen), rechts een vast filtericoon. */}
           <div className="topics">
             <div className="topics__scroll" role="group" aria-label="Onderwerp" ref={stripRef}>
-              <button type="button" className="chip chip--sm" aria-pressed={!filters.onderwerp} onClick={() => setFilter('onderwerp', '')}>
+              <button type="button" className="chip chip--sm" aria-pressed={!filters.onderwerp && !filters.rubriek} onClick={() => apply({ ...filters, onderwerp: '', rubriek: '' })}>
                 Alles
               </button>
               {bubble.length ? (
-                <button type="button" className="chip chip--sm chip--bubble" aria-pressed={filters.onderwerp === 'bubbel'} onClick={() => setFilter('onderwerp', filters.onderwerp === 'bubbel' ? '' : 'bubbel')}>
+                <button type="button" className="chip chip--sm chip--bubble" aria-pressed={filters.onderwerp === 'bubbel'} onClick={() => apply({ ...filters, rubriek: '', onderwerp: filters.onderwerp === 'bubbel' ? '' : 'bubbel' })}>
                   Buiten je bubbel
                 </button>
               ) : null}
-              {orderedTopics(pinned, mine).map((t) => (
-                <button key={t.id} type="button" className="chip chip--sm" aria-pressed={filters.onderwerp === t.id} onClick={() => setFilter('onderwerp', filters.onderwerp === t.id ? '' : t.id)}>
-                  {t.label}
-                </button>
-              ))}
+              {/* Volg je bepaalde onderwerpen, dan die; anders de acht hoofdonderwerpen. */}
+              {mine.length
+                ? orderedTopics(pinned, mine).map((t) => (
+                    <button key={t.id} type="button" className="chip chip--sm" aria-pressed={filters.onderwerp === t.id} onClick={() => apply({ ...filters, rubriek: '', onderwerp: filters.onderwerp === t.id ? '' : t.id })}>
+                      {t.label}
+                    </button>
+                  ))
+                : INTERESTS.map((r) => (
+                    <button key={r.id} type="button" className="chip chip--sm" aria-pressed={filters.rubriek === r.id} onClick={() => apply({ ...filters, onderwerp: '', rubriek: filters.rubriek === r.id ? '' : r.id })}>
+                      {r.label}
+                    </button>
+                  ))}
             </div>
             <button type="button" className={`iconbtn topics__filter${sheetCount ? ' is-on' : ''}`} onClick={() => setSheet(true)} aria-haspopup="dialog" aria-label={`Filters${sheetCount ? `, ${sheetCount} actief` : ''}`} title="Filters: soort en bron">
               <FilterIcon />
@@ -189,10 +215,10 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
               </Empty>
             ) : (
               <div className={`list${preview === 'alles' ? '' : ` list--lines-${preview}`}`}>
-                {list.map((item) => (
+                {shown.map((item) => (
                   <Entry key={item.id} item={item} story={item.storyId ? storiesById.get(item.storyId) : null} />
                 ))}
-                <p className="listend">Dit is alles wat je bronnen nu aanbieden.</p>
+                {shown.length < list.length ? <div ref={more} className="listmore" aria-hidden="true" /> : <p className="listend">Dit is alles wat je bronnen nu aanbieden.</p>}
               </div>
             )}
           </>

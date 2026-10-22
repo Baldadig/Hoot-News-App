@@ -8,7 +8,7 @@ export function AccountSettings({ account, syncStatus }) {
   if (status === 'loading') return <p className="hint">Even kijken of je bent ingelogd…</p>
   if (status === 'out')
     return (
-      <div className="setrow">
+      <div className="setrow setrow--stack">
         <div className="setrow__text">
           <span className="setrow__label">{invite ? 'Je bent uitgenodigd' : 'Inloggen'}</span>
           <span className="setrow__hint">{invite ? 'Log in met Google om je account te maken. Wat je hier al instelde gaat mee.' : 'Met je Google-account. Je instellingen, Bewaard en wat je las gaan dan mee naar je andere toestellen.'}</span>

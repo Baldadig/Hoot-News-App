@@ -6,8 +6,8 @@ import { byRecency, sigWords, sharedCount, buildStories, editionSlot, selectEdit
 import { matchTrending, insertBubble } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
 import { articleKey, mergeSnippets, isLiveblog } from './snippets.mjs'
-import { SOURCES, EXTRA_SOURCES, BLUESKY_AUTHORS, BLUESKY_HOURS, BRAND, BSKY_BRAND, MAIN_IDS, MUSIC_IDS, TOTAL_LIMIT, GUARANTEE_PER_SOURCE, UA } from './sources.mjs'
-import { loadSource, loadSourceWithRetry } from './rss.mjs'
+import { SOURCES, BLUESKY_AUTHORS, BLUESKY_HOURS, BSKY_BRAND, MAIN_IDS, MUSIC_IDS, EDITION_CATS, UA } from './sources.mjs'
+import { loadSourceWithRetry } from './rss.mjs'
 import { loadSnippets, loadTrends, loadSourceAvatars, loadBlueskyProfiles } from './lookups.mjs'
 import { keywordTopics } from './topics.mjs'
 import { normTitle, preview } from './text.mjs'
@@ -17,6 +17,11 @@ import { hash } from '../../shared/util.mjs'
 
 const MIN = 6e4
 const DAY = 864e5
+const SOURCE = new Map(SOURCES.map((s) => [s.id, s]))
+// Telt mee voor verhalen: alles behalve regionaal (veel gedeelde stukken) en muziek.
+const inStories = (it) => it.kind === 'article' && SOURCE.get(it.source)?.cat !== 'regio' && !MUSIC_IDS.has(it.source)
+// Telt mee voor de editie: landelijk, internationaal, economie, tech en wetenschap.
+const inEdition = (it) => EDITION_CATS.has(SOURCE.get(it.source)?.cat) && !MUSIC_IDS.has(it.source)
 
 export async function buildFeed({ now = Date.now() } = {}) {
   const apiKey = process.env.ANTHROPIC_API_KEY
@@ -26,9 +31,8 @@ export async function buildFeed({ now = Date.now() } = {}) {
   const avatars = remember('avatars-v1', DAY, loadSourceAvatars, { now, valid: (m) => Object.values(m).some(Boolean) })
   const handles = BLUESKY_AUTHORS.map((a) => a.handle)
   const profiles = remember('bsky-profiles-' + hash(handles.join()), DAY, () => loadBlueskyProfiles(handles), { now, valid: (m) => Object.keys(m).length > 0 }).catch(() => ({}))
-  const [mainGroups, extraGroups, bskyGroups, registry] = await Promise.all([
+  const [mainGroups, bskyGroups, registry] = await Promise.all([
     settle(SOURCES, (s) => loadSourceWithRetry(s, avatars)),
-    settle(EXTRA_SOURCES, (s) => loadSource(s, Promise.resolve({}))),
     settle(BLUESKY_AUTHORS, (a) => loadBluesky(a, now)),
     kvGet('registry-v1').then((r) => (r && typeof r === 'object' ? r : {})),
   ])
@@ -38,30 +42,33 @@ export async function buildFeed({ now = Date.now() } = {}) {
   const gaps = await fillGaps(items, now)
   borrowPreviews(items, mainGroups.flatMap((g) => g.items))
 
-  // 5. Verhalen: bundelen over jouw bronnen plus de extra bronnen (die alleen als "ook bij" meedoen).
-  const extraItems = extraGroups.flatMap((g) => g.items).filter((it) => it.url)
-  const articlePool = [...items.filter((i) => i.kind === 'article'), ...extraItems]
+  // 5. Verhalen: bundelen over alle bronnen (behalve regionaal en muziek).
+  const articlePool = items.filter(inStories)
   const stories = buildStories(articlePool, registry, { mainIds: MAIN_IDS })
   const poolById = new Map(articlePool.map((i) => [i.id, i]))
   for (const st of stories) for (const id of st.itemIds) poolById.get(id).storyId = st.id
-  const related = extraItems.filter((it) => it.storyId) // extra bronnen alleen als ze bij een verhaal horen
 
   // 6. Eerst-gezien-tijd per bericht, en bij welk verhaal het hoort (houdt id's stabiel).
-  await updateRegistry(registry, [...items, ...related], now)
+  await updateRegistry(registry, items, now)
 
   const out = items.map(toClient)
-  const relatedOut = related.map(toClient)
 
   // 7. De editie van dit dagdeel (één keer samengesteld, daarna vast).
-  const edition = await composeEdition({ now, stories, articlePool, pool: [...out, ...relatedOut, ...extraItems.filter((it) => !it.storyId).map(toClient)], anthropic })
+  const edition = await composeEdition({ now, stories, articlePool: articlePool.filter(inEdition), pool: out, anthropic })
   // Wat intussen uit de feeds is verdwenen halen we uit de momentopname van de editie.
   const liveStoryIds = new Set(stories.map((st) => st.id))
-  const haveOut = new Set([...out, ...relatedOut].map((i) => i.id))
+  const haveOut = new Set(out.map((i) => i.id))
 
+  // De app haalt per bron alleen wat je volgt (`parts`). In de kern staat wat iedereen nodig
+  // heeft: de bronnen, de verhalen met al hun berichten (om te vergelijken) en de editie.
+  const parts = {}
+  for (const it of out) (parts[it.source] ||= []).push(it)
+  const storyItems = out.filter((i) => i.storyId)
   return {
-    sources: sourceList({ mainGroups, extraGroups, bskyGroups, avatars: await avatars, profiles: await profiles }),
+    sources: sourceList({ mainGroups, bskyGroups, avatars: await avatars, profiles: await profiles }),
     items: out,
-    related: [...relatedOut, ...edition.snapshot.items.filter((i) => !haveOut.has(i.id))],
+    parts,
+    related: [...storyItems, ...edition.snapshot.items.filter((i) => !haveOut.has(i.id) || !i.storyId)],
     stories: [...stories, ...edition.snapshot.stories.filter((st) => !liveStoryIds.has(st.id))],
     edition: edition.public,
     meta: {
@@ -89,9 +96,8 @@ async function loadBluesky(author, now) {
 }
 
 // ---------- 2. De Stroom ----------
-// Nieuwste eerst, zonder dubbelen (zelfde link of zelfde kop). Het nieuws krijgt een plafond;
-// muziek en Bluesky tellen apart (die hebben hun eigen grens per bron). Daarna houdt elke bron
-// zijn recentste berichten, zodat een rustig kanaal niet helemaal wegvalt.
+// Nieuwste eerst, zonder dubbelen (zelfde link of zelfde kop). Elke bron heeft zijn eigen
+// grens (rss.mjs); welke bronnen je ziet bepaalt de app.
 function streamItems(all) {
   const seenUrl = new Set()
   const seenTitle = new Set()
@@ -103,18 +109,7 @@ function streamItems(all) {
     if (nt) seenTitle.add(nt)
     deduped.push(it)
   }
-  const separate = (it) => MUSIC_IDS.has(it.source) || it.kind === 'post'
-  const items = [...deduped.filter((it) => !separate(it)).slice(0, TOTAL_LIMIT), ...deduped.filter(separate)]
-  const have = new Set(items.map((i) => i.id))
-  const perSource = {}
-  for (const it of items) perSource[it.source] = (perSource[it.source] || 0) + 1
-  for (const it of deduped) {
-    if (have.has(it.id) || (perSource[it.source] || 0) >= GUARANTEE_PER_SOURCE) continue
-    items.push(it)
-    have.add(it.id)
-    perSource[it.source] = (perSource[it.source] || 0) + 1
-  }
-  return items.sort(byRecency)
+  return deduped
 }
 
 // ---------- 3. Gaten vullen uit de zoekindex ----------
@@ -209,7 +204,9 @@ async function updateRegistry(registry, list, now) {
 // Lege velden laten we weg: dat scheelt een kwart van de omvang.
 function toClient(it) {
   const topics = keywordTopics(`${it.title} ${it.text || it.summary || ''} ${it.cats || ''}`)
-  if (MUSIC_IDS.has(it.source) && !topics.includes('muziek')) topics.push('muziek')
+  // Gespecialiseerde bronnen dragen hun onderwerp mee (een gamessite gaat over games).
+  const src = SOURCE.get(it.source)
+  for (const t of [...(src?.topics || []), ...(src?.music ? ['muziek'] : [])]) if (!topics.includes(t)) topics.push(t)
   return compact({
     id: it.id,
     kind: it.kind,
@@ -257,7 +254,7 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
   let changed = false
   if (!stored?.entries?.length) {
     // Muziek hoort in de Stroom, niet in de editie van het nieuws.
-    const newsPool = articlePool.filter((a) => !MUSIC_IDS.has(a.source))
+    const newsPool = articlePool
     const newsIds = new Set(newsPool.map((a) => a.id))
     const newsStories = stories.filter((st) => st.itemIds.some((id) => newsIds.has(id)))
     const entries = selectEdition(newsStories, newsPool, { mainIds: MAIN_IDS, now })
@@ -302,19 +299,35 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
 }
 
 // ---------- Bronnenlijst ----------
-function sourceList({ mainGroups, extraGroups, bskyGroups, avatars, profiles }) {
+function sourceList({ mainGroups, bskyGroups, avatars, profiles }) {
   const first = (g) => g.items[0]
   const base = (g) => ({ id: g.id, name: g.name, ok: g.ok, count: g.count, error: g.error || null })
   return [
     ...mainGroups.map((g, i) => {
       const s = SOURCES[i]
-      return { ...base(g), kind: s.music ? 'muziek' : 'nieuws', optional: !!s.optional, lang: s.lang, about: s.about, paid: !!s.paid, for: s.for || null, followed: true, brandColor: BRAND[g.id] || '#21468b', avatar: first(g)?.avatar || avatars[g.id] || (s.x ? `https://unavatar.io/x/${s.x}` : null), avatarContain: first(g)?.avatarContain || false, handle: first(g)?.domain || null }
+      return {
+        ...base(g),
+        kind: s.music ? 'muziek' : 'nieuws',
+        cat: s.cat,
+        // Wie de onboarding niet deed, krijgt de oorspronkelijke set; de rest staat uit tot je hem kiest.
+        optional: !s.base,
+        pick: !!s.pick,
+        for: s.for || null,
+        forTopic: s.forTopic || null,
+        lang: s.lang,
+        about: s.about,
+        paid: !!s.paid,
+        followed: true,
+        brandColor: s.color || '#21468b',
+        avatar: first(g)?.avatar || avatars[g.id] || (s.x ? `https://unavatar.io/x/${s.x}` : null),
+        avatarContain: first(g)?.avatarContain || false,
+        handle: first(g)?.domain || null,
+      }
     }),
     ...bskyGroups.map((g, i) => {
       const a = BLUESKY_AUTHORS[i]
       const p = profiles[a.handle] || {}
       return { ...base(g), name: a.name || p.name || first(g)?.sourceName, kind: 'sociaal', group: a.group || null, optional: !!a.optional, followed: true, brandColor: BSKY_BRAND, avatar: p.avatar || first(g)?.avatar || null, avatarContain: false, handle: '@' + a.handle }
     }),
-    ...extraGroups.map((g) => ({ ...base(g), kind: 'extra', followed: false, brandColor: BRAND[g.id] || '#21468b', avatar: first(g)?.avatar || null, avatarContain: first(g)?.avatarContain || false, handle: first(g)?.domain || null })),
   ]
 }

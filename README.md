@@ -1,15 +1,15 @@
 # 🦉 Hoot
 
-Een rustige, reclamevrije nieuws-tijdlijn die jouw abonnementen bundelt tot één feed.
-Redactioneel ontwerp (New York Times × Notion): flat, serif koppen, modern klassiek — als installeerbare webapp op je iPhone.
+Een rustige, reclamevrije nieuwslezer: een editie met een einde, een Stroom van jouw bronnen en een
+overzicht in één minuut — als installeerbare webapp op je iPhone. Ontwerp: "Zaterdagkrant" (Newsreader
+voor koppen, Source Sans 3 voor tekst, warm papier, krantenrood), iconen van Phosphor (Duotone).
 
-**Bronnen:** NRC · de Volkskrant · NYT · The Verge · Wired · NOS · Bluesky-accounts (bv. [@atrupar.com](https://bsky.app/profile/atrupar.com))
-
-**Bronnen (vervolg):** Left Laser (YouTube) · zelf toe te voegen Bluesky-accounts (menu → Sociale bronnen)
-
-**Tabs zijn onderwerpen, geen bronnen:** 🔥 Trending · 🔖 Bewaard · 🇺🇸 VS-politiek · 🎪 Trump · 🇳🇱 Nederland · 🇺🇦 Oekraïne · 🌍 Geopolitiek · 💻 Tech · 🤖 AI · 🔬 Wetenschap · 📈 Economie
-
-Koopjesgidsen ("Best Prime Day Deals") en puzzels worden uit de feed gefilterd.
+**Bronnen:** een gecontroleerde catalogus van zo'n 90 titels — alle Nederlandse kranten (ook regionaal),
+de Vlaamse kranten, NU.nl, Engelstalige bronnen met een blik op de wereld (NYT, Guardian, BBC, The
+Economist, FT, The Atlantic, Al Jazeera…), plus economie, tech, games, wetenschap, sport en cultuur.
+Wie Hoot instelt, kiest uit acht interesses (Politiek, Binnenland, Wereld, Economie, Tech — met games —,
+Wetenschap, Cultuur, Sport) en daarbinnen smallere onderwerpen; de bronnen worden daarop voorgesteld.
+Bluesky-accounts zijn optioneel (Instellingen → Extra).
 
 > **Hoot 2 (v1.0.0):** vier bestemmingen — Editie (ochtend/middag/avond, tien verhalen met een einde), Stroom, Bewaard, Bronnen — met het verhaal als eenheid. Ontwerpkeuzes: `docs/hoot-2-plan.md`; wat er gebouwd en gecontroleerd is: `docs/hoot-2-verslag.md`; designsysteem: in de app onder `#/stijl`.
 
@@ -37,6 +37,10 @@ Tip: zet in iOS Safari per site *"Reader automatisch gebruiken"* aan (bv. nrc.nl
 - **Samenstellen** gebeurt op een vast ritme, niet als jij de app opent: `netlify/functions/feed-refresh.mjs`
   (elke 10 minuten, 's nachts elk half uur) roept `netlify/lib/build.mjs` aan. Dat haalt alle bronnen op,
   vult de Stroom, bundelt verhalen en legt de editie van het dagdeel vast.
+- **In delen.** Het resultaat is gesplitst: een kern (`/api/feed?deel=kern`: bronnenlijst, verhalen, editie)
+  en per bron een deel (`?bron=nrc&v=…`). De app haalt de kern plus alleen de bronnen die je volgt; een
+  deel met versie in de URL is onveranderlijk en blijft eindeloos in de cache. Zonder parameters geeft
+  `/api/feed` nog de oude volledige feed, voor apps van vóór 1.22.
 - **Serveren** (`netlify/functions/feed.mjs`) leest alleen het kant-en-klare resultaat. De CDN van Netlify
   bewaart het voor iedereen en ververst het op de achtergrond; de browser krijgt "304, niets veranderd" als
   hij de feed al heeft.
@@ -49,7 +53,7 @@ Tip: zet in iOS Safari per site *"Reader automatisch gebruiken"* aan (bv. nrc.nl
 
 | Map | Wat |
 |---|---|
-| `netlify/lib/sources.mjs` | Welke bronnen en Bluesky-accounts Hoot volgt |
+| `netlify/lib/sources.mjs` | De bronnencatalogus (rubriek, taal, uitleg, abonnement, standaard aan) en Bluesky-accounts |
 | `netlify/lib/rss.mjs`, `lookups.mjs` | Feeds ophalen; zoekindex, trends en avatars |
 | `netlify/lib/stories.mjs`, `desks.mjs`, `bubble.mjs` | Verhalen bundelen, de editie samenstellen (pure functies, getest) |
 | `netlify/lib/build.mjs`, `refresh.mjs`, `kv.mjs` | Alles samenvoegen, bewaren in Netlify Blobs |
@@ -103,9 +107,11 @@ npm run build       # output in dist/
 
 - **Nieuwsbronnen** (feed-URL's, met fallbacks) en **Bluesky-accounts** staan in
   [`netlify/lib/sources.mjs`](netlify/lib/sources.mjs) (`SOURCES` en `BLUESKY_AUTHORS`).
-- **Extra bronnen** (alleen als "ook bij" in een verhaal) staan in `EXTRA_SOURCES` in hetzelfde bestand.
-- **Onderwerpen** staan in [`src/lib/topics.js`](src/lib/topics.js) en de trefwoorden in
+  `base: true` staat standaard aan, `pick: true` wordt bij het instellen voorgesteld (`for`: bij welke
+  interesses, `forTopic`: bij welk onderwerp).
+- **Interesses en onderwerpen** staan in [`src/lib/topics.js`](src/lib/topics.js) en de trefwoorden in
   [`netlify/lib/topics.mjs`](netlify/lib/topics.mjs).
+- **Iconen** zijn Phosphor Duotone (MIT), als SVG in `src/components/icons.jsx`; zie `scripts/icons.mjs`.
 - Een nieuwe beeldbron via de beeld-CDN: voeg de host toe aan `CDN_HOSTS` in `src/lib/img.js` én aan
   `remote_images` in `netlify.toml` (de test bewaakt dat ze gelijk lopen).
 

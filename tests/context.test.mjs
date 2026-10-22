@@ -37,7 +37,8 @@ test('elke filtercombinatie heeft een eigen leespositie', () => {
   assert.notEqual(positionKey('stroom', { onderwerp: 'ai' }), positionKey('stroom', {}))
   assert.notEqual(positionKey('stroom', { onderwerp: 'ai' }), positionKey('stroom', { bron: 'ai' }))
   assert.equal(positionKey('stroom', { onderwerp: 'ai', verhaal: 's1' }), positionKey('stroom', { onderwerp: 'ai' }))
-  assert.equal(filterSig({ soort: 'opinie' }), '||opinie')
+  assert.equal(filterSig({ soort: 'opinie' }), '||opinie|')
+  assert.notEqual(positionKey('stroom', { rubriek: 'sport' }), positionKey('stroom', {}))
 })
 
 test('lege of kale hash is de Editie', () => {

@@ -35,23 +35,27 @@ export async function remember(key, maxAge, compute, { now = Date.now(), valid =
   return valid(value) ? value : (hit?.value ?? value)
 }
 
-// ---- De kant-en-klare feed: één tekstblob plus wanneer en welke versie ----
-const SNAPSHOT = 'feed-snapshot-v1'
-
-export async function readSnapshot() {
+// ---- Kant-en-klare antwoorden: één tekst per sleutel, met tijd en versie (etag) erbij ----
+export async function readDoc(key) {
   try {
-    const r = await store().getWithMetadata(SNAPSHOT, { type: 'text' })
+    const r = await store().getWithMetadata(key, { type: 'text' })
     return r?.data ? { body: r.data, ...r.metadata } : null
   } catch {
-    return mem.get(SNAPSHOT) ?? null
+    return mem.get(key) ?? null
   }
 }
 
-export async function writeSnapshot(snap) {
-  const { body, ...metadata } = snap
+export async function writeDoc(key, doc) {
+  const { body, ...metadata } = doc
   try {
-    await store().set(SNAPSHOT, body, { metadata })
+    await store().set(key, body, { metadata })
   } catch {
-    mem.set(SNAPSHOT, snap)
+    mem.set(key, doc)
   }
+}
+
+export const KEYS = {
+  core: 'feed-core-v1', // bronnen, verhalen, editie (de app vanaf 1.22)
+  legacy: 'feed-snapshot-v1', // alles in één (de app tot en met 1.21)
+  part: (id) => 'feed-part-' + id, // de berichten van één bron
 }

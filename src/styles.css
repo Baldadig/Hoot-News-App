@@ -5,23 +5,24 @@
    ========================================================================== */
 
 :root {
-  /* Kleur — licht */
-  --paper: #fbfaf7;
-  --surface: #ffffff;
-  --ink: #17171a;
-  --ink-2: #4f4f56;
-  --ink-3: #6b6b72;
-  --rule: #e5e2da;
-  --accent: #263c67; /* merk-inkt */
-  --accent-soft: #e8edf7;
+  /* Kleur — licht: de Zaterdagkrant. Warm papier, zwarte inkt, krantenrood als accent. */
+  --paper: #f5f1e8;
+  --surface: #fcfaf5;
+  --ink: #1a1814;
+  --ink-2: #4b453b;
+  --ink-3: #6b6457;
+  --rule: #ded5c4;
+  --accent: #a3201b; /* krantenrood: rubrieken, actief, "+ bronnen" */
+  --accent-soft: #f4e3de;
   --on-accent: #ffffff;
   --warn: #8f4300;
   --brand: #263c67;
   --quiet-amber: #b0802f; /* stil statuspuntje, geen alarm */
 
   /* Type */
-  --serif: ui-serif, 'New York', 'Iowan Old Style', 'Palatino Linotype', Georgia, 'Times New Roman', serif;
-  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  /* Newsreader (koppen, 800) en Source Sans 3 (tekst): beide open source, meegeleverd in main.jsx. */
+  --serif: 'Newsreader', ui-serif, Georgia, 'Times New Roman', serif;
+  --sans: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 
   /* Maat */
   --gutter: 16px;
@@ -52,9 +53,9 @@
   --t1: 0.8125rem; /* 13 */
   --t2: 0.9375rem; /* 15 */
   --t3: 1.0625rem; /* 17 */
-  --t4: 1.25rem; /* 20 */
-  --t5: 1.5rem; /* 24 */
-  --t6: clamp(1.75rem, 1.4rem + 1.6vw, 2rem); /* 28–32 */
+  --t4: 1.125rem; /* 18 */
+  --t5: 1.6875rem; /* 27 */
+  --t6: clamp(1.875rem, 1.6rem + 1vw, 2.125rem); /* 30–34 */
   --lh-head: 1.15; /* koppen (serif) */
   --lh-ui: 1.3; /* bedieningsregels, bron en tijd */
   --lh-body: 1.5; /* lopende tekst */
@@ -67,15 +68,15 @@
 
 /* Kleur — donker (JS zet data-theme; 'systeem' volgt het toestel) */
 :root[data-theme='dark'] {
-  --paper: #0f0f11;
-  --surface: #18181b;
-  --ink: #f3f2ee;
-  --ink-2: #c2c1bc;
-  --ink-3: #9d9c97;
-  --rule: #2b2b30;
-  --accent: #a3bcf4;
-  --accent-soft: #1c2742;
-  --on-accent: #0f0f11;
+  --paper: #151310;
+  --surface: #1e1b17;
+  --ink: #f1ece2;
+  --ink-2: #cbc3b5;
+  --ink-3: #a39b8d;
+  --rule: #34302a;
+  --accent: #ec7a70;
+  --accent-soft: #3a1e1b;
+  --on-accent: #151310;
   --warn: #f2b56b;
   --brand: #f3f0e7;
   --quiet-amber: #c9a15c;
@@ -415,9 +416,22 @@ input {
   min-height: var(--tap); /* even hoog als de knoppen ernaast: de rij lijnt op het midden */
   font-family: var(--serif);
   font-size: var(--t5);
-  font-weight: 700;
+  font-weight: 800;
   line-height: var(--lh-head);
   letter-spacing: -0.015em;
+}
+
+.acct.is-in > span,
+.acct.is-in > img {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 800;
+  object-fit: cover;
 }
 
 .vh__sub {
@@ -467,11 +481,11 @@ input {
   justify-content: center;
   min-height: var(--tap);
   padding: 0 var(--s5);
-  border: 1px solid var(--accent);
+  border: 1px solid var(--ink); /* zwart, net als de knop in de onboarding; rood is voor wat gekozen is */
   border-radius: var(--radius-pill);
-  background: var(--accent);
-  color: var(--on-accent);
-  font-weight: 700;
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 800;
   font-size: var(--t2);
   text-decoration: none;
   cursor: pointer;
@@ -685,7 +699,7 @@ input {
   background: color-mix(in srgb, var(--brand, var(--accent)) 16%, var(--surface));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 12%, transparent);
   font-family: var(--serif);
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1;
 }
 .mark::before {
@@ -713,9 +727,9 @@ input {
   flex-wrap: wrap;
   gap: 0 var(--s2);
   margin-bottom: var(--s2);
-  color: var(--ink-3);
+  color: var(--accent);
   font-size: var(--t1);
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -864,7 +878,7 @@ input {
   margin-bottom: var(--s3);
   font-family: var(--serif);
   font-size: var(--t6);
-  font-weight: 700;
+  font-weight: 800;
   line-height: var(--lh-head);
   letter-spacing: -0.018em;
   text-wrap: balance;
@@ -915,7 +929,7 @@ input {
   margin-bottom: var(--s2);
   font-family: var(--serif);
   font-size: var(--t4);
-  font-weight: 700;
+  font-weight: 800;
   line-height: var(--lh-head);
   letter-spacing: -0.01em;
   text-wrap: pretty;
@@ -1109,6 +1123,9 @@ input {
   color: var(--ink-2);
 }
 
+.listmore {
+  height: 1px;
+}
 .listend {
   padding: var(--s6) 0 var(--s2);
   color: var(--ink-3);
@@ -1305,6 +1322,44 @@ input {
 }
 
 /* ---------- Bronnen ---------- */
+.setrow--stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--s3);
+}
+
+.srcgroup {
+  border-bottom: 1px solid var(--rule);
+}
+.srcgroup > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: 52px;
+  font-size: var(--t3);
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.srcgroup > summary::-webkit-details-marker {
+  display: none;
+}
+.srcgroup > summary::after {
+  content: '›';
+  margin-left: var(--s2);
+  color: var(--ink-3);
+  font-size: var(--t4);
+  transition: transform var(--dur-1) var(--ease);
+}
+.srcgroup[open] > summary::after {
+  transform: rotate(90deg);
+}
+.srcgroup__n {
+  margin-left: auto;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+
 .srows {
   list-style: none;
   margin: 0;
@@ -1535,7 +1590,7 @@ input {
 .sidx__title {
   font-family: var(--serif);
   font-size: var(--t3);
-  font-weight: 700;
+  font-weight: 800;
   line-height: var(--lh-head);
 }
 .sidx__meta {
@@ -1665,7 +1720,7 @@ input {
   text-align: center;
 }
 
-/* ---------- Onboarding: vier schermen, alles met tikken ---------- */
+/* ---------- Onboarding: vier schermen, bold. Alles met tikken, één knop onderaan ---------- */
 .ob {
   display: flex;
   flex-direction: column;
@@ -1676,38 +1731,40 @@ input {
 }
 .ob__col {
   flex: 1;
-  padding-top: calc(var(--safe-t) + var(--s4));
+  padding-top: calc(var(--safe-t) + var(--s3));
   padding-bottom: var(--s5);
 }
 .ob__top {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   min-height: var(--tap);
-  margin-bottom: var(--s5);
 }
-.ob__steps {
-  display: flex;
-  gap: var(--s1);
-  margin: 0;
+.ob__n {
+  color: var(--accent);
+  font: 800 2.25rem/1 var(--serif);
+}
+.ob__n small {
+  margin-left: 2px;
+  color: var(--ink-3);
+  font-size: var(--t3);
+}
+.ob__brand {
+  font: 800 var(--t5) / 1 var(--serif);
+}
+.ob__back {
+  min-height: var(--tap);
   padding: 0;
-  list-style: none;
-}
-.ob__steps li {
-  width: 24px;
-  height: 4px;
-  border-radius: var(--radius-pill);
-  background: var(--rule);
-  transition: background var(--dur-2) var(--ease);
-}
-.ob__steps li.is-done {
-  background: var(--accent);
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: 700 var(--t2) / 1 var(--sans);
+  cursor: pointer;
 }
 .ob__title {
-  font-family: var(--serif);
-  font-size: var(--t6);
-  line-height: var(--lh-head);
-  letter-spacing: -0.018em;
+  margin-top: var(--s4);
+  font: 800 2rem/1.02 var(--serif);
+  letter-spacing: -0.02em;
   text-wrap: balance;
   outline: none;
 }
@@ -1716,6 +1773,24 @@ input {
   color: var(--ink-2);
   font-size: var(--t3);
   line-height: var(--lh-body);
+}
+
+/* Scherm 1: rood, met een grote belofte */
+.ob--open {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.ob--open .ob__n,
+.ob--open .ob__n small,
+.ob--open .ob__brand {
+  color: var(--on-accent);
+}
+.ob__hero {
+  margin-top: var(--s6);
+  font: 800 clamp(2.75rem, 2.2rem + 2.4vw, 3.5rem) / 0.98 var(--serif);
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+  outline: none;
 }
 .ob__points {
   display: flex;
@@ -1730,33 +1805,36 @@ input {
   align-items: flex-start;
   gap: var(--s3);
   font-size: var(--t3);
-  line-height: var(--lh-body);
+  line-height: var(--lh-ui);
 }
 .ob__point strong,
 .ob__ptext {
   display: block;
 }
-.ob__ptext {
-  color: var(--ink-2);
+.ob__point strong {
+  font-size: var(--t4);
 }
-.ob__pemoji {
+.ob__ptext {
+  opacity: 0.85;
+}
+.ob__pi {
   display: grid;
   flex: none;
   place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius);
-  background: var(--accent-soft);
-  font-size: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--on-accent);
+  color: var(--accent);
 }
 .ob__note {
   margin-top: var(--s5);
-  color: var(--ink-3);
   font-size: var(--t2);
   line-height: var(--lh-body);
+  opacity: 0.85;
 }
 
-/* Interesses: grote tegels */
+/* Scherm 2: tegels, zwart omlijnd; gekozen = rood */
 .ob__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1765,11 +1843,10 @@ input {
 }
 @media (min-width: 560px) {
   .ob__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 .ob__tile {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -1777,45 +1854,57 @@ input {
   gap: var(--s4);
   min-height: 112px;
   padding: var(--s4);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-lg);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
   background: var(--surface);
   color: var(--ink);
   text-align: left;
   cursor: pointer;
   transition:
-    border-color var(--dur-1) var(--ease),
     background var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease),
     transform var(--dur-1) var(--ease);
 }
 .ob__tile:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
-.ob__temoji {
-  font-size: 32px;
-  line-height: 1;
+.ob__ticon {
+  color: var(--accent);
+}
+.ob__ticon svg {
+  width: 34px;
+  height: 34px;
 }
 .ob__tlabel {
-  font-size: var(--t3);
-  font-weight: 700;
+  font-size: var(--t4);
+  font-weight: 800;
 }
-.ob__tile .ob__check {
-  position: absolute;
-  top: var(--s3);
-  right: var(--s3);
+.ob__tile[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.ob__tile[aria-pressed='true'] .ob__ticon {
+  color: var(--on-accent);
 }
 
-/* Onderwerpen: grote chips */
+/* Scherm 3: zware chips; gekozen = zwart */
 .ob__group {
   margin-top: var(--s5);
 }
 .ob__gtitle {
-  margin-bottom: var(--s2);
-  color: var(--ink-3);
-  font-size: var(--t1);
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin-bottom: var(--s3);
+  font: 800 var(--t1) / 1 var(--sans);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+.ob__gtitle svg {
+  width: 20px;
+  height: 20px;
+  color: var(--accent);
 }
 .ob__chips {
   display: flex;
@@ -1823,24 +1912,51 @@ input {
   gap: var(--s2);
 }
 .ob__chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s2);
   min-height: var(--tap);
   padding: 0 var(--s4);
-  border: 1px solid var(--rule);
+  border: 2px solid var(--ink);
   border-radius: var(--radius-pill);
   background: var(--surface);
   color: var(--ink);
-  font-size: var(--t2);
-  font-weight: 600;
+  font: 700 var(--t2) / 1 var(--sans);
   cursor: pointer;
   transition:
-    border-color var(--dur-1) var(--ease),
-    background var(--dur-1) var(--ease);
+    background var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+.ob__chip[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--paper);
 }
 
-/* Bronnen: rijen met logo */
+/* Scherm 4: bronnen met logo en een rond vinkje */
+.ob__fold {
+  margin-top: var(--s5);
+}
+.ob__fold > summary {
+  min-height: var(--tap);
+  margin-bottom: 0;
+  cursor: pointer;
+  list-style: none;
+}
+.ob__fold > summary::-webkit-details-marker {
+  display: none;
+}
+.ob__fold > summary::after {
+  content: '›';
+  margin-left: auto;
+  font-size: var(--t4);
+  transition: transform var(--dur-1) var(--ease);
+}
+.ob__fold[open] > summary::after {
+  transform: rotate(90deg);
+}
+.ob__count {
+  color: var(--ink-3);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
 .ob__sources {
   margin: 0;
   padding: 0;
@@ -1861,7 +1977,7 @@ input {
   cursor: pointer;
 }
 .ob__src[aria-pressed='false'] .mark {
-  opacity: 0.45;
+  opacity: 0.5;
 }
 .ob__stext {
   display: flex;
@@ -1871,7 +1987,7 @@ input {
 }
 .ob__sname {
   font-size: var(--t3);
-  font-weight: 700;
+  font-weight: 800;
 }
 .ob__sabout {
   color: var(--ink-3);
@@ -1881,33 +1997,22 @@ input {
 .ob__tag {
   display: inline-block;
   margin-left: var(--s2);
-  vertical-align: 2px;
-  font-weight: 600;
   padding: 0 var(--s2);
   border-radius: var(--radius-pill);
   background: var(--rule);
   color: var(--ink-2);
   font-size: var(--t1);
+  font-weight: 700;
+  vertical-align: 2px;
   white-space: nowrap;
-}
-
-/* Gekozen: accentrand en een vinkje */
-.ob__tile[aria-pressed='true'],
-.ob__chip[aria-pressed='true'] {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  box-shadow: inset 0 0 0 1px var(--accent);
-}
-.ob__chip[aria-pressed='true'] {
-  color: var(--accent);
 }
 .ob__check {
   display: grid;
   flex: none;
   place-items: center;
-  width: 24px;
-  height: 24px;
-  border: 1.5px solid var(--rule);
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--ink);
   border-radius: 50%;
   transition:
     background var(--dur-1) var(--ease),
@@ -1919,9 +2024,9 @@ input {
 }
 [aria-pressed='true'] > .ob__check::after {
   content: '';
-  width: 10px;
+  width: 11px;
   height: 6px;
-  border: 2px solid var(--on-accent);
+  border: 2.5px solid var(--on-accent);
   border-top: 0;
   border-right: 0;
   transform: translateY(-1px) rotate(-45deg);
@@ -1934,17 +2039,44 @@ input {
   padding: var(--s4) 0 calc(var(--s3) + var(--safe-b));
   background: linear-gradient(to bottom, transparent, var(--paper) var(--s4));
 }
+.ob--open .ob__foot {
+  background: linear-gradient(to bottom, transparent, var(--accent) var(--s4));
+}
 .ob__foot .col {
   padding-top: 0;
   padding-bottom: 0;
 }
-.welcome .ob__foot .btn--wide {
-  margin-top: 0;
+.ob__cta {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 56px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+  color: var(--paper);
+  font: 800 var(--t3) / 1 var(--sans);
+  cursor: pointer;
+}
+.ob__cta:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.ob--open .ob__cta {
+  background: var(--on-accent);
+  color: var(--accent);
 }
 .ob__skip {
   display: block;
   min-height: var(--tap);
   margin: var(--s1) auto 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: 700 var(--t2) / 1 var(--sans);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
 }
 
 /* ---------- Designsysteem-scherm ---------- */
@@ -2087,7 +2219,7 @@ input {
 .fitem__title {
   font-family: var(--serif);
   font-size: var(--t4);
-  font-weight: 700;
+  font-weight: 800;
   line-height: var(--lh-head);
   letter-spacing: -0.01em;
   text-wrap: pretty;
@@ -2182,7 +2314,7 @@ input {
 .srcitem__title {
   font-family: var(--serif);
   font-size: var(--t4);
-  font-weight: 700;
+  font-weight: 800;
   line-height: var(--lh-head);
   letter-spacing: -0.01em;
   text-wrap: pretty;

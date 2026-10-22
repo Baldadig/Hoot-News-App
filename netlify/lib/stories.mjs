@@ -9,7 +9,7 @@ export { hash }
 export const byRecency = (a, b) => (b.publishedAt ? Date.parse(b.publishedAt) : 0) - (a.publishedAt ? Date.parse(a.publishedAt) : 0)
 
 // Bronnen die in het Nederlands schrijven (voor taalvoorkeur bij het hoofdbericht).
-export const NL_SOURCES = new Set(['nrc', 'nos', 'volkskrant', 'tweakers', 'leftlaser'])
+export const NL_SOURCES = new Set(['nrc', 'nos', 'volkskrant', 'tweakers'])
 
 const deaccent = (s) => s.normalize('NFKD').replace(/[̀-ͯ]/g, '')
 const norm = (s) => deaccent(String(s || '')).toLowerCase()

@@ -2,6 +2,25 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.22.0] — 2026-10-22 — Zaterdagkrant, een grote bronnencatalogus en acht interesses
+
+- **Nieuw ontwerp, "Zaterdagkrant":** warm papier (iets minder beige), koppen in Newsreader, tekst in Source Sans 3, krantenrood als accent, zwarte knoppen. Donker thema mee aangepast.
+- **Nieuwe iconen:** Phosphor Duotone in plaats van emoji, ook bij de interesses.
+- **Account altijd bereikbaar:** rechtsboven op elk scherm een knop met je foto of initiaal. Die opent "Jij": inloggen of je account, en de weergave.
+- **Bolder welkom:** een rood openingsscherm, grote stapnummers, tegels met een zwarte rand die rood worden, stevige chips en één zwarte knop.
+- **Acht interesses:** Politiek, Binnenland, Wereld, Economie, Tech (met games), Wetenschap, Cultuur, Sport. Daarbinnen 44 smallere onderwerpen. De Stroom filtert op je onderwerpen, of anders op de acht interesses.
+- **Bronnencatalogus van ~90 titels:**
+  - alle Nederlandse kranten, ook regionaal (13);
+  - Vlaamse kranten (8) en NU.nl;
+  - Engelstalige bronnen met een blik op de wereld (Guardian, BBC, FT, The New Yorker, Foreign Policy, Politico, Al Jazeera, DW, Le Monde…);
+  - economie, tech, vier grote gamesites, wetenschap, sport en cultuur.
+- **Bronnen per persoon:** bij het instellen worden bronnen voorgesteld bij je interesses. Op Bronnen zie je "Je bronnen" en per rubriek "Meer bronnen" om aan te zetten.
+- **Left Laser is uit de bronnen.**
+- **Sneller laden:** de feed is opgesplitst in een kern en per bron een deel. De app haalt alleen de bronnen die je volgt, en een deel dat niet veranderde komt uit de cache. Oude versies van de app blijven de volledige feed krijgen.
+- **Lange Stroom in porties:** de Stroom tekent 60 berichten tegelijk en laadt de rest bij het scrollen.
+- **Opgelost:** The Independent las niet in, omdat de feed met witruimte begon.
+- **Eruit:** de lijst "Alleen ter vergelijking" en de vaste volgorde van onderwerpen.
+
 ## [1.21.0] — 2026-10-22 — Onboarding in vier schermen
 
 - **Nieuw welkom**, alles met tikken en onderaan steeds één knop:
