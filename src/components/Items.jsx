@@ -16,9 +16,13 @@ const CAN_HLS = typeof document !== 'undefined' && !!document.createElement('vid
 
 // Onthoudt welk hoofdbeeld je het laatst zag, zodat index.html het bij je volgende bezoek
 // al kan ophalen terwijl de app nog laadt (zie het script in index.html).
+// Het hoofdbeeld onthouden voor de volgende start (index.html laadt het dan alvast). Van de
+// eigen beeld-CDN relatief (/.netlify/images?…), zodat het ook na een domeinwissel klopt.
 const rememberLead = (e) => {
   try {
-    localStorage.setItem('hoot:lcp', JSON.stringify({ u: e.currentTarget.currentSrc, at: Date.now() }))
+    const src = new URL(e.currentTarget.currentSrc)
+    const u = src.origin === location.origin ? src.pathname + src.search : src.href
+    localStorage.setItem('hoot:lcp', JSON.stringify({ u, at: Date.now() }))
   } catch {
     /* niet erg */
   }

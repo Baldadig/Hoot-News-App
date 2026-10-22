@@ -20,7 +20,8 @@
           var h = location.hash
           if (h && h !== '#/' && h.indexOf('#/editie') !== 0) return
           var l = JSON.parse(localStorage.getItem('hoot:lcp') || 'null')
-          if (!l || !l.u || Date.now() - l.at > 12 * 60 * 60 * 1000 || !/^https:\/\//.test(l.u)) return
+          // Alleen https-adressen of de eigen beeld-CDN; andere relatieve paden niet.
+          if (!l || !l.u || Date.now() - l.at > 12 * 60 * 60 * 1000 || !/^(https:\/\/|\/\.netlify\/images\?)/.test(l.u)) return
           var link = document.createElement('link')
           link.rel = 'preload'
           link.as = 'image'
