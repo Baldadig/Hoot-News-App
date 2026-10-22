@@ -993,6 +993,13 @@ select {
 .compact--tl {
   contain-intrinsic-size: auto 420px;
 }
+/* Desktop: de tijdlijn heeft de breedte van de kolom, dus de kop mag mee groeien (T5). */
+@media (min-width: 960px) {
+  .compact--tl .compact__title {
+    font-size: var(--t5);
+    letter-spacing: -0.015em;
+  }
+}
 
 /* ---------- Vorm 3: sociale bijdrage ---------- */
 .social__head {
