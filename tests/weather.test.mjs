@@ -14,3 +14,11 @@ test('weercodes worden een soort en een Nederlandse omschrijving', () => {
   assert.equal(describe(45).kind, 'mist')
   assert.equal(describe(undefined).kind, 'bewolkt')
 })
+
+test('weerplaats: standaard Haarlem, "geen" betekent geen weer, onbekend wordt Haarlem', async () => {
+  const { placeFor } = await import('../src/lib/weather.js')
+  assert.equal(placeFor(undefined).name, 'Haarlem')
+  assert.equal(placeFor('groningen').name, 'Groningen')
+  assert.equal(placeFor('geen'), null)
+  assert.equal(placeFor('atlantis').name, 'Haarlem')
+})

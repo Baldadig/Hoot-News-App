@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { describe, fetchWeather, HAARLEM } from '../lib/weather.js'
+import { describe, fetchWeather, placeFor } from '../lib/weather.js'
+import { useHoot } from './Items.jsx'
 
 const s = { viewBox: '0 0 24 24', width: 20, height: 20, fill: 'none', stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }
 const Cloud = ({ y = 0 }) => <path d={`M7 ${18 + y}h10a4 4 0 0 0 .4-8 5.5 5.5 0 0 0-10.6 1.6A3.2 3.2 0 0 0 7 ${18 + y}Z`} />
@@ -47,11 +48,16 @@ const ICONS = {
   ),
 }
 
-// Het weer van vandaag in Haarlem, klein in de metaregel: icoon + hoogste temperatuur.
-// Lukt het ophalen niet, dan staat er niets (geen lege plek, geen foutmelding).
-export default function Weather({ place = HAARLEM }) {
+// Het weer van vandaag op de plaats uit je instellingen (standaard Haarlem), klein in de
+// metaregel: icoon + hoogste temperatuur. "Geen weer", of lukt het ophalen niet, dan staat er
+// niets (geen lege plek, geen foutmelding).
+export default function Weather() {
+  const { prefs } = useHoot()
+  const place = placeFor(prefs?.weatherPlace)
   const [w, setW] = useState(null)
   useEffect(() => {
+    setW(null)
+    if (!place) return
     let alive = true
     fetchWeather(place)
       .then((x) => alive && setW(x))
@@ -59,8 +65,8 @@ export default function Weather({ place = HAARLEM }) {
     return () => {
       alive = false
     }
-  }, [place])
-  if (!w || !Number.isFinite(w.max)) return null
+  }, [place?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  if (!place || !w || !Number.isFinite(w.max)) return null
   const d = describe(w.code)
   return (
     <span className="weather" title={`${place.name}: ${d.label}, ${w.min}° tot ${w.max}°`}>
