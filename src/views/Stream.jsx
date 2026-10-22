@@ -69,7 +69,7 @@ function FilterSheet({ open, onClose, params, setFilter, clear, sources, count }
   )
 }
 
-export default function Stream({ active, stream, params, go, pinned, bubble = [], preview = 2, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
+export default function Stream({ active, stream, params, go, pinned, mine = [], bubble = [], preview = 2, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
   const { storiesById } = useHoot()
   const ref = useRef(null)
   const [sheet, setSheet] = useState(false)
@@ -139,7 +139,7 @@ export default function Stream({ active, stream, params, go, pinned, bubble = []
                   Buiten je bubbel
                 </button>
               ) : null}
-              {orderedTopics(pinned).map((t) => (
+              {orderedTopics(pinned, mine).map((t) => (
                 <button key={t.id} type="button" className="chip chip--sm" aria-pressed={filters.onderwerp === t.id} onClick={() => setFilter('onderwerp', filters.onderwerp === t.id ? '' : t.id)}>
                   {t.label}
                 </button>

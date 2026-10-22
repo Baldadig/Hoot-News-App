@@ -2,6 +2,17 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.21.0] — 2026-10-22 — Onboarding in vier schermen
+
+- **Nieuw welkom**, alles met tikken en onderaan steeds één knop:
+  1. Uitleg — "Minder scrollen. Meer lezen.": de editie, het overzicht in één minuut, de Stroom.
+  2. Interesses, breed — zes grote tegels (Politiek, Wereld, Economie, Tech, Wetenschap, Cultuur).
+  3. Onderwerpen, smal — per gekozen interesse; niets aangetikt is alles daarbinnen.
+  4. Bronnen — alvast gekozen bij je interesses, met een regel uitleg en of er een abonnement nodig is.
+- De Stroom toont daarna alleen jouw onderwerpen als filter. Je interesses en onderwerpen gaan mee met je account.
+- Zes nieuwe onderwerpen: Europa, Midden-Oosten, Klimaat, Gezondheid, Film & series, Boeken & kunst.
+- Opnieuw kiezen kan in Instellingen → Bronnen → Interesses opnieuw kiezen. "Liever meteen lezen" slaat het over.
+
 ## [1.20.0] — 2026-10-22 — Accounts en uitnodigingen (fase 1)
 
 - **Inloggen met Google** (Instellingen → Account). Als lid gaan je instellingen, Bewaard, wat je las en welke verhalen je zag mee naar je andere toestellen. Wat je vóór het inloggen op een toestel had, gaat niet verloren: de eerste keer wordt alles samengevoegd. Indeling en tekstgrootte blijven per toestel.

@@ -308,7 +308,7 @@ function sourceList({ mainGroups, extraGroups, bskyGroups, avatars, profiles }) 
   return [
     ...mainGroups.map((g, i) => {
       const s = SOURCES[i]
-      return { ...base(g), kind: s.music ? 'muziek' : 'nieuws', optional: !!s.optional, followed: true, brandColor: BRAND[g.id] || '#21468b', avatar: first(g)?.avatar || avatars[g.id] || (s.x ? `https://unavatar.io/x/${s.x}` : null), avatarContain: first(g)?.avatarContain || false, handle: first(g)?.domain || null }
+      return { ...base(g), kind: s.music ? 'muziek' : 'nieuws', optional: !!s.optional, lang: s.lang, about: s.about, paid: !!s.paid, for: s.for || null, followed: true, brandColor: BRAND[g.id] || '#21468b', avatar: first(g)?.avatar || avatars[g.id] || (s.x ? `https://unavatar.io/x/${s.x}` : null), avatarContain: first(g)?.avatarContain || false, handle: first(g)?.domain || null }
     }),
     ...bskyGroups.map((g, i) => {
       const a = BLUESKY_AUTHORS[i]

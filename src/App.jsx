@@ -266,6 +266,29 @@ export default function App() {
     [setSeenStories],
   )
 
+  // Onboarding klaar: interesses, onderwerpen en bronnen worden je instellingen.
+  // `choice` is null als je "Liever meteen lezen" koos: dan blijft alles zoals het was.
+  const finishOnboarding = useCallback(
+    (choice) => {
+      setPrefs((p) => {
+        if (!choice) return { ...p, onboarded: true }
+        const on = new Set(choice.sources)
+        const shown = new Set(choice.all.map((s) => s.id))
+        return {
+          ...p,
+          onboarded: true,
+          interests: choice.interests,
+          topics: choice.topics,
+          pinned: choice.topics.slice(0, 3),
+          muted: [...(p.muted || []).filter((id) => !shown.has(id)), ...choice.all.filter((s) => !s.optional && !on.has(s.id)).map((s) => s.id)],
+          enabled: [...(p.enabled || []).filter((id) => !shown.has(id)), ...choice.all.filter((s) => s.optional && on.has(s.id)).map((s) => s.id)],
+        }
+      })
+      route.go('editie', {}, { replace: true })
+    },
+    [setPrefs, route.go],
+  )
+
   const setMuted = useCallback((id, on) => setPrefs((p) => toggleSource(normalizePrefs(p), sourcesById.get(id) || { id }, on)), [setPrefs, sourcesById])
 
   const reloadAll = useCallback(() => {
@@ -441,6 +464,7 @@ export default function App() {
               params={path === 'stroom' ? route.params : navMem.stroom || {}}
               go={route.go}
               pinned={prefs.pinned}
+              mine={prefs.topics}
               sources={sources}
               loading={loading}
               failedLoad={failedLoad}
@@ -535,16 +559,7 @@ export default function App() {
         </div>
         {showWelcome ? (
           <Suspense fallback={null}>
-            <Welcome
-              account={account}
-              sources={sources}
-              muted={muted}
-              onToggle={setMuted}
-              onDone={() => {
-                setPrefs((p) => ({ ...p, onboarded: true }))
-                route.go('editie', {}, { replace: true })
-              }}
-            />
+            <Welcome account={account} sources={sources} prefs={prefs} onDone={finishOnboarding} />
           </Suspense>
         ) : null}
       </div>

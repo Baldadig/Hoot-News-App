@@ -12,6 +12,8 @@ export const DEFAULT_PREFS = {
   brief: true, // AI-overzicht van de editie (als de sleutel er is)
   panel: 'dicht',
   enabled: [], // optionele bronnen die je zelf hebt aangezet (bv. extra muziekbronnen)
+  interests: [], // brede interesses uit de onboarding (src/lib/topics.js → INTERESTS)
+  topics: [], // onderwerpen die je volgt; leeg = alle
   bluesky: false, // Bluesky als eigen bestemming in het menu
   bskyInStream: [], // Bluesky-accounts die óók in de Stroom staan (standaard alleen in Bluesky)
 }
@@ -29,6 +31,8 @@ export function normalizePrefs(raw) {
   if (!Array.isArray(out.pinned)) out.pinned = DEFAULT_PREFS.pinned
   if (!Array.isArray(out.enabled)) out.enabled = []
   if (!Array.isArray(out.bskyInStream)) out.bskyInStream = []
+  if (!Array.isArray(out.interests)) out.interests = []
+  if (!Array.isArray(out.topics)) out.topics = []
   // Opgeruimde instellingen (voorlezen en Instapaper, tot v1.19) niet meer meedragen.
   for (const k of ['instapaper', 'readAloud', 'voice']) delete out[k]
   return out

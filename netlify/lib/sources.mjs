@@ -2,24 +2,27 @@
 export { BSKY_BRAND } from '../../shared/bluesky.mjs'
 
 // bsky = Bluesky-handle van het officiële account, voor een mooie merk-avatar.
+// Voor het kiezen (onboarding): `lang` (nl/en), `about` (één regel), `paid` (betaalmuur voor
+// een deel van de artikelen) en `for` (bij welke interesses de bron vooraf aan staat; zonder
+// `for`: altijd).
 export const SOURCES = [
-  { id: 'nrc', name: 'NRC', bsky: 'nrc.nl', x: 'nrc', urls: ['https://www.nrc.nl/rss/', 'https://www.nrc.nl/index.rss', 'https://www.nrc.nl/rss.php'] },
-  { id: 'volkskrant', name: 'de Volkskrant', bsky: 'volkskrant.nl', x: 'volkskrant', urls: ['https://www.volkskrant.nl/voorpagina/rss.xml', 'https://www.volkskrant.nl/nieuws-achtergrond/rss.xml'] },
-  { id: 'nyt', name: 'NYT', bsky: 'nytimes.com', x: 'nytimes', urls: ['https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml'] },
-  { id: 'theverge', name: 'The Verge', bsky: 'theverge.com', x: 'verge', urls: ['https://www.theverge.com/rss/index.xml'] },
-  { id: 'wired', name: 'Wired', bsky: 'wired.com', x: 'wired', urls: ['https://www.wired.com/feed/rss'] },
-  { id: 'nos', name: 'NOS', bsky: 'nos.nl', x: 'nos', urls: ['https://feeds.nos.nl/nosnieuwsalgemeen', 'http://feeds.nos.nl/nosnieuwsalgemeen'] },
-  { id: 'atlantic', name: 'The Atlantic', bsky: 'theatlantic.com', x: 'TheAtlantic', urls: ['https://www.theatlantic.com/feed/all/'] },
-  { id: 'economist', name: 'The Economist', bsky: 'economist.com', x: 'TheEconomist', urls: ['https://www.economist.com/latest/rss.xml'] },
+  { id: 'nos', name: 'NOS', lang: 'nl', about: 'Het publieke nieuws: snel, breed en gratis.', bsky: 'nos.nl', x: 'nos', urls: ['https://feeds.nos.nl/nosnieuwsalgemeen', 'http://feeds.nos.nl/nosnieuwsalgemeen'] },
+  { id: 'nrc', name: 'NRC', lang: 'nl', about: 'Achtergrond, analyse en onderzoek.', paid: true, bsky: 'nrc.nl', x: 'nrc', urls: ['https://www.nrc.nl/rss/', 'https://www.nrc.nl/index.rss', 'https://www.nrc.nl/rss.php'] },
+  { id: 'volkskrant', name: 'de Volkskrant', lang: 'nl', about: 'Nieuws, verhalen en opinie.', paid: true, bsky: 'volkskrant.nl', x: 'volkskrant', urls: ['https://www.volkskrant.nl/voorpagina/rss.xml', 'https://www.volkskrant.nl/nieuws-achtergrond/rss.xml'] },
+  { id: 'nyt', name: 'NYT', lang: 'en', about: 'The New York Times: wereldnieuws en Amerika.', paid: true, for: ['politiek', 'wereld', 'economie'], bsky: 'nytimes.com', x: 'nytimes', urls: ['https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml'] },
+  { id: 'theverge', name: 'The Verge', lang: 'en', about: 'Technologie, gadgets en internetcultuur.', for: ['tech'], bsky: 'theverge.com', x: 'verge', urls: ['https://www.theverge.com/rss/index.xml'] },
+  { id: 'wired', name: 'Wired', lang: 'en', about: 'Wat technologie met de wereld doet.', paid: true, for: ['tech', 'wetenschap'], bsky: 'wired.com', x: 'wired', urls: ['https://www.wired.com/feed/rss'] },
+  { id: 'atlantic', name: 'The Atlantic', lang: 'en', about: 'Essays en lange verhalen over politiek en cultuur.', paid: true, for: ['politiek', 'wereld', 'cultuur'], bsky: 'theatlantic.com', x: 'TheAtlantic', urls: ['https://www.theatlantic.com/feed/all/'] },
+  { id: 'economist', name: 'The Economist', lang: 'en', about: 'Economie en wereldpolitiek, scherp samengevat.', paid: true, for: ['economie', 'wereld'], bsky: 'economist.com', x: 'TheEconomist', urls: ['https://www.economist.com/latest/rss.xml'] },
   // Muziek: in de Stroom (onderwerp Muziek), niet in de Editie. `optional`: staat uit tot je hem aanzet.
-  { id: '3voor12', name: '3voor12', bsky: '3voor12.bsky.social', music: true, urls: ['https://3voor12.vpro.nl/rss.xml'] },
-  { id: 'oor', name: 'OOR', music: true, urls: ['https://oor.nl/feed/'] },
-  { id: 'guardian-music', name: 'The Guardian Muziek', x: 'guardianmusic', music: true, optional: true, urls: ['https://www.theguardian.com/music/rss'] },
-  { id: 'quietus', name: 'The Quietus', x: 'TheQuietus', music: true, optional: true, urls: ['https://thequietus.com/feed'] },
-  { id: 'stereogum', name: 'Stereogum', x: 'stereogum', music: true, optional: true, urls: ['https://www.stereogum.com/feed/'] },
-  { id: 'npr-music', name: 'NPR Music', x: 'nprmusic', music: true, optional: true, urls: ['https://feeds.npr.org/1039/rss.xml'] },
+  { id: '3voor12', name: '3voor12', lang: 'nl', about: 'Muziek van de VPRO: nieuws, recensies, live.', for: ['cultuur'], bsky: '3voor12.bsky.social', music: true, urls: ['https://3voor12.vpro.nl/rss.xml'] },
+  { id: 'oor', name: 'OOR', lang: 'nl', about: 'Popmuziek sinds 1971.', for: ['cultuur'], music: true, urls: ['https://oor.nl/feed/'] },
+  { id: 'guardian-music', name: 'The Guardian Muziek', lang: 'en', about: 'Muzieknieuws en recensies.', for: ['cultuur'], x: 'guardianmusic', music: true, optional: true, urls: ['https://www.theguardian.com/music/rss'] },
+  { id: 'quietus', name: 'The Quietus', lang: 'en', about: 'Alternatieve en experimentele muziek.', x: 'TheQuietus', music: true, optional: true, urls: ['https://thequietus.com/feed'] },
+  { id: 'stereogum', name: 'Stereogum', lang: 'en', about: 'Indie en pop: nieuws en nieuwe nummers.', x: 'stereogum', music: true, optional: true, urls: ['https://www.stereogum.com/feed/'] },
+  { id: 'npr-music', name: 'NPR Music', lang: 'en', about: 'Tiny Desk en muziekverhalen.', x: 'nprmusic', music: true, optional: true, urls: ['https://feeds.npr.org/1039/rss.xml'] },
   // Left Laser via YouTube-RSS (native, gratis, betrouwbaar). Avatar via hun Bluesky-profiel.
-  { id: 'leftlaser', name: 'Left Laser', bsky: 'leftlaser.bsky.social', urls: ['https://www.youtube.com/feeds/videos.xml?channel_id=UCZU-vIoeB1e3by8mVaVLwIg'] },
+  { id: 'leftlaser', name: 'Left Laser', lang: 'nl', about: 'Politieke video-analyses op YouTube.', for: ['politiek'], bsky: 'leftlaser.bsky.social', urls: ['https://www.youtube.com/feeds/videos.xml?channel_id=UCZU-vIoeB1e3by8mVaVLwIg'] },
 ]
 
 // Merk-kleuren per bron (voor de avatar-cirkel)

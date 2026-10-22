@@ -1665,6 +1665,288 @@ input {
   text-align: center;
 }
 
+/* ---------- Onboarding: vier schermen, alles met tikken ---------- */
+.ob {
+  display: flex;
+  flex-direction: column;
+}
+.ob__col,
+.ob__foot .col {
+  width: 100%; /* in de flex-kolom anders zo smal als de inhoud: één linkerlijn op elk scherm */
+}
+.ob__col {
+  flex: 1;
+  padding-top: calc(var(--safe-t) + var(--s4));
+  padding-bottom: var(--s5);
+}
+.ob__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--tap);
+  margin-bottom: var(--s5);
+}
+.ob__steps {
+  display: flex;
+  gap: var(--s1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ob__steps li {
+  width: 24px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--rule);
+  transition: background var(--dur-2) var(--ease);
+}
+.ob__steps li.is-done {
+  background: var(--accent);
+}
+.ob__title {
+  font-family: var(--serif);
+  font-size: var(--t6);
+  line-height: var(--lh-head);
+  letter-spacing: -0.018em;
+  text-wrap: balance;
+  outline: none;
+}
+.ob__sub {
+  margin-top: var(--s2);
+  color: var(--ink-2);
+  font-size: var(--t3);
+  line-height: var(--lh-body);
+}
+.ob__points {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+  margin: var(--s6) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ob__point {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s3);
+  font-size: var(--t3);
+  line-height: var(--lh-body);
+}
+.ob__point strong,
+.ob__ptext {
+  display: block;
+}
+.ob__ptext {
+  color: var(--ink-2);
+}
+.ob__pemoji {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  font-size: 24px;
+}
+.ob__note {
+  margin-top: var(--s5);
+  color: var(--ink-3);
+  font-size: var(--t2);
+  line-height: var(--lh-body);
+}
+
+/* Interesses: grote tegels */
+.ob__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s3);
+  margin-top: var(--s5);
+}
+@media (min-width: 560px) {
+  .ob__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.ob__tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s4);
+  min-height: 112px;
+  padding: var(--s4);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-1) var(--ease),
+    background var(--dur-1) var(--ease),
+    transform var(--dur-1) var(--ease);
+}
+.ob__tile:active {
+  transform: scale(0.98);
+}
+.ob__temoji {
+  font-size: 32px;
+  line-height: 1;
+}
+.ob__tlabel {
+  font-size: var(--t3);
+  font-weight: 700;
+}
+.ob__tile .ob__check {
+  position: absolute;
+  top: var(--s3);
+  right: var(--s3);
+}
+
+/* Onderwerpen: grote chips */
+.ob__group {
+  margin-top: var(--s5);
+}
+.ob__gtitle {
+  margin-bottom: var(--s2);
+  color: var(--ink-3);
+  font-size: var(--t1);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ob__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+.ob__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: var(--tap);
+  padding: 0 var(--s4);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--t2);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-1) var(--ease),
+    background var(--dur-1) var(--ease);
+}
+
+/* Bronnen: rijen met logo */
+.ob__sources {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ob__src {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  width: 100%;
+  min-height: 64px;
+  padding: var(--s3) 0;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.ob__src[aria-pressed='false'] .mark {
+  opacity: 0.45;
+}
+.ob__stext {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.ob__sname {
+  font-size: var(--t3);
+  font-weight: 700;
+}
+.ob__sabout {
+  color: var(--ink-3);
+  font-size: var(--t2);
+  line-height: var(--lh-ui);
+}
+.ob__tag {
+  display: inline-block;
+  margin-left: var(--s2);
+  vertical-align: 2px;
+  font-weight: 600;
+  padding: 0 var(--s2);
+  border-radius: var(--radius-pill);
+  background: var(--rule);
+  color: var(--ink-2);
+  font-size: var(--t1);
+  white-space: nowrap;
+}
+
+/* Gekozen: accentrand en een vinkje */
+.ob__tile[aria-pressed='true'],
+.ob__chip[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.ob__chip[aria-pressed='true'] {
+  color: var(--accent);
+}
+.ob__check {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1.5px solid var(--rule);
+  border-radius: 50%;
+  transition:
+    background var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+[aria-pressed='true'] > .ob__check {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+[aria-pressed='true'] > .ob__check::after {
+  content: '';
+  width: 10px;
+  height: 6px;
+  border: 2px solid var(--on-accent);
+  border-top: 0;
+  border-right: 0;
+  transform: translateY(-1px) rotate(-45deg);
+}
+
+/* Onderaan altijd één knop */
+.ob__foot {
+  position: sticky;
+  bottom: 0;
+  padding: var(--s4) 0 calc(var(--s3) + var(--safe-b));
+  background: linear-gradient(to bottom, transparent, var(--paper) var(--s4));
+}
+.ob__foot .col {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.welcome .ob__foot .btn--wide {
+  margin-top: 0;
+}
+.ob__skip {
+  display: block;
+  min-height: var(--tap);
+  margin: var(--s1) auto 0;
+}
+
 /* ---------- Designsysteem-scherm ---------- */
 .sg__list {
   margin: 0;

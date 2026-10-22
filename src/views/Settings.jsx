@@ -47,6 +47,13 @@ export default function Settings({ meta, account, syncStatus, onBack }) {
         </Row>
 
         <h2 className="sect">Bronnen</h2>
+        <a className="setrow setrow--link" href="#/welkom">
+          <span className="setrow__text">
+            <span className="setrow__label">Interesses opnieuw kiezen</span>
+            <span className="setrow__hint">Wat je volgt, van breed naar smal, en je bronnen.</span>
+          </span>
+          <span aria-hidden="true">›</span>
+        </a>
         <a className="setrow setrow--link" href="#/bronnen">
           <span className="setrow__text">
             <span className="setrow__label">Bronnen en volgorde van onderwerpen</span>
@@ -57,7 +64,7 @@ export default function Settings({ meta, account, syncStatus, onBack }) {
 
         <h2 className="sect">Over</h2>
         <p className="about">
-          Hoot v{__APP_VERSION__} · <a href="#/stijl">Designsysteem</a> · <a href="#/welkom">Welkomscherm</a>
+          Hoot v{__APP_VERSION__} · <a href="#/stijl">Designsysteem</a>
           <br />
           {meta?.storage === 'blobs' ? 'Edities en verhalen worden vast bewaard.' : 'Edities en verhalen worden op dit moment niet vast bewaard en kunnen tussentijds wisselen.'} Samenvattingen komen rechtstreeks van de bron. De Volkskrant levert in haar feed alleen koppen; daar komt de voorvertoning (de eigen inleiding van het artikel) uit de zoekindex van Bing, of — met "via" erbij — van een andere bron over hetzelfde nieuws. Alleen "De editie in één minuut" is door AI geschreven.
         </p>
