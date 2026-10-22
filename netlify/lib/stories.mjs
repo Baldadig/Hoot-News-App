@@ -443,3 +443,21 @@ export function relinkEdition(entries = [], { stories = [], snapshot = [], byId 
     return { kind: 'item', id: e.leadId, formerId: e.id, desk: out.leadDesk || e.desk, w: e.w }
   })
 }
+
+// "Waar iedereen over schrijft": de breedst gedekte verhalen van dit moment, elk met een bericht
+// van een gratis bron (wie geen abonnement heeft, moet het kunnen lezen), bij voorkeur in het
+// Nederlands en met een intro. Sport telt niet mee (de editie is nieuws). De app kiest er per
+// lezer één uit die buiten diens interesses valt (src/lib/personal.js).
+export function widelyCovered(stories = [], byId = new Map(), { isFree = () => false, isDutch = () => false, isSport = () => false, min = 6, max = 8 } = {}) {
+  const out = []
+  for (const st of [...stories].sort((a, b) => b.sourceCount - a.sourceCount)) {
+    if (out.length >= max || st.sourceCount < min) break
+    const items = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
+    if (!items.length || items.filter(isSport).length * 2 >= items.length) continue
+    const free = items.filter((i) => isFree(i.source) && !isLive(i) && i.type !== 'opinie')
+    const lead = free.find((i) => isDutch(i.source) && i.summary) || free.find((i) => i.summary) || free[0]
+    if (!lead) continue
+    out.push({ storyId: st.id, sourceCount: st.sourceCount, topics: [...new Set(items.flatMap((i) => i.topics || []))], item: lead })
+  }
+  return out
+}

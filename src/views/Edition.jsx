@@ -80,9 +80,9 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
     .map((e, index) => {
       const r = resolveEditionEntry(e, { storiesById, itemsById, published, muted })
       if (!r) return null
-      const label = deskLabel({ ...e, desk: r.desk })
+      const label = e.desk === 'breed' ? `Waar iedereen over schrijft · ${e.sourceCount} bronnen` : deskLabel({ ...e, desk: r.desk })
       // "Buiten je bubbel" en "Buiten je bronnen" zeggen het zelf al; elders een label als je de bron niet volgt.
-      const note = r.followed || r.desk === 'bubbel' || r.desk === 'extern' ? label : [label, 'Volg je niet'].filter(Boolean).join(' · ')
+      const note = r.followed || ['bubbel', 'extern', 'breed'].includes(e.desk) ? label : [label, 'Volg je niet'].filter(Boolean).join(' · ')
       return { key: e.id, index, item: r.item, story: r.story, note }
     })
     .filter(Boolean)

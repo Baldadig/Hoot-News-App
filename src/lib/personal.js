@@ -10,6 +10,7 @@ import { selectEdition, EDITION_SIZE } from '../../netlify/lib/stories.mjs'
 import { resolveTopics } from './topics.js'
 
 export const EXTERN = 'extern' // rubriek van een aangevuld verhaal
+export const WIDE = 'breed' // "Waar iedereen over schrijft"
 
 // Extra gewicht voor wat bij je interesses past: genoeg om binnen een rubriek de doorslag te
 // geven en de vrije plekken te kleuren, te weinig om echt groot nieuws te verdringen.
@@ -41,9 +42,12 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const mine = new Set(resolveTopics(interests, topics))
   const bonus = mine.size ? (its) => (its.some((i) => (i.topics || []).some((t) => mine.has(t))) ? INTEREST_BONUS : 0) : null
 
-  // "Buiten je bubbel" uit de algemene editie houdt zijn plek; de rest kiezen we zelf.
+  // "Buiten je bubbel" uit de algemene editie houdt zijn plek; "Waar iedereen over schrijft"
+  // krijgt er één (als er iets breed gedekts buiten je interesses is); de rest kiezen we zelf.
   const bubbleEntry = global.entries.find((e) => e.desk === 'bubbel') || null
-  const size = EDITION_SIZE - (bubbleEntry ? 1 : 0)
+  const outside = (w) => !mine.size || !(w.topics || []).some((t) => mine.has(t))
+  const wideCands = (global.wide || []).filter(outside)
+  const size = EDITION_SIZE - (bubbleEntry ? 1 : 0) - (wideCands.length ? 1 : 0)
   const extra = extraPool.length ? selectEdition(stories, extraPool, { mainIds: followed, now, size: EXTRA_MAX, bonus }).map((e) => ({ ...e, desk: null })) : []
   const news = selectEdition(stories, newsPool, { mainIds: followed, now, size: size - extra.length, bonus })
   const own = [...news, ...extra]
@@ -62,12 +66,19 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     fill.push({ ...g, desk: EXTERN, fromDesk: g.desk || null })
   }
 
-  // Volgorde: eigen nieuws, aangevuld nieuws, dan sport/cultuur.
+  // Waar iedereen over schrijft: het breedst gedekte verhaal buiten je interesses dat er nog
+  // niet in staat, met een bericht van een gratis bron (zo komt het van de server).
+  const wide = wideCands.find((w) => !taken.has(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)))
+  const wideEntry = wide ? { kind: 'story', id: wide.storyId, leadId: wide.item.id, desk: WIDE, sourceCount: wide.sourceCount } : null
+
+  // Volgorde: eigen nieuws, aangevuld nieuws, dan sport/cultuur; "Buiten je bubbel" op plek 6,
+  // "Waar iedereen over schrijft" direct daarna.
   const entries = [...news, ...fill, ...extra]
   if (bubbleEntry && !entries.some((e) => (e.leadId || e.id) === bubbleEntry.id)) entries.splice(Math.min(5, entries.length), 0, bubbleEntry)
+  if (wideEntry) entries.splice(Math.min(6, entries.length), 0, wideEntry)
 
   // Vast: de berichten zoals ze nu zijn (eigen bronnen uit de feed, aanvulling uit de algemene editie).
-  const byId = new Map([...(global.items || []).map((i) => [i.id, i]), ...pool.map((i) => [i.id, i])])
+  const byId = new Map([...(global.items || []).map((i) => [i.id, i]), ...(wide ? [[wide.item.id, wide.item]] : []), ...pool.map((i) => [i.id, i])])
   const shown = [...new Set(entries.map((e) => e.leadId || e.id))]
   return {
     id: global.id,

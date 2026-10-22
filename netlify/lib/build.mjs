@@ -2,7 +2,7 @@
 // vastleggen. Draait op een vast ritme (functions/feed-refresh.mjs); de app krijgt het
 // resultaat kant-en-klaar (functions/feed.mjs) en hoeft nooit op het ophalen te wachten.
 import Anthropic from '@anthropic-ai/sdk'
-import { byRecency, sigWords, sharedCount, buildStories, editionSlot, selectEdition, relinkEdition } from './stories.mjs'
+import { byRecency, sigWords, sharedCount, buildStories, editionSlot, selectEdition, relinkEdition, widelyCovered } from './stories.mjs'
 import { matchTrending, insertBubble } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
 import { articleKey, mergeSnippets, isLiveblog } from './snippets.mjs'
@@ -324,6 +324,12 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
       items: [...new Set(shown)].map((id) => snapItems.get(id)).filter(Boolean),
       bubble: stored.bubble || [],
       brief: stored.brief?.sections?.length ? stored.brief : null,
+      // Actueel (niet vast): waaruit de persoonlijke editie "Waar iedereen over schrijft" kiest.
+      wide: widelyCovered(stories, byId, {
+        isFree: (id) => SOURCE.has(id) && !SOURCE.get(id).paid,
+        isDutch: (id) => SOURCE.get(id)?.lang === 'nl',
+        isSport: (i) => SOURCE.get(i.source)?.cat === 'sport' || (i.topics || []).some((t) => SPORT_TOPICS.has(t)),
+      }),
     },
   }
 }

@@ -111,3 +111,39 @@ test('een liveblog (herkend aan het adres) is geen plek in de editie', () => {
   const e = composePersonal({ global, stories, items: [...items, live], followed, now: NOW, builtAt: 'T' })
   assert.ok(!e.entries.some((x) => (x.leadId || x.id) === 'lb'))
 })
+
+test('"Waar iedereen over schrijft": buiten je interesses, niet dubbel, met de lead van de server', () => {
+  const wideItem = art('w1', 'nu', 'Eerste besmetting met Shamonda-virus in Frankrijk', { topics: ['gezondheid'] })
+  const techWide = { storyId: 'sChip', sourceCount: 14, topics: ['ai', 'tech'], item: art('w0', 'nos', 'Chiprace') }
+  const g = { ...global, wide: [techWide, { storyId: 'sVirus', sourceCount: 12, topics: ['gezondheid'], item: wideItem }] }
+  const e = composePersonal({ global: g, stories, items, followed, interests: ['tech'], now: NOW, builtAt: 'T' })
+  const wide = e.entries.filter((x) => x.desk === 'breed')
+  assert.equal(wide.length, 1)
+  assert.equal(wide[0].id, 'sVirus') // het tech-verhaal valt binnen je interesse: overgeslagen
+  assert.equal(wide[0].sourceCount, 12)
+  assert.ok(e.items.find((i) => i.id === 'w1'))
+  assert.ok(e.entries.length <= 10)
+  // Staat het al in je editie, dan niet nog eens.
+  const dup = composePersonal({ global: { ...global, wide: [{ storyId: 'sWoning', sourceCount: 9, topics: [], item: items[0] }] }, stories, items, followed, now: NOW, builtAt: 'T' })
+  assert.equal(dup.entries.filter((x) => x.desk === 'breed').length, 0)
+})
+
+test('server: breed gedekt alleen met een gratis bron als bericht, en geen sport', async () => {
+  const { widelyCovered } = await import('../netlify/lib/stories.mjs')
+  const byId = new Map([
+    ['a', art('a', 'nrc', 'Betaald bericht')],
+    ['b', art('b', 'nos', 'Gratis bericht')],
+    ['c', art('c', 'vi', 'Voetbal', { topics: ['voetbal'] })],
+    ['d', art('d', 'nu', 'Voetbal', { topics: ['voetbal'] })],
+    ['e', art('e', 'nrc', 'Alleen betaald')],
+  ])
+  const st = [
+    { id: 'sNews', sourceCount: 9, itemIds: ['a', 'b'] },
+    { id: 'sSport', sourceCount: 20, itemIds: ['c', 'd'] },
+    { id: 'sPaid', sourceCount: 8, itemIds: ['e'] },
+  ]
+  const free = new Set(['nos', 'nu', 'vi'])
+  const out = widelyCovered(st, byId, { isFree: (id) => free.has(id), isDutch: () => true, isSport: (i) => (i.topics || []).includes('voetbal') })
+  assert.deepEqual(out.map((w) => w.storyId), ['sNews']) // sport en alleen-betaald vallen af
+  assert.equal(out[0].item.id, 'b') // de gratis bron, niet NRC
+})
