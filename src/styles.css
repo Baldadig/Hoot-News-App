@@ -2873,6 +2873,73 @@ html[data-images='hoofd'] .media--social {
   font-size: var(--t2);
 }
 
+/* Verhalen die je volgt: een kort lijstje boven de editie */
+.following {
+  margin: var(--s2) 0 0;
+}
+.following__head {
+  margin: 0 0 var(--s1);
+  color: var(--ink-3);
+  font-size: var(--t1);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.following ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.following__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s3);
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--s2) 0;
+  border: 0;
+  border-top: 1px solid var(--rule);
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.following__title {
+  min-width: 0;
+  font-family: var(--serif);
+  font-size: var(--t3);
+  font-weight: 800;
+  line-height: var(--lh-head);
+}
+.following__new {
+  flex: none;
+  color: var(--ink-3);
+  font-size: var(--t1);
+}
+.following__new.is-new {
+  color: var(--accent);
+  font-weight: 800;
+}
+/* Volgen in het verhaalpaneel */
+.followbtn {
+  min-height: 36px;
+  margin-left: auto;
+  padding: 0 var(--s3);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--ink-2);
+  font-size: var(--t1);
+  font-weight: 700;
+  cursor: pointer;
+}
+.followbtn.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
 /* Editie: de ingang naar het overzicht in één minuut, boven het hoofdverhaal */
 .briefcta {
   display: flex;

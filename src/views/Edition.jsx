@@ -10,6 +10,7 @@ import Weather from '../components/Weather.jsx'
 import { longDate } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { resolveEditionEntry, EDITION_SIZE } from '../lib/edition.js'
+import { followedNow } from '../lib/follow.js'
 
 // Rubriek van elke plek in de editie (komt van de server), als label boven het verhaal.
 const DESK = { binnenland: 'Binnenland', buitenland: 'Buitenland', vs: 'VS', middenoosten: 'Midden-Oosten', oekraine: 'Oekraïne', wetenschap: 'Wetenschap', bubbel: 'Buiten je bubbel', extern: 'Buiten je bronnen' }
@@ -69,7 +70,8 @@ function FrontItem({ item, story, note }) {
 const SLOT = { ochtend: 'Ochtendeditie', middag: 'Middageditie', avond: 'Avondeditie' }
 
 export default function Edition({ active, edition, bubble = [], brief = null, briefForMembers = false, onJoin, loading, failedLoad, statusProps, onRefresh, refreshing }) {
-  const { itemsById, storiesById, muted } = useHoot()
+  const { itemsById, storiesById, muted, followStories, newInStory, openStory } = useHoot()
+  const following = followedNow(followStories, storiesById, newInStory)
   const ref = useRef(null)
 
   // Elke plek van de editie: het gepubliceerde bericht (vast) met de bundel erachter. Alle plekken
@@ -129,6 +131,21 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               {edition.personal ? 'Samengesteld uit jouw bronnen en interesses' : 'De editie voor iedereen'}
               {rows.length < EDITION_SIZE ? ` · ${rows.length} ${rows.length === 1 ? 'verhaal' : 'verhalen'}: er was niet meer nieuws dat breed genoeg werd gebracht` : ''}.
             </p>
+            {following.length ? (
+              <section className="following" aria-label="Verhalen die je volgt">
+                <h2 className="following__head">Je volgt</h2>
+                <ul>
+                  {following.map((f) => (
+                    <li key={f.id}>
+                      <button type="button" className="following__row" onClick={() => openStory(f.story.id)}>
+                        <span className="following__title">{f.title}</span>
+                        <span className={`following__new${f.fresh ? ' is-new' : ''}`}>{f.fresh ? `${f.fresh} nieuw` : 'niets nieuws'}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
             {hasBrief ? (
               <button type="button" className="briefcta" onClick={() => setReading(true)} aria-haspopup="dialog">
                 <span className="briefcta__icon" aria-hidden="true">

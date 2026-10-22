@@ -17,6 +17,7 @@ export const DEFAULT_PREFS = {
   bluesky: false, // Bluesky als eigen bestemming in het menu
   bskyInStream: [], // Bluesky-accounts die óók in de Stroom staan (standaard alleen in Bluesky)
   weatherPlace: 'haarlem', // plaats voor het weer in de Editie (src/lib/weather.js), of 'geen'
+  followStories: [], // verhalen die je volgt: [{ id, title, at }] (src/lib/follow.js)
 }
 
 export function normalizePrefs(raw) {
@@ -35,6 +36,7 @@ export function normalizePrefs(raw) {
   if (!Array.isArray(out.interests)) out.interests = []
   if (!Array.isArray(out.topics)) out.topics = []
   if (typeof out.weatherPlace !== 'string') out.weatherPlace = 'haarlem'
+  if (!Array.isArray(out.followStories)) out.followStories = []
   // Opgeruimde instellingen (voorlezen en Instapaper, tot v1.19) niet meer meedragen.
   for (const k of ['instapaper', 'readAloud', 'voice']) delete out[k]
   return out

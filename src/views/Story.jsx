@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { CompactItem, Meta, SaveButton, useHoot } from '../components/Items.jsx'
+import { isFollowing } from '../lib/follow.js'
 import { BackIcon, CloseIcon } from '../components/icons.jsx'
 import { timeAgo } from '../lib/time.js'
 
@@ -21,7 +22,8 @@ function SourceItem({ item, note }) {
 
 // Bronvergelijking: elke publicatie over dit verhaal apart, met eigen kop, bron, tijd en link.
 export default function Story({ story, items, overlay, onClose, onBack, onSeen, seenBefore }) {
-  const { sourcesById, muted } = useHoot()
+  const { sourcesById, muted, followStories, followStory } = useHoot()
+  const following = isFollowing(followStories, story)
   // Wat je de vorige keer al zag, vastgelegd bij het openen (zodat "nieuw" niet meteen verdwijnt).
   const [prev] = useState(() => seenBefore)
   const headRef = useRef(null)
@@ -80,6 +82,9 @@ export default function Story({ story, items, overlay, onClose, onBack, onSeen, 
         <p className={`story__eyebrow${overlay ? '' : ' visually-hidden'}`} tabIndex={-1} ref={headRef}>
           Verhaal
         </p>
+        <button type="button" className={`followbtn${following ? ' is-on' : ''}`} aria-pressed={following} onClick={() => followStory(story, lead?.title || '')}>
+          {following ? 'Je volgt dit' : 'Volg dit verhaal'}
+        </button>
         <SaveButton id={story.id} kind="story" payload={story} label="verhaal" />
         {!overlay ? (
           <button type="button" className="iconbtn" onClick={onClose} aria-label="Paneel sluiten">

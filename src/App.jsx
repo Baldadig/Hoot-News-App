@@ -31,6 +31,7 @@ import { normalizePrefs } from './lib/prefs.js'
 import { shouldShowInstallTip } from './lib/install.js'
 import { shouldAskToJoin } from './lib/join.js'
 import { usePersonalEdition } from './hooks/usePersonalEdition.js'
+import { toggleFollow } from './lib/follow.js'
 import { subscribe as onUpdate, isReady as updateReady, applyUpdate, dismissUpdate } from './lib/swUpdate.js'
 import { indexStories, resolveStory, toggleSaved, restoreSaved } from './lib/saved.js'
 
@@ -432,8 +433,13 @@ export default function App() {
   const togglePanel = useCallback(() => setPrefs((p) => ({ ...p, panel: p.panel === 'open' ? 'dicht' : 'open' })), [setPrefs])
   const panel = useMemo(() => ({ available: hasPanel, open: panelOpen || (hasPanel && !!story), toggle: story ? closePanel : togglePanel }), [hasPanel, panelOpen, story, closePanel, togglePanel])
 
+  // Verhaal volgen (de kop bewaren we bij het volgen; zie src/lib/follow.js).
+  const followStory = useCallback((story, title) => setPrefs((p) => ({ ...p, followStories: toggleFollow(p.followStories, story, title) })), [setPrefs])
+
   const ctx = useMemo(
     () => ({
+      followStory,
+      followStories: prefs.followStories,
       panel,
       layout,
       setLayout,
@@ -456,7 +462,7 @@ export default function App() {
       muted,
       setMuted,
     }),
-    [panel, layout, setLayout, prefs, setPref, theme, setTheme, openDisplay, account, saved, toggleSave, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted],
+    [panel, layout, setLayout, prefs, setPref, theme, setTheme, openDisplay, account, saved, toggleSave, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories],
   )
 
   const hideMain = overlay || showWelcome
