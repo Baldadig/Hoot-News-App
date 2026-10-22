@@ -437,8 +437,9 @@ export default function App() {
       storiesById,
       sourcesById,
       muted,
+      setMuted,
     }),
-    [panel, layout, setLayout, prefs, setPref, theme, setTheme, openDisplay, account, saved, toggleSave, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted],
+    [panel, layout, setLayout, prefs, setPref, theme, setTheme, openDisplay, account, saved, toggleSave, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted],
   )
 
   const hideMain = overlay || showWelcome

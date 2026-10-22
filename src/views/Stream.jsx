@@ -75,7 +75,7 @@ function FilterSheet({ open, onClose, params, setFilter, clear, sources, count }
 }
 
 export default function Stream({ active, stream, params, go, pinned, mine = [], bubble = [], preview = 2, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
-  const { storiesById, sourcesById } = useHoot()
+  const { storiesById, sourcesById, muted, setMuted } = useHoot()
   const ref = useRef(null)
   const [sheet, setSheet] = useState(false)
   const [atDepth, setAtDepth] = useState(false)
@@ -129,7 +129,9 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
 
   const srcName = (id) => sources.find((s) => s.id === id)?.name || id
   const kindName = (id) => KINDS.find((k) => k.id === id)?.label
-  const followed = sources.filter((s) => s.followed)
+  // In het filterblad alleen bronnen die meedoen: een uitgezette bron levert hier niets op.
+  const followed = sources.filter((s) => s.followed && !muted.has(s.id))
+  const offSource = filters.bron && muted.has(filters.bron) ? filters.bron : null
   const filterText = [filters.onderwerp && topicLabel(filters.onderwerp), filters.rubriek && interestLabel(filters.rubriek), filters.bron && `Alleen ${srcName(filters.bron)}`, filters.soort && kindName(filters.soort)].filter(Boolean).join(' · ')
   const sheetCount = [filters.bron, filters.soort].filter(Boolean).length // wat in het filterblad staat (onderwerp zit in de rij)
 
@@ -206,12 +208,18 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
               <Empty
                 title="Geen berichten voor dit filter"
                 action={
-                  <button type="button" className="btn" onClick={clear}>
-                    Wis filters
-                  </button>
+                  offSource ? (
+                    <button type="button" className="btn" onClick={() => setMuted(offSource, true)}>
+                      Zet {srcName(offSource)} aan
+                    </button>
+                  ) : (
+                    <button type="button" className="btn" onClick={clear}>
+                      Wis filters
+                    </button>
+                  )
                 }
               >
-                {stream.length === 0 ? 'Al je bronnen staan uit. Zet er een aan bij Bronnen.' : 'Er is op dit moment niets dat hieraan voldoet. De berichten zelf zijn wel geladen.'}
+                {offSource ? `${srcName(offSource)} staat uit. Zet de bron aan om de berichten in je Stroom te zien.` : stream.length === 0 ? 'Al je bronnen staan uit. Zet er een aan bij Bronnen.' : 'Er is op dit moment niets dat hieraan voldoet. De berichten zelf zijn wel geladen.'}
               </Empty>
             ) : (
               <div className={`list${preview === 'alles' ? '' : ` list--lines-${preview}`}`}>

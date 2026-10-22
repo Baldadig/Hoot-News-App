@@ -16,10 +16,12 @@ export function Switch({ checked, onChange, label }) {
 }
 
 export function SourceRow({ s, muted, onToggle, onRemove }) {
+  const Main = muted ? 'div' : 'a'
   const status = !s.ok ? 'Tijdelijk niet bereikbaar' : s.count ? `${s.count} berichten` : 'Geen berichten'
   return (
     <li className="srow">
-      <a className="srow__main" href={`#/stroom?bron=${encodeURIComponent(s.id)}`} aria-label={`Alles van ${s.name} in de Stroom`}>
+      {/* Alleen een link naar de Stroom als de bron aanstaat; een uitgezette bron levert daar niets op. */}
+      <Main className="srow__main" {...(muted ? {} : { href: `#/stroom?bron=${encodeURIComponent(s.id)}`, 'aria-label': `Alles van ${s.name} in de Stroom` })}>
         <SourceMark source={s} size={40} />
         <span className="srow__text">
           <span className="srow__name">{s.name}</span>
@@ -28,7 +30,7 @@ export function SourceRow({ s, muted, onToggle, onRemove }) {
             {status}
           </span>
         </span>
-      </a>
+      </Main>
       {onRemove ? (
         <button type="button" className="linkbtn srow__rm" onClick={() => onRemove(s)}>
           Verwijder
