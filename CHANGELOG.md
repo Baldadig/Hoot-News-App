@@ -2,6 +2,15 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.26.0] — 2026-10-22 — Google-knop, kortere instellingen, meer intro's
+
+- **Inloggen met Google** als echte Google-knop in het zwart: hun eigen G in kleur en Roboto, over de volle breedte.
+- **Instellingen:** de uitleg is zo kort mogelijk. Bij Over staat "gemaakt door Alex Vrees".
+- **Minder koppen zonder intro**: van 10% naar ongeveer 5%, en dat wordt nog minder.
+  - Trouw, Parool en De Morgen krijgen hun inleiding uit de zoekindex, net als de Volkskrant.
+  - Nederlandstalige bronnen lenen elkaars teaser ("via …").
+  - Nature toont alleen nog nieuwsberichten, met intro.
+
 ## [1.25.0] — 2026-10-22 — Review-fixes, nieuw logo, één adres
 
 **Huisstijl**
