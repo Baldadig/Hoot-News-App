@@ -4,6 +4,7 @@ import { SourceMark } from '../components/Items.jsx'
 import { resolveProfile } from '../lib/bluesky.js'
 import { statusLabel } from '../lib/sourceStatus.js'
 import { clock, timeAgo } from '../lib/time.js'
+import { SOURCE_CATS } from '../lib/topics.js'
 
 export function Switch({ checked, onChange, label }) {
   return (
@@ -123,20 +124,6 @@ export function AddBluesky({ onAdd }) {
   )
 }
 
-// De catalogus in groepen, in de volgorde van de onboarding.
-const GROUPS = [
-  ['nl', 'Nederland'],
-  ['int', 'Internationaal'],
-  ['regio', 'Regionaal'],
-  ['vl', 'Vlaanderen'],
-  ['economie', 'Economie'],
-  ['tech', 'Tech'],
-  ['games', 'Games'],
-  ['wetenschap', 'Wetenschap'],
-  ['sport', 'Sport'],
-  ['cultuur', 'Cultuur en muziek'],
-]
-
 export default function Sources({ active, sources, muted, onToggle, meta, status, recovered, latestBySource, onRetry, refreshing, online, bluesky = false }) {
   const catalog = sources.filter((s) => s.followed && s.kind !== 'sociaal')
   const mine = catalog.filter((s) => !muted.has(s.id))
@@ -157,7 +144,7 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
 
         <h2 className="sect">Meer bronnen</h2>
         <p className="hint">Gecontroleerde bronnen die je nu niet volgt. Zet er een aan om hem toe te voegen.</p>
-        {GROUPS.map(([cat, label]) => {
+        {SOURCE_CATS.map(([cat, label]) => {
           const list = more.filter((s) => s.cat === cat)
           return list.length ? (
             <details key={cat} className="srcgroup">

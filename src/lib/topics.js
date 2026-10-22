@@ -59,3 +59,19 @@ export function orderedTopics(pinned = [], mine = []) {
   const first = pinned.map((id) => pool.find((t) => t.id === id)).filter(Boolean)
   return [...first, ...pool.filter((t) => !pinned.includes(t.id))]
 }
+
+// Rubrieken van de bronnencatalogus (`cat` in netlify/lib/sources.mjs), in de volgorde van
+// de Bronnen-pagina. Eén plek voor de namen; het welkom kiest zelf welke het toont.
+export const SOURCE_CATS = [
+  ['nl', 'Nederland'],
+  ['int', 'Internationaal'],
+  ['regio', 'Regionaal'],
+  ['vl', 'Vlaanderen'],
+  ['economie', 'Economie'],
+  ['tech', 'Tech'],
+  ['games', 'Games'],
+  ['wetenschap', 'Wetenschap'],
+  ['sport', 'Sport'],
+  ['cultuur', 'Cultuur en muziek'],
+]
+export const catLabel = (cat) => SOURCE_CATS.find(([c]) => c === cat)?.[1] || cat

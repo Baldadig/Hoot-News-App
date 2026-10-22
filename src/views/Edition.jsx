@@ -161,7 +161,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, lo
                 <p className="hint bubble__hint">Wat anderen nu lezen of zoeken en wat niet in je editie zit — ook uit bronnen die je niet volgt.</p>
                 <div className="list">
                   {bubble.map((b) => (
-                    <CompactItem key={b.id} item={b.item} story={b.storyId ? storiesById.get(b.storyId) : null} note={`Via ${[...new Set(b.terms.map((t) => ({ google: 'Google Trends', bluesky: 'Bluesky', wikipedia: 'Wikipedia' })[t.via] || t.via))].join(' en ')}`} plain />
+                    <CompactItem key={b.id} item={b.item} story={b.storyId ? storiesById.get(b.storyId) : null} note={`Via ${[...new Set(b.terms.map((t) => VIA[t.via] || t.via))].join(' en ')}`} plain />
                   ))}
                 </div>
               </section>

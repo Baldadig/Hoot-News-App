@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { SourceMark } from '../components/Items.jsx'
 import { EditionIcon, SparkleIcon, StreamIcon, INTEREST_ICONS } from '../components/icons.jsx'
-import { INTERESTS, topicById, resolveTopics, suggestSources } from '../lib/topics.js'
+import { INTERESTS, topicById, resolveTopics, suggestSources, catLabel } from '../lib/topics.js'
 
 // Onboarding in vier schermen: uitleg → interesses (breed) → onderwerpen (smal) → bronnen.
 // Alles met tikken; onderaan steeds één knop om door te gaan.
@@ -10,17 +10,17 @@ const STEPS = 4
 // Bronnen in de volgorde waarin je ze wilt zien. Regionaal en Vlaams staan ingeklapt;
 // de rubrieken alleen als je die interesse (of dat onderwerp) koos.
 const GROUPS = [
-  { cat: 'nl', label: 'Nederland' },
-  { cat: 'int', label: 'Internationaal' },
-  { cat: 'economie', label: 'Economie', interest: 'economie' },
-  { cat: 'tech', label: 'Tech', interest: 'tech' },
-  { cat: 'games', label: 'Games', topic: 'games' },
-  { cat: 'wetenschap', label: 'Wetenschap', interest: 'wetenschap' },
-  { cat: 'sport', label: 'Sport', interest: 'sport' },
-  { cat: 'cultuur', label: 'Cultuur en muziek', interest: 'cultuur' },
-  { cat: 'regio', label: 'Regionaal', folded: true },
-  { cat: 'vl', label: 'Vlaanderen', folded: true },
-]
+  { cat: 'nl' },
+  { cat: 'int' },
+  { cat: 'economie', interest: 'economie' },
+  { cat: 'tech', interest: 'tech' },
+  { cat: 'games', topic: 'games' },
+  { cat: 'wetenschap', interest: 'wetenschap' },
+  { cat: 'sport', interest: 'sport' },
+  { cat: 'cultuur', interest: 'cultuur' },
+  { cat: 'regio', folded: true },
+  { cat: 'vl', folded: true },
+].map((g) => ({ ...g, label: catLabel(g.cat) }))
 
 export default function Welcome({ account, sources, prefs, onDone }) {
   const [step, setStep] = useState(0)
