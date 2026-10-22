@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
-import { readFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { headersFile } from './scripts/headers.mjs'
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
 const version = process.env.HOOT_VERSION || pkg.version // HOOT_VERSION: alleen om lokaal twee builds te vergelijken
@@ -36,11 +37,28 @@ function devApi() {
   }
 }
 
+// Na de build: dist/_headers met de security-headers en de hashes van de inline scripts.
+function securityHeaders() {
+  let outDir = 'dist'
+  return {
+    name: 'hoot-security-headers',
+    apply: 'build',
+    configResolved(c) {
+      outDir = c.build.outDir
+    },
+    closeBundle() {
+      const html = readFileSync(`${outDir}/index.html`, 'utf8')
+      writeFileSync(`${outDir}/_headers`, headersFile(html))
+    },
+  }
+}
+
 export default defineConfig({
   // Versienummer zichtbaar in het menu, zodat je ziet welke versie er draait.
   define: { __APP_VERSION__: JSON.stringify(version) },
   plugins: [
     devApi(),
+    securityHeaders(),
     react(),
     VitePWA({
       // Een nieuwe versie wordt klaargezet en wácht: de app toont dan "Nieuwe versie
