@@ -2,6 +2,10 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.30.1] — 2026-10-22 — Alleen echt buiten je bronnen
+
+- "Waar iedereen over schrijft" kiest geen verhaal meer dat een van je eigen bronnen ook brengt. Je kreeg The Guardian over Kyiv, terwijl The Atlantic, die je volgt, er ook over schreef. Die plek is voor nieuws dat je anders zou missen.
+
 ## [1.30.0] — 2026-10-22 — Kleur kiezen
 
 - **Weergave → Kleur:**
