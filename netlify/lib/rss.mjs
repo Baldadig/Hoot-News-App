@@ -77,7 +77,9 @@ export function usableImage(u) {
 function pickImage(item) {
   const mc = item.mediaContent
   if (Array.isArray(mc)) {
-    const img = mc.find((m) => m?.$?.medium === 'image' || /^image\//.test(m?.$?.type || '') || /\.(jpe?g|png|webp|gif)/i.test(m?.$?.url || ''))
+    // Meerdere formaten (The Guardian: 140 en 460 px breed): het breedste.
+    const imgs = mc.filter((m) => m?.$?.url && (m.$.medium === 'image' || /^image\//.test(m.$.type || '') || /\.(jpe?g|png|webp|gif)/i.test(m.$.url)))
+    const img = imgs.reduce((best, m) => (Number(m.$.width) || 0) > (Number(best?.$?.width) || 0) ? m : best, imgs[0])
     if (img?.$?.url) return img.$.url
   } else if (mc?.$?.url) return mc.$.url
   const mt = item.mediaThumbnail

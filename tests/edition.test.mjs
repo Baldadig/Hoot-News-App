@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { resolveEditionEntry, uncovered } from '../src/lib/edition.js'
+import { resolveEditionEntry, uncovered, heroFirst } from '../src/lib/edition.js'
+import { fitsHero } from '../src/lib/img.js'
 import { relinkEdition } from '../netlify/lib/stories.mjs'
 
 // De situatie van de ochtendeditie van 22-10: het hoofdbericht (Witkoff/Poetin, qskuc4) zat bij
@@ -83,4 +84,15 @@ test('wat het overzicht niet noemt komt eronder, op volgorde', () => {
   const brief = { sections: [{ refs: [0, 2] }, { refs: [3] }] }
   assert.deepEqual(uncovered(brief, 6), [1, 4, 5])
   assert.deepEqual(uncovered({ sections: [{ text: 'oud, zonder refs' }] }, 6), []) // oud overzicht: niets te zeggen
+})
+
+test('het hoofdverhaal heeft altijd een scherp beeld: anders schuift de eerste plek met goed beeld naar voren', () => {
+  const small = 'https://i.guim.co.uk/img/media/a/master/1.jpg?width=140&quality=85&s=x'
+  const sharp = 'https://images.cdn.nos.nl/a-1024x576.webp'
+  const row = (key, image, desk = null) => ({ key, index: Number(key.slice(1)), desk, item: { id: key, image } })
+  const rows = [row('r0', small), row('r1', null), row('r2', sharp, 'bubbel'), row('r3', sharp)]
+  assert.deepEqual(heroFirst(rows, fitsHero).map((r) => r.key), ['r3', 'r0', 'r1', 'r2'])
+  // Al goed: niets verandert. Nergens een goed beeld: volgorde blijft.
+  assert.equal(heroFirst([row('a0', sharp), row('a1', small)], fitsHero)[0].key, 'a0')
+  assert.deepEqual(heroFirst([row('b0', small), row('b1', null)], fitsHero).map((r) => r.key), ['b0', 'b1'])
 })

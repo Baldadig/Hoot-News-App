@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react'
 import { timeAgo, readTime } from '../lib/time.js'
 import { BookmarkIcon, PlayIcon } from './icons.jsx'
 import { savedKey } from '../lib/saved.js'
-import { avatarUrl, fitsLarge } from '../lib/img.js'
+import { avatarUrl, fitsLarge, fitsHero } from '../lib/img.js'
 import { TermHelp } from './Terms.jsx'
 import { Img } from './Img.jsx'
 import { Video } from './Video.jsx'
@@ -110,7 +110,7 @@ export function LeadStory({ item, story, note, priority = false }) {
         <Kicker item={item} extra={note} />
         <h2 className="lead__title">{item.title}</h2>
         <Summary item={item} className="lead__sum" />
-        {item.image && fitsLarge(item.image) ? (
+        {item.image && fitsHero(item.image) ? (
           <div className="media media--lead">
             <Img url={item.image} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} />
           </div>

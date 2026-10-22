@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { fitsLarge, imgProps, avatarUrl } from '../src/lib/img.js'
+import { fitsLarge, fitsHero, knownWidth, imgProps, avatarUrl } from '../src/lib/img.js'
 
 test('Wired: thumbnail vraagt een kleine variant in plaats van het origineel (1 MB)', () => {
   const p = imgProps('https://media.wired.com/photos/abc/master/pass/2298652701', 'thumb')
@@ -73,4 +73,15 @@ test('elke CDN-bron staat ook in netlify.toml (anders weigert Netlify het beeld)
   const { CDN_HOSTS } = await import('../src/lib/img.js')
   const toml = readFileSync(new URL('../netlify.toml', import.meta.url), 'utf8')
   for (const host of CDN_HOSTS) assert.ok(toml.includes(`'https://${host.replaceAll('.', '\\.')}/.*'`), host)
+})
+
+test('The Guardian: de breedte staat in het (getekende) adres; 140 px is nooit groot, 460 niet als hoofdverhaal', () => {
+  const g = (w) => `https://i.guim.co.uk/img/media/a/master/1.jpg?width=${w}&quality=85&auto=format&fit=max&s=abc`
+  assert.equal(knownWidth(g(140)), 140)
+  assert.equal(fitsLarge(g(140)), false)
+  assert.equal(fitsLarge(g(460)), true)
+  assert.equal(fitsHero(g(460)), false)
+  assert.equal(fitsHero(g(1200)), true)
+  assert.equal(fitsHero('https://images.cdn.nos.nl/a-1024x576.webp'), true) // onbekend = goed
+  assert.equal(fitsHero(null), false)
 })

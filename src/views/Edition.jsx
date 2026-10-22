@@ -9,7 +9,8 @@ import { BrandMark } from '../components/Brand.jsx'
 import Weather from '../components/Weather.jsx'
 import { longDate } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
-import { resolveEditionEntry, EDITION_SIZE } from '../lib/edition.js'
+import { resolveEditionEntry, heroFirst, EDITION_SIZE } from '../lib/edition.js'
+import { fitsHero } from '../lib/img.js'
 import { followedNow } from '../lib/follow.js'
 import { TermHelp } from '../components/Terms.jsx'
 
@@ -80,16 +81,17 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
   // blijven staan; een bron die je niet volgt krijgt een label (behalve "Buiten je bubbel", dat
   // daar juist voor is).
   const published = new Map((edition?.items || []).map((i) => [i.id, i]))
-  const rows = (edition?.entries || [])
+  const placed = (edition?.entries || [])
     .map((e, index) => {
       const r = resolveEditionEntry(e, { storiesById, itemsById, published, muted })
       if (!r) return null
       const label = e.desk === 'breed' ? `Waar iedereen over schrijft · ${e.sourceCount} bronnen` : deskLabel({ ...e, desk: r.desk })
       // "Buiten je bubbel" en "Buiten je bronnen" zeggen het zelf al; elders een label als je de bron niet volgt.
       const note = r.followed || ['bubbel', 'extern', 'breed'].includes(e.desk) ? label : [label, 'Volg je niet'].filter(Boolean).join(' · ')
-      return { key: e.id, index, item: r.item, story: r.story, note }
+      return { key: e.id, index, desk: e.desk, item: r.item, story: r.story, note }
     })
     .filter(Boolean)
+  const rows = heroFirst(placed, fitsHero)
 
   const [reading, setReading] = useState(false)
   const hasBrief = !!(brief?.sections?.length || brief?.text)

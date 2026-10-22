@@ -16,13 +16,30 @@ const SIZES = {
 
 const isBingThumb = (u) => u.hostname === 'www.bing.com' && u.pathname === '/th'
 
-// Mag dit beeld groot (hoofdbeeld, tijdlijn)? Niet als we weten dat het alleen klein bestaat.
-export function fitsLarge(url) {
+// Hoe breed een beeld hooguit is, als het adres dat verraadt (en we het niet groter kunnen
+// opvragen); anders null. The Guardian tekent zijn adressen: de breedte staat vast.
+export function knownWidth(url) {
+  let u
   try {
-    return !isBingThumb(new URL(url))
+    u = new URL(url)
   } catch {
-    return true
+    return null
   }
+  if (isBingThumb(u)) return 320
+  if (u.hostname === 'i.guim.co.uk') return Number(u.searchParams.get('width')) || null
+  return null
+}
+
+// Mag dit beeld groot (tijdlijn)? Niet als we weten dat het alleen klein bestaat.
+export function fitsLarge(url) {
+  const w = knownWidth(url)
+  return w == null || w >= 400
+}
+
+// Goed genoeg voor het hoofdverhaal van de editie (tot 720 px breed, scherp op een retinascherm)?
+export function fitsHero(url) {
+  const w = knownWidth(url)
+  return !!url && (w == null || w >= 700)
 }
 
 // Geeft [[url, breedte], …] voor een beeld, of null als we geen varianten kennen.
