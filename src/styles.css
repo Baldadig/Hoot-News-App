@@ -345,14 +345,29 @@ select {
     border-top: 0;
     padding: var(--s5) var(--s3);
   }
+  /* Krantenkop (zoals app-icoon E): dikke rode balk erboven, dunne inktlijn eronder,
+     allebei precies zo breed als het woordmerk. */
   .nav__brand {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: var(--s3);
-    min-height: var(--tap);
+    width: max-content;
     padding: 0 var(--s3);
-    margin-bottom: var(--s4);
+    margin-bottom: var(--s5);
     text-decoration: none;
+  }
+  .nav__brand::before,
+  .nav__brand::after {
+    content: '';
+    display: block;
+  }
+  .nav__brand::before {
+    height: 6px;
+    background: var(--accent);
+  }
+  .nav__brand::after {
+    height: 2px;
+    background: var(--ink);
   }
   .nav__list {
     flex-direction: column;

@@ -2,6 +2,10 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.26.1] — 2026-10-22 — Krantenkop op desktop
+
+- Op desktop staat het logo als krantenkop in de zijbalk, zoals app-icoon E: een rode balk erboven en een dunne zwarte lijn eronder, allebei even breed als "hoot.".
+
 ## [1.26.0] — 2026-10-22 — Google-knop, kortere instellingen, meer intro's
 
 - **Inloggen met Google** als echte Google-knop in het zwart: hun eigen G in kleur en Roboto, over de volle breedte.
