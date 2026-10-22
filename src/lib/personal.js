@@ -112,6 +112,16 @@ export function composePersonal({ global, stories = [], items = [], sources = []
 
 // De invoer voor het overzicht in één minuut: per plek het getoonde bericht (met de plek erbij,
 // voor de verwijzingen per blok). Zelfde vorm als briefRows op de server.
+// Vingerafdruk van waaruit een editie is samengesteld: je bronnen en interesses. Een editie met
+// een andere afdruk is niet (meer) de jouwe — bijvoorbeeld gemaakt op een toestel dat je
+// instellingen nog niet had geladen — en wordt opnieuw samengesteld.
+export function editionBasis(followed = [], interests = [], topics = []) {
+  const text = [[...followed].sort().join(','), [...interests].sort().join(','), [...topics].sort().join(',')].join('|')
+  let h = 5381
+  for (let i = 0; i < text.length; i++) h = ((h * 33) ^ text.charCodeAt(i)) >>> 0
+  return h.toString(36)
+}
+
 export function personalRows(edition) {
   const byId = new Map((edition?.items || []).map((i) => [i.id, i]))
   const rows = []

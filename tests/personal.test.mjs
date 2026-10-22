@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { composePersonal, personalRows, INTEREST_BONUS } from '../src/lib/personal.js'
+import { composePersonal, personalRows, editionBasis, INTEREST_BONUS } from '../src/lib/personal.js'
 
 const NOW = Date.parse('2026-10-22T10:00:00Z')
 const ago = (h) => new Date(NOW - h * 36e5).toISOString()
@@ -181,4 +181,11 @@ test('een bericht van een vakbron krijgt de rubriek van de bron', () => {
   const review = art('rv', 'tweakers', 'Review: koptelefoon van Britse fabrikant Nothing', { publishedAt: ago(0.2) })
   const e = composePersonal({ global, stories, items: [...items, review], sources, followed, now: NOW, builtAt: 'T' })
   assert.equal(e.entries.find((x) => (x.leadId || x.id) === 'rv').desk, 'tech')
+})
+
+test('vingerafdruk: andere bronnen of interesses geven een andere afdruk, volgorde maakt niet uit', () => {
+  const a = editionBasis(['nos', 'nyt', 'atlantic'], ['tech'], [])
+  assert.equal(a, editionBasis(['atlantic', 'nos', 'nyt'], ['tech'], []))
+  assert.notEqual(a, editionBasis(['nos', 'nyt', 'atlantic', 'guardian'], ['tech'], [])) // startbronnen erbij
+  assert.notEqual(a, editionBasis(['nos', 'nyt', 'atlantic'], [], []))
 })
