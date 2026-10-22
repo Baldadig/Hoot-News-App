@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { supabase, hasSession, isAuthReturn, finishAuthReturn, pendingInvite, clearInvite, signInWithGoogle, inviteLink } from '../lib/account.js'
+import { supabase, hasSession, isAuthReturn, finishGoogleLogin, pendingInvite, clearInvite, signInWithGoogle, inviteLink } from '../lib/account.js'
 
 // Wie er is ingelogd, en of die lid is.
 // status: 'out' (niet ingelogd) | 'loading' | 'in' (lid) | 'noInvite' (ingelogd, maar nog geen lid)
@@ -24,10 +24,9 @@ export function useAccount() {
     let sub = null
     let alive = true
     supabase().then(async (client) => {
-      const { data } = await client.auth.getSession()
-      finishAuthReturn()
+      const session = (await finishGoogleLogin(client)) || (await client.auth.getSession()).data.session
       if (!alive) return
-      if (data.session) await resolve(client, data.session.user)
+      if (session) await resolve(client, session.user)
       else setState({ status: 'out', user: null, profile: null, client })
       sub = client.auth.onAuthStateChange((event) => {
         if (event === 'SIGNED_OUT') setState({ status: 'out', user: null, profile: null, client })

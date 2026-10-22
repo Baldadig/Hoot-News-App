@@ -2,6 +2,12 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.23.0] — 2026-10-22 — Direct inloggen en een nieuw icoon
+
+- **Inloggen gaat rechtstreeks met Google.** Google vraagt nu "Doorgaan naar Hoot" in plaats van een lang Supabase-adres te tonen. Daarna kom je terug waar je was.
+- **Nieuw icoon:** een vette h uit de koppen, met een rode punt, op papier.
+- **Nachtmodus:** in browsertabbladen wordt het icoon donker als je toestel in de donkere modus staat. Een donkere versie staat klaar in `public/brand/`. Voor het beginscherm laat iOS een webapp maar één icoon kiezen; dat is de lichte.
+
 ## [1.22.0] — 2026-10-22 — Zaterdagkrant, een grote bronnencatalogus en acht interesses
 
 - **Nieuw ontwerp, "Zaterdagkrant":** warm papier (iets minder beige), koppen in Newsreader, tekst in Source Sans 3, krantenrood als accent, zwarte knoppen. Donker thema mee aangepast.

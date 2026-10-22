@@ -68,7 +68,8 @@ Nederlandse bron over hetzelfde verhaal ("via NOS").
 
 ## Accounts en uitnodigingen
 
-Hoot is op uitnodiging. Inloggen gaat met Google (via Supabase, EU); als lid gaan je instellingen,
+Hoot is op uitnodiging. Inloggen gaat rechtstreeks met Google (`src/lib/account.js`: Google stuurt een
+id-token terug naar Hoot, Supabase in de EU maakt daar een sessie van); als lid gaan je instellingen,
 Bewaard, wat je las en welke verhalen je zag mee naar je andere toestellen. Zonder account werkt
 alles ook, alleen op dit toestel.
 

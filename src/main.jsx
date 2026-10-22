@@ -10,10 +10,12 @@ import '@fontsource/source-sans-3/latin-700.css'
 import '@fontsource/source-sans-3/latin-800.css'
 import './styles.css'
 import { registerUpdates } from './lib/swUpdate.js'
-import { captureInvite } from './lib/account.js'
+import { captureInvite, captureGoogleReturn } from './lib/account.js'
 
-// Uitnodigingslink (?uitnodiging=…): onthouden tot je inlogt, en uit de adresbalk halen.
+// Uitnodigingslink (?uitnodiging=…) en terugkomst van Google (#id_token=…): onthouden en uit de
+// adresbalk halen, vóór de app die als route leest.
 captureInvite()
+captureGoogleReturn()
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
