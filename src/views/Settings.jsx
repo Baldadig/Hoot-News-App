@@ -79,7 +79,7 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
 
         <h2 className="sect">Over</h2>
         <p className="about">
-          Hoot v{__APP_VERSION__} · gemaakt door Alex Vrees · <a href="#/stijl">Designsysteem</a>
+          Hoot v{__APP_VERSION__} · gemaakt door Alex Vrees · <a href="#/privacy">Privacy</a> · <a href="#/stijl">Designsysteem</a>
           <br />
           Samenvattingen komen van de bron. Alleen de editie in één minuut is door AI geschreven.
           {meta?.storage === 'blobs' ? null : ' Edities worden nu niet vast bewaard en kunnen wisselen.'}

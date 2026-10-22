@@ -70,7 +70,7 @@ export default defineConfig({
       manifest: {
         name: 'Hoot',
         short_name: 'Hoot',
-        description: 'Een rustige, reclamevrije nieuws-tijdlijn van jouw abonnementen.',
+        description: 'Je nieuwsbronnen in één rustige editie: drie keer per dag tien verhalen, in een minuut samengevat.',
         lang: 'nl',
         theme_color: '#f5f1e8',
         background_color: '#f5f1e8',
@@ -86,6 +86,7 @@ export default defineConfig({
       workbox: {
         navigateFallback: '/index.html',
         globPatterns: ['**/*.{js,css,html,woff2,svg,png}'], // ook de lettertypes, zodat de app offline gelijk blijft
+        globIgnores: ['og.png'], // deelafbeelding: alleen voor links in andere apps
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/api/feed'),

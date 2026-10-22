@@ -53,3 +53,16 @@ test('HEAD geeft de headers zonder inhoud', async () => {
   assert.equal(r.status, 200)
   assert.equal(await r.text(), '')
 })
+
+test('start zonder vergelijkingsdata; verhalen apart, met versie een jaar te bewaren', async () => {
+  await writeDoc(KEYS.core, { body: '{}', builtAt: now(), etag: 'k' })
+  await writeDoc(KEYS.start, { body: '{"meta":{"related":"r1"}}', builtAt: now(), etag: 's' })
+  await writeDoc(KEYS.related, { body: '{"related":[1,2]}', builtAt: now(), etag: 'r1' })
+  const start = await serve(new Request('http://x/api/feed?deel=start'), {})
+  assert.equal(await start.text(), '{"meta":{"related":"r1"}}')
+  const rel = await serve(new Request('http://x/api/feed?deel=verhalen&v=r1'), {})
+  assert.match(rel.headers.get('cache-control'), /immutable/)
+  assert.deepEqual((await rel.json()).related, [1, 2])
+  const old = await serve(new Request('http://x/api/feed?deel=verhalen&v=r0'), {})
+  assert.match(old.headers.get('cache-control'), /must-revalidate/)
+})

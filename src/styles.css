@@ -1368,6 +1368,25 @@ select {
   padding: 0 var(--s6) 0 var(--s5);
 }
 
+/* Lopende tekst op een eigen pagina (Privacy) */
+.prose p,
+.prose ul {
+  max-width: 65ch;
+  margin: 0 0 var(--s3);
+  color: var(--ink-2);
+  font-size: var(--t3);
+  line-height: var(--lh-body);
+}
+.prose ul {
+  padding-left: 1.2em;
+}
+.prose li + li {
+  margin-top: var(--s1);
+}
+.prose strong {
+  color: var(--ink);
+}
+
 /* Vraag om in te loggen (na een eind lezen, zonder account) */
 .sheet--join .sheet__head .kicker {
   margin: 0;

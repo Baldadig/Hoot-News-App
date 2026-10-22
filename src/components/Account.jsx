@@ -145,7 +145,12 @@ export function JoinSheet({ open, onClose, onSignIn }) {
             Niet nu
           </button>
         </div>
-        <p className="sheet__note">Hoot krijgt van Google alleen je naam, e-mailadres en profielfoto.</p>
+        <p className="sheet__note">
+          Hoot krijgt van Google alleen je naam, e-mailadres en profielfoto.{' '}
+          <a href="#/privacy" onClick={onClose}>
+            Privacy
+          </a>
+        </p>
       </div>
     </dialog>
   )

@@ -49,12 +49,17 @@ export function BriefReader({ open, onClose, brief, kicker, rows = [] }) {
               {refs.length ? (
                 <p className="reader__refs">
                   <span className="visually-hidden">Bronnen: </span>
-                  {refs.map((r, k) => (
-                    <a key={r.key} href={r.item.url} target="_blank" rel="noopener noreferrer">
-                      {r.item.sourceName}
-                      {k < refs.length - 1 ? <span aria-hidden="true"> · </span> : null}
-                    </a>
-                  ))}
+                  {refs.map((r, k) => {
+                    // Twee verhalen van dezelfde bron: nummeren, zodat elke link herkenbaar blijft.
+                    const same = refs.filter((x) => x.item.sourceName === r.item.sourceName)
+                    const name = same.length > 1 ? `${r.item.sourceName} (${same.indexOf(r) + 1})` : r.item.sourceName
+                    return (
+                      <a key={r.key} href={r.item.url} target="_blank" rel="noopener noreferrer" title={r.item.title}>
+                        {name}
+                        {k < refs.length - 1 ? <span aria-hidden="true"> · </span> : null}
+                      </a>
+                    )
+                  })}
                 </p>
               ) : null}
             </section>

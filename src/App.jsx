@@ -36,10 +36,11 @@ import { indexStories, resolveStory, toggleSaved, restoreSaved } from './lib/sav
 // Schermen die je zelden opent laden pas als je ze opent (de service worker heeft ze al klaarstaan).
 const Search = lazy(() => import('./views/Search.jsx'))
 const Settings = lazy(() => import('./views/Settings.jsx'))
+const Privacy = lazy(() => import('./views/Privacy.jsx'))
 const StyleGuide = lazy(() => import('./views/StyleGuide.jsx'))
 const Welcome = lazy(() => import('./views/Welcome.jsx'))
 
-const PAGES = ['zoek', 'stijl', 'welkom', 'instellingen']
+const PAGES = ['zoek', 'stijl', 'welkom', 'instellingen', 'privacy']
 const byRecency = (a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || '')
 
 const safe = (fn, fallback) => {
@@ -82,7 +83,7 @@ export default function App() {
   }, [prefs.textSize, prefs.images])
   const [display, setDisplay] = useState(false)
   const openDisplay = useCallback(() => setDisplay(true), [])
-  const { data, status, refreshing, refreshError, reload, pendingCount, applyPending } = useFeed(prefs)
+  const { data, status, refreshing, refreshError, reload, pendingCount, applyPending, loadRelated } = useFeed(prefs)
   const online = useOnline()
   const { theme, setTheme } = useTheme()
   const hasPanel = useWide('(min-width: 1200px)')
@@ -370,7 +371,7 @@ export default function App() {
         bronnen: 'Bronnen',
         zoek: 'Zoeken',
         stijl: 'Designsysteem',
-        welkom: 'Welkom', instellingen: 'Instellingen', bluesky: 'Bluesky' }[path] + ' · Hoot'
+        welkom: 'Welkom', instellingen: 'Instellingen', privacy: 'Privacy', bluesky: 'Bluesky' }[path] + ' · Hoot'
   }, [path])
 
   // Bronstatus: één uitgevallen bron is een stil puntje bij Bronnen; alleen als álles
@@ -407,6 +408,11 @@ export default function App() {
   const layout = prefs.layout === 'krant' ? 'krant' : 'tijdlijn'
   const setLayout = useCallback((layout) => setPrefs((p) => ({ ...p, layout })), [setPrefs])
   const panelOpen = hasPanel && prefs.panel === 'open'
+  // Vergelijkingsdata (alle publicaties per verhaal) pas als je die nodig hebt.
+  const needRelated = !!storyParam || panelOpen || page === 'zoek'
+  useEffect(() => {
+    if (needRelated) loadRelated()
+  }, [needRelated, data?.meta?.related, loadRelated])
   // Vanuit een verhaal terug naar het overzicht (paneel blijft open), of alles dicht.
   const [lastStory, setLastStory] = useState(null)
   useEffect(() => {
@@ -541,6 +547,7 @@ export default function App() {
           <Suspense fallback={null}>
             {page === 'zoek' ? <Search {...backTo} /> : null}
             {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} {...backTo} /> : null}
+            {page === 'privacy' ? <Privacy {...backTo} /> : null}
             {page === 'stijl' ? <StyleGuide stream={stream} /> : null}
           </Suspense>
         </main>

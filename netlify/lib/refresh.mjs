@@ -26,10 +26,21 @@ export function refresh() {
       await Promise.all(writes)
 
       const core = JSON.stringify({ ...rest, items: [], meta: { ...rest.meta, parts: tags } })
+      // Vanaf 1.27: de kern zonder de vergelijkingsdata (83% van de kern); die komt apart, pas als
+      // je een verhaal opent. Met versie, zodat hij net als een bron-deel lang bewaard mag worden.
+      const { related, ...lean } = rest
+      const relatedBody = JSON.stringify({ related })
+      const relatedTag = hash(relatedBody)
+      const start = JSON.stringify({ ...lean, items: [], meta: { ...rest.meta, parts: tags, related: relatedTag } })
       const base = new Set([...MAIN_IDS, ...MUSIC_IDS])
       const legacy = JSON.stringify({ ...rest, items: items.filter((i) => base.has(i.source) || i.kind === 'post') })
       const coreDoc = { body: core, builtAt, etag: hash(core) }
-      await Promise.all([writeDoc(KEYS.core, coreDoc), writeDoc(KEYS.legacy, { body: legacy, builtAt, etag: hash(legacy) })])
+      await Promise.all([
+        writeDoc(KEYS.core, coreDoc),
+        writeDoc(KEYS.start, { body: start, builtAt, etag: hash(start) }),
+        writeDoc(KEYS.related, { body: relatedBody, builtAt, etag: relatedTag }),
+        writeDoc(KEYS.legacy, { body: legacy, builtAt, etag: hash(legacy) }),
+      ])
       return coreDoc
     } finally {
       running = null

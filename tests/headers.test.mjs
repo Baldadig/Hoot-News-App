@@ -19,6 +19,6 @@ test('een gewijzigd inline script krijgt een andere hash (de build rekent hem op
 
 test('alle headers staan erin; CSP alleen op de pagina', () => {
   const out = headersFile(html)
-  for (const h of ['Content-Security-Policy-Report-Only', 'Referrer-Policy', 'X-Content-Type-Options', 'Permissions-Policy', 'Strict-Transport-Security: max-age=31536000; includeSubDomains', "frame-ancestors 'none'"]) assert.ok(out.includes(h), h)
-  assert.ok(headersFile(html, { enforce: true }).includes('\n  Content-Security-Policy: '))
+  for (const h of ['\n  Content-Security-Policy: ', 'Referrer-Policy', 'X-Content-Type-Options', 'Permissions-Policy', 'Strict-Transport-Security: max-age=31536000; includeSubDomains', "frame-ancestors 'none'"]) assert.ok(out.includes(h), h)
+  assert.ok(headersFile(html, { enforce: false }).includes('Content-Security-Policy-Report-Only'))
 })

@@ -4,8 +4,8 @@
 // een wijziging in die scripts nooit stilletjes de app breekt.
 import { createHash } from 'node:crypto'
 
-// Eerst alleen melden (Report-Only); na een dag zonder meldingen omzetten naar handhaven.
-export const CSP_ENFORCE = false
+// Handhaven. (Van 1.25 tot 1.26 alleen melden; lokaal afdwingend getest op alle schermen.)
+export const CSP_ENFORCE = true
 
 export const inlineScripts = (html) => [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1])
 export const sha256 = (text) => `'sha256-${createHash('sha256').update(text, 'utf8').digest('base64')}'`
@@ -25,6 +25,7 @@ export function csp(hashes) {
     "base-uri 'self'",
     "form-action 'self'",
     "object-src 'none'",
+    'upgrade-insecure-requests', // een http-beeld van een uitgever wordt https in plaats van geblokkeerd
   ].join('; ')
 }
 

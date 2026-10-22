@@ -1,5 +1,7 @@
 // GET /api/feed — de kant-en-klare feed, in milliseconden.
-// - ?deel=kern       de bronnen, verhalen en editie (de app vanaf 1.22)
+// - ?deel=start      de bronnen, verhalen en editie, zonder vergelijkingsdata (de app vanaf 1.27)
+// - ?deel=verhalen&v=<etag>  alle publicaties per verhaal; met de juiste versie een jaar te bewaren
+// - ?deel=kern       start + vergelijkingsdata in één (de app 1.22–1.26)
 // - ?bron=<id>&v=<etag>  de berichten van één bron; met de juiste versie een jaar te bewaren
 // - zonder parameters alles in één (apps tot en met 1.21; kan weg als die niet meer langskomen)
 // Alleen GET/HEAD; een onbekend `deel` of een onbekende bron is een fout, geen volledige feed.
@@ -11,7 +13,7 @@ const STALE = 20 * 6e4 // ritme gemist (of lokaal zonder ritme): op de achtergro
 const FRESH = { 'Cache-Control': 'public, max-age=0, must-revalidate', 'Netlify-CDN-Cache-Control': 'public, durable, s-maxage=60, stale-while-revalidate=600' }
 const FOREVER = { 'Cache-Control': 'public, max-age=31536000, immutable', 'Netlify-CDN-Cache-Control': 'public, durable, max-age=31536000, immutable' }
 
-const DELEN = new Set(['kern'])
+const DELEN = new Set(['start', 'verhalen', 'kern'])
 const fail = (status, error, extra = {}) => Response.json({ error }, { status, headers: { 'Cache-Control': 'no-store', ...extra } })
 
 export default async (req, context) => {
@@ -26,11 +28,17 @@ export default async (req, context) => {
   const bron = q.get('bron')
   // Een bron-id (ook bsky:naam.bsky.social); wat er niet op lijkt hoeven we niet op te zoeken.
   if (bron !== null && !/^[a-z0-9][a-z0-9:._-]{0,79}$/i.test(bron)) return fail(404, 'Onbekende bron.')
-  const doc = bron ? await readDoc(KEYS.part(bron)) : deel === 'kern' ? core : await readDoc(KEYS.legacy)
+  const read = () => (bron ? readDoc(KEYS.part(bron)) : deel === 'kern' ? core : deel === 'start' ? readDoc(KEYS.start) : deel === 'verhalen' ? readDoc(KEYS.related) : readDoc(KEYS.legacy))
+  let doc = await read()
+  // Net na een update bestaan 'start' en 'verhalen' nog niet: dan nu samenstellen.
+  if (!doc && (deel === 'start' || deel === 'verhalen')) {
+    await refresh()
+    doc = await read()
+  }
   if (!doc) return bron ? fail(404, 'Onbekende bron.') : Response.json({ items: [] }, { status: 503, headers: FRESH })
 
   const etag = `"${doc.etag}"`
-  const cache = bron && q.get('v') === doc.etag ? FOREVER : FRESH
+  const cache = (bron || deel === 'verhalen') && q.get('v') === doc.etag ? FOREVER : FRESH
   const headers = { 'Content-Type': 'application/json; charset=utf-8', ETag: etag, ...cache }
   if (req.headers.get('if-none-match') === etag) return new Response(null, { status: 304, headers })
   return new Response(req.method === 'HEAD' ? null : doc.body, { headers })

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { fetchCore, fetchPart } from '../lib/api.js'
+import { fetchCore, fetchPart, fetchRelated } from '../lib/api.js'
 import { takeFeedCache, saveFeedCache } from '../lib/feedCache.js'
 import { carryOver } from '../lib/sourceStatus.js'
 import { freshCount } from '../lib/fresh.js'
@@ -15,6 +15,7 @@ function normalize(d) {
     sources: Array.isArray(d.sources) ? d.sources : [],
     items: Array.isArray(d.items) ? d.items : [],
     related: Array.isArray(d.related) ? d.related : [],
+    relatedTag: d.relatedTag || null, // welke versie van de vergelijkingsdata we hebben
     stories: Array.isArray(d.stories) ? d.stories : [],
     edition: d.edition && Array.isArray(d.edition.entries) ? d.edition : null,
     meta: d.meta || null,
@@ -65,6 +66,22 @@ export function useFeed(prefs) {
     return want.flatMap((id) => parts.current.get(id)?.items || []).sort(byRecency)
   }, [])
 
+  // Alle publicaties per verhaal: pas als je vergelijkt of in alle bronnen zoekt (App roept dit
+  // aan). Daarna houden we ze bij: bij een nieuwe versie halen we ze opnieuw.
+  const wantRelated = useRef(false)
+  const loadRelated = useCallback(async () => {
+    wantRelated.current = true
+    const tag = dataRef.current?.meta?.related
+    if (!tag || dataRef.current?.relatedTag === tag) return
+    try {
+      const related = await fetchRelated(tag)
+      if (dataRef.current?.meta?.related !== tag) return // intussen een nieuwere kern
+      apply({ ...dataRef.current, related, relatedTag: tag })
+    } catch {
+      /* geen vergelijking nu; de volgende keer opnieuw */
+    }
+  }, [apply])
+
   const load = useCallback(
     async ({ defer } = {}) => {
       ctrl.current?.abort()
@@ -76,7 +93,8 @@ export function useFeed(prefs) {
       try {
         const core = normalize(await fetchCore({ signal: controller.signal }))
         if (!core) throw new Error('Onverwacht antwoord')
-        const fetched = { ...core, items: await gather(core, controller.signal) }
+        // De vergelijkingsdata zit niet in de kern: houd wat we hadden (zie loadRelated).
+        const fetched = { ...core, items: await gather(core, controller.signal), related: dataRef.current?.related || [], relatedTag: dataRef.current?.relatedTag || null }
         // Valt een bron uit, dan blijven de berichten staan die we er al van hadden.
         const next = carryOver(dataRef.current, fetched)
         setRefreshError(false)
@@ -95,6 +113,7 @@ export function useFeed(prefs) {
           apply(next)
         }
         setStatus('ready')
+        if (wantRelated.current) loadRelated()
       } catch (e) {
         if (e.name === 'AbortError') return
         if (!dataRef.current) setStatus('error')
@@ -103,7 +122,7 @@ export function useFeed(prefs) {
         setRefreshing(false)
       }
     },
-    [apply, gather]
+    [apply, gather, loadRelated]
   )
 
   // Zet je een bron aan of uit, dan meteen de berichten erbij halen of weglaten.
@@ -145,5 +164,5 @@ export function useFeed(prefs) {
     }
   }, [load])
 
-  return { data, status, refreshing, refreshError, reload, pendingCount, applyPending }
+  return { data, status, refreshing, refreshError, reload, pendingCount, applyPending, loadRelated }
 }

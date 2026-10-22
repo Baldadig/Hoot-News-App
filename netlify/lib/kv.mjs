@@ -55,7 +55,9 @@ export async function writeDoc(key, doc) {
 }
 
 export const KEYS = {
-  core: 'feed-core-v1', // bronnen, verhalen, editie (de app vanaf 1.22)
+  start: 'feed-start-v1', // kern zonder vergelijkingsdata (de app vanaf 1.27)
+  related: 'feed-related-v1', // alle publicaties per verhaal, pas geladen als je vergelijkt
+  core: 'feed-core-v1', // bronnen, verhalen, editie (de app 1.22–1.26)
   legacy: 'feed-snapshot-v1', // alles in één (de app tot en met 1.21)
   part: (id) => 'feed-part-' + id, // de berichten van één bron
 }
