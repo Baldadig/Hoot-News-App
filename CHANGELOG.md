@@ -2,6 +2,15 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.30.0] — 2026-10-22 — Kleur kiezen
+
+- **Weergave → Kleur:**
+  - **Papier:** zoals het was.
+  - **Blad:** het menu op warm papier, de inhoud op een wit blad (op desktop een vel met ronde hoeken).
+  - **Inkt:** hetzelfde witte blad, het actieve menu-item in inkt, en de kop van de Editie als donkere band met de datum en de editie in één minuut.
+
+  Alle drie werken ook in de nachtmodus. De statusbalk krijgt de kleur van de bovenkant van het scherm.
+
 ## [1.29.0] — 2026-10-22 — Volgen, breed nieuws en uitleg
 
 - **Verhaal volgen.** In een verhaal tik je "Volg dit verhaal". Bovenaan de Editie staat dan "Je volgt", met wat er sinds je laatst keek bij is gekomen. Hooguit vijf verhalen tegelijk; na twee weken stopt het volgen vanzelf.
