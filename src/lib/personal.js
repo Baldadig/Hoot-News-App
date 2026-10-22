@@ -48,28 +48,37 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const outside = (w) => !mine.size || !(w.topics || []).some((t) => mine.has(t))
   const wideCands = (global.wide || []).filter(outside)
   const size = EDITION_SIZE - (bubbleEntry ? 1 : 0) - (wideCands.length ? 1 : 0)
-  const extra = extraPool.length ? selectEdition(stories, extraPool, { mainIds: followed, now, size: EXTRA_MAX, bonus }).map((e) => ({ ...e, desk: null })) : []
-  const news = selectEdition(stories, newsPool, { mainIds: followed, now, size: size - extra.length, bonus })
+  const extra = extraPool.length ? selectEdition(stories, extraPool, { mainIds: followed, now, size: EXTRA_MAX, bonus, strict: true }).map((e) => ({ ...e, desk: null })) : []
+  // Een bericht van een vakbron (tech, economie, wetenschap) krijgt die rubriek, niet een rubriek
+  // uit de tekst ("Britse fabrikant" maakte van een koptelefoonreview anders Buitenland).
+  const SPECIALIST = new Set(['tech', 'economie', 'wetenschap'])
+  const leadCat = (e) => catOf.get(pool.find((i) => i.id === (e.leadId || e.id))?.source)
+  const news = selectEdition(stories, newsPool, { mainIds: followed, now, size: size - extra.length, bonus, strict: true }).map((e) => (SPECIALIST.has(leadCat(e)) ? { ...e, desk: leadCat(e) } : e))
   const own = [...news, ...extra]
 
   // Aanvullen uit de algemene editie, zonder dubbel verhaal of dubbele gebeurtenis.
   const storyById = new Map(stories.map((s) => [s.id, s]))
   const membersOf = (e) => new Set([e.leadId || e.id, ...(e.kind === 'story' ? storyById.get(e.id)?.itemIds || e.itemIds || [] : [])])
   const taken = new Set(own.flatMap((e) => [...membersOf(e)]))
+
+  // Waar iedereen over schrijft: het breedst gedekte verhaal buiten je interesses dat niet al
+  // uit je eigen bronnen komt, met een bericht van een gratis bron (zo komt het van de server).
+  // Vóór het aanvullen gekozen, zodat het zijn eigen label krijgt in plaats van "Buiten je bronnen".
+  const wide = wideCands.find((w) => !taken.has(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)))
+  const wideEntry = wide ? { kind: 'story', id: wide.storyId, leadId: wide.item.id, desk: WIDE, sourceCount: wide.sourceCount } : null
+  if (wideEntry) for (const id of [wide.item.id, ...(storyById.get(wide.storyId)?.itemIds || [])]) taken.add(id)
+
+  // Werd er geen breed verhaal gekozen, dan is die plek voor de aanvulling.
+  const fillTo = size - extra.length + (wideCands.length && !wideEntry ? 1 : 0)
   const fill = []
   for (const g of global.entries) {
-    if (news.length + fill.length >= size - extra.length) break
+    if (news.length + fill.length >= fillTo) break
     if (g === bubbleEntry) continue
     const m = membersOf(g)
     if ([...m].some((id) => taken.has(id))) continue
     for (const id of m) taken.add(id)
     fill.push({ ...g, desk: EXTERN, fromDesk: g.desk || null })
   }
-
-  // Waar iedereen over schrijft: het breedst gedekte verhaal buiten je interesses dat er nog
-  // niet in staat, met een bericht van een gratis bron (zo komt het van de server).
-  const wide = wideCands.find((w) => !taken.has(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)))
-  const wideEntry = wide ? { kind: 'story', id: wide.storyId, leadId: wide.item.id, desk: WIDE, sourceCount: wide.sourceCount } : null
 
   // Volgorde: eigen nieuws, aangevuld nieuws, dan sport/cultuur; "Buiten je bubbel" op plek 6,
   // "Waar iedereen over schrijft" direct daarna.

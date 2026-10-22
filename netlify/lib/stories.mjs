@@ -351,7 +351,9 @@ export function editionSlot(now = new Date()) {
 // een alternatief uit je eigen bronnen heeft.
 // `bonus(items)` (optioneel): extra gewicht voor een kandidaat, bijvoorbeeld voor de interesses
 // van een lezer (de persoonlijke editie in de app); de server gebruikt hem niet.
-export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, bonus = null } = {}) {
+// `strict`: een rubriek alleen voor wat er echt over gaat (niet "raakt het ook"); voor de
+// persoonlijke editie, waar een techreview anders "Buitenland" kon heten.
+export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, bonus = null, strict = false } = {}) {
   const byId = new Map(pool.map((i) => [i.id, i]))
   const sig = signatures(pool)
   const fresh = (iso, hours) => iso && now - Date.parse(iso) < hours * 60 * 60 * 1000
@@ -405,7 +407,7 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
   //    Eerst wat er vooral over gaat; alleen als dat er niet is, iets wat het ook raakt.
   for (const desk of DESKS) {
     if (entries.length >= size) break
-    if (!cands.some((c) => c.primary === desk && take(c, desk))) cands.some((c) => c.desks.has(desk) && take(c, desk))
+    if (!cands.some((c) => c.primary === desk && take(c, desk)) && !strict) cands.some((c) => c.desks.has(desk) && take(c, desk))
   }
   // 2. Aanvullen met het belangrijkste wat er verder is.
   for (const c of cands) {

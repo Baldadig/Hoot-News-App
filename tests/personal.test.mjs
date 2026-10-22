@@ -147,3 +147,23 @@ test('server: breed gedekt alleen met een gratis bron als bericht, en geen sport
   assert.deepEqual(out.map((w) => w.storyId), ['sNews']) // sport en alleen-betaald vallen af
   assert.equal(out[0].item.id, 'b') // de gratis bron, niet NRC
 })
+
+test('een breed verhaal dat anders als aanvulling zou komen, krijgt zijn eigen label; nooit minder plekken', () => {
+  // g1 (algemene editie, buitenland) is ook het breedst gedekte verhaal buiten je interesses.
+  const g = { ...global, wide: [{ storyId: 'g1', sourceCount: 11, topics: ['wereld'], item: global.items[1] }] }
+  const st = [...stories, { id: 'g1', itemIds: ['g1'], sourceCount: 11 }]
+  const e = composePersonal({ global: g, stories: st, items, followed, interests: ['tech'], now: NOW, builtAt: 'T' })
+  assert.equal(e.entries.find((x) => x.id === 'g1').desk, 'breed')
+  assert.equal(e.entries.filter((x) => x.id === 'g1').length, 1)
+  // Alles al in je eigen editie: dan geen breed verhaal, maar ook geen plek minder.
+  const all = composePersonal({ global: { ...global, wide: [{ storyId: 'sWoning', sourceCount: 9, topics: [], item: items[0] }] }, stories, items, followed, now: NOW, builtAt: 'T' })
+  const none = composePersonal({ global, stories, items, followed, now: NOW, builtAt: 'T' })
+  assert.equal(all.entries.length, none.entries.length)
+})
+
+test('een bericht van een vakbron krijgt de rubriek van de bron', () => {
+  const sources = [{ id: 'nos', cat: 'nl' }, { id: 'tweakers', cat: 'tech' }]
+  const review = art('rv', 'tweakers', 'Review: koptelefoon van Britse fabrikant Nothing', { publishedAt: ago(0.2) })
+  const e = composePersonal({ global, stories, items: [...items, review], sources, followed, now: NOW, builtAt: 'T' })
+  assert.equal(e.entries.find((x) => (x.leadId || x.id) === 'rv').desk, 'tech')
+})
