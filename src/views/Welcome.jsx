@@ -27,6 +27,7 @@ export default function Welcome({ account, sources, prefs, onDone }) {
   const [interests, setInterests] = useState(() => prefs.interests || [])
   const [picked, setPicked] = useState(() => prefs.topics || [])
   const [chosen, setChosen] = useState(null) // bronnen: pas vooraf invullen als je bij stap 4 komt
+  const [freeOnly, setFreeOnly] = useState(false) // niet iedereen heeft abonnementen
   const head = useRef(null)
   const scroller = useRef(null)
 
@@ -91,7 +92,7 @@ export default function Welcome({ account, sources, prefs, onDone }) {
             <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
               Wat interesseert je?
             </h1>
-            <p className="ob__sub">Kies er zoveel als je wilt.</p>
+            <p className="ob__sub">Hiermee kiezen we je bronnen voor en maken we de filters in je Stroom. De editie is voor iedereen gelijk.</p>
             <div className="ob__grid">
               {INTERESTS.map((i) => {
                 const Icon = INTEREST_ICONS[i.id]
@@ -136,10 +137,27 @@ export default function Welcome({ account, sources, prefs, onDone }) {
             <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
               Jouw bronnen
             </h1>
-            <p className="ob__sub">Alvast gekozen bij je interesses. Tik om aan of uit te zetten.</p>
+            <p className="ob__sub">Alvast gekozen bij je interesses. Tik om aan of uit te zetten. Bij een bron met abonnement zie je de koppen; het hele artikel lees je alleen als je abonnee bent.</p>
+            <div className="ob__chips ob__free" role="group" aria-label="Welke bronnen tonen">
+              <button type="button" className="ob__chip" aria-pressed={!freeOnly} onClick={() => setFreeOnly(false)}>
+                Alle bronnen
+              </button>
+              <button
+                type="button"
+                className="ob__chip"
+                aria-pressed={freeOnly}
+                onClick={() => {
+                  setFreeOnly(true)
+                  setChosen((c) => (c || []).filter((id) => !pickable.find((s) => s.id === id)?.paid))
+                }}
+              >
+                Alleen gratis
+              </button>
+            </div>
             {pickable.length ? (
               visibleGroups.map((g) => {
-                const list = pickable.filter((s) => s.cat === g.cat)
+                // Gratis bronnen eerst; met "Alleen gratis" alleen die.
+                const list = pickable.filter((s) => s.cat === g.cat && (!freeOnly || !s.paid)).sort((a, b) => Number(!!a.paid) - Number(!!b.paid))
                 if (!list.length) return null
                 const rows = (
                   <ul className="ob__sources">
@@ -208,7 +226,7 @@ function SourcePick({ s, on, onClick }) {
       <span className="ob__stext">
         <span className="ob__sname">
           {s.name}
-          {s.paid ? <span className="ob__tag">abonnement</span> : null}
+          {s.paid ? <span className="ob__tag">abonnement</span> : <span className="ob__tag ob__tag--free">gratis</span>}
           {s.lang === 'en' ? <span className="ob__tag">EN</span> : null}
         </span>
         <span className="ob__sabout">{s.about}</span>

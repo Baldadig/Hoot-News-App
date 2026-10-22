@@ -34,7 +34,7 @@ export function DisplayControls() {
         ]}
       />
       <Seg
-        label="Indeling"
+        label="Indeling van lijsten"
         value={prefs.layout}
         onChange={(v) => setPref('layout', v)}
         options={[
@@ -53,7 +53,7 @@ export function DisplayControls() {
         ]}
       />
       <Seg
-        label="Voorvertoning"
+        label="Voorvertoning in de Stroom"
         value={prefs.preview}
         onChange={(v) => setPref('preview', v)}
         options={[

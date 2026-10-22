@@ -22,7 +22,8 @@ const FRONT = 6 // voorpagina: hoofdverhaal, drie ernaast en twee eronder
 // af te kappen); vergelijken en bewaren staan apart eronder. Bij een lange kop vervalt de
 // samenvatting — liever dat dan een afgekapte bronregel.
 function FrontItem({ item, story, note }) {
-  const { markRead, read, openSource, openStory, newInStory } = useHoot()
+  const { markRead, read, openSource, openStory, newInStory, sourcesById } = useHoot()
+  const paid = sourcesById?.get(item.source)?.paid
   const others = story ? story.sourceCount - 1 : 0
   const fresh = story ? newInStory(story) : 0
   const title = item.title
@@ -36,6 +37,7 @@ function FrontItem({ item, story, note }) {
           {item.sourceName}
         </button>
         <time dateTime={item.publishedAt || undefined}>{timeAgo(item.publishedAt)}</time>
+        {paid ? <span>abonnement</span> : null}
         {item.type === 'opinie' ? <span className="kicker__type">Opinie</span> : null}
       </p>
       <a className="fitem__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>

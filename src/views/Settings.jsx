@@ -19,13 +19,13 @@ function Row({ label, hint, children }) {
   )
 }
 
-export default function Settings({ meta, account, syncStatus, onBack }) {
+export default function Settings({ meta, account, syncStatus, onBack, backLabel }) {
   const { prefs, setPref } = useHoot()
   const ai = !!meta?.aiEnabled
   return (
     <section className="view view--page" aria-label="Instellingen">
       <div className="col">
-        <ViewHeader title="Instellingen" showSearch={false} onBack={onBack} backLabel="Bronnen" />
+        <ViewHeader title="Instellingen" showSearch={false} onBack={onBack} backLabel={backLabel} />
 
         <h2 className="sect">Account</h2>
         <AccountSettings account={account} syncStatus={syncStatus} />
@@ -65,7 +65,7 @@ export default function Settings({ meta, account, syncStatus, onBack }) {
         <a className="setrow setrow--link" href="#/welkom">
           <span className="setrow__text">
             <span className="setrow__label">Interesses opnieuw kiezen</span>
-            <span className="setrow__hint">Onderwerpen en bronnen.</span>
+            <span className="setrow__hint">Bepaalt welke bronnen we voorstellen en de filters in de Stroom. De editie is voor iedereen gelijk.</span>
           </span>
           <span aria-hidden="true">›</span>
         </a>

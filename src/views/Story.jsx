@@ -31,9 +31,27 @@ export default function Story({ story, items, overlay, onClose, onBack, onSeen, 
     if (overlay) headRef.current?.focus()
   }, [story.id, story.itemIds.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Als dialoog: Esc sluit, en Tab blijft binnen het paneel (ook in browsers zonder `inert`).
   useEffect(() => {
     if (!overlay) return
-    const onKey = (e) => e.key === 'Escape' && onClose()
+    const onKey = (e) => {
+      if (e.key === 'Escape') return onClose()
+      if (e.key !== 'Tab') return
+      const panel = headRef.current?.closest('.panel')
+      if (!panel) return
+      const focusable = [...panel.querySelectorAll('a[href], button:not([disabled]), summary, [tabindex]:not([tabindex="-1"])')].filter((el) => el.offsetParent !== null)
+      if (!focusable.length) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      const inside = panel.contains(document.activeElement)
+      if (e.shiftKey && (!inside || document.activeElement === first || document.activeElement === headRef.current)) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && (!inside || document.activeElement === last)) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [overlay, onClose])

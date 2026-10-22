@@ -2085,6 +2085,13 @@ select {
   vertical-align: 2px;
   white-space: nowrap;
 }
+.ob__tag--free {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.ob__free {
+  margin: var(--s3) 0 var(--s2);
+}
 .ob__check {
   display: grid;
   flex: none;
@@ -2156,6 +2163,12 @@ select {
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
+}
+
+/* Koppen en leeskolommen die alleen focus krijgen zodat een schermlezer ze voorleest
+   (tabindex="-1"), zijn geen bedieningselement: geen focusrand. */
+[tabindex='-1']:is(h1, h2, article):focus {
+  outline: none;
 }
 
 /* Desktop: de knop direct onder de inhoud, niet onderaan een leeg scherm. Bij een lange lijst
@@ -2488,7 +2501,7 @@ select {
 /* ---------- Instellingen ---------- */
 /* Tekstgrootte: alles schaalt mee (rem), zoals Dynamic Type op iOS */
 html[data-text='klein'] { font-size: 94%; }
-html[data-text='groot'] { font-size: 108%; }
+html[data-text='groot'] { font-size: 120%; } /* duidelijk groter: koppen, tekst en ruimte schalen mee (rem) */
 /* Beeld uit (onderweg): geen thumbnails en geen grote beelden; 'hoofd' houdt alleen het hoofdverhaal */
 html[data-images='uit'] .thumb,
 html[data-images='uit'] .media--tl,

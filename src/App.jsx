@@ -306,6 +306,12 @@ export default function App() {
   const path = MAIN.includes(route.path) || PAGES.includes(route.path) ? route.path : 'editie'
   const showWelcome = path === 'welkom' || !prefs.onboarded
   const page = PAGES.includes(path) && path !== 'welkom' ? path : null
+  // Waar je vandaan kwam (de laatste hoofdbestemming): daar brengt "terug" je heen vanuit
+  // Instellingen of Zoeken, ook als je er via een gewone link kwam.
+  const cameFrom = useRef('editie')
+  if (MAIN.includes(path) && path !== 'welkom') cameFrom.current = path
+  const FROM_LABEL = { editie: 'Editie', stroom: 'Stroom', bewaard: 'Bewaard', bronnen: 'Bronnen', bluesky: 'Bluesky' }
+  const backTo = { onBack: () => route.back(cameFrom.current), backLabel: FROM_LABEL[cameFrom.current] || 'Terug' }
 
   // Nog geen account? Als je een eind in je Editie of Stroom hebt gelezen, één keer vragen of je
   // wilt inloggen (zie src/lib/join.js).
@@ -468,7 +474,8 @@ export default function App() {
   return (
     <HootContext.Provider value={ctx}>
       <div className={`app${story || panelOpen ? ' has-panel' : ''}`}>
-        <a className="skip" href="#inhoud" onClick={skip}>
+        {/* Is het verhaal een dialoog (smal scherm), dan valt alles daarbuiten weg voor de focus. */}
+        <a className="skip" href="#inhoud" onClick={skip} inert={hideMain ? '' : undefined}>
           Naar de inhoud
         </a>
         <div className="app__nav" inert={hideMain ? '' : undefined}>
@@ -532,8 +539,8 @@ export default function App() {
             />
           ) : null}
           <Suspense fallback={null}>
-            {page === 'zoek' ? <Search onBack={() => route.back('editie')} /> : null}
-            {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} onBack={() => route.back('bronnen')} /> : null}
+            {page === 'zoek' ? <Search {...backTo} /> : null}
+            {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} {...backTo} /> : null}
             {page === 'stijl' ? <StyleGuide stream={stream} /> : null}
           </Suspense>
         </main>
@@ -546,7 +553,7 @@ export default function App() {
         </aside>
         <DisplaySheet open={display} onClose={() => setDisplay(false)} account={account} syncStatus={syncStatus} />
         <JoinSheet open={joinOpen && account.status === 'out'} onClose={() => setJoinOpen(false)} onSignIn={account.signIn} />
-        <div className="toasts" aria-live="polite">
+        <div className="toasts" aria-live="polite" inert={overlay ? '' : undefined}>
           {undo ? (
             <div className="toast">
               <span>Verwijderd uit Bewaard</span>

@@ -63,7 +63,8 @@ function Kicker({ item, extra }) {
 
 // Meta-regel: drie gescheiden klikgebieden — bron bekijken · meer bronnen · bewaren.
 export function Meta({ item, story, showSave = true }) {
-  const { openSource, openStory, newInStory } = useHoot()
+  const { openSource, openStory, newInStory, sourcesById } = useHoot()
+  const paid = sourcesById?.get(item.source)?.paid
   const fresh = story ? newInStory(story) : 0
   const others = story ? story.sourceCount - 1 : 0
   return (
@@ -75,6 +76,7 @@ export function Meta({ item, story, showSave = true }) {
           <span className="srcbtn__time">
             <time dateTime={item.publishedAt || undefined}>{timeAgo(item.publishedAt)}</time>
             {item.readMin ? <span className="srcbtn__read"> · {readTime(item.readMin)}</span> : null}
+            {paid ? <span className="srcbtn__read"> · abonnement</span> : null}
           </span>
         </span>
       </button>

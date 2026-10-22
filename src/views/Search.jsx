@@ -3,7 +3,7 @@ import { Empty } from '../components/Shell.jsx'
 import { Entry, useHoot } from '../components/Items.jsx'
 import { BackIcon } from '../components/icons.jsx'
 
-export default function Search({ onBack }) {
+export default function Search({ onBack, backLabel = 'Terug' }) {
   const { itemsById, saved, storiesById, sourcesById, muted } = useHoot()
   const [q, setQ] = useState('')
   const [scope, setScope] = useState('mijn') // mijn | alle
@@ -36,7 +36,7 @@ export default function Search({ onBack }) {
       <div className="col">
         <header className="vh">
           <form className="searchbar" role="search" onSubmit={(e) => (e.preventDefault(), inputRef.current?.blur())}>
-            <button type="button" className="iconbtn" onClick={onBack} aria-label="Terug">
+            <button type="button" className="iconbtn" onClick={onBack} aria-label={`Terug naar ${backLabel}`}>
               <BackIcon />
             </button>
             <label className="visually-hidden" htmlFor="q">
