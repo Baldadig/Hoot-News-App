@@ -16,7 +16,7 @@
   --accent-soft: #f4e3de;
   --on-accent: #ffffff;
   --warn: #8f4300;
-  --brand: #263c67;
+  --brand: #1a1814; /* merk: inkt, met de punt in krantenrood */
   --quiet-amber: #b0802f; /* stil statuspuntje, geen alarm */
 
   /* Type */
@@ -78,7 +78,7 @@
   --accent-soft: #3a1e1b;
   --on-accent: #151310;
   --warn: #f2b56b;
-  --brand: #f3f0e7;
+  --brand: #f1ece2;
   --quiet-amber: #c9a15c;
   color-scheme: dark;
 }
@@ -283,11 +283,14 @@ input {
   color: var(--accent);
 }
 
-/* Merk: de kleur volgt het thema (inkt op licht, papier op donker) */
+/* Merk: de kleur volgt het thema (inkt op licht, papier op donker); de punt is krantenrood */
 .brand {
   display: block;
   flex: none;
   color: var(--brand);
+}
+.brand__dot {
+  fill: var(--accent);
 }
 
 /* Bronstatus in de navigatie: één klein, stil puntje. Geen teller, geen beweging. */

@@ -18,7 +18,7 @@ export function Nav({ path, hrefs = {}, sourceNote = '', bluesky = false }) {
   return (
     <nav className="nav" aria-label="Hoofdnavigatie">
       <a className="nav__brand" href={hrefs.editie || '#/editie'} aria-label="Hoot — naar de Editie">
-        <BrandLogo height={38} />
+        <BrandLogo height={30} />
       </a>
       <ul className="nav__list">
         {DESTINATIONS.filter((d) => bluesky || d.id !== 'bluesky').map(({ id, label, Icon }) => (
