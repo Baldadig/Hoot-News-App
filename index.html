@@ -54,12 +54,14 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Hoot" />
     <script>
-      // Zet het thema vóór render (geen flits): voorkeur uit localStorage, 'system' volgt het OS.
+      // Zet thema en kleur vóór render (geen flits): voorkeur uit localStorage, 'system' volgt het OS.
       (function () {
         try {
           var p = localStorage.getItem('hoot:theme') || 'system'
           var dark = p === 'dark' || (p !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
           document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+          var k = (JSON.parse(localStorage.getItem('hoot:prefs') || '{}') || {}).palette
+          if (k === 'blad' || k === 'inkt') document.documentElement.dataset.palette = k
         } catch (e) {}
       })()
     </script>

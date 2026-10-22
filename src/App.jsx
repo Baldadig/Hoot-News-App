@@ -87,7 +87,7 @@ export default function App() {
   const openDisplay = useCallback(() => setDisplay(true), [])
   const { data, status, refreshing, refreshError, reload, pendingCount, applyPending, loadRelated } = useFeed(prefs)
   const online = useOnline()
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme(prefs.palette)
   const hasPanel = useWide('(min-width: 1200px)')
   const [refreshKey, setRefreshKey] = useState(0)
   const social = useSocialSources(refreshKey)

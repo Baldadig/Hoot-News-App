@@ -17,17 +17,22 @@ function systemDark() {
 function apply(pref) {
   const dark = pref === 'dark' || (pref !== 'light' && systemDark())
   document.documentElement.dataset.theme = dark ? 'dark' : 'light'
-  // Status- en browserbalk in de kleur van het papier, ook als je zelf een thema kiest.
+  // Status- en browserbalk in de kleur van de bovenkant van het scherm (--top: papier, of het
+  // witte blad bij de kleuren Blad en Inkt), ook als je zelf een thema kiest.
+  const top = getComputedStyle(document.documentElement).getPropertyValue('--top').trim() || (dark ? '#151310' : '#f5f1e8')
   for (const m of document.querySelectorAll('meta[name="theme-color"]')) {
-    m.setAttribute('content', dark ? '#151310' : '#f5f1e8')
+    m.setAttribute('content', top)
     m.removeAttribute('media')
   }
 }
 
-export function useTheme() {
+// `palette`: de kleurverdeling (prefs.palette); die verandert de kleur van de bovenkant.
+export function useTheme(palette) {
   const [theme, setThemeState] = useState(getPref)
 
   useEffect(() => {
+    if (palette === 'blad' || palette === 'inkt') document.documentElement.dataset.palette = palette
+    else delete document.documentElement.dataset.palette
     apply(theme)
     try {
       localStorage.setItem(KEY, theme)
@@ -39,7 +44,7 @@ export function useTheme() {
     const onChange = () => apply('system')
     mq.addEventListener?.('change', onChange)
     return () => mq.removeEventListener?.('change', onChange)
-  }, [theme])
+  }, [theme, palette])
 
   const setTheme = useCallback((t) => setThemeState(t), [])
 

@@ -87,6 +87,40 @@
   color-scheme: dark;
 }
 
+/* Kleurverdeling (Weergave → Kleur). Drie vaste verdelingen van dezelfde kleuren:
+   - Papier (standaard): alles op warm papier.
+   - Blad: het menu op papier, de inhoud op een wit blad (desktop: een vel met ronde hoeken).
+   - Inkt: hetzelfde witte blad zonder rand, het actieve menu-item in inkt, en de kop van de
+     Editie als donkere band.
+   Het werkt met tokens: binnen het blad zíjn --paper en --surface de bladkleuren, dus alles
+   wat daarin papier gebruikt (plakkende koppen, kaarten, verlopen) gaat vanzelf mee.
+   --top is de kleur bovenaan het scherm; de statusbalk neemt die over (useTheme.js). */
+:root {
+  --top: var(--paper);
+}
+:root[data-palette] {
+  --sheet: #ffffff;
+  --sheet-surface: #faf7f1;
+  --sheet-edge: #e6dfd1;
+  --band: #1a1814;
+  --band-ink: #f5f1e8;
+  --band-ink-2: #ddd5c7;
+  --band-ink-3: #b9b1a3;
+  --band-rule: #4a443b;
+  --band-accent: #ec7a70;
+  --top: var(--sheet);
+}
+:root[data-palette][data-theme='dark'] {
+  --sheet: #1e1b17;
+  --sheet-surface: #27231e;
+  --sheet-edge: #34302a;
+  --band: #0b0a08;
+  --band-ink: #f1ece2;
+  --band-ink-2: #cbc3b5;
+  --band-ink-3: #a39b8d;
+  --band-rule: #2e2a25;
+}
+
 /* ---------- Basis ---------- */
 *,
 *::before,
@@ -414,6 +448,76 @@ select {
     grid-column: 3;
     border-left: 1px solid var(--rule);
     z-index: auto;
+  }
+}
+
+/* ---------- Kleurverdeling: Blad en Inkt (tokens bovenaan) ---------- */
+[data-palette] .main {
+  --paper: var(--sheet);
+  --surface: var(--sheet-surface);
+  background: var(--paper);
+}
+[data-palette] .app::before {
+  background: var(--sheet);
+}
+/* Het verhaal over het scherm heen (telefoon, tablet) hoort bij het blad; het vaste
+   vergelijkpaneel op breed scherm blijft papier, net als het menu. */
+@media (max-width: 1199px) {
+  [data-palette] .panel {
+    --paper: var(--sheet);
+    --surface: var(--sheet-surface);
+  }
+}
+
+/* Inkt: actief in inkt in plaats van rood */
+[data-palette='inkt'] .nav__link[aria-current] {
+  color: var(--ink);
+}
+[data-palette='inkt'] .nav__link::before {
+  background: var(--ink);
+}
+
+/* Inkt: de kop van de Editie als band over de volle breedte van het blad. De band zet de
+   kleuren om (licht op inkt); alles erin volgt via de tokens. */
+[data-palette='inkt'] .edtop {
+  --ink: var(--band-ink);
+  --ink-2: var(--band-ink-2);
+  --ink-3: var(--band-ink-3);
+  --rule: var(--band-rule);
+  --accent: var(--band-accent);
+  --accent-soft: #3a1e1b;
+  --on-accent: var(--band);
+  --paper: var(--band);
+  --surface: var(--band);
+  margin-bottom: var(--s5);
+  padding-bottom: var(--s4);
+  background: var(--band);
+  color: var(--ink);
+  box-shadow: 0 0 0 100vmax var(--band);
+  clip-path: inset(-100vmax -100vmax 0 -100vmax);
+}
+[data-palette='inkt'] .edtop .briefcta {
+  margin-bottom: 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 0;
+}
+
+@media (min-width: 960px) {
+  [data-palette='blad'] .app__nav {
+    border-right: 0;
+  }
+  [data-palette='blad'] .main {
+    margin: var(--s3) var(--s3) 0 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: 0 0 0 1px var(--sheet-edge);
+    overflow: hidden;
+  }
+  [data-palette='inkt'] .nav__link[aria-current] {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  [data-palette='inkt'] .edtop {
+    padding-top: var(--s2);
   }
 }
 

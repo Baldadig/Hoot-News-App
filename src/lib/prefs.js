@@ -5,6 +5,7 @@ export const DEFAULT_PREFS = {
   pinned: ['nederland', 'vs-politiek', 'ai'],
   onboarded: true,
   layout: 'tijdlijn', // tijdlijn | krant
+  palette: 'papier', // papier | blad | inkt — kleurverdeling van de pagina (styles.css)
   textSize: 'normaal', // klein | normaal | groot
   preview: 2, // 1 | 2 | 3 | 'alles' — regels voorvertoning in de Stroom
   images: 'aan', // aan | hoofd | uit
@@ -29,6 +30,7 @@ export function normalizePrefs(raw) {
   if (!['klein', 'normaal', 'groot'].includes(out.textSize)) out.textSize = 'normaal'
   if (!['aan', 'hoofd', 'uit'].includes(out.images)) out.images = 'aan'
   if (!['tijdlijn', 'krant'].includes(out.layout)) out.layout = 'tijdlijn'
+  if (!['papier', 'blad', 'inkt'].includes(out.palette)) out.palette = 'papier'
   if (!Array.isArray(out.muted)) out.muted = []
   if (!Array.isArray(out.pinned)) out.pinned = DEFAULT_PREFS.pinned
   if (!Array.isArray(out.enabled)) out.enabled = []

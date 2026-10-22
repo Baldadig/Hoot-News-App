@@ -34,6 +34,16 @@ export function DisplayControls() {
         ]}
       />
       <Seg
+        label="Kleur"
+        value={prefs.palette}
+        onChange={(v) => setPref('palette', v)}
+        options={[
+          { value: 'papier', label: 'Papier', aria: 'Papier: alles op warm papier' },
+          { value: 'blad', label: 'Blad', aria: 'Blad: menu op papier, de inhoud op een wit blad' },
+          { value: 'inkt', label: 'Inkt', aria: 'Inkt: wit blad met een donkere kop boven de editie' },
+        ]}
+      />
+      <Seg
         label="Indeling van lijsten"
         value={prefs.layout}
         onChange={(v) => setPref('layout', v)}

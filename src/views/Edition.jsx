@@ -97,12 +97,61 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
   useScrollMemory(ref, 'hoot:pos-editie:' + (edition?.id || ''), rows.length > 0, rows.length, active)
 
   const title = edition ? SLOT[edition.slot] : 'Editie'
+  const ready = !loading && !failedLoad && rows.length > 0
   const sub = edition ? longDate(edition.date).replace(/^./, (c) => c.toUpperCase()) : null
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
       <div className="col col--front">
-        <ViewHeader title={title} sub={edition ? null : sub} onRefresh={onRefresh} refreshing={refreshing} compare display />
+        {/* De kop van de editie: titel, datum, omvang en de ingang naar het overzicht. Eén blok,
+            zodat de kleur "Inkt" er een band van kan maken. */}
+        <div className="edtop">
+          <ViewHeader title={title} sub={edition ? null : sub} onRefresh={onRefresh} refreshing={refreshing} compare display />
+          {ready ? (
+            <>
+              <StatusLine {...statusProps} quiet />
+              {/* Eén metaregel: datum en het weer van vandaag. */}
+              <div className="edmeta">
+                <span className="edmeta__text">
+                  {sub}
+                  <Weather />
+                </span>
+              </div>
+              <p className="hint edcount">
+                {edition.personal ? 'Samengesteld uit jouw bronnen en interesses' : 'De editie voor iedereen'}
+                {rows.length < EDITION_SIZE ? ` · ${rows.length} ${rows.length === 1 ? 'verhaal' : 'verhalen'}: er was niet meer nieuws dat breed genoeg werd gebracht` : ''}.
+              </p>
+              {hasBrief ? (
+                <button type="button" className="briefcta" onClick={() => setReading(true)} aria-haspopup="dialog">
+                  <span className="briefcta__icon" aria-hidden="true">
+                    <SparkleIcon />
+                  </span>
+                  <span className="briefcta__text">
+                    <span className="briefcta__title">De editie in één minuut</span>
+                    <span className="briefcta__sub">Samenvatting door AI, met de bronnen erbij</span>
+                  </span>
+                  <span className="briefcta__go" aria-hidden="true">
+                    ›
+                  </span>
+                </button>
+              ) : null}
+              {!hasBrief && briefForMembers ? (
+                <button type="button" className="briefcta" onClick={onJoin}>
+                  <span className="briefcta__icon" aria-hidden="true">
+                    <SparkleIcon />
+                  </span>
+                  <span className="briefcta__text">
+                    <span className="briefcta__title">Jouw editie in één minuut</span>
+                    <span className="briefcta__sub">Voor leden: log in met Google</span>
+                  </span>
+                  <span className="briefcta__go" aria-hidden="true">
+                    ›
+                  </span>
+                </button>
+              ) : null}
+            </>
+          ) : null}
+        </div>
         {loading ? (
           <Skeleton rows={4} />
         ) : failedLoad ? (
@@ -120,19 +169,6 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
           </Empty>
         ) : (
           <>
-            <StatusLine {...statusProps} quiet />
-            {/* Eén metaregel onder de titel: datum, omvang, tijd en de uitleg. */}
-            {/* Eén metaregel: datum en het weer van vandaag; rechts het AI-overzicht. */}
-            <div className="edmeta">
-              <span className="edmeta__text">
-                {sub}
-                <Weather />
-              </span>
-            </div>
-            <p className="hint edcount">
-              {edition.personal ? 'Samengesteld uit jouw bronnen en interesses' : 'De editie voor iedereen'}
-              {rows.length < EDITION_SIZE ? ` · ${rows.length} ${rows.length === 1 ? 'verhaal' : 'verhalen'}: er was niet meer nieuws dat breed genoeg werd gebracht` : ''}.
-            </p>
             {following.length ? (
               <section className="following" aria-label="Verhalen die je volgt">
                 <h2 className="following__head">Je volgt</h2>
@@ -147,34 +183,6 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                   ))}
                 </ul>
               </section>
-            ) : null}
-            {hasBrief ? (
-              <button type="button" className="briefcta" onClick={() => setReading(true)} aria-haspopup="dialog">
-                <span className="briefcta__icon" aria-hidden="true">
-                  <SparkleIcon />
-                </span>
-                <span className="briefcta__text">
-                  <span className="briefcta__title">De editie in één minuut</span>
-                  <span className="briefcta__sub">Samenvatting door AI, met de bronnen erbij</span>
-                </span>
-                <span className="briefcta__go" aria-hidden="true">
-                  ›
-                </span>
-              </button>
-            ) : null}
-            {!hasBrief && briefForMembers ? (
-              <button type="button" className="briefcta" onClick={onJoin}>
-                <span className="briefcta__icon" aria-hidden="true">
-                  <SparkleIcon />
-                </span>
-                <span className="briefcta__text">
-                  <span className="briefcta__title">Jouw editie in één minuut</span>
-                  <span className="briefcta__sub">Voor leden: log in met Google</span>
-                </span>
-                <span className="briefcta__go" aria-hidden="true">
-                  ›
-                </span>
-              </button>
             ) : null}
             {hasBrief ? <BriefReader open={reading} onClose={() => setReading(false)} brief={brief} rows={rows} kicker={`${title} · ${longDate(edition.date)}`} /> : null}
             {/* Voorpagina: het hoofdverhaal groot, daarnaast drie kleinere — altijd in krant-vorm.
