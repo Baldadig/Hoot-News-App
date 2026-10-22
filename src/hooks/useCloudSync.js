@@ -25,7 +25,7 @@ export function useCloudSync(account, { prefs, setPrefs, saved, setSaved, readId
     let alive = true
     const pull = async (first) => {
       setStatus('syncing')
-      const [st, sv] = await Promise.all([client.from('user_state').select('prefs, read_ids, stories_seen').eq('user_id', uid).maybeSingle(), client.from('saved_items').select('key, entry')])
+      const [st, sv] = await Promise.all([client.from('user_state').select('prefs, read_ids, stories_seen').eq('user_id', uid).maybeSingle(), client.from('saved_items').select('key, entry').eq('user_id', uid)])
       if (!alive) return
       if (st.error || sv.error) return setStatus('error')
       const remote = st.data || { prefs: {}, read_ids: [], stories_seen: {} }
@@ -72,7 +72,8 @@ export function useCloudSync(account, { prefs, setPrefs, saved, setSaved, readId
     return () => clearTimeout(t)
   }, [uid, stateJson]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Bewaard: alleen wat veranderde, meteen.
+  // Bewaard: alleen wat veranderde, meteen. Elke query noemt de gebruiker zelf; de database
+  // (row level security) dwingt dat ook af, maar we leunen daar niet als enige op.
   useEffect(() => {
     if (!uid || !base.current) return
     const { upserts, deletes } = savedDiff(base.current.saved, saved)
@@ -81,7 +82,7 @@ export function useCloudSync(account, { prefs, setPrefs, saved, setSaved, readId
     ;(async () => {
       const ops = []
       if (upserts.length) ops.push(client.from('saved_items').upsert(upserts.map((key) => ({ user_id: uid, key, entry: saved[key], saved_at: new Date(saved[key].savedAt || Date.now()).toISOString() }))))
-      if (deletes.length) ops.push(client.from('saved_items').delete().in('key', deletes))
+      if (deletes.length) ops.push(client.from('saved_items').delete().eq('user_id', uid).in('key', deletes))
       const res = await Promise.all(ops)
       setStatus(res.some((r) => r.error) ? 'error' : 'ok')
     })()
