@@ -4,6 +4,7 @@ import { takeFeedCache, saveFeedCache } from '../lib/feedCache.js'
 import { carryOver } from '../lib/sourceStatus.js'
 import { freshCount } from '../lib/fresh.js'
 import { mutedSet } from '../lib/sourcesel.js'
+import { eachLimited } from '../lib/pool.js'
 
 const byRecency = (a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || '')
 
@@ -53,16 +54,14 @@ export function useFeed(prefs) {
   const gather = useCallback(async (core, signal) => {
     const versions = core.meta?.parts || {}
     const want = wantedSources(core.sources, prefsRef.current).filter((id) => versions[id])
-    await Promise.all(
-      want.map(async (id) => {
-        if (parts.current.get(id)?.version === versions[id]) return
-        try {
-          parts.current.set(id, { version: versions[id], items: await fetchPart(id, versions[id], { signal }) })
-        } catch (e) {
-          if (e.name === 'AbortError') throw e // een enkele bron die niet lukt houdt de rest niet op
-        }
-      })
-    )
+    const stale = want.filter((id) => parts.current.get(id)?.version !== versions[id])
+    await eachLimited(stale, 6, async (id) => {
+      try {
+        parts.current.set(id, { version: versions[id], items: await fetchPart(id, versions[id], { signal }) })
+      } catch (e) {
+        if (e.name === 'AbortError') throw e // een enkele bron die niet lukt houdt de rest niet op
+      }
+    })
     return want.flatMap((id) => parts.current.get(id)?.items || []).sort(byRecency)
   }, [])
 
