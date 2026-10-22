@@ -37,10 +37,13 @@ Tip: zet in iOS Safari per site *"Reader automatisch gebruiken"* aan (bv. nrc.nl
 - **Samenstellen** gebeurt op een vast ritme, niet als jij de app opent: `netlify/functions/feed-refresh.mjs`
   (elke 10 minuten, 's nachts elk half uur) roept `netlify/lib/build.mjs` aan. Dat haalt alle bronnen op,
   vult de Stroom, bundelt verhalen en legt de editie van het dagdeel vast.
-- **In delen.** Het resultaat is gesplitst: een kern (`/api/feed?deel=kern`: bronnenlijst, verhalen, editie)
-  en per bron een deel (`?bron=nrc&v=…`). De app haalt de kern plus alleen de bronnen die je volgt; een
-  deel met versie in de URL is onveranderlijk en blijft eindeloos in de cache. Zonder parameters geeft
-  `/api/feed` nog de oude volledige feed, voor apps van vóór 1.22.
+- **In delen.** Het resultaat is gesplitst:
+  - een kern (`/api/feed?deel=start`): bronnenlijst, verhalen en de editie met haar eigen momentopname;
+  - per bron een deel (`?bron=nrc&v=…`);
+  - de vergelijkingsdata (`?deel=verhalen&v=…`): alle publicaties per verhaal. De app haalt die pas op als je een verhaal opent, het zijpaneel opent of zoekt.
+
+  Een deel met versie in de URL verandert nooit en blijft eindeloos in de cache. `?deel=kern` (alles behalve de berichten) blijft voor apps 1.22–1.26; zonder parameters de oude volledige feed.
+- **De editie ligt vast** zodra ze gepubliceerd is: kop, intro en beeld komen uit de momentopname (`edition.items`). Alleen de bundel achter "+N bronnen" volgt de actuele indeling. Het overzicht in één minuut verwijst per blok naar zijn verhalen (`refs`) en wordt per zin gecontroleerd. Mislukt die controle, dan is er geen overzicht.
 - **Serveren** (`netlify/functions/feed.mjs`) leest alleen het kant-en-klare resultaat. De CDN van Netlify
   bewaart het voor iedereen en ververst het op de achtergrond; de browser krijgt "304, niets veranderd" als
   hij de feed al heeft.
@@ -48,8 +51,7 @@ Tip: zet in iOS Safari per site *"Reader automatisch gebruiken"* aan (bv. nrc.nl
 - **Beeld** gaat op maat: eigen formaten van de uitgever waar die bestaan, anders via de beeld-CDN van
   Netlify (AVIF/WebP, `src/lib/img.js` + `[images]` in `netlify.toml`).
 - **Security-headers** (`dist/_headers`) worden bij elke build gemaakt door `scripts/headers.mjs`, met de
-  sha256-hashes van de inline scripts in `index.html`. De CSP staat eerst op melden
-  (`CSP_ENFORCE = false`); zet hem op `true` als er een dag geen meldingen zijn.
+  sha256-hashes van de inline scripts in `index.html`. De CSP handhaaft (`CSP_ENFORCE = true`).
 - **De app** toont meteen wat hij de vorige keer had (in IndexedDB op het toestel) en werkt bij als er iets
   nieuws is. Video's: er speelt er altijd één, ze pauzeren als je wegscrolt en bufferen alvast als ze in
   beeld komen.
@@ -82,6 +84,14 @@ alles ook, alleen op dit toestel.
   (`/?uitnodiging=…`) is één keer te gebruiken en 30 dagen geldig.
 - **De app** bevat alleen de publieke sleutel (`src/lib/config.js`); de Supabase-code laadt pas bij
   inloggen.
+
+### Synchroniseren
+
+- `src/lib/syncEngine.js` regelt wat er met je account gebeurt.
+- **Eigenaar:** de gegevens op het toestel zijn van iemand (`hoot:owner`: `anon` of een gebruikers-id). Alleen anonieme gegevens worden bij inloggen samengevoegd; van een ander account nooit.
+- **Uitloggen** haalt de accountgegevens van het toestel.
+- **Basis:** wat de server bevestigde (`hoot:sync-base`). Alles wat daarvan afwijkt staat open, overleeft herladen en wordt vanzelf opnieuw geprobeerd: met oplopende pauze, bij "online" en als de app weer in beeld komt.
+- Privacy staat in de app onder `#/privacy`.
 
 ## Ontwikkelen
 

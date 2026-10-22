@@ -2,6 +2,45 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.27.0] — 2026-10-22 — Audit: vaste edities, eerlijke overzichten, veilige accounts
+
+**Editie en overzicht**
+- Een gepubliceerde editie verandert niet meer: kop, intro en beeld zijn de momentopname van het samenstellen.
+- Alle tien verhalen blijven staan. Een bron die je niet volgt krijgt het label "Volg je niet". Zijn het er minder dan tien, dan staat het aantal erbij.
+- Het overzicht in één minuut:
+  - heeft een duidelijke ingang boven het hoofdverhaal en een AI-label;
+  - toont onder elk blok de bronnen als links;
+  - zet onder "Ook in deze editie" wat het niet behandelt.
+- Het overzicht verzint niets meer:
+  - strengere regels voor toeschrijving, eigendom, wie-wat-doet, bedragen en oorzaak;
+  - een kop zonder intro wordt hooguit letterlijk geciteerd;
+  - elke zin wordt gecontroleerd en getallen moeten in de bron staan;
+  - mislukt die controle, dan is er geen overzicht.
+
+**Accounts en synchroniseren**
+- Uitloggen haalt je gegevens van het toestel. Een ander account op hetzelfde toestel krijgt ze nooit; alleen anonieme gegevens gaan bij inloggen mee.
+- Wat niet lukte te bewaren, blijft bewaard en gaat vanzelf alsnog: bij herladen, opnieuw online, of als de app weer in beeld komt.
+- Ophalen overschrijft je openstaande wijzigingen niet. De status zegt eerlijk of iets wacht, bezig is, gelukt of mislukt is.
+
+**Nieuws**
+- Bundels gaan over één gebeurtenis; liveblogs tellen niet mee.
+- Tijden die in de toekomst lagen (Nederlands Dagblad, twee uur vooruit) worden rechtgezet.
+- De editie rond de wintertijd klopt (05:59 gaf de avondeditie van de verkeerde dag).
+
+**Bediening en toegankelijkheid**
+- In het vergelijkpaneel blijft de toetsenbordfocus binnen het paneel.
+- "Terug" brengt je terug waar je vandaan kwam.
+- De Groot-tekst is echt groter.
+- Bij artikelen met een abonnement staat "abonnement".
+- Uitgelegd wat interesses doen.
+- In het welkom staan gratis bronnen eerst, met "gratis" erbij, en er is de keuze "Alleen gratis".
+
+**Beveiliging, privacy, snelheid**
+- De CSP handhaaft.
+- Er is een privacypagina.
+- Betere titel, beschrijving en deelkaartje, en een sitemap.
+- De start laadt ongeveer 9 kB in plaats van 78 kB: de vergelijkingsdata komt pas als je vergelijkt.
+
 ## [1.26.1] — 2026-10-22 — Krantenkop op desktop
 
 - Op desktop staat het logo als krantenkop in de zijbalk, zoals app-icoon E: een rode balk erboven en een dunne zwarte lijn eronder, allebei even breed als "hoot.".
