@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { SourceMark } from '../components/Items.jsx'
 import { EditionIcon, SparkleIcon, StreamIcon, INTEREST_ICONS } from '../components/icons.jsx'
-import { INTERESTS, topicById, resolveTopics, suggestSources, catLabel } from '../lib/topics.js'
+import { INTERESTS, topicById, resolveTopics, suggestSources, catLabel, starterGroups } from '../lib/topics.js'
 
 // Onboarding in vier schermen: uitleg → interesses (breed) → onderwerpen (smal) → bronnen.
 // Alles met tikken; onderaan steeds één knop om door te gaan.
@@ -28,6 +28,7 @@ export default function Welcome({ account, sources, prefs, onDone }) {
   const [picked, setPicked] = useState(() => prefs.topics || [])
   const [chosen, setChosen] = useState(null) // bronnen: pas vooraf invullen als je bij stap 4 komt
   const [freeOnly, setFreeOnly] = useState(false) // niet iedereen heeft abonnementen
+  const [quick, setQuick] = useState(false) // "Liever meteen lezen": de startset met gratis bronnen
   const head = useRef(null)
   const scroller = useRef(null)
 
@@ -38,7 +39,7 @@ export default function Welcome({ account, sources, prefs, onDone }) {
   useEffect(() => {
     scroller.current?.scrollTo(0, 0)
     head.current?.focus({ preventScroll: true })
-  }, [step])
+  }, [step, quick])
 
   const toggle = (set) => (id) => set((list) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]))
   const next = () => {
@@ -47,8 +48,19 @@ export default function Welcome({ account, sources, prefs, onDone }) {
   }
   const finish = () => onDone({ interests, topics, sources: chosen ?? suggestSources(pickable, interests, topics), all: pickable })
 
-  const cta =
-    step === 0
+  const starter = starterGroups(pickable)
+  const startQuick = () => {
+    setChosen(starter.flatMap((g) => g.sources.map((x) => x.id)))
+    setQuick(true)
+  }
+  // Bronnen nog niet geladen toen je op "Liever meteen lezen" tikte: dan alsnog de startset.
+  const starterKey = starter.map((g) => g.sources.length).join()
+  useEffect(() => {
+    if (quick && !(chosen || []).length && starter.length) setChosen(starter.flatMap((g) => g.sources.map((x) => x.id)))
+  }, [quick, starterKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  const cta = quick
+    ? { label: 'Begin met lezen', onClick: () => onDone({ interests: [], topics: [], sources: chosen || [], all: pickable }), disabled: !(chosen || []).length }
+    : step === 0
       ? { label: 'Stel Hoot in', onClick: next }
       : step === 1
         ? { label: interests.length ? 'Verder' : 'Kies minstens één', onClick: next, disabled: !interests.length }
@@ -59,14 +71,22 @@ export default function Welcome({ account, sources, prefs, onDone }) {
   const visibleGroups = GROUPS.filter((g) => (!g.interest || interests.includes(g.interest)) && (!g.topic || topics.includes(g.topic)))
 
   return (
-    <div className={`welcome ob${step === 0 ? ' ob--open' : ''}`} role="dialog" aria-modal="true" aria-labelledby="ob-title" ref={scroller}>
+    <div className={`welcome ob${step === 0 && !quick ? ' ob--open' : ''}`} role="dialog" aria-modal="true" aria-labelledby="ob-title" ref={scroller}>
       <div className="col ob__col">
         <div className="ob__top">
-          <span className="ob__n" aria-label={`Stap ${step + 1} van ${STEPS}`}>
-            {step + 1}
-            <small>/{STEPS}</small>
-          </span>
-          {step > 0 ? (
+          {quick ? (
+            <span className="ob__brand">hoot</span>
+          ) : (
+            <span className="ob__n" aria-label={`Stap ${step + 1} van ${STEPS}`}>
+              {step + 1}
+              <small>/{STEPS}</small>
+            </span>
+          )}
+          {quick ? (
+            <button type="button" className="ob__back" onClick={() => setQuick(false)}>
+              ‹ Terug
+            </button>
+          ) : step > 0 ? (
             <button type="button" className="ob__back" onClick={() => setStep((s) => s - 1)}>
               ‹ Terug
             </button>
@@ -75,7 +95,27 @@ export default function Welcome({ account, sources, prefs, onDone }) {
           )}
         </div>
 
-        {step === 0 ? (
+        {quick ? (
+          <>
+            <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
+              Een goed begin
+            </h1>
+            <p className="ob__sub">Bekende gratis bronnen, van nieuws tot sport. Geen abonnement nodig. Tik om iets weg te laten; later pas je alles aan bij Bronnen.</p>
+            {!starter.length ? <p className="ob__sub">De bronnen worden geladen…</p> : null}
+            {starter.map((g) => (
+              <section key={g.label} className="ob__group" aria-label={g.label}>
+                <h2 className="ob__gtitle">{g.label}</h2>
+                <ul className="ob__sources">
+                  {g.sources.map((x) => (
+                    <li key={x.id}>
+                      <SourcePick s={x} on={(chosen || []).includes(x.id)} onClick={() => toggle(setChosen)(x.id)} />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </>
+        ) : step === 0 ? (
           <>
             <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__hero">
               Minder scrollen. Meer lezen.
@@ -196,8 +236,19 @@ export default function Welcome({ account, sources, prefs, onDone }) {
           <button type="button" className="ob__cta" onClick={cta.onClick} disabled={cta.disabled}>
             {cta.label}
           </button>
-          {step === 0 ? (
-            <button type="button" className="ob__skip" onClick={() => onDone(null)}>
+          {quick ? (
+            <button
+              type="button"
+              className="ob__skip"
+              onClick={() => {
+                setQuick(false)
+                setStep(1)
+              }}
+            >
+              Liever zelf kiezen
+            </button>
+          ) : step === 0 ? (
+            <button type="button" className="ob__skip" onClick={startQuick}>
               Liever meteen lezen
             </button>
           ) : null}

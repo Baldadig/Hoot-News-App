@@ -2,6 +2,10 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.27.1] — 2026-10-22 — Een zachte landing
+
+- **"Liever meteen lezen"** opent nu "Een goed begin": bekende gratis bronnen, al aangevinkt en met hun logo, verdeeld over Nieuws (NOS, NU.nl, RTL Nieuws), Sport (NOS Sport, Voetbal International, WielerFlits), Tech (Tweakers), Cultuur (NOS Cultuur, 3voor12) en de wereld (BBC, The Guardian). Je hebt geen abonnement nodig en begint met één tik. Je kunt nog iets weglaten, of toch zelf kiezen.
+
 ## [1.27.0] — 2026-10-22 — Audit: vaste edities, eerlijke overzichten, veilige accounts
 
 **Editie en overzicht**

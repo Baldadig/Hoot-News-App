@@ -75,3 +75,19 @@ export const SOURCE_CATS = [
   ['cultuur', 'Cultuur en muziek'],
 ]
 export const catLabel = (cat) => SOURCE_CATS.find(([c]) => c === cat)?.[1] || cat
+
+// "Liever meteen lezen": een zachte landing met bekende gratis bronnen, Nederlands voorop, over
+// een paar interesses verdeeld. Geen abonnement nodig; alles is later aan te passen.
+export const STARTER = [
+  { label: 'Nieuws', ids: ['nos', 'nu', 'rtl'] },
+  { label: 'Sport', ids: ['nos-sport', 'vi', 'wielerflits'] },
+  { label: 'Tech', ids: ['tweakers'] },
+  { label: 'Cultuur', ids: ['nos-cultuur', '3voor12'] },
+  { label: 'De wereld, in het Engels', ids: ['bbc', 'guardian'] },
+]
+
+// De startset zoals die er nu is: alleen bronnen die bestaan en gratis zijn.
+export function starterGroups(sources = []) {
+  const byId = new Map(sources.map((s) => [s.id, s]))
+  return STARTER.map((g) => ({ ...g, sources: g.ids.map((id) => byId.get(id)).filter((s) => s && !s.paid) })).filter((g) => g.sources.length)
+}

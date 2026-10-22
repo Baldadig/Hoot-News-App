@@ -38,3 +38,18 @@ test('trefwoorden: duidelijke gevallen goed, dubbelzinnige woorden niet', () => 
   assert.ok(keywordTopics('Kabinet wil meer woningbouw').includes('wonen'))
   assert.ok(!keywordTopics('Samsung Galaxy review').includes('ruimte'))
 })
+
+test('startset "Liever meteen lezen": bestaande, gratis bronnen, Nederlands voorop', async () => {
+  const { SOURCES } = await import('../netlify/lib/sources.mjs')
+  const { STARTER, starterGroups } = await import('../src/lib/topics.js')
+  const ids = STARTER.flatMap((g) => g.ids)
+  for (const id of ids) {
+    const s = SOURCES.find((x) => x.id === id)
+    assert.ok(s, `${id} bestaat`)
+    assert.ok(!s.paid, `${id} is gratis`)
+  }
+  assert.equal(SOURCES.find((x) => x.id === STARTER[0].ids[0]).lang, 'nl')
+  const groups = starterGroups(SOURCES)
+  assert.equal(groups.flatMap((g) => g.sources).length, ids.length)
+  assert.equal(starterGroups([{ id: 'nos', paid: true }]).length, 0) // een betaalde bron komt er nooit in
+})
