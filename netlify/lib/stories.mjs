@@ -351,3 +351,30 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
   entries.sort((a, b) => b.w - a.w)
   return entries.map(({ w, ...e }) => e)
 }
+
+// De editie ligt vast, maar verhaal-id's niet: na een latere verversing kan een id bij een andere
+// bundel horen (gesplitst of opnieuw ingedeeld). Daarom bij elke uitlevering:
+// - elk verhaal-onderdeel krijgt de momentopname van toen (`itemIds`, `sourceCount`), en
+// - zit het hoofdbericht niet meer in het verhaal met die id, dan wijzen we naar het verhaal waar
+//   het nu wél in zit (of tonen het als los bericht), met de rubriek van wat we dan tonen.
+export function relinkEdition(entries = [], { stories = [], snapshot = [], byId = new Map() } = {}) {
+  const live = new Map(stories.map((st) => [st.id, st]))
+  const then = new Map(snapshot.map((st) => [st.id, st]))
+  const storyOf = new Map()
+  for (const st of stories) for (const id of st.itemIds) storyOf.set(id, st)
+  const deskOf = (ids) => primaryDesk(ids.map((id) => byId.get(id)).filter(Boolean).map((it) => desksOf(it)))
+  const taken = new Set(entries.map((e) => e.id)) // twee onderdelen mogen niet naar hetzelfde verhaal wijzen
+  return entries.map((e) => {
+    if (e.kind !== 'story') return e
+    const snap = then.get(e.id)
+    const out = { ...e, itemIds: snap?.itemIds || e.itemIds || [], sourceCount: snap?.sourceCount || e.sourceCount || 0, leadDesk: deskOf([e.leadId]) }
+    const cur = live.get(e.id)
+    if (!e.leadId || cur?.itemIds.includes(e.leadId)) return out
+    const now = storyOf.get(e.leadId)
+    if (now && !taken.has(now.id)) {
+      taken.add(now.id)
+      return { ...out, id: now.id, formerId: e.id, desk: deskOf(now.itemIds) || out.leadDesk || e.desk }
+    }
+    return { kind: 'item', id: e.leadId, formerId: e.id, desk: out.leadDesk || e.desk, w: e.w }
+  })
+}

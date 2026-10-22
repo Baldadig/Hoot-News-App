@@ -9,6 +9,7 @@ import { BrandMark } from '../components/Brand.jsx'
 import Weather from '../components/Weather.jsx'
 import { longDate } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
+import { resolveEditionEntry } from '../lib/edition.js'
 
 // Rubriek van elke plek in de editie (komt van de server), als label boven het verhaal.
 const DESK = { binnenland: 'Binnenland', buitenland: 'Buitenland', vs: 'VS', middenoosten: 'Midden-Oosten', oekraine: 'Oekraïne', wetenschap: 'Wetenschap', bubbel: 'Buiten je bubbel' }
@@ -72,15 +73,8 @@ export default function Edition({ active, edition, bubble = [], brief = null, lo
   // Elke regel van de editie: een verhaal (bundel) of een los bericht.
   const rows = (edition?.entries || [])
     .map((e) => {
-      if (e.kind === 'story') {
-        // Het hoofdbericht is bij het samenstellen gekozen (eigen bron, afwisseling); staat die
-        // bron uit of is het bericht weg, dan het eerstvolgende uit het verhaal.
-        const story = storiesById.get(e.id)
-        const item = story && [e.leadId, story.leadId, ...story.itemIds].map((id) => itemsById.get(id)).find((i) => i && !muted.has(i.source))
-        return item ? { key: e.id, item, story, note: deskLabel(e) } : null
-      }
-      const item = itemsById.get(e.id)
-      return item && !muted.has(item.source) ? { key: e.id, item, story: null, note: deskLabel(e) } : null
+      const r = resolveEditionEntry(e, { storiesById, itemsById, muted })
+      return r ? { key: e.id, item: r.item, story: r.story, note: deskLabel({ ...e, desk: r.desk }) } : null
     })
     .filter(Boolean)
 

@@ -2,7 +2,7 @@
 // vastleggen. Draait op een vast ritme (functions/feed-refresh.mjs); de app krijgt het
 // resultaat kant-en-klaar (functions/feed.mjs) en hoeft nooit op het ophalen te wachten.
 import Anthropic from '@anthropic-ai/sdk'
-import { byRecency, sigWords, sharedCount, buildStories, editionSlot, selectEdition, NL_SOURCES } from './stories.mjs'
+import { byRecency, sigWords, sharedCount, buildStories, editionSlot, selectEdition, relinkEdition, NL_SOURCES } from './stories.mjs'
 import { matchTrending, insertBubble } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
 import { articleKey, mergeSnippets, isLiveblog } from './snippets.mjs'
@@ -294,7 +294,7 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
 
   return {
     snapshot: stored,
-    public: { id: slot.id, slot: slot.slot, date: slot.date, next: slot.next, builtAt: stored.builtAt, entries: stored.entries, bubble: stored.bubble || [], brief: stored.brief || null },
+    public: { id: slot.id, slot: slot.slot, date: slot.date, next: slot.next, builtAt: stored.builtAt, entries: relinkEdition(stored.entries, { stories, snapshot: stored.stories, byId: new Map([...stored.items.map((i) => [i.id, i]), ...byId]) }), bubble: stored.bubble || [], brief: stored.brief || null },
   }
 }
 
