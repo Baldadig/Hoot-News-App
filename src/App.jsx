@@ -307,20 +307,30 @@ export default function App() {
   const page = PAGES.includes(path) && path !== 'welkom' ? path : null
 
   // Nog geen account? Als je een eind in je Editie of Stroom hebt gelezen, één keer vragen of je
-  // wilt inloggen (zie src/lib/join.js). Het scrollen houden we bij op welk lijstje dan ook.
+  // wilt inloggen (zie src/lib/join.js).
   const [joinOpen, setJoinOpen] = useState(false)
   const joinAsked = rawPrefs.joinAsked
   const mayAsk = account.status === 'out' && prefs.onboarded && !showWelcome
   useEffect(() => {
     if (!mayAsk || joinOpen) return
+    // Alleen echt lezen telt: scrollen na vinger, muis of toets (niet het terugzetten van je
+    // leespositie), en alleen in de lijst zelf (niet in een geopend verhaal of paneel).
+    let byUser = false
+    const onInput = () => (byUser = true)
     const onScroll = (e) => {
-      const el = e.target === document ? document.scrollingElement : e.target
-      if (!shouldAskToJoin({ status: 'out', onboarded: true, path, scrolled: el?.scrollTop || 0, asked: joinAsked })) return
+      const el = e.target
+      if (!byUser || !(el instanceof Element) || !el.matches('section.view')) return
+      if (!shouldAskToJoin({ status: 'out', onboarded: true, path, scrolled: el.scrollTop, asked: joinAsked })) return
       setJoinOpen(true)
       setPref('joinAsked', { n: (joinAsked?.n || 0) + 1, at: Date.now() })
     }
+    const inputs = ['wheel', 'touchmove', 'keydown']
+    for (const ev of inputs) document.addEventListener(ev, onInput, { capture: true, passive: true })
     document.addEventListener('scroll', onScroll, { capture: true, passive: true })
-    return () => document.removeEventListener('scroll', onScroll, { capture: true })
+    return () => {
+      for (const ev of inputs) document.removeEventListener(ev, onInput, { capture: true })
+      document.removeEventListener('scroll', onScroll, { capture: true })
+    }
   }, [mayAsk, joinOpen, path, joinAsked, setPref])
 
   // Geopend verhaal: de actuele versie, of de bewaarde momentopname als het uit de feeds is.
