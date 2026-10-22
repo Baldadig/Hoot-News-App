@@ -32,3 +32,24 @@ test('zonder parameters: alles in één, voor apps die nog niet zijn bijgewerkt'
   await writeDoc(KEYS.legacy, { body: '{"items":[2]}', builtAt: now(), etag: 'l' })
   assert.equal(await (await serve(new Request('http://x/api/feed'), {})).text(), '{"items":[2]}')
 })
+
+test('alleen GET: POST geeft 405', async () => {
+  const r = await serve(new Request('http://x/api/feed', { method: 'POST', body: 'x' }), {})
+  assert.equal(r.status, 405)
+  assert.equal(r.headers.get('allow'), 'GET, HEAD')
+})
+
+test('een onbekend deel is een fout, geen volledige feed', async () => {
+  await writeDoc(KEYS.core, { body: '{}', builtAt: now(), etag: 'k' })
+  const r = await serve(new Request('http://x/api/feed?deel=onzin'), {})
+  assert.equal(r.status, 400)
+  assert.match((await r.json()).error, /kern/)
+  assert.equal((await serve(new Request('http://x/api/feed?bron=../../etc'), {})).status, 404)
+})
+
+test('HEAD geeft de headers zonder inhoud', async () => {
+  await writeDoc(KEYS.core, { body: '{"items":[]}', builtAt: now(), etag: 'h' })
+  const r = await serve(new Request('http://x/api/feed?deel=kern', { method: 'HEAD' }), {})
+  assert.equal(r.status, 200)
+  assert.equal(await r.text(), '')
+})
