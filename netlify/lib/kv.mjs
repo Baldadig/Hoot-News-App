@@ -60,4 +60,7 @@ export const KEYS = {
   core: 'feed-core-v1', // bronnen, verhalen, editie (de app 1.22–1.26)
   legacy: 'feed-snapshot-v1', // alles in één (de app tot en met 1.21)
   part: (id) => 'feed-part-' + id, // de berichten van één bron
+  vakPool: 'vak-pool-v1', // alle stukken van de vakbronnen, de laatste 16 dagen
+  vak: 'vak-digest-v1', // de Vakweek die nu geldt
+  vakSince: 'vak-since-v1', // sinds wanneer we de vakbronnen verzamelen
 }

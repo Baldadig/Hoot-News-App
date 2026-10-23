@@ -1,5 +1,6 @@
 // Instellingen — één plek voor de standaardwaarden en het opschonen van wat er is opgeslagen
 // (getest in tests/prefs.test.mjs).
+import { VAK_FIELD_IDS } from '../../shared/vak.mjs'
 export const DEFAULT_PREFS = {
   muted: [],
   pinned: ['nederland', 'vs-politiek', 'ai'],
@@ -16,6 +17,7 @@ export const DEFAULT_PREFS = {
   interests: [], // brede interesses uit de onboarding (src/lib/topics.js → INTERESTS)
   topics: [], // onderwerpen die je volgt; leeg = alle
   bluesky: false, // Bluesky als eigen bestemming in het menu
+  vak: [], // vakgebieden in de Vakweek (shared/vak.mjs); leeg = geen tab Vak
   bskyInStream: [], // Bluesky-accounts die óók in de Stroom staan (standaard alleen in Bluesky)
   weatherPlace: 'haarlem', // plaats voor het weer in de Editie (src/lib/weather.js), of 'geen'
   followStories: [], // verhalen die je volgt: [{ id, title, at }] (src/lib/follow.js)
@@ -39,6 +41,7 @@ export function normalizePrefs(raw) {
   if (!Array.isArray(out.topics)) out.topics = []
   if (typeof out.weatherPlace !== 'string') out.weatherPlace = 'haarlem'
   if (!Array.isArray(out.followStories)) out.followStories = []
+  out.vak = Array.isArray(out.vak) ? out.vak.filter((f) => VAK_FIELD_IDS.includes(f)) : []
   // Opgeruimde instellingen (voorlezen en Instapaper, tot v1.19) niet meer meedragen.
   for (const k of ['instapaper', 'readAloud', 'voice']) delete out[k]
   return out

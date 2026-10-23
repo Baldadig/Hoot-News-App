@@ -3182,3 +3182,75 @@ html[data-images='hoofd'] .media--social {
 .fitem__kicker {
   margin: var(--s1) 0 0;
 }
+
+/* ---------- Vakweek ---------- */
+/* Per vak een kop als een krantenkatern (dikke inktlijn), drie genummerde stukken en een korte
+   lijst "Ook deze week". */
+.vakfield {
+  margin-top: var(--s6);
+}
+.vakfield:first-of-type {
+  margin-top: var(--s4);
+}
+.vakfield__head {
+  padding-top: var(--s3);
+  border-top: 2px solid var(--ink);
+  font-family: var(--serif);
+  font-size: var(--t5);
+  font-weight: 800;
+  line-height: var(--lh-head);
+  letter-spacing: -0.015em;
+}
+.vakfield__about {
+  margin: var(--s1) 0 var(--s2);
+}
+.vakitem .compact__text {
+  position: relative;
+}
+.vakitem__rank {
+  display: block;
+  color: var(--accent);
+  font-family: var(--serif);
+  font-size: var(--t5);
+  font-weight: 800;
+  line-height: 1;
+}
+.vakitem__also {
+  margin: var(--s2) 0 0;
+  color: var(--ink-3);
+  font-size: var(--t1);
+  line-height: var(--lh-ui);
+}
+.vakitem__also a {
+  color: var(--ink-2);
+  font-weight: 700;
+}
+.vakmore {
+  margin: var(--s2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.vakmore li + li {
+  border-top: 1px solid var(--rule);
+}
+.vakmore a {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--s3) 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+.vakmore__title {
+  font-family: var(--serif);
+  font-size: var(--t4);
+  font-weight: 800;
+  line-height: var(--lh-head);
+}
+.vakmore__src {
+  color: var(--ink-3);
+  font-size: var(--t1);
+}
+.vakfoot {
+  margin-top: var(--s6);
+}

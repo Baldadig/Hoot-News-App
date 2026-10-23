@@ -4,6 +4,7 @@ import { useHoot } from '../components/Items.jsx'
 import { Switch } from './Sources.jsx'
 import { AccountSettings } from '../components/Account.jsx'
 import { PLACES, NO_WEATHER } from '../lib/weather.js'
+import { VAK_FIELD_IDS } from '../../shared/vak.mjs'
 
 // Alle instellingen op één plek. Wat je al lezend wisselt staat bovenaan (zelfde rijen als
 // het Weergave-paneel); daaronder wat je één keer instelt.
@@ -57,6 +58,9 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
         <Row label="Edities" hint="Om 6, 12 en 17 uur tien verhalen. Daarna ligt de editie vast." />
 
         <h2 className="sect">Extra</h2>
+        <Row label="Vakweek in het menu" hint="Elke maandag per vak de drie belangrijkste stukken. Vakken kies je in de Vakweek.">
+          <Switch checked={prefs.vak.length > 0} onChange={(v) => setPref('vak', v ? VAK_FIELD_IDS : [])} label="Vakweek in het menu" />
+        </Row>
         <Row label="Bluesky in het menu" hint="Posts van mensen die je volgt.">
           <Switch checked={prefs.bluesky} onChange={(v) => setPref('bluesky', v)} label="Bluesky in het menu" />
         </Row>
