@@ -1,7 +1,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { isNoise } from '../netlify/lib/rss.mjs'
-import { matchCard } from '../netlify/lib/build.mjs'
+import { matchCard, wantsArticleImage } from '../netlify/lib/build.mjs'
+import { ogImageFrom } from '../netlify/lib/og.mjs'
 
 const it = (title, link = 'https://example.org/a') => ({ title, link })
 
@@ -29,4 +30,15 @@ test('Tweakers-beeld via Bluesky: op de kop gekoppeld, ook met "Review - " ervoo
   assert.equal(matchCard('Review - Philips OLED951-tv – Luxe en veelzijdig, maar minder smart', cards)?.thumb, 'https://cdn.bsky.app/a')
   assert.equal(matchCard('Veel websites bij hosters van Yourhosting zijn nog steeds offline door PHP-bug', cards)?.thumb, 'https://cdn.bsky.app/b')
   assert.equal(matchCard('Spotify heeft 306 miljoen betalende Premium-abonnees', cards), null)
+})
+
+test('beeld van het artikel: alleen voor gratis bronnen zonder beeld, nooit een liveblog', () => {
+  const art = (extra = {}) => ({ kind: 'article', image: null, url: 'https://www.rollingstone.com/music/x/', ...extra })
+  assert.equal(wantsArticleImage(art(), { id: 'rollingstone' }), true)
+  assert.equal(wantsArticleImage(art(), { id: 'bloomberg', paid: true }), false)
+  assert.equal(wantsArticleImage(art({ image: 'https://a/b.jpg' }), { id: 'rollingstone' }), false)
+  assert.equal(wantsArticleImage(art(), { id: 'tweakers', bskyImages: true }), false) // die komt via Bluesky
+  assert.equal(wantsArticleImage(art(), { id: 'volkskrant' }), false) // die komt via de zoekindex
+  // WordPress schrijft & soms als &#038;
+  assert.equal(ogImageFrom('<head><meta property="og:image" content="https://www.rollingstone.com/a.jpg?crop=0px&#038;resize=1200"></head>'), 'https://www.rollingstone.com/a.jpg?crop=0px&resize=1200')
 })

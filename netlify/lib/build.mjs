@@ -9,6 +9,7 @@ import { articleKey, mergeSnippets, isLiveblog } from './snippets.mjs'
 import { SOURCES, BLUESKY_AUTHORS, BLUESKY_HOURS, BSKY_BRAND, MAIN_IDS, MUSIC_IDS, EDITION_CATS, UA } from './sources.mjs'
 import { loadSourceWithRetry } from './rss.mjs'
 import { loadSnippets, loadTrends, loadSourceAvatars, loadBlueskyProfiles, loadBskyCards } from './lookups.mjs'
+import { loadOgImage } from './og.mjs'
 import { keywordTopics } from './topics.mjs'
 import { normTitle, preview } from './text.mjs'
 import { kvGet, kvSet, remember, storageMode } from './kv.mjs'
@@ -44,6 +45,7 @@ export async function buildFeed({ now = Date.now() } = {}) {
   const items = streamItems([...mainGroups, ...bskyGroups].flatMap((g) => g.items))
   const gaps = await fillGaps(items, now)
   await imagesFromBluesky(items, now)
+  await imagesFromArticles(items, now)
   borrowPreviews(items, mainGroups.flatMap((g) => g.items))
 
   // 5. Verhalen: bundelen over alle bronnen (behalve regionaal en muziek).
@@ -181,6 +183,37 @@ async function imagesFromBluesky(items, now) {
       const hit = matchCard(it.title, cards || [])
       if (hit) it.image = safeHttpUrl(hit.thumb)
     }
+  }
+}
+
+// ---------- 3c. Beeld van het artikel zelf ----------
+// Gratis bronnen waarvan de feed geen beeld meestuurt (Rolling Stone, DW, Al Jazeera, VRT,
+// Sporza …): de deelafbeelding van het artikel. Elk artikel één keer proberen en onthouden
+// (ook "geen beeld"), per ronde hooguit 36 nieuwe, de nieuwste eerst. Betaalde bronnen nooit.
+const OG_KEEP = 4 * 24 * 60 * MIN
+export function wantsArticleImage(it, src) {
+  return !!src && !src.paid && !GAPS[src.id] && !src.bskyImages && it.kind === 'article' && !it.image && !isLiveblog(it.url)
+}
+async function imagesFromArticles(items, now, { max = 36 } = {}) {
+  const needs = items.filter((it) => wantsArticleImage(it, SOURCE.get(it.source)))
+  if (!needs.length) return
+  const stored = await kvGet('og-images-v1')
+  const store = stored && typeof stored === 'object' ? stored : {}
+  const open = needs.filter((it) => !(articleKey(it.url) in store)).sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1)).slice(0, max)
+  for (let i = 0; i < open.length; i += 6) {
+    await Promise.all(
+      open.slice(i, i + 6).map(async (it) => {
+        store[articleKey(it.url)] = { img: safeHttpUrl(await loadOgImage(it.url)), at: now }
+      }),
+    )
+  }
+  for (const it of needs) {
+    const hit = store[articleKey(it.url)]
+    if (hit?.img) it.image = hit.img
+  }
+  if (open.length) {
+    for (const [k, v] of Object.entries(store)) if (now - (v?.at || 0) > OG_KEEP) delete store[k]
+    await kvSet('og-images-v1', store)
   }
 }
 
