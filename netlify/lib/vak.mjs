@@ -12,6 +12,7 @@
 // eigen intro van de schrijver.
 import { loadSourceWithRetry } from './rss.mjs'
 import { tzOffsetMs, hostname } from './text.mjs'
+import { UA } from './sources.mjs'
 import { VAK_FIELDS, VAK_FIELD_IDS } from '../../shared/vak.mjs'
 
 const V = (id, name, kind, fields, url, more = {}) => ({ id: 'vak:' + id, name, kind, fields, urls: [url], cat: 'vak', ...more })
@@ -188,6 +189,7 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
       }
       delete entry.text
       delete entry.cats
+      delete entry.ogTried
       return entry
     })
     scored.sort((a, b) => b.score - a.score || b.also.length - a.also.length || (a.publishedAt > b.publishedAt ? -1 : 1))
@@ -221,6 +223,64 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
     fields,
     sources: sources.map((s) => ({ id: s.id, name: s.name, kind: s.kind, fields: s.fields, about: s.about || null })),
   }
+}
+
+// ---- Beeld: de deelafbeelding van het artikel zelf ----
+// Veel vakfeeds leveren geen beeld (AdExchanger, Nielsen Norman Group, Sidebar-links) of een
+// postzegel (WordPress "-300x157"). De deelafbeelding (og:image) van het artikel is dan het beeld
+// dat de schrijver zelf koos. Alleen de <head> lezen; automatisch gemaakte titelkaartjes
+// ("/api/og?title=…") slaan we over: daar staat alleen de kop op.
+const SMALL_WP = /-(\d{2,3})x\d{2,4}\.(jpe?g|png|webp)(\?|$)/i
+export const wantsOgImage = (it) => !it.ogTried && (!it.image || (SMALL_WP.test(it.image) && Number(it.image.match(SMALL_WP)[1]) < 600))
+const GENERATED = /\/api\/og\b|\/og\?|\/og\/v\d|opengraph\.githubassets/i
+export function ogImageFrom(html) {
+  const head = html.split(/<\/head>/i)[0]
+  for (const tag of head.match(/<meta\b[^>]*>/gi) || []) {
+    if (!/(property|name)=["'](og:image|twitter:image)(:url)?["']/i.test(tag)) continue
+    const m = tag.match(/content=["']([^"']+)["']/i)
+    if (!m) continue
+    const url = m[1].replace(/&amp;/g, '&').trim()
+    if (/^https?:\/\//i.test(url) && !GENERATED.test(url)) return url
+  }
+  return null
+}
+export async function loadOgImage(url) {
+  try {
+    const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'text/html' }, redirect: 'follow', signal: AbortSignal.timeout(6000) })
+    if (!res.ok || !/text\/html/i.test(res.headers.get('content-type') || '')) return null
+    // Alleen het begin: de <head> zit in de eerste paar honderd kilobyte.
+    const reader = res.body.getReader()
+    let html = ''
+    const dec = new TextDecoder()
+    while (html.length < 300000) {
+      const { done, value } = await reader.read()
+      if (done) break
+      html += dec.decode(value, { stream: true })
+      if (/<\/head>/i.test(html)) break
+    }
+    reader.cancel().catch(() => {})
+    return ogImageFrom(html)
+  } catch {
+    return null
+  }
+}
+// Per ronde hooguit `max` stukken: eerst wat in de digest staat (`first`), dan de nieuwste;
+// elk stuk één keer proberen.
+export async function addOgImages(pool, { max = 24, first = new Set(), load = loadOgImage } = {}) {
+  const todo = pool
+    .filter(wantsOgImage)
+    .sort((a, b) => first.has(b.id) - first.has(a.id) || (a.publishedAt < b.publishedAt ? 1 : -1))
+    .slice(0, max)
+  for (let i = 0; i < todo.length; i += 6) {
+    await Promise.all(
+      todo.slice(i, i + 6).map(async (it) => {
+        const img = await load(it.url)
+        if (img) it.image = img
+        it.ogTried = true
+      }),
+    )
+  }
+  return todo.length
 }
 
 // ---- Ophalen en bewaren ----

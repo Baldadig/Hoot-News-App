@@ -1,6 +1,6 @@
 // De voorraad van de vakbronnen bijwerken en, als er een nieuwe week is, de Vakweek samenstellen.
 import { kvGet, kvSet, readDoc, writeDoc, KEYS } from './kv.mjs'
-import { loadVakItems, mergePool, composeVak, vakWeek } from './vak.mjs'
+import { loadVakItems, mergePool, composeVak, vakWeek, addOgImages } from './vak.mjs'
 import { hash } from '../../shared/util.mjs'
 
 let running = null // binnen één functie-instantie nooit twee keer tegelijk
@@ -11,13 +11,17 @@ export function refreshVak({ now = Date.now(), force = false } = {}) {
     try {
       const { items } = await loadVakItems()
       const pool = mergePool((await kvGet(KEYS.vakPool)) || [], items, now)
-      await kvSet(KEYS.vakPool, pool)
       // Sinds wanneer we verzamelen: tot er een volle week is, elk uur een voorproefje.
       let since = await kvGet(KEYS.vakSince)
       if (!since) {
         since = new Date(now).toISOString()
         await kvSet(KEYS.vakSince, since)
       }
+      // Beeld van het artikel zelf, waar de feed geen (goed) beeld gaf: eerst voor wat nu in de
+      // digest zou staan.
+      const shown = new Set(composeVak(pool, { now, since }).fields.flatMap((f) => [...f.top, ...f.more].map((e) => e.id)))
+      await addOgImages(pool, { first: shown, max: 30 })
+      await kvSet(KEYS.vakPool, pool)
       const current = await readDoc(KEYS.vak)
       if (current && current.week === vakWeek(now).id && !current.preview && !force) return current
       const digest = composeVak(pool, { now, since })

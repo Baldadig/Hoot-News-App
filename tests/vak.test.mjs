@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { vakWeek, isReading, cleanTitle, fieldOf, sameSubject, isArticleLink, composeVak, mergePool, VAK_SOURCES } from '../netlify/lib/vak.mjs'
+import { vakWeek, isReading, cleanTitle, fieldOf, sameSubject, isArticleLink, composeVak, mergePool, VAK_SOURCES, ogImageFrom, wantsOgImage, addOgImages } from '../netlify/lib/vak.mjs'
 import { normalizePrefs } from '../src/lib/prefs.js'
 
 const src = (id) => VAK_SOURCES.find((s) => s.id === 'vak:' + id)
@@ -87,4 +87,19 @@ test('voorraad: nieuwe stukken erbij, ouder dan zestien dagen eruit', () => {
 test('instelling: alleen bestaande vakgebieden', () => {
   assert.deepEqual(normalizePrefs({ vak: ['ux', 'onzin', 'paid-social'] }).vak, ['ux', 'paid-social'])
   assert.deepEqual(normalizePrefs({}).vak, [])
+})
+
+test('beeld van het artikel: og:image uit de head, geen automatisch titelkaartje, elk stuk één keer', async () => {
+  assert.equal(ogImageFrom('<head><meta property="og:image" content="https://media.nngroup.com/a.png?x=1&amp;y=2"></head><body><meta property="og:image" content="https://x/nee.png"></body>'), 'https://media.nngroup.com/a.png?x=1&y=2')
+  assert.equal(ogImageFrom('<head><meta content="https://b.org/c.jpg" name="twitter:image"></head>'), 'https://b.org/c.jpg')
+  assert.equal(ogImageFrom('<head><meta property="og:image" content="https://maxschmitt.me/api/og?title=Calm"></head>'), null)
+  assert.equal(wantsOgImage({ image: null }), true)
+  assert.equal(wantsOgImage({ image: 'https://www.jonloomer.com/wp-content/uploads/2026/10/x-300x157.png' }), true) // postzegel
+  assert.equal(wantsOgImage({ image: 'https://ppc.land/content/images/2026/10/x.jpg' }), false)
+  assert.equal(wantsOgImage({ image: null, ogTried: true }), false)
+  const pool = [{ url: 'https://a/1', image: null, publishedAt: '2026-10-20' }, { url: 'https://a/2', image: null, publishedAt: '2026-10-21' }]
+  await addOgImages(pool, { load: async (u) => (u.endsWith('1') ? 'https://img/1.jpg' : null) })
+  assert.equal(pool[0].image, 'https://img/1.jpg')
+  assert.equal(pool[1].image, null)
+  assert.ok(pool.every((i) => i.ogTried))
 })
