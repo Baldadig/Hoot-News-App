@@ -2,6 +2,12 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.31.1] — 2026-10-23 — Rustiger Stroom
+
+- **Kleine updates en aanbiedingen vallen weg.** Denk aan "Software-update - Camtasia", "Driver-update - AMD" en firmware-updates, aanbiedingen, kortingscodes, dagdeals en de eigen acties van Tweakers. Een deal die nieuws is ("Trump en China sluiten deal") blijft staan.
+- **Tweakers heeft beeld.** De feed levert geen afbeeldingen, maar Tweakers deelt elk artikel op Bluesky met een linkkaart. Hoot neemt dat beeld over: 27 van de 28 berichten hebben er nu een.
+- **Beelden in de Stroom zijn op breed scherm een liggende strook** (21:9, hooguit 300 pixels hoog), net als het hoofdverhaal. Zo worden ze niet groter dan de kop en intro erboven. Op de telefoon blijft het 16:9.
+
 ## [1.31.0] — 2026-10-23 — Digest
 
 - **Nieuwe tab Digest:** elke maandag om 7:00 per vakgebied de drie belangrijkste stukken van de week ervoor, met daaronder "Ook deze week". Je zet de tab aan in Instellingen → Extra en kiest bovenaan je vakken:
