@@ -85,6 +85,24 @@ export async function loadBlueskyProfiles(handles) {
 }
 
 // Merk-avatars van alle bronnen (zelden anders; de bouwer bewaart ze een dag, zie build.mjs).
+// ---------- Beeld via Bluesky ----------
+// Sommige feeds leveren geen beeld (Tweakers), terwijl de redactie elk artikel op Bluesky deelt
+// met een linkkaart mét beeld (1000 px breed). De site zelf staat achter een toestemmingspoort;
+// die omzeilen we niet. Geeft [{ title, thumb }] van de laatste ~100 posts.
+export async function loadBskyCards(handle) {
+  try {
+    const res = await fetch(`${BSKY_API}/app.bsky.feed.getAuthorFeed?actor=${encodeURIComponent(handle)}&limit=100&filter=posts_no_replies`, {
+      headers: { 'User-Agent': UA },
+      signal: AbortSignal.timeout(6000),
+    })
+    if (!res.ok) return []
+    const d = await res.json()
+    return (d.feed || []).map((f) => f.post?.embed?.external).filter((e) => e?.title && e?.thumb).map((e) => ({ title: e.title, thumb: e.thumb }))
+  } catch {
+    return []
+  }
+}
+
 export async function loadSourceAvatars() {
   const entries = await Promise.all(SOURCES.map(async (s) => [s.id, s.bsky ? await bskyAvatar(s.bsky) : null]))
   return Object.fromEntries(entries)

@@ -72,7 +72,7 @@ export const SOURCES = [
   // Tech
   S('theverge', 'The Verge', 'tech', 'en', 'Technologie, gadgets en internetcultuur.', 'https://www.theverge.com/rss/index.xml', { pick: true, for: ['tech'], base: true, bsky: 'theverge.com', x: 'verge', color: '#5200FF' }),
   S('wired', 'Wired', 'tech', 'en', 'Wat technologie met de wereld doet.', 'https://www.wired.com/feed/rss', { paid: true, pick: true, for: ['tech'], base: true, bsky: 'wired.com', x: 'wired', color: '#222222' }),
-  S('tweakers', 'Tweakers', 'tech', 'nl', 'Nederlands technieuws en reviews.', 'https://tweakers.net/feeds/mixed.xml', { pick: true, for: ['tech'], x: 'tweakers', color: '#E5202C' }),
+  S('tweakers', 'Tweakers', 'tech', 'nl', 'Nederlands technieuws en reviews.', 'https://tweakers.net/feeds/mixed.xml', { pick: true, for: ['tech'], bsky: 'tweakers.net', bskyImages: true, color: '#E5202C' }),
   S('ars', 'Ars Technica', 'tech', 'en', 'Diepgaand over technologie en wetenschap.', 'https://feeds.arstechnica.com/arstechnica/index', { pick: true, for: ['tech'], color: '#FF4E00' }),
   S('techcrunch', 'TechCrunch', 'tech', 'en', 'Start-ups en de techindustrie.', 'https://techcrunch.com/feed/', { color: '#0A9E01' }),
   S('mittr', 'MIT Technology Review', 'tech', 'en', 'Opkomende technologie, waaronder AI.', 'https://www.technologyreview.com/feed/', { paid: true, color: '#1A1A1A' }),

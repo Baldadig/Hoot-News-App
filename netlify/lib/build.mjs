@@ -8,7 +8,7 @@ import { createBrief, briefRows } from './brief.mjs'
 import { articleKey, mergeSnippets, isLiveblog } from './snippets.mjs'
 import { SOURCES, BLUESKY_AUTHORS, BLUESKY_HOURS, BSKY_BRAND, MAIN_IDS, MUSIC_IDS, EDITION_CATS, UA } from './sources.mjs'
 import { loadSourceWithRetry } from './rss.mjs'
-import { loadSnippets, loadTrends, loadSourceAvatars, loadBlueskyProfiles } from './lookups.mjs'
+import { loadSnippets, loadTrends, loadSourceAvatars, loadBlueskyProfiles, loadBskyCards } from './lookups.mjs'
 import { keywordTopics } from './topics.mjs'
 import { normTitle, preview } from './text.mjs'
 import { kvGet, kvSet, remember, storageMode } from './kv.mjs'
@@ -43,6 +43,7 @@ export async function buildFeed({ now = Date.now() } = {}) {
   // 2. De Stroom, 3. gaten vullen, 4. voorvertoningen lenen.
   const items = streamItems([...mainGroups, ...bskyGroups].flatMap((g) => g.items))
   const gaps = await fillGaps(items, now)
+  await imagesFromBluesky(items, now)
   borrowPreviews(items, mainGroups.flatMap((g) => g.items))
 
   // 5. Verhalen: bundelen over alle bronnen (behalve regionaal en muziek).
@@ -153,6 +154,34 @@ async function fillGaps(items, now) {
     }
   }
   return result
+}
+
+// ---------- 3b. Beeld via Bluesky ----------
+// Bronnen zonder beeld in de feed (`bskyImages`) krijgen het beeld van hun eigen linkkaart op
+// Bluesky, gekoppeld op de kop. Tweakers zet in de feed "Review - " voor de kop, op Bluesky niet;
+// en past een kop soms nog aan ("om PHP-bug" werd "door PHP-bug"): dan telt sterke overlap.
+const KICKER = /^(review|preview|videoreview|achtergrond|column|interview|podcast|plan|video)\s*[-–]\s*/i
+export function matchCard(title, cards) {
+  const key = normTitle(title.replace(KICKER, ''))
+  const exact = cards.find((c) => normTitle(c.title.replace(KICKER, '')) === key)
+  if (exact) return exact
+  const w = sigWords(title)
+  if (w.size < 4) return null
+  return cards.find((c) => {
+    const cw = sigWords(c.title)
+    return sharedCount(w, cw) / Math.max(w.size, cw.size) >= 0.75
+  }) || null
+}
+async function imagesFromBluesky(items, now) {
+  for (const src of SOURCES.filter((s) => s.bskyImages && s.bsky)) {
+    const needs = items.filter((it) => it.source === src.id && it.kind === 'article' && !it.image)
+    if (!needs.length) continue
+    const cards = await remember('bsky-cards-' + src.id, 9 * MIN, () => loadBskyCards(src.bsky), { now, valid: (c) => c.length > 0 }).catch(() => [])
+    for (const it of needs) {
+      const hit = matchCard(it.title, cards || [])
+      if (hit) it.image = safeHttpUrl(hit.thumb)
+    }
+  }
 }
 
 // ---------- 4. Voorvertoning lenen ----------
