@@ -3195,56 +3195,264 @@ html[data-images='hoofd'] .media--social {
 }
 
 /* ---------- Digest ---------- */
-/* Per vak een kop als een krantenkatern (dikke inktlijn), drie genummerde stukken en een korte
-   lijst "Ook deze week". */
-.vakfield {
-  margin-top: var(--s6);
+/* Opgebouwd als een tijdschrift: een kop met de week, een inhoudsopgave, en per vak één groot
+   stuk, twee kaarten en een korte lijst. Kaarten op --surface met een dunne rand; de nummers en
+   rubriekregels in krantenrood, de koppen in de krantenletter. */
+.dmast {
+  margin: var(--s5) 0 var(--s4);
 }
-.vakfield:first-of-type {
-  margin-top: var(--s4);
+.dmast__week {
+  color: var(--accent);
+  font-size: var(--t1);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
-.vakfield__head {
-  padding-top: var(--s3);
-  border-top: 2px solid var(--ink);
+.dmast__lede {
+  margin-top: var(--s2);
   font-family: var(--serif);
   font-size: var(--t5);
   font-weight: 800;
   line-height: var(--lh-head);
   letter-spacing: -0.015em;
 }
-.vakfield__about {
-  margin: var(--s1) 0 var(--s2);
+.dmast__note {
+  margin-top: var(--s2);
+  color: var(--ink-3);
+  font-size: var(--t2);
 }
-.vakitem .compact__text {
-  position: relative;
+
+/* Inhoud */
+.dtoc {
+  display: grid;
+  gap: var(--s4);
+  margin: 0 0 var(--s6);
+  padding: var(--s4);
+  border-top: 2px solid var(--ink);
+  background: var(--surface);
+  border-radius: 0 0 var(--radius) var(--radius);
 }
-.vakitem__rank {
+@media (min-width: 720px) {
+  .dtoc {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--s5);
+  }
+}
+.dtoc button {
+  display: flex;
+  gap: var(--s2);
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.dtoc__head {
+  align-items: center;
+  min-height: var(--tap);
+  font-size: var(--t2);
+  font-weight: 800;
+}
+.dtoc__icon,
+.dfield__icon {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.dtoc__icon svg {
+  width: 18px;
+  height: 18px;
+}
+.dtoc__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dtoc__list li + li {
+  border-top: 1px solid var(--rule);
+}
+.dtoc__list button {
+  padding: var(--s2) 0;
+  font-family: var(--serif);
+  font-size: var(--t3);
+  font-weight: 800;
+  line-height: var(--lh-head);
+}
+.dtoc__list button:hover span:last-child {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.dtoc__n {
+  flex: none;
+  min-width: 1.6em;
+  color: var(--accent);
+}
+
+/* Een vak */
+.dfield {
+  margin-top: var(--s7);
+}
+.dfield__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  margin-bottom: var(--s4);
+  padding-top: var(--s4);
+  border-top: 2px solid var(--ink);
+}
+.dfield__icon {
+  width: 44px;
+  height: 44px;
+}
+.dfield__title {
+  font-family: var(--serif);
+  font-size: var(--t5);
+  font-weight: 800;
+  line-height: var(--lh-head);
+  letter-spacing: -0.015em;
+}
+.dfield__about {
+  color: var(--ink-3);
+  font-size: var(--t2);
+  line-height: var(--lh-ui);
+}
+.dfield,
+.dfield__anchor {
+  scroll-margin-top: calc(var(--safe-t) + var(--s4));
+}
+
+/* Kaarten */
+.dcard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.dcard__link {
   display: block;
+  flex: 1;
+  color: inherit;
+  text-decoration: none;
+}
+.dcard__media {
+  aspect-ratio: 16 / 9;
+}
+.dcard__body {
+  padding: var(--s4) var(--s4) 0;
+}
+.dcard__rank {
+  display: block;
+  margin-bottom: var(--s1);
   color: var(--accent);
   font-family: var(--serif);
   font-size: var(--t5);
   font-weight: 800;
   line-height: 1;
 }
-.vakitem__also {
-  margin: var(--s2) 0 0;
+.dcard__title {
+  font-family: var(--serif);
+  font-size: var(--t4);
+  font-weight: 800;
+  line-height: var(--lh-head);
+}
+.dcard__sum {
+  margin-top: var(--s2);
+  color: var(--ink-2);
+  font-size: var(--t2);
+  line-height: var(--lh-body);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+.dcard__foot {
+  padding: var(--s2) var(--s4) 0;
+}
+.dcard__foot .meta {
+  border: 0;
+}
+.dcard__also {
   color: var(--ink-3);
   font-size: var(--t1);
   line-height: var(--lh-ui);
 }
-.vakitem__also a {
+.dcard__also a {
   color: var(--ink-2);
   font-weight: 700;
 }
-.vakmore {
+.is-read .dcard__title {
+  color: var(--ink-3);
+}
+/* Het eerste stuk van een vak: groter, met een brede strook beeld */
+.dcard--feature .dcard__title {
+  font-size: var(--t5);
+  letter-spacing: -0.015em;
+}
+.dcard--feature .dcard__sum {
+  font-size: var(--t3);
+  -webkit-line-clamp: 4;
+}
+/* Zonder beeld: een rustige rode lijn bovenaan, zodat de kaart toch een begin heeft */
+.dcard--text {
+  border-top: 3px solid var(--accent);
+}
+@media (min-width: 720px) {
+  .dcard--feature .dcard__media {
+    aspect-ratio: 2 / 1;
+  }
+  .dcard--feature .dcard__body,
+  .dcard--feature .dcard__foot {
+    padding-inline: var(--s5);
+  }
+}
+.dpair {
+  display: grid;
+  gap: var(--s3);
+  margin-top: var(--s3);
+}
+@media (min-width: 720px) {
+  .dpair {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Ook deze week */
+.dmore {
+  margin-top: var(--s5);
+}
+.dmore__head {
+  color: var(--ink-2);
+  font-size: var(--t1);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.dmore__list {
   margin: var(--s2) 0 0;
   padding: 0;
   list-style: none;
 }
-.vakmore li + li {
+@media (min-width: 720px) {
+  .dmore__list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--s5);
+  }
+}
+.dmore__list li {
   border-top: 1px solid var(--rule);
 }
-.vakmore a {
+.dmore__list a {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -3252,16 +3460,33 @@ html[data-images='hoofd'] .media--social {
   color: var(--ink);
   text-decoration: none;
 }
-.vakmore__title {
+.dmore__title {
   font-family: var(--serif);
-  font-size: var(--t4);
+  font-size: var(--t3);
   font-weight: 800;
   line-height: var(--lh-head);
 }
-.vakmore__src {
+.dmore__src {
   color: var(--ink-3);
   font-size: var(--t1);
 }
-.vakfoot {
-  margin-top: var(--s6);
+
+/* Hoe kiest Hoot? */
+.dhow {
+  margin-top: var(--s7);
+  padding-top: var(--s3);
+  border-top: 1px solid var(--rule);
+  color: var(--ink-3);
+  font-size: var(--t2);
+}
+.dhow summary {
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  color: var(--ink-2);
+  font-weight: 700;
+  cursor: pointer;
+}
+.dhow p + p {
+  margin-top: var(--s2);
 }
