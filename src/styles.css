@@ -1097,6 +1097,17 @@ select {
 .compact--tl {
   contain-intrinsic-size: auto 420px;
 }
+/* Breed scherm: een liggende strook (zoals het hoofdverhaal), zodat het beeld niet groter
+   wordt dan de kop en de intro erboven. */
+@media (min-width: 720px) {
+  .media--tl {
+    aspect-ratio: 21 / 9;
+    max-height: 300px;
+  }
+  .compact--tl {
+    contain-intrinsic-size: auto 360px;
+  }
+}
 /* Desktop: de tijdlijn heeft de breedte van de kolom, dus de kop mag mee groeien (T5). */
 @media (min-width: 960px) {
   .compact--tl .compact__title {
