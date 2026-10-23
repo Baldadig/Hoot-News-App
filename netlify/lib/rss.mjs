@@ -20,13 +20,21 @@ const parser = new Parser({
 function categoriesOf(it) {
   return (it.categories || []).map((c) => (typeof c === 'string' ? c : c?._ || c?.$?.term || '')).filter(Boolean)
 }
-// Geen nieuws: koopjesgidsen/affiliate-lijstjes en puzzels horen niet in een
-// nieuws-tijdlijn (bij Wired is dat rond acties tot 70% van de feed).
-const NOISE_TITLE = /\b(prime day|black friday|cyber monday|promo codes?|coupon codes?|gift guides?|best gifts?|gifts? for (him|her|men|women|kids|dads?|moms?))\b|\bbest\b.*\bdeals\b|\bdeals\b.*(\bsave\b|\$\d|\bunder \$)|\d+ ?(%|percent) off\b/i
-function isNoise(it, cats) {
-  if (cats.some((c) => /\bdeals\b|\bcoupons?\b|\bshopping\b/i.test(c))) return true
-  if (NOISE_TITLE.test(it.title || '')) return true
-  return /\/puzzels?\//.test(it.link || '')
+// Geen nieuws: koopjesgidsen/affiliate-lijstjes, aanbiedingen, kleine software-updates en
+// puzzels horen niet in een nieuws-tijdlijn (bij Wired is dat rond acties tot 70% van de feed;
+// bij Tweakers is een kwart "Software-update - Camtasia 2026.2.3").
+const NOISE_TITLE = /\b(prime day|black friday|cyber monday|singles day|promo codes?|coupon codes?|gift guides?|best gifts?|gifts? for (him|her|men|women|kids|dads?|moms?))\b|\bbest\b.*\bdeals\b|\bdeals\b.*(\bsave\b|\$\d|\bunder \$)|\d+ ?(%|percent) off\b/i
+// Nederlands: aanbiedingen en kortingen ("deal" los niet: een handelsdeal is nieuws).
+const NOISE_TITLE_NL = /\b(aanbiedingen?|in de aanbieding|kortingscodes?|dagdeals?|prijsfouten?|uitverkoop|koopjes|tijdelijk (goedkoper|in prijs verlaagd)|nu \d+ ?% korting)\b|\b\w+-deals\b/i
+// Kleine updates: een nieuwe versie van een programma, driver of firmware (Tweakers zet ze
+// onder /downloads/, en zijn eigen acties en evenementen onder /plan/).
+const UPDATE_TITLE = /^(software|driver|firmware|bios|game)-update\s*[-–:]/i
+const NOISE_LINK = /\/puzzels?\/|^https:\/\/tweakers\.net\/(downloads|plan|aanbiedingen|pricewatch)\//
+export function isNoise(it, cats = []) {
+  if (cats.some((c) => /\bdeals\b|\bcoupons?\b|\bshopping\b|\baanbieding|^(software|driver|firmware)$|^\.(plan|actie)$/i.test(c.trim()))) return true
+  const title = it.title || ''
+  if (NOISE_TITLE.test(title) || NOISE_TITLE_NL.test(title) || UPDATE_TITLE.test(title)) return true
+  return NOISE_LINK.test(it.link || '')
 }
 // De intro uit de feed: de samenvatting, of anders de artikeltekst (content:encoded), zonder
 // een vaste aanhef als "Nature, Published online: …; doi:…". Herhaalt hij alleen de kop, dan
