@@ -2,6 +2,14 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.32.0] — 2026-10-23 — De Digest als tijdschrift
+
+- **Kop:** welke week het is, en hoeveel stukken er zijn gekozen uit hoeveel.
+- **Inhoudsopgave:** per vak de drie koppen, genummerd. Tik erop en je springt naar het stuk.
+- **Per vak:** een eigen opening met icoon, het eerste stuk groot met beeld, het tweede en derde als twee kaarten naast elkaar (op de telefoon onder elkaar), en "Ook deze week" als lijst in twee kolommen.
+- **"Hoe kiest Hoot deze stukken?"** staat nu inklapbaar onderaan.
+- **Beeld bij bijna elk stuk:** waar de feed geen beeld of een postzegel gaf, gebruikt Hoot de deelafbeelding van het artikel zelf. Dat is het beeld dat de schrijver zelf koos. Automatisch gemaakte plaatjes met alleen de titel erop slaat Hoot over.
+
 ## [1.31.1] — 2026-10-23 — Rustiger Stroom
 
 - **Kleine updates en aanbiedingen vallen weg.** Denk aan "Software-update - Camtasia", "Driver-update - AMD" en firmware-updates, aanbiedingen, kortingscodes, dagdeals en de eigen acties van Tweakers. Een deal die nieuws is ("Trump en China sluiten deal") blijft staan.
