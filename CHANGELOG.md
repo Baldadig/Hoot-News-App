@@ -2,6 +2,11 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.32.1] — 2026-10-23 — Beeld bij meer bronnen
+
+- **Bronnen zonder beeld in hun feed krijgen er een:** Hoot gebruikt de deelafbeelding van het artikel zelf. Dat geldt voor Rolling Stone, DW, Al Jazeera, VRT NWS, Sporza, ESPN, TechCrunch, Scientific American, Nature, Politico Europe en WielerFlits. Elk artikel wordt één keer geprobeerd, nieuwste eerst; daarna onthoudt Hoot het resultaat.
+- Betaalde bronnen (zoals Bloomberg en De Tijd) slaat Hoot over: van betaalde artikelen haalt Hoot niets op.
+
 ## [1.32.0] — 2026-10-23 — De Digest als tijdschrift
 
 - **Kop:** welke week het is, en hoeveel stukken er zijn gekozen uit hoeveel.
