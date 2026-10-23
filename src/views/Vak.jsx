@@ -66,7 +66,7 @@ function VakItem({ item, rank }) {
   )
 }
 
-// Vakweek: elke maandag om 07:00 per vakgebied de drie belangrijkste stukken van de week ervoor,
+// Digest: elke maandag om 07:00 per vakgebied de drie belangrijkste stukken van de week ervoor,
 // door mensen geschreven (zie netlify/lib/vak.mjs). Bovenaan kies je je vakgebieden.
 export default function Vak({ active, digest, status, onRefresh }) {
   const { prefs, setPref } = useHoot()
@@ -78,14 +78,14 @@ export default function Vak({ active, digest, status, onRefresh }) {
   const toggle = (id) => setPref('vak', chosen.includes(id) ? chosen.filter((f) => f !== id) : VAK_FIELDS.map((f) => f.id).filter((f) => f === id || chosen.includes(f)))
   const sub = digest
     ? digest.preview
-      ? `Voorproefje: de afgelopen zeven dagen. De eerste volle Vakweek komt ${WEEKDAY.format(new Date(digest.next))}.`
+      ? `Voorproefje: de afgelopen zeven dagen. De eerste volle digest komt ${WEEKDAY.format(new Date(digest.next))}.`
       : `Week ${digest.week} · ${span(digest.from, digest.to)} · elke maandag om 7 uur nieuw`
     : 'Elke maandag om 7 uur: per vak de drie belangrijkste stukken van de week'
 
   return (
-    <section className="view" hidden={!active} ref={ref} aria-label="Vakweek">
+    <section className="view" hidden={!active} ref={ref} aria-label="Digest">
       <div className="col">
-        <ViewHeader title="Vakweek" sub={sub} onRefresh={onRefresh} refreshing={status === 'refreshing' || status === 'loading'} display>
+        <ViewHeader title="Digest" sub={sub} onRefresh={onRefresh} refreshing={status === 'refreshing' || status === 'loading'} display>
           <div className="topics">
             <div className="topics__scroll" role="group" aria-label="Vakgebieden">
               {VAK_FIELDS.map((f) => (

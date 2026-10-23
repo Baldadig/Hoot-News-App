@@ -2,9 +2,9 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
-## [1.31.0] — 2026-10-23 — Vakweek
+## [1.31.0] — 2026-10-23 — Digest
 
-- **Nieuwe tab Vak:** elke maandag om 7:00 per vakgebied de drie belangrijkste stukken van de week ervoor, met daaronder "Ook deze week". Je zet de tab aan in Instellingen → Extra en kiest bovenaan je vakken:
+- **Nieuwe tab Digest:** elke maandag om 7:00 per vakgebied de drie belangrijkste stukken van de week ervoor, met daaronder "Ook deze week". Je zet de tab aan in Instellingen → Extra en kiest bovenaan je vakken:
   - **Paid social:** Jon Loomer, Social Media Today, Social Media Examiner, Digiday, AdExchanger, Adweek, PPC Land, Search Engine Journal, Marketingfacts, Emerce, Meta Newsroom.
   - **UI/UX:** Nielsen Norman Group, Luke Wroblewski, Brad Frost, Smashing Magazine, A List Apart, UX Collective, Figma, Sidebar.
   - **Design in digital:** Creative Review, Design Week, Fast Company Design, Awwwards, Sidebar.
@@ -15,7 +15,7 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
   Bij elk stuk staat waarom het erin staat.
 - **Alleen mensenwerk:** geen gesponsorde stukken, webinars, podcasts, nieuwsoverzichten of "10 tools"-lijstjes. De tekst bij elk stuk is de intro van de schrijver zelf; er is geen AI-tekst.
-- De vakbronnen staan los van je nieuws: ze komen niet in Editie of Stroom. Hoot haalt ze elk uur op, zodat niets van de week wegvalt. Tot er een volle week verzameld is, toont de tab een voorproefje over de afgelopen zeven dagen.
+- De vakbronnen staan los van je nieuws: ze komen niet in Editie of Stroom. Hoot haalt ze elk uur op, zodat niets van de week wegvalt. Tot er een volle week verzameld is, toont de Digest een voorproefje over de afgelopen zeven dagen.
 
 ## [1.30.2] — 2026-10-22 — Scherp hoofdbeeld, en echt jouw editie
 

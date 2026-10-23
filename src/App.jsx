@@ -147,8 +147,8 @@ export default function App() {
   const sourcesById = useMemo(() => new Map(sources.map((s) => [s.id, s])), [sources])
   // Uit: wat je zelf uitzette, plus optionele bronnen die je nog niet aanzette.
   const muted = useMemo(() => mutedSet(prefs, sources), [prefs, sources])
-  // Vakweek: pas ophalen als je de tab hebt aangezet (of hem opent).
-  const vak = useVak(prefs.vak.length > 0 || route.path === 'vak')
+  // Digest: pas ophalen als je de tab hebt aangezet (of hem opent).
+  const vak = useVak(prefs.vak.length > 0 || route.path === 'digest')
   // Jouw editie: samengesteld uit je eigen bronnen en interesses (zie src/lib/personal.js).
   const { edition: myEdition, member } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount })
   const socialIds = useMemo(() => new Set(social.sources.map((s) => 'bsky:' + s.handle)), [social.sources])
@@ -319,7 +319,7 @@ export default function App() {
   // Instellingen of Zoeken, ook als je er via een gewone link kwam.
   const cameFrom = useRef('editie')
   if (MAIN.includes(path) && path !== 'welkom') cameFrom.current = path
-  const FROM_LABEL = { editie: 'Editie', stroom: 'Stroom', vak: 'Vakweek', bewaard: 'Bewaard', bronnen: 'Bronnen', bluesky: 'Bluesky' }
+  const FROM_LABEL = { editie: 'Editie', stroom: 'Stroom', digest: 'Digest', bewaard: 'Bewaard', bronnen: 'Bronnen', bluesky: 'Bluesky' }
   const backTo = { onBack: () => route.back(cameFrom.current), backLabel: FROM_LABEL[cameFrom.current] || 'Terug' }
 
   // Nog geen account? Als je een eind in je Editie of Stroom hebt gelezen, één keer vragen of je
@@ -379,7 +379,7 @@ export default function App() {
         bronnen: 'Bronnen',
         zoek: 'Zoeken',
         stijl: 'Designsysteem',
-        welkom: 'Welkom', instellingen: 'Instellingen', privacy: 'Privacy', bluesky: 'Bluesky', vak: 'Vakweek' }[path] + ' · Hoot'
+        welkom: 'Welkom', instellingen: 'Instellingen', privacy: 'Privacy', bluesky: 'Bluesky', digest: 'Digest' }[path] + ' · Hoot'
   }, [path])
 
   // Bronstatus: één uitgevallen bron is een stil puntje bij Bronnen; alleen als álles
@@ -498,7 +498,7 @@ export default function App() {
           Naar de inhoud
         </a>
         <div className="app__nav" inert={hideMain ? '' : undefined}>
-          <Nav path={path} hrefs={hrefs} sourceNote={statusLabel(srcStatus.failed.length)} bluesky={prefs.bluesky || path === 'bluesky'} vak={prefs.vak.length > 0 || path === 'vak'} />
+          <Nav path={path} hrefs={hrefs} sourceNote={statusLabel(srcStatus.failed.length)} bluesky={prefs.bluesky || path === 'bluesky'} digest={prefs.vak.length > 0 || path === 'digest'} />
         </div>
         <main id="inhoud" className="main" inert={hideMain ? '' : undefined}>
           {was('editie') ? (
@@ -552,7 +552,7 @@ export default function App() {
               refreshing={refreshing}
             />
           ) : null}
-          {was('vak') ? <Vak active={shown === 'vak'} digest={vak.digest} status={vak.status} onRefresh={vak.reload} /> : null}
+          {was('digest') ? <Vak active={shown === 'digest'} digest={vak.digest} status={vak.status} onRefresh={vak.reload} /> : null}
           {was('bewaard') ? <Saved active={shown === 'bewaard'} /> : null}
           {was('bronnen') ? (
             <Sources

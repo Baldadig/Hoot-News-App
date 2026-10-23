@@ -6,23 +6,23 @@ import { BriefcaseIcon, ButterflyIcon, EditionIcon, StreamIcon, BookmarkIcon, So
 export const DESTINATIONS = [
   { id: 'editie', label: 'Editie', Icon: EditionIcon },
   { id: 'stroom', label: 'Stroom', Icon: StreamIcon },
-  { id: 'vak', label: 'Vak', Icon: BriefcaseIcon },
+  { id: 'digest', label: 'Digest', Icon: BriefcaseIcon },
   { id: 'bluesky', label: 'Bluesky', Icon: ButterflyIcon },
   { id: 'bewaard', label: 'Bewaard', Icon: BookmarkIcon },
   { id: 'bronnen', label: 'Bronnen', Icon: SourcesIcon },
 ]
 
-// Vaste hoofdnavigatie: onderin op telefoon, links op desktop. Vak en Bluesky alleen als je die aanzet.
+// Vaste hoofdnavigatie: onderin op telefoon, links op desktop. Digest en Bluesky alleen als je die aanzet.
 // `hrefs` brengt je terug naar waar je in die bestemming was (met je filters);
 // `sourceNote` is de korte tekst bij het stille statuspuntje op Bronnen.
-export function Nav({ path, hrefs = {}, sourceNote = '', bluesky = false, vak = false }) {
+export function Nav({ path, hrefs = {}, sourceNote = '', bluesky = false, digest = false }) {
   return (
     <nav className="nav" aria-label="Hoofdnavigatie">
       <a className="nav__brand" href={hrefs.editie || '#/editie'} aria-label="Hoot — naar de Editie">
         <BrandLogo height={30} />
       </a>
       <ul className="nav__list">
-        {DESTINATIONS.filter((d) => (bluesky || d.id !== 'bluesky') && (vak || d.id !== 'vak')).map(({ id, label, Icon }) => (
+        {DESTINATIONS.filter((d) => (bluesky || d.id !== 'bluesky') && (digest || d.id !== 'digest')).map(({ id, label, Icon }) => (
           <li key={id}>
             <a className="nav__link" href={hrefs[id] || `#/${id}`} aria-current={path === id ? 'page' : undefined}>
               <span className="nav__icon">

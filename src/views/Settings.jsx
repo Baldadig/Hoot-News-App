@@ -58,8 +58,8 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
         <Row label="Edities" hint="Om 6, 12 en 17 uur tien verhalen. Daarna ligt de editie vast." />
 
         <h2 className="sect">Extra</h2>
-        <Row label="Vakweek in het menu" hint="Elke maandag per vak de drie belangrijkste stukken. Vakken kies je in de Vakweek.">
-          <Switch checked={prefs.vak.length > 0} onChange={(v) => setPref('vak', v ? VAK_FIELD_IDS : [])} label="Vakweek in het menu" />
+        <Row label="Digest in het menu" hint="Elke maandag per vak de drie belangrijkste stukken. Vakken kies je in de Digest.">
+          <Switch checked={prefs.vak.length > 0} onChange={(v) => setPref('vak', v ? VAK_FIELD_IDS : [])} label="Digest in het menu" />
         </Row>
         <Row label="Bluesky in het menu" hint="Posts van mensen die je volgt.">
           <Switch checked={prefs.bluesky} onChange={(v) => setPref('bluesky', v)} label="Bluesky in het menu" />

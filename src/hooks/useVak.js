@@ -3,7 +3,7 @@ import { readJSON, writeJSON } from '../lib/store.js'
 
 const KEY = 'hoot:vak'
 
-// De Vakweek (GET /api/vak). Pas ophalen als je de tab hebt aangezet; de laatste versie blijft op
+// De Digest (GET /api/vak). Pas ophalen als je de tab hebt aangezet; de laatste versie blijft op
 // het toestel, zodat de tab ook offline iets laat zien. Opnieuw ophalen bij openen als de
 // volgende week al begonnen is, of als het een voorproefje was (dat groeit elk uur).
 export function useVak(enabled) {

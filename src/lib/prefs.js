@@ -17,7 +17,7 @@ export const DEFAULT_PREFS = {
   interests: [], // brede interesses uit de onboarding (src/lib/topics.js → INTERESTS)
   topics: [], // onderwerpen die je volgt; leeg = alle
   bluesky: false, // Bluesky als eigen bestemming in het menu
-  vak: [], // vakgebieden in de Vakweek (shared/vak.mjs); leeg = geen tab Vak
+  vak: [], // vakgebieden in de Digest (shared/vak.mjs); leeg = geen tab Digest
   bskyInStream: [], // Bluesky-accounts die óók in de Stroom staan (standaard alleen in Bluesky)
   weatherPlace: 'haarlem', // plaats voor het weer in de Editie (src/lib/weather.js), of 'geen'
   followStories: [], // verhalen die je volgt: [{ id, title, at }] (src/lib/follow.js)
