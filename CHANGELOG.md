@@ -2,6 +2,10 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.32.3] — 2026-10-24 — Beginscherm-icoon voor de nachtmodus
+
+- In de donkere modus van iOS 26 vervangt het systeem de lichte achtergrond van een web-app-icoon door zwart, waardoor de zwarte "h" onzichtbaar werd. Het icoon is nu zelf donker: inktzwart, met een papierkleurige "h" en een rode punt. Daardoor is het in de lichte én de donkere modus goed leesbaar. Hetzelfde icoon staat in het manifest (Android).
+
 ## [1.32.2] — 2026-10-24 — Scherpe NU.nl-beelden
 
 - NU.nl stuurt in de feed alleen een vierkantje van 256 pixels mee, dat groot wazig werd. Hoot vraagt nu bij NU.nl zelf de liggende versie op (640, 854 of 1280 pixels breed, wat je scherm nodig heeft), netjes bijgesneden en niet uitgerekt. Als kleine afbeelding naast een kop blijft het vierkantje.
