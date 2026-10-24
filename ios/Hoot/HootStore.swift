@@ -28,7 +28,6 @@ final class HootStore {
     private(set) var read: Set<String> { didSet { save("hoot.read", Array(read.suffix(2000))) } }
 
     // Weergave en lezen (zelfde namen en waarden als de web-app, voor het synchroniseren later)
-    var theme: String { didSet { save("hoot.theme", theme) } } // system | light | dark
     var images: String { didSet { save("hoot.images", images) } } // aan | hoofd | uit
     var bubble: Bool { didSet { save("hoot.bubble", bubble) } } // "Buiten je bubbel" in de Editie
     var openInSafari: Bool { didSet { save("hoot.openInSafari", openInSafari) } }
@@ -40,7 +39,6 @@ final class HootStore {
         digestFields = Self.load("hoot.digestFields") ?? ["paid-social", "ux", "design"]
         saved = Self.load("hoot.saved") ?? []
         read = Set(Self.load("hoot.read") ?? [String]())
-        theme = Self.load("hoot.theme") ?? "system"
         images = Self.load("hoot.images") ?? "aan"
         bubble = Self.load("hoot.bubble") ?? true
         openInSafari = Self.load("hoot.openInSafari") ?? false

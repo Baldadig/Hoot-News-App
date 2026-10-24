@@ -1,10 +1,15 @@
 import SwiftUI
 
-// Instellingen: een blad achter de account-knop rechtsboven (zoals in de App Store en Apple
-// News). Zelfde keuzes als op hootnews.nl, in de vorm van een iOS-formulier.
+// Instellingen: een blad achter de knop rechtsboven, volgens de Human Interface Guidelines:
+// - alleen wat je in de app vaak wilt aanpassen; wat bij het systeem hoort (meldingen,
+//   achtergrond, tekstgrootte) via de pagina van Hoot in de Instellingen-app;
+// - geen eigen licht/donker: de app volgt de keuze van je iPhone;
+// - geen opties die (nog) niet werken of nu niet van toepassing zijn;
+// - wissen alleen na bevestiging, met Annuleer.
 struct SettingsView: View {
     @Environment(HootStore.self) private var store
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     @State private var confirmClear: String?
 
     private var version: String {
@@ -18,78 +23,79 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section {
-                    Label {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Inloggen")
-                            Text("Met Google of Apple, in de volgende versie.").font(.caption).foregroundStyle(.secondary)
-                        }
-                    } icon: {
-                        Image(systemName: "person.crop.circle.fill").font(.title).foregroundStyle(.secondary)
-                    }
-                } footer: {
-                    Text("Dan gaan je bronnen, Bewaard en wat je las mee naar je andere toestellen en hootnews.nl.")
-                }
-
-                Section {
-                    Picker("Thema", selection: $store.theme) {
-                        Text("Systeem").tag("system")
-                        Text("Licht").tag("light")
-                        Text("Donker").tag("dark")
-                    }
-                    .pickerStyle(.segmented)
-                    Picker("Beeld", selection: $store.images) {
+                    Picker(selection: $store.images) {
                         Text("Aan").tag("aan")
                         Text("Alleen hoofdverhaal").tag("hoofd")
                         Text("Uit").tag("uit")
+                    } label: {
+                        Label("Beeld", systemImage: "photo")
+                    }
+                    Toggle(isOn: $store.bubble) {
+                        Label("Buiten je bubbel", systemImage: "sparkle.magnifyingglass")
                     }
                 } header: {
-                    Text("Weergave")
+                    Text("Editie en Stroom")
                 } footer: {
-                    Text("De tekstgrootte volgt je iPhone: Instellingen → Scherm en helderheid → Tekstgrootte.")
+                    Text("Buiten je bubbel: één verhaal waar veel mensen nu naar zoeken en dat niet in je editie staat.")
                 }
 
                 Section {
-                    Toggle("Buiten je bubbel", isOn: $store.bubble)
-                } header: {
-                    Text("Editie")
-                } footer: {
-                    Text("Eén verhaal waar veel mensen nu naar zoeken en dat niet in je editie staat.")
-                }
-
-                Section {
-                    Toggle("Openen in Safari", isOn: $store.openInSafari)
-                    Toggle("Meteen de Lezer", isOn: $store.readerFirst)
-                        .disabled(store.openInSafari)
+                    Toggle(isOn: $store.openInSafari.animation()) {
+                        Label("Openen in Safari", systemImage: "safari")
+                    }
+                    if !store.openInSafari {
+                        Toggle(isOn: $store.readerFirst) {
+                            Label("Meteen de Lezer", systemImage: "doc.plaintext")
+                        }
+                    }
                 } header: {
                     Text("Lezen")
                 } footer: {
-                    Text(store.openInSafari ? "Artikelen openen in Safari zelf." : "Artikelen openen in de app, met je inlog van Safari. De Lezer toont alleen de tekst, als de site dat toelaat.")
+                    Text(store.openInSafari ? "Artikelen openen in Safari." : "Artikelen openen in Hoot, met je inlog van Safari.")
                 }
 
                 Section("Bronnen en vakken") {
                     NavigationLink {
-                        SourcesList().navigationTitle("Bronnen")
+                        SourcesList().navigationTitle("Bronnen").navigationBarTitleDisplayMode(.inline)
                     } label: {
-                        LabeledContent("Bronnen", value: "\(store.followed.count) aan")
+                        LabeledContent { Text("\(store.followed.count) aan") } label: { Label("Bronnen", systemImage: "dot.radiowaves.up.forward") }
                     }
                     NavigationLink {
-                        DigestFieldsList().navigationTitle("Vakken in de Digest")
+                        DigestFieldsList().navigationTitle("Vakken").navigationBarTitleDisplayMode(.inline)
                     } label: {
-                        LabeledContent("Vakken in de Digest", value: "\(store.digestFields.count) van 3")
+                        LabeledContent { Text("\(store.digestFields.count) van 3") } label: { Label("Vakken in de Digest", systemImage: "briefcase") }
                     }
                 }
 
-                Section("Op dit toestel") {
-                    Button("Gelezen vergeten") { confirmClear = "gelezen" }
-                    Button("Bewaard leegmaken", role: .destructive) { confirmClear = "bewaard" }
-                        .disabled(store.saved.isEmpty)
+                Section {
+                    Button {
+                        if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                    } label: {
+                        OutboundRow(title: "Meldingen en achtergrond", systemImage: "gearshape")
+                    }
+                    .foregroundStyle(.primary)
+                    .accessibilityHint("Opent Hoot in de Instellingen-app")
+                } footer: {
+                    Text("In de Instellingen-app van je iPhone. De tekstgrootte volgt je iPhone (Scherm en helderheid).")
+                }
+
+                Section {
+                    Button(role: .destructive) { confirmClear = "gelezen" } label: {
+                        Label("Gelezen vergeten", systemImage: "eye.slash")
+                    }
+                    Button(role: .destructive) { confirmClear = "bewaard" } label: {
+                        Label("Bewaard leegmaken", systemImage: "bookmark.slash")
+                    }
+                    .disabled(store.saved.isEmpty)
+                } header: {
+                    Text("Op deze iPhone")
                 }
 
                 Section("Over") {
-                    LabeledContent("Hoot", value: version)
+                    LabeledContent("Versie", value: version)
                     LabeledContent("Gemaakt door", value: "Alex Vrees")
-                    Link(destination: URL(string: "https://hootnews.nl/#/privacy")!) { Label("Privacy", systemImage: "hand.raised") }
-                    Link(destination: URL(string: "https://hootnews.nl")!) { Label("hootnews.nl", systemImage: "safari") }
+                    Link(destination: URL(string: "https://hootnews.nl/#/privacy")!) { OutboundRow(title: "Privacybeleid", systemImage: "hand.raised") }.foregroundStyle(.primary)
+                    Link(destination: URL(string: "https://hootnews.nl")!) { OutboundRow(title: "hootnews.nl", systemImage: "globe") }.foregroundStyle(.primary)
                 }
             }
             .navigationTitle("Instellingen")
@@ -103,6 +109,9 @@ struct SettingsView: View {
                 } else {
                     Button("Gelezen vergeten", role: .destructive) { store.clearRead() }
                 }
+                Button("Annuleer", role: .cancel) {}
+            } message: {
+                Text(confirmClear == "bewaard" ? "Dit kun je niet ongedaan maken." : "Gelezen berichten worden weer gewoon getoond.")
             }
         }
     }
@@ -126,12 +135,12 @@ struct DigestFieldsList: View {
     }
 }
 
-// De account-knop rechtsboven op elk scherm; opent de instellingen.
+// De knop rechtsboven op elk scherm; opent de instellingen. (Wordt je account-foto zodra je kunt inloggen.)
 struct AccountButton: ToolbarContent {
     @Binding var open: Bool
     var body: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
-            Button("Instellingen", systemImage: "person.crop.circle") { open = true }
+            Button("Instellingen", systemImage: "gearshape") { open = true }
         }
     }
 }
@@ -147,5 +156,18 @@ private struct SettingsButton: ViewModifier {
         content
             .toolbar { AccountButton(open: $open) }
             .sheet(isPresented: $open) { SettingsView() }
+    }
+}
+
+// Een rij die de app verlaat (Instellingen-app, website): gewone tekst met ↗ rechts, zoals Apple.
+struct OutboundRow: View {
+    let title: String
+    let systemImage: String
+    var body: some View {
+        HStack {
+            Label { Text(title).foregroundStyle(.primary) } icon: { Image(systemName: systemImage).foregroundStyle(Theme.accent) }
+            Spacer()
+            Image(systemName: "arrow.up.forward").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+        }
     }
 }

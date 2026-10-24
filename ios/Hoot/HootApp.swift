@@ -7,7 +7,7 @@ struct HootApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView()
+            WidthReader { RootView() }
                 .environment(store)
                 .environment(reader)
                 .tint(Theme.accent)
@@ -34,8 +34,13 @@ struct RootView: View {
             Tab("Bewaard", systemImage: "bookmark", value: Destination.bewaard) { SavedView() }
             Tab(value: Destination.zoek, role: .search) { SearchView() }
         }
+        .tabViewStyle(.sidebarAdaptable) // iPad en brede vensters: zijbalk of tabbalk bovenaan
         .tabBarMinimizeBehavior(.onScrollDown)
         .task { await store.load() }
+        .onAppear {
+            // Voor schermafbeeldingen (App Store): start op een gekozen tabblad met `-HootStartTab digest`.
+            if let t = UserDefaults.standard.string(forKey: "HootStartTab"), let d = Destination(rawValue: t) { tab = d }
+        }
         .onChange(of: phase) { _, now in
             // Terug in de app na een tijdje weg: verversen.
             if now == .active, let at = store.updatedAt, Date.now.timeIntervalSince(at) > 15 * 60 { Task { await store.load() } }
@@ -43,6 +48,5 @@ struct RootView: View {
         .fullScreenCover(item: $reader.item) { item in
             if let url = item.link { SafariView(url: url, reader: store.readerFirst).ignoresSafeArea() }
         }
-        .preferredColorScheme(store.theme == "light" ? .light : store.theme == "dark" ? .dark : nil)
     }
 }

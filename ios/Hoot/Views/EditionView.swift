@@ -44,6 +44,7 @@ extension HootStore {
 
 struct EditionView: View {
     @Environment(HootStore.self) private var store
+    @Environment(\.isWide) private var wide
     private var title: String { store.edition?.slot.flatMap { Desk.slots[$0] } ?? "Editie" }
     private var dateLine: String {
         guard let d = store.edition?.date, let date = ISO8601DateFormatter.ymd.date(from: d) else { return "" }
@@ -65,9 +66,21 @@ struct EditionView: View {
                             .foregroundStyle(.secondary)
                             .padding(.bottom, 16)
                         LeadCard(item: rows[0].item, label: rows[0].label, story: rows[0].story)
-                        ForEach(rows.dropFirst()) { row in
-                            Divider().padding(.vertical, 8)
-                            ItemRow(item: row.item, label: row.label, story: row.story)
+                        if wide {
+                            // Breed: de rest in twee kolommen, elk verhaal met een lijn erboven.
+                            LazyVGrid(columns: [GridItem(.flexible(), spacing: 32, alignment: .top), GridItem(.flexible(), spacing: 32, alignment: .top)], alignment: .leading, spacing: 8) {
+                                ForEach(rows.dropFirst()) { row in
+                                    VStack(alignment: .leading, spacing: 0) {
+                                        Divider().padding(.vertical, 8)
+                                        ItemRow(item: row.item, label: row.label, story: row.story)
+                                    }
+                                }
+                            }
+                        } else {
+                            ForEach(rows.dropFirst()) { row in
+                                Divider().padding(.vertical, 8)
+                                ItemRow(item: row.item, label: row.label, story: row.story)
+                            }
                         }
                         Text("Dat was de editie. De volgende verschijnt om \(store.edition?.next ?? "") uur.")
                             .font(.footnote)
@@ -77,6 +90,7 @@ struct EditionView: View {
                     }
                 }
                 .padding(.horizontal)
+                .column(wide ? Layout.wide : Layout.readable)
             }
             .background(Theme.paper)
             .navigationTitle(title)
@@ -107,6 +121,9 @@ struct StoryView: View {
             }
         }
         .scrollContentBackground(.hidden)
+        .contentMargins(.horizontal, 0, for: .scrollContent)
+        .frame(maxWidth: Layout.readable)
+        .frame(maxWidth: .infinity)
         .background(Theme.paper)
         .navigationTitle("Verhaal")
         .navigationBarTitleDisplayMode(.inline)

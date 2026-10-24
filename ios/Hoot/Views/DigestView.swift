@@ -36,6 +36,7 @@ struct DigestView: View {
                     }
                 }
                 .padding(.horizontal)
+                .column(Layout.wide * 0.85)
             }
             .background(Theme.paper)
             .navigationTitle("Digest")
@@ -99,6 +100,7 @@ struct DigestView: View {
 }
 
 private struct FieldSection: View {
+    @Environment(\.isWide) private var wide
     let field: DigestField
     let icon: String
     var body: some View {
@@ -117,8 +119,13 @@ private struct FieldSection: View {
             }
             if let first = field.top.first {
                 DigestCard(item: first, rank: 1, feature: true)
-                ForEach(Array(field.top.dropFirst().enumerated()), id: \.element.id) { i, item in
-                    DigestCard(item: item, rank: i + 2, feature: false)
+                let rest = Array(field.top.dropFirst().enumerated())
+                if wide {
+                    HStack(alignment: .top, spacing: 12) {
+                        ForEach(rest, id: \.element.id) { i, item in DigestCard(item: item, rank: i + 2, feature: false).frame(maxHeight: .infinity, alignment: .top) }
+                    }
+                } else {
+                    ForEach(rest, id: \.element.id) { i, item in DigestCard(item: item, rank: i + 2, feature: false) }
                 }
             } else {
                 Text("Deze week geen stukken die eruit sprongen.").font(.subheadline).foregroundStyle(.secondary)

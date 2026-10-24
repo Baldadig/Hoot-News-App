@@ -19,12 +19,17 @@ Met een gratis Apple ID werkt de app 7 dagen; daarna opnieuw op ▶︎ drukken. 
 - **Digest**: elke maandag per vak de drie belangrijkste stukken van de week.
 - **Bewaard**: wat je bewaarde (op dit toestel).
 - **Zoeken**: in alles wat Hoot nu van je bronnen heeft.
-- **Instellingen**: via de account-knop rechtsboven (weergave, editie, lezen, bronnen, vakken).
+- **Instellingen**: via het tandwiel rechtsboven (beeld, Buiten je bubbel, lezen, bronnen, vakken).
+- **iPhone, iPhone mini, iPhone Duo en iPad**: de opmaak past zich aan de breedte aan (zie `AppStore/APPARATEN.md`).
 - Lezen gaat in de app via de Safari-weergave (met Lezer, en ingelogd bij je abonnementen zoals in Safari).
 
 Liquid Glass: de tabbalk met zoeken als eigen knop (krimpt bij omlaag scrollen), glazen knoppen en
 werkbalken, bladen met glas. Koppen in New York (de serif van iOS), tekst in San Francisco, met
 Dynamische tekst en donkere modus.
+
+## App Store
+
+Alles voor het indienen staat in [`AppStore/`](AppStore/README.md); begin bij de checklist.
 
 ## Volgende fasen
 

@@ -1,5 +1,18 @@
 # Changelog — Hoot voor iOS
 
+## [0.3.0] — 2026-10-24 — iPad, iPhone mini, iPhone Duo en klaar voor de App Store
+
+- **iPad:** de app werkt nu ook op iPad, in alle standen en met Split View en Stage Manager. De iPadOS-tabbalk staat bovenaan en kan een zijbalk worden.
+- **Brede opmaak** (iPad, opengevouwen iPhone Duo, Pro Max liggend): het hoofdverhaal met beeld en kop naast elkaar, de verhalen in twee kolommen, en de Digest-kaarten naast elkaar. Bij vouwen of een ander venster wisselt de opmaak live.
+- **iPhone mini en grote tekst:** knoppen schuiven onder de bron als het niet op één regel past; miniaturen schalen mee en verdwijnen bij de grootste tekst.
+- **Instellingen volgens de Human Interface Guidelines:**
+  - geen eigen licht/donker meer (de app volgt je iPhone);
+  - een verwijzing naar de Instellingen-app voor meldingen;
+  - geen rij meer voor inloggen dat er nog niet is;
+  - wissen alleen na bevestiging.
+- "+1 bron" in plaats van "+1 bronnen".
+- **Voor de App Store:** privacymanifest, vrijstelling voor versleuteling, en de map `AppStore/` met checklist, teksten, schermafbeeldingen, privacy- en leeftijdsantwoorden, notities voor de beoordelaar en promotie.
+
 ## [0.2.0] — 2026-10-24 — Instellingen
 
 - Account-knop rechtsboven op Editie, Stroom, Digest en Bewaard; opent het instellingenblad.

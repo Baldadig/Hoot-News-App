@@ -35,6 +35,7 @@ struct StreamView: View {
                     }
                 }
                 .padding(.horizontal)
+                .column()
             }
             .background(Theme.paper)
             .navigationTitle("Stroom")

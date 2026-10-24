@@ -97,9 +97,22 @@ struct SourceMark: View {
 // Bron, tijd en (als het verhaal meer bronnen heeft) "+N bronnen".
 struct SourceLine: View {
     @Environment(HootStore.self) private var store
+    @Environment(\.dynamicTypeSize) private var typeSize
     let item: Item
     var story: Story?
     var body: some View {
+        // Grote tekst of smal scherm: past het niet op één regel, dan de knoppen eronder.
+        ViewThatFits(in: .horizontal) {
+            line
+            VStack(alignment: .leading, spacing: 4) { source; HStack { more; Spacer(); SaveButton(item: item) } }
+        }
+    }
+
+    private var line: some View {
+        HStack(spacing: 8) { source; Spacer(minLength: 8); more; SaveButton(item: item) }
+    }
+
+    private var source: some View {
         HStack(spacing: 8) {
             SourceMark(item: item)
             VStack(alignment: .leading, spacing: 0) {
@@ -111,17 +124,20 @@ struct SourceLine: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             }
-            Spacer(minLength: 8)
-            if let story, (story.sourceCount ?? 1) > 1 {
-                NavigationLink(value: story) {
-                    Text("+\((story.sourceCount ?? 1) - 1) bronnen")
-                        .font(.subheadline.weight(.bold))
-                        .foregroundStyle(Theme.accent)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Vergelijk \((story.sourceCount ?? 1) - 1) andere bronnen")
+            .fixedSize(horizontal: true, vertical: false)
+        }
+    }
+
+    @ViewBuilder private var more: some View {
+        if let story, (story.sourceCount ?? 1) > 1 {
+            NavigationLink(value: story) {
+                Text((story.sourceCount ?? 1) == 2 ? "+1 bron" : "+\((story.sourceCount ?? 1) - 1) bronnen")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(Theme.accent)
+                    .fixedSize()
             }
-            SaveButton(item: item)
+            .buttonStyle(.plain)
+            .accessibilityLabel("Vergelijk \((story.sourceCount ?? 1) - 1) andere bronnen")
         }
     }
 }
@@ -169,25 +185,48 @@ extension View {
 }
 
 // ---- Vorm 1: hoofdverhaal ----
+// Smal: beeld boven de kop. Breed (iPad, opengevouwen Duo): beeld en tekst naast elkaar, zoals
+// de voorpagina van een krant, zodat het beeld niet het hele scherm vult.
 struct LeadCard: View {
     @Environment(HootStore.self) private var store
+    @Environment(\.isWide) private var wide
     let item: Item
     var label: String?
     var story: Story?
+
+    private var hasImage: Bool { store.showsImage(lead: true) && ImageURL.fitsHero(item.image) }
+
+    private var image: some View {
+        FramedImage(url: ImageURL.url(item.image, .large), ratio: wide ? 3 / 2 : 16 / 9)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private var text: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Kicker(text: label)
+            Text(item.title)
+                .font(Theme.headline(wide ? .largeTitle : .title))
+                .foregroundStyle(store.isRead(item) ? .secondary : .primary)
+                .fixedSize(horizontal: false, vertical: true)
+            if let summary = item.summary, !summary.isEmpty {
+                Text(summary).font(wide ? .title3 : .body).foregroundStyle(.secondary).lineLimit(wide ? 6 : 4)
+            }
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            VStack(alignment: .leading, spacing: 10) {
-                if store.showsImage(lead: true), ImageURL.fitsHero(item.image) {
-                    FramedImage(url: ImageURL.url(item.image, .large))
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                }
-                Kicker(text: label)
-                Text(item.title)
-                    .font(Theme.headline(.title))
-                    .foregroundStyle(store.isRead(item) ? .secondary : .primary)
-                    .fixedSize(horizontal: false, vertical: true)
-                if let summary = item.summary, !summary.isEmpty {
-                    Text(summary).font(.body).foregroundStyle(.secondary).lineLimit(4)
+            Group {
+                if wide && hasImage {
+                    HStack(alignment: .top, spacing: 28) {
+                        image.frame(maxWidth: .infinity)
+                        text.frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                } else {
+                    VStack(alignment: .leading, spacing: 10) {
+                        if hasImage { image }
+                        text
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -201,6 +240,8 @@ struct LeadCard: View {
 // ---- Vorm 2: compact bericht ----
 struct ItemRow: View {
     @Environment(HootStore.self) private var store
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric(relativeTo: .title3) private var thumb: CGFloat = 76
     let item: Item
     var label: String?
     var story: Story?
@@ -218,9 +259,10 @@ struct ItemRow: View {
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                if item.image != nil, store.showsImage(lead: false) {
+                // Bij heel grote tekst geen miniatuur naast de kop: de kop krijgt de hele breedte.
+                if item.image != nil, store.showsImage(lead: false), !typeSize.isAccessibilitySize {
                     RemoteImage(url: ImageURL.url(item.image, .thumb))
-                        .frame(width: 84, height: 84)
+                        .frame(width: min(thumb, 96), height: min(thumb, 96))
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
             }
