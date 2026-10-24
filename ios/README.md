@@ -19,6 +19,7 @@ Met een gratis Apple ID werkt de app 7 dagen; daarna opnieuw op ▶︎ drukken. 
 - **Digest**: elke maandag per vak de drie belangrijkste stukken van de week.
 - **Bewaard**: wat je bewaarde (op dit toestel).
 - **Zoeken**: in alles wat Hoot nu van je bronnen heeft.
+- **Instellingen**: via de account-knop rechtsboven (weergave, editie, lezen, bronnen, vakken).
 - Lezen gaat in de app via de Safari-weergave (met Lezer, en ingelogd bij je abonnementen zoals in Safari).
 
 Liquid Glass: de tabbalk met zoeken als eigen knop (krimpt bij omlaag scrollen), glazen knoppen en

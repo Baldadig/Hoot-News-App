@@ -39,6 +39,7 @@ struct DigestView: View {
             }
             .background(Theme.paper)
             .navigationTitle("Digest")
+            .settingsButton()
             .refreshable { await store.loadDigest(force: true) }
             .task { await store.loadDigest() }
         }
@@ -147,7 +148,7 @@ private struct DigestCard: View {
     let rank: Int
     let feature: Bool
     var body: some View {
-        let showImage = feature ? ImageURL.fitsHero(item.image) : ImageURL.fitsLarge(item.image)
+        let showImage = store.showsImage(lead: feature) && (feature ? ImageURL.fitsHero(item.image) : ImageURL.fitsLarge(item.image))
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
                 if showImage {

@@ -41,7 +41,8 @@ struct RootView: View {
             if now == .active, let at = store.updatedAt, Date.now.timeIntervalSince(at) > 15 * 60 { Task { await store.load() } }
         }
         .fullScreenCover(item: $reader.item) { item in
-            if let url = item.link { SafariView(url: url).ignoresSafeArea() }
+            if let url = item.link { SafariView(url: url, reader: store.readerFirst).ignoresSafeArea() }
         }
+        .preferredColorScheme(store.theme == "light" ? .light : store.theme == "dark" ? .dark : nil)
     }
 }

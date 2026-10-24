@@ -17,14 +17,21 @@ final class Reader {
     var item: Item?
     func open(_ item: Item, store: HootStore) {
         store.markRead(item)
-        self.item = item
+        if store.openInSafari, let url = item.link {
+            UIApplication.shared.open(url)
+        } else {
+            self.item = item
+        }
     }
 }
 
 struct SafariView: UIViewControllerRepresentable {
     let url: URL
+    var reader = false
     func makeUIViewController(context: Context) -> SFSafariViewController {
-        let vc = SFSafariViewController(url: url)
+        let config = SFSafariViewController.Configuration()
+        config.entersReaderIfAvailable = reader
+        let vc = SFSafariViewController(url: url, configuration: config)
         vc.preferredControlTintColor = UIColor(named: "AccentColor")
         vc.dismissButtonStyle = .close
         return vc
@@ -170,7 +177,7 @@ struct LeadCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 10) {
-                if ImageURL.fitsHero(item.image) {
+                if store.showsImage(lead: true), ImageURL.fitsHero(item.image) {
                     FramedImage(url: ImageURL.url(item.image, .large))
                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
@@ -211,7 +218,7 @@ struct ItemRow: View {
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                if item.image != nil {
+                if item.image != nil, store.showsImage(lead: false) {
                     RemoteImage(url: ImageURL.url(item.image, .thumb))
                         .frame(width: 84, height: 84)
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))

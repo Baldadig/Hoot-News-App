@@ -46,45 +46,52 @@ struct StreamView: View {
                 }
             }
             .sheet(isPresented: $showSources) { SourcesView() }
+            .settingsButton()
         }
     }
 }
 
-// Bronnen aan- en uitzetten, per soort. Een blad: half open, en verder omhoog te trekken.
+// Bronnen aan- en uitzetten, per soort. Als blad (vanuit de Stroom) en als pagina in Instellingen.
 struct SourcesView: View {
-    @Environment(HootStore.self) private var store
     @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack {
+            SourcesList()
+                .navigationTitle("Bronnen")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { dismiss() } }
+                }
+        }
+        .presentationDetents([.medium, .large])
+    }
+}
+
+struct SourcesList: View {
+    @Environment(HootStore.self) private var store
     private static let cats: [(String, String)] = [("nl", "Nederland"), ("int", "Internationaal"), ("vl", "Vlaanderen"), ("regio", "Regio"), ("economie", "Economie"), ("tech", "Tech"), ("wetenschap", "Wetenschap"), ("sport", "Sport"), ("cultuur", "Cultuur"), ("games", "Games")]
 
     var body: some View {
-        NavigationStack {
-            List {
-                ForEach(Self.cats, id: \.0) { cat, label in
-                    let list = store.newsSources.filter { $0.cat == cat }
-                    if !list.isEmpty {
-                        Section(label) {
-                            ForEach(list) { s in
-                                Toggle(isOn: Binding(get: { store.isOn(s) }, set: { store.setOn(s, $0) })) {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        HStack(spacing: 6) {
-                                            Text(s.name)
-                                            if s.paid == true { Text("abonnement").font(.caption).foregroundStyle(.secondary) } else { Text("gratis").font(.caption.weight(.semibold)).foregroundStyle(Theme.accent) }
-                                        }
-                                        if let about = s.about { Text(about).font(.caption).foregroundStyle(.secondary) }
+        List {
+            ForEach(Self.cats, id: \.0) { cat, label in
+                let list = store.newsSources.filter { $0.cat == cat }
+                if !list.isEmpty {
+                    Section(label) {
+                        ForEach(list) { s in
+                            Toggle(isOn: Binding(get: { store.isOn(s) }, set: { store.setOn(s, $0) })) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    HStack(spacing: 6) {
+                                        Text(s.name)
+                                        if s.paid == true { Text("abonnement").font(.caption).foregroundStyle(.secondary) } else { Text("gratis").font(.caption.weight(.semibold)).foregroundStyle(Theme.accent) }
                                     }
+                                    if let about = s.about { Text(about).font(.caption).foregroundStyle(.secondary) }
                                 }
                             }
                         }
                     }
                 }
             }
-            .navigationTitle("Bronnen")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { dismiss() } }
-            }
         }
-        .presentationDetents([.medium, .large])
     }
 }
 
@@ -108,6 +115,7 @@ struct SavedView: View {
             }
             .background(Theme.paper)
             .navigationTitle("Bewaard")
+            .settingsButton()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
         }
     }

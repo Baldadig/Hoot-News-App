@@ -27,7 +27,7 @@ extension HootStore {
         guard let edition else { return [] }
         let published = Dictionary((edition.items ?? []).map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
         let on = Set(followed.map(\.id))
-        let rows: [EditionRowModel] = edition.entries.compactMap { e in
+        let rows: [EditionRowModel] = edition.entries.filter { bubble || $0.desk != "bubbel" }.compactMap { e in
             let leadId = e.kind == "story" ? (e.leadId ?? e.id) : e.id
             guard let item = published[leadId] ?? itemsById[leadId] else { return nil }
             let story = e.kind == "story" ? storiesById[e.id] : item.storyId.flatMap { storiesById[$0] }
@@ -44,8 +44,6 @@ extension HootStore {
 
 struct EditionView: View {
     @Environment(HootStore.self) private var store
-    @State private var showSources = false
-
     private var title: String { store.edition?.slot.flatMap { Desk.slots[$0] } ?? "Editie" }
     private var dateLine: String {
         guard let d = store.edition?.date, let date = ISO8601DateFormatter.ymd.date(from: d) else { return "" }
@@ -84,12 +82,7 @@ struct EditionView: View {
             .navigationTitle(title)
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .refreshable { await store.load() }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Bronnen", systemImage: "dot.radiowaves.up.forward") { showSources = true }
-                }
-            }
-            .sheet(isPresented: $showSources) { SourcesView() }
+            .settingsButton()
         }
     }
 }

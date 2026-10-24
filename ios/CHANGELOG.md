@@ -1,5 +1,14 @@
 # Changelog — Hoot voor iOS
 
+## [0.2.0] — 2026-10-24 — Instellingen
+
+- Account-knop rechtsboven op Editie, Stroom, Digest en Bewaard; opent het instellingenblad.
+- Weergave: thema (systeem, licht, donker) en beeld (aan, alleen hoofdverhaal, uit). De tekstgrootte volgt je iPhone.
+- Editie: "Buiten je bubbel" aan of uit.
+- Lezen: openen in de app of in Safari, en of de Lezer meteen aan staat.
+- Bronnen en de vakken van de Digest; Bewaard leegmaken en gelezen vergeten; Over (versie, privacy, hootnews.nl).
+- Inloggen staat al in het blad en komt in de volgende versie (Google en Apple).
+
 ## [0.1.0] — 2026-10-24 — Fase 1: de basis
 
 - Native SwiftUI-app voor iOS 26 met Liquid Glass: tabbalk (Editie, Stroom, Digest, Bewaard) met zoeken als eigen glazen knop; de balk krimpt bij omlaag scrollen.

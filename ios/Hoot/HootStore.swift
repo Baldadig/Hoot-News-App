@@ -27,13 +27,30 @@ final class HootStore {
     private(set) var saved: [Item] { didSet { save("hoot.saved", saved) } }
     private(set) var read: Set<String> { didSet { save("hoot.read", Array(read.suffix(2000))) } }
 
+    // Weergave en lezen (zelfde namen en waarden als de web-app, voor het synchroniseren later)
+    var theme: String { didSet { save("hoot.theme", theme) } } // system | light | dark
+    var images: String { didSet { save("hoot.images", images) } } // aan | hoofd | uit
+    var bubble: Bool { didSet { save("hoot.bubble", bubble) } } // "Buiten je bubbel" in de Editie
+    var openInSafari: Bool { didSet { save("hoot.openInSafari", openInSafari) } }
+    var readerFirst: Bool { didSet { save("hoot.readerFirst", readerFirst) } } // meteen de Lezer
+
     init() {
         muted = Set(Self.load("hoot.muted") ?? [String]())
         enabled = Set(Self.load("hoot.enabled") ?? [String]())
         digestFields = Self.load("hoot.digestFields") ?? ["paid-social", "ux", "design"]
         saved = Self.load("hoot.saved") ?? []
         read = Set(Self.load("hoot.read") ?? [String]())
+        theme = Self.load("hoot.theme") ?? "system"
+        images = Self.load("hoot.images") ?? "aan"
+        bubble = Self.load("hoot.bubble") ?? true
+        openInSafari = Self.load("hoot.openInSafari") ?? false
+        readerFirst = Self.load("hoot.readerFirst") ?? false
     }
+
+    // Beeld tonen? `lead`: het hoofdverhaal of het eerste stuk van een vak.
+    func showsImage(lead: Bool) -> Bool { images == "aan" || (images == "hoofd" && lead) }
+    func clearRead() { read = [] }
+    func clearSaved() { saved = [] }
 
     // ---- Bronnen ----
     // Uit = wat je zelf uitzette, plus optionele bronnen die je (nog) niet aanzette.
