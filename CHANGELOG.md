@@ -2,6 +2,10 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.32.2] — 2026-10-24 — Scherpe NU.nl-beelden
+
+- NU.nl stuurt in de feed alleen een vierkantje van 256 pixels mee, dat groot wazig werd. Hoot vraagt nu bij NU.nl zelf de liggende versie op (640, 854 of 1280 pixels breed, wat je scherm nodig heeft), netjes bijgesneden en niet uitgerekt. Als kleine afbeelding naast een kop blijft het vierkantje.
+
 ## [1.32.1] — 2026-10-23 — Beeld bij meer bronnen
 
 - **Bronnen zonder beeld in hun feed krijgen er een:** Hoot gebruikt de deelafbeelding van het artikel zelf. Dat geldt voor Rolling Stone, DW, Al Jazeera, VRT NWS, Sporza, ESPN, TechCrunch, Scientific American, Nature, Politico Europe en WielerFlits. Elk artikel wordt één keer geprobeerd, nieuwste eerst; daarna onthoudt Hoot het resultaat.
