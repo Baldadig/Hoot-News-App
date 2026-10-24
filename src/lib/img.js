@@ -82,6 +82,14 @@ function candidates(url, kind) {
     const at = (w) => [`${m[1]}-${w}x${(w * 9) / 16}${m[2]}`, w]
     return kind === 'thumb' ? [at(256)] : [at(512), at(768), at(1024)]
   }
+  if (host === 'images.nu.nl') {
+    // NU.nl levert in de feed een vierkant van 256 px ("_sqr256/x/y/b/h/"). Liggend bestaan vaste
+    // breedtes (640, 854, 1280); met uitsnede 0/0/0/0 snijdt NU.nl zelf netjes 16:9 bij (met de
+    // vierkante uitsnede uit de feed zou het beeld worden uitgerekt).
+    const m = url.match(/^(https:\/\/images\.nu\.nl\/m\/[a-z0-9]+)_sqr256\/\d+\/\d+\/\d+\/\d+\/(.+)$/)
+    if (!m) return null
+    return kind === 'thumb' ? [[url, 256]] : [640, 854, 1280].map((w) => [`${m[1]}_wd${w}/0/0/0/0/${m[2]}`, w])
+  }
   if (isBingThumb(u)) {
     // Beeld uit de zoekindex: Bing snijdt zelf bij op de gevraagde maat, maar het bronbeeld is
     // klein (groot gevraagd komt het met witte randen). Alleen als thumbnail.

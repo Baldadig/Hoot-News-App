@@ -85,3 +85,11 @@ test('The Guardian: de breedte staat in het (getekende) adres; 140 px is nooit g
   assert.equal(fitsHero('https://images.cdn.nos.nl/a-1024x576.webp'), true) // onbekend = goed
   assert.equal(fitsHero(null), false)
 })
+
+test('NU.nl: het vierkantje van 256 px wordt als hoofdbeeld een scherpe 16:9-versie, zonder uitrekken', () => {
+  const url = 'https://images.nu.nl/m/nr1x4qtarbku_sqr256/164/0/851/851/zeven-doden.jpg'
+  const lead = imgProps(url, 'lead')
+  assert.equal(lead.src, 'https://images.nu.nl/m/nr1x4qtarbku_wd640/0/0/0/0/zeven-doden.jpg')
+  assert.match(lead.srcSet, /_wd1280\/0\/0\/0\/0\/zeven-doden\.jpg 1280w$/)
+  assert.deepEqual(imgProps(url, 'thumb'), { src: url })
+})
