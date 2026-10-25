@@ -44,8 +44,9 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
 | ✅ | Categorie: Nieuws (tweede: Tijdschriften en kranten) | `primary_category.txt` | |
 | ✅ | Copyright: 2026 Alex Vrees | `copyright.txt` | |
 | ✅ | Privacybeleid-URL: https://hootnews.nl/#/privacy | `privacy_url.txt` | |
-| 🟡 | Privacybeleid dekt de app | | De pagina gaat nu over de website. Voeg één alinea toe over de app (zelfde gegevens, niets extra). Kan ik doen. |
-| ⏳ | **Support-URL met contactgegevens** | `support_url.txt` | Verplicht. Ik heb `https://hootnews.nl/#/over` ingevuld; die pagina bestaat nog niet. Ik kan een korte pagina "Over en contact" bouwen; daarvoor heb ik een contactadres van je nodig. |
+| ✅ | Privacybeleid dekt de app | | Alinea "De app voor iPhone en iPad" en contactadres toegevoegd (web 1.32.4). |
+| ✅ | **Support-URL met contactgegevens** | `support_url.txt` | `https://hootnews.nl/#/over`: pagina "Over Hoot" met contact en veelgestelde vragen (web 1.32.4), ook voor nieuwe bezoekers direct leesbaar. |
+| 👤 | **Mailadres hallo@hootnews.nl aanmaken** | | Bij je domeinbeheerder, als echte mailbox of als doorstuuradres naar je eigen mail. Stuur daarna één testmail. |
 | ✅ | Marketing-URL: https://hootnews.nl | `marketing_url.txt` | Optioneel. |
 
 ## 4. Beelden

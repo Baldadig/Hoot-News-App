@@ -2,6 +2,12 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.32.4] — 2026-10-25 — Over en contact
+
+- **Nieuwe pagina "Over Hoot"** (`#/over`): wat Hoot is, contact via hallo@hootnews.nl, en veelgestelde vragen. Dit is ook de support-pagina van de app in de App Store. Je vindt hem via Instellingen → Over.
+- **Privacy:** nieuwe alinea over de app voor iPhone en iPad. Een verzoek om je account te verwijderen gaat nu via hallo@hootnews.nl.
+- Over en Privacy zijn ook voor nieuwe bezoekers direct te lezen, zonder eerst het welkomstscherm.
+
 ## [1.32.3] — 2026-10-24 — Beginscherm-icoon voor de nachtmodus
 
 - In de donkere modus van iOS 26 vervangt het systeem de lichte achtergrond van een web-app-icoon door zwart, waardoor de zwarte "h" onzichtbaar werd. Het icoon is nu zelf donker: inktzwart, met een papierkleurige "h" en een rode punt. Daardoor is het in de lichte én de donkere modus goed leesbaar. Hetzelfde icoon staat in het manifest (Android).

@@ -41,10 +41,11 @@ import { indexStories, resolveStory, toggleSaved, restoreSaved } from './lib/sav
 const Search = lazy(() => import('./views/Search.jsx'))
 const Settings = lazy(() => import('./views/Settings.jsx'))
 const Privacy = lazy(() => import('./views/Privacy.jsx'))
+const Over = lazy(() => import('./views/Over.jsx'))
 const StyleGuide = lazy(() => import('./views/StyleGuide.jsx'))
 const Welcome = lazy(() => import('./views/Welcome.jsx'))
 
-const PAGES = ['zoek', 'stijl', 'welkom', 'instellingen', 'privacy']
+const PAGES = ['zoek', 'stijl', 'welkom', 'instellingen', 'privacy', 'over']
 const byRecency = (a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || '')
 
 const safe = (fn, fallback) => {
@@ -313,7 +314,9 @@ export default function App() {
 
   // ---- Welk scherm ----
   const path = MAIN.includes(route.path) || PAGES.includes(route.path) ? route.path : 'editie'
-  const showWelcome = path === 'welkom' || !prefs.onboarded
+  // Over en Privacy zijn ook de support- en privacypagina van de app in de App Store: altijd direct
+  // leesbaar, ook voor wie Hoot nog nooit opende (anders zie je eerst het welkomstscherm).
+  const showWelcome = path === 'welkom' || (!prefs.onboarded && !['over', 'privacy'].includes(path))
   const page = PAGES.includes(path) && path !== 'welkom' ? path : null
   // Waar je vandaan kwam (de laatste hoofdbestemming): daar brengt "terug" je heen vanuit
   // Instellingen of Zoeken, ook als je er via een gewone link kwam.
@@ -379,7 +382,7 @@ export default function App() {
         bronnen: 'Bronnen',
         zoek: 'Zoeken',
         stijl: 'Designsysteem',
-        welkom: 'Welkom', instellingen: 'Instellingen', privacy: 'Privacy', bluesky: 'Bluesky', digest: 'Digest' }[path] + ' · Hoot'
+        welkom: 'Welkom', instellingen: 'Instellingen', privacy: 'Privacy', over: 'Over', bluesky: 'Bluesky', digest: 'Digest' }[path] + ' · Hoot'
   }, [path])
 
   // Bronstatus: één uitgevallen bron is een stil puntje bij Bronnen; alleen als álles
@@ -574,6 +577,7 @@ export default function App() {
             {page === 'zoek' ? <Search {...backTo} /> : null}
             {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} {...backTo} /> : null}
             {page === 'privacy' ? <Privacy {...backTo} /> : null}
+            {page === 'over' ? <Over {...backTo} /> : null}
             {page === 'stijl' ? <StyleGuide stream={stream} /> : null}
           </Suspense>
         </main>

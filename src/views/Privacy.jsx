@@ -26,8 +26,8 @@ export default function Privacy({ onBack, backLabel }) {
           wat je bewaarde, wat je las en welke verhalen je zag. Zo gaan ze mee naar je andere toestellen.
         </p>
         <p>
-          Log je uit, dan gaan die gegevens van dit toestel af; ze blijven in je account. Een ander account op hetzelfde toestel krijgt ze nooit te zien. Wil je je account laten verwijderen, vraag het
-          dan aan Alex Vrees.
+          Log je uit, dan gaan die gegevens van dit toestel af; ze blijven in je account. Een ander account op hetzelfde toestel krijgt ze nooit te zien. Wil je je account laten verwijderen, mail
+          dan naar <a href="mailto:hallo@hootnews.nl">hallo@hootnews.nl</a>.
         </p>
 
         <h2 className="sect">Wie we om iets vragen</h2>
@@ -50,6 +50,18 @@ export default function Privacy({ onBack, backLabel }) {
           </li>
         </ul>
         <p>Hoot draait bij Netlify. Zoals elke website ziet die host bij elk bezoek een IP-adres; Hoot zelf bewaart dat niet.</p>
+
+        <h2 className="sect">De app voor iPhone en iPad</h2>
+        <p>
+          De app werkt zonder account. Je instellingen, wat je bewaarde en wat je las blijven op je iPhone of iPad; Hoot krijgt er niets van te zien. De app haalt het nieuws op bij
+          hootnews.nl, net als de website, en gebruikt geen analytics, advertenties of tracking. Artikelen open je bij de uitgever: in de app of in Safari. Daar gelden de regels van de uitgever.
+          Je wist alles door de app te verwijderen, of via Instellingen in de app.
+        </p>
+
+        <h2 className="sect">Contact</h2>
+        <p>
+          Vragen over je gegevens? Mail naar <a href="mailto:hallo@hootnews.nl">hallo@hootnews.nl</a>.
+        </p>
       </div>
     </section>
   )
