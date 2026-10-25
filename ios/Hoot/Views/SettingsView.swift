@@ -44,6 +44,9 @@ struct SettingsView: View {
                         Label("Openen in Safari", systemImage: "safari")
                     }
                     if !store.openInSafari {
+                        Toggle(isOn: $store.paidInSafari) {
+                            Label("Betaalde bronnen in Safari", systemImage: "creditcard")
+                        }
                         Toggle(isOn: $store.readerFirst) {
                             Label("Meteen de Lezer", systemImage: "doc.plaintext")
                         }
@@ -51,7 +54,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Lezen")
                 } footer: {
-                    Text(store.openInSafari ? "Artikelen openen in Safari." : "Artikelen openen in Hoot, met je inlog van Safari.")
+                    Text(store.openInSafari ? "Artikelen openen in Safari, waar je ingelogd bent bij je abonnementen." : "Artikelen openen in Hoot. Daar ben je niet ingelogd bij je abonnementen; daarom openen betaalde bronnen standaard in Safari.")
                 }
 
                 Section("Bronnen en vakken") {

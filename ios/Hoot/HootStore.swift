@@ -24,30 +24,53 @@ final class HootStore {
     var muted: Set<String> { didSet { save("hoot.muted", Array(muted)) } }
     var enabled: Set<String> { didSet { save("hoot.enabled", Array(enabled)) } }
     var digestFields: [String] { didSet { save("hoot.digestFields", digestFields) } }
-    private(set) var saved: [Item] { didSet { save("hoot.saved", saved) } }
-    private(set) var read: Set<String> { didSet { save("hoot.read", Array(read.suffix(2000))) } }
+    // Bewaard en gelezen: in een eigen bestand (Application Support), niet in UserDefaults; gelezen
+    // op volgorde, zodat we bij de grens van 2.000 de oudste vergeten en niet een willekeurige.
+    private(set) var saved: [Item] { didSet { Self.write(saved, to: "saved.json") } }
+    private var readOrder: [String] { didSet { Self.write(readOrder, to: "read.json") } }
+    private var readSet: Set<String> = []
 
     // Weergave en lezen (zelfde namen en waarden als de web-app, voor het synchroniseren later)
     var images: String { didSet { save("hoot.images", images) } } // aan | hoofd | uit
     var bubble: Bool { didSet { save("hoot.bubble", bubble) } } // "Buiten je bubbel" in de Editie
     var openInSafari: Bool { didSet { save("hoot.openInSafari", openInSafari) } }
     var readerFirst: Bool { didSet { save("hoot.readerFirst", readerFirst) } } // meteen de Lezer
+    var paidInSafari: Bool { didSet { save("hoot.paidInSafari", paidInSafari) } } // betaalde bronnen in Safari (daar ben je ingelogd)
+
+    // Laatste verversing mislukt: je ziet de versie van `updatedAt`.
+    private(set) var stale = false
+    // De Stroom, gesorteerd: één keer per laadactie of bronwijziging, niet bij elke weergave.
+    private(set) var stream: [Item] = []
 
     init() {
         muted = Set(Self.load("hoot.muted") ?? [String]())
         enabled = Set(Self.load("hoot.enabled") ?? [String]())
         digestFields = Self.load("hoot.digestFields") ?? ["paid-social", "ux", "design"]
-        saved = Self.load("hoot.saved") ?? []
-        read = Set(Self.load("hoot.read") ?? [String]())
+        // Eenmalig overzetten uit UserDefaults (versie 0.3 en eerder).
+        let oldSaved: [Item]? = Self.load("hoot.saved")
+        let oldRead: [String]? = Self.load("hoot.read")
+        let savedNow: [Item] = Self.read("saved.json") ?? oldSaved ?? []
+        let readNow: [String] = Self.read("read.json") ?? oldRead ?? []
+        saved = savedNow
+        readOrder = readNow
+        readSet = Set(readNow)
+        if oldSaved != nil || oldRead != nil {
+            // Pas uit UserDefaults weghalen als het bestand er echt staat.
+            Self.write(savedNow, to: "saved.json")
+            Self.write(readNow, to: "read.json")
+            if Self.read("saved.json") as [Item]? != nil { UserDefaults.standard.removeObject(forKey: "hoot.saved") }
+            if Self.read("read.json") as [String]? != nil { UserDefaults.standard.removeObject(forKey: "hoot.read") }
+        }
         images = Self.load("hoot.images") ?? "aan"
         bubble = Self.load("hoot.bubble") ?? true
         openInSafari = Self.load("hoot.openInSafari") ?? false
         readerFirst = Self.load("hoot.readerFirst") ?? false
+        paidInSafari = Self.load("hoot.paidInSafari") ?? true
     }
 
     // Beeld tonen? `lead`: het hoofdverhaal of het eerste stuk van een vak.
     func showsImage(lead: Bool) -> Bool { images == "aan" || (images == "hoofd" && lead) }
-    func clearRead() { read = [] }
+    func clearRead() { readOrder = []; readSet = [] }
     func clearSaved() { saved = [] }
 
     // ---- Bronnen ----
@@ -60,7 +83,8 @@ final class HootStore {
         } else {
             if on { muted.remove(s.id) } else { muted.insert(s.id) }
         }
-        Task { await loadParts() }
+        rebuildStream()
+        reloadParts()
     }
     var newsSources: [Source] { sources.filter { $0.kind != "sociaal" } }
     var followed: [Source] { newsSources.filter(isOn) }
@@ -71,41 +95,56 @@ final class HootStore {
         if status == .loading { return }
         status = itemsById.isEmpty ? .loading : status
         do {
-            let start = try await HootAPI.start()
+            let (start, fromCache) = try await HootAPI.start()
             sources = start.sources
             storiesById = Dictionary(start.stories.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
             edition = start.edition
             updatedAt = start.meta.updatedAt.flatMap(HootDate.parse)
             relatedVersion = start.meta.related
             parts = start.meta.parts ?? [:]
-            await loadParts()
+            reloadParts()
+            await partsTask?.value
+            stale = fromCache
             status = .ready
         } catch {
+            stale = !itemsById.isEmpty
             status = itemsById.isEmpty ? .failed : .ready
         }
     }
 
+    // Eén laadtaak voor de berichten per bron: een nieuwe breekt de vorige af, en alleen de
+    // nieuwste mag het resultaat wegschrijven (ook als een oudere later terugkomt).
     private var parts: [String: String] = [:]
-    private func loadParts() async {
+    private var partsTask: Task<Void, Never>?
+    private var partsGeneration = 0
+
+    private func reloadParts() {
+        partsTask?.cancel()
+        partsGeneration += 1
+        let generation = partsGeneration
         let wanted = followed.map(\.id).filter { parts[$0] != nil }
         let versions = parts
-        let lists = await withTaskGroup(of: [Item].self) { group in
-            for id in wanted {
-                group.addTask { (try? await HootAPI.part(id, version: versions[id]!).items) ?? [] }
+        partsTask = Task {
+            let lists = await withTaskGroup(of: [Item].self) { group in
+                for id in wanted {
+                    guard let version = versions[id] else { continue }
+                    group.addTask { (try? await HootAPI.part(id, version: version).items) ?? [] }
+                }
+                var all: [[Item]] = []
+                for await list in group { all.append(list) }
+                return all
             }
-            var all: [[Item]] = []
-            for await list in group { all.append(list) }
-            return all
+            guard !Task.isCancelled, generation == partsGeneration else { return }
+            var map: [String: Item] = [:]
+            for item in lists.joined() { map[item.id] = item }
+            itemsById = map
+            rebuildStream()
         }
-        var map: [String: Item] = [:]
-        for item in lists.joined() { map[item.id] = item }
-        itemsById = map
     }
 
-    // De Stroom: alles van je bronnen, nieuwste eerst.
-    var stream: [Item] {
+    private func rebuildStream() {
         let on = Set(followed.map(\.id))
-        return itemsById.values
+        stream = itemsById.values
             .filter { $0.kind == "article" && on.contains($0.source) }
             .sorted { ($0.publishedAt ?? "") > ($1.publishedAt ?? "") }
     }
@@ -138,8 +177,17 @@ final class HootStore {
         if let i = saved.firstIndex(where: { $0.id == item.id }) { saved.remove(at: i) } else { saved.insert(item, at: 0) }
     }
     func removeSaved(at offsets: IndexSet) { saved.remove(atOffsets: offsets) }
-    func markRead(_ item: Item) { read.insert(item.id) }
-    func isRead(_ item: Item) -> Bool { read.contains(item.id) }
+    func markRead(_ item: Item) {
+        guard !readSet.contains(item.id) else { return }
+        readSet.insert(item.id)
+        readOrder.append(item.id)
+        if readOrder.count > 2000 {
+            let drop = readOrder.prefix(readOrder.count - 2000)
+            readSet.subtract(drop)
+            readOrder.removeFirst(drop.count)
+        }
+    }
+    func isRead(_ item: Item) -> Bool { readSet.contains(item.id) }
 
     // ---- Opslag ----
     private func save<T: Encodable>(_ key: String, _ value: T) {
@@ -147,6 +195,21 @@ final class HootStore {
     }
     private static func load<T: Decodable>(_ key: String) -> T? {
         guard let data = UserDefaults.standard.data(forKey: key) else { return nil }
+        return try? JSONDecoder().decode(T.self, from: data)
+    }
+
+    // Bestanden in Application Support (gaan mee in de back-up; atomisch geschreven).
+    private static let folder: URL? = {
+        let url = try? FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+        return url?.appendingPathComponent("Hoot", isDirectory: true)
+    }()
+    private static func write<T: Encodable>(_ value: T, to name: String) {
+        guard let folder, let data = try? JSONEncoder().encode(value) else { return }
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        try? data.write(to: folder.appendingPathComponent(name), options: .atomic)
+    }
+    private static func read<T: Decodable>(_ name: String) -> T? {
+        guard let folder, let data = try? Data(contentsOf: folder.appendingPathComponent(name)) else { return nil }
         return try? JSONDecoder().decode(T.self, from: data)
     }
 }

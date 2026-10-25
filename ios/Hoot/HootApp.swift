@@ -3,13 +3,16 @@ import SwiftUI
 @main
 struct HootApp: App {
     @State private var store = HootStore()
-    @State private var reader = Reader()
+
+    init() {
+        // Beelden bewaren tussen scrollen en starten (AsyncImage cachet zelf pas vanaf iOS 27).
+        URLCache.shared = URLCache(memoryCapacity: 64 << 20, diskCapacity: 300 << 20)
+    }
 
     var body: some Scene {
         WindowGroup {
             WidthReader { RootView() }
                 .environment(store)
-                .environment(reader)
                 .tint(Theme.accent)
         }
     }
@@ -19,14 +22,14 @@ struct HootApp: App {
 // Bij omlaag scrollen krimpt de balk, zodat het lezen voorgaat.
 struct RootView: View {
     @Environment(HootStore.self) private var store
-    @Environment(Reader.self) private var reader
+    // Eén lezer per venster: op iPad met twee vensters opent een artikel alleen waar je tikt.
+    @State private var reader = Reader()
     @Environment(\.scenePhase) private var phase
     @SceneStorage("tab") private var tab: Destination = .editie
 
     enum Destination: String { case editie, stroom, digest, bewaard, zoek }
 
     var body: some View {
-        @Bindable var reader = reader
         TabView(selection: $tab) {
             Tab("Editie", systemImage: "newspaper", value: Destination.editie) { EditionView() }
             Tab("Stroom", systemImage: "water.waves", value: Destination.stroom) { StreamView() }
@@ -37,16 +40,24 @@ struct RootView: View {
         .tabViewStyle(.sidebarAdaptable) // iPad en brede vensters: zijbalk of tabbalk bovenaan
         .tabBarMinimizeBehavior(.onScrollDown)
         .task { await store.load() }
+        #if DEBUG
         .onAppear {
-            // Voor schermafbeeldingen (App Store): start op een gekozen tabblad met `-HootStartTab digest`.
+            // Alleen in Debug, voor schermafbeeldingen: start op een tabblad met `-HootStartTab digest`.
             if let t = UserDefaults.standard.string(forKey: "HootStartTab"), let d = Destination(rawValue: t) { tab = d }
         }
+        #endif
         .onChange(of: phase) { _, now in
             // Terug in de app na een tijdje weg: verversen.
             if now == .active, let at = store.updatedAt, Date.now.timeIntervalSince(at) > 15 * 60 { Task { await store.load() } }
         }
+        .environment(reader)
         .fullScreenCover(item: $reader.item) { item in
-            if let url = item.link { SafariView(url: url, reader: store.readerFirst).ignoresSafeArea() }
+            // Reader.open laat alleen http(s) door; mocht er toch niets te tonen zijn, dan meteen dicht.
+            if let url = item.link, Reader.canShow(url) {
+                SafariView(url: url, reader: store.readerFirst).ignoresSafeArea()
+            } else {
+                Color.clear.onAppear { reader.item = nil }
+            }
         }
     }
 }

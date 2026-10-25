@@ -83,7 +83,7 @@ struct DigestView: View {
                 .font(Theme.headline(.title2))
                 .fixedSize(horizontal: false, vertical: true)
             if d.preview == true, let next = d.next.flatMap(HootDate.parse) {
-                Text("De eerste volle digest komt \(next.formatted(.dateTime.weekday(.wide).day().month(.wide).locale(Locale(identifier: "nl_NL")))) om 7 uur.")
+                Text("De eerste volle digest komt \(next.formatted(HootDate.style(.dateTime.weekday(.wide).day().month(.wide)))) om 7 uur.")
                     .font(.subheadline).foregroundStyle(.secondary)
             } else {
                 Text("Elke maandag om 7 uur een nieuwe.").font(.subheadline).foregroundStyle(.secondary)
@@ -94,8 +94,7 @@ struct DigestView: View {
 
     static func span(_ from: String?, _ to: String?) -> String {
         guard let a = from.flatMap(HootDate.parse), let b = to.flatMap(HootDate.parse)?.addingTimeInterval(-8 * 3600) else { return "" }
-        let style = Date.FormatStyle.dateTime.day().month(.wide).locale(Locale(identifier: "nl_NL"))
-        return "\(a.formatted(.dateTime.day().locale(Locale(identifier: "nl_NL")))) t/m \(b.formatted(style))"
+        return "\(a.formatted(HootDate.style(.dateTime.day()))) t/m \(b.formatted(HootDate.style(.dateTime.day().month(.wide))))"
     }
 }
 
@@ -109,6 +108,7 @@ private struct FieldSection: View {
             HStack(spacing: 12) {
                 Image(systemName: icon)
                     .font(.title3)
+                    .dynamicTypeSize(...DynamicTypeSize.xxxLarge) // blijft binnen zijn cirkel
                     .foregroundStyle(Theme.accent)
                     .frame(width: 44, height: 44)
                     .glassEffect(.regular.tint(Theme.accent.opacity(0.12)), in: .circle)
@@ -152,6 +152,18 @@ private struct FieldSection: View {
 private struct DigestCard: View {
     @Environment(HootStore.self) private var store
     let item: DigestItem
+
+    static func alsoLine(_ also: [DigestAlso]) -> AttributedString {
+        var line = AttributedString("Ook bij ")
+        for (i, a) in also.enumerated() {
+            if i > 0 { line += AttributedString(", ") }
+            var name = AttributedString(a.sourceName)
+            if let u = URL(string: a.url), Reader.canShow(u) { name.link = u }
+            name.inlinePresentationIntent = .stronglyEmphasized
+            line += name
+        }
+        return line
+    }
     let rank: Int
     let feature: Bool
     var body: some View {
@@ -177,13 +189,8 @@ private struct DigestCard: View {
             .opensArticle(item.asItem)
             VStack(alignment: .leading, spacing: 4) {
                 if let also = item.also, !also.isEmpty {
-                    HStack(spacing: 4) {
-                        Text("Ook bij").foregroundStyle(.secondary)
-                        ForEach(also, id: \.url) { a in
-                            if let u = URL(string: a.url) { Link(a.sourceName, destination: u).fontWeight(.semibold) }
-                        }
-                    }
-                    .font(.caption)
+                    // Eén tekst met links, zodat hij bij grote tekst gewoon terugloopt.
+                    Text(Self.alsoLine(also)).font(.caption).foregroundStyle(.secondary)
                 }
                 SourceLine(item: item.asItem)
                 if let via = item.via { Text("via \(via)").font(.caption2).foregroundStyle(.secondary) }

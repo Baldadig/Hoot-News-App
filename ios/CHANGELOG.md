@@ -1,5 +1,29 @@
 # Changelog — Hoot voor iOS
 
+## [0.4.0] — 2026-10-25 — Herstel na de audit
+
+Gebaseerd op `AUDIT-2026-10-24.md`:
+
+- **Grote tekst (F-01):**
+  - de Digest blijft bij de grootste tekstformaten binnen het scherm;
+  - de bronregel breekt nu af in plaats van de kolom breder te maken;
+  - "Ook bij …" loopt terug;
+  - iconen blijven binnen hun vlak.
+- **Lezen en inloggen (F-03):**
+  - betaalde bronnen openen standaard in Safari, waar je ingelogd bent bij je abonnementen (uit te zetten in Instellingen);
+  - de teksten in de app en in de App Store-beschrijving zeggen nu juist hoe inloggen werkt.
+- **Kapotte serverantwoorden (F-04):** één kapot verhaal of bericht wordt overgeslagen; de rest van de editie blijft zichtbaar.
+- **Meerdere vensters (F-05):** een artikel opent alleen in het venster waarin je tikt (iPad).
+- **Snel wisselen van bronnen (F-06):** een nieuwe keuze breekt het vorige laden af. Een trager, ouder antwoord kan je keuze niet meer overschrijven.
+- **Offline (F-07):** "Verversen lukt nu niet. Je ziet de versie van 12:05", met een knop om het opnieuw te proberen.
+- **Adressen (F-08):** alleen http(s)-artikelen openen in de app, en er komt geen leeg scherm meer zonder sluitknop.
+- **Datum (F-09):** de datum van de editie volgt de Amsterdamse tijd, ook als je toestel in een andere tijdzone staat.
+- **Swift 6 (F-10):** het project draait in de Swift 6-taalmodus, zonder concurrencywaarschuwingen.
+- **Liquid Glass (F-11):** de verouderde tint op de Safari-weergave is weg.
+- **Schermafbeeldingen (F-12):** de haak voor schermafbeeldingen werkt alleen nog in Debug-builds.
+- **Opslag (F-13):** Bewaard en gelezen staan in een eigen bestand, en gelezen op volgorde. Bestaande gegevens gaan vanzelf mee.
+- **Snelheid (F-14):** de Stroom wordt één keer per laadactie gesorteerd, en beelden blijven in een grotere cache (300 MB).
+
 ## [0.3.0] — 2026-10-24 — iPad, iPhone mini, iPhone Duo en klaar voor de App Store
 
 - **iPad:** de app werkt nu ook op iPad, in alle standen en met Split View en Stage Manager. De iPadOS-tabbalk staat bovenaan en kan een zijbalk worden.

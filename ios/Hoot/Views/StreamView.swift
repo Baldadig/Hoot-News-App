@@ -16,7 +16,8 @@ struct StreamView: View {
                     } else if items.isEmpty {
                         EmptyState(title: "Nog niets", systemImage: "water.waves", text: "Zet bronnen aan via Bronnen rechtsboven.")
                     } else {
-                        if let at = store.updatedAt {
+                        StaleNotice()
+                        if let at = store.updatedAt, !store.stale {
                             Text("Bijgewerkt om \(at.formatted(date: .omitted, time: .shortened))")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)

@@ -47,8 +47,8 @@ struct EditionView: View {
     @Environment(\.isWide) private var wide
     private var title: String { store.edition?.slot.flatMap { Desk.slots[$0] } ?? "Editie" }
     private var dateLine: String {
-        guard let d = store.edition?.date, let date = ISO8601DateFormatter.ymd.date(from: d) else { return "" }
-        return date.formatted(.dateTime.weekday(.wide).day().month(.wide).locale(Locale(identifier: "nl_NL"))).capitalizedFirst
+        guard let d = store.edition?.date, let date = HootDate.day(d) else { return "" }
+        return date.formatted(HootDate.style(.dateTime.weekday(.wide).day().month(.wide))).capitalizedFirst
     }
 
     var body: some View {
@@ -61,6 +61,7 @@ struct EditionView: View {
                     } else if rows.isEmpty {
                         EmptyState(title: store.status == .failed ? "Geen verbinding" : "Er is nog geen editie", systemImage: store.status == .failed ? "wifi.slash" : "newspaper", text: store.status == .failed ? "Trek omlaag om het opnieuw te proberen." : "In de Stroom staat alles wat er wél is.")
                     } else {
+                        StaleNotice()
                         Text("\(dateLine) · De editie voor iedereen")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -129,14 +130,6 @@ struct StoryView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task { items = await store.storyItems(story) }
     }
-}
-
-extension ISO8601DateFormatter {
-    static let ymd: ISO8601DateFormatter = {
-        let f = ISO8601DateFormatter()
-        f.formatOptions = [.withFullDate]
-        return f
-    }()
 }
 
 extension String {

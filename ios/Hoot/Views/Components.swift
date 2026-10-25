@@ -11,13 +11,21 @@ enum Theme {
 }
 
 // Een artikel openen: in de app, in Safari-weergave (met Lezer en de inlog van je abonnementen).
+// Betaalde bronnen standaard in Safari: daar ben je ingelogd bij je abonnementen. De
+// Safari-weergave in de app deelt geen websitegegevens met Safari, dus daar zie je de betaalmuur.
 @MainActor
 @Observable
 final class Reader {
     var item: Item?
+
+    // De Safari-weergave kan alleen http(s) tonen.
+    static func canShow(_ url: URL) -> Bool { ["http", "https"].contains(url.scheme?.lowercased() ?? "") }
+
     func open(_ item: Item, store: HootStore) {
+        guard let url = item.link, Self.canShow(url) else { return }
         store.markRead(item)
-        if store.openInSafari, let url = item.link {
+        let paid = store.source(item.source)?.paid == true
+        if store.openInSafari || (paid && store.paidInSafari) {
             UIApplication.shared.open(url)
         } else {
             self.item = item
@@ -32,7 +40,6 @@ struct SafariView: UIViewControllerRepresentable {
         let config = SFSafariViewController.Configuration()
         config.entersReaderIfAvailable = reader
         let vc = SFSafariViewController(url: url, configuration: config)
-        vc.preferredControlTintColor = UIColor(named: "AccentColor")
         vc.dismissButtonStyle = .close
         return vc
     }
@@ -101,31 +108,32 @@ struct SourceLine: View {
     let item: Item
     var story: Story?
     var body: some View {
-        // Grote tekst of smal scherm: past het niet op één regel, dan de knoppen eronder.
+        // Op één regel als het past; anders bron en tijd bovenaan (mogen afbreken) en de knoppen
+        // eronder. Nooit een vaste breedte: bij heel grote tekst duwt die anders de hele kolom
+        // buiten het scherm.
         ViewThatFits(in: .horizontal) {
-            line
-            VStack(alignment: .leading, spacing: 4) { source; HStack { more; Spacer(); SaveButton(item: item) } }
+            HStack(spacing: 8) { source(oneLine: true); Spacer(minLength: 8); more; SaveButton(item: item) }
+            VStack(alignment: .leading, spacing: 4) {
+                source(oneLine: false)
+                HStack { more; Spacer(); SaveButton(item: item) }
+            }
         }
     }
 
-    private var line: some View {
-        HStack(spacing: 8) { source; Spacer(minLength: 8); more; SaveButton(item: item) }
-    }
-
-    private var source: some View {
-        HStack(spacing: 8) {
+    private func source(oneLine: Bool) -> some View {
+        HStack(alignment: .top, spacing: 8) {
             SourceMark(item: item)
             VStack(alignment: .leading, spacing: 0) {
                 Text(item.sourceName ?? item.source).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
-                HStack(spacing: 4) {
-                    Text(HootDate.ago(item.date))
-                    if store.source(item.source)?.paid == true { Text("· abonnement") }
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                Text(meta).font(.caption).foregroundStyle(.secondary)
             }
-            .fixedSize(horizontal: true, vertical: false)
+            .lineLimit(oneLine ? 1 : nil)
+            .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    private var meta: String {
+        [HootDate.ago(item.date), store.source(item.source)?.paid == true ? "abonnement" : nil].compactMap { $0 }.joined(separator: " · ")
     }
 
     @ViewBuilder private var more: some View {
@@ -134,7 +142,7 @@ struct SourceLine: View {
                 Text((story.sourceCount ?? 1) == 2 ? "+1 bron" : "+\((story.sourceCount ?? 1) - 1) bronnen")
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(Theme.accent)
-                    .fixedSize()
+                    .lineLimit(1)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Vergelijk \((story.sourceCount ?? 1) - 1) andere bronnen")
@@ -152,6 +160,7 @@ struct SaveButton: View {
         } label: {
             Image(systemName: on ? "bookmark.fill" : "bookmark")
                 .font(.body)
+                .dynamicTypeSize(...DynamicTypeSize.xxxLarge) // het icoon past altijd in zijn aanraakvlak
                 .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
         }
@@ -271,6 +280,28 @@ struct ItemRow: View {
             SourceLine(item: item, story: story)
         }
         .padding(.vertical, 6)
+    }
+}
+
+// Verversen lukte niet: zeg eerlijk welke versie je ziet, met een knop om het opnieuw te proberen.
+struct StaleNotice: View {
+    @Environment(HootStore.self) private var store
+    var body: some View {
+        if store.stale {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Image(systemName: "wifi.slash").foregroundStyle(.secondary)
+                Text(message).font(.subheadline).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
+                Button("Opnieuw") { Task { await store.load() } }.font(.subheadline.weight(.semibold))
+            }
+            .padding(12)
+            .background(Theme.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .padding(.bottom, 12)
+            .accessibilityElement(children: .combine)
+        }
+    }
+    private var message: String {
+        guard let at = store.updatedAt else { return "Verversen lukt nu niet." }
+        return "Verversen lukt nu niet. Je ziet de versie van \(at.formatted(date: .omitted, time: .shortened))."
     }
 }
 
