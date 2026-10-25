@@ -1,5 +1,10 @@
 # Changelog — Hoot voor iOS
 
+## [0.6.0] — 2026-10-25 — E-commerce in de Digest
+
+- **Nieuw vak E-commerce**, met een winkelwagen als icoon. Voor nieuwe installaties staat het standaard aan.
+- In Instellingen telt "Vakken in de Digest" nu vanzelf mee met het aantal vakken.
+
 ## [0.5.0] — 2026-10-25 — AI in de Digest
 
 - **Nieuw vak AI** (modellen, tools, MCP en werkwijzen), met een eigen icoon. Voor nieuwe installaties staat het standaard aan.

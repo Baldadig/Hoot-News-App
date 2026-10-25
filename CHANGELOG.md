@@ -2,6 +2,16 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.34.0] — 2026-10-25 — E-commerce in de Digest
+
+- **Nieuw vak: E-commerce.** Webwinkels, Shopify, conversie en online retail.
+  - **Van vakmensen:** Practical Ecommerce, en 2PM van Web Smith (alleen de webwinkelstukken).
+  - **Vakbladen:** Modern Retail, Digital Commerce 360, Ecommerce News Europe, Retail Dive (alleen online) en Emerce (alleen webwinkelstukken).
+  - **Conversie-optimalisatie:** het blog van Convert.
+  - **Officieel:** de wijzigingen van Shopify. Die halen de top alleen als anderen erover schrijven.
+- Vaste rubrieken met een datum in de kop ("New Ecommerce Tools: 21 oktober") tellen niet mee.
+- De inhoudsopgave met vijf vakken toont er drie boven en twee bredere eronder, zonder gat.
+
 ## [1.33.0] — 2026-10-25 — AI in de Digest
 
 - **Nieuw vak: AI.** Nieuwe modellen, tools, MCP en werkwijzen voor je werk.

@@ -31,7 +31,7 @@ export const VAK_SOURCES = [
   V('ppcland', 'PPC Land', 'vakblad', ['paid-social'], 'https://ppc.land/rss/', { filter: true }),
   V('sej-paid', 'Search Engine Journal', 'vakblad', ['paid-social'], 'https://www.searchenginejournal.com/category/paid-media/feed/', { filter: true }),
   V('marketingfacts', 'Marketingfacts', 'vakblad', ['paid-social'], 'https://www.marketingfacts.nl/rss', { filter: true }),
-  V('emerce', 'Emerce', 'vakblad', ['paid-social', 'ai'], 'https://www.emerce.nl/rss', { filter: true }),
+  V('emerce', 'Emerce', 'vakblad', ['paid-social', 'ecommerce', 'ai'], 'https://www.emerce.nl/rss', { filter: true }),
   V('meta', 'Meta Newsroom', 'officieel', ['paid-social'], 'https://about.fb.com/feed/', { filter: true }),
   // UI/UX
   V('nngroup', 'Nielsen Norman Group', 'expert', ['ux'], 'https://www.nngroup.com/feed/rss/', { about: 'Onderzoek naar gebruiksvriendelijkheid' }),
@@ -58,6 +58,16 @@ export const VAK_SOURCES = [
   V('ars-ai', 'Ars Technica', 'vakblad', ['ai'], 'https://arstechnica.com/ai/feed/', { filter: true }),
   V('mcp', 'Model Context Protocol', 'officieel', ['ai'], 'https://blog.modelcontextprotocol.io/index.xml'),
   V('openai', 'OpenAI', 'officieel', ['ai'], 'https://openai.com/news/rss.xml', { filter: true }),
+  // E-commerce en Shopify: vakbladen over online retail (de brede alleen met webwinkelstukken),
+  // een vakexpert (Web Smith, 2PM), conversie-optimalisatie, en de wijzigingen van Shopify zelf.
+  V('2pm', '2PM', 'expert', ['ecommerce'], 'https://www.2pml.com/feed', { about: 'Web Smith over direct-to-consumer en online retail', filter: true }),
+  V('practicalecommerce', 'Practical Ecommerce', 'expert', ['ecommerce'], 'https://www.practicalecommerce.com/feed', { about: 'Praktische stukken van vakmensen voor webwinkels' }),
+  V('modernretail', 'Modern Retail', 'vakblad', ['ecommerce'], 'https://www.modernretail.co/feed/'),
+  V('dc360', 'Digital Commerce 360', 'vakblad', ['ecommerce'], 'https://www.digitalcommerce360.com/feed/'),
+  V('ecommercenews', 'Ecommerce News Europe', 'vakblad', ['ecommerce'], 'https://www.ecommercenews.eu/feed/'),
+  V('retaildive', 'Retail Dive', 'vakblad', ['ecommerce'], 'https://www.retaildive.com/feeds/news/', { filter: true }),
+  V('convert', 'Convert', 'community', ['ecommerce'], 'https://www.convert.com/blog/feed/'),
+  V('shopify', 'Shopify', 'officieel', ['ecommerce'], 'https://changelog.shopify.com/feed.xml'),
   // Kiest voor beide: wat over interfaces gaat telt bij UI/UX, de rest bij design.
   V('sidebar', 'Sidebar', 'curator', ['ux', 'design'], 'https://sidebar.io/feed.xml', { about: 'De redactie kiest elke werkdag vijf designlinks' }),
 ]
@@ -75,6 +85,8 @@ const FITS = {
         /\b(ads?|advertis\w*|advert\w*|campaigns?|campagnes?|marketing|marketeers?|marketers?|creators?|influencers?|brands?|merken|targeting|audiences?|budgets?|cpm|roas|reels|shopping|commerce|creatives?|attribution|pixel)\b/i.test(t)),
   },
   ux: /\b(ux|ui|user experience|usability|interfaces?|interaction|design systems?|accessib\w*|a11y|prototyp\w*|figma|user research|onboarding|navigation|forms?|typography|components?|designers?)\b/i,
+  // E-commerce: online verkopen (winkelketens en vastgoed in het algemeen niet).
+  ecommerce: /\b(e-?commerce|ecom|webshops?|webwinkels?|online (shopping|shops?|stores?|retail|retailers?|sales|winkels?)|shopify|checkout|cart|winkelwagen|conversie\w*|conversion rate|cro|dtc|d2c|direct-to-consumer|marketplaces?|amazon|bol\.com|zalando|temu|shein|fulfil+ment|thuiswinkel\w*|retouren|returns|social commerce|live shopping)\b/i,
   // AI: modellen, tools en werken met AI (algemeen techniek- of bedrijfsnieuws telt niet mee).
   ai: /\b(ai|a\.i\.|artificial intelligence|kunstmatige intelligentie|llms?|large language models?|gpt[-\w.]*|chatgpt|claude|gemini|copilot|openai|anthropic|mistral|llama|mcp|model context protocol|agents?|agentic|agenten|prompt\w*|generative|generatieve|genai|machine learning|midjourney|sora|veo|reasoning models?)\b/i,
   // Digitaal ontwerp en merkidentiteit; boeken, verpakkingen en gebouwen niet.
@@ -86,7 +98,8 @@ const NOT_READING = /\b(sponsored|partner content|advertorial|presented by|webin
 const LISTICLE = /^\s*(the\s+)?\d+\s+([\w-]+\s+){0,3}(tools?|templates?|examples?|plugins?|fonts?|apps?|ways|tips|tricks|resources|mockups?|icons?)\b/i
 export const cleanTitle = (t = '') => t.replace(/\s+via\s+@\w+(,\s*@\w+)*\s*$/i, '').trim()
 // Verzamelingen: dagelijkse overzichten ("[AINews] …") en genummerde linklijstjes ("… (#25)").
-const ROUNDUP = /^\s*\[[^\]]*news[^\]]*\]|\(#\d+\)|\b(roundup|round-up|links? of the week|weekly digest|daily digest)\b/i
+// Ook vaste rubrieken met een datum in de kop ("New Ecommerce Tools: October 21, 2026").
+const ROUNDUP = /^\s*\[[^\]]*news[^\]]*\]|\(#\d+\)|\b(roundup|round-up|links? of the week|weekly digest|daily digest)\b|:\s*(january|february|march|april|may|june|july|august|september|october|november|december) \d{1,2}, \d{4}\s*$/i
 export const isReading = (it) => !!it.title && !NOT_READING.test(it.title) && !LISTICLE.test(it.title) && !ROUNDUP.test(it.title)
 
 // ---- Week: van maandag 07:00 tot maandag 07:00 (Amsterdam) ----

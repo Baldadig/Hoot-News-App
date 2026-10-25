@@ -114,3 +114,12 @@ test('AI: stukken over modellen, tools en werkwijzen; geen dagelijkse overzichte
   assert.equal(isReading({ title: 'Latest open artifacts (#25): DeepSeek V4.1' }), false)
   assert.equal(isReading({ title: 'AI Is Getting Good at Math. Here’s Why.' }), true)
 })
+
+test('E-commerce: webwinkelstukken; vaste rubrieken met een datum en ander nieuws van brede bronnen niet', () => {
+  assert.equal(fieldOf({ title: 'Shopify, Vercel Arm Stores for AI Agents' }, src('practicalecommerce')), 'ecommerce')
+  assert.equal(fieldOf({ title: 'NATSEC Roundtable No. 17: Nashville and Peter Thiel' }, src('2pm')), null)
+  assert.equal(fieldOf({ title: 'Why holiday returns demand fresh thinking from online retailers' }, src('retaildive')), 'ecommerce')
+  assert.equal(fieldOf({ title: 'Target names new CFO' }, src('retaildive')), null)
+  assert.equal(fieldOf({ title: 'Zalando opent nieuw fulfilmentcentrum voor webwinkels' }, src('emerce')), 'ecommerce')
+  assert.equal(isReading({ title: 'New Ecommerce Tools: October 21, 2026' }), false)
+})

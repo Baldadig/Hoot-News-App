@@ -4,5 +4,6 @@ export const VAK_FIELDS = [
   { id: 'ux', label: 'UI/UX', about: 'Interfaces, gebruiksvriendelijkheid en design systems' },
   { id: 'design', label: 'Digital Design', about: 'Merken, beeld en trends in digitaal ontwerp' },
   { id: 'ai', label: 'AI', about: 'Nieuwe modellen, tools, MCP en werkwijzen voor je werk' },
+  { id: 'ecommerce', label: 'E-commerce', about: 'Webwinkels, Shopify, conversie en online retail' },
 ]
 export const VAK_FIELD_IDS = VAK_FIELDS.map((f) => f.id)

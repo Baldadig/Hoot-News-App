@@ -3243,6 +3243,16 @@ html[data-images='hoofd'] .media--social {
   .dtoc[data-n='4'] {
     grid-template-columns: 1fr 1fr;
   }
+  /* Vijf: drie boven, twee bredere eronder, zodat er geen gat overblijft */
+  .dtoc[data-n='5'] {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .dtoc[data-n='5'] > * {
+    grid-column: span 2;
+  }
+  .dtoc[data-n='5'] > :nth-child(n + 4) {
+    grid-column: span 3;
+  }
 }
 .dtoc button {
   display: flex;

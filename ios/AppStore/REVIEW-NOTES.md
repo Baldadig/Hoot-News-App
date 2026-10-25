@@ -10,7 +10,7 @@ What the app does
 - Edition: three times a day (06:00, 12:00, 17:00 Amsterdam time) a fixed edition of ten stories (the same for every reader), composed by our own server from Dutch and international news sources.
 - Compare: when several outlets cover the same story, "+N bronnen" shows how each of them reports it.
 - Stream: all items from the reader's chosen sources, newest first. Sources can be switched on and off.
-- Digest: every Monday the three most important professional articles of the week per field (paid social, UI/UX, digital design), chosen by how many trade publications covered them and by human curation.
+- Digest: every Monday the three most important professional articles of the week per field (paid social, UI/UX, digital design, AI, e-commerce), chosen by how many trade publications covered them and by human curation.
 - Saved and Search work on the device.
 
 Where the content comes from

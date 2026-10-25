@@ -2,13 +2,13 @@ import { useRef } from 'react'
 import { ViewHeader, Empty, Skeleton, LoadError } from '../components/Shell.jsx'
 import { SaveButton, SourceMark, useHoot } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
-import { MegaphoneIcon, CursorIcon, PaletteIcon, SparkleIcon } from '../components/icons.jsx'
+import { MegaphoneIcon, CursorIcon, PaletteIcon, SparkleIcon, CartIcon } from '../components/icons.jsx'
 import { timeAgo } from '../lib/time.js'
 import { fitsHero, fitsLarge } from '../lib/img.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { VAK_FIELDS } from '../../shared/vak.mjs'
 
-const ICON = { 'paid-social': MegaphoneIcon, ux: CursorIcon, design: PaletteIcon, ai: SparkleIcon }
+const ICON = { 'paid-social': MegaphoneIcon, ux: CursorIcon, design: PaletteIcon, ai: SparkleIcon, ecommerce: CartIcon }
 const DAY = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long', timeZone: 'Europe/Amsterdam' })
 const WEEKDAY = new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Amsterdam' })
 // "12 t/m 18 oktober": de week loopt tot maandag 07:00, dus de laatste dag is de zondag ervoor.

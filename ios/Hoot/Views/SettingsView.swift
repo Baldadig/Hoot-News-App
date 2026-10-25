@@ -66,7 +66,7 @@ struct SettingsView: View {
                     NavigationLink {
                         DigestFieldsList().navigationTitle("Vakken").navigationBarTitleDisplayMode(.inline)
                     } label: {
-                        LabeledContent { Text("\(store.digestFields.count) van 4") } label: { Label("Vakken in de Digest", systemImage: "briefcase") }
+                        LabeledContent { Text("\(store.digestFields.count) van \(DigestFieldsList.count)") } label: { Label("Vakken in de Digest", systemImage: "briefcase") }
                     }
                 }
 
@@ -121,14 +121,15 @@ struct SettingsView: View {
 }
 
 struct DigestFieldsList: View {
+    static var count: Int { fields.count }
     @Environment(HootStore.self) private var store
-    private let fields = [("paid-social", "Paid social", "megaphone"), ("ux", "UI/UX", "cursorarrow.click.2"), ("design", "Digital Design", "paintpalette"), ("ai", "AI", "sparkles")]
+    static let fields = [("paid-social", "Paid social", "megaphone"), ("ux", "UI/UX", "cursorarrow.click.2"), ("design", "Digital Design", "paintpalette"), ("ai", "AI", "sparkles"), ("ecommerce", "E-commerce", "cart")]
     var body: some View {
         Form {
             Section {
-                ForEach(fields, id: \.0) { id, label, icon in
+                ForEach(Self.fields, id: \.0) { id, label, icon in
                     Toggle(isOn: Binding(get: { store.digestFields.contains(id) }, set: { on in
-                        store.digestFields = on ? fields.map(\.0).filter { $0 == id || store.digestFields.contains($0) } : store.digestFields.filter { $0 != id }
+                        store.digestFields = on ? Self.fields.map(\.0).filter { $0 == id || store.digestFields.contains($0) } : store.digestFields.filter { $0 != id }
                     })) { Label(label, systemImage: icon) }
                 }
             } footer: {
