@@ -103,3 +103,14 @@ test('beeld van het artikel: og:image uit de head, geen automatisch titelkaartje
   assert.equal(pool[1].image, null)
   assert.ok(pool.every((i) => i.ogTried))
 })
+
+test('AI: stukken over modellen, tools en werkwijzen; geen dagelijkse overzichten of algemeen technieuws', () => {
+  assert.equal(fieldOf({ title: 'Claude gets a new MCP connector for Figma' }, src('verge-ai')), 'ai')
+  assert.equal(fieldOf({ title: 'Apple reports record iPhone sales' }, src('verge-ai')), null)
+  assert.equal(fieldOf({ title: '30 Months on the Exponential (in Charts)' }, src('oneusefulthing')), 'ai') // vakexpert: alles telt
+  assert.equal(fieldOf({ title: 'Meta brengt AI-advertentietools naar Instagram' }, src('emerce')), 'paid-social') // eerst paid social
+  assert.equal(fieldOf({ title: 'Nieuwe AI-agenten voor klantenservice' }, src('emerce')), 'ai')
+  assert.equal(isReading({ title: '[AINews] not much happened today' }), false)
+  assert.equal(isReading({ title: 'Latest open artifacts (#25): DeepSeek V4.1' }), false)
+  assert.equal(isReading({ title: 'AI Is Getting Good at Math. Here’s Why.' }), true)
+})

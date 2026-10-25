@@ -3238,6 +3238,12 @@ html[data-images='hoofd'] .media--social {
     gap: var(--s5);
   }
 }
+/* Vier vakken: twee bij twee (vier smalle kolommen maken de koppen te krap) */
+@media (min-width: 720px) {
+  .dtoc[data-n='4'] {
+    grid-template-columns: 1fr 1fr;
+  }
+}
 .dtoc button {
   display: flex;
   gap: var(--s2);

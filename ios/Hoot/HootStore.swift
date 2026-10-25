@@ -45,7 +45,7 @@ final class HootStore {
     init() {
         muted = Set(Self.load("hoot.muted") ?? [String]())
         enabled = Set(Self.load("hoot.enabled") ?? [String]())
-        digestFields = Self.load("hoot.digestFields") ?? ["paid-social", "ux", "design"]
+        digestFields = Self.load("hoot.digestFields") ?? ["paid-social", "ux", "design", "ai"]
         // Eenmalig overzetten uit UserDefaults (versie 0.3 en eerder).
         let oldSaved: [Item]? = Self.load("hoot.saved")
         let oldRead: [String]? = Self.load("hoot.read")

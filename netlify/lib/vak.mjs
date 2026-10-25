@@ -31,7 +31,7 @@ export const VAK_SOURCES = [
   V('ppcland', 'PPC Land', 'vakblad', ['paid-social'], 'https://ppc.land/rss/', { filter: true }),
   V('sej-paid', 'Search Engine Journal', 'vakblad', ['paid-social'], 'https://www.searchenginejournal.com/category/paid-media/feed/', { filter: true }),
   V('marketingfacts', 'Marketingfacts', 'vakblad', ['paid-social'], 'https://www.marketingfacts.nl/rss', { filter: true }),
-  V('emerce', 'Emerce', 'vakblad', ['paid-social'], 'https://www.emerce.nl/rss', { filter: true }),
+  V('emerce', 'Emerce', 'vakblad', ['paid-social', 'ai'], 'https://www.emerce.nl/rss', { filter: true }),
   V('meta', 'Meta Newsroom', 'officieel', ['paid-social'], 'https://about.fb.com/feed/', { filter: true }),
   // UI/UX
   V('nngroup', 'Nielsen Norman Group', 'expert', ['ux'], 'https://www.nngroup.com/feed/rss/', { about: 'Onderzoek naar gebruiksvriendelijkheid' }),
@@ -41,11 +41,23 @@ export const VAK_SOURCES = [
   V('alistapart', 'A List Apart', 'vakblad', ['ux'], 'https://alistapart.com/main/feed/'),
   V('uxcollective', 'UX Collective', 'community', ['ux'], 'https://uxdesign.cc/feed'),
   V('figma', 'Figma', 'officieel', ['ux'], 'https://www.figma.com/blog/feed/atom.xml'),
-  // Design in digital
+  // Digital Design
   V('creativereview', 'Creative Review', 'vakblad', ['design'], 'https://www.creativereview.co.uk/feed/', { filter: true }),
   V('designweek', 'Design Week', 'vakblad', ['design'], 'https://www.designweek.co.uk/feed/', { filter: true }),
   V('fastco-design', 'Fast Company Design', 'vakblad', ['design'], 'https://www.fastcompany.com/co-design/rss', { filter: true }),
   V('awwwards', 'Awwwards', 'vakblad', ['design'], 'https://www.awwwards.com/blog/feed/'),
+  // AI voor je werk: vakmensen die er zelf mee werken, de AI-rubriek van vakbladen, en de
+  // officiële kanalen van modellen en MCP. (Anthropic heeft geen feed; Simon Willison schrijft
+  // over elke nieuwe Claude-versie.)
+  V('simonwillison', 'Simon Willison', 'expert', ['ai'], 'https://simonwillison.net/atom/entries/', { about: 'Maker van Datasette, test elk nieuw model en elke tool' }),
+  V('oneusefulthing', 'Ethan Mollick', 'expert', ['ai'], 'https://www.oneusefulthing.org/feed', { about: 'Hoogleraar (Wharton), schrijft over AI in het werk' }),
+  V('latentspace', 'Latent Space', 'expert', ['ai'], 'https://www.latent.space/feed', { about: 'Over het bouwen met AI, van swyx en Alessio' }),
+  V('interconnects', 'Interconnects', 'expert', ['ai'], 'https://www.interconnects.ai/feed', { about: 'Nathan Lambert over nieuwe modellen' }),
+  V('marketingai', 'Marketing AI Institute', 'vakblad', ['ai'], 'https://www.marketingaiinstitute.com/blog/rss.xml'),
+  V('verge-ai', 'The Verge', 'vakblad', ['ai'], 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml', { filter: true }),
+  V('ars-ai', 'Ars Technica', 'vakblad', ['ai'], 'https://arstechnica.com/ai/feed/', { filter: true }),
+  V('mcp', 'Model Context Protocol', 'officieel', ['ai'], 'https://blog.modelcontextprotocol.io/index.xml'),
+  V('openai', 'OpenAI', 'officieel', ['ai'], 'https://openai.com/news/rss.xml', { filter: true }),
   // Kiest voor beide: wat over interfaces gaat telt bij UI/UX, de rest bij design.
   V('sidebar', 'Sidebar', 'curator', ['ux', 'design'], 'https://sidebar.io/feed.xml', { about: 'De redactie kiest elke werkdag vijf designlinks' }),
 ]
@@ -63,6 +75,8 @@ const FITS = {
         /\b(ads?|advertis\w*|advert\w*|campaigns?|campagnes?|marketing|marketeers?|marketers?|creators?|influencers?|brands?|merken|targeting|audiences?|budgets?|cpm|roas|reels|shopping|commerce|creatives?|attribution|pixel)\b/i.test(t)),
   },
   ux: /\b(ux|ui|user experience|usability|interfaces?|interaction|design systems?|accessib\w*|a11y|prototyp\w*|figma|user research|onboarding|navigation|forms?|typography|components?|designers?)\b/i,
+  // AI: modellen, tools en werken met AI (algemeen techniek- of bedrijfsnieuws telt niet mee).
+  ai: /\b(ai|a\.i\.|artificial intelligence|kunstmatige intelligentie|llms?|large language models?|gpt[-\w.]*|chatgpt|claude|gemini|copilot|openai|anthropic|mistral|llama|mcp|model context protocol|agents?|agentic|agenten|prompt\w*|generative|generatieve|genai|machine learning|midjourney|sora|veo|reasoning models?)\b/i,
   // Digitaal ontwerp en merkidentiteit; boeken, verpakkingen en gebouwen niet.
   design: /\b(digital|web ?design|websites?|apps?|interfaces?|ui|ux|online|screens?|interactive|motion|animat\w*|figma|identity|identities|rebrand\w*|logos?|type ?faces?|fonts?|typograph\w*|design systems?|design trends?|icons?)\b/i,
 }
@@ -71,7 +85,9 @@ const FITS = {
 const NOT_READING = /\b(sponsored|partner content|advertorial|presented by|webinars?|podcast|episode|register now|sign up now|giveaway|deals?|discount|coupon|vacatures?|we'?re hiring|job (opening|listing)s?|this week in|weekly (round-?up|recap)|industry news|newsletter)\b/i
 const LISTICLE = /^\s*(the\s+)?\d+\s+([\w-]+\s+){0,3}(tools?|templates?|examples?|plugins?|fonts?|apps?|ways|tips|tricks|resources|mockups?|icons?)\b/i
 export const cleanTitle = (t = '') => t.replace(/\s+via\s+@\w+(,\s*@\w+)*\s*$/i, '').trim()
-export const isReading = (it) => !!it.title && !NOT_READING.test(it.title) && !LISTICLE.test(it.title)
+// Verzamelingen: dagelijkse overzichten ("[AINews] …") en genummerde linklijstjes ("… (#25)").
+const ROUNDUP = /^\s*\[[^\]]*news[^\]]*\]|\(#\d+\)|\b(roundup|round-up|links? of the week|weekly digest|daily digest)\b/i
+export const isReading = (it) => !!it.title && !NOT_READING.test(it.title) && !LISTICLE.test(it.title) && !ROUNDUP.test(it.title)
 
 // ---- Week: van maandag 07:00 tot maandag 07:00 (Amsterdam) ----
 const AMS = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23', weekday: 'short' })

@@ -2,6 +2,16 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.33.0] — 2026-10-25 — AI in de Digest
+
+- **Nieuw vak: AI.** Nieuwe modellen, tools, MCP en werkwijzen voor je werk.
+  - **Van vakmensen:** Simon Willison, Ethan Mollick, Latent Space en Interconnects.
+  - **Uit vakbladen, alleen hun AI-stukken:** Marketing AI Institute, The Verge, Ars Technica en Emerce.
+  - **Officieel:** OpenAI en het Model Context Protocol. Een officieel bericht haalt de top alleen als ook anderen erover schrijven.
+- **"Design in digital" heet nu Digital Design.**
+- Dagelijkse nieuwsoverzichten ("[AINews] …") en genummerde linklijstjes tellen niet mee in de Digest.
+- Kies je vier vakken, dan staat de inhoudsopgave twee bij twee.
+
 ## [1.32.4] — 2026-10-25 — Over en contact
 
 - **Nieuwe pagina "Over Hoot"** (`#/over`): wat Hoot is, contact via hallo@hootnews.nl, en veelgestelde vragen. Dit is ook de support-pagina van de app in de App Store. Je vindt hem via Instellingen → Over.

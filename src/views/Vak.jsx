@@ -2,13 +2,13 @@ import { useRef } from 'react'
 import { ViewHeader, Empty, Skeleton, LoadError } from '../components/Shell.jsx'
 import { SaveButton, SourceMark, useHoot } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
-import { MegaphoneIcon, CursorIcon, PaletteIcon } from '../components/icons.jsx'
+import { MegaphoneIcon, CursorIcon, PaletteIcon, SparkleIcon } from '../components/icons.jsx'
 import { timeAgo } from '../lib/time.js'
 import { fitsHero, fitsLarge } from '../lib/img.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { VAK_FIELDS } from '../../shared/vak.mjs'
 
-const ICON = { 'paid-social': MegaphoneIcon, ux: CursorIcon, design: PaletteIcon }
+const ICON = { 'paid-social': MegaphoneIcon, ux: CursorIcon, design: PaletteIcon, ai: SparkleIcon }
 const DAY = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long', timeZone: 'Europe/Amsterdam' })
 const WEEKDAY = new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Amsterdam' })
 // "12 t/m 18 oktober": de week loopt tot maandag 07:00, dus de laatste dag is de zondag ervoor.
@@ -141,7 +141,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
             </header>
 
             {/* Inhoud: per vak de drie koppen; tik = naar het stuk in de digest */}
-            <nav className="dtoc" aria-label="In deze digest">
+            <nav className="dtoc" data-n={fields.length} aria-label="In deze digest">
               {fields.map((f) => {
                 const Icon = ICON[f.id]
                 return (

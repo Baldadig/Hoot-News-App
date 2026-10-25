@@ -1,5 +1,10 @@
 # Changelog — Hoot voor iOS
 
+## [0.5.0] — 2026-10-25 — AI in de Digest
+
+- **Nieuw vak AI** (modellen, tools, MCP en werkwijzen), met een eigen icoon. Voor nieuwe installaties staat het standaard aan.
+- **"Design in digital" heet nu Digital Design.**
+
 ## [0.4.0] — 2026-10-25 — Herstel na de audit
 
 Gebaseerd op `AUDIT-2026-10-24.md`:

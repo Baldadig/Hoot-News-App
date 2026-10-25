@@ -5,7 +5,7 @@ import SwiftUI
 // stuk groot, twee kaarten, en "Ook deze week".
 struct DigestView: View {
     @Environment(HootStore.self) private var store
-    private static let fields: [(id: String, label: String, icon: String)] = [("paid-social", "Paid social", "megaphone"), ("ux", "UI/UX", "cursorarrow.click.2"), ("design", "Design in digital", "paintpalette")]
+    private static let fields: [(id: String, label: String, icon: String)] = [("paid-social", "Paid social", "megaphone"), ("ux", "UI/UX", "cursorarrow.click.2"), ("design", "Digital Design", "paintpalette"), ("ai", "AI", "sparkles")]
 
     var body: some View {
         NavigationStack {

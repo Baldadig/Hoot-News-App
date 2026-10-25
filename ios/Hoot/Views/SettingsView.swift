@@ -66,7 +66,7 @@ struct SettingsView: View {
                     NavigationLink {
                         DigestFieldsList().navigationTitle("Vakken").navigationBarTitleDisplayMode(.inline)
                     } label: {
-                        LabeledContent { Text("\(store.digestFields.count) van 3") } label: { Label("Vakken in de Digest", systemImage: "briefcase") }
+                        LabeledContent { Text("\(store.digestFields.count) van 4") } label: { Label("Vakken in de Digest", systemImage: "briefcase") }
                     }
                 }
 
@@ -122,7 +122,7 @@ struct SettingsView: View {
 
 struct DigestFieldsList: View {
     @Environment(HootStore.self) private var store
-    private let fields = [("paid-social", "Paid social", "megaphone"), ("ux", "UI/UX", "cursorarrow.click.2"), ("design", "Design in digital", "paintpalette")]
+    private let fields = [("paid-social", "Paid social", "megaphone"), ("ux", "UI/UX", "cursorarrow.click.2"), ("design", "Digital Design", "paintpalette"), ("ai", "AI", "sparkles")]
     var body: some View {
         Form {
             Section {
