@@ -71,7 +71,9 @@ private struct PostRow: View {
                     if let text = item.summary, !text.isEmpty {
                         Text(text).font(.body).fixedSize(horizontal: false, vertical: true)
                     }
-                    if let title = item.linkTitle {
+                    if item.videoURL != nil {
+                        // de video staat hieronder, buiten de tik naar de post
+                    } else if let title = item.linkTitle {
                         LinkCard(item: item, title: title)
                     } else if item.image != nil, store.showsImage(lead: false) {
                         FramedImage(url: item.image.flatMap(URL.init(string:)), ratio: CGFloat(min(max(item.imageRatio ?? 4 / 3, 0.75), 2)))
@@ -80,6 +82,7 @@ private struct PostRow: View {
                 }
                 .contentShape(Rectangle())
                 .opensArticle(item)
+                if item.videoURL != nil { InlineVideo(item: item) }
             }
         }
         .padding(.vertical, 12)

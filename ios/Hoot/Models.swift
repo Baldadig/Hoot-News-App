@@ -36,15 +36,25 @@ struct Item: Codable, Identifiable, Hashable {
     // Alleen bij Bluesky-posts
     var handle: String?
     var linkTitle: String? // titel van een gedeelde link
-    var imageRatio: Double? // breedte/hoogte van een geplaatste foto
+    var imageRatio: Double? // breedte/hoogte van een geplaatste foto of video
+    var video: String? // HLS-afspeellijst
+    var videoPoster: String?
 
     var date: Date? { publishedAt.flatMap(HootDate.parse) }
     var link: URL? { URL(string: url) }
     var isPost: Bool { kind == "post" }
+    // Rechtstreeks van Bluesky's video-CDN (het gewone adres stuurt daar alleen naartoe, en dat
+    // reageerde eind oktober urenlang niet), ook voor berichten van vóór die omzetting.
+    var videoURL: URL? { video.flatMap(Self.direct).flatMap(URL.init(string:)) }
+    var videoPosterURL: URL? { videoPoster.flatMap(Self.direct).flatMap(URL.init(string:)) }
+    static func direct(_ url: String) -> String {
+        guard let m = url.wholeMatch(of: /https:\/\/video\.bsky\.app\/watch\/([^\/]+)\/([^\/]+)\/(.+)/) else { return url }
+        return "https://video.cdn.bsky.app/hls/\(String(m.1).removingPercentEncoding ?? String(m.1))/\(m.2)/\(m.3)"
+    }
 }
 
 extension Item {
-    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, url, image, publishedAt, author, readMin, type, handle, linkTitle, imageRatio }
+    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, url, image, publishedAt, author, readMin, type, handle, linkTitle, imageRatio, video, videoPoster }
     // Een post heeft geen kop; die mag dus ontbreken.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -66,6 +76,8 @@ extension Item {
         handle = try? c.decodeIfPresent(String.self, forKey: .handle)
         linkTitle = try? c.decodeIfPresent(String.self, forKey: .linkTitle)
         imageRatio = try? c.decodeIfPresent(Double.self, forKey: .imageRatio)
+        video = try? c.decodeIfPresent(String.self, forKey: .video)
+        videoPoster = try? c.decodeIfPresent(String.self, forKey: .videoPoster)
     }
 }
 

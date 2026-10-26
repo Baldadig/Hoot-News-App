@@ -1,5 +1,15 @@
 # Changelog — Hoot voor iOS
 
+## [0.10.0] — 2026-10-26 — Video's in Bluesky
+
+- **Video's spelen in de app.** In Bluesky (bovenaan de Stroom) staat bij een video het stilstaande beeld met een afspeelknop. Een tik speelt hem af in de post, met de gewone iOS-bediening en volledig scherm.
+  - Er wordt pas iets geladen als je tikt.
+  - Er speelt er maar één tegelijk.
+  - Weg scrollen pauzeert de video.
+  - Geluid speelt ook met de stil-schakelaar aan.
+- Video's komen rechtstreeks van Bluesky's video-CDN, ook bij posts die je zelf volgt.
+- **Alleen in Debug:** `-HootScreen video` start de eerste video vanzelf.
+
 ## [0.9.0] — 2026-10-26 — Bluesky, en je eigen instellingen
 
 - **Bluesky in de Stroom.** Zet het aan in Instellingen › Bluesky; bovenaan de Stroom kies je dan "Nieuws" of "Bluesky".

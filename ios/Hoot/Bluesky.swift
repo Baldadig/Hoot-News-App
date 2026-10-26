@@ -71,11 +71,15 @@ enum Bluesky {
         var image: String?
         var ratio: Double?
         var linkTitle: String?
+        var video: String?
+        var poster: String?
         func media(_ e: [String: Any]?) {
             guard let e else { return }
             let type = e["$type"] as? String ?? ""
             if type.contains("embed.video") {
-                image = e["thumbnail"] as? String
+                video = (e["playlist"] as? String).map(Item.direct)
+                poster = (e["thumbnail"] as? String).map(Item.direct)
+                if let r = e["aspectRatio"] as? [String: Any], let w = r["width"] as? Double, let h = r["height"] as? Double, h > 0 { ratio = w / h }
             } else if type.contains("embed.external"), let x = e["external"] as? [String: Any] {
                 image = x["thumb"] as? String ?? image
                 if let t = (x["title"] as? String)?.trimmingCharacters(in: .whitespaces), !t.isEmpty { linkTitle = t }
@@ -88,7 +92,7 @@ enum Bluesky {
             }
         }
         media(post["embed"] as? [String: Any])
-        return Item(id: "bsky|" + uri, source: "bsky:" + handle, kind: "post", sourceName: (author["displayName"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? fallback, avatar: author["avatar"] as? String, brandColor: brand, title: "", summary: text, url: url, image: image, publishedAt: record["createdAt"] as? String ?? post["indexedAt"] as? String, type: "sociaal", handle: "@" + handle, linkTitle: linkTitle, imageRatio: ratio)
+        return Item(id: "bsky|" + uri, source: "bsky:" + handle, kind: "post", sourceName: (author["displayName"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? fallback, avatar: author["avatar"] as? String, brandColor: brand, title: "", summary: text, url: url, image: image, publishedAt: record["createdAt"] as? String ?? post["indexedAt"] as? String, type: "sociaal", handle: "@" + handle, linkTitle: linkTitle, imageRatio: ratio, video: video, videoPoster: poster)
     }
 
     private static func get(_ method: String, _ query: [String: String]) async throws -> [String: Any] {
