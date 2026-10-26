@@ -106,6 +106,7 @@ final class HootStore {
             await partsTask?.value
             stale = fromCache
             status = .ready
+            if !fromCache { Task.detached(priority: .background) { HootAPI.Offline.prune() } }
         } catch {
             stale = !itemsById.isEmpty
             status = itemsById.isEmpty ? .failed : .ready
@@ -160,6 +161,8 @@ final class HootStore {
     }
 
     // ---- Digest ----
+    // Levert de server dit vak? Zolang de Digest niet geladen is: ja.
+    func offersField(_ id: String) -> Bool { digest.map { $0.fields.contains { $0.id == id } } ?? true }
     func loadDigest(force: Bool = false) async {
         if digestStatus == .loading || (!force && digest != nil) { return }
         digestStatus = .loading

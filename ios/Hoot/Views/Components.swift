@@ -6,6 +6,9 @@ import SwiftUI
 enum Theme {
     static let paper = Color("Paper")
     static let surface = Color("Surface")
+    // Ondersteunende tekst (datum, intro, bron): donkerder dan het grijs van het systeem, zodat
+    // het op papier minstens 4,5:1 contrast haalt (licht 5,4:1, donker 6,5:1).
+    static let muted = Color("Muted")
     static let accent = Color.accentColor
     static func headline(_ style: Font.TextStyle) -> Font { .system(style, design: .serif, weight: .bold) }
 }
@@ -125,7 +128,7 @@ struct SourceLine: View {
             SourceMark(item: item)
             VStack(alignment: .leading, spacing: 0) {
                 Text(item.sourceName ?? item.source).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
-                Text(meta).font(.caption).foregroundStyle(.secondary)
+                Text(meta).font(.caption).foregroundStyle(Theme.muted)
             }
             .lineLimit(oneLine ? 1 : nil)
             .fixedSize(horizontal: false, vertical: true)
@@ -165,7 +168,7 @@ struct SaveButton: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .foregroundStyle(on ? Theme.accent : .secondary)
+        .foregroundStyle(on ? Theme.accent : Theme.muted)
         .sensoryFeedback(.selection, trigger: on)
         .accessibilityLabel(on ? "Bewaard, tik om te verwijderen" : "Bewaar")
     }
@@ -215,10 +218,10 @@ struct LeadCard: View {
             Kicker(text: label)
             Text(item.title)
                 .font(Theme.headline(wide ? .largeTitle : .title))
-                .foregroundStyle(store.isRead(item) ? .secondary : .primary)
+                .foregroundStyle(store.isRead(item) ? Theme.muted : Color.primary)
                 .fixedSize(horizontal: false, vertical: true)
             if let summary = item.summary, !summary.isEmpty {
-                Text(summary).font(wide ? .title3 : .body).foregroundStyle(.secondary).lineLimit(wide ? 6 : 4)
+                Text(summary).font(wide ? .title3 : .body).foregroundStyle(Theme.muted).lineLimit(wide ? 6 : 4)
             }
         }
     }
@@ -261,10 +264,10 @@ struct ItemRow: View {
                     Kicker(text: label)
                     Text(item.title)
                         .font(Theme.headline(.title3))
-                        .foregroundStyle(store.isRead(item) ? .secondary : .primary)
+                        .foregroundStyle(store.isRead(item) ? Theme.muted : Color.primary)
                         .fixedSize(horizontal: false, vertical: true)
                     if let summary = item.summary, !summary.isEmpty {
-                        Text(summary).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
+                        Text(summary).font(.subheadline).foregroundStyle(Theme.muted).lineLimit(2)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -289,8 +292,8 @@ struct StaleNotice: View {
     var body: some View {
         if store.stale {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
-                Image(systemName: "wifi.slash").foregroundStyle(.secondary)
-                Text(message).font(.subheadline).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
+                Image(systemName: "wifi.slash").foregroundStyle(Theme.muted)
+                Text(message).font(.subheadline).foregroundStyle(Theme.muted).frame(maxWidth: .infinity, alignment: .leading)
                 Button("Opnieuw") { Task { await store.load() } }.font(.subheadline.weight(.semibold))
             }
             .padding(12)
@@ -309,7 +312,15 @@ struct EmptyState: View {
     let title: String
     let systemImage: String
     var text: String = ""
+    // Opnieuw proberen als knop naast het trekgebaar (dat niet iedereen kent of kan maken).
+    var retry: (() async -> Void)? = nil
     var body: some View {
-        ContentUnavailableView(title, systemImage: systemImage, description: Text(text))
+        ContentUnavailableView {
+            Label(title, systemImage: systemImage)
+        } description: {
+            Text(text)
+        } actions: {
+            if let retry { Button("Probeer opnieuw") { Task { await retry() } }.buttonStyle(.glass) }
+        }
     }
 }

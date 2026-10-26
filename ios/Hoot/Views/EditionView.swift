@@ -18,7 +18,7 @@ enum Desk {
         let base: String?
         if e.desk == "breed" { base = "Waar iedereen over schrijft · \(e.sourceCount ?? 0) bronnen" } else { base = e.desk.flatMap { labels[$0] } }
         if followed || ["bubbel", "extern", "breed"].contains(e.desk ?? "") { return base }
-        return [base, "Volg je niet"].compactMap { $0 }.joined(separator: " · ")
+        return [base, "Buiten je bronnen"].compactMap { $0 }.joined(separator: " · ")
     }
 }
 
@@ -61,12 +61,16 @@ struct EditionView: View {
                     if store.status == .loading && rows.isEmpty {
                         ProgressView().frame(maxWidth: .infinity, minHeight: 240)
                     } else if rows.isEmpty {
-                        EmptyState(title: store.status == .failed ? "Geen verbinding" : "Er is nog geen editie", systemImage: store.status == .failed ? "wifi.slash" : "newspaper", text: store.status == .failed ? "Trek omlaag om het opnieuw te proberen." : "In de Stroom staat alles wat er wél is.")
+                        if store.status == .failed {
+                            EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Hoot heeft nog geen editie op deze iPhone. Zodra je verbinding hebt, verschijnt hij hier.", retry: store.load)
+                        } else {
+                            EmptyState(title: "Er is nog geen editie", systemImage: "newspaper", text: "In de Stroom staat alles wat er wél is.")
+                        }
                     } else {
                         StaleNotice()
                         Text("\(dateLine) · De editie voor iedereen")
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Theme.muted)
                             .padding(.bottom, 16)
                         LeadCard(item: rows[0].item, label: rows[0].label, story: rows[0].story)
                         if wide {
@@ -87,7 +91,7 @@ struct EditionView: View {
                         }
                         Text("Dat was de editie. De volgende verschijnt om \(store.edition?.next ?? "") uur.")
                             .font(.footnote)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Theme.muted)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 32)
                     }
@@ -120,11 +124,11 @@ struct StoryView: View {
             Section {
                 Text("\(story.sourceCount ?? items.count) bronnen schrijven hierover")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.muted)
             }
             .listRowBackground(Color.clear)
             ForEach(items) { item in
-                ItemRow(item: item, label: store.isOn(store.source(item.source) ?? Source(id: item.source, name: "")) ? nil : "Volg je niet")
+                ItemRow(item: item, label: store.isOn(store.source(item.source) ?? Source(id: item.source, name: "")) ? nil : "Buiten je bronnen")
                     .listRowBackground(Theme.surface)
             }
         }

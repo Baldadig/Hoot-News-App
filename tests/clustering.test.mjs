@@ -27,3 +27,21 @@ test('de haai in Zuid-Korea is geen verhaal over Noord-Korea', () => {
   // Wat wél bij elkaar hoort, blijft bij elkaar.
   assert.ok(together(/propaganda-luidsprekers/, /Spanning Korea/))
 })
+
+// Echte berichten van 26-10: twee verkiezingsuitslagen in één nacht (Brazilië en Servië) werden
+// één verhaal van 31 bronnen. Koppen als "president erkent nederlaag bij verkiezingen" deelden
+// genoeg woorden, en één felicitatie van Von der Leyen hing aan beide.
+test('de verkiezingen in Brazilië en Servië zijn twee verhalen', () => {
+  const items = JSON.parse(readFileSync(new URL('./fixtures/clustering-2610.json', import.meta.url), 'utf8'))
+  const stories = buildStories(items)
+  const storyOf = (re) => stories.find((s) => s.itemIds.includes(items.find((i) => re.test(i.title)).id))?.id || null
+  const together = (a, b) => storyOf(a) !== null && storyOf(a) === storyOf(b)
+  assert.ok(together(/^President Lula wint Braziliaanse verkiezingen/, /^Lula secures surprise win/))
+  assert.ok(together(/^Feestnacht in Servië/, /^Aleksandar Vucic Concedes Defeat/))
+  assert.ok(!together(/^President Lula wint Braziliaanse verkiezingen/, /^Feestnacht in Servië/))
+  assert.ok(!together(/^EU-topvrouw Von der Leyen/, /^EU-leiders feliciteren Servische/))
+  for (const st of stories) {
+    const titles = st.itemIds.map((id) => items.find((i) => i.id === id).title)
+    assert.ok(!(titles.some((t) => /Lula|Bolsonaro|Brazil/i.test(t)) && titles.some((t) => /Servi|Serbia|Vu[cč]i[cć]/i.test(t))), 'een verhaal mengt Brazilië en Servië')
+  }
+})

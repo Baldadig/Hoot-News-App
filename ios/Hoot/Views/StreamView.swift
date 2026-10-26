@@ -14,13 +14,17 @@ struct StreamView: View {
                     if store.status == .loading && items.isEmpty {
                         ProgressView().frame(maxWidth: .infinity, minHeight: 240)
                     } else if items.isEmpty {
-                        EmptyState(title: "Nog niets", systemImage: "water.waves", text: "Zet bronnen aan via Bronnen rechtsboven.")
+                        if store.status == .failed {
+                            EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnen hier de berichten van je bronnen.", retry: store.load)
+                        } else {
+                            EmptyState(title: "Nog niets", systemImage: "water.waves", text: "Zet bronnen aan via Bronnen rechtsboven.")
+                        }
                     } else {
                         StaleNotice()
                         if let at = store.updatedAt, !store.stale {
                             Text("Bijgewerkt om \(at.formatted(date: .omitted, time: .shortened))")
                                 .font(.footnote)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Theme.muted)
                                 .padding(.bottom, 8)
                         }
                         ForEach(items.prefix(limit)) { item in
@@ -87,9 +91,9 @@ struct SourcesList: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     HStack(spacing: 6) {
                                         Text(s.name)
-                                        if s.paid == true { Text("abonnement").font(.caption).foregroundStyle(.secondary) } else { Text("gratis").font(.caption.weight(.semibold)).foregroundStyle(Theme.accent) }
+                                        if s.paid == true { Text("abonnement").font(.caption).foregroundStyle(Theme.muted) } else { Text("gratis").font(.caption.weight(.semibold)).foregroundStyle(Theme.accent) }
                                     }
-                                    if let about = s.about { Text(about).font(.caption).foregroundStyle(.secondary) }
+                                    if let about = s.about { Text(about).font(.caption).foregroundStyle(Theme.muted) }
                                 }
                             }
                         }

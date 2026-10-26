@@ -1,5 +1,15 @@
 # Changelog — Hoot voor iOS
 
+## [0.7.0] — 2026-10-26 — Eerste ronde uit de ontwerpaudit
+
+- **Zonder netwerk de laatste editie.** Elk geslaagd antwoord wordt ook als bestand bewaard. Zonder netwerk zie je de laatste editie en Stroom, met "Je ziet de versie van …". Zonder eerdere download is er een knop "Probeer opnieuw".
+- **Beter leesbaar grijs.** Datum, intro, bron en toelichtingen hebben een eigen kleur met minstens 4,5:1 contrast: licht 5,4:1, donker 6,5:1.
+- **Wissen met een zichtbare Annuleer.** De knoppen zeggen precies wat er gebeurt: "Alles als ongelezen markeren" en "Bewaarde artikelen verwijderen" (met het aantal).
+- **Leesinstellingen als één keuze.** "Artikelen openen: In Hoot / In Safari". Alleen bij "In Hoot" verschijnen "Abonnementsbronnen in Safari" en "Lezer automatisch openen".
+- **Vakgebieden:** een vak dat de server nog niet levert, staat uit met "binnenkort".
+- **Labels:** "Afbeeldingen", "Vakgebieden" en "Buiten je bronnen".
+- **Alleen in Debug:** startargumenten die de app direct op een scherm openen, plus `ios/AppStore/tools/device-screens.sh` voor schermafbeeldingen op een echte iPhone.
+
 ## [0.6.0] — 2026-10-25 — E-commerce in de Digest
 
 - **Nieuw vak E-commerce**, met een winkelwagen als icoon. Voor nieuwe installaties staat het standaard aan.

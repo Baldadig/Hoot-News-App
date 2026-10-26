@@ -204,7 +204,7 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
       const score = WEIGHT[src.kind] + 2.5 * (srcs.size - 1) + (picked ? 3 : 0) + (lead.author ? 0.5 : 0) + (lead.summary ? 0.5 : 0)
       const why = []
       if (srcs.size > 1) why.push(`${srcs.size} vakbronnen schreven erover`)
-      if (picked || src.kind === 'curator') why.push('Gekozen door de redactie van Sidebar')
+      if (picked || src.kind === 'curator') why.push('Gekozen door Sidebar')
       if (src.kind === 'expert' && src.about) why.push(src.about) // de naam staat al bij de bron
       const curator = src.kind === 'curator'
       const entry = {

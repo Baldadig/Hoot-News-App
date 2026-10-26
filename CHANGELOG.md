@@ -2,6 +2,14 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.34.1] — 2026-10-26 — Eén verhaal is één gebeurtenis
+
+- **Bundelen gerepareerd.** De verkiezingen in Brazilië en Servië stonden als één verhaal van 31 bronnen in de editie. Er waren twee oorzaken:
+  - **Algemene woorden:** koppen die alleen woorden als "president erkent nederlaag bij verkiezingen" deelden, werden gekoppeld. Dat gebeurt niet meer als beide koppen namen hebben en er geen enkele delen.
+  - **Eén brugschakel:** in grote bundels telt een verbinding alleen nog als een derde bericht met beide verbonden is. Eén felicitatie die over twee verkiezingen gaat, trekt ze niet meer samen.
+  - Op de echte data van vandaag worden het twee zuivere verhalen; alle andere verhalen bleven gelijk. Er is een test met deze berichten.
+- **Labels:** "Volg je niet" heet nu "Buiten je bronnen", en "Gekozen door de redactie van Sidebar" is "Gekozen door Sidebar".
+
 ## [1.34.0] — 2026-10-25 — E-commerce in de Digest
 
 - **Nieuw vak: E-commerce.** Webwinkels, Shopify, conversie en online retail.

@@ -30,7 +30,7 @@ struct SettingsView: View {
                         Text("Alleen hoofdverhaal").tag("hoofd")
                         Text("Uit").tag("uit")
                     } label: {
-                        Label("Beeld", systemImage: "photo")
+                        Label("Afbeeldingen", systemImage: "photo")
                     }
                     Toggle(isOn: $store.bubble) {
                         Label("Buiten je bubbel", systemImage: "sparkle.magnifyingglass")
@@ -38,25 +38,29 @@ struct SettingsView: View {
                 } header: {
                     Text("Editie en Stroom")
                 } footer: {
-                    Text("Buiten je bubbel: één verhaal waar veel mensen nu naar zoeken en dat niet in je editie staat.")
+                    Text("Buiten je bubbel: één verhaal waar veel mensen nu naar zoeken en dat niet in je editie staat.").foregroundStyle(Theme.muted)
                 }
 
+                // Eén keuze (waar openen artikelen), met de uitzonderingen alleen als die gelden.
                 Section {
-                    Toggle(isOn: $store.openInSafari.animation()) {
-                        Label("Openen in Safari", systemImage: "safari")
+                    Picker(selection: $store.openInSafari.animation()) {
+                        Text("In Hoot").tag(false)
+                        Text("In Safari").tag(true)
+                    } label: {
+                        Label("Artikelen openen", systemImage: "safari")
                     }
                     if !store.openInSafari {
                         Toggle(isOn: $store.paidInSafari) {
-                            Label("Betaalde bronnen in Safari", systemImage: "creditcard")
+                            Label("Abonnementsbronnen in Safari", systemImage: "creditcard")
                         }
                         Toggle(isOn: $store.readerFirst) {
-                            Label("Meteen de Lezer", systemImage: "doc.plaintext")
+                            Label("Lezer automatisch openen", systemImage: "doc.plaintext")
                         }
                     }
                 } header: {
                     Text("Lezen")
                 } footer: {
-                    Text(store.openInSafari ? "Artikelen openen in Safari, waar je ingelogd bent bij je abonnementen." : "Artikelen openen in Hoot. Daar ben je niet ingelogd bij je abonnementen; daarom openen betaalde bronnen standaard in Safari.")
+                    Text(store.openInSafari ? "In Safari ben je ingelogd bij je abonnementen." : "In Hoot ben je niet ingelogd bij je abonnementen; daarom openen abonnementsbronnen standaard in Safari. De Lezer opent alleen als het artikel dat ondersteunt.").foregroundStyle(Theme.muted)
                 }
 
                 Section("Bronnen en vakken") {
@@ -64,7 +68,7 @@ struct SettingsView: View {
                         LabeledContent { Text("\(store.followed.count) aan") } label: { Label("Bronnen", systemImage: "dot.radiowaves.up.forward") }
                     }
                     NavigationLink(value: "vakken") {
-                        LabeledContent { Text("\(store.digestFields.count) van \(DigestFieldsList.count)") } label: { Label("Vakken in de Digest", systemImage: "briefcase") }
+                        LabeledContent { Text("\(store.digestFields.filter(store.offersField).count) van \(DigestFieldsList.fields.map(\.0).filter(store.offersField).count)") } label: { Label("Vakgebieden", systemImage: "briefcase") }
                     }
                 }
 
@@ -77,15 +81,15 @@ struct SettingsView: View {
                     .foregroundStyle(.primary)
                     .accessibilityHint("Opent Hoot in de Instellingen-app")
                 } footer: {
-                    Text("In de Instellingen-app van je iPhone. De tekstgrootte volgt je iPhone (Scherm en helderheid).")
+                    Text("In de Instellingen-app van je iPhone. De tekstgrootte volgt je iPhone (Toegankelijkheid › Weergave en tekstgrootte).").foregroundStyle(Theme.muted)
                 }
 
                 Section {
                     Button(role: .destructive) { confirmClear = "gelezen" } label: {
-                        Label("Gelezen vergeten", systemImage: "eye.slash")
+                        Label("Alles als ongelezen markeren", systemImage: "eye.slash")
                     }
                     Button(role: .destructive) { confirmClear = "bewaard" } label: {
-                        Label("Bewaard leegmaken", systemImage: "bookmark.slash")
+                        Label("Bewaarde artikelen verwijderen", systemImage: "bookmark.slash")
                     }
                     .disabled(store.saved.isEmpty)
                 } header: {
@@ -101,6 +105,7 @@ struct SettingsView: View {
                 .id("over")
             }
             .debugJump(proxy, to: "over", when: 0)
+            .task { await store.loadDigest() } // voor het aantal vakgebieden dat de server levert
             }
             .navigationTitle("Instellingen")
             .navigationBarTitleDisplayMode(.inline)
@@ -108,42 +113,54 @@ struct SettingsView: View {
                 if page == "bronnen" {
                     SourcesList().navigationTitle("Bronnen").navigationBarTitleDisplayMode(.inline)
                 } else {
-                    DigestFieldsList().navigationTitle("Vakken").navigationBarTitleDisplayMode(.inline)
+                    DigestFieldsList().navigationTitle("Vakgebieden").navigationBarTitleDisplayMode(.inline)
                 }
             }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { dismiss() } }
             }
-            .confirmationDialog(confirmClear == "bewaard" ? "Alles uit Bewaard verwijderen?" : "Vergeten wat je las?", isPresented: Binding(get: { confirmClear != nil }, set: { if !$0 { confirmClear = nil } }), titleVisibility: .visible) {
-                if confirmClear == "bewaard" {
-                    Button("Bewaard leegmaken", role: .destructive) { store.clearSaved() }
-                } else {
-                    Button("Gelezen vergeten", role: .destructive) { store.clearRead() }
-                }
+            // Een melding met een zichtbare Annuleer (een actieblad zonder die knop laat de veilige
+            // uitweg aan een tik ernaast over), en precies wat er verandert.
+            .alert(confirmClear == "bewaard" ? "Alle bewaarde artikelen verwijderen?" : "Alles als ongelezen markeren?", isPresented: Binding(get: { confirmClear != nil }, set: { if !$0 { confirmClear = nil } })) {
                 Button("Annuleer", role: .cancel) {}
+                if confirmClear == "bewaard" {
+                    Button("Verwijder", role: .destructive) { store.clearSaved() }
+                } else {
+                    Button("Markeer als ongelezen", role: .destructive) { store.clearRead() }
+                }
             } message: {
-                Text(confirmClear == "bewaard" ? "Dit kun je niet ongedaan maken." : "Gelezen berichten worden weer gewoon getoond.")
+                Text(confirmClear == "bewaard" ? "\(store.saved.count == 1 ? "1 artikel verdwijnt" : "\(store.saved.count) artikelen verdwijnen") uit Bewaard. Dit kun je niet ongedaan maken." : "Wat je las, wordt weer gewoon getoond. Je bewaarde artikelen blijven staan.")
             }
         }
     }
 }
 
 struct DigestFieldsList: View {
-    static var count: Int { fields.count }
     @Environment(HootStore.self) private var store
     static let fields = [("paid-social", "Paid social", "megaphone"), ("ux", "UI/UX", "cursorarrow.click.2"), ("design", "Digital Design", "paintpalette"), ("ai", "AI", "sparkles"), ("ecommerce", "E-commerce", "cart")]
     var body: some View {
         Form {
             Section {
                 ForEach(Self.fields, id: \.0) { id, label, icon in
-                    Toggle(isOn: Binding(get: { store.digestFields.contains(id) }, set: { on in
+                    // Een vak dat de server (nog) niet levert, kun je niet aanzetten.
+                    let offered = store.offersField(id)
+                    Toggle(isOn: Binding(get: { offered && store.digestFields.contains(id) }, set: { on in
                         store.digestFields = on ? Self.fields.map(\.0).filter { $0 == id || store.digestFields.contains($0) } : store.digestFields.filter { $0 != id }
-                    })) { Label(label, systemImage: icon) }
+                    })) {
+                        Label {
+                            HStack(spacing: 6) {
+                                Text(label)
+                                if !offered { Text("binnenkort").font(.caption).foregroundStyle(Theme.muted) }
+                            }
+                        } icon: { Image(systemName: icon) }
+                    }
+                    .disabled(!offered)
                 }
             } footer: {
-                Text("Elke maandag om 7 uur per vak de drie belangrijkste stukken van de week, door mensen geschreven.")
+                Text("Elke maandag om 7 uur per vak de drie belangrijkste stukken van de week, door mensen geschreven.").foregroundStyle(Theme.muted)
             }
         }
+        .task { await store.loadDigest() }
     }
 }
 

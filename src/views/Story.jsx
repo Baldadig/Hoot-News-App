@@ -64,7 +64,7 @@ export default function Story({ story, items, overlay, onClose, onBack, onSeen, 
   const fresh = prev ? items.filter((i) => !prev.includes(i.id)) : []
   const rest = prev ? items.filter((i) => prev.includes(i.id)) : items
   const firstId = items[items.length - 1]?.id
-  const note = (i) => [i.id === firstId && items.length > 1 ? 'Eerste bericht' : null, followed(i) ? null : 'Volg je niet'].filter(Boolean).join(' · ') || null
+  const note = (i) => [i.id === firstId && items.length > 1 ? 'Eerste bericht' : null, followed(i) ? null : 'Buiten je bronnen'].filter(Boolean).join(' · ') || null
 
   return (
     <div className="story">

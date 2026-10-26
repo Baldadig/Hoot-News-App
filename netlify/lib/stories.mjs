@@ -178,6 +178,9 @@ const EVENT_WINDOW = 36 * 60 * 60 * 1000
 // Gaan twee artikelen over dezelfde gebeurtenis?
 export function sameEvent(a, b) {
   const dt = Math.abs(a.t - b.t)
+  // Beide noemen namen, maar geen enkele dezelfde: twee gebeurtenissen van dezelfde soort
+  // ("president erkent nederlaag bij verkiezingen" in Brazilië en in Servië).
+  if (a.strong.size && b.strong.size && !sharedCount(a.strong, b.strong) && !sharedCount(a.weak, b.weak)) return false
   // Zelfde taal: ≥3 gedeelde kernwoorden in de kop én ≥40% van de kortste kop.
   if (dt <= WORD_WINDOW) {
     const n = sharedCount(a.words, b.words)
@@ -250,7 +253,15 @@ export function buildStories(articles, registry = {}, { mainIds = new Set() } = 
   //    wat los valt, vormt onderling opnieuw groepjes.
   const groups = new Map()
   const byId = new Map(list.map((a) => [a.id, a]))
-  const components = (ids) => {
+  // In een grote bundel telt een verbinding alleen als nog een derde bericht met beide verbonden
+  // is: één losse schakel (een reactie die over twee verkiezingen tegelijk gaat) trekt dan geen
+  // twee gebeurtenissen meer aan elkaar.
+  const embedded = (ids) => {
+    const adj = new Map()
+    for (const x of ids) adj.set(x, new Set([...links.get(x)].filter((y) => ids.has(y) && [...links.get(y)].some((z) => z !== x && ids.has(z) && links.get(x).has(z)))))
+    return adj
+  }
+  const components = (ids, adj = links) => {
     const seen = new Set()
     const out = []
     for (const id of ids) {
@@ -261,7 +272,7 @@ export function buildStories(articles, registry = {}, { mainIds = new Set() } = 
       while (stack.length) {
         const x = stack.pop()
         comp.push(x)
-        for (const y of links.get(x)) if (ids.has(y) && !seen.has(y)) (seen.add(y), stack.push(y))
+        for (const y of adj.get(x)) if (ids.has(y) && !seen.has(y)) (seen.add(y), stack.push(y))
       }
       out.push(comp)
     }
@@ -274,15 +285,16 @@ export function buildStories(articles, registry = {}, { mainIds = new Set() } = 
         continue
       }
       const core = new Set(comp)
+      const adj = embedded(core)
       const need = coreDegree(comp.length)
       let pruned = true
       while (pruned) {
         pruned = false
-        for (const x of [...core]) if ([...links.get(x)].filter((y) => core.has(y)).length < need) (core.delete(x), (pruned = true))
+        for (const x of [...core]) if ([...adj.get(x)].filter((y) => core.has(y)).length < need) (core.delete(x), (pruned = true))
       }
       const loose = new Set(comp.filter((x) => !core.has(x)))
       if (core.size >= 2) {
-        const parts = components(core)
+        const parts = components(core, adj)
         for (const part of parts) groups.set(part[0], part.map((id) => byId.get(id)))
       } else for (const x of core) loose.add(x)
       if (loose.size === comp.length) for (const id of comp) groups.set(id, [byId.get(id)]) // geen kern: allemaal los
