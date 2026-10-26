@@ -6,7 +6,7 @@
 // Je interesses geven voorrang; de rubrieken blijven, zodat het een krant is en geen bubbel.
 // Zijn er te weinig verhalen uit je eigen bronnen, dan vullen we aan uit de algemene editie
 // ("Buiten je bronnen"). "Buiten je bubbel" blijft op zijn plek. Daarna ligt de editie vast.
-import { selectEdition, EDITION_SIZE } from '../../netlify/lib/stories.mjs'
+import { selectEdition, EDITION_SIZE, signatures, sameEvent } from '../../netlify/lib/stories.mjs'
 import { resolveTopics } from './topics.js'
 
 export const EXTERN = 'extern' // rubriek van een aangevuld verhaal
@@ -25,7 +25,9 @@ export const EXTRA_MAX = 2
 // Ook uit een gewone nieuwsbron (NU.nl, de Volkskrant) is een voetbalbericht sport.
 const TOPIC_KIND = { voetbal: 'sport', f1: 'sport', wielrennen: 'sport', tennis: 'sport', wintersport: 'sport', olympisch: 'sport', muziek: 'cultuur', film: 'cultuur', boeken: 'cultuur', kunst: 'cultuur', games: 'games' }
 
-export function composePersonal({ global, stories = [], items = [], sources = [], followed = new Set(), interests = [], topics = [], now = Date.now(), builtAt = new Date(now).toISOString() }) {
+// `previous`: je vorige editie (zie previousOf in stories.mjs); wat daarin stond, komt alleen
+// terug als het zich ontwikkelde.
+export function composePersonal({ global, stories = [], items = [], sources = [], followed = new Set(), interests = [], topics = [], now = Date.now(), builtAt = new Date(now).toISOString(), previous = null }) {
   if (!global?.entries?.length) return null
   const catOf = new Map(sources.map((s) => [s.id, s.cat]))
   // Soort bericht: de rubriek van de bron, tenzij het onderwerp sport, cultuur of games is.
@@ -44,7 +46,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
 
   // "Buiten je bubbel" uit de algemene editie houdt zijn plek; "Waar iedereen over schrijft"
   // krijgt er één (als er iets breed gedekts buiten je interesses is); de rest kiezen we zelf.
-  const bubbleEntry = global.entries.find((e) => e.desk === 'bubbel') || null
+  let bubbleEntry = global.entries.find((e) => e.desk === 'bubbel') || null
   const storyById = new Map(stories.map((s) => [s.id, s]))
   const outside = (w) => !mine.size || !(w.topics || []).some((t) => mine.has(t))
   // Schrijft een van je eigen bronnen er al over, dan is het niet "buiten je bronnen": dan
@@ -54,12 +56,12 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const covered = (w) => ownIds.has(w.item.id) || (storyById.get(w.storyId)?.itemIds || []).some((id) => ownIds.has(id))
   const wideCands = (global.wide || []).filter((w) => outside(w) && !covered(w))
   const size = EDITION_SIZE - (bubbleEntry ? 1 : 0) - (wideCands.length ? 1 : 0)
-  const extra = extraPool.length ? selectEdition(stories, extraPool, { mainIds: followed, now, size: EXTRA_MAX, bonus, strict: true }).map((e) => ({ ...e, desk: null })) : []
+  const extra = extraPool.length ? selectEdition(stories, extraPool, { mainIds: followed, now, size: EXTRA_MAX, bonus, strict: true, previous }).map((e) => ({ ...e, desk: null })) : []
   // Een bericht van een vakbron (tech, economie, wetenschap) krijgt die rubriek, niet een rubriek
   // uit de tekst ("Britse fabrikant" maakte van een koptelefoonreview anders Buitenland).
   const SPECIALIST = new Set(['tech', 'economie', 'wetenschap'])
   const leadCat = (e) => catOf.get(pool.find((i) => i.id === (e.leadId || e.id))?.source)
-  const news = selectEdition(stories, newsPool, { mainIds: followed, now, size: size - extra.length, bonus, strict: true }).map((e) => (SPECIALIST.has(leadCat(e)) ? { ...e, desk: leadCat(e) } : e))
+  const news = selectEdition(stories, newsPool, { mainIds: followed, now, size: size - extra.length, bonus, strict: true, previous }).map((e) => (SPECIALIST.has(leadCat(e)) ? { ...e, desk: leadCat(e) } : e))
   const own = [...news, ...extra]
 
   // Aanvullen uit de algemene editie, zonder dubbel verhaal of dubbele gebeurtenis.
@@ -83,6 +85,19 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     if ([...m].some((id) => taken.has(id))) continue
     for (const id of m) taken.add(id)
     fill.push({ ...g, desk: EXTERN, fromDesk: g.desk || null })
+  }
+
+  // "Buiten je bubbel" mag niet over iets gaan dat al in jouw editie staat (de algemene editie
+  // controleerde alleen haar eigen verhalen); dan het volgende signaal, of geen.
+  if (bubbleEntry) {
+    const globalItems = new Map((global.items || []).map((i) => [i.id, i]))
+    const sig = signatures([...new Map([...items, ...(global.items || [])].filter((i) => i.kind !== 'post').map((i) => [i.id, i])).values()])
+    const mineSigs = [...taken].map((id) => sig.get(id)).filter(Boolean)
+    const clashes = (id) => taken.has(id) || (sig.has(id) && mineSigs.some((s) => sameEvent(sig.get(id), s)))
+    if (clashes(bubbleEntry.id)) {
+      const alt = (global.bubble || []).find((b) => globalItems.has(b.id) && !clashes(b.id))
+      bubbleEntry = alt ? { kind: 'item', id: alt.id, desk: 'bubbel', terms: alt.terms } : null
+    }
   }
 
   // Volgorde: eigen nieuws, aangevuld nieuws, dan sport/cultuur; "Buiten je bubbel" op plek 6,

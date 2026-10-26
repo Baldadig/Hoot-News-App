@@ -340,6 +340,28 @@ export function buildStories(articles, registry = {}, { mainIds = new Set() } = 
 export const EDITION_SIZE = 10
 const MAX_LEADS_PER_SOURCE = 3
 
+// De editie vóór deze: middag → ochtend, avond → middag, ochtend → gisteravond.
+export function previousSlotId(slot) {
+  if (slot.slot === 'avond') return `${slot.date}-middag`
+  if (slot.slot === 'middag') return `${slot.date}-ochtend`
+  const [y, m, d] = slot.date.split('-').map(Number)
+  return `${new Date(Date.UTC(y, m - 1, d - 1)).toISOString().slice(0, 10)}-avond`
+}
+
+// Wat uit een vastgelegde editie telt als "stond er al" (zie selectEdition).
+export function previousOf(edition) {
+  if (!edition?.entries?.length) return null
+  const stories = edition.entries.filter((e) => e.kind === 'story')
+  const lead = edition.entries[0]
+  return {
+    storyIds: new Set(stories.flatMap((e) => [e.id, e.formerId].filter(Boolean))),
+    itemIds: new Set([...edition.entries.map((e) => e.leadId || e.id), ...stories.flatMap((e) => e.itemIds || []), ...(edition.stories || []).flatMap((st) => st.itemIds || [])]),
+    leadIds: new Set([lead.leadId || lead.id]),
+    leadStoryId: lead.kind === 'story' ? lead.id : null,
+    at: Date.parse(edition.builtAt) || 0,
+  }
+}
+
 export function editionSlot(now = new Date()) {
   const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23' })
   const parts = (d) => Object.fromEntries(fmt.formatToParts(d).map((p) => [p.type, p.value]))
@@ -365,7 +387,23 @@ export function editionSlot(now = new Date()) {
 // van een lezer (de persoonlijke editie in de app); de server gebruikt hem niet.
 // `strict`: een rubriek alleen voor wat er echt over gaat (niet "raakt het ook"); voor de
 // persoonlijke editie, waar een techreview anders "Buitenland" kon heten.
-export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, bonus = null, strict = false } = {}) {
+// `previous`: de vorige editie ({ storyIds, itemIds, leadIds, at }). Wat daar al in stond, komt
+// alleen terug als er sindsdien echt iets bij kwam, en wordt niet weer vanzelf het hoofdverhaal:
+// anders zijn ochtend, middag en avond drie keer dezelfde krant.
+export const REPEAT_PENALTY = 70 // zelfde verhaal, weinig nieuws: zakt achter verhalen van nu
+export const DEVELOPING_PENALTY = 25 // zelfde verhaal dat zich ontwikkelt: mag blijven, maar lager
+export const REPEAT_LEAD_PENALTY = 30 // was het hoofdverhaal: niet nog een keer bovenaan
+export function repeatPenalty(st, items, previous) {
+  if (!previous) return 0
+  const seen = previous.storyIds?.has(st.id) || items.some((i) => previous.itemIds?.has(i.id))
+  if (!seen) return 0
+  const fresh = items.filter((i) => !previous.itemIds?.has(i.id) && i.publishedAt && Date.parse(i.publishedAt) > previous.at).length
+  const developing = fresh >= 3 && fresh / items.length >= 0.3
+  const wasLead = previous.leadStoryId === st.id || items.some((i) => previous.leadIds?.has(i.id))
+  return (developing ? DEVELOPING_PENALTY : REPEAT_PENALTY) + (wasLead ? REPEAT_LEAD_PENALTY : 0)
+}
+
+export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, bonus = null, strict = false, previous = null } = {}) {
   const byId = new Map(pool.map((i) => [i.id, i]))
   const sig = signatures(pool)
   const fresh = (iso, hours) => iso && now - Date.parse(iso) < hours * 60 * 60 * 1000
@@ -391,11 +429,12 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     const items = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
     if (!items.length) continue
     const per = items.map((it) => desksOf(it))
-    cands.push({ kind: 'story', st, items, ids: st.itemIds, desks: new Set(per.flatMap((x) => [...x])), primary: primaryDesk(per), w: weight(st, now) })
+    cands.push({ kind: 'story', st, items, ids: st.itemIds, desks: new Set(per.flatMap((x) => [...x])), primary: primaryDesk(per), w: weight(st, now) - repeatPenalty(st, items, previous) })
   }
   for (const it of pool) {
     if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || it.storyId || isLive(it)) continue // een liveblog is geen editieplek
     if (!fresh(it.publishedAt, 14) || !(it.summary || it.image)) continue
+    if (previous?.itemIds?.has(it.id)) continue // stond er al
     const desks = desksOf(it)
     cands.push({ kind: 'item', it, ids: [it.id], desks, primary: primaryDesk([desks]), w: weight({ sourceCount: 1, ownCount: 1, latestAt: it.publishedAt }, now) - 2 })
   }

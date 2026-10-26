@@ -2,7 +2,7 @@
 // vastleggen. Draait op een vast ritme (functions/feed-refresh.mjs); de app krijgt het
 // resultaat kant-en-klaar (functions/feed.mjs) en hoeft nooit op het ophalen te wachten.
 import Anthropic from '@anthropic-ai/sdk'
-import { byRecency, sigWords, sharedCount, buildStories, editionSlot, selectEdition, relinkEdition, widelyCovered } from './stories.mjs'
+import { byRecency, sigWords, sharedCount, buildStories, editionSlot, previousSlotId, previousOf, selectEdition, relinkEdition, widelyCovered, signatures, sameEvent } from './stories.mjs'
 import { matchTrending, insertBubble } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
 import { articleKey, mergeSnippets, isLiveblog } from './snippets.mjs'
@@ -328,7 +328,9 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
     const newsPool = articlePool
     const newsIds = new Set(newsPool.map((a) => a.id))
     const newsStories = stories.filter((st) => st.itemIds.some((id) => newsIds.has(id)))
-    const entries = selectEdition(newsStories, newsPool, { mainIds: MAIN_IDS, now })
+    // Wat in de vorige editie stond, komt alleen terug als het zich echt ontwikkelde.
+    const previous = previousOf(await kvGet('edition3-' + previousSlotId(slot)).catch(() => null))
+    const entries = selectEdition(newsStories, newsPool, { mainIds: MAIN_IDS, now, previous })
     const snapStories = entries.filter((e) => e.kind === 'story').map((e) => stories.find((st) => st.id === e.id))
     const snapIds = new Set([...snapStories.flatMap((st) => st.itemIds), ...entries.filter((e) => e.kind === 'item').map((e) => e.id)])
     stored = { id: slot.id, builtAt: new Date(now).toISOString(), entries, stories: snapStories, items: [...snapIds].map((id) => byId.get(id)).filter(Boolean) }
@@ -343,7 +345,12 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
     if (trends.length) {
       const excludeStoryIds = new Set(stored.entries.filter((e) => e.kind === 'story').map((e) => e.id))
       const excludeItemIds = new Set([...stored.entries.filter((e) => e.kind === 'item').map((e) => e.id), ...[...excludeStoryIds].flatMap((id) => storyById.get(id)?.itemIds || [])])
-      const picks = matchTrending(trends, pool, { excludeItemIds, excludeStoryIds, coveredTitles: rows().map((r) => r.title), max: 3, now })
+      // Ook geen bericht over een gebeurtenis die al in de editie staat (een liveblog hoort bij
+      // geen verhaal, en "Serbia" staat niet in de Nederlandse kop "Serviërs vieren …").
+      const sig = signatures(pool.filter((i) => i.kind === 'article'))
+      const shown = [...excludeItemIds].map((id) => sig.get(id)).filter(Boolean)
+      const fresh = pool.filter((a) => !sig.has(a.id) || !shown.some((s) => sameEvent(sig.get(a.id), s)))
+      const picks = matchTrending(trends, fresh, { excludeItemIds, excludeStoryIds, coveredTitles: rows().map((r) => r.title), max: 3, now })
       // Het sterkste signaal krijgt een plek in de editie zelf; de rest staat in het blok eronder.
       stored.entries = insertBubble(stored.entries, picks[0])
       stored.bubble = picks.slice(1)

@@ -22,15 +22,15 @@ const deskLabel = (e) => (e.desk === 'bubbel' && e.terms?.length ? `Buiten je bu
 const FRONT = 6 // voorpagina: hoofdverhaal, drie ernaast en twee eronder
 
 // Klein verhaal op de voorpagina. Bron en tijd hebben een eigen regel (breekt af in plaats van
-// af te kappen); vergelijken en bewaren staan apart eronder. Bij een lange kop vervalt de
-// samenvatting — liever dat dan een afgekapte bronregel.
+// af te kappen); vergelijken en bewaren staan apart eronder. De samenvatting staat er altijd,
+// hooguit twee regels (ook bij een lange kop: die vertelt zelden wat er gebeurde).
 function FrontItem({ item, story, note }) {
   const { markRead, read, openSource, openStory, newInStory, sourcesById } = useHoot()
   const paid = sourcesById?.get(item.source)?.paid
   const others = story ? story.sourceCount - 1 : 0
   const fresh = story ? newInStory(story) : 0
   const title = item.title
-  const summary = title.length <= 90 ? item.summary : null
+  const summary = item.summary
   return (
     <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       {note ? <p className="kicker fitem__kicker">{note}</p> : null}

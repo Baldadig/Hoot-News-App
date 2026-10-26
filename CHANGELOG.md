@@ -2,6 +2,15 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.35.0] — 2026-10-26 — Elke editie iets nieuws
+
+- **Ochtend, middag en avond zijn geen drie keer dezelfde krant meer.** Een nieuwe editie kijkt naar de vorige, zowel op de server als bij je persoonlijke editie op je toestel.
+  - Een verhaal dat er al stond en sindsdien weinig nieuws kreeg (minder dan 3 nieuwe artikelen of minder dan 30% van het verhaal), zakt achter de verhalen van nu.
+  - Een verhaal dat zich echt ontwikkelt, mag blijven, maar lager, en wordt niet opnieuw vanzelf het hoofdverhaal.
+  - Een los bericht dat er al stond, komt niet terug.
+- **"Buiten je bubbel" herhaalt de editie niet meer.** Het Guardian-liveblog over Servië stond als bubbel naast het Servië-verhaal. Een liveblog hoort bij geen verhaal, en "Serbia" komt niet voor in de Nederlandse kop. De bubbel slaat nu elk artikel over dat over dezelfde gebeurtenis gaat als iets in de editie, met dezelfde test als het bundelen. De persoonlijke editie controleert dat ook tegen je eigen verhalen en neemt anders het volgende signaal.
+- **De intro staat er altijd.** Op de voorpagina viel de samenvatting weg bij een kop van meer dan 90 tekens, zoals bij lange NRC- en Volkskrant-koppen. Nu staat hij er altijd, hooguit twee regels.
+
 ## [1.34.3] — 2026-10-26 — Favicon zonder vlak
 
 - **Groter favicon zonder achtergrond.** De "h." staat nu los en vult het beeld, zodat hij in de favorieten van Safari en in browsertabbladen naast de favicons van kranten past. In donkere modus is hij licht. Het app-icoon en het icoon voor het beginscherm blijven gelijk.
