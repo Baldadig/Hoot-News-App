@@ -10,3 +10,4 @@ dev-dist
 npm-debug.log*
 yarn-error.log*
 .claude/
+ios/Audit-schermen/

@@ -51,8 +51,10 @@ struct EditionView: View {
         return date.formatted(HootDate.style(.dateTime.weekday(.wide).day().month(.wide))).capitalizedFirst
     }
 
+    @State private var path: [Story] = []
+
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     let rows = store.editionRows
@@ -93,11 +95,16 @@ struct EditionView: View {
                 .padding(.horizontal)
                 .column(wide ? Layout.wide : Layout.readable)
             }
+            .debugScroll()
             .background(Theme.paper)
             .navigationTitle(title)
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .refreshable { await store.load() }
             .settingsButton()
+            .task(id: store.editionRows.count) {
+                // `-HootScreen verhaal`: het eerste verhaal met de meeste bronnen, om te vergelijken.
+                if DebugLaunch.screen("verhaal"), path.isEmpty, let story = store.editionRows.compactMap(\.story).max(by: { ($0.sourceCount ?? 1) < ($1.sourceCount ?? 1) }) { path = [story] }
+            }
         }
     }
 }

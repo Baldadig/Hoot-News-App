@@ -10,7 +10,8 @@ struct SettingsView: View {
     @Environment(HootStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
-    @State private var confirmClear: String?
+    @State private var confirmClear: String? = DebugLaunch.screen("instellingen-wissen") ? "gelezen" : nil
+    @State private var path: [String] = DebugLaunch.screen("instellingen-bronnen") ? ["bronnen"] : DebugLaunch.screen("instellingen-vakken") ? ["vakken"] : []
 
     private var version: String {
         let v = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
@@ -20,7 +21,8 @@ struct SettingsView: View {
 
     var body: some View {
         @Bindable var store = store
-        NavigationStack {
+        NavigationStack(path: $path) {
+            ScrollViewReader { proxy in
             Form {
                 Section {
                     Picker(selection: $store.images) {
@@ -58,14 +60,10 @@ struct SettingsView: View {
                 }
 
                 Section("Bronnen en vakken") {
-                    NavigationLink {
-                        SourcesList().navigationTitle("Bronnen").navigationBarTitleDisplayMode(.inline)
-                    } label: {
+                    NavigationLink(value: "bronnen") {
                         LabeledContent { Text("\(store.followed.count) aan") } label: { Label("Bronnen", systemImage: "dot.radiowaves.up.forward") }
                     }
-                    NavigationLink {
-                        DigestFieldsList().navigationTitle("Vakken").navigationBarTitleDisplayMode(.inline)
-                    } label: {
+                    NavigationLink(value: "vakken") {
                         LabeledContent { Text("\(store.digestFields.count) van \(DigestFieldsList.count)") } label: { Label("Vakken in de Digest", systemImage: "briefcase") }
                     }
                 }
@@ -100,9 +98,19 @@ struct SettingsView: View {
                     Link(destination: URL(string: "https://hootnews.nl/#/privacy")!) { OutboundRow(title: "Privacybeleid", systemImage: "hand.raised") }.foregroundStyle(.primary)
                     Link(destination: URL(string: "https://hootnews.nl")!) { OutboundRow(title: "hootnews.nl", systemImage: "globe") }.foregroundStyle(.primary)
                 }
+                .id("over")
+            }
+            .debugJump(proxy, to: "over", when: 0)
             }
             .navigationTitle("Instellingen")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(for: String.self) { page in
+                if page == "bronnen" {
+                    SourcesList().navigationTitle("Bronnen").navigationBarTitleDisplayMode(.inline)
+                } else {
+                    DigestFieldsList().navigationTitle("Vakken").navigationBarTitleDisplayMode(.inline)
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { dismiss() } }
             }
@@ -160,6 +168,7 @@ private struct SettingsButton: ViewModifier {
         content
             .toolbar { AccountButton(open: $open) }
             .sheet(isPresented: $open) { SettingsView() }
+            .onAppear { if DebugLaunch.screen?.hasPrefix("instellingen") == true { open = true } }
     }
 }
 

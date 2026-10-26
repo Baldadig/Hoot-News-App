@@ -9,17 +9,19 @@ struct DigestView: View {
 
     var body: some View {
         NavigationStack {
+            let shown = store.digest?.fields.filter { store.digestFields.contains($0.id) } ?? []
+            ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     picker
                     if let d = store.digest {
                         header(d)
-                        let shown = d.fields.filter { store.digestFields.contains($0.id) }
                         if shown.isEmpty {
                             EmptyState(title: "Kies je vakken", systemImage: "briefcase", text: "Tik hierboven op een of meer vakken.")
                         }
                         ForEach(shown) { field in
                             FieldSection(field: field, icon: Self.fields.first { $0.id == field.id }?.icon ?? "briefcase")
+                                .id(field.id)
                         }
                         DisclosureGroup("Hoe kiest Hoot deze stukken?") {
                             Text("Op drie gronden: hoeveel vakbronnen over hetzelfde schreven, of de redactie van Sidebar het uitkoos, en wie het schreef (een vakexpert telt zwaarder dan een vakblad). Alleen stukken van mensen: geen gesponsorde stukken, webinars, podcasts of lijstjes. De tekst bij elk stuk is de intro van de schrijver zelf, niet van AI.")
@@ -29,6 +31,7 @@ struct DigestView: View {
                         }
                         .font(.subheadline.weight(.semibold))
                         .padding(.vertical, 32)
+                        .id("einde")
                     } else if store.digestStatus == .failed {
                         EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Trek omlaag om het opnieuw te proberen.")
                     } else {
@@ -37,6 +40,8 @@ struct DigestView: View {
                 }
                 .padding(.horizontal)
                 .column(Layout.wide * 0.85)
+            }
+            .debugJump(proxy, to: DebugLaunch.anchor == .bottom ? "einde" : shown.isEmpty ? nil : shown[shown.count / 2].id, when: shown.count)
             }
             .background(Theme.paper)
             .navigationTitle("Digest")

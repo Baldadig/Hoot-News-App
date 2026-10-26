@@ -45,7 +45,12 @@ struct RootView: View {
             // Alleen in Debug, voor schermafbeeldingen: start op een tabblad met `-HootStartTab digest`.
             if let t = UserDefaults.standard.string(forKey: "HootStartTab"), let d = Destination(rawValue: t) { tab = d }
         }
+        .task(id: store.editionRows.count) {
+            // `-HootScreen lezer`: het eerste gratis artikel van de editie in de lezer.
+            if DebugLaunch.screen("lezer"), reader.item == nil, let row = store.editionRows.first(where: { store.source($0.item.source)?.paid != true }) { reader.item = row.item }
+        }
         #endif
+        .debugAppearance()
         .onChange(of: phase) { _, now in
             // Terug in de app na een tijdje weg: verversen.
             if now == .active, let at = store.updatedAt, Date.now.timeIntervalSince(at) > 15 * 60 { Task { await store.load() } }

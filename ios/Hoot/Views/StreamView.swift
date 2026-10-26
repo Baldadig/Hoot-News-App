@@ -3,7 +3,7 @@ import SwiftUI
 // Stroom: alles van je bronnen, nieuwste eerst.
 struct StreamView: View {
     @Environment(HootStore.self) private var store
-    @State private var showSources = false
+    @State private var showSources = DebugLaunch.screen("bronnen")
     @State private var limit = 60
 
     var body: some View {
@@ -38,6 +38,7 @@ struct StreamView: View {
                 .padding(.horizontal)
                 .column()
             }
+            .debugScroll()
             .background(Theme.paper)
             .navigationTitle("Stroom")
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
@@ -74,6 +75,8 @@ struct SourcesList: View {
     private static let cats: [(String, String)] = [("nl", "Nederland"), ("int", "Internationaal"), ("vl", "Vlaanderen"), ("regio", "Regio"), ("economie", "Economie"), ("tech", "Tech"), ("wetenschap", "Wetenschap"), ("sport", "Sport"), ("cultuur", "Cultuur"), ("games", "Games")]
 
     var body: some View {
+        let last = Self.cats.last { cat in store.newsSources.contains { $0.cat == cat.0 } }?.0
+        ScrollViewReader { proxy in
         List {
             ForEach(Self.cats, id: \.0) { cat, label in
                 let list = store.newsSources.filter { $0.cat == cat }
@@ -91,8 +94,11 @@ struct SourcesList: View {
                             }
                         }
                     }
+                    .id(cat)
                 }
             }
+        }
+        .debugJump(proxy, to: last, when: store.newsSources.count)
         }
     }
 }
@@ -126,7 +132,7 @@ struct SavedView: View {
 // Zoeken: in alles wat Hoot nu van je bronnen heeft.
 struct SearchView: View {
     @Environment(HootStore.self) private var store
-    @State private var query = ""
+    @State private var query = DebugLaunch.query ?? ""
     var body: some View {
         NavigationStack {
             let q = query.trimmingCharacters(in: .whitespaces).lowercased()
