@@ -1,5 +1,15 @@
 # Changelog — Hoot voor iOS
 
+## [0.9.0] — 2026-10-26 — Bluesky, en je eigen instellingen
+
+- **Bluesky in de Stroom.** Zet het aan in Instellingen › Bluesky; bovenaan de Stroom kies je dan "Nieuws" of "Bluesky".
+  - Je ziet de posts van de mensen die je volgt, nieuwste eerst, met foto's en gedeelde links, en kunt filteren op één persoon.
+  - Via Accounts kun je zelf mensen volgen, met hun naam of een link van bsky.app. Je ziet dan hun eigen posts van de afgelopen 48 uur, zonder reposts en antwoorden, net als op de website.
+  - Bluesky is geen eigen tabblad, want een zesde tabblad verstopt iOS met Bewaard en Zoeken achter "Meer".
+- **Intro bij berichten:** kies 1, 2 of 3 regels of de hele intro, zoals de voorvertoning op de website.
+- **Bewaarde Bluesky-posts** tonen in Bewaard hun tekst.
+- **Instellingen overnemen.** De app leest eenmalig `import.json` in zijn eigen map (de instellingen van je account op hootnews.nl, plus je eigen Bluesky-accounts) en verwijdert het bestand daarna. Zo kan de app op een testtoestel meteen met de instellingen van de tester draaien, zonder inloggen.
+
 ## [0.8.0] — 2026-10-26 — Tweede ronde uit de ontwerpaudit
 
 - **Stroom: nieuw sinds je vorige bezoek.** Onder de titel staat hoeveel berichten er nieuw zijn. Een rode lijn "Hier was je gebleven" markeert waar je de vorige keer was; daaronder heb je alles al gezien. De grens schuift niet mee terwijl je leest. Bij het eerste bezoek zegt de Stroom wat hij is: "De laatste berichten van je bronnen, nieuwste eerst."

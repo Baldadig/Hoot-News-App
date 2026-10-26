@@ -36,6 +36,11 @@ final class HootStore {
     var openInSafari: Bool { didSet { save("hoot.openInSafari", openInSafari) } }
     var readerFirst: Bool { didSet { save("hoot.readerFirst", readerFirst) } } // meteen de Lezer
     var paidInSafari: Bool { didSet { save("hoot.paidInSafari", paidInSafari) } } // betaalde bronnen in Safari (daar ben je ingelogd)
+    var preview: Int { didSet { save("hoot.preview", preview) } } // regels intro bij een bericht; 0 = de hele intro
+    // Bluesky als eigen tabblad, met de vaste accounts van Hoot en wie je zelf toevoegt.
+    var bluesky: Bool { didSet { save("hoot.bluesky", bluesky); if bluesky { reloadParts(); Task { await loadOwnPosts() } } } }
+    private(set) var ownBluesky: [BlueskyAccount] { didSet { save("hoot.ownBluesky", ownBluesky) } }
+    private var ownPosts: [Item] = []
 
     // Laatste verversing mislukt: je ziet de versie van `updatedAt`.
     private(set) var stale = false
@@ -74,6 +79,52 @@ final class HootStore {
         readerFirst = Self.load("hoot.readerFirst") ?? false
         paidInSafari = Self.load("hoot.paidInSafari") ?? true
         streamSeen = Self.load("hoot.streamSeen") ?? nil
+        preview = Self.load("hoot.preview") ?? 2
+        bluesky = Self.load("hoot.bluesky") ?? false
+        ownBluesky = Self.load("hoot.ownBluesky") ?? []
+        importSettings()
+    }
+
+    // Eenmalig instellingen overnemen (van je account op hootnews.nl), uit een bestand dat
+    // `import.json` heet in de map van de app (Application Support/Hoot). Daarna weg.
+    private struct Import: Decodable {
+        struct Prefs: Decodable {
+            var muted: [String]?
+            var enabled: [String]?
+            var vak: [String]?
+            var images: String?
+            var bubble: Bool?
+            var bluesky: Bool?
+            var preview: Int?
+            enum CodingKeys: String, CodingKey { case muted, enabled, vak, images, bubble, bluesky, preview }
+            init(from decoder: Decoder) throws {
+                let c = try decoder.container(keyedBy: CodingKeys.self)
+                muted = try? c.decodeIfPresent([String].self, forKey: .muted)
+                enabled = try? c.decodeIfPresent([String].self, forKey: .enabled)
+                vak = try? c.decodeIfPresent([String].self, forKey: .vak)
+                images = try? c.decodeIfPresent(String.self, forKey: .images)
+                bubble = try? c.decodeIfPresent(Bool.self, forKey: .bubble)
+                bluesky = try? c.decodeIfPresent(Bool.self, forKey: .bluesky)
+                // Op de website is het 1, 2, 3 of "alles".
+                preview = (try? c.decodeIfPresent(Int.self, forKey: .preview)) ?? ((try? c.decodeIfPresent(String.self, forKey: .preview)) == "alles" ? 0 : nil)
+            }
+        }
+        var prefs: Prefs?
+        var social: [BlueskyAccount]?
+    }
+    private func importSettings() {
+        guard let file = Self.folder?.appendingPathComponent("import.json"), let data = try? Data(contentsOf: file) else { return }
+        try? FileManager.default.removeItem(at: file)
+        guard let found = try? JSONDecoder().decode(Import.self, from: data) else { return }
+        let p = found.prefs
+        if let v = p?.muted { muted = Set(v); save("hoot.muted", v) }
+        if let v = p?.enabled { enabled = Set(v); save("hoot.enabled", v) }
+        if let v = p?.vak { digestFields = v; save("hoot.digestFields", v) }
+        if let v = p?.images, ["aan", "hoofd", "uit"].contains(v) { images = v; save("hoot.images", v) }
+        if let v = p?.bubble { bubble = v; save("hoot.bubble", v) }
+        if let v = p?.bluesky { bluesky = v; save("hoot.bluesky", v) }
+        if let v = p?.preview, (0 ... 3).contains(v) { preview = v; save("hoot.preview", v) }
+        if let v = found.social { ownBluesky = v; save("hoot.ownBluesky", v) }
     }
 
     // Beeld tonen? `lead`: het hoofdverhaal of het eerste stuk van een vak.
@@ -96,6 +147,40 @@ final class HootStore {
     }
     var newsSources: [Source] { sources.filter { $0.kind != "sociaal" } }
     var followed: [Source] { newsSources.filter(isOn) }
+    // Bluesky: de vaste accounts van Hoot, plus wie je zelf toevoegde.
+    var socialSources: [Source] {
+        let server = sources.filter { $0.kind == "sociaal" }
+        let known = Set(server.map(\.id))
+        return server + ownBluesky.filter { !known.contains($0.id) }.map { Source(id: $0.id, name: $0.name, kind: "sociaal", avatar: $0.avatar, brandColor: Bluesky.brand) }
+    }
+    var followedSocial: [Source] { socialSources.filter(isOn) }
+    func isOwn(_ id: String) -> Bool { ownBluesky.contains { $0.id == id } }
+    var posts: [Item] {
+        let on = Set(followedSocial.map(\.id))
+        return (itemsById.values.filter { $0.isPost } + ownPosts).filter { on.contains($0.source) }.sorted { ($0.publishedAt ?? "") > ($1.publishedAt ?? "") }
+    }
+    func addBluesky(_ input: String) async throws {
+        let account = try await Bluesky.profile(input)
+        if !ownBluesky.contains(where: { $0.handle == account.handle }) && !sources.contains(where: { $0.id == account.id }) { ownBluesky.append(account) }
+        muted.remove(account.id)
+        reloadParts()
+        await loadOwnPosts()
+    }
+    func removeBluesky(_ id: String) {
+        ownBluesky.removeAll { $0.id == id }
+        ownPosts.removeAll { $0.source == id }
+    }
+    func loadOwnPosts() async {
+        let accounts = ownBluesky.filter { !muted.contains($0.id) }
+        guard bluesky, !accounts.isEmpty else { return }
+        let lists = await withTaskGroup(of: [Item].self) { group in
+            for a in accounts { group.addTask { (try? await Bluesky.posts(of: a)) ?? [] } }
+            var all: [[Item]] = []
+            for await list in group { all.append(list) }
+            return all
+        }
+        ownPosts = lists.flatMap { $0 }
+    }
     func source(_ id: String) -> Source? { sources.first { $0.id == id } }
 
     // ---- Laden ----
@@ -111,7 +196,9 @@ final class HootStore {
             relatedVersion = start.meta.related
             parts = start.meta.parts ?? [:]
             reloadParts()
+            async let own: Void = loadOwnPosts()
             await partsTask?.value
+            await own
             stale = fromCache
             status = .ready
             if !fromCache { Task.detached(priority: .background) { HootAPI.Offline.prune() } }
@@ -131,7 +218,7 @@ final class HootStore {
         partsTask?.cancel()
         partsGeneration += 1
         let generation = partsGeneration
-        let wanted = followed.map(\.id).filter { parts[$0] != nil }
+        let wanted = (followed + (bluesky ? followedSocial : [])).map(\.id).filter { parts[$0] != nil }
         let versions = parts
         partsTask = Task {
             let lists = await withTaskGroup(of: [Item].self) { group in

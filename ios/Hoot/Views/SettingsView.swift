@@ -32,6 +32,14 @@ struct SettingsView: View {
                     } label: {
                         Label("Afbeeldingen", systemImage: "photo")
                     }
+                    Picker(selection: $store.preview) {
+                        Text("1 regel").tag(1)
+                        Text("2 regels").tag(2)
+                        Text("3 regels").tag(3)
+                        Text("Hele intro").tag(0)
+                    } label: {
+                        Label("Intro bij berichten", systemImage: "text.alignleft")
+                    }
                     Toggle(isOn: $store.bubble) {
                         Label("Buiten je bubbel", systemImage: "sparkle.magnifyingglass")
                     }
@@ -61,6 +69,21 @@ struct SettingsView: View {
                     Text("Lezen")
                 } footer: {
                     Text(store.openInSafari ? "In Safari ben je ingelogd bij je abonnementen." : "In Hoot ben je niet ingelogd bij je abonnementen; daarom openen abonnementsbronnen standaard in Safari. De Lezer opent alleen als het artikel dat ondersteunt.").foregroundStyle(Theme.muted)
+                }
+
+                Section {
+                    Toggle(isOn: $store.bluesky) {
+                        Label("Bluesky in de Stroom", systemImage: "bubble.left.and.bubble.right")
+                    }
+                    if store.bluesky {
+                        NavigationLink(value: "bluesky") {
+                            LabeledContent { Text("\(store.followedSocial.count) aan") } label: { Label("Bluesky-accounts", systemImage: "person.2") }
+                        }
+                    }
+                } header: {
+                    Text("Bluesky")
+                } footer: {
+                    Text("Bovenaan de Stroom kies je dan tussen het nieuws en de posts van de mensen die je volgt.").foregroundStyle(Theme.muted)
                 }
 
                 Section("Bronnen en vakken") {
@@ -112,6 +135,8 @@ struct SettingsView: View {
             .navigationDestination(for: String.self) { page in
                 if page == "bronnen" {
                     SourcesList().navigationTitle("Bronnen").navigationBarTitleDisplayMode(.inline)
+                } else if page == "bluesky" {
+                    BlueskyAccountsView()
                 } else {
                     DigestFieldsList().navigationTitle("Vakgebieden").navigationBarTitleDisplayMode(.inline)
                 }

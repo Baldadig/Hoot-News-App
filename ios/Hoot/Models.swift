@@ -25,7 +25,7 @@ struct Item: Codable, Identifiable, Hashable {
     var avatar: String?
     var brandColor: String?
     var storyId: String?
-    let title: String
+    var title: String // leeg bij een Bluesky-post: de tekst staat in `summary`
     var summary: String?
     let url: String
     var image: String?
@@ -33,9 +33,40 @@ struct Item: Codable, Identifiable, Hashable {
     var author: String?
     var readMin: Int?
     var type: String?
+    // Alleen bij Bluesky-posts
+    var handle: String?
+    var linkTitle: String? // titel van een gedeelde link
+    var imageRatio: Double? // breedte/hoogte van een geplaatste foto
 
     var date: Date? { publishedAt.flatMap(HootDate.parse) }
     var link: URL? { URL(string: url) }
+    var isPost: Bool { kind == "post" }
+}
+
+extension Item {
+    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, url, image, publishedAt, author, readMin, type, handle, linkTitle, imageRatio }
+    // Een post heeft geen kop; die mag dus ontbreken.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        source = try c.decode(String.self, forKey: .source)
+        url = try c.decode(String.self, forKey: .url)
+        title = (try? c.decodeIfPresent(String.self, forKey: .title)) ?? ""
+        kind = try? c.decodeIfPresent(String.self, forKey: .kind)
+        sourceName = try? c.decodeIfPresent(String.self, forKey: .sourceName)
+        avatar = try? c.decodeIfPresent(String.self, forKey: .avatar)
+        brandColor = try? c.decodeIfPresent(String.self, forKey: .brandColor)
+        storyId = try? c.decodeIfPresent(String.self, forKey: .storyId)
+        summary = try? c.decodeIfPresent(String.self, forKey: .summary)
+        image = try? c.decodeIfPresent(String.self, forKey: .image)
+        publishedAt = try? c.decodeIfPresent(String.self, forKey: .publishedAt)
+        author = try? c.decodeIfPresent(String.self, forKey: .author)
+        readMin = try? c.decodeIfPresent(Int.self, forKey: .readMin)
+        type = try? c.decodeIfPresent(String.self, forKey: .type)
+        handle = try? c.decodeIfPresent(String.self, forKey: .handle)
+        linkTitle = try? c.decodeIfPresent(String.self, forKey: .linkTitle)
+        imageRatio = try? c.decodeIfPresent(Double.self, forKey: .imageRatio)
+    }
 }
 
 struct Story: Codable, Identifiable, Hashable {

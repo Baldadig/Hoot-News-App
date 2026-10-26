@@ -19,6 +19,7 @@ struct HootApp: App {
 }
 
 // De vijf bestemmingen in de Liquid Glass-tabbalk; zoeken als eigen knop ernaast (rol .search).
+// Bluesky zit in de Stroom: een zesde tabblad verstopt iOS achter "Meer".
 // Bij omlaag scrollen krimpt de balk, zodat het lezen voorgaat.
 struct RootView: View {
     @Environment(HootStore.self) private var store

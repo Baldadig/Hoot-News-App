@@ -1,16 +1,34 @@
 import SwiftUI
 
-// Stroom: alles van je bronnen, nieuwste eerst.
+// Stroom: alles van je bronnen, nieuwste eerst. Met Bluesky aan kies je bovenaan tussen het nieuws
+// en de posts van wie je volgt (een eigen tabblad zou de zesde worden, en dan verstopt iOS
+// Bewaard en Zoeken achter "Meer").
 struct StreamView: View {
     @Environment(HootStore.self) private var store
     @Environment(\.scenePhase) private var phase
     @State private var showSources = DebugLaunch.screen("bronnen")
+    @State private var showAccounts = false
     @State private var limit = 60
+    @SceneStorage("streamMode") private var mode = DebugLaunch.screen("bluesky") ? "bluesky" : "nieuws"
+    private var social: Bool { store.bluesky && mode == "bluesky" }
 
     var body: some View {
         NavigationStack {
             let items = store.stream
             ScrollView {
+                if store.bluesky {
+                    Picker("Wat je ziet", selection: $mode) {
+                        Text("Nieuws").tag("nieuws")
+                        Text("Bluesky").tag("bluesky")
+                    }
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal)
+                    .padding(.bottom, 12)
+                    .column()
+                }
+                if social {
+                    BlueskyFeed().padding(.horizontal).column()
+                } else {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     if store.status == .loading && items.isEmpty {
                         ProgressView().frame(maxWidth: .infinity, minHeight: 240)
@@ -45,18 +63,24 @@ struct StreamView: View {
                 }
                 .padding(.horizontal)
                 .column()
+                }
             }
             .debugScroll()
             .background(Theme.paper)
-            .navigationTitle("Stroom")
+            .navigationTitle(social ? "Bluesky" : "Stroom")
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .refreshable { await store.load() }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Bronnen", systemImage: "dot.radiowaves.up.forward") { showSources = true }
+                    if social {
+                        Button("Accounts", systemImage: "person.2") { showAccounts = true }
+                    } else {
+                        Button("Bronnen", systemImage: "dot.radiowaves.up.forward") { showSources = true }
+                    }
                 }
             }
             .sheet(isPresented: $showSources) { SourcesView().debugAppearance() }
+            .sheet(isPresented: $showAccounts) { BlueskyAccountsView().debugAppearance() }
             .settingsButton()
         }
         .onAppear { store.openStream() }

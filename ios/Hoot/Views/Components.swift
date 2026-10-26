@@ -286,12 +286,17 @@ struct ItemRow: View {
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 6) {
                     Kicker(text: label)
-                    Text(item.title)
-                        .font(Theme.headline(.title3))
-                        .foregroundStyle(store.isRead(item) ? Theme.muted : Color.primary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    if let summary = item.summary, !summary.isEmpty {
-                        Text(summary).font(.subheadline).foregroundStyle(Theme.muted).lineLimit(2)
+                    if item.isPost {
+                        // Een Bluesky-post (in Bewaard): de tekst zelf, geen kop.
+                        Text(item.summary ?? "").font(.body).fixedSize(horizontal: false, vertical: true)
+                    } else {
+                        Text(item.title)
+                            .font(Theme.headline(.title3))
+                            .foregroundStyle(store.isRead(item) ? Theme.muted : Color.primary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        if let summary = item.summary, !summary.isEmpty {
+                            Text(summary).font(.subheadline).foregroundStyle(Theme.muted).lineLimit(store.preview == 0 ? nil : store.preview)
+                        }
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
