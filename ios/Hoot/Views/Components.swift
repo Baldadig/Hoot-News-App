@@ -50,15 +50,37 @@ struct SafariView: UIViewControllerRepresentable {
 }
 
 struct Kicker: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
     let text: String?
     var body: some View {
         if let text, !text.isEmpty {
-            Text(text.uppercased())
-                .font(.caption.weight(.heavy))
-                .tracking(0.6)
-                .foregroundStyle(Theme.accent)
+            // Bij heel grote tekst geen kapitalen: die worden dan breder en zwaarder dan de kop.
+            if typeSize.isAccessibilitySize {
+                Text(text).font(.caption.weight(.semibold)).foregroundStyle(Theme.accent)
+            } else {
+                Text(text.uppercased())
+                    .font(.caption.weight(.heavy))
+                    .tracking(0.6)
+                    .foregroundStyle(Theme.accent)
+            }
         }
     }
+}
+
+// De intro van een bericht in hele zinnen (tot ongeveer `max` tekens), in plaats van een zin die
+// halverwege afbreekt. Zonder volledige zin: de tekst zoals hij is.
+func wholeSentences(_ text: String, max: Int = 240) -> String {
+    var out = ""
+    var rest = Substring(text)
+    while let end = rest.firstMatch(of: /[.!?…]["”’)]?(\s+|$)/) {
+        let sentence = rest[..<end.range.upperBound]
+        if !out.isEmpty && out.count + sentence.count > max { break }
+        out += sentence
+        rest = rest[end.range.upperBound...]
+        if out.count >= max { break }
+    }
+    let trimmed = out.trimmingCharacters(in: .whitespaces)
+    return trimmed.isEmpty || trimmed.hasSuffix("…") || trimmed.hasSuffix("...") ? text : trimmed
 }
 
 struct RemoteImage: View {
@@ -146,6 +168,8 @@ struct SourceLine: View {
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(Theme.accent)
                     .lineLimit(1)
+                    .frame(minHeight: 44) // een aanraakvlak van 44 pt, los van het artikel erboven
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Vergelijk \((story.sourceCount ?? 1) - 1) andere bronnen")
@@ -221,7 +245,7 @@ struct LeadCard: View {
                 .foregroundStyle(store.isRead(item) ? Theme.muted : Color.primary)
                 .fixedSize(horizontal: false, vertical: true)
             if let summary = item.summary, !summary.isEmpty {
-                Text(summary).font(wide ? .title3 : .body).foregroundStyle(Theme.muted).lineLimit(wide ? 6 : 4)
+                Text(wholeSentences(summary)).font(wide ? .title3 : .body).foregroundStyle(Theme.muted).lineLimit(wide ? 6 : 5).fixedSize(horizontal: false, vertical: true)
             }
         }
     }

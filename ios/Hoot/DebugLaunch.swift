@@ -5,6 +5,7 @@ import SwiftUI
 //   -HootStartTab editie|stroom|digest|bewaard|zoek
 //   -HootScreen verhaal|lezer|bronnen|instellingen|instellingen-bronnen|instellingen-vakken|instellingen-wissen
 //   -HootScroll midden|onder   -HootQuery <tekst>   -HootDark YES   -HootLargeText YES   -HootOffline YES
+//   -HootSeenMinutes <n>   (de Stroom alsof je er n minuten geleden was)
 // In Release doet dit allemaal niets.
 enum DebugLaunch {
     #if DEBUG
@@ -14,6 +15,7 @@ enum DebugLaunch {
     static var dark: Bool { defaults.bool(forKey: "HootDark") }
     static var largeText: Bool { defaults.bool(forKey: "HootLargeText") }
     static var offline: Bool { defaults.bool(forKey: "HootOffline") }
+    static var seenMinutes: Double? { defaults.object(forKey: "HootSeenMinutes") != nil ? defaults.double(forKey: "HootSeenMinutes") : nil }
     static var anchor: UnitPoint? {
         switch defaults.string(forKey: "HootScroll") {
         case "midden": .center
@@ -27,6 +29,7 @@ enum DebugLaunch {
     static let dark = false
     static let largeText = false
     static let offline = false
+    static let seenMinutes: Double? = nil
     static let anchor: UnitPoint? = nil
     #endif
 

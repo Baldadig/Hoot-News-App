@@ -3,6 +3,7 @@ import SwiftUI
 // Stroom: alles van je bronnen, nieuwste eerst.
 struct StreamView: View {
     @Environment(HootStore.self) private var store
+    @Environment(\.scenePhase) private var phase
     @State private var showSources = DebugLaunch.screen("bronnen")
     @State private var limit = 60
 
@@ -22,14 +23,17 @@ struct StreamView: View {
                     } else {
                         StaleNotice()
                         if let at = store.updatedAt, !store.stale {
-                            Text("Bijgewerkt om \(at.formatted(date: .omitted, time: .shortened))")
+                            Text(subtitle(at))
                                 .font(.footnote)
                                 .foregroundStyle(Theme.muted)
                                 .padding(.bottom, 8)
                         }
-                        ForEach(items.prefix(limit)) { item in
+                        let fresh = store.newInStream
+                        ForEach(Array(items.prefix(limit).enumerated()), id: \.element.id) { i, item in
+                            // Waar je de vorige keer was: daaronder heb je alles al gezien.
+                            if fresh > 0 && i == fresh { SeenMarker() }
                             ItemRow(item: item, story: store.story(of: item))
-                            Divider()
+                            if !(fresh > 0 && i == fresh - 1) { Divider() }
                         }
                         if items.count > limit {
                             Button("Meer berichten") { limit += 60 }
@@ -52,9 +56,35 @@ struct StreamView: View {
                     Button("Bronnen", systemImage: "dot.radiowaves.up.forward") { showSources = true }
                 }
             }
-            .sheet(isPresented: $showSources) { SourcesView() }
+            .sheet(isPresented: $showSources) { SourcesView().debugAppearance() }
             .settingsButton()
         }
+        .onAppear { store.openStream() }
+        .onDisappear { store.leaveStream() }
+        .onChange(of: phase) { _, now in if now == .background { store.leaveStream() } }
+    }
+
+    private func subtitle(_ at: Date) -> String {
+        let time = "Bijgewerkt om \(at.formatted(date: .omitted, time: .shortened))"
+        switch store.newInStream {
+        case 0: return store.streamMark == nil ? "De laatste berichten van je bronnen, nieuwste eerst. \(time)." : "\(time) · niets nieuws sinds je vorige bezoek"
+        case 1: return "\(time) · 1 nieuw sinds je vorige bezoek"
+        case let n: return "\(time) · \(n) nieuw sinds je vorige bezoek"
+        }
+    }
+}
+
+// De grens tussen nieuw en al gezien.
+private struct SeenMarker: View {
+    var body: some View {
+        HStack(spacing: 10) {
+            Rectangle().fill(Theme.accent).frame(height: 1)
+            Text("Hier was je gebleven").font(.caption.weight(.bold)).foregroundStyle(Theme.accent).fixedSize()
+            Rectangle().fill(Theme.accent).frame(height: 1)
+        }
+        .padding(.vertical, 10)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
     }
 }
 
@@ -70,7 +100,7 @@ struct SourcesView: View {
                     ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { dismiss() } }
                 }
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.large]) // een rustig, dicht blad: geen feed die erdoorheen schijnt
     }
 }
 
@@ -82,6 +112,12 @@ struct SourcesList: View {
         let last = Self.cats.last { cat in store.newsSources.contains { $0.cat == cat.0 } }?.0
         ScrollViewReader { proxy in
         List {
+            Section {
+                Text("Gratis: alles is te lezen. Abonnement: veel artikelen alleen met een abonnement bij de uitgever. Een bron aanzetten sluit geen abonnement af.")
+                    .font(.footnote)
+                    .foregroundStyle(Theme.muted)
+            }
+            .listRowBackground(Color.clear)
             ForEach(Self.cats, id: \.0) { cat, label in
                 let list = store.newsSources.filter { $0.cat == cat }
                 if !list.isEmpty {
@@ -149,11 +185,15 @@ struct SearchView: View {
             .scrollContentBackground(.hidden)
             .background(Theme.paper)
             .overlay {
-                if q.count >= 2 && hits.isEmpty { ContentUnavailableView.search(text: query) }
+                if q.count < 2 {
+                    ContentUnavailableView("Zoek in je nieuws", systemImage: "magnifyingglass", description: Text("Hoot zoekt in de koppen en intro's van alles wat nu in je Stroom staat."))
+                } else if hits.isEmpty {
+                    ContentUnavailableView("Niets gevonden voor ‘\(query.trimmingCharacters(in: .whitespaces))’", systemImage: "magnifyingglass", description: Text("Hoot zoekt alleen in de koppen en intro's van wat nu in je Stroom staat, niet in hele artikelen of oudere berichten."))
+                }
             }
             .navigationTitle("Zoeken")
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
-            .searchable(text: $query, prompt: "Zoek in je bronnen")
+            .searchable(text: $query, prompt: "Zoek in koppen en intro's")
         }
     }
 }

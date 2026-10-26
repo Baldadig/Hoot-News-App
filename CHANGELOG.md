@@ -2,6 +2,10 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.34.2] — 2026-10-26 — Kortere Digest-kop
+
+- De Digest begint met "15 stukken in 5 vakgebieden". Het aantal waaruit gekozen is, staat nu bij "Hoe kiest Hoot deze stukken?".
+
 ## [1.34.1] — 2026-10-26 — Eén verhaal is één gebeurtenis
 
 - **Bundelen gerepareerd.** De verkiezingen in Brazilië en Servië stonden als één verhaal van 31 bronnen in de editie. Er waren twee oorzaken:

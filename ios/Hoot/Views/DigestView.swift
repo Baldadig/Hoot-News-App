@@ -24,7 +24,7 @@ struct DigestView: View {
                                 .id(field.id)
                         }
                         DisclosureGroup("Hoe kiest Hoot deze stukken?") {
-                            Text("Op drie gronden: hoeveel vakbronnen over hetzelfde schreven, of de redactie van Sidebar het uitkoos, en wie het schreef (een vakexpert telt zwaarder dan een vakblad). Alleen stukken van mensen: geen gesponsorde stukken, webinars, podcasts of lijstjes. De tekst bij elk stuk is de intro van de schrijver zelf, niet van AI.")
+                            Text("Gekozen uit \(shown.reduce(0) { $0 + ($1.count ?? 0) }) stukken van vakmensen en vakbladen in de vakgebieden die je volgt, op drie gronden: hoeveel vakbronnen over hetzelfde schreven, of de redactie van Sidebar het uitkoos, en wie het schreef (een vakexpert telt zwaarder dan een vakblad). Alleen stukken van mensen: geen gesponsorde stukken, webinars, podcasts of lijstjes. De tekst bij elk stuk is de intro van de schrijver zelf, niet van AI.")
                                 .font(.subheadline)
                                 .foregroundStyle(Theme.muted)
                                 .padding(.top, 8)
@@ -81,10 +81,9 @@ struct DigestView: View {
     private func header(_ d: Digest) -> some View {
         let fields = d.fields.filter { store.digestFields.contains($0.id) }
         let picked = fields.reduce(0) { $0 + $1.top.count }
-        let seen = fields.reduce(0) { $0 + ($1.count ?? 0) }
         return VStack(alignment: .leading, spacing: 8) {
             Kicker(text: d.preview == true ? "Voorproefje · de afgelopen zeven dagen" : "Week \(d.week ?? 0) · \(Self.span(d.from, d.to))")
-            Text("\(picked) stukken om te lezen, gekozen uit \(seen) stukken van vakmensen en vakbladen.")
+            Text("\(picked) stukken in \(fields.count == 1 ? "1 vakgebied" : "\(fields.count) vakgebieden")")
                 .font(Theme.headline(.title2))
                 .fixedSize(horizontal: false, vertical: true)
             if d.preview == true, let next = d.next.flatMap(HootDate.parse) {
@@ -105,18 +104,22 @@ struct DigestView: View {
 
 private struct FieldSection: View {
     @Environment(\.isWide) private var wide
+    @Environment(\.dynamicTypeSize) private var typeSize
     let field: DigestField
     let icon: String
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Rectangle().fill(.primary).frame(height: 2)
             HStack(spacing: 12) {
+                // Bij heel grote tekst geen icoon: de beschrijving krijgt de hele breedte.
+                if !typeSize.isAccessibilitySize {
                 Image(systemName: icon)
                     .font(.title3)
                     .dynamicTypeSize(...DynamicTypeSize.xxxLarge) // blijft binnen zijn cirkel
                     .foregroundStyle(Theme.accent)
                     .frame(width: 44, height: 44)
                     .glassEffect(.regular.tint(Theme.accent.opacity(0.12)), in: .circle)
+                }
                 VStack(alignment: .leading, spacing: 2) {
                     Text(field.label).font(Theme.headline(.title2))
                     if let about = field.about { Text(about).font(.subheadline).foregroundStyle(Theme.muted) }

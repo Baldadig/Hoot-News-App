@@ -1,5 +1,21 @@
 # Changelog — Hoot voor iOS
 
+## [0.8.0] — 2026-10-26 — Tweede ronde uit de ontwerpaudit
+
+- **Stroom: nieuw sinds je vorige bezoek.** Onder de titel staat hoeveel berichten er nieuw zijn. Een rode lijn "Hier was je gebleven" markeert waar je de vorige keer was; daaronder heb je alles al gezien. De grens schuift niet mee terwijl je leest. Bij het eerste bezoek zegt de Stroom wat hij is: "De laatste berichten van je bronnen, nieuwste eerst."
+- **Vergelijken:**
+  - de kop van het verhaal staat bovenaan;
+  - er wordt eerlijk geteld: "29 bronnen, 63 artikelen" (bronnen zijn uitgevers);
+  - het eerste bericht is gemarkeerd;
+  - de titel is "Vergelijken".
+- **Hoofdverhaal:** de intro bestaat uit hele zinnen in plaats van een zin die halverwege afbreekt.
+- **Heel grote tekst:** rubrieklabels zonder kapitalen, en bij de vakgebieden geen icoon, zodat de beschrijving de hele breedte krijgt.
+- **"+N bronnen":** heeft een aanraakvlak van 44 pt.
+- **Bronnen:** een volledig, dicht blad (geen feed die erdoorheen schijnt), met uitleg over gratis en abonnement.
+- **Zoeken:** zegt waarin Hoot zoekt (koppen en intro's in je Stroom), ook als er niets gevonden is, in plaats van "controleer de spelling".
+- **Digest:** de kop is kort ("15 stukken in 5 vakgebieden"); het aantal waaruit gekozen is, staat bij de uitleg.
+- **Alleen in Debug:** `-HootSeenMinutes`, en grote tekst en donker werken nu ook in bladen.
+
 ## [0.7.0] — 2026-10-26 — Eerste ronde uit de ontwerpaudit
 
 - **Zonder netwerk de laatste editie.** Elk geslaagd antwoord wordt ook als bestand bewaard. Zonder netwerk zie je de laatste editie en Stroom, met "Je ziet de versie van …". Zonder eerdere download is er een knop "Probeer opnieuw".

@@ -41,6 +41,13 @@ final class HootStore {
     private(set) var stale = false
     // De Stroom, gesorteerd: één keer per laadactie of bronwijziging, niet bij elke weergave.
     private(set) var stream: [Item] = []
+    // Tot waar je de Stroom zag (het nieuwste bericht toen je hem verliet), en de grens voor dit
+    // bezoek: die schuift niet mee terwijl je leest, pas als je de Stroom opnieuw opent.
+    private var streamSeen: Date? { didSet { save("hoot.streamSeen", streamSeen) } }
+    private(set) var streamMark: Date?
+    func openStream() { streamMark = DebugLaunch.seenMinutes.map { Date.now.addingTimeInterval(-$0 * 60) } ?? streamSeen }
+    func leaveStream() { if let newest = stream.first?.date, newest > (streamSeen ?? .distantPast) { streamSeen = newest } }
+    var newInStream: Int { streamMark.map { mark in stream.prefix { ($0.date ?? .distantPast) > mark }.count } ?? 0 }
 
     init() {
         muted = Set(Self.load("hoot.muted") ?? [String]())
@@ -66,6 +73,7 @@ final class HootStore {
         openInSafari = Self.load("hoot.openInSafari") ?? false
         readerFirst = Self.load("hoot.readerFirst") ?? false
         paidInSafari = Self.load("hoot.paidInSafari") ?? true
+        streamSeen = Self.load("hoot.streamSeen") ?? nil
     }
 
     // Beeld tonen? `lead`: het hoofdverhaal of het eerste stuk van een vak.

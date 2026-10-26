@@ -135,7 +135,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
             <header className="dmast">
               <p className="dmast__week">{digest.preview ? 'Voorproefje · de afgelopen zeven dagen' : `Week ${digest.week} · ${span(digest.from, digest.to)}`}</p>
               <p className="dmast__lede">
-                {picked} stukken om te lezen, gekozen uit {seen} stukken van vakmensen en vakbladen.
+                {picked} stukken in {fields.length === 1 ? '1 vakgebied' : `${fields.length} vakgebieden`}
               </p>
               {digest.preview ? <p className="dmast__note">De eerste volle digest komt {WEEKDAY.format(new Date(digest.next))} om 7 uur.</p> : <p className="dmast__note">Elke maandag om 7 uur een nieuwe.</p>}
             </header>
@@ -224,7 +224,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
 
             <details className="dhow">
               <summary>Hoe kiest Hoot deze stukken?</summary>
-              <p>Op drie gronden: hoeveel vakbronnen over hetzelfde schreven, of de redactie van Sidebar het uitkoos, en wie het schreef (een vakexpert telt zwaarder dan een vakblad, een bedrijfsblog alleen als anderen erover schrijven).</p>
+              <p>Gekozen uit {seen} stukken van vakmensen en vakbladen in de vakgebieden die je volgt, op drie gronden: hoeveel vakbronnen over hetzelfde schreven, of de redactie van Sidebar het uitkoos, en wie het schreef (een vakexpert telt zwaarder dan een vakblad, een bedrijfsblog alleen als anderen erover schrijven).</p>
               <p>Alleen stukken van mensen: geen gesponsorde stukken, webinars, podcasts of lijstjes. De tekst bij elk stuk is de intro van de schrijver zelf, niet van AI.</p>
             </details>
           </>

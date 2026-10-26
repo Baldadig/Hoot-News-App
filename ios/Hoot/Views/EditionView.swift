@@ -120,15 +120,25 @@ struct StoryView: View {
     @State private var items: [Item] = []
 
     var body: some View {
+        let sources = Set(items.map(\.source)).count
         List {
+            // Waar het over gaat (de kop van het hoofdbericht), en eerlijk geteld: bronnen zijn
+            // uitgevers, niet artikelen; drie stukken van één krant zijn geen drie bevestigingen.
             Section {
-                Text("\(story.sourceCount ?? items.count) bronnen schrijven hierover")
-                    .font(.subheadline)
-                    .foregroundStyle(Theme.muted)
+                VStack(alignment: .leading, spacing: 6) {
+                    if let lead = items.first(where: { $0.id == story.leadId }) ?? items.first {
+                        Text(lead.title).font(Theme.headline(.title2)).fixedSize(horizontal: false, vertical: true)
+                    }
+                    if !items.isEmpty {
+                        Text(sources == items.count ? "\(sources) bronnen, nieuwste eerst" : "\(sources) bronnen, \(items.count) artikelen, nieuwste eerst")
+                            .font(.subheadline)
+                            .foregroundStyle(Theme.muted)
+                    }
+                }
             }
             .listRowBackground(Color.clear)
             ForEach(items) { item in
-                ItemRow(item: item, label: store.isOn(store.source(item.source) ?? Source(id: item.source, name: "")) ? nil : "Buiten je bronnen")
+                ItemRow(item: item, label: label(item))
                     .listRowBackground(Theme.surface)
             }
         }
@@ -137,9 +147,17 @@ struct StoryView: View {
         .frame(maxWidth: Layout.readable)
         .frame(maxWidth: .infinity)
         .background(Theme.paper)
-        .navigationTitle("Verhaal")
+        .navigationTitle("Vergelijken")
         .navigationBarTitleDisplayMode(.inline)
         .task { items = await store.storyItems(story) }
+    }
+
+    // Wie het eerst had, en wat uit een bron komt die je niet volgt.
+    private func label(_ item: Item) -> String? {
+        let first = items.count > 1 && item.id == items.last?.id ? "Eerste bericht" : nil
+        let outside = store.isOn(store.source(item.source) ?? Source(id: item.source, name: "")) ? nil : "Buiten je bronnen"
+        let parts = [first, outside].compactMap { $0 }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 }
 
