@@ -2,6 +2,10 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.34.3] — 2026-10-26 — Favicon zonder vlak
+
+- **Groter favicon zonder achtergrond.** De "h." staat nu los en vult het beeld, zodat hij in de favorieten van Safari en in browsertabbladen naast de favicons van kranten past. In donkere modus is hij licht. Het app-icoon en het icoon voor het beginscherm blijven gelijk.
+
 ## [1.34.2] — 2026-10-26 — Kortere Digest-kop
 
 - De Digest begint met "15 stukken in 5 vakgebieden". Het aantal waaruit gekozen is, staat nu bij "Hoe kiest Hoot deze stukken?".

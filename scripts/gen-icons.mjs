@@ -11,6 +11,9 @@ const rounded = await readFile(resolve(pub, 'brand/hoot-app-icon.svg')) // afger
 const full = await readFile(resolve(pub, 'brand/hoot-app-icon-full.svg')) // vlak tot de rand; iOS rondt zelf af
 const maskable = await readFile(resolve(pub, 'brand/hoot-app-icon-maskable.svg')) // kleiner merk: Android snijdt er een cirkel of druppel uit
 const dark = await readFile(resolve(pub, 'brand/hoot-app-icon-dark.svg'))
+// Favicon: de h. zonder vlak eromheen, tot de rand, zodat hij past naast de favicons van kranten.
+// De PNG's (voor browsers zonder SVG-favicon) in de lichte kleuren.
+const favicon = (await readFile(resolve(pub, 'favicon.svg'), 'utf8')).replace(/@media[^{]*\{(?:[^{}]*\{[^}]*\})*\}/, '')
 
 await mkdir(resolve(pub, 'icons'), { recursive: true })
 
@@ -20,8 +23,8 @@ const targets = [
   { out: 'icons/maskable-512.png', size: 512, svg: maskable },
   { out: 'icons/icon-dark-512.png', size: 512, svg: dark },
   { out: 'apple-touch-icon.png', size: 180, svg: full }, // iOS rondt zelf af
-  { out: 'icons/favicon-48.png', size: 48, svg: rounded },
-  { out: 'icons/favicon-32.png', size: 32, svg: rounded },
+  { out: 'icons/favicon-48.png', size: 48, svg: Buffer.from(favicon) },
+  { out: 'icons/favicon-32.png', size: 32, svg: Buffer.from(favicon) },
 ]
 
 for (const t of targets) {
