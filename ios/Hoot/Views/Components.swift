@@ -49,6 +49,18 @@ struct SafariView: UIViewControllerRepresentable {
     func updateUIViewController(_ vc: SFSafariViewController, context: Context) {}
 }
 
+// "hoot." in de krantenletter met de rode punt, zoals op de website.
+struct Wordmark: View {
+    var body: some View {
+        Text("hoot\(Text(".").foregroundStyle(Theme.accent))")
+            .font(.system(.title3, design: .serif, weight: .heavy))
+            .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+            .fixedSize() // nooit afgekapt tot "h…"
+            .accessibilityLabel("Hoot")
+            .accessibilityAddTraits(.isHeader)
+    }
+}
+
 struct Kicker: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     let text: String?
@@ -217,6 +229,7 @@ struct ArticleActions: ViewModifier {
     func body(content: Content) -> some View {
         Button { reader.open(item, store: store) } label: { content }
             .buttonStyle(.plain)
+            .hoverEffect(.highlight) // muis of trackpad op iPad
             .contextMenu {
                 Button(store.isSaved(item) ? "Verwijder uit Bewaard" : "Bewaar", systemImage: store.isSaved(item) ? "bookmark.slash" : "bookmark") { store.toggleSave(item) }
                 if let link = item.link {
@@ -237,6 +250,7 @@ extension View {
 struct LeadCard: View {
     @Environment(HootStore.self) private var store
     @Environment(\.isWide) private var wide
+    @Environment(\.isSpacious) private var spacious
     let item: Item
     var label: String?
     var story: Story?
@@ -244,7 +258,7 @@ struct LeadCard: View {
     private var hasImage: Bool { store.showsImage(lead: true) && ImageURL.fitsHero(item.image) }
 
     private var image: some View {
-        FramedImage(url: ImageURL.url(item.image, .large), ratio: wide ? 3 / 2 : 16 / 9)
+        FramedImage(url: ImageURL.url(item.image, .large), ratio: spacious ? 3 / 2 : wide ? 2 : 16 / 9)
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
@@ -264,7 +278,7 @@ struct LeadCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Group {
-                if wide && hasImage {
+                if spacious && hasImage {
                     HStack(alignment: .top, spacing: 28) {
                         image.frame(maxWidth: .infinity)
                         text.frame(maxWidth: .infinity, alignment: .leading)

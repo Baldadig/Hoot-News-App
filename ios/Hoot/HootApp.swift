@@ -30,6 +30,21 @@ struct RootView: View {
 
     enum Destination: String { case editie, stroom, digest, bewaard, zoek }
 
+    // Met een toetsenbord (iPad): ⌘1–4 voor de tabbladen, ⌘F zoeken, ⌘R verversen.
+    private var shortcuts: some View {
+        Group {
+            Button("Editie") { tab = .editie }.keyboardShortcut("1")
+            Button("Stroom") { tab = .stroom }.keyboardShortcut("2")
+            Button("Digest") { tab = .digest }.keyboardShortcut("3")
+            Button("Bewaard") { tab = .bewaard }.keyboardShortcut("4")
+            Button("Zoeken") { tab = .zoek }.keyboardShortcut("f")
+            Button("Ververs") { Task { await store.load() } }.keyboardShortcut("r")
+        }
+        .opacity(0)
+        .frame(width: 0, height: 0)
+        .accessibilityHidden(true)
+    }
+
     var body: some View {
         TabView(selection: $tab) {
             Tab("Editie", systemImage: "newspaper", value: Destination.editie) { EditionView() }
@@ -39,6 +54,7 @@ struct RootView: View {
             Tab(value: Destination.zoek, role: .search) { SearchView() }
         }
         .tabViewStyle(.sidebarAdaptable) // iPad en brede vensters: zijbalk of tabbalk bovenaan
+        .background { shortcuts }
         .tabBarMinimizeBehavior(.onScrollDown)
         .task { await store.load() }
         #if DEBUG
@@ -47,8 +63,8 @@ struct RootView: View {
             if let t = UserDefaults.standard.string(forKey: "HootStartTab"), let d = Destination(rawValue: t) { tab = d }
         }
         .task(id: store.editionRows.count) {
-            // `-HootScreen lezer`: het eerste gratis artikel van de editie in de lezer.
-            if DebugLaunch.screen("lezer"), reader.item == nil, let row = store.editionRows.first(where: { store.source($0.item.source)?.paid != true }) { reader.item = row.item }
+            // `-HootScreen lezer`: het eerste artikel van de editie in de lezer.
+            if DebugLaunch.screen("lezer"), reader.item == nil, let row = store.editionRows.first { reader.item = row.item }
         }
         #endif
         .debugAppearance()

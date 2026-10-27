@@ -39,3 +39,7 @@ Alles voor het indienen staat in [`AppStore/`](AppStore/README.md); begin bij de
    Verhaal volgen en Begrippen uitleggen.
 4. Meldingen ("je editie staat klaar"), een widget, Siri en de deelknop.
 5. App Store: icoon in Icon Composer (gelaagd glas), privacylabels, schermafbeeldingen, indienen.
+
+## Derde partijen
+
+- **Readability.js** (Mozilla, `ios/Hoot/Reader/Readability.js`, versie 0.6.0): Apache License 2.0. De licentiekop staat in het bestand. Gebruikt door de Hoot-lezer om de tekst van een artikel op het toestel uit de pagina te halen.

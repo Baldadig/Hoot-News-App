@@ -24,13 +24,24 @@ extension EnvironmentValues {
     }
 }
 
-// Meet de beschikbare breedte één keer bovenaan en geeft door of er ruimte is voor twee kolommen.
+// Echt veel ruimte (vanaf 1000 pt: een grote iPad liggend): pas dan staan beeld en tekst van het
+// hoofdverhaal naast elkaar. Daaronder (iPad mini, Split View) krijgt de kop de hele breedte.
+struct IsSpacious: EnvironmentKey { static let defaultValue = false }
+extension EnvironmentValues {
+    var isSpacious: Bool {
+        get { self[IsSpacious.self] }
+        set { self[IsSpacious.self] = newValue }
+    }
+}
+
+// Meet de beschikbare breedte één keer bovenaan en geeft door hoeveel ruimte er is.
 struct WidthReader<Content: View>: View {
     @ViewBuilder var content: () -> Content
-    @State private var wide = false
+    @State private var width: CGFloat = 0
     var body: some View {
         content()
-            .environment(\.isWide, wide)
-            .onGeometryChange(for: Bool.self) { $0.size.width >= 700 } action: { wide = $0 }
+            .environment(\.isWide, width >= 700)
+            .environment(\.isSpacious, width >= 1000)
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
     }
 }

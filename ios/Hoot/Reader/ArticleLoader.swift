@@ -88,14 +88,51 @@ final class ArticleLoader: NSObject, WKNavigationDelegate {
 
     private func extract() async {
         if Self.isGate(webView.url) { state = .visit; return }
-        let js = Self.script + """
+        let js = Self.script + #"""
         ;(function () {
           var doc = document.cloneNode(true);
           var a = new Readability(doc, { charThreshold: 400, keepClasses: false }).parse();
           if (!a) return null;
+          // Soortlabels aan het begin ("Nieuws", "Analyse — Duiding van …") weg: alleen die, zodat
+          // een korte echte openingszin blijft staan.
+          var LABEL = /^(nieuws|analyse|opinie|column|interview|recensie|achtergrond|beschouwing|verslag|reportage|commentaar|essay|podcast)(\s|$)/i;
+          var box = document.createElement('div');
+          box.innerHTML = a.content;
+          var blocks = box.querySelectorAll('p, h2, h3, h4, h5, h6, div, span');
+          for (var i = 0; i < blocks.length; i++) {
+            var b = blocks[i];
+            if (b.querySelector('p, div, img, picture, figure, video')) continue;
+            var t = (b.textContent || '').trim();
+            if (!t) continue;
+            if (t.length < 160 && LABEL.test(t)) { b.remove(); continue; }
+            break;
+          }
+          // Rommel rond de tekst: auteursblok (foto, naam, "Profiel"), "Gepubliceerd", "Leestijd",
+          // "Lees ook", deel- en volgknoppen, en lijstjes met alleen korte links.
+          var byline = (a.byline || '').trim();
+          var JUNK = /^(gepubliceerd|bijgewerkt|published|updated|leestijd|reading time|leeslijst|lees ook|lees meer|meer over|read more|deel dit|delen|share|volg |follow |profiel|verslaggever|redacteur|correspondent|advertentie|advertisement)\b|voorkeursbron|nieuwsbrief|newsletter/i;
+          box.querySelectorAll('img').forEach(function (img) {
+            var s = (img.getAttribute('src') || '') + ' ' + (img.getAttribute('class') || '');
+            var alt = (img.getAttribute('alt') || '').trim();
+            var w = parseInt(img.getAttribute('width') || '0', 10);
+            if (/avatar|author|auteur|profile|byline|portrait|headshot|icon|logo/i.test(s) || (w && w < 160) || (byline && alt && byline.indexOf(alt) !== -1)) (img.closest('figure') || img).remove();
+          });
+          box.querySelectorAll('p, li, span, div, a, h4, h5, h6').forEach(function (el) {
+            if (el.querySelector('p, img, figure, video, ul, ol, table, blockquote')) return;
+            var t = (el.textContent || '').replace(/\s+/g, ' ').trim();
+            if (t && t.length < 140 && (JUNK.test(t) || (byline && (t === byline || t === byline + ' ' + byline)))) el.remove();
+          });
+          box.querySelectorAll('ul, ol').forEach(function (l) {
+            var t = (l.textContent || '').replace(/\s+/g, ' ').trim();
+            if (t.length < 200 && (l.querySelectorAll('a').length > 0 || t.length < 40)) l.remove();
+          });
+          box.querySelectorAll('li, p, div, span, figure').forEach(function (el) {
+            if (!(el.textContent || '').trim() && !el.querySelector('img, video, picture, iframe')) el.remove();
+          });
+          a.content = box.innerHTML;
           return JSON.stringify({ title: a.title, byline: a.byline, siteName: a.siteName, content: a.content, length: a.length, publishedTime: a.publishedTime });
         })()
-        """
+        """#
         // In een eigen JavaScript-omgeving: de scripts van de site kunnen er niet bij of tussen zitten.
         let raw = try? await webView.evaluateJavaScript(js, in: nil, contentWorld: .defaultClient)
         if let text = raw as? String, let data = text.data(using: .utf8), let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let content = obj["content"] as? String, let length = obj["length"] as? Int, length > 300 {

@@ -248,9 +248,12 @@ struct DigestFieldsList: View {
 struct AccountButton: ToolbarContent {
     @Binding var open: Bool
     var body: some ToolbarContent {
+        // Rustig: grijs en zonder glazen rondje; de inhoud gaat voor.
         ToolbarItem(placement: .topBarTrailing) {
             Button("Instellingen", systemImage: "gearshape") { open = true }
+                .tint(Theme.muted)
         }
+        .sharedBackgroundVisibility(.hidden)
     }
 }
 

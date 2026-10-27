@@ -190,7 +190,7 @@ struct SavedView: View {
                 } else {
                     List {
                         ForEach(store.saved) { item in
-                            ItemRow(item: item).listRowBackground(Theme.surface)
+                            ItemRow(item: item, linkSource: false).listRowBackground(Theme.surface)
                         }
                         .onDelete { store.removeSaved(at: $0) }
                     }
@@ -216,7 +216,7 @@ struct SearchView: View {
             let hits = q.count < 2 ? [] : store.stream.filter { "\($0.title) \($0.summary ?? "")".lowercased().contains(q) }
             List {
                 ForEach(hits.prefix(80)) { item in
-                    ItemRow(item: item, story: store.story(of: item)).listRowBackground(Theme.surface)
+                    ItemRow(item: item, story: store.story(of: item), linkSource: false).listRowBackground(Theme.surface)
                 }
             }
             .scrollContentBackground(.hidden)

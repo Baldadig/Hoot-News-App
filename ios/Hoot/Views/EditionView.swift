@@ -105,6 +105,11 @@ struct EditionView: View {
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .refreshable { await store.load() }
+            .toolbar {
+                // Het woordmerk, klein linksboven: je ziet waar je bent, zonder dat het de krant overneemt.
+                ToolbarItem(placement: .topBarLeading) { Wordmark() }
+                    .sharedBackgroundVisibility(.hidden)
+            }
             .settingsButton()
             .task(id: store.editionRows.count) {
                 // `-HootScreen verhaal`: het eerste verhaal met de meeste bronnen, om te vergelijken.
@@ -139,7 +144,8 @@ struct StoryView: View {
             }
             .listRowBackground(Color.clear)
             ForEach(items) { item in
-                ItemRow(item: item, label: label(item))
+                // In een lijst maakt een link in de rij de hele rij tot link: hier geen bronlink.
+                ItemRow(item: item, label: label(item), linkSource: false)
                     .listRowBackground(Theme.surface)
             }
         }

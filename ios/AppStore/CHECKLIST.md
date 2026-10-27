@@ -1,6 +1,6 @@
 # Checklist: Hoot News naar de App Store
 
-Stand: 24 oktober 2026 · app-versie 0.11.1 (build 12) · iOS 26.0 en hoger · iPhone en iPad
+Stand: 24 oktober 2026 · app-versie 0.12 (build 13) · iOS 26.0 en hoger · iPhone en iPad
 
 Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moet nog · 👤 alleen jij kunt dit doen
 

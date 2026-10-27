@@ -1,5 +1,23 @@
 # Changelog — Hoot voor iOS
 
+## [0.12.0] — 2026-10-27 — De lezer, iPad en iPhone mini
+
+- **De Hoot-lezer.** Artikelen openen standaard in de lezer: alleen de tekst en beelden, in de opmaak van Hoot (krantenletter, papier, licht en donker), met tekstgrootte, delen, bewaren en "Open bij de uitgever".
+  - **Techniek:** het artikel laadt op je iPhone zoals in Safari. Readability (Mozilla, Apache 2.0) haalt de tekst eruit, in een eigen JavaScript-omgeving waar de site niet bij kan. Er gaat niets via de server van Hoot.
+  - **Abonnementen:** bij Instellingen › Inloggen bij je abonnementen log je één keer in op de site van de uitgever. Daarna lees je ook hun hele artikelen in de lezer. De inlog blijft op dit toestel, en uitloggen kan overal in één keer.
+  - **Toestemming of inloggen:** vraagt een uitgever daarom, dan zie je die pagina zelf en kies jij. Daarna gaat de lezer verder. Hoot omzeilt geen toestemmings- of betaalmuren.
+  - **Opgeschoond:** soortlabels ("Nieuws", "Analyse"), het auteursblok, "Gepubliceerd" en "Leestijd", "Lees ook" en deelknoppen.
+  - **Lukt het niet:** dan zegt de lezer dat, met "Open op de website".
+- **Artikelen openen:** kies tussen in de lezer, op de website (in Hoot) of in Safari.
+- **iPad:**
+  - **Hoofdverhaal:** beeld en tekst staan alleen naast elkaar bij veel ruimte (vanaf 1000 pt). Op de iPad mini en in Split View staat een breed beeld met de kop over de hele breedte.
+  - **Sneltoetsen:** ⌘1–4 voor de tabbladen, ⌘F om te zoeken, ⌘R om te verversen.
+  - **Aanwijzer:** artikelen lichten op onder de muis of het trackpad.
+- **iPhone 13 mini:** alle schermen nagelopen op 375 pt.
+- **Branding:** het woordmerk "hoot." staat klein linksboven in de editie.
+- **Rustiger tandwiel:** grijs en zonder glazen rondje.
+- **Bronnaam in lijsten:** in Vergelijken, Bewaard en Zoeken is de bronnaam geen link meer. Die maakte van de hele rij een link.
+
 ## [0.11.1] — 2026-10-27 — Rustiger bronnenrij
 
 - **De rij met bronnen in de Stroom is kleiner en rustiger:** logo's van 30 pt in grijs, zonder sterretjes, met een aanraakvlak van 44 pt.
