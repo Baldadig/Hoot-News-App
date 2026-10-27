@@ -29,11 +29,13 @@ const NOISE_TITLE_NL = /\b(aanbiedingen?|in de aanbieding|kortingscodes?|dagdeal
 // Kleine updates: een nieuwe versie van een programma, driver of firmware (Tweakers zet ze
 // onder /downloads/, en zijn eigen acties en evenementen onder /plan/).
 const UPDATE_TITLE = /^(software|driver|firmware|bios|game)-update\s*[-–:]/i
+// Reclame voor een eigen nieuwsbrief ("Middle East Dispatch newsletter: …", "Meld je aan voor …").
+const NEWSLETTER_TITLE = /^[^:]{0,60}\bnewsletter:|\bsign up (for|to) (our|the)\b.*\bnewsletter\b|^meld je aan voor\b/i
 const NOISE_LINK = /\/puzzels?\/|^https:\/\/tweakers\.net\/(downloads|plan|aanbiedingen|pricewatch)\//
 export function isNoise(it, cats = []) {
   if (cats.some((c) => /\bdeals\b|\bcoupons?\b|\bshopping\b|\baanbieding|^(software|driver|firmware)$|^\.(plan|actie)$/i.test(c.trim()))) return true
   const title = it.title || ''
-  if (NOISE_TITLE.test(title) || NOISE_TITLE_NL.test(title) || UPDATE_TITLE.test(title)) return true
+  if (NOISE_TITLE.test(title) || NOISE_TITLE_NL.test(title) || UPDATE_TITLE.test(title) || NEWSLETTER_TITLE.test(title)) return true
   return NOISE_LINK.test(it.link || '')
 }
 // De intro uit de feed: de samenvatting, of anders de artikeltekst (content:encoded), zonder

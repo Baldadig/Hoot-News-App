@@ -2,7 +2,7 @@
 
 // Instellingen die met je account meegaan. Wat bij het toestel hoort (indeling, tekstgrootte,
 // het paneel, de installatietip) blijft per toestel.
-export const SYNCED_PREFS = ['muted', 'pinned', 'enabled', 'interests', 'topics', 'preview', 'images', 'bubble', 'brief', 'bluesky', 'bskyInStream', 'onboarded', 'weatherPlace', 'followStories', 'vak']
+export const SYNCED_PREFS = ['muted', 'pinned', 'enabled', 'interests', 'topics', 'preview', 'images', 'bubble', 'brief', 'bluesky', 'bskyInStream', 'onboarded', 'weatherPlace', 'followStories', 'vak', 'favorites']
 
 export const pickSynced = (prefs = {}) => Object.fromEntries(SYNCED_PREFS.filter((k) => k in prefs).map((k) => [k, prefs[k]]))
 

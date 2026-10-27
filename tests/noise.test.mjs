@@ -42,3 +42,14 @@ test('beeld van het artikel: alleen voor gratis bronnen zonder beeld, nooit een 
   // WordPress schrijft & soms als &#038;
   assert.equal(ogImageFrom('<head><meta property="og:image" content="https://www.rollingstone.com/a.jpg?crop=0px&#038;resize=1200"></head>'), 'https://www.rollingstone.com/a.jpg?crop=0px&resize=1200')
 })
+
+test('reclame voor een nieuwsbrief is geen bericht', async () => {
+  const { isNoise } = await import('../netlify/lib/rss.mjs')
+  assert.equal(isNoise({ title: 'Middle East Dispatch newsletter: Election day in Israel' }), true)
+  assert.equal(isNoise({ title: 'Why newsletters are booming again' }), false)
+})
+
+test('de Ballon d’Or is voetbal', async () => {
+  const { keywordTopics } = await import('../netlify/lib/topics.mjs')
+  assert.ok(keywordTopics('Harry Kane’s Ballon d’Or is behalve een erkenning').includes('voetbal'))
+})

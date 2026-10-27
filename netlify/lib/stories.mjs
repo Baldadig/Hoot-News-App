@@ -44,7 +44,7 @@ const ALIAS = {
   frankrijk: 'france', franse: 'france', french: 'france',
   brittannie: 'uk', britse: 'uk', british: 'uk', britain: 'uk', engeland: 'uk', england: 'uk',
   chinese: 'china', chinees: 'china',
-  israelische: 'israel', israeli: 'israel', israelisch: 'israel',
+  israelische: 'israel', israeli: 'israel', israelisch: 'israel', israelis: 'israel',
   iraanse: 'iran', iranian: 'iran',
   nederlandse: 'nederland', dutch: 'nederland', netherlands: 'nederland',
   europese: 'europe', european: 'europe', europa: 'europe', eu: 'europe',
@@ -95,7 +95,7 @@ const CONCEPTS = [
   ['arrest', /\b(arrest\w*|gearresteerd|opgepakt|aangehouden|detained)\b/, false],
   ['court', /\b(rechter|rechtbank|rechtszaak|vonnis|veroordeeld|hooggerechtshof|court|judge|trial|convicted|sentenced|verdict)\b/, false],
   ['charged', /\b(aangeklaagd|aanklacht|indicted|charged|indictment)\b/, false],
-  ['election', /\b(verkiezing\w*|election\w*|midterm\w*|stembus)\b/, false],
+  ['election', /(\w*verkiezing\w*|\belection\w*|\bmidterm\w*|\bstembus|\bstemlokal\w*|\bhead to the polls)\b/, false],
   ['resign', /\b(aftreden|treedt af|stapt op|opgestapt|ontslagen|resign\w*|steps down|fired)\b/, false],
   ['fire', /\b(brand|branden|bosbrand\w*|wildfire\w*|blaze)\b/, false],
   ['protest', /\b(protest\w*|betoging\w*|demonstratie\w*|demonstrat\w*)\b/, false],
@@ -149,7 +149,12 @@ function signature(article, vocab) {
   const raw = `${article.title}. ${article.text || article.summary || ''}`
   const strong = new Set()
   const weak = new Set()
+  const known = new Set() // bekende algemene namen, ook uit koppen in Titelkast (alleen voor sameSubject)
   for (const w of tokenize(raw)) {
+    if (isCap(w) || isAcronym(w)) {
+      const k = ALIAS[norm(w)] || norm(w)
+      if (WEAK.has(k)) known.add(k)
+    }
     let key = null
     if (isAcronym(w)) key = norm(w)
     // Alleen woorden mét hoofdletter die ook elders midden in een zin als naam voorkomen.
@@ -169,7 +174,7 @@ function signature(article, vocab) {
       if (isRare) rare++
     }
   }
-  return { words: sigWords(article.title), strong, weak, concepts, rareIds: new Set(CONCEPTS.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: article.publishedAt ? Date.parse(article.publishedAt) : 0 }
+  return { words: sigWords(article.title), strong, weak, known, concepts, rareIds: new Set(CONCEPTS.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: article.publishedAt ? Date.parse(article.publishedAt) : 0 }
 }
 
 const WORD_WINDOW = 48 * 60 * 60 * 1000
@@ -203,6 +208,22 @@ export function sameEvent(a, b) {
   return false
 }
 
+// Voor de editie (niet voor het bundelen): gaan twee berichten over hetzelfde onderwerp van nu?
+// Strenger dan sameEvent: twee algemene namen ("Israël", "Netanyahu") plus hetzelfde soort
+// gebeurtenis ("verkiezingen") is genoeg om maar één plek te krijgen. Zo staan er geen drie stukken
+// over één verkiezingsdag in tien verhalen.
+const BROAD = new Set(['us', 'europe', 'un', 'nato', 'uk', 'trump', 'whitehouse', 'congress', 'nederland'])
+export function sameSubject(a, b) {
+  if (sameEvent(a, b)) return true
+  if (Math.abs(a.t - b.t) > EVENT_WINDOW) return false
+  const shared = [...a.known].filter((k) => b.known.has(k))
+  const concepts = sharedCount(a.concepts, b.concepts)
+  if (!concepts) return false
+  // Eén gedeelde naam is genoeg, behalve een heel brede (de VS, Trump, Europa): Amerikaanse
+  // verkiezingsverhalen zijn er vele, en die wil je niet allemaal op één plek.
+  return shared.length >= 2 || shared.some((k) => !BROAD.has(k)) || (shared.length >= 1 && sharedCount(a.strong, b.strong) >= 1)
+}
+
 export function signatures(articles) {
   const vocab = nameVocabulary(articles)
   return new Map(articles.map((a) => [a.id, signature(a, vocab)]))
@@ -210,10 +231,11 @@ export function signatures(articles) {
 
 // Volgorde van kandidaten voor het hoofdbericht: eigen bronnen eerst, dan Nederlands,
 // dan met preview, met beeld, en het nieuwste.
-export function leadCandidates(items, mainIds) {
+// `preferred`: je voorkeursbronnen (de ster bij een bron); die gaan nog vóór je andere bronnen.
+export function leadCandidates(items, mainIds, preferred = null) {
   // Een opiniestuk is nooit het hoofdbericht als er een nieuwsbericht is.
   // Een podcast of liveblog is ook nooit het hoofdbericht (een promo, of over van alles tegelijk).
-  const score = (i) => (i.type === 'opinie' ? -16 : 0) + (/\bpodcast\b/i.test(i.title || '') || isLive(i) ? -16 : 0) + (mainIds.has(i.source) ? 8 : 0) + (NL_SOURCES.has(i.source) ? 4 : 0) + (i.summary ? 2 : 0) + (i.image ? 1 : 0)
+  const score = (i) => (i.type === 'opinie' ? -16 : 0) + (/\bpodcast\b/i.test(i.title || '') || isLive(i) ? -16 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (NL_SOURCES.has(i.source) ? 4 : 0) + (i.summary ? 2 : 0) + (i.image ? 1 : 0)
   return [...items].sort((a, b) => score(b) - score(a) || byRecency(a, b))
 }
 
@@ -403,7 +425,9 @@ export function repeatPenalty(st, items, previous) {
   return (developing ? DEVELOPING_PENALTY : REPEAT_PENALTY) + (wasLead ? REPEAT_LEAD_PENALTY : 0)
 }
 
-export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, bonus = null, strict = false, previous = null } = {}) {
+// Een verhaal of bericht uit een voorkeursbron weegt zwaarder (zo'n twee bronnen dekking).
+export const FAVORITE_BONUS = 8
+export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, bonus = null, strict = false, previous = null, preferred = null } = {}) {
   const byId = new Map(pool.map((i) => [i.id, i]))
   const sig = signatures(pool)
   const fresh = (iso, hours) => iso && now - Date.parse(iso) < hours * 60 * 60 * 1000
@@ -411,12 +435,12 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
   const placed = [] // kenmerken van alles wat al een plek heeft
   const leadCount = {}
   let prevLead = null
-  const clashes = (ids) => ids.some((id) => sig.has(id) && placed.some((s) => sameEvent(sig.get(id), s)))
+  const clashes = (ids) => ids.some((id) => sig.has(id) && placed.some((s) => sameSubject(sig.get(id), s)))
   const place = (ids) => {
     for (const id of ids) if (sig.has(id)) placed.push(sig.get(id))
   }
   const pickLead = (items) => {
-    const cands = leadCandidates(items, mainIds)
+    const cands = leadCandidates(items, mainIds, preferred)
     const ownOnly = cands.filter((i) => mainIds.has(i.source))
     const from = ownOnly.length ? ownOnly : cands
     return from.find((i) => i.source !== prevLead && (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from.find((i) => (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from[0]
@@ -429,14 +453,15 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     const items = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
     if (!items.length) continue
     const per = items.map((it) => desksOf(it))
-    cands.push({ kind: 'story', st, items, ids: st.itemIds, desks: new Set(per.flatMap((x) => [...x])), primary: primaryDesk(per), w: weight(st, now) - repeatPenalty(st, items, previous) })
+    const fav = preferred?.size && items.some((i) => preferred.has(i.source)) ? FAVORITE_BONUS : 0
+    cands.push({ kind: 'story', st, items, ids: st.itemIds, desks: new Set(per.flatMap((x) => [...x])), primary: primaryDesk(per), w: weight(st, now) - repeatPenalty(st, items, previous) + fav })
   }
   for (const it of pool) {
     if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || it.storyId || isLive(it)) continue // een liveblog is geen editieplek
     if (!fresh(it.publishedAt, 14) || !(it.summary || it.image)) continue
     if (previous?.itemIds?.has(it.id)) continue // stond er al
     const desks = desksOf(it)
-    cands.push({ kind: 'item', it, ids: [it.id], desks, primary: primaryDesk([desks]), w: weight({ sourceCount: 1, ownCount: 1, latestAt: it.publishedAt }, now) - 2 })
+    cands.push({ kind: 'item', it, ids: [it.id], desks, primary: primaryDesk([desks]), w: weight({ sourceCount: 1, ownCount: 1, latestAt: it.publishedAt }, now) - 2 + (preferred?.has(it.source) ? FAVORITE_BONUS : 0) })
   }
   if (bonus) for (const c of cands) c.w += bonus(c.kind === 'story' ? c.items : [c.it])
   cands.sort((a, b) => b.w - a.w)

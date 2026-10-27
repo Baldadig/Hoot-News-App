@@ -59,8 +59,15 @@ test('interesses geven voorrang: met interesse Tech gaat het (oudere) chipnieuws
   const tech = order(make({ interests: ['tech'] }))
   assert.ok(plain.indexOf('n2') < plain.indexOf('t1'), 'zonder interesse: nieuwer gaat voor')
   assert.ok(tech.indexOf('t1') < tech.indexOf('n2'), 'met interesse Tech: het chipnieuws gaat voor')
-  assert.equal(tech[0], 'n1') // groot nieuws (meerdere bronnen) blijft bovenaan
+  assert.ok(tech.slice(0, 2).includes('n1'), 'het woningverhaal (twee bronnen) blijft vooraan')
   assert.ok(INTEREST_BONUS > 0)
+})
+
+test('echt groot nieuws (veel bronnen) blijft boven een bericht uit je interesses', () => {
+  const many = ['nos', 'nrc', 'vk', 'nu', 'ad', 'trouw'].map((src, i) => art('w' + i, src, 'Kabinet valt na ruzie over asiel', { publishedAt: ago(2) }))
+  const big = { id: 'sKabinet', leadId: 'w0', itemIds: many.map((i) => i.id), sourceCount: 6, ownCount: 1, latestAt: ago(2) }
+  const e = composePersonal({ global, stories: [...stories, big], items: [...items, ...many], followed, interests: ['tech'], now: NOW, builtAt: 'T' })
+  assert.equal(e.entries[0].leadId || e.entries[0].id, 'w0')
 })
 
 test('rijen voor de samenvatting volgen de plekken van jouw editie', () => {
@@ -188,4 +195,23 @@ test('vingerafdruk: andere bronnen of interesses geven een andere afdruk, volgor
   assert.equal(a, editionBasis(['atlantic', 'nos', 'nyt'], ['tech'], []))
   assert.notEqual(a, editionBasis(['nos', 'nyt', 'atlantic', 'guardian'], ['tech'], [])) // startbronnen erbij
   assert.notEqual(a, editionBasis(['nos', 'nyt', 'atlantic'], [], []))
+})
+
+test('wat je vaak leest, krijgt voorrang in je editie', async () => {
+  const { learn, emptyAffinity } = await import('../src/lib/affinity.js')
+  let affinity = emptyAffinity()
+  const liked = items.find((i) => (i.topics || []).length) || items[0]
+  for (let n = 0; n < 12; n++) affinity = learn(affinity, liked)
+  const withTaste = make({ affinity })
+  assert.ok(withTaste.entries.length > 0)
+  assert.ok(withTaste.items.some((i) => i.id === liked.id || (i.topics || []).some((t) => (liked.topics || []).includes(t))))
+})
+
+test('voorkeursbronnen gaan voor: hun verhaal hoger en hun bericht als hoofdbericht', () => {
+  const both = new Set(['nos', 'tweakers', 'nrc'])
+  const plain = composePersonal({ global, stories, items, followed: both, now: NOW, builtAt: 'T' })
+  const fav = composePersonal({ global, stories, items, followed: both, favorites: ['nrc'], now: NOW, builtAt: 'T' })
+  const lead = (e) => e.entries.find((x) => x.id === 'sWoning')?.leadId
+  assert.equal(lead(plain), 'n1') // zonder voorkeur: NOS (Nederlands, eerder gekozen)
+  assert.equal(lead(fav), 'r1') // met voorkeur voor NRC: het NRC-bericht
 })

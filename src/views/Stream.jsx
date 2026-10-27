@@ -75,7 +75,7 @@ function FilterSheet({ open, onClose, params, setFilter, clear, sources, count }
 }
 
 export default function Stream({ active, stream, params, go, pinned, mine = [], bubble = [], preview = 2, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
-  const { storiesById, sourcesById, muted, setMuted } = useHoot()
+  const { storiesById, sourcesById, muted, setMuted, prefs } = useHoot()
   const ref = useRef(null)
   const [sheet, setSheet] = useState(false)
   const [atDepth, setAtDepth] = useState(false)
@@ -132,6 +132,9 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
   // In het filterblad alleen bronnen die meedoen: een uitgezette bron levert hier niets op.
   const followed = sources.filter((s) => s.followed && !muted.has(s.id))
   const offSource = filters.bron && muted.has(filters.bron) ? filters.bron : null
+  const favs = prefs?.favorites || []
+  const rank = (s) => (favs.includes(s.id) ? favs.indexOf(s.id) - 1000 : -(s.count || 0))
+  const strip = followed.filter((s) => s.kind !== 'sociaal').sort((a, b) => rank(a) - rank(b))
   const filterText = [filters.onderwerp && topicLabel(filters.onderwerp), filters.rubriek && interestLabel(filters.rubriek), filters.bron && `Alleen ${srcName(filters.bron)}`, filters.soort && kindName(filters.soort)].filter(Boolean).join(' · ')
   const sheetCount = [filters.bron, filters.soort].filter(Boolean).length // wat in het filterblad staat (onderwerp zit in de rij)
 
@@ -178,6 +181,16 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
               {sheetCount ? <span className="topics__dot" aria-hidden="true" /> : null}
             </button>
           </div>
+          {/* Je bronnen als rij logo's: één tik = alleen die bron. Voorkeursbronnen vooraan. */}
+          {strip.length > 1 ? (
+            <div className="srcstrip" role="group" aria-label="Bron">
+              {strip.map((s) => (
+                <button key={s.id} type="button" className="srcstrip__btn" aria-pressed={filters.bron === s.id} aria-label={`Alleen ${s.name}`} title={s.name} onClick={() => setFilter('bron', filters.bron === s.id ? '' : s.id)}>
+                  <SourceMark source={s} size={40} />
+                </button>
+              ))}
+            </div>
+          ) : null}
         </ViewHeader>
 
         {pendingCount > 0 ? (

@@ -22,6 +22,7 @@ import { useAccount } from './hooks/useAccount.js'
 import { useCloudSync } from './hooks/useCloudSync.js'
 import { useStored } from './lib/store.js'
 import { MAIN, rememberLocation, hrefFor } from './lib/context.js'
+import { learn, READ, SAVE } from './lib/affinity.js'
 import { sourceStatus, statusLabel } from './lib/sourceStatus.js'
 import Bluesky from './views/Bluesky.jsx'
 import Vak from './views/Vak.jsx'
@@ -97,6 +98,8 @@ export default function App() {
 
   const [saved, setSaved] = useStored('hoot:saved-v2', {})
   const [readIds, setReadIds] = useStored('hoot:read', [])
+  // Je smaak: wat je opent en bewaart (src/lib/affinity.js). Alleen op dit toestel.
+  const [affinity, setAffinity] = useStored('hoot:affinity', null)
   const [seenStories, setSeenStories] = useStored('hoot:stories-seen', {})
 
   // Account: inloggen met Google; als lid gaan instellingen, Bewaard en gelezen mee.
@@ -151,7 +154,7 @@ export default function App() {
   // Digest: pas ophalen als je de tab hebt aangezet (of hem opent).
   const vak = useVak(prefs.vak.length > 0 || route.path === 'digest')
   // Jouw editie: samengesteld uit je eigen bronnen en interesses (zie src/lib/personal.js).
-  const { edition: myEdition, member } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount })
+  const { edition: myEdition, member } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount, affinity })
   const socialIds = useMemo(() => new Set(social.sources.map((s) => 'bsky:' + s.handle)), [social.sources])
 
   const stream = useMemo(() => {
@@ -190,7 +193,14 @@ export default function App() {
   }, [prefs.bubble, data, itemsById, myEdition])
 
   // ---- Handelingen ----
-  const markRead = useCallback((id) => setReadIds((prev) => (prev.includes(id) ? prev : [...prev, id].slice(-1500))), [setReadIds])
+  const markRead = useCallback(
+    (id) => {
+      setReadIds((prev) => (prev.includes(id) ? prev : [...prev, id].slice(-1500)))
+      const item = itemsById.get(id)
+      if (item && !readIds.includes(id)) setAffinity((a) => learn(a, item, READ))
+    },
+    [setReadIds, itemsById, readIds, setAffinity]
+  )
 
   // Nieuwe versie klaar? Stille melding; herladen gebeurt alleen als jij dat kiest.
   const [update, setUpdate] = useState(updateReady)
@@ -237,10 +247,13 @@ export default function App() {
       } else {
         setUndo(null)
         setAnnounce(kind === 'story' ? 'Verhaal bewaard' : 'Bericht bewaard')
+        // Bewaren zegt meer over je smaak dan openen.
+        const item = kind === 'story' ? itemsById.get(payload?.leadId) : itemsById.get(id) || payload
+        if (item) setAffinity((a) => learn(a, item, SAVE))
       }
       setSaved((prev) => toggleSaved(prev, kind, id, payload, itemsById))
     },
-    [setSaved, itemsById, saved, data],
+    [setSaved, itemsById, saved, data, setAffinity],
   )
 
   const openSource = useCallback((id) => route.go('stroom', { bron: id }), [route.go])
@@ -571,6 +584,8 @@ export default function App() {
               refreshing={refreshing}
               online={online}
               bluesky={prefs.bluesky}
+              favorites={prefs.favorites}
+              onFavorite={(id, on) => setPref('favorites', on ? [...new Set([...prefs.favorites, id])] : prefs.favorites.filter((f) => f !== id))}
             />
           ) : null}
           <Suspense fallback={null}>

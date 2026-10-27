@@ -13,13 +13,13 @@ const KEY = 'hoot:my-edition'
 // Veranderen je bronnen of interesses (of laadt je account ze pas net), dan stellen we opnieuw samen.
 // Leden krijgen er een eigen "editie in één minuut" bij (POST /api/brief). Zonder account geen
 // samenvatting: die van de algemene editie hoort niet bij jouw verhalen.
-export function usePersonalEdition({ data, status, prefs, muted, account }) {
+export function usePersonalEdition({ data, status, prefs, muted, account, affinity = null }) {
   const global = data?.edition || null
   const uid = account.status === 'in' ? account.user.id : null
   const owner = uid || 'anon'
   const ready = status === 'ready' && !!global && (data?.items?.length || 0) > 0
   const followed = useMemo(() => (data?.sources || []).filter((s) => s.kind !== 'sociaal' && !muted.has(s.id)).map((s) => s.id), [data?.sources, muted])
-  const basis = editionBasis(followed, prefs.interests || [], prefs.topics || [])
+  const basis = editionBasis(followed, prefs.interests || [], prefs.topics || [], prefs.favorites || [])
   // Zonder bronnenlijst (nog aan het laden) kunnen we de afdruk niet controleren: dan niet weigeren.
   const fits = (e) => !!e && e.id === global?.id && e.owner === owner && (!followed.length || e.basis === basis)
   const [edition, setEdition] = useState(() => {
@@ -54,7 +54,7 @@ export function usePersonalEdition({ data, status, prefs, muted, account }) {
       // De editie van het vorige dagdeel (nog op dit toestel): wat daarin stond, komt alleen terug
       // als het zich ontwikkelde.
       const previous = current && current.id !== global.id && current.owner === owner ? previousOf(current) : null
-      const mine = composePersonal({ global, stories: data.stories, items: data.items, sources: data.sources, followed: new Set(followed), interests: prefs.interests || [], topics: prefs.topics || [], previous })
+      const mine = composePersonal({ global, stories: data.stories, items: data.items, sources: data.sources, followed: new Set(followed), interests: prefs.interests || [], topics: prefs.topics || [], previous, affinity, favorites: prefs.favorites || [] })
       if (!mine) return
       const stamped = { ...mine, owner, basis }
       keep(stamped)

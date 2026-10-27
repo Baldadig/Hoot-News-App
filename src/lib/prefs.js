@@ -17,6 +17,7 @@ export const DEFAULT_PREFS = {
   interests: [], // brede interesses uit de onboarding (src/lib/topics.js → INTERESTS)
   topics: [], // onderwerpen die je volgt; leeg = alle
   bluesky: false, // Bluesky als eigen bestemming in het menu
+  favorites: [], // voorkeursbronnen (ster): wegen zwaarder in je editie en staan vooraan
   vak: [], // vakgebieden in de Digest (shared/vak.mjs); leeg = geen tab Digest
   bskyInStream: [], // Bluesky-accounts die óók in de Stroom staan (standaard alleen in Bluesky)
   weatherPlace: 'haarlem', // plaats voor het weer in de Editie (src/lib/weather.js), of 'geen'
@@ -38,6 +39,7 @@ export function normalizePrefs(raw) {
   if (!Array.isArray(out.enabled)) out.enabled = []
   if (!Array.isArray(out.bskyInStream)) out.bskyInStream = []
   if (!Array.isArray(out.interests)) out.interests = []
+  if (!Array.isArray(out.favorites)) out.favorites = []
   if (!Array.isArray(out.topics)) out.topics = []
   if (typeof out.weatherPlace !== 'string') out.weatherPlace = 'haarlem'
   if (!Array.isArray(out.followStories)) out.followStories = []

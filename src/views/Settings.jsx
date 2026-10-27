@@ -69,7 +69,7 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
         <a className="setrow setrow--link" href="#/welkom">
           <span className="setrow__text">
             <span className="setrow__label">Interesses opnieuw kiezen</span>
-            <span className="setrow__hint">Bepaalt welke bronnen we voorstellen en de filters in de Stroom. De editie is voor iedereen gelijk.</span>
+            <span className="setrow__hint">Wat bij je interesses past, gaat voor in je editie. Ook wat je vaak opent of bewaart weegt mee (dat blijft op dit toestel). Voorkeursbronnen kies je met de ster bij Bronnen.</span>
           </span>
           <span aria-hidden="true">›</span>
         </a>

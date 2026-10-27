@@ -10,7 +10,7 @@ const version = process.env.HOOT_VERSION || pkg.version // HOOT_VERSION: alleen 
 // Draait de Netlify-functies lokaal (zelfde vorm als op Netlify: Request erin, Response eruit),
 // zodat `npm run dev` echte data toont zonder Netlify CLI.
 function devApi() {
-  const routes = { '/api/feed': 'feed', '/api/vak': 'vak' }
+  const routes = { '/api/feed': 'feed', '/api/vak': 'vak', '/api/edition': 'edition' }
   return {
     name: 'hoot-dev-api',
     apply: 'serve',

@@ -5,6 +5,7 @@ import { resolveProfile } from '../lib/bluesky.js'
 import { statusLabel } from '../lib/sourceStatus.js'
 import { clock, timeAgo } from '../lib/time.js'
 import { SOURCE_CATS } from '../lib/topics.js'
+import { StarIcon } from '../components/icons.jsx'
 
 export function Switch({ checked, onChange, label }) {
   return (
@@ -16,7 +17,7 @@ export function Switch({ checked, onChange, label }) {
   )
 }
 
-export function SourceRow({ s, muted, onToggle, onRemove }) {
+export function SourceRow({ s, muted, onToggle, onRemove, favorite = false, onFavorite = null }) {
   const Main = muted ? 'div' : 'a'
   const status = !s.ok ? 'Tijdelijk niet bereikbaar' : s.count ? `${s.count} berichten` : 'Geen berichten'
   return (
@@ -35,6 +36,11 @@ export function SourceRow({ s, muted, onToggle, onRemove }) {
       {onRemove ? (
         <button type="button" className="linkbtn srow__rm" onClick={() => onRemove(s)}>
           Verwijder
+        </button>
+      ) : null}
+      {onFavorite && !muted ? (
+        <button type="button" className={`iconbtn srow__star${favorite ? ' is-on' : ''}`} aria-pressed={favorite} aria-label={`${s.name} als voorkeursbron`} title={favorite ? 'Voorkeursbron' : 'Maak voorkeursbron'} onClick={() => onFavorite(s.id, !favorite)}>
+          <StarIcon filled={favorite} />
         </button>
       ) : null}
       {onToggle ? <Switch checked={!muted} onChange={(on) => onToggle(s.id, on)} label={`${s.name} ${muted ? 'aanzetten' : 'uitzetten'}`} /> : null}
@@ -124,7 +130,7 @@ export function AddBluesky({ onAdd }) {
   )
 }
 
-export default function Sources({ active, sources, muted, onToggle, meta, status, recovered, latestBySource, onRetry, refreshing, online, bluesky = false }) {
+export default function Sources({ active, sources, muted, onToggle, meta, status, recovered, latestBySource, onRetry, refreshing, online, bluesky = false, favorites = [], onFavorite = null }) {
   const catalog = sources.filter((s) => s.followed && s.kind !== 'sociaal')
   const mine = catalog.filter((s) => !muted.has(s.id))
   const more = catalog.filter((s) => muted.has(s.id))
@@ -136,10 +142,10 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
         <h2 className="sect">Je bronnen · {mine.length}</h2>
         <ul className="srows">
           {mine.map((s) => (
-            <SourceRow key={s.id} s={s} muted={false} onToggle={onToggle} />
+            <SourceRow key={s.id} s={s} muted={false} onToggle={onToggle} favorite={favorites.includes(s.id)} onFavorite={onFavorite} />
           ))}
         </ul>
-        <p className="hint">Tik op een bron om alleen die te lezen. Zet je een bron uit, dan verdwijnt hij uit je Stroom en zoeken.</p>
+        <p className="hint">Tik op een bron om alleen die te lezen. Met de ster maak je een bron een voorkeursbron: die weegt zwaarder in je editie en staat vooraan in de Stroom. Zet je een bron uit, dan verdwijnt hij uit je Stroom en zoeken.</p>
         <SourceStatus status={status} recovered={recovered} latestBySource={latestBySource} meta={meta} onRetry={onRetry} refreshing={refreshing} online={online} />
 
         <h2 className="sect">Meer bronnen</h2>

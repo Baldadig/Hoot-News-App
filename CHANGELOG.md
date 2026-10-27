@@ -2,6 +2,17 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.36.0] — 2026-10-27 — Jouw krant: voorkeursbronnen, smaak en snel naar één bron
+
+- **Voorkeursbronnen.** Met de ster bij een bron (Bronnen) wordt het een voorkeursbron. Die weegt zwaarder in je editie (ongeveer twee bronnen extra dekking) en levert binnen een verhaal bij voorkeur het hoofdbericht. Gaat mee met je account.
+- **Interesses wegen zwaarder.** Een verhaal dat bij je interesses past, telt nu zo zwaar als ongeveer 2,5 extra bronnen (was 1,5). Echt groot nieuws blijft bovenaan.
+- **Hoot leert je smaak.** Wat je opent en bewaart, telt mee per onderwerp en per bron; bewaren telt zwaarder. Oud lezen vervaagt. Het telt pas na acht keer lezen, en blijft op je toestel.
+- **Snel naar één bron.** Bovenaan de Stroom staat een rij met de logo's van je bronnen, voorkeursbronnen vooraan. Eén tik toont alleen die bron, nog een tik alles.
+- **Eén plek per onderwerp.** Drie stukken over één verkiezingsdag (Israël) kregen elk een plek. Twee berichten met dezelfde specifieke naam en hetzelfde soort gebeurtenis delen nu één plek. Bij brede namen (de VS, Trump, Europa) gebeurt dat niet. "Parlementsverkiezingen" telt nu ook als verkiezing.
+- **Games alleen als je dat kiest.** Wie Tech kiest, kreeg ook twee gamesberichten. Nu alleen als je het onderwerp games kiest.
+- **Opgeschoond:** reclame voor een nieuwsbrief ("… newsletter: …") is geen bericht meer, en de Ballon d'Or is voetbal.
+- **Nieuw: `POST /api/edition`.** Stelt met dezelfde code als de website een persoonlijke editie samen uit meegestuurde bronnen, interesses, voorkeuren en smaak. Voor de iOS-app, die nog geen account heeft. Er wordt niets bewaard.
+
 ## [1.35.0] — 2026-10-26 — Elke editie iets nieuws
 
 - **Ochtend, middag en avond zijn geen drie keer dezelfde krant meer.** Een nieuwe editie kijkt naar de vorige, zowel op de server als bij je persoonlijke editie op je toestel.

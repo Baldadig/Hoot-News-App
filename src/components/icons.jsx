@@ -34,6 +34,12 @@ export const CheckIcon = icon("<path fill=\"currentColor\" d=\"m232.49 80.49l-12
 
 const bookmarkLine = "<g fill=\"currentColor\"><path d=\"M192 48v176l-64-40l-64 40V48a8 8 0 0 1 8-8h112a8 8 0 0 1 8 8\" opacity=\".2\"/><path d=\"M184 32H72a16 16 0 0 0-16 16v176a8 8 0 0 0 12.24 6.78L128 193.43l59.77 37.35A8 8 0 0 0 200 224V48a16 16 0 0 0-16-16m0 177.57l-51.77-32.35a8 8 0 0 0-8.48 0L72 209.57V48h112Z\"/></g>"
 const bookmarkFill = "<path fill=\"currentColor\" d=\"M184 32H72a16 16 0 0 0-16 16v176a8 8 0 0 0 12.24 6.78L128 193.43l59.77 37.35A8 8 0 0 0 200 224V48a16 16 0 0 0-16-16\"/>"
+const STAR = 'M234.29 114.85l-45 38.83L203 211.75a16.4 16.4 0 0 1-24.5 17.82L128 198.49l-50.53 31.08A16.4 16.4 0 0 1 53 211.75l13.76-58.07l-45-38.83A16.46 16.46 0 0 1 31.08 86l59-4.76l22.76-55.08a16.36 16.36 0 0 1 30.27 0l22.75 55.08l59 4.76a16.46 16.46 0 0 1 9.37 28.86Z'
+export const StarIcon = ({ filled }) => (
+  <svg viewBox="0 0 256 256" width="22" height="22" aria-hidden="true">
+    <path d={STAR} fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="16" strokeLinejoin="round" />
+  </svg>
+)
 export const BookmarkIcon = ({ filled }) => <svg viewBox="0 0 256 256" width="22" height="22" fill="currentColor" aria-hidden="true" dangerouslySetInnerHTML={{ __html: filled ? bookmarkFill : bookmarkLine }} />
 
 // De acht interesses (onboarding, Bronnen, Stroom).

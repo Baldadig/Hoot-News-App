@@ -3506,3 +3506,42 @@ html[data-images='hoofd'] .media--social {
 .dhow p + p {
   margin-top: var(--s2);
 }
+
+/* Voorkeursbron: de ster naast de schakelaar */
+.srow__star {
+  color: var(--ink-3);
+}
+.srow__star.is-on {
+  color: var(--accent);
+}
+
+/* Stroom: je bronnen als rij logo's (één tik = alleen die bron) */
+.srcstrip {
+  display: flex;
+  gap: var(--s2);
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: var(--s3) calc(-1 * var(--s4)) 0;
+  padding: 2px var(--s4) var(--s1);
+}
+.srcstrip::-webkit-scrollbar {
+  display: none;
+}
+.srcstrip__btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+.srcstrip__btn[aria-pressed='true'] {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.srcstrip:has([aria-pressed='true']) .srcstrip__btn:not([aria-pressed='true']) {
+  opacity: 0.45;
+}

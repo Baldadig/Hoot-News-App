@@ -67,3 +67,13 @@ test('Buiten je bubbel gaat niet over iets wat al in je eigen editie staat', () 
   const bubble = mine.entries.find((e) => e.desk === 'bubbel')
   assert.equal(bubble?.id, 'ot')
 })
+
+test('één verkiezingsdag krijgt één plek, ook zonder gedeelde bundel', async () => {
+  const { signatures, sameSubject } = await import('../netlify/lib/stories.mjs')
+  const a = art('il1', 'nyt', 'Israel’s High-Stakes Election: What to Know', 2, { summary: 'Israelis vote on Tuesday as Benjamin Netanyahu seeks another term.' })
+  const b = art('il2', 'volkskrant', 'Netanyahu waarschuwt dat Arabisch-Israëlische kiezers de verkiezingen beslissen', 2, { summary: 'Premier Netanyahu riep zijn achterban op naar de stembus te gaan.' })
+  const c = art('us1', 'nyt', 'Election Officials Fear Trump Administration’s Interference', 2, { summary: 'State officials worry about federal pressure before the midterms.' })
+  const sig = signatures([a, b, c])
+  assert.equal(sameSubject(sig.get('il1'), sig.get('il2')), true)
+  assert.equal(sameSubject(sig.get('il1'), sig.get('us1')), false)
+})

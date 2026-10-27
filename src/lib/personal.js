@@ -8,26 +8,30 @@
 // ("Buiten je bronnen"). "Buiten je bubbel" blijft op zijn plek. Daarna ligt de editie vast.
 import { selectEdition, EDITION_SIZE, signatures, sameEvent } from '../../netlify/lib/stories.mjs'
 import { resolveTopics } from './topics.js'
+import { affinityScore } from './affinity.js'
 
 export const EXTERN = 'extern' // rubriek van een aangevuld verhaal
 export const WIDE = 'breed' // "Waar iedereen over schrijft"
 
 // Extra gewicht voor wat bij je interesses past: genoeg om binnen een rubriek de doorslag te
-// geven en de vrije plekken te kleuren, te weinig om echt groot nieuws te verdringen.
-export const INTEREST_BONUS = 6
+// geven en de vrije plekken te kleuren (zo'n drie bronnen dekking), te weinig om echt groot
+// nieuws te verdringen. Daarbovenop wat je leest en bewaart (src/lib/affinity.js, tot 5).
+export const INTEREST_BONUS = 10
 
 // Nieuws (deze rubrieken van de catalogus) vormt de editie; sport, cultuur en games komen er
 // alleen bij als je die interesse hebt, hooguit twee, en nooit als hoofdverhaal: zo verdringt
 // een grote sportavond het nieuws niet.
 export const NEWS_CATS = new Set(['nl', 'vl', 'regio', 'int', 'economie', 'tech', 'wetenschap'])
-const EXTRA_BY_INTEREST = { sport: 'sport', cultuur: 'cultuur', tech: 'games' }
+// Games alleen als je dat onderwerp zelf koos: wie Tech kiest, bedoelt meestal AI en technologie.
+const EXTRA_BY_INTEREST = { sport: 'sport', cultuur: 'cultuur' }
 export const EXTRA_MAX = 2
 // Ook uit een gewone nieuwsbron (NU.nl, de Volkskrant) is een voetbalbericht sport.
 const TOPIC_KIND = { voetbal: 'sport', f1: 'sport', wielrennen: 'sport', tennis: 'sport', wintersport: 'sport', olympisch: 'sport', muziek: 'cultuur', film: 'cultuur', boeken: 'cultuur', kunst: 'cultuur', games: 'games' }
 
 // `previous`: je vorige editie (zie previousOf in stories.mjs); wat daarin stond, komt alleen
 // terug als het zich ontwikkelde.
-export function composePersonal({ global, stories = [], items = [], sources = [], followed = new Set(), interests = [], topics = [], now = Date.now(), builtAt = new Date(now).toISOString(), previous = null }) {
+// `favorites`: je voorkeursbronnen; die wegen zwaarder en leveren bij voorkeur het hoofdbericht.
+export function composePersonal({ global, stories = [], items = [], sources = [], followed = new Set(), interests = [], topics = [], now = Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [] }) {
   if (!global?.entries?.length) return null
   const catOf = new Map(sources.map((s) => [s.id, s.cat]))
   // Soort bericht: de rubriek van de bron, tenzij het onderwerp sport, cultuur of games is.
@@ -37,12 +41,13 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const cat = catOf.get(i.source)
     return !catOf.size || NEWS_CATS.has(cat) ? 'nieuws' : cat // zonder catalogus: alles als nieuws
   }
-  const extraKinds = new Set(interests.map((i) => EXTRA_BY_INTEREST[i]).filter(Boolean))
+  const extraKinds = new Set([...interests.map((i) => EXTRA_BY_INTEREST[i]).filter(Boolean), ...(topics.includes('games') ? ['games'] : [])])
   const pool = items.filter((i) => i.kind === 'article' && followed.has(i.source))
   const newsPool = pool.filter((i) => kindOf(i) === 'nieuws')
   const extraPool = pool.filter((i) => extraKinds.has(kindOf(i)))
   const mine = new Set(resolveTopics(interests, topics))
-  const bonus = mine.size ? (its) => (its.some((i) => (i.topics || []).some((t) => mine.has(t))) ? INTEREST_BONUS : 0) : null
+  const fits = (its) => mine.size > 0 && its.some((i) => (i.topics || []).some((t) => mine.has(t)))
+  const bonus = mine.size || affinity ? (its) => (fits(its) ? INTEREST_BONUS : 0) + affinityScore(its, affinity) : null
 
   // "Buiten je bubbel" uit de algemene editie houdt zijn plek; "Waar iedereen over schrijft"
   // krijgt er één (als er iets breed gedekts buiten je interesses is); de rest kiezen we zelf.
@@ -56,12 +61,13 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const covered = (w) => ownIds.has(w.item.id) || (storyById.get(w.storyId)?.itemIds || []).some((id) => ownIds.has(id))
   const wideCands = (global.wide || []).filter((w) => outside(w) && !covered(w))
   const size = EDITION_SIZE - (bubbleEntry ? 1 : 0) - (wideCands.length ? 1 : 0)
-  const extra = extraPool.length ? selectEdition(stories, extraPool, { mainIds: followed, now, size: EXTRA_MAX, bonus, strict: true, previous }).map((e) => ({ ...e, desk: null })) : []
+  const preferred = new Set(favorites.filter((id) => followed.has(id)))
+  const extra = extraPool.length ? selectEdition(stories, extraPool, { mainIds: followed, now, size: EXTRA_MAX, bonus, strict: true, previous, preferred }).map((e) => ({ ...e, desk: null })) : []
   // Een bericht van een vakbron (tech, economie, wetenschap) krijgt die rubriek, niet een rubriek
   // uit de tekst ("Britse fabrikant" maakte van een koptelefoonreview anders Buitenland).
   const SPECIALIST = new Set(['tech', 'economie', 'wetenschap'])
   const leadCat = (e) => catOf.get(pool.find((i) => i.id === (e.leadId || e.id))?.source)
-  const news = selectEdition(stories, newsPool, { mainIds: followed, now, size: size - extra.length, bonus, strict: true, previous }).map((e) => (SPECIALIST.has(leadCat(e)) ? { ...e, desk: leadCat(e) } : e))
+  const news = selectEdition(stories, newsPool, { mainIds: followed, now, size: size - extra.length, bonus, strict: true, previous, preferred }).map((e) => (SPECIALIST.has(leadCat(e)) ? { ...e, desk: leadCat(e) } : e))
   const own = [...news, ...extra]
 
   // Aanvullen uit de algemene editie, zonder dubbel verhaal of dubbele gebeurtenis.
@@ -130,8 +136,10 @@ export function composePersonal({ global, stories = [], items = [], sources = []
 // Vingerafdruk van waaruit een editie is samengesteld: je bronnen en interesses. Een editie met
 // een andere afdruk is niet (meer) de jouwe — bijvoorbeeld gemaakt op een toestel dat je
 // instellingen nog niet had geladen — en wordt opnieuw samengesteld.
-export function editionBasis(followed = [], interests = [], topics = []) {
-  const text = [[...followed].sort().join(','), [...interests].sort().join(','), [...topics].sort().join(',')].join('|')
+export function editionBasis(followed = [], interests = [], topics = [], favorites = []) {
+  const parts = [[...followed].sort().join(','), [...interests].sort().join(','), [...topics].sort().join(',')]
+  if (favorites.length) parts.push([...favorites].sort().join(',')) // zonder voorkeuren: dezelfde afdruk als vroeger
+  const text = parts.join('|')
   let h = 5381
   for (let i = 0; i < text.length; i++) h = ((h * 33) ^ text.charCodeAt(i)) >>> 0
   return h.toString(36)
