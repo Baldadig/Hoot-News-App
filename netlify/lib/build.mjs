@@ -126,6 +126,8 @@ function streamItems(all) {
 // dan uit de zoekindex van Bing Nieuws. DPG-kranten: één vraag per rubriek die nu in de feed staat.
 const GAPS = { volkskrant: 'volkskrant.nl', trouw: 'trouw.nl', parool: 'parool.nl', demorgen: 'demorgen.be', nyt: 'nytimes.com', economist: 'economist.com' }
 const PER_SECTION = new Set(['volkskrant', 'trouw', 'parool', 'demorgen'])
+// Veel rubrieken tegelijk in de feed (het Parool ook Engelstalige: guide, amsterdam-news).
+const WIDE_SECTIONS = new Set(['volkskrant', 'parool'])
 async function fillGaps(items, now) {
   const result = { vkSnippets: 0, filled: 0 }
   const needs = items.filter((it) => GAPS[it.source] && it.kind === 'article' && !isLiveblog(it.url) && (!it.summary || !it.image))
@@ -137,7 +139,7 @@ async function fillGaps(items, now) {
   if (open.length && (fresh || now - (checkedAt || 0) > 30 * MIN)) {
     const wanted = [...new Set(open.map((it) => it.source))]
     const sections = (src) => [...new Set(open.filter((it) => it.source === src).map((it) => it.url.split('/')[3] || '').filter((x) => /^[a-z-]+$/.test(x)))]
-    const queries = (src) => (PER_SECTION.has(src) ? [`site:${GAPS[src]}`, ...sections(src).slice(0, src === 'volkskrant' ? 10 : 6).map((sec) => `site:${GAPS[src]}/${sec}`)] : [`site:${GAPS[src]}`])
+    const queries = (src) => (PER_SECTION.has(src) ? [`site:${GAPS[src]}`, ...sections(src).slice(0, WIDE_SECTIONS.has(src) ? 10 : 6).map((sec) => `site:${GAPS[src]}/${sec}`)] : [`site:${GAPS[src]}`])
     const found = (await Promise.all(wanted.map((src) => loadSnippets(queries(src), GAPS[src]).catch(() => [])))).flat()
     store = mergeSnippets(store, found, now)
     await Promise.all([found.length ? kvSet('gap-fill-v1', store) : null, kvSet('gap-fill-at', now)])

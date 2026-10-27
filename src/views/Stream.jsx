@@ -186,7 +186,7 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
             <div className="srcstrip" role="group" aria-label="Bron">
               {strip.map((s) => (
                 <button key={s.id} type="button" className="srcstrip__btn" aria-pressed={filters.bron === s.id} aria-label={`Alleen ${s.name}`} title={s.name} onClick={() => setFilter('bron', filters.bron === s.id ? '' : s.id)}>
-                  <SourceMark source={s} size={40} />
+                  <SourceMark source={s} size={28} />
                 </button>
               ))}
             </div>

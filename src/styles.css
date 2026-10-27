@@ -3518,7 +3518,7 @@ html[data-images='hoofd'] .media--social {
 /* Stroom: je bronnen als rij logo's (één tik = alleen die bron) */
 .srcstrip {
   display: flex;
-  gap: var(--s2);
+  gap: 0;
   overflow-x: auto;
   scrollbar-width: none;
   margin: var(--s3) calc(-1 * var(--s4)) 0;
@@ -3531,17 +3531,27 @@ html[data-images='hoofd'] .media--social {
   flex: none;
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
+  width: 40px; /* aanraakvlak; het logo zelf is 28px */
+  height: 44px;
   padding: 0;
   border: 0;
   border-radius: 50%;
   background: none;
   cursor: pointer;
 }
-.srcstrip__btn[aria-pressed='true'] {
-  box-shadow: 0 0 0 2px var(--accent);
+.srcstrip__btn[aria-pressed='true'] > * {
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--accent);
+  border-radius: 50%;
 }
-.srcstrip:has([aria-pressed='true']) .srcstrip__btn:not([aria-pressed='true']) {
+/* In grijs: rustig, als een rij in de krant; de gekozen bron in kleur */
+.srcstrip__btn > * {
+  filter: grayscale(1);
+  opacity: 0.9;
+}
+.srcstrip__btn[aria-pressed='true'] > * {
+  filter: none;
+  opacity: 1;
+}
+.srcstrip:has([aria-pressed='true']) .srcstrip__btn:not([aria-pressed='true']) > * {
   opacity: 0.45;
 }

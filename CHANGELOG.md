@@ -2,6 +2,11 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.36.1] — 2026-10-27 — Rustiger bronnenrij, meer Parool-intro's
+
+- **Rustiger bronnenrij in de Stroom:** kleinere logo's (28 px) in grijs, alleen de gekozen bron in kleur.
+- **Meer intro's bij het Parool.** De Parool-feed stuurt bij een deel van de berichten geen intro mee; Hoot vult die aan via Bing Nieuws. Dat gebeurt nu in 10 rubrieken tegelijk in plaats van 6, zodat ook de Engelstalige rubrieken (guide, amsterdam-news) worden meegenomen.
+
 ## [1.36.0] — 2026-10-27 — Jouw krant: voorkeursbronnen, smaak en snel naar één bron
 
 - **Voorkeursbronnen.** Met de ster bij een bron (Bronnen) wordt het een voorkeursbron. Die weegt zwaarder in je editie (ongeveer twee bronnen extra dekking) en levert binnen een verhaal bij voorkeur het hoofdbericht. Gaat mee met je account.

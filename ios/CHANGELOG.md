@@ -1,5 +1,9 @@
 # Changelog — Hoot voor iOS
 
+## [0.11.1] — 2026-10-27 — Rustiger bronnenrij
+
+- **De rij met bronnen in de Stroom is kleiner en rustiger:** logo's van 30 pt in grijs, zonder sterretjes, met een aanraakvlak van 44 pt.
+
 ## [0.11.0] — 2026-10-27 — Jouw editie, ook zonder account
 
 - **De editie komt uit jouw bronnen.** De app vraagt per dagdeel jouw editie op bij `/api/edition`. Die gebruikt hetzelfde selectiewerk als de website, met je bronnen, interesses, voorkeursbronnen en smaak, en herhaalt niet wat in je vorige editie stond. Onder de datum staat "Jouw editie". Lukt het niet, dan de editie voor iedereen.

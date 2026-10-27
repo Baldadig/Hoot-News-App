@@ -22,7 +22,8 @@ struct SourceAvatar: View {
     }
 }
 
-// De rij met je bronnen: voorkeursbronnen vooraan, dan wie nu het meest brengt. Eén tik = die bron.
+// De rij met je bronnen: klein en rustig, voorkeursbronnen vooraan, dan wie nu het meest brengt.
+// Eén tik = die bron.
 struct SourceStrip: View {
     @Environment(HootStore.self) private var store
     var body: some View {
@@ -35,24 +36,23 @@ struct SourceStrip: View {
         }
         if list.count > 1 {
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
+                HStack(spacing: 4) {
                     ForEach(list) { s in
                         NavigationLink(value: SourceRoute(id: s.id)) {
-                            SourceAvatar(source: s, size: 44)
-                                .overlay(alignment: .bottomTrailing) {
-                                    if store.isFavorite(s.id) {
-                                        Image(systemName: "star.fill").font(.system(size: 9, weight: .bold)).foregroundStyle(.white).padding(3).background(Theme.accent, in: Circle())
-                                    }
-                                }
+                            SourceAvatar(source: s, size: 30)
+                                .grayscale(1) // in grijs: rustig, als een rij in de krant
+                                .opacity(0.9)
+                                .frame(width: 38, height: 44) // aanraakvlak 44 pt, het logo zelf klein
+                                .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Alles van \(s.name)")
                     }
                 }
-                .padding(.vertical, 4)
             }
             .scrollClipDisabled()
-            .padding(.bottom, 12)
+            .padding(.leading, -4)
+            .padding(.bottom, 8)
         }
     }
 }
