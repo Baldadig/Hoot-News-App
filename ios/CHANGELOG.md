@@ -1,5 +1,13 @@
 # Changelog — Hoot voor iOS
 
+## [0.14.0] — 2026-10-27 — Merkrood
+
+- **Opstartscherm in merkrood** met "hoot." in papierwit (`BrandRed`, `LaunchMark`), in licht en donker gelijk. iOS bewaart opstartschermen: het nieuwe verschijnt na herinstalleren, soms pas na een herstart.
+- **Welkom bij de eerste start:** een rood scherm met "Minder scrollen. Meer lezen.", de drie onderdelen (Editie, Stroom, Digest), "Begin met lezen" en "Kies eerst je interesses". Het staat in de buitenste weergave, omdat de lezer al op volledig scherm presenteert.
+- **Einde van de editie** is een rode kaart: "Je bent bij.", wanneer de volgende editie komt, en "Toch verder lezen in de Stroom".
+- **App Store- en promobeelden** in merkrood met papierwitte koppen. Een te lange kop wordt nu automatisch kleiner, zodat hij niet meer buiten het beeld valt.
+- **Theme:** `brandRed` en `onBrandRed`, gelijk aan de website.
+
 ## [0.13.0] — 2026-10-27 — Het design system toegepast
 
 - **Kleuren van het design system:** `Ink`, `Ink2`, `Ink3`, `Rule`, `Edge`, `AccentSoft`, `OnAccent` en `Warn` in de asset catalog, en `Theme` met dezelfde namen als de website. `Muted` is `Ink3` geworden, met dezelfde waarde als op de website.

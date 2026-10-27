@@ -18,6 +18,10 @@
   --on-accent: #ffffff;
   --warn: #8f4300;
   --brand: #1a1814; /* merk: inkt, met de punt in krantenrood */
+  /* Merkrood: het diepe krantenrood als vol vlak, in beide thema's gelijk (niet het lichtere
+     accent van donker). Alleen voor merkmomenten: welkom, einde van de editie, deelbeelden. */
+  --brand-red: #a3201b;
+  --on-brand-red: #ffffff; /* 7,6:1 */
   --quiet-amber: #b0802f; /* stil statuspuntje, geen alarm */
   /* Google-knop, donker thema (vast volgens Googles richtlijnen, in beide thema's gelijk) */
   --g-fill: #131314;
@@ -1292,11 +1296,18 @@ select {
   text-align: center;
 }
 
+/* Het einde van de editie: een merkmoment, in merkrood. Het merk en de knop in papierwit. */
 .endcap {
+  --brand: var(--on-brand-red);
+  --accent: var(--on-brand-red);
   display: grid;
   justify-items: center;
   gap: var(--s3);
-  padding: var(--s7) var(--s2) var(--s4);
+  margin: var(--s6) 0 var(--s4);
+  padding: var(--s7) var(--s5) var(--s6);
+  border-radius: var(--radius);
+  background: var(--brand-red);
+  color: var(--on-brand-red);
   text-align: center;
 }
 .endcap__title {
@@ -1306,7 +1317,11 @@ select {
 }
 .endcap__text {
   max-width: 30em;
-  color: var(--ink-2);
+  color: var(--on-brand-red);
+}
+.endcap .btn--quiet {
+  border-color: var(--on-brand-red);
+  color: var(--on-brand-red);
 }
 
 .how {
@@ -2011,8 +2026,11 @@ select {
   line-height: var(--lh-body);
 }
 
-/* Scherm 1: rood, met een grote belofte */
+/* Scherm 1: merkrood, met een grote belofte. Binnen dit scherm is het accent het merkrood,
+   ook in donker (anders wordt het het lichtere koraal). */
 .ob--open {
+  --accent: var(--brand-red);
+  --on-accent: var(--on-brand-red);
   background: var(--accent);
   color: var(--on-accent);
 }

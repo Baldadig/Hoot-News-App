@@ -2,11 +2,13 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Startscherm in de kleur van het papier (licht en donker), zonder wit flitsen. -->
+	<!-- Opstartscherm: een merkmoment in merkrood met "hoot." in papierwit (licht en donker gelijk). -->
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>
-		<string>Paper</string>
+		<string>BrandRed</string>
+		<key>UIImageName</key>
+		<string>LaunchMark</string>
 	</dict>
 </dict>
 </plist>

@@ -1,4 +1,5 @@
 // Promotiebeelden: LinkedIn (1200 × 630) en Instagram (1080 × 1350), uit de schermafbeelding van de Editie.
+// Een merkmoment: merkrood met de krantenletter in papierwit.
 // Gebruik: node ios/AppStore/tools/promo.mjs
 import sharp from 'sharp'
 const A = 'ios/AppStore'
@@ -18,12 +19,12 @@ async function phone(width) {
 async function make(out, W, H, layout) {
   const p = await phone(layout.phoneW)
   const svg = `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
-    <rect x="${layout.tx}" y="${layout.ty}" width="${layout.logo * 2.2}" height="${layout.logo * 0.16}" fill="#A3201B"/>
-    <text x="${layout.tx}" y="${layout.ty + layout.logo * 1.2}" font-family="${serif}" font-weight="800" font-size="${layout.logo}" fill="#1A1814">hoot<tspan fill="#A3201B">.</tspan></text>
-    ${layout.lines.map((l, i) => `<text x="${layout.tx}" y="${layout.hy + i * layout.hs * 1.1}" font-family="${serif}" font-weight="800" font-size="${layout.hs}" fill="#1A1814">${l}</text>`).join('')}
-    <text x="${layout.tx}" y="${layout.sy}" font-family="${sans}" font-size="${layout.ss}" fill="#6B6457">Nu voor iPhone en iPad · gratis</text>
+    <rect x="${layout.tx}" y="${layout.ty}" width="${layout.logo * 2.2}" height="${layout.logo * 0.16}" fill="#F5F1E8"/>
+    <text x="${layout.tx}" y="${layout.ty + layout.logo * 1.2}" font-family="${serif}" font-weight="800" font-size="${layout.logo}" fill="#F5F1E8">hoot.</text>
+    ${layout.lines.map((l, i) => `<text x="${layout.tx}" y="${layout.hy + i * layout.hs * 1.1}" font-family="${serif}" font-weight="800" font-size="${layout.hs}" fill="#F5F1E8">${l}</text>`).join('')}
+    <text x="${layout.tx}" y="${layout.sy}" font-family="${sans}" font-size="${layout.ss}" fill="#F4E3DE">Nu voor iPhone en iPad · gratis</text>
   </svg>`
-  await sharp({ create: { width: W, height: H, channels: 3, background: '#F5F1E8' } })
+  await sharp({ create: { width: W, height: H, channels: 3, background: '#A3201B' } })
     // De telefoon loopt onderaan uit beeld: bijsnijden tot de rand.
     .composite([{ input: Buffer.from(svg) }, { input: await sharp(p.buf).extract({ left: 0, top: 0, width: layout.phoneW, height: Math.min(p.h, H - layout.py) }).toBuffer(), left: layout.px, top: layout.py }])
     .png().toFile(out)

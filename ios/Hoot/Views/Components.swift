@@ -17,6 +17,10 @@ enum Theme {
     static let accentSoft = Color("AccentSoft") // achtergrond van iets dat aan staat
     static let onAccent = Color("OnAccent") // tekst op een accent-vlak
     static let warn = Color("Warn") // waarschuwing, altijd met woorden
+    // Merkrood: het diepe krantenrood als vol vlak, in licht en donker gelijk. Alleen voor
+    // merkmomenten (opstarten, welkom, einde van de editie); verder is het accent een detail.
+    static let brandRed = Color("BrandRed")
+    static let onBrandRed = Color("OnBrandRed") // tekst op merkrood, 7,6:1
     static let accent = Color.accentColor
     static func headline(_ style: Font.TextStyle) -> Font { .system(style, design: .serif, weight: .bold) }
 }

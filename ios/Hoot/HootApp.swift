@@ -14,6 +14,11 @@ struct HootApp: App {
             WidthReader { RootView() }
                 .environment(store)
                 .tint(Theme.accent)
+                // De eerste keer: een welkom, net als op de website. Hier en niet in RootView: daar
+                // presenteert de lezer al op volledig scherm, en één weergave kan er maar één tonen.
+                .fullScreenCover(isPresented: Binding(get: { !store.onboarded }, set: { if !$0 { store.onboarded = true } })) {
+                    WelcomeView().environment(store)
+                }
         }
     }
 }
@@ -28,7 +33,7 @@ struct RootView: View {
     @Environment(\.scenePhase) private var phase
     @SceneStorage("tab") private var tab: Destination = .editie
 
-    enum Destination: String { case editie, stroom, digest, bewaard, zoek }
+    enum Destination: String, Sendable { case editie, stroom, digest, bewaard, zoek }
 
     // Met een toetsenbord (iPad): ⌘1–4 voor de tabbladen, ⌘F zoeken, ⌘R verversen.
     private var shortcuts: some View {
@@ -54,6 +59,7 @@ struct RootView: View {
             Tab(value: Destination.zoek, role: .search) { SearchView() }
         }
         .tabViewStyle(.sidebarAdaptable) // iPad en brede vensters: zijbalk of tabbalk bovenaan
+        .environment(\.openTab) { tab = $0 }
         .background { shortcuts }
         .tabBarMinimizeBehavior(.onScrollDown)
         .task { await store.load() }
@@ -85,5 +91,14 @@ struct RootView: View {
                 Color.clear.onAppear { reader.item = nil }
             }
         }
+    }
+}
+
+// Naar een ander tabblad gaan vanuit een scherm (bijvoorbeeld "Verder in de Stroom" onder de editie).
+struct OpenTabKey: EnvironmentKey { static let defaultValue: @MainActor (RootView.Destination) -> Void = { _ in } }
+extension EnvironmentValues {
+    var openTab: @MainActor (RootView.Destination) -> Void {
+        get { self[OpenTabKey.self] }
+        set { self[OpenTabKey.self] = newValue }
     }
 }

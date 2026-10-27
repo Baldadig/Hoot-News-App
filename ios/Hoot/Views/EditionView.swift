@@ -44,6 +44,7 @@ extension HootStore {
 
 struct EditionView: View {
     @Environment(HootStore.self) private var store
+    @Environment(\.openTab) private var openTab
     @Environment(\.isWide) private var wide
     private var title: String { store.edition?.slot.flatMap { Desk.slots[$0] } ?? "Editie" }
     private var dateLine: String {
@@ -89,18 +90,30 @@ struct EditionView: View {
                                 ItemRow(item: row.item, label: row.label, story: row.story)
                             }
                         }
-                        // Het einde, zoals op de website: je bent bij, en wanneer de volgende er is.
-                        VStack(spacing: Space.s2) {
-                            Rule().frame(width: Space.s7)
-                            Text("Je bent bij.").font(Theme.headline(.title3)).foregroundStyle(Theme.ink)
+                        // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,
+                        // en wanneer de volgende er is.
+                        VStack(spacing: Space.s3) {
+                            Text("h\(Text(".").foregroundStyle(Theme.onBrandRed))")
+                                .font(.system(size: 40, weight: .heavy, design: .serif))
+                                .accessibilityHidden(true)
+                            Text("Je bent bij.").font(Theme.headline(.title))
                             Text("Dit was de \(title.lowercased()) van \(dateLine.lowercased()). De volgende staat klaar om \(store.edition?.next ?? "").")
                                 .font(.subheadline)
-                                .foregroundStyle(Theme.ink3)
                                 .multilineTextAlignment(.center)
+                            Button("Toch verder lezen in de Stroom") { openTab(.stroom) }
+                                .font(.subheadline.weight(.semibold))
+                                .padding(.horizontal, Space.s5)
+                                .frame(minHeight: Space.tap)
+                                .overlay(Capsule().strokeBorder(Theme.onBrandRed, lineWidth: 1))
+                                .padding(.top, Space.s2)
                         }
+                        .foregroundStyle(Theme.onBrandRed)
                         .frame(maxWidth: .infinity)
+                        .padding(.horizontal, Space.s5)
                         .padding(.vertical, Space.s7)
-                        .accessibilityElement(children: .combine)
+                        .background(Theme.brandRed, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                        .padding(.top, Space.s6)
+                        .padding(.bottom, Space.s4)
                     }
                 }
                 .padding(.horizontal)

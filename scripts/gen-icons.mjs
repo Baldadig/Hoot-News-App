@@ -31,17 +31,19 @@ for (const t of targets) {
   await sharp(t.svg, { density: 384 }).resize(t.size, t.size).png().toFile(resolve(pub, t.out))
   console.log('✓', t.out)
 }
-// Deelafbeelding (Open Graph, 1200×630): de krantenkop "hoot." op papier, met de rode balk
-// erboven en de dunne lijn eronder, zoals in de zijbalk.
+// Deelafbeelding (Open Graph, 1200×630): een merkmoment in merkrood, met "hoot." in papierwit,
+// een papieren balk erboven en een dunne lijn eronder.
 {
-  const logo = await readFile(resolve(pub, 'brand/hoot-logo-ink.svg'), 'utf8')
+  const RED = '#A3201B'
+  const PAPER = '#F5F1E8'
+  const logo = (await readFile(resolve(pub, 'brand/hoot-logo-ink.svg'), 'utf8')).replace(/#1A1814/gi, PAPER).replace(/#A3201B/gi, PAPER)
   const [, vw, vh] = logo.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/)
   const inner = logo.replace(/^<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '')
   const h = 200
   const w = (h * vw) / vh
   const x = (1200 - w) / 2
   const y = (630 - h) / 2 + 10
-  const og = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630"><rect width="1200" height="630" fill="#F5F1E8"/><rect x="${x}" y="${y - 70}" width="${w}" height="18" fill="#A3201B"/><svg x="${x}" y="${y}" width="${w}" height="${h}" viewBox="0 0 ${vw} ${vh}">${inner}</svg><rect x="${x}" y="${y + h + 44}" width="${w}" height="6" fill="#1A1814"/></svg>`
+  const og = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630"><rect width="1200" height="630" fill="${RED}"/><rect x="${x}" y="${y - 70}" width="${w}" height="18" fill="${PAPER}"/><svg x="${x}" y="${y}" width="${w}" height="${h}" viewBox="0 0 ${vw} ${vh}">${inner}</svg><rect x="${x}" y="${y + h + 44}" width="${w}" height="6" fill="${PAPER}"/></svg>`
   await sharp(Buffer.from(og)).png().toFile(resolve(pub, 'og.png'))
   console.log('✓ og.png')
 }

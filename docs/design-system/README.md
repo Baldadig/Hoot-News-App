@@ -6,6 +6,7 @@ Hoot is een rustige nieuwslezer: drie keer per dag een editie van tien verhalen 
 - **Lijnen en witruimte, geen omlijnde kaarten.** Berichten scheid je met een `rule`-haarlijn en `s5`; een kaart (`surface`, `radius`) alleen voor iets dat echt los staat: een Digest-stuk, een melding, een blad.
 - **Serif voor wat je leest, schreefloos voor wat je bedient.** Koppen in `serif`, al het andere in `sans`.
 - **Eén accent.** `accent` markeert rubriek, actief, "+N bronnen", het label "gratis" en het punt van het woordmerk. Nooit als vlakvulling van een heel scherm, en nooit voor gewone bediening: iconen in de kop (instellingen, zoeken, verversen) zijn `ink-3`.
+- **Merkmomenten in merkrood.** Op een handvol vaste momenten wordt het krantenrood een vol vlak (`brand-red` met `on-brand-red`): het opstartscherm van de app, het welkom, het einde van de editie ("Je bent bij.") en de deel- en App Store-beelden. Juist omdat de rest papier en inkt is, voelt dat fris; daarom nergens anders, en nooit op een scherm waar je leest.
 - **Niets beweegt terwijl je leest.** Nieuwe berichten wachten achter een knop; de leespositie verschuift nooit vanzelf.
 - **Een einde.** Elke lijst die eindigt, zegt dat: "Dat was de editie. De volgende verschijnt om 12:00 uur."
 
@@ -33,6 +34,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 | Rubriek, actief, "+N bronnen" | `accent` | `paper`, `surface` |
 | Actieve chip | `accent` op `accent-soft` | — |
 | Tekst op rood | `on-accent` op `accent` | — |
+| Merkmoment (vol vlak) | `on-brand-red` op `brand-red` | — |
 | Waarschuwing en fouttekst (met woorden) | `warn` | `paper` |
 | Rand van een veld of filterknop | `edge` | `paper`, `surface` |
 
@@ -90,7 +92,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 
 - **Leeg:** wat er komt en wat je kunt doen ("Nog niets bewaard. Tik op het bladwijzer-icoon bij een bericht om het hier te bewaren.").
 - **Geen verbinding:** de laatst bewaarde versie, met "Verversen lukt nu niet. Je ziet de versie van 10:10." en "Opnieuw". Zonder eerdere versie een melding met de knop "Probeer opnieuw".
-- **Het einde van de editie:** "Je bent bij." met "Dit was de avondeditie van dinsdag 27 oktober. De volgende staat klaar om 06:00."
+- **Het einde van de editie:** een kaart in merkrood met de "h.", "Je bent bij.", "Dit was de avondeditie van dinsdag 27 oktober. De volgende staat klaar om 06:00." en "Toch verder lezen in de Stroom".
 - **Gelezen:** de kop in `ink-3` in plaats van `ink`.
 - **Verwijderen:** één ding (een bewaard bericht) gaat meteen, met "Ongedaan maken" (web) of vegen (iOS). Alles tegelijk wissen ("Bewaarde artikelen verwijderen", "Alles als ongelezen markeren") vraagt bevestiging, met een zichtbare "Annuleer" en precies wat er verdwijnt.
 

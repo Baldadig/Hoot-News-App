@@ -39,6 +39,7 @@ final class HootStore {
     var readerFirst: Bool { didSet { save("hoot.readerFirst", readerFirst) } } // meteen de Lezer
     var paidInSafari: Bool { didSet { save("hoot.paidInSafari", paidInSafari) } } // betaalde bronnen in Safari (daar ben je ingelogd)
     var preview: Int { didSet { save("hoot.preview", preview) } } // regels intro bij een bericht; 0 = de hele intro
+    var onboarded: Bool { didSet { save("hoot.onboarded", onboarded) } } // het welkom is gezien
     // Jouw editie: je interesses (src/lib/topics.js), voorkeursbronnen (ster) en smaak (wat je leest).
     var interests: [String] { didSet { save("hoot.interests", interests); refreshPersonal() } }
     var favorites: [String] { didSet { save("hoot.favorites", favorites); refreshPersonal() } }
@@ -89,6 +90,11 @@ final class HootStore {
         paidInSafari = Self.load("hoot.paidInSafari") ?? true
         streamSeen = Self.load("hoot.streamSeen") ?? nil
         preview = Self.load("hoot.preview") ?? 2
+        onboarded = Self.load("hoot.onboarded") ?? false
+        #if DEBUG
+        // Opnamen met een startargument (screenshots.sh, device-screens.sh) slaan het welkom over.
+        if UserDefaults.standard.string(forKey: "HootStartTab") != nil { onboarded = true }
+        #endif
         interests = Self.load("hoot.interests") ?? []
         favorites = Self.load("hoot.favorites") ?? []
         affinity = Self.load("hoot.affinity") ?? Affinity()

@@ -2,6 +2,14 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.38.0] — 2026-10-27 — Merkrood
+
+- **Merkrood als token:** `--brand-red` (#a3201b) en `--on-brand-red` (wit, 7,6:1), in licht en donker gelijk. Het is het diepe krantenrood als vol vlak, alleen voor merkmomenten. Het accent blijft voor bediening.
+- **Welkom** (scherm 1) gebruikt het merkrood, ook in donker. Voorheen werd het daar het lichtere koraal.
+- **Einde van de editie** is een rode kaart met "Je bent bij." en de knop in papierwit.
+- **Deelafbeelding** (`og.png`) is merkrood met het woordmerk in papierwit.
+- **Design system:** de regel Merkmomenten en twee nieuwe onderdelen, EndCard en Welcome.
+
 ## [1.37.0] — 2026-10-27 — Het design system
 
 - **Hoot heeft een design system** (`docs/design-system/`; live met voorbeelden als Hoot Design System). Het bevat:
