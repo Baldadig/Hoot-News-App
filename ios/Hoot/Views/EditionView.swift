@@ -24,7 +24,7 @@ enum Desk {
 
 extension HootStore {
     var editionRows: [EditionRowModel] {
-        guard let edition else { return [] }
+        guard let edition = shownEdition else { return [] }
         let published = Dictionary((edition.items ?? []).map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
         let on = Set(followed.map(\.id))
         let rows: [EditionRowModel] = edition.entries.filter { bubble || $0.desk != "bubbel" }.compactMap { e in
@@ -51,7 +51,7 @@ struct EditionView: View {
         return date.formatted(HootDate.style(.dateTime.weekday(.wide).day().month(.wide))).capitalizedFirst
     }
 
-    @State private var path: [Story] = []
+    @State private var path = NavigationPath()
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -68,7 +68,7 @@ struct EditionView: View {
                         }
                     } else {
                         StaleNotice()
-                        Text("\(dateLine) · De editie voor iedereen")
+                        Text("\(dateLine) · \(store.isPersonal ? "Jouw editie" : "De editie voor iedereen")")
                             .font(.subheadline)
                             .foregroundStyle(Theme.muted)
                             .padding(.bottom, 16)
@@ -103,11 +103,12 @@ struct EditionView: View {
             .background(Theme.paper)
             .navigationTitle(title)
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
+            .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .refreshable { await store.load() }
             .settingsButton()
             .task(id: store.editionRows.count) {
                 // `-HootScreen verhaal`: het eerste verhaal met de meeste bronnen, om te vergelijken.
-                if DebugLaunch.screen("verhaal"), path.isEmpty, let story = store.editionRows.compactMap(\.story).max(by: { ($0.sourceCount ?? 1) < ($1.sourceCount ?? 1) }) { path = [story] }
+                if DebugLaunch.screen("verhaal"), path.isEmpty, let story = store.editionRows.compactMap(\.story).max(by: { ($0.sourceCount ?? 1) < ($1.sourceCount ?? 1) }) { path.append(story) }
             }
         }
     }

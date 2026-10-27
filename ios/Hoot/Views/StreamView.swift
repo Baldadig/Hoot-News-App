@@ -30,6 +30,7 @@ struct StreamView: View {
                     BlueskyFeed().padding(.horizontal).column()
                 } else {
                 LazyVStack(alignment: .leading, spacing: 0) {
+                    SourceStrip()
                     if store.status == .loading && items.isEmpty {
                         ProgressView().frame(maxWidth: .infinity, minHeight: 240)
                     } else if items.isEmpty {
@@ -69,6 +70,7 @@ struct StreamView: View {
             .background(Theme.paper)
             .navigationTitle(social ? "Bluesky" : "Stroom")
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
+            .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .refreshable { await store.load() }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -147,6 +149,15 @@ struct SourcesList: View {
                 if !list.isEmpty {
                     Section(label) {
                         ForEach(list) { s in
+                            HStack(spacing: 4) {
+                            if store.isOn(s) {
+                                // Voorkeursbron: weegt zwaarder in je editie en staat vooraan in de Stroom.
+                                Button { store.setFavorite(s.id, !store.isFavorite(s.id)) } label: {
+                                    Image(systemName: store.isFavorite(s.id) ? "star.fill" : "star").foregroundStyle(store.isFavorite(s.id) ? Theme.accent : Theme.muted).frame(width: 36, height: 44)
+                                }
+                                .buttonStyle(.borderless)
+                                .accessibilityLabel(store.isFavorite(s.id) ? "\(s.name): voorkeursbron" : "Maak \(s.name) een voorkeursbron")
+                            }
                             Toggle(isOn: Binding(get: { store.isOn(s) }, set: { store.setOn(s, $0) })) {
                                 VStack(alignment: .leading, spacing: 2) {
                                     HStack(spacing: 6) {
@@ -155,6 +166,7 @@ struct SourcesList: View {
                                     }
                                     if let about = s.about { Text(about).font(.caption).foregroundStyle(Theme.muted) }
                                 }
+                            }
                             }
                         }
                     }
@@ -189,6 +201,7 @@ struct SavedView: View {
             .navigationTitle("Bewaard")
             .settingsButton()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
+            .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
         }
     }
 }
@@ -217,6 +230,7 @@ struct SearchView: View {
             }
             .navigationTitle("Zoeken")
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
+            .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .searchable(text: $query, prompt: "Zoek in koppen en intro's")
         }
     }

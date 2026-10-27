@@ -1,5 +1,14 @@
 # Changelog — Hoot voor iOS
 
+## [0.11.0] — 2026-10-27 — Jouw editie, ook zonder account
+
+- **De editie komt uit jouw bronnen.** De app vraagt per dagdeel jouw editie op bij `/api/edition`. Die gebruikt hetzelfde selectiewerk als de website, met je bronnen, interesses, voorkeursbronnen en smaak, en herhaalt niet wat in je vorige editie stond. Onder de datum staat "Jouw editie". Lukt het niet, dan de editie voor iedereen.
+- **Interesses** (Instellingen › Jouw editie): de acht van de website. Wat erbij past, gaat voor.
+- **Voorkeursbronnen:** een ster bij een bron in Bronnen, of op het bronscherm. Die bronnen wegen zwaarder en leveren bij voorkeur het hoofdbericht.
+- **De app leert je smaak:** wat je opent en bewaart, per onderwerp en bron, op deze iPhone.
+- **Snel naar één bron:** bovenaan de Stroom staan je bronnen als logo's, met de voorkeursbronnen vooraan en een sterretje. Een tik, of een tik op de bronnaam bij een bericht, opent alles van die bron, nieuwste eerst.
+- Import (`import.json`) neemt nu ook interesses en voorkeursbronnen over.
+
 ## [0.10.0] — 2026-10-26 — Video's in Bluesky
 
 - **Video's spelen in de app.** In Bluesky (bovenaan de Stroom) staat bij een video het stilstaande beeld met een afspeelknop. Een tik speelt hem af in de post, met de gewone iOS-bediening en volledig scherm.

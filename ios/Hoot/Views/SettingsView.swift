@@ -86,6 +86,21 @@ struct SettingsView: View {
                     Text("Bovenaan de Stroom kies je dan tussen het nieuws en de posts van de mensen die je volgt.").foregroundStyle(Theme.muted)
                 }
 
+                Section {
+                    NavigationLink(value: "interesses") {
+                        LabeledContent {
+                            Text(InterestsList.summary(store.interests)).lineLimit(1)
+                        } label: { Label("Interesses", systemImage: "heart.text.square") }
+                    }
+                    NavigationLink(value: "bronnen") {
+                        LabeledContent { Text(store.favorites.isEmpty ? "Geen" : "\(store.favorites.count)") } label: { Label("Voorkeursbronnen", systemImage: "star") }
+                    }
+                } header: {
+                    Text("Jouw editie")
+                } footer: {
+                    Text("Je editie komt uit je eigen bronnen. Wat bij je interesses past en wat van je voorkeursbronnen komt (de ster bij Bronnen) gaat voor. Ook wat je opent en bewaart telt mee; dat blijft op deze iPhone.").foregroundStyle(Theme.muted)
+                }
+
                 Section("Bronnen en vakken") {
                     NavigationLink(value: "bronnen") {
                         LabeledContent { Text("\(store.followed.count) aan") } label: { Label("Bronnen", systemImage: "dot.radiowaves.up.forward") }
@@ -135,6 +150,8 @@ struct SettingsView: View {
             .navigationDestination(for: String.self) { page in
                 if page == "bronnen" {
                     SourcesList().navigationTitle("Bronnen").navigationBarTitleDisplayMode(.inline)
+                } else if page == "interesses" {
+                    InterestsList().navigationTitle("Interesses").navigationBarTitleDisplayMode(.inline)
                 } else if page == "bluesky" {
                     BlueskyAccountsView()
                 } else {
@@ -155,6 +172,36 @@ struct SettingsView: View {
                 }
             } message: {
                 Text(confirmClear == "bewaard" ? "\(store.saved.count == 1 ? "1 artikel verdwijnt" : "\(store.saved.count) artikelen verdwijnen") uit Bewaard. Dit kun je niet ongedaan maken." : "Wat je las, wordt weer gewoon getoond. Je bewaarde artikelen blijven staan.")
+            }
+        }
+    }
+}
+
+// Interesses: dezelfde acht als op de website (src/lib/topics.js).
+struct InterestsList: View {
+    @Environment(HootStore.self) private var store
+    static let all = [("politiek", "Politiek", "Nederland, Europa, VS-politiek, verkiezingen", "building.columns"), ("binnenland", "Binnenland", "Wonen, zorg, onderwijs, misdaad, migratie", "house"), ("wereld", "Wereld", "Oekraïne, Midden-Oosten, Azië, geopolitiek", "globe.europe.africa"), ("economie", "Economie", "Werk, bedrijven, energie, geld", "chart.line.uptrend.xyaxis"), ("tech", "Tech", "AI, tech, gadgets, privacy", "cpu"), ("wetenschap", "Wetenschap", "Klimaat, gezondheid, ruimte, natuur", "atom"), ("cultuur", "Cultuur", "Muziek, film, boeken, kunst, media", "theatermasks"), ("sport", "Sport", "Voetbal, F1, wielrennen, tennis", "figure.run")]
+    static func summary(_ ids: [String]) -> String {
+        let names = all.filter { ids.contains($0.0) }.map(\.1)
+        return names.isEmpty ? "Geen" : names.joined(separator: ", ")
+    }
+    var body: some View {
+        Form {
+            Section {
+                ForEach(Self.all, id: \.0) { id, label, about, icon in
+                    Toggle(isOn: Binding(get: { store.interests.contains(id) }, set: { on in
+                        store.interests = on ? Self.all.map(\.0).filter { $0 == id || store.interests.contains($0) } : store.interests.filter { $0 != id }
+                    })) {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(label)
+                                Text(about).font(.caption).foregroundStyle(Theme.muted)
+                            }
+                        } icon: { Image(systemName: icon) }
+                    }
+                }
+            } footer: {
+                Text("Wat hierbij past, gaat voor in je editie. Echt groot nieuws blijft bovenaan, ook als het buiten je interesses valt.").foregroundStyle(Theme.muted)
             }
         }
     }

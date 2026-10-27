@@ -67,6 +67,20 @@ enum HootAPI {
         }
     }
 
+    // Een vraag met een antwoord dat niet bewaard hoeft te worden (jouw editie).
+    static func post<T: Decodable, B: Encodable>(_ path: String, _ body: B) async throws -> T {
+        var request = URLRequest(url: base.appendingPathComponent(path))
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(body)
+        request.timeoutInterval = 25
+        let (data, response) = try await session.data(for: request)
+        if let http = response as? HTTPURLResponse, !(200 ..< 300).contains(http.statusCode) { throw APIError.status(http.statusCode) }
+        return try JSONDecoder().decode(T.self, from: data)
+    }
+
+    static func personal(_ body: PersonalRequest) async throws -> Edition { (try await post("api/edition", body) as PersonalResponse).edition }
+
     static func start() async throws -> (value: FeedStart, fromCache: Bool) { try await fetch("api/feed", ["deel": "start"]) }
     static func part(_ id: String, version: String) async throws -> FeedPart { try await get("api/feed", ["bron": id, "v": version]) }
     static func related(version: String) async throws -> FeedRelated { try await get("api/feed", ["deel": "verhalen", "v": version]) }

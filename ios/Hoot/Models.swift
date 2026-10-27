@@ -39,6 +39,7 @@ struct Item: Codable, Identifiable, Hashable {
     var imageRatio: Double? // breedte/hoogte van een geplaatste foto of video
     var video: String? // HLS-afspeellijst
     var videoPoster: String?
+    var topics: [String]? // onderwerpen (server), voor je smaak
 
     var date: Date? { publishedAt.flatMap(HootDate.parse) }
     var link: URL? { URL(string: url) }
@@ -54,7 +55,7 @@ struct Item: Codable, Identifiable, Hashable {
 }
 
 extension Item {
-    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, url, image, publishedAt, author, readMin, type, handle, linkTitle, imageRatio, video, videoPoster }
+    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, url, image, publishedAt, author, readMin, type, handle, linkTitle, imageRatio, video, videoPoster, topics }
     // Een post heeft geen kop; die mag dus ontbreken.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -78,6 +79,7 @@ extension Item {
         imageRatio = try? c.decodeIfPresent(Double.self, forKey: .imageRatio)
         video = try? c.decodeIfPresent(String.self, forKey: .video)
         videoPoster = try? c.decodeIfPresent(String.self, forKey: .videoPoster)
+        topics = try? c.decodeIfPresent([String].self, forKey: .topics)
     }
 }
 
@@ -111,6 +113,8 @@ struct Edition: Codable, Hashable {
     var next: String?
     var entries: [EditionEntry]
     var items: [Item]?
+    var builtAt: String?
+    var personal: Bool? // jouw editie (POST /api/edition), niet die voor iedereen
 }
 
 struct FeedMeta: Codable, Hashable {
@@ -206,7 +210,7 @@ extension FeedStart {
 }
 
 extension Edition {
-    enum CodingKeys: String, CodingKey { case id, slot, date, next, entries, items }
+    enum CodingKeys: String, CodingKey { case id, slot, date, next, entries, items, builtAt, personal }
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(String.self, forKey: .id)
@@ -215,8 +219,54 @@ extension Edition {
         next = try? c.decodeIfPresent(String.self, forKey: .next)
         entries = c.lossy([EditionEntry].self, forKey: .entries)
         items = c.lossy([Item].self, forKey: .items)
+        builtAt = try? c.decodeIfPresent(String.self, forKey: .builtAt)
+        personal = try? c.decodeIfPresent(Bool.self, forKey: .personal)
     }
 }
+
+// ---- Jouw editie ----
+// Wat je leest en bewaart, per onderwerp en per bron (zoals src/lib/affinity.js op de website):
+// openen telt 1, bewaren 3, en bij elke handeling wordt alles een beetje ouder (×0,98).
+struct Affinity: Codable, Hashable {
+    var n = 0
+    var topics: [String: Double] = [:]
+    var sources: [String: Double] = [:]
+
+    mutating func learn(_ item: Item, weight: Double) {
+        guard !item.isPost else { return }
+        // Wat weinig weegt valt weg; per soort de zwaarste 40 onderwerpen en 30 bronnen.
+        func keep(_ d: [String: Double], _ count: Int) -> [String: Double] {
+            Dictionary(uniqueKeysWithValues: d.filter { $0.value >= 0.05 }.sorted { $0.value > $1.value }.prefix(count).map { ($0.key, ($0.value * 100).rounded() / 100) })
+        }
+        var t = topics.mapValues { $0 * 0.98 }
+        var s = sources.mapValues { $0 * 0.98 }
+        for x in item.topics ?? [] { t[x, default: 0] += weight }
+        s[item.source, default: 0] += weight
+        topics = keep(t, 40)
+        sources = keep(s, 30)
+        n += 1
+    }
+}
+
+// Wat er in je vorige editie stond (zie previousOf in netlify/lib/stories.mjs).
+struct PreviousEdition: Codable {
+    var storyIds: [String]
+    var itemIds: [String]
+    var leadIds: [String]
+    var leadStoryId: String?
+    var at: Double
+}
+
+struct PersonalRequest: Codable {
+    var followed: [String]
+    var interests: [String]
+    var topics: [String] = []
+    var favorites: [String]
+    var affinity: Affinity?
+    var previous: PreviousEdition?
+}
+
+struct PersonalResponse: Codable { var edition: Edition }
 
 extension FeedPart {
     enum CodingKeys: String, CodingKey { case items }

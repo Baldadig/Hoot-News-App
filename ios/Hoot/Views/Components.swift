@@ -132,6 +132,7 @@ struct SourceLine: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     let item: Item
     var story: Story?
+    var linkSource = true // tik op de bron = alles van die bron (niet op het bronscherm zelf)
     var body: some View {
         // Op één regel als het past; anders bron en tijd bovenaan (mogen afbreken) en de knoppen
         // eronder. Nooit een vaste breedte: bij heel grote tekst duwt die anders de hele kolom
@@ -145,7 +146,17 @@ struct SourceLine: View {
         }
     }
 
-    private func source(oneLine: Bool) -> some View {
+    @ViewBuilder private func source(oneLine: Bool) -> some View {
+        if linkSource, !item.isPost, store.source(item.source) != nil {
+            NavigationLink(value: SourceRoute(id: item.source)) { sourceLabel(oneLine: oneLine) }
+                .buttonStyle(.plain)
+                .accessibilityHint("Toont alles van \(item.sourceName ?? "deze bron")")
+        } else {
+            sourceLabel(oneLine: oneLine)
+        }
+    }
+
+    private func sourceLabel(oneLine: Bool) -> some View {
         HStack(alignment: .top, spacing: 8) {
             SourceMark(item: item)
             VStack(alignment: .leading, spacing: 0) {
@@ -281,6 +292,7 @@ struct ItemRow: View {
     let item: Item
     var label: String?
     var story: Story?
+    var linkSource = true
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .top, spacing: 12) {
@@ -309,7 +321,7 @@ struct ItemRow: View {
             }
             .contentShape(Rectangle())
             .opensArticle(item)
-            SourceLine(item: item, story: story)
+            SourceLine(item: item, story: story, linkSource: linkSource)
         }
         .padding(.vertical, 6)
     }

@@ -37,6 +37,12 @@ final class HootStore {
     var readerFirst: Bool { didSet { save("hoot.readerFirst", readerFirst) } } // meteen de Lezer
     var paidInSafari: Bool { didSet { save("hoot.paidInSafari", paidInSafari) } } // betaalde bronnen in Safari (daar ben je ingelogd)
     var preview: Int { didSet { save("hoot.preview", preview) } } // regels intro bij een bericht; 0 = de hele intro
+    // Jouw editie: je interesses (src/lib/topics.js), voorkeursbronnen (ster) en smaak (wat je leest).
+    var interests: [String] { didSet { save("hoot.interests", interests); refreshPersonal() } }
+    var favorites: [String] { didSet { save("hoot.favorites", favorites); refreshPersonal() } }
+    private(set) var affinity: Affinity { didSet { save("hoot.affinity", affinity) } }
+    private(set) var personal: Edition? { didSet { Self.write(personal, to: "edition.json") } }
+    private var personalBasis: String { didSet { save("hoot.personalBasis", personalBasis) } }
     // Bluesky als eigen tabblad, met de vaste accounts van Hoot en wie je zelf toevoegt.
     var bluesky: Bool { didSet { save("hoot.bluesky", bluesky); if bluesky { reloadParts(); Task { await loadOwnPosts() } } } }
     private(set) var ownBluesky: [BlueskyAccount] { didSet { save("hoot.ownBluesky", ownBluesky) } }
@@ -80,6 +86,11 @@ final class HootStore {
         paidInSafari = Self.load("hoot.paidInSafari") ?? true
         streamSeen = Self.load("hoot.streamSeen") ?? nil
         preview = Self.load("hoot.preview") ?? 2
+        interests = Self.load("hoot.interests") ?? []
+        favorites = Self.load("hoot.favorites") ?? []
+        affinity = Self.load("hoot.affinity") ?? Affinity()
+        personal = Self.read("edition.json")
+        personalBasis = Self.load("hoot.personalBasis") ?? ""
         bluesky = Self.load("hoot.bluesky") ?? false
         ownBluesky = Self.load("hoot.ownBluesky") ?? []
         importSettings()
@@ -96,7 +107,9 @@ final class HootStore {
             var bubble: Bool?
             var bluesky: Bool?
             var preview: Int?
-            enum CodingKeys: String, CodingKey { case muted, enabled, vak, images, bubble, bluesky, preview }
+            var interests: [String]?
+            var favorites: [String]?
+            enum CodingKeys: String, CodingKey { case muted, enabled, vak, images, bubble, bluesky, preview, interests, favorites }
             init(from decoder: Decoder) throws {
                 let c = try decoder.container(keyedBy: CodingKeys.self)
                 muted = try? c.decodeIfPresent([String].self, forKey: .muted)
@@ -105,6 +118,8 @@ final class HootStore {
                 images = try? c.decodeIfPresent(String.self, forKey: .images)
                 bubble = try? c.decodeIfPresent(Bool.self, forKey: .bubble)
                 bluesky = try? c.decodeIfPresent(Bool.self, forKey: .bluesky)
+                interests = try? c.decodeIfPresent([String].self, forKey: .interests)
+                favorites = try? c.decodeIfPresent([String].self, forKey: .favorites)
                 // Op de website is het 1, 2, 3 of "alles".
                 preview = (try? c.decodeIfPresent(Int.self, forKey: .preview)) ?? ((try? c.decodeIfPresent(String.self, forKey: .preview)) == "alles" ? 0 : nil)
             }
@@ -125,6 +140,8 @@ final class HootStore {
         if let v = p?.bluesky { bluesky = v; save("hoot.bluesky", v) }
         if let v = p?.preview, (0 ... 3).contains(v) { preview = v; save("hoot.preview", v) }
         if let v = found.social { ownBluesky = v; save("hoot.ownBluesky", v) }
+        if let v = p?.interests { interests = v; save("hoot.interests", v) }
+        if let v = p?.favorites { favorites = v; save("hoot.favorites", v) }
     }
 
     // Beeld tonen? `lead`: het hoofdverhaal of het eerste stuk van een vak.
@@ -144,6 +161,7 @@ final class HootStore {
         }
         rebuildStream()
         reloadParts()
+        refreshPersonal()
     }
     var newsSources: [Source] { sources.filter { $0.kind != "sociaal" } }
     var followed: [Source] { newsSources.filter(isOn) }
@@ -202,6 +220,7 @@ final class HootStore {
             stale = fromCache
             status = .ready
             if !fromCache { Task.detached(priority: .background) { HootAPI.Offline.prune() } }
+            await loadPersonal()
         } catch {
             stale = !itemsById.isEmpty
             status = itemsById.isEmpty ? .failed : .ready
@@ -255,6 +274,44 @@ final class HootStore {
         return list.sorted { ($0.publishedAt ?? "") > ($1.publishedAt ?? "") }
     }
 
+    // ---- Jouw editie ----
+    // De editie die je ziet: jouw editie van dit dagdeel als die er is, anders die voor iedereen.
+    var shownEdition: Edition? { personal?.id == edition?.id && personal != nil ? personal : edition }
+    var isPersonal: Bool { shownEdition?.personal == true }
+    func isFavorite(_ id: String) -> Bool { favorites.contains(id) }
+    func setFavorite(_ id: String, _ on: Bool) { favorites = on ? Array(Set(favorites + [id])).sorted() : favorites.filter { $0 != id } }
+
+    // Afdruk van wat je editie bepaalt: verandert die (bronnen, interesses, voorkeuren), dan opnieuw.
+    private var basisNow: String { [followed.map(\.id).sorted().joined(separator: ","), interests.sorted().joined(separator: ","), favorites.sorted().joined(separator: ",")].joined(separator: "|") }
+    private var personalTask: Task<Void, Never>?
+    private func refreshPersonal() {
+        guard edition != nil else { return }
+        personalTask?.cancel()
+        personalTask = Task { try? await Task.sleep(for: .milliseconds(600)); if !Task.isCancelled { await loadPersonal() } }
+    }
+
+    // Eén keer per dagdeel (en opnieuw als je bronnen, interesses of voorkeuren veranderen) vraagt
+    // de app jouw editie op bij de server: hetzelfde selectiewerk als de website. Lukt dat niet,
+    // dan de editie voor iedereen.
+    func loadPersonal() async {
+        guard let global = edition, !sources.isEmpty else { return }
+        let basis = basisNow
+        if let p = personal, p.id == global.id, personalBasis == basis { return }
+        let previous = personal.flatMap { $0.id != global.id ? previousOf($0) : nil }
+        let body = PersonalRequest(followed: followed.map(\.id), interests: interests, favorites: favorites, affinity: affinity.n > 0 ? affinity : nil, previous: previous)
+        guard let mine = try? await HootAPI.personal(body), mine.id == global.id else { return }
+        personal = mine
+        personalBasis = basis
+    }
+
+    private func previousOf(_ e: Edition) -> PreviousEdition? {
+        guard let lead = e.entries.first else { return nil }
+        let stories = e.entries.filter { $0.kind == "story" }
+        var items = Set(e.entries.map { $0.leadId ?? $0.id })
+        for s in stories { items.formUnion(storiesById[s.id]?.itemIds ?? []) }
+        return PreviousEdition(storyIds: stories.map(\.id), itemIds: Array(items), leadIds: [lead.leadId ?? lead.id], leadStoryId: lead.kind == "story" ? lead.id : nil, at: (e.builtAt.flatMap(HootDate.parse)?.timeIntervalSince1970 ?? 0) * 1000)
+    }
+
     // ---- Digest ----
     // Levert de server dit vak? Zolang de Digest niet geladen is: ja.
     func offersField(_ id: String) -> Bool { digest.map { $0.fields.contains { $0.id == id } } ?? true }
@@ -272,11 +329,15 @@ final class HootStore {
     // ---- Bewaard en gelezen ----
     func isSaved(_ item: Item) -> Bool { saved.contains { $0.id == item.id } }
     func toggleSave(_ item: Item) {
-        if let i = saved.firstIndex(where: { $0.id == item.id }) { saved.remove(at: i) } else { saved.insert(item, at: 0) }
+        if let i = saved.firstIndex(where: { $0.id == item.id }) { saved.remove(at: i) } else {
+            saved.insert(item, at: 0)
+            affinity.learn(item, weight: 3) // bewaren zegt meer over je smaak dan openen
+        }
     }
     func removeSaved(at offsets: IndexSet) { saved.remove(atOffsets: offsets) }
     func markRead(_ item: Item) {
         guard !readSet.contains(item.id) else { return }
+        affinity.learn(item, weight: 1)
         readSet.insert(item.id)
         readOrder.append(item.id)
         if readOrder.count > 2000 {
