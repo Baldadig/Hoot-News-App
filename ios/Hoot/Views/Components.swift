@@ -28,10 +28,10 @@ final class Reader {
         guard let url = item.link, Self.canShow(url) else { return }
         store.markRead(item)
         let paid = store.source(item.source)?.paid == true
-        if store.openInSafari || (paid && store.paidInSafari) {
-            UIApplication.shared.open(url)
-        } else {
-            self.item = item
+        switch store.openWith {
+        case "safari": UIApplication.shared.open(url)
+        case "web": if paid && store.paidInSafari { UIApplication.shared.open(url) } else { self.item = item }
+        default: self.item = item // de lezer; die valt zelf terug op de website als het niet lukt
         }
     }
 }

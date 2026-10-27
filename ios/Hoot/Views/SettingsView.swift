@@ -51,13 +51,19 @@ struct SettingsView: View {
 
                 // Eén keuze (waar openen artikelen), met de uitzonderingen alleen als die gelden.
                 Section {
-                    Picker(selection: $store.openInSafari.animation()) {
-                        Text("In Hoot").tag(false)
-                        Text("In Safari").tag(true)
+                    Picker(selection: $store.openWith.animation()) {
+                        Text("In de lezer").tag("lezer")
+                        Text("Op de website").tag("web")
+                        Text("In Safari").tag("safari")
                     } label: {
-                        Label("Artikelen openen", systemImage: "safari")
+                        Label("Artikelen openen", systemImage: "doc.richtext")
                     }
-                    if !store.openInSafari {
+                    if store.openWith == "lezer" {
+                        NavigationLink(value: "abonnementen") {
+                            Label("Inloggen bij je abonnementen", systemImage: "key")
+                        }
+                    }
+                    if store.openWith == "web" {
                         Toggle(isOn: $store.paidInSafari) {
                             Label("Abonnementsbronnen in Safari", systemImage: "creditcard")
                         }
@@ -68,7 +74,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Lezen")
                 } footer: {
-                    Text(store.openInSafari ? "In Safari ben je ingelogd bij je abonnementen." : "In Hoot ben je niet ingelogd bij je abonnementen; daarom openen abonnementsbronnen standaard in Safari. De Lezer opent alleen als het artikel dat ondersteunt.").foregroundStyle(Theme.muted)
+                    Text(store.openWith == "lezer" ? "De lezer toont alleen de tekst en beelden, in de opmaak van Hoot. Log één keer in bij je abonnementen om ook hun hele artikelen hier te lezen." : store.openWith == "safari" ? "In Safari ben je ingelogd bij je abonnementen." : "Op de website in Hoot ben je niet ingelogd bij je abonnementen; daarom openen abonnementsbronnen standaard in Safari.").foregroundStyle(Theme.muted)
                 }
 
                 Section {
@@ -150,6 +156,8 @@ struct SettingsView: View {
             .navigationDestination(for: String.self) { page in
                 if page == "bronnen" {
                     SourcesList().navigationTitle("Bronnen").navigationBarTitleDisplayMode(.inline)
+                } else if page == "abonnementen" {
+                    SubscriptionsView().navigationTitle("Abonnementen").navigationBarTitleDisplayMode(.inline)
                 } else if page == "interesses" {
                     InterestsList().navigationTitle("Interesses").navigationBarTitleDisplayMode(.inline)
                 } else if page == "bluesky" {

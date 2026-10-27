@@ -60,7 +60,11 @@ struct RootView: View {
         .fullScreenCover(item: $reader.item) { item in
             // Reader.open laat alleen http(s) door; mocht er toch niets te tonen zijn, dan meteen dicht.
             if let url = item.link, Reader.canShow(url) {
-                SafariView(url: url, reader: store.readerFirst).ignoresSafeArea()
+                if store.openWith == "web" {
+                    SafariView(url: url, reader: store.readerFirst).ignoresSafeArea()
+                } else {
+                    ArticleReaderView(item: item)
+                }
             } else {
                 Color.clear.onAppear { reader.item = nil }
             }

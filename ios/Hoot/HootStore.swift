@@ -33,7 +33,9 @@ final class HootStore {
     // Weergave en lezen (zelfde namen en waarden als de web-app, voor het synchroniseren later)
     var images: String { didSet { save("hoot.images", images) } } // aan | hoofd | uit
     var bubble: Bool { didSet { save("hoot.bubble", bubble) } } // "Buiten je bubbel" in de Editie
-    var openInSafari: Bool { didSet { save("hoot.openInSafari", openInSafari) } }
+    var openInSafari: Bool { didSet { save("hoot.openInSafari", openInSafari) } } // vóór 0.12; nu `openWith`
+    // Waar artikelen openen: "lezer" (de Hoot-lezer), "web" (de website, in Hoot) of "safari".
+    var openWith: String { didSet { save("hoot.openWith", openWith) } }
     var readerFirst: Bool { didSet { save("hoot.readerFirst", readerFirst) } } // meteen de Lezer
     var paidInSafari: Bool { didSet { save("hoot.paidInSafari", paidInSafari) } } // betaalde bronnen in Safari (daar ben je ingelogd)
     var preview: Int { didSet { save("hoot.preview", preview) } } // regels intro bij een bericht; 0 = de hele intro
@@ -82,6 +84,7 @@ final class HootStore {
         images = Self.load("hoot.images") ?? "aan"
         bubble = Self.load("hoot.bubble") ?? true
         openInSafari = Self.load("hoot.openInSafari") ?? false
+        openWith = Self.load("hoot.openWith") ?? (Self.load("hoot.openInSafari") == true ? "safari" : "lezer")
         readerFirst = Self.load("hoot.readerFirst") ?? false
         paidInSafari = Self.load("hoot.paidInSafari") ?? true
         streamSeen = Self.load("hoot.streamSeen") ?? nil
