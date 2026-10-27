@@ -133,9 +133,9 @@ export function StatusLine({ online, refreshing, refreshError, meta, allDown = f
   if (refreshError)
     return (
       <p className="status status--warn" role="status">
-        Verversen lukte niet. Je ziet de versie van {at || 'eerder'}.{' '}
+        Verversen lukt nu niet. Je ziet de versie van {at || 'eerder'}.{' '}
         <button type="button" className="linkbtn" onClick={onRetry}>
-          Probeer opnieuw
+          Opnieuw
         </button>
       </p>
     )

@@ -5,7 +5,28 @@ import SwiftUI
 // past de opmaak zich live aan zonder dat je je plek kwijtraakt.
 enum Layout {
     static let readable: CGFloat = 680 // leesbreedte: comfortabele regellengte voor lopende tekst
-    static let wide: CGFloat = 1080 // brede pagina (editie, digest) op iPad en opengevouwen
+    static let wide: CGFloat = 1000 // brede pagina (editie, digest) op iPad en opengevouwen
+}
+
+// Ruimte: één schaal van 4 pt, gelijk aan --s1…--s7 op de website. Elke padding en tussenruimte
+// komt hiervandaan; `s0` (2) alleen tussen twee regels van één label (naam en tijd).
+enum Space {
+    static let s0: CGFloat = 2
+    static let s1: CGFloat = 4
+    static let s2: CGFloat = 8
+    static let s3: CGFloat = 12
+    static let s4: CGFloat = 16
+    static let s5: CGFloat = 24
+    static let s6: CGFloat = 32
+    static let s7: CGFloat = 48
+    static let tap: CGFloat = 44 // minimaal aanraakvlak
+}
+
+// Hoeken: sm knoppen, velden en miniaturen · md beeld, kaarten en meldingen · lg bladen.
+enum Radius {
+    static let sm: CGFloat = 8
+    static let md: CGFloat = 12
+    static let lg: CGFloat = 16
 }
 
 extension View {

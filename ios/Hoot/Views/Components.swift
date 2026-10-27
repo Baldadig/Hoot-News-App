@@ -4,11 +4,19 @@ import SwiftUI
 // Huisstijl: warm papier, inkt, krantenrood. Koppen in New York (de serif van het systeem: past
 // bij Newsreader op het web en schaalt mee met Dynamische tekst), de rest in San Francisco.
 enum Theme {
-    static let paper = Color("Paper")
-    static let surface = Color("Surface")
-    // Ondersteunende tekst (datum, intro, bron): donkerder dan het grijs van het systeem, zodat
-    // het op papier minstens 4,5:1 contrast haalt (licht 5,4:1, donker 6,5:1).
-    static let muted = Color("Muted")
+    // De kleuren van het design system (zelfde namen en waarden als src/styles.css).
+    static let paper = Color("Paper") // pagina
+    static let surface = Color("Surface") // kaart, blad, melding
+    static let ink = Color("Ink") // koppen en tekst
+    static let ink2 = Color("Ink2") // intro's en samenvattingen
+    // Metadata: tijd, bron-uitleg, toelichting. De ondergrens voor kleine tekst (5,2:1 licht, 6,7:1
+    // donker); nooit het lichtere grijs van het systeem (3,3:1 op papier).
+    static let ink3 = Color("Ink3")
+    static let rule = Color("Rule") // haarlijn, decoratief
+    static let edge = Color("Edge") // rand van velden en knoppen die iets betekenen (3:1)
+    static let accentSoft = Color("AccentSoft") // achtergrond van iets dat aan staat
+    static let onAccent = Color("OnAccent") // tekst op een accent-vlak
+    static let warn = Color("Warn") // waarschuwing, altijd met woorden
     static let accent = Color.accentColor
     static func headline(_ style: Font.TextStyle) -> Font { .system(style, design: .serif, weight: .bold) }
 }
@@ -49,6 +57,11 @@ struct SafariView: UIViewControllerRepresentable {
     func updateUIViewController(_ vc: SFSafariViewController, context: Context) {}
 }
 
+// Haarlijn tussen berichten: `rule`, één pixel, decoratief.
+struct Rule: View {
+    var body: some View { Rectangle().fill(Theme.rule).frame(height: 1).accessibilityHidden(true) }
+}
+
 // "hoot." in de krantenletter met de rode punt, zoals op de website.
 struct Wordmark: View {
     var body: some View {
@@ -64,16 +77,19 @@ struct Wordmark: View {
 struct Kicker: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     let text: String?
+    private func label(_ s: String) -> String { typeSize.isAccessibilitySize ? s : s.uppercased() }
     var body: some View {
         if let text, !text.isEmpty {
             // Bij heel grote tekst geen kapitalen: die worden dan breder en zwaarder dan de kop.
+            // Meerdere labels ("Binnenland · Buiten je bronnen"): de punt ertussen in `ink3`.
+            let parts = text.components(separatedBy: " · ")
+            let joined = parts.dropFirst().reduce(Text(label(parts[0])).foregroundStyle(Theme.accent)) { acc, p in
+                Text("\(acc)\(Text(" · ").foregroundStyle(Theme.ink3))\(Text(label(p)).foregroundStyle(Theme.accent))")
+            }
             if typeSize.isAccessibilitySize {
-                Text(text).font(.caption.weight(.semibold)).foregroundStyle(Theme.accent)
+                joined.font(.caption.weight(.semibold))
             } else {
-                Text(text.uppercased())
-                    .font(.caption.weight(.heavy))
-                    .tracking(0.6)
-                    .foregroundStyle(Theme.accent)
+                joined.font(.caption.weight(.heavy)).tracking(0.6)
             }
         }
     }
@@ -133,7 +149,7 @@ struct SourceMark: View {
         }
         .frame(width: size, height: size)
         .clipShape(Circle())
-        .overlay(Circle().strokeBorder(.separator, lineWidth: 0.5))
+        .overlay(Circle().strokeBorder(Theme.rule, lineWidth: 1))
         .accessibilityHidden(true)
     }
 }
@@ -150,8 +166,8 @@ struct SourceLine: View {
         // eronder. Nooit een vaste breedte: bij heel grote tekst duwt die anders de hele kolom
         // buiten het scherm.
         ViewThatFits(in: .horizontal) {
-            HStack(spacing: 8) { source(oneLine: true); Spacer(minLength: 8); more; SaveButton(item: item) }
-            VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: Space.s2) { source(oneLine: true); Spacer(minLength: 8); more; SaveButton(item: item) }
+            VStack(alignment: .leading, spacing: Space.s1) {
                 source(oneLine: false)
                 HStack { more; Spacer(); SaveButton(item: item) }
             }
@@ -160,7 +176,9 @@ struct SourceLine: View {
 
     @ViewBuilder private func source(oneLine: Bool) -> some View {
         if linkSource, !item.isPost, store.source(item.source) != nil {
-            NavigationLink(value: SourceRoute(id: item.source)) { sourceLabel(oneLine: oneLine) }
+            NavigationLink(value: SourceRoute(id: item.source)) {
+                sourceLabel(oneLine: oneLine).frame(minHeight: Space.tap).contentShape(Rectangle()) // aanraakvlak 44 pt
+            }
                 .buttonStyle(.plain)
                 .accessibilityHint("Toont alles van \(item.sourceName ?? "deze bron")")
         } else {
@@ -169,11 +187,11 @@ struct SourceLine: View {
     }
 
     private func sourceLabel(oneLine: Bool) -> some View {
-        HStack(alignment: .top, spacing: 8) {
+        HStack(alignment: .top, spacing: Space.s2) {
             SourceMark(item: item)
             VStack(alignment: .leading, spacing: 0) {
-                Text(item.sourceName ?? item.source).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
-                Text(meta).font(.caption).foregroundStyle(Theme.muted)
+                Text(item.sourceName ?? item.source).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
+                Text(meta).font(.caption).foregroundStyle(Theme.ink3)
             }
             .lineLimit(oneLine ? 1 : nil)
             .fixedSize(horizontal: false, vertical: true)
@@ -215,7 +233,7 @@ struct SaveButton: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .foregroundStyle(on ? Theme.accent : Theme.muted)
+        .foregroundStyle(on ? Theme.accent : Theme.ink3)
         .sensoryFeedback(.selection, trigger: on)
         .accessibilityLabel(on ? "Bewaard, tik om te verwijderen" : "Bewaar")
     }
@@ -259,32 +277,32 @@ struct LeadCard: View {
 
     private var image: some View {
         FramedImage(url: ImageURL.url(item.image, .large), ratio: spacious ? 3 / 2 : wide ? 2 : 16 / 9)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
     }
 
     private var text: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: Space.s3) {
             Kicker(text: label)
             Text(item.title)
                 .font(Theme.headline(wide ? .largeTitle : .title))
-                .foregroundStyle(store.isRead(item) ? Theme.muted : Color.primary)
+                .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                 .fixedSize(horizontal: false, vertical: true)
             if let summary = item.summary, !summary.isEmpty {
-                Text(wholeSentences(summary)).font(wide ? .title3 : .body).foregroundStyle(Theme.muted).lineLimit(wide ? 6 : 5).fixedSize(horizontal: false, vertical: true)
+                Text(wholeSentences(summary)).font(wide ? .title3 : .body).foregroundStyle(Theme.ink2).lineLimit(wide ? 6 : 5).fixedSize(horizontal: false, vertical: true)
             }
         }
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: Space.s3) {
             Group {
                 if spacious && hasImage {
-                    HStack(alignment: .top, spacing: 28) {
+                    HStack(alignment: .top, spacing: Space.s6) {
                         image.frame(maxWidth: .infinity)
                         text.frame(maxWidth: .infinity, alignment: .leading)
                     }
                 } else {
-                    VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: Space.s3) {
                         if hasImage { image }
                         text
                     }
@@ -308,9 +326,9 @@ struct ItemRow: View {
     var story: Story?
     var linkSource = true
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: Space.s2) {
+            HStack(alignment: .top, spacing: Space.s3) {
+                VStack(alignment: .leading, spacing: Space.s2) {
                     Kicker(text: label)
                     if item.isPost {
                         // Een Bluesky-post (in Bewaard): de tekst zelf, geen kop.
@@ -318,10 +336,10 @@ struct ItemRow: View {
                     } else {
                         Text(item.title)
                             .font(Theme.headline(.title3))
-                            .foregroundStyle(store.isRead(item) ? Theme.muted : Color.primary)
+                            .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                             .fixedSize(horizontal: false, vertical: true)
                         if let summary = item.summary, !summary.isEmpty {
-                            Text(summary).font(.subheadline).foregroundStyle(Theme.muted).lineLimit(store.preview == 0 ? nil : store.preview)
+                            Text(summary).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(store.preview == 0 ? nil : store.preview)
                         }
                     }
                 }
@@ -330,14 +348,14 @@ struct ItemRow: View {
                 if item.image != nil, store.showsImage(lead: false), !typeSize.isAccessibilitySize {
                     RemoteImage(url: ImageURL.url(item.image, .thumb))
                         .frame(width: min(thumb, 96), height: min(thumb, 96))
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: Radius.sm, style: .continuous))
                 }
             }
             .contentShape(Rectangle())
             .opensArticle(item)
             SourceLine(item: item, story: story, linkSource: linkSource)
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, Space.s2)
     }
 }
 
@@ -346,14 +364,14 @@ struct StaleNotice: View {
     @Environment(HootStore.self) private var store
     var body: some View {
         if store.stale {
-            HStack(alignment: .firstTextBaseline, spacing: 10) {
-                Image(systemName: "wifi.slash").foregroundStyle(Theme.muted)
-                Text(message).font(.subheadline).foregroundStyle(Theme.muted).frame(maxWidth: .infinity, alignment: .leading)
+            HStack(alignment: .firstTextBaseline, spacing: Space.s3) {
+                Image(systemName: "wifi.slash").foregroundStyle(Theme.ink3)
+                Text(message).font(.subheadline).foregroundStyle(Theme.ink3).frame(maxWidth: .infinity, alignment: .leading)
                 Button("Opnieuw") { Task { await store.load() } }.font(.subheadline.weight(.semibold))
             }
-            .padding(12)
-            .background(Theme.surface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .padding(.bottom, 12)
+            .padding(Space.s3)
+            .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+            .padding(.bottom, Space.s3)
             .accessibilityElement(children: .combine)
         }
     }

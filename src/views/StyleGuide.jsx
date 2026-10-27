@@ -56,7 +56,7 @@ export default function StyleGuide({ stream }) {
             <strong>Afstand</strong>: 4, 8, 12, 16, 24, 32, 48 px (<code>--s1</code> t/m <code>--s7</code>). Elke marge, padding en gap komt hiervandaan; niets daartussen.
           </li>
           <li>
-            <strong>Type</strong>: 13 · 15 · 17 · 20 · 24 · 28–32 px (<code>--t1</code> t/m <code>--t6</code>). Metadata · bediening en bronnaam · leestekst · kop van een bericht · schermtitel · hoofdverhaal.
+            <strong>Type</strong>: 13 · 15 · 17 · 18 · 27 · 30–34 px (<code>--t1</code> t/m <code>--t6</code>). Metadata · bediening en bronnaam · leestekst · kop van een bericht · schermtitel · hoofdverhaal.
           </li>
           <li>
             <strong>Regelafstand</strong>: koppen 1,15 · bedieningsregels 1,3 · lopende tekst 1,5.
@@ -70,9 +70,10 @@ export default function StyleGuide({ stream }) {
         </ul>
 
         <h2 className="sect">Typografie</h2>
-        <p className="lead__title">Hoofdverhaal — serif 28–32 px (t6)</p>
-        <p className="compact__title">Kop van een bericht — serif 20 px (t4)</p>
-        <p className="compact__sum">Leestekst — schreefloos 17 px (t3), regelafstand 1,5. Bedoeld om in één oogopslag te lezen.</p>
+        <p className="lead__title">Hoofdverhaal — serif 30–34 px (t6)</p>
+        <p className="compact__title">Kop van een bericht — serif 18 px (t4)</p>
+        <p className="lead__sum">Leestekst — schreefloos 17 px (t3), regelafstand 1,5. Intro van het hoofdverhaal en lopende tekst.</p>
+        <p className="compact__sum">Intro in een lijst — schreefloos 15 px (t2), regelafstand 1,5.</p>
         <p className="kicker">
           <span>Kicker 13 px (t1)</span>
           <span className="kicker__type">Opinie</span>

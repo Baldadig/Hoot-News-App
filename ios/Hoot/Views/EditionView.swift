@@ -70,30 +70,37 @@ struct EditionView: View {
                         StaleNotice()
                         Text("\(dateLine) · \(store.isPersonal ? "Jouw editie" : "De editie voor iedereen")")
                             .font(.subheadline)
-                            .foregroundStyle(Theme.muted)
-                            .padding(.bottom, 16)
+                            .foregroundStyle(Theme.ink3)
+                            .padding(.bottom, Space.s4)
                         LeadCard(item: rows[0].item, label: rows[0].label, story: rows[0].story)
                         if wide {
                             // Breed: de rest in twee kolommen, elk verhaal met een lijn erboven.
-                            LazyVGrid(columns: [GridItem(.flexible(), spacing: 32, alignment: .top), GridItem(.flexible(), spacing: 32, alignment: .top)], alignment: .leading, spacing: 8) {
+                            LazyVGrid(columns: [GridItem(.flexible(), spacing: Space.s6, alignment: .top), GridItem(.flexible(), spacing: Space.s6, alignment: .top)], alignment: .leading, spacing: Space.s2) {
                                 ForEach(rows.dropFirst()) { row in
                                     VStack(alignment: .leading, spacing: 0) {
-                                        Divider().padding(.vertical, 8)
+                                        Rule().padding(.vertical, Space.s2)
                                         ItemRow(item: row.item, label: row.label, story: row.story)
                                     }
                                 }
                             }
                         } else {
                             ForEach(rows.dropFirst()) { row in
-                                Divider().padding(.vertical, 8)
+                                Rule().padding(.vertical, Space.s2)
                                 ItemRow(item: row.item, label: row.label, story: row.story)
                             }
                         }
-                        Text("Dat was de editie. De volgende verschijnt om \(store.edition?.next ?? "") uur.")
-                            .font(.footnote)
-                            .foregroundStyle(Theme.muted)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 32)
+                        // Het einde, zoals op de website: je bent bij, en wanneer de volgende er is.
+                        VStack(spacing: Space.s2) {
+                            Rule().frame(width: Space.s7)
+                            Text("Je bent bij.").font(Theme.headline(.title3)).foregroundStyle(Theme.ink)
+                            Text("Dit was de \(title.lowercased()) van \(dateLine.lowercased()). De volgende staat klaar om \(store.edition?.next ?? "").")
+                                .font(.subheadline)
+                                .foregroundStyle(Theme.ink3)
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, Space.s7)
+                        .accessibilityElement(children: .combine)
                     }
                 }
                 .padding(.horizontal)
@@ -131,14 +138,14 @@ struct StoryView: View {
             // Waar het over gaat (de kop van het hoofdbericht), en eerlijk geteld: bronnen zijn
             // uitgevers, niet artikelen; drie stukken van één krant zijn geen drie bevestigingen.
             Section {
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: Space.s2) {
                     if let lead = items.first(where: { $0.id == story.leadId }) ?? items.first {
                         Text(lead.title).font(Theme.headline(.title2)).fixedSize(horizontal: false, vertical: true)
                     }
                     if !items.isEmpty {
                         Text(sources == items.count ? "\(sources) bronnen, nieuwste eerst" : "\(sources) bronnen, \(items.count) artikelen, nieuwste eerst")
                             .font(.subheadline)
-                            .foregroundStyle(Theme.muted)
+                            .foregroundStyle(Theme.ink3)
                     }
                 }
             }

@@ -1,5 +1,19 @@
 # Changelog — Hoot voor iOS
 
+## [0.13.0] — 2026-10-27 — Het design system toegepast
+
+- **Kleuren van het design system:** `Ink`, `Ink2`, `Ink3`, `Rule`, `Edge`, `AccentSoft`, `OnAccent` en `Warn` in de asset catalog, en `Theme` met dezelfde namen als de website. `Muted` is `Ink3` geworden, met dezelfde waarde als op de website.
+  - Intro's staan in `ink2`, niet meer in het grijs van metadata.
+  - Koppen staan in `ink`, niet in het zwart van het systeem.
+  - Haarlijnen zijn `rule`.
+  - Fouttekst is `warn`, niet het rood van het systeem (3,2:1).
+- **`Space` en `Radius`:** dezelfde schaal van 4 pt en dezelfde hoeken (8 · 12 · 16) als de website. Losse maten (6, 10, 14, 18, 28) zijn weg. `Layout.wide` is 1000, gelijk aan de website.
+- **Bronnenrij in de Stroom filtert nu**, zoals op de website: één tik toont alleen die bron, nog een tik weer alles. De gekozen bron staat in kleur met een rode ring. Elk logo heeft een aanraakvlak van 44 pt, net als de ster en de bronnaam.
+- **Einde van de editie** zoals op de website: "Je bent bij." met wanneer de volgende editie klaarstaat.
+- **Rubriek:** de punt tussen twee labels staat in grijs.
+- **De lezer** gebruikt de tokenwaarden, een kop op 800 en marges van de schaal.
+- **Bediening in de Stroom** (Bronnen, Accounts) is grijs en zonder glazen rondje, zoals het tandwiel.
+
 ## [0.12.0] — 2026-10-27 — De lezer, iPad en iPhone mini
 
 - **De Hoot-lezer.** Artikelen openen standaard in de lezer: alleen de tekst en beelden, in de opmaak van Hoot (krantenletter, papier, licht en donker), met tekstgrootte, delen, bewaren en "Open bij de uitgever".

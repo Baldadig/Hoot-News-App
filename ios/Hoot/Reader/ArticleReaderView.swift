@@ -21,10 +21,10 @@ struct ArticleReaderView: View {
             Group {
                 switch loader.state {
                 case .loading:
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: Space.s4) {
                         Kicker(text: sourceName)
                         Text(item.title).font(Theme.headline(.title)).fixedSize(horizontal: false, vertical: true)
-                        ProgressView("Artikel laden…").frame(maxWidth: .infinity).padding(.top, 24)
+                        ProgressView("Artikel laden…").frame(maxWidth: .infinity).padding(.top, Space.s5)
                         Spacer()
                     }
                     .padding()
@@ -39,10 +39,10 @@ struct ArticleReaderView: View {
                 case .visit:
                     VStack(spacing: 0) {
                         WebPage(webView: loader.webView)
-                        VStack(spacing: 8) {
+                        VStack(spacing: Space.s2) {
                             Text("\(sourceName) vraagt eerst om toestemming of om in te loggen. Kies wat je wilt; daarna gaat de lezer verder.")
                                 .font(.footnote)
-                                .foregroundStyle(Theme.muted)
+                                .foregroundStyle(Theme.ink3)
                                 .multilineTextAlignment(.center)
                             Button("Verder naar de lezer") { loader.retry() }.buttonStyle(.glassProminent)
                         }
@@ -92,10 +92,10 @@ struct ArticleReaderView: View {
 
     // Een betaalde bron met weinig tekst: waarschijnlijk zie je maar het begin.
     private var paywallNote: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Space.s2) {
             Text("Zie je maar een deel? Ben je abonnee van \(sourceName), log dan één keer in; daarna lees je de hele stukken hier.")
                 .font(.footnote)
-                .foregroundStyle(Theme.muted)
+                .foregroundStyle(Theme.ink3)
             HStack {
                 Button("Inloggen bij \(sourceName)") { login = LoginTarget(name: sourceName, url: item.link.flatMap(LoginTarget.home)) }
                     .buttonStyle(.glassProminent)
@@ -122,20 +122,20 @@ enum ReaderHTML {
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="color-scheme" content="light dark">
         <style>
-        :root { --paper:#F5F1E8; --ink:#1A1814; --muted:#67625A; --rule:#DCD4C4; --accent:#A3201B; }
-        @media (prefers-color-scheme: dark) { :root { --paper:#151310; --ink:#F1ECE2; --muted:#A39E96; --rule:#3A3631; --accent:#EC7A70; } }
+        :root { --paper:#F5F1E8; --ink:#1A1814; --ink-3:#6B6457; --rule:#DED5C4; --accent:#A3201B; } /* tokens van het design system */
+        @media (prefers-color-scheme: dark) { :root { --paper:#151310; --ink:#F1ECE2; --ink-3:#A39B8D; --rule:#34302A; --accent:#EC7A70; } }
         html { font: -apple-system-body; -webkit-text-size-adjust: 100%; }
         body { margin:0; background:var(--paper); color:var(--ink); }
-        main { max-width: 680px; margin: 0 auto; padding: 20px 20px 64px; font-family: ui-serif, "New York", Georgia, serif; font-size: calc(1.06rem * \(scale)); line-height: 1.6; }
+        main { max-width: 680px; margin: 0 auto; padding: 16px 16px 48px; /* s4, s7 */ font-family: ui-serif, "New York", Georgia, serif; font-size: calc(1.06rem * \(scale)); line-height: 1.6; }
         .kicker { font-family: -apple-system, system-ui, sans-serif; font-size: .72em; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin: 0 0 .6em; }
-        h1.title { font-size: 1.75em; line-height: 1.15; font-weight: 700; margin: 0 0 .4em; }
-        .meta { font-family: -apple-system, system-ui, sans-serif; font-size: .8em; color: var(--muted); margin: 0 0 1.6em; padding-bottom: 1em; border-bottom: 1px solid var(--rule); }
+        h1.title { font-size: 1.75em; line-height: 1.15; font-weight: 800; margin: 0 0 .4em; }
+        .meta { font-family: -apple-system, system-ui, sans-serif; font-size: .8em; color: var(--ink-3); margin: 0 0 1.6em; padding-bottom: 1em; border-bottom: 1px solid var(--rule); }
         h1, h2, h3, h4 { line-height: 1.25; }
         h2 { font-size: 1.3em; margin: 1.6em 0 .5em; } h3 { font-size: 1.12em; margin: 1.4em 0 .4em; }
         p { margin: 0 0 1em; }
         a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
-        img, video, picture { max-width: 100%; height: auto; border-radius: 10px; display: block; margin: 1.2em auto; }
-        figure { margin: 1.4em 0; } figcaption, .caption { font-family: -apple-system, system-ui, sans-serif; font-size: .75em; color: var(--muted); margin-top: .4em; }
+        img, video, picture { max-width: 100%; height: auto; border-radius: 12px; /* radius */ display: block; margin: 1.2em auto; }
+        figure { margin: 1.4em 0; } figcaption, .caption { font-family: -apple-system, system-ui, sans-serif; font-size: .75em; color: var(--ink-3); margin-top: .4em; }
         blockquote { margin: 1.4em 0; padding: 0 0 0 1em; border-left: 3px solid var(--accent); font-style: italic; }
         hr { border: 0; border-top: 1px solid var(--rule); margin: 2em 0; }
         ul, ol { padding-left: 1.3em; } li { margin: .3em 0; }
@@ -229,9 +229,9 @@ struct LoginWebView: View {
                 .safeAreaInset(edge: .top) {
                     Text("Log in zoals je op de website gewend bent. Je inlog blijft alleen in de lezer van Hoot op dit toestel.")
                         .font(.footnote)
-                        .foregroundStyle(Theme.muted)
+                        .foregroundStyle(Theme.ink3)
                         .padding(.horizontal)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, Space.s2)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(.bar)
                 }
@@ -255,9 +255,9 @@ struct SubscriptionsView: View {
             Section {
                 ForEach(paid) { s in
                     Button { login = LoginTarget(name: s.name, url: home(of: s)) } label: {
-                        HStack(spacing: 12) {
+                        HStack(spacing: Space.s3) {
                             SourceAvatar(source: s, size: 32)
-                            Text(s.name).foregroundStyle(.primary)
+                            Text(s.name).foregroundStyle(Theme.ink)
                             Spacer()
                             Text("Inloggen").foregroundStyle(Theme.accent)
                         }
@@ -265,7 +265,7 @@ struct SubscriptionsView: View {
                     .disabled(home(of: s) == nil)
                 }
             } footer: {
-                Text("Log één keer in bij je abonnementen; daarna lees je hun artikelen helemaal in de lezer. Je typt je gegevens op de site van de uitgever zelf; Hoot ziet ze niet. Je inlog blijft alleen op dit toestel.").foregroundStyle(Theme.muted)
+                Text("Log één keer in bij je abonnementen; daarna lees je hun artikelen helemaal in de lezer. Je typt je gegevens op de site van de uitgever zelf; Hoot ziet ze niet. Je inlog blijft alleen op dit toestel.").foregroundStyle(Theme.ink3)
             }
             Section {
                 Button("Overal uitloggen in de lezer", role: .destructive) { confirmForget = true }

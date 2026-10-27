@@ -12,20 +12,23 @@ struct SourceAvatar: View {
             if let image = phase.image {
                 image.resizable().scaledToFill()
             } else {
-                Text(String(source.name.prefix(1))).font(.headline).foregroundStyle(Theme.muted).frame(maxWidth: .infinity, maxHeight: .infinity).background(.quaternary)
+                Text(String(source.name.prefix(1))).font(.headline).foregroundStyle(Theme.ink3).frame(maxWidth: .infinity, maxHeight: .infinity).background(.quaternary)
             }
         }
         .frame(width: size, height: size)
         .clipShape(Circle())
-        .overlay(Circle().strokeBorder(.separator, lineWidth: 0.5))
+        .overlay(Circle().strokeBorder(Theme.rule, lineWidth: 1))
         .accessibilityHidden(true)
     }
 }
 
 // De rij met je bronnen: klein en rustig, voorkeursbronnen vooraan, dan wie nu het meest brengt.
-// Eén tik = die bron.
+// Eén tik = alleen die bron in de Stroom, nog een tik = weer alles (zoals op de website). De
+// gekozen bron in kleur met een ring in `accent`, de rest in grijs en gedimd. Alles van één bron
+// met uitleg en ster: tik op de bronnaam bij een bericht.
 struct SourceStrip: View {
     @Environment(HootStore.self) private var store
+    @Binding var pick: String?
     var body: some View {
         let counts = Dictionary(grouping: store.stream, by: \.source).mapValues(\.count)
         let list = store.followed.sorted { a, b in
@@ -36,23 +39,27 @@ struct SourceStrip: View {
         }
         if list.count > 1 {
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 4) {
+                HStack(spacing: 0) {
                     ForEach(list) { s in
-                        NavigationLink(value: SourceRoute(id: s.id)) {
+                        let on = pick == s.id
+                        Button { withAnimation(.easeOut(duration: 0.14)) { pick = on ? nil : s.id } } label: {
                             SourceAvatar(source: s, size: 30)
-                                .grayscale(1) // in grijs: rustig, als een rij in de krant
-                                .opacity(0.9)
-                                .frame(width: 38, height: 44) // aanraakvlak 44 pt, het logo zelf klein
+                                .grayscale(on ? 0 : 1)
+                                .opacity(pick == nil ? 0.9 : on ? 1 : 0.45)
+                                .padding(2)
+                                .overlay(Circle().strokeBorder(on ? Theme.accent : .clear, lineWidth: 1.5))
+                                .frame(width: Space.tap, height: Space.tap) // aanraakvlak 44 pt, het logo zelf klein
                                 .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel("Alles van \(s.name)")
+                        .accessibilityLabel("Alleen \(s.name)")
+                        .accessibilityAddTraits(on ? .isSelected : [])
                     }
                 }
             }
             .scrollClipDisabled()
-            .padding(.leading, -4)
-            .padding(.bottom, 8)
+            .padding(.leading, -Space.s2)
+            .padding(.bottom, Space.s1)
         }
     }
 }
@@ -69,15 +76,15 @@ struct SourceFeedView: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
                 if let source {
-                    HStack(spacing: 12) {
+                    HStack(spacing: Space.s3) {
                         SourceAvatar(source: source, size: 52)
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: Space.s0) {
                             Text(source.name).font(Theme.headline(.title2))
-                            if let about = source.about { Text(about).font(.subheadline).foregroundStyle(Theme.muted) }
-                            Text(source.paid == true ? "Abonnement" : "Gratis").font(.caption.weight(.semibold)).foregroundStyle(source.paid == true ? Theme.muted : Theme.accent)
+                            if let about = source.about { Text(about).font(.subheadline).foregroundStyle(Theme.ink3) }
+                            Text(source.paid == true ? "Abonnement" : "Gratis").font(.caption.weight(.semibold)).foregroundStyle(source.paid == true ? Theme.ink3 : Theme.accent)
                         }
                     }
-                    .padding(.bottom, 16)
+                    .padding(.bottom, Space.s4)
                 }
                 if !store.isOn(source ?? Source(id: id, name: "")) {
                     EmptyState(title: "Deze bron staat uit", systemImage: "dot.radiowaves.up.forward", text: "Zet hem aan bij Bronnen om zijn berichten hier en in je Stroom te zien.")
@@ -86,10 +93,10 @@ struct SourceFeedView: View {
                 } else {
                     ForEach(items.prefix(limit)) { item in
                         ItemRow(item: item, story: store.story(of: item), linkSource: false)
-                        Divider()
+                        Rule()
                     }
                     if items.count > limit {
-                        Button("Meer berichten") { limit += 60 }.buttonStyle(.glass).frame(maxWidth: .infinity).padding(.vertical, 24)
+                        Button("Meer berichten") { limit += 60 }.buttonStyle(.glass).frame(maxWidth: .infinity).padding(.vertical, Space.s5)
                     }
                 }
             }

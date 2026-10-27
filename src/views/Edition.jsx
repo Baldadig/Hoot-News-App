@@ -36,7 +36,7 @@ function FrontItem({ item, story, note }) {
       {note ? <p className="kicker fitem__kicker">{note}</p> : null}
       <p className="fitem__src">
         <button type="button" className="fitem__name" onClick={() => openSource(item.source)} aria-label={`Alles van ${item.sourceName} bekijken`}>
-          <SourceMark source={{ name: item.sourceName, avatar: item.avatar, avatarContain: item.avatarContain, brandColor: item.brandColor }} size={20} />
+          <SourceMark source={{ name: item.sourceName, avatar: item.avatar, avatarContain: item.avatarContain, brandColor: item.brandColor }} size={24} />
           {item.sourceName}
         </button>
         <time dateTime={item.publishedAt || undefined}>{timeAgo(item.publishedAt)}</time>
@@ -59,7 +59,7 @@ function FrontItem({ item, story, note }) {
       <TermHelp text={`${title} ${summary || ''}`} max={1} />
       <div className="fitem__act">
         {others > 0 ? (
-          <button type="button" className="morebtn" onClick={() => openStory(story.id)} aria-label={`Vergelijk ${story.sourceCount} bronnen over dit verhaal${fresh ? `, ${fresh} nieuw` : ''}`}>
+          <button type="button" className="morebtn" onClick={() => openStory(story.id)} aria-label={`Vergelijk ${others} andere ${others === 1 ? 'bron' : 'bronnen'}${fresh ? `, ${fresh} nieuw` : ''}`}>
             {fresh ? <span className="dot" aria-hidden="true" /> : null}+{others} {others === 1 ? 'bron' : 'bronnen'}
           </button>
         ) : (

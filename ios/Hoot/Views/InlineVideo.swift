@@ -50,7 +50,7 @@ struct InlineVideo: View {
         }
         .aspectRatio(ratio, contentMode: .fit)
         .frame(maxWidth: .infinity)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
         .onDisappear { player?.pause() }
         .onAppear { if DebugLaunch.screen("video"), !Playback.shared.started { Playback.shared.started = true; start() } }
     }

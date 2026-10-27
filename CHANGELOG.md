@@ -2,6 +2,22 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.37.0] — 2026-10-27 — Het design system
+
+- **Hoot heeft een design system** (`docs/design-system/`; live met voorbeelden als Hoot Design System). Het bevat:
+  - het merkboek met principes, taal, kleur, type, ruimte en vorm, beeld, beweging, toestanden, merk en iconen, per platform en toegankelijkheid;
+  - de tokens;
+  - 16 onderdelen met richtlijn en voorbeeld.
+  - Een onafhankelijke review vergeleek het met de code; alle bevindingen zijn verwerkt.
+- **Website gelijkgetrokken:**
+  - **Nieuwe tokens:** `--edge` (rand van velden en filterknoppen, 3:1), `--readable` en `--wide` in plaats van losse waarden.
+  - **Bediening:** icoonknoppen in `--ink-3` (stil), bronnaam op 600, en de rubriek met regelafstand 1,3.
+  - **Intro in een lijst:** 15 px (`t2`), zoals in de app.
+  - **Chips:** een chip die aan staat, toont een vinkje; aan is nooit alleen een kleur.
+  - **Bronnenrij:** aanraakvlak 44 px. Het bronlogo in de bronregel is 24 px.
+  - **Teksten:** het label "Vergelijk 5 andere bronnen" telt de andere bronnen, en de statusregel zegt "Verversen lukt nu niet. … Opnieuw", gelijk aan de app.
+  - **Stijlgids** (`#/stijl`): de tekstmaten kloppen weer (13 · 15 · 17 · 18 · 27 · 30–34).
+
 ## [1.36.1] — 2026-10-27 — Rustiger bronnenrij, meer Parool-intro's
 
 - **Rustiger bronnenrij in de Stroom:** kleinere logo's (28 px) in grijs, alleen de gekozen bron in kleur.

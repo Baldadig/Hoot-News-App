@@ -9,12 +9,13 @@ struct StreamView: View {
     @State private var showSources = DebugLaunch.screen("bronnen")
     @State private var showAccounts = false
     @State private var limit = 60
+    @State private var pick: String? // de bron uit de rij bovenaan (nil = alles)
     @SceneStorage("streamMode") private var mode = DebugLaunch.screen("bluesky") ? "bluesky" : "nieuws"
     private var social: Bool { store.bluesky && mode == "bluesky" }
 
     var body: some View {
         NavigationStack {
-            let items = store.stream
+            let items = pick.map { p in store.stream.filter { $0.source == p } } ?? store.stream
             ScrollView {
                 if store.bluesky {
                     Picker("Wat je ziet", selection: $mode) {
@@ -23,14 +24,14 @@ struct StreamView: View {
                     }
                     .pickerStyle(.segmented)
                     .padding(.horizontal)
-                    .padding(.bottom, 12)
+                    .padding(.bottom, Space.s3)
                     .column()
                 }
                 if social {
                     BlueskyFeed().padding(.horizontal).column()
                 } else {
                 LazyVStack(alignment: .leading, spacing: 0) {
-                    SourceStrip()
+                    SourceStrip(pick: $pick)
                     if store.status == .loading && items.isEmpty {
                         ProgressView().frame(maxWidth: .infinity, minHeight: 240)
                     } else if items.isEmpty {
@@ -44,21 +45,21 @@ struct StreamView: View {
                         if let at = store.updatedAt, !store.stale {
                             Text(subtitle(at))
                                 .font(.footnote)
-                                .foregroundStyle(Theme.muted)
-                                .padding(.bottom, 8)
+                                .foregroundStyle(Theme.ink3)
+                                .padding(.bottom, Space.s2)
                         }
-                        let fresh = store.newInStream
+                        let fresh = pick == nil ? store.newInStream : 0
                         ForEach(Array(items.prefix(limit).enumerated()), id: \.element.id) { i, item in
                             // Waar je de vorige keer was: daaronder heb je alles al gezien.
                             if fresh > 0 && i == fresh { SeenMarker() }
                             ItemRow(item: item, story: store.story(of: item))
-                            if !(fresh > 0 && i == fresh - 1) { Divider() }
+                            if !(fresh > 0 && i == fresh - 1) { Rule() }
                         }
                         if items.count > limit {
                             Button("Meer berichten") { limit += 60 }
                                 .buttonStyle(.glass)
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 24)
+                                .padding(.vertical, Space.s5)
                         }
                     }
                 }
@@ -73,13 +74,18 @@ struct StreamView: View {
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .refreshable { await store.load() }
             .toolbar {
+                // Bediening is stil (design system): grijs en zonder glazen rondje, zoals het tandwiel.
                 ToolbarItem(placement: .topBarTrailing) {
-                    if social {
-                        Button("Accounts", systemImage: "person.2") { showAccounts = true }
-                    } else {
-                        Button("Bronnen", systemImage: "dot.radiowaves.up.forward") { showSources = true }
+                    Group {
+                        if social {
+                            Button("Accounts", systemImage: "person.2") { showAccounts = true }
+                        } else {
+                            Button("Bronnen", systemImage: "dot.radiowaves.up.forward") { showSources = true }
+                        }
                     }
+                    .tint(Theme.ink3)
                 }
+                .sharedBackgroundVisibility(.hidden)
             }
             .sheet(isPresented: $showSources) { SourcesView().debugAppearance() }
             .sheet(isPresented: $showAccounts) { BlueskyAccountsView().debugAppearance() }
@@ -103,12 +109,12 @@ struct StreamView: View {
 // De grens tussen nieuw en al gezien.
 private struct SeenMarker: View {
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: Space.s3) {
             Rectangle().fill(Theme.accent).frame(height: 1)
             Text("Hier was je gebleven").font(.caption.weight(.bold)).foregroundStyle(Theme.accent).fixedSize()
             Rectangle().fill(Theme.accent).frame(height: 1)
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, Space.s3)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)
     }
@@ -141,7 +147,7 @@ struct SourcesList: View {
             Section {
                 Text("Gratis: alles is te lezen. Abonnement: veel artikelen alleen met een abonnement bij de uitgever. Een bron aanzetten sluit geen abonnement af.")
                     .font(.footnote)
-                    .foregroundStyle(Theme.muted)
+                    .foregroundStyle(Theme.ink3)
             }
             .listRowBackground(Color.clear)
             ForEach(Self.cats, id: \.0) { cat, label in
@@ -149,22 +155,22 @@ struct SourcesList: View {
                 if !list.isEmpty {
                     Section(label) {
                         ForEach(list) { s in
-                            HStack(spacing: 4) {
+                            HStack(spacing: Space.s1) {
                             if store.isOn(s) {
                                 // Voorkeursbron: weegt zwaarder in je editie en staat vooraan in de Stroom.
                                 Button { store.setFavorite(s.id, !store.isFavorite(s.id)) } label: {
-                                    Image(systemName: store.isFavorite(s.id) ? "star.fill" : "star").foregroundStyle(store.isFavorite(s.id) ? Theme.accent : Theme.muted).frame(width: 36, height: 44)
+                                    Image(systemName: store.isFavorite(s.id) ? "star.fill" : "star").foregroundStyle(store.isFavorite(s.id) ? Theme.accent : Theme.ink3).frame(width: Space.tap, height: Space.tap)
                                 }
                                 .buttonStyle(.borderless)
                                 .accessibilityLabel(store.isFavorite(s.id) ? "\(s.name): voorkeursbron" : "Maak \(s.name) een voorkeursbron")
                             }
                             Toggle(isOn: Binding(get: { store.isOn(s) }, set: { store.setOn(s, $0) })) {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    HStack(spacing: 6) {
+                                VStack(alignment: .leading, spacing: Space.s0) {
+                                    HStack(spacing: Space.s2) {
                                         Text(s.name)
-                                        if s.paid == true { Text("abonnement").font(.caption).foregroundStyle(Theme.muted) } else { Text("gratis").font(.caption.weight(.semibold)).foregroundStyle(Theme.accent) }
+                                        if s.paid == true { Text("abonnement").font(.caption).foregroundStyle(Theme.ink3) } else { Text("gratis").font(.caption.weight(.semibold)).foregroundStyle(Theme.accent) }
                                     }
-                                    if let about = s.about { Text(about).font(.caption).foregroundStyle(Theme.muted) }
+                                    if let about = s.about { Text(about).font(.caption).foregroundStyle(Theme.ink3) }
                                 }
                             }
                             }

@@ -71,7 +71,7 @@ export function Meta({ item, story, showSave = true }) {
   return (
     <div className="meta">
       <button type="button" className="srcbtn" onClick={() => openSource(item.source)} aria-label={`Alles van ${item.sourceName} bekijken`}>
-        <SourceMark source={srcOf(item)} size={28} />
+        <SourceMark source={srcOf(item)} size={24} />
         <span className="srcbtn__col">
           <span className="srcbtn__name">{item.sourceName}</span>
           <span className="srcbtn__time">
@@ -82,7 +82,7 @@ export function Meta({ item, story, showSave = true }) {
         </span>
       </button>
       {story && others > 0 ? (
-        <button type="button" className="morebtn" onClick={() => openStory(story.id)} aria-label={`Vergelijk ${story.sourceCount} bronnen over dit verhaal${fresh ? `, ${fresh} nieuw` : ''}`}>
+        <button type="button" className="morebtn" onClick={() => openStory(story.id)} aria-label={`Vergelijk ${others} andere ${others === 1 ? 'bron' : 'bronnen'}${fresh ? `, ${fresh} nieuw` : ''}`}>
           {fresh ? <span className="dot" aria-hidden="true" /> : null}+{others} {others === 1 ? 'bron' : 'bronnen'}
         </button>
       ) : null}

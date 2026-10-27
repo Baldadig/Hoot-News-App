@@ -12,8 +12,8 @@ struct BlueskyFeed: View {
         LazyVStack(alignment: .leading, spacing: 0) {
             Text("De mensen die je volgt, nieuwste eerst.")
                 .font(.footnote)
-                .foregroundStyle(Theme.muted)
-                .padding(.bottom, 8)
+                .foregroundStyle(Theme.ink3)
+                .padding(.bottom, Space.s2)
             if people.count > 1 { chips(people) }
             if store.status == .loading && posts.isEmpty {
                 ProgressView().frame(maxWidth: .infinity, minHeight: 240)
@@ -23,7 +23,7 @@ struct BlueskyFeed: View {
                 StaleNotice()
                 ForEach(posts) { post in
                     PostRow(item: post)
-                    Divider()
+                    Rule()
                 }
             }
         }
@@ -31,19 +31,19 @@ struct BlueskyFeed: View {
 
     private func chips(_ people: [Source]) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+            HStack(spacing: Space.s2) {
                 chip("Iedereen", on: who == nil) { who = nil }
                 ForEach(people) { s in chip(s.name, on: who == s.id) { who = who == s.id ? nil : s.id } }
             }
-            .padding(.vertical, 4)
+            .padding(.vertical, Space.s1)
         }
         .scrollClipDisabled()
-        .padding(.bottom, 8)
+        .padding(.bottom, Space.s2)
     }
 
     private func chip(_ label: String, on: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(label).font(.subheadline.weight(.semibold)).foregroundStyle(on ? Theme.accent : Theme.muted)
+            Text(label).font(.subheadline.weight(.semibold)).foregroundStyle(on ? Theme.accent : Theme.ink3)
         }
         .buttonStyle(.glass)
         .accessibilityAddTraits(on ? .isSelected : [])
@@ -56,13 +56,13 @@ private struct PostRow: View {
     let item: Item
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: Space.s3) {
             SourceMark(item: item, size: 40)
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Space.s2) {
                 HStack(alignment: .firstTextBaseline) {
                     VStack(alignment: .leading, spacing: 0) {
                         Text(item.sourceName ?? item.source).font(.subheadline.weight(.semibold))
-                        Text([item.handle, HootDate.ago(item.date)].compactMap { $0 }.joined(separator: " · ")).font(.caption).foregroundStyle(Theme.muted)
+                        Text([item.handle, HootDate.ago(item.date)].compactMap { $0 }.joined(separator: " · ")).font(.caption).foregroundStyle(Theme.ink3)
                     }
                     Spacer(minLength: 8)
                     SaveButton(item: item)
@@ -77,7 +77,7 @@ private struct PostRow: View {
                         LinkCard(item: item, title: title)
                     } else if item.image != nil, store.showsImage(lead: false) {
                         FramedImage(url: item.image.flatMap(URL.init(string:)), ratio: CGFloat(min(max(item.imageRatio ?? 4 / 3, 0.75), 2)))
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
                     }
                 }
                 .contentShape(Rectangle())
@@ -85,7 +85,7 @@ private struct PostRow: View {
                 if item.videoURL != nil { InlineVideo(item: item) }
             }
         }
-        .padding(.vertical, 12)
+        .padding(.vertical, Space.s3)
     }
 }
 
@@ -99,16 +99,16 @@ private struct LinkCard: View {
             if item.image != nil, store.showsImage(lead: false) {
                 FramedImage(url: item.image.flatMap(URL.init(string:)), ratio: 1.91)
             }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
-                if let host = item.link?.host() { Text(host.replacing(/^www\./, with: "")).font(.caption).foregroundStyle(Theme.muted) }
+            VStack(alignment: .leading, spacing: Space.s0) {
+                Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
+                if let host = item.link?.host() { Text(host.replacing(/^www\./, with: "")).font(.caption).foregroundStyle(Theme.ink3) }
             }
-            .padding(12)
+            .padding(Space.s3)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Theme.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(.separator, lineWidth: 0.5))
+        .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous).strokeBorder(Theme.rule, lineWidth: 1))
     }
 }
 
@@ -136,7 +136,7 @@ struct BlueskyAccountsView: View {
                 } header: {
                     Text("Iemand volgen")
                 } footer: {
-                    if let error { Text(error).foregroundStyle(.red) } else { Text("Je ziet hun eigen posts van de afgelopen twee dagen: geen reposts en geen antwoorden.").foregroundStyle(Theme.muted) }
+                    if let error { Text(error).foregroundStyle(Theme.warn) } else { Text("Je ziet hun eigen posts van de afgelopen twee dagen: geen reposts en geen antwoorden.").foregroundStyle(Theme.ink3) }
                 }
                 let own = store.socialSources.filter { store.isOwn($0.id) }
                 if !own.isEmpty {
@@ -165,7 +165,7 @@ struct BlueskyAccountsView: View {
             store.setOn(s, on)
             if on, store.isOwn(s.id) { Task { await store.loadOwnPosts() } }
         })) {
-            HStack(spacing: 10) {
+            HStack(spacing: Space.s3) {
                 AsyncImage(url: s.avatar.flatMap(URL.init(string:))) { phase in
                     if let image = phase.image { image.resizable().scaledToFill() } else { Circle().fill(.quaternary) }
                 }
@@ -174,7 +174,7 @@ struct BlueskyAccountsView: View {
                 .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 0) {
                     Text(s.name)
-                    Text("@" + s.id.replacing(/^bsky:/, with: "")).font(.caption).foregroundStyle(Theme.muted)
+                    Text("@" + s.id.replacing(/^bsky:/, with: "")).font(.caption).foregroundStyle(Theme.ink3)
                 }
             }
         }

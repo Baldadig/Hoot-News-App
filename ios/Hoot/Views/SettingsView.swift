@@ -46,7 +46,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Editie en Stroom")
                 } footer: {
-                    Text("Buiten je bubbel: één verhaal waar veel mensen nu naar zoeken en dat niet in je editie staat.").foregroundStyle(Theme.muted)
+                    Text("Buiten je bubbel: één verhaal waar veel mensen nu naar zoeken en dat niet in je editie staat.").foregroundStyle(Theme.ink3)
                 }
 
                 // Eén keuze (waar openen artikelen), met de uitzonderingen alleen als die gelden.
@@ -74,7 +74,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Lezen")
                 } footer: {
-                    Text(store.openWith == "lezer" ? "De lezer toont alleen de tekst en beelden, in de opmaak van Hoot. Log één keer in bij je abonnementen om ook hun hele artikelen hier te lezen." : store.openWith == "safari" ? "In Safari ben je ingelogd bij je abonnementen." : "Op de website in Hoot ben je niet ingelogd bij je abonnementen; daarom openen abonnementsbronnen standaard in Safari.").foregroundStyle(Theme.muted)
+                    Text(store.openWith == "lezer" ? "De lezer toont alleen de tekst en beelden, in de opmaak van Hoot. Log één keer in bij je abonnementen om ook hun hele artikelen hier te lezen." : store.openWith == "safari" ? "In Safari ben je ingelogd bij je abonnementen." : "Op de website in Hoot ben je niet ingelogd bij je abonnementen; daarom openen abonnementsbronnen standaard in Safari.").foregroundStyle(Theme.ink3)
                 }
 
                 Section {
@@ -89,7 +89,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Bluesky")
                 } footer: {
-                    Text("Bovenaan de Stroom kies je dan tussen het nieuws en de posts van de mensen die je volgt.").foregroundStyle(Theme.muted)
+                    Text("Bovenaan de Stroom kies je dan tussen het nieuws en de posts van de mensen die je volgt.").foregroundStyle(Theme.ink3)
                 }
 
                 Section {
@@ -104,7 +104,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Jouw editie")
                 } footer: {
-                    Text("Je editie komt uit je eigen bronnen. Wat bij je interesses past en wat van je voorkeursbronnen komt (de ster bij Bronnen) gaat voor. Ook wat je opent en bewaart telt mee; dat blijft op deze iPhone.").foregroundStyle(Theme.muted)
+                    Text("Je editie komt uit je eigen bronnen. Wat bij je interesses past en wat van je voorkeursbronnen komt (de ster bij Bronnen) gaat voor. Ook wat je opent en bewaart telt mee; dat blijft op deze iPhone.").foregroundStyle(Theme.ink3)
                 }
 
                 Section("Bronnen en vakken") {
@@ -122,10 +122,10 @@ struct SettingsView: View {
                     } label: {
                         OutboundRow(title: "Meldingen en achtergrond", systemImage: "gearshape")
                     }
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(Theme.ink)
                     .accessibilityHint("Opent Hoot in de Instellingen-app")
                 } footer: {
-                    Text("In de Instellingen-app van je iPhone. De tekstgrootte volgt je iPhone (Toegankelijkheid › Weergave en tekstgrootte).").foregroundStyle(Theme.muted)
+                    Text("In de Instellingen-app van je iPhone. De tekstgrootte volgt je iPhone (Toegankelijkheid › Weergave en tekstgrootte).").foregroundStyle(Theme.ink3)
                 }
 
                 Section {
@@ -143,8 +143,8 @@ struct SettingsView: View {
                 Section("Over") {
                     LabeledContent("Versie", value: version)
                     LabeledContent("Gemaakt door", value: "Alex Vrees")
-                    Link(destination: URL(string: "https://hootnews.nl/#/privacy")!) { OutboundRow(title: "Privacybeleid", systemImage: "hand.raised") }.foregroundStyle(.primary)
-                    Link(destination: URL(string: "https://hootnews.nl")!) { OutboundRow(title: "hootnews.nl", systemImage: "globe") }.foregroundStyle(.primary)
+                    Link(destination: URL(string: "https://hootnews.nl/#/privacy")!) { OutboundRow(title: "Privacybeleid", systemImage: "hand.raised") }.foregroundStyle(Theme.ink)
+                    Link(destination: URL(string: "https://hootnews.nl")!) { OutboundRow(title: "hootnews.nl", systemImage: "globe") }.foregroundStyle(Theme.ink)
                 }
                 .id("over")
             }
@@ -201,15 +201,15 @@ struct InterestsList: View {
                         store.interests = on ? Self.all.map(\.0).filter { $0 == id || store.interests.contains($0) } : store.interests.filter { $0 != id }
                     })) {
                         Label {
-                            VStack(alignment: .leading, spacing: 2) {
+                            VStack(alignment: .leading, spacing: Space.s0) {
                                 Text(label)
-                                Text(about).font(.caption).foregroundStyle(Theme.muted)
+                                Text(about).font(.caption).foregroundStyle(Theme.ink3)
                             }
                         } icon: { Image(systemName: icon) }
                     }
                 }
             } footer: {
-                Text("Wat hierbij past, gaat voor in je editie. Echt groot nieuws blijft bovenaan, ook als het buiten je interesses valt.").foregroundStyle(Theme.muted)
+                Text("Wat hierbij past, gaat voor in je editie. Echt groot nieuws blijft bovenaan, ook als het buiten je interesses valt.").foregroundStyle(Theme.ink3)
             }
         }
     }
@@ -228,16 +228,16 @@ struct DigestFieldsList: View {
                         store.digestFields = on ? Self.fields.map(\.0).filter { $0 == id || store.digestFields.contains($0) } : store.digestFields.filter { $0 != id }
                     })) {
                         Label {
-                            HStack(spacing: 6) {
+                            HStack(spacing: Space.s2) {
                                 Text(label)
-                                if !offered { Text("binnenkort").font(.caption).foregroundStyle(Theme.muted) }
+                                if !offered { Text("binnenkort").font(.caption).foregroundStyle(Theme.ink3) }
                             }
                         } icon: { Image(systemName: icon) }
                     }
                     .disabled(!offered)
                 }
             } footer: {
-                Text("Elke maandag om 7 uur per vak de drie belangrijkste stukken van de week, door mensen geschreven.").foregroundStyle(Theme.muted)
+                Text("Elke maandag om 7 uur per vak de drie belangrijkste stukken van de week, door mensen geschreven.").foregroundStyle(Theme.ink3)
             }
         }
         .task { await store.loadDigest() }
@@ -251,7 +251,7 @@ struct AccountButton: ToolbarContent {
         // Rustig: grijs en zonder glazen rondje; de inhoud gaat voor.
         ToolbarItem(placement: .topBarTrailing) {
             Button("Instellingen", systemImage: "gearshape") { open = true }
-                .tint(Theme.muted)
+                .tint(Theme.ink3)
         }
         .sharedBackgroundVisibility(.hidden)
     }
@@ -278,9 +278,9 @@ struct OutboundRow: View {
     let systemImage: String
     var body: some View {
         HStack {
-            Label { Text(title).foregroundStyle(.primary) } icon: { Image(systemName: systemImage).foregroundStyle(Theme.accent) }
+            Label { Text(title).foregroundStyle(Theme.ink) } icon: { Image(systemName: systemImage).foregroundStyle(Theme.accent) }
             Spacer()
-            Image(systemName: "arrow.up.forward").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+            Image(systemName: "arrow.up.forward").font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink3)
         }
     }
 }

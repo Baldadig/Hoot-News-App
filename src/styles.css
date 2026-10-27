@@ -12,6 +12,7 @@
   --ink-2: #4b453b;
   --ink-3: #6b6457;
   --rule: #ded5c4;
+  --edge: #8f8574; /* rand van velden en filterknoppen: 3:1, waar een lijn iets betekent */
   --accent: #a3201b; /* krantenrood: rubrieken, actief, "+ bronnen" */
   --accent-soft: #f4e3de;
   --on-accent: #ffffff;
@@ -31,6 +32,8 @@
   /* Maat */
   --gutter: 16px;
   --tap: 44px;
+  --readable: 680px; /* leesbreedte */
+  --wide: 1000px; /* brede pagina: Editie en Digest */
   --radius: 12px;
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
@@ -78,6 +81,7 @@
   --ink-2: #cbc3b5;
   --ink-3: #a39b8d;
   --rule: #34302a;
+  --edge: #766e61;
   --accent: #ec7a70;
   --accent-soft: #3a1e1b;
   --on-accent: #151310;
@@ -240,7 +244,7 @@ select {
 }
 
 .col {
-  max-width: 680px; /* leesbreedte */
+  max-width: var(--readable);
   margin: 0 auto;
   padding: var(--safe-t) calc(var(--gutter) + var(--safe-r)) var(--s7) calc(var(--gutter) + var(--safe-l));
 }
@@ -581,7 +585,7 @@ select {
   border: 0;
   border-radius: var(--radius);
   background: none;
-  color: var(--ink-2);
+  color: var(--ink-3); /* bediening is stil; de inhoud gaat voor */
   cursor: pointer;
   text-decoration: none;
 }
@@ -690,7 +694,7 @@ select {
 }
 .topics__filter {
   position: relative;
-  border: 1px solid var(--rule);
+  border: 1px solid var(--edge);
   border-radius: var(--radius-pill);
 }
 .topics__filter.is-on {
@@ -747,6 +751,12 @@ select {
   background: var(--accent-soft);
   color: var(--accent);
 }
+/* Aan is niet alleen een kleur: ook een vinkje, zoals in de app */
+.chip[aria-pressed='true']::after {
+  content: '✓';
+  order: -1;
+  font-weight: 800;
+}
 .chip:disabled {
   opacity: 0.45;
   cursor: default;
@@ -757,7 +767,7 @@ select {
   min-width: 0;
   min-height: var(--tap);
   padding: 0 var(--s4);
-  border: 1px solid var(--rule);
+  border: 1px solid var(--edge); /* een veld moet als veld te zien zijn: 3:1 */
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--ink);
@@ -857,6 +867,7 @@ select {
   color: var(--accent);
   font-size: var(--t1);
   font-weight: 800;
+  line-height: var(--lh-ui);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -905,7 +916,7 @@ select {
   border: 0;
   background: none;
   color: var(--ink);
-  font-weight: 700;
+  font-weight: 600;
   text-align: left;
   cursor: pointer;
 }
@@ -1017,6 +1028,10 @@ select {
   color: var(--ink-2);
   font-size: var(--t3);
   line-height: var(--lh-body);
+}
+/* Intro in een lijst: kleiner dan lopende tekst, zoals in de app (.subheadline) */
+.compact__sum {
+  font-size: var(--t2);
 }
 
 /* Stroom, korte weergave: twee regels per bericht om sneller te scannen (instelbaar onder Filters) */
@@ -1758,7 +1773,7 @@ select {
   text-transform: uppercase;
 }
 .story__body {
-  max-width: 680px;
+  max-width: var(--readable);
   margin: 0 auto;
   padding: var(--s4) calc(var(--gutter) + var(--safe-r)) calc(var(--s7) + var(--safe-b)) calc(var(--gutter) + var(--safe-l));
 }
@@ -2514,7 +2529,7 @@ select {
 }
 @media (min-width: 1200px) {
   .app:not(.has-panel) .col--front {
-    max-width: 1000px;
+    max-width: var(--wide);
   }
   .app:not(.has-panel) .front {
     display: grid;
@@ -2858,7 +2873,7 @@ html[data-images='hoofd'] .media--social {
 }
 @media (min-width: 720px) {
   .reader {
-    max-width: 680px;
+    max-width: var(--readable);
     height: auto;
     max-height: 88dvh;
     margin: auto;
@@ -3531,7 +3546,7 @@ html[data-images='hoofd'] .media--social {
   flex: none;
   display: grid;
   place-items: center;
-  width: 40px; /* aanraakvlak; het logo zelf is 28px */
+  width: var(--tap); /* aanraakvlak 44 px; het logo zelf is 28px */
   height: 44px;
   padding: 0;
   border: 0;
