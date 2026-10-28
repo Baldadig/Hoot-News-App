@@ -53,7 +53,6 @@ struct WelcomeView: View {
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(isPresented: $login) {
                 AccountView { store.onboarded = true }
-                    .navigationTitle("Inloggen")
             }
             .navigationDestination(isPresented: $setup) {
                 SetupSteps { store.onboarded = true }

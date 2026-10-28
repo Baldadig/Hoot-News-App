@@ -2,6 +2,15 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.49.1] — 2026-10-28 — Een gewoon inlogscherm, en opnieuw instellen
+
+- **Inloggen (iOS):** geen kaart en geen lap uitleg meer, maar een gewoon inlogscherm in de stijl van het welkom:
+  - "hoot." met de ademende punt;
+  - "Log in bij Hoot" en "Je editie en Bewaard op al je apparaten.";
+  - de knoppen van Apple en Google;
+  - één regel klein: "Hoot is nog op uitnodiging."
+- **Stel Hoot opnieuw in (iOS, Instellingen):** brengt je terug naar het welkom, om opnieuw te kiezen of in te loggen. Wat je bewaarde en las, blijft.
+
 ## [1.49.0] — 2026-10-28 — Digest heet nu Selectie
 
 - **Alles Nederlands: Editie, Stroom, Selectie en Bewaard.** De wekelijkse Digest heet voortaan Selectie, in de app, op de website, in de onboarding ("Je selectie") en in de App Store-teksten.

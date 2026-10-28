@@ -134,6 +134,22 @@ struct SettingsView: View {
                     Text("Op dit toestel")
                 }
 
+                // Terug naar het welkom: opnieuw kiezen, of opnieuw inloggen. Wat je bewaarde en las blijft.
+                Section {
+                    Button {
+                        dismiss()
+                        Task {
+                            try? await Task.sleep(for: .milliseconds(450)) // eerst dit blad dicht, dan het welkom
+                            store.onboarded = false
+                        }
+                    } label: {
+                        Label("Stel Hoot opnieuw in", systemImage: "arrow.counterclockwise")
+                    }
+                    .foregroundStyle(Theme.ink)
+                } footer: {
+                    Text("Je ziet het welkom weer en kiest opnieuw je interesses en bronnen. Wat je bewaarde en las, blijft.").foregroundStyle(Theme.ink3)
+                }
+
                 Section("Over") {
                     LabeledContent("Versie", value: version)
                     LabeledContent("Gemaakt door") { Link("Baldadig.nl", destination: URL(string: "https://baldadig.nl")!) }
@@ -149,7 +165,7 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: String.self) { page in
                 if page == "account" {
-                    AccountView().navigationTitle("Account").navigationBarTitleDisplayMode(.inline)
+                    AccountView()
                 } else if page == "bronnen" {
                     SourcesList().navigationTitle("Bronnen").navigationBarTitleDisplayMode(.inline)
                 } else if page == "abonnementen" {

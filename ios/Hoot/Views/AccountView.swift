@@ -69,16 +69,20 @@ struct AccountView: View {
     private static let buttonRadius: CGFloat = 10
 
     var body: some View {
-        Form {
-            switch account.status {
-            case .out, .loading: signIn
-            case .noInvite: invite
-            case .member: member
-            }
-            if let message = account.message {
-                Section { Label(message, systemImage: "exclamationmark.circle").foregroundStyle(Theme.accent) }
+        Group {
+            if account.status == .out || account.status == .loading {
+                signIn
+            } else {
+                Form {
+                    if account.status == .noInvite { invite } else { member }
+                    if let message = account.message {
+                        Section { Label(message, systemImage: "exclamationmark.circle").foregroundStyle(Theme.accent) }
+                    }
+                }
+                .navigationTitle("Account")
             }
         }
+        .navigationBarTitleDisplayMode(.inline)
         .onChange(of: account.status) { _, now in if now == .member { onMember?() } }
         .alert("Je account verwijderen?", isPresented: $confirmDelete) {
             Button("Annuleer", role: .cancel) {}
@@ -88,15 +92,28 @@ struct AccountView: View {
         }
     }
 
-    // Inloggen: twee gelijke knoppen, met dezelfde hoogte en vorm.
+    // Inloggen zoals je het kent: het merk, één korte kop en twee knoppen. Geen uitleg nodig.
     private var signIn: some View {
-        Section {
-            VStack(alignment: .leading, spacing: Space.s3) {
-                Text("Log in met het account dat je ook op hootnews.nl gebruikt. Dan heb je hier dezelfde editie, bronnen en bewaarde stukken.")
-                    .font(.subheadline)
-                    .foregroundStyle(Theme.ink3)
-                    .padding(.bottom, Space.s1)
+        VStack(spacing: 0) {
+            Spacer()
+            OnboardingArt(kind: .intro) // "hoot." met de ademende punt, zoals het welkom
+            Text("Log in bij Hoot")
+                .font(Theme.headline(.title))
+                .padding(.top, Space.s4)
+            Text("Je editie en Bewaard op al je apparaten.")
+                .font(.body)
+                .foregroundStyle(Theme.ink2)
+                .multilineTextAlignment(.center)
+                .padding(.top, Space.s2)
+            Spacer()
+            VStack(spacing: Space.s3) {
                 // Elk in de eigen huisstijl, maar even groot: zelfde hoogte, afronding en letter.
+                // Apple (Human Interface Guidelines): zwart op licht, wit op donker; de tekst geeft iOS zelf.
+                SignInWithAppleButton(.signIn) { account.prepare($0) } onCompletion: { result in Task { await account.finishApple(result) } }
+                    .signInWithAppleButtonStyle(scheme == .dark ? .white : .black)
+                    .id(scheme) // de knop van Apple neemt een nieuwe stijl pas over als hij opnieuw wordt gemaakt
+                    .frame(height: Self.buttonHeight)
+                    .clipShape(RoundedRectangle(cornerRadius: Self.buttonRadius))
                 // Google (branding guidelines "Sign in with Google"): licht thema wit met grijze rand,
                 // donker thema #131314; het gekleurde G-logo los, en hun eigen Nederlandse tekst.
                 if HootConfig.googleReady {
@@ -113,19 +130,27 @@ struct AccountView: View {
                     }
                     .buttonStyle(.plain)
                 }
-                // Apple (Human Interface Guidelines): zwart op licht, wit op donker; de tekst geeft iOS zelf.
-                SignInWithAppleButton(.signIn) { account.prepare($0) } onCompletion: { result in Task { await account.finishApple(result) } }
-                    .signInWithAppleButtonStyle(scheme == .dark ? .white : .black)
-                    .id(scheme) // de knop van Apple neemt een nieuwe stijl pas over als hij opnieuw wordt gemaakt
-                    .frame(height: Self.buttonHeight)
-                    .clipShape(RoundedRectangle(cornerRadius: Self.buttonRadius))
-                if account.status == .loading { ProgressView().frame(maxWidth: .infinity) }
             }
-            .padding(.vertical, Space.s2)
             .disabled(account.status == .loading)
-        } footer: {
-            Text("Hoot is nog op uitnodiging. Inloggen is niet nodig: zonder account werkt alles, alleen op dit toestel.").foregroundStyle(Theme.ink3)
+            .overlay { if account.status == .loading { ProgressView() } }
+            if let message = account.message {
+                Text(message)
+                    .font(.footnote)
+                    .foregroundStyle(Theme.accent)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, Space.s3)
+            }
+            Text("Hoot is nog op uitnodiging.")
+                .font(.footnote)
+                .foregroundStyle(Theme.ink3)
+                .padding(.top, Space.s4)
         }
+        .padding(.horizontal, Space.s5)
+        .padding(.bottom, Space.s4)
+        .frame(maxWidth: Layout.readable)
+        .frame(maxWidth: .infinity)
+        .background(Theme.paper)
+        .navigationTitle("")
     }
 
     private var invite: some View {
