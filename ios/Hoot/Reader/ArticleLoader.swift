@@ -153,7 +153,7 @@ final class ArticleLoader: NSObject, WKNavigationDelegate, WKUIDelegate {
           // Rommel rond de tekst: auteursblok (foto, naam, "Profiel"), "Gepubliceerd", "Leestijd",
           // "Lees ook", deel- en volgknoppen, en lijstjes met alleen korte links.
           var byline = (a.byline || '').trim();
-          var JUNK = /^(gepubliceerd|bijgewerkt|published|updated|leestijd|reading time|leeslijst|lees ook|lees meer|meer over|read more|deel dit|delen|share|volg |follow |profiel|verslaggever|redacteur|correspondent|advertentie|advertisement)\b|voorkeursbron|nieuwsbrief|newsletter/i;
+          var JUNK = /^(gepubliceerd|bijgewerkt|published|updated|leestijd|reading time|leeslijst|lees ook|lees meer|meer over|read more|deel dit|delen|share|volg |follow |profiel|verslaggever|redacteur|correspondent|advertentie|advertisement|skip to (main )?content|naar (de )?(hoofd)?inhoud)\b|^(by|door|tekst|text)$|voorkeursbron|nieuwsbrief|newsletter|cookie (preferences|settings|instellingen)|this content (isn't|is not) (visible|available)|deze inhoud (is niet zichtbaar|kan niet worden)/i;
           box.querySelectorAll('img').forEach(function (img) {
             var s = (img.getAttribute('src') || '') + ' ' + (img.getAttribute('class') || '');
             var alt = (img.getAttribute('alt') || '').trim();
@@ -167,7 +167,7 @@ final class ArticleLoader: NSObject, WKNavigationDelegate, WKUIDelegate {
           });
           // Een losse datumregel ("vandaag, 14:27", "28 oktober 2026") en een auteursportret met
           // alleen een naam eronder, bovenaan het stuk: geen tekst om te lezen.
-          var DATE = /^(vandaag|gisteren|maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag|today|yesterday|\d{1,2}[ -](jan|feb|mrt|maa|apr|mei|jun|jul|aug|sep|okt|nov|dec)\w*([ -]\d{4})?)(,?\s*\d{1,2}[:.]\d{2})?( uur)?$/i;
+          var DATE = /^((vandaag|gisteren|maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag|today|yesterday|\d{1,2}[ -](jan|feb|mrt|maa|apr|mei|jun|jul|aug|sep|okt|nov|dec)\w*([ -]\d{4})?)(,?\s*\d{1,2}[:.]\d{2})?( uur)?|(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w* \d{1,2},? \d{4}( at \d{1,2}:\d{2}( ?[ap]m)?( [a-z]{2,4}([+-]\d{1,2})?)?)?)$/i;
           var NAME = /^[A-ZÀ-Ý][\wÀ-ÿ'-]+( (van|de|der|den|ten|ter|het|'t|el|al|von|du|da|di|le|la|[A-ZÀ-Ý][\wÀ-ÿ'-]+)){1,4}$/;
           var lead = [];
           box.querySelectorAll('p, img, figure, div, span, time').forEach(function (el) { if (lead.length < 8 && !el.querySelector('p, figure')) lead.push(el); });
@@ -185,6 +185,12 @@ final class ArticleLoader: NSObject, WKNavigationDelegate, WKUIDelegate {
           });
           box.querySelectorAll('li, p, div, span, figure').forEach(function (el) {
             if (!(el.textContent || '').trim() && !el.querySelector('img, video, picture, iframe')) el.remove();
+          });
+          // Dezelfde alinea twee keer achter elkaar (een intro die de site herhaalt): één keer.
+          var prev = '';
+          box.querySelectorAll('p').forEach(function (p) {
+            var t = (p.textContent || '').replace(/\s+/g, ' ').trim();
+            if (t && t === prev) p.remove(); else if (t) prev = t;
           });
           a.content = box.innerHTML;
           return JSON.stringify({ title: a.title, byline: a.byline, siteName: a.siteName, content: a.content, length: a.length, publishedTime: a.publishedTime });

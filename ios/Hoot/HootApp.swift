@@ -103,7 +103,13 @@ struct RootView: View {
         }
         .task(id: store.editionRows.count) {
             // `-HootScreen lezer`: het eerste artikel van de editie in de lezer.
-            if DebugLaunch.screen("lezer"), reader.item == nil, let row = store.editionRows.first(where: { store.source($0.item.source)?.paid != true }) ?? store.editionRows.first { reader.item = row.item } // bij voorkeur een gratis bron: dan het hele artikel
+            // `-HootScreen lezer`: bij voorkeur een gratis, Nederlandstalig stuk (dan het hele artikel), ook
+            // als dat niet het hoofdstuk van het verhaal is.
+            if DebugLaunch.screen("lezer"), reader.item == nil, !store.editionRows.isEmpty {
+                let all = store.editionRows.flatMap { row in [row.item] + (row.story?.itemIds.compactMap { store.itemsById[$0] } ?? []) }
+                let free = { (i: Item) in store.source(i.source).map { $0.paid != true } ?? false }
+                reader.item = all.first { free($0) && store.source($0.source)?.lang == "nl" } ?? all.first(where: free) ?? all.first
+            }
         }
         #endif
         .debugAppearance()

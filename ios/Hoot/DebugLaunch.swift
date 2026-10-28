@@ -6,6 +6,7 @@ import SwiftUI
 //   -HootScreen verhaal|lezer|bronnen|bluesky|video|instellingen|instellingen-bronnen|instellingen-vakken|instellingen-wissen
 //   -HootScroll midden|onder   -HootQuery <tekst>   -HootDark YES   -HootLargeText YES   -HootOffline YES
 //   -HootSeenMinutes <n>   (de Stroom alsof je er n minuten geleden was)
+//   -HootFeature verhaal-id:Rubriek,…   (App Store-opnamen: deze echte verhalen bovenaan Editie en Stroom)
 // In Release doet dit allemaal niets.
 enum DebugLaunch {
     #if DEBUG
@@ -16,6 +17,12 @@ enum DebugLaunch {
     static var largeText: Bool { defaults.bool(forKey: "HootLargeText") }
     static var offline: Bool { defaults.bool(forKey: "HootOffline") }
     static var seenMinutes: Double? { defaults.object(forKey: "HootSeenMinutes") != nil ? defaults.double(forKey: "HootSeenMinutes") : nil }
+    static var feature: [(id: String, label: String?)] {
+        (defaults.string(forKey: "HootFeature") ?? "").split(separator: ",").map { part in
+            let bits = part.split(separator: ":", maxSplits: 1).map(String.init)
+            return (bits[0], bits.count > 1 ? bits[1] : nil)
+        }
+    }
     static var anchor: UnitPoint? {
         switch defaults.string(forKey: "HootScroll") {
         case "midden": .center
@@ -30,6 +37,7 @@ enum DebugLaunch {
     static let largeText = false
     static let offline = false
     static let seenMinutes: Double? = nil
+    static let feature: [(id: String, label: String?)] = []
     static let anchor: UnitPoint? = nil
     #endif
 

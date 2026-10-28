@@ -1,8 +1,10 @@
 #!/bin/zsh
-# Opnamen voor de App Store-beelden (iPhone 6,9" en iPad 13"): Editie, Stroom, Lezer, Vergelijken en
-# Digest, licht, statusbalk 9:41. De opnamen komen in ios/AppStore/screenshots/raw/; daarna
-# maakt frames.mjs de opgemaakte versies.
-# Gebruik (vanuit de map Hoot-News-App): zsh ios/AppStore/tools/capture.sh
+# Opnamen voor de App Store-beelden (iPhone 6,9" en iPad 13"): Editie, Vergelijken, het einde van de
+# editie, Digest en de lezer, licht, statusbalk 9:41. De opnamen komen in
+# ios/AppStore/screenshots/raw/; daarna maakt store.mjs de opgemaakte versies.
+# Kies op de dag zelf neutrale of positieve echte verhalen (verhaal-id's uit /api/feed?deel=start):
+#   FEATURE="s19u8ade:Cultuur,s1hzionf:Tech,…" zsh ios/AppStore/tools/capture.sh
+# Het eerste verhaal is het hoofdverhaal en het verhaal in Vergelijken.
 set -e
 OUT=ios/AppStore/screenshots/raw
 mkdir -p "$OUT"
@@ -16,16 +18,18 @@ for dev in "Hoot Pro Max" "Hoot iPad 13"; do
   xcrun simctl boot "$dev" 2>/dev/null || true
   xcrun simctl bootstatus "$dev" -b >/dev/null
   xcrun simctl ui "$dev" appearance light
-  xcrun simctl status_bar "$dev" override --time "9:41" --batteryState charged --batteryLevel 100 --wifiBars 3 --cellularMode active --cellularBars 4 --operatorName ""
+  xcrun simctl status_bar "$dev" override --time "9:41" --batteryState discharging --batteryLevel 100 --wifiBars 3 --cellularMode active --cellularBars 4 --operatorName ""
   xcrun simctl install "$dev" "$APP"
   name=${dev// /-}
-  shot() { xcrun simctl launch --terminate-running-process "$dev" nl.hootnews.Hoot "${@:2}" >/dev/null; sleep $SLEEP; xcrun simctl io "$dev" screenshot "$OUT/$name-$1.png" >/dev/null; }
-  SLEEP=12
+  fa=(); [[ -n "$FEATURE" ]] && fa=(-HootFeature "$FEATURE") # twee losse argumenten (zsh splitst niet vanzelf)
+  shot() { xcrun simctl launch --terminate-running-process "$dev" nl.hootnews.Hoot "${@:2}" "${fa[@]}" >/dev/null; sleep $SLEEP; xcrun simctl io "$dev" screenshot "$OUT/$name-$1.png" >/dev/null; }
+  SLEEP=14
   shot editie -HootStartTab editie
+  shot verhaal -HootStartTab editie -HootScreen verhaal
+  shot einde -HootStartTab editie -HootScroll onder
   shot stroom -HootStartTab stroom
   shot digest -HootStartTab digest
-  shot verhaal -HootStartTab editie -HootScreen verhaal
-  SLEEP=22
+  SLEEP=24
   shot lezer -HootStartTab editie -HootScreen lezer
   xcrun simctl shutdown "$dev"
 done

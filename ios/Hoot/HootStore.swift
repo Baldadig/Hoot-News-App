@@ -285,6 +285,14 @@ final class HootStore {
         stream = itemsById.values
             .filter { $0.kind == "article" && on.contains($0.source) }
             .sorted { ($0.publishedAt ?? "") > ($1.publishedAt ?? "") }
+        #if DEBUG
+        // App Store-opnamen: de gekozen verhalen bovenaan.
+        let picked = DebugLaunch.feature.map(\.id)
+        if !picked.isEmpty {
+            let rank = { (i: Item) in i.storyId.flatMap { picked.firstIndex(of: $0) } ?? Int.max }
+            stream = stream.enumerated().sorted { (rank($0.element), $0.offset) < (rank($1.element), $1.offset) }.map(\.element)
+        }
+        #endif
     }
 
     // ---- Verhalen ----

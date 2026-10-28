@@ -13,11 +13,11 @@ const PAPER = '#F5F1E8'
 
 // Volgorde en koppen: twee korte zinnen, elk op een eigen regel.
 const SHOTS = [
-  ['editie', 'Je eigen editie.', 'Met een einde.'],
-  ['lezer', 'Alleen de tekst.', 'Rustig lezen.'],
-  ['verhaal', 'Eén verhaal.', 'Alle bronnen.'],
-  ['stroom', 'Al je bronnen.', 'Nieuwste eerst.'],
+  ['editie', 'Minder scrollen.', 'Meer lezen.'],
+  ['verhaal', 'Eén verhaal.', 'Zie hoe elke krant het brengt.'],
+  ['einde', 'Tien verhalen.', 'Dan ben je bij.'],
   ['digest', 'Elke maandag', 'het beste uit je vak.'],
+  ['lezer', 'Lezen zonder', 'afleiding.'],
 ]
 
 // Eigen tekst voor de krantentextuur (geen tekst van uitgevers).
@@ -99,6 +99,7 @@ async function frame({ raw, out, W, H, phoneW, top, island, l1, l2 }) {
   await sharp(bg).composite(layers).png().toFile(out)
 }
 
+fs.rmSync(OUT, { recursive: true, force: true }) // geen oude beelden laten staan
 fs.mkdirSync(`${OUT}/iphone-6.9`, { recursive: true })
 fs.mkdirSync(`${OUT}/ipad-13`, { recursive: true })
 let n = 1

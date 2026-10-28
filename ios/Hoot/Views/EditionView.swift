@@ -24,6 +24,15 @@ enum Desk {
 
 extension HootStore {
     var editionRows: [EditionRowModel] {
+        #if DEBUG
+        // App Store-opnamen: gekozen echte verhalen (neutraal of positief) in de gegeven volgorde.
+        if !DebugLaunch.feature.isEmpty {
+            return DebugLaunch.feature.compactMap { f in
+                guard let story = storiesById[f.id], let item = story.leadId.flatMap({ itemsById[$0] }) ?? story.itemIds.lazy.compactMap({ self.itemsById[$0] }).first else { return nil }
+                return EditionRowModel(id: story.id, item: item, story: story, label: f.label, desk: nil)
+            }
+        }
+        #endif
         guard let edition = shownEdition else { return [] }
         let published = Dictionary((edition.items ?? []).map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
         let on = Set(followed.map(\.id))
@@ -134,7 +143,7 @@ struct EditionView: View {
             .settingsButton()
             .task(id: store.editionRows.count) {
                 // `-HootScreen verhaal`: het eerste verhaal met de meeste bronnen, om te vergelijken.
-                if DebugLaunch.screen("verhaal"), path.isEmpty, let story = store.editionRows.compactMap(\.story).max(by: { ($0.sourceCount ?? 1) < ($1.sourceCount ?? 1) }) { path.append(story) }
+                if DebugLaunch.screen("verhaal"), path.isEmpty, let story = (DebugLaunch.feature.isEmpty ? nil : store.editionRows.first?.story) ?? store.editionRows.compactMap(\.story).max(by: { ($0.sourceCount ?? 1) < ($1.sourceCount ?? 1) }) { path.append(story) }
             }
         }
     }
