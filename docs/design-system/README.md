@@ -19,6 +19,19 @@ Hoot is een rustige nieuwslezer: drie keer per dag een editie van tien verhalen 
 - **Rubrieken in kapitalen** alleen in de `kicker`; verder zinnen met één hoofdletter ("Artikelen openen", niet "Artikelen Openen").
 - **Tijd relatief** ("12 min geleden"), datum voluit en met hoofdletter aan het begin ("Dinsdag 27 oktober").
 
+### Hoe Hoot over zichzelf praat
+
+De stem van de productpagina in de App Store (Alex, 28 oktober) is de maat voor alle tekst over Hoot zelf: welkom, Over, App Store en uitleg.
+
+- **Eén belofte vooraan, kort:** "Nieuws met een begin en een einde."
+- **Beschrijf wat je doet, niet wat de app 'biedt':** "Drie keer per dag zet Hoot een nieuwe editie voor je klaar." "Ben je erdoorheen, dan ben je bij."
+- **Gewone woorden voor de onderdelen:** editie, Stroom, "hoe andere media het brengen". Geen kopjes in kapitalen, geen opsommingstekens als het ook in een zin kan.
+- **Eerlijk en rustig over privacy:** "Hoot volgt je niet." "Wat de app leert van je leesgedrag, blijft op je toestel." Zeg wat waar is, zonder superlatieven.
+- **Zeg waar het nieuws vandaan komt:** "Koppen en korte intro's komen uit openbare nieuwsfeeds. Bij elk verhaal staan de bron en een link naar het oorspronkelijke artikel."
+- **Maker:** "gemaakt in Nederland door Baldadig".
+
+Volledige tekst: `ios/AppStore/metadata/nl-NL/description.txt`.
+
 ## Kleur
 
 Licht en donker delen dezelfde namen; de app volgt het toestel.
@@ -81,7 +94,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
   - hoofdbeeld 16:9 (iPhone), 2:1 (iPad mini) of 3:2 (breed);
   - miniatuur vierkant, met `radius-sm` tot `radius`.
 - **Bij heel grote tekst** valt de miniatuur weg: de kop krijgt de hele breedte.
-- **Bronlogo's** zijn cirkels. In de bronnenrij staan ze in grijstinten; de gekozen bron in kleur met een ring in `accent`, de rest gedimd. Eén tik toont alleen die bron, nog een tik weer alles (web en iOS gelijk).
+- **Bronlogo's** zijn cirkels, zonder naam eronder: het logo is genoeg. In de bronnenrij ("Filter op bron") staat "Alle" vooraan. Je kiest één of meer bronnen; wat aan staat is in kleur, met een ring in `accent` en een vinkje, de rest grijs en gedimd. De namen van wat je kiest staan in de statusregel eronder, met "Wis" (web en iOS gelijk).
 
 ## Beweging
 

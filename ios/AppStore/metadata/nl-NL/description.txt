@@ -1,27 +1,11 @@
-Hoot zet het nieuws van jouw bronnen voor je klaar, en houdt dan op. Geen eindeloze tijdlijn en geen meldingen die om aandacht schreeuwen: drie keer per dag je eigen editie van tien verhalen, en een rustige Stroom met alles van de bronnen die jij kiest.
+Nieuws met een begin en een einde.
 
-JE EIGEN EDITIE
-Om 6, 12 en 17 uur staat er een nieuwe editie klaar: de tien verhalen die op dat moment ertoe doen, uit jouw bronnen. Wat bij je interesses past en wat je voorkeursbronnen brengen, krijgt voorrang. Het hoofdverhaal staat groot, en wat je eerder al zag zakt naar achteren. Ben je erdoorheen, dan ben je bij.
+Drie keer per dag zet Hoot een nieuwe editie voor je klaar. Daarin staan tien verhalen uit de nieuwsbronnen die jij kiest. Ben je erdoorheen, dan ben je bij.
 
-ZIE HOE ANDERE MEDIA HET BRENGEN
-Schrijven meerdere media over hetzelfde verhaal, dan bundelt Hoot ze. Eén tik op "+N bronnen" en je ziet naast elkaar hoe een Nederlandse, een Belgische en een Engelse krant hetzelfde nieuws brengen.
+Pakt een verhaal je, dan zie je hoe andere media het brengen. De rest staat in de Stroom, het nieuwste bovenaan.
 
-DE STROOM
-Wil je alles zien, dan staat in de Stroom elk bericht van je bronnen, het nieuwste bovenaan. Een streep laat zien waar je de vorige keer was gebleven. Tik op een bronlogo om alleen die bron te zien. Volg je mensen op Bluesky, dan staan hun posts er ook, met video.
+Lezen doe je in een rustige krantenletter, zonder de drukte van de website. Bij een aantal uitgevers werkt je abonnement ook in Hoot.
 
-RUSTIG LEZEN IN DE LEZER
-Artikelen open je in de Hoot-lezer: alleen de tekst en de beelden, in een rustige krantenletter, zonder de drukte van de website. Je kiest zelf de tekstgrootte. Heb je een abonnement, log dan één keer in bij de uitgever en lees ook hun hele artikelen in de lezer. Liever de website of Safari? Dat kies je in Instellingen.
+Je hebt geen Hoot-account nodig en ziet geen advertenties. Hoot volgt je niet. Wat de app leert van je leesgedrag, blijft op je toestel.
 
-ELKE MAANDAG JE DIGEST
-Het beste uit je vak van de afgelopen week: per vakgebied drie stukken. Kies uit tien vakgebieden, van UI/UX, AI en Development tot Merk & reclame, SEO en Startups & ondernemen. Hoot kiest op hoeveel vakbronnen erover schreven, of een redactie het uitkoos en wie het schreef. Alleen stukken van mensen, met hun eigen intro.
-
-BEWAREN EN ZOEKEN
-Bewaar wat je later wilt lezen en zoek in alles wat Hoot van je bronnen heeft.
-
-RUSTIG EN PRIVÉ
-• Geen account nodig, geen advertenties, geen tracking. Log je in met Apple of Google, dan heb je je editie en Bewaard op al je apparaten en op hootnews.nl.
-• Wat Hoot leert van wat je leest, blijft op je toestel.
-• Donkere modus, Dynamische tekst en VoiceOver.
-• Op iPhone en iPad, met een opmaak die past bij je scherm.
-
-Hoot is gemaakt door Baldadig.nl. Hoot toont koppen en korte intro's uit de openbare nieuwsfeeds van uitgevers en linkt altijd door naar het artikel bij de uitgever zelf.
+Hoot is gemaakt in Nederland door Baldadig. Koppen en korte intro’s komen uit openbare nieuwsfeeds. Bij elk verhaal staan de bron en een link naar het oorspronkelijke artikel.
