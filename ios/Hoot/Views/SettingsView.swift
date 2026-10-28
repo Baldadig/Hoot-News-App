@@ -210,15 +210,21 @@ struct InterestsList: View {
 
 struct DigestFieldsList: View {
     @Environment(HootStore.self) private var store
-    static let fields = [("paid-social", "Paid social", "megaphone"), ("ux", "UI/UX", "cursorarrow.click.2"), ("design", "Digital Design", "paintpalette"), ("ai", "AI", "sparkles"), ("ecommerce", "E-commerce", "cart")]
+    // Gelijk aan shared/vak.mjs (de server); de app toont alleen wat de server levert.
+    static let fields: [(id: String, label: String, icon: String)] = [
+        ("paid-social", "Paid social", "megaphone"), ("ux", "UI/UX", "cursorarrow.click.2"), ("design", "Digital Design", "paintpalette"),
+        ("ai", "AI", "sparkles"), ("ecommerce", "E-commerce", "cart"), ("seo", "SEO & content", "magnifyingglass"),
+        ("merk", "Merk & reclame", "tag"), ("dev", "Development", "chevron.left.forwardslash.chevron.right"),
+        ("product", "Productmanagement", "square.stack.3d.up"), ("ondernemen", "Startups & ondernemen", "chart.line.uptrend.xyaxis"),
+    ]
     var body: some View {
         Form {
             Section {
-                ForEach(Self.fields, id: \.0) { id, label, icon in
+                ForEach(Self.fields, id: \.id) { id, label, icon in
                     // Een vak dat de server (nog) niet levert, kun je niet aanzetten.
                     let offered = store.offersField(id)
                     Toggle(isOn: Binding(get: { offered && store.digestFields.contains(id) }, set: { on in
-                        store.digestFields = on ? Self.fields.map(\.0).filter { $0 == id || store.digestFields.contains($0) } : store.digestFields.filter { $0 != id }
+                        store.digestFields = on ? Self.fields.map(\.id).filter { $0 == id || store.digestFields.contains($0) } : store.digestFields.filter { $0 != id }
                     })) {
                         Label {
                             HStack(spacing: Space.s2) {

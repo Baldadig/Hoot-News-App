@@ -5,6 +5,7 @@ import SwiftUI
 struct WelcomeView: View {
     @Environment(HootStore.self) private var store
     @State private var interests = false
+    @State private var fields = false
 
     var body: some View {
         NavigationStack {
@@ -55,7 +56,16 @@ struct WelcomeView: View {
                     .tint(Theme.accent) // een gewone, lichte lijst: niet het wit van het rode scherm
                     .navigationTitle("Interesses")
                     .toolbar {
-                        ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { store.onboarded = true } }
+                        ToolbarItem(placement: .confirmationAction) { Button("Verder") { fields = true } }
+                    }
+                    .navigationDestination(isPresented: $fields) {
+                        // Daarna je vak, voor de Digest. Overslaan mag: dan blijft wat er stond.
+                        DigestFieldsList()
+                            .tint(Theme.accent)
+                            .navigationTitle("En je vak?")
+                            .toolbar {
+                                ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { store.onboarded = true } }
+                            }
                     }
             }
         }

@@ -27,11 +27,11 @@ export const VAK_SOURCES = [
   V('socialmediaexaminer', 'Social Media Examiner', 'vakblad', ['paid-social'], 'https://www.socialmediaexaminer.com/feed/', { filter: true }),
   V('digiday', 'Digiday', 'vakblad', ['paid-social'], 'https://digiday.com/feed/', { filter: true }),
   V('adexchanger', 'AdExchanger', 'vakblad', ['paid-social'], 'https://www.adexchanger.com/feed/', { filter: true }),
-  V('adweek', 'Adweek', 'vakblad', ['paid-social'], 'https://www.adweek.com/feed/', { filter: true }),
+  V('adweek', 'Adweek', 'vakblad', ['paid-social', 'merk'], 'https://www.adweek.com/feed/', { filter: true }),
   V('ppcland', 'PPC Land', 'vakblad', ['paid-social'], 'https://ppc.land/rss/', { filter: true }),
   V('sej-paid', 'Search Engine Journal', 'vakblad', ['paid-social'], 'https://www.searchenginejournal.com/category/paid-media/feed/', { filter: true }),
-  V('marketingfacts', 'Marketingfacts', 'vakblad', ['paid-social'], 'https://www.marketingfacts.nl/rss', { filter: true }),
-  V('emerce', 'Emerce', 'vakblad', ['paid-social', 'ecommerce', 'ai'], 'https://www.emerce.nl/rss', { filter: true }),
+  V('marketingfacts', 'Marketingfacts', 'vakblad', ['paid-social', 'seo', 'merk'], 'https://www.marketingfacts.nl/rss', { filter: true }),
+  V('emerce', 'Emerce', 'vakblad', ['paid-social', 'ecommerce', 'ai', 'seo', 'ondernemen'], 'https://www.emerce.nl/rss', { filter: true }),
   V('meta', 'Meta Newsroom', 'officieel', ['paid-social'], 'https://about.fb.com/feed/', { filter: true }),
   // UI/UX
   V('nngroup', 'Nielsen Norman Group', 'expert', ['ux'], 'https://www.nngroup.com/feed/rss/', { about: 'Onderzoek naar gebruiksvriendelijkheid' }),
@@ -42,7 +42,7 @@ export const VAK_SOURCES = [
   V('uxcollective', 'UX Collective', 'community', ['ux'], 'https://uxdesign.cc/feed'),
   V('figma', 'Figma', 'officieel', ['ux'], 'https://www.figma.com/blog/feed/atom.xml'),
   // Digital Design
-  V('creativereview', 'Creative Review', 'vakblad', ['design'], 'https://www.creativereview.co.uk/feed/', { filter: true }),
+  V('creativereview', 'Creative Review', 'vakblad', ['design', 'merk'], 'https://www.creativereview.co.uk/feed/', { filter: true }),
   V('designweek', 'Design Week', 'vakblad', ['design'], 'https://www.designweek.co.uk/feed/', { filter: true }),
   V('fastco-design', 'Fast Company Design', 'vakblad', ['design'], 'https://www.fastcompany.com/co-design/rss', { filter: true }),
   V('awwwards', 'Awwwards', 'vakblad', ['design'], 'https://www.awwwards.com/blog/feed/'),
@@ -68,6 +68,64 @@ export const VAK_SOURCES = [
   V('retaildive', 'Retail Dive', 'vakblad', ['ecommerce'], 'https://www.retaildive.com/feeds/news/', { filter: true }),
   V('convert', 'Convert', 'community', ['ecommerce'], 'https://www.convert.com/blog/feed/'),
   V('shopify', 'Shopify', 'officieel', ['ecommerce'], 'https://changelog.shopify.com/feed.xml'),
+  // SEO & content: vakmensen met naam (technische SEO, AI-zoeken, content en schrijven), de vakbladen voor zoeken, en de blogs van Moz en Ahrefs. Nederlands via Marketingfacts en Emerce.
+  V('sej-seo', 'Search Engine Journal', 'vakblad', ['seo'], 'https://www.searchenginejournal.com/category/seo/feed/'),
+  V('seroundtable', 'Search Engine Roundtable', 'vakblad', ['seo'], 'https://www.seroundtable.com/index.xml', { filter: true }),
+  V('growthmemo', 'Kevin Indig', 'expert', ['seo'], 'https://www.growth-memo.com/feed', { about: 'Over SEO en groei in het tijdperk van AI-zoeken' }),
+  V('ipullrank', 'Mike King', 'expert', ['seo'], 'https://ipullrank.com/feed', { about: 'Technische SEO en AI-zoeken (iPullRank)' }),
+  V('mariehaynes', 'Marie Haynes', 'expert', ['seo'], 'https://www.mariehaynes.com/feed/', { about: 'Specialist in Google-updates en kwaliteit' }),
+  V('jonoalderson', 'Jono Alderson', 'expert', ['seo'], 'https://www.jonoalderson.com/feed/', { about: 'Technische SEO en webstrategie' }),
+  V('leadershipinseo', 'Harry Clarkson-Bennett', 'expert', ['seo'], 'https://www.leadershipinseo.com/feed', { about: 'SEO voor uitgevers en nieuwssites' }),
+  V('sparktoro', 'SparkToro', 'expert', ['seo'], 'https://sparktoro.com/blog/feed/', { about: 'Rand Fishkin en Amanda Natividad over zoeken en publiek', filter: true }),
+  V('annhandley', 'Ann Handley', 'expert', ['seo'], 'https://annhandley.com/feed/', { about: 'Schrijver van Everybody Writes, over content en schrijven' }),
+  V('moz', 'Moz', 'community', ['seo'], 'https://moz.com/posts/rss/blog'),
+  V('ahrefs', 'Ahrefs', 'community', ['seo'], 'https://ahrefs.com/blog/feed/', { filter: true }),
+  // Merk & reclame: de Nederlandse vakbladen (Adformatie, MarketingTribune), de internationale, en merkstrategen met naam. Adweek en Creative Review staan hierboven.
+  V('adformatie', 'Adformatie', 'vakblad', ['merk'], 'https://www.adformatie.nl/feeds/articles.rss', { filter: true }),
+  V('marketingtribune', 'MarketingTribune', 'vakblad', ['merk'], 'https://www.marketingtribune.nl/rss/rss.xml', { filter: true }),
+  V('campaign', 'Campaign', 'vakblad', ['merk'], 'https://www.campaignlive.com/rss/news', { filter: true }),
+  V('marketingweek', 'Marketing Week', 'vakblad', ['merk'], 'https://www.marketingweek.com/feed/', { filter: true }),
+  V('musebyclios', 'Muse by Clio', 'vakblad', ['merk'], 'https://musebyclios.com/feed/', { filter: true }),
+  V('brandingstrategy', 'Branding Strategy Insider', 'vakblad', ['merk'], 'https://brandingstrategyinsider.com/feed/'),
+  V('marketoonist', 'Tom Fishburne', 'expert', ['merk'], 'https://marketoonist.com/feed', { about: 'Tekent en schrijft wekelijks over marketing (Marketoonist)', filter: true }),
+  V('markschaefer', 'Mark Schaefer', 'expert', ['merk'], 'https://businessesgrow.com/feed/', { about: 'Marketingstrateeg en auteur, over merken en vertrouwen', filter: true }),
+  // Startups & ondernemen: Nederlandse vakbladen (MT/Sprout, IO+), Sifted en TechCrunch, en oprichters en investeerders die zelf schrijven (Lenny en Andrew Chen staan bij Productmanagement).
+  V('sprout', 'MT/Sprout', 'vakblad', ['ondernemen'], 'https://mtsprout.nl/feed', { filter: true }),
+  V('ioplus', 'IO+', 'vakblad', ['ondernemen'], 'https://ioplus.nl/nl/feed', { filter: true }),
+  V('sifted', 'Sifted', 'vakblad', ['ondernemen'], 'https://sifted.eu/feed'),
+  V('tc-startups', 'TechCrunch', 'vakblad', ['ondernemen'], 'https://techcrunch.com/category/startups/feed/', { filter: true }),
+  V('saastr', 'Jason Lemkin', 'expert', ['ondernemen'], 'https://www.saastr.com/feed/', { about: 'Oprichter van SaaStr, over B2B-startups laten groeien' }),
+  V('tunguz', 'Tomasz Tunguz', 'expert', ['ondernemen'], 'https://tomtunguz.com/index.xml', { about: 'Investeerder (Theory Ventures), schrijft met data over startups' }),
+  V('hunterwalk', 'Hunter Walk', 'expert', ['ondernemen'], 'https://hunterwalk.com/feed/', { about: 'Investeerder (Homebrew), over startups en durfkapitaal', filter: true }),
+  V('justinjackson', 'Justin Jackson', 'expert', ['ondernemen'], 'https://justinjackson.ca/feed', { about: 'Mede-oprichter van Transistor, over zelf een bedrijf opbouwen' }),
+  // Development: vakmensen met naam over web, apps en de engineeringpraktijk (twee Belgen en een Nederlander erbij), vakbladen en de browsermakers zelf.
+  V('pragmatic', 'The Pragmatic Engineer', 'expert', ['dev'], 'https://newsletter.pragmaticengineer.com/feed', { about: 'Gergely Orosz over hoe techbedrijven software bouwen' }),
+  V('fowler', 'Martin Fowler', 'expert', ['dev'], 'https://martinfowler.com/feed.atom', { about: 'Auteur van Refactoring, schrijft over softwareontwerp' }),
+  V('kentbeck', 'Kent Beck', 'expert', ['dev'], 'https://tidyfirst.substack.com/feed', { about: 'Bedenker van Extreme Programming en TDD' }),
+  V('bramus', 'Bramus', 'expert', ['dev'], 'https://www.bram.us/feed/', { about: 'Bramus Van Damme (Chrome), over CSS en het webplatform' }),
+  V('swiftlee', 'SwiftLee', 'expert', ['dev'], 'https://www.avanderlee.com/feed/', { about: 'Antoine van der Lee over iOS-ontwikkeling' }),
+  V('freek', 'Freek Van der Herten', 'expert', ['dev'], 'https://freek.dev/feed', { about: 'Spatie (Antwerpen), over PHP en Laravel' }),
+  V('ploeh', 'Mark Seemann', 'expert', ['dev'], 'https://blog.ploeh.dk/rss.xml', { about: 'Over softwareontwerp, testen en codekwaliteit' }),
+  V('jimnielsen', 'Jim Nielsen', 'expert', ['dev'], 'https://blog.jim-nielsen.com/feed.xml', { about: 'Webontwikkelaar, schrijft over het web en het vak', filter: true }),
+  V('fem', 'Frontend Masters Blog', 'vakblad', ['dev'], 'https://frontendmasters.com/blog/feed/'),
+  V('csstricks', 'CSS-Tricks', 'vakblad', ['dev'], 'https://css-tricks.com/feed/'),
+  V('infoq', 'InfoQ', 'vakblad', ['dev'], 'https://feed.infoq.com/'),
+  V('webkit', 'WebKit', 'officieel', ['dev'], 'https://webkit.org/feed/'),
+  V('chromedev', 'Chrome for Developers', 'officieel', ['dev'], 'https://developer.chrome.com/static/blog/feed.xml'),
+  // Productmanagement: de bekende vakmensen met naam, groei-experts (alleen met productstukken) en de productcommunity. Mind the Product heeft geen RSS meer; een Nederlandse bron met feed is er (nog) niet.
+  V('lenny', "Lenny's Newsletter", 'expert', ['product', 'ondernemen'], 'https://www.lennysnewsletter.com/feed', { about: 'Lenny Rachitsky, de grootste nieuwsbrief over productwerk', filter: true }),
+  V('svpg', 'Marty Cagan (SVPG)', 'expert', ['product'], 'https://www.svpg.com/feed/', { about: 'Auteur van Inspired en Empowered' }),
+  V('producttalk', 'Product Talk', 'expert', ['product'], 'https://www.producttalk.org/feed/', { about: 'Teresa Torres, auteur van Continuous Discovery Habits' }),
+  V('cutler', 'John Cutler', 'expert', ['product'], 'https://cutlefish.substack.com/feed', { about: 'The Beautiful Mess, over productteams en -organisaties' }),
+  V('gothelf', 'Jeff Gothelf', 'expert', ['product'], 'https://jeffgothelf.com/feed/', { about: 'Auteur van Lean UX, over outcomes en productteams' }),
+  V('ravimehta', 'Ravi Mehta', 'expert', ['product'], 'https://www.ravi-mehta.com/rss/', { about: 'Oud-productchef van Tinder, over het productvak' }),
+  V('aakash', 'Product Growth', 'expert', ['product'], 'https://www.news.aakashg.com/feed', { about: 'Aakash Gupta over productmanagement en groei' }),
+  V('verna', 'Elena Verna', 'expert', ['product'], 'https://www.elenaverna.com/feed', { about: 'Groei-expert, over product-led growth en pricing', filter: true }),
+  V('andrewchen', 'Andrew Chen', 'expert', ['product', 'ondernemen'], 'https://andrewchen.substack.com/feed', { about: 'a16z, over groei, netwerkeffecten en nieuwe producten', filter: true }),
+  V('deptofproduct', 'Department of Product', 'vakblad', ['product'], 'https://departmentofproduct.substack.com/feed', { filter: true }),
+  V('posthog', 'Product for Engineers', 'vakblad', ['product'], 'https://newsletter.posthog.com/feed', { filter: true }),
+  V('productcoalition', 'Product Coalition', 'community', ['product'], 'https://productcoalition.com/feed'),
+  V('scrumorg', 'Scrum.org', 'community', ['product'], 'https://www.scrum.org/resources/blog/rss.xml', { filter: true }),
   // Kiest voor beide: wat over interfaces gaat telt bij UI/UX, de rest bij design.
   V('sidebar', 'Sidebar', 'curator', ['ux', 'design'], 'https://sidebar.io/feed.xml', { about: 'De redactie kiest elke werkdag vijf designlinks' }),
 ]
@@ -91,6 +149,22 @@ const FITS = {
   ai: /\b(ai|a\.i\.|artificial intelligence|kunstmatige intelligentie|llms?|large language models?|gpt[-\w.]*|chatgpt|claude|gemini|copilot|openai|anthropic|mistral|llama|mcp|model context protocol|agents?|agentic|agenten|prompt\w*|generative|generatieve|genai|machine learning|midjourney|sora|veo|reasoning models?)\b/i,
   // Digitaal ontwerp en merkidentiteit; boeken, verpakkingen en gebouwen niet.
   design: /\b(digital|web ?design|websites?|apps?|interfaces?|ui|ux|online|screens?|interactive|motion|animat\w*|figma|identity|identities|rebrand\w*|logos?|type ?faces?|fonts?|typograph\w*|design systems?|design trends?|icons?)\b/i,
+  // SEO & content: zoeken (Google, Bing, AI-zoeken), vindbaarheid en het schrijven zelf.
+  // Google Ads hoort er niet bij (dat is adverteren).
+  seo: /\b(seo|geo|aeo|search engines?|zoekmachine\w*|search console|google (search|discover|images?|news|core update)|googlebot|image search|core updates?|(spam|algorithm|helpful content) updates?|ai (overviews?|mode|search|citations?|visibility)|(generative|agentic|answer) (engine|search)\w*|llm visibility|zero-?click|serps?|rankings?|ranken|vindbaar\w*|crawl\w*|indexing|indexering|geïndexeerd|backlinks?|link ?building|linkbuilding|keywords?|zoekwoord\w*|search (intent|volume|traffic)|organic (traffic|search)|organisch verkeer|schema markup|structured data|e-?e-?a-?t|hreflang|sitemaps?|google business profiles?|local seo|bing|perplexity|content ?(strateg\w*|marketing|marketeers?|distribution|design)|copywrit\w*|copy|tekstschrij\w*|headlines?|storytelling)\b/i,
+  // Merk & reclame: merken, campagnes, creatie en bureaus. Het losse woord "marketing" telt
+  // niet (dan komt alle martech en elke carrièrerubriek mee).
+  merk: /\b(merk|merken|merkstrateg\w*|merkbekendheid|merkwaarde|merkidentiteit|brands?|branding|rebrand\w*|brand (strategy|equity|purpose|building|positioning)|positioning|positionering|campaigns?|campagnes?|commercials?|tv-?spots?|reclame\w*|advertising|advertisers?|adverteerders?|ads?|creati(e|ef|eve|viteit|vity|ves?)|creative directors?|cco|cmo|cmos|reclamebureaus?|bureaus?|agency|agencies|pitch\w*|slogans?|taglines?|logos?|sponsorships?|sponsoring|activations?|cannes lions|effies?|adcc|buitenreclame|ooh|billboards?|wpp|omnicom|publicis|havas|dentsu|mccann)\b/i,
+  // Startups & ondernemen: oprichten, financiering en groeien (algemeen economisch nieuws niet;
+  // daarom geen losse "groei", "omzet" of "ceo").
+  // "\w*startup" vangt ook samenstellingen als "kweekmelkstartup".
+  ondernemen: /\b(\w*startups?|start-ups?|\w*scale-?ups?|founders?|oprichters?|co-?founders?|ondernem\w*|entrepreneur\w*|zzp\w*|mkb|smb|small business\w*|bootstrap\w*|funding|financiering\w*|investeerders?|investors?|venture|vc|vcs|durfkapitaal|pre-?seed|seed|series [a-e]|fundraising|kapitaalronde|investeringsronde|raises?|haalt [^.]{0,40}\bop|valuations?|waardering|ipo|beursgang|overnames?|acquisitions?|acquires?|unicorns?|challengers?|product-market fit|pmf|go-to-market|gtm|saas|arr|business models?|verdienmodel|pricing|prijsstrateg\w*|groei(en|strategie|bedrijf|bedrijven|fase|kapitaal)|scaling|opschalen|expansion|internationaal (groeien|uitbreiden)|accelerators?|incubators?|y combinator|techleap|kvk)\b/i,
+  // Development: bouwen van web en apps, talen, frameworks, browsers en de engineeringpraktijk
+  // (algemeen technieknieuws, hardware en gadgets niet).
+  dev: /\b(developers?|devs?|ontwikkelaars?|programmeurs?|programmeren|programming|coding|codebases?|code ?reviews?|engineers?|engineering|software ?(development|ontwikkeling|architect\w*|design|teams?)|softwareontwikkel\w*|front-?end|back-?end|full-?stack|web ?(dev\w*|platform|components?|standards?|apps?|performance)|webontwikkel\w*|javascript|typescript|node\.?js|deno|react|vue|svelte|angular|next\.?js|astro|css|html|wasm|webassembly|browsers?|chromium|webkit|interop|baseline|swift(ui)?|kotlin|jetpack compose|xcode|android studio|flutter|react native|app ?(development|ontwikkeling)|apis?|sdks?|frameworks?|open[- ]source|github|gitlab|git|npm|rust|python|php|laravel|django|rails|compilers?|devtools|tooling|ci\/cd|refactor\w*|unit tests?|tdd|debugg\w*|devops|observability|low-?code|vibe ?cod\w*|coding agents?|claude code|codex|copilot)\b/i,
+  // Productmanagement: producten maken en sturen (discovery, strategie, teams, groei en metrics);
+  // algemene AI-, startup- of loopbaanstukken niet.
+  product: /\b(products?|product-?led|product(manag\w*|eigenaars?|owners?|strateg\w*|teams?|ontwikkeling|visie)|plg|pms?|cpos?|chief product officers?|discovery|roadmaps?|okrs?|outcomes?|north star|jobs[- ]to[- ]be[- ]done|jtbd|prioriti[sz]\w*|prioriter\w*|backlogs?|user stories|acceptance criteria|stakeholders?|experiment\w*|a\/b[- ]?tests?|feature (flags?|factor(y|ies)|requests?)|activation|retention|onboarding|churn|growth (teams?|loops?|models?)|viral loops?|network effects?|go-to-market|gtm|pricing|packaging|monetization|user research|customer (research|interviews?|feedback|discovery)|klantonderzoek|prototyp\w*|mvps?|metrics)\b/i,
 }
 
 // Geen mensenwerk om te lezen (of geen artikel): reclame, aankondigingen, audio, vacatures, lijstjes.
@@ -99,7 +173,7 @@ const LISTICLE = /^\s*(the\s+)?\d+\s+([\w-]+\s+){0,3}(tools?|templates?|examples
 export const cleanTitle = (t = '') => t.replace(/\s+via\s+@\w+(,\s*@\w+)*\s*$/i, '').trim()
 // Verzamelingen: dagelijkse overzichten ("[AINews] …") en genummerde linklijstjes ("… (#25)").
 // Ook vaste rubrieken met een datum in de kop ("New Ecommerce Tools: October 21, 2026").
-const ROUNDUP = /^\s*\[[^\]]*news[^\]]*\]|\(#\d+\)|\b(roundup|round-up|links? of the week|weekly digest|daily digest)\b|:\s*(january|february|march|april|may|june|july|august|september|october|november|december) \d{1,2}, \d{4}\s*$/i
+const ROUNDUP = /^\s*\[[^\]]*news[^\]]*\]|\(#\d+\)|\b(roundup|round-up|links? of the week|weekly digest|daily digest)\b|:\s*(january|february|march|april|may|june|july|august|september|october|november|december) \d{1,2}(, \d{4})?\s*$|^\s*fragments\b/i
 export const isReading = (it) => !!it.title && !NOT_READING.test(it.title) && !LISTICLE.test(it.title) && !ROUNDUP.test(it.title)
 
 // ---- Week: van maandag 07:00 tot maandag 07:00 (Amsterdam) ----
@@ -204,7 +278,8 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
       const score = WEIGHT[src.kind] + 2.5 * (srcs.size - 1) + (picked ? 3 : 0) + (lead.author ? 0.5 : 0) + (lead.summary ? 0.5 : 0)
       const why = []
       if (srcs.size > 1) why.push(`${srcs.size} vakbronnen schreven erover`)
-      if (picked || src.kind === 'curator') why.push('Gekozen door Sidebar')
+      const chooser = g.items.map((i) => byId.get(i.source)).find((x) => x.kind === 'curator')
+      if (picked || src.kind === 'curator') why.push(`Gekozen door ${chooser.name}`)
       if (src.kind === 'expert' && src.about) why.push(src.about) // de naam staat al bij de bron
       const curator = src.kind === 'curator'
       const entry = {
@@ -212,7 +287,7 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
         title: cleanTitle(lead.title),
         // Een Sidebar-link wijst naar een stuk elders: toon die site als bron.
         sourceName: curator ? prettyHost(lead.url) : lead.sourceName,
-        via: curator ? 'Sidebar' : null,
+        via: curator ? src.name : null,
         why,
         also: g.items.filter((i) => i.source !== lead.source && byId.get(i.source).kind !== 'curator' && cleanLink(i.url) !== cleanLink(lead.url)).map((i) => ({ sourceName: i.sourceName, url: i.url, title: i.title })),
         score,

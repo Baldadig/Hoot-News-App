@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { SourceMark } from '../components/Items.jsx'
-import { EditionIcon, SparkleIcon, StreamIcon, INTEREST_ICONS } from '../components/icons.jsx'
+import { EditionIcon, SparkleIcon, StreamIcon, INTEREST_ICONS, MegaphoneIcon, CursorIcon, PaletteIcon, CartIcon, MagnifierIcon, TagIcon, CodeIcon, KanbanIcon, RocketIcon } from '../components/icons.jsx'
+import { VAK_FIELDS } from '../../shared/vak.mjs'
 import { INTERESTS, topicById, resolveTopics, suggestSources, catLabel, starterGroups } from '../lib/topics.js'
 
-// Onboarding in vier schermen: uitleg → interesses (breed) → onderwerpen (smal) → bronnen.
-// Alles met tikken; onderaan steeds één knop om door te gaan.
-const STEPS = 4
+// Onboarding in vijf schermen: uitleg → interesses (breed) → onderwerpen (smal) → bronnen → je vak
+// (voor de Digest). Alles met tikken; onderaan steeds één knop om door te gaan.
+const STEPS = 5
+const VAK_ICON = { 'paid-social': MegaphoneIcon, ux: CursorIcon, design: PaletteIcon, ai: SparkleIcon, ecommerce: CartIcon, seo: MagnifierIcon, merk: TagIcon, dev: CodeIcon, product: KanbanIcon, ondernemen: RocketIcon }
 
 // Bronnen in de volgorde waarin je ze wilt zien. Regionaal en Vlaams staan ingeklapt;
 // de rubrieken alleen als je die interesse (of dat onderwerp) koos.
@@ -28,6 +30,7 @@ export default function Welcome({ account, sources, prefs, onDone }) {
   const [picked, setPicked] = useState(() => prefs.topics || [])
   const [chosen, setChosen] = useState(null) // bronnen: pas vooraf invullen als je bij stap 4 komt
   const [freeOnly, setFreeOnly] = useState(false) // niet iedereen heeft abonnementen
+  const [vak, setVak] = useState(() => prefs.vak || [])
   const [quick, setQuick] = useState(false) // "Liever meteen lezen": de startset met gratis bronnen
   const head = useRef(null)
   const scroller = useRef(null)
@@ -46,7 +49,7 @@ export default function Welcome({ account, sources, prefs, onDone }) {
     if (step === 2) setChosen(suggestSources(pickable, interests, topics))
     setStep((s) => s + 1)
   }
-  const finish = () => onDone({ interests, topics, sources: chosen ?? suggestSources(pickable, interests, topics), all: pickable })
+  const finish = () => onDone({ interests, topics, sources: chosen ?? suggestSources(pickable, interests, topics), all: pickable, vak })
 
   const starter = starterGroups(pickable)
   const startQuick = () => {
@@ -66,7 +69,9 @@ export default function Welcome({ account, sources, prefs, onDone }) {
         ? { label: interests.length ? 'Verder' : 'Kies minstens één', onClick: next, disabled: !interests.length }
         : step === 2
           ? { label: 'Verder', onClick: next }
-          : { label: 'Naar je editie', onClick: finish, disabled: !(chosen || []).length }
+          : step === 3
+            ? { label: 'Verder', onClick: next, disabled: !(chosen || []).length }
+            : { label: 'Naar je editie', onClick: finish }
 
   const visibleGroups = GROUPS.filter((g) => (!g.interest || interests.includes(g.interest)) && (!g.topic || topics.includes(g.topic)))
 
@@ -171,6 +176,24 @@ export default function Welcome({ account, sources, prefs, onDone }) {
                 </section>
               )
             })}
+          </>
+        ) : step === 4 ? (
+          <>
+            <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
+              En je vak?
+            </h1>
+            <p className="ob__sub">Elke maandag zet de Digest per vakgebied de drie beste stukken van de week voor je klaar, geschreven door vakmensen. Kies wat bij je werk past, of sla het over.</p>
+            <div className="ob__grid">
+              {VAK_FIELDS.map((f) => {
+                const Icon = VAK_ICON[f.id]
+                return (
+                  <button key={f.id} type="button" className="ob__tile" aria-pressed={vak.includes(f.id)} onClick={() => toggle(setVak)(f.id)}>
+                    <span className="ob__ticon">{Icon ? <Icon /> : null}</span>
+                    <span className="ob__tlabel">{f.label}</span>
+                  </button>
+                )
+              })}
+            </div>
           </>
         ) : (
           <>

@@ -305,6 +305,7 @@ export default function App() {
           interests: choice.interests,
           topics: choice.topics,
           pinned: choice.topics.slice(0, 3),
+          ...(choice.vak ? { vak: choice.vak } : {}),
           muted: [...(p.muted || []).filter((id) => !shown.has(id)), ...choice.all.filter((s) => !s.optional && !on.has(s.id)).map((s) => s.id)],
           enabled: [...(p.enabled || []).filter((id) => !shown.has(id)), ...choice.all.filter((s) => s.optional && on.has(s.id)).map((s) => s.id)],
         }

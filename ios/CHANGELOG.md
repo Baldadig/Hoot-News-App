@@ -1,5 +1,12 @@
 # Changelog — Hoot voor iOS
 
+## [0.18.0] — 2026-10-28 — Tien vakgebieden, je vak in het welkom
+
+- **De Digest heeft tien vakgebieden.** Nieuw zijn SEO & content, Merk & reclame, Development, Productmanagement en Startups & ondernemen. Tot de server ze levert, staan ze op "binnenkort".
+- **Je vak in het welkom:** na "Eerst kiezen wat je interesseert" komt nu "En je vak?".
+- **Zoeken** let niet meer op accenten: "Oekraine" vindt ook "Oekraïne".
+- **De lezer:** een brede tabel scrolt zelf, zonder dat de hele pagina opzij schuift.
+
 ## [0.17.0] — 2026-10-28 — Bugronde, schermtitels in de serif, nieuw welkom
 
 - **Schermtitels in de krantenletter:** Middageditie, Stroom, Digest en de rest staan in de serif, groot op heavy en klein in de balk op bold. Ze groeien mee met de tekstgrootte, zoals op de website. Daarbij is de punt van het woordmerk weer rood; hij werd blauw van de balk.

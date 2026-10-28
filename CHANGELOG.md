@@ -2,6 +2,16 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.41.0] — 2026-10-28 — Een Digest voor meer vakken
+
+- **Vijf nieuwe vakgebieden in de Digest:** SEO & content, Merk & reclame, Development, Productmanagement en Startups & ondernemen. Daarmee zijn het er tien.
+  - **Bronnen:** per nieuw vakgebied 11 tot 15 vakbronnen, allemaal nagelopen (feed werkt, minstens twee stukken per maand, door mensen geschreven). Het zijn vakmensen met naam, vakbladen (Nederlands waar dat goed is: Adformatie, MarketingTribune, MT/Sprout, IO+), communities en officiële bronnen. Marketingfacts, Emerce, Adweek en Creative Review tellen nu ook mee voor de nieuwe vakken.
+  - **Iconen:** elk nieuw vakgebied heeft een eigen icoon.
+- **Je vak in het welkom:** het welkom heeft een vijfde stap, "En je vak?", waarin je kiest voor welke vakgebieden je de Digest wilt.
+- **Gekozen door …:** het label van een curator draagt nu zijn eigen naam (was altijd "Sidebar").
+- **Minder verzamelstukken:** een stuk met alleen een datum als titel, zoals "Fragments: October 28", telt niet meer mee.
+- **Privacybeleid:** het dekt nu ook de app (je eigen editie, de lezer, inloggen bij uitgevers, Bluesky) en vermeldt je rechten. Over Hoot zegt: gemaakt door Baldadig.nl.
+
 ## [1.40.0] — 2026-10-28 — Een uitnodigend welkom
 
 - **Welkom herschreven:** vloeiender en uitnodigender.
