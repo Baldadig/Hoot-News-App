@@ -20,14 +20,15 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
 | ✅ | Contactgegevens App Review | Alex Vrees, alex@baldadig.nl. Uitbrengen: handmatig na goedkeuring. |
 | ✅ | Digital Services Act | Handelaar, ingevuld door Alex (28 okt). |
 | 🟡 | Schermafbeeldingen | iPhone 6,3" (1206×2622) en iPad (11"-opname in 13"-formaat) staan erin; Digest-beeld na 2 nov opnieuw (volle week). |
-| 🟡 | Versie 1.0 | Build 22 (zachte start) staat op TestFlight; er komt nog een build met inloggen (Google en Apple). Die koppelen in plaats van 21. Indienen na het Digest-beeld. |
-| ⬜ | Header op de productpagina | Nieuw in App Store Connect: één header-afbeelding, 5244 × 2950 of 3840 × 1646 px. Maken in de stijl van de schermafbeeldingen (merkrood, witte krantenletter). |
-| ⬜ | Beeld in de zoekresultaten | Tab "Search Results" naast Header: kiezen welke beelden in de zoekresultaten staan (het eerste beeld moet een neutraal of positief verhaal zijn). |
-| ⬜ | Inloggen (Google en Apple) | Instellen: Google Cloud (iOS-client), Supabase (Google-client-id, Apple aan, SQL voor account verwijderen). Daarna privacylabels (e-mailadres en gebruikers-id, gekoppeld aan je account) en de Review-notities (uitnodigingscode voor de reviewer). |
+| ✅ | Versie 1.0 | Build 25 (welkom, inloggen met Google en Apple, bronfilter) gekoppeld en opgeslagen (28 oktober). |
+| ✅ | Inloggen (Google en Apple) | Google Cloud: iOS-client "Hoot iOS" en inlogscherm "In production". Supabase: iOS-client-id bij Google, Apple aan (nl.hootnews.Hoot), functie `delete_my_account`. |
+| ✅ | Privacylabels | E-mailadres, gebruikers-ID, productinteractie: gekoppeld aan je account, alleen voor de werking van de app, geen tracking. |
+| ✅ | Review-notities | Bijgewerkt, met uitnodigingscode `applereviewe8f265b7` (5 accounts, tot 26 januari 2027). "Sign-in required" uit. |
+| ⬜ | Header op de productpagina | Nieuw in App Store Connect: één header-afbeelding, 5244 × 2950 of 3840 × 1646 px. Maken in de stijl van de schermafbeeldingen (merkrood, witte krantenletter). Optioneel. |
+| ⬜ | Digest-beeld | Na goedkeuring, vanaf maandag 2 november: nieuw Digest-beeld voor versie 1.0.1. |
 
 ## 1. Account en registratie
 
-| | Wat | Toelichting |
 |---|---|---|
 | 👤 | **Apple Developer Program** | Aanmelden op developer.apple.com/programs, € 99 per jaar. Als particulier of als Baldadig (bedrijf; dan heb je een D-U-N-S-nummer nodig). De naam die je kiest staat in de App Store als "verkoper". |
 | 👤 | **Bundle ID registreren** | Certificates, Identifiers & Profiles → Identifiers → `nl.hootnews.Hoot`. Xcode doet dit ook automatisch bij de eerste archive. |
@@ -36,7 +37,6 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
 
 ## 2. De app zelf
 
-| | Wat | Toelichting |
 |---|---|---|
 | ✅ | Bouwt zonder fouten met de iOS 27.1-SDK | Minimaal iOS 26.0. |
 | ✅ | iPhone en iPad (universeel) | Zie [APPARATEN.md](APPARATEN.md): iPad, iPhone mini en iPhone Duo. |
@@ -53,7 +53,6 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
 
 ## 3. Productpagina (teksten staan klaar in `metadata/nl-NL/`)
 
-| | Wat | Bestand | Limiet |
 |---|---|---|---|
 | ✅ | Naam: **Hoot News** | `name.txt` | 9 / 30 |
 | ✅ | Ondertitel: *Rustig nieuws, met een einde* | `subtitle.txt` | 28 / 30 |
@@ -72,7 +71,6 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
 
 ## 4. Beelden
 
-| | Wat | Map |
 |---|---|---|
 | ✅ | iPhone 6,9" (1320 × 2868), verplicht | `screenshots/iphone-6.9/` (kaal) en `screenshots/marketing/iphone-6.9/` (met kop, aanbevolen) |
 | ✅ | iPad 13" (2064 × 2752), verplicht omdat de app op iPad draait | `screenshots/ipad-13/` en `screenshots/marketing/ipad-13/` |
@@ -82,26 +80,22 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
 
 ## 5. App Privacy (privacylabels)
 
-| | Wat | |
 |---|---|---|
 | 🟡 | Antwoorden | Zie [APP-PRIVACY.md](APP-PRIVACY.md): **Geen gegevens verzameld** (zolang er geen inloggen is). |
 
 ## 6. Leeftijdsclassificatie
 
-| | Wat | |
 |---|---|---|
 | 🟡 | Vragenlijst | Zie [LEEFTIJD.md](LEEFTIJD.md). Eén keuze is aan jou: of de Safari-weergave telt als "onbeperkte webtoegang". |
 
 ## 7. Prijs en beschikbaarheid
 
-| | Wat | |
 |---|---|---|
 | 🟡 | Gratis | Voorstel. |
 | 🟡 | Landen | Voorstel: Nederland en België (de bronnen en teksten zijn Nederlandstalig). Kan later breder. |
 
 ## 8. App Review
 
-| | Wat | |
 |---|---|---|
 | ✅ | Notities voor de beoordelaar (Engels) | [REVIEW-NOTES.md](REVIEW-NOTES.md): wat de app doet, waar de inhoud vandaan komt, geen inloggen nodig. |
 | 🟡 | **Inhoud van derden (richtlijn 5.2)** | Hoot toont koppen, intro's en beelden uit openbare feeds en linkt naar de uitgever. Apple kan vragen of je dat mag. De notities leggen het uit; houd er rekening mee dat Apple om toestemming van uitgevers kan vragen. |

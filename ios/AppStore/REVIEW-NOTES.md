@@ -1,14 +1,14 @@
 # Notities voor App Review
 
-Plak de Engelse tekst hieronder in App Store Connect → je versie → **App Review-informatie → Notities**. Beoordelaars lezen meestal Engels. Inloggen is niet nodig, dus "Inloggen vereist" blijft uit.
+Plak de Engelse tekst hieronder in App Store Connect → je versie → **App Review-informatie → Notities**. Beoordelaars lezen meestal Engels. Inloggen is niet nodig, dus "Inloggen vereist" blijft uit; de uitnodigingscode staat in de notities.
 
 ---
 
-Hoot News is a calm news reader for Dutch-speaking readers, made by Baldadig.nl. No account is needed: every feature works right after launch. Signing in is optional and only syncs settings and saved items with hootnews.nl.
+Hoot News is a calm news reader for Dutch-speaking readers, made by Baldadig.nl. No account is needed: on the welcome screen, "Stel je Hoot samen" (choose interests and sources) or "Of kijk eerst even rond" (start with free Dutch sources) both give the full app. Signing in is optional and only syncs settings and saved items with hootnews.nl.
 
 What the app does
 - Edition: three times a day (06:00, 12:00, 17:00 Amsterdam time) an edition of ten stories, composed on our server from the reader's own sources and interests. The reader's chosen sources, interests and favourite sources are sent to our server to compose it; nothing is stored.
-- Compare: when several outlets cover the same story, "+N bronnen" shows how each of them reports it.
+- Compare: when several outlets cover the same story, "Vergelijk N bronnen" shows how each of them reports it.
 - Stream: all items from the reader's chosen sources, newest first. Optionally, posts from Bluesky accounts the reader adds themselves (public Bluesky API, read-only; off by default).
 - Digest: every Monday the three most important professional articles of the week per field (for example paid social, UI/UX, AI, e-commerce), chosen by how many trade publications covered them and by human curation.
 - Saved and Search work on the device.
@@ -19,7 +19,7 @@ Where the content comes from
 
 Privacy
 - No analytics, no advertising, no tracking. Without an account, preferences, saved items, read state and reading preferences stay on the device.
-- Optional account (Settings → Account, or "Al een account? Log in" on the welcome screen): Sign in with Apple or Google. It syncs sources, interests, read state and saved items with the same account on hootnews.nl (Supabase, EU). Hoot accounts are invite-only for now: after signing in, a new user is asked for an invitation code. Invitation code for review: INVITE_CODE_HERE. Accounts can be deleted in the app: Settings → Account → "Account verwijderen" removes the account and all synced data from the server.
+- Optional account (Settings → Account, or "Log in met je account" on the welcome screen): Sign in with Apple or Google. It syncs sources, interests, read state and saved items with the same account on hootnews.nl (Supabase, EU). Hoot accounts are invite-only for now: after signing in, a new user is asked for an invitation code. Invitation code for review: applereviewe8f265b7 (valid for 5 accounts, until 26 January 2027). Accounts can be deleted in the app: Settings → Account → "Account verwijderen" removes the account and all synced data from the server.
 
 Navigating the app
 - Tabs: Edition, Stream, Digest, Saved, Search. Settings: the gear button at the top right.
