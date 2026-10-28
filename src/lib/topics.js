@@ -76,14 +76,14 @@ export const SOURCE_CATS = [
 ]
 export const catLabel = (cat) => SOURCE_CATS.find(([c]) => c === cat)?.[1] || cat
 
-// "Liever meteen lezen": een zachte landing met bekende gratis bronnen, Nederlands voorop, over
-// een paar interesses verdeeld. Geen abonnement nodig; alles is later aan te passen.
+// "Liever meteen lezen": een zachte landing. Alleen Nederlandse bronnen, allemaal gratis, dus elk
+// stuk is helemaal te lezen; over een paar interesses verdeeld. Alles is later aan te passen.
+// Zelfde set als de app (HootStore.starter).
 export const STARTER = [
   { label: 'Nieuws', ids: ['nos', 'nu', 'rtl'] },
-  { label: 'Sport', ids: ['nos-sport', 'vi', 'wielerflits'] },
+  { label: 'Sport', ids: ['nos-sport', 'vi'] },
   { label: 'Tech', ids: ['tweakers'] },
-  { label: 'Cultuur', ids: ['nos-cultuur', '3voor12'] },
-  { label: 'De wereld, in het Engels', ids: ['bbc', 'guardian'] },
+  { label: 'Cultuur', ids: ['nos-cultuur', '3voor12', 'oor'] },
 ]
 
 // De startset zoals die er nu is: alleen bronnen die bestaan en gratis zijn.

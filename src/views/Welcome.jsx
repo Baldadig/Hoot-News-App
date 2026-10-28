@@ -105,7 +105,7 @@ export default function Welcome({ account, sources, prefs, onDone }) {
             <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
               Een goed begin
             </h1>
-            <p className="ob__sub">Bekende gratis bronnen, van nieuws tot sport. Je hebt geen abonnement nodig. Tik op een bron om hem weg te laten; later pas je alles aan bij Bronnen.</p>
+            <p className="ob__sub">Bekende Nederlandse bronnen, van nieuws tot cultuur. Allemaal gratis: elk stuk lees je helemaal, zonder abonnement. Tik op een bron om hem weg te laten; later pas je alles aan bij Bronnen.</p>
             {!starter.length ? <p className="ob__sub">De bronnen worden geladen…</p> : null}
             {starter.map((g) => (
               <section key={g.label} className="ob__group" aria-label={g.label}>

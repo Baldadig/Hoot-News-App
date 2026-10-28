@@ -2,6 +2,17 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.43.0] — 2026-10-28 — Een zachte start: meteen lezen met gratis Nederlandse bronnen
+
+- **"Begin met lezen" kiest een vaste startset:** negen Nederlandse bronnen, allemaal gratis. Elk stuk lees je dus helemaal, zonder abonnement.
+  - **Nieuws:** NOS, NU.nl en RTL Nieuws.
+  - **Sport:** NOS Sport en Voetbal International.
+  - **Tech:** Tweakers.
+  - **Cultuur:** NOS Cultuur & Media, 3voor12 en OOR.
+- **De rest staat uit:** betaalde kranten en Engelstalige bronnen zet je zelf aan bij Bronnen.
+- **Web en app gelijk:** de website gebruikt dezelfde set ("Liever meteen lezen"). De Engelstalige groep valt weg, en de uitleg zegt nu dat alles gratis en helemaal te lezen is.
+- **iOS:** zijn de bronnen nog niet geladen als je tikt, dan zet de app de set alsnog bij het laden.
+
 ## [1.42.0] — 2026-10-28 — Rustiger einde, duidelijker filters (na het aanbevelingsrapport)
 
 - **Einde van de editie:** "Je bent bij." en de volgende editie zijn leidend. Verder lezen is een rustige link ("Of lees verder in de Stroom"), geen knop.

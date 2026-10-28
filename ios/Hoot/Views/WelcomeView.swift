@@ -37,7 +37,7 @@ struct WelcomeView: View {
                         .padding(.top, Space.s6)
                         Spacer(minLength: Space.s6)
                         VStack(spacing: Space.s2) {
-                            Button { store.onboarded = true } label: {
+                            Button { store.quickStart() } label: {
                                 Text("Begin met lezen").font(.headline).frame(maxWidth: .infinity, minHeight: Space.tap + Space.s1)
                             }
                             .foregroundStyle(Theme.brandRed)

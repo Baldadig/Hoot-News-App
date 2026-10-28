@@ -67,6 +67,7 @@ final class HootStore {
     init() {
         muted = Set(Self.load("hoot.muted") ?? [String]())
         enabled = Set(Self.load("hoot.enabled") ?? [String]())
+        quickPending = Self.load("hoot.quickPending") ?? false
         digestFields = Self.load("hoot.digestFields") ?? ["paid-social", "ux", "design", "ai", "ecommerce"]
         // Eenmalig overzetten uit UserDefaults (versie 0.3 en eerder).
         let oldSaved: [Item]? = Self.load("hoot.saved")
@@ -179,6 +180,26 @@ final class HootStore {
         reloadParts()
         refreshPersonal()
     }
+    // "Begin met lezen": een zachte landing. Alleen Nederlandse bronnen, allemaal gratis, dus elk
+    // stuk is helemaal te lezen: nieuws, sport, tech en cultuur. Zelfde set als de website
+    // (STARTER in src/lib/topics.js); later aan te passen bij Bronnen.
+    static let starter = ["nos", "nu", "rtl", "nos-sport", "vi", "tweakers", "nos-cultuur", "3voor12", "oor"]
+    func quickStart() {
+        let set = Set(Self.starter)
+        enabled = set
+        if sources.isEmpty {
+            quickPending = true // nog geen bronnen geladen: bij het laden alsnog
+        } else {
+            muted = Set(newsSources.map(\.id).filter { !set.contains($0) })
+            quickPending = false
+            rebuildStream()
+            reloadParts()
+            refreshPersonal()
+        }
+        onboarded = true
+    }
+    private var quickPending: Bool { didSet { save("hoot.quickPending", quickPending) } }
+
     var newsSources: [Source] { sources.filter { $0.kind != "sociaal" } }
     var followed: [Source] { newsSources.filter(isOn) }
     // Bluesky: de vaste accounts van Hoot, plus wie je zelf toevoegde.
@@ -225,6 +246,7 @@ final class HootStore {
         do {
             let (start, fromCache) = try await HootAPI.start()
             sources = start.sources
+            if quickPending { muted = Set(newsSources.map(\.id).filter { !Self.starter.contains($0) }); quickPending = false }
             storiesById = Dictionary(start.stories.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
             edition = start.edition
             updatedAt = start.meta.updatedAt.flatMap(HootDate.parse)
