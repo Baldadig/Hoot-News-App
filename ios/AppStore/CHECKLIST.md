@@ -16,11 +16,11 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
 | ✅ | App Privacy | "Geen gegevens verzameld", gepubliceerd; privacybeleid https://hootnews.nl/#/privacy (bijgewerkt voor de app). |
 | ✅ | Prijs en landen | Gratis; Nederland en België. |
 | ✅ | Versie 1.0: teksten | Promotietekst, beschrijving, trefwoorden, support- en marketing-URL, copyright 2026 Baldadig, notities voor de beoordelaar. |
-| 👤 | **Contentrechten** | App-informatie → Content Rights. Een verklaring van jou over de rechten op de inhoud van uitgevers. |
-| 👤 | **Contactgegevens App Review** | Naam, telefoon en e-mail op de versiepagina (alleen voor Apple). |
-| 👤 | **Digital Services Act** | Business → handelaarsstatus: handelaar (Baldadig), met adres, telefoon en e-mail die in de EU openbaar zijn. |
-| ⏳ | Schermafbeeldingen | iPhone 6,9" en iPad 13", in Instapaper-stijl op merkrood. |
-| ⏳ | Versie 1.0 bouwen | MARKETING_VERSION naar 1.0, uploaden, build kiezen op de versiepagina, indienen. |
+| ✅ | Contentrechten | Ingevuld door Alex (28 okt): bevat inhoud van derden, rechten aanwezig. |
+| ✅ | Contactgegevens App Review | Alex Vrees, alex@baldadig.nl. Uitbrengen: handmatig na goedkeuring. |
+| ✅ | Digital Services Act | Handelaar, ingevuld door Alex (28 okt). |
+| 🟡 | Schermafbeeldingen | iPhone 6,3" (1206×2622) en iPad (11"-opname in 13"-formaat) staan erin; Digest-beeld na 2 nov opnieuw (volle week). |
+| ✅ | Versie 1.0 | Build 21 (1.0) gekoppeld aan de versiepagina. Indienen na het Digest-beeld. |
 
 ## 1. Account en registratie
 
