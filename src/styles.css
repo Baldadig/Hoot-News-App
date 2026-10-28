@@ -688,7 +688,7 @@ select {
   position: relative;
   flex: none;
   min-height: 36px;
-  padding: var(--s0) var(--s3);
+  padding: 2px var(--s3); /* geen --s0 op het web: een onbekende waarde wist de hele padding */
   font-size: var(--t1);
 }
 .chip--sm::before {

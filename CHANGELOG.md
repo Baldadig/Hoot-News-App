@@ -2,6 +2,10 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.43.1] — 2026-10-28 — Pillen in de Stroom weer op maat
+
+- **Website:** de onderwerppillen in de Stroom ("Alles", "Politiek" …) hadden geen binnenruimte meer; de tekst raakte de rand. Oorzaak: een spatiewaarde uit 1.42 die op het web niet bestaat. Hersteld.
+
 ## [1.43.0] — 2026-10-28 — Een zachte start: meteen lezen met gratis Nederlandse bronnen
 
 - **"Begin met lezen" kiest een vaste startset:** negen Nederlandse bronnen, allemaal gratis. Elk stuk lees je dus helemaal, zonder abonnement.
