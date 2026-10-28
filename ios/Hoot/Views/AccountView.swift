@@ -65,6 +65,8 @@ struct AccountView: View {
     @State private var code = ""
     @State private var confirmDelete = false
     var onMember: (() -> Void)? = nil // in het welkom: verder zodra je lid bent
+    private static let buttonHeight: CGFloat = 50
+    private static let buttonRadius: CGFloat = 10
 
     var body: some View {
         Form {
@@ -94,25 +96,29 @@ struct AccountView: View {
                     .font(.subheadline)
                     .foregroundStyle(Theme.ink3)
                     .padding(.bottom, Space.s1)
+                // Elk in de eigen huisstijl, maar even groot: zelfde hoogte, afronding en letter.
+                // Google (branding guidelines "Sign in with Google"): licht thema wit met grijze rand,
+                // donker thema #131314; het gekleurde G-logo los, en hun eigen Nederlandse tekst.
                 if HootConfig.googleReady {
                     Button { google() } label: {
-                        HStack(spacing: Space.s2) {
-                            Image("GoogleG").resizable().frame(width: 16, height: 16)
-                                .padding(4)
-                                .background(.white, in: Circle()) // het logo van Google op wit, zoals hun eigen knoppen
-                            Text("Log in met Google") // zelfde woorden als de knop van Apple
+                        HStack(spacing: Space.s3) {
+                            Image("GoogleG").resizable().frame(width: 20, height: 20)
+                            Text("Inloggen met Google")
                         }
                         .font(.system(size: 19, weight: .medium))
-                        .frame(maxWidth: .infinity, minHeight: 50)
-                        .foregroundStyle(scheme == .dark ? .black : .white)
-                        .background(scheme == .dark ? Color.white : Color.black, in: RoundedRectangle(cornerRadius: 10))
+                        .frame(maxWidth: .infinity, minHeight: Self.buttonHeight)
+                        .foregroundStyle(Color(hex: scheme == .dark ? 0xE3E3E3 : 0x1F1F1F))
+                        .background(Color(hex: scheme == .dark ? 0x131314 : 0xFFFFFF), in: RoundedRectangle(cornerRadius: Self.buttonRadius))
+                        .overlay(RoundedRectangle(cornerRadius: Self.buttonRadius).strokeBorder(Color(hex: scheme == .dark ? 0x8E918F : 0x747775), lineWidth: 1))
                     }
                     .buttonStyle(.plain)
                 }
+                // Apple (Human Interface Guidelines): zwart op licht, wit op donker; de tekst geeft iOS zelf.
                 SignInWithAppleButton(.signIn) { account.prepare($0) } onCompletion: { result in Task { await account.finishApple(result) } }
                     .signInWithAppleButtonStyle(scheme == .dark ? .white : .black)
-                    .frame(height: 50)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .id(scheme) // de knop van Apple neemt een nieuwe stijl pas over als hij opnieuw wordt gemaakt
+                    .frame(height: Self.buttonHeight)
+                    .clipShape(RoundedRectangle(cornerRadius: Self.buttonRadius))
                 if account.status == .loading { ProgressView().frame(maxWidth: .infinity) }
             }
             .padding(.vertical, Space.s2)
@@ -176,5 +182,12 @@ struct AccountView: View {
             guard let url = try? await webAuth.authenticate(using: request.url, callbackURLScheme: request.scheme, preferredBrowserSession: .shared) else { return }
             await account.finishGoogle(request, callback: url)
         }
+    }
+}
+
+// Vaste kleuren uit de huisstijl van een ander bedrijf (hier: de knop van Google).
+private extension Color {
+    init(hex: UInt32) {
+        self.init(red: Double(hex >> 16 & 0xFF) / 255, green: Double(hex >> 8 & 0xFF) / 255, blue: Double(hex & 0xFF) / 255)
     }
 }

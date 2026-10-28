@@ -2,6 +2,12 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.44.1] — 2026-10-28 — Inlogknoppen volgens de huisstijl van Google en Apple
+
+- **Google:** in de lichte stand wit met een grijze rand, in de donkere stand #131314, telkens met het gekleurde G-logo. De tekst is Googles eigen Nederlandse "Inloggen met Google".
+- **Apple:** zwart op licht en wit op donker. De knop wisselt nu ook echt mee als je iPhone van stand wisselt.
+- **Beide knoppen even groot:** zelfde hoogte (50 pt), afronding en lettergrootte.
+
 ## [1.44.0] — 2026-10-28 — Inloggen in de app, en filteren op meer bronnen tegelijk
 
 - **Inloggen in de app (iOS 1.0, build 23):** met Google of met Apple, via Instellingen › Account of "Al een account? Log in" op het welkomstscherm.
