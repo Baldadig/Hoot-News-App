@@ -20,6 +20,8 @@ for dev in "Hoot Pro Max" "Hoot iPad 13"; do
   xcrun simctl ui "$dev" appearance light
   xcrun simctl status_bar "$dev" override --time "9:41" --batteryState discharging --batteryLevel 100 --wifiBars 3 --cellularMode active --cellularBars 4 --operatorName ""
   xcrun simctl install "$dev" "$APP"
+  # Gratis Nederlandse bronnen aan (staan standaard uit): die krijgen voorrang in de beelden.
+  xcrun simctl spawn "$dev" defaults write nl.hootnews.Hoot hoot.enabled -data $(printf '%s' '["nu","rtl","nos-sport","tweakers","vi","wielerflits","sporza","nos-cultuur"]' | xxd -p | tr -d '\n')
   name=${dev// /-}
   fa=(); [[ -n "$FEATURE" ]] && fa=(-HootFeature "$FEATURE") # twee losse argumenten (zsh splitst niet vanzelf)
   shot() { xcrun simctl launch --terminate-running-process "$dev" nl.hootnews.Hoot "${@:2}" "${fa[@]}" >/dev/null; sleep $SLEEP; xcrun simctl io "$dev" screenshot "$OUT/$name-$1.png" >/dev/null; }

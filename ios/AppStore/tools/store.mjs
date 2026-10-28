@@ -14,7 +14,7 @@ const PAPER = '#F5F1E8'
 // Volgorde en koppen: twee korte zinnen, elk op een eigen regel.
 const SHOTS = [
   ['editie', 'Minder scrollen.', 'Meer lezen.'],
-  ['verhaal', 'Eén verhaal.', 'Zie hoe elke krant het brengt.'],
+  ['verhaal', 'Eén verhaal.', 'Alle kranten erbij.'],
   ['einde', 'Tien verhalen.', 'Dan ben je bij.'],
   ['digest', 'Elke maandag', 'het beste uit je vak.'],
   ['lezer', 'Lezen zonder', 'afleiding.'],
@@ -65,9 +65,10 @@ async function frame({ raw, out, W, H, phoneW, top, island, l1, l2 }) {
   const rIn = rOut - bezel
   const x = Math.round((W - phoneW) / 2)
 
-  // Kop: de langste regel past binnen de breedte (krantenletter ≈ 0,5 em per teken).
-  let fs = Math.round(W * 0.085)
-  fs = Math.min(fs, Math.floor(W * 0.86 / (Math.max(l1.length, l2.length) * 0.5)))
+  // Kop: op alle beelden even groot, zo groot als de langste regel van de hele reeks toelaat
+  // (krantenletter ≈ 0,5 em per teken). Past een kop niet, dan moet hij korter.
+  const longest = Math.max(...SHOTS.flatMap(([, a, b]) => [a.length, b.length]))
+  const fs = Math.min(Math.round(W * 0.085), Math.floor(W * 0.86 / (longest * 0.5)))
   const y1 = Math.round(top * 0.42)
   const head = `<g font-family="New York, Georgia, serif" font-weight="800" fill="${PAPER}" text-anchor="middle" letter-spacing="-1">
     <text x="${W / 2}" y="${y1}" font-size="${fs}">${esc(l1)}</text>

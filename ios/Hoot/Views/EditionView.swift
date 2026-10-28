@@ -28,7 +28,11 @@ extension HootStore {
         // App Store-opnamen: gekozen echte verhalen (neutraal of positief) in de gegeven volgorde.
         if !DebugLaunch.feature.isEmpty {
             return DebugLaunch.feature.compactMap { f in
-                guard let story = storiesById[f.id], let item = story.leadId.flatMap({ itemsById[$0] }) ?? story.itemIds.lazy.compactMap({ self.itemsById[$0] }).first else { return nil }
+                // Gratis bronnen voorrang (Nederlandstalig eerst), anders het hoofdstuk van het verhaal.
+                guard let story = storiesById[f.id] else { return nil }
+                let all = ([story.leadId].compactMap { $0 } + story.itemIds).compactMap { itemsById[$0] }
+                let free = { (i: Item) in self.source(i.source).map { $0.paid != true } ?? false }
+                guard let item = all.first(where: { free($0) && self.source($0.source)?.lang == "nl" }) ?? all.first(where: free) ?? all.first else { return nil }
                 return EditionRowModel(id: story.id, item: item, story: story, label: f.label, desk: nil)
             }
         }
@@ -143,7 +147,7 @@ struct EditionView: View {
             .settingsButton()
             .task(id: store.editionRows.count) {
                 // `-HootScreen verhaal`: het eerste verhaal met de meeste bronnen, om te vergelijken.
-                if DebugLaunch.screen("verhaal"), path.isEmpty, let story = (DebugLaunch.feature.isEmpty ? nil : store.editionRows.first?.story) ?? store.editionRows.compactMap(\.story).max(by: { ($0.sourceCount ?? 1) < ($1.sourceCount ?? 1) }) { path.append(story) }
+                if DebugLaunch.screen("verhaal"), path.isEmpty, let story = store.editionRows.compactMap(\.story).max(by: { ($0.sourceCount ?? 1) < ($1.sourceCount ?? 1) }) { path.append(story) }
             }
         }
     }
