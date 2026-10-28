@@ -20,7 +20,7 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
 | ✅ | Contactgegevens App Review | Alex Vrees, alex@baldadig.nl. Uitbrengen: handmatig na goedkeuring. |
 | ✅ | Digital Services Act | Handelaar, ingevuld door Alex (28 okt). |
 | 🟡 | Schermafbeeldingen | iPhone 6,3" (1206×2622) en iPad (11"-opname in 13"-formaat) staan erin; Digest-beeld na 2 nov opnieuw (volle week). |
-| ✅ | Versie 1.0 | Build 26 ingediend op 28 oktober om 20:11 ("Waiting for Review"). Handmatig uitbrengen na goedkeuring. |
+| ✅ | Versie 1.0 | Build 27 ingediend op 28 oktober om 21:54 ("Waiting for Review"). Build 26 (20:11) teruggetrokken: onzichtbare "Verder" en sync-fouten, gevonden in de slooptest. Handmatig uitbrengen na goedkeuring. |
 | ✅ | Inloggen (Google en Apple) | Google Cloud: iOS-client "Hoot iOS" en inlogscherm "In production". Supabase: iOS-client-id bij Google, Apple aan (nl.hootnews.Hoot), functie `delete_my_account`. |
 | ✅ | Privacylabels | E-mailadres, gebruikers-ID, productinteractie: gekoppeld aan je account, alleen voor de werking van de app, geen tracking. |
 | ✅ | Review-notities | Bijgewerkt, met uitnodigingscode `applereviewe8f265b7` (5 accounts, tot 26 januari 2027). "Sign-in required" uit. |
