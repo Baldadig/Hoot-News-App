@@ -2,6 +2,22 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.48.0] — 2026-10-28 — Je abonnementen, logo's op wit, welkom bij grote tekst
+
+- **Je abonnementen (iOS, Instellingen › Lezen):**
+  - **Welke bronnen:** elke bron waar je kunt inloggen staat erin, niet alleen de betaalde. Er zijn er nu 60, waaronder The Verge, Wired, NYT, The Guardian, NRC en alle DPG- en Mediahuis-kranten.
+  - **Uitgezocht per bron:** ze zijn per stuk nagelopen. De server geeft per bron het eigen inlogadres mee (`login` in `netlify/lib/sources.mjs`).
+  - **Status:** per bron zie je "Ingelogd" of "Inloggen". "Ingelogd" staat er alleen als Hoot de inlog van die site echt herkent; niet elke site laat dat zien.
+  - **Uitloggen:** veeg naar links over een bron, dan bevestigen.
+  - **Volgorde:** eerst wat je volgt of waar je bent ingelogd, de rest onder "Meer bronnen met een abonnement".
+  - **In Instellingen:** de rij toont het aantal ("2 ingelogd").
+  - **In de lezer:** "Inloggen bij …" opent nu meteen de inlogpagina van de uitgever.
+- **Logo's op wit (app en web):** een doorzichtig logo, zoals de zwarte P van Het Parool, verdween in de donkere stand. Nu staat elk logo op wit.
+- **Welkom met de grootste tekst:** op een kleine iPhone werden de knoppen enorm en werd de tekst afgekapt. Nu:
+  - de knoppen blijven op één regel;
+  - op een krap scherm wijkt de animatie, zodat de tekst voorgaat;
+  - wat niet past, scrolt.
+
 ## [1.47.1] — 2026-10-28 — iOS 1.0 (29): samenvatting voorop, vloeiender
 
 - **Eerste pagina:** een samenvatting. "hoot." staat groot en de punt ademt; op de volgende pagina's wordt die punt de zon. Daaronder "Minder scrollen. Meer lezen." en "Het nieuws van jouw bronnen, rustig op een rij." Daarna volgen de drie onderdelen.

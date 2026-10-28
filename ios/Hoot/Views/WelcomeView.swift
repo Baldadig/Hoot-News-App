@@ -69,7 +69,10 @@ struct WelcomeView: View {
         GeometryReader { geo in
             ScrollView {
                 VStack(spacing: Space.s5) {
-                    OnboardingArt(kind: p.art, active: active)
+                    // Krap (kleine iPhone, heel grote tekst): de tekst gaat voor, de animatie wijkt.
+                    if geo.size.height > OnboardingArt.size.height + 200 {
+                        OnboardingArt(kind: p.art, active: active)
+                    }
                     VStack(spacing: Space.s2) {
                         Text(p.title)
                             .font(Theme.headline(.title))
@@ -109,6 +112,8 @@ struct WelcomeView: View {
     }
 
     // Voorop: zelf samenstellen, of je account. Even rondkijken mag, maar is de zijweg.
+    // Altijd in beeld, en dus begrensd: bij de grootste tekst blijven ze op één regel (de letter
+    // krimpt iets mee) in plaats van het halve scherm te vullen. VoiceOver leest de volle tekst.
     private var buttons: some View {
         VStack(spacing: Space.s2) {
             Button { setup = true } label: {
@@ -129,6 +134,9 @@ struct WelcomeView: View {
             .foregroundStyle(Theme.ink2)
             .frame(maxWidth: .infinity, minHeight: Space.tap)
         }
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
+        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
     }
 }
 

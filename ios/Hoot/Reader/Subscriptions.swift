@@ -14,10 +14,11 @@ enum PublisherLogin {
     }
 
     // De inlogpagina van een bron: van de server (`login`). Stuurt die dat (nog) niet mee, dan de
-    // voorpagina van een betaalde bron (het domein van een recent bericht).
+    // voorpagina van een betaalde bron (zijn domein, of dat van een recent bericht).
     static func url(for s: Source, store: HootStore) -> URL? {
         if let login = s.login, let url = URL(string: login) { return url }
         guard s.paid == true else { return nil }
+        if let handle = s.handle, !handle.hasPrefix("@"), let url = URL(string: "https://\(handle)/") { return url }
         return store.stream.first { $0.source == s.id }?.link.flatMap(LoginTarget.home)
     }
 
@@ -80,6 +81,9 @@ enum PublisherLogin {
 
     // Bij welke van deze domeinen staat een inlog in de opslag van de lezer?
     static func loggedIn(_ domains: [String]) async -> Set<String> {
+        // Na het opstarten geeft de cookie-opslag niets terug zolang WebKit de bewaarde cookies nog
+        // niet inlas; de lijst met websitegegevens opvragen laat hem dat eerst doen.
+        _ = await ArticleLoader.dataStore.dataRecords(ofTypes: [WKWebsiteDataTypeCookies])
         let cookies = await ArticleLoader.dataStore.httpCookieStore.allCookies()
         return Set(domains.filter { d in cookies.contains { matches($0.domain, d) && isLogin($0, domain: d) } })
     }
@@ -113,22 +117,36 @@ struct SubscriptionsView: View {
         let more = all.filter { !followed.contains($0.source.id) && !loggedIn.contains($0.domain) }
         List {
             Section {
+                if mine.isEmpty {
+                    Text("Geen van je bronnen heeft een abonnement.").foregroundStyle(Theme.ink3)
+                }
                 ForEach(mine) { row($0) }
             } footer: {
                 Text("Log één keer in; daarna lees je de artikelen helemaal in de lezer. Je typt je gegevens op de site van de uitgever zelf; Hoot ziet ze niet. Je inlog blijft alleen op dit toestel. Ingelogd staat erbij als Hoot je inlog bij die uitgever herkent; niet elke site laat dat zien. Veeg naar links om bij één uitgever uit te loggen.").foregroundStyle(Theme.ink3)
             }
             if !more.isEmpty {
+                // Eigen uitklapregel i.p.v. DisclosureGroup: die laat de rijen inspringen, en dan
+                // staan de logo's niet meer onder die van de bronnen erboven.
                 Section {
-                    DisclosureGroup("Meer bronnen met een abonnement", isExpanded: $showMore) {
-                        ForEach(more) { row($0) }
+                    Button { withAnimation { showMore.toggle() } } label: {
+                        HStack {
+                            Text("Meer bronnen met een abonnement").foregroundStyle(Theme.ink)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(Theme.ink3)
+                                .rotationEffect(.degrees(showMore ? 90 : 0))
+                        }
                     }
+                    .accessibilityValue(showMore ? "Uitgeklapt" : "Ingeklapt")
+                    if showMore { ForEach(more) { row($0) } }
                 }
             }
             Section {
                 Button("Overal uitloggen in de lezer", role: .destructive) { confirmForget = true }
             }
         }
-        .task { await refresh(all) }
+        .task(id: all.map(\.domain)) { await refresh(all) } // opnieuw zodra de bronnen (van de server) binnen zijn
         .sheet(item: $login, onDismiss: { Task { await refresh(PublisherLogin.all(store)) } }) { LoginWebView(target: $0) }
         .alert("Uitloggen bij \(leaving?.source.name ?? "")?", isPresented: Binding(get: { leaving != nil }, set: { if !$0 { leaving = nil } })) {
             Button("Annuleer", role: .cancel) {}
@@ -160,9 +178,16 @@ struct SubscriptionsView: View {
             HStack(spacing: Space.s3) {
                 SourceAvatar(source: p.source, size: 32)
                 Text(p.source.name).foregroundStyle(Theme.ink)
+                    // De scheidingslijn begint altijd bij de naam, zoals bij Bronnen (SwiftUI kiest anders per rij).
+                    .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }
                 Spacer()
                 if on {
-                    Label("Ingelogd", systemImage: "checkmark").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.accent)
+                    // Even groot als "Inloggen", zodat de kolom rechts gelijk blijft; het vinkje maakt het verschil.
+                    HStack(spacing: Space.s1) {
+                        Image(systemName: "checkmark").font(.body.weight(.semibold))
+                        Text("Ingelogd")
+                    }
+                    .foregroundStyle(Theme.accent)
                 } else {
                     Text("Inloggen").foregroundStyle(Theme.accent)
                 }
@@ -178,7 +203,9 @@ struct SubscriptionsView: View {
     }
 
     private func refresh(_ all: [PublisherLogin.Publisher]) async {
-        loggedIn = await PublisherLogin.loggedIn(all.map(\.domain))
+        let found = await PublisherLogin.loggedIn(all.map(\.domain))
+        // Een oudere ronde (nog zonder bronnen) mag een nieuwere niet overschrijven.
+        if !Task.isCancelled { loggedIn = found }
     }
 }
 
@@ -193,6 +220,9 @@ struct SubscriptionsRow: View {
         } label: {
             Label("Inloggen bij je abonnementen", systemImage: "key")
         }
-        .task { count = await PublisherLogin.loggedIn(PublisherLogin.all(store).map(\.domain)).count }
+        .task(id: PublisherLogin.all(store).map(\.domain)) {
+            let found = await PublisherLogin.loggedIn(PublisherLogin.all(store).map(\.domain)).count
+            if !Task.isCancelled { count = found }
+        }
     }
 }

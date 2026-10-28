@@ -10,7 +10,9 @@ struct SourceAvatar: View {
     var body: some View {
         AsyncImage(url: source.avatar.flatMap(URL.init(string:))) { phase in
             if let image = phase.image {
-                image.resizable().scaledToFill()
+                // Altijd op wit: uitgevers maken hun logo voor een lichte achtergrond, en een
+                // doorzichtig logo (zoals de zwarte P van Het Parool) verdwijnt anders in donker.
+                image.resizable().scaledToFill().background(Color.white)
             } else {
                 Text(String(source.name.prefix(1))).font(.headline).foregroundStyle(Theme.ink3).frame(maxWidth: .infinity, maxHeight: .infinity).background(.quaternary)
             }

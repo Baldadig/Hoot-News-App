@@ -856,7 +856,9 @@ select {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background: var(--surface);
+  /* altijd op wit: uitgevers maken hun logo voor een lichte achtergrond, en een doorzichtig logo
+     (zoals de zwarte P van Het Parool) verdwijnt anders in de donkere stand */
+  background: #fff;
 }
 .mark--logo img {
   object-fit: contain;

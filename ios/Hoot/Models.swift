@@ -16,6 +16,7 @@ struct Source: Codable, Identifiable, Hashable {
     var avatar: String?
     var brandColor: String?
     var ok: Bool?
+    var handle: String? // nieuws: het domein van de bron (nrc.nl); Bluesky: @-naam
 }
 
 struct Item: Codable, Identifiable, Hashable {
