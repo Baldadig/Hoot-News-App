@@ -4,7 +4,7 @@ import SwiftUI
 // zonder te tikken (zie ios/AppStore/tools/device-screens.sh). Startargumenten:
 //   -HootStartTab editie|stroom|digest|bewaard|zoek
 //   -HootScreen verhaal|lezer|bronnen|bluesky|video|instellingen|instellingen-bronnen|instellingen-vakken|instellingen-wissen
-//   -HootScroll midden|onder   -HootQuery <tekst>   -HootDark YES   -HootLargeText YES   -HootOffline YES
+//   -HootScroll midden|onder|slot   -HootQuery <tekst>   -HootDark YES   -HootLargeText YES   -HootOffline YES
 //   -HootSeenMinutes <n>   (de Stroom alsof je er n minuten geleden was)
 //   -HootFeature verhaal-id:Rubriek,…   (App Store-opnamen: deze echte verhalen bovenaan Editie en Stroom)
 // In Release doet dit allemaal niets.
@@ -27,6 +27,7 @@ enum DebugLaunch {
         switch defaults.string(forKey: "HootScroll") {
         case "midden": .center
         case "onder": .bottom
+        case "slot": .top // de laatste twee verhalen en het einde, netjes onder de balk
         default: nil
         }
     }

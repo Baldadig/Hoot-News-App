@@ -264,6 +264,7 @@ struct ArticleActions: ViewModifier {
 
 extension View {
     func opensArticle(_ item: Item) -> some View { modifier(ArticleActions(item: item)) }
+    @ViewBuilder func opensArticle(_ item: Item?) -> some View { if let item { opensArticle(item) } else { self } }
 }
 
 // ---- Vorm 1: hoofdverhaal ----

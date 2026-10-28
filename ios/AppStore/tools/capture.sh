@@ -25,15 +25,15 @@ for dev in ${=DEVICES:-"Hoot-Pro-Max Hoot-iPad-11"}; do
   xcrun simctl install "$dev" "$APP"
   # Gratis Nederlandse bronnen aan (staan standaard uit): die krijgen voorrang in de beelden.
   xcrun simctl spawn "$dev" defaults write nl.hootnews.Hoot hoot.enabled -data $(printf '%s' '["nu","rtl","nos-sport","tweakers","vi","wielerflits","sporza","nos-cultuur"]' | xxd -p | tr -d '\n')
-  # Digest: Digital Design, AI en E-commerce (Digital Design opent, met een beeldend stuk).
-  xcrun simctl spawn "$dev" defaults write nl.hootnews.Hoot hoot.digestFields -data $(printf '%s' '["design","ai","ecommerce"]' | xxd -p | tr -d '\n')
+  # Digest: UI/UX, Digital Design en AI.
+  xcrun simctl spawn "$dev" defaults write nl.hootnews.Hoot hoot.digestFields -data $(printf '%s' '["ux","design","ai"]' | xxd -p | tr -d '\n')
   name=${dev// /-}
   fa=(); [[ -n "$FEATURE" ]] && fa=(-HootFeature "$FEATURE") # twee losse argumenten (zsh splitst niet vanzelf)
   shot() { xcrun simctl launch --terminate-running-process "$dev" nl.hootnews.Hoot "${@:2}" "${fa[@]}" >/dev/null; sleep $SLEEP; xcrun simctl io "$dev" screenshot "$OUT/$name-$1.png" >/dev/null; }
   SLEEP=14
   shot editie -HootStartTab editie
   shot verhaal -HootStartTab editie -HootScreen verhaal
-  shot einde -HootStartTab editie -HootScroll onder
+  shot einde -HootStartTab editie -HootScroll slot
   shot stroom -HootStartTab stroom
   shot digest -HootStartTab digest
   SLEEP=24

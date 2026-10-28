@@ -28,6 +28,10 @@ extension HootStore {
         // App Store-opnamen: gekozen echte verhalen (neutraal of positief) in de gegeven volgorde.
         if !DebugLaunch.feature.isEmpty {
             return DebugLaunch.feature.compactMap { f in
+                // Een los bericht (geen verhaal): dat bericht zelf.
+                if storiesById[f.id] == nil, let item = itemsById[f.id] {
+                    return EditionRowModel(id: item.id, item: item, story: item.storyId.flatMap { storiesById[$0] }, label: f.label, desk: nil)
+                }
                 // Gratis bronnen voorrang (Nederlandstalig eerst), anders het hoofdstuk van het verhaal.
                 guard let story = storiesById[f.id] else { return nil }
                 let all = ([story.leadId].compactMap { $0 } + story.itemIds).compactMap { itemsById[$0] }
@@ -56,6 +60,13 @@ extension HootStore {
 }
 
 struct EditionView: View {
+    // `-HootScroll slot`: het voorlaatste verhaal bovenaan, zodat het einde met twee verhalen erboven in beeld staat.
+    static func slotTarget(_ rows: [EditionRowModel]) -> String? {
+        #if DEBUG
+        if UserDefaults.standard.string(forKey: "HootScroll") == "slot", rows.count >= 2 { return rows[rows.count - 2].id }
+        #endif
+        return nil
+    }
     @Environment(HootStore.self) private var store
     @Environment(\.openTab) private var openTab
     @Environment(\.isWide) private var wide
@@ -69,6 +80,7 @@ struct EditionView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
+            ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     let rows = store.editionRows
@@ -133,6 +145,8 @@ struct EditionView: View {
                 .padding(.horizontal)
                 .column(wide ? Layout.wide : Layout.readable)
             }
+            .debugJump(proxy, to: Self.slotTarget(store.editionRows), when: store.editionRows.count)
+            }
             .debugScroll()
             .background(Theme.paper)
             .navigationTitle(title)
@@ -182,7 +196,10 @@ struct StoryView: View {
                 }
             }
             .listRowBackground(Color.clear)
-            ForEach(items) { item in
+            .contentShape(Rectangle())
+            .opensArticle(items.first(where: { $0.id == story.leadId }) ?? items.first)
+            // Het hoofdbericht staat al bovenaan (tik op de kop): niet nog eens in de lijst.
+            ForEach(items.filter { $0.id != (items.first(where: { $0.id == story.leadId }) ?? items.first)?.id }) { item in
                 // In een lijst maakt een link in de rij de hele rij tot link: hier geen bronlink.
                 ItemRow(item: item, label: label(item), linkSource: false)
                     .listRowBackground(Theme.surface)

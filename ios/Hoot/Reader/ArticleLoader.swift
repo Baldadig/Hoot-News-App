@@ -189,6 +189,15 @@ final class ArticleLoader: NSObject, WKNavigationDelegate, WKUIDelegate {
               h.remove();
             }
           });
+          // Verborgen hulptekst van sites die in de lezer zichtbaar wordt: "(opent in nieuw venster)".
+          var HINT = /\s*\(?(opent in (een )?nieuw (venster|tabblad)|opens in (a )?new (window|tab)|externe link|external link)\)?\s*/gi;
+          box.querySelectorAll('a, span').forEach(function (el) {
+            var t = (el.textContent || '').trim();
+            if (t && !el.children.length && t.replace(HINT, '') === '') { el.remove(); return; }
+          });
+          var walker = document.createTreeWalker(box, NodeFilter.SHOW_TEXT);
+          var node;
+          while ((node = walker.nextNode())) { if (HINT.test(node.nodeValue)) { HINT.lastIndex = 0; node.nodeValue = node.nodeValue.replace(HINT, function (m) { return /^\s/.test(m) && /\s$/.test(m) ? ' ' : ''; }); } HINT.lastIndex = 0; }
           box.querySelectorAll('ul, ol').forEach(function (l) {
             var t = (l.textContent || '').replace(/\s+/g, ' ').trim();
             if (t.length < 200 && (l.querySelectorAll('a').length > 0 || t.length < 40)) l.remove();
