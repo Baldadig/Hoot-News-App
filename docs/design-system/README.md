@@ -28,6 +28,7 @@ De stem van de productpagina in de App Store (Alex, 28 oktober) is de maat voor 
 - **Gewone woorden voor de onderdelen:** editie, Stroom, "hoe andere media het brengen". Geen kopjes in kapitalen, geen opsommingstekens als het ook in een zin kan.
 - **Eerlijk en rustig over privacy:** "Hoot volgt je niet." "Wat de app leert van je leesgedrag, blijft op je toestel." Zeg wat waar is, zonder superlatieven.
 - **Zeg waar het nieuws vandaan komt:** "Koppen en korte intro's komen uit openbare nieuwsfeeds. Bij elk verhaal staan de bron en een link naar het oorspronkelijke artikel."
+- **De Digest** is breder dan werk: "Eén keer per week bijgepraat over wat jou bezighoudt." Vak, hobby of liefhebberij.
 - **Maker:** "gemaakt in Nederland door Baldadig".
 
 Volledige tekst: `ios/AppStore/metadata/nl-NL/description.txt`.

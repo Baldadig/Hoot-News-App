@@ -6,7 +6,7 @@ Hoot: je nieuws drie keer per dag in een rustige editie van tien verhalen. Verge
 
 ## Kort (persbericht, LinkedIn-intro)
 
-Hoot is een rustige nieuwslezer. Geen eindeloze tijdlijn: drie keer per dag een editie van tien verhalen, uit de bronnen die jij kiest, en daarna houdt het op. Schrijven meer media over hetzelfde nieuws, dan zie je met één tik hoe elk van hen het brengt. Elke maandag staat er een Digest klaar met het beste uit je vak. Hoot is gratis, heeft geen account nodig en volgt je niet. Nu voor iPhone en iPad.
+Hoot is een rustige nieuwslezer. Geen eindeloze tijdlijn: drie keer per dag een editie van tien verhalen, uit de bronnen die jij kiest, en daarna houdt het op. Schrijven meer media over hetzelfde nieuws, dan zie je met één tik hoe elk van hen het brengt. En één keer per week word je in je Digest bijgepraat over wat jou bezighoudt. Hoot is gratis, heeft geen account nodig en volgt je niet. Nu voor iPhone en iPad.
 
 ## LinkedIn
 
@@ -30,6 +30,6 @@ Nieuws met een einde. 🦉 Drie keer per dag tien verhalen, uit je eigen bronnen
 
 1. Drie keer per dag tien verhalen. Met een einde.
 2. Al je bronnen, nieuwste eerst.
-3. Elke maandag het beste uit je vak.
+3. Eén keer per week bijgepraat over wat jou bezighoudt.
 
 Ideeën voor meer beelden: "Zie hoe elke krant het brengt." (verhaal vergelijken), "Rustig, ook 's avonds." (donkere modus), "Op iPad en opengevouwen iPhone." (iPad).

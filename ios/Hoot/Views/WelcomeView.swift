@@ -32,7 +32,7 @@ struct WelcomeView: View {
                         VStack(alignment: .leading, spacing: Space.s4) {
                             point("newspaper", "Je editie", "Drie keer per dag tien verhalen.")
                             point("water.waves", "De Stroom", "Alles van je bronnen, nieuwste eerst.")
-                            point("briefcase", "Je Digest", "Elke maandag het beste uit je vak.")
+                            point("briefcase", "Je Digest", "Eén keer per week bijgepraat over wat jou bezighoudt.")
                         }
                         .padding(.top, Space.s6)
                         Spacer(minLength: Space.s6)
