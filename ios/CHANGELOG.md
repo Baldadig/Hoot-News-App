@@ -1,5 +1,19 @@
 # Changelog — Hoot voor iOS
 
+## [1.0.0] — 2026-10-28 — De eerste versie voor de App Store
+
+- **De App Store-versie,** met alles uit 0.17 tot en met 0.19.
+- **Vergelijken:** het verhaal heeft een beeld bovenaan, en de kop opent het hoofdbericht. Het hoofdbericht staat niet nog eens in de lijst.
+- **Zoeken** let niet meer op accenten.
+- **Lezer: schoner.** Deze onderdelen worden weggehaald:
+  - een losse datumregel;
+  - een auteursportret bovenaan;
+  - promotieblokken met een tussenkop ("Maak NOS jouw voorkeursbron in Google");
+  - verborgen linkteksten ("(opent in nieuw venster)");
+  - "Skip to main content", cookiemeldingen en dubbele alinea's.
+- **Lezer: brede tabellen** scrollen zelf, zonder dat de hele pagina opzij schuift.
+- **Opnamestand voor App Store-beelden (alleen Debug):** echte verhalen naar keuze (`-HootFeature`), en `-HootScroll slot` voor het einde van de editie.
+
 ## [0.19.0] — 2026-10-28 — Nieuw welkom, rustiger einde, ongedaan maken
 
 - **Welkom herschreven.**
