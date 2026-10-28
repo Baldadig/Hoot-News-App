@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
-import { LeadStory, CompactItem, SaveButton, SourceMark, useHoot } from '../components/Items.jsx'
+import { LeadStory, CompactItem, SaveButton, SourceMark, useHoot, linkOf } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
 import { SparkleIcon } from '../components/icons.jsx'
 import { BriefReader } from '../components/BriefReader.jsx'
@@ -43,7 +43,7 @@ function FrontItem({ item, story, note }) {
         {paid ? <span>abonnement</span> : null}
         {item.type === 'opinie' ? <span className="kicker__type">Opinie</span> : null}
       </p>
-      <a className="fitem__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+      <a className="fitem__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         <span className="fitem__text">
           <span className="fitem__title" role="heading" aria-level="3">
             {title}

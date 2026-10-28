@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { CompactItem, Meta, SaveButton, useHoot } from '../components/Items.jsx'
+import { CompactItem, Meta, SaveButton, useHoot, linkOf } from '../components/Items.jsx'
 import { isFollowing } from '../lib/follow.js'
 import { BackIcon, CloseIcon } from '../components/icons.jsx'
 import { timeAgo } from '../lib/time.js'
@@ -11,7 +11,7 @@ function SourceItem({ item, note }) {
   return (
     <article className={`entry srcitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <Meta item={item} />
-      <a className="srcitem__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+      <a className="srcitem__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         {note || item.type === 'opinie' ? <p className="kicker">{[item.type === 'opinie' ? 'Opinie' : null, note].filter(Boolean).join(' · ')}</p> : null}
         <h3 className="srcitem__title">{item.title}</h3>
         {item.summary ? <p className="srcitem__sum">{item.summary}</p> : null}

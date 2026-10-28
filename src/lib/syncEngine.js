@@ -118,6 +118,8 @@ export class SyncEngine {
       } catch {
         return this.failed(() => this.pull())
       }
+      // Intussen uitgelogd (of een ander account): dit antwoord hoort niet meer op dit toestel.
+      if (this.stopped) return
       const local = this.getLocal()
       const remoteSaved = remote.saved || {}
       const hasRemotePrefs = Object.keys(remote.prefs || {}).length > 0
@@ -177,22 +179,26 @@ export class SyncEngine {
     try {
       if (hashNow !== this.base.state) {
         await this.api.pushState(local)
+        if (this.stopped) return // uitgelogd tijdens het schrijven: geen basis meer terugzetten
         this.base.state = hashNow
         this.saveBase()
       }
       if (upserts.length) {
         await this.api.upsertSaved(upserts.map((k) => [k, local.saved[k]]))
+        if (this.stopped) return
         for (const k of upserts) this.base.saved[k] = fingerprint(local.saved[k])
         this.saveBase()
       }
       if (deletes.length) {
         await this.api.deleteSaved(deletes)
+        if (this.stopped) return
         for (const k of deletes) delete this.base.saved[k]
         this.saveBase()
       }
     } catch {
       return this.failed(() => this.flush())
     }
+    if (this.stopped) return
     this.failures = 0
     // Tijdens het schrijven alweer iets veranderd? Dan staat dat nog open.
     if (this.hasPending()) this.changed(0)
@@ -200,6 +206,7 @@ export class SyncEngine {
   }
 
   failed(again) {
+    if (this.stopped) return
     this.setStatus('error')
     const wait = RETRY[Math.min(this.failures, RETRY.length - 1)]
     this.failures++

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { readJSON, writeJSON } from '../lib/store.js'
+import { prunePositions } from '../lib/context.js'
 
 // Onthoudt de leespositie van een scrollgebied — niet in pixels maar als "dit bericht
 // stond bovenaan, zoveel pixels onder de rand", zodat hervatten ook klopt na herladen of
@@ -12,9 +13,22 @@ import { readJSON, writeJSON } from '../lib/store.js'
 // - `active`: komt het scherm weer in beeld, dan controleren we de positie opnieuw.
 const MAX_AGE = 12 * 60 * 60 * 1000
 const SETTLE = 6000
+let pruned = false
+
 
 export function useScrollMemory(ref, key, ready, stamp, active = true) {
   const st = useRef({ armed: false, user: false, t0: Date.now(), key, active })
+
+  // Eén keer per start: verlopen posities opruimen.
+  useEffect(() => {
+    if (pruned) return
+    pruned = true
+    try {
+      prunePositions(localStorage, MAX_AGE)
+    } catch {
+      /* geen opslag */
+    }
+  }, [])
 
   useEffect(() => {
     const el = ref.current

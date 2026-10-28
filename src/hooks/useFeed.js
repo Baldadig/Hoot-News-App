@@ -119,7 +119,8 @@ export function useFeed(prefs) {
         if (!dataRef.current) setStatus('error')
         else setRefreshError(true)
       } finally {
-        setRefreshing(false)
+        // Afgebroken door een nieuwere ronde: die is nog bezig, de draaier blijft staan.
+        if (ctrl.current === controller) setRefreshing(false)
       }
     },
     [apply, gather, loadRelated]

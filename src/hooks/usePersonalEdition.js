@@ -59,9 +59,11 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
       const stamped = { ...mine, owner, basis }
       keep(stamped)
       if (uid && account.client) await account.client.from('user_state').update({ edition: stamped }).eq('user_id', uid).then(() => {}, () => {})
-    })().finally(() => {
-      if (pending.current === task) pending.current = ''
-    })
+    })()
+      .catch(() => {}) // lukt het nu niet, dan de volgende keer (geen onafgehandelde fout)
+      .finally(() => {
+        if (pending.current === task) pending.current = ''
+      })
   }, [global?.id, ready, owner, basis]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Leden: een eigen samenvatting, één keer per editie (de server bewaakt het maximum).
@@ -82,7 +84,7 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
       const next = { ...current, brief }
       keep(next)
       await account.client.from('user_state').update({ edition: next }).eq('user_id', uid).then(() => {}, () => {})
-    })()
+    })().catch(() => {}) // geen sessie of geen JSON: dan zonder samenvatting
   }, [edition?.version, edition?.brief, uid, prefs.brief]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Uitloggen of een andere lezer: niet de editie van een ander tonen.

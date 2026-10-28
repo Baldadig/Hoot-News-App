@@ -15,12 +15,16 @@ export default function Saved({ active }) {
     const needle = q.trim().toLowerCase()
     return Object.entries(saved)
       .map(([id, e]) => {
+        // Een kapotte of onbekende rij (bijv. van een andere versie via je account) slaan we over.
+        if (!e || typeof e !== 'object') return null
+        const savedAt = Number.isFinite(e.savedAt) ? e.savedAt : 0
         if (e.kind === 'story') {
           const story = storiesById.get(id) || e.story
+          if (!story) return null
           const item = itemsById.get(story.leadId) || (e.items || []).find((i) => i.id === story.leadId) || (e.items || [])[0]
-          return item ? { id, savedAt: e.savedAt, item, story } : null
+          return item ? { id, savedAt, item, story } : null
         }
-        return e.item ? { id, savedAt: e.savedAt, item: e.item, story: null } : null
+        return e.item ? { id, savedAt, item: e.item, story: null } : null
       })
       .filter(Boolean)
       .filter((r) => !needle || `${r.item.title} ${r.item.summary || ''} ${r.item.sourceName}`.toLowerCase().includes(needle))

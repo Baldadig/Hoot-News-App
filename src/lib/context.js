@@ -39,3 +39,23 @@ export function positionKey(dest, params = {}) {
   const sig = filterSig(params)
   return 'hoot:pos-' + dest + (FILTER_KEYS.some((k) => params[k]) ? ':' + sig : '')
 }
+
+// Leesposities zijn na een halve dag niets meer waard (zie useScrollMemory), maar elke
+// filtercombinatie (ook elke set bronnen) maakt een eigen sleutel: oude weghalen, anders groeit
+// localStorage met elke combinatie die je ooit koos.
+export function prunePositions(storage, maxAge, now = Date.now()) {
+  const stale = []
+  for (let i = 0; i < storage.length; i++) {
+    const k = storage.key(i)
+    if (!k?.startsWith('hoot:pos-')) continue
+    let at = 0
+    try {
+      at = JSON.parse(storage.getItem(k))?.at || 0
+    } catch {
+      /* kapot: weg ermee */
+    }
+    if (!(now - at <= maxAge)) stale.push(k)
+  }
+  for (const k of stale) storage.removeItem(k)
+  return stale.length
+}

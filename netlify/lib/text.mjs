@@ -4,40 +4,62 @@ export { hostname, safeIso } from '../../shared/util.mjs'
 export function favicon(domain) {
   return domain ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128` : null
 }
+// Een getal-entiteit als teken; een NUL of een ongeldig codepunt wordt niets.
+const codePoint = (n) => {
+  try {
+    return n > 0 ? String.fromCodePoint(n) : ''
+  } catch {
+    return ''
+  }
+}
+// <script>…</script> en <style>…</style> eruit, in één keer door de tekst: een regex als
+// /<script[\s\S]*?<\/script>/ zoekt bij elke "<script" zonder sluittag opnieuw tot het eind,
+// en duizend daarvan (een kapotte feed) kostte zo een seconde.
+function dropBlocks(s, tag) {
+  const open = new RegExp(`<${tag}`, 'gi')
+  const close = new RegExp(`</${tag}>`, 'gi')
+  let out = ''
+  let pos = 0
+  for (;;) {
+    open.lastIndex = pos
+    const o = open.exec(s)
+    if (!o) break
+    close.lastIndex = o.index
+    const c = close.exec(s)
+    if (!c) break // geen sluittag meer: de rest blijft staan (de tags zelf gaan er hieronder uit)
+    out += s.slice(pos, o.index)
+    pos = c.index + c[0].length
+  }
+  return out + s.slice(pos)
+}
 export function toText(html) {
   if (!html) return ''
-  return html
-    .replace(/<style[\s\S]*?<\/style>/gi, '')
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;|&rsquo;|&apos;/g, "'")
-    .replace(/&hellip;/g, '…')
-    .replace(/&mdash;/g, '—')
-    .replace(/&#(\d+);/g, (_, n) => {
-      try {
-        return String.fromCodePoint(parseInt(n, 10))
-      } catch {
-        return ''
-      }
-    })
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => {
-      try {
-        return String.fromCodePoint(parseInt(h, 16))
-      } catch {
-        return ''
-      }
-    })
-    .replace(/\s+/g, ' ')
-    .trim()
+  return (
+    dropBlocks(dropBlocks(String(html), 'style'), 'script')
+      // [^<>]: ook een rij losse "<" kost zo lineaire tijd in plaats van kwadratische.
+      .replace(/<[^<>]+>/g, ' ')
+      // &amp; bewust eerst: veel feeds coderen dubbel ("&amp;#8217;", "&amp;nbsp;"), en dat
+      // moet een ' of een spatie worden.
+      .replace(/&amp;/g, '&')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;|&rsquo;|&apos;/g, "'")
+      .replace(/&hellip;/g, '…')
+      .replace(/&mdash;/g, '—')
+      .replace(/&#(\d+);/g, (_, n) => codePoint(parseInt(n, 10)))
+      .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => codePoint(parseInt(h, 16)))
+      .replace(/\s+/g, ' ')
+      .trim()
+  )
 }
 export function clip(s, n) {
   if (!s) return ''
-  return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s
+  if (s.length <= n) return s
+  let end = n - 1
+  if (/[\uD800-\uDBFF]/.test(s[end - 1] || '')) end-- // geen halve emoji
+  return s.slice(0, end).trimEnd() + '…'
 }
 // Past tekst netjes binnen n tekens: afronden op zin- of woordgrens, geen "…".
 // Alleen als er geen zinseinde te vinden is kappen we af op een woordgrens, mét "…".

@@ -29,6 +29,7 @@ export default async (req) => {
   } catch {
     return fail(400, 'Geen geldige JSON.')
   }
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return fail(400, 'Verwacht een object.') // "null" gaf anders een 500
 
   let doc = await readDoc(KEYS.start)
   if (!doc) {
@@ -51,7 +52,7 @@ export default async (req) => {
     ? { storyIds: new Set(ids(p.storyIds)), itemIds: new Set(ids(p.itemIds, 2000)), leadIds: new Set(ids(p.leadIds)), leadStoryId: ID.test(p.leadStoryId || '') ? p.leadStoryId : null, at: Number(p.at) || 0 }
     : null
   const a = body.affinity && typeof body.affinity === 'object' ? body.affinity : null
-  const affinity = a ? { n: Number(a.n) || 0, topics: counts(a.topics), sources: counts(a.sources) } : null
+  const affinity = a ? { n: Number.isFinite(Number(a.n)) ? Math.max(0, Number(a.n)) : 0, topics: counts(a.topics), sources: counts(a.sources) } : null
 
   const edition = composePersonal({
     global: start.edition,

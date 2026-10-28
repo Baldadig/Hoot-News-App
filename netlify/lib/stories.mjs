@@ -6,7 +6,10 @@ import { DESKS, desksOf, primaryDesk, weight } from './desks.mjs'
 import { hash } from '../../shared/util.mjs'
 export { hash }
 
-export const byRecency = (a, b) => (b.publishedAt ? Date.parse(b.publishedAt) : 0) - (a.publishedAt ? Date.parse(a.publishedAt) : 0)
+// Een onleesbare tijd telt als heel oud (anders geeft de vergelijking NaN en raakt de sortering,
+// en daarmee het afbreken op tijd in buildStories, in de war).
+const timeOf = (a) => Date.parse(a.publishedAt) || 0
+export const byRecency = (a, b) => timeOf(b) - timeOf(a)
 
 // Bronnen die in het Nederlands schrijven (voor taalvoorkeur bij het hoofdbericht).
 export const NL_SOURCES = new Set(['nrc', 'nos', 'volkskrant', 'tweakers'])
@@ -176,7 +179,7 @@ function signature(article, vocab) {
       if (isRare) rare++
     }
   }
-  return { words: sigWords(article.title), strong, weak, known, concepts, rareIds: new Set(CONCEPTS.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: article.publishedAt ? Date.parse(article.publishedAt) : 0 }
+  return { words: sigWords(article.title), strong, weak, known, concepts, rareIds: new Set(CONCEPTS.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: timeOf(article) }
 }
 
 const WORD_WINDOW = 48 * 60 * 60 * 1000
@@ -506,7 +509,7 @@ export function relinkEdition(entries = [], { stories = [], snapshot = [], byId 
   const live = new Map(stories.map((st) => [st.id, st]))
   const then = new Map(snapshot.map((st) => [st.id, st]))
   const storyOf = new Map()
-  for (const st of stories) for (const id of st.itemIds) storyOf.set(id, st)
+  for (const st of stories) for (const id of st.itemIds || []) storyOf.set(id, st)
   const deskOf = (ids) => primaryDesk(ids.map((id) => byId.get(id)).filter(Boolean).map((it) => desksOf(it)))
   const taken = new Set(entries.map((e) => e.id)) // twee onderdelen mogen niet naar hetzelfde verhaal wijzen
   return entries.map((e) => {
@@ -514,7 +517,7 @@ export function relinkEdition(entries = [], { stories = [], snapshot = [], byId 
     const snap = then.get(e.id)
     const out = { ...e, itemIds: snap?.itemIds || e.itemIds || [], sourceCount: snap?.sourceCount || e.sourceCount || 0, leadDesk: deskOf([e.leadId]) }
     const cur = live.get(e.id)
-    if (!e.leadId || cur?.itemIds.includes(e.leadId)) return out
+    if (!e.leadId || cur?.itemIds?.includes(e.leadId)) return out
     const now = storyOf.get(e.leadId)
     if (now && !taken.has(now.id)) {
       taken.add(now.id)

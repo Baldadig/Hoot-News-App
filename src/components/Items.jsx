@@ -7,6 +7,11 @@ import { TermHelp } from './Terms.jsx'
 import { Img } from './Img.jsx'
 import { Video } from './Video.jsx'
 import { directVideo } from '../../shared/bluesky.mjs'
+import { safeHttpUrl } from '../../shared/util.mjs'
+
+// Bewaarde berichten komen uit opslag (dit toestel, of je account), niet vers van de server:
+// ook daar alleen http(s) in een href. Zonder geldige link is het een link zonder doel.
+export const linkOf = (item) => safeHttpUrl(item?.url) || undefined
 
 // Alles wat een bericht nodig heeft om te handelen (bewaren, bron bekijken, verhaal openen).
 export const HootContext = createContext(null)
@@ -15,8 +20,6 @@ export const useHoot = () => useContext(HootContext)
 // HLS-video speelt alleen native in Safari/iOS; elders tonen we de poster en opent de post.
 const CAN_HLS = typeof document !== 'undefined' && !!document.createElement('video').canPlayType('application/vnd.apple.mpegurl')
 
-// Onthoudt welk hoofdbeeld je het laatst zag, zodat index.html het bij je volgende bezoek
-// al kan ophalen terwijl de app nog laadt (zie het script in index.html).
 // Het hoofdbeeld onthouden voor de volgende start (index.html laadt het dan alvast). Van de
 // eigen beeld-CDN relatief (/.netlify/images?…), zodat het ook na een domeinwissel klopt.
 const rememberLead = (e) => {
@@ -107,7 +110,7 @@ export function LeadStory({ item, story, note, priority = false }) {
   const { markRead, read } = useHoot()
   return (
     <article className={`entry lead${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
-      <a className="lead__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+      <a className="lead__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         {/* Eerst kop en kern, dan pas het beeld (op breed scherm staat het beeld bovenaan, zie CSS). */}
         <Kicker item={item} extra={note} />
         <h2 className="lead__title">{item.title}</h2>
@@ -136,7 +139,7 @@ export function CompactItem({ item, story, note, showSave = true, plain = false 
     return (
       <article className={`${cls} compact--tl`} data-id={item.id}>
         {/* Zelfde volgorde als op de voorpagina: rubriek, kop, samenvatting, beeld, dan de bron. */}
-        <a className="compact__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+        <a className="compact__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
           <Kicker item={item} extra={note} />
           <h3 className="compact__title">{item.title}</h3>
           <Summary item={item} className="compact__sum" />
@@ -152,7 +155,7 @@ export function CompactItem({ item, story, note, showSave = true, plain = false 
   }
   return (
     <article className={cls} data-id={item.id}>
-      <a className="compact__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+      <a className="compact__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         <div className="compact__text">
           <Kicker item={item} extra={note} />
           <h3 className="compact__title">{item.title}</h3>
@@ -193,7 +196,7 @@ export function SocialItem({ item }) {
         </button>
         <SaveButton id={item.id} payload={item} />
       </div>
-      <a className="social__body" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+      <a className="social__body" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         {item.summary ? <p className="social__text">{item.summary}</p> : null}
         {item.video && !playable ? (
           <div className="media media--social media--poster" style={bounded(16 / 9)}>

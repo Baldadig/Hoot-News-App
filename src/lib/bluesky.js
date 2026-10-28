@@ -3,6 +3,7 @@
 // zonder serverwijziging. De post-vorm is gelijk aan die van de aggregator.
 
 import { BSKY_API as API, fetchAuthorPosts } from '../../shared/bluesky.mjs'
+import { safeHttpUrl } from '../../shared/util.mjs'
 
 // Accepteert "https://bsky.app/profile/xxx", "@xxx" of "xxx" -> handle
 export function parseHandle(input) {
@@ -20,7 +21,7 @@ export async function resolveProfile(input) {
   if (!res.ok) throw new Error(res.status === 400 ? 'Account niet gevonden' : `Bluesky-fout (${res.status})`)
   const d = await res.json()
   if (!d?.handle) throw new Error('Account niet gevonden')
-  return { handle: d.handle, name: (d.displayName || '').trim() || d.handle, avatar: d.avatar || null }
+  return { handle: d.handle, name: (d.displayName || '').trim() || d.handle, avatar: safeHttpUrl(d.avatar) } // komt in een <img src>: alleen http(s)
 }
 
 // De afgelopen 48 uur van één account (zelfde vorm en id's als de server: shared/bluesky.mjs).

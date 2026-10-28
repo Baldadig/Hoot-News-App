@@ -59,7 +59,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // terwijl The Atlantic het ook bracht).
   const ownIds = new Set(items.filter((i) => followed.has(i.source)).map((i) => i.id))
   const covered = (w) => ownIds.has(w.item.id) || (storyById.get(w.storyId)?.itemIds || []).some((id) => ownIds.has(id))
-  const wideCands = (global.wide || []).filter((w) => outside(w) && !covered(w))
+  const wideCands = (global.wide || []).filter((w) => w?.item?.id && outside(w) && !covered(w))
   const size = EDITION_SIZE - (bubbleEntry ? 1 : 0) - (wideCands.length ? 1 : 0)
   const preferred = new Set(favorites.filter((id) => followed.has(id)))
   const extra = extraPool.length ? selectEdition(stories, extraPool, { mainIds: followed, now, size: EXTRA_MAX, bonus, strict: true, previous, preferred }).map((e) => ({ ...e, desk: null })) : []
@@ -131,8 +131,6 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   }
 }
 
-// De invoer voor het overzicht in één minuut: per plek het getoonde bericht (met de plek erbij,
-// voor de verwijzingen per blok). Zelfde vorm als briefRows op de server.
 // Vingerafdruk van waaruit een editie is samengesteld: je bronnen en interesses. Een editie met
 // een andere afdruk is niet (meer) de jouwe — bijvoorbeeld gemaakt op een toestel dat je
 // instellingen nog niet had geladen — en wordt opnieuw samengesteld.
@@ -145,6 +143,8 @@ export function editionBasis(followed = [], interests = [], topics = [], favorit
   return h.toString(36)
 }
 
+// De invoer voor het overzicht in één minuut: per plek het getoonde bericht (met de plek erbij,
+// voor de verwijzingen per blok). Zelfde vorm als briefRows op de server.
 export function personalRows(edition) {
   const byId = new Map((edition?.items || []).map((i) => [i.id, i]))
   const rows = []

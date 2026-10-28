@@ -2,6 +2,27 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.46.0] — 2026-10-28 — Steviger: slooptest van web en server
+
+Een technische controle en een geautomatiseerde testronde die de site en de server probeerde te breken. 16 bugs opgelost, 25 nieuwe tests (228 in totaal).
+
+- **Account en synchroniseren:**
+  - **Uitloggen tijdens synchroniseren:** een ophaalactie die nog liep kon na het uitloggen de gegevens van het account terugzetten op het toestel. De motor kijkt nu na elke netwerkstap of hij gestopt is.
+  - **Kapotte gegevens:** samenvoegen kan nu tegen kapotte of oude gegevens van een ander toestel. "Gezien" wordt per verhaal samengevoegd, met een maximum.
+- **Bewaard:** het scherm crashte op een bewaard verhaal zonder verhaal; zulke stukken worden nu overgeslagen.
+- **Geen wit scherm meer:** gaat er bij het tekenen iets mis, dan staat er "Er ging iets mis" met "Opnieuw laden".
+- **Veilige links:** links uit Bewaard en uit opgeslagen verhalen gaan alleen nog open als http(s). Een `javascript:`-link uit de opslag werkt niet meer.
+- **Opslag blijft klein:** oude scrollposities (ouder dan 12 uur) worden opgeruimd; voorheen bleef er per editie een sleutel achter.
+- **Server:**
+  - **Rare feeds:** kapotte HTML in een feed kostte seconden en is nu in een milliseconde verwerkt. Emoji worden niet meer half afgeknipt, `&amp;nbsp;` wordt een spatie.
+  - **Ongeldige datums:** ze verstoren het sorteren en bundelen niet meer.
+  - **Trends:** het zoeken naar trends ("Buiten je bubbel") crasht niet meer op vreemde invoer.
+  - **Foute aanvraag:** `/api/edition` antwoordt bij een foute aanvraag met een nette fout (400) in plaats van een crash.
+- **Kleinere fouten:**
+  - De verversknop stopte te vroeg met draaien.
+  - Een vreemde Bluesky-post brak een heel account.
+  - Fouten bij het ophalen van je eigen editie werden niet opgevangen.
+
 ## [1.45.1] — 2026-10-28 — Bronrij: alleen logo's
 
 - **Stroom (app en web):** onder de logo's staan geen namen meer; het logo is genoeg. Wat je kiest, krijgt nog steeds een rode ring en een vinkje, en de namen staan in de statusregel eronder ("NU.nl, Tweakers · Bijgewerkt om …"). VoiceOver leest de naam van elke bron voor.

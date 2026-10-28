@@ -17,7 +17,7 @@ export function directVideo(url) {
 export function mapPost(post, fallbackName) {
   const handle = post?.author?.handle
   if (!post?.record || !handle) return null
-  const text = post.record.text || ''
+  const text = typeof post.record.text === 'string' ? post.record.text : '' // één rare post mag het account niet laten mislukken
   const permalink = `https://bsky.app/profile/${handle}/post/${(post.uri || '').split('/').pop()}`
   let image = null
   let imageRatio = null // breedte/hoogte van een geplaatste foto

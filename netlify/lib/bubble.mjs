@@ -20,8 +20,8 @@ export function termWords(term) {
 export function cleanTerms(raw) {
   const out = []
   const seen = new Set()
-  for (const { term, via, rank = 0 } of raw) {
-    if (!term || SKIP.test(term)) continue
+  for (const { term, via, rank = 0 } of (raw || []).filter(Boolean)) {
+    if (!term || typeof term === 'object' || SKIP.test(term)) continue // een object werd anders "[object Object]"
     const words = termWords(term)
     if (!words.length) continue
     const key = words.join(' ')
@@ -63,7 +63,8 @@ export function matchTrending(rawTerms, articles, { excludeItemIds = new Set(), 
     if (!hits.length) continue
     const vias = new Set(hits.map((h) => h.via))
     const score = hits.reduce((s, h) => s + (WEIGHT[h.via] || 1), 0) + (vias.size > 1 ? 2 : 0)
-    const age = a.publishedAt ? Math.max(0, now - Date.parse(a.publishedAt)) : 1e12
+    const t = Date.parse(a.publishedAt)
+    const age = Number.isFinite(t) ? Math.max(0, now - t) : 1e12 // zonder (geldige) tijd: achteraan
     scored.push({ a, score, age, hits })
   }
   scored.sort((x, y) => y.score - x.score || x.age - y.age)
