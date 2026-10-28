@@ -165,6 +165,20 @@ final class ArticleLoader: NSObject, WKNavigationDelegate, WKUIDelegate {
             var t = (el.textContent || '').replace(/\s+/g, ' ').trim();
             if (t && t.length < 140 && (JUNK.test(t) || (byline && (t === byline || t === byline + ' ' + byline)))) el.remove();
           });
+          // Een losse datumregel ("vandaag, 14:27", "28 oktober 2026") en een auteursportret met
+          // alleen een naam eronder, bovenaan het stuk: geen tekst om te lezen.
+          var DATE = /^(vandaag|gisteren|maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag|today|yesterday|\d{1,2}[ -](jan|feb|mrt|maa|apr|mei|jun|jul|aug|sep|okt|nov|dec)\w*([ -]\d{4})?)(,?\s*\d{1,2}[:.]\d{2})?( uur)?$/i;
+          var NAME = /^[A-ZÀ-Ý][\wÀ-ÿ'-]+( (van|de|der|den|ten|ter|het|'t|el|al|von|du|da|di|le|la|[A-ZÀ-Ý][\wÀ-ÿ'-]+)){1,4}$/;
+          var lead = [];
+          box.querySelectorAll('p, img, figure, div, span, time').forEach(function (el) { if (lead.length < 8 && !el.querySelector('p, figure')) lead.push(el); });
+          lead.forEach(function (el, i) {
+            var t = (el.textContent || '').replace(/\s+/g, ' ').trim();
+            if (t && t.length < 40 && DATE.test(t)) { el.remove(); return; }
+            var img = el.matches('img, figure') ? el : null;
+            var next = lead[i + 1];
+            var nt = next ? (next.textContent || '').replace(/\s+/g, ' ').trim() : '';
+            if (img && nt && nt.length <= 40 && NAME.test(nt)) { (img.closest('figure') || img).remove(); next.remove(); }
+          });
           box.querySelectorAll('ul, ol').forEach(function (l) {
             var t = (l.textContent || '').replace(/\s+/g, ' ').trim();
             if (t.length < 200 && (l.querySelectorAll('a').length > 0 || t.length < 40)) l.remove();
