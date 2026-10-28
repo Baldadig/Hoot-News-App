@@ -99,7 +99,7 @@ struct ArticleReaderView: View {
                 .font(.footnote)
                 .foregroundStyle(Theme.ink3)
             HStack {
-                Button("Inloggen bij \(sourceName)") { login = LoginTarget(name: sourceName, url: item.link.flatMap(LoginTarget.home)) }
+                Button("Inloggen bij \(sourceName)") { login = LoginTarget(name: sourceName, url: source?.login.flatMap(URL.init(string:)) ?? item.link.flatMap(LoginTarget.home)) }
                     .buttonStyle(.glassProminent)
                 Button("Bij de uitgever") { if let url = item.link { openURL(url) } }
                     .buttonStyle(.glass)
@@ -240,53 +240,5 @@ struct LoginWebView: View {
                 }
         }
         .task { if let url = target.url { webView.load(URLRequest(url: url)) } }
-    }
-}
-
-// Instellingen › Abonnementen: per betaalde bron die je volgt één keer inloggen voor de lezer.
-struct SubscriptionsView: View {
-    @Environment(HootStore.self) private var store
-    @State private var login: LoginTarget?
-    @State private var confirmForget = false
-
-    var body: some View {
-        let paid = store.followed.filter { $0.paid == true }.sorted { a, b in
-            let fa = store.isFavorite(a.id), fb = store.isFavorite(b.id)
-            return fa != fb ? fa : a.name < b.name
-        }
-        List {
-            Section {
-                ForEach(paid) { s in
-                    Button { login = LoginTarget(name: s.name, url: home(of: s)) } label: {
-                        HStack(spacing: Space.s3) {
-                            SourceAvatar(source: s, size: 32)
-                            Text(s.name).foregroundStyle(Theme.ink)
-                            Spacer()
-                            Text("Inloggen").foregroundStyle(Theme.accent)
-                        }
-                    }
-                    .disabled(home(of: s) == nil)
-                }
-            } footer: {
-                Text("Log één keer in bij je abonnementen; daarna lees je hun artikelen helemaal in de lezer. Je typt je gegevens op de site van de uitgever zelf; Hoot ziet ze niet. Je inlog blijft alleen op dit toestel.").foregroundStyle(Theme.ink3)
-            }
-            Section {
-                Button("Overal uitloggen in de lezer", role: .destructive) { confirmForget = true }
-            }
-        }
-        .sheet(item: $login) { LoginWebView(target: $0) }
-        .alert("Overal uitloggen in de lezer?", isPresented: $confirmForget) {
-            Button("Annuleer", role: .cancel) {}
-            Button("Log uit", role: .destructive) {
-                ArticleLoader.dataStore.removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: .distantPast) {}
-            }
-        } message: {
-            Text("De lezer vergeet je inlog en toestemmingen bij alle uitgevers. Je abonnementen zelf blijven gewoon bestaan.")
-        }
-    }
-
-    // De voorpagina van een bron: het domein van een recent bericht.
-    private func home(of s: Source) -> URL? {
-        store.stream.first { $0.source == s.id }?.link.flatMap(LoginTarget.home)
     }
 }

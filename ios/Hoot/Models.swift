@@ -10,6 +10,7 @@ struct Source: Codable, Identifiable, Hashable {
     var cat: String?
     var optional: Bool?
     var paid: Bool?
+    var login: String? // inlogpagina van de uitgever (abonnement of lidmaatschap)
     var lang: String?
     var about: String?
     var avatar: String?

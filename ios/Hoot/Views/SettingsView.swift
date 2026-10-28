@@ -11,7 +11,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @State private var confirmClear: String? = DebugLaunch.screen("instellingen-wissen") ? "gelezen" : nil
-    @State private var path: [String] = DebugLaunch.screen("instellingen-bronnen") ? ["bronnen"] : DebugLaunch.screen("instellingen-vakken") ? ["vakken"] : []
+    @State private var path: [String] = DebugLaunch.screen("instellingen-bronnen") ? ["bronnen"] : DebugLaunch.screen("instellingen-vakken") ? ["vakken"] : DebugLaunch.screen("instellingen-abonnementen") ? ["abonnementen"] : []
 
     private var version: String {
         let v = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
@@ -60,9 +60,7 @@ struct SettingsView: View {
                         Label("Artikelen openen", systemImage: "doc.richtext")
                     }
                     if store.openWith == "lezer" {
-                        NavigationLink(value: "abonnementen") {
-                            Label("Inloggen bij je abonnementen", systemImage: "key")
-                        }
+                        NavigationLink(value: "abonnementen") { SubscriptionsRow() }
                     }
                     if store.openWith == "web" {
                         Toggle(isOn: $store.paidInSafari) {
@@ -155,7 +153,7 @@ struct SettingsView: View {
                 } else if page == "bronnen" {
                     SourcesList().navigationTitle("Bronnen").navigationBarTitleDisplayMode(.inline)
                 } else if page == "abonnementen" {
-                    SubscriptionsView().navigationTitle("Abonnementen").navigationBarTitleDisplayMode(.inline)
+                    SubscriptionsView().navigationTitle("Je abonnementen").navigationBarTitleDisplayMode(.inline)
                 } else if page == "interesses" {
                     InterestsList().navigationTitle("Interesses").navigationBarTitleDisplayMode(.inline)
                 } else {

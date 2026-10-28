@@ -3,7 +3,7 @@ import SwiftUI
 // Alleen in Debug, voor schermafbeeldingen en audits: de app opent meteen op een bepaald scherm,
 // zonder te tikken (zie ios/AppStore/tools/device-screens.sh). Startargumenten:
 //   -HootStartTab editie|stroom|digest|bewaard|zoek
-//   -HootScreen verhaal|lezer|bronnen|bluesky|video|instellingen|instellingen-bronnen|instellingen-vakken|instellingen-wissen
+//   -HootScreen verhaal|lezer|bronnen|bluesky|video|instellingen|instellingen-bronnen|instellingen-vakken|instellingen-abonnementen|instellingen-wissen
 //   -HootScroll midden|onder|slot   -HootQuery <tekst>   -HootDark YES   -HootLargeText YES   -HootOffline YES
 //   -HootSeenMinutes <n>   (de Stroom alsof je er n minuten geleden was)
 //   -HootFeature verhaal-id:Rubriek,…   (App Store-opnamen: deze echte verhalen bovenaan Editie en Stroom)

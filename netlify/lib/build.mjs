@@ -428,6 +428,7 @@ function sourceList({ mainGroups, bskyGroups, avatars, profiles }) {
         lang: s.lang,
         about: s.about,
         paid: !!s.paid,
+        login: s.login || null,
         followed: true,
         brandColor: s.color || '#21468b',
         avatar: first(g)?.avatar || avatars[g.id] || (s.x ? `https://unavatar.io/x/${s.x}` : null),
