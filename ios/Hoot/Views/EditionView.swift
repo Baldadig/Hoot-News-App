@@ -100,12 +100,13 @@ struct EditionView: View {
                             Text("Dit was de \(title.lowercased())\(dateLine.isEmpty ? "" : " van \(dateLine.lowercased())").\(store.edition?.next.map { " De volgende staat klaar om \($0)." } ?? "")")
                                 .font(.subheadline)
                                 .multilineTextAlignment(.center)
-                            Button("Toch verder lezen in de Stroom") { openTab(.stroom) }
-                                .font(.subheadline.weight(.semibold))
-                                .padding(.horizontal, Space.s5)
-                                .frame(minHeight: Space.tap)
-                                .overlay(Capsule().strokeBorder(Theme.onBrandRed, lineWidth: 1))
-                                .padding(.top, Space.s2)
+                            // Het einde is leidend; verder lezen mag, als rustige link in plaats van een knop.
+                            Button { openTab(.stroom) } label: {
+                                Text("Of lees verder in de Stroom").underline()
+                            }
+                            .font(.subheadline.weight(.semibold))
+                            .opacity(0.85)
+                            .frame(minHeight: Space.tap)
                         }
                         .foregroundStyle(Theme.onBrandRed)
                         .frame(maxWidth: .infinity)

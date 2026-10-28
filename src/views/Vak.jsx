@@ -75,14 +75,9 @@ function Card({ item, rank, feature = false }) {
           <span className="dcard__rank" aria-hidden="true">
             {two(rank)}
           </span>
-          {item.why?.length ? (
-            <p className="kicker">
-              {item.why.map((w) => (
-                <span key={w}>{w}</span>
-              ))}
-            </p>
-          ) : null}
           <h3 className="dcard__title">{item.title}</h3>
+          {/* Waarom dit stuk: rustige metadata onder de kop, zodat de kop voorgaat. */}
+          {item.why?.length ? <p className="dcard__why">{item.why.join(' · ')}</p> : null}
           {item.summary ? <p className="dcard__sum">{item.summary}</p> : null}
         </div>
       </a>

@@ -366,6 +366,8 @@ final class HootStore {
         }
     }
     func removeSaved(at offsets: IndexSet) { saved.remove(atOffsets: offsets) }
+    // "Ongedaan maken" na verwijderen: terug op zijn oude plek.
+    func restoreSaved(_ item: Item, at index: Int) { if !isSaved(item) { saved.insert(item, at: min(index, saved.count)) } }
     func markRead(_ item: Item) {
         guard !readSet.contains(item.id) else { return }
         affinity.learn(item, weight: 1)

@@ -2,6 +2,23 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.42.0] — 2026-10-28 — Rustiger einde, duidelijker filters (na het aanbevelingsrapport)
+
+- **Einde van de editie:** "Je bent bij." en de volgende editie zijn leidend. Verder lezen is een rustige link ("Of lees verder in de Stroom"), geen knop.
+- **Bronfilter in woorden:** kies je een bron in de Stroom, dan staat eronder "Alleen NRC" met de link "Alle bronnen".
+- **Digest-kaart:**
+  - **De kop gaat voor:** het rangnummer is kleiner, en waarom een stuk gekozen is, staat als rustige regel onder de kop.
+  - **Wie kiest:** het label luidt nu "Gekozen door de redactie van Sidebar".
+- **Chips groeien mee** met grote tekst: ze hebben een minimumhoogte in plaats van een vaste hoogte.
+- **Welkom:** kortere teksten bij de onderdelen.
+- **Design system:**
+  - Eén paginabreedte, 1000 px.
+  - Drie letterrollen: koppen, bediening en leestekst.
+  - Duidelijke regels voor randen (`rule` tegenover `edge`) en voor schaduw (`shadow-float`).
+  - Een vaste toetsenbordfocus.
+  - Ongedaan maken na verwijderen, op web en iOS.
+  - De onderdelen Einde, Digest-kaart, Bronnenrij, Chip en Knop zijn bijgewerkt.
+
 ## [1.41.0] — 2026-10-28 — Een Digest voor meer vakken
 
 - **Vijf nieuwe vakgebieden in de Digest:** SEO & content, Merk & reclame, Development, Productmanagement en Startups & ondernemen. Daarmee zijn het er tien.

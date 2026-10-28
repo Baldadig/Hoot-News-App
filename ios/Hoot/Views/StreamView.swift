@@ -189,9 +189,11 @@ struct SourcesList: View {
     }
 }
 
-// Bewaard: wat je voor later bewaarde, op dit toestel.
+// Bewaard: wat je voor later bewaarde, op dit toestel. Verwijderen gaat meteen, met even de
+// mogelijkheid het ongedaan te maken (zoals op de website).
 struct SavedView: View {
     @Environment(HootStore.self) private var store
+    @State private var removed: (index: Int, item: Item)?
     var body: some View {
         NavigationStack {
             Group {
@@ -202,11 +204,39 @@ struct SavedView: View {
                         ForEach(store.saved) { item in
                             ItemRow(item: item, linkSource: false).listRowBackground(Theme.surface)
                         }
-                        .onDelete { store.removeSaved(at: $0) }
+                        .onDelete { offsets in
+                            if let i = offsets.first { removed = (i, store.saved[i]) }
+                            store.removeSaved(at: offsets)
+                        }
                     }
                     .scrollContentBackground(.hidden)
                 }
             }
+            .safeAreaInset(edge: .bottom) {
+                if let r = removed {
+                    HStack {
+                        Text("Verwijderd uit Bewaard").foregroundStyle(Theme.ink2)
+                        Spacer()
+                        Button("Ongedaan maken") { store.restoreSaved(r.item, at: r.index); removed = nil }
+                            .fontWeight(.semibold)
+                            .frame(minHeight: Space.tap)
+                    }
+                    .font(.subheadline)
+                    .padding(.horizontal, Space.s4)
+                    .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                    .shadow(color: .black.opacity(0.12), radius: 8, y: 2) // zweeft: de enige plek met schaduw
+                    .padding(.horizontal)
+                    .padding(.bottom, Space.s2)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .accessibilityElement(children: .contain)
+                    .task(id: r.item.id) {
+                        AccessibilityNotification.Announcement("Verwijderd uit Bewaard").post()
+                        try? await Task.sleep(for: .seconds(6))
+                        if removed?.item.id == r.item.id { withAnimation { removed = nil } }
+                    }
+                }
+            }
+            .animation(.easeOut(duration: 0.2), value: removed?.item.id)
             .background(Theme.paper)
             .navigationTitle("Bewaard")
             .settingsButton()

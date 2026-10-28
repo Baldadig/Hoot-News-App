@@ -21,7 +21,7 @@ enum Theme {
     // merkmomenten (opstarten, welkom, einde van de editie); verder is het accent een detail.
     static let brandRed = Color("BrandRed")
     static let onBrandRed = Color("OnBrandRed") // tekst op merkrood, 7,6:1
-    static let accent = Color.accentColor
+    static let accent = Color("AccentColor") // de kleur zelf: "accentColor" volgt de tint, en die valt soms terug op systeemblauw
     static func headline(_ style: Font.TextStyle) -> Font { .system(style, design: .serif, weight: .bold) }
 }
 
@@ -69,8 +69,7 @@ struct Rule: View {
 // "hoot." in de krantenletter met de rode punt, zoals op de website.
 struct Wordmark: View {
     var body: some View {
-        // De punt in de kleur zelf, niet in "accentColor": in de balk volgt die de balk (systeemblauw).
-        Text("hoot\(Text(".").foregroundStyle(Color("AccentColor")))")
+        Text("hoot\(Text(".").foregroundStyle(Theme.accent))")
             .font(.system(.title3, design: .serif, weight: .heavy))
             .dynamicTypeSize(...DynamicTypeSize.xxLarge)
             .fixedSize() // nooit afgekapt tot "h…"

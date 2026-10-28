@@ -191,6 +191,15 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
               ))}
             </div>
           ) : null}
+          {/* Welke bron je filtert, in woorden, met een weg terug (niet alleen een logo dat kleurt). */}
+          {filters.bron && strip.some((s) => s.id === filters.bron) ? (
+            <p className="srcpick">
+              Alleen <strong>{strip.find((s) => s.id === filters.bron).name}</strong>
+              <button type="button" className="linkbtn" onClick={() => setFilter('bron', '')}>
+                Alle bronnen
+              </button>
+            </p>
+          ) : null}
         </ViewHeader>
 
         {pendingCount > 0 ? (

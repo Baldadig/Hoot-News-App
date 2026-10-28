@@ -182,12 +182,13 @@ private struct DigestCard: View {
                     FramedImage(url: ImageURL.url(item.image, .large), ratio: feature ? 16 / 9 : 2)
                 }
                 VStack(alignment: .leading, spacing: Space.s2) {
-                    Text(String(format: "%02d", rank)).font(Theme.headline(.title)).foregroundStyle(Theme.accent)
-                    if let why = item.why, !why.isEmpty { Kicker(text: why.joined(separator: " · ")) }
+                    Text(String(format: "%02d", rank)).font(Theme.headline(.headline)).foregroundStyle(Theme.accent)
                     Text(item.title)
                         .font(Theme.headline(feature ? .title2 : .title3))
                         .foregroundStyle(store.isRead(item.asItem) ? Theme.ink3 : Theme.ink)
                         .fixedSize(horizontal: false, vertical: true)
+                    // Waarom dit stuk: rustige metadata onder de kop, zodat de kop voorgaat.
+                    if let why = item.why, !why.isEmpty { Text(why.joined(separator: " · ")).font(.caption).foregroundStyle(Theme.ink3) }
                     if let summary = item.summary { Text(summary).font(feature ? .body : .subheadline).foregroundStyle(Theme.ink2).lineLimit(feature ? 4 : 3) }
                 }
                 .padding(.horizontal, Space.s4)

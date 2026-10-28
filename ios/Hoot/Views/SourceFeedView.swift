@@ -60,6 +60,18 @@ struct SourceStrip: View {
             .scrollClipDisabled()
             .padding(.leading, -Space.s2)
             .padding(.bottom, Space.s1)
+            // Welke bron je filtert, in woorden, met een weg terug (niet alleen een logo dat kleurt).
+            if let p = pick, let s = list.first(where: { $0.id == p }) {
+                HStack(spacing: Space.s2) {
+                    Text("Alleen \(Text(s.name).foregroundStyle(Theme.ink).fontWeight(.semibold))")
+                        .foregroundStyle(Theme.ink3)
+                    Spacer()
+                    Button("Alle bronnen") { withAnimation(.easeOut(duration: 0.14)) { pick = nil } }
+                        .fontWeight(.semibold)
+                        .frame(minHeight: Space.tap)
+                }
+                .font(.subheadline)
+            }
         }
     }
 }

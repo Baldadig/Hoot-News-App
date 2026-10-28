@@ -279,7 +279,7 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
       const why = []
       if (srcs.size > 1) why.push(`${srcs.size} vakbronnen schreven erover`)
       const chooser = g.items.map((i) => byId.get(i.source)).find((x) => x.kind === 'curator')
-      if (picked || src.kind === 'curator') why.push(`Gekozen door ${chooser.name}`)
+      if (picked || src.kind === 'curator') why.push(`Gekozen door de redactie van ${chooser.name}`)
       if (src.kind === 'expert' && src.about) why.push(src.about) // de naam staat al bij de bron
       const curator = src.kind === 'curator'
       const entry = {

@@ -1,5 +1,17 @@
 # Changelog — Hoot voor iOS
 
+## [0.19.0] — 2026-10-28 — Nieuw welkom, rustiger einde, ongedaan maken
+
+- **Welkom herschreven.**
+  - **Kop:** op twee regels, die meekrimpen op een smal scherm.
+  - **Tekst:** één korte regel uitleg, en drie onderdelen van elk één regel. Het icoon staat op de titelregel en de uitleg is gedempt.
+  - **Opmaak:** vaste witruimtes. De knoppen staan onder de inhoud en vallen er nooit overheen (op de iPhone 16 Pro viel de Digest-regel eronder).
+- **Einde van de editie:** "Of lees verder in de Stroom" is een rustige link, geen knop meer.
+- **Bronfilter in woorden:** kies je een bron in de Stroom, dan staat eronder "Alleen NRC" met "Alle bronnen".
+- **Digest-kaart:** het rangnummer is kleiner, en waarom een stuk gekozen is, staat onder de kop.
+- **Bewaard:** na het wegvegen staat er zes seconden "Ongedaan maken". VoiceOver leest dat ook voor.
+- **Accentkleur hersteld:** het accent wijst rechtstreeks naar de rode kleur. In 0.17 en 0.18 viel het soms terug op systeemblauw.
+
 ## [0.18.0] — 2026-10-28 — Tien vakgebieden, je vak in het welkom
 
 - **De Digest heeft tien vakgebieden.** Nieuw zijn SEO & content, Merk & reclame, Development, Productmanagement en Startups & ondernemen. Tot de server ze levert, staan ze op "binnenkort".

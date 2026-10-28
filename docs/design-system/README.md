@@ -1,14 +1,14 @@
-Hoot is een rustige nieuwslezer: drie keer per dag een editie van tien verhalen die ophoudt, een Stroom met de laatste berichten van je eigen bronnen en elke maandag een Digest voor je vak. Het beeld is de zaterdagkrant: warm papier, zwarte inkt, krantenrood als enige accent. Bouw elk scherm uit deze tokens en regels. De website (`src/styles.css`) en de iOS-app (`Theme`, `Space`, `Radius` en `Layout` in Swift, plus de kleuren in `Assets.xcassets`) delen dezelfde namen en waarden; waar een platform bewust afwijkt, staat dat onder "Per platform".
+Hoot is een rustige nieuwslezer: drie keer per dag een editie van tien verhalen die ophoudt, een Stroom met de laatste berichten van je eigen bronnen en elke maandag een Digest voor je vak. Het beeld is de zaterdagkrant: warm papier, zwarte inkt, krantenrood als enige accent. Bouw elk scherm uit deze tokens en regels. De website (`src/styles.css`) en de iOS-app (`Theme`, `Space`, `Radius` en `Layout` in Swift, plus de kleuren in `Assets.xcassets`) delen dezelfde namen en rollen; maten staan op het web in CSS-pixels en in iOS in punten (1 px = 1 pt). Waar een platform bewust afwijkt, staat dat onder "Per platform". De tokens (`tokens.json`) zijn de bron: bij twijfel geldt de tokenwaarde.
 
 ## Principes
 
 - **Het verhaal is de eenheid.** De bron blijft altijd zichtbaar en aanklikbaar; openen, de bron bekijken en bewaren zijn drie aparte doelen van minstens `tap` (44 px).
 - **Lijnen en witruimte, geen omlijnde kaarten.** Berichten scheid je met een `rule`-haarlijn en `s5`; een kaart (`surface`, `radius`) alleen voor iets dat echt los staat: een Digest-stuk, een melding, een blad.
-- **Serif voor wat je leest, schreefloos voor wat je bedient.** Koppen en schermtitels in `serif`, al het andere in `sans`.
+- **Drie rollen voor letters.** Koppen en schermtitels in `serif`; bediening, lijsten, intro's en metadata in `sans`; lange leestekst in de lezer weer in `serif`.
 - **Eén accent.** `accent` markeert rubriek, actief, "+N bronnen", het label "gratis" en het punt van het woordmerk. Nooit als vlakvulling van een heel scherm, en nooit voor gewone bediening: iconen in de kop (instellingen, zoeken, verversen) zijn `ink-3`.
 - **Merkmomenten in merkrood.** Op een handvol vaste momenten wordt het krantenrood een vol vlak (`brand-red` met `on-brand-red`): het opstartscherm van de app, het welkom, het einde van de editie ("Je bent bij.") en de deel- en App Store-beelden. Juist omdat de rest papier en inkt is, voelt dat fris; daarom nergens anders, en nooit op een scherm waar je leest.
 - **Niets beweegt terwijl je leest.** Nieuwe berichten wachten achter een knop; de leespositie verschuift nooit vanzelf.
-- **Een einde.** Elke lijst die eindigt, zegt dat: "Dat was de editie. De volgende verschijnt om 12:00 uur."
+- **Een einde.** Elke lijst die eindigt, zegt dat. Het einde is leidend; verder lezen mag, maar als rustige link, nooit als knop die je doortrekt.
 
 ## Taal
 
@@ -42,7 +42,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 - **De kleurverdelingen Blad en Inkt** (alleen op de website) gebruiken `sheet`, `sheet-surface` en `sheet-edge`, en voor de editiekop `band` met `band-ink` tot en met `band-accent`. Binnen het blad zijn `paper` en `surface` de bladkleuren, dus componenten hoeven niets te weten.
 - **Puntjes:** een bron die tijdelijk niet bereikbaar is krijgt een `quiet-amber`-punt van 6 px naast een tekst die hetzelfde zegt; een verhaal met nieuwe berichten een `accent`-punt van 8 px voor "+N bronnen".
 - **Fouttekst** is `warn`, nooit het rood van het systeem (dat haalt op papier maar 3,2:1).
-- **Randen:** `rule` versiert (lijnen tussen berichten); waar een rand laat zien dat iets een veld of knop is, `edge` (3:1).
+- **Randen:** `rule` versiert: lijnen tussen berichten, en de rand van chips en knoppen met een label (het label maakt ze herkenbaar). `edge` (3:1) waar de rand het enige teken is dat iets bediening is: invoervelden en de filterknop met alleen een icoon.
 
 ## Type
 
@@ -61,16 +61,16 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 | `kicker` | sans 800, 13 px, kapitalen, +0.06em, 1.3 | `.caption` heavy, kapitalen | Rubriek; de punt tussen twee labels in `ink-3`; bij heel grote tekst zonder kapitalen |
 
 - **Koppen** krijgen `text-wrap: balance` (hoofdverhaal) of `pretty` (berichten) en breken nooit af met "…".
-- **Intro's** tonen hele zinnen, hooguit 2 regels in een lijst (instelbaar 1–3 of de hele intro), en 4–6 bij het hoofdverhaal.
+- **Intro's:** bij het hoofdverhaal hele zinnen (4–6 regels). In een lijst kies je zelf 1–3 regels of de hele intro; een ingekorte intro eindigt met "…", zodat je ziet dat er meer is.
 - **De lezer** zet lopende tekst in de serif: 1,06rem × je tekstgrootte, regelafstand 1.6, hooguit `readable` breed.
 
 ## Ruimte en vorm
 
 - **Eén schaal van 4 px:** `s1` 4, `s2` 8, `s3` 12, `s4` 16, `s5` 24, `s6` 32, `s7` 48. Elke marge, padding en tussenruimte komt hiervandaan, ook in Swift (`Space.s1`–`Space.s7`). De enige uitzondering is `s0` (2 px): tussen twee regels van één label, zoals bronnaam en tijd.
 - **Maten van dingen** (geen ruimte) hebben eigen tokens: icoon 22, bronlogo 24 in de bronregel en 28–30 in de bronnenrij, miniatuur 76 (web 64–88 naar indeling). Elk aanraakdoel is minstens `tap` (44 × 44), ook als het zichtbare deel kleiner is.
-- **Zijmarge** is `gutter` (16 px). De leesbreedte is `readable` (680 px); brede pagina's (Editie, Digest op iPad en desktop) gaan tot `wide` (1080 px).
+- **Zijmarge** is `gutter` (16 px). De leesbreedte is `readable` (680 px); brede pagina's (Editie, Digest op iPad en desktop) gaan tot `wide` (1000 px).
 - **Vier hoeken:** `radius-sm` (8) voor miniaturen; `radius` (12) voor beeld, kaarten, meldingen, velden en icoonknoppen; `radius-lg` (16) voor bladen; `radius-pill` voor chips, knoppen met tekst, schakelaars en bronlogo's. In Swift `Radius.sm`, `.md`, `.lg`.
-- **Schaduw alleen voor wat zweeft.** Inhoud ligt plat: diepte komt van `surface` op `paper`. Wat boven de inhoud zweeft (de melding "Ongedaan maken", de knop met nieuwe berichten, terug naar boven) krijgt een zachte schaduw.
+- **Schaduw alleen voor wat zweeft** (`shadow-float`). Inhoud ligt plat: diepte komt van `surface` op `paper`. Zwevend zijn precies drie dingen: de melding "Ongedaan maken" (web en iOS), de knop met nieuwe berichten en terug naar boven. Glas (iOS) heeft zijn eigen diepte en krijgt geen extra schaduw.
 - **Glas (iOS) alleen voor bediening:** de tabbalk, knoppen in de navigatiebalk, en knoppen die iets doen ("Meer berichten", "Probeer opnieuw", de vakgebieden van de Digest). Nooit voor inhoud zoals een bericht of kaart.
 - **Indeling op breedte, niet op toestel.** iOS: vanaf 700 pt twee kolommen (Editie, Digest), vanaf 1000 pt beeld en tekst van het hoofdverhaal naast elkaar, daaronder de kop over de hele breedte. Web: stappen bij 560, 720, 960 en 1200 px (zie "Per platform").
 
@@ -94,7 +94,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 - **Geen verbinding:** de laatst bewaarde versie, met "Verversen lukt nu niet. Je ziet de versie van 10:10." en "Opnieuw". Zonder eerdere versie een melding met de knop "Probeer opnieuw".
 - **Het einde van de editie:** een kaart in merkrood met de "h.", "Je bent bij.", "Dit was de avondeditie van dinsdag 27 oktober. De volgende staat klaar om 06:00." en "Toch verder lezen in de Stroom".
 - **Gelezen:** de kop in `ink-3` in plaats van `ink`.
-- **Verwijderen:** één ding (een bewaard bericht) gaat meteen, met "Ongedaan maken" (web) of vegen (iOS). Alles tegelijk wissen ("Bewaarde artikelen verwijderen", "Alles als ongelezen markeren") vraagt bevestiging, met een zichtbare "Annuleer" en precies wat er verdwijnt.
+- **Verwijderen:** één ding (een bewaard bericht) gaat meteen, met daarna zes seconden "Ongedaan maken" (web: melding; iOS: balk onderaan, ook voorgelezen door VoiceOver). Alles tegelijk wissen ("Bewaarde artikelen verwijderen", "Alles als ongelezen markeren") vraagt bevestiging, met een zichtbare "Annuleer" en precies wat er verdwijnt.
 
 ## Merk en iconen
 
@@ -125,6 +125,7 @@ Bewuste verschillen, omdat elk platform zijn eigen conventies heeft:
 ## Toegankelijkheid
 
 - Kleine tekst haalt minstens 4,5:1 op zijn achtergrond in beide thema's (zie de tabel bij Kleur); iconen en randen die iets betekenen minstens 3:1.
-- Elk aanraakdoel is minstens 44 × 44.
+- Elk aanraakdoel is minstens 44 × 44, en groeit mee: knoppen en chips hebben een minimumhoogte, geen vaste hoogte.
+- **Toetsenbordfocus (web):** een rand van 2 px in `accent`, 2 px buiten het element (`:focus-visible`). De volgorde volgt de leesvolgorde; na het sluiten van een blad of dialoog gaat de focus terug naar wat het opende.
 - Dynamische tekst (iOS) en zoomen (web) werken tot de grootste maten. Labels lopen dan door in plaats van af te breken, en decoratie (miniaturen, vak-iconen) maakt plaats voor tekst.
 - Wat bij elkaar hoort, leest VoiceOver als één element. De bron, bewaren en "+N bronnen" blijven aparte knoppen met een duidelijk label ("Vergelijk 5 andere bronnen").

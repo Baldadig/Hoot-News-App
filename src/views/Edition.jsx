@@ -235,8 +235,9 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               <p className="endcap__text">
                 Dit was de {SLOT[edition.slot].toLowerCase()} van {longDate(edition.date)}. De volgende staat klaar om {edition.next}.
               </p>
-              <a className="btn btn--quiet" href="#/stroom">
-                Toch verder lezen in de Stroom
+              {/* Het einde is leidend; verder lezen mag, maar als rustige link (geen knop die je doortrekt). */}
+              <a className="endcap__more" href="#/stroom">
+                Of lees verder in de Stroom
               </a>
             </div>
           </>
