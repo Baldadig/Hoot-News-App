@@ -103,7 +103,7 @@ struct RootView: View {
         }
         .task(id: store.editionRows.count) {
             // `-HootScreen lezer`: het eerste artikel van de editie in de lezer.
-            if DebugLaunch.screen("lezer"), reader.item == nil, let row = store.editionRows.first { reader.item = row.item }
+            if DebugLaunch.screen("lezer"), reader.item == nil, let row = store.editionRows.first(where: { store.source($0.item.source)?.paid != true }) ?? store.editionRows.first { reader.item = row.item } // bij voorkeur een gratis bron: dan het hele artikel
         }
         #endif
         .debugAppearance()

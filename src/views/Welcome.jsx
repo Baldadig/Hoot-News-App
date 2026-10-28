@@ -126,9 +126,9 @@ export default function Welcome({ account, sources, prefs, onDone }) {
               Minder scrollen. Meer lezen.
             </h1>
             <ul className="ob__points">
-              <Point Icon={EditionIcon} title="Je eigen editie, drie keer per dag" text="Om 6, 12 en 17 uur de tien verhalen die ertoe doen, uit jouw bronnen. Ben je erdoorheen, dan ben je bij." />
-              <Point Icon={SparkleIcon} title="In één minuut bij" text="Een kort overzicht van de editie, voor als je weinig tijd hebt." />
-              <Point Icon={StreamIcon} title="De Stroom" text="Alles van je bronnen, het nieuwste bovenaan. Lezen doe je bij de uitgever zelf." />
+              <Point Icon={EditionIcon} title="Je editie" text="Drie keer per dag tien verhalen, met een einde." />
+              <Point Icon={SparkleIcon} title="In één minuut bij" text="De editie kort samengevat." />
+              <Point Icon={StreamIcon} title="De Stroom" text="Alles van je bronnen, nieuwste eerst." />
             </ul>
             {account?.invite && account.status === 'out' ? <p className="ob__note">Je bent uitgenodigd. Inloggen kan straks rechtsboven, zodat alles meegaat naar je andere toestellen.</p> : null}
           </>
