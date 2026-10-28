@@ -77,6 +77,9 @@ final class HootStore {
         let readNow: [String] = Self.read("read.json") ?? oldRead ?? []
         saved = savedNow
         readOrder = readNow
+        // Bewaard onleesbaar: dan niet doen alsof je alles verwijderde. Zonder basis vult je account
+        // het weer aan, in plaats van het daar ook te wissen (Account.pull).
+        if Self.unreadable.contains("saved.json") { UserDefaults.standard.removeObject(forKey: "hoot.savedBase") }
         readSet = Set(readNow)
         if oldSaved != nil || oldRead != nil {
             // Pas uit UserDefaults weghalen als het bestand er echt staat.
@@ -152,16 +155,18 @@ final class HootStore {
         if let v = found.social { ownBluesky = v; save("hoot.ownBluesky", v) }
         apply(found.prefs)
     }
+    // Alleen wat echt anders is: elke toewijzing laadt opnieuw (Bluesky, jouw editie), en dat zou
+    // anders na elke synchronisatie gebeuren, ook als er niets veranderde.
     private func apply(_ p: Import.Prefs?) {
-        if let v = p?.muted { muted = Set(v); save("hoot.muted", v) }
-        if let v = p?.enabled { enabled = Set(v); save("hoot.enabled", v) }
-        if let v = p?.vak { digestFields = v; save("hoot.digestFields", v) }
-        if let v = p?.images, ["aan", "hoofd", "uit"].contains(v) { images = v; save("hoot.images", v) }
-        if let v = p?.bubble { bubble = v; save("hoot.bubble", v) }
-        if let v = p?.bluesky { bluesky = v; save("hoot.bluesky", v) }
-        if let v = p?.preview, (0 ... 3).contains(v) { preview = v; save("hoot.preview", v) }
-        if let v = p?.interests { interests = v; save("hoot.interests", v) }
-        if let v = p?.favorites { favorites = v; save("hoot.favorites", v) }
+        if let v = p?.muted, Set(v) != muted { muted = Set(v); save("hoot.muted", v) }
+        if let v = p?.enabled, Set(v) != enabled { enabled = Set(v); save("hoot.enabled", v) }
+        if let v = p?.vak, v != digestFields { digestFields = v; save("hoot.digestFields", v) }
+        if let v = p?.images, v != images, ["aan", "hoofd", "uit"].contains(v) { images = v; save("hoot.images", v) }
+        if let v = p?.bubble, v != bubble { bubble = v; save("hoot.bubble", v) }
+        if let v = p?.bluesky, v != bluesky { bluesky = v; save("hoot.bluesky", v) }
+        if let v = p?.preview, v != preview, (0 ... 3).contains(v) { preview = v; save("hoot.preview", v) }
+        if let v = p?.interests, v != interests { interests = v; save("hoot.interests", v) }
+        if let v = p?.favorites, v != favorites { favorites = v; save("hoot.favorites", v) }
     }
 
     // ---- Synchroniseren met je account (Account.swift) ----
@@ -185,6 +190,7 @@ final class HootStore {
     func applyRemote(prefs: Data?, read: [String], saved list: [Item]?) {
         applyingRemote = true
         defer { applyingRemote = false }
+        let following = followingIds
         if let prefs, let p = try? JSONDecoder().decode(Import.Prefs.self, from: prefs) {
             apply(p)
             onboarded = true
@@ -196,10 +202,14 @@ final class HootStore {
             readSet = Set(readOrder)
         }
         if let list, list != saved { saved = list }
-        rebuildStream()
-        reloadParts()
+        // Alleen opnieuw laden als je bronnen veranderden: synchroniseren gebeurt na elk geopend stuk.
+        if followingIds != following {
+            rebuildStream()
+            reloadParts()
+        }
         refreshPersonal()
     }
+    private var followingIds: Set<String> { Set((followed + (bluesky ? followedSocial : [])).map(\.id)) }
 
     // Beeld tonen? `lead`: het hoofdverhaal of het eerste stuk van een vak.
     func showsImage(lead: Bool) -> Bool { images == "aan" || (images == "hoofd" && lead) }
@@ -256,8 +266,12 @@ final class HootStore {
     func isOwn(_ id: String) -> Bool { ownBluesky.contains { $0.id == id } }
     var posts: [Item] {
         let on = Set(followedSocial.map(\.id))
-        // Op de echte tijd: eigen posts hebben soms een tijdzone in de tekst (+02:00).
-        return (itemsById.values.filter { $0.isPost } + ownPosts).filter { on.contains($0.source) }.sorted { ($0.publishedAt.flatMap(HootDate.parse) ?? .distantPast) > ($1.publishedAt.flatMap(HootDate.parse) ?? .distantPast) }
+        // Op de echte tijd: eigen posts hebben soms een tijdzone in de tekst (+02:00). Elke datum één
+        // keer lezen, niet bij elke vergelijking (dat waren er duizenden per weergave).
+        return (itemsById.values.filter { $0.isPost } + ownPosts).filter { on.contains($0.source) }
+            .map { ($0, $0.date ?? .distantPast) }
+            .sorted { $0.1 > $1.1 }
+            .map(\.0)
     }
     func addBluesky(_ input: String) async throws {
         let account = try await Bluesky.profile(input)
@@ -284,8 +298,19 @@ final class HootStore {
     func source(_ id: String) -> Source? { sources.first { $0.id == id } }
 
     // ---- Laden ----
+    // Eén laadactie tegelijk: trekken om te verversen, terugkomen in de app en "Opnieuw" wachten op
+    // dezelfde. Los van wie erom vroeg: een afgebroken trekgebaar breekt het laden niet half af (dan
+    // zag je ten onrechte "Verversen lukt nu niet").
+    private var loadTask: Task<Void, Never>?
     func load() async {
-        if status == .loading { return }
+        if let loadTask { return await loadTask.value }
+        let task = Task { await fetchAll() }
+        loadTask = task
+        await task.value
+        loadTask = nil
+    }
+
+    private func fetchAll() async {
         status = itemsById.isEmpty ? .loading : status
         do {
             let (start, fromCache) = try await HootAPI.start()
@@ -300,7 +325,9 @@ final class HootStore {
             reloadParts()
             // Eigen Bluesky-accounts los ophalen: een trage Bluesky houdt de editie niet op.
             Task { await loadOwnPosts() }
-            await partsTask?.value
+            // Op de nieuwste ronde: zet je tijdens het laden een bron om, dan begint er een nieuwe.
+            var round: Int
+            repeat { round = partsGeneration; await partsTask?.value } while round != partsGeneration
             stale = stale || fromCache
             status = .ready
             if !fromCache { Task.detached(priority: .background) { HootAPI.Offline.prune() } }
@@ -476,6 +503,14 @@ final class HootStore {
     }
     private static func read<T: Decodable>(_ name: String) -> T? {
         guard let folder, let data = try? Data(contentsOf: folder.appendingPathComponent(name)) else { return nil }
-        return try? JSONDecoder().decode(T.self, from: data)
+        do {
+            return try JSONDecoder().decode(T.self, from: data)
+        } catch {
+            // Onleesbaar (beschadigd): opzij als `.kapot`, zodat het niet stil overschreven wordt.
+            try? data.write(to: folder.appendingPathComponent(name + ".kapot"), options: .atomic)
+            unreadable.insert(name)
+            return nil
+        }
     }
+    private static var unreadable: Set<String> = []
 }

@@ -10,14 +10,15 @@ struct HootApp: App {
         // Beelden bewaren tussen scrollen en starten (AsyncImage cachet zelf pas vanaf iOS 27).
         URLCache.shared = URLCache(memoryCapacity: 64 << 20, diskCapacity: 300 << 20)
         // Schermtitels (Middageditie, Stroom, Digest …) in de krantenletter, zoals op de website: groot
-        // op 800, klein in de balk op 700. Groeit mee met de tekstgrootte.
-        func serif(_ style: UIFont.TextStyle, _ weight: UIFont.Weight) -> UIFont {
+        // op 800, klein in de balk op 700. Groeit mee met de tekstgrootte, de grote titel tot 40 pt:
+        // daarboven werd "Ochtendeditie" op een mini "Ochtended…".
+        func serif(_ style: UIFont.TextStyle, _ weight: UIFont.Weight, max: CGFloat = .infinity) -> UIFont {
             let d = UIFontDescriptor.preferredFontDescriptor(withTextStyle: style)
             let serif = (d.withDesign(.serif) ?? d).addingAttributes([.traits: [UIFontDescriptor.TraitKey.weight: weight]])
-            return UIFont(descriptor: serif, size: 0)
+            return UIFont(descriptor: serif, size: min(d.pointSize, max))
         }
         let bar = UINavigationBar.appearance()
-        bar.largeTitleTextAttributes = [.font: serif(.largeTitle, .heavy)]
+        bar.largeTitleTextAttributes = [.font: serif(.largeTitle, .heavy, max: 40)]
         bar.titleTextAttributes = [.font: serif(.headline, .bold)]
     }
 

@@ -2,6 +2,25 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.46.1] — 2026-10-28 — iOS 1.0 (27): slooptest van de app
+
+Een technische controle en een testronde die de iPhone-app probeerde te breken (verse installatie, geen verbinding, afsluiten tijdens het laden, kapotte bestanden, grootste tekst, donker, iPad).
+
+- **Welkom:** bij "Stel je Hoot samen" was de knop "Verder" wit op wit en dus onzichtbaar. Nu in de accentkleur.
+- **Account en synchroniseren:**
+  - Iets dat je bewaarde terwijl er gesynchroniseerd werd, kon de volgende keer verdwijnen. En iets dat je toen weghaalde, kon terugkomen.
+  - Een instelling die je tijdens het synchroniseren veranderde, kon worden teruggezet.
+  - Een nieuwe wijziging brak een lopende ronde af ("Synchroniseren lukte niet").
+  - Twee verversingen tegelijk van je inlog, of "te veel verzoeken", konden je uitloggen.
+- **Sneller:** synchroniseren laadde bij elk geopend artikel alle feeds en Bluesky opnieuw; nu alleen als je bronnen echt veranderen. De Bluesky-lijst sorteert sneller.
+- **Kapot bestand:** een onleesbaar bestand voor Bewaard maakte Bewaard leeg, ook op de server. Nu wordt het apart gezet en vult je account Bewaard weer aan.
+- **Verversen:** trekken om te verversen, terugkomen in de app en ⌘R starten niet meer elk een eigen laadronde. Afgebroken verversen geeft geen valse foutmelding meer.
+- **Lezer:**
+  - Na het sluiten bleef de pagina van de uitgever tot 20 seconden doorlopen; nu stopt hij meteen.
+  - Koppen breken bij heel grote tekst netjes af, met een afbreekstreepje en de juiste taal.
+- **Grote tekst:** de schermtitel (bijv. "Avondeditie") werd op de mini afgekapt; nu maximaal 40 pt.
+- **Lege schermen:** de uitleg gebruikt de grijstint uit het design system.
+
 ## [1.46.0] — 2026-10-28 — Steviger: slooptest van web en server
 
 Een technische controle en een geautomatiseerde testronde die de site en de server probeerde te breken. 16 bugs opgelost, 25 nieuwe tests (228 in totaal).

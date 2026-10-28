@@ -74,21 +74,30 @@ final class ArticleLoader: NSObject, WKNavigationDelegate, WKUIDelegate {
     }
 
     // Komt er na 20 seconden nog niets (een pagina die nooit klaar is), dan zeggen we dat het niet lukt.
+    // Zwak vastgehouden: een gesloten lezer hoeft niet 20 seconden te blijven bestaan.
     private func watchdog() {
         let mine = round
-        Task {
+        Task { [weak self] in
             try? await Task.sleep(for: .seconds(20))
-            if round == mine && state == .loading { state = .failed }
+            guard let self, self.round == mine, self.state == .loading else { return }
+            self.state = .failed
         }
     }
 
+    // De lezer gaat dicht: de pagina van de uitgever (scripts, advertenties, video) niet op de
+    // achtergrond laten doorlopen, en geen ronde meer afmaken.
+    func stop() {
+        round += 1
+        webView.stopLoading()
+        webView.loadHTMLString("", baseURL: nil)
+    }
+
     nonisolated func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        Task { @MainActor in
-            guard state == .loading || state == .visit else { return }
-            if state == .visit { return } // de lezer kijkt mee; jij tikt op "Verder" als je klaar bent
-            let mine = round
+        Task { @MainActor [weak self] in
+            guard let self, self.state == .loading else { return } // bij .visit kijkt de lezer mee; jij tikt op "Verder"
+            let mine = self.round
             try? await Task.sleep(for: .milliseconds(900)) // pagina's die hun tekst met JavaScript plaatsen
-            await extract(round: mine)
+            await self.extract(round: mine)
         }
     }
 

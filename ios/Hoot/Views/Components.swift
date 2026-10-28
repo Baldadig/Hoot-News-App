@@ -412,7 +412,7 @@ struct EmptyState: View {
         ContentUnavailableView {
             Label(title, systemImage: systemImage)
         } description: {
-            Text(text)
+            Text(text).foregroundStyle(Theme.ink3) // niet het lichtere grijs van het systeem
         } actions: {
             if let retry { Button("Probeer opnieuw") { Task { await retry() } }.buttonStyle(.glass) }
         }

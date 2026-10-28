@@ -106,18 +106,20 @@ struct SetupSteps: View {
         InterestsList()
             .tint(Theme.accent) // een gewone, lichte lijst: niet het wit van het rode scherm
             .navigationTitle("Interesses")
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Verder") { sources = true } } }
+            // De knoppen in de balk zelf in accent: de balk neemt de tint van het welkom over (wit), en
+            // dan stond "Verder" wit op wit glas.
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Verder") { sources = true }.tint(Theme.accent) } }
             .navigationDestination(isPresented: $sources) {
                 SourcesList()
                     .tint(Theme.accent)
                     .navigationTitle("Je bronnen")
-                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Verder") { fields = true } } }
+                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Verder") { fields = true }.tint(Theme.accent) } }
                     .navigationDestination(isPresented: $fields) {
                         // Daarna je vak, voor de Digest.
                         DigestFieldsList()
                             .tint(Theme.accent)
                             .navigationTitle("En je vak?")
-                            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { onDone() } } }
+                            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { onDone() }.tint(Theme.accent) } }
                     }
             }
     }

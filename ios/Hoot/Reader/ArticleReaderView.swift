@@ -31,7 +31,7 @@ struct ArticleReaderView: View {
                     .frame(maxWidth: Layout.readable)
                     .frame(maxWidth: .infinity)
                 case let .ready(article):
-                    ArticleWebView(html: ReaderHTML.page(article, item: item, sourceName: sourceName, size: size), baseURL: item.link)
+                    ArticleWebView(html: ReaderHTML.page(article, item: item, sourceName: sourceName, size: size, lang: source?.lang), baseURL: item.link)
                         .ignoresSafeArea(edges: .bottom)
                         .safeAreaInset(edge: .bottom) {
                             if source?.paid == true && article.length < 2500 { paywallNote }
@@ -89,6 +89,7 @@ struct ArticleReaderView: View {
             .sheet(item: $login, onDismiss: { if let url = item.link { loader.load(url) } }) { target in LoginWebView(target: target) }
         }
         .task { if let url = item.link { loader.load(url) } }
+        .onDisappear { loader.stop() }
     }
 
     // Een betaalde bron met weinig tekst: waarschijnlijk zie je maar het begin.
@@ -114,12 +115,12 @@ struct ArticleReaderView: View {
 enum ReaderHTML {
     static let scales = [0.9, 1.0, 1.15, 1.32]
 
-    static func page(_ a: Article, item: Item, sourceName: String, size: Int) -> String {
+    static func page(_ a: Article, item: Item, sourceName: String, size: Int, lang: String? = nil) -> String {
         let scale = scales[min(max(size, 0), scales.count - 1)]
         let title = escape(a.title.isEmpty ? item.title : a.title)
         let meta = [a.byline, item.date.map { HootDate.ago($0) }].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.map(escape).joined(separator: " · ")
         return """
-        <!doctype html><html lang="nl"><head><meta charset="utf-8">
+        <!doctype html><html lang="\(escape(lang ?? "nl"))"><head><meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="color-scheme" content="light dark">
         <style>
@@ -129,9 +130,9 @@ enum ReaderHTML {
         body { margin:0; background:var(--paper); color:var(--ink); }
         main { max-width: 680px; margin: 0 auto; padding: 16px 16px 48px; /* s4, s7 */ font-family: ui-serif, "New York", Georgia, serif; font-size: calc(1.06rem * \(scale)); line-height: 1.6; }
         .kicker { font-family: -apple-system, system-ui, sans-serif; font-size: .72em; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin: 0 0 .6em; }
-        h1.title { font-size: 1.75em; line-height: 1.15; font-weight: 800; margin: 0 0 .4em; }
+        h1.title { font-size: min(1.75em, 48px); line-height: 1.15; font-weight: 800; margin: 0 0 .4em; } /* bij heel grote tekst niet een heel scherm kop */
         .meta { font-family: -apple-system, system-ui, sans-serif; font-size: .8em; color: var(--ink-3); margin: 0 0 1.6em; padding-bottom: 1em; border-bottom: 1px solid var(--rule); }
-        h1, h2, h3, h4 { line-height: 1.25; }
+        h1, h2, h3, h4 { line-height: 1.25; -webkit-hyphens: auto; hyphens: auto; } /* lange woorden bij grote tekst: afbreken met een streepje, in de taal van de bron */
         h2 { font-size: 1.3em; margin: 1.6em 0 .5em; } h3 { font-size: 1.12em; margin: 1.4em 0 .4em; }
         p { margin: 0 0 1em; }
         a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }

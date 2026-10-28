@@ -202,12 +202,22 @@ final class Account {
     }
     private var pushTask: Task<Void, Never>?
     private var busy = false
-    private var again = false // tijdens het synchroniseren veranderde er weer iets
+    private var again = false // tijdens het synchroniseren werd er weer om gevraagd
+    private var edits = 0 // telt elke wijziging; `dirty` gaat pas uit als er tijdens het wegschrijven niets bijkwam
 
-    // Er veranderde hier iets dat met je account meegaat: even bundelen, dan wegschrijven.
+    // Er veranderde hier iets dat met je account meegaat: even bundelen, dan wegschrijven. Ook
+    // terwijl je account nog laadt (bij het opstarten): anders zet wat je account heeft het terug.
     func changed() {
-        guard status == .member else { return }
+        guard status == .member || (status == .loading && session != nil) else { return }
         dirty = true
+        edits &+= 1
+        schedule()
+    }
+
+    // Over 3 seconden synchroniseren. Loopt er al een, dan niet afbreken (dan mislukt hij half en
+    // staat er even "lukte niet"), maar daarna nog een keer.
+    private func schedule() {
+        if busy { again = true; return }
         pushTask?.cancel()
         pushTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(3))
@@ -220,9 +230,10 @@ final class Account {
         guard status == .member, let store, let uid = session?.uid else { return }
         if busy { again = true; return }
         busy = true
+        let editsAtStart = edits
         defer {
             busy = false
-            if again { again = false; changed() }
+            if again { again = false; schedule() }
         }
         sync = .syncing
         do {
@@ -280,8 +291,10 @@ final class Account {
                 let list = removed.map { "\"\($0)\"" }.joined(separator: ",")
                 _ = try await call("rest/v1/saved_items?user_id=eq.\(uid)&key=in.(\(list.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? list))", method: "DELETE")
             }
-            Defaults.set(store.saved.map(\.id), "hoot.savedBase")
-            dirty = false
+            // De basis is wat de server nu heeft (wat we net samenvoegden), niet wat er intussen hier
+            // bij kwam: anders ziet de volgende ronde een net bewaard stuk als elders verwijderd.
+            Defaults.set(merged.map(\.id), "hoot.savedBase")
+            if edits == editsAtStart { dirty = false }
             sync = .ok
             syncedAt = .now
         } catch Failure.signedOut {
@@ -313,8 +326,19 @@ final class Account {
         return data
     }
 
+    // Eén verversing tegelijk: Supabase geeft bij elke verversing een nieuw refresh-token, en twee
+    // tegelijk met hetzelfde oude kan je uitloggen.
+    private var refreshing: Task<Void, Error>?
     private func refreshIfNeeded() async throws {
         guard let s = session, s.expires < .now.addingTimeInterval(60) else { return }
+        if let refreshing { return try await refreshing.value }
+        let task = Task { try await refresh(s) }
+        refreshing = task
+        defer { refreshing = nil }
+        try await task.value
+    }
+
+    private func refresh(_ s: Session) async throws {
         var r = URLRequest(url: URL(string: "auth/v1/token?grant_type=refresh_token", relativeTo: HootConfig.supabaseURL)!)
         r.httpMethod = "POST"
         r.setValue(HootConfig.supabaseKey, forHTTPHeaderField: "apikey")
@@ -322,7 +346,7 @@ final class Account {
         r.httpBody = try JSONSerialization.data(withJSONObject: ["refresh_token": s.refresh])
         let (data, response) = try await URLSession.shared.data(for: r)
         let code = (response as? HTTPURLResponse)?.statusCode ?? 0
-        if (400 ..< 500).contains(code) { throw Failure.signedOut } // ingetrokken of verlopen
+        if [400, 401, 403].contains(code) { throw Failure.signedOut } // ingetrokken of verlopen (niet: te veel verzoeken)
         guard code == 200 else { throw Failure.http(code) }
         try keep(data)
     }
