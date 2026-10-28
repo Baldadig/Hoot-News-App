@@ -179,6 +179,16 @@ final class ArticleLoader: NSObject, WKNavigationDelegate, WKUIDelegate {
             var nt = next ? (next.textContent || '').replace(/\s+/g, ' ').trim() : '';
             if (img && nt && nt.length <= 40 && NAME.test(nt)) { (img.closest('figure') || img).remove(); next.remove(); }
           });
+          // Een promotieblok van de site zelf met een tussenkop ("Maak NOS jouw voorkeursbron in
+          // Google", "Volg ons op …"): de kop én de alinea eronder weg.
+          box.querySelectorAll('h2, h3').forEach(function (h) {
+            var t = (h.textContent || '').replace(/\s+/g, ' ').trim();
+            if (t.length < 120 && /voorkeursbron|nieuwsbrief|newsletter|^volg (ons|de|het)|download (de|onze) app|^lees (ook|meer)/i.test(t)) {
+              var next = h.nextElementSibling;
+              if (next && next.matches('p') && (next.textContent || '').length < 400) next.remove();
+              h.remove();
+            }
+          });
           box.querySelectorAll('ul, ol').forEach(function (l) {
             var t = (l.textContent || '').replace(/\s+/g, ' ').trim();
             if (t.length < 200 && (l.querySelectorAll('a').length > 0 || t.length < 40)) l.remove();

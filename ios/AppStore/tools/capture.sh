@@ -13,8 +13,11 @@ xcodebuild -project ios/Hoot.xcodeproj -scheme Hoot -destination 'generic/platfo
 APP="$DD/Build/Products/Debug-iphonesimulator/Hoot.app"
 make() { xcrun simctl list devices | grep -q "$1 (" || xcrun simctl create "$1" "com.apple.CoreSimulator.SimDeviceType.$2" >/dev/null; }
 make "Hoot Pro Max" iPhone-17-Pro-Max
-make "Hoot iPad 13" iPad-Pro-13-inch-M5-12GB
-for dev in "Hoot Pro Max" "Hoot iPad 13"; do
+# iPad: opgenomen op een 11-inch (grotere letters, de iPad die de meeste mensen hebben); store.mjs
+# zet die opname in het 13-inch-formaat dat App Store Connect vraagt.
+make "Hoot iPad 11" iPad-Pro-11-inch-M5-12GB
+for dev in ${=DEVICES:-"Hoot-Pro-Max Hoot-iPad-11"}; do
+  dev=${dev//-/ }
   xcrun simctl boot "$dev" 2>/dev/null || true
   xcrun simctl bootstatus "$dev" -b >/dev/null
   xcrun simctl ui "$dev" appearance light
@@ -22,6 +25,8 @@ for dev in "Hoot Pro Max" "Hoot iPad 13"; do
   xcrun simctl install "$dev" "$APP"
   # Gratis Nederlandse bronnen aan (staan standaard uit): die krijgen voorrang in de beelden.
   xcrun simctl spawn "$dev" defaults write nl.hootnews.Hoot hoot.enabled -data $(printf '%s' '["nu","rtl","nos-sport","tweakers","vi","wielerflits","sporza","nos-cultuur"]' | xxd -p | tr -d '\n')
+  # Digest: Digital Design, AI en E-commerce (Digital Design opent, met een beeldend stuk).
+  xcrun simctl spawn "$dev" defaults write nl.hootnews.Hoot hoot.digestFields -data $(printf '%s' '["design","ai","ecommerce"]' | xxd -p | tr -d '\n')
   name=${dev// /-}
   fa=(); [[ -n "$FEATURE" ]] && fa=(-HootFeature "$FEATURE") # twee losse argumenten (zsh splitst niet vanzelf)
   shot() { xcrun simctl launch --terminate-running-process "$dev" nl.hootnews.Hoot "${@:2}" "${fa[@]}" >/dev/null; sleep $SLEEP; xcrun simctl io "$dev" screenshot "$OUT/$name-$1.png" >/dev/null; }

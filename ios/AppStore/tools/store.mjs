@@ -101,13 +101,15 @@ async function frame({ raw, out, W, H, phoneW, top, island, l1, l2 }) {
 }
 
 fs.rmSync(OUT, { recursive: true, force: true }) // geen oude beelden laten staan
-fs.mkdirSync(`${OUT}/iphone-6.9`, { recursive: true })
+fs.mkdirSync(`${OUT}/iphone`, { recursive: true })
 fs.mkdirSync(`${OUT}/ipad-13`, { recursive: true })
 let n = 1
 for (const [id, l1, l2] of SHOTS) {
   const nn = String(n).padStart(2, '0')
-  await frame({ raw: `${RAW}/Hoot-Pro-Max-${id}.png`, out: `${OUT}/iphone-6.9/${nn}-${id}.png`, W: 1320, H: 2868, phoneW: 1000, top: 660, island: true, l1, l2 })
-  await frame({ raw: `${RAW}/Hoot-iPad-13-${id}.png`, out: `${OUT}/ipad-13/${nn}-${id}.png`, W: 2064, H: 2752, phoneW: 1560, top: 620, island: false, l1, l2 })
+  // iPhone 6,3" (1206 × 2622): de maat die App Store Connect voor iPhone vraagt.
+  await frame({ raw: `${RAW}/Hoot-Pro-Max-${id}.png`, out: `${OUT}/iphone/${nn}-${id}.png`, W: 1206, H: 2622, phoneW: 914, top: 603, island: true, l1, l2 })
+  // iPad: de opname van een 11-inch, in het 13-inch-formaat (2064 × 2752) dat App Store Connect vraagt.
+  await frame({ raw: `${RAW}/Hoot-iPad-11-${id}.png`, out: `${OUT}/ipad-13/${nn}-${id}.png`, W: 2064, H: 2752, phoneW: 1420, top: 620, island: false, l1, l2 })
   n++
 }
 console.log('Klaar:', OUT)

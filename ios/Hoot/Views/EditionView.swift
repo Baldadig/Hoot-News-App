@@ -166,7 +166,12 @@ struct StoryView: View {
             // uitgevers, niet artikelen; drie stukken van één krant zijn geen drie bevestigingen.
             Section {
                 VStack(alignment: .leading, spacing: Space.s2) {
-                    if let lead = items.first(where: { $0.id == story.leadId }) ?? items.first {
+                    let lead = items.first(where: { $0.id == story.leadId }) ?? items.first
+                    // Een beeld bij het verhaal: dat van het hoofdbericht, of anders het eerste scherpe.
+                    if store.showsImage(lead: true), let image = ([lead].compactMap { $0 } + items).lazy.compactMap(\.image).first(where: { ImageURL.fitsHero($0) }) {
+                        FramedImage(url: ImageURL.url(image, .large), ratio: 16 / 9).padding(.bottom, Space.s1)
+                    }
+                    if let lead {
                         Text(lead.title).font(Theme.headline(.title2)).fixedSize(horizontal: false, vertical: true)
                     }
                     if !items.isEmpty {
