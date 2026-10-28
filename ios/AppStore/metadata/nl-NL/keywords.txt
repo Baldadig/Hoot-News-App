@@ -1,1 +1,1 @@
-nieuws,krant,editie,actueel,nieuwsoverzicht,binnenland,buitenland,digest,ux,design,marketing,tech
+nieuws,krant,editie,actueel,lezer,rustig,binnenland,buitenland,digest,ux,design,marketing,tech,ai

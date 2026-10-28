@@ -1,8 +1,26 @@
 # Checklist: Hoot News naar de App Store
 
-Stand: 24 oktober 2026 · app-versie 0.13 (build 14) · iOS 26.0 en hoger · iPhone en iPad
+Stand: 28 oktober 2026 · app-versie 0.17 (build 18) in TestFlight · iOS 26.0 en hoger · iPhone en iPad · gratis · Nederland en België
 
 Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moet nog · 👤 alleen jij kunt dit doen
+
+## 0. Stand in App Store Connect (28 oktober)
+
+| | Wat | |
+|---|---|---|
+| ✅ | Apple Developer Program | Actief, als individu "Alex Vrees", team HSBZ66VRTZ. |
+| ✅ | App aangemaakt | Hoot News · Nederlands · `nl.hootnews.Hoot` · SKU `hoot-ios` · Apple ID 6828037269. |
+| ✅ | TestFlight | Build 18 (0.17) klaar; interne groep "Team Hoot" met Alex, automatische distributie. |
+| ✅ | App-informatie | Ondertitel, categorieën Nieuws + Tijdschriften en kranten. |
+| ✅ | Leeftijd | 13+ (zie LEEFTIJD.md; geen onbeperkte webtoegang, geen UGC/sociale media). |
+| ✅ | App Privacy | "Geen gegevens verzameld", gepubliceerd; privacybeleid https://hootnews.nl/#/privacy (bijgewerkt voor de app). |
+| ✅ | Prijs en landen | Gratis; Nederland en België. |
+| ✅ | Versie 1.0: teksten | Promotietekst, beschrijving, trefwoorden, support- en marketing-URL, copyright 2026 Baldadig, notities voor de beoordelaar. |
+| 👤 | **Contentrechten** | App-informatie → Content Rights. Een verklaring van jou over de rechten op de inhoud van uitgevers. |
+| 👤 | **Contactgegevens App Review** | Naam, telefoon en e-mail op de versiepagina (alleen voor Apple). |
+| 👤 | **Digital Services Act** | Business → handelaarsstatus: handelaar (Baldadig), met adres, telefoon en e-mail die in de EU openbaar zijn. |
+| ⏳ | Schermafbeeldingen | iPhone 6,9" en iPad 13", in Instapaper-stijl op merkrood. |
+| ⏳ | Versie 1.0 bouwen | MARKETING_VERSION naar 1.0, uploaden, build kiezen op de versiepagina, indienen. |
 
 ## 1. Account en registratie
 

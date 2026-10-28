@@ -14,7 +14,9 @@ export default function Over({ onBack, backLabel }) {
           Hoot zet je nieuws op een rij en houdt dan op: drie keer per dag een editie van tien verhalen, een Stroom met de bronnen die jij kiest, en elke maandag een Digest voor je vak. Hoot is
           gratis, heeft geen advertenties en volgt je niet.
         </p>
-        <p>Hoot is een onafhankelijk project van Alex Vrees.</p>
+        <p>
+          Hoot is gemaakt door <a href="https://baldadig.nl" target="_blank" rel="noopener">Baldadig.nl</a>, het bedrijf van Alex Vrees.
+        </p>
 
         <h2 className="sect">Contact</h2>
         <p>

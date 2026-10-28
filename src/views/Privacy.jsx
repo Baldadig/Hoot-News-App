@@ -53,15 +53,42 @@ export default function Privacy({ onBack, backLabel }) {
 
         <h2 className="sect">De app voor iPhone en iPad</h2>
         <p>
-          De app werkt zonder account. Je instellingen, wat je bewaarde en wat je las blijven op je iPhone of iPad; Hoot krijgt er niets van te zien. De app haalt het nieuws op bij
-          hootnews.nl, net als de website, en gebruikt geen analytics, advertenties of tracking. Artikelen open je bij de uitgever: in de app of in Safari. Daar gelden de regels van de uitgever.
-          Je wist alles door de app te verwijderen, of via Instellingen in de app.
+          De app werkt zonder account en gebruikt geen analytics, advertenties of tracking. Je instellingen, wat je bewaarde en wat je las blijven op je iPhone of iPad. Ook wat Hoot leert van
+          wat je leest (welke onderwerpen en bronnen je vaak opent) blijft op je toestel.
+        </p>
+        <ul>
+          <li>
+            <strong>Het nieuws</strong> haalt de app op bij hootnews.nl, net als de website.
+          </li>
+          <li>
+            <strong>Je eigen editie:</strong> om die samen te stellen stuurt de app je bronnen, interesses, voorkeursbronnen en die leesvoorkeuren (zonder je naam, zonder een vast kenmerk van je
+            toestel) naar hootnews.nl. De server stelt je editie samen, stuurt hem terug en bewaart niets van wat je stuurde.
+          </li>
+          <li>
+            <strong>De Hoot-lezer</strong> laadt het artikel op je toestel bij de uitgever, zoals Safari dat doet, en toont alleen de tekst en beelden. Er gaat niets via hootnews.nl. Log je in de
+            lezer in bij een abonnement, dan typ je je gegevens op de site van de uitgever zelf; Hoot ziet ze niet. Wat de uitgever bewaart (je inlog, je toestemming voor cookies) blijft
+            alleen in de lezer op dit toestel. Je wist het met &ldquo;Overal uitloggen in de lezer&rdquo; bij Instellingen › Abonnementen.
+          </li>
+          <li>
+            <strong>Bluesky</strong> (als je dat aanzet): de app vraagt de posts van de mensen die je volgt rechtstreeks op bij de openbare Bluesky-API.
+          </li>
+          <li>
+            <strong>Artikelen bij de uitgever</strong> (op de website of in Safari): daar gelden de regels en cookies van de uitgever.
+          </li>
+        </ul>
+        <p>Je wist alles door de app te verwijderen, of via Instellingen in de app.</p>
+
+        <h2 className="sect">Wie</h2>
+        <p>
+          Hoot is gemaakt door <a href="https://baldadig.nl" target="_blank" rel="noopener">Baldadig.nl</a> (Alex Vrees). Je hebt het recht om te weten welke gegevens we van je hebben, ze te laten
+          verbeteren of verwijderen, en een klacht in te dienen bij de Autoriteit Persoonsgegevens. Zonder account hebben we niets van je; met een account regelen we het binnen een maand na je mail.
         </p>
 
         <h2 className="sect">Contact</h2>
         <p>
           Vragen over je gegevens? Mail naar <a href="mailto:hallo@hootnews.nl">hallo@hootnews.nl</a>.
         </p>
+        <p>Bijgewerkt op 28 oktober 2026.</p>
       </div>
     </section>
   )
