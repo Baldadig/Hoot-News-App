@@ -3596,9 +3596,10 @@ html[data-images='hoofd'] .media--social {
   overscroll-behavior-x: contain;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  /* tot de schermrand; het eerste rondje (niet zijn vak van 60) op de kolomlijn: 16 − 12 = 4 */
+  gap: var(--s1);
+  /* tot de schermrand; het eerste logo (niet zijn ring) op de kolomlijn: 16 − 4 = 12 */
   margin: var(--s2) calc(-1 * var(--s4)) 0;
-  padding: 0 var(--s4) 0 var(--s1);
+  padding: 0 var(--s4) 0 var(--s3);
 }
 .srcstrip::-webkit-scrollbar {
   display: none;
@@ -3606,11 +3607,8 @@ html[data-images='hoofd'] .media--social {
 .srcstrip__btn {
   flex: none;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--s1);
-  width: 60px; /* aanraakvlak ruim 44 px, met ruimte voor de naam */
-  padding: 0 0 var(--s1);
+  width: 44px; /* alleen het logo met zijn ring: ook het aanraakvlak; de namen staan in de statusregel */
+  padding: 0;
   border: 0;
   background: none;
   color: var(--ink-3);
@@ -3659,19 +3657,6 @@ html[data-images='hoofd'] .media--social {
 }
 .srcstrip__btn[aria-pressed='true'] .srcstrip__check {
   display: grid;
-}
-.srcstrip__name {
-  max-width: 100%;
-  padding: 0 2px; /* geen --s0 op het web */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: var(--t1);
-  line-height: var(--lh-ui);
-}
-.srcstrip__btn[aria-pressed='true'] .srcstrip__name {
-  color: var(--accent);
-  font-weight: 600;
 }
 .srcstrip .mark {
   transition: filter var(--dur-1) var(--ease), opacity var(--dur-1) var(--ease);

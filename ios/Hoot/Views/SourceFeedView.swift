@@ -38,14 +38,15 @@ extension HootStore {
 
 // Filter op bron: "Alle" vooraan, dan je bronnen als logo met naam. Tik zet een bron erbij of
 // eraf (meer tegelijk kan); niets gekozen is alles. Wat aan staat is in één oogopslag te zien:
-// in kleur, met een rode ring, een vinkje en de naam in rood. Zodra je kiest, worden de andere
+// in kleur, met een rode ring en een vinkje. Alleen logo's: de namen staan, zodra je kiest, in
+// de statusregel. Zodra je kiest, worden de andere
 // grijs en gedimd (maar blijven leesbaar). Wat je filtert staat in woorden in de statusregel
 // eronder, met "Wis". Alles van één bron met uitleg en ster: tik op de bronnaam bij een bericht.
 struct SourceStrip: View {
     @Environment(HootStore.self) private var store
     @Binding var picks: Set<String>
     static let logo: CGFloat = 36
-    static let cell: CGFloat = 60 // breder dan het logo: ruimte voor de naam, aanraakvlak ruim 44 pt
+    static let cell: CGFloat = 44 // logo met ring: ook het aanraakvlak
 
     var body: some View {
         let list = store.stripSources
@@ -58,8 +59,8 @@ struct SourceStrip: View {
                     .foregroundStyle(Theme.ink3)
                     .accessibilityAddTraits(.isHeader)
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: 0) {
-                        SourceChip(name: "Alle", on: picks.isEmpty, dim: false) {
+                    HStack(alignment: .top, spacing: Space.s1) {
+                        SourceChip(on: picks.isEmpty, dim: false) {
                             withAnimation(.easeOut(duration: 0.14)) { picks = [] }
                         } logo: {
                             Circle().fill(Theme.rule)
@@ -68,7 +69,7 @@ struct SourceStrip: View {
                         .accessibilityLabel("Alle bronnen")
                         ForEach(list) { s in
                             let on = picks.contains(s.id)
-                            SourceChip(name: s.name, on: on, dim: !picks.isEmpty && !on) {
+                            SourceChip(on: on, dim: !picks.isEmpty && !on) {
                                 withAnimation(.easeOut(duration: 0.14)) { if on { picks.remove(s.id) } else { picks.insert(s.id) } }
                             } logo: {
                                 SourceAvatar(source: s, size: Self.logo)
@@ -86,48 +87,37 @@ struct SourceStrip: View {
     }
 }
 
-// Eén knop in de bronrij: rond logo met de naam eronder.
+// Eén knop in de bronrij: alleen het ronde logo (de naam leest VoiceOver voor).
 private struct SourceChip<Logo: View>: View {
-    let name: String
     let on: Bool
     let dim: Bool
     let action: () -> Void
     @ViewBuilder let logo: Logo
     var body: some View {
         Button(action: action) {
-            VStack(spacing: Space.s1) {
-                logo
-                    .frame(width: SourceStrip.logo, height: SourceStrip.logo)
-                    .grayscale(dim ? 1 : 0)
-                    .opacity(dim ? 0.5 : 1)
-                    // De ring met een smalle rand papier ertussen; het vinkje rechtsonder snijdt
-                    // met een rand papier door de ring heen, zodat beide scherp blijven.
-                    .frame(width: SourceStrip.logo + 2 * Space.s1, height: SourceStrip.logo + 2 * Space.s1)
-                    .overlay { if on { Circle().strokeBorder(Theme.accent, lineWidth: 2) } }
-                    .overlay(alignment: .bottomTrailing) {
-                        if on {
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 8, weight: .black))
-                                .foregroundStyle(Theme.onAccent)
-                                .frame(width: 16, height: 16)
-                                .background(Theme.accent, in: Circle())
-                                .padding(Space.s0)
-                                .background(Theme.paper, in: Circle())
-                                .offset(x: Space.s0, y: Space.s0)
-                                .transition(.scale.combined(with: .opacity))
-                        }
+            logo
+                .frame(width: SourceStrip.logo, height: SourceStrip.logo)
+                .grayscale(dim ? 1 : 0)
+                .opacity(dim ? 0.5 : 1)
+                // De ring met een smalle rand papier ertussen; het vinkje rechtsonder snijdt
+                // met een rand papier door de ring heen, zodat beide scherp blijven.
+                .frame(width: SourceStrip.logo + 2 * Space.s1, height: SourceStrip.logo + 2 * Space.s1)
+                .overlay { if on { Circle().strokeBorder(Theme.accent, lineWidth: 2) } }
+                .overlay(alignment: .bottomTrailing) {
+                    if on {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 8, weight: .black))
+                            .foregroundStyle(Theme.onAccent)
+                            .frame(width: 16, height: 16)
+                            .background(Theme.accent, in: Circle())
+                            .padding(Space.s0)
+                            .background(Theme.paper, in: Circle())
+                            .offset(x: Space.s0, y: Space.s0)
+                            .transition(.scale.combined(with: .opacity))
                     }
-                Text(name)
-                    .font(.caption2.weight(on ? .semibold : .regular))
-                    .foregroundStyle(on ? Theme.accent : Theme.ink3)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                    .dynamicTypeSize(...DynamicTypeSize.xxLarge) // de rij blijft een rij; de volle naam leest VoiceOver
-                    .padding(.horizontal, Space.s0)
-            }
-            .frame(width: SourceStrip.cell)
-            .padding(.bottom, Space.s1)
-            .contentShape(Rectangle())
+                }
+            .frame(width: SourceStrip.cell, height: SourceStrip.cell)
+            .contentShape(Circle())
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(on ? .isSelected : [])

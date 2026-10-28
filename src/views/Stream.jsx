@@ -221,7 +221,6 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
                       <CheckIcon />
                     </span>
                   </span>
-                  <span className="srcstrip__name">Alle</span>
                 </button>
                 {strip.map((s) => (
                   <button key={s.id} type="button" className="srcstrip__btn" aria-pressed={picks.has(s.id)} aria-label={s.name} title={s.name} onClick={() => togglePick(s.id)}>
@@ -231,7 +230,6 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
                         <CheckIcon />
                       </span>
                     </span>
-                    <span className="srcstrip__name">{s.name}</span>
                   </button>
                 ))}
               </div>

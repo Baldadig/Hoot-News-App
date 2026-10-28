@@ -2,6 +2,10 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.45.1] — 2026-10-28 — Bronrij: alleen logo's
+
+- **Stroom (app en web):** onder de logo's staan geen namen meer; het logo is genoeg. Wat je kiest, krijgt nog steeds een rode ring en een vinkje, en de namen staan in de statusregel eronder ("NU.nl, Tweakers · Bijgewerkt om …"). VoiceOver leest de naam van elke bron voor.
+
 ## [1.45.0] — 2026-10-28 — Welkom: eerst samenstellen of inloggen, rondkijken als zijweg
 
 - **Welkom in de app:** de hoofdknop is nu "Stel je Hoot samen" (interesses, dan je bronnen, dan je vak). Daaronder "Log in met je account". Rondkijken is een rustige link: "Of kijk eerst even rond".
