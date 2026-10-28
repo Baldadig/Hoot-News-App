@@ -96,7 +96,8 @@ struct AccountView: View {
     private var signIn: some View {
         VStack(spacing: 0) {
             Spacer()
-            OnboardingArt(kind: .intro) // "hoot." met de ademende punt, zoals het welkom
+            IntroMark() // "hoot." met de ademende punt, zoals het welkom
+                .environment(\.brandHandoff, nil)
             Text("Inloggen")
                 .font(Theme.headline(.title))
                 .padding(.top, Space.s4)

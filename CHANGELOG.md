@@ -2,6 +2,11 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.50.2] — 2026-10-28 — iOS: het rood wordt de punt
+
+- **Van opstart naar welkom:** het rode opstartscherm sluit zich als een iris tot de rode punt van "hoot." op de eerste pagina. Het witte woordmerk landt eerst precies op zijn plek; de rand van het rood veegt de witte letters weg en de inkt staat er al. Eén beweging van een seconde. Met "Verminder beweging", of als je de app al kent: gewoon vervagen.
+- **Stroom:** de knop rechtsboven is één vaste knop; alleen het icoon wisselt. Het tandwiel springt niet meer als je tussen Nieuws en Bluesky schakelt. Bij Bluesky is het een plus (iemand toevoegen) in plaats van twee poppetjes.
+
 ## [1.50.1] — 2026-10-28 — iOS 1.0 (31): naadloos van opstart naar welkom
 
 - **Geen flits meer:** tussen het opstartscherm en het welkom zag je heel even de editie. Het welkom kwam als los blad over de app heen; nu staat het op dezelfde plek. Het opstartscherm gaat direct over in het welkom, en het welkom in de editie. De editie laadt al tijdens het welkom, zodat hij klaarstaat als je begint.

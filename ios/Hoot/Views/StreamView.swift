@@ -79,14 +79,15 @@ struct StreamView: View {
             .refreshable { await store.load() }
             .toolbar {
                 // Bediening is stil (design system): grijs en zonder glazen rondje, zoals het tandwiel.
+                // Eén vaste knop waarvan alleen het icoon wisselt: zo blijft het tandwiel ernaast op zijn plek
+                // als je tussen Nieuws en Bluesky schakelt. Bij Bluesky een plus: iemand toevoegen.
                 ToolbarItem(placement: .topBarTrailing) {
-                    Group {
-                        if social {
-                            Button("Accounts", systemImage: "person.2") { showAccounts = true }
-                        } else {
-                            Button("Bronnen", systemImage: "dot.radiowaves.up.forward") { showSources = true }
-                        }
+                    Button { if social { showAccounts = true } else { showSources = true } } label: {
+                        Image(systemName: social ? "plus" : "dot.radiowaves.up.forward")
+                            .contentTransition(.symbolEffect(.replace))
+                            .frame(width: 24, height: 24)
                     }
+                    .accessibilityLabel(social ? "Bluesky-account toevoegen" : "Bronnen")
                     .tint(Theme.ink3)
                 }
                 .sharedBackgroundVisibility(.hidden)

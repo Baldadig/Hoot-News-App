@@ -24,6 +24,7 @@ struct HootApp: App {
 
     // Alleen bij een koude start: het opstartscherm met de stuiterende punt, tot er iets te lezen is.
     @State private var splash = true
+    @State private var handoff = BrandHandoff() // waar "hoot." in het welkom staat
 
     var body: some Scene {
         WindowGroup {
@@ -37,12 +38,13 @@ struct HootApp: App {
                 }
             }
             .accessibilityHidden(splash) // VoiceOver niet achter het opstartscherm
+            .environment(\.brandHandoff, handoff)
             .animation(.easeInOut(duration: 0.45), value: store.onboarded)
             .environment(store)
             .environment(account)
             .tint(Theme.accent)
             .overlay {
-                if splash { SplashView().transition(.opacity) }
+                if splash { SplashView(handoff: handoff).transition(.opacity) }
             }
             .task { await endSplash() }
             .task { await store.load() } // ook al tijdens het welkom: de editie staat klaar als je begint
@@ -65,7 +67,21 @@ struct HootApp: App {
         while store.status != .ready && store.status != .failed && Date.now.timeIntervalSince(start) < 5 {
             try? await Task.sleep(for: .milliseconds(100))
         }
-        withAnimation(.easeOut(duration: 0.35)) { splash = false }
+        // Naar het welkom: het woordmerk landt op "hoot." en het rood sluit zich als een iris tot de rode
+        // punt; de rand veegt de witte letters weg en de inkt staat er al. Naar de app, zonder plek of
+        // met "Verminder beweging": gewoon vervagen.
+        if !store.onboarded, handoff.dot != nil, handoff.word != nil, !UIAccessibility.isReduceMotionEnabled {
+            var duration = 1.0
+            #if DEBUG
+            duration *= max(1, UserDefaults.standard.double(forKey: "HootSlowSplash")) // `-HootSlowSplash 6`: in slow motion
+            #endif
+            handoff.duration = duration
+            withAnimation(.smooth(duration: duration)) { handoff.leaving = true }
+            try? await Task.sleep(for: .seconds(duration))
+            splash = false
+        } else {
+            withAnimation(.easeOut(duration: 0.35)) { splash = false }
+        }
     }
 }
 

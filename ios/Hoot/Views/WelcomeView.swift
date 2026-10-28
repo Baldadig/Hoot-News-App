@@ -69,7 +69,9 @@ struct WelcomeView: View {
             ScrollView {
                 VStack(spacing: Space.s5) {
                     // Krap (kleine iPhone, heel grote tekst): de tekst gaat voor, de animatie wijkt.
-                    if geo.size.height > OnboardingArt.size.height + 200 {
+                    if p.art == .intro {
+                        IntroMark().frame(height: OnboardingArt.size.height) // de eerste pagina: het woordmerk zelf
+                    } else if geo.size.height > OnboardingArt.size.height + 200 {
                         OnboardingArt(kind: p.art, active: active)
                     }
                     VStack(spacing: Space.s2) {

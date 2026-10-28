@@ -36,17 +36,7 @@ struct OnboardingArt: View {
 
         switch kind {
         case .intro:
-            // De samenvatting: het woordmerk groot, en de punt erachter ademt. Op de volgende
-            // pagina's wordt die punt de zon.
-            let word = ctx.resolve(Text("hoot").font(.system(size: 60, weight: .heavy, design: .serif)).foregroundStyle(Theme.ink))
-            let w = word.measure(in: size)
-            let dot: CGFloat = 8
-            let x0 = (size.width - (w.width + 3 + dot * 2)) / 2
-            let baseline = horizon
-            ctx.draw(word, at: CGPoint(x: x0, y: baseline), anchor: .bottomLeading)
-            // Op de grondlijn van de letters, niet op de onderkant van het tekstvak (daar hangen de staarten).
-            let descent = w.height * 0.22
-            ctx.fill(circle(x0 + w.width + 3 + dot, baseline - descent - dot, dot * breathe), with: .color(Theme.accent))
+            break // zie IntroMark
 
         case .editie:
             // Opkomen in 6 s, dan weer zakken: een zachte heen-en-weer, nooit een sprong.
@@ -108,4 +98,47 @@ struct OnboardingArt: View {
         return f < 1 ? f : 2 - f
     }
     private func ease(_ x: Double) -> Double { x < 0.5 ? 2 * x * x : 1 - pow(-2 * x + 2, 2) / 2 }
+}
+
+// "hoot." groot, met de ademende punt: de eerste pagina van het welkom en het inlogscherm. Het
+// meldt waar het woord en de punt staan (`BrandHandoff`), zodat het opstartscherm er precies naartoe
+// kan bewegen: het rood krimpt tot deze punt, het woordmerk schuift naar dit woord.
+struct IntroMark: View {
+    @Environment(\.brandHandoff) private var handoff
+    @Environment(\.accessibilityReduceMotion) private var still
+
+    var body: some View {
+        HStack(alignment: .lastTextBaseline, spacing: 3) {
+            Text("hoot")
+                .font(.system(size: 58, weight: .heavy, design: .serif))
+                .foregroundStyle(Theme.ink)
+                .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { handoff?.word = $0 }
+            Circle()
+                .fill(Theme.accent)
+                .frame(width: 15, height: 15)
+                .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { handoff?.dot = $0 }
+                .phaseAnimator(still ? [1.0] : [0.92, 1.06]) { dot, s in dot.scaleEffect(s) } animation: { _ in .easeInOut(duration: 2.75) }
+        }
+        .fixedSize()
+        .dynamicTypeSize(.large) // het merk heeft één maat
+        .accessibilityElement()
+        .accessibilityLabel("Hoot")
+    }
+}
+
+// Waar "hoot." in het welkom staat (in schermcoördinaten), voor de overgang vanaf het opstartscherm.
+@MainActor
+@Observable
+final class BrandHandoff {
+    var word: CGRect?
+    var dot: CGRect?
+    var leaving = false // het opstartscherm beweegt erheen: het rood krimpt tot de punt
+    var duration = 1.0 // hoe lang die overgang duurt
+}
+private struct BrandHandoffKey: EnvironmentKey { static let defaultValue: BrandHandoff? = nil }
+extension EnvironmentValues {
+    var brandHandoff: BrandHandoff? {
+        get { self[BrandHandoffKey.self] }
+        set { self[BrandHandoffKey.self] = newValue }
+    }
 }
