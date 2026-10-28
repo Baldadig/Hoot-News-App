@@ -34,7 +34,7 @@ export async function buildFeed({ now = Date.now() } = {}) {
   // 1. Ophalen — alles tegelijk; een bron die uitvalt houdt de rest niet op.
   const avatars = remember('avatars-v1', DAY, loadSourceAvatars, { now, valid: (m) => Object.values(m).some(Boolean) })
   const handles = BLUESKY_AUTHORS.map((a) => a.handle)
-  const profiles = remember('bsky-profiles-' + hash(handles.join()), DAY, () => loadBlueskyProfiles(handles), { now, valid: (m) => Object.keys(m).length > 0 }).catch(() => ({}))
+  const profiles = handles.length === 0 ? Promise.resolve({}) : remember('bsky-profiles-' + hash(handles.join()), DAY, () => loadBlueskyProfiles(handles), { now, valid: (m) => Object.keys(m).length > 0 }).catch(() => ({}))
   const [mainGroups, bskyGroups, registry] = await Promise.all([
     settle(SOURCES, (s) => loadSourceWithRetry(s, avatars)),
     settle(BLUESKY_AUTHORS, (a) => loadBluesky(a, now)),

@@ -1,5 +1,16 @@
 # Changelog — Hoot voor iOS
 
+## [0.16.0] — 2026-10-28 — Een organische stuiter, Bluesky in de Stroom
+
+- **De punt stuitert klein en organisch.** Hij gaat 9 pt omhoog en remt daarbij af, valt versneld terug, deukt kort in bij het landen, veert nog 2 pt na en ligt dan even stil. Eén sprong duurt 1,6 s.
+  - **Fout opgelost:** in 0.15 werd het indeuken berekend vanaf de hoek van het woord in plaats van vanaf de punt. Daardoor schoot de punt bij elke landing zo'n 20 pt opzij.
+  - **Precies op zijn plek:** de punt staat nu exact waar hij in het vaste opstartscherm staat (schaal 49/73,5, zoals iOS de SVG tekent).
+- **Bluesky:**
+  - **Instellingen:** daar zet je Bluesky alleen nog aan of uit.
+  - **In de Stroom:** daar volg je mensen, via Accounts met hun @-naam.
+  - **Standaardaccounts weg:** er zijn geen standaardaccounts meer (zie web 1.39.0).
+  - **Fouten opgelost:** het accountscherm stond in Instellingen in een tweede navigatiebalk; dat scherm is daar weggehaald. Een filter op iemand die je niet meer volgt, gaf een lege lijst zonder uitweg; dat filter vervalt nu vanzelf.
+
 ## [0.15.0] — 2026-10-28 — De stuiterende punt
 
 - **Opstartscherm als lader:** na het vaste rode opstartscherm volgt een scherm dat er pixel voor pixel hetzelfde uitziet, maar waarin de punt achter "hoot" stuitert. Elke sprong duurt 1,6 s: rustig omhoog, weer omlaag, landen met een klein deukje, en dan even stil.

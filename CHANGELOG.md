@@ -2,6 +2,10 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.39.0] — 2026-10-28 — Bluesky is persoonlijk
+
+- **Geen standaard Bluesky-accounts meer.** Aaron Rupar en de groep Oekraïne (14 accounts) haalt Hoot niet meer voor iedereen op. Je voegt zelf mensen toe met hun @-naam: op de website op de Bluesky-pagina, in de app in de Stroom.
+
 ## [1.38.0] — 2026-10-27 — Merkrood
 
 - **Merkrood als token:** `--brand-red` (#a3201b) en `--on-brand-red` (wit, 7,6:1), in licht en donker gelijk. Het is het diepe krantenrood als vol vlak, alleen voor merkmomenten. Het accent blijft voor bediening.

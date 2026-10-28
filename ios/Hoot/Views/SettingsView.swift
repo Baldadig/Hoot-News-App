@@ -81,15 +81,10 @@ struct SettingsView: View {
                     Toggle(isOn: $store.bluesky) {
                         Label("Bluesky in de Stroom", systemImage: "bubble.left.and.bubble.right")
                     }
-                    if store.bluesky {
-                        NavigationLink(value: "bluesky") {
-                            LabeledContent { Text("\(store.followedSocial.count) aan") } label: { Label("Bluesky-accounts", systemImage: "person.2") }
-                        }
-                    }
                 } header: {
                     Text("Bluesky")
                 } footer: {
-                    Text("Bovenaan de Stroom kies je dan tussen het nieuws en de posts van de mensen die je volgt.").foregroundStyle(Theme.ink3)
+                    Text("Bovenaan de Stroom kies je dan tussen het nieuws en Bluesky. Daar voeg je mensen toe met hun @-naam.").foregroundStyle(Theme.ink3)
                 }
 
                 Section {
@@ -160,8 +155,6 @@ struct SettingsView: View {
                     SubscriptionsView().navigationTitle("Abonnementen").navigationBarTitleDisplayMode(.inline)
                 } else if page == "interesses" {
                     InterestsList().navigationTitle("Interesses").navigationBarTitleDisplayMode(.inline)
-                } else if page == "bluesky" {
-                    BlueskyAccountsView()
                 } else {
                     DigestFieldsList().navigationTitle("Vakgebieden").navigationBarTitleDisplayMode(.inline)
                 }

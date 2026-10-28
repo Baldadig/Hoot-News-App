@@ -110,31 +110,11 @@ export const SOURCES = [
 ]
 export const BRAND = Object.fromEntries(SOURCES.map((s) => [s.id, s.color]))
 
-// Bluesky-accounts (openbare API). Alleen eigen posts van deze auteurs, de afgelopen 48 uur.
+// Bluesky-accounts die Hoot voor iedereen ophaalt (openbare API, eigen posts van de afgelopen 48 uur).
+// Leeg sinds okt. 2026: Bluesky is persoonlijk. Je voegt zelf mensen toe met hun @-naam, in de Stroom
+// (app) of op de Bluesky-pagina (web); de standaardset (Aaron Rupar en de groep Oekraïne) is weg.
 // `group`: samen te filteren in Bluesky. `optional`: staat uit tot je hem aanzet.
-// Oekraïne (okt. 2026): wie daar ter plekke of met eigen bronnen over schrijft én op Bluesky
-// actief is. Gekozen op activiteit en relevantie in de afgelopen 48 uur (zie CHANGELOG 1.19.0).
-export const BLUESKY_AUTHORS = [
-  { handle: 'atrupar.com', name: 'Aaron Rupar' },
-  // Ter plekke
-  { handle: 'kyivindependent.com', name: 'The Kyiv Independent', group: 'oekraine' },
-  { handle: 'pravda.ua', name: 'Ukrainska Pravda', group: 'oekraine' },
-  { handle: 'euromaidanpress.bsky.social', name: 'Euromaidan Press', group: 'oekraine' },
-  { handle: 'christopherjm.ft.com', name: 'Christopher Miller (FT)', group: 'oekraine' },
-  // Binnen Rusland
-  { handle: 'meduza.io', name: 'Meduza', group: 'oekraine' },
-  { handle: 'bbcstever.bsky.social', name: 'Steve Rosenberg (BBC)', group: 'oekraine' },
-  // Analyse van het slagveld
-  { handle: 'thestudyofwar.bsky.social', name: 'ISW', group: 'oekraine' },
-  { handle: 'michaelkofman.bsky.social', name: 'Michael Kofman', group: 'oekraine' },
-  { handle: 'phillipspobrien.bsky.social', name: "Phillips O'Brien", group: 'oekraine' },
-  { handle: 'warinthefuture.bsky.social', name: 'Mick Ryan', group: 'oekraine' },
-  { handle: 'anderspucknielsen.dk', name: 'Anders Puck Nielsen', group: 'oekraine' },
-  { handle: 'sambendett.bsky.social', name: 'Samuel Bendett', group: 'oekraine' },
-  { handle: 'emilkastehelmi.bsky.social', name: 'Emil Kastehelmi', group: 'oekraine' },
-  // Snel en veel (frontbeelden, minder gecontroleerd): uit tot je hem aanzet.
-  { handle: 'noelreports.com', name: 'NOELREPORTS', group: 'oekraine', optional: true },
-]
+export const BLUESKY_AUTHORS = []
 export const BLUESKY_HOURS = 48
 
 // De oorspronkelijke set: die krijgt voorrang bij het samenstellen van de editie.

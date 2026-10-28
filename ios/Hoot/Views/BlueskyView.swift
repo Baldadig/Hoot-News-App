@@ -8,17 +8,19 @@ struct BlueskyFeed: View {
 
     var body: some View {
         let people = store.followedSocial
+        // Een filter op iemand die je niet meer volgt, telt niet meer (anders een lege lijst zonder uitweg).
+        let who = people.contains { $0.id == self.who } ? self.who : nil
         let posts = store.posts.filter { who == nil || $0.source == who }
         LazyVStack(alignment: .leading, spacing: 0) {
             Text("De mensen die je volgt, nieuwste eerst.")
                 .font(.footnote)
                 .foregroundStyle(Theme.ink3)
                 .padding(.bottom, Space.s2)
-            if people.count > 1 { chips(people) }
+            if people.count > 1 { chips(people, who: who) }
             if store.status == .loading && posts.isEmpty {
                 ProgressView().frame(maxWidth: .infinity, minHeight: 240)
             } else if posts.isEmpty {
-                EmptyState(title: people.isEmpty ? "Je volgt nog niemand" : "Nog geen posts", systemImage: "bubble.left.and.bubble.right", text: people.isEmpty ? "Tik rechtsboven op Accounts om iemand op Bluesky te volgen." : "Zodra de mensen die je volgt iets plaatsen, staat het hier.")
+                EmptyState(title: people.isEmpty ? "Je volgt nog niemand" : "Nog geen posts", systemImage: "bubble.left.and.bubble.right", text: people.isEmpty ? "Tik rechtsboven op Accounts en voeg iemand toe met de @-naam, bijvoorbeeld @naam.bsky.social." : "Zodra de mensen die je volgt iets plaatsen, staat het hier.")
             } else {
                 StaleNotice()
                 ForEach(posts) { post in
@@ -29,11 +31,11 @@ struct BlueskyFeed: View {
         }
     }
 
-    private func chips(_ people: [Source]) -> some View {
+    private func chips(_ people: [Source], who: String?) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: Space.s2) {
-                chip("Iedereen", on: who == nil) { who = nil }
-                ForEach(people) { s in chip(s.name, on: who == s.id) { who = who == s.id ? nil : s.id } }
+                chip("Iedereen", on: who == nil) { self.who = nil }
+                ForEach(people) { s in chip(s.name, on: who == s.id) { self.who = who == s.id ? nil : s.id } }
             }
             .padding(.vertical, Space.s1)
         }
@@ -112,7 +114,8 @@ private struct LinkCard: View {
     }
 }
 
-// Wie je volgt: zelf toevoegen (naam of link van bsky.app), en accounts aan- en uitzetten.
+// Wie je volgt, vanuit de Stroom: iemand toevoegen met de @-naam (of een link van bsky.app), en
+// accounts aan- en uitzetten of weghalen.
 struct BlueskyAccountsView: View {
     @Environment(HootStore.self) private var store
     @Environment(\.dismiss) private var dismiss
@@ -125,7 +128,7 @@ struct BlueskyAccountsView: View {
             List {
                 Section {
                     HStack {
-                        TextField("naam.bsky.social of een link", text: $input)
+                        TextField("@naam.bsky.social", text: $input)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
                             .keyboardType(.URL)
