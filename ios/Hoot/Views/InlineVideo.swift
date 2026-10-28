@@ -16,6 +16,14 @@ final class Playback {
         playing = player
         player.play()
     }
+
+    // Weg gescrold: pauze, en het geluid terug aan wat er eerder speelde (muziek, een podcast).
+    func stop(_ player: AVPlayer?) {
+        player?.pause()
+        guard let player, playing === player else { return }
+        playing = nil
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
 }
 
 // Een video in een post: eerst het stilstaande beeld met een afspeelknop (er wordt niets geladen
@@ -51,7 +59,7 @@ struct InlineVideo: View {
         .aspectRatio(ratio, contentMode: .fit)
         .frame(maxWidth: .infinity)
         .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-        .onDisappear { player?.pause() }
+        .onDisappear { Playback.shared.stop(player) }
         .onAppear { if DebugLaunch.screen("video"), !Playback.shared.started { Playback.shared.started = true; start() } }
     }
 

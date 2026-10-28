@@ -61,12 +61,12 @@ export default function Welcome({ account, sources, prefs, onDone }) {
   const cta = quick
     ? { label: 'Begin met lezen', onClick: () => onDone({ interests: [], topics: [], sources: chosen || [], all: pickable }), disabled: !(chosen || []).length }
     : step === 0
-      ? { label: 'Stel Hoot in', onClick: next }
+      ? { label: 'Stel je Hoot samen', onClick: next }
       : step === 1
         ? { label: interests.length ? 'Verder' : 'Kies minstens één', onClick: next, disabled: !interests.length }
         : step === 2
           ? { label: 'Verder', onClick: next }
-          : { label: 'Klaar · naar je Editie', onClick: finish, disabled: !(chosen || []).length }
+          : { label: 'Naar je editie', onClick: finish, disabled: !(chosen || []).length }
 
   const visibleGroups = GROUPS.filter((g) => (!g.interest || interests.includes(g.interest)) && (!g.topic || topics.includes(g.topic)))
 
@@ -100,7 +100,7 @@ export default function Welcome({ account, sources, prefs, onDone }) {
             <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
               Een goed begin
             </h1>
-            <p className="ob__sub">Bekende gratis bronnen, van nieuws tot sport. Geen abonnement nodig. Tik om iets weg te laten; later pas je alles aan bij Bronnen.</p>
+            <p className="ob__sub">Bekende gratis bronnen, van nieuws tot sport. Je hebt geen abonnement nodig. Tik op een bron om hem weg te laten; later pas je alles aan bij Bronnen.</p>
             {!starter.length ? <p className="ob__sub">De bronnen worden geladen…</p> : null}
             {starter.map((g) => (
               <section key={g.label} className="ob__group" aria-label={g.label}>
@@ -121,9 +121,9 @@ export default function Welcome({ account, sources, prefs, onDone }) {
               Minder scrollen. Meer lezen.
             </h1>
             <ul className="ob__points">
-              <Point Icon={EditionIcon} title="Drie keer per dag een editie" text="Tien verhalen die ertoe doen, met een einde. Om 6, 12 en 17 uur." />
+              <Point Icon={EditionIcon} title="Je eigen editie, drie keer per dag" text="Om 6, 12 en 17 uur de tien verhalen die ertoe doen, uit jouw bronnen. Ben je erdoorheen, dan ben je bij." />
               <Point Icon={SparkleIcon} title="In één minuut bij" text="Een kort overzicht van de editie, voor als je weinig tijd hebt." />
-              <Point Icon={StreamIcon} title="De Stroom" text="Alles van jouw bronnen, nieuwste eerst. Lezen doe je bij de bron." />
+              <Point Icon={StreamIcon} title="De Stroom" text="Alles van je bronnen, het nieuwste bovenaan. Lezen doe je bij de uitgever zelf." />
             </ul>
             {account?.invite && account.status === 'out' ? <p className="ob__note">Je bent uitgenodigd. Inloggen kan straks rechtsboven, zodat alles meegaat naar je andere toestellen.</p> : null}
           </>
@@ -132,7 +132,7 @@ export default function Welcome({ account, sources, prefs, onDone }) {
             <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
               Wat interesseert je?
             </h1>
-            <p className="ob__sub">Hiermee kiezen we je bronnen voor en maken we de filters in je Stroom. De editie is voor iedereen gelijk.</p>
+            <p className="ob__sub">Daarmee stellen we je bronnen voor en vormen we je editie: wat bij je interesses past, krijgt voorrang.</p>
             <div className="ob__grid">
               {INTERESTS.map((i) => {
                 const Icon = INTEREST_ICONS[i.id]
@@ -152,7 +152,7 @@ export default function Welcome({ account, sources, prefs, onDone }) {
             <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
               Wat precies?
             </h1>
-            <p className="ob__sub">Niets aangetikt? Dan krijg je alles binnen dat onderwerp.</p>
+            <p className="ob__sub">Kies wat je het meest boeit. Kies je niets, dan krijg je alles binnen dat onderwerp.</p>
             {INTERESTS.filter((i) => interests.includes(i.id)).map((i) => {
               const Icon = INTEREST_ICONS[i.id]
               return (
@@ -177,7 +177,7 @@ export default function Welcome({ account, sources, prefs, onDone }) {
             <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
               Jouw bronnen
             </h1>
-            <p className="ob__sub">Alvast gekozen bij je interesses. Tik om aan of uit te zetten. Bij een bron met abonnement zie je de koppen; het hele artikel lees je alleen als je abonnee bent.</p>
+            <p className="ob__sub">We kozen er alvast een paar die bij je interesses passen. Tik om ze aan of uit te zetten. Van een bron met abonnement zie je altijd de koppen; het hele artikel lees je als je abonnee bent.</p>
             <div className="ob__chips ob__free" role="group" aria-label="Welke bronnen tonen">
               <button type="button" className="ob__chip" aria-pressed={!freeOnly} onClick={() => setFreeOnly(false)}>
                 Alle bronnen

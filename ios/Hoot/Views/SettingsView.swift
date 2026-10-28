@@ -99,7 +99,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Jouw editie")
                 } footer: {
-                    Text("Je editie komt uit je eigen bronnen. Wat bij je interesses past en wat van je voorkeursbronnen komt (de ster bij Bronnen) gaat voor. Ook wat je opent en bewaart telt mee; dat blijft op deze iPhone.").foregroundStyle(Theme.ink3)
+                    Text("Je editie komt uit je eigen bronnen. Wat bij je interesses past en wat van je voorkeursbronnen komt (de ster bij Bronnen) gaat voor. Ook wat je opent en bewaart telt mee; dat blijft op dit toestel.").foregroundStyle(Theme.ink3)
                 }
 
                 Section("Bronnen en vakken") {
@@ -120,7 +120,7 @@ struct SettingsView: View {
                     .foregroundStyle(Theme.ink)
                     .accessibilityHint("Opent Hoot in de Instellingen-app")
                 } footer: {
-                    Text("In de Instellingen-app van je iPhone. De tekstgrootte volgt je iPhone (Toegankelijkheid › Weergave en tekstgrootte).").foregroundStyle(Theme.ink3)
+                    Text("In de Instellingen-app van je toestel. De tekstgrootte volgt je toestel (Toegankelijkheid › Weergave en tekstgrootte).").foregroundStyle(Theme.ink3)
                 }
 
                 Section {
@@ -132,12 +132,12 @@ struct SettingsView: View {
                     }
                     .disabled(store.saved.isEmpty)
                 } header: {
-                    Text("Op deze iPhone")
+                    Text("Op dit toestel")
                 }
 
                 Section("Over") {
                     LabeledContent("Versie", value: version)
-                    LabeledContent("Gemaakt door", value: "Alex Vrees")
+                    LabeledContent("Gemaakt door") { Link("Baldadig.nl", destination: URL(string: "https://baldadig.nl")!) }
                     Link(destination: URL(string: "https://hootnews.nl/#/privacy")!) { OutboundRow(title: "Privacybeleid", systemImage: "hand.raised") }.foregroundStyle(Theme.ink)
                     Link(destination: URL(string: "https://hootnews.nl")!) { OutboundRow(title: "hootnews.nl", systemImage: "globe") }.foregroundStyle(Theme.ink)
                 }

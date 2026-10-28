@@ -4,7 +4,7 @@ Hoot is een rustige nieuwslezer: drie keer per dag een editie van tien verhalen 
 
 - **Het verhaal is de eenheid.** De bron blijft altijd zichtbaar en aanklikbaar; openen, de bron bekijken en bewaren zijn drie aparte doelen van minstens `tap` (44 px).
 - **Lijnen en witruimte, geen omlijnde kaarten.** Berichten scheid je met een `rule`-haarlijn en `s5`; een kaart (`surface`, `radius`) alleen voor iets dat echt los staat: een Digest-stuk, een melding, een blad.
-- **Serif voor wat je leest, schreefloos voor wat je bedient.** Koppen in `serif`, al het andere in `sans`.
+- **Serif voor wat je leest, schreefloos voor wat je bedient.** Koppen en schermtitels in `serif`, al het andere in `sans`.
 - **Eén accent.** `accent` markeert rubriek, actief, "+N bronnen", het label "gratis" en het punt van het woordmerk. Nooit als vlakvulling van een heel scherm, en nooit voor gewone bediening: iconen in de kop (instellingen, zoeken, verversen) zijn `ink-3`.
 - **Merkmomenten in merkrood.** Op een handvol vaste momenten wordt het krantenrood een vol vlak (`brand-red` met `on-brand-red`): het opstartscherm van de app, het welkom, het einde van de editie ("Je bent bij.") en de deel- en App Store-beelden. Juist omdat de rest papier en inkt is, voelt dat fris; daarom nergens anders, en nooit op een scherm waar je leest.
 - **Niets beweegt terwijl je leest.** Nieuwe berichten wachten achter een knop; de leespositie verschuift nooit vanzelf.
@@ -52,7 +52,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 | Stijl | Web | iOS | Waar |
 |---|---|---|---|
 | `t6-lead` | serif 800, 30–34 px, 1.15 | `.title` / breed `.largeTitle`, serif bold | Kop van het hoofdverhaal |
-| `t5-screen` | serif 800, 27 px | grote navigatietitel | Schermtitel |
+| `t5-screen` | serif 800, 27 px | grote navigatietitel in serif heavy (`.largeTitle`); klein in de balk serif bold (`.headline`) | Schermtitel (Middageditie, Stroom, Digest …) |
 | `t4-item` | serif 800, 18 px | `.title3`, serif bold | Kop van een bericht |
 | `t3-body` | sans 400, 17 px, 1.5 | `.body` | Lopende tekst, intro van het hoofdverhaal |
 | `t2-sum` | sans 400, 15 px, 1.5 | `.subheadline` | Intro van een bericht in een lijst, in `ink-2` |
@@ -90,7 +90,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 
 ## Toestanden
 
-- **Leeg:** wat er komt en wat je kunt doen ("Nog niets bewaard. Tik op het bladwijzer-icoon bij een bericht om het hier te bewaren.").
+- **Leeg:** wat er komt en wat je kunt doen ("Nog niets bewaard. Tik op het bladwijzericoon bij een bericht om het hier te bewaren.").
 - **Geen verbinding:** de laatst bewaarde versie, met "Verversen lukt nu niet. Je ziet de versie van 10:10." en "Opnieuw". Zonder eerdere versie een melding met de knop "Probeer opnieuw".
 - **Het einde van de editie:** een kaart in merkrood met de "h.", "Je bent bij.", "Dit was de avondeditie van dinsdag 27 oktober. De volgende staat klaar om 06:00." en "Toch verder lezen in de Stroom".
 - **Gelezen:** de kop in `ink-3` in plaats van `ink`.

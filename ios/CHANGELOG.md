@@ -1,5 +1,41 @@
 # Changelog — Hoot voor iOS
 
+## [0.17.0] — 2026-10-28 — Bugronde, schermtitels in de serif, nieuw welkom
+
+- **Schermtitels in de krantenletter:** Middageditie, Stroom, Digest en de rest staan in de serif, groot op heavy en klein in de balk op bold. Ze groeien mee met de tekstgrootte, zoals op de website. Daarbij is de punt van het woordmerk weer rood; hij werd blauw van de balk.
+- **Welkom herschreven.** Er staat een uitnodigende zin onder de belofte, en de drie onderdelen zijn vloeiender beschreven.
+- **Gemaakt door Baldadig.nl**, met een link.
+- **Opgelost uit de bugtest:**
+  - **Stroom:**
+    - De streep "Hier was je gebleven" blijft staan als je een artikel leest en terugkomt.
+    - Een uitgezette bron blijft niet als filter hangen.
+  - **Jouw editie:**
+    - De app stuurde bij de vorige editie ook de stukken mee die daarna bij een verhaal kwamen. Daardoor zakten verhalen die zich ontwikkelen te ver weg. Nu stuurt hij alleen wat er toen stond, zoals de website.
+    - Een trager antwoord overschrijft geen nieuwer antwoord meer.
+    - Een persoonlijke editie op oude instellingen wordt niet meer getoond.
+  - **Laden:**
+    - Lukt het laden van een bron niet, dan blijven de stukken staan die je al had, met de melding dat je niet helemaal bij bent.
+    - De app wacht niet meer op Bluesky voordat hij klaar is.
+    - Na een mislukte koude start probeert de app het opnieuw zodra je terugkomt.
+    - Vergelijken laadt na het verversen de nieuwe verhalenbundel.
+    - De Digest ververst zichzelf als er een nieuwe is.
+  - **Lezer:**
+    - Hij geeft het op na 20 seconden in plaats van eindeloos te laden.
+    - Hij laadt opnieuw als WebKit stopt.
+    - Een doorverwijzing telt niet meer als mislukking.
+    - "Verder naar de lezer" gaat terug naar het artikel.
+    - Na inloggen bij een abonnement laadt het artikel opnieuw.
+    - Inlogknoppen die een nieuw venster openen, werken.
+    - Bluesky-posts openen op bsky.app.
+  - **Overig:**
+    - Het welkom komt terug als je de app tijdens het eerste welkom sloot.
+    - Bij "Kies eerst je interesses" waren de schakelaars wit op wit.
+    - In Zoeken is een rij niet meer in zijn geheel een link naar Vergelijken.
+    - Een video geeft het geluid terug aan je muziek.
+    - Sneltoetsen werken niet meer achter de lezer.
+    - VoiceOver kan niet meer achter het opstartscherm komen.
+    - Taalfouten zijn verbeterd, zoals "1 bronnen", "dit toestel" en "bladwijzericoon".
+
 ## [0.16.0] — 2026-10-28 — Een organische stuiter, Bluesky in de Stroom
 
 - **De punt stuitert klein en organisch.** Hij gaat 9 pt omhoog en remt daarbij af, valt versneld terug, deukt kort in bij het landen, veert nog 2 pt na en ligt dan even stil. Eén sprong duurt 1,6 s.

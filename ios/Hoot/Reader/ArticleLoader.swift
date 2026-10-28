@@ -17,7 +17,7 @@ struct Article: Equatable {
 
 @MainActor
 @Observable
-final class ArticleLoader: NSObject, WKNavigationDelegate {
+final class ArticleLoader: NSObject, WKNavigationDelegate, WKUIDelegate {
     enum State: Equatable {
         case loading
         case ready(Article)
@@ -28,7 +28,10 @@ final class ArticleLoader: NSObject, WKNavigationDelegate {
     private(set) var state: State = .loading
     let webView: WKWebView
     private var attempts = 0
-    private var finished = false
+    private var article: URL?
+    private var round = 0 // elke nieuwe laadronde; een oudere mag de staat niet meer zetten
+    private var askedVisit = false // jij koos "Toon de pagina hier" (niet de uitgever)
+    var visitByChoice: Bool { askedVisit }
 
     // De inlog en toestemming bij uitgevers: in de vaste opslag van WebKit, alleen voor de lezer.
     static let dataStore = WKWebsiteDataStore.default()
@@ -45,37 +48,76 @@ final class ArticleLoader: NSObject, WKNavigationDelegate {
         webView = WKWebView(frame: CGRect(x: 0, y: 0, width: 390, height: 844), configuration: config)
         super.init()
         webView.navigationDelegate = self
+        webView.uiDelegate = self
     }
 
     func load(_ url: URL) {
+        article = url
         state = .loading
         attempts = 0
-        finished = false
+        askedVisit = false
+        round += 1
         webView.load(URLRequest(url: url))
+        watchdog()
     }
 
-    // Na toestemming of inloggen: opnieuw proberen op de pagina waar je nu bent.
+    // Na toestemming of inloggen: verder. Staat de uitgever je nu op een andere pagina (de voorpagina,
+    // je account), dan eerst terug naar het artikel; anders de tekst van de pagina waar je bent.
     func retry() {
+        if let article, webView.url?.path() != article.path() { load(article); return }
         state = .loading
         attempts = 0
-        Task { await extract() }
+        round += 1
+        let mine = round
+        Task { await extract(round: mine) }
+        watchdog()
+    }
+
+    // Komt er na 20 seconden nog niets (een pagina die nooit klaar is), dan zeggen we dat het niet lukt.
+    private func watchdog() {
+        let mine = round
+        Task {
+            try? await Task.sleep(for: .seconds(20))
+            if round == mine && state == .loading { state = .failed }
+        }
     }
 
     nonisolated func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         Task { @MainActor in
             guard state == .loading || state == .visit else { return }
             if state == .visit { return } // de lezer kijkt mee; jij tikt op "Verder" als je klaar bent
+            let mine = round
             try? await Task.sleep(for: .milliseconds(900)) // pagina's die hun tekst met JavaScript plaatsen
-            await extract()
+            await extract(round: mine)
         }
     }
 
+    // Een onderbroken navigatie (de pagina stuurt door, bijvoorbeeld naar een toestemmingspagina) is
+    // geen mislukking: de volgende pagina laadt gewoon.
+    nonisolated private static func interrupted(_ error: Error) -> Bool {
+        let e = error as NSError
+        return e.code == NSURLErrorCancelled || (e.domain == "WebKitErrorDomain" && e.code == 102)
+    }
+
     nonisolated func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        Task { @MainActor in if state == .loading { state = .failed } }
+        Task { @MainActor in if state == .loading && !Self.interrupted(error) { state = .failed } }
     }
 
     nonisolated func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-        Task { @MainActor in if state == .loading && (error as NSError).code != NSURLErrorCancelled { state = .failed } }
+        Task { @MainActor in if state == .loading && !Self.interrupted(error) { state = .failed } }
+    }
+
+    // Het webproces stopte (vaak geheugen bij zware sites): opnieuw laden, en anders zeggen dat het niet lukt.
+    nonisolated func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        Task { @MainActor in
+            if state == .loading, attempts == 0, let article { attempts = 1; webView.load(URLRequest(url: article)) } else if state == .loading { state = .failed }
+        }
+    }
+
+    // Links die een nieuw venster willen (bijvoorbeeld "Log in met …" op een inlogpagina): hier openen.
+    func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+        if navigationAction.targetFrame == nil { webView.load(navigationAction.request) }
+        return nil
     }
 
     // Pagina's die om toestemming of een inlog vragen (DPG, Mediahuis, inlogdiensten).
@@ -86,7 +128,8 @@ final class ArticleLoader: NSObject, WKNavigationDelegate {
             || path.contains("/privacy-gate") || path.contains("/consent") || path.hasPrefix("/login") || path.hasPrefix("/account/login")
     }
 
-    private func extract() async {
+    private func extract(round mine: Int) async {
+        guard round == mine, state == .loading else { return } // een nieuwere ronde, of jij koos al iets anders
         if Self.isGate(webView.url) { state = .visit; return }
         let js = Self.script + #"""
         ;(function () {
@@ -135,16 +178,17 @@ final class ArticleLoader: NSObject, WKNavigationDelegate {
         """#
         // In een eigen JavaScript-omgeving: de scripts van de site kunnen er niet bij of tussen zitten.
         let raw = try? await webView.evaluateJavaScript(js, in: nil, contentWorld: .defaultClient)
+        guard round == mine, state == .loading else { return }
         if let text = raw as? String, let data = text.data(using: .utf8), let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let content = obj["content"] as? String, let length = obj["length"] as? Int, length > 300 {
             state = .ready(Article(title: (obj["title"] as? String) ?? "", byline: obj["byline"] as? String, siteName: obj["siteName"] as? String, content: content, length: length, publishedTime: obj["publishedTime"] as? String))
         } else if attempts < 2 {
             attempts += 1
             try? await Task.sleep(for: .seconds(1.2))
-            await extract()
+            await extract(round: mine)
         } else {
             state = .failed
         }
     }
 
-    func showPage() { state = .visit }
+    func showPage() { askedVisit = true; round += 1; state = .visit }
 }

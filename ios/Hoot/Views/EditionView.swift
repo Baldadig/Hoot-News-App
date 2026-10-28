@@ -16,7 +16,7 @@ enum Desk {
 
     static func label(_ e: EditionEntry, followed: Bool) -> String? {
         let base: String?
-        if e.desk == "breed" { base = "Waar iedereen over schrijft · \(e.sourceCount ?? 0) bronnen" } else { base = e.desk.flatMap { labels[$0] } }
+        if e.desk == "breed" { base = e.sourceCount.map { "Waar iedereen over schrijft · \($0) bronnen" } ?? "Waar iedereen over schrijft" } else { base = e.desk.flatMap { labels[$0] } }
         if followed || ["bubbel", "extern", "breed"].contains(e.desk ?? "") { return base }
         return [base, "Buiten je bronnen"].compactMap { $0 }.joined(separator: " · ")
     }
@@ -63,13 +63,13 @@ struct EditionView: View {
                         ProgressView().frame(maxWidth: .infinity, minHeight: 240)
                     } else if rows.isEmpty {
                         if store.status == .failed {
-                            EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Hoot heeft nog geen editie op deze iPhone. Zodra je verbinding hebt, verschijnt hij hier.", retry: store.load)
+                            EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Hoot heeft nog geen editie op dit toestel. Zodra je verbinding hebt, verschijnt hij hier.", retry: store.load)
                         } else {
                             EmptyState(title: "Er is nog geen editie", systemImage: "newspaper", text: "In de Stroom staat alles wat er wél is.")
                         }
                     } else {
                         StaleNotice()
-                        Text("\(dateLine) · \(store.isPersonal ? "Jouw editie" : "De editie voor iedereen")")
+                        Text([dateLine, store.isPersonal ? "Jouw editie" : "De editie voor iedereen"].filter { !$0.isEmpty }.joined(separator: " · "))
                             .font(.subheadline)
                             .foregroundStyle(Theme.ink3)
                             .padding(.bottom, Space.s4)
@@ -97,7 +97,7 @@ struct EditionView: View {
                                 .font(.system(size: 40, weight: .heavy, design: .serif))
                                 .accessibilityHidden(true)
                             Text("Je bent bij.").font(Theme.headline(.title))
-                            Text("Dit was de \(title.lowercased()) van \(dateLine.lowercased()). De volgende staat klaar om \(store.edition?.next ?? "").")
+                            Text("Dit was de \(title.lowercased())\(dateLine.isEmpty ? "" : " van \(dateLine.lowercased())").\(store.edition?.next.map { " De volgende staat klaar om \($0)." } ?? "")")
                                 .font(.subheadline)
                                 .multilineTextAlignment(.center)
                             Button("Toch verder lezen in de Stroom") { openTab(.stroom) }
@@ -156,7 +156,7 @@ struct StoryView: View {
                         Text(lead.title).font(Theme.headline(.title2)).fixedSize(horizontal: false, vertical: true)
                     }
                     if !items.isEmpty {
-                        Text(sources == items.count ? "\(sources) bronnen, nieuwste eerst" : "\(sources) bronnen, \(items.count) artikelen, nieuwste eerst")
+                        Text(sources == items.count ? "\(sources == 1 ? "1 bron" : "\(sources) bronnen"), nieuwste eerst" : "\(sources == 1 ? "1 bron" : "\(sources) bronnen"), \(items.count) artikelen, nieuwste eerst")
                             .font(.subheadline)
                             .foregroundStyle(Theme.ink3)
                     }

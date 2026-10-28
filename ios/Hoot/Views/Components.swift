@@ -69,7 +69,8 @@ struct Rule: View {
 // "hoot." in de krantenletter met de rode punt, zoals op de website.
 struct Wordmark: View {
     var body: some View {
-        Text("hoot\(Text(".").foregroundStyle(Theme.accent))")
+        // De punt in de kleur zelf, niet in "accentColor": in de balk volgt die de balk (systeemblauw).
+        Text("hoot\(Text(".").foregroundStyle(Color("AccentColor")))")
             .font(.system(.title3, design: .serif, weight: .heavy))
             .dynamicTypeSize(...DynamicTypeSize.xxLarge)
             .fixedSize() // nooit afgekapt tot "h…"
@@ -371,7 +372,7 @@ struct StaleNotice: View {
             HStack(alignment: .firstTextBaseline, spacing: Space.s3) {
                 Image(systemName: "wifi.slash").foregroundStyle(Theme.ink3)
                 Text(message).font(.subheadline).foregroundStyle(Theme.ink3).frame(maxWidth: .infinity, alignment: .leading)
-                Button("Opnieuw") { Task { await store.load() } }.font(.subheadline.weight(.semibold))
+                Button("Opnieuw") { Task { await store.load() } }.font(.subheadline.weight(.semibold)).frame(minHeight: Space.tap)
             }
             .padding(Space.s3)
             .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))

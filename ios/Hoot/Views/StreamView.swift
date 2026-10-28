@@ -6,6 +6,8 @@ import SwiftUI
 struct StreamView: View {
     @Environment(HootStore.self) private var store
     @Environment(\.scenePhase) private var phase
+    @Environment(Reader.self) private var reader
+    @State private var behindReader = false // de lezer ligt eroverheen: dat is geen vertrek uit de Stroom
     @State private var showSources = DebugLaunch.screen("bronnen")
     @State private var showAccounts = false
     @State private var limit = 60
@@ -91,8 +93,10 @@ struct StreamView: View {
             .sheet(isPresented: $showAccounts) { BlueskyAccountsView().debugAppearance() }
             .settingsButton()
         }
-        .onAppear { store.openStream() }
-        .onDisappear { store.leaveStream() }
+        .onAppear { if behindReader { behindReader = false } else { store.openStream() } }
+        .onDisappear { if reader.item != nil { behindReader = true } else { store.leaveStream() } }
+        // Een bron die je uitzet, kan geen filter blijven (anders een lege lijst zonder uitweg).
+        .onChange(of: store.followed.map(\.id)) { _, ids in if let p = pick, !ids.contains(p) { pick = nil } }
         .onChange(of: phase) { _, now in if now == .background { store.leaveStream() } }
     }
 
@@ -192,7 +196,7 @@ struct SavedView: View {
         NavigationStack {
             Group {
                 if store.saved.isEmpty {
-                    EmptyState(title: "Nog niets bewaard", systemImage: "bookmark", text: "Tik op het bladwijzer-icoon bij een bericht om het hier te bewaren.")
+                    EmptyState(title: "Nog niets bewaard", systemImage: "bookmark", text: "Tik op het bladwijzericoon bij een bericht om het hier te bewaren.")
                 } else {
                     List {
                         ForEach(store.saved) { item in
@@ -222,7 +226,8 @@ struct SearchView: View {
             let hits = q.count < 2 ? [] : store.stream.filter { "\($0.title) \($0.summary ?? "")".lowercased().contains(q) }
             List {
                 ForEach(hits.prefix(80)) { item in
-                    ItemRow(item: item, story: store.story(of: item), linkSource: false).listRowBackground(Theme.surface)
+                    // Zonder "+N bronnen": een link in een lijstrij maakt de hele rij tot die link.
+                    ItemRow(item: item, story: nil, linkSource: false).listRowBackground(Theme.surface)
                 }
             }
             .scrollContentBackground(.hidden)

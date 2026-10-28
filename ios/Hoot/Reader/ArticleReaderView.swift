@@ -23,7 +23,7 @@ struct ArticleReaderView: View {
                 case .loading:
                     VStack(alignment: .leading, spacing: Space.s4) {
                         Kicker(text: sourceName)
-                        Text(item.title).font(Theme.headline(.title)).fixedSize(horizontal: false, vertical: true)
+                        Text(item.title.isEmpty ? (item.summary ?? "") : item.title).font(Theme.headline(.title)).lineLimit(4).fixedSize(horizontal: false, vertical: true)
                         ProgressView("Artikel laden…").frame(maxWidth: .infinity).padding(.top, Space.s5)
                         Spacer()
                     }
@@ -40,7 +40,7 @@ struct ArticleReaderView: View {
                     VStack(spacing: 0) {
                         WebPage(webView: loader.webView)
                         VStack(spacing: Space.s2) {
-                            Text("\(sourceName) vraagt eerst om toestemming of om in te loggen. Kies wat je wilt; daarna gaat de lezer verder.")
+                            Text(loader.visitByChoice ? "Dit is de pagina van \(sourceName). Probeer de lezer opnieuw, of lees hier verder." : "\(sourceName) vraagt eerst om toestemming of om in te loggen. Kies wat je wilt; daarna gaat de lezer verder.")
                                 .font(.footnote)
                                 .foregroundStyle(Theme.ink3)
                                 .multilineTextAlignment(.center)
@@ -85,7 +85,8 @@ struct ArticleReaderView: View {
                     SaveButton(item: item)
                 }
             }
-            .sheet(item: $login) { target in LoginWebView(target: target) }
+            // Na inloggen het artikel opnieuw laden: nu met je abonnement.
+            .sheet(item: $login, onDismiss: { if let url = item.link { loader.load(url) } }) { target in LoginWebView(target: target) }
         }
         .task { if let url = item.link { loader.load(url) } }
     }

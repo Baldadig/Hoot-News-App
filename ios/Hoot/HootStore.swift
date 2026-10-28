@@ -19,6 +19,7 @@ final class HootStore {
     private(set) var digestStatus: Status = .idle
     private var relatedVersion: String?
     private var related: [String: [Item]] = [:]
+    private var relatedLoaded: String? // de versie waarmee `related` geladen is
 
     // Voorkeuren (bewaard op het toestel)
     var muted: Set<String> { didSet { save("hoot.muted", Array(muted)) } }
@@ -92,7 +93,11 @@ final class HootStore {
         preview = Self.load("hoot.preview") ?? 2
         // Het welkom alleen bij een verse installatie: wie al instellingen of gelezen stukken heeft
         // (bijvoorbeeld van vóór het welkom), heeft het niet nodig.
-        onboarded = Self.load("hoot.onboarded") ?? UserDefaults.standard.dictionaryRepresentation().keys.contains { $0.hasPrefix("hoot.") }
+        let knownOnboarded: Bool? = Self.load("hoot.onboarded")
+        let seen = knownOnboarded ?? UserDefaults.standard.dictionaryRepresentation().keys.contains { $0.hasPrefix("hoot.") }
+        onboarded = seen
+        // Meteen vastleggen: sluit iemand de app tijdens het eerste welkom, dan komt het de volgende keer terug.
+        if knownOnboarded == nil { UserDefaults.standard.set(try? JSONEncoder().encode(seen), forKey: "hoot.onboarded") }
         #if DEBUG
         // Opnamen met een startargument (screenshots.sh, device-screens.sh) slaan het welkom over.
         if UserDefaults.standard.string(forKey: "HootStartTab") != nil { onboarded = true }
@@ -140,8 +145,8 @@ final class HootStore {
     }
     private func importSettings() {
         guard let file = Self.folder?.appendingPathComponent("import.json"), let data = try? Data(contentsOf: file) else { return }
+        guard let found = try? JSONDecoder().decode(Import.self, from: data) else { return } // kapot: laten staan
         try? FileManager.default.removeItem(at: file)
-        guard let found = try? JSONDecoder().decode(Import.self, from: data) else { return }
         let p = found.prefs
         if let v = p?.muted { muted = Set(v); save("hoot.muted", v) }
         if let v = p?.enabled { enabled = Set(v); save("hoot.enabled", v) }
@@ -186,7 +191,8 @@ final class HootStore {
     func isOwn(_ id: String) -> Bool { ownBluesky.contains { $0.id == id } }
     var posts: [Item] {
         let on = Set(followedSocial.map(\.id))
-        return (itemsById.values.filter { $0.isPost } + ownPosts).filter { on.contains($0.source) }.sorted { ($0.publishedAt ?? "") > ($1.publishedAt ?? "") }
+        // Op de echte tijd: eigen posts hebben soms een tijdzone in de tekst (+02:00).
+        return (itemsById.values.filter { $0.isPost } + ownPosts).filter { on.contains($0.source) }.sorted { ($0.publishedAt.flatMap(HootDate.parse) ?? .distantPast) > ($1.publishedAt.flatMap(HootDate.parse) ?? .distantPast) }
     }
     func addBluesky(_ input: String) async throws {
         let account = try await Bluesky.profile(input)
@@ -200,7 +206,7 @@ final class HootStore {
         ownPosts.removeAll { $0.source == id }
     }
     func loadOwnPosts() async {
-        let accounts = ownBluesky.filter { !muted.contains($0.id) }
+        let accounts = ownBluesky.filter { a in !muted.contains(a.id) && !sources.contains { $0.id == a.id } }
         guard bluesky, !accounts.isEmpty else { return }
         let lists = await withTaskGroup(of: [Item].self) { group in
             for a in accounts { group.addTask { (try? await Bluesky.posts(of: a)) ?? [] } }
@@ -224,11 +230,12 @@ final class HootStore {
             updatedAt = start.meta.updatedAt.flatMap(HootDate.parse)
             relatedVersion = start.meta.related
             parts = start.meta.parts ?? [:]
+            stale = false // een mislukt deel zet hem hieronder weer aan
             reloadParts()
-            async let own: Void = loadOwnPosts()
+            // Eigen Bluesky-accounts los ophalen: een trage Bluesky houdt de editie niet op.
+            Task { await loadOwnPosts() }
             await partsTask?.value
-            await own
-            stale = fromCache
+            stale = stale || fromCache
             status = .ready
             if !fromCache { Task.detached(priority: .background) { HootAPI.Offline.prune() } }
             await loadPersonal()
@@ -251,19 +258,24 @@ final class HootStore {
         let wanted = (followed + (bluesky ? followedSocial : [])).map(\.id).filter { parts[$0] != nil }
         let versions = parts
         partsTask = Task {
-            let lists = await withTaskGroup(of: [Item].self) { group in
+            let lists = await withTaskGroup(of: (String, [Item]?).self) { group in
                 for id in wanted {
                     guard let version = versions[id] else { continue }
-                    group.addTask { (try? await HootAPI.part(id, version: version).items) ?? [] }
+                    group.addTask { (id, try? await HootAPI.part(id, version: version).items) }
                 }
-                var all: [[Item]] = []
+                var all: [(String, [Item]?)] = []
                 for await list in group { all.append(list) }
                 return all
             }
             guard !Task.isCancelled, generation == partsGeneration else { return }
+            // Lukt een deel niet (geen verbinding, time-out), dan blijven de stukken van die bron staan
+            // die we al hadden, en zegt de app dat hij niet helemaal bij is.
+            let failed = Set(lists.filter { $0.1 == nil }.map(\.0))
             var map: [String: Item] = [:]
-            for item in lists.joined() { map[item.id] = item }
+            for item in itemsById.values where failed.contains(item.source) { map[item.id] = item }
+            for item in lists.compactMap(\.1).joined() { map[item.id] = item }
             itemsById = map
+            if !failed.isEmpty { stale = true }
             rebuildStream()
         }
     }
@@ -278,8 +290,9 @@ final class HootStore {
     // ---- Verhalen ----
     func story(of item: Item) -> Story? { item.storyId.flatMap { storiesById[$0] } }
     func storyItems(_ story: Story) async -> [Item] {
-        if related.isEmpty, let v = relatedVersion, let r = try? await HootAPI.related(version: v) {
+        if let v = relatedVersion, v != relatedLoaded, let r = try? await HootAPI.related(version: v) {
             related = Dictionary(grouping: r.related.filter { $0.storyId != nil }, by: { $0.storyId! })
+            relatedLoaded = v
         }
         let list = related[story.id] ?? story.itemIds.compactMap { itemsById[$0] }
         return list.sorted { ($0.publishedAt ?? "") > ($1.publishedAt ?? "") }
@@ -287,7 +300,9 @@ final class HootStore {
 
     // ---- Jouw editie ----
     // De editie die je ziet: jouw editie van dit dagdeel als die er is, anders die voor iedereen.
-    var shownEdition: Edition? { personal?.id == edition?.id && personal != nil ? personal : edition }
+    // Alleen als hij past bij je huidige bronnen en interesses; anders (bijvoorbeeld als het opnieuw
+    // samenstellen na het dempen van een bron mislukte) die voor iedereen, zoals op de website.
+    var shownEdition: Edition? { personal != nil && personal?.id == edition?.id && personalBasis == basisNow ? personal : edition }
     var isPersonal: Bool { shownEdition?.personal == true }
     func isFavorite(_ id: String) -> Bool { favorites.contains(id) }
     func setFavorite(_ id: String, _ on: Bool) { favorites = on ? Array(Set(favorites + [id])).sorted() : favorites.filter { $0 != id } }
@@ -310,7 +325,7 @@ final class HootStore {
         if let p = personal, p.id == global.id, personalBasis == basis { return }
         let previous = personal.flatMap { $0.id != global.id ? previousOf($0) : nil }
         let body = PersonalRequest(followed: followed.map(\.id), interests: interests, favorites: favorites, affinity: affinity.n > 0 ? affinity : nil, previous: previous)
-        guard let mine = try? await HootAPI.personal(body), mine.id == global.id else { return }
+        guard let mine = try? await HootAPI.personal(body), mine.id == global.id, basis == basisNow else { return }
         personal = mine
         personalBasis = basis
     }
@@ -318,19 +333,24 @@ final class HootStore {
     private func previousOf(_ e: Edition) -> PreviousEdition? {
         guard let lead = e.entries.first else { return nil }
         let stories = e.entries.filter { $0.kind == "story" }
-        var items = Set(e.entries.map { $0.leadId ?? $0.id })
-        for s in stories { items.formUnion(storiesById[s.id]?.itemIds ?? []) }
-        return PreviousEdition(storyIds: stories.map(\.id), itemIds: Array(items), leadIds: [lead.leadId ?? lead.id], leadStoryId: lead.kind == "story" ? lead.id : nil, at: (e.builtAt.flatMap(HootDate.parse)?.timeIntervalSince1970 ?? 0) * 1000)
+        // Alleen de stukken die toen in de editie stonden, zoals de website: wat er sindsdien bij een
+        // verhaal kwam, telt de server als "vers" (een verhaal dat zich ontwikkelt, zakt minder ver).
+        let items = Set(e.entries.map { $0.leadId ?? $0.id })
+        return PreviousEdition(storyIds: stories.flatMap { [$0.id, $0.formerId].compactMap { $0 } }, itemIds: Array(items), leadIds: [lead.leadId ?? lead.id], leadStoryId: lead.kind == "story" ? lead.id : nil, at: (e.builtAt.flatMap(HootDate.parse)?.timeIntervalSince1970 ?? 0) * 1000)
     }
 
     // ---- Digest ----
     // Levert de server dit vak? Zolang de Digest niet geladen is: ja.
+    private var digestLoadedAt: Date?
     func offersField(_ id: String) -> Bool { digest.map { $0.fields.contains { $0.id == id } } ?? true }
     func loadDigest(force: Bool = false) async {
-        if digestStatus == .loading || (!force && digest != nil) { return }
+        let due = digest?.next.flatMap(HootDate.parse).map { $0 < .now } ?? false
+        let old = digestLoadedAt.map { Date.now.timeIntervalSince($0) > 3600 } ?? false
+        if digestStatus == .loading || (!force && digest != nil && !due && !old) { return }
         digestStatus = .loading
         do {
             digest = try await HootAPI.digest()
+            digestLoadedAt = .now
             digestStatus = .ready
         } catch {
             digestStatus = digest == nil ? .failed : .ready

@@ -83,7 +83,7 @@ struct DigestView: View {
         let picked = fields.reduce(0) { $0 + $1.top.count }
         return VStack(alignment: .leading, spacing: Space.s2) {
             Kicker(text: d.preview == true ? "Voorproefje · de afgelopen zeven dagen" : "Week \(d.week ?? 0) · \(Self.span(d.from, d.to))")
-            Text("\(picked) stukken in \(fields.count == 1 ? "1 vakgebied" : "\(fields.count) vakgebieden")")
+            Text("\(picked == 1 ? "1 stuk" : "\(picked) stukken") in \(fields.count == 1 ? "1 vakgebied" : "\(fields.count) vakgebieden")")
                 .font(Theme.headline(.title2))
                 .fixedSize(horizontal: false, vertical: true)
             if d.preview == true, let next = d.next.flatMap(HootDate.parse) {
@@ -200,7 +200,7 @@ private struct DigestCard: View {
                     // Eén tekst met links, zodat hij bij grote tekst gewoon terugloopt.
                     Text(Self.alsoLine(also)).font(.caption).foregroundStyle(Theme.ink3)
                 }
-                SourceLine(item: item.asItem)
+                SourceLine(item: item.asItem, linkSource: false) // de Digest heeft geen bronpagina's
                 if let via = item.via { Text("via \(via)").font(.caption2).foregroundStyle(Theme.ink3) }
             }
             .padding(.horizontal, Space.s4)

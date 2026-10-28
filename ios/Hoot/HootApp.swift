@@ -7,6 +7,16 @@ struct HootApp: App {
     init() {
         // Beelden bewaren tussen scrollen en starten (AsyncImage cachet zelf pas vanaf iOS 27).
         URLCache.shared = URLCache(memoryCapacity: 64 << 20, diskCapacity: 300 << 20)
+        // Schermtitels (Middageditie, Stroom, Digest …) in de krantenletter, zoals op de website: groot
+        // op 800, klein in de balk op 700. Groeit mee met de tekstgrootte.
+        func serif(_ style: UIFont.TextStyle, _ weight: UIFont.Weight) -> UIFont {
+            let d = UIFontDescriptor.preferredFontDescriptor(withTextStyle: style)
+            let serif = (d.withDesign(.serif) ?? d).addingAttributes([.traits: [UIFontDescriptor.TraitKey.weight: weight]])
+            return UIFont(descriptor: serif, size: 0)
+        }
+        let bar = UINavigationBar.appearance()
+        bar.largeTitleTextAttributes = [.font: serif(.largeTitle, .heavy)]
+        bar.titleTextAttributes = [.font: serif(.headline, .bold)]
     }
 
     // Alleen bij een koude start: het opstartscherm met de stuiterende punt, tot er iets te lezen is.
@@ -14,7 +24,7 @@ struct HootApp: App {
 
     var body: some Scene {
         WindowGroup {
-            WidthReader { RootView() }
+            WidthReader { RootView().accessibilityHidden(splash) } // VoiceOver niet achter het opstartscherm
                 .environment(store)
                 .tint(Theme.accent)
                 .overlay {
@@ -83,7 +93,7 @@ struct RootView: View {
         }
         .tabViewStyle(.sidebarAdaptable) // iPad en brede vensters: zijbalk of tabbalk bovenaan
         .environment(\.openTab) { tab = $0 }
-        .background { shortcuts }
+        .background { if reader.item == nil { shortcuts } } // niet achter de open lezer
         .tabBarMinimizeBehavior(.onScrollDown)
         .task { await store.load() }
         #if DEBUG
@@ -99,13 +109,16 @@ struct RootView: View {
         .debugAppearance()
         .onChange(of: phase) { _, now in
             // Terug in de app na een tijdje weg: verversen.
-            if now == .active, let at = store.updatedAt, Date.now.timeIntervalSince(at) > 15 * 60 { Task { await store.load() } }
+            // Ook na een mislukte koude start (nog niets geladen): dan meteen opnieuw proberen.
+            guard now == .active else { return }
+            if store.updatedAt.map({ Date.now.timeIntervalSince($0) > 15 * 60 }) ?? true || store.status == .failed { Task { await store.load() } }
         }
         .environment(reader)
         .fullScreenCover(item: $reader.item) { item in
             // Reader.open laat alleen http(s) door; mocht er toch niets te tonen zijn, dan meteen dicht.
             if let url = item.link, Reader.canShow(url) {
-                if store.openWith == "web" {
+                // Een Bluesky-post zonder eigen link heeft geen artikel: meteen de post op bsky.app.
+                if store.openWith == "web" || (item.isPost && url.host()?.hasSuffix("bsky.app") == true) {
                     SafariView(url: url, reader: store.readerFirst).ignoresSafeArea()
                 } else {
                     ArticleReaderView(item: item)

@@ -101,6 +101,7 @@ struct EditionEntry: Codable, Hashable {
     let kind: String
     let id: String
     var leadId: String?
+    var formerId: String? // het verhaal heette in een vorige editie anders (samengevoegd of gesplitst)
     var desk: String?
     var sourceCount: Int?
     var terms: [EntryTerm]?

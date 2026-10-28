@@ -2,6 +2,15 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.40.0] — 2026-10-28 — Een uitnodigend welkom
+
+- **Welkom herschreven:** vloeiender en uitnodigender.
+  - De editie heet nu "Je eigen editie, drie keer per dag".
+  - Bij Interesses staat niet meer dat de editie voor iedereen gelijk is; die is persoonlijk.
+  - De knoppen heten "Stel je Hoot samen" en "Naar je editie".
+- **Gemaakt door Baldadig.nl** (Instellingen), met een link.
+- **Design system:** schermtitels staan in de serif.
+
 ## [1.39.0] — 2026-10-28 — Bluesky is persoonlijk
 
 - **Geen standaard Bluesky-accounts meer.** Aaron Rupar en de groep Oekraïne (14 accounts) haalt Hoot niet meer voor iedereen op. Je voegt zelf mensen toe met hun @-naam: op de website op de Bluesky-pagina, in de app in de Stroom.
