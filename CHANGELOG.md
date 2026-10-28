@@ -2,6 +2,11 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.50.1] — 2026-10-28 — iOS 1.0 (31): naadloos van opstart naar welkom
+
+- **Geen flits meer:** tussen het opstartscherm en het welkom zag je heel even de editie. Het welkom kwam als los blad over de app heen; nu staat het op dezelfde plek. Het opstartscherm gaat direct over in het welkom, en het welkom in de editie. De editie laadt al tijdens het welkom, zodat hij klaarstaat als je begint.
+- **Inloggen, nog korter:** "Inloggen", "Je Hoot op al je apparaten." en "Nog op uitnodiging."
+
 ## [1.50.0] — 2026-10-28 — Je Bluesky-accounts gaan mee met je account
 
 - **Bluesky:** de mensen die je zelf toevoegt (bij Bluesky in de Stroom) stonden alleen op het toestel. Nu gaan ze mee met je account, net als je bronnen: op de website, in de app en op al je toestellen.

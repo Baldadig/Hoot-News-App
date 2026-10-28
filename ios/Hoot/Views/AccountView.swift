@@ -97,10 +97,10 @@ struct AccountView: View {
         VStack(spacing: 0) {
             Spacer()
             OnboardingArt(kind: .intro) // "hoot." met de ademende punt, zoals het welkom
-            Text("Log in bij Hoot")
+            Text("Inloggen")
                 .font(Theme.headline(.title))
                 .padding(.top, Space.s4)
-            Text("Je editie en Bewaard op al je apparaten.")
+            Text("Je Hoot op al je apparaten.")
                 .font(.body)
                 .foregroundStyle(Theme.ink2)
                 .multilineTextAlignment(.center)
@@ -140,7 +140,7 @@ struct AccountView: View {
                     .multilineTextAlignment(.center)
                     .padding(.top, Space.s3)
             }
-            Text("Hoot is nog op uitnodiging.")
+            Text("Nog op uitnodiging.")
                 .font(.footnote)
                 .foregroundStyle(Theme.ink3)
                 .padding(.top, Space.s4)

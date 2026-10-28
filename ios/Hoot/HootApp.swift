@@ -27,24 +27,29 @@ struct HootApp: App {
 
     var body: some Scene {
         WindowGroup {
-            WidthReader { RootView().accessibilityHidden(splash) } // VoiceOver niet achter het opstartscherm
-                .environment(store)
-                .environment(account)
-                .tint(Theme.accent)
-                .overlay {
-                    if splash { SplashView().transition(.opacity) }
+            // De eerste keer het welkom, daarna de app. Op dezelfde plek (geen blad eroverheen), zodat
+            // het opstartscherm naadloos overgaat in het welkom en het welkom in de editie.
+            Group {
+                if store.onboarded {
+                    WidthReader { RootView() }
+                } else {
+                    WelcomeView()
                 }
-                .task { await endSplash() }
-                .task { await account.start(store) }
-                // Wat met je account meegaat: wegschrijven; terug in de app: ophalen.
-                .onChange(of: store.syncTick) { account.changed() }
-                .onChange(of: phase) { _, now in if now == .active { Task { await account.pull() } } }
-                // De eerste keer: een welkom, net als op de website. Hier en niet in RootView: daar
-                // presenteert de lezer al op volledig scherm, en één weergave kan er maar één tonen.
-                // Pas na het opstartscherm, anders schuift het welkom eroverheen.
-                .fullScreenCover(isPresented: Binding(get: { !store.onboarded && !splash }, set: { if !$0 { store.onboarded = true } })) {
-                    WelcomeView().environment(store).environment(account)
-                }
+            }
+            .accessibilityHidden(splash) // VoiceOver niet achter het opstartscherm
+            .animation(.easeInOut(duration: 0.45), value: store.onboarded)
+            .environment(store)
+            .environment(account)
+            .tint(Theme.accent)
+            .overlay {
+                if splash { SplashView().transition(.opacity) }
+            }
+            .task { await endSplash() }
+            .task { await store.load() } // ook al tijdens het welkom: de editie staat klaar als je begint
+            .task { await account.start(store) }
+            // Wat met je account meegaat: wegschrijven; terug in de app: ophalen.
+            .onChange(of: store.syncTick) { account.changed() }
+            .onChange(of: phase) { _, now in if now == .active { Task { await account.pull() } } }
         }
     }
 
