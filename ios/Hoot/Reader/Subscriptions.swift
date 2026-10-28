@@ -79,13 +79,49 @@ enum PublisherLogin {
         return true
     }
 
-    // Bij welke van deze domeinen staat een inlog in de opslag van de lezer?
+    // Bij welke van deze domeinen staat een inlog in de opslag van de lezer? Een herkende inlogcookie,
+    // of een inlog die we zagen ontstaan toen je in Hoot inlogde (zolang de site nog cookies heeft).
     static func loggedIn(_ domains: [String]) async -> Set<String> {
+        let cookies = await allCookies()
+        let seen = remembered
+        return Set(domains.filter { d in
+            cookies.contains { matches($0.domain, d) && isLogin($0, domain: d) }
+                || (seen.contains(d) && cookies.contains { matches($0.domain, d) })
+        })
+    }
+
+    private static func allCookies() async -> [HTTPCookie] {
         // Na het opstarten geeft de cookie-opslag niets terug zolang WebKit de bewaarde cookies nog
         // niet inlas; de lijst met websitegegevens opvragen laat hem dat eerst doen.
         _ = await ArticleLoader.dataStore.dataRecords(ofTypes: [WKWebsiteDataTypeCookies])
-        let cookies = await ArticleLoader.dataStore.httpCookieStore.allCookies()
-        return Set(domains.filter { d in cookies.contains { matches($0.domain, d) && isLogin($0, domain: d) } })
+        return await ArticleLoader.dataStore.httpCookieStore.allCookies()
+    }
+
+    // Niet elke uitgever heeft een inlogcookie die we kennen (NRC, DPG …). Daarom kijken we tijdens het
+    // inloggen wat er bijkomt: een blijvende cookie met een naam die naar een account of inlog wijst,
+    // die er bij het openen van de inlogpagina nog niet was. Alleen het verschil telt, zodat wat een
+    // site iedereen meegeeft (meten, toestemming) niet als inlog geldt.
+    private static let accountWords = ["auth", "token", "sso", "login", "logged", "member", "subscri", "account", "abonne", "user", "session", "sid", "jwt"]
+
+    static func accountCookies(_ domain: String) async -> Set<String> {
+        let cookies = await allCookies()
+        return Set(cookies.filter { c in
+            guard matches(c.domain, domain), let expires = c.expiresDate, expires > .now.addingTimeInterval(3600) else { return false }
+            let name = c.name.lowercased()
+            return !noise.contains(where: name.contains) && accountWords.contains(where: name.contains)
+                && !["", "0", "false", "null", "undefined", "no"].contains(c.value.lowercased())
+        }.map { "\($0.domain)|\($0.name)" })
+    }
+
+    // Uitgevers waar we je zagen inloggen (alleen op dit toestel, net als de inlog zelf).
+    private static let rememberedKey = "hoot.publisherLogins"
+    static var remembered: Set<String> { Set(UserDefaults.standard.stringArray(forKey: rememberedKey) ?? []) }
+    static func remember(_ domain: String) {
+        UserDefaults.standard.set(Array(remembered.union([domain])).sorted(), forKey: rememberedKey)
+    }
+    static func forget(_ domain: String? = nil) {
+        let left = domain.map { remembered.subtracting([$0]) } ?? []
+        UserDefaults.standard.set(Array(left).sorted(), forKey: rememberedKey)
     }
 
     // Uitloggen bij één uitgever: alles wat de site in de lezer bewaarde (cookies, opslag) weg.
@@ -97,6 +133,7 @@ enum PublisherLogin {
         for c in await store.httpCookieStore.allCookies() where matches(c.domain, domain) {
             await store.httpCookieStore.deleteCookie(c)
         }
+        forget(domain)
     }
 }
 
@@ -164,6 +201,7 @@ struct SubscriptionsView: View {
             Button("Annuleer", role: .cancel) {}
             Button("Log uit", role: .destructive) {
                 ArticleLoader.dataStore.removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: .distantPast) {}
+                PublisherLogin.forget()
                 loggedIn = []
             }
         } message: {

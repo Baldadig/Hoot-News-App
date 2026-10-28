@@ -12,8 +12,12 @@ struct ArticleReaderView: View {
     @State private var loader = ArticleLoader()
     @AppStorage("hoot.readerSize") private var size = 1
     @State private var login: LoginTarget?
+    @State private var signedIn = false // ingelogd bij deze uitgever: dan geen balk "Zie je maar een deel?"
+    @State private var welcome = false // even de bevestiging na het inloggen
 
     private var source: Source? { store.source(item.source) }
+    private var loginURL: URL? { source.flatMap { PublisherLogin.url(for: $0, store: store) } ?? item.link.flatMap(LoginTarget.home) }
+    private var domain: String? { loginURL.flatMap(PublisherLogin.domain(of:)) }
     private var sourceName: String { item.sourceName ?? source?.name ?? "" }
 
     var body: some View {
@@ -34,7 +38,7 @@ struct ArticleReaderView: View {
                     ArticleWebView(html: ReaderHTML.page(article, item: item, sourceName: sourceName, size: size, lang: source?.lang), baseURL: item.link)
                         .ignoresSafeArea(edges: .bottom)
                         .safeAreaInset(edge: .bottom) {
-                            if source?.paid == true && article.length < 2500 { paywallNote }
+                            if source?.paid == true && article.length < 2500 && !signedIn { paywallNote }
                         }
                 case .visit:
                     VStack(spacing: 0) {
@@ -85,21 +89,61 @@ struct ArticleReaderView: View {
                     SaveButton(item: item)
                 }
             }
-            // Na inloggen het artikel opnieuw laden: nu met je abonnement.
-            .sheet(item: $login, onDismiss: { if let url = item.link { loader.load(url) } }) { target in LoginWebView(target: target) }
+            // Na inloggen: bevestigen en het artikel opnieuw laden, nu met je abonnement.
+            .sheet(item: $login, onDismiss: afterLogin) { target in LoginWebView(target: target) }
+            .overlay(alignment: .top) {
+                if welcome {
+                    Label("Ingelogd bij \(sourceName)", systemImage: "checkmark.circle.fill")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Theme.onAccent)
+                        .padding(.horizontal, Space.s4)
+                        .padding(.vertical, Space.s2)
+                        .background(Theme.accent, in: Capsule())
+                        .padding(.top, Space.s2)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .accessibilityAddTraits(.isStaticText)
+                }
+            }
         }
         .task { if let url = item.link { loader.load(url) } }
+        .task {
+            signedIn = await isSignedIn()
+            #if DEBUG
+            if DebugLaunch.screen("inloggen") { login = LoginTarget(name: sourceName, url: loginURL) }
+            #endif
+        }
         .onDisappear { loader.stop() }
     }
 
-    // Een betaalde bron met weinig tekst: waarschijnlijk zie je maar het begin.
+    private func isSignedIn() async -> Bool {
+        guard let domain else { return false }
+        return await !PublisherLogin.loggedIn([domain]).isEmpty
+    }
+
+    private func afterLogin() {
+        if let url = item.link { loader.load(url) }
+        Task {
+            let now = await isSignedIn()
+            if now && !signedIn {
+                withAnimation(.snappy) { signedIn = true; welcome = true }
+                UIAccessibility.post(notification: .announcement, argument: "Ingelogd bij \(sourceName)")
+                try? await Task.sleep(for: .seconds(2.5))
+                withAnimation(.easeInOut) { welcome = false }
+            } else {
+                signedIn = now
+            }
+        }
+    }
+
+    // Een betaalde bron met weinig tekst: waarschijnlijk zie je maar het begin. Weg zodra je bij
+    // deze uitgever bent ingelogd: dan is een kort stuk gewoon kort.
     private var paywallNote: some View {
         VStack(alignment: .leading, spacing: Space.s2) {
             Text("Zie je maar een deel? Ben je abonnee van \(sourceName), log dan één keer in; daarna lees je de hele stukken hier.")
                 .font(.footnote)
                 .foregroundStyle(Theme.ink3)
             HStack {
-                Button("Inloggen bij \(sourceName)") { login = LoginTarget(name: sourceName, url: source?.login.flatMap(URL.init(string:)) ?? item.link.flatMap(LoginTarget.home)) }
+                Button("Inloggen bij \(sourceName)") { login = LoginTarget(name: sourceName, url: loginURL) }
                     .buttonStyle(.glassProminent)
                 Button("Bij de uitgever") { if let url = item.link { openURL(url) } }
                     .buttonStyle(.glass)
@@ -219,6 +263,7 @@ struct LoginWebView: View {
         config.websiteDataStore = ArticleLoader.dataStore
         return WKWebView(frame: .zero, configuration: config)
     }()
+    @State private var done = false // we zien dat je bent ingelogd
 
     var body: some View {
         NavigationStack {
@@ -227,18 +272,64 @@ struct LoginWebView: View {
                 .navigationTitle("Inloggen bij \(target.name)")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { dismiss() } }
+                    // Pas na het inloggen is "Klaar" de volgende stap, in rood; daarvoor een gewone knop
+                    // (iOS kleurt een bevestigingsknop anders vanzelf).
+                    if done {
+                        ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { dismiss() } }
+                    } else {
+                        ToolbarItem(placement: .topBarTrailing) { Button("Klaar", systemImage: "checkmark") { dismiss() }.tint(Theme.ink3) }
+                    }
                 }
                 .safeAreaInset(edge: .top) {
-                    Text("Log in zoals je op de website gewend bent. Je inlog blijft alleen in de lezer van Hoot op dit toestel.")
-                        .font(.footnote)
-                        .foregroundStyle(Theme.ink3)
-                        .padding(.horizontal)
-                        .padding(.vertical, Space.s2)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(.bar)
+                    Group {
+                        if done {
+                            // De bevestiging: je bent binnen, en wat je nu kunt.
+                            Label("Je bent ingelogd bij \(target.name). Tik op Klaar om verder te lezen.", systemImage: "checkmark.circle.fill")
+                                .foregroundStyle(Theme.accent)
+                        } else {
+                            Text("Log in zoals je op de website gewend bent. Je inlog blijft alleen in de lezer van Hoot op dit toestel.")
+                                .foregroundStyle(Theme.ink3)
+                        }
+                    }
+                    .font(.footnote)
+                    .padding(.horizontal)
+                    .padding(.vertical, Space.s2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.bar)
+                    .animation(.easeInOut(duration: 0.3), value: done)
                 }
+                .sensoryFeedback(.success, trigger: done) { _, now in now }
         }
         .task { if let url = target.url { webView.load(URLRequest(url: url)) } }
+        .task { await watch() }
+    }
+
+    // Kijk mee of er een inlog bijkomt: een bekende inlogcookie, of een nieuwe accountcookie die er bij
+    // het openen nog niet was. Dan onthouden we de uitgever (alleen op dit toestel) en bevestigen we.
+    private func watch() async {
+        guard let domain = target.url.flatMap(PublisherLogin.domain(of:)) else { return }
+        let before = await PublisherLogin.accountCookies(domain)
+        #if DEBUG
+        // `-HootFakeLogin 4`: na 4 s een accountcookie, alsof je inlogde (om deze stap te testen).
+        let fake = UserDefaults.standard.double(forKey: "HootFakeLogin")
+        if fake > 0 {
+            Task {
+                try? await Task.sleep(for: .seconds(fake))
+                let cookie = HTTPCookie(properties: [.domain: "." + domain, .path: "/", .name: "hoot_test_account", .value: "1", .expires: Date.now.addingTimeInterval(86400 * 30)])
+                if let cookie { await ArticleLoader.dataStore.httpCookieStore.setCookie(cookie) }
+            }
+        }
+        #endif
+        if await !PublisherLogin.loggedIn([domain]).isEmpty { done = true; return } // al ingelogd
+        while !Task.isCancelled {
+            try? await Task.sleep(for: .seconds(1))
+            let known = await !PublisherLogin.loggedIn([domain]).isEmpty
+            let added = await PublisherLogin.accountCookies(domain).subtracting(before)
+            if known || !added.isEmpty {
+                PublisherLogin.remember(domain)
+                done = true
+                return
+            }
+        }
     }
 }

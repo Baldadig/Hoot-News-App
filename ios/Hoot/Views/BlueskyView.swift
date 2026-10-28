@@ -20,7 +20,7 @@ struct BlueskyFeed: View {
             if store.status == .loading && posts.isEmpty {
                 ProgressView().frame(maxWidth: .infinity, minHeight: 240)
             } else if posts.isEmpty {
-                EmptyState(title: people.isEmpty ? "Je volgt nog niemand" : "Nog geen posts", systemImage: "bubble.left.and.bubble.right", text: people.isEmpty ? "Tik rechtsboven op Accounts en voeg iemand toe met de @-naam, bijvoorbeeld @naam.bsky.social." : "Zodra de mensen die je volgt iets plaatsen, staat het hier.")
+                EmptyState(title: people.isEmpty ? "Je volgt nog niemand" : "Nog geen posts", systemImage: "bubble.left.and.bubble.right", text: people.isEmpty ? "Tik rechtsboven op + en voeg iemand toe met de @-naam, bijvoorbeeld @naam.bsky.social." : "Zodra de mensen die je volgt iets plaatsen, staat het hier.")
             } else {
                 StaleNotice()
                 ForEach(posts) { post in

@@ -139,6 +139,14 @@ struct RootView: View {
                 let free = { (i: Item) in store.source(i.source).map { $0.paid != true } ?? false }
                 reader.item = all.first { free($0) && store.source($0.source)?.lang == "nl" } ?? all.first(where: free) ?? all.first
             }
+            // `-HootScreen inloggen [-HootSource nrc]`: een stuk van die (of een andere betaalde) bron, met het
+            // inlogscherm open.
+            if DebugLaunch.screen("inloggen"), reader.item == nil, !store.editionRows.isEmpty {
+                let id = UserDefaults.standard.string(forKey: "HootSource")
+                let all = store.editionRows.flatMap { row in [row.item] + (row.story?.itemIds.compactMap { store.itemsById[$0] } ?? []) } + store.stream
+                reader.item = all.first { $0.source == id && $0.link != nil }
+                    ?? all.first { store.source($0.source)?.paid == true && $0.link != nil }
+            }
         }
         #endif
         .debugAppearance()

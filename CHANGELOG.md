@@ -2,6 +2,13 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.51.0] — 2026-10-28 — iOS: inloggen bij je krant, met bevestiging
+
+- **Je ziet dat het gelukt is:** tijdens het inloggen bij een uitgever kijkt Hoot mee. Zodra je binnen bent, staat bovenin "Je bent ingelogd bij NRC. Tik op Klaar om verder te lezen.", met een tikje, en wordt Klaar rood. Terug in de lezer verschijnt kort "✓ Ingelogd bij NRC" en laadt het artikel opnieuw, nu met je abonnement.
+- **De balk onderin is weg** ("Zie je maar een deel? … Inloggen bij NRC / Bij de uitgever") zodra je bij die uitgever bent ingelogd.
+- **Ook bij uitgevers zonder bekende inlogcookie** (NRC, DPG …): Hoot vergelijkt wat er tijdens het inloggen bijkomt. Alleen het openen van een inlogpagina telt niet als inlog (getest op de DPG-pagina). Ook Instellingen › Je abonnementen toont ze dan als Ingelogd; uitloggen daar wist het weer.
+- **Bluesky:** de tekst bij een lege lijst zegt nu "Tik rechtsboven op +", passend bij de nieuwe knop.
+
 ## [1.50.2] — 2026-10-28 — iOS: het rood wordt de punt
 
 - **Van opstart naar welkom:** het rode opstartscherm sluit zich als een iris tot de rode punt van "hoot." op de eerste pagina. Het witte woordmerk landt eerst precies op zijn plek; de rand van het rood veegt de witte letters weg en de inkt staat er al. Eén beweging van een seconde. Met "Verminder beweging", of als je de app al kent: gewoon vervagen.
