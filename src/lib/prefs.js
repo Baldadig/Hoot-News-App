@@ -44,6 +44,8 @@ export function normalizePrefs(raw) {
   if (typeof out.weatherPlace !== 'string') out.weatherPlace = 'haarlem'
   if (!Array.isArray(out.followStories)) out.followStories = []
   out.vak = Array.isArray(out.vak) ? out.vak.filter((f) => VAK_FIELD_IDS.includes(f)) : []
+  // Bluesky-accounts die je zelf toevoegde ({ handle, name, avatar }); gaan mee met je account.
+  out.social = Array.isArray(out.social) ? out.social.filter((a) => a && typeof a.handle === 'string') : []
   // Opgeruimde instellingen (voorlezen en Instapaper, tot v1.19) niet meer meedragen.
   for (const k of ['instapaper', 'readAloud', 'voice']) delete out[k]
   return out

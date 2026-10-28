@@ -49,7 +49,7 @@ final class HootStore {
     private var personalBasis: String { didSet { save("hoot.personalBasis", personalBasis) } }
     // Bluesky als eigen tabblad, met de vaste accounts van Hoot en wie je zelf toevoegt.
     var bluesky: Bool { didSet { save("hoot.bluesky", bluesky); synced(); if bluesky { reloadParts(); Task { await loadOwnPosts() } } } }
-    private(set) var ownBluesky: [BlueskyAccount] { didSet { save("hoot.ownBluesky", ownBluesky) } }
+    private(set) var ownBluesky: [BlueskyAccount] { didSet { save("hoot.ownBluesky", ownBluesky); synced() } }
     private var ownPosts: [Item] = []
 
     // Laatste verversing mislukt: je ziet de versie van `updatedAt`.
@@ -130,7 +130,8 @@ final class HootStore {
             var preview: Int?
             var interests: [String]?
             var favorites: [String]?
-            enum CodingKeys: String, CodingKey { case muted, enabled, vak, images, bubble, bluesky, preview, interests, favorites }
+            var social: [BlueskyAccount]? // eigen Bluesky-accounts, zoals op de website
+            enum CodingKeys: String, CodingKey { case muted, enabled, vak, images, bubble, bluesky, preview, interests, favorites, social }
             init(from decoder: Decoder) throws {
                 let c = try decoder.container(keyedBy: CodingKeys.self)
                 muted = try? c.decodeIfPresent([String].self, forKey: .muted)
@@ -141,6 +142,7 @@ final class HootStore {
                 bluesky = try? c.decodeIfPresent(Bool.self, forKey: .bluesky)
                 interests = try? c.decodeIfPresent([String].self, forKey: .interests)
                 favorites = try? c.decodeIfPresent([String].self, forKey: .favorites)
+                social = try? c.decodeIfPresent([BlueskyAccount].self, forKey: .social)
                 // Op de website is het 1, 2, 3 of "alles".
                 preview = (try? c.decodeIfPresent(Int.self, forKey: .preview)) ?? ((try? c.decodeIfPresent(String.self, forKey: .preview)) == "alles" ? 0 : nil)
             }
@@ -157,7 +159,7 @@ final class HootStore {
     }
     // Alleen wat echt anders is: elke toewijzing laadt opnieuw (Bluesky, jouw editie), en dat zou
     // anders na elke synchronisatie gebeuren, ook als er niets veranderde.
-    private func apply(_ p: Import.Prefs?) {
+    private func apply(_ p: Import.Prefs?, unite: Bool = false) {
         if let v = p?.muted, Set(v) != muted { muted = Set(v); save("hoot.muted", v) }
         if let v = p?.enabled, Set(v) != enabled { enabled = Set(v); save("hoot.enabled", v) }
         if let v = p?.vak, v != digestFields { digestFields = v; save("hoot.digestFields", v) }
@@ -167,6 +169,12 @@ final class HootStore {
         if let v = p?.preview, v != preview, (0 ... 3).contains(v) { preview = v; save("hoot.preview", v) }
         if let v = p?.interests, v != interests { interests = v; save("hoot.interests", v) }
         if let v = p?.favorites, v != favorites { favorites = v; save("hoot.favorites", v) }
+        if let v = p?.social {
+            // De eerste keer met een account (`unite`): wat hier al stond blijft erbij. Daarna gaat je
+            // account voor, zodat ook weghalen op een ander toestel meekomt.
+            let next = unite ? v + ownBluesky.filter { a in !v.contains { $0.handle == a.handle } } : v
+            if next != ownBluesky { ownBluesky = next; Task { await loadOwnPosts() } }
+        }
     }
 
     // ---- Synchroniseren met je account (Account.swift) ----
@@ -182,17 +190,18 @@ final class HootStore {
             "muted": muted.sorted(), "enabled": enabled.sorted(), "vak": digestFields, "images": images,
             "bubble": bubble, "bluesky": bluesky, "preview": preview == 0 ? "alles" as Any : preview as Any,
             "interests": interests, "favorites": favorites, "onboarded": true,
+            "social": ownBluesky.map { ["handle": $0.handle, "name": $0.name, "avatar": $0.avatar as Any] },
         ]
     }
     var readIds: [String] { readOrder }
 
     // Wat je account heeft: instellingen (als die er zijn), gelezen erbij, Bewaard zoals berekend.
-    func applyRemote(prefs: Data?, read: [String], saved list: [Item]?) {
+    func applyRemote(prefs: Data?, read: [String], saved list: [Item]?, unite: Bool = false) {
         applyingRemote = true
         defer { applyingRemote = false }
         let following = followingIds
         if let prefs, let p = try? JSONDecoder().decode(Import.Prefs.self, from: prefs) {
-            apply(p)
+            apply(p, unite: unite)
             onboarded = true
             browsing = false // je eigen keuzes staan er al
         }

@@ -94,7 +94,8 @@ export default function App() {
   const { theme, setTheme } = useTheme(prefs.palette)
   const hasPanel = useWide('(min-width: 1200px)')
   const [refreshKey, setRefreshKey] = useState(0)
-  const social = useSocialSources(refreshKey)
+  const setSocial = useCallback((list) => setPref('social', list), [setPref])
+  const social = useSocialSources(refreshKey, prefs.social, setSocial)
 
   const [saved, setSaved] = useStored('hoot:saved-v2', {})
   const [readIds, setReadIds] = useStored('hoot:read', [])

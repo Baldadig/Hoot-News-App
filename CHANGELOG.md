@@ -2,6 +2,14 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.50.0] — 2026-10-28 — Je Bluesky-accounts gaan mee met je account
+
+- **Bluesky:** de mensen die je zelf toevoegt (bij Bluesky in de Stroom) stonden alleen op het toestel. Nu gaan ze mee met je account, net als je bronnen: op de website, in de app en op al je toestellen.
+  - **Eerste keer inloggen:** wat al op het toestel stond, komt erbij in plaats van te verdwijnen.
+  - **Daarna:** je account gaat voor, dus ook weghalen op een ander toestel komt mee.
+  - **Website:** de oude, losse opslag wordt eenmalig overgezet.
+- **Test:** samenvoegen en weghalen van Bluesky-accounts via de synchronisatie.
+
 ## [1.49.1] — 2026-10-28 — Een gewoon inlogscherm, en opnieuw instellen
 
 - **Inloggen (iOS):** geen kaart en geen lap uitleg meer, maar een gewoon inlogscherm in de stijl van het welkom:

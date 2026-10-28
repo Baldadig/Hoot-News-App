@@ -126,6 +126,12 @@ export class SyncEngine {
       // Openstaande lokale instellingen (sinds de laatste bevestiging) gaan voor.
       const statePending = this.mode === 'continue' && this.base.state !== null && stateHash(local) !== this.base.state
       const prefs = statePending || !hasRemotePrefs ? local.prefs : { ...local.prefs, ...pickSynced(remote.prefs) }
+      // Bluesky-accounts: bij het samenvoegen (eerste keer met dit account) blijven die van dit
+      // toestel erbij; daarna gaat het account voor, zodat ook weghalen meekomt.
+      if (this.mode === 'merge' && Array.isArray(local.prefs?.social) && Array.isArray(prefs.social) && prefs !== local.prefs) {
+        const known = new Set(prefs.social.map((a) => a?.handle))
+        prefs.social = [...prefs.social, ...local.prefs.social.filter((a) => a && !known.has(a.handle))]
+      }
       let saved
       if (this.mode === 'merge') saved = mergeSaved(local.saved, remoteSaved)
       else {

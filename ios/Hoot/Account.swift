@@ -268,7 +268,7 @@ final class Account {
             // Instellingen: je account gaat voor, behalve wat hier nog openstaat.
             let useRemote = !remotePrefs.isEmpty && !(dirty && mode == "continue")
             let prefsData = useRemote ? try? JSONSerialization.data(withJSONObject: remotePrefs) : nil
-            store.applyRemote(prefs: prefsData, read: remoteRead, saved: merged)
+            store.applyRemote(prefs: prefsData, read: remoteRead, saved: merged, unite: mode == "merge")
             UserDefaults.standard.set(uid, forKey: "hoot.owner")
 
             // Wegschrijven: instellingen (aangevuld, wat alleen de website kent blijft staan) en gelezen.

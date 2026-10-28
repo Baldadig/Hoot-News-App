@@ -284,3 +284,19 @@ test('/api/edition: geen object, geen JSON, te groot of verkeerde methode is een
   assert.equal((await post('{"a":"' + 'x'.repeat(70000) + '"}')).status, 413)
   assert.equal((await edition(new Request('http://x/api/edition'))).status, 405)
 })
+
+// Bluesky-accounts gaan mee met je account; bij de eerste keer samenvoegen blijven die van het toestel erbij.
+test('social: samenvoegen bij eerste keer, daarna gaat het account voor', async () => {
+  const { SyncEngine } = await import('../src/lib/syncEngine.js')
+  const mem = new Map()
+  const storage = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) }
+  let local = { prefs: { social: [{ handle: 'a.bsky.social', name: 'A' }] }, read: [], seen: {}, saved: {} }
+  const remote = { prefs: { social: [{ handle: 'b.bsky.social', name: 'B' }] }, read: [], seen: {}, saved: {} }
+  const api = { pull: async () => remote, pushState: async () => {}, upsertSaved: async () => {}, deleteSaved: async () => {} }
+  const e = new SyncEngine({ uid: 'u1', api, storage, getLocal: () => local, setLocal: (n) => (local = n), schedule: () => 0, cancel: () => {} })
+  await e.start()
+  assert.deepEqual(local.prefs.social.map((a) => a.handle).sort(), ['a.bsky.social', 'b.bsky.social'])
+  remote.prefs.social = [{ handle: 'b.bsky.social', name: 'B' }]
+  await e.pull()
+  assert.deepEqual(local.prefs.social.map((a) => a.handle), ['b.bsky.social'])
+})

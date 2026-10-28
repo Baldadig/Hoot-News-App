@@ -1,46 +1,44 @@
 import { useCallback, useEffect, useState } from 'react'
 import { fetchAuthorItems } from '../lib/bluesky.js'
 
-const KEY = 'hoot:social-sources' // [{ handle, name, avatar }]
+const LEGACY = 'hoot:social-sources' // tot 1.49: los in de opslag, niet in je instellingen
 
-function load() {
+function legacy() {
   try {
-    const arr = JSON.parse(localStorage.getItem(KEY) || '[]')
-    return Array.isArray(arr) ? arr : []
+    const arr = JSON.parse(localStorage.getItem(LEGACY) || '[]')
+    return Array.isArray(arr) ? arr.filter((a) => a && typeof a.handle === 'string') : []
   } catch {
     return []
   }
 }
 
-function persist(list) {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(list))
-  } catch {
-    /* opslag vol — niet erg */
-  }
-}
-
-// Beheert de zelf-toegevoegde Bluesky-bronnen (localStorage) en haalt hun posts op.
-export function useSocialSources(refreshKey = 0) {
-  const [sources, setSources] = useState(load)
+// Beheert de zelf-toegevoegde Bluesky-bronnen en haalt hun posts op. Ze staan in je instellingen
+// (`social`), zodat ze met je account meegaan naar je andere toestellen en de app.
+export function useSocialSources(refreshKey = 0, sources = [], setSources = () => {}) {
   const [items, setItems] = useState([])
 
-  const addSource = useCallback((profile) => {
-    setSources((prev) => {
-      if (prev.some((p) => p.handle === profile.handle)) return prev
-      const next = [...prev, { handle: profile.handle, name: profile.name, avatar: profile.avatar }]
-      persist(next)
-      return next
-    })
-  }, [])
+  // Eenmalig overzetten uit de oude, losse opslag.
+  useEffect(() => {
+    const old = legacy()
+    if (old.length && !sources.length) setSources(old)
+    if (old.length) {
+      try {
+        localStorage.removeItem(LEGACY)
+      } catch {
+        /* geen opslag: dan de volgende keer opnieuw */
+      }
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const removeSource = useCallback((handle) => {
-    setSources((prev) => {
-      const next = prev.filter((p) => p.handle !== handle)
-      persist(next)
-      return next
-    })
-  }, [])
+  const addSource = useCallback(
+    (profile) => {
+      if (sources.some((p) => p.handle === profile.handle)) return
+      setSources([...sources, { handle: profile.handle, name: profile.name, avatar: profile.avatar }])
+    },
+    [sources, setSources]
+  )
+
+  const removeSource = useCallback((handle) => setSources(sources.filter((p) => p.handle !== handle)), [sources, setSources])
 
   useEffect(() => {
     let alive = true
