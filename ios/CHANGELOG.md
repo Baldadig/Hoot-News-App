@@ -1,5 +1,12 @@
 # Changelog — Hoot voor iOS
 
+## [0.15.0] — 2026-10-28 — De stuiterende punt
+
+- **Opstartscherm als lader:** na het vaste rode opstartscherm volgt een scherm dat er pixel voor pixel hetzelfde uitziet, maar waarin de punt achter "hoot" stuitert. Elke sprong duurt 1,6 s: rustig omhoog, weer omlaag, landen met een klein deukje, en dan even stil.
+  - **Hoe lang:** het scherm blijft staan tot je editie er is, minstens één sprong en hooguit 5 seconden. Daarna vervaagt het.
+  - **Rustige stand:** met "Verminder beweging" staat de punt stil.
+- **Welkom alleen bij een verse installatie.** Wie al instellingen of gelezen stukken op het toestel heeft, slaat het welkom over. Het welkom komt pas na het opstartscherm.
+
 ## [0.14.0] — 2026-10-27 — Merkrood
 
 - **Opstartscherm in merkrood** met "hoot." in papierwit (`BrandRed`, `LaunchMark`), in licht en donker gelijk. iOS bewaart opstartschermen: het nieuwe verschijnt na herinstalleren, soms pas na een herstart.

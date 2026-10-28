@@ -90,7 +90,9 @@ final class HootStore {
         paidInSafari = Self.load("hoot.paidInSafari") ?? true
         streamSeen = Self.load("hoot.streamSeen") ?? nil
         preview = Self.load("hoot.preview") ?? 2
-        onboarded = Self.load("hoot.onboarded") ?? false
+        // Het welkom alleen bij een verse installatie: wie al instellingen of gelezen stukken heeft
+        // (bijvoorbeeld van vóór het welkom), heeft het niet nodig.
+        onboarded = Self.load("hoot.onboarded") ?? UserDefaults.standard.dictionaryRepresentation().keys.contains { $0.hasPrefix("hoot.") }
         #if DEBUG
         // Opnamen met een startargument (screenshots.sh, device-screens.sh) slaan het welkom over.
         if UserDefaults.standard.string(forKey: "HootStartTab") != nil { onboarded = true }

@@ -9,17 +9,40 @@ struct HootApp: App {
         URLCache.shared = URLCache(memoryCapacity: 64 << 20, diskCapacity: 300 << 20)
     }
 
+    // Alleen bij een koude start: het opstartscherm met de stuiterende punt, tot er iets te lezen is.
+    @State private var splash = true
+
     var body: some Scene {
         WindowGroup {
             WidthReader { RootView() }
                 .environment(store)
                 .tint(Theme.accent)
+                .overlay {
+                    if splash { SplashView().transition(.opacity) }
+                }
+                .task { await endSplash() }
                 // De eerste keer: een welkom, net als op de website. Hier en niet in RootView: daar
                 // presenteert de lezer al op volledig scherm, en één weergave kan er maar één tonen.
-                .fullScreenCover(isPresented: Binding(get: { !store.onboarded }, set: { if !$0 { store.onboarded = true } })) {
+                // Pas na het opstartscherm, anders schuift het welkom eroverheen.
+                .fullScreenCover(isPresented: Binding(get: { !store.onboarded && !splash }, set: { if !$0 { store.onboarded = true } })) {
                     WelcomeView().environment(store)
                 }
         }
+    }
+
+    // Minstens één hele sprong, dan weg zodra de editie er is (of laden mislukt); hooguit 5 seconden.
+    private func endSplash() async {
+        guard splash else { return }
+        #if DEBUG
+        if DebugLaunch.screen("opstart") { return } // `-HootScreen opstart`: blijft staan voor opnamen
+        if UserDefaults.standard.string(forKey: "HootStartTab") != nil { splash = false; return }
+        #endif
+        let start = Date.now
+        try? await Task.sleep(for: .seconds(SplashView.bounce))
+        while store.status != .ready && store.status != .failed && Date.now.timeIntervalSince(start) < 5 {
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+        withAnimation(.easeOut(duration: 0.35)) { splash = false }
     }
 }
 
