@@ -1,7 +1,7 @@
 import SwiftUI
 
 // Het welkom, één keer bij de eerste start: drie rustige pagina's om doorheen te vegen (je editie,
-// de Stroom, je Digest), elk met een kleine animatie in het midden. De knoppen staan er altijd
+// de Stroom, je selectie), elk met een kleine animatie in het midden. De knoppen staan er altijd
 // onder: zelf samenstellen of inloggen voorop, even rondkijken als zijweg.
 struct WelcomeView: View {
     @Environment(HootStore.self) private var store
@@ -20,7 +20,7 @@ struct WelcomeView: View {
         Page(art: .intro, title: "Minder scrollen.\nMeer lezen.", text: "Het nieuws van jouw bronnen,\nrustig op een rij."),
         Page(art: .editie, title: "Je editie", text: "Drie keer per dag tien verhalen.\nDan ben je bij."),
         Page(art: .stroom, title: "De Stroom", text: "Alles van je bronnen,\nrustig onder elkaar."),
-        Page(art: .digest, title: "Je Digest", text: "Eén keer per week bijgepraat\nover wat jou bezighoudt."),
+        Page(art: .digest, title: "Je selectie", text: "Eén keer per week bijgepraat\nover wat jou bezighoudt."),
     ]
 
     var body: some View {
@@ -160,7 +160,7 @@ struct SetupSteps: View {
                     .navigationTitle("Je bronnen")
                     .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Verder") { fields = true }.tint(Theme.accent) } }
                     .navigationDestination(isPresented: $fields) {
-                        // Daarna je vak, voor de Digest.
+                        // Daarna je vak, voor de Selectie.
                         DigestFieldsList()
                             .tint(Theme.accent)
                             .navigationTitle("En je vak?")

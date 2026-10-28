@@ -37,7 +37,7 @@
   --gutter: 16px;
   --tap: 44px;
   --readable: 680px; /* leesbreedte */
-  --wide: 1000px; /* brede pagina: Editie en Digest */
+  --wide: 1000px; /* brede pagina: Editie en Selectie */
   --radius: 12px;
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
@@ -3253,7 +3253,7 @@ html[data-images='hoofd'] .media--social {
   margin: var(--s1) 0 0;
 }
 
-/* ---------- Digest ---------- */
+/* ---------- Selectie (de wekelijkse, voorheen Digest) ---------- */
 /* Opgebouwd als een tijdschrift: een kop met de week, een inhoudsopgave, en per vak één groot
    stuk, twee kaarten en een korte lijst. Kaarten op --surface met een dunne rand; de nummers en
    rubriekregels in krantenrood, de koppen in de krantenletter. */

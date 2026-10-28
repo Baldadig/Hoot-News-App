@@ -89,7 +89,7 @@ function Card({ item, rank, feature = false }) {
   )
 }
 
-// Digest: elke maandag om 07:00 per vakgebied de drie belangrijkste stukken van de week ervoor,
+// Selectie: elke maandag om 07:00 per vakgebied de drie belangrijkste stukken van de week ervoor,
 // door mensen geschreven (zie netlify/lib/vak.mjs). Opbouw als een tijdschrift: een kop met de
 // week, een inhoudsopgave, en per vak één groot stuk, twee kaarten en een korte lijst.
 export default function Vak({ active, digest, status, onRefresh }) {
@@ -104,9 +104,9 @@ export default function Vak({ active, digest, status, onRefresh }) {
   const seen = fields.reduce((n, f) => n + (f.count || 0), 0)
 
   return (
-    <section className="view" hidden={!active} ref={ref} aria-label="Digest">
+    <section className="view" hidden={!active} ref={ref} aria-label="Selectie">
       <div className="col">
-        <ViewHeader title="Digest" onRefresh={onRefresh} refreshing={status === 'refreshing' || status === 'loading'} display>
+        <ViewHeader title="Selectie" onRefresh={onRefresh} refreshing={status === 'refreshing' || status === 'loading'} display>
           <div className="topics">
             <div className="topics__scroll" role="group" aria-label="Vakgebieden">
               {VAK_FIELDS.map((f) => (

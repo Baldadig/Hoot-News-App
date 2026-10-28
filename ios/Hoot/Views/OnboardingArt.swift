@@ -1,7 +1,7 @@
 import SwiftUI
 
 // De kleine animaties van het welkom: de punt van "hoot." als zon boven één horizonlijn. Rustig,
-// klein in het midden, en hij ademt. Editie: de zon komt op. Stroom en Digest: een ademende halo,
+// klein in het midden, en hij ademt. Editie: de zon komt op. Stroom en Selectie: een ademende halo,
 // met eronder wat voorbij stroomt of de ringen van je week. Met "Verminder beweging" staat alles stil.
 struct OnboardingArt: View {
     enum Kind { case intro, editie, stroom, digest }

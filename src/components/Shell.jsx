@@ -1,18 +1,18 @@
 import { clock } from '../lib/time.js'
 import { BrandLogo } from './Brand.jsx'
 import { useHoot } from './Items.jsx'
-import { BriefcaseIcon, ButterflyIcon, EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, TimelineIcon, PaperIcon, BackIcon, AccountIcon } from './icons.jsx'
+import { SparkleIcon, ButterflyIcon, EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, TimelineIcon, PaperIcon, BackIcon, AccountIcon } from './icons.jsx'
 
 export const DESTINATIONS = [
   { id: 'editie', label: 'Editie', Icon: EditionIcon },
   { id: 'stroom', label: 'Stroom', Icon: StreamIcon },
-  { id: 'digest', label: 'Digest', Icon: BriefcaseIcon },
+  { id: 'digest', label: 'Selectie', Icon: SparkleIcon },
   { id: 'bluesky', label: 'Bluesky', Icon: ButterflyIcon },
   { id: 'bewaard', label: 'Bewaard', Icon: BookmarkIcon },
   { id: 'bronnen', label: 'Bronnen', Icon: SourcesIcon },
 ]
 
-// Vaste hoofdnavigatie: onderin op telefoon, links op desktop. Digest en Bluesky alleen als je die aanzet.
+// Vaste hoofdnavigatie: onderin op telefoon, links op desktop. Selectie en Bluesky alleen als je die aanzet.
 // `hrefs` brengt je terug naar waar je in die bestemming was (met je filters);
 // `sourceNote` is de korte tekst bij het stille statuspuntje op Bronnen.
 export function Nav({ path, hrefs = {}, sourceNote = '', bluesky = false, digest = false }) {

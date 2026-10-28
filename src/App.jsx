@@ -336,7 +336,7 @@ export default function App() {
   // Instellingen of Zoeken, ook als je er via een gewone link kwam.
   const cameFrom = useRef('editie')
   if (MAIN.includes(path) && path !== 'welkom') cameFrom.current = path
-  const FROM_LABEL = { editie: 'Editie', stroom: 'Stroom', digest: 'Digest', bewaard: 'Bewaard', bronnen: 'Bronnen', bluesky: 'Bluesky' }
+  const FROM_LABEL = { editie: 'Editie', stroom: 'Stroom', digest: 'Selectie', bewaard: 'Bewaard', bronnen: 'Bronnen', bluesky: 'Bluesky' }
   const backTo = { onBack: () => route.back(cameFrom.current), backLabel: FROM_LABEL[cameFrom.current] || 'Terug' }
 
   // Nog geen account? Als je een eind in je Editie of Stroom hebt gelezen, één keer vragen of je
@@ -396,7 +396,7 @@ export default function App() {
         bronnen: 'Bronnen',
         zoek: 'Zoeken',
         stijl: 'Designsysteem',
-        welkom: 'Welkom', instellingen: 'Instellingen', privacy: 'Privacy', over: 'Over', bluesky: 'Bluesky', digest: 'Digest' }[path] + ' · Hoot'
+        welkom: 'Welkom', instellingen: 'Instellingen', privacy: 'Privacy', over: 'Over', bluesky: 'Bluesky', digest: 'Selectie' }[path] + ' · Hoot'
   }, [path])
 
   // Bronstatus: één uitgevallen bron is een stil puntje bij Bronnen; alleen als álles

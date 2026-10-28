@@ -33,7 +33,7 @@ struct DigestView: View {
                         .padding(.vertical, Space.s6)
                         .id("einde")
                     } else if store.digestStatus == .failed {
-                        EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnt de Digest hier.", retry: { await store.loadDigest(force: true) })
+                        EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnt de Selectie hier.", retry: { await store.loadDigest(force: true) })
                     } else {
                         ProgressView().frame(maxWidth: .infinity, minHeight: 240)
                     }
@@ -44,7 +44,7 @@ struct DigestView: View {
             .debugJump(proxy, to: DebugLaunch.anchor == .bottom ? "einde" : shown.isEmpty ? nil : shown[shown.count / 2].id, when: shown.count)
             }
             .background(Theme.paper)
-            .navigationTitle("Digest")
+            .navigationTitle("Selectie")
             .settingsButton()
             .refreshable { await store.loadDigest(force: true) }
             .task { await store.loadDigest() }

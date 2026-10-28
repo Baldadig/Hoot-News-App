@@ -5,7 +5,7 @@ import { VAK_FIELDS } from '../../shared/vak.mjs'
 import { INTERESTS, topicById, resolveTopics, suggestSources, catLabel, starterGroups } from '../lib/topics.js'
 
 // Onboarding in vijf schermen: uitleg → interesses (breed) → onderwerpen (smal) → bronnen → je vak
-// (voor de Digest). Alles met tikken; onderaan steeds één knop om door te gaan.
+// (voor de Selectie). Alles met tikken; onderaan steeds één knop om door te gaan.
 const STEPS = 5
 const VAK_ICON = { 'paid-social': MegaphoneIcon, ux: CursorIcon, design: PaletteIcon, ai: SparkleIcon, ecommerce: CartIcon, seo: MagnifierIcon, merk: TagIcon, dev: CodeIcon, product: KanbanIcon, ondernemen: RocketIcon }
 
@@ -182,7 +182,7 @@ export default function Welcome({ account, sources, prefs, onDone }) {
             <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
               En je vak?
             </h1>
-            <p className="ob__sub">Elke maandag zet de Digest per vakgebied de drie beste stukken van de week voor je klaar, geschreven door vakmensen. Kies wat bij je werk past, of sla het over.</p>
+            <p className="ob__sub">Eén keer per week bijgepraat over wat jou bezighoudt: elke maandag zet de Selectie per onderwerp de drie beste stukken van de week voor je klaar, geschreven door mensen. Kies wat bij je werk past, of sla het over.</p>
             <div className="ob__grid">
               {VAK_FIELDS.map((f) => {
                 const Icon = VAK_ICON[f.id]

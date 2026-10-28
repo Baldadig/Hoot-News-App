@@ -1,9 +1,9 @@
-Hoot is een rustige nieuwslezer: drie keer per dag een editie van tien verhalen die ophoudt, een Stroom met de laatste berichten van je eigen bronnen en elke maandag een Digest voor je vak. Het beeld is de zaterdagkrant: warm papier, zwarte inkt, krantenrood als enige accent. Bouw elk scherm uit deze tokens en regels. De website (`src/styles.css`) en de iOS-app (`Theme`, `Space`, `Radius` en `Layout` in Swift, plus de kleuren in `Assets.xcassets`) delen dezelfde namen en rollen; maten staan op het web in CSS-pixels en in iOS in punten (1 px = 1 pt). Waar een platform bewust afwijkt, staat dat onder "Per platform". De tokens (`tokens.json`) zijn de bron: bij twijfel geldt de tokenwaarde.
+Hoot is een rustige nieuwslezer: drie keer per dag een editie van tien verhalen die ophoudt, een Stroom met de laatste berichten van je eigen bronnen en elke maandag een Selectie: bijgepraat over wat jou bezighoudt. Het beeld is de zaterdagkrant: warm papier, zwarte inkt, krantenrood als enige accent. Bouw elk scherm uit deze tokens en regels. De website (`src/styles.css`) en de iOS-app (`Theme`, `Space`, `Radius` en `Layout` in Swift, plus de kleuren in `Assets.xcassets`) delen dezelfde namen en rollen; maten staan op het web in CSS-pixels en in iOS in punten (1 px = 1 pt). Waar een platform bewust afwijkt, staat dat onder "Per platform". De tokens (`tokens.json`) zijn de bron: bij twijfel geldt de tokenwaarde.
 
 ## Principes
 
 - **Het verhaal is de eenheid.** De bron blijft altijd zichtbaar en aanklikbaar; openen, de bron bekijken en bewaren zijn drie aparte doelen van minstens `tap` (44 px).
-- **Lijnen en witruimte, geen omlijnde kaarten.** Berichten scheid je met een `rule`-haarlijn en `s5`; een kaart (`surface`, `radius`) alleen voor iets dat echt los staat: een Digest-stuk, een melding, een blad.
+- **Lijnen en witruimte, geen omlijnde kaarten.** Berichten scheid je met een `rule`-haarlijn en `s5`; een kaart (`surface`, `radius`) alleen voor iets dat echt los staat: een stuk uit de Selectie, een melding, een blad.
 - **Drie rollen voor letters.** Koppen en schermtitels in `serif`; bediening, lijsten, intro's en metadata in `sans`; lange leestekst in de lezer weer in `serif`.
 - **Eén accent.** `accent` markeert rubriek, actief, "+N bronnen", het label "gratis" en het punt van het woordmerk. Nooit als vlakvulling van een heel scherm, en nooit voor gewone bediening: iconen in de kop (instellingen, zoeken, verversen) zijn `ink-3`.
 - **Merkmomenten in merkrood.** Op een handvol vaste momenten wordt het krantenrood een vol vlak (`brand-red` met `on-brand-red`): het opstartscherm van de app, het welkom, het einde van de editie ("Je bent bij.") en de deel- en App Store-beelden. Juist omdat de rest papier en inkt is, voelt dat fris; daarom nergens anders, en nooit op een scherm waar je leest.
@@ -28,7 +28,7 @@ De stem van de productpagina in de App Store (Alex, 28 oktober) is de maat voor 
 - **Gewone woorden voor de onderdelen:** editie, Stroom, "hoe andere media het brengen". Geen kopjes in kapitalen, geen opsommingstekens als het ook in een zin kan.
 - **Eerlijk en rustig over privacy:** "Hoot volgt je niet." "Wat de app leert van je leesgedrag, blijft op je toestel." Zeg wat waar is, zonder superlatieven.
 - **Zeg waar het nieuws vandaan komt:** "Koppen en korte intro's komen uit openbare nieuwsfeeds. Bij elk verhaal staan de bron en een link naar het oorspronkelijke artikel."
-- **De Digest** is breder dan werk: "Eén keer per week bijgepraat over wat jou bezighoudt." Vak, hobby of liefhebberij.
+- **De Selectie** (voorheen Digest) is breder dan werk: "Eén keer per week bijgepraat over wat jou bezighoudt." Vak, hobby of liefhebberij.
 - **Maker:** "gemaakt in Nederland door Baldadig".
 
 Volledige tekst: `ios/AppStore/metadata/nl-NL/description.txt`.
@@ -66,7 +66,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 | Stijl | Web | iOS | Waar |
 |---|---|---|---|
 | `t6-lead` | serif 800, 30–34 px, 1.15 | `.title` / breed `.largeTitle`, serif bold | Kop van het hoofdverhaal |
-| `t5-screen` | serif 800, 27 px | grote navigatietitel in serif heavy (`.largeTitle`); klein in de balk serif bold (`.headline`) | Schermtitel (Middageditie, Stroom, Digest …) |
+| `t5-screen` | serif 800, 27 px | grote navigatietitel in serif heavy (`.largeTitle`); klein in de balk serif bold (`.headline`) | Schermtitel (Middageditie, Stroom, Selectie …) |
 | `t4-item` | serif 800, 18 px | `.title3`, serif bold | Kop van een bericht |
 | `t3-body` | sans 400, 17 px, 1.5 | `.body` | Lopende tekst, intro van het hoofdverhaal |
 | `t2-sum` | sans 400, 15 px, 1.5 | `.subheadline` | Intro van een bericht in een lijst, in `ink-2` |
@@ -82,11 +82,11 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 
 - **Eén schaal van 4 px:** `s1` 4, `s2` 8, `s3` 12, `s4` 16, `s5` 24, `s6` 32, `s7` 48. Elke marge, padding en tussenruimte komt hiervandaan, ook in Swift (`Space.s1`–`Space.s7`). De enige uitzondering is `s0` (2 px): tussen twee regels van één label, zoals bronnaam en tijd.
 - **Maten van dingen** (geen ruimte) hebben eigen tokens: icoon 22, bronlogo 24 in de bronregel en 28–30 in de bronnenrij, miniatuur 76 (web 64–88 naar indeling). Elk aanraakdoel is minstens `tap` (44 × 44), ook als het zichtbare deel kleiner is.
-- **Zijmarge** is `gutter` (16 px). De leesbreedte is `readable` (680 px); brede pagina's (Editie, Digest op iPad en desktop) gaan tot `wide` (1000 px).
+- **Zijmarge** is `gutter` (16 px). De leesbreedte is `readable` (680 px); brede pagina's (Editie, Selectie op iPad en desktop) gaan tot `wide` (1000 px).
 - **Vier hoeken:** `radius-sm` (8) voor miniaturen; `radius` (12) voor beeld, kaarten, meldingen, velden en icoonknoppen; `radius-lg` (16) voor bladen; `radius-pill` voor chips, knoppen met tekst, schakelaars en bronlogo's. In Swift `Radius.sm`, `.md`, `.lg`.
 - **Schaduw alleen voor wat zweeft** (`shadow-float`). Inhoud ligt plat: diepte komt van `surface` op `paper`. Zwevend zijn precies drie dingen: de melding "Ongedaan maken" (web en iOS), de knop met nieuwe berichten en terug naar boven. Glas (iOS) heeft zijn eigen diepte en krijgt geen extra schaduw.
-- **Glas (iOS) alleen voor bediening:** de tabbalk, knoppen in de navigatiebalk, en knoppen die iets doen ("Meer berichten", "Probeer opnieuw", de vakgebieden van de Digest). Nooit voor inhoud zoals een bericht of kaart.
-- **Indeling op breedte, niet op toestel.** iOS: vanaf 700 pt twee kolommen (Editie, Digest), vanaf 1000 pt beeld en tekst van het hoofdverhaal naast elkaar, daaronder de kop over de hele breedte. Web: stappen bij 560, 720, 960 en 1200 px (zie "Per platform").
+- **Glas (iOS) alleen voor bediening:** de tabbalk, knoppen in de navigatiebalk, en knoppen die iets doen ("Meer berichten", "Probeer opnieuw", de onderwerpen van de Selectie). Nooit voor inhoud zoals een bericht of kaart.
+- **Indeling op breedte, niet op toestel.** iOS: vanaf 700 pt twee kolommen (Editie, Selectie), vanaf 1000 pt beeld en tekst van het hoofdverhaal naast elkaar, daaronder de kop over de hele breedte. Web: stappen bij 560, 720, 960 en 1200 px (zie "Per platform").
 
 ## Beeld
 

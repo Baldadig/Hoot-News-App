@@ -2,6 +2,14 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.49.0] — 2026-10-28 — Digest heet nu Selectie
+
+- **Alles Nederlands: Editie, Stroom, Selectie en Bewaard.** De wekelijkse Digest heet voortaan Selectie, in de app, op de website, in de onboarding ("Je selectie") en in de App Store-teksten.
+  - **Bredere belofte:** "Eén keer per week bijgepraat over wat jou bezighoudt": je vak, maar straks ook je hobby of liefhebberij.
+  - **Nieuw icoon:** een sterretje in plaats van een aktetas, op iOS en web.
+  - **In de code** heet hij nog `digest`/`vak`; dat ziet niemand.
+- **Design system:** Selectie in alle voorbeelden.
+
 ## [1.48.0] — 2026-10-28 — Je abonnementen, logo's op wit, welkom bij grote tekst
 
 - **Je abonnementen (iOS, Instellingen › Lezen):**

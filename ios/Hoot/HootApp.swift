@@ -9,7 +9,7 @@ struct HootApp: App {
     init() {
         // Beelden bewaren tussen scrollen en starten (AsyncImage cachet zelf pas vanaf iOS 27).
         URLCache.shared = URLCache(memoryCapacity: 64 << 20, diskCapacity: 300 << 20)
-        // Schermtitels (Middageditie, Stroom, Digest …) in de krantenletter, zoals op de website: groot
+        // Schermtitels (Middageditie, Stroom, Selectie …) in de krantenletter, zoals op de website: groot
         // op 800, klein in de balk op 700. Groeit mee met de tekstgrootte, de grote titel tot 40 pt:
         // daarboven werd "Ochtendeditie" op een mini "Ochtended…".
         func serif(_ style: UIFont.TextStyle, _ weight: UIFont.Weight, max: CGFloat = .infinity) -> UIFont {
@@ -81,7 +81,7 @@ struct RootView: View {
         Group {
             Button("Editie") { tab = .editie }.keyboardShortcut("1")
             Button("Stroom") { tab = .stroom }.keyboardShortcut("2")
-            Button("Digest") { tab = .digest }.keyboardShortcut("3")
+            Button("Selectie") { tab = .digest }.keyboardShortcut("3")
             Button("Bewaard") { tab = .bewaard }.keyboardShortcut("4")
             Button("Zoeken") { tab = .zoek }.keyboardShortcut("f")
             Button("Ververs") { Task { await store.load() } }.keyboardShortcut("r")
@@ -95,7 +95,7 @@ struct RootView: View {
         TabView(selection: $tab) {
             Tab("Editie", systemImage: "newspaper", value: Destination.editie) { EditionView() }
             Tab("Stroom", systemImage: "water.waves", value: Destination.stroom) { StreamView() }
-            Tab("Digest", systemImage: "briefcase", value: Destination.digest) { DigestView() }
+            Tab("Selectie", systemImage: "sparkles", value: Destination.digest) { DigestView() }
             Tab("Bewaard", systemImage: "bookmark", value: Destination.bewaard) { SavedView() }
             Tab(value: Destination.zoek, role: .search) { SearchView() }
         }

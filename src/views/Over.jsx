@@ -11,7 +11,7 @@ export default function Over({ onBack, backLabel }) {
         <ViewHeader title="Over Hoot" showSearch={false} onBack={onBack} backLabel={backLabel} />
 
         <p>
-          Hoot zet je nieuws op een rij en houdt dan op: drie keer per dag een editie van tien verhalen, een Stroom met de bronnen die jij kiest, en elke maandag een Digest voor je vak. Hoot is
+          Hoot zet je nieuws op een rij en houdt dan op: drie keer per dag een editie van tien verhalen, een Stroom met de bronnen die jij kiest, en elke maandag je Selectie: bijgepraat over wat jou bezighoudt. Hoot is
           gratis, heeft geen advertenties en volgt je niet.
         </p>
         <p>
@@ -34,7 +34,7 @@ export default function Over({ onBack, backLabel }) {
           abonnementen.
         </p>
         <h3>Wanneer verschijnt de editie?</h3>
-        <p>Om 6, 12 en 17 uur. Daarna ligt hij vast, zodat je hem uit kunt lezen. De Digest verschijnt elke maandag om 7 uur.</p>
+        <p>Om 6, 12 en 17 uur. Daarna ligt hij vast, zodat je hem uit kunt lezen. De Selectie verschijnt elke maandag om 7 uur.</p>
         <h3>Wat gebeurt er met mijn gegevens?</h3>
         <p>
           Zo weinig mogelijk: zie <a href="#/privacy">Privacy</a>.
