@@ -2,6 +2,16 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.47.0] — 2026-10-28 — iOS 1.0 (28): een nieuwe onboarding
+
+- **Welkom in drie stappen:** je veegt door drie rustige pagina's (Je editie, De Stroom, Je Digest), op papierkleur in de stijl van het design system. Elke pagina heeft een kleine animatie in het midden: de rode punt van "hoot." als zon boven één horizonlijn.
+  - **Je editie:** de zon komt op.
+  - **De Stroom:** een ademende ring om de zon, met eronder streepjes die rustig voorbijstromen.
+  - **Je Digest:** ringen om de zon die mee ademen.
+- **Altijd in beeld:** de knoppen "Stel je Hoot samen", "Log in met je account" en "Of kijk eerst even rond". De puntjes eronder tonen waar je bent; je kunt er ook op tikken.
+- **Verminder beweging:** staat die aan in iOS, dan staan de animaties stil.
+- **Nieuwe Digest-tekst:** "Eén keer per week bijgepraat over wat jou bezighoudt." De Digest is voortaan breder bedoeld dan je vak.
+
 ## [1.46.1] — 2026-10-28 — iOS 1.0 (27): slooptest van de app
 
 Een technische controle en een testronde die de iPhone-app probeerde te breken (verse installatie, geen verbinding, afsluiten tijdens het laden, kapotte bestanden, grootste tekst, donker, iPad).
