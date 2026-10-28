@@ -77,6 +77,8 @@ struct EditionView: View {
     }
 
     @State private var path = NavigationPath()
+    @State private var nudge = false // "Maak Hoot van jou", na even rondkijken
+    @State private var setup = false
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -146,6 +148,22 @@ struct EditionView: View {
                 .column(wide ? Layout.wide : Layout.readable)
             }
             .debugJump(proxy, to: Self.slotTarget(store.editionRows), when: store.editionRows.count)
+            // Wie eerst even rondkijkt: na ongeveer een derde van de editie één keer de vraag.
+            .onScrollGeometryChange(for: Bool.self) { g in
+                let room = g.contentSize.height - g.containerSize.height
+                return room > 0 && (g.contentOffset.y + g.contentInsets.top) / room > 0.35
+            } action: { _, past in
+                if past, store.browsing, !nudge { withAnimation(.easeOut(duration: 0.3)) { nudge = true } }
+            }
+            }
+            .safeAreaInset(edge: .bottom) {
+                if nudge && store.browsing { MakeItYours(choose: { setup = true }, later: { withAnimation { store.browsing = false } }) }
+            }
+            .sheet(isPresented: $setup) {
+                NavigationStack {
+                    SetupSteps { store.browsing = false; setup = false }
+                        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Annuleer", role: .cancel) { setup = false } } }
+                }
             }
             .debugScroll()
             .background(Theme.paper)
@@ -226,4 +244,42 @@ struct StoryView: View {
 
 extension String {
     var capitalizedFirst: String { prefix(1).uppercased() + dropFirst() }
+}
+
+// Na even rondkijken: de uitnodiging om Hoot van jezelf te maken. Zweeft onderaan (net als
+// "Ongedaan maken" in Bewaard), één keer; "Later" is ook een antwoord.
+struct MakeItYours: View {
+    var choose: () -> Void
+    var later: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Space.s2) {
+            Text("Maak Hoot van jou").font(Theme.headline(.title3))
+            Text("Je leest nu een selectie van gratis Nederlandse bronnen. Kies je eigen bronnen en interesses, dan wordt dit echt jouw editie.")
+                .font(.subheadline)
+                .foregroundStyle(Theme.ink2)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: Space.s4) {
+                Button(action: choose) {
+                    Text("Kies je bronnen").font(.headline).padding(.horizontal, Space.s5).frame(minHeight: Space.tap)
+                }
+                .foregroundStyle(.white)
+                .background(Theme.accent, in: Capsule())
+                Button("Later", action: later)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.ink2)
+                    .frame(minHeight: Space.tap)
+            }
+            .padding(.top, Space.s1)
+        }
+        .padding(Space.s4)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+        .shadow(color: .black.opacity(0.12), radius: 8, y: 2) // zweeft, zoals de melding in Bewaard
+        .padding(.horizontal)
+        .padding(.bottom, Space.s2)
+        .column()
+        .transition(.move(edge: .bottom).combined(with: .opacity))
+        .accessibilityElement(children: .contain)
+    }
 }

@@ -68,6 +68,7 @@ final class HootStore {
         muted = Set(Self.load("hoot.muted") ?? [String]())
         enabled = Set(Self.load("hoot.enabled") ?? [String]())
         quickPending = Self.load("hoot.quickPending") ?? false
+        browsing = Self.load("hoot.browsing") ?? false
         digestFields = Self.load("hoot.digestFields") ?? ["paid-social", "ux", "design", "ai", "ecommerce"]
         // Eenmalig overzetten uit UserDefaults (versie 0.3 en eerder).
         let oldSaved: [Item]? = Self.load("hoot.saved")
@@ -187,6 +188,7 @@ final class HootStore {
         if let prefs, let p = try? JSONDecoder().decode(Import.Prefs.self, from: prefs) {
             apply(p)
             onboarded = true
+            browsing = false // je eigen keuzes staan er al
         }
         let new = read.filter { !readSet.contains($0) }
         if !new.isEmpty {
@@ -234,9 +236,13 @@ final class HootStore {
             reloadParts()
             refreshPersonal()
         }
+        browsing = true
         onboarded = true
     }
     private var quickPending: Bool { didSet { save("hoot.quickPending", quickPending) } }
+    // Eerst even rondgekeken (zachte start): na een stukje editie één keer de vraag of je zelf
+    // je bronnen kiest. Weg zodra je dat doet, "Later" zegt of inlogt.
+    var browsing: Bool { didSet { save("hoot.browsing", browsing) } }
 
     var newsSources: [Source] { sources.filter { $0.kind != "sociaal" } }
     var followed: [Source] { newsSources.filter(isOn) }

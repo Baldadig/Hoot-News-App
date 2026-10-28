@@ -2,6 +2,13 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.45.0] — 2026-10-28 — Welkom: eerst samenstellen of inloggen, rondkijken als zijweg
+
+- **Welkom in de app:** de hoofdknop is nu "Stel je Hoot samen" (interesses, dan je bronnen, dan je vak). Daaronder "Log in met je account". Rondkijken is een rustige link: "Of kijk eerst even rond".
+- **Na even rondkijken:** heb je ongeveer een derde van de editie gezien, dan komt er onderin één keer een kaart: "Maak Hoot van jou". "Kies je bronnen" opent dezelfde stappen; "Later" laat het rusten. Wie inlogt, krijgt de kaart niet.
+- **Bronnen op één lijn:** in de bronnenlijst blijft de plek van de ster vrij als een bron uit staat, zodat alle namen netjes onder elkaar staan.
+- **Buiten je bubbel in het Nederlands:** het verhaal "Buiten je bubbel" komt bij voorkeur uit een Nederlandstalige bron; alleen als daar niets bij past, uit een andere taal.
+
 ## [1.44.1] — 2026-10-28 — Inlogknoppen volgens de huisstijl van Google en Apple
 
 - **Google:** in de lichte stand wit met een grijze rand, in de donkere stand #131314, telkens met het gekleurde G-logo. De tekst is Googles eigen Nederlandse "Inloggen met Google".

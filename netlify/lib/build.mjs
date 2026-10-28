@@ -352,7 +352,11 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
       const sig = signatures(pool.filter((i) => i.kind === 'article'))
       const shown = [...excludeItemIds].map((id) => sig.get(id)).filter(Boolean)
       const fresh = pool.filter((a) => !sig.has(a.id) || !shown.some((s) => sameEvent(sig.get(a.id), s)))
-      const picks = matchTrending(trends, fresh, { excludeItemIds, excludeStoryIds, coveredTitles: rows().map((r) => r.title), max: 3, now })
+      // Nederlandstalig waar dat kan (Hoot is voor Nederlandse lezers, en wie met de gratis
+      // Nederlandse startset begint, krijgt geen Engels stuk midden in de editie); anders alles.
+      const opts = { excludeItemIds, excludeStoryIds, coveredTitles: rows().map((r) => r.title), max: 3, now }
+      const nl = matchTrending(trends, fresh.filter((a) => dutch(a.source)), opts)
+      const picks = nl.length ? nl : matchTrending(trends, fresh, opts)
       // Het sterkste signaal krijgt een plek in de editie zelf; de rest staat in het blok eronder.
       stored.entries = insertBubble(stored.entries, picks[0])
       stored.bubble = picks.slice(1)

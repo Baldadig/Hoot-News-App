@@ -4,8 +4,7 @@ import SwiftUI
 // op de website. Daarna meteen lezen, of eerst je interesses kiezen.
 struct WelcomeView: View {
     @Environment(HootStore.self) private var store
-    @State private var interests = false
-    @State private var fields = false
+    @State private var setup = false
     @State private var login = false
 
     var body: some View {
@@ -37,22 +36,25 @@ struct WelcomeView: View {
                         }
                         .padding(.top, Space.s6)
                         Spacer(minLength: Space.s6)
+                        // Voorop: zelf samenstellen, of je account. Even rondkijken mag, maar is de zijweg.
                         VStack(spacing: Space.s2) {
-                            Button { store.quickStart() } label: {
-                                Text("Begin met lezen").font(.headline).frame(maxWidth: .infinity, minHeight: Space.tap + Space.s1)
+                            Button { setup = true } label: {
+                                Text("Stel je Hoot samen").font(.headline).frame(maxWidth: .infinity, minHeight: Space.tap + Space.s1)
                             }
                             .foregroundStyle(Theme.brandRed)
                             .background(Theme.onBrandRed, in: Capsule())
-                            Button("Kies eerst je interesses") { interests = true }
-                                .font(.subheadline.weight(.semibold))
-                                .frame(maxWidth: .infinity, minHeight: Space.tap)
-                            // Al een account op hootnews.nl: dan meteen je eigen editie.
                             Button { login = true } label: {
-                                Text("Al een account? \(Text("Log in").underline())")
+                                Text("Log in met je account").font(.headline).frame(maxWidth: .infinity, minHeight: Space.tap + Space.s1)
+                            }
+                            .overlay(Capsule().strokeBorder(Theme.onBrandRed.opacity(0.6), lineWidth: 1.5))
+                            // Gratis Nederlandse bronnen (HootStore.starter); na een stukje editie vraagt Hoot of je zelf kiest.
+                            Button { store.quickStart() } label: {
+                                Text("Of kijk eerst even rond").underline()
                             }
                             .font(.subheadline)
                             .foregroundStyle(Theme.onBrandRed.opacity(0.85))
                             .frame(maxWidth: .infinity, minHeight: Space.tap)
+                            .padding(.top, Space.s1)
                         }
                     }
                     .padding(.horizontal, Space.s5)
@@ -69,22 +71,8 @@ struct WelcomeView: View {
                     .tint(Theme.accent)
                     .navigationTitle("Inloggen")
             }
-            .navigationDestination(isPresented: $interests) {
-                InterestsList()
-                    .tint(Theme.accent) // een gewone, lichte lijst: niet het wit van het rode scherm
-                    .navigationTitle("Interesses")
-                    .toolbar {
-                        ToolbarItem(placement: .confirmationAction) { Button("Verder") { fields = true } }
-                    }
-                    .navigationDestination(isPresented: $fields) {
-                        // Daarna je vak, voor de Digest. Overslaan mag: dan blijft wat er stond.
-                        DigestFieldsList()
-                            .tint(Theme.accent)
-                            .navigationTitle("En je vak?")
-                            .toolbar {
-                                ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { store.onboarded = true } }
-                            }
-                    }
+            .navigationDestination(isPresented: $setup) {
+                SetupSteps { store.onboarded = true }
             }
         }
         .tint(Theme.onBrandRed)
@@ -104,5 +92,33 @@ struct WelcomeView: View {
             }
             .accessibilityElement(children: .combine)
         }
+    }
+}
+
+// Je Hoot samenstellen: interesses, bronnen, dan je vak. In het welkom en vanuit de editie (na
+// even rondkijken). Overslaan mag bij elke stap: dan blijft wat er stond.
+struct SetupSteps: View {
+    var onDone: () -> Void
+    @State private var sources = false
+    @State private var fields = false
+
+    var body: some View {
+        InterestsList()
+            .tint(Theme.accent) // een gewone, lichte lijst: niet het wit van het rode scherm
+            .navigationTitle("Interesses")
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Verder") { sources = true } } }
+            .navigationDestination(isPresented: $sources) {
+                SourcesList()
+                    .tint(Theme.accent)
+                    .navigationTitle("Je bronnen")
+                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Verder") { fields = true } } }
+                    .navigationDestination(isPresented: $fields) {
+                        // Daarna je vak, voor de Digest.
+                        DigestFieldsList()
+                            .tint(Theme.accent)
+                            .navigationTitle("En je vak?")
+                            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { onDone() } } }
+                    }
+            }
     }
 }

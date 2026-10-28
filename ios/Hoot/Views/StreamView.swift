@@ -210,6 +210,9 @@ struct SourcesList: View {
                                 }
                                 .buttonStyle(.borderless)
                                 .accessibilityLabel(store.isFavorite(s.id) ? "\(s.name): voorkeursbron" : "Maak \(s.name) een voorkeursbron")
+                            } else {
+                                // Plek van de ster vrijhouden: alle namen op één lijn, aan of uit.
+                                Color.clear.frame(width: Space.tap, height: Space.tap).accessibilityHidden(true)
                             }
                             Toggle(isOn: Binding(get: { store.isOn(s) }, set: { store.setOn(s, $0) })) {
                                 VStack(alignment: .leading, spacing: Space.s0) {
