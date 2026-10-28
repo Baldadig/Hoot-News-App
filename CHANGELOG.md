@@ -2,6 +2,15 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.47.1] — 2026-10-28 — iOS 1.0 (29): samenvatting voorop, vloeiender
+
+- **Eerste pagina:** een samenvatting. "hoot." staat groot en de punt ademt; op de volgende pagina's wordt die punt de zon. Daaronder "Minder scrollen. Meer lezen." en "Het nieuws van jouw bronnen, rustig op een rij." Daarna volgen de drie onderdelen.
+- **Je editie:** "Drie keer per dag tien verhalen." in plaats van "Om 6, 12 en 17 uur": zo denken mensen niet.
+- **Vloeiende animaties:**
+  - Ze lopen nu op de volle verversing van het scherm (60 of 120 Hz).
+  - De streepjes in de Stroom maakten elke 5 seconden een sprongetje terug; nu stromen ze door.
+  - Alleen de pagina in beeld beweegt, wat batterij spaart.
+
 ## [1.47.0] — 2026-10-28 — iOS 1.0 (28): een nieuwe onboarding
 
 - **Welkom in drie stappen:** je veegt door drie rustige pagina's (Je editie, De Stroom, Je Digest), op papierkleur in de stijl van het design system. Elke pagina heeft een kleine animatie in het midden: de rode punt van "hoot." als zon boven één horizonlijn.

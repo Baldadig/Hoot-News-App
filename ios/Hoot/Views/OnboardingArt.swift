@@ -4,14 +4,16 @@ import SwiftUI
 // klein in het midden, en hij ademt. Editie: de zon komt op. Stroom en Digest: een ademende halo,
 // met eronder wat voorbij stroomt of de ringen van je week. Met "Verminder beweging" staat alles stil.
 struct OnboardingArt: View {
-    enum Kind { case editie, stroom, digest }
+    enum Kind { case intro, editie, stroom, digest }
     let kind: Kind
+    var active = true // alleen de pagina in beeld beweegt; de rest staat stil (batterij)
     @Environment(\.accessibilityReduceMotion) private var still
 
     static let size = CGSize(width: 168, height: 140)
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1 / 30, paused: still)) { timeline in
+        // Elk beeld van het scherm (60 of 120 Hz), zodat het nergens hapert.
+        TimelineView(.animation(paused: still || !active)) { timeline in
             let t = still ? 1.6 : timeline.date.timeIntervalSinceReferenceDate
             Canvas { ctx, size in draw(ctx, size, t) }
         }
@@ -33,6 +35,19 @@ struct OnboardingArt: View {
         sky.clip(to: Path(CGRect(x: 0, y: 0, width: size.width, height: horizon)))
 
         switch kind {
+        case .intro:
+            // De samenvatting: het woordmerk groot, en de punt erachter ademt. Op de volgende
+            // pagina's wordt die punt de zon.
+            let word = ctx.resolve(Text("hoot").font(.system(size: 60, weight: .heavy, design: .serif)).foregroundStyle(Theme.ink))
+            let w = word.measure(in: size)
+            let dot: CGFloat = 8
+            let x0 = (size.width - (w.width + 3 + dot * 2)) / 2
+            let baseline = horizon
+            ctx.draw(word, at: CGPoint(x: x0, y: baseline), anchor: .bottomLeading)
+            // Op de grondlijn van de letters, niet op de onderkant van het tekstvak (daar hangen de staarten).
+            let descent = w.height * 0.22
+            ctx.fill(circle(x0 + w.width + 3 + dot, baseline - descent - dot, dot * breathe), with: .color(Theme.accent))
+
         case .editie:
             // Opkomen in 6 s, dan weer zakken: een zachte heen-en-weer, nooit een sprong.
             let p = ease(triangle(t / 6))
@@ -49,7 +64,8 @@ struct OnboardingArt: View {
             // Wat voorbij stroomt: twee rijen streepjes die rustig naar links schuiven.
             var water = ctx
             water.clip(to: Path(CGRect(x: cx - half, y: horizon + 4, width: half * 2, height: 28 * k)))
-            let shift = (t / 5).truncatingRemainder(dividingBy: 1) * 36 * k
+            // Doorlopend, zonder terugsprong: de verschuiving loopt rond over een hele patroonlengte.
+            let shift = (t / 5 * 36 * k).truncatingRemainder(dividingBy: 140 * k)
             dashes(water, from: cx - half - shift, y: horizon + 11 * k, opacity: 0.3, pattern: [(0, 20), (28, 28), (64, 16), (88, 24), (120, 20)])
             dashes(water, from: cx - half + 10 * k - shift, y: horizon + 20 * k, opacity: 0.18, pattern: [(0, 14), (26, 22), (60, 12), (84, 18), (120, 16)])
 
@@ -73,7 +89,7 @@ struct OnboardingArt: View {
     private func dashes(_ ctx: GraphicsContext, from x0: CGFloat, y: CGFloat, opacity: Double, pattern: [(CGFloat, CGFloat)]) {
         let period: CGFloat = 140 * k
         var path = Path()
-        for rep in 0 ..< 3 {
+        for rep in 0 ..< 4 {
             for (start, length) in pattern {
                 let x = x0 + CGFloat(rep) * period + start * k
                 path.move(to: CGPoint(x: x, y: y))

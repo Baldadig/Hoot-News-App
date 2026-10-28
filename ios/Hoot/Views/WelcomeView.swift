@@ -16,7 +16,9 @@ struct WelcomeView: View {
     }
     // Twee korte regels per pagina; de tweede rondt af (zie de stem in het design system).
     private static let pages = [
-        Page(art: .editie, title: "Je editie", text: "Om 6, 12 en 17 uur tien verhalen.\nDan ben je bij."),
+        // Eerst de samenvatting, dan de drie onderdelen.
+        Page(art: .intro, title: "Minder scrollen.\nMeer lezen.", text: "Het nieuws van jouw bronnen,\nrustig op een rij."),
+        Page(art: .editie, title: "Je editie", text: "Drie keer per dag tien verhalen.\nDan ben je bij."),
         Page(art: .stroom, title: "De Stroom", text: "Alles van je bronnen,\nrustig onder elkaar."),
         Page(art: .digest, title: "Je Digest", text: "Eén keer per week bijgepraat\nover wat jou bezighoudt."),
     ]
@@ -25,15 +27,16 @@ struct WelcomeView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 HStack {
-                    Wordmark()
+                    Wordmark().opacity(page == 0 ? 0 : 1) // op de eerste pagina staat het woordmerk groot
                     Spacer()
                 }
+                .animation(.easeInOut(duration: 0.3), value: page)
                 .padding(.horizontal, Space.s5)
                 .padding(.top, Space.s3)
 
                 TabView(selection: $page) {
                     ForEach(Self.pages.indices, id: \.self) { i in
-                        pageView(Self.pages[i]).tag(i)
+                        pageView(Self.pages[i], active: page == i).tag(i)
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
@@ -62,14 +65,15 @@ struct WelcomeView: View {
 
     // Eén pagina: de animatie in het midden, de kop en twee regels eronder. Past het niet (heel
     // grote tekst), dan scrolt de pagina; de knoppen blijven staan.
-    private func pageView(_ p: Page) -> some View {
+    private func pageView(_ p: Page, active: Bool) -> some View {
         GeometryReader { geo in
             ScrollView {
                 VStack(spacing: Space.s5) {
-                    OnboardingArt(kind: p.art)
+                    OnboardingArt(kind: p.art, active: active)
                     VStack(spacing: Space.s2) {
                         Text(p.title)
                             .font(Theme.headline(.title))
+                            .multilineTextAlignment(.center)
                             .accessibilityAddTraits(.isHeader)
                         Text(p.text)
                             .font(.body)
