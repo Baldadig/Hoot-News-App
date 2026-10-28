@@ -15,9 +15,9 @@ Waarom dat klopt:
 
 Resultaat op de productpagina: **"Geen gegevens verzameld"**.
 
-## Vanaf fase 2 (met inloggen en synchroniseren)
+## Vanaf versie 1.0 (build 23): met inloggen en synchroniseren
 
-Dan wordt het:
+**Verzamel jij gegevens?** → **Ja.** Per type: gekoppeld aan de gebruiker, niet voor tracking, doel alleen app-functionaliteit:
 
 | Gegevenstype | Gekoppeld aan jou | Voor tracking | Doel |
 |---|---|---|---|
@@ -25,4 +25,4 @@ Dan wordt het:
 | Identificatoren → Gebruikers-ID | Ja | Nee | App-functionaliteit |
 | Gebruiksgegevens → Productinteractie (bewaard, gelezen, gevolgde verhalen) | Ja | Nee | App-functionaliteit (synchroniseren) |
 
-Werk dan ook `PrivacyInfo.xcprivacy` bij (`NSPrivacyCollectedDataTypes`) en het privacybeleid op hootnews.nl.
+`PrivacyInfo.xcprivacy` en het privacybeleid op hootnews.nl zijn hierop bijgewerkt (28 oktober).

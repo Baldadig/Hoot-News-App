@@ -82,8 +82,10 @@ export function Meta({ item, story, showSave = true }) {
         </span>
       </button>
       {story && others > 0 ? (
-        <button type="button" className="morebtn" onClick={() => openStory(story.id)} aria-label={`Vergelijk ${others} andere ${others === 1 ? 'bron' : 'bronnen'}${fresh ? `, ${fresh} nieuw` : ''}`}>
-          {fresh ? <span className="dot" aria-hidden="true" /> : null}+{others} {others === 1 ? 'bron' : 'bronnen'}
+        <button type="button" className="morebtn" onClick={() => openStory(story.id)} aria-label={`Vergelijk met ${others} andere ${others === 1 ? 'bron' : 'bronnen'}${fresh ? `, ${fresh} nieuw` : ''}`}>
+          {fresh ? <span className="dot" aria-hidden="true" /> : null}
+          <span className="morebtn__long">Vergelijk {others + 1} bronnen</span>
+          <span className="morebtn__short">+{others} {others === 1 ? 'bron' : 'bronnen'}</span>
         </button>
       ) : null}
       {showSave ? story ? <SaveButton id={story.id} kind="story" payload={story} label="verhaal" /> : <SaveButton id={item.id} payload={item} /> : null}

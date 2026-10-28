@@ -22,12 +22,14 @@ export default function Privacy({ onBack, backLabel }) {
 
         <h2 className="sect">Met een account</h2>
         <p>
-          Inloggen gaat met Google. Hoot krijgt daarbij je naam, e-mailadres en profielfoto. Je account staat bij Supabase, in de EU. Daar bewaren we, alleen voor jou leesbaar: je instellingen,
+          Inloggen gaat met Google, en in de app ook met Apple. Hoot krijgt daarbij je naam en e-mailadres (bij Google ook je profielfoto; bij Apple kun je je e-mailadres
+          verbergen). Je account staat bij Supabase, in de EU. Daar bewaren we, alleen voor jou leesbaar: je instellingen,
           wat je bewaarde, wat je las en welke verhalen je zag. Zo gaan ze mee naar je andere toestellen.
         </p>
         <p>
-          Log je uit, dan gaan die gegevens van dit toestel af; ze blijven in je account. Een ander account op hetzelfde toestel krijgt ze nooit te zien. Wil je je account laten verwijderen, mail
-          dan naar <a href="mailto:hallo@hootnews.nl">hallo@hootnews.nl</a>.
+          Log je uit, dan gaan die gegevens van dit toestel af; ze blijven in je account. Een ander account op hetzelfde toestel krijgt ze nooit te zien. Je account verwijder je zelf in de app
+          (Instellingen › Account › Account verwijderen), of je mailt naar <a href="mailto:hallo@hootnews.nl">hallo@hootnews.nl</a>. Dan verdwijnen je account, je instellingen en je
+          bewaarde stukken van de server.
         </p>
 
         <h2 className="sect">Wie we om iets vragen</h2>
@@ -53,7 +55,8 @@ export default function Privacy({ onBack, backLabel }) {
 
         <h2 className="sect">De app voor iPhone en iPad</h2>
         <p>
-          De app werkt zonder account en gebruikt geen analytics, advertenties of tracking. Je instellingen, wat je bewaarde en wat je las blijven op je iPhone of iPad. Ook wat Hoot leert van
+          De app werkt zonder account en gebruikt geen analytics, advertenties of tracking. Zonder account blijven je instellingen, wat je bewaarde en wat je las op je iPhone of iPad;
+          log je in, dan gaan ze mee met je account (zie hierboven). Ook wat Hoot leert van
           wat je leest (welke onderwerpen en bronnen je vaak opent) blijft op je toestel.
         </p>
         <ul>

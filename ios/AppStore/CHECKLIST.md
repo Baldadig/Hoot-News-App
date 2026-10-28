@@ -20,7 +20,10 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
 | ✅ | Contactgegevens App Review | Alex Vrees, alex@baldadig.nl. Uitbrengen: handmatig na goedkeuring. |
 | ✅ | Digital Services Act | Handelaar, ingevuld door Alex (28 okt). |
 | 🟡 | Schermafbeeldingen | iPhone 6,3" (1206×2622) en iPad (11"-opname in 13"-formaat) staan erin; Digest-beeld na 2 nov opnieuw (volle week). |
-| ✅ | Versie 1.0 | Build 21 (1.0) gekoppeld aan de versiepagina. Indienen na het Digest-beeld. |
+| 🟡 | Versie 1.0 | Build 22 (zachte start) staat op TestFlight; er komt nog een build met inloggen (Google en Apple). Die koppelen in plaats van 21. Indienen na het Digest-beeld. |
+| ⬜ | Header op de productpagina | Nieuw in App Store Connect: één header-afbeelding, 5244 × 2950 of 3840 × 1646 px. Maken in de stijl van de schermafbeeldingen (merkrood, witte krantenletter). |
+| ⬜ | Beeld in de zoekresultaten | Tab "Search Results" naast Header: kiezen welke beelden in de zoekresultaten staan (het eerste beeld moet een neutraal of positief verhaal zijn). |
+| ⬜ | Inloggen (Google en Apple) | Instellen: Google Cloud (iOS-client), Supabase (Google-client-id, Apple aan, SQL voor account verwijderen). Daarna privacylabels (e-mailadres en gebruikers-id, gekoppeld aan je account) en de Review-notities (uitnodigingscode voor de reviewer). |
 
 ## 1. Account en registratie
 

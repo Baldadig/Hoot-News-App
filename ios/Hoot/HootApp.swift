@@ -3,6 +3,8 @@ import SwiftUI
 @main
 struct HootApp: App {
     @State private var store = HootStore()
+    @State private var account = Account()
+    @Environment(\.scenePhase) private var phase
 
     init() {
         // Beelden bewaren tussen scrollen en starten (AsyncImage cachet zelf pas vanaf iOS 27).
@@ -26,16 +28,21 @@ struct HootApp: App {
         WindowGroup {
             WidthReader { RootView().accessibilityHidden(splash) } // VoiceOver niet achter het opstartscherm
                 .environment(store)
+                .environment(account)
                 .tint(Theme.accent)
                 .overlay {
                     if splash { SplashView().transition(.opacity) }
                 }
                 .task { await endSplash() }
+                .task { await account.start(store) }
+                // Wat met je account meegaat: wegschrijven; terug in de app: ophalen.
+                .onChange(of: store.syncTick) { account.changed() }
+                .onChange(of: phase) { _, now in if now == .active { Task { await account.pull() } } }
                 // De eerste keer: een welkom, net als op de website. Hier en niet in RootView: daar
                 // presenteert de lezer al op volledig scherm, en één weergave kan er maar één tonen.
                 // Pas na het opstartscherm, anders schuift het welkom eroverheen.
                 .fullScreenCover(isPresented: Binding(get: { !store.onboarded && !splash }, set: { if !$0 { store.onboarded = true } })) {
-                    WelcomeView().environment(store)
+                    WelcomeView().environment(store).environment(account)
                 }
         }
     }

@@ -956,6 +956,19 @@ select {
   white-space: nowrap;
   cursor: pointer;
 }
+/* "Vergelijk N bronnen" (iets anders dan filteren); op een smalle telefoon het korte "+N bronnen",
+   anders wordt de bron- en tijdregel ernaast afgekapt (gemeten: bij 402 px al, bij 430 px niet). */
+.morebtn__short {
+  display: none;
+}
+@media (max-width: 419px) {
+  .morebtn__long {
+    display: none;
+  }
+  .morebtn__short {
+    display: inline;
+  }
+}
 .dot {
   width: 8px;
   height: 8px;
@@ -3565,58 +3578,114 @@ html[data-images='hoofd'] .media--social {
   color: var(--accent);
 }
 
-/* Stroom: je bronnen als rij logo's (één tik = alleen die bron) */
-.srcpick {
-  display: flex;
-  align-items: center;
-  gap: var(--s2);
-  margin: 0;
+/* Stroom: filter op bron. "Alle" en je bronnen als logo met naam; meer tegelijk kiezen kan.
+   Gekozen: in kleur, rode ring met een rand papier ertussen, vinkje rechtsonder, naam in rood.
+   Zodra je kiest, worden de andere logo's grijs en gedimd (maar blijven ze leesbaar). */
+.srcstrip__label {
+  margin: var(--s3) 0 0;
   color: var(--ink-3);
-  font-size: var(--t2);
-}
-.srcpick strong {
-  color: var(--ink);
-  font-weight: 600;
-}
-.srcpick .linkbtn {
-  margin-left: auto;
+  font-size: var(--t1);
+  font-weight: 700;
+  line-height: var(--lh-ui);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 .srcstrip {
   display: flex;
-  gap: 0;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   scrollbar-width: none;
-  margin: var(--s3) calc(-1 * var(--s4)) 0;
-  padding: 2px var(--s4) var(--s1);
+  -webkit-overflow-scrolling: touch;
+  /* tot de schermrand; het eerste rondje (niet zijn vak van 60) op de kolomlijn: 16 − 12 = 4 */
+  margin: var(--s2) calc(-1 * var(--s4)) 0;
+  padding: 0 var(--s4) 0 var(--s1);
 }
 .srcstrip::-webkit-scrollbar {
   display: none;
 }
 .srcstrip__btn {
   flex: none;
-  display: grid;
-  place-items: center;
-  width: var(--tap); /* aanraakvlak 44 px; het logo zelf is 28px */
-  height: 44px;
-  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s1);
+  width: 60px; /* aanraakvlak ruim 44 px, met ruimte voor de naam */
+  padding: 0 0 var(--s1);
   border: 0;
-  border-radius: 50%;
   background: none;
+  color: var(--ink-3);
   cursor: pointer;
 }
-.srcstrip__btn[aria-pressed='true'] > * {
-  box-shadow: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--accent);
+.srcstrip__logo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px; /* logo 36 + rand papier 2 + ring 2 */
+  height: 44px;
   border-radius: 50%;
 }
-/* In grijs: rustig, als een rij in de krant; de gekozen bron in kleur */
-.srcstrip__btn > * {
+.srcstrip__btn[aria-pressed='true'] .srcstrip__logo {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.srcstrip__all {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--rule);
+  color: var(--ink-2);
+}
+.srcstrip__all svg {
+  width: 18px;
+  height: 18px;
+}
+.srcstrip__check {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: none;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 0 0 0 2px var(--paper); /* snijdt door de ring: beide blijven scherp */
+}
+.srcstrip__check svg {
+  width: 10px;
+  height: 10px;
+}
+.srcstrip__btn[aria-pressed='true'] .srcstrip__check {
+  display: grid;
+}
+.srcstrip__name {
+  max-width: 100%;
+  padding: 0 2px; /* geen --s0 op het web */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--t1);
+  line-height: var(--lh-ui);
+}
+.srcstrip__btn[aria-pressed='true'] .srcstrip__name {
+  color: var(--accent);
+  font-weight: 600;
+}
+.srcstrip .mark {
+  transition: filter var(--dur-1) var(--ease), opacity var(--dur-1) var(--ease);
+}
+.srcstrip.is-picking .srcstrip__btn:not([aria-pressed='true']) .mark {
   filter: grayscale(1);
-  opacity: 0.9;
+  opacity: 0.5;
 }
-.srcstrip__btn[aria-pressed='true'] > * {
-  filter: none;
-  opacity: 1;
+/* Gekozen bronnen zonder berichten: een stille regel, geen groot leeg scherm */
+.status--empty {
+  margin-top: var(--s4);
+  font-size: var(--t2);
 }
-.srcstrip:has([aria-pressed='true']) .srcstrip__btn:not([aria-pressed='true']) > * {
-  opacity: 0.45;
+.status strong {
+  color: var(--ink);
+  font-weight: 600;
 }

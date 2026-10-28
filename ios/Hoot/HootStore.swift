@@ -22,33 +22,33 @@ final class HootStore {
     private var relatedLoaded: String? // de versie waarmee `related` geladen is
 
     // Voorkeuren (bewaard op het toestel)
-    var muted: Set<String> { didSet { save("hoot.muted", Array(muted)) } }
-    var enabled: Set<String> { didSet { save("hoot.enabled", Array(enabled)) } }
-    var digestFields: [String] { didSet { save("hoot.digestFields", digestFields) } }
+    var muted: Set<String> { didSet { save("hoot.muted", Array(muted)); synced() } }
+    var enabled: Set<String> { didSet { save("hoot.enabled", Array(enabled)); synced() } }
+    var digestFields: [String] { didSet { save("hoot.digestFields", digestFields); synced() } }
     // Bewaard en gelezen: in een eigen bestand (Application Support), niet in UserDefaults; gelezen
     // op volgorde, zodat we bij de grens van 2.000 de oudste vergeten en niet een willekeurige.
-    private(set) var saved: [Item] { didSet { Self.write(saved, to: "saved.json") } }
-    private var readOrder: [String] { didSet { Self.write(readOrder, to: "read.json") } }
+    private(set) var saved: [Item] { didSet { Self.write(saved, to: "saved.json"); synced() } }
+    private var readOrder: [String] { didSet { Self.write(readOrder, to: "read.json"); synced() } }
     private var readSet: Set<String> = []
 
     // Weergave en lezen (zelfde namen en waarden als de web-app, voor het synchroniseren later)
-    var images: String { didSet { save("hoot.images", images) } } // aan | hoofd | uit
-    var bubble: Bool { didSet { save("hoot.bubble", bubble) } } // "Buiten je bubbel" in de Editie
+    var images: String { didSet { save("hoot.images", images); synced() } } // aan | hoofd | uit
+    var bubble: Bool { didSet { save("hoot.bubble", bubble); synced() } } // "Buiten je bubbel" in de Editie
     var openInSafari: Bool { didSet { save("hoot.openInSafari", openInSafari) } } // vóór 0.12; nu `openWith`
     // Waar artikelen openen: "lezer" (de Hoot-lezer), "web" (de website, in Hoot) of "safari".
     var openWith: String { didSet { save("hoot.openWith", openWith) } }
     var readerFirst: Bool { didSet { save("hoot.readerFirst", readerFirst) } } // meteen de Lezer
     var paidInSafari: Bool { didSet { save("hoot.paidInSafari", paidInSafari) } } // betaalde bronnen in Safari (daar ben je ingelogd)
-    var preview: Int { didSet { save("hoot.preview", preview) } } // regels intro bij een bericht; 0 = de hele intro
+    var preview: Int { didSet { save("hoot.preview", preview); synced() } } // regels intro bij een bericht; 0 = de hele intro
     var onboarded: Bool { didSet { save("hoot.onboarded", onboarded) } } // het welkom is gezien
     // Jouw editie: je interesses (src/lib/topics.js), voorkeursbronnen (ster) en smaak (wat je leest).
-    var interests: [String] { didSet { save("hoot.interests", interests); refreshPersonal() } }
-    var favorites: [String] { didSet { save("hoot.favorites", favorites); refreshPersonal() } }
+    var interests: [String] { didSet { save("hoot.interests", interests); refreshPersonal(); synced() } }
+    var favorites: [String] { didSet { save("hoot.favorites", favorites); refreshPersonal(); synced() } }
     private(set) var affinity: Affinity { didSet { save("hoot.affinity", affinity) } }
     private(set) var personal: Edition? { didSet { Self.write(personal, to: "edition.json") } }
     private var personalBasis: String { didSet { save("hoot.personalBasis", personalBasis) } }
     // Bluesky als eigen tabblad, met de vaste accounts van Hoot en wie je zelf toevoegt.
-    var bluesky: Bool { didSet { save("hoot.bluesky", bluesky); if bluesky { reloadParts(); Task { await loadOwnPosts() } } } }
+    var bluesky: Bool { didSet { save("hoot.bluesky", bluesky); synced(); if bluesky { reloadParts(); Task { await loadOwnPosts() } } } }
     private(set) var ownBluesky: [BlueskyAccount] { didSet { save("hoot.ownBluesky", ownBluesky) } }
     private var ownPosts: [Item] = []
 
@@ -148,7 +148,10 @@ final class HootStore {
         guard let file = Self.folder?.appendingPathComponent("import.json"), let data = try? Data(contentsOf: file) else { return }
         guard let found = try? JSONDecoder().decode(Import.self, from: data) else { return } // kapot: laten staan
         try? FileManager.default.removeItem(at: file)
-        let p = found.prefs
+        if let v = found.social { ownBluesky = v; save("hoot.ownBluesky", v) }
+        apply(found.prefs)
+    }
+    private func apply(_ p: Import.Prefs?) {
         if let v = p?.muted { muted = Set(v); save("hoot.muted", v) }
         if let v = p?.enabled { enabled = Set(v); save("hoot.enabled", v) }
         if let v = p?.vak { digestFields = v; save("hoot.digestFields", v) }
@@ -156,9 +159,44 @@ final class HootStore {
         if let v = p?.bubble { bubble = v; save("hoot.bubble", v) }
         if let v = p?.bluesky { bluesky = v; save("hoot.bluesky", v) }
         if let v = p?.preview, (0 ... 3).contains(v) { preview = v; save("hoot.preview", v) }
-        if let v = found.social { ownBluesky = v; save("hoot.ownBluesky", v) }
         if let v = p?.interests { interests = v; save("hoot.interests", v) }
         if let v = p?.favorites { favorites = v; save("hoot.favorites", v) }
+    }
+
+    // ---- Synchroniseren met je account (Account.swift) ----
+    // Elke wijziging die met je account meegaat, telt hier op; het account schrijft ze dan weg.
+    // Wat van de server komt, telt niet mee (anders gaat het meteen weer terug).
+    private(set) var syncTick = 0
+    private var applyingRemote = false
+    private func synced() { if !applyingRemote { syncTick &+= 1 } }
+
+    // Je instellingen in de vorm van de website (SYNCED_PREFS in src/lib/sync.js).
+    var syncedPrefs: [String: Any] {
+        [
+            "muted": muted.sorted(), "enabled": enabled.sorted(), "vak": digestFields, "images": images,
+            "bubble": bubble, "bluesky": bluesky, "preview": preview == 0 ? "alles" as Any : preview as Any,
+            "interests": interests, "favorites": favorites, "onboarded": true,
+        ]
+    }
+    var readIds: [String] { readOrder }
+
+    // Wat je account heeft: instellingen (als die er zijn), gelezen erbij, Bewaard zoals berekend.
+    func applyRemote(prefs: Data?, read: [String], saved list: [Item]?) {
+        applyingRemote = true
+        defer { applyingRemote = false }
+        if let prefs, let p = try? JSONDecoder().decode(Import.Prefs.self, from: prefs) {
+            apply(p)
+            onboarded = true
+        }
+        let new = read.filter { !readSet.contains($0) }
+        if !new.isEmpty {
+            readOrder = Array((new + readOrder).suffix(2000))
+            readSet = Set(readOrder)
+        }
+        if let list, list != saved { saved = list }
+        rebuildStream()
+        reloadParts()
+        refreshPersonal()
     }
 
     // Beeld tonen? `lead`: het hoofdverhaal of het eerste stuk van een vak.

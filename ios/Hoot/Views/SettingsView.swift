@@ -24,6 +24,7 @@ struct SettingsView: View {
         NavigationStack(path: $path) {
             ScrollViewReader { proxy in
             Form {
+                Section { AccountRow() }
                 Section {
                     Picker(selection: $store.images) {
                         Text("Aan").tag("aan")
@@ -149,7 +150,9 @@ struct SettingsView: View {
             .navigationTitle("Instellingen")
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: String.self) { page in
-                if page == "bronnen" {
+                if page == "account" {
+                    AccountView().navigationTitle("Account").navigationBarTitleDisplayMode(.inline)
+                } else if page == "bronnen" {
                     SourcesList().navigationTitle("Bronnen").navigationBarTitleDisplayMode(.inline)
                 } else if page == "abonnementen" {
                     SubscriptionsView().navigationTitle("Abonnementen").navigationBarTitleDisplayMode(.inline)

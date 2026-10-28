@@ -158,7 +158,7 @@ struct SourceMark: View {
     }
 }
 
-// Bron, tijd en (als het verhaal meer bronnen heeft) "+N bronnen".
+// Bron, tijd en (als het verhaal meer bronnen heeft) "Vergelijk N bronnen".
 struct SourceLine: View {
     @Environment(HootStore.self) private var store
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -169,11 +169,14 @@ struct SourceLine: View {
         // Op één regel als het past; anders bron en tijd bovenaan (mogen afbreken) en de knoppen
         // eronder. Nooit een vaste breedte: bij heel grote tekst duwt die anders de hele kolom
         // buiten het scherm.
+        // "Vergelijk N bronnen" zegt dat het iets anders is dan filteren; is de regel te smal
+        // (iPhone mini, grote tekst), dan eerst het korte "+N bronnen", pas daarna twee regels.
         ViewThatFits(in: .horizontal) {
-            HStack(spacing: Space.s2) { source(oneLine: true); Spacer(minLength: 8); more; SaveButton(item: item) }
+            HStack(spacing: Space.s2) { source(oneLine: true); Spacer(minLength: 8); more(compact: false); SaveButton(item: item) }
+            HStack(spacing: Space.s2) { source(oneLine: true); Spacer(minLength: 8); more(compact: true); SaveButton(item: item) }
             VStack(alignment: .leading, spacing: Space.s1) {
                 source(oneLine: false)
-                HStack { more; Spacer(); SaveButton(item: item) }
+                HStack { more(compact: nil); Spacer(); SaveButton(item: item) }
             }
         }
     }
@@ -206,19 +209,32 @@ struct SourceLine: View {
         [HootDate.ago(item.date), store.source(item.source)?.paid == true ? "abonnement" : nil].compactMap { $0 }.joined(separator: " · ")
     }
 
-    @ViewBuilder private var more: some View {
-        if let story, (story.sourceCount ?? 1) > 1 {
+    // `compact`: true = "+N bronnen", false = "Vergelijk N bronnen", nil = wat past.
+    @ViewBuilder private func more(compact: Bool?) -> some View {
+        if let story, let count = story.sourceCount, count > 1 {
+            let others = count - 1
+            let long = moreLabel("Vergelijk \(count) bronnen")
+            let short = moreLabel(others == 1 ? "+1 bron" : "+\(others) bronnen")
             NavigationLink(value: story) {
-                Text((story.sourceCount ?? 1) == 2 ? "+1 bron" : "+\((story.sourceCount ?? 1) - 1) bronnen")
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(Theme.accent)
-                    .lineLimit(1)
-                    .frame(minHeight: 44) // een aanraakvlak van 44 pt, los van het artikel erboven
-                    .contentShape(Rectangle())
+                switch compact {
+                case true?: short
+                case false?: long
+                case nil: ViewThatFits(in: .horizontal) { long; short }
+                }
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Vergelijk \((story.sourceCount ?? 1) - 1) andere bronnen")
+            .accessibilityLabel(others == 1 ? "Vergelijk met 1 andere bron" : "Vergelijk met \(others) andere bronnen")
         }
+    }
+
+    private func moreLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.subheadline.weight(.bold))
+            .foregroundStyle(Theme.accent)
+            .lineLimit(1)
+            .fixedSize() // nooit afgekapt: dan liever de korte vorm
+            .frame(minHeight: 44) // een aanraakvlak van 44 pt, los van het artikel erboven
+            .contentShape(Rectangle())
     }
 }
 

@@ -2,6 +2,22 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.44.0] — 2026-10-28 — Inloggen in de app, en filteren op meer bronnen tegelijk
+
+- **Inloggen in de app (iOS 1.0, build 23):** met Google of met Apple, via Instellingen › Account of "Al een account? Log in" op het welkomstscherm.
+  - **Hetzelfde account als op hootnews.nl:** je bronnen, interesses, vakgebieden, gelezen en bewaarde stukken gaan mee, dus ook dezelfde editie. Wat alleen de website kent (zoals vastgezette onderwerpen) blijft staan.
+  - **Synchroniseren:** bij openen van de app en een paar seconden na elke wijziging. Je account gaat voor, behalve wat je hier net veranderde. Weergave en lezen (zoals waar artikelen openen) blijven per toestel.
+  - **Nog op uitnodiging:** nieuw? Dan vraagt de app om een uitnodigingslink of -code.
+  - **Account verwijderen** kan in de app (eis van Apple): account, instellingen en Bewaard verdwijnen van de server. Nieuwe databasefunctie `delete_my_account` (`supabase/migrations/20261028_delete_account.sql`, uitgevoerd).
+  - **Veilig:** de sessie staat in de Keychain, alleen op dit toestel. Google met PKCE en een eigen iOS-client, Apple met een nonce. Geen geheimen in de app.
+- **Bronnen in de Stroom (app en web):**
+  - **Duidelijk filter:** boven de rij staat "Filter op bron". Vooraan staat "Alle", en onder elk logo de naam.
+  - **Meer bronnen tegelijk:** tik bijvoorbeeld Verge en Wired aan.
+  - **Duidelijk wat er aan staat:** de gekozen bronnen in kleur, met een rode ring en een vinkje.
+  - **Statusregel:** "Alle bronnen · Bijgewerkt om …", of "NU.nl, Tweakers · Bijgewerkt om … · Wis". Dit vervangt de lange uitleg.
+- **Vergelijken heet nu zo:** "Vergelijk 3 bronnen" in plaats van "+3 bronnen", zodat het niet lijkt op filteren. Is er te weinig ruimte, dan blijft het "+3 bronnen".
+- **Privacy:** het privacybeleid en het privacymanifest van de app noemen nu het account (e-mailadres, gebruikers-id, wat er synchroniseert; alleen voor de app zelf).
+
 ## [1.43.1] — 2026-10-28 — Pillen in de Stroom weer op maat
 
 - **Website:** de onderwerppillen in de Stroom ("Alles", "Politiek" …) hadden geen binnenruimte meer; de tekst raakte de rand. Oorzaak: een spatiewaarde uit 1.42 die op het web niet bestaat. Hersteld.

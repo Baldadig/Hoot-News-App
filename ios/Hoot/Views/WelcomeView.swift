@@ -6,6 +6,7 @@ struct WelcomeView: View {
     @Environment(HootStore.self) private var store
     @State private var interests = false
     @State private var fields = false
+    @State private var login = false
 
     var body: some View {
         NavigationStack {
@@ -45,6 +46,13 @@ struct WelcomeView: View {
                             Button("Kies eerst je interesses") { interests = true }
                                 .font(.subheadline.weight(.semibold))
                                 .frame(maxWidth: .infinity, minHeight: Space.tap)
+                            // Al een account op hootnews.nl: dan meteen je eigen editie.
+                            Button { login = true } label: {
+                                Text("Al een account? \(Text("Log in").underline())")
+                            }
+                            .font(.subheadline)
+                            .foregroundStyle(Theme.onBrandRed.opacity(0.85))
+                            .frame(maxWidth: .infinity, minHeight: Space.tap)
                         }
                     }
                     .padding(.horizontal, Space.s5)
@@ -56,6 +64,11 @@ struct WelcomeView: View {
             }
             .foregroundStyle(Theme.onBrandRed)
             .background(Theme.brandRed)
+            .navigationDestination(isPresented: $login) {
+                AccountView { store.onboarded = true }
+                    .tint(Theme.accent)
+                    .navigationTitle("Inloggen")
+            }
             .navigationDestination(isPresented: $interests) {
                 InterestsList()
                     .tint(Theme.accent) // een gewone, lichte lijst: niet het wit van het rode scherm

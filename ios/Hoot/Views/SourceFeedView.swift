@@ -22,57 +22,115 @@ struct SourceAvatar: View {
     }
 }
 
-// De rij met je bronnen: klein en rustig, voorkeursbronnen vooraan, dan wie nu het meest brengt.
-// Eén tik = alleen die bron in de Stroom, nog een tik = weer alles (zoals op de website). De
-// gekozen bron in kleur met een ring in `accent`, de rest in grijs en gedimd. Alles van één bron
-// met uitleg en ster: tik op de bronnaam bij een bericht.
-struct SourceStrip: View {
-    @Environment(HootStore.self) private var store
-    @Binding var pick: String?
-    var body: some View {
-        let counts = Dictionary(grouping: store.stream, by: \.source).mapValues(\.count)
-        let list = store.followed.sorted { a, b in
-            let fa = store.favorites.firstIndex(of: a.id), fb = store.favorites.firstIndex(of: b.id)
+extension HootStore {
+    // De volgorde van de bronrij: voorkeursbronnen vooraan, dan wie nu het meest brengt. Ook de
+    // volgorde van de namen in de statusregel, zodat die met de rij overeenkomt.
+    var stripSources: [Source] {
+        let counts = Dictionary(grouping: stream, by: \.source).mapValues(\.count)
+        return followed.sorted { a, b in
+            let fa = favorites.firstIndex(of: a.id), fb = favorites.firstIndex(of: b.id)
             if let fa, let fb { return fa < fb }
             if (fa != nil) != (fb != nil) { return fa != nil }
             return (counts[a.id] ?? 0) > (counts[b.id] ?? 0)
         }
+    }
+}
+
+// Filter op bron: "Alle" vooraan, dan je bronnen als logo met naam. Tik zet een bron erbij of
+// eraf (meer tegelijk kan); niets gekozen is alles. Wat aan staat is in één oogopslag te zien:
+// in kleur, met een rode ring, een vinkje en de naam in rood. Zodra je kiest, worden de andere
+// grijs en gedimd (maar blijven leesbaar). Wat je filtert staat in woorden in de statusregel
+// eronder, met "Wis". Alles van één bron met uitleg en ster: tik op de bronnaam bij een bericht.
+struct SourceStrip: View {
+    @Environment(HootStore.self) private var store
+    @Binding var picks: Set<String>
+    static let logo: CGFloat = 36
+    static let cell: CGFloat = 60 // breder dan het logo: ruimte voor de naam, aanraakvlak ruim 44 pt
+
+    var body: some View {
+        let list = store.stripSources
         if list.count > 1 {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 0) {
-                    ForEach(list) { s in
-                        let on = pick == s.id
-                        Button { withAnimation(.easeOut(duration: 0.14)) { pick = on ? nil : s.id } } label: {
-                            SourceAvatar(source: s, size: 30)
-                                .grayscale(on ? 0 : 1)
-                                .opacity(pick == nil ? 0.9 : on ? 1 : 0.45)
-                                .padding(2)
-                                .overlay(Circle().strokeBorder(on ? Theme.accent : .clear, lineWidth: 1.5))
-                                .frame(width: Space.tap, height: Space.tap) // aanraakvlak 44 pt, het logo zelf klein
-                                .contentShape(Rectangle())
+            VStack(alignment: .leading, spacing: Space.s2) {
+                Text("Filter op bron")
+                    .font(.caption.weight(.heavy))
+                    .tracking(0.6)
+                    .textCase(.uppercase)
+                    .foregroundStyle(Theme.ink3)
+                    .accessibilityAddTraits(.isHeader)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: 0) {
+                        SourceChip(name: "Alle", on: picks.isEmpty, dim: false) {
+                            withAnimation(.easeOut(duration: 0.14)) { picks = [] }
+                        } logo: {
+                            Circle().fill(Theme.rule)
+                                .overlay(Image(systemName: "square.3.layers.3d").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.ink2))
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Alleen \(s.name)")
-                        .accessibilityAddTraits(on ? .isSelected : [])
+                        .accessibilityLabel("Alle bronnen")
+                        ForEach(list) { s in
+                            let on = picks.contains(s.id)
+                            SourceChip(name: s.name, on: on, dim: !picks.isEmpty && !on) {
+                                withAnimation(.easeOut(duration: 0.14)) { if on { picks.remove(s.id) } else { picks.insert(s.id) } }
+                            } logo: {
+                                SourceAvatar(source: s, size: Self.logo)
+                            }
+                            .accessibilityLabel(s.name)
+                        }
                     }
                 }
-            }
-            .scrollClipDisabled()
-            .padding(.leading, -Space.s2)
-            .padding(.bottom, Space.s1)
-            // Welke bron je filtert, in woorden, met een weg terug (niet alleen een logo dat kleurt).
-            if let p = pick, let s = list.first(where: { $0.id == p }) {
-                HStack(spacing: Space.s2) {
-                    Text("Alleen \(Text(s.name).foregroundStyle(Theme.ink).fontWeight(.semibold))")
-                        .foregroundStyle(Theme.ink3)
-                    Spacer()
-                    Button("Alle bronnen") { withAnimation(.easeOut(duration: 0.14)) { pick = nil } }
-                        .fontWeight(.semibold)
-                        .frame(minHeight: Space.tap)
-                }
-                .font(.subheadline)
+                .scrollClipDisabled()
+                // Het eerste rondje (niet zijn vak) op de kolomlijn, gelijk met het label en de lijst.
+                .padding(.leading, -(Self.cell - Self.logo) / 2)
+                .sensoryFeedback(.selection, trigger: picks)
             }
         }
+    }
+}
+
+// Eén knop in de bronrij: rond logo met de naam eronder.
+private struct SourceChip<Logo: View>: View {
+    let name: String
+    let on: Bool
+    let dim: Bool
+    let action: () -> Void
+    @ViewBuilder let logo: Logo
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: Space.s1) {
+                logo
+                    .frame(width: SourceStrip.logo, height: SourceStrip.logo)
+                    .grayscale(dim ? 1 : 0)
+                    .opacity(dim ? 0.5 : 1)
+                    // De ring met een smalle rand papier ertussen; het vinkje rechtsonder snijdt
+                    // met een rand papier door de ring heen, zodat beide scherp blijven.
+                    .frame(width: SourceStrip.logo + 2 * Space.s1, height: SourceStrip.logo + 2 * Space.s1)
+                    .overlay { if on { Circle().strokeBorder(Theme.accent, lineWidth: 2) } }
+                    .overlay(alignment: .bottomTrailing) {
+                        if on {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 8, weight: .black))
+                                .foregroundStyle(Theme.onAccent)
+                                .frame(width: 16, height: 16)
+                                .background(Theme.accent, in: Circle())
+                                .padding(Space.s0)
+                                .background(Theme.paper, in: Circle())
+                                .offset(x: Space.s0, y: Space.s0)
+                                .transition(.scale.combined(with: .opacity))
+                        }
+                    }
+                Text(name)
+                    .font(.caption2.weight(on ? .semibold : .regular))
+                    .foregroundStyle(on ? Theme.accent : Theme.ink3)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .dynamicTypeSize(...DynamicTypeSize.xxLarge) // de rij blijft een rij; de volle naam leest VoiceOver
+                    .padding(.horizontal, Space.s0)
+            }
+            .frame(width: SourceStrip.cell)
+            .padding(.bottom, Space.s1)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(on ? .isSelected : [])
     }
 }
 

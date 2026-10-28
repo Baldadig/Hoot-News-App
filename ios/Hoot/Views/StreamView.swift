@@ -11,13 +11,13 @@ struct StreamView: View {
     @State private var showSources = DebugLaunch.screen("bronnen")
     @State private var showAccounts = false
     @State private var limit = 60
-    @State private var pick: String? // de bron uit de rij bovenaan (nil = alles)
+    @State private var picks: Set<String> = [] // de bronnen uit de rij bovenaan (leeg = alles)
     @SceneStorage("streamMode") private var mode = DebugLaunch.screen("bluesky") ? "bluesky" : "nieuws"
     private var social: Bool { store.bluesky && mode == "bluesky" }
 
     var body: some View {
         NavigationStack {
-            let items = pick.map { p in store.stream.filter { $0.source == p } } ?? store.stream
+            let items = picks.isEmpty ? store.stream : store.stream.filter { picks.contains($0.source) }
             ScrollView {
                 if store.bluesky {
                     Picker("Wat je ziet", selection: $mode) {
@@ -33,10 +33,10 @@ struct StreamView: View {
                     BlueskyFeed().padding(.horizontal).column()
                 } else {
                 LazyVStack(alignment: .leading, spacing: 0) {
-                    SourceStrip(pick: $pick)
+                    SourceStrip(picks: $picks)
                     if store.status == .loading && items.isEmpty {
                         ProgressView().frame(maxWidth: .infinity, minHeight: 240)
-                    } else if items.isEmpty {
+                    } else if items.isEmpty && picks.isEmpty {
                         if store.status == .failed {
                             EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnen hier de berichten van je bronnen.", retry: store.load)
                         } else {
@@ -44,13 +44,15 @@ struct StreamView: View {
                         }
                     } else {
                         StaleNotice()
-                        if let at = store.updatedAt, !store.stale {
-                            Text(subtitle(at))
-                                .font(.footnote)
+                        status
+                        if items.isEmpty {
+                            // Gekozen bronnen zonder berichten: een stille regel, geen groot leeg scherm.
+                            Text("Nog niets van deze bronnen.")
+                                .font(.subheadline)
                                 .foregroundStyle(Theme.ink3)
-                                .padding(.bottom, Space.s2)
+                                .padding(.vertical, Space.s4)
                         }
-                        let fresh = pick == nil ? store.newInStream : 0
+                        let fresh = picks.isEmpty ? store.newInStream : 0
                         ForEach(Array(items.prefix(limit).enumerated()), id: \.element.id) { i, item in
                             // Waar je de vorige keer was: daaronder heb je alles al gezien.
                             if fresh > 0 && i == fresh { SeenMarker() }
@@ -96,17 +98,58 @@ struct StreamView: View {
         .onAppear { if behindReader { behindReader = false } else { store.openStream() } }
         .onDisappear { if reader.item != nil { behindReader = true } else { store.leaveStream() } }
         // Een bron die je uitzet, kan geen filter blijven (anders een lege lijst zonder uitweg).
-        .onChange(of: store.followed.map(\.id)) { _, ids in if let p = pick, !ids.contains(p) { pick = nil } }
+        .onChange(of: store.followed.map(\.id)) { _, ids in
+            let kept = picks.intersection(ids)
+            if kept != picks { picks = kept }
+        }
         .onChange(of: phase) { _, now in if now == .background { store.leaveStream() } }
     }
 
-    private func subtitle(_ at: Date) -> String {
-        let time = "Bijgewerkt om \(at.formatted(date: .omitted, time: .shortened))"
-        switch store.newInStream {
-        case 0: return store.streamMark == nil ? "De laatste berichten van je bronnen, nieuwste eerst. \(time)." : "\(time) · niets nieuws sinds je vorige bezoek"
-        case 1: return "\(time) · 1 nieuw sinds je vorige bezoek"
-        case let n: return "\(time) · \(n) nieuw sinds je vorige bezoek"
+    // Eén regel onder de bronrij: wat je ziet en hoe vers het is. Met een keuze: welke bronnen, met
+    // "Wis" als weg terug. Altijd 44 pt hoog, zodat de lijst niet verspringt als je kiest.
+    @ViewBuilder private var status: some View {
+        // Verversen mislukt: dan zegt StaleNotice hoe oud het is, hier geen tijd.
+        let time = store.stale ? nil : store.updatedAt.map { "Bijgewerkt om \($0.formatted(date: .omitted, time: .shortened))" }
+        if picks.isEmpty {
+            if let time {
+                Text(["Alle bronnen", time, freshNote].compactMap { $0 }.joined(separator: " · "))
+                    .font(.footnote)
+                    .foregroundStyle(Theme.ink3)
+                    .frame(minHeight: Space.tap, alignment: .leading)
+            }
+        } else {
+            HStack(spacing: Space.s2) {
+                Text("\(pickedNames)\(time.map { " · \($0)" } ?? "")")
+                    .foregroundStyle(Theme.ink3)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Button("Wis") { withAnimation(.easeOut(duration: 0.14)) { picks = [] } }
+                    .fontWeight(.semibold)
+                    .tint(Theme.accent)
+                    .frame(minWidth: Space.tap, minHeight: Space.tap, alignment: .trailing)
+                    .contentShape(Rectangle())
+                    .accessibilityLabel("Wis filter op bron")
+            }
+            .font(.footnote)
         }
+    }
+
+    // Wat nieuw is sinds je vorige bezoek (alleen als we dat weten).
+    private var freshNote: String? {
+        switch store.newInStream {
+        case 0: store.streamMark == nil ? nil : "niets nieuws sinds je vorige bezoek"
+        case 1: "1 nieuw sinds je vorige bezoek"
+        case let n: "\(n) nieuw sinds je vorige bezoek"
+        }
+    }
+
+    // "NOS, Tweakers" in inkt; bij meer dan drie: "NOS, Tweakers en 2 andere". In de volgorde van de rij.
+    private var pickedNames: Text {
+        let names = store.stripSources.filter { picks.contains($0.id) }.map(\.name)
+        let bold = { (s: String) in Text(s).foregroundStyle(Theme.ink).fontWeight(.semibold) }
+        if names.count > 3 {
+            return Text("\(bold(names.prefix(2).joined(separator: ", "))) en \(names.count - 2) andere")
+        }
+        return bold(names.joined(separator: ", "))
     }
 }
 
