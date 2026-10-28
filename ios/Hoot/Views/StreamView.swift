@@ -222,8 +222,10 @@ struct SearchView: View {
     @State private var query = DebugLaunch.query ?? ""
     var body: some View {
         NavigationStack {
-            let q = query.trimmingCharacters(in: .whitespaces).lowercased()
-            let hits = q.count < 2 ? [] : store.stream.filter { "\($0.title) \($0.summary ?? "")".lowercased().contains(q) }
+            // Zonder hoofdletters en accenten: "Oekraine" vindt ook "Oekraïne", "Israel" ook "Israël".
+            let fold = { (s: String) in s.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil) }
+            let q = fold(query.trimmingCharacters(in: .whitespaces))
+            let hits = q.count < 2 ? [] : store.stream.filter { fold("\($0.title) \($0.summary ?? "")").contains(q) }
             List {
                 ForEach(hits.prefix(80)) { item in
                     // Zonder "+N bronnen": een link in een lijstrij maakt de hele rij tot die link.

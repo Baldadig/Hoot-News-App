@@ -140,7 +140,8 @@ enum ReaderHTML {
         blockquote { margin: 1.4em 0; padding: 0 0 0 1em; border-left: 3px solid var(--accent); font-style: italic; }
         hr { border: 0; border-top: 1px solid var(--rule); margin: 2em 0; }
         ul, ol { padding-left: 1.3em; } li { margin: .3em 0; }
-        table { width: 100%; border-collapse: collapse; font-size: .85em; } td, th { border-bottom: 1px solid var(--rule); padding: .4em; text-align: left; }
+        table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; font-size: .85em; } /* een brede tabel scrolt zelf, niet de hele pagina */
+        main { overflow-wrap: break-word; } /* lange links breken af in plaats van de pagina te verbreden */ td, th { border-bottom: 1px solid var(--rule); padding: .4em; text-align: left; }
         pre, code { font-family: ui-monospace, Menlo, monospace; font-size: .85em; white-space: pre-wrap; }
         </style></head><body><main>
         <p class="kicker">\(escape(sourceName))</p>

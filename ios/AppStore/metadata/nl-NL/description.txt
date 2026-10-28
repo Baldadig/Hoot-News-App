@@ -1,23 +1,27 @@
-Hoot zet je nieuws op een rij en houdt dan op. Geen eindeloze tijdlijn, geen meldingen die om aandacht schreeuwen: drie keer per dag een editie van tien verhalen, en een Stroom met de bronnen die jij kiest.
+Hoot zet het nieuws van jouw bronnen voor je klaar, en houdt dan op. Geen eindeloze tijdlijn en geen meldingen die om aandacht schreeuwen: drie keer per dag je eigen editie van tien verhalen, en een rustige Stroom met alles van de bronnen die jij kiest.
 
-DE EDITIE
-Om 6, 12 en 17 uur verschijnt een nieuwe editie: het belangrijkste nieuws van dat moment, verdeeld over binnenland, buitenland, economie, tech en wetenschap. Het hoofdverhaal staat groot. Daarna ligt de editie vast, zodat je hem echt uit kunt lezen.
+JE EIGEN EDITIE
+Om 6, 12 en 17 uur staat er een nieuwe editie klaar: de tien verhalen die op dat moment ertoe doen, uit jouw bronnen. Wat bij je interesses past en wat je voorkeursbronnen brengen, krijgt voorrang. Het hoofdverhaal staat groot, en wat je eerder al zag zakt naar achteren. Ben je erdoorheen, dan ben je bij.
 
-VERGELIJK HOE BRONNEN HET BRENGEN
-Schrijven meer media over hetzelfde verhaal, dan bundelt Hoot ze. Tik op "+N bronnen" en zie naast elkaar hoe de NOS, een Belgische krant en een Engelse krant hetzelfde nieuws brengen.
+ZIE HOE ANDERE MEDIA HET BRENGEN
+Schrijven meerdere media over hetzelfde verhaal, dan bundelt Hoot ze. Eén tik op "+N bronnen" en je ziet naast elkaar hoe een Nederlandse, een Belgische en een Engelse krant hetzelfde nieuws brengen.
 
 DE STROOM
-Wil je alles zien, dan staat in de Stroom elk bericht van je bronnen, nieuwste eerst. Jij bepaalt welke bronnen meedoen; gratis bronnen zijn duidelijk gemarkeerd.
+Wil je alles zien, dan staat in de Stroom elk bericht van je bronnen, het nieuwste bovenaan. Een streep laat zien waar je de vorige keer was gebleven. Tik op een bronlogo om alleen die bron te zien. Volg je mensen op Bluesky, dan staan hun posts er ook, met video.
 
-DE DIGEST
-Elke maandag om 7 uur per vakgebied de drie belangrijkste stukken van de week: Paid social, UI/UX, Digital Design, AI (modellen, tools, MCP en werkwijzen) en E-commerce. Gekozen op hoeveel vakbronnen erover schreven, of een redactie het uitkoos en wie het schreef. Alleen stukken van mensen, met hun eigen intro.
+RUSTIG LEZEN IN DE LEZER
+Artikelen open je in de Hoot-lezer: alleen de tekst en de beelden, in een rustige krantenletter, zonder de drukte van de website. Je kiest zelf de tekstgrootte. Heb je een abonnement, log dan één keer in bij de uitgever en lees ook hun hele artikelen in de lezer. Liever de website of Safari? Dat kies je in Instellingen.
 
-LEZEN ZOALS JIJ WILT
-Artikelen openen in de app, met de Lezer als je die wilt. Artikelen van betaalde bronnen openen standaard in Safari, waar je al ingelogd bent bij je abonnementen. Of kies ervoor om alles in Safari te openen. Bewaar wat je later wilt lezen, en zoek in alles wat Hoot van je bronnen heeft.
+ELKE MAANDAG JE DIGEST
+Het beste uit je vak van de afgelopen week: per vakgebied drie stukken, zoals Paid social, UI/UX, Digital Design, AI en E-commerce. Hoot kiest op hoeveel vakbronnen erover schreven, of een redactie het uitkoos en wie het schreef. Alleen stukken van mensen, met hun eigen intro.
+
+BEWAREN EN ZOEKEN
+Bewaar wat je later wilt lezen en zoek in alles wat Hoot van je bronnen heeft.
 
 RUSTIG EN PRIVÉ
 • Geen account nodig, geen advertenties, geen tracking.
-• Koppen in een rustige krantenletter, met donkere modus en Dynamische tekst.
-• Op iPhone, iPad en een opengevouwen iPhone Duo met een opmaak die past.
+• Wat Hoot leert van wat je leest, blijft op je toestel.
+• Donkere modus, Dynamische tekst en VoiceOver.
+• Op iPhone en iPad, met een opmaak die past bij je scherm.
 
-Hoot is een onafhankelijk project van Alex Vrees. Hoot toont koppen en korte intro's uit de openbare nieuwsfeeds van uitgevers en linkt altijd door naar het artikel bij de uitgever zelf.
+Hoot is gemaakt door Baldadig.nl. Hoot toont koppen en korte intro's uit de openbare nieuwsfeeds van uitgevers en linkt altijd door naar het artikel bij de uitgever zelf.
