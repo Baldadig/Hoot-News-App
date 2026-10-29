@@ -23,7 +23,7 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
 | ✅ | Versie 1.0 | Build 27 ingediend op 28 oktober om 21:54 ("Waiting for Review"). Build 26 (20:11) teruggetrokken: onzichtbare "Verder" en sync-fouten, gevonden in de slooptest. Handmatig uitbrengen na goedkeuring. |
 | ✅ | Inloggen (Google en Apple) | Google Cloud: iOS-client "Hoot iOS" en inlogscherm "In production". Supabase: iOS-client-id bij Google, Apple aan (nl.hootnews.Hoot), functie `delete_my_account`. |
 | ✅ | Privacylabels | E-mailadres, gebruikers-ID, productinteractie: gekoppeld aan je account, alleen voor de werking van de app, geen tracking. |
-| ✅ | Review-notities | Bijgewerkt, met uitnodigingscode `applereviewe8f265b7` (5 accounts, tot 26 januari 2027). "Sign-in required" uit. |
+| ✅ | Review-notities | Bijgewerkt, met een uitnodigingscode voor de beoordelaar. De code staat alleen in App Store Connect › App Review-informatie, nooit in deze repo. "Sign-in required" uit. |
 | ⬜ | Header op de productpagina | Nieuw in App Store Connect: één header-afbeelding, 5244 × 2950 of 3840 × 1646 px. Maken in de stijl van de schermafbeeldingen (merkrood, witte krantenletter). Optioneel. |
 | ⬜ | Digest-beeld | Na goedkeuring, vanaf maandag 2 november: nieuw Digest-beeld voor versie 1.0.1. |
 
@@ -43,7 +43,7 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
 | ✅ | App-icoon 1024 × 1024 | Licht, donker en getint (`Assets.xcassets/AppIcon`). |
 | ⏳ | Icoon in Icon Composer (gelaagd Liquid Glass) | Mooier op iOS 26/27, niet verplicht. Open `icon-1024.png` in Icon Composer (Xcode → Open Developer Tool), maak de **h** en de **punt** aparte lagen, sla op als `AppIcon.icon`. |
 | ✅ | Startscherm in papierkleur | `Info.plist` → `UILaunchScreen`. |
-| ✅ | Privacymanifest | `PrivacyInfo.xcprivacy`: geen tracking, geen verzamelde gegevens, UserDefaults met reden CA92.1. |
+| ✅ | Privacymanifest | `PrivacyInfo.xcprivacy`: geen tracking; UserDefaults met reden CA92.1 en bestandsdatums met reden C617.1 (opruimen van de eigen offline kopieën). Die tweede reden ontbrak tot 29 oktober: builds tot en met 35 hadden hem niet, kijk in de mail van App Store Connect of er een ITMS-91053-melding kwam. |
 | ✅ | Versleuteling: vrijgesteld | `ITSAppUsesNonExemptEncryption = NO` (alleen HTTPS). Dan vraagt App Store Connect er niet meer naar. |
 | ✅ | Instellingen volgens de Human Interface Guidelines | Geen eigen licht/donker, verwijzing naar de Instellingen-app, wissen alleen na bevestiging. |
 | ✅ | Dynamische tekst en donkere modus | Ook bij de grootste tekstformaten bruikbaar (miniaturen wijken, knoppen schuiven onder elkaar). |
@@ -57,7 +57,7 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
 | ✅ | Naam: **Hoot News** | `name.txt` | 9 / 30 |
 | ✅ | Ondertitel: *Rustig nieuws, met een einde* | `subtitle.txt` | 28 / 30 |
 | ✅ | Promotietekst | `promotional_text.txt` | 150 / 170 |
-| ✅ | Beschrijving | `description.txt` | 1.799 / 4.000 |
+| ✅ | Beschrijving | `description.txt` | 857 / 4.000 |
 | ✅ | Trefwoorden | `keywords.txt` | 97 / 100 (geen merknamen van bronnen: richtlijn 2.3.7) |
 | ✅ | Nieuw in deze versie | `release_notes.txt` | |
 | 🟡 | Naam beschikbaar? | | "Hoot" alleen is waarschijnlijk bezet; App Store Connect zegt het bij het aanmaken. Alternatief: *Hoot: rustig nieuws*. |

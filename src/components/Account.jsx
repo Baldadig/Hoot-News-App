@@ -32,7 +32,7 @@ export function AccountSettings({ account, syncStatus }) {
       <div className="setrow setrow--stack">
         <div className="setrow__text">
           <span className="setrow__label">{invite ? 'Je bent uitgenodigd' : 'Inloggen'}</span>
-          <span className="setrow__hint">{invite ? 'Maak je account; wat je instelde gaat mee.' : 'Alles mee naar je andere toestellen.'}</span>
+          <span className="setrow__hint">{invite ? 'Maak je account; wat je instelde gaat mee.' : 'Voor leden, op uitnodiging. Alles gaat mee naar je andere toestellen.'}</span>
         </div>
         <GoogleButton onClick={signIn} />
       </div>
@@ -43,14 +43,54 @@ export function AccountSettings({ account, syncStatus }) {
       <div className="setrow">
         <div className="setrow__text">
           <span className="setrow__label">{email}</span>
-          <span className="setrow__hint">{status === 'noInvite' ? 'Nog geen lid. Open je uitnodigingslink.' : SYNC[syncStatus] || SYNC.ok}</span>
+          <span className="setrow__hint">{status === 'noInvite' ? 'Nog geen lid. Hoot is op uitnodiging.' : SYNC[syncStatus] || SYNC.ok}</span>
         </div>
         <button type="button" className="linkbtn" onClick={signOut}>
           Uitloggen
         </button>
       </div>
+      {status === 'noInvite' ? <RedeemRow account={account} /> : null}
       {profile?.is_admin ? <InviteRow account={account} /> : null}
     </>
+  )
+}
+
+// Ingelogd, nog geen lid: de uitnodiging alsnog verzilveren (zoals in de app).
+const REDEEM = { ongeldig: 'Deze code werkt niet (meer). Vraag om een nieuwe uitnodiging.', fout: 'Dat lukte niet. Controleer je verbinding en probeer het opnieuw.' }
+
+function RedeemRow({ account }) {
+  const [code, setCode] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState('')
+  const submit = async (e) => {
+    e.preventDefault()
+    setBusy(true)
+    setMsg('')
+    let result
+    try {
+      result = await account.redeem(code)
+    } catch {
+      result = 'fout'
+    }
+    setBusy(false)
+    if (result !== 'ok') setMsg(REDEEM[result] || REDEEM.fout)
+  }
+  return (
+    <form className="invite" onSubmit={submit}>
+      <span className="setrow__label">Lid worden</span>
+      <span className="setrow__hint">Heb je een uitnodigingslink gekregen? Plak hem hier, of alleen de code erin.</span>
+      <div className="invite__acts">
+        <input className="input" value={code} onChange={(e) => setCode(e.target.value)} placeholder="Uitnodigingslink of code" aria-label="Uitnodigingslink of code" autoCapitalize="off" autoCorrect="off" spellCheck={false} />
+        <button type="submit" className="btn" disabled={busy || !code.trim()}>
+          {busy ? 'Even…' : 'Word lid'}
+        </button>
+      </div>
+      {msg ? (
+        <p className="hint" role="status">
+          {msg}
+        </p>
+      ) : null}
+    </form>
   )
 }
 
@@ -117,8 +157,23 @@ function InviteRow({ account }) {
   )
 }
 
-// Na het instellen, als je een eind aan het lezen bent: één keer vragen of je wilt inloggen.
-export function JoinSheet({ open, onClose, onSignIn }) {
+// Inloggen, in een blad. Twee ingangen met elk een eigen kop: vanuit "Jouw Editie in één minuut"
+// (`reason` 'brief': gaat over de samenvatting), of vanzelf na een eind lezen (alleen als je via een
+// uitnodigingslink binnenkwam, zie src/lib/join.js). Hoot is op uitnodiging; dat staat er vóór je inlogt.
+const JOIN = {
+  brief: {
+    kicker: 'Voor leden',
+    title: 'Jouw Editie in één minuut',
+    text: 'Bovenaan je Editie een korte samenvatting van de verhalen, geschreven door AI, met de bronnen erbij. Ook gaan je bronnen, onderwerpen en Bewaard mee naar je andere toestellen.',
+  },
+  sync: {
+    kicker: 'Hoot op al je toestellen',
+    title: 'Bewaar wat je net hebt ingesteld',
+    text: 'Log in met Google. Dan gaan je bronnen, onderwerpen, Bewaard en wat je al las mee naar je telefoon, tablet en computer.',
+  },
+}
+
+export function JoinSheet({ open, reason = 'sync', invited = false, onClose, onSignIn }) {
   const ref = useRef(null)
   useEffect(() => {
     const d = ref.current
@@ -126,19 +181,25 @@ export function JoinSheet({ open, onClose, onSignIn }) {
     if (open && !d.open) d.showModal()
     if (!open && d.open) d.close()
   }, [open])
+  const copy = JOIN[reason] || JOIN.sync
   return (
     <dialog ref={ref} className="sheet sheet--join" onClose={onClose} onClick={(e) => e.target === ref.current && onClose()} aria-labelledby="join-title">
       <div className="sheet__in">
         <div className="sheet__head">
-          <span className="kicker">Hoot op al je toestellen</span>
+          <span className="kicker">{copy.kicker}</span>
           <button type="button" className="iconbtn" onClick={onClose} aria-label="Sluiten">
             <CloseIcon />
           </button>
         </div>
         <h2 id="join-title" className="join__title">
-          Bewaar wat je net hebt ingesteld
+          {copy.title}
         </h2>
-        <p className="join__text">Log in met Google. Dan gaan je bronnen, onderwerpen, Bewaard en wat je al las mee naar je telefoon, tablet en computer.</p>
+        <p className="join__text">{copy.text}</p>
+        <p className="join__text">
+          {invited
+            ? 'Je bent uitgenodigd. Log in, dan ben je meteen lid.'
+            : 'Hoot is nog op uitnodiging. Kreeg je een uitnodiging? Open de link, of log in en vul daarna je code in bij Instellingen.'}
+        </p>
         <div className="join__actions">
           <GoogleButton onClick={onSignIn} wide />
           <button type="button" className="linkbtn" onClick={onClose}>

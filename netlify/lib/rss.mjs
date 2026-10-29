@@ -31,7 +31,9 @@ const NOISE_TITLE_NL = /\b(aanbiedingen?|in de aanbieding|kortingscodes?|dagdeal
 const UPDATE_TITLE = /^(software|driver|firmware|bios|game)-update\s*[-–:]/i
 // Reclame voor een eigen nieuwsbrief ("Middle East Dispatch newsletter: …", "Meld je aan voor …").
 const NEWSLETTER_TITLE = /^[^:]{0,60}\bnewsletter:|\bsign up (for|to) (our|the)\b.*\bnewsletter\b|^meld je aan voor\b/i
-const NOISE_LINK = /\/puzzels?\/|^https:\/\/tweakers\.net\/(downloads|plan|aanbiedingen|pricewatch)\//
+// Ook geen persberichten van de uitgever zelf ("Election Night at The Atlantic", onder
+// /press-releases/) en geen betaalde of partnerinhoud.
+const NOISE_LINK = /\/puzzels?\/|\/press-releases?\/|\/persberichten?\/|\/sponsored\/|\/partner(-content)?\/|^https:\/\/tweakers\.net\/(downloads|plan|aanbiedingen|pricewatch)\//
 export function isNoise(it, cats = []) {
   if (cats.some((c) => /\bdeals\b|\bcoupons?\b|\bshopping\b|\baanbieding|^(software|driver|firmware)$|^\.(plan|actie)$/i.test(c.trim()))) return true
   const title = it.title || ''

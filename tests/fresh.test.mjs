@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { freshCount } from '../src/lib/fresh.js'
+import { freshCount, refreshPlan } from '../src/lib/fresh.js'
 import { restoreSaved, toggleSaved } from '../src/lib/saved.js'
 
 const it = (id, source = 'nos') => ({ id, source })
@@ -12,6 +12,27 @@ test('telt alleen wat echt nieuw is, zonder dubbelen', () => {
 
 test('berichten van een uitgezette bron tellen niet als nieuw', () => {
   assert.equal(freshCount([it('a')], [it('b', 'nrc'), it('c', 'nos')], new Set(['nrc'])), 1)
+})
+
+test('automatisch verversen: nieuwe berichten wachten, de rest gaat door', () => {
+  const prev = { edition: { id: 'ochtend' }, items: [it('a')] }
+  const next = { edition: { id: 'ochtend' }, items: [it('b'), it('a')] }
+  assert.equal(refreshPlan({ defer: true, prev, next, fresh: 1 }), 'wachten')
+  assert.equal(refreshPlan({ defer: true, prev, next, fresh: 0 }), 'rest')
+  // De eerste keer en de verversknop: alles meteen.
+  assert.equal(refreshPlan({ defer: false, prev, next, fresh: 1 }), 'alles')
+  assert.equal(refreshPlan({ defer: true, prev: null, next, fresh: 0 }), 'alles')
+})
+
+test('een nieuw dagdeel komt met de berichten van nu, ook als er berichten wachten', () => {
+  // Om 09:00 open laten, om 13:00 terug: Jouw Editie van de middag mag niet uit de berichten van
+  // 09:00 komen (die ligt daarna het hele dagdeel vast).
+  const prev = { edition: { id: 'ochtend' }, items: [it('a')] }
+  const next = { edition: { id: 'middag' }, items: [it('c'), it('b'), it('a')] }
+  assert.equal(refreshPlan({ defer: true, prev, next, fresh: 2 }), 'alles')
+  assert.equal(refreshPlan({ defer: true, prev, next, fresh: 0 }), 'alles')
+  // Geen editie in het antwoord: dan geen reden om de Stroom te laten verspringen.
+  assert.equal(refreshPlan({ defer: true, prev, next: { ...next, edition: null }, fresh: 2 }), 'wachten')
 })
 
 test('verwijderen uit Bewaard is ongedaan te maken, met dezelfde inhoud en bewaartijd', () => {

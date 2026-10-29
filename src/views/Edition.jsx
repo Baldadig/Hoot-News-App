@@ -12,6 +12,7 @@ import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { resolveEditionEntry, heroFirst, EDITION_SIZE } from '../lib/edition.js'
 import { fitsHero } from '../lib/img.js'
 import { followedNow } from '../lib/follow.js'
+import { withLead } from '../lib/saved.js'
 import { TermHelp } from '../components/Terms.jsx'
 
 // Rubriek van elke plek in de editie (komt van de server), als label boven het verhaal.
@@ -59,7 +60,7 @@ function FrontItem({ item, story, note, taste }) {
       <TermHelp text={`${title} ${summary || ''}`} max={1} />
       <div className="fitem__act">
         {others > 0 ? (
-          <button type="button" className="morebtn" onClick={() => openStory(story.id)} aria-label={`Vergelijk met ${others} andere ${others === 1 ? 'bron' : 'bronnen'}${fresh ? `, ${fresh} nieuw` : ''}`}>
+          <button type="button" className="morebtn" onClick={() => openStory(story.id, item.id)} aria-label={`Vergelijk met ${others} andere ${others === 1 ? 'bron' : 'bronnen'}${fresh ? `, ${fresh} nieuw` : ''}`}>
             {fresh ? <span className="dot" aria-hidden="true" /> : null}
             <span className="morebtn__long">Vergelijk {others + 1} bronnen</span>
             <span className="morebtn__short">+{others} {others === 1 ? 'bron' : 'bronnen'}</span>
@@ -69,7 +70,7 @@ function FrontItem({ item, story, note, taste }) {
         )}
         <span className="fitem__btns">
           <TasteButton entryKey={taste} item={item} story={story} />
-          {story ? <SaveButton id={story.id} kind="story" payload={story} label="verhaal" /> : <SaveButton id={item.id} payload={item} />}
+          {story ? <SaveButton id={story.id} kind="story" payload={withLead(story, item.id)} label="verhaal" /> : <SaveButton id={item.id} payload={item} />}
         </span>
       </div>
     </article>
@@ -94,7 +95,7 @@ const Slot = ({ less, row, children }) => (less.includes(row.key) ? <LessNote en
 const SLOT = { ochtend: 'Ochtendeditie', middag: 'Middageditie', avond: 'Avondeditie' }
 
 export default function Edition({ active, edition, bubble = [], brief = null, briefForMembers = false, onJoin, loading, failedLoad, statusProps, onRefresh, refreshing }) {
-  const { itemsById, storiesById, muted, followStories, newInStory, openStory, less } = useHoot()
+  const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account } = useHoot()
   const following = followedNow(followStories, storiesById, newInStory)
   const ref = useRef(null)
 
@@ -159,13 +160,15 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 </button>
               ) : null}
               {!hasBrief && briefForMembers ? (
-                <button type="button" className="briefcta" onClick={onJoin}>
+                // Hoot is op uitnodiging: dat staat er al vóór je inlogt. Ingelogd zonder lidmaatschap?
+                // Dan brengt de knop je naar het veld voor je uitnodigingscode (Instellingen).
+                <button type="button" className="briefcta" onClick={onJoin} aria-haspopup={account?.status === 'noInvite' ? undefined : 'dialog'}>
                   <span className="briefcta__icon" aria-hidden="true">
                     <SparkleIcon />
                   </span>
                   <span className="briefcta__text">
                     <span className="briefcta__title">Jouw Editie in één minuut</span>
-                    <span className="briefcta__sub">Voor leden: log in met Google</span>
+                    <span className="briefcta__sub">{account?.status === 'noInvite' ? 'Voor leden: vul je uitnodigingscode in' : 'Voor leden, op uitnodiging'}</span>
                   </span>
                   <span className="briefcta__go" aria-hidden="true">
                     ›

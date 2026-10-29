@@ -8,6 +8,7 @@ import SwiftUI
 // - wissen alleen na bevestiging, met Annuleer.
 struct SettingsView: View {
     @Environment(HootStore.self) private var store
+    @Environment(Account.self) private var account
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @State private var confirmClear: String? = DebugLaunch.screen("instellingen-wissen") ? "gelezen" : nil
@@ -18,6 +19,9 @@ struct SettingsView: View {
         let b = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? ""
         return "\(v) (\(b))"
     }
+
+    // Lid (of je account laadt nog): Bewaard gaat mee met je account, dus wissen wist ook daar.
+    private var savedSyncs: Bool { account.session != nil && account.status != .noInvite }
 
     var body: some View {
         @Bindable var store = store
@@ -135,7 +139,7 @@ struct SettingsView: View {
                     }
                     .disabled(store.saved.isEmpty)
                 } header: {
-                    Text("Op dit toestel")
+                    Text(savedSyncs ? "Gelezen en Bewaard" : "Op dit toestel")
                 }
 
                 // Terug naar het welkom: opnieuw kiezen, of opnieuw inloggen. Wat je bewaarde en las blijft.
@@ -193,7 +197,7 @@ struct SettingsView: View {
                     Button("Markeer als ongelezen", role: .destructive) { store.clearRead() }
                 }
             } message: {
-                Text(confirmClear == "bewaard" ? "\(store.saved.count == 1 ? "1 artikel verdwijnt" : "\(store.saved.count) artikelen verdwijnen") uit Bewaard. Dit kun je niet ongedaan maken." : "Wat je las, wordt weer gewoon getoond. Je bewaarde artikelen blijven staan.")
+                Text(confirmClear == "bewaard" ? "\(store.saved.count == 1 ? "1 artikel verdwijnt" : "\(store.saved.count) artikelen verdwijnen") uit Bewaard\(savedSyncs ? ", op al je apparaten en op hootnews.nl" : ""). Dit kun je niet ongedaan maken." : "Wat je las, wordt weer gewoon getoond. Je bewaarde artikelen blijven staan.")
             }
         }
     }

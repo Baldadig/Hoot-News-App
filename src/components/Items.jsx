@@ -2,7 +2,7 @@ import { createContext, useContext, useState } from 'react'
 import { timeAgo, readTime } from '../lib/time.js'
 import { BookmarkIcon, PlayIcon, MoreIcon } from './icons.jsx'
 import { topicById } from '../lib/topics.js'
-import { savedKey } from '../lib/saved.js'
+import { savedKey, withLead } from '../lib/saved.js'
 import { avatarUrl, fitsLarge, fitsHero } from '../lib/img.js'
 import { TermHelp } from './Terms.jsx'
 import { Img } from './Img.jsx'
@@ -86,14 +86,14 @@ export function Meta({ item, story, showSave = true, taste = null }) {
         </span>
       </button>
       {story && others > 0 ? (
-        <button type="button" className="morebtn" onClick={() => openStory(story.id)} aria-label={`Vergelijk met ${others} andere ${others === 1 ? 'bron' : 'bronnen'}${fresh ? `, ${fresh} nieuw` : ''}`}>
+        <button type="button" className="morebtn" onClick={() => openStory(story.id, item.id)} aria-label={`Vergelijk met ${others} andere ${others === 1 ? 'bron' : 'bronnen'}${fresh ? `, ${fresh} nieuw` : ''}`}>
           {fresh ? <span className="dot" aria-hidden="true" /> : null}
           <span className="morebtn__long">Vergelijk {others + 1} bronnen</span>
           <span className="morebtn__short">+{others} {others === 1 ? 'bron' : 'bronnen'}</span>
         </button>
       ) : null}
       {taste ? <TasteButton entryKey={taste} item={item} story={story} /> : null}
-      {showSave ? story ? <SaveButton id={story.id} kind="story" payload={story} label="verhaal" /> : <SaveButton id={item.id} payload={item} /> : null}
+      {showSave ? story ? <SaveButton id={story.id} kind="story" payload={withLead(story, item.id)} label="verhaal" /> : <SaveButton id={item.id} payload={item} /> : null}
     </div>
   )
 }

@@ -30,8 +30,9 @@ export default function Over({ onBack, backLabel }) {
         </p>
         <h3>Waarom zie ik een betaalmuur?</h3>
         <p>
-          Sommige bronnen vragen een abonnement. Hoot opent het artikel bij de uitgever zelf. In de app openen betaalde bronnen daarom standaard in Safari, waar je al bent ingelogd bij je
-          abonnementen.
+          Sommige bronnen vragen een abonnement. Op de website opent Hoot het artikel bij de uitgever zelf. In de app opent een artikel standaard in de Hoot-lezer: log daar één keer
+          in bij je abonnement, via het tandwiel rechtsboven → Inloggen bij je abonnementen. Liever Safari, waar je al bent ingelogd? Kies bij het tandwiel → Artikelen openen voor In
+          Safari. Safari kan per site onthouden dat je de Lezer-weergave wilt (aA › Gebruik Lezer automatisch).
         </p>
         <h3>Wanneer verschijnt de Editie?</h3>
         <p>Om 6, 12 en 17 uur. Daarna ligt hij vast, zodat je hem uit kunt lezen. De Selectie verschijnt elke maandag om 7 uur.</p>

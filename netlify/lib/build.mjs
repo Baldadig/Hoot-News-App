@@ -15,6 +15,7 @@ import { normTitle, preview } from './text.mjs'
 import { kvGet, kvSet, remember, storageMode } from './kv.mjs'
 import { fetchAuthorPosts } from '../../shared/bluesky.mjs'
 import { hash, safeHttpUrl } from '../../shared/util.mjs'
+import { withoutCopies, titleKey } from '../../shared/dedupe.mjs'
 
 const MIN = 6e4
 const DAY = 864e5
@@ -49,7 +50,7 @@ export async function buildFeed({ now = Date.now() } = {}) {
   borrowPreviews(items, mainGroups.flatMap((g) => g.items))
 
   // 5. Verhalen: bundelen over alle bronnen (behalve regionaal en muziek).
-  const articlePool = items.filter(inStories)
+  const articlePool = storyPool(items)
   const stories = buildStories(articlePool, registry, { mainIds: MAIN_IDS })
   const poolById = new Map(articlePool.map((i) => [i.id, i]))
   for (const st of stories) for (const id of st.itemIds) poolById.get(id).storyId = st.id
@@ -59,8 +60,9 @@ export async function buildFeed({ now = Date.now() } = {}) {
 
   const out = items.map(toClient).filter((i) => i.url) // laatste vangnet: geen link, geen bericht
 
-  // 7. De editie van dit dagdeel (één keer samengesteld, daarna vast).
-  const edition = await composeEdition({ now, stories, articlePool: articlePool.filter(inEdition), pool: out, anthropic })
+  // 7. De editie van dit dagdeel (één keer samengesteld, daarna vast). Ook daar telt elk stuk
+  // één keer, al brengen vijf zusterkranten het.
+  const edition = await composeEdition({ now, stories, articlePool: articlePool.filter(inEdition), pool: editionPool(out, articlePool), anthropic })
   // Wat intussen uit de feeds is verdwenen halen we uit de momentopname van de editie.
   const liveStoryIds = new Set(stories.map((st) => st.id))
   const haveOut = new Set(out.map((i) => i.id))
@@ -102,20 +104,25 @@ async function loadBluesky(author, now) {
 }
 
 // ---------- 2. De Stroom ----------
-// Nieuwste eerst, zonder dubbelen (zelfde link of zelfde kop). Elke bron heeft zijn eigen
-// grens (rss.mjs); welke bronnen je ziet bepaalt de app.
-function streamItems(all) {
-  const seenUrl = new Set()
-  const seenTitle = new Set()
-  const deduped = []
-  for (const it of all.sort(byRecency)) {
-    const nt = normTitle(it.title)
-    if (!it.url || seenUrl.has(it.url) || (nt && seenTitle.has(nt))) continue
-    seenUrl.add(it.url)
-    if (nt) seenTitle.add(nt)
-    deduped.push(it)
-  }
-  return deduped
+// Nieuwste eerst, zonder dubbelen (zelfde link of zelfde kop), maar alleen binnen één bron:
+// zusterkranten brengen vaak hetzelfde stuk, en wie Tubantia volgt maar het AD niet, moet de hele
+// krant krijgen. Over de bronnen heen ontdubbelt de app (shared/dedupe.mjs), want alleen die weet
+// welke bronnen je volgt. Elke bron heeft zijn eigen grens (rss.mjs).
+export function streamItems(all) {
+  return withoutCopies(all.filter((it) => it.url).sort(byRecency), { perSource: true })
+}
+
+// Voor de verhalen telt een stuk één keer, ook als meer bronnen het brengen: anders telt
+// "+N bronnen" dezelfde publicatie dubbel.
+export function storyPool(items) {
+  return withoutCopies(items.filter(inStories))
+}
+
+// Voor de editie (bubbel, "waar iedereen over schrijft"): ook elk stuk één keer. Het exemplaar
+// uit een verhaal gaat voor, zodat elk verhaal al zijn berichten terugvindt.
+export function editionPool(out, articlePool) {
+  const keep = new Set(withoutCopies([...articlePool, ...out]).map((i) => i.id))
+  return out.filter((i) => keep.has(i.id))
 }
 
 // ---------- 3. Gaten vullen uit de zoekindex ----------
@@ -201,7 +208,10 @@ async function imagesFromArticles(items, now, { max = 36 } = {}) {
   if (!needs.length) return
   const stored = await kvGet('og-images-v1')
   const store = stored && typeof stored === 'object' ? stored : {}
-  const open = needs.filter((it) => !(articleKey(it.url) in store)).sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1)).slice(0, max)
+  // Zusterkranten brengen vaak hetzelfde stuk onder een andere link: één exemplaar per kop
+  // ophalen, de kopieën krijgen dat beeld (zie hieronder). Zo gaat het budget naar echte stukken.
+  const known = new Set(needs.filter((it) => store[articleKey(it.url)]?.img).map((it) => titleKey(it.title)).filter(Boolean))
+  const open = withoutCopies(needs.filter((it) => !(articleKey(it.url) in store) && !known.has(titleKey(it.title))).sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1))).slice(0, max)
   for (let i = 0; i < open.length; i += 6) {
     await Promise.all(
       open.slice(i, i + 6).map(async (it) => {
@@ -209,10 +219,14 @@ async function imagesFromArticles(items, now, { max = 36 } = {}) {
       }),
     )
   }
+  const byTitle = new Map()
   for (const it of needs) {
     const hit = store[articleKey(it.url)]
-    if (hit?.img) it.image = hit.img
+    if (!hit?.img) continue
+    it.image = hit.img
+    if (titleKey(it.title)) byTitle.set(titleKey(it.title), hit.img)
   }
+  for (const it of needs) if (!it.image && byTitle.has(titleKey(it.title))) it.image = byTitle.get(titleKey(it.title))
   if (open.length) {
     for (const [k, v] of Object.entries(store)) if (now - (v?.at || 0) > OG_KEEP) delete store[k]
     await kvSet('og-images-v1', store)

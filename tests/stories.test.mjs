@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { buildStories, selectEdition, editionSlot as slotOf } from '../netlify/lib/stories.mjs'
+import { readFileSync } from 'node:fs'
+import { buildStories, selectEdition, leadCandidates, signatures, sameSubject, editionSlot as slotOf } from '../netlify/lib/stories.mjs'
 import { art, ice, hasan, lookalikes, MAIN, NOW } from './fixtures.mjs'
 
 const storyOf = (stories, item) => stories.find((s) => s.itemIds.includes(item.id))
@@ -138,4 +139,86 @@ test('edities om 06:00, 12:00 en 17:00 Nederlandse tijd, ook rond zomer- en wint
   assert.equal(at('2026-03-29T04:00:00Z'), '2026-03-29-ochtend')
   // Jaarwisseling.
   assert.equal(at('2027-01-01T02:00:00Z'), '2026-12-31-avond')
+})
+
+// Echte berichten van 29-10 (review H7): je tikte op 'Trump and His Aides Helped Bolsonaro Flee
+// Brazil' en kreeg een portret van André Janones van een dag eerder. "Braziliaanse" telde als
+// eigen naam, en zo werden de vlucht van Bolsonaro, het Janones-portret, Mercosur en Lula's
+// overwinning één verhaal van 23 berichten, met het oudste stuk als kop.
+test('de vlucht van Bolsonaro en het portret van Janones zijn twee verhalen', () => {
+  const items = JSON.parse(readFileSync(new URL('./fixtures/clustering-2910.json', import.meta.url), 'utf8'))
+  const stories = buildStories(items)
+  const byTitle = (re) => items.find((i) => re.test(i.title))
+  const storyOf = (re) => stories.find((s) => s.itemIds.includes(byTitle(re).id)) || null
+  const together = (a, b) => !!storyOf(a) && storyOf(a) === storyOf(b)
+  const flight = /^Trump and His Aides Helped Bolsonaro Flee/
+  assert.ok(together(flight, /^Trump hielp Flávio Bolsonaro naar VS vluchten/))
+  assert.ok(together(flight, /^Medewerker van Trump regelde privéjet/))
+  assert.ok(together(/^André Janones: de influencer/, /^André Janones, influencer/))
+  for (const other of [/^André Janones: de influencer/, /^André Janones, influencer/, /Mercosur/, /^Latina’s lijken/, /Prediction Markets/, /seven lessons from Lula/]) assert.ok(!together(flight, other), `${other} hoort niet bij de vlucht`)
+  for (const st of stories) {
+    const titles = st.itemIds.map((id) => items.find((i) => i.id === id).title)
+    assert.ok(!(titles.some((t) => /privéjet|Flee Brazil/i.test(t)) && titles.some((t) => /Janones|Mercosur|Prediction/i.test(t))), 'een verhaal mengt de vlucht met Janones of Mercosur')
+  }
+  // Het portret van gisteren is geen kop van het verhaal waar het in zit: er is recenter nieuws.
+  const janones = storyOf(/^André Janones: de influencer/)
+  assert.notEqual(janones.leadId, byTitle(/^André Janones: de influencer/).id)
+  // En voor de editie: een portret van gisteren is geen tweede stuk over de vlucht van vandaag.
+  const sig = signatures(items)
+  assert.equal(sameSubject(sig.get(byTitle(flight).id), sig.get(byTitle(/^André Janones: de influencer/).id)), false)
+  assert.equal(sameSubject(sig.get(byTitle(flight).id), sig.get(byTitle(/^Trump hielp Flávio Bolsonaro/).id)), true)
+})
+
+test('hoofdbericht: een achtergrondstuk van meer dan een dag oud gaat niet voor vers nieuws', () => {
+  const now = NOW
+  const old = art('volkskrant', 'Portret: de man achter de campagne', 'Een portret.', 26, { image: 'https://x/1.jpg' })
+  const fresh = art('bbc', 'Candidate flees the country', 'He left on a private jet.', 3)
+  // Eigen bron, Nederlands, met beeld: telde eerst zwaarder dan versheid.
+  assert.equal(leadCandidates([old, fresh], MAIN, new Set(['volkskrant']), now)[0].id, fresh.id)
+  // Zonder moment geen achtergrond-regel (zoals vroeger).
+  assert.equal(leadCandidates([old, fresh], MAIN)[0].id, old.id)
+  // Alles oud: dan gewoon de beste kandidaat.
+  const older = art('bbc', 'Candidate flees the country', 'He left on a private jet.', 30)
+  assert.equal(leadCandidates([old, older], MAIN, null, now)[0].id, old.id)
+  // Ook in de editie: een eigen bron met alleen een stuk van gisteren is niet de kop.
+  const stories = [{ id: 'sx', itemIds: [old.id, fresh.id], leadId: old.id, sourceCount: 2, ownCount: 1, sourceNames: ['volkskrant', 'bbc'], latestAt: fresh.publishedAt, firstAt: old.publishedAt }]
+  const [entry] = selectEdition(stories, [old, fresh], { mainIds: MAIN, now })
+  assert.equal(entry.leadId, fresh.id)
+})
+
+test('editie: spreiding over bronnen maakt een achtergrondstuk nooit de kop', () => {
+  const now = NOW
+  // De vorige plek heeft een Guardian-kop; het tweede verhaal heeft alleen een vers Guardian-stuk
+  // en een portret van gisteren uit een eigen bron.
+  const a1 = art('guardian', 'Dutch cabinet collapses in The Hague after coalition row', 'x', 1, { image: 'https://x/1.jpg', section: 'binnenland' })
+  const rest = ['bbc', 'reuters', 'wapo'].map((src) => art(src, 'Dutch government collapses in The Hague', 'x', 1, { section: 'binnenland' }))
+  const b1 = art('guardian', 'Lula wins Brazil election', 'x', 2)
+  const b2 = art('volkskrant', 'Portret: André Janones, de man achter Lula', 'x', 40)
+  const pool = [a1, ...rest, b1, b2]
+  const stories = [
+    { id: 's1', leadId: a1.id, itemIds: [a1.id, ...rest.map((r) => r.id)], sourceCount: 4, ownCount: 2, latestAt: a1.publishedAt },
+    { id: 's2', leadId: b1.id, itemIds: [b1.id, b2.id], sourceCount: 2, ownCount: 1, latestAt: b1.publishedAt },
+  ]
+  for (const mainIds of [MAIN, new Set()]) {
+    const entries = selectEdition(stories, pool, { mainIds, now, size: 5, strict: true })
+    assert.deepEqual(entries.map((e) => e.id), ['s1', 's2'])
+    assert.equal(entries[0].leadId, a1.id)
+    assert.equal(entries.find((e) => e.id === 's2').leadId, b1.id, 'het verse stuk blijft de kop, ook uit dezelfde bron als de vorige')
+  }
+  // Ook als de enige verse bron al het maximum aantal koppen heeft.
+  const more = [0, 1, 2].map((k) => art('guardian', `Onderwerp${k} woordje${k} ding${k} zaak${k}`, 'x', 1))
+  const extra = [0, 1, 2].map((k) => art('bbc', `Onderwerp${k} woordje${k} ding${k} zaak${k} later`, 'x', 1))
+  const busy = [...more.map((m, k) => ({ id: 'g' + k, leadId: m.id, itemIds: [m.id, extra[k].id], sourceCount: 2, ownCount: 0, latestAt: m.publishedAt })), stories[1]]
+  const entries = selectEdition(busy, [...more, ...extra, b1, b2], { mainIds: MAIN, now, size: 10 })
+  assert.equal(entries.find((e) => e.id === 's2').leadId, b1.id)
+})
+
+test('editie: één gedeelde naam is alleen hetzelfde onderwerp binnen twaalf uur', () => {
+  const now = art('nos', 'Lula wint verkiezingen in Brazilië', 'De president van Brazilië is herkozen na de verkiezingen.', 1)
+  const near = art('volkskrant', 'Kiezers in Brazilië twijfelen over de economie', 'In Brazilië zijn de verkiezingen een referendum over prijzen.', 10)
+  const far = art('volkskrant', 'Kiezers in Brazilië twijfelen over de economie', 'In Brazilië zijn de verkiezingen een referendum over prijzen.', 15)
+  const sig = signatures([now, near, far])
+  assert.equal(sameSubject(sig.get(now.id), sig.get(near.id)), true)
+  // Veertien uur ertussen: binnen het venster voor een gebeurtenis, maar te ver voor één naam alleen.
+  assert.equal(sameSubject(sig.get(now.id), sig.get(far.id)), false)
 })

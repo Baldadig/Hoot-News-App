@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { indexStories, resolveStory, toggleSaved, savedKey } from '../src/lib/saved.js'
+import { indexStories, resolveStory, toggleSaved, savedKey, withLead, savedLeadId } from '../src/lib/saved.js'
 
 const items = new Map([['a', { id: 'a', source: 'nos' }], ['b', { id: 'b', source: 'nyt' }], ['c', { id: 'c', source: 'bbc' }]])
 const story = (id, itemIds, formerIds = []) => ({ id, itemIds, formerIds, leadId: itemIds[0] })
@@ -38,4 +38,17 @@ test('het verhaalpaneel toont alle bronnen, ook die je hebt uitgezet', () => {
   const st = story('sAll', ['a', 'b', 'c'])
   const r = resolveStory('sAll', indexStories([st]), {}, items)
   assert.equal(r.items.length, 3)
+})
+
+// Review H7: je tikte op het ene stuk en Bewaard toonde een ander uit de bundel.
+test('Bewaard toont het stuk waarop je tikte, zolang het in het verhaal zit', () => {
+  const st = story('sB', ['a', 'b', 'c']) // de server koos 'a'
+  assert.equal(withLead(st, 'b').leadId, 'b')
+  assert.equal(withLead(st, 'x'), st) // niet in de bundel: de keuze van de server
+  assert.equal(withLead(st, null), st)
+  const saved = toggleSaved({}, 'story', 'sB', withLead(st, 'b'), items, 1)
+  const restored = JSON.parse(JSON.stringify(saved))
+  assert.equal(savedLeadId(restored.sB, st), 'b') // ook met de actuele versie van het verhaal
+  assert.equal(savedLeadId(restored.sB, story('sB', ['a', 'c'])), 'a') // 'b' is eruit: terug naar de server
+  assert.equal(savedLeadId({ kind: 'story', story: null }, st), 'a') // oude of kapotte rij
 })

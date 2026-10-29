@@ -3,6 +3,7 @@ import { ViewHeader, Empty } from '../components/Shell.jsx'
 import { Entry, CompactItem, useHoot } from '../components/Items.jsx'
 import { timeAgo } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
+import { savedLeadId } from '../lib/saved.js'
 
 export default function Saved({ active }) {
   const { saved, itemsById, storiesById } = useHoot()
@@ -21,7 +22,9 @@ export default function Saved({ active }) {
         if (e.kind === 'story') {
           const story = storiesById.get(id) || e.story
           if (!story) return null
-          const item = itemsById.get(story.leadId) || (e.items || []).find((i) => i.id === story.leadId) || (e.items || [])[0]
+          // Het stuk dat je zag toen je het bewaarde (zie withLead), niet een andere kop uit de bundel.
+          const leadId = savedLeadId(e, story)
+          const item = itemsById.get(leadId) || (e.items || []).find((i) => i.id === leadId) || (e.items || [])[0]
           return item ? { id, savedAt, item, story } : null
         }
         return e.item ? { id, savedAt, item: e.item, story: null } : null

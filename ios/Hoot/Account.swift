@@ -3,6 +3,8 @@ import CryptoKit
 import Foundation
 import Observation
 import Security
+import UIKit
+import os
 
 // Je Hoot-account: hetzelfde als op hootnews.nl (Supabase), zodat je editie, je bronnen en Bewaard
 // overal gelijk zijn. Inloggen met Google of Apple; Hoot is (nog) op uitnodiging, net als de website.
@@ -173,9 +175,16 @@ final class Account {
     }
 
     // Account verwijderen: alles op de server weg (profiel, instellingen, Bewaard). Wat op dit
-    // toestel staat, blijft.
+    // toestel staat, blijft. Ingelogd met Apple? Dan eerst Hoot uit je Apple ID halen (Apple eist
+    // dit, richtlijn 5.1.1(v)): Apple vraagt even om een bevestiging, en met die verse code trekt
+    // de server de toegang in. Annuleer je dat, dan blijft je account bestaan.
     func deleteAccount() async -> Bool {
         do {
+            if try await signedInWithApple() {
+                let code: String?
+                do { code = try await AppleReauth().code() } catch { return false } // zelf geannuleerd: niets verwijderd
+                if let code { await revokeApple(code) } else { Self.log.error("Apple gaf geen code; account wordt toch verwijderd") }
+            }
             _ = try await call("rest/v1/rpc/delete_my_account", method: "POST", body: [String: String]())
             forget()
             UserDefaults.standard.removeObject(forKey: "hoot.owner")
@@ -183,6 +192,34 @@ final class Account {
         } catch {
             message = "Verwijderen is niet gelukt. Controleer je verbinding en probeer het opnieuw."
             return false
+        }
+    }
+
+    // Hangt er een Apple-account aan dit account? Supabase weet het (ook als je Apple later koppelde).
+    private func signedInWithApple() async throws -> Bool {
+        let user = try JSONSerialization.jsonObject(with: try await call("auth/v1/user")) as? [String: Any]
+        let providers = (user?["app_metadata"] as? [String: Any])?["providers"] as? [String] ?? []
+        let identities = (user?["identities"] as? [[String: Any]] ?? []).compactMap { $0["provider"] as? String }
+        return (providers + identities).contains("apple")
+    }
+
+    // Het geheim staat niet in de app: de server (api/apple-revoke) wisselt de code in en trekt het
+    // token in. Lukt dat niet, dan toch verwijderen: je gegevens weg is belangrijker. Wel vastleggen.
+    private func revokeApple(_ code: String) async {
+        do {
+            try await refreshIfNeeded()
+            guard let s = session else { return }
+            var r = URLRequest(url: HootAPI.base.appendingPathComponent("api/apple-revoke"))
+            r.httpMethod = "POST"
+            r.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            r.setValue("Bearer \(s.access)", forHTTPHeaderField: "Authorization")
+            r.httpBody = try JSONSerialization.data(withJSONObject: ["code": code])
+            r.timeoutInterval = 20
+            let (_, response) = try await URLSession.shared.data(for: r)
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+            if !(200 ..< 300).contains(status) { Self.log.error("Intrekken bij Apple mislukt: \(status)") }
+        } catch {
+            Self.log.error("Intrekken bij Apple mislukt: \(error.localizedDescription)")
         }
     }
 
@@ -306,6 +343,7 @@ final class Account {
 
     // ---- Supabase ----
     private enum Failure: Error { case signedOut, login, http(Int) }
+    private static let log = Logger(subsystem: "nl.hootnews.Hoot", category: "account") // nooit tokens of codes
 
     private func call(_ path: String, method: String = "GET", body: Any? = nil, authorized: Bool = true, prefer: String? = nil) async throws -> Data {
         var r = URLRequest(url: URL(string: path, relativeTo: HootConfig.supabaseURL)!)
@@ -374,6 +412,46 @@ final class Account {
         d.base64EncodedString().replacingOccurrences(of: "+", with: "-").replacingOccurrences(of: "/", with: "_").replacingOccurrences(of: "=", with: "")
     }
     private static func sha256(_ s: String) -> String { SHA256.hash(data: Data(s.utf8)).map { String(format: "%02x", $0) }.joined() }
+}
+
+// Even opnieuw bevestigen bij Apple, voor een verse code (die is kort geldig en maar één keer te
+// gebruiken; daarom niet bij het inloggen bewaard). Zelf annuleren gooit een fout; geeft Apple
+// om een andere reden geen code, dan nil.
+@MainActor
+private final class AppleReauth: NSObject, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
+    private var continuation: CheckedContinuation<ASAuthorization, Error>?
+    private var controller: ASAuthorizationController? // vasthouden zolang Apple bezig is (de delegate is zwak)
+
+    func code() async throws -> String? {
+        let controller = ASAuthorizationController(authorizationRequests: [ASAuthorizationAppleIDProvider().createRequest()])
+        controller.delegate = self
+        controller.presentationContextProvider = self
+        self.controller = controller
+        defer { self.controller = nil }
+        do {
+            let auth = try await withCheckedThrowingContinuation { continuation = $0; controller.performRequests() }
+            guard let credential = auth.credential as? ASAuthorizationAppleIDCredential, let data = credential.authorizationCode else { return nil }
+            return String(data: data, encoding: .utf8)
+        } catch let error as ASAuthorizationError where error.code == .canceled {
+            throw error
+        } catch {
+            return nil
+        }
+    }
+
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        continuation?.resume(returning: authorization)
+        continuation = nil
+    }
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        continuation?.resume(throwing: error)
+        continuation = nil
+    }
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        if let window = scenes.flatMap(\.windows).first(where: \.isKeyWindow) ?? scenes.first?.windows.first { return window }
+        return ASPresentationAnchor(windowScene: scenes.first!) // je tikte op een knop, dus er is een scène
+    }
 }
 
 // Openbare gegevens van de diensten (geen geheimen: wat een gebruiker mag, bepaalt de database).

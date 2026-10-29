@@ -93,9 +93,12 @@ struct DigestView: View {
         .padding(.vertical, Space.s4)
     }
 
+    // "2 t/m 8 november", en over een maandgrens "26 oktober t/m 1 november" (zoals op de website).
     static func span(_ from: String?, _ to: String?) -> String {
         guard let a = from.flatMap(HootDate.parse), let b = to.flatMap(HootDate.parse)?.addingTimeInterval(-8 * 3600) else { return "" }
-        return "\(a.formatted(HootDate.style(.dateTime.day()))) t/m \(b.formatted(HootDate.style(.dateTime.day().month(.wide))))"
+        let month = HootDate.style(.dateTime.month(.wide))
+        let first = a.formatted(month) == b.formatted(month) ? HootDate.style(.dateTime.day()) : HootDate.style(.dateTime.day().month(.wide))
+        return "\(a.formatted(first)) t/m \(b.formatted(HootDate.style(.dateTime.day().month(.wide))))"
     }
 }
 

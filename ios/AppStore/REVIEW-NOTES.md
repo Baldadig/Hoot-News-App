@@ -1,6 +1,6 @@
 # Notities voor App Review
 
-Plak de Engelse tekst hieronder in App Store Connect → je versie → **App Review-informatie → Notities**. Beoordelaars lezen meestal Engels. Inloggen is niet nodig, dus "Inloggen vereist" blijft uit; de uitnodigingscode staat in de notities.
+Plak de Engelse tekst hieronder in App Store Connect → je versie → **App Review-informatie → Notities**. Beoordelaars lezen meestal Engels. Inloggen is niet nodig, dus "Inloggen vereist" blijft uit. De uitnodigingscode voor de beoordelaar staat alleen in App Store Connect › App Review-informatie, nooit in deze repo: vul hem daar in op de plek van [CODE].
 
 ---
 
@@ -19,7 +19,7 @@ Where the content comes from
 
 Privacy
 - No analytics, no advertising, no tracking. Without an account, preferences, saved items, read state and reading preferences stay on the device.
-- Optional account (Settings → Account, or "Log in met je account" on the welcome screen): Sign in with Apple or Google. It syncs sources, interests, read state and saved items with the same account on hootnews.nl (Supabase, EU). Hoot accounts are invite-only for now: after signing in, a new user is asked for an invitation code. Invitation code for review: applereviewe8f265b7 (valid for 5 accounts, until 26 January 2027). Accounts can be deleted in the app: Settings → Account → "Account verwijderen" removes the account and all synced data from the server.
+- Optional account (Settings → Account, or "Log in met je account" on the welcome screen): Sign in with Apple or Google. It syncs sources, interests, read state and saved items with the same account on hootnews.nl (Supabase, EU). Hoot accounts are invite-only for now: after signing in, a new user is asked for an invitation code. Invitation code for review: [CODE]. Accounts can be deleted in the app: Settings → Account → "Account verwijderen" removes the account and all synced data from the server.
 
 Navigating the app
 - Tabs: Editie (Edition), Stroom (Stream), Selectie (weekly selection), Bewaard (Saved), Search. Settings: the gear button at the top right.

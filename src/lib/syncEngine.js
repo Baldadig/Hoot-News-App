@@ -8,6 +8,8 @@
 //    schrijfactie; een fout laat alles openstaan, en we proberen het vanzelf opnieuw.
 // 3. Ophalen van de server overschrijft geen openstaande wijzigingen: die gaan er na het
 //    ophalen gewoon weer overheen (ook verwijderingen).
+// 4. Niets wegschrijven vóór één geslaagde ophaalronde. Zonder die ronde weten we niet wat er op
+//    het account staat, en zou de lokale stand (op een nieuw toestel: bijna leeg) het overschrijven.
 import { pickSynced, mergeRead, mergeSeen, mergeSaved } from './sync.js'
 import { hash } from '../../shared/util.mjs'
 
@@ -73,6 +75,7 @@ export class SyncEngine {
     this.failures = 0
     this.queue = Promise.resolve()
     this.stopped = false
+    this.pulled = false // alleen een geslaagde ophaalronde zet dit aan (regel 4)
     this.status = 'idle'
   }
 
@@ -133,7 +136,8 @@ export class SyncEngine {
         prefs.social = [...prefs.social, ...local.prefs.social.filter((a) => a && !known.has(a.handle))]
       }
       let saved
-      if (this.mode === 'merge') saved = mergeSaved(local.saved, remoteSaved)
+      // Bij 'replace' is alles wat nu in Bewaard staat ná het leegmaken bewaard, dus van dit account.
+      if (this.mode === 'merge' || this.mode === 'replace') saved = mergeSaved(local.saved, remoteSaved)
       else {
         const { upserts, deletes } = this.mode === 'continue' ? savedOps(this.base.saved, local.saved) : { upserts: [], deletes: [] }
         saved = { ...remoteSaved }
@@ -148,6 +152,7 @@ export class SyncEngine {
         saved: Object.fromEntries(Object.entries(remoteSaved).map(([k, v]) => [k, fingerprint(v)])),
       }
       this.mode = 'continue'
+      this.pulled = true
       this.saveBase()
       this.failures = 0
       await this.flushNow()
@@ -163,6 +168,9 @@ export class SyncEngine {
 
   changed(delay = 2000) {
     if (this.stopped || !this.base || !this.hasPending()) return
+    // Nog niet opgehaald: eerst dat. Een geplande herhaling blijft staan; een geslaagde ronde
+    // schrijft daarna zelf weg wat hier openstaat.
+    if (!this.pulled) return this.pullLater()
     this.setStatus('pending')
     this.cancel(this.timer)
     this.timer = this.schedule(() => this.flush(), delay)
@@ -173,9 +181,9 @@ export class SyncEngine {
   }
 
   async flushNow() {
+    if (!this.base || !this.pulled) return // de timer is dan een herhaling van het ophalen: laten staan
     this.cancel(this.timer)
     this.timer = null
-    if (!this.base) return
     const local = this.getLocal()
     const hashNow = stateHash(local)
     const { upserts, deletes } = savedOps(this.base.saved, local.saved)
@@ -217,12 +225,23 @@ export class SyncEngine {
     const wait = RETRY[Math.min(this.failures, RETRY.length - 1)]
     this.failures++
     this.cancel(this.timer)
-    this.timer = this.schedule(again, wait)
+    this.timer = this.schedule(() => ((this.timer = null), again()), wait)
   }
 
-  // Verbinding terug of de app weer in beeld: meteen proberen.
+  // Ophalen inplannen met dezelfde wachttijd als na een fout, tenzij er al iets gepland staat.
+  // Loopt er nu een ophaalronde, dan vervangt die (geslaagd of mislukt) deze timer vanzelf.
+  pullLater() {
+    if (this.timer) return
+    this.timer = this.schedule(() => ((this.timer = null), this.pull()), RETRY[Math.min(this.failures, RETRY.length - 1)])
+  }
+
+  // Verbinding terug of de app weer in beeld: meteen proberen. Nog niet opgehaald? Dan ophalen in
+  // plaats van schrijven; dat schrijft na afloop zelf weg.
   online() {
-    return this.flush()
+    if (this.pulled) return this.flush()
+    this.cancel(this.timer)
+    this.timer = null
+    return this.pull()
   }
 
   stop() {

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Empty } from '../components/Shell.jsx'
 import { Entry, useHoot } from '../components/Items.jsx'
 import { BackIcon } from '../components/icons.jsx'
+import { withoutCopies } from '../../shared/dedupe.mjs'
 
 export default function Search({ onBack, backLabel = 'Terug' }) {
   const { itemsById, saved, storiesById, sourcesById, muted } = useHoot()
@@ -21,14 +22,15 @@ export default function Search({ onBack, backLabel = 'Terug' }) {
       if (e.item) pool.set(e.item.id, e.item)
       for (const i of e.items || []) pool.set(i.id, i)
     }
-    return [...pool.values()]
+    const hits = [...pool.values()]
       .filter((i) => !muted.has(i.source))
       .filter((i) => {
         const hay = `${i.title} ${i.summary || ''} ${i.sourceName} ${i.author || ''}`.toLowerCase()
         return words.every((w) => hay.includes(w))
       })
       .sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''))
-      .slice(0, 60)
+    // Hetzelfde stuk bij twee zusterkranten één keer, zoals in de Stroom.
+    return withoutCopies(hits).slice(0, 60)
   }, [q, scope, itemsById, sourcesById, saved, muted])
 
   return (

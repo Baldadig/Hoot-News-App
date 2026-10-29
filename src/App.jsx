@@ -33,6 +33,7 @@ import { JoinSheet } from './components/Account.jsx'
 import { normalizePrefs } from './lib/prefs.js'
 import { shouldShowInstallTip } from './lib/install.js'
 import { shouldAskToJoin } from './lib/join.js'
+import { applyWelcome } from './lib/welcome.js'
 import { usePersonalEdition } from './hooks/usePersonalEdition.js'
 import { toggleFollow } from './lib/follow.js'
 import { subscribe as onUpdate, isReady as updateReady, applyUpdate, dismissUpdate } from './lib/swUpdate.js'
@@ -261,9 +262,20 @@ export default function App() {
   const storyParam = route.params.verhaal || null
   // Wie het verhaal opende krijgt bij sluiten de focus terug.
   const opener = useRef(null)
+  // Het stuk waarop je tikte (`itemId`) is de kop in het paneel, niet een ander stuk uit de bundel.
+  // Per verhaal onthouden, zodat terug en vooruit dezelfde kop houden. Open je het verhaal zonder
+  // getikt stuk (de rij 'Je volgt'), dan weer de kop van de server, zoals de titel in die rij.
+  const [tapped, setTapped] = useState({})
   const openStory = useCallback(
-    (id) => {
+    (id, itemId = null) => {
       opener.current = document.activeElement
+      setTapped((prev) => {
+        if ((prev[id] || null) === itemId) return prev
+        const next = { ...prev }
+        if (itemId) next[id] = itemId
+        else delete next[id]
+        return next
+      })
       route.go(route.path, { ...route.params, verhaal: id })
     },
     [route.go, route.path, route.params],
@@ -292,25 +304,13 @@ export default function App() {
     [setSeenStories],
   )
 
-  // Onboarding klaar: interesses, onderwerpen en bronnen worden je instellingen.
-  // `choice` is null als je "Liever meteen lezen" koos: dan blijft alles zoals het was.
+  // Welkom klaar: interesses, onderwerpen en bronnen worden je instellingen (src/lib/welcome.js).
+  // "Liever meteen lezen" (alleen bij de eerste start) geeft lege interesses en onderwerpen en de
+  // startset als bronnen. Sluit je het welkom bij opnieuw kiezen, dan komt het hier niet langs en
+  // blijft alles zoals het was (zie closeWelcome).
   const finishOnboarding = useCallback(
     (choice) => {
-      setPrefs((p) => {
-        if (!choice) return { ...p, onboarded: true }
-        const on = new Set(choice.sources)
-        const shown = new Set(choice.all.map((s) => s.id))
-        return {
-          ...p,
-          onboarded: true,
-          interests: choice.interests,
-          topics: choice.topics,
-          pinned: choice.topics.slice(0, 3),
-          ...(choice.vak ? { vak: choice.vak } : {}),
-          muted: [...(p.muted || []).filter((id) => !shown.has(id)), ...choice.all.filter((s) => !s.optional && !on.has(s.id)).map((s) => s.id)],
-          enabled: [...(p.enabled || []).filter((id) => !shown.has(id)), ...choice.all.filter((s) => s.optional && on.has(s.id)).map((s) => s.id)],
-        }
-      })
+      setPrefs((p) => applyWelcome(p, choice))
       route.go('editie', {}, { replace: true })
     },
     [setPrefs, route.go],
@@ -339,12 +339,19 @@ export default function App() {
   if (MAIN.includes(path) && path !== 'welkom') cameFrom.current = path
   const FROM_LABEL = { editie: 'Editie', stroom: 'Stroom', digest: 'Selectie', bewaard: 'Bewaard', bronnen: 'Bronnen', bluesky: 'Bluesky' }
   const backTo = { onBack: () => route.back(cameFrom.current), backLabel: FROM_LABEL[cameFrom.current] || 'Terug' }
+  // Opnieuw kiezen (vanuit Bronnen of Instellingen): sluiten brengt je terug waar je was, zonder op te slaan.
+  const beforeWelcome = useRef('editie')
+  if (path !== 'welkom') beforeWelcome.current = path
+  const reopenWelcome = showWelcome && !!prefs.onboarded
+  const closeWelcome = useCallback(() => route.back(beforeWelcome.current), [route.back])
 
-  // Nog geen account? Als je een eind in je Editie of Stroom hebt gelezen, één keer vragen of je
-  // wilt inloggen (zie src/lib/join.js).
+  // Nog geen account, maar wel via een uitnodigingslink gekomen? Als je een eind in je Editie of
+  // Stroom hebt gelezen, één keer vragen of je wilt inloggen (zie src/lib/join.js).
+  // joinOpen: false, of waarom het blad open is ('sync' vanzelf, 'brief' via de samenvatting).
   const [joinOpen, setJoinOpen] = useState(false)
   const joinAsked = rawPrefs.joinAsked
-  const mayAsk = account.status === 'out' && prefs.onboarded && !showWelcome
+  const invited = !!account.invite
+  const mayAsk = account.status === 'out' && invited && prefs.onboarded && !showWelcome
   useEffect(() => {
     if (!mayAsk || joinOpen) return
     // Alleen echt lezen telt: scrollen na vinger, muis of toets (niet het terugzetten van je
@@ -354,8 +361,8 @@ export default function App() {
     const onScroll = (e) => {
       const el = e.target
       if (!byUser || !(el instanceof Element) || !el.matches('section.view')) return
-      if (!shouldAskToJoin({ status: 'out', onboarded: true, path, scrolled: el.scrollTop, asked: joinAsked })) return
-      setJoinOpen(true)
+      if (!shouldAskToJoin({ status: 'out', invited: true, onboarded: true, path, scrolled: el.scrollTop, asked: joinAsked })) return
+      setJoinOpen('sync')
       setPref('joinAsked', { n: (joinAsked?.n || 0) + 1, at: Date.now() })
     }
     const inputs = ['wheel', 'touchmove', 'keydown']
@@ -545,8 +552,8 @@ export default function App() {
               active={shown === 'editie'}
               bubble={bubble}
               brief={prefs.brief ? myEdition?.brief || null : null}
-              briefForMembers={prefs.brief && !member && rawAccount.status === 'out'}
-              onJoin={() => setJoinOpen(true)}
+              briefForMembers={prefs.brief && !member && ['out', 'noInvite'].includes(rawAccount.status)}
+              onJoin={() => (rawAccount.status === 'noInvite' ? route.go('instellingen') : setJoinOpen('brief'))}
               edition={myEdition}
               loading={loading || (!!data?.edition && !myEdition)}
               failedLoad={failedLoad}
@@ -621,13 +628,13 @@ export default function App() {
         </main>
         <aside className={`panel${story ? ' is-open' : ''}`} hidden={!story && !panelOpen} aria-label="Verhaal" role={overlay ? 'dialog' : undefined} aria-modal={overlay ? 'true' : undefined} inert={showWelcome ? '' : undefined}>
           {story ? (
-            <Story key={story.story.id} story={story.story} items={story.items} overlay={overlay} onClose={overlay ? closeStory : closePanel} onBack={backToIndex} onSeen={markStorySeen} seenBefore={seenStories[story.story.id] || null} />
+            <Story key={story.story.id} story={story.story} items={story.items} tappedId={tapped[storyParam] || null} overlay={overlay} onClose={overlay ? closeStory : closePanel} onBack={backToIndex} onSeen={markStorySeen} seenBefore={seenStories[story.story.id] || null} />
           ) : (
             <StoryIndex stories={data?.stories} onClose={togglePanel} lastId={lastStory} />
           )}
         </aside>
         <DisplaySheet open={display} onClose={() => setDisplay(false)} account={account} syncStatus={syncStatus} />
-        <JoinSheet open={joinOpen && account.status === 'out'} onClose={() => setJoinOpen(false)} onSignIn={account.signIn} />
+        <JoinSheet open={!!joinOpen && account.status === 'out'} reason={joinOpen || undefined} invited={invited} onClose={() => setJoinOpen(false)} onSignIn={account.signIn} />
         <div className="toasts" aria-live="polite" inert={overlay ? '' : undefined}>
           {undo ? (
             <div className="toast">
@@ -663,7 +670,7 @@ export default function App() {
         </div>
         {showWelcome ? (
           <Suspense fallback={null}>
-            <Welcome account={account} sources={sources} prefs={prefs} onDone={finishOnboarding} />
+            <Welcome account={account} sources={sources} prefs={prefs} muted={muted} onDone={finishOnboarding} onClose={reopenWelcome ? closeWelcome : null} />
           </Suspense>
         ) : null}
       </div>

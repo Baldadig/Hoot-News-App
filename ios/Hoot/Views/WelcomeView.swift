@@ -112,7 +112,8 @@ struct WelcomeView: View {
         }
     }
 
-    // Voorop: zelf samenstellen, of je account. Even rondkijken mag, maar is de zijweg.
+    // Voorop: zelf samenstellen, of je account. Inloggen is voor leden (Hoot is op uitnodiging; het
+    // inlogscherm zegt dat vóór de knoppen). Even rondkijken mag, maar is de zijweg.
     // Altijd in beeld, en dus begrensd: bij de grootste tekst blijven ze op één regel (de letter
     // krimpt iets mee) in plaats van het halve scherm te vullen. VoiceOver leest de volle tekst.
     private var buttons: some View {
@@ -123,8 +124,9 @@ struct WelcomeView: View {
             .foregroundStyle(Theme.onAccent)
             .background(Theme.accent, in: Capsule())
             Button { login = true } label: {
-                Text("Log in met je account").font(.headline).frame(maxWidth: .infinity, minHeight: Space.tap + Space.s1)
+                Text("Log in als lid").font(.headline).frame(maxWidth: .infinity, minHeight: Space.tap + Space.s1)
             }
+            .accessibilityHint("Hoot is nog op uitnodiging.")
             .foregroundStyle(Theme.ink)
             .overlay(Capsule().strokeBorder(Theme.edge, lineWidth: 1))
             // Gratis Nederlandse bronnen (HootStore.starter); na een stukje editie vraagt Hoot of je zelf kiest.

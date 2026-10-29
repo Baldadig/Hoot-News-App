@@ -164,3 +164,66 @@ test('ophalen met openstaande instellingen: lokaal gaat voor, daarna naar de ser
   assert.deepEqual(a.local.prefs.muted, ['lokaal'])
   assert.deepEqual(S.db.prefs.muted, ['lokaal'])
 })
+
+test('eerste ophaalronde mislukt: niets wegschrijven tot er wél is opgehaald, dan samenvoegen', async () => {
+  const ls = storage()
+  const S = server({ prefs: { muted: ['nrc', 'vk'], interests: ['tech', 'sport'], topics: ['ai'] }, read: ['a', 'b', 'c'] })
+  const a = app(empty)
+  const e = new SyncEngine({ uid: 'u', api: S.api, storage: ls, ...a.opts })
+  S.fail = 1
+  await e.start() // nieuw toestel, verbinding hapert
+  assert.equal(e.status, 'error')
+  const retry = a.timers.filter(Boolean)
+  assert.equal(retry.length, 1)
+  a.local = { ...a.local, read: ['x'] } // intussen iets gelezen
+  e.changed(0)
+  assert.deepEqual(a.timers.filter(Boolean), retry) // de geplande herhaling blijft staan
+  await e.flush()
+  assert.equal(S.calls.includes('pushState'), false)
+  S.fail = 1
+  await e.online() // verbinding terug: ophalen, niet schrijven (en dat mislukt nog eens)
+  assert.deepEqual(S.calls, ['pull', 'pull'])
+  assert.deepEqual(S.db.read, ['a', 'b', 'c'])
+  await a.tick() // herhaling: ophalen lukt, samenvoegen, dan pas wegschrijven
+  assert.deepEqual(S.calls, ['pull', 'pull', 'pull', 'pushState'])
+  assert.deepEqual(S.db.prefs.muted, ['nrc', 'vk'])
+  assert.deepEqual(S.db.prefs.interests, ['tech', 'sport'])
+  assert.deepEqual(S.db.prefs.topics, ['ai'])
+  assert.deepEqual([...S.db.read].sort(), ['a', 'b', 'c', 'x'])
+  assert.equal(e.status, 'ok')
+})
+
+test('ander account (replace): de lege stand gaat nooit naar de server, wat je intussen bewaart wel', async () => {
+  const ls = storage({ [OWNER_KEY]: 'A' })
+  const a = app({ ...empty, read: ['van-A'], saved: { x: entry('x') }, prefs: { ...empty.prefs, muted: ['nos'] } })
+  const B = server({ prefs: { muted: ['nrc'], topics: ['ai'] }, read: ['b1'], saved: { s: entry('s') } })
+  // De eerste ophaalronde blijft hangen (time-out) en mislukt daarna.
+  let hang
+  const api = { ...B.api, pull: () => (api.pull = B.api.pull, new Promise((_, reject) => (hang = reject))) }
+  const e = new SyncEngine({ uid: 'B', api, storage: ls, ...a.opts })
+  const started = e.start()
+  assert.deepEqual(a.local.read, []) // meteen leeggemaakt
+  e.changed() // zoals React na het leegmaken doet
+  e.changed(0)
+  const flushed = e.flush() // staat in de rij achter het hangende ophalen
+  await new Promise((r) => setImmediate(r)) // het ophalen is nu echt onderweg
+  assert.deepEqual(B.calls, [])
+  hang(new Error('time-out'))
+  await started
+  await flushed
+  assert.deepEqual(B.calls, [])
+  assert.equal(e.status, 'error')
+  assert.equal(a.timers.filter(Boolean).length, 1) // alleen de herhaling van het ophalen
+  a.local = { ...a.local, read: ['r'], saved: { y: entry('y', 9) } } // intussen gelezen en bewaard
+  e.changed(0)
+  await e.flush()
+  assert.equal(B.calls.includes('pushState'), false)
+  assert.equal(B.calls.includes('upsert'), false)
+  await a.tick() // ophalen lukt
+  assert.deepEqual(B.db.prefs.muted, ['nrc'])
+  assert.deepEqual(B.db.prefs.topics, ['ai'])
+  assert.deepEqual([...B.db.read].sort(), ['b1', 'r'])
+  assert.deepEqual(Object.keys(B.db.saved).sort(), ['s', 'y'])
+  assert.deepEqual(Object.keys(a.local.saved).sort(), ['s', 'y'])
+  assert.equal(a.local.read.includes('van-A'), false)
+})

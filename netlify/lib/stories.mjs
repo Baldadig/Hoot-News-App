@@ -49,6 +49,9 @@ const ALIAS = {
   chinese: 'china', chinees: 'china',
   israelische: 'israel', israeli: 'israel', israelisch: 'israel', israelis: 'israel',
   iraanse: 'iran', iranian: 'iran',
+  // "Braziliaanse" is het land, geen eigen naam: als sterke naam trok het een portret van een
+  // campagneleider in het verhaal over de vlucht van Bolsonaro.
+  brazilie: 'brazil', braziliaanse: 'brazil', braziliaans: 'brazil', brazilianen: 'brazil', brazilian: 'brazil', brazilians: 'brazil',
   nederlandse: 'nederland', dutch: 'nederland', netherlands: 'nederland',
   europese: 'europe', european: 'europe', europa: 'europe', eu: 'europe',
   navo: 'nato', vn: 'un',
@@ -218,15 +221,20 @@ export function sameEvent(a, b) {
 // gebeurtenis ("verkiezingen") is genoeg om maar één plek te krijgen. Zo staan er geen drie stukken
 // over één verkiezingsdag in tien verhalen.
 const BROAD = new Set(['us', 'europe', 'un', 'nato', 'uk', 'trump', 'whitehouse', 'congress', 'nederland'])
+const SUBJECT_WINDOW = 12 * 60 * 60 * 1000
 export function sameSubject(a, b) {
   if (sameEvent(a, b)) return true
-  if (Math.abs(a.t - b.t) > EVENT_WINDOW) return false
+  const dt = Math.abs(a.t - b.t)
+  if (dt > EVENT_WINDOW) return false
   const shared = [...a.known].filter((k) => b.known.has(k))
   const concepts = sharedCount(a.concepts, b.concepts)
   if (!concepts) return false
-  // Eén gedeelde naam is genoeg, behalve een heel brede (de VS, Trump, Europa): Amerikaanse
-  // verkiezingsverhalen zijn er vele, en die wil je niet allemaal op één plek.
-  return shared.length >= 2 || shared.some((k) => !BROAD.has(k)) || (shared.length >= 1 && sharedCount(a.strong, b.strong) >= 1)
+  // Twee gedeelde namen, of één met ook een gedeelde eigen naam: hetzelfde onderwerp.
+  if (shared.length >= 2 || (shared.length >= 1 && sharedCount(a.strong, b.strong) >= 1)) return true
+  // Eén naam alleen ("Brazilië" en "verkiezingen") alleen als het nieuws van hetzelfde moment is:
+  // een portret van gisteren is geen tweede stuk over de vlucht van vandaag. Een heel brede naam
+  // (de VS, Trump, Europa) is nooit genoeg: Amerikaanse verkiezingsverhalen zijn er vele.
+  return dt <= SUBJECT_WINDOW && shared.some((k) => !BROAD.has(k))
 }
 
 export function signatures(articles) {
@@ -234,13 +242,21 @@ export function signatures(articles) {
   return new Map(articles.map((a) => [a.id, signature(a, vocab)]))
 }
 
+// Een bericht van meer dan een dag oud (een portret, een analyse van gisteren) is achtergrond:
+// het wordt geen hoofdbericht zolang er recentere berichten in de bundel zitten.
+// Een bericht zonder datum telt ook als achtergrond: we weten niet dat het vers is.
+const STALE_AFTER = 24 * 60 * 60 * 1000
+export const isStale = (item, now) => !!now && now - timeOf(item) > STALE_AFTER
+
 // Volgorde van kandidaten voor het hoofdbericht: eigen bronnen eerst, dan Nederlands,
 // dan met preview, met beeld, en het nieuwste.
 // `preferred`: je voorkeursbronnen (de ster bij een bron); die gaan nog vóór je andere bronnen.
-export function leadCandidates(items, mainIds, preferred = null) {
+// `now`: het moment van samenstellen (zonder: geen achtergrond-regel).
+export function leadCandidates(items, mainIds, preferred = null, now = null) {
   // Een opiniestuk is nooit het hoofdbericht als er een nieuwsbericht is.
   // Een podcast of liveblog is ook nooit het hoofdbericht (een promo, of over van alles tegelijk).
-  const score = (i) => (i.type === 'opinie' ? -16 : 0) + (/\bpodcast\b/i.test(i.title || '') || isLive(i) ? -16 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (NL_SOURCES.has(i.source) ? 4 : 0) + (i.summary ? 2 : 0) + (i.image ? 1 : 0)
+  // Achtergrond weegt zwaarder mee dan alle voorkeuren samen (27): een vers bericht gaat altijd voor.
+  const score = (i) => (i.type === 'opinie' ? -16 : 0) + (/\bpodcast\b/i.test(i.title || '') || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (NL_SOURCES.has(i.source) ? 4 : 0) + (i.summary ? 2 : 0) + (i.image ? 1 : 0)
   return [...items].sort((a, b) => score(b) - score(a) || byRecency(a, b))
 }
 
@@ -262,6 +278,7 @@ const coreDegree = (size) => (size >= 10 ? 3 : 2)
 export function buildStories(articles, registry = {}, { mainIds = new Set() } = {}) {
   const list = articles.filter((a) => !DIGEST.test(a.title || '') && !isLive(a)).sort(byRecency)
   const sig = signatures(list)
+  const now = list.length ? timeOf(list[0]) : null // het nieuwste bericht: zo laat is het in deze feeds
   // 1. Alle paren die over dezelfde gebeurtenis gaan.
   const links = new Map(list.map((a) => [a.id, new Set()]))
   for (let i = 0; i < list.length; i++) {
@@ -351,7 +368,7 @@ export function buildStories(articles, registry = {}, { mainIds = new Set() } = 
     stories.push({
       id,
       formerIds: known.slice(1).filter((x) => x !== id),
-      leadId: leadCandidates(items, mainIds)[0].id,
+      leadId: leadCandidates(items, mainIds, null, now)[0].id,
       itemIds: items.map((i) => i.id),
       sourceCount: sourceIds.size,
       ownCount: new Set(own.map((i) => i.source)).size,
@@ -445,9 +462,14 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     for (const id of ids) if (sig.has(id)) placed.push(sig.get(id))
   }
   const pickLead = (items) => {
-    const cands = leadCandidates(items, mainIds, preferred)
-    const ownOnly = cands.filter((i) => mainIds.has(i.source))
-    const from = ownOnly.length ? ownOnly : cands
+    const cands = leadCandidates(items, mainIds, preferred, now)
+    // Vers nieuws eerst: een achtergrondstuk van gisteren wordt alleen de kop als er niets recents
+    // is. Ook niet om de bronnen te spreiden of omdat de verse bron al vaak de kop is.
+    const current = cands.filter((i) => !isStale(i, now))
+    const recent = current.length ? current : cands
+    // Daarbinnen eigen bronnen eerst.
+    const ownOnly = recent.filter((i) => mainIds.has(i.source))
+    const from = ownOnly.length ? ownOnly : recent
     return from.find((i) => i.source !== prevLead && (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from.find((i) => (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from[0]
   }
 

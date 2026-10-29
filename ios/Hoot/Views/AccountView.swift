@@ -88,11 +88,12 @@ struct AccountView: View {
             Button("Annuleer", role: .cancel) {}
             Button("Verwijder", role: .destructive) { Task { _ = await account.deleteAccount() } }
         } message: {
-            Text("Je account, je instellingen en je bewaarde stukken verdwijnen van de server, ook op hootnews.nl. Wat op deze iPhone staat, blijft. Dit kun je niet ongedaan maken.")
+            Text("Je account, je instellingen en je bewaarde stukken verdwijnen van de server, ook op hootnews.nl. Wat op deze iPhone staat, blijft. Dit kun je niet ongedaan maken. Ingelogd met Apple? Dan vraagt Apple nog om een bevestiging.")
         }
     }
 
-    // Inloggen zoals je het kent: het merk, één korte kop en twee knoppen. Geen uitleg nodig.
+    // Inloggen zoals je het kent: het merk, één korte kop en twee knoppen. Vóór de knoppen staat
+    // eerlijk dat Hoot op uitnodiging is: wie geen uitnodiging heeft, weet dat vóór het inloggen.
     private var signIn: some View {
         VStack(spacing: 0) {
             Spacer()
@@ -106,6 +107,12 @@ struct AccountView: View {
                 .foregroundStyle(Theme.ink2)
                 .multilineTextAlignment(.center)
                 .padding(.top, Space.s2)
+            Text("Hoot is nog op uitnodiging. Kreeg je er een? Log in en vul daarna je code in.")
+                .font(.subheadline)
+                .foregroundStyle(Theme.ink3)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, Space.s3)
             Spacer()
             VStack(spacing: Space.s3) {
                 // Elk in de eigen huisstijl, maar even groot: zelfde hoogte, afronding en letter.
@@ -141,10 +148,6 @@ struct AccountView: View {
                     .multilineTextAlignment(.center)
                     .padding(.top, Space.s3)
             }
-            Text("Nog op uitnodiging.")
-                .font(.footnote)
-                .foregroundStyle(Theme.ink3)
-                .padding(.top, Space.s4)
         }
         .padding(.horizontal, Space.s5)
         .padding(.bottom, Space.s4)

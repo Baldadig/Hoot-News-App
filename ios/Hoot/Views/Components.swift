@@ -211,7 +211,8 @@ struct SourceLine: View {
             let others = count - 1
             let long = moreLabel("Vergelijk \(count) bronnen")
             let short = moreLabel(others == 1 ? "+1 bron" : "+\(others) bronnen")
-            NavigationLink(value: story) {
+            // Het stuk waarop je tikte is de kop in Vergelijken, niet een ander stuk uit de bundel.
+            NavigationLink(value: tapped(story)) {
                 switch compact {
                 case true?: short
                 case false?: long
@@ -221,6 +222,12 @@ struct SourceLine: View {
             .buttonStyle(.plain)
             .accessibilityLabel(others == 1 ? "Vergelijk met 1 andere bron" : "Vergelijk met \(others) andere bronnen")
         }
+    }
+
+    private func tapped(_ story: Story) -> Story {
+        var s = story
+        s.tappedId = item.id
+        return s
     }
 
     private func moreLabel(_ text: String) -> some View {

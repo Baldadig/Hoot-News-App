@@ -53,3 +53,16 @@ test('de Ballon d’Or is voetbal', async () => {
   const { keywordTopics } = await import('../netlify/lib/topics.mjs')
   assert.ok(keywordTopics('Harry Kane’s Ballon d’Or is behalve een erkenning').includes('voetbal'))
 })
+
+test('persberichten, gesponsorde en partnerinhoud zijn geen nieuws', () => {
+  // Stond als nieuws in de Editie van 29 oktober (avond), rubriek VS.
+  assert.equal(isNoise(it('Election Night at The Atlantic : Live Special November 3 at 9 P.M.', 'https://www.theatlantic.com/press-releases/2026/10/election-night-at-the-atlantic-live-special/684812/')), true)
+  assert.equal(isNoise(it('Uitgeverij lanceert nieuwe app', 'https://www.example.nl/persberichten/2026/nieuwe-app')), true)
+  assert.equal(isNoise(it('De beste reis van je leven', 'https://www.example.com/sponsored/reizen-naar-japan')), true)
+  assert.equal(isNoise(it('Zo bespaar je energie', 'https://www.example.nl/partner/energie-besparen')), true)
+  assert.equal(isNoise(it('Zo bespaar je energie', 'https://www.example.nl/partner-content/energie-besparen')), true)
+  // Gewoon nieuws, ook over een partner of een persbericht.
+  assert.equal(isNoise(it('Persbericht van ministerie bleek onjuist', 'https://www.example.nl/politiek/persbericht-ministerie-onjuist')), false)
+  assert.equal(isNoise(it('Ex-partner van zanger aangehouden', 'https://www.example.nl/show/ex-partner-van-zanger')), false)
+  assert.equal(isNoise(it('The Atlantic Daily', 'https://www.theatlantic.com/newsletters/2026/10/x/684800/')), false)
+})

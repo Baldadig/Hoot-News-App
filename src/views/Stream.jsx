@@ -9,6 +9,7 @@ import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { positionKey } from '../lib/context.js'
 import { readJSON } from '../lib/store.js'
 import { watch } from '../lib/inview.js'
+import { withoutCopies } from '../../shared/dedupe.mjs'
 
 const PAGE = 60 // zoveel berichten tegelijk; de rest komt erbij terwijl je scrolt
 
@@ -77,15 +78,17 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
   const list = useMemo(
     () =>
       // "Buiten je bubbel" is geen onderwerp maar een aparte lijst: de drie signalen van de editie.
+      // Brengen twee van je bronnen hetzelfde stuk (zusterkranten), dan staat het er één keer; kies
+      // je één bron, dan zie je al zijn eigen berichten.
       filters.onderwerp === 'bubbel' ? bubble.map((b) => b.item) :
-      stream.filter((i) => {
+      withoutCopies(stream.filter((i) => {
         if (picks.size && !picks.has(i.source)) return false
         if (filters.onderwerp && !(i.topics || []).includes(filters.onderwerp)) return false
         if (filters.rubriek && !inInterest(i, filters.rubriek, sourcesById.get(i.source))) return false
         if (filters.soort === 'opinie' && i.type !== 'opinie') return false
         if (filters.soort === 'artikelen' && (i.kind === 'post' || i.type === 'opinie')) return false
         return true
-      }),
+      })),
     [stream, bubble, picks, filters.onderwerp, filters.rubriek, filters.soort, sourcesById]
   )
 

@@ -88,10 +88,16 @@ extension Item {
 struct Story: Codable, Identifiable, Hashable {
     let id: String
     var leadId: String?
+    var tappedId: String? // alleen in de app: het stuk waarop je tikte om te vergelijken (de kop daar)
     var itemIds: [String]
     var sourceCount: Int?
     var sourceNames: [String]?
     var latestAt: String?
+
+    // `tappedId` hoort niet in de opslag: het geldt alleen voor één keer openen.
+    private enum CodingKeys: String, CodingKey {
+        case id, leadId, itemIds, sourceCount, sourceNames, latestAt
+    }
 }
 
 struct EntryTerm: Codable, Hashable {

@@ -37,7 +37,7 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
         <DisplayControls />
 
         <h2 className="sect">Editie</h2>
-        <Row label="De Editie in één minuut" hint={ai ? 'AI-samenvatting van de Editie.' : 'Nog niet beschikbaar.'}>
+        <Row label="De Editie in één minuut" hint={ai ? 'AI-samenvatting van de Editie. Voor leden, op uitnodiging.' : 'Nog niet beschikbaar.'}>
           <Switch checked={prefs.brief} onChange={(v) => setPref('brief', v)} label="De Editie in één minuut" />
         </Row>
         <Row label="Buiten je bubbel" hint="Wat anderen nu lezen en niet in je Editie staat.">

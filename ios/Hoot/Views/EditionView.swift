@@ -216,6 +216,11 @@ struct StoryView: View {
     let story: Story
     @State private var items: [Item] = []
 
+    // De kop: het stuk waarop je tikte; zit dat niet (meer) in de bundel, dan het hoofdbericht.
+    private var lead: Item? {
+        items.first(where: { $0.id == story.tappedId }) ?? items.first(where: { $0.id == story.leadId }) ?? items.first
+    }
+
     var body: some View {
         let sources = Set(items.map(\.source)).count
         List {
@@ -223,7 +228,6 @@ struct StoryView: View {
             // uitgevers, niet artikelen; drie stukken van één krant zijn geen drie bevestigingen.
             Section {
                 VStack(alignment: .leading, spacing: Space.s2) {
-                    let lead = items.first(where: { $0.id == story.leadId }) ?? items.first
                     // Een beeld bij het verhaal: dat van het hoofdbericht, of anders het eerste scherpe.
                     if store.showsImage(lead: true), let image = ([lead].compactMap { $0 } + items).lazy.compactMap(\.image).first(where: { ImageURL.fitsHero($0) }) {
                         FramedImage(url: ImageURL.url(image, .large), ratio: 16 / 9).padding(.bottom, Space.s1)
@@ -240,9 +244,9 @@ struct StoryView: View {
             }
             .listRowBackground(Color.clear)
             .contentShape(Rectangle())
-            .opensArticle(items.first(where: { $0.id == story.leadId }) ?? items.first)
+            .opensArticle(lead)
             // Het hoofdbericht staat al bovenaan (tik op de kop): niet nog eens in de lijst.
-            ForEach(items.filter { $0.id != (items.first(where: { $0.id == story.leadId }) ?? items.first)?.id }) { item in
+            ForEach(items.filter { $0.id != lead?.id }) { item in
                 // In een lijst maakt een link in de rij de hele rij tot link: hier geen bronlink.
                 ItemRow(item: item, label: label(item), linkSource: false)
                     .listRowBackground(Theme.surface)

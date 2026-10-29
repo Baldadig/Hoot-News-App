@@ -30,9 +30,10 @@ struct StreamView: View {
             let sources = store.stripSources
             // "Buiten je bubbel" komt juist uit bronnen die je niet volgt: daar telt de bronkeuze niet.
             let cats = Dictionary(store.followed.map { ($0.id, $0.cat) }, uniquingKeysWith: { a, _ in a })
-            let items = rub == "bubbel" ? bubble : store.stream.filter { item in
+            // Hetzelfde stuk bij twee van je bronnen (zusterkranten) één keer; kies je één bron, dan alles van die bron.
+            let items = rub == "bubbel" ? bubble : store.withoutCopies(store.stream.filter { item in
                 (picks.isEmpty || picks.contains(item.source)) && (rub.isEmpty || Rubriek.past(item, rub, cat: cats[item.source] ?? nil))
-            }
+            })
             ScrollView {
                 VStack(spacing: 0) {
                     StreamLine(
@@ -335,7 +336,7 @@ struct SearchView: View {
             // Zonder hoofdletters en accenten: "Oekraine" vindt ook "Oekraïne", "Israel" ook "Israël".
             let fold = { (s: String) in s.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil) }
             let q = fold(query.trimmingCharacters(in: .whitespaces))
-            let hits = q.count < 2 ? [] : store.stream.filter { fold("\($0.title) \($0.summary ?? "")").contains(q) }
+            let hits = q.count < 2 ? [] : store.withoutCopies(store.stream.filter { fold("\($0.title) \($0.summary ?? "")").contains(q) })
             List {
                 ForEach(hits.prefix(80)) { item in
                     // Zonder "+N bronnen": een link in een lijstrij maakt de hele rij tot die link.

@@ -14,6 +14,14 @@
 - **Lezen:** nog maar twee keuzes, In de lezer of In Safari. In Safari ben je al ingelogd bij je kranten, met wachtwoorden, passkeys en Google of Apple. "Op de website" en de twee schakelaars eronder zijn weg; wie dat had, opent nu in Safari.
 - **Bronlogo's:** scherp, en in de lijst op wit (het Parool-logo verdween in donker).
 - **Stroom:** een bron kiezen zet de rubriek terug op Alles.
+- **Uit de nachtreview (voor build 36):**
+  - **Privacymanifest:** reden voor bestandsdatums (C617.1).
+  - **Account verwijderen:** trekt ook de inlog met Apple in.
+  - **Bewaard wissen:** voor leden zegt de melding eerlijk dat het op al je apparaten weg is.
+  - **Selectie-week over een maandgrens:** "26 oktober t/m 1 november".
+  - **Vergelijk:** opent het stuk waarop je tikte.
+  - **Stroom:** dubbele koppen van zusterkranten worden weggehaald.
+  - **Inloggen:** "op uitnodiging" staat vóór de inlogknoppen.
 
 ## [1.0.0] — 2026-10-28 — De eerste versie voor de App Store
 

@@ -64,7 +64,9 @@ final class HootStore {
     private(set) var streamMark: Date?
     func openStream() { streamMark = DebugLaunch.seenMinutes.map { Date.now.addingTimeInterval(-$0 * 60) } ?? streamSeen }
     func leaveStream() { if let newest = stream.first?.date, newest > (streamSeen ?? .distantPast) { streamSeen = newest } }
-    var newInStream: Int { streamMark.map { mark in stream.prefix { ($0.date ?? .distantPast) > mark }.count } ?? 0 }
+    // Geteld zoals de Stroom ze toont: een stuk bij twee zusterkranten is één bericht (anders staat
+    // de streep 'Daaronder heb je alles al gezien' te laag).
+    var newInStream: Int { streamMark.map { mark in withoutCopies(stream).prefix { ($0.date ?? .distantPast) > mark }.count } ?? 0 }
 
     init() {
         muted = Set(Self.load("hoot.muted") ?? [String]())
@@ -395,6 +397,7 @@ final class HootStore {
         stream = itemsById.values
             .filter { $0.kind == "article" && on.contains($0.source) }
             .sorted { ($0.publishedAt ?? "") > ($1.publishedAt ?? "") }
+        copyKeys = Dictionary(stream.map { ($0.id, Self.keys(of: $0)) }, uniquingKeysWith: { a, _ in a })
         #if DEBUG
         // App Store-opnamen: de gekozen verhalen bovenaan.
         let picked = DebugLaunch.feature.map(\.id)
@@ -403,6 +406,38 @@ final class HootStore {
             stream = stream.enumerated().sorted { (rank($0.element), $0.offset) < (rank($1.element), $1.offset) }.map(\.element)
         }
         #endif
+    }
+
+    // Zusterkranten (AD, Tubantia, De Stentor …) brengen vaak hetzelfde stuk. De server laat elke
+    // bron al zijn eigen berichten houden; wat je samen ziet ontdubbelen we hier: dezelfde link of
+    // dezelfde kop staat er één keer (het nieuwste exemplaar). Zoals shared/dedupe.mjs op de
+    // website. `stream` zelf houdt alles, zodat één bron apart al zijn eigen berichten toont.
+    @ObservationIgnored private var copyKeys: [String: [String]] = [:] // per bericht, één keer per rebuildStream (verandert met `stream`)
+    func withoutCopies(_ items: [Item]) -> [Item] {
+        var seen = Set<String>()
+        return items.filter { item in
+            let keys = copyKeys[item.id] ?? Self.keys(of: item)
+            if keys.contains(where: seen.contains) { return false }
+            seen.formUnion(keys)
+            return true
+        }
+    }
+    private static func keys(of item: Item) -> [String] {
+        let title = titleKey(item.title)
+        return ["u|" + item.url] + (title.isEmpty ? [] : ["t|" + title])
+    }
+    // De kop zonder hoofdletters en leestekens (zoals normTitle op de server).
+    static func titleKey(_ title: String) -> String {
+        var out = String.UnicodeScalarView()
+        var gap = false
+        for c in title.lowercased().unicodeScalars {
+            let keep = (0x61...0x7A).contains(c.value) || (0x30...0x39).contains(c.value) || (0xE0...0xFF).contains(c.value)
+            if !keep { gap = true; continue }
+            if gap && !out.isEmpty { out.append(" ") }
+            out.append(c)
+            gap = false
+        }
+        return String(out)
     }
 
     // ---- Verhalen ----

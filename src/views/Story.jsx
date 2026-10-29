@@ -3,6 +3,7 @@ import { CompactItem, Meta, SaveButton, useHoot, linkOf } from '../components/It
 import { isFollowing } from '../lib/follow.js'
 import { BackIcon, CloseIcon } from '../components/icons.jsx'
 import { timeAgo } from '../lib/time.js'
+import { withLead } from '../lib/saved.js'
 
 // Eén publicatie in het smalle paneel (breed scherm): eerst bron en tijd, dan de kop over
 // de volle breedte en hooguit drie regels samenvatting. Geen beeld — dat perst de kop samen.
@@ -21,7 +22,8 @@ function SourceItem({ item, note }) {
 }
 
 // Bronvergelijking: elke publicatie over dit verhaal apart, met eigen kop, bron, tijd en link.
-export default function Story({ story, items, overlay, onClose, onBack, onSeen, seenBefore }) {
+// `tappedId`: het stuk waarop je tikte om te vergelijken; dat is de kop (ook als je de bron niet volgt).
+export default function Story({ story, items, tappedId = null, overlay, onClose, onBack, onSeen, seenBefore }) {
   const { sourcesById, muted, followStories, followStory } = useHoot()
   const following = isFollowing(followStories, story)
   // Wat je de vorige keer al zag, vastgelegd bij het openen (zodat "nieuw" niet meteen verdwijnt).
@@ -60,7 +62,7 @@ export default function Story({ story, items, overlay, onClose, onBack, onSeen, 
 
   // Niet gevolgd: de bron volg je niet, of je hebt hem uitgezet.
   const followed = (i) => sourcesById.get(i.source)?.followed !== false && !muted.has(i.source)
-  const lead = items.find((i) => i.id === story.leadId && followed(i)) || items.find(followed) || items[0]
+  const lead = items.find((i) => i.id === tappedId) || items.find((i) => i.id === story.leadId && followed(i)) || items.find(followed) || items[0]
   const fresh = prev ? items.filter((i) => !prev.includes(i.id)) : []
   const rest = prev ? items.filter((i) => prev.includes(i.id)) : items
   const firstId = items[items.length - 1]?.id
@@ -85,7 +87,7 @@ export default function Story({ story, items, overlay, onClose, onBack, onSeen, 
         <button type="button" className={`followbtn${following ? ' is-on' : ''}`} aria-pressed={following} onClick={() => followStory(story, lead?.title || '')}>
           {following ? 'Je volgt dit' : 'Volg dit verhaal'}
         </button>
-        <SaveButton id={story.id} kind="story" payload={story} label="verhaal" />
+        <SaveButton id={story.id} kind="story" payload={lead ? withLead(story, lead.id) : story} label="verhaal" />
         {!overlay ? (
           <button type="button" className="iconbtn" onClick={onClose} aria-label="Paneel sluiten">
             <CloseIcon />
@@ -154,7 +156,7 @@ export function StoryIndex({ stories = [], onClose, lastId }) {
           <ul className="sidx">
             {rows.map(({ s, lead }) => (
               <li key={s.id}>
-                <button type="button" className="sidx__btn" onClick={() => openStory(s.id)} aria-current={s.id === lastId ? 'true' : undefined}>
+                <button type="button" className="sidx__btn" onClick={() => openStory(s.id, lead.id)} aria-current={s.id === lastId ? 'true' : undefined}>
                   <span className="sidx__text">
                     <span className="sidx__title">{lead.title}</span>
                     <span className="sidx__meta">

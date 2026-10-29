@@ -52,6 +52,8 @@ export function useCloudSync(account, { prefs, setPrefs, saved, setSaved, readId
     const e = new SyncEngine({ uid, api, storage: localStorage, getLocal, setLocal, onStatus: setStatus, isOnline: () => navigator.onLine !== false })
     engine.current = e
     e.start()
+    // Verbinding terug: openstaande wijzigingen wegschrijven, of eerst ophalen als dat nog niet
+    // gelukt is (de motor schrijft nooit iets vóór één geslaagde ophaalronde).
     const onOnline = () => e.online()
     const onVisible = () => document.visibilityState === 'visible' && e.pull()
     window.addEventListener('online', onOnline)

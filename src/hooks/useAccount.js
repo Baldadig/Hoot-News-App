@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase, hasSession, isAuthReturn, finishGoogleLogin, pendingInvite, clearInvite, signInWithGoogle, inviteLink } from '../lib/account.js'
+import { inviteCode } from '../lib/join.js'
 
 // Wie er is ingelogd, en of die lid is.
 // status: 'out' (niet ingelogd) | 'loading' | 'in' (lid) | 'noInvite' (ingelogd, maar nog geen lid)
@@ -43,6 +44,21 @@ export function useAccount() {
     setState((s) => ({ ...s, status: 'out', user: null, profile: null }))
   }, [state.client])
 
+  // Ingelogd maar nog geen lid: alsnog een uitnodiging verzilveren, met de code of de hele link
+  // (zelfde functie als de app). Geeft 'ok', 'ongeldig' (code werkt niet of niet meer) of 'fout'.
+  const redeem = useCallback(
+    async (input) => {
+      const code = inviteCode(input)
+      if (!code || !state.client || !state.user) return 'ongeldig'
+      const { data: ok, error } = await state.client.rpc('redeem_invite', { p_code: code })
+      if (error) return 'fout'
+      if (!ok) return 'ongeldig'
+      await resolve(state.client, state.user)
+      return 'ok'
+    },
+    [state.client, state.user, resolve]
+  )
+
   // Beheerders: een uitnodigingslink maken (30 dagen geldig).
   const createInvite = useCallback(
     async (note, maxUses = 1) => {
@@ -53,5 +69,5 @@ export function useAccount() {
     [state.client]
   )
 
-  return { ...state, signIn: signInWithGoogle, signOut, createInvite, invite: pendingInvite() }
+  return { ...state, signIn: signInWithGoogle, signOut, redeem, createInvite, invite: pendingInvite() }
 }

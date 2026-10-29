@@ -30,6 +30,19 @@ export function toggleSaved(saved, kind, id, payload, itemsById = new Map(), now
   return next
 }
 
+// De kop van een verhaal is het stuk waarop je tikte, niet wat de server als hoofdbericht koos:
+// dat staat in het paneel bovenaan en straks ook in Bewaard. Zit het niet in de bundel, dan
+// blijft de keuze van de server staan.
+export function withLead(story, itemId) {
+  return itemId && itemId !== story.leadId && story.itemIds.includes(itemId) ? { ...story, leadId: itemId } : story
+}
+
+// Welk stuk Bewaard toont: dat van toen je het bewaarde, zolang het nog in het verhaal zit.
+export function savedLeadId(entry, story) {
+  const then = entry?.story?.leadId
+  return then && story.itemIds.includes(then) ? then : story.leadId
+}
+
 // Is dit (verhaal of bericht) bewaard — ook als het verhaal intussen een andere id heeft?
 export function savedKey(saved, id, story) {
   if (saved[id]) return id

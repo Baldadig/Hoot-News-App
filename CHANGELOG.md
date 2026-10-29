@@ -2,6 +2,30 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.54.0] — 2026-10-29 — Uit de nachtreview: geen stil dataverlies, kranten compleet, eerlijk over de uitnodiging
+
+- **Synchroniseren (website):** Hoot schrijft pas iets naar je account als het ophalen één keer is gelukt. Mislukte die eerste ronde, bijvoorbeeld offline op een nieuw toestel, dan bleven je bronnen, interesses en gelezen-lijst niet altijd bewaard.
+- **De Editie ververst als je terugkomt:** voorheen bleef de Editie van de ochtend staan tot je in de Stroom op 'N nieuwe berichten' tikte. Komt een nieuw dagdeel binnen, dan verversen de Editie en de Stroom samen.
+- **Zusterkranten zijn compleet:** voorheen hield de server van dezelfde kop maar één exemplaar over, over alle bronnen heen. Tubantia, De Stentor, BN DeStem, De Gelderlander en andere kranten kwamen daardoor tot driekwart van hun berichten tekort aan AD of NHD. Nu ontdubbelt de server alleen binnen een bron. De website en de app halen dubbele koppen weg over de bronnen die je volgt.
+- **Vergelijk opent het stuk waarop je tikte,** ook in Bewaard. Een achtergrondstuk ouder dan 24 uur wordt geen kop als er vers nieuws is. Verhalen worden niet meer gebundeld op één gedeelde naam.
+- **Persberichten en sponsorstukken** komen niet meer in de Editie, zoals een persbericht van The Atlantic.
+- **Eerlijk over de uitnodiging:**
+  - Vóór het inloggen staat dat de samenvatting voor leden is, op uitnodiging.
+  - Het join-blad verschijnt niet meer vanzelf.
+  - Wie al ingelogd is maar nog geen lid, kan op de website een uitnodigingscode invullen.
+  - De meta- en welkomtekst beloven geen samenvatting meer aan iedereen.
+- **Interesses opnieuw kiezen:**
+  - Het welkom heeft dan een knop Sluiten, die niets opslaat.
+  - Je huidige bronnen en keuzes staan al aangevinkt.
+  - 'Liever meteen lezen' is er alleen bij de eerste start en wist dus niets meer.
+- **Account verwijderen (app):** trekt ook de inlog met Apple in, via de nieuwe functie /api/apple-revoke. Die functie heeft de Netlify-variabelen APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_PRIVATE_KEY en APPLE_CLIENT_ID nodig.
+- **Over (support-pagina):** zegt nu goed hoe lezen werkt: in de lezer of in Safari, naar keuze.
+- **App Store:**
+  - Het privacymanifest heeft de reden voor bestandsdatums (C617.1).
+  - De beschrijving noemt de Selectie.
+  - De release notes kloppen.
+  - De review-code staat niet meer in de repo.
+
 ## [1.53.0] — 2026-10-29 — Stroom: krantenrubrieken met een bronnenstapel
 
 - **De kop van de Stroom is één lijn.** De onderwerpen staan als rubrieken in de krantenletter, met een rode streep onder wat aan staat. Rechts ligt een stapel van drie bronlogo's.

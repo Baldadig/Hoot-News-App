@@ -4,6 +4,7 @@ import { buildFeed } from './build.mjs'
 import { readDoc, writeDoc, KEYS } from './kv.mjs'
 import { MAIN_IDS, MUSIC_IDS } from './sources.mjs'
 import { hash } from '../../shared/util.mjs'
+import { withoutCopies } from '../../shared/dedupe.mjs'
 
 let running = null // binnen één functie-instantie nooit twee keer tegelijk
 
@@ -15,7 +16,8 @@ export function refresh() {
       const { parts, items, ...rest } = await buildFeed({ now })
       const before = JSON.parse((await readDoc(KEYS.core))?.body || '{}').meta?.parts || {}
 
-      // Per bron een deel; alleen wat veranderde opnieuw wegschrijven.
+      // Per bron een deel, met al zijn eigen berichten (ook wat een zusterkrant ook bracht; de app
+      // ontdubbelt over de bronnen die je volgt). Alleen wat veranderde opnieuw wegschrijven.
       const tags = {}
       const writes = []
       for (const [id, list] of Object.entries(parts)) {
@@ -33,7 +35,8 @@ export function refresh() {
       const relatedTag = hash(relatedBody)
       const start = JSON.stringify({ ...lean, items: [], meta: { ...rest.meta, parts: tags, related: relatedTag } })
       const base = new Set([...MAIN_IDS, ...MUSIC_IDS])
-      const legacy = JSON.stringify({ ...rest, items: items.filter((i) => base.has(i.source) || i.kind === 'post') })
+      // Oude apps ontdubbelen niet zelf: voor hen nog over de bronnen heen.
+      const legacy = JSON.stringify({ ...rest, items: withoutCopies(items.filter((i) => base.has(i.source) || i.kind === 'post')) })
       const coreDoc = { body: core, builtAt, etag: hash(core) }
       await Promise.all([
         writeDoc(KEYS.core, coreDoc),

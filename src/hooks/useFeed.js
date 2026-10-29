@@ -2,9 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchCore, fetchPart, fetchRelated } from '../lib/api.js'
 import { takeFeedCache, saveFeedCache } from '../lib/feedCache.js'
 import { carryOver } from '../lib/sourceStatus.js'
-import { freshCount } from '../lib/fresh.js'
+import { freshCount, refreshPlan } from '../lib/fresh.js'
 import { mutedSet } from '../lib/sourcesel.js'
 import { eachLimited } from '../lib/pool.js'
+import { withoutCopies } from '../../shared/dedupe.mjs'
 
 const byRecency = (a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || '')
 
@@ -29,8 +30,9 @@ export function wantedSources(sources, prefs) {
 }
 
 // De feed: eerst de kern, dan per gevolgde bron de berichten (alleen wat veranderde).
-// Wat je de vorige keer had staat meteen in beeld; nieuwe berichten wachten bij het
-// automatisch verversen achter een knop, zodat de inhoud niet verspringt terwijl je leest.
+// Wat je de vorige keer had staat meteen in beeld; nieuwe berichten in de Stroom wachten bij het
+// automatisch verversen achter een knop, zodat de inhoud niet verspringt terwijl je leest. De
+// Editie, de verhalen en de bronnen gaan wel meteen door; bij een nieuw dagdeel ook de berichten.
 export function useFeed(prefs) {
   const [data, setData] = useState(() => normalize(takeFeedCache()))
   const [status, setStatus] = useState(() => (data ? 'ready' : 'loading')) // loading | ready | error
@@ -41,14 +43,16 @@ export function useFeed(prefs) {
   const ctrl = useRef(null)
   const dataRef = useRef(data)
   dataRef.current = data
-  const pending = useRef(null)
+  const pending = useRef(null) // de berichten van de Stroom die achter de knop wachten
   const prefsRef = useRef(prefs)
   prefsRef.current = prefs
   const parts = useRef(new Map()) // bron → { version, items }
 
+  // In de cache staan ook de berichten die nog achter de knop wachten: bij een koude start
+  // staan ze er dan gewoon.
   const apply = useCallback((next) => {
     setData(next)
-    saveFeedCache(next)
+    saveFeedCache(pending.current ? { ...next, items: pending.current } : next)
   }, [])
 
   // De berichten van de gevolgde bronnen; een deel dat niet veranderde halen we niet opnieuw.
@@ -99,13 +103,21 @@ export function useFeed(prefs) {
         const next = carryOver(dataRef.current, fetched)
         setRefreshError(false)
         const off = mutedSet(prefsRef.current, next.sources)
-        const fresh = defer && had ? freshCount(dataRef.current.items, next.items, off) : 0
-        if (fresh) {
-          pending.current = next
+        // Hetzelfde stuk bij twee zusterkranten is één nieuw bericht (de Stroom toont het één keer).
+        const fresh = defer && had ? freshCount(dataRef.current.items, withoutCopies(next.items), off) : 0
+        // Een nieuw dagdeel gaat in zijn geheel door (zie refreshPlan): de Stroom verspringt dan één
+        // keer, maar Jouw Editie komt uit de berichten van nu.
+        const plan = refreshPlan({ defer, prev: had ? dataRef.current : null, next, fresh })
+        if (plan === 'wachten') {
+          // Alleen de berichten wachten; de rest (Editie, verhalen, bronnen) meteen bijwerken.
+          pending.current = next.items
           setPendingCount(fresh)
-          saveFeedCache(next)
-        } else if (defer && had) {
-          // Niets nieuws in de Stroom: alleen de rest bijwerken (bronnen, editie, verhalen).
+          apply({ ...next, items: dataRef.current.items })
+        } else if (plan === 'rest') {
+          // Niets nieuws in de Stroom: alleen de rest bijwerken (bronnen, editie, verhalen). Wat nog
+          // achter de knop wachtte is achterhaald: deze ronde is nieuwer.
+          pending.current = null
+          setPendingCount(0)
           apply({ ...next, items: dataRef.current.items })
         } else {
           pending.current = null
@@ -134,14 +146,20 @@ export function useFeed(prefs) {
     firstKey.current = wantKey
     const controller = new AbortController()
     gather(dataRef.current, controller.signal)
-      .then((items) => apply({ ...dataRef.current, items }))
+      .then((items) => {
+        // Deze berichten zijn de nieuwste, met de bron die je net aanzette: wat nog achter de knop
+        // wachtte is daarmee achterhaald (anders haalde die knop de nieuwe bron weer weg).
+        pending.current = null
+        setPendingCount(0)
+        apply({ ...dataRef.current, items })
+      })
       .catch(() => {})
     return () => controller.abort()
   }, [wantKey, gather, apply])
 
   const applyPending = useCallback(() => {
     if (pending.current) {
-      apply(pending.current)
+      apply({ ...dataRef.current, items: pending.current })
       pending.current = null
     }
     setPendingCount(0)

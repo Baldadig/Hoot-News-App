@@ -3,9 +3,12 @@ import { SourceMark } from '../components/Items.jsx'
 import { EditionIcon, SparkleIcon, StreamIcon, INTEREST_ICONS } from '../components/icons.jsx'
 import { vakByDomain } from '../../shared/vak.mjs'
 import { INTERESTS, topicById, resolveTopics, suggestSources, catLabel, starterGroups } from '../lib/topics.js'
+import { sourcesOn } from '../lib/welcome.js'
 
 // Onboarding in vijf schermen: uitleg → interesses (breed) → onderwerpen (smal) → bronnen → je vak
 // (voor de Selectie). Alles met tikken; onderaan steeds één knop om door te gaan.
+// Opnieuw kiezen (vanuit Bronnen of Instellingen, `onClose` is er dan): alles staat al op je huidige
+// keuze, sluiten (ook met Escape) slaat niets op, en "Liever meteen lezen" is er niet.
 const STEPS = 5
 // Bronnen in de volgorde waarin je ze wilt zien. Regionaal en Vlaams staan ingeklapt;
 // de rubrieken alleen als je die interesse (of dat onderwerp) koos.
@@ -22,7 +25,8 @@ const GROUPS = [
   { cat: 'vl', folded: true },
 ].map((g) => ({ ...g, label: catLabel(g.cat) }))
 
-export default function Welcome({ account, sources, prefs, onDone }) {
+export default function Welcome({ account, sources, prefs, muted = new Set(), onDone, onClose = null }) {
+  const reopen = !!onClose
   const [step, setStep] = useState(0)
   const [interests, setInterests] = useState(() => prefs.interests || [])
   const [picked, setPicked] = useState(() => prefs.topics || [])
@@ -42,9 +46,18 @@ export default function Welcome({ account, sources, prefs, onDone }) {
     head.current?.focus({ preventScroll: true })
   }, [step, quick])
 
+  // Escape sluit het welkom als je het opnieuw opende (de eerste keer moet je erdoor).
+  useEffect(() => {
+    if (!onClose) return
+    const onKey = (e) => e.key === 'Escape' && !e.defaultPrevented && onClose()
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
+
   const toggle = (set) => (id) => set((list) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]))
   const next = () => {
-    if (step === 2) setChosen(suggestSources(pickable, interests, topics))
+    // Opnieuw kiezen: de bronnen die nu aan staan (en wat je hier al aan- of uitzette). Eerste keer: voorstellen.
+    if (step === 2) setChosen((c) => (reopen ? c ?? sourcesOn(pickable, muted) : suggestSources(pickable, interests, topics)))
     setStep((s) => s + 1)
   }
   const finish = () => onDone({ interests, topics, sources: chosen ?? suggestSources(pickable, interests, topics), all: pickable, vak })
@@ -125,7 +138,7 @@ export default function Welcome({ account, sources, prefs, onDone }) {
             </h1>
             <ul className="ob__points">
               <Point Icon={EditionIcon} title="Je Editie" text="Drie keer per dag tien verhalen, met een einde." />
-              <Point Icon={SparkleIcon} title="In één minuut bij" text="De Editie kort samengevat." />
+              <Point Icon={SparkleIcon} title="In één minuut bij" text="Voor leden, op uitnodiging: je Editie kort samengevat." />
               <Point Icon={StreamIcon} title="De Stroom" text="Alles van je bronnen, nieuwste eerst." />
             </ul>
             {account?.invite && account.status === 'out' ? <p className="ob__note">Je bent uitgenodigd. Inloggen kan straks rechtsboven, zodat alles meegaat naar je andere toestellen.</p> : null}
@@ -199,7 +212,9 @@ export default function Welcome({ account, sources, prefs, onDone }) {
             <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
               Jouw bronnen
             </h1>
-            <p className="ob__sub">We kozen er alvast een paar die bij je interesses passen. Tik om ze aan of uit te zetten. Van een bron met abonnement zie je altijd de koppen; het hele artikel lees je als je abonnee bent.</p>
+            <p className="ob__sub">
+              {reopen ? 'Aan staan de bronnen die je nu volgt.' : 'We kozen er alvast een paar die bij je interesses passen.'} Tik om ze aan of uit te zetten. Van een bron met abonnement zie je altijd de koppen; het hele artikel lees je als je abonnee bent.
+            </p>
             <div className="ob__chips ob__free" role="group" aria-label="Welke bronnen tonen">
               <button type="button" className="ob__chip" aria-pressed={!freeOnly} onClick={() => setFreeOnly(false)}>
                 Alle bronnen
@@ -268,6 +283,10 @@ export default function Welcome({ account, sources, prefs, onDone }) {
               }}
             >
               Liever zelf kiezen
+            </button>
+          ) : reopen ? (
+            <button type="button" className="ob__skip" onClick={onClose}>
+              Sluiten zonder opslaan
             </button>
           ) : step === 0 ? (
             <button type="button" className="ob__skip" onClick={startQuick}>
