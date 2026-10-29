@@ -107,7 +107,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
       <div className="col col--front">
-        {/* De kop van de editie: titel, datum, omvang en de ingang naar het overzicht. Eén blok,
+        {/* De kop van de Editie: titel, datum, omvang en de ingang naar het overzicht. Eén blok,
             zodat de kleur "Inkt" er een band van kan maken. */}
         <div className="edtop">
           <ViewHeader title={title} sub={edition ? null : sub} onRefresh={onRefresh} refreshing={refreshing} compare display />
@@ -122,7 +122,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 </span>
               </div>
               <p className="hint edcount">
-                {edition.personal ? 'Samengesteld uit jouw bronnen en interesses' : 'De editie voor iedereen'}
+                {edition.personal ? 'Samengesteld uit jouw bronnen en interesses' : 'De Editie voor iedereen'}
                 {rows.length < EDITION_SIZE ? ` · ${rows.length} ${rows.length === 1 ? 'verhaal' : 'verhalen'}: er was niet meer nieuws dat breed genoeg werd gebracht` : ''}.
               </p>
               {hasBrief ? (
@@ -131,7 +131,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                     <SparkleIcon />
                   </span>
                   <span className="briefcta__text">
-                    <span className="briefcta__title">De editie in één minuut</span>
+                    <span className="briefcta__title">De Editie in één minuut</span>
                     <span className="briefcta__sub">Samenvatting door AI, met de bronnen erbij</span>
                   </span>
                   <span className="briefcta__go" aria-hidden="true">
@@ -145,7 +145,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                     <SparkleIcon />
                   </span>
                   <span className="briefcta__text">
-                    <span className="briefcta__title">Jouw editie in één minuut</span>
+                    <span className="briefcta__title">Jouw Editie in één minuut</span>
                     <span className="briefcta__sub">Voor leden: log in met Google</span>
                   </span>
                   <span className="briefcta__go" aria-hidden="true">
@@ -162,7 +162,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
           <LoadError onRetry={onRefresh} />
         ) : rows.length === 0 ? (
           <Empty
-            title="Er is nog geen editie"
+            title="Er is nog geen Editie"
             action={
               <a className="btn" href="#/stroom">
                 Naar de Stroom
@@ -212,7 +212,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             </div>
             {rows.length > FRONT ? (
               <div className="front__rest">
-                <h2 className="front__more">Verder in deze editie</h2>
+                <h2 className="front__more">Verder in deze Editie</h2>
                 <div className="list">
                   {rows.slice(FRONT).map(({ key, item, story, note }) => (
                     <CompactItem key={key} item={item} story={story} note={note} />
@@ -223,7 +223,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             {bubble.length ? (
               <section className="bubble" aria-label="Buiten je bubbel">
                 <h2 className="front__more">Buiten je bubbel</h2>
-                <p className="hint bubble__hint">Wat anderen nu lezen of zoeken en wat niet in je editie zit — ook uit bronnen die je niet volgt.</p>
+                <p className="hint bubble__hint">Wat anderen nu lezen of zoeken en wat niet in je Editie zit — ook uit bronnen die je niet volgt.</p>
                 <div className="list">
                   {bubble.map((b) => (
                     <CompactItem key={b.id} item={b.item} story={b.storyId ? storiesById.get(b.storyId) : null} note={`Via ${[...new Set(b.terms.map((t) => VIA[t.via] || t.via))].join(' en ')}`} plain />

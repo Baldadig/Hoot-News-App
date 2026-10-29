@@ -39,7 +39,7 @@ export function BriefReader({ open, onClose, brief, kicker, rows = [] }) {
       <article ref={body} className="reader__body" tabIndex={-1}>
         <p className="reader__label">Samenvatting door AI</p>
         <h1 id="reader-title" className="reader__title">
-          De editie in één minuut
+          De Editie in één minuut
         </h1>
         {sections.map((sec, i) => {
           const refs = (sec.refs || []).map((r) => byIndex.get(r)).filter(Boolean)
@@ -69,7 +69,7 @@ export function BriefReader({ open, onClose, brief, kicker, rows = [] }) {
         })}
         {rest.length ? (
           <section className="reader__sect reader__rest">
-            <h2 className="reader__head">Ook in deze editie</h2>
+            <h2 className="reader__head">Ook in deze Editie</h2>
             <ul>
               {rest.map((r) => (
                 <li key={r.key}>
@@ -82,7 +82,7 @@ export function BriefReader({ open, onClose, brief, kicker, rows = [] }) {
             </ul>
           </section>
         ) : null}
-        <p className="reader__foot">Geschreven door AI, uitsluitend uit de koppen en intro's van deze editie, en daarna per zin gecontroleerd tegen die bronnen. Lees bij twijfel het artikel zelf.</p>
+        <p className="reader__foot">Geschreven door AI, uitsluitend uit de koppen en intro's van deze Editie, en daarna per zin gecontroleerd tegen die bronnen. Lees bij twijfel het artikel zelf.</p>
       </article>
     </dialog>
   )

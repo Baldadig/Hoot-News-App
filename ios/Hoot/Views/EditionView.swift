@@ -90,13 +90,13 @@ struct EditionView: View {
                         ProgressView().frame(maxWidth: .infinity, minHeight: 240)
                     } else if rows.isEmpty {
                         if store.status == .failed {
-                            EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Hoot heeft nog geen editie op dit toestel. Zodra je verbinding hebt, verschijnt hij hier.", retry: store.load)
+                            EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Hoot heeft nog geen Editie op dit toestel. Zodra je verbinding hebt, verschijnt hij hier.", retry: store.load)
                         } else {
-                            EmptyState(title: "Er is nog geen editie", systemImage: "newspaper", text: "In de Stroom staat alles wat er wél is.")
+                            EmptyState(title: "Er is nog geen Editie", systemImage: "newspaper", text: "In de Stroom staat alles wat er wél is.")
                         }
                     } else {
                         StaleNotice()
-                        Text([dateLine, store.isPersonal ? "Jouw editie" : "De editie voor iedereen"].filter { !$0.isEmpty }.joined(separator: " · "))
+                        Text([dateLine, store.isPersonal ? "Jouw Editie" : "De Editie voor iedereen"].filter { !$0.isEmpty }.joined(separator: " · "))
                             .font(.subheadline)
                             .foregroundStyle(Theme.ink3)
                             .padding(.bottom, Space.s4)
@@ -255,7 +255,7 @@ struct MakeItYours: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Space.s2) {
             Text("Maak Hoot van jou").font(Theme.headline(.title3))
-            Text("Je leest nu een selectie van gratis Nederlandse bronnen. Kies je eigen bronnen en interesses, dan wordt dit echt jouw editie.")
+            Text("Je leest nu een keuze uit gratis Nederlandse bronnen. Kies je eigen bronnen en interesses, dan wordt dit echt jouw Editie.")
                 .font(.subheadline)
                 .foregroundStyle(Theme.ink2)
                 .fixedSize(horizontal: false, vertical: true)

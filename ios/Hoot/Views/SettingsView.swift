@@ -47,7 +47,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Editie en Stroom")
                 } footer: {
-                    Text("Buiten je bubbel: één verhaal waar veel mensen nu naar zoeken en dat niet in je editie staat.").foregroundStyle(Theme.ink3)
+                    Text("Buiten je bubbel: één verhaal waar veel mensen nu naar zoeken en dat niet in je Editie staat.").foregroundStyle(Theme.ink3)
                 }
 
                 // Eén keuze (waar openen artikelen), met de uitzonderingen alleen als die gelden.
@@ -96,9 +96,9 @@ struct SettingsView: View {
                         LabeledContent { Text(store.favorites.isEmpty ? "Geen" : "\(store.favorites.count)") } label: { Label("Voorkeursbronnen", systemImage: "star") }
                     }
                 } header: {
-                    Text("Jouw editie")
+                    Text("Jouw Editie")
                 } footer: {
-                    Text("Je editie komt uit je eigen bronnen. Wat bij je interesses past en wat van je voorkeursbronnen komt (de ster bij Bronnen) gaat voor. Ook wat je opent en bewaart telt mee; dat blijft op dit toestel.").foregroundStyle(Theme.ink3)
+                    Text("Je Editie komt uit je eigen bronnen. Wat bij je interesses past en wat van je voorkeursbronnen komt (de ster bij Bronnen) gaat voor. Ook wat je opent en bewaart telt mee; dat blijft op dit toestel.").foregroundStyle(Theme.ink3)
                 }
 
                 Section("Bronnen en vakken") {
@@ -219,7 +219,7 @@ struct InterestsList: View {
                     }
                 }
             } footer: {
-                Text("Wat hierbij past, gaat voor in je editie. Echt groot nieuws blijft bovenaan, ook als het buiten je interesses valt.").foregroundStyle(Theme.ink3)
+                Text("Wat hierbij past, gaat voor in je Editie. Echt groot nieuws blijft bovenaan, ook als het buiten je interesses valt.").foregroundStyle(Theme.ink3)
             }
         }
     }

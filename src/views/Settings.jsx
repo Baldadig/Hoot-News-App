@@ -35,10 +35,10 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
         <DisplayControls />
 
         <h2 className="sect">Editie</h2>
-        <Row label="De editie in één minuut" hint={ai ? 'AI-samenvatting van de editie.' : 'Nog niet beschikbaar.'}>
-          <Switch checked={prefs.brief} onChange={(v) => setPref('brief', v)} label="De editie in één minuut" />
+        <Row label="De Editie in één minuut" hint={ai ? 'AI-samenvatting van de Editie.' : 'Nog niet beschikbaar.'}>
+          <Switch checked={prefs.brief} onChange={(v) => setPref('brief', v)} label="De Editie in één minuut" />
         </Row>
-        <Row label="Buiten je bubbel" hint="Wat anderen nu lezen en niet in je editie staat.">
+        <Row label="Buiten je bubbel" hint="Wat anderen nu lezen en niet in je Editie staat.">
           <Switch checked={prefs.bubble} onChange={(v) => setPref('bubble', v)} label="Buiten je bubbel" />
         </Row>
         <div className="setrow setrow--stack">
@@ -55,7 +55,7 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
             <option value={NO_WEATHER}>Geen weer</option>
           </select>
         </div>
-        <Row label="Edities" hint="Om 6, 12 en 17 uur tien verhalen. Daarna ligt de editie vast." />
+        <Row label="Edities" hint="Om 6, 12 en 17 uur tien verhalen. Daarna ligt de Editie vast." />
 
         <h2 className="sect">Extra</h2>
         <Row label="Selectie in het menu" hint="Elke maandag per onderwerp de drie belangrijkste stukken. Onderwerpen kies je in de Selectie.">
@@ -69,7 +69,7 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
         <a className="setrow setrow--link" href="#/welkom">
           <span className="setrow__text">
             <span className="setrow__label">Interesses opnieuw kiezen</span>
-            <span className="setrow__hint">Wat bij je interesses past, gaat voor in je editie. Ook wat je vaak opent of bewaart weegt mee (dat blijft op dit toestel). Voorkeursbronnen kies je met de ster bij Bronnen.</span>
+            <span className="setrow__hint">Wat bij je interesses past, gaat voor in je Editie. Ook wat je vaak opent of bewaart weegt mee (dat blijft op dit toestel). Voorkeursbronnen kies je met de ster bij Bronnen.</span>
           </span>
           <span aria-hidden="true">›</span>
         </a>
@@ -85,7 +85,7 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
         <p className="about">
           Hoot v{__APP_VERSION__} · gemaakt door <a href="https://baldadig.nl" target="_blank" rel="noopener">Baldadig.nl</a> · <a href="#/over">Over en contact</a> · <a href="#/privacy">Privacy</a> · <a href="#/stijl">Designsysteem</a>
           <br />
-          Samenvattingen komen van de bron. Alleen de editie in één minuut is door AI geschreven.
+          Samenvattingen komen van de bron. Alleen de Editie in één minuut is door AI geschreven.
           {meta?.storage === 'blobs' ? null : ' Edities worden nu niet vast bewaard en kunnen wisselen.'}
         </p>
       </div>

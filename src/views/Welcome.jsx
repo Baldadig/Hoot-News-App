@@ -71,7 +71,7 @@ export default function Welcome({ account, sources, prefs, onDone }) {
           ? { label: 'Verder', onClick: next }
           : step === 3
             ? { label: 'Verder', onClick: next, disabled: !(chosen || []).length }
-            : { label: 'Naar je editie', onClick: finish }
+            : { label: 'Naar je Editie', onClick: finish }
 
   const visibleGroups = GROUPS.filter((g) => (!g.interest || interests.includes(g.interest)) && (!g.topic || topics.includes(g.topic)))
 
@@ -126,8 +126,8 @@ export default function Welcome({ account, sources, prefs, onDone }) {
               Minder scrollen. Meer lezen.
             </h1>
             <ul className="ob__points">
-              <Point Icon={EditionIcon} title="Je editie" text="Drie keer per dag tien verhalen, met een einde." />
-              <Point Icon={SparkleIcon} title="In één minuut bij" text="De editie kort samengevat." />
+              <Point Icon={EditionIcon} title="Je Editie" text="Drie keer per dag tien verhalen, met een einde." />
+              <Point Icon={SparkleIcon} title="In één minuut bij" text="De Editie kort samengevat." />
               <Point Icon={StreamIcon} title="De Stroom" text="Alles van je bronnen, nieuwste eerst." />
             </ul>
             {account?.invite && account.status === 'out' ? <p className="ob__note">Je bent uitgenodigd. Inloggen kan straks rechtsboven, zodat alles meegaat naar je andere toestellen.</p> : null}
@@ -137,7 +137,7 @@ export default function Welcome({ account, sources, prefs, onDone }) {
             <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
               Wat interesseert je?
             </h1>
-            <p className="ob__sub">Daarmee stellen we je bronnen voor en vormen we je editie: wat bij je interesses past, krijgt voorrang.</p>
+            <p className="ob__sub">Daarmee stellen we je bronnen voor en vormen we je Editie: wat bij je interesses past, krijgt voorrang.</p>
             <div className="ob__grid">
               {INTERESTS.map((i) => {
                 const Icon = INTEREST_ICONS[i.id]

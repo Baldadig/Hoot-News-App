@@ -19,7 +19,7 @@ struct AccountRow: View {
                         Text("Even geduld …").font(.subheadline).foregroundStyle(Theme.ink3)
                     case .out:
                         Text("Inloggen").font(.headline)
-                        Text("Je editie en Bewaard op al je apparaten").font(.subheadline).foregroundStyle(Theme.ink3)
+                        Text("Je Editie en Bewaard op al je apparaten").font(.subheadline).foregroundStyle(Theme.ink3)
                     }
                 }
             }

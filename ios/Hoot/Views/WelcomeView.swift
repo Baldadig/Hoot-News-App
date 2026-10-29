@@ -18,9 +18,9 @@ struct WelcomeView: View {
     private static let pages = [
         // Eerst de samenvatting, dan de drie onderdelen.
         Page(art: .intro, title: "Minder scrollen.\nMeer lezen.", text: "Het nieuws van jouw bronnen,\nrustig op een rij."),
-        Page(art: .editie, title: "Je editie", text: "Drie keer per dag tien verhalen.\nDan ben je bij."),
+        Page(art: .editie, title: "Je Editie", text: "Drie keer per dag tien verhalen.\nDan ben je bij."),
         Page(art: .stroom, title: "De Stroom", text: "Alles van je bronnen,\nrustig onder elkaar."),
-        Page(art: .digest, title: "Je selectie", text: "Eén keer per week bijgepraat\nover wat jou bezighoudt."),
+        Page(art: .digest, title: "Je Selectie", text: "Eén keer per week bijgepraat\nover wat jou bezighoudt."),
     ]
 
     var body: some View {

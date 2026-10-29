@@ -40,7 +40,7 @@ export function DisplayControls() {
         options={[
           { value: 'papier', label: 'Papier', aria: 'Papier: alles op warm papier' },
           { value: 'blad', label: 'Blad', aria: 'Blad: menu op papier, de inhoud op een wit blad' },
-          { value: 'inkt', label: 'Inkt', aria: 'Inkt: wit blad met een donkere kop boven de editie' },
+          { value: 'inkt', label: 'Inkt', aria: 'Inkt: wit blad met een donkere kop boven de Editie' },
         ]}
       />
       <Seg

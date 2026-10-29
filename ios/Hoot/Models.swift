@@ -117,7 +117,7 @@ struct Edition: Codable, Hashable {
     var entries: [EditionEntry]
     var items: [Item]?
     var builtAt: String?
-    var personal: Bool? // jouw editie (POST /api/edition), niet die voor iedereen
+    var personal: Bool? // jouw Editie (POST /api/edition), niet die voor iedereen
 }
 
 struct FeedMeta: Codable, Hashable {

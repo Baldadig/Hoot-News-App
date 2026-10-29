@@ -11,13 +11,13 @@ export const DEFAULT_PREFS = {
   preview: 2, // 1 | 2 | 3 | 'alles' — regels voorvertoning in de Stroom
   images: 'aan', // aan | hoofd | uit
   bubble: true, // "Buiten je bubbel" in Editie en Stroom
-  brief: true, // AI-overzicht van de editie (als de sleutel er is)
+  brief: true, // AI-overzicht van de Editie (als de sleutel er is)
   panel: 'dicht',
   enabled: [], // optionele bronnen die je zelf hebt aangezet (bv. extra muziekbronnen)
   interests: [], // brede interesses uit de onboarding (src/lib/topics.js → INTERESTS)
   topics: [], // onderwerpen die je volgt; leeg = alle
   bluesky: false, // Bluesky als eigen bestemming in het menu
-  favorites: [], // voorkeursbronnen (ster): wegen zwaarder in je editie en staan vooraan
+  favorites: [], // voorkeursbronnen (ster): wegen zwaarder in je Editie en staan vooraan
   vak: [], // vakgebieden in de Selectie (shared/vak.mjs); leeg = geen tab Selectie
   bskyInStream: [], // Bluesky-accounts die óók in de Stroom staan (standaard alleen in Bluesky)
   weatherPlace: 'haarlem', // plaats voor het weer in de Editie (src/lib/weather.js), of 'geen'

@@ -48,7 +48,7 @@ export default function Privacy({ onBack, backLabel }) {
             <strong>Bluesky</strong> (als je dat aanzet): de openbare Bluesky-API, voor accounts die je zelf toevoegt.
           </li>
           <li>
-            <strong>De editie in één minuut:</strong> de koppen en intro's van de editie gaan naar Anthropic (Claude) om de samenvatting te schrijven. Daar zit niets van jou in.
+            <strong>De Editie in één minuut:</strong> de koppen en intro's van de Editie gaan naar Anthropic (Claude) om de samenvatting te schrijven. Daar zit niets van jou in.
           </li>
         </ul>
         <p>Hoot draait bij Netlify. Zoals elke website ziet die host bij elk bezoek een IP-adres; Hoot zelf bewaart dat niet.</p>
@@ -64,8 +64,8 @@ export default function Privacy({ onBack, backLabel }) {
             <strong>Het nieuws</strong> haalt de app op bij hootnews.nl, net als de website.
           </li>
           <li>
-            <strong>Je eigen editie:</strong> om die samen te stellen stuurt de app je bronnen, interesses, voorkeursbronnen en die leesvoorkeuren (zonder je naam, zonder een vast kenmerk van je
-            toestel) naar hootnews.nl. De server stelt je editie samen, stuurt hem terug en bewaart niets van wat je stuurde.
+            <strong>Je eigen Editie:</strong> om die samen te stellen stuurt de app je bronnen, interesses, voorkeursbronnen en die leesvoorkeuren (zonder je naam, zonder een vast kenmerk van je
+            toestel) naar hootnews.nl. De server stelt je Editie samen, stuurt hem terug en bewaart niets van wat je stuurde.
           </li>
           <li>
             <strong>De Hoot-lezer</strong> laadt het artikel op je toestel bij de uitgever, zoals Safari dat doet, en toont alleen de tekst en beelden. Er gaat niets via hootnews.nl. Log je in de

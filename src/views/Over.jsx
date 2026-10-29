@@ -33,7 +33,7 @@ export default function Over({ onBack, backLabel }) {
           Sommige bronnen vragen een abonnement. Hoot opent het artikel bij de uitgever zelf. In de app openen betaalde bronnen daarom standaard in Safari, waar je al bent ingelogd bij je
           abonnementen.
         </p>
-        <h3>Wanneer verschijnt de editie?</h3>
+        <h3>Wanneer verschijnt de Editie?</h3>
         <p>Om 6, 12 en 17 uur. Daarna ligt hij vast, zodat je hem uit kunt lezen. De Selectie verschijnt elke maandag om 7 uur.</p>
         <h3>Wat gebeurt er met mijn gegevens?</h3>
         <p>

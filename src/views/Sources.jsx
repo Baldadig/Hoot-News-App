@@ -145,7 +145,7 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
             <SourceRow key={s.id} s={s} muted={false} onToggle={onToggle} favorite={favorites.includes(s.id)} onFavorite={onFavorite} />
           ))}
         </ul>
-        <p className="hint">Tik op een bron om alleen die te lezen. Met de ster maak je een bron een voorkeursbron: die weegt zwaarder in je editie en staat vooraan in de Stroom. Zet je een bron uit, dan verdwijnt hij uit je Stroom en zoeken.</p>
+        <p className="hint">Tik op een bron om alleen die te lezen. Met de ster maak je een bron een voorkeursbron: die weegt zwaarder in je Editie en staat vooraan in de Stroom. Zet je een bron uit, dan verdwijnt hij uit je Stroom en zoeken.</p>
         <SourceStatus status={status} recovered={recovered} latestBySource={latestBySource} meta={meta} onRetry={onRetry} refreshing={refreshing} online={online} />
 
         <h2 className="sect">Meer bronnen</h2>
