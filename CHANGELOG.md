@@ -2,6 +2,11 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.51.2] — 2026-10-29 — iOS: Stroom zonder statusregel
+
+- **Stroom:** de regel onder de bronrij ("Alle bronnen · Bijgewerkt om 8:10 · 6 nieuw sinds je vorige bezoek") is weg. Wat je kiest, zie je aan de rondjes (ring en vinkje; "Alle" zet het filter uit), wat nieuw is aan de streep "Hier was je gebleven" in de lijst, en lukt verversen niet, dan staat dat er nog steeds. Iets meer lucht tussen de bronrij en het eerste bericht.
+- **App Store:** header en zoekresultaat (variant papier) staan als concept klaar in de Asset Library; ze gaan mee met de volgende versie.
+
 ## [1.51.1] — 2026-10-29 — iOS 1.0 (33): de punt, sneller en zonder hapering
 
 - **Van opstart naar welkom:** de iris naar de rode punt duurt nu 0,7 in plaats van 1 seconde, op een vaste curve die rustig landt in plaats van een veer die nog even naloopt. Daardoor was het rood bij het wegvallen van het opstartscherm nog net niet op maat.

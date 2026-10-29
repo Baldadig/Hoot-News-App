@@ -40,10 +40,9 @@ extension HootStore {
 
 // Filter op bron: "Alle" vooraan, dan je bronnen als logo met naam. Tik zet een bron erbij of
 // eraf (meer tegelijk kan); niets gekozen is alles. Wat aan staat is in één oogopslag te zien:
-// in kleur, met een rode ring en een vinkje. Alleen logo's: de namen staan, zodra je kiest, in
-// de statusregel. Zodra je kiest, worden de andere
-// grijs en gedimd (maar blijven leesbaar). Wat je filtert staat in woorden in de statusregel
-// eronder, met "Wis". Alles van één bron met uitleg en ster: tik op de bronnaam bij een bericht.
+// in kleur, met een rode ring en een vinkje; de andere worden grijs en gedimd (maar blijven
+// leesbaar). "Alle" zet het filter weer uit. Geen regel eronder: wat nieuw is, toont de lijst zelf
+// ("Hier was je gebleven"). Alles van één bron met uitleg en ster: tik op de bronnaam bij een bericht.
 struct SourceStrip: View {
     @Environment(HootStore.self) private var store
     @Binding var picks: Set<String>
@@ -85,6 +84,7 @@ struct SourceStrip: View {
                 .padding(.leading, -(Self.cell - Self.logo) / 2)
                 .sensoryFeedback(.selection, trigger: picks)
             }
+            .padding(.bottom, Space.s3) // lucht tot het eerste bericht
         }
     }
 }

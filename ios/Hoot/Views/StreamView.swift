@@ -44,7 +44,6 @@ struct StreamView: View {
                         }
                     } else {
                         StaleNotice()
-                        status
                         if items.isEmpty {
                             // Gekozen bronnen zonder berichten: een stille regel, geen groot leeg scherm.
                             Text("Nog niets van deze bronnen.")
@@ -104,53 +103,6 @@ struct StreamView: View {
             if kept != picks { picks = kept }
         }
         .onChange(of: phase) { _, now in if now == .background { store.leaveStream() } }
-    }
-
-    // Eén regel onder de bronrij: wat je ziet en hoe vers het is. Met een keuze: welke bronnen, met
-    // "Wis" als weg terug. Altijd 44 pt hoog, zodat de lijst niet verspringt als je kiest.
-    @ViewBuilder private var status: some View {
-        // Verversen mislukt: dan zegt StaleNotice hoe oud het is, hier geen tijd.
-        let time = store.stale ? nil : store.updatedAt.map { "Bijgewerkt om \($0.formatted(date: .omitted, time: .shortened))" }
-        if picks.isEmpty {
-            if let time {
-                Text(["Alle bronnen", time, freshNote].compactMap { $0 }.joined(separator: " · "))
-                    .font(.footnote)
-                    .foregroundStyle(Theme.ink3)
-                    .frame(minHeight: Space.tap, alignment: .leading)
-            }
-        } else {
-            HStack(spacing: Space.s2) {
-                Text("\(pickedNames)\(time.map { " · \($0)" } ?? "")")
-                    .foregroundStyle(Theme.ink3)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                Button("Wis") { withAnimation(.easeOut(duration: 0.14)) { picks = [] } }
-                    .fontWeight(.semibold)
-                    .tint(Theme.accent)
-                    .frame(minWidth: Space.tap, minHeight: Space.tap, alignment: .trailing)
-                    .contentShape(Rectangle())
-                    .accessibilityLabel("Wis filter op bron")
-            }
-            .font(.footnote)
-        }
-    }
-
-    // Wat nieuw is sinds je vorige bezoek (alleen als we dat weten).
-    private var freshNote: String? {
-        switch store.newInStream {
-        case 0: store.streamMark == nil ? nil : "niets nieuws sinds je vorige bezoek"
-        case 1: "1 nieuw sinds je vorige bezoek"
-        case let n: "\(n) nieuw sinds je vorige bezoek"
-        }
-    }
-
-    // "NOS, Tweakers" in inkt; bij meer dan drie: "NOS, Tweakers en 2 andere". In de volgorde van de rij.
-    private var pickedNames: Text {
-        let names = store.stripSources.filter { picks.contains($0.id) }.map(\.name)
-        let bold = { (s: String) in Text(s).foregroundStyle(Theme.ink).fontWeight(.semibold) }
-        if names.count > 3 {
-            return Text("\(bold(names.prefix(2).joined(separator: ", "))) en \(names.count - 2) andere")
-        }
-        return bold(names.joined(separator: ", "))
     }
 }
 
