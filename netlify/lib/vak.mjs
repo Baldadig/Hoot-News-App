@@ -21,7 +21,7 @@ const V = (id, name, kind, fields, url, more = {}) => ({ id: 'vak:' + id, name, 
 
 // kind: expert (vakmens met naam) · vakblad · curator (mensen kiezen links) · community · officieel
 // `filter`: de bron schrijft ook over andere dingen; alleen wat bij het vakgebied past telt mee.
-const BASE_SOURCES = [
+export const BASE_SOURCES = [
   // Paid social
   V('jonloomer', 'Jon Loomer', 'expert', ['paid-social'], 'https://www.jonloomer.com/feed/', { about: 'Specialist in Meta-advertenties' }),
   V('socialmediatoday', 'Social Media Today', 'vakblad', ['paid-social'], 'https://www.socialmediatoday.com/feeds/news/', { filter: true }),
@@ -178,11 +178,13 @@ const BASE_FITS = {
   product: /\b(products?|product-?led|product(manag\w*|eigenaars?|owners?|strateg\w*|teams?|ontwikkeling|visie)|plg|pms?|cpos?|chief product officers?|discovery|roadmaps?|okrs?|outcomes?|north star|jobs[- ]to[- ]be[- ]done|jtbd|prioriti[sz]\w*|prioriter\w*|backlogs?|user stories|acceptance criteria|stakeholders?|experiment\w*|a\/b[- ]?tests?|feature (flags?|factor(y|ies)|requests?)|activation|retention|onboarding|churn|growth (teams?|loops?|models?)|viral loops?|network effects?|go-to-market|gtm|pricing|packaging|monetization|user research|customer (research|interviews?|feedback|discovery)|klantonderzoek|prototyp\w*|mvps?|metrics)\b/i,
 }
 // De nieuwe onderwerpen krijgen hun regel uit vakBronnen.mjs; van de eerste tien blijft de eigen
-// regel staan, behalve Online adverteren (nu ook zoekadvertenties).
-const FITS = { ...Object.fromEntries(Object.entries(MORE_FITS).filter(([k]) => !(k in BASE_FITS))), ...BASE_FITS, ...(MORE_FITS['paid-social'] ? { 'paid-social': MORE_FITS['paid-social'] } : {}) }
+// regel staan, behalve Online adverteren (nu ook zoekadvertenties) en E-commerce & retail (nu ook
+// winkels en supermarkten).
+const WIDER = ['paid-social', 'ecommerce']
+const FITS = { ...Object.fromEntries(Object.entries(MORE_FITS).filter(([k]) => !(k in BASE_FITS))), ...BASE_FITS, ...Object.fromEntries(WIDER.filter((k) => MORE_FITS[k]).map((k) => [k, MORE_FITS[k]])) }
 
 // Geen mensenwerk om te lezen (of geen artikel): reclame, aankondigingen, audio, vacatures, lijstjes.
-const NOT_READING = /\b(sponsored|partner content|advertorial|presented by|webinars?|podcast|episode|aflevering \d+|register now|sign up now|giveaway|deals?|discount|coupon|vacatures?|we'?re hiring|job (opening|listing)s?|this week in|weekly (round-?up|recap)|industry news|(our|the|weekly|daily) newsletter|^newsletter)\b/i
+const NOT_READING = /\b(sponsored|partner content|advertorial|presented by|webinars?|podcast|episode|aflevering \d+|sim[- ]only|register now|sign up now|giveaway|deals?|discount|coupon|vacatures?|we'?re hiring|job (opening|listing)s?|this week in|weekly (round-?up|recap)|industry news|(our|the|weekly|daily) newsletter|^newsletter)\b/i
 const LISTICLE = /^\s*(the\s+)?\d+\s+([\w-]+\s+){0,3}(tools?|templates?|examples?|plugins?|fonts?|apps?|ways|tips|tricks|resources|mockups?|icons?)\b/i
 export const cleanTitle = (t = '') => t.replace(/\s+via\s+@\w+(,\s*@\w+)*\s*$/i, '').trim()
 // Verzamelingen: dagelijkse overzichten ("[AINews] …") en genummerde linklijstjes ("… (#25)").
