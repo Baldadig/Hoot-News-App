@@ -67,12 +67,15 @@ export function LayoutSwitch() {
 // `layout`: toon de schakelaar Tijdlijn/Krant in de rij (Editie en Stroom).
 // `subWide`: de ondertitel alleen op breed scherm (op telefoon kost hij een regel die niets nieuws zegt).
 // `display`: de Aa-knop die het Weergave-paneel opent. `onBack`: terugknop vóór de titel (losse pagina's).
+// `tools`: eigen knoppen van het scherm, vóór verversen (de Stroom: de filterknop).
+// `updatedAt`: hoe vers het is, in de knop Verversen ("bijgewerkt om 13:50") in plaats van een regel.
 // De kop is één rij van 44 px (titel + knoppen); de ondertitel staat eronder over de volle breedte,
 // zodat hij nooit tussen titel en knoppen wordt samengeperst. `onBack` + `backLabel`: een terugregel
 // boven de titel (iOS-patroon), zodat de titel op de kolomlijn blijft.
-export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing, showSearch = true, compare = false, display = false, onBack, backLabel = 'Terug', children }) {
+export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing, updatedAt, showSearch = true, compare = false, display = false, tools = null, onBack, backLabel = 'Terug', children }) {
   const hoot = useHoot()
   const panel = hoot?.panel
+  const at = clock(updatedAt)
   return (
     <header className="vh">
       {onBack ? (
@@ -92,8 +95,9 @@ export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing,
             <PanelIcon />
           </button>
         ) : null}
+        {tools}
         {onRefresh ? (
-          <button type="button" className={`iconbtn${refreshing ? ' is-spinning' : ''}`} onClick={onRefresh} disabled={refreshing} aria-label="Verversen">
+          <button type="button" className={`iconbtn${refreshing ? ' is-spinning' : ''}`} onClick={onRefresh} disabled={refreshing} aria-label={at ? `Verversen, bijgewerkt om ${at}` : 'Verversen'} title={at ? `Verversen · bijgewerkt om ${at}` : undefined}>
             <RefreshIcon />
           </button>
         ) : null}

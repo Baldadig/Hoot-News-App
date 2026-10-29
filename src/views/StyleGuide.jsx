@@ -65,6 +65,9 @@ export default function StyleGuide({ stream }) {
             <strong>Vorm</strong>: knoppen en velden 8 px · beeld en kaarten 12 px · bladen 16 px · chips en schakelaars een pil. Elk aanraakdoel is 44 px hoog.
           </li>
           <li>
+            <strong>Beweging</strong>: 140 · 200 · 400 ms (<code>--dur-1</code> t/m <code>--dur-3</code>). Directe reactie · iets dat in beeld komt · iets dat van plek wisselt (de bronnenstapel en de rode streep in de Stroom, met <code>--ease-glide</code>). Bij Minder beweging staat alles direct goed.
+          </li>
+          <li>
             <strong>Uitlijning</strong>: één linkerlijn per scherm; de kop van een scherm is één rij van 44 px (titel, schakelaar, knoppen) met daaronder één metaregel.
           </li>
         </ul>
@@ -119,6 +122,12 @@ export default function StyleGuide({ stream }) {
         <StatusLine {...online} online={false} />
         <Skeleton rows={2} />
         <Empty title="Lege toestand">Zegt wat er aan de hand is en wat je kunt doen.</Empty>
+        <div className="listempty">
+          <p>Nog niets van NOS in Wereld.</p>
+          <button type="button" className="listempty__btn">
+            Toon alle bronnen
+          </button>
+        </div>
       </div>
     </section>
   )

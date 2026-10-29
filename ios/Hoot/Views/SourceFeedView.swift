@@ -1,9 +1,9 @@
 import SwiftUI
 
-// Naar één bron: via de rij logo's bovenaan de Stroom, of door op de naam van een bron te tikken.
+// Naar één bron: door op de naam van een bron te tikken.
 struct SourceRoute: Hashable { let id: String }
 
-// Een bron als rond logo (de bronnen in de Stroom-rij en bovenaan het bronscherm).
+// Een bron als rond logo (de bronnenstapel in de Stroom en bovenaan het bronscherm).
 struct SourceAvatar: View {
     let source: Source
     var size: CGFloat = 44
@@ -25,8 +25,8 @@ struct SourceAvatar: View {
 }
 
 extension HootStore {
-    // De volgorde van de bronrij: voorkeursbronnen vooraan, dan wie nu het meest brengt. Ook de
-    // volgorde van de namen in de statusregel, zodat die met de rij overeenkomt.
+    // De volgorde van de bronnen in de Stroom: voorkeursbronnen vooraan, dan wie nu het meest brengt.
+    // De eerste drie vormen de stapel; de namen van een keuze staan in dezelfde volgorde.
     var stripSources: [Source] {
         let counts = Dictionary(grouping: stream, by: \.source).mapValues(\.count)
         return followed.sorted { a, b in
@@ -35,94 +35,6 @@ extension HootStore {
             if (fa != nil) != (fb != nil) { return fa != nil }
             return (counts[a.id] ?? 0) > (counts[b.id] ?? 0)
         }
-    }
-}
-
-// Filter op bron: "Alle" vooraan, dan je bronnen als logo met naam. Tik zet een bron erbij of
-// eraf (meer tegelijk kan); niets gekozen is alles. Wat aan staat is in één oogopslag te zien:
-// in kleur, met een rode ring en een vinkje; de andere worden grijs en gedimd (maar blijven
-// leesbaar). "Alle" zet het filter weer uit. Geen regel eronder: wat nieuw is, toont de lijst zelf
-// ("Hier was je gebleven"). Alles van één bron met uitleg en ster: tik op de bronnaam bij een bericht.
-struct SourceStrip: View {
-    @Environment(HootStore.self) private var store
-    @Binding var picks: Set<String>
-    static let logo: CGFloat = 36
-    static let cell: CGFloat = 44 // logo met ring: ook het aanraakvlak
-
-    var body: some View {
-        let list = store.stripSources
-        if list.count > 1 {
-            VStack(alignment: .leading, spacing: Space.s2) {
-                Text("Filter op bron")
-                    .font(.caption.weight(.heavy))
-                    .tracking(0.6)
-                    .textCase(.uppercase)
-                    .foregroundStyle(Theme.ink3)
-                    .accessibilityAddTraits(.isHeader)
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: Space.s1) {
-                        SourceChip(on: picks.isEmpty, dim: false) {
-                            withAnimation(.easeOut(duration: 0.14)) { picks = [] }
-                        } logo: {
-                            Circle().fill(Theme.rule)
-                                .overlay(Image(systemName: "square.3.layers.3d").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.ink2))
-                        }
-                        .accessibilityLabel("Alle bronnen")
-                        ForEach(list) { s in
-                            let on = picks.contains(s.id)
-                            SourceChip(on: on, dim: !picks.isEmpty && !on) {
-                                withAnimation(.easeOut(duration: 0.14)) { if on { picks.remove(s.id) } else { picks.insert(s.id) } }
-                            } logo: {
-                                SourceAvatar(source: s, size: Self.logo)
-                            }
-                            .accessibilityLabel(s.name)
-                        }
-                    }
-                }
-                .scrollClipDisabled()
-                // Het eerste rondje (niet zijn vak) op de kolomlijn, gelijk met het label en de lijst.
-                .padding(.leading, -(Self.cell - Self.logo) / 2)
-                .sensoryFeedback(.selection, trigger: picks)
-            }
-            .padding(.bottom, Space.s3) // lucht tot het eerste bericht
-        }
-    }
-}
-
-// Eén knop in de bronrij: alleen het ronde logo (de naam leest VoiceOver voor).
-private struct SourceChip<Logo: View>: View {
-    let on: Bool
-    let dim: Bool
-    let action: () -> Void
-    @ViewBuilder let logo: Logo
-    var body: some View {
-        Button(action: action) {
-            logo
-                .frame(width: SourceStrip.logo, height: SourceStrip.logo)
-                .grayscale(dim ? 1 : 0)
-                .opacity(dim ? 0.5 : 1)
-                // De ring met een smalle rand papier ertussen; het vinkje rechtsonder snijdt
-                // met een rand papier door de ring heen, zodat beide scherp blijven.
-                .frame(width: SourceStrip.logo + 2 * Space.s1, height: SourceStrip.logo + 2 * Space.s1)
-                .overlay { if on { Circle().strokeBorder(Theme.accent, lineWidth: 2) } }
-                .overlay(alignment: .bottomTrailing) {
-                    if on {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 8, weight: .black))
-                            .foregroundStyle(Theme.onAccent)
-                            .frame(width: 16, height: 16)
-                            .background(Theme.accent, in: Circle())
-                            .padding(Space.s0)
-                            .background(Theme.paper, in: Circle())
-                            .offset(x: Space.s0, y: Space.s0)
-                            .transition(.scale.combined(with: .opacity))
-                    }
-                }
-            .frame(width: SourceStrip.cell, height: SourceStrip.cell)
-            .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(on ? .isSelected : [])
     }
 }
 

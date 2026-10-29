@@ -48,7 +48,9 @@
      leespositie verschuift. Valt weg bij prefers-reduced-motion (onderaan). */
   --dur-1: 140ms; /* directe reactie: bewaren, chip, navigatie */
   --dur-2: 200ms; /* iets dat in beeld komt: verhaal, melding */
+  --dur-3: 400ms; /* iets dat van plek wisselt: de bronnenstapel en de rode streep in de Stroom */
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-glide: cubic-bezier(0.2, 0.8, 0.2, 1); /* glijden: vlot weg, zacht geland (bij --dur-3) */
 
   /* Afstand: één schaal van 4 px. Elke marge, padding en gap komt hiervandaan. */
   --s1: 4px;
@@ -656,8 +658,8 @@ select {
   gap: var(--s2);
 }
 
-/* Onderwerprij in de Stroom: de enige rij die horizontaal scrolt (zoals een categorierij in
-   nieuws-apps). Pillen van 36 px in een rij van 44; rechts een vast filtericoon. */
+/* Rij met mensen in Bluesky: pillen van 36 px in een rij van 44 die horizontaal scrolt, rechts
+   vast de knop Iemand volgen. (De Stroom heeft de lijn, zie "Stroom: de lijn".) */
 .topics {
   display: flex;
   align-items: center;
@@ -690,10 +692,6 @@ select {
   display: flex;
   flex-wrap: wrap;
   gap: var(--s2);
-}
-.topics + .status,
-.topics ~ .status {
-  margin-top: var(--s1);
 }
 .topics__scroll {
   flex: 1;
@@ -732,25 +730,11 @@ select {
   border-color: var(--accent);
   color: var(--accent);
 }
-.topics__dot {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--accent);
-}
 @media (min-width: 960px) {
   .topics__scroll {
     flex-wrap: wrap; /* breed scherm: alles zichtbaar */
     mask-image: none;
   }
-}
-.linkbtn--inline {
-  min-height: 0;
-  padding: 0;
-  font-size: inherit;
 }
 .vh__sub--wide {
   display: none;
@@ -2980,9 +2964,6 @@ html[data-images='hoofd'] .media--social {
 .bubble__hint {
   margin: var(--s1) 0 var(--s2);
 }
-.chip--bubble[aria-pressed='false'] {
-  border-style: dashed;
-}
 @media (min-width: 1200px) {
   .app:not(.has-panel) .bubble .list {
     max-width: 720px;
@@ -3607,54 +3588,293 @@ html[data-images='hoofd'] .media--social {
   color: var(--accent);
 }
 
-/* Stroom: filter op bron. "Alle" en je bronnen als logo met naam; meer tegelijk kiezen kan.
-   Gekozen: in kleur, rode ring met een rand papier ertussen, vinkje rechtsonder, naam in rood.
-   Zodra je kiest, worden de andere logo's grijs en gedimd (maar blijven ze leesbaar). */
-.srcstrip__label {
-  margin: var(--s3) 0 0;
-  color: var(--ink-3);
-  font-size: var(--t1);
-  font-weight: 700;
-  line-height: var(--lh-ui);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+/* ---------- Stroom: de lijn (rubrieken links, bronnen rechts) ----------
+   De onderwerpen als rubrieken in de krantenletter, op één lijn met een inktlijn eronder; één
+   rode streep onder wat aan staat. Rechts op die lijn je bronnen als stapel; een tik waaiert ze
+   uit over de lijn en de rubrieken wijken. De lijn is 48 hoog (aanraakvlak 44 + 2 lucht boven en
+   onder) plus de haarlijn: de kop is in elke staat 12 + 44 + 49 = 105. Rood betekent hier "aan",
+   dus focus is inkt. Plek en maat van de bolletjes en de streep zet components/StreamLine.jsx. */
+.line {
+  --line-h: calc(var(--tap) + var(--s1));
+  --rub-r: calc(2 * var(--s2) + 60px); /* 8 + stapel 60 + 8; JS rekent het na */
+  --hair: var(--ink); /* de haarlijn: inkt, zoals de lijn onder het woordmerk */
+  --dim: 0.5; /* niet-gekozen bronnen als er een keuze is */
+  position: relative;
+  height: calc(var(--line-h) + 1px);
 }
-.srcstrip {
-  display: flex;
+:root[data-theme='dark'] .line {
+  --hair: var(--ink-3);
+  --dim: 0.6;
+}
+.line::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--hair);
+}
+.line.no-anim,
+.line.no-anim *,
+.line.no-anim *::before,
+.line.no-anim *::after {
+  transition: none !important;
+}
+
+/* Rubrieken. Telefoon: alleen een vervaagde rand (16). Breed scherm: een eindkap van 32 in
+   papierkleur met het pijltje, en de vervaging (16) daarvóór. Onder de kap is de tekst weg. */
+.rub {
+  --cap: 0px;
+  --fade: var(--s4);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: var(--rub-r);
+  z-index: 1;
+}
+@media (min-width: 960px) {
+  .rub {
+    --cap: var(--s6);
+  }
+}
+.rub__scroll {
+  --cl: 0px;
+  --cr: 0px;
+  --fl: 0px;
+  --fr: 0px;
+  position: absolute;
+  inset: 0;
   overflow-x: auto;
+  overflow-y: hidden;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  gap: var(--s1);
-  /* tot de schermrand; het eerste logo (niet zijn ring) op de kolomlijn: 16 − 4 = 12 */
-  margin: var(--s2) calc(-1 * var(--s4)) 0;
-  padding: 0 var(--s4) 0 var(--s3);
+  -webkit-mask-image: linear-gradient(to right, transparent var(--cl), #000 calc(var(--cl) + var(--fl)), #000 calc(100% - var(--cr) - var(--fr)), transparent calc(100% - var(--cr)));
+  mask-image: linear-gradient(to right, transparent var(--cl), #000 calc(var(--cl) + var(--fl)), #000 calc(100% - var(--cr) - var(--fr)), transparent calc(100% - var(--cr)));
+  /* terug na het dichtklappen: 80 ms later, zodat de stapel eerst plaats maakt */
+  transition:
+    opacity calc(var(--dur-3) * 0.7) var(--ease-glide) 80ms,
+    transform var(--dur-3) var(--ease-glide) 80ms;
 }
-.srcstrip::-webkit-scrollbar {
+.rub__scroll::-webkit-scrollbar {
   display: none;
 }
-.srcstrip__btn {
+.rub__row {
+  position: relative;
+  display: flex;
+  width: max-content;
+  height: 100%;
+}
+.rub__btn {
+  position: relative;
   flex: none;
   display: flex;
-  width: 44px; /* alleen het logo met zijn ring: ook het aanraakvlak; de namen staan in de statusregel */
+  align-items: center;
+  height: 100%;
+  padding: 0 var(--s2) 1px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--ink-2);
+  font-family: var(--serif);
+  font-size: var(--t3);
+  font-weight: 400;
+  line-height: var(--lh-ui);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--dur-2) var(--ease);
+}
+.rub__btn:first-child {
+  padding-left: 0; /* 'Alles' op de kolomlijn, onder 'Stroom' */
+}
+/* Het aanraakvlak is minstens 44 breed, maar de knop zelf niet: zo staat er tussen elke twee
+   rubrieken 2 × 8, ook na een kort woord ('AI'). Alleen een knop smaller dan 44 krijgt een vlak
+   van 44 (breedte 44 of 0: een stapfunctie), en leent zo een paar px van de buren: hun
+   binnenrand, nooit hun tekst. */
+.rub__btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  z-index: 1;
+  width: min(var(--tap), max(0px, (var(--tap) - 100%) * 1000));
+  transform: translateX(-50%);
+}
+.rub__btn:first-child::before {
+  left: 0; /* links ligt de kolomrand: alleen naar rechts groeien */
+  transform: none;
+}
+.rub__btn[aria-pressed='true'] {
+  color: var(--ink);
+}
+/* Alleen met een muis: op een aanraakscherm blijft :hover na een tik hangen */
+@media (hover: hover) {
+  .rub__btn:hover {
+    color: var(--ink);
+  }
+}
+.rub__btn:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
+}
+/* kolomlijn tussen wat je leest (Alles, Buiten je bubbel) en de rubrieken */
+.rub__sep {
+  flex: none;
+  align-self: center;
+  width: 1px;
+  height: var(--s4);
+  margin-bottom: 1px;
+  background: var(--rule);
+}
+/* één rode streep die meeglijdt; 3 hoog, óp de haarlijn */
+.rub__bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100px; /* JS schaalt hem naar de breedte van het woord */
+  height: 3px;
+  background: var(--accent);
+  transform-origin: 0 0;
+  pointer-events: none;
+  transition: transform var(--dur-3) var(--ease-glide);
+}
+/* Inkt: de streep in inkt, zoals het actieve menu-item */
+[data-palette='inkt'] .rub__bar {
+  background: var(--ink);
+}
+
+/* Pijltjes (alleen breed scherm): in de eindkap, nooit over tekst; geen eigen achtergrond */
+.rub__more {
+  position: absolute;
+  top: 0;
+  bottom: 1px;
+  z-index: 2;
+  display: none;
+  align-items: center;
+  width: var(--tap);
   padding: 0;
   border: 0;
   background: none;
   color: var(--ink-3);
   cursor: pointer;
+  transition:
+    opacity var(--dur-2) var(--ease),
+    color var(--dur-1) var(--ease);
 }
-.srcstrip__logo {
+.rub__more svg {
+  width: var(--s4);
+  height: var(--s4);
+}
+@media (hover: hover) {
+  .rub__more:hover {
+    color: var(--ink);
+  }
+}
+.rub__more.is-on {
+  display: flex;
+}
+/* het pijltje midden in de kap van 32: 8 van de rand */
+.rub__more--next {
+  right: 0;
+  justify-content: flex-end;
+  padding-right: var(--s2);
+}
+.rub__more--prev {
+  left: 0;
+  justify-content: flex-start;
+  padding-left: var(--s2);
+}
+.rub__more--prev svg {
+  transform: scaleX(-1);
+}
+
+/* Open: de rubrieken wijken zacht naar links en vervagen */
+.line.is-open .rub__scroll {
+  opacity: 0;
+  transform: translateX(calc(-1 * var(--s5)));
+  transition-delay: 0ms;
+}
+.line.is-open .rub__more {
+  opacity: 0;
+}
+
+/* De bronnen: één laag over de hele lijn. Open een rij van rechts naar links (Alle bronnen
+   rechts, op de plek van de stapel), knoppen van 44 met 4 ertussen. */
+.src {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 1px;
+  left: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.src__scroll {
+  --fl: 0px;
+  --fr: 0px;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: var(--s1);
+  overflow: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.src__scroll::-webkit-scrollbar {
+  display: none;
+}
+.line.is-open .src__scroll {
+  pointer-events: auto;
+  overflow-x: auto;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fl), #000 calc(100% - var(--fr)), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 var(--fl), #000 calc(100% - var(--fr)), transparent);
+}
+
+.sb {
   position: relative;
+  flex: none;
   display: grid;
   place-items: center;
-  width: 44px; /* logo 36 + rand papier 2 + ring 2 */
-  height: 44px;
+  width: var(--tap);
+  height: var(--tap);
+  padding: 0;
+  border: 0;
   border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  transform-origin: 50% 50%;
+  transition:
+    transform var(--dur-3) var(--ease-glide),
+    opacity calc(var(--dur-3) * 0.6) var(--ease-glide);
 }
-.srcstrip__btn[aria-pressed='true'] .srcstrip__logo {
+.sb:focus-visible {
+  outline: none;
+}
+/* Ring over het hele raakvlak: rood = gekozen (alleen open), inkt = focus, beide = inkt buiten, rood binnen */
+.sb__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  transition: box-shadow var(--dur-1) var(--ease);
+}
+.line.is-open .sb[aria-pressed='true'] .sb__ring {
   box-shadow: inset 0 0 0 2px var(--accent);
 }
-.srcstrip__all {
+.sb:focus-visible .sb__ring {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+.line.is-open .sb[aria-pressed='true']:focus-visible .sb__ring {
+  box-shadow:
+    inset 0 0 0 2px var(--ink),
+    inset 0 0 0 4px var(--accent);
+}
+.sb__all {
   display: grid;
   place-items: center;
   width: 36px;
@@ -3663,45 +3883,168 @@ html[data-images='hoofd'] .media--social {
   background: var(--rule);
   color: var(--ink-2);
 }
-.srcstrip__all svg {
+.sb__all svg {
   width: 18px;
   height: 18px;
 }
-.srcstrip__check {
+.sb__check {
   position: absolute;
   right: 0;
   bottom: 0;
-  display: none;
+  display: grid;
   place-items: center;
-  width: 16px;
-  height: 16px;
+  width: var(--s4);
+  height: var(--s4);
   border-radius: 50%;
   background: var(--accent);
   color: var(--on-accent);
   box-shadow: 0 0 0 2px var(--paper); /* snijdt door de ring: beide blijven scherp */
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity var(--dur-1) var(--ease),
+    transform var(--dur-1) var(--ease);
 }
-.srcstrip__check svg {
+.sb__check svg {
   width: 10px;
   height: 10px;
 }
-.srcstrip__btn[aria-pressed='true'] .srcstrip__check {
-  display: grid;
+.line.is-open .sb[aria-pressed='true'] .sb__check {
+  opacity: 1;
+  transform: none;
 }
-.srcstrip .mark {
-  transition: filter var(--dur-1) var(--ease), opacity var(--dur-1) var(--ease);
+/* dicht met keuze: hooguit één klein vinkje, op het voorste logo; de rode naam draagt de staat */
+.line.has-choice:not(.is-open) .sb.is-front .sb__check {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(var(--dur-3) * 0.55);
 }
-.srcstrip.is-picking .srcstrip__btn:not([aria-pressed='true']) .mark {
+
+/* Leesbaarheid in de stapel: een papierring (getekend 2,5) en een randje van 1 binnen, zodat
+   witte logo's (NOS, NRC, de Volkskrant) van elkaar loskomen. 3,2 × 28/36 = 2,5. */
+.sb .mark {
+  box-shadow: 0 0 0 3.2px var(--paper);
+  transition:
+    filter var(--dur-1) var(--ease),
+    opacity var(--dur-1) var(--ease);
+}
+.sb .mark::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 14%, transparent);
+}
+/* Met een keuze: de rest grijs en gedimd, maar klikbaar */
+.line.has-choice .sb:not(.sb--all)[aria-pressed='false'] .mark {
   filter: grayscale(1);
-  opacity: 0.5;
+  opacity: var(--dim);
 }
-/* Gekozen bronnen zonder berichten: een stille regel, geen groot leeg scherm */
-.status--empty {
-  margin-top: var(--s4);
+@media (hover: hover) {
+  .line.is-open.has-choice .sb:not(.sb--all)[aria-pressed='false']:hover .mark {
+    filter: grayscale(0.4);
+    opacity: calc(var(--dim) + 0.3);
+  }
+}
+
+/* Dicht: de stapel is één knop over naam en logo's */
+.src__toggle {
+  position: absolute;
+  right: 0;
+  top: calc((var(--line-h) - var(--tap)) / 2);
+  z-index: 60;
+  width: var(--rub-r);
+  min-width: var(--tap);
+  height: var(--tap);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.src__toggle:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+  border-radius: var(--radius-pill);
+}
+.line.is-open .src__toggle {
+  visibility: hidden;
+  pointer-events: none;
+}
+.src__label {
+  /* padding-bottom 2,6: dezelfde basislijn als de rubrieken (Source Sans 15 zou gecentreerd 1,3
+     lager staan dan Newsreader 17) */
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  max-width: 10em;
+  padding-bottom: 2.6px;
+  color: var(--accent);
+  font-family: var(--sans);
   font-size: var(--t2);
+  font-weight: 700;
+  line-height: var(--lh-ui);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity var(--dur-2) var(--ease-glide),
+    transform var(--dur-3) var(--ease-glide);
 }
-.status strong {
-  color: var(--ink);
-  font-weight: 600;
+.src__label > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.line.has-choice:not(.is-open) .src__label {
+  opacity: 1;
+  transition-delay: calc(var(--dur-3) * 0.55), 0ms;
+}
+.line.is-open .src__label {
+  transform: translateX(calc(-1 * var(--s2)));
+}
+
+/* Filterknop (soort) in de kop van de Stroom: aan = accent, met een stip */
+.filterbtn {
+  position: relative;
+}
+.filterbtn.is-on {
+  color: var(--accent);
+}
+.filterbtn__dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--paper);
+}
+
+/* Niets voor deze keuze: één stille regel waar het eerste bericht zou staan, met de weg terug
+   ("Nog niets van NOS in Wereld." · Toon alle bronnen). Geen groot leeg scherm. */
+.listempty {
+  padding: var(--s5) 0;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink-2);
+  font-size: var(--t3);
+}
+.listempty__btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  margin-top: var(--s1);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: var(--t2);
+  font-weight: 700;
+  cursor: pointer;
 }
 
 /* Meer of minder hiervan (Editie): twee rustige keuzes in plaats van de knop; "minder" klapt het

@@ -39,6 +39,8 @@ export const SparkleIcon = icon("<g fill=\"currentColor\"><path d=\"m194.82 151.
 export const StackIcon = icon("<path fill=\"currentColor\" d=\"M128 32L32 88l96 56l96-56Z\" opacity=\".2\"/><g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"16\"><path d=\"M128 32L32 88l96 56l96-56Z\"/><path d=\"m32 128l96 56l96-56\"/><path d=\"m32 168l96 56l96-56\"/></g>")
 export const MoreIcon = icon("<g fill=\"currentColor\"><path d=\"M140 128a12 12 0 1 1-12-12a12 12 0 0 1 12 12m56-12a12 12 0 1 0 12 12a12 12 0 0 0-12-12m-136 0a12 12 0 1 0 12 12a12 12 0 0 0-12-12\"/></g>")
 export const CheckIcon = icon("<path fill=\"currentColor\" d=\"m232.49 80.49l-128 128a12 12 0 0 1-17 0l-56-56a12 12 0 1 1 17-17L96 183L215.51 63.51a12 12 0 0 1 17 17Z\"/>")
+// Meer rubrieken: een pijltje in de eindkap van de Stroom op breed scherm (Phosphor "CaretRight", lijn).
+export const CaretIcon = icon("<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"20\" d=\"m96 48l80 80l-80 80\"/>")
 
 const bookmarkLine = "<g fill=\"currentColor\"><path d=\"M192 48v176l-64-40l-64 40V48a8 8 0 0 1 8-8h112a8 8 0 0 1 8 8\" opacity=\".2\"/><path d=\"M184 32H72a16 16 0 0 0-16 16v176a8 8 0 0 0 12.24 6.78L128 193.43l59.77 37.35A8 8 0 0 0 200 224V48a16 16 0 0 0-16-16m0 177.57l-51.77-32.35a8 8 0 0 0-8.48 0L72 209.57V48h112Z\"/></g>"
 const bookmarkFill = "<path fill=\"currentColor\" d=\"M184 32H72a16 16 0 0 0-16 16v176a8 8 0 0 0 12.24 6.78L128 193.43l59.77 37.35A8 8 0 0 0 200 224V48a16 16 0 0 0-16-16\"/>"

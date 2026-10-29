@@ -83,7 +83,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Bluesky")
                 } footer: {
-                    Text("Bovenaan de Stroom kies je dan tussen het nieuws en Bluesky. Daar voeg je mensen toe met hun @-naam.").foregroundStyle(Theme.ink3)
+                    Text("Bovenaan de Stroom staat dan de rubriek Bluesky. Daar voeg je mensen toe met hun @-naam.").foregroundStyle(Theme.ink3)
                 }
 
                 Section {

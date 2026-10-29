@@ -285,6 +285,34 @@ struct Taste: Codable, Hashable {
     }
 }
 
+// De acht rubrieken (src/lib/topics.js → INTERESTS): de interesses uit het welkom, en de rubrieken
+// bovenaan de Stroom. Een bericht hoort erbij via zijn onderwerpen (van de server), of omdat zijn
+// bron erover gaat (`cats`, de rubriek van de bron in de catalogus: een sportsite is sport).
+struct Rubriek: Identifiable {
+    let id: String
+    let label: String
+    let topics: Set<String>
+    let cats: Set<String>
+
+    static let alle: [Rubriek] = [
+        Rubriek(id: "politiek", label: "Politiek", topics: ["nederland", "europa", "vs-politiek", "trump", "verkiezingen"], cats: []),
+        Rubriek(id: "binnenland", label: "Binnenland", topics: ["wonen", "zorg", "onderwijs", "misdaad", "migratie", "verkeer"], cats: ["regio"]),
+        Rubriek(id: "wereld", label: "Wereld", topics: ["oekraine", "middenoosten", "azie", "afrika", "latam", "geopolitiek"], cats: []),
+        Rubriek(id: "economie", label: "Economie", topics: ["economie", "werk", "bedrijven", "energie", "geld"], cats: ["economie"]),
+        Rubriek(id: "tech", label: "Tech", topics: ["ai", "tech", "gadgets", "privacy", "ev", "games"], cats: ["tech", "games"]),
+        Rubriek(id: "wetenschap", label: "Wetenschap", topics: ["klimaat", "gezondheid", "ruimte", "natuur", "brein"], cats: ["wetenschap"]),
+        Rubriek(id: "cultuur", label: "Cultuur", topics: ["muziek", "film", "boeken", "kunst", "media"], cats: ["cultuur"]),
+        Rubriek(id: "sport", label: "Sport", topics: ["voetbal", "f1", "wielrennen", "tennis", "wintersport", "olympisch"], cats: ["sport"]),
+    ]
+    static let byId = Dictionary(uniqueKeysWithValues: alle.map { ($0.id, $0) })
+
+    // Hoort dit bericht in deze rubriek? (inInterest op de website)
+    static func past(_ item: Item, _ id: String, cat: String?) -> Bool {
+        guard let r = byId[id] else { return false }
+        return (item.topics ?? []).contains(where: r.topics.contains) || cat.map(r.cats.contains) == true
+    }
+}
+
 // Wat er in je vorige editie stond (zie previousOf in netlify/lib/stories.mjs).
 struct PreviousEdition: Codable {
     var storyIds: [String]

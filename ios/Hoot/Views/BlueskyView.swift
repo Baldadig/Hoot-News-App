@@ -1,7 +1,7 @@
 import SwiftUI
 
-// Bluesky (in de Stroom): posts van de mensen die je volgt, nieuwste eerst, met bovenaan een rij
-// mensen om op één persoon te filteren.
+// Bluesky (een rubriek in de Stroom): posts van de mensen die je volgt, nieuwste eerst, met bovenaan
+// een rij mensen om op één persoon te filteren.
 struct BlueskyFeed: View {
     @Environment(HootStore.self) private var store
     @State private var who: String?
@@ -12,10 +12,6 @@ struct BlueskyFeed: View {
         let who = people.contains { $0.id == self.who } ? self.who : nil
         let posts = store.posts.filter { who == nil || $0.source == who }
         LazyVStack(alignment: .leading, spacing: 0) {
-            Text("De mensen die je volgt, nieuwste eerst.")
-                .font(.footnote)
-                .foregroundStyle(Theme.ink3)
-                .padding(.bottom, Space.s2)
             if people.count > 1 { chips(people, who: who) }
             if store.status == .loading && posts.isEmpty {
                 ProgressView().frame(maxWidth: .infinity, minHeight: 240)

@@ -95,11 +95,18 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
   - hoofdbeeld 16:9 (iPhone), 2:1 (iPad mini) of 3:2 (breed);
   - miniatuur vierkant, met `radius-sm` tot `radius`.
 - **Bij heel grote tekst** valt de miniatuur weg: de kop krijgt de hele breedte.
-- **Bronlogo's** zijn cirkels, zonder naam eronder: het logo is genoeg. In de bronnenrij ("Filter op bron") staat "Alle" vooraan. Je kiest één of meer bronnen; wat aan staat is in kleur, met een ring in `accent` en een vinkje, de rest grijs en gedimd. De namen van wat je kiest staan in de statusregel eronder, met "Wis" (web en iOS gelijk).
+- **Bronlogo's** zijn cirkels, zonder naam eronder: het logo is genoeg.
+- **De lijn bovenaan de Stroom** (web en iOS gelijk):
+  - links de rubrieken in de krantenletter, op één lijn met een haarlijn in `ink` (donker `ink-3`) eronder; één rode streep van 3 onder wat aan staat, die meeglijdt;
+  - rechts op dezelfde lijn je bronnen als stapel van drie logo's van 28, half over elkaar, met een papierring;
+  - een tik waaiert ze uit over de lijn (logo 36 in een doel van 44, "Alle bronnen" op de plek van de stapel) en de rubrieken wijken. Wat aan staat heeft een ring in `accent` en een vinkje; de rest is grijs en gedimd, maar blijft aan te tikken;
+  - dicht met een keuze staan de gekozen logo's bovenop, met de naam in `accent` ervoor ("NOS", of "3 bronnen") en één klein vinkje op het voorste logo;
+  - de lijn is in elke staat even hoog (48 plus de haarlijn).
 
 ## Beweging
 
-- `dur-1` (140 ms) voor een directe reactie (bewaren, chip), `dur-2` (200 ms) voor iets dat in beeld komt; curve `cubic-bezier(0.2, 0.7, 0.2, 1)`.
+- `dur-1` (140 ms) voor een directe reactie (bewaren, chip), `dur-2` (200 ms) voor iets dat in beeld komt; curve `ease`, `cubic-bezier(0.2, 0.7, 0.2, 1)`.
+- `dur-3` (400 ms) voor iets dat van plek wisselt: de bronnenstapel die uitwaaiert en de rode streep onder de rubrieken. Curve `ease-glide`, `cubic-bezier(0.2, 0.8, 0.2, 1)`: vlot weg, zacht geland.
 - Alleen dekking, verplaatsing en kleur; nooit iets dat de leespositie verschuift. Alles valt weg bij Verminder beweging.
 
 ## Toestanden
