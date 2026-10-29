@@ -42,7 +42,7 @@ struct SplashView: View {
                     // veegt de rand van het rood de witte letters weg en staat de inkt eronder er al.
                     .scaleEffect(Self.fit(word))
                     .position(Self.place(word, dot: target) ?? center)
-                    .transaction { if $0.animation != nil { $0.animation = .smooth(duration: time * 0.5) } }
+                    .transaction { if $0.animation != nil { $0.animation = .timingCurve(0.3, 0, 0.1, 1, duration: time * 0.55) } }
                     .mask { disc }
             }
         }

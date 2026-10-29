@@ -2,6 +2,11 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.51.1] — 2026-10-29 — iOS 1.0 (33): de punt, sneller en zonder hapering
+
+- **Van opstart naar welkom:** de iris naar de rode punt duurt nu 0,7 in plaats van 1 seconde, op een vaste curve die rustig landt in plaats van een veer die nog even naloopt. Daardoor was het rood bij het wegvallen van het opstartscherm nog net niet op maat.
+- **Geen sprongetje bij de landing:** de punt van "hoot." ademde al tijdens de overgang en was dus net kleiner dan waar het rood op uitkwam. Hij begint nu pas te ademen als het rood geland is, op ware grootte.
+
 ## [1.51.0] — 2026-10-28 — iOS: inloggen bij je krant, met bevestiging
 
 - **Je ziet dat het gelukt is:** tijdens het inloggen bij een uitgever kijkt Hoot mee. Zodra je binnen bent, staat bovenin "Je bent ingelogd bij NRC. Tik op Klaar om verder te lezen.", met een tikje, en wordt Klaar rood. Terug in de lezer verschijnt kort "✓ Ingelogd bij NRC" en laadt het artikel opnieuw, nu met je abonnement.

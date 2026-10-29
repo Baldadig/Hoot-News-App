@@ -70,18 +70,21 @@ struct HootApp: App {
         // Naar het welkom: het woordmerk landt op "hoot." en het rood sluit zich als een iris tot de rode
         // punt; de rand veegt de witte letters weg en de inkt staat er al. Naar de app, zonder plek of
         // met "Verminder beweging": gewoon vervagen.
+        // Een vaste curve in plaats van een veer: die heeft een staart, en als het opstartscherm dan op tijd
+        // weggaat, is het rood nog net niet op maat en verspringt de punt.
         if !store.onboarded, handoff.dot != nil, handoff.word != nil, !UIAccessibility.isReduceMotionEnabled {
-            var duration = 1.0
+            var duration = 0.7
             #if DEBUG
             duration *= max(1, UserDefaults.standard.double(forKey: "HootSlowSplash")) // `-HootSlowSplash 6`: in slow motion
             #endif
             handoff.duration = duration
-            withAnimation(.smooth(duration: duration)) { handoff.leaving = true }
+            withAnimation(.timingCurve(0.6, 0, 0.2, 1, duration: duration)) { handoff.leaving = true }
             try? await Task.sleep(for: .seconds(duration))
             splash = false
         } else {
             withAnimation(.easeOut(duration: 0.35)) { splash = false }
         }
+        handoff.landed = true
     }
 }
 

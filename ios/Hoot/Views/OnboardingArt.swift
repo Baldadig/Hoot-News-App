@@ -108,6 +108,9 @@ struct IntroMark: View {
     @Environment(\.accessibilityReduceMotion) private var still
 
     var body: some View {
+        // Ademen pas als het rood geland is: anders is de punt net kleiner of groter dan waar het rood
+        // op uitkomt, en verspringt hij als het opstartscherm weggaat.
+        let breathing = !still && handoff?.landed != false
         HStack(alignment: .lastTextBaseline, spacing: 3) {
             Text("hoot")
                 .font(.system(size: 58, weight: .heavy, design: .serif))
@@ -117,7 +120,8 @@ struct IntroMark: View {
                 .fill(Theme.accent)
                 .frame(width: 15, height: 15)
                 .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { handoff?.dot = $0 }
-                .phaseAnimator(still ? [1.0] : [0.92, 1.06]) { dot, s in dot.scaleEffect(s) } animation: { _ in .easeInOut(duration: 2.75) }
+                .phaseAnimator(breathing ? [1.0, 1.06, 0.92] : [1.0]) { dot, s in dot.scaleEffect(s) } animation: { _ in .easeInOut(duration: 2.75) }
+                .id(breathing) // begint op ware grootte, precies waar het rood eindigde
         }
         .fixedSize()
         .dynamicTypeSize(.large) // het merk heeft één maat
@@ -133,7 +137,8 @@ final class BrandHandoff {
     var word: CGRect?
     var dot: CGRect?
     var leaving = false // het opstartscherm beweegt erheen: het rood krimpt tot de punt
-    var duration = 1.0 // hoe lang die overgang duurt
+    var landed = false // het opstartscherm is weg; de punt mag ademen
+    var duration = 0.7 // hoe lang die overgang duurt
 }
 private struct BrandHandoffKey: EnvironmentKey { static let defaultValue: BrandHandoff? = nil }
 extension EnvironmentValues {
