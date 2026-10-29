@@ -149,7 +149,9 @@ struct SourceMark: View {
     var size: CGFloat = 24
     var body: some View {
         AsyncImage(url: item.avatar.flatMap(URL.init(string:))) { phase in
-            if let image = phase.image { image.resizable().scaledToFill() } else { Circle().fill(.quaternary) }
+            // Op wit, net als SourceAvatar: een doorzichtig logo (de zwarte P van Het Parool)
+            // verdwijnt anders in donker.
+            if let image = phase.image { image.resizable().scaledToFill().background(Color.white) } else { Circle().fill(.quaternary) }
         }
         .frame(width: size, height: size)
         .clipShape(Circle())
