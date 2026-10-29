@@ -28,12 +28,11 @@ export const BASE_SOURCES = [
   V('socialmediaexaminer', 'Social Media Examiner', 'vakblad', ['paid-social'], 'https://www.socialmediaexaminer.com/feed/', { filter: true }),
   V('digiday', 'Digiday', 'vakblad', ['paid-social'], 'https://digiday.com/feed/', { filter: true }),
   V('adexchanger', 'AdExchanger', 'vakblad', ['paid-social'], 'https://www.adexchanger.com/feed/', { filter: true }),
-  V('adweek', 'Adweek', 'vakblad', ['paid-social', 'merk'], 'https://www.adweek.com/feed/', { filter: true }),
+  V('adweek', 'Adweek', 'vakblad', ['merk'], 'https://www.adweek.com/feed/', { filter: true }),
   V('ppcland', 'PPC Land', 'vakblad', ['paid-social'], 'https://ppc.land/rss/', { filter: true }),
   V('sej-paid', 'Search Engine Journal', 'vakblad', ['paid-social'], 'https://www.searchenginejournal.com/category/paid-media/feed/', { filter: true }),
   V('marketingfacts', 'Marketingfacts', 'vakblad', ['paid-social', 'seo', 'merk'], 'https://www.marketingfacts.nl/rss', { filter: true }),
   V('emerce', 'Emerce', 'vakblad', ['paid-social', 'ecommerce', 'ai', 'seo', 'ondernemen'], 'https://www.emerce.nl/rss', { filter: true }),
-  V('meta', 'Meta Newsroom', 'officieel', ['paid-social'], 'https://about.fb.com/feed/', { filter: true }),
   // UI/UX
   V('nngroup', 'Nielsen Norman Group', 'expert', ['ux'], 'https://www.nngroup.com/feed/rss/', { about: 'Onderzoek naar gebruiksvriendelijkheid' }),
   V('lukew', 'Luke Wroblewski', 'expert', ['ux'], 'https://www.lukew.com/ff/rss.asp', { about: 'Productontwerper, schrijft over interfaces' }),
@@ -133,10 +132,17 @@ export const BASE_SOURCES = [
 
 // De eerste tien onderwerpen hierboven, de andere uit vakBronnen.mjs; een bestaande bron kan daar
 // een onderwerp bij krijgen (achteraan, zodat zijn eigen onderwerp voorgaat).
+// Brede marketingbladen: eerst de smalle onderwerpen, merk als laatste (de merk-regel is ruim en
+// zou anders bijna alles pakken; getest op 150 koppen van Adformatie).
+const ORDER = {
+  'vak:adformatie': ['paid-social', 'pr', 'social', 'design', 'merk'],
+  'vak:marketingtribune': ['paid-social', 'social', 'merk'],
+}
 export const VAK_SOURCES = [
   ...BASE_SOURCES.map((s) => {
     const more = EXTEND.filter(([id]) => id === s.id).map(([, f]) => f)
-    return more.length ? { ...s, fields: [...new Set([...s.fields, ...more])] } : s
+    const fields = [...new Set([...s.fields, ...more])]
+    return ORDER[s.id] ? { ...s, fields: ORDER[s.id].filter((f) => fields.includes(f)) } : more.length ? { ...s, fields } : s
   }),
   ...MORE_SOURCES,
 ]
@@ -178,13 +184,14 @@ const BASE_FITS = {
   product: /\b(products?|product-?led|product(manag\w*|eigenaars?|owners?|strateg\w*|teams?|ontwikkeling|visie)|plg|pms?|cpos?|chief product officers?|discovery|roadmaps?|okrs?|outcomes?|north star|jobs[- ]to[- ]be[- ]done|jtbd|prioriti[sz]\w*|prioriter\w*|backlogs?|user stories|acceptance criteria|stakeholders?|experiment\w*|a\/b[- ]?tests?|feature (flags?|factor(y|ies)|requests?)|activation|retention|onboarding|churn|growth (teams?|loops?|models?)|viral loops?|network effects?|go-to-market|gtm|pricing|packaging|monetization|user research|customer (research|interviews?|feedback|discovery)|klantonderzoek|prototyp\w*|mvps?|metrics)\b/i,
 }
 // De nieuwe onderwerpen krijgen hun regel uit vakBronnen.mjs; van de eerste tien blijft de eigen
-// regel staan, behalve Online adverteren (nu ook zoekadvertenties) en E-commerce & retail (nu ook
-// winkels en supermarkten).
-const WIDER = ['paid-social', 'ecommerce']
+// regel staan, behalve waar het onderzoek een betere gaf (getest op de echte koppen): Online
+// adverteren (nu ook zoekadvertenties), E-commerce & retail (ook winkels), en SEO, merk, UI/UX en
+// digitaal ontwerp met Nederlandse woorden erbij.
+const WIDER = ['paid-social', 'ecommerce', 'seo', 'merk', 'ux', 'design']
 const FITS = { ...Object.fromEntries(Object.entries(MORE_FITS).filter(([k]) => !(k in BASE_FITS))), ...BASE_FITS, ...Object.fromEntries(WIDER.filter((k) => MORE_FITS[k]).map((k) => [k, MORE_FITS[k]])) }
 
 // Geen mensenwerk om te lezen (of geen artikel): reclame, aankondigingen, audio, vacatures, lijstjes.
-const NOT_READING = /\b(sponsored|partner content|advertorial|presented by|webinars?|podcast|episode|aflevering \d+|sim[- ]only|register now|sign up now|giveaway|deals?|discount|coupon|vacatures?|we'?re hiring|job (opening|listing)s?|this week in|weekly (round-?up|recap)|industry news|(our|the|weekly|daily) newsletter|^newsletter)\b/i
+const NOT_READING = /\b(sponsored|^sponsor|partner content|advertorial|presented by|webinars?|podcast|episode|aflevering \d+|sim[- ]only|register now|sign up now|giveaway|deals?|discount|coupon|vacatures?|we'?re hiring|job (opening|listing)s?|this week in|weekly (round-?up|recap)|industry news|(our|the|weekly|daily) newsletter|^newsletter)\b/i
 const LISTICLE = /^\s*(the\s+)?\d+\s+([\w-]+\s+){0,3}(tools?|templates?|examples?|plugins?|fonts?|apps?|ways|tips|tricks|resources|mockups?|icons?)\b/i
 export const cleanTitle = (t = '') => t.replace(/\s+via\s+@\w+(,\s*@\w+)*\s*$/i, '').trim()
 // Verzamelingen: dagelijkse overzichten ("[AINews] …") en genummerde linklijstjes ("… (#25)").
@@ -412,11 +419,13 @@ export function healthOf(h, now = Date.now()) {
   return 'ok'
 }
 // Welke bronnen we deze ronde ophalen: alles op maandag tussen 05:00 en 07:00 (Amsterdam), en
-// anders alleen wat niet op pauze staat.
-export function sourcesToLoad(health = {}, now = Date.now(), sources = VAK_SOURCES) {
+// anders wat niet op pauze staat, om het uur de ene of de andere helft (een feed bewaart dagen,
+// en zo blijft één ronde ruim binnen de tijd van een geplande functie).
+const half = (id) => [...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % 2
+export function sourcesToLoad(health = {}, now = Date.now(), sources = VAK_SOURCES, { split = sources.length > 150 } = {}) {
   const p = Object.fromEntries(AMS.formatToParts(new Date(now)).map((x) => [x.type, x.value]))
   if (p.weekday === 'Mon' && Number(p.hour) >= 5 && Number(p.hour) < 7) return sources
-  return sources.filter((s) => ['ok', 'nieuw'].includes(healthOf(health[s.id], now)))
+  return sources.filter((s) => ['ok', 'nieuw'].includes(healthOf(health[s.id], now)) && (!split || half(s.id) === Number(p.hour) % 2))
 }
 // Het weekoverzicht: per onderwerp hoeveel bronnen gezond zijn, en welke op pauze staan.
 export function healthReport(health = {}, now = Date.now(), sources = VAK_SOURCES) {

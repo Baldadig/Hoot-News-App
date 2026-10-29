@@ -3,7 +3,10 @@ import assert from 'node:assert/strict'
 import { vakWeek, isReading, cleanTitle, fieldOf, sameSubject, isArticleLink, composeVak, mergePool, VAK_SOURCES, ogImageFrom, wantsOgImage, addOgImages } from '../netlify/lib/vak.mjs'
 import { normalizePrefs } from '../src/lib/prefs.js'
 
-const src = (id) => VAK_SOURCES.find((s) => s.id === 'vak:' + id)
+// Meta Newsroom staat niet meer bij de bronnen (paste zelden); als bedrijfsblog blijft hij handig in de test.
+const META = { id: 'vak:meta', name: 'Meta Newsroom', kind: 'officieel', fields: ['paid-social'], urls: ['https://about.fb.com/feed/'], cat: 'vak', filter: true }
+const SOURCES = [...VAK_SOURCES, META]
+const src = (id) => SOURCES.find((s) => s.id === 'vak:' + id)
 
 test('de week loopt van maandag 07:00 tot maandag 07:00 (Amsterdam), ook rond de wintertijd', () => {
   // Vrijdag 23 oktober 2026: de laatste Vakweek is die van 12 t/m 18 oktober (week 42 begint op 12/10).
@@ -28,9 +31,9 @@ test('alleen leesstukken: geen podcast, webinar, nieuwsoverzicht of lijstje', ()
 
 test('vakgebied: een brede bron telt alleen mee als het stuk erbij past', () => {
   assert.equal(fieldOf({ title: 'Meta Adds Automatic Customer Exclusions' }, src('jonloomer')), 'paid-social')
-  assert.equal(fieldOf({ title: 'Meta makes advertisers responsible for AI ad edits' }, src('adweek')), 'paid-social')
+  assert.equal(fieldOf({ title: 'Meta makes advertisers responsible for AI ad edits' }, src('adweek')), 'merk') // Adweek telt alleen bij Merk & reclame
   assert.equal(fieldOf({ title: 'Nepversie van WhatsApp ruim 500.000 keer gedownload' }, src('emerce')), null) // platform, geen adverteren
-  assert.equal(fieldOf({ title: 'Google Ads Introduces Channel Prioritization' }, src('sej-paid')), null) // zoekmachine, geen social
+  assert.equal(fieldOf({ title: 'Google Ads Introduces Channel Prioritization' }, src('sej-paid')), 'paid-social') // Online adverteren: ook zoekadvertenties
   assert.equal(fieldOf({ title: 'New book celebrates the lost graphics of holiday brochures' }, src('creativereview')), null)
   assert.equal(fieldOf({ title: 'Apple Music’s new brand identity is ‘made by sound’' }, src('creativereview')), 'design')
   assert.equal(fieldOf({ title: 'A simple guide to calm UI' }, src('sidebar')), 'ux')
@@ -63,7 +66,7 @@ test('samenstellen: drie per vak, afwisselend, bedrijfsblog alleen met bijval, m
     it('f', 'socialmediatoday', 'Instagram tests new ad format in Reels'),
     it('old', 'socialmediatoday', 'TikTok ads update from last month', { publishedAt: '2026-09-01T09:00:00.000Z' }),
   ]
-  const d = composeVak(pool, { now })
+  const d = composeVak(pool, { now, sources: SOURCES })
   const ps = d.fields.find((f) => f.id === 'paid-social')
   assert.equal(ps.top.length, 3)
   assert.equal(ps.top[0].id, 'c') // twee vakbronnen schreven erover
@@ -74,7 +77,7 @@ test('samenstellen: drie per vak, afwisselend, bedrijfsblog alleen met bijval, m
   assert.ok(![...ps.top, ...ps.more].some((e) => e.id === 'old'))
   assert.equal(d.preview, false)
   // Pas sinds woensdag aan het verzamelen: dan een voorproefje over de afgelopen zeven dagen.
-  const pre = composeVak(pool, { now, since: '2026-10-21T10:00:00.000Z' })
+  const pre = composeVak(pool, { now, since: '2026-10-21T10:00:00.000Z', sources: SOURCES })
   assert.equal(pre.preview, true)
 })
 
@@ -174,4 +177,15 @@ test('op pauze: niet elk uur, wel op maandagochtend', () => {
   const mon = Date.parse('2026-10-26T05:30:00Z') // maandag 06:30 in Amsterdam
   assert.deepEqual(sourcesToLoad(health, mon, sources).map((s) => s.id), ['a', 'b'])
   assert.ok(day)
+})
+
+test('veel bronnen: om het uur de helft, samen alles', () => {
+  const sources = VAK_SOURCES
+  const at = (h) => Date.parse(`2026-10-27T${String(h).padStart(2, '0')}:30:00Z`) // dinsdag
+  const a = sourcesToLoad({}, at(9), sources).map((s) => s.id)
+  const b = sourcesToLoad({}, at(10), sources).map((s) => s.id)
+  assert.ok(a.length > sources.length * 0.35 && b.length > sources.length * 0.35)
+  assert.equal(new Set([...a, ...b]).size, sources.length)
+  assert.ok(!a.some((id) => b.includes(id)))
+  assert.equal(isReading({ title: 'Sponsor SaaStr AI Annual 2027. Walk Out With 85+ Customer Meetings' }), false)
 })
