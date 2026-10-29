@@ -84,7 +84,7 @@ struct DigestView: View {
                 .font(Theme.headline(.title2))
                 .fixedSize(horizontal: false, vertical: true)
             if d.preview == true, let next = d.next.flatMap(HootDate.parse) {
-                Text("De eerste volle digest komt \(next.formatted(HootDate.style(.dateTime.weekday(.wide).day().month(.wide)))) om 7 uur.")
+                Text("De eerste volle Selectie komt \(next.formatted(HootDate.style(.dateTime.weekday(.wide).day().month(.wide)))) om 7 uur.")
                     .font(.subheadline).foregroundStyle(Theme.ink3)
             } else {
                 Text("Elke maandag om 7 uur een nieuwe.").font(.subheadline).foregroundStyle(Theme.ink3)

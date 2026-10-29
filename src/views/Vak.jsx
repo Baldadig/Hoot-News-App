@@ -142,11 +142,11 @@ export default function Vak({ active, digest, status, onRefresh }) {
               <p className="dmast__lede">
                 {picked} stukken in {fields.length === 1 ? '1 onderwerp' : `${fields.length} onderwerpen`}
               </p>
-              {digest.preview ? <p className="dmast__note">De eerste volle digest komt {WEEKDAY.format(new Date(digest.next))} om 7 uur.</p> : <p className="dmast__note">Elke maandag om 7 uur een nieuwe.</p>}
+              {digest.preview ? <p className="dmast__note">De eerste volle Selectie komt {WEEKDAY.format(new Date(digest.next))} om 7 uur.</p> : <p className="dmast__note">Elke maandag om 7 uur een nieuwe.</p>}
             </header>
 
             {/* Inhoud: per vak de drie koppen; tik = naar het stuk in de digest */}
-            <nav className="dtoc" data-n={fields.length} aria-label="In deze digest">
+            <nav className="dtoc" data-n={fields.length} aria-label="In deze Selectie">
               {fields.map((f) => {
                 const Icon = iconOf(f)
                 return (
