@@ -1,11 +1,12 @@
 import SwiftUI
 
-// Digest: elke maandag om 7 uur per vak de drie belangrijkste stukken van de week ervoor, door
-// mensen geschreven. Opbouw als een tijdschrift: kop met de week, per vak een opening, het eerste
+// Selectie: elke maandag om 7 uur per onderwerp de drie belangrijkste stukken van de week ervoor,
+// door mensen geschreven. Opbouw als een tijdschrift: kop met de week, per onderwerp een opening, het eerste
 // stuk groot, twee kaarten, en "Ook deze week".
 struct DigestView: View {
     @Environment(HootStore.self) private var store
-    private static var fields: [(id: String, label: String, icon: String)] { DigestFieldsList.fields }
+    private static var fields: [DigestFieldsList.Field] { DigestFieldsList.fields }
+    @State private var choosing = false
 
     var body: some View {
         NavigationStack {
@@ -17,14 +18,14 @@ struct DigestView: View {
                     if let d = store.digest {
                         header(d)
                         if shown.isEmpty {
-                            EmptyState(title: "Kies je vakken", systemImage: "briefcase", text: "Tik hierboven op een of meer vakken.")
+                            EmptyState(title: "Kies je onderwerpen", systemImage: "sparkles", text: "Voor je werk of uit interesse: elke maandag per onderwerp de drie beste stukken van de week.")
                         }
                         ForEach(shown) { field in
                             FieldSection(field: field, icon: Self.fields.first { $0.id == field.id }?.icon ?? "briefcase")
                                 .id(field.id)
                         }
                         DisclosureGroup("Hoe kiest Hoot deze stukken?") {
-                            Text("Gekozen uit \(shown.reduce(0) { $0 + ($1.count ?? 0) }) stukken van vakmensen en vakbladen in de vakgebieden die je volgt, op drie gronden: hoeveel vakbronnen over hetzelfde schreven, of de redactie van Sidebar het uitkoos, en wie het schreef (een vakexpert telt zwaarder dan een vakblad). Alleen stukken van mensen: geen gesponsorde stukken, webinars, podcasts of lijstjes. De tekst bij elk stuk is de intro van de schrijver zelf, niet van AI.")
+                            Text("Gekozen uit \(shown.reduce(0) { $0 + ($1.count ?? 0) }) stukken van kenners en vakbladen in de onderwerpen die je volgt, op drie gronden: hoeveel bronnen over hetzelfde schreven, of een redactie het uitkoos (zoals Sidebar), en wie het schreef (een kenner telt zwaarder dan een vakblad). Alleen stukken van mensen: geen gesponsorde stukken, webinars, podcasts of lijstjes. De tekst bij elk stuk is de intro van de schrijver zelf, niet van AI.")
                                 .font(.subheadline)
                                 .foregroundStyle(Theme.ink3)
                                 .padding(.top, Space.s2)
@@ -47,34 +48,30 @@ struct DigestView: View {
             .navigationTitle("Selectie")
             .settingsButton()
             .refreshable { await store.loadDigest(force: true) }
+            .sheet(isPresented: $choosing) {
+                NavigationStack {
+                    DigestFieldsList()
+                        .navigationTitle("Onderwerpen")
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { choosing = false } } }
+                }
+                .debugAppearance()
+            }
             .task { await store.loadDigest() }
         }
     }
 
-    // Vakken kiezen: knoppen van helder glas; wat aan staat met een vinkje in krantenrood.
+    // Eén knop om je onderwerpen te kiezen, uit alle acht domeinen (de gekozen staan hieronder als
+    // hoofdstukken, dus geen rij met knoppen ervan).
     private var picker: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            GlassEffectContainer(spacing: Space.s2) {
-                HStack(spacing: Space.s2) {
-                    ForEach(Self.fields.filter { store.offersField($0.id) }, id: \.id) { f in
-                        let on = store.digestFields.contains(f.id)
-                        Button {
-                            store.digestFields = on ? store.digestFields.filter { $0 != f.id } : Self.fields.map(\.id).filter { $0 == f.id || store.digestFields.contains($0) }
-                        } label: {
-                            Label(f.label, systemImage: on ? "checkmark" : f.icon)
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(on ? Theme.accent : Theme.ink3)
-                                .contentTransition(.symbolEffect(.replace))
-                        }
-                        .buttonStyle(.glass)
-                        .sensoryFeedback(.selection, trigger: on)
-                        .accessibilityAddTraits(on ? .isSelected : [])
-                    }
-                }
-            }
-            .padding(.vertical, Space.s1)
+        let count = Self.fields.filter { store.digestFields.contains($0.id) && store.offersField($0.id) }.count
+        return Button { choosing = true } label: {
+            Label(count == 0 ? "Kies onderwerpen" : "Onderwerpen · \(count)", systemImage: "slider.horizontal.3")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Theme.accent)
         }
-        .scrollClipDisabled()
+        .buttonStyle(.glass)
+        .padding(.vertical, Space.s1)
         .padding(.bottom, Space.s2)
     }
 

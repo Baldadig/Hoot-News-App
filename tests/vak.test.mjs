@@ -123,3 +123,55 @@ test('E-commerce: webwinkelstukken; vaste rubrieken met een datum en ander nieuw
   assert.equal(fieldOf({ title: 'Zalando opent nieuw fulfilmentcentrum voor webwinkels' }, src('emerce')), 'ecommerce')
   assert.equal(isReading({ title: 'New Ecommerce Tools: October 21, 2026' }), false)
 })
+
+// ---- Domeinen en gezondheid van de bronnen ----
+import { VAK_DOMAINS, VAK_FIELDS, vakByDomain } from '../shared/vak.mjs'
+import { updateHealth, healthOf, sourcesToLoad, healthReport } from '../netlify/lib/vak.mjs'
+
+test('onderwerpen: elk hoort bij een bestaand domein, id\'s uniek, de eerste tien blijven', () => {
+  const domains = new Set(VAK_DOMAINS.map((d) => d.id))
+  for (const f of VAK_FIELDS) assert.ok(domains.has(f.domain), f.id)
+  assert.equal(new Set(VAK_FIELDS.map((f) => f.id)).size, VAK_FIELDS.length)
+  for (const id of ['paid-social', 'ux', 'design', 'ai', 'ecommerce', 'seo', 'merk', 'dev', 'product', 'ondernemen']) assert.ok(VAK_FIELDS.some((f) => f.id === id), id)
+  assert.equal(vakByDomain().flatMap((d) => d.fields).length, VAK_FIELDS.length)
+})
+
+test('elke bron hoort bij bestaande onderwerpen; brede bronnen hebben een FITS-regel', () => {
+  const ids = new Set(VAK_FIELDS.map((f) => f.id))
+  for (const s of VAK_SOURCES) for (const f of s.fields) assert.ok(ids.has(f), `${s.id} → ${f}`)
+  assert.equal(new Set(VAK_SOURCES.map((s) => s.id)).size, VAK_SOURCES.length, 'bron-id\'s uniek')
+})
+
+test('Selectie: alleen onderwerpen met bronnen', () => {
+  const now = Date.parse('2026-10-20T10:00:00Z')
+  const d = composeVak([], { now, sources: [{ id: 'vak:x', name: 'X', kind: 'vakblad', fields: ['film'], urls: [''] }] })
+  assert.deepEqual(d.fields.map((f) => f.id), ['film'])
+  assert.equal(d.fields[0].domain, 'cultuur')
+})
+
+test('gezondheid: kapot na een week zonder laden, stil na twee maanden zonder nieuws', () => {
+  const t0 = Date.parse('2026-09-01T10:00:00Z')
+  const day = 864e5
+  let h = updateHealth({}, [{ id: 'a', ok: true, newest: '2026-08-31T10:00:00Z' }, { id: 'b', ok: true, newest: '2026-06-01T10:00:00Z' }], t0)
+  assert.equal(healthOf(h.a, t0), 'ok')
+  assert.equal(healthOf(h.b, t0), 'ok', 'net begonnen: nog geen oordeel')
+  h = updateHealth(h, [{ id: 'a', ok: false, newest: null }, { id: 'b', ok: true, newest: '2026-06-01T10:00:00Z' }], t0 + 9 * day)
+  assert.equal(healthOf(h.a, t0 + 9 * day), 'kapot')
+  assert.equal(healthOf(h.b, t0 + 9 * day), 'stil')
+  assert.equal(healthOf(undefined), 'nieuw')
+  const report = healthReport(h, t0 + 9 * day, [{ id: 'a', name: 'A', fields: ['film'], urls: ['u'] }, { id: 'b', name: 'B', fields: ['film'], urls: ['v'] }])
+  assert.deepEqual(report.fields, [{ id: 'film', label: 'Film & series', sources: 2, healthy: 0 }])
+  assert.equal(report.paused.length, 2)
+})
+
+test('op pauze: niet elk uur, wel op maandagochtend', () => {
+  const day = 864e5
+  const since = '2026-09-01T10:00:00Z'
+  const health = { a: { since, lastOk: since }, b: { since, lastOk: '2026-10-25T10:00:00Z', newest: '2026-10-25T10:00:00Z' } }
+  const sources = [{ id: 'a' }, { id: 'b' }]
+  const tue = Date.parse('2026-10-27T10:00:00Z') // dinsdag
+  assert.deepEqual(sourcesToLoad(health, tue, sources).map((s) => s.id), ['b'])
+  const mon = Date.parse('2026-10-26T05:30:00Z') // maandag 06:30 in Amsterdam
+  assert.deepEqual(sourcesToLoad(health, mon, sources).map((s) => s.id), ['a', 'b'])
+  assert.ok(day)
+})

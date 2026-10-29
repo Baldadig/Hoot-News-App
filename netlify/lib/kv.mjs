@@ -63,4 +63,5 @@ export const KEYS = {
   vakPool: 'vak-pool-v1', // alle stukken van de vakbronnen, de laatste 16 dagen
   vak: 'vak-digest-v1', // de Vakweek die nu geldt
   vakSince: 'vak-since-v1', // sinds wanneer we de vakbronnen verzamelen
+  vakHealth: 'vak-health-v1', // per vakbron: wanneer hij het laatst werkte en zijn nieuwste stuk
 }

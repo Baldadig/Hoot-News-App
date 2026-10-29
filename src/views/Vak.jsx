@@ -2,13 +2,16 @@ import { useRef } from 'react'
 import { ViewHeader, Empty, Skeleton, LoadError } from '../components/Shell.jsx'
 import { SaveButton, SourceMark, useHoot } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
-import { MegaphoneIcon, CursorIcon, PaletteIcon, SparkleIcon, CartIcon, MagnifierIcon, TagIcon, CodeIcon, KanbanIcon, RocketIcon } from '../components/icons.jsx'
+import { MegaphoneIcon, CursorIcon, PaletteIcon, SparkleIcon, CartIcon, MagnifierIcon, TagIcon, CodeIcon, KanbanIcon, RocketIcon, BriefcaseIcon, INTEREST_ICONS } from '../components/icons.jsx'
 import { timeAgo } from '../lib/time.js'
 import { fitsHero, fitsLarge } from '../lib/img.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
-import { VAK_FIELDS } from '../../shared/vak.mjs'
+import { vakByDomain } from '../../shared/vak.mjs'
 
-const ICON = { 'paid-social': MegaphoneIcon, ux: CursorIcon, design: PaletteIcon, ai: SparkleIcon, ecommerce: CartIcon, seo: MagnifierIcon, merk: TagIcon, dev: CodeIcon, product: KanbanIcon, ondernemen: RocketIcon }
+const ICON = { 'paid-social': MegaphoneIcon, ux: CursorIcon, design: PaletteIcon, ai: SparkleIcon, ecommerce: CartIcon, seo: MagnifierIcon, merk: TagIcon, dev: CodeIcon, product: KanbanIcon, ondernemen: RocketIcon, sport: INTEREST_ICONS.sport, politiek: INTEREST_ICONS.politiek, wetenschap: INTEREST_ICONS.wetenschap, economie: INTEREST_ICONS.economie, gadgets: INTEREST_ICONS.tech }
+// Een onderwerp zonder eigen icoon krijgt dat van zijn domein.
+const DOMAIN_ICON = { marketing: MegaphoneIcon, creatie: PaletteIcon, tech: CodeIcon, werk: BriefcaseIcon, geld: INTEREST_ICONS.economie, wetenschap: INTEREST_ICONS.wetenschap, maatschappij: INTEREST_ICONS.politiek, cultuur: INTEREST_ICONS.cultuur }
+const iconOf = (f) => ICON[f.id] || DOMAIN_ICON[f.domain] || SparkleIcon
 const DAY = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long', timeZone: 'Europe/Amsterdam' })
 const WEEKDAY = new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Amsterdam' })
 // "12 t/m 18 oktober": de week loopt tot maandag 07:00, dus de laatste dag is de zondag ervoor.
@@ -99,7 +102,8 @@ export default function Vak({ active, digest, status, onRefresh }) {
   const fields = (digest?.fields || []).filter((f) => chosen.includes(f.id))
   useScrollMemory(ref, 'hoot:pos-vak:' + (digest?.id || ''), fields.length > 0, (digest?.id || '') + chosen.join(), active)
 
-  const toggle = (id) => setPref('vak', chosen.includes(id) ? chosen.filter((f) => f !== id) : VAK_FIELDS.map((f) => f.id).filter((f) => f === id || chosen.includes(f)))
+  const order = vakByDomain().flatMap((d) => d.fields.map((f) => f.id))
+  const toggle = (id) => setPref('vak', chosen.includes(id) ? chosen.filter((f) => f !== id) : order.filter((f) => f === id || chosen.includes(f)))
   const picked = fields.reduce((n, f) => n + f.top.length, 0)
   const seen = fields.reduce((n, f) => n + (f.count || 0), 0)
 
@@ -107,15 +111,21 @@ export default function Vak({ active, digest, status, onRefresh }) {
     <section className="view" hidden={!active} ref={ref} aria-label="Selectie">
       <div className="col">
         <ViewHeader title="Selectie" onRefresh={onRefresh} refreshing={status === 'refreshing' || status === 'loading'} display>
-          <div className="topics">
-            <div className="topics__scroll" role="group" aria-label="Vakgebieden">
-              {VAK_FIELDS.map((f) => (
-                <button key={f.id} type="button" className="chip chip--sm" aria-pressed={chosen.includes(f.id)} onClick={() => toggle(f.id)}>
-                  {f.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          <details className="vakpick" open={!chosen.length}>
+            <summary className="vakpick__sum">{chosen.length ? `Onderwerpen (${chosen.length})` : 'Kies onderwerpen'}</summary>
+            {vakByDomain().map((d) => (
+              <div key={d.id} className="vakpick__group" role="group" aria-label={d.label}>
+                <h3 className="vakpick__domain">{d.label}</h3>
+                <div className="vakpick__chips">
+                  {d.fields.map((f) => (
+                    <button key={f.id} type="button" className="chip chip--sm" aria-pressed={chosen.includes(f.id)} onClick={() => toggle(f.id)}>
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </details>
         </ViewHeader>
 
         {status === 'loading' && !digest ? (
@@ -123,14 +133,14 @@ export default function Vak({ active, digest, status, onRefresh }) {
         ) : status === 'error' && !digest ? (
           <LoadError onRetry={onRefresh} />
         ) : !chosen.length ? (
-          <Empty title="Kies je vakgebieden">Tik hierboven op een of meer vakken. Elke maandag staan hier dan per vak de drie belangrijkste stukken van de week.</Empty>
+          <Empty title="Kies je onderwerpen">Kies hierboven wat je volgt, voor je werk of uit interesse. Elke maandag staan hier dan per onderwerp de drie belangrijkste stukken van de week.</Empty>
         ) : digest ? (
           <>
             {/* Kop: welke week, en wat je te lezen krijgt */}
             <header className="dmast">
               <p className="dmast__week">{digest.preview ? 'Voorproefje · de afgelopen zeven dagen' : `Week ${digest.week} · ${span(digest.from, digest.to)}`}</p>
               <p className="dmast__lede">
-                {picked} stukken in {fields.length === 1 ? '1 vakgebied' : `${fields.length} vakgebieden`}
+                {picked} stukken in {fields.length === 1 ? '1 onderwerp' : `${fields.length} onderwerpen`}
               </p>
               {digest.preview ? <p className="dmast__note">De eerste volle digest komt {WEEKDAY.format(new Date(digest.next))} om 7 uur.</p> : <p className="dmast__note">Elke maandag om 7 uur een nieuwe.</p>}
             </header>
@@ -138,7 +148,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
             {/* Inhoud: per vak de drie koppen; tik = naar het stuk in de digest */}
             <nav className="dtoc" data-n={fields.length} aria-label="In deze digest">
               {fields.map((f) => {
-                const Icon = ICON[f.id]
+                const Icon = iconOf(f)
                 return (
                   <div key={f.id} className="dtoc__field">
                     <button type="button" className="dtoc__head" onClick={() => scrollTo(`d-${f.id}`)}>
@@ -163,7 +173,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
             </nav>
 
             {fields.map((f) => {
-              const Icon = ICON[f.id]
+              const Icon = iconOf(f)
               const [first, ...rest] = f.top
               return (
                 <section key={f.id} className="dfield" id={`d-${f.id}`} aria-labelledby={`dh-${f.id}`}>
@@ -219,7 +229,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
 
             <details className="dhow">
               <summary>Hoe kiest Hoot deze stukken?</summary>
-              <p>Gekozen uit {seen} stukken van vakmensen en vakbladen in de vakgebieden die je volgt, op drie gronden: hoeveel vakbronnen over hetzelfde schreven, of de redactie van Sidebar het uitkoos, en wie het schreef (een vakexpert telt zwaarder dan een vakblad, een bedrijfsblog alleen als anderen erover schrijven).</p>
+              <p>Gekozen uit {seen} stukken van kenners en vakbladen in de onderwerpen die je volgt, op drie gronden: hoeveel bronnen over hetzelfde schreven, of een redactie het uitkoos (zoals Sidebar), en wie het schreef (een kenner telt zwaarder dan een vakblad, een bedrijfsblog alleen als anderen erover schrijven).</p>
               <p>Alleen stukken van mensen: geen gesponsorde stukken, webinars, podcasts of lijstjes. De tekst bij elk stuk is de intro van de schrijver zelf, niet van AI.</p>
             </details>
           </>

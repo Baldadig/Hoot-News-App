@@ -1,6 +1,6 @@
 // De voorraad van de vakbronnen bijwerken en, als er een nieuwe week is, de Vakweek samenstellen.
 import { kvGet, kvSet, readDoc, writeDoc, KEYS } from './kv.mjs'
-import { loadVakItems, mergePool, composeVak, vakWeek, addOgImages } from './vak.mjs'
+import { loadVakItems, mergePool, composeVak, vakWeek, addOgImages, updateHealth, sourcesToLoad } from './vak.mjs'
 import { hash } from '../../shared/util.mjs'
 
 let running = null // binnen één functie-instantie nooit twee keer tegelijk
@@ -9,7 +9,10 @@ let running = null // binnen één functie-instantie nooit twee keer tegelijk
 export function refreshVak({ now = Date.now(), force = false } = {}) {
   running ||= (async () => {
     try {
-      const { items } = await loadVakItems()
+      // Bronnen op pauze (kapot of al lang stil) slaan we over; op maandagochtend proberen we ze opnieuw.
+      const health = (await kvGet(KEYS.vakHealth)) || {}
+      const { items, status } = await loadVakItems(sourcesToLoad(health, now))
+      await kvSet(KEYS.vakHealth, updateHealth(health, status, now))
       const pool = mergePool((await kvGet(KEYS.vakPool)) || [], items, now)
       // Sinds wanneer we verzamelen: tot er een volle week is, elk uur een voorproefje.
       let since = await kvGet(KEYS.vakSince)

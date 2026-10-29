@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { SourceMark } from '../components/Items.jsx'
-import { EditionIcon, SparkleIcon, StreamIcon, INTEREST_ICONS, MegaphoneIcon, CursorIcon, PaletteIcon, CartIcon, MagnifierIcon, TagIcon, CodeIcon, KanbanIcon, RocketIcon } from '../components/icons.jsx'
-import { VAK_FIELDS } from '../../shared/vak.mjs'
+import { EditionIcon, SparkleIcon, StreamIcon, INTEREST_ICONS } from '../components/icons.jsx'
+import { vakByDomain } from '../../shared/vak.mjs'
 import { INTERESTS, topicById, resolveTopics, suggestSources, catLabel, starterGroups } from '../lib/topics.js'
 
 // Onboarding in vijf schermen: uitleg → interesses (breed) → onderwerpen (smal) → bronnen → je vak
 // (voor de Selectie). Alles met tikken; onderaan steeds één knop om door te gaan.
 const STEPS = 5
-const VAK_ICON = { 'paid-social': MegaphoneIcon, ux: CursorIcon, design: PaletteIcon, ai: SparkleIcon, ecommerce: CartIcon, seo: MagnifierIcon, merk: TagIcon, dev: CodeIcon, product: KanbanIcon, ondernemen: RocketIcon }
-
 // Bronnen in de volgorde waarin je ze wilt zien. Regionaal en Vlaams staan ingeklapt;
 // de rubrieken alleen als je die interesse (of dat onderwerp) koos.
 const GROUPS = [
@@ -180,20 +178,21 @@ export default function Welcome({ account, sources, prefs, onDone }) {
         ) : step === 4 ? (
           <>
             <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
-              En je vak?
+              Wat volg je graag?
             </h1>
-            <p className="ob__sub">Eén keer per week bijgepraat over wat jou bezighoudt: elke maandag zet de Selectie per onderwerp de drie beste stukken van de week voor je klaar, geschreven door mensen. Kies wat bij je werk past, of sla het over.</p>
-            <div className="ob__grid">
-              {VAK_FIELDS.map((f) => {
-                const Icon = VAK_ICON[f.id]
-                return (
-                  <button key={f.id} type="button" className="ob__tile" aria-pressed={vak.includes(f.id)} onClick={() => toggle(setVak)(f.id)}>
-                    <span className="ob__ticon">{Icon ? <Icon /> : null}</span>
-                    <span className="ob__tlabel">{f.label}</span>
-                  </button>
-                )
-              })}
-            </div>
+            <p className="ob__sub">Eén keer per week bijgepraat over wat jou bezighoudt: elke maandag zet de Selectie per onderwerp de drie beste stukken van de week voor je klaar, geschreven door mensen. Kies wat bij je werk past of wat je graag volgt, of sla het over.</p>
+            {vakByDomain().map((d) => (
+              <section key={d.id} className="ob__group" aria-label={d.label}>
+                <h2 className="ob__gtitle">{d.label}</h2>
+                <div className="ob__chips">
+                  {d.fields.map((f) => (
+                    <button key={f.id} type="button" className="ob__chip" aria-pressed={vak.includes(f.id)} onClick={() => toggle(setVak)(f.id)}>
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ))}
           </>
         ) : (
           <>

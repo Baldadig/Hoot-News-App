@@ -664,6 +664,33 @@ select {
   gap: var(--s2);
   margin-top: var(--s1);
 }
+/* Onderwerpen van de Selectie: per domein, inklapbaar (open zolang je niets koos) */
+.vakpick {
+  margin-top: var(--s2);
+}
+.vakpick__sum {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  font: 700 var(--t2) / 1 var(--sans);
+  color: var(--accent);
+  cursor: pointer;
+}
+.vakpick__group {
+  margin-top: var(--s3);
+}
+.vakpick__domain {
+  margin-bottom: var(--s2);
+  font: 800 var(--t1) / 1 var(--sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.vakpick__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
 .topics + .status,
 .topics ~ .status {
   margin-top: var(--s1);

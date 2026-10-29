@@ -14,7 +14,7 @@ import { loadSourceWithRetry } from './rss.mjs'
 import { tzOffsetMs, hostname } from './text.mjs'
 import { loadOgImage } from './og.mjs'
 export { ogImageFrom, loadOgImage } from './og.mjs'
-import { VAK_FIELDS, VAK_FIELD_IDS } from '../../shared/vak.mjs'
+import { VAK_FIELDS, VAK_FIELD_IDS, VAK_DOMAINS } from '../../shared/vak.mjs'
 
 const V = (id, name, kind, fields, url, more = {}) => ({ id: 'vak:' + id, name, kind, fields, urls: [url], cat: 'vak', ...more })
 
@@ -130,7 +130,7 @@ export const VAK_SOURCES = [
   V('sidebar', 'Sidebar', 'curator', ['ux', 'design'], 'https://sidebar.io/feed.xml', { about: 'De redactie kiest elke werkdag vijf designlinks' }),
 ]
 
-export { VAK_FIELDS, VAK_FIELD_IDS }
+export { VAK_FIELDS, VAK_FIELD_IDS, VAK_DOMAINS }
 
 // Past een stuk bij het vakgebied? Alleen nodig voor bronnen die breder schrijven (`filter`).
 const FITS = {
@@ -229,7 +229,7 @@ const prettyHost = (u) => hostname(u).replace(/^www\./, '')
 export function fieldOf(it, src) {
   for (const f of src.fields) {
     if (src.fields.length > 1 || src.filter) {
-      if (FITS[f].test(`${it.title} ${it.summary || ''}`)) return f
+      if (FITS[f]?.test(`${it.title} ${it.summary || ''}`)) return f
     } else return f
   }
   return null
@@ -258,7 +258,9 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
 
   const df = new Map()
   for (const it of inWeek) for (const w of words(textOf(it))) df.set(w, (df.get(w) || 0) + 1)
-  const fields = VAK_FIELDS.map((f) => {
+  // Alleen onderwerpen met bronnen (een nieuw onderwerp zonder bronnen staat nog niet in de keuze).
+  const covered = new Set(sources.flatMap((s) => s.fields))
+  const fields = VAK_FIELDS.filter((f) => covered.has(f.id)).map((f) => {
     const its = inWeek.filter((i) => fieldOf(i, byId.get(i.source)) === f.id)
     // Groepen: stukken over hetzelfde, uit verschillende bronnen.
     const groups = []
@@ -359,7 +361,54 @@ export async function addOgImages(pool, { max = 24, first = new Set(), load = lo
 const KEEP_DAYS = 16
 export async function loadVakItems(sources = VAK_SOURCES) {
   const results = await Promise.all(sources.map((s) => loadSourceWithRetry(s, Promise.resolve({}))))
-  return { items: results.flatMap((r) => r.items), status: results.map((r) => ({ id: r.id, ok: r.ok, count: r.count })) }
+  const newest = (r) => r.items.reduce((m, i) => (i.publishedAt && i.publishedAt > m ? i.publishedAt : m), '') || null
+  // Alleen wat bij een onderwerp past en om te lezen is: brede bronnen (een krant, een
+  // rubrieksfeed) leveren veel meer dan we bewaren willen.
+  const byId = new Map(sources.map((s) => [s.id, s]))
+  const keep = (i) => byId.has(i.source) && isReading(i) && fieldOf(i, byId.get(i.source))
+  return { items: results.flatMap((r) => r.items).filter(keep), status: results.map((r) => ({ id: r.id, ok: r.ok, count: r.count, newest: newest(r) })) }
+}
+
+// ---- Gezondheid: elke week nagelopen ----
+// Een bron die een week lang niet laadt, of al twee maanden niets nieuws plaatst, gaat op pauze:
+// dan halen we hem niet meer elk uur op. Op maandagochtend (vóór de nieuwe Selectie) proberen we
+// alle bronnen opnieuw, ook die op pauze: wie weer werkt, doet weer mee.
+const BROKEN_DAYS = 7
+const SILENT_DAYS = 60
+export function updateHealth(health = {}, status = [], now = Date.now()) {
+  const at = new Date(now).toISOString()
+  const out = { ...health }
+  for (const r of status) {
+    const h = { ...(out[r.id] || { since: at }) }
+    if (r.ok) h.lastOk = at
+    else h.lastFail = at
+    if (r.newest && (!h.newest || r.newest > h.newest)) h.newest = r.newest
+    out[r.id] = h
+  }
+  return out
+}
+export function healthOf(h, now = Date.now()) {
+  if (!h) return 'nieuw'
+  const days = (iso) => (iso ? (now - Date.parse(iso)) / 864e5 : Infinity)
+  if (days(h.lastOk) > BROKEN_DAYS && days(h.since) > BROKEN_DAYS) return 'kapot'
+  if (days(h.newest) > SILENT_DAYS && days(h.since) > BROKEN_DAYS) return 'stil'
+  return 'ok'
+}
+// Welke bronnen we deze ronde ophalen: alles op maandag tussen 05:00 en 07:00 (Amsterdam), en
+// anders alleen wat niet op pauze staat.
+export function sourcesToLoad(health = {}, now = Date.now(), sources = VAK_SOURCES) {
+  const p = Object.fromEntries(AMS.formatToParts(new Date(now)).map((x) => [x.type, x.value]))
+  if (p.weekday === 'Mon' && Number(p.hour) >= 5 && Number(p.hour) < 7) return sources
+  return sources.filter((s) => ['ok', 'nieuw'].includes(healthOf(health[s.id], now)))
+}
+// Het weekoverzicht: per onderwerp hoeveel bronnen gezond zijn, en welke op pauze staan.
+export function healthReport(health = {}, now = Date.now(), sources = VAK_SOURCES) {
+  const rows = sources.map((s) => ({ id: s.id, name: s.name, fields: s.fields, url: s.urls[0], state: healthOf(health[s.id], now), lastOk: health[s.id]?.lastOk || null, newest: health[s.id]?.newest || null }))
+  const fields = VAK_FIELDS.map((f) => {
+    const mine = rows.filter((r) => r.fields.includes(f.id))
+    return { id: f.id, label: f.label, sources: mine.length, healthy: mine.filter((r) => r.state === 'ok').length }
+  }).filter((f) => f.sources)
+  return { at: new Date(now).toISOString(), fields, paused: rows.filter((r) => r.state === 'kapot' || r.state === 'stil') }
 }
 
 // Nieuwe stukken bij de voorraad; wat ouder is dan 16 dagen valt eruit.
