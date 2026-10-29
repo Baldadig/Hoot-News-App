@@ -57,14 +57,16 @@ export default function Privacy({ onBack, backLabel }) {
         <p>
           De app werkt zonder account en gebruikt geen analytics, advertenties of tracking. Zonder account blijven je instellingen, wat je bewaarde en wat je las op je iPhone of iPad;
           log je in, dan gaan ze mee met je account (zie hierboven). Ook wat Hoot leert van
-          wat je leest (welke onderwerpen en bronnen je vaak opent) blijft op je toestel.
+          wat je leest (welke onderwerpen en bronnen je vaak opent) blijft op je toestel. Wat je zelf aangeeft met "meer
+          hiervan" of "minder hiervan" bij een verhaal is een instelling: met een account gaat die mee, en je wist hem
+          in Instellingen bij Wat Hoot van je leerde.
         </p>
         <ul>
           <li>
             <strong>Het nieuws</strong> haalt de app op bij hootnews.nl, net als de website.
           </li>
           <li>
-            <strong>Je eigen Editie:</strong> om die samen te stellen stuurt de app je bronnen, interesses, voorkeursbronnen en die leesvoorkeuren (zonder je naam, zonder een vast kenmerk van je
+            <strong>Je eigen Editie:</strong> om die samen te stellen stuurt de app je bronnen, interesses, voorkeursbronnen, meer en minder hiervan en die leesvoorkeuren (zonder je naam, zonder een vast kenmerk van je
             toestel) naar hootnews.nl. De server stelt je Editie samen, stuurt hem terug en bewaart niets van wat je stuurde.
           </li>
           <li>

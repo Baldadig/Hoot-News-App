@@ -5,6 +5,8 @@ import { Switch } from './Sources.jsx'
 import { AccountSettings } from '../components/Account.jsx'
 import { PLACES, NO_WEATHER } from '../lib/weather.js'
 import { VAK_FIELD_IDS } from '../../shared/vak.mjs'
+import { tasteSummary, emptyTaste } from '../lib/affinity.js'
+import { topicById } from '../lib/topics.js'
 
 // Alle instellingen op één plek. Wat je al lezend wisselt staat bovenaan (zelfde rijen als
 // het Weergave-paneel); daaronder wat je één keer instelt.
@@ -73,6 +75,7 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
           </span>
           <span aria-hidden="true">›</span>
         </a>
+        <Learned taste={prefs.taste} onClear={() => setPref('taste', emptyTaste())} />
         <a className="setrow setrow--link" href="#/bronnen">
           <span className="setrow__text">
             <span className="setrow__label">Bronnen</span>
@@ -90,5 +93,28 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
         </p>
       </div>
     </section>
+  )
+}
+
+// Wat je zelf aangaf met "meer of minder hiervan" bij een verhaal in de Editie (gaat mee met je
+// account), met de weg terug. Zonder keuzes: niets tonen.
+function Learned({ taste, onClear }) {
+  const { more, less } = tasteSummary(taste)
+  if (!more.length && !less.length) return null
+  const names = (ids) => ids.slice(0, 6).map((id) => topicById(id)?.label || id).join(', ')
+  return (
+    <div className="setrow">
+      <span className="setrow__text">
+        <span className="setrow__label">Wat Hoot van je leerde</span>
+        <span className="setrow__hint">
+          {more.length ? <>Meer: {names(more)}. </> : null}
+          {less.length ? <>Minder: {names(less)}. </> : null}
+          Dit geef je aan bij een verhaal in de Editie (⋯), en het gaat mee met je account.
+        </span>
+      </span>
+      <button type="button" className="btn btn--quiet" onClick={onClear}>
+        Wissen
+      </button>
+    </div>
   )
 }

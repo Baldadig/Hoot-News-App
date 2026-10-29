@@ -31,3 +31,27 @@ test('oudere smaak vervaagt', () => {
   for (let i = 0; i < 60; i++) a = learn(a, ai)
   assert.ok((a.topics.voetbal || 0) < 0.5)
 })
+
+// ---- Meer of minder hiervan ----
+import { vote, tasteScore, tasteSummary, TASTE_MAX, TASTE_CAP, emptyTaste } from '../src/lib/affinity.js'
+
+test('meer of minder: vooral op het onderwerp, een beetje op de bron, begrensd', () => {
+  const story = [{ source: 'nos', topics: ['voetbal', 'ajax'] }, { source: 'vi', topics: ['voetbal'] }]
+  let t = vote(emptyTaste(), story, -1)
+  assert.equal(t.topics.voetbal, -4)
+  assert.equal(t.topics.ajax, -4)
+  assert.equal(t.sources.nos, -1)
+  assert.equal(t.sources.vi, undefined, 'alleen de bron van het hoofdbericht')
+  for (let i = 0; i < 5; i++) t = vote(t, story, -1)
+  assert.equal(t.topics.voetbal, -TASTE_CAP)
+  assert.equal(tasteScore(story, t), -TASTE_MAX, 'hooguit TASTE_MAX eraf: groot nieuws blijft staan')
+  t = vote(t, story, 1)
+  assert.ok(t.topics.voetbal > -TASTE_CAP)
+  assert.equal(tasteScore([{ source: 'nrc', topics: ['klimaat'] }], t), 0, 'ander onderwerp: niets')
+  assert.deepEqual(tasteSummary(vote(emptyTaste(), [{ source: 'x', topics: ['ai'] }], 1)), { more: ['ai'], less: [] })
+})
+
+test('meer of minder: Bluesky-posts tellen niet, lege smaak is neutraal', () => {
+  assert.deepEqual(vote(null, [{ kind: 'post', source: 'bsky', topics: ['ai'] }], 1), { topics: {}, sources: {} })
+  assert.equal(tasteScore([{ source: 'nos', topics: ['ai'] }], null), 0)
+})
