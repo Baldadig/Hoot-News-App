@@ -15,12 +15,13 @@ import { tzOffsetMs, hostname } from './text.mjs'
 import { loadOgImage } from './og.mjs'
 export { ogImageFrom, loadOgImage } from './og.mjs'
 import { VAK_FIELDS, VAK_FIELD_IDS, VAK_DOMAINS } from '../../shared/vak.mjs'
+import { MORE_SOURCES, EXTEND, MORE_FITS } from './vakBronnen.mjs'
 
 const V = (id, name, kind, fields, url, more = {}) => ({ id: 'vak:' + id, name, kind, fields, urls: [url], cat: 'vak', ...more })
 
 // kind: expert (vakmens met naam) · vakblad · curator (mensen kiezen links) · community · officieel
 // `filter`: de bron schrijft ook over andere dingen; alleen wat bij het vakgebied past telt mee.
-export const VAK_SOURCES = [
+const BASE_SOURCES = [
   // Paid social
   V('jonloomer', 'Jon Loomer', 'expert', ['paid-social'], 'https://www.jonloomer.com/feed/', { about: 'Specialist in Meta-advertenties' }),
   V('socialmediatoday', 'Social Media Today', 'vakblad', ['paid-social'], 'https://www.socialmediatoday.com/feeds/news/', { filter: true }),
@@ -130,10 +131,20 @@ export const VAK_SOURCES = [
   V('sidebar', 'Sidebar', 'curator', ['ux', 'design'], 'https://sidebar.io/feed.xml', { about: 'De redactie kiest elke werkdag vijf designlinks' }),
 ]
 
+// De eerste tien onderwerpen hierboven, de andere uit vakBronnen.mjs; een bestaande bron kan daar
+// een onderwerp bij krijgen (achteraan, zodat zijn eigen onderwerp voorgaat).
+export const VAK_SOURCES = [
+  ...BASE_SOURCES.map((s) => {
+    const more = EXTEND.filter(([id]) => id === s.id).map(([, f]) => f)
+    return more.length ? { ...s, fields: [...new Set([...s.fields, ...more])] } : s
+  }),
+  ...MORE_SOURCES,
+]
+
 export { VAK_FIELDS, VAK_FIELD_IDS, VAK_DOMAINS }
 
 // Past een stuk bij het vakgebied? Alleen nodig voor bronnen die breder schrijven (`filter`).
-const FITS = {
+const BASE_FITS = {
   // Een sociaal platform én iets met adverteren of marketing (een stuk over een nep-WhatsApp is
   // geen paid social); zoekmachine-adverteren (Google Ads) hoort er niet bij.
   'paid-social': {
@@ -166,9 +177,12 @@ const FITS = {
   // algemene AI-, startup- of loopbaanstukken niet.
   product: /\b(products?|product-?led|product(manag\w*|eigenaars?|owners?|strateg\w*|teams?|ontwikkeling|visie)|plg|pms?|cpos?|chief product officers?|discovery|roadmaps?|okrs?|outcomes?|north star|jobs[- ]to[- ]be[- ]done|jtbd|prioriti[sz]\w*|prioriter\w*|backlogs?|user stories|acceptance criteria|stakeholders?|experiment\w*|a\/b[- ]?tests?|feature (flags?|factor(y|ies)|requests?)|activation|retention|onboarding|churn|growth (teams?|loops?|models?)|viral loops?|network effects?|go-to-market|gtm|pricing|packaging|monetization|user research|customer (research|interviews?|feedback|discovery)|klantonderzoek|prototyp\w*|mvps?|metrics)\b/i,
 }
+// De nieuwe onderwerpen krijgen hun regel uit vakBronnen.mjs; van de eerste tien blijft de eigen
+// regel staan, behalve Online adverteren (nu ook zoekadvertenties).
+const FITS = { ...Object.fromEntries(Object.entries(MORE_FITS).filter(([k]) => !(k in BASE_FITS))), ...BASE_FITS, ...(MORE_FITS['paid-social'] ? { 'paid-social': MORE_FITS['paid-social'] } : {}) }
 
 // Geen mensenwerk om te lezen (of geen artikel): reclame, aankondigingen, audio, vacatures, lijstjes.
-const NOT_READING = /\b(sponsored|partner content|advertorial|presented by|webinars?|podcast|episode|register now|sign up now|giveaway|deals?|discount|coupon|vacatures?|we'?re hiring|job (opening|listing)s?|this week in|weekly (round-?up|recap)|industry news|newsletter)\b/i
+const NOT_READING = /\b(sponsored|partner content|advertorial|presented by|webinars?|podcast|episode|aflevering \d+|register now|sign up now|giveaway|deals?|discount|coupon|vacatures?|we'?re hiring|job (opening|listing)s?|this week in|weekly (round-?up|recap)|industry news|(our|the|weekly|daily) newsletter|^newsletter)\b/i
 const LISTICLE = /^\s*(the\s+)?\d+\s+([\w-]+\s+){0,3}(tools?|templates?|examples?|plugins?|fonts?|apps?|ways|tips|tricks|resources|mockups?|icons?)\b/i
 export const cleanTitle = (t = '') => t.replace(/\s+via\s+@\w+(,\s*@\w+)*\s*$/i, '').trim()
 // Verzamelingen: dagelijkse overzichten ("[AINews] …") en genummerde linklijstjes ("… (#25)").
@@ -366,7 +380,8 @@ export async function loadVakItems(sources = VAK_SOURCES) {
   // rubrieksfeed) leveren veel meer dan we bewaren willen.
   const byId = new Map(sources.map((s) => [s.id, s]))
   const keep = (i) => byId.has(i.source) && isReading(i) && fieldOf(i, byId.get(i.source))
-  return { items: results.flatMap((r) => r.items).filter(keep), status: results.map((r) => ({ id: r.id, ok: r.ok, count: r.count, newest: newest(r) })) }
+  const slim = ({ text, cats, ...it }) => it // de artikeltekst en rubrieken hebben we hier niet nodig
+  return { items: results.flatMap((r) => r.items).filter(keep).map(slim), status: results.map((r) => ({ id: r.id, ok: r.ok, count: r.count, newest: newest(r) })) }
 }
 
 // ---- Gezondheid: elke week nagelopen ----
@@ -411,10 +426,15 @@ export function healthReport(health = {}, now = Date.now(), sources = VAK_SOURCE
   return { at: new Date(now).toISOString(), fields, paused: rows.filter((r) => r.state === 'kapot' || r.state === 'stil') }
 }
 
-// Nieuwe stukken bij de voorraad; wat ouder is dan 16 dagen valt eruit.
+// Nieuwe stukken bij de voorraad; wat ouder is dan 16 dagen valt eruit. Per bron hooguit de
+// nieuwste 60: een rubrieksfeed van een krant (sport, cultuur) levert er per dag tientallen, en
+// voor de drie beste van de week is dat ruim genoeg.
+const PER_SOURCE = 60
 export function mergePool(pool, fresh, now = Date.now()) {
   const cutoff = new Date(now - KEEP_DAYS * 864e5).toISOString()
   const byId = new Map(pool.map((i) => [i.id, i]))
   for (const it of fresh) if (!byId.has(it.id)) byId.set(it.id, it)
-  return [...byId.values()].filter((i) => i.publishedAt && i.publishedAt >= cutoff)
+  const kept = [...byId.values()].filter((i) => i.publishedAt && i.publishedAt >= cutoff).sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1))
+  const count = {}
+  return kept.filter((i) => (count[i.source] = (count[i.source] || 0) + 1) <= PER_SOURCE)
 }
