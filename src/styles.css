@@ -306,10 +306,123 @@ select {
   display: none !important;
 }
 
+/* Focus: één stelsel, altijd inkt. De ring volgt de vorm van het element zelf; focus zet geen
+   hoek. Uitzonderingen met de ring binnen het raakvlak (offset −2, tegen een schermrand of een
+   buurman): de rubrieken, de bronnenstapel en de bronknop in de Stroom (zie "Stroom: de lijn"),
+   en de schakelaar, waar de ring om de baan ligt (zie Schakelaar). */
 :focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: var(--radius-sm);
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+/* --focus wordt op :root opgelost. Op een vlak waar inkt geen contrast heeft, neemt de ring de
+   tekstkleur van dat vlak: merkrood (einde van de editie, Welkom) en de band van Inkt. */
+:is(.endcap, .ob--open) :focus-visible {
+  outline-color: var(--on-brand-red);
+}
+[data-palette='inkt'] .edtop :focus-visible {
+  outline-color: var(--band-ink);
+}
+
+/* Interactielaag: één hover- en druklaag voor alle bediening, op één plek. Een vlak in de
+   tekstkleur (--state-hover 8 %, --state-press 14 %), dus het werkt op papier, op de band en in
+   donker. Niet voor .btn: die heeft al een vlak (zie .btn). Klassen die nog niet bestaan, staan
+   er alvast in. :where houdt de laag op specificiteit (0,2,0): een gekozen staat verderop
+   (.seg__btn[aria-pressed], .nav__link[aria-current]) wint dus vanzelf. */
+:where(
+    .btn--quiet,
+    .pill:not([aria-pressed='true']),
+    .iconbtn,
+    .linkbtn,
+    .linkbtn--plain,
+    .morebtn,
+    .nav__link:not([aria-current]),
+    .seg__btn:not([aria-pressed='true']),
+    .backbtn,
+    .disclosure > summary,
+    .setrow--link,
+    .briefcta,
+    .sidx__btn:not([aria-current]),
+    .srcgroup > summary
+  ) {
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease);
+}
+/* Tekstknoppen hebben geen eigen vorm: de laag krijgt de hoek van bediening. Klikbare rijen
+   (vanaf .disclosure in de lijst) houden hun rechte vorm: het vlak vult de rij tussen de lijnen. */
+:where(.linkbtn, .linkbtn--plain, .morebtn, .backbtn) {
+  border-radius: var(--radius-control);
+}
+/* Alleen met een muis: op een aanraakscherm blijft :hover na een tik hangen. */
+@media (hover: hover) {
+  :where(
+      .btn--quiet,
+      .pill:not([aria-pressed='true']),
+      .iconbtn,
+      .linkbtn,
+      .linkbtn--plain,
+      .morebtn,
+      .nav__link:not([aria-current]),
+      .seg__btn:not([aria-pressed='true']),
+      .backbtn,
+      .disclosure > summary,
+      .setrow--link,
+      .briefcta,
+      .sidx__btn:not([aria-current]),
+      .srcgroup > summary
+    ):hover:not(:disabled, [aria-disabled='true']) {
+    background-color: var(--state-hover);
+  }
+}
+/* Ingedrukt: ook bij tikken zichtbaar (bedoeld). Staat na hover, dus wint bij gelijke specificiteit. */
+:where(
+    .btn--quiet,
+    .pill:not([aria-pressed='true']),
+    .iconbtn,
+    .linkbtn,
+    .linkbtn--plain,
+    .morebtn,
+    .nav__link:not([aria-current]),
+    .seg__btn:not([aria-pressed='true']),
+    .backbtn,
+    .disclosure > summary,
+    .setrow--link,
+    .briefcta,
+    .sidx__btn:not([aria-current]),
+    .srcgroup > summary
+  ):active:not(:disabled, [aria-disabled='true']) {
+  background-color: var(--state-press);
+}
+
+/* Uitgeschakeld: één regel voor alle bediening; de laag hierboven slaat hem over. */
+:is(button, a, [role='button'], input, select):disabled,
+[aria-disabled='true'] {
+  opacity: var(--opacity-disabled);
+  cursor: default;
+}
+
+/* Raakvlak: kleine bediening (36) krijgt een onzichtbaar vlak van 44 eromheen. */
+.hit {
+  position: relative;
+}
+.hit::before {
+  content: '';
+  position: absolute;
+  inset: calc((var(--control-sm) - var(--tap)) / 2);
+}
+
+/* Lijst op papier: een haarlijn tússen de rijen; de buitenlijnen zijn van het omhulsel. */
+.rows > * + * {
+  border-top: 1px solid var(--rule);
+}
+
+/* Tekst afkappen op --lines regels (standaard 2). */
+.clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--lines, 2);
+  line-clamp: var(--lines, 2);
+  overflow: hidden;
 }
 
 .visually-hidden {
@@ -957,6 +1070,14 @@ select {
 }
 .switch[aria-checked='true'] .switch__thumb {
   transform: translateX(20px);
+}
+/* Focus om de baan, niet om het raakvlak van 60 × 44: zo volgt de ring de vorm die je ziet. */
+.switch:focus-visible {
+  outline: none;
+}
+.switch:focus-visible .switch__track {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
 }
 
 /* ---------- Gedeelde onderdelen van een bericht ---------- */
@@ -3842,10 +3963,11 @@ html[data-images='hoofd'] .media--social {
     color: var(--ink);
   }
 }
+/* Focus binnen het raakvlak (de lijn loopt tot de schermrand); de hoek is die van bediening. */
 .rub__btn:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: -2px;
-  border-radius: var(--radius-sm);
+  outline: var(--focus-ring);
+  outline-offset: calc(-1 * var(--focus-offset));
+  border-radius: var(--radius-control);
 }
 /* kolomlijn tussen wat je leest (Alles, Buiten je bubbel) en de rubrieken */
 .rub__sep {
@@ -3994,11 +4116,11 @@ html[data-images='hoofd'] .media--social {
   box-shadow: inset 0 0 0 2px var(--accent);
 }
 .sb:focus-visible .sb__ring {
-  box-shadow: inset 0 0 0 2px var(--ink);
+  box-shadow: inset 0 0 0 2px var(--focus);
 }
 .line.is-open .sb[aria-pressed='true']:focus-visible .sb__ring {
   box-shadow:
-    inset 0 0 0 2px var(--ink),
+    inset 0 0 0 2px var(--focus),
     inset 0 0 0 4px var(--accent);
 }
 .sb__all {
@@ -4092,9 +4214,8 @@ html[data-images='hoofd'] .media--social {
   pointer-events: auto;
 }
 .src__toggle:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: -2px;
-  border-radius: var(--radius-pill);
+  outline: var(--focus-ring);
+  outline-offset: calc(-1 * var(--focus-offset));
 }
 .line.is-open .src__toggle {
   visibility: hidden;
