@@ -22,6 +22,7 @@ export const DEFAULT_PREFS = {
   bskyInStream: [], // Bluesky-accounts die óók in de Stroom staan (standaard alleen in Bluesky)
   weatherPlace: 'haarlem', // plaats voor het weer in de Editie (src/lib/weather.js), of 'geen'
   followStories: [], // verhalen die je volgt: [{ id, title, at }] (src/lib/follow.js)
+  taste: { topics: {}, sources: {} }, // meer of minder hiervan (src/lib/affinity.js); gaat mee met je account
 }
 
 export function normalizePrefs(raw) {
@@ -43,6 +44,9 @@ export function normalizePrefs(raw) {
   if (!Array.isArray(out.topics)) out.topics = []
   if (typeof out.weatherPlace !== 'string') out.weatherPlace = 'haarlem'
   if (!Array.isArray(out.followStories)) out.followStories = []
+  // Meer of minder hiervan: per onderwerp en bron een getal, ook negatief.
+  const signed = (o) => Object.fromEntries(Object.entries(o && typeof o === 'object' ? o : {}).filter(([, v]) => Number.isFinite(v)))
+  out.taste = { topics: signed(out.taste?.topics), sources: signed(out.taste?.sources) }
   out.vak = Array.isArray(out.vak) ? out.vak.filter((f) => VAK_FIELD_IDS.includes(f)) : []
   // Bluesky-accounts die je zelf toevoegde ({ handle, name, avatar }); gaan mee met je account.
   out.social = Array.isArray(out.social) ? out.social.filter((a) => a && typeof a.handle === 'string') : []

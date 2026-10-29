@@ -102,7 +102,6 @@ export const SOURCES = [
   // Cultuur en muziek. Muziek: in de Stroom (onderwerp Muziek), niet in de Editie.
   S('nos-cultuur', 'NOS Cultuur & Media', 'cultuur', 'nl', 'Cultuur en media van de NOS.', 'https://feeds.nos.nl/nosnieuwscultuurenmedia', { pick: true, for: ['cultuur'], color: '#B5121B' }),
   S('3voor12', '3voor12', 'cultuur', 'nl', 'Muziek van de VPRO: nieuws, recensies, live.', 'https://3voor12.vpro.nl/rss.xml', { pick: true, forTopic: 'muziek', base: true, music: true, bsky: '3voor12.bsky.social', color: '#E5007E' }),
-  S('oor', 'OOR', 'cultuur', 'nl', 'Popmuziek sinds 1971.', 'https://oor.nl/feed/', { login: 'https://oor.nl/inloggen/', pick: true, forTopic: 'muziek', base: true, music: true, color: '#111111' }),
   S('pitchfork', 'Pitchfork', 'cultuur', 'en', 'Muziekrecensies en nieuws.', 'https://pitchfork.com/feed/feed-news/rss', { music: true, color: '#1A1A1A' }),
   S('rollingstone', 'Rolling Stone', 'cultuur', 'en', 'Muziek, film en popcultuur.', 'https://www.rollingstone.com/feed/', { login: 'https://www.rollingstone.com/', music: true, color: '#D32531' }),
   S('guardian-music', 'The Guardian Muziek', 'cultuur', 'en', 'Muzieknieuws en recensies.', 'https://www.theguardian.com/music/rss', { login: 'https://profile.theguardian.com/signin', music: true, x: 'guardianmusic', color: '#052962' }),

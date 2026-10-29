@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
-import { LeadStory, CompactItem, SaveButton, SourceMark, useHoot, linkOf } from '../components/Items.jsx'
+import { LeadStory, CompactItem, SaveButton, SourceMark, TasteButton, useHoot, linkOf, itemsOfEntry, aboutOf } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
 import { SparkleIcon } from '../components/icons.jsx'
 import { BriefReader } from '../components/BriefReader.jsx'
@@ -24,7 +24,7 @@ const FRONT = 6 // voorpagina: hoofdverhaal, drie ernaast en twee eronder
 // Klein verhaal op de voorpagina. Bron en tijd hebben een eigen regel (breekt af in plaats van
 // af te kappen); vergelijken en bewaren staan apart eronder. De samenvatting staat er altijd,
 // hooguit twee regels (ook bij een lange kop: die vertelt zelden wat er gebeurde).
-function FrontItem({ item, story, note }) {
+function FrontItem({ item, story, note, taste }) {
   const { markRead, read, openSource, openStory, newInStory, sourcesById } = useHoot()
   const paid = sourcesById?.get(item.source)?.paid
   const others = story ? story.sourceCount - 1 : 0
@@ -67,15 +67,34 @@ function FrontItem({ item, story, note }) {
         ) : (
           <span />
         )}
-        {story ? <SaveButton id={story.id} kind="story" payload={story} label="verhaal" /> : <SaveButton id={item.id} payload={item} />}
+        <span className="fitem__btns">
+          <TasteButton entryKey={taste} item={item} story={story} />
+          {story ? <SaveButton id={story.id} kind="story" payload={story} label="verhaal" /> : <SaveButton id={item.id} payload={item} />}
+        </span>
       </div>
     </article>
   )
 }
+
+// Een verhaal waar je "minder hiervan" op zei: ingeklapt tot één regel, met de weg terug.
+function LessNote({ entryKey, item, story }) {
+  const { undoLess, itemsById } = useHoot()
+  const items = itemsOfEntry(item, story, itemsById)
+  return (
+    <p className="lessnote" role="status">
+      <span>Je ziet minder over {aboutOf(items)}.</span>
+      <button type="button" className="lessnote__undo" onClick={() => undoLess(entryKey, items)}>
+        Ongedaan maken
+      </button>
+    </p>
+  )
+}
+// Elke plek: het verhaal zelf, of ingeklapt als je er minder van wilde.
+const Slot = ({ less, row, children }) => (less.includes(row.key) ? <LessNote entryKey={row.key} item={row.item} story={row.story} /> : children)
 const SLOT = { ochtend: 'Ochtendeditie', middag: 'Middageditie', avond: 'Avondeditie' }
 
 export default function Edition({ active, edition, bubble = [], brief = null, briefForMembers = false, onJoin, loading, failedLoad, statusProps, onRefresh, refreshing }) {
-  const { itemsById, storiesById, muted, followStories, newInStory, openStory } = useHoot()
+  const { itemsById, storiesById, muted, followStories, newInStory, openStory, less } = useHoot()
   const following = followedNow(followStories, storiesById, newInStory)
   const ref = useRef(null)
 
@@ -192,11 +211,15 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             {/* Voorpagina: het hoofdverhaal groot, daarnaast drie kleinere — altijd in krant-vorm.
                 Op smal scherm (of met het vergelijkpaneel open) staan ze onder elkaar. */}
             <div className="front">
-              <LeadStory item={rows[0].item} story={rows[0].story} note={rows[0].note} priority={active} />
+              <Slot less={less} row={rows[0]}>
+                <LeadStory item={rows[0].item} story={rows[0].story} note={rows[0].note} priority={active} taste={rows[0].key} />
+              </Slot>
               {rows.length > 1 ? (
                 <div className="front__side">
-                  {rows.slice(1, 4).map(({ key, item, story, note }) => (
-                    <FrontItem key={key} item={item} story={story} note={note} />
+                  {rows.slice(1, 4).map((r) => (
+                    <Slot key={r.key} less={less} row={r}>
+                      <FrontItem item={r.item} story={r.story} note={r.note} taste={r.key} />
+                    </Slot>
                   ))}
                 </div>
               ) : null}
@@ -204,8 +227,10 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                   hoogte van de kolom ernaast (geen gat onder het hoofdverhaal). */}
               {rows.length > 4 ? (
                 <div className="front__under">
-                  {rows.slice(4, FRONT).map(({ key, item, story, note }) => (
-                    <FrontItem key={key} item={item} story={story} note={note} />
+                  {rows.slice(4, FRONT).map((r) => (
+                    <Slot key={r.key} less={less} row={r}>
+                      <FrontItem item={r.item} story={r.story} note={r.note} taste={r.key} />
+                    </Slot>
                   ))}
                 </div>
               ) : null}
@@ -214,8 +239,10 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               <div className="front__rest">
                 <h2 className="front__more">Verder in deze Editie</h2>
                 <div className="list">
-                  {rows.slice(FRONT).map(({ key, item, story, note }) => (
-                    <CompactItem key={key} item={item} story={story} note={note} />
+                  {rows.slice(FRONT).map((r) => (
+                    <Slot key={r.key} less={less} row={r}>
+                      <CompactItem item={r.item} story={r.story} note={r.note} taste={r.key} />
+                    </Slot>
                   ))}
                 </div>
               </div>

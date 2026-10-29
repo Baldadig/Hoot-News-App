@@ -1,6 +1,7 @@
-import { createContext, useContext } from 'react'
+import { createContext, useContext, useState } from 'react'
 import { timeAgo, readTime } from '../lib/time.js'
-import { BookmarkIcon, PlayIcon } from './icons.jsx'
+import { BookmarkIcon, PlayIcon, MoreIcon } from './icons.jsx'
+import { topicById } from '../lib/topics.js'
 import { savedKey } from '../lib/saved.js'
 import { avatarUrl, fitsLarge, fitsHero } from '../lib/img.js'
 import { TermHelp } from './Terms.jsx'
@@ -66,7 +67,7 @@ function Kicker({ item, extra }) {
 }
 
 // Meta-regel: drie gescheiden klikgebieden — bron bekijken · meer bronnen · bewaren.
-export function Meta({ item, story, showSave = true }) {
+export function Meta({ item, story, showSave = true, taste = null }) {
   const { openSource, openStory, newInStory, sourcesById } = useHoot()
   const paid = sourcesById?.get(item.source)?.paid
   const fresh = story ? newInStory(story) : 0
@@ -91,9 +92,46 @@ export function Meta({ item, story, showSave = true }) {
           <span className="morebtn__short">+{others} {others === 1 ? 'bron' : 'bronnen'}</span>
         </button>
       ) : null}
+      {taste ? <TasteButton entryKey={taste} item={item} story={story} /> : null}
       {showSave ? story ? <SaveButton id={story.id} kind="story" payload={story} label="verhaal" /> : <SaveButton id={item.id} payload={item} /> : null}
     </div>
   )
+}
+
+// De berichten van een plek in de Editie (het verhaal, of het losse bericht).
+export const itemsOfEntry = (item, story, itemsById) => (story ? [item, ...(story.itemIds || []).filter((id) => id !== item.id).map((id) => itemsById?.get(id)).filter(Boolean)] : [item])
+
+// Meer of minder hiervan (src/lib/affinity.js). Rustig: één knop die twee keuzes opent.
+export function TasteButton({ entryKey, item, story }) {
+  const { voteOn, itemsById } = useHoot()
+  const [open, setOpen] = useState(false)
+  const [said, setSaid] = useState(null)
+  const items = itemsOfEntry(item, story, itemsById)
+  const pick = (dir) => {
+    voteOn(entryKey, items, dir)
+    setOpen(false)
+    if (dir > 0) setSaid(`Je ziet meer over ${aboutOf(items)}`)
+  }
+  if (said) return <span className="taste__said" role="status">{said}</span>
+  return open ? (
+    <span className="taste" role="group" aria-label="Meer of minder hiervan">
+      <button type="button" className="taste__btn" onClick={() => pick(1)}>
+        Meer hiervan
+      </button>
+      <button type="button" className="taste__btn" onClick={() => pick(-1)}>
+        Minder hiervan
+      </button>
+    </span>
+  ) : (
+    <button type="button" className="iconbtn" onClick={() => setOpen(true)} aria-label="Meer of minder hiervan" title="Meer of minder hiervan">
+      <MoreIcon />
+    </button>
+  )
+}
+// "voetbal en Ajax", of de bron als er geen onderwerp is.
+export function aboutOf(items) {
+  const names = [...new Set(items.flatMap((i) => i.topics || []))].map((t) => topicById(t)?.label?.toLowerCase()).filter(Boolean).slice(0, 2)
+  return names.length ? names.join(' en ') : `dit soort verhalen`
 }
 
 const Summary = ({ item, className }) =>
@@ -106,7 +144,7 @@ const Summary = ({ item, className }) =>
 
 // ---- Vorm 1: hoofdverhaal ----
 // `priority`: dit is het eerste beeld dat je ziet (alleen het zichtbare hoofdverhaal).
-export function LeadStory({ item, story, note, priority = false }) {
+export function LeadStory({ item, story, note, priority = false, taste = null }) {
   const { markRead, read } = useHoot()
   return (
     <article className={`entry lead${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
@@ -123,7 +161,7 @@ export function LeadStory({ item, story, note, priority = false }) {
         {item.author ? <p className="byline">Door {item.author}</p> : null}
       </a>
       <TermHelp text={`${item.title} ${item.summary || ''}`} />
-      <Meta item={item} story={story} />
+      <Meta item={item} story={story} taste={taste} />
     </article>
   )
 }
@@ -132,7 +170,7 @@ export function LeadStory({ item, story, note, priority = false }) {
 // Twee indelingen (instelbaar): "krant" — kop links, klein beeld rechts — en "tijdlijn" —
 // de tekst en het beeld groot, met de bronregel eronder. `plain` houdt de krant-vorm
 // aan, voor smalle plekken zoals het vergelijkpaneel.
-export function CompactItem({ item, story, note, showSave = true, plain = false }) {
+export function CompactItem({ item, story, note, showSave = true, plain = false, taste = null }) {
   const { markRead, read, layout } = useHoot()
   const cls = `entry compact${read.has(item.id) ? ' is-read' : ''}`
   if (layout === 'tijdlijn' && !plain) {
@@ -149,7 +187,7 @@ export function CompactItem({ item, story, note, showSave = true, plain = false 
             </div>
           ) : null}
         </a>
-        <Meta item={item} story={story} showSave={showSave} />
+        <Meta item={item} story={story} showSave={showSave} taste={taste} />
       </article>
     )
   }
@@ -167,7 +205,7 @@ export function CompactItem({ item, story, note, showSave = true, plain = false 
           </div>
         ) : null}
       </a>
-      <Meta item={item} story={story} showSave={showSave} />
+      <Meta item={item} story={story} showSave={showSave} taste={taste} />
     </article>
   )
 }

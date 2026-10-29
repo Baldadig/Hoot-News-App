@@ -8,7 +8,7 @@
 // ("Buiten je bronnen"). "Buiten je bubbel" blijft op zijn plek. Daarna ligt de editie vast.
 import { selectEdition, EDITION_SIZE, signatures, sameEvent } from '../../netlify/lib/stories.mjs'
 import { resolveTopics } from './topics.js'
-import { affinityScore } from './affinity.js'
+import { affinityScore, tasteScore } from './affinity.js'
 
 export const EXTERN = 'extern' // rubriek van een aangevuld verhaal
 export const WIDE = 'breed' // "Waar iedereen over schrijft"
@@ -31,7 +31,7 @@ const TOPIC_KIND = { voetbal: 'sport', f1: 'sport', wielrennen: 'sport', tennis:
 // `previous`: je vorige editie (zie previousOf in stories.mjs); wat daarin stond, komt alleen
 // terug als het zich ontwikkelde.
 // `favorites`: je voorkeursbronnen; die wegen zwaarder en leveren bij voorkeur het hoofdbericht.
-export function composePersonal({ global, stories = [], items = [], sources = [], followed = new Set(), interests = [], topics = [], now = Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [] }) {
+export function composePersonal({ global, stories = [], items = [], sources = [], followed = new Set(), interests = [], topics = [], now = Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null }) {
   if (!global?.entries?.length) return null
   const catOf = new Map(sources.map((s) => [s.id, s.cat]))
   // Soort bericht: de rubriek van de bron, tenzij het onderwerp sport, cultuur of games is.
@@ -47,7 +47,8 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const extraPool = pool.filter((i) => extraKinds.has(kindOf(i)))
   const mine = new Set(resolveTopics(interests, topics))
   const fits = (its) => mine.size > 0 && its.some((i) => (i.topics || []).some((t) => mine.has(t)))
-  const bonus = mine.size || affinity ? (its) => (fits(its) ? INTEREST_BONUS : 0) + affinityScore(its, affinity) : null
+  // Daarbij wat je zelf aangaf (meer of minder hiervan): tot 6 erbij of eraf.
+  const bonus = mine.size || affinity || taste ? (its) => (fits(its) ? INTEREST_BONUS : 0) + affinityScore(its, affinity) + tasteScore(its, taste) : null
 
   // "Buiten je bubbel" uit de algemene editie houdt zijn plek; "Waar iedereen over schrijft"
   // krijgt er één (als er iets breed gedekts buiten je interesses is); de rest kiezen we zelf.

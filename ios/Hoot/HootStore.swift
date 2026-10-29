@@ -242,7 +242,7 @@ final class HootStore {
     // "Begin met lezen": een zachte landing. Alleen Nederlandse bronnen, allemaal gratis, dus elk
     // stuk is helemaal te lezen: nieuws, sport, tech en cultuur. Zelfde set als de website
     // (STARTER in src/lib/topics.js); later aan te passen bij Bronnen.
-    static let starter = ["nos", "nu", "rtl", "nos-sport", "vi", "tweakers", "nos-cultuur", "3voor12", "oor"]
+    static let starter = ["nos", "nu", "rtl", "nos-sport", "vi", "tweakers", "nos-cultuur", "3voor12"]
     func quickStart() {
         let set = Set(Self.starter)
         enabled = set

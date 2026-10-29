@@ -83,7 +83,7 @@ export const STARTER = [
   { label: 'Nieuws', ids: ['nos', 'nu', 'rtl'] },
   { label: 'Sport', ids: ['nos-sport', 'vi'] },
   { label: 'Tech', ids: ['tweakers'] },
-  { label: 'Cultuur', ids: ['nos-cultuur', '3voor12', 'oor'] },
+  { label: 'Cultuur', ids: ['nos-cultuur', '3voor12'] },
 ]
 
 // De startset zoals die er nu is: alleen bronnen die bestaan en gratis zijn.

@@ -54,7 +54,7 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
       // De editie van het vorige dagdeel (nog op dit toestel): wat daarin stond, komt alleen terug
       // als het zich ontwikkelde.
       const previous = current && current.id !== global.id && current.owner === owner ? previousOf(current) : null
-      const mine = composePersonal({ global, stories: data.stories, items: data.items, sources: data.sources, followed: new Set(followed), interests: prefs.interests || [], topics: prefs.topics || [], previous, affinity, favorites: prefs.favorites || [] })
+      const mine = composePersonal({ global, stories: data.stories, items: data.items, sources: data.sources, followed: new Set(followed), interests: prefs.interests || [], topics: prefs.topics || [], previous, affinity, favorites: prefs.favorites || [], taste: prefs.taste })
       if (!mine) return
       const stamped = { ...mine, owner, basis }
       keep(stamped)

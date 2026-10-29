@@ -5,7 +5,7 @@
 // Mislukt dat, dan valt het <img> terug op het origineel (components/Img.jsx).
 
 // Moet gelijk lopen met [images] remote_images in netlify.toml (de test controleert dat).
-export const CDN_HOSTS = ['images.nrc.nl', 'i.guim.co.uk', 'cdn.theatlantic.com', 'images.vpro.nl', 'thequietus.com', 'lede-admin.stereogum.com', 'ichef.bbci.co.uk', 'npr.brightspotcdn.com', 'images.ft.com', 'oor.nl', 'oor-prod.slashsmart.com']
+export const CDN_HOSTS = ['images.nrc.nl', 'i.guim.co.uk', 'cdn.theatlantic.com', 'images.vpro.nl', 'thequietus.com', 'lede-admin.stereogum.com', 'ichef.bbci.co.uk', 'npr.brightspotcdn.com', 'images.ft.com']
 const viaCdn = (url, w) => `/.netlify/images?url=${encodeURIComponent(url)}&w=${w}`
 
 const WIDTHS = { thumb: [176, 320], lead: [480, 720, 1080, 1360] }

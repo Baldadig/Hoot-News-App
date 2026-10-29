@@ -22,7 +22,7 @@ import { useAccount } from './hooks/useAccount.js'
 import { useCloudSync } from './hooks/useCloudSync.js'
 import { useStored } from './lib/store.js'
 import { MAIN, rememberLocation, hrefFor } from './lib/context.js'
-import { learn, READ, SAVE } from './lib/affinity.js'
+import { learn, READ, SAVE, vote } from './lib/affinity.js'
 import { sourceStatus, statusLabel } from './lib/sourceStatus.js'
 import Bluesky from './views/Bluesky.jsx'
 import Vak from './views/Vak.jsx'
@@ -458,8 +458,29 @@ export default function App() {
   // Verhaal volgen (de kop bewaren we bij het volgen; zie src/lib/follow.js).
   const followStory = useCallback((story, title) => setPrefs((p) => ({ ...p, followStories: toggleFollow(p.followStories, story, title) })), [setPrefs])
 
+  // Meer of minder hiervan (src/lib/affinity.js): de keuze gaat mee met je account (prefs.taste);
+  // een verhaal met "minder" klapt in deze Editie meteen in (alleen op dit toestel).
+  const [less, setLess] = useStored('hoot:less', [])
+  const voteOn = useCallback(
+    (key, items, dir) => {
+      setPref('taste', vote(prefs.taste, items, dir))
+      if (dir < 0) setLess((l) => [key, ...(l || []).filter((k) => k !== key)].slice(0, 200))
+    },
+    [prefs.taste, setPref, setLess],
+  )
+  const undoLess = useCallback(
+    (key, items) => {
+      setPref('taste', vote(prefs.taste, items, 1))
+      setLess((l) => (l || []).filter((k) => k !== key))
+    },
+    [prefs.taste, setPref, setLess],
+  )
+
   const ctx = useMemo(
     () => ({
+      less: less || [],
+      voteOn,
+      undoLess,
       followStory,
       followStories: prefs.followStories,
       panel,
@@ -484,7 +505,7 @@ export default function App() {
       muted,
       setMuted,
     }),
-    [panel, layout, setLayout, prefs, setPref, theme, setTheme, openDisplay, account, saved, toggleSave, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories],
+    [less, voteOn, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, openDisplay, account, saved, toggleSave, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories],
   )
 
   const hideMain = overlay || showWelcome

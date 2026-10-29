@@ -4,7 +4,7 @@ import Foundation
 // kleinere varianten aanbiedt vragen we die op; andere bekende bronnen gaan via de beeld-CDN van
 // Netlify. Een beeld waarvan we weten dat het alleen klein bestaat, tonen we nooit groot.
 enum ImageURL {
-    static let cdnHosts: Set<String> = ["images.nrc.nl", "i.guim.co.uk", "cdn.theatlantic.com", "images.vpro.nl", "thequietus.com", "lede-admin.stereogum.com", "ichef.bbci.co.uk", "npr.brightspotcdn.com", "images.ft.com", "oor.nl", "oor-prod.slashsmart.com"]
+    static let cdnHosts: Set<String> = ["images.nrc.nl", "i.guim.co.uk", "cdn.theatlantic.com", "images.vpro.nl", "thequietus.com", "lede-admin.stereogum.com", "ichef.bbci.co.uk", "npr.brightspotcdn.com", "images.ft.com"]
 
     enum Kind { case thumb, large }
 

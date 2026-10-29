@@ -24,8 +24,6 @@
     'https://ichef\.bbci\.co\.uk/.*',
     'https://npr\.brightspotcdn\.com/.*',
     'https://images\.ft\.com/.*',
-    'https://oor\.nl/.*',
-    'https://oor-prod\.slashsmart\.com/.*',
   ]
 
 # Eén adres: het oude Netlify-adres stuurt door naar hootnews.nl (één opslag, één service
