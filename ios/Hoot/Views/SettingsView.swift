@@ -54,7 +54,6 @@ struct SettingsView: View {
                 Section {
                     Picker(selection: $store.openWith.animation()) {
                         Text("In de lezer").tag("lezer")
-                        Text("Op de website").tag("web")
                         Text("In Safari").tag("safari")
                     } label: {
                         Label("Artikelen openen", systemImage: "doc.richtext")
@@ -62,18 +61,10 @@ struct SettingsView: View {
                     if store.openWith == "lezer" {
                         NavigationLink(value: "abonnementen") { SubscriptionsRow() }
                     }
-                    if store.openWith == "web" {
-                        Toggle(isOn: $store.paidInSafari) {
-                            Label("Abonnementsbronnen in Safari", systemImage: "creditcard")
-                        }
-                        Toggle(isOn: $store.readerFirst) {
-                            Label("Lezer automatisch openen", systemImage: "doc.plaintext")
-                        }
-                    }
                 } header: {
                     Text("Lezen")
                 } footer: {
-                    Text(store.openWith == "lezer" ? "De lezer toont alleen de tekst en beelden, in de opmaak van Hoot. Log één keer in bij je abonnementen om ook hun hele artikelen hier te lezen." : store.openWith == "safari" ? "In Safari ben je ingelogd bij je abonnementen." : "Op de website in Hoot ben je niet ingelogd bij je abonnementen; daarom openen abonnementsbronnen standaard in Safari.").foregroundStyle(Theme.ink3)
+                    Text(store.openWith == "lezer" ? "De lezer toont alleen de tekst en beelden, in de opmaak van Hoot. Log één keer in bij je abonnementen om ook hun hele artikelen hier te lezen." : "Artikelen openen in Safari. Daar ben je al ingelogd bij je abonnementen, met je wachtwoorden en Google of Apple.").foregroundStyle(Theme.ink3)
                 }
 
                 Section {

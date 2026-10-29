@@ -11,6 +11,9 @@
 - **Selectie:** een eigen icoon, tijdschriften (build 35).
 - **Namen:** Editie, Stroom en Selectie overal met een hoofdletter.
 - **OOR is weg.**
+- **Lezen:** nog maar twee keuzes, In de lezer of In Safari. In Safari ben je al ingelogd bij je kranten, met wachtwoorden, passkeys en Google of Apple. "Op de website" en de twee schakelaars eronder zijn weg; wie dat had, opent nu in Safari.
+- **Bronlogo's:** scherp, en in de lijst op wit (het Parool-logo verdween in donker).
+- **Stroom:** een bron kiezen zet de rubriek terug op Alles.
 
 ## [1.0.0] — 2026-10-28 — De eerste versie voor de App Store
 

@@ -164,8 +164,8 @@ struct RootView: View {
             // Reader.open laat alleen http(s) door; mocht er toch niets te tonen zijn, dan meteen dicht.
             if let url = item.link, Reader.canShow(url) {
                 // Een Bluesky-post zonder eigen link heeft geen artikel: meteen de post op bsky.app.
-                if store.openWith == "web" || (item.isPost && url.host()?.hasSuffix("bsky.app") == true) {
-                    SafariView(url: url, reader: store.readerFirst).ignoresSafeArea()
+                if item.isPost && url.host()?.hasSuffix("bsky.app") == true {
+                    SafariView(url: url, reader: false).ignoresSafeArea()
                 } else {
                     ArticleReaderView(item: item)
                 }

@@ -25,9 +25,8 @@ enum Theme {
     static func headline(_ style: Font.TextStyle) -> Font { .system(style, design: .serif, weight: .bold) }
 }
 
-// Een artikel openen: in de app, in Safari-weergave (met Lezer en de inlog van je abonnementen).
-// Betaalde bronnen standaard in Safari: daar ben je ingelogd bij je abonnementen. De
-// Safari-weergave in de app deelt geen websitegegevens met Safari, dus daar zie je de betaalmuur.
+// Een artikel openen: in de Hoot-lezer, of in de Safari-app (Instellingen › Lezen). In Safari ben je
+// al ingelogd bij je abonnementen, met je wachtwoorden, passkeys en Google of Apple.
 @MainActor
 @Observable
 final class Reader {
@@ -39,12 +38,7 @@ final class Reader {
     func open(_ item: Item, store: HootStore) {
         guard let url = item.link, Self.canShow(url) else { return }
         store.markRead(item)
-        let paid = store.source(item.source)?.paid == true
-        switch store.openWith {
-        case "safari": UIApplication.shared.open(url)
-        case "web": if paid && store.paidInSafari { UIApplication.shared.open(url) } else { self.item = item }
-        default: self.item = item // de lezer; die valt zelf terug op de website als het niet lukt
-        }
+        if store.openWith == "safari" { UIApplication.shared.open(url) } else { self.item = item } // de lezer valt zelf terug op de website als het niet lukt
     }
 }
 

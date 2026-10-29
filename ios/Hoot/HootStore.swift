@@ -35,10 +35,8 @@ final class HootStore {
     var images: String { didSet { save("hoot.images", images); synced() } } // aan | hoofd | uit
     var bubble: Bool { didSet { save("hoot.bubble", bubble); synced() } } // "Buiten je bubbel" in de Editie
     var openInSafari: Bool { didSet { save("hoot.openInSafari", openInSafari) } } // vóór 0.12; nu `openWith`
-    // Waar artikelen openen: "lezer" (de Hoot-lezer), "web" (de website, in Hoot) of "safari".
+    // Waar artikelen openen: "lezer" (de Hoot-lezer) of "safari" (de Safari-app, waar je al bent ingelogd).
     var openWith: String { didSet { save("hoot.openWith", openWith) } }
-    var readerFirst: Bool { didSet { save("hoot.readerFirst", readerFirst) } } // meteen de Lezer
-    var paidInSafari: Bool { didSet { save("hoot.paidInSafari", paidInSafari) } } // betaalde bronnen in Safari (daar ben je ingelogd)
     var preview: Int { didSet { save("hoot.preview", preview); synced() } } // regels intro bij een bericht; 0 = de hele intro
     var onboarded: Bool { didSet { save("hoot.onboarded", onboarded) } } // het welkom is gezien
     // Jouw editie: je interesses (src/lib/topics.js), voorkeursbronnen (ster) en smaak (wat je leest).
@@ -95,9 +93,9 @@ final class HootStore {
         images = Self.load("hoot.images") ?? "aan"
         bubble = Self.load("hoot.bubble") ?? true
         openInSafari = Self.load("hoot.openInSafari") ?? false
-        openWith = Self.load("hoot.openWith") ?? (Self.load("hoot.openInSafari") == true ? "safari" : "lezer")
-        readerFirst = Self.load("hoot.readerFirst") ?? false
-        paidInSafari = Self.load("hoot.paidInSafari") ?? true
+        // Twee keuzes: de lezer of Safari. Wie "Op de website" had (tot 1.0.1), gaat naar Safari.
+        let was: String = Self.load("hoot.openWith") ?? (Self.load("hoot.openInSafari") == true ? "safari" : "lezer")
+        openWith = was == "web" ? "safari" : was
         streamSeen = Self.load("hoot.streamSeen") ?? nil
         preview = Self.load("hoot.preview") ?? 2
         // Het welkom alleen bij een verse installatie: wie al instellingen of gelezen stukken heeft
