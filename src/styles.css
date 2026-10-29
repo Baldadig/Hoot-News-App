@@ -13,8 +13,11 @@
   --ink-3: #6b6457;
   --rule: #ded5c4;
   --edge: #8f8574; /* rand van velden en filterknoppen: 3:1, waar een lijn iets betekent */
-  --accent: #a3201b; /* krantenrood: rubrieken, actief, "+ bronnen" */
-  --accent-soft: #f4e3de;
+  /* Krantenrood, alleen voor: rubriek en kicker · de actieve navigatie · gekozen (via --sel-*) ·
+     links in lopende tekst · merkmomenten (woordmerk, einde van de editie, Welkom) · en
+     bewust "Vergelijk N bronnen" / "+ bronnen". Acties zijn --action, focus is --focus. */
+  --accent: #a3201b;
+  --accent-soft: #f4e3de; /* alleen 'gekozen'; decoratie is --tint */
   --on-accent: #ffffff;
   --warn: #8f4300;
   --brand: #1a1814; /* merk: inkt, met de punt in krantenrood */
@@ -22,11 +25,36 @@
      accent van donker). Alleen voor merkmomenten: welkom, einde van de editie, deelbeelden. */
   --brand-red: #a3201b;
   --on-brand-red: #ffffff; /* 7,6:1 */
+  --on-brand-red-2: color-mix(in srgb, var(--on-brand-red) 85%, transparent); /* stillere tekst op merkrood */
   --quiet-amber: #b0802f; /* stil statuspuntje, geen alarm */
   /* Google-knop, donker thema (vast volgens Googles richtlijnen, in beide thema's gelijk) */
   --g-fill: #131314;
   --g-stroke: #8e918f;
   --g-text: #e3e3e3;
+
+  /* Kleur — rollen. Ze verwijzen naar de basis hierboven en worden op :root opgelost: een
+     omzetting binnen .main (Blad) of .edtop (Inkt) verandert ze dus niet. */
+  --action: var(--ink); /* tekstacties: meer, terug, tweede knop */
+  --focus: var(--ink); /* focusring: één stelsel, altijd inkt */
+  --focus-ring: 2px solid var(--focus);
+  --focus-offset: 2px;
+  --sel-bg: var(--accent-soft); /* gekozen, en alleen dat */
+  --sel-fg: var(--accent);
+  --sel-edge: var(--accent);
+  --tint: color-mix(in srgb, var(--ink) 6%, var(--paper)); /* decoratief vlak: badge, icoonschijf */
+  --hairline: color-mix(in srgb, var(--ink) 14%, transparent);
+  --rule-strong: 2px solid var(--ink); /* begin van inhoud of sectie */
+  --elev-1: var(--surface); /* zwevend vlak: dialoog, blad, Lezer, melding */
+  --elev-edge: transparent; /* donker: een haarlijn, want schaduw draagt daar niet */
+  --scrim: rgba(26, 24, 20, 0.45);
+  --shadow-float: 0 6px 18px rgba(26, 24, 20, 0.2);
+  --shadow-thumb: 0 1px 3px rgba(0, 0, 0, 0.35);
+  --ring-cut: 0 0 0 2px var(--paper); /* uitsnijring om een stip of vinkje */
+  --thumb: #fcfaf5; /* duim van de schakelaar: in beide thema's licht */
+  --mark-bg: #ffffff; /* vlak achter een uitgeverslogo */
+  --state-hover: color-mix(in srgb, currentColor 8%, transparent);
+  --state-press: color-mix(in srgb, currentColor 14%, transparent);
+  --opacity-disabled: 0.45;
 
   /* Type */
   /* Newsreader (koppen, 800) en Source Sans 3 (tekst): beide open source, meegeleverd in main.jsx. */
@@ -36,13 +64,40 @@
   /* Maat */
   --gutter: 16px;
   --tap: 44px;
-  --readable: 680px; /* leesbreedte */
-  --wide: 1000px; /* brede pagina: Editie en Selectie */
+  --readable: 680px; /* leesbreedte; wordt een alias van --measure zodra de kolommen omgaan */
+  --wide: 1000px; /* het paginaraam (--page) */
+  --page: var(--wide);
+  --measure: 720px; /* leesblok */
+  --measure-prose: 65ch; /* lopende tekst, samenvattingen en hints */
+  --measure-form: 560px; /* Bronnen en Instellingen */
+  --sheet-w: 560px;
+  --nav-w: 208px;
+  --panel-w: clamp(340px, 28vw, 400px);
+  --app-max: 1440px;
   --radius: 12px;
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-l: env(safe-area-inset-left, 0px);
   --safe-r: env(safe-area-inset-right, 0px);
+
+  /* Bediening: drie hoogtes, twee icoonmaten. Klein (36) altijd met .hit, dus 44 raakvlak. */
+  --control-sm: 36px;
+  --control-md: var(--tap);
+  --control-lg: 52px;
+  --icon: 22px;
+  --icon-sm: 16px;
+  --tap-inset: calc((var(--icon) - var(--tap)) / 2); /* −11: icoon optisch op de kolomlijn */
+  --control-col: 20rem; /* vaste kolom voor de bediening in een instellingsrij */
+
+  /* Rijen en media-object: altijd min-height, nooit een vaste hoogte. */
+  --row-sm: 44px;
+  --row-md: 56px;
+  --row-lg: 64px;
+  --slot-sm: 24px; /* logo + --s2: tekst op 32 */
+  --slot-lg: 40px; /* logo + --s4: tekst op 56 */
+  --media-tl-h: 300px; /* beeldstrook in de tijdlijn */
+  --underline-offset: 3px;
+  --tabbar-h: 52px;
 
   /* Beweging: kort en functioneel. Alleen opacity/transform/kleur; nooit iets dat de
      leespositie verschuift. Valt weg bij prefers-reduced-motion (onderaan). */
@@ -60,23 +115,87 @@
   --s5: 24px;
   --s6: 32px;
   --s7: 48px;
+  --head-y: var(--s3); /* bovenkant van de schermkop en het woordmerk in de zijbalk */
+  --after-header: var(--s5); /* schermkop → eerste inhoud */
+  --dialog-pad: var(--gutter);
 
-  /* Type: zes stappen. t1 metadata · t2 bediening en bronnaam · t3 leestekst ·
-     t4 kop van een bericht · t5 schermtitel en verhaaltitel · t6 hoofdverhaal (vloeiend). */
+  /* Type: zes stappen plus drie koppen buiten de reeks, steeds als paar maat/regelhoogte in
+     rem, zodat alles meeschaalt met Tekstgrootte en bij 100% op de 4-schaal ligt.
+     t0 tabbalklabel · t1 metadata · t2 bediening en bronnaam · t3 leestekst ·
+     t4 kop van een bericht · head-lg grote itemkop · t5 schermtitel en verhaaltitel ·
+     t6 hoofdverhaal · display en hero alleen in Welkom. */
+  --t0: 0.75rem; /* 12 */
   --t1: 0.8125rem; /* 13 */
   --t2: 0.9375rem; /* 15 */
   --t3: 1.0625rem; /* 17 */
   --t4: 1.125rem; /* 18 */
+  --t-head-lg: 1.375rem; /* 22 */
   --t5: 1.6875rem; /* 27 */
-  --t6: clamp(1.875rem, 1.6rem + 1vw, 2.125rem); /* 30–34 */
+  --t6: 1.875rem; /* 30, vanaf 720 34 */
+  --t-display: 2rem; /* 32 */
+  --t-hero: clamp(2.75rem, 2.2rem + 2.4vw, 3.5rem); /* 44–56 */
+  --lh-0: 1rem; /* 16 */
+  --lh-1: 1rem; /* 16 */
+  --lh-2: 1.25rem; /* 20 */
+  --lh-3: 1.5rem; /* 24 */
+  --lh-4: 1.25rem; /* 20 */
+  --lh-head-lg: 1.5rem; /* 24 */
+  --lh-5: 2rem; /* 32 */
+  --lh-6: 2.25rem; /* 36, vanaf 720 40 */
+  --lh-display: 2.25rem; /* 36 */
+  --lh-1-read: 1.25rem; /* 20: uitleg */
+  --lh-2-read: 1.5rem; /* 24: samenvatting */
+  --lh-3-read: 1.75rem; /* 28: leestekst */
+  --lh-tight: 1; /* alleen losse cijfers, iconen en de hero */
+  /* Oude verhoudingen: blijven tot de laatste vindplaats op een rem-paar staat. */
   --lh-head: 1.15; /* koppen (serif) */
   --lh-ui: 1.3; /* bedieningsregels, bron en tijd */
   --lh-body: 1.5; /* lopende tekst */
+  --fw-regular: 400;
+  --fw-ui: 600; /* bediening, bronnaam */
+  --fw-action: 700; /* tekstacties */
+  --fw-head: 800; /* koppen, labels, hoofdknop */
+  --ls-caps: 0.06em; /* labels in kapitalen */
+  --ls-head-4: -0.01em;
+  --ls-head-5: -0.015em; /* ook voor head-lg */
+  --ls-head-6: -0.018em;
+  --ls-display: -0.02em; /* Welkom */
 
-  /* Vorm: vier hoeken. sm knoppen en velden · md beeld en kaarten · lg bladen · pill chips en schakelaars */
+  /* Vorm: vier hoeken, steeds op rol.
+     control (8) iconknop, veld, toast-sluiter, hoverlaag · card (12) kaart, beeld, einde van de
+     editie · sheet (16) dialogen en bladen · pill knoppen, chips, segmenten, schakelaar ·
+     round avatars, logo's en stippen. */
   --radius-sm: 8px;
   --radius-lg: 16px;
   --radius-pill: 999px;
+  --radius-control: var(--radius-sm);
+  --radius-card: var(--radius);
+  --radius-sheet: var(--radius-lg);
+  --radius-round: 50%;
+
+  /* Lagen: één volgorde voor alles wat boven de inhoud zweeft. */
+  --z-sticky: 5;
+  --z-pill: 10;
+  --z-statusbar: 30;
+  --z-panel: 40;
+  --z-toast: 50;
+  --z-overlay: 60;
+  --z-skip: 100;
+}
+
+/* Tablet en breder: het hoofdverhaal een stap groter, dialogen ruimer. */
+@media (min-width: 720px) {
+  :root {
+    --t6: 2.125rem; /* 34 */
+    --lh-6: 2.5rem; /* 40 */
+    --dialog-pad: var(--s5);
+  }
+}
+/* Desktop: de tijdlijn heeft de kolombreedte, dus de beeldstrook mag lager. */
+@media (min-width: 960px) {
+  :root {
+    --media-tl-h: 240px;
+  }
 }
 
 /* Kleur — donker (JS zet data-theme; 'systeem' volgt het toestel) */
@@ -94,6 +213,11 @@
   --warn: #f2b56b;
   --brand: #f1ece2;
   --quiet-amber: #c9a15c;
+  /* Rollen: hoogte komt in donker van een rand en een donkerdere scrim, niet van schaduw alleen. */
+  --elev-edge: var(--hairline);
+  --scrim: rgba(0, 0, 0, 0.65);
+  --shadow-float: 0 6px 18px rgba(0, 0, 0, 0.5);
+  --mark-bg: #f1ece2; /* gedempt wit, zodat een logo niet oplicht */
   color-scheme: dark;
 }
 
@@ -104,6 +228,8 @@
      Editie als donkere band.
    Het werkt met tokens: binnen het blad zíjn --paper en --surface de bladkleuren, dus alles
    wat daarin papier gebruikt (plakkende koppen, kaarten, verlopen) gaat vanzelf mee.
+   Waar het kan verwijzen de bladtokens naar de basis; ze worden op :root opgelost, dus ze
+   houden de kleuren van papier, ook binnen het blad of de band.
    --top is de kleur bovenaan het scherm; de statusbalk neemt die over (useTheme.js). */
 :root {
   --top: var(--paper);
@@ -112,22 +238,23 @@
   --sheet: #ffffff;
   --sheet-surface: #faf7f1;
   --sheet-edge: #e6dfd1;
-  --band: #1a1814;
-  --band-ink: #f5f1e8;
+  --band: var(--ink);
+  --band-ink: var(--paper);
   --band-ink-2: #ddd5c7;
   --band-ink-3: #b9b1a3;
   --band-rule: #4a443b;
   --band-accent: #ec7a70;
+  --band-accent-soft: #3a1e1b; /* gekozen op de band, in beide thema's */
   --top: var(--sheet);
 }
 :root[data-palette][data-theme='dark'] {
-  --sheet: #1e1b17;
+  --sheet: var(--surface);
   --sheet-surface: #27231e;
-  --sheet-edge: #34302a;
+  --sheet-edge: var(--rule);
   --band: #0b0a08;
-  --band-ink: #f1ece2;
-  --band-ink-2: #cbc3b5;
-  --band-ink-3: #a39b8d;
+  --band-ink: var(--ink);
+  --band-ink-2: var(--ink-2);
+  --band-ink-3: var(--ink-3);
   --band-rule: #2e2a25;
 }
 
