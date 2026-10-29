@@ -1,13 +1,14 @@
 # Changelog — Hoot voor iOS
 
-## [1.0.1] — in de maak (TestFlight: build 34 op 29-10-2026)
+## [1.0.1] — in de maak (TestFlight: build 34 en 35 op 29-10-2026)
 
 - **Selectie:** 37 onderwerpen in acht domeinen. Je kiest ze via de knop Onderwerpen.
 - **Meer of minder hiervan:** druk lang op een verhaal in de Editie.
   - Bij minder klapt het verhaal in, met de mogelijkheid om het ongedaan te maken.
   - Onder Wat Hoot van je leerde in Instellingen kun je je keuzes wissen.
 - **Van opstart naar welkom:** sneller en zonder hapering (0,7 s).
-- **Stroom:** de statusregel onder de bronnen is weg.
+- **Stroom:** de kop is één lijn met krantenrubrieken (onderwerpen) en rechts een bronnenstapel die uitwaaiert (build 35).
+- **Selectie:** een eigen icoon, tijdschriften (build 35).
 - **Namen:** Editie, Stroom en Selectie overal met een hoofdletter.
 - **OOR is weg.**
 

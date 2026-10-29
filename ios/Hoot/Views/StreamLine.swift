@@ -40,6 +40,7 @@ struct StreamLine: View {
     @State private var rij = Schuif()
     @State private var rijPos = ScrollPosition(edge: .trailing)
     @State private var stilDicht = false // dichtgeklapt met de focus terug op de stapel: niets voorlezen
+    @State private var allesW: CGFloat = 0 // het woord Alles, zonder ruimte erom
     @State private var tikken = 0 // jouw tikken op rubrieken en bronnen: alleen die geven een tikje terug
     @AccessibilityFocusState private var focus: Focus?
     private enum Focus: Hashable { case stapel, alle, bron(String) }
@@ -107,9 +108,12 @@ struct StreamLine: View {
     private var rubriekenRij: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 0) {
-                ForEach(Array(lezen.enumerated()), id: \.element.id) { i, r in rubriekKnop(r, eerste: i == 0) }
+                ForEach(Array(lezen.enumerated()), id: \.element.id) { i, r in rubriekKnop(r, eerste: i == 0, inhalen: i == 1 ? tekort : 0) }
                 // Kolomlijn tussen wat je leest en de rubrieken.
-                Rectangle().fill(Theme.rule).frame(width: 1, height: Space.s4).padding(.bottom, 1).accessibilityHidden(true)
+                Rectangle().fill(Theme.rule).frame(width: 1, height: Space.s4).padding(.bottom, 1)
+                    .padding(.leading, lezen.count == 1 ? -tekort : 0)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
                 ForEach(rubrieken, id: \.id) { r in rubriekKnop(r, eerste: false) }
             }
             .frame(maxHeight: .infinity)
@@ -144,7 +148,8 @@ struct StreamLine: View {
         .accessibilityHidden(open)
     }
 
-    private func rubriekKnop(_ r: (id: String, label: String), eerste: Bool) -> some View {
+    // `inhalen`: zoveel minder ruimte vooraan, omdat het tikvlak van Alles ervoor al breder is (zie `tekort`).
+    private func rubriekKnop(_ r: (id: String, label: String), eerste: Bool, inhalen: CGFloat = 0) -> some View {
         let aan = r.id == rubriek
         return Button { kies(r) } label: {
             Text(r.label)
@@ -152,17 +157,16 @@ struct StreamLine: View {
                 .foregroundStyle(aan ? Theme.ink : Theme.ink2)
                 .animation(move(0.2), value: aan)
                 .fixedSize()
+                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { if eerste { allesW = $0 } }
                 .anchorPreference(key: Streep.self, value: .bounds) { aan ? $0 : nil }
                 .padding(.bottom, 1)
                 .frame(maxHeight: .infinity)
-                .padding(.leading, eerste ? 0 : Space.s2) // ‘Alles’ op de kolomlijn, onder ‘Stroom’
+                .padding(.leading, eerste ? 0 : Space.s2 - inhalen) // ‘Alles’ op de kolomlijn, onder ‘Stroom’
                 .padding(.trailing, Space.s2)
-                // Tikvlak minstens 44 breed, zonder dat een kort woord (Alles bij kleine tekst) de
-                // rubrieken uit hun ritme duwt: het vlak loopt een stukje onder de volgende door.
-                .contentShape(MinstensTik())
+                .frame(minWidth: eerste ? Space.tap : 0, alignment: .leading)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .zIndex(eerste ? 1 : 0) // ‘Alles’ boven de volgende, anders neemt die het extra stukje
         .accessibilityAddTraits(aan ? .isSelected : [])
         .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(Self.ruimte)) } action: { rubFrames[r.id] = $0 }
     }
@@ -379,6 +383,10 @@ struct StreamLine: View {
 
     // ---- Hulp ----
 
+    // Alles is het enige woord dat met kleine tekst onder de 44 kan komen (woord + 8). Het tikvlak
+    // blijft 44; dat stukje gaat af van de ruimte vóór wat erna komt, zodat het ritme van 8 + 8 blijft.
+    private var tekort: CGFloat { allesW > 0 ? max(0, Space.tap - allesW - Space.s2) : 0 }
+
     private var chosen: [Source] { bronnen.filter { picks.contains($0.id) } } // in de volgorde van de rij
     private var deck: [String] { (picks.isEmpty ? bronnen : chosen).prefix(Self.deckMax).map(\.id) }
     private var namen: String { Self.opsomming(chosen.map(\.name)) }
@@ -453,13 +461,6 @@ private struct Plek: Equatable {
     var id: String
     var frame: CGRect?
     var inhoud: CGFloat
-}
-
-// Het tikvlak van een rubriek: haar eigen vak, maar minstens 44 breed (naar rechts verlengd).
-private struct MinstensTik: Shape {
-    func path(in r: CGRect) -> Path {
-        Path(CGRect(x: r.minX, y: r.minY, width: max(r.width, Space.tap), height: r.height))
-    }
 }
 
 // Ernaast tikken, waar dan ook in het venster (ook op de titel, de werkbalk of de tabbalk), zoals

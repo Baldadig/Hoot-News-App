@@ -1,12 +1,12 @@
 import { clock } from '../lib/time.js'
 import { BrandLogo } from './Brand.jsx'
 import { useHoot } from './Items.jsx'
-import { SparkleIcon, ButterflyIcon, EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, TimelineIcon, PaperIcon, BackIcon, AccountIcon } from './icons.jsx'
+import { BooksIcon, ButterflyIcon, EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, TimelineIcon, PaperIcon, BackIcon, AccountIcon } from './icons.jsx'
 
 export const DESTINATIONS = [
   { id: 'editie', label: 'Editie', Icon: EditionIcon },
   { id: 'stroom', label: 'Stroom', Icon: StreamIcon },
-  { id: 'digest', label: 'Selectie', Icon: SparkleIcon },
+  { id: 'digest', label: 'Selectie', Icon: BooksIcon },
   { id: 'bluesky', label: 'Bluesky', Icon: ButterflyIcon },
   { id: 'bewaard', label: 'Bewaard', Icon: BookmarkIcon },
   { id: 'bronnen', label: 'Bronnen', Icon: SourcesIcon },

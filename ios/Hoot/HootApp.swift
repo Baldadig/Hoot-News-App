@@ -119,7 +119,7 @@ struct RootView: View {
         TabView(selection: $tab) {
             Tab("Editie", systemImage: "newspaper", value: Destination.editie) { EditionView() }
             Tab("Stroom", systemImage: "water.waves", value: Destination.stroom) { StreamView() }
-            Tab("Selectie", systemImage: "sparkles", value: Destination.digest) { DigestView() }
+            Tab("Selectie", systemImage: "books.vertical", value: Destination.digest) { DigestView() }
             Tab("Bewaard", systemImage: "bookmark", value: Destination.bewaard) { SavedView() }
             Tab(value: Destination.zoek, role: .search) { SearchView() }
         }

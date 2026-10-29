@@ -18,7 +18,7 @@ struct DigestView: View {
                     if let d = store.digest {
                         header(d)
                         if shown.isEmpty {
-                            EmptyState(title: "Kies je onderwerpen", systemImage: "sparkles", text: "Voor je werk of uit interesse: elke maandag per onderwerp de drie beste stukken van de week.")
+                            EmptyState(title: "Kies je onderwerpen", systemImage: "books.vertical", text: "Voor je werk of uit interesse: elke maandag per onderwerp de drie beste stukken van de week.")
                         }
                         ForEach(shown) { field in
                             FieldSection(field: field, icon: Self.fields.first { $0.id == field.id }?.icon ?? "briefcase")

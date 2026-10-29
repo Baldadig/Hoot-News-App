@@ -2,6 +2,16 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.53.0] — 2026-10-29 — Stroom: krantenrubrieken met een bronnenstapel
+
+- **De kop van de Stroom is één lijn.** De onderwerpen staan als rubrieken in de krantenletter, met een rode streep onder wat aan staat. Rechts ligt een stapel van drie bronlogo's.
+  - **Kiezen:** tik op de stapel, dan waaieren de bronnen uit en kies je er één of meer.
+  - **Terug of dicht:** het eerste bolletje zet alles terug, of klapt de stapel dicht.
+  - **Dicht met keuze:** dan staat de naam van je keuze in rood bij de stapel.
+  - **Weg:** de onderregel, het label "Filter op bron" en de statusregel. Bijgewerkt-om staat nu bij de knop Verversen.
+- **Ook in de app:** dezelfde lijn, met dezelfde onderwerpen als op de website.
+- **Selectie:** heeft een eigen icoon, tijdschriften. De sterretjes horen bij AI.
+
 ## [1.52.0] — 2026-10-29 — De Selectie voor iedereen, en meer of minder hiervan
 
 - **Selectie: van 10 naar 37 onderwerpen, in acht domeinen:** Marketing & communicatie, Design & creatie, Tech & product, Ondernemen & werk, Geld & economie, Wetenschap & gezondheid, Maatschappij, en Cultuur & vrije tijd.

@@ -119,7 +119,7 @@ struct SettingsView: View {
                         LabeledContent { Text("\(store.followed.count) aan") } label: { Label("Bronnen", systemImage: "dot.radiowaves.up.forward") }
                     }
                     NavigationLink(value: "vakken") {
-                        LabeledContent { Text("\(store.digestFields.filter(store.offersField).count) gekozen") } label: { Label("Onderwerpen", systemImage: "sparkles") }
+                        LabeledContent { Text("\(store.digestFields.filter(store.offersField).count) gekozen") } label: { Label("Onderwerpen", systemImage: "books.vertical") }
                     }
                 }
 
