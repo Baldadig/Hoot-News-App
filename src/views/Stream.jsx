@@ -132,7 +132,8 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
   const rij = rijBronnen([...strip, ...inStream], pickList, sourcesById)
   // Een bron erbij of eraf. De lijst in de URL in de volgorde van de rij: dezelfde keuze is
   // dan altijd dezelfde URL (en dus dezelfde leespositie).
-  const togglePick = (id) => setFilter('bron', inRijVolgorde(picks.has(id) ? pickList.filter((p) => p !== id) : [...pickList, id], rij).join(','))
+  // Een bron kiezen zet de rubriek terug op Alles: je kijkt dan naar die bron, niet naar een onderwerp.
+  const togglePick = (id) => apply({ ...filters, onderwerp: '', rubriek: '', bron: inRijVolgorde(picks.has(id) ? pickList.filter((p) => p !== id) : [...pickList, id], rij).join(',') })
   // De rubrieken: Alles en Buiten je bubbel, dan je onderwerpen of de acht rubrieken.
   const rubrieken = useMemo(
     () => rubriekRij({ mine, pinned, hasBubble: bubble.length > 0, filters: { onderwerp: filters.onderwerp, rubriek: filters.rubriek } }),

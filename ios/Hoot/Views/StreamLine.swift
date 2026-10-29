@@ -350,6 +350,7 @@ struct StreamLine: View {
         }
         let was = picks.contains(s.id)
         if was { picks.remove(s.id) } else { picks.insert(s.id) }
+        rubriek = "" // een bron kiezen zet de rubriek terug op Alles
         tikken += 1
         zeg("\(s.name) \(was ? "uit" : "aan"). \(picks.isEmpty ? "Alle bronnen." : "Nu: \(namen).")")
     }
