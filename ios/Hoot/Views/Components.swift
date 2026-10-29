@@ -259,10 +259,11 @@ struct SaveButton: View {
     }
 }
 
-// Tik = lezen; lang drukken = bewaren, delen of openen in Safari.
+// Tik = lezen; lang drukken = bewaren, delen of openen in Safari, en in de Editie: meer of minder hiervan.
 struct ArticleActions: ViewModifier {
     @Environment(HootStore.self) private var store
     @Environment(Reader.self) private var reader
+    @Environment(\.tasteVote) private var tasteVote
     let item: Item
     func body(content: Content) -> some View {
         Button { reader.open(item, store: store) } label: { content }
@@ -274,7 +275,22 @@ struct ArticleActions: ViewModifier {
                     ShareLink(item: link, subject: Text(item.title)) { Label("Deel", systemImage: "square.and.arrow.up") }
                     Link(destination: link) { Label("Open in Safari", systemImage: "safari") }
                 }
+                if let tasteVote {
+                    Section {
+                        Button("Meer hiervan", systemImage: "hand.thumbsup") { tasteVote(true) }
+                        Button("Minder hiervan", systemImage: "hand.thumbsdown") { tasteVote(false) }
+                    }
+                }
             }
+    }
+}
+
+// Meer of minder hiervan: alleen in de Editie gezet (per plek), elders niet.
+private struct TasteVoteKey: EnvironmentKey { static let defaultValue: (@MainActor (Bool) -> Void)? = nil }
+extension EnvironmentValues {
+    var tasteVote: (@MainActor (Bool) -> Void)? {
+        get { self[TasteVoteKey.self] }
+        set { self[TasteVoteKey.self] = newValue }
     }
 }
 

@@ -95,10 +95,23 @@ struct SettingsView: View {
                     NavigationLink(value: "bronnen") {
                         LabeledContent { Text(store.favorites.isEmpty ? "Geen" : "\(store.favorites.count)") } label: { Label("Voorkeursbronnen", systemImage: "star") }
                     }
+                    // Wat je zelf aangaf met meer of minder hiervan (lang drukken op een verhaal).
+                    if !store.taste.more.isEmpty || !store.taste.less.isEmpty {
+                        VStack(alignment: .leading, spacing: Space.s1) {
+                            Label("Wat Hoot van je leerde", systemImage: "hand.thumbsup")
+                            Group {
+                                if !store.taste.more.isEmpty { Text("Meer: \(store.taste.more.prefix(6).map(Taste.label).joined(separator: ", "))") }
+                                if !store.taste.less.isEmpty { Text("Minder: \(store.taste.less.prefix(6).map(Taste.label).joined(separator: ", "))") }
+                            }
+                            .font(.subheadline)
+                            .foregroundStyle(Theme.ink3)
+                        }
+                        Button("Wis wat Hoot leerde", role: .destructive) { withAnimation { store.clearTaste() } }
+                    }
                 } header: {
                     Text("Jouw Editie")
                 } footer: {
-                    Text("Je Editie komt uit je eigen bronnen. Wat bij je interesses past en wat van je voorkeursbronnen komt (de ster bij Bronnen) gaat voor. Ook wat je opent en bewaart telt mee; dat blijft op dit toestel.").foregroundStyle(Theme.ink3)
+                    Text("Je Editie komt uit je eigen bronnen. Wat bij je interesses past en wat van je voorkeursbronnen komt (de ster bij Bronnen) gaat voor. Ook wat je opent en bewaart telt mee; dat blijft op dit toestel. Meer of minder van iets? Druk lang op een verhaal in de Editie; dat gaat mee met je account.").foregroundStyle(Theme.ink3)
                 }
 
                 Section("Bronnen en onderwerpen") {

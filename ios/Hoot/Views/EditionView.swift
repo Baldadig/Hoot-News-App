@@ -80,6 +80,31 @@ struct EditionView: View {
     @State private var nudge = false // "Maak Hoot van jou", na even rondkijken
     @State private var setup = false
 
+    // Een plek in de Editie: het verhaal met meer of minder hiervan in het menu (lang drukken), of
+    // ingeklapt tot één regel als je er minder van wilde.
+    @ViewBuilder private func slot<Content: View>(_ row: EditionRowModel, @ViewBuilder content: () -> Content) -> some View {
+        let items = [row.item] + (row.story?.itemIds ?? []).filter { $0 != row.item.id }.compactMap { store.itemsById[$0] }
+        if store.less.contains(row.id) {
+            HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
+                Text("Je ziet minder over \(Taste.about(items)).")
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.ink3)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Button("Ongedaan maken") { withAnimation(.snappy) { store.undoLess(row.id, items: items) } }
+                    .font(.subheadline.weight(.semibold))
+                    .tint(Theme.accent)
+                    .frame(minHeight: Space.tap)
+            }
+            .transition(.opacity)
+        } else {
+            content()
+                .environment(\.tasteVote) { up in
+                    withAnimation(.snappy) { store.vote(row.id, items: items, up: up) }
+                    UIAccessibility.post(notification: .announcement, argument: up ? "Je ziet meer over \(Taste.about(items))" : "Je ziet minder over \(Taste.about(items))")
+                }
+        }
+    }
+
     var body: some View {
         NavigationStack(path: $path) {
             ScrollViewReader { proxy in
@@ -100,21 +125,21 @@ struct EditionView: View {
                             .font(.subheadline)
                             .foregroundStyle(Theme.ink3)
                             .padding(.bottom, Space.s4)
-                        LeadCard(item: rows[0].item, label: rows[0].label, story: rows[0].story)
+                        slot(rows[0]) { LeadCard(item: rows[0].item, label: rows[0].label, story: rows[0].story) }
                         if wide {
                             // Breed: de rest in twee kolommen, elk verhaal met een lijn erboven.
                             LazyVGrid(columns: [GridItem(.flexible(), spacing: Space.s6, alignment: .top), GridItem(.flexible(), spacing: Space.s6, alignment: .top)], alignment: .leading, spacing: Space.s2) {
                                 ForEach(rows.dropFirst()) { row in
                                     VStack(alignment: .leading, spacing: 0) {
                                         Rule().padding(.vertical, Space.s2)
-                                        ItemRow(item: row.item, label: row.label, story: row.story)
+                                        slot(row) { ItemRow(item: row.item, label: row.label, story: row.story) }
                                     }
                                 }
                             }
                         } else {
                             ForEach(rows.dropFirst()) { row in
                                 Rule().padding(.vertical, Space.s2)
-                                ItemRow(item: row.item, label: row.label, story: row.story)
+                                slot(row) { ItemRow(item: row.item, label: row.label, story: row.story) }
                             }
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,

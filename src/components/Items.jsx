@@ -130,7 +130,7 @@ export function TasteButton({ entryKey, item, story }) {
 }
 // "voetbal en Ajax", of de bron als er geen onderwerp is.
 export function aboutOf(items) {
-  const names = [...new Set(items.flatMap((i) => i.topics || []))].map((t) => topicById(t)?.label?.toLowerCase()).filter(Boolean).slice(0, 2)
+  const names = [...new Set(items.flatMap((i) => i.topics || []))].map((t) => topicById(t)?.label).filter(Boolean).slice(0, 2)
   return names.length ? names.join(' en ') : `dit soort verhalen`
 }
 

@@ -251,6 +251,40 @@ struct Affinity: Codable, Hashable {
     }
 }
 
+// Meer of minder hiervan (src/lib/affinity.js, dezelfde regels): wat je zelf aangeeft bij een verhaal
+// in de Editie. Vooral op het onderwerp (minder voetbal), een beetje op de bron; begrensd, en het
+// vervaagt niet. Gaat mee met je account (prefs.taste).
+struct Taste: Codable, Hashable {
+    var topics: [String: Double] = [:]
+    var sources: [String: Double] = [:]
+    static let vote = 4.0, voteSource = 1.0, cap = 12.0
+
+    var isEmpty: Bool { topics.isEmpty && sources.isEmpty }
+    mutating func vote(_ items: [Item], up: Bool) {
+        let its = items.filter { !$0.isPost }
+        let d = up ? 1.0 : -1.0
+        func clamp(_ v: Double) -> Double { min(Self.cap, max(-Self.cap, v)) }
+        for t in Set(its.flatMap { $0.topics ?? [] }) { topics[t] = clamp((topics[t] ?? 0) + d * Self.vote) }
+        if let lead = its.first?.source { sources[lead] = clamp((sources[lead] ?? 0) + d * Self.voteSource) }
+        func trim(_ x: [String: Double]) -> [String: Double] {
+            Dictionary(uniqueKeysWithValues: x.filter { abs($0.value) >= 0.5 }.sorted { abs($0.value) > abs($1.value) }.prefix(40).map { ($0.key, $0.value) })
+        }
+        topics = trim(topics)
+        sources = trim(sources)
+    }
+    var more: [String] { topics.filter { $0.value > 0 }.sorted { $0.value > $1.value }.map(\.key) }
+    var less: [String] { topics.filter { $0.value < 0 }.sorted { $0.value < $1.value }.map(\.key) }
+
+    // De namen van de onderwerpen (src/lib/topics.js).
+    static let labels: [String: String] = ["nederland": "Den Haag", "europa": "Europa", "vs-politiek": "VS-politiek", "trump": "Trump", "verkiezingen": "Verkiezingen", "wonen": "Wonen", "zorg": "Zorg", "onderwijs": "Onderwijs", "misdaad": "Misdaad & recht", "migratie": "Asiel & migratie", "verkeer": "Verkeer & OV", "oekraine": "Oekraïne & Rusland", "middenoosten": "Midden-Oosten", "azie": "China & Azië", "afrika": "Afrika", "latam": "Latijns-Amerika", "geopolitiek": "Defensie & NAVO", "economie": "Markten & beurs", "werk": "Werk & inkomen", "bedrijven": "Bedrijven", "energie": "Energie", "geld": "Geld & sparen", "ai": "AI", "tech": "Big Tech", "gadgets": "Gadgets", "privacy": "Privacy & veiligheid", "ev": "Elektrisch rijden", "games": "Games", "klimaat": "Klimaat", "gezondheid": "Gezondheid", "ruimte": "Ruimte", "natuur": "Natuur & dieren", "brein": "Psychologie & brein", "muziek": "Muziek", "film": "Film & series", "boeken": "Boeken", "kunst": "Kunst & musea", "media": "Media", "voetbal": "Voetbal", "f1": "Formule 1", "wielrennen": "Wielrennen", "tennis": "Tennis", "wintersport": "Schaatsen & wintersport", "olympisch": "Olympische sporten"]
+    static func label(_ id: String) -> String { labels[id] ?? id }
+    // "voetbal en Ajax", voor de bevestiging.
+    static func about(_ items: [Item]) -> String {
+        let names = Array(Set(items.flatMap { $0.topics ?? [] })).sorted().prefix(2).map { label($0) }
+        return names.isEmpty ? "dit soort verhalen" : names.joined(separator: " en ")
+    }
+}
+
 // Wat er in je vorige editie stond (zie previousOf in netlify/lib/stories.mjs).
 struct PreviousEdition: Codable {
     var storyIds: [String]
@@ -266,6 +300,7 @@ struct PersonalRequest: Codable {
     var topics: [String] = []
     var favorites: [String]
     var affinity: Affinity?
+    var taste: Taste?
     var previous: PreviousEdition?
 }
 
