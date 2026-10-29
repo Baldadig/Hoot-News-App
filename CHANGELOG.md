@@ -2,6 +2,26 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.52.0] — 2026-10-29 — De Selectie voor iedereen, en meer of minder hiervan
+
+- **Selectie: van 10 naar 37 onderwerpen, in acht domeinen:** Marketing & communicatie, Design & creatie, Tech & product, Ondernemen & werk, Geld & economie, Wetenschap & gezondheid, Maatschappij, en Cultuur & vrije tijd.
+  - **Werk én interesses:** van Politiek en Recht tot Film, Muziek, Eten en Sport.
+  - **Kiezen per domein:** de onderwerpen kies je per domein, op de website en in de app.
+  - **Bronnen:** 346 in totaal, Nederlands voorop. Elke feed is bij het toevoegen opgehaald en geteld.
+  - **Wekelijkse controle:** elke week loopt Hoot alle bronnen na. Een bron die een week niet laadt of twee maanden stil is, gaat op pauze; op maandagochtend probeert Hoot het opnieuw. Het overzicht staat op /api/vak-bronnen.
+  - **Nieuwe namen:** Paid social heet nu Online adverteren (ook zoekadvertenties), en E-commerce heet nu E-commerce & retail.
+  - **Weg:** Meta Newsroom, omdat er zelden een stuk bij paste.
+- **Meer of minder hiervan** bij elk verhaal in de Editie: op de website achter "⋯", in de app door lang te drukken.
+  - **Minder:** het verhaal klapt in, met de mogelijkheid om het ongedaan te maken.
+  - **Hoe het telt:** vooral op het onderwerp, een beetje op de bron, en met een grens, zodat groot nieuws blijft staan.
+  - **Je account:** je keuzes gaan mee naar je andere apparaten. Onder Wat Hoot van je leerde in Instellingen kun je ze wissen.
+- **Editie, Stroom en Selectie** staan overal met een hoofdletter: de drie onderdelen zijn gelijkwaardig en horen bij het merk.
+- **OOR is weg:** de feed plaatst sinds 2019 niets meer.
+- **App Store (voor 1.0.1):**
+  - **Naam:** "Hoot: je nieuws op één plek".
+  - **Zoekwoorden:** zonder dubbelingen.
+  - **Header en zoekbeeld:** variant papier, nu als concept.
+
 ## [1.51.2] — 2026-10-29 — iOS: Stroom zonder statusregel
 
 - **Stroom:** de regel onder de bronrij ("Alle bronnen · Bijgewerkt om 8:10 · 6 nieuw sinds je vorige bezoek") is weg. Wat je kiest, zie je aan de rondjes (ring en vinkje; "Alle" zet het filter uit), wat nieuw is aan de streep "Hier was je gebleven" in de lijst, en lukt verversen niet, dan staat dat er nog steeds. Iets meer lucht tussen de bronrij en het eerste bericht.
