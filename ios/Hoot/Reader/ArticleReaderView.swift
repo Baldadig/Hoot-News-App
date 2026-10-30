@@ -48,7 +48,7 @@ struct ArticleReaderView: View {
                                 .font(.footnote)
                                 .foregroundStyle(Theme.ink3)
                                 .multilineTextAlignment(.center)
-                            Button("Verder naar de lezer") { loader.retry() }.buttonStyle(.glassProminent)
+                            Button("Verder naar de lezer") { loader.retry() }.buttonStyle(.ink)
                         }
                         .padding()
                         .frame(maxWidth: .infinity)
@@ -60,7 +60,7 @@ struct ArticleReaderView: View {
                     } description: {
                         Text("Sommige pagina's (video, liveblogs, puzzels) hebben geen leesbare tekst, of de uitgever laat de pagina niet zo openen.")
                     } actions: {
-                        Button("Open op de website") { if let url = item.link { openURL(url) } }.buttonStyle(.glassProminent)
+                        Button("Open op de website") { if let url = item.link { openURL(url) } }.buttonStyle(.ink)
                         Button("Toon de pagina hier") { loader.showPage() }.buttonStyle(.glass)
                     }
                 }
@@ -83,7 +83,7 @@ struct ArticleReaderView: View {
                         Label("Tekstgrootte", systemImage: "textformat.size")
                     }
                     if let link = item.link {
-                        ShareLink(item: link, subject: Text(item.title)) { Label("Deel", systemImage: "square.and.arrow.up") }
+                        ShareItemLink(item: item, link: link)
                         Button("Open bij \(sourceName)", systemImage: "safari") { openURL(link) }
                     }
                     SaveButton(item: item)
@@ -95,10 +95,10 @@ struct ArticleReaderView: View {
                 if welcome {
                     Label("Ingelogd bij \(sourceName)", systemImage: "checkmark.circle.fill")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Theme.onAccent)
+                        .foregroundStyle(Theme.paper)
                         .padding(.horizontal, Space.s4)
                         .padding(.vertical, Space.s2)
-                        .background(Theme.accent, in: Capsule())
+                        .background(Theme.ink, in: Capsule()) // een melding is inkt, geen rood
                         .padding(.top, Space.s2)
                         .transition(.move(edge: .top).combined(with: .opacity))
                         .accessibilityAddTraits(.isStaticText)
@@ -144,7 +144,7 @@ struct ArticleReaderView: View {
                 .foregroundStyle(Theme.ink3)
             HStack {
                 Button("Inloggen bij \(sourceName)") { login = LoginTarget(name: sourceName, url: loginURL) }
-                    .buttonStyle(.glassProminent)
+                    .buttonStyle(.ink)
                 Button("Bij de uitgever") { if let url = item.link { openURL(url) } }
                     .buttonStyle(.glass)
             }

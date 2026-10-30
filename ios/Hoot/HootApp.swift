@@ -4,6 +4,8 @@ import SwiftUI
 struct HootApp: App {
     @State private var store = HootStore()
     @State private var account = Account()
+    @State private var alerts = EditionAlerts.shared
+    @UIApplicationDelegateAdaptor(HootAppDelegate.self) private var delegate // seintjes, ook bij een koude start
     @Environment(\.scenePhase) private var phase
 
     init() {
@@ -24,7 +26,11 @@ struct HootApp: App {
 
     // Alleen bij een koude start: het opstartscherm met de stuiterende punt, tot er iets te lezen is.
     @State private var splash = true
-    @State private var handoff = BrandHandoff() // waar "hoot." in het welkom staat
+    @State private var handoff = BrandHandoff() // waar "hoot." staat: in het welkom of linksboven in de Editie
+    private func leaveWelcome() {
+        store.welcomeAgain = false
+        store.onboarded = true
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -34,7 +40,8 @@ struct HootApp: App {
                 if store.onboarded {
                     WidthReader { RootView() }
                 } else {
-                    WelcomeView()
+                    // Opnieuw kiezen (Instellingen): alles begint bij wat je nu hebt; sluiten slaat niets op.
+                    WelcomeView(reopen: store.welcomeAgain, onCancel: store.welcomeAgain ? { leaveWelcome() } : nil) { leaveWelcome() }
                 }
             }
             .accessibilityHidden(splash) // VoiceOver niet achter het opstartscherm
@@ -42,9 +49,10 @@ struct HootApp: App {
             .animation(.easeInOut(duration: 0.45), value: store.onboarded)
             .environment(store)
             .environment(account)
+            .environment(alerts)
             .tint(Theme.accent)
             .overlay {
-                if splash { SplashView(handoff: handoff).transition(.opacity) }
+                if splash { SplashView(handoff: handoff) }
             }
             .task { await endSplash() }
             .task { await store.load() } // ook al tijdens het welkom: de Editie staat klaar als je begint
@@ -52,39 +60,108 @@ struct HootApp: App {
             // Wat met je account meegaat: wegschrijven; terug in de app: ophalen.
             .onChange(of: store.syncTick) { account.changed() }
             .onChange(of: phase) { _, now in if now == .active { Task { await account.pull() } } }
+            // Seintjes: opnieuw plannen bij elke wijziging, bij een nieuwe Editie, terug in de app en als
+            // de klok verspringt.
+            .task(id: alertPlan) { await planAlerts() }
+            .onChange(of: phase) { _, now in if now == .active { Task { await planAlerts() } } }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in Task { await planAlerts() } }
+            .onChange(of: alerts.arrived) { Task { await store.load() } } // seintje terwijl de app open is
         }
     }
+
+    private var alertPlan: String { "\(store.onboarded && store.notify) \(store.notifySlots.joined(separator: ",")) \(shownEdition ?? "")" }
+    private func planAlerts() async { await alerts.plan(on: store.onboarded && store.notify, slots: store.notifySlots, shown: shownEdition) }
+    // De Editie die de app al heeft, als "2026-10-31-ochtend": daarvoor geen seintje meer.
+    private var shownEdition: String? { store.edition.flatMap { e in e.date.flatMap { d in e.slot.map { "\(d)-\($0)" } } } }
 
     // Minstens één hele sprong, dan weg zodra de editie er is (of laden mislukt); hooguit 5 seconden.
     private func endSplash() async {
         guard splash else { return }
         #if DEBUG
         if DebugLaunch.screen("opstart") { return } // `-HootScreen opstart`: blijft staan voor opnamen
-        if UserDefaults.standard.string(forKey: "HootStartTab") != nil { splash = false; return }
+        // Opnamen op een tabblad slaan het opstartscherm over; met `-HootOnboarded YES` erbij niet (zo
+        // test je de opstart naar de Stroom).
+        if UserDefaults.standard.string(forKey: "HootStartTab") != nil, !UserDefaults.standard.bool(forKey: "HootOnboarded") {
+            splash = false; handoff.landed = true; return
+        }
         #endif
         let start = Date.now
         try? await Task.sleep(for: .seconds(SplashView.bounce))
         while store.status != .ready && store.status != .failed && Date.now.timeIntervalSince(start) < 5 {
             try? await Task.sleep(for: .milliseconds(100))
         }
-        // Naar het welkom: het woordmerk landt op "hoot." en het rood sluit zich als een iris tot de rode
-        // punt; de rand veegt de witte letters weg en de inkt staat er al. Naar de app, zonder plek of
-        // met "Verminder beweging": gewoon vervagen.
+        // Dan nog even wachten tot de Editie eronder getekend is: dat houdt de hoofddraad een paar
+        // tienden bezig, en een overgang die dan begint, slaat zijn eerste stuk over (het merk stond in
+        // één beeld al halverwege). Rustig is: twee tikjes van 40 ms op tijd; hooguit 1 s.
+        let settle = Date.now
+        var calm = 0
+        while calm < 2 && Date.now.timeIntervalSince(settle) < 1 {
+            let tick = Date.now
+            try? await Task.sleep(for: .milliseconds(40))
+            calm = Date.now.timeIntervalSince(tick) < 0.07 ? calm + 1 : 0
+        }
+        // Naar de rode intro van het welkom: het rood blijft, alleen het woordmerk landt op "hoot."
+        // linksboven, met de punt stil in zijn rust (geen sprong halverwege). De iris komt daarna, bij
+        // de eerste papieren stap (WelcomeView).
+        if !UIAccessibility.isReduceMotionEnabled, handoff.onRed, !store.onboarded, handoff.word != nil, handoff.dot != nil {
+            if let start = handoff.bounceStart {
+                // Een sprong: 1,06 s in beweging, dan 0,54 s stil. Vertrekken in het begin van die rust.
+                let phase = Date.now.timeIntervalSince(start).truncatingRemainder(dividingBy: SplashView.bounce)
+                if phase < 1.08 || phase > 1.5 {
+                    try? await Task.sleep(for: .seconds((1.08 - phase + SplashView.bounce).truncatingRemainder(dividingBy: SplashView.bounce)))
+                }
+            }
+            var duration = 0.7
+            #if DEBUG
+            duration *= max(1, UserDefaults.standard.double(forKey: "HootSlowSplash"))
+            #endif
+            handoff.duration = duration
+            withAnimation(.timingCurve(0.6, 0, 0.2, 1, duration: duration)) { handoff.leaving = true }
+            // Het woord landt in 0,55 van die tijd (SplashView); dan ligt het precies op de intro, in
+            // dezelfde kleuren. Het opstartscherm vervaagt: woordmerk en rood blijven gelijk, alleen de
+            // tekst van de intro komt rustig op.
+            try? await Task.sleep(for: .seconds(duration * 0.55 + 0.1))
+            await fadeSplash(0.3)
+            splash = false
+            handoff.landed = true
+            return
+        }
+        // Het woordmerk landt op "hoot." (klein linksboven in de Editie) en het rood
+        // sluit zich als een iris tot de rode punt; de rand veegt de witte letters weg en de inkt staat
+        // er al. Is er geen "hoot." in beeld (de app opent op de Stroom of de Selectie), dan sluit het
+        // rood tot de eigen punt van het opstartscherm, die daarna kort vervaagt. Met "Verminder
+        // beweging": gewoon vervagen.
         // Een vaste curve in plaats van een veer: die heeft een staart, en als het opstartscherm dan op tijd
         // weggaat, is het rood nog net niet op maat en verspringt de punt.
-        if !store.onboarded, handoff.dot != nil, handoff.word != nil, !UIAccessibility.isReduceMotionEnabled {
-            var duration = 0.7
+        if !UIAccessibility.isReduceMotionEnabled {
+            let lands = handoff.dot != nil && handoff.word != nil
+            var duration = 0.6
             #if DEBUG
             duration *= max(1, UserDefaults.standard.double(forKey: "HootSlowSplash")) // `-HootSlowSplash 6`: in slow motion
             #endif
             handoff.duration = duration
             withAnimation(.timingCurve(0.6, 0, 0.2, 1, duration: duration)) { handoff.leaving = true }
-            try? await Task.sleep(for: .seconds(duration))
-            splash = false
+            // In donker is de punt lichter rood dan het opstartscherm: het laatste stuk kleurt het rood mee,
+            // anders verspringt de kleur als het opstartscherm weggaat. In licht zijn ze gelijk.
+            try? await Task.sleep(for: .seconds(duration * 0.6))
+            withAnimation(.easeInOut(duration: duration * 0.4)) { handoff.tinted = true }
+            // Een tiende langer dan de curve: die begint een paar beelden later, en het rood krimpt van
+            // schermgroot tot een paar punt, dus ook het laatste procent is nog zichtbaar. Zonder die
+            // marge springt de punt op het eind van twee keer zo groot naar zijn maat.
+            try? await Task.sleep(for: .seconds(duration * 0.4 + 0.1))
+            if !lands { await fadeSplash(0.15) }
         } else {
-            withAnimation(.easeOut(duration: 0.35)) { splash = false }
+            await fadeSplash(0.35)
         }
+        splash = false
         handoff.landed = true
+    }
+
+    // Vervagen en dan pas weghalen. Via `handoff`, dat SplashView zelf leest: een animatie op staat
+    // van de App zelf (`.transition(.opacity)` bij het weghalen) kwam niet aan en werd een harde knip.
+    private func fadeSplash(_ duration: Double) async {
+        withAnimation(.easeOut(duration: duration)) { handoff.fading = true }
+        try? await Task.sleep(for: .seconds(duration))
     }
 }
 
@@ -97,6 +174,7 @@ struct RootView: View {
     @State private var reader = Reader()
     @Environment(\.scenePhase) private var phase
     @SceneStorage("tab") private var tab: Destination = .editie
+    @Environment(EditionAlerts.self) private var alerts
 
     enum Destination: String, Sendable { case editie, stroom, digest, bewaard, zoek }
 
@@ -158,6 +236,14 @@ struct RootView: View {
             // Ook na een mislukte koude start (nog niets geladen): dan meteen opnieuw proberen.
             guard now == .active else { return }
             if store.updatedAt.map({ Date.now.timeIntervalSince($0) > 15 * 60 }) ?? true || store.status == .failed { Task { await store.load() } }
+        }
+        // Getikt op een seintje: de lezer dicht, naar de Editie, en de nieuwe ophalen.
+        .onChange(of: alerts.openEdition, initial: true) { _, open in
+            guard open else { return }
+            alerts.openEdition = false
+            reader.item = nil
+            tab = .editie
+            Task { await store.load() }
         }
         .environment(reader)
         .fullScreenCover(item: $reader.item) { item in

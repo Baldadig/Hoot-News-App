@@ -33,14 +33,25 @@ final class HootStore {
 
     // Weergave en lezen (zelfde namen en waarden als de web-app, voor het synchroniseren later)
     var images: String { didSet { save("hoot.images", images); synced() } } // aan | hoofd | uit
+    // Lees de Stroom als: tijdlijn (kop, intro, beeld over de volle breedte) of krant (klein beeld rechts).
+    var layout: String { didSet { save("hoot.layout", layout); synced() } } // tijdlijn | krant
     var bubble: Bool { didSet { save("hoot.bubble", bubble); synced() } } // "Buiten je bubbel" in de Editie
     var openInSafari: Bool { didSet { save("hoot.openInSafari", openInSafari) } } // vóór 0.12; nu `openWith`
     // Waar artikelen openen: "lezer" (de Hoot-lezer) of "safari" (de Safari-app, waar je al bent ingelogd).
     var openWith: String { didSet { save("hoot.openWith", openWith) } }
     var preview: Int { didSet { save("hoot.preview", preview); synced() } } // regels intro bij een bericht; 0 = de hele intro
     var onboarded: Bool { didSet { save("hoot.onboarded", onboarded) } } // het welkom is gezien
+    // Het welkom opnieuw, vanuit Instellingen: het begint bij je huidige keuzes. Niet bewaard.
+    var welcomeAgain = false
+    // Een seintje bij een nieuwe Editie (EditionAlerts), per dagdeel aan of uit. Alleen op dit
+    // toestel: niet `synced()`, want toestemming geldt per toestel.
+    var notify: Bool { didSet { save("hoot.notify", notify) } }
+    var notifySlots: [String] { didSet { save("hoot.notifySlots", notifySlots) } }
     // Jouw editie: je interesses (src/lib/topics.js), voorkeursbronnen (ster) en smaak (wat je leest).
     var interests: [String] { didSet { save("hoot.interests", interests); refreshPersonal(); synced() } }
+    // Wat precies? De onderwerpen die je volgt, opgelost zoals op de website (prefs.topics): per
+    // interesse wat je aantikte, of alle als je daar niets koos. Leeg = alles binnen je interesses.
+    var topics: [String] { didSet { save("hoot.topics", topics); refreshPersonal(); synced() } }
     var favorites: [String] { didSet { save("hoot.favorites", favorites); refreshPersonal(); synced() } }
     private(set) var affinity: Affinity { didSet { save("hoot.affinity", affinity) } }
     // Meer of minder hiervan (Models.swift: Taste): gaat mee met je account.
@@ -93,6 +104,7 @@ final class HootStore {
             if Self.read("read.json") as [String]? != nil { UserDefaults.standard.removeObject(forKey: "hoot.read") }
         }
         images = Self.load("hoot.images") ?? "aan"
+        layout = DebugLaunch.layout ?? Self.load("hoot.layout") ?? "tijdlijn"
         bubble = Self.load("hoot.bubble") ?? true
         openInSafari = Self.load("hoot.openInSafari") ?? false
         // Twee keuzes: de lezer of Safari. Wie "Op de website" had (tot 1.0.1), gaat naar Safari.
@@ -110,8 +122,15 @@ final class HootStore {
         #if DEBUG
         // Opnamen met een startargument (screenshots.sh, device-screens.sh) slaan het welkom over.
         if UserDefaults.standard.string(forKey: "HootStartTab") != nil { onboarded = true }
+        // `-HootOnboarded YES`: het welkom overslaan maar wel het opstartscherm (de overgang naar de Editie).
+        if UserDefaults.standard.bool(forKey: "HootOnboarded") { onboarded = true }
+        // `-HootFresh YES` of `-HootWelcomeStep …`: het welkom als nieuwe gebruiker.
+        if DebugLaunch.fresh { onboarded = false }
         #endif
+        notify = Self.load("hoot.notify") ?? false
+        notifySlots = Self.load("hoot.notifySlots") ?? EditionAlerts.slots.map(\.id)
         interests = Self.load("hoot.interests") ?? []
+        topics = Self.load("hoot.topics") ?? []
         favorites = Self.load("hoot.favorites") ?? []
         affinity = Self.load("hoot.affinity") ?? Affinity()
         taste = Self.load("hoot.taste") ?? Taste()
@@ -131,23 +150,27 @@ final class HootStore {
             var enabled: [String]?
             var vak: [String]?
             var images: String?
+            var layout: String?
             var bubble: Bool?
             var bluesky: Bool?
             var preview: Int?
             var interests: [String]?
+            var topics: [String]?
             var favorites: [String]?
             var social: [BlueskyAccount]? // eigen Bluesky-accounts, zoals op de website
             var taste: Taste?
-            enum CodingKeys: String, CodingKey { case muted, enabled, vak, images, bubble, bluesky, preview, interests, favorites, social, taste }
+            enum CodingKeys: String, CodingKey { case muted, enabled, vak, images, layout, bubble, bluesky, preview, interests, topics, favorites, social, taste }
             init(from decoder: Decoder) throws {
                 let c = try decoder.container(keyedBy: CodingKeys.self)
                 muted = try? c.decodeIfPresent([String].self, forKey: .muted)
                 enabled = try? c.decodeIfPresent([String].self, forKey: .enabled)
                 vak = try? c.decodeIfPresent([String].self, forKey: .vak)
                 images = try? c.decodeIfPresent(String.self, forKey: .images)
+                layout = try? c.decodeIfPresent(String.self, forKey: .layout)
                 bubble = try? c.decodeIfPresent(Bool.self, forKey: .bubble)
                 bluesky = try? c.decodeIfPresent(Bool.self, forKey: .bluesky)
                 interests = try? c.decodeIfPresent([String].self, forKey: .interests)
+                topics = try? c.decodeIfPresent([String].self, forKey: .topics)
                 favorites = try? c.decodeIfPresent([String].self, forKey: .favorites)
                 social = try? c.decodeIfPresent([BlueskyAccount].self, forKey: .social)
                 taste = try? c.decodeIfPresent(Taste.self, forKey: .taste)
@@ -172,10 +195,12 @@ final class HootStore {
         if let v = p?.enabled, Set(v) != enabled { enabled = Set(v); save("hoot.enabled", v) }
         if let v = p?.vak, v != digestFields { digestFields = v; save("hoot.digestFields", v) }
         if let v = p?.images, v != images, ["aan", "hoofd", "uit"].contains(v) { images = v; save("hoot.images", v) }
+        if let v = p?.layout, v != layout, ["tijdlijn", "krant"].contains(v) { layout = v; save("hoot.layout", v) }
         if let v = p?.bubble, v != bubble { bubble = v; save("hoot.bubble", v) }
         if let v = p?.bluesky, v != bluesky { bluesky = v; save("hoot.bluesky", v) }
         if let v = p?.preview, v != preview, (0 ... 3).contains(v) { preview = v; save("hoot.preview", v) }
         if let v = p?.interests, v != interests { interests = v; save("hoot.interests", v) }
+        if let v = p?.topics, v != topics { topics = v; save("hoot.topics", v) }
         if let v = p?.favorites, v != favorites { favorites = v; save("hoot.favorites", v) }
         if let v = p?.taste, v != taste { taste = v; save("hoot.taste", v) }
         if let v = p?.social {
@@ -193,12 +218,13 @@ final class HootStore {
     private var applyingRemote = false
     private func synced() { if !applyingRemote { syncTick &+= 1 } }
 
-    // Je instellingen in de vorm van de website (SYNCED_PREFS in src/lib/sync.js).
+    // Je instellingen in de vorm van de website (SYNCED_PREFS in src/lib/sync.js). `layout` staat daar
+    // nog niet bij: de app schrijft hem al in hetzelfde veld, het web volgt.
     var syncedPrefs: [String: Any] {
         [
-            "muted": muted.sorted(), "enabled": enabled.sorted(), "vak": digestFields, "images": images,
+            "muted": muted.sorted(), "enabled": enabled.sorted(), "vak": digestFields, "images": images, "layout": layout,
             "bubble": bubble, "bluesky": bluesky, "preview": preview == 0 ? "alles" as Any : preview as Any,
-            "interests": interests, "favorites": favorites, "onboarded": true,
+            "interests": interests, "topics": topics, "favorites": favorites, "onboarded": true,
             "taste": ["topics": taste.topics, "sources": taste.sources],
             "social": ownBluesky.map { ["handle": $0.handle, "name": $0.name, "avatar": $0.avatar as Any] },
         ]
@@ -252,9 +278,12 @@ final class HootStore {
     // "Begin met lezen": een zachte landing. Alleen Nederlandse bronnen, allemaal gratis, dus elk
     // stuk is helemaal te lezen: nieuws, sport, tech en cultuur. Zelfde set als de website
     // (STARTER in src/lib/topics.js); later aan te passen bij Bronnen.
-    static let starter = ["nos", "nu", "rtl", "nos-sport", "vi", "tweakers", "nos-cultuur", "3voor12"]
-    func quickStart() {
-        let set = Set(Self.starter)
+    static let starterGroups: [(label: String, ids: [String])] = [
+        ("Nieuws", ["nos", "nu", "rtl"]), ("Sport", ["nos-sport", "vi"]), ("Tech", ["tweakers"]), ("Cultuur", ["nos-cultuur", "3voor12"]),
+    ]
+    static let starter = starterGroups.flatMap(\.ids)
+    func quickStart(ids: [String] = HootStore.starter) {
+        let set = Set(ids)
         enabled = set
         if sources.isEmpty {
             quickPending = true // nog geen bronnen geladen: bij het laden alsnog
@@ -272,6 +301,38 @@ final class HootStore {
     // Eerst even rondgekeken (zachte start): na een stukje editie één keer de vraag of je zelf
     // je bronnen kiest. Weg zodra je dat doet, "Later" zegt of inlogt.
     var browsing: Bool { didSet { save("hoot.browsing", browsing) } }
+
+    // ---- Interesses en Wat precies? ----
+    // Beide tegelijk, zodat de onderwerpen altijd bij je interesses horen: wat je aantikte binnen
+    // een interesse die je uitzet, valt weg. Interesses op de volgorde van de rubrieken.
+    func setInterests(_ ids: [String], picked: [String]) {
+        let next = Rubriek.alle.map(\.id).filter(ids.contains)
+        let mine = Rubriek.resolve(next, picked: picked)
+        if next != interests { interests = next }
+        if mine != topics { topics = mine }
+    }
+    // Welke bronnen in het welkom vooraf aan staan (suggestSources in src/lib/topics.js).
+    func suggested(interests: [String], topics: [String]) -> [String] {
+        newsSources.filter { $0.pick == true }.filter { s in
+            if let t = s.forTopic { return topics.contains(t) }
+            return s.forInterests.map { $0.contains(where: interests.contains) } ?? true
+        }.map(\.id)
+    }
+    // Welkom klaar (applyWelcome in src/lib/welcome.js): interesses, onderwerpen en bronnen worden je
+    // instellingen. Alleen de bronnen die in het welkom te kiezen waren (`shown`) veranderen.
+    func applyWelcome(interests ids: [String], topics mine: [String], sources on: [String], shown: [Source], vak: [String]? = nil) {
+        let ids = Rubriek.alle.map(\.id).filter(ids.contains)
+        let on = Set(on), seen = Set(shown.map(\.id))
+        if ids != interests { interests = ids }
+        if mine != topics { topics = mine }
+        if let vak, vak != digestFields { digestFields = vak }
+        muted = muted.filter { !seen.contains($0) }.union(shown.filter { !($0.optional ?? false) && !on.contains($0.id) }.map(\.id))
+        enabled = enabled.filter { !seen.contains($0) }.union(shown.filter { ($0.optional ?? false) && on.contains($0.id) }.map(\.id))
+        browsing = false
+        rebuildStream()
+        reloadParts()
+        refreshPersonal()
+    }
 
     var newsSources: [Source] { sources.filter { $0.kind != "sociaal" } }
     var followed: [Source] { newsSources.filter(isOn) }
@@ -334,7 +395,7 @@ final class HootStore {
         do {
             let (start, fromCache) = try await HootAPI.start()
             sources = start.sources
-            if quickPending { muted = Set(newsSources.map(\.id).filter { !Self.starter.contains($0) }); quickPending = false }
+            if quickPending { muted = Set(newsSources.map(\.id).filter { !enabled.contains($0) }); quickPending = false }
             storiesById = Dictionary(start.stories.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
             edition = start.edition
             updatedAt = start.meta.updatedAt.flatMap(HootDate.parse)
@@ -461,7 +522,8 @@ final class HootStore {
     func setFavorite(_ id: String, _ on: Bool) { favorites = on ? Array(Set(favorites + [id])).sorted() : favorites.filter { $0 != id } }
 
     // Afdruk van wat je editie bepaalt: verandert die (bronnen, interesses, voorkeuren), dan opnieuw.
-    private var basisNow: String { [followed.map(\.id).sorted().joined(separator: ","), interests.sorted().joined(separator: ","), favorites.sorted().joined(separator: ",")].joined(separator: "|") }
+    // Zoals editionBasis op de website: bronnen, interesses, onderwerpen en voorkeursbronnen.
+    private var basisNow: String { [followed.map(\.id).sorted(), interests.sorted(), topics.sorted(), favorites.sorted()].map { $0.joined(separator: ",") }.joined(separator: "|") }
     private var personalTask: Task<Void, Never>?
     private func refreshPersonal() {
         guard edition != nil else { return }
@@ -477,7 +539,7 @@ final class HootStore {
         let basis = basisNow
         if let p = personal, p.id == global.id, personalBasis == basis { return }
         let previous = personal.flatMap { $0.id != global.id ? previousOf($0) : nil }
-        let body = PersonalRequest(followed: followed.map(\.id), interests: interests, favorites: favorites, affinity: affinity.n > 0 ? affinity : nil, taste: taste.isEmpty ? nil : taste, previous: previous)
+        let body = PersonalRequest(followed: followed.map(\.id), interests: interests, topics: topics, favorites: favorites, affinity: affinity.n > 0 ? affinity : nil, taste: taste.isEmpty ? nil : taste, previous: previous)
         guard let mine = try? await HootAPI.personal(body), mine.id == global.id, basis == basisNow else { return }
         personal = mine
         personalBasis = basis

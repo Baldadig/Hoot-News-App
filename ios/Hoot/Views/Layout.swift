@@ -6,6 +6,10 @@ import SwiftUI
 enum Layout {
     static let readable: CGFloat = 680 // leesbreedte: comfortabele regellengte voor lopende tekst
     static let wide: CGFloat = 1000 // brede pagina (editie, digest) op iPad en opengevouwen
+    // Miniatuur in de krant-indeling: 3:2 op een vaste breedte, 96 × 64; bij grotere tekst 108 × 72
+    // (beide op de 4-pt-schaal). Op het web is dat --thumb-size.
+    static let thumb: CGFloat = 96
+    static let thumbLarge: CGFloat = 108
 }
 
 // Ruimte: één schaal van 4 pt, gelijk aan --s1…--s7 op de website. Elke padding en tussenruimte

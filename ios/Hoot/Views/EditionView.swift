@@ -70,10 +70,27 @@ struct EditionView: View {
     @Environment(HootStore.self) private var store
     @Environment(\.openTab) private var openTab
     @Environment(\.isWide) private var wide
+    @Environment(\.brandHandoff) private var handoff
+    @Environment(\.accessibilityReduceMotion) private var still
+    @Environment(EditionAlerts.self) private var alerts
+    @State private var alertsOn = false // net "ja" gezegd op het seintje onderaan
+    // Bij een koude start ligt de krant 8 pt lager en schuift op zijn plek terwijl het rood van het
+    // opstartscherm zich sluit, met dezelfde curve: het merk landt, de krant gaat open.
+    private var rising: Bool { !still && handoff?.landed == false && handoff?.leaving == false }
     private var title: String { store.edition?.slot.flatMap { Desk.slots[$0] } ?? "Editie" }
     private var dateLine: String {
         guard let d = store.edition?.date, let date = HootDate.day(d) else { return "" }
         return date.formatted(HootDate.style(.dateTime.weekday(.wide).day().month(.wide))).capitalizedFirst
+    }
+
+    // Wanneer de volgende er is, in dagdelen: geen kloktijden.
+    private var upNext: String {
+        switch store.edition?.slot {
+        case "ochtend": " De volgende staat in de middag voor je klaar."
+        case "middag": " De volgende staat in de vroege avond voor je klaar."
+        case "avond": " De volgende staat morgenochtend voor je klaar."
+        default: ""
+        }
     }
 
     @State private var path = NavigationPath()
@@ -105,6 +122,31 @@ struct EditionView: View {
         }
     }
 
+    // Een rustig tweede instappunt voor het seintje (het eerste staat in Instellingen): alleen zolang
+    // iOS nog niet weet of je meldingen wilt. Na ja of nee verdwijnt het vanzelf; na een ja zegt het
+    // nog even wanneer.
+    @ViewBuilder private var alertOffer: some View {
+        if alertsOn {
+            Label("Je krijgt een seintje als de volgende klaarligt.", systemImage: "bell")
+                .font(.subheadline)
+                .frame(minHeight: Space.tap)
+                .transition(.opacity)
+        } else if alerts.permission == .notDetermined && !store.notify {
+            Button {
+                Task {
+                    guard await alerts.ask() else { return }
+                    store.notifySlots = EditionAlerts.slots.map(\.id)
+                    withAnimation(.easeInOut(duration: 0.3)) { store.notify = true; alertsOn = true }
+                }
+            } label: {
+                Label { Text("Seintje als hij klaarligt?").underline() } icon: { Image(systemName: "bell") }
+            }
+            .font(.subheadline.weight(.semibold))
+            .frame(minHeight: Space.tap)
+            .transition(.opacity)
+        }
+    }
+
     var body: some View {
         NavigationStack(path: $path) {
             ScrollViewReader { proxy in
@@ -132,33 +174,38 @@ struct EditionView: View {
                                 ForEach(rows.dropFirst()) { row in
                                     VStack(alignment: .leading, spacing: 0) {
                                         Rule().padding(.vertical, Space.s2)
-                                        slot(row) { ItemRow(item: row.item, label: row.label, story: row.story) }
+                                        slot(row) { ItemRow(item: row.item, label: row.label, story: row.story, form: .krant) }
                                     }
                                 }
                             }
                         } else {
                             ForEach(rows.dropFirst()) { row in
                                 Rule().padding(.vertical, Space.s2)
-                                slot(row) { ItemRow(item: row.item, label: row.label, story: row.story) }
+                                slot(row) { ItemRow(item: row.item, label: row.label, story: row.story, form: .krant) }
                             }
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,
                         // en wanneer de volgende er is.
                         VStack(spacing: Space.s3) {
-                            Text("h\(Text(".").foregroundStyle(Theme.onBrandRed))")
-                                .font(.system(size: 40, weight: .heavy, design: .serif))
-                                .accessibilityHidden(true)
+                            // Het teken "h." als tekening, 44 hoog; op merkrood alles papier, ook de punt.
+                            BrandMark(height: 44, ink: Theme.onBrandRed, dot: Theme.onBrandRed)
                             Text("Je bent bij.").font(Theme.headline(.title))
-                            Text("Dit was de \(title.lowercased())\(dateLine.isEmpty ? "" : " van \(dateLine.lowercased())").\(store.edition?.next.map { " De volgende staat klaar om \($0)." } ?? "")")
+                            Text("Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(dateLine.lowercased())").\(upNext)")
                                 .font(.subheadline)
                                 .multilineTextAlignment(.center)
-                            // Het einde is leidend; verder lezen mag, als rustige link in plaats van een knop.
-                            Button { openTab(.stroom) } label: {
-                                Text("Of lees verder in de Stroom").underline()
+                            // De links direct onder elkaar: hun aanraakvlak (44 pt) is de ruimte ertussen,
+                            // zodat tekst, seintje en Stroom op gelijke afstand staan.
+                            VStack(spacing: 0) {
+                                alertOffer
+                                // Het einde is leidend; verder lezen mag, als rustige link in plaats van een knop.
+                                Button { openTab(.stroom) } label: {
+                                    Text("Of lees verder in de Stroom").underline()
+                                }
+                                .font(.subheadline.weight(.semibold))
+                                .opacity(0.85)
+                                .frame(minHeight: Space.tap)
                             }
-                            .font(.subheadline.weight(.semibold))
-                            .opacity(0.85)
-                            .frame(minHeight: Space.tap)
+                            .animation(still ? nil : .easeInOut(duration: 0.3), value: alerts.permission) // na een nee: rustig weg
                         }
                         .foregroundStyle(Theme.onBrandRed)
                         .frame(maxWidth: .infinity)
@@ -171,6 +218,7 @@ struct EditionView: View {
                 }
                 .padding(.horizontal)
                 .column(wide ? Layout.wide : Layout.readable)
+                .offset(y: rising ? 8 : 0)
             }
             .debugJump(proxy, to: Self.slotTarget(store.editionRows), when: store.editionRows.count)
             // Wie eerst even rondkijkt: na ongeveer een derde van de editie één keer de vraag.
@@ -184,11 +232,9 @@ struct EditionView: View {
             .safeAreaInset(edge: .bottom) {
                 if nudge && store.browsing { MakeItYours(choose: { setup = true }, later: { withAnimation { store.browsing = false } }) }
             }
+            // De stappen van het welkom vanaf de interesses, met Annuleer op de eerste.
             .sheet(isPresented: $setup) {
-                NavigationStack {
-                    SetupSteps { store.browsing = false; setup = false }
-                        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Annuleer", role: .cancel) { setup = false } } }
-                }
+                WelcomeView(start: .interesses, onCancel: { setup = false }) { store.browsing = false; setup = false }
             }
             .debugScroll()
             .background(Theme.paper)
@@ -198,7 +244,8 @@ struct EditionView: View {
             .refreshable { await store.load() }
             .toolbar {
                 // Het woordmerk, klein linksboven: je ziet waar je bent, zonder dat het de krant overneemt.
-                ToolbarItem(placement: .topBarLeading) { Wordmark() }
+                // Hier landt het opstartscherm op.
+                ToolbarItem(placement: .topBarLeading) { Wordmark(handoff: true) }
                     .sharedBackgroundVisibility(.hidden)
             }
             .settingsButton()
@@ -248,7 +295,7 @@ struct StoryView: View {
             // Het hoofdbericht staat al bovenaan (tik op de kop): niet nog eens in de lijst.
             ForEach(items.filter { $0.id != lead?.id }) { item in
                 // In een lijst maakt een link in de rij de hele rij tot link: hier geen bronlink.
-                ItemRow(item: item, label: label(item), linkSource: false)
+                ItemRow(item: item, label: label(item), linkSource: false, form: .krant)
                     .listRowBackground(Theme.surface)
             }
         }
@@ -259,6 +306,12 @@ struct StoryView: View {
         .background(Theme.paper)
         .navigationTitle("Vergelijken")
         .navigationBarTitleDisplayMode(.inline)
+        // Het verhaal delen = het stuk bovenaan delen, met de link van zijn uitgever.
+        .toolbar {
+            if let lead, let link = lead.link {
+                ToolbarItem(placement: .primaryAction) { ShareItemLink(item: lead, link: link) }
+            }
+        }
         .task { items = await store.storyItems(story) }
     }
 
@@ -289,11 +342,8 @@ struct MakeItYours: View {
                 .foregroundStyle(Theme.ink2)
                 .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: Space.s4) {
-                Button(action: choose) {
-                    Text("Kies je bronnen").font(.headline).padding(.horizontal, Space.s5).frame(minHeight: Space.tap)
-                }
-                .foregroundStyle(.white)
-                .background(Theme.accent, in: Capsule())
+                // Een knop op papier is inkt, zoals in het welkom (rood is voor het merk).
+                Button("Kies je bronnen", action: choose).buttonStyle(.ink)
                 Button("Later", action: later)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Theme.ink2)

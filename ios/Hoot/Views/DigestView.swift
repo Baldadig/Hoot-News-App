@@ -1,6 +1,6 @@
 import SwiftUI
 
-// Selectie: elke maandag om 7 uur per onderwerp de drie belangrijkste stukken van de week ervoor,
+// Selectie: elke maandagochtend per onderwerp de drie belangrijkste stukken van de week ervoor,
 // door mensen geschreven. Opbouw als een tijdschrift: kop met de week, per onderwerp een opening, het eerste
 // stuk groot, twee kaarten, en "Ook deze week".
 struct DigestView: View {
@@ -84,10 +84,10 @@ struct DigestView: View {
                 .font(Theme.headline(.title2))
                 .fixedSize(horizontal: false, vertical: true)
             if d.preview == true, let next = d.next.flatMap(HootDate.parse) {
-                Text("De eerste volle Selectie komt \(next.formatted(HootDate.style(.dateTime.weekday(.wide).day().month(.wide)))) om 7 uur.")
+                Text("De eerste volle Selectie komt \(next.formatted(HootDate.style(.dateTime.weekday(.wide).day().month(.wide)))) in de ochtend.")
                     .font(.subheadline).foregroundStyle(Theme.ink3)
             } else {
-                Text("Elke maandag om 7 uur een nieuwe.").font(.subheadline).foregroundStyle(Theme.ink3)
+                Text("Elke maandagochtend een nieuwe.").font(.subheadline).foregroundStyle(Theme.ink3)
             }
         }
         .padding(.vertical, Space.s4)

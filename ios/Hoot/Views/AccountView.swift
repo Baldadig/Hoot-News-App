@@ -101,7 +101,7 @@ struct AccountView: View {
                 .environment(\.brandHandoff, nil)
             Text("Inloggen")
                 .font(Theme.headline(.title))
-                .padding(.top, Space.s4)
+                .padding(.top, Space.s5) // het getekende merk heeft geen lucht onder de letters, zoals tekst
             Text("Je Hoot op al je apparaten.")
                 .font(.body)
                 .foregroundStyle(Theme.ink2)

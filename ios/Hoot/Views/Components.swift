@@ -1,5 +1,6 @@
 import SafariServices
 import SwiftUI
+import UniformTypeIdentifiers
 
 // Huisstijl: warm papier, inkt, krantenrood. Koppen in New York (de serif van het systeem: past
 // bij Newsreader op het web en schaalt mee met Dynamische tekst), de rest in San Francisco.
@@ -20,7 +21,7 @@ enum Theme {
     // Merkrood: het diepe krantenrood als vol vlak, in licht en donker gelijk. Alleen voor
     // merkmomenten (opstarten, welkom, einde van de editie); verder is het accent een detail.
     static let brandRed = Color("BrandRed")
-    static let onBrandRed = Color("OnBrandRed") // tekst op merkrood, 7,6:1
+    static let onBrandRed = Color("OnBrandRed") // alles op merkrood: papier #F5F1E8 (6,9:1), zoals het opstartscherm
     static let accent = Color("AccentColor") // de kleur zelf: "accentColor" volgt de tint, en die valt soms terug op systeemblauw
     static func headline(_ style: Font.TextStyle) -> Font { .system(style, design: .serif, weight: .bold) }
 }
@@ -55,20 +56,55 @@ struct SafariView: UIViewControllerRepresentable {
     func updateUIViewController(_ vc: SFSafariViewController, context: Context) {}
 }
 
+// Een knop op papier: inkt met papier, een pil, gewicht 800 (brandboard: Knop). Rood is voor het merk
+// en voor wat gekozen is, niet voor wat je doet; een tweede knop is stil (`.glass` of een link).
+struct InkButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var enabled
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.headline.weight(.heavy))
+            .foregroundStyle(Theme.paper)
+            .padding(.horizontal, Space.s5)
+            .frame(minHeight: Space.tap)
+            .background(Theme.ink.opacity(configuration.isPressed ? 0.78 : 1), in: Capsule())
+            .contentShape(Capsule())
+            .opacity(enabled ? 1 : 0.45)
+    }
+}
+extension ButtonStyle where Self == InkButtonStyle {
+    static var ink: InkButtonStyle { InkButtonStyle() }
+}
+
 // Haarlijn tussen berichten: `rule`, één pixel, decoratief.
 struct Rule: View {
     var body: some View { Rectangle().fill(Theme.rule).frame(height: 1).accessibilityHidden(true) }
 }
 
-// "hoot." in de krantenletter met de rode punt, zoals op de website.
+// "hoot." met de rode punt, als tekening (`BrandWord`), zoals op de website: in de Editie op de
+// kleinste maat van het merk (64 breed, 20 hoog), dezelfde als in het welkom. Groeit begrensd mee
+// met de tekst (tot xxLarge). Met `handoff` meldt dit woordmerk waar het staat (`BrandHandoff`), zodat
+// het opstartscherm er precies op kan landen; alleen dat in de Editie, anders overschrijft het welkom
+// de plek van `IntroMark`.
 struct Wordmark: View {
+    var handoff = false
     var body: some View {
-        Text("hoot\(Text(".").foregroundStyle(Theme.accent))")
-            .font(.system(.title3, design: .serif, weight: .heavy))
+        WordmarkBody(handoff: handoff)
             .dynamicTypeSize(...DynamicTypeSize.xxLarge)
-            .fixedSize() // nooit afgekapt tot "h…"
+            .accessibilityElement()
             .accessibilityLabel("Hoot")
             .accessibilityAddTraits(.isHeader)
+    }
+}
+
+private struct WordmarkBody: View {
+    let handoff: Bool
+    @Environment(\.brandHandoff) private var brand
+    @ScaledMetric(relativeTo: .title3) private var scale = WelcomeMark.scale
+
+    var body: some View {
+        BrandWord(scale: scale, handoff: handoff ? brand : nil)
+            // Niet meer in beeld (ander tabblad, scherm weg): dan valt er niets te landen.
+            .onDisappear { if handoff { brand?.word = nil; brand?.dot = nil } }
     }
 }
 
@@ -275,7 +311,7 @@ struct ArticleActions: ViewModifier {
             .contextMenu {
                 Button(store.isSaved(item) ? "Verwijder uit Bewaard" : "Bewaar", systemImage: store.isSaved(item) ? "bookmark.slash" : "bookmark") { store.toggleSave(item) }
                 if let link = item.link {
-                    ShareLink(item: link, subject: Text(item.title)) { Label("Deel", systemImage: "square.and.arrow.up") }
+                    ShareItemLink(item: item, link: link)
                     Link(destination: link) { Label("Open in Safari", systemImage: "safari") }
                 }
                 if let tasteVote {
@@ -285,6 +321,53 @@ struct ArticleActions: ViewModifier {
                     }
                 }
             }
+    }
+}
+
+// Delen via het deelmenu van iOS: altijd de link van de uitgever (nooit een Hoot-link), met de
+// Hoot-kop als voorbeeld, want betaalde sites geven het deelblad soms alleen "Abonneer nu".
+// Geen apart bericht erbij: dan staat in Berichten de kop niet dubbel boven de rijke link.
+// Zet in leeslijst, Instapaper en andere lezers staan er vanzelf in als ze er zijn.
+struct ShareItemLink: View {
+    let item: Item
+    let link: URL
+    var body: some View {
+        let title = item.shareTitle
+        if let image = ImageURL.url(item.image, .thumb) ?? item.avatar.flatMap(URL.init(string:)) {
+            let preview = SharePreviewImage(url: image)
+            ShareLink(item: link, subject: Text(title), preview: SharePreview(title, image: preview, icon: preview)) { label }
+        } else {
+            ShareLink(item: link, subject: Text(title), preview: SharePreview(title)) { label }
+        }
+    }
+
+    private var label: some View { Label("Deel", systemImage: "square.and.arrow.up") }
+}
+
+// Het beeld bij het stuk (of anders het logo van de bron) bovenin het deelblad. Het deelblad haalt
+// het pas op als het opengaat, en meestal staat het al in de cache.
+struct SharePreviewImage: Transferable {
+    let url: URL
+    static var transferRepresentation: some TransferRepresentation {
+        // Als PNG: het deelblad leest niet elk formaat (WebP van de NOS bijvoorbeeld).
+        DataRepresentation(exportedContentType: .png) { image in
+            let data = try await URLSession.shared.data(from: image.url).0
+            guard let png = UIImage(data: data)?.pngData() else { throw URLError(.cannotDecodeContentData) }
+            return png
+        }
+    }
+}
+
+extension Item {
+    // Een Bluesky-post heeft geen kop: dan de titel van de gedeelde link, of het begin van de post.
+    var shareTitle: String {
+        if !title.isEmpty { return title }
+        if let linkTitle, !linkTitle.isEmpty { return linkTitle }
+        let text = summary ?? ""
+        guard !text.isEmpty else { return sourceName ?? "Hoot" }
+        guard text.count > 100 else { return text }
+        let cut = text.prefix(100)
+        return (cut.lastIndex(of: " ").map { String(cut[..<$0]) } ?? String(cut)) + "…"
     }
 }
 
@@ -357,38 +440,57 @@ struct LeadCard: View {
 }
 
 // ---- Vorm 2: compact bericht ----
+// Twee indelingen (Instellingen › Lees de Stroom als; dezelfde keuze als op het web): "tijdlijn" —
+// kop, intro, dan het beeld over de volle kolombreedte in 2:1, met de bronregel eronder — en
+// "krant" — kop en intro links, een klein beeld in 3:2 rechts. Zonder `form` volgt de rij de
+// instelling; de Editie legt krant vast. Een Bluesky-post (in Bewaard) houdt zijn eigen vorm.
+// Het beeld wordt in zijn kader bijgesneden, nooit uitgerekt; een video toont zijn stilstaande beeld.
+// Bij heel grote tekst past geen beeld naast de kop: dan staat het in beide vormen onder de tekst.
 struct ItemRow: View {
+    enum Form { case tijdlijn, krant }
     @Environment(HootStore.self) private var store
     @Environment(\.dynamicTypeSize) private var typeSize
-    @ScaledMetric(relativeTo: .title3) private var thumb: CGFloat = 76
+    @ScaledMetric(relativeTo: .title3) private var thumb: CGFloat = Layout.thumb
     let item: Item
     var label: String?
     var story: Story?
     var linkSource = true
+    var form: Form?
+
+    private var chosen: Form { form ?? (store.layout == "krant" ? .krant : .tijdlijn) }
+    private var timeline: Bool { !item.isPost && (chosen == .tijdlijn || typeSize.isAccessibilitySize) }
+    // Het beeld bij het stuk, of anders het stilstaande beeld van zijn video.
+    private func picture(_ kind: ImageURL.Kind) -> URL? { ImageURL.url(item.image, kind) ?? item.videoPosterURL }
+    private var hasPicture: Bool { store.showsImage(lead: false) && (item.image != nil || item.videoPoster != nil) }
+    // Groot genoeg voor de volle breedte (vanaf 400 px, zoals op het web); een videobeeld is dat altijd.
+    private var fitsLarge: Bool { item.image == nil || ImageURL.fitsLarge(item.image) }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: Space.s2) {
-            HStack(alignment: .top, spacing: Space.s3) {
-                VStack(alignment: .leading, spacing: Space.s2) {
-                    Kicker(text: label)
-                    if item.isPost {
-                        // Een Bluesky-post (in Bewaard): de tekst zelf, geen kop.
-                        Text(item.summary ?? "").font(.body).fixedSize(horizontal: false, vertical: true)
-                    } else {
-                        Text(item.title)
-                            .font(Theme.headline(.title3))
-                            .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
-                            .fixedSize(horizontal: false, vertical: true)
-                        if let summary = item.summary, !summary.isEmpty {
-                            Text(summary).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(store.preview == 0 ? nil : store.preview)
+        // Onder een groot beeld iets meer lucht tot de bron (12), zoals op het web; naast een miniatuur 8.
+        VStack(alignment: .leading, spacing: timeline ? Space.s3 : Space.s2) {
+            Group {
+                if timeline {
+                    VStack(alignment: .leading, spacing: Space.s3) {
+                        text
+                        if hasPicture, fitsLarge {
+                            FramedImage(url: picture(.large), ratio: 2)
+                                .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                                .overlay { if item.video != nil { PlayBadge(size: Space.tap) } }
                         }
                     }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                // Bij heel grote tekst geen miniatuur naast de kop: de kop krijgt de hele breedte.
-                if item.image != nil, store.showsImage(lead: false), !typeSize.isAccessibilitySize {
-                    RemoteImage(url: ImageURL.url(item.image, .thumb))
-                        .frame(width: min(thumb, 96), height: min(thumb, 96))
-                        .clipShape(RoundedRectangle(cornerRadius: Radius.sm, style: .continuous))
+                } else {
+                    HStack(alignment: .top, spacing: Space.s3) {
+                        text.frame(maxWidth: .infinity, alignment: .leading)
+                        // Een vaste breedte (96; bij grotere tekst 108), zodat de tekstkolom op één lijn blijft,
+                        // wat de verhouding van het beeld ook is. Bij heel grote tekst krijgt de kop de hele breedte.
+                        if hasPicture, !typeSize.isAccessibilitySize {
+                            let width = thumb >= Layout.thumbLarge ? Layout.thumbLarge : Layout.thumb
+                            RemoteImage(url: picture(.thumb))
+                                .frame(width: width, height: width * 2 / 3)
+                                .clipShape(RoundedRectangle(cornerRadius: Radius.sm, style: .continuous))
+                                .overlay { if item.video != nil { PlayBadge(size: Space.s6) } }
+                        }
+                    }
                 }
             }
             .contentShape(Rectangle())
@@ -396,6 +498,37 @@ struct ItemRow: View {
             SourceLine(item: item, story: story, linkSource: linkSource)
         }
         .padding(.vertical, Space.s2)
+    }
+
+    private var text: some View {
+        VStack(alignment: .leading, spacing: Space.s2) {
+            Kicker(text: label)
+            if item.isPost {
+                // Een Bluesky-post (in Bewaard): de tekst zelf, geen kop.
+                Text(item.summary ?? "").font(.body).fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text(item.title)
+                    .font(Theme.headline(.title3))
+                    .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let summary = item.summary, !summary.isEmpty {
+                    Text(summary).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(store.preview == 0 ? nil : store.preview)
+                }
+            }
+        }
+    }
+}
+
+// Een afspeelknop midden op het stilstaande beeld van een video: er speelt hier niets, tikken opent het stuk.
+private struct PlayBadge: View {
+    let size: CGFloat
+    var body: some View {
+        Image(systemName: "play.fill")
+            .font(.system(size: size * 0.4, weight: .bold))
+            .foregroundStyle(Theme.ink)
+            .frame(width: size, height: size)
+            .background(Theme.paper.opacity(0.92), in: Circle())
+            .accessibilityHidden(true)
     }
 }
 

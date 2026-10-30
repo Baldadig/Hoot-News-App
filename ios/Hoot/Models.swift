@@ -17,6 +17,16 @@ struct Source: Codable, Identifiable, Hashable {
     var brandColor: String?
     var ok: Bool?
     var handle: String? // nieuws: het domein van de bron (nrc.nl); Bluesky: @-naam
+    // Vooraf aangevinkt in het welkom (suggestSources in src/lib/topics.js): `pick` altijd, met `for`
+    // alleen bij een van die interesses, met `forTopic` alleen als je dat onderwerp volgt.
+    var pick: Bool?
+    var forInterests: [String]?
+    var forTopic: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, kind, cat, optional, paid, login, lang, about, avatar, brandColor, ok, handle, pick, forTopic
+        case forInterests = "for"
+    }
 }
 
 struct Item: Codable, Identifiable, Hashable {
@@ -294,21 +304,23 @@ struct Taste: Codable, Hashable {
 // De acht rubrieken (src/lib/topics.js → INTERESTS): de interesses uit het welkom, en de rubrieken
 // bovenaan de Stroom. Een bericht hoort erbij via zijn onderwerpen (van de server), of omdat zijn
 // bron erover gaat (`cats`, de rubriek van de bron in de catalogus: een sportsite is sport).
+// De onderwerpen op volgorde, zoals op de website: zo staan de keuzes in Wat precies? gelijk.
 struct Rubriek: Identifiable {
     let id: String
     let label: String
-    let topics: Set<String>
+    let icon: String
+    let topics: [String]
     let cats: Set<String>
 
     static let alle: [Rubriek] = [
-        Rubriek(id: "politiek", label: "Politiek", topics: ["nederland", "europa", "vs-politiek", "trump", "verkiezingen"], cats: []),
-        Rubriek(id: "binnenland", label: "Binnenland", topics: ["wonen", "zorg", "onderwijs", "misdaad", "migratie", "verkeer"], cats: ["regio"]),
-        Rubriek(id: "wereld", label: "Wereld", topics: ["oekraine", "middenoosten", "azie", "afrika", "latam", "geopolitiek"], cats: []),
-        Rubriek(id: "economie", label: "Economie", topics: ["economie", "werk", "bedrijven", "energie", "geld"], cats: ["economie"]),
-        Rubriek(id: "tech", label: "Tech", topics: ["ai", "tech", "gadgets", "privacy", "ev", "games"], cats: ["tech", "games"]),
-        Rubriek(id: "wetenschap", label: "Wetenschap", topics: ["klimaat", "gezondheid", "ruimte", "natuur", "brein"], cats: ["wetenschap"]),
-        Rubriek(id: "cultuur", label: "Cultuur", topics: ["muziek", "film", "boeken", "kunst", "media"], cats: ["cultuur"]),
-        Rubriek(id: "sport", label: "Sport", topics: ["voetbal", "f1", "wielrennen", "tennis", "wintersport", "olympisch"], cats: ["sport"]),
+        Rubriek(id: "politiek", label: "Politiek", icon: "building.columns", topics: ["nederland", "europa", "vs-politiek", "trump", "verkiezingen"], cats: []),
+        Rubriek(id: "binnenland", label: "Binnenland", icon: "house", topics: ["wonen", "zorg", "onderwijs", "misdaad", "migratie", "verkeer"], cats: ["regio"]),
+        Rubriek(id: "wereld", label: "Wereld", icon: "globe.europe.africa", topics: ["oekraine", "middenoosten", "azie", "afrika", "latam", "geopolitiek"], cats: []),
+        Rubriek(id: "economie", label: "Economie", icon: "chart.line.uptrend.xyaxis", topics: ["economie", "werk", "bedrijven", "energie", "geld"], cats: ["economie"]),
+        Rubriek(id: "tech", label: "Tech", icon: "cpu", topics: ["ai", "tech", "gadgets", "privacy", "ev", "games"], cats: ["tech", "games"]),
+        Rubriek(id: "wetenschap", label: "Wetenschap", icon: "atom", topics: ["klimaat", "gezondheid", "ruimte", "natuur", "brein"], cats: ["wetenschap"]),
+        Rubriek(id: "cultuur", label: "Cultuur", icon: "theatermasks", topics: ["muziek", "film", "boeken", "kunst", "media"], cats: ["cultuur"]),
+        Rubriek(id: "sport", label: "Sport", icon: "figure.run", topics: ["voetbal", "f1", "wielrennen", "tennis", "wintersport", "olympisch"], cats: ["sport"]),
     ]
     static let byId = Dictionary(uniqueKeysWithValues: alle.map { ($0.id, $0) })
 
@@ -316,6 +328,24 @@ struct Rubriek: Identifiable {
     static func past(_ item: Item, _ id: String, cat: String?) -> Bool {
         guard let r = byId[id] else { return false }
         return (item.topics ?? []).contains(where: r.topics.contains) || cat.map(r.cats.contains) == true
+    }
+
+    // Wat je volgt (resolveTopics op de website): per gekozen interesse de onderwerpen die je
+    // aantikte, of alle als je er geen koos. Op de volgorde van de rubrieken.
+    static func resolve(_ interests: [String], picked: [String]) -> [String] {
+        alle.filter { interests.contains($0.id) }.flatMap { r in
+            let mine = r.topics.filter(picked.contains)
+            return mine.isEmpty ? r.topics : mine
+        }
+    }
+
+    // Andersom: wat je aantikte, uit de bewaarde lijst. Staan alle onderwerpen van een interesse
+    // erin, dan koos je daar niets ("alles"), en dan staat er ook niets aangetikt.
+    static func picked(from topics: [String], interests: [String]) -> [String] {
+        alle.filter { interests.contains($0.id) }.flatMap { r in
+            let mine = r.topics.filter(topics.contains)
+            return mine.count == r.topics.count ? [] : mine
+        }
     }
 }
 

@@ -1,8 +1,9 @@
 import SwiftUI
 
 // Instellingen: een blad achter de knop rechtsboven, volgens de Human Interface Guidelines:
-// - alleen wat je in de app vaak wilt aanpassen; wat bij het systeem hoort (meldingen,
-//   achtergrond, tekstgrootte) via de pagina van Hoot in de Instellingen-app;
+// - alleen wat je in de app vaak wilt aanpassen; wat bij het systeem hoort (achtergrond,
+//   tekstgrootte, hoe meldingen eruitzien) via de pagina van Hoot in de Instellingen-app. Het
+//   seintje bij een nieuwe Editie staat wél hier: welke edities, dat is een keuze in Hoot;
 // - geen eigen licht/donker: de app volgt de keuze van je iPhone;
 // - geen opties die (nog) niet werken of nu niet van toepassing zijn;
 // - wissen alleen na bevestiging, met Annuleer.
@@ -11,8 +12,9 @@ struct SettingsView: View {
     @Environment(Account.self) private var account
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @Environment(EditionAlerts.self) private var alerts
     @State private var confirmClear: String? = DebugLaunch.screen("instellingen-wissen") ? "gelezen" : nil
-    @State private var path: [String] = DebugLaunch.screen("instellingen-bronnen") ? ["bronnen"] : DebugLaunch.screen("instellingen-vakken") ? ["vakken"] : DebugLaunch.screen("instellingen-abonnementen") ? ["abonnementen"] : []
+    @State private var path: [String] = DebugLaunch.screen("instellingen-bronnen") ? ["bronnen"] : DebugLaunch.screen("instellingen-interesses") ? ["interesses"] : DebugLaunch.screen("instellingen-vakken") ? ["vakken"] : DebugLaunch.screen("instellingen-abonnementen") ? ["abonnementen"] : []
 
     private var version: String {
         let v = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
@@ -22,6 +24,66 @@ struct SettingsView: View {
 
     // Lid (of je account laadt nog): Bewaard gaat mee met je account, dus wissen wist ook daar.
     private var savedSyncs: Bool { account.session != nil && account.status != .noInvite }
+
+    // Seintje bij een nieuwe Editie. De schakelaar is zelf de uitleg: pas bij aanzetten vraagt iOS om
+    // toestemming. Zei je eerder nee, dan springt hij terug en wijzen we de weg naar de Instellingen-app.
+    @ViewBuilder private var alertsSection: some View {
+        let denied = alerts.permission == .denied
+        Section {
+            Toggle(isOn: Binding(get: { store.notify && !denied }, set: { on in
+                guard on else { store.notify = false; return }
+                guard !denied else { return }
+                store.notify = true
+                guard !alerts.allowed else { return }
+                Task { if await !alerts.ask() { withAnimation { store.notify = false } } }
+            })) {
+                Label("Seintje bij een nieuwe Editie", systemImage: "bell")
+            }
+            .disabled(denied) // de knop en de voettekst eronder zeggen waarom
+            if store.notify && alerts.allowed {
+                ForEach(EditionAlerts.slots) { slot in
+                    Toggle(isOn: Binding(get: { store.notifySlots.contains(slot.id) }, set: { on in
+                        let next = EditionAlerts.slots.map(\.id).filter { $0 == slot.id ? on : store.notifySlots.contains($0) }
+                        // De laatste uit: dan het seintje helemaal uit (en de volgende keer weer alle drie).
+                        if next.isEmpty {
+                            withAnimation { store.notify = false }
+                            store.notifySlots = EditionAlerts.slots.map(\.id)
+                        } else {
+                            store.notifySlots = next
+                        }
+                    })) {
+                        // De naam, zonder tijd. Past "Middageditie" niet meer (heel grote tekst: hij brak midden
+                        // in het woord), dan gesplitst op de woordgrens: "Middag" met een rustig "Editie" eronder.
+                        Label {
+                            ViewThatFits(in: .horizontal) {
+                                Text(slot.name).fixedSize()
+                                VStack(alignment: .leading, spacing: Space.s0) {
+                                    Text(slot.short)
+                                    Text("Editie").font(.subheadline).foregroundStyle(Theme.ink3)
+                                }
+                            }
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(slot.name)
+                        } icon: { Image(systemName: slot.icon) }
+                    }
+                }
+            }
+            if denied {
+                Button {
+                    if let url = URL(string: UIApplication.openNotificationSettingsURLString) { openURL(url) }
+                } label: {
+                    OutboundRow(title: "Open Instellingen", systemImage: "gearshape")
+                }
+                .accessibilityHint("Opent de meldingen van Hoot in de Instellingen-app")
+            }
+        } header: {
+            Text("Seintjes")
+        } footer: {
+            Text(denied ? "Meldingen van Hoot staan uit. Zet ze aan in de Instellingen-app." : "Een stil seintje, zonder geluid, een paar minuten nadat je Editie klaarligt. Alleen op dit toestel.").foregroundStyle(Theme.ink3)
+        }
+        .animation(.default, value: store.notify && alerts.allowed)
+        .task { await alerts.refresh() }
+    }
 
     var body: some View {
         @Bindable var store = store
@@ -37,6 +99,17 @@ struct SettingsView: View {
                     } label: {
                         Label("Afbeeldingen", systemImage: "photo")
                     }
+                    // Als een segment, direct te zien in de Stroom erachter: tijdlijn (het beeld groot onder de
+                    // kop, zoals een tijdlijn) of krant (klein ernaast, zoals een krantensite).
+                    VStack(alignment: .leading, spacing: Space.s2) {
+                        Label("Lees de Stroom als", systemImage: "rectangle.grid.1x2")
+                        Picker("Lees de Stroom als", selection: $store.layout) {
+                            Text("Tijdlijn").tag("tijdlijn")
+                            Text("Krant").tag("krant")
+                        }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
+                    }
                     Picker(selection: $store.preview) {
                         Text("1 regel").tag(1)
                         Text("2 regels").tag(2)
@@ -51,7 +124,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Editie en Stroom")
                 } footer: {
-                    Text("Buiten je bubbel: één verhaal waar veel mensen nu naar zoeken en dat niet in je Editie staat.").foregroundStyle(Theme.ink3)
+                    Text("Tijdlijn: het beeld groot onder de kop. Krant: klein ernaast, zoals op een krantensite. Ook in Bewaard en Zoeken. Buiten je bubbel: één verhaal waar veel mensen nu naar zoeken en dat niet in je Editie staat.").foregroundStyle(Theme.ink3)
                 }
 
                 // Eén keuze (waar openen artikelen), met de uitzonderingen alleen als die gelden.
@@ -70,6 +143,8 @@ struct SettingsView: View {
                 } footer: {
                     Text(store.openWith == "lezer" ? "De lezer toont alleen de tekst en beelden, in de opmaak van Hoot. Log één keer in bij je abonnementen om ook hun hele artikelen hier te lezen." : "Artikelen openen in Safari. Daar ben je al ingelogd bij je abonnementen, met je wachtwoorden en Google of Apple.").foregroundStyle(Theme.ink3)
                 }
+
+                alertsSection
 
                 Section {
                     Toggle(isOn: $store.bluesky) {
@@ -148,6 +223,7 @@ struct SettingsView: View {
                         dismiss()
                         Task {
                             try? await Task.sleep(for: .milliseconds(450)) // eerst dit blad dicht, dan het welkom
+                            store.welcomeAgain = true // het welkom begint bij wat je nu hebt
                             store.onboarded = false
                         }
                     } label: {
@@ -203,32 +279,56 @@ struct SettingsView: View {
     }
 }
 
-// Interesses: dezelfde acht als op de website (src/lib/topics.js).
+// Interesses: dezelfde acht als op de website (src/lib/topics.js). Onder elke interesse die aan
+// staat: Wat precies?, de onderwerpen als keuzeknoppen (zoals stap 3 van het welkom op het web).
 struct InterestsList: View {
     @Environment(HootStore.self) private var store
-    static let all = [("politiek", "Politiek", "Nederland, Europa, VS-politiek, verkiezingen", "building.columns"), ("binnenland", "Binnenland", "Wonen, zorg, onderwijs, misdaad, migratie", "house"), ("wereld", "Wereld", "Oekraïne, Midden-Oosten, Azië, geopolitiek", "globe.europe.africa"), ("economie", "Economie", "Werk, bedrijven, energie, geld", "chart.line.uptrend.xyaxis"), ("tech", "Tech", "AI, tech, gadgets, privacy", "cpu"), ("wetenschap", "Wetenschap", "Klimaat, gezondheid, ruimte, natuur", "atom"), ("cultuur", "Cultuur", "Muziek, film, boeken, kunst, media", "theatermasks"), ("sport", "Sport", "Voetbal, F1, wielrennen, tennis", "figure.run")]
+    // Wat je aantikte, vast zolang je hier bent: tik je alle onderwerpen van een interesse aan, dan
+    // blijven ze zo staan (bewaard betekent dat hetzelfde als niets kiezen: alles).
+    @State private var picked: [String]?
+    static let about = ["politiek": "Nederland, Europa, VS-politiek, verkiezingen", "binnenland": "Wonen, zorg, onderwijs, misdaad, migratie", "wereld": "Oekraïne, Midden-Oosten, Azië, geopolitiek", "economie": "Werk, bedrijven, energie, geld", "tech": "AI, tech, gadgets, privacy", "wetenschap": "Klimaat, gezondheid, ruimte, natuur", "cultuur": "Muziek, film, boeken, kunst, media", "sport": "Voetbal, F1, wielrennen, tennis"]
     static func summary(_ ids: [String]) -> String {
-        let names = all.filter { ids.contains($0.0) }.map(\.1)
+        let names = Rubriek.alle.filter { ids.contains($0.id) }.map(\.label)
         return names.isEmpty ? "Geen" : names.joined(separator: ", ")
     }
+    private var mine: [String] { Rubriek.picked(from: store.topics, interests: store.interests) }
+
     var body: some View {
+        let picked = self.picked ?? mine
         Form {
             Section {
-                ForEach(Self.all, id: \.0) { id, label, about, icon in
-                    Toggle(isOn: Binding(get: { store.interests.contains(id) }, set: { on in
-                        store.interests = on ? Self.all.map(\.0).filter { $0 == id || store.interests.contains($0) } : store.interests.filter { $0 != id }
-                    })) {
-                        Label {
-                            VStack(alignment: .leading, spacing: Space.s0) {
-                                Text(label)
-                                Text(about).font(.caption).foregroundStyle(Theme.ink3)
+                ForEach(Rubriek.alle) { r in
+                    let on = store.interests.contains(r.id)
+                    VStack(alignment: .leading, spacing: Space.s3) {
+                        Toggle(isOn: Binding(get: { on }, set: { now in
+                            withAnimation { store.setInterests(now ? store.interests + [r.id] : store.interests.filter { $0 != r.id }, picked: picked) }
+                        })) {
+                            Label {
+                                VStack(alignment: .leading, spacing: Space.s0) {
+                                    Text(r.label)
+                                    if !on { Text(Self.about[r.id] ?? "").font(.caption).foregroundStyle(Theme.ink3) }
+                                }
+                            } icon: { Image(systemName: r.icon) }
+                        }
+                        // De scheidingslijn begint bij de naam, ook als er keuzeknoppen onder staan.
+                        .alignmentGuide(.listRowSeparatorLeading) { $0[.listRowSeparatorLeading] }
+                        if on {
+                            TopicChips(rubriek: r, picked: picked) { t in
+                                let next = picked.contains(t) ? picked.filter { $0 != t } : picked + [t]
+                                self.picked = next
+                                store.setInterests(store.interests, picked: next)
                             }
-                        } icon: { Image(systemName: icon) }
+                        }
                     }
                 }
             } footer: {
-                Text("Wat hierbij past, gaat voor in je Editie. Echt groot nieuws blijft bovenaan, ook als het buiten je interesses valt.").foregroundStyle(Theme.ink3)
+                Text("Kies wat je het meest boeit. Kies je niets, dan krijg je alles binnen dat onderwerp. Wat hierbij past, gaat voor in je Editie; echt groot nieuws blijft bovenaan, ook als het buiten je interesses valt.").foregroundStyle(Theme.ink3)
             }
+        }
+        .onAppear { self.picked = mine }
+        // Van je account of een ander toestel: dan geldt wat daar gekozen is.
+        .onChange(of: store.topics) {
+            if let p = self.picked, Rubriek.resolve(store.interests, picked: p) != store.topics { self.picked = mine }
         }
     }
 }
@@ -267,7 +367,7 @@ struct DigestFieldsList: View {
                 }
             }
             Section {} footer: {
-                Text("Elke maandag om 7 uur per onderwerp de drie belangrijkste stukken van de week, door mensen geschreven.").foregroundStyle(Theme.ink3)
+                Text("Elke maandagochtend per onderwerp de drie belangrijkste stukken van de week, door mensen geschreven.").foregroundStyle(Theme.ink3)
             }
         }
         .task { await store.loadDigest() }
