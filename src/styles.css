@@ -2249,19 +2249,28 @@ select.input {
   }
 }
 
-/* Inloggen met Google: maat en ritme van onze knoppen, kleur en letter van Google */
+/* Inloggen met Google: hoogte en vorm van onze knoppen, kleur en letter van Google. Gedocumenteerde
+   uitzondering: Roboto 500 14/20, letterafstand .25 en logo ↔ label 10 volgen Googles richtlijn.
+   Zo breed als zijn label en links op de kolomlijn, ook in een gestapelde rij (die rekt anders
+   alles uit); alleen in een blad op de telefoon over de volle breedte (hieronder). */
 .gbtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  align-self: start;
+  justify-self: start;
   gap: 10px;
-  min-height: var(--tap);
+  inline-size: auto;
+  min-height: var(--control-md);
   padding: 0 var(--s5) 0 var(--s4);
   border: 1px solid var(--g-stroke);
   border-radius: var(--radius-pill);
   background: var(--g-fill);
   color: var(--g-text);
-  font: 500 14px/20px 'Roboto', var(--sans);
+  font-family: 'Roboto', var(--sans);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
   letter-spacing: 0.25px;
   white-space: nowrap;
   cursor: pointer;
@@ -2269,9 +2278,25 @@ select.input {
 .gbtn__logo {
   flex: none;
 }
+/* Hover en druk zoals Google ze voorschrijft: een laag in de tekstkleur over het eigen vlak. */
+@media (hover: hover) {
+  .gbtn:hover {
+    background-image: linear-gradient(var(--state-hover), var(--state-hover));
+  }
+}
+.gbtn:active {
+  background-image: linear-gradient(var(--state-press), var(--state-press));
+}
+/* Groot: de enige vraag in een blad (join-blad). */
 .gbtn--wide {
-  min-height: 52px;
+  min-height: var(--control-lg);
   padding: 0 var(--s6) 0 var(--s5);
+}
+/* Op de telefoon staat een blad onderaan en de duim eronder: daar de volle breedte. */
+@media (max-width: 559px) {
+  .sheet .gbtn {
+    inline-size: 100%;
+  }
 }
 
 /* Lopende tekst op een eigen pagina (Privacy) */
@@ -2312,10 +2337,8 @@ select.input {
   gap: var(--s2) var(--s5);
   margin-top: var(--s5);
 }
-@media (max-width: 719px) {
-  .join__actions .gbtn {
-    flex: 1 1 100%;
-  }
+/* De Google-knop vult hier de regel (zie .gbtn); 'Niet nu' staat er gecentreerd onder. */
+@media (max-width: 559px) {
   .join__actions .linkbtn {
     margin: 0 auto;
   }
