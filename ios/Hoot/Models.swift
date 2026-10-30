@@ -140,13 +140,28 @@ struct EditionEntry: Codable, Hashable {
 
 // De samenvatting van een vastgelegde Editie in `user_state.edition.history` (bouwspec-aanvulling H5):
 // de laatste drie van deze lezer, dezelfde vorm op web en app. `keys`: per verhaal de kenmerken van toen.
+// Een getoond bericht van toen (kop, intro, tijd), zodat een tweede verhaal over dezelfde gebeurtenis
+// onder een ander id ook herkend wordt (aanvulling H4, sameSubject).
+struct EditionShown: Codable, Hashable {
+    var id: String?
+    var title: String
+    var summary: String?
+    var publishedAt: String?
+}
+
+// Eén regel van `user_state.edition.history` (aanvulling H5): precies de sleutels die historyOf in
+// netlify/lib/stories.mjs schrijft — ook `leadStoryId` (het hoofdverhaal, wasLead) en `shown`. De
+// store werkt met de ruwe JSON en geeft alle sleutels ongewijzigd door aan de rekenkern en aan je
+// account; dit model is om te lezen en te toetsen.
 struct EditionHistory: Codable, Hashable {
     var id: String
     var builtAt: String?
     var storyIds: [String]
     var itemIds: [String]
     var leadIds: [String]
+    var leadStoryId: String?
     var titles: [String]?
+    var shown: [EditionShown]?
     var keys: [String: [String]]?
 }
 

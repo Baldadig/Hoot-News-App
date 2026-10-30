@@ -35,6 +35,7 @@ var HootCore = (() => {
     nextHistory: () => nextHistory,
     nextHistoryJSON: () => nextHistoryJSON,
     previousFrom: () => previousFrom,
+    previousJSON: () => previousJSON,
     previousOf: () => previousOf2,
     profileSummary: () => profileSummary,
     profileSummaryJSON: () => profileSummaryJSON,
@@ -1018,44 +1019,87 @@ var HootCore = (() => {
     const shown = edition.entries.map((e) => byId2.get(e.leadId || e.id)).filter((i) => i?.title);
     return {
       ...p,
+      id: typeof edition.id === "string" ? edition.id : "",
       keysOf: p.keysOf instanceof Map ? p.keysOf : keysOfEntries(edition),
       titles: p.titles || new Set(edition.entries.map((e) => e.title || byId2.get(e.leadId || e.id)?.title).filter(Boolean)),
       shown: p.shown || shown.map((i) => ({ id: i.id, title: i.title, summary: i.summary || "", publishedAt: i.publishedAt || edition.builtAt }))
     };
   }
+  var isHistoryRow = (x) => Array.isArray(x?.storyIds);
+  var byTime = (a, b) => a.at - b.at || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
   function historyOf(edition) {
+    if (!edition) return null;
+    if (isHistoryRow(edition)) return edition;
     const p = previousOf2(edition);
     if (!p) return null;
-    const keys = {};
-    for (const [id, set] of p.keysOf || []) keys[id] = [...set];
-    return { id: edition.id, builtAt: edition.builtAt, storyIds: [...p.storyIds], itemIds: [...p.itemIds], leadIds: [...p.leadIds], titles: [...p.titles], keys };
+    return {
+      id: edition.id,
+      builtAt: edition.builtAt,
+      storyIds: [...p.storyIds],
+      itemIds: [...p.itemIds],
+      leadIds: [...p.leadIds],
+      leadStoryId: p.leadStoryId ?? null,
+      titles: [...p.titles],
+      shown: p.shown,
+      keys: Object.fromEntries([...p.keysOf || []].map(([id, ks]) => [id, [...ks]]))
+    };
   }
   function nextHistory(prior = [], edition) {
     const row = historyOf(edition);
-    const rest = (Array.isArray(prior) ? prior : []).filter((h) => h && Array.isArray(h.storyIds) && h.id !== edition?.id);
+    const seen = new Set(row ? [row.id] : []);
+    const rest = [];
+    for (const h of (Array.isArray(prior) ? prior : []).map(historyOf)) {
+      if (!h || typeof h.id !== "string" || !h.id || seen.has(h.id) || h.id === edition?.id) continue;
+      seen.add(h.id);
+      rest.push(h);
+    }
+    rest.sort((a, b) => (Date.parse(b.builtAt) || 0) - (Date.parse(a.builtAt) || 0) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
     return [...row ? [row] : [], ...rest].slice(0, HISTORY_SIZE);
   }
   function previousOne(x) {
     if (!x || typeof x !== "object") return null;
-    if (Array.isArray(x.storyIds)) {
+    if (isHistoryRow(x)) {
       const keysOf = /* @__PURE__ */ new Map();
       if (x.keysOf instanceof Map) for (const [id, ks] of x.keysOf) keysOf.set(id, new Set(ks));
       else for (const [id, ks] of Object.entries(x.keys && typeof x.keys === "object" ? x.keys : {})) if (Array.isArray(ks) && ks.length) keysOf.set(id, new Set(ks));
-      return { storyIds: new Set(x.storyIds), itemIds: new Set(x.itemIds), leadIds: new Set(x.leadIds), titles: new Set(x.titles || []), shown: Array.isArray(x.shown) ? x.shown : [], keysOf, at: Date.parse(x.builtAt) || Number(x.at) || 0, leadStoryId: null };
+      return {
+        id: typeof x.id === "string" ? x.id : "",
+        keysOf,
+        storyIds: new Set(x.storyIds),
+        itemIds: new Set(Array.isArray(x.itemIds) ? x.itemIds : []),
+        leadIds: new Set(Array.isArray(x.leadIds) ? x.leadIds : []),
+        leadStoryId: typeof x.leadStoryId === "string" ? x.leadStoryId : null,
+        at: Date.parse(x.builtAt) || Number(x.at) || 0,
+        titles: new Set(Array.isArray(x.titles) ? x.titles : []),
+        shown: Array.isArray(x.shown) ? x.shown.filter((s) => s && typeof s.title === "string") : []
+      };
     }
     return previousOf2(x);
   }
   function mergePrevious(list) {
     const ps = (Array.isArray(list) ? list : [list]).map(previousOne).filter(Boolean);
     if (!ps.length) return null;
+    ps.sort(byTime);
     const u = (k) => new Set(ps.flatMap((p) => [...p[k] || []]));
     const atOf = /* @__PURE__ */ new Map();
-    for (const p of ps) for (const id of p.storyIds) atOf.set(id, Math.max(atOf.get(id) || 0, p.at));
-    const shown = /* @__PURE__ */ new Map();
-    for (const p of ps) for (const s of p.shown || []) if (s?.title && !shown.has(s.id || s.title)) shown.set(s.id || s.title, s);
     const keysOf = /* @__PURE__ */ new Map();
-    for (const p of ps) for (const [id, ks] of p.keysOf || []) keysOf.set(id, /* @__PURE__ */ new Set([...keysOf.get(id) || [], ...ks]));
-    return { storyIds: u("storyIds"), itemIds: u("itemIds"), leadIds: u("leadIds"), titles: u("titles"), keysOf, leadStoryIds: new Set(ps.map((p) => p.leadStoryId).filter(Boolean)), leadStoryId: ps[ps.length - 1].leadStoryId, at: Math.max(...ps.map((p) => p.at)), atOf, shown: [...shown.values()] };
+    for (const p of ps) {
+      for (const id of p.storyIds) atOf.set(id, Math.max(atOf.get(id) || 0, p.at));
+      for (const [id, ks] of p.keysOf || []) keysOf.set(id, /* @__PURE__ */ new Set([...keysOf.get(id) || [], ...ks]));
+    }
+    const last = ps[ps.length - 1];
+    return {
+      keysOf,
+      storyIds: u("storyIds"),
+      itemIds: u("itemIds"),
+      leadIds: u("leadIds"),
+      leadStoryId: last.leadStoryId ?? null,
+      leadStoryIds: new Set(ps.map((p) => p.leadStoryId).filter(Boolean)),
+      at: last.at,
+      atOf,
+      titles: u("titles"),
+      shown: ps.flatMap((p) => p.shown || [])
+    };
   }
   function previousFrom(v) {
     if (!v) return null;
@@ -1115,6 +1159,12 @@ var HootCore = (() => {
     const prior = typeof priorJSON === "string" ? JSON.parse(priorJSON) : priorJSON;
     const edition = typeof editionJSON === "string" ? JSON.parse(editionJSON) : editionJSON;
     return JSON.stringify(nextHistory(prior, edition));
+  }
+  function previousJSON(listJSON) {
+    const p = previousFrom(typeof listJSON === "string" ? JSON.parse(listJSON) : listJSON);
+    if (!p) return "null";
+    const flat = { ...p, storyIds: [...p.storyIds], itemIds: [...p.itemIds], leadIds: [...p.leadIds], titles: [...p.titles], leadStoryIds: [...p.leadStoryIds], atOf: Object.fromEntries(p.atOf), keysOf: Object.fromEntries([...p.keysOf].map(([id, ks]) => [id, [...ks]])) };
+    return JSON.stringify(flat);
   }
   function profileSummaryOf(input) {
     if (!input || typeof input !== "object") return { chosen: [], learned: [], less: [] };

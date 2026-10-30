@@ -586,8 +586,10 @@ final class HootStore {
         }
         do {
             // (c) De geschiedenis: wat dit toestel en je account vastlegden (H5), plus de vorige Editie
-            // van dit toestel zelf; samen de laatste drie dagdelen, en de rekenkern voegt ze samen tot
-            // `previous` (H3). Een overgenomen Editie staat in beide, dus elk dagdeel telt één keer.
+            // van dit toestel zelf, voluit en voorop (zij wint van haar eigen regel, zoals op het web);
+            // samen de laatste drie dagdelen, en de rekenkern voegt ze samen tot `previous` (H3) en vat
+            // de volle Editie samen tot een regel in de nieuwe `history` (nextHistory). Een overgenomen
+            // Editie staat in beide, dus elk dagdeel telt één keer.
             var prior = (personalRaw?["history"] as? [[String: Any]] ?? []) + (theirs?["history"] as? [[String: Any]] ?? [])
             if let p = personalRaw, p["id"] as? String != global.id, p["owner"] as? String == owner { prior.insert(p, at: 0) }
             prior = Self.recentHistory(prior, except: global.id)
@@ -615,8 +617,9 @@ final class HootStore {
     private var forced: Set<String> = []
 
     // De laatste drie dagdelen uit wat dit toestel en je account vastlegden: elk dagdeel één keer (de
-    // eerste vermelding wint: die van dit toestel), op builtAt van nieuw naar oud, zonder het dagdeel
-    // dat nu wordt samengesteld. Regels zijn history-regels (H5) of een hele vastgelegde Editie.
+    // eerste vermelding wint: die van dit toestel, en de hele Editie van haar eigen regel), op builtAt
+    // van nieuw naar oud, zonder het dagdeel dat nu wordt samengesteld. Regels zijn history-regels (H5)
+    // of een hele vastgelegde Editie; de rekenkern leest beide en vat de Editie samen (historyOf).
     static func recentHistory(_ rows: [[String: Any]], except id: String, size: Int = 3) -> [[String: Any]] {
         var seen = Set<String>()
         let unique = rows.filter { row in

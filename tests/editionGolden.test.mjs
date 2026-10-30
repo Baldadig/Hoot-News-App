@@ -66,20 +66,34 @@ test('G5: editionBasis web == bundel, ook met lege topics en lege favorites', ()
   assert.equal(basisOf([...nieuw.followed].reverse()), byName.nieuw.output.basis, 'volgorde van bronnen doet er niet toe')
 })
 
-test('history (H5): de samenvatting van een Editie heeft alleen arrays, en previous is uit Edities en history-regels gelijk', () => {
+// De sleutels van een history-regel zoals historyOf in netlify/lib/stories.mjs (Hoot-herhaling, H5) hem
+// schrijft, in die volgorde: web en app moeten dezelfde regel schrijven en lezen, zonder vertaling.
+const HISTORY_KEYS = ['id', 'builtAt', 'storyIds', 'itemIds', 'leadIds', 'leadStoryId', 'titles', 'shown', 'keys']
+
+test('history (H5): de samenvatting van een Editie heeft precies de sleutels van Hoot-herhaling, en previous is uit Edities en history-regels gelijk', () => {
   const { input, output } = byName.klimaat
   const row = historyOf(output)
-  assert.deepEqual(Object.keys(row), ['id', 'builtAt', 'storyIds', 'itemIds', 'leadIds', 'titles', 'keys'])
+  assert.deepEqual(Object.keys(row), HISTORY_KEYS)
   assert.equal(typeof row.keys, 'object')
   assert.equal(row.id, output.id)
   assert.ok(row.itemIds.length >= output.entries.length, 'alle stukken van de verhalen van toen')
   assert.ok(row.titles.length > 0)
+  assert.equal(row.leadStoryId, output.entries[0].kind === 'story' ? output.entries[0].id : null, 'het hoofdverhaal gaat mee (wasLead)')
+  assert.ok(Array.isArray(row.shown) && row.shown.length > 0 && row.shown.every((s) => typeof s.title === 'string' && 'publishedAt' in s), 'de getoonde berichten gaan mee (sameSubject)')
+  assert.equal(historyOf(row), row, 'een regel die al een samenvatting is, blijft zoals hij is')
+  assert.equal(JSON.stringify(JSON.parse(JSON.stringify(row))), JSON.stringify(row), 'platte JSON, zonder Set of Map')
   const fromEdition = mergePrevious([output])
   const fromRow = mergePrevious([row])
-  for (const k of ['storyIds', 'itemIds', 'leadIds', 'titles']) assert.deepEqual([...fromRow[k]].sort(), [...fromEdition[k]].sort(), k)
+  assert.deepEqual(fromRow, fromEdition, 'uit de regel precies hetzelfde previous als uit de volle Editie, ook leadStoryId en shown')
+  assert.equal(fromRow.leadStoryId, row.leadStoryId)
+  assert.deepEqual([...fromRow.leadStoryIds], [row.leadStoryId].filter(Boolean))
   assert.equal(fromRow.at, fromEdition.at)
   assert.ok(fromRow.keysOf instanceof Map && fromEdition.keysOf instanceof Map, 'keysOf is een Map, zoals selectForReader hem leest')
   assert.deepEqual([...fromRow.atOf.entries()].sort(), [...fromEdition.atOf.entries()].sort())
+  // Een regel van het web met een hoofdverhaal verliest dat niet bij het lezen.
+  const web = { ...row, leadStoryId: 'abc' }
+  assert.equal(mergePrevious([web]).leadStoryId, 'abc')
+  assert.deepEqual([...mergePrevious([web]).leadStoryIds], ['abc'])
   // Dezelfde vorige Editie als Editie of als history-regel geeft dezelfde volgende Editie.
   const next = { ...input.global, id: 'volgend-dagdeel', builtAt: new Date(input.now + 6 * 36e5).toISOString() }
   const a = compose({ ...input, global: next, now: input.now + 6 * 36e5, previous: [output] })
@@ -94,6 +108,52 @@ test('history (H5): de samenvatting van een Editie heeft alleen arrays, en previ
   assert.equal(hist[0].id, output.id)
   assert.equal(nextHistory(hist, output).length, HISTORY_SIZE)
   assert.equal(nextHistory(hist, output).filter((h) => h.id === output.id).length, 1)
+})
+
+// De laatste drie dagdelen uit wat het toestel en het account vastlegden, zoals HootStore.recentHistory:
+// elk dagdeel één keer (de eerste vermelding wint), nieuw naar oud, zonder het dagdeel van nu.
+function recentHistory(rows, except, size = 3) {
+  const seen = new Set()
+  const unique = rows.filter((r) => r?.id && r.id !== except && !seen.has(r.id) && seen.add(r.id))
+  return unique.map((r, i) => [r, i]).sort((a, b) => (Date.parse(b[0].builtAt) || 0) - (Date.parse(a[0].builtAt) || 0) || a[1] - b[1]).map(([r]) => r).slice(0, size)
+}
+
+test('H3/H5: drie dagdelen achter elkaar op het toestel — de geschiedenis wordt drie diep en de Avond kent de Ochtend', () => {
+  const { output } = byName.klimaat
+  const dagdeel = (id, builtAt) => ({ ...output, id, builtAt })
+  // Ochtend: vastgelegd zoals keep() hem bewaart (met de eigen regel voorop).
+  const ochtend = dagdeel('d1-ochtend', '2026-10-31T05:00:00.000Z')
+  ochtend.history = nextHistory([], ochtend)
+  assert.deepEqual(ochtend.history.map((h) => h.id), ['d1-ochtend'])
+  // Middag: `prior` zoals loadPersonal hem bouwt — de hele vorige Editie voorop, dan haar history.
+  let prior = recentHistory([ochtend, ...ochtend.history], 'd1-middag')
+  assert.ok(!Array.isArray(prior[0].storyIds), 'de volle Editie wint van haar eigen regel, zoals op het web')
+  const middag = dagdeel('d1-middag', '2026-10-31T11:00:00.000Z')
+  middag.history = nextHistory(prior, middag)
+  assert.deepEqual(middag.history.map((h) => h.id), ['d1-middag', 'd1-ochtend'], 'de volle Editie wordt samengevat, niet weggegooid')
+  assert.ok(middag.history.every((h) => Array.isArray(h.storyIds) && !h.entries), 'alleen regels in de geschiedenis')
+  assert.deepEqual(Object.keys(middag.history[1]), HISTORY_KEYS)
+  // Avond: drie diep, en `previous` kent de Ochtend nog (atOf op haar builtAt).
+  prior = recentHistory([middag, ...middag.history], 'd1-avond')
+  const avond = dagdeel('d1-avond', '2026-10-31T16:00:00.000Z')
+  avond.history = nextHistory(prior, avond)
+  assert.equal(avond.history.length, 3)
+  assert.deepEqual(avond.history.map((h) => h.id), ['d1-avond', 'd1-middag', 'd1-ochtend'])
+  const previous = mergePrevious(prior)
+  const storyId = output.entries.find((e) => e.kind === 'story').id
+  assert.equal(previous.atOf.get(storyId), Date.parse(middag.builtAt), 'at per verhaal: de laatste Editie waarin het stond')
+  const alleenOchtend = mergePrevious(prior.filter((r) => r.id === 'd1-ochtend'))
+  assert.equal(alleenOchtend.atOf.get(storyId), Date.parse(ochtend.builtAt), 'de Ochtend staat er nog in')
+  // leadStoryId en at zijn van de nieuwste Editie, hoe de lijst ook aangeleverd wordt (iOS: nieuw → oud).
+  assert.equal(previous.at, Date.parse(middag.builtAt))
+  assert.deepEqual(mergePrevious([...prior].reverse()), previous, 'volgorde van de invoer doet er niet toe')
+  const gemengd = [{ ...historyOf(ochtend), leadStoryId: 'oud' }, { ...historyOf(middag), leadStoryId: 'nieuw' }]
+  assert.equal(mergePrevious(gemengd).leadStoryId, 'nieuw')
+  assert.equal(mergePrevious([...gemengd].reverse()).leadStoryId, 'nieuw')
+  // Een vierde dagdeel: de Ochtend valt af.
+  const nacht = dagdeel('d2-ochtend', '2026-11-01T05:00:00.000Z')
+  nacht.history = nextHistory(recentHistory([avond, ...avond.history], 'd2-ochtend'), nacht)
+  assert.deepEqual(nacht.history.map((h) => h.id), ['d2-ochtend', 'd1-avond', 'd1-middag'])
 })
 
 test('H2/H5: de kenmerken van toen (`keys` per plek) gaan als `keys` mee in de history-regel en komen als keysOf terug', () => {

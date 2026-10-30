@@ -149,6 +149,12 @@ final class EditionEngine: @unchecked Sendable {
         try await call("nextHistoryJSON", [priorJSON, editionJSON])
     }
 
+    // Het `previous` dat de rekenkern uit een lijst Edities en/of history-regels maakt (H3), plat als
+    // JSON (atOf per verhaal als object), om na te kijken wat zij van toen kent — voor de tests.
+    func previous(of listJSON: String) async throws -> String {
+        try await call("previousJSON", [listJSON])
+    }
+
     // Wat Hoot van je leerde (profileSummary, bouwspec §8): hetzelfde profiel als De Redacteur gebruikt,
     // uit dezelfde bundel, zodat Instellingen op web en app hetzelfde zeggen. Invoer als JSON (interests,
     // topics, affinity, taste, favorites, followed, sources, items).

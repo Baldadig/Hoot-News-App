@@ -40,57 +40,114 @@ export function previousOf(edition) {
   const shown = edition.entries.map((e) => byId.get(e.leadId || e.id)).filter((i) => i?.title)
   return {
     ...p,
+    id: typeof edition.id === 'string' ? edition.id : '',
     keysOf: p.keysOf instanceof Map ? p.keysOf : keysOfEntries(edition),
     titles: p.titles || new Set(edition.entries.map((e) => e.title || byId.get(e.leadId || e.id)?.title).filter(Boolean)),
     shown: p.shown || shown.map((i) => ({ id: i.id, title: i.title, summary: i.summary || '', publishedAt: i.publishedAt || edition.builtAt })),
   }
 }
 
+// Een history-regel (H5) herken je aan `storyIds` als array; een vastgelegde Editie heeft `entries`.
+const isHistoryRow = (x) => Array.isArray(x?.storyIds)
+const byTime = (a, b) => a.at - b.at || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
+
 // De samenvatting van een vastgelegde Editie zoals die in `user_state.edition.history` komt (H5):
-// alleen arrays en gewone objecten, zodat web en app hem zonder vertaling delen. `keys` zijn de
-// kenmerken van toen per verhaal ({ [verhaal-id]: [kenmerk] }); leeg bij een Editie zonder `keys`.
+// alleen arrays en gewone objecten, zodat web en app hem zonder vertaling delen. Precies de sleutels
+// van historyOf in netlify/lib/stories.mjs (Hoot-herhaling), in dezelfde volgorde: ook `leadStoryId`
+// (het hoofdverhaal, voor wasLead) en `shown` (de getoonde berichten, voor sameSubject), anders rekent
+// een toestel dat uit de regel leest anders dan een toestel dat uit de volle Editie rekent. `keys` zijn
+// de kenmerken van toen per verhaal ({ [verhaal-id]: [kenmerk] }); leeg bij een Editie zonder `keys`.
+// Een regel die al een samenvatting is, blijft zoals hij is.
 export function historyOf(edition) {
+  if (!edition) return null
+  if (isHistoryRow(edition)) return edition
   const p = previousOf(edition)
   if (!p) return null
-  const keys = {}
-  for (const [id, set] of p.keysOf || []) keys[id] = [...set]
-  return { id: edition.id, builtAt: edition.builtAt, storyIds: [...p.storyIds], itemIds: [...p.itemIds], leadIds: [...p.leadIds], titles: [...p.titles], keys }
+  return {
+    id: edition.id,
+    builtAt: edition.builtAt,
+    storyIds: [...p.storyIds],
+    itemIds: [...p.itemIds],
+    leadIds: [...p.leadIds],
+    leadStoryId: p.leadStoryId ?? null,
+    titles: [...p.titles],
+    shown: p.shown,
+    keys: Object.fromEntries([...(p.keysOf || [])].map(([id, ks]) => [id, [...ks]])),
+  }
 }
 
-// De geschiedenis na het vastleggen van `edition`: deze Editie voorop, de laatste drie in totaal,
-// elk dagdeel één keer.
+// De geschiedenis na het vastleggen van `edition`: deze Editie voorop, dan wat ervóór kwam van nieuw
+// naar oud (builtAt, dan id: totale volgorde, zoals recentEditions in stories.mjs), de laatste drie in
+// totaal, elk dagdeel één keer. `prior` mag history-regels én hele vastgelegde Edities bevatten (het
+// toestel legt zijn vorige Editie er voluit bij): een Editie wordt hier samengevat, niet weggegooid —
+// anders verloor de geschiedenis bij elk dagdeel het dagdeel ervóór (H3/H5).
 export function nextHistory(prior = [], edition) {
   const row = historyOf(edition)
-  const rest = (Array.isArray(prior) ? prior : []).filter((h) => h && Array.isArray(h.storyIds) && h.id !== edition?.id)
+  const seen = new Set(row ? [row.id] : [])
+  const rest = []
+  for (const h of (Array.isArray(prior) ? prior : []).map(historyOf)) {
+    if (!h || typeof h.id !== 'string' || !h.id || seen.has(h.id) || h.id === edition?.id) continue
+    seen.add(h.id)
+    rest.push(h)
+  }
+  rest.sort((a, b) => (Date.parse(b.builtAt) || 0) - (Date.parse(a.builtAt) || 0) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
   return [...(row ? [row] : []), ...rest].slice(0, HISTORY_SIZE)
 }
 
-// Eén history-regel (arrays) of een vastgelegde Editie → de vorm die selectForReader leest (Sets).
+// Eén history-regel (arrays) of een vastgelegde Editie → de vorm die selectForReader leest (Sets),
+// zoals previousOfOne in stories.mjs (Hoot-herhaling): `leadStoryId` komt uit de regel mee, `shown`
+// alleen met een kop. Ook de platte vorm van POST /api/edition (`at` in ms, `keysOf` als Map) telt.
 function previousOne(x) {
   if (!x || typeof x !== 'object') return null
-  if (Array.isArray(x.storyIds)) {
+  if (isHistoryRow(x)) {
     const keysOf = new Map()
     if (x.keysOf instanceof Map) for (const [id, ks] of x.keysOf) keysOf.set(id, new Set(ks))
     else for (const [id, ks] of Object.entries(x.keys && typeof x.keys === 'object' ? x.keys : {})) if (Array.isArray(ks) && ks.length) keysOf.set(id, new Set(ks))
-    return { storyIds: new Set(x.storyIds), itemIds: new Set(x.itemIds), leadIds: new Set(x.leadIds), titles: new Set(x.titles || []), shown: Array.isArray(x.shown) ? x.shown : [], keysOf, at: Date.parse(x.builtAt) || Number(x.at) || 0, leadStoryId: null }
+    return {
+      id: typeof x.id === 'string' ? x.id : '',
+      keysOf,
+      storyIds: new Set(x.storyIds),
+      itemIds: new Set(Array.isArray(x.itemIds) ? x.itemIds : []),
+      leadIds: new Set(Array.isArray(x.leadIds) ? x.leadIds : []),
+      leadStoryId: typeof x.leadStoryId === 'string' ? x.leadStoryId : null,
+      at: Date.parse(x.builtAt) || Number(x.at) || 0,
+      titles: new Set(Array.isArray(x.titles) ? x.titles : []),
+      shown: Array.isArray(x.shown) ? x.shown.filter((s) => s && typeof s.title === 'string') : [],
+    }
   }
   return previousOf(x)
 }
 
-// `previous` over meer Edities (H3): vereniging van verhalen, stukken, koppen, hoofdverhalen en
-// kenmerken; `at` per verhaal is de builtAt van de laatste Editie waarin het stond. Neemt Edities of
-// history-regels. Dezelfde sleutels als previousOf in stories.mjs leest (selectForReader).
+// `previous` over meer Edities (H3), rekenend als previousOf in stories.mjs (Hoot-herhaling): oudste
+// eerst (at, dan id: totale volgorde, zodat elk toestel hetzelfde rekent, ook als het toestel ze van
+// nieuw naar oud aanlevert); vereniging van verhalen, stukken, hoofdberichten, koppen, getoonde
+// berichten en kenmerken; `at` per verhaal is de builtAt van de laatste Editie waarin het stond;
+// `leadStoryId` en `at` die van de laatste Editie, `leadStoryIds` alle hoofdverhalen. Neemt Edities of
+// history-regels, door elkaar. Dezelfde sleutels als selectForReader leest.
 export function mergePrevious(list) {
   const ps = (Array.isArray(list) ? list : [list]).map(previousOne).filter(Boolean)
   if (!ps.length) return null
+  ps.sort(byTime)
   const u = (k) => new Set(ps.flatMap((p) => [...(p[k] || [])]))
   const atOf = new Map()
-  for (const p of ps) for (const id of p.storyIds) atOf.set(id, Math.max(atOf.get(id) || 0, p.at))
-  const shown = new Map()
-  for (const p of ps) for (const s of p.shown || []) if (s?.title && !shown.has(s.id || s.title)) shown.set(s.id || s.title, s)
   const keysOf = new Map()
-  for (const p of ps) for (const [id, ks] of p.keysOf || []) keysOf.set(id, new Set([...(keysOf.get(id) || []), ...ks]))
-  return { storyIds: u('storyIds'), itemIds: u('itemIds'), leadIds: u('leadIds'), titles: u('titles'), keysOf, leadStoryIds: new Set(ps.map((p) => p.leadStoryId).filter(Boolean)), leadStoryId: ps[ps.length - 1].leadStoryId, at: Math.max(...ps.map((p) => p.at)), atOf, shown: [...shown.values()] }
+  for (const p of ps) {
+    for (const id of p.storyIds) atOf.set(id, Math.max(atOf.get(id) || 0, p.at))
+    for (const [id, ks] of p.keysOf || []) keysOf.set(id, new Set([...(keysOf.get(id) || []), ...ks]))
+  }
+  const last = ps[ps.length - 1]
+  return {
+    keysOf,
+    storyIds: u('storyIds'),
+    itemIds: u('itemIds'),
+    leadIds: u('leadIds'),
+    leadStoryId: last.leadStoryId ?? null,
+    leadStoryIds: new Set(ps.map((p) => p.leadStoryId).filter(Boolean)),
+    at: last.at,
+    atOf,
+    titles: u('titles'),
+    shown: ps.flatMap((p) => p.shown || []),
+  }
 }
 
 // De `previous` uit de invoer: niets, een lijst van Edities en/of history-regels, of één samenvatting
@@ -165,6 +222,14 @@ export function nextHistoryJSON(priorJSON, editionJSON) {
   const prior = typeof priorJSON === 'string' ? JSON.parse(priorJSON) : priorJSON
   const edition = typeof editionJSON === 'string' ? JSON.parse(editionJSON) : editionJSON
   return JSON.stringify(nextHistory(prior, edition))
+}
+// Het `previous` over een lijst (Edities en/of history-regels) in platte vorm — Sets als arrays, Maps
+// als objecten — om op het toestel na te kijken wat de rekenkern van toen kent (de pariteitstests).
+export function previousJSON(listJSON) {
+  const p = previousFrom(typeof listJSON === 'string' ? JSON.parse(listJSON) : listJSON)
+  if (!p) return 'null'
+  const flat = { ...p, storyIds: [...p.storyIds], itemIds: [...p.itemIds], leadIds: [...p.leadIds], titles: [...p.titles], leadStoryIds: [...p.leadStoryIds], atOf: Object.fromEntries(p.atOf), keysOf: Object.fromEntries([...p.keysOf].map(([id, ks]) => [id, [...ks]])) }
+  return JSON.stringify(flat)
 }
 
 // Wat Hoot van je leerde (bouwspec §8, Instellingen): hetzelfde profiel als De Redacteur gebruikt,

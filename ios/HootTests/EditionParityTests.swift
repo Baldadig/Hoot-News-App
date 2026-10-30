@@ -89,7 +89,8 @@ final class EditionParityTests: XCTestCase {
         XCTAssertEqual(nieuw.favorites, [])
     }
 
-    // H5: de geschiedenis uit de bundel heeft de vorm van user_state.edition.history.
+    // H5: de geschiedenis uit de bundel heeft de vorm van user_state.edition.history — precies de
+    // sleutels die historyOf in netlify/lib/stories.mjs schrijft, in die volgorde.
     func testHistoryShape() async throws {
         let g = try Self.golden()[1]
         let out = try await EditionEngine.shared.compose(inputJSON: g.input)
@@ -98,10 +99,68 @@ final class EditionParityTests: XCTestCase {
         XCTAssertFalse(h.storyIds.isEmpty)
         XCTAssertGreaterThanOrEqual(h.itemIds.count, 10)
         XCTAssertEqual(h.titles?.isEmpty, false)
+        XCTAssertNotNil(h.leadStoryId, "het hoofdverhaal gaat mee (wasLead)")
+        XCTAssertEqual(h.shown?.isEmpty, false, "de getoonde berichten gaan mee (sameSubject)")
+        // De sleutels in de volgorde van het web (JSON.stringify houdt de volgorde van historyOf).
+        let keys = Self.keyOrder(of: row)
+        XCTAssertEqual(keys, ["id", "builtAt", "storyIds", "itemIds", "leadIds", "leadStoryId", "titles", "shown", "keys"])
         let next = try await EditionEngine.shared.nextHistory(prior: "[]", edition: out)
         let rows = try JSONDecoder().decode([EditionHistory].self, from: Data(next.utf8))
         XCTAssertEqual(rows.count, 1)
         XCTAssertEqual(rows.first?.id, h.id)
+    }
+
+    // De sleutels van het buitenste JSON-object, in de volgorde waarin de tekst ze geeft.
+    static func keyOrder(of json: String) -> [String] {
+        guard let ctx = JSContext() else { return [] }
+        ctx.setObject(json, forKeyedSubscript: "__row" as NSString)
+        return (ctx.evaluateScript("Object.keys(JSON.parse(__row))").toArray() as? [String]) ?? []
+    }
+
+    // H3/H5: drie dagdelen achter elkaar op het toestel, met `prior` zoals loadPersonal hem bouwt (de
+    // hele vorige Editie voorop, dan haar history, recentHistory ontdubbelt): de geschiedenis wordt
+    // drie diep, en het `previous` van de Avond kent de Ochtend nog (atOf op haar builtAt).
+    @MainActor func testHistoryThreeSlotsDeep() async throws { // recentHistory hoort bij de store (main actor)
+        let g = try Self.golden()[1]
+        let out = try await EditionEngine.shared.compose(inputJSON: g.input)
+        guard let base = try JSONSerialization.jsonObject(with: Data(out.utf8)) as? [String: Any] else { return XCTFail("geen Editie") }
+        let json = { (o: Any) in String(decoding: try! JSONSerialization.data(withJSONObject: o), as: UTF8.self) }
+        let rows = { (s: String) in (try? JSONSerialization.jsonObject(with: Data(s.utf8))) as? [[String: Any]] ?? [] }
+        func dagdeel(_ id: String, _ builtAt: String, prior: [[String: Any]]) async throws -> [String: Any] {
+            var e = base
+            e["id"] = id
+            e["builtAt"] = builtAt
+            e["history"] = rows(try await EditionEngine.shared.nextHistory(prior: json(prior), edition: json(e)))
+            return e
+        }
+        // Ochtend, zonder iets van toen.
+        let ochtend = try await dagdeel("d1-ochtend", "2026-10-31T05:00:00.000Z", prior: [])
+        XCTAssertEqual((ochtend["history"] as? [[String: Any]])?.map { $0["id"] as? String }, ["d1-ochtend"])
+        // Middag: de Ochtend voluit voorop, haar eigen regel erachter — de volle Editie wint.
+        var prior = HootStore.recentHistory([ochtend] + (ochtend["history"] as? [[String: Any]] ?? []), except: "d1-middag")
+        XCTAssertEqual(prior.count, 1)
+        XCTAssertNotNil(prior.first?["entries"], "de volle Editie, niet haar regel")
+        let middag = try await dagdeel("d1-middag", "2026-10-31T11:00:00.000Z", prior: prior)
+        let middagIds = (middag["history"] as? [[String: Any]])?.map { $0["id"] as? String }
+        XCTAssertEqual(middagIds, ["d1-middag", "d1-ochtend"], "de volle Editie wordt samengevat, niet weggegooid")
+        XCTAssertTrue((middag["history"] as? [[String: Any]])?.allSatisfy { $0["entries"] == nil && $0["storyIds"] is [String] } == true, "alleen regels")
+        // Avond: drie diep, en previous kent de Ochtend.
+        prior = HootStore.recentHistory([middag] + (middag["history"] as? [[String: Any]] ?? []), except: "d1-avond")
+        XCTAssertEqual(prior.map { $0["id"] as? String }, ["d1-middag", "d1-ochtend"])
+        let avond = try await dagdeel("d1-avond", "2026-10-31T16:00:00.000Z", prior: prior)
+        let history = try JSONDecoder().decode([EditionHistory].self, from: try JSONSerialization.data(withJSONObject: avond["history"] ?? []))
+        XCTAssertEqual(history.count, 3)
+        XCTAssertEqual(history.map(\.id), ["d1-avond", "d1-middag", "d1-ochtend"])
+        XCTAssertTrue(history.allSatisfy { $0.leadStoryId != nil && !($0.shown ?? []).isEmpty }, "elke regel draagt leadStoryId en shown")
+        let previous = try await EditionEngine.shared.previous(of: json(prior))
+        guard let p = try JSONSerialization.jsonObject(with: Data(previous.utf8)) as? [String: Any], let atOf = p["atOf"] as? [String: Double] else { return XCTFail("geen previous") }
+        let storyId = (base["entries"] as? [[String: Any]])?.first { $0["kind"] as? String == "story" }?["id"] as? String ?? ""
+        let ms = { (s: String) in HootDate.parse(s)!.timeIntervalSince1970 * 1000 }
+        XCTAssertEqual(atOf[storyId], ms("2026-10-31T11:00:00.000Z"), "at per verhaal: de laatste Editie waarin het stond")
+        XCTAssertEqual(p["at"] as? Double, ms("2026-10-31T11:00:00.000Z"), "at en leadStoryId zijn van de nieuwste, ook al levert het toestel nieuw → oud")
+        let alleenOchtend = try await EditionEngine.shared.previous(of: json(prior.filter { $0["id"] as? String == "d1-ochtend" }))
+        let q = try JSONSerialization.jsonObject(with: Data(alleenOchtend.utf8)) as? [String: Any]
+        XCTAssertEqual((q?["atOf"] as? [String: Double])?[storyId], ms("2026-10-31T05:00:00.000Z"), "de Ochtend staat er nog in")
     }
 
     // De rekentijd zonder JIT (de simulator draait JavaScriptCore net als een toestel zonder JIT voor
