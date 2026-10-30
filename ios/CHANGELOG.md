@@ -29,6 +29,7 @@
 - **Delen (build 36):** in het deelmenu van iOS staan nu de kop en het beeld van Hoot, niet wat de uitgever teruggeeft (soms "Abonneer nu"). Gedeeld wordt altijd de link van de uitgever, dus Zet in leeslijst, Instapaper en je eigen lezer werken gewoon. Nieuw: een deelknop rechtsboven in Vergelijken (deelt het stuk bovenaan). Een Bluesky-post deelt met de titel van zijn link, of anders het begin van de post.
 - **Bluesky (build 36):** volg je nog niemand, dan staat er een knop "Iemand toevoegen" in de lege rubriek, in plaats van een verwijzing naar de + rechtsboven.
 - **Geen kloktijden meer (build 36):** seintjes, het einde van de Editie en de Selectie zeggen nu in de ochtend, middag of vroege avond, of maandagochtend; de Edities heten overal Ochtendeditie, Middageditie en Avondeditie.
+- **Wat precies? (build 36):** onder Instellingen › Interesses kies je per interesse wat je het meest boeit, zoals AI of Film & series; kies je niets, dan krijg je alles binnen dat onderwerp. Het telt mee in je Editie en gaat mee met je account, net als op hootnews.nl.
 
 ## [1.0.0] — 2026-10-28 — De eerste versie voor de App Store
 

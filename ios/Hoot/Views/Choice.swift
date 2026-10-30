@@ -1,0 +1,150 @@
+import SwiftUI
+
+// Kiezen zoals in het welkom op de website (src/styles.css → .ob__tile, .ob__chip): tegels voor
+// de interesses, zware keuzeknoppen voor wat daaronder valt. Gekozen: de tegel vol accent, de
+// knop in inkt (zoals het web nu). Voor VoiceOver telt "geselecteerd", niet de kleur.
+
+// Keuzeknoppen die doorlopen naar de volgende regel. Een knop die breder is dan de regel krijgt
+// de hele breedte en breekt zijn tekst af (grote tekst).
+struct Flow: SwiftUI.Layout {
+    var spacing: CGFloat = Space.s2
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        arrange(proposal.width ?? .infinity, subviews).size
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let frames = arrange(bounds.width, subviews).frames
+        for (view, frame) in zip(subviews, frames) {
+            view.place(at: CGPoint(x: bounds.minX + frame.minX, y: bounds.minY + frame.minY), proposal: ProposedViewSize(frame.size))
+        }
+    }
+
+    private func arrange(_ width: CGFloat, _ subviews: Subviews) -> (frames: [CGRect], size: CGSize) {
+        var frames: [CGRect] = []
+        var x: CGFloat = 0, y: CGFloat = 0, line: CGFloat = 0, widest: CGFloat = 0
+        for view in subviews {
+            var size = view.sizeThatFits(.unspecified)
+            if size.width > width { size = view.sizeThatFits(ProposedViewSize(width: width, height: nil)) }
+            if x > 0 && x + size.width > width {
+                x = 0
+                y += line + spacing
+                line = 0
+            }
+            frames.append(CGRect(origin: CGPoint(x: x, y: y), size: size))
+            x += size.width + spacing
+            line = max(line, size.height)
+            widest = max(widest, x - spacing)
+        }
+        return (frames, CGSize(width: widest, height: y + line))
+    }
+}
+
+// Even indrukken, zoals :active op de website.
+struct ChoicePress: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+    }
+}
+
+// Eén onderwerp om aan te tikken (.ob__chip).
+struct ChoiceChip: View {
+    let label: String
+    let on: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(label)
+                .font(.subheadline.weight(.bold))
+                .multilineTextAlignment(.leading)
+                .foregroundStyle(on ? Theme.paper : Theme.ink)
+                .padding(.horizontal, Space.s4)
+                .padding(.vertical, Space.s2)
+                .frame(minHeight: Space.tap)
+                .background(on ? Theme.ink : Theme.surface, in: Capsule())
+                .overlay(Capsule().strokeBorder(Theme.ink, lineWidth: 2))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(ChoicePress())
+        .accessibilityAddTraits(on ? .isSelected : [])
+    }
+}
+
+// Een interesse als tegel (.ob__tile): icoon boven, naam onder.
+struct ChoiceTile: View {
+    let label: String
+    let icon: String
+    let on: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: Space.s4) {
+                Image(systemName: icon)
+                    .font(.system(size: 34))
+                    .foregroundStyle(on ? Theme.onAccent : Theme.accent)
+                    .accessibilityHidden(true)
+                Spacer(minLength: 0)
+                Text(label)
+                    .font(.headline.weight(.heavy))
+                    .foregroundStyle(on ? Theme.onAccent : Theme.ink)
+                    .multilineTextAlignment(.leading)
+            }
+            .frame(maxWidth: .infinity, minHeight: 112, alignment: .leading)
+            .padding(Space.s4)
+            .background(on ? Theme.accent : Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
+            .overlay(RoundedRectangle(cornerRadius: Radius.md).strokeBorder(on ? Theme.accent : Theme.ink, lineWidth: 2))
+            .contentShape(RoundedRectangle(cornerRadius: Radius.md))
+        }
+        .buttonStyle(ChoicePress())
+        .accessibilityAddTraits(on ? .isSelected : [])
+    }
+}
+
+// De onderwerpen van één interesse als keuzeknoppen, op de volgorde van de website.
+struct TopicChips: View {
+    let rubriek: Rubriek
+    let picked: [String]
+    let toggle: (String) -> Void
+
+    var body: some View {
+        Flow {
+            ForEach(rubriek.topics, id: \.self) { t in
+                ChoiceChip(label: Taste.label(t), on: picked.contains(t)) { toggle(t) }
+            }
+        }
+    }
+}
+
+// Wat precies? Per gekozen interesse een kop (icoon en naam) met zijn onderwerpen (.ob__group).
+struct TopicsPicker: View {
+    let interests: [String]
+    @Binding var picked: [String]
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Space.s5) {
+            ForEach(Rubriek.alle.filter { interests.contains($0.id) }) { r in
+                VStack(alignment: .leading, spacing: Space.s3) {
+                    Label {
+                        // Hoofdletters lezen slecht in grote tekst (zoals Kicker).
+                        Text(typeSize.isAccessibilitySize ? r.label : r.label.uppercased())
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(Theme.ink3)
+                    } icon: {
+                        Image(systemName: r.icon).foregroundStyle(Theme.accent)
+                    }
+                    .accessibilityAddTraits(.isHeader)
+                    .accessibilityLabel(r.label)
+                    TopicChips(rubriek: r, picked: picked) { t in
+                        picked = picked.contains(t) ? picked.filter { $0 != t } : picked + [t]
+                    }
+                }
+            }
+        }
+    }
+}

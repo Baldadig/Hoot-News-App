@@ -14,7 +14,7 @@ struct SettingsView: View {
     @Environment(\.openURL) private var openURL
     @Environment(EditionAlerts.self) private var alerts
     @State private var confirmClear: String? = DebugLaunch.screen("instellingen-wissen") ? "gelezen" : nil
-    @State private var path: [String] = DebugLaunch.screen("instellingen-bronnen") ? ["bronnen"] : DebugLaunch.screen("instellingen-vakken") ? ["vakken"] : DebugLaunch.screen("instellingen-abonnementen") ? ["abonnementen"] : []
+    @State private var path: [String] = DebugLaunch.screen("instellingen-bronnen") ? ["bronnen"] : DebugLaunch.screen("instellingen-interesses") ? ["interesses"] : DebugLaunch.screen("instellingen-vakken") ? ["vakken"] : DebugLaunch.screen("instellingen-abonnementen") ? ["abonnementen"] : []
 
     private var version: String {
         let v = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
@@ -267,32 +267,56 @@ struct SettingsView: View {
     }
 }
 
-// Interesses: dezelfde acht als op de website (src/lib/topics.js).
+// Interesses: dezelfde acht als op de website (src/lib/topics.js). Onder elke interesse die aan
+// staat: Wat precies?, de onderwerpen als keuzeknoppen (zoals stap 3 van het welkom op het web).
 struct InterestsList: View {
     @Environment(HootStore.self) private var store
-    static let all = [("politiek", "Politiek", "Nederland, Europa, VS-politiek, verkiezingen", "building.columns"), ("binnenland", "Binnenland", "Wonen, zorg, onderwijs, misdaad, migratie", "house"), ("wereld", "Wereld", "Oekraïne, Midden-Oosten, Azië, geopolitiek", "globe.europe.africa"), ("economie", "Economie", "Werk, bedrijven, energie, geld", "chart.line.uptrend.xyaxis"), ("tech", "Tech", "AI, tech, gadgets, privacy", "cpu"), ("wetenschap", "Wetenschap", "Klimaat, gezondheid, ruimte, natuur", "atom"), ("cultuur", "Cultuur", "Muziek, film, boeken, kunst, media", "theatermasks"), ("sport", "Sport", "Voetbal, F1, wielrennen, tennis", "figure.run")]
+    // Wat je aantikte, vast zolang je hier bent: tik je alle onderwerpen van een interesse aan, dan
+    // blijven ze zo staan (bewaard betekent dat hetzelfde als niets kiezen: alles).
+    @State private var picked: [String]?
+    static let about = ["politiek": "Nederland, Europa, VS-politiek, verkiezingen", "binnenland": "Wonen, zorg, onderwijs, misdaad, migratie", "wereld": "Oekraïne, Midden-Oosten, Azië, geopolitiek", "economie": "Werk, bedrijven, energie, geld", "tech": "AI, tech, gadgets, privacy", "wetenschap": "Klimaat, gezondheid, ruimte, natuur", "cultuur": "Muziek, film, boeken, kunst, media", "sport": "Voetbal, F1, wielrennen, tennis"]
     static func summary(_ ids: [String]) -> String {
-        let names = all.filter { ids.contains($0.0) }.map(\.1)
+        let names = Rubriek.alle.filter { ids.contains($0.id) }.map(\.label)
         return names.isEmpty ? "Geen" : names.joined(separator: ", ")
     }
+    private var mine: [String] { Rubriek.picked(from: store.topics, interests: store.interests) }
+
     var body: some View {
+        let picked = self.picked ?? mine
         Form {
             Section {
-                ForEach(Self.all, id: \.0) { id, label, about, icon in
-                    Toggle(isOn: Binding(get: { store.interests.contains(id) }, set: { on in
-                        store.interests = on ? Self.all.map(\.0).filter { $0 == id || store.interests.contains($0) } : store.interests.filter { $0 != id }
-                    })) {
-                        Label {
-                            VStack(alignment: .leading, spacing: Space.s0) {
-                                Text(label)
-                                Text(about).font(.caption).foregroundStyle(Theme.ink3)
+                ForEach(Rubriek.alle) { r in
+                    let on = store.interests.contains(r.id)
+                    VStack(alignment: .leading, spacing: Space.s3) {
+                        Toggle(isOn: Binding(get: { on }, set: { now in
+                            withAnimation { store.setInterests(now ? store.interests + [r.id] : store.interests.filter { $0 != r.id }, picked: picked) }
+                        })) {
+                            Label {
+                                VStack(alignment: .leading, spacing: Space.s0) {
+                                    Text(r.label)
+                                    if !on { Text(Self.about[r.id] ?? "").font(.caption).foregroundStyle(Theme.ink3) }
+                                }
+                            } icon: { Image(systemName: r.icon) }
+                        }
+                        // De scheidingslijn begint bij de naam, ook als er keuzeknoppen onder staan.
+                        .alignmentGuide(.listRowSeparatorLeading) { $0[.listRowSeparatorLeading] }
+                        if on {
+                            TopicChips(rubriek: r, picked: picked) { t in
+                                let next = picked.contains(t) ? picked.filter { $0 != t } : picked + [t]
+                                self.picked = next
+                                store.setInterests(store.interests, picked: next)
                             }
-                        } icon: { Image(systemName: icon) }
+                        }
                     }
                 }
             } footer: {
-                Text("Wat hierbij past, gaat voor in je Editie. Echt groot nieuws blijft bovenaan, ook als het buiten je interesses valt.").foregroundStyle(Theme.ink3)
+                Text("Kies wat je het meest boeit. Kies je niets, dan krijg je alles binnen dat onderwerp. Wat hierbij past, gaat voor in je Editie; echt groot nieuws blijft bovenaan, ook als het buiten je interesses valt.").foregroundStyle(Theme.ink3)
             }
+        }
+        .onAppear { self.picked = mine }
+        // Van je account of een ander toestel: dan geldt wat daar gekozen is.
+        .onChange(of: store.topics) {
+            if let p = self.picked, Rubriek.resolve(store.interests, picked: p) != store.topics { self.picked = mine }
         }
     }
 }
