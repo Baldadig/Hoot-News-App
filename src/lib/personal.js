@@ -228,14 +228,17 @@ export function composePersonal({ global, stories = [], items = [], sources = []
 
   // 8. Het waarom per plek, vast met de Editie. Gewicht en punten gaan niet mee (alleen `_parts`
   //    ter inzage, zonder getallen in de UI). Elke plek draagt alle stukken van zijn verhaal
-  //    (`itemIds`) en de getoonde kop (`title`): zo weet de volgende Editie precies wat er stond.
+  //    (`itemIds`), de getoonde kop (`title`) en de kenmerken van het hele verhaal (`keys`, van de
+  //    server, over alle bronnen): zo weet de volgende Editie precies wat er stond, ook wat dit
+  //    toestel zelf niet kent (developedSince).
   const srcName = new Map(sources.map((s) => [s.id, s.name]))
   const out = entries.map((e) => {
     const why = whyOf(e, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk: e.desk, plannedDesk: !!e.planned, sourceName: (s) => srcName.get(s) || s })
     const { w, parts, planned, front, vervolg, ...rest } = e
     const lead = e.leadId || e.id
     const itemIds = e.kind === 'story' ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead]
-    return { ...rest, itemIds, title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {} }
+    const keys = e.kind === 'story' ? e.keys || storyById.get(e.id)?.keys : null
+    return { ...rest, itemIds, ...(keys ? { keys } : {}), title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {} }
   })
   const shown = [...new Set(out.map((e) => e.leadId || e.id))]
   return {

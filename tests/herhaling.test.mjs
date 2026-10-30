@@ -3,7 +3,7 @@
 // Wat nog bij een volgend pakket hoort (H3: previous over drie Edities, H6: sameEvent), staat als todo.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { selectForReader, previousOf, signatures, sameEvent, seenBefore, developedSince } from '../netlify/lib/stories.mjs'
+import { selectForReader, previousOf, signatures, sameEvent, seenBefore, developedSince, storyKeys } from '../netlify/lib/stories.mjs'
 import { composePersonal } from '../src/lib/personal.js'
 import { profileOf } from '../shared/editor.mjs'
 
@@ -80,6 +80,50 @@ test('T3 H2: terug met ≥ 2 nieuwe stukken én nieuwe namen in de kop, met een 
   assert.equal(back.why.code, 'vervolg')
   assert.ok(['dv1', 'dv2'].includes(back.leadId))
   assert.ok(!('vervolg' in back), 'alleen het waarom gaat mee, niet het getal apart')
+})
+
+// Het toestel kent van een verhaal alleen de stukken uit de eigen bronnen (plus de koppen van de
+// algemene Editie). Een portret of necrologie noemt namen (Jean-Luc Picard, Star Trek, Shakespeare) die
+// de andere bronnen 's ochtends al noemden, maar die het toestel niet zag. Daarom draagt elke plek de
+// `keys` van zijn hele verhaal (van de server) en toetst developedSince de nieuwe kop daartegen.
+test('T2c H2: op toestelkennis is een portret met namen uit de andere bronnen van toen geen ontwikkeling (keys van de server)', () => {
+  const AVOND = Date.parse('2026-10-30T16:00:00Z')
+  const nl = (id, source, iso) => art(id, source, 'Acteur Patrick Stewart (1940-2026) overleden', iso, { summary: 'De Britse acteur Patrick Stewart is op 85-jarige leeftijd overleden, meldt zijn familie.' })
+  const en = (id, source, iso) => art(id, source, 'Actor Patrick Stewart dies at 85', iso, { summary: 'Stewart, known for playing Jean-Luc Picard in Star Trek and for his Shakespeare roles, died at 85, his family said.' })
+  const morning = [nl('m0', 'nos', new Date(OCHTEND - 36e5).toISOString()), nl('m1', 'nrc', new Date(OCHTEND - 35e5).toISOString()), nl('m2', 'volkskrant', new Date(OCHTEND - 34e5).toISOString()), ...['nyt', 'guardian', 'bbc', 'economist', 'atlantic', 'politico', 'dw'].map((src, k) => en('m' + (3 + k), src, new Date(OCHTEND - 33e5 + k * 1e5).toISOString()))]
+  const portraits = [
+    art('p1', 'volkskrant', 'Met zijn norse bariton zette Patrick Stewart iedere rol neer alsof het Shakespeare was', new Date(AVOND - 36e5).toISOString(), { summary: 'Hij speelde Jean-Luc Picard in Star Trek en stond jarenlang op de planken met Shakespeare.' }),
+    art('p2', 'nrc', 'Patrick Stewart: van de Royal Shakespeare Company naar het sterrenschip Enterprise', new Date(AVOND - 30e5).toISOString(), { summary: 'Als Jean-Luc Picard in Star Trek werd hij wereldberoemd; Shakespeare bleef zijn thuis.' }),
+    art('p3', 'nos', 'Fans en collega’s herdenken Patrick Stewart, de kapitein van Star Trek', new Date(AVOND - 24e5).toISOString(), { summary: 'Jean-Luc Picard was zijn bekendste rol; collega’s uit Star Trek en van Shakespeare-gezelschappen reageren.' }),
+  ]
+  const all = [...morning, ...portraits]
+  const sigServer = signatures(all)
+  const stThen = { id: 'st-pw', itemIds: morning.map((i) => i.id), sourceCount: 10, ownCount: 10, latestAt: morning[9].publishedAt, desk: null, keys: storyKeys(morning, sigServer) }
+  assert.ok(stThen.keys.includes('picard') && stThen.keys.includes('shakespeare'), `keys van de server: ${stThen.keys.join(',')}`)
+  // De Ochtend-plek draagt de keys van het hele verhaal (H4), zoals selectForReader en composePersonal ze zetten.
+  const ochtendEd = { builtAt: new Date(OCHTEND).toISOString(), entries: [{ kind: 'story', id: 'st-pw', leadId: 'm0', itemIds: stThen.itemIds, title: morning[0].title, keys: stThen.keys }] }
+  const previous = previousOf(ochtendEd)
+  assert.deepEqual([...previous.keysOf.get('st-pw')].sort(), [...stThen.keys].sort(), 'previousOf neemt de keys per verhaal mee')
+  // Het toestel volgt drie Nederlandse bronnen en kent alleen hun stukken.
+  const followed = new Set(['nos', 'nrc', 'volkskrant'])
+  const device = all.filter((i) => followed.has(i.source))
+  const known = new Map(device.map((i) => [i.id, i]))
+  const stNow = { ...stThen, itemIds: all.map((i) => i.id), sourceCount: 10, latestAt: portraits[2].publishedAt }
+  const members = stNow.itemIds.map((id) => known.get(id)).filter(Boolean)
+  assert.equal(members.length, 6, 'drie oude en drie nieuwe stukken uit eigen bronnen')
+  const sigDevice = signatures(device)
+  const opts = { mainIds: followed, now: AVOND, known }
+  assert.equal(developedSince(stNow, members, previous, sigDevice, opts), null, 'met de keys van toen is het portret geen ontwikkeling')
+  // Zonder die keys (een plek van een oudere Editie) kent het toestel de namen van toen niet: dan zou het
+  // portret wél als ontwikkeld tellen. Dat is precies waarom de keys meegaan.
+  const kaal = { ...previous, keysOf: new Map() }
+  assert.ok(developedSince(stNow, members, kaal, sigDevice, opts), 'zonder keys ziet het toestel de namen van de andere bronnen niet')
+  // En via selectForReader: het verhaal komt niet terug.
+  const sel = selectForReader([stNow], device, { mainIds: followed, now: AVOND, prof, ctx: { known, sigKnown: sigDevice }, seed: 't', previous })
+  assert.ok(!sel.some((e) => e.id === 'st-pw'), 'Stewart kwam in de Avond terug als Vervolg')
+  // Zonder previous krijgt de plek de keys van het verhaal mee, voor de volgende Editie.
+  const first = selectForReader([stNow], device, { mainIds: followed, now: AVOND, prof, ctx: {}, seed: 't' })
+  assert.deepEqual(first.find((e) => e.id === 'st-pw')?.keys, stNow.keys)
 })
 
 test('T3b H2: een vertaalde kop (zelfde namen, andere taal) is geen ontwikkeling, ook niet met ≥ 2 nieuwe stukken', () => {

@@ -278,7 +278,11 @@ export const isLive = (a) => LIVE_TITLE.test(a.title || '') || /\/live(blog)?[-/
 const CORE_FROM = 6
 const coreDegree = (size) => (size >= 10 ? 3 : 2)
 
-export function buildStories(articles, registry = {}, { mainIds = new Set() } = {}) {
+// `keys`: geef elk verhaal zijn kenmerken mee (`keys`: de namen en gebeurtenis-begrippen van ál zijn
+// stukken, gesorteerd). De server zet dit aan: zo weet een toestel, dat van een verhaal alleen de
+// stukken uit de eigen bronnen kent, toch wat er in de vorige Editie al over geschreven was
+// (developedSince). Standaard uit: dan is de uitvoer byte-gelijk aan vroeger (meetlat).
+export function buildStories(articles, registry = {}, { mainIds = new Set(), keys = false } = {}) {
   const list = articles.filter((a) => !DIGEST.test(a.title || '') && !isLive(a)).sort(byRecency)
   const sig = signatures(list)
   const now = list.length ? timeOf(list[0]) : null // het nieuwste bericht: zo laat is het in deze feeds
@@ -381,9 +385,24 @@ export function buildStories(articles, registry = {}, { mainIds = new Set() } = 
       sourceNames: names,
       latestAt: items[0].publishedAt || null,
       firstAt: items[items.length - 1].publishedAt || null,
+      ...(keys ? { keys: storyKeys(items, sig) } : {}),
     })
   }
   return stories
+}
+
+// De kenmerken van een verhaal: alle sterke namen en gebeurtenis-begrippen van zijn stukken, één keer
+// en gesorteerd (totale volgorde, zodat web en server dezelfde lijst maken). Hooguit KEYS_MAX.
+export const KEYS_MAX = 80
+export function storyKeys(items, sig) {
+  const out = new Set()
+  for (const i of items) {
+    const s = sig.get(i.id)
+    if (!s) continue
+    for (const k of s.strong) out.add(k)
+    for (const k of s.concepts) out.add(k)
+  }
+  return [...out].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)).slice(0, KEYS_MAX)
 }
 
 // ---------- Editie ----------
@@ -402,14 +421,19 @@ export function previousSlotId(slot) {
 // `itemIds` zijn alle stukken van de verhalen van toen (de entries van een persoonlijke Editie dragen
 // ze zelf, de algemene Editie via `edition.stories`); `titles` de getoonde koppen en `shown` de
 // getoonde berichten zelf (kop, intro, tijd), zodat een tweede verhaal over dezelfde gebeurtenis
-// (ander id) ook herkend wordt (sameSubject in selectForReader).
+// (ander id) ook herkend wordt (sameSubject in selectForReader). `keysOf` (verhaal-id → Set) zijn de
+// kenmerken van toen per verhaal (`keys`, van de server: alle stukken uit alle bronnen), zodat
+// "ontwikkeld" niet afhangt van welke stukken dit toestel kent (developedSince).
 export function previousOf(edition) {
   if (!edition?.entries?.length) return null
   const stories = edition.entries.filter((e) => e.kind === 'story')
   const lead = edition.entries[0]
   const byId = new Map((edition.items || []).map((i) => [i.id, i]))
   const shown = edition.entries.map((e) => byId.get(e.leadId || e.id)).filter((i) => i?.title)
+  const keysOf = new Map()
+  for (const e of [...stories, ...(edition.stories || [])]) if (Array.isArray(e.keys) && e.keys.length) for (const id of [e.id, e.formerId, ...(e.formerIds || [])].filter(Boolean)) keysOf.set(id, new Set([...(keysOf.get(id) || []), ...e.keys]))
   return {
+    keysOf,
     storyIds: new Set(stories.flatMap((e) => [e.id, e.formerId].filter(Boolean))),
     itemIds: new Set([...edition.entries.map((e) => e.leadId || e.id), ...stories.flatMap((e) => e.itemIds || []), ...(edition.stories || []).flatMap((st) => st.itemIds || [])]),
     leadIds: new Set([lead.leadId || lead.id]),
@@ -474,14 +498,17 @@ export function seenBefore(st, items, previous) {
 // Ontwikkeld: minstens DEVELOPED_FRESH stukken van ná de vorige Editie die daar niet in stonden, én de
 // kop van het zwaarste nieuwe stuk draagt minstens DEVELOPED_SIG namen of gebeurtenis-begrippen die in
 // geen enkel stuk van toen voorkwamen. Op kenmerken (signature, via ALIAS), niet op woorden: een
-// vertaalde kop is nooit "nieuw". Een nieuwe naam telt alleen als nog een ander nieuw stuk hem
-// noemt: het toestel kent van een verhaal alleen de stukken uit jouw bronnen, en een portret of
-// necrologie heeft altijd eigen namen (Shakespeare, Jean-Luc Picard) die bij de andere bronnen
-// van toen wél al stonden; een echte ontwikkeling (staatsbegrafenis in Westminster Abbey) melden
-// meerdere nieuwe stukken. `sig`: signatures over alle bekende berichten; `known` (id → bericht):
-// alles wat het toestel van het verhaal kent, ook uit de algemene Editie, voor "van toen".
-// Uitvoer: { fresh, lead, newSig } of null. `previous.at` mag per verhaal verschillen (`atOf`, als
-// previous meer Edities omvat).
+// vertaalde kop is nooit "nieuw".
+// "Van toen" mag niet afhangen van wat dit toestel kent: het kent van een verhaal alleen de stukken uit
+// jouw bronnen plus de koppen van de algemene Editie, en een portret of necrologie heeft altijd eigen
+// namen (Shakespeare, Jean-Luc Picard) die bij de andere bronnen van toen wél al stonden. Daarom
+// legt elke plek de kenmerken van zijn hele verhaal vast (`keys`, van de server over alle bronnen;
+// `previous.keysOf`), en komen daar de kenmerken bij van de oude stukken die het toestel zelf kent
+// (`known`: ook uit de algemene Editie). Als extra slot telt een nieuwe naam alleen als nog een ander
+// nieuw stuk hem noemt: een echte ontwikkeling (staatsbegrafenis in Westminster Abbey) melden
+// meerdere nieuwe stukken, een eigenaardigheid van één stuk niet. `sig`: signatures over alle
+// bekende berichten. Uitvoer: { fresh, lead, newSig } of null. `previous.at` mag per verhaal
+// verschillen (`atOf`, als previous meer Edities omvat).
 export const DEVELOPED_FRESH = 2
 export const DEVELOPED_SIG = 2
 export function developedSince(st, items, previous, sig, { mainIds = new Set(), preferred = null, now = null, known = null } = {}) {
@@ -494,6 +521,7 @@ export function developedSince(st, items, previous, sig, { mainIds = new Set(), 
     return s ? [...s.strong, ...s.concepts] : []
   }
   const then = new Set()
+  for (const id of [st.id, ...(st.formerIds || [])]) for (const k of previous.keysOf?.get(id) || []) then.add(k)
   const all = known ? (st.itemIds || []).map((id) => known.get(id)).filter(Boolean) : items
   for (const i of [...all, ...items]) if (!isNew(i)) for (const k of keysOf(i)) then.add(k)
   const lead = leadCandidates(fresh, mainIds, preferred, now)[0]
@@ -594,8 +622,8 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
 // `prof`: profileOf. `ctx`: { readIds, tempo, storyDesk, known, sigKnown } (`known`: alle bekende
 // berichten op id, `sigKnown` hun kenmerken, voor developedSince). `plan: false` slaat voorpagina en
 // indeling over (het extra blok). Rekenregels als in shared/editor.mjs: elke sortering is totaal.
-// Uitvoer: de plekken met `w` en `parts` (het waarom wordt daarna gezet), `itemIds` en `title`
-// (zodat previousOf de hele Editie van toen kent), plus `deskOrder`.
+// Uitvoer: de plekken met `w` en `parts` (het waarom wordt daarna gezet), `itemIds`, `title` en de
+// `keys` van het verhaal (zodat previousOf de hele Editie van toen kent), plus `deskOrder`.
 const textOrder = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
 export function selectForReader(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = '' } = {}) {
   const byId = new Map(pool.map((i) => [i.id, i]))
@@ -675,7 +703,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
       const lead = pickLead(c.dev ? c.dev.fresh : c.items)
       leadCount[lead.source] = (leadCount[lead.source] || 0) + 1
       prevLead = lead.source
-      entries.push({ kind: 'story', id: c.st.id, leadId: lead.id, itemIds: c.st.itemIds, title: lead.title || null, ...base })
+      entries.push({ kind: 'story', id: c.st.id, leadId: lead.id, itemIds: c.st.itemIds, title: lead.title || null, ...(c.st.keys ? { keys: c.st.keys } : {}), ...base })
     } else entries.push({ kind: 'item', id: c.it.id, itemIds: [c.it.id], title: c.it.title || null, ...base })
     return true
   }

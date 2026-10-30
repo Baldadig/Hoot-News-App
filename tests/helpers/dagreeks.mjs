@@ -5,8 +5,12 @@
 // HOOT_DIR, zodat tests en meetlat dezelfde maten gebruiken.
 //
 // Per dagdeel is de pool alles wat vóór dat moment is gepubliceerd. Verhalen worden per dagdeel
-// opnieuw gebouwd (buildStories met het registry van het vorige dagdeel, zoals de server), de
+// opnieuw gebouwd (buildStories met het registry van het vorige dagdeel en `keys`, zoals de server), de
 // algemene Editie met selectEdition + previous (zoals build.mjs), de persoonlijke met composePersonal.
+// Die krijgt als `items` wat het toestel kent: de berichten van de gevolgde bronnen (de hook geeft
+// useFeed.wantedSources mee) plus de koppen van de algemene Editie (global.items, voegt
+// composePersonal zelf toe). De vergelijking (compare) rekent wél op de volledige pool: dat is de
+// waarheid waartegen "ontwikkeld" gemeten wordt.
 // Varianten voor `previous` van de persoonlijke Editie:
 //   code    : previousOf(vorige persoonlijke Editie), wat usePersonalEdition.js nu meegeeft;
 //   drie    : alle eerdere Edities van de dag samen (H3: at per verhaal, koppen en itemIds verenigd);
@@ -23,6 +27,7 @@ export const SLOTS = [
 ]
 export const DAG_PERSONAS = ['haags', 'klimaat', 'wereld', 'vs', 'nieuw']
 export const VARIANTS = ['code', 'drie', 'account']
+const DAY_WINDOW = 30 * 36e5 // de dagpool voor de taalmaat: zo ver terug als de diagnose keek (paren.mjs)
 const SPORT_TOPICS = new Set(['voetbal', 'f1', 'wielrennen', 'tennis', 'wintersport', 'olympisch'])
 const leadOf = (e) => e.leadId || e.id
 
@@ -33,17 +38,23 @@ export function articlesOf(snap, extra = []) {
   return [...byId.values()].filter((i) => i.kind === 'article' && Number.isFinite(Date.parse(i.publishedAt)))
 }
 
+// Wat de server bundelt: alles behalve regionaal en muziek.
+const inStoriesOf = (sources) => {
+  const SRC = new Map(sources.map((s) => [s.id, s]))
+  return (it) => SRC.get(it.source)?.cat !== 'regio' && !MUSIC_IDS.has(it.source)
+}
+
 // Per dagdeel: pool, verhalen, algemene Editie (zoals de server die bouwt en uitlevert).
 export function dayOf(articles, sources) {
   const SRC = new Map(sources.map((s) => [s.id, s]))
-  const inStories = (it) => SRC.get(it.source)?.cat !== 'regio' && !MUSIC_IDS.has(it.source)
+  const inStories = inStoriesOf(sources)
   let registry = {}
   let stored = null
   const day = []
   for (const sl of SLOTS) {
     const pool = articles.filter((i) => Date.parse(i.publishedAt) <= sl.now)
     const articlePool = pool.filter(inStories)
-    const stories = buildStories(articlePool, registry, { mainIds: MAIN_IDS })
+    const stories = buildStories(articlePool, registry, { mainIds: MAIN_IDS, keys: true })
     registry = Object.fromEntries(stories.flatMap((st) => st.itemIds.map((id) => [id, { s: st.id }])))
     const byId = new Map(pool.map((i) => [i.id, i]))
     const entries = selectEdition(stories, articlePool, { mainIds: MAIN_IDS, now: sl.now, previous: previousOf(stored) })
@@ -64,21 +75,25 @@ export function dayOf(articles, sources) {
 
 // De samenvatting van een vastgelegde Editie zoals die in `user_state.edition.history` komt (H5),
 // met de getoonde berichten (`shown`: kop, intro, tijd) erbij: op de kop alleen is "zelfde
-// onderwerp" niet te zien.
+// onderwerp" niet te zien. `keys` per verhaal: de kenmerken van toen (developedSince).
 export function historyOf(ed) {
   const p = previousOf(ed)
-  return { id: ed.id, builtAt: ed.builtAt, storyIds: [...p.storyIds], itemIds: [...p.itemIds], leadIds: [...p.leadIds], titles: [...(p.titles || [])], shown: p.shown || [] }
+  return { id: ed.id, builtAt: ed.builtAt, storyIds: [...p.storyIds], itemIds: [...p.itemIds], leadIds: [...p.leadIds], titles: [...(p.titles || [])], shown: p.shown || [], keys: Object.fromEntries([...(p.keysOf || new Map())].map(([id, ks]) => [id, [...ks]])) }
 }
 
 // `previous` over meer Edities (H3): vereniging van verhalen, stukken, koppen en hoofdverhalen; `at`
 // per verhaal is de builtAt van de laatste Editie waarin het stond. Neemt Edities of history-regels.
 export function mergePrevious(list) {
-  const ps = list.map((x) => (Array.isArray(x.storyIds) ? { ...x, storyIds: new Set(x.storyIds), itemIds: new Set(x.itemIds), leadIds: new Set(x.leadIds), titles: new Set(x.titles), at: Date.parse(x.builtAt) || 0, leadStoryId: null } : previousOf(x))).filter(Boolean)
+  const ps = list.map((x) => (Array.isArray(x.storyIds) ? { ...x, storyIds: new Set(x.storyIds), itemIds: new Set(x.itemIds), leadIds: new Set(x.leadIds), titles: new Set(x.titles), keysOf: new Map(Object.entries(x.keys || {}).map(([id, ks]) => [id, new Set(ks)])), at: Date.parse(x.builtAt) || 0, leadStoryId: null } : previousOf(x))).filter(Boolean)
   if (!ps.length) return null
   const u = (k) => new Set(ps.flatMap((p) => [...(p[k] || [])]))
   const atOf = new Map()
-  for (const p of ps) for (const id of p.storyIds) atOf.set(id, Math.max(atOf.get(id) || 0, p.at))
-  return { storyIds: u('storyIds'), itemIds: u('itemIds'), leadIds: u('leadIds'), titles: u('titles'), shown: ps.flatMap((p) => p.shown || []), leadStoryIds: new Set(ps.map((p) => p.leadStoryId).filter(Boolean)), leadStoryId: ps[ps.length - 1].leadStoryId, at: Math.max(...ps.map((p) => p.at)), atOf }
+  const keysOf = new Map()
+  for (const p of ps) {
+    for (const id of p.storyIds) atOf.set(id, Math.max(atOf.get(id) || 0, p.at))
+    for (const [id, ks] of p.keysOf || []) keysOf.set(id, new Set([...(keysOf.get(id) || []), ...ks]))
+  }
+  return { storyIds: u('storyIds'), itemIds: u('itemIds'), leadIds: u('leadIds'), titles: u('titles'), shown: ps.flatMap((p) => p.shown || []), leadStoryIds: new Set(ps.map((p) => p.leadStoryId).filter(Boolean)), leadStoryId: ps[ps.length - 1].leadStoryId, at: Math.max(...ps.map((p) => p.at)), atOf, keysOf }
 }
 
 // Vergelijk een Editie met een of meer eerdere: per plek of het verhaal er al stond (op verhaal-id,
@@ -146,7 +161,8 @@ const bigOf = (d) => d.stories.filter((s) => s.sourceCount >= 6 && d.sl.now - Da
 const keysOf = (ed, d) => new Set(ed.entries.map((e) => (e.kind === 'story' ? e.id : d.storyOf.get(e.id)?.id || e.id)))
 
 // De hele dagreeks voor de persona's, in alle varianten. Uitvoer: per persona de Edities en
-// vergelijkingen, plus de maten van §3 (`summary`).
+// vergelijkingen, plus de maten van §3 (`summary`). `items` voor composePersonal is per persona wat
+// het toestel kent (zie boven), niet de volledige pool.
 export function runDay(articles, sources, { personas = DAG_PERSONAS, variants = VARIANTS } = {}) {
   const day = dayOf(articles, sources)
   const out = { personas: {}, summary: {} }
@@ -163,7 +179,8 @@ export function runDay(articles, sources, { personas = DAG_PERSONAS, variants = 
         if (k > 0 && v === 'code') previous = previousOf(eds[k - 1])
         if (k > 0 && v === 'drie') previous = mergePrevious(eds.slice(0, k))
         if (k > 0 && v === 'account') previous = mergePrevious(eds.slice(0, k).map(historyOf))
-        const mine = composePersonal({ global: d.global, stories: d.stories, items: d.pool, sources, followed: setup.followed, interests: setup.interests, topics: setup.topics, favorites: setup.favorites, affinity: setup.affinity, taste: setup.taste, now: d.sl.now, previous, readIds: new Set() })
+        const known = d.pool.filter((i) => setup.followed.has(i.source))
+        const mine = composePersonal({ global: d.global, stories: d.stories, items: known, sources, followed: setup.followed, interests: setup.interests, topics: setup.topics, favorites: setup.favorites, affinity: setup.affinity, taste: setup.taste, now: d.sl.now, previous, readIds: new Set() })
         eds.push({ ...withoutDebug(mine), owner: 'test', basis: 'x' })
         // Groot nieuws aanwezig óf vandaag al getoond (alleen voor de variant die de code zelf gebruikt).
         if (k > 0 && v === 'code') {
@@ -195,12 +212,17 @@ export function runDay(articles, sources, { personas = DAG_PERSONAS, variants = 
   }
   for (const v of variants) out.summary[v] = { opeenvolgend: total(v, (cmp) => cmp.slice(0, 2)), ochtendAvond: total(v, (cmp) => [cmp[2]]) }
   out.summary.grootNieuwsDag = grootKans ? grootRaak / grootKans : 1
-  // Tweetalige verhalen in de Avond-pool (H6): verhalen met zowel een Nederlandse als een Engelse bron.
+  // Tweetalige verhalen (H6): verhalen met zowel een Nederlandse als een Engelse bron, gebundeld over
+  // de hele dagpool (alles van de laatste DAY_WINDOW vóór het nieuwste bericht), op dezelfde basis als
+  // de diagnose (paren.mjs: 142 verhalen, 22 tweetalig); niet alleen de Avond.
   const lang = new Map(sources.map((s) => [s.id, s.lang]))
-  const avond = day[2]
-  const langsOf = (st) => new Set(st.itemIds.map((id) => lang.get(avond.byId.get(id)?.source)).filter(Boolean))
-  out.summary.tweetalig = avond.stories.filter((st) => langsOf(st).has('nl') && langsOf(st).has('en')).length
-  out.summary.verhalen = avond.stories.length
+  const end = Math.max(...articles.map((i) => Date.parse(i.publishedAt)))
+  const dayPool = articles.filter(inStoriesOf(sources)).filter((i) => end - Date.parse(i.publishedAt) < DAY_WINDOW)
+  const dayById = new Map(dayPool.map((i) => [i.id, i]))
+  const dayStories = buildStories(dayPool, {}, { mainIds: MAIN_IDS })
+  const langsOf = (st) => new Set(st.itemIds.map((id) => lang.get(dayById.get(id)?.source)).filter(Boolean))
+  out.summary.tweetalig = dayStories.filter((st) => langsOf(st).has('nl') && langsOf(st).has('en')).length
+  out.summary.verhalen = dayStories.length
   out.day = day
   return out
 }

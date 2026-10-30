@@ -49,9 +49,11 @@ export async function buildFeed({ now = Date.now() } = {}) {
   await imagesFromArticles(items, now)
   borrowPreviews(items, mainGroups.flatMap((g) => g.items))
 
-  // 5. Verhalen: bundelen over alle bronnen (behalve regionaal en muziek).
+  // 5. Verhalen: bundelen over alle bronnen (behalve regionaal en muziek), met per verhaal de
+  //    kenmerken van al zijn stukken (`keys`): het toestel kent van een verhaal alleen de eigen
+  //    bronnen en moet toch weten wat er in de vorige Editie al over geschreven was.
   const articlePool = storyPool(items)
-  const stories = buildStories(articlePool, registry, { mainIds: MAIN_IDS })
+  const stories = buildStories(articlePool, registry, { mainIds: MAIN_IDS, keys: true })
   const poolById = new Map(articlePool.map((i) => [i.id, i]))
   for (const st of stories) for (const id of st.itemIds) poolById.get(id).storyId = st.id
 

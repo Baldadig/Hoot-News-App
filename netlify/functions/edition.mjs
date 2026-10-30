@@ -5,8 +5,11 @@
 //
 // Body: { followed: [bron-id], interests: [], topics: [], favorites: [],
 //         taste: { topics, sources } (meer of minder hiervan, ook negatief),
-//         previous: { storyIds: [], itemIds: [], leadIds: [], leadStoryId, at, titles: [], shown: [{ title, summary, publishedAt }] } }
-// `previous` mag drie Edities omvatten (bouwspec-aanvulling H3/H4): vandaar de ruime grenzen.
+//         previous: { storyIds: [], itemIds: [], leadIds: [], leadStoryId, at, titles: [], shown: [{ title, summary, publishedAt }],
+//                     keysOf: { [verhaal-id]: [kenmerk] } } }
+// `previous` mag drie Edities omvatten (bouwspec-aanvulling H3/H4): vandaar de ruime grenzen. `keysOf`
+// zijn de kenmerken van toen per verhaal (de `keys` van de plekken), zodat "ontwikkeld" niet afhangt
+// van welke stukken het toestel kende.
 import { readDoc, KEYS } from '../lib/kv.mjs'
 import { refresh } from '../lib/refresh.mjs'
 import { composePersonal, withoutDebug } from '../../src/lib/personal.js'
@@ -18,6 +21,14 @@ const ids = (v, max = 300) => (Array.isArray(v) ? v.filter((x) => typeof x === '
 const texts = (v, max = 90) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string' && x.length <= 300).slice(0, max) : [])
 const str = (v, max) => (typeof v === 'string' && v.length <= max ? v : '')
 const shown = (v) => (Array.isArray(v) ? v.filter((x) => x && typeof x === 'object' && str(x.title, 300)).slice(0, 90).map((x) => ({ title: x.title, summary: str(x.summary, 1000), publishedAt: str(x.publishedAt, 40) })) : [])
+// Kenmerken van toen per verhaal: korte platte woorden, begrensd (90 verhalen, 80 kenmerken elk).
+const KEY = /^[\p{L}\p{N}][\p{L}\p{N}_-]{0,39}$/u
+const keysOf = (o) =>
+  Object.entries(o && typeof o === 'object' ? o : {})
+    .filter(([k, v]) => ID.test(k) && Array.isArray(v))
+    .slice(0, 90)
+    .map(([k, v]) => [k, new Set(v.filter((x) => typeof x === 'string' && KEY.test(x)).slice(0, 80))])
+    .filter(([, v]) => v.size)
 // Meer of minder hiervan: ook negatief, begrensd.
 const signed = (o, max = 40) =>
   Object.fromEntries(
@@ -57,7 +68,7 @@ export default async (req) => {
 
   const p = body.previous && typeof body.previous === 'object' ? body.previous : null
   const previous = p
-    ? { storyIds: new Set(ids(p.storyIds, 90)), itemIds: new Set(ids(p.itemIds, 4500)), leadIds: new Set(ids(p.leadIds, 90)), leadStoryId: ID.test(p.leadStoryId || '') ? p.leadStoryId : null, at: Number(p.at) || 0, titles: new Set(texts(p.titles)), shown: shown(p.shown) }
+    ? { storyIds: new Set(ids(p.storyIds, 90)), itemIds: new Set(ids(p.itemIds, 4500)), leadIds: new Set(ids(p.leadIds, 90)), leadStoryId: ID.test(p.leadStoryId || '') ? p.leadStoryId : null, at: Number(p.at) || 0, titles: new Set(texts(p.titles)), shown: shown(p.shown), keysOf: new Map(keysOf(p.keysOf)) }
     : null
   const t = body.taste && typeof body.taste === 'object' ? body.taste : null
   const taste = t ? { topics: signed(t.topics), sources: signed(t.sources) } : null
