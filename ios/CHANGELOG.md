@@ -22,6 +22,7 @@
   - **Vergelijk:** opent het stuk waarop je tikte.
   - **Stroom:** dubbele koppen van zusterkranten worden weggehaald.
   - **Inloggen:** "op uitnodiging" staat vóór de inlogknoppen.
+- **Selectie (build 36):** nieuw onderwerp Geekcultuur, onder Cultuur & vrije tijd: sf, fantasy, strips, bordspellen en internetcultuur. Het verschijnt zodra de server het levert.
 - **Bluesky (build 36):** volg je nog niemand, dan staat er een knop "Iemand toevoegen" in de lege rubriek, in plaats van een verwijzing naar de + rechtsboven.
 
 ## [1.0.0] — 2026-10-28 — De eerste versie voor de App Store
