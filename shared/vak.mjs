@@ -55,6 +55,7 @@ export const VAK_FIELDS = [
   { id: 'boeken', domain: 'cultuur', label: 'Boeken', about: 'Recensies, schrijvers en de boekenwereld' },
   { id: 'kunst', domain: 'cultuur', label: 'Kunst & musea', about: 'Beeldende kunst, tentoonstellingen en erfgoed' },
   { id: 'gaming', domain: 'cultuur', label: 'Gaming', about: 'Games, recensies en de gamewereld' },
+  { id: 'geek', domain: 'cultuur', label: 'Geekcultuur', about: 'Sciencefiction, fantasy, strips, bordspellen en internetcultuur' },
   { id: 'eten', domain: 'cultuur', label: 'Eten & drinken', about: 'Koken, restaurants, wijn en de foodwereld' },
   { id: 'reizen', domain: 'cultuur', label: 'Reizen', about: 'Bestemmingen, reisverhalen en de reiswereld' },
   { id: 'sport', domain: 'cultuur', label: 'Sport', about: 'Achtergrond en analyse, niet alleen de uitslag' },

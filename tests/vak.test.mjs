@@ -189,3 +189,17 @@ test('veel bronnen: om het uur de helft, samen alles', () => {
   assert.ok(!a.some((id) => b.includes(id)))
   assert.equal(isReading({ title: 'Sponsor SaaStr AI Annual 2027. Walk Out With 85+ Customer Meetings' }), false)
 })
+
+test('Geekcultuur: eigen bronnen, en de regel pakt sf, strips en bordspellen maar geen gewoon nieuws', () => {
+  assert.ok(VAK_FIELDS.some((f) => f.id === 'geek' && f.domain === 'cultuur'))
+  const geek = VAK_SOURCES.filter((s) => s.fields.includes('geek'))
+  assert.ok(geek.length >= 10)
+  assert.ok(geek.some((s) => /fantasywereld|9ekunst|speloptafel/.test(s.id)), 'Nederlands voorop')
+  const io9 = src('io9')
+  assert.equal(io9.filter, true)
+  const fits = (title) => fieldOf({ title }, io9) === 'geek'
+  for (const t of ['Andor Season 2 Proves Star Wars Still Has Something to Say', 'The Best Graphic Novels of the Year', 'Waarom bordspellen weer populair zijn', 'Inside the Worldcon Hugo Awards Controversy', 'The Dungeons & Dragons Movie Sequel Is Happening', 'Skibidi Toilet and the Rise of Brainrot']) assert.ok(fits(t), t)
+  for (const t of ['Washington DC braces for shutdown', 'Israëlisch leger rukt op in de Gazastrook', 'Scientists marvel at rare comet', 'Stand-up comic cancels tour', 'Sand dunes are moving faster than expected', 'Kinderen gamen steeds meer']) assert.ok(!fits(t), t)
+  // De dagelijkse linkrondes van File 770 vallen weg, ook al staat er sf in.
+  assert.equal(fieldOf({ title: 'Pixel Scroll 10/29/26 The Fantasy of Science Fiction' }, src('file770')), null)
+})
