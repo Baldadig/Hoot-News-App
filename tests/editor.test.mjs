@@ -288,3 +288,74 @@ test('voorkeursbron weegt zoveel als FAVORITE_BONUS op de server', async () => {
   const { FAVORITE_BONUS } = await import('../netlify/lib/stories.mjs')
   assert.equal(G.P.FAVORITE, FAVORITE_BONUS)
 })
+
+// ---------- §11.3 Indeling ----------
+
+test('indeling: een VS-lezer krijgt als eerste zetel VS, en minstens twee', () => {
+  const vs = G.deskPlan(prof({ interests: ['politiek'], topics: ['vs-politiek', 'trump'] }), 7)
+  assert.equal(vs.order[0], 'vs')
+  assert.ok(vs.order.filter((d) => d === 'vs').length >= 2, vs.order.join(','))
+  assert.equal(vs.weights.vs, 4)
+  assert.equal(vs.order.length, 7)
+})
+
+test('indeling: een techlezer krijgt hooguit drie Tech-zetels en minstens drie kernrubrieken', () => {
+  for (const seats of [3, 4, 6, 8, 10]) {
+    const tech = G.deskPlan(prof({ interests: ['tech'], topics: ['ai'] }), seats).order
+    assert.ok(tech.filter((d) => d === 'tech').length <= G.DESK_CAP, `${seats}: ${tech}`)
+    assert.ok(new Set(tech.filter((d) => G.KERN.includes(d))).size >= Math.min(G.KERN_MIN, seats), `${seats}: ${tech}`)
+    assert.equal(tech.length, seats)
+  }
+})
+
+test('indeling: zonder keuzes precies KERN, de gewone krant', () => {
+  assert.deepEqual(G.KERN, ['binnenland', 'buitenland', 'vs', 'middenoosten', 'oekraine', 'wetenschap'])
+  assert.deepEqual(G.deskPlan(prof(), 6).order, G.KERN)
+  assert.deepEqual(G.deskPlan(prof(), 4).order, G.KERN.slice(0, 4))
+  // Geen eigen pagina's zonder keuze (gewicht 0), dus na zes zetels weer van voren af aan.
+  assert.deepEqual(G.deskPlan(prof(), 8).order, [...G.KERN, 'binnenland', 'buitenland'])
+  assert.deepEqual(G.deskPlan(prof({ taste: { topics: { voetbal: -12 } } }), 6).order, G.KERN) // "minder" telt niet voor de indeling
+})
+
+test('indeling: bij gelijke stand de vaste volgorde, eerst KERN en dan de eigen pagina\'s', () => {
+  // Tech en Economie allebei 0,6 geërfd: gewicht 2,8 en 2,8. Tech staat eerder in de vaste volgorde.
+  const p = prof({ interests: ['tech', 'economie'] })
+  const plan = G.deskPlan(p, 8)
+  assert.equal(plan.weights.tech, plan.weights.economie)
+  assert.deepEqual(plan.order.slice(0, 2), ['tech', 'economie'])
+  assert.equal(plan.order[2], 'binnenland') // daarna KERN in vaste volgorde
+  assert.deepEqual(G.deskPlan(p, 8), plan) // deterministisch
+})
+
+test('indeling: te weinig kernrubrieken? De laatste dubbele zetel ruilt voor de zwaarste die ontbreekt', () => {
+  // Tech, Economie en Regio zwaar: zonder ruil zouden de eigen pagina's de krant opeten.
+  const p = prof({ interests: ['tech', 'economie', 'binnenland'], topics: ['ai', 'energie', 'wonen', 'verkeer'] })
+  for (const seats of [3, 4, 5, 6]) {
+    const order = G.deskPlan(p, seats).order
+    assert.equal(order.length, seats)
+    assert.ok(new Set(order.filter((d) => G.KERN.includes(d))).size >= Math.min(G.KERN_MIN, seats), `${seats}: ${order}`)
+    for (const d of new Set(order)) assert.ok(order.filter((x) => x === d).length <= G.DESK_CAP, `${seats}: ${order}`)
+  }
+})
+
+test('rubriek: een eigen pagina als het verhaal echt over dat gebied gaat, anders de hoofdrubriek', () => {
+  const tech = prof({ interests: ['tech'], topics: ['ai'] })
+  const none = prof()
+  const ai = { id: 'a', source: 'nos', topics: ['ai'] }
+  assert.ok(G.servesDesks([ai], 'binnenland', tech).has('tech'))
+  assert.ok(G.servesDesks([ai], 'binnenland', none).has('tech')) // kan Tech vullen, ook zonder voorkeur
+  assert.equal(G.homeDesk([ai], 'binnenland', tech), 'tech') // sterkte 1
+  assert.equal(G.homeDesk([ai], 'binnenland', none), 'binnenland') // sterkte 0: de hoofdrubriek
+  // Een vakbron zonder onderwerp, zonder hoofdrubriek: de eigen pagina van die bron.
+  const verge = { id: 'v', source: 'verge', topics: [] }
+  assert.deepEqual([...G.servesDesks([verge], null, none)], ['tech'])
+  assert.equal(G.homeDesk([verge], null, none), 'tech')
+  assert.equal(G.homeDesk([verge], 'vs', none), 'vs')
+  // Regio alleen via de bron, niet via een binnenland-onderwerp.
+  const wonen = { id: 'w', source: 'nos', topics: ['wonen'] }
+  assert.ok(!G.servesDesks([wonen], 'binnenland', prof({ interests: ['binnenland'] })).has('regio'))
+  // Twee eigen pagina's met gelijke sterkte: de vaste volgorde (Tech vóór Economie).
+  const both = prof({ interests: ['tech', 'economie'] })
+  assert.equal(G.homeDesk([{ id: 'x', source: 'nos', topics: ['ai', 'bedrijven'] }], 'buitenland', both), 'tech')
+  assert.equal(G.homeDesk([{ id: 'x', source: 'nos', topics: ['ai', 'bedrijven'] }], 'buitenland', prof({ interests: ['tech', 'economie'], topics: ['bedrijven'] })), 'economie')
+})

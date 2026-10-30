@@ -1,5 +1,5 @@
-// De Redacteur: het profiel van één lezer en wat dat over een verhaal zegt — pure functies
-// (tests/editor.test.mjs). Ontwerp en reden: Hoot-design/algoritme/bouwspec.md.
+// De Redacteur: het profiel van één lezer, wat dat over een verhaal zegt en hoe zijn krant is
+// ingedeeld — pure functies (tests/editor.test.mjs). Ontwerp en reden: Hoot-design/algoritme/bouwspec.md.
 //
 // Een goede redacteur kent zijn lezer: welke onderwerpen die belangrijk vindt en hoe sterk, wat
 // hij al las en wat er net naast zijn wereld ligt. Dat profiel wordt op het toestel afgeleid uit
@@ -12,7 +12,7 @@
 // localeCompare; elke sortering heeft een totale vergelijker die eindigt op id.
 import { INTERESTS, topicById } from '../src/lib/topics.js'
 import { MIN_EVENTS } from '../src/lib/affinity.js'
-import { DESK_LABEL } from '../netlify/lib/desks.mjs'
+import { DESKS, DESK_LABEL } from '../netlify/lib/desks.mjs'
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
 const sum = (xs) => xs.reduce((s, v) => s + v, 0)
@@ -282,4 +282,111 @@ export function whyOf(entry = {}, { parts = {}, sourceCount = 0, desk = entry.de
   if (sourceCount >= FRONT_SOURCES) return { code: 'groot', text: `Groot nieuws · ${sourceCount} bronnen` }
   if (desk && plannedDesk) return { code: 'rubriek', text: `Jouw rubriek ${deskLabel(desk)}` }
   return { code: 'rubriek', text: desk ? `Rubriek ${deskLabel(desk)}` : 'Het nieuws van nu' }
+}
+
+// ---------- 6. De indeling van jouw krant ----------
+// Elke krant heeft de kernrubrieken; jouw interesses geven je eigen pagina's (Tech, Economie,
+// Regio) en maken kernrubrieken zwaarder. Zetels per rubriek met Sainte-Laguë: evenredig, zonder
+// dat één rubriek alles krijgt (hooguit DESK_CAP), en altijd minstens KERN_MIN kernrubrieken.
+export const KERN = [...DESKS] // binnenland, buitenland, vs, middenoosten, oekraine, wetenschap
+export const OWN_DESKS = ['tech', 'economie', 'regio']
+// Het gewicht van een rubriek is 1 (kern) of 0 (eigen pagina), plus DESK_GAIN × het sterkste
+// onderwerp dat erbij hoort: wie VS-politiek volgt, krijgt een tweede VS-zetel, geen tweede
+// Binnenland. De tabel is letterlijk die van het referentieprototype.
+export const DESK_GAIN = 3
+export const TOPIC_DESK = {
+  nederland: ['binnenland'], verkiezingen: ['binnenland', 'vs'], 'vs-politiek': ['vs'], trump: ['vs'], europa: ['buitenland'],
+  wonen: ['binnenland', 'regio'], zorg: ['binnenland'], onderwijs: ['binnenland'], misdaad: ['binnenland', 'regio'], migratie: ['binnenland'], verkeer: ['regio'],
+  oekraine: ['oekraine'], middenoosten: ['middenoosten'], azie: ['buitenland'], afrika: ['buitenland'], latam: ['buitenland'], geopolitiek: ['buitenland', 'oekraine'],
+  economie: ['economie'], werk: ['economie'], bedrijven: ['economie'], energie: ['economie'], geld: ['economie'],
+  ai: ['tech'], tech: ['tech'], gadgets: ['tech'], privacy: ['tech'], ev: ['tech'], games: ['tech'],
+  klimaat: ['wetenschap'], gezondheid: ['wetenschap'], ruimte: ['wetenschap'], natuur: ['wetenschap'], brein: ['wetenschap'],
+}
+export const DESK_CAP = 3
+export const KERN_MIN = 3
+// De voorpagina: de FRONT zwaarste verhalen met ≥ FRONT_MIN bronnen, voor iedereen gelijk, plus
+// elk verhaal vanaf FRONT_BIG bronnen, tot hooguit FRONT_MAX.
+export const FRONT = 2
+export const FRONT_MIN = 6
+export const FRONT_BIG = 10
+export const FRONT_MAX = 3
+const PLAN_DESKS = [...KERN, ...OWN_DESKS] // vaste volgorde: bij gelijke stand wint de eerste
+
+// De zetels voor `seats` plekken, in de volgorde waarin ze worden toegekend. Zonder keuzes is dat
+// precies KERN: de gewone krant. Uitvoer: { order, weights } (weights afgerond, ter inzage).
+export function deskPlan(prof, seats) {
+  const w = {}
+  for (const d of PLAN_DESKS) w[d] = KERN.includes(d) ? 1 : 0
+  const best = {}
+  for (const [t, v] of Object.entries(prof?.topicP || {})) {
+    if (v <= 0) continue
+    for (const d of TOPIC_DESK[t] || []) best[d] = Math.max(best[d] || 0, v)
+  }
+  for (const d of PLAN_DESKS) if (best[d]) w[d] += DESK_GAIN * best[d]
+  const got = {}
+  for (const d of PLAN_DESKS) got[d] = 0
+  const order = []
+  while (order.length < seats) {
+    let pick = null
+    let bq = 0
+    for (const d of PLAN_DESKS) {
+      if (got[d] >= DESK_CAP || w[d] <= 0) continue
+      const q = w[d] / (2 * got[d] + 1)
+      if (q > bq + 1e-9) {
+        pick = d
+        bq = q
+      }
+    }
+    if (!pick) break
+    got[pick]++
+    order.push(pick)
+  }
+  // Een krant, geen bubbel: zijn er nog geen KERN_MIN kernrubrieken, dan ruilt de laatst toegekende
+  // dubbele zetel voor de zwaarste kernrubriek die nog ontbreekt. Is er geen dubbele zetel (drie
+  // zware eigen pagina's, weinig zetels), dan de laatst toegekende eigen pagina; anders zou de
+  // harde regel daar breken. Het prototype kende alleen de eerste ruil.
+  const kernIn = () => new Set(order.filter((d) => KERN.includes(d))).size
+  const heaviest = [...KERN].sort((a, b) => w[b] - w[a] || KERN.indexOf(a) - KERN.indexOf(b))
+  for (const d of heaviest) {
+    if (kernIn() >= KERN_MIN) break
+    if (order.includes(d)) continue
+    let i = order.length - 1
+    while (i >= 0 && order.filter((x) => x === order[i]).length < 2) i--
+    if (i < 0) {
+      i = order.length - 1
+      while (i >= 0 && KERN.includes(order[i])) i--
+    }
+    if (i < 0) break
+    order[i] = d
+  }
+  const weights = {}
+  for (const d of PLAN_DESKS) weights[d] = Math.round(w[d] * 100) / 100
+  return { order, weights }
+}
+
+// Welke rubrieken een kandidaat kan vullen: zijn hoofdrubriek, plus je eigen pagina's als een
+// bericht over dat gebied gaat (Regio niet op onderwerp) of van een vakbron daarvoor komt.
+const OWN_DESK_FAMILY = { tech: 'tech', economie: 'economie', regio: 'binnenland' }
+const OWN_DESK_CAT = { tech: ['tech'], economie: ['economie'], regio: ['regio'] }
+const OWN_DESK_TOPICS = Object.fromEntries(OWN_DESKS.map((d) => [d, new Set(INTERESTS.find((f) => f.id === OWN_DESK_FAMILY[d]).topics)]))
+export function servesDesks(items = [], primary = null, prof) {
+  const out = new Set(primary ? [primary] : [])
+  for (const d of OWN_DESKS) {
+    const byTopic = d !== 'regio' && items.some((i) => (i.topics || []).some((t) => OWN_DESK_TOPICS[d].has(t)))
+    if (byTopic || items.some((i) => OWN_DESK_CAT[d].includes(prof.catOf.get(i.source)))) out.add(d)
+  }
+  return out
+}
+
+// De rubriek die erboven komt te staan. Een eigen pagina gaat voor als het verhaal echt over dat
+// gebied gaat (sterkte > 0: een stuk over de beursgang van Anthropic is Tech, geen Binnenland);
+// anders de hoofdrubriek. Zonder hoofdrubriek de eigen pagina die het verhaal kan vullen.
+export function homeDesk(items = [], primary = null, prof) {
+  const s = servesDesks(items, null, prof)
+  const strength = (d) => Math.max(0, ...items.flatMap((i) => (i.topics || []).filter((t) => (TOPIC_DESK[t] || []).includes(d)).map((t) => prof.topicP[t] || 0)))
+  const ranked = OWN_DESKS.filter((d) => s.has(d))
+    .map((d) => ({ d, v: strength(d) }))
+    .sort((a, b) => b.v - a.v || OWN_DESKS.indexOf(a.d) - OWN_DESKS.indexOf(b.d))
+  if (ranked.length && (ranked[0].v > 0 || !primary)) return ranked[0].d
+  return primary || null
 }
