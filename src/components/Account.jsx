@@ -45,7 +45,7 @@ export function AccountSettings({ account, syncStatus }) {
           <span className="setrow__label">{email}</span>
           <span className="setrow__hint">{status === 'noInvite' ? 'Nog geen lid. Hoot is op uitnodiging.' : SYNC[syncStatus] || SYNC.ok}</span>
         </div>
-        <button type="button" className="linkbtn" onClick={signOut}>
+        <button type="button" className="btn btn--quiet" onClick={signOut}>
           Uitloggen
         </button>
       </div>
@@ -202,13 +202,13 @@ export function JoinSheet({ open, reason = 'sync', invited = false, onClose, onS
         </p>
         <div className="join__actions">
           <GoogleButton onClick={onSignIn} wide />
-          <button type="button" className="linkbtn" onClick={onClose}>
+          <button type="button" className="linkbtn linkbtn--plain" onClick={onClose}>
             Niet nu
           </button>
         </div>
         <p className="sheet__note">
           Hoot krijgt van Google alleen je naam, e-mailadres en profielfoto.{' '}
-          <a href="#/privacy" onClick={onClose}>
+          <a className="linkbtn linkbtn--inline" href="#/privacy" onClick={onClose}>
             Privacy
           </a>
         </p>

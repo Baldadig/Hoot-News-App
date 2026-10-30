@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { SourceMark } from '../components/Items.jsx'
 import { BackButton } from '../components/Shell.jsx'
+import { Disclosure } from '../components/Disclosure.jsx'
 import { EditionIcon, SparkleIcon, StreamIcon, INTEREST_ICONS } from '../components/icons.jsx'
 import { vakByDomain } from '../../shared/vak.mjs'
 import { INTERESTS, topicById, resolveTopics, suggestSources, catLabel, starterGroups } from '../lib/topics.js'
@@ -244,13 +245,19 @@ export default function Welcome({ account, sources, prefs, muted = new Set(), on
                 )
                 const count = list.filter((s) => (chosen || []).includes(s.id)).length
                 return g.folded ? (
-                  <details key={g.cat} className="ob__fold">
-                    <summary className="label label--meta ob__gtitle">
-                      {g.label}
-                      <span className="ob__count">{count ? `${count} gekozen` : `${list.length} bronnen`}</span>
-                    </summary>
+                  <Disclosure
+                    key={g.cat}
+                    className="ob__fold"
+                    summaryClassName="label label--meta ob__gtitle"
+                    summary={
+                      <>
+                        {g.label}
+                        <span className="ob__count">{count ? `${count} gekozen` : `${list.length} bronnen`}</span>
+                      </>
+                    }
+                  >
                     {rows}
-                  </details>
+                  </Disclosure>
                 ) : (
                   <section key={g.cat} className="ob__group" aria-label={g.label}>
                     <h2 className="label label--meta ob__gtitle">{g.label}</h2>
@@ -273,7 +280,7 @@ export default function Welcome({ account, sources, prefs, muted = new Set(), on
           {quick ? (
             <button
               type="button"
-              className="ob__skip"
+              className="linkbtn linkbtn--plain ob__skip"
               onClick={() => {
                 setQuick(false)
                 setStep(1)
@@ -282,11 +289,11 @@ export default function Welcome({ account, sources, prefs, muted = new Set(), on
               Liever zelf kiezen
             </button>
           ) : reopen ? (
-            <button type="button" className="ob__skip" onClick={onClose}>
+            <button type="button" className="linkbtn linkbtn--plain ob__skip" onClick={onClose}>
               Sluiten zonder opslaan
             </button>
           ) : step === 0 ? (
-            <button type="button" className="ob__skip" onClick={startQuick}>
+            <button type="button" className="linkbtn linkbtn--plain ob__skip" onClick={startQuick}>
               Liever meteen lezen
             </button>
           ) : null}

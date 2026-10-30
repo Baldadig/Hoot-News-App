@@ -199,11 +199,11 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
               <div className="listempty">
                 <p>{leeg}</p>
                 {picks.size && !bubbel ? (
-                  <button type="button" className="listempty__btn" onClick={() => setFilter('bron', '')}>
+                  <button type="button" className="linkbtn linkbtn--plain listempty__btn" onClick={() => setFilter('bron', '')}>
                     Toon alle bronnen
                   </button>
                 ) : filters.soort && !bubbel ? (
-                  <button type="button" className="listempty__btn" onClick={() => setFilter('soort', '')}>
+                  <button type="button" className="linkbtn linkbtn--plain listempty__btn" onClick={() => setFilter('soort', '')}>
                     Toon alle soorten
                   </button>
                 ) : null}

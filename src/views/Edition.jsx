@@ -60,7 +60,7 @@ function FrontItem({ item, story, note, taste }) {
       <TermHelp text={`${title} ${summary || ''}`} max={1} />
       <div className="fitem__act">
         {others > 0 ? (
-          <button type="button" className="morebtn" onClick={() => openStory(story.id, item.id)} aria-label={`Vergelijk met ${others} andere ${others === 1 ? 'bron' : 'bronnen'}${fresh ? `, ${fresh} nieuw` : ''}`}>
+          <button type="button" className="linkbtn linkbtn--plain morebtn" onClick={() => openStory(story.id, item.id)} aria-label={`Vergelijk met ${others} andere ${others === 1 ? 'bron' : 'bronnen'}${fresh ? `, ${fresh} nieuw` : ''}`}>
             {fresh ? <span className="dot" aria-hidden="true" /> : null}
             <span className="morebtn__long">Vergelijk {others + 1} bronnen</span>
             <span className="morebtn__short">+{others} {others === 1 ? 'bron' : 'bronnen'}</span>
@@ -84,7 +84,7 @@ function LessNote({ entryKey, item, story }) {
   return (
     <p className="lessnote" role="status">
       <span>Je ziet minder over {aboutOf(items)}.</span>
-      <button type="button" className="lessnote__undo" onClick={() => undoLess(entryKey, items)}>
+      <button type="button" className="linkbtn linkbtn--plain lessnote__undo" onClick={() => undoLess(entryKey, items)}>
         Ongedaan maken
       </button>
     </p>
@@ -268,7 +268,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 Dit was de {SLOT[edition.slot].toLowerCase()} van {longDate(edition.date)}. De volgende staat klaar om {edition.next}.
               </p>
               {/* Het einde is leidend; verder lezen mag, maar als rustige link (geen knop die je doortrekt). */}
-              <a className="endcap__more" href="#/stroom">
+              <a className="linkbtn endcap__more" href="#/stroom">
                 Of lees verder in de Stroom
               </a>
             </div>

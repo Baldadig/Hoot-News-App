@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ViewHeader } from '../components/Shell.jsx'
 import { SourceMark } from '../components/Items.jsx'
+import { Disclosure } from '../components/Disclosure.jsx'
 import { resolveProfile } from '../lib/bluesky.js'
 import { statusLabel } from '../lib/sourceStatus.js'
 import { clock, timeAgo } from '../lib/time.js'
@@ -55,13 +56,17 @@ function SourceStatus({ status, recovered, latestBySource, meta, onRetry, refres
   const at = clock(meta?.updatedAt)
   const summary = !online ? 'je bent offline' : n ? statusLabel(n) : recovered ? 'alle bronnen zijn weer bereikbaar' : 'alle bronnen bereikbaar'
   return (
-    <details className="srcstatus">
-      <summary>
-        <span className={`srcstatus__dot${n ? ' is-down' : ''}`} aria-hidden="true" />
-        <span>
-          <strong>Bronstatus</strong> · {summary}
-        </span>
-      </summary>
+    <Disclosure
+      className="srcstatus"
+      summary={
+        <>
+          <span className={`srcstatus__dot${n ? ' is-down' : ''}`} aria-hidden="true" />
+          <span>
+            <strong>Bronstatus</strong> · {summary}
+          </span>
+        </>
+      }
+    >
       <div className="srcstatus__body" role="status">
         {n === 0 ? (
           <p>{recovered ? 'Alle bronnen zijn weer bereikbaar.' : 'Alle bronnen zijn bereikbaar.'}</p>
@@ -83,7 +88,7 @@ function SourceStatus({ status, recovered, latestBySource, meta, onRetry, refres
           </button>
         </p>
       </div>
-    </details>
+    </Disclosure>
   )
 }
 
@@ -153,17 +158,22 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
         {SOURCE_CATS.map(([cat, label]) => {
           const list = more.filter((s) => s.cat === cat)
           return list.length ? (
-            <details key={cat} className="srcgroup">
-              <summary>
-                {label}
-                <span className="srcgroup__n">{list.length}</span>
-              </summary>
+            <Disclosure
+              key={cat}
+              className="srcgroup"
+              summary={
+                <>
+                  {label}
+                  <span className="srcgroup__n">{list.length}</span>
+                </>
+              }
+            >
               <ul className="srows">
                 {list.map((s) => (
                   <SourceRow key={s.id} s={s} muted onToggle={onToggle} />
                 ))}
               </ul>
-            </details>
+            </Disclosure>
           ) : null
         })}
 

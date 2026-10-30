@@ -3,6 +3,7 @@ import { CompactItem, Meta, SaveButton, useHoot, linkOf } from '../components/It
 import { isFollowing } from '../lib/follow.js'
 import { CloseIcon } from '../components/icons.jsx'
 import { BackButton } from '../components/Shell.jsx'
+import { Disclosure } from '../components/Disclosure.jsx'
 import { timeAgo } from '../lib/time.js'
 import { withLead } from '../lib/saved.js'
 
@@ -92,17 +93,14 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
         <p className="story__facts">
           {story.sourceCount} {story.sourceCount === 1 ? 'bron' : 'bronnen'} · laatste update {timeAgo(story.latestAt)}
         </p>
-        <details className="how">
-          <summary>
-            <span className="how__link">Hoe zijn deze bronnen gekoppeld?</span>
-          </summary>
+        <Disclosure className="how" summaryClassName="linkbtn linkbtn--plain" summary="Hoe zijn deze bronnen gekoppeld?">
           <p>
             {story.sourceNames.join(', ')}. Eerste bericht {timeAgo(story.firstAt)}.
           </p>
           <p>
             Hoot bundelt berichten die over dezelfde gebeurtenis lijken te gaan, op overeenkomst in koppen en samenvattingen (namen, plaatsen, tijd). Dat gaat automatisch en kan er een keer naast zitten. Meerdere bronnen betekent dat er veel over geschreven wordt — niet dat ze elkaar onafhankelijk bevestigen: redacties nemen vaak hetzelfde persbureaubericht over. Liveblogs, die een heel onderwerp volgen, tellen niet mee.
           </p>
-        </details>
+        </Disclosure>
 
         {fresh.length ? (
           <>

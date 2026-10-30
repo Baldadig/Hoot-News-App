@@ -112,8 +112,8 @@ export function DisplaySheet({ open, onClose, account, syncStatus }) {
         <h3 className="label label--section sheet__label">Weergave</h3>
         <DisplayControls />
         <p className="sheet__note">
-          <a href="#/instellingen" onClick={onClose}>
-            Alle instellingen ›
+          <a className="linkbtn" href="#/instellingen" onClick={onClose}>
+            Alle instellingen
           </a>
         </p>
       </div>

@@ -3,6 +3,7 @@ import { ViewHeader, Empty, Skeleton, LoadError } from '../components/Shell.jsx'
 import { SaveButton, SourceMark, useHoot } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
 import { ChipGroup } from '../components/ChipGroup.jsx'
+import { Disclosure } from '../components/Disclosure.jsx'
 import { MegaphoneIcon, CursorIcon, PaletteIcon, SparkleIcon, CartIcon, MagnifierIcon, TagIcon, CodeIcon, KanbanIcon, RocketIcon, BriefcaseIcon, INTEREST_ICONS } from '../components/icons.jsx'
 import { timeAgo } from '../lib/time.js'
 import { fitsHero, fitsLarge } from '../lib/img.js'
@@ -112,8 +113,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
     <section className="view" hidden={!active} ref={ref} aria-label="Selectie">
       <div className="col">
         <ViewHeader title="Selectie" onRefresh={onRefresh} refreshing={status === 'refreshing' || status === 'loading'}>
-          <details className="vakpick" open={!chosen.length}>
-            <summary className="vakpick__sum">{chosen.length ? `Onderwerpen (${chosen.length})` : 'Kies onderwerpen'}</summary>
+          <Disclosure className="vakpick" open={!chosen.length} summaryClassName="linkbtn linkbtn--plain vakpick__sum" summary={chosen.length ? `Onderwerpen (${chosen.length})` : 'Kies onderwerpen'}>
             {vakByDomain().map((d) => (
               <ChipGroup key={d.id} label={d.label} listClassName="vakpick__chips">
                 {d.fields.map((f) => (
@@ -123,7 +123,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
                 ))}
               </ChipGroup>
             ))}
-          </details>
+          </Disclosure>
         </ViewHeader>
 
         {status === 'loading' && !digest ? (
@@ -225,11 +225,10 @@ export default function Vak({ active, digest, status, onRefresh }) {
               )
             })}
 
-            <details className="dhow">
-              <summary>Hoe kiest Hoot deze stukken?</summary>
+            <Disclosure className="dhow" summaryClassName="linkbtn linkbtn--plain" summary="Hoe kiest Hoot deze stukken?">
               <p>Gekozen uit {seen} stukken van kenners en vakbladen in de onderwerpen die je volgt, op drie gronden: hoeveel bronnen over hetzelfde schreven, of een redactie het uitkoos (zoals Sidebar), en wie het schreef (een kenner telt zwaarder dan een vakblad, een bedrijfsblog alleen als anderen erover schrijven).</p>
               <p>Alleen stukken van mensen: geen gesponsorde stukken, webinars, podcasts of lijstjes. De tekst bij elk stuk is de intro van de schrijver zelf, niet van AI.</p>
-            </details>
+            </Disclosure>
           </>
         ) : null}
       </div>

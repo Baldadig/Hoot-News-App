@@ -124,7 +124,7 @@ export default function StyleGuide({ stream }) {
         <Empty title="Lege toestand">Zegt wat er aan de hand is en wat je kunt doen.</Empty>
         <div className="listempty">
           <p>Nog niets van NOS in Wereld.</p>
-          <button type="button" className="listempty__btn">
+          <button type="button" className="linkbtn linkbtn--plain listempty__btn">
             Toon alle bronnen
           </button>
         </div>
