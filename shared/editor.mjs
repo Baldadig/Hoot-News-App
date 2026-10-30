@@ -256,9 +256,11 @@ export const DESK_NAMES = { ...DESK_LABEL, tech: 'Tech', economie: 'Economie', r
 const WHY_ORDER = ['followUp', 'cross', 'interest', 'favorite', 'mine', 'sourceRead']
 const topicLabel = (t) => topicById(t)?.label || t
 
-// `entry`: de plek ({ desk, front, near }). `parts`: de persoonlijke punten van de kandidaat.
+// `entry`: de plek ({ desk, front, near, vervolg }). `parts`: de persoonlijke punten van de kandidaat.
 // `plannedDesk`: de plek kwam uit jouw indeling. Uitvoer: { code, text }.
 export function whyOf(entry = {}, { parts = {}, sourceCount = 0, desk = entry.desk ?? null, plannedDesk = false, labelOf = topicLabel, sourceName = (s) => s, deskLabel = (d) => DESK_NAMES[d] || d } = {}) {
+  // Stond in je vorige Editie en ontwikkelde zich: dat gaat vóór elke andere reden, ook op de voorpagina.
+  if (entry.vervolg) return { code: 'vervolg', text: `Vervolg · ${entry.vervolg} nieuwe stukken` }
   if (entry.desk === 'extern') return { code: 'extern', text: 'Buiten je bronnen' }
   if (entry.desk === 'bubbel') {
     if (entry.near) return { code: 'buur', text: `Naast je bubbel · grenst aan ${FAMILY_LABEL[entry.near] || entry.near}` }

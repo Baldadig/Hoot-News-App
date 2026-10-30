@@ -238,9 +238,11 @@ export function sameSubject(a, b) {
   return dt <= SUBJECT_WINDOW && shared.some((k) => !BROAD.has(k))
 }
 
-export function signatures(articles) {
+// `extra`: berichten die wel een kenmerk krijgen maar niet meetellen voor de woordenschat van namen
+// (de koppen van een vorige Editie, zie selectForReader).
+export function signatures(articles, extra = []) {
   const vocab = nameVocabulary(articles)
-  return new Map(articles.map((a) => [a.id, signature(a, vocab)]))
+  return new Map([...articles, ...extra].map((a) => [a.id, signature(a, vocab)]))
 }
 
 // Een bericht van meer dan een dag oud (een portret, een analyse van gisteren) is achtergrond:
@@ -396,17 +398,25 @@ export function previousSlotId(slot) {
   return `${new Date(Date.UTC(y, m - 1, d - 1)).toISOString().slice(0, 10)}-avond`
 }
 
-// Wat uit een vastgelegde editie telt als "stond er al" (zie selectEdition).
+// Wat uit een vastgelegde editie telt als "stond er al" (zie selectEdition en selectForReader).
+// `itemIds` zijn alle stukken van de verhalen van toen (de entries van een persoonlijke Editie dragen
+// ze zelf, de algemene Editie via `edition.stories`); `titles` de getoonde koppen en `shown` de
+// getoonde berichten zelf (kop, intro, tijd), zodat een tweede verhaal over dezelfde gebeurtenis
+// (ander id) ook herkend wordt (sameSubject in selectForReader).
 export function previousOf(edition) {
   if (!edition?.entries?.length) return null
   const stories = edition.entries.filter((e) => e.kind === 'story')
   const lead = edition.entries[0]
+  const byId = new Map((edition.items || []).map((i) => [i.id, i]))
+  const shown = edition.entries.map((e) => byId.get(e.leadId || e.id)).filter((i) => i?.title)
   return {
     storyIds: new Set(stories.flatMap((e) => [e.id, e.formerId].filter(Boolean))),
     itemIds: new Set([...edition.entries.map((e) => e.leadId || e.id), ...stories.flatMap((e) => e.itemIds || []), ...(edition.stories || []).flatMap((st) => st.itemIds || [])]),
     leadIds: new Set([lead.leadId || lead.id]),
     leadStoryId: lead.kind === 'story' ? lead.id : null,
     at: Date.parse(edition.builtAt) || 0,
+    titles: new Set(edition.entries.map((e) => e.title || byId.get(e.leadId || e.id)?.title).filter(Boolean)),
+    shown: shown.map((i) => ({ id: i.id, title: i.title, summary: i.summary || '', publishedAt: i.publishedAt || edition.builtAt })),
   }
 }
 
@@ -449,6 +459,47 @@ export function repeatPenalty(st, items, previous) {
   const developing = fresh >= 3 && fresh / items.length >= 0.3
   const wasLead = previous.leadStoryId === st.id || items.some((i) => previous.leadIds?.has(i.id))
   return (developing ? DEVELOPING_PENALTY : REPEAT_PENALTY) + (wasLead ? REPEAT_LEAD_PENALTY : 0)
+}
+
+// Voor de persoonlijke Editie is gezien een filter, geen straf (aanvulling-pariteit-herhaling.md H1):
+// een verhaal uit je vorige Editie doet nergens meer mee, tenzij het zich ontwikkelde (H2). Een
+// 11-bronnenverhaal hield anders na straf genoeg punten om in Ochtend, Middag én Avond te staan,
+// telkens met een andere bron als kop.
+export function seenBefore(st, items, previous) {
+  if (!previous) return false
+  if (previous.storyIds?.has(st.id) || (st.formerIds || []).some((id) => previous.storyIds?.has(id))) return true
+  return items.some((i) => previous.itemIds?.has(i.id))
+}
+
+// Ontwikkeld: minstens DEVELOPED_FRESH stukken van ná de vorige Editie die daar niet in stonden, én de
+// kop van het zwaarste nieuwe stuk draagt minstens DEVELOPED_SIG namen of gebeurtenis-begrippen die in
+// geen enkel stuk van toen voorkwamen. Op kenmerken (signature, via ALIAS), niet op woorden: een
+// vertaalde kop is nooit "nieuw". Een nieuwe naam telt alleen als nog een ander nieuw stuk hem
+// noemt: het toestel kent van een verhaal alleen de stukken uit jouw bronnen, en een portret of
+// necrologie heeft altijd eigen namen (Shakespeare, Jean-Luc Picard) die bij de andere bronnen
+// van toen wél al stonden; een echte ontwikkeling (staatsbegrafenis in Westminster Abbey) melden
+// meerdere nieuwe stukken. `sig`: signatures over alle bekende berichten; `known` (id → bericht):
+// alles wat het toestel van het verhaal kent, ook uit de algemene Editie, voor "van toen".
+// Uitvoer: { fresh, lead, newSig } of null. `previous.at` mag per verhaal verschillen (`atOf`, als
+// previous meer Edities omvat).
+export const DEVELOPED_FRESH = 2
+export const DEVELOPED_SIG = 2
+export function developedSince(st, items, previous, sig, { mainIds = new Set(), preferred = null, now = null, known = null } = {}) {
+  const at = previous.atOf?.get(st.id) ?? previous.at ?? 0
+  const isNew = (i) => !previous.itemIds?.has(i.id) && !!i.publishedAt && Date.parse(i.publishedAt) > at
+  const fresh = items.filter(isNew)
+  if (fresh.length < DEVELOPED_FRESH) return null
+  const keysOf = (i) => {
+    const s = sig.get(i.id)
+    return s ? [...s.strong, ...s.concepts] : []
+  }
+  const then = new Set()
+  const all = known ? (st.itemIds || []).map((id) => known.get(id)).filter(Boolean) : items
+  for (const i of [...all, ...items]) if (!isNew(i)) for (const k of keysOf(i)) then.add(k)
+  const lead = leadCandidates(fresh, mainIds, preferred, now)[0]
+  const others = fresh.filter((i) => i !== lead).map(keysOf)
+  const newSig = keysOf(lead).filter((k) => !then.has(k) && others.some((ks) => ks.includes(k))).length
+  return newSig >= DEVELOPED_SIG ? { fresh, lead, newSig } : null
 }
 
 // Een verhaal of bericht uit een voorkeursbron weegt zwaarder (zo'n twee bronnen dekking).
@@ -527,28 +578,43 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
 }
 
 // De persoonlijke selectie (De Redacteur, Hoot-design/algoritme/bouwspec.md §3). Zelfde kandidaten,
-// hoofdbericht-regels, één plek per onderwerp, repeatPenalty en verhaalvenster als selectEdition
-// (die blijft voor de algemene Editie ongewijzigd), met vier verschillen:
+// hoofdbericht-regels, één plek per onderwerp en verhaalvenster als selectEdition (die blijft voor
+// de algemene Editie ongewijzigd), met vijf verschillen:
 // 1. "eigen bronnen" in het basisgewicht zijn die van de lezer (`mainIds`);
 // 2. persoonlijke punten uit het profiel (shared/editor.mjs), begrensd, plus een vast zaad dat
 //    alleen gelijke stand breekt;
 // 3. de rubrieken volgen jouw indeling: eerst de voorpagina (voor iedereen gelijk), dan je zetels
 //    (deskPlan), dan aanvullen op gewicht;
 // 4. al gelezen zonder nieuws doet nergens meer mee, en een los bericht blijft zo lang staan als
-//    het tempo van zijn bron (`ctx.tempo`, zie tempoWindows).
-// `prof`: profileOf. `ctx`: { readIds, tempo, storyDesk }. `plan: false` slaat voorpagina en
+//    het tempo van zijn bron (`ctx.tempo`, zie tempoWindows);
+// 5. wat in je vorige Editie stond (`previous`) is een filter, geen straf (seenBefore): het komt
+//    alleen terug als het zich ontwikkelde (developedSince), dan met het zwaarste nieuwe stuk als
+//    kop, "Vervolg · N nieuwe stukken" als waarom (`vervolg`) en lager in de volgorde. Een kandidaat
+//    over hetzelfde onderwerp als een vorige kop (ander verhaal-id) komt ook niet terug.
+// `prof`: profileOf. `ctx`: { readIds, tempo, storyDesk, known, sigKnown } (`known`: alle bekende
+// berichten op id, `sigKnown` hun kenmerken, voor developedSince). `plan: false` slaat voorpagina en
 // indeling over (het extra blok). Rekenregels als in shared/editor.mjs: elke sortering is totaal.
-// Uitvoer: de plekken met `w` en `parts` (het waarom wordt daarna gezet), plus `deskOrder`.
+// Uitvoer: de plekken met `w` en `parts` (het waarom wordt daarna gezet), `itemIds` en `title`
+// (zodat previousOf de hele Editie van toen kent), plus `deskOrder`.
 const textOrder = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
 export function selectForReader(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = '' } = {}) {
   const byId = new Map(pool.map((i) => [i.id, i]))
-  const sig = signatures(pool)
+  // De getoonde berichten van de vorige Editie (of, van een oudere Editie, alleen de koppen) krijgen
+  // een kenmerk met de woordenschat van de pool van nu.
+  const prevShown = previous?.shown?.length ? previous.shown : [...(previous?.titles || [])].map((title) => ({ title, publishedAt: new Date(previous.at || now).toISOString() }))
+  const prevArts = prevShown.map((a, k) => ({ ...a, id: `vorige:${k}` }))
+  const sig = signatures(pool, prevArts)
+  const vorige = prevArts.map((a) => sig.get(a.id))
+  const sigKnown = ctx.sigKnown || sig // alles wat het toestel kent (composePersonal), voor "van toen"
   const fresh = (iso, hours) => iso && now - Date.parse(iso) < hours * 60 * 60 * 1000
   const entries = []
   const placed = []
   const leadCount = {}
   let prevLead = null
-  const clashes = (ids) => ids.some((id) => sig.has(id) && placed.some((s) => sameSubject(sig.get(id), s)))
+  const same = (ids, sigs) => ids.some((id) => sig.has(id) && sigs.some((s) => sameSubject(sig.get(id), s)))
+  // Eén plek per onderwerp, ook tegenover de koppen van de vorige Editie; een ontwikkeld verhaal
+  // gaat vanzelf over zijn eigen vorige kop en wordt daar niet op afgewezen.
+  const clashes = (c) => same(c.ids, placed) || (!c.vervolg && same(c.ids, vorige))
   const place = (ids) => {
     for (const id of ids) if (sig.has(id)) placed.push(sig.get(id))
   }
@@ -570,11 +636,21 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     if (!fresh(st.latestAt, 24)) continue
     const items = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
     if (!items.length) continue
+    // Gezien in je vorige Editie: alleen terug als het zich ontwikkelde, en dan lager (de straf
+    // telt hier alleen voor de volgorde, niet voor de plek).
+    let dev = null
+    let straf = 0
+    if (seenBefore(st, items, previous)) {
+      dev = developedSince(st, items, previous, sigKnown, { mainIds, preferred, now, known: ctx.known })
+      if (!dev) continue
+      const wasLead = previous.leadStoryId === st.id || previous.leadStoryIds?.has(st.id) || items.some((i) => previous.leadIds?.has(i.id))
+      straf = DEVELOPING_PENALTY + (wasLead ? REPEAT_LEAD_PENALTY : 0)
+    }
     const primary = primaryDesk(items.map((it) => desksOf(it)))
     const mine = new Set(items.map((i) => i.source)).size // eigen bronnen in het verhaal
-    const belang = weight({ sourceCount: st.sourceCount, ownCount: mine, latestAt: st.latestAt }, now) - repeatPenalty(st, items, previous)
+    const belang = weight({ sourceCount: st.sourceCount, ownCount: mine, latestAt: st.latestAt }, now) - straf
     const parts = personalParts(items, prof, ctx)
-    cands.push({ kind: 'story', id: st.id, st, items, ids: st.itemIds, primary, home: homeDesk(items, storyDesk(st, primary) ?? primary, prof), belang, parts, sc: st.sourceCount, w: belang + sumParts(parts) + jitter(seed, st.id) })
+    cands.push({ kind: 'story', id: st.id, st, items, ids: st.itemIds, primary, home: homeDesk(items, storyDesk(st, primary) ?? primary, prof), belang, parts, sc: st.sourceCount, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) })
   }
   for (const it of pool) {
     if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || it.storyId || isLive(it)) continue
@@ -583,23 +659,24 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     const primary = primaryDesk([desksOf(it)])
     const belang = weight({ sourceCount: 1, ownCount: 1, latestAt: it.publishedAt }, now) - 2
     const parts = personalParts([it], prof, ctx)
-    cands.push({ kind: 'item', id: it.id, it, items: [it], ids: [it.id], primary, home: homeDesk([it], primary, prof), belang, parts, sc: 1, w: belang + sumParts(parts) + jitter(seed, it.id) })
+    cands.push({ kind: 'item', id: it.id, it, items: [it], ids: [it.id], primary, home: homeDesk([it], primary, prof), belang, parts, sc: 1, vervolg: 0, w: belang + sumParts(parts) + jitter(seed, it.id) })
   }
   const heaviest = (a, b) => b.w - a.w || textOrder(a.id, b.id) || textOrder(a.kind, b.kind)
   cands.sort(heaviest)
 
   const used = new Set()
   const take = (c, desk, extra = {}) => {
-    if (used.has(c) || clashes(c.ids)) return false
+    if (used.has(c) || clashes(c)) return false
     used.add(c)
     place(c.ids)
-    const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, ...extra }
+    const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, ...(c.vervolg ? { vervolg: c.vervolg } : {}), ...extra }
     if (c.kind === 'story') {
-      const lead = pickLead(c.items)
+      // De kop van een ontwikkeld verhaal is het zwaarste nieuwe stuk, niet een oud stuk uit een andere bron.
+      const lead = pickLead(c.dev ? c.dev.fresh : c.items)
       leadCount[lead.source] = (leadCount[lead.source] || 0) + 1
       prevLead = lead.source
-      entries.push({ kind: 'story', id: c.st.id, leadId: lead.id, ...base })
-    } else entries.push({ kind: 'item', id: c.it.id, ...base })
+      entries.push({ kind: 'story', id: c.st.id, leadId: lead.id, itemIds: c.st.itemIds, title: lead.title || null, ...base })
+    } else entries.push({ kind: 'item', id: c.it.id, itemIds: [c.it.id], title: c.it.title || null, ...base })
     return true
   }
   let deskOrder = []

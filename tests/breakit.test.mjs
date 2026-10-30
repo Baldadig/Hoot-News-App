@@ -281,7 +281,7 @@ test('leesposities: verlopen en kapotte sleutels worden opgeruimd, verse en ande
 test('/api/edition: geen object, geen JSON, te groot of verkeerde methode is een nette fout', async () => {
   const post = (body) => edition(new Request('http://x/api/edition', { method: 'POST', body }))
   for (const body of ['null', '[]', '"tekst"', '42', 'geen json']) assert.equal((await post(body)).status, 400, body)
-  assert.equal((await post('{"a":"' + 'x'.repeat(70000) + '"}')).status, 413)
+  assert.equal((await post('{"a":"' + 'x'.repeat(170000) + '"}')).status, 413) // previous over drie Edities past wel
   assert.equal((await edition(new Request('http://x/api/edition'))).status, 405)
 })
 

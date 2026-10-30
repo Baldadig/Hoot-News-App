@@ -11,7 +11,7 @@
 //
 // Rekenregels als in shared/editor.mjs (web en iOS moeten bit-gelijk uitkomen): alleen + − × ÷,
 // Math.round/min/max/floor en Date.parse; elke sortering heeft een totale vergelijker.
-import { selectForReader, EDITION_SIZE, signatures, sameEvent } from '../../netlify/lib/stories.mjs'
+import { selectForReader, EDITION_SIZE, signatures, sameEvent, seenBefore, developedSince } from '../../netlify/lib/stories.mjs'
 import { desksOf, primaryDesk } from '../../netlify/lib/desks.mjs'
 import { INTERESTS } from './topics.js'
 import { supplyOf, profileOf, personalParts, sumParts, tempoWindows, outsideProfile, strongestFamily, whyOf, NEIGHBOURS, FAMILY_OF } from '../../shared/editor.mjs'
@@ -58,7 +58,8 @@ export function storiesForReader(stories = [], items = [], followed = new Set(),
 }
 
 // `previous`: je vorige editie (zie previousOf in stories.mjs); wat daarin stond, komt alleen
-// terug als het zich ontwikkelde.
+// terug als het zich ontwikkelde (seenBefore/developedSince), ook als aanvulling, breed verhaal
+// of bubbel; dan met een nieuw stuk als kop en "Vervolg · N nieuwe stukken".
 // `favorites`: je voorkeursbronnen; die wegen zwaarder en leveren bij voorkeur het hoofdbericht.
 // `affinity`, `taste`: wat je opent en bewaart, en meer/minder hiervan (src/lib/affinity.js).
 // `readIds`: wat je al las (een Set); dat komt niet terug, tenzij er genoeg nieuws bij kwam.
@@ -81,7 +82,11 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const tempo = tempoWindows(items.filter((i) => followed.has(i.source)))
   const mineStories = storiesForReader(stories, items, followed, [...items, ...(global.items || [])])
   const storyDesk = new Map(mineStories.map((st) => [st.id, st.desk]))
-  const ctx = { readIds, tempo, storyDesk }
+  // Alles wat het toestel kent (eigen bronnen plus de algemene Editie), met kenmerken: voor de
+  // bubbel en voor "ontwikkeld sinds je vorige Editie" (developedSince).
+  const itemAny = new Map([...items, ...(global.items || [])].map((i) => [i.id, i]))
+  const sigAll = signatures([...itemAny.values()].filter((i) => i.kind !== 'post'))
+  const ctx = { readIds, tempo, storyDesk, known: itemAny, sigKnown: sigAll }
   const seed = `${editionBasis([...followed], interests, topics, favorites)}|${global.id}`
 
   // 2. Het extra blok: sport en cultuur als dat gebied sterk genoeg in je profiel zit (ook uit
@@ -106,7 +111,6 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // bubbel. Een plek met een gelezen bericht komt alleen terug als vervolg (≥ 2 nieuwe stukken);
   // dan gaat `followUp` mee in de parts. We kijken naar het hele verhaal van de kop, ook als de
   // plek een los bericht is.
-  const itemAny = new Map([...items, ...(global.items || [])].map((i) => [i.id, i]))
   const storyOfItem = new Map(stories.flatMap((s) => s.itemIds.map((id) => [id, s.id])))
   const readOf = (id, sid) => {
     if (!readIds.size || !id) return {}
@@ -116,14 +120,28 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const { seen, followUp } = personalParts(ids.map((x) => itemAny.get(x)).filter(Boolean), prof, { readIds })
     return followUp ? { followUp } : { seen: seen || { pts: 0 } } // gelezen maar onbekend bericht: ook gezien
   }
-  const unread = (id, sid) => !readOf(id, sid).seen
-  const withFollowUp = (e, id, sid) => {
+  const preferred = new Set(favorites.filter((id) => followed.has(id)))
+  // Wat in je vorige Editie stond, komt ook als aanvulling, breed verhaal of bubbel alleen terug als
+  // het zich ontwikkelde (zie selectForReader); dan met het zwaarste nieuwe stuk als kop.
+  const againOf = (id, sid) => {
+    if (!previous || !id) return {}
+    const st = storyById.get(sid || storyOfItem.get(id) || itemAny.get(id)?.storyId)
+    const members = [...new Set([id, ...(st?.itemIds || [])])].map((x) => itemAny.get(x)).filter(Boolean)
+    if (!seenBefore(st || { id }, members, previous)) return {}
+    const dev = st ? developedSince(st, members, previous, sigAll, { mainIds: followed, preferred, now, known: itemAny }) : null
+    return dev ? { vervolg: dev.fresh.length, leadId: dev.lead.id } : { seen: true }
+  }
+  // Doet nog mee: niet gelezen zonder nieuws, en niet gezien zonder ontwikkeling.
+  const unread = (id, sid) => !readOf(id, sid).seen && !againOf(id, sid).seen
+  const withHistory = (e, id, sid) => {
     const { followUp } = readOf(id, sid)
-    return followUp ? { ...e, parts: { ...(e.parts || {}), followUp } } : e
+    const { vervolg, leadId } = againOf(id, sid)
+    let out = followUp ? { ...e, parts: { ...(e.parts || {}), followUp } } : e
+    if (vervolg) out = e.kind === 'item' ? { ...out, id: leadId, vervolg } : { ...out, leadId, vervolg }
+    return out
   }
   const wideAny = (global.wide || []).some((w) => w?.item?.id && !covered(w) && unread(w.item.id, w.storyId))
   const size = EDITION_SIZE - (bubbleEntry ? 1 : 0) - (wideAny ? 1 : 0)
-  const preferred = new Set(favorites.filter((id) => followed.has(id)))
   const opts = { mainIds: followed, now, previous, preferred, prof, ctx, seed }
   const extra = extraPool.length ? selectForReader(mineStories, extraPool, { ...opts, size: EXTRA_MAX, plan: false }).map((e) => ({ ...e, desk: null })) : []
 
@@ -144,7 +162,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const wide =
     (global.wide || []).find((w) => free(w) && outsideProfile(w.topics, prof)) ||
     (global.wide || []).filter(free).sort((a, b) => fitOf(a) - fitOf(b) || b.sourceCount - a.sourceCount || byText(a.storyId, b.storyId))[0]
-  const wideEntry = wide ? withFollowUp({ kind: 'story', id: wide.storyId, leadId: wide.item.id, desk: WIDE, sourceCount: wide.sourceCount }, wide.item.id, wide.storyId) : null
+  const wideEntry = wide ? withHistory({ kind: 'story', id: wide.storyId, leadId: wide.item.id, desk: WIDE, sourceCount: wide.sourceCount }, wide.item.id, wide.storyId) : null
   if (wideEntry) for (const id of [wide.item.id, ...(storyById.get(wide.storyId)?.itemIds || [])]) taken.add(id)
 
   // 5. Aanvullen uit de algemene editie, zonder dubbel verhaal, in jouw volgorde: wat bij je past
@@ -163,13 +181,12 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const m = membersOf(g)
     if ([...m].some((id) => taken.has(id))) continue
     for (const id of m) taken.add(id)
-    fill.push(withFollowUp({ ...g, desk: EXTERN, fromDesk: g.desk || null }, g.leadId || g.id, g.kind === 'story' ? g.id : null))
+    fill.push(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null }, g.leadId || g.id, g.kind === 'story' ? g.id : null))
   }
 
   // 6. Buiten je bubbel: niet iets dat al in je Editie staat, en ook niet iets binnen je profiel
   //    (geen Ajax voor de sportlezer). Geen trend-signaal buiten je profiel? Dan het breedst gedekte
   //    verhaal in een gebied naast je sterkste interesse: "Naast je bubbel".
-  const sigAll = signatures([...itemAny.values()].filter((i) => i.kind !== 'post'))
   const clashes = (id) => taken.has(id) || (sigAll.has(id) && [...taken].some((x) => sigAll.has(x) && sameEvent(sigAll.get(id), sigAll.get(x))))
   const topicsOfStory = (sid, id) => [...new Set((storyById.get(sid)?.itemIds || [id]).flatMap((x) => itemAny.get(x)?.topics || []))]
   let nearItem = null
@@ -180,7 +197,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const alt = [first, ...(global.bubble || [])].find(okB)
     if (alt) {
       if (alt.id !== bubbleEntry.id) bubbleEntry = { kind: 'item', id: alt.id, desk: 'bubbel', terms: alt.terms }
-      bubbleEntry = withFollowUp(bubbleEntry, alt.id, alt.storyId)
+      bubbleEntry = withHistory(bubbleEntry, alt.id, alt.storyId)
     } else {
       const home = strongestFamily(prof)
       const next = new Set(NEIGHBOURS[home] || [])
@@ -190,7 +207,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
         .map((st) => ({ storyId: st.id, sourceCount: st.sourceCount, topics: topicsOfStory(st.id), item: itemAny.get(st.leadId) || st.itemIds.map((x) => itemAny.get(x)).find(Boolean) }))
       const fits = (w) => w?.item?.id && !clashes(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && unread(w.item.id, w.storyId) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t]))
       const pick = [...(global.near || []), ...recent].find(fits)
-      bubbleEntry = pick ? withFollowUp({ kind: 'story', id: pick.storyId, leadId: pick.item.id, desk: 'bubbel', near: home }, pick.item.id, pick.storyId) : null
+      bubbleEntry = pick ? withHistory({ kind: 'story', id: pick.storyId, leadId: pick.item.id, desk: 'bubbel', near: home }, pick.item.id, pick.storyId) : null
       if (pick) {
         nearItem = pick.item
         for (const id of [pick.item.id, ...(storyById.get(pick.storyId)?.itemIds || [])]) taken.add(id)
@@ -204,19 +221,22 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   if (bubbleEntry && !entries.some((e) => (e.leadId || e.id) === (bubbleEntry.leadId || bubbleEntry.id))) entries.splice(Math.min(5, entries.length), 0, bubbleEntry)
   if (wideEntry) entries.splice(Math.min(6, entries.length), 0, wideEntry)
 
-  // 8. Het waarom per plek, vast met de Editie. Gewicht en punten gaan niet mee (alleen `_parts`
-  //    ter inzage, zonder getallen in de UI).
-  const srcName = new Map(sources.map((s) => [s.id, s.name]))
-  const out = entries.map((e) => {
-    const why = whyOf(e, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk: e.desk, plannedDesk: !!e.planned, sourceName: (s) => srcName.get(s) || s })
-    const { w, parts, planned, front, ...rest } = e
-    return { ...rest, why, _parts: parts || {} }
-  })
-
   // Vast: de berichten zoals ze nu zijn (eigen bronnen uit de feed, aanvulling uit de algemene editie).
   const poolById = new Map(pool.map((i) => [i.id, i]))
   const wideById = new Map([...(global.wide || []).map((w) => w?.item).filter(Boolean), ...(wide ? [wide.item] : []), ...(nearItem ? [nearItem] : [])].map((i) => [i.id, i]))
   const itemOf = (id) => poolById.get(id) || wideById.get(id) || globalItems.get(id) || itemAny.get(id)
+
+  // 8. Het waarom per plek, vast met de Editie. Gewicht en punten gaan niet mee (alleen `_parts`
+  //    ter inzage, zonder getallen in de UI). Elke plek draagt alle stukken van zijn verhaal
+  //    (`itemIds`) en de getoonde kop (`title`): zo weet de volgende Editie precies wat er stond.
+  const srcName = new Map(sources.map((s) => [s.id, s.name]))
+  const out = entries.map((e) => {
+    const why = whyOf(e, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk: e.desk, plannedDesk: !!e.planned, sourceName: (s) => srcName.get(s) || s })
+    const { w, parts, planned, front, vervolg, ...rest } = e
+    const lead = e.leadId || e.id
+    const itemIds = e.kind === 'story' ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead]
+    return { ...rest, itemIds, title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {} }
+  })
   const shown = [...new Set(out.map((e) => e.leadId || e.id))]
   return {
     id: global.id,
