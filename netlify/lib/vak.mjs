@@ -195,8 +195,10 @@ const NOT_READING = /\b(sponsored|^sponsor|partner content|advertorial|presented
 const LISTICLE = /^\s*(the\s+)?\d+\s+([\w-]+\s+){0,3}(tools?|templates?|examples?|plugins?|fonts?|apps?|ways|tips|tricks|resources|mockups?|icons?)\b/i
 export const cleanTitle = (t = '') => t.replace(/\s+via\s+@\w+(,\s*@\w+)*\s*$/i, '').trim()
 // Verzamelingen: dagelijkse overzichten ("[AINews] …") en genummerde linklijstjes ("… (#25)").
-// Ook vaste rubrieken met een datum in de kop ("New Ecommerce Tools: October 21, 2026").
-const ROUNDUP = /^\s*\[[^\]]*news[^\]]*\]|\(#\d+\)|\b(roundup|round-up|links? of the week|weekly digest|daily digest)\b|:\s*(january|february|march|april|may|june|july|august|september|october|november|december) \d{1,2}(, \d{4})?\s*$|^\s*fragments\b/i
+// Ook vaste rubrieken met een datum in de kop ("New Ecommerce Tools: October 21, 2026",
+// "Freebies, Sales, and Charity Bundles for October 19, 2026") en vaste linklijsten
+// ("… – This Week's Links", "News Digest …", "RPG Print News – …", "RPG Crowdfunding News – …").
+const ROUNDUP = /^\s*\[[^\]]*news[^\]]*\]|\(#\d+\)|\b(roundup|round-up|links? of the week|weekly digest|daily digest|news digest|this week['’]?s links)\b|\b(print|crowdfunding) news\s*[–—-]|(:|\bfor)\s*(january|february|march|april|may|june|july|august|september|october|november|december) \d{1,2}(, \d{4})?\s*$|^\s*fragments\b/i
 export const isReading = (it) => !!it.title && !NOT_READING.test(it.title) && !LISTICLE.test(it.title) && !ROUNDUP.test(it.title)
 
 // ---- Week: van maandag 07:00 tot maandag 07:00 (Amsterdam) ----
