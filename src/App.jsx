@@ -670,7 +670,7 @@ export default function App() {
         </div>
         {showWelcome ? (
           <Suspense fallback={null}>
-            <Welcome account={account} sources={sources} prefs={prefs} muted={muted} onDone={finishOnboarding} onClose={reopenWelcome ? closeWelcome : null} />
+            <Welcome sources={sources} prefs={prefs} muted={muted} onDone={finishOnboarding} onClose={reopenWelcome ? closeWelcome : null} onSignIn={account.status === 'out' ? () => setJoinOpen('welkom') : null} />
           </Suspense>
         ) : null}
       </div>

@@ -26,6 +26,7 @@
   --brand-red: #a3201b;
   --on-brand-red: #ffffff; /* 7,6:1 */
   --on-brand-red-2: color-mix(in srgb, var(--on-brand-red) 85%, transparent); /* stillere tekst op merkrood */
+  --paper-brand: #f5f1e8; /* papier op merkrood in Welkom: vast, in beide thema's (iOS SplashView.paperWhite, 7,0:1) */
   --quiet-amber: #b0802f; /* stil statuspuntje, geen alarm */
   /* Google-knop, donker thema (vast volgens Googles richtlijnen, in beide thema's gelijk) */
   --g-fill: #131314;
@@ -1029,8 +1030,7 @@ select {
    --tap-inset zet het vak op de lijn, --caret-inset haalt de lucht links in de tekening weg. Het
    label ("Alle verhalen", "Terug") schuift mee, dus de afstand tot het pijltje blijft. Zonder
    label is hij een vierkant van 44, net als een iconknop. Het pijltje hangt los in de knop, zodat
-   het label de basislijn geeft (Welkom lijnt op basislijn uit; in een flexrij zou het pijltje dat
-   doen). */
+   het label de basislijn geeft (in een flexrij op basislijn zou het pijltje die anders geven). */
 .backbtn {
   position: relative;
   flex: none;
@@ -2679,9 +2679,9 @@ select.input {
 
 /* ---------- Welkom ----------
    Vijf schermen, alles met tikken, onderaan één knop. Welkom ligt over de app heen en scrolt zelf.
-   Het spreekt de taal van de app: pillen met --sel-* voor gekozen, de hoofdknop (.btn--lg), het
-   woordmerk met punt. Twee merkmomenten: het eerste scherm in merkrood en de tegels van scherm 2
-   (vol merkrood als gekozen; een gedocumenteerde uitzondering, zie .ob__tile).
+   Gelijk aan de app (WelcomeView.swift): het kleine woordmerk linksboven met de stapteller eronder,
+   rechts Inloggen (intro) of Terug; pillen en tegels met --sel-* voor gekozen; de hoofdknop
+   (.btn--lg) inkt op papier. Eén merkmoment: het eerste scherm in merkrood, met alles erop papier.
    Eén kolom van --measure, ook op desktop: Welkom valt buiten het paginaraam.
    .welcome staat er nog alleen als haakje (de skiplink in App.jsx zoekt het); de vorm is .ob. */
 .ob {
@@ -2705,12 +2705,14 @@ select.input {
 }
 .ob__top {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   min-height: var(--tap);
 }
-/* Stap: het cijfer in display, "/5" stil erachter. */
+/* Stap, --s2 onder de bovenregel (iOS counter): het cijfer in display, "/5" stil erachter. */
 .ob__n {
+  display: block;
+  margin-top: var(--s2);
   color: var(--accent);
   font-family: var(--serif);
   font-size: var(--t-display);
@@ -2722,13 +2724,20 @@ select.input {
   color: var(--ink-3);
   font-size: var(--t3);
 }
-/* Het woordmerk met punt (BrandLogo); de onderkant van het svg staat op de basislijn van de rij. */
+/* Het kleine woordmerk met punt (BrandLogo, 20 hoog ≈ 65 breed; iOS WelcomeMark 0,4 × 160), op
+   elke stap op dezelfde plek: het opstartscherm landt erop en de iris sluit tot de punt. */
 .ob__brand {
   display: block;
 }
-/* Welkom: terug staat rechts in de bovenregel; het label eindigt op de kolomlijn. */
-.ob__back {
+/* Welkom: rechts in de bovenregel staat Terug (stappen) of Inloggen (intro); het label eindigt op
+   de kolomlijn. Inloggen in de tekstkleur van het scherm (op rood dus papier). */
+.ob__back,
+.ob__login {
   margin-inline-end: calc(var(--s2) * -1);
+}
+.ob__login {
+  color: inherit;
+  font-weight: var(--fw-ui);
 }
 .ob__title {
   margin-top: var(--s4);
@@ -2747,20 +2756,23 @@ select.input {
   line-height: var(--lh-3-read);
 }
 
-/* Scherm 1: merkrood, met een grote belofte. Zoals het einde van de editie: alles in papierwit,
-   ook het woordmerk met zijn punt en het stapcijfer (--brand en --accent worden wit). Het vlak
-   is --brand-red, ook in donker (niet het lichtere koraal). Stille tekst: --on-brand-red-2. */
+/* Scherm 1: merkrood, met een grote belofte. Alles erop papier (--paper-brand, niet wit, zoals de
+   app): het woordmerk met zijn punt, de teller, de icoonschijven, het knopvlak en de focusring
+   (ze volgen --on-brand-red). Het vlak is --brand-red, ook in donker (niet het lichtere koraal).
+   Stille tekst: --on-brand-red-2, hier opnieuw gezet omdat de color-mix op :root al is opgelost. */
 .ob--open {
+  --on-brand-red: var(--paper-brand);
+  --on-brand-red-2: color-mix(in srgb, var(--paper-brand) 85%, transparent);
   --brand: var(--on-brand-red);
   --accent: var(--on-brand-red);
   background: var(--brand-red);
   color: var(--on-brand-red);
 }
 .ob--open .ob__n small {
-  color: var(--on-brand-red-2);
+  color: var(--on-brand-red); /* op rood is de hele teller papier (iOS counter) */
 }
 .ob__hero {
-  margin-top: var(--s6);
+  margin-top: var(--s5);
   font-family: var(--serif);
   font-size: var(--t-hero);
   line-height: var(--lh-tight);
@@ -2795,7 +2807,7 @@ select.input {
 .ob__ptext {
   color: var(--on-brand-red-2);
 }
-/* Icoonschijf van 44: wit op merkrood, het icoon in merkrood. */
+/* Icoonschijf van 44: papier op merkrood, het icoon in merkrood. */
 .ob__pi {
   display: grid;
   flex: none;
@@ -2806,16 +2818,10 @@ select.input {
   background: var(--on-brand-red);
   color: var(--brand-red);
 }
-.ob__note {
-  margin-top: var(--s5);
-  color: var(--on-brand-red-2);
-  font-size: var(--t2);
-  line-height: var(--lh-2-read);
-}
-
-/* Scherm 2: tegels. Een merkmoment en een gedocumenteerde uitzondering op gekozen (--sel-*):
-   in rust een kaart (--surface, 1px --rule, --radius-card), gekozen vol --brand-red met witte
-   tekst, in beide thema's. Indrukken schaalt naar .97. De hoogte (112) is de uitzondering. */
+/* Scherm 2: tegels, zoals ChoiceTile in de app: in rust een kaart (--surface, 2px inkt zoals een
+   .ob__chip, --radius-card), gekozen zoals overal --sel-* (rood zacht, rode rand, rode naam); het
+   icoon blijft in beide standen --accent. Indrukken schaalt naar .97. De gedocumenteerde
+   uitzondering is alleen nog de hoogte (112) en --radius-card. */
 .ob__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2835,7 +2841,7 @@ select.input {
   gap: var(--s4);
   min-height: 112px;
   padding: var(--s4);
-  border: 1px solid var(--rule);
+  border: var(--rule-strong-w) solid var(--ink);
   border-radius: var(--radius-card);
   background: var(--surface);
   color: var(--ink);
@@ -2846,11 +2852,6 @@ select.input {
     border-color var(--dur-1) var(--ease),
     color var(--dur-1) var(--ease),
     transform var(--dur-1) var(--ease);
-}
-@media (hover: hover) {
-  .ob__tile:hover:not([aria-pressed='true']) {
-    border-color: var(--edge);
-  }
 }
 .ob__tile:active {
   transform: scale(0.97);
@@ -2868,12 +2869,9 @@ select.input {
   font-weight: var(--fw-head);
 }
 .ob__tile[aria-pressed='true'] {
-  border-color: var(--brand-red);
-  background: var(--brand-red);
-  color: var(--on-brand-red);
-}
-.ob__tile[aria-pressed='true'] .ob__ticon {
-  color: var(--on-brand-red);
+  border-color: var(--sel-edge);
+  background: var(--sel-bg);
+  color: var(--sel-fg);
 }
 
 /* Scherm 3 en 5: ChipGroups met pillen (.pill, md), gekozen zoals overal: --sel-* met vinkje.
@@ -3017,13 +3015,13 @@ select.input {
 .ob__cta {
   width: 100%;
 }
-/* Op merkrood: de knop in papierwit met merkrode tekst (hover en druk mengen het wit). */
+/* Op merkrood: de knop in papier met merkrode tekst (hover en druk mengen het papier). */
 .ob--open .ob__cta {
   --btn-fill: var(--on-brand-red);
   --btn-ink: var(--brand-red);
 }
 /* Overslaan: een .linkbtn--plain onder de hoofdknop, in de tekstkleur van het scherm (op het rode
-   welkom dus wit). */
+   welkom dus papier). */
 .ob__skip {
   display: flex;
   margin: var(--s1) auto 0;

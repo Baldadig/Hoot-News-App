@@ -4,13 +4,15 @@ import { BackButton } from '../components/Shell.jsx'
 import { Disclosure } from '../components/Disclosure.jsx'
 import { ChipGroup } from '../components/ChipGroup.jsx'
 import { BrandLogo } from '../components/Brand.jsx'
-import { EditionIcon, SparkleIcon, StreamIcon, INTEREST_ICONS } from '../components/icons.jsx'
+import { EditionIcon, StreamIcon, BooksIcon, INTEREST_ICONS } from '../components/icons.jsx'
 import { vakByDomain } from '../../shared/vak.mjs'
 import { INTERESTS, topicById, resolveTopics, suggestSources, catLabel, starterGroups } from '../lib/topics.js'
 import { sourcesOn } from '../lib/welcome.js'
 
-// Onboarding in vijf schermen: uitleg → interesses (breed) → onderwerpen (smal) → bronnen → je vak
-// (voor de Selectie). Alles met tikken; onderaan steeds één knop om door te gaan.
+// Onboarding in vijf schermen, gelijk aan de app (ios/Hoot/Views/WelcomeView.swift): uitleg →
+// interesses (tegels) → onderwerpen (chips) → bronnen → je vak (voor de Selectie). Alles met tikken;
+// onderaan steeds één knop om door te gaan. Bovenaan op elke stap het kleine woordmerk linksboven,
+// met de stapteller eronder; rechts Inloggen (op de intro, `onSignIn`) of Terug.
 // Opnieuw kiezen (vanuit Bronnen of Instellingen, `onClose` is er dan): alles staat al op je huidige
 // keuze, sluiten (ook met Escape) slaat niets op, en "Liever meteen lezen" is er niet.
 const STEPS = 5
@@ -29,7 +31,7 @@ const GROUPS = [
   { cat: 'vl', folded: true },
 ].map((g) => ({ ...g, label: catLabel(g.cat) }))
 
-export default function Welcome({ account, sources, prefs, muted = new Set(), onDone, onClose = null }) {
+export default function Welcome({ sources, prefs, muted = new Set(), onDone, onClose = null, onSignIn = null }) {
   const reopen = !!onClose
   const [step, setStep] = useState(0)
   const [interests, setInterests] = useState(() => prefs.interests || [])
@@ -94,26 +96,30 @@ export default function Welcome({ account, sources, prefs, muted = new Set(), on
     <div className={`welcome ob${step === 0 && !quick ? ' ob--open' : ''}`} role="dialog" aria-modal="true" aria-labelledby="ob-title" ref={scroller}>
       <div className="col ob__col">
         <div className="ob__top">
-          {quick ? (
-            <span className="ob__brand">
-              <BrandLogo height={24} />
-            </span>
-          ) : (
-            <span className="ob__n" aria-label={`Stap ${step + 1} van ${STEPS}`}>
-              {step + 1}
-              <small>/{STEPS}</small>
-            </span>
-          )}
+          <span className="ob__brand">
+            <BrandLogo height={20} />
+          </span>
           {quick ? (
             <BackButton label="Terug" onClick={() => setQuick(false)} className="ob__back" />
           ) : step > 0 ? (
             <BackButton label="Terug" onClick={() => setStep((s) => s - 1)} className="ob__back" />
-          ) : (
-            <span className="ob__brand">
-              <BrandLogo height={24} />
-            </span>
-          )}
+          ) : onSignIn ? (
+            <>
+              <button type="button" className="linkbtn linkbtn--plain ob__login" onClick={onSignIn} title="Hoot is nog op uitnodiging." aria-describedby="ob-login-hint">
+                Inloggen
+              </button>
+              <span id="ob-login-hint" className="visually-hidden">
+                Hoot is nog op uitnodiging.
+              </span>
+            </>
+          ) : null}
         </div>
+        {quick ? null : (
+          <span className="ob__n" aria-label={`Stap ${step + 1} van ${STEPS}`}>
+            {step + 1}
+            <small>/{STEPS}</small>
+          </span>
+        )}
 
         {quick ? (
           <>
@@ -142,10 +148,9 @@ export default function Welcome({ account, sources, prefs, muted = new Set(), on
             </h1>
             <ul className="ob__points">
               <Point Icon={EditionIcon} title="Je Editie" text="Drie keer per dag tien verhalen, met een einde." />
-              <Point Icon={SparkleIcon} title="In één minuut bij" text="Voor leden, op uitnodiging: je Editie kort samengevat." />
               <Point Icon={StreamIcon} title="De Stroom" text="Alles van je bronnen, nieuwste eerst." />
+              <Point Icon={BooksIcon} title="Je Selectie" text="Eén keer per week bijgepraat over wat jou bezighoudt." />
             </ul>
-            {account?.invite && account.status === 'out' ? <p className="ob__note">Je bent uitgenodigd. Inloggen kan straks rechtsboven, zodat alles meegaat naar je andere toestellen.</p> : null}
           </>
         ) : step === 1 ? (
           <>
