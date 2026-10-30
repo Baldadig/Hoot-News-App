@@ -121,7 +121,21 @@ export default function Bluesky({ active, posts, sources, muted, onToggle, ownHa
         ) : null}
 
         {list.length === 0 ? (
-          <Empty title={people.length ? 'Nog geen posts' : 'Je volgt nog niemand'}>{people.length ? 'Zodra de mensen die je volgt iets plaatsen, staat het hier.' : 'Tik op + om iemand op Bluesky te volgen.'}</Empty>
+          people.length ? (
+            <Empty title="Nog geen posts">Zodra de mensen die je volgt iets plaatsen, staat het hier.</Empty>
+          ) : (
+            // Zonder iemand een echte knop, niet alleen de + bovenin; hij opent het formulier en zet je in het veld.
+            <Empty
+              title="Je volgt nog niemand"
+              action={
+                <button type="button" className="btn" onClick={() => (setAdding(true), requestAnimationFrame(() => ref.current?.querySelector('.bsky-add input')?.focus()))}>
+                  Iemand toevoegen
+                </button>
+              }
+            >
+              Voeg mensen toe met hun @-naam.
+            </Empty>
+          )
         ) : (
           <div className="list rows">
             {list.map((item) => (

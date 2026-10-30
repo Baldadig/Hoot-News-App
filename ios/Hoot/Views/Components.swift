@@ -427,6 +427,8 @@ struct EmptyState: View {
     var text: String = ""
     // Opnieuw proberen als knop naast het trekgebaar (dat niet iedereen kent of kan maken).
     var retry: (() async -> Void)? = nil
+    // Of een eigen vervolgstap als knop, zoals iemand toevoegen bij een lege Bluesky.
+    var action: (label: String, systemImage: String, run: () -> Void)? = nil
     var body: some View {
         ContentUnavailableView {
             Label(title, systemImage: systemImage)
@@ -434,6 +436,7 @@ struct EmptyState: View {
             Text(text).foregroundStyle(Theme.ink3) // niet het lichtere grijs van het systeem
         } actions: {
             if let retry { Button("Probeer opnieuw") { Task { await retry() } }.buttonStyle(.glass) }
+            if let action { Button(action.label, systemImage: action.systemImage, action: action.run).buttonStyle(.glass) }
         }
     }
 }

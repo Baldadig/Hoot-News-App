@@ -50,7 +50,7 @@ struct StreamView: View {
                     .padding(.horizontal)
                     .column()
                     if social {
-                        BlueskyFeed().padding(.horizontal).column()
+                        BlueskyFeed { showAccounts = true }.padding(.horizontal).column()
                     } else {
                         LazyVStack(alignment: .leading, spacing: 0) {
                             // Het grote lege scherm gaat over de hele Stroom, los van rubriek en bronkeuze

@@ -5,6 +5,8 @@ import SwiftUI
 struct BlueskyFeed: View {
     @Environment(HootStore.self) private var store
     @State private var who: String?
+    // Opent het toevoegen (het blad met accounts), voor de knop in het lege scherm.
+    var onAdd: (() -> Void)? = nil
 
     var body: some View {
         let people = store.followedSocial
@@ -16,7 +18,11 @@ struct BlueskyFeed: View {
             if store.status == .loading && posts.isEmpty {
                 ProgressView().frame(maxWidth: .infinity, minHeight: 240)
             } else if posts.isEmpty {
-                EmptyState(title: people.isEmpty ? "Je volgt nog niemand" : "Nog geen posts", systemImage: "bubble.left.and.bubble.right", text: people.isEmpty ? "Tik rechtsboven op + en voeg iemand toe met de @-naam, bijvoorbeeld @naam.bsky.social." : "Zodra de mensen die je volgt iets plaatsen, staat het hier.")
+                if people.isEmpty {
+                    EmptyState(title: "Je volgt nog niemand", systemImage: "bubble.left.and.bubble.right", text: "Voeg mensen toe met hun @-naam, bijvoorbeeld @naam.bsky.social.", action: onAdd.map { (label: "Iemand toevoegen", systemImage: "plus", run: $0) })
+                } else {
+                    EmptyState(title: "Nog geen posts", systemImage: "bubble.left.and.bubble.right", text: "Zodra de mensen die je volgt iets plaatsen, staat het hier.")
+                }
             } else {
                 StaleNotice()
                 ForEach(posts) { post in
