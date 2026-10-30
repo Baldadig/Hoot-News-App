@@ -139,7 +139,7 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
       <div className="col">
         <ViewHeader title="Bronnen" sub="Wat meedoet in je Editie en Stroom" subWide display />
 
-        <h2 className="sect">Je bronnen · {mine.length}</h2>
+        <h2 className="label label--section sect">Je bronnen · {mine.length}</h2>
         <ul className="srows">
           {mine.map((s) => (
             <SourceRow key={s.id} s={s} muted={false} onToggle={onToggle} favorite={favorites.includes(s.id)} onFavorite={onFavorite} />
@@ -148,7 +148,7 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
         <p className="hint">Tik op een bron om alleen die te lezen. Met de ster maak je een bron een voorkeursbron: die weegt zwaarder in je Editie en staat vooraan in de Stroom. Zet je een bron uit, dan verdwijnt hij uit je Stroom en zoeken.</p>
         <SourceStatus status={status} recovered={recovered} latestBySource={latestBySource} meta={meta} onRetry={onRetry} refreshing={refreshing} online={online} />
 
-        <h2 className="sect">Meer bronnen</h2>
+        <h2 className="label label--section sect">Meer bronnen</h2>
         <p className="hint">Gecontroleerde bronnen die je nu niet volgt. Zet er een aan om hem toe te voegen.</p>
         {SOURCE_CATS.map(([cat, label]) => {
           const list = more.filter((s) => s.cat === cat)
@@ -169,7 +169,7 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
 
         {bluesky ? (
           <>
-            <h2 className="sect">Bluesky</h2>
+            <h2 className="label label--section sect">Bluesky</h2>
             <a className="setrow setrow--link" href="#/bluesky">
               <span className="setrow__text">
                 <span className="setrow__label">Mensen op Bluesky</span>
@@ -180,7 +180,7 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
           </>
         ) : null}
 
-        <h2 className="sect">Onderwerpen en instellingen</h2>
+        <h2 className="label label--section sect">Onderwerpen en instellingen</h2>
         <a className="setrow setrow--link" href="#/welkom">
           <span className="setrow__text">
             <span className="setrow__label">Interesses opnieuw kiezen</span>

@@ -13,9 +13,9 @@ function SourceItem({ item, note }) {
     <article className={`entry srcitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <Meta item={item} />
       <a className="srcitem__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
-        {note || item.type === 'opinie' ? <p className="kicker">{[item.type === 'opinie' ? 'Opinie' : null, note].filter(Boolean).join(' · ')}</p> : null}
-        <h3 className="srcitem__title">{item.title}</h3>
-        {item.summary ? <p className="srcitem__sum">{item.summary}</p> : null}
+        {note || item.type === 'opinie' ? <p className="label label--kicker kicker">{[item.type === 'opinie' ? 'Opinie' : null, note].filter(Boolean).join(' · ')}</p> : null}
+        <h3 className="head-4 srcitem__title">{item.title}</h3>
+        {item.summary ? <p className="clamp srcitem__sum">{item.summary}</p> : null}
       </a>
     </article>
   )
@@ -81,7 +81,7 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
             Alle verhalen
           </button>
         )}
-        <p className={`story__eyebrow${overlay ? '' : ' visually-hidden'}`} tabIndex={-1} ref={headRef}>
+        <p className={`label label--meta story__eyebrow${overlay ? '' : ' visually-hidden'}`} tabIndex={-1} ref={headRef}>
           Verhaal
         </p>
         <button type="button" className={`followbtn${following ? ' is-on' : ''}`} aria-pressed={following} onClick={() => followStory(story, lead?.title || '')}>
@@ -96,7 +96,7 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
       </header>
 
       <div className="story__body">
-        <h2 className="story__title">{lead?.title}</h2>
+        <h2 className="head-5 story__title">{lead?.title}</h2>
         <p className="story__facts">
           {story.sourceCount} {story.sourceCount === 1 ? 'bron' : 'bronnen'} · laatste update {timeAgo(story.latestAt)}
         </p>
@@ -114,14 +114,14 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
 
         {fresh.length ? (
           <>
-            <h3 className="story__sub">Toegevoegd sinds je vorige bezoek</h3>
+            <h3 className="label label--meta story__sub">Toegevoegd sinds je vorige bezoek</h3>
             <div className="list">
               {fresh.map((i) => (overlay ? <CompactItem key={i.id} item={i} note={note(i)} plain /> : <SourceItem key={i.id} item={i} note={note(i)} />))}
             </div>
-            <h3 className="story__sub">Eerder beschikbaar</h3>
+            <h3 className="label label--meta story__sub">Eerder beschikbaar</h3>
           </>
         ) : (
-          <h3 className="story__sub">Alle publicaties, nieuwste eerst</h3>
+          <h3 className="label label--meta story__sub">Alle publicaties, nieuwste eerst</h3>
         )}
         <div className="list">
           {rest.map((i) => (overlay ? <CompactItem key={i.id} item={i} note={note(i)} plain /> : <SourceItem key={i.id} item={i} note={note(i)} />))}
@@ -144,13 +144,13 @@ export function StoryIndex({ stories = [], onClose, lastId }) {
   return (
     <div className="story">
       <header className="story__head">
-        <p className="story__eyebrow">Bronnen vergelijken</p>
+        <p className="label label--meta story__eyebrow">Bronnen vergelijken</p>
         <button type="button" className="iconbtn" onClick={onClose} aria-label="Paneel sluiten">
           <CloseIcon />
         </button>
       </header>
       <div className="story__body">
-        <h2 className="sidx__head">Verhalen met meerdere bronnen</h2>
+        <h2 className="head-4 sidx__head">Verhalen met meerdere bronnen</h2>
         <p className="story__facts">Kies een verhaal om de bronnen naast elkaar te zien.</p>
         {rows.length ? (
           <ul className="sidx">
@@ -158,7 +158,7 @@ export function StoryIndex({ stories = [], onClose, lastId }) {
               <li key={s.id}>
                 <button type="button" className="sidx__btn" onClick={() => openStory(s.id, lead.id)} aria-current={s.id === lastId ? 'true' : undefined}>
                   <span className="sidx__text">
-                    <span className="sidx__title">{lead.title}</span>
+                    <span className="head-4 sidx__title">{lead.title}</span>
                     <span className="sidx__meta">
                       Vergelijk {s.sourceCount} bronnen · {timeAgo(s.latestAt)}
                       {s.id === lastId ? ' · zojuist bekeken' : ''}

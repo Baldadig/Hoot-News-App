@@ -63,7 +63,7 @@ function Kicker({ item, extra }) {
   if (extra) bits.push(<span key="x">{extra}</span>)
   if (item.type === 'opinie') bits.push(<span key="t" className="kicker__type">Opinie</span>)
   if (item.section && !extra) bits.push(<span key="s">{item.section}</span>) // de rubriek van de Editie gaat voor die van de bron
-  return bits.length ? <p className="kicker">{bits}</p> : null
+  return bits.length ? <p className="label label--kicker kicker">{bits}</p> : null
 }
 
 // Meta-regel: drie gescheiden klikgebieden — bron bekijken · meer bronnen · bewaren.
@@ -151,7 +151,7 @@ export function LeadStory({ item, story, note, priority = false, taste = null })
       <a className="lead__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         {/* Eerst kop en kern, dan pas het beeld (op breed scherm staat het beeld bovenaan, zie CSS). */}
         <Kicker item={item} extra={note} />
-        <h2 className="lead__title">{item.title}</h2>
+        <h2 className="head-6 lead__title">{item.title}</h2>
         <Summary item={item} className="lead__sum" />
         {item.image && fitsHero(item.image) ? (
           <div className="media media--lead">
@@ -179,7 +179,7 @@ export function CompactItem({ item, story, note, showSave = true, plain = false,
         {/* Zelfde volgorde als op de voorpagina: rubriek, kop, samenvatting, beeld, dan de bron. */}
         <a className="compact__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
           <Kicker item={item} extra={note} />
-          <h3 className="compact__title">{item.title}</h3>
+          <h3 className="head-4 compact__title">{item.title}</h3>
           <Summary item={item} className="compact__sum" />
           {item.image && fitsLarge(item.image) ? (
             <div className="media media--tl">
@@ -196,7 +196,7 @@ export function CompactItem({ item, story, note, showSave = true, plain = false,
       <a className="compact__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         <div className="compact__text">
           <Kicker item={item} extra={note} />
-          <h3 className="compact__title">{item.title}</h3>
+          <h3 className="head-4 compact__title">{item.title}</h3>
           <Summary item={item} className="compact__sum" />
         </div>
         {item.image ? (

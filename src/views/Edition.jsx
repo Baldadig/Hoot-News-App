@@ -34,7 +34,7 @@ function FrontItem({ item, story, note, taste }) {
   const summary = item.summary
   return (
     <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
-      {note ? <p className="kicker fitem__kicker">{note}</p> : null}
+      {note ? <p className="label label--kicker kicker fitem__kicker">{note}</p> : null}
       <p className="fitem__src">
         <button type="button" className="fitem__name" onClick={() => openSource(item.source)} aria-label={`Alles van ${item.sourceName} bekijken`}>
           <SourceMark source={{ name: item.sourceName, avatar: item.avatar, avatarContain: item.avatarContain, brandColor: item.brandColor }} size={24} />
@@ -46,10 +46,10 @@ function FrontItem({ item, story, note, taste }) {
       </p>
       <a className="fitem__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         <span className="fitem__text">
-          <span className="fitem__title" role="heading" aria-level="3">
+          <span className="head-4 fitem__title" role="heading" aria-level="3">
             {title}
           </span>
-          {summary ? <span className="fitem__sum">{summary}</span> : null}
+          {summary ? <span className="clamp fitem__sum">{summary}</span> : null}
         </span>
         {item.image ? (
           <span className="thumb">
@@ -197,12 +197,12 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
           <>
             {following.length ? (
               <section className="following" aria-label="Verhalen die je volgt">
-                <h2 className="following__head">Je volgt</h2>
+                <h2 className="label label--section following__head">Je volgt</h2>
                 <ul>
                   {following.map((f) => (
                     <li key={f.id}>
                       <button type="button" className="following__row" onClick={() => openStory(f.story.id)}>
-                        <span className="following__title">{f.title}</span>
+                        <span className="head-4 following__title">{f.title}</span>
                         <span className={`following__new${f.fresh ? ' is-new' : ''}`}>{f.fresh ? `${f.fresh} nieuw` : 'niets nieuws'}</span>
                       </button>
                     </li>
@@ -240,7 +240,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             </div>
             {rows.length > FRONT ? (
               <div className="front__rest">
-                <h2 className="front__more">Verder in deze Editie</h2>
+                <h2 className="label label--section front__more">Verder in deze Editie</h2>
                 <div className="list">
                   {rows.slice(FRONT).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
@@ -252,7 +252,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             ) : null}
             {bubble.length ? (
               <section className="bubble" aria-label="Buiten je bubbel">
-                <h2 className="front__more">Buiten je bubbel</h2>
+                <h2 className="label label--section front__more">Buiten je bubbel</h2>
                 <p className="hint bubble__hint">Wat anderen nu lezen of zoeken en wat niet in je Editie zit — ook uit bronnen die je niet volgt.</p>
                 <div className="list">
                   {bubble.map((b) => (
@@ -263,7 +263,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             ) : null}
             <div className="endcap">
               <BrandMark size={44} />
-              <h2 className="endcap__title">Je bent bij.</h2>
+              <h2 className="head-5 endcap__title">Je bent bij.</h2>
               <p className="endcap__text">
                 Dit was de {SLOT[edition.slot].toLowerCase()} van {longDate(edition.date)}. De volgende staat klaar om {edition.next}.
               </p>

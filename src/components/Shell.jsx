@@ -86,7 +86,7 @@ export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing,
       ) : null}
       <div className="vh__row">
         <div className="vh__titles">
-          <h1 className="vh__title">{title}</h1>
+          <h1 className="head-5 vh__title">{title}</h1>
         </div>
         {compare && panel?.available ? (
           // Klein, net als verversen en zoeken: "+N bronnen" bij elk verhaal is de gewone weg;

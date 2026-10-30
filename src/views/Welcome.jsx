@@ -120,7 +120,7 @@ export default function Welcome({ account, sources, prefs, muted = new Set(), on
             {!starter.length ? <p className="ob__sub">De bronnen worden geladen…</p> : null}
             {starter.map((g) => (
               <section key={g.label} className="ob__group" aria-label={g.label}>
-                <h2 className="ob__gtitle">{g.label}</h2>
+                <h2 className="label label--meta ob__gtitle">{g.label}</h2>
                 <ul className="ob__sources">
                   {g.sources.map((x) => (
                     <li key={x.id}>
@@ -173,7 +173,7 @@ export default function Welcome({ account, sources, prefs, muted = new Set(), on
               const Icon = INTEREST_ICONS[i.id]
               return (
                 <section key={i.id} className="ob__group" aria-label={i.label}>
-                  <h2 className="ob__gtitle">
+                  <h2 className="label label--meta ob__gtitle">
                     <Icon />
                     {i.label}
                   </h2>
@@ -196,7 +196,7 @@ export default function Welcome({ account, sources, prefs, muted = new Set(), on
             <p className="ob__sub">Eén keer per week bijgepraat over wat jou bezighoudt: elke maandag zet de Selectie per onderwerp de drie beste stukken van de week voor je klaar, geschreven door mensen. Kies wat bij je werk past of wat je graag volgt, of sla het over.</p>
             {vakByDomain().map((d) => (
               <section key={d.id} className="ob__group" aria-label={d.label}>
-                <h2 className="ob__gtitle">{d.label}</h2>
+                <h2 className="label label--meta ob__gtitle">{d.label}</h2>
                 <div className="ob__chips">
                   {d.fields.map((f) => (
                     <button key={f.id} type="button" className="ob__chip" aria-pressed={vak.includes(f.id)} onClick={() => toggle(setVak)(f.id)}>
@@ -248,7 +248,7 @@ export default function Welcome({ account, sources, prefs, muted = new Set(), on
                 const count = list.filter((s) => (chosen || []).includes(s.id)).length
                 return g.folded ? (
                   <details key={g.cat} className="ob__fold">
-                    <summary className="ob__gtitle">
+                    <summary className="label label--meta ob__gtitle">
                       {g.label}
                       <span className="ob__count">{count ? `${count} gekozen` : `${list.length} bronnen`}</span>
                     </summary>
@@ -256,7 +256,7 @@ export default function Welcome({ account, sources, prefs, muted = new Set(), on
                   </details>
                 ) : (
                   <section key={g.cat} className="ob__group" aria-label={g.label}>
-                    <h2 className="ob__gtitle">{g.label}</h2>
+                    <h2 className="label label--meta ob__gtitle">{g.label}</h2>
                     {rows}
                   </section>
                 )

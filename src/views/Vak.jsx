@@ -78,10 +78,10 @@ function Card({ item, rank, feature = false }) {
           <span className="dcard__rank" aria-hidden="true">
             {two(rank)}
           </span>
-          <h3 className="dcard__title">{item.title}</h3>
+          <h3 className={`${feature ? 'head-lg' : 'head-4'} dcard__title`}>{item.title}</h3>
           {/* Waarom dit stuk: rustige metadata onder de kop, zodat de kop voorgaat. */}
           {item.why?.length ? <p className="dcard__why">{item.why.join(' · ')}</p> : null}
-          {item.summary ? <p className="dcard__sum">{item.summary}</p> : null}
+          {item.summary ? <p className="clamp dcard__sum">{item.summary}</p> : null}
         </div>
       </a>
       <div className="dcard__foot">
@@ -115,7 +115,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
             <summary className="vakpick__sum">{chosen.length ? `Onderwerpen (${chosen.length})` : 'Kies onderwerpen'}</summary>
             {vakByDomain().map((d) => (
               <div key={d.id} className="vakpick__group" role="group" aria-label={d.label}>
-                <h3 className="vakpick__domain">{d.label}</h3>
+                <h3 className="label label--meta vakpick__domain">{d.label}</h3>
                 <div className="vakpick__chips">
                   {d.fields.map((f) => (
                     <button key={f.id} type="button" className="chip chip--sm" aria-pressed={chosen.includes(f.id)} onClick={() => toggle(f.id)}>
@@ -138,8 +138,8 @@ export default function Vak({ active, digest, status, onRefresh }) {
           <>
             {/* Kop: welke week, en wat je te lezen krijgt */}
             <header className="dmast">
-              <p className="dmast__week">{digest.preview ? 'Voorproefje · de afgelopen zeven dagen' : `Week ${digest.week} · ${span(digest.from, digest.to)}`}</p>
-              <p className="dmast__lede">
+              <p className="label label--kicker dmast__week">{digest.preview ? 'Voorproefje · de afgelopen zeven dagen' : `Week ${digest.week} · ${span(digest.from, digest.to)}`}</p>
+              <p className="head-lg dmast__lede">
                 {picked} stukken in {fields.length === 1 ? '1 onderwerp' : `${fields.length} onderwerpen`}
               </p>
               {digest.preview ? <p className="dmast__note">De eerste volle Selectie komt {WEEKDAY.format(new Date(digest.next))} om 7 uur.</p> : <p className="dmast__note">Elke maandag om 7 uur een nieuwe.</p>}
@@ -151,7 +151,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
                 const Icon = iconOf(f)
                 return (
                   <div key={f.id} className="dtoc__field">
-                    <button type="button" className="dtoc__head" onClick={() => scrollTo(`d-${f.id}`)}>
+                    <button type="button" className="head-4 dtoc__head" onClick={() => scrollTo(`d-${f.id}`)}>
                       <span className="dtoc__icon">
                         <Icon />
                       </span>
@@ -160,7 +160,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
                     <ol className="dtoc__list">
                       {f.top.map((it, i) => (
                         <li key={it.id}>
-                          <button type="button" onClick={() => scrollTo(`d-${it.id}`)}>
+                          <button type="button" className="head-4" onClick={() => scrollTo(`d-${it.id}`)}>
                             <span className="dtoc__n">{two(i + 1)}</span>
                             <span>{it.title}</span>
                           </button>
@@ -182,7 +182,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
                       <Icon />
                     </span>
                     <div>
-                      <h2 className="dfield__title" id={`dh-${f.id}`}>
+                      <h2 className="head-lg dfield__title" id={`dh-${f.id}`}>
                         {f.label}
                       </h2>
                       <p className="dfield__about">{f.about}</p>
@@ -208,12 +208,12 @@ export default function Vak({ active, digest, status, onRefresh }) {
                   )}
                   {f.more.length ? (
                     <div className="dmore">
-                      <h3 className="dmore__head">Ook deze week</h3>
+                      <h3 className="label label--section dmore__head">Ook deze week</h3>
                       <ol className="dmore__list">
                         {f.more.map((it) => (
                           <li key={it.id}>
                             <a href={it.url} target="_blank" rel="noopener noreferrer">
-                              <span className="dmore__title">{it.title}</span>
+                              <span className="head-4 dmore__title">{it.title}</span>
                               <span className="dmore__src">
                                 {it.sourceName} · {timeAgo(it.publishedAt)}
                               </span>

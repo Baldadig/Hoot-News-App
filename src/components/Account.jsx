@@ -186,7 +186,7 @@ export function JoinSheet({ open, reason = 'sync', invited = false, onClose, onS
     <dialog ref={ref} className="sheet sheet--join" onClose={onClose} onClick={(e) => e.target === ref.current && onClose()} aria-labelledby="join-title">
       <div className="sheet__in">
         <div className="sheet__head">
-          <span className="kicker">{copy.kicker}</span>
+          <span className="label label--kicker kicker">{copy.kicker}</span>
           <button type="button" className="iconbtn" onClick={onClose} aria-label="Sluiten">
             <CloseIcon />
           </button>

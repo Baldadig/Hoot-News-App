@@ -10,7 +10,7 @@ export default function Privacy({ onBack, backLabel }) {
 
         <p>Hoot heeft geen advertenties, geen trackers en geen analytics. Er worden geen cookies gezet.</p>
 
-        <h2 className="sect">Op je toestel</h2>
+        <h2 className="label label--section sect">Op je toestel</h2>
         <p>Zonder account blijft alles op je toestel, in de opslag van je browser:</p>
         <ul>
           <li>je instellingen, bronnen en interesses;</li>
@@ -20,7 +20,7 @@ export default function Privacy({ onBack, backLabel }) {
         </ul>
         <p>Je wist dit door de websitegegevens van hootnews.nl in je browser te verwijderen.</p>
 
-        <h2 className="sect">Met een account</h2>
+        <h2 className="label label--section sect">Met een account</h2>
         <p>
           Inloggen gaat met Google, en in de app ook met Apple. Hoot krijgt daarbij je naam en e-mailadres (bij Google ook je profielfoto; bij Apple kun je je e-mailadres
           verbergen). Je account staat bij Supabase, in de EU. Daar bewaren we, alleen voor jou leesbaar: je instellingen,
@@ -32,7 +32,7 @@ export default function Privacy({ onBack, backLabel }) {
           bewaarde stukken van de server.
         </p>
 
-        <h2 className="sect">Wie we om iets vragen</h2>
+        <h2 className="label label--section sect">Wie we om iets vragen</h2>
         <ul>
           <li>
             <strong>Nieuwsbronnen:</strong> kop, intro en beeld komen uit hun openbare feeds. Beelden laad je rechtstreeks bij de uitgever of via de beeldservice van onze host (Netlify), zonder door
@@ -53,7 +53,7 @@ export default function Privacy({ onBack, backLabel }) {
         </ul>
         <p>Hoot draait bij Netlify. Zoals elke website ziet die host bij elk bezoek een IP-adres; Hoot zelf bewaart dat niet.</p>
 
-        <h2 className="sect">De app voor iPhone en iPad</h2>
+        <h2 className="label label--section sect">De app voor iPhone en iPad</h2>
         <p>
           De app werkt zonder account en gebruikt geen analytics, advertenties of tracking. Zonder account blijven je instellingen, wat je bewaarde en wat je las op je iPhone of iPad;
           log je in, dan gaan ze mee met je account (zie hierboven). Ook wat Hoot leert van
@@ -83,13 +83,13 @@ export default function Privacy({ onBack, backLabel }) {
         </ul>
         <p>Je wist alles door de app te verwijderen, of via Instellingen in de app.</p>
 
-        <h2 className="sect">Wie</h2>
+        <h2 className="label label--section sect">Wie</h2>
         <p>
           Hoot is gemaakt door <a href="https://baldadig.nl" target="_blank" rel="noopener">Baldadig.nl</a> (Alex Vrees). Je hebt het recht om te weten welke gegevens we van je hebben, ze te laten
           verbeteren of verwijderen, en een klacht in te dienen bij de Autoriteit Persoonsgegevens. Zonder account hebben we niets van je; met een account regelen we het binnen een maand na je mail.
         </p>
 
-        <h2 className="sect">Contact</h2>
+        <h2 className="label label--section sect">Contact</h2>
         <p>
           Vragen over je gegevens? Mail naar <a href="mailto:hallo@hootnews.nl">hallo@hootnews.nl</a>.
         </p>

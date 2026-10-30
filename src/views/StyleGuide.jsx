@@ -27,7 +27,7 @@ export default function StyleGuide({ stream }) {
       <div className="col sg">
         <ViewHeader title="Designsysteem" sub="Hoot — vormen, kleur en type, met echte inhoud" showSearch={false} />
 
-        <h2 className="sect">Principes</h2>
+        <h2 className="label label--section sect">Principes</h2>
         <ul className="sg__list">
           <li>Het verhaal is de eenheid; de bron blijft altijd zichtbaar en aanklikbaar.</li>
           <li>Lijnen en witruimte in plaats van omlijnde kaarten. Eén accentkleur.</li>
@@ -36,7 +36,7 @@ export default function StyleGuide({ stream }) {
           <li>Niets beweegt terwijl je leest. Nieuwe berichten wachten achter een knop.</li>
         </ul>
 
-        <h2 className="sect">Kleur (licht en donker delen dezelfde namen)</h2>
+        <h2 className="label label--section sect">Kleur (licht en donker delen dezelfde namen)</h2>
         <div className="sg__swatches">
           {COLORS.map(([v, label]) => (
             <div className="sg__sw" key={v}>
@@ -50,7 +50,7 @@ export default function StyleGuide({ stream }) {
           ))}
         </div>
 
-        <h2 className="sect">Schaal</h2>
+        <h2 className="label label--section sect">Schaal</h2>
         <ul className="sg__list">
           <li>
             <strong>Afstand</strong>: 4, 8, 12, 16, 24, 32, 48 px (<code>--s1</code> t/m <code>--s7</code>). Elke marge, padding en gap komt hiervandaan; niets daartussen.
@@ -72,31 +72,31 @@ export default function StyleGuide({ stream }) {
           </li>
         </ul>
 
-        <h2 className="sect">Typografie</h2>
-        <p className="lead__title">Hoofdverhaal — serif 30–34 px (t6)</p>
-        <p className="compact__title">Kop van een bericht — serif 18 px (t4)</p>
+        <h2 className="label label--section sect">Typografie</h2>
+        <p className="head-6 lead__title">Hoofdverhaal — serif 30–34 px (t6)</p>
+        <p className="head-4 compact__title">Kop van een bericht — serif 18 px (t4)</p>
         <p className="lead__sum">Leestekst — schreefloos 17 px (t3), regelafstand 1,5. Intro van het hoofdverhaal en lopende tekst.</p>
         <p className="compact__sum">Intro in een lijst — schreefloos 15 px (t2), regelafstand 1,5.</p>
-        <p className="kicker">
+        <p className="label label--kicker kicker">
           <span>Kicker 13 px (t1)</span>
           <span className="kicker__type">Opinie</span>
         </p>
         <p className="status">Metadata en status — 13 px (t1); bronnaam en bediening — 15 px (t2)</p>
 
-        <h2 className="sect">Vorm 1 — Hoofdverhaal</h2>
+        <h2 className="label label--section sect">Vorm 1 — Hoofdverhaal</h2>
         <div className="list">{article ? <LeadStory item={withStory || article} story={withStory ? storiesById.get(withStory.storyId) : null} note="1 van 10" /> : null}</div>
 
-        <h2 className="sect">Vorm 2 — Compact bericht</h2>
+        <h2 className="label label--section sect">Vorm 2 — Compact bericht</h2>
         <div className="list">
           {article ? <CompactItem item={article} /> : null}
           {longest ? <CompactItem item={longest} note="Langste kop in de feed" /> : null}
           {bare ? <CompactItem item={bare} note="Zonder beeld" /> : null}
         </div>
 
-        <h2 className="sect">Vorm 3 — Sociale bijdrage</h2>
+        <h2 className="label label--section sect">Vorm 3 — Sociale bijdrage</h2>
         <div className="list">{post ? <SocialItem item={post} /> : <p className="hint">Geen sociale bijdrage geladen.</p>}</div>
 
-        <h2 className="sect">Bediening</h2>
+        <h2 className="label label--section sect">Bediening</h2>
         <div className="chips">
           <button type="button" className="chip" aria-pressed="true">
             Gekozen
@@ -115,7 +115,7 @@ export default function StyleGuide({ stream }) {
           </button>
         </div>
 
-        <h2 className="sect">Toestanden</h2>
+        <h2 className="label label--section sect">Toestanden</h2>
         <StatusLine {...online} />
         <StatusLine {...online} allDown onRetry={() => {}} />
         <StatusLine {...online} refreshError onRetry={() => {}} />

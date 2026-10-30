@@ -30,13 +30,13 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
       <div className="col">
         <ViewHeader title="Instellingen" showSearch={false} onBack={onBack} backLabel={backLabel} />
 
-        <h2 className="sect">Account</h2>
+        <h2 className="label label--section sect">Account</h2>
         <AccountSettings account={account} syncStatus={syncStatus} />
 
-        <h2 className="sect">Weergave</h2>
+        <h2 className="label label--section sect">Weergave</h2>
         <DisplayControls />
 
-        <h2 className="sect">Editie</h2>
+        <h2 className="label label--section sect">Editie</h2>
         <Row label="De Editie in één minuut" hint={ai ? 'AI-samenvatting van de Editie. Voor leden, op uitnodiging.' : 'Nog niet beschikbaar.'}>
           <Switch checked={prefs.brief} onChange={(v) => setPref('brief', v)} label="De Editie in één minuut" />
         </Row>
@@ -59,7 +59,7 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
         </div>
         <Row label="Edities" hint="Om 6, 12 en 17 uur tien verhalen. Daarna ligt de Editie vast." />
 
-        <h2 className="sect">Extra</h2>
+        <h2 className="label label--section sect">Extra</h2>
         <Row label="Selectie in het menu" hint="Elke maandag per onderwerp de drie belangrijkste stukken. Onderwerpen kies je in de Selectie.">
           <Switch checked={prefs.vak.length > 0} onChange={(v) => setPref('vak', v ? VAK_FIELD_IDS : [])} label="Selectie in het menu" />
         </Row>
@@ -67,7 +67,7 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
           <Switch checked={prefs.bluesky} onChange={(v) => setPref('bluesky', v)} label="Bluesky in het menu" />
         </Row>
 
-        <h2 className="sect">Bronnen</h2>
+        <h2 className="label label--section sect">Bronnen</h2>
         <a className="setrow setrow--link" href="#/welkom">
           <span className="setrow__text">
             <span className="setrow__label">Interesses opnieuw kiezen</span>
@@ -84,7 +84,7 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
           <span aria-hidden="true">›</span>
         </a>
 
-        <h2 className="sect">Over</h2>
+        <h2 className="label label--section sect">Over</h2>
         <p className="about">
           Hoot v{__APP_VERSION__} · gemaakt door <a href="https://baldadig.nl" target="_blank" rel="noopener">Baldadig.nl</a> · <a href="#/over">Over en contact</a> · <a href="#/privacy">Privacy</a> · <a href="#/stijl">Designsysteem</a>
           <br />

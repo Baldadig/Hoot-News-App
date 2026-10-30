@@ -31,13 +31,13 @@ export function BriefReader({ open, onClose, brief, kicker, rows = [] }) {
   return (
     <dialog ref={ref} className="reader" onClose={onClose} onClick={(e) => e.target === ref.current && onClose()} aria-labelledby="reader-title">
       <div className="reader__bar">
-        <span className="reader__kicker">{kicker}</span>
+        <span className="label label--meta reader__kicker">{kicker}</span>
         <button type="button" className="iconbtn" onClick={onClose} aria-label="Sluiten">
           <CloseIcon />
         </button>
       </div>
       <article ref={body} className="reader__body" tabIndex={-1}>
-        <p className="reader__label">Samenvatting door AI</p>
+        <p className="label label--kicker reader__label">Samenvatting door AI</p>
         <h1 id="reader-title" className="reader__title">
           De Editie in één minuut
         </h1>
@@ -45,7 +45,7 @@ export function BriefReader({ open, onClose, brief, kicker, rows = [] }) {
           const refs = (sec.refs || []).map((r) => byIndex.get(r)).filter(Boolean)
           return (
             <section key={i} className="reader__sect">
-              {sec.head ? <h2 className="reader__head">{sec.head}</h2> : null}
+              {sec.head ? <h2 className="head-4 reader__head">{sec.head}</h2> : null}
               <p className="reader__p">{sec.text}</p>
               <TermHelp text={sec.text} />
               {refs.length ? (
@@ -69,7 +69,7 @@ export function BriefReader({ open, onClose, brief, kicker, rows = [] }) {
         })}
         {rest.length ? (
           <section className="reader__sect reader__rest">
-            <h2 className="reader__head">Ook in deze Editie</h2>
+            <h2 className="head-4 reader__head">Ook in deze Editie</h2>
             <ul>
               {rest.map((r) => (
                 <li key={r.key}>

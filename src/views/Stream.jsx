@@ -41,7 +41,7 @@ function FilterSheet({ open, onClose, params, clear, setFilter, count }) {
           </button>
         </div>
 
-        <h3 className="sheet__label">Soort</h3>
+        <h3 className="label label--section sheet__label">Soort</h3>
         <div className="chips">
           {KINDS.map((k) => (
             <button key={k.id} type="button" className="chip" aria-pressed={(params.soort || '') === k.id} onClick={() => setFilter('soort', k.id)}>

@@ -18,25 +18,25 @@ export default function Over({ onBack, backLabel }) {
           Hoot is gemaakt door <a href="https://baldadig.nl" target="_blank" rel="noopener">Baldadig.nl</a>, het bedrijf van Alex Vrees.
         </p>
 
-        <h2 className="sect">Contact</h2>
+        <h2 className="label label--section sect">Contact</h2>
         <p>
           Een vraag, een idee, of werkt er iets niet? Mail naar <a href={`mailto:${MAIL}`}>{MAIL}</a>. Je krijgt antwoord van Alex.
         </p>
 
-        <h2 className="sect">Veelgestelde vragen</h2>
-        <h3>Hoe kies ik mijn bronnen?</h3>
+        <h2 className="label label--section sect">Veelgestelde vragen</h2>
+        <h3 className="head-4">Hoe kies ik mijn bronnen?</h3>
         <p>
           Op de website via <a href="#/bronnen">Bronnen</a>; in de app via het tandwiel rechtsboven → Bronnen. Gratis bronnen zijn gemarkeerd.
         </p>
-        <h3>Waarom zie ik een betaalmuur?</h3>
+        <h3 className="head-4">Waarom zie ik een betaalmuur?</h3>
         <p>
           Sommige bronnen vragen een abonnement. Op de website opent Hoot het artikel bij de uitgever zelf. In de app opent een artikel standaard in de Hoot-lezer: log daar één keer
           in bij je abonnement, via het tandwiel rechtsboven → Inloggen bij je abonnementen. Liever Safari, waar je al bent ingelogd? Kies bij het tandwiel → Artikelen openen voor In
           Safari. Safari kan per site onthouden dat je de Lezer-weergave wilt (aA › Gebruik Lezer automatisch).
         </p>
-        <h3>Wanneer verschijnt de Editie?</h3>
+        <h3 className="head-4">Wanneer verschijnt de Editie?</h3>
         <p>Om 6, 12 en 17 uur. Daarna ligt hij vast, zodat je hem uit kunt lezen. De Selectie verschijnt elke maandag om 7 uur.</p>
-        <h3>Wat gebeurt er met mijn gegevens?</h3>
+        <h3 className="head-4">Wat gebeurt er met mijn gegevens?</h3>
         <p>
           Zo weinig mogelijk: zie <a href="#/privacy">Privacy</a>.
         </p>
