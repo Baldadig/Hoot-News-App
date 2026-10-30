@@ -7,6 +7,7 @@
 // Zijn er te weinig verhalen uit je eigen bronnen, dan vullen we aan uit de algemene editie
 // ("Buiten je bronnen"). "Buiten je bubbel" blijft op zijn plek. Daarna ligt de editie vast.
 import { selectEdition, EDITION_SIZE, signatures, sameEvent } from '../../netlify/lib/stories.mjs'
+import { desksOf, primaryDesk } from '../../netlify/lib/desks.mjs'
 import { resolveTopics } from './topics.js'
 import { affinityScore, tasteScore } from './affinity.js'
 
@@ -27,6 +28,26 @@ const EXTRA_BY_INTEREST = { sport: 'sport', cultuur: 'cultuur' }
 export const EXTRA_MAX = 2
 // Ook uit een gewone nieuwsbron (NU.nl, de Volkskrant) is een voetbalbericht sport.
 const TOPIC_KIND = { voetbal: 'sport', f1: 'sport', wielrennen: 'sport', tennis: 'sport', wintersport: 'sport', olympisch: 'sport', muziek: 'cultuur', film: 'cultuur', boeken: 'cultuur', kunst: 'cultuur', games: 'games' }
+
+// De verhalen zoals deze lezer ze ziet. `ownCount` telt de verschillende bronnen in het verhaal
+// die jij volgt (de server telt Hoots basisbronnen): zo krijgt een verhaal dat van jouw bronnen
+// alleen Carbon Brief brengt toch de +100 voor "eigen bron" in weight(). De rubriek (`desk`) zet de
+// server uit alle berichten en is voor iedereen gelijk; een oudere server leverde hem nog niet,
+// dan rekenen we hem hier uit dezelfde berichten uit (`all`: alles wat we van het verhaal hebben).
+export function storiesForReader(stories = [], items = [], followed = new Set(), all = items) {
+  const ownSource = new Map()
+  for (const i of items) if (followed.has(i.source)) ownSource.set(i.id, i.source)
+  let byId = null
+  const deskOf = (st) => {
+    byId ||= new Map(all.map((i) => [i.id, i]))
+    return primaryDesk(st.itemIds.map((id) => byId.get(id)).filter(Boolean).map((i) => desksOf(i)))
+  }
+  return stories.map((st) => ({
+    ...st,
+    ownCount: new Set(st.itemIds.map((id) => ownSource.get(id)).filter(Boolean)).size,
+    desk: st.desk !== undefined ? st.desk : deskOf(st),
+  }))
+}
 
 // `previous`: je vorige editie (zie previousOf in stories.mjs); wat daarin stond, komt alleen
 // terug als het zich ontwikkelde.
@@ -63,12 +84,13 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const wideCands = (global.wide || []).filter((w) => w?.item?.id && outside(w) && !covered(w))
   const size = EDITION_SIZE - (bubbleEntry ? 1 : 0) - (wideCands.length ? 1 : 0)
   const preferred = new Set(favorites.filter((id) => followed.has(id)))
-  const extra = extraPool.length ? selectEdition(stories, extraPool, { mainIds: followed, now, size: EXTRA_MAX, bonus, strict: true, previous, preferred }).map((e) => ({ ...e, desk: null })) : []
+  const mineStories = storiesForReader(stories, items, followed, [...items, ...(global.items || [])])
+  const extra = extraPool.length ? selectEdition(mineStories, extraPool, { mainIds: followed, now, size: EXTRA_MAX, bonus, strict: true, previous, preferred }).map((e) => ({ ...e, desk: null })) : []
   // Een bericht van een vakbron (tech, economie, wetenschap) krijgt die rubriek, niet een rubriek
   // uit de tekst ("Britse fabrikant" maakte van een koptelefoonreview anders Buitenland).
   const SPECIALIST = new Set(['tech', 'economie', 'wetenschap'])
   const leadCat = (e) => catOf.get(pool.find((i) => i.id === (e.leadId || e.id))?.source)
-  const news = selectEdition(stories, newsPool, { mainIds: followed, now, size: size - extra.length, bonus, strict: true, previous, preferred }).map((e) => (SPECIALIST.has(leadCat(e)) ? { ...e, desk: leadCat(e) } : e))
+  const news = selectEdition(mineStories, newsPool, { mainIds: followed, now, size: size - extra.length, bonus, strict: true, previous, preferred }).map((e) => (SPECIALIST.has(leadCat(e)) ? { ...e, desk: leadCat(e) } : e))
   const own = [...news, ...extra]
 
   // Aanvullen uit de algemene editie, zonder dubbel verhaal of dubbele gebeurtenis.

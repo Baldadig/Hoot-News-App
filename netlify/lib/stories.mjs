@@ -372,6 +372,9 @@ export function buildStories(articles, registry = {}, { mainIds = new Set() } = 
       itemIds: items.map((i) => i.id),
       sourceCount: sourceIds.size,
       ownCount: new Set(own.map((i) => i.source)).size,
+      // De rubriek uit álle berichten van het verhaal, niet uit wat een lezer volgt: zo heet
+      // hetzelfde verhaal voor iedereen hetzelfde (de persoonlijke Editie neemt hem over).
+      desk: primaryDesk(items.map((i) => desksOf(i))),
       sourceNames: names,
       latestAt: items[0].publishedAt || null,
       firstAt: items[items.length - 1].publishedAt || null,
