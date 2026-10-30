@@ -8,6 +8,8 @@ import SwiftUI
 //                                             met -HootScreen stroom-bronnen staat de stapel open)
 //   -HootScroll midden|onder|slot   -HootQuery <tekst>   -HootDark YES   -HootLargeText YES   -HootOffline YES
 //   -HootSeenMinutes <n>   (de Stroom alsof je er n minuten geleden was)
+//   -HootOnboarded YES   (zonder welkom, mét opstartscherm; met -HootStartTab stroom: de opstart naar de Stroom)
+//   -HootSlowSplash <n>   (de overgang van het opstartscherm n keer zo langzaam)
 //   -HootFeature verhaal-id:Rubriek,…   (App Store-opnamen: deze echte verhalen bovenaan Editie en Stroom)
 // In Release doet dit allemaal niets.
 enum DebugLaunch {

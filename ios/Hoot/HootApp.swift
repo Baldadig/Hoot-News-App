@@ -24,7 +24,7 @@ struct HootApp: App {
 
     // Alleen bij een koude start: het opstartscherm met de stuiterende punt, tot er iets te lezen is.
     @State private var splash = true
-    @State private var handoff = BrandHandoff() // waar "hoot." in het welkom staat
+    @State private var handoff = BrandHandoff() // waar "hoot." staat: in het welkom of linksboven in de Editie
 
     var body: some Scene {
         WindowGroup {
@@ -44,7 +44,7 @@ struct HootApp: App {
             .environment(account)
             .tint(Theme.accent)
             .overlay {
-                if splash { SplashView(handoff: handoff).transition(.opacity) }
+                if splash { SplashView(handoff: handoff) }
             }
             .task { await endSplash() }
             .task { await store.load() } // ook al tijdens het welkom: de Editie staat klaar als je begint
@@ -60,31 +60,63 @@ struct HootApp: App {
         guard splash else { return }
         #if DEBUG
         if DebugLaunch.screen("opstart") { return } // `-HootScreen opstart`: blijft staan voor opnamen
-        if UserDefaults.standard.string(forKey: "HootStartTab") != nil { splash = false; return }
+        // Opnamen op een tabblad slaan het opstartscherm over; met `-HootOnboarded YES` erbij niet (zo
+        // test je de opstart naar de Stroom).
+        if UserDefaults.standard.string(forKey: "HootStartTab") != nil, !UserDefaults.standard.bool(forKey: "HootOnboarded") {
+            splash = false; handoff.landed = true; return
+        }
         #endif
         let start = Date.now
         try? await Task.sleep(for: .seconds(SplashView.bounce))
         while store.status != .ready && store.status != .failed && Date.now.timeIntervalSince(start) < 5 {
             try? await Task.sleep(for: .milliseconds(100))
         }
-        // Naar het welkom: het woordmerk landt op "hoot." en het rood sluit zich als een iris tot de rode
-        // punt; de rand veegt de witte letters weg en de inkt staat er al. Naar de app, zonder plek of
-        // met "Verminder beweging": gewoon vervagen.
+        // Dan nog even wachten tot de Editie eronder getekend is: dat houdt de hoofddraad een paar
+        // tienden bezig, en een overgang die dan begint, slaat zijn eerste stuk over (het merk stond in
+        // één beeld al halverwege). Rustig is: twee tikjes van 40 ms op tijd; hooguit 1 s.
+        let settle = Date.now
+        var calm = 0
+        while calm < 2 && Date.now.timeIntervalSince(settle) < 1 {
+            let tick = Date.now
+            try? await Task.sleep(for: .milliseconds(40))
+            calm = Date.now.timeIntervalSince(tick) < 0.07 ? calm + 1 : 0
+        }
+        // Het woordmerk landt op "hoot." (groot in het welkom, klein linksboven in de Editie) en het rood
+        // sluit zich als een iris tot de rode punt; de rand veegt de witte letters weg en de inkt staat
+        // er al. Is er geen "hoot." in beeld (de app opent op de Stroom of de Selectie), dan sluit het
+        // rood tot de eigen punt van het opstartscherm, die daarna kort vervaagt. Met "Verminder
+        // beweging": gewoon vervagen.
         // Een vaste curve in plaats van een veer: die heeft een staart, en als het opstartscherm dan op tijd
         // weggaat, is het rood nog net niet op maat en verspringt de punt.
-        if !store.onboarded, handoff.dot != nil, handoff.word != nil, !UIAccessibility.isReduceMotionEnabled {
-            var duration = 0.7
+        if !UIAccessibility.isReduceMotionEnabled {
+            let lands = handoff.dot != nil && handoff.word != nil
+            var duration = lands && !store.onboarded ? 0.7 : 0.6 // naar het welkom iets rustiger: groter merk
             #if DEBUG
             duration *= max(1, UserDefaults.standard.double(forKey: "HootSlowSplash")) // `-HootSlowSplash 6`: in slow motion
             #endif
             handoff.duration = duration
             withAnimation(.timingCurve(0.6, 0, 0.2, 1, duration: duration)) { handoff.leaving = true }
-            try? await Task.sleep(for: .seconds(duration))
-            splash = false
+            // In donker is de punt lichter rood dan het opstartscherm: het laatste stuk kleurt het rood mee,
+            // anders verspringt de kleur als het opstartscherm weggaat. In licht zijn ze gelijk.
+            try? await Task.sleep(for: .seconds(duration * 0.6))
+            withAnimation(.easeInOut(duration: duration * 0.4)) { handoff.tinted = true }
+            // Een tiende langer dan de curve: die begint een paar beelden later, en het rood krimpt van
+            // schermgroot tot een paar punt, dus ook het laatste procent is nog zichtbaar. Zonder die
+            // marge springt de punt op het eind van twee keer zo groot naar zijn maat.
+            try? await Task.sleep(for: .seconds(duration * 0.4 + 0.1))
+            if !lands { await fadeSplash(0.15) }
         } else {
-            withAnimation(.easeOut(duration: 0.35)) { splash = false }
+            await fadeSplash(0.35)
         }
+        splash = false
         handoff.landed = true
+    }
+
+    // Vervagen en dan pas weghalen. Via `handoff`, dat SplashView zelf leest: een animatie op staat
+    // van de App zelf (`.transition(.opacity)` bij het weghalen) kwam niet aan en werd een harde knip.
+    private func fadeSplash(_ duration: Double) async {
+        withAnimation(.easeOut(duration: duration)) { handoff.fading = true }
+        try? await Task.sleep(for: .seconds(duration))
     }
 }
 

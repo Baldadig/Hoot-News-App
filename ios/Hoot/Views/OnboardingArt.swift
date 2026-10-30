@@ -130,14 +130,17 @@ struct IntroMark: View {
     }
 }
 
-// Waar "hoot." in het welkom staat (in schermcoördinaten), voor de overgang vanaf het opstartscherm.
+// Waar "hoot." staat (in schermcoördinaten), voor de overgang vanaf het opstartscherm: groot in het
+// welkom (`IntroMark`) of klein linksboven in de Editie (`Wordmark(handoff: true)`).
 @MainActor
 @Observable
 final class BrandHandoff {
     var word: CGRect?
     var dot: CGRect?
     var leaving = false // het opstartscherm beweegt erheen: het rood krimpt tot de punt
-    var landed = false // het opstartscherm is weg; de punt mag ademen
+    var tinted = false // het rood kleurt naar de kleur van de punt (in donker lichter)
+    var fading = false // het opstartscherm vervaagt (zonder iris, of na de iris naar zijn eigen punt)
+    var landed = false // het opstartscherm is weg; de punt mag ademen, de Editie staat op zijn plek
     var duration = 0.7 // hoe lang die overgang duurt
 }
 private struct BrandHandoffKey: EnvironmentKey { static let defaultValue: BrandHandoff? = nil }

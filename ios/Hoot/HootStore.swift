@@ -110,6 +110,8 @@ final class HootStore {
         #if DEBUG
         // Opnamen met een startargument (screenshots.sh, device-screens.sh) slaan het welkom over.
         if UserDefaults.standard.string(forKey: "HootStartTab") != nil { onboarded = true }
+        // `-HootOnboarded YES`: het welkom overslaan maar wel het opstartscherm (de overgang naar de Editie).
+        if UserDefaults.standard.bool(forKey: "HootOnboarded") { onboarded = true }
         #endif
         interests = Self.load("hoot.interests") ?? []
         favorites = Self.load("hoot.favorites") ?? []

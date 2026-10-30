@@ -70,6 +70,11 @@ struct EditionView: View {
     @Environment(HootStore.self) private var store
     @Environment(\.openTab) private var openTab
     @Environment(\.isWide) private var wide
+    @Environment(\.brandHandoff) private var handoff
+    @Environment(\.accessibilityReduceMotion) private var still
+    // Bij een koude start ligt de krant 8 pt lager en schuift op zijn plek terwijl het rood van het
+    // opstartscherm zich sluit, met dezelfde curve: het merk landt, de krant gaat open.
+    private var rising: Bool { !still && handoff?.landed == false && handoff?.leaving == false }
     private var title: String { store.edition?.slot.flatMap { Desk.slots[$0] } ?? "Editie" }
     private var dateLine: String {
         guard let d = store.edition?.date, let date = HootDate.day(d) else { return "" }
@@ -171,6 +176,7 @@ struct EditionView: View {
                 }
                 .padding(.horizontal)
                 .column(wide ? Layout.wide : Layout.readable)
+                .offset(y: rising ? 8 : 0)
             }
             .debugJump(proxy, to: Self.slotTarget(store.editionRows), when: store.editionRows.count)
             // Wie eerst even rondkijkt: na ongeveer een derde van de editie één keer de vraag.
@@ -198,7 +204,8 @@ struct EditionView: View {
             .refreshable { await store.load() }
             .toolbar {
                 // Het woordmerk, klein linksboven: je ziet waar je bent, zonder dat het de krant overneemt.
-                ToolbarItem(placement: .topBarLeading) { Wordmark() }
+                // Hier landt het opstartscherm op.
+                ToolbarItem(placement: .topBarLeading) { Wordmark(handoff: true) }
                     .sharedBackgroundVisibility(.hidden)
             }
             .settingsButton()

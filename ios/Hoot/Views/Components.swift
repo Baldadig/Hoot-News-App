@@ -60,15 +60,42 @@ struct Rule: View {
     var body: some View { Rectangle().fill(Theme.rule).frame(height: 1).accessibilityHidden(true) }
 }
 
-// "hoot." in de krantenletter met de rode punt, zoals op de website.
+// "hoot." in de krantenletter met de rode punt, zoals op de website. De punt is een echte cirkel op
+// de maat en plek van de punt in de letter (New York Heavy: 0,21 em breed, een halve punt na de t; op
+// 3× zoom over de oude "hoot." gelegd), zodat het opstartscherm er precies op kan landen. Met
+// `handoff` meldt dit woordmerk waar het staat (`BrandHandoff`); alleen dat in de Editie, anders
+// overschrijft het welkom de plek van `IntroMark`.
 struct Wordmark: View {
+    var handoff = false
     var body: some View {
-        Text("hoot\(Text(".").foregroundStyle(Theme.accent))")
-            .font(.system(.title3, design: .serif, weight: .heavy))
-            .dynamicTypeSize(...DynamicTypeSize.xxLarge)
-            .fixedSize() // nooit afgekapt tot "h…"
+        WordmarkBody(handoff: handoff)
+            .dynamicTypeSize(...DynamicTypeSize.xxLarge) // ook voor de maat van de punt
+            .accessibilityElement()
             .accessibilityLabel("Hoot")
             .accessibilityAddTraits(.isHeader)
+    }
+}
+
+private struct WordmarkBody: View {
+    let handoff: Bool
+    @Environment(\.brandHandoff) private var brand
+    @ScaledMetric(relativeTo: .title3) private var dot = 4.17
+    @ScaledMetric(relativeTo: .title3) private var gap = 0.5
+
+    var body: some View {
+        HStack(alignment: .lastTextBaseline, spacing: gap) {
+            Text("hoot")
+                .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { if handoff { brand?.word = $0 } }
+            Circle()
+                .fill(Theme.accent)
+                .frame(width: dot, height: dot)
+                .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { if handoff { brand?.dot = $0 } }
+                .offset(y: dot * 0.06) // de punt in de letter zakt een haar onder de basislijn
+        }
+        .font(.system(.title3, design: .serif, weight: .heavy))
+        .fixedSize() // nooit afgekapt tot "h…"
+        // Niet meer in beeld (ander tabblad, scherm weg): dan valt er niets te landen.
+        .onDisappear { if handoff { brand?.word = nil; brand?.dot = nil } }
     }
 }
 

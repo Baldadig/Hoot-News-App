@@ -6,7 +6,7 @@ import SwiftUI
 // seconden. Met "Verminder beweging" staat de punt stil.
 struct SplashView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    var handoff: BrandHandoff? = nil // waar "hoot." in het welkom staat, en of de overgang erheen loopt
+    var handoff: BrandHandoff? = nil // waar "hoot." staat (welkom of Editie), en of de overgang erheen loopt
 
     // Maten van LaunchMark: de SVG (viewBox 239,45 × 73,5) wordt passend getekend in 160 × 49 pt, dus
     // op schaal 49 / 73,5 met een smalle rand links en rechts. De punt staat op (231,75; 65,8), r 7,7.
@@ -27,16 +27,18 @@ struct SplashView: View {
         let time = handoff?.duration ?? 1
         GeometryReader { geo in
             let center = CGPoint(x: geo.size.width / 2, y: geo.size.height / 2)
-            let word = leaving ? handoff?.word : nil
-            let target = leaving ? handoff?.dot : nil
+            // Waar het heen gaat: "hoot." in het welkom of de Editie, of anders de eigen punt hier.
+            let lands = handoff?.dot != nil
+            let word = leaving && lands ? handoff?.word : nil
+            let target = leaving ? (handoff?.dot ?? Self.ownDot(center)) : nil
             // Het rood als cirkel die het hele scherm vult; bij het vertrek sluit hij als een iris tot de
-            // rode punt van "hoot." in het welkom.
+            // rode punt van "hoot.".
             let full = hypot(geo.size.width, geo.size.height) * 1.1
             let disc = Circle()
                 .frame(width: target?.width ?? full, height: target?.height ?? full)
                 .position(target.map { CGPoint(x: $0.midX, y: $0.midY) } ?? center)
             ZStack {
-                disc.foregroundStyle(Theme.brandRed)
+                disc.foregroundStyle(handoff?.tinted == true ? Theme.accent : Theme.brandRed)
                 mark(leaving: leaving, time: time)
                     // Het woordmerk landt eerst precies op "hoot." in het welkom (punt op punt), daarna
                     // veegt de rand van het rood de witte letters weg en staat de inkt eronder er al.
@@ -46,10 +48,16 @@ struct SplashView: View {
                     .mask { disc }
             }
         }
+        .opacity(handoff?.fading == true ? 0 : 1)
         // Midden op het hele scherm, zoals iOS het opstartscherm plaatst (niet binnen de veilige zone).
         .ignoresSafeArea()
         .accessibilityElement()
         .accessibilityLabel("Hoot laadt")
+    }
+
+    // De punt van het opstartscherm zelf, in rust (het woordmerk staat midden op het scherm).
+    private static func ownDot(_ center: CGPoint) -> CGRect {
+        CGRect(x: center.x - 80 + dotCenter.x - dotSize / 2, y: center.y - 24.5 + dotCenter.y - dotSize / 2, width: dotSize, height: dotSize)
     }
 
     // Het woord "hoot" (zonder punt) loopt in LaunchWord van de linkerrand tot x 222 van de viewBox.

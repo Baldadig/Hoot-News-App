@@ -23,6 +23,7 @@
   - **Stroom:** dubbele koppen van zusterkranten worden weggehaald.
   - **Inloggen:** "op uitnodiging" staat vóór de inlogknoppen.
 - **Selectie (build 36):** nieuw onderwerp Geekcultuur, onder Cultuur & vrije tijd: sf, fantasy, strips, bordspellen en internetcultuur. Het verschijnt zodra de server het levert.
+- **Van opstart naar de Editie (build 36):** het rood sluit zich als een iris tot de rode punt van "hoot." linksboven in de Editie, en de krant schuift zacht op zijn plek. Opent Hoot op een ander tabblad, dan sluit het rood tot zijn eigen punt. In donker kleurt het rood mee naar de lichtere punt. Met Verminder beweging vervaagt het opstartscherm nu echt (dat was een harde knip).
 - **Bluesky (build 36):** volg je nog niemand, dan staat er een knop "Iemand toevoegen" in de lege rubriek, in plaats van een verwijzing naar de + rechtsboven.
 
 ## [1.0.0] — 2026-10-28 — De eerste versie voor de App Store
