@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { composePersonal, personalRows, editionBasis, withoutDebug } from '../lib/personal.js'
-import { previousOf } from '../../netlify/lib/stories.mjs'
+import { composePersonal, personalRows, editionBasis, withoutDebug, earlierEditions } from '../lib/personal.js'
+import { previousOf, historyOf } from '../../netlify/lib/stories.mjs'
 import { readJSON, writeJSON } from '../lib/store.js'
 
 const KEY = 'hoot:my-edition'
@@ -15,6 +15,12 @@ const KEY = 'hoot:my-edition'
 // toestel met dezelfde invoer dezelfde Editie. Wat je las (`readIds`) komt niet terug, tenzij er
 // genoeg nieuws bij kwam. Je leesprofiel (`affinity`) blijft op het toestel; alleen de Editie met
 // het waarom per plek gaat naar je account.
+// Wat in je vorige Edities stond komt alleen terug als het zich ontwikkelde (bouwspec-aanvulling H3,
+// H5): `previous` is de vereniging van de laatste drie vastgelegde Edities, van dit toestel én uit je
+// account. Daarvoor draagt elke vastgelegde Editie haar `history` (de samenvattingen van de drie
+// Edities ervóór, historyOf) mee in `user_state.edition`; ook een overgenomen Editie van het andere
+// toestel wordt hier met die history vastgelegd, zodat beide toestellen hetzelfde `previous` hebben
+// voor het volgende dagdeel.
 // Leden krijgen er een eigen "editie in één minuut" bij (POST /api/brief). Zonder account geen
 // samenvatting: die van de algemene editie hoort niet bij jouw verhalen.
 export function usePersonalEdition({ data, status, prefs, muted, account, affinity = null, readIds = null }) {
@@ -49,19 +55,26 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
     if (pending.current === task) return
     pending.current = task
     ;(async () => {
+      let theirs = null
       if (uid && account.client) {
         // Een ander toestel was eerder: dan die editie (kolom ontbreekt nog? dan stilletjes verder).
         const { data: row } = await account.client.from('user_state').select('edition').eq('user_id', uid).maybeSingle().then((r) => r, () => ({}))
-        const theirs = row?.edition
-        if (theirs && theirs.id === global.id && theirs.basis === basis) return keep({ ...theirs, owner })
+        theirs = row?.edition && typeof row.edition === 'object' ? row.edition : null
+        if (theirs && theirs.id === global.id && theirs.basis === basis) {
+          // Overgenomen, en hier vastgelegd met de Edities van toen van beide toestellen als history;
+          // het tweede toestel schrijft niets terug.
+          const history = earlierEditions({ local: current, account: theirs, id: global.id, owner }).map(historyOf).filter(Boolean)
+          return keep({ ...theirs, owner, history })
+        }
       }
-      // De editie van het vorige dagdeel (nog op dit toestel): wat daarin stond, komt alleen terug
-      // als het zich ontwikkelde.
-      const previous = current && current.id !== global.id && current.owner === owner ? previousOf(current) : null
+      // De Edities van vóór deze (dit toestel plus je account, de laatste drie): wat daarin stond, komt
+      // alleen terug als het zich ontwikkelde.
+      const earlier = earlierEditions({ local: current, account: theirs, id: global.id, owner })
+      const previous = previousOf(earlier)
       const now = Date.parse(global.builtAt) || Date.now()
       const mine = composePersonal({ global, stories: data.stories, items: data.items, sources: data.sources, followed: new Set(followed), interests: prefs.interests || [], topics: prefs.topics || [], now, previous, affinity, favorites: prefs.favorites || [], taste: prefs.taste, readIds: readIds || new Set() })
       if (!mine) return
-      const stamped = { ...withoutDebug(mine), owner, basis }
+      const stamped = { ...withoutDebug(mine), owner, basis, history: earlier.map(historyOf).filter(Boolean) }
       keep(stamped)
       if (uid && account.client) await account.client.from('user_state').update({ edition: stamped }).eq('user_id', uid).then(() => {}, () => {})
     })()
@@ -88,7 +101,7 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
       const { brief } = await res.json()
       const current = readJSON(KEY, null)
       if (!brief || current?.version !== edition.version || current?.basis !== edition.basis) return
-      const next = { ...current, brief }
+      const next = { ...current, brief } // met de history van de vastgelegde Editie
       keep(next)
       await account.client.from('user_state').update({ edition: next }).eq('user_id', uid).then(() => {}, () => {})
     })().catch(() => {}) // geen sessie of geen JSON: dan zonder samenvatting

@@ -11,7 +11,7 @@
 //
 // Rekenregels als in shared/editor.mjs (web en iOS moeten bit-gelijk uitkomen): alleen + − × ÷,
 // Math.round/min/max/floor en Date.parse; elke sortering heeft een totale vergelijker.
-import { selectForReader, EDITION_SIZE, signatures, sameEvent, seenBefore, developedSince } from '../../netlify/lib/stories.mjs'
+import { selectForReader, EDITION_SIZE, signatures, sameEvent, seenBefore, developedSince, recentEditions } from '../../netlify/lib/stories.mjs'
 import { desksOf, primaryDesk } from '../../netlify/lib/desks.mjs'
 import { INTERESTS } from './topics.js'
 import { supplyOf, profileOf, personalParts, sumParts, tempoWindows, outsideProfile, strongestFamily, whyOf, NEIGHBOURS, FAMILY_OF } from '../../shared/editor.mjs'
@@ -263,6 +263,24 @@ export function withoutDebug(edition) {
   if (!edition) return edition
   const strip = (o) => Object.fromEntries(Object.entries(o).filter(([k]) => !k.startsWith('_')))
   return { ...strip(edition), entries: (edition.entries || []).map(strip) }
+}
+
+// De Edities van vóór deze, voor `previous` en voor `history` (aanvulling-pariteit-herhaling.md H3, H5):
+// wat op dit toestel ligt (de laatste vastgelegde Editie met haar `history`) en wat in je account staat
+// (`user_state.edition`, met de zijne), samen, ontdubbeld op id, de laatste HISTORY_MAX (nieuwste eerst).
+// De Editie van dit dagdeel zelf telt niet mee (die wordt juist samengesteld of overgenomen), wat lokaal
+// van een andere lezer is ook niet; de rij uit het account is altijd van deze lezer. Zo kennen beide
+// toestellen dezelfde Edities van toen, ook als het ene de Middag oversloeg.
+export function earlierEditions({ local = null, account = null, id = null, owner = null } = {}) {
+  const rows = []
+  const add = (e) => {
+    if (!e || typeof e !== 'object') return
+    if (Array.isArray(e.history)) rows.push(...e.history)
+    if (e.id !== id) rows.push(e)
+  }
+  if (local && (!owner || local.owner === owner)) add(local)
+  add(account)
+  return recentEditions(rows)
 }
 
 // Vingerafdruk van waaruit een editie is samengesteld: je bronnen en interesses. Een editie met

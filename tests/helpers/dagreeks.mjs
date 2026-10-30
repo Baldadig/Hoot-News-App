@@ -11,13 +11,15 @@
 // useFeed.wantedSources mee) plus de koppen van de algemene Editie (global.items, voegt
 // composePersonal zelf toe). De vergelijking (compare) rekent wél op de volledige pool: dat is de
 // waarheid waartegen "ontwikkeld" gemeten wordt.
-// Varianten voor `previous` van de persoonlijke Editie:
-//   code    : previousOf(vorige persoonlijke Editie), wat usePersonalEdition.js nu meegeeft;
-//   drie    : alle eerdere Edities van de dag samen (H3: at per verhaal, koppen en itemIds verenigd);
-//   account : een ander toestel zonder lokale Edities, met de `history`-samenvattingen uit het account (H5).
-import { buildStories, selectEdition, relinkEdition, widelyCovered, previousOf, signatures, sameSubject } from '../../netlify/lib/stories.mjs'
+// Varianten voor `previous` van de persoonlijke Editie (zie previousFor):
+//   code    : hetzelfde toestel, zoals usePersonalEdition.js: de laatste lokale Editie met haar `history`
+//             (earlierEditions → previousOf over de laatste drie, H3/H5);
+//   drie    : previousOf over alle eerdere Edities van de dag (H3 zonder de history-mechaniek);
+//   account : een ander toestel zonder lokale Edities, met de Editie en `history` uit het account (H5);
+//   sprong  : als account, maar niemand stelde de Middag samen: de Avond kent alleen de Ochtend.
+import { buildStories, selectEdition, relinkEdition, widelyCovered, previousOf, historyOf, recentEditions, signatures, sameSubject } from '../../netlify/lib/stories.mjs'
 import { MAIN_IDS, MUSIC_IDS } from '../../netlify/lib/sources.mjs'
-import { composePersonal, withoutDebug } from '../../src/lib/personal.js'
+import { composePersonal, withoutDebug, earlierEditions } from '../../src/lib/personal.js'
 import { PERSONAS, setupFor } from '../fixtures/personas.mjs'
 
 export const SLOTS = [
@@ -26,7 +28,10 @@ export const SLOTS = [
   { id: '2026-10-30-avond', slot: 'avond', date: '2026-10-30', next: '06:00', now: Date.parse('2026-10-30T16:00:00Z') },
 ]
 export const DAG_PERSONAS = ['haags', 'klimaat', 'wereld', 'vs', 'nieuw']
-export const VARIANTS = ['code', 'drie', 'account']
+export const VARIANTS = ['code', 'drie', 'account', 'sprong']
+// Welke dagdelen elke variant samenstelt (index in SLOTS): `sprong` slaat de Middag over.
+export const SCHEDULE = { code: [0, 1, 2], drie: [0, 1, 2], account: [0, 1, 2], sprong: [0, 2] }
+const OWNER = 'test'
 const DAY_WINDOW = 30 * 36e5 // de dagpool voor de taalmaat: zo ver terug als de diagnose keek (paren.mjs)
 const SPORT_TOPICS = new Set(['voetbal', 'f1', 'wielrennen', 'tennis', 'wintersport', 'olympisch'])
 const leadOf = (e) => e.leadId || e.id
@@ -73,27 +78,15 @@ export function dayOf(articles, sources) {
   return day
 }
 
-// De samenvatting van een vastgelegde Editie zoals die in `user_state.edition.history` komt (H5),
-// met de getoonde berichten (`shown`: kop, intro, tijd) erbij: op de kop alleen is "zelfde
-// onderwerp" niet te zien. `keys` per verhaal: de kenmerken van toen (developedSince).
-export function historyOf(ed) {
-  const p = previousOf(ed)
-  return { id: ed.id, builtAt: ed.builtAt, storyIds: [...p.storyIds], itemIds: [...p.itemIds], leadIds: [...p.leadIds], titles: [...(p.titles || [])], shown: p.shown || [], keys: Object.fromEntries([...(p.keysOf || new Map())].map(([id, ks]) => [id, [...ks]])) }
-}
-
-// `previous` over meer Edities (H3): vereniging van verhalen, stukken, koppen en hoofdverhalen; `at`
-// per verhaal is de builtAt van de laatste Editie waarin het stond. Neemt Edities of history-regels.
-export function mergePrevious(list) {
-  const ps = list.map((x) => (Array.isArray(x.storyIds) ? { ...x, storyIds: new Set(x.storyIds), itemIds: new Set(x.itemIds), leadIds: new Set(x.leadIds), titles: new Set(x.titles), keysOf: new Map(Object.entries(x.keys || {}).map(([id, ks]) => [id, new Set(ks)])), at: Date.parse(x.builtAt) || 0, leadStoryId: null } : previousOf(x))).filter(Boolean)
-  if (!ps.length) return null
-  const u = (k) => new Set(ps.flatMap((p) => [...(p[k] || [])]))
-  const atOf = new Map()
-  const keysOf = new Map()
-  for (const p of ps) {
-    for (const id of p.storyIds) atOf.set(id, Math.max(atOf.get(id) || 0, p.at))
-    for (const [id, ks] of p.keysOf || []) keysOf.set(id, new Set([...(keysOf.get(id) || []), ...ks]))
-  }
-  return { storyIds: u('storyIds'), itemIds: u('itemIds'), leadIds: u('leadIds'), titles: u('titles'), shown: ps.flatMap((p) => p.shown || []), leadStoryIds: new Set(ps.map((p) => p.leadStoryId).filter(Boolean)), leadStoryId: ps[ps.length - 1].leadStoryId, at: Math.max(...ps.map((p) => p.at)), atOf, keysOf }
+// `previous` voor het volgende dagdeel, uit de Edities (`eds`) die deze lezer in deze variant al kreeg,
+// plus de `earlier`-lijst waaruit de nieuwe Editie haar `history` krijgt (historyOf, zoals de hook).
+// `code` en `account` gaan door earlierEditions, precies het pad van usePersonalEdition.js: lokaal de
+// laatste Editie met haar history, of alleen de rij uit het account; `drie` neemt alle Edities zelf.
+export function previousFor(v, eds, id) {
+  if (!eds.length) return { previous: null, earlier: [] }
+  const last = eds[eds.length - 1]
+  const earlier = v === 'drie' ? recentEditions(eds) : earlierEditions(v === 'code' ? { local: last, account: null, id, owner: OWNER } : { local: null, account: last, id, owner: OWNER })
+  return { previous: previousOf(v === 'drie' ? eds : earlier), earlier }
 }
 
 // Vergelijk een Editie met een of meer eerdere: per plek of het verhaal er al stond (op verhaal-id,
@@ -172,31 +165,33 @@ export function runDay(articles, sources, { personas = DAG_PERSONAS, variants = 
     const setup = setupFor(p, sources, 'echt')
     out.personas[p.id] = { name: p.name, variants: {} }
     for (const v of variants) {
-      const eds = []
-      for (let k = 0; k < day.length; k++) {
+      const slots = SCHEDULE[v]
+      const eds = [] // eds[j] hoort bij day[slots[j]]
+      for (const k of slots) {
         const d = day[k]
-        let previous = null
-        if (k > 0 && v === 'code') previous = previousOf(eds[k - 1])
-        if (k > 0 && v === 'drie') previous = mergePrevious(eds.slice(0, k))
-        if (k > 0 && v === 'account') previous = mergePrevious(eds.slice(0, k).map(historyOf))
+        const { previous, earlier } = previousFor(v, eds, d.sl.id)
         const known = d.pool.filter((i) => setup.followed.has(i.source))
         const mine = composePersonal({ global: d.global, stories: d.stories, items: known, sources, followed: setup.followed, interests: setup.interests, topics: setup.topics, favorites: setup.favorites, affinity: setup.affinity, taste: setup.taste, now: d.sl.now, previous, readIds: new Set() })
-        eds.push({ ...withoutDebug(mine), owner: 'test', basis: 'x' })
+        // Vastgelegd zoals de hook dat doet: met owner, basis en de history van de Edities ervóór.
+        eds.push({ ...withoutDebug(mine), owner: OWNER, basis: 'x', history: earlier.map(historyOf).filter(Boolean) })
         // Groot nieuws aanwezig óf vandaag al getoond (alleen voor de variant die de code zelf gebruikt).
-        if (k > 0 && v === 'code') {
+        if (eds.length > 1 && v === 'code') {
           const big = bigOf(d)
           if (big.length) {
             grootKans++
-            const shownToday = new Set(eds.flatMap((ed, j) => [...keysOf(ed, day[j])]))
+            const shownToday = new Set(eds.flatMap((ed, j) => [...keysOf(ed, day[slots[j]])]))
             if (big.some((id) => shownToday.has(id))) grootRaak++
           }
         }
       }
-      const cmp = []
-      for (let k = 1; k < day.length; k++) cmp.push(compare(eds[k], day[k], [{ ed: eds[k - 1], d: day[k - 1] }], `${day[k - 1].sl.slot}→${day[k].sl.slot}`))
-      cmp.push(compare(eds[2], day[2], [{ ed: eds[0], d: day[0] }], 'ochtend→avond'))
-      cmp.push(compare(eds[2], day[2], [{ ed: eds[0], d: day[0] }, { ed: eds[1], d: day[1] }], 'avond vs beide eerdere'))
-      out.personas[p.id].variants[v] = { editions: eds, cmp }
+      const at = (j) => ({ ed: eds[j], d: day[slots[j]] })
+      const last = eds.length - 1
+      // Opeenvolgend: elke overgang tussen twee samengestelde Edities (bij `sprong` is dat Ochtend→Avond).
+      const opeenvolgend = []
+      for (let j = 1; j < eds.length; j++) opeenvolgend.push(compare(eds[j], day[slots[j]], [at(j - 1)], `${day[slots[j - 1]].sl.slot}→${day[slots[j]].sl.slot}`))
+      const ochtendAvond = compare(eds[last], day[slots[last]], [at(0)], 'ochtend→avond')
+      const alle = compare(eds[last], day[slots[last]], eds.slice(0, last).map((_, j) => at(j)), 'avond vs alle eerdere')
+      out.personas[p.id].variants[v] = { editions: eds, opeenvolgend, ochtendAvond, alle }
     }
   }
   // Totalen per variant: opeenvolgend (Ochtend→Middag + Middag→Avond) en Ochtend→Avond.
@@ -204,13 +199,13 @@ export function runDay(articles, sources, { personas = DAG_PERSONAS, variants = 
   const total = (v, pick) => {
     const t = Object.fromEntries(KEYS.map((k) => [k, 0]))
     let ontwikkeldMax = 0
-    for (const r of Object.values(out.personas)) for (const c of pick(r.variants[v].cmp)) {
+    for (const r of Object.values(out.personas)) for (const c of pick(r.variants[v])) {
       for (const k of KEYS) t[k] += c[k]
       ontwikkeldMax = Math.max(ontwikkeldMax, c.ontwikkeld)
     }
     return { ...t, ontwikkeldMax }
   }
-  for (const v of variants) out.summary[v] = { opeenvolgend: total(v, (cmp) => cmp.slice(0, 2)), ochtendAvond: total(v, (cmp) => [cmp[2]]) }
+  for (const v of variants) out.summary[v] = { opeenvolgend: total(v, (r) => r.opeenvolgend), ochtendAvond: total(v, (r) => [r.ochtendAvond]) }
   out.summary.grootNieuwsDag = grootKans ? grootRaak / grootKans : 1
   // Tweetalige verhalen (H6): verhalen met zowel een Nederlandse als een Engelse bron, gebundeld over
   // de hele dagpool (alles van de laatste DAY_WINDOW vóór het nieuwste bericht), op dezelfde basis als
