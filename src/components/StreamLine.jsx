@@ -79,7 +79,7 @@ function glide(el, to) {
   glides.set(el, g)
 }
 
-// `rubrieken`: { items, sep } uit rubriekRij; `active`: de sig van wat aan staat.
+// `rubrieken`: { items } uit rubriekRij (sep wordt niet meer getekend); `active`: de sig van wat aan staat.
 // `bronnen`: de open rij (rijBronnen); `picks`: wat gekozen is (Set). `sources`: toon de stapel.
 export function StreamLine({ rubrieken, active, onRubriek, bronnen = [], picks, onToggle, onAll, sources = true }) {
   const uid = useId()
@@ -551,10 +551,8 @@ export function StreamLine({ rubrieken, active, onRubriek, bronnen = [], picks, 
         <div ref={rubRef} className="rub" inert={open ? '' : undefined}>
           <div ref={scrollRef} className="rub__scroll">
             <div ref={rowRef} className="rub__row" role="group" aria-label="Rubriek" onKeyDown={rubKeyDown} onFocus={(e) => e.target.classList.contains('rub__btn') && reveal(e.target, true)}>
-              {rubrieken.items.map((r, i) => (
+              {rubrieken.items.map((r) => (
                 <Fragment key={r.sig || 'alles'}>
-                  {/* kolomlijn tussen wat je leest (Alles, Buiten je bubbel) en de rubrieken */}
-                  {i === rubrieken.sep ? <span className="rub__sep" aria-hidden="true" /> : null}
                   <button type="button" className="rub__btn" ref={(el) => (el ? rubEls.current.set(r.sig, el) : rubEls.current.delete(r.sig))} aria-pressed={r.sig === active} onClick={() => pickRub(r)}>
                     <span className="rub__t">{r.label}</span>
                   </button>

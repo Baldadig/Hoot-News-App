@@ -4149,15 +4149,6 @@ html[data-images='hoofd'] .media--social {
   outline-offset: calc(-1 * var(--focus-offset));
   border-radius: var(--radius-control);
 }
-/* kolomlijn tussen wat je leest (Alles, Buiten je bubbel) en de rubrieken */
-.rub__sep {
-  flex: none;
-  align-self: center;
-  width: 1px;
-  height: var(--s4);
-  margin-bottom: 1px;
-  background: var(--rule);
-}
 /* één rode streep die meeglijdt; 3 hoog, óp de haarlijn */
 .rub__bar {
   position: absolute;
