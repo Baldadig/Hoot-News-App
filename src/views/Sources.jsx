@@ -137,7 +137,7 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
   return (
     <section className="view" hidden={!active} aria-label="Bronnen">
       <div className="col">
-        <ViewHeader title="Bronnen" sub="Wat meedoet in je Editie en Stroom" subWide display />
+        <ViewHeader title="Bronnen" sub="Wat meedoet in je Editie en Stroom" subWide />
 
         <h2 className="label label--section sect">Je bronnen · {mine.length}</h2>
         <ul className="srows">

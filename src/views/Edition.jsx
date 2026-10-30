@@ -130,7 +130,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
         {/* De kop van de Editie: titel, datum, omvang en de ingang naar het overzicht. Eén blok,
             zodat de kleur "Inkt" er een band van kan maken. */}
         <div className="edtop">
-          <ViewHeader title={title} sub={edition ? null : sub} onRefresh={onRefresh} refreshing={refreshing} compare display />
+          <ViewHeader title={title} sub={edition ? null : sub} onRefresh={onRefresh} refreshing={refreshing} compare />
           {ready ? (
             <>
               <StatusLine {...statusProps} quiet />

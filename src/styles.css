@@ -87,6 +87,7 @@
   --icon: 22px;
   --icon-sm: 16px;
   --tap-inset: calc((var(--icon) - var(--tap)) / 2); /* −11: icoon optisch op de kolomlijn */
+  --caret-inset: calc(var(--icon) * -0.28125); /* −6: lucht links in de caret naar links (punt 80 − halve lijn 8 = 72/256); zo staat de inkt op de lijn */
   --control-col: 20rem; /* vaste kolom voor de bediening in een instellingsrij */
 
   /* Rijen en media-object: altijd min-height, nooit een vaste hoogte. */
@@ -568,13 +569,15 @@ select {
 .nav {
   background: var(--paper);
   border-top: 1px solid var(--rule);
-  /* Op het beginscherm: de ruimte van de home-balk (34 pt op iPhones zonder thuisknop);
-     in Safari en op toestellen zonder home-balk een kleine marge. */
-  padding-bottom: max(var(--safe-b), var(--s1));
+  /* Op het beginscherm: de ruimte van de home-balk (34 pt op iPhones zonder thuisknop). De balk
+     zelf is --tabbar-h, met de lucht onder de labels erin; zo weet een melding precies waar hij
+     eindigt (zie .toasts). */
+  padding-bottom: var(--safe-b);
 }
 
 .nav__brand,
-.nav__search {
+.nav__search,
+.nav__foot {
   display: none;
 }
 
@@ -590,17 +593,18 @@ select {
   min-width: 0;
 }
 
+/* Tab: icoon 22 boven een label t0, samen 42 in een balk van 52 (iOS: 49 pt). */
 .nav__link {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  min-height: 50px; /* zoals een iOS-tabbalk (49 pt) */
-  padding: var(--s1) var(--s1) 2px;
+  gap: var(--s1);
+  min-height: var(--tabbar-h);
+  padding: var(--s1);
   color: var(--ink-3);
-  font-size: min(0.75rem, 16px); /* bij sterk vergrote tekst blijven vier labels naast elkaar passen */
-  font-weight: 600;
+  font-size: min(var(--t0), var(--s4)); /* bij sterk vergrote tekst blijven de labels naast elkaar passen */
+  font-weight: var(--fw-ui);
   line-height: var(--lh-0);
   text-decoration: none;
 }
@@ -611,16 +615,21 @@ select {
     color var(--dur-1) var(--ease),
     background-color var(--dur-1) var(--ease);
 }
-/* Actief-streepje (telefoon): schuift uit bij wisselen */
+/* De tabbalk ligt tegen de onderrand en onder de inhoud: de focusring valt binnen de tab
+   (offset −2, zoals bij de rubrieken), anders verdwijnt hij half achter het scherm. */
+.nav__link:focus-visible {
+  outline-offset: calc(var(--focus-offset) * -1);
+}
+/* Actief-streepje (telefoon): schuift uit bij wisselen. Even breed als het icoon plus lucht. */
 .nav__link::before {
   content: '';
   position: absolute;
   top: 0;
   left: 50%;
-  width: 28px;
-  height: 3px;
-  margin-left: -14px;
-  border-radius: 0 0 3px 3px;
+  width: var(--s6);
+  height: var(--s1);
+  margin-left: calc(var(--s6) / -2);
+  border-radius: 0 0 var(--s1) var(--s1);
   background: var(--accent);
   opacity: 0;
   transform: scaleX(0.3);
@@ -633,7 +642,7 @@ select {
   transform: none;
 }
 .nav__link[aria-current] {
-  color: var(--accent);
+  color: var(--accent); /* telefoon: de actieve tab is rood met de streep (uitzondering op --sel-*) */
 }
 
 /* Merk: de kleur volgt het thema (inkt op licht, papier op donker); de punt is krantenrood */
@@ -653,12 +662,13 @@ select {
 }
 .nav__dot {
   position: absolute;
-  top: -2px;
-  right: -6px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+  top: calc(var(--s1) / -2);
+  right: calc(var(--s1) * -1.5);
+  width: var(--s2);
+  height: var(--s2);
+  border-radius: var(--radius-round);
   background: var(--quiet-amber);
+  box-shadow: var(--ring-cut); /* los van het icoon, op papier */
 }
 
 /* Verhaal: schermvullend op telefoon/tablet, vast paneel op breed scherm */
@@ -688,17 +698,22 @@ select {
   .main {
     grid-column: 2;
   }
+  /* Zijbalk: woordmerk boven, bestemmingen, en Instellingen onderaan. Het woordmerk begint op
+     --head-y, net als de schermkop ernaast. */
   .nav {
+    display: flex;
+    flex-direction: column;
     height: 100%;
     border-top: 0;
-    padding: var(--s5) var(--s3);
+    padding: var(--head-y) var(--s3);
   }
   /* Krantenkop (zoals app-icoon E): dikke rode balk erboven, dunne inktlijn eronder,
-     allebei precies zo breed als het woordmerk. */
+     allebei precies zo breed als het woordmerk. De balk staat dicht op het woord (--s1) en het
+     woordmerk is 28 hoog (Nav), zodat de basislijn van het woordmerk op die van de schermtitel
+     valt en de inktlijn op de onderkant van de titelrij. */
   .nav__brand {
     display: flex;
     flex-direction: column;
-    gap: var(--s3);
     width: max-content;
     padding: 0 var(--s3);
     margin-bottom: var(--s5);
@@ -710,12 +725,13 @@ select {
     display: block;
   }
   .nav__brand::before {
-    height: 6px;
+    height: calc(var(--s1) * 1.5); /* 6: de dikke balk van de krantenkop */
+    margin-bottom: var(--s1);
     background: var(--accent);
   }
   .nav__brand::after {
-    height: 2px;
-    background: var(--ink);
+    margin-top: var(--s3);
+    border-top: var(--rule-strong);
   }
   .nav__list {
     flex-direction: column;
@@ -725,23 +741,39 @@ select {
   .nav__search {
     display: block;
   }
+  .nav__foot {
+    display: block;
+    margin: auto 0 0;
+    padding: var(--s5) 0 0;
+    list-style: none;
+  }
   .nav__link {
     flex-direction: row;
     justify-content: flex-start;
     gap: var(--s3);
     min-height: var(--tap);
     padding: 0 var(--s3);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-control);
     font-size: var(--t2);
     line-height: var(--lh-2);
   }
   .nav__link[aria-current] {
-    background: var(--accent-soft);
+    background: var(--sel-bg);
+    color: var(--sel-fg);
   }
   .nav__link::before {
     display: none;
   }
-  .vh__search {
+  .nav__link:focus-visible {
+    outline-offset: var(--focus-offset);
+  }
+  /* Zoeken staat in de zijbalk; niet nog eens in de kop. (0,2,0): wint van .iconbtn. */
+  .vh__row > .vh__search {
+    display: none;
+  }
+  /* Terug is overbodig op een scherm dat zelf in de zijbalk staat (Instellingen, Zoeken).
+     (0,2,0): wint van .backbtn verderop. */
+  .backbtn.backbtn--nav {
     display: none;
   }
   .col {
@@ -836,15 +868,35 @@ select {
   }
 }
 
-/* ---------- Kop van een scherm ---------- */
+/* ---------- Kop van een scherm ----------
+   Eén rij van 44 op --head-y: [terug] titel ··· [gereedschap] [verversen] [zoeken] [account].
+   Het laatste icoon schuift --tap-inset naar buiten, zodat de tekening (niet het raakvlak) op de
+   kolomlijn staat; de terugknop doet hetzelfde aan de linkerkant. */
 .vh {
-  padding: var(--s3) 0 0;
+  padding: var(--head-y) 0 0;
 }
 
 .vh__row {
   display: flex;
   align-items: center;
   gap: var(--s1);
+  min-height: var(--tap);
+}
+.vh__row > .iconbtn:last-child {
+  margin-inline-end: var(--tap-inset);
+}
+
+/* Na de kop: altijd --after-header tot de eerste inhoud, op elk scherm; de inhoud zelf zet
+   bovenaan geen eigen marge. (0,2,0), zodat het wint van een onderdeel dat elders een
+   bovenmarge heeft (.sect, .empty). De Editie heeft een kop met meer erin (.edtop). */
+.col > .vh + *,
+.col > .edtop + * {
+  margin-top: var(--after-header);
+}
+/* Een lijst begint met de lucht van zijn eerste bericht (.entry: --s4 boven): de kop van dat
+   bericht staat dan ook op --after-header. */
+.col > .vh + .list {
+  margin-top: calc(var(--after-header) - var(--s4));
 }
 
 .vh__titles {
@@ -871,14 +923,49 @@ select {
   object-fit: cover;
 }
 
+/* Eén metaregel onder de titel: datum · weer · uitleg. */
 .vh__sub {
   margin-top: 0;
   color: var(--ink-3);
   font-size: var(--t2);
-  line-height: var(--lh-ui);
+  line-height: var(--lh-2);
 }
 .vh__sub::first-letter {
   text-transform: uppercase;
+}
+
+/* Terug: de inkt van het pijltje (22) staat op de kolomlijn, op dezelfde x als de tekst eronder:
+   --tap-inset zet het vak op de lijn, --caret-inset haalt de lucht links in de tekening weg. Het
+   label ("Alle verhalen", "Terug") schuift mee, dus de afstand tot het pijltje blijft. Zonder
+   label is hij een vierkant van 44, net als een iconknop. Het pijltje hangt los in de knop, zodat
+   het label de basislijn geeft (Welkom lijnt op basislijn uit; in een flexrij zou het pijltje dat
+   doen). */
+.backbtn {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-width: var(--tap);
+  min-height: var(--tap);
+  margin-inline-start: var(--tap-inset);
+  padding: 0 0 0 calc((var(--tap) + var(--icon)) / 2 + var(--caret-inset) + var(--s1));
+  border: 0;
+  background: none;
+  color: var(--action); /* een tekstactie (audit §3.3), geen metaregel */
+  font-size: var(--t2);
+  font-weight: var(--fw-ui);
+  line-height: var(--lh-2);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.backbtn svg {
+  position: absolute;
+  top: 50%;
+  left: calc((var(--tap) - var(--icon)) / 2 + var(--caret-inset));
+  translate: 0 -50%;
+}
+.backbtn__label {
+  padding-inline-end: var(--s2);
 }
 
 /* ---------- Bediening ---------- */
@@ -1562,13 +1649,13 @@ select {
   }
 }
 
-/* Korte melding boven de navigatie (alleen na verwijderen uit Bewaard) */
+/* Korte melding, --s3 boven de tabbalk (telefoon) of --s5 boven de onderrand (desktop) */
 .toasts {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(var(--safe-b) + 62px);
-  z-index: 50;
+  bottom: calc(var(--safe-b) + var(--tabbar-h) + var(--s3));
+  z-index: var(--z-toast);
   display: flex;
   justify-content: center;
   padding: 0 var(--gutter);
@@ -1592,7 +1679,7 @@ select {
 }
 @media (min-width: 960px) {
   .toasts {
-    bottom: 24px;
+    bottom: var(--s5);
   }
 }
 
@@ -2337,14 +2424,9 @@ select {
 .ob__brand {
   font: 800 var(--t5) / 1 var(--serif);
 }
+/* Welkom: terug staat rechts in de bovenregel; het label eindigt op de kolomlijn. */
 .ob__back {
-  min-height: var(--tap);
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--ink);
-  font: 700 var(--t2) / 1 var(--sans);
-  cursor: pointer;
+  margin-inline-end: calc(var(--s2) * -1);
 }
 .ob__title {
   margin-top: var(--s4);
@@ -2876,7 +2958,6 @@ select {
     grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
     gap: var(--s5);
     align-items: start;
-    margin-top: var(--s2);
   }
   .app:not(.has-panel) .front__side {
     padding-left: var(--s5);
@@ -2925,10 +3006,9 @@ select {
   font-size: var(--t2);
   line-height: var(--lh-2-read);
 }
+/* In de paneelkop: terug links, de rest naar rechts. */
 .story__back {
-  margin-right: auto;
-  padding-left: var(--s1);
-  border: 0; /* in de paneelkop: rustig, zonder rand */
+  margin-inline-end: auto;
 }
 
 /* Overzicht: een keuzelijst, geen tweede nieuwslijst */
@@ -3278,21 +3358,6 @@ html[data-images='hoofd'] .media--social {
   }
 }
 
-/* Terugregel boven de titel: het pijltje staat optisch op de kolomlijn */
-.vh__back {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s1);
-  min-height: var(--tap);
-  margin-left: -6px;
-  padding: 0 var(--s2) 0 0;
-  border: 0;
-  background: none;
-  color: var(--accent);
-  font-size: var(--t2);
-  font-weight: 600;
-  cursor: pointer;
-}
 /* Breed scherm: pillen lopen over twee regels; de knop rechts hoort bij de eerste regel */
 @media (min-width: 960px) {
   .topics {
@@ -3353,7 +3418,7 @@ html[data-images='hoofd'] .media--social {
 
 /* Verhalen die je volgt: een kort lijstje boven de editie */
 .following {
-  margin: var(--s2) 0 0;
+  margin: 0; /* bovenaan de Editie: de afstand komt van de kop (--after-header) */
 }
 .following__head {
   margin: 0 0 var(--s1);
@@ -3512,7 +3577,7 @@ html[data-images='hoofd'] .media--social {
    stuk, twee kaarten en een korte lijst. Kaarten op --surface met een dunne rand; de nummers en
    rubriekregels in krantenrood, de koppen in de krantenletter. */
 .dmast {
-  margin: var(--s5) 0 var(--s4);
+  margin: 0 0 var(--s4); /* eerste inhoud van de Selectie: de afstand komt van de kop */
 }
 .dmast__lede {
   margin-top: var(--s2);

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { SourceMark } from '../components/Items.jsx'
+import { BackButton } from '../components/Shell.jsx'
 import { EditionIcon, SparkleIcon, StreamIcon, INTEREST_ICONS } from '../components/icons.jsx'
 import { vakByDomain } from '../../shared/vak.mjs'
 import { INTERESTS, topicById, resolveTopics, suggestSources, catLabel, starterGroups } from '../lib/topics.js'
@@ -99,13 +100,9 @@ export default function Welcome({ account, sources, prefs, muted = new Set(), on
             </span>
           )}
           {quick ? (
-            <button type="button" className="ob__back" onClick={() => setQuick(false)}>
-              ‹ Terug
-            </button>
+            <BackButton label="Terug" onClick={() => setQuick(false)} className="ob__back" />
           ) : step > 0 ? (
-            <button type="button" className="ob__back" onClick={() => setStep((s) => s - 1)}>
-              ‹ Terug
-            </button>
+            <BackButton label="Terug" onClick={() => setStep((s) => s - 1)} className="ob__back" />
           ) : (
             <span className="ob__brand">hoot</span>
           )}

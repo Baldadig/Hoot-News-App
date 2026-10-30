@@ -164,7 +164,7 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Stroom" onScroll={(e) => setAtDepth(e.currentTarget.scrollTop > 900)}>
       <div className="col">
-        <ViewHeader title="Stroom" onRefresh={onRefresh} refreshing={refreshing} updatedAt={statusProps.meta?.updatedAt} tools={filterButton} compare display>
+        <ViewHeader title="Stroom" onRefresh={onRefresh} refreshing={refreshing} updatedAt={statusProps.meta?.updatedAt} tools={filterButton} compare>
           {/* De lijn: rubrieken links, je bronnen als stapel rechts. Wat je kiest staat in de URL
               (zoals altijd: een stap in de geschiedenis, met een eigen leespositie). */}
           <StreamLine

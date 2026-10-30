@@ -53,7 +53,7 @@ export default function Bluesky({ active, posts, sources, muted, onToggle, ownHa
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Bluesky">
       <div className="col">
-        <ViewHeader title="Bluesky" sub="De mensen die je volgt, nieuwste eerst" subWide onRefresh={onRefresh} refreshing={refreshing} display>
+        <ViewHeader title="Bluesky" sub="De mensen die je volgt, nieuwste eerst" subWide onRefresh={onRefresh} refreshing={refreshing}>
           <div className="topics">
             <div className="topics__scroll" role="group" aria-label="Wie">
               <button type="button" className="chip chip--sm" aria-pressed={!who && !group} onClick={() => go('bluesky', {})}>

@@ -1,7 +1,7 @@
 import { clock } from '../lib/time.js'
 import { BrandLogo } from './Brand.jsx'
 import { useHoot } from './Items.jsx'
-import { BooksIcon, ButterflyIcon, EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, TimelineIcon, PaperIcon, BackIcon, AccountIcon } from './icons.jsx'
+import { BooksIcon, ButterflyIcon, EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, TimelineIcon, PaperIcon, BackIcon, AccountIcon, SettingsIcon } from './icons.jsx'
 
 export const DESTINATIONS = [
   { id: 'editie', label: 'Editie', Icon: EditionIcon },
@@ -19,7 +19,7 @@ export function Nav({ path, hrefs = {}, sourceNote = '', bluesky = false, digest
   return (
     <nav className="nav" aria-label="Hoofdnavigatie">
       <a className="nav__brand" href={hrefs.editie || '#/editie'} aria-label="Hoot — naar de Editie">
-        <BrandLogo height={30} />
+        <BrandLogo height={28} />
       </a>
       <ul className="nav__list">
         {DESTINATIONS.filter((d) => (bluesky || d.id !== 'bluesky') && (digest || d.id !== 'digest')).map(({ id, label, Icon }) => (
@@ -41,11 +41,20 @@ export function Nav({ path, hrefs = {}, sourceNote = '', bluesky = false, digest
           </a>
         </li>
       </ul>
+      {/* Breed scherm: Instellingen onderaan de zijbalk. Op de telefoon blijft de tabbalk zoals hij
+          is; daar kom je via Account en weergave bij Instellingen. */}
+      <ul className="nav__foot">
+        <li>
+          <a className="nav__link" href="#/instellingen" aria-current={path === 'instellingen' ? 'page' : undefined}>
+            <SettingsIcon />
+            <span>Instellingen</span>
+          </a>
+        </li>
+      </ul>
     </nav>
   )
 }
 
-// Kop van elk scherm: titel links, zoeken en verversen rechts (zoeken altijd op dezelfde plek).
 // Indeling van berichten: schakelaar met twee standen, direct bij de hand in Editie en Stroom.
 export function LayoutSwitch() {
   const { layout, setLayout } = useHoot()
@@ -63,28 +72,39 @@ export function LayoutSwitch() {
   )
 }
 
+// Terug: één knop voor elk scherm. De inkt van het pijltje staat op de kolomlijn (--tap-inset en
+// --caret-inset), het label is optioneel ("Alle verhalen", "Terug"); zonder label zegt `aria-label`
+// waarheen.
+// `nav`: dit scherm staat ook in de zijbalk (Instellingen, Zoeken), dus vanaf 960 is de knop overbodig.
+export function BackButton({ label, onClick, ariaLabel, nav = false, className = '' }) {
+  return (
+    <button type="button" className={`backbtn${nav ? ' backbtn--nav' : ''}${className ? ` ${className}` : ''}`} onClick={onClick} aria-label={ariaLabel} title={label ? undefined : ariaLabel}>
+      <BackIcon />
+      {label ? <span className="backbtn__label">{label}</span> : null}
+    </button>
+  )
+}
+
+// Kop van elk scherm, één rij van 44 met vaste plekken. Van links naar rechts:
+//   [terug] titel ··· [gereedschap] [verversen] [zoeken, onder 960] [account]
+// Account staat er altijd (behalve op Instellingen zelf: daar staat hetzelfde op de pagina).
+// Het eerste en het laatste icoon staan optisch op de kolomlijn (--tap-inset).
 // `compare`: toon op breed scherm de knop die het vergelijkpaneel opent en sluit.
-// `layout`: toon de schakelaar Tijdlijn/Krant in de rij (Editie en Stroom).
 // `subWide`: de ondertitel alleen op breed scherm (op telefoon kost hij een regel die niets nieuws zegt).
-// `display`: de Aa-knop die het Weergave-paneel opent. `onBack`: terugknop vóór de titel (losse pagina's).
+// `account`: de knop Account en weergave (rechtsboven). `onBack` + `backLabel`: terug, vóór de titel
+// in dezelfde rij; `backInNav`: dit scherm staat ook in de zijbalk, dus daar geen terugknop.
 // `tools`: eigen knoppen van het scherm, vóór verversen (de Stroom: de filterknop).
 // `updatedAt`: hoe vers het is, in de knop Verversen ("bijgewerkt om 13:50") in plaats van een regel.
-// De kop is één rij van 44 px (titel + knoppen); de ondertitel staat eronder over de volle breedte,
-// zodat hij nooit tussen titel en knoppen wordt samengeperst. `onBack` + `backLabel`: een terugregel
-// boven de titel (iOS-patroon), zodat de titel op de kolomlijn blijft.
-export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing, updatedAt, showSearch = true, compare = false, display = false, tools = null, onBack, backLabel = 'Terug', children }) {
+// Onder de rij staat hooguit één metaregel (.vh__sub), over de volle breedte, zodat hij nooit tussen
+// titel en knoppen wordt samengeperst. Daarna volgt de inhoud op --after-header.
+export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing, updatedAt, showSearch = true, compare = false, account = true, tools = null, onBack, backLabel = 'Terug', backInNav = false, children }) {
   const hoot = useHoot()
   const panel = hoot?.panel
   const at = clock(updatedAt)
   return (
     <header className="vh">
-      {onBack ? (
-        <button type="button" className="vh__back" onClick={onBack}>
-          <BackIcon />
-          {backLabel}
-        </button>
-      ) : null}
       <div className="vh__row">
+        {onBack ? <BackButton onClick={onBack} ariaLabel={`Terug naar ${backLabel}`} nav={backInNav} /> : null}
         <div className="vh__titles">
           <h1 className="head-5 vh__title">{title}</h1>
         </div>
@@ -106,7 +126,7 @@ export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing,
             <SearchIcon />
           </a>
         ) : null}
-        {display ? <AccountButton account={hoot?.account} onClick={hoot?.openDisplay} /> : null}
+        {account ? <AccountButton account={hoot?.account} onClick={hoot?.openDisplay} /> : null}
       </div>
       {sub ? <p className={`vh__sub${subWide ? ' vh__sub--wide' : ''}`}>{sub}</p> : null}
       {children}

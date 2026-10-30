@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { CompactItem, Meta, SaveButton, useHoot, linkOf } from '../components/Items.jsx'
 import { isFollowing } from '../lib/follow.js'
-import { BackIcon, CloseIcon } from '../components/icons.jsx'
+import { CloseIcon } from '../components/icons.jsx'
+import { BackButton } from '../components/Shell.jsx'
 import { timeAgo } from '../lib/time.js'
 import { withLead } from '../lib/saved.js'
 
@@ -71,16 +72,7 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
   return (
     <div className="story">
       <header className="story__head">
-        {overlay ? (
-          <button type="button" className="iconbtn" onClick={onClose} aria-label="Terug">
-            <BackIcon />
-          </button>
-        ) : (
-          <button type="button" className="textbtn story__back" onClick={onBack}>
-            <BackIcon />
-            Alle verhalen
-          </button>
-        )}
+        {overlay ? <BackButton onClick={onClose} ariaLabel="Terug" /> : <BackButton label="Alle verhalen" onClick={onBack} className="story__back" />}
         <p className={`label label--meta story__eyebrow${overlay ? '' : ' visually-hidden'}`} tabIndex={-1} ref={headRef}>
           Verhaal
         </p>

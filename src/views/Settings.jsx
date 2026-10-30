@@ -28,7 +28,7 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
   return (
     <section className="view view--page" aria-label="Instellingen">
       <div className="col">
-        <ViewHeader title="Instellingen" showSearch={false} onBack={onBack} backLabel={backLabel} />
+        <ViewHeader title="Instellingen" showSearch={false} account={false} onBack={onBack} backLabel={backLabel} backInNav />
 
         <h2 className="label label--section sect">Account</h2>
         <AccountSettings account={account} syncStatus={syncStatus} />

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Empty } from '../components/Shell.jsx'
+import { Empty, BackButton } from '../components/Shell.jsx'
 import { Entry, useHoot } from '../components/Items.jsx'
-import { BackIcon } from '../components/icons.jsx'
 import { withoutCopies } from '../../shared/dedupe.mjs'
 
 export default function Search({ onBack, backLabel = 'Terug' }) {
@@ -38,9 +37,8 @@ export default function Search({ onBack, backLabel = 'Terug' }) {
       <div className="col">
         <header className="vh">
           <form className="searchbar" role="search" onSubmit={(e) => (e.preventDefault(), inputRef.current?.blur())}>
-            <button type="button" className="iconbtn" onClick={onBack} aria-label={`Terug naar ${backLabel}`}>
-              <BackIcon />
-            </button>
+            {/* Zoeken staat ook in de zijbalk: vanaf 960 is terug overbodig. */}
+            <BackButton onClick={onBack} ariaLabel={`Terug naar ${backLabel}`} nav />
             <label className="visually-hidden" htmlFor="q">
               Zoek in berichten
             </label>
