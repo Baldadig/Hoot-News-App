@@ -1,10 +1,9 @@
 import { useRef, useState } from 'react'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
-import { LeadStory, CompactItem, SaveButton, SourceMark, TasteButton, useHoot, linkOf, itemsOfEntry, aboutOf } from '../components/Items.jsx'
+import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
 import { SparkleIcon } from '../components/icons.jsx'
 import { BriefReader } from '../components/BriefReader.jsx'
-import { timeAgo } from '../lib/time.js'
 import { BrandMark } from '../components/Brand.jsx'
 import Weather from '../components/Weather.jsx'
 import { longDate } from '../lib/time.js'
@@ -12,7 +11,6 @@ import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { resolveEditionEntry, heroFirst, EDITION_SIZE } from '../lib/edition.js'
 import { fitsHero } from '../lib/img.js'
 import { followedNow } from '../lib/follow.js'
-import { withLead } from '../lib/saved.js'
 import { TermHelp } from '../components/Terms.jsx'
 
 // Rubriek van elke plek in de editie (komt van de server), als label boven het verhaal.
@@ -22,28 +20,22 @@ const deskLabel = (e) => (e.desk === 'bubbel' && e.terms?.length ? `Buiten je bu
 
 const FRONT = 6 // voorpagina: hoofdverhaal, drie ernaast en twee eronder
 
-// Klein verhaal op de voorpagina. Bron en tijd hebben een eigen regel (breekt af in plaats van
-// af te kappen); vergelijken en bewaren staan apart eronder. De samenvatting staat er altijd,
-// hooguit twee regels (ook bij een lange kop: die vertelt zelden wat er gebeurde).
+// Klein verhaal op de voorpagina: rubriek, kop en hooguit twee regels samenvatting (ook bij een
+// lange kop: die vertelt zelden wat er gebeurde), dan dezelfde actieregel als elk bericht. Is de
+// kolom smal, dan krijgt de bron een eigen regel en staan vergelijken en bewaren eronder.
 function FrontItem({ item, story, note, taste }) {
-  const { markRead, read, openSource, openStory, newInStory, sourcesById } = useHoot()
-  const paid = sourcesById?.get(item.source)?.paid
-  const others = story ? story.sourceCount - 1 : 0
-  const fresh = story ? newInStory(story) : 0
+  const { markRead, read } = useHoot()
+  const opinie = item.type === 'opinie'
   const title = item.title
   const summary = item.summary
   return (
     <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
-      {note ? <p className="label label--kicker kicker fitem__kicker">{note}</p> : null}
-      <p className="fitem__src">
-        <button type="button" className="fitem__name" onClick={() => openSource(item.source)} aria-label={`Alles van ${item.sourceName} bekijken`}>
-          <SourceMark source={{ name: item.sourceName, avatar: item.avatar, avatarContain: item.avatarContain, brandColor: item.brandColor }} size={24} />
-          {item.sourceName}
-        </button>
-        <time dateTime={item.publishedAt || undefined}>{timeAgo(item.publishedAt)}</time>
-        {paid ? <span>abonnement</span> : null}
-        {item.type === 'opinie' ? <span className="kicker__type">Opinie</span> : null}
-      </p>
+      {note || opinie ? (
+        <p className="label label--kicker kicker">
+          {note ? <span>{note}</span> : null}
+          {opinie ? <span className="kicker__type">Opinie</span> : null}
+        </p>
+      ) : null}
       <a className="fitem__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         <span className="fitem__text">
           <span className="head-4 fitem__title" role="heading" aria-level="3">
@@ -58,21 +50,7 @@ function FrontItem({ item, story, note, taste }) {
         ) : null}
       </a>
       <TermHelp text={`${title} ${summary || ''}`} max={1} />
-      <div className="fitem__act">
-        {others > 0 ? (
-          <button type="button" className="linkbtn linkbtn--plain morebtn" onClick={() => openStory(story.id, item.id)} aria-label={`Vergelijk met ${others} andere ${others === 1 ? 'bron' : 'bronnen'}${fresh ? `, ${fresh} nieuw` : ''}`}>
-            {fresh ? <span className="dot" aria-hidden="true" /> : null}
-            <span className="morebtn__long">Vergelijk {others + 1} bronnen</span>
-            <span className="morebtn__short">+{others} {others === 1 ? 'bron' : 'bronnen'}</span>
-          </button>
-        ) : (
-          <span />
-        )}
-        <span className="fitem__btns">
-          <TasteButton entryKey={taste} item={item} story={story} />
-          {story ? <SaveButton id={story.id} kind="story" payload={withLead(story, item.id)} label="verhaal" /> : <SaveButton id={item.id} payload={item} />}
-        </span>
-      </div>
+      <Meta item={item} story={story} taste={taste} />
     </article>
   )
 }
@@ -218,7 +196,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 <LeadStory item={rows[0].item} story={rows[0].story} note={rows[0].note} priority={active} taste={rows[0].key} />
               </Slot>
               {rows.length > 1 ? (
-                <div className="front__side">
+                <div className="front__side rows">
                   {rows.slice(1, 4).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
                       <FrontItem item={r.item} story={r.story} note={r.note} taste={r.key} />
@@ -229,7 +207,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               {/* Onder het hoofdverhaal twee kleinere naast elkaar: vult de linkerkolom op tot de
                   hoogte van de kolom ernaast (geen gat onder het hoofdverhaal). */}
               {rows.length > 4 ? (
-                <div className="front__under">
+                <div className="front__under rows">
                   {rows.slice(4, FRONT).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
                       <FrontItem item={r.item} story={r.story} note={r.note} taste={r.key} />
@@ -241,7 +219,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             {rows.length > FRONT ? (
               <div className="front__rest">
                 <h2 className="label label--section front__more">Verder in deze Editie</h2>
-                <div className="list">
+                <div className="list rows">
                   {rows.slice(FRONT).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
                       <CompactItem item={r.item} story={r.story} note={r.note} taste={r.key} />
@@ -254,7 +232,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               <section className="bubble" aria-label="Buiten je bubbel">
                 <h2 className="label label--section front__more">Buiten je bubbel</h2>
                 <p className="hint bubble__hint">Wat anderen nu lezen of zoeken en wat niet in je Editie zit — ook uit bronnen die je niet volgt.</p>
-                <div className="list">
+                <div className="list rows">
                   {bubble.map((b) => (
                     <CompactItem key={b.id} item={b.item} story={b.storyId ? storiesById.get(b.storyId) : null} note={`Via ${[...new Set(b.terms.map((t) => VIA[t.via] || t.via))].join(' en ')}`} plain />
                   ))}

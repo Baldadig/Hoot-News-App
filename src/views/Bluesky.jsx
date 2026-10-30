@@ -123,7 +123,7 @@ export default function Bluesky({ active, posts, sources, muted, onToggle, ownHa
         {list.length === 0 ? (
           <Empty title={people.length ? 'Nog geen posts' : 'Je volgt nog niemand'}>{people.length ? 'Zodra de mensen die je volgt iets plaatsen, staat het hier.' : 'Tik op + om iemand op Bluesky te volgen.'}</Empty>
         ) : (
-          <div className="list">
+          <div className="list rows">
             {list.map((item) => (
               <SocialItem key={item.id} item={item} />
             ))}

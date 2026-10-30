@@ -226,7 +226,7 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
                 {offSource ? `${srcName(offSource)} staat uit. Zet de bron aan om de berichten in je Stroom te zien.` : 'Al je bronnen staan uit. Zet er een aan bij Bronnen.'}
               </Empty>
             ) : (
-              <div className={`list${preview === 'alles' ? '' : ` list--lines-${preview}`}`}>
+              <div className={`list rows${preview === 'alles' ? '' : ` list--lines-${preview}`}`}>
                 {shown.map((item) => (
                   <Entry key={item.id} item={item} story={item.storyId ? storiesById.get(item.storyId) : null} />
                 ))}

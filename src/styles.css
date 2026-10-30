@@ -113,7 +113,14 @@
   --row-lg: 64px;
   --slot-sm: 24px; /* logo + --s2: tekst op 32 */
   --slot-lg: 40px; /* logo + --s4: tekst op 56 */
+  /* Bronregel: naam (lh-2) en tijd (lh-1) staan in een raakvlak van 44; dit is de lucht erboven
+     en eronder (4 bij 100 %), zodat de afstanden rond de regel op de schaal vallen. */
+  --meta-inset: calc((var(--tap) - var(--lh-2) - var(--lh-1)) / 2);
   --media-tl-h: 300px; /* beeldstrook in de tijdlijn */
+  --media-focus: 50% 28%; /* gezichten zitten meestal in het bovenste deel van een persfoto */
+  --thumb-size: 88px; /* klein beeld naast een kop (krant-vorm) */
+  --thumb-sm: 64px; /* klein beeld op de voorpagina */
+  --mark-logo-pad: 14%; /* lucht rond een uitgeverslogo in zijn schijf */
   --underline-offset: 3px;
   --tabbar-h: 52px;
 
@@ -210,10 +217,24 @@
     --dialog-pad: var(--s5);
   }
 }
-/* Desktop: de tijdlijn heeft de kolombreedte, dus de beeldstrook mag lager. */
+/* Smalle telefoon: het kleine beeld naast een kop wijkt, zodat lange koppen niet te smal worden
+   (getoetst met NRC-koppen van 150+ tekens). */
+@media (max-width: 479px) {
+  :root {
+    --thumb-size: 80px;
+  }
+}
+@media (max-width: 359px) {
+  :root {
+    --thumb-size: var(--thumb-sm);
+  }
+}
+/* Desktop: de tijdlijn heeft de kolombreedte, dus de beeldstrook mag lager: een liggende strook
+   (± 3,6:1 op 688), zodat er ruim twee berichten in een scherm passen in plaats van bijna twee.
+   Lager dan dit snijdt een persfoto tot een detail (een mond, een vizier). */
 @media (min-width: 960px) {
   :root {
-    --media-tl-h: 240px;
+    --media-tl-h: 192px;
   }
 }
 
@@ -1418,26 +1439,34 @@ select.input {
 }
 
 /* ---------- Gedeelde onderdelen van een bericht ---------- */
-.list > .entry {
-  border-bottom: 1px solid var(--rule);
-}
-
+/* Een bericht. De lijnen ertussen zijn van de lijst (.rows); het bericht meet zichzelf, zodat de
+   actieregel zich naar de kolom voegt en niet naar het scherm (zie .meta). */
 .entry {
-  padding: var(--s4) 0 var(--s1); /* de bronregel eronder is 44 hoog: onder oogt dat ook als 16 */
+  container: entry / inline-size;
+  padding: var(--s4) 0 var(--s1);
 }
 
+/* Logo-schijf: de haarlijn ligt als ::after óver het logo, zodat ook een wit logo op wit papier
+   (Blad) een rand heeft. */
 .mark {
   position: relative;
   flex: none;
   display: inline-grid;
   place-items: center;
   overflow: hidden;
-  border-radius: 50%;
+  border-radius: var(--radius-round);
   background: color-mix(in srgb, var(--brand, var(--accent)) 16%, var(--surface));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 12%, transparent);
   font-family: var(--serif);
-  font-weight: 800;
-  line-height: 1;
+  font-weight: var(--fw-head);
+  line-height: var(--lh-tight);
+}
+.mark::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--hairline);
 }
 .mark::before {
   content: attr(data-letter);
@@ -1452,13 +1481,13 @@ select.input {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* altijd op wit: uitgevers maken hun logo voor een lichte achtergrond, en een doorzichtig logo
+  /* altijd op licht: uitgevers maken hun logo voor een lichte achtergrond, en een doorzichtig logo
      (zoals de zwarte P van Het Parool) verdwijnt anders in de donkere stand */
-  background: #fff;
+  background: var(--mark-bg);
 }
 .mark--logo img {
   object-fit: contain;
-  padding: 14%;
+  padding: var(--mark-logo-pad);
 }
 
 .kicker {
@@ -1492,18 +1521,79 @@ select.input {
   font-size: var(--t1);
 }
 
+/* Actieregel: vier vaste plekken — bron · vergelijken · meer of minder · bewaren. Een plek die
+   ontbreekt blijft leeg, dus "Vergelijk" en bewaren staan in elke rij van een scherm op dezelfde
+   x. De regel schuift --tap-inset de goot in: het bewaar-icoon eindigt op de kolomlijn, niet 11
+   ervoor.
+   Boven: --s3 tot de bron, onder: --s4 tot de lijn (de lucht binnen het raakvlak telt mee). */
 .meta {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(var(--tap), auto) var(--tap);
+  grid-template-areas: 'src more taste save';
   align-items: center;
-  gap: var(--s1);
+  column-gap: var(--s1);
   min-height: var(--tap);
-  margin-top: var(--s2);
+  margin-block: calc(var(--s3) - var(--meta-inset)) calc(var(--s4) - var(--s1) - var(--meta-inset));
+  margin-inline-end: var(--tap-inset);
   color: var(--ink-3);
   font-size: var(--t2);
 }
-.meta .srcbtn {
+.meta > :is(.srcmeta, .srcbtn) {
+  grid-area: src;
+}
+.meta > .morebtn {
+  grid-area: more;
+}
+.meta > :is(.iconbtn:not(.save), .taste, .taste__said) {
+  grid-area: taste;
+}
+.meta > .save {
+  grid-area: save;
+}
+/* Een scherm zonder meer of minder (alles behalve de Editie): de plek van ⋯ valt weg, zodat
+   "Vergelijk" naast bewaren staat en niet los in de regel zweeft. Binnen een scherm blijft de x
+   dus gelijk: de Editie heeft ⋯ in elke rij, de andere schermen nergens. */
+.view:not(:has(.meta > :is(.iconbtn:not(.save), .taste, .taste__said))) .meta {
+  grid-template-columns: minmax(0, 1fr) auto 0 var(--tap);
+}
+/* Smalle kolom (de zijkolom van de voorpagina, grote tekst): staat er "Vergelijk" in de rij, dan
+   krijgt de bron een eigen regel en wordt niet afgekapt. Eronder "Vergelijk" vooraan op de
+   kolomlijn, de knoppen rechts op hun plek. Zonder "Vergelijk" passen bron, ⋯ en bewaren op één
+   regel. De open stand (meer of minder) heeft zijn eigen indeling, zie .taste. */
+@container entry (max-width: 21rem) {
+  .meta:has(> .morebtn):not(:has(> :is(.taste, .taste__said))) {
+    grid-template-areas:
+      'src src src src'
+      'more more taste save';
+  }
+  .meta > .morebtn {
+    justify-self: start;
+  }
+}
+
+/* Bronregel: logo (--slot-sm) en --s2, dan naam en tijd onder elkaar; tekst dus op 32. */
+.srcmeta__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.srcmeta__name,
+.srcmeta__time {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.srcmeta__name {
+  color: var(--ink);
   font-size: var(--t2);
-  flex: 1 1 0;
+  font-weight: var(--fw-ui);
+  line-height: var(--lh-2);
+}
+.srcmeta__time {
+  color: var(--ink-3);
+  font-size: var(--t1);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-1);
 }
 
 .srcbtn {
@@ -1580,8 +1670,7 @@ select.input {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* gezichten zitten meestal in het bovenste deel van een persfoto */
-  object-position: 50% 28%;
+  object-position: var(--media-focus);
 }
 
 /* Gelezen: de kop wordt rustiger, de rest blijft leesbaar */
@@ -1608,7 +1697,7 @@ select.input {
 .media--lead {
   aspect-ratio: 16 / 9;
   margin: var(--s4) 0 var(--s1);
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
 }
 /* Breed scherm: een liggende strook boven de kop (± 300 px hoog), zodat kop en kern van het
    eerste verhaal zonder scrollen in beeld staan. */
@@ -1694,36 +1783,26 @@ select.input {
   overflow-wrap: anywhere;
 }
 
+/* Klein beeld naast de kop (krant-vorm): de maat wijkt op een smalle telefoon (zie --thumb-size). */
 .thumb {
-  width: 88px;
-  height: 88px;
-  border-radius: var(--radius-sm);
-}
-/* Naast een thumbnail is 22 px op een telefoon te breed voor lange koppen (getoetst met
-   NRC-koppen van 150+ tekens): onder 480 px iets kleiner. */
-@media (max-width: 479px) {
-  .thumb {
-    width: 80px;
-    height: 80px;
-  }
-}
-@media (max-width: 359px) {
-  .thumb {
-    width: 64px;
-    height: 64px;
-  }
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+  border-radius: var(--radius-control);
 }
 
-/* Indeling "tijdlijn": tekst, het beeld groot, en de bronregel eronder (zoals de voorpagina) */
+/* Indeling "tijdlijn": tekst, het beeld groot, en de bronregel eronder (zoals de voorpagina).
+   Het beeld vult de kolom, op dezelfde linkerlijn en even breed als de kop; is het hoger dan
+   --media-tl-h, dan wordt het bijgesneden, niet smaller. */
 .compact--tl .compact__link {
   display: block;
 }
 .media--tl {
+  width: 100%;
   aspect-ratio: 16 / 9;
-  max-height: min(420px, 56vh);
-  margin: var(--s3) auto var(--s1);
+  max-block-size: var(--media-tl-h);
+  margin: var(--s3) 0 0; /* onder: de actieregel houdt zelf --s3 tot de bron */
   border: 1px solid var(--rule);
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
 }
 .compact--tl {
   contain-intrinsic-size: auto 420px;
@@ -1733,7 +1812,6 @@ select.input {
 @media (min-width: 720px) {
   .media--tl {
     aspect-ratio: 21 / 9;
-    max-height: 300px;
   }
   .compact--tl {
     contain-intrinsic-size: auto 360px;
@@ -1771,7 +1849,8 @@ select.input {
   white-space: nowrap;
   color: var(--ink-3);
   font-size: var(--t1);
-  font-weight: 400;
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-1);
 }
 .social__body {
   min-height: var(--tap); /* ook een post van één regel is een volwaardig aanraakdoel */
@@ -1785,7 +1864,7 @@ select.input {
 .media--social {
   position: relative;
   margin-bottom: var(--s3);
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
 }
 .media--natural img {
   object-fit: contain; /* screenshots van tekst: heel tonen */
@@ -2951,41 +3030,14 @@ select.input {
 
 /* ---------- Editie: voorpagina ---------- */
 /* Vier verhalen in krant-vorm: het hoofdverhaal en daaronder (smal scherm) of daarnaast
-   (breed scherm) drie kleinere koppen. Daarna gaat de editie verder als stroom. */
-.fitem {
-  padding: var(--s3) 0 0;
-  border-top: 1px solid var(--rule);
-}
-/* Bron en tijd: een eigen, rustige regel die mag afbreken maar nooit wordt afgekapt */
-.fitem__src {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0 var(--s2);
-  color: var(--ink-3);
-  font-size: var(--t1);
-}
-.fitem__name {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s2);
-  min-height: var(--tap);
-  margin-block: calc(-1 * var(--s2)); /* de regel blijft 28 hoog; de vaste plek komt met SourceMeta */
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--ink);
-  font-size: var(--t1);
-  font-weight: var(--fw-action);
-  cursor: pointer;
-}
+   (breed scherm) drie kleinere koppen. Daarna gaat de editie verder als stroom. Een .fitem is
+   een gewoon bericht (.entry, met de actieregel onderaan); de lijnen zijn van de omhulsels. */
 .fitem__link {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--s3);
   align-items: start;
   min-height: var(--tap);
-  padding-top: var(--s1);
   color: inherit;
   text-decoration: none;
 }
@@ -3010,13 +3062,14 @@ select.input {
 }
 .fitem .thumb {
   display: block;
-  width: 64px;
-  height: 64px;
+  width: var(--thumb-sm);
+  height: var(--thumb-sm);
 }
-.fitem__act {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+/* De omhulsels zetten de buitenlijn: tussen het hoofdverhaal en de kleinere eronder (smal scherm)
+   of, breed, alleen boven de twee onder het hoofdverhaal (de zijkolom heeft een lijn links). */
+.front__side,
+.front__under {
+  border-top: 1px solid var(--rule);
 }
 .front .lead {
   padding-top: var(--s3);
@@ -3043,10 +3096,8 @@ select.input {
   }
   .app:not(.has-panel) .front__side {
     padding-left: var(--s5);
-    border-left: 1px solid var(--rule);
-  }
-  .app:not(.has-panel) .front__side .fitem:first-child {
     border-top: 0;
+    border-left: 1px solid var(--rule);
   }
   /* Naast het hoofdverhaal: tekst voorop, alleen het laatste krijgt een klein beeld */
   .app:not(.has-panel) .front__side .fitem:not(:last-child) .thumb {
@@ -3060,13 +3111,7 @@ select.input {
 }
 
 /* ---------- Vergelijkpaneel (breed scherm): compacte publicatie ---------- */
-.srcitem {
-  padding: var(--s1) 0 var(--s4); /* bronregel bovenaan (44 hoog): boven oogt dan ook als 16 */
-  border-top: 1px solid var(--rule);
-}
-.srcitem .meta {
-  margin-top: 0;
-}
+/* Een .srcitem is een gewoon bericht (.entry): kop, samenvatting, dan de bronregel. */
 .srcitem__link {
   display: block;
   min-height: var(--tap);
@@ -3402,6 +3447,10 @@ html[data-images='hoofd'] .media--social {
     gap: 0 var(--s5);
     align-content: start;
   }
+  /* Naast elkaar, niet onder elkaar: de lijn erboven loopt over beide. */
+  .app:not(.has-panel) .front__under > * + * {
+    border-top: 0;
+  }
   .app:not(.has-panel) .front__under .thumb {
     display: none;
   }
@@ -3601,10 +3650,6 @@ html[data-images='hoofd'] .media--social {
 .toast--tip {
   padding: var(--s2) var(--s1) var(--s2) var(--s4);
   line-height: var(--lh-ui);
-}
-
-.fitem__kicker {
-  margin: var(--s1) 0 0;
 }
 
 /* ---------- Selectie (de wekelijkse, voorheen Digest) ---------- */
@@ -4207,21 +4252,14 @@ html[data-images='hoofd'] .media--social {
   transition-delay: calc(var(--dur-3) * 0.55);
 }
 
-/* Leesbaarheid in de stapel: een papierring (getekend 2,5) en een randje van 1 binnen, zodat
-   witte logo's (NOS, NRC, de Volkskrant) van elkaar loskomen. 3,2 × 28/36 = 2,5. */
+/* Leesbaarheid in de stapel: een papierring (getekend 2,5) en het randje van 1 binnen (de
+   haarlijn van elke .mark), zodat witte logo's (NOS, NRC, de Volkskrant) van elkaar loskomen.
+   3,2 × 28/36 = 2,5. */
 .sb .mark {
   box-shadow: 0 0 0 3.2px var(--paper);
   transition:
     filter var(--dur-1) var(--ease),
     opacity var(--dur-1) var(--ease);
-}
-.sb .mark::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 14%, transparent);
 }
 /* Met een keuze: de rest grijs en gedimd, maar klikbaar */
 .line.has-choice .sb:not(.sb--all)[aria-pressed='false'] .mark {
@@ -4323,10 +4361,6 @@ html[data-images='hoofd'] .media--social {
 
 /* Meer of minder hiervan (Editie): twee rustige keuzes in plaats van de knop; "minder" klapt het
    verhaal in tot één regel met de weg terug. */
-.fitem__btns {
-  display: inline-flex;
-  align-items: center;
-}
 .taste {
   display: inline-flex;
   gap: var(--s2);
@@ -4335,36 +4369,26 @@ html[data-images='hoofd'] .media--social {
   font-size: var(--t1);
   color: var(--ink-3);
 }
-/* Open, of na de keuze: past de rij niet meer op één regel (telefoon, de zijkolom van de
-   voorpagina, grote tekst), dan gaan de keuzes met de bewaarknop naar een eigen regel eronder,
-   bewaren rechts op zijn plek. Bron en "Vergelijk" blijven staan waar ze stonden; de volgorde
-   blijft die van de DOM en niets loopt de kolom uit. De rij meet zichzelf, dus ook goed met het
-   paneel open. */
-.meta:has(> :is(.taste, .taste__said)),
-.fitem__act:has(.taste, .taste__said) {
-  container: taste / inline-size;
-  flex-wrap: wrap;
-  row-gap: 0;
+/* Open, of na de keuze: past de rij niet meer (telefoon, de zijkolom van de voorpagina, grote
+   tekst), dan gaan de keuzes met de bewaarknop naar een eigen regel eronder, bewaren rechts op
+   zijn plek. Bron en "Vergelijk" blijven staan waar ze stonden. Het bericht meet zichzelf, dus
+   ook goed met het paneel open. */
+@container entry (max-width: 38rem) {
+  .meta:has(> :is(.taste, .taste__said)) {
+    grid-template-areas:
+      'src more . .'
+      'taste taste taste save';
+  }
+  .meta > :is(.taste, .taste__said) {
+    justify-self: start;
+  }
 }
-@container taste (max-width: 38rem) {
-  /* Een lege breuk na bron en "Vergelijk"; die houden de plek van ⋯ en bewaren vrij. */
-  .meta:has(> :is(.taste, .taste__said))::before {
-    content: '';
-    order: 1;
-    flex-basis: 100%;
-  }
-  .meta > :is(.taste, .taste__said, .save) {
-    order: 2;
-  }
-  .meta > :is(.morebtn, .srcbtn:has(+ :is(.taste, .taste__said))) {
-    margin-inline-end: calc(2 * (var(--control-md) + var(--s1)));
-  }
-  .meta > .save {
-    margin-inline-start: auto;
-  }
-  .fitem__btns {
-    flex-basis: 100%;
-    justify-content: space-between;
+@container entry (max-width: 21rem) {
+  .meta:has(> :is(.taste, .taste__said)) {
+    grid-template-areas:
+      'src src src src'
+      'more more . .'
+      'taste taste taste save';
   }
 }
 .lessnote {

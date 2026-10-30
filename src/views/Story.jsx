@@ -7,18 +7,19 @@ import { Disclosure } from '../components/Disclosure.jsx'
 import { timeAgo } from '../lib/time.js'
 import { withLead } from '../lib/saved.js'
 
-// Eén publicatie in het smalle paneel (breed scherm): eerst bron en tijd, dan de kop over
-// de volle breedte en hooguit drie regels samenvatting. Geen beeld — dat perst de kop samen.
+// Eén publicatie in het smalle paneel (breed scherm): de kop over de volle breedte en hooguit
+// drie regels samenvatting, dan bron en tijd op hun vaste plek eronder. Geen beeld — dat perst
+// de kop samen.
 function SourceItem({ item, note }) {
   const { markRead, read } = useHoot()
   return (
     <article className={`entry srcitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
-      <Meta item={item} />
       <a className="srcitem__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         {note || item.type === 'opinie' ? <p className="label label--kicker kicker">{[item.type === 'opinie' ? 'Opinie' : null, note].filter(Boolean).join(' · ')}</p> : null}
         <h3 className="head-4 srcitem__title">{item.title}</h3>
         {item.summary ? <p className="clamp srcitem__sum">{item.summary}</p> : null}
       </a>
+      <Meta item={item} />
     </article>
   )
 }
@@ -105,7 +106,7 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
         {fresh.length ? (
           <>
             <h3 className="label label--meta story__sub">Toegevoegd sinds je vorige bezoek</h3>
-            <div className="list">
+            <div className="list rows">
               {fresh.map((i) => (overlay ? <CompactItem key={i.id} item={i} note={note(i)} plain /> : <SourceItem key={i.id} item={i} note={note(i)} />))}
             </div>
             <h3 className="label label--meta story__sub">Eerder beschikbaar</h3>
@@ -113,7 +114,7 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
         ) : (
           <h3 className="label label--meta story__sub">Alle publicaties, nieuwste eerst</h3>
         )}
-        <div className="list">
+        <div className="list rows">
           {rest.map((i) => (overlay ? <CompactItem key={i.id} item={i} note={note(i)} plain /> : <SourceItem key={i.id} item={i} note={note(i)} />))}
         </div>
       </div>

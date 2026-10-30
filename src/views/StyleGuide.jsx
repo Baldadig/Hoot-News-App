@@ -84,17 +84,17 @@ export default function StyleGuide({ stream }) {
         <p className="status">Metadata en status — 13 px (t1); bronnaam en bediening — 15 px (t2)</p>
 
         <h2 className="label label--section sect">Vorm 1 — Hoofdverhaal</h2>
-        <div className="list">{article ? <LeadStory item={withStory || article} story={withStory ? storiesById.get(withStory.storyId) : null} note="1 van 10" /> : null}</div>
+        <div className="list rows">{article ? <LeadStory item={withStory || article} story={withStory ? storiesById.get(withStory.storyId) : null} note="1 van 10" /> : null}</div>
 
         <h2 className="label label--section sect">Vorm 2 — Compact bericht</h2>
-        <div className="list">
+        <div className="list rows">
           {article ? <CompactItem item={article} /> : null}
           {longest ? <CompactItem item={longest} note="Langste kop in de feed" /> : null}
           {bare ? <CompactItem item={bare} note="Zonder beeld" /> : null}
         </div>
 
         <h2 className="label label--section sect">Vorm 3 — Sociale bijdrage</h2>
-        <div className="list">{post ? <SocialItem item={post} /> : <p className="hint">Geen sociale bijdrage geladen.</p>}</div>
+        <div className="list rows">{post ? <SocialItem item={post} /> : <p className="hint">Geen sociale bijdrage geladen.</p>}</div>
 
         <h2 className="label label--section sect">Bediening</h2>
         <div className="chips">

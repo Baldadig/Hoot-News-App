@@ -70,7 +70,7 @@ export default function Saved({ active }) {
             {rows.length === 0 ? (
               <Empty title="Niets gevonden in je bewaarde berichten">Probeer een ander woord, of wis de zoekterm.</Empty>
             ) : (
-              <div className="list">
+              <div className="list rows">
                 {rows.map((r) =>
                   r.story ? <CompactItem key={r.id} item={r.item} story={r.story} note={`Verhaal · bewaard ${timeAgo(new Date(r.savedAt).toISOString())}`} /> : <Entry key={r.id} item={r.item} />
                 )}

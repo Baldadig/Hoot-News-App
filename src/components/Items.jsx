@@ -33,7 +33,7 @@ const rememberLead = (e) => {
   }
 }
 
-export function SourceMark({ source, size = 22 }) {
+export function SourceMark({ source, size = 24 }) {
   const letter = (source?.name || '?').trim().charAt(0)
   return (
     <span className={`mark${source?.avatarContain ? ' mark--logo' : ''}`} style={{ '--brand': source?.brandColor || 'var(--accent)', width: size, height: size, fontSize: size * 0.5 }} data-letter={letter} aria-hidden="true">
@@ -66,25 +66,36 @@ function Kicker({ item, extra }) {
   return bits.length ? <p className="label label--kicker kicker">{bits}</p> : null
 }
 
-// Meta-regel: drie gescheiden klikgebieden — bron bekijken · meer bronnen · bewaren.
-export function Meta({ item, story, showSave = true, taste = null }) {
-  const { openSource, openStory, newInStory, sourcesById } = useHoot()
+// Bronregel: logo, naam en tijd op één vaste plek, onder de kop en de samenvatting. Tikken
+// toont alles van die bron.
+export function SourceMeta({ item }) {
+  const { openSource, sourcesById } = useHoot()
   const paid = sourcesById?.get(item.source)?.paid
+  return (
+    <button type="button" className="srcbtn srcmeta" onClick={() => openSource(item.source)} aria-label={`Alles van ${item.sourceName} bekijken`}>
+      <SourceMark source={srcOf(item)} size={24} />
+      <span className="srcmeta__text">
+        <span className="srcmeta__name">{item.sourceName}</span>
+        <span className="srcmeta__time">
+          <time dateTime={item.publishedAt || undefined}>{timeAgo(item.publishedAt)}</time>
+          {item.readMin ? <span className="srcbtn__read"> · {readTime(item.readMin)}</span> : null}
+          {paid ? <span className="srcbtn__read"> · abonnement</span> : null}
+        </span>
+      </span>
+    </button>
+  )
+}
+
+// Actieregel: vaste plekken — bron · vergelijken · meer of minder · bewaren. Ontbreekt er een,
+// dan blijft zijn plek leeg, zodat "Vergelijk" en bewaren in elke rij van een scherm op dezelfde
+// x staan (een scherm zonder meer of minder heeft die plek niet, zie .meta).
+export function Meta({ item, story, showSave = true, taste = null }) {
+  const { openStory, newInStory } = useHoot()
   const fresh = story ? newInStory(story) : 0
   const others = story ? story.sourceCount - 1 : 0
   return (
     <div className="meta">
-      <button type="button" className="srcbtn" onClick={() => openSource(item.source)} aria-label={`Alles van ${item.sourceName} bekijken`}>
-        <SourceMark source={srcOf(item)} size={24} />
-        <span className="srcbtn__col">
-          <span className="srcbtn__name">{item.sourceName}</span>
-          <span className="srcbtn__time">
-            <time dateTime={item.publishedAt || undefined}>{timeAgo(item.publishedAt)}</time>
-            {item.readMin ? <span className="srcbtn__read"> · {readTime(item.readMin)}</span> : null}
-            {paid ? <span className="srcbtn__read"> · abonnement</span> : null}
-          </span>
-        </span>
-      </button>
+      <SourceMeta item={item} />
       {story && others > 0 ? (
         <button type="button" className="linkbtn linkbtn--plain morebtn" onClick={() => openStory(story.id, item.id)} aria-label={`Vergelijk met ${others} andere ${others === 1 ? 'bron' : 'bronnen'}${fresh ? `, ${fresh} nieuw` : ''}`}>
           {fresh ? <span className="dot" aria-hidden="true" /> : null}

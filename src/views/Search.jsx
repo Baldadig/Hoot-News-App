@@ -83,7 +83,7 @@ export default function Search({ onBack, backLabel = 'Terug' }) {
               {results.length} {results.length === 1 ? 'resultaat' : 'resultaten'}
               {results.length === 60 ? ' (eerste 60)' : ''} in {scope === 'mijn' ? 'je eigen bronnen en bewaard' : 'alle bronnen'}
             </p>
-            <div className="list">
+            <div className="list rows">
               {results.map((i) => (
                 <Entry key={i.id} item={i} story={i.storyId ? storiesById.get(i.storyId) : null} />
               ))}
