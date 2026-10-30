@@ -178,10 +178,13 @@ export function Skeleton({ rows = 5 }) {
   )
 }
 
-export function Empty({ title, children, action }) {
+// Lege staat: wat er (nog) niet is en wat je kunt doen, op de kolomlijn. tone="error" als iets
+// niet lukte: het label erboven staat dan in --warn, zodat een fout niet leest als 'nog niets'.
+export function Empty({ title, children, action, tone = 'neutral', label }) {
   return (
-    <div className="empty">
-      <h2 className="empty__title">{title}</h2>
+    <div className={`empty${tone === 'error' ? ' empty--error' : ''}`}>
+      {label ? <p className="label label--meta empty__label">{label}</p> : null}
+      <h2 className="head-lg empty__title">{title}</h2>
       <p className="empty__text">{children}</p>
       {action}
     </div>
@@ -191,6 +194,8 @@ export function Empty({ title, children, action }) {
 export function LoadError({ onRetry }) {
   return (
     <Empty
+      tone="error"
+      label="Kon niet laden"
       title="De berichten zijn nu niet op te halen"
       action={
         <button type="button" className="btn" onClick={onRetry}>

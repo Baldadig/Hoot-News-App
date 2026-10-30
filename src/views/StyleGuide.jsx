@@ -1,4 +1,4 @@
-import { ViewHeader, StatusLine, Skeleton, Empty } from '../components/Shell.jsx'
+import { ViewHeader, StatusLine, Skeleton, Empty, LoadError } from '../components/Shell.jsx'
 import { LeadStory, CompactItem, SocialItem, useHoot } from '../components/Items.jsx'
 
 const COLORS = [
@@ -122,6 +122,7 @@ export default function StyleGuide({ stream }) {
         <StatusLine {...online} online={false} />
         <Skeleton rows={2} />
         <Empty title="Lege toestand">Zegt wat er aan de hand is en wat je kunt doen.</Empty>
+        <LoadError onRetry={() => {}} />
         <div className="listempty">
           <p>Nog niets van NOS in Wereld.</p>
           <button type="button" className="linkbtn linkbtn--plain listempty__btn">

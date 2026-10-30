@@ -1989,32 +1989,42 @@ select.input {
 }
 
 /* ---------- Status, lege toestanden, einde ---------- */
+/* Statusregel: meta (t1, stil). Gaat er iets mis, dan in --warn en een tikje zwaarder. */
 .status {
   margin-top: var(--s2);
   color: var(--ink-3);
   font-size: var(--t1);
+  line-height: var(--lh-1);
 }
 .status--warn {
   color: var(--warn);
-  font-weight: 600;
+  font-weight: var(--fw-ui);
 }
 
+/* Lege staat: links op de kolomlijn. Label (meta; bij een fout in --warn), een grote itemkop,
+   één alinea uitleg en een actie (.btn of .btn--quiet). Zelfde vorm voor 'nog niets' en
+   'mislukt'; alleen het label zegt welke. Direct onder de kop komt --after-header erbij: dan
+   staat hij op --s7 (48) van de kop, een bewuste pauze, maar nog wel bij het scherm. */
 .empty {
-  padding: var(--s7) var(--s2);
-  text-align: center;
+  padding-block: var(--s5) 0;
+}
+.empty__label {
+  margin-bottom: var(--s2);
+}
+.empty--error .empty__label {
+  color: var(--warn);
 }
 .empty__title {
   margin-bottom: var(--s2);
-  font-family: var(--serif);
-  font-size: var(--t4);
-  line-height: var(--lh-head);
+  color: var(--ink);
   text-wrap: balance;
 }
 .empty__text {
-  font-size: var(--t3);
-  max-width: 34em;
-  margin: 0 auto var(--s4);
+  max-inline-size: var(--measure-prose);
+  margin-bottom: var(--s4);
   color: var(--ink-2);
+  font-size: var(--t2);
+  line-height: var(--lh-2-read);
 }
 
 .listmore {
@@ -2024,6 +2034,7 @@ select.input {
   padding: var(--s6) 0 var(--s2);
   color: var(--ink-3);
   font-size: var(--t1);
+  line-height: var(--lh-1);
   text-align: center;
 }
 
@@ -4457,7 +4468,8 @@ html[data-images='hoofd'] .media--social {
   padding: var(--s5) 0;
   border-bottom: 1px solid var(--rule);
   color: var(--ink-2);
-  font-size: var(--t3);
+  font-size: var(--t2);
+  line-height: var(--lh-2-read);
 }
 .listempty__btn {
   margin-top: var(--s1);
