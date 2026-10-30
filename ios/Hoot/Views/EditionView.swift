@@ -117,7 +117,7 @@ struct EditionView: View {
     // nog even wanneer.
     @ViewBuilder private var alertOffer: some View {
         if alertsOn, let next = store.edition?.next, let hour = Int(next.prefix(2)) {
-            Label("Je krijgt een seintje om \(hour) uur.", systemImage: "bell")
+            Label("Je krijgt een seintje om \(EditionAlerts.hours(hour)) uur.", systemImage: "bell")
                 .font(.subheadline)
                 .frame(minHeight: Space.tap)
                 .transition(.opacity)
@@ -181,7 +181,7 @@ struct EditionView: View {
                                 .font(.system(size: 40, weight: .heavy, design: .serif))
                                 .accessibilityHidden(true)
                             Text("Je bent bij.").font(Theme.headline(.title))
-                            Text("Dit was de \(title.lowercased())\(dateLine.isEmpty ? "" : " van \(dateLine.lowercased())").\(store.edition?.next.map { " De volgende staat klaar om \($0)." } ?? "")")
+                            Text("Dit was de \(title.lowercased())\(dateLine.isEmpty ? "" : " van \(dateLine.lowercased())").\(store.edition?.next.map { " De volgende staat klaar om \(EditionAlerts.clock($0))." } ?? "")")
                                 .font(.subheadline)
                                 .multilineTextAlignment(.center)
                             // De links direct onder elkaar: hun aanraakvlak (44 pt) is de ruimte ertussen,

@@ -39,6 +39,7 @@ struct SettingsView: View {
             })) {
                 Label("Seintje bij een nieuwe Editie", systemImage: "bell")
             }
+            .disabled(denied) // de knop en de voettekst eronder zeggen waarom
             if store.notify && alerts.allowed {
                 ForEach(EditionAlerts.slots) { slot in
                     Toggle(isOn: Binding(get: { store.notifySlots.contains(slot.id) }, set: { on in
@@ -51,8 +52,13 @@ struct SettingsView: View {
                             store.notifySlots = next
                         }
                     })) {
+                        // Kort, met de tijd eronder: "Middageditie · 12 uur" brak bij heel grote tekst midden
+                        // in het woord.
                         Label {
-                            Text("\(slot.name) \(Text("· \(slot.hour) uur").foregroundStyle(Theme.ink3))")
+                            VStack(alignment: .leading, spacing: Space.s0) {
+                                Text(slot.name)
+                                Text("\(EditionAlerts.hours(slot.hour)) uur").font(.subheadline).foregroundStyle(Theme.ink3)
+                            }
                         } icon: { Image(systemName: slot.icon) }
                     }
                 }

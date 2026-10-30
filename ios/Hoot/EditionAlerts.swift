@@ -24,18 +24,45 @@ final class EditionAlerts {
     struct Slot: Identifiable {
         let id: String // ochtend | middag | avond, zoals `Edition.slot`
         let hour: Int
-        let name: String
+        let name: String // kort, zodat het ook bij heel grote tekst heel blijft
         let icon: String
         let title: String
         let body: String
     }
     static let slots = [
-        Slot(id: "ochtend", hour: 6, name: "Ochtendeditie", icon: "sunrise", title: "Je Ochtendeditie ligt klaar", body: "Het nieuws van de nacht, rustig op een rij."),
-        Slot(id: "middag", hour: 12, name: "Middageditie", icon: "sun.max", title: "Je Middageditie ligt klaar", body: "Wat er sinds vanochtend gebeurde, op een rij."),
-        Slot(id: "avond", hour: 17, name: "Avondeditie", icon: "sunset", title: "Je Avondeditie ligt klaar", body: "De dag op een rij, voor wanneer het jou uitkomt."),
+        Slot(id: "ochtend", hour: 6, name: "Ochtend", icon: "sunrise", title: "Je Ochtendeditie ligt klaar", body: "Het nieuws van de nacht, rustig op een rij."),
+        Slot(id: "middag", hour: 12, name: "Middag", icon: "sun.max", title: "Je Middageditie ligt klaar", body: "Wat er sinds vanochtend gebeurde, op een rij."),
+        Slot(id: "avond", hour: 17, name: "Avond", icon: "sunset", title: "Je Avondeditie ligt klaar", body: "De dag op een rij, voor wanneer het jou uitkomt."),
     ]
     private static let delay = 3 // minuten na het hele uur
     private static let days = 7
+    private static var amsterdam: Calendar {
+        var c = Calendar(identifier: .gregorian)
+        c.timeZone = HootDate.amsterdam
+        return c
+    }
+
+    // Tijden in de tekst volgen de klok van het toestel. Thuis staat er gewoon "6 uur"; in het
+    // buitenland de tijd die je eigen klok aanwijst als de Editie klaarligt (het eerstvolgende moment,
+    // want zomer- en wintertijd wisselen niet overal tegelijk). Geen "(Nederlandse tijd)" om te
+    // ontcijferen.
+    private static func local(_ hour: Int, _ minute: Int) -> (hour: Int, minute: Int) {
+        let at = amsterdam.nextDate(after: .now, matching: DateComponents(hour: hour, minute: minute), matchingPolicy: .nextTime) ?? .now
+        let c = Calendar.current.dateComponents([.hour, .minute], from: at)
+        return (c.hour ?? hour, c.minute ?? minute)
+    }
+    // Voor "om … uur": "6", of "5:30" bij een halfuur verschil.
+    static func hours(_ hour: Int) -> String {
+        let t = local(hour, 0)
+        return t.minute == 0 ? "\(t.hour)" : String(format: "%d:%02d", t.hour, t.minute)
+    }
+    // "12:00" (zoals `Edition.next`) in dezelfde vorm, op de klok van het toestel.
+    static func clock(_ hhmm: String) -> String {
+        let p = hhmm.split(separator: ":").compactMap { Int($0) }
+        guard p.count == 2 else { return hhmm }
+        let t = local(p[0], p[1])
+        return String(format: "%02d:%02d", t.hour, t.minute)
+    }
 
     // Wat iOS van Hoot toestaat. `.notDetermined` tot iemand ja of nee zei.
     private(set) var permission: UNAuthorizationStatus = .notDetermined
@@ -62,21 +89,39 @@ final class EditionAlerts {
         return yes
     }
 
+    // Eén planning tegelijk: een nieuwe breekt de vorige af en wacht tot die gestopt is. Zo komt er
+    // nooit een oude ronde achteraan die weer seintjes zet, en wint uitzetten altijd.
+    private var planning: Task<Void, Never>?
+
     // Alles opnieuw plannen: weg wat er stond, en wat je zag verdwijnt uit het berichtencentrum.
-    func plan(on: Bool, slots chosen: [String]) async {
+    // `shown` is de Editie die de app al heeft ("2026-10-31-ochtend"): daar komt geen seintje meer voor.
+    func plan(on: Bool, slots chosen: [String], shown: String?) async {
+        let previous = planning
+        previous?.cancel()
+        let task = Task {
+            await previous?.value
+            guard !Task.isCancelled else { return }
+            await replan(on: on, slots: chosen, shown: shown)
+        }
+        planning = task
+        await task.value
+    }
+
+    private func replan(on: Bool, slots chosen: [String], shown: String?) async {
+        #if DEBUG
+        // Opnamen op een tabblad (zonder `-HootOnboarded`): niets aanraken, ook niet wat er al gepland stond.
+        if UserDefaults.standard.string(forKey: "HootStartTab") != nil, !UserDefaults.standard.bool(forKey: "HootOnboarded") { return }
+        #endif
         await refresh()
         center.removeAllDeliveredNotifications()
         let pending = await center.pendingNotificationRequests().map(\.identifier).filter { $0.hasPrefix("editie-") }
         center.removePendingNotificationRequests(withIdentifiers: pending)
         #if DEBUG
         await planTest()
-        // Opnamen op een tabblad: geen seintjes.
-        if UserDefaults.standard.string(forKey: "HootStartTab") != nil { return }
         #endif
-        guard on, allowed else { return }
+        guard on, allowed, !Task.isCancelled else { return }
 
-        var amsterdam = Calendar(identifier: .gregorian)
-        amsterdam.timeZone = TimeZone(identifier: "Europe/Amsterdam") ?? .current
+        let amsterdam = Self.amsterdam
         let now = Date.now
         let today = amsterdam.startOfDay(for: now)
         var planned = 0
@@ -86,6 +131,9 @@ final class EditionAlerts {
                 guard let at = amsterdam.date(bySettingHour: slot.hour, minute: Self.delay, second: 0, of: date), at.timeIntervalSince(now) > 30 else { continue }
                 let d = amsterdam.dateComponents([.year, .month, .day], from: at)
                 let id = String(format: "editie-%04d-%02d-%02d-%@", d.year ?? 0, d.month ?? 0, d.day ?? 0, slot.id) // editie-2026-10-31-ochtend
+                // Ligt deze Editie al in de app, dan geen seintje: niets melden wat je al ziet.
+                if let shown, id == "editie-\(shown)" { continue }
+                guard !Task.isCancelled else { return }
                 // Een interval in plaats van een kalendermoment: dat blijft hetzelfde absolute moment,
                 // ook als je onderweg van tijdzone wisselt.
                 let trigger = UNTimeIntervalNotificationTrigger(timeInterval: at.timeIntervalSince(now), repeats: false)

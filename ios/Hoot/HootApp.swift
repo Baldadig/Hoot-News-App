@@ -55,7 +55,8 @@ struct HootApp: App {
             // Wat met je account meegaat: wegschrijven; terug in de app: ophalen.
             .onChange(of: store.syncTick) { account.changed() }
             .onChange(of: phase) { _, now in if now == .active { Task { await account.pull() } } }
-            // Seintjes: opnieuw plannen bij elke wijziging, terug in de app en als de klok verspringt.
+            // Seintjes: opnieuw plannen bij elke wijziging, bij een nieuwe Editie, terug in de app en als
+            // de klok verspringt.
             .task(id: alertPlan) { await planAlerts() }
             .onChange(of: phase) { _, now in if now == .active { Task { await planAlerts() } } }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in Task { await planAlerts() } }
@@ -63,8 +64,10 @@ struct HootApp: App {
         }
     }
 
-    private var alertPlan: String { "\(store.onboarded && store.notify) \(store.notifySlots.joined(separator: ","))" }
-    private func planAlerts() async { await alerts.plan(on: store.onboarded && store.notify, slots: store.notifySlots) }
+    private var alertPlan: String { "\(store.onboarded && store.notify) \(store.notifySlots.joined(separator: ",")) \(shownEdition ?? "")" }
+    private func planAlerts() async { await alerts.plan(on: store.onboarded && store.notify, slots: store.notifySlots, shown: shownEdition) }
+    // De Editie die de app al heeft, als "2026-10-31-ochtend": daarvoor geen seintje meer.
+    private var shownEdition: String? { store.edition.flatMap { e in e.date.flatMap { d in e.slot.map { "\(d)-\($0)" } } } }
 
     // Minstens één hele sprong, dan weg zodra de editie er is (of laden mislukt); hooguit 5 seconden.
     private func endSplash() async {
