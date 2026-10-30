@@ -21,18 +21,20 @@ final class EditionAlerts {
     static let shared = EditionAlerts()
 
     // Gelijk aan editionSlot() in netlify/lib/stories.mjs (06:00, 12:00 en 17:00 in Amsterdam).
+    // `hour` is alleen om te plannen: in teksten staan geen kloktijden, alleen dagdelen.
     struct Slot: Identifiable {
         let id: String // ochtend | middag | avond, zoals `Edition.slot`
         let hour: Int
-        let name: String // kort, zodat het ook bij heel grote tekst heel blijft
+        let name: String // de naam van de Editie, zoals overal in de app
+        let short: String // "Ochtend": bij heel grote tekst, met "Editie" eronder
         let icon: String
         let title: String
         let body: String
     }
     static let slots = [
-        Slot(id: "ochtend", hour: 6, name: "Ochtend", icon: "sunrise", title: "Je Ochtendeditie ligt klaar", body: "Het nieuws van de nacht, rustig op een rij."),
-        Slot(id: "middag", hour: 12, name: "Middag", icon: "sun.max", title: "Je Middageditie ligt klaar", body: "Wat er sinds vanochtend gebeurde, op een rij."),
-        Slot(id: "avond", hour: 17, name: "Avond", icon: "sunset", title: "Je Avondeditie ligt klaar", body: "De dag op een rij, voor wanneer het jou uitkomt."),
+        Slot(id: "ochtend", hour: 6, name: "Ochtendeditie", short: "Ochtend", icon: "sunrise", title: "Je Ochtendeditie ligt klaar", body: "Het nieuws van de nacht, rustig op een rij."),
+        Slot(id: "middag", hour: 12, name: "Middageditie", short: "Middag", icon: "sun.max", title: "Je Middageditie ligt klaar", body: "Wat er sinds vanochtend gebeurde, op een rij."),
+        Slot(id: "avond", hour: 17, name: "Avondeditie", short: "Avond", icon: "sunset", title: "Je Avondeditie ligt klaar", body: "De dag op een rij, voor wanneer het jou uitkomt."),
     ]
     private static let delay = 3 // minuten na het hele uur
     private static let days = 7
@@ -40,28 +42,6 @@ final class EditionAlerts {
         var c = Calendar(identifier: .gregorian)
         c.timeZone = HootDate.amsterdam
         return c
-    }
-
-    // Tijden in de tekst volgen de klok van het toestel. Thuis staat er gewoon "6 uur"; in het
-    // buitenland de tijd die je eigen klok aanwijst als de Editie klaarligt (het eerstvolgende moment,
-    // want zomer- en wintertijd wisselen niet overal tegelijk). Geen "(Nederlandse tijd)" om te
-    // ontcijferen.
-    private static func local(_ hour: Int, _ minute: Int) -> (hour: Int, minute: Int) {
-        let at = amsterdam.nextDate(after: .now, matching: DateComponents(hour: hour, minute: minute), matchingPolicy: .nextTime) ?? .now
-        let c = Calendar.current.dateComponents([.hour, .minute], from: at)
-        return (c.hour ?? hour, c.minute ?? minute)
-    }
-    // Voor "om … uur": "6", of "5:30" bij een halfuur verschil.
-    static func hours(_ hour: Int) -> String {
-        let t = local(hour, 0)
-        return t.minute == 0 ? "\(t.hour)" : String(format: "%d:%02d", t.hour, t.minute)
-    }
-    // "12:00" (zoals `Edition.next`) in dezelfde vorm, op de klok van het toestel.
-    static func clock(_ hhmm: String) -> String {
-        let p = hhmm.split(separator: ":").compactMap { Int($0) }
-        guard p.count == 2 else { return hhmm }
-        let t = local(p[0], p[1])
-        return String(format: "%02d:%02d", t.hour, t.minute)
     }
 
     // Wat iOS van Hoot toestaat. `.notDetermined` tot iemand ja of nee zei.

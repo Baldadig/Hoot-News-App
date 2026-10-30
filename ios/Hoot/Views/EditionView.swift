@@ -83,6 +83,16 @@ struct EditionView: View {
         return date.formatted(HootDate.style(.dateTime.weekday(.wide).day().month(.wide))).capitalizedFirst
     }
 
+    // Wanneer de volgende er is, in dagdelen: geen kloktijden.
+    private var upNext: String {
+        switch store.edition?.slot {
+        case "ochtend": " De volgende staat in de middag voor je klaar."
+        case "middag": " De volgende staat in de vroege avond voor je klaar."
+        case "avond": " De volgende staat morgenochtend voor je klaar."
+        default: ""
+        }
+    }
+
     @State private var path = NavigationPath()
     @State private var nudge = false // "Maak Hoot van jou", na even rondkijken
     @State private var setup = false
@@ -116,8 +126,8 @@ struct EditionView: View {
     // iOS nog niet weet of je meldingen wilt. Na ja of nee verdwijnt het vanzelf; na een ja zegt het
     // nog even wanneer.
     @ViewBuilder private var alertOffer: some View {
-        if alertsOn, let next = store.edition?.next, let hour = Int(next.prefix(2)) {
-            Label("Je krijgt een seintje om \(EditionAlerts.hours(hour)) uur.", systemImage: "bell")
+        if alertsOn {
+            Label("Je krijgt een seintje als de volgende klaarligt.", systemImage: "bell")
                 .font(.subheadline)
                 .frame(minHeight: Space.tap)
                 .transition(.opacity)
@@ -181,7 +191,7 @@ struct EditionView: View {
                                 .font(.system(size: 40, weight: .heavy, design: .serif))
                                 .accessibilityHidden(true)
                             Text("Je bent bij.").font(Theme.headline(.title))
-                            Text("Dit was de \(title.lowercased())\(dateLine.isEmpty ? "" : " van \(dateLine.lowercased())").\(store.edition?.next.map { " De volgende staat klaar om \(EditionAlerts.clock($0))." } ?? "")")
+                            Text("Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(dateLine.lowercased())").\(upNext)")
                                 .font(.subheadline)
                                 .multilineTextAlignment(.center)
                             // De links direct onder elkaar: hun aanraakvlak (44 pt) is de ruimte ertussen,

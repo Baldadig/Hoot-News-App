@@ -52,13 +52,18 @@ struct SettingsView: View {
                             store.notifySlots = next
                         }
                     })) {
-                        // Kort, met de tijd eronder: "Middageditie · 12 uur" brak bij heel grote tekst midden
-                        // in het woord.
+                        // De naam, zonder tijd. Past "Middageditie" niet meer (heel grote tekst: hij brak midden
+                        // in het woord), dan gesplitst op de woordgrens: "Middag" met een rustig "Editie" eronder.
                         Label {
-                            VStack(alignment: .leading, spacing: Space.s0) {
-                                Text(slot.name)
-                                Text("\(EditionAlerts.hours(slot.hour)) uur").font(.subheadline).foregroundStyle(Theme.ink3)
+                            ViewThatFits(in: .horizontal) {
+                                Text(slot.name).fixedSize()
+                                VStack(alignment: .leading, spacing: Space.s0) {
+                                    Text(slot.short)
+                                    Text("Editie").font(.subheadline).foregroundStyle(Theme.ink3)
+                                }
                             }
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(slot.name)
                         } icon: { Image(systemName: slot.icon) }
                     }
                 }
@@ -326,7 +331,7 @@ struct DigestFieldsList: View {
                 }
             }
             Section {} footer: {
-                Text("Elke maandag om 7 uur per onderwerp de drie belangrijkste stukken van de week, door mensen geschreven.").foregroundStyle(Theme.ink3)
+                Text("Elke maandagochtend per onderwerp de drie belangrijkste stukken van de week, door mensen geschreven.").foregroundStyle(Theme.ink3)
             }
         }
         .task { await store.loadDigest() }

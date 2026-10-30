@@ -208,12 +208,6 @@ struct AlertStep: View {
     @State private var shown = false // de melding is binnen
     @State private var asking = false
 
-    // "6, 12 en 17", op de klok van dit toestel.
-    private var times: String {
-        let h = EditionAlerts.slots.map { EditionAlerts.hours($0.hour) }
-        return h.dropLast().joined(separator: ", ") + " en " + (h.last ?? "")
-    }
-
     var body: some View {
         VStack(spacing: 0) {
             GeometryReader { geo in
@@ -230,7 +224,7 @@ struct AlertStep: View {
                                 .font(Theme.headline(.title))
                                 .multilineTextAlignment(.center)
                                 .accessibilityAddTraits(.isHeader)
-                            Text("Als je Editie klaarligt, om \(times) uur.\nStil, zonder geluid.")
+                            Text("Als je Editie klaarligt: in de ochtend, middag en vroege avond. Stil, zonder geluid.")
                                 .font(.body)
                                 .foregroundStyle(Theme.ink2)
                                 .multilineTextAlignment(.center)

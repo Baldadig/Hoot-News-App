@@ -24,10 +24,11 @@
   - **Inloggen:** "op uitnodiging" staat vóór de inlogknoppen.
 - **Selectie (build 36):** nieuw onderwerp Geekcultuur, onder Cultuur & vrije tijd: sf, fantasy, strips, bordspellen en internetcultuur. Het verschijnt zodra de server het levert.
 - **Van opstart naar de Editie (build 36):** het rood sluit zich als een iris tot de rode punt van "hoot." linksboven in de Editie, en de krant schuift zacht op zijn plek. Opent Hoot op een ander tabblad, dan sluit het rood tot zijn eigen punt. In donker kleurt het rood mee naar de lichtere punt. Met Verminder beweging vervaagt het opstartscherm nu echt (dat was een harde knip).
-- **Seintje bij een nieuwe Editie (build 36):** een stil seintje, zonder geluid of badge, om 6:03, 12:03 en 17:03 (Amsterdamse tijd). Aan te zetten in Instellingen › Seintjes, per Editie aan of uit, alleen op dit toestel; of met "Seintje als hij klaarligt?" onder het einde van de Editie. Tikken opent de Editie. Lokaal gepland, zeven dagen vooruit, dus geen server nodig.
+- **Seintje bij een nieuwe Editie (build 36):** een stil seintje, zonder geluid of badge, in de ochtend, middag en vroege avond, een paar minuten nadat je Editie klaarligt. Aan te zetten in Instellingen › Seintjes, per Editie aan of uit, alleen op dit toestel; of met "Seintje als hij klaarligt?" onder het einde van de Editie. Tikken opent de Editie. Lokaal gepland, zeven dagen vooruit, dus geen server nodig.
 - **Seintje in Welkom (build 36):** na je vak een laatste, rustige stap: "Een seintje?", met een nagemaakte melding die zacht binnenvalt. Pas na "Ja, graag" komt de vraag van iOS; "Nu niet" vraagt niets. Weet iOS het al, of staat het seintje al aan, dan is je vak de laatste stap ("Klaar").
 - **Delen (build 36):** in het deelmenu van iOS staan nu de kop en het beeld van Hoot, niet wat de uitgever teruggeeft (soms "Abonneer nu"). Gedeeld wordt altijd de link van de uitgever, dus Zet in leeslijst, Instapaper en je eigen lezer werken gewoon. Nieuw: een deelknop rechtsboven in Vergelijken (deelt het stuk bovenaan). Een Bluesky-post deelt met de titel van zijn link, of anders het begin van de post.
 - **Bluesky (build 36):** volg je nog niemand, dan staat er een knop "Iemand toevoegen" in de lege rubriek, in plaats van een verwijzing naar de + rechtsboven.
+- **Geen kloktijden meer (build 36):** seintjes, het einde van de Editie en de Selectie zeggen nu in de ochtend, middag of vroege avond, of maandagochtend; de Edities heten overal Ochtendeditie, Middageditie en Avondeditie.
 
 ## [1.0.0] — 2026-10-28 — De eerste versie voor de App Store
 
