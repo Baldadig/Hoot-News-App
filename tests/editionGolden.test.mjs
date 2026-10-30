@@ -6,7 +6,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { createContext, runInContext } from 'node:vm'
-import { compose, composeEdition, basisOf, editionBasis, historyOf, nextHistory, mergePrevious, previousFrom, HISTORY_SIZE } from '../src/lib/editionCore.js'
+import { compose, composeEdition, basisOf, editionBasis, historyOf, nextHistory, mergePrevious, previousFrom, profileSummaryOf, HISTORY_SIZE } from '../src/lib/editionCore.js'
 import { buildCore, readCore, hashOf } from '../scripts/build-edition-core.mjs'
 
 const golden = JSON.parse(readFileSync(new URL('./fixtures/edition-golden.json', import.meta.url), 'utf8'))
@@ -69,7 +69,8 @@ test('G5: editionBasis web == bundel, ook met lege topics en lege favorites', ()
 test('history (H5): de samenvatting van een Editie heeft alleen arrays, en previous is uit Edities en history-regels gelijk', () => {
   const { input, output } = byName.klimaat
   const row = historyOf(output)
-  assert.deepEqual(Object.keys(row), ['id', 'builtAt', 'storyIds', 'itemIds', 'leadIds', 'titles'])
+  assert.deepEqual(Object.keys(row), ['id', 'builtAt', 'storyIds', 'itemIds', 'leadIds', 'titles', 'keys'])
+  assert.equal(typeof row.keys, 'object')
   assert.equal(row.id, output.id)
   assert.ok(row.itemIds.length >= output.entries.length, 'alle stukken van de verhalen van toen')
   assert.ok(row.titles.length > 0)
@@ -77,6 +78,7 @@ test('history (H5): de samenvatting van een Editie heeft alleen arrays, en previ
   const fromRow = mergePrevious([row])
   for (const k of ['storyIds', 'itemIds', 'leadIds', 'titles']) assert.deepEqual([...fromRow[k]].sort(), [...fromEdition[k]].sort(), k)
   assert.equal(fromRow.at, fromEdition.at)
+  assert.ok(fromRow.keysOf instanceof Map && fromEdition.keysOf instanceof Map, 'keysOf is een Map, zoals selectForReader hem leest')
   assert.deepEqual([...fromRow.atOf.entries()].sort(), [...fromEdition.atOf.entries()].sort())
   // Dezelfde vorige Editie als Editie of als history-regel geeft dezelfde volgende Editie.
   const next = { ...input.global, id: 'volgend-dagdeel', builtAt: new Date(input.now + 6 * 36e5).toISOString() }
@@ -92,4 +94,40 @@ test('history (H5): de samenvatting van een Editie heeft alleen arrays, en previ
   assert.equal(hist[0].id, output.id)
   assert.equal(nextHistory(hist, output).length, HISTORY_SIZE)
   assert.equal(nextHistory(hist, output).filter((h) => h.id === output.id).length, 1)
+})
+
+test('H2/H5: de kenmerken van toen (`keys` per plek) gaan als `keys` mee in de history-regel en komen als keysOf terug', () => {
+  const { output } = byName.klimaat
+  const stories = output.entries.filter((e) => e.kind === 'story')
+  const withKeys = { ...output, entries: output.entries.map((e) => (e.kind === 'story' ? { ...e, keys: ['stewart', 'picard', e.id] } : e)) }
+  const row = historyOf(withKeys)
+  assert.deepEqual(Object.keys(row.keys).sort(), stories.flatMap((e) => [e.id, e.formerId].filter(Boolean)).sort())
+  assert.deepEqual(row.keys[stories[0].id], ['stewart', 'picard', stories[0].id])
+  const merged = mergePrevious([row, withKeys])
+  assert.deepEqual([...merged.keysOf.get(stories[0].id)].sort(), ['picard', 'stewart', stories[0].id].sort())
+  // Zonder `keys` (een oudere Editie) is het object leeg, en blijft previous verder gelijk.
+  assert.deepEqual(historyOf(output).keys, {})
+  assert.equal(mergePrevious([historyOf(output)]).keysOf.size, 0)
+  // Ook de platte vorm van POST /api/edition (`keysOf` als Map) wordt begrepen.
+  const flat = { ...row, keysOf: new Map([[stories[0].id, ['x']]]) }
+  assert.deepEqual([...mergePrevious([flat]).keysOf.get(stories[0].id)], ['x'])
+})
+
+test('§8 Wat Hoot van je leerde: profileSummary uit de bundel geeft gekozen, geleerd en minder', () => {
+  const { input } = byName.klimaat
+  const base = { interests: input.interests, topics: input.topics, favorites: input.favorites, followed: input.followed, sources: input.sources, items: input.items.map(({ kind, source, topics }) => ({ kind, source, topics })) }
+  const s = profileSummaryOf({ ...base, affinity: null, taste: null })
+  assert.ok(s.chosen.includes('klimaat'), 'klimaat is gekozen')
+  assert.deepEqual(s.learned, [])
+  assert.deepEqual(s.less, [])
+  const t = profileSummaryOf({ ...base, taste: { topics: { voetbal: -12 }, sources: {} } })
+  assert.deepEqual(t.less, ['voetbal'])
+  const l = profileSummaryOf({ ...base, affinity: { n: 40, topics: { ruimte: 30 }, sources: { nos: 40 } } })
+  assert.ok(l.learned.includes('ruimte') || l.chosen.includes('ruimte'), 'veel over ruimte lezen telt mee')
+  assert.deepEqual(profileSummaryOf(null), { chosen: [], learned: [], less: [] })
+  // Dezelfde uitkomst als tekst (zoals Swift hem vraagt).
+  const sandbox = createContext({})
+  runInContext(readCore(), sandbox)
+  const core = runInContext('globalThis.HootCore', sandbox)
+  assert.equal(core.profileSummaryJSON(JSON.stringify({ ...base, taste: { topics: { voetbal: -12 }, sources: {} } })), JSON.stringify(t))
 })

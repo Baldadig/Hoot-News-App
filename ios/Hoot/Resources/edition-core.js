@@ -35,7 +35,10 @@ var HootCore = (() => {
     nextHistory: () => nextHistory,
     nextHistoryJSON: () => nextHistoryJSON,
     previousFrom: () => previousFrom,
-    previousOf: () => previousOf2
+    previousOf: () => previousOf2,
+    profileSummary: () => profileSummary,
+    profileSummaryJSON: () => profileSummaryJSON,
+    profileSummaryOf: () => profileSummaryOf
   });
 
   // netlify/lib/desks.mjs
@@ -350,7 +353,20 @@ var HootCore = (() => {
     if (desk && plannedDesk) return { code: "rubriek", text: `Jouw rubriek ${deskLabel(desk)}` };
     return { code: "rubriek", text: desk ? `Rubriek ${deskLabel(desk)}` : "Het nieuws van nu" };
   }
+  var LEARNED_SHOWN = 0.4;
   var CATALOGUE = Object.fromEntries(INTERESTS.flatMap((f) => f.topics).map((t, i) => [t, i]));
+  var byCatalogue = (a, b) => (CATALOGUE[a] ?? 1e3) - (CATALOGUE[b] ?? 1e3) || byId(a, b);
+  function profileSummary(prof) {
+    const p = prof?.topicP || {};
+    const origin = prof?.origin || {};
+    const strongest = (a, b) => p[b] - p[a] || byCatalogue(a, b);
+    const ids = Object.keys(p);
+    return {
+      chosen: ids.filter((t) => p[t] > 0 && origin[t] !== "geleerd").sort(strongest),
+      learned: ids.filter((t) => p[t] >= LEARNED_SHOWN && origin[t] === "geleerd").sort(strongest),
+      less: ids.filter((t) => p[t] < 0).sort((a, b) => p[a] - p[b] || byCatalogue(a, b))
+    };
+  }
   var KERN = [...DESKS];
   var OWN_DESKS = ["tech", "economie", "regio"];
   var DESK_GAIN = 3;
@@ -987,6 +1003,14 @@ var HootCore = (() => {
   var CORE_VERSION = 1;
   var HISTORY_SIZE = 3;
   var asSet = (v) => v instanceof Set ? v : new Set(Array.isArray(v) ? v : []);
+  function keysOfEntries(edition) {
+    const out = /* @__PURE__ */ new Map();
+    for (const e of [...edition.entries || [], ...edition.stories || []]) {
+      if (!Array.isArray(e.keys) || !e.keys.length) continue;
+      for (const id of [e.id, e.formerId, ...e.formerIds || []].filter(Boolean)) out.set(id, /* @__PURE__ */ new Set([...out.get(id) || [], ...e.keys]));
+    }
+    return out;
+  }
   function previousOf2(edition) {
     const p = previousOf(edition);
     if (!p) return null;
@@ -994,6 +1018,7 @@ var HootCore = (() => {
     const shown = edition.entries.map((e) => byId2.get(e.leadId || e.id)).filter((i) => i?.title);
     return {
       ...p,
+      keysOf: p.keysOf instanceof Map ? p.keysOf : keysOfEntries(edition),
       titles: p.titles || new Set(edition.entries.map((e) => e.title || byId2.get(e.leadId || e.id)?.title).filter(Boolean)),
       shown: p.shown || shown.map((i) => ({ id: i.id, title: i.title, summary: i.summary || "", publishedAt: i.publishedAt || edition.builtAt }))
     };
@@ -1001,7 +1026,9 @@ var HootCore = (() => {
   function historyOf(edition) {
     const p = previousOf2(edition);
     if (!p) return null;
-    return { id: edition.id, builtAt: edition.builtAt, storyIds: [...p.storyIds], itemIds: [...p.itemIds], leadIds: [...p.leadIds], titles: [...p.titles] };
+    const keys = {};
+    for (const [id, set] of p.keysOf || []) keys[id] = [...set];
+    return { id: edition.id, builtAt: edition.builtAt, storyIds: [...p.storyIds], itemIds: [...p.itemIds], leadIds: [...p.leadIds], titles: [...p.titles], keys };
   }
   function nextHistory(prior = [], edition) {
     const row = historyOf(edition);
@@ -1011,7 +1038,10 @@ var HootCore = (() => {
   function previousOne(x) {
     if (!x || typeof x !== "object") return null;
     if (Array.isArray(x.storyIds)) {
-      return { storyIds: new Set(x.storyIds), itemIds: new Set(x.itemIds), leadIds: new Set(x.leadIds), titles: new Set(x.titles || []), shown: Array.isArray(x.shown) ? x.shown : [], at: Date.parse(x.builtAt) || Number(x.at) || 0, leadStoryId: null };
+      const keysOf = /* @__PURE__ */ new Map();
+      if (x.keysOf instanceof Map) for (const [id, ks] of x.keysOf) keysOf.set(id, new Set(ks));
+      else for (const [id, ks] of Object.entries(x.keys && typeof x.keys === "object" ? x.keys : {})) if (Array.isArray(ks) && ks.length) keysOf.set(id, new Set(ks));
+      return { storyIds: new Set(x.storyIds), itemIds: new Set(x.itemIds), leadIds: new Set(x.leadIds), titles: new Set(x.titles || []), shown: Array.isArray(x.shown) ? x.shown : [], keysOf, at: Date.parse(x.builtAt) || Number(x.at) || 0, leadStoryId: null };
     }
     return previousOf2(x);
   }
@@ -1023,7 +1053,9 @@ var HootCore = (() => {
     for (const p of ps) for (const id of p.storyIds) atOf.set(id, Math.max(atOf.get(id) || 0, p.at));
     const shown = /* @__PURE__ */ new Map();
     for (const p of ps) for (const s of p.shown || []) if (s?.title && !shown.has(s.id || s.title)) shown.set(s.id || s.title, s);
-    return { storyIds: u("storyIds"), itemIds: u("itemIds"), leadIds: u("leadIds"), titles: u("titles"), leadStoryIds: new Set(ps.map((p) => p.leadStoryId).filter(Boolean)), leadStoryId: ps[ps.length - 1].leadStoryId, at: Math.max(...ps.map((p) => p.at)), atOf, shown: [...shown.values()] };
+    const keysOf = /* @__PURE__ */ new Map();
+    for (const p of ps) for (const [id, ks] of p.keysOf || []) keysOf.set(id, /* @__PURE__ */ new Set([...keysOf.get(id) || [], ...ks]));
+    return { storyIds: u("storyIds"), itemIds: u("itemIds"), leadIds: u("leadIds"), titles: u("titles"), keysOf, leadStoryIds: new Set(ps.map((p) => p.leadStoryId).filter(Boolean)), leadStoryId: ps[ps.length - 1].leadStoryId, at: Math.max(...ps.map((p) => p.at)), atOf, shown: [...shown.values()] };
   }
   function previousFrom(v) {
     if (!v) return null;
@@ -1083,6 +1115,24 @@ var HootCore = (() => {
     const prior = typeof priorJSON === "string" ? JSON.parse(priorJSON) : priorJSON;
     const edition = typeof editionJSON === "string" ? JSON.parse(editionJSON) : editionJSON;
     return JSON.stringify(nextHistory(prior, edition));
+  }
+  function profileSummaryOf(input) {
+    if (!input || typeof input !== "object") return { chosen: [], learned: [], less: [] };
+    const followed = asSet(input.followed);
+    const prof = profileOf({
+      interests: input.interests || [],
+      topics: input.topics || [],
+      affinity: input.affinity || null,
+      taste: input.taste || null,
+      favorites: input.favorites || [],
+      followed,
+      sources: input.sources || [],
+      supply: supplyOf(input.items || [], followed)
+    });
+    return profileSummary(prof);
+  }
+  function profileSummaryJSON(jsonIn) {
+    return JSON.stringify(profileSummaryOf(typeof jsonIn === "string" ? JSON.parse(jsonIn) : jsonIn));
   }
   return __toCommonJS(editionCore_exports);
 })();
