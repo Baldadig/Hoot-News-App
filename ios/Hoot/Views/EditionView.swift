@@ -174,14 +174,14 @@ struct EditionView: View {
                                 ForEach(rows.dropFirst()) { row in
                                     VStack(alignment: .leading, spacing: 0) {
                                         Rule().padding(.vertical, Space.s2)
-                                        slot(row) { ItemRow(item: row.item, label: row.label, story: row.story) }
+                                        slot(row) { ItemRow(item: row.item, label: row.label, story: row.story, form: .krant) }
                                     }
                                 }
                             }
                         } else {
                             ForEach(rows.dropFirst()) { row in
                                 Rule().padding(.vertical, Space.s2)
-                                slot(row) { ItemRow(item: row.item, label: row.label, story: row.story) }
+                                slot(row) { ItemRow(item: row.item, label: row.label, story: row.story, form: .krant) }
                             }
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,
@@ -295,7 +295,7 @@ struct StoryView: View {
             // Het hoofdbericht staat al bovenaan (tik op de kop): niet nog eens in de lijst.
             ForEach(items.filter { $0.id != lead?.id }) { item in
                 // In een lijst maakt een link in de rij de hele rij tot link: hier geen bronlink.
-                ItemRow(item: item, label: label(item), linkSource: false)
+                ItemRow(item: item, label: label(item), linkSource: false, form: .krant)
                     .listRowBackground(Theme.surface)
             }
         }

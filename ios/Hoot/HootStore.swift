@@ -33,6 +33,8 @@ final class HootStore {
 
     // Weergave en lezen (zelfde namen en waarden als de web-app, voor het synchroniseren later)
     var images: String { didSet { save("hoot.images", images); synced() } } // aan | hoofd | uit
+    // Lees de Stroom als: tijdlijn (kop, intro, beeld over de volle breedte) of krant (klein beeld rechts).
+    var layout: String { didSet { save("hoot.layout", layout); synced() } } // tijdlijn | krant
     var bubble: Bool { didSet { save("hoot.bubble", bubble); synced() } } // "Buiten je bubbel" in de Editie
     var openInSafari: Bool { didSet { save("hoot.openInSafari", openInSafari) } } // vóór 0.12; nu `openWith`
     // Waar artikelen openen: "lezer" (de Hoot-lezer) of "safari" (de Safari-app, waar je al bent ingelogd).
@@ -102,6 +104,7 @@ final class HootStore {
             if Self.read("read.json") as [String]? != nil { UserDefaults.standard.removeObject(forKey: "hoot.read") }
         }
         images = Self.load("hoot.images") ?? "aan"
+        layout = DebugLaunch.layout ?? Self.load("hoot.layout") ?? "tijdlijn"
         bubble = Self.load("hoot.bubble") ?? true
         openInSafari = Self.load("hoot.openInSafari") ?? false
         // Twee keuzes: de lezer of Safari. Wie "Op de website" had (tot 1.0.1), gaat naar Safari.
@@ -147,6 +150,7 @@ final class HootStore {
             var enabled: [String]?
             var vak: [String]?
             var images: String?
+            var layout: String?
             var bubble: Bool?
             var bluesky: Bool?
             var preview: Int?
@@ -155,13 +159,14 @@ final class HootStore {
             var favorites: [String]?
             var social: [BlueskyAccount]? // eigen Bluesky-accounts, zoals op de website
             var taste: Taste?
-            enum CodingKeys: String, CodingKey { case muted, enabled, vak, images, bubble, bluesky, preview, interests, topics, favorites, social, taste }
+            enum CodingKeys: String, CodingKey { case muted, enabled, vak, images, layout, bubble, bluesky, preview, interests, topics, favorites, social, taste }
             init(from decoder: Decoder) throws {
                 let c = try decoder.container(keyedBy: CodingKeys.self)
                 muted = try? c.decodeIfPresent([String].self, forKey: .muted)
                 enabled = try? c.decodeIfPresent([String].self, forKey: .enabled)
                 vak = try? c.decodeIfPresent([String].self, forKey: .vak)
                 images = try? c.decodeIfPresent(String.self, forKey: .images)
+                layout = try? c.decodeIfPresent(String.self, forKey: .layout)
                 bubble = try? c.decodeIfPresent(Bool.self, forKey: .bubble)
                 bluesky = try? c.decodeIfPresent(Bool.self, forKey: .bluesky)
                 interests = try? c.decodeIfPresent([String].self, forKey: .interests)
@@ -190,6 +195,7 @@ final class HootStore {
         if let v = p?.enabled, Set(v) != enabled { enabled = Set(v); save("hoot.enabled", v) }
         if let v = p?.vak, v != digestFields { digestFields = v; save("hoot.digestFields", v) }
         if let v = p?.images, v != images, ["aan", "hoofd", "uit"].contains(v) { images = v; save("hoot.images", v) }
+        if let v = p?.layout, v != layout, ["tijdlijn", "krant"].contains(v) { layout = v; save("hoot.layout", v) }
         if let v = p?.bubble, v != bubble { bubble = v; save("hoot.bubble", v) }
         if let v = p?.bluesky, v != bluesky { bluesky = v; save("hoot.bluesky", v) }
         if let v = p?.preview, v != preview, (0 ... 3).contains(v) { preview = v; save("hoot.preview", v) }
@@ -212,10 +218,11 @@ final class HootStore {
     private var applyingRemote = false
     private func synced() { if !applyingRemote { syncTick &+= 1 } }
 
-    // Je instellingen in de vorm van de website (SYNCED_PREFS in src/lib/sync.js).
+    // Je instellingen in de vorm van de website (SYNCED_PREFS in src/lib/sync.js). `layout` staat daar
+    // nog niet bij: de app schrijft hem al in hetzelfde veld, het web volgt.
     var syncedPrefs: [String: Any] {
         [
-            "muted": muted.sorted(), "enabled": enabled.sorted(), "vak": digestFields, "images": images,
+            "muted": muted.sorted(), "enabled": enabled.sorted(), "vak": digestFields, "images": images, "layout": layout,
             "bubble": bubble, "bluesky": bluesky, "preview": preview == 0 ? "alles" as Any : preview as Any,
             "interests": interests, "topics": topics, "favorites": favorites, "onboarded": true,
             "taste": ["topics": taste.topics, "sources": taste.sources],

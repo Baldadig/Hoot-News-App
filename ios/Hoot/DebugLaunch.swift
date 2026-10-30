@@ -7,6 +7,7 @@ import SwiftUI
 //   -HootRubriek wereld|bubbel|bluesky|…   -HootPicks nos,nrc   (de Stroom op een rubriek, met gekozen bronnen;
 //                                             met -HootScreen stroom-bronnen staat de stapel open)
 //   -HootScroll midden|onder|slot   -HootQuery <tekst>   -HootDark YES   -HootLargeText YES   -HootOffline YES
+//   -HootLayout tijdlijn|krant   (de Stroom in die indeling, los van de instelling)
 //   -HootSeenMinutes <n>   (de Stroom alsof je er n minuten geleden was)
 //   -HootOnboarded YES   (zonder welkom, mét opstartscherm; met -HootStartTab stroom: de opstart naar de Stroom)
 //   -HootSlowSplash <n>   (de overgang van het opstartscherm n keer zo langzaam, en de iris in het welkom)
@@ -26,6 +27,7 @@ enum DebugLaunch {
     static var largeText: Bool { defaults.bool(forKey: "HootLargeText") }
     static var offline: Bool { defaults.bool(forKey: "HootOffline") }
     static var rubriek: String? { defaults.string(forKey: "HootRubriek") }
+    static var layout: String? { defaults.string(forKey: "HootLayout").flatMap { ["tijdlijn", "krant"].contains($0) ? $0 : nil } }
     static var picks: [String] { (defaults.string(forKey: "HootPicks") ?? "").split(separator: ",").map(String.init) }
     static var seenMinutes: Double? { defaults.object(forKey: "HootSeenMinutes") != nil ? defaults.double(forKey: "HootSeenMinutes") : nil }
     static var welcomeStep: String? { defaults.string(forKey: "HootWelcomeStep") ?? (screen("seintje") ? "seintje" : nil) }
@@ -53,6 +55,7 @@ enum DebugLaunch {
     static let largeText = false
     static let offline = false
     static let rubriek: String? = nil
+    static let layout: String? = nil
     static let picks: [String] = []
     static let seenMinutes: Double? = nil
     static let welcomeStep: String? = nil

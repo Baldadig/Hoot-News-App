@@ -99,6 +99,17 @@ struct SettingsView: View {
                     } label: {
                         Label("Afbeeldingen", systemImage: "photo")
                     }
+                    // Als een segment, direct te zien in de Stroom erachter: tijdlijn (het beeld groot onder de
+                    // kop, zoals een tijdlijn) of krant (klein ernaast, zoals een krantensite).
+                    VStack(alignment: .leading, spacing: Space.s2) {
+                        Label("Lees de Stroom als", systemImage: "rectangle.grid.1x2")
+                        Picker("Lees de Stroom als", selection: $store.layout) {
+                            Text("Tijdlijn").tag("tijdlijn")
+                            Text("Krant").tag("krant")
+                        }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
+                    }
                     Picker(selection: $store.preview) {
                         Text("1 regel").tag(1)
                         Text("2 regels").tag(2)
@@ -113,7 +124,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Editie en Stroom")
                 } footer: {
-                    Text("Buiten je bubbel: één verhaal waar veel mensen nu naar zoeken en dat niet in je Editie staat.").foregroundStyle(Theme.ink3)
+                    Text("Tijdlijn: het beeld groot onder de kop. Krant: klein ernaast, zoals op een krantensite. Ook in Bewaard en Zoeken. Buiten je bubbel: één verhaal waar veel mensen nu naar zoeken en dat niet in je Editie staat.").foregroundStyle(Theme.ink3)
                 }
 
                 // Eén keuze (waar openen artikelen), met de uitzonderingen alleen als die gelden.
