@@ -94,7 +94,7 @@ struct ChoiceTile: View {
                     .foregroundStyle(on ? Theme.onAccent : Theme.ink)
                     .multilineTextAlignment(.leading)
             }
-            .frame(maxWidth: .infinity, minHeight: 112, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: 112 - Space.s4 * 2, alignment: .leading) // 112 met de rand erbij, zoals op het web
             .padding(Space.s4)
             .background(on ? Theme.accent : Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
             .overlay(RoundedRectangle(cornerRadius: Radius.md).strokeBorder(on ? Theme.accent : Theme.ink, lineWidth: 2))
@@ -120,26 +120,39 @@ struct TopicChips: View {
     }
 }
 
+// De kop boven een groep keuzes (.ob__gtitle): klein, in kapitalen en ink3, eventueel met een
+// icoon in accent. Hoofdletters lezen slecht in grote tekst (zoals Kicker): dan gewoon.
+struct GroupTitle: View {
+    let text: String
+    var icon: String? = nil
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    var body: some View {
+        HStack(spacing: Space.s2) {
+            if let icon { Image(systemName: icon).foregroundStyle(Theme.accent).accessibilityHidden(true) }
+            if typeSize.isAccessibilitySize {
+                Text(text).font(.caption.weight(.bold))
+            } else {
+                Text(text.uppercased()).font(.caption.weight(.heavy)).tracking(0.6)
+            }
+        }
+        .foregroundStyle(Theme.ink3)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
+        .accessibilityAddTraits(.isHeader)
+    }
+}
+
 // Wat precies? Per gekozen interesse een kop (icoon en naam) met zijn onderwerpen (.ob__group).
 struct TopicsPicker: View {
     let interests: [String]
     @Binding var picked: [String]
-    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         VStack(alignment: .leading, spacing: Space.s5) {
             ForEach(Rubriek.alle.filter { interests.contains($0.id) }) { r in
                 VStack(alignment: .leading, spacing: Space.s3) {
-                    Label {
-                        // Hoofdletters lezen slecht in grote tekst (zoals Kicker).
-                        Text(typeSize.isAccessibilitySize ? r.label : r.label.uppercased())
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(Theme.ink3)
-                    } icon: {
-                        Image(systemName: r.icon).foregroundStyle(Theme.accent)
-                    }
-                    .accessibilityAddTraits(.isHeader)
-                    .accessibilityLabel(r.label)
+                    GroupTitle(text: r.label, icon: r.icon)
                     TopicChips(rubriek: r, picked: picked) { t in
                         picked = picked.contains(t) ? picked.filter { $0 != t } : picked + [t]
                     }

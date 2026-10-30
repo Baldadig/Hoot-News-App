@@ -100,9 +100,8 @@ struct OnboardingArt: View {
     private func ease(_ x: Double) -> Double { x < 0.5 ? 2 * x * x : 1 - pow(-2 * x + 2, 2) / 2 }
 }
 
-// "hoot." groot, met de ademende punt: de eerste pagina van het welkom en het inlogscherm. Het
-// meldt waar het woord en de punt staan (`BrandHandoff`), zodat het opstartscherm er precies naartoe
-// kan bewegen: het rood krimpt tot deze punt, het woordmerk schuift naar dit woord.
+// "hoot." groot, met de ademende punt: het inlogscherm. Het kan melden waar het woord en de punt
+// staan (`BrandHandoff`), zodat het opstartscherm er precies naartoe kan bewegen.
 struct IntroMark: View {
     @Environment(\.brandHandoff) private var handoff
     @Environment(\.accessibilityReduceMotion) private var still
@@ -130,13 +129,16 @@ struct IntroMark: View {
     }
 }
 
-// Waar "hoot." staat (in schermcoördinaten), voor de overgang vanaf het opstartscherm: groot in het
-// welkom (`IntroMark`) of klein linksboven in de Editie (`Wordmark(handoff: true)`).
+// Waar "hoot." staat (in schermcoördinaten), voor de overgang vanaf het opstartscherm: klein
+// linksboven op de rode intro van het welkom (`WelcomeMark`) of in de Editie (`Wordmark(handoff: true)`).
+// Het welkom heeft er ook een eigen: voor de iris van de rode intro naar de eerste papieren stap.
 @MainActor
 @Observable
 final class BrandHandoff {
     var word: CGRect?
     var dot: CGRect?
+    var onRed = false // "hoot." staat op merkrood (de intro): het rood blijft, alleen het woordmerk landt
+    var bounceStart: Date? // wanneer de punt van het opstartscherm begon te stuiteren
     var leaving = false // het opstartscherm beweegt erheen: het rood krimpt tot de punt
     var tinted = false // het rood kleurt naar de kleur van de punt (in donker lichter)
     var fading = false // het opstartscherm vervaagt (zonder iris, of na de iris naar zijn eigen punt)

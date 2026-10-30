@@ -212,6 +212,7 @@ struct SettingsView: View {
                         dismiss()
                         Task {
                             try? await Task.sleep(for: .milliseconds(450)) // eerst dit blad dicht, dan het welkom
+                            store.welcomeAgain = true // het welkom begint bij wat je nu hebt
                             store.onboarded = false
                         }
                     } label: {

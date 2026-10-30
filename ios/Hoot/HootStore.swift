@@ -39,6 +39,8 @@ final class HootStore {
     var openWith: String { didSet { save("hoot.openWith", openWith) } }
     var preview: Int { didSet { save("hoot.preview", preview); synced() } } // regels intro bij een bericht; 0 = de hele intro
     var onboarded: Bool { didSet { save("hoot.onboarded", onboarded) } } // het welkom is gezien
+    // Het welkom opnieuw, vanuit Instellingen: het begint bij je huidige keuzes. Niet bewaard.
+    var welcomeAgain = false
     // Een seintje bij een nieuwe Editie (EditionAlerts), per dagdeel aan of uit. Alleen op dit
     // toestel: niet `synced()`, want toestemming geldt per toestel.
     var notify: Bool { didSet { save("hoot.notify", notify) } }
@@ -119,6 +121,8 @@ final class HootStore {
         if UserDefaults.standard.string(forKey: "HootStartTab") != nil { onboarded = true }
         // `-HootOnboarded YES`: het welkom overslaan maar wel het opstartscherm (de overgang naar de Editie).
         if UserDefaults.standard.bool(forKey: "HootOnboarded") { onboarded = true }
+        // `-HootFresh YES` of `-HootWelcomeStep …`: het welkom als nieuwe gebruiker.
+        if DebugLaunch.fresh { onboarded = false }
         #endif
         notify = Self.load("hoot.notify") ?? false
         notifySlots = Self.load("hoot.notifySlots") ?? EditionAlerts.slots.map(\.id)
@@ -267,7 +271,10 @@ final class HootStore {
     // "Begin met lezen": een zachte landing. Alleen Nederlandse bronnen, allemaal gratis, dus elk
     // stuk is helemaal te lezen: nieuws, sport, tech en cultuur. Zelfde set als de website
     // (STARTER in src/lib/topics.js); later aan te passen bij Bronnen.
-    static let starter = ["nos", "nu", "rtl", "nos-sport", "vi", "tweakers", "nos-cultuur", "3voor12"]
+    static let starterGroups: [(label: String, ids: [String])] = [
+        ("Nieuws", ["nos", "nu", "rtl"]), ("Sport", ["nos-sport", "vi"]), ("Tech", ["tweakers"]), ("Cultuur", ["nos-cultuur", "3voor12"]),
+    ]
+    static let starter = starterGroups.flatMap(\.ids)
     func quickStart(ids: [String] = HootStore.starter) {
         let set = Set(ids)
         enabled = set

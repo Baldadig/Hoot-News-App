@@ -9,7 +9,11 @@ import SwiftUI
 //   -HootScroll midden|onder|slot   -HootQuery <tekst>   -HootDark YES   -HootLargeText YES   -HootOffline YES
 //   -HootSeenMinutes <n>   (de Stroom alsof je er n minuten geleden was)
 //   -HootOnboarded YES   (zonder welkom, mét opstartscherm; met -HootStartTab stroom: de opstart naar de Stroom)
-//   -HootSlowSplash <n>   (de overgang van het opstartscherm n keer zo langzaam)
+//   -HootSlowSplash <n>   (de overgang van het opstartscherm n keer zo langzaam, en de iris in het welkom)
+//   -HootFresh YES   (het welkom als nieuwe gebruiker, met opstartscherm)
+//   -HootWelcomeStep interesses|precies|bronnen|selectie|seintje|snel   (het welkom op die stap; zonder
+//                                             -HootFresh ook als nieuwe gebruiker)
+//   -HootInterests politiek,tech,cultuur   (in het welkom al gekozen)
 //   -HootNotifyIn <s>   (één echt seintje "Editie ligt klaar" over s seconden; toestemming eerst geven)
 //   -HootFeature verhaal-id:Rubriek,…   (App Store-opnamen: deze echte verhalen bovenaan Editie en Stroom)
 // In Release doet dit allemaal niets.
@@ -24,6 +28,10 @@ enum DebugLaunch {
     static var rubriek: String? { defaults.string(forKey: "HootRubriek") }
     static var picks: [String] { (defaults.string(forKey: "HootPicks") ?? "").split(separator: ",").map(String.init) }
     static var seenMinutes: Double? { defaults.object(forKey: "HootSeenMinutes") != nil ? defaults.double(forKey: "HootSeenMinutes") : nil }
+    static var welcomeStep: String? { defaults.string(forKey: "HootWelcomeStep") ?? (screen("seintje") ? "seintje" : nil) }
+    static var fresh: Bool { defaults.bool(forKey: "HootFresh") || defaults.string(forKey: "HootWelcomeStep") != nil }
+    static var interests: [String]? { defaults.string(forKey: "HootInterests").map { $0.split(separator: ",").map(String.init) } }
+    static var slow: Double { max(1, defaults.double(forKey: "HootSlowSplash")) }
     static var feature: [(id: String, label: String?)] {
         (defaults.string(forKey: "HootFeature") ?? "").split(separator: ",").map { part in
             let bits = part.split(separator: ":", maxSplits: 1).map(String.init)
@@ -47,6 +55,10 @@ enum DebugLaunch {
     static let rubriek: String? = nil
     static let picks: [String] = []
     static let seenMinutes: Double? = nil
+    static let welcomeStep: String? = nil
+    static let fresh = false
+    static let interests: [String]? = nil
+    static let slow = 1.0
     static let feature: [(id: String, label: String?)] = []
     static let anchor: UnitPoint? = nil
     #endif

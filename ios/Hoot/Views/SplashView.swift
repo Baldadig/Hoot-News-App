@@ -10,11 +10,13 @@ struct SplashView: View {
 
     // Maten van LaunchMark: de SVG (viewBox 239,45 × 73,5) wordt passend getekend in 160 × 49 pt, dus
     // op schaal 49 / 73,5 met een smalle rand links en rechts. De punt staat op (231,75; 65,8), r 7,7.
+    // Ook voor het kleine woordmerk van het welkom (`WelcomeMark`), dat dezelfde tekening is.
+    static let size = CGSize(width: 160, height: 49)
     private static let scale = 49 / 73.5
     private static let inset = (160 - 239.45 * scale) / 2
-    private static let dotSize = 7.7 * 2 * scale
-    private static let dotCenter = CGPoint(x: inset + 231.75 * scale, y: 65.8 * scale)
-    private static let paperWhite = Color(red: 0xF5 / 255, green: 0xF1 / 255, blue: 0xE8 / 255) // als in LaunchMark
+    static let dotSize = 7.7 * 2 * scale
+    static let dotCenter = CGPoint(x: inset + 231.75 * scale, y: 65.8 * scale)
+    static let paperWhite = Color(red: 0xF5 / 255, green: 0xF1 / 255, blue: 0xE8 / 255) // als in LaunchMark
 
     // Eén sprong duurt 1,6 s, als een balletje: omhoog dat afremt, omlaag dat versnelt, een klein
     // deukje bij het landen, een mini-naveer, en dan even stil. Klein gehouden: het is een lader.
@@ -31,15 +33,18 @@ struct SplashView: View {
             let lands = handoff?.dot != nil
             let word = leaving && lands ? handoff?.word : nil
             let target = leaving ? (handoff?.dot ?? Self.ownDot(center)) : nil
+            // Naar de rode intro van het welkom: het rood blijft, alleen het woordmerk landt.
+            let stays = handoff?.onRed == true
             // Het rood als cirkel die het hele scherm vult; bij het vertrek sluit hij als een iris tot de
             // rode punt van "hoot.".
             let full = hypot(geo.size.width, geo.size.height) * 1.1
+            let iris = stays ? nil : target
             let disc = Circle()
-                .frame(width: target?.width ?? full, height: target?.height ?? full)
-                .position(target.map { CGPoint(x: $0.midX, y: $0.midY) } ?? center)
+                .frame(width: iris?.width ?? full, height: iris?.height ?? full)
+                .position(iris.map { CGPoint(x: $0.midX, y: $0.midY) } ?? center)
             ZStack {
                 disc.foregroundStyle(handoff?.tinted == true ? Theme.accent : Theme.brandRed)
-                mark(leaving: leaving, time: time)
+                mark(leaving: leaving, stays: stays, time: time)
                     // Het woordmerk landt eerst precies op "hoot." in het welkom (punt op punt), daarna
                     // veegt de rand van het rood de witte letters weg en staat de inkt eronder er al.
                     .scaleEffect(Self.fit(word))
@@ -49,6 +54,7 @@ struct SplashView: View {
             }
         }
         .opacity(handoff?.fading == true ? 0 : 1)
+        .onAppear { handoff?.bounceStart = .now } // HootApp laat het woordmerk pas landen als de punt stilligt
         // Midden op het hele scherm, zoals iOS het opstartscherm plaatst (niet binnen de veilige zone).
         .ignoresSafeArea()
         .accessibilityElement()
@@ -61,7 +67,7 @@ struct SplashView: View {
     }
 
     // Het woord "hoot" (zonder punt) loopt in LaunchWord van de linkerrand tot x 222 van de viewBox.
-    private static let wordWidth = 222 * scale
+    static let wordWidth = 222 * scale
     private static func fit(_ word: CGRect?) -> CGFloat { word.map { $0.width / wordWidth } ?? 1 }
     // Het midden van het woordmerk zo dat zijn punt precies op de punt in het welkom valt.
     private static func place(_ word: CGRect?, dot: CGRect?) -> CGPoint? {
@@ -70,15 +76,23 @@ struct SplashView: View {
         return CGPoint(x: dot.midX - (dotCenter.x - 80) * s, y: dot.midY - (dotCenter.y - 24.5) * s)
     }
 
-    private func mark(leaving: Bool, time: Double) -> some View {
+    private func mark(leaving: Bool, stays: Bool, time: Double) -> some View {
         ZStack(alignment: .topLeading) {
             Image("LaunchWord")
-            Group { if reduceMotion { dot.position(Self.dotCenter) } else { bouncing } }
-                // De witte punt gaat op in het rood: aan het eind is de rode punt de enige.
-                .opacity(leaving ? 0 : 1)
-                .transaction { if $0.animation != nil { $0.animation = .easeOut(duration: time * 0.35) } }
+            // Naar de rode intro staat de punt stil in zijn rust (HootApp wacht daarop) en reist hij
+            // mee met het woordmerk: daar blijft hij papier. Zonder overvloeier tussen de twee.
+            Group {
+                if reduceMotion || (leaving && stays) {
+                    dot.position(Self.dotCenter).transition(.identity)
+                } else {
+                    bouncing.transition(.identity)
+                }
+            }
+            // Anders gaat de witte punt op in het rood: aan het eind is de rode punt de enige.
+            .opacity(leaving && !stays ? 0 : 1)
+            .transaction { if $0.animation != nil { $0.animation = .easeOut(duration: time * 0.35) } }
         }
-        .frame(width: 160, height: 49)
+        .frame(width: Self.size.width, height: Self.size.height)
     }
 
     // Eén sprong duurt 1,6 s (zie `bounce`).

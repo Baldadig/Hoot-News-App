@@ -27,6 +27,10 @@ struct HootApp: App {
     // Alleen bij een koude start: het opstartscherm met de stuiterende punt, tot er iets te lezen is.
     @State private var splash = true
     @State private var handoff = BrandHandoff() // waar "hoot." staat: in het welkom of linksboven in de Editie
+    private func leaveWelcome() {
+        store.welcomeAgain = false
+        store.onboarded = true
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -36,7 +40,8 @@ struct HootApp: App {
                 if store.onboarded {
                     WidthReader { RootView() }
                 } else {
-                    WelcomeView()
+                    // Opnieuw kiezen (Instellingen): alles begint bij wat je nu hebt; sluiten slaat niets op.
+                    WelcomeView(reopen: store.welcomeAgain, onCancel: store.welcomeAgain ? { leaveWelcome() } : nil) { leaveWelcome() }
                 }
             }
             .accessibilityHidden(splash) // VoiceOver niet achter het opstartscherm
@@ -95,7 +100,33 @@ struct HootApp: App {
             try? await Task.sleep(for: .milliseconds(40))
             calm = Date.now.timeIntervalSince(tick) < 0.07 ? calm + 1 : 0
         }
-        // Het woordmerk landt op "hoot." (groot in het welkom, klein linksboven in de Editie) en het rood
+        // Naar de rode intro van het welkom: het rood blijft, alleen het woordmerk landt op "hoot."
+        // linksboven, met de punt stil in zijn rust (geen sprong halverwege). De iris komt daarna, bij
+        // de eerste papieren stap (WelcomeView).
+        if !UIAccessibility.isReduceMotionEnabled, handoff.onRed, !store.onboarded, handoff.word != nil, handoff.dot != nil {
+            if let start = handoff.bounceStart {
+                // Een sprong: 1,06 s in beweging, dan 0,54 s stil. Vertrekken in het begin van die rust.
+                let phase = Date.now.timeIntervalSince(start).truncatingRemainder(dividingBy: SplashView.bounce)
+                if phase < 1.08 || phase > 1.5 {
+                    try? await Task.sleep(for: .seconds((1.08 - phase + SplashView.bounce).truncatingRemainder(dividingBy: SplashView.bounce)))
+                }
+            }
+            var duration = 0.7
+            #if DEBUG
+            duration *= max(1, UserDefaults.standard.double(forKey: "HootSlowSplash"))
+            #endif
+            handoff.duration = duration
+            withAnimation(.timingCurve(0.6, 0, 0.2, 1, duration: duration)) { handoff.leaving = true }
+            // Het woord landt in 0,55 van die tijd (SplashView); dan ligt het precies op de intro, in
+            // dezelfde kleuren. Het opstartscherm vervaagt: woordmerk en rood blijven gelijk, alleen de
+            // tekst van de intro komt rustig op.
+            try? await Task.sleep(for: .seconds(duration * 0.55 + 0.1))
+            await fadeSplash(0.3)
+            splash = false
+            handoff.landed = true
+            return
+        }
+        // Het woordmerk landt op "hoot." (klein linksboven in de Editie) en het rood
         // sluit zich als een iris tot de rode punt; de rand veegt de witte letters weg en de inkt staat
         // er al. Is er geen "hoot." in beeld (de app opent op de Stroom of de Selectie), dan sluit het
         // rood tot de eigen punt van het opstartscherm, die daarna kort vervaagt. Met "Verminder
@@ -104,7 +135,7 @@ struct HootApp: App {
         // weggaat, is het rood nog net niet op maat en verspringt de punt.
         if !UIAccessibility.isReduceMotionEnabled {
             let lands = handoff.dot != nil && handoff.word != nil
-            var duration = lands && !store.onboarded ? 0.7 : 0.6 // naar het welkom iets rustiger: groter merk
+            var duration = 0.6
             #if DEBUG
             duration *= max(1, UserDefaults.standard.double(forKey: "HootSlowSplash")) // `-HootSlowSplash 6`: in slow motion
             #endif

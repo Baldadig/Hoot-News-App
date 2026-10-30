@@ -233,11 +233,9 @@ struct EditionView: View {
             .safeAreaInset(edge: .bottom) {
                 if nudge && store.browsing { MakeItYours(choose: { setup = true }, later: { withAnimation { store.browsing = false } }) }
             }
+            // De stappen van het welkom vanaf de interesses, met Annuleer op de eerste.
             .sheet(isPresented: $setup) {
-                NavigationStack {
-                    SetupSteps { store.browsing = false; setup = false }
-                        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Annuleer", role: .cancel) { setup = false } } }
-                }
+                WelcomeView(start: .interesses, onCancel: { setup = false }) { store.browsing = false; setup = false }
             }
             .debugScroll()
             .background(Theme.paper)
@@ -348,8 +346,9 @@ struct MakeItYours: View {
                 Button(action: choose) {
                     Text("Kies je bronnen").font(.headline).padding(.horizontal, Space.s5).frame(minHeight: Space.tap)
                 }
-                .foregroundStyle(.white)
-                .background(Theme.accent, in: Capsule())
+                // Een knop op papier is inkt, zoals in het welkom (rood is voor het merk).
+                .foregroundStyle(Theme.paper)
+                .background(Theme.ink, in: Capsule())
                 Button("Later", action: later)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Theme.ink2)
