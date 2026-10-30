@@ -56,22 +56,22 @@ export default function Bluesky({ active, posts, sources, muted, onToggle, ownHa
         <ViewHeader title="Bluesky" sub="De mensen die je volgt, nieuwste eerst" subWide onRefresh={onRefresh} refreshing={refreshing}>
           <div className="topics">
             <div className="topics__scroll" role="group" aria-label="Wie">
-              <button type="button" className="chip chip--sm" aria-pressed={!who && !group} onClick={() => go('bluesky', {})}>
+              <button type="button" className="pill pill--sm hit" aria-pressed={!who && !group} onClick={() => go('bluesky', {})}>
                 Iedereen
               </button>
               {groups.map((g) => (
-                <button key={g} type="button" className="chip chip--sm" aria-pressed={group === g && !who} onClick={() => go('bluesky', group === g && !who ? {} : { groep: g })}>
+                <button key={g} type="button" className="pill pill--sm hit" aria-pressed={group === g && !who} onClick={() => go('bluesky', group === g && !who ? {} : { groep: g })}>
                   {GROUPS[g]}
                 </button>
               ))}
               {chips.map((s) => (
-                <button key={s.id} type="button" className="chip chip--sm chip--person" aria-pressed={who === s.id} onClick={() => go('bluesky', who === s.id ? (group ? { groep: group } : {}) : { wie: s.id, ...(group ? { groep: group } : {}) })}>
-                  <SourceMark source={s} size={22} />
+                <button key={s.id} type="button" className="pill pill--sm pill--person hit" aria-pressed={who === s.id} onClick={() => go('bluesky', who === s.id ? (group ? { groep: group } : {}) : { wie: s.id, ...(group ? { groep: group } : {}) })}>
+                  <SourceMark source={s} size={24} />
                   {s.name}
                 </button>
               ))}
             </div>
-            <button type="button" className={`iconbtn topics__filter${adding ? ' is-on' : ''}`} onClick={() => setAdding((a) => !a)} aria-expanded={adding} aria-label="Iemand volgen" title="Iemand volgen">
+            <button type="button" className="iconbtn topics__filter hit" onClick={() => setAdding((a) => !a)} aria-expanded={adding} aria-label="Iemand volgen" title="Iemand volgen">
               <span aria-hidden="true" className="plus">
                 +
               </span>
@@ -86,12 +86,12 @@ export default function Bluesky({ active, posts, sources, muted, onToggle, ownHa
               <div className="chips bsky-suggest">
                 <span className="hint">Voorgesteld:</span>
                 {dormant.map((s) => (
-                  <button key={s.id} type="button" className="chip chip--sm" onClick={() => onToggle(s.id, true)}>
+                  <button key={s.id} type="button" className="pill pill--sm hit" onClick={() => onToggle(s.id, true)}>
                     + {s.name}
                   </button>
                 ))}
                 {suggestions.map((s) => (
-                  <button key={s.handle} type="button" className="chip chip--sm" onClick={() => follow(s.handle)}>
+                  <button key={s.handle} type="button" className="pill pill--sm hit" onClick={() => follow(s.handle)}>
                     + {s.name}
                   </button>
                 ))}

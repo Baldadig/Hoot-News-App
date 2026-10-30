@@ -44,7 +44,7 @@ function FilterSheet({ open, onClose, params, clear, setFilter, count }) {
         <h3 className="label label--section sheet__label">Soort</h3>
         <div className="chips">
           {KINDS.map((k) => (
-            <button key={k.id} type="button" className="chip" aria-pressed={(params.soort || '') === k.id} onClick={() => setFilter('soort', k.id)}>
+            <button key={k.id} type="button" className="pill" aria-pressed={(params.soort || '') === k.id} onClick={() => setFilter('soort', k.id)}>
               {k.label}
             </button>
           ))}
@@ -180,7 +180,7 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
         </ViewHeader>
 
         {pendingCount > 0 ? (
-          <button type="button" className="newpill" aria-label={`${pendingCount} ${pendingCount === 1 ? 'nieuw bericht' : 'nieuwe berichten'} tonen`} onClick={() => (onShowNew(), ref.current?.scrollTo({ top: 0 }))}>
+          <button type="button" className="btn btn--accent newpill" aria-label={`${pendingCount} ${pendingCount === 1 ? 'nieuw bericht' : 'nieuwe berichten'} tonen`} onClick={() => (onShowNew(), ref.current?.scrollTo({ top: 0 }))}>
             <ArrowUpIcon />
             {pendingCount} {pendingCount === 1 ? 'nieuw bericht' : 'nieuwe berichten'}
           </button>

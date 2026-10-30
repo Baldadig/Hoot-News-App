@@ -98,10 +98,10 @@ export default function StyleGuide({ stream }) {
 
         <h2 className="label label--section sect">Bediening</h2>
         <div className="chips">
-          <button type="button" className="chip" aria-pressed="true">
+          <button type="button" className="pill" aria-pressed="true">
             Gekozen
           </button>
-          <button type="button" className="chip" aria-pressed="false">
+          <button type="button" className="pill" aria-pressed="false">
             Niet gekozen
           </button>
           <button type="button" className="btn">

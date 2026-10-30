@@ -143,7 +143,7 @@ function AccountButton({ account, onClick }) {
   const label = user ? `Account en weergave (${user.email})` : 'Account en weergave'
   return (
     <button type="button" className={`iconbtn acct${user ? ' is-in' : ''}`} onClick={onClick} aria-haspopup="dialog" aria-label={label} title={label}>
-      {user ? photo ? <img src={photo} alt="" width="30" height="30" referrerPolicy="no-referrer" /> : <span aria-hidden="true">{initial}</span> : <AccountIcon />}
+      {user ? photo ? <img src={photo} alt="" width="32" height="32" referrerPolicy="no-referrer" /> : <span aria-hidden="true">{initial}</span> : <AccountIcon />}
     </button>
   )
 }

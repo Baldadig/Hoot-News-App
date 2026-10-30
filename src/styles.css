@@ -54,6 +54,9 @@
   --mark-bg: #ffffff; /* vlak achter een uitgeverslogo */
   --state-hover: color-mix(in srgb, currentColor 8%, transparent);
   --state-press: color-mix(in srgb, currentColor 14%, transparent);
+  /* Een knop met een eigen vlak (.btn) mengt dat vlak bij hover en druk met papier. */
+  --mix-hover: 86%;
+  --mix-press: 78%;
   --opacity-disabled: 0.45;
 
   /* Type */
@@ -86,9 +89,15 @@
   --control-lg: 52px;
   --icon: 22px;
   --icon-sm: 16px;
+  --spin-w: 2px; /* lijndikte van een laadteken */
   --tap-inset: calc((var(--icon) - var(--tap)) / 2); /* −11: icoon optisch op de kolomlijn */
   --caret-inset: calc(var(--icon) * -0.28125); /* −6: lucht links in de caret naar links (punt 80 − halve lijn 8 = 72/256); zo staat de inkt op de lijn */
   --control-col: 20rem; /* vaste kolom voor de bediening in een instellingsrij */
+  --dot: 8px; /* statusstip */
+  --avatar: 32px; /* je foto of voorletter */
+  /* Vinkje van gekozen bij een pil (ook bij enkele keuze, zie .pill[aria-pressed]): CheckIcon (Phosphor bold) als masker, dus in de
+     tekstkleur en uit dezelfde familie als de andere iconen. */
+  --icon-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='m232.49 80.49l-128 128a12 12 0 0 1-17 0l-56-56a12 12 0 1 1 17-17L96 183L215.51 63.51a12 12 0 0 1 17 17Z'/%3E%3C/svg%3E");
 
   /* Rijen en media-object: altijd min-height, nooit een vaste hoogte. */
   --row-sm: 44px;
@@ -105,6 +114,7 @@
   --dur-1: 140ms; /* directe reactie: bewaren, chip, navigatie */
   --dur-2: 200ms; /* iets dat in beeld komt: verhaal, melding */
   --dur-3: 400ms; /* iets dat van plek wisselt: de bronnenstapel en de rode streep in de Stroom */
+  --dur-spin: 900ms; /* één omwenteling van een laadteken */
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   --ease-glide: cubic-bezier(0.2, 0.8, 0.2, 1); /* glijden: vlot weg, zacht geland (bij --dur-3) */
 
@@ -391,10 +401,11 @@ select {
    tekstkleur (--state-hover 8 %, --state-press 14 %), dus het werkt op papier, op de band en in
    donker. Niet voor .btn: die heeft al een vlak (zie .btn). Klassen die nog niet bestaan, staan
    er alvast in. :where houdt de laag op specificiteit (0,2,0): een gekozen staat verderop
-   (.seg__btn[aria-pressed], .nav__link[aria-current]) wint dus vanzelf. */
+   (.seg__btn[aria-pressed], .nav__link[aria-current]) wint dus vanzelf. Een pil die aan staat
+   (gekozen of uitgeklapt) krijgt de laag niet: grijs over aan oogt als een derde staat. */
 :where(
     .btn--quiet,
-    .pill:not([aria-pressed='true']),
+    .pill:not([aria-pressed='true'], [aria-expanded='true']),
     .iconbtn,
     .linkbtn,
     .linkbtn--plain,
@@ -421,7 +432,7 @@ select {
 @media (hover: hover) {
   :where(
       .btn--quiet,
-      .pill:not([aria-pressed='true']),
+      .pill:not([aria-pressed='true'], [aria-expanded='true']),
       .iconbtn,
       .linkbtn,
       .linkbtn--plain,
@@ -441,7 +452,7 @@ select {
 /* Ingedrukt: ook bij tikken zichtbaar (bedoeld). Staat na hover, dus wint bij gelijke specificiteit. */
 :where(
     .btn--quiet,
-    .pill:not([aria-pressed='true']),
+    .pill:not([aria-pressed='true'], [aria-expanded='true']),
     .iconbtn,
     .linkbtn,
     .linkbtn--plain,
@@ -914,12 +925,12 @@ select {
 .acct.is-in > img {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+  width: var(--avatar);
+  height: var(--avatar);
+  border-radius: var(--radius-round);
   background: var(--accent);
   color: var(--on-accent);
-  font-weight: 800;
+  font-weight: var(--fw-head);
   object-fit: cover;
 }
 
@@ -968,29 +979,32 @@ select {
   padding-inline-end: var(--s2);
 }
 
-/* ---------- Bediening ---------- */
+/* ---------- Bediening ----------
+   Knoppen (.btn), pillen (.pill) en icoonknoppen (.iconbtn): drie hoogtes (36 met .hit, 44,
+   52), steeds een pil, behalve de icoonknop (--radius-control). Hover en druk komen van de
+   interactielaag onder Basis; .btn mengt zijn eigen vlak. */
 .iconbtn {
   flex: none;
   display: inline-grid;
   place-items: center;
-  width: var(--tap);
-  height: var(--tap);
+  width: var(--control-md);
+  height: var(--control-md);
   border: 0;
-  border-radius: var(--radius);
+  border-radius: var(--radius-control);
   background: none;
   color: var(--ink-3); /* bediening is stil; de inhoud gaat voor */
   cursor: pointer;
   text-decoration: none;
 }
-.iconbtn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
 .iconbtn.is-spinning svg {
-  animation: spin 0.9s linear infinite;
+  animation: spin var(--dur-spin) linear infinite;
 }
-.save.is-on {
-  color: var(--accent);
+/* Gekozen bij een icoonknop (bewaard, filter aan, voorkeursbron): alleen het icoon in accent,
+   geen vlak. Het gewicht blijft gelijk. */
+.save.is-on,
+.filterbtn.is-on,
+.srow__star.is-on {
+  color: var(--sel-fg);
 }
 
 @keyframes spin {
@@ -999,32 +1013,159 @@ select {
   }
 }
 
+/* Knop: een vlak in inkt (hoofdknop), in accent (alleen de nieuwe-berichtenpil) of zonder vlak
+   (tweede knop). Het vlak komt uit --btn-fill, zodat hover en druk het voor elke variant mengen. */
 .btn {
+  --btn-fill: var(--ink);
+  --btn-ink: var(--paper);
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: var(--tap);
+  gap: var(--s2);
+  min-height: var(--control-md);
   padding: 0 var(--s5);
-  border: 1px solid var(--ink); /* zwart, net als de knop in de onboarding; rood is voor wat gekozen is */
+  border: 1px solid transparent;
   border-radius: var(--radius-pill);
-  background: var(--ink);
-  color: var(--paper);
-  font-weight: 800;
+  background: var(--btn-fill);
+  color: var(--btn-ink);
   font-size: var(--t2);
+  line-height: var(--lh-2);
+  font-weight: var(--fw-head);
+  white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease);
 }
-.btn:disabled {
-  opacity: 0.5;
+.btn svg {
+  flex: none;
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+@media (hover: hover) {
+  .btn:not(.btn--quiet):hover:not(:disabled, [aria-busy='true']) {
+    background-color: color-mix(in srgb, var(--btn-fill) var(--mix-hover), var(--paper));
+  }
+}
+.btn:not(.btn--quiet):active:not(:disabled, [aria-busy='true']) {
+  background-color: color-mix(in srgb, var(--btn-fill) var(--mix-press), var(--paper));
+}
+/* Bezig: de knop houdt zijn breedte, het label valt weg en in het midden draait een teken. */
+.btn[aria-busy='true'] {
+  color: transparent;
   cursor: default;
 }
-.btn--quiet {
-  background: none;
-  color: var(--accent);
-  border-color: var(--rule);
+.btn[aria-busy='true']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  margin: auto;
+  border: var(--spin-w) solid var(--btn-ink);
+  border-right-color: transparent;
+  border-radius: var(--radius-round);
+  animation: spin var(--dur-spin) linear infinite;
 }
-.btn--wide {
-  width: 100%;
+.btn--lg {
+  min-height: var(--control-lg);
+  padding: 0 var(--s6);
+  font-size: var(--t3);
+  line-height: var(--lh-3);
+}
+.btn--accent {
+  --btn-fill: var(--accent);
+  --btn-ink: var(--on-accent);
+  padding: 0 var(--s4);
+  font-weight: var(--fw-action);
+  box-shadow: var(--shadow-float);
+}
+.btn--quiet {
+  --btn-ink: var(--action);
+  border-color: var(--rule);
+  background: none;
+}
+
+/* Pil: een keuze of een kleine actie. md 44; sm 36 met .hit (44 raakvlak); gestippeld voor een
+   begrip dat uitklapt. Gekozen staat hieronder, in één regel voor alle pillen. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s1);
+  min-height: var(--control-md); /* groeit mee met grote tekst */
+  padding: 0 var(--s4);
+  border: 1px solid var(--rule); /* decoratief: het label maakt hem herkenbaar */
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--ink);
+  font-size: var(--t2);
+  line-height: var(--lh-2);
+  font-weight: var(--fw-ui);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.pill--sm {
+  flex: none;
+  min-height: var(--control-sm);
+  padding: 0 var(--s3);
+  font-size: var(--t1);
+  line-height: var(--lh-1);
+}
+/* Met een bronlogo vooraan: het logo staat concentrisch in de pil. */
+.pill--person {
+  gap: var(--s2);
+  padding-left: calc((var(--control-sm) - var(--slot-sm)) / 2);
+}
+.pill--person[aria-pressed='true'] {
+  padding-left: var(--s3); /* het vinkje staat vooraan, niet het logo */
+}
+.pill--dashed {
+  border-style: dashed;
+  border-color: var(--edge); /* de stippel zegt "begrip, klapt uit": een lijn die iets betekent */
+  color: var(--ink-2);
+}
+.pill--dashed[aria-expanded='true'] {
+  border-style: solid;
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+/* Gekozen: één regel. Zelfde gewicht als in rust (de breedte verspringt niet), en een vinkje van
+   16 vooraan, zodat aan niet alleen een kleur is. ::after met order −1, want ::before is het
+   raakvlak van .hit. Dat geldt voor elke pil, ook bij enkele keuze (Mijn/Alle bronnen, Soort,
+   Iedereen): gekozen is dan niet alleen een kleur. Uitzonderingen: icoonknoppen (alleen het
+   icoon, zie boven), de segmenten (.seg: de compacte schakelaar, zonder vinkje) en de tegels in
+   Welkom. */
+.pill[aria-pressed='true'],
+.topics__filter[aria-expanded='true'] {
+  border-color: var(--sel-edge);
+  background: var(--sel-bg);
+  color: var(--sel-fg);
+}
+.pill[aria-pressed='true']::after {
+  content: '';
+  order: -1;
+  flex: none;
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  background: currentColor;
+  -webkit-mask: var(--icon-check) center / contain no-repeat;
+  mask: var(--icon-check) center / contain no-repeat;
+}
+
+/* Een rij pillen: in bladen en instellingen alles zichtbaar, niets scrolt. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+/* ChipGroup: een label boven een rij pillen; groepen staan ruim uit elkaar. */
+.chipgroup__label {
+  margin-bottom: var(--s3);
+}
+.chipgroup + .chipgroup {
+  margin-top: var(--s6);
 }
 
 .linkbtn {
@@ -1037,12 +1178,6 @@ select {
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
-}
-
-.chips {
-  display: flex;
-  flex-wrap: wrap; /* in bladen en instellingen: alles zichtbaar, niets scrolt */
-  gap: var(--s2);
 }
 
 /* Rij met mensen in Bluesky: pillen van 36 px in een rij van 44 die horizontaal scrolt, rechts
@@ -1065,17 +1200,6 @@ select {
   color: var(--accent);
   cursor: pointer;
 }
-.vakpick__group {
-  margin-top: var(--s3);
-}
-.vakpick__domain {
-  margin-bottom: var(--s2);
-}
-.vakpick__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s2);
-}
 .topics__scroll {
   flex: 1;
   display: flex;
@@ -1092,26 +1216,15 @@ select {
 .topics__scroll::-webkit-scrollbar {
   display: none;
 }
-.chip.chip--sm {
-  position: relative;
-  flex: none;
-  min-height: 36px;
-  padding: 2px var(--s3); /* geen --s0 op het web: een onbekende waarde wist de hele padding */
-  font-size: var(--t1);
-}
-.chip--sm::before {
-  content: ''; /* aanraakdoel loopt door tot 44 px */
-  position: absolute;
-  inset: -4px 0;
-}
+/* Iemand volgen: een ronde icoonknop met rand, rechts naast de pillen en even hoog als zij (36,
+   met .hit 44 raakvlak; de marge houdt hem op hun midden, ook als de rij bovenaan uitlijnt).
+   Open = gekozen. */
 .topics__filter {
-  position: relative;
+  width: var(--control-sm);
+  height: var(--control-sm);
+  margin-block: var(--s1);
   border: 1px solid var(--edge);
-  border-radius: var(--radius-pill);
-}
-.topics__filter.is-on {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-radius: var(--radius-round);
 }
 @media (min-width: 960px) {
   .topics__scroll {
@@ -1126,38 +1239,6 @@ select {
   .vh__sub--wide {
     display: block;
   }
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s2);
-  min-height: var(--tap); /* groeit mee met grote tekst */
-  padding: var(--s1) var(--s4);
-  border: 1px solid var(--rule); /* decoratief: het label maakt hem herkenbaar */
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--ink);
-  font-size: var(--t2);
-  font-weight: 600;
-  line-height: var(--lh-ui);
-  cursor: pointer;
-}
-.chip[aria-pressed='true'],
-.textbtn[aria-pressed='true'] {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-/* Aan is niet alleen een kleur: ook een vinkje, zoals in de app */
-.chip[aria-pressed='true']::after {
-  content: '✓';
-  order: -1;
-  font-weight: 800;
-}
-.chip:disabled {
-  opacity: 0.45;
-  cursor: default;
 }
 
 .input {
@@ -1621,7 +1702,7 @@ select {
 }
 
 /* ---------- Beweging ---------- */
-.chip {
+.pill {
   transition:
     background-color var(--dur-1) var(--ease),
     color var(--dur-1) var(--ease),
@@ -1826,41 +1907,31 @@ select {
 }
 
 /* ---------- Stroom ---------- */
+/* Nieuwe berichten: een .btn--accent die bovenaan blijft staan terwijl je leest. */
 .newpill {
-  font-size: var(--t2);
   position: sticky;
-  top: calc(var(--safe-t) + 8px);
-  z-index: 10;
+  top: calc(var(--safe-t) + var(--s2));
+  z-index: var(--z-pill);
   display: flex;
-  align-items: center;
-  gap: var(--s2);
   width: max-content;
   max-width: 100%;
-  min-height: var(--tap);
   margin: var(--s3) auto 0;
-  padding: 0 var(--s4);
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--accent);
-  color: var(--on-accent);
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
 }
 
+/* Terug naar boven: een ronde knop die zweeft, rechtsonder. */
 .totop {
   position: sticky;
-  bottom: 16px;
+  bottom: var(--s4);
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
+  width: var(--control-md);
+  height: var(--control-md);
   margin: 0 var(--gutter) var(--s4) auto;
-  border: 1px solid var(--rule);
-  border-radius: 50%;
-  background: var(--surface);
-  color: var(--accent);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  border: 1px solid var(--elev-edge); /* zwevend vlak: in donker een haarlijn */
+  border-radius: var(--radius-round);
+  background: var(--elev-1);
+  color: var(--action);
+  box-shadow: var(--shadow-float);
   cursor: pointer;
 }
 
@@ -2268,27 +2339,6 @@ select {
   color: var(--ink-3);
   font-size: var(--t1);
   line-height: var(--lh-1);
-}
-
-/* Knop met tekst in de kop van een scherm (alleen breed scherm: het vergelijkpaneel) */
-.textbtn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s2);
-  height: var(--tap);
-  padding: 0 var(--s4);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--ink-2);
-  font-size: var(--t2);
-  line-height: var(--lh-ui);
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    background-color var(--dur-1) var(--ease),
-    color var(--dur-1) var(--ease);
 }
 
 /* Gedeelde link in een sociale bijdrage: compacte kaart in plaats van een groot beeld */
@@ -3050,6 +3100,7 @@ select {
   }
 }
 
+/* Sluiten in een melding: in de tekstkleur van de melding, dus ook de hoverlaag. */
 .toast__x {
   color: inherit;
 }
@@ -3272,24 +3323,11 @@ html[data-images='hoofd'] .media--social {
   }
 }
 
-/* Kleine knop in de metaregel (AI-overzicht) */
-.textbtn--sm {
-  position: relative;
-  height: 36px;
-  padding: 0 var(--s3);
-  font-size: var(--t1);
-}
 .edmeta__acts {
   display: inline-flex;
   gap: var(--s2);
   margin-left: auto;
 }
-.textbtn--sm::before {
-  content: ''; /* aanraakdoel loopt door tot 44 px */
-  position: absolute;
-  inset: -4px 0;
-}
-
 /* Buiten je bubbel */
 .bubble {
   margin-top: var(--s2);
@@ -3304,10 +3342,6 @@ html[data-images='hoofd'] .media--social {
 }
 
 /* ---------- Bluesky ---------- */
-.chip--person {
-  gap: var(--s2);
-  padding-left: var(--s1);
-}
 .plus {
   font-size: var(--t5);
   font-weight: 400;
@@ -3378,32 +3412,11 @@ html[data-images='hoofd'] .media--social {
   margin-top: var(--s2);
   font-family: var(--sans);
 }
+/* De knoppen zijn .pill.pill--sm.pill--dashed.hit; de rijafstand houdt de raakvlakken vrij. */
 .terms__row {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--s1) var(--s2);
-}
-.terms__btn {
-  min-height: 32px;
-  padding: 0 var(--s3);
-  border: 1px dashed var(--rule);
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--ink-2);
-  font-size: var(--t1);
-  font-weight: 700;
-  cursor: pointer;
-  position: relative;
-}
-.terms__btn::before {
-  content: ''; /* aanraakdoel 44 px */
-  position: absolute;
-  inset: -6px 0;
-}
-.terms__btn[aria-expanded='true'] {
-  border-style: solid;
-  border-color: var(--accent);
-  color: var(--accent);
+  gap: var(--s2);
 }
 .terms__box {
   max-width: 60ch;
@@ -3842,12 +3855,9 @@ html[data-images='hoofd'] .media--social {
   margin-top: var(--s2);
 }
 
-/* Voorkeursbron: de ster naast de schakelaar */
+/* Voorkeursbron: de ster naast de schakelaar (aan: zie Bediening) */
 .srow__star {
   color: var(--ink-3);
-}
-.srow__star.is-on {
-  color: var(--accent);
 }
 
 /* ---------- Stroom: de lijn (rubrieken links, bronnen rechts) ----------
@@ -4269,22 +4279,20 @@ html[data-images='hoofd'] .media--social {
   transform: translateX(calc(-1 * var(--s2)));
 }
 
-/* Filterknop (soort) in de kop van de Stroom: aan = accent, met een stip */
+/* Filterknop (soort) in de kop van de Stroom: aan = accent (zie Bediening), met een stip op de
+   rechterbovenhoek van het icoon. */
 .filterbtn {
   position: relative;
 }
-.filterbtn.is-on {
-  color: var(--accent);
-}
 .filterbtn__dot {
   position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 2px var(--paper);
+  top: calc((var(--control-md) - var(--icon) - var(--dot)) / 2);
+  right: calc((var(--control-md) - var(--icon) - var(--dot)) / 2);
+  width: var(--dot);
+  height: var(--dot);
+  border-radius: var(--radius-round);
+  background: var(--sel-fg);
+  box-shadow: var(--ring-cut);
 }
 
 /* Niets voor deze keuze: één stille regel waar het eerste bericht zou staan, met de weg terug
@@ -4319,19 +4327,41 @@ html[data-images='hoofd'] .media--social {
   display: inline-flex;
   gap: var(--s2);
 }
-.taste__btn {
-  min-height: var(--tap);
-  padding: 0 var(--s3);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  color: var(--ink);
-  font: 600 var(--t1) / 1 var(--sans);
-  cursor: pointer;
-}
 .taste__said {
   font-size: var(--t1);
   color: var(--ink-3);
+}
+/* Open, of na de keuze: past de rij niet meer op één regel (telefoon, de zijkolom van de
+   voorpagina, grote tekst), dan gaan de keuzes met de bewaarknop naar een eigen regel eronder,
+   bewaren rechts op zijn plek. Bron en "Vergelijk" blijven staan waar ze stonden; de volgorde
+   blijft die van de DOM en niets loopt de kolom uit. De rij meet zichzelf, dus ook goed met het
+   paneel open. */
+.meta:has(> :is(.taste, .taste__said)),
+.fitem__act:has(.taste, .taste__said) {
+  container: taste / inline-size;
+  flex-wrap: wrap;
+  row-gap: 0;
+}
+@container taste (max-width: 38rem) {
+  /* Een lege breuk na bron en "Vergelijk"; die houden de plek van ⋯ en bewaren vrij. */
+  .meta:has(> :is(.taste, .taste__said))::before {
+    content: '';
+    order: 1;
+    flex-basis: 100%;
+  }
+  .meta > :is(.taste, .taste__said, .save) {
+    order: 2;
+  }
+  .meta > :is(.morebtn, .srcbtn:has(+ :is(.taste, .taste__said))) {
+    margin-inline-end: calc(2 * (var(--control-md) + var(--s1)));
+  }
+  .meta > .save {
+    margin-inline-start: auto;
+  }
+  .fitem__btns {
+    flex-basis: 100%;
+    justify-content: space-between;
+  }
 }
 .lessnote {
   display: flex;

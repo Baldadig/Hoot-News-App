@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import { ViewHeader, Empty, Skeleton, LoadError } from '../components/Shell.jsx'
 import { SaveButton, SourceMark, useHoot } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
+import { ChipGroup } from '../components/ChipGroup.jsx'
 import { MegaphoneIcon, CursorIcon, PaletteIcon, SparkleIcon, CartIcon, MagnifierIcon, TagIcon, CodeIcon, KanbanIcon, RocketIcon, BriefcaseIcon, INTEREST_ICONS } from '../components/icons.jsx'
 import { timeAgo } from '../lib/time.js'
 import { fitsHero, fitsLarge } from '../lib/img.js'
@@ -114,16 +115,13 @@ export default function Vak({ active, digest, status, onRefresh }) {
           <details className="vakpick" open={!chosen.length}>
             <summary className="vakpick__sum">{chosen.length ? `Onderwerpen (${chosen.length})` : 'Kies onderwerpen'}</summary>
             {vakByDomain().map((d) => (
-              <div key={d.id} className="vakpick__group" role="group" aria-label={d.label}>
-                <h3 className="label label--meta vakpick__domain">{d.label}</h3>
-                <div className="vakpick__chips">
-                  {d.fields.map((f) => (
-                    <button key={f.id} type="button" className="chip chip--sm" aria-pressed={chosen.includes(f.id)} onClick={() => toggle(f.id)}>
-                      {f.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <ChipGroup key={d.id} label={d.label} listClassName="vakpick__chips">
+                {d.fields.map((f) => (
+                  <button key={f.id} type="button" className="pill pill--sm hit" aria-pressed={chosen.includes(f.id)} onClick={() => toggle(f.id)}>
+                    {f.label}
+                  </button>
+                ))}
+              </ChipGroup>
             ))}
           </details>
         </ViewHeader>

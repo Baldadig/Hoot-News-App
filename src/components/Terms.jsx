@@ -13,7 +13,7 @@ export function TermHelp({ text, max = 2 }) {
     <div className="terms">
       <div className="terms__row">
         {terms.map((t) => (
-          <button key={t.term} type="button" className="terms__btn" aria-expanded={open === t.term} aria-controls={id} onClick={() => setOpen((o) => (o === t.term ? null : t.term))}>
+          <button key={t.term} type="button" className="pill pill--sm pill--dashed hit" aria-expanded={open === t.term} aria-controls={id} onClick={() => setOpen((o) => (o === t.term ? null : t.term))}>
             Uitleg: {t.term}
           </button>
         ))}

@@ -115,10 +115,10 @@ export function TasteButton({ entryKey, item, story }) {
   if (said) return <span className="taste__said" role="status">{said}</span>
   return open ? (
     <span className="taste" role="group" aria-label="Meer of minder hiervan">
-      <button type="button" className="taste__btn" onClick={() => pick(1)}>
+      <button type="button" className="pill pill--sm hit" onClick={() => pick(1)}>
         Meer hiervan
       </button>
-      <button type="button" className="taste__btn" onClick={() => pick(-1)}>
+      <button type="button" className="pill pill--sm hit" onClick={() => pick(-1)}>
         Minder hiervan
       </button>
     </span>

@@ -45,10 +45,10 @@ export default function Search({ onBack, backLabel = 'Terug' }) {
             <input id="q" data-skip ref={inputRef} type="search" className="input" placeholder="Zoek op woord, bron of auteur" value={q} onChange={(e) => setQ(e.target.value)} enterKeyHint="search" autoComplete="off" />
           </form>
           <div className="chips scope" role="group" aria-label="Waar zoeken">
-            <button type="button" className="chip" aria-pressed={scope === 'mijn'} onClick={() => setScope('mijn')}>
+            <button type="button" className="pill" aria-pressed={scope === 'mijn'} onClick={() => setScope('mijn')}>
               Mijn bronnen
             </button>
-            <button type="button" className="chip" aria-pressed={scope === 'alle'} onClick={() => setScope('alle')}>
+            <button type="button" className="pill" aria-pressed={scope === 'alle'} onClick={() => setScope('alle')}>
               Alle bronnen
             </button>
           </div>
