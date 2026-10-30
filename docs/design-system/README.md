@@ -110,6 +110,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 - `dur-1` (140 ms) voor een directe reactie (bewaren, chip), `dur-2` (200 ms) voor iets dat in beeld komt; curve `ease`, `cubic-bezier(0.2, 0.7, 0.2, 1)`.
 - `dur-3` (400 ms) voor iets dat van plek wisselt: de bronnenstapel die uitwaaiert en de rode streep onder de rubrieken. Curve `ease-glide`, `cubic-bezier(0.2, 0.8, 0.2, 1)`: vlot weg, zacht geland.
 - Alleen dekking, verplaatsing en kleur; nooit iets dat de leespositie verschuift. Alles valt weg bij Verminder beweging.
+- Merkbeweging (brandboard §03, `src/lib/motion.js`): de iris in Welkom sluit het merkrood in 700 ms (`cubic-bezier(0.6, 0, 0.2, 1)`) tot de punt van het kleine woordmerk op papier, en opent bij Terug weer (`cubic-bezier(0.8, 0, 0.4, 1)`); de laatste 40 % kleurt het rood mee naar `accent` (in donker koraal). Dit loopt via de Web Animations API, buiten de CSS-regel voor Verminder beweging, en wordt daar één fade van 350 ms.
 
 ## Toestanden
 

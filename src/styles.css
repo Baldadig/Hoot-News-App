@@ -2693,14 +2693,23 @@ select.input {
   overflow-y: auto;
   background: var(--paper);
 }
+.ob__head,
 .ob__col,
 .ob__foot .col {
   width: 100%; /* in de flex-kolom anders zo smal als de inhoud: één linkerlijn op elk scherm */
   max-inline-size: var(--measure);
 }
+/* De bovenregel staat los van de inhoud, zoals topRow in de app buiten de ScrollView: op elke
+   stap op dezelfde plek, ook vanaf 720 waar de inhoud verticaal in het midden staat. Zo valt het
+   woordmerk op rood precies op dat op papier, en sluit de iris op de punt waar hij hoort. */
+.ob__head {
+  flex: none;
+  padding-top: calc(var(--safe-t) + var(--head-y));
+  padding-bottom: 0;
+}
 .ob__col {
   flex: 1;
-  padding-top: calc(var(--safe-t) + var(--head-y));
+  padding-top: 0;
   padding-bottom: var(--s5);
 }
 .ob__top {
@@ -2725,7 +2734,7 @@ select.input {
   font-size: var(--t3);
 }
 /* Het kleine woordmerk met punt (BrandLogo, 20 hoog ≈ 65 breed; iOS WelcomeMark 0,4 × 160), op
-   elke stap op dezelfde plek: het opstartscherm landt erop en de iris sluit tot de punt. */
+   elke stap op dezelfde plek (.ob__head): het opstartscherm landt erop en de iris sluit tot de punt. */
 .ob__brand {
   display: block;
 }
@@ -2770,6 +2779,19 @@ select.input {
 }
 .ob--open .ob__n small {
   color: var(--on-brand-red); /* op rood is de hele teller papier (iOS counter) */
+}
+/* De rode intro is een eigen laag over de papieren stap heen: de schijf van de iris. Dezelfde
+   kolomopbouw (.ob__col + .ob__foot), scrolt zelf, en ligt boven de sticky knoprij van het papier
+   (--z-sticky). De clip-path en de tint komen uit lib/motion.js (Web Animations API, ook bij
+   Minder beweging een fade): hier geen transition. */
+.ob__red {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-pill);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  will-change: clip-path;
 }
 .ob__hero {
   margin-top: var(--s5);
@@ -3034,9 +3056,10 @@ select.input {
   outline: none;
 }
 
-/* Vanaf 720: inhoud en knop als één blok, verticaal in het midden van het scherm (de lucht
-   gelijk boven en onder), met de knop --s6 onder de inhoud en op elk scherm even breed. Bij
-   een lange lijst (bronnen) is er geen lucht over: dan blijft de knop onderaan in beeld. */
+/* Vanaf 720: inhoud en knop als één blok, verticaal in het midden tussen de bovenregel en de
+   onderkant (de lucht gelijk boven en onder), met de knop --s6 onder de inhoud en op elk scherm
+   even breed. Bij een lange lijst (bronnen) is er geen lucht over: dan blijft de knop onderaan
+   in beeld. */
 @media (min-width: 720px) {
   .ob__col {
     flex: none;
