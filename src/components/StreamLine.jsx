@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { SourceMark } from './Items.jsx'
-import { StackIcon, CheckIcon, CaretIcon } from './icons.jsx'
+import { StackIcon, CheckIcon, CaretIcon, ICON_SM } from './icons.jsx'
 import { LOGO, SMALL, STEP, PEEK, STEP_OPEN, TAP, GAP, EDGE, PAD, STRIP_FADE, plek, stapel, keuzeLabel, inRijVolgorde, stapelTeksten, zeg, bezier } from '../lib/streamline.js'
 
 // De lijn bovenaan de Stroom (voorstel 4, "Krantenrubrieken"): de rubrieken in de krantenletter op
@@ -565,10 +565,10 @@ export function StreamLine({ rubrieken, active, onRubriek, bronnen = [], picks, 
           </div>
           {/* Pijltjes (alleen breed scherm): in de eindkap, nooit over tekst */}
           <button ref={prevRef} type="button" className="rub__more rub__more--prev" tabIndex={-1} aria-hidden="true" title="Vorige rubrieken" onClick={() => nudge(-1)}>
-            <CaretIcon />
+            <CaretIcon size={ICON_SM} />
           </button>
           <button ref={nextRef} type="button" className="rub__more rub__more--next" tabIndex={-1} aria-hidden="true" title="Meer rubrieken" onClick={() => nudge(1)}>
-            <CaretIcon />
+            <CaretIcon size={ICON_SM} />
           </button>
         </div>
         {sources ? (

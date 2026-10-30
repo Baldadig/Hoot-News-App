@@ -1,18 +1,25 @@
-// Iconen: Phosphor Duotone (MIT, phosphoricons.com). Lijn met een zachte tweede tint in de
-// tekstkleur; zo volgen ze vanzelf de kleur van de knop of het accent.
-// Gegenereerd uit @iconify-json/ph; om te wijzigen: zie scripts/icons.mjs.
+// Iconen: één familie, Phosphor (MIT, phosphoricons.com), in de tekstkleur; zo volgen ze vanzelf
+// de kleur van de knop of het accent. Gegenereerd uit @iconify-json/ph; om te wijzigen: zie scripts/icons.mjs.
+// Twee gewichten, met dezelfde lijn van 16 op 256 (bij 22 px: 1,4 px):
+// - Navigatie en gereedschap: duotone, de lijn met een zachte tweede tint (.2) erin.
+// - Bediening (sluiten, terug, caret): regular, alleen de lijn, zonder tint of tegel.
+// Maat: `size` volgt --icon (22, standaard) en --icon-sm (16: vinkje, caret in een rij, icoon in een pil).
+export const ICON = 22
+export const ICON_SM = 16
+
 const icon = (body) =>
-  function Icon() {
-    return <svg viewBox="0 0 256 256" width="22" height="22" fill="currentColor" aria-hidden="true" dangerouslySetInnerHTML={{ __html: body }} />
+  function Icon({ size = ICON }) {
+    return <svg viewBox="0 0 256 256" width={size} height={size} fill="currentColor" aria-hidden="true" dangerouslySetInnerHTML={{ __html: body }} />
   }
 
 export const EditionIcon = icon("<g fill=\"currentColor\"><path d=\"M224 64v120a16 16 0 0 1-16 16H32a16 16 0 0 0 16-16V64a8 8 0 0 1 8-8h160a8 8 0 0 1 8 8\" opacity=\".2\"/><path d=\"M88 112a8 8 0 0 1 8-8h80a8 8 0 0 1 0 16H96a8 8 0 0 1-8-8m8 40h80a8 8 0 0 0 0-16H96a8 8 0 0 0 0 16m136-88v120a24 24 0 0 1-24 24H32a24 24 0 0 1-24-23.89V88a8 8 0 0 1 16 0v96a8 8 0 0 0 16 0V64a16 16 0 0 1 16-16h160a16 16 0 0 1 16 16m-16 0H56v120a23.8 23.8 0 0 1-1.37 8H208a8 8 0 0 0 8-8Z\"/></g>")
 export const StreamIcon = icon("<g fill=\"currentColor\"><path d=\"M216 70.39v112c-72 59.69-104-56.47-176 3.22v-112c72-59.69 104 56.47 176-3.22\" opacity=\".2\"/><path d=\"M222.16 177.25a8 8 0 0 1-1 11.25c-17.36 14.39-32.86 19.5-47 19.5c-18.58 0-34.82-8.82-49.93-17c-25.35-13.76-47.24-25.64-79.07.74a8 8 0 1 1-10.22-12.31c40.17-33.28 70.32-16.92 96.93-2.48c25.35 13.75 47.24 25.63 79.07-.74a8 8 0 0 1 11.22 1.04m-11.27-57c-31.83 26.38-53.72 14.5-79.07.74c-26.61-14.43-56.76-30.79-96.93 2.49a8 8 0 0 0 10.22 12.31c31.83-26.38 53.72-14.5 79.07-.74c15.11 8.19 31.35 17 49.93 17c14.14 0 29.64-5.11 47-19.5a8 8 0 1 0-10.22-12.31ZM45.11 79.8c31.83-26.37 53.72-14.49 79.07-.74c15.11 8.2 31.35 17 49.93 17c14.14 0 29.64-5.12 47-19.5a8 8 0 1 0-10.22-12.31c-31.83 26.38-53.72 14.5-79.07.74c-26.61-14.41-56.76-30.77-96.93 2.51a8 8 0 1 0 10.22 12.3\"/></g>")
 export const SourcesIcon = icon("<g fill=\"currentColor\"><path d=\"M216 192H64V40a152 152 0 0 1 152 152\" opacity=\".2\"/><path d=\"M224 192a8 8 0 0 1-16 0c0-79.4-64.6-144-144-144a8 8 0 0 1 0-16c88.22 0 160 71.78 160 160M64 104a8 8 0 0 0 0 16a72.08 72.08 0 0 1 72 72a8 8 0 0 0 16 0a88.1 88.1 0 0 0-88-88m4 72a12 12 0 1 0 12 12a12 12 0 0 0-12-12\"/></g>")
 export const SearchIcon = icon("<g fill=\"currentColor\"><path d=\"M192 112a80 80 0 1 1-80-80a80 80 0 0 1 80 80\" opacity=\".2\"/><path d=\"m229.66 218.34l-50.06-50.06a88.21 88.21 0 1 0-11.32 11.31l50.06 50.07a8 8 0 0 0 11.32-11.32M40 112a72 72 0 1 1 72 72a72.08 72.08 0 0 1-72-72\"/></g>")
-export const RefreshIcon = icon("<g fill=\"currentColor\"><path d=\"M216 128a88 88 0 1 1-88-88a88 88 0 0 1 88 88\" opacity=\".2\"/><path d=\"M240 56v48a8 8 0 0 1-8 8h-48a8 8 0 0 1 0-16h27.4l-26.59-24.36l-.25-.24a80 80 0 1 0-1.67 114.78a8 8 0 0 1 11 11.63A95.44 95.44 0 0 1 128 224h-1.32a96 96 0 1 1 69.07-164L224 85.8V56a8 8 0 1 1 16 0\"/></g>")
-export const BackIcon = icon("<g fill=\"currentColor\"><path d=\"M160 48v160l-80-80Z\" opacity=\".2\"/><path d=\"M163.06 40.61a8 8 0 0 0-8.72 1.73l-80 80a8 8 0 0 0 0 11.32l80 80A8 8 0 0 0 168 208V48a8 8 0 0 0-4.94-7.39M152 188.69L91.31 128L152 67.31Z\"/></g>")
-export const CloseIcon = icon("<g fill=\"currentColor\"><path d=\"M216 56v144a16 16 0 0 1-16 16H56a16 16 0 0 1-16-16V56a16 16 0 0 1 16-16h144a16 16 0 0 1 16 16\" opacity=\".2\"/><path d=\"M205.66 194.34a8 8 0 0 1-11.32 11.32L128 139.31l-66.34 66.35a8 8 0 0 1-11.32-11.32L116.69 128L50.34 61.66a8 8 0 0 1 11.32-11.32L128 116.69l66.34-66.35a8 8 0 0 1 11.32 11.32L139.31 128Z\"/></g>")
+// Verversen: de tint blijft binnen de ring (r 80), anders loopt hij in de opening bij de pijl uit en oogt het icoon vaal.
+export const RefreshIcon = icon("<g fill=\"currentColor\"><path d=\"M208 128a80 80 0 1 1-80-80a80 80 0 0 1 80 80\" opacity=\".2\"/><path d=\"M240 56v48a8 8 0 0 1-8 8h-48a8 8 0 0 1 0-16h27.4l-26.59-24.36l-.25-.24a80 80 0 1 0-1.67 114.78a8 8 0 0 1 11 11.63A95.44 95.44 0 0 1 128 224h-1.32a96 96 0 1 1 69.07-164L224 85.8V56a8 8 0 1 1 16 0\"/></g>")
+// Sluiten: Phosphor "X" regular, alleen het kruis (geen tegel erachter).
+export const CloseIcon = icon("<path fill=\"currentColor\" d=\"M205.66 194.34a8 8 0 0 1-11.32 11.32L128 139.31l-66.34 66.35a8 8 0 0 1-11.32-11.32L116.69 128L50.34 61.66a8 8 0 0 1 11.32-11.32L128 116.69l66.34-66.35a8 8 0 0 1 11.32 11.32L139.31 128Z\"/>")
 export const FilterIcon = icon("<g fill=\"currentColor\"><path d=\"M128 80a24 24 0 1 1-24-24a24 24 0 0 1 24 24m40 72a24 24 0 1 0 24 24a24 24 0 0 0-24-24\" opacity=\".2\"/><path d=\"M40 88h33a32 32 0 0 0 62 0h81a8 8 0 0 0 0-16h-81a32 32 0 0 0-62 0H40a8 8 0 0 0 0 16m64-24a16 16 0 1 1-16 16a16 16 0 0 1 16-16m112 104h-17a32 32 0 0 0-62 0H40a8 8 0 0 0 0 16h97a32 32 0 0 0 62 0h17a8 8 0 0 0 0-16m-48 24a16 16 0 1 1 16-16a16 16 0 0 1-16 16\"/></g>")
 export const ArrowUpIcon = icon("<g fill=\"currentColor\"><path d=\"M200 112H56l72-72Z\" opacity=\".2\"/><path d=\"m205.66 106.34l-72-72a8 8 0 0 0-11.32 0l-72 72A8 8 0 0 0 56 120h64v96a8 8 0 0 0 16 0v-96h64a8 8 0 0 0 5.66-13.66M75.31 104L128 51.31L180.69 104Z\"/></g>")
 export const PanelIcon = icon("<g fill=\"currentColor\"><path d=\"M88 48v160H40a8 8 0 0 1-8-8V56a8 8 0 0 1 8-8Z\" opacity=\".2\"/><path d=\"M216 40H40a16 16 0 0 0-16 16v144a16 16 0 0 0 16 16h176a16 16 0 0 0 16-16V56a16 16 0 0 0-16-16M40 56h40v144H40Zm176 144H96V56h120z\"/></g>")
@@ -37,21 +44,34 @@ export const AccountIcon = icon("<g fill=\"currentColor\"><path d=\"M224 128a95.
 export const SparkleIcon = icon("<g fill=\"currentColor\"><path d=\"m194.82 151.43l-55.09 20.3l-20.3 55.09a7.92 7.92 0 0 1-14.86 0l-20.3-55.09l-55.09-20.3a7.92 7.92 0 0 1 0-14.86l55.09-20.3l20.3-55.09a7.92 7.92 0 0 1 14.86 0l20.3 55.09l55.09 20.3a7.92 7.92 0 0 1 0 14.86\" opacity=\".2\"/><path d=\"M197.58 129.06L146 110l-19-51.62a15.92 15.92 0 0 0-29.88 0L78 110l-51.62 19a15.92 15.92 0 0 0 0 29.88L78 178l19 51.62a15.92 15.92 0 0 0 29.88 0L146 178l51.62-19a15.92 15.92 0 0 0 0-29.88ZM137 164.22a8 8 0 0 0-4.74 4.74L112 223.85L91.78 169a8 8 0 0 0-4.78-4.78L32.15 144L87 123.78a8 8 0 0 0 4.78-4.78L112 64.15L132.22 119a8 8 0 0 0 4.74 4.74L191.85 144ZM144 40a8 8 0 0 1 8-8h16V16a8 8 0 0 1 16 0v16h16a8 8 0 0 1 0 16h-16v16a8 8 0 0 1-16 0V48h-16a8 8 0 0 1-8-8m104 48a8 8 0 0 1-8 8h-8v8a8 8 0 0 1-16 0v-8h-8a8 8 0 0 1 0-16h8v-8a8 8 0 0 1 16 0v8h8a8 8 0 0 1 8 8\"/></g>")
 // Alle bronnen: lagen op elkaar (in de stijl van Phosphor "Stack", met de hand getekend).
 export const StackIcon = icon("<path fill=\"currentColor\" d=\"M128 32L32 88l96 56l96-56Z\" opacity=\".2\"/><g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"16\"><path d=\"M128 32L32 88l96 56l96-56Z\"/><path d=\"m32 128l96 56l96-56\"/><path d=\"m32 168l96 56l96-56\"/></g>")
-export const MoreIcon = icon("<g fill=\"currentColor\"><path d=\"M140 128a12 12 0 1 1-12-12a12 12 0 0 1 12 12m56-12a12 12 0 1 0 12 12a12 12 0 0 0-12-12m-136 0a12 12 0 1 0 12 12a12 12 0 0 0-12-12\"/></g>")
+// Meer: Phosphor "DotsThree" bold (stippen van 32). De gewone stippen van 24 ogen naast de duotone
+// iconen te licht; zo weegt het even zwaar als zoeken en account.
+export const MoreIcon = icon("<path fill=\"currentColor\" d=\"M144 128a16 16 0 1 1-16-16a16 16 0 0 1 16 16m-84-16a16 16 0 1 0 16 16a16 16 0 0 0-16-16m136 0a16 16 0 1 0 16 16a16 16 0 0 0-16-16\"/>")
 export const BooksIcon = icon("<g fill=\"currentColor\"><path d=\"M104 40H56a8 8 0 0 0-8 8v160a8 8 0 0 0 8 8h48a8 8 0 0 0 8-8V48a8 8 0 0 0-8-8m120.4 152.27l-33.2-157.8a8 8 0 0 0-9.48-6.2l-46.81 10.06a8.07 8.07 0 0 0-6.15 9.57l33.19 157.8a8 8 0 0 0 9.48 6.2l46.81-10.06a8.09 8.09 0 0 0 6.16-9.57\" opacity=\".2\"/><path d=\"M231.65 194.55L198.46 36.75a16 16 0 0 0-19-12.39L132.65 34.42a16.08 16.08 0 0 0-12.3 19l33.19 157.8A16 16 0 0 0 169.16 224a16.3 16.3 0 0 0 3.38-.36l46.81-10.06a16.09 16.09 0 0 0 12.3-19.03M136 50.15v-.09l46.8-10l3.33 15.87L139.33 66Zm6.62 31.47l46.82-10.05l3.34 15.9L146 97.53Zm6.64 31.57l46.82-10.06l13.3 63.24l-46.82 10.06ZM216 197.94l-46.8 10l-3.33-15.87L212.67 182L216 197.85ZM104 32H56a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h48a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16M56 48h48v16H56Zm0 32h48v96H56Zm48 128H56v-16h48z\"/></g>")
 export const CheckIcon = icon("<path fill=\"currentColor\" d=\"m232.49 80.49l-128 128a12 12 0 0 1-17 0l-56-56a12 12 0 1 1 17-17L96 183L215.51 63.51a12 12 0 0 1 17 17Z\"/>")
-// Meer rubrieken: een pijltje in de eindkap van de Stroom op breed scherm (Phosphor "CaretRight", lijn).
-export const CaretIcon = icon("<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"20\" d=\"m96 48l80 80l-80 80\"/>")
+// Caret (Phosphor "CaretRight" regular, als lijn): één pijltje dat draait voor de richting.
+// Terug (links), een rij of uitklapper (rechts, open: omlaag) en de eindkap van de Stroom.
+// Lijn 16 bij 22 px; bij 16 px 20, zodat hij optisch even zwaar blijft (1,25 px in plaats van 1).
+const TURN = { right: 0, down: 90, left: 180 }
+export function CaretIcon({ dir = 'right', size = ICON }) {
+  return (
+    <svg viewBox="0 0 256 256" width={size} height={size} aria-hidden="true">
+      <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={size < ICON ? 20 : 16} transform={`rotate(${TURN[dir]} 128 128)`} d="m96 48l80 80l-80 80" />
+    </svg>
+  )
+}
+// Terug: dezelfde caret, naar links.
+export const BackIcon = ({ size }) => <CaretIcon dir="left" size={size} />
 
 const bookmarkLine = "<g fill=\"currentColor\"><path d=\"M192 48v176l-64-40l-64 40V48a8 8 0 0 1 8-8h112a8 8 0 0 1 8 8\" opacity=\".2\"/><path d=\"M184 32H72a16 16 0 0 0-16 16v176a8 8 0 0 0 12.24 6.78L128 193.43l59.77 37.35A8 8 0 0 0 200 224V48a16 16 0 0 0-16-16m0 177.57l-51.77-32.35a8 8 0 0 0-8.48 0L72 209.57V48h112Z\"/></g>"
 const bookmarkFill = "<path fill=\"currentColor\" d=\"M184 32H72a16 16 0 0 0-16 16v176a8 8 0 0 0 12.24 6.78L128 193.43l59.77 37.35A8 8 0 0 0 200 224V48a16 16 0 0 0-16-16\"/>"
 const STAR = 'M234.29 114.85l-45 38.83L203 211.75a16.4 16.4 0 0 1-24.5 17.82L128 198.49l-50.53 31.08A16.4 16.4 0 0 1 53 211.75l13.76-58.07l-45-38.83A16.46 16.46 0 0 1 31.08 86l59-4.76l22.76-55.08a16.36 16.36 0 0 1 30.27 0l22.75 55.08l59 4.76a16.46 16.46 0 0 1 9.37 28.86Z'
-export const StarIcon = ({ filled }) => (
-  <svg viewBox="0 0 256 256" width="22" height="22" aria-hidden="true">
+export const StarIcon = ({ filled, size = ICON }) => (
+  <svg viewBox="0 0 256 256" width={size} height={size} aria-hidden="true">
     <path d={STAR} fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="16" strokeLinejoin="round" />
   </svg>
 )
-export const BookmarkIcon = ({ filled }) => <svg viewBox="0 0 256 256" width="22" height="22" fill="currentColor" aria-hidden="true" dangerouslySetInnerHTML={{ __html: filled ? bookmarkFill : bookmarkLine }} />
+export const BookmarkIcon = ({ filled, size = ICON }) => <svg viewBox="0 0 256 256" width={size} height={size} fill="currentColor" aria-hidden="true" dangerouslySetInnerHTML={{ __html: filled ? bookmarkFill : bookmarkLine }} />
 
 // De acht interesses (onboarding, Bronnen, Stroom).
 export const INTEREST_ICONS = {
