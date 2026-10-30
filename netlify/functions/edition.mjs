@@ -1,14 +1,14 @@
-// POST /api/edition — jouw editie van dit dagdeel, voor de iOS-app (die nog geen account heeft).
-// Precies hetzelfde selectiewerk als de website in je browser doet (src/lib/personal.js): uit jouw
-// bronnen, met je interesses, voorkeursbronnen en smaak, en zonder te herhalen wat in je vorige
-// editie stond. De app stuurt die keuzes mee; we bewaren niets.
+// POST /api/edition — jouw editie van dit dagdeel, alleen nog als terugval voor oudere versies van
+// de iOS-app. De Editie wordt voortaan op het toestel zelf samengesteld, met dezelfde code als het web
+// (src/lib/personal.js, De Redacteur). Je leesprofiel (`affinity`) blijft op je toestel: wat een
+// oudere app nog meestuurt, negeren we (bouwspec §0.5, §7). We bewaren niets.
 //
-// Body: { followed: [bron-id], interests: [], topics: [], favorites: [], affinity: { n, topics, sources },
+// Body: { followed: [bron-id], interests: [], topics: [], favorites: [],
 //         taste: { topics, sources } (meer of minder hiervan, ook negatief),
 //         previous: { storyIds: [], itemIds: [], leadIds: [], leadStoryId, at } }
 import { readDoc, KEYS } from '../lib/kv.mjs'
 import { refresh } from '../lib/refresh.mjs'
-import { composePersonal } from '../../src/lib/personal.js'
+import { composePersonal, withoutDebug } from '../../src/lib/personal.js'
 
 const fail = (status, error) => Response.json({ error }, { status, headers: { 'Cache-Control': 'no-store' } })
 const ID = /^[a-z0-9][a-z0-9:._-]{0,79}$/i
@@ -20,12 +20,6 @@ const signed = (o, max = 40) =>
       .filter(([k, v]) => ID.test(k) && Number.isFinite(v))
       .slice(0, max)
       .map(([k, v]) => [k, Math.max(-12, Math.min(12, v))])
-  )
-const counts = (o, max = 60) =>
-  Object.fromEntries(
-    Object.entries(o && typeof o === 'object' ? o : {})
-      .filter(([k, v]) => ID.test(k) && Number.isFinite(v) && v >= 0)
-      .slice(0, max)
   )
 
 export default async (req) => {
@@ -60,9 +54,6 @@ export default async (req) => {
   const previous = p
     ? { storyIds: new Set(ids(p.storyIds)), itemIds: new Set(ids(p.itemIds, 2000)), leadIds: new Set(ids(p.leadIds)), leadStoryId: ID.test(p.leadStoryId || '') ? p.leadStoryId : null, at: Number(p.at) || 0 }
     : null
-  const a = body.affinity && typeof body.affinity === 'object' ? body.affinity : null
-  const affinity = a ? { n: Number.isFinite(Number(a.n)) ? Math.max(0, Number(a.n)) : 0, topics: counts(a.topics), sources: counts(a.sources) } : null
-
   const t = body.taste && typeof body.taste === 'object' ? body.taste : null
   const taste = t ? { topics: signed(t.topics), sources: signed(t.sources) } : null
 
@@ -75,12 +66,13 @@ export default async (req) => {
     interests: ids(body.interests, 20),
     topics: ids(body.topics, 60),
     favorites: ids(body.favorites, 50),
-    affinity,
+    affinity: null, // body.affinity van een oudere app: bewust genegeerd
     taste,
     previous,
   })
   if (!edition) return fail(503, 'Er is nog geen editie.')
-  return Response.json({ edition }, { headers: { 'Cache-Control': 'no-store' } })
+  // Zonder de velden ter inzage (`_parts`, `_plan`): geen punten naar het toestel.
+  return Response.json({ edition: withoutDebug(edition) }, { headers: { 'Cache-Control': 'no-store' } })
 }
 
 export const config = { path: '/api/edition' }
