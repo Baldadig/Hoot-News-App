@@ -217,6 +217,7 @@
   --z-panel: 40;
   --z-toast: 50;
   --z-overlay: 60;
+  --z-splash: 90; /* het opstartscherm: boven alles, ook boven Welkom */
   --z-skip: 100;
 }
 
@@ -3881,6 +3882,29 @@ html[data-images='hoofd'] .media--social {
     white-space: nowrap;
   }
 }
+
+/* Editie, smal: het kleine woordmerk linksboven (BrandLogo 20 hoog, de maat van WelcomeMark in de
+   app), in een rij van --tap op --head-y: precies waar het in Welkom staat (.ob__top), zodat het
+   opstartscherm erop landt en de iris tot zijn punt sluit. De titel volgt op --s2, zoals de teller
+   in Welkom. Vanaf 960 staat het woordmerk in de zijbalk en valt deze rij weg. */
+.edbrand {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  margin-top: var(--head-y);
+}
+.edbrand + .vh {
+  padding-top: var(--s2);
+}
+@media (min-width: 960px) {
+  .edbrand {
+    display: none;
+  }
+}
+
+/* Het opstartscherm (.splash) staat in index.html, mét zijn stijl en de sprong van de punt: het
+   moet er zijn vóór dit bestand geladen is. Het sluiten (iris, landing, fade) komt uit
+   lib/motion.js via components/Splash.jsx. --z-splash hierboven is zijn laag. */
 
 /* Editie: de kop. Titel, één metaregel en de ingang naar het overzicht; de inktlijn eronder
    (--rule-strong) is het begin van het nieuws, net als boven "Verder in deze Editie". Alleen als

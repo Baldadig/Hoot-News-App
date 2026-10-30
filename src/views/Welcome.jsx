@@ -3,12 +3,12 @@ import { SourceMark } from '../components/Items.jsx'
 import { BackButton } from '../components/Shell.jsx'
 import { Disclosure } from '../components/Disclosure.jsx'
 import { ChipGroup } from '../components/ChipGroup.jsx'
-import { BrandLogo } from '../components/Brand.jsx'
+import { BrandLogo, useBrandBar } from '../components/Brand.jsx'
 import { EditionIcon, StreamIcon, BooksIcon, INTEREST_ICONS } from '../components/icons.jsx'
 import { vakByDomain } from '../../shared/vak.mjs'
 import { INTERESTS, topicById, resolveTopics, suggestSources, catLabel, starterGroups } from '../lib/topics.js'
 import { sourcesOn } from '../lib/welcome.js'
-import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, waitFor, sleep, tintTimes, openTimes, reducedPlan, IRIS, IRIS_BACK, IRIS_MS, STEP_OUT_MS, STEP_IN_MS } from '../lib/motion.js'
+import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, waitFor, sleep, tintTimes, openTimes, reducedPlan, rootColor, IRIS, IRIS_BACK, IRIS_MS, STEP_OUT_MS, STEP_IN_MS } from '../lib/motion.js'
 
 // Onboarding in vijf schermen, gelijk aan de app (ios/Hoot/Views/WelcomeView.swift): uitleg →
 // interesses (tegels) → onderwerpen (chips) → bronnen → je vak (voor de Selectie). Alles met tikken;
@@ -37,20 +37,8 @@ const GROUPS = [
   { cat: 'vl', folded: true },
 ].map((g) => ({ ...g, label: catLabel(g.cat) }))
 
-// Kleuren van de iris, gelezen op :root (binnen .ob--open is --accent papier): merkrood, en de
-// kleur van de punt waar het rood naartoe kleurt (in donker koraal).
-const rootColor = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
-
-// Zolang het rood staat, kleurt de browserbalk mee (iOS verbergt dan de statusbalk).
-function useThemeColor(on) {
-  useEffect(() => {
-    if (!on) return
-    const metas = [...document.querySelectorAll('meta[name="theme-color"]')]
-    const was = metas.map((m) => m.content)
-    metas.forEach((m) => (m.content = rootColor('--brand-red') || '#a3201b'))
-    return () => metas.forEach((m, i) => (m.content = was[i]))
-  }, [on])
-}
+// Kleuren van de iris via rootColor (lib/motion.js), gelezen op :root (binnen .ob--open is
+// --accent papier): merkrood, en de kleur van de punt waar het rood naartoe kleurt (in donker koraal).
 
 export default function Welcome({ sources, prefs, muted = new Set(), onDone, onClose = null, onSignIn = null }) {
   const reopen = !!onClose
@@ -71,7 +59,7 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
   const redRef = useRef(null) // de rode laag
   const afterOpen = useRef(null) // wat er gebeurt zodra het rood weer open is (Terug)
   const paper = quick || step > 0 // er is een papieren stap getekend
-  useThemeColor(red)
+  useBrandBar(red) // zolang het rood staat, kleurt de browserbalk mee
 
   const topics = useMemo(() => resolveTopics(interests, picked), [interests, picked])
   const pickable = sources.filter((s) => s.followed && s.kind !== 'sociaal')

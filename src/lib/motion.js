@@ -1,4 +1,4 @@
-// Merkbeweging die buiten de CSS valt: de iris in Welkom (en straks het opstartscherm en de
+// Merkbeweging die buiten de CSS valt: de iris in Welkom, het opstartscherm (en straks de
 // overvloeier naar de Editie). De regel voor Minder beweging onderaan styles.css zet élke
 // CSS-animatie en -transition uit met !important, dus daar kan geen fade mee. Daarom loopt
 // alles hier via de Web Animations API (el.animate), die niet onder die regel valt, en kiest
@@ -13,6 +13,20 @@ export const IRIS_MS = 700
 export const FADE_MS = 350
 export const STEP_OUT_MS = 80 // tussen papieren stappen: even uit (WelcomeView.go)
 export const STEP_IN_MS = 120 // en weer in
+
+// Het opstartscherm (index.html + components/Splash.jsx, naar SplashView/HootApp.swift): de punt
+// stuitert in sprongen van 1,6 s (CSS @keyframes in index.html; bij Minder beweging staat hij stil);
+// het scherm staat minstens één sprong en hooguit 5 s, tot de Editie er is. Dan sluit het rood als
+// iris in 0,6 s tot de punt van het kleine "hoot." (Editie of zijbalk), of landt het woordmerk in
+// 0,7 s op de rode intro van Welkom (het rood blijft).
+export const BOUNCE_MS = 1600
+export const SPLASH_MAX_MS = 5000
+export const SPLASH_IRIS_MS = 600
+export const SPLASH_LAND_MS = 700
+// Het woordmerk op het opstartscherm: de tekening (viewBox 239,45 × 73,5, punt op (231,75; 65,8)
+// r 7,7, zie components/Brand.jsx) passend in 160 × 49, zoals LaunchMark in de app.
+export const SPLASH_MARK = { w: 160, h: 49 }
+const WORD_BOX = { w: 239.45, h: 73.5, cx: 231.75, cy: 65.8, r: 7.7 }
 
 // Verminder beweging aan? Buiten de browser (tests) nooit.
 export const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -39,6 +53,47 @@ export const openTimes = (d = IRIS_MS) => ({ delay: 32, tintDur: Math.round(d * 
 // Minder beweging: alleen dekking, 0,35 s.
 export const reducedPlan = () => ({ fade: FADE_MS })
 
+// ---- Opstartscherm ----
+
+// Wanneer het opstartscherm er is: bij een koude lading (nog geen vlag in sessionStorage) en op het
+// beginscherm (standalone) bij elke start, zoals de app.
+export const splashWanted = ({ flagged = false, standalone = false }) => standalone || !flagged
+
+// Vertrekken in de rust van de sprong (HootApp.endSplash): een sprong beweegt 1,06 s en ligt dan
+// 0,54 s stil. Buiten het venster 1,08–1,5 s: wachten tot het begin van de volgende rust.
+export function restDelay(phase, d = BOUNCE_MS) {
+  const p = ((phase % d) + d) % d
+  const lo = d * 0.675 // 1080 ms
+  const hi = d * 0.9375 // 1500 ms
+  if (p >= lo && p <= hi) return 0
+  return Math.round(((lo - p + d) % d) * 100) / 100
+}
+
+// De iris naar de Editie: het woord landt in 55 % van de tijd, de papieren punt gaat op in het
+// rood (35 %), het laatste stuk (vanaf 60 %) kleurt het rood naar de punt, en een tiende langer
+// dan de curve. Zonder "hoot." in beeld sluit het rood tot de eigen punt en vervaagt dan kort.
+export const splashTimes = (d = SPLASH_IRIS_MS) => ({ word: Math.round(d * 0.55), dotEnd: Math.round(d * 0.35), tintStart: Math.round(d * 0.6), tintDur: Math.round(d * 0.4), end: d + 100, fadeOwn: 150 })
+
+// De landing op de rode intro: het woord glijdt in 55 % van de tijd naar linksboven, daarna
+// vervaagt het opstartscherm in 0,3 s (woordmerk en rood blijven gelijk; de tekst komt op).
+export const landTimes = (d = SPLASH_LAND_MS) => ({ word: Math.round(d * 0.55), fadeAt: Math.round(d * 0.55) + 100, fade: 300 })
+
+// Waar de punt van het opstartscherm in rust staat, uit de rect van het kader van 160 × 49 (de
+// tekening staat gecentreerd, een smalle rand links en rechts). In viewport-coördinaten.
+export function splashDot({ left, top }, mark = SPLASH_MARK) {
+  const k = mark.h / WORD_BOX.h
+  const inset = (mark.w - WORD_BOX.w * k) / 2
+  return { x: left + inset + WORD_BOX.cx * k, y: top + WORD_BOX.cy * k, r: WORD_BOX.r * k }
+}
+
+// Hoe het woordmerk van het opstartscherm op een ander "hoot." komt te liggen: schaal naar diens
+// hoogte (dezelfde tekening) en verschuif punt op punt. Voor een transform met de oorsprong op de
+// eigen punt: eerst schalen (de punt blijft liggen), dan verschuiven.
+export function fitWord(from, to) {
+  const k = to.h / from.h
+  return { dx: Math.round((to.dot.x - from.dot.x) * 100) / 100, dy: Math.round((to.dot.y - from.dot.y) * 100) / 100, k: Math.round(k * 10000) / 10000 }
+}
+
 // Middelpunt en straal van een getekende punt (de <circle class="brand__dot"> in het woordmerk),
 // in viewport-coördinaten. Welkom ligt fixed over het hele scherm, dus die zijn direct bruikbaar.
 export function dotAt(circle) {
@@ -49,6 +104,26 @@ export function dotAt(circle) {
 }
 
 // ---- De animaties zelf (alleen in de browser) ----
+
+// Een kleur van :root (binnen .ob--open is --accent papier, daarom op de wortel gelezen).
+export const rootColor = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+
+// Woord en punt van een getekend "hoot." (BrandLogo): de rect van de svg en het middelpunt van de
+// punt, of null als het er niet (zichtbaar) staat.
+export function wordAt(svg) {
+  if (!svg) return null
+  const b = svg.getBoundingClientRect()
+  const dot = dotAt(svg.querySelector('.brand__dot'))
+  if (!b.width || !dot) return null
+  return { left: b.left, top: b.top, w: b.width, h: b.height, dot }
+}
+
+// Het woordmerk glijdt naar zijn plek: schalen om de eigen punt en verschuiven (zie fitWord).
+export function glide(el, from, to, { duration, easing = LAND }) {
+  const { dx, dy, k } = fitWord(from, to)
+  el.style.transformOrigin = `${Math.round((from.dot.x - from.left) * 100) / 100}px ${Math.round((from.dot.y - from.top) * 100) / 100}px`
+  return el.animate([{ transform: 'translate(0px, 0px) scale(1)' }, { transform: `translate(${dx}px, ${dy}px) scale(${k})` }], { duration, easing, fill: 'forwards' })
+}
 
 // Vervagen; bestaande dekkingsanimaties op het element gaan eerst weg, zodat ze niet stapelen.
 // Geeft de Animation terug (wacht op `.finished`; die verwerpt als hij geannuleerd wordt).

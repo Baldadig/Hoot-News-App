@@ -38,6 +38,7 @@ import { usePersonalEdition } from './hooks/usePersonalEdition.js'
 import { toggleFollow } from './lib/follow.js'
 import { subscribe as onUpdate, isReady as updateReady, applyUpdate, dismissUpdate } from './lib/swUpdate.js'
 import { indexStories, resolveStory, toggleSaved, restoreSaved } from './lib/saved.js'
+import Splash from './components/Splash.jsx'
 
 // Schermen die je zelden opent laden pas als je ze opent (de service worker heeft ze al klaarstaan).
 const Search = lazy(() => import('./views/Search.jsx'))
@@ -46,6 +47,13 @@ const Privacy = lazy(() => import('./views/Privacy.jsx'))
 const Over = lazy(() => import('./views/Over.jsx'))
 const StyleGuide = lazy(() => import('./views/StyleGuide.jsx'))
 const Welcome = lazy(() => import('./views/Welcome.jsx'))
+
+// Het opstartscherm staat al in index.html (koude lading, of op het beginscherm): dan neemt
+// components/Splash.jsx het over tot er iets te lezen is.
+const splashShown = () => {
+  const s = document.getElementById('splash')
+  return !!s && !s.hidden
+}
 
 const PAGES = ['zoek', 'stijl', 'welkom', 'instellingen', 'privacy', 'over']
 const byRecency = (a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || '')
@@ -90,6 +98,8 @@ export default function App() {
   }, [prefs.textSize, prefs.images])
   const [display, setDisplay] = useState(false)
   const openDisplay = useCallback(() => setDisplay(true), [])
+  const [splash, setSplash] = useState(splashShown)
+  const endSplash = useCallback(() => setSplash(false), [])
   const { data, status, refreshing, refreshError, reload, pendingCount, applyPending, loadRelated } = useFeed(prefs)
   const online = useOnline()
   const { theme, setTheme } = useTheme(prefs.palette)
@@ -538,7 +548,9 @@ export default function App() {
   }
   return (
     <HootContext.Provider value={ctx}>
-      <div className={`app${story || panelOpen ? ' has-panel' : ''}`}>
+      {/* Achter het opstartscherm is niets te bedienen (ook niet voor een schermlezer), maar de Editie
+          tekent wel al: het opstartscherm wacht erop. */}
+      <div className={`app${story || panelOpen ? ' has-panel' : ''}`} inert={splash ? '' : undefined}>
         {/* Is het verhaal een dialoog (smal scherm), dan valt alles daarbuiten weg voor de focus. */}
         <a className="skip" href="#inhoud" onClick={skip} inert={hideMain ? '' : undefined}>
           Naar de inhoud
@@ -674,6 +686,7 @@ export default function App() {
           </Suspense>
         ) : null}
       </div>
+      {splash ? <Splash ready={status !== 'loading'} toWelcome={showWelcome} onDone={endSplash} /> : null}
     </HootContext.Provider>
   )
 }

@@ -33,3 +33,20 @@ test('Welkom: papier op merkrood en gekozen tegels in --sel-* (W2)', () => {
   const tile = css.slice(css.indexOf(".ob__tile[aria-pressed='true'] {"))
   assert.match(tile.slice(0, 140), /--sel-edge[\s\S]*--sel-bg[\s\S]*--sel-fg/)
 })
+
+test('Opstartscherm: in index.html vóór de app, één sprong van 1,6 s, sessievlag, en Splash.jsx neemt het over (W4)', () => {
+  const html = readFileSync(fileURLToPath(new URL('../index.html', import.meta.url)), 'utf8')
+  assert.match(html, /id="splash" class="splash" role="status" aria-label="Hoot laadt" hidden/)
+  assert.match(html, /@keyframes splash-hop/)
+  assert.match(html, /@keyframes splash-squash/)
+  assert.ok((html.match(/1\.6s infinite/g) || []).length === 2, 'sprong en deuk allebei 1,6 s')
+  assert.match(html, /sessionStorage\.getItem\('hoot:splashed'\)/)
+  assert.match(html, /display-mode: standalone/)
+  assert.match(html, /prefers-reduced-motion: reduce/)
+  assert.match(html, /<path d="M34\.45 72L/, 'de tekening van het woordmerk (zelfde pad als Brand.jsx)')
+  assert.match(read('components/Splash.jsx'), /getElementById\('splash'\)/)
+  assert.match(read('App.jsx'), /<Splash /)
+  // De Editie heeft op smal het kleine "hoot." waar het opstartscherm op landt.
+  assert.match(read('views/Edition.jsx'), /className="edbrand"/)
+  assert.match(read('styles.css'), /--z-splash/)
+})

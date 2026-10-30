@@ -1,20 +1,22 @@
 // Security-headers voor Netlify (dist/_headers), bij elke build opnieuw gemaakt door de
-// Vite-plugin in vite.config.js. De twee inline scripts in index.html (beeld vooraf laden,
-// thema) mogen draaien via hun sha256-hash; die rekenen we uit het gebouwde index.html, zodat
-// een wijziging in die scripts nooit stilletjes de app breekt.
+// Vite-plugin in vite.config.js. De drie inline scripts in index.html (beeld vooraf laden,
+// thema, opstartscherm) mogen draaien via hun sha256-hash, en de inline <style> van het
+// opstartscherm net zo; die rekenen we uit het gebouwde index.html, zodat een wijziging daarin
+// nooit stilletjes de app breekt.
 import { createHash } from 'node:crypto'
 
 // Handhaven. (Van 1.25 tot 1.26 alleen melden; lokaal afdwingend getest op alle schermen.)
 export const CSP_ENFORCE = true
 
 export const inlineScripts = (html) => [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1])
+export const inlineStyles = (html) => [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map((m) => m[1])
 export const sha256 = (text) => `'sha256-${createHash('sha256').update(text, 'utf8').digest('base64')}'`
 
-export function csp(hashes) {
+export function csp(hashes, styleHashes = []) {
   return [
     "default-src 'self'",
     `script-src 'self' ${hashes.join(' ')}`,
-    "style-src 'self'",
+    `style-src 'self'${styleHashes.map((h) => ` ${h}`).join('')}`,
     "font-src 'self'",
     "img-src 'self' https: data: blob:", // beeld komt van honderd uitgevers
     "media-src 'self' https://video.cdn.bsky.app blob:",
@@ -30,7 +32,7 @@ export function csp(hashes) {
 }
 
 export function headersFile(html, { enforce = CSP_ENFORCE } = {}) {
-  const policy = csp(inlineScripts(html).map(sha256))
+  const policy = csp(inlineScripts(html).map(sha256), inlineStyles(html).map(sha256))
   const name = enforce ? 'Content-Security-Policy' : 'Content-Security-Policy-Report-Only'
   // De CSP alleen op de pagina zelf; afbeeldingen, de service worker en de API hebben hem niet nodig.
   const page = (path) => `${path}\n  ${name}: ${policy}\n`

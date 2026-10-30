@@ -1,3 +1,6 @@
+import { useEffect } from 'react'
+import { rootColor } from '../lib/motion.js'
+
 // Het Hoot-merk (huisstijl vanaf 1.25): "hoot" in Newsreader 800 met een rode punt, en als
 // los teken de h met punt, zoals het app-icoon. Paden uit de letter zelf, zodat het merk er ook
 // staat voordat het lettertype geladen is. De inkt volgt het thema (--brand), de punt is het
@@ -28,4 +31,32 @@ export function BrandLogo({ height = 30 }) {
       <Glyphs g={WORD} />
     </svg>
   )
+}
+
+// Zolang er een vlak in merkrood over het hele scherm staat (het opstartscherm, de rode intro van
+// Welkom), kleurt de browserbalk mee (iOS verbergt dan de statusbalk). Geteld, want ze kunnen
+// over elkaar liggen: pas als de laatste weg is, krijgt de balk de kleur van de bovenkant terug
+// (--top, zoals hooks/useTheme.js die zet).
+let reds = 0
+function paintBar() {
+  const color = reds ? rootColor('--brand-red') || '#a3201b' : rootColor('--top') || rootColor('--paper')
+  for (const m of document.querySelectorAll('meta[name="theme-color"]')) {
+    m.setAttribute('content', color)
+    m.removeAttribute('media')
+  }
+}
+export const brandBarHeld = () => reds > 0
+export function holdBrandBar() {
+  reds++
+  paintBar()
+  let held = true
+  return () => {
+    if (!held) return
+    held = false
+    reds--
+    paintBar()
+  }
+}
+export function useBrandBar(on) {
+  useEffect(() => (on ? holdBrandBar() : undefined), [on])
 }

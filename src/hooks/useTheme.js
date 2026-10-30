@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { brandBarHeld } from '../components/Brand.jsx'
 
 const KEY = 'hoot:theme' // 'system' | 'light' | 'dark'
 
@@ -18,7 +19,10 @@ function apply(pref) {
   const dark = pref === 'dark' || (pref !== 'light' && systemDark())
   document.documentElement.dataset.theme = dark ? 'dark' : 'light'
   // Status- en browserbalk in de kleur van de bovenkant van het scherm (--top: papier, of het
-  // witte blad bij de kleuren Blad en Inkt), ook als je zelf een thema kiest.
+  // witte blad bij de kleuren Blad en Inkt), ook als je zelf een thema kiest. Staat er een vlak in
+  // merkrood over het scherm (opstartscherm, de rode intro van Welkom), dan houdt dat de balk
+  // (components/Brand.jsx) en zet die hem daarna terug.
+  if (brandBarHeld()) return
   const top = getComputedStyle(document.documentElement).getPropertyValue('--top').trim() || (dark ? '#151310' : '#f5f1e8')
   for (const m of document.querySelectorAll('meta[name="theme-color"]')) {
     m.setAttribute('content', top)

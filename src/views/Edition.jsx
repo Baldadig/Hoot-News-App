@@ -4,7 +4,7 @@ import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf } 
 import { Img } from '../components/Img.jsx'
 import { SparkleIcon, CaretIcon, ICON_SM } from '../components/icons.jsx'
 import { BriefReader } from '../components/BriefReader.jsx'
-import { BrandMark } from '../components/Brand.jsx'
+import { BrandMark, BrandLogo } from '../components/Brand.jsx'
 import Weather from '../components/Weather.jsx'
 import { longDate } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
@@ -124,6 +124,12 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             overzicht; de inktlijn eronder is het begin van het nieuws. Eén blok, zodat de kleur
             "Inkt" er een band van kan maken. */}
         <div className="edtop">
+          {/* Het kleine woordmerk linksboven, zoals in de app (Wordmark in EditionView): je ziet waar
+              je bent zonder dat het de krant overneemt, en het opstartscherm landt erop. Op breed
+              scherm staat het in de zijbalk (.edbrand verdwijnt dan). */}
+          <div className="edbrand">
+            <BrandLogo height={20} />
+          </div>
           <ViewHeader title={title} sub={edition ? null : sub} onRefresh={onRefresh} refreshing={refreshing} compare />
           {ready ? (
             <>
