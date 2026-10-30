@@ -93,6 +93,14 @@
   --tap-inset: calc((var(--icon) - var(--tap)) / 2); /* −11: icoon optisch op de kolomlijn */
   --caret-inset: calc(var(--icon) * -0.28125); /* −6: lucht links in de caret naar links (punt 80 − halve lijn 8 = 72/256); zo staat de inkt op de lijn */
   --control-col: 20rem; /* vaste kolom voor de bediening in een instellingsrij */
+  /* Schakelaar: een pil van 52 × 32 met een duim van 24, 4 binnen de rand; raakvlak 60 × 44. */
+  --switch-w: 52px;
+  --switch-h: 32px;
+  --switch-thumb: 24px;
+  --switch-inset: calc((var(--switch-h) - var(--switch-thumb)) / 2);
+  /* Pijl van een keuzelijst: CaretIcon naar beneden, 16, in --ink-3. Een data-URI kan geen var()
+     lezen, dus de kleur staat erin en donker heeft een eigen versie (hieronder). */
+  --select-caret: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath fill='none' stroke='%236b6457' stroke-linecap='round' stroke-linejoin='round' stroke-width='20' d='m48 96l80 80l80-80'/%3E%3C/svg%3E");
   --dot: 8px; /* statusstip */
   --avatar: 32px; /* je foto of voorletter */
   /* Vinkje van gekozen bij een pil (ook bij enkele keuze, zie .pill[aria-pressed]): CheckIcon (Phosphor bold) als masker, dus in de
@@ -229,6 +237,7 @@
   --scrim: rgba(0, 0, 0, 0.65);
   --shadow-float: 0 6px 18px rgba(0, 0, 0, 0.5);
   --mark-bg: #f1ece2; /* gedempt wit, zodat een logo niet oplicht */
+  --select-caret: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath fill='none' stroke='%23a39b8d' stroke-linecap='round' stroke-linejoin='round' stroke-width='20' d='m48 96l80 80l80-80'/%3E%3C/svg%3E");
   color-scheme: dark;
 }
 
@@ -1292,29 +1301,75 @@ select {
   }
 }
 
+/* Veld: 44 hoog, rand in --edge (3:1), tekst t3 (≥16 px: iOS zoomt dan niet in bij focus).
+   Zonder de bediening van de browser: geen blauwe ×, geen eigen pijl; die zijn van ons. */
 .input {
   width: 100%;
   min-width: 0;
-  min-height: var(--tap);
+  min-height: var(--control-md);
   padding: 0 var(--s4);
-  border: 1px solid var(--edge); /* een veld moet als veld te zien zijn: 3:1 */
-  border-radius: var(--radius);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-control);
   background: var(--surface);
   color: var(--ink);
-  font-size: var(--t3); /* ≥16px: iOS zoomt dan niet in bij focus */
+  font-size: var(--t3);
+  line-height: var(--lh-3);
+  appearance: none;
+}
+.input::placeholder {
+  color: var(--ink-3);
+  opacity: initial; /* Firefox maakt de placeholder anders zelf nog stiller */
+}
+.input::-webkit-search-cancel-button {
+  appearance: none;
+  display: none;
+}
+/* Zoekveld: rechts ruimte voor de eigen wisknop. */
+.input[type='search'] {
+  padding-inline-end: var(--s7);
+}
+/* Wissen: een icoonknop die over het rechtereind van het veld valt (het veld en de knop staan
+   naast elkaar in een flexrij). Alleen zichtbaar als er iets is getypt. */
+.input__clear {
+  flex: none;
+  margin-inline-start: calc(-1 * var(--tap));
+}
+/* De zoekbalk heeft een gap van --s1 (terug ↔ veld): die trekt de knop ook terug. Anders is de
+   rij met wisknop 4 breder dan zonder, krimpt het veld bij de eerste letter en staat zijn
+   rechterrand niet meer op de kolomlijn. */
+.searchbar > .input__clear {
+  margin-inline-start: calc(-1 * (var(--tap) + var(--s1)));
+}
+/* Keuzelijst: de pijl van de browser eruit, de caret van Hoot erin. */
+select.input {
+  padding-inline-end: var(--s7);
+  background-image: var(--select-caret);
+  background-repeat: no-repeat;
+  background-position: right var(--s4) center;
+  background-size: var(--icon-sm);
+  cursor: pointer;
 }
 
+/* Een veld met een verborgen label (Bewaard): als flexrij, zodat de wisknop erin kan vallen.
+   Onder --s2: met de --s4 boven het eerste bericht staat die kop op --s5 van het veld. De
+   bovenkant komt van de schermkop (--after-header). */
 .field {
-  display: block;
-  margin: var(--s2) 0 var(--s1);
+  display: flex;
+  align-items: center;
+  margin: 0 0 var(--s2);
 }
 
+/* Schakelaar: een pil. Uit is een open baan met een rand in --edge (3:1), aan is krantenrood.
+   De duim is in beide thema's licht. Het raakvlak blijft 60 × 44. Dat steekt aan elke kant 4
+   buiten de baan; rechts valt dat over de rand, zodat de baan op de kolomlijn eindigt, net als
+   een segment of veld (een schakelaar staat altijd aan het eind van een rij). */
 .switch {
   flex: none;
   display: inline-grid;
   place-items: center;
-  width: 60px;
+  width: calc(var(--switch-w) + var(--s2));
   height: var(--tap);
+  margin-inline-end: calc(var(--s2) / -2);
   padding: 0;
   border: 0;
   background: none;
@@ -1322,29 +1377,36 @@ select {
 }
 .switch__track {
   position: relative;
-  width: 50px;
-  height: 30px;
-  border-radius: var(--radius);
-  background: var(--rule);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 18%, transparent);
-  transition: background 0.15s ease;
+  width: var(--switch-w);
+  height: var(--switch-h);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--edge);
+  transition:
+    background-color var(--dur-1) var(--ease),
+    box-shadow var(--dur-1) var(--ease);
 }
 .switch__thumb {
   position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--surface);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
-  transition: transform 0.15s ease;
+  top: var(--switch-inset);
+  left: var(--switch-inset);
+  width: var(--switch-thumb);
+  height: var(--switch-thumb);
+  border-radius: var(--radius-round);
+  background: var(--thumb);
+  /* Een haarlijn binnen de rand: op licht papier is de duim bijna papier, en zonder lijn zou hij
+     in de open baan alleen een schaduw zijn. */
+  box-shadow:
+    var(--shadow-thumb),
+    inset 0 0 0 1px var(--hairline);
+  transition: transform var(--dur-1) var(--ease);
 }
 .switch[aria-checked='true'] .switch__track {
   background: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
 }
 .switch[aria-checked='true'] .switch__thumb {
-  transform: translateX(20px);
+  transform: translateX(calc(var(--switch-w) - var(--switch-thumb) - 2 * var(--switch-inset)));
 }
 /* Focus om de baan, niet om het raakvlak van 60 × 44: zo volgt de ring de vorm die je ziet. */
 .switch:focus-visible {
@@ -2834,47 +2896,57 @@ select {
 }
 
 
-/* Schakelaar met twee standen (indeling van berichten): één pil, de keuze is een gevulde pil erin */
+/* Segment: één keuze uit een paar. Een pil van 44 met knoppen van 36 erin, als egaal raster: elke
+   knop even breed (een te lang label neemt wat het nodig heeft), en gekozen wisselt alleen vlak
+   en kleur, niet het gewicht, dus niets verspringt. De rand is een inset-schaduw: zo telt hij
+   niet mee in de 44 en blijft er rondom precies --s1. */
 .seg {
-  display: inline-flex;
-  flex: none;
-  height: var(--tap);
-  padding: 2px;
-  border: 1px solid var(--rule);
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  height: var(--control-md);
+  padding: var(--s1);
   border-radius: var(--radius-pill);
   background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--rule);
 }
 .seg__btn {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--s2);
-  min-width: 38px;
-  height: 100%;
-  padding: 0 var(--s2);
+  height: var(--control-sm);
+  padding: 0 var(--s3);
   border: 0;
   border-radius: var(--radius-pill);
   background: none;
   color: var(--ink-3);
   font-size: var(--t2);
-  font-weight: 600;
-  line-height: var(--lh-ui);
+  font-weight: var(--fw-ui);
+  line-height: var(--lh-2);
+  white-space: nowrap;
   cursor: pointer;
   transition:
     background-color var(--dur-1) var(--ease),
     color var(--dur-1) var(--ease);
 }
-/* De knop is 38 px hoog in een pil van 44: het aanraakdoel loopt door tot de rand van de pil */
+/* Raakvlak: de knop is 36 hoog, het vlak loopt boven en onder door tot de rand van de pil (44).
+   Opzij niet: daar begint de buurknop. */
 .seg__btn::before {
   content: '';
   position: absolute;
-  inset: -3px;
+  inset: calc((var(--control-sm) - var(--tap)) / 2) 0;
 }
 .seg__btn[aria-pressed='true'] {
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-weight: 700; /* niet alleen kleur: ook gevuld en vet */
+  background: var(--sel-bg);
+  color: var(--sel-fg);
+}
+/* Tekstgrootte: de drie A's tonen zelf de stap (t1, t2, t4). */
+.seg__btn--klein {
+  font-size: var(--t1);
+}
+.seg__btn--groot {
+  font-size: var(--t4);
 }
 
 /* ---------- Editie: voorpagina ---------- */
@@ -3048,18 +3120,6 @@ select {
   box-shadow: inset 3px 0 0 var(--accent);
 }
 
-.seg__label {
-  display: none;
-}
-@media (min-width: 960px) {
-  .seg__btn {
-    padding: 0 var(--s3);
-  }
-  .seg__label {
-    display: inline;
-  }
-}
-
 /* Sluiten in een melding: in de tekstkleur van de melding, dus ook de hoverlaag. */
 .toast__x {
   color: inherit;
@@ -3080,35 +3140,41 @@ html[data-images='hoofd'] .media--social {
   display: none;
 }
 
-/* Weergave-rijen: label links, schakelaar rechts */
+/* Weergave-rijen: label links, het segment rechts in een vaste kolom, zodat alle segmenten
+   dezelfde linkerrand en breedte hebben. Een container query, want dezelfde rijen staan op
+   Instellingen en in het blad 'Jij'. Naast elkaar vanaf 528: op Instellingen is dat het
+   breekpunt 560 min twee gutters, en het blad (560, binnen 528) valt er op elk scherm vanaf 560
+   ook onder. Zo staat een rij in het blad zoals op Instellingen. Smaller (de telefoon):
+   gestapeld, label boven en het segment over de volle breedte. */
 .drows {
   display: flex;
   flex-direction: column;
+  container-type: inline-size;
 }
 .drow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s3);
-  min-height: 56px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--s2);
+  min-height: var(--row-md);
+  padding-block: var(--s3);
   border-bottom: 1px solid var(--rule);
 }
 .drow:last-child {
   border-bottom: 0;
 }
 .drow__label {
-  font-size: var(--t2);
-  flex: 1;
   min-width: 0;
-  font-weight: 600;
+  font-size: var(--t2);
+  font-weight: var(--fw-ui);
+  line-height: var(--lh-2);
 }
-.drow .seg {
-  flex: none;
-  max-width: 100%;
-}
-.seg__btn--text {
-  padding: 0 var(--s3);
-  min-width: 40px;
+@container (min-width: 528px) {
+  .drow {
+    grid-template-columns: minmax(0, 1fr) var(--control-col);
+    align-items: center;
+    gap: var(--s4);
+    padding-block: var(--s2);
+  }
 }
 
 /* Instellingen: rijen met tekst links en een schakelaar rechts */
@@ -3156,7 +3222,7 @@ html[data-images='hoofd'] .media--social {
   flex: 1 1 200px;
 }
 .invite__link {
-  font-size: var(--t1);
+  text-overflow: ellipsis; /* t3 zoals elk veld: een lange link loopt af, niet kleiner */
 }
 .setrow--link {
   cursor: pointer;

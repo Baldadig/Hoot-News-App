@@ -3,12 +3,14 @@ import { ViewHeader, Empty } from '../components/Shell.jsx'
 import { Entry, CompactItem, useHoot } from '../components/Items.jsx'
 import { timeAgo } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
+import { CloseIcon } from '../components/icons.jsx'
 import { savedLeadId } from '../lib/saved.js'
 
 export default function Saved({ active }) {
   const { saved, itemsById, storiesById } = useHoot()
   const [q, setQ] = useState('')
   const ref = useRef(null)
+  const inputRef = useRef(null)
 
   // Laatst bewaard bovenaan. Van een verhaal tonen we de actuele versie als die nog bestaat,
   // anders de momentopname van toen je het bewaarde.
@@ -57,7 +59,12 @@ export default function Saved({ active }) {
             {total > 4 ? (
               <label className="field">
                 <span className="visually-hidden">Zoek in bewaard</span>
-                <input type="search" className="input" placeholder="Zoek in bewaard" value={q} onChange={(e) => setQ(e.target.value)} enterKeyHint="search" />
+                <input ref={inputRef} type="search" className="input" placeholder="Zoek in bewaard" value={q} onChange={(e) => setQ(e.target.value)} enterKeyHint="search" />
+                {q ? (
+                  <button type="button" className="iconbtn input__clear" onClick={() => (setQ(''), inputRef.current?.focus())} aria-label="Zoekterm wissen">
+                    <CloseIcon />
+                  </button>
+                ) : null}
               </label>
             ) : null}
             {rows.length === 0 ? (

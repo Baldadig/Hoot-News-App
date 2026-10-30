@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Empty, BackButton } from '../components/Shell.jsx'
 import { Entry, useHoot } from '../components/Items.jsx'
+import { CloseIcon } from '../components/icons.jsx'
 import { withoutCopies } from '../../shared/dedupe.mjs'
 
 export default function Search({ onBack, backLabel = 'Terug' }) {
@@ -43,6 +44,12 @@ export default function Search({ onBack, backLabel = 'Terug' }) {
               Zoek in berichten
             </label>
             <input id="q" data-skip ref={inputRef} type="search" className="input" placeholder="Zoek op woord, bron of auteur" value={q} onChange={(e) => setQ(e.target.value)} enterKeyHint="search" autoComplete="off" />
+            {/* Eigen wisknop in plaats van de × van de browser: leegmaken en terug in het veld. */}
+            {q ? (
+              <button type="button" className="iconbtn input__clear" onClick={() => (setQ(''), inputRef.current?.focus())} aria-label="Zoekterm wissen">
+                <CloseIcon />
+              </button>
+            ) : null}
           </form>
           <div className="chips scope" role="group" aria-label="Waar zoeken">
             <button type="button" className="pill" aria-pressed={scope === 'mijn'} onClick={() => setScope('mijn')}>

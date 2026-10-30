@@ -1,7 +1,7 @@
 import { clock } from '../lib/time.js'
 import { BrandLogo } from './Brand.jsx'
 import { useHoot } from './Items.jsx'
-import { BooksIcon, ButterflyIcon, EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, TimelineIcon, PaperIcon, BackIcon, AccountIcon, SettingsIcon } from './icons.jsx'
+import { BooksIcon, ButterflyIcon, EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, BackIcon, AccountIcon, SettingsIcon } from './icons.jsx'
 
 export const DESTINATIONS = [
   { id: 'editie', label: 'Editie', Icon: EditionIcon },
@@ -52,23 +52,6 @@ export function Nav({ path, hrefs = {}, sourceNote = '', bluesky = false, digest
         </li>
       </ul>
     </nav>
-  )
-}
-
-// Indeling van berichten: schakelaar met twee standen, direct bij de hand in Editie en Stroom.
-export function LayoutSwitch() {
-  const { layout, setLayout } = useHoot()
-  return (
-    <div className="seg" role="group" aria-label="Indeling van berichten">
-      <button type="button" className="seg__btn" aria-pressed={layout === 'tijdlijn'} onClick={() => setLayout('tijdlijn')} aria-label="Tijdlijn" title="Tijdlijn: bron bovenaan, beeld groot in het midden">
-        <TimelineIcon />
-        <span className="seg__label">Tijdlijn</span>
-      </button>
-      <button type="button" className="seg__btn" aria-pressed={layout === 'krant'} onClick={() => setLayout('krant')} aria-label="Krant" title="Krant: kop links, klein beeld rechts">
-        <PaperIcon />
-        <span className="seg__label">Krant</span>
-      </button>
-    </div>
   )
 }
 

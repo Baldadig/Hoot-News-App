@@ -4,13 +4,14 @@ import { CloseIcon } from './icons.jsx'
 import { AccountSettings } from './Account.jsx'
 
 // Weergave: wat je al lezend wisselt. Dezelfde rijen in het paneel (Aa) en op Instellingen.
+// `size` geeft een knop een eigen lettermaat: de A's van Tekstgrootte tonen zo zelf de stap.
 function Seg({ label, value, options, onChange }) {
   return (
     <div className="drow">
       <span className="drow__label">{label}</span>
       <div className="seg" role="group" aria-label={label}>
         {options.map((o) => (
-          <button key={String(o.value)} type="button" className="seg__btn seg__btn--text" aria-pressed={value === o.value} onClick={() => onChange(o.value)} aria-label={o.aria || undefined}>
+          <button key={String(o.value)} type="button" className={o.size ? `seg__btn seg__btn--${o.size}` : 'seg__btn'} aria-pressed={value === o.value} onClick={() => onChange(o.value)} aria-label={o.aria || undefined}>
             {o.label}
           </button>
         ))}
@@ -57,9 +58,9 @@ export function DisplayControls() {
         value={prefs.textSize}
         onChange={(v) => setPref('textSize', v)}
         options={[
-          { value: 'klein', label: 'A', aria: 'Klein' },
+          { value: 'klein', label: 'A', aria: 'Klein', size: 'klein' },
           { value: 'normaal', label: 'A', aria: 'Normaal' },
-          { value: 'groot', label: 'A', aria: 'Groot' },
+          { value: 'groot', label: 'A', aria: 'Groot', size: 'groot' },
         ]}
       />
       <Seg
