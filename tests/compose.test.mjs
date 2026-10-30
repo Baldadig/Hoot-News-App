@@ -3,7 +3,7 @@
 // De harde regels van de Editie gelden voor iedereen; per persona een paar herkenbare uitkomsten.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { loadSnapshot, editionsNu, readIdsOf, contextOf, keyOf, keysOf, membersOf, bigStories, pairwise } from './helpers/snapshot.mjs'
+import { loadSnapshot, editionsNu, composeFor, readIdsOf, contextOf, keyOf, keysOf, membersOf, bigStories, pairwise } from './helpers/snapshot.mjs'
 import { composePersonal, withoutDebug } from '../src/lib/personal.js'
 import { profileOf, supplyOf, outsideProfile, KERN, FAMILY_OF } from '../shared/editor.mjs'
 
@@ -43,10 +43,32 @@ test('De Redacteur: wat je al las, komt alleen terug als vervolg', () => {
     if (!persona.interests.length && !persona.topics.length) continue
     const read = new Set([...readIdsOf(snap, persona, setup.followed)].map((id) => ctx.storyOfItem.get(id) || id))
     for (const e of edition.entries) {
-      if (e.desk === 'bubbel' || e.desk === 'breed' || !read.has(keyOf(e, ctx))) continue
+      if (!read.has(keyOf(e, ctx))) continue
       assert.ok(e._parts?.followUp || e.why.code === 'followUp', `${persona.id}: ${e.id} (${e.why.code})`)
     }
   }
+})
+
+// Ook wat je in de algemene Editie las, komt niet terug als aanvulling, breed verhaal of bubbel.
+test('De Redacteur: een gelezen aanvulling komt niet terug', () => {
+  const base = { followed: new Set(), interests: [], topics: [], favorites: [] }
+  const first = composeFor(snap, base)
+  const fill = first.entries.filter((e) => e.desk === 'extern')
+  assert.ok(fill.length >= 5, `${fill.length} aanvullingen`)
+  const isFill = (e) => e.desk === 'extern' || e.desk === 'breed' || e.desk === 'bubbel'
+
+  // Alles van die aanvullingen gelezen: geen enkele komt terug. Zonder eigen bronnen is er dan
+  // niets om mee aan te vullen; de rest van de algemene Editie (bubbel, breed) blijft staan.
+  const all = new Set(fill.flatMap((e) => membersOf(e, ctx).map((i) => i.id)))
+  const keys = new Set(fill.map((e) => keyOf(e, ctx)))
+  const again = composeFor(snap, { ...base, readIds: all })
+  assert.deepEqual(again.entries.filter((e) => keys.has(keyOf(e, ctx))).map((e) => e.id), [])
+  assert.ok(again.entries.length >= first.entries.length - fill.length, `${again.entries.length} plekken`)
+  assert.equal(again.entries.filter((e) => e.desk === 'bubbel').length, 1)
+
+  // Alleen de kop gelezen: terug alleen als vervolg (≥ 2 nieuwe stukken), met dat in de parts.
+  const heads = composeFor(snap, { ...base, readIds: new Set(fill.map((e) => e.leadId || e.id)) })
+  for (const e of heads.entries.filter((x) => isFill(x) && keys.has(keyOf(x, ctx)))) assert.ok(e._parts?.followUp?.n >= 2, `${e.id}`)
 })
 
 test('De Redacteur: Buiten je bubbel ligt buiten je profiel', () => {

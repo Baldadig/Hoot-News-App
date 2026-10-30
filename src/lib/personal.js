@@ -101,7 +101,27 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const storyById = new Map(stories.map((s) => [s.id, s]))
   const ownIds = new Set(items.filter((i) => followed.has(i.source)).map((i) => i.id))
   const covered = (w) => ownIds.has(w.item.id) || (storyById.get(w.storyId)?.itemIds || []).some((id) => ownIds.has(id))
-  const wideAny = (global.wide || []).some((w) => w?.item?.id && !covered(w))
+
+  // Wat je al las, doet nergens meer mee (bouwspec §2): ook niet als aanvulling, breed verhaal of
+  // bubbel. Een plek met een gelezen bericht komt alleen terug als vervolg (≥ 2 nieuwe stukken);
+  // dan gaat `followUp` mee in de parts. We kijken naar het hele verhaal van de kop, ook als de
+  // plek een los bericht is.
+  const itemAny = new Map([...items, ...(global.items || [])].map((i) => [i.id, i]))
+  const storyOfItem = new Map(stories.flatMap((s) => s.itemIds.map((id) => [id, s.id])))
+  const readOf = (id, sid) => {
+    if (!readIds.size || !id) return {}
+    const st = storyById.get(sid || storyOfItem.get(id) || itemAny.get(id)?.storyId)
+    const ids = [...new Set([id, ...(st?.itemIds || [])])]
+    if (!ids.some((x) => readIds.has(x))) return {}
+    const { seen, followUp } = personalParts(ids.map((x) => itemAny.get(x)).filter(Boolean), prof, { readIds })
+    return followUp ? { followUp } : { seen: seen || { pts: 0 } } // gelezen maar onbekend bericht: ook gezien
+  }
+  const unread = (id, sid) => !readOf(id, sid).seen
+  const withFollowUp = (e, id, sid) => {
+    const { followUp } = readOf(id, sid)
+    return followUp ? { ...e, parts: { ...(e.parts || {}), followUp } } : e
+  }
+  const wideAny = (global.wide || []).some((w) => w?.item?.id && !covered(w) && unread(w.item.id, w.storyId))
   const size = EDITION_SIZE - (bubbleEntry ? 1 : 0) - (wideAny ? 1 : 0)
   const preferred = new Set(favorites.filter((id) => followed.has(id)))
   const opts = { mainIds: followed, now, previous, preferred, prof, ctx, seed }
@@ -120,11 +140,11 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   //    profiel; anders het minst passende vrije verhaal (laagste fit, dan de meeste bronnen).
   //    Vóór het aanvullen gekozen, zodat het zijn eigen label krijgt in plaats van "Buiten je bronnen".
   const fitOf = (w) => Math.max(0, ...(w.topics || []).map((t) => Math.max(prof.topicP[t] || 0, prof.shareOf[t] || 0)))
-  const free = (w) => w?.item?.id && !taken.has(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && !covered(w)
+  const free = (w) => w?.item?.id && !taken.has(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && !covered(w) && unread(w.item.id, w.storyId)
   const wide =
     (global.wide || []).find((w) => free(w) && outsideProfile(w.topics, prof)) ||
     (global.wide || []).filter(free).sort((a, b) => fitOf(a) - fitOf(b) || b.sourceCount - a.sourceCount || byText(a.storyId, b.storyId))[0]
-  const wideEntry = wide ? { kind: 'story', id: wide.storyId, leadId: wide.item.id, desk: WIDE, sourceCount: wide.sourceCount } : null
+  const wideEntry = wide ? withFollowUp({ kind: 'story', id: wide.storyId, leadId: wide.item.id, desk: WIDE, sourceCount: wide.sourceCount }, wide.item.id, wide.storyId) : null
   if (wideEntry) for (const id of [wide.item.id, ...(storyById.get(wide.storyId)?.itemIds || [])]) taken.add(id)
 
   // 5. Aanvullen uit de algemene editie, zonder dubbel verhaal, in jouw volgorde: wat bij je past
@@ -135,7 +155,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const fillTo = size - extra.length + (wideAny && !wideEntry ? 1 : 0)
   const fillCands = global.entries
     .map((g, idx) => ({ g, idx, score: sumParts(personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), noFavorites, {})) - 2 * idx }))
-    .filter((x) => x.g !== bubbleEntry)
+    .filter((x) => x.g !== bubbleEntry && unread(x.g.leadId || x.g.id, x.g.kind === 'story' ? x.g.id : null))
     .sort((a, b) => b.score - a.score || a.idx - b.idx)
   const fill = []
   for (const { g } of fillCands) {
@@ -143,24 +163,24 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const m = membersOf(g)
     if ([...m].some((id) => taken.has(id))) continue
     for (const id of m) taken.add(id)
-    fill.push({ ...g, desk: EXTERN, fromDesk: g.desk || null })
+    fill.push(withFollowUp({ ...g, desk: EXTERN, fromDesk: g.desk || null }, g.leadId || g.id, g.kind === 'story' ? g.id : null))
   }
 
   // 6. Buiten je bubbel: niet iets dat al in je Editie staat, en ook niet iets binnen je profiel
   //    (geen Ajax voor de sportlezer). Geen trend-signaal buiten je profiel? Dan het breedst gedekte
   //    verhaal in een gebied naast je sterkste interesse: "Naast je bubbel".
-  const itemAny = new Map([...items, ...(global.items || [])].map((i) => [i.id, i]))
   const sigAll = signatures([...itemAny.values()].filter((i) => i.kind !== 'post'))
   const clashes = (id) => taken.has(id) || (sigAll.has(id) && [...taken].some((x) => sigAll.has(x) && sameEvent(sigAll.get(id), sigAll.get(x))))
   const topicsOfStory = (sid, id) => [...new Set((storyById.get(sid)?.itemIds || [id]).flatMap((x) => itemAny.get(x)?.topics || []))]
   let nearItem = null
   if (bubbleEntry) {
-    const okB = (b) => itemAny.has(b.id) && !clashes(b.id) && outsideProfile(topicsOfStory(b.storyId, b.id), prof)
+    const okB = (b) => itemAny.has(b.id) && !clashes(b.id) && unread(b.id, b.storyId) && outsideProfile(topicsOfStory(b.storyId, b.id), prof)
     // Eerst het signaal dat de algemene editie koos, dan de andere kandidaten van de server.
     const first = (global.bubble || []).find((b) => b.id === bubbleEntry.id) || { id: bubbleEntry.id }
     const alt = [first, ...(global.bubble || [])].find(okB)
     if (alt) {
       if (alt.id !== bubbleEntry.id) bubbleEntry = { kind: 'item', id: alt.id, desk: 'bubbel', terms: alt.terms }
+      bubbleEntry = withFollowUp(bubbleEntry, alt.id, alt.storyId)
     } else {
       const home = strongestFamily(prof)
       const next = new Set(NEIGHBOURS[home] || [])
@@ -168,9 +188,9 @@ export function composePersonal({ global, stories = [], items = [], sources = []
         .filter((st) => st.sourceCount >= NEAR_MIN_SOURCES && now - Date.parse(st.latestAt) < 24 * 36e5)
         .sort((a, b) => b.sourceCount - a.sourceCount || byText(a.id, b.id))
         .map((st) => ({ storyId: st.id, sourceCount: st.sourceCount, topics: topicsOfStory(st.id), item: itemAny.get(st.leadId) || st.itemIds.map((x) => itemAny.get(x)).find(Boolean) }))
-      const fits = (w) => w?.item?.id && !clashes(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t]))
+      const fits = (w) => w?.item?.id && !clashes(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && unread(w.item.id, w.storyId) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t]))
       const pick = [...(global.near || []), ...recent].find(fits)
-      bubbleEntry = pick ? { kind: 'story', id: pick.storyId, leadId: pick.item.id, desk: 'bubbel', near: home } : null
+      bubbleEntry = pick ? withFollowUp({ kind: 'story', id: pick.storyId, leadId: pick.item.id, desk: 'bubbel', near: home }, pick.item.id, pick.storyId) : null
       if (pick) {
         nearItem = pick.item
         for (const id of [pick.item.id, ...(storyById.get(pick.storyId)?.itemIds || [])]) taken.add(id)
