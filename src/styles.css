@@ -1577,15 +1577,16 @@ select.input {
   font-size: var(--t1);
 }
 
-/* Actieregel: vier vaste plekken — bron · vergelijken · meer of minder · bewaren. Een plek die
-   ontbreekt blijft leeg, dus "Vergelijk" en bewaren staan in elke rij van een scherm op dezelfde
-   x. De regel schuift --tap-inset de goot in: het bewaar-icoon eindigt op de kolomlijn, niet 11
-   ervoor.
+/* Actieregel: vijf vaste plekken — bron · vergelijken · meer of minder · delen · bewaren. Een
+   plek die ontbreekt blijft leeg, dus "Vergelijk", delen en bewaren staan in elke rij van een
+   scherm op dezelfde x. De regel schuift --tap-inset de goot in: het bewaar-icoon eindigt op de
+   kolomlijn, niet 11 ervoor. Delen (zoals in de app, daar in het contextmenu) staat als icoon
+   links van bewaren; zonder link van de uitgever blijft die plek leeg.
    Boven: --s3 tot de bron, onder: --s4 tot de lijn (de lucht binnen het raakvlak telt mee). */
 .meta {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(var(--tap), auto) var(--tap);
-  grid-template-areas: 'src more taste save';
+  grid-template-columns: minmax(0, 1fr) auto minmax(var(--tap), auto) var(--tap) var(--tap);
+  grid-template-areas: 'src more taste share save';
   align-items: center;
   column-gap: var(--s1);
   min-height: var(--tap);
@@ -1600,8 +1601,11 @@ select.input {
 .meta > .morebtn {
   grid-area: more;
 }
-.meta > :is(.iconbtn:not(.save), .taste, .taste__said) {
+.meta > :is(.iconbtn:not(.save, .share), .taste, .taste__said) {
   grid-area: taste;
+}
+.meta > .share {
+  grid-area: share;
 }
 .meta > .save {
   grid-area: save;
@@ -1609,8 +1613,8 @@ select.input {
 /* Een scherm zonder meer of minder (alles behalve de Editie): de plek van ⋯ valt weg, zodat
    "Vergelijk" naast bewaren staat en niet los in de regel zweeft. Binnen een scherm blijft de x
    dus gelijk: de Editie heeft ⋯ in elke rij, de andere schermen nergens. */
-.view:not(:has(.meta > :is(.iconbtn:not(.save), .taste, .taste__said))) .meta {
-  grid-template-columns: minmax(0, 1fr) auto 0 var(--tap);
+.view:not(:has(.meta > :is(.iconbtn:not(.save, .share), .taste, .taste__said))) .meta {
+  grid-template-columns: minmax(0, 1fr) auto 0 var(--tap) var(--tap);
 }
 /* Smalle kolom (de zijkolom van de voorpagina, grote tekst): staat er "Vergelijk" in de rij, dan
    krijgt de bron een eigen regel en wordt niet afgekapt. Eronder "Vergelijk" vooraan op de
@@ -1619,8 +1623,8 @@ select.input {
 @container entry (max-width: 21rem) {
   .meta:has(> .morebtn):not(:has(> :is(.taste, .taste__said))) {
     grid-template-areas:
-      'src src src src'
-      'more more taste save';
+      'src src src src src'
+      'more more taste share save';
   }
   .meta > .morebtn {
     justify-self: start;
@@ -2581,7 +2585,7 @@ select.input {
 .story__head > .story__eyebrow:first-child {
   padding-inline-start: 0;
 }
-/* Volgen, bewaren en (in het paneel) sluiten: rechts, het laatste icoon op de lijn. */
+/* Volgen, delen, bewaren en (in het paneel) sluiten: rechts, het laatste icoon op de lijn. */
 .story__acts {
   flex: none;
   display: flex;
@@ -4726,8 +4730,8 @@ html[data-images='hoofd'] .media--social {
 @container entry (max-width: 38rem) {
   .meta:has(> :is(.taste, .taste__said)) {
     grid-template-areas:
-      'src more . .'
-      'taste taste taste save';
+      'src more . . .'
+      'taste taste taste share save';
   }
   .meta > :is(.taste, .taste__said) {
     justify-self: start;
@@ -4736,9 +4740,9 @@ html[data-images='hoofd'] .media--social {
 @container entry (max-width: 21rem) {
   .meta:has(> :is(.taste, .taste__said)) {
     grid-template-areas:
-      'src src src src'
-      'more more . .'
-      'taste taste taste save';
+      'src src src src src'
+      'more more . . .'
+      'taste taste taste share save';
   }
 }
 .lessnote {

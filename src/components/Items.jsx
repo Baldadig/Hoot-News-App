@@ -1,6 +1,7 @@
 import { createContext, useContext, useState } from 'react'
 import { timeAgo, readTime } from '../lib/time.js'
-import { BookmarkIcon, PlayIcon, MoreIcon } from './icons.jsx'
+import { BookmarkIcon, PlayIcon, MoreIcon, ShareIcon } from './icons.jsx'
+import { shareLink } from '../lib/share.js'
 import { topicById } from '../lib/topics.js'
 import { savedKey, withLead } from '../lib/saved.js'
 import { avatarUrl, fitsLarge, fitsHero } from '../lib/img.js'
@@ -58,6 +59,20 @@ export function SaveButton({ id, kind = 'item', payload, label = 'bericht' }) {
   )
 }
 
+// Delen (src/lib/share.js): de link van de uitgever met de kop, via het deelblad van het toestel
+// of anders het klembord — App.jsx meldt dan "Link gekopieerd". Zonder geldige link geen knop,
+// zoals in de app (`if let link = item.link`). Staat naast bewaren, overal waar bewaren staat.
+export function ShareButton({ item, label = 'bericht' }) {
+  const { share } = useHoot()
+  if (!share || !shareLink(item)) return null
+  const text = `Deel dit ${label}`
+  return (
+    <button type="button" className="iconbtn share" onClick={() => share(item)} aria-label={text} title={text}>
+      <ShareIcon />
+    </button>
+  )
+}
+
 function Kicker({ item, extra, followed }) {
   const bits = []
   if (extra) bits.push(<span key="x">{extra}</span>)
@@ -87,9 +102,10 @@ export function SourceMeta({ item }) {
   )
 }
 
-// Actieregel: vaste plekken — bron · vergelijken · meer of minder · bewaren. Ontbreekt er een,
-// dan blijft zijn plek leeg, zodat "Vergelijk" en bewaren in elke rij van een scherm op dezelfde
-// x staan (een scherm zonder meer of minder heeft die plek niet, zie .meta).
+// Actieregel: vaste plekken — bron · vergelijken · meer of minder · delen · bewaren. Ontbreekt er
+// een, dan blijft zijn plek leeg, zodat "Vergelijk", delen en bewaren in elke rij van een scherm
+// op dezelfde x staan (een scherm zonder meer of minder heeft die plek niet, zie .meta). Delen en
+// bewaren zijn op het web wat het contextmenu in de app is: elke rij heeft ze, zonder lang drukken.
 export function Meta({ item, story, showSave = true, taste = null }) {
   const { openStory, newInStory } = useHoot()
   const fresh = story ? newInStory(story) : 0
@@ -105,6 +121,7 @@ export function Meta({ item, story, showSave = true, taste = null }) {
         </button>
       ) : null}
       {taste ? <TasteButton entryKey={taste} item={item} story={story} /> : null}
+      <ShareButton item={item} />
       {showSave ? story ? <SaveButton id={story.id} kind="story" payload={withLead(story, item.id)} label="verhaal" /> : <SaveButton id={item.id} payload={item} /> : null}
     </div>
   )
@@ -247,6 +264,7 @@ export function SocialItem({ item }) {
             </span>
           </span>
         </button>
+        <ShareButton item={item} label="bericht" />
         <SaveButton id={item.id} payload={item} />
       </div>
       <a className="social__body" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>

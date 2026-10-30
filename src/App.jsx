@@ -38,6 +38,7 @@ import { usePersonalEdition } from './hooks/usePersonalEdition.js'
 import { toggleFollow } from './lib/follow.js'
 import { subscribe as onUpdate, isReady as updateReady, applyUpdate, dismissUpdate } from './lib/swUpdate.js'
 import { indexStories, resolveStory, toggleSaved, restoreSaved } from './lib/saved.js'
+import { shareItem, shareNotice } from './lib/share.js'
 import Splash from './components/Splash.jsx'
 
 // Schermen die je zelden opent laden pas als je ze opent (de service worker heeft ze al klaarstaan).
@@ -250,6 +251,19 @@ export default function App() {
     setUndo(null)
     setAnnounce('Teruggezet in Bewaard')
   }, [undo, setSaved])
+
+  // Delen (src/lib/share.js): het deelblad van het toestel zegt zelf wat er gebeurde; alleen bij
+  // het klembord (of als het misgaat) een korte melding in dezelfde pil als de andere.
+  const [notice, setNotice] = useState('')
+  useEffect(() => {
+    if (!notice) return
+    const t = setTimeout(() => setNotice(''), 3000)
+    return () => clearTimeout(t)
+  }, [notice])
+  const share = useCallback(async (item) => {
+    const said = shareNotice(await shareItem(item))
+    if (said) setNotice(said)
+  }, [])
 
   const toggleSave = useCallback(
     (kind, id, payload) => {
@@ -526,6 +540,7 @@ export default function App() {
       account,
       saved,
       toggleSave,
+      share,
       read,
       markRead,
       openSource,
@@ -537,7 +552,7 @@ export default function App() {
       muted,
       setMuted,
     }),
-    [less, voteOn, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, openDisplay, account, saved, toggleSave, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories],
+    [less, voteOn, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, openDisplay, account, saved, toggleSave, share, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories],
   )
 
   const hideMain = overlay || showWelcome
@@ -665,7 +680,11 @@ export default function App() {
         <DisplaySheet open={display} onClose={() => setDisplay(false)} account={account} syncStatus={syncStatus} />
         <JoinSheet open={!!joinOpen && account.status === 'out'} reason={joinOpen || undefined} invited={invited} onClose={() => setJoinOpen(false)} onSignIn={account.signIn} />
         <div className="toasts" aria-live="polite" inert={overlay ? '' : undefined}>
-          {undo ? (
+          {notice ? (
+            <div className="toast" key={notice}>
+              <span>{notice}</span>
+            </div>
+          ) : undo ? (
             <div className="toast">
               <span>Verwijderd uit Bewaard</span>
               <button type="button" className="linkbtn" onClick={undoRemove}>

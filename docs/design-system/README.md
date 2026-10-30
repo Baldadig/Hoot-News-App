@@ -135,7 +135,8 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 - **Tikbare iconen:**
   - in `ink-3`;
   - actief in `accent`;
-  - bewaren is een bladwijzer (vol in `accent` = bewaard).
+  - bewaren is een bladwijzer (vol in `accent` = bewaard);
+  - delen staat links van bewaren (web: Phosphor "Export", iOS: `square.and.arrow.up`) en deelt altijd de link van de uitgever met de kop als titel, nooit een Hoot-link. Op het web via het deelblad van het toestel; zonder deelblad gaat de link naar het klembord met de melding "Link gekopieerd".
 - **Keuzeknoppen (chips)** die aan staan, tonen een vinkje en `accent`: nooit alleen een kleur.
 
 ## Per platform
@@ -147,6 +148,7 @@ Bewuste verschillen, omdat elk platform zijn eigen conventies heeft:
 - **Lege toestand:** web met een serif-titel en uitleg in `ink-2`; iOS met de standaardweergave van het systeem (`ContentUnavailableView`) met dezelfde teksten.
 - **Bronnaam:** op de website kapt een lange naam af op één regel; in de app loopt hij door.
 - **Alleen in de app:** de Hoot-lezer (zie ReaderPage) en de Bluesky-keuze bovenaan de Stroom.
+- **Delen:** in de app in het contextmenu (lang drukken), in de lezer en bij een verhaal; op het web is er geen lang drukken, dus staat delen als icoon in de actieregel van elk bericht, naast bewaren, en in de kop van een verhaal.
 
 ## Toegankelijkheid
 
@@ -154,4 +156,4 @@ Bewuste verschillen, omdat elk platform zijn eigen conventies heeft:
 - Elk aanraakdoel is minstens 44 × 44, en groeit mee: knoppen en chips hebben een minimumhoogte, geen vaste hoogte.
 - **Toetsenbordfocus (web):** een rand van 2 px in `accent`, 2 px buiten het element (`:focus-visible`). De volgorde volgt de leesvolgorde; na het sluiten van een blad of dialoog gaat de focus terug naar wat het opende.
 - Dynamische tekst (iOS) en zoomen (web) werken tot de grootste maten. Labels lopen dan door in plaats van af te breken, en decoratie (miniaturen, vak-iconen) maakt plaats voor tekst.
-- Wat bij elkaar hoort, leest VoiceOver als één element. De bron, bewaren en "+N bronnen" blijven aparte knoppen met een duidelijk label ("Vergelijk 5 andere bronnen").
+- Wat bij elkaar hoort, leest VoiceOver als één element. De bron, delen, bewaren en "+N bronnen" blijven aparte knoppen met een duidelijk label ("Deel dit bericht", "Vergelijk 5 andere bronnen").

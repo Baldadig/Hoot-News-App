@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { ViewHeader, Empty, Skeleton, LoadError } from '../components/Shell.jsx'
-import { SaveButton, SourceMark, useHoot } from '../components/Items.jsx'
+import { SaveButton, ShareButton, SourceMark, useHoot } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
 import { ChipGroup } from '../components/ChipGroup.jsx'
 import { Disclosure } from '../components/Disclosure.jsx'
@@ -27,7 +27,7 @@ function span(from, to) {
 const two = (n) => String(n).padStart(2, '0')
 const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
-// Wie, waar en wanneer — met bewaren rechts. Geen knop naar de bron: vakbronnen staan niet in de Stroom.
+// Wie, waar en wanneer — met delen en bewaren rechts. Geen knop naar de bron: vakbronnen staan niet in de Stroom.
 function Source({ item }) {
   return (
     <div className="meta">
@@ -42,6 +42,7 @@ function Source({ item }) {
           </span>
         </span>
       </span>
+      <ShareButton item={item} label="stuk" />
       <SaveButton id={item.id} payload={item} label="stuk" />
     </div>
   )

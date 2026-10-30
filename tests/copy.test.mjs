@@ -60,3 +60,17 @@ test('Welkom → Editie: de Editie staat al achter Welkom en Welkom vervaagt (W5
   assert.match(welcome, /crossPlan\(\)/)
   assert.match(welcome, /inert=\{leaving \? '' : undefined\}/)
 })
+
+test('Delen: deelknop naast bewaren, de link van de uitgever, "Link gekopieerd" zonder deelblad (W6)', () => {
+  const items = read('components/Items.jsx')
+  assert.match(items, /export function ShareButton/)
+  assert.ok(items.indexOf('<ShareButton item={item} />') < items.indexOf('<SaveButton id={story.id} kind="story"'), 'in de actieregel staat delen vóór bewaren')
+  assert.match(read('views/Story.jsx'), /<ShareButton item=\{lead\} label="verhaal" \/>/)
+  assert.match(read('views/Vak.jsx'), /<ShareButton item=\{item\} label="stuk" \/>/)
+  assert.match(read('lib/share.js'), /'Link gekopieerd'/)
+  assert.match(read('App.jsx'), /shareNotice\(await shareItem\(item\)\)/)
+  const css = read('styles.css')
+  assert.match(css, /grid-template-areas: 'src more taste share save'/)
+  // De kop van de app voor een bericht zonder kop (Bluesky) staat in de lib, niet in een component.
+  assert.ok(!items.includes('linkTitle ||'), 'de deeltitel komt uit lib/share.js')
+})
