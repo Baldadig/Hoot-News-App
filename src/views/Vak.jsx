@@ -111,7 +111,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Selectie">
-      <div className="col">
+      <div className="col col--wide">
         <ViewHeader title="Selectie" onRefresh={onRefresh} refreshing={status === 'refreshing' || status === 'loading'}>
           <Disclosure className="vakpick" open={!chosen.length} summaryClassName="linkbtn linkbtn--plain vakpick__sum" summary={chosen.length ? `Onderwerpen (${chosen.length})` : 'Kies onderwerpen'}>
             {vakByDomain().map((d) => (

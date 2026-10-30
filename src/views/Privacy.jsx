@@ -5,7 +5,7 @@ import { ViewHeader } from '../components/Shell.jsx'
 export default function Privacy({ onBack, backLabel }) {
   return (
     <section className="view view--page" aria-label="Privacy">
-      <div className="col prose">
+      <div className="col col--read prose">
         <ViewHeader title="Privacy" showSearch={false} onBack={onBack} backLabel={backLabel} />
 
         <p>Hoot heeft geen advertenties, geen trackers en geen analytics. Er worden geen cookies gezet.</p>

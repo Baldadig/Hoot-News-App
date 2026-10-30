@@ -41,7 +41,7 @@ export default function Saved({ active }) {
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Bewaard">
-      <div className="col">
+      <div className="col col--read">
         <ViewHeader title="Bewaard" sub={total ? `${total} ${total === 1 ? 'bericht' : 'berichten'} op dit toestel` : 'Je leeslijst'} />
         {total === 0 ? (
           <Empty

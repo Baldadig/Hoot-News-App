@@ -6,7 +6,7 @@ import { resolveProfile } from '../lib/bluesky.js'
 import { statusLabel } from '../lib/sourceStatus.js'
 import { clock, timeAgo } from '../lib/time.js'
 import { SOURCE_CATS } from '../lib/topics.js'
-import { StarIcon } from '../components/icons.jsx'
+import { StarIcon, CaretIcon, ICON_SM } from '../components/icons.jsx'
 
 export function Switch({ checked, onChange, label }) {
   return (
@@ -141,11 +141,11 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
   const more = catalog.filter((s) => muted.has(s.id))
   return (
     <section className="view" hidden={!active} aria-label="Bronnen">
-      <div className="col">
+      <div className="col col--form">
         <ViewHeader title="Bronnen" sub="Wat meedoet in je Editie en Stroom" subWide />
 
         <h2 className="label label--section sect">Je bronnen · {mine.length}</h2>
-        <ul className="srows">
+        <ul className="srows rows">
           {mine.map((s) => (
             <SourceRow key={s.id} s={s} muted={false} onToggle={onToggle} favorite={favorites.includes(s.id)} onFavorite={onFavorite} />
           ))}
@@ -155,27 +155,30 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
 
         <h2 className="label label--section sect">Meer bronnen</h2>
         <p className="hint">Gecontroleerde bronnen die je nu niet volgt. Zet er een aan om hem toe te voegen.</p>
-        {SOURCE_CATS.map(([cat, label]) => {
-          const list = more.filter((s) => s.cat === cat)
-          return list.length ? (
-            <Disclosure
-              key={cat}
-              className="srcgroup"
-              summary={
-                <>
-                  {label}
-                  <span className="srcgroup__n">{list.length}</span>
-                </>
-              }
-            >
-              <ul className="srows">
-                {list.map((s) => (
-                  <SourceRow key={s.id} s={s} muted onToggle={onToggle} />
-                ))}
-              </ul>
-            </Disclosure>
-          ) : null
-        })}
+        <div className="rows">
+          {SOURCE_CATS.map(([cat, label]) => {
+            const list = more.filter((s) => s.cat === cat)
+            return list.length ? (
+              <Disclosure
+                key={cat}
+                className="srcgroup"
+                summaryClassName="head-4"
+                summary={
+                  <>
+                    {label}
+                    <span className="srcgroup__n">{list.length}</span>
+                  </>
+                }
+              >
+                <ul className="srows rows">
+                  {list.map((s) => (
+                    <SourceRow key={s.id} s={s} muted onToggle={onToggle} />
+                  ))}
+                </ul>
+              </Disclosure>
+            ) : null
+          })}
+        </div>
 
         {bluesky ? (
           <>
@@ -185,26 +188,34 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
                 <span className="setrow__label">Mensen op Bluesky</span>
                 <span className="setrow__hint">Wie je volgt, toevoegen en of iemand ook in de Stroom staat, regel je in Bluesky.</span>
               </span>
-              <span aria-hidden="true">›</span>
+              <span className="caret" aria-hidden="true">
+                <CaretIcon size={ICON_SM} />
+              </span>
             </a>
           </>
         ) : null}
 
         <h2 className="label label--section sect">Onderwerpen en instellingen</h2>
-        <a className="setrow setrow--link" href="#/welkom">
-          <span className="setrow__text">
-            <span className="setrow__label">Interesses opnieuw kiezen</span>
-            <span className="setrow__hint">Wat je volgt, van breed naar smal, en je bronnen.</span>
-          </span>
-          <span aria-hidden="true">›</span>
-        </a>
-        <a className="setrow setrow--link" href="#/instellingen">
-          <span className="setrow__text">
-            <span className="setrow__label">Alle instellingen</span>
-            <span className="setrow__hint">Account, weergave, editie, buiten je bubbel.</span>
-          </span>
-          <span aria-hidden="true">›</span>
-        </a>
+        <div className="rows">
+          <a className="setrow setrow--link" href="#/welkom">
+            <span className="setrow__text">
+              <span className="setrow__label">Interesses opnieuw kiezen</span>
+              <span className="setrow__hint">Wat je volgt, van breed naar smal, en je bronnen.</span>
+            </span>
+            <span className="caret" aria-hidden="true">
+              <CaretIcon size={ICON_SM} />
+            </span>
+          </a>
+          <a className="setrow setrow--link" href="#/instellingen">
+            <span className="setrow__text">
+              <span className="setrow__label">Alle instellingen</span>
+              <span className="setrow__hint">Account, weergave, editie, buiten je bubbel.</span>
+            </span>
+            <span className="caret" aria-hidden="true">
+              <CaretIcon size={ICON_SM} />
+            </span>
+          </a>
+        </div>
 
         <p className="about">Hoot v{__APP_VERSION__}</p>
       </div>

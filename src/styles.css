@@ -67,12 +67,13 @@
   /* Maat */
   --gutter: 16px;
   --tap: 44px;
-  --readable: 680px; /* leesbreedte; wordt een alias van --measure zodra de kolommen omgaan */
+  --readable: 680px; /* oude leesbreedte: nog van Welkom, het verhaal en de lezer; gaat op in --measure zodra die hun eigen maat krijgen */
   --wide: 1000px; /* het paginaraam (--page) */
   --page: var(--wide);
   --measure: 720px; /* leesblok */
-  --measure-prose: 65ch; /* lopende tekst, samenvattingen en hints */
+  --measure-prose: 58ch; /* lopende tekst, samenvattingen en hints: ten hoogste ± 75 tekens per regel (een ch is de breedte van een 0, breder dan een gemiddelde letter; 65ch gaf tot 83) */
   --measure-form: 560px; /* Bronnen en Instellingen */
+  --front-side: 16rem; /* zijkolom van de voorpagina, minstens: "Vergelijk N bronnen" past naast ⋯ en bewaren */
   --sheet-w: 560px;
   --nav-w: 208px;
   --panel-w: clamp(340px, 28vw, 400px);
@@ -558,7 +559,7 @@ select {
 /* ---------- Indeling ---------- */
 .app {
   height: 100dvh;
-  max-width: 1440px;
+  max-width: var(--app-max);
   margin: 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -572,7 +573,7 @@ select {
   inset: 0 0 auto 0;
   height: var(--safe-t);
   background: var(--paper);
-  z-index: 30;
+  z-index: var(--z-statusbar);
 }
 
 .main {
@@ -598,6 +599,31 @@ select {
   max-width: var(--readable);
   margin: 0 auto;
   padding: var(--safe-t) calc(var(--gutter) + var(--safe-r)) var(--s7) calc(var(--gutter) + var(--safe-l));
+}
+/* Het raam van een scherm. Tot 960 één leesblok (--measure), gecentreerd; vanaf 960 het
+   paginaraam (--page, hieronder), op elke tab even breed. De schermkop (.vh) loopt altijd over
+   het hele raam, dus titel en iconen staan op elke tab op dezelfde plek. Wat eronder staat,
+   kiest zijn breedte per soort scherm:
+   - .col--read: lezen (Stroom, Bewaard, Zoeken, Bluesky, Over, Privacy, Designsysteem). Elk blok
+     stopt op --measure en staat links, op de lijn van de titel; rechts blijft lucht. Zoeken heeft
+     geen titelrij: daar hoort het veld bij de resultaten en stopt de kop dus ook op --measure.
+   - .col--form: een formulier (Bronnen, Instellingen). Stopt op --measure-form, zodat een label
+     en zijn schakelaar bij elkaar blijven.
+   - .col--wide: een voorpagina (Editie, Selectie). Gebruikt het hele raam.
+   Welkom heeft een gewone .col en houdt zijn eigen breedte. */
+.col--read,
+.col--form,
+.col--wide {
+  max-width: var(--measure);
+}
+/* :where houdt het gewicht op één klasse, zodat een blok dat zelf smaller is (lopende tekst op
+   --measure-prose, een hint) zijn eigen maat houdt. */
+.col--read > :where(:not(.vh)),
+.col--read > .vh:has(> .searchbar) {
+  max-inline-size: var(--measure);
+}
+.col--form > :where(:not(.vh)) {
+  max-inline-size: var(--measure-form);
 }
 
 /* Hoofdnavigatie: onderin (telefoon) */
@@ -728,7 +754,7 @@ select {
 
 @media (min-width: 960px) {
   .app {
-    grid-template-columns: 208px minmax(0, 1fr);
+    grid-template-columns: var(--nav-w) minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
   }
   .app__nav {
@@ -818,16 +844,25 @@ select {
     display: none;
   }
   .col {
-    max-width: 720px;
+    max-width: var(--measure);
     padding-top: var(--s2);
+  }
+  /* Het paginaraam. Is main smaller dan het raam (960–1239), dan blijft er aan beide kanten
+     --s4 over, dus de tekst staat minstens --s6 van de lijn van de zijbalk (niet op de gutter
+     ertegenaan). */
+  .col--read,
+  .col--form,
+  .col--wide {
+    max-width: min(var(--page), 100% - 2 * var(--s4));
   }
 }
 
-/* Breed scherm, twee standen. Lezen: geen paneel, de leeskolom staat gecentreerd in de
-   ruimte naast de navigatie. Vergelijken: de lijst schuift op en rechts komt het paneel. */
+/* Breed scherm, twee standen. Lezen: geen paneel, het raam staat gecentreerd in de ruimte naast
+   de navigatie. Vergelijken: rechts komt het paneel en het raam wordt smaller; wat erin staat,
+   kiest zijn indeling naar de breedte die overblijft (container queries), niet naar het scherm. */
 @media (min-width: 1200px) {
   .app.has-panel {
-    grid-template-columns: 208px minmax(0, 1fr) 340px;
+    grid-template-columns: var(--nav-w) minmax(0, 1fr) var(--panel-w);
   }
   .panel {
     display: block;
@@ -2194,7 +2229,7 @@ select.input {
 /* Lopende tekst op een eigen pagina (Privacy) */
 .prose p,
 .prose ul {
-  max-width: 65ch;
+  max-inline-size: var(--measure-prose);
   margin: 0 0 var(--s3);
   color: var(--ink-2);
   font-size: var(--t3);
@@ -2255,26 +2290,27 @@ select.input {
   gap: var(--s3);
 }
 
-.srcgroup {
-  border-bottom: 1px solid var(--rule);
-}
+/* Meer bronnen: groepen in een lijst (.rows), dus één lijn tussen twee groepen, ook als er een
+   open is. Binnen een open groep staan de bronnen weer als lijst; de groep zelf heeft geen rand. */
 .srcgroup > summary {
   display: flex;
   align-items: center;
   gap: var(--s2);
-  min-height: 52px;
-  font-size: var(--t3);
-  font-weight: 700;
+  min-height: var(--row-md);
+  padding-block: var(--s2);
   cursor: pointer;
   list-style: none;
 }
 .srcgroup > summary::-webkit-details-marker {
   display: none;
 }
-.srcgroup__n {
+.srcgroup__n { /* een aantal is meta: sans, niet de krantenletter van de kop */
   margin-left: auto;
   color: var(--ink-3);
-  font-weight: 600;
+  font-family: var(--sans);
+  font-size: var(--t2);
+  font-weight: var(--fw-ui);
+  letter-spacing: normal;
 }
 
 .srows {
@@ -2282,20 +2318,22 @@ select.input {
   margin: 0;
   padding: 0;
 }
+/* Een bron: media-object (logo 40 + --s4, dus de naam op 56), rechts ster en schakelaar. De
+   lijnen zijn van de lijst (.srows.rows). De link vult de hele rijhoogte, dus het raakvlak ook. */
 .srow {
   display: flex;
   align-items: center;
   gap: var(--s2);
-  min-height: 64px;
-  border-bottom: 1px solid var(--rule);
+  min-height: var(--row-lg);
 }
 .srow__main {
   flex: 1;
+  align-self: stretch;
   display: flex;
   align-items: center;
-  gap: var(--s3);
+  gap: var(--s4);
   min-width: 0;
-  min-height: 64px;
+  padding-block: var(--s2);
   color: inherit;
   text-decoration: none;
 }
@@ -2303,6 +2341,7 @@ select.input {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  line-height: var(--lh-2);
 }
 .srow__name {
   font-size: var(--t2);
@@ -2314,23 +2353,24 @@ select.input {
   white-space: nowrap;
   color: var(--ink-3);
   font-size: var(--t1);
+  line-height: var(--lh-1);
 }
 .is-warn {
   color: var(--warn);
   font-weight: 600;
 }
-/* Tijdelijk niet bereikbaar: gedempt, met een puntje — de tekst zegt het, niet de kleur */
+/* Tijdelijk niet bereikbaar: gedempt, met een stip (8) — de tekst zegt het, niet de kleur */
 .srow__meta.is-down::before,
 .srcstatus__dot {
   content: '';
   display: inline-block;
   flex: none;
-  width: 6px;
-  height: 6px;
+  width: var(--dot);
+  height: var(--dot);
   margin-right: var(--s2);
-  border-radius: 50%;
+  border-radius: var(--radius-round);
   background: var(--quiet-amber);
-  vertical-align: 2px;
+  vertical-align: middle;
 }
 .srcstatus {
   margin-top: var(--s2);
@@ -2349,7 +2389,7 @@ select.input {
 .srcstatus__dot.is-down {
   background: var(--quiet-amber);
 }
-.srcstatus__body {
+.srcstatus__body { /* een terzijde: ingesprongen achter een lijn, niet in een vak */
   padding: var(--s1) 0 var(--s2) var(--s3);
   border-left: 2px solid var(--rule);
   color: var(--ink-2);
@@ -2377,14 +2417,6 @@ select.input {
   padding-top: var(--s3);
 }
 
-.srow--plain {
-  min-height: 48px;
-  gap: var(--s3);
-}
-.srow--plain .srow__meta {
-  margin-left: auto;
-}
-
 .add {
   margin-top: var(--s5);
 }
@@ -2399,8 +2431,10 @@ select.input {
   flex-wrap: wrap;
   gap: var(--s2);
 }
+/* Veld en knop op één regel; pas als het veld smaller dan de halve bedieningskolom (10rem) zou
+   worden, gaat de knop eronder. Zo ook bij een uitnodiging (.invite__acts). */
 .add__row .input {
-  flex: 1 1 14em;
+  flex: 1 1 calc(var(--control-col) / 2);
 }
 .add__msg {
   margin-top: var(--s2);
@@ -2415,6 +2449,13 @@ select.input {
   color: var(--ink-3);
   font-size: var(--t1);
   line-height: var(--lh-body);
+}
+/* Met een eigen sectiekop erboven (Instellingen: Over) is de kop het begin; dan geen lijn en
+   geen extra lucht meer tussen kop en tekst. */
+.sect + .about {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
 }
 
 /* ---------- Verhaal (bronvergelijking) ---------- */
@@ -3080,34 +3121,16 @@ select.input {
   padding-top: var(--s4);
   border-top: var(--rule-strong);
 }
-@media (min-width: 1200px) {
-  .app:not(.has-panel) .col--front {
-    max-width: var(--wide);
-  }
-  .app:not(.has-panel) .front {
-    display: grid;
-    grid-template-areas:
-      'lead side'
-      'under side';
-    grid-template-rows: auto 1fr;
-    grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
-    gap: var(--s5);
-    align-items: start;
-  }
-  .app:not(.has-panel) .front__side {
-    padding-left: var(--s5);
-    border-top: 0;
-    border-left: 1px solid var(--rule);
-  }
-  /* Naast het hoofdverhaal: tekst voorop, alleen het laatste krijgt een klein beeld */
-  .app:not(.has-panel) .front__side .fitem:not(:last-child) .thumb {
-    display: none;
-  }
-  /* Onder de voorpagina: de lijn loopt over de volle breedte, de berichten houden de
-     leesbreedte en staan op dezelfde linkerlijn als het hoofdverhaal. */
-  .app:not(.has-panel) .front__rest .list {
-    max-width: 720px;
-  }
+/* De Editie is een container: de voorpagina kiest haar indeling naar de breedte van het raam,
+   niet naar die van het scherm. Zo staat het raster ook op een tablet en met het vergelijkpaneel
+   open, zodra er plaats voor is (zie .front). */
+.col--front {
+  container: front / inline-size;
+}
+/* Onder de voorpagina: de berichten (en de lijn erboven, .front__more) houden het leesblok en
+   staan op de linkerlijn van het hoofdverhaal. */
+.front__rest .list {
+  max-inline-size: var(--measure);
 }
 
 /* ---------- Vergelijkpaneel (breed scherm): compacte publicatie ---------- */
@@ -3222,23 +3245,25 @@ html[data-images='hoofd'] .media--social {
   }
 }
 
-/* Instellingen: rijen met tekst links en een schakelaar rechts */
+/* Instellingen: rijen met tekst links en een schakelaar rechts. Altijd in een lijst (.rows): de
+   lijn staat tússen twee rijen, de laatste rij van een groep heeft er geen onder zich. */
 .setrow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--s3);
-  min-height: 56px;
-  padding: var(--s2) 0;
-  border-bottom: 1px solid var(--rule);
+  min-height: var(--row-md);
+  padding-block: var(--s2);
   color: inherit;
   text-decoration: none;
 }
+/* Label (t2, lh-2) en uitleg (t1, lh-1-read) met --s1 ertussen: samen 44, de rij dus 60. */
 .setrow__text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--s1);
   min-width: 0;
+  line-height: var(--lh-2);
 }
 .setrow__label {
   font-size: var(--t2);
@@ -3254,8 +3279,7 @@ html[data-images='hoofd'] .media--social {
   display: flex;
   flex-direction: column;
   gap: var(--s2);
-  padding: var(--s3) 0;
-  border-bottom: 1px solid var(--rule);
+  padding-block: var(--s3);
 }
 .invite__acts {
   display: flex;
@@ -3264,7 +3288,7 @@ html[data-images='hoofd'] .media--social {
   gap: var(--s2);
 }
 .invite__acts .input {
-  flex: 1 1 200px;
+  flex: 1 1 calc(var(--control-col) / 2);
 }
 .invite__link {
   text-overflow: ellipsis; /* t3 zoals elk veld: een lange link loopt af, niet kleiner */
@@ -3272,9 +3296,12 @@ html[data-images='hoofd'] .media--social {
 .setrow--link {
   cursor: pointer;
 }
-.setrow--link > span[aria-hidden] {
+/* Een rij die naar een ander scherm gaat: de caret (16, --ink-3) aan het eind, zoals bij een
+   uitklapper (.srcgroup), dus op dezelfde plek tegen de rechterlijn. */
+.setrow--link > .caret {
+  display: inline-flex;
+  flex: none;
   color: var(--ink-3);
-  font-size: var(--t4);
 }
 
 /* De editie in één minuut */
@@ -3395,17 +3422,15 @@ html[data-images='hoofd'] .media--social {
   gap: var(--s2);
   margin-left: auto;
 }
-/* Buiten je bubbel */
+/* Buiten je bubbel: een lijst in het leesblok, net als Verder in deze Editie. */
 .bubble {
   margin-top: var(--s2);
 }
 .bubble__hint {
   margin: var(--s1) 0 var(--s2);
 }
-@media (min-width: 1200px) {
-  .app:not(.has-panel) .bubble .list {
-    max-width: 720px;
-  }
+.bubble .list {
+  max-inline-size: var(--measure);
 }
 
 /* ---------- Bluesky ---------- */
@@ -3431,27 +3456,53 @@ html[data-images='hoofd'] .media--social {
   margin-top: var(--s2);
 }
 
-/* Voorpagina: hoofdverhaal links boven, twee kleinere eronder, drie in de kolom rechts */
-@media (min-width: 1200px) {
-  .app:not(.has-panel) .front > .lead {
+/* Voorpagina vanaf een raam van 42rem (672; tablet staand heeft 688): hoofdverhaal links boven,
+   drie kleinere in de kolom rechts, twee eronder. De zijkolom is minstens --front-side. Onder
+   42rem blijft er naast die zijkolom te weinig over voor de kop van het hoofdverhaal (vier
+   regels, bronregel afgekapt), dus dan één kolom. In rem, zodat het meeschuift met Tekstgrootte. */
+@container front (min-width: 42rem) {
+  .front {
+    display: grid;
+    grid-template-areas:
+      'lead side'
+      'under side';
+    grid-template-rows: auto 1fr;
+    grid-template-columns: minmax(0, 1.9fr) minmax(var(--front-side), 1fr);
+    gap: var(--s5);
+    align-items: start;
+  }
+  .front > .lead {
     grid-area: lead;
   }
-  .app:not(.has-panel) .front__side {
+  .front__side {
     grid-area: side;
     align-self: stretch;
+    padding-left: var(--s5);
+    border-top: 0;
+    border-left: 1px solid var(--rule);
   }
-  .app:not(.has-panel) .front__under {
+  /* Naast het hoofdverhaal: tekst voorop, alleen het laatste krijgt een klein beeld */
+  .front__side .fitem:not(:last-child) .thumb {
+    display: none;
+  }
+  .front__under {
     grid-area: under;
+  }
+}
+/* Pas bij een ruim raam (52rem) staan de twee onder het hoofdverhaal naast elkaar, elk minstens
+   zo breed als de zijkolom (--front-side); daaronder blijven ze een lijst, met hun beeld. */
+@container front (min-width: 52rem) {
+  .front__under {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0 var(--s5);
     align-content: start;
   }
   /* Naast elkaar, niet onder elkaar: de lijn erboven loopt over beide. */
-  .app:not(.has-panel) .front__under > * + * {
+  .front__under > * + * {
     border-top: 0;
   }
-  .app:not(.has-panel) .front__under .thumb {
+  .front__under .thumb {
     display: none;
   }
 }

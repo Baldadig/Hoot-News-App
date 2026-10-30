@@ -7,7 +7,7 @@ const MAIL = 'hallo@hootnews.nl'
 export default function Over({ onBack, backLabel }) {
   return (
     <section className="view view--page" aria-label="Over Hoot">
-      <div className="col prose">
+      <div className="col col--read prose">
         <ViewHeader title="Over Hoot" showSearch={false} onBack={onBack} backLabel={backLabel} />
 
         <p>

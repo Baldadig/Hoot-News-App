@@ -52,7 +52,7 @@ export default function Bluesky({ active, posts, sources, muted, onToggle, ownHa
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Bluesky">
-      <div className="col">
+      <div className="col col--read">
         <ViewHeader title="Bluesky" sub="De mensen die je volgt, nieuwste eerst" subWide onRefresh={onRefresh} refreshing={refreshing}>
           <div className="topics">
             <div className="topics__scroll" role="group" aria-label="Wie">
@@ -101,7 +101,7 @@ export default function Bluesky({ active, posts, sources, muted, onToggle, ownHa
         ) : null}
 
         {person ? (
-          <div className="bsky-person">
+          <div className="bsky-person rows">
             <div className="setrow">
               <span className="setrow__text">
                 <span className="setrow__label">{person.name} ook in de Stroom</span>

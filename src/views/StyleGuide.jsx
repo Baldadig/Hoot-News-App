@@ -24,7 +24,7 @@ export default function StyleGuide({ stream }) {
   const online = { online: true, meta: { updatedAt: new Date().toISOString() } }
   return (
     <section className="view view--page" aria-label="Designsysteem">
-      <div className="col sg">
+      <div className="col col--read sg">
         <ViewHeader title="Designsysteem" sub="Hoot — vormen, kleur en type, met echte inhoud" showSearch={false} />
 
         <h2 className="label label--section sect">Principes</h2>

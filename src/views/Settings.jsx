@@ -7,6 +7,7 @@ import { PLACES, NO_WEATHER } from '../lib/weather.js'
 import { VAK_FIELD_IDS } from '../../shared/vak.mjs'
 import { tasteSummary, emptyTaste } from '../lib/affinity.js'
 import { topicById } from '../lib/topics.js'
+import { CaretIcon, ICON_SM } from '../components/icons.jsx'
 
 // Alle instellingen op één plek. Wat je al lezend wisselt staat bovenaan (zelfde rijen als
 // het Weergave-paneel); daaronder wat je één keer instelt.
@@ -27,7 +28,7 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
   const ai = !!meta?.aiEnabled
   return (
     <section className="view view--page" aria-label="Instellingen">
-      <div className="col">
+      <div className="col col--form">
         <ViewHeader title="Instellingen" showSearch={false} account={false} onBack={onBack} backLabel={backLabel} backInNav />
 
         <h2 className="label label--section sect">Account</h2>
@@ -37,52 +38,62 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
         <DisplayControls />
 
         <h2 className="label label--section sect">Editie</h2>
-        <Row label="De Editie in één minuut" hint={ai ? 'AI-samenvatting van de Editie. Voor leden, op uitnodiging.' : 'Nog niet beschikbaar.'}>
-          <Switch checked={prefs.brief} onChange={(v) => setPref('brief', v)} label="De Editie in één minuut" />
-        </Row>
-        <Row label="Buiten je bubbel" hint="Wat anderen nu lezen en niet in je Editie staat.">
-          <Switch checked={prefs.bubble} onChange={(v) => setPref('bubble', v)} label="Buiten je bubbel" />
-        </Row>
-        <div className="setrow setrow--stack">
-          <label className="setrow__text" htmlFor="weather-place">
-            <span className="setrow__label">Weer in de Editie</span>
-            <span className="setrow__hint">Naast de datum.</span>
-          </label>
-          <select id="weather-place" className="input" value={prefs.weatherPlace} onChange={(e) => setPref('weatherPlace', e.target.value)}>
-            {PLACES.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-            <option value={NO_WEATHER}>Geen weer</option>
-          </select>
+        <div className="rows">
+          <Row label="De Editie in één minuut" hint={ai ? 'AI-samenvatting van de Editie. Voor leden, op uitnodiging.' : 'Nog niet beschikbaar.'}>
+            <Switch checked={prefs.brief} onChange={(v) => setPref('brief', v)} label="De Editie in één minuut" />
+          </Row>
+          <Row label="Buiten je bubbel" hint="Wat anderen nu lezen en niet in je Editie staat.">
+            <Switch checked={prefs.bubble} onChange={(v) => setPref('bubble', v)} label="Buiten je bubbel" />
+          </Row>
+          <div className="setrow setrow--stack">
+            <label className="setrow__text" htmlFor="weather-place">
+              <span className="setrow__label">Weer in de Editie</span>
+              <span className="setrow__hint">Naast de datum.</span>
+            </label>
+            <select id="weather-place" className="input" value={prefs.weatherPlace} onChange={(e) => setPref('weatherPlace', e.target.value)}>
+              {PLACES.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+              <option value={NO_WEATHER}>Geen weer</option>
+            </select>
+          </div>
+          <Row label="Edities" hint="Om 6, 12 en 17 uur tien verhalen. Daarna ligt de Editie vast." />
         </div>
-        <Row label="Edities" hint="Om 6, 12 en 17 uur tien verhalen. Daarna ligt de Editie vast." />
 
         <h2 className="label label--section sect">Extra</h2>
-        <Row label="Selectie in het menu" hint="Elke maandag per onderwerp de drie belangrijkste stukken. Onderwerpen kies je in de Selectie.">
-          <Switch checked={prefs.vak.length > 0} onChange={(v) => setPref('vak', v ? VAK_FIELD_IDS : [])} label="Selectie in het menu" />
-        </Row>
-        <Row label="Bluesky in het menu" hint="Posts van mensen die je volgt.">
-          <Switch checked={prefs.bluesky} onChange={(v) => setPref('bluesky', v)} label="Bluesky in het menu" />
-        </Row>
+        <div className="rows">
+          <Row label="Selectie in het menu" hint="Elke maandag per onderwerp de drie belangrijkste stukken. Onderwerpen kies je in de Selectie.">
+            <Switch checked={prefs.vak.length > 0} onChange={(v) => setPref('vak', v ? VAK_FIELD_IDS : [])} label="Selectie in het menu" />
+          </Row>
+          <Row label="Bluesky in het menu" hint="Posts van mensen die je volgt.">
+            <Switch checked={prefs.bluesky} onChange={(v) => setPref('bluesky', v)} label="Bluesky in het menu" />
+          </Row>
+        </div>
 
         <h2 className="label label--section sect">Bronnen</h2>
-        <a className="setrow setrow--link" href="#/welkom">
-          <span className="setrow__text">
-            <span className="setrow__label">Interesses opnieuw kiezen</span>
-            <span className="setrow__hint">Wat bij je interesses past, gaat voor in je Editie. Ook wat je vaak opent of bewaart weegt mee (dat blijft op dit toestel). Voorkeursbronnen kies je met de ster bij Bronnen.</span>
-          </span>
-          <span aria-hidden="true">›</span>
-        </a>
-        <Learned taste={prefs.taste} onClear={() => setPref('taste', emptyTaste())} />
-        <a className="setrow setrow--link" href="#/bronnen">
-          <span className="setrow__text">
-            <span className="setrow__label">Bronnen</span>
-            <span className="setrow__hint">Aan- en uitzetten.</span>
-          </span>
-          <span aria-hidden="true">›</span>
-        </a>
+        <div className="rows">
+          <a className="setrow setrow--link" href="#/welkom">
+            <span className="setrow__text">
+              <span className="setrow__label">Interesses opnieuw kiezen</span>
+              <span className="setrow__hint">Wat bij je interesses past, gaat voor in je Editie. Ook wat je vaak opent of bewaart weegt mee (dat blijft op dit toestel). Voorkeursbronnen kies je met de ster bij Bronnen.</span>
+            </span>
+            <span className="caret" aria-hidden="true">
+              <CaretIcon size={ICON_SM} />
+            </span>
+          </a>
+          <Learned taste={prefs.taste} onClear={() => setPref('taste', emptyTaste())} />
+          <a className="setrow setrow--link" href="#/bronnen">
+            <span className="setrow__text">
+              <span className="setrow__label">Bronnen</span>
+              <span className="setrow__hint">Aan- en uitzetten.</span>
+            </span>
+            <span className="caret" aria-hidden="true">
+              <CaretIcon size={ICON_SM} />
+            </span>
+          </a>
+        </div>
 
         <h2 className="label label--section sect">Over</h2>
         <p className="about">

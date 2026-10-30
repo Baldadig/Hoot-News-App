@@ -104,7 +104,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
-      <div className="col col--front">
+      <div className="col col--wide col--front">
         {/* De kop van de Editie: titel, datum, omvang en de ingang naar het overzicht. Eén blok,
             zodat de kleur "Inkt" er een band van kan maken. */}
         <div className="edtop">
@@ -190,7 +190,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             ) : null}
             {hasBrief ? <BriefReader open={reading} onClose={() => setReading(false)} brief={brief} rows={rows} kicker={`${title} · ${longDate(edition.date)}`} /> : null}
             {/* Voorpagina: het hoofdverhaal groot, daarnaast drie kleinere — altijd in krant-vorm.
-                Op smal scherm (of met het vergelijkpaneel open) staan ze onder elkaar. */}
+                Is het raam smaller dan 42rem (telefoon), dan staan ze onder elkaar. */}
             <div className="front">
               <Slot less={less} row={rows[0]}>
                 <LeadStory item={rows[0].item} story={rows[0].story} note={rows[0].note} priority={active} taste={rows[0].key} />

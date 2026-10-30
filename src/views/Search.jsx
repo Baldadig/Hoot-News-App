@@ -35,7 +35,7 @@ export default function Search({ onBack, backLabel = 'Terug' }) {
 
   return (
     <section className="view view--page" aria-label="Zoeken">
-      <div className="col">
+      <div className="col col--read">
         <header className="vh">
           <form className="searchbar" role="search" onSubmit={(e) => (e.preventDefault(), inputRef.current?.blur())}>
             {/* Zoeken staat ook in de zijbalk: vanaf 960 is terug overbodig. */}

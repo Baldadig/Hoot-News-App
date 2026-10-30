@@ -39,7 +39,7 @@ export function AccountSettings({ account, syncStatus }) {
     )
   const email = user?.email || 'je account'
   return (
-    <>
+    <div className="rows">
       <div className="setrow">
         <div className="setrow__text">
           <span className="setrow__label">{email}</span>
@@ -51,7 +51,7 @@ export function AccountSettings({ account, syncStatus }) {
       </div>
       {status === 'noInvite' ? <RedeemRow account={account} /> : null}
       {profile?.is_admin ? <InviteRow account={account} /> : null}
-    </>
+    </div>
   )
 }
 
