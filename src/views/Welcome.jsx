@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { SourceMark } from '../components/Items.jsx'
 import { BackButton } from '../components/Shell.jsx'
 import { Disclosure } from '../components/Disclosure.jsx'
+import { ChipGroup } from '../components/ChipGroup.jsx'
+import { BrandLogo } from '../components/Brand.jsx'
 import { EditionIcon, SparkleIcon, StreamIcon, INTEREST_ICONS } from '../components/icons.jsx'
 import { vakByDomain } from '../../shared/vak.mjs'
 import { INTERESTS, topicById, resolveTopics, suggestSources, catLabel, starterGroups } from '../lib/topics.js'
@@ -93,7 +95,9 @@ export default function Welcome({ account, sources, prefs, muted = new Set(), on
       <div className="col ob__col">
         <div className="ob__top">
           {quick ? (
-            <span className="ob__brand">hoot</span>
+            <span className="ob__brand">
+              <BrandLogo height={24} />
+            </span>
           ) : (
             <span className="ob__n" aria-label={`Stap ${step + 1} van ${STEPS}`}>
               {step + 1}
@@ -105,7 +109,9 @@ export default function Welcome({ account, sources, prefs, muted = new Set(), on
           ) : step > 0 ? (
             <BackButton label="Terug" onClick={() => setStep((s) => s - 1)} className="ob__back" />
           ) : (
-            <span className="ob__brand">hoot</span>
+            <span className="ob__brand">
+              <BrandLogo height={24} />
+            </span>
           )}
         </div>
 
@@ -170,19 +176,13 @@ export default function Welcome({ account, sources, prefs, muted = new Set(), on
             {INTERESTS.filter((i) => interests.includes(i.id)).map((i) => {
               const Icon = INTEREST_ICONS[i.id]
               return (
-                <section key={i.id} className="ob__group" aria-label={i.label}>
-                  <h2 className="label label--meta ob__gtitle">
-                    <Icon />
-                    {i.label}
-                  </h2>
-                  <div className="ob__chips">
-                    {i.topics.map(topicById).map((t) => (
-                      <button key={t.id} type="button" className="ob__chip" aria-pressed={picked.includes(t.id)} onClick={() => toggle(setPicked)(t.id)}>
-                        {t.label}
-                      </button>
-                    ))}
-                  </div>
-                </section>
+                <ChipGroup key={i.id} label={i.label} icon={<Icon />} level={2} className="ob__group" labelClassName="ob__gtitle">
+                  {i.topics.map(topicById).map((t) => (
+                    <button key={t.id} type="button" className="pill ob__chip" aria-pressed={picked.includes(t.id)} onClick={() => toggle(setPicked)(t.id)}>
+                      {t.label}
+                    </button>
+                  ))}
+                </ChipGroup>
               )
             })}
           </>
@@ -193,16 +193,13 @@ export default function Welcome({ account, sources, prefs, muted = new Set(), on
             </h1>
             <p className="ob__sub">Eén keer per week bijgepraat over wat jou bezighoudt: elke maandag zet de Selectie per onderwerp de drie beste stukken van de week voor je klaar, geschreven door mensen. Kies wat bij je werk past of wat je graag volgt, of sla het over.</p>
             {vakByDomain().map((d) => (
-              <section key={d.id} className="ob__group" aria-label={d.label}>
-                <h2 className="label label--meta ob__gtitle">{d.label}</h2>
-                <div className="ob__chips">
-                  {d.fields.map((f) => (
-                    <button key={f.id} type="button" className="ob__chip" aria-pressed={vak.includes(f.id)} onClick={() => toggle(setVak)(f.id)}>
-                      {f.label}
-                    </button>
-                  ))}
-                </div>
-              </section>
+              <ChipGroup key={d.id} label={d.label} level={2} className="ob__group" labelClassName="ob__gtitle">
+                {d.fields.map((f) => (
+                  <button key={f.id} type="button" className="pill ob__chip" aria-pressed={vak.includes(f.id)} onClick={() => toggle(setVak)(f.id)}>
+                    {f.label}
+                  </button>
+                ))}
+              </ChipGroup>
             ))}
           </>
         ) : (
@@ -213,13 +210,13 @@ export default function Welcome({ account, sources, prefs, muted = new Set(), on
             <p className="ob__sub">
               {reopen ? 'Aan staan de bronnen die je nu volgt.' : 'We kozen er alvast een paar die bij je interesses passen.'} Tik om ze aan of uit te zetten. Van een bron met abonnement zie je altijd de koppen; het hele artikel lees je als je abonnee bent.
             </p>
-            <div className="ob__chips ob__free" role="group" aria-label="Welke bronnen tonen">
-              <button type="button" className="ob__chip" aria-pressed={!freeOnly} onClick={() => setFreeOnly(false)}>
+            <div className="chips ob__free" role="group" aria-label="Welke bronnen tonen">
+              <button type="button" className="pill ob__chip" aria-pressed={!freeOnly} onClick={() => setFreeOnly(false)}>
                 Alle bronnen
               </button>
               <button
                 type="button"
-                className="ob__chip"
+                className="pill ob__chip"
                 aria-pressed={freeOnly}
                 onClick={() => {
                   setFreeOnly(true)
@@ -274,7 +271,7 @@ export default function Welcome({ account, sources, prefs, muted = new Set(), on
 
       <div className="ob__foot">
         <div className="col">
-          <button type="button" className="ob__cta" onClick={cta.onClick} disabled={cta.disabled}>
+          <button type="button" className="btn btn--lg ob__cta" onClick={cta.onClick} disabled={cta.disabled}>
             {cta.label}
           </button>
           {quick ? (
