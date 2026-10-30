@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { CompactItem, Meta, SaveButton, useHoot, linkOf } from '../components/Items.jsx'
 import { isFollowing } from '../lib/follow.js'
-import { CloseIcon } from '../components/icons.jsx'
+import { CloseIcon, CaretIcon, ICON_SM } from '../components/icons.jsx'
 import { BackButton } from '../components/Shell.jsx'
 import { Disclosure } from '../components/Disclosure.jsx'
 import { timeAgo } from '../lib/time.js'
@@ -73,23 +73,34 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
 
   return (
     <div className="story">
+      {/* Kop: één uitgang. Als dialoog (smal scherm) is dat terug, links; in het vaste paneel de X,
+          rechts. "Alle verhalen" is daar geen uitgang maar een stap terug in het paneel, dus staat
+          hij boven de kop van het verhaal. Esc sluit alleen de dialoog, en de paneelknop staat
+          alleen in de kop van de Editie en de Stroom: daarom blijft de X. */}
       <header className="story__head">
-        {overlay ? <BackButton onClick={onClose} ariaLabel="Terug" /> : <BackButton label="Alle verhalen" onClick={onBack} className="story__back" />}
-        <p className={`label label--meta story__eyebrow${overlay ? '' : ' visually-hidden'}`} tabIndex={-1} ref={headRef}>
+        {overlay ? <BackButton onClick={onClose} ariaLabel="Terug" /> : null}
+        <p className="label label--meta story__eyebrow" tabIndex={-1} ref={headRef}>
           Verhaal
         </p>
-        <button type="button" className={`followbtn${following ? ' is-on' : ''}`} aria-pressed={following} onClick={() => followStory(story, lead?.title || '')}>
-          {following ? 'Je volgt dit' : 'Volg dit verhaal'}
-        </button>
-        <SaveButton id={story.id} kind="story" payload={lead ? withLead(story, lead.id) : story} label="verhaal" />
-        {!overlay ? (
-          <button type="button" className="iconbtn" onClick={onClose} aria-label="Paneel sluiten">
-            <CloseIcon />
+        <div className="story__acts">
+          {/* In een smal paneel (of bij grote tekst) staat er alleen "Volg"; de naam blijft voluit. */}
+          <button type="button" className={`pill pill--sm hit followbtn${following ? ' is-on' : ''}`} aria-pressed={following} onClick={() => followStory(story, lead?.title || '')}>
+            <span className="followbtn__long">{following ? 'Je volgt dit' : 'Volg dit verhaal'}</span>
+            <span className="followbtn__short" aria-hidden="true">
+              Volg
+            </span>
           </button>
-        ) : null}
+          <SaveButton id={story.id} kind="story" payload={lead ? withLead(story, lead.id) : story} label="verhaal" />
+          {!overlay ? (
+            <button type="button" className="iconbtn" onClick={onClose} aria-label="Paneel sluiten">
+              <CloseIcon />
+            </button>
+          ) : null}
+        </div>
       </header>
 
       <div className="story__body">
+        {!overlay ? <BackButton label="Alle verhalen" onClick={onBack} className="story__back" /> : null}
         <h2 className="head-5 story__title">{lead?.title}</h2>
         <p className="story__facts">
           {story.sourceCount} {story.sourceCount === 1 ? 'bron' : 'bronnen'} · laatste update {timeAgo(story.latestAt)}
@@ -136,9 +147,11 @@ export function StoryIndex({ stories = [], onClose, lastId }) {
     <div className="story">
       <header className="story__head">
         <p className="label label--meta story__eyebrow">Bronnen vergelijken</p>
-        <button type="button" className="iconbtn" onClick={onClose} aria-label="Paneel sluiten">
-          <CloseIcon />
-        </button>
+        <div className="story__acts">
+          <button type="button" className="iconbtn" onClick={onClose} aria-label="Paneel sluiten">
+            <CloseIcon />
+          </button>
+        </div>
       </header>
       <div className="story__body">
         <h2 className="head-4 sidx__head">Verhalen met meerdere bronnen</h2>
@@ -156,7 +169,7 @@ export function StoryIndex({ stories = [], onClose, lastId }) {
                     </span>
                   </span>
                   <span className="sidx__go" aria-hidden="true">
-                    ›
+                    <CaretIcon size={ICON_SM} />
                   </span>
                 </button>
               </li>

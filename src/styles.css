@@ -43,7 +43,8 @@
   --sel-edge: var(--accent);
   --tint: color-mix(in srgb, var(--ink) 6%, var(--paper)); /* decoratief vlak: badge, icoonschijf */
   --hairline: color-mix(in srgb, var(--ink) 14%, transparent);
-  --rule-strong: 2px solid var(--ink); /* begin van inhoud of sectie */
+  --rule-strong-w: 2px; /* dikte van de sterke lijn, ook voor een actieve streep */
+  --rule-strong: var(--rule-strong-w) solid var(--ink); /* begin van inhoud of sectie */
   --elev-1: var(--surface); /* zwevend vlak: dialoog, blad, Lezer, melding */
   --elev-edge: transparent; /* donker: een haarlijn, want schaduw draagt daar niet */
   --scrim: rgba(26, 24, 20, 0.45);
@@ -738,12 +739,14 @@ select {
   box-shadow: var(--ring-cut); /* los van het icoon, op papier */
 }
 
-/* Verhaal: schermvullend op telefoon/tablet, vast paneel op breed scherm */
+/* Verhaal: schermvullend op telefoon/tablet, vast paneel op breed scherm. Het paneel is een
+   container: de kop kiest zijn labels naar de breedte die er is, niet naar het scherm. */
 .panel {
   display: none;
   position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: var(--z-panel);
+  container: panel / inline-size;
   background: var(--paper);
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -2459,16 +2462,33 @@ select.input {
 }
 
 /* ---------- Verhaal (bronvergelijking) ---------- */
+/* De kop staat op dezelfde lijnen als de tekst eronder: de gutter, en is het scherm breder dan
+   het leesblok (de dialoog op tablet), de randen van dat leesblok. Het eerste en het laatste
+   icoon staan optisch op die lijn (--tap-inset), net als in de schermkop. */
 .story__head {
+  --story-edge: calc((100% - var(--readable)) / 2 + var(--gutter));
   position: sticky;
   top: 0;
-  z-index: 5;
+  z-index: var(--z-sticky);
   display: flex;
   align-items: center;
   gap: var(--s1);
-  padding: calc(var(--safe-t) + var(--s2)) calc(var(--s2) + var(--safe-r)) var(--s2) calc(var(--s2) + var(--safe-l));
+  padding-block: calc(var(--safe-t) + var(--s2)) var(--s2);
+  padding-inline: max(calc(var(--gutter) + var(--safe-l)), var(--story-edge)) max(calc(var(--gutter) + var(--safe-r)), var(--story-edge));
   background: var(--paper);
   border-bottom: 1px solid var(--rule);
+}
+/* Zonder terugknop ervoor staat het label zelf op de lijn. */
+.story__head > .story__eyebrow:first-child {
+  padding-inline-start: 0;
+}
+/* Volgen, bewaren en (in het paneel) sluiten: rechts, het laatste icoon op de lijn. */
+.story__acts {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  margin-inline: auto var(--tap-inset);
 }
 .story__eyebrow {
   flex: 1;
@@ -2488,14 +2508,6 @@ select.input {
   color: var(--ink-2);
   font-size: var(--t2);
 }
-.story__caveat {
-  margin-top: var(--s3);
-  padding-left: var(--s3);
-  border-left: 2px solid var(--rule);
-  color: var(--ink-3);
-  font-size: var(--t1);
-  line-height: var(--lh-body);
-}
 .story__sub {
   margin-top: var(--s5);
 }
@@ -2504,12 +2516,14 @@ select.input {
   margin: var(--s4) 0 0;
   padding: 0;
 }
+/* Overzicht: een keuzelijst, geen tweede nieuwslijst. De rij is de actie (kop, dan een metaregel
+   in --ink-3, en een caret aan het eind); het laatst bekeken verhaal heeft de actieve streep. */
 .sidx__btn {
   display: flex;
-  flex-direction: column;
-  gap: var(--s1);
+  align-items: center;
+  gap: var(--s3);
   width: 100%;
-  min-height: var(--tap);
+  min-height: var(--row-sm);
   padding: var(--s3) 0;
   border: 0;
   border-top: 1px solid var(--rule);
@@ -3156,17 +3170,11 @@ select.input {
   font-size: var(--t2);
   line-height: var(--lh-2-read);
 }
-/* In de paneelkop: terug links, de rest naar rechts. */
+/* Terug naar het overzicht: boven de kop van het verhaal, in het vaste paneel. */
 .story__back {
   margin-inline-end: auto;
 }
 
-/* Overzicht: een keuzelijst, geen tweede nieuwslijst */
-.sidx__btn {
-  flex-direction: row;
-  align-items: center;
-  gap: var(--s3);
-}
 .sidx__text {
   flex: 1;
   display: flex;
@@ -3174,18 +3182,14 @@ select.input {
   gap: var(--s1);
   min-width: 0;
 }
-.sidx__meta {
-  color: var(--accent);
-  font-weight: 600;
-}
 .sidx__go {
   flex: none;
+  display: flex;
   color: var(--ink-3);
-  font-size: var(--t4);
 }
 .sidx__btn[aria-current] {
   padding-left: var(--s3);
-  box-shadow: inset 3px 0 0 var(--accent);
+  box-shadow: inset var(--rule-strong-w) 0 0 var(--accent);
 }
 
 /* Sluiten in een melding: in de tekstkleur van de melding, dus ook de hoverlaag. */
@@ -3590,24 +3594,24 @@ html[data-images='hoofd'] .media--social {
   color: var(--accent);
   font-weight: 800;
 }
-/* Volgen in het verhaalpaneel */
-.followbtn {
-  min-height: 36px;
-  margin-left: auto;
-  padding: 0 var(--s3);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--ink-2);
-  font-size: var(--t1);
-  font-weight: 700;
-  line-height: var(--lh-1);
-  cursor: pointer;
+/* Volgen in de kop van het verhaal: een kleine pil (.pill.pill--sm.hit), aan = gekozen met vinkje.
+   Is het paneel smal (bij grote tekst eerder: de grens staat in rem), dan staat er alleen "Volg";
+   het volle label blijft de naam van de knop. */
+.followbtn__short {
+  display: none;
 }
-.followbtn.is-on {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent);
+@container panel (max-width: 21.25rem) {
+  .followbtn__short {
+    display: inline;
+  }
+  .followbtn__long {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 
 /* Editie: de ingang naar het overzicht in één minuut, boven het hoofdverhaal */
