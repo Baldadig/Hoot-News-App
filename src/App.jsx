@@ -314,6 +314,12 @@ export default function App() {
     [setSeenStories],
   )
 
+  // Weg uit Welkom: geen harde knip maar een overvloeier van 0,45 s (lib/motion.js crossPlan, zoals
+  // de app). Welkom blijft staan en vervaagt (`leavingWelcome`) over de Editie, die eronder al
+  // getekend is en bij het afronden eerst je keuzes krijgt; is het vervaagd, dan gaat het weg.
+  const [leavingWelcome, setLeavingWelcome] = useState(false)
+  const welcomeLeft = useCallback(() => setLeavingWelcome(false), [])
+
   // Welkom klaar: interesses, onderwerpen en bronnen worden je instellingen (src/lib/welcome.js).
   // "Liever meteen lezen" (alleen bij de eerste start) geeft lege interesses en onderwerpen en de
   // startset als bronnen. Sluit je het welkom bij opnieuw kiezen, dan komt het hier niet langs en
@@ -322,6 +328,7 @@ export default function App() {
     (choice) => {
       setPrefs((p) => applyWelcome(p, choice))
       route.go('editie', {}, { replace: true })
+      setLeavingWelcome(true)
     },
     [setPrefs, route.go],
   )
@@ -353,7 +360,15 @@ export default function App() {
   const beforeWelcome = useRef('editie')
   if (path !== 'welkom') beforeWelcome.current = path
   const reopenWelcome = showWelcome && !!prefs.onboarded
-  const closeWelcome = useCallback(() => route.back(beforeWelcome.current), [route.back])
+  const closeWelcome = useCallback(() => {
+    route.back(beforeWelcome.current)
+    setLeavingWelcome(true)
+  }, [route.back])
+  // Zolang Welkom nog vervaagt, houdt het zijn vorm (opnieuw kiezen of de eerste keer): anders
+  // wisselen de tekst en de sluitknop nog net voor het weg is.
+  const welcomeDrawn = showWelcome || leavingWelcome
+  const reopenHeld = useRef(false)
+  if (showWelcome) reopenHeld.current = reopenWelcome
 
   // Nog geen account, maar wel via een uitnodigingslink gekomen? Als je een eind in je Editie of
   // Stroom hebt gelezen, één keer vragen of je wilt inloggen (zie src/lib/join.js).
@@ -526,14 +541,16 @@ export default function App() {
   )
 
   const hideMain = overlay || showWelcome
-  // Achter het welkomscherm tekenen we de schermen nog niet (scheelt het laden van beeld
-  // dat je niet ziet).
-  const shown = showWelcome ? null : path
+  // Achter Welkom staat alleen het scherm waar je straks landt: de eerste keer de Editie (die laadt
+  // en personaliseert zo al tijdens Welkom, en de overvloeier aan het eind komt op een getekende
+  // krant, niet op een skelet), bij opnieuw kiezen het scherm waar je vandaan kwam. De andere
+  // schermen tekenen we daar nog niet (scheelt het laden van beeld dat je niet ziet).
+  const shown = showWelcome ? (reopenWelcome ? beforeWelcome.current : 'editie') : path
   // Een scherm wordt pas opgebouwd als je er voor het eerst komt (daarna blijft het staan,
   // met zijn leespositie). Verborgen schermen laadden anders al hun beeld alvast mee:
   // de browser stelt beeld in een verborgen scherm niet uit.
   const visited = useRef(new Set())
-  if (shown) visited.current.add(shown)
+  if (shown && MAIN.includes(shown)) visited.current.add(shown)
   const was = (d) => visited.current.has(d)
 
   // "Naar de inhoud": focus naar het scherm dat je voor je hebt — zonder de route te
@@ -680,9 +697,9 @@ export default function App() {
             </span>
           ) : null}
         </div>
-        {showWelcome ? (
+        {welcomeDrawn ? (
           <Suspense fallback={null}>
-            <Welcome sources={sources} prefs={prefs} muted={muted} onDone={finishOnboarding} onClose={reopenWelcome ? closeWelcome : null} onSignIn={account.status === 'out' ? () => setJoinOpen('welkom') : null} />
+            <Welcome sources={sources} prefs={prefs} muted={muted} onDone={finishOnboarding} onClose={reopenHeld.current ? closeWelcome : null} onSignIn={account.status === 'out' ? () => setJoinOpen('welkom') : null} leaving={leavingWelcome} onLeft={welcomeLeft} />
           </Suspense>
         ) : null}
       </div>

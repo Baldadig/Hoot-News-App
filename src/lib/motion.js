@@ -1,5 +1,5 @@
-// Merkbeweging die buiten de CSS valt: de iris in Welkom, het opstartscherm (en straks de
-// overvloeier naar de Editie). De regel voor Minder beweging onderaan styles.css zet élke
+// Merkbeweging die buiten de CSS valt: de iris in Welkom, het opstartscherm en de overvloeier
+// van Welkom naar de Editie. De regel voor Minder beweging onderaan styles.css zet élke
 // CSS-animatie en -transition uit met !important, dus daar kan geen fade mee. Daarom loopt
 // alles hier via de Web Animations API (el.animate), die niet onder die regel valt, en kiest
 // `reduced()` zelf de stille variant: één fade van 0,35 s, zoals iOS bij Verminder beweging.
@@ -52,6 +52,16 @@ export const openTimes = (d = IRIS_MS) => ({ delay: 32, tintDur: Math.round(d * 
 
 // Minder beweging: alleen dekking, 0,35 s.
 export const reducedPlan = () => ({ fade: FADE_MS })
+
+// ---- Van Welkom naar de Editie ----
+
+// De overvloeier (HootApp.swift: `.animation(.easeInOut(duration: 0.45), value: store.onboarded)`):
+// Welkom vervaagt in 0,45 s over de Editie die eronder al staat (App.jsx tekent hem tijdens Welkom),
+// alleen dekking, geen harde knip en geen skelet. Ook bij Minder beweging: er verplaatst niets, en
+// de app houdt hem dan ook.
+export const CROSS_MS = 450
+export const CROSS = 'ease-in-out'
+export const crossPlan = () => ({ fade: CROSS_MS, easing: CROSS })
 
 // ---- Opstartscherm ----
 

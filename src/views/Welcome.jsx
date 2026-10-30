@@ -8,7 +8,7 @@ import { EditionIcon, StreamIcon, BooksIcon, INTEREST_ICONS } from '../component
 import { vakByDomain } from '../../shared/vak.mjs'
 import { INTERESTS, topicById, resolveTopics, suggestSources, catLabel, starterGroups } from '../lib/topics.js'
 import { sourcesOn } from '../lib/welcome.js'
-import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, waitFor, sleep, tintTimes, openTimes, reducedPlan, rootColor, IRIS, IRIS_BACK, IRIS_MS, STEP_OUT_MS, STEP_IN_MS } from '../lib/motion.js'
+import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, waitFor, sleep, tintTimes, openTimes, reducedPlan, crossPlan, rootColor, IRIS, IRIS_BACK, IRIS_MS, STEP_OUT_MS, STEP_IN_MS } from '../lib/motion.js'
 
 // Onboarding in vijf schermen, gelijk aan de app (ios/Hoot/Views/WelcomeView.swift): uitleg →
 // interesses (tegels) → onderwerpen (chips) → bronnen → je vak (voor de Selectie). Alles met tikken;
@@ -19,6 +19,9 @@ import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, 
 // (0,7 s, zie lib/motion.js); de rand veegt de papieren letters weg en de inkt staat eronder. Terug
 // speelt het omgekeerd. Bij Minder beweging één fade van 0,35 s. Tussen papieren stappen even uit
 // en weer in, zoals de app.
+// Weg uit Welkom (`leaving`, App.jsx zet het bij Naar je Editie en bij sluiten): het hele scherm
+// vervaagt in 0,45 s over de Editie die eronder al staat (zie crossPlan in lib/motion.js), dan meldt
+// `onLeft` dat het weg kan. Intussen is het niet meer te bedienen.
 // Opnieuw kiezen (vanuit Bronnen of Instellingen, `onClose` is er dan): alles staat al op je huidige
 // keuze, sluiten (ook met Escape) slaat niets op, en "Liever meteen lezen" is er niet.
 const STEPS = 5
@@ -40,7 +43,7 @@ const GROUPS = [
 // Kleuren van de iris via rootColor (lib/motion.js), gelezen op :root (binnen .ob--open is
 // --accent papier): merkrood, en de kleur van de punt waar het rood naartoe kleurt (in donker koraal).
 
-export default function Welcome({ sources, prefs, muted = new Set(), onDone, onClose = null, onSignIn = null }) {
+export default function Welcome({ sources, prefs, muted = new Set(), onDone, onClose = null, onSignIn = null, leaving = false, onLeft = () => {} }) {
   const reopen = !!onClose
   const [step, setStep] = useState(0)
   const [interests, setInterests] = useState(() => prefs.interests || [])
@@ -58,8 +61,30 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
   const paperBrand = useRef(null) // het papieren woordmerk: het doel van de iris
   const redRef = useRef(null) // de rode laag
   const afterOpen = useRef(null) // wat er gebeurt zodra het rood weer open is (Terug)
+  const left = useRef(onLeft)
+  left.current = onLeft
   const paper = quick || step > 0 // er is een papieren stap getekend
   useBrandBar(red) // zolang het rood staat, kleurt de browserbalk mee
+
+  // Weg: het hele scherm vervaagt over de Editie eronder (alleen dekking, 0,45 s, ook bij Minder
+  // beweging); daarna mag App.jsx het weghalen. Komt `leaving` toch terug op onwaar, dan weer dekkend.
+  useEffect(() => {
+    if (!leaving) return
+    const el = scroller.current
+    if (!el?.animate) {
+      left.current()
+      return
+    }
+    let alive = true
+    const { fade: ms, easing } = crossPlan()
+    fade(el, ms, 1, 0, easing)
+      .finished.then(() => alive && left.current())
+      .catch(() => {})
+    return () => {
+      alive = false
+      clear(el)
+    }
+  }, [leaving])
 
   const topics = useMemo(() => resolveTopics(interests, picked), [interests, picked])
   const pickable = sources.filter((s) => s.followed && s.kind !== 'sociaal')
@@ -203,9 +228,10 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
 
   // Het papier staat onder het rood: niet te bedienen zolang de rode laag er is (ook tijdens de
   // iris); de rode laag zelf niet zodra ze sluit of nog opent. Tijdens het sluiten is het rood ook
-  // voor schermlezers al weg.
+  // voor schermlezers al weg. Vervaagt het hele scherm (`leaving`), dan is niets erin te bedienen
+  // en is het voor schermlezers al weg.
   return (
-    <div className="welcome ob" role="dialog" aria-modal="true" aria-labelledby="ob-title" ref={scroller}>
+    <div className="welcome ob" role="dialog" aria-modal={leaving ? undefined : 'true'} aria-labelledby="ob-title" aria-hidden={leaving ? 'true' : undefined} inert={leaving ? '' : undefined} ref={scroller}>
       {paper ? (
         <div className="col ob__head" inert={red ? '' : undefined}>
           <div className="ob__top">

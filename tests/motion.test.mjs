@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { irisKeyframes, tintTimes, openTimes, reducedPlan, reduced, IRIS, IRIS_BACK, IRIS_MS, FADE_MS, LAND, BOUNCE_MS, SPLASH_MAX_MS, SPLASH_IRIS_MS, SPLASH_LAND_MS, SPLASH_MARK, splashWanted, restDelay, splashTimes, landTimes, splashDot, fitWord } from '../src/lib/motion.js'
+import { irisKeyframes, tintTimes, openTimes, reducedPlan, reduced, IRIS, IRIS_BACK, IRIS_MS, FADE_MS, LAND, BOUNCE_MS, SPLASH_MAX_MS, SPLASH_IRIS_MS, SPLASH_LAND_MS, SPLASH_MARK, splashWanted, restDelay, splashTimes, landTimes, splashDot, fitWord, CROSS_MS, CROSS, crossPlan } from '../src/lib/motion.js'
 
 // De iris (Welkom, W3): de getallen staan in de lib, niet in de component.
 
@@ -93,4 +93,13 @@ test('opstart: het woordmerk past op een ander "hoot." via zijn hoogte, punt op 
   assert.ok(Math.abs(f.k - 20 / 49) < 0.0001)
   assert.equal(f.dx, 79.06 - 154.5)
   assert.ok(Math.abs(f.dy - (41.9 - 43.87)) < 0.001)
+})
+
+// Van Welkom naar de Editie (W5): een overvloeier van 0,45 s, alleen dekking, zoals HootApp.swift
+// (`.easeInOut(duration: 0.45)` op `onboarded`). Ook bij Minder beweging: er verplaatst niets.
+
+test('Welkom → Editie: overvloeier van 0,45 s ease-in-out, alleen dekking, ook bij Minder beweging', () => {
+  assert.equal(CROSS_MS, 450)
+  assert.equal(CROSS, 'ease-in-out')
+  assert.deepEqual(crossPlan(), { fade: 450, easing: 'ease-in-out' })
 })

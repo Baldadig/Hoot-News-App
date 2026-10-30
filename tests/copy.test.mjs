@@ -50,3 +50,13 @@ test('Opstartscherm: in index.html vóór de app, één sprong van 1,6 s, sessie
   assert.match(read('views/Edition.jsx'), /className="edbrand"/)
   assert.match(read('styles.css'), /--z-splash/)
 })
+
+test('Welkom → Editie: de Editie staat al achter Welkom en Welkom vervaagt (W5)', () => {
+  const app = read('App.jsx')
+  assert.ok(!/showWelcome \? null : path/.test(app), 'achter Welkom tekent de Editie al')
+  assert.match(app, /const shown = showWelcome \? \(reopenWelcome \? beforeWelcome\.current : 'editie'\) : path/)
+  assert.match(app, /leaving=\{leavingWelcome\} onLeft=\{welcomeLeft\}/)
+  const welcome = read('views/Welcome.jsx')
+  assert.match(welcome, /crossPlan\(\)/)
+  assert.match(welcome, /inert=\{leaving \? '' : undefined\}/)
+})
