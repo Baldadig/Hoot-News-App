@@ -2343,6 +2343,13 @@ select.input {
     margin: 0 auto;
   }
 }
+/* Naast elkaar staat de voetnoot meteen onder het knopvlak: --s4 (valt samen met zijn --s2), zodat
+   hij er niet tegen plakt. Gestapeld geeft 'Niet nu' die lucht al. */
+@media (min-width: 560px) {
+  .join__actions {
+    margin-bottom: var(--s4);
+  }
+}
 
 /* ---------- Bronnen ---------- */
 .setrow.setrow--stack { /* specifieker dan .setrow, dat verderop staat */
