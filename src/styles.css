@@ -182,10 +182,9 @@
   --lh-2-read: 1.5rem; /* 24: samenvatting */
   --lh-3-read: 1.75rem; /* 28: leestekst */
   --lh-tight: 1; /* alleen losse cijfers, iconen en de hero */
-  /* Oude verhoudingen: blijven tot de laatste vindplaats op een rem-paar staat. */
-  --lh-head: 1.15; /* koppen (serif) */
-  --lh-ui: 1.3; /* bedieningsregels, bron en tijd */
-  --lh-body: 1.5; /* lopende tekst */
+  /* Oude verhouding: alleen nog de Stroom-rubriekenlijn (rubrieken en bronlabel), die zijn eigen
+     maten in StreamLine meet. */
+  --lh-ui: 1.3;
   --fw-regular: 400;
   --fw-ui: 600; /* bediening, bronnaam */
   --fw-action: 700; /* tekstacties */
@@ -559,9 +558,9 @@ select {
 
 .skip {
   position: fixed;
-  top: calc(var(--safe-t) + 8px);
-  left: 8px;
-  z-index: 100;
+  top: calc(var(--safe-t) + var(--s2));
+  left: var(--s2);
+  z-index: var(--z-skip);
   padding: var(--s3) var(--s4);
   background: var(--accent);
   color: var(--on-accent);
@@ -1670,7 +1669,7 @@ select.input {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  line-height: var(--lh-ui);
+  line-height: var(--lh-2);
 }
 .srcbtn__name,
 .srcbtn__time {
@@ -1682,6 +1681,7 @@ select.input {
   color: var(--ink-3);
   font-size: var(--t1);
   font-weight: var(--fw-regular);
+  line-height: var(--lh-1);
 }
 
 /* "Vergelijk N bronnen": een .linkbtn--plain, bewust in krantenrood (zie --accent). Alleen het
@@ -1896,7 +1896,7 @@ select.input {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  line-height: var(--lh-ui);
+  line-height: var(--lh-2);
 }
 .social__handle {
   overflow: hidden;
@@ -1913,7 +1913,7 @@ select.input {
 .social__text {
   margin: var(--s2) 0 var(--s3);
   font-size: var(--t3);
-  line-height: var(--lh-body);
+  line-height: var(--lh-3-read);
   overflow-wrap: anywhere;
 }
 .media--social {
@@ -1993,7 +1993,8 @@ select.input {
   background: var(--ink);
   color: var(--paper);
   font-size: var(--t2);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+  line-height: var(--lh-2);
+  box-shadow: 0 0 0 1px var(--elev-edge), var(--shadow-float); /* zwevend: in donker ook een haarlijn */
   pointer-events: auto;
 }
 .toast .linkbtn {
@@ -2100,7 +2101,7 @@ select.input {
   padding: var(--s1) 0 var(--s3);
   color: var(--ink-2);
   font-size: var(--t2);
-  line-height: var(--lh-body);
+  line-height: var(--lh-2-read);
 }
 
 /* Laden: skelet in de vorm van een compact bericht */
@@ -2239,7 +2240,7 @@ select.input {
   margin-top: var(--s2);
   color: var(--ink-3);
   font-size: var(--t1);
-  line-height: var(--lh-body);
+  line-height: var(--lh-1-read);
 }
 /* Uitleg: klein, maar om te lezen (dus --ink-2 en een leesregelhoogte). */
 .hint {
@@ -2338,7 +2339,7 @@ select.input {
   margin: 0 0 var(--s3);
   color: var(--ink-2);
   font-size: var(--t3);
-  line-height: var(--lh-body);
+  line-height: var(--lh-3-read);
 }
 .prose ul {
   padding-left: 1.2em;
@@ -2494,7 +2495,7 @@ select.input {
   border-left: 2px solid var(--rule);
   color: var(--ink-2);
   font-size: var(--t2);
-  line-height: var(--lh-body);
+  line-height: var(--lh-2-read);
 }
 .srcstatus__body ul {
   margin: 0;
@@ -2548,7 +2549,7 @@ select.input {
   border-top: 1px solid var(--rule);
   color: var(--ink-3);
   font-size: var(--t1);
-  line-height: var(--lh-body);
+  line-height: var(--lh-1-read);
 }
 /* Met een eigen sectiekop erboven (Instellingen: Over) is de kop het begin; dan geen lijn en
    geen extra lucht meer tussen kop en tekst. */
@@ -3607,7 +3608,7 @@ html[data-images='hoofd'] .media--social {
 }
 .reader__p {
   font-size: var(--t4);
-  line-height: var(--lh-body);
+  line-height: var(--lh-3-read);
 }
 .reader__label {
   margin-bottom: var(--s1);
@@ -3618,7 +3619,7 @@ html[data-images='hoofd'] .media--social {
   color: var(--ink-3);
   font-family: var(--sans);
   font-size: var(--t1);
-  line-height: var(--lh-body);
+  line-height: var(--lh-1-read);
 }
 .reader__refs a {
   color: inherit;
@@ -3652,7 +3653,7 @@ html[data-images='hoofd'] .media--social {
   color: var(--ink-3);
   font-family: var(--sans);
   font-size: var(--t1);
-  line-height: var(--lh-body);
+  line-height: var(--lh-1-read);
 }
 @media (min-width: 720px) {
   .reader {
@@ -3942,7 +3943,7 @@ html[data-images='hoofd'] .media--social {
 /* Tip "zet op beginscherm": dezelfde melding, iets breder en met lucht voor twee regels */
 .toast--tip {
   padding: var(--s2) var(--s1) var(--s2) var(--s4);
-  line-height: var(--lh-ui);
+  line-height: var(--lh-2);
 }
 
 /* ---------- Selectie (de wekelijkse, voorheen Digest) ---------- */
@@ -4088,7 +4089,7 @@ html[data-images='hoofd'] .media--social {
 .dfield__about {
   color: var(--ink-3);
   font-size: var(--t2);
-  line-height: var(--lh-ui);
+  line-height: var(--lh-2);
 }
 .dfield,
 .dfield__anchor {
@@ -4126,7 +4127,7 @@ html[data-images='hoofd'] .media--social {
   margin: var(--s1) 0 0;
   color: var(--ink-3);
   font-size: var(--t1);
-  line-height: var(--lh-ui);
+  line-height: var(--lh-1);
 }
 .dcard__sum {
   --lines: 3;
@@ -4145,7 +4146,7 @@ html[data-images='hoofd'] .media--social {
 .dcard__also {
   color: var(--ink-3);
   font-size: var(--t1);
-  line-height: var(--lh-ui);
+  line-height: var(--lh-1);
 }
 .dcard__also a {
   color: var(--ink-2);

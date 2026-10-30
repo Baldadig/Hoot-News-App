@@ -71,8 +71,9 @@ export default function Saved({ active }) {
               <Empty title="Niets gevonden in je bewaarde berichten">Probeer een ander woord, of wis de zoekterm.</Empty>
             ) : (
               <div className="list rows">
+                {/* 'Verhaal · bewaard …' is een staat met een tijd, geen rubriek: stil (meta), niet rood. */}
                 {rows.map((r) =>
-                  r.story ? <CompactItem key={r.id} item={r.item} story={r.story} note={`Verhaal · bewaard ${timeAgo(new Date(r.savedAt).toISOString())}`} /> : <Entry key={r.id} item={r.item} />
+                  r.story ? <CompactItem key={r.id} item={r.item} story={r.story} note={<span className="label--meta">Verhaal · bewaard {timeAgo(new Date(r.savedAt).toISOString())}</span>} /> : <Entry key={r.id} item={r.item} />
                 )}
               </div>
             )}
