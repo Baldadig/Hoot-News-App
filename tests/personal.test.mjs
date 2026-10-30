@@ -184,10 +184,19 @@ test('"Waar iedereen over schrijft" nooit over een verhaal dat je eigen bronnen 
   assert.equal(e2.entries.find((x) => x.desk === 'breed')?.id, 'sKyiv')
 })
 
-test('een bericht van een vakbron krijgt de rubriek van de bron', () => {
+test('een bericht van een vakbron krijgt de rubriek van de bron (buiten de indeling)', () => {
+  // De zetels Buitenland gaan naar de bredere verhalen uit Londen en Parijs; de review komt bij het
+  // aanvullen en heet dan Tech, niet Buitenland ("Britse fabrikant").
   const sources = [{ id: 'nos', cat: 'nl' }, { id: 'tweakers', cat: 'tech' }]
   const review = art('rv', 'tweakers', 'Review: koptelefoon van Britse fabrikant Nothing', { publishedAt: ago(0.2) })
-  const e = composePersonal({ global, stories, items: [...items, review], sources, followed, now: NOW, builtAt: 'T' })
+  const abroad = [
+    art('bu1', 'nos', 'Britse premier stapt op na nederlaag in Londen', { publishedAt: ago(0.5) }),
+    art('bu2', 'nos', 'Britse regering in crisis na vertrek premier', { publishedAt: ago(0.4) }),
+    art('fr1', 'nos', 'Franse president ontbindt parlement in Parijs', { publishedAt: ago(0.5) }),
+  ]
+  const st = [...stories, { id: 'sBrit', leadId: 'bu1', itemIds: ['bu1', 'bu2'], sourceCount: 3, latestAt: ago(0.4) }, { id: 'sFrans', leadId: 'fr1', itemIds: ['fr1'], sourceCount: 3, latestAt: ago(0.5) }]
+  const e = composePersonal({ global, stories: st, items: [...items, ...abroad, review], sources, followed, now: NOW, builtAt: 'T' })
+  assert.deepEqual(['sBrit', 'sFrans'].map((id) => e.entries.find((x) => x.id === id).desk), ['buitenland', 'buitenland'])
   assert.equal(e.entries.find((x) => (x.leadId || x.id) === 'rv').desk, 'tech')
 })
 

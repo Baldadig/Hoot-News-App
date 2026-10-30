@@ -314,8 +314,10 @@ export const FRONT_MAX = 3
 const PLAN_DESKS = [...KERN, ...OWN_DESKS] // vaste volgorde: bij gelijke stand wint de eerste
 
 // De zetels voor `seats` plekken, in de volgorde waarin ze worden toegekend. Zonder keuzes is dat
-// precies KERN: de gewone krant. Uitvoer: { order, weights } (weights afgerond, ter inzage).
-export function deskPlan(prof, seats) {
+// precies KERN: de gewone krant. `front`: de rubrieken die de voorpagina al heeft (st.desk, voor
+// iedereen gelijk); die tellen mee voor de kernregel. Uitvoer: { order, weights } (weights
+// afgerond, ter inzage).
+export function deskPlan(prof, seats, front = []) {
   const w = {}
   for (const d of PLAN_DESKS) w[d] = KERN.includes(d) ? 1 : 0
   const best = {}
@@ -342,17 +344,18 @@ export function deskPlan(prof, seats) {
     got[pick]++
     order.push(pick)
   }
-  // Een krant, geen bubbel: zijn er nog geen KERN_MIN kernrubrieken, dan ruilt de laatst toegekende
-  // dubbele zetel voor de zwaarste kernrubriek die nog ontbreekt. Gelijk aan het prototype: een eigen
-  // pagina die er maar één keer staat, blijft altijd staan. De harde regel geldt voor de hele Editie,
-  // voorpagina meegeteld, dus de indeling hoeft hem bij weinig zetels niet alleen te halen.
-  const kernIn = () => new Set(order.filter((d) => KERN.includes(d))).size
+  // Een krant, geen bubbel: zijn er met de voorpagina nog geen KERN_MIN kernrubrieken, dan ruilt de
+  // laatst toegekende dubbele zetel voor de zwaarste kernrubriek die nog ontbreekt. Een zetel in een
+  // rubriek die de voorpagina al heeft, is ook dubbel. Gelijk aan het prototype: een eigen pagina die
+  // er maar één keer staat, blijft altijd staan.
+  const all = () => [...front, ...order]
+  const kernIn = () => new Set(all().filter((d) => KERN.includes(d))).size
   const heaviest = [...KERN].sort((a, b) => w[b] - w[a] || KERN.indexOf(a) - KERN.indexOf(b))
   for (const d of heaviest) {
     if (kernIn() >= KERN_MIN) break
-    if (order.includes(d)) continue
+    if (all().includes(d)) continue
     for (let i = order.length - 1; i >= 0; i--) {
-      if (order.filter((x) => x === order[i]).length > 1) {
+      if (all().filter((x) => x === order[i]).length > 1) {
         order[i] = d
         break
       }

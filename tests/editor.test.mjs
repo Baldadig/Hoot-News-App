@@ -359,6 +359,17 @@ test('indeling: een eigen pagina die er één keer staat, ruilt nooit weg (allee
   assert.deepEqual(G.deskPlan(prof({ interests: ['tech'], topics: ['ai'] }), 3).order, ['tech', 'binnenland', 'buitenland'])
 })
 
+test('indeling: de voorpagina telt mee voor de kernregel', () => {
+  // Brabant: drie zetels. Heeft de voorpagina al Buitenland (en twee verhalen zonder rubriek), dan
+  // is de zetel Buitenland dubbel en ruilt hij voor de zwaarste ontbrekende kernrubriek.
+  const p = prof({ interests: ['binnenland'], topics: ['misdaad'] })
+  assert.deepEqual(G.deskPlan(p, 3).order, ['binnenland', 'regio', 'buitenland'])
+  assert.deepEqual(G.deskPlan(p, 3, ['buitenland', null, null]).order, ['binnenland', 'regio', 'vs'])
+  // Heeft de voorpagina al drie kernrubrieken, dan hoeft er niets te ruilen.
+  assert.deepEqual(G.deskPlan(p, 3, ['binnenland', 'buitenland', 'vs']).order, ['binnenland', 'regio', 'binnenland'])
+  assert.deepEqual(G.deskPlan(prof(), 6, ['vs']).order, G.KERN) // zonder keuzes blijft het KERN
+})
+
 test('rubriek: een eigen pagina als het verhaal echt over dat gebied gaat, anders de hoofdrubriek', () => {
   const tech = prof({ interests: ['tech'], topics: ['ai'] })
   const none = prof()

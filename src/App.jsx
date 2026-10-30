@@ -156,7 +156,7 @@ export default function App() {
   // Digest: pas ophalen als je de tab hebt aangezet (of hem opent).
   const vak = useVak(prefs.vak.length > 0 || route.path === 'digest')
   // Jouw editie: samengesteld uit je eigen bronnen en interesses (zie src/lib/personal.js).
-  const { edition: myEdition, member } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount, affinity })
+  const { edition: myEdition, member } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount, affinity, readIds: read })
   const socialIds = useMemo(() => new Set(social.sources.map((s) => 'bsky:' + s.handle)), [social.sources])
 
   const stream = useMemo(() => {

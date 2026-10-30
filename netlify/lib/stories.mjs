@@ -613,7 +613,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
       take(c, storyDesk(c.st, c.primary), { front: true })
     }
     // 2. Jouw rubrieken, in de volgorde van de zetels: per zetel de zwaarste kandidaat die er thuishoort.
-    deskOrder = deskPlan(prof, size - entries.length).order
+    deskOrder = deskPlan(prof, size - entries.length, entries.map((e) => e.desk)).order
     for (const d of deskOrder) {
       if (entries.length >= size) break
       cands.some((c) => c.home === d && !c.parts.seen && take(c, d, { planned: true }))
