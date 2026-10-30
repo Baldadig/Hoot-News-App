@@ -300,10 +300,16 @@ test('indeling: een VS-lezer krijgt als eerste zetel VS, en minstens twee', () =
 })
 
 test('indeling: een techlezer krijgt hooguit drie Tech-zetels en minstens drie kernrubrieken', () => {
-  for (const seats of [3, 4, 6, 8, 10]) {
+  // Zoals het prototype: gemeten bij 8 en 10 zetels. Bij weinig zetels blijft Tech staan.
+  for (const seats of [8, 10]) {
     const tech = G.deskPlan(prof({ interests: ['tech'], topics: ['ai'] }), seats).order
     assert.ok(tech.filter((d) => d === 'tech').length <= G.DESK_CAP, `${seats}: ${tech}`)
-    assert.ok(new Set(tech.filter((d) => G.KERN.includes(d))).size >= Math.min(G.KERN_MIN, seats), `${seats}: ${tech}`)
+    assert.ok(new Set(tech.filter((d) => G.KERN.includes(d))).size >= G.KERN_MIN, `${seats}: ${tech}`)
+    assert.equal(tech.length, seats)
+  }
+  for (const seats of [1, 2, 3, 4, 5, 6]) {
+    const tech = G.deskPlan(prof({ interests: ['tech'], topics: ['ai'] }), seats).order
+    assert.equal(tech[0], 'tech', `${seats}: ${tech}`)
     assert.equal(tech.length, seats)
   }
 })
@@ -328,14 +334,29 @@ test('indeling: bij gelijke stand de vaste volgorde, eerst KERN en dan de eigen 
 })
 
 test('indeling: te weinig kernrubrieken? De laatste dubbele zetel ruilt voor de zwaarste die ontbreekt', () => {
-  // Tech, Economie en Regio zwaar: zonder ruil zouden de eigen pagina's de krant opeten.
+  // Tech, Economie en Regio zwaar, Binnenland 4. Zonder ruil bij 6 zetels: binnenland, tech, economie,
+  // regio, binnenland, buitenland (twee kernrubrieken). De dubbele Binnenland ruilt voor VS.
   const p = prof({ interests: ['tech', 'economie', 'binnenland'], topics: ['ai', 'energie', 'wonen', 'verkeer'] })
-  for (const seats of [3, 4, 5, 6]) {
+  assert.deepEqual(G.deskPlan(p, 6).order, ['binnenland', 'tech', 'economie', 'regio', 'vs', 'buitenland'])
+  for (const seats of [6, 8, 10]) {
     const order = G.deskPlan(p, seats).order
     assert.equal(order.length, seats)
-    assert.ok(new Set(order.filter((d) => G.KERN.includes(d))).size >= Math.min(G.KERN_MIN, seats), `${seats}: ${order}`)
+    assert.ok(new Set(order.filter((d) => G.KERN.includes(d))).size >= G.KERN_MIN, `${seats}: ${order}`)
     for (const d of new Set(order)) assert.ok(order.filter((x) => x === d).length <= G.DESK_CAP, `${seats}: ${order}`)
   }
+})
+
+test('indeling: een eigen pagina die er één keer staat, ruilt nooit weg (alleen dubbele zetels)', () => {
+  // Weinig zetels en geen dubbele zetel: dan haalt de indeling de drie kernrubrieken niet alleen;
+  // de voorpagina telt mee voor de harde regel. De lezer houdt zijn eigen pagina's.
+  const p = prof({ interests: ['tech', 'economie', 'binnenland'], topics: ['ai', 'energie', 'wonen', 'verkeer'] })
+  assert.deepEqual(G.deskPlan(p, 3).order, ['binnenland', 'tech', 'economie'])
+  assert.deepEqual(G.deskPlan(p, 4).order, ['binnenland', 'tech', 'economie', 'regio'])
+  for (const seats of [4, 5, 6]) {
+    const order = G.deskPlan(p, seats).order
+    for (const d of G.OWN_DESKS) assert.ok(order.includes(d), `${seats}: ${order}`)
+  }
+  assert.deepEqual(G.deskPlan(prof({ interests: ['tech'], topics: ['ai'] }), 3).order, ['tech', 'binnenland', 'buitenland'])
 })
 
 test('rubriek: een eigen pagina als het verhaal echt over dat gebied gaat, anders de hoofdrubriek', () => {

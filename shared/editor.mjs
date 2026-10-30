@@ -287,7 +287,8 @@ export function whyOf(entry = {}, { parts = {}, sourceCount = 0, desk = entry.de
 // ---------- 6. De indeling van jouw krant ----------
 // Elke krant heeft de kernrubrieken; jouw interesses geven je eigen pagina's (Tech, Economie,
 // Regio) en maken kernrubrieken zwaarder. Zetels per rubriek met Sainte-Laguë: evenredig, zonder
-// dat één rubriek alles krijgt (hooguit DESK_CAP), en altijd minstens KERN_MIN kernrubrieken.
+// dat één rubriek alles krijgt (hooguit DESK_CAP), en minstens KERN_MIN kernrubrieken zodra er
+// een dubbele zetel is om voor te ruilen.
 export const KERN = [...DESKS] // binnenland, buitenland, vs, middenoosten, oekraine, wetenschap
 export const OWN_DESKS = ['tech', 'economie', 'regio']
 // Het gewicht van een rubriek is 1 (kern) of 0 (eigen pagina), plus DESK_GAIN × het sterkste
@@ -342,22 +343,20 @@ export function deskPlan(prof, seats) {
     order.push(pick)
   }
   // Een krant, geen bubbel: zijn er nog geen KERN_MIN kernrubrieken, dan ruilt de laatst toegekende
-  // dubbele zetel voor de zwaarste kernrubriek die nog ontbreekt. Is er geen dubbele zetel (drie
-  // zware eigen pagina's, weinig zetels), dan de laatst toegekende eigen pagina; anders zou de
-  // harde regel daar breken. Het prototype kende alleen de eerste ruil.
+  // dubbele zetel voor de zwaarste kernrubriek die nog ontbreekt. Gelijk aan het prototype: een eigen
+  // pagina die er maar één keer staat, blijft altijd staan. De harde regel geldt voor de hele Editie,
+  // voorpagina meegeteld, dus de indeling hoeft hem bij weinig zetels niet alleen te halen.
   const kernIn = () => new Set(order.filter((d) => KERN.includes(d))).size
   const heaviest = [...KERN].sort((a, b) => w[b] - w[a] || KERN.indexOf(a) - KERN.indexOf(b))
   for (const d of heaviest) {
     if (kernIn() >= KERN_MIN) break
     if (order.includes(d)) continue
-    let i = order.length - 1
-    while (i >= 0 && order.filter((x) => x === order[i]).length < 2) i--
-    if (i < 0) {
-      i = order.length - 1
-      while (i >= 0 && KERN.includes(order[i])) i--
+    for (let i = order.length - 1; i >= 0; i--) {
+      if (order.filter((x) => x === order[i]).length > 1) {
+        order[i] = d
+        break
+      }
     }
-    if (i < 0) break
-    order[i] = d
   }
   const weights = {}
   for (const d of PLAN_DESKS) weights[d] = Math.round(w[d] * 100) / 100
