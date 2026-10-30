@@ -436,8 +436,8 @@ export default function App() {
   // Twee standen op breed scherm: lezen (geen paneel, de leeskolom staat in het midden) en
   // vergelijken (paneel rechts). Het paneel komt er alleen na een bewuste klik: op
   // "Vergelijk bronnen" boven de lijst, of op "+N bronnen" bij een bericht.
-  // Indeling van berichten: 'tijdlijn' (beeld groot in het midden, bron bovenaan — zoals een
-  // sociale tijdlijn) of 'krant' (kop links, klein beeld rechts).
+  // Lees de Stroom als: 'tijdlijn' (kop, intro, beeld 2:1 over de volle breedte, bron eronder)
+  // of 'krant' (kop en intro links, klein beeld 3:2 rechts) — dezelfde twee vormen als in de app.
   const layout = prefs.layout === 'krant' ? 'krant' : 'tijdlijn'
   const setLayout = useCallback((layout) => setPrefs((p) => ({ ...p, layout })), [setPrefs])
   const panelOpen = hasPanel && prefs.panel === 'open'

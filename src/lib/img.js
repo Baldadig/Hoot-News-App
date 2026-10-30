@@ -9,8 +9,10 @@ export const CDN_HOSTS = ['images.nrc.nl', 'i.guim.co.uk', 'cdn.theatlantic.com'
 const viaCdn = (url, w) => `/.netlify/images?url=${encodeURIComponent(url)}&w=${w}`
 
 const WIDTHS = { thumb: [176, 320], lead: [480, 720, 1080, 1360] }
+// De miniatuur volgt --thumb-w in styles.css: 96 (3:2), smaller op een smalle telefoon; bij grote
+// tekst 108, maar dan kiest de browser bij 2× toch al de 320-variant.
 const SIZES = {
-  thumb: '88px',
+  thumb: '(max-width: 359px) 72px, (max-width: 479px) 84px, 96px',
   lead: '(min-width: 960px) 720px, (min-width: 720px) 680px, calc(100vw - 32px)',
 }
 

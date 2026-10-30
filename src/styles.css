@@ -125,10 +125,12 @@
   /* Bronregel: naam (lh-2) en tijd (lh-1) staan in een raakvlak van 44; dit is de lucht erboven
      en eronder (4 bij 100 %), zodat de afstanden rond de regel op de schaal vallen. */
   --meta-inset: calc((var(--tap) - var(--lh-2) - var(--lh-1)) / 2);
-  --media-tl-h: 300px; /* beeldstrook in de tijdlijn */
   --media-focus: 50% 28%; /* gezichten zitten meestal in het bovenste deel van een persfoto */
-  --thumb-size: 88px; /* klein beeld naast een kop (krant-vorm) */
-  --thumb-sm: 64px; /* klein beeld op de voorpagina */
+  /* Klein beeld naast een kop (krant-vorm): 3:2 met een vaste breedte, zoals Layout.thumb in de
+     app (96; bij grote tekst 108). Op een smalle telefoon een stap smaller, zie onder. */
+  --thumb-w: 96px;
+  --thumb-h: 64px;
+  --thumb-sm: 64px; /* klein beeld op de voorpagina en in een linkkaart (vierkant) */
   --mark-logo-pad: 14%; /* lucht rond een uitgeverslogo in zijn schijf */
   --underline-offset: 3px;
   --tabbar-h: 52px;
@@ -225,25 +227,24 @@
     --dialog-pad: var(--s5);
   }
 }
-/* Smalle telefoon: het kleine beeld naast een kop wijkt, zodat lange koppen niet te smal worden
-   (getoetst met NRC-koppen van 150+ tekens). */
+/* Smalle telefoon: het kleine beeld naast een kop wijkt (op de 4-schaal, steeds exact 3:2),
+   zodat lange koppen niet te smal worden (getoetst met NRC-koppen van 150+ tekens). */
 @media (max-width: 479px) {
   :root {
-    --thumb-size: 80px;
+    --thumb-w: 84px;
+    --thumb-h: 56px;
   }
 }
 @media (max-width: 359px) {
   :root {
-    --thumb-size: var(--thumb-sm);
+    --thumb-w: 72px;
+    --thumb-h: 48px;
   }
 }
-/* Desktop: de tijdlijn heeft de kolombreedte, dus de beeldstrook mag lager: een liggende strook
-   (± 3,6:1 op 688), zodat er ruim twee berichten in een scherm passen in plaats van bijna twee.
-   Lager dan dit snijdt een persfoto tot een detail (een mond, een vizier). */
-@media (min-width: 960px) {
-  :root {
-    --media-tl-h: 192px;
-  }
+/* Grote tekst: het kleine beeld groeit één stap mee (iOS thumbLarge 108). */
+html[data-text='groot'] {
+  --thumb-w: 108px;
+  --thumb-h: 72px;
 }
 
 /* Kleur — donker (JS zet data-theme; 'systeem' volgt het toestel) */
@@ -1824,11 +1825,12 @@ select.input {
   contain-intrinsic-size: auto 230px;
 }
 
+/* Krant: kop en intro links, het kleine beeld rechts; --s3 ertussen (iOS HStack-spacing s3). */
 .compact__link {
   min-height: var(--tap); /* ook een bericht met alleen een korte kop is een volwaardig aanraakdoel */
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--s4);
+  gap: var(--s3);
   align-items: start;
 }
 
@@ -1838,38 +1840,36 @@ select.input {
   overflow-wrap: anywhere;
 }
 
-/* Klein beeld naast de kop (krant-vorm): de maat wijkt op een smalle telefoon (zie --thumb-size). */
+/* Klein beeld naast de kop (krant-vorm): 3:2 met een vaste breedte (--thumb-w), zodat de
+   tekstkolom op één lijn blijft; hoek --radius-control (iOS Radius.sm). Smal en grote tekst: zie
+   de tokens bovenin. */
 .thumb {
-  width: var(--thumb-size);
-  height: var(--thumb-size);
+  width: var(--thumb-w);
+  height: var(--thumb-h);
   border-radius: var(--radius-control);
 }
 
-/* Indeling "tijdlijn": tekst, het beeld groot, en de bronregel eronder (zoals de voorpagina).
-   Het beeld vult de kolom, op dezelfde linkerlijn en even breed als de kop; is het hoger dan
-   --media-tl-h, dan wordt het bijgesneden, niet smaller. */
+/* Tijdlijn: kop, intro, het beeld over de volle kolombreedte in 2:1 (iOS FramedImage ratio 2),
+   en de bronregel eronder. Het beeld staat op dezelfde linkerlijn en is even breed als de kop; de
+   verhouding is op alle breedtes gelijk, dus op desktop is het hoger dan de oude strook. De 1 px
+   rand is web-eigen: op Blad valt een wit beeld anders weg. */
 .compact--tl .compact__link {
   display: block;
 }
 .media--tl {
   width: 100%;
-  aspect-ratio: 16 / 9;
-  max-block-size: var(--media-tl-h);
+  aspect-ratio: 2 / 1;
   margin: var(--s3) 0 0; /* onder: de actieregel houdt zelf --s3 tot de bron */
   border: 1px solid var(--rule);
   border-radius: var(--radius-card);
 }
+/* Geschatte hoogte buiten beeld: 375 → beeld 172 + tekst; vanaf 720 is het beeld 360 hoog. */
 .compact--tl {
   contain-intrinsic-size: auto 420px;
 }
-/* Breed scherm: een liggende strook (zoals het hoofdverhaal), zodat het beeld niet groter
-   wordt dan de kop en de intro erboven. */
 @media (min-width: 720px) {
-  .media--tl {
-    aspect-ratio: 21 / 9;
-  }
   .compact--tl {
-    contain-intrinsic-size: auto 360px;
+    contain-intrinsic-size: auto 560px;
   }
 }
 /* Een brede lijst (vanaf 640): de tijdlijnkop wordt een grote itemkop (.head-lg), een stap
@@ -2104,11 +2104,11 @@ select.input {
   line-height: var(--lh-2-read);
 }
 
-/* Laden: skelet in de vorm van een compact bericht */
+/* Laden: skelet in de vorm van een compact bericht (krant-vorm: beeld --thumb-w × --thumb-h rechts) */
 .sk {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 88px;
-  gap: var(--s4);
+  grid-template-columns: minmax(0, 1fr) var(--thumb-w);
+  gap: var(--s3);
   padding: var(--s5) 0;
   border-bottom: 1px solid var(--rule);
 }
@@ -2129,8 +2129,8 @@ select.input {
   width: 55%;
 }
 .sk__thumb {
-  width: 88px;
-  height: 88px;
+  width: var(--thumb-w);
+  height: var(--thumb-h);
 }
 @keyframes pulse {
   50% {
@@ -2636,7 +2636,8 @@ select.input {
 }
 
 /* Gedeelde link in een sociale bijdrage: een compacte .card in plaats van een groot beeld. Het
-   beeld (--thumb-sm) met --s3 rondom: de kaart is zo hoog als een gewone duim (88). */
+   beeld blijft vierkant (--thumb-sm, niet de 3:2-miniatuur van de krant-vorm: een post houdt zijn
+   eigen vorm, zoals in de app) met --s3 rondom. */
 .linkcard {
   display: flex;
   align-items: center;

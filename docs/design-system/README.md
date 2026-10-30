@@ -81,7 +81,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 ## Ruimte en vorm
 
 - **Eén schaal van 4 px:** `s1` 4, `s2` 8, `s3` 12, `s4` 16, `s5` 24, `s6` 32, `s7` 48. Elke marge, padding en tussenruimte komt hiervandaan, ook in Swift (`Space.s1`–`Space.s7`). De enige uitzondering is `s0` (2 px): tussen twee regels van één label, zoals bronnaam en tijd.
-- **Maten van dingen** (geen ruimte) hebben eigen tokens: icoon 22, bronlogo 24 in de bronregel en 28–30 in de bronnenrij, miniatuur 76 (web 64–88 naar indeling). Elk aanraakdoel is minstens `tap` (44 × 44), ook als het zichtbare deel kleiner is.
+- **Maten van dingen** (geen ruimte) hebben eigen tokens: icoon 22, bronlogo 24 in de bronregel en 28–30 in de bronnenrij, miniatuur 96 × 64 (3:2; web op een smalle telefoon 84 × 56, bij grote tekst 108 × 72) en 64 vierkant op de voorpagina. Elk aanraakdoel is minstens `tap` (44 × 44), ook als het zichtbare deel kleiner is.
 - **Zijmarge** is `gutter` (16 px). De leesbreedte is `readable` (680 px); brede pagina's (Editie, Selectie op iPad en desktop) gaan tot `wide` (1000 px).
 - **Vier hoeken:** `radius-sm` (8) voor miniaturen; `radius` (12) voor beeld, kaarten, meldingen, velden en icoonknoppen; `radius-lg` (16) voor bladen; `radius-pill` voor chips, knoppen met tekst, schakelaars en bronlogo's. In Swift `Radius.sm`, `.md`, `.lg`.
 - **Schaduw alleen voor wat zweeft** (`shadow-float`). Inhoud ligt plat: diepte komt van `surface` op `paper`. Zwevend zijn precies drie dingen: de melding "Ongedaan maken" (web en iOS), de knop met nieuwe berichten en terug naar boven. Glas (iOS) heeft zijn eigen diepte en krijgt geen extra schaduw.
@@ -93,7 +93,8 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 - **Alleen scherpe beelden:** een hoofdverhaal alleen met een beeld van minstens 700 px breed, een groot beeld vanaf 400 px; anders geen beeld.
 - **Vaste verhoudingen**, bijgesneden en niet uitgerekt:
   - hoofdbeeld 16:9 (iPhone), 2:1 (iPad mini) of 3:2 (breed);
-  - miniatuur vierkant, met `radius-sm` tot `radius`.
+  - een bericht in de Stroom, Bewaard en Zoeken heeft twee vormen, op web en iOS gelijk ("Lees de Stroom als"): **Tijdlijn** — kop, intro, het beeld over de volle kolombreedte in 2:1 (`radius`), de bronregel eronder; **Krant** — kop en intro links, een klein beeld 3:2 rechts met vaste breedte (`thumb`, `radius-sm`), de bronregel onder de tekst. Op alle breedtes dezelfde twee vormen;
+  - miniatuur op de voorpagina vierkant, met `radius-sm`.
 - **Bij heel grote tekst** valt de miniatuur weg: de kop krijgt de hele breedte.
 - **Bronlogo's** zijn cirkels, zonder naam eronder: het logo is genoeg.
 - **De lijn bovenaan de Stroom** (web en iOS gelijk):

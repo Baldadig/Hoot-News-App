@@ -179,9 +179,11 @@ export function LeadStory({ item, story, note, followed = null, priority = false
 }
 
 // ---- Vorm 2: compact bericht ----
-// Twee indelingen (instelbaar): "krant" — kop links, klein beeld rechts — en "tijdlijn" —
-// de tekst en het beeld groot, met de bronregel eronder. `plain` houdt de krant-vorm
-// aan, voor smalle plekken zoals het vergelijkpaneel.
+// Twee vormen, dezelfde als in de app (ItemRow): "tijdlijn" — kop, intro en het beeld over de
+// volle kolombreedte in 2:1, de bronregel eronder — en "krant" — kop en intro links, een klein
+// beeld in 3:2 rechts met een vaste breedte (--thumb-w), de bronregel onder de tekst. Op alle
+// breedtes dezelfde twee vormen. `plain` houdt de krant-vorm aan, voor smalle plekken zoals het
+// vergelijkpaneel.
 export function CompactItem({ item, story, note, showSave = true, plain = false, taste = null }) {
   const { markRead, read, layout } = useHoot()
   const cls = `entry compact${read.has(item.id) ? ' is-read' : ''}`
@@ -213,7 +215,8 @@ export function CompactItem({ item, story, note, showSave = true, plain = false,
         </div>
         {item.image ? (
           <div className="thumb">
-            <Img url={item.image} width="88" height="88" />
+            {/* Intrinsieke maat 3:2; de echte maat komt uit CSS (--thumb-w/--thumb-h). */}
+            <Img url={item.image} width="96" height="64" />
           </div>
         ) : null}
       </a>
@@ -259,7 +262,7 @@ export function SocialItem({ item }) {
           <div className="card linkcard">
             {item.image ? (
               <div className="thumb">
-                <Img url={item.image} width="88" height="88" />
+                <Img url={item.image} width="64" height="64" />
               </div>
             ) : null}
             <div className="linkcard__text">

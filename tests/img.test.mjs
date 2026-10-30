@@ -6,7 +6,8 @@ test('Wired: thumbnail vraagt een kleine variant in plaats van het origineel (1 
   const p = imgProps('https://media.wired.com/photos/abc/master/pass/2298652701', 'thumb')
   assert.equal(p.src, 'https://media.wired.com/photos/abc/master/w_176,c_limit/2298652701')
   assert.match(p.srcSet, /w_320,c_limit\/2298652701 320w$/)
-  assert.equal(p.sizes, '88px')
+  // De miniatuur is 96 breed (3:2), smaller op een smalle telefoon — zoals --thumb-w in styles.css.
+  assert.equal(p.sizes, '(max-width: 359px) 72px, (max-width: 479px) 84px, 96px')
 })
 
 test('NYT: vierkant van 320 px als thumbnail, 3:2 als hoofdbeeld', () => {
