@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { CloseIcon } from './icons.jsx'
+import { useState } from 'react'
+import { Dialog, DialogHeader } from './Dialog.jsx'
 
 // "Inloggen met Google" volgens Googles richtlijnen voor de knop (donker thema): hun eigen
 // G in kleur, Roboto Medium, bijna zwart met een grijze rand. Kleuren en letter liggen vast.
@@ -174,45 +174,28 @@ const JOIN = {
 }
 
 export function JoinSheet({ open, reason = 'sync', invited = false, onClose, onSignIn }) {
-  const ref = useRef(null)
-  useEffect(() => {
-    const d = ref.current
-    if (!d) return
-    if (open && !d.open) d.showModal()
-    if (!open && d.open) d.close()
-  }, [open])
   const copy = JOIN[reason] || JOIN.sync
   return (
-    <dialog ref={ref} className="sheet sheet--join" onClose={onClose} onClick={(e) => e.target === ref.current && onClose()} aria-labelledby="join-title">
-      <div className="sheet__in">
-        <div className="sheet__head">
-          <span className="label label--kicker kicker">{copy.kicker}</span>
-          <button type="button" className="iconbtn" onClick={onClose} aria-label="Sluiten">
-            <CloseIcon />
-          </button>
-        </div>
-        <h2 id="join-title" className="join__title">
-          {copy.title}
-        </h2>
-        <p className="join__text">{copy.text}</p>
-        <p className="join__text">
-          {invited
-            ? 'Je bent uitgenodigd. Log in, dan ben je meteen lid.'
-            : 'Hoot is nog op uitnodiging. Kreeg je een uitnodiging? Open de link, of log in en vul daarna je code in bij Instellingen.'}
-        </p>
-        <div className="join__actions">
-          <GoogleButton onClick={onSignIn} wide />
-          <button type="button" className="linkbtn linkbtn--plain" onClick={onClose}>
-            Niet nu
-          </button>
-        </div>
-        <p className="sheet__note">
-          Hoot krijgt van Google alleen je naam, e-mailadres en profielfoto.{' '}
-          <a className="linkbtn linkbtn--inline" href="#/privacy" onClick={onClose}>
-            Privacy
-          </a>
-        </p>
+    <Dialog open={open} onClose={onClose} className="sheet--join" labelledBy="join-title">
+      <DialogHeader id="join-title" label={copy.kicker} title={copy.title} onClose={onClose} />
+      <p className="join__text">{copy.text}</p>
+      <p className="join__text">
+        {invited
+          ? 'Je bent uitgenodigd. Log in, dan ben je meteen lid.'
+          : 'Hoot is nog op uitnodiging. Kreeg je een uitnodiging? Open de link, of log in en vul daarna je code in bij Instellingen.'}
+      </p>
+      <div className="join__actions">
+        <GoogleButton onClick={onSignIn} wide />
+        <button type="button" className="linkbtn linkbtn--plain" onClick={onClose}>
+          Niet nu
+        </button>
       </div>
-    </dialog>
+      <p className="sheet__note">
+        Hoot krijgt van Google alleen je naam, e-mailadres en profielfoto.{' '}
+        <a className="linkbtn linkbtn--inline" href="#/privacy" onClick={onClose}>
+          Privacy
+        </a>
+      </p>
+    </Dialog>
   )
 }

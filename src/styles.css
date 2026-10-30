@@ -68,7 +68,7 @@
   /* Maat */
   --gutter: 16px;
   --tap: 44px;
-  --readable: 680px; /* oude leesbreedte: nog van Welkom, het verhaal en de lezer; gaat op in --measure zodra die hun eigen maat krijgen */
+  --readable: 680px; /* oude leesbreedte: nog van de kolom en het verhaal; gaat op in --measure zodra die hun eigen maat krijgen */
   --wide: 1000px; /* het paginaraam (--page) */
   --page: var(--wide);
   --measure: 720px; /* leesblok */
@@ -2138,32 +2138,67 @@ select.input {
   cursor: pointer;
 }
 
-/* Filterblad (native dialog: focus blijft binnen, Esc sluit) */
-.sheet {
-  width: 100%;
-  max-width: 560px;
-  max-height: 88dvh;
-  margin: auto auto 0;
+/* ---------- Dialogen en bladen ----------
+   Eén native <dialog> (Dialog.jsx) in twee vormen: een blad (.sheet: filters, Jij, inloggen) en
+   de Lezer (.reader). Allebei een zwevend vlak: --elev-1 met een rand die in donker een
+   haarlijn is, een scrim erachter en vanaf 720 een schaduw. Vanaf 960 staat de dialoog
+   gecentreerd op het scherm naast de zijbalk, niet op het venster; met een open paneel op het
+   stuk daartussen. De binnenmarge zit op een binnenlaag (.sheet__in, de kopbalk en de tekst van
+   de Lezer), niet op de dialoog zelf: een tik op de dialoog is een tik naast het venster. */
+.dialog {
   padding: 0;
-  border: 0;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  background: var(--surface);
+  border: 1px solid var(--elev-edge);
+  border-radius: var(--radius-sheet);
+  background: var(--elev-1);
   color: var(--ink);
+  overscroll-behavior: contain;
 }
-.sheet::backdrop {
-  background: rgba(0, 0, 0, 0.5);
+.dialog::backdrop {
+  background: var(--scrim);
 }
-.sheet__in {
-  padding: var(--s2) calc(var(--gutter) + var(--safe-r)) calc(var(--s4) + var(--safe-b)) calc(var(--gutter) + var(--safe-l));
-}
-.sheet__head {
+/* Kop: label en/of titel links, de X rechts. De X staat met zijn inkt op de kolomlijn (net als in
+   de schermkop) en telt in de hoogte alleen als icoon mee, dus de titel bepaalt het ritme. */
+.dialog__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--s3);
 }
-.sheet__title {
-  font-family: var(--serif);
-  font-size: var(--t4);
+.dialog__heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  min-width: 0;
+}
+.dialog__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dialog__title {
+  text-wrap: balance;
+}
+.dialog__head > .iconbtn {
+  margin-block: var(--tap-inset);
+  margin-inline-end: var(--tap-inset);
+}
+
+/* Blad: op de telefoon van onder, over de volle breedte, alleen boven rond (de rand dus ook
+   alleen boven); vanaf 720 een kaart in het midden. */
+.sheet {
+  width: 100%;
+  max-inline-size: var(--sheet-w);
+  max-block-size: 88dvh;
+  margin: auto auto 0;
+  border-width: 1px 0 0;
+  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+}
+.sheet__in {
+  padding: var(--dialog-pad) calc(var(--dialog-pad) + var(--safe-r)) calc(var(--dialog-pad) + var(--safe-b)) calc(var(--dialog-pad) + var(--safe-l));
+}
+/* Kop → inhoud: --s4. Valt samen met de bovenmarge van wat volgt (een sectielabel, de tekst). */
+.sheet__in > .dialog__head {
+  margin-bottom: var(--s4);
 }
 .sheet__label,
 .sect {
@@ -2195,12 +2230,26 @@ select.input {
   gap: var(--s2);
   margin-top: var(--s5);
   padding: var(--s3) 0 0;
-  background: var(--surface);
+  background: var(--elev-1);
 }
 @media (min-width: 720px) {
+  .dialog {
+    box-shadow: var(--shadow-float);
+  }
   .sheet {
     margin: auto;
-    border-radius: var(--radius-lg);
+    border-width: 1px;
+    border-radius: var(--radius-sheet);
+  }
+}
+@media (min-width: 960px) {
+  .dialog {
+    translate: calc(var(--nav-w) / 2) 0;
+  }
+}
+@media (min-width: 1200px) {
+  .has-panel .dialog {
+    translate: calc((var(--nav-w) - var(--panel-w)) / 2) 0;
   }
 }
 
@@ -2253,22 +2302,12 @@ select.input {
 }
 
 /* Vraag om in te loggen (na een eind lezen, zonder account) */
-.sheet--join .sheet__head .kicker {
-  margin: 0;
-}
-.join__title {
-  margin: var(--s2) 0 0;
-  font-family: var(--serif);
-  font-size: var(--t5);
-  line-height: 1.1;
-  text-wrap: balance;
-}
 .join__text {
-  max-width: 44ch;
+  max-inline-size: var(--measure-prose);
   margin: var(--s3) 0 0;
   color: var(--ink-2);
   font-size: var(--t3);
-  line-height: var(--lh-body);
+  line-height: var(--lh-3-read);
 }
 .join__actions {
   display: flex;
@@ -3308,50 +3347,43 @@ html[data-images='hoofd'] .media--social {
   color: var(--ink-3);
 }
 
-/* De editie in één minuut */
-/* "De editie in één minuut": leesvenster (native dialog). Telefoon: heel scherm; breed: kaart. */
+/* De Editie in één minuut: de Lezer (een Dialog, zie Dialogen en bladen). Telefoon: het hele
+   scherm, zonder rand of hoek; vanaf 720 een kaart van een leesblok breed. De kopbalk loopt over
+   de volle breedte, maar wat erin staat deelt de kolom van de tekst (--measure-prose): kicker en
+   titel beginnen op één lijn. De ch van die maat hangt aan de letter, dus de hele Lezer staat in
+   de schreef; de labels, bronnen en voetnoot zetten zelf de schreefloze. */
 .reader {
   width: 100%;
-  max-width: none;
+  max-inline-size: none;
   height: 100dvh;
-  max-height: none;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: var(--paper);
-  color: var(--ink);
-  overscroll-behavior: contain;
+  max-block-size: none;
+  border-width: 0;
+  border-radius: 0;
+  font-family: var(--serif);
 }
-.reader::backdrop {
-  background: rgba(0, 0, 0, 0.5);
+/* De Lezer staat in de Editie direct na de kop, en .col > .edtop + * (0,2,0) geeft dat element
+   --after-header erboven. Een dialoog plaatst zich met zijn marge, dus die staat hier op (0,2,0). */
+.dialog.reader {
+  margin: 0;
 }
 .reader__bar {
   position: sticky;
   top: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s3);
-  padding: calc(var(--s2) + var(--safe-t)) calc(var(--gutter) + var(--safe-r)) var(--s2) calc(var(--gutter) + var(--safe-l));
+  padding: calc(var(--s3) + var(--safe-t)) calc(var(--dialog-pad) + var(--safe-r)) var(--s3) calc(var(--dialog-pad) + var(--safe-l));
   border-bottom: 1px solid var(--rule);
-  background: var(--paper);
+  background: var(--elev-1);
 }
-.reader__kicker {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.reader__barin,
+.reader__body {
+  max-inline-size: var(--measure-prose);
+  margin-inline: auto;
 }
 .reader__body {
-  max-width: 36rem;
-  margin: 0 auto;
-  padding: var(--s5) calc(var(--gutter) + var(--safe-r)) calc(var(--s7) + var(--safe-b)) calc(var(--gutter) + var(--safe-l));
-  font-family: var(--serif);
+  box-sizing: content-box; /* de maat is die van de tekst; de binnenmarge komt erbij */
+  padding: var(--s5) calc(var(--dialog-pad) + var(--safe-r)) calc(var(--s7) + var(--safe-b)) calc(var(--dialog-pad) + var(--safe-l));
 }
 .reader__title {
   margin-bottom: var(--s5);
-  font-size: var(--t6);
-  line-height: var(--lh-head);
 }
 .reader__sect + .reader__sect {
   margin-top: var(--s5);
@@ -3376,7 +3408,7 @@ html[data-images='hoofd'] .media--social {
 }
 .reader__refs a {
   color: inherit;
-  text-underline-offset: 3px;
+  text-underline-offset: var(--underline-offset);
 }
 .reader__rest ul {
   margin: 0;
@@ -3387,7 +3419,7 @@ html[data-images='hoofd'] .media--social {
   padding: var(--s2) 0;
   border-top: 1px solid var(--rule);
   font-size: var(--t3);
-  line-height: var(--lh-head);
+  line-height: var(--lh-4); /* 20: koppen in een lijst staan dicht, zoals een itemkop */
 }
 .reader__rest a {
   color: inherit;
@@ -3410,14 +3442,17 @@ html[data-images='hoofd'] .media--social {
 }
 @media (min-width: 720px) {
   .reader {
-    max-width: var(--readable);
+    max-inline-size: var(--measure);
     height: auto;
-    max-height: 88dvh;
+    max-block-size: 88dvh;
+    border-width: 1px;
+    border-radius: var(--radius-sheet);
+  }
+  .dialog.reader {
     margin: auto;
-    border-radius: var(--radius-lg);
   }
   .reader__bar {
-    padding-top: var(--s2);
+    padding-top: var(--s3);
   }
 }
 

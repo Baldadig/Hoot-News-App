@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { Entry, useHoot } from '../components/Items.jsx'
 import { StreamLine } from '../components/StreamLine.jsx'
-import { FilterIcon, CloseIcon, ArrowUpIcon } from '../components/icons.jsx'
+import { FilterIcon, ArrowUpIcon } from '../components/icons.jsx'
+import { Dialog, DialogHeader } from '../components/Dialog.jsx'
 import { inInterest } from '../lib/topics.js'
 import { rubriekRij, actieveRubriek, kiesRubriek, rijBronnen, inRijVolgorde, legeRegel } from '../lib/streamline.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
@@ -19,48 +20,32 @@ const KINDS = [
   { id: 'opinie', label: 'Opinie' },
 ]
 
-// Het filterblad: de soort (native <dialog>: focus blijft binnen, Esc sluit). Rubriek en bron
+// Het filterblad: de soort (een Dialog: focus blijft binnen, Esc sluit). Rubriek en bron
 // kies je op de lijn in de kop; "Wis alle filters" zet ook die terug, en zegt dat dus.
 function FilterSheet({ open, onClose, params, clear, setFilter, count }) {
-  const ref = useRef(null)
-  useEffect(() => {
-    const d = ref.current
-    if (!d) return
-    if (open && !d.open) d.showModal()
-    if (!open && d.open) d.close()
-  }, [open])
   return (
-    <dialog ref={ref} className="sheet" onClose={onClose} onClick={(e) => e.target === ref.current && onClose()} aria-labelledby="sheet-title">
-      <div className="sheet__in">
-        <div className="sheet__head">
-          <h2 id="sheet-title" className="sheet__title">
-            Filters
-          </h2>
-          <button type="button" className="iconbtn" onClick={onClose} aria-label="Sluiten">
-            <CloseIcon />
-          </button>
-        </div>
+    <Dialog open={open} onClose={onClose} labelledBy="sheet-title">
+      <DialogHeader id="sheet-title" title="Filters" onClose={onClose} />
 
-        <h3 className="label label--section sheet__label">Soort</h3>
-        <div className="chips">
-          {KINDS.map((k) => (
-            <button key={k.id} type="button" className="pill" aria-pressed={(params.soort || '') === k.id} onClick={() => setFilter('soort', k.id)}>
-              {k.label}
-            </button>
-          ))}
-        </div>
-        <p className="sheet__note">"Opinie" staat er alleen als de bron het zelf zo noemt.</p>
-
-        <div className="sheet__foot">
-          <button type="button" className="btn btn--quiet" onClick={clear}>
-            Wis alle filters
+      <h3 className="label label--section sheet__label">Soort</h3>
+      <div className="chips">
+        {KINDS.map((k) => (
+          <button key={k.id} type="button" className="pill" aria-pressed={(params.soort || '') === k.id} onClick={() => setFilter('soort', k.id)}>
+            {k.label}
           </button>
-          <button type="button" className="btn" onClick={onClose}>
-            Toon {count} {count === 1 ? 'bericht' : 'berichten'}
-          </button>
-        </div>
+        ))}
       </div>
-    </dialog>
+      <p className="sheet__note">"Opinie" staat er alleen als de bron het zelf zo noemt.</p>
+
+      <div className="sheet__foot">
+        <button type="button" className="btn btn--quiet" onClick={clear}>
+          Wis alle filters
+        </button>
+        <button type="button" className="btn" onClick={onClose}>
+          Toon {count} {count === 1 ? 'bericht' : 'berichten'}
+        </button>
+      </div>
+    </Dialog>
   )
 }
 

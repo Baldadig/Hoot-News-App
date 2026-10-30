@@ -1,6 +1,5 @@
-import { useEffect, useRef } from 'react'
 import { useHoot } from './Items.jsx'
-import { CloseIcon } from './icons.jsx'
+import { Dialog, DialogHeader } from './Dialog.jsx'
 import { AccountSettings } from './Account.jsx'
 
 // Weergave: wat je al lezend wisselt. Dezelfde rijen in het paneel (Aa) en op Instellingen.
@@ -89,35 +88,19 @@ export function DisplayControls() {
 }
 
 // Het blad achter de account-knop rechtsboven: wie je bent (inloggen) en hoe Hoot eruitziet.
-// Native dialog: focus blijft binnen, Esc sluit.
+// Een Dialog: focus blijft binnen, Esc sluit.
 export function DisplaySheet({ open, onClose, account, syncStatus }) {
-  const ref = useRef(null)
-  useEffect(() => {
-    const d = ref.current
-    if (!d) return
-    if (open && !d.open) d.showModal()
-    if (!open && d.open) d.close()
-  }, [open])
   return (
-    <dialog ref={ref} className="sheet sheet--display" onClose={onClose} onClick={(e) => e.target === ref.current && onClose()} aria-labelledby="display-title">
-      <div className="sheet__in">
-        <div className="sheet__head">
-          <h2 id="display-title" className="sheet__title">
-            Jij
-          </h2>
-          <button type="button" className="iconbtn" onClick={onClose} aria-label="Sluiten">
-            <CloseIcon />
-          </button>
-        </div>
-        {account ? <AccountSettings account={account} syncStatus={syncStatus} /> : null}
-        <h3 className="label label--section sheet__label">Weergave</h3>
-        <DisplayControls />
-        <p className="sheet__note">
-          <a className="linkbtn" href="#/instellingen" onClick={onClose}>
-            Alle instellingen
-          </a>
-        </p>
-      </div>
-    </dialog>
+    <Dialog open={open} onClose={onClose} className="sheet--display" labelledBy="display-title">
+      <DialogHeader id="display-title" title="Jij" onClose={onClose} />
+      {account ? <AccountSettings account={account} syncStatus={syncStatus} /> : null}
+      <h3 className="label label--section sheet__label">Weergave</h3>
+      <DisplayControls />
+      <p className="sheet__note">
+        <a className="linkbtn" href="#/instellingen" onClick={onClose}>
+          Alle instellingen
+        </a>
+      </p>
+    </Dialog>
   )
 }
