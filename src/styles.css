@@ -1561,6 +1561,19 @@ select.input {
 .kicker__type {
   color: var(--accent);
 }
+/* Het waarom van een plek in jouw Editie (Why.js): één stille zin onder de rubriek, in de maat van
+   tijd en toelichting (t1/lh-1, --ink-3), zonder kapitalen en zonder rood. Volgt het op een rubriek,
+   dan staat het er als tweede regel van hetzelfde label op (--s0, zoals bronnaam en tijd). */
+.why {
+  margin: 0 0 var(--s2);
+  max-inline-size: var(--measure-prose);
+  color: var(--ink-3);
+  font-size: var(--t1);
+  line-height: var(--lh-1);
+}
+.kicker:has(+ .why) {
+  margin-bottom: var(--s0);
+}
 
 .via {
   color: var(--ink-3);
@@ -3386,6 +3399,11 @@ html[data-images='hoofd'] .media--social {
 }
 .setrow--link {
   cursor: pointer;
+}
+/* Wat Hoot van je leerde: de uitleg hangt aan de sectiekop (--s3 erboven en eronder, zoals de kop
+   zelf tot de rijen), daarna de rijen met per onderwerp een stille knop. */
+.learned__intro {
+  margin: 0 0 var(--s3);
 }
 /* Een rij die naar een ander scherm gaat: de caret (16, --ink-3) aan het eind, zoals bij een
    uitklapper (.srcgroup), dus op dezelfde plek tegen de rechterlijn. */

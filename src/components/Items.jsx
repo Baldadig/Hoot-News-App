@@ -7,6 +7,7 @@ import { avatarUrl, fitsLarge, fitsHero } from '../lib/img.js'
 import { TermHelp } from './Terms.jsx'
 import { Img } from './Img.jsx'
 import { Video } from './Video.jsx'
+import { Why } from './Why.js'
 import { directVideo } from '../../shared/bluesky.mjs'
 import { safeHttpUrl } from '../../shared/util.mjs'
 
@@ -156,13 +157,15 @@ const Summary = ({ item, className }) =>
 
 // ---- Vorm 1: hoofdverhaal ----
 // `priority`: dit is het eerste beeld dat je ziet (alleen het zichtbare hoofdverhaal).
-export function LeadStory({ item, story, note, followed = null, priority = false, taste = null }) {
+export function LeadStory({ item, story, note, why = null, followed = null, priority = false, taste = null }) {
   const { markRead, read } = useHoot()
   return (
     <article className={`entry lead${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <a className="lead__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
-        {/* Eerst kop en kern, dan pas het beeld (op breed scherm staat het beeld bovenaan, zie CSS). */}
+        {/* Eerst kop en kern, dan pas het beeld (op breed scherm staat het beeld bovenaan, zie CSS).
+            Het waarom van de plek (jouw Editie) staat stil onder de rubriek, zie Why.js. */}
         <Kicker item={item} extra={note} followed={followed} />
+        <Why why={why} />
         <h2 className="head-6 lead__title">{item.title}</h2>
         <Summary item={item} className="lead__sum" />
         {item.image && fitsHero(item.image) ? (
@@ -182,15 +185,16 @@ export function LeadStory({ item, story, note, followed = null, priority = false
 // Twee indelingen (instelbaar): "krant" — kop links, klein beeld rechts — en "tijdlijn" —
 // de tekst en het beeld groot, met de bronregel eronder. `plain` houdt de krant-vorm
 // aan, voor smalle plekken zoals het vergelijkpaneel.
-export function CompactItem({ item, story, note, showSave = true, plain = false, taste = null }) {
+export function CompactItem({ item, story, note, why = null, showSave = true, plain = false, taste = null }) {
   const { markRead, read, layout } = useHoot()
   const cls = `entry compact${read.has(item.id) ? ' is-read' : ''}`
   if (layout === 'tijdlijn' && !plain) {
     return (
       <article className={`${cls} compact--tl`} data-id={item.id}>
-        {/* Zelfde volgorde als op de voorpagina: rubriek, kop, samenvatting, beeld, dan de bron. */}
+        {/* Zelfde volgorde als op de voorpagina: rubriek (met het waarom), kop, samenvatting, beeld, dan de bron. */}
         <a className="compact__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
           <Kicker item={item} extra={note} />
+          <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
           <Summary item={item} className="compact__sum" />
           {item.image && fitsLarge(item.image) ? (
@@ -208,6 +212,7 @@ export function CompactItem({ item, story, note, showSave = true, plain = false,
       <a className="compact__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         <div className="compact__text">
           <Kicker item={item} extra={note} />
+          <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
           <Summary item={item} className="compact__sum" />
         </div>

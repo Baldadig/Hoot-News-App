@@ -31,6 +31,15 @@ export function learn(affinity, item, weight = READ) {
   return { n: (a.n || 0) + 1, topics: top(topics, KEEP_TOPICS), sources: top(sources, KEEP_SOURCES) }
 }
 
+// "Vergeet dit" (Instellingen, Wat Hoot van je leerde): het onderwerp valt uit je leesprofiel, de
+// rest blijft staan, ook de teller — anders zou het profiel even niets meer leren (MIN_EVENTS).
+export function forgetTopic(affinity, topic) {
+  const a = affinity && typeof affinity === 'object' ? affinity : emptyAffinity()
+  if (!topic || !(topic in (a.topics || {}))) return a
+  const { [topic]: _gone, ...topics } = a.topics
+  return { ...a, topics }
+}
+
 // Hoeveel een verhaal (zijn berichten) bij je smaak past: 0 tot AFFINITY_MAX. Onderwerp telt
 // zwaarder dan bron: je wilt meer over AI, niet per se meer van één krant.
 export const AFFINITY_MAX = 5
