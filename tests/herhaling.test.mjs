@@ -1,9 +1,9 @@
 // De Redacteur: "al gezien in een eerdere Editie" (Hoot-design/algoritme/aanvulling-pariteit-herhaling.md
 // §2 H1–H4, §3 T1–T9). Overgenomen uit de diagnose (scratchpad/diagnose/herhaling/herhaling.test.mjs).
-// Wat nog bij een volgend pakket hoort (H3: previous over drie Edities, H6: sameEvent), staat als todo.
+// Wat nog bij een volgend pakket hoort (H6: sameEvent), staat als todo.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { selectForReader, previousOf, signatures, sameEvent, seenBefore, developedSince, storyKeys } from '../netlify/lib/stories.mjs'
+import { selectForReader, previousOf, historyOf, recentEditions, HISTORY_MAX, signatures, sameEvent, seenBefore, developedSince, storyKeys } from '../netlify/lib/stories.mjs'
 import { composePersonal } from '../src/lib/personal.js'
 import { profileOf } from '../shared/editor.mjs'
 
@@ -134,14 +134,90 @@ test('T3b H2: een vertaalde kop (zelfde namen, andere taal) is geen ontwikkeling
   assert.ok(!sel.some((e) => e.id === 'st-stewart'), 'Stewart kwam terug met een vertaalde kop')
 })
 
-test('T4 H3: previous over de laatste drie Edities — wat in de Ochtend stond, komt in de Avond niet terug zonder ontwikkeling', { todo: 'H3 (previousOf over drie Edities) komt in een volgend pakket' }, () => {
-  // De Middag had Stewart niet (de filter werkte); de Avond kent alleen de Middag als previous.
-  const middag = { builtAt: new Date(NOW).toISOString(), entries: small.slice(0, 10).map((s) => ({ kind: 'story', id: s.st.id, leadId: s.its[0].id, desk: 'binnenland', itemIds: s.st.itemIds, title: s.its[0].title })) }
-  const AVOND = Date.parse('2026-10-30T16:00:00Z')
+// De Middag had Stewart niet (de filter werkte); met alleen de Middag als previous zou de Avond hem niet kennen.
+const middag = { id: '2026-10-30-middag', builtAt: new Date(NOW).toISOString(), entries: small.slice(0, 10).map((s) => ({ kind: 'story', id: s.st.id, leadId: s.its[0].id, desk: 'binnenland', itemIds: s.st.itemIds, title: s.its[0].title })) }
+const ochtendMetId = { id: '2026-10-30-ochtend', ...ochtend }
+const AVOND = Date.parse('2026-10-30T16:00:00Z')
+
+test('T4 H3: previous over de laatste drie Edities — wat in de Ochtend stond, komt in de Avond niet terug zonder ontwikkeling', () => {
   const extra2 = art('pw-extra2', 'rtl', 'Fans leggen bloemen bij het theater van Patrick Stewart', new Date(AVOND - 36e5).toISOString())
   const st = { ...stStewart, itemIds: [...stewart.map((s) => s.id), extra.id, extra2.id], sourceCount: 12, latestAt: extra2.publishedAt }
-  const sel = select([st, stFresh, ...small.map((s) => s.st)], [...pool, extra2], { now: AVOND, previous: previousOf([ochtend, middag]) })
-  assert.ok(!sel.some((e) => e.id === 'st-stewart'), 'Stewart (Ochtend) komt in de Avond terug omdat previous alleen de Middag kent')
+  const sts = [st, stFresh, ...small.map((s) => s.st)]
+  const p = [...pool, extra2]
+  // Alleen de Middag als previous: dan is Stewart onbekend en komt hij terug (de fout van vóór H3).
+  assert.ok(select(sts, p, { now: AVOND, previous: previousOf(middag) }).some((e) => e.id === 'st-stewart'))
+  // Ochtend en Middag samen: niet terug, in welke volgorde ze ook worden meegegeven.
+  for (const list of [[ochtendMetId, middag], [middag, ochtendMetId]]) {
+    const sel = select(sts, p, { now: AVOND, previous: previousOf(list) })
+    assert.ok(!sel.some((e) => e.id === 'st-stewart'), 'Stewart (Ochtend) komt in de Avond terug omdat previous alleen de Middag kent')
+    assert.ok(!sel.some((e) => previousOf(list).storyIds.has(e.id)), 'niets uit Ochtend of Middag komt zonder ontwikkeling terug')
+  }
+  // Ook als de Ochtend alleen nog als samenvatting uit het account bekend is (H5).
+  const sel = select(sts, p, { now: AVOND, previous: previousOf([historyOf(ochtendMetId), middag]) })
+  assert.ok(!sel.some((e) => e.id === 'st-stewart'))
+})
+
+test('H3: previousOf over meer Edities verenigt verhalen, stukken, koppen en hoofdverhalen; at per verhaal is de laatste Editie waarin het stond', () => {
+  const one = previousOf(ochtendMetId)
+  const both = previousOf([ochtendMetId, middag])
+  // Eén Editie: dezelfde velden als vroeger (selectEdition rekent met at, leadStoryId, storyIds, itemIds, leadIds).
+  assert.equal(one.at, OCHTEND)
+  assert.equal(one.leadStoryId, 'st-stewart')
+  assert.deepEqual([...one.leadStoryIds], ['st-stewart'])
+  assert.equal(one.atOf.get('st-stewart'), OCHTEND)
+  // Twee Edities: de vereniging; `at` en `leadStoryId` van de laatste, alle hoofdverhalen in leadStoryIds.
+  assert.equal(both.at, NOW)
+  assert.equal(both.leadStoryId, 'st-sm0')
+  assert.deepEqual([...both.leadStoryIds].sort(), ['st-sm0', 'st-stewart'])
+  assert.ok(both.storyIds.has('st-stewart') && both.storyIds.has('st-sm9'), 'verhalen van beide')
+  assert.ok(both.itemIds.has('pw9') && both.itemIds.has('sm9b'), 'alle stukken van beide')
+  assert.ok(both.leadIds.has('pw0') && both.leadIds.has('sm0a'))
+  assert.ok(both.titles.has(stewart[0].title) && both.titles.has(small[9].its[0].title))
+  assert.equal(both.shown.length, previousOf(ochtendMetId).shown.length + previousOf(middag).shown.length)
+  // st-sm0 stond in beide: at is de Middag; Stewart alleen in de Ochtend.
+  assert.equal(both.atOf.get('st-sm0'), NOW)
+  assert.equal(both.atOf.get('st-stewart'), OCHTEND)
+  // De volgorde van de lijst doet er niet toe, en lege plekken worden overgeslagen.
+  const flipped = previousOf([null, middag, undefined, ochtendMetId])
+  assert.equal(flipped.at, both.at)
+  assert.equal(flipped.leadStoryId, both.leadStoryId)
+  assert.deepEqual([...flipped.storyIds].sort(), [...both.storyIds].sort())
+  assert.equal(previousOf([]), null)
+  assert.equal(previousOf([null]), null)
+})
+
+test('H5: historyOf is de platte samenvatting van een Editie, en previousOf leest die terug zoals de Editie zelf', () => {
+  const row = historyOf(ochtendMetId)
+  assert.equal(row.id, '2026-10-30-ochtend')
+  assert.equal(row.builtAt, ochtend.builtAt)
+  assert.ok(Array.isArray(row.storyIds) && Array.isArray(row.itemIds) && Array.isArray(row.leadIds) && Array.isArray(row.titles))
+  assert.equal(row.leadStoryId, 'st-stewart')
+  assert.equal(JSON.stringify(row), JSON.stringify(JSON.parse(JSON.stringify(row))), 'platte JSON')
+  const a = previousOf(ochtendMetId)
+  const b = previousOf(row)
+  for (const k of ['storyIds', 'itemIds', 'leadIds', 'titles']) assert.deepEqual([...b[k]].sort(), [...a[k]].sort(), k)
+  assert.equal(b.at, a.at)
+  assert.equal(b.leadStoryId, a.leadStoryId)
+  assert.deepEqual(b.shown, a.shown)
+  // Een samenvatting blijft een samenvatting; keys per verhaal gaan mee en komen als Set terug.
+  assert.equal(historyOf(row), row)
+  const met = historyOf({ id: 'x', builtAt: ochtend.builtAt, entries: [{ kind: 'story', id: 'st-k', leadId: 'k1', itemIds: ['k1'], title: 'K', keys: ['picard', 'shakespeare'] }] })
+  assert.deepEqual(met.keys, { 'st-k': ['picard', 'shakespeare'] })
+  assert.deepEqual([...previousOf(met).keysOf.get('st-k')].sort(), ['picard', 'shakespeare'])
+  assert.equal(historyOf(null), null)
+  assert.equal(historyOf({ id: 'leeg', builtAt: ochtend.builtAt, entries: [] }), null)
+})
+
+test('H3/H5: recentEditions houdt de laatste drie, ontdubbeld op id, nieuwste eerst', () => {
+  const at = (h) => new Date(OCHTEND + h * 36e5).toISOString()
+  const ed = (id, h) => ({ id, builtAt: at(h), entries: [{ kind: 'item', id: 'i' + id }] })
+  const rows = [historyOf(ed('a', 0)), ed('b', 6), historyOf(ed('b', 6)), ed('c', 11), null, { id: 'zonder-tijd' }, ed('d', 24)]
+  const out = recentEditions(rows)
+  assert.equal(HISTORY_MAX, 3)
+  assert.deepEqual(out.map((e) => e.id), ['d', 'c', 'b'])
+  assert.equal(out[2], rows[1], 'bij een dubbele id wint de eerste')
+  assert.deepEqual(recentEditions(rows, 5).map((e) => e.id), ['d', 'c', 'b', 'a'])
+  assert.deepEqual(recentEditions([]), [])
 })
 
 test('T5 H6: dezelfde gebeurtenis in het Nederlands en het Engels met twee namen en zonder gebeurtenis-woord', { todo: 'H6 (sameEvent regel i) komt in een volgend pakket' }, () => {

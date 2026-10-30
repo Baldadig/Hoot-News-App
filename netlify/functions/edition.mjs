@@ -5,11 +5,12 @@
 //
 // Body: { followed: [bron-id], interests: [], topics: [], favorites: [],
 //         taste: { topics, sources } (meer of minder hiervan, ook negatief),
-//         previous: { storyIds: [], itemIds: [], leadIds: [], leadStoryId, at, titles: [], shown: [{ title, summary, publishedAt }],
-//                     keysOf: { [verhaal-id]: [kenmerk] } } }
-// `previous` mag drie Edities omvatten (bouwspec-aanvulling H3/H4): vandaar de ruime grenzen. `keysOf`
-// zijn de kenmerken van toen per verhaal (de `keys` van de plekken), zodat "ontwikkeld" niet afhangt
-// van welke stukken het toestel kende.
+//         previous: { storyIds: [], itemIds: [], leadIds: [], leadStoryId, leadStoryIds: [], at, atOf: { [verhaal-id]: ms },
+//                     titles: [], shown: [{ title, summary, publishedAt }], keysOf: { [verhaal-id]: [kenmerk] } } }
+// `previous` mag drie Edities omvatten (bouwspec-aanvulling H3/H4, previousOf over een lijst): vandaar
+// de ruime grenzen (90 verhalen, 4500 stukken) en `atOf` (per verhaal de builtAt van de laatste Editie
+// waarin het stond) naast `at`. `keysOf` zijn de kenmerken van toen per verhaal (de `keys` van de
+// plekken), zodat "ontwikkeld" niet afhangt van welke stukken het toestel kende.
 import { readDoc, KEYS } from '../lib/kv.mjs'
 import { refresh } from '../lib/refresh.mjs'
 import { composePersonal, withoutDebug } from '../../src/lib/personal.js'
@@ -29,6 +30,11 @@ const keysOf = (o) =>
     .slice(0, 90)
     .map(([k, v]) => [k, new Set(v.filter((x) => typeof x === 'string' && KEY.test(x)).slice(0, 80))])
     .filter(([, v]) => v.size)
+// Per verhaal het moment van de laatste Editie waarin het stond (ms), begrensd (90 verhalen).
+const atOf = (o) =>
+  Object.entries(o && typeof o === 'object' ? o : {})
+    .filter(([k, v]) => ID.test(k) && Number.isFinite(v) && v > 0)
+    .slice(0, 90)
 // Meer of minder hiervan: ook negatief, begrensd.
 const signed = (o, max = 40) =>
   Object.fromEntries(
@@ -68,7 +74,18 @@ export default async (req) => {
 
   const p = body.previous && typeof body.previous === 'object' ? body.previous : null
   const previous = p
-    ? { storyIds: new Set(ids(p.storyIds, 90)), itemIds: new Set(ids(p.itemIds, 4500)), leadIds: new Set(ids(p.leadIds, 90)), leadStoryId: ID.test(p.leadStoryId || '') ? p.leadStoryId : null, at: Number(p.at) || 0, titles: new Set(texts(p.titles)), shown: shown(p.shown), keysOf: new Map(keysOf(p.keysOf)) }
+    ? {
+        storyIds: new Set(ids(p.storyIds, 90)),
+        itemIds: new Set(ids(p.itemIds, 4500)),
+        leadIds: new Set(ids(p.leadIds, 90)),
+        leadStoryId: ID.test(p.leadStoryId || '') ? p.leadStoryId : null,
+        leadStoryIds: new Set(ids(p.leadStoryIds, 90)),
+        at: Number(p.at) || 0,
+        atOf: new Map(atOf(p.atOf)),
+        titles: new Set(texts(p.titles)),
+        shown: shown(p.shown),
+        keysOf: new Map(keysOf(p.keysOf)),
+      }
     : null
   const t = body.taste && typeof body.taste === 'object' ? body.taste : null
   const taste = t ? { topics: signed(t.topics), sources: signed(t.sources) } : null
