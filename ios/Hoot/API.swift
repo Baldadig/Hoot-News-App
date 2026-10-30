@@ -26,10 +26,20 @@ enum HootAPI {
 
     // Het antwoord, en of het uit de cache kwam omdat het netwerk faalde (dan ziet de lezer
     // een oudere versie, en dat moet zichtbaar zijn).
-    static func fetch<T: Decodable>(_ path: String, _ query: [String: String] = [:]) async throws -> (value: T, fromCache: Bool) {
+    static func url(_ path: String, _ query: [String: String] = [:]) -> URL {
         var comps = URLComponents(url: base.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
         if !query.isEmpty { comps.queryItems = query.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) } }
-        let request = URLRequest(url: comps.url!)
+        return comps.url!
+    }
+
+    // Het laatst bewaarde antwoord op deze vraag, ruw (zie Offline): voor de rekenkern van jouw Editie,
+    // die precies dezelfde JSON wil als de website krijgt, ook velden die de app zelf niet kent.
+    static func cached(_ path: String, _ query: [String: String] = [:]) -> Data? {
+        try? Data(contentsOf: Offline.file(for: url(path, query)))
+    }
+
+    static func fetch<T: Decodable>(_ path: String, _ query: [String: String] = [:]) async throws -> (value: T, fromCache: Bool) {
+        let request = URLRequest(url: url(path, query))
         do {
             if DebugLaunch.offline { throw URLError(.notConnectedToInternet) }
             let (data, response) = try await session.data(for: request)
@@ -69,6 +79,9 @@ enum HootAPI {
 
     // Een vraag met een antwoord dat niet bewaard hoeft te worden (jouw editie).
     static func post<T: Decodable, B: Encodable>(_ path: String, _ body: B) async throws -> T {
+        try JSONDecoder().decode(T.self, from: try await postData(path, body))
+    }
+    static func postData<B: Encodable>(_ path: String, _ body: B) async throws -> Data {
         var request = URLRequest(url: base.appendingPathComponent(path))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -76,7 +89,7 @@ enum HootAPI {
         request.timeoutInterval = 25
         let (data, response) = try await session.data(for: request)
         if let http = response as? HTTPURLResponse, !(200 ..< 300).contains(http.statusCode) { throw APIError.status(http.statusCode) }
-        return try JSONDecoder().decode(T.self, from: data)
+        return data
     }
 
     static func personal(_ body: PersonalRequest) async throws -> Edition { (try await post("api/edition", body) as PersonalResponse).edition }

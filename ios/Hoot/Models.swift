@@ -115,14 +115,37 @@ struct EntryTerm: Codable, Hashable {
     var via: String?
 }
 
+// Het waarom van een plek in jouw Editie (whyOf in shared/editor.mjs): een code en de tekst eronder.
+struct EntryWhy: Codable, Hashable {
+    var code: String?
+    var text: String?
+}
+
 struct EditionEntry: Codable, Hashable {
     let kind: String
     let id: String
     var leadId: String?
     var formerId: String? // het verhaal heette in een vorige editie anders (samengevoegd of gesplitst)
     var desk: String?
+    var fromDesk: String? // aangevuld uit de algemene Editie: de rubriek die het daar had
     var sourceCount: Int?
     var terms: [EntryTerm]?
+    // Alleen in jouw Editie (De Redacteur): het waarom, alle stukken van het verhaal op het moment van
+    // samenstellen en de getoonde kop, zodat de volgende Editie weet wat er stond.
+    var why: EntryWhy?
+    var itemIds: [String]?
+    var title: String?
+}
+
+// De samenvatting van een vastgelegde Editie in `user_state.edition.history` (bouwspec-aanvulling H5):
+// de laatste drie van deze lezer, dezelfde vorm op web en app.
+struct EditionHistory: Codable, Hashable {
+    var id: String
+    var builtAt: String?
+    var storyIds: [String]
+    var itemIds: [String]
+    var leadIds: [String]
+    var titles: [String]?
 }
 
 struct Edition: Codable, Hashable {
@@ -133,7 +156,16 @@ struct Edition: Codable, Hashable {
     var entries: [EditionEntry]
     var items: [Item]?
     var builtAt: String?
-    var personal: Bool? // jouw Editie (POST /api/edition), niet die voor iedereen
+    var personal: Bool? // jouw Editie (De Redacteur), niet die voor iedereen
+    // Jouw Editie: versie en waarop hij bouwde, de afdruk van bronnen en interesses (editionBasis,
+    // djb2), van wie hij is (gebruikers-id of "anon"), of hij van de server kwam toen de rekenkern
+    // faalde (`fallback`), en de geschiedenis voor `previous`.
+    var version: String?
+    var basedOn: String?
+    var basis: String?
+    var owner: String?
+    var fallback: Bool?
+    var history: [EditionHistory]?
 }
 
 struct FeedMeta: Codable, Hashable {
@@ -229,7 +261,7 @@ extension FeedStart {
 }
 
 extension Edition {
-    enum CodingKeys: String, CodingKey { case id, slot, date, next, entries, items, builtAt, personal }
+    enum CodingKeys: String, CodingKey { case id, slot, date, next, entries, items, builtAt, personal, version, basedOn, basis, owner, fallback, history }
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(String.self, forKey: .id)
@@ -240,6 +272,12 @@ extension Edition {
         items = c.lossy([Item].self, forKey: .items)
         builtAt = try? c.decodeIfPresent(String.self, forKey: .builtAt)
         personal = try? c.decodeIfPresent(Bool.self, forKey: .personal)
+        version = try? c.decodeIfPresent(String.self, forKey: .version)
+        basedOn = try? c.decodeIfPresent(String.self, forKey: .basedOn)
+        basis = try? c.decodeIfPresent(String.self, forKey: .basis)
+        owner = try? c.decodeIfPresent(String.self, forKey: .owner)
+        fallback = try? c.decodeIfPresent(Bool.self, forKey: .fallback)
+        history = c.lossy([EditionHistory].self, forKey: .history)
     }
 }
 
@@ -349,22 +387,26 @@ struct Rubriek: Identifiable {
     }
 }
 
-// Wat er in je vorige editie stond (zie previousOf in netlify/lib/stories.mjs).
+// Wat er in je vorige Edities stond (zie previousOf in netlify/lib/stories.mjs), alleen voor de
+// terugval via de server: de rekenkern op het toestel leest de `history`-regels zelf.
 struct PreviousEdition: Codable {
     var storyIds: [String]
     var itemIds: [String]
     var leadIds: [String]
     var leadStoryId: String?
     var at: Double
+    var titles: [String] = []
 }
 
+// POST /api/edition, de terugval als de rekenkern faalt (bouwspec-aanvulling P8-6/P8-7). Zonder
+// `affinity`: dat blijft op het toestel en de server negeert het toch.
 struct PersonalRequest: Codable {
     var followed: [String]
     var interests: [String]
     var topics: [String] = []
     var favorites: [String]
-    var affinity: Affinity?
     var taste: Taste?
+    var readIds: [String] = []
     var previous: PreviousEdition?
 }
 

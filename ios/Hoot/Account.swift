@@ -44,8 +44,15 @@ final class Account {
         status = kept == nil ? .out : .loading
     }
 
+    // Jouw gebruikers-id als lid: de eigenaar van je Editie. Anders niets (dan is die van "anon").
+    var uid: String? { status == .member ? session?.uid : nil }
+    // Eén geslaagde sync-pull gedaan: pas daarna stelt de app jouw Editie samen (bouwspec-aanvulling
+    // P8-2), anders rekent een vers toestel met instellingen die je account nog niet gaf.
+    private(set) var pulled = false
+
     func start(_ store: HootStore) async {
         self.store = store
+        store.account = self
         if session != nil { await resolve() }
     }
 
@@ -146,8 +153,9 @@ final class Account {
         } catch Failure.signedOut {
             forget()
         } catch {
-            // Geen verbinding: je bent nog steeds ingelogd; straks opnieuw.
+            // Geen verbinding: je bent nog steeds ingelogd; straks opnieuw. Jouw Editie wacht niet.
             if status == .loading { status = .member }
+            store?.refreshPersonal()
         }
     }
 
@@ -228,7 +236,9 @@ final class Account {
         Keychain.delete()
         status = .out
         sync = .idle
+        pulled = false
         pushTask?.cancel()
+        store?.refreshPersonal() // jouw Editie is nu weer die van "anon"
         Defaults.remove(["hoot.syncDirty", "hoot.remotePrefs", "hoot.savedBase"])
         dirty = false
     }
@@ -305,6 +315,7 @@ final class Account {
             // Instellingen: je account gaat voor, behalve wat hier nog openstaat.
             let useRemote = !remotePrefs.isEmpty && !(dirty && mode == "continue")
             let prefsData = useRemote ? try? JSONSerialization.data(withJSONObject: remotePrefs) : nil
+            pulled = true // applyRemote laat jouw Editie opnieuw samenstellen: nu met wat je account heeft
             store.applyRemote(prefs: prefsData, read: remoteRead, saved: merged, unite: mode == "merge")
             UserDefaults.standard.set(uid, forKey: "hoot.owner")
 
@@ -338,7 +349,30 @@ final class Account {
             forget()
         } catch {
             sync = .failed // de volgende wijziging of de volgende keer openen probeert het opnieuw
+            store.refreshPersonal() // jouw Editie wacht niet langer op je account (zoals de website bij sync 'failed')
         }
+    }
+
+    // ---- Jouw Editie in je account (user_state.edition) ----
+    // De Editie die een ander toestel of de website vastlegde, met `history`. Geen kolom of geen rij:
+    // dan niets. De aanroeper toetst id, eigenaar en afdruk (HootStore.loadPersonal).
+    func fetchEdition() async throws -> [String: Any]? {
+        guard let uid = session?.uid else { return nil }
+        let data = try await call("rest/v1/user_state?select=edition&user_id=eq.\(uid)")
+        let rows = (try JSONSerialization.jsonObject(with: data) as? [[String: Any]]) ?? []
+        return rows.first?["edition"] as? [String: Any]
+    }
+
+    // Vastleggen, maar de eerste schrijver wint (bouwspec-aanvulling P8-3): alleen als er nog geen
+    // Editie staat of een van een ander dagdeel. `edition->>id=neq.<id>` alleen is niet genoeg, want
+    // `null ->> id` is null en matcht niet. Nul rijen terug = een ander toestel was eerder; dan die.
+    func claimEdition(_ edition: [String: Any], id: String) async throws -> (won: Bool, edition: [String: Any]?) {
+        guard let uid = session?.uid else { return (false, nil) }
+        let filter = "or=(edition.is.null,edition-%3E%3Eid.neq.\(id))"
+        let data = try await call("rest/v1/user_state?user_id=eq.\(uid)&\(filter)", method: "PATCH", body: ["edition": edition], prefer: "return=representation")
+        let rows = (try JSONSerialization.jsonObject(with: data) as? [[String: Any]]) ?? []
+        if let mine = rows.first?["edition"] as? [String: Any] { return (true, mine) }
+        return (false, try await fetchEdition())
     }
 
     // ---- Supabase ----
