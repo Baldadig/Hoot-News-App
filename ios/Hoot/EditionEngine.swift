@@ -149,6 +149,14 @@ final class EditionEngine: @unchecked Sendable {
         try await call("nextHistoryJSON", [priorJSON, editionJSON])
     }
 
+    // Wat Hoot van je leerde (profileSummary, bouwspec §8): hetzelfde profiel als De Redacteur gebruikt,
+    // uit dezelfde bundel, zodat Instellingen op web en app hetzelfde zeggen. Invoer als JSON (interests,
+    // topics, affinity, taste, favorites, followed, sources, items).
+    func profileSummary(input: Data) async throws -> ProfileSummary {
+        let text = try await call("profileSummaryJSON", [String(decoding: input, as: UTF8.self)])
+        return try JSONDecoder().decode(ProfileSummary.self, from: Data(text.utf8))
+    }
+
     private init() {
         queue.setSpecific(key: Self.queueKey, value: true)
     }

@@ -129,6 +129,22 @@ struct Kicker: View {
     }
 }
 
+// Het waarom van een plek in jouw Editie (Desk.why, zoals Why.js op de website): direct onder de rubriek,
+// boven de kop, maar stil: inkt-3, de maat van het label, een gewone zin zonder kapitalen en zonder rood.
+// De kop blijft het zwaarste element; het waarom is het zachtste erboven.
+struct WhyLine: View {
+    let text: String?
+    var body: some View {
+        if let text, !text.isEmpty {
+            Text(text)
+                .font(.caption)
+                .foregroundStyle(Theme.ink3)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityLabel("Waarom: \(text)")
+        }
+    }
+}
+
 // De intro van een bericht in hele zinnen (tot ongeveer `max` tekens), in plaats van een zin die
 // halverwege afbreekt. Zonder volledige zin: de tekst zoals hij is.
 func wholeSentences(_ text: String, max: Int = 240) -> String {
@@ -394,6 +410,7 @@ struct LeadCard: View {
     @Environment(\.isSpacious) private var spacious
     let item: Item
     var label: String?
+    var why: String? // het waarom van de plek (jouw Editie)
     var story: Story?
 
     private var hasImage: Bool { store.showsImage(lead: true) && ImageURL.fitsHero(item.image) }
@@ -405,7 +422,13 @@ struct LeadCard: View {
 
     private var text: some View {
         VStack(alignment: .leading, spacing: Space.s3) {
-            Kicker(text: label)
+            // Rubriek en waarom dicht op elkaar (één blokje boven de kop), zoals op de website.
+            if label != nil || why != nil {
+                VStack(alignment: .leading, spacing: Space.s1) {
+                    Kicker(text: label)
+                    WhyLine(text: why)
+                }
+            }
             Text(item.title)
                 .font(Theme.headline(wide ? .largeTitle : .title))
                 .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
@@ -453,6 +476,7 @@ struct ItemRow: View {
     @ScaledMetric(relativeTo: .title3) private var thumb: CGFloat = Layout.thumb
     let item: Item
     var label: String?
+    var why: String? // het waarom van de plek (jouw Editie)
     var story: Story?
     var linkSource = true
     var form: Form?
@@ -502,7 +526,12 @@ struct ItemRow: View {
 
     private var text: some View {
         VStack(alignment: .leading, spacing: Space.s2) {
-            Kicker(text: label)
+            if label != nil || why != nil {
+                VStack(alignment: .leading, spacing: Space.s1) {
+                    Kicker(text: label)
+                    WhyLine(text: why)
+                }
+            }
             if item.isPost {
                 // Een Bluesky-post (in Bewaard): de tekst zelf, geen kop.
                 Text(item.summary ?? "").font(.body).fixedSize(horizontal: false, vertical: true)

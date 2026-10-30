@@ -545,9 +545,20 @@ final class HootStore {
     // eerste sync-pull (P8-2): anders rekent een vers toestel met instellingen die je account nog
     // niet gaf. De afdruk (`basis`) komt uit de rekenkern, dezelfde djb2 als editionBasis op het web.
     private var personalPending = ""
+    // Past deze vastgelegde Editie bij dit dagdeel, deze lezer en deze bronnen en interesses (P8-1)?
+    static func fits(_ e: Edition?, id: String, owner: String, basis: String) -> Bool {
+        e?.id == id && e?.owner == owner && e?.basis == basis
+    }
+    // Als lid pas samenstellen na één geslaagde pull, of als die mislukte (zoals het web: `pulled ||
+    // sync === 'failed'`); zolang je account laadt, wachten. Zonder sessie: meteen, als "anon".
+    static func mayCompose(status: Account.Status?, uid: String?, pulled: Bool, sync: Account.SyncState) -> Bool {
+        if status == .loading { return false }
+        if uid != nil, !pulled, sync != .failed { return false }
+        return true
+    }
     func loadPersonal() async {
         guard let global = edition, !sources.isEmpty, !itemsById.isEmpty else { return }
-        if let a = account, a.status == .loading || (a.status == .member && !a.pulled && a.sync == .syncing) { return }
+        if let a = account, !Self.mayCompose(status: a.status, uid: a.uid, pulled: a.pulled, sync: a.sync) { return }
         let owner = ownerNow
         let followedIds = followed.map(\.id)
         let basis: String
@@ -558,8 +569,10 @@ final class HootStore {
             await fallbackPersonal(global, owner: owner, basis: nil)
             return
         }
-        let fits = { (e: Edition?) in e?.id == global.id && e?.owner == owner && e?.basis == basis }
-        if fits(personal) { return } // (a)
+        let fits = { (e: Edition?) in Self.fits(e, id: global.id, owner: owner, basis: basis) }
+        // `-HootEngine YES` (Debug): altijd zelf samenstellen, voor het keuren van de rekenkern.
+        let force = DebugLaunch.engine && !forced.contains(global.id)
+        if fits(personal), !force { return } // (a)
         let task = "\(global.id)|\(owner)|\(basis)"
         if personalPending == task { return }
         personalPending = task
@@ -567,14 +580,18 @@ final class HootStore {
 
         var theirs: [String: Any]?
         if account?.uid != nil, let a = account {
-            theirs = try? await a.fetchEdition() // kolom ontbreekt nog of geen verbinding? dan stilletjes verder
-            if let theirs, fits(Self.decodeEdition(theirs)) { await adopt(theirs, owner: owner); return } // (b)
+            // Een verse lezing; lukt die niet (kolom ontbreekt nog, geen verbinding), dan wat de pull gaf.
+            theirs = (try? await a.fetchEdition()) ?? a.remoteEdition
+            if let theirs, fits(Self.decodeEdition(theirs)), !force { await adopt(theirs, owner: owner); return } // (b)
         }
         do {
             // (c) De geschiedenis: wat dit toestel en je account vastlegden (H5), plus de vorige Editie
-            // van dit toestel zelf; de rekenkern voegt het samen tot `previous` over drie Edities.
+            // van dit toestel zelf; samen de laatste drie dagdelen, en de rekenkern voegt ze samen tot
+            // `previous` (H3). Een overgenomen Editie staat in beide, dus elk dagdeel telt één keer.
             var prior = (personalRaw?["history"] as? [[String: Any]] ?? []) + (theirs?["history"] as? [[String: Any]] ?? [])
             if let p = personalRaw, p["id"] as? String != global.id, p["owner"] as? String == owner { prior.insert(p, at: 0) }
+            prior = Self.recentHistory(prior, except: global.id)
+            forced.insert(global.id)
             let input = try composeInput(global: global, owner: owner, previous: prior)
             let out = try await EditionEngine.shared.compose(input: input)
             guard var mine = try JSONSerialization.jsonObject(with: out) as? [String: Any], mine["id"] as? String == global.id else { throw EditionEngine.Failure.noResult }
@@ -583,6 +600,7 @@ final class HootStore {
             let history = try await EditionEngine.shared.nextHistory(prior: Self.json(prior), edition: String(decoding: out, as: UTF8.self))
             mine["history"] = (try? JSONSerialization.jsonObject(with: Data(history.utf8))) as? [[String: Any]] ?? []
             keep(mine)
+            if DebugLaunch.engine { return } // gedwongen samengesteld: niet naar je account
             if account?.uid != nil, let a = account, let claim = try? await a.claimEdition(mine, id: global.id), !claim.won {
                 // Een ander toestel was eerder: dan die Editie, ook hier, zodat beide hetzelfde `previous` hebben (P8-5).
                 if let w = claim.edition, fits(Self.decodeEdition(w)) { await adopt(w, owner: owner) }
@@ -591,6 +609,23 @@ final class HootStore {
             Self.log.error("rekenkern faalt: \(error.localizedDescription, privacy: .public)")
             await fallbackPersonal(global, owner: owner, basis: basis)
         }
+    }
+
+    // Welke dagdelen al gedwongen zijn samengesteld (`-HootEngine`): daarna gewoon weer (a).
+    private var forced: Set<String> = []
+
+    // De laatste drie dagdelen uit wat dit toestel en je account vastlegden: elk dagdeel één keer (de
+    // eerste vermelding wint: die van dit toestel), op builtAt van nieuw naar oud, zonder het dagdeel
+    // dat nu wordt samengesteld. Regels zijn history-regels (H5) of een hele vastgelegde Editie.
+    static func recentHistory(_ rows: [[String: Any]], except id: String, size: Int = 3) -> [[String: Any]] {
+        var seen = Set<String>()
+        let unique = rows.filter { row in
+            guard let rid = row["id"] as? String, rid != id, !seen.contains(rid) else { return false }
+            seen.insert(rid)
+            return true
+        }
+        let at = { (row: [String: Any]) in (row["builtAt"] as? String).flatMap(HootDate.parse)?.timeIntervalSince1970 ?? 0 }
+        return Array(unique.enumerated().sorted { (at($0.element), $1.offset) > (at($1.element), $0.offset) }.map(\.element).prefix(size))
     }
 
     // De Editie van een ander toestel overnemen, en vastleggen alsof hij hier gemaakt is: dan is hij
@@ -700,6 +735,34 @@ final class HootStore {
         less.removeAll { $0 == id }
     }
     func clearTaste() { taste = Taste(); less = [] }
+
+    // ---- Wat Hoot van je leerde (bouwspec §8) ----
+    // Hetzelfde profiel als De Redacteur gebruikt, uit de bundel (profileSummary): gekozen, geleerd en
+    // minder. Het aanbod komt uit de berichten van je bronnen; daarvan gaan alleen soort, bron en
+    // onderwerpen mee (de rest heeft het profiel niet nodig).
+    func profileSummary() async -> ProfileSummary {
+        let on = Set(followed.map(\.id))
+        let pool: [[String: Any]] = itemsById.values.filter { $0.kind == "article" && on.contains($0.source) }.map { ["kind": "article", "source": $0.source, "topics": $0.topics ?? []] }
+        let input: [String: Any] = [
+            "interests": interests, "topics": topics, "favorites": favorites, "followed": Array(on),
+            "affinity": affinity.n > 0 ? Self.encoded(affinity) : NSNull(), "taste": taste.isEmpty ? NSNull() : Self.encoded(taste),
+            "sources": Self.encoded(sources), "items": pool,
+        ]
+        guard let data = try? JSONSerialization.data(withJSONObject: input) else { return ProfileSummary() }
+        return (try? await EditionEngine.shared.profileSummary(input: data)) ?? ProfileSummary()
+    }
+    // "Vergeet dit": het onderwerp valt uit je leesprofiel, de teller blijft (forgetTopic op het web).
+    func forgetTopic(_ topic: String) {
+        guard affinity.topics[topic] != nil else { return }
+        affinity.topics.removeValue(forKey: topic)
+        refreshPersonal()
+    }
+    // "Minder" terugdraaien: het onderwerp weer op nul, niet gewist (zo blijft in je account te zien dat
+    // je het ooit zei, en het telt niet meer mee), zoals het web.
+    func restoreLess(_ topic: String) {
+        taste.topics[topic] = 0
+        refreshPersonal()
+    }
 
     func offersField(_ id: String) -> Bool { digest.map { $0.fields.contains { $0.id == id } } ?? true }
     func loadDigest(force: Bool = false) async {

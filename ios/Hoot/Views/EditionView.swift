@@ -8,10 +8,12 @@ struct EditionRowModel: Identifiable {
     let story: Story?
     let label: String?
     let desk: String?
+    var why: String? = nil // het waarom van de plek (jouw Editie), of niets
 }
 
 enum Desk {
-    static let labels = ["binnenland": "Binnenland", "buitenland": "Buitenland", "vs": "VS", "middenoosten": "Midden-Oosten", "oekraine": "Oekraïne", "wetenschap": "Wetenschap", "tech": "Tech", "economie": "Economie", "bubbel": "Buiten je bubbel", "extern": "Buiten je bronnen"]
+    // Zelfde namen als DESK_NAMES in shared/editor.mjs; 'regio' vult De Redacteur uit je regionale bronnen.
+    static let labels = ["binnenland": "Binnenland", "buitenland": "Buitenland", "vs": "VS", "middenoosten": "Midden-Oosten", "oekraine": "Oekraïne", "wetenschap": "Wetenschap", "tech": "Tech", "economie": "Economie", "regio": "Regio", "bubbel": "Buiten je bubbel", "extern": "Buiten je bronnen"]
     static let slots = ["ochtend": "Ochtendeditie", "middag": "Middageditie", "avond": "Avondeditie"]
 
     static func label(_ e: EditionEntry, followed: Bool) -> String? {
@@ -19,6 +21,15 @@ enum Desk {
         if e.desk == "breed" { base = e.sourceCount.map { "Waar iedereen over schrijft · \($0) bronnen" } ?? "Waar iedereen over schrijft" } else { base = e.desk.flatMap { labels[$0] } }
         if followed || ["bubbel", "extern", "breed"].contains(e.desk ?? "") { return base }
         return [base, "Buiten je bronnen"].compactMap { $0 }.joined(separator: " · ")
+    }
+
+    // Het waarom onder de rubriek (whyLine in src/components/Why.js, bouwspec §6): één korte zin, of
+    // niets als het rubrieklabel het al zegt ("Buiten je bronnen", "Buiten je bubbel", "Waar iedereen
+    // over schrijft", de rubriek zelf). De algemene Editie en een Editie van vóór het waarom hebben er geen.
+    static let whyInLabel: Set<String> = ["rubriek", "extern", "bubbel", "breed"]
+    static func why(_ e: EditionEntry) -> String? {
+        guard let text = e.why?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
+        return whyInLabel.contains(e.why?.code ?? "") ? nil : text
     }
 }
 
@@ -48,7 +59,7 @@ extension HootStore {
             let leadId = e.kind == "story" ? (e.leadId ?? e.id) : e.id
             guard let item = published[leadId] ?? itemsById[leadId] else { return nil }
             let story = e.kind == "story" ? storiesById[e.id] : item.storyId.flatMap { storiesById[$0] }
-            return EditionRowModel(id: e.id, item: item, story: story, label: Desk.label(e, followed: on.contains(item.source)), desk: e.desk)
+            return EditionRowModel(id: e.id, item: item, story: story, label: Desk.label(e, followed: on.contains(item.source)), desk: e.desk, why: Desk.why(e))
         }
         // Hoofdverhaal met scherp beeld (geen bubbel of "waar iedereen over schrijft").
         let ok: (EditionRowModel) -> Bool = { ImageURL.fitsHero($0.item.image) && !["bubbel", "breed"].contains($0.desk ?? "") }
@@ -167,21 +178,21 @@ struct EditionView: View {
                             .font(.subheadline)
                             .foregroundStyle(Theme.ink3)
                             .padding(.bottom, Space.s4)
-                        slot(rows[0]) { LeadCard(item: rows[0].item, label: rows[0].label, story: rows[0].story) }
+                        slot(rows[0]) { LeadCard(item: rows[0].item, label: rows[0].label, why: rows[0].why, story: rows[0].story) }
                         if wide {
                             // Breed: de rest in twee kolommen, elk verhaal met een lijn erboven.
                             LazyVGrid(columns: [GridItem(.flexible(), spacing: Space.s6, alignment: .top), GridItem(.flexible(), spacing: Space.s6, alignment: .top)], alignment: .leading, spacing: Space.s2) {
                                 ForEach(rows.dropFirst()) { row in
                                     VStack(alignment: .leading, spacing: 0) {
                                         Rule().padding(.vertical, Space.s2)
-                                        slot(row) { ItemRow(item: row.item, label: row.label, story: row.story, form: .krant) }
+                                        slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, story: row.story, form: .krant) }
                                     }
                                 }
                             }
                         } else {
                             ForEach(rows.dropFirst()) { row in
                                 Rule().padding(.vertical, Space.s2)
-                                slot(row) { ItemRow(item: row.item, label: row.label, story: row.story, form: .krant) }
+                                slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, story: row.story, form: .krant) }
                             }
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,

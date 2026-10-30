@@ -135,10 +135,11 @@ struct EditionEntry: Codable, Hashable {
     var why: EntryWhy?
     var itemIds: [String]?
     var title: String?
+    var keys: [String]? // de kenmerken van het hele verhaal toen (aanvulling H2), voor "ontwikkeld"
 }
 
 // De samenvatting van een vastgelegde Editie in `user_state.edition.history` (bouwspec-aanvulling H5):
-// de laatste drie van deze lezer, dezelfde vorm op web en app.
+// de laatste drie van deze lezer, dezelfde vorm op web en app. `keys`: per verhaal de kenmerken van toen.
 struct EditionHistory: Codable, Hashable {
     var id: String
     var builtAt: String?
@@ -146,6 +147,15 @@ struct EditionHistory: Codable, Hashable {
     var itemIds: [String]
     var leadIds: [String]
     var titles: [String]?
+    var keys: [String: [String]]?
+}
+
+// Wat Hoot van je leerde (bouwspec §8, profileSummary in shared/editor.mjs): gekozen (je interesses en
+// waar je meer van wilde), geleerd (uit je lezen, alleen op dit toestel) en minder.
+struct ProfileSummary: Codable, Hashable {
+    var chosen: [String] = []
+    var learned: [String] = []
+    var less: [String] = []
 }
 
 struct Edition: Codable, Hashable {

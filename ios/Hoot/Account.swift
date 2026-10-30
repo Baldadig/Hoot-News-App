@@ -49,6 +49,21 @@ final class Account {
     // Eén geslaagde sync-pull gedaan: pas daarna stelt de app jouw Editie samen (bouwspec-aanvulling
     // P8-2), anders rekent een vers toestel met instellingen die je account nog niet gaf.
     private(set) var pulled = false
+    // Jouw Editie zoals je account hem bij de laatste pull had (user_state.edition, met `history`): de
+    // kandidaat voor (b) in HootStore.loadPersonal als een verse lezing niet lukt.
+    private(set) var remoteEdition: [String: Any]?
+    // Waarlangs de verzoeken gaan. De tests (HootTests) zetten hier een URLSession met een nep-URLProtocol.
+    var transport: URLSession = .shared
+
+    #if DEBUG
+    // Voor de tests: een nepsessie als lid, zonder Keychain en zonder netwerk (de `transport` bepaalt wat
+    // de "server" antwoordt). Alleen in Debug.
+    func stub(uid: String, transport: URLSession) {
+        session = Session(access: "test", refresh: "test", expires: .distantFuture, uid: uid, email: nil, name: nil)
+        status = .member
+        self.transport = transport
+    }
+    #endif
 
     func start(_ store: HootStore) async {
         self.store = store
@@ -237,6 +252,7 @@ final class Account {
         status = .out
         sync = .idle
         pulled = false
+        remoteEdition = nil
         pushTask?.cancel()
         store?.refreshPersonal() // jouw Editie is nu weer die van "anon"
         Defaults.remove(["hoot.syncDirty", "hoot.remotePrefs", "hoot.savedBase"])
@@ -284,11 +300,14 @@ final class Account {
         }
         sync = .syncing
         do {
-            let stateData = try await call("rest/v1/user_state?select=prefs,read_ids&user_id=eq.\(uid)")
+            // Met `edition` erbij (bouwspec-aanvulling P8-1b): wat een ander toestel al vastlegde, komt zo
+            // in dezelfde ronde mee als je instellingen.
+            let stateData = try await call("rest/v1/user_state?select=prefs,read_ids,edition&user_id=eq.\(uid)")
             let savedData = try await call("rest/v1/saved_items?select=key,entry&user_id=eq.\(uid)")
             let row = ((try JSONSerialization.jsonObject(with: stateData) as? [[String: Any]]) ?? []).first ?? [:]
             let remotePrefs = row["prefs"] as? [String: Any] ?? [:]
             let remoteRead = row["read_ids"] as? [String] ?? []
+            remoteEdition = row["edition"] as? [String: Any]
             let rows = (try JSONSerialization.jsonObject(with: savedData) as? [[String: Any]]) ?? []
 
             let owner = UserDefaults.standard.string(forKey: "hoot.owner")
@@ -360,7 +379,8 @@ final class Account {
         guard let uid = session?.uid else { return nil }
         let data = try await call("rest/v1/user_state?select=edition&user_id=eq.\(uid)")
         let rows = (try JSONSerialization.jsonObject(with: data) as? [[String: Any]]) ?? []
-        return rows.first?["edition"] as? [String: Any]
+        remoteEdition = rows.first?["edition"] as? [String: Any]
+        return remoteEdition
     }
 
     // Vastleggen, maar de eerste schrijver wint (bouwspec-aanvulling P8-3): alleen als er nog geen
@@ -371,7 +391,7 @@ final class Account {
         let filter = "or=(edition.is.null,edition-%3E%3Eid.neq.\(id))"
         let data = try await call("rest/v1/user_state?user_id=eq.\(uid)&\(filter)", method: "PATCH", body: ["edition": edition], prefer: "return=representation")
         let rows = (try JSONSerialization.jsonObject(with: data) as? [[String: Any]]) ?? []
-        if let mine = rows.first?["edition"] as? [String: Any] { return (true, mine) }
+        if let mine = rows.first?["edition"] as? [String: Any] { remoteEdition = mine; return (true, mine) }
         return (false, try await fetchEdition())
     }
 
@@ -391,7 +411,7 @@ final class Account {
             r.setValue("Bearer \(s.access)", forHTTPHeaderField: "Authorization")
         }
         if let body { r.httpBody = try JSONSerialization.data(withJSONObject: body) }
-        let (data, response) = try await URLSession.shared.data(for: r)
+        let (data, response) = try await transport.data(for: r)
         let code = (response as? HTTPURLResponse)?.statusCode ?? 0
         if code == 401 && authorized { throw Failure.signedOut }
         guard (200 ..< 300).contains(code) else { throw Failure.http(code) }
@@ -416,7 +436,7 @@ final class Account {
         r.setValue(HootConfig.supabaseKey, forHTTPHeaderField: "apikey")
         r.setValue("application/json", forHTTPHeaderField: "Content-Type")
         r.httpBody = try JSONSerialization.data(withJSONObject: ["refresh_token": s.refresh])
-        let (data, response) = try await URLSession.shared.data(for: r)
+        let (data, response) = try await transport.data(for: r)
         let code = (response as? HTTPURLResponse)?.statusCode ?? 0
         if [400, 401, 403].contains(code) { throw Failure.signedOut } // ingetrokken of verlopen (niet: te veel verzoeken)
         guard code == 200 else { throw Failure.http(code) }
