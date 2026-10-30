@@ -1,6 +1,6 @@
 # Changelog — Hoot voor iOS
 
-## [1.0.1] — in de maak (TestFlight: build 34 en 35 op 29-10-2026)
+## [1.0.1] — in de maak (TestFlight: build 34 en 35 op 29-10-2026; build 36 lokaal klaar)
 
 - **Selectie:** 37 onderwerpen in acht domeinen. Je kiest ze via de knop Onderwerpen.
 - **Meer of minder hiervan:** druk lang op een verhaal in de Editie.
@@ -22,6 +22,7 @@
   - **Vergelijk:** opent het stuk waarop je tikte.
   - **Stroom:** dubbele koppen van zusterkranten worden weggehaald.
   - **Inloggen:** "op uitnodiging" staat vóór de inlogknoppen.
+- **Bluesky (build 36):** volg je nog niemand, dan staat er een knop "Iemand toevoegen" in de lege rubriek, in plaats van een verwijzing naar de + rechtsboven.
 
 ## [1.0.0] — 2026-10-28 — De eerste versie voor de App Store
 
