@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
-import { SparkleIcon } from '../components/icons.jsx'
+import { SparkleIcon, CaretIcon, ICON_SM } from '../components/icons.jsx'
 import { BriefReader } from '../components/BriefReader.jsx'
 import { BrandMark } from '../components/Brand.jsx'
 import Weather from '../components/Weather.jsx'
@@ -23,17 +23,19 @@ const FRONT = 6 // voorpagina: hoofdverhaal, drie ernaast en twee eronder
 // Klein verhaal op de voorpagina: rubriek, kop en hooguit twee regels samenvatting (ook bij een
 // lange kop: die vertelt zelden wat er gebeurde), dan dezelfde actieregel als elk bericht. Is de
 // kolom smal, dan krijgt de bron een eigen regel en staan vergelijken en bewaren eronder.
-function FrontItem({ item, story, note, taste }) {
+// Volg je het verhaal, dan staat dat stil achter de rubriek ('Je volgt').
+function FrontItem({ item, story, note, followed, taste }) {
   const { markRead, read } = useHoot()
   const opinie = item.type === 'opinie'
   const title = item.title
   const summary = item.summary
   return (
     <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
-      {note || opinie ? (
+      {note || opinie || followed ? (
         <p className="label label--kicker kicker">
           {note ? <span>{note}</span> : null}
           {opinie ? <span className="kicker__type">Opinie</span> : null}
+          {followed ? <span className="label--meta front__followed">{followed}</span> : null}
         </p>
       ) : null}
       <a className="fitem__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
@@ -93,6 +95,19 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
     .filter(Boolean)
   const rows = heroFirst(placed, fitsHero)
 
+  // Je volgt, zonder dubbelingen: een gevolgd verhaal dat op de voorpagina staat (en niet is
+  // ingeklapt), krijgt daar 'Je volgt' achter de rubriek en valt uit het lijstje erboven. Wat je
+  // volgt verandert niet; alleen waar het staat.
+  const onFront = new Map() // plek → label
+  const shown = new Set() // verhalen die al op de voorpagina staan
+  for (const r of rows.slice(0, FRONT)) {
+    const f = r.story && !less.includes(r.key) ? following.find((x) => x.story.id === r.story.id) : null
+    if (!f) continue
+    onFront.set(r.key, f.fresh ? `Je volgt · ${f.fresh} nieuw` : 'Je volgt')
+    shown.add(f.story.id)
+  }
+  const followingRest = following.filter((f) => !shown.has(f.story.id))
+
   const [reading, setReading] = useState(false)
   const hasBrief = !!(brief?.sections?.length || brief?.text)
 
@@ -105,23 +120,28 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
       <div className="col col--wide col--front">
-        {/* De kop van de Editie: titel, datum, omvang en de ingang naar het overzicht. Eén blok,
-            zodat de kleur "Inkt" er een band van kan maken. */}
+        {/* De kop van de Editie: titel, één metaregel (datum · weer · omvang) en de ingang naar het
+            overzicht; de inktlijn eronder is het begin van het nieuws. Eén blok, zodat de kleur
+            "Inkt" er een band van kan maken. */}
         <div className="edtop">
           <ViewHeader title={title} sub={edition ? null : sub} onRefresh={onRefresh} refreshing={refreshing} compare />
           {ready ? (
             <>
               <StatusLine {...statusProps} quiet />
-              {/* Eén metaregel: datum en het weer van vandaag. */}
-              <div className="edmeta">
-                <span className="edmeta__text">
-                  {sub}
+              {/* Eén metaregel, net als onder elke schermkop: datum, het weer en waar de Editie uit
+                  bestaat. Geen weer, dan valt het tussenstuk weg (en zijn punt). Een korte Editie
+                  zegt hoeveel verhalen er zijn als eigen deel, met dezelfde punt ervoor. */}
+              <p className="vh__sub edmeta">
+                <span>{sub}</span>
+                <span className="edmeta__wx">
                   <Weather />
                 </span>
-              </div>
-              <p className="hint edcount">
-                {edition.personal ? 'Samengesteld uit jouw bronnen en interesses' : 'De Editie voor iedereen'}
-                {rows.length < EDITION_SIZE ? ` · ${rows.length} ${rows.length === 1 ? 'verhaal' : 'verhalen'}: er was niet meer nieuws dat breed genoeg werd gebracht` : ''}.
+                <span>{edition.personal ? 'Samengesteld uit jouw bronnen en interesses' : 'De Editie voor iedereen'}</span>
+                {rows.length < EDITION_SIZE ? (
+                  <span>
+                    {rows.length} {rows.length === 1 ? 'verhaal' : 'verhalen'}: er was niet meer nieuws dat breed genoeg werd gebracht
+                  </span>
+                ) : null}
               </p>
               {hasBrief ? (
                 <button type="button" className="briefcta" onClick={() => setReading(true)} aria-haspopup="dialog">
@@ -129,11 +149,11 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                     <SparkleIcon />
                   </span>
                   <span className="briefcta__text">
-                    <span className="briefcta__title">De Editie in één minuut</span>
+                    <span className="head-4 briefcta__title">De Editie in één minuut</span>
                     <span className="briefcta__sub">Samenvatting door AI, met de bronnen erbij</span>
                   </span>
                   <span className="briefcta__go" aria-hidden="true">
-                    ›
+                    <CaretIcon size={ICON_SM} />
                   </span>
                 </button>
               ) : null}
@@ -145,11 +165,11 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                     <SparkleIcon />
                   </span>
                   <span className="briefcta__text">
-                    <span className="briefcta__title">Jouw Editie in één minuut</span>
+                    <span className="head-4 briefcta__title">Jouw Editie in één minuut</span>
                     <span className="briefcta__sub">{account?.status === 'noInvite' ? 'Voor leden: vul je uitnodigingscode in' : 'Voor leden, op uitnodiging'}</span>
                   </span>
                   <span className="briefcta__go" aria-hidden="true">
-                    ›
+                    <CaretIcon size={ICON_SM} />
                   </span>
                 </button>
               ) : null}
@@ -173,11 +193,11 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
           </Empty>
         ) : (
           <>
-            {following.length ? (
+            {followingRest.length ? (
               <section className="following" aria-label="Verhalen die je volgt">
                 <h2 className="label label--section following__head">Je volgt</h2>
                 <ul>
-                  {following.map((f) => (
+                  {followingRest.map((f) => (
                     <li key={f.id}>
                       <button type="button" className="following__row" onClick={() => openStory(f.story.id)}>
                         <span className="head-4 following__title">{f.title}</span>
@@ -193,13 +213,13 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 Is het raam smaller dan 42rem (telefoon), dan staan ze onder elkaar. */}
             <div className="front">
               <Slot less={less} row={rows[0]}>
-                <LeadStory item={rows[0].item} story={rows[0].story} note={rows[0].note} priority={active} taste={rows[0].key} />
+                <LeadStory item={rows[0].item} story={rows[0].story} note={rows[0].note} followed={onFront.get(rows[0].key)} priority={active} taste={rows[0].key} />
               </Slot>
               {rows.length > 1 ? (
                 <div className="front__side rows">
                   {rows.slice(1, 4).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
-                      <FrontItem item={r.item} story={r.story} note={r.note} taste={r.key} />
+                      <FrontItem item={r.item} story={r.story} note={r.note} followed={onFront.get(r.key)} taste={r.key} />
                     </Slot>
                   ))}
                 </div>
@@ -210,7 +230,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 <div className="front__under rows">
                   {rows.slice(4, FRONT).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
-                      <FrontItem item={r.item} story={r.story} note={r.note} taste={r.key} />
+                      <FrontItem item={r.item} story={r.story} note={r.note} followed={onFront.get(r.key)} taste={r.key} />
                     </Slot>
                   ))}
                 </div>

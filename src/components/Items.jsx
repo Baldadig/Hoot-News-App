@@ -58,11 +58,12 @@ export function SaveButton({ id, kind = 'item', payload, label = 'bericht' }) {
   )
 }
 
-function Kicker({ item, extra }) {
+function Kicker({ item, extra, followed }) {
   const bits = []
   if (extra) bits.push(<span key="x">{extra}</span>)
   if (item.type === 'opinie') bits.push(<span key="t" className="kicker__type">Opinie</span>)
   if (item.section && !extra) bits.push(<span key="s">{item.section}</span>) // de rubriek van de Editie gaat voor die van de bron
+  if (followed) bits.push(<span key="f" className="label--meta front__followed">{followed}</span>) // stil: een staat, geen rubriek
   return bits.length ? <p className="label label--kicker kicker">{bits}</p> : null
 }
 
@@ -155,13 +156,13 @@ const Summary = ({ item, className }) =>
 
 // ---- Vorm 1: hoofdverhaal ----
 // `priority`: dit is het eerste beeld dat je ziet (alleen het zichtbare hoofdverhaal).
-export function LeadStory({ item, story, note, priority = false, taste = null }) {
+export function LeadStory({ item, story, note, followed = null, priority = false, taste = null }) {
   const { markRead, read } = useHoot()
   return (
     <article className={`entry lead${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <a className="lead__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         {/* Eerst kop en kern, dan pas het beeld (op breed scherm staat het beeld bovenaan, zie CSS). */}
-        <Kicker item={item} extra={note} />
+        <Kicker item={item} extra={note} followed={followed} />
         <h2 className="head-6 lead__title">{item.title}</h2>
         <Summary item={item} className="lead__sum" />
         {item.image && fitsHero(item.image) ? (

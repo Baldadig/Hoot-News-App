@@ -904,28 +904,24 @@ select {
 }
 
 /* Inkt: de kop van de Editie als band over de volle breedte van het blad. De band zet de
-   kleuren om (licht op inkt); alles erin volgt via de tokens. */
+   kleuren om (licht op inkt); alles erin volgt via de tokens. De rand van de band is het begin
+   van het nieuws, dus de inktlijn eronder vervalt. */
 [data-palette='inkt'] .edtop {
   --ink: var(--band-ink);
   --ink-2: var(--band-ink-2);
   --ink-3: var(--band-ink-3);
   --rule: var(--band-rule);
   --accent: var(--band-accent);
-  --accent-soft: #3a1e1b;
+  --accent-soft: var(--band-accent-soft);
   --on-accent: var(--band);
   --paper: var(--band);
   --surface: var(--band);
-  margin-bottom: var(--s5);
-  padding-bottom: var(--s4);
+  padding-bottom: var(--s2);
+  border-bottom: 0;
   background: var(--band);
   color: var(--ink);
   box-shadow: 0 0 0 100vmax var(--band);
   clip-path: inset(-100vmax -100vmax 0 -100vmax);
-}
-[data-palette='inkt'] .edtop .briefcta {
-  margin-bottom: 0;
-  border-top: 1px solid var(--rule);
-  border-bottom: 0;
 }
 
 @media (min-width: 960px) {
@@ -2040,14 +2036,14 @@ select.input {
   gap: var(--s3);
   margin: var(--s6) 0 var(--s4);
   padding: var(--s7) var(--s5) var(--s6);
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
   background: var(--brand-red);
   color: var(--on-brand-red);
   text-align: center;
 }
 
 .endcap__text {
-  max-width: 30em;
+  max-inline-size: var(--measure-prose);
   color: var(--on-brand-red);
 }
 /* Verder lezen: een .linkbtn, stiller op merkrood; bij hover de volle tekstkleur. */
@@ -3456,11 +3452,6 @@ html[data-images='hoofd'] .media--social {
   }
 }
 
-.edmeta__acts {
-  display: inline-flex;
-  gap: var(--s2);
-  margin-left: auto;
-}
 /* Buiten je bubbel: een lijst in het leesblok, net als Verder in deze Editie. */
 .bubble {
   margin-top: var(--s2);
@@ -3608,7 +3599,7 @@ html[data-images='hoofd'] .media--social {
   justify-content: space-between;
   gap: var(--s3);
   width: 100%;
-  min-height: var(--tap);
+  min-height: var(--row-sm);
   padding: var(--s2) 0;
   border: 0;
   border-top: 1px solid var(--rule);
@@ -3626,8 +3617,8 @@ html[data-images='hoofd'] .media--social {
   font-size: var(--t1);
 }
 .following__new.is-new {
-  color: var(--accent);
-  font-weight: 800;
+  color: var(--ink);
+  font-weight: var(--fw-head);
 }
 /* Volgen in de kop van het verhaal: een kleine pil (.pill.pill--sm.hit), aan = gekozen met vinkje.
    Is het paneel smal (bij grote tekst eerder: de grens staat in rem), dan staat er alleen "Volg";
@@ -3649,27 +3640,58 @@ html[data-images='hoofd'] .media--social {
   }
 }
 
-/* Editie: de ingang naar het overzicht in één minuut, boven het hoofdverhaal */
+/* Editie: de kop. Titel, één metaregel en de ingang naar het overzicht; de inktlijn eronder
+   (--rule-strong) is het begin van het nieuws, net als boven "Verder in deze Editie". Alleen als
+   er een Editie is: bij laden of een fout staat er niets onder om te beginnen. :where houdt dit
+   op (0,1,0), zodat de band van Inkt de lijn kan weghalen. */
+.edtop:where(:has(> .edmeta)) {
+  border-bottom: var(--rule-strong);
+}
+
+/* De metaregel is .vh__sub (t2, --ink-3), met een punt tussen de delen. De punt hangt achter het
+   vorige deel, zodat hij bij een afbreking aan het eind van de regel blijft en er nooit een regel
+   met een punt begint. Achter het weer zit hij ín het weer (een flexvak, dus onbreekbaar); valt
+   het weer weg, dan gaat zijn punt mee. De marge is geen spatie: de breedte nul (\200B) na de punt
+   laat de regel daar breken, anders breekt hij zonder weer midden in de datum. */
+.edmeta > :not(:last-child)::after {
+  content: '·\200B';
+  margin-inline: var(--s2);
+}
+.edmeta__wx {
+  display: inline-flex;
+  vertical-align: top; /* het weer (icoon 20) staat in de regel van 20, niet op zijn eigen basislijn */
+}
+.edmeta__wx:empty {
+  display: none;
+}
+/* Zonder ingang eronder: lucht tussen de metaregel en de inktlijn. */
+.edmeta:last-child {
+  padding-bottom: var(--s3);
+}
+
+/* De ingang naar het overzicht in één minuut: een rij van --row-sm met een media-object van
+   --slot-sm, dus de tekst op 32, net als de bronnaam eronder. De caret (16) staat tegen de lijn. */
 .briefcta {
   display: flex;
   align-items: center;
-  gap: var(--s3);
+  gap: var(--s2);
   width: 100%;
-  min-height: var(--tap);
-  margin: var(--s2) 0 var(--s4);
+  min-height: var(--row-sm);
+  margin-top: var(--s3);
   padding: var(--s3) 0;
   border: 0;
-  border-top: 2px solid var(--ink);
-  border-bottom: 1px solid var(--rule);
+  border-top: 1px solid var(--rule);
   background: none;
   color: var(--ink);
   text-align: left;
   cursor: pointer;
 }
 .briefcta__icon {
-  display: inline-flex;
+  display: inline-grid;
   flex: none;
-  color: var(--accent);
+  place-items: center;
+  width: var(--slot-sm);
+  color: var(--ink-2);
 }
 .briefcta__text {
   display: flex;
@@ -3677,53 +3699,15 @@ html[data-images='hoofd'] .media--social {
   flex-direction: column;
   min-width: 0;
 }
-.briefcta__title {
-  font-family: var(--serif);
-  font-size: var(--t4);
-  font-weight: 800;
-  line-height: var(--lh-head);
-}
 .briefcta__sub {
   color: var(--ink-3);
   font-size: var(--t1);
   line-height: var(--lh-1);
 }
 .briefcta__go {
+  display: inline-flex;
   flex: none;
   color: var(--ink-3);
-  font-size: var(--t4);
-}
-.edcount {
-  margin: 0 0 var(--s2);
-}
-
-/* Editie: één metaregel — datum en het weer links, voorlezen rechts */
-.edmeta {
-  display: flex;
-  align-items: center;
-  gap: var(--s3);
-  min-height: var(--tap);
-}
-.edmeta__text {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0 var(--s3);
-  flex: 1;
-  min-width: 0;
-  color: var(--ink-3);
-  font-size: var(--t2);
-  line-height: var(--lh-ui);
-}
-/* Smal scherm: datum, weer en knop in één rij die mag doorlopen naar een tweede regel */
-@media (max-width: 559px) {
-  .edmeta {
-    flex-wrap: wrap;
-    row-gap: var(--s2);
-  }
-  .edmeta__text {
-    flex: 0 1 auto;
-  }
 }
 .weather {
   display: inline-flex;
