@@ -72,6 +72,8 @@ struct EditionView: View {
     @Environment(\.isWide) private var wide
     @Environment(\.brandHandoff) private var handoff
     @Environment(\.accessibilityReduceMotion) private var still
+    @Environment(EditionAlerts.self) private var alerts
+    @State private var alertsOn = false // net "ja" gezegd op het seintje onderaan
     // Bij een koude start ligt de krant 8 pt lager en schuift op zijn plek terwijl het rood van het
     // opstartscherm zich sluit, met dezelfde curve: het merk landt, de krant gaat open.
     private var rising: Bool { !still && handoff?.landed == false && handoff?.leaving == false }
@@ -107,6 +109,31 @@ struct EditionView: View {
                     withAnimation(.snappy) { store.vote(row.id, items: items, up: up) }
                     UIAccessibility.post(notification: .announcement, argument: up ? "Je ziet meer over \(Taste.about(items))" : "Je ziet minder over \(Taste.about(items))")
                 }
+        }
+    }
+
+    // Een rustig tweede instappunt voor het seintje (het eerste staat in Instellingen): alleen zolang
+    // iOS nog niet weet of je meldingen wilt. Na ja of nee verdwijnt het vanzelf; na een ja zegt het
+    // nog even wanneer.
+    @ViewBuilder private var alertOffer: some View {
+        if alertsOn, let next = store.edition?.next, let hour = Int(next.prefix(2)) {
+            Label("Je krijgt een seintje om \(hour) uur.", systemImage: "bell")
+                .font(.subheadline)
+                .frame(minHeight: Space.tap)
+                .transition(.opacity)
+        } else if alerts.permission == .notDetermined && !store.notify {
+            Button {
+                Task {
+                    guard await alerts.ask() else { return }
+                    store.notifySlots = EditionAlerts.slots.map(\.id)
+                    withAnimation(.easeInOut(duration: 0.3)) { store.notify = true; alertsOn = true }
+                }
+            } label: {
+                Label { Text("Seintje als hij klaarligt?").underline() } icon: { Image(systemName: "bell") }
+            }
+            .font(.subheadline.weight(.semibold))
+            .frame(minHeight: Space.tap)
+            .transition(.opacity)
         }
     }
 
@@ -157,13 +184,19 @@ struct EditionView: View {
                             Text("Dit was de \(title.lowercased())\(dateLine.isEmpty ? "" : " van \(dateLine.lowercased())").\(store.edition?.next.map { " De volgende staat klaar om \($0)." } ?? "")")
                                 .font(.subheadline)
                                 .multilineTextAlignment(.center)
-                            // Het einde is leidend; verder lezen mag, als rustige link in plaats van een knop.
-                            Button { openTab(.stroom) } label: {
-                                Text("Of lees verder in de Stroom").underline()
+                            // De links direct onder elkaar: hun aanraakvlak (44 pt) is de ruimte ertussen,
+                            // zodat tekst, seintje en Stroom op gelijke afstand staan.
+                            VStack(spacing: 0) {
+                                alertOffer
+                                // Het einde is leidend; verder lezen mag, als rustige link in plaats van een knop.
+                                Button { openTab(.stroom) } label: {
+                                    Text("Of lees verder in de Stroom").underline()
+                                }
+                                .font(.subheadline.weight(.semibold))
+                                .opacity(0.85)
+                                .frame(minHeight: Space.tap)
                             }
-                            .font(.subheadline.weight(.semibold))
-                            .opacity(0.85)
-                            .frame(minHeight: Space.tap)
+                            .animation(still ? nil : .easeInOut(duration: 0.3), value: alerts.permission) // na een nee: rustig weg
                         }
                         .foregroundStyle(Theme.onBrandRed)
                         .frame(maxWidth: .infinity)

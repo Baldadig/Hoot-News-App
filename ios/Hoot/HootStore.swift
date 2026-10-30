@@ -39,6 +39,10 @@ final class HootStore {
     var openWith: String { didSet { save("hoot.openWith", openWith) } }
     var preview: Int { didSet { save("hoot.preview", preview); synced() } } // regels intro bij een bericht; 0 = de hele intro
     var onboarded: Bool { didSet { save("hoot.onboarded", onboarded) } } // het welkom is gezien
+    // Een seintje bij een nieuwe Editie (EditionAlerts), per dagdeel aan of uit. Alleen op dit
+    // toestel: niet `synced()`, want toestemming geldt per toestel.
+    var notify: Bool { didSet { save("hoot.notify", notify) } }
+    var notifySlots: [String] { didSet { save("hoot.notifySlots", notifySlots) } }
     // Jouw editie: je interesses (src/lib/topics.js), voorkeursbronnen (ster) en smaak (wat je leest).
     var interests: [String] { didSet { save("hoot.interests", interests); refreshPersonal(); synced() } }
     var favorites: [String] { didSet { save("hoot.favorites", favorites); refreshPersonal(); synced() } }
@@ -113,6 +117,8 @@ final class HootStore {
         // `-HootOnboarded YES`: het welkom overslaan maar wel het opstartscherm (de overgang naar de Editie).
         if UserDefaults.standard.bool(forKey: "HootOnboarded") { onboarded = true }
         #endif
+        notify = Self.load("hoot.notify") ?? false
+        notifySlots = Self.load("hoot.notifySlots") ?? EditionAlerts.slots.map(\.id)
         interests = Self.load("hoot.interests") ?? []
         favorites = Self.load("hoot.favorites") ?? []
         affinity = Self.load("hoot.affinity") ?? Affinity()

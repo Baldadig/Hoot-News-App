@@ -4,6 +4,8 @@ import SwiftUI
 struct HootApp: App {
     @State private var store = HootStore()
     @State private var account = Account()
+    @State private var alerts = EditionAlerts.shared
+    @UIApplicationDelegateAdaptor(HootAppDelegate.self) private var delegate // seintjes, ook bij een koude start
     @Environment(\.scenePhase) private var phase
 
     init() {
@@ -42,6 +44,7 @@ struct HootApp: App {
             .animation(.easeInOut(duration: 0.45), value: store.onboarded)
             .environment(store)
             .environment(account)
+            .environment(alerts)
             .tint(Theme.accent)
             .overlay {
                 if splash { SplashView(handoff: handoff) }
@@ -52,8 +55,16 @@ struct HootApp: App {
             // Wat met je account meegaat: wegschrijven; terug in de app: ophalen.
             .onChange(of: store.syncTick) { account.changed() }
             .onChange(of: phase) { _, now in if now == .active { Task { await account.pull() } } }
+            // Seintjes: opnieuw plannen bij elke wijziging, terug in de app en als de klok verspringt.
+            .task(id: alertPlan) { await planAlerts() }
+            .onChange(of: phase) { _, now in if now == .active { Task { await planAlerts() } } }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in Task { await planAlerts() } }
+            .onChange(of: alerts.arrived) { Task { await store.load() } } // seintje terwijl de app open is
         }
     }
+
+    private var alertPlan: String { "\(store.onboarded && store.notify) \(store.notifySlots.joined(separator: ","))" }
+    private func planAlerts() async { await alerts.plan(on: store.onboarded && store.notify, slots: store.notifySlots) }
 
     // Minstens één hele sprong, dan weg zodra de editie er is (of laden mislukt); hooguit 5 seconden.
     private func endSplash() async {
@@ -129,6 +140,7 @@ struct RootView: View {
     @State private var reader = Reader()
     @Environment(\.scenePhase) private var phase
     @SceneStorage("tab") private var tab: Destination = .editie
+    @Environment(EditionAlerts.self) private var alerts
 
     enum Destination: String, Sendable { case editie, stroom, digest, bewaard, zoek }
 
@@ -190,6 +202,14 @@ struct RootView: View {
             // Ook na een mislukte koude start (nog niets geladen): dan meteen opnieuw proberen.
             guard now == .active else { return }
             if store.updatedAt.map({ Date.now.timeIntervalSince($0) > 15 * 60 }) ?? true || store.status == .failed { Task { await store.load() } }
+        }
+        // Getikt op een seintje: de lezer dicht, naar de Editie, en de nieuwe ophalen.
+        .onChange(of: alerts.openEdition, initial: true) { _, open in
+            guard open else { return }
+            alerts.openEdition = false
+            reader.item = nil
+            tab = .editie
+            Task { await store.load() }
         }
         .environment(reader)
         .fullScreenCover(item: $reader.item) { item in

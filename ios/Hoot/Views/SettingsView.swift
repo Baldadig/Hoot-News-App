@@ -1,8 +1,9 @@
 import SwiftUI
 
 // Instellingen: een blad achter de knop rechtsboven, volgens de Human Interface Guidelines:
-// - alleen wat je in de app vaak wilt aanpassen; wat bij het systeem hoort (meldingen,
-//   achtergrond, tekstgrootte) via de pagina van Hoot in de Instellingen-app;
+// - alleen wat je in de app vaak wilt aanpassen; wat bij het systeem hoort (achtergrond,
+//   tekstgrootte, hoe meldingen eruitzien) via de pagina van Hoot in de Instellingen-app. Het
+//   seintje bij een nieuwe Editie staat wél hier: welke edities, dat is een keuze in Hoot;
 // - geen eigen licht/donker: de app volgt de keuze van je iPhone;
 // - geen opties die (nog) niet werken of nu niet van toepassing zijn;
 // - wissen alleen na bevestiging, met Annuleer.
@@ -11,6 +12,7 @@ struct SettingsView: View {
     @Environment(Account.self) private var account
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @Environment(EditionAlerts.self) private var alerts
     @State private var confirmClear: String? = DebugLaunch.screen("instellingen-wissen") ? "gelezen" : nil
     @State private var path: [String] = DebugLaunch.screen("instellingen-bronnen") ? ["bronnen"] : DebugLaunch.screen("instellingen-vakken") ? ["vakken"] : DebugLaunch.screen("instellingen-abonnementen") ? ["abonnementen"] : []
 
@@ -22,6 +24,55 @@ struct SettingsView: View {
 
     // Lid (of je account laadt nog): Bewaard gaat mee met je account, dus wissen wist ook daar.
     private var savedSyncs: Bool { account.session != nil && account.status != .noInvite }
+
+    // Seintje bij een nieuwe Editie. De schakelaar is zelf de uitleg: pas bij aanzetten vraagt iOS om
+    // toestemming. Zei je eerder nee, dan springt hij terug en wijzen we de weg naar de Instellingen-app.
+    @ViewBuilder private var alertsSection: some View {
+        let denied = alerts.permission == .denied
+        Section {
+            Toggle(isOn: Binding(get: { store.notify && !denied }, set: { on in
+                guard on else { store.notify = false; return }
+                guard !denied else { return }
+                store.notify = true
+                guard !alerts.allowed else { return }
+                Task { if await !alerts.ask() { withAnimation { store.notify = false } } }
+            })) {
+                Label("Seintje bij een nieuwe Editie", systemImage: "bell")
+            }
+            if store.notify && alerts.allowed {
+                ForEach(EditionAlerts.slots) { slot in
+                    Toggle(isOn: Binding(get: { store.notifySlots.contains(slot.id) }, set: { on in
+                        let next = EditionAlerts.slots.map(\.id).filter { $0 == slot.id ? on : store.notifySlots.contains($0) }
+                        // De laatste uit: dan het seintje helemaal uit (en de volgende keer weer alle drie).
+                        if next.isEmpty {
+                            withAnimation { store.notify = false }
+                            store.notifySlots = EditionAlerts.slots.map(\.id)
+                        } else {
+                            store.notifySlots = next
+                        }
+                    })) {
+                        Label {
+                            Text("\(slot.name) \(Text("· \(slot.hour) uur").foregroundStyle(Theme.ink3))")
+                        } icon: { Image(systemName: slot.icon) }
+                    }
+                }
+            }
+            if denied {
+                Button {
+                    if let url = URL(string: UIApplication.openNotificationSettingsURLString) { openURL(url) }
+                } label: {
+                    OutboundRow(title: "Open Instellingen", systemImage: "gearshape")
+                }
+                .accessibilityHint("Opent de meldingen van Hoot in de Instellingen-app")
+            }
+        } header: {
+            Text("Seintjes")
+        } footer: {
+            Text(denied ? "Meldingen van Hoot staan uit. Zet ze aan in de Instellingen-app." : "Een stil seintje, zonder geluid, een paar minuten nadat je Editie klaarligt. Alleen op dit toestel.").foregroundStyle(Theme.ink3)
+        }
+        .animation(.default, value: store.notify && alerts.allowed)
+        .task { await alerts.refresh() }
+    }
 
     var body: some View {
         @Bindable var store = store
@@ -70,6 +121,8 @@ struct SettingsView: View {
                 } footer: {
                     Text(store.openWith == "lezer" ? "De lezer toont alleen de tekst en beelden, in de opmaak van Hoot. Log één keer in bij je abonnementen om ook hun hele artikelen hier te lezen." : "Artikelen openen in Safari. Daar ben je al ingelogd bij je abonnementen, met je wachtwoorden en Google of Apple.").foregroundStyle(Theme.ink3)
                 }
+
+                alertsSection
 
                 Section {
                     Toggle(isOn: $store.bluesky) {
