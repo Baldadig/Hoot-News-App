@@ -8,9 +8,10 @@ import { clock, timeAgo } from '../lib/time.js'
 import { SOURCE_CATS } from '../lib/topics.js'
 import { StarIcon, CaretIcon, ICON_SM } from '../components/icons.jsx'
 
-export function Switch({ checked, onChange, label }) {
+// `className` en `disabled` zijn er voor het Designsysteem, dat de schakelaar in elke staat toont.
+export function Switch({ checked, onChange, label, className = '', disabled }) {
   return (
-    <button type="button" role="switch" aria-checked={checked} aria-label={label} className="switch" onClick={() => onChange(!checked)}>
+    <button type="button" role="switch" aria-checked={checked} aria-label={label} className={`switch${className ? ` ${className}` : ''}`} disabled={disabled} onClick={() => onChange(!checked)}>
       <span className="switch__track">
         <span className="switch__thumb" />
       </span>

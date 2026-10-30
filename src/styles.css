@@ -1093,8 +1093,9 @@ select {
   }
 }
 
-/* Knop: een vlak in inkt (hoofdknop), in accent (alleen de nieuwe-berichtenpil) of zonder vlak
-   (tweede knop). Het vlak komt uit --btn-fill, zodat hover en druk het voor elke variant mengen. */
+/* Knop: een vlak in inkt (hoofdknop; .btn--lg, 52, is de ene vraag van Welkom), in accent (alleen
+   de nieuwe-berichtenpil) of zonder vlak (tweede knop). Het vlak komt uit --btn-fill, zodat hover
+   en druk het voor elke variant mengen. Alle staten staan naast elkaar op /#/stijl. */
 .btn {
   --btn-fill: var(--ink);
   --btn-ink: var(--paper);
@@ -3061,34 +3062,213 @@ select.input {
   }
 }
 
-/* ---------- Designsysteem-scherm ---------- */
+/* ---------- Designsysteem-scherm ----------
+   Het scherm toont de echte onderdelen (StyleGuide.jsx). Hover, focus en ingedrukt zijn daar de
+   regels van dit bestand zelf, vastgezet op .sg-hover, .sg-focus en .sg-press; de kleuren van licht
+   en donker staan naast elkaar via .sg-licht en .sg-donker. Beide maakt StyleGuide.jsx bij het
+   openen uit dit bestand, dus hier staat alleen de opmaak van het scherm. */
+.sg code {
+  font-size: var(--t1);
+  white-space: nowrap;
+}
 .sg__list {
+  max-inline-size: var(--measure-prose);
   margin: 0;
-  padding-left: 1.2em;
+  padding-inline-start: var(--s5);
   color: var(--ink-2);
-  line-height: var(--lh-body);
+  font-size: var(--t2);
+  line-height: var(--lh-2-read);
 }
-.sg__swatches {
+.sg__list li + li {
+  margin-top: var(--s1);
+}
+.sg__list strong {
+  color: var(--ink);
+}
+/* Uitleg onder een sectiekop: zelf geen bovenmarge, de kop zet --s3. */
+.sg__intro {
+  margin: 0 0 var(--s4);
+}
+/* Maat onder een voorbeeld: meta, gemeten. */
+.sg__spec {
+  margin-top: var(--s1);
+  color: var(--ink-3);
+  font-size: var(--t1);
+  line-height: var(--lh-1-read);
+}
+.sg__part {
+  white-space: nowrap;
+}
+.sg__block + .sg__block,
+.sg__block + .sg__intro {
+  margin-top: var(--s5);
+}
+/* Onder een zwevend vlak (blad, melding) wat meer lucht: de schaduw hoort bij het vlak. */
+.sg__dialog + .sg__spec,
+.sg__toasts + .sg__spec {
+  margin-top: var(--s3);
+}
+.sg__open {
+  margin-top: var(--s3);
+}
+
+/* Kleur: de naam links, rechts twee stroken papier (licht en donker) met de staal en zijn waarde.
+   Elke cel in een strook lost de tokens op met het thema van die strook. */
+.sg__colors {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: var(--s3);
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  column-gap: var(--s2);
 }
-.sg__sw {
+/* Naam en rol op één regel als het past, anders eronder. */
+.sg__cname {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  align-content: center;
+  column-gap: var(--s2);
+  padding-block: var(--s2);
+  border-top: 1px solid var(--rule);
+  color: var(--ink-2);
+  font-size: var(--t1);
+  line-height: var(--lh-1-read);
+}
+.sg__cname code {
+  color: var(--ink);
+}
+.sg__tone {
   display: flex;
   align-items: center;
-  gap: var(--s3);
-  font-size: var(--t1);
-  color: var(--ink-2);
+  gap: var(--s2);
+  padding: var(--s2) var(--s3);
+  border-inline: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink-3);
+}
+.sg__tone--top {
+  padding-top: var(--s3);
+  border-top: 1px solid var(--rule);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+}
+.sg__tone--row {
+  border-top: 1px solid var(--rule);
+}
+.sg__tone--end {
+  padding-bottom: var(--s3);
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
+}
+/* Een waarde met dekking ("#1a1814 · 14 %") mag breken. */
+.sg__tone code {
+  white-space: normal;
+}
+/* Telefoon: de staal boven zijn waarde, zodat de naam de breedte houdt. */
+@media (max-width: 559px) {
+  .sg__colors {
+    grid-template-columns: minmax(0, 1fr) min-content min-content;
+  }
+  .sg__cname {
+    display: grid;
+    align-content: center;
+    justify-items: start;
+  }
+  .sg__tone--row {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: var(--s1);
+  }
 }
 .sg__chip {
   flex: none;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-sm);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 20%, transparent);
+  width: var(--slot-sm);
+  height: var(--slot-sm);
+  border-radius: var(--radius-control);
+  box-shadow: inset 0 0 0 1px var(--hairline);
 }
-.sg p + p {
-  margin-top: var(--s3);
+
+/* Type: elke rol een rij, met de maat eronder. */
+.sg__typerow {
+  padding-block: var(--s3);
+}
+.sg__typerow > :first-child {
+  margin: 0;
+}
+.sg__read {
+  max-inline-size: var(--measure-prose);
+  font-size: var(--t3);
+  line-height: var(--lh-3-read);
+}
+
+/* Bediening: onderdeel × staat. Breder dan het leesblok (zeven kolommen); past het niet, dan
+   schuift de tabel opzij en blijft de naam staan. */
+.sg__scroll {
+  max-inline-size: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+.sg__matrix {
+  inline-size: 100%;
+  border-collapse: collapse;
+}
+.sg__matrix th,
+.sg__matrix td {
+  padding: var(--s3) var(--s1);
+  text-align: start;
+  vertical-align: middle;
+}
+.sg__matrix thead th {
+  padding-block: 0 var(--s2);
+  border-bottom: var(--rule-strong);
+  white-space: nowrap;
+}
+.sg__matrix tbody tr + tr {
+  border-top: 1px solid var(--rule);
+}
+.sg__matrix tbody th {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: var(--z-sticky);
+  inline-size: calc(var(--tap) * 3);
+  min-inline-size: calc(var(--tap) * 3);
+  padding-inline: 0 var(--s2);
+  background: var(--paper);
+  color: var(--ink-3);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-1);
+}
+.sg__name {
+  display: block;
+  color: var(--ink);
+  font-size: var(--t2);
+  font-weight: var(--fw-ui);
+  line-height: var(--lh-2);
+}
+.sg__note {
+  font-size: var(--t1);
+}
+.sg__cell {
+  inline-size: calc(var(--tap) * 2.5);
+}
+.sg__specimen {
+  display: flex;
+  align-items: center;
+}
+.sg__none {
+  color: var(--ink-3);
+}
+
+/* Dialoog: het blad als voorbeeld in de kolom, niet zwevend en niet verschoven naar main. */
+.sg .sg__dialog {
+  margin: 0;
+  translate: none;
+}
+
+/* Melding: de pillen onder elkaar, zoals ze één voor één onderin verschijnen. */
+.sg__toasts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s3);
 }
 
 /* ---------- Minder beweging ---------- */
