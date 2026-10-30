@@ -299,6 +299,12 @@ struct StoryView: View {
         .background(Theme.paper)
         .navigationTitle("Vergelijken")
         .navigationBarTitleDisplayMode(.inline)
+        // Het verhaal delen = het stuk bovenaan delen, met de link van zijn uitgever.
+        .toolbar {
+            if let lead, let link = lead.link {
+                ToolbarItem(placement: .primaryAction) { ShareItemLink(item: lead, link: link) }
+            }
+        }
         .task { items = await store.storyItems(story) }
     }
 

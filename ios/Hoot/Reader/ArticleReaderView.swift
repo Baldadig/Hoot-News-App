@@ -83,7 +83,7 @@ struct ArticleReaderView: View {
                         Label("Tekstgrootte", systemImage: "textformat.size")
                     }
                     if let link = item.link {
-                        ShareLink(item: link, subject: Text(item.title)) { Label("Deel", systemImage: "square.and.arrow.up") }
+                        ShareItemLink(item: item, link: link)
                         Button("Open bij \(sourceName)", systemImage: "safari") { openURL(link) }
                     }
                     SaveButton(item: item)

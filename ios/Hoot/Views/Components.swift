@@ -1,5 +1,6 @@
 import SafariServices
 import SwiftUI
+import UniformTypeIdentifiers
 
 // Huisstijl: warm papier, inkt, krantenrood. Koppen in New York (de serif van het systeem: past
 // bij Newsreader op het web en schaalt mee met Dynamische tekst), de rest in San Francisco.
@@ -302,7 +303,7 @@ struct ArticleActions: ViewModifier {
             .contextMenu {
                 Button(store.isSaved(item) ? "Verwijder uit Bewaard" : "Bewaar", systemImage: store.isSaved(item) ? "bookmark.slash" : "bookmark") { store.toggleSave(item) }
                 if let link = item.link {
-                    ShareLink(item: link, subject: Text(item.title)) { Label("Deel", systemImage: "square.and.arrow.up") }
+                    ShareItemLink(item: item, link: link)
                     Link(destination: link) { Label("Open in Safari", systemImage: "safari") }
                 }
                 if let tasteVote {
@@ -312,6 +313,53 @@ struct ArticleActions: ViewModifier {
                     }
                 }
             }
+    }
+}
+
+// Delen via het deelmenu van iOS: altijd de link van de uitgever (nooit een Hoot-link), met de
+// Hoot-kop als voorbeeld, want betaalde sites geven het deelblad soms alleen "Abonneer nu".
+// Geen apart bericht erbij: dan staat in Berichten de kop niet dubbel boven de rijke link.
+// Zet in leeslijst, Instapaper en andere lezers staan er vanzelf in als ze er zijn.
+struct ShareItemLink: View {
+    let item: Item
+    let link: URL
+    var body: some View {
+        let title = item.shareTitle
+        if let image = ImageURL.url(item.image, .thumb) ?? item.avatar.flatMap(URL.init(string:)) {
+            let preview = SharePreviewImage(url: image)
+            ShareLink(item: link, subject: Text(title), preview: SharePreview(title, image: preview, icon: preview)) { label }
+        } else {
+            ShareLink(item: link, subject: Text(title), preview: SharePreview(title)) { label }
+        }
+    }
+
+    private var label: some View { Label("Deel", systemImage: "square.and.arrow.up") }
+}
+
+// Het beeld bij het stuk (of anders het logo van de bron) bovenin het deelblad. Het deelblad haalt
+// het pas op als het opengaat, en meestal staat het al in de cache.
+struct SharePreviewImage: Transferable {
+    let url: URL
+    static var transferRepresentation: some TransferRepresentation {
+        // Als PNG: het deelblad leest niet elk formaat (WebP van de NOS bijvoorbeeld).
+        DataRepresentation(exportedContentType: .png) { image in
+            let data = try await URLSession.shared.data(from: image.url).0
+            guard let png = UIImage(data: data)?.pngData() else { throw URLError(.cannotDecodeContentData) }
+            return png
+        }
+    }
+}
+
+extension Item {
+    // Een Bluesky-post heeft geen kop: dan de titel van de gedeelde link, of het begin van de post.
+    var shareTitle: String {
+        if !title.isEmpty { return title }
+        if let linkTitle, !linkTitle.isEmpty { return linkTitle }
+        let text = summary ?? ""
+        guard !text.isEmpty else { return sourceName ?? "Hoot" }
+        guard text.count > 100 else { return text }
+        let cut = text.prefix(100)
+        return (cut.lastIndex(of: " ").map { String(cut[..<$0]) } ?? String(cut)) + "…"
     }
 }
 
