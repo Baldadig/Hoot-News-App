@@ -69,7 +69,7 @@ function Card({ item, rank, feature = false }) {
   const { markRead, read } = useHoot()
   const showImage = item.image && (feature ? fitsHero(item.image) : fitsLarge(item.image))
   return (
-    <article className={`dcard${feature ? ' dcard--feature' : ''}${showImage ? '' : ' dcard--text'}${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
+    <article className={`card dcard${feature ? ' dcard--feature' : ''}${showImage ? '' : ' dcard--text'}${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <a className="dcard__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         {showImage ? (
           <div className="media dcard__media">

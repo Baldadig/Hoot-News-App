@@ -105,6 +105,11 @@
   --select-caret: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath fill='none' stroke='%236b6457' stroke-linecap='round' stroke-linejoin='round' stroke-width='20' d='m48 96l80 80l80-80'/%3E%3C/svg%3E");
   --dot: 8px; /* statusstip */
   --avatar: 32px; /* je foto of voorletter */
+  --disc-lg: var(--tap); /* icoonschijf naast een sectiekop (een vak): met --s3 staat de tekst op 56 */
+  --toc-col: 17.5rem; /* kolom van de inhoudsopgave, minstens: 280 bij 100 %, koppen in ten hoogste drie regels (de containergrenzen bij .dtoc rekenen ermee) */
+  --toc-gap: 1rem; /* goot van de inhoudsopgave: --s4 bij 100 %, maar in rem zoals --toc-col, zodat de containergrenzen bij elke Tekstgrootte kloppen */
+  --toc-slot: 1.5rem; /* icoonschijf en nummer in de inhoud: 24 bij 100 % (als --slot-sm), groeit mee met Tekstgrootte */
+  --rubric-w: 3px; /* rubrieklijn boven een kaart zonder beeld */
   /* Vinkje van gekozen bij een pil (ook bij enkele keuze, zie .pill[aria-pressed]): CheckIcon (Phosphor bold) als masker, dus in de
      tekstkleur en uit dezelfde familie als de andere iconen. */
   --icon-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='m232.49 80.49l-128 128a12 12 0 0 1-17 0l-56-56a12 12 0 1 1 17-17L96 183L215.51 63.51a12 12 0 0 1 17 17Z'/%3E%3C/svg%3E");
@@ -251,6 +256,7 @@
   --edge: #766e61;
   --accent: #ec7a70;
   --accent-soft: #3a1e1b;
+  --tint: color-mix(in srgb, var(--ink) 10%, var(--paper)); /* 6 % draagt niet op donker papier: de icoonschijf van 24 viel weg */
   --on-accent: #151310;
   --warn: #f2b56b;
   --brand: #f1ece2;
@@ -521,6 +527,14 @@ select {
 /* Lijst op papier: een haarlijn tússen de rijen; de buitenlijnen zijn van het omhulsel. */
 .rows > * + * {
   border-top: 1px solid var(--rule);
+}
+/* Kaart: het tweede (en enige andere) oppervlak. Een vlak in --surface met een dunne rand binnen
+   de box en de hoeken van een kaart; beeld erin wordt door de hoeken afgesneden. */
+.card {
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-card);
+  background: var(--surface);
 }
 
 /* Tekst afkappen op --lines regels (standaard 2). */
@@ -1311,9 +1325,13 @@ select {
   gap: var(--s2);
   margin-top: var(--s1);
 }
-/* Onderwerpen van de Selectie: per domein, inklapbaar (open zolang je niets koos) */
+/* Onderwerpen van de Selectie: per domein, inklapbaar (open zolang je niets koos). De groepen
+   (ChipGroup) staan --s3 onder de knop, zodat zijn hoverlaag het eerste label niet raakt. */
 .vakpick {
   margin-top: var(--s2);
+}
+.vakpick > summary + * {
+  margin-top: var(--s3);
 }
 .topics__scroll {
   flex: 1;
@@ -2613,21 +2631,19 @@ select.input {
   line-height: var(--lh-1);
 }
 
-/* Gedeelde link in een sociale bijdrage: compacte kaart in plaats van een groot beeld */
+/* Gedeelde link in een sociale bijdrage: een compacte .card in plaats van een groot beeld. Het
+   beeld (--thumb-sm) met --s3 rondom: de kaart is zo hoog als een gewone duim (88). */
 .linkcard {
   display: flex;
   align-items: center;
   gap: var(--s3);
   margin-bottom: var(--s3);
   padding: var(--s3);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  background: var(--surface);
 }
 .linkcard .thumb {
   flex: none;
-  width: 72px;
-  height: 72px;
+  width: var(--thumb-sm);
+  height: var(--thumb-sm);
 }
 .linkcard__text {
   display: flex;
@@ -2637,14 +2653,9 @@ select.input {
 }
 .linkcard__title {
   font-size: var(--t2);
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-  font-weight: 700;
-  line-height: var(--lh-ui);
-  overflow-wrap: anywhere;
+  font-weight: var(--fw-action); /* de kaart is een link; een kopgewicht (800) zou zwaarder staan dan de bijdrage erboven */
+  line-height: var(--lh-2);
+  overflow-wrap: anywhere; /* afkappen op twee regels: .clamp */
 }
 .linkcard__domain {
   overflow: hidden;
@@ -3611,15 +3622,16 @@ html[data-images='hoofd'] .media--social {
   flex-wrap: wrap;
   gap: var(--s2);
 }
+/* De uitleg is een terzijde: --tint met een lijn links, niet in rood (dat is 'gekozen'). */
 .terms__box {
-  max-width: 60ch;
+  max-inline-size: var(--measure-prose);
   margin: var(--s2) 0 0;
   padding: var(--s2) var(--s3);
-  border-left: 2px solid var(--accent);
-  background: var(--accent-soft);
+  border-left: var(--rule-strong-w) solid var(--rule);
+  background: var(--tint);
   color: var(--ink);
   font-size: var(--t2);
-  line-height: var(--lh-body);
+  line-height: var(--lh-2-read);
 }
 
 /* Verhalen die je volgt: een kort lijstje boven de editie */
@@ -3769,10 +3781,11 @@ html[data-images='hoofd'] .media--social {
 
 /* ---------- Selectie (de wekelijkse, voorheen Digest) ---------- */
 /* Opgebouwd als een tijdschrift: een kop met de week, een inhoudsopgave, en per vak één groot
-   stuk, twee kaarten en een korte lijst. Kaarten op --surface met een dunne rand; de nummers en
-   rubriekregels in krantenrood, de koppen in de krantenletter. */
+   stuk, twee kaarten en een korte lijst. Kaarten zijn .card; de nummers en rubriekregels in
+   krantenrood, de koppen in de krantenletter. Elke sectie begint op een inktlijn (--rule-strong),
+   zonder vlak eronder. */
 .dmast {
-  margin: 0 0 var(--s4); /* eerste inhoud van de Selectie: de afstand komt van de kop */
+  margin: 0 0 var(--s5); /* eerste inhoud van de Selectie: de afstand komt van de kop */
 }
 .dmast__lede {
   margin-top: var(--s2);
@@ -3783,31 +3796,47 @@ html[data-images='hoofd'] .media--social {
   font-size: var(--t2);
 }
 
-/* Inhoud */
+/* Inhoud: een sectie op het volle raam, als de inhoudsopgave van een krant. Kolommen van
+   minstens --toc-col met een goot van --toc-gap, ten hoogste drie (1280: drie van ± 300; 768:
+   twee; telefoon: één). De kolomformule: een kolom is nooit smaller dan een derde (of de helft, bij
+   vier vakken) van de breedte, dus er komen er nooit meer dan --toc-cols naast elkaar. */
 .dtoc {
+  --toc-cols: 3;
+  container: toc / inline-size;
   display: grid;
-  gap: var(--s4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(var(--toc-col), (100% - (var(--toc-cols) - 1) * var(--toc-gap)) / var(--toc-cols))), 1fr));
+  gap: var(--toc-gap);
   margin: 0 0 var(--s6);
-  padding: var(--s4);
-  border-top: 2px solid var(--ink);
-  background: var(--surface);
-  border-radius: 0 0 var(--radius) var(--radius);
+  padding-top: var(--s3);
+  border-top: var(--rule-strong);
 }
-@media (min-width: 720px) {
-  .dtoc {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: var(--s5);
+/* Vier vakken: twee bij twee, geen drie met één eronder */
+.dtoc[data-n='4'] {
+  --toc-cols: 2;
+}
+/* Vijf: drie boven en twee bredere eronder, zodat er geen gat overblijft. Een raster van zes;
+   de vakken kiezen hun breedte naar de ruimte. De grenzen zijn twee en drie keer --toc-col plus
+   de goten (36rem = 2 × 17.5 + 1, 54.5rem = 3 × 17.5 + 2), allemaal in rem, dus ze vallen bij
+   elke Tekstgrootte samen met de kolommen. Een container query kan geen var() lezen: verandert
+   --toc-col of --toc-gap, dan verhuizen deze getallen mee. */
+.dtoc[data-n='5'] {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.dtoc[data-n='5'] > * {
+  grid-column: span 6;
+}
+@container toc (min-width: 36rem) {
+  .dtoc[data-n='5'] > * {
+    grid-column: span 3;
   }
 }
-/* Vier vakken: twee bij twee (vier smalle kolommen maken de koppen te krap) */
-@media (min-width: 720px) {
-  .dtoc[data-n='4'] {
-    grid-template-columns: 1fr 1fr;
+/* Twee kolommen en een oneven aantal: het laatste vak neemt de hele rij, geen gat rechtsonder. */
+@container toc (min-width: 36rem) and (max-width: 54.4375rem) {
+  .dtoc > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
   }
-  /* Vijf: drie boven, twee bredere eronder, zodat er geen gat overblijft */
-  .dtoc[data-n='5'] {
-    grid-template-columns: repeat(6, 1fr);
-  }
+}
+@container toc (min-width: 54.5rem) {
   .dtoc[data-n='5'] > * {
     grid-column: span 2;
   }
@@ -3830,25 +3859,30 @@ html[data-images='hoofd'] .media--social {
   align-items: center;
   min-height: var(--tap);
 }
+/* Icoonschijf van een vak: decoratie, dus --tint (--accent-soft betekent alleen 'gekozen'). In de
+   inhoud --toc-slot, bij het vak zelf --disc-lg. */
 .dtoc__icon,
 .dfield__icon {
   display: inline-grid;
   flex: none;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--accent-soft);
-  color: var(--accent);
+  width: var(--toc-slot);
+  height: var(--toc-slot);
+  border-radius: var(--radius-round);
+  background: var(--tint);
+  color: var(--ink);
 }
 .dtoc__icon svg {
-  width: 18px;
-  height: 18px;
+  width: var(--icon-sm);
+  height: var(--icon-sm);
 }
+/* Koppen in een smalle kolom: evenwichtige regels, alleen afbreken waar een zacht afbreekstreepje staat. */
 .dtoc__list {
   margin: 0;
   padding: 0;
   list-style: none;
+  text-wrap: balance;
+  hyphens: manual;
 }
 .dtoc__list li + li {
   border-top: 1px solid var(--rule);
@@ -3858,11 +3892,14 @@ html[data-images='hoofd'] .media--social {
 }
 .dtoc__list button:hover span:last-child {
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: var(--underline-offset);
 }
+/* Het nummer staat in een kolom zo breed als de icoonschijf erboven: een media-object van
+   --toc-slot en --s2, dus de koppen op 32, op de lijn van de naam van het vak. Met de goot van
+   --toc-gap blijven ze op 1280 en 1440 binnen drie regels. */
 .dtoc__n {
   flex: none;
-  min-width: 1.6em;
+  width: var(--toc-slot);
   color: var(--accent);
 }
 
@@ -3876,11 +3913,11 @@ html[data-images='hoofd'] .media--social {
   gap: var(--s3);
   margin-bottom: var(--s4);
   padding-top: var(--s4);
-  border-top: 2px solid var(--ink);
+  border-top: var(--rule-strong);
 }
 .dfield__icon {
-  width: 44px;
-  height: 44px;
+  width: var(--disc-lg);
+  height: var(--disc-lg);
 }
 .dfield__about {
   color: var(--ink-3);
@@ -3892,15 +3929,11 @@ html[data-images='hoofd'] .media--social {
   scroll-margin-top: calc(var(--safe-t) + var(--s4));
 }
 
-/* Kaarten */
+/* Kaarten: .card.dcard. Vlak, rand en hoeken komen van .card; hier alleen de opbouw. */
 .dcard {
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow: hidden;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  background: var(--surface);
 }
 .dcard__link {
   display: block;
@@ -3961,9 +3994,10 @@ html[data-images='hoofd'] .media--social {
   font-size: var(--t3);
   line-height: var(--lh-3-read);
 }
-/* Zonder beeld: een rustige rode lijn bovenaan, zodat de kaart toch een begin heeft */
+/* Zonder beeld: een rubrieklijn in krantenrood bovenaan (in plaats van de rand van .card), zodat
+   de kaart toch een begin heeft. */
 .dcard--text {
-  border-top: 3px solid var(--accent);
+  border-top: var(--rubric-w) solid var(--accent);
 }
 @media (min-width: 720px) {
   .dcard--feature .dcard__media {
@@ -4007,7 +4041,7 @@ html[data-images='hoofd'] .media--social {
 .dmore__list a {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--s1);
   padding: var(--s3) 0;
   color: var(--ink);
   text-decoration: none;

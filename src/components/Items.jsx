@@ -256,14 +256,14 @@ export function SocialItem({ item }) {
             </span>
           </div>
         ) : isLink ? (
-          <div className="linkcard">
+          <div className="card linkcard">
             {item.image ? (
               <div className="thumb">
                 <Img url={item.image} width="88" height="88" />
               </div>
             ) : null}
             <div className="linkcard__text">
-              {item.linkTitle ? <span className="linkcard__title">{item.linkTitle}</span> : null}
+              {item.linkTitle ? <span className="clamp linkcard__title">{item.linkTitle}</span> : null}
               <span className="linkcard__domain">{item.domain}</span>
             </div>
           </div>
