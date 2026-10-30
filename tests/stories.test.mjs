@@ -222,3 +222,11 @@ test('editie: één gedeelde naam is alleen hetzelfde onderwerp binnen twaalf uu
   // Veertien uur ertussen: binnen het venster voor een gebeurtenis, maar te ver voor één naam alleen.
   assert.equal(sameSubject(sig.get(now.id), sig.get(far.id)), false)
 })
+
+test('een verhaal krijgt zijn rubriek uit al zijn berichten, los van de eigen bronnen', () => {
+  const a = buildStories(ice(), {}, { mainIds: MAIN })
+  const b = buildStories(ice(), {}, { mainIds: new Set(['bbc']) })
+  assert.equal(a[0].desk, 'vs')
+  assert.equal(b[0].desk, a[0].desk)
+  assert.notEqual(a[0].ownCount, b[0].ownCount) // de eigen bronnen tellen wel anders
+})

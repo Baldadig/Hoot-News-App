@@ -1,0 +1,214 @@
+{
+ "about": "Nulmeting op de momentopname van 30 oktober 2026 (avond): composePersonal en selectEdition van v1.54.0, vóór De Redacteur. keys = de plekken (verhaalsleutels) per persona in scenario \"nu\"; general = de algemene Editie (buildStories + selectEdition met de basisbronnen) uit dezelfde berichten.",
+ "snapshot": "2026-10-30T19:00:17.373Z",
+ "jaccard": 0.4621,
+ "keys": {
+  "haags": [
+   "s19u85n2",
+   "s1bck9xo",
+   "srpiq4s",
+   "srjbii3",
+   "s1hnhlkl",
+   "s1jtyesk",
+   "s1k5nowz",
+   "s1dplda3",
+   "sueo7zt",
+   "1vpggb6"
+  ],
+  "ai": [
+   "s19u85n2",
+   "s1bck9xo",
+   "srjbii3",
+   "s1tzuqj",
+   "s1r56e3b",
+   "s1jtyesk",
+   "s333efc",
+   "sueo7zt",
+   "s1dplda3",
+   "1fffpv1"
+  ],
+  "gamer": [
+   "s1bck9xo",
+   "srjbii3",
+   "s1r56e3b",
+   "sueo7zt",
+   "1fffpv1",
+   "s1jtyesk",
+   "s19u85n2",
+   "1t861nm",
+   "s7k5bha"
+  ],
+  "klimaat": [
+   "s19u85n2",
+   "s1bck9xo",
+   "srjbii3",
+   "sd4ef4",
+   "srpiq4s",
+   "s1jtyesk",
+   "s333efc",
+   "s1r56e3b",
+   "s1dplda3",
+   "9kdqjl"
+  ],
+  "belegger": [
+   "s19u85n2",
+   "s1bck9xo",
+   "s1r56e3b",
+   "srjbii3",
+   "srpiq4s",
+   "s1jtyesk",
+   "s333efc",
+   "cxrgr4",
+   "1vpggb6",
+   "1t861nm"
+  ],
+  "wereld": [
+   "s19u85n2",
+   "s1bck9xo",
+   "srjbii3",
+   "s1pacmk0",
+   "sd4ef4",
+   "s1jtyesk",
+   "1r99ztd",
+   "s1r56e3b",
+   "sueo7zt",
+   "o08104"
+  ],
+  "muziek": [
+   "s19u85n2",
+   "s1bck9xo",
+   "srjbii3",
+   "s1r56e3b",
+   "dk2sb5",
+   "s1jtyesk",
+   "s333efc",
+   "h7qv25",
+   "w9v4fo",
+   "1dae5pb"
+  ],
+  "koers": [
+   "s19u85n2",
+   "srjbii3",
+   "sd4ef4",
+   "s1r56e3b",
+   "sueo7zt",
+   "s1jtyesk",
+   "s1bck9xo",
+   "s1dplda3",
+   "1hj4gfc",
+   "s7k5bha"
+  ],
+  "vlaming": [
+   "srjbii3",
+   "s19u85n2",
+   "s1bck9xo",
+   "s1r56e3b",
+   "srpiq4s",
+   "s1jtyesk",
+   "sueo7zt",
+   "mlt8df",
+   "1t861nm",
+   "1vpggb6"
+  ],
+  "brabant": [
+   "s19u85n2",
+   "s1bck9xo",
+   "srjbii3",
+   "sueo7zt",
+   "s19u8dfl",
+   "s1jtyesk",
+   "s333efc",
+   "pkqw91",
+   "jgmgwj",
+   "1t861nm"
+  ],
+  "nieuw": [
+   "s19u85n2",
+   "s1bck9xo",
+   "srjbii3",
+   "sd4ef4",
+   "s1r56e3b",
+   "s1jtyesk",
+   "s333efc",
+   "srpiq4s",
+   "sueo7zt",
+   "s1dplda3"
+  ],
+  "vs": [
+   "s1bck9xo",
+   "s19u85n2",
+   "srpiq4s",
+   "srjbii3",
+   "s1k5nowz",
+   "s1jtyesk",
+   "s1dplda3",
+   "s1r56e3b",
+   "sueo7zt",
+   "dk2sb5"
+  ]
+ },
+ "general": {
+  "stories": "966805500b4f3b8fbfbcedd65b8e3e7bd42c52c7fb8961c864e011f3fcc6dc92",
+  "entries": [
+   {
+    "kind": "story",
+    "id": "so7x6xz",
+    "leadId": "1mg305i",
+    "desk": "buitenland"
+   },
+   {
+    "kind": "story",
+    "id": "slvqu7i",
+    "leadId": "1ac9hp4",
+    "desk": null
+   },
+   {
+    "kind": "story",
+    "id": "srjbii3",
+    "leadId": "1r0emmx",
+    "desk": null
+   },
+   {
+    "kind": "story",
+    "id": "s19u8dek",
+    "leadId": "1r0emuw",
+    "desk": "binnenland"
+   },
+   {
+    "kind": "story",
+    "id": "so399u",
+    "leadId": "1r0emuz",
+    "desk": null
+   },
+   {
+    "kind": "story",
+    "id": "suii5zx",
+    "leadId": "1r0emmz",
+    "desk": null
+   },
+   {
+    "kind": "story",
+    "id": "s3t4ow1",
+    "leadId": "1b1mrvc",
+    "desk": "vs"
+   },
+   {
+    "kind": "story",
+    "id": "s1pacmk0",
+    "leadId": "q8ntbf",
+    "desk": "middenoosten"
+   },
+   {
+    "kind": "story",
+    "id": "srqxud6",
+    "leadId": "h7qv25",
+    "desk": "oekraine"
+   },
+   {
+    "kind": "item",
+    "id": "stjkwf",
+    "desk": "wetenschap"
+   }
+  ]
+ }
+}

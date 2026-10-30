@@ -22,7 +22,7 @@ import { useAccount } from './hooks/useAccount.js'
 import { useCloudSync } from './hooks/useCloudSync.js'
 import { useStored } from './lib/store.js'
 import { MAIN, rememberLocation, hrefFor } from './lib/context.js'
-import { learn, READ, SAVE, vote } from './lib/affinity.js'
+import { learn, forgetTopic, READ, SAVE, vote } from './lib/affinity.js'
 import { sourceStatus, statusLabel } from './lib/sourceStatus.js'
 import Bluesky from './views/Bluesky.jsx'
 import Vak from './views/Vak.jsx'
@@ -156,7 +156,7 @@ export default function App() {
   // Digest: pas ophalen als je de tab hebt aangezet (of hem opent).
   const vak = useVak(prefs.vak.length > 0 || route.path === 'digest')
   // Jouw editie: samengesteld uit je eigen bronnen en interesses (zie src/lib/personal.js).
-  const { edition: myEdition, member } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount, affinity })
+  const { edition: myEdition, member } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount, affinity, readIds: read })
   const socialIds = useMemo(() => new Set(social.sources.map((s) => 'bsky:' + s.handle)), [social.sources])
 
   const stream = useMemo(() => {
@@ -620,7 +620,7 @@ export default function App() {
           ) : null}
           <Suspense fallback={null}>
             {page === 'zoek' ? <Search {...backTo} /> : null}
-            {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} {...backTo} /> : null}
+            {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} affinity={affinity} onForgetTopic={(t) => setAffinity((a) => forgetTopic(a, t))} {...backTo} /> : null}
             {page === 'privacy' ? <Privacy {...backTo} /> : null}
             {page === 'over' ? <Over {...backTo} /> : null}
             {page === 'stijl' ? <StyleGuide stream={stream} /> : null}

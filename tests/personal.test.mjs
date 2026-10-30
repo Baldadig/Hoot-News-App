@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { composePersonal, personalRows, editionBasis, INTEREST_BONUS } from '../src/lib/personal.js'
+import { composePersonal, personalRows, editionBasis, INTEREST_BONUS, storiesForReader } from '../src/lib/personal.js'
+import { weight } from '../netlify/lib/desks.mjs'
 
 const NOW = Date.parse('2026-10-22T10:00:00Z')
 const ago = (h) => new Date(NOW - h * 36e5).toISOString()
@@ -183,10 +184,19 @@ test('"Waar iedereen over schrijft" nooit over een verhaal dat je eigen bronnen 
   assert.equal(e2.entries.find((x) => x.desk === 'breed')?.id, 'sKyiv')
 })
 
-test('een bericht van een vakbron krijgt de rubriek van de bron', () => {
+test('een bericht van een vakbron krijgt de rubriek van de bron (buiten de indeling)', () => {
+  // De zetels Buitenland gaan naar de bredere verhalen uit Londen en Parijs; de review komt bij het
+  // aanvullen en heet dan Tech, niet Buitenland ("Britse fabrikant").
   const sources = [{ id: 'nos', cat: 'nl' }, { id: 'tweakers', cat: 'tech' }]
   const review = art('rv', 'tweakers', 'Review: koptelefoon van Britse fabrikant Nothing', { publishedAt: ago(0.2) })
-  const e = composePersonal({ global, stories, items: [...items, review], sources, followed, now: NOW, builtAt: 'T' })
+  const abroad = [
+    art('bu1', 'nos', 'Britse premier stapt op na nederlaag in Londen', { publishedAt: ago(0.5) }),
+    art('bu2', 'nos', 'Britse regering in crisis na vertrek premier', { publishedAt: ago(0.4) }),
+    art('fr1', 'nos', 'Franse president ontbindt parlement in Parijs', { publishedAt: ago(0.5) }),
+  ]
+  const st = [...stories, { id: 'sBrit', leadId: 'bu1', itemIds: ['bu1', 'bu2'], sourceCount: 3, latestAt: ago(0.4) }, { id: 'sFrans', leadId: 'fr1', itemIds: ['fr1'], sourceCount: 3, latestAt: ago(0.5) }]
+  const e = composePersonal({ global, stories: st, items: [...items, ...abroad, review], sources, followed, now: NOW, builtAt: 'T' })
+  assert.deepEqual(['sBrit', 'sFrans'].map((id) => e.entries.find((x) => x.id === id).desk), ['buitenland', 'buitenland'])
   assert.equal(e.entries.find((x) => (x.leadId || x.id) === 'rv').desk, 'tech')
 })
 
@@ -214,4 +224,44 @@ test('voorkeursbronnen gaan voor: hun verhaal hoger en hun bericht als hoofdberi
   const lead = (e) => e.entries.find((x) => x.id === 'sWoning')?.leadId
   assert.equal(lead(plain), 'n1') // zonder voorkeur: NOS (Nederlands, eerder gekozen)
   assert.equal(lead(fav), 'r1') // met voorkeur voor NRC: het NRC-bericht
+})
+
+test('eigen bronnen zijn die van de lezer: een verhaal uit één eigen bron krijgt de +100', () => {
+  // Carbon Brief is geen basisbron: de server telde dit verhaal als ownCount 0.
+  const its = [
+    art('c1', 'carbonbrief', 'China zet nieuwe stap richting klimaatdoel voor COP31', { publishedAt: ago(2) }),
+    art('x1', 'guardian', 'China pledges new climate target ahead of COP31 talks', { publishedAt: ago(2) }),
+    art('n9', 'nos', 'Storm zorgt voor schade in Zeeland, wegen afgesloten', { publishedAt: ago(1) }),
+  ]
+  const st = [{ id: 'sCop', leadId: 'x1', itemIds: ['c1', 'x1'], sourceCount: 2, ownCount: 0, latestAt: ago(2) }]
+  const fol = new Set(['carbonbrief', 'nos'])
+  const [mine] = storiesForReader(st, its, fol)
+  assert.equal(mine.ownCount, 1)
+  assert.equal(weight(mine, NOW) - weight(st[0], NOW), 100)
+  assert.equal(st[0].ownCount, 0) // het origineel blijft zoals de server het gaf
+  const ids = composePersonal({ global, stories: st, items: its, followed: fol, now: NOW, builtAt: 'T' }).entries.map((x) => x.id)
+  assert.ok(ids.includes('sCop') && ids.indexOf('sCop') < ids.indexOf('n9'), ids.join(','))
+})
+
+test('verhalen per lezer: ownCount telt verschillende eigen bronnen, de rubriek gaat ongewijzigd mee', () => {
+  const its = [art('a', 'nos', 'x'), art('b', 'nos', 'y'), art('c', 'nrc', 'z'), art('d', 'nyt', 'w')]
+  const st = [
+    { id: 's1', itemIds: ['a', 'b', 'c', 'd'], sourceCount: 3, ownCount: 2, desk: 'vs' },
+    { id: 's2', itemIds: ['d'], sourceCount: 1, ownCount: 1, desk: null },
+  ]
+  const r = storiesForReader(st, its, new Set(['nos', 'nrc']))
+  assert.deepEqual(r.map((x) => [x.id, x.ownCount, x.desk]), [['s1', 2, 'vs'], ['s2', 0, null]])
+  assert.deepEqual(storiesForReader(st, its, new Set(['nyt'])).map((x) => x.desk), ['vs', null])
+})
+
+test('verhalen per lezer: zonder st.desk van de server rekenen we hem uit alle berichten uit', () => {
+  const its = [
+    art('u1', 'nyt', 'Trump signs order in the White House on tariffs'),
+    art('u2', 'nos', 'Trump tekent decreet over importheffingen in het Witte Huis'),
+  ]
+  const st = [{ id: 'sT', itemIds: ['u1', 'u2'], sourceCount: 2, ownCount: 1 }]
+  const a = storiesForReader(st, [its[1]], new Set(['nos']), its)
+  const b = storiesForReader(st, [its[0]], new Set(['nyt']), its)
+  assert.equal(a[0].desk, 'vs')
+  assert.equal(b[0].desk, 'vs')
 })

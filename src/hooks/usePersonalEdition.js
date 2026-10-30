@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { composePersonal, personalRows, editionBasis } from '../lib/personal.js'
+import { composePersonal, personalRows, editionBasis, withoutDebug } from '../lib/personal.js'
 import { previousOf } from '../../netlify/lib/stories.mjs'
 import { readJSON, writeJSON } from '../lib/store.js'
 
@@ -11,9 +11,13 @@ const KEY = 'hoot:my-edition'
 //    dezelfde bronnen en interesses komt;
 // 3. anders nu samenstellen, en vastleggen (op het toestel en, als lid, in je account).
 // Veranderen je bronnen of interesses (of laadt je account ze pas net), dan stellen we opnieuw samen.
+// Samenstellen gebeurt op de start van het dagdeel (global.builtAt), niet op de klok: zo maakt elk
+// toestel met dezelfde invoer dezelfde Editie. Wat je las (`readIds`) komt niet terug, tenzij er
+// genoeg nieuws bij kwam. Je leesprofiel (`affinity`) blijft op het toestel; alleen de Editie met
+// het waarom per plek gaat naar je account.
 // Leden krijgen er een eigen "editie in één minuut" bij (POST /api/brief). Zonder account geen
 // samenvatting: die van de algemene editie hoort niet bij jouw verhalen.
-export function usePersonalEdition({ data, status, prefs, muted, account, affinity = null }) {
+export function usePersonalEdition({ data, status, prefs, muted, account, affinity = null, readIds = null }) {
   const global = data?.edition || null
   const uid = account.status === 'in' ? account.user.id : null
   const owner = uid || 'anon'
@@ -54,9 +58,10 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
       // De editie van het vorige dagdeel (nog op dit toestel): wat daarin stond, komt alleen terug
       // als het zich ontwikkelde.
       const previous = current && current.id !== global.id && current.owner === owner ? previousOf(current) : null
-      const mine = composePersonal({ global, stories: data.stories, items: data.items, sources: data.sources, followed: new Set(followed), interests: prefs.interests || [], topics: prefs.topics || [], previous, affinity, favorites: prefs.favorites || [], taste: prefs.taste })
+      const now = Date.parse(global.builtAt) || Date.now()
+      const mine = composePersonal({ global, stories: data.stories, items: data.items, sources: data.sources, followed: new Set(followed), interests: prefs.interests || [], topics: prefs.topics || [], now, previous, affinity, favorites: prefs.favorites || [], taste: prefs.taste, readIds: readIds || new Set() })
       if (!mine) return
-      const stamped = { ...mine, owner, basis }
+      const stamped = { ...withoutDebug(mine), owner, basis }
       keep(stamped)
       if (uid && account.client) await account.client.from('user_state').update({ edition: stamped }).eq('user_id', uid).then(() => {}, () => {})
     })()
@@ -70,8 +75,10 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
   const asked = useRef('')
   useEffect(() => {
     if (!edition || edition.brief || !uid || !account.client || !prefs.brief) return
-    if (asked.current === edition.version) return
-    asked.current = edition.version
+    // De versie volgt het dagdeel; na opnieuw samenstellen (andere bronnen) is alleen de afdruk anders.
+    const key = `${edition.version}|${edition.basis}`
+    if (asked.current === key) return
+    asked.current = key
     ;(async () => {
       const { data: s } = await account.client.auth.getSession()
       const token = s?.session?.access_token
@@ -80,12 +87,12 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
       if (!res?.ok) return
       const { brief } = await res.json()
       const current = readJSON(KEY, null)
-      if (!brief || current?.version !== edition.version) return
+      if (!brief || current?.version !== edition.version || current?.basis !== edition.basis) return
       const next = { ...current, brief }
       keep(next)
       await account.client.from('user_state').update({ edition: next }).eq('user_id', uid).then(() => {}, () => {})
     })().catch(() => {}) // geen sessie of geen JSON: dan zonder samenvatting
-  }, [edition?.version, edition?.brief, uid, prefs.brief]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [edition?.version, edition?.basis, edition?.brief, uid, prefs.brief]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Uitloggen of een andere lezer: niet de editie van een ander tonen.
   const shown = edition && edition.owner === owner && edition.id === global?.id ? edition : null

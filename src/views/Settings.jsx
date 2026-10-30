@@ -5,9 +5,10 @@ import { Switch } from './Sources.jsx'
 import { AccountSettings } from '../components/Account.jsx'
 import { PLACES, NO_WEATHER } from '../lib/weather.js'
 import { VAK_FIELD_IDS } from '../../shared/vak.mjs'
-import { tasteSummary, emptyTaste } from '../lib/affinity.js'
+import { useMemo } from 'react'
 import { topicById } from '../lib/topics.js'
 import { CaretIcon, ICON_SM } from '../components/icons.jsx'
+import { supplyOf, profileOf, profileSummary } from '../../shared/editor.mjs'
 
 // Alle instellingen op één plek. Wat je al lezend wisselt staat bovenaan (zelfde rijen als
 // het Weergave-paneel); daaronder wat je één keer instelt.
@@ -23,7 +24,7 @@ function Row({ label, hint, children }) {
   )
 }
 
-export default function Settings({ meta, account, syncStatus, onBack, backLabel }) {
+export default function Settings({ meta, account, syncStatus, affinity = null, onForgetTopic, onBack, backLabel }) {
   const { prefs, setPref } = useHoot()
   const ai = !!meta?.aiEnabled
   return (
@@ -83,7 +84,6 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
               <CaretIcon size={ICON_SM} />
             </span>
           </a>
-          <Learned taste={prefs.taste} onClear={() => setPref('taste', emptyTaste())} />
           <a className="setrow setrow--link" href="#/bronnen">
             <span className="setrow__text">
               <span className="setrow__label">Bronnen</span>
@@ -94,6 +94,8 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
             </span>
           </a>
         </div>
+
+        <Learned affinity={affinity} onForget={onForgetTopic} />
 
         <h2 className="label label--section sect">Over</h2>
         <p className="about">
@@ -107,25 +109,46 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
   )
 }
 
-// Wat je zelf aangaf met "meer of minder hiervan" bij een verhaal in de Editie (gaat mee met je
-// account), met de weg terug. Zonder keuzes: niets tonen.
-function Learned({ taste, onClear }) {
-  const { more, less } = tasteSummary(taste)
-  if (!more.length && !less.length) return null
-  const names = (ids) => ids.slice(0, 6).map((id) => topicById(id)?.label || id).join(', ')
+// Wat Hoot van je leerde (bouwspec §8): hetzelfde profiel als De Redacteur gebruikt voor jouw
+// Editie, in drie lijsten. Gekozen: je interesses en waar je 'meer hiervan' bij zei. Geleerd: wat
+// je vaker opent of bewaart dan je bronnen erover schrijven (blijft op dit toestel); elk onderwerp
+// met 'Vergeet dit'. Minder: waar je 'minder hiervan' bij zei, met de weg terug. Gewone taal, geen
+// getallen. Zonder iets geleerd zegt de lijst dat.
+function Learned({ affinity, onForget }) {
+  const { prefs, setPref, itemsById, sourcesById, muted } = useHoot()
+  const summary = useMemo(() => {
+    const sources = [...sourcesById.values()]
+    const followed = new Set(sources.filter((s) => s.kind !== 'sociaal' && !muted.has(s.id)).map((s) => s.id))
+    const pool = [...itemsById.values()].filter((i) => i.kind === 'article' && followed.has(i.source))
+    return profileSummary(profileOf({ interests: prefs.interests, topics: prefs.topics, affinity, taste: prefs.taste, favorites: prefs.favorites, followed, sources, supply: supplyOf(pool) }))
+  }, [prefs.interests, prefs.topics, prefs.taste, prefs.favorites, affinity, itemsById, sourcesById, muted])
+  const name = (id) => topicById(id)?.label || id
+  // 'Minder' terugdraaien: het onderwerp weer op nul, zoals de spec zegt (niet wissen: zo blijft
+  // zichtbaar in je account dat je het ooit zei, en telt het niet meer mee).
+  const restore = (t) => setPref('taste', { ...prefs.taste, topics: { ...(prefs.taste?.topics || {}), [t]: 0 } })
+  const nothingLearned = !summary.learned.length && !summary.less.length
   return (
-    <div className="setrow">
-      <span className="setrow__text">
-        <span className="setrow__label">Wat Hoot van je leerde</span>
-        <span className="setrow__hint">
-          {more.length ? <>Meer: {names(more)}. </> : null}
-          {less.length ? <>Minder: {names(less)}. </> : null}
-          Dit geef je aan bij een verhaal in de Editie (⋯), en het gaat mee met je account.
-        </span>
-      </span>
-      <button type="button" className="btn btn--quiet" onClick={onClear}>
-        Wissen
-      </button>
-    </div>
+    <>
+      <h2 className="label label--section sect">Wat Hoot van je leerde</h2>
+      <p className="hint learned__intro">Jouw Editie volgt wat je koos, wat je vaak opent of bewaart en waar je minder van wilde. Wat je leest blijft op dit toestel; je keuzes gaan mee met je account.</p>
+      <div className="rows">
+        {summary.chosen.length ? <Row label="Gekozen" hint={summary.chosen.map(name).join(', ')} /> : null}
+        {summary.learned.map((t) => (
+          <Row key={t} label={name(t)} hint="Lees je vaak, dus komt vaker in je Editie.">
+            <button type="button" className="btn btn--quiet" onClick={() => onForget?.(t)}>
+              Vergeet dit
+            </button>
+          </Row>
+        ))}
+        {summary.less.map((t) => (
+          <Row key={t} label={name(t)} hint="Hier wilde je minder van.">
+            <button type="button" className="btn btn--quiet" onClick={() => restore(t)}>
+              Ongedaan maken
+            </button>
+          </Row>
+        ))}
+        {nothingLearned ? <Row label="Uit je lezen" hint="Hoot heeft nog niets uit je lezen afgeleid." /> : null}
+      </div>
+    </>
   )
 }

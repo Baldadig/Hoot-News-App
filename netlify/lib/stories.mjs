@@ -4,6 +4,7 @@
 import { DESKS, desksOf, primaryDesk, weight } from './desks.mjs'
 
 import { hash } from '../../shared/util.mjs'
+import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX } from '../../shared/editor.mjs'
 export { hash }
 
 // Een onleesbare tijd telt als heel oud (anders geeft de vergelijking NaN en raakt de sortering,
@@ -372,6 +373,9 @@ export function buildStories(articles, registry = {}, { mainIds = new Set() } = 
       itemIds: items.map((i) => i.id),
       sourceCount: sourceIds.size,
       ownCount: new Set(own.map((i) => i.source)).size,
+      // De rubriek uit álle berichten van het verhaal, niet uit wat een lezer volgt: zo heet
+      // hetzelfde verhaal voor iedereen hetzelfde (de persoonlijke Editie neemt hem over).
+      desk: primaryDesk(items.map((i) => desksOf(i))),
       sourceNames: names,
       latestAt: items[0].publishedAt || null,
       firstAt: items[items.length - 1].publishedAt || null,
@@ -520,6 +524,109 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
   // Volgorde: belangrijkste eerst (het hoofdverhaal is het zwaarste nieuws van het moment).
   entries.sort((a, b) => b.w - a.w)
   return entries.map(({ w, ...e }) => e)
+}
+
+// De persoonlijke selectie (De Redacteur, Hoot-design/algoritme/bouwspec.md §3). Zelfde kandidaten,
+// hoofdbericht-regels, één plek per onderwerp, repeatPenalty en verhaalvenster als selectEdition
+// (die blijft voor de algemene Editie ongewijzigd), met vier verschillen:
+// 1. "eigen bronnen" in het basisgewicht zijn die van de lezer (`mainIds`);
+// 2. persoonlijke punten uit het profiel (shared/editor.mjs), begrensd, plus een vast zaad dat
+//    alleen gelijke stand breekt;
+// 3. de rubrieken volgen jouw indeling: eerst de voorpagina (voor iedereen gelijk), dan je zetels
+//    (deskPlan), dan aanvullen op gewicht;
+// 4. al gelezen zonder nieuws doet nergens meer mee, en een los bericht blijft zo lang staan als
+//    het tempo van zijn bron (`ctx.tempo`, zie tempoWindows).
+// `prof`: profileOf. `ctx`: { readIds, tempo, storyDesk }. `plan: false` slaat voorpagina en
+// indeling over (het extra blok). Rekenregels als in shared/editor.mjs: elke sortering is totaal.
+// Uitvoer: de plekken met `w` en `parts` (het waarom wordt daarna gezet), plus `deskOrder`.
+const textOrder = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
+export function selectForReader(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = '' } = {}) {
+  const byId = new Map(pool.map((i) => [i.id, i]))
+  const sig = signatures(pool)
+  const fresh = (iso, hours) => iso && now - Date.parse(iso) < hours * 60 * 60 * 1000
+  const entries = []
+  const placed = []
+  const leadCount = {}
+  let prevLead = null
+  const clashes = (ids) => ids.some((id) => sig.has(id) && placed.some((s) => sameSubject(sig.get(id), s)))
+  const place = (ids) => {
+    for (const id of ids) if (sig.has(id)) placed.push(sig.get(id))
+  }
+  const pickLead = (items) => {
+    const cands = leadCandidates(items, mainIds, preferred, now)
+    const current = cands.filter((i) => !isStale(i, now))
+    const recent = current.length ? current : cands
+    const ownOnly = recent.filter((i) => mainIds.has(i.source))
+    const from = ownOnly.length ? ownOnly : recent
+    return from.find((i) => i.source !== prevLead && (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from.find((i) => (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from[0]
+  }
+  // De rubriek van een verhaal is voor iedereen gelijk: st.desk uit buildStories (of `ctx.storyDesk`),
+  // ook als die leeg is. Alleen een verhaal van een oudere server zonder rubriek krijgt de
+  // hoofdrubriek uit wat deze lezer ervan heeft.
+  const storyDesk = (st, primary) => (ctx.storyDesk?.has(st.id) ? ctx.storyDesk.get(st.id) : st.desk !== undefined ? st.desk : primary)
+
+  const cands = []
+  for (const st of stories) {
+    if (!fresh(st.latestAt, 24)) continue
+    const items = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
+    if (!items.length) continue
+    const primary = primaryDesk(items.map((it) => desksOf(it)))
+    const mine = new Set(items.map((i) => i.source)).size // eigen bronnen in het verhaal
+    const belang = weight({ sourceCount: st.sourceCount, ownCount: mine, latestAt: st.latestAt }, now) - repeatPenalty(st, items, previous)
+    const parts = personalParts(items, prof, ctx)
+    cands.push({ kind: 'story', id: st.id, st, items, ids: st.itemIds, primary, home: homeDesk(items, storyDesk(st, primary) ?? primary, prof), belang, parts, sc: st.sourceCount, w: belang + sumParts(parts) + jitter(seed, st.id) })
+  }
+  for (const it of pool) {
+    if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || it.storyId || isLive(it)) continue
+    if (!fresh(it.publishedAt, ctx.tempo?.get(it.source) || TEMPO_MIN_H) || !(it.summary || it.image)) continue
+    if (previous?.itemIds?.has(it.id) || ctx.readIds?.has(it.id)) continue // stond er al, of je las het al
+    const primary = primaryDesk([desksOf(it)])
+    const belang = weight({ sourceCount: 1, ownCount: 1, latestAt: it.publishedAt }, now) - 2
+    const parts = personalParts([it], prof, ctx)
+    cands.push({ kind: 'item', id: it.id, it, items: [it], ids: [it.id], primary, home: homeDesk([it], primary, prof), belang, parts, sc: 1, w: belang + sumParts(parts) + jitter(seed, it.id) })
+  }
+  const heaviest = (a, b) => b.w - a.w || textOrder(a.id, b.id) || textOrder(a.kind, b.kind)
+  cands.sort(heaviest)
+
+  const used = new Set()
+  const take = (c, desk, extra = {}) => {
+    if (used.has(c) || clashes(c.ids)) return false
+    used.add(c)
+    place(c.ids)
+    const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, ...extra }
+    if (c.kind === 'story') {
+      const lead = pickLead(c.items)
+      leadCount[lead.source] = (leadCount[lead.source] || 0) + 1
+      prevLead = lead.source
+      entries.push({ kind: 'story', id: c.st.id, leadId: lead.id, ...base })
+    } else entries.push({ kind: 'item', id: c.it.id, ...base })
+    return true
+  }
+  let deskOrder = []
+  if (plan) {
+    // 1. De voorpagina: het zwaarste nieuws van het moment, voor iedereen gelijk. Alleen wat je al
+    //    las of waar je "minder" op stemde, zakt (de rest van je profiel telt hier niet).
+    const frontOf = (c) => c.belang + (c.parts.less?.pts || 0)
+    const front = cands.filter((c) => c.kind === 'story' && c.sc >= FRONT_MIN && !c.parts.seen).sort((a, b) => frontOf(b) - frontOf(a) || heaviest(a, b))
+    for (const c of front) {
+      if (entries.length >= Math.min(FRONT_MAX, size) || (entries.length >= FRONT && c.sc < FRONT_BIG)) break
+      take(c, storyDesk(c.st, c.primary), { front: true })
+    }
+    // 2. Jouw rubrieken, in de volgorde van de zetels: per zetel de zwaarste kandidaat die er thuishoort.
+    deskOrder = deskPlan(prof, size - entries.length, entries.map((e) => e.desk)).order
+    for (const d of deskOrder) {
+      if (entries.length >= size) break
+      cands.some((c) => c.home === d && !c.parts.seen && take(c, d, { planned: true }))
+    }
+  }
+  // 3. Aanvullen met wat het zwaarst weegt.
+  for (const c of cands) {
+    if (entries.length >= size) break
+    if (c.parts.seen) continue
+    take(c, plan ? c.home : null)
+  }
+  entries.sort((a, b) => b.w - a.w || textOrder(a.id, b.id))
+  return Object.assign(entries, { deskOrder })
 }
 
 // De editie ligt vast, maar verhaal-id's niet: na een latere verversing kan een id bij een andere

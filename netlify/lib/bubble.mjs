@@ -2,6 +2,12 @@
 // Drie gratis signalen voor waar anderen over praten (Google Trends NL, trending op Bluesky,
 // meestgelezen Wikipedia-pagina's) worden vergeleken met álle beschikbare berichten, ook van
 // bronnen die je niet volgt. Wat matcht en níét in je editie zit, is je blik naar buiten.
+//
+// De persoonlijke Editie (De Redacteur, src/lib/personal.js) kiest daaruit wat buiten jóúw profiel
+// valt; daarom levert de server meer kandidaten, gespreid over de gebieden (bubbleCandidates), en
+// een twaalftal brede verhalen voor de terugval "Naast je bubbel" (nearStories).
+import { FAMILY_OF } from '../../shared/editor.mjs'
+import { INTERESTS } from '../../src/lib/topics.js'
 
 const STOP = new Set(['the', 'and', 'van', 'het', 'een', 'de', 'in', 'of', 'on', 'to', 'for', 'vs', 'with', 'met', 'voor', 'naar', 'over', 'bij', 'uit', 'aan', 'als', 'dat', 'die', 'is', 'zijn', 'wordt', 'week', 'day', 'dag', 'news', 'nieuws', 'live', 'results', 'poll', 'results', 'film', 'miniserie', 'miniseries', 'novel', 'popgroep', 'uit', 'list', 'deaths', 'page', 'main', 'special', 'speciaal', 'hoofdpagina', 'wikipedia', 'search', 'zoeken'])
 // Pagina's en termen die nooit nieuws zijn.
@@ -76,6 +82,66 @@ export function matchTrending(rawTerms, articles, { excludeItemIds = new Set(), 
     usedStories.add(key)
     out.push({ id: s.a.id, storyId: s.a.storyId || null, terms: s.hits.map((h) => ({ term: h.term, via: h.via })) })
     if (out.length >= max) break
+  }
+  return out
+}
+
+// ---------- Kandidaten voor de persoonlijke Editie ----------
+export const BUBBLE_CANDIDATES = 6 // zoveel kandidaten naast het stuk in de algemene Editie
+export const BUBBLE_PER_AREA = 2 // hooguit zoveel per gebied: niet zes keer voetbal
+export const NEAR_MAX = 12
+export const NEAR_MIN_SOURCES = 3
+export const NEAR_HOURS = 24
+
+// Gebied van een bron zonder onderwerp: een sportbron is sport, een vakbron tech of wetenschap.
+const FAMILY_OF_CAT = Object.fromEntries(INTERESTS.flatMap((f) => (f.cats || []).map((c) => [c, f.id])))
+
+// De gebieden (Sport, Tech …) van een bericht: uit zijn onderwerpen, anders uit de rubriek van zijn bron.
+// Zonder onderwerp en zonder vakbron: geen gebied (gewoon nieuws, dat telt niet mee voor de spreiding).
+export function areasOf(item, cat = null) {
+  const fams = [...new Set((item?.topics || []).map((t) => FAMILY_OF[t]).filter(Boolean))]
+  if (fams.length) return fams
+  return FAMILY_OF_CAT[cat] ? [FAMILY_OF_CAT[cat]] : []
+}
+
+// Voegt lijsten van matchTrending samen (eerst Nederlandstalig, dan de rest), één per verhaal, met
+// hooguit `perArea` per gebied. Het eerste stuk komt altijd mee: dat is het stuk dat de algemene
+// Editie al kreeg, zodat die niet verandert.
+export function bubbleCandidates(lists, { max = 1 + BUBBLE_CANDIDATES, perArea = BUBBLE_PER_AREA, areaOf = () => [] } = {}) {
+  const out = []
+  const used = new Set()
+  const count = new Map()
+  for (const list of lists) {
+    for (const p of list || []) {
+      if (out.length >= max) return out
+      if (!p?.id || used.has(p.id) || (p.storyId && used.has(p.storyId))) continue
+      const areas = [...new Set(areaOf(p) || [])]
+      if (areas.some((a) => (count.get(a) || 0) >= perArea)) continue
+      used.add(p.id)
+      if (p.storyId) used.add(p.storyId)
+      for (const a of areas) count.set(a, (count.get(a) || 0) + 1)
+      out.push(p)
+    }
+  }
+  return out
+}
+
+// "Naast je bubbel": breed gedekte verhalen (≥ 3 bronnen) van het afgelopen etmaal, met
+// onderwerpen (anders weet de lezer niet waar het naast ligt) en een gratis kop, zonder sport.
+// Breedste eerst, bij gelijke stand op id. Zelfde vorm als `wide` (widelyCovered in stories.mjs).
+export function nearStories(stories = [], byId = new Map(), { isFree = () => false, isDutch = () => false, isSport = () => false, isLive = () => false, now = Date.now(), min = NEAR_MIN_SOURCES, max = NEAR_MAX, hours = NEAR_HOURS } = {}) {
+  const out = []
+  const recent = stories.filter((st) => st && st.sourceCount >= min && now - Date.parse(st.latestAt) < hours * 36e5)
+  for (const st of recent.sort((a, b) => b.sourceCount - a.sourceCount || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))) {
+    if (out.length >= max) break
+    const items = (st.itemIds || []).map((id) => byId.get(id)).filter(Boolean)
+    if (!items.length || items.some(isSport)) continue
+    const topics = [...new Set(items.flatMap((i) => i.topics || []))]
+    if (!topics.length) continue
+    const free = items.filter((i) => isFree(i.source) && !isLive(i) && i.type !== 'opinie')
+    const lead = free.find((i) => isDutch(i.source) && i.summary) || free.find((i) => i.summary) || free[0]
+    if (!lead) continue
+    out.push({ storyId: st.id, sourceCount: st.sourceCount, topics, item: lead })
   }
   return out
 }
