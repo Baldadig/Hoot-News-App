@@ -108,13 +108,10 @@ struct StreamLine: View {
     private var rubriekenRij: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 0) {
+                // Eén doorlopende rij, zonder scheiding tussen wat je leest en de rubrieken. Wat direct na
+                // Alles komt, haalt de extra breedte van zijn tikvlak in (zie `tekort`).
                 ForEach(Array(lezen.enumerated()), id: \.element.id) { i, r in rubriekKnop(r, eerste: i == 0, inhalen: i == 1 ? tekort : 0) }
-                // Kolomlijn tussen wat je leest en de rubrieken.
-                Rectangle().fill(Theme.rule).frame(width: 1, height: Space.s4).padding(.bottom, 1)
-                    .padding(.leading, lezen.count == 1 ? -tekort : 0)
-                    .allowsHitTesting(false)
-                    .accessibilityHidden(true)
-                ForEach(rubrieken, id: \.id) { r in rubriekKnop(r, eerste: false) }
+                ForEach(Array(rubrieken.enumerated()), id: \.element.id) { i, r in rubriekKnop(r, eerste: false, inhalen: i == 0 && lezen.count == 1 ? tekort : 0) }
             }
             .frame(maxHeight: .infinity)
             .coordinateSpace(.named(Self.ruimte))

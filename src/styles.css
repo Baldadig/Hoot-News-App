@@ -4368,16 +4368,7 @@ html[data-images='hoofd'] .media--social {
   outline-offset: calc(-1 * var(--focus-offset));
   border-radius: var(--radius-control);
 }
-/* kolomlijn tussen wat je leest (Alles, Buiten je bubbel) en de rubrieken */
-.rub__sep {
-  flex: none;
-  align-self: center;
-  width: 1px;
-  height: var(--s4);
-  margin-bottom: 1px;
-  background: var(--rule);
-}
-/* één rode streep die meeglijdt; 3 hoog, óp de haarlijn */
+/* één rode streep die meeglijdt; 3 hoog, óp de haarlijn. Ook in het palet Inkt rood: de streep is een merkmoment. */
 .rub__bar {
   position: absolute;
   left: 0;
@@ -4388,10 +4379,6 @@ html[data-images='hoofd'] .media--social {
   transform-origin: 0 0;
   pointer-events: none;
   transition: transform var(--dur-3) var(--ease-glide);
-}
-/* Inkt: de streep in inkt, zoals het actieve menu-item */
-[data-palette='inkt'] .rub__bar {
-  background: var(--ink);
 }
 
 /* Pijltjes (alleen breed scherm): in de eindkap, nooit over tekst; geen eigen achtergrond */
