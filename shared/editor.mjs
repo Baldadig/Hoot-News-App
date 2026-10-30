@@ -10,8 +10,9 @@
 // Rekenregels (web en iOS draaien deze code allebei, en moeten bit-gelijk uitkomen): alleen
 // + − × ÷, Math.round/min/max/floor en Date.parse op ISO-tekst. Geen Math.log/pow/exp/abs en geen
 // localeCompare; elke sortering heeft een totale vergelijker die eindigt op id.
-import { INTERESTS } from '../src/lib/topics.js'
+import { INTERESTS, topicById } from '../src/lib/topics.js'
 import { MIN_EVENTS } from '../src/lib/affinity.js'
+import { DESK_LABEL } from '../netlify/lib/desks.mjs'
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
 const sum = (xs) => xs.reduce((s, v) => s + v, 0)
@@ -105,3 +106,180 @@ export function profileOf({ interests = [], topics = [], affinity = null, taste 
   return { topicP, origin, family, sourceP, shareOf, favorites: new Set(favorites), followed, catOf }
 }
 
+// ---------- 2. De punten: bovenop het gewone gewicht van een verhaal ----------
+export const P = {
+  INTEREST: 18, // × sterkte van het beste onderwerp × (0,5 + 0,5 × dekking)
+  CROSS: 8, // snijvlak: raakt ook een tweede gebied van je (≥ CROSS_MIN)
+  LESS: 16, // × de sterkste "minder" (tot −16)
+  FAVORITE: 8, // voorkeursbron; gelijk aan FAVORITE_BONUS in netlify/lib/stories.mjs
+  SOURCE_READ: 4, // × hoe vaak je de bron leest, als dat meer is dan SOURCE_READ_MIN
+  MINE: 3, // per extra eigen bron die erover schrijft, tot MINE_MAX
+  FOLLOW_UP: 10, // vervolg: je las het en er kwamen ≥ FOLLOW_UP_MIN nieuwe stukken bij
+}
+export const CROSS_MIN = 0.35
+export const SOURCE_READ_MIN = 0.2
+export const MINE_MAX = 3
+export const FOLLOW_UP_MIN = 2
+export const FOLLOW_UP_GAP = 36e5 // "nieuw" is minstens een uur na het laatste stuk dat je las
+export const SOURCE_CAT_P = 0.6 // een vakbron zonder onderwerp telt voor 0,6 × je gebied
+export const SUM_MIN = -30
+export const SUM_MAX = 40
+
+// Wat het profiel over één bericht zegt: zijn onderwerpen, en voor een bericht zonder enig
+// onderwerp de rubriek van een vakbron (een stuk van Carbon Brief zonder trefwoord is toch
+// wetenschap). Een treffer is { t, f, v }: onderwerp, gebied, waarde.
+function topicHits(item, prof) {
+  const ts = item.topics || []
+  const out = ts.filter((t) => prof.topicP[t] !== undefined).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t] }))
+  if (!ts.length) {
+    const cat = prof.catOf.get(item.source)
+    const fam = cat && INTERESTS.find((f) => f.cats.includes(cat))
+    if (fam && prof.family[fam.id]) out.push({ t: `bron:${cat}`, f: fam.id, v: SOURCE_CAT_P * prof.family[fam.id] })
+  }
+  return out
+}
+const strongestFirst = (a, b) => b.v - a.v || byId(a.t, b.t)
+
+// De persoonlijke punten van een kandidaat. `items`: zijn berichten uit je eigen bronnen.
+// `ctx.readIds`: wat je al las (een Set). Elk part is { pts, ... } met wat het waarom nodig heeft.
+// Al gelezen zonder nieuws is geen punt maar een filter: dan staat er `seen` (0 punten), en de
+// selectie slaat de kandidaat over.
+export function personalParts(items = [], prof, ctx = {}) {
+  const parts = {}
+  if (!items.length) return parts
+  const hits = items.map((i) => topicHits(i, prof))
+  const flat = hits.flat()
+  const pos = flat.filter((h) => h.v > 0).sort(strongestFirst)
+  if (pos.length) {
+    const best = pos[0]
+    const cover = hits.filter((hs) => hs.some((h) => h.v > 0)).length / items.length
+    // Het label komt van de treffer die het verhaal het best dekt (dekking × waarde), niet van
+    // het ene bericht met het sterkste onderwerp: een gemengd verhaal is geen VS-politiek omdat
+    // één stuk dat is.
+    const coverOf = (t) => hits.filter((hs) => hs.some((h) => h.t === t)).length / items.length
+    const label = [...new Map(pos.map((h) => [h.t, h])).values()]
+      .map((h) => ({ ...h, c: coverOf(h.t) * h.v }))
+      .sort((a, b) => b.c - a.c || strongestFirst(a, b))[0]
+    parts.interest = { pts: Math.round(P.INTEREST * best.v * (0.5 + 0.5 * cover)), t: label.t, f: label.f, origin: prof.origin?.[label.t] || 'gekozen' }
+    const second = pos.find((h) => h.f !== best.f && h.v >= CROSS_MIN)
+    if (second && best.v >= CROSS_MIN) parts.cross = { pts: P.CROSS, f: [best.f, second.f] }
+  }
+  const neg = flat.filter((h) => h.v < 0).sort((a, b) => a.v - b.v || byId(a.t, b.t))
+  if (neg.length) parts.less = { pts: Math.round(P.LESS * neg[0].v), t: neg[0].t }
+  const fav = items.find((i) => prof.favorites.has(i.source))
+  if (fav) parts.favorite = { pts: P.FAVORITE, source: fav.source }
+  const rs = Math.max(0, ...items.map((i) => prof.sourceP[i.source] || 0))
+  if (rs > SOURCE_READ_MIN) parts.sourceRead = { pts: Math.round(P.SOURCE_READ * rs) }
+  const mine = new Set(items.map((i) => i.source)).size
+  if (mine >= 2) parts.mine = { pts: P.MINE * Math.min(MINE_MAX, mine - 1), n: mine }
+  // Wat je al las. Er is geen leestijdstip: "nieuw" is gepubliceerd ruim na het laatste stuk dat je las.
+  const read = ctx.readIds ? items.filter((i) => ctx.readIds.has(i.id)) : []
+  if (read.length) {
+    const last = Math.max(...read.map((i) => Date.parse(i.publishedAt) || 0))
+    const fresh = items.filter((i) => !ctx.readIds.has(i.id) && Date.parse(i.publishedAt) > last + FOLLOW_UP_GAP).length
+    if (fresh >= FOLLOW_UP_MIN) parts.followUp = { pts: P.FOLLOW_UP, n: fresh }
+    else parts.seen = { pts: 0 }
+  }
+  return parts
+}
+
+// Begrensd: persoonlijk weegt nooit zwaarder dan dit (een verhaal met 6 bronnen blijft staan).
+export const sumParts = (parts = {}) => clamp(sum(Object.values(parts).map((p) => p.pts || 0)), SUM_MIN, SUM_MAX)
+
+// Een vast zaad per lezer en Editie, alleen om gelijke stand te breken (minder dan 1 punt).
+// djb2 zoals shared/util.mjs, met ×33 in plaats van een shift: op elke motor hetzelfde.
+export function jitter(seed, id) {
+  const s = `${seed}|${id}`
+  let h = 5381
+  for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0
+  return (h % 1000) / 1000
+}
+
+// ---------- 3. Tempo: hoe lang een los bericht van een bron meedoet ----------
+// Een bron die elk uur publiceert, heeft na 14 uur genoeg nieuws; een die eens per dag of twee
+// publiceert (Carbon Brief, Quanta, The Atlantic) krijgt tot drie dagen. Venster = 3 × de
+// mediane tussentijd van de elf nieuwste stukken, tussen 14 en 72 uur.
+export const TEMPO_LATEST = 11
+export const TEMPO_FACTOR = 3
+export const TEMPO_MIN_H = 14
+export const TEMPO_MAX_H = 72
+export const TEMPO_NO_GAP_H = 24 // één stuk: geen tussentijd, reken met een dag
+export function tempoWindows(items = []) {
+  const by = new Map()
+  for (const i of items) {
+    if (i?.kind !== 'article' || !i.publishedAt) continue
+    const t = Date.parse(i.publishedAt)
+    if (Number.isNaN(t)) continue
+    if (!by.has(i.source)) by.set(i.source, [])
+    by.get(i.source).push(t)
+  }
+  const out = new Map()
+  for (const [s, ts] of by) {
+    const t = ts.sort((a, b) => b - a).slice(0, TEMPO_LATEST)
+    const gaps = t.slice(1).map((x, k) => (t[k] - x) / 36e5).sort((a, b) => a - b)
+    const med = gaps.length ? gaps[Math.floor(gaps.length / 2)] : TEMPO_NO_GAP_H
+    out.set(s, clamp(TEMPO_FACTOR * med, TEMPO_MIN_H, TEMPO_MAX_H))
+  }
+  return out
+}
+
+// ---------- 4. Buiten en naast je bubbel ----------
+// Buiten je profiel: geen onderwerp dat je volgt (≥ 0,3) en geen onderwerp uit een gebied dat je
+// volgt (≥ 0,5). Een wielerfan krijgt dus geen voetbal als bubbelstuk.
+export const OUTSIDE_TOPIC = 0.3
+export const OUTSIDE_FAMILY = 0.5
+export const outsideProfile = (topics = [], prof) =>
+  !topics.some((t) => (prof.topicP[t] || 0) >= OUTSIDE_TOPIC || (prof.family[FAMILY_OF[t]] || 0) >= OUTSIDE_FAMILY)
+
+// Buren: gebieden die op elkaar aansluiten. Serendipiteit met een idee: niet willekeurig, maar
+// één stap van wat je al leest.
+export const NEIGHBOURS = {
+  politiek: ['wereld', 'binnenland', 'economie'],
+  binnenland: ['politiek', 'wetenschap', 'sport'],
+  wereld: ['politiek', 'economie'],
+  economie: ['tech', 'wereld', 'politiek'],
+  tech: ['wetenschap', 'economie', 'cultuur'],
+  wetenschap: ['tech', 'binnenland'],
+  cultuur: ['tech', 'binnenland'],
+  sport: ['binnenland', 'cultuur'],
+}
+export function strongestFamily(prof) {
+  return Object.entries(prof.family).sort((a, b) => b[1] - a[1] || byId(a[0], b[0]))[0]?.[0] || null
+}
+
+// ---------- 5. Het waarom ----------
+// Eén korte zin per plek. Alleen een reden die echt de doorslag gaf (≥ MIN_WHY_PTS); anders
+// blijft de rubriek staan. Geen getallen behalve het aantal bronnen of stukken.
+export const MIN_WHY_PTS = 5
+export const FRONT_SOURCES = 6 // vanaf zoveel bronnen is een verhaal zonder persoonlijke reden groot nieuws
+export const DESK_NAMES = { ...DESK_LABEL, tech: 'Tech', economie: 'Economie', regio: 'Regio' }
+const WHY_ORDER = ['followUp', 'cross', 'interest', 'favorite', 'mine', 'sourceRead']
+const topicLabel = (t) => topicById(t)?.label || t
+
+// `entry`: de plek ({ desk, front, near }). `parts`: de persoonlijke punten van de kandidaat.
+// `plannedDesk`: de plek kwam uit jouw indeling. Uitvoer: { code, text }.
+export function whyOf(entry = {}, { parts = {}, sourceCount = 0, desk = entry.desk ?? null, plannedDesk = false, labelOf = topicLabel, sourceName = (s) => s, deskLabel = (d) => DESK_NAMES[d] || d } = {}) {
+  if (entry.desk === 'extern') return { code: 'extern', text: 'Buiten je bronnen' }
+  if (entry.desk === 'bubbel') {
+    if (entry.near) return { code: 'buur', text: `Naast je bubbel · grenst aan ${FAMILY_LABEL[entry.near] || entry.near}` }
+    return { code: 'bubbel', text: 'Buiten je bubbel · via Google Trends' }
+  }
+  if (entry.desk === 'breed') return { code: 'breed', text: `Waar iedereen over schrijft · ${sourceCount} bronnen` }
+  if (entry.front) return { code: 'groot', text: `Groot nieuws · ${sourceCount} bronnen` }
+  // Het zwaarste part telt; bij gelijke stand de volgorde van de tabel in de bouwspec (§6).
+  const rank = (k) => (WHY_ORDER.includes(k) ? WHY_ORDER.indexOf(k) : WHY_ORDER.length)
+  const [code, p] = Object.entries(parts).filter(([, x]) => (x.pts || 0) >= MIN_WHY_PTS).sort((a, b) => b[1].pts - a[1].pts || rank(a[0]) - rank(b[0]) || byId(a[0], b[0]))[0] || []
+  if (code === 'followUp') return { code, text: `Vervolg op wat je las · ${p.n} nieuwe stukken` }
+  if (parts.cross && (code === 'interest' || code === 'cross')) return { code: 'cross', text: `Raakt ${FAMILY_LABEL[parts.cross.f[0]]} én ${FAMILY_LABEL[parts.cross.f[1]]}` }
+  if (code === 'interest') {
+    if (p.t.startsWith('bron:')) return { code: 'vak', text: 'Uit je vakbronnen' }
+    if (p.origin === 'geleerd') return { code: 'learned', text: `Omdat je vaak over ${labelOf(p.t)} leest` }
+    return { code, text: `Omdat je ${labelOf(p.t)} volgt` }
+  }
+  if (code === 'favorite') return { code, text: `Uit je voorkeursbron ${sourceName(p.source)}` }
+  if (code === 'mine') return { code, text: `${p.n} van je bronnen schrijven erover` }
+  if (code === 'sourceRead') return { code, text: 'Uit een bron die je veel leest' }
+  if (sourceCount >= FRONT_SOURCES) return { code: 'groot', text: `Groot nieuws · ${sourceCount} bronnen` }
+  if (desk && plannedDesk) return { code: 'rubriek', text: `Jouw rubriek ${deskLabel(desk)}` }
+  return { code: 'rubriek', text: desk ? `Rubriek ${deskLabel(desk)}` : 'Het nieuws van nu' }
+}

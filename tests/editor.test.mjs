@@ -106,3 +106,185 @@ test('profiel: deterministisch en zonder verboden rekenwerk', () => {
   const src = readFileSync(new URL('../shared/editor.mjs', import.meta.url), 'utf8').replace(/\/\/.*$/gm, '')
   for (const bad of ['Math.log', 'Math.pow', 'Math.exp', 'localeCompare', '**']) assert.ok(!src.includes(bad), bad)
 })
+
+// ---------- §11.2 Punten, waarom en zaad ----------
+
+const T0 = Date.parse('2026-10-30T10:00:00Z')
+const at = (h) => new Date(T0 + h * 36e5).toISOString()
+const it = (id, source, topics, extra = {}) => ({ id, kind: 'article', source, topics, publishedAt: at(0), ...extra })
+
+test('punten: minder hiervan is −12 bij p = −0,75', () => {
+  const p = prof({ taste: { topics: { voetbal: -12 }, sources: {} } })
+  const parts = G.personalParts([it('a', 'nos', ['voetbal'])], p)
+  assert.equal(parts.less.pts, -12)
+  assert.equal(parts.less.t, 'voetbal')
+  assert.equal(parts.interest, undefined)
+})
+
+test('punten: interesse naar sterkte en dekking', () => {
+  const p = prof({ interests: ['tech'], topics: ['ai'] })
+  assert.equal(G.personalParts([it('a', 'nos', ['ai'])], p).interest.pts, 18)
+  // De helft van de eigen berichten raakt: 18 × 1 × 0,75.
+  assert.equal(G.personalParts([it('a', 'nos', ['ai']), it('b', 'nos', ['europa'])], p).interest.pts, 14)
+  // Geërfd (0,6) en volledig gedekt: 18 × 0,6 = 10,8.
+  assert.equal(G.personalParts([it('a', 'nos', ['games'])], prof({ interests: ['tech'] })).interest.pts, 11)
+})
+
+test('punten: snijvlak — AI en muziek, met Tech en Cultuur gekozen, raakt beide gebieden', () => {
+  const p = prof({ interests: ['tech', 'cultuur'], topics: ['ai', 'muziek'] })
+  const parts = G.personalParts([it('a', 'nos', ['ai', 'muziek'])], p)
+  assert.equal(parts.interest.pts, G.P.INTEREST)
+  assert.equal(parts.cross.pts, G.P.CROSS)
+  assert.deepEqual([...parts.cross.f].sort(), ['cultuur', 'tech'])
+  assert.equal(G.whyOf({}, { parts }).text, 'Raakt Tech én Cultuur')
+  // Twee onderwerpen uit hetzelfde gebied zijn geen snijvlak.
+  assert.equal(G.personalParts([it('a', 'nos', ['ai', 'gadgets'])], prof({ interests: ['tech'], topics: ['ai', 'gadgets'] })).cross, undefined)
+})
+
+test('punten: een vakbron telt alleen voor berichten zonder onderwerp', () => {
+  const p = prof({ interests: ['wetenschap'], topics: ['klimaat'] })
+  const zonder = G.personalParts([it('a', 'carbon', [])], p)
+  assert.equal(zonder.interest.t, 'bron:wetenschap')
+  assert.equal(zonder.interest.pts, 11) // 18 × 0,6 × 1
+  assert.equal(G.whyOf({}, { parts: zonder }).code, 'vak')
+  assert.equal(G.whyOf({}, { parts: zonder }).text, 'Uit je vakbronnen')
+  assert.equal(G.personalParts([it('b', 'carbon', ['europa'])], p).interest, undefined)
+  // Zonder interesse in dat gebied telt de vakbron niet.
+  assert.equal(G.personalParts([it('c', 'carbon', [])], prof()).interest, undefined)
+})
+
+test('punten: voorkeursbron, veel gelezen bron en meerdere eigen bronnen', () => {
+  const p = prof({ favorites: ['verge'], affinity: { n: 30, topics: {}, sources: { verge: 10, nos: 30 } } })
+  const parts = G.personalParts([it('a', 'verge', []), it('b', 'nos', []), it('c', 'carbon', [])], p)
+  assert.deepEqual(parts.favorite, { pts: 8, source: 'verge' })
+  assert.equal(parts.sourceRead.pts, 4) // nos: 5 × 30/40 → 1
+  assert.deepEqual(parts.mine, { pts: 6, n: 3 })
+  assert.equal(G.personalParts([it('a', 'nos', []), it('b', 'nos', [])], p).mine, undefined) // één bron
+  const vijf = ['a', 'b', 'c', 'd', 'e'].map((s) => it(s, s, []))
+  assert.equal(G.personalParts(vijf, prof()).mine.pts, 9) // hooguit 3 × 3
+})
+
+test('punten: al gelezen zonder nieuws valt af; met twee nieuwe stukken is het een vervolg', () => {
+  const p = prof()
+  const its = [it('r', 'nos', [], { publishedAt: at(-2) }), it('n1', 'nrc', [], { publishedAt: at(2) }), it('n2', 'nos', [], { publishedAt: at(3) })]
+  const readIds = new Set(['r'])
+  const seen = G.personalParts(its.slice(0, 2), p, { readIds })
+  assert.ok(seen.seen)
+  assert.equal(seen.followUp, undefined)
+  assert.equal(G.sumParts(seen), G.sumParts({ mine: seen.mine })) // geen punt, een filter
+  const fu = G.personalParts(its, p, { readIds })
+  assert.deepEqual(fu.followUp, { pts: 10, n: 2 })
+  assert.equal(fu.seen, undefined)
+  assert.equal(G.whyOf({}, { parts: fu }).text, 'Vervolg op wat je las · 2 nieuwe stukken')
+  // Binnen het uur na wat je las telt niet als nieuw.
+  const kort = [its[0], it('k1', 'nos', [], { publishedAt: at(-1.5) }), it('k2', 'nos', [], { publishedAt: at(-1.2) })]
+  assert.ok(G.personalParts(kort, p, { readIds }).seen)
+  // Niets gelezen: geen van beide.
+  const niets = G.personalParts(its, p, { readIds: new Set() })
+  assert.equal(niets.seen, undefined)
+  assert.equal(niets.followUp, undefined)
+})
+
+test('waarom: alleen een echte reden; gekozen, geleerd en de rubriek', () => {
+  const w = G.whyOf({}, { parts: { interest: { pts: 3, t: 'afrika', f: 'wereld', origin: 'gekozen' } }, sourceCount: 2, desk: 'buitenland' })
+  assert.deepEqual(w, { code: 'rubriek', text: 'Rubriek Buitenland' })
+  assert.deepEqual(G.whyOf({}, { parts: { interest: { pts: 14, t: 'ai', f: 'tech', origin: 'gekozen' } } }), { code: 'interest', text: 'Omdat je AI volgt' })
+  assert.deepEqual(G.whyOf({}, { parts: { interest: { pts: 14, t: 'ai', f: 'tech', origin: 'geleerd' } } }), { code: 'learned', text: 'Omdat je vaak over AI leest' })
+  assert.equal(G.whyOf({}, { desk: 'vs', plannedDesk: true }).text, 'Jouw rubriek VS')
+  assert.equal(G.whyOf({}, { desk: 'tech', plannedDesk: true }).text, 'Jouw rubriek Tech')
+  assert.equal(G.whyOf({}, {}).text, 'Het nieuws van nu')
+  assert.deepEqual(G.whyOf({}, { sourceCount: 7, desk: 'binnenland' }), { code: 'groot', text: 'Groot nieuws · 7 bronnen' })
+})
+
+test('waarom: een geleerd onderwerp uit het profiel geeft "vaak over … leest"', () => {
+  const p = prof({ affinity: { n: 30, topics: { ai: 10 }, sources: { nos: 11 } }, supply: { ai: 0.05 } })
+  const parts = G.personalParts([it('a', 'nos', ['ai'])], p)
+  assert.equal(parts.interest.origin, 'geleerd')
+  assert.equal(parts.interest.pts, 14) // 18 × 0,8
+  assert.equal(G.whyOf({}, { parts }).text, 'Omdat je vaak over AI leest')
+})
+
+test('waarom: het label komt van de treffer die het verhaal het best dekt', () => {
+  const p = prof({ interests: ['politiek', 'wereld'], topics: ['vs-politiek', 'middenoosten'], taste: { topics: { middenoosten: -2 } } })
+  // vs-politiek (1) in één van drie stukken, Midden-Oosten (0,88) in alle drie.
+  const its = [it('a', 'nos', ['vs-politiek', 'middenoosten']), it('b', 'nrc', ['middenoosten']), it('c', 'verge', ['middenoosten'])]
+  const parts = G.personalParts(its, p)
+  assert.equal(parts.interest.t, 'middenoosten')
+  assert.equal(parts.interest.pts, 18) // sterkte van het beste onderwerp, dekking van alles
+  assert.equal(G.whyOf({}, { parts }).text, 'Raakt Politiek én Wereld')
+  const zonderCross = { interest: parts.interest }
+  assert.equal(G.whyOf({}, { parts: zonderCross }).text, 'Omdat je Midden-Oosten volgt')
+})
+
+test('waarom: vaste plekken, voorkeursbron, eigen bronnen en de volgorde bij gelijke stand', () => {
+  assert.deepEqual(G.whyOf({ desk: 'extern' }, {}), { code: 'extern', text: 'Buiten je bronnen' })
+  assert.deepEqual(G.whyOf({ desk: 'bubbel' }, {}), { code: 'bubbel', text: 'Buiten je bubbel · via Google Trends' })
+  assert.deepEqual(G.whyOf({ desk: 'bubbel', near: 'sport' }, {}), { code: 'buur', text: 'Naast je bubbel · grenst aan Sport' })
+  assert.deepEqual(G.whyOf({ desk: 'breed' }, { sourceCount: 9 }), { code: 'breed', text: 'Waar iedereen over schrijft · 9 bronnen' })
+  assert.deepEqual(G.whyOf({ front: true, desk: 'vs' }, { sourceCount: 12, parts: { interest: { pts: 18, t: 'ai', f: 'tech' } } }), { code: 'groot', text: 'Groot nieuws · 12 bronnen' })
+  assert.equal(G.whyOf({}, { parts: { favorite: { pts: 8, source: 'atl' } }, sourceName: () => 'The Atlantic' }).text, 'Uit je voorkeursbron The Atlantic')
+  assert.equal(G.whyOf({}, { parts: { mine: { pts: 6, n: 3 } } }).text, '3 van je bronnen schrijven erover')
+  assert.equal(G.whyOf({}, { parts: { sourceRead: { pts: 5 } } }).code, 'sourceRead')
+  // Gelijke stand (8 en 8): de volgorde van de tabel, interesse gaat voor de voorkeursbron.
+  assert.equal(G.whyOf({}, { parts: { favorite: { pts: 8, source: 's' }, interest: { pts: 8, t: 'ai', f: 'tech' } } }).code, 'interest')
+  // Huisregels: geen kloktijden in de teksten.
+  const texts = [G.whyOf({}, {}).text, G.whyOf({ desk: 'bubbel' }, {}).text]
+  for (const t of texts) assert.ok(!/\b(ochtend|middag|avond|\d{1,2}:\d{2})\b/.test(t), t)
+})
+
+test('sumParts blijft binnen [−30, 40]', () => {
+  assert.equal(G.sumParts({ interest: { pts: 18 }, cross: { pts: 8 }, favorite: { pts: 8 }, mine: { pts: 9 }, followUp: { pts: 10 } }), G.SUM_MAX)
+  assert.equal(G.sumParts({ less: { pts: -16 }, x: { pts: -20 } }), G.SUM_MIN)
+  assert.equal(G.sumParts({ interest: { pts: 11 }, less: { pts: -4 } }), 7)
+  assert.equal(G.sumParts({}), 0)
+})
+
+test('zaad: jitter ligt in [0, 1), is stabiel en hangt af van zaad en id', () => {
+  const seeds = ['basis|2026-10-30-avond', 'ander|2026-10-30-avond']
+  const vals = new Set()
+  for (const s of seeds) for (const id of ['a', 'b', 'sxyz', 'verhaal-1234567890']) {
+    const j = G.jitter(s, id)
+    assert.ok(j >= 0 && j < 1)
+    assert.equal(j, G.jitter(s, id))
+    vals.add(j)
+  }
+  assert.ok(vals.size > 4)
+  // djb2 met ×33, vastgelegd zodat web en iOS hetzelfde rekenen.
+  assert.equal(G.jitter('', ''), (((((5381 * 33) ^ 124) >>> 0) % 1000) / 1000))
+})
+
+test('tempo: een uurbron krijgt 14 uur, een bron die elke 30 uur publiceert 72', () => {
+  const series = (source, every, n) => Array.from({ length: n }, (_, k) => it(`${source}${k}`, source, [], { publishedAt: at(-k * every) }))
+  const w = G.tempoWindows([...series('uur', 1, 20), ...series('traag', 30, 6), ...series('dag', 8, 5), it('los', 'een', [])])
+  assert.equal(w.get('uur'), 14)
+  assert.equal(w.get('traag'), 72)
+  assert.equal(w.get('dag'), 24) // 3 × 8
+  assert.equal(w.get('een'), 72) // geen tussentijd: 3 × 24
+  // Alleen artikelen met een datum tellen; posts niet.
+  assert.equal(G.tempoWindows([it('p', 'x', [], { kind: 'post' }), it('q', 'y', [], { publishedAt: null })]).size, 0)
+})
+
+test('buiten je profiel: geen onderwerp ≥ 0,3 en geen gebied ≥ 0,5', () => {
+  const koers = prof({ interests: ['sport'], topics: ['wielrennen'] })
+  assert.equal(G.outsideProfile(['voetbal'], koers), false) // wielerfan: geen voetbal als bubbel
+  assert.equal(G.outsideProfile(['film'], koers), true)
+  assert.equal(G.outsideProfile([], koers), true)
+  const zwak = prof({ affinity: { n: 30, topics: { film: 3 }, sources: { x: 30 } }, supply: { film: 0.02 } })
+  assert.ok(zwak.topicP.film < 0.5 && zwak.topicP.film >= 0.3)
+  assert.equal(G.outsideProfile(['film'], zwak), false)
+  assert.equal(G.outsideProfile(['muziek'], zwak), true) // gebied cultuur < 0,5
+})
+
+test('sterkste gebied en buren: gelijke stand op id, zonder localeCompare', () => {
+  assert.equal(G.strongestFamily(prof()), null)
+  assert.equal(G.strongestFamily(prof({ interests: ['wetenschap', 'tech'], topics: ['ai'] })), 'tech')
+  assert.equal(G.strongestFamily(prof({ interests: ['wetenschap', 'tech'] })), 'tech') // 0,6 en 0,6: tech < wetenschap
+  assert.equal(G.strongestFamily({ family: { wereld: 0.6, economie: 0.6, sport: 0.5 } }), 'economie')
+  for (const f of INTERESTS) assert.ok(G.NEIGHBOURS[f.id]?.length, f.id)
+  for (const ns of Object.values(G.NEIGHBOURS)) for (const n of ns) assert.ok(INTERESTS.some((f) => f.id === n), n)
+})
+
+test('voorkeursbron weegt zoveel als FAVORITE_BONUS op de server', async () => {
+  const { FAVORITE_BONUS } = await import('../netlify/lib/stories.mjs')
+  assert.equal(G.P.FAVORITE, FAVORITE_BONUS)
+})
