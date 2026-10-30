@@ -1,8 +1,9 @@
 import SwiftUI
 
 // Kiezen zoals in het welkom op de website (src/styles.css → .ob__tile, .ob__chip): tegels voor
-// de interesses, zware keuzeknoppen voor wat daaronder valt. Gekozen: de tegel vol accent, de
-// knop in inkt (zoals het web nu). Voor VoiceOver telt "geselecteerd", niet de kleur.
+// de interesses, zware keuzeknoppen voor wat daaronder valt. Gekozen is rood zacht met een rode rand,
+// zoals een pil in het brandboard (--sel-*): de knop krijgt er een vinkje bij, zodat het niet alleen
+// aan de kleur hangt. Voor VoiceOver telt "geselecteerd".
 
 // Keuzeknoppen die doorlopen naar de volgende regel. Een knop die breder is dan de regel krijgt
 // de hele breedte en breekt zijn tekst af (grote tekst).
@@ -55,19 +56,29 @@ struct ChoiceChip: View {
     let label: String
     let on: Bool
     let action: () -> Void
+    @Environment(\.accessibilityReduceMotion) private var still
 
     var body: some View {
-        Button(action: action) {
-            Text(label)
-                .font(.subheadline.weight(.bold))
-                .multilineTextAlignment(.leading)
-                .foregroundStyle(on ? Theme.paper : Theme.ink)
-                .padding(.horizontal, Space.s4)
-                .padding(.vertical, Space.s2)
-                .frame(minHeight: Space.tap)
-                .background(on ? Theme.ink : Theme.surface, in: Capsule())
-                .overlay(Capsule().strokeBorder(Theme.ink, lineWidth: 2))
-                .contentShape(Capsule())
+        Button {
+            withAnimation(still ? nil : .easeOut(duration: 0.14)) { action() } // het vinkje schuift rustig in
+        } label: {
+            HStack(spacing: Space.s1) {
+                if on {
+                    Image(systemName: "checkmark")
+                        .font(.caption.weight(.heavy))
+                        .transition(.opacity)
+                        .accessibilityHidden(true)
+                }
+                Text(label).multilineTextAlignment(.leading)
+            }
+            .font(.subheadline.weight(.bold))
+            .foregroundStyle(on ? Theme.accent : Theme.ink)
+            .padding(.horizontal, Space.s4)
+            .padding(.vertical, Space.s2)
+            .frame(minHeight: Space.tap)
+            .background(on ? Theme.accentSoft : Theme.surface, in: Capsule())
+            .overlay(Capsule().strokeBorder(on ? Theme.accent : Theme.ink, lineWidth: 2))
+            .contentShape(Capsule())
         }
         .buttonStyle(ChoicePress())
         .accessibilityAddTraits(on ? .isSelected : [])
@@ -86,21 +97,22 @@ struct ChoiceTile: View {
             VStack(alignment: .leading, spacing: Space.s4) {
                 Image(systemName: icon)
                     .font(.system(size: 34))
-                    .foregroundStyle(on ? Theme.onAccent : Theme.accent)
+                    .foregroundStyle(Theme.accent)
                     .accessibilityHidden(true)
                 Spacer(minLength: 0)
                 Text(label)
                     .font(.headline.weight(.heavy))
-                    .foregroundStyle(on ? Theme.onAccent : Theme.ink)
+                    .foregroundStyle(on ? Theme.accent : Theme.ink)
                     .multilineTextAlignment(.leading)
             }
             .frame(maxWidth: .infinity, minHeight: 112 - Space.s4 * 2, alignment: .leading) // 112 met de rand erbij, zoals op het web
             .padding(Space.s4)
-            .background(on ? Theme.accent : Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
+            .background(on ? Theme.accentSoft : Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
             .overlay(RoundedRectangle(cornerRadius: Radius.md).strokeBorder(on ? Theme.accent : Theme.ink, lineWidth: 2))
             .contentShape(RoundedRectangle(cornerRadius: Radius.md))
         }
         .buttonStyle(ChoicePress())
+        .animation(.easeOut(duration: 0.14), value: on)
         .accessibilityAddTraits(on ? .isSelected : [])
     }
 }

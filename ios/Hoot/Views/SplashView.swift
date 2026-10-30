@@ -53,6 +53,9 @@ struct SplashView: View {
                     .mask { disc }
             }
         }
+        // Als één beeld vervagen: anders schemert het rood door de witte letters en worden ze even roze
+        // (van de rode intro naar het welkom zie je dat, want daar ligt papier op papier).
+        .compositingGroup()
         .opacity(handoff?.fading == true ? 0 : 1)
         .onAppear { handoff?.bounceStart = .now } // HootApp laat het woordmerk pas landen als de punt stilligt
         // Midden op het hele scherm, zoals iOS het opstartscherm plaatst (niet binnen de veilige zone).

@@ -309,6 +309,7 @@ struct WelcomeView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background { disc(tinted ? Theme.accent : Theme.brandRed) }
         .mask { disc(.black) }
+        .compositingGroup() // vervagen als één vlak (Verminder beweging), zonder rood door de letters
         .allowsHitTesting(step == .intro)
     }
 
@@ -646,11 +647,11 @@ struct WelcomeView: View {
     }
 }
 
-// "hoot." klein linksboven in het welkom, als tekening: LaunchWord (dezelfde paden als
-// public/brand/hoot-logo-*.svg) met de punt als eigen cirkel, op 0,4 van het opstartscherm: 64 breed,
-// de kleinste maat van het merk. Op merkrood alles papier, op papier inkt met de punt in accent.
-// Op rood en op papier op precies dezelfde plek en maat: het opstartscherm landt erop, en de iris
-// sluit tot de punt. Eén maat, ook bij grote tekst. Meldt waar woord en punt staan (`handoff`).
+// "hoot." klein linksboven in het welkom, als tekening (`BrandWord`) op 0,4 van het opstartscherm:
+// 64 breed, de kleinste maat van het merk, net als in de Editie. Op merkrood alles papier, op papier
+// inkt met de punt in accent. Op rood en op papier op precies dezelfde plek en maat: het opstartscherm
+// landt erop, en de iris sluit tot de punt. Eén maat, ook bij grote tekst. Meldt waar woord en punt
+// staan (`handoff`).
 struct WelcomeMark: View {
     var onRed: Bool
     var handoff: BrandHandoff?
@@ -659,26 +660,7 @@ struct WelcomeMark: View {
     static let scale: CGFloat = 0.4
 
     var body: some View {
-        let s = Self.scale
-        let r = SplashView.dotSize * s / 2
-        ZStack(alignment: .topLeading) {
-            Image("LaunchWord")
-                .renderingMode(.template)
-                .resizable()
-                .foregroundStyle(onRed ? SplashView.paperWhite : Theme.ink)
-            Circle()
-                .fill(onRed ? SplashView.paperWhite : Theme.accent)
-                .frame(width: r * 2, height: r * 2)
-                .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { handoff?.dot = $0 }
-                .phaseAnimator(breathes ? [1.0, 1.06, 0.92] : [1.0]) { dot, k in dot.scaleEffect(k) } animation: { _ in .easeInOut(duration: 2.75) }
-                .id(breathes) // begint op ware grootte, precies waar het opstartscherm landde
-                .opacity(hideDot ? 0 : 1)
-                .padding(.leading, SplashView.dotCenter.x * s - r)
-                .padding(.top, SplashView.dotCenter.y * s - r)
-        }
-        .frame(width: SplashView.size.width * s, height: SplashView.size.height * s)
-        // Het woord zonder punt, zoals SplashView het meet.
-        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { handoff?.word = CGRect(origin: $0.origin, size: CGSize(width: SplashView.wordWidth * s, height: $0.height)) }
+        BrandWord(scale: Self.scale, ink: onRed ? SplashView.paperWhite : Theme.ink, dot: onRed ? SplashView.paperWhite : Theme.accent, handoff: handoff, hideDot: hideDot, breathes: breathes)
         .onAppear { if onRed { handoff?.onRed = true } }
         .onDisappear {
             handoff?.word = nil
@@ -789,16 +771,18 @@ private struct AlertPreview: View {
     }
 }
 
-// Het app-icoon in het klein: "h." in de krantenletter op papier, met de rode punt.
+// Het app-icoon in het klein: het teken "h." op papier, met de rode punt. Op de plek en maat van
+// public/brand/hoot-app-icon.svg (vlak 192, hoek 42; de h van x 30,2 en y 40,6, 115 hoog).
 private struct AppMark: View {
+    private static let side: CGFloat = 38
+    private static let k = side / 192
+
     var body: some View {
-        HStack(alignment: .lastTextBaseline, spacing: 1) {
-            Text("h").font(.system(size: 26, weight: .heavy, design: .serif)).foregroundStyle(Theme.ink)
-            Circle().fill(Theme.accent).frame(width: 6, height: 6)
-        }
-        .offset(y: -1)
-        .frame(width: 38, height: 38)
-        .background(Theme.paper, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(Theme.rule, lineWidth: 1))
+        BrandMark(height: 114.95 * Self.k)
+            .padding(.leading, 30.17 * Self.k)
+            .padding(.top, 40.55 * Self.k)
+            .frame(width: Self.side, height: Self.side, alignment: .topLeading)
+            .background(Theme.paper, in: RoundedRectangle(cornerRadius: 42 * Self.k, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 42 * Self.k, style: .continuous).strokeBorder(Theme.rule, lineWidth: 1))
     }
 }

@@ -2,7 +2,8 @@ import SwiftUI
 
 // De kleine animaties van het welkom: de punt van "hoot." als zon boven één horizonlijn. Rustig,
 // klein in het midden, en hij ademt. Editie: de zon komt op. Stroom en Selectie: een ademende halo,
-// met eronder wat voorbij stroomt of de ringen van je week. Met "Verminder beweging" staat alles stil.
+// met eronder wat voorbij stroomt of de ringen van je week. Met "Verminder beweging" staat alles stil
+// op t = 4: dan staat de zon van de Editie al ruim boven de horizon (op 1,6 was het een reepje).
 struct OnboardingArt: View {
     enum Kind { case intro, editie, stroom, digest }
     let kind: Kind
@@ -14,7 +15,7 @@ struct OnboardingArt: View {
     var body: some View {
         // Elk beeld van het scherm (60 of 120 Hz), zodat het nergens hapert.
         TimelineView(.animation(paused: still || !active)) { timeline in
-            let t = still ? 1.6 : timeline.date.timeIntervalSinceReferenceDate
+            let t = still ? 4 : timeline.date.timeIntervalSinceReferenceDate
             Canvas { ctx, size in draw(ctx, size, t) }
         }
         .frame(width: Self.size.width, height: Self.size.height)
@@ -100,8 +101,9 @@ struct OnboardingArt: View {
     private func ease(_ x: Double) -> Double { x < 0.5 ? 2 * x * x : 1 - pow(-2 * x + 2, 2) / 2 }
 }
 
-// "hoot." groot, met de ademende punt: het inlogscherm. Het kan melden waar het woord en de punt
-// staan (`BrandHandoff`), zodat het opstartscherm er precies naartoe kan bewegen.
+// "hoot." groot, met de ademende punt: het inlogscherm. Een tekening (`BrandWord`) op de maat van
+// het opstartscherm (160 breed); één maat, ook bij grote tekst. Het kan melden waar het woord en de
+// punt staan (`BrandHandoff`), zodat het opstartscherm er precies naartoe kan bewegen.
 struct IntroMark: View {
     @Environment(\.brandHandoff) private var handoff
     @Environment(\.accessibilityReduceMotion) private var still
@@ -109,23 +111,9 @@ struct IntroMark: View {
     var body: some View {
         // Ademen pas als het rood geland is: anders is de punt net kleiner of groter dan waar het rood
         // op uitkomt, en verspringt hij als het opstartscherm weggaat.
-        let breathing = !still && handoff?.landed != false
-        HStack(alignment: .lastTextBaseline, spacing: 3) {
-            Text("hoot")
-                .font(.system(size: 58, weight: .heavy, design: .serif))
-                .foregroundStyle(Theme.ink)
-                .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { handoff?.word = $0 }
-            Circle()
-                .fill(Theme.accent)
-                .frame(width: 15, height: 15)
-                .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { handoff?.dot = $0 }
-                .phaseAnimator(breathing ? [1.0, 1.06, 0.92] : [1.0]) { dot, s in dot.scaleEffect(s) } animation: { _ in .easeInOut(duration: 2.75) }
-                .id(breathing) // begint op ware grootte, precies waar het rood eindigde
-        }
-        .fixedSize()
-        .dynamicTypeSize(.large) // het merk heeft één maat
-        .accessibilityElement()
-        .accessibilityLabel("Hoot")
+        BrandWord(scale: 1, handoff: handoff, breathes: !still && handoff?.landed != false)
+            .accessibilityElement()
+            .accessibilityLabel("Hoot")
     }
 }
 

@@ -21,7 +21,7 @@ enum Theme {
     // Merkrood: het diepe krantenrood als vol vlak, in licht en donker gelijk. Alleen voor
     // merkmomenten (opstarten, welkom, einde van de editie); verder is het accent een detail.
     static let brandRed = Color("BrandRed")
-    static let onBrandRed = Color("OnBrandRed") // tekst op merkrood, 7,6:1
+    static let onBrandRed = Color("OnBrandRed") // alles op merkrood: papier #F5F1E8 (6,9:1), zoals het opstartscherm
     static let accent = Color("AccentColor") // de kleur zelf: "accentColor" volgt de tint, en die valt soms terug op systeemblauw
     static func headline(_ style: Font.TextStyle) -> Font { .system(style, design: .serif, weight: .bold) }
 }
@@ -56,21 +56,40 @@ struct SafariView: UIViewControllerRepresentable {
     func updateUIViewController(_ vc: SFSafariViewController, context: Context) {}
 }
 
+// Een knop op papier: inkt met papier, een pil, gewicht 800 (brandboard: Knop). Rood is voor het merk
+// en voor wat gekozen is, niet voor wat je doet; een tweede knop is stil (`.glass` of een link).
+struct InkButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var enabled
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.headline.weight(.heavy))
+            .foregroundStyle(Theme.paper)
+            .padding(.horizontal, Space.s5)
+            .frame(minHeight: Space.tap)
+            .background(Theme.ink.opacity(configuration.isPressed ? 0.78 : 1), in: Capsule())
+            .contentShape(Capsule())
+            .opacity(enabled ? 1 : 0.45)
+    }
+}
+extension ButtonStyle where Self == InkButtonStyle {
+    static var ink: InkButtonStyle { InkButtonStyle() }
+}
+
 // Haarlijn tussen berichten: `rule`, één pixel, decoratief.
 struct Rule: View {
     var body: some View { Rectangle().fill(Theme.rule).frame(height: 1).accessibilityHidden(true) }
 }
 
-// "hoot." in de krantenletter met de rode punt, zoals op de website. De punt is een echte cirkel op
-// de maat en plek van de punt in de letter (New York Heavy: 0,21 em breed, een halve punt na de t; op
-// 3× zoom over de oude "hoot." gelegd), zodat het opstartscherm er precies op kan landen. Met
-// `handoff` meldt dit woordmerk waar het staat (`BrandHandoff`); alleen dat in de Editie, anders
-// overschrijft het welkom de plek van `IntroMark`.
+// "hoot." met de rode punt, als tekening (`BrandWord`), zoals op de website: in de Editie op de
+// kleinste maat van het merk (64 breed, 20 hoog), dezelfde als in het welkom. Groeit begrensd mee
+// met de tekst (tot xxLarge). Met `handoff` meldt dit woordmerk waar het staat (`BrandHandoff`), zodat
+// het opstartscherm er precies op kan landen; alleen dat in de Editie, anders overschrijft het welkom
+// de plek van `IntroMark`.
 struct Wordmark: View {
     var handoff = false
     var body: some View {
         WordmarkBody(handoff: handoff)
-            .dynamicTypeSize(...DynamicTypeSize.xxLarge) // ook voor de maat van de punt
+            .dynamicTypeSize(...DynamicTypeSize.xxLarge)
             .accessibilityElement()
             .accessibilityLabel("Hoot")
             .accessibilityAddTraits(.isHeader)
@@ -80,23 +99,12 @@ struct Wordmark: View {
 private struct WordmarkBody: View {
     let handoff: Bool
     @Environment(\.brandHandoff) private var brand
-    @ScaledMetric(relativeTo: .title3) private var dot = 4.17
-    @ScaledMetric(relativeTo: .title3) private var gap = 0.5
+    @ScaledMetric(relativeTo: .title3) private var scale = WelcomeMark.scale
 
     var body: some View {
-        HStack(alignment: .lastTextBaseline, spacing: gap) {
-            Text("hoot")
-                .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { if handoff { brand?.word = $0 } }
-            Circle()
-                .fill(Theme.accent)
-                .frame(width: dot, height: dot)
-                .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { if handoff { brand?.dot = $0 } }
-                .offset(y: dot * 0.06) // de punt in de letter zakt een haar onder de basislijn
-        }
-        .font(.system(.title3, design: .serif, weight: .heavy))
-        .fixedSize() // nooit afgekapt tot "h…"
-        // Niet meer in beeld (ander tabblad, scherm weg): dan valt er niets te landen.
-        .onDisappear { if handoff { brand?.word = nil; brand?.dot = nil } }
+        BrandWord(scale: scale, handoff: handoff ? brand : nil)
+            // Niet meer in beeld (ander tabblad, scherm weg): dan valt er niets te landen.
+            .onDisappear { if handoff { brand?.word = nil; brand?.dot = nil } }
     }
 }
 
