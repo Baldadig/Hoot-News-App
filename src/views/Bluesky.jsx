@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { ViewHeader, Empty } from '../components/Shell.jsx'
 import { SocialItem, SourceMark, useHoot } from '../components/Items.jsx'
+import { BlueskyArt } from '../components/icons.jsx'
 import { AddBluesky, Switch } from './Sources.jsx'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { positionKey } from '../lib/context.js'
@@ -122,10 +123,11 @@ export default function Bluesky({ active, posts, sources, muted, onToggle, ownHa
 
         {list.length === 0 ? (
           people.length ? (
-            <Empty title="Nog geen posts">Zodra de mensen die je volgt iets plaatsen, staat het hier.</Empty>
+            <Empty art={BlueskyArt} title="Nog geen posts">Zodra de mensen die je volgt iets plaatsen, staat het hier.</Empty>
           ) : (
             // Zonder iemand een echte knop, niet alleen de + bovenin; hij opent het formulier en zet je in het veld.
             <Empty
+              art={BlueskyArt}
               title="Je volgt nog niemand"
               action={
                 <button type="button" className="btn" onClick={() => (setAdding(true), requestAnimationFrame(() => ref.current?.querySelector('.bsky-add input')?.focus()))}>

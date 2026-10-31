@@ -216,7 +216,8 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
           </p>
         ) : null}
         {loading ? (
-          <Skeleton rows={4} />
+          // Eerst het hoofdverhaal, dan rijen: de Editie is altijd krant, wat de Stroom ook doet.
+          <Skeleton rows={4} layout="krant" lead />
         ) : failedLoad ? (
           <LoadError onRetry={onRefresh} />
         ) : rows.length === 0 ? (

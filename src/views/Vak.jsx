@@ -135,7 +135,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
         </ViewHeader>
 
         {status === 'loading' && !digest ? (
-          <Skeleton rows={4} />
+          <Skeleton rows={4} layout="krant" />
         ) : status === 'error' && !digest ? (
           <LoadError onRetry={onRefresh} />
         ) : !chosen.length ? (

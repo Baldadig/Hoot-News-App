@@ -3,7 +3,7 @@ import { ViewHeader, StatusLine, Skeleton, Empty, LoadError, BackButton } from '
 import { LeadStory, CompactItem, SocialItem, useHoot } from '../components/Items.jsx'
 import { Dialog, DialogHeader } from '../components/Dialog.jsx'
 import { Switch, SourceRow } from './Sources.jsx'
-import { BookmarkIcon, RefreshIcon, CaretIcon, CloseIcon, ICON_SM } from '../components/icons.jsx'
+import { BookmarkIcon, RefreshIcon, CaretIcon, CloseIcon, ICON_SM, SavedArt } from '../components/icons.jsx'
 
 // Het designsysteem draait in de app zelf, met echte onderdelen en echte berichten: wat hier staat
 // ís wat er gebouwd is. Ook de staten: hover, focus en ingedrukt zijn de regels uit styles.css
@@ -683,18 +683,18 @@ export default function StyleGuide({ stream }) {
         <h2 className="label label--section sect">Lege staat</h2>
         <div className="sg__block" data-spec="empty" data-sel=".empty__title">
           <Empty
-            label="Nog niets"
-            title="Je hebt nog niets bewaard"
+            art={SavedArt}
+            title="Nog niets bewaard"
             action={
-              <button type="button" className="btn btn--quiet">
+              <button type="button" className="btn">
                 Naar de Editie
               </button>
             }
           >
-            Tik op de bladwijzer bij een bericht; het staat dan hier, ook zonder verbinding.
+            Tik op de bladwijzer bij een verhaal. Het staat hier tot je het hebt gelezen, ook zonder verbinding.
           </Empty>
           <p className="sg__spec">
-            <code>Empty</code> · titel {parts(specs.empty || '')}
+            <code>Empty art</code> · de lege bladzijde · titel {parts(specs.empty || '')}
           </p>
         </div>
         <div className="sg__block">

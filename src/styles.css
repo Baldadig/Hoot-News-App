@@ -77,6 +77,8 @@
   --measure-prose: 58ch; /* lopende tekst, samenvattingen en hints: ten hoogste ± 75 tekens per regel (een ch is de breedte van een 0, breder dan een gemiddelde letter; 65ch gaf tot 83) */
   --measure-form: 560px; /* Bronnen en Instellingen */
   --measure-end: 30ch; /* einde van de Editie: kort, gebalanceerd */
+  --measure-empty: 34ch; /* tekst van een lege bladzijde: drie korte, gecentreerde regels */
+  --art: 96px; /* lijntekening van een lege bladzijde */
   --front-side: 16rem; /* zijkolom van de voorpagina, minstens: "Vergelijk N bronnen" past naast ⋯ en bewaren */
   --sheet-w: 560px;
   --nav-w: 208px;
@@ -2125,7 +2127,7 @@ select.input {
   font-weight: var(--fw-ui);
 }
 
-/* Lege staat: links op de kolomlijn. Label (meta; bij een fout in --warn), een grote itemkop,
+/* Lege staat zonder tekening (en altijd bij een fout): links op de kolomlijn. Label (meta; bij een fout in --warn), een grote itemkop,
    één alinea uitleg en een actie (.btn of .btn--quiet). Zelfde vorm voor 'nog niets' en
    'mislukt'; alleen het label zegt welke. Direct onder de kop komt --after-header erbij: dan
    staat hij op --s7 (48) van de kop, een bewuste pauze, maar nog wel bij het scherm. */
@@ -2149,6 +2151,39 @@ select.input {
   color: var(--ink-2);
   font-size: var(--t2);
   line-height: var(--lh-2-read);
+}
+
+/* De lege bladzijde (Empty met art): een compositie in plaats van een regel bovenaan. Tekening,
+   schermtitel, hooguit drie regels tekst en de inktknop, gecentreerd in een vlak van 60 % van de
+   hoogte en dan 6 % omhoog: het blok staat zo op ± 38 % van het scherm, waar het oog begint, niet
+   in het wiskundige midden. Een fout (LoadError) krijgt dit nooit: die blijft op de kolomlijn. */
+.empty--page {
+  display: grid;
+  justify-items: center;
+  place-content: center;
+  min-height: 60vh;
+  text-align: center;
+  translate: 0 -6vh;
+}
+.empty__art {
+  width: var(--art);
+  height: var(--art);
+  margin-bottom: var(--s5);
+  /* --edge, niet --rule: de lijn van de schets (#8f8574) is --edge; in --rule viel de tekening op
+     donker papier weg (1,3:1). Het blijft een stille lijn, geen inkt. */
+  color: var(--edge);
+  stroke: currentColor;
+  stroke-width: 1.5; /* op 96: de lijn van de schets */
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.empty__lint {
+  stroke: var(--accent);
+}
+.empty--page .empty__text {
+  max-inline-size: var(--measure-empty);
+  margin-bottom: var(--s5);
+  text-wrap: balance;
 }
 
 .listmore {
@@ -2249,6 +2284,75 @@ select.input {
 .sk__thumb {
   width: var(--thumb-w);
   height: var(--thumb-h);
+}
+/* Tijdlijn: dezelfde maten als .compact--tl. Kop en twee regels, dan de beeldstrook over de
+   volle kolom in 2:1 (--media-tl, hoek --radius-card) op --s3, en de bronregel van .srcmeta:
+   logo --slot-sm, --s2 ertussen, naam en tijd onder elkaar, in een regel van --tap. */
+.sk--tl {
+  display: block;
+  padding: var(--s4) 0 var(--s1);
+}
+.sk__media,
+.sk__mark {
+  border-radius: var(--radius-card);
+  background: var(--rule);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.sk__media {
+  aspect-ratio: var(--media-tl);
+  margin-top: var(--s3);
+}
+.sk__src {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: var(--tap);
+  margin-block: calc(var(--s3) - var(--meta-inset)) calc(var(--s4) - var(--s1) - var(--meta-inset));
+}
+.sk__mark {
+  flex: none;
+  width: var(--slot-sm);
+  height: var(--slot-sm);
+  border-radius: 50%;
+}
+.sk__who {
+  display: grid;
+  gap: var(--s2);
+  width: 40%;
+}
+.sk__who .sk__bar {
+  margin: 0;
+}
+.sk__bar--name {
+  height: var(--s3);
+}
+.sk__bar--time {
+  width: 60%;
+  height: var(--s2);
+}
+/* Het hoofdverhaal van de Editie: beeld eerst (2:1, vanaf 720 de strook van 21:9, zoals
+   .media--lead), dan rubriek, kop op de maat van .head-6 en twee regels kern. */
+/* In .front: de lijn tussen verhaal en rijen is van .front__side (boven, of breed links). */
+.sk--lead {
+  display: block;
+  padding: var(--s3) 0 var(--s5);
+  border-bottom: 0;
+}
+.sk__media--lead {
+  aspect-ratio: var(--media-lead);
+  margin: 0 0 var(--s4);
+}
+@media (min-width: 720px) {
+  .sk__media--lead {
+    aspect-ratio: var(--media-lead-wide);
+  }
+}
+.sk__bar--kicker {
+  width: 20%;
+  height: var(--s3);
+}
+.sk__bar--head {
+  height: calc(var(--lh-6) - var(--s2));
 }
 @keyframes pulse {
   50% {
@@ -2718,6 +2822,18 @@ select.input {
 .story__title {
   text-wrap: balance;
   overflow-wrap: anywhere;
+}
+/* De kop van het verhaal is de link naar het stuk dat hem levert, zoals een kop in de lijst. */
+.story__link {
+  color: inherit;
+  text-decoration: none;
+}
+/* Haar bronregel: onder de feiten, met de lucht van een actieregel (--s3 tot de bron). */
+.story__src {
+  display: flex;
+  min-height: var(--tap);
+  align-items: center;
+  margin-top: calc(var(--s3) - var(--meta-inset));
 }
 .story__facts {
   margin-top: var(--s3);
@@ -3908,7 +4024,7 @@ html[data-images='hoofd'] .media--social {
     gap: var(--s5);
     align-items: start;
   }
-  .front > .lead {
+  .front > :is(.lead, .sk--lead) {
     grid-area: lead;
   }
   .front__side {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { CompactItem, Meta, SaveButton, ShareButton, useHoot, linkOf } from '../components/Items.jsx'
+import { CompactItem, Meta, SaveButton, ShareButton, SourceMeta, useHoot, linkOf } from '../components/Items.jsx'
 import { isFollowing } from '../lib/follow.js'
 import { CloseIcon, CaretIcon, ICON_SM } from '../components/icons.jsx'
 import { BackButton } from '../components/Shell.jsx'
@@ -31,7 +31,7 @@ function SourceItem({ item, note }) {
 // Bronvergelijking: elke publicatie over dit verhaal apart, met eigen kop, bron, tijd en link.
 // `tappedId`: het stuk waarop je tikte om te vergelijken; dat is de kop (ook als je de bron niet volgt).
 export default function Story({ story, items, tappedId = null, overlay, onClose, onBack, onSeen, seenBefore }) {
-  const { sourcesById, muted, followStories, followStory } = useHoot()
+  const { sourcesById, muted, followStories, followStory, markRead } = useHoot()
   const following = isFollowing(followStories, story)
   // Wat je de vorige keer al zag, vastgelegd bij het openen (zodat "nieuw" niet meteen verdwijnt).
   const [prev] = useState(() => seenBefore)
@@ -70,8 +70,11 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
   // Niet gevolgd: de bron volg je niet, of je hebt hem uitgezet.
   const followed = (i) => sourcesById.get(i.source)?.followed !== false && !muted.has(i.source)
   const lead = items.find((i) => i.id === tappedId) || items.find((i) => i.id === story.leadId && followed(i)) || items.find(followed) || items[0]
-  const fresh = prev ? items.filter((i) => !prev.includes(i.id)) : []
-  const rest = prev ? items.filter((i) => prev.includes(i.id)) : items
+  // De publicatie die de kop levert staat bovenaan (kop, bronregel, link), dus niet nog eens in
+  // de lijsten eronder: het paneel zegt de kop één keer (zoals StoryView op iOS).
+  const others = items.filter((i) => i.id !== lead?.id)
+  const fresh = prev ? others.filter((i) => !prev.includes(i.id)) : []
+  const rest = prev ? others.filter((i) => prev.includes(i.id)) : others
   const firstId = items[items.length - 1]?.id
   const note = (i) => [i.id === firstId && items.length > 1 ? 'Eerste bericht' : null, followed(i) ? null : 'Buiten je bronnen'].filter(Boolean).join(' · ') || null
 
@@ -107,10 +110,27 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
 
       <div className="story__body">
         {!overlay ? <BackButton label="Alle verhalen" onClick={onBack} className="story__back" /> : null}
-        <h2 className="head-5 story__title">{lead?.title}</h2>
+        {lead ? (
+          <>
+            {/* De kop is het stuk zelf: tikken opent het, zoals een kop in de lijst. Rubriek (Opinie,
+                Eerste bericht, Buiten je bronnen) als kicker erboven, waar dat van toepassing is. */}
+            {note(lead) || lead.type === 'opinie' ? <p className="label label--kicker kicker story__kicker">{[lead.type === 'opinie' ? 'Opinie' : null, note(lead)].filter(Boolean).join(' · ')}</p> : null}
+            <h2 className="head-5 story__title">
+              <a className="story__link" href={linkOf(lead)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(lead.id)}>
+                {lead.title}
+              </a>
+            </h2>
+          </>
+        ) : null}
         <p className="story__facts">
           {story.sourceCount} {story.sourceCount === 1 ? 'bron' : 'bronnen'} · laatste update {timeAgo(story.latestAt)}
         </p>
+        {/* Van wie de kop is: de bronregel van dat stuk, op zijn vaste plek onder de tekst. */}
+        {lead ? (
+          <div className="story__src">
+            <SourceMeta item={lead} />
+          </div>
+        ) : null}
         <Disclosure className="how" summaryClassName="linkbtn linkbtn--plain" summary="Hoe zijn deze bronnen gekoppeld?">
           <p>
             {story.sourceNames.join(', ')}. Eerste bericht {timeAgo(story.firstAt)}.
@@ -126,14 +146,16 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
             <div className="list rows">
               {fresh.map((i) => (overlay ? <CompactItem key={i.id} item={i} note={note(i)} plain /> : <SourceItem key={i.id} item={i} note={note(i)} />))}
             </div>
-            <h3 className="label label--meta story__sub">Eerder beschikbaar</h3>
+            {rest.length ? <h3 className="label label--meta story__sub">Eerder beschikbaar</h3> : null}
           </>
-        ) : (
-          <h3 className="label label--meta story__sub">Alle publicaties, nieuwste eerst</h3>
-        )}
-        <div className="list rows">
-          {rest.map((i) => (overlay ? <CompactItem key={i.id} item={i} note={note(i)} plain /> : <SourceItem key={i.id} item={i} note={note(i)} />))}
-        </div>
+        ) : rest.length ? (
+          <h3 className="label label--meta story__sub">Andere publicaties, nieuwste eerst</h3>
+        ) : null}
+        {rest.length ? (
+          <div className="list rows">
+            {rest.map((i) => (overlay ? <CompactItem key={i.id} item={i} note={note(i)} plain /> : <SourceItem key={i.id} item={i} note={note(i)} />))}
+          </div>
+        ) : null}
       </div>
     </div>
   )

@@ -86,3 +86,55 @@ export const INTEREST_ICONS = {
   cultuur: icon("<g fill=\"currentColor\"><path d=\"M216 48v55.77C216 174.6 176.6 232 128 232s-88-57.4-88-128.21V48a8 8 0 0 1 10.89-7.47C66 46.41 95.11 55.71 128 55.71s62-9.3 77.11-15.16A8 8 0 0 1 216 48\" opacity=\".2\"/><path d=\"M217 34.8a15.94 15.94 0 0 0-14.82-1.71c-14.03 5.46-42.36 14.62-74.18 14.62s-60.16-9.16-74.21-14.62A16 16 0 0 0 32 48v55.77c0 35.84 9.65 69.65 27.18 95.18c18.16 26.46 42.6 41 68.82 41s50.66-14.57 68.82-41c17.53-25.51 27.18-59.32 27.18-95.16V48a16 16 0 0 0-7-13.2m-9 69c0 32.64-8.66 63.23-24.37 86.13C168.54 211.9 148.79 224 128 224s-40.54-12.1-55.63-34.08C56.66 167 48 136.43 48 103.79V48c15.11 5.87 45.58 15.71 80 15.71s64.9-9.84 80-15.71v55.81Zm-18 18.87a8 8 0 1 1-12 10.66c-2.68-3-8.85-5.33-14-5.33s-11.36 2.34-14 5.33a8 8 0 1 1-12-10.67c5.71-6.38 16.14-10.66 26-10.66s20.25 4.28 26 10.66ZM92 128c-5.19 0-11.36 2.34-14 5.33a8 8 0 1 1-12-10.67C71.75 116.28 82.18 112 92 112s20.25 4.28 26 10.66a8 8 0 1 1-12 10.67c-2.64-2.99-8.81-5.33-14-5.33m76.45 45.19a52.9 52.9 0 0 1-80.9 0a8 8 0 1 1 12.17-10.39a36.89 36.89 0 0 0 56.56 0a8 8 0 0 1 12.17 10.39\"/></g>"),
   sport: icon("<g fill=\"currentColor\"><path d=\"m65.17 108.08l-33 25.34c-.1-1.8-.15-3.6-.15-5.42a95.6 95.6 0 0 1 21.21-60.22Zm-18.25 71.34a96.12 96.12 0 0 0 57 41.52l-14.7-41.52Zm105.21 41.52a96.12 96.12 0 0 0 57-41.52h-42.3Zm50.64-153.16l-11.94 40.3l33 25.34c.1-1.8.15-3.6.15-5.42a95.6 95.6 0 0 0-21.21-60.22m-38.52-28.7a96.34 96.34 0 0 0-72.5 0L128 64ZM152.72 160L168 115.5L128 88l-40 27.5l15.28 44.5Z\" opacity=\".2\"/><path d=\"M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24m76.52 147.42H170.9l-9.26-12.76l12.63-36.78l15-4.89l26.24 20.13a87.4 87.4 0 0 1-10.99 34.3m-164-34.3L66.71 117l15 4.89l12.63 36.78l-9.24 12.75H51.48a87.4 87.4 0 0 1-11.01-34.3Zm10-50.64l5.51 18.6l-15.32 11.69a87.3 87.3 0 0 1 9.72-30.29ZM109 152l-11.46-33.35L128 97.71l30.46 20.94L147 152Zm91.07-46.92l5.51-18.6a87.3 87.3 0 0 1 9.72 30.29Zm-6.2-35.38l-9.51 32.08l-15.07 4.89L136 83.79V68.21l29.09-20a88.6 88.6 0 0 1 28.77 21.49Zm-47.8-27.83L128 54.29l-18.07-12.42a88.2 88.2 0 0 1 36.14 0m-55.16 6.34l29.09 20v15.58l-33.28 22.88l-15.07-4.89l-9.51-32.08a88.6 88.6 0 0 1 28.77-21.49M63.15 187.42h20.37l7.17 20.27a88.4 88.4 0 0 1-27.54-20.27M110 214.13l-11.88-33.42l9.23-12.71h41.3l9.23 12.71l-11.83 33.42a88 88 0 0 1-36.1 0Zm55.36-6.44l7.17-20.27h20.37a88.4 88.4 0 0 1-27.59 20.27Z\"/></g>"),
 }
+
+// Lijntekeningen voor een lege bladzijde (Empty art): geen Phosphor, maar met de hand getekend op
+// een raster van 96 (--art). Alleen lijn, geen vlak: het blad en zijn regels stil, en het ding
+// van de plek (bladwijzer, loep, @) als enige rode lijn, in --accent; even veel rood per tekening.
+// Het blad staat in --edge (de lijn van de schets), zie .empty__art.
+// Kleur en dikte komen uit CSS (.empty__art), zodat licht en donker vanzelf meegaan.
+const sheet = (
+  <>
+    <rect x="22" y="14" width="52" height="68" rx="2" />
+    <path d="M30 30h16M30 38h22" />
+  </>
+)
+const art = (place, body) =>
+  function Art() {
+    return (
+      <svg className={`empty__art empty__art--${place}`} viewBox="0 0 96 96" width="96" height="96" fill="none" aria-hidden="true">
+        {body}
+      </svg>
+    )
+  }
+// Bewaard: een blad met de bladwijzer die er bovenuit steekt.
+export const SavedArt = art(
+  'saved',
+  <>
+    {sheet}
+    <path d="M30 46h18M30 54h22M30 62h14" />
+    <path className="empty__lint" d="M58 10v24l4-5l4 5V10" />
+  </>
+)
+// Zoeken: een blad met een loep op de onderste helft.
+export const SearchArt = art(
+  'search',
+  <>
+    {sheet}
+    <path d="M30 46h10" />
+    <g className="empty__lint">
+      <circle cx="54" cy="58" r="10" />
+      <path d="M61 65l8 8" />
+    </g>
+  </>
+)
+// Bluesky: een blad met de @ van een naam.
+export const BlueskyArt = art(
+  'bluesky',
+  <>
+    {sheet}
+    <g className="empty__lint">
+      <circle cx="48" cy="60" r="4.5" />
+      <path d="M52.5 56v6a3.5 3.5 0 0 0 7 0v-2a11.5 11.5 0 1 0-4.5 9.1" />
+    </g>
+  </>
+)
