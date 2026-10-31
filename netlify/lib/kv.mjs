@@ -56,6 +56,7 @@ export async function writeDoc(key, doc) {
 
 export const KEYS = {
   start: 'feed-start-v1', // kern zonder vergelijkingsdata (de app vanaf 1.27)
+  voorpagina: 'voorpagina-pool-v1', // kleine kandidatenpool voor /api/voorpagina (lib/voorpagina-pool.mjs)
   related: 'feed-related-v1', // alle publicaties per verhaal, pas geladen als je vergelijkt
   core: 'feed-core-v1', // bronnen, verhalen, editie (de app 1.22–1.26)
   legacy: 'feed-snapshot-v1', // alles in één (de app tot en met 1.21)

@@ -5,6 +5,7 @@ import { readDoc, writeDoc, KEYS } from './kv.mjs'
 import { MAIN_IDS, MUSIC_IDS } from './sources.mjs'
 import { hash } from '../../shared/util.mjs'
 import { withoutCopies } from '../../shared/dedupe.mjs'
+import { voorpaginaPool } from './voorpagina-pool.mjs'
 
 let running = null // binnen één functie-instantie nooit twee keer tegelijk
 
@@ -37,12 +38,15 @@ export function refresh() {
       const base = new Set([...MAIN_IDS, ...MUSIC_IDS])
       // Oude apps ontdubbelen niet zelf: voor hen nog over de bronnen heen.
       const legacy = JSON.stringify({ ...rest, items: withoutCopies(items.filter((i) => base.has(i.source) || i.kind === 'post')) })
+      // KEYS.start draagt geen berichten: de voorpagina krijgt een eigen kleine pool.
+      const voorpagina = JSON.stringify(voorpaginaPool(items, rest.sources, now))
       const coreDoc = { body: core, builtAt, etag: hash(core) }
       await Promise.all([
         writeDoc(KEYS.core, coreDoc),
         writeDoc(KEYS.start, { body: start, builtAt, etag: hash(start) }),
         writeDoc(KEYS.related, { body: relatedBody, builtAt, etag: relatedTag }),
         writeDoc(KEYS.legacy, { body: legacy, builtAt, etag: hash(legacy) }),
+        writeDoc(KEYS.voorpagina, { body: voorpagina, builtAt, etag: hash(voorpagina) }),
       ])
       return coreDoc
     } finally {

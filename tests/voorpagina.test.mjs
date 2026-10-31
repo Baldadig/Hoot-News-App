@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs'
 import { gunzipSync } from 'node:zlib'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import voorpagina, { extract, isDutch, isHeavy, rubriek, OPEN_IMAGE_SOURCES, config } from '../netlify/functions/voorpagina.mjs'
+import voorpagina, { extract, withPool, isDutch, isHeavy, rubriek, OPEN_IMAGE_SOURCES, config } from '../netlify/functions/voorpagina.mjs'
+import { voorpaginaPool, VOORPAGINA_HOURS, VOORPAGINA_MAX } from '../netlify/lib/voorpagina-pool.mjs'
 import { writeDoc, KEYS } from '../netlify/lib/kv.mjs'
 
 const it = (id, source, sourceName, title, extra = {}) => ({ id, source, sourceName, title, url: 'https://x/' + id, image: 'https://x/i.jpg', publishedAt: '2026-10-31T08:00:00Z', ...extra })
@@ -217,4 +218,57 @@ test('echte middagfixture: drie rustige koppen uit de feedpool en maximaal één
   assert.ok(result.entries.every(e=>!isHeavy({title:e.title})))
   assert.ok(result.entries.filter(e=>['buitenland','vs','middenoosten','oekraine'].includes(e.desk)).length<=1)
   assert.equal(new Set(result.entries.map(e=>e.title)).size,3)
+})
+
+// Productievorm: refresh.mjs schrijft KEYS.start met `items: []` en zonder `related`. Zonder eigen
+// pool gaf de voorpagina daardoor altijd 503 (review 1.0.1, punt 1 en 11).
+const realStart = () => {
+  const f = JSON.parse(gunzipSync(readFileSync(new URL('./fixtures/snapshot-2026-10-31-1200.json.gz', import.meta.url))))
+  const { related, items, ...lean } = f
+  return { f, items, start: { ...lean, items: [] } }
+}
+
+test('productievorm: KEYS.start zonder berichten is te weinig; met de voorpagina-pool drie rustige koppen', () => {
+  const { f, items, start } = realStart()
+  assert.equal(extract(start), null) // de fout uit productie: alleen de Editie levert geen drie veilige koppen
+  const pool = voorpaginaPool(items, f.sources, Date.parse(f.meta.updatedAt))
+  const result = extract(withPool(start, pool))
+  assert.equal(result.entries.length, 3)
+  assert.deepEqual(result, extract(f)) // dezelfde keuze als met de volledige feed
+  assert.ok(result.entries.every((e) => !isHeavy({ title: e.title })))
+})
+
+test('voorpagina-pool: alleen Nederlands, geen posts, hooguit 36 uur en 200 berichten, kleine velden', () => {
+  assert.equal(VOORPAGINA_HOURS, 36)
+  assert.equal(VOORPAGINA_MAX, 200)
+  const now = Date.parse('2026-10-31T12:00:00Z')
+  const at = (h) => new Date(now - h * 36e5).toISOString()
+  const sources = [{ id: 'nos', lang: 'nl' }, { id: 'nyt', lang: 'en' }]
+  const items = [
+    it('nl', 'nos', 'NOS', 'Nieuw', { publishedAt: at(1), url: 'https://nos.nl/artikel/1', storyId: 's1', section: 'binnenland' }),
+    it('en', 'nyt', 'NYT', 'English', { publishedAt: at(1) }),
+    it('post', 'nos', 'NOS', 'Post', { publishedAt: at(1), kind: 'post' }),
+    it('oud', 'nos', 'NOS', 'Oud', { publishedAt: at(37) }),
+    it('rand', 'nos', 'NOS', 'Rand', { publishedAt: at(35) }),
+  ]
+  const pool = voorpaginaPool(items, sources, now)
+  assert.deepEqual(pool.items.map((i) => i.id), ['nl', 'rand'])
+  assert.deepEqual(Object.keys(pool.items[0]).sort(), ['desk', 'id', 'image', 'publishedAt', 'source', 'sourceName', 'storyId', 'summary', 'title', 'topics'])
+  assert.ok(!JSON.stringify(pool).includes('nos.nl/artikel')) // geen uitgeverslinks in de pool
+  const many = Array.from({ length: 260 }, (_, n) => it('m' + n, 'nos', 'NOS', 'Kop ' + n, { publishedAt: new Date(now - n * 6e4).toISOString() }))
+  const big = voorpaginaPool(many, sources, now)
+  assert.equal(big.items.length, 200)
+  assert.equal(big.items[0].id, 'm0') // de nieuwste
+})
+
+test('endpoint: echte productievorm (KEYS.start + KEYS.voorpagina) geeft 200 met drie koppen', async () => {
+  const { f, items, start } = realStart()
+  const pool = voorpaginaPool(items, f.sources, Date.parse(f.meta.updatedAt))
+  await writeDoc(KEYS.start, { body: JSON.stringify(start), etag: 'p' })
+  await writeDoc(KEYS.voorpagina, { body: '', etag: 'leeg' })
+  assert.equal((await get({ origin: 'https://gethoot.app' })).status, 503)
+  await writeDoc(KEYS.voorpagina, { body: JSON.stringify(pool), etag: 'q' })
+  const r = await get({ origin: 'https://gethoot.app' })
+  assert.equal(r.status, 200)
+  assert.equal((await r.json()).edition.entries.length, 3)
 })

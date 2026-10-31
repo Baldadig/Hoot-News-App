@@ -1,9 +1,12 @@
 // GET /api/voorpagina — drie uitnodigende plekken uit de algemene Editie voor de landingspagina op
 // gethoot.app (besluit Alex: rustig en uitnodigend, Nederlands, actueel, met beeld waar dat mag).
 // Klein, openbaar en zuinig: kop, bron, rubriek, aantal bronnen en soms een beeld (geen uitgever-URL's,
-// geen kloktijden). We lezen de opgeslagen feed uit dezelfde opslag als /api/feed (KEYS.start) en
-// stellen hier nooit zelf iets samen; is er niets, dan 503 met { edition: null }.
+// geen kloktijden). We lezen de opgeslagen Editie uit dezelfde opslag als /api/feed (KEYS.start) en
+// de eigen kandidatenpool die refresh.mjs ernaast schrijft (KEYS.voorpagina, zie
+// lib/voorpagina-pool.mjs; KEYS.start zelf heeft geen berichten). We stellen hier nooit zelf een
+// Editie samen; is er niets, dan 503 met { edition: null }.
 import { readDoc, KEYS } from '../lib/kv.mjs'
+import { isDutch } from '../lib/voorpagina-pool.mjs'
 import { DESK_LABEL, desksOf, primaryDesk } from '../lib/desks.mjs'
 import { INTERESTS } from '../../src/lib/topics.js'
 
@@ -34,11 +37,7 @@ export const HEAVY_WORDS = [
 const HEAVY_RE = new RegExp(`(?<![\\p{L}])(?:${HEAVY_WORDS.map(w => w === 'brand' ? 'brand(?!weer)' : w).join('|')})`, 'iu')
 export const isHeavy = (item) => HEAVY_RE.test(`${item?.title || ''} ${item?.summary || ''}`)
 
-// Nederlandstalig? Het bericht zelf weet het (offLang = bewust anderstalig, lang = taal), anders de bron.
-export function isDutch(item, sourceLang) {
-  if (!item || item.offLang) return false
-  return (item.lang || sourceLang) === 'nl'
-}
+export { isDutch }
 
 const INTEREST_RUBRIEK = { cultuur: 'cultuur', tech: 'tech', wetenschap: 'wetenschap', sport: 'sport' }
 const TOPIC_RUBRIEK = Object.fromEntries(INTERESTS.flatMap((i) => (INTEREST_RUBRIEK[i.id] ? i.topics.map((t) => [t, INTEREST_RUBRIEK[i.id]]) : [])))
@@ -68,7 +67,8 @@ export function extract(start, places = PLACES, openImageSources = OPEN_IMAGE_SO
     const src = srcs.get(item.source)
     const sport = src?.cat === 'sport' || desk === 'sport' || [...(item.mainTopics || []), ...(item.topics || [])].some(t => ['voetbal','f1','wielrennen','wielersport','tennis','darts','sport','olympisch','wintersport','basketbal'].includes(t))
     if (!isDutch(item, src?.lang) || isHeavy(item) || sport) return null
-    const resolvedDesk = CALM_WEIGHT[desk] || HEAVY_DESKS.has(desk) ? desk : primaryDesk([desksOf(item)])
+    // Een bericht uit de voorpagina-pool draagt zijn rubriek al (uitgerekend met URL en rubriek van de bron).
+    const resolvedDesk = CALM_WEIGHT[desk] || HEAVY_DESKS.has(desk) ? desk : 'desk' in item ? item.desk : primaryDesk([desksOf(item)])
     const r = rubriek(item, resolvedDesk, src?.cat)
     const heavy = HEAVY_DESKS.has(r)
     if (heavy && (sourceCount || 1) < 5) return null
@@ -136,6 +136,15 @@ export function extract(start, places = PLACES, openImageSources = OPEN_IMAGE_SO
   return entries.length === places ? { slot: ed.slot, date: ed.date, entries } : null
 }
 
+// KEYS.start heeft `items: []`; de berichten voor het aanvullen komen uit de voorpagina-pool.
+export function withPool(start, pool) {
+  if (!start || typeof start !== 'object') return start
+  const own = Array.isArray(start.items) ? start.items : []
+  const extra = Array.isArray(pool?.items) ? pool.items : []
+  const seen = new Set(own.map((i) => i.id))
+  return { ...start, items: [...own, ...extra.filter((i) => i && !seen.has(i.id))] }
+}
+
 const base = (origin) => ({
   'Content-Type': 'application/json; charset=utf-8',
   Vary: 'Origin',
@@ -148,8 +157,10 @@ export default async (req) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') return new Response(JSON.stringify({ error: 'Alleen GET.' }), { status: 405, headers: { ...base(origin), Allow: 'GET, HEAD, OPTIONS', 'Cache-Control': 'no-store' } })
   let edition = null
   try {
-    const doc = await readDoc(KEYS.start)
-    edition = doc ? extract(JSON.parse(doc.body)) : null
+    const [doc, pool] = await Promise.all([readDoc(KEYS.start), readDoc(KEYS.voorpagina).catch(() => null)])
+    let extra = null
+    try { extra = pool ? JSON.parse(pool.body) : null } catch { extra = null } // kapotte pool: alleen de Editie
+    edition = doc ? extract(withPool(JSON.parse(doc.body), extra)) : null
   } catch {
     edition = null
   }
