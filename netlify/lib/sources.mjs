@@ -4,6 +4,8 @@ export { BSKY_BRAND } from '../../shared/bluesky.mjs'
 // De catalogus. Per bron:
 // - `cat`: waar hij in de lijst staat (nl, regio, vl, int, economie, tech, games, wetenschap, sport, cultuur)
 // - `lang`, `about` (één regel), `paid` (betaalmuur voor een deel), `color` (merkkleur voor het logo)
+//   `lang` is de hoofdtaal: een bericht in een andere taal (shared/lang.mjs; het Parool heeft
+//   Engelstalige rubrieken) krijgt `offLang` en ziet alleen een lezer van die taal.
 // - `pick`: vooraf aangevinkt in de onboarding (bij `for`: alleen als je die interesse kiest;
 //   bij `forTopic`: alleen als je dat onderwerp volgt)
 // - `base`: hoort bij de oorspronkelijke set; staat aan voor wie de onboarding (nog) niet deed.

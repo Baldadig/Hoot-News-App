@@ -3,6 +3,7 @@ import Parser from 'rss-parser'
 import { hash, safeHttpUrl } from '../../shared/util.mjs'
 import { BRAND, PER_SOURCE_LIMIT, LIMIT_BY_CAT, UA } from './sources.mjs'
 import { favicon, toText, clip, preview, cleanUrl, hostname, safeIso, plausibleTime } from './text.mjs'
+import { langOf } from '../../shared/lang.mjs'
 
 const parser = new Parser({
   timeout: 9000,
@@ -123,7 +124,8 @@ export async function loadSource(src, avatarsP) {
       const brandAvatar = avatars[src.id] || (src.x ? `https://unavatar.io/x/${src.x}` : null)
       const fresh = (feed.items || []).map((it) => [it, categoriesOf(it)]).filter(([it, cats]) => !isNoise(it, cats) && (!src.keep || String(it.link || '').includes(src.keep)))
       // Muziek: minder per bron, zodat het nieuws niet wordt weggedrukt.
-      const items = fresh.slice(0, src.music ? 12 : LIMIT_BY_CAT[src.cat] || PER_SOURCE_LIMIT).map(([it, cats]) => {
+      const limit = src.music ? 12 : LIMIT_BY_CAT[src.cat] || PER_SOURCE_LIMIT
+      const mapped = fresh.map(([it, cats]) => {
         const link = safeHttpUrl(cleanUrl(it.link || it.guid || ''))
         const domain = hostname(link)
         const title = toText(it.title || '').trim()
@@ -137,6 +139,9 @@ export async function loadSource(src, avatarsP) {
         // YouTube-RSS levert geen <img>; thumbnail afleiden uit de video-id.
         const ytId = it.ytVideoId || null
         const image = safeHttpUrl(usableImage(pickImage(it))) || (ytId ? `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg` : null)
+        // Taal van dit bericht (shared/lang.mjs); `offLang`: anders dan de hoofdtaal van de bron
+        // (een Engelstalig Parool-stuk). Die laat de build weg voor lezers van de brontaal.
+        const { lang, offLang } = langOf({ title, summary: fullText, url: link }, src.lang)
         return {
           id: hash(src.id + '|' + link),
           kind: 'article',
@@ -159,9 +164,16 @@ export async function loadSource(src, avatarsP) {
           video: null,
           videoPoster: null,
           readMin,
+          lang,
+          offLang,
           publishedAt: plausibleTime(it.isoDate || (it.pubDate ? safeIso(it.pubDate) : null), fetchedAt),
         }
       }).filter((i) => i.url && i.title) // zonder geldige (http/https) link of zonder kop niet tonen
+      // De grens per bron telt alleen berichten in de taal van de bron: anders drukken de
+      // Engelstalige Parool-stukken (een derde van de feed) de Nederlandse eruit. Afwijkende
+      // berichten binnen die grens blijven, gemarkeerd.
+      let kept = 0
+      const items = mapped.filter((i) => (i.offLang ? kept < limit : kept < limit && ++kept))
       return { id: src.id, name: src.name, ok: true, used: url, count: items.length, items }
     } catch (e) {
       lastErr = e

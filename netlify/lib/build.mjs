@@ -16,6 +16,7 @@ import { kvGet, kvSet, remember, storageMode } from './kv.mjs'
 import { fetchAuthorPosts } from '../../shared/bluesky.mjs'
 import { hash, safeHttpUrl } from '../../shared/util.mjs'
 import { withoutCopies, titleKey } from '../../shared/dedupe.mjs'
+import { visibleFor, READER_LANG } from '../../shared/lang.mjs'
 
 const MIN = 6e4
 const DAY = 864e5
@@ -112,8 +113,12 @@ async function loadBluesky(author, now) {
 // zusterkranten brengen vaak hetzelfde stuk, en wie Tubantia volgt maar het AD niet, moet de hele
 // krant krijgen. Over de bronnen heen ontdubbelt de app (shared/dedupe.mjs), want alleen die weet
 // welke bronnen je volgt. Elke bron heeft zijn eigen grens (rss.mjs).
-export function streamItems(all) {
-  return withoutCopies(all.filter((it) => it.url).sort(byRecency), { perSource: true })
+// Een bericht in een andere taal dan zijn bron (`offLang`, rss.mjs) toont alleen aan een lezer
+// van die taal: de app is Nederlandstalig, dus een Engelstalig Parool-stuk valt hier af, en
+// daarmee ook uit de verhalen, de Editie en de bronpakketten. (Een Engelse app bouwt straks met
+// readerLang 'en'.)
+export function streamItems(all, { readerLang = READER_LANG } = {}) {
+  return withoutCopies(all.filter((it) => it.url && visibleFor(it, readerLang)).sort(byRecency), { perSource: true })
 }
 
 // Voor de verhalen telt een stuk één keer, ook als meer bronnen het brengen: anders telt
@@ -137,7 +142,8 @@ export function editionPool(out, articlePool) {
 // dan uit de zoekindex van Bing Nieuws. DPG-kranten: één vraag per rubriek die nu in de feed staat.
 const GAPS = { volkskrant: 'volkskrant.nl', trouw: 'trouw.nl', parool: 'parool.nl', demorgen: 'demorgen.be', nyt: 'nytimes.com', economist: 'economist.com' }
 const PER_SECTION = new Set(['volkskrant', 'trouw', 'parool', 'demorgen'])
-// Veel rubrieken tegelijk in de feed (het Parool ook Engelstalige: guide, amsterdam-news).
+// Veel rubrieken tegelijk in de feed. (De Engelstalige van het Parool, guide en amsterdam-news,
+// vallen al in de Stroom af: daar zoeken we niets meer voor.)
 const WIDE_SECTIONS = new Set(['volkskrant', 'parool'])
 async function fillGaps(items, now) {
   const result = { vkSnippets: 0, filled: 0 }
@@ -243,10 +249,12 @@ async function imagesFromArticles(items, now, { max = 36 } = {}) {
 // Alle Nederlandstalige bronnen doen mee, als ontvanger én als gever (Trouw, Parool, De Morgen
 // en regionale kranten leveren vaak alleen een kop).
 const dutch = (id) => SOURCE.get(id)?.lang === 'nl'
+// Per bericht: een Engelstalig Parool-stuk geeft geen teaser aan een Nederlands bericht.
+const dutchItem = (it) => (it.lang || SOURCE.get(it.source)?.lang) === 'nl'
 function borrowPreviews(items, mainItems) {
-  const donors = mainItems.filter((it) => it.kind === 'article' && it.summary && !it.borrowedFrom && dutch(it.source)).map((d) => ({ d, w: sigWords(d.title) }))
+  const donors = mainItems.filter((it) => it.kind === 'article' && it.summary && !it.borrowedFrom && dutchItem(it) && visibleFor(it)).map((d) => ({ d, w: sigWords(d.title) }))
   for (const it of items) {
-    if (it.kind !== 'article' || it.summary || !dutch(it.source)) continue
+    if (it.kind !== 'article' || it.summary || !dutchItem(it)) continue
     const w = sigWords(it.title)
     if (w.size < 3) continue
     let best = null
@@ -311,6 +319,9 @@ function toClient(it) {
     author: it.author,
     type: it.type,
     section: it.section,
+    // Alleen bij een afwijkende taal (de brontaal staat in de bronnenlijst): scheelt omvang.
+    lang: it.offLang ? it.lang : null,
+    offLang: it.offLang,
     storyId: it.storyId,
     firstSeenAt: it.firstSeenAt,
     title: it.title,

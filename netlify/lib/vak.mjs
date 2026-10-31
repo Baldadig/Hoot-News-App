@@ -11,6 +11,7 @@
 // webinars, podcasts, vacatures of "10 tools"-lijstjes. Geen AI-tekst: bij elk stuk staat de
 // eigen intro van de schrijver.
 import { loadSourceWithRetry } from './rss.mjs'
+import { visibleFor } from '../../shared/lang.mjs'
 import { tzOffsetMs, hostname } from './text.mjs'
 import { loadOgImage } from './og.mjs'
 export { ogImageFrom, loadOgImage } from './og.mjs'
@@ -390,7 +391,8 @@ export async function loadVakItems(sources = VAK_SOURCES) {
   // Alleen wat bij een onderwerp past en om te lezen is: brede bronnen (een krant, een
   // rubrieksfeed) leveren veel meer dan we bewaren willen.
   const byId = new Map(sources.map((s) => [s.id, s]))
-  const keep = (i) => byId.has(i.source) && isReading(i) && fieldOf(i, byId.get(i.source))
+  // Een bericht in een andere taal dan zijn bron (alleen bij bronnen met een `lang`) valt af.
+  const keep = (i) => byId.has(i.source) && visibleFor(i) && isReading(i) && fieldOf(i, byId.get(i.source))
   const slim = ({ text, cats, ...it }) => it // de artikeltekst en rubrieken hebben we hier niet nodig
   return { items: results.flatMap((r) => r.items).filter(keep).map(slim), status: results.map((r) => ({ id: r.id, ok: r.ok, count: r.count, newest: newest(r) })) }
 }
