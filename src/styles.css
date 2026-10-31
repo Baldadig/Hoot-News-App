@@ -558,9 +558,10 @@ select {
   line-clamp: var(--lines, 2);
   overflow: hidden;
 }
-/* Huisregel: Hoot eindigt nooit met een beletselteken. Een intro is al op hele zinnen geknipt
-   (wholeSentences, shared/zinnen.mjs, met --lines als maat); de clamp staat dan een regel ruimer
-   en is alleen een vangnet voor een smalle kolom of grote tekst. */
+/* Huisregel: Hoot eindigt nooit met een beletselteken. Een intro is al op hele zinnen geknipt die
+   in --lines regels passen, gemeten in de smalste kolom (375) en bij de tekstgrootte
+   (src/lib/intro.js); een te lange eerste zin mag één regel doorlopen. Daarom staat de clamp
+   precies een regel ruimer. */
 .clamp--vangnet {
   -webkit-line-clamp: calc(var(--lines, 2) + 1);
   line-clamp: calc(var(--lines, 2) + 1);
@@ -1857,8 +1858,9 @@ select.input {
 }
 /* Stroom, korte weergave: één tot drie regels intro per bericht om sneller te scannen
    (instelbaar onder Filters). Een sociale bijdrage heeft geen kop, dus die krijgt meer regels.
-   De intro van een bericht is al op hele zinnen geknipt (wholeSentences, ± 60/130/200 tekens);
-   Hoot eindigt nooit met een beletselteken, dus de clamp staat een regel ruimer, als vangnet. */
+   De intro van een bericht is al op hele zinnen geknipt die in --lines regels passen
+   (src/lib/intro.js); een te lange eerste zin loopt één regel door, dus de clamp staat een regel
+   ruimer. Hoot eindigt nooit met een beletselteken. */
 .list--lines-1 {
   --lines: 1;
   --lines-social: 4;

@@ -1,15 +1,25 @@
 {
-  "_uitleg": "Testgevallen voor wholeSentences(text, max) (shared/zinnen.mjs) en introMax(lines, thumb). Web (tests/zinnen.test.mjs) en iOS (Text+Sentences, I4) lezen dit bestand allebei. max null = Infinity ('alles').",
+  "_uitleg": "Testgevallen voor wholeSentences(text, max, rek) (shared/zinnen.mjs) en introMax(lines, { width, font }). Web (tests/zinnen.test.mjs) en iOS (Text+Sentences, I4) lezen dit bestand allebei. max null = Infinity ('alles'); rek ontbreekt = gelijk aan max.",
   "zinnen": [
     { "naam": "afgekapte bron: Politkovska… gaat eraf met het halve stuk", "invoer": "De moord op journaliste Anna Politkovskaja blijft onopgelost. Volgens haar collega's wist het Kremlin meer dan het zei over Politkovska…", "max": 130, "verwacht": "De moord op journaliste Anna Politkovskaja blijft onopgelost." },
     { "naam": "afgekapte bron met drie punten", "invoer": "Het kabinet presenteert vandaag de begroting. De oppositie spreekt van een gemiste kans voor de wereldni...", "max": null, "verwacht": "Het kabinet presenteert vandaag de begroting." },
     { "naam": "afgekapte bron met [...] na een hele zin", "invoer": "Het water in de Maas stijgt verder. [...]", "max": 130, "verwacht": "Het water in de Maas stijgt verder." },
     { "naam": "afkortingen dr. en o.a. zijn geen zinseinde", "invoer": "Volgens dr. Jansen spelen o.a. de rente en de huizenprijzen een rol. Het CBS bevestigt dat beeld in nieuwe cijfers over het derde kwartaal van dit jaar.", "max": 130, "verwacht": "Volgens dr. Jansen spelen o.a. de rente en de huizenprijzen een rol." },
     { "naam": "zin die eindigt met een sluitende aanhaling", "invoer": "„We gaan door tot het einde”, zei de premier. „Er is geen weg terug.” De oppositie reageerde verdeeld op de toespraak in de Tweede Kamer van dinsdagavond.", "max": 80, "verwacht": "„We gaan door tot het einde”, zei de premier. „Er is geen weg terug.”" },
-    { "naam": "geen zinseinde binnen max, wel een komma", "invoer": "De Europese ministers van Financiën, die maandag in Brussel bijeenkwamen om over de nieuwe begrotingsregels te praten, kwamen niet tot een akkoord.", "max": 60, "verwacht": "De Europese ministers van Financiën" },
+    { "naam": "komma: een stuk dat alleen een onderwerp is (korter dan twee derde van max) is geen intro", "invoer": "De Europese ministers van Financiën, die maandag in Brussel bijeenkwamen om over de nieuwe begrotingsregels te praten, kwamen niet tot een akkoord.", "max": 60, "verwacht": "" },
     { "naam": "geen zinseinde en geen komma: niets", "invoer": "Een heel lange zin zonder enige komma die maar doorgaat over het weer en het verkeer en de treinen.", "max": 60, "verwacht": "" },
     { "naam": "eind op … zonder hele zin: tot de laatste komma", "invoer": "Na maanden van onderhandelen, waarin beide partijen weinig toegaven, sloten de vakbonden een akkoord met de werkgevers over de lonen in de…", "max": null, "verwacht": "Na maanden van onderhandelen, waarin beide partijen weinig toegaven" },
     { "naam": "eind op … zonder zin en zonder komma: niets", "invoer": "De wereldwijde vraag naar chips stijgt sneller dan de fabrieken kunnen bijbenen in de…", "max": 130, "verwacht": "" },
+    { "naam": "komma: een hoofdzin van minstens twee derde van max mag", "invoer": "Canada gaat 500 miljoen euro bijdragen aan de EU-lening aan Oekraïne, maakte premier Carney maandag bekend tijdens een bezoek aan Brussel.", "max": 80, "verwacht": "Canada gaat 500 miljoen euro bijdragen aan de EU-lening aan Oekraïne" },
+    { "naam": "komma: een bijzin die op zijn hoofdzin wacht is geen intro", "invoer": "Nu alle stemmen van de Israëlische verkiezingen zijn geteld, is duidelijk dat geen van de blokken een meerderheid heeft in de Knesset.", "max": 70, "verwacht": "" },
+    { "naam": "komma in een getal is geen knip", "invoer": "Het stadsbestuur van Brugge is heel blij dat de Vlaamse regering 5,5 miljoen euro investeert in de restauratie van het Belfort.", "max": 70, "verwacht": "" },
+    { "naam": "komma: kort stuk zoals 'In Armenia' is geen intro", "invoer": "In Armenia, where elections are due next year, the ruling party is losing ground to a new movement led by a former boxer.", "max": 30, "verwacht": "" },
+    { "naam": "letterwoord aan het eind van een zin is een zinseinde", "invoer": "Feyenoord gaat het in de achtste finale van de KNVB-beker opnemen tegen amateurclub GVVV. De wedstrijd wordt op 17 december in Veenendaal gespeeld.", "max": 130, "verwacht": "Feyenoord gaat het in de achtste finale van de KNVB-beker opnemen tegen amateurclub GVVV." },
+    { "naam": "letterwoord: aan de NOS. en tegen NEC.", "invoer": "Dat zegt de minister aan de NOS. Morgen speelt Ajax tegen NEC. De kaartverkoop loopt goed.", "max": 65, "verwacht": "Dat zegt de minister aan de NOS. Morgen speelt Ajax tegen NEC." },
+    { "naam": "een initiaal is geen zinseinde", "invoer": "Jan G. uit Tilburg is opgepakt voor de brand. De politie zoekt nog getuigen.", "max": 50, "verwacht": "Jan G. uit Tilburg is opgepakt voor de brand." },
+    { "naam": "rek: past er geen hele zin, dan de eerste zin als die binnen rek blijft", "invoer": "Het kabinet trekt volgend jaar twee miljard euro extra uit voor defensie. De oppositie wil weten waar het geld vandaan komt.", "max": 50, "rek": 79, "verwacht": "Het kabinet trekt volgend jaar twee miljard euro extra uit voor defensie." },
+    { "naam": "rek: ook de eerste zin is langer dan rek, dan niets", "invoer": "Het kabinet trekt volgend jaar twee miljard euro extra uit voor defensie en de krijgsmacht. De oppositie wil weten waar het geld vandaan komt.", "max": 50, "rek": 79, "verwacht": "" },
+    { "naam": "rek geldt alleen voor de eerste zin, niet voor meer zinnen", "invoer": "Het regent. Het waait hard en de treinen rijden minder vaak.", "max": 20, "rek": 40, "verwacht": "Het regent." },
     { "naam": "lege tekst", "invoer": "", "max": 130, "verwacht": "" },
     { "naam": "alleen witruimte", "invoer": "   ", "max": 130, "verwacht": "" },
     { "naam": "past helemaal: ongewijzigd, ook zonder slotpunt", "invoer": "Storm in het noorden, treinen rijden minder vaak", "max": 130, "verwacht": "Storm in het noorden, treinen rijden minder vaak" },
@@ -20,13 +30,12 @@
     { "naam": "alles: hele tekst, ook boven 200", "invoer": "Een. Twee. Drie. Vier. Vijf. Zes. Zeven. Acht. Negen. Tien. Elf. Twaalf. Dertien. Veertien. Vijftien. Zestien. Zeventien. Achttien. Negentien. Twintig. Eenentwintig. Tweeëntwintig. Drieëntwintig. Vierentwintig. Vijfentwintig.", "max": null, "verwacht": "Een. Twee. Drie. Vier. Vijf. Zes. Zeven. Acht. Negen. Tien. Elf. Twaalf. Dertien. Veertien. Vijftien. Zestien. Zeventien. Achttien. Negentien. Twintig. Eenentwintig. Tweeëntwintig. Drieëntwintig. Vierentwintig. Vijfentwintig." }
   ],
   "introMax": [
-    { "lines": 1, "thumb": false, "verwacht": 60 },
-    { "lines": 2, "thumb": false, "verwacht": 130 },
-    { "lines": 3, "thumb": false, "verwacht": 200 },
-    { "lines": "alles", "thumb": false, "verwacht": null },
-    { "lines": 1, "thumb": true, "verwacht": 48 },
-    { "lines": 2, "thumb": true, "verwacht": 104 },
-    { "lines": 3, "thumb": true, "verwacht": 160 },
-    { "lines": "alles", "thumb": true, "verwacht": null }
+    { "lines": 1, "width": 247, "font": 15, "verwacht": { "max": 22, "rek": 50 } },
+    { "lines": 2, "width": 247, "font": 15, "verwacht": { "max": 50, "rek": 79 } },
+    { "lines": 3, "width": 247, "font": 15, "verwacht": { "max": 79, "rek": 107 } },
+    { "lines": 2, "width": 331, "font": 15, "verwacht": { "max": 70, "rek": 108 } },
+    { "lines": 3, "width": 331, "font": 15, "verwacht": { "max": 108, "rek": 146 } },
+    { "lines": 2, "width": 223, "font": 18, "verwacht": { "max": 36, "rek": 58 } },
+    { "lines": "alles", "width": 247, "font": 15, "verwacht": { "max": null, "rek": null } }
   ]
 }

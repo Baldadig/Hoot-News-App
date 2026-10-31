@@ -14,7 +14,8 @@ import { fitsHero } from '../lib/img.js'
 import { followedNow } from '../lib/follow.js'
 import { TermHelp } from '../components/Terms.jsx'
 import { Why } from '../components/Why.js'
-import { wholeSentences, introMax } from '../../shared/zinnen.mjs'
+import { wholeSentences } from '../../shared/zinnen.mjs'
+import { useIntroMax } from '../lib/intro.js'
 
 // Rubriek van elke plek in de editie (komt van de server), als label boven het verhaal. Zelfde
 // namen als DESK_NAMES in shared/editor.mjs; 'regio' is de plek die De Redacteur uit je regionale
@@ -34,7 +35,8 @@ function FrontItem({ item, story, note, why = null, followed, taste }) {
   const { markRead, read } = useHoot()
   const opinie = item.type === 'opinie'
   const title = item.title
-  const summary = wholeSentences(item.summary, introMax(2, !!item.image)) // hele zinnen, nooit "…"
+  const fit = useIntroMax()(2, item.image ? 'voorpagina' : 'rij')
+  const summary = wholeSentences(item.summary, fit.max, fit.rek) // hele zinnen, nooit "…"
   return (
     <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       {note || opinie || followed ? (

@@ -6,14 +6,16 @@ import { BackButton } from '../components/Shell.jsx'
 import { Disclosure } from '../components/Disclosure.jsx'
 import { timeAgo } from '../lib/time.js'
 import { withLead } from '../lib/saved.js'
-import { wholeSentences, introMax } from '../../shared/zinnen.mjs'
+import { wholeSentences } from '../../shared/zinnen.mjs'
+import { useIntroMax } from '../lib/intro.js'
 
 // Eén publicatie in het smalle paneel (breed scherm): de kop over de volle breedte en hooguit
 // twee regels samenvatting in hele zinnen, dan bron en tijd op hun vaste plek eronder. Geen beeld — dat perst
 // de kop samen.
 function SourceItem({ item, note }) {
   const { markRead, read } = useHoot()
-  const summary = wholeSentences(item.summary, introMax(2)) // hele zinnen, nooit "…"
+  const fit = useIntroMax()(2, 'paneel')
+  const summary = wholeSentences(item.summary, fit.max, fit.rek) // hele zinnen, nooit "…"
   return (
     <article className={`entry srcitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <a className="srcitem__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>

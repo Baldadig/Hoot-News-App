@@ -11,7 +11,8 @@ import { Video } from './Video.jsx'
 import { Why } from './Why.js'
 import { directVideo } from '../../shared/bluesky.mjs'
 import { safeHttpUrl } from '../../shared/util.mjs'
-import { wholeSentences, introMax } from '../../shared/zinnen.mjs'
+import { wholeSentences } from '../../shared/zinnen.mjs'
+import { useIntroMax } from '../lib/intro.js'
 
 // Bewaarde berichten komen uit opslag (dit toestel, of je account), niet vers van de server:
 // ook daar alleen http(s) in een href. Zonder geldige link is het een link zonder doel.
@@ -165,11 +166,11 @@ export function aboutOf(items) {
   return names.length ? names.join(' en ') : `dit soort verhalen`
 }
 
-// De intro in hele zinnen tot ± max tekens (shared/zinnen.mjs). Hoot eindigt nooit met een
-// beletselteken: past er geen hele zin, dan tot de laatste komma, of geen intro. De line-clamp in
-// de CSS staat een regel ruimer en is alleen een vangnet.
-const Summary = ({ item, className, max = Infinity }) => {
-  const text = wholeSentences(item.summary, max)
+// De intro in hele zinnen die in de gekozen regels passen (shared/zinnen.mjs, src/lib/intro.js).
+// Hoot eindigt nooit met een beletselteken: een te lange eerste zin mag één regel doorlopen, en de
+// line-clamp in de CSS staat precies die regel ruimer. `fit`: { max, rek }.
+const Summary = ({ item, className, fit = { max: Infinity, rek: Infinity } }) => {
+  const text = wholeSentences(item.summary, fit.max, fit.rek)
   return text ? (
     <p className={className}>
       {text}
@@ -195,7 +196,7 @@ export function LeadStory({ item, story, note, why = null, followed = null, prio
         <Kicker item={item} extra={note} followed={followed} />
         <Why why={why} />
         <h2 className="head-6 lead__title">{item.title}</h2>
-        <Summary item={item} className="lead__sum" max={240} />
+        <Summary item={item} className="lead__sum" fit={{ max: 240, rek: 240 }} />
         {item.author ? <p className="byline">Door {item.author}</p> : null}
       </a>
       <TermHelp text={`${item.title} ${item.summary || ''}`} />
@@ -214,6 +215,7 @@ export function LeadStory({ item, story, note, why = null, followed = null, prio
 // de krant-vorm van de Editie en het vergelijkpaneel (`plain`) 2, zoals de app.
 export function CompactItem({ item, story, note, why = null, showSave = true, plain = false, taste = null, lines }) {
   const { markRead, read, layout, prefs } = useHoot()
+  const introMax = useIntroMax()
   const n = lines ?? (plain ? 2 : prefs?.preview ?? 2)
   const cls = `entry compact${read.has(item.id) ? ' is-read' : ''}`
   if (layout === 'tijdlijn' && !plain) {
@@ -224,7 +226,7 @@ export function CompactItem({ item, story, note, why = null, showSave = true, pl
           <Kicker item={item} extra={note} />
           <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
-          <Summary item={item} className="compact__sum" max={introMax(n, false)} />
+          <Summary item={item} className="compact__sum" fit={introMax(n)} />
           {item.image && fitsLarge(item.image) ? (
             <div className="media media--tl">
               <Img url={item.image} kind="lead" />
@@ -242,7 +244,7 @@ export function CompactItem({ item, story, note, why = null, showSave = true, pl
           <Kicker item={item} extra={note} />
           <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
-          <Summary item={item} className="compact__sum" max={introMax(n, !!item.image)} />
+          <Summary item={item} className="compact__sum" fit={introMax(n, 'rij', !!item.image)} />
         </div>
         {item.image ? (
           <div className="thumb">
