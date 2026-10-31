@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { gunzipSync } from 'node:zlib'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import voorpagina, { extract, isDutch, isHeavy, rubriek, OPEN_IMAGE_SOURCES, config } from '../netlify/functions/voorpagina.mjs'
@@ -20,6 +22,7 @@ const feed = () => ({
       { kind: 'story', id: 's2', leadId: 'b', desk: 'buitenland', sourceCount: 5 }, // Engels: overslaan
       { kind: 'story', id: 's1', leadId: 'a', desk: 'binnenland', sourceCount: 12 },
       { kind: 'item', id: 'e', desk: 'wetenschap' },
+      { kind: 'item', id: 'cultuur0', desk: 'cultuur' },
       { kind: 'item', id: 'f', desk: 'vs' }, // offLang: overslaan
       { kind: 'story', id: 's3', leadId: 'c', desk: 'middenoosten', sourceCount: 3 },
       { kind: 'story', id: 's4', leadId: 'd', desk: 'oekraine', sourceCount: 2 },
@@ -30,6 +33,7 @@ const feed = () => ({
       it('c', 'nrc', 'NRC', 'Derde plek'),
       it('d', 'nos', 'NOS', 'Vierde plek'),
       it('e', 'nos', 'NOS', 'Los bericht', { lang: 'nl' }),
+      it('cultuur0', 'nrc', 'NRC', 'Nieuwe tentoonstelling opent'),
       it('f', 'nos', 'NOS', 'Foreign', { offLang: true }),
     ],
   },
@@ -83,7 +87,7 @@ test('rubrieken afgeleid uit bron en onderwerpen (cultuur, tech, sport)', () => 
 })
 
 test('zware koppen: titel en intro worden uitgesloten', () => {
-  for (const t of ['Man doodgeschoten in Rotterdam', 'Twee doden bij ongeluk', 'Aanslag op markt', 'Oorlogsmisdaden onderzocht', 'Ramp in de haven', 'Kanker bij kinderen', 'Zelfmoord onder jongeren', 'Gijzeling duurt voort', 'Rellen in Den Haag', 'Executie in Iran', 'Verkrachting aangegeven', 'Misbruik bij club', 'Explosie in fabriek', 'Crash op A2', 'Schrijver overleden', 'Geweld op straat', 'Terreurdreiging', 'Ziekenhuis vol']) {
+  for (const t of ['Man doodgeschoten in Rotterdam', 'Twee doden bij ongeluk', 'Aanslag op markt', 'Oorlogsmisdaden onderzocht', 'Ramp in de haven', 'Kanker bij kinderen', 'Zelfmoord onder jongeren', 'Gijzeling duurt voort', 'Rellen in Den Haag', 'Executie in Iran', 'Verkrachting aangegeven', 'Misbruik bij club', 'Explosie in fabriek', 'Crash op A2', 'Schrijver overleden', 'Geweld op straat', 'Terreurdreiging', 'Ziekenhuis vol', 'Tien mensen opgepakt na ongeregeldheden', 'Rubberboot met migranten gered', 'Man mishandeld na ontvoering']) {
     assert.ok(isHeavy({ title: t }), t)
   }
   for (const t of ['Kabinet bereikt akkoord', 'Overleg over woningbouw', 'Bommen en granaten van chocola', 'Zeehondencentrum krijgt steun', 'Brandweer opent museum', 'Rampenplan fietsfestival']) {
@@ -91,10 +95,10 @@ test('zware koppen: titel en intro worden uitgesloten', () => {
   }
   const f = feed()
   f.edition.items[0].title = 'Kabinet: man doodgeschoten' // titel
-  assert.ok(!extract(f).entries.some((e) => e.title.includes('doodgeschoten')))
+  assert.equal(extract(f), null) // geen drie veilige koppen: geen gedeeltelijk succesantwoord
   const g = feed()
   g.edition.items[0].summary = 'Er vielen doden bij de botsing.' // intro
-  assert.ok(!extract(g).entries.some((e) => e.title === 'Kabinet bereikt akkoord'))
+  assert.equal(extract(g), null)
 })
 
 test('verschillende rubrieken waar mogelijk, anders aanvullen binnen dezelfde', () => {
@@ -108,19 +112,24 @@ test('verschillende rubrieken waar mogelijk, anders aanvullen binnen dezelfde', 
   assert.deepEqual(extract(f).entries.map((e) => e.desk), ['binnenland', 'binnenland', 'binnenland'])
 })
 
-test('terugval naar buitenland bij te weinig rustige plekken', () => {
+test('hooguit één Wereld-plek, alleen groot nieuws; zonder drie geschikte plekken geen misleidend resultaat', () => {
   const f = feed()
-  f.edition.entries = [
-    { kind: 'item', id: 'a', desk: 'binnenland' },
-    { kind: 'story', id: 's3', leadId: 'c', desk: 'middenoosten', sourceCount: 3 },
-    { kind: 'story', id: 's4', leadId: 'd', desk: 'oekraine', sourceCount: 2 },
-    { kind: 'item', id: 'j', desk: 'buitenland' },
-  ]
-  f.edition.items.push(it('j', 'nos', 'NOS', 'Nieuwe brug in Parijs open'))
+  f.edition.entries = [{ kind: 'item', id: 'a', desk: 'binnenland' }, { kind: 'item', id: 'e', desk: 'wetenschap' }, { kind: 'story', id: 's3', leadId: 'c', desk: 'buitenland', sourceCount: 8 }, { kind: 'story', id: 's4', leadId: 'd', desk: 'vs', sourceCount: 9 }]
+  const result = extract(f)
+  assert.equal(result.entries.length, 3)
+  assert.equal(result.entries.filter(e => ['buitenland','vs','middenoosten','oekraine'].includes(e.desk)).length, 1)
+  f.edition.entries = f.edition.entries.slice(2)
+  assert.equal(extract(f), null)
+})
+
+test('sport en zwaar nieuws vallen weg, ook bij een sportbron zonder desk', () => {
+  const f = feed()
+  f.sources.push({ id: 'sport', lang: 'nl', cat: 'sport' })
+  f.edition.entries.unshift({kind:'item',id:'s',desk:null},{kind:'item',id:'z',desk:'binnenland'})
+  f.edition.items.push(it('s','sport','Sport','Manchester United dieper in de problemen'),it('z','nos','NOS','Twee doden bij aanslag'))
   const r = extract(f)
-  assert.equal(r.entries.length, 3)
-  assert.equal(r.entries[0].desk, 'binnenland')
-  assert.deepEqual(r.entries.map((e) => e.desk), ['binnenland', 'middenoosten', 'oekraine']) // Editie-volgorde, buitenlandse rubrieken verschillend
+  assert.equal(r.entries.length,3)
+  assert.ok(r.entries.every(e => !/Manchester|doden|aanslag/.test(e.title)))
 })
 
 test('aanvullen uit de pool van het dagdeel (laatste 24 uur) bij te weinig in de Editie', () => {
@@ -146,7 +155,7 @@ test('imageUrl alleen voor bronnen op de lijst met open licentie of toestemming'
   const byTitle = Object.fromEntries(r.entries.map((e) => [e.title, e]))
   assert.equal(byTitle['Kabinet bereikt akkoord'].imageUrl, 'https://x/i.jpg')
   assert.equal(byTitle['Los bericht'].imageUrl, 'https://x/i.jpg')
-  assert.ok(!('imageUrl' in byTitle['Derde plek'])) // nrc staat niet op de lijst
+  assert.ok(!('imageUrl' in byTitle['Nieuwe tentoonstelling opent'])) // nrc staat niet op de lijst
   const g = feed()
   g.edition.items[0].image = 'http://x/onveilig.jpg'
   assert.ok(!('imageUrl' in extract(g, 3, new Set(['nos'])).entries[0])) // alleen https
@@ -189,4 +198,23 @@ test('endpoint: kapotte opgeslagen feed geeft 503, geen crash', async () => {
   const r = await get()
   assert.equal(r.status, 503)
   assert.deepEqual(await r.json(), { edition: null })
+})
+
+test('aanvullen gebruikt de echte feedpool, ook als die berichten niet in ed.items staan', () => {
+  const f = feed()
+  f.edition.entries = [{kind:'item',id:'a',desk:'binnenland'}]
+  f.items = [it('pool-a','nos','NOS','Museum opent de deuren',{topics:['kunst']}),it('pool-b','nos','NOS','Een nieuwe bibliotheek',{topics:['boeken']})]
+  f.stories = f.items.map((i,n)=>({id:'pool-'+n,leadId:i.id,itemIds:[i.id],sourceCount:2,latestAt:'2026-10-31T04:00:00Z'}))
+  assert.equal(extract(f).entries.length,3)
+  f.items[0].mainTopics=[];f.items[0].topics=['voetbal']
+  assert.equal(extract(f),null)
+})
+
+test('echte middagfixture: drie rustige koppen uit de feedpool en maximaal één Wereld', () => {
+  const f=JSON.parse(gunzipSync(readFileSync(new URL('./fixtures/snapshot-2026-10-31-1200.json.gz',import.meta.url))))
+  const result=extract(f)
+  assert.equal(result.entries.length,3)
+  assert.ok(result.entries.every(e=>!isHeavy({title:e.title})))
+  assert.ok(result.entries.filter(e=>['buitenland','vs','middenoosten','oekraine'].includes(e.desk)).length<=1)
+  assert.equal(new Set(result.entries.map(e=>e.title)).size,3)
 })

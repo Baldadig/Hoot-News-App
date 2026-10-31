@@ -48,12 +48,14 @@ function securityHeaders() {
     },
     closeBundle() {
       const html = readFileSync(`${outDir}/index.html`, 'utf8')
-      writeFileSync(`${outDir}/_headers`, headersFile(html))
+      writeFileSync(`${outDir}/_headers`, headersFile(html, { base: '/lees' }))
     },
   }
 }
 
 export default defineConfig({
+  base: '/lees/',
+  build: { outDir: 'dist/lees', emptyOutDir: true },
   // Versienummer zichtbaar in het menu, zodat je ziet welke versie er draait.
   define: { __APP_VERSION__: JSON.stringify(version) },
   plugins: [
@@ -75,16 +77,17 @@ export default defineConfig({
         theme_color: '#f5f1e8',
         background_color: '#f5f1e8',
         display: 'standalone',
-        start_url: '/',
-        scope: '/',
+        start_url: '/lees/',
+        scope: '/lees/',
         icons: [
-          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: '/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: '/lees/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/lees/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/lees/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {
-        navigateFallback: '/index.html',
+        navigateFallback: '/lees/index.html',
+        navigateFallbackAllowlist: [/^\/lees(?:\/|$)/],
         globPatterns: ['**/*.{js,css,html,woff2,svg,png}'], // ook de lettertypes, zodat de app offline gelijk blijft
         globIgnores: ['og.png'], // deelafbeelding: alleen voor links in andere apps
         runtimeCaching: [

@@ -13,7 +13,7 @@ Hoot is een rustige nieuwslezer: drie keer per dag een Editie van tien verhalen 
 ## Taal
 
 - **Nederlands, je en jij**, kort en zakelijk, zonder uitroeptekens of emoji in de bediening.
-- **Zeg wat er gebeurt**, in de taal van de lezer: "Bewaar", "Markeer als ongelezen", "Je ziet de versie van 10:10", "Inloggen bij NRC". Niet "Sync", niet "Cache".
+- **Zeg wat er gebeurt**, in de taal van de lezer: "Bewaar", "Markeer als ongelezen", "Je ziet de laatste versie", "Inloggen bij NRC". Niet "Sync", niet "Cache".
 - **Labels zijn feitelijk:** "Buiten je bronnen", "Gekozen door Sidebar", "Eerste bericht", "Voorkeursbron". Geen aanprijzing ("Must read") en geen schrik ("BREAKING").
 - **Fouten zeggen wat er mis is en wat je kunt doen:** "Geen verbinding. Zodra je verbinding hebt, verschijnt de editie hier." met de knop "Probeer opnieuw".
 - **Rubrieken in kapitalen** alleen in de `kicker`; verder zinnen met één hoofdletter ("Artikelen openen", niet "Artikelen Openen").
@@ -28,7 +28,7 @@ De stem van de productpagina in de App Store (Alex, 28 oktober) is de maat voor 
 - **Gewone woorden voor de onderdelen:** editie, Stroom, "hoe andere media het brengen". Geen kopjes in kapitalen, geen opsommingstekens als het ook in een zin kan.
 - **Eerlijk en rustig over privacy:** "Hoot volgt je niet." "Wat de app leert van je leesgedrag, blijft op je toestel." Zeg wat waar is, zonder superlatieven.
 - **Zeg waar het nieuws vandaan komt:** "Koppen en korte intro's komen uit openbare nieuwsfeeds. Bij elk verhaal staan de bron en een link naar het oorspronkelijke artikel."
-- **De Selectie** (voorheen Digest) is breder dan werk: "Eén keer per week bijgepraat over wat jou bezighoudt." Vak, hobby of liefhebberij.
+- **De Selectie** is breder dan werk: "Eén keer per week bijgepraat over wat jou bezighoudt." Vak, hobby of liefhebberij.
 - **Maker:** "gemaakt in Nederland door Baldadig".
 
 Volledige tekst: `ios/AppStore/metadata/nl-NL/description.txt`.
@@ -84,7 +84,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 ## Ruimte en vorm
 
 - **Eén schaal van 4 px:** `s1` 4, `s2` 8, `s3` 12, `s4` 16, `s5` 24, `s6` 32, `s7` 48. Elke marge, padding en tussenruimte komt hiervandaan, ook in Swift (`Space.s1`–`Space.s7`). De enige uitzondering is `s0` (2 px): tussen twee regels van één label, zoals bronnaam en tijd.
-- **Maten van dingen** (geen ruimte) hebben eigen tokens: icoon 22, bronlogo 24 in de bronregel en 28–30 in de bronnenrij, miniatuur 96 × 64 (3:2; web op een smalle telefoon 84 × 56, bij grote tekst 108 × 72) en 64 vierkant op de voorpagina. Beeldverhoudingen zijn ook tokens: `media-tl` 2:1 voor de Tijdlijn (een besluit), `media-lead` 2:1 en `media-lead-wide` 21:9 voor het hoofdverhaal op de website, `media-lead-portrait` 4:5 en `media-lead-portrait-wide` 3:4 (kolom 300) voor een gemeten staand hoofdbeeld, `media-card` 16:9 voor een kaart van de Selectie. Elk aanraakdoel is minstens `tap` (44 × 44), ook als het zichtbare deel kleiner is.
+- **Maten van dingen** (geen ruimte) hebben eigen tokens: icoon 22, bronlogo 24 in de bronregel en 28–30 in de bronnenrij, miniatuur 96 × 64 (3:2; web op een smalle telefoon 84 × 56, bij grote tekst 108 × 72) en dezelfde 3:2-miniatuur op de voorpagina. Beeldverhoudingen zijn ook tokens: `media-tl` 2:1 voor de Tijdlijn (een besluit), `media-lead` 2:1 en `media-lead-wide` 21:9 voor het hoofdverhaal op de website, `media-lead-portrait` 4:5 en `media-lead-portrait-wide` 3:4 (kolom 300) voor een gemeten staand hoofdbeeld, `media-card` 16:9 voor een kaart van de Selectie. Elk aanraakdoel is minstens `tap` (44 × 44), ook als het zichtbare deel kleiner is.
 - **Zijmarge** is `gutter` (16 px). De leesbreedte is `readable` (680 px); brede pagina's (Editie, Selectie op iPad en desktop) gaan tot `wide` (1000 px).
 - **Vier hoeken:** `radius-sm` (8) voor miniaturen; `radius` (12) voor beeld, kaarten, meldingen, velden en icoonknoppen; `radius-lg` (16) voor bladen; `radius-pill` voor chips, knoppen met tekst, schakelaars en bronlogo's. In Swift `Radius.sm`, `.md`, `.lg`.
 - **Schaduw alleen voor wat zweeft** (`shadow-float`). Inhoud ligt plat: diepte komt van `surface` op `paper`. Zwevend zijn precies drie dingen: de melding "Ongedaan maken" (web en iOS), de knop met nieuwe berichten en terug naar boven. Glas (iOS) heeft zijn eigen diepte en krijgt geen extra schaduw.
@@ -95,7 +95,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 
 - **Alleen scherpe beelden:** een hoofdverhaal alleen met een beeld van minstens 700 px breed, een groot beeld vanaf 400 px; anders geen beeld.
 - **Vaste verhoudingen**, bijgesneden en niet uitgerekt:
-  - hoofdbeeld 16:9 (iPhone), 2:1 (iPad mini) of 3:2 (breed);
+  - hoofdbeeld 2:1 bij liggend beeld, 4:5 bij staand beeld en 3:4 naast de tekst op een breed scherm;
   - een bericht in de Stroom, Bewaard en Zoeken heeft twee vormen, op web en iOS gelijk ("Lees de Stroom als"): **Tijdlijn** — kop, intro, het beeld over de volle kolombreedte in 2:1 (`media-tl`, `radius`), de bronregel eronder; **Krant** — kop en intro links, een klein beeld 3:2 rechts met vaste breedte (`thumb`, `radius-sm`), de bronregel onder de tekst. Op alle breedtes dezelfde twee vormen;
   - miniatuur op de voorpagina vierkant, met `radius-sm`.
 - **Bij heel grote tekst** valt de miniatuur weg: de kop krijgt de hele breedte.
@@ -119,8 +119,8 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 ## Toestanden
 
 - **Leeg:** wat er komt en wat je kunt doen ("Nog niets bewaard. Tik op het bladwijzericoon bij een bericht om het hier te bewaren.").
-- **Geen verbinding:** de laatst bewaarde versie, met "Verversen lukt nu niet. Je ziet de versie van 10:10." en "Opnieuw". Zonder eerdere versie een melding met de knop "Probeer opnieuw".
-- **Het einde van de editie:** een kaart in merkrood met de "h.", "Je bent bij.", "Dit was de avondeditie van dinsdag 27 oktober. De volgende staat morgenochtend voor je klaar." (dagdelen, nooit kloktijden: na de ochtend "in de middag", na de middag "in de vroege avond") en "Toch verder lezen in de Stroom".
+- **Geen verbinding:** de laatst bewaarde versie, met "Verversen lukt nu niet. Je ziet de laatste versie." en "Opnieuw". Zonder eerdere versie een melding met de knop "Probeer opnieuw".
+- **Het einde van de editie:** een kaart in merkrood met de opkomende zon, "Je bent bij.", "Dit was de Avondeditie van zaterdag 31 oktober. De volgende staat morgenochtend klaar." (dagdelen, nooit kloktijden: na de ochtend "in de middag", na de middag "in de vroege avond") en "Of lees verder in de Stroom".
 - **Gelezen:** de kop in `ink-3` in plaats van `ink`.
 - **Verwijderen:** één ding (een bewaard bericht) gaat meteen, met daarna zes seconden "Ongedaan maken" (web: melding; iOS: balk onderaan, ook voorgelezen door VoiceOver). Alles tegelijk wissen ("Bewaarde artikelen verwijderen", "Alles als ongelezen markeren") vraagt bevestiging, met een zichtbare "Annuleer" en precies wat er verdwijnt.
 
@@ -146,8 +146,8 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 Bewuste verschillen, omdat elk platform zijn eigen conventies heeft:
 
 - **Letters:** web Newsreader en Source Sans 3; iOS New York en San Francisco, zodat Dynamische tekst werkt.
-- **Hoofdverhaal op een smalle website:** eerst rubriek, kop en intro, dan het beeld (21:9 vanaf 720 px). In de app staat het beeld boven de kop (16:9, iPad mini 2:1, breed 3:2 ernaast).
-- **Lege toestand:** web met een serif-titel en uitleg in `ink-2`; iOS met de standaardweergave van het systeem (`ContentUnavailableView`) met dezelfde teksten.
+- **Hoofdverhaal op een smalle website:** het beeld staat boven rubriek, kop en intro (liggend 2:1, op het brede web 21:9). Staand beeld is 4:5 en op een ruim scherm 3:4 naast de tekst. De app volgt dezelfde plaatsing; liggend blijft daar 2:1.
+- **Lege toestand:** web en iOS gebruiken een getekende bladzijde, een serif-titel en uitleg in `ink-2`. Foutmeldingen op iOS houden de systeemweergave met een knop om opnieuw te proberen.
 - **Bronnaam:** op de website kapt een lange naam af op één regel; in de app loopt hij door.
 - **Alleen in de app:** de Hoot-lezer (zie ReaderPage) en de Bluesky-keuze bovenaan de Stroom.
 - **Delen:** in de app in het contextmenu (lang drukken), in de lezer en bij een verhaal; op het web is er geen lang drukken, dus staat delen als icoon in de actieregel van elk bericht, naast bewaren, en in de kop van een verhaal.
@@ -159,3 +159,12 @@ Bewuste verschillen, omdat elk platform zijn eigen conventies heeft:
 - **Toetsenbordfocus (web):** een rand van 2 px in `accent`, 2 px buiten het element (`:focus-visible`). De volgorde volgt de leesvolgorde; na het sluiten van een blad of dialoog gaat de focus terug naar wat het opende.
 - Dynamische tekst (iOS) en zoomen (web) werken tot de grootste maten. Labels lopen dan door in plaats van af te breken, en decoratie (miniaturen, vak-iconen) maakt plaats voor tekst.
 - Wat bij elkaar hoort, leest VoiceOver als één element. De bron, delen, bewaren en "+N bronnen" blijven aparte knoppen met een duidelijk label ("Deel dit bericht", "Vergelijk 5 andere bronnen").
+
+## Aanvulling voor 1.0.1 build 37
+
+- Het Welkom gebruikt de vier zonnen. Het einde van de Editie blijft de enige opkomende zon tijdens het lezen.
+- De perslijn tekent zich alleen bij een nieuwe Editie, na het opstartscherm: 400 ms voor de lijn, het hoofdverhaal vanaf 480 ms in 200 ms. Bij Verminder beweging vervagen beide in 200 ms.
+- Een schakelaar die aan staat is inkt; de duim is papier in het donkere thema.
+- Staande hoofdbeelden worden vooraf gemeten en krijgen 4:5, of 3:4 naast de tekst in een kolom van 300. Liggend blijft 2:1, op het brede web 21:9.
+- De deelkaart gebruikt merkrood en papier, Newsreader 800 en het vaste woordmerk; web en iOS delen de maten en regelval.
+- Dagdelen komen voor beide platforms uit één JSON-tabel. De wachtende punt staat stil bij Verminder beweging.

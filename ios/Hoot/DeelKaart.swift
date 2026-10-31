@@ -149,7 +149,7 @@ struct DeelKaartExport: Transferable {
             return data
         }
         ProxyRepresentation { export in
-            URL(string: "https://hootnews.nl/deel/\(export.item.id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? export.item.id)")!
+            URL(string: "https://gethoot.app/deel/\(export.item.id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? export.item.id)")!
         }
     }
 }

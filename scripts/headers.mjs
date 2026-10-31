@@ -31,14 +31,14 @@ export function csp(hashes, styleHashes = []) {
   ].join('; ')
 }
 
-export function headersFile(html, { enforce = CSP_ENFORCE } = {}) {
+export function headersFile(html, { enforce = CSP_ENFORCE, base = '' } = {}) {
   const policy = csp(inlineScripts(html).map(sha256), inlineStyles(html).map(sha256))
   const name = enforce ? 'Content-Security-Policy' : 'Content-Security-Policy-Report-Only'
   // De CSP alleen op de pagina zelf; afbeeldingen, de service worker en de API hebben hem niet nodig.
   const page = (path) => `${path}\n  ${name}: ${policy}\n`
   return [
-    page('/'),
-    page('/index.html'),
+    page(base + '/'),
+    page(base + '/index.html'),
     `/*
   Referrer-Policy: strict-origin-when-cross-origin
   X-Content-Type-Options: nosniff

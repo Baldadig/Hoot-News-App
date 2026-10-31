@@ -28,24 +28,37 @@
     'https://images\.ft\.com/.*',
   ]
 
-# Eén adres: het oude Netlify-adres stuurt door naar hootnews.nl (één opslag, één service
-# worker, één inlogadres). Vóór de SPA-fallback, anders wint die.
+# De oorspronkelijke Netlify-URL gaat naar het nieuwe merkadres.
 [[redirects]]
   from = "https://hootnewsapp.netlify.app/*"
-  to = "https://hootnews.nl/:splat"
+  to = "https://gethoot.app/:splat"
   status = 301
   force = true
 
-# SPA-fallback (laat de PWA alle routes afhandelen)
+[[redirects]]
+  from = "/privacy"
+  to = "/lees/#/privacy"
+  status = 301
+
+[[redirects]]
+  from = "/over"
+  to = "/lees/#/over"
+  status = 301
+
+[[redirects]]
+  from = "/lees/*"
+  to = "/lees/index.html"
+  status = 200
+
 [[redirects]]
   from = "/*"
-  to = "/index.html"
-  status = 200
+  to = "/404.html"
+  status = 404
 
 # Bestanden met een hash in de naam veranderen nooit: een jaar bewaren.
 # (index.html, sw.js en /api/feed blijven wél altijd vers.)
 [[headers]]
-  for = "/assets/*"
+  for = "/lees/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 

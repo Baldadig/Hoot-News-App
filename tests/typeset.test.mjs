@@ -75,9 +75,9 @@ test('loadSource zet kop en intro in de taal van de bron', async () => {
 
 // De drie secties zijn gelijk: ook de Selectie krijgt gezette koppen. typeset() laat alles zonder
 // nl of en letterlijk, dus elke bron van Editie, Stroom en Selectie moet een van die twee hebben.
-test('elke bron en elke vakbron heeft nl of en', () => {
+test('bronnen hebben een hoofdtaal; Verfassungsblog blijft bewust meertalig', () => {
   const zonder = [...SOURCES, ...VAK_SOURCES].filter((s) => !['nl', 'en'].includes(s.lang)).map((s) => s.id)
-  assert.deepEqual(zonder, [])
+  assert.deepEqual(zonder, ['vak:verfassungsblog'])
   assert.equal(feedLang('https://www.tijd.be/rss/nieuws.xml'), 'nl')
   assert.equal(feedLang('https://www.gemeente.nu/feed/'), 'nl')
   assert.equal(feedLang('https://www.prdaily.com/feed/'), 'en')

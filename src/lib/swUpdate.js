@@ -68,7 +68,7 @@ export function registerUpdates() {
 
   const start = () =>
     sw
-      .register('/sw.js', { scope: '/' })
+      .register(`${import.meta.env.BASE_URL}sw.js`, { scope: import.meta.env.BASE_URL })
       .then((reg) => {
         track(reg)
         // Bij terugkomen in de app en elk uur kijken of er iets nieuws is.

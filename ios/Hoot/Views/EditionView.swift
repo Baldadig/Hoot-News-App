@@ -102,6 +102,7 @@ struct EditionView: View {
     @Environment(\.accessibilityReduceMotion) private var still
     @Environment(EditionAlerts.self) private var alerts
     @AppStorage("seenEdition") private var seenEdition = ""
+    @State private var printedIDs: Set<String> = []
     @State private var ruleDrawn = true
     @State private var storyShown = true
     @State private var endVisible = false // de zon onderaan is in beeld
@@ -316,13 +317,16 @@ struct EditionView: View {
             }
             .settingsButton()
             .task(id: store.shownEdition?.id) {
-                guard let id = store.shownEdition?.id, seenEdition != id, !store.editionRows.isEmpty else { return }
+                guard let id = store.shownEdition?.id, EditionPrint.shouldPlay(id: id, lastSeen: seenEdition, ready: !store.editionRows.isEmpty), !printedIDs.contains(id) else { return }
                 while handoff?.landed == false || handoff?.leaving == true {
                     try? await Task.sleep(for: .milliseconds(50))
                     if Task.isCancelled { return }
                 }
-                seenEdition = id
+                printedIDs.insert(id)
                 ruleDrawn = false; storyShown = false
+                // Laat de beginstand tekenen voordat SwiftUI de eindstand animeert.
+                try? await Task.sleep(for: .milliseconds(16))
+                guard !Task.isCancelled else { ruleDrawn = true; storyShown = true; return }
                 if still {
                     withAnimation(.easeOut(duration: 0.2)) { ruleDrawn = true; storyShown = true }
                 } else {
@@ -331,6 +335,8 @@ struct EditionView: View {
                     guard !Task.isCancelled else { ruleDrawn = true; storyShown = true; return }
                     withAnimation(.timingCurve(0.2,0.7,0.2,1,duration: 0.2)) { storyShown = true }
                 }
+                try? await Task.sleep(for: .milliseconds(200))
+                if !Task.isCancelled { seenEdition = id }
             }
             .task(id: store.editionRows.count) {
                 // `-HootScreen verhaal`: het eerste verhaal met de meeste bronnen, om te vergelijken.

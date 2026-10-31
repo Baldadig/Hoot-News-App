@@ -7,14 +7,19 @@ import Foundation
 // geslaagd antwoord staat ook als bestand op de iPhone, want de URL-cache geeft antwoorden
 // met `must-revalidate` (zoals de editie) zonder netwerk niet terug.
 enum HootAPI {
-    static let base = URL(string: "https://hootnews.nl")!
+    static let base: URL = {
+        #if DEBUG
+        if let value = UserDefaults.standard.string(forKey: "HootAPIBase"), let url = URL(string: value), url.scheme == "https" { return url }
+        #endif
+        return URL(string: "https://gethoot.app")!
+    }()
 
     static let session: URLSession = {
         let config = URLSessionConfiguration.default
         config.urlCache = URLCache(memoryCapacity: 16 << 20, diskCapacity: 200 << 20)
         config.requestCachePolicy = .useProtocolCachePolicy
         config.timeoutIntervalForRequest = 20
-        config.httpAdditionalHeaders = ["Accept": "application/json", "User-Agent": "Hoot-iOS/0.1"]
+        config.httpAdditionalHeaders = ["Accept": "application/json", "User-Agent": "Hoot-iOS/1.0.1"]
         return URLSession(configuration: config)
     }()
 

@@ -116,3 +116,10 @@ struct EmptyPageArt: View {
             }
     }
 }
+
+enum EditionPrint {
+    static func shouldPlay(id: String?, lastSeen: String, ready: Bool = true, afterIris: Bool = true) -> Bool {
+        guard let id, !id.isEmpty else { return false }
+        return id != lastSeen && ready && afterIris
+    }
+}

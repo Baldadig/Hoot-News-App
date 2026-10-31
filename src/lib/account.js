@@ -79,4 +79,4 @@ export async function finishGoogleLogin(client) {
   return error ? null : data.session
 }
 
-export const inviteLink = (code) => `${location.origin}/?uitnodiging=${code}`
+export const inviteLink = (code) => `${location.origin}/lees/?uitnodiging=${code}`

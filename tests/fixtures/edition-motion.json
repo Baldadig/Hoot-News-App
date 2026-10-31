@@ -1,0 +1,7 @@
+[
+ {"id":"avond","lastSeen":"middag","ready":true,"afterIris":true,"expected":true},
+ {"id":"avond","lastSeen":"avond","ready":true,"afterIris":true,"expected":false},
+ {"id":"avond","lastSeen":"middag","ready":false,"afterIris":true,"expected":false},
+ {"id":"avond","lastSeen":"middag","ready":true,"afterIris":false,"expected":false},
+ {"id":"","lastSeen":"middag","ready":true,"afterIris":true,"expected":false}
+]

@@ -4,7 +4,7 @@
 // geen kloktijden). We lezen de opgeslagen feed uit dezelfde opslag als /api/feed (KEYS.start) en
 // stellen hier nooit zelf iets samen; is er niets, dan 503 met { edition: null }.
 import { readDoc, KEYS } from '../lib/kv.mjs'
-import { DESK_LABEL } from '../lib/desks.mjs'
+import { DESK_LABEL, desksOf, primaryDesk } from '../lib/desks.mjs'
 import { INTERESTS } from '../../src/lib/topics.js'
 
 export const PLACES = 3
@@ -18,7 +18,7 @@ const CACHE = 'public, max-age=300, s-maxage=900, stale-while-revalidate=3600'
 export const OPEN_IMAGE_SOURCES = new Set([])
 
 // Rustige, uitnodigende rubrieken, in volgorde van gewicht (hoger = eerder gekozen).
-export const CALM_WEIGHT = { binnenland: 5, cultuur: 4, wetenschap: 3, tech: 2, sport: 1 }
+export const CALM_WEIGHT = { binnenland: 5, cultuur: 4, wetenschap: 3, tech: 2 }
 // Zwaardere rubrieken: alleen als er anders minder dan drie plekken zijn.
 export const HEAVY_DESKS = new Set(['buitenland', 'oekraine', 'middenoosten', 'vs'])
 const LABEL = { ...DESK_LABEL, cultuur: 'Cultuur', tech: 'Tech', sport: 'Sport' }
@@ -29,7 +29,7 @@ export const HEAVY_WORDS = [
   'moord', 'vermoord', 'aanslag', 'oorlog', 'ramp', 'crash', 'ongeluk', 'ongeval', 'explosie', 'ontploff', 'geweld',
   'rellen', 'verkracht', 'misbruik', 'executie', 'geëxecuteerd', 'gijzel', 'terreur', 'terroris', 'zelfmoord', 'suïcide',
   'kanker', 'ziek', 'slachtoffer', 'schietpartij', 'neergeschoten', 'doodgeschoten', 'steekpartij', 'neergestoken',
-  'bombardement', 'gewond', 'brand', 'kinderporno', 'zedenzaak', 'zedendelict',
+  'bombardement', 'gewond', 'opgepakt', 'aangehouden', 'ontvoer', 'mishandel', 'mensensmokkel', 'migrant', 'vluchteling', 'brand', 'kinderporno', 'zedenzaak', 'zedendelict',
 ]
 const HEAVY_RE = new RegExp(`(?<![\\p{L}])(?:${HEAVY_WORDS.map(w => w === 'brand' ? 'brand(?!weer)' : w).join('|')})`, 'iu')
 export const isHeavy = (item) => HEAVY_RE.test(`${item?.title || ''} ${item?.summary || ''}`)
@@ -60,15 +60,19 @@ export function extract(start, places = PLACES, openImageSources = OPEN_IMAGE_SO
   const ed = start?.edition
   if (!ed || !Array.isArray(ed.entries) || !ed.slot || !ed.date) return null
   const srcs = new Map((start.sources || []).map((s) => [s.id, s]))
-  const byId = new Map((ed.items || []).map((i) => [i.id, i]))
+  const byId = new Map([...(start.items || []), ...(ed.items || [])].map((i) => [i.id, i]))
   const stories = new Map((start.stories || []).map((s) => [s.id, s]))
 
   const make = (item, desk, sourceCount, order) => {
     if (!item?.title) return null
     const src = srcs.get(item.source)
-    if (!isDutch(item, src?.lang) || isHeavy(item)) return null
-    const r = rubriek(item, desk, src?.cat)
-    return { item, rubriek: r, sourceCount: sourceCount || 1, order, heavy: HEAVY_DESKS.has(r) }
+    const sport = src?.cat === 'sport' || desk === 'sport' || [...(item.mainTopics || []), ...(item.topics || [])].some(t => ['voetbal','f1','wielrennen','wielersport','tennis','darts','sport','olympisch','wintersport','basketbal'].includes(t))
+    if (!isDutch(item, src?.lang) || isHeavy(item) || sport) return null
+    const resolvedDesk = CALM_WEIGHT[desk] || HEAVY_DESKS.has(desk) ? desk : primaryDesk([desksOf(item)])
+    const r = rubriek(item, resolvedDesk, src?.cat)
+    const heavy = HEAVY_DESKS.has(r)
+    if (heavy && (sourceCount || 1) < 5) return null
+    return { item, rubriek: r, sourceCount: sourceCount || 1, order, heavy }
   }
 
   const cands = []
@@ -88,9 +92,23 @@ export function extract(start, places = PLACES, openImageSources = OPEN_IMAGE_SO
     const rest = (start.stories || []).filter((s) => !used.has(s.id) && ref - (Date.parse(s.latestAt) || 0) <= 864e5)
     rest.forEach((s, i) => {
       const item = byId.get(s.leadId) || (s.itemIds || []).map((id) => byId.get(id)).find(Boolean)
-      const c = make(item, null, s.sourceCount, 1000 + i)
+      const c = make(item, item ? primaryDesk([desksOf(item)]) : null, s.sourceCount, 1000 + i)
       if (c) cands.push(c)
     })
+  }
+
+  // Ook losse publicaties uit dezelfde opgeslagen feedpool mogen aanvullen. Ze hebben nog
+  // niet altijd een verhaal; alleen de Editie-items lezen zou juist rustige cultuur/tech missen.
+  if (cands.filter(c => !c.heavy).length < places) {
+    const ref = Date.parse(ed.builtAt) || 0
+    for (const [i, item] of (start.items || []).entries()) {
+      if (item.kind === 'post' || !Number.isFinite(Date.parse(item.publishedAt)) || ref - Date.parse(item.publishedAt) > 864e5) continue
+      const key = item.storyId || item.id
+      if (cands.some(c => (c.item.storyId || c.item.id) === key || c.item.title === item.title)) continue
+      const story = item.storyId ? stories.get(item.storyId) : null
+      const c = make(item, null, story?.sourceCount || 1, 10000 + i)
+      if (c) cands.push(c)
+    }
   }
 
   // Kiezen: eerst de rustige rubrieken (op gewicht, één per rubriek), dan aanvullen binnen de rustige
@@ -103,7 +121,10 @@ export function extract(start, places = PLACES, openImageSources = OPEN_IMAGE_SO
     for (const c of sorted) if (picked.length < places && !picked.includes(c)) picked.push(c)
   }
   pickFrom(cands.filter((c) => !c.heavy))
-  if (picked.length < places) pickFrom(cands.filter((c) => c.heavy))
+  if (picked.length < places) {
+    const world = cands.filter(c => c.heavy).sort(rank)[0]
+    if (world) picked.push(world)
+  }
 
   // Volgorde: eerst de hoogste in de Editie, dan op aantal bronnen.
   picked.sort((a, b) => a.order - b.order || b.sourceCount - a.sourceCount)
@@ -112,7 +133,7 @@ export function extract(start, places = PLACES, openImageSources = OPEN_IMAGE_SO
     if (openImageSources.has(item.source) && /^https:\/\//.test(item.image || '')) out.imageUrl = item.image
     return out
   })
-  return entries.length ? { slot: ed.slot, date: ed.date, entries } : null
+  return entries.length === places ? { slot: ed.slot, date: ed.date, entries } : null
 }
 
 const base = (origin) => ({

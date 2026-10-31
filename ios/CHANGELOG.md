@@ -2,6 +2,13 @@
 
 ## Onuitgebracht
 
+- Nieuwe Editie: perslijn en hoofdverhaal verschijnen één keer na de iris, met vervagen bij Verminder beweging.
+- Taalfilter voor tweetalige bronnen en juiste hoofdtaal van vakbronnen.
+- Rustige voorpagina: geen zwaar nieuws of sport, hooguit één groot Wereld-verhaal.
+- Wachtmarkering, lege bladzijden, leesgrens en schakelaars bijgewerkt; dagdelen uit gedeelde JSON.
+- Gethoot.app/lees lokaal voorbereid als nieuwe plek; domeinen, auth en livegang volgen na controle door Claude.
+- Build 37 voorbereid; exportvrijstelling voor standaard HTTPS vastgelegd.
+
 - Verhalen delen als Hoot-krantenkop in merkrood, in liggend en staand formaat (A3).
 
 - Hoofdbeelden: meet egale randen vooraf en toon staande beelden in een eigen verhouding (A1).

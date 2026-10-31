@@ -1,3 +1,4 @@
+import { receiveMove } from './lib/domain-migration.js'
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
@@ -16,6 +17,8 @@ import { captureInvite, captureGoogleReturn } from './lib/account.js'
 import { loadFeedCache } from './lib/feedCache.js'
 import { migrate } from './lib/migrate.js'
 
+async function start() {
+  await receiveMove()
 // Uitnodigingslink (?uitnodiging=…) en terugkomst van Google (#id_token=…): onthouden en uit de
 // adresbalk halen, vóór de app die als route leest.
 captureInvite()
@@ -66,3 +69,10 @@ loadFeedCache().finally(() =>
 
 // De service worker en het bijhouden van nieuwe versies: zie src/lib/swUpdate.js.
 registerUpdates()
+
+}
+start().catch(() => {
+  const root = document.getElementById('root')
+  root.textContent = 'Overzetten lukt nu niet. Je gegevens staan nog op hootnews.nl.'
+  const back = document.createElement('a'); back.href = 'https://hootnews.nl/'; back.textContent = ' Probeer opnieuw'; root.append(back)
+})
