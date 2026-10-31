@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { ViewHeader, Empty } from '../components/Shell.jsx'
 import { SocialItem, SourceMark, useHoot } from '../components/Items.jsx'
+import { BlueskyArt } from '../components/icons.jsx'
 import { AddBluesky, Switch } from './Sources.jsx'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { positionKey } from '../lib/context.js'
@@ -53,7 +54,7 @@ export default function Bluesky({ active, posts, sources, muted, onToggle, ownHa
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Bluesky">
       <div className="col col--read">
-        <ViewHeader title="Bluesky" sub="De mensen die je volgt, nieuwste eerst" subWide onRefresh={onRefresh} refreshing={refreshing}>
+        <ViewHeader title="Bluesky" onRefresh={onRefresh} refreshing={refreshing}>
           <div className="topics">
             <div className="topics__scroll" role="group" aria-label="Wie">
               <button type="button" className="pill pill--sm hit" aria-pressed={!who && !group} onClick={() => go('bluesky', {})}>
@@ -105,7 +106,6 @@ export default function Bluesky({ active, posts, sources, muted, onToggle, ownHa
             <div className="setrow">
               <span className="setrow__text">
                 <span className="setrow__label">{person.name} ook in de Stroom</span>
-                <span className="setrow__hint">Standaard staan posts alleen hier.</span>
               </span>
               <Switch checked={inStream(person.id)} onChange={(on) => setInStream(person.id, on)} label={`${person.name} ook in de Stroom`} />
             </div>
@@ -122,10 +122,11 @@ export default function Bluesky({ active, posts, sources, muted, onToggle, ownHa
 
         {list.length === 0 ? (
           people.length ? (
-            <Empty title="Nog geen posts">Zodra de mensen die je volgt iets plaatsen, staat het hier.</Empty>
+            <Empty art={BlueskyArt} title="Nog geen posts"></Empty>
           ) : (
             // Zonder iemand een echte knop, niet alleen de + bovenin; hij opent het formulier en zet je in het veld.
             <Empty
+              art={BlueskyArt}
               title="Je volgt nog niemand"
               action={
                 <button type="button" className="btn" onClick={() => (setAdding(true), requestAnimationFrame(() => ref.current?.querySelector('.bsky-add input')?.focus()))}>
@@ -141,7 +142,7 @@ export default function Bluesky({ active, posts, sources, muted, onToggle, ownHa
             {list.map((item) => (
               <SocialItem key={item.id} item={item} />
             ))}
-            <p className="listend">Dit is alles van de afgelopen 48 uur.</p>
+            <p className="listend">Je bent bij.</p>
           </div>
         )}
       </div>

@@ -49,7 +49,10 @@ Tip: zet in iOS Safari per site *"Reader automatisch gebruiken"* aan (bv. nrc.nl
   hij de feed al heeft.
 - **Gedeelde code** (`shared/`) draait op de server én in de app: Bluesky-posts omzetten, id's.
 - **Beeld** gaat op maat: eigen formaten van de uitgever waar die bestaan, anders via de beeld-CDN van
-  Netlify (AVIF/WebP, `src/lib/img.js` + `[images]` in `netlify.toml`).
+  Netlify (AVIF/WebP, `src/lib/img.js` + `[images]` in `netlify.toml`). Hoofdverhaal: overal beeld eerst,
+  zoals de app (2:1 op de telefoon, 21:9 vanaf 720).
+- **Dagdelen** (naam van de Editie, wanneer de volgende er is) staan in één tabel: `shared/slots.mjs`.
+  iOS spiegelt die (`Desk.slots`, `EditionView.upNext`). Nooit kloktijden in de tekst.
 - **Security-headers** (`dist/_headers`) worden bij elke build gemaakt door `scripts/headers.mjs`, met de
   sha256-hashes van de inline scripts in `index.html`. De CSP handhaaft (`CSP_ENFORCE = true`).
 - **De app** toont meteen wat hij de vorige keer had (in IndexedDB op het toestel) en werkt bij als er iets

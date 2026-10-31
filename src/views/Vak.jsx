@@ -9,6 +9,8 @@ import { timeAgo } from '../lib/time.js'
 import { fitsHero, fitsLarge } from '../lib/img.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { vakByDomain } from '../../shared/vak.mjs'
+import { wholeSentences } from '../../shared/zinnen.mjs'
+import { useIntroMax } from '../lib/intro.js'
 
 const ICON = { 'paid-social': MegaphoneIcon, ux: CursorIcon, design: PaletteIcon, ai: SparkleIcon, ecommerce: CartIcon, seo: MagnifierIcon, merk: TagIcon, dev: CodeIcon, product: KanbanIcon, ondernemen: RocketIcon, sport: INTEREST_ICONS.sport, politiek: INTEREST_ICONS.politiek, wetenschap: INTEREST_ICONS.wetenschap, economie: INTEREST_ICONS.economie, gadgets: INTEREST_ICONS.tech }
 // Een onderwerp zonder eigen icoon krijgt dat van zijn domein.
@@ -70,6 +72,10 @@ function Also({ item }) {
 function Card({ item, rank, feature = false }) {
   const { markRead, read } = useHoot()
   const showImage = item.image && (feature ? fitsHero(item.image) : fitsLarge(item.image))
+  // Hele zinnen, nooit "…", gemeten in de kaart (binnenruimte en rand eraf): 3 regels, het eerste
+  // stuk 4 regels in de grotere letter (.dcard__sum --lines). De clamp staat een regel ruimer.
+  const fit = useIntroMax()(feature ? 4 : 3, feature ? 'kaartEerste' : 'kaart')
+  const summary = wholeSentences(item.summary, fit.max, fit.rek)
   return (
     <article className={`card dcard${feature ? ' dcard--feature' : ''}${showImage ? '' : ' dcard--text'}${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <a className="dcard__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
@@ -85,7 +91,7 @@ function Card({ item, rank, feature = false }) {
           <h3 className={`${feature ? 'head-lg' : 'head-4'} dcard__title`}>{item.title}</h3>
           {/* Waarom dit stuk: rustige metadata onder de kop, zodat de kop voorgaat. */}
           {item.why?.length ? <p className="dcard__why">{item.why.join(' · ')}</p> : null}
-          {item.summary ? <p className="clamp dcard__sum">{item.summary}</p> : null}
+          {summary ? <p className="clamp clamp--vangnet dcard__sum">{summary}</p> : null}
         </div>
       </a>
       <div className="dcard__foot">
@@ -96,7 +102,7 @@ function Card({ item, rank, feature = false }) {
   )
 }
 
-// Selectie: elke maandagochtend per vakgebied de drie belangrijkste stukken van de week ervoor,
+// Selectie: elke maandagochtend per onderwerp de drie belangrijkste stukken van de week ervoor,
 // door mensen geschreven (zie netlify/lib/vak.mjs). Opbouw als een tijdschrift: een kop met de
 // week, een inhoudsopgave, en per vak één groot stuk, twee kaarten en een korte lijst.
 export default function Vak({ active, digest, status, onRefresh }) {
@@ -115,7 +121,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
     <section className="view" hidden={!active} ref={ref} aria-label="Selectie">
       <div className="col col--wide">
         <ViewHeader title="Selectie" onRefresh={onRefresh} refreshing={status === 'refreshing' || status === 'loading'}>
-          <Disclosure className="vakpick" open={!chosen.length} summaryClassName="linkbtn linkbtn--plain vakpick__sum" summary={chosen.length ? `Onderwerpen (${chosen.length})` : 'Kies onderwerpen'}>
+          <Disclosure className="vakpick" open={!chosen.length} summaryClassName="linkbtn linkbtn--plain vakpick__sum" summary={chosen.length ? `Onderwerpen · ${chosen.length}` : 'Kies onderwerpen'}>
             {vakByDomain().map((d) => (
               <ChipGroup key={d.id} label={d.label} listClassName="vakpick__chips">
                 {d.fields.map((f) => (
@@ -129,20 +135,20 @@ export default function Vak({ active, digest, status, onRefresh }) {
         </ViewHeader>
 
         {status === 'loading' && !digest ? (
-          <Skeleton rows={4} />
+          <Skeleton rows={4} layout="krant" />
         ) : status === 'error' && !digest ? (
           <LoadError onRetry={onRefresh} />
         ) : !chosen.length ? (
-          <Empty title="Kies je onderwerpen">Kies hierboven wat je volgt, voor je werk of uit interesse. Elke maandag staan hier dan per onderwerp de drie belangrijkste stukken van de week.</Empty>
+          <Empty title="Kies je onderwerpen">Elke maandag staan hier per onderwerp de drie beste stukken.</Empty>
         ) : digest ? (
           <>
             {/* Kop: welke week, en wat je te lezen krijgt */}
             <header className="dmast">
-              <p className="label label--kicker dmast__week">{digest.preview ? 'Voorproefje · de afgelopen zeven dagen' : `Week ${digest.week} · ${span(digest.from, digest.to)}`}</p>
+              <p className="label label--kicker dmast__week">{digest.preview ? 'Voorproefje van deze week' : `Week ${digest.week} · ${span(digest.from, digest.to)}`}</p>
               <p className="head-lg dmast__lede">
-                {picked} stukken in {fields.length === 1 ? '1 onderwerp' : `${fields.length} onderwerpen`}
+                {picked === 1 ? '1 stuk' : `${picked} stukken`} in {fields.length === 1 ? '1 onderwerp' : `${fields.length} onderwerpen`}
               </p>
-              {digest.preview ? <p className="dmast__note">De eerste volle Selectie komt {WEEKDAY.format(new Date(digest.next))} in de ochtend.</p> : <p className="dmast__note">Elke maandagochtend een nieuwe.</p>}
+              {digest.preview ? <p className="dmast__note">De eerste Selectie komt {WEEKDAY.format(new Date(digest.next))}.</p> : <p className="dmast__note">Elke maandagochtend nieuw.</p>}
             </header>
 
             {/* Inhoud: per vak de drie koppen; tik = naar het stuk in de digest */}
@@ -228,8 +234,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
             })}
 
             <Disclosure className="dhow" summaryClassName="linkbtn linkbtn--plain" summary="Hoe kiest Hoot deze stukken?">
-              <p>Gekozen uit {seen} stukken van kenners en vakbladen in de onderwerpen die je volgt, op drie gronden: hoeveel bronnen over hetzelfde schreven, of een redactie het uitkoos (zoals Sidebar), en wie het schreef (een kenner telt zwaarder dan een vakblad, een bedrijfsblog alleen als anderen erover schrijven).</p>
-              <p>Alleen stukken van mensen: geen gesponsorde stukken, webinars, podcasts of lijstjes. De tekst bij elk stuk is de intro van de schrijver zelf, niet van AI.</p>
+              <p>Uit {seen} stukken van kenners en vakbladen: wat veel bronnen oppikken, wat een redactie uitkoos en wie het schreef. Niets gesponsord; de intro is van de schrijver.</p>
             </Disclosure>
           </>
         ) : null}

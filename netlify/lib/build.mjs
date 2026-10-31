@@ -297,7 +297,11 @@ function toClient(it) {
   const topics = keywordTopics(`${it.title} ${it.text || it.summary || ''} ${it.cats || ''}`)
   // Gespecialiseerde bronnen dragen hun onderwerp mee (een gamessite gaat over games).
   const src = SOURCE.get(it.source)
-  for (const t of [...(src?.topics || []), ...(src?.music ? ['muziek'] : [])]) if (!topics.includes(t)) topics.push(t)
+  const own = [...(src?.topics || []), ...(src?.music ? ['muziek'] : [])]
+  for (const t of own) if (!topics.includes(t)) topics.push(t)
+  // De onderwerpen die het verhaal dragen: uit de kop, en het vak van de bron. Het label in de Editie
+  // (src/lib/label.js) noemt alleen zo'n onderwerp; een losse vermelding in de tekst is te zwak.
+  const mainTopics = [...new Set([...keywordTopics(it.title || ''), ...own])].filter((t) => topics.includes(t))
   return compact({
     id: it.id,
     kind: it.kind,
@@ -318,6 +322,7 @@ function toClient(it) {
     borrowedFrom: it.borrowedFrom,
     readMin: it.readMin,
     topics,
+    mainTopics: mainTopics.length ? mainTopics : null,
     url: safeHttpUrl(it.url),
     linkTitle: it.linkTitle,
     image: safeHttpUrl(it.image),

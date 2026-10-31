@@ -61,20 +61,22 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 
 ## Type
 
-- **Website:** Newsreader 800 voor koppen, Source Sans 3 (400–800) voor tekst en bediening, beide meegeleverd (geen Google Fonts-verzoek).
+- **Website:** Newsreader 800 voor koppen, Source Sans 3 (400–800) voor tekst en bediening, beide meegeleverd (geen Google Fonts-verzoek). De tijd onder de bronnaam staat in tabelcijfers (Source Sans 3), zodat "4 uur" en "41 min" niet verspringen; Newsreader zoals we hem meeleveren heeft die niet, dus een serif-nummer (de stapteller, de nummers in de inhoud van de Selectie, de rang op een kaart) blijft proportioneel.
 - **iOS:** de serif van het systeem (New York, `.serif` design, bold) en San Francisco, zodat alles meeschaalt met Dynamische tekst. Dezelfde rollen, met de tekststijlen van iOS als maat.
 
 | Stijl | Web | iOS | Waar |
 |---|---|---|---|
-| `t6-lead` | serif 800, 30–34 px, 1.15 | `.title` / breed `.largeTitle`, serif bold | Kop van het hoofdverhaal |
-| `t5-screen` | serif 800, 27 px | grote navigatietitel in serif heavy (`.largeTitle`); klein in de balk serif bold (`.headline`) | Schermtitel (Middageditie, Stroom, Selectie …) |
-| `t4-item` | serif 800, 18 px | `.title3`, serif bold | Kop van een bericht |
+| `t6-lead` (`head-6`) | serif 800, 30/36 px, vanaf 720 px 34/40 | `.largeTitle`, serif bold (breed doet dat al) | Kop van het hoofdverhaal |
+| `t5-screen` (`head-5`) | serif 800, 27/32 px | `Theme.headline(.title)`, serif bold (I5; nu nog `.largeTitle` heavy); klein in de balk serif bold (`.headline`) | Schermtitel (Middageditie, Stroom, Selectie …) |
+| `head-lg-item` | serif 800, 22/26 px (`lh-head-lg`) | `.title2`, serif bold | Grote itemkop: een bericht in een brede lijst, het eerste stuk van een vak, een bladtitel |
+| `t4-item` | serif 800, 18/22 px (`lh-4`) | `.title3`, serif bold | Kop van een bericht |
 | `t3-body` | sans 400, 17 px, 1.5 | `.body` | Lopende tekst, intro van het hoofdverhaal |
 | `t2-sum` | sans 400, 15 px, 1.5 | `.subheadline` | Intro van een bericht in een lijst, in `ink-2` |
 | `t2-ui` | sans 600, 15 px, 1.3 | `.subheadline` semibold | Bronnaam (600), knoppen, chips |
 | `t1-meta` | sans 400, 13 px | `.caption` | Tijd, labels, toelichting |
 | `kicker` | sans 800, 13 px, kapitalen, +0.06em, 1.3 | `.caption` heavy, kapitalen | Rubriek; de punt tussen twee labels in `ink-3`; bij heel grote tekst zonder kapitalen |
 
+- **Het verhaal wint van de schermtitel** (C7). De schermtitel (`head-5`, 27/32) zegt waar je bent; het oog landt op het nieuws: de kop van het hoofdverhaal (`head-6`, 30/36, vanaf 720 px 34/40) is altijd groter. Op het web staat dit zo; iOS volgt (I5): schermtitel `Theme.headline(.title)`, hoofdverhaal `.largeTitle` serif.
 - **Koppen** krijgen `text-wrap: balance` (hoofdverhaal) of `pretty` (berichten) en breken nooit af met "…".
 - **Intro's:** bij het hoofdverhaal hele zinnen (4–6 regels). In een lijst kies je zelf 1–3 regels of de hele intro; een ingekorte intro eindigt met "…", zodat je ziet dat er meer is.
 - **De lezer** zet lopende tekst in de serif: 1,06rem × je tekstgrootte, regelafstand 1.6, hooguit `readable` breed.
@@ -82,7 +84,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 ## Ruimte en vorm
 
 - **Eén schaal van 4 px:** `s1` 4, `s2` 8, `s3` 12, `s4` 16, `s5` 24, `s6` 32, `s7` 48. Elke marge, padding en tussenruimte komt hiervandaan, ook in Swift (`Space.s1`–`Space.s7`). De enige uitzondering is `s0` (2 px): tussen twee regels van één label, zoals bronnaam en tijd.
-- **Maten van dingen** (geen ruimte) hebben eigen tokens: icoon 22, bronlogo 24 in de bronregel en 28–30 in de bronnenrij, miniatuur 96 × 64 (3:2; web op een smalle telefoon 84 × 56, bij grote tekst 108 × 72) en 64 vierkant op de voorpagina. Elk aanraakdoel is minstens `tap` (44 × 44), ook als het zichtbare deel kleiner is.
+- **Maten van dingen** (geen ruimte) hebben eigen tokens: icoon 22, bronlogo 24 in de bronregel en 28–30 in de bronnenrij, miniatuur 96 × 64 (3:2; web op een smalle telefoon 84 × 56, bij grote tekst 108 × 72) en 64 vierkant op de voorpagina. Beeldverhoudingen zijn ook tokens: `media-tl` 2:1 voor de Tijdlijn (een besluit), `media-lead` 2:1 en `media-lead-wide` 21:9 voor het hoofdverhaal op de website, `media-card` 16:9 voor een kaart van de Selectie. Elk aanraakdoel is minstens `tap` (44 × 44), ook als het zichtbare deel kleiner is.
 - **Zijmarge** is `gutter` (16 px). De leesbreedte is `readable` (680 px); brede pagina's (Editie, Selectie op iPad en desktop) gaan tot `wide` (1000 px).
 - **Vier hoeken:** `radius-sm` (8) voor miniaturen; `radius` (12) voor beeld, kaarten, meldingen, velden en icoonknoppen; `radius-lg` (16) voor bladen; `radius-pill` voor chips, knoppen met tekst, schakelaars en bronlogo's. In Swift `Radius.sm`, `.md`, `.lg`.
 - **Schaduw alleen voor wat zweeft** (`shadow-float`). Inhoud ligt plat: diepte komt van `surface` op `paper`. Zwevend zijn precies drie dingen: de melding "Ongedaan maken" (web en iOS), de knop met nieuwe berichten en terug naar boven. Glas (iOS) heeft zijn eigen diepte en krijgt geen extra schaduw.
@@ -94,7 +96,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 - **Alleen scherpe beelden:** een hoofdverhaal alleen met een beeld van minstens 700 px breed, een groot beeld vanaf 400 px; anders geen beeld.
 - **Vaste verhoudingen**, bijgesneden en niet uitgerekt:
   - hoofdbeeld 16:9 (iPhone), 2:1 (iPad mini) of 3:2 (breed);
-  - een bericht in de Stroom, Bewaard en Zoeken heeft twee vormen, op web en iOS gelijk ("Lees de Stroom als"): **Tijdlijn** — kop, intro, het beeld over de volle kolombreedte in 2:1 (`radius`), de bronregel eronder; **Krant** — kop en intro links, een klein beeld 3:2 rechts met vaste breedte (`thumb`, `radius-sm`), de bronregel onder de tekst. Op alle breedtes dezelfde twee vormen;
+  - een bericht in de Stroom, Bewaard en Zoeken heeft twee vormen, op web en iOS gelijk ("Lees de Stroom als"): **Tijdlijn** — kop, intro, het beeld over de volle kolombreedte in 2:1 (`media-tl`, `radius`), de bronregel eronder; **Krant** — kop en intro links, een klein beeld 3:2 rechts met vaste breedte (`thumb`, `radius-sm`), de bronregel onder de tekst. Op alle breedtes dezelfde twee vormen;
   - miniatuur op de voorpagina vierkant, met `radius-sm`.
 - **Bij heel grote tekst** valt de miniatuur weg: de kop krijgt de hele breedte.
 - **Bronlogo's** zijn cirkels, zonder naam eronder: het logo is genoeg.

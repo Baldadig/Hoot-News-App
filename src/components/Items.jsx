@@ -11,6 +11,9 @@ import { Video } from './Video.jsx'
 import { Why } from './Why.js'
 import { directVideo } from '../../shared/bluesky.mjs'
 import { safeHttpUrl } from '../../shared/util.mjs'
+import { wholeSentences } from '../../shared/zinnen.mjs'
+import { useIntroMax } from '../lib/intro.js'
+import { two } from '../lib/edition.js'
 
 // Bewaarde berichten komen uit opslag (dit toestel, of je account), niet vers van de server:
 // ook daar alleen http(s) in een href. Zonder geldige link is het een link zonder doel.
@@ -74,8 +77,11 @@ export function ShareButton({ item, label = 'bericht' }) {
   )
 }
 
-function Kicker({ item, extra, followed }) {
+// De rubriek boven de kop. In de Editie staat de telling vooraan (`n`: "01 · BUITENLAND", zie
+// numberRows in src/lib/edition.js); de punt ertussen is die van .kicker.
+function Kicker({ item, extra, followed, n = null }) {
   const bits = []
+  if (n) bits.push(<span key="n" className="kicker__n">{two(n)}</span>)
   if (extra) bits.push(<span key="x">{extra}</span>)
   if (item.type === 'opinie') bits.push(<span key="t" className="kicker__type">Opinie</span>)
   if (item.section && !extra) bits.push(<span key="s">{item.section}</span>) // de rubriek van de Editie gaat voor die van de bron
@@ -85,7 +91,8 @@ function Kicker({ item, extra, followed }) {
 
 // Bronregel: logo, naam en tijd op één vaste plek, onder de kop en de samenvatting. Tikken
 // toont alles van die bron.
-export function SourceMeta({ item }) {
+// `outside`: de bron staat niet bij je bronnen; dat gaat op de regel voor de leestijd (de regel is smal).
+export function SourceMeta({ item, outside = false }) {
   const { openSource, sourcesById } = useHoot()
   const paid = sourcesById?.get(item.source)?.paid
   return (
@@ -95,8 +102,9 @@ export function SourceMeta({ item }) {
         <span className="srcmeta__name">{item.sourceName}</span>
         <span className="srcmeta__time">
           <time dateTime={item.publishedAt || undefined}>{timeAgo(item.publishedAt)}</time>
-          {item.readMin ? <span className="srcbtn__read"> · {readTime(item.readMin)}</span> : null}
+          {item.readMin && !outside ? <span className="srcbtn__read"> · {readTime(item.readMin)}</span> : null}
           {paid ? <span className="srcbtn__read"> · abonnement</span> : null}
+          {outside ? <span className="srcbtn__read"> · Buiten je bronnen</span> : null}
         </span>
       </span>
     </button>
@@ -107,13 +115,13 @@ export function SourceMeta({ item }) {
 // een, dan blijft zijn plek leeg, zodat "Vergelijk", delen en bewaren in elke rij van een scherm
 // op dezelfde x staan (een scherm zonder meer of minder heeft die plek niet, zie .meta). Delen en
 // bewaren zijn op het web wat het contextmenu in de app is: elke rij heeft ze, zonder lang drukken.
-export function Meta({ item, story, showSave = true, taste = null }) {
+export function Meta({ item, story, showSave = true, taste = null, outside = false }) {
   const { openStory, newInStory } = useHoot()
   const fresh = story ? newInStory(story) : 0
   const others = story ? story.sourceCount - 1 : 0
   return (
     <div className="meta">
-      <SourceMeta item={item} />
+      <SourceMeta item={item} outside={outside} />
       {story && others > 0 ? (
         <button type="button" className="linkbtn linkbtn--plain morebtn" onClick={() => openStory(story.id, item.id)} aria-label={`Vergelijk met ${others} andere ${others === 1 ? 'bron' : 'bronnen'}${fresh ? `, ${fresh} nieuw` : ''}`}>
           {fresh ? <span className="dot" aria-hidden="true" /> : null}
@@ -164,36 +172,41 @@ export function aboutOf(items) {
   return names.length ? names.join(' en ') : `dit soort verhalen`
 }
 
-const Summary = ({ item, className }) =>
-  item.summary ? (
+// De intro in hele zinnen die in de gekozen regels passen (shared/zinnen.mjs, src/lib/intro.js).
+// Hoot eindigt nooit met een beletselteken: een te lange eerste zin mag één regel doorlopen, en de
+// line-clamp in de CSS staat precies die regel ruimer. `fit`: { max, rek }.
+const Summary = ({ item, className, fit = { max: Infinity, rek: Infinity } }) => {
+  const text = wholeSentences(item.summary, fit.max, fit.rek)
+  return text ? (
     <p className={className}>
-      {item.summary}
+      {text}
       {item.borrowedFrom ? <span className="via"> — via {item.borrowedFrom}</span> : null}
     </p>
   ) : null
+}
 
 // ---- Vorm 1: hoofdverhaal ----
 // `priority`: dit is het eerste beeld dat je ziet (alleen het zichtbare hoofdverhaal).
-export function LeadStory({ item, story, note, why = null, followed = null, priority = false, taste = null }) {
+export function LeadStory({ item, story, note, n = null, why = null, followed = null, priority = false, taste = null, outside = false }) {
   const { markRead, read } = useHoot()
   return (
     <article className={`entry lead${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <a className="lead__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
-        {/* Eerst kop en kern, dan pas het beeld (op breed scherm staat het beeld bovenaan, zie CSS).
-            Het waarom van de plek (jouw Editie) staat stil onder de rubriek, zie Why.js. */}
-        <Kicker item={item} extra={note} followed={followed} />
-        <Why why={why} />
-        <h2 className="head-6 lead__title">{item.title}</h2>
-        <Summary item={item} className="lead__sum" />
+        {/* Overal beeld eerst, zoals de app: dan rubriek, kop en kern, zodat de bronregel bij zijn
+            tekst blijft. Het waarom van de plek (jouw Editie) staat stil onder de rubriek, zie Why.js. */}
         {item.image && fitsHero(item.image) ? (
           <div className="media media--lead">
             <Img url={item.image} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} />
           </div>
         ) : null}
+        <Kicker item={item} extra={note} followed={followed} n={n} />
+        <Why why={why} />
+        <h2 className="head-6 lead__title">{item.title}</h2>
+        <Summary item={item} className="lead__sum" fit={{ max: 240, rek: 240 }} />
         {item.author ? <p className="byline">Door {item.author}</p> : null}
       </a>
       <TermHelp text={`${item.title} ${item.summary || ''}`} />
-      <Meta item={item} story={story} taste={taste} />
+      <Meta item={item} story={story} taste={taste} outside={outside} />
     </article>
   )
 }
@@ -204,25 +217,29 @@ export function LeadStory({ item, story, note, why = null, followed = null, prio
 // beeld in 3:2 rechts met een vaste breedte (--thumb-w), de bronregel onder de tekst. Op alle
 // breedtes dezelfde twee vormen. `plain` houdt de krant-vorm aan: in de Editie (die is een krant, op
 // web en in de app) en op smalle plekken zoals het vergelijkpaneel.
-export function CompactItem({ item, story, note, why = null, showSave = true, plain = false, taste = null }) {
-  const { markRead, read, layout } = useHoot()
+// `lines`: hoeveel regels intro (1, 2, 3 of 'alles'); standaard de instelling van de Stroom, en in
+// de krant-vorm van de Editie en het vergelijkpaneel (`plain`) 2, zoals de app.
+export function CompactItem({ item, story, note, n = null, why = null, showSave = true, plain = false, taste = null, lines, outside = false }) {
+  const { markRead, read, layout, prefs } = useHoot()
+  const introMax = useIntroMax()
+  const lineCount = lines ?? (plain ? 2 : prefs?.preview ?? 2)
   const cls = `entry compact${read.has(item.id) ? ' is-read' : ''}`
   if (layout === 'tijdlijn' && !plain) {
     return (
       <article className={`${cls} compact--tl`} data-id={item.id}>
         {/* Zelfde volgorde als op de voorpagina: rubriek (met het waarom), kop, samenvatting, beeld, dan de bron. */}
         <a className="compact__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
-          <Kicker item={item} extra={note} />
+          <Kicker item={item} extra={note} n={n} />
           <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
-          <Summary item={item} className="compact__sum" />
+          <Summary item={item} className="compact__sum" fit={introMax(lineCount)} />
           {item.image && fitsLarge(item.image) ? (
             <div className="media media--tl">
               <Img url={item.image} kind="lead" />
             </div>
           ) : null}
         </a>
-        <Meta item={item} story={story} showSave={showSave} taste={taste} />
+        <Meta item={item} story={story} showSave={showSave} taste={taste} outside={outside} />
       </article>
     )
   }
@@ -230,10 +247,10 @@ export function CompactItem({ item, story, note, why = null, showSave = true, pl
     <article className={cls} data-id={item.id}>
       <a className="compact__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         <div className="compact__text">
-          <Kicker item={item} extra={note} />
+          <Kicker item={item} extra={note} n={n} />
           <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
-          <Summary item={item} className="compact__sum" />
+          <Summary item={item} className="compact__sum" fit={introMax(lineCount, 'rij', !!item.image)} />
         </div>
         {item.image ? (
           <div className="thumb">
@@ -242,7 +259,7 @@ export function CompactItem({ item, story, note, why = null, showSave = true, pl
           </div>
         ) : null}
       </a>
-      <Meta item={item} story={story} showSave={showSave} taste={taste} />
+      <Meta item={item} story={story} showSave={showSave} taste={taste} outside={outside} />
     </article>
   )
 }

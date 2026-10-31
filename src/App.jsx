@@ -89,7 +89,7 @@ function useWide(query) {
 
 export default function App() {
   const route = useRoute()
-  const [rawPrefs, setPrefs] = useStored('hoot:prefs', { muted: [], pinned: ['nederland', 'vs-politiek', 'ai'], onboarded: true }) // zonder opslag (migrate.js kon niets schrijven): geen welkom
+  const [rawPrefs, setPrefs] = useStored('hoot:prefs', { muted: [], pinned: [], onboarded: true }) // zonder opslag (migrate.js kon niets schrijven): geen welkom
   const prefs = useMemo(() => normalizePrefs(rawPrefs), [rawPrefs])
   const setPref = useCallback((key, value) => setPrefs((p) => ({ ...p, [key]: value })), [setPrefs])
   // Tekstgrootte en beeld werken via attributen op <html> (zie styles.css).
@@ -347,6 +347,10 @@ export default function App() {
     [setPrefs, route.go],
   )
 
+  // De eenmalige uitleg bij "Jouw Editie" (na het eerste Welkom, src/lib/welcome.js) is gezien.
+
+  const endEditieHint = useCallback(() => setPref('editieHint', false), [setPref])
+
   const setMuted = useCallback((id, on) => setPrefs((p) => toggleSource(normalizePrefs(p), sourcesById.get(id) || { id }, on)), [setPrefs, sourcesById])
 
   const reloadAll = useCallback(() => {
@@ -598,6 +602,8 @@ export default function App() {
               brief={prefs.brief ? myEdition?.brief || null : null}
               briefForMembers={prefs.brief && !member && ['out', 'noInvite'].includes(rawAccount.status)}
               onJoin={() => (rawAccount.status === 'noInvite' ? route.go('instellingen') : setJoinOpen('brief'))}
+              hint={!!rawPrefs.editieHint}
+              onHintDone={endEditieHint}
               edition={myEdition}
               loading={loading || (!!data?.edition && !myEdition)}
               failedLoad={failedLoad}
@@ -614,8 +620,6 @@ export default function App() {
               stream={stream}
               params={path === 'stroom' ? route.params : navMem.stroom || {}}
               go={route.go}
-              pinned={prefs.pinned}
-              mine={prefs.topics}
               sources={sources}
               loading={loading}
               failedLoad={failedLoad}
@@ -694,7 +698,7 @@ export default function App() {
           ) : installTip && prefs.onboarded ? (
             <div className="toast toast--tip">
               <span>
-                Zet Hoot op je beginscherm: tik op <ShareGlyph /> en kies <strong>Zet op beginscherm</strong>.
+                Zet Hoot op je beginscherm: <ShareGlyph /> › <strong>Zet op beginscherm</strong>.
               </span>
               <button type="button" className="iconbtn toast__x" onClick={() => setPref('installTipDone', true)} aria-label="Tip sluiten">
                 <CloseIcon />

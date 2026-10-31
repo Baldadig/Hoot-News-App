@@ -4,7 +4,7 @@ import { SourceMark } from '../components/Items.jsx'
 import { Disclosure } from '../components/Disclosure.jsx'
 import { resolveProfile } from '../lib/bluesky.js'
 import { statusLabel } from '../lib/sourceStatus.js'
-import { clock, timeAgo } from '../lib/time.js'
+import { timeAgo } from '../lib/time.js'
 import { SOURCE_CATS } from '../lib/topics.js'
 import { StarIcon, CaretIcon, ICON_SM } from '../components/icons.jsx'
 
@@ -21,7 +21,7 @@ export function Switch({ checked, onChange, label, className = '', disabled }) {
 
 export function SourceRow({ s, muted, onToggle, onRemove, favorite = false, onFavorite = null }) {
   const Main = muted ? 'div' : 'a'
-  const status = !s.ok ? 'Tijdelijk niet bereikbaar' : s.count ? `${s.count} berichten` : 'Geen berichten'
+  const status = !s.ok ? 'Niet bereikbaar' : s.count ? `${s.count} berichten` : 'Geen berichten'
   return (
     <li className="srow">
       {/* Alleen een link naar de Stroom als de bron aanstaat; een uitgezette bron levert daar niets op. */}
@@ -54,7 +54,7 @@ export function SourceRow({ s, muted, onToggle, onRemove, favorite = false, onFa
 // niet bereikbaar is. Herstelt de bron of zet je hem uit, dan verdwijnt de regel vanzelf.
 function SourceStatus({ status, recovered, latestBySource, meta, onRetry, refreshing, online }) {
   const n = status.failed.length
-  const at = clock(meta?.updatedAt)
+  const at = timeAgo(meta?.updatedAt)
   const summary = !online ? 'je bent offline' : n ? statusLabel(n) : recovered ? 'alle bronnen zijn weer bereikbaar' : 'alle bronnen bereikbaar'
   return (
     <Disclosure
@@ -69,21 +69,17 @@ function SourceStatus({ status, recovered, latestBySource, meta, onRetry, refres
       }
     >
       <div className="srcstatus__body" role="status">
-        {n === 0 ? (
-          <p>{recovered ? 'Alle bronnen zijn weer bereikbaar.' : 'Alle bronnen zijn bereikbaar.'}</p>
-        ) : (
+        {n === 0 ? null : (
           <ul>
             {status.failed.map((f) => (
               <li key={f.id}>
-                <strong>{f.name}</strong> — tijdelijk niet bereikbaar. {status.allDown ? '' : 'De rest van je nieuws is bijgewerkt. '}
-                {latestBySource[f.id] ? `Het laatste bericht dat je van deze bron ziet is van ${timeAgo(latestBySource[f.id])}.` : 'Er staan nu geen berichten van deze bron.'}
+                <strong>{f.name}</strong> — niet bereikbaar. {latestBySource[f.id] ? `Laatste bericht van ${timeAgo(latestBySource[f.id])}.` : 'Geen berichten.'}
               </li>
             ))}
           </ul>
         )}
         <p className="srcstatus__foot">
-          {at ? `Laatst gecontroleerd om ${at}. ` : ''}
-          {n || !online ? 'Hoot probeert het bij elke verversing opnieuw. ' : ''}
+          {at ? `Gecontroleerd ${at}. ` : ''}
           <button type="button" className="linkbtn" onClick={onRetry} disabled={refreshing}>
             {refreshing ? 'Bezig…' : 'Opnieuw proberen'}
           </button>
@@ -130,7 +126,7 @@ export function AddBluesky({ onAdd }) {
         </p>
       ) : null}
       <p className="hint" id="add-help">
-        Naam en profielfoto komen van Bluesky. Threads, Instagram en X bieden geen openbare feed en kunnen daarom niet worden toegevoegd.
+        X, Threads en Instagram kunnen niet.
       </p>
     </form>
   )
@@ -143,7 +139,7 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
   return (
     <section className="view" hidden={!active} aria-label="Bronnen">
       <div className="col col--form">
-        <ViewHeader title="Bronnen" sub="Wat meedoet in je Editie en Stroom" subWide />
+        <ViewHeader title="Bronnen" />
 
         <h2 className="label label--section sect">Je bronnen · {mine.length}</h2>
         <ul className="srows rows">
@@ -151,11 +147,10 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
             <SourceRow key={s.id} s={s} muted={false} onToggle={onToggle} favorite={favorites.includes(s.id)} onFavorite={onFavorite} />
           ))}
         </ul>
-        <p className="hint">Tik op een bron om alleen die te lezen. Met de ster maak je een bron een voorkeursbron: die weegt zwaarder in je Editie en staat vooraan in de Stroom. Zet je een bron uit, dan verdwijnt hij uit je Stroom en zoeken.</p>
+        <p className="hint">Met de ster gaat een bron voor in je Editie en Stroom.</p>
         <SourceStatus status={status} recovered={recovered} latestBySource={latestBySource} meta={meta} onRetry={onRetry} refreshing={refreshing} online={online} />
 
         <h2 className="label label--section sect">Meer bronnen</h2>
-        <p className="hint">Gecontroleerde bronnen die je nu niet volgt. Zet er een aan om hem toe te voegen.</p>
         <div className="rows">
           {SOURCE_CATS.map(([cat, label]) => {
             const list = more.filter((s) => s.cat === cat)
@@ -187,7 +182,6 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
             <a className="setrow setrow--link" href="#/bluesky">
               <span className="setrow__text">
                 <span className="setrow__label">Mensen op Bluesky</span>
-                <span className="setrow__hint">Wie je volgt, toevoegen en of iemand ook in de Stroom staat, regel je in Bluesky.</span>
               </span>
               <span className="caret" aria-hidden="true">
                 <CaretIcon size={ICON_SM} />
@@ -196,12 +190,11 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
           </>
         ) : null}
 
-        <h2 className="label label--section sect">Onderwerpen en instellingen</h2>
+        <h2 className="label label--section sect">Instellingen</h2>
         <div className="rows">
           <a className="setrow setrow--link" href="#/welkom">
             <span className="setrow__text">
-              <span className="setrow__label">Interesses opnieuw kiezen</span>
-              <span className="setrow__hint">Wat je volgt, van breed naar smal, en je bronnen.</span>
+              <span className="setrow__label">Interesses</span>
             </span>
             <span className="caret" aria-hidden="true">
               <CaretIcon size={ICON_SM} />
@@ -210,7 +203,6 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
           <a className="setrow setrow--link" href="#/instellingen">
             <span className="setrow__text">
               <span className="setrow__label">Alle instellingen</span>
-              <span className="setrow__hint">Account, weergave, Editie, buiten je bubbel.</span>
             </span>
             <span className="caret" aria-hidden="true">
               <CaretIcon size={ICON_SM} />
@@ -218,7 +210,6 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
           </a>
         </div>
 
-        <p className="about">Hoot v{__APP_VERSION__}</p>
       </div>
     </section>
   )

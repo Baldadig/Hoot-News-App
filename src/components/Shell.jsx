@@ -1,4 +1,4 @@
-import { clock } from '../lib/time.js'
+import { timeAgo } from '../lib/time.js'
 import { BrandLogo } from './Brand.jsx'
 import { useHoot } from './Items.jsx'
 import { BooksIcon, ButterflyIcon, EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, BackIcon, AccountIcon, SettingsIcon } from './icons.jsx'
@@ -77,13 +77,13 @@ export function BackButton({ label, onClick, ariaLabel, nav = false, className =
 // `account`: de knop Account en weergave (rechtsboven). `onBack` + `backLabel`: terug, vóór de titel
 // in dezelfde rij; `backInNav`: dit scherm staat ook in de zijbalk, dus daar geen terugknop.
 // `tools`: eigen knoppen van het scherm, vóór verversen (de Stroom: de filterknop).
-// `updatedAt`: hoe vers het is, in de knop Verversen ("bijgewerkt om 13:50") in plaats van een regel.
+// `updatedAt`: hoe vers het is, in de knop Verversen ("bijgewerkt 20 min geleden", nooit een kloktijd) in plaats van een regel.
 // Onder de rij staat hooguit één metaregel (.vh__sub), over de volle breedte, zodat hij nooit tussen
 // titel en knoppen wordt samengeperst. Daarna volgt de inhoud op --after-header.
 export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing, updatedAt, showSearch = true, compare = false, account = true, tools = null, onBack, backLabel = 'Terug', backInNav = false, children }) {
   const hoot = useHoot()
   const panel = hoot?.panel
-  const at = clock(updatedAt)
+  const at = timeAgo(updatedAt)
   return (
     <header className="vh">
       <div className="vh__row">
@@ -100,7 +100,7 @@ export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing,
         ) : null}
         {tools}
         {onRefresh ? (
-          <button type="button" className={`iconbtn${refreshing ? ' is-spinning' : ''}`} onClick={onRefresh} disabled={refreshing} aria-label={at ? `Verversen, bijgewerkt om ${at}` : 'Verversen'} title={at ? `Verversen · bijgewerkt om ${at}` : undefined}>
+          <button type="button" className={`iconbtn${refreshing ? ' is-spinning' : ''}`} onClick={onRefresh} disabled={refreshing} aria-label={at ? `Verversen, bijgewerkt ${at}` : 'Verversen'} title={at ? `Verversen · bijgewerkt ${at}` : undefined}>
             <RefreshIcon />
           </button>
         ) : null}
@@ -135,12 +135,12 @@ function AccountButton({ account, onClick }) {
 // Onderscheidt: offline · verversen mislukt · álle bronnen onbereikbaar · gewoon bijgewerkt.
 // Eén of enkele uitgevallen bronnen horen hier niet: die staan stil onder Bronnen → Bronstatus.
 export function StatusLine({ online, refreshing, refreshError, meta, allDown = false, onRetry, quiet = false }) {
-  const at = clock(meta?.updatedAt)
-  if (!online) return <p className="status status--warn" role="status">Je bent offline. Je ziet wat om {at || 'eerder'} is opgehaald.</p>
+  const at = timeAgo(meta?.updatedAt)
+  if (!online) return <p className="status status--warn" role="status">Je bent offline. Dit is het nieuws van {at || 'eerder'}.</p>
   if (refreshError)
     return (
       <p className="status status--warn" role="status">
-        Verversen lukt nu niet. Je ziet de versie van {at || 'eerder'}.{' '}
+        Verversen lukt nu niet.{' '}
         <button type="button" className="linkbtn" onClick={onRetry}>
           Opnieuw
         </button>
@@ -152,40 +152,80 @@ export function StatusLine({ online, refreshing, refreshError, meta, allDown = f
   if (allDown)
     return (
       <p className="status status--warn" role="status">
-        Je bronnen zijn nu niet bereikbaar. Je ziet wat eerder is opgehaald.{' '}
+        Je bronnen zijn nu niet bereikbaar.{' '}
         <button type="button" className="linkbtn" onClick={onRetry}>
-          Opnieuw proberen
+          Opnieuw
         </button>
       </p>
     )
-  return at && !quiet ? <p className="status">Bijgewerkt om {at}</p> : null
+  return at && !quiet ? <p className="status">Bijgewerkt {at}</p> : null
 }
 
-export function Skeleton({ rows = 5 }) {
-  return (
-    <div aria-hidden="true">
-      {Array.from({ length: rows }).map((_, i) => (
-        <div className="sk" key={i}>
-          <div className="sk__text">
-            <div className="sk__bar sk__bar--title" />
-            <div className="sk__bar" />
-            <div className="sk__bar sk__bar--short" />
+// Laden: een skelet in de vorm van wat er komt, zodat de inhoud bij het landen niet verspringt.
+// `layout` volgt standaard de indeling van de lijst (useHoot().layout): Tijdlijn is kop, twee
+// regels, een beeldstrook 2:1 en de bronregel; Krant is kop en tekst met het kleine beeld rechts.
+// `lead`: eerst het hoofdverhaal (beeld, rubriek, kop, kern), zoals de Editie opent. De Editie en
+// de Selectie zijn altijd krant en geven dat zelf mee.
+export function Skeleton({ rows = 5, layout, lead = false }) {
+  const hoot = useHoot()
+  const form = layout ?? hoot?.layout
+  const list = Array.from({ length: rows }).map((_, i) =>
+    form === 'tijdlijn' ? (
+      <div className="sk sk--tl" key={i}>
+        <div className="sk__bar sk__bar--title" />
+        <div className="sk__bar" />
+        <div className="sk__bar sk__bar--short" />
+        <div className="sk__media" />
+        <div className="sk__src">
+          <div className="sk__mark" />
+          <div className="sk__who">
+            <div className="sk__bar sk__bar--name" />
+            <div className="sk__bar sk__bar--time" />
           </div>
-          <div className="sk__thumb" />
         </div>
-      ))}
+      </div>
+    ) : (
+      <div className="sk" key={i}>
+        <div className="sk__text">
+          <div className="sk__bar sk__bar--title" />
+          <div className="sk__bar" />
+          <div className="sk__bar sk__bar--short" />
+        </div>
+        <div className="sk__thumb" />
+      </div>
+    )
+  )
+  if (!lead) return <div aria-hidden="true">{list}</div>
+  // Met het hoofdverhaal: in het raster van de voorpagina (.front), dus breed links het verhaal en
+  // de rijen in de zijkolom, smal alles onder elkaar; zo staat alles al waar het gaat landen.
+  return (
+    <div className="front" aria-hidden="true">
+      <div className="sk sk--lead">
+        <div className="sk__media sk__media--lead" />
+        <div className="sk__bar sk__bar--kicker" />
+        <div className="sk__bar sk__bar--head" />
+        <div className="sk__bar sk__bar--head sk__bar--short" />
+        <div className="sk__bar" />
+        <div className="sk__bar sk__bar--short" />
+      </div>
+      <div className="front__side">{list}</div>
     </div>
   )
 }
 
-// Lege staat: wat er (nog) niet is en wat je kunt doen, op de kolomlijn. tone="error" als iets
-// niet lukte: het label erboven staat dan in --warn, zodat een fout niet leest als 'nog niets'.
-export function Empty({ title, children, action, tone = 'neutral', label }) {
+// Lege staat: wat er (nog) niet is en wat je kunt doen. tone="error" als iets niet lukte: het
+// label erboven staat dan in --warn, zodat een fout niet leest als 'nog niets'. Met `art` (een
+// lijntekening uit icons.jsx: SavedArt, SearchArt, BlueskyArt) wordt het een lege bladzijde: alles
+// gecentreerd, iets boven het midden, met een schermtitel (head-5) in plaats van een itemkop.
+// Zonder art, en altijd bij een fout, blijft hij links op de kolomlijn.
+export function Empty({ title, children, action, tone = 'neutral', label, art: Art = null }) {
+  const page = Art && tone !== 'error'
   return (
-    <div className={`empty${tone === 'error' ? ' empty--error' : ''}`}>
+    <div className={`empty${tone === 'error' ? ' empty--error' : ''}${page ? ' empty--page' : ''}`}>
+      {page ? <Art /> : null}
       {label ? <p className="label label--meta empty__label">{label}</p> : null}
-      <h2 className="head-lg empty__title">{title}</h2>
-      <p className="empty__text">{children}</p>
+      <h2 className={`${page ? 'head-5' : 'head-lg'} empty__title`}>{title}</h2>
+      {children ? <p className="empty__text">{children}</p> : null}
       {action}
     </div>
   )

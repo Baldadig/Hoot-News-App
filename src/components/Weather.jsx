@@ -48,7 +48,7 @@ const ICONS = {
   ),
 }
 
-// Het weer van vandaag op de plaats uit je instellingen (standaard Haarlem), klein in de
+// Het weer van vandaag op de plaats uit je instellingen (standaard De Bilt), klein in de
 // metaregel: icoon + hoogste temperatuur. "Geen weer", of lukt het ophalen niet, dan staat er
 // niets (geen lege plek, geen foutmelding).
 export default function Weather() {

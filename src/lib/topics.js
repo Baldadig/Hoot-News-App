@@ -43,7 +43,8 @@ export function resolveTopics(interests = [], picked = []) {
   })
 }
 
-// Welke bronnen staan vooraf aan bij deze keuzes. Alleen bronnen met `pick`; daarvan: zonder
+// Welke bronnen stonden vooraf aan bij deze keuzes (het oude welkom; nu alleen nog de basis van de
+// testpersona's in tests/fixtures/personas.mjs, het welkom zelf gebruikt proposeSources). Alleen bronnen met `pick`; daarvan: zonder
 // voorwaarde altijd, met `for` als een van je interesses past, met `forTopic` als je dat onderwerp volgt.
 export function suggestSources(sources = [], interests = [], topics = []) {
   return sources
@@ -74,7 +75,6 @@ export const SOURCE_CATS = [
   ['sport', 'Sport'],
   ['cultuur', 'Cultuur en muziek'],
 ]
-export const catLabel = (cat) => SOURCE_CATS.find(([c]) => c === cat)?.[1] || cat
 
 // "Liever meteen lezen": een zachte landing. Alleen Nederlandse bronnen, allemaal gratis, dus elk
 // stuk is helemaal te lezen; over een paar interesses verdeeld. Alles is later aan te passen.

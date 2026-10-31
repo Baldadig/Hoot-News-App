@@ -1,0 +1,24 @@
+{
+  "_uitleg": "Testgevallen voor typeset(s, lang) (shared/typeset.mjs, T6 stap 2, D3). Web (tests/typeset.test.mjs) en iOS (lezer-kop, I5) lezen dit bestand allebei. Elk geval is ook idempotent: typeset(verwacht) = verwacht. \\u00a0 is de vaste spatie.",
+  "typeset": [
+    { "naam": "T6: aanhaling in een kop wordt enkel gekruld", "lang": "nl", "invoer": "Christa Pike reageert na mislukte executie: 'Ik heb constant pijn'", "verwacht": "Christa Pike reageert na mislukte executie: ‘Ik heb constant pijn’" },
+    { "naam": "T6: jaartalbereik krijgt een kastlijntje", "lang": "nl", "invoer": "Met zijn norse bariton zette acteur Patrick Stewart (1940-2026) Star Trek naar zijn hand", "verwacht": "Met zijn norse bariton zette acteur Patrick Stewart (1940–2026) Star Trek naar zijn hand" },
+    { "naam": "T6: drie punten worden een beletselteken", "lang": "nl", "invoer": "En toen...", "verwacht": "En toen…" },
+    { "naam": "aanhaling vóór een koppelteken en ’s- in een plaatsnaam", "lang": "nl", "invoer": "Frankrijk zet zich schrap voor 'Halloween'-protesten in 's-Hertogenbosch", "verwacht": "Frankrijk zet zich schrap voor ‘Halloween’-protesten in ’s-Hertogenbosch" },
+    { "naam": "dubbele spaties worden één", "lang": "nl", "invoer": "Kabinet  valt   na ruzie", "verwacht": "Kabinet valt na ruzie" },
+    { "naam": "apostrof binnen een woord", "lang": "nl", "invoer": "Intro's van d'r eigen bronnen", "verwacht": "Intro’s van d’r eigen bronnen" },
+    { "naam": "weglating aan het begin van een woord is geen aanhaling", "lang": "nl", "invoer": "'s Avonds naar 't strand, net als in de jaren '90", "verwacht": "’s Avonds naar ’t strand, net als in de jaren ’90" },
+    { "naam": "gedachtestreepje tussen spaties", "lang": "nl", "invoer": "Ajax - PSV eindigt in 2-2", "verwacht": "Ajax – PSV eindigt in 2-2" },
+    { "naam": "vaste spatie tussen getal en eenheid", "lang": "nl", "invoer": "Inflatie 3,5 % na 120 km en 15 °C, 40 kg voor 5 euro in 2 uur en 10 min.", "verwacht": "Inflatie 3,5\u00a0% na 120\u00a0km en 15\u00a0°C, 40\u00a0kg voor 5\u00a0euro in 2\u00a0uur en 10\u00a0min." },
+    { "naam": "euroteken blijft bij het bedrag", "lang": "nl", "invoer": "Benzine kost € 2,10 of 2,10 €", "verwacht": "Benzine kost €\u00a02,10 of 2,10\u00a0€" },
+    { "naam": "een langer woord is geen eenheid", "lang": "nl", "invoer": "Over 5 minuten en 3 kilometer", "verwacht": "Over 5 minuten en 3 kilometer" },
+    { "naam": "nooit binnen een URL", "lang": "nl", "invoer": "Lees het op https://nos.nl/artikel/1940-2026-a...b?q='x' of www.nrc.nl/a--b", "verwacht": "Lees het op https://nos.nl/artikel/1940-2026-a...b?q='x' of www.nrc.nl/a--b" },
+    { "naam": "Engelse kop met it's en een aanhaling", "lang": "en", "invoer": "It's the economy: why \"soft landing\" talk is back", "verwacht": "It’s the economy: why ‘soft landing’ talk is back" },
+    { "naam": "Engelse bezits-apostrof na een meervoud", "lang": "en", "invoer": "The players' union says 'no deal' on PBS' show", "verwacht": "The players’ union says ‘no deal’ on PBS’ show" },
+    { "naam": "aanhaling binnen een aanhaling: buitenste wordt dubbel gekruld", "lang": "en", "invoer": "He said \"she told me 'never'\" yesterday", "verwacht": "He said “she told me ‘never’” yesterday" },
+    { "naam": "kop zonder iets blijft gelijk", "lang": "nl", "invoer": "Kabinet valt na ruzie over asiel", "verwacht": "Kabinet valt na ruzie over asiel" },
+    { "naam": "al gezet blijft gezet", "lang": "nl", "invoer": "Stewart (1940–2026): ‘Ik ben er’…", "verwacht": "Stewart (1940–2026): ‘Ik ben er’…" },
+    { "naam": "een andere taal blijft letterlijk", "lang": "de", "invoer": "Der Kanzler sagt 'nein' (1940-2026)...", "verwacht": "Der Kanzler sagt 'nein' (1940-2026)..." },
+    { "naam": "zonder taal blijft letterlijk", "lang": null, "invoer": "Kop 'x' - y", "verwacht": "Kop 'x' - y" }
+  ]
+}

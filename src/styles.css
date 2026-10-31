@@ -15,7 +15,8 @@
   --edge: #8f8574; /* rand van velden en filterknoppen: 3:1, waar een lijn iets betekent */
   /* Krantenrood, alleen voor: rubriek en kicker · de actieve navigatie · gekozen (via --sel-*) ·
      links in lopende tekst · merkmomenten (woordmerk, einde van de editie, Welkom) · en
-     bewust "Vergelijk N bronnen" / "+ bronnen". Acties zijn --action, focus is --focus. */
+     bewust "Vergelijk N bronnen" / "+ bronnen". Acties zijn --action, focus is --focus. Een
+     schakelaar aan is inkt, geen rood: op Bronnen blijven de ster en 'gratis' het enige rood. */
   --accent: #a3201b;
   --accent-soft: #f4e3de; /* alleen 'gekozen'; decoratie is --tint */
   --on-accent: #ffffff;
@@ -75,6 +76,9 @@
   --measure: 720px; /* leesblok */
   --measure-prose: 58ch; /* lopende tekst, samenvattingen en hints: ten hoogste ± 75 tekens per regel (een ch is de breedte van een 0, breder dan een gemiddelde letter; 65ch gaf tot 83) */
   --measure-form: 560px; /* Bronnen en Instellingen */
+  --measure-end: 30ch; /* einde van de Editie: kort, gebalanceerd */
+  --measure-empty: 34ch; /* tekst van een lege bladzijde: drie korte, gecentreerde regels */
+  --art: 96px; /* lijntekening van een lege bladzijde */
   --front-side: 16rem; /* zijkolom van de voorpagina, minstens: "Vergelijk N bronnen" past naast ⋯ en bewaren */
   --sheet-w: 560px;
   --nav-w: 208px;
@@ -132,6 +136,13 @@
   --thumb-w: 96px;
   --thumb-h: 64px;
   --thumb-sm: 64px; /* klein beeld op de voorpagina en in een linkkaart (vierkant) */
+  /* Beeldverhoudingen. Tijdlijn 2:1 is een besluit (iOS FramedImage ratio 2): het beeld over de
+     volle kolom. Het hoofdverhaal op een telefoon en de grote kaart van de Selectie vanaf 720 zijn
+     ook 2:1, maar een eigen keuze; daarom een eigen naam, zodat de een niet met de ander meeschuift. */
+  --media-tl: 2 / 1;
+  --media-lead: 2 / 1;
+  --media-lead-wide: 21 / 9; /* hoofdverhaal vanaf 720: een liggende strook */
+  --media-card: 16 / 9; /* kaart van de Selectie */
   --mark-logo-pad: 14%; /* lucht rond een uitgeverslogo in zijn schijf */
   --underline-offset: 3px;
   --tabbar-h: 52px;
@@ -176,8 +187,8 @@
   --lh-1: 1rem; /* 16 */
   --lh-2: 1.25rem; /* 20 */
   --lh-3: 1.5rem; /* 24 */
-  --lh-4: 1.25rem; /* 20 */
-  --lh-head-lg: 1.5rem; /* 24 */
+  --lh-4: 1.375rem; /* 22: lijstkoppen van vier, vijf regels houden lucht tussen staart en stok */
+  --lh-head-lg: 1.625rem; /* 26 */
   --lh-5: 2rem; /* 32 */
   --lh-6: 2.25rem; /* 36, vanaf 720 40 */
   --lh-display: 2.25rem; /* 36 */
@@ -549,6 +560,14 @@ select {
   line-clamp: var(--lines, 2);
   overflow: hidden;
 }
+/* Huisregel: Hoot eindigt nooit met een beletselteken. Een intro is al op hele zinnen geknipt die
+   in --lines regels passen, gemeten in de smalste kolom (375) en bij de tekstgrootte
+   (src/lib/intro.js); een te lange eerste zin mag één regel doorlopen. Daarom staat de clamp
+   precies een regel ruimer. */
+.clamp--vangnet {
+  -webkit-line-clamp: calc(var(--lines, 2) + 1);
+  line-clamp: calc(var(--lines, 2) + 1);
+}
 
 .visually-hidden {
   position: absolute;
@@ -620,12 +639,16 @@ select {
   padding: var(--safe-t) calc(var(--gutter) + var(--safe-r)) var(--s7) calc(var(--gutter) + var(--safe-l));
 }
 /* Het raam van een scherm. Tot 960 één leesblok (--measure), gecentreerd; vanaf 960 het
-   paginaraam (--page, hieronder), op elke tab even breed. De schermkop (.vh) loopt altijd over
-   het hele raam, dus titel en iconen staan op elke tab op dezelfde plek. Wat eronder staat,
-   kiest zijn breedte per soort scherm:
+   paginaraam (--page, hieronder), op elke tab even breed. De rij van de schermkop (.vh__row) loopt
+   altijd over het hele raam, dus titel en iconen staan op elke tab op dezelfde plek. Wat eronder
+   staat, kiest zijn breedte per soort scherm:
    - .col--read: lezen (Stroom, Bewaard, Zoeken, Bluesky, Over, Privacy, Designsysteem). Elk blok
-     stopt op --measure en staat links, op de lijn van de titel; rechts blijft lucht. Zoeken heeft
-     geen titelrij: daar hoort het veld bij de resultaten en stopt de kop dus ook op --measure.
+     stopt op --measure en staat links, op de lijn van de titel; rechts blijft lucht. Ook wat in
+     de kop onder de rij staat (de rubriekenlijn met de stapel, een metaregel) stopt daar, zodat
+     lijn en lijst één rechterlijn delen; de iconen blijven aan de rand van het raam (schets
+     e-stroom-raam). Zoeken heeft geen titelrij: daar hoort het veld bij de resultaten en stopt
+     de kop dus ook op --measure. Het raam zelf blijft links verankerd (audit §2: een lege
+     rechterbaan op desktop is normaal).
    - .col--form: een formulier (Bronnen, Instellingen). Stopt op --measure-form, zodat een label
      en zijn schakelaar bij elkaar blijven.
    - .col--wide: een voorpagina (Editie, Selectie). Gebruikt het hele raam.
@@ -638,7 +661,8 @@ select {
 /* :where houdt het gewicht op één klasse, zodat een blok dat zelf smaller is (lopende tekst op
    --measure-prose, een hint) zijn eigen maat houdt. */
 .col--read > :where(:not(.vh)),
-.col--read > .vh:has(> .searchbar) {
+.col--read > .vh:has(> .searchbar),
+.col--read > .vh > :where(:not(.vh__row)) {
   max-inline-size: var(--measure);
 }
 .col--form > :where(:not(.vh)) {
@@ -981,10 +1005,26 @@ select {
 
 /* Na de kop: altijd --after-header tot de eerste inhoud, op elk scherm; de inhoud zelf zet
    bovenaan geen eigen marge. (0,2,0), zodat het wint van een onderdeel dat elders een
-   bovenmarge heeft (.sect, .empty). De Editie heeft een kop met meer erin (.edtop). */
+   bovenmarge heeft (.sect, .empty). De Editie heeft een kop met meer erin (.edtop): de stille
+   rij van het overzicht (.briefcta) hangt direct onder de lijn en hoort bij de kop; pas na die
+   rij komt --after-header. Een korte Editie zegt het als hint (.edshort) op --s3 onder de lijn of
+   de rij, en dan volgt het nieuws op --after-header. De eenmalige uitleg bij "Jouw Editie"
+   (.edhint) staat op dezelfde plek; staan ze er allebei, dan volgt .edshort op --s2, als hints
+   onder elkaar. */
 .col > .vh + *,
-.col > .edtop + * {
+.col > .edtop + *,
+.col > .briefcta + *,
+.col > :is(.edhint, .edshort) + * {
   margin-top: var(--after-header);
+}
+.col > .edtop + .briefcta {
+  margin-top: 0;
+}
+.col > :is(.edtop, .briefcta) + :is(.edhint, .edshort) {
+  margin-top: var(--s3);
+}
+.col > .edhint + .edshort {
+  margin-top: var(--s2);
 }
 /* Een lijst begint met de lucht van zijn eerste bericht (.entry: --s4 boven): de kop van dat
    bericht staat dan ook op --after-header. */
@@ -1216,9 +1256,10 @@ select {
 /* Gekozen: één regel. Zelfde gewicht als in rust (de breedte verspringt niet), en een vinkje van
    16 vooraan, zodat aan niet alleen een kleur is. ::after met order −1, want ::before is het
    raakvlak van .hit. Dat geldt voor elke pil, ook bij enkele keuze (Mijn/Alle bronnen, Soort,
-   Iedereen): gekozen is dan niet alleen een kleur. Uitzonderingen: icoonknoppen (alleen het
-   icoon, zie boven), de segmenten (.seg: de compacte schakelaar, zonder vinkje) en de tegels in
-   Welkom. */
+   Iedereen): gekozen is dan niet alleen een kleur. Dezelfde regel geldt voor de tegels in Welkom
+   (.ob__tile) en het ronde vinkje (.ob__check). Uitzonderingen: icoonknoppen (alleen het icoon,
+   zie boven) en, bewust, de segmenten (.seg: de compacte schakelaar, één keuze uit een paar,
+   zonder vinkje: de knop ernaast zegt al wat uit is). */
 .pill[aria-pressed='true'],
 .topics__filter[aria-expanded='true'] {
   border-color: var(--sel-edge);
@@ -1476,14 +1517,20 @@ select.input {
   box-shadow:
     var(--shadow-thumb),
     inset 0 0 0 1px var(--hairline);
-  transition: transform var(--dur-1) var(--ease);
+  transition:
+    transform var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease);
 }
 .switch[aria-checked='true'] .switch__track {
-  background: var(--accent);
-  box-shadow: inset 0 0 0 1px var(--accent);
+  background: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
 }
 .switch[aria-checked='true'] .switch__thumb {
   transform: translateX(calc(var(--switch-w) - var(--switch-thumb) - 2 * var(--switch-inset)));
+}
+/* In donker is inkt licht: daarop zou de lichte duim verdwijnen. Aan wordt de duim daar papier. */
+:root[data-theme='dark'] .switch[aria-checked='true'] .switch__thumb {
+  background: var(--paper);
 }
 /* Focus om de baan, niet om het raakvlak van 60 × 44: zo volgt de ring de vorm die je ziet. */
 .switch:focus-visible {
@@ -1495,6 +1542,13 @@ select.input {
 }
 
 /* ---------- Gedeelde onderdelen van een bericht ---------- */
+/* Cijfers in een kolom: de tijd onder de bronnaam (Source Sans 3). Even breed, zodat "4 uur" en
+   "41 min" niet verspringen; koppen en lopende tekst blijven proportioneel. Alleen de schreefloze:
+   Newsreader zoals Fontsource hem levert (latin 400/800) heeft geen tabelcijfers, dus de
+   serif-nummers (de stapteller .ob__n, de inhoud .dtoc__n, de rang .dcard__rank) blijven proportioneel. */
+:is(.srcmeta__time, .srcbtn__time) {
+  font-variant-numeric: tabular-nums;
+}
 /* Een bericht. De lijnen ertussen zijn van de lijst (.rows); het bericht meet zichzelf, zodat de
    actieregel zich naar de kolom voegt en niet naar het scherm (zie .meta). */
 .entry {
@@ -1564,6 +1618,36 @@ select.input {
 }
 .kicker__type {
   color: var(--accent);
+}
+/* De telling van de Editie (numberRows): "01 · BUITENLAND". Het nummer in Newsreader 800 op t3, in
+   rood binnen de rolregel van de rubriek; de punt erna is die van de kicker (--ink-3). Regelhoogte
+   lh-1, dus de kicker blijft 16 hoog en het ritme eronder op 4 px. Op die regel zakt Newsreader op
+   t3 1 px onder de basislijn van de kapitalen (gemeten); --kicker-n-lift tilt hem optisch terug,
+   zonder de regel te verhogen (align-items: baseline zou de kicker 17 hoog maken). Proportionele
+   cijfers: zie hierboven, Newsreader heeft geen tabelcijfers. Gelezen: het nummer wordt stil. */
+/* Met een nummer breekt de rubriek in zichzelf, niet als geheel naar een volgende regel: anders
+   staat het nummer alleen en begint de regel eronder met de punt. De tweede regel hangt dan onder
+   de rubriek, het nummer blijft vooraan. */
+.kicker:has(> .kicker__n) {
+  flex-wrap: nowrap;
+}
+.kicker:has(> .kicker__n) > span {
+  min-width: 0;
+}
+.kicker__n {
+  flex: none;
+  --kicker-n-lift: -1px;
+  translate: 0 var(--kicker-n-lift);
+  font-family: var(--serif);
+  font-size: var(--t3);
+  line-height: var(--lh-1);
+  font-weight: var(--fw-head);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--accent);
+}
+.is-read .kicker__n {
+  color: var(--ink-3);
 }
 /* Het waarom van een plek in jouw Editie (Why.js): één stille zin onder de rubriek, in de maat van
    tijd en toelichting (t1/lh-1, --ink-3), zonder kapitalen en zonder rood. Volgt het op een rubriek,
@@ -1764,23 +1848,21 @@ select.input {
   text-decoration: none;
 }
 
-/* Op een telefoon eerst kop en kern, dan het beeld; vanaf tabletbreedte het beeld bovenaan. */
+/* Hoofdverhaal: overal beeld eerst, zoals de app; dan rubriek, kop, kern en de bronregel, die zo
+   bij zijn tekst blijft. Op een telefoon 2:1; vanaf 720 een liggende strook (21:9, ± 300 px hoog),
+   zodat kop en kern van het eerste verhaal zonder scrollen in beeld staan. */
 .lead__link {
   display: flex;
   flex-direction: column;
 }
 .media--lead {
-  aspect-ratio: 16 / 9;
-  margin: var(--s4) 0 var(--s1);
+  aspect-ratio: var(--media-lead);
+  margin: 0 0 var(--s4);
   border-radius: var(--radius-card);
 }
-/* Breed scherm: een liggende strook boven de kop (± 300 px hoog), zodat kop en kern van het
-   eerste verhaal zonder scrollen in beeld staan. */
 @media (min-width: 720px) {
   .media--lead {
-    order: -1;
-    aspect-ratio: 21 / 9;
-    margin: 0 0 var(--s4);
+    aspect-ratio: var(--media-lead-wide);
   }
 }
 
@@ -1812,7 +1894,10 @@ select.input {
   container: list / inline-size;
 }
 /* Stroom, korte weergave: één tot drie regels intro per bericht om sneller te scannen
-   (instelbaar onder Filters). Een sociale bijdrage heeft geen kop, dus die krijgt meer regels. */
+   (instelbaar onder Filters). Een sociale bijdrage heeft geen kop, dus die krijgt meer regels.
+   De intro van een bericht is al op hele zinnen geknipt die in --lines regels passen
+   (src/lib/intro.js); een te lange eerste zin loopt één regel door, dus de clamp staat een regel
+   ruimer. Hoot eindigt nooit met een beletselteken. */
 .list--lines-1 {
   --lines: 1;
   --lines-social: 4;
@@ -1828,8 +1913,8 @@ select.input {
 :is(.list--lines-1, .list--lines-2, .list--lines-3) :is(.compact__sum, .social__text) {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: var(--lines);
-  line-clamp: var(--lines);
+  -webkit-line-clamp: calc(var(--lines) + 1);
+  line-clamp: calc(var(--lines) + 1);
   overflow: hidden;
 }
 :is(.list--lines-1, .list--lines-2, .list--lines-3) .social__text {
@@ -1877,7 +1962,7 @@ select.input {
 }
 .media--tl {
   width: 100%;
-  aspect-ratio: 2 / 1;
+  aspect-ratio: var(--media-tl);
   margin: var(--s3) 0 0; /* onder: de actieregel houdt zelf --s3 tot de bron */
   border: 1px solid var(--rule);
   border-radius: var(--radius-card);
@@ -2042,7 +2127,7 @@ select.input {
   font-weight: var(--fw-ui);
 }
 
-/* Lege staat: links op de kolomlijn. Label (meta; bij een fout in --warn), een grote itemkop,
+/* Lege staat zonder tekening (en altijd bij een fout): links op de kolomlijn. Label (meta; bij een fout in --warn), een grote itemkop,
    één alinea uitleg en een actie (.btn of .btn--quiet). Zelfde vorm voor 'nog niets' en
    'mislukt'; alleen het label zegt welke. Direct onder de kop komt --after-header erbij: dan
    staat hij op --s7 (48) van de kop, een bewuste pauze, maar nog wel bij het scherm. */
@@ -2068,6 +2153,39 @@ select.input {
   line-height: var(--lh-2-read);
 }
 
+/* De lege bladzijde (Empty met art): een compositie in plaats van een regel bovenaan. Tekening,
+   schermtitel, hooguit drie regels tekst en de inktknop, gecentreerd in een vlak van 60 % van de
+   hoogte en dan 6 % omhoog: het blok staat zo op ± 38 % van het scherm, waar het oog begint, niet
+   in het wiskundige midden. Een fout (LoadError) krijgt dit nooit: die blijft op de kolomlijn. */
+.empty--page {
+  display: grid;
+  justify-items: center;
+  place-content: center;
+  min-height: 60vh;
+  text-align: center;
+  translate: 0 -6vh;
+}
+.empty__art {
+  width: var(--art);
+  height: var(--art);
+  margin-bottom: var(--s5);
+  /* --edge, niet --rule: de lijn van de schets (#8f8574) is --edge; in --rule viel de tekening op
+     donker papier weg (1,3:1). Het blijft een stille lijn, geen inkt. */
+  color: var(--edge);
+  stroke: currentColor;
+  stroke-width: 1.5; /* op 96: de lijn van de schets */
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.empty__lint {
+  stroke: var(--accent);
+}
+.empty--page .empty__text {
+  max-inline-size: var(--measure-empty);
+  margin-bottom: var(--s5);
+  text-wrap: balance;
+}
+
 .listmore {
   height: 1px;
 }
@@ -2079,13 +2197,16 @@ select.input {
   text-align: center;
 }
 
-/* Het einde van de Editie: een merkmoment, in merkrood. Het merk en de knop in papier (--on-brand-red). */
+/* Het einde van de Editie: een merkmoment, in merkrood. Het merk en de knop in papier (--on-brand-red).
+   Even breed als de lijst erboven (--measure) en links verankerd: kop, lijst en kaart eindigen op
+   één rechterlijn, ook op breed scherm waar de voorpagina het hele raam gebruikt. */
 .endcap {
   --brand: var(--on-brand-red);
   --accent: var(--on-brand-red);
   display: grid;
   justify-items: center;
   gap: var(--s3);
+  max-inline-size: var(--measure);
   margin: var(--s6) 0 var(--s4);
   padding: var(--s7) var(--s5) var(--s6);
   border-radius: var(--radius-card);
@@ -2093,10 +2214,23 @@ select.input {
   color: var(--on-brand-red);
   text-align: center;
 }
+/* De telling rond ("10 van 10", numberRows): stil boven het merk, in de maat van lopende tekst. */
+.endcap__count {
+  font-family: var(--serif);
+  font-size: var(--t3);
+  line-height: var(--lh-3);
+  font-weight: var(--fw-regular);
+  color: var(--on-brand-red-2);
+}
+/* Tussen het merk en 'Je bent bij.' s4 (de gap s3 plus s1); de rest van de kaart houdt s3. */
+.endcap__title {
+  margin-top: var(--s1);
+}
 
 .endcap__text {
-  max-inline-size: var(--measure-prose);
+  max-inline-size: var(--measure-end);
   color: var(--on-brand-red);
+  text-wrap: balance;
 }
 /* Verder lezen: een .linkbtn, stiller op merkrood; bij hover de volle tekstkleur. */
 .endcap__more {
@@ -2150,6 +2284,75 @@ select.input {
 .sk__thumb {
   width: var(--thumb-w);
   height: var(--thumb-h);
+}
+/* Tijdlijn: dezelfde maten als .compact--tl. Kop en twee regels, dan de beeldstrook over de
+   volle kolom in 2:1 (--media-tl, hoek --radius-card) op --s3, en de bronregel van .srcmeta:
+   logo --slot-sm, --s2 ertussen, naam en tijd onder elkaar, in een regel van --tap. */
+.sk--tl {
+  display: block;
+  padding: var(--s4) 0 var(--s1);
+}
+.sk__media,
+.sk__mark {
+  border-radius: var(--radius-card);
+  background: var(--rule);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.sk__media {
+  aspect-ratio: var(--media-tl);
+  margin-top: var(--s3);
+}
+.sk__src {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: var(--tap);
+  margin-block: calc(var(--s3) - var(--meta-inset)) calc(var(--s4) - var(--s1) - var(--meta-inset));
+}
+.sk__mark {
+  flex: none;
+  width: var(--slot-sm);
+  height: var(--slot-sm);
+  border-radius: 50%;
+}
+.sk__who {
+  display: grid;
+  gap: var(--s2);
+  width: 40%;
+}
+.sk__who .sk__bar {
+  margin: 0;
+}
+.sk__bar--name {
+  height: var(--s3);
+}
+.sk__bar--time {
+  width: 60%;
+  height: var(--s2);
+}
+/* Het hoofdverhaal van de Editie: beeld eerst (2:1, vanaf 720 de strook van 21:9, zoals
+   .media--lead), dan rubriek, kop op de maat van .head-6 en twee regels kern. */
+/* In .front: de lijn tussen verhaal en rijen is van .front__side (boven, of breed links). */
+.sk--lead {
+  display: block;
+  padding: var(--s3) 0 var(--s5);
+  border-bottom: 0;
+}
+.sk__media--lead {
+  aspect-ratio: var(--media-lead);
+  margin: 0 0 var(--s4);
+}
+@media (min-width: 720px) {
+  .sk__media--lead {
+    aspect-ratio: var(--media-lead-wide);
+  }
+}
+.sk__bar--kicker {
+  width: 20%;
+  height: var(--s3);
+}
+.sk__bar--head {
+  height: calc(var(--lh-6) - var(--s2));
 }
 @keyframes pulse {
   50% {
@@ -2620,6 +2823,18 @@ select.input {
   text-wrap: balance;
   overflow-wrap: anywhere;
 }
+/* De kop van het verhaal is de link naar het stuk dat hem levert, zoals een kop in de lijst. */
+.story__link {
+  color: inherit;
+  text-decoration: none;
+}
+/* Haar bronregel: onder de feiten, met de lucht van een actieregel (--s3 tot de bron). */
+.story__src {
+  display: flex;
+  min-height: var(--tap);
+  align-items: center;
+  margin-top: calc(var(--s3) - var(--meta-inset));
+}
 .story__facts {
   margin-top: var(--s3);
   color: var(--ink-2);
@@ -2697,10 +2912,12 @@ select.input {
 }
 
 /* ---------- Welkom ----------
-   Vijf schermen, alles met tikken, onderaan één knop. Welkom ligt over de app heen en scrolt zelf.
-   Gelijk aan de app (WelcomeView.swift): het kleine woordmerk linksboven met de stapteller eronder,
-   rechts Inloggen (intro) of Terug; pillen en tegels met --sel-* voor gekozen; de hoofdknop
-   (.btn--lg) inkt op papier. Eén merkmoment: het eerste scherm in merkrood, met alles erop papier.
+   Eén rode intro en daarna papier: drie veegpagina's (Editie, Stroom, Selectie), de interesses,
+   Wat precies?, Je Hoot en optioneel Je Selectie. Niets scrolt: elke pagina past in één scherm,
+   ook op 375 × 667. Wat niet past (pillen) verdeelt Welcome.jsx over meer pagina's (packPages).
+   Welkom ligt over de app heen. Zelfde opbouw als de app (WelcomeView.swift): het kleine woordmerk
+   linksboven, rechts Inloggen of Terug; pillen en tegels met --sel-* voor gekozen; de hoofdknop
+   (.btn--lg) inkt op papier. Eén merkmoment: de intro in merkrood, met alles erop papier.
    Eén kolom van --measure, ook op desktop: Welkom valt buiten het paginaraam.
    .welcome staat er nog alleen als haakje (de skiplink in App.jsx zoekt het); de vorm is .ob. */
 .ob {
@@ -2709,8 +2926,9 @@ select.input {
   z-index: var(--z-overlay);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow-y: auto; /* vangnet bij enorme tekst; de pagina's zelf passen */
   background: var(--paper);
+  touch-action: pan-y;
 }
 .ob__head,
 .ob__col,
@@ -2718,18 +2936,20 @@ select.input {
   width: 100%; /* in de flex-kolom anders zo smal als de inhoud: één linkerlijn op elk scherm */
   max-inline-size: var(--measure);
 }
-/* De bovenregel staat los van de inhoud, zoals topRow in de app buiten de ScrollView: op elke
-   stap op dezelfde plek, ook vanaf 720 waar de inhoud verticaal in het midden staat. Zo valt het
-   woordmerk op rood precies op dat op papier, en sluit de iris op de punt waar hij hoort. */
+/* De bovenregel staat los van de inhoud, zoals topRow in de app: op elke pagina op dezelfde plek.
+   Zo valt het woordmerk op rood precies op dat op papier, en sluit de iris op de punt waar hij hoort. */
 .ob__head {
   flex: none;
   padding-top: calc(var(--safe-t) + var(--head-y));
   padding-bottom: 0;
 }
 .ob__col {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  min-height: 0;
   padding-top: 0;
-  padding-bottom: var(--s5);
+  padding-bottom: var(--s3);
 }
 .ob__top {
   display: flex;
@@ -2737,27 +2957,12 @@ select.input {
   justify-content: space-between;
   min-height: var(--tap);
 }
-/* Stap, --s2 onder de bovenregel (iOS counter): het cijfer in display, "/5" stil erachter. */
-.ob__n {
-  display: block;
-  margin-top: var(--s2);
-  color: var(--accent);
-  font-family: var(--serif);
-  font-size: var(--t-display);
-  line-height: var(--lh-display);
-  font-weight: var(--fw-head);
-}
-.ob__n small {
-  margin-inline-start: var(--s1);
-  color: var(--ink-3);
-  font-size: var(--t3);
-}
 /* Het kleine woordmerk met punt (BrandLogo, 20 hoog ≈ 65 breed; iOS WelcomeMark 0,4 × 160), op
-   elke stap op dezelfde plek (.ob__head): het opstartscherm landt erop en de iris sluit tot de punt. */
+   elke pagina op dezelfde plek (.ob__head): het opstartscherm landt erop en de iris sluit tot de punt. */
 .ob__brand {
   display: block;
 }
-/* Welkom: rechts in de bovenregel staat Terug (stappen) of Inloggen (intro); het label eindigt op
+/* Rechts in de bovenregel staat Terug (pagina's) of Inloggen (veegpagina's); het label eindigt op
    de kolomlijn. Inloggen in de tekstkleur van het scherm (op rood dus papier). */
 .ob__back,
 .ob__login {
@@ -2784,10 +2989,10 @@ select.input {
   line-height: var(--lh-3-read);
 }
 
-/* Scherm 1: merkrood, met een grote belofte. Alles erop papier (--paper-brand, niet wit, zoals de
-   app): het woordmerk met zijn punt, de teller, de icoonschijven, het knopvlak en de focusring
-   (ze volgen --on-brand-red). Het vlak is --brand-red, ook in donker (niet het lichtere koraal).
-   Stille tekst: --on-brand-red-2. Beide staan op :root al op papier; hier opnieuw gezet zodat dit blok
+/* De intro: merkrood, met alles erop papier (--paper-brand, niet wit, zoals de app): het
+   woordmerk met zijn punt, de zon, de bolletjes, het knopvlak en de focusring (ze volgen
+   --on-brand-red). Het vlak is --brand-red, ook in donker (niet het lichtere koraal). Stille
+   tekst: --on-brand-red-2. Beide staan op :root al op papier; hier opnieuw gezet zodat dit blok
    op zichzelf staat (tests/copy.test.mjs). */
 .ob--open {
   --on-brand-red: var(--paper-brand);
@@ -2797,13 +3002,10 @@ select.input {
   background: var(--brand-red);
   color: var(--on-brand-red);
 }
-.ob--open .ob__n small {
-  color: var(--on-brand-red); /* op rood is de hele teller papier (iOS counter) */
-}
-/* De rode intro is een eigen laag over de papieren stap heen: de schijf van de iris. Dezelfde
-   kolomopbouw (.ob__col + .ob__foot), scrolt zelf, en ligt boven de sticky knoprij van het papier
-   (--z-sticky). De clip-path en de tint komen uit lib/motion.js (Web Animations API, ook bij
-   Minder beweging een fade): hier geen transition. */
+/* De rode intro is een eigen laag over de papieren pagina heen: de schijf van de iris. Dezelfde
+   opbouw (kop, midden, voet) en dezelfde plek voor bolletjes en veeglink als het papier. De
+   clip-path en de tint komen uit lib/motion.js (Web Animations API, ook bij Minder beweging een
+   fade): hier geen transition. */
 .ob__red {
   position: fixed;
   inset: 0;
@@ -2812,63 +3014,252 @@ select.input {
   flex-direction: column;
   overflow-y: auto;
   will-change: clip-path;
+  touch-action: pan-y;
+  user-select: none;
+}
+.ob__mid {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 .ob__hero {
-  margin-top: var(--s5);
+  margin-top: var(--s4);
   font-family: var(--serif);
-  font-size: var(--t-hero);
+  font-size: min(var(--t-hero), 10.5vw); /* 'Minder scrollen.' blijft op één regel */
   line-height: var(--lh-tight);
   font-weight: var(--fw-head);
   letter-spacing: var(--ls-display);
   text-wrap: balance;
 }
-.ob__points {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s5);
-  margin: var(--s6) 0 0;
-  padding: 0;
-  list-style: none;
-}
-.ob__point {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--s3);
-  font-size: var(--t3);
-  line-height: var(--lh-3);
-}
-.ob__point strong,
-.ob__ptext {
-  display: block;
-}
-.ob__point strong {
+.ob__lede {
+  max-inline-size: 28ch;
+  margin-top: var(--s3);
+  color: var(--ink-2);
   font-size: var(--t4);
-  line-height: var(--lh-4);
-  font-weight: var(--fw-action);
+  line-height: var(--lh-3-read);
+  text-wrap: pretty;
 }
-.ob__ptext {
+.ob--open .ob__lede {
   color: var(--on-brand-red-2);
 }
-/* Icoonschijf van 44: papier op merkrood, het icoon in merkrood. */
-.ob__pi {
-  display: grid;
+
+/* De zon (components/SunArt.jsx): het kader is 168 × 140; de hoogte volgt het scherm, de breedte
+   volgt de tekening. Schijf en ring in --accent (op rood papier), de horizon en het water in inkt. */
+.sun {
+  --sun-disc: var(--accent);
+  --sun-line: var(--ink);
+  display: block;
   flex: none;
-  place-items: center;
-  width: var(--disc-lg);
-  height: var(--disc-lg);
-  border-radius: var(--radius-round);
-  background: var(--on-brand-red);
-  color: var(--brand-red);
+  overflow: visible;
 }
-/* Scherm 2: tegels, zoals ChoiceTile in de app: in rust een kaart (--surface, 2px inkt zoals een
-   .ob__chip, --radius-card), gekozen zoals overal --sel-* (rood zacht, rode rand, rode naam); het
-   icoon blijft in beide standen --accent. Indrukken schaalt naar .97. De gedocumenteerde
-   uitzondering is alleen nog de hoogte (112) en --radius-card. */
+.ob--open .sun {
+  --sun-disc: var(--on-brand-red);
+  --sun-line: var(--on-brand-red);
+}
+.sun__disc {
+  fill: var(--sun-disc);
+}
+.sun__ring {
+  fill: none;
+  stroke: var(--sun-disc);
+  stroke-width: 1;
+}
+.sun__line {
+  stroke: var(--sun-line);
+  stroke-width: 1.5;
+}
+.sun__water {
+  stroke: var(--sun-line);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+/* In de Editie (plan 01/05): klein en stil naast de naam, en onderaan in papier op merkrood. */
+.sun--kop {
+  width: auto;
+  height: 0.75em;
+  margin-left: 0.3em;
+  align-self: center;
+}
+.endcap .sun {
+  --sun-disc: var(--on-brand-red);
+  --sun-line: var(--on-brand-red);
+}
+.endcap__sun {
+  width: auto;
+  height: 4.5rem;
+}
+.ob__art {
+  width: auto;
+  height: clamp(6.5rem, 27dvh, 14rem);
+  max-width: 100%;
+}
+
+/* De veegpagina's: een spoor van drie pagina's naast elkaar, dat per pagina opzij schuift. Wat
+   buiten het beeld staat is inert, dus niet te bedienen en niet voor te lezen. */
+.ob__pager {
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+.ob__track {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  transform: translateX(calc(var(--pg) * -100%));
+  transition: transform 320ms var(--ease);
+}
+.ob__page {
+  display: flex;
+  flex: 0 0 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  text-align: center;
+}
+.ob__pagetitle {
+  margin-top: var(--s5);
+  font-family: var(--serif);
+  font-size: var(--t-display);
+  line-height: var(--lh-display);
+  font-weight: var(--fw-head);
+  letter-spacing: var(--ls-display);
+}
+.ob__page .ob__lede {
+  margin-top: var(--s2);
+}
+/* Pijlen opzij: alleen waar een muis of trackpad is; op de telefoon veeg je. */
+.ob__nav {
+  display: none;
+}
+@media (min-width: 720px) and (hover: hover) {
+  .ob__nav {
+    position: absolute;
+    top: 50%;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: var(--control-lg);
+    height: var(--control-lg);
+    margin-top: calc(var(--control-lg) / -2);
+    border: 1px solid var(--edge);
+    border-radius: var(--radius-round);
+    background: none;
+    color: inherit;
+    cursor: pointer;
+  }
+  .ob__nav--l {
+    left: 0;
+  }
+  .ob__nav--r {
+    right: 0;
+  }
+}
+
+/* De voet van de veegpagina's: bolletjes, en daaronder een vak van vaste hoogte met de veeglink of
+   (op de laatste pagina) de twee knoppen. Niets verspringt. */
+.ob__foot {
+  flex: none;
+  padding: var(--s3) 0 calc(var(--s3) + var(--safe-b));
+}
+.ob__foot--pager {
+  padding-top: 0;
+  padding-bottom: calc(var(--s5) + var(--safe-b));
+}
+.ob__foot .col {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.ob__dots {
+  display: flex;
+  justify-content: center;
+}
+.ob__dot {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.ob__dot::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-round);
+  background: currentColor;
+  opacity: 0.25;
+  transition:
+    opacity var(--dur-2) var(--ease),
+    width var(--dur-2) var(--ease);
+}
+.ob__dot[aria-current='true']::before {
+  width: 20px;
+  border-radius: var(--radius-pill);
+  opacity: 1;
+}
+.ob__slot {
+  position: relative;
+  height: 100px;
+  margin-top: var(--s3);
+}
+.ob__slot > * {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: start;
+  gap: var(--s1);
+  transition:
+    opacity var(--dur-2) var(--ease),
+    visibility 0s linear var(--dur-2);
+}
+.ob__slot > [data-shown='false'] {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+.ob__slot > [data-shown='true'] {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity var(--dur-2) var(--ease);
+}
+.ob__next {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  min-height: var(--tap);
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  font-size: var(--t2);
+  font-weight: var(--fw-ui);
+  cursor: pointer;
+}
+.ob__next u {
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.ob--open .ob__next {
+  color: var(--on-brand-red-2);
+}
+.ob__slot .ob__cta {
+  width: 100%;
+}
+
+/* Interesses: tegels, zoals ChoiceTile in de app, in dezelfde grammatica als een pil: in rust een
+   kaart op --surface met 1 px --rule, gekozen --sel-* (rood zacht, 1 px rode rand, rode naam) met
+   het vinkje van 16 rechts. Het label houdt in beide standen zijn gewicht (800), dus niets
+   verspringt; het icoon blijft in beide standen staan, in --accent; het vinkje staat rechts. Indrukken schaalt naar .97. Compact
+   (icoon links van het label), zodat vier rijen op elk scherm passen. */
 .ob__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--s3);
-  margin-top: var(--s5);
+  gap: var(--s2);
+  margin-top: var(--s4);
 }
 @media (min-width: 560px) {
   .ob__grid {
@@ -2877,13 +3268,11 @@ select.input {
 }
 .ob__tile {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--s4);
-  min-height: 112px;
-  padding: var(--s4);
-  border: var(--rule-strong-w) solid var(--ink);
+  align-items: center;
+  gap: var(--s3);
+  min-height: calc(var(--control-lg) + var(--s2));
+  padding: 0 var(--s3);
+  border: 1px solid var(--rule); /* decoratief, zoals bij .pill: het label maakt hem herkenbaar */
   border-radius: var(--radius-card);
   background: var(--surface);
   color: var(--ink);
@@ -2899,27 +3288,82 @@ select.input {
   transform: scale(0.97);
 }
 .ob__ticon {
+  flex: none;
   color: var(--accent);
 }
 .ob__ticon svg {
-  width: var(--icon-lg);
-  height: var(--icon-lg);
+  display: block;
+  width: var(--icon);
+  height: var(--icon);
+}
+/* Elk label blijft op één regel (Binnenland, Wetenschap), ook met het icoon links en het vinkje
+   rechts. Pas op een heel smal scherm (320) mag een lang woord nog afbreken. */
+.ob__tile {
+  gap: var(--s2);
+  padding: 0 var(--s2);
+  position: relative;
 }
 .ob__tlabel {
-  font-size: var(--t4);
+  min-width: 0;
+  white-space: nowrap;
+  font-size: var(--t3);
   line-height: var(--lh-4);
   font-weight: var(--fw-head);
+}
+@media (max-width: 340px) {
+  .ob__tlabel {
+    white-space: normal;
+    hyphens: auto;
+    overflow-wrap: anywhere;
+  }
 }
 .ob__tile[aria-pressed='true'] {
   border-color: var(--sel-edge);
   background: var(--sel-bg);
   color: var(--sel-fg);
 }
+/* Het vinkje van gekozen, zoals bij .pill: 16, in de kleur van het label, rechts in de tegel (het plan:
+   .tile::after). Het icoon blijft staan. */
+.ob__tile[aria-pressed='true']::after {
+  content: '';
+  flex: none;
+  margin-left: auto;
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  background: currentColor;
+  -webkit-mask: var(--icon-check) center / contain no-repeat;
+  mask: var(--icon-check) center / contain no-repeat;
+}
 
-/* Scherm 3 en 5: ChipGroups met pillen (.pill, md), gekozen zoals overal: --sel-* met vinkje.
-   .ob__chip is alleen een haakje. Groep ↔ groep --s6 komt van .chipgroup. */
-.ob__group {
-  margin-top: var(--s5);
+/* Wat precies? en Je Selectie: ChipGroups met pillen (.pill, md), gekozen zoals overal: --sel-* met
+   vinkje. .ob__chip is alleen een haakje. Wat op de pagina past staat in .ob__fit; de verborgen
+   .ob__measure heeft dezelfde groepen, met de keuze zoals die nu is, en meet welke groepen samen
+   op een pagina passen. */
+.ob__fit {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin-top: var(--s4);
+}
+.ob__groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+}
+.ob__groups > .ob__group.chipgroup {
+  margin-top: 0;
+}
+.ob__measure {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 0; /* geen eigen hoogte: de groepen erin worden gemeten, maar rekken de pagina niet op */
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}
+.ob__chip {
+  min-height: var(--control-sm); /* compacter dan een gewone pil: meer groepen per pagina */
+  padding: 0 var(--s3);
 }
 .ob__gtitle {
   display: flex;
@@ -2932,24 +3376,61 @@ select.input {
   height: var(--icon-sm);
   color: var(--accent);
 }
-
-/* Scherm 4: bronnen als keuzerijen, met logo (--slot-lg) en een rond vinkje */
-.ob__fold {
-  margin-top: var(--s5);
-}
-.ob__fold > summary {
-  min-height: var(--tap);
-  margin-bottom: 0;
-}
-.ob__fold > summary .caret {
-  margin-inline-start: auto; /* de caret aan het eind van de rij */
-}
-.ob__count {
+/* 'Pagina 1 van 3' boven de knop; de regel houdt zijn hoogte, ook bij één pagina. */
+.ob__pages {
+  min-height: var(--lh-2);
+  margin-bottom: var(--s2);
   color: var(--ink-3);
-  font-weight: var(--fw-ui);
-  letter-spacing: 0;
-  text-transform: none;
+  font-size: var(--t1);
+  line-height: var(--lh-2);
+  text-align: center;
 }
+
+/* Je Hoot: twee rijen, zoals een rij in Instellingen: naam, waarde eronder, rechts de actie. */
+.ob__rows {
+  margin-top: var(--s5);
+  border-top: 2px solid var(--ink);
+}
+.ob__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s3);
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--s2) 0;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.ob__rk {
+  display: block;
+  font-size: var(--t3);
+  line-height: var(--lh-4);
+  font-weight: var(--fw-ui);
+}
+.ob__rv {
+  display: block;
+  overflow: hidden;
+  color: var(--ink-3);
+  font-size: var(--t2);
+  line-height: var(--lh-2);
+  font-weight: var(--fw-regular);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ob__ra {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+  font-size: var(--t2);
+  font-weight: var(--fw-ui);
+}
+
+/* Bronnen als keuzerijen (het blad Aanpassen), met logo (--slot-lg) en een rond vinkje */
 .ob__sources {
   margin: 0;
   padding: 0;
@@ -2958,10 +3439,10 @@ select.input {
 .ob__src {
   display: flex;
   align-items: center;
-  gap: var(--s4);
+  gap: var(--s3);
   width: 100%;
-  min-height: var(--row-lg);
-  padding: var(--s3) 0;
+  min-height: var(--tap);
+  padding: var(--s2) 0;
   border: 0;
   border-bottom: 1px solid var(--rule);
   background: none;
@@ -2978,23 +3459,35 @@ select.input {
   flex-direction: column;
   min-width: 0;
 }
-/* Naam en labels op één basislijn; past het niet, dan gaat een label naar de volgende regel. */
+/* Naam en labels op één regel, ook op 375: zo is elke rij even hoog. De labels zijn compact en
+   krimpen niet; is het echt te krap, dan krijgt de naam een beletselteken. */
 .ob__sname {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: baseline;
-  gap: 0 var(--s2);
+  gap: 0 var(--s1);
+  min-width: 0;
+  white-space: nowrap;
   font-size: var(--t3);
   line-height: var(--lh-3);
   font-weight: var(--fw-head);
 }
 .ob__sabout {
+  overflow: hidden;
   color: var(--ink-3);
   font-size: var(--t2);
   line-height: var(--lh-2);
+  text-overflow: ellipsis;
+  white-space: nowrap; /* één regel: zo passen er meer bronnen op een pagina */
+}
+.ob__snm {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .ob__tag {
-  padding: 0 var(--s2);
+  flex: none;
+  padding: 0 var(--s1);
   border-radius: var(--radius-pill);
   background: var(--rule);
   color: var(--ink-2);
@@ -3006,9 +3499,6 @@ select.input {
 .ob__tag--free {
   background: var(--tint);
   color: var(--ink);
-}
-.ob__free {
-  margin: var(--s3) 0 var(--s2);
 }
 /* Rond vinkje: gekozen zoals een pil (--sel-*), met hetzelfde vinkje (--icon-check, 16). In
    rust een lege cirkel in --edge: een lijn die iets betekent. */
@@ -3038,22 +3528,7 @@ select.input {
   mask: var(--icon-check) center / contain no-repeat;
 }
 
-/* Onderaan altijd één knop (.btn.btn--lg). Op de telefoon onderaan het scherm, met een zachte
-   overgang erboven en boven de safe area. */
-.ob__foot {
-  position: sticky;
-  bottom: 0;
-  z-index: var(--z-sticky); /* boven de logo's in de lijst (.mark heeft een eigen laag voor zijn rand) */
-  padding: var(--s4) 0 calc(var(--s3) + var(--safe-b));
-  background: linear-gradient(to bottom, transparent, var(--paper) var(--s4));
-}
-.ob--open .ob__foot {
-  background: linear-gradient(to bottom, transparent, var(--brand-red) var(--s4));
-}
-.ob__foot .col {
-  padding-top: 0;
-  padding-bottom: 0;
-}
+/* Onderaan de pagina's met een keuze: één knop (.btn.btn--lg) en eronder een stille link. */
 .ob__cta {
   width: 100%;
 }
@@ -3062,8 +3537,7 @@ select.input {
   --btn-fill: var(--on-brand-red);
   --btn-ink: var(--brand-red);
 }
-/* Overslaan: een .linkbtn--plain onder de hoofdknop, in de tekstkleur van het scherm (op het rode
-   welkom dus papier). */
+/* Overslaan: een .linkbtn--plain onder de hoofdknop, in de tekstkleur van het scherm. */
 .ob__skip {
   display: flex;
   margin: var(--s1) auto 0;
@@ -3076,32 +3550,29 @@ select.input {
   outline: none;
 }
 
-/* Vanaf 720: inhoud en knop als één blok, verticaal in het midden tussen de bovenregel en de
-   onderkant (de lucht gelijk boven en onder), met de knop --s6 onder de inhoud en op elk scherm
-   even breed. Bij een lange lijst (bronnen) is er geen lucht over: dan blijft de knop onderaan
-   in beeld. */
+/* Vanaf 720: de voet van de keuzepagina's is een balk met een lijn erboven, de knop links met de
+   link ernaast. */
 @media (min-width: 720px) {
-  .ob__col {
-    flex: none;
-    margin-top: auto;
-    padding-bottom: 0;
+  .ob__foot:not(.ob__foot--pager) {
+    border-top: 1px solid var(--rule);
   }
-  .ob__foot {
-    margin-bottom: auto;
-    padding-top: var(--s6);
-  }
-  .ob__foot .col {
+  .ob__foot:not(.ob__foot--pager) .col {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--s2) var(--s5);
   }
-  .ob__cta {
+  .ob__foot:not(.ob__foot--pager) .ob__pages {
+    flex: 0 0 100%;
+    margin: 0;
+    text-align: left;
+  }
+  .ob__foot:not(.ob__foot--pager) .ob__cta {
     width: auto;
     min-inline-size: calc(var(--measure) / 3);
   }
-  .ob__skip {
-    margin: 0 calc(-1 * var(--s2)); /* naast de hoofdknop: de tekst op de gap, zoals elke .linkbtn */
+  .ob__foot:not(.ob__foot--pager) .ob__skip {
+    margin: 0 calc(-1 * var(--s2));
   }
 }
 
@@ -3459,7 +3930,7 @@ select.input {
   color: var(--ink-3);
 }
 .srcitem__sum {
-  --lines: 3;
+  --lines: 2;
   max-inline-size: var(--measure-prose);
   margin-top: var(--s2);
   color: var(--ink-2);
@@ -3601,6 +4072,10 @@ html[data-images='hoofd'] .media--social {
 .learned__intro {
   margin: 0 0 var(--s3);
 }
+/* Tussenkop boven Vaak gelezen / Minder: een stille kop, lucht erboven op de schaal. */
+.learned__sub {
+  margin: var(--s4) 0 var(--s1);
+}
 /* Een rij die naar een ander scherm gaat: de caret (16, --ink-3) aan het eind, zoals bij een
    uitklapper (.srcgroup), dus op dezelfde plek tegen de rechterlijn. */
 .setrow--link > .caret {
@@ -3623,8 +4098,8 @@ html[data-images='hoofd'] .media--social {
   border-radius: 0;
   font-family: var(--serif);
 }
-/* De Lezer staat in de Editie direct na de kop, en .col > .edtop + * (0,2,0) geeft dat element
-   --after-header erboven. Een dialoog plaatst zich met zijn marge, dus die staat hier op (0,2,0). */
+/* Een dialoog plaatst zich met zijn marge; een regel als .col > .vh + * (0,2,0) mag die niet
+   verzetten, dus die staat hier op (0,2,0). In de Editie staat de Lezer achteraan in de kolom. */
 .dialog.reader {
   margin: 0;
 }
@@ -3681,7 +4156,7 @@ html[data-images='hoofd'] .media--social {
   padding: var(--s2) 0;
   border-top: 1px solid var(--rule);
   font-size: var(--t3);
-  line-height: var(--lh-4); /* 20: koppen in een lijst staan dicht, zoals een itemkop */
+  line-height: var(--lh-4); /* 22: koppen in een lijst, zoals een itemkop */
 }
 .reader__rest a {
   color: inherit;
@@ -3752,11 +4227,13 @@ html[data-images='hoofd'] .media--social {
   margin-top: var(--s2);
 }
 
-/* Voorpagina vanaf een raam van 42rem (672; tablet staand heeft 688): hoofdverhaal links boven,
-   drie kleinere in de kolom rechts, twee eronder. De zijkolom is minstens --front-side. Onder
-   42rem blijft er naast die zijkolom te weinig over voor de kop van het hoofdverhaal (vier
-   regels, bronregel afgekapt), dus dan één kolom. In rem, zodat het meeschuift met Tekstgrootte. */
-@container front (min-width: 42rem) {
+/* Voorpagina in een raam breder dan 48rem (768): hoofdverhaal links boven, drie kleinere in de
+   kolom rechts, twee eronder. De zijkolom is minstens --front-side. Tot en met 48rem (tablet
+   staand, de band van 960 tot 1200, en het raam met het vergelijkpaneel open, dat op 1440 precies
+   48rem is) blijft er naast die zijkolom te weinig over: een zijkolom met koppen van drie woorden
+   per regel, en een hoofdverhaal met afgekapte bronregel. Dan één kolom. In rem, zodat het
+   meeschuift met Tekstgrootte. */
+@container front (width > 48rem) {
   .front {
     display: grid;
     grid-template-areas:
@@ -3767,7 +4244,7 @@ html[data-images='hoofd'] .media--social {
     gap: var(--s5);
     align-items: start;
   }
-  .front > .lead {
+  .front > :is(.lead, .sk--lead) {
     grid-area: lead;
   }
   .front__side {
@@ -3783,6 +4260,13 @@ html[data-images='hoofd'] .media--social {
   }
   .front__under {
     grid-area: under;
+  }
+}
+/* Net boven de grens (48 tot 52rem) een wat bredere zijkolom, zodat zijn koppen niet op drie
+   woorden per regel breken; vanaf 52rem is er plaats genoeg en geldt weer de vaste --front-side. */
+@container front (48rem < width < 52rem) {
+  .front {
+    --front-side: 17rem;
   }
 }
 /* Pas bij een ruim raam (52rem) staan de twee onder het hoofdverhaal naast elkaar, elk minstens
@@ -3930,10 +4414,10 @@ html[data-images='hoofd'] .media--social {
    moet er zijn vóór dit bestand geladen is. Het sluiten (iris, landing, fade) komt uit
    lib/motion.js via components/Splash.jsx. --z-splash hierboven is zijn laag. */
 
-/* Editie: de kop. Titel, één metaregel en de ingang naar het overzicht; de inktlijn eronder
-   (--rule-strong) is het begin van het nieuws, net als boven "Verder in deze Editie". Alleen als
-   er een Editie is: bij laden of een fout staat er niets onder om te beginnen. :where houdt dit
-   op (0,1,0), zodat de band van Inkt de lijn kan weghalen. */
+/* Editie: de kop. Titel en één metaregel; de inktlijn direct eronder (--rule-strong) is het begin
+   van het nieuws, net als boven "Verder in deze Editie". Alleen als er een Editie is: bij laden of
+   een fout staat er niets onder om te beginnen. :where houdt dit op (0,1,0), zodat de band van
+   Inkt de lijn kan weghalen. */
 .edtop:where(:has(> .edmeta)) {
   border-bottom: var(--rule-strong);
 }
@@ -3942,10 +4426,16 @@ html[data-images='hoofd'] .media--social {
    vorige deel, zodat hij bij een afbreking aan het eind van de regel blijft en er nooit een regel
    met een punt begint. Achter het weer zit hij ín het weer (een flexvak, dus onbreekbaar); valt
    het weer weg, dan gaat zijn punt mee. De marge is geen spatie: de breedte nul (\200B) na de punt
-   laat de regel daar breken, anders breekt hij zonder weer midden in de datum. */
+   laat de regel daar breken, anders breekt hij zonder weer midden in de datum. Elk deel zelf
+   breekt niet (nowrap, zoals de vaste spatie in de app): bij grote tekst gaat "Jouw Editie" in zijn
+   geheel naar de volgende regel, en blijft de breedte nul na de punt de enige plek om te breken. */
+.edmeta > span {
+  white-space: nowrap;
+}
 .edmeta > :not(:last-child)::after {
   content: '·\200B';
   margin-inline: var(--s2);
+  white-space: normal; /* de breekplek na de punt telt, ook waar de browser naar de stijl vóór de breuk kijkt */
 }
 .edmeta__wx {
   display: inline-flex;
@@ -3954,23 +4444,43 @@ html[data-images='hoofd'] .media--social {
 .edmeta__wx:empty {
   display: none;
 }
-/* Zonder ingang eronder: lucht tussen de metaregel en de inktlijn. */
+/* De metaregel is altijd het laatste in de kop: lucht tussen de metaregel en de inktlijn. */
 .edmeta:last-child {
   padding-bottom: var(--s3);
 }
 
-/* De ingang naar het overzicht in één minuut: een rij van --row-sm met een media-object van
-   --slot-sm, dus de tekst op 32, net als de bronnaam eronder. De caret (16) staat tegen de lijn. */
+/* De eenmalige uitleg bij "Jouw Editie" (na het eerste Welkom): een gewone .hint met een kleine X
+   (36, .hit 44 raakvlak) ernaast. De X staat met zijn midden op het midden van de eerste regel en
+   met de tekening (niet het vak) op de kolomlijn. */
+.edhint {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s2);
+}
+.edhint > .hint {
+  flex: 1;
+  margin-top: 0;
+}
+.edhint__x {
+  width: var(--control-sm);
+  height: var(--control-sm);
+  margin-block: calc((var(--lh-1-read) - var(--control-sm)) / 2);
+  margin-inline: auto calc((var(--icon-sm) - var(--control-sm)) / 2);
+}
+
+/* De ingang naar het overzicht in één minuut: een stille bedieningsrij direct onder de inktlijn,
+   geen verhaal. Een rij van --row-sm met een media-object van --slot-sm, dus de tekst op 32, net
+   als de bronnaam eronder; de titel in Source Sans 600 (t2/lh-2), het icoon in --ink-3, een
+   haarlijn eronder. De caret (16) staat tegen de lijn. */
 .briefcta {
   display: flex;
   align-items: center;
   gap: var(--s2);
   width: 100%;
   min-height: var(--row-sm);
-  margin-top: var(--s3);
   padding: var(--s3) 0;
   border: 0;
-  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
   background: none;
   color: var(--ink);
   text-align: left;
@@ -3981,13 +4491,19 @@ html[data-images='hoofd'] .media--social {
   flex: none;
   place-items: center;
   width: var(--slot-sm);
-  color: var(--ink-2);
+  color: var(--ink-3);
 }
 .briefcta__text {
   display: flex;
   flex: 1;
   flex-direction: column;
   min-width: 0;
+}
+.briefcta__title {
+  font-family: var(--sans);
+  font-size: var(--t2);
+  font-weight: var(--fw-ui);
+  line-height: var(--lh-2);
 }
 .briefcta__sub {
   color: var(--ink-3);
@@ -4179,7 +4695,7 @@ html[data-images='hoofd'] .media--social {
   text-decoration: none;
 }
 .dcard__media {
-  aspect-ratio: 16 / 9;
+  aspect-ratio: var(--media-card);
 }
 .dcard__body {
   padding: var(--s4) var(--s4) 0;
@@ -4238,7 +4754,7 @@ html[data-images='hoofd'] .media--social {
 }
 @media (min-width: 720px) {
   .dcard--feature .dcard__media {
-    aspect-ratio: 2 / 1;
+    aspect-ratio: var(--media-lead);
   }
   .dcard--feature .dcard__body,
   .dcard--feature .dcard__foot {
@@ -4601,9 +5117,12 @@ html[data-images='hoofd'] .media--social {
   width: var(--s4);
   height: var(--s4);
   border-radius: 50%;
-  background: var(--accent);
-  color: var(--on-accent);
-  box-shadow: 0 0 0 2px var(--paper); /* snijdt door de ring: beide blijven scherp */
+  /* gekozen zoals overal (C1): rood zacht, 1 px rode rand, vinkje in accent; geen vol rood */
+  background: var(--sel-bg);
+  color: var(--sel-fg);
+  box-shadow:
+    inset 0 0 0 1px var(--sel-edge),
+    0 0 0 2px var(--paper); /* snijdt door de ring: beide blijven scherp */
   opacity: 0;
   transform: scale(0.6);
   transition:

@@ -5,7 +5,7 @@ import { StreamLine } from '../components/StreamLine.jsx'
 import { FilterIcon, ArrowUpIcon } from '../components/icons.jsx'
 import { Dialog, DialogHeader } from '../components/Dialog.jsx'
 import { inInterest } from '../lib/topics.js'
-import { rubriekRij, actieveRubriek, kiesRubriek, rijBronnen, inRijVolgorde, legeRegel } from '../lib/streamline.js'
+import { rubriekRij, alsRubriek, actieveRubriek, kiesRubriek, rijBronnen, inRijVolgorde, legeRegel } from '../lib/streamline.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { positionKey } from '../lib/context.js'
 import { readJSON } from '../lib/store.js'
@@ -27,7 +27,6 @@ function FilterSheet({ open, onClose, params, clear, setFilter, count }) {
     <Dialog open={open} onClose={onClose} labelledBy="sheet-title">
       <DialogHeader id="sheet-title" title="Filters" onClose={onClose} />
 
-      <h3 className="label label--section sheet__label">Soort</h3>
       <div className="chips">
         {KINDS.map((k) => (
           <button key={k.id} type="button" className="pill" aria-pressed={(params.soort || '') === k.id} onClick={() => setFilter('soort', k.id)}>
@@ -35,11 +34,11 @@ function FilterSheet({ open, onClose, params, clear, setFilter, count }) {
           </button>
         ))}
       </div>
-      <p className="sheet__note">"Opinie" staat er alleen als de bron het zelf zo noemt.</p>
+      <p className="sheet__note">Opinie: zoals de bron het noemt.</p>
 
       <div className="sheet__foot">
         <button type="button" className="btn btn--quiet" onClick={clear}>
-          Wis alle filters
+          Wis filters
         </button>
         <button type="button" className="btn" onClick={onClose}>
           Toon {count} {count === 1 ? 'bericht' : 'berichten'}
@@ -49,13 +48,14 @@ function FilterSheet({ open, onClose, params, clear, setFilter, count }) {
   )
 }
 
-export default function Stream({ active, stream, params, go, pinned, mine = [], bubble = [], preview = 2, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
+export default function Stream({ active, stream, params, go, bubble = [], preview = 2, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
   const { storiesById, sourcesById, muted, setMuted, prefs } = useHoot()
   const ref = useRef(null)
   const [sheet, setSheet] = useState(false)
   const [atDepth, setAtDepth] = useState(false)
 
-  const filters = { bron: params.bron || '', onderwerp: params.onderwerp || '', rubriek: params.rubriek || '', soort: params.soort || '' }
+  // De rij kent alleen hoofdrubrieken: een oud onderwerp-filter wordt zijn rubriek (alsRubriek).
+  const filters = alsRubriek({ bron: params.bron || '', onderwerp: params.onderwerp || '', rubriek: params.rubriek || '', soort: params.soort || '' })
   // `bron` is één id of een lijst met komma's (meer bronnen tegelijk); leeg = alle bronnen.
   const pickList = useMemo(() => filters.bron.split(',').filter(Boolean), [filters.bron])
   const picks = useMemo(() => new Set(pickList), [pickList])
@@ -122,10 +122,11 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
   // dan altijd dezelfde URL (en dus dezelfde leespositie).
   // Een bron kiezen zet de rubriek terug op Alles: je kijkt dan naar die bron, niet naar een onderwerp.
   const togglePick = (id) => apply({ ...filters, onderwerp: '', rubriek: '', bron: inRijVolgorde(picks.has(id) ? pickList.filter((p) => p !== id) : [...pickList, id], rij).join(',') })
-  // De rubrieken: Alles en Buiten je bubbel, dan je onderwerpen of de acht rubrieken.
+  // De rubrieken: Alles, je hoofdrubrieken in vaste volgorde, Buiten je bubbel als laatste.
+  const interests = prefs?.interests || []
   const rubrieken = useMemo(
-    () => rubriekRij({ mine, pinned, hasBubble: bubble.length > 0, filters: { onderwerp: filters.onderwerp, rubriek: filters.rubriek } }),
-    [mine, pinned, bubble.length, filters.onderwerp, filters.rubriek],
+    () => rubriekRij({ interests, hasBubble: bubble.length > 0, filters: { onderwerp: filters.onderwerp, rubriek: filters.rubriek } }),
+    [interests.join(','), bubble.length, filters.onderwerp, filters.rubriek], // eslint-disable-line react-hooks/exhaustive-deps
   )
   const actief = actieveRubriek(filters)
 
@@ -140,7 +141,7 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
 
   // De filterknop (soort) staat in de kop; wat je verder filtert zie je op de lijn.
   const filterButton = (
-    <button type="button" className={`iconbtn filterbtn${filters.soort ? ' is-on' : ''}`} onClick={() => setSheet(true)} aria-haspopup="dialog" aria-label={`Filters: soort${filters.soort ? `, nu ${kindName(filters.soort)}` : ''}`} title="Filters: soort (Alles, Artikelen, Opinie)">
+    <button type="button" className={`iconbtn filterbtn${filters.soort ? ' is-on' : ''}`} onClick={() => setSheet(true)} aria-haspopup="dialog" aria-label={`Filters${filters.soort ? `, nu ${kindName(filters.soort)}` : ''}`} title="Filters">
       <FilterIcon />
       {filters.soort ? <span className="filterbtn__dot" aria-hidden="true" /> : null}
     </button>
@@ -195,27 +196,26 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
               </div>
             ) : list.length === 0 ? (
               <Empty
-                title="Geen berichten voor dit filter"
+                title={offSource ? `${srcName(offSource)} staat uit` : 'Al je bronnen staan uit'}
                 action={
                   offSource ? (
                     <button type="button" className="btn" onClick={() => setMuted(offSource, true)}>
                       Zet {srcName(offSource)} aan
                     </button>
                   ) : (
-                    <button type="button" className="btn" onClick={clear}>
-                      Wis filters
-                    </button>
+                    <a className="btn" href="#/bronnen">
+                      Naar Bronnen
+                    </a>
                   )
                 }
               >
-                {offSource ? `${srcName(offSource)} staat uit. Zet de bron aan om de berichten in je Stroom te zien.` : 'Al je bronnen staan uit. Zet er een aan bij Bronnen.'}
               </Empty>
             ) : (
               <div className={`list rows${preview === 'alles' ? '' : ` list--lines-${preview}`}`}>
                 {shown.map((item) => (
                   <Entry key={item.id} item={item} story={item.storyId ? storiesById.get(item.storyId) : null} />
                 ))}
-                {shown.length < list.length ? <div ref={more} className="listmore" aria-hidden="true" /> : <p className="listend">Dit is alles wat je bronnen nu aanbieden.</p>}
+                {shown.length < list.length ? <div ref={more} className="listmore" aria-hidden="true" /> : <p className="listend">Je bent bij.</p>}
               </div>
             )}
           </>

@@ -3,7 +3,7 @@ import { ViewHeader, Empty } from '../components/Shell.jsx'
 import { Entry, CompactItem, useHoot } from '../components/Items.jsx'
 import { timeAgo } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
-import { CloseIcon } from '../components/icons.jsx'
+import { CloseIcon, SavedArt } from '../components/icons.jsx'
 import { savedLeadId } from '../lib/saved.js'
 
 export default function Saved({ active }) {
@@ -45,6 +45,7 @@ export default function Saved({ active }) {
         <ViewHeader title="Bewaard" sub={total ? `${total} ${total === 1 ? 'bericht' : 'berichten'} op dit toestel` : 'Je leeslijst'} />
         {total === 0 ? (
           <Empty
+            art={SavedArt}
             title="Nog niets bewaard"
             action={
               <a className="btn" href="#/editie">
@@ -52,7 +53,7 @@ export default function Saved({ active }) {
               </a>
             }
           >
-            Tik bij een bericht of verhaal op het bladwijzertje. Het staat dan hier, ook als het uit de Stroom is verdwenen. Bewaarde berichten blijven op dit toestel.
+            Tik op de bladwijzer bij een verhaal. Het blijft hier staan, ook als het uit de Stroom is verdwenen.
           </Empty>
         ) : (
           <>

@@ -3,7 +3,7 @@
 import { VAK_FIELD_IDS } from '../../shared/vak.mjs'
 export const DEFAULT_PREFS = {
   muted: [],
-  pinned: ['nederland', 'vs-politiek', 'ai'],
+  pinned: [], // neutraal: niemands voorkeur als standaard
   onboarded: true,
   layout: 'tijdlijn', // tijdlijn | krant
   palette: 'papier', // papier | blad | inkt — kleurverdeling van de pagina (styles.css)
@@ -20,7 +20,7 @@ export const DEFAULT_PREFS = {
   favorites: [], // voorkeursbronnen (ster): wegen zwaarder in je Editie en staan vooraan
   vak: [], // vakgebieden in de Selectie (shared/vak.mjs); leeg = geen tab Selectie
   bskyInStream: [], // Bluesky-accounts die óók in de Stroom staan (standaard alleen in Bluesky)
-  weatherPlace: 'haarlem', // plaats voor het weer in de Editie (src/lib/weather.js), of 'geen'
+  weatherPlace: 'de-bilt', // neutraal; plaats voor het weer in de Editie (src/lib/weather.js), of 'geen'
   followStories: [], // verhalen die je volgt: [{ id, title, at }] (src/lib/follow.js)
   taste: { topics: {}, sources: {} }, // meer of minder hiervan (src/lib/affinity.js); gaat mee met je account
 }
@@ -42,7 +42,7 @@ export function normalizePrefs(raw) {
   if (!Array.isArray(out.interests)) out.interests = []
   if (!Array.isArray(out.favorites)) out.favorites = []
   if (!Array.isArray(out.topics)) out.topics = []
-  if (typeof out.weatherPlace !== 'string') out.weatherPlace = 'haarlem'
+  if (typeof out.weatherPlace !== 'string') out.weatherPlace = DEFAULT_PREFS.weatherPlace
   if (!Array.isArray(out.followStories)) out.followStories = []
   // Meer of minder hiervan: per onderwerp en bron een getal, ook negatief.
   const signed = (o) => Object.fromEntries(Object.entries(o && typeof o === 'object' ? o : {}).filter(([, v]) => Number.isFinite(v)))

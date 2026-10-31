@@ -15,9 +15,9 @@ import { tzOffsetMs, hostname } from './text.mjs'
 import { loadOgImage } from './og.mjs'
 export { ogImageFrom, loadOgImage } from './og.mjs'
 import { VAK_FIELDS, VAK_FIELD_IDS, VAK_DOMAINS } from '../../shared/vak.mjs'
-import { MORE_SOURCES, EXTEND, MORE_FITS } from './vakBronnen.mjs'
+import { MORE_SOURCES, EXTEND, MORE_FITS, feedLang } from './vakBronnen.mjs'
 
-const V = (id, name, kind, fields, url, more = {}) => ({ id: 'vak:' + id, name, kind, fields, urls: [url], cat: 'vak', ...more })
+const V = (id, name, kind, fields, url, more = {}) => ({ id: 'vak:' + id, name, kind, fields, urls: [url], cat: 'vak', lang: feedLang(url), ...more })
 
 // kind: expert (vakmens met naam) · vakblad · curator (mensen kiezen links) · community · officieel
 // `filter`: de bron schrijft ook over andere dingen; alleen wat bij het vakgebied past telt mee.

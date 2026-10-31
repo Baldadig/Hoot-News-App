@@ -1,3 +1,5 @@
+import { SLOTS } from '../../shared/slots.mjs'
+
 // Editie-onderdelen weergeven — pure functies (tests/edition.test.mjs).
 //
 // Eén vaste selectie: de tien onderdelen van de server zijn de editie, voor iedereen gelijk, en
@@ -43,10 +45,11 @@ export function heroFirst(rows, goodImage) {
 export const EDITION_SIZE = 10
 
 // Wanneer de volgende editie er is, in dagdelen: geen kloktijden in de teksten (iOS EditionView
-// `upNext`). De server stuurt wel `next: '12:00'` mee; dat gebruiken we niet meer voor de tekst.
-export const UP_NEXT = { ochtend: 'in de middag', middag: 'in de vroege avond', avond: 'morgenochtend' }
+// `upNext`). De woorden staan in shared/slots.mjs; de server stuurt wel `next: '12:00'` mee, maar
+// dat gebruiken we niet voor de tekst.
+export const UP_NEXT = Object.fromEntries(Object.entries(SLOTS).map(([slot, s]) => [slot, s.volgende]))
 export function upNext(slot) {
-  const when = UP_NEXT[slot]
+  const when = SLOTS[slot]?.volgende
   return when ? ` De volgende staat ${when} voor je klaar.` : ''
 }
 
@@ -57,3 +60,18 @@ export function uncovered(brief, count) {
   if (!refs.size) return []
   return [...Array(count).keys()].filter((i) => !refs.has(i))
 }
+
+// De telling: de Editie nummert wat je ziet, in de getoonde volgorde (dus na heroFirst). Het
+// hoofdverhaal is 01. "Buiten je bubbel" telt niet mee (dat staat er naast je Editie, niet in);
+// "Waar iedereen over schrijft" (breed) wel. Een ingeklapte plek (minder hiervan) houdt zijn
+// nummer, zodat de telling niet verspringt. Elke rij krijgt `n` (1-based, of null); het totaal
+// is het hoogste nummer ("10 van 10" op de rode kaart). Op iOS nog niet: EditionView moet dit
+// overnemen (numberRows, countOf, two; de kicker "01 ·" en "N van N" op de rode kaart).
+export function numberRows(rows) {
+  let n = 0
+  return rows.map((r) => ({ ...r, n: r.desk === 'bubbel' ? null : ++n }))
+}
+export const countOf = (rows) => rows.reduce((m, r) => (r.n ? Math.max(m, r.n) : m), 0)
+
+// Een nummer van de telling in twee cijfers: 01 tot 10 (zoals de Selectie).
+export const two = (n) => String(n).padStart(2, '0')

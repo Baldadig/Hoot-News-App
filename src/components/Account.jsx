@@ -22,17 +22,17 @@ export function GoogleButton({ onClick, wide = false }) {
 }
 
 // Account in Instellingen: inloggen, wie je bent, synchroniseren en (voor beheerders) uitnodigen.
-const SYNC = { idle: 'Gesynchroniseerd.', pending: 'Wijzigingen wachten op verbinding.', syncing: 'Synchroniseren…', ok: 'Gesynchroniseerd.', error: 'Opslaan lukte niet. Hoot probeert het vanzelf opnieuw.' }
+const SYNC = { idle: 'Gesynchroniseerd', pending: 'Wacht op verbinding', syncing: 'Synchroniseren…', ok: 'Gesynchroniseerd', error: 'Synchroniseren lukte niet; straks opnieuw' }
 
 export function AccountSettings({ account, syncStatus }) {
   const { status, user, profile, signIn, signOut, invite } = account
-  if (status === 'loading') return <p className="hint">Even kijken of je bent ingelogd…</p>
+  if (status === 'loading') return <p className="hint">Even geduld…</p>
   if (status === 'out')
     return (
       <div className="setrow setrow--stack">
         <div className="setrow__text">
           <span className="setrow__label">{invite ? 'Je bent uitgenodigd' : 'Inloggen'}</span>
-          <span className="setrow__hint">{invite ? 'Maak je account; wat je instelde gaat mee.' : 'Voor leden, op uitnodiging. Alles gaat mee naar je andere toestellen.'}</span>
+          <span className="setrow__hint">{invite ? 'Maak je account' : 'Op al je toestellen'}</span>
         </div>
         <GoogleButton onClick={signIn} />
       </div>
@@ -43,7 +43,7 @@ export function AccountSettings({ account, syncStatus }) {
       <div className="setrow">
         <div className="setrow__text">
           <span className="setrow__label">{email}</span>
-          <span className="setrow__hint">{status === 'noInvite' ? 'Nog geen lid. Hoot is op uitnodiging.' : SYNC[syncStatus] || SYNC.ok}</span>
+          <span className="setrow__hint">{status === 'noInvite' ? 'Nog geen lid' : SYNC[syncStatus] || SYNC.ok}</span>
         </div>
         <button type="button" className="btn btn--quiet" onClick={signOut}>
           Uitloggen
@@ -56,7 +56,7 @@ export function AccountSettings({ account, syncStatus }) {
 }
 
 // Ingelogd, nog geen lid: de uitnodiging alsnog verzilveren (zoals in de app).
-const REDEEM = { ongeldig: 'Deze code werkt niet (meer). Vraag om een nieuwe uitnodiging.', fout: 'Dat lukte niet. Controleer je verbinding en probeer het opnieuw.' }
+const REDEEM = { ongeldig: 'Deze code werkt niet. Vraag een nieuwe uitnodiging.', fout: 'Dat lukte niet. Probeer het opnieuw.' }
 
 function RedeemRow({ account }) {
   const [code, setCode] = useState('')
@@ -78,7 +78,7 @@ function RedeemRow({ account }) {
   return (
     <form className="invite" onSubmit={submit}>
       <span className="setrow__label">Lid worden</span>
-      <span className="setrow__hint">Heb je een uitnodigingslink gekregen? Plak hem hier, of alleen de code erin.</span>
+      <span className="setrow__hint">Plak je uitnodigingslink of code.</span>
       <div className="invite__acts">
         <input className="input" value={code} onChange={(e) => setCode(e.target.value)} placeholder="Uitnodigingslink of code" aria-label="Uitnodigingslink of code" autoCapitalize="off" autoCorrect="off" spellCheck={false} />
         <button type="submit" className="btn" disabled={busy || !code.trim()}>
@@ -122,7 +122,7 @@ function InviteRow({ account }) {
   return (
     <div className="invite">
       <span className="setrow__label">Iemand uitnodigen</span>
-      <span className="setrow__hint">Eén keer te gebruiken, 30 dagen geldig.</span>
+      <span className="setrow__hint">Werkt één keer, 30 dagen lang.</span>
       {link ? (
         <>
           <input className="input invite__link" readOnly value={link} onFocus={(e) => e.currentTarget.select()} aria-label="Uitnodigingslink" />
@@ -142,7 +142,7 @@ function InviteRow({ account }) {
         </>
       ) : (
         <div className="invite__acts">
-          <input className="input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Voor wie? (alleen voor jezelf)" aria-label="Voor wie is deze uitnodiging" />
+          <input className="input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Voor wie?" aria-label="Voor wie is deze uitnodiging" />
           <button type="button" className="btn" onClick={make} disabled={busy}>
             {busy ? 'Even…' : 'Maak link'}
           </button>
@@ -163,19 +163,19 @@ function InviteRow({ account }) {
 const JOIN = {
   brief: {
     kicker: 'Voor leden',
-    title: 'Jouw Editie in één minuut',
-    text: 'Bovenaan je Editie een korte samenvatting van de verhalen, geschreven door AI, met de bronnen erbij. Ook gaan je bronnen, onderwerpen en Bewaard mee naar je andere toestellen.',
+    title: 'De Editie in één minuut',
+    text: 'Een korte samenvatting door AI, met de bronnen erbij.',
   },
   // Inloggen rechtsboven op de rode intro van Welkom (zoals in de app): je hebt nog niets ingesteld.
   welkom: {
     kicker: 'Al lid?',
-    title: 'Log in op je Hoot',
-    text: 'Log in met Google. Dan staan je bronnen, onderwerpen en Bewaard van je andere toestellen hier ook klaar.',
+    title: 'Log in met Google.',
+    text: null,
   },
   sync: {
     kicker: 'Hoot op al je toestellen',
-    title: 'Bewaar wat je net hebt ingesteld',
-    text: 'Log in met Google. Dan gaan je bronnen, onderwerpen, Bewaard en wat je al las mee naar je telefoon, tablet en computer.',
+    title: 'Log in om te bewaren wat je instelde',
+    text: null,
   },
 }
 
@@ -184,11 +184,11 @@ export function JoinSheet({ open, reason = 'sync', invited = false, onClose, onS
   return (
     <Dialog open={open} onClose={onClose} className="sheet--join" labelledBy="join-title">
       <DialogHeader id="join-title" label={copy.kicker} title={copy.title} onClose={onClose} />
-      <p className="join__text">{copy.text}</p>
+      {copy.text ? <p className="join__text">{copy.text}</p> : null}
       <p className="join__text">
         {invited
           ? 'Je bent uitgenodigd. Log in, dan ben je meteen lid.'
-          : 'Hoot is nog op uitnodiging. Kreeg je een uitnodiging? Open de link, of log in en vul daarna je code in bij Instellingen.'}
+          : 'Hoot is op uitnodiging. Heb je een code? Log in en vul hem in.'}
       </p>
       <div className="join__actions">
         <GoogleButton onClick={onSignIn} wide />

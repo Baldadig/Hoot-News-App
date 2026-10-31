@@ -1,8 +1,9 @@
 // Het weer van de dag voor de kop van de Editie — Open-Meteo (gratis, geen sleutel).
 // describe() is puur (getest in tests/weather.test.mjs).
 
-// Een vaste, korte lijst: geen locatietoestemming nodig. Haarlem is de standaard.
+// Een vaste, korte lijst: geen locatietoestemming nodig. De Bilt (het KNMI) is de neutrale standaard.
 export const PLACES = [
+  { id: 'de-bilt', name: 'De Bilt', lat: 52.11, lon: 5.18 },
   { id: 'haarlem', name: 'Haarlem', lat: 52.38, lon: 4.64 },
   { id: 'amsterdam', name: 'Amsterdam', lat: 52.37, lon: 4.89 },
   { id: 'rotterdam', name: 'Rotterdam', lat: 51.92, lon: 4.48 },
@@ -25,13 +26,13 @@ export const PLACES = [
   { id: 'gent', name: 'Gent', lat: 51.05, lon: 3.72 },
   { id: 'brussel', name: 'Brussel', lat: 50.85, lon: 4.35 },
 ]
-export const HAARLEM = PLACES[0]
+export const DEFAULT_PLACE = PLACES[0]
 export const NO_WEATHER = 'geen'
 
-// De plaats bij een voorkeur; null bij "Geen weer". Onbekend wordt Haarlem.
+// De plaats bij een voorkeur; null bij "Geen weer". Onbekend wordt De Bilt.
 export function placeFor(id) {
   if (id === NO_WEATHER) return null
-  return PLACES.find((p) => p.id === id) || HAARLEM
+  return PLACES.find((p) => p.id === id) || DEFAULT_PLACE
 }
 
 // WMO-weercode → soort (voor het icoon) en een Nederlandse omschrijving.
@@ -51,7 +52,7 @@ const KEY = 'hoot:weather'
 const MAX_AGE = 30 * 60 * 1000
 
 // { max, min, now, code, at } — uit de cache als die jonger is dan een half uur.
-export async function fetchWeather(place = HAARLEM, { now = Date.now() } = {}) {
+export async function fetchWeather(place = DEFAULT_PLACE, { now = Date.now() } = {}) {
   try {
     const cached = JSON.parse(localStorage.getItem(KEY) || 'null')
     if (cached && now - cached.at < MAX_AGE && cached.place === place.name) return cached

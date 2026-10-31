@@ -1,6 +1,6 @@
 // De lijn bovenaan de Stroom: rubrieken links, je bronnen als stapel rechts — pure gegevens en
 // functies (tests/streamline.test.mjs). Het tekenen en bewegen staat in components/StreamLine.jsx.
-import { TOPICS, INTERESTS, orderedTopics } from './topics.js'
+import { INTERESTS } from './topics.js'
 
 // Maten van de stapel, gelijk aan de tokens in styles.css (--tap, --s1, --s2, --s4).
 export const TAP = 44 // aanraakvlak van elk bolletje
@@ -21,27 +21,33 @@ export const joinNL = (a) => (a.length < 2 ? a.join('') : a.slice(0, -1).join(',
 // Eén rubriek: `key` is de parameter in de URL (onderwerp of rubriek; Alles heeft er geen),
 // `sig` maakt hem uniek (het onderwerp 'tech' en de rubriek 'tech' zijn twee verschillende).
 const R = (key, id, label) => ({ key, id, label, sig: key ? `${key}=${id}` : '' })
-const topicLabel = (id) => (id === 'bubbel' ? 'Buiten je bubbel' : TOPICS.find((t) => t.id === id)?.label || id)
-const interestLabel = (id) => INTERESTS.find((i) => i.id === id)?.label || id
 
 // Welke rubriek aan staat, in de vorm van `sig`.
 export function actieveRubriek(filters = {}) {
   return filters.onderwerp ? `onderwerp=${filters.onderwerp}` : filters.rubriek ? `rubriek=${filters.rubriek}` : ''
 }
 
-// De rij: links wat je leest (Alles, Buiten je bubbel), na de kolomlijn je onderwerpen
-// (gepinde eerst) of anders de acht rubrieken. Staat er een filter aan dat niet in de rij
-// staat (een link naar #/stroom?onderwerp=ai), dan komt dat direct na de kolomlijn: een filter
-// is nooit onzichtbaar, en de rode streep heeft altijd een doel. `sep` = waar de kolomlijn staat.
-export function rubriekRij({ mine = [], pinned = [], hasBubble = false, filters = {} } = {}) {
-  const lees = [R(null, 'alles', 'Alles')]
-  if (hasBubble || filters.onderwerp === 'bubbel') lees.push(R('onderwerp', 'bubbel', 'Buiten je bubbel'))
-  const vast = mine.length ? orderedTopics(pinned, mine).map((t) => R('onderwerp', t.id, t.label)) : INTERESTS.map((i) => R('rubriek', i.id, i.label))
-  const binnen = new Set([...lees, ...vast].map((r) => r.sig))
-  const los = []
-  if (filters.onderwerp && !binnen.has(`onderwerp=${filters.onderwerp}`)) los.push(R('onderwerp', filters.onderwerp, topicLabel(filters.onderwerp)))
-  if (filters.rubriek && !binnen.has(`rubriek=${filters.rubriek}`)) los.push(R('rubriek', filters.rubriek, interestLabel(filters.rubriek)))
-  return { items: [...lees, ...los, ...vast], sep: lees.length }
+// De rij: alleen hoofdrubrieken, in een vaste volgorde (gelijk aan de app): Alles, dan de rubrieken
+// die je koos (Politiek, Binnenland, Wereld, Economie, Tech, Wetenschap, Cultuur, Sport; koos je er
+// geen, dan alle acht), en Buiten je bubbel als laatste. Geen subonderwerpen. Staat er een rubriek
+// aan die je niet koos (een oude link), dan staat die op zijn vaste plek: een filter is nooit
+// onzichtbaar. `sep` wordt niet meer getekend.
+export function rubriekRij({ interests = [], hasBubble = false, filters = {} } = {}) {
+  const chosen = INTERESTS.filter((i) => interests.includes(i.id))
+  const shown = (chosen.length ? chosen : INTERESTS).map((i) => i.id)
+  const items = [R(null, 'alles', 'Alles')]
+  for (const i of INTERESTS) if (shown.includes(i.id) || filters.rubriek === i.id) items.push(R('rubriek', i.id, i.label))
+  if (hasBubble || filters.onderwerp === 'bubbel') items.push(R('onderwerp', 'bubbel', 'Buiten je bubbel'))
+  return { items, sep: 1 }
+}
+
+// Een oude link met een onderwerp (#/stroom?onderwerp=ai) wordt de rubriek waar het onder valt:
+// de rij kent alleen hoofdrubrieken. Buiten je bubbel blijft zichzelf.
+export function alsRubriek(filters = {}) {
+  const t = filters.onderwerp
+  if (!t || t === 'bubbel') return filters
+  const i = INTERESTS.find((x) => x.topics.includes(t))
+  return { ...filters, onderwerp: '', rubriek: i ? i.id : filters.rubriek || '' }
 }
 
 // De filters na een tik op een rubriek: onderwerp en rubriek sluiten elkaar uit; de rest blijft.
@@ -108,9 +114,9 @@ export function stapelTeksten(namen = []) {
   return {
     label: `Bronnen kiezen, nu: ${has ? joinNL(namen) : 'alle bronnen'}`,
     title: has ? `Bronnen: ${joinNL(namen)}` : 'Filter op bron',
-    // Alle bronnen zegt wat de volgende tik doet
-    hint: has ? 'Zet de keuze terug op alle bronnen.' : 'Klapt de rij dicht.',
-    allTitle: has ? 'Alle bronnen: zet de keuze terug' : 'Alle bronnen: klap de rij dicht',
+    // KISS: de knop heet gewoon Alle bronnen
+    hint: 'Alle bronnen',
+    allTitle: 'Alle bronnen',
   }
 }
 export const zeg = {

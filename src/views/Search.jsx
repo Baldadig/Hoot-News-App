@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Empty, BackButton } from '../components/Shell.jsx'
 import { Entry, useHoot } from '../components/Items.jsx'
-import { CloseIcon } from '../components/icons.jsx'
+import { CloseIcon, SearchArt } from '../components/icons.jsx'
 import { withoutCopies } from '../../shared/dedupe.mjs'
 
 export default function Search({ onBack, backLabel = 'Terug' }) {
@@ -61,15 +61,16 @@ export default function Search({ onBack, backLabel = 'Terug' }) {
           </div>
         </header>
         {!q.trim() ? (
-          <Empty title="Waar zoek je naar?">
+          <Empty art={SearchArt} title="Waar zoek je naar?">
             {scope === 'mijn' ? 'Je zoekt in de berichten van je eigen bronnen die nu geladen zijn, en in alles wat je hebt bewaard.' : 'Je zoekt nu ook in de bronnen die je niet volgt en die alleen ter vergelijking binnen een verhaal staan.'} Er is geen archief van eerdere dagen.
           </Empty>
         ) : results.length === 0 ? (
           <Empty
-            title={`Niets gevonden voor "${q.trim()}"`}
+            art={SearchArt}
+            title={`Niets gevonden voor ‘${q.trim()}’`}
             action={
               scope === 'mijn' ? (
-                <button type="button" className="btn btn--quiet" onClick={() => setScope('alle')}>
+                <button type="button" className="btn" onClick={() => setScope('alle')}>
                   Zoek in alle bronnen
                 </button>
               ) : null

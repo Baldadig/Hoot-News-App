@@ -1,5 +1,7 @@
 // Tekst uit feeds schoonmaken en op maat maken — pure functies.
 export { hostname, safeIso } from '../../shared/util.mjs'
+// Zinseinde met de afkortingen: één bron met de intro-knip van de app (shared/zinnen.mjs).
+import { SENTENCE_END } from '../../shared/zinnen.mjs'
 
 export function favicon(domain) {
   return domain ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128` : null
@@ -63,7 +65,6 @@ export function clip(s, n) {
 }
 // Past tekst netjes binnen n tekens: afronden op zin- of woordgrens, geen "…".
 // Alleen als er geen zinseinde te vinden is kappen we af op een woordgrens, mét "…".
-const SENTENCE_END = /(?<![A-Z])(?<!\b(?:Mr|Mrs|Ms|Dr|St|vs|dr|mr|drs|prof|bijv|ca|nr|o\.a|d\.w\.z))[.!?]["'’”)]?(?=\s|$)/g
 export function preview(s, soft = 170, hard = 260) {
   if (!s) return ''
   s = s.replace(/\s+/g, ' ').trim()
