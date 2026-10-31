@@ -2,7 +2,7 @@
 import Parser from 'rss-parser'
 import { hash, safeHttpUrl } from '../../shared/util.mjs'
 import { typeset } from '../../shared/typeset.mjs'
-import { BRAND, PER_SOURCE_LIMIT, LIMIT_BY_CAT, UA } from './sources.mjs'
+import { BRAND, PER_SOURCE_LIMIT, UA } from './sources.mjs'
 import { favicon, toText, clip, preview, cleanUrl, hostname, safeIso, plausibleTime } from './text.mjs'
 import { langOf } from '../../shared/lang.mjs'
 
@@ -114,7 +114,9 @@ async function readFeed(url) {
   return parser.parseString((await res.text()).replace(/^[\s\uFEFF]+/, ''))
 }
 
-export async function loadSource(src, avatarsP) {
+// `limit`: hoeveel berichten in de taal van de bron (feedvolgorde). De Stroom vraagt alles
+// (Infinity) en kapt zelf af op tijd en aantal (stream.mjs); de vakbronnen houden de standaard.
+export async function loadSource(src, avatarsP, { limit = PER_SOURCE_LIMIT } = {}) {
   let lastErr
   for (const url of src.urls) {
     try {
@@ -124,8 +126,6 @@ export async function loadSource(src, avatarsP) {
       // Mooie merk-avatar: 1) Bluesky-profiel, 2) X-profiel via unavatar.io, 3) favicon.
       const brandAvatar = avatars[src.id] || (src.x ? `https://unavatar.io/x/${src.x}` : null)
       const fresh = (feed.items || []).map((it) => [it, categoriesOf(it)]).filter(([it, cats]) => !isNoise(it, cats) && (!src.keep || String(it.link || '').includes(src.keep)))
-      // Muziek: minder per bron, zodat het nieuws niet wordt weggedrukt.
-      const limit = src.music ? 12 : LIMIT_BY_CAT[src.cat] || PER_SOURCE_LIMIT
       const mapped = fresh.map(([it, cats]) => {
         const link = safeHttpUrl(cleanUrl(it.link || it.guid || ''))
         const domain = hostname(link)
@@ -186,10 +186,10 @@ export async function loadSource(src, avatarsP) {
   return { id: src.id, name: src.name, ok: false, used: null, count: 0, items: [], error: String((lastErr && lastErr.message) || lastErr) }
 }
 // Eén herhaalpoging bij een mislukte bron (korte hapering), daarna opgeven zonder de rest te blokkeren.
-export async function loadSourceWithRetry(src, avatarsP) {
-  const first = await loadSource(src, avatarsP)
+export async function loadSourceWithRetry(src, avatarsP, opts) {
+  const first = await loadSource(src, avatarsP, opts)
   if (first.ok) return first
   await new Promise((r) => setTimeout(r, 350))
-  const second = await loadSource(src, avatarsP)
+  const second = await loadSource(src, avatarsP, opts)
   return second.ok ? second : first
 }

@@ -8,6 +8,7 @@ import { createBrief, briefRows } from './brief.mjs'
 import { articleKey, mergeSnippets, isLiveblog } from './snippets.mjs'
 import { SOURCES, BLUESKY_AUTHORS, BLUESKY_HOURS, BSKY_BRAND, MAIN_IDS, MUSIC_IDS, EDITION_CATS, UA } from './sources.mjs'
 import { loadSourceWithRetry } from './rss.mjs'
+import { STORE_KEY, mergeStream, storeOf } from './stream.mjs'
 import { loadSnippets, loadTrends, loadSourceAvatars, loadBlueskyProfiles, loadBskyCards } from './lookups.mjs'
 import { loadOgImage } from './og.mjs'
 import { measureFeedImages } from './image-measure.mjs'
@@ -39,11 +40,15 @@ export async function buildFeed({ now = Date.now() } = {}) {
   const avatars = remember('avatars-v1', DAY, loadSourceAvatars, { now, valid: (m) => Object.values(m).some(Boolean) })
   const handles = BLUESKY_AUTHORS.map((a) => a.handle)
   const profiles = handles.length === 0 ? Promise.resolve({}) : remember('bsky-profiles-' + hash(handles.join()), DAY, () => loadBlueskyProfiles(handles), { now, valid: (m) => Object.keys(m).length > 0 }).catch(() => ({}))
-  const [mainGroups, bskyGroups, registry] = await Promise.all([
-    settle(SOURCES, (s) => loadSourceWithRetry(s, avatars)),
+  // De hele feed per bron; de grens (36 uur, hooguit 60) volgt na het samenvoegen met wat we
+  // eerder zagen (stream.mjs).
+  const [fetched, bskyGroups, registry, stored] = await Promise.all([
+    settle(SOURCES, (s) => loadSourceWithRetry(s, avatars, { limit: Infinity })),
     settle(BLUESKY_AUTHORS, (a) => loadBluesky(a, now)),
     kvGet('registry-v1').then((r) => (r && typeof r === 'object' ? r : {})),
+    kvGet(STORE_KEY).catch(() => null),
   ])
+  const mainGroups = mergeStream(fetched, stored, { now })
 
   // 2. De Stroom, 3. gaten vullen, 4. voorvertoningen lenen.
   const items = streamItems([...mainGroups, ...bskyGroups].flatMap((g) => g.items))
@@ -51,6 +56,8 @@ export async function buildFeed({ now = Date.now() } = {}) {
   await imagesFromBluesky(items, now)
   await imagesFromArticles(items, now)
   borrowPreviews(items, mainGroups.flatMap((g) => g.items))
+  // Bewaren zoals ze nu zijn (met beeld en inleiding), vóór de verhalen er hun id aan hangen.
+  await kvSet(STORE_KEY, storeOf(mainGroups)).catch(() => {})
 
   // 5. Verhalen: bundelen over alle bronnen (behalve regionaal en muziek), met per verhaal de
   //    kenmerken van al zijn stukken (`keys`): het toestel kent van een verhaal alleen de eigen
@@ -123,7 +130,7 @@ async function loadBluesky(author, now) {
 // Nieuwste eerst, zonder dubbelen (zelfde link of zelfde kop), maar alleen binnen één bron:
 // zusterkranten brengen vaak hetzelfde stuk, en wie Tubantia volgt maar het AD niet, moet de hele
 // krant krijgen. Over de bronnen heen ontdubbelt de app (shared/dedupe.mjs), want alleen die weet
-// welke bronnen je volgt. Elke bron heeft zijn eigen grens (rss.mjs).
+// welke bronnen je volgt. De grens per bron (36 uur, hooguit 60) staat in stream.mjs.
 // Een bericht in een andere taal dan zijn bron (`offLang`, rss.mjs) toont alleen aan een lezer
 // van die taal: de app is Nederlandstalig, dus een Engelstalig Parool-stuk valt hier af, en
 // daarmee ook uit de verhalen, de Editie en de bronpakketten. (Een Engelse app bouwt straks met

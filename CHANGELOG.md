@@ -4,6 +4,7 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- Stroom: per bron alles van de afgelopen 36 uur, hooguit 60 berichten (nieuwste eerst). Eerder opgehaalde berichten blijven bewaard, zodat ook NU.nl en de NOS de hele 36 uur terugreiken; Bluesky volgt dezelfde 36 uur.
 - Nieuwe Editie: perslijn en hoofdverhaal verschijnen één keer na de iris, met vervagen bij Verminder beweging.
 - Taalfilter voor tweetalige bronnen en juiste hoofdtaal van vakbronnen.
 - Rustige voorpagina: geen zwaar nieuws of sport, hooguit één groot Wereld-verhaal.

@@ -82,10 +82,10 @@ test('loadSource markeert lang/offLang; de grens telt alleen berichten in de bro
   const nl = Array.from({ length: 14 }, (_, k) => [`Raad stemt in met plan voor ${k} nieuwe woningen`, `https://www.parool.nl/amsterdam/w${k}~b${k}/`])
   const en = [['One-year-old boy falls from third floor on Amstelveenseweg', 'https://www.parool.nl/amsterdam-news/boy~bd5/'], ['In these 3 spots you can ice skate in Amsterdam this winter', 'https://www.parool.nl/amsterdam-news/ice~b9a/']]
   const xml = feed([nl[0], en[0], nl[1], en[1], ...nl.slice(2)])
-  const res = await withFeed(xml, () => loadSource({ id: 'parool', name: 'Het Parool', cat: 'nl', lang: 'nl', music: true, urls: ['https://example.org/feed'] }, Promise.resolve({})))
+  const res = await withFeed(xml, () => loadSource({ id: 'parool', name: 'Het Parool', cat: 'nl', lang: 'nl', urls: ['https://example.org/feed'] }, Promise.resolve({}), { limit: 12 }))
   const off = res.items.filter((i) => i.offLang)
   assert.deepEqual(off.map((i) => i.lang), ['en', 'en'])
-  assert.equal(res.items.filter((i) => !i.offLang).length, 12) // muziekgrens 12, zonder de Engelse mee te tellen
+  assert.equal(res.items.filter((i) => !i.offLang).length, 12) // grens 12, zonder de Engelse mee te tellen (de Stroom telt zo ook in stream.mjs)
   assert.ok(res.items.filter((i) => !i.offLang).every((i) => i.lang === 'nl'))
   // De Stroom (en alles daarna) laat ze weg voor de Nederlandse lezer, niet voor een Engelse.
   assert.equal(streamItems(res.items).some((i) => i.offLang), false)

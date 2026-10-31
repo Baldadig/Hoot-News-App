@@ -79,9 +79,10 @@ export function mapPost(post, fallbackName) {
 }
 
 // Eigen posts (geen reposts, geen antwoorden) van de afgelopen `hours` uur, bladzijde voor
-// bladzijde: 100 per keer, hooguit 8 bladzijden. Lukt een latere bladzijde niet, dan houden
+// bladzijde: 100 per keer, hooguit 8 bladzijden (36 uur: net als de Stroom, STREAM_HOURS in
+// netlify/lib/sources.mjs; iOS: Bluesky.swift). Lukt een latere bladzijde niet, dan houden
 // we wat we hebben.
-export async function fetchAuthorPosts(handle, { name, hours = 48, headers, now = Date.now() } = {}) {
+export async function fetchAuthorPosts(handle, { name, hours = 36, headers, now = Date.now() } = {}) {
   const since = now - hours * 36e5
   const own = []
   let cursor = ''

@@ -72,7 +72,7 @@ async function bskyAvatar(handle) {
     return null
   }
 }
-// Profielfoto en naam van de gevolgde Bluesky-accounts (ook als ze 48 uur niets posten).
+// Profielfoto en naam van de gevolgde Bluesky-accounts (ook als ze 36 uur niets posten).
 export async function loadBlueskyProfiles(handles) {
   const out = {}
   for (let i = 0; i < handles.length; i += 25) {
