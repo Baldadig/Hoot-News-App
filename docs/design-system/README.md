@@ -48,7 +48,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 | Rubriek, actief, "+N bronnen" | `accent` | `paper`, `surface` |
 | Actieve chip | `accent` op `accent-soft` | — |
 | Tekst op rood | `on-accent` op `accent` | — |
-| Merkmoment (vol vlak) | `on-brand-red` op `brand-red` | — |
+| Merkmoment (vol vlak) | `on-brand-red` (= `paper-brand`, papier, niet wit) op `brand-red` | — |
 | Welkom, de rode intro | `paper-brand` op `brand-red` (web en iOS: papier, niet wit) | — |
 | Waarschuwing en fouttekst (met woorden) | `warn` | `paper` |
 | Rand van een veld of filterknop | `edge` | `paper`, `surface` |

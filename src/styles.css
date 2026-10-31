@@ -24,9 +24,9 @@
   /* Merkrood: het diepe krantenrood als vol vlak, in beide thema's gelijk (niet het lichtere
      accent van donker). Alleen voor merkmomenten: welkom, einde van de editie, deelbeelden. */
   --brand-red: #a3201b;
-  --on-brand-red: #ffffff; /* 7,6:1 */
+  --paper-brand: #f5f1e8; /* papier op merkrood: vast, in beide thema's (iOS OnBrandRed en SplashView.paperWhite, 6,9:1) */
+  --on-brand-red: var(--paper-brand); /* alles op merkrood is papier, niet wit: het einde van de Editie, Welkom, het opstartscherm */
   --on-brand-red-2: color-mix(in srgb, var(--on-brand-red) 85%, transparent); /* stillere tekst op merkrood */
-  --paper-brand: #f5f1e8; /* papier op merkrood in Welkom: vast, in beide thema's (iOS SplashView.paperWhite, 7,0:1) */
   --quiet-amber: #b0802f; /* stil statuspuntje, geen alarm */
   /* Google-knop, donker thema (vast volgens Googles richtlijnen, in beide thema's gelijk) */
   --g-fill: #131314;
@@ -2079,7 +2079,7 @@ select.input {
   text-align: center;
 }
 
-/* Het einde van de editie: een merkmoment, in merkrood. Het merk en de knop in papierwit. */
+/* Het einde van de Editie: een merkmoment, in merkrood. Het merk en de knop in papier (--on-brand-red). */
 .endcap {
   --brand: var(--on-brand-red);
   --accent: var(--on-brand-red);
@@ -2787,7 +2787,8 @@ select.input {
 /* Scherm 1: merkrood, met een grote belofte. Alles erop papier (--paper-brand, niet wit, zoals de
    app): het woordmerk met zijn punt, de teller, de icoonschijven, het knopvlak en de focusring
    (ze volgen --on-brand-red). Het vlak is --brand-red, ook in donker (niet het lichtere koraal).
-   Stille tekst: --on-brand-red-2, hier opnieuw gezet omdat de color-mix op :root al is opgelost. */
+   Stille tekst: --on-brand-red-2. Beide staan op :root al op papier; hier opnieuw gezet zodat dit blok
+   op zichzelf staat (tests/copy.test.mjs). */
 .ob--open {
   --on-brand-red: var(--paper-brand);
   --on-brand-red-2: color-mix(in srgb, var(--paper-brand) 85%, transparent);
