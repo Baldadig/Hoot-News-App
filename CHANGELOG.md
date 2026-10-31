@@ -2,18 +2,16 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
-## Onuitgebracht
+## [1.57.0] — 2026-10-31 — Hoot verhuist naar gethoot.app, een Stroom van 36 uur en de signatuurronde
 
-- Stroom: per bron alles van de afgelopen 36 uur, hooguit 60 berichten (nieuwste eerst). Eerder opgehaalde berichten blijven bewaard, zodat ook NU.nl en de NOS de hele 36 uur terugreiken; Bluesky volgt dezelfde 36 uur. De verhalen en de Editie rekenen zoals voorheen met de eerste 30 berichten per bron (ook wat ouder is dan 36 uur): die komen gemarkeerd mee in het bron-deel en blijven uit de Stroom.
-- Nieuwe Editie: perslijn en hoofdverhaal verschijnen één keer na de iris, met vervagen bij Verminder beweging.
-- Taalfilter voor tweetalige bronnen en juiste hoofdtaal van vakbronnen.
-- Rustige voorpagina: geen zwaar nieuws of sport, hooguit één groot Wereld-verhaal.
-- Wachtmarkering, lege bladzijden, leesgrens en schakelaars bijgewerkt; dagdelen uit gedeelde JSON.
-- Gethoot.app/lees lokaal voorbereid als nieuwe plek; domeinen, auth en livegang volgen na controle door Claude.
-
-- Verhalen delen als Hoot-krantenkop in merkrood, in liggend en staand formaat (A3).
-
-- Hoofdbeelden: meet egale randen vooraf en toon staande beelden in een eigen verhouding (A1).
+- **Nieuwe plek:** gethoot.app is het adres van Hoot. De landingspagina staat op gethoot.app, de nieuwssite op gethoot.app/lees. hootnews.nl stuurt door en neemt je instellingen en Bewaard mee; de API op hootnews.nl blijft werken. Inloggen (Google, magic link) werkt op het nieuwe adres.
+- **Stroom: 36 uur per bron:** per bron alles van de afgelopen 36 uur, hooguit 60 berichten. Eerder opgehaalde berichten blijven bewaard, zodat ook drukke bronnen de hele 36 uur terugreiken. Bluesky volgt dezelfde 36 uur. De Editie rekent zoals voorheen.
+- **De lijn van de pers (M5):** bij een nieuwe Editie trekt de lijn zich en komt het hoofdverhaal op, één keer; bij Verminder beweging alleen vervagen.
+- **Hoofdbeeld zonder witte balken (A1):** randen worden vooraf gemeten, staande beelden krijgen een eigen verhouding.
+- **Delen als krantenkop (A3):** een eigen Hoot-deelkaart in merkrood, liggend en staand; deellinks vallen terug op de uitgever.
+- **Taalregel:** van tweetalige bronnen alleen berichten in jouw taal.
+- **Rustige voorpagina:** de landingspagina toont drie uitnodigende Nederlandse koppen, zonder zwaar nieuws of sport.
+- **Klein:** wachtmarkering, lege bladzijden, leesgrens en schakelaars bijgewerkt; dagdelen uit gedeelde JSON; 'Omdat je X volgt' blijft weg.
 
 ## [1.56.0] — 2026-10-31 — De Redacteur kent je, een nieuwe Welkom met zonnen, en web en app gelijk
 
