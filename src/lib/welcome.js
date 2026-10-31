@@ -8,6 +8,8 @@ export const sourcesOn = (pickable = [], muted = new Set()) => pickable.filter((
 // in het welkom te kiezen waren (`all`) veranderen; de rest blijft zoals hij was.
 // Koos je opnieuw (je was al eens door het welkom), dan blijven je vaste onderwerpen staan voor
 // zover je ze nog volgt; bij de eerste start worden het de eerste drie van je onderwerpen.
+// Alleen bij de eerste start komt er één keer de uitleg bij "Jouw Editie" onder de kop van de
+// Editie (`editieHint`, Edition.jsx); daarna staat die uitleg alleen bij Instellingen › Edities.
 export function applyWelcome(p, choice) {
   const on = new Set(choice.sources)
   const shown = new Set(choice.all.map((s) => s.id))
@@ -15,6 +17,7 @@ export function applyWelcome(p, choice) {
   return {
     ...p,
     onboarded: true,
+    ...(p.onboarded ? {} : { editieHint: true }),
     interests: choice.interests,
     topics: choice.topics,
     pinned: kept.length ? kept : choice.topics.slice(0, 3),

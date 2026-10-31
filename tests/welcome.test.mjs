@@ -38,3 +38,11 @@ test('eerste start: de eerste drie onderwerpen worden vast, en de keuze wordt je
   assert.deepEqual(next.enabled, ['wired'])
   assert.deepEqual(next.vak, ['zorg'])
 })
+
+test('de uitleg bij "Jouw Editie" komt één keer, alleen na het eerste welkom', () => {
+  const first = applyWelcome({ onboarded: false }, { interests: [], topics: [], sources: [], all })
+  assert.equal(first.editieHint, true)
+  const again = applyWelcome({ ...first, editieHint: false }, { interests: [], topics: [], sources: [], all })
+  assert.equal(again.editieHint, false, 'opnieuw kiezen zet hem niet terug')
+  assert.equal(applyWelcome({ onboarded: true }, { interests: [], topics: [], sources: [], all }).editieHint, undefined)
+})

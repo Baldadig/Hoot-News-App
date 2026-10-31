@@ -985,19 +985,23 @@ select {
    bovenmarge heeft (.sect, .empty). De Editie heeft een kop met meer erin (.edtop): de stille
    rij van het overzicht (.briefcta) hangt direct onder de lijn en hoort bij de kop; pas na die
    rij komt --after-header. Een korte Editie zegt het als hint (.edshort) op --s3 onder de lijn of
-   de rij, en dan volgt het nieuws op --after-header. */
+   de rij, en dan volgt het nieuws op --after-header. De eenmalige uitleg bij "Jouw Editie"
+   (.edhint) staat op dezelfde plek; staan ze er allebei, dan volgt .edshort op --s2, als hints
+   onder elkaar. */
 .col > .vh + *,
 .col > .edtop + *,
 .col > .briefcta + *,
-.col > .edshort + * {
+.col > :is(.edhint, .edshort) + * {
   margin-top: var(--after-header);
 }
 .col > .edtop + .briefcta {
   margin-top: 0;
 }
-.col > .edtop + .edshort,
-.col > .briefcta + .edshort {
+.col > :is(.edtop, .briefcta) + :is(.edhint, .edshort) {
   margin-top: var(--s3);
+}
+.col > .edhint + .edshort {
+  margin-top: var(--s2);
 }
 /* Een lijst begint met de lucht van zijn eerste bericht (.entry: --s4 boven): de kop van dat
    bericht staat dan ook op --after-header. */
@@ -3954,10 +3958,16 @@ html[data-images='hoofd'] .media--social {
    vorige deel, zodat hij bij een afbreking aan het eind van de regel blijft en er nooit een regel
    met een punt begint. Achter het weer zit hij ín het weer (een flexvak, dus onbreekbaar); valt
    het weer weg, dan gaat zijn punt mee. De marge is geen spatie: de breedte nul (\200B) na de punt
-   laat de regel daar breken, anders breekt hij zonder weer midden in de datum. */
+   laat de regel daar breken, anders breekt hij zonder weer midden in de datum. Elk deel zelf
+   breekt niet (nowrap, zoals de vaste spatie in de app): bij grote tekst gaat "Jouw Editie" in zijn
+   geheel naar de volgende regel, en blijft de breedte nul na de punt de enige plek om te breken. */
+.edmeta > span {
+  white-space: nowrap;
+}
 .edmeta > :not(:last-child)::after {
   content: '·\200B';
   margin-inline: var(--s2);
+  white-space: normal; /* de breekplek na de punt telt, ook waar de browser naar de stijl vóór de breuk kijkt */
 }
 .edmeta__wx {
   display: inline-flex;
@@ -3969,6 +3979,26 @@ html[data-images='hoofd'] .media--social {
 /* De metaregel is altijd het laatste in de kop: lucht tussen de metaregel en de inktlijn. */
 .edmeta:last-child {
   padding-bottom: var(--s3);
+}
+
+/* De eenmalige uitleg bij "Jouw Editie" (na het eerste Welkom): een gewone .hint met een kleine X
+   (36, .hit 44 raakvlak) ernaast. De X staat met zijn midden op het midden van de eerste regel en
+   met de tekening (niet het vak) op de kolomlijn, ook als de tekst op breed scherm bij
+   --measure-prose ophoudt: dan staat hij onder de caret van de rij erboven. */
+.edhint {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s2);
+}
+.edhint > .hint {
+  flex: 1;
+  margin-top: 0;
+}
+.edhint__x {
+  width: var(--control-sm);
+  height: var(--control-sm);
+  margin-block: calc((var(--lh-1-read) - var(--control-sm)) / 2);
+  margin-inline: auto calc((var(--icon-sm) - var(--control-sm)) / 2);
 }
 
 /* De ingang naar het overzicht in één minuut: een stille bedieningsrij direct onder de inktlijn,
