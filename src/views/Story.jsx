@@ -6,18 +6,20 @@ import { BackButton } from '../components/Shell.jsx'
 import { Disclosure } from '../components/Disclosure.jsx'
 import { timeAgo } from '../lib/time.js'
 import { withLead } from '../lib/saved.js'
+import { wholeSentences, introMax } from '../../shared/zinnen.mjs'
 
 // Eén publicatie in het smalle paneel (breed scherm): de kop over de volle breedte en hooguit
-// drie regels samenvatting, dan bron en tijd op hun vaste plek eronder. Geen beeld — dat perst
+// twee regels samenvatting in hele zinnen, dan bron en tijd op hun vaste plek eronder. Geen beeld — dat perst
 // de kop samen.
 function SourceItem({ item, note }) {
   const { markRead, read } = useHoot()
+  const summary = wholeSentences(item.summary, introMax(2)) // hele zinnen, nooit "…"
   return (
     <article className={`entry srcitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <a className="srcitem__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         {note || item.type === 'opinie' ? <p className="label label--kicker kicker">{[item.type === 'opinie' ? 'Opinie' : null, note].filter(Boolean).join(' · ')}</p> : null}
         <h3 className="head-4 srcitem__title">{item.title}</h3>
-        {item.summary ? <p className="clamp srcitem__sum">{item.summary}</p> : null}
+        {summary ? <p className="clamp clamp--vangnet srcitem__sum">{summary}</p> : null}
       </a>
       <Meta item={item} />
     </article>

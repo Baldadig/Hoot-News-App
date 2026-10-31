@@ -9,6 +9,7 @@ import { timeAgo } from '../lib/time.js'
 import { fitsHero, fitsLarge } from '../lib/img.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { vakByDomain } from '../../shared/vak.mjs'
+import { wholeSentences, introMax } from '../../shared/zinnen.mjs'
 
 const ICON = { 'paid-social': MegaphoneIcon, ux: CursorIcon, design: PaletteIcon, ai: SparkleIcon, ecommerce: CartIcon, seo: MagnifierIcon, merk: TagIcon, dev: CodeIcon, product: KanbanIcon, ondernemen: RocketIcon, sport: INTEREST_ICONS.sport, politiek: INTEREST_ICONS.politiek, wetenschap: INTEREST_ICONS.wetenschap, economie: INTEREST_ICONS.economie, gadgets: INTEREST_ICONS.tech }
 // Een onderwerp zonder eigen icoon krijgt dat van zijn domein.
@@ -70,6 +71,10 @@ function Also({ item }) {
 function Card({ item, rank, feature = false }) {
   const { markRead, read } = useHoot()
   const showImage = item.image && (feature ? fitsHero(item.image) : fitsLarge(item.image))
+  // Hele zinnen, nooit "…". Een kaart heeft binnenruimte, dus de maat van een smalle kolom (× 0,8):
+  // op 390 gemeten ± 40 tekens per regel, zodat 3 regels binnen het vangnet (--lines + 1 = 4)
+  // blijven. Het eerste stuk heeft 4 regels (vangnet 5): daar past de volle maat van 3.
+  const summary = wholeSentences(item.summary, introMax(3, !feature))
   return (
     <article className={`card dcard${feature ? ' dcard--feature' : ''}${showImage ? '' : ' dcard--text'}${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <a className="dcard__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
@@ -85,7 +90,7 @@ function Card({ item, rank, feature = false }) {
           <h3 className={`${feature ? 'head-lg' : 'head-4'} dcard__title`}>{item.title}</h3>
           {/* Waarom dit stuk: rustige metadata onder de kop, zodat de kop voorgaat. */}
           {item.why?.length ? <p className="dcard__why">{item.why.join(' · ')}</p> : null}
-          {item.summary ? <p className="clamp dcard__sum">{item.summary}</p> : null}
+          {summary ? <p className="clamp clamp--vangnet dcard__sum">{summary}</p> : null}
         </div>
       </a>
       <div className="dcard__foot">

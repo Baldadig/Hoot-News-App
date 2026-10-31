@@ -11,6 +11,7 @@ import { Video } from './Video.jsx'
 import { Why } from './Why.js'
 import { directVideo } from '../../shared/bluesky.mjs'
 import { safeHttpUrl } from '../../shared/util.mjs'
+import { wholeSentences, introMax } from '../../shared/zinnen.mjs'
 
 // Bewaarde berichten komen uit opslag (dit toestel, of je account), niet vers van de server:
 // ook daar alleen http(s) in een href. Zonder geldige link is het een link zonder doel.
@@ -164,13 +165,18 @@ export function aboutOf(items) {
   return names.length ? names.join(' en ') : `dit soort verhalen`
 }
 
-const Summary = ({ item, className }) =>
-  item.summary ? (
+// De intro in hele zinnen tot ± max tekens (shared/zinnen.mjs). Hoot eindigt nooit met een
+// beletselteken: past er geen hele zin, dan tot de laatste komma, of geen intro. De line-clamp in
+// de CSS staat een regel ruimer en is alleen een vangnet.
+const Summary = ({ item, className, max = Infinity }) => {
+  const text = wholeSentences(item.summary, max)
+  return text ? (
     <p className={className}>
-      {item.summary}
+      {text}
       {item.borrowedFrom ? <span className="via"> — via {item.borrowedFrom}</span> : null}
     </p>
   ) : null
+}
 
 // ---- Vorm 1: hoofdverhaal ----
 // `priority`: dit is het eerste beeld dat je ziet (alleen het zichtbare hoofdverhaal).
@@ -189,7 +195,7 @@ export function LeadStory({ item, story, note, why = null, followed = null, prio
         <Kicker item={item} extra={note} followed={followed} />
         <Why why={why} />
         <h2 className="head-6 lead__title">{item.title}</h2>
-        <Summary item={item} className="lead__sum" />
+        <Summary item={item} className="lead__sum" max={240} />
         {item.author ? <p className="byline">Door {item.author}</p> : null}
       </a>
       <TermHelp text={`${item.title} ${item.summary || ''}`} />
@@ -204,8 +210,11 @@ export function LeadStory({ item, story, note, why = null, followed = null, prio
 // beeld in 3:2 rechts met een vaste breedte (--thumb-w), de bronregel onder de tekst. Op alle
 // breedtes dezelfde twee vormen. `plain` houdt de krant-vorm aan: in de Editie (die is een krant, op
 // web en in de app) en op smalle plekken zoals het vergelijkpaneel.
-export function CompactItem({ item, story, note, why = null, showSave = true, plain = false, taste = null }) {
-  const { markRead, read, layout } = useHoot()
+// `lines`: hoeveel regels intro (1, 2, 3 of 'alles'); standaard de instelling van de Stroom, en in
+// de krant-vorm van de Editie en het vergelijkpaneel (`plain`) 2, zoals de app.
+export function CompactItem({ item, story, note, why = null, showSave = true, plain = false, taste = null, lines }) {
+  const { markRead, read, layout, prefs } = useHoot()
+  const n = lines ?? (plain ? 2 : prefs?.preview ?? 2)
   const cls = `entry compact${read.has(item.id) ? ' is-read' : ''}`
   if (layout === 'tijdlijn' && !plain) {
     return (
@@ -215,7 +224,7 @@ export function CompactItem({ item, story, note, why = null, showSave = true, pl
           <Kicker item={item} extra={note} />
           <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
-          <Summary item={item} className="compact__sum" />
+          <Summary item={item} className="compact__sum" max={introMax(n, false)} />
           {item.image && fitsLarge(item.image) ? (
             <div className="media media--tl">
               <Img url={item.image} kind="lead" />
@@ -233,7 +242,7 @@ export function CompactItem({ item, story, note, why = null, showSave = true, pl
           <Kicker item={item} extra={note} />
           <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
-          <Summary item={item} className="compact__sum" />
+          <Summary item={item} className="compact__sum" max={introMax(n, !!item.image)} />
         </div>
         {item.image ? (
           <div className="thumb">

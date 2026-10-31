@@ -558,6 +558,13 @@ select {
   line-clamp: var(--lines, 2);
   overflow: hidden;
 }
+/* Huisregel: Hoot eindigt nooit met een beletselteken. Een intro is al op hele zinnen geknipt
+   (wholeSentences, shared/zinnen.mjs, met --lines als maat); de clamp staat dan een regel ruimer
+   en is alleen een vangnet voor een smalle kolom of grote tekst. */
+.clamp--vangnet {
+  -webkit-line-clamp: calc(var(--lines, 2) + 1);
+  line-clamp: calc(var(--lines, 2) + 1);
+}
 
 .visually-hidden {
   position: absolute;
@@ -1241,9 +1248,10 @@ select {
 /* Gekozen: één regel. Zelfde gewicht als in rust (de breedte verspringt niet), en een vinkje van
    16 vooraan, zodat aan niet alleen een kleur is. ::after met order −1, want ::before is het
    raakvlak van .hit. Dat geldt voor elke pil, ook bij enkele keuze (Mijn/Alle bronnen, Soort,
-   Iedereen): gekozen is dan niet alleen een kleur. Uitzonderingen: icoonknoppen (alleen het
-   icoon, zie boven), de segmenten (.seg: de compacte schakelaar, zonder vinkje) en de tegels in
-   Welkom. */
+   Iedereen): gekozen is dan niet alleen een kleur. Dezelfde regel geldt voor de tegels in Welkom
+   (.ob__tile) en het ronde vinkje (.ob__check). Uitzonderingen: icoonknoppen (alleen het icoon,
+   zie boven) en, bewust, de segmenten (.seg: de compacte schakelaar, één keuze uit een paar,
+   zonder vinkje: de knop ernaast zegt al wat uit is). */
 .pill[aria-pressed='true'],
 .topics__filter[aria-expanded='true'] {
   border-color: var(--sel-edge);
@@ -1848,7 +1856,9 @@ select.input {
   container: list / inline-size;
 }
 /* Stroom, korte weergave: één tot drie regels intro per bericht om sneller te scannen
-   (instelbaar onder Filters). Een sociale bijdrage heeft geen kop, dus die krijgt meer regels. */
+   (instelbaar onder Filters). Een sociale bijdrage heeft geen kop, dus die krijgt meer regels.
+   De intro van een bericht is al op hele zinnen geknipt (wholeSentences, ± 60/130/200 tekens);
+   Hoot eindigt nooit met een beletselteken, dus de clamp staat een regel ruimer, als vangnet. */
 .list--lines-1 {
   --lines: 1;
   --lines-social: 4;
@@ -1864,8 +1874,8 @@ select.input {
 :is(.list--lines-1, .list--lines-2, .list--lines-3) :is(.compact__sum, .social__text) {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: var(--lines);
-  line-clamp: var(--lines);
+  -webkit-line-clamp: calc(var(--lines) + 1);
+  line-clamp: calc(var(--lines) + 1);
   overflow: hidden;
 }
 :is(.list--lines-1, .list--lines-2, .list--lines-3) .social__text {
@@ -2916,10 +2926,11 @@ select.input {
   background: var(--on-brand-red);
   color: var(--brand-red);
 }
-/* Scherm 2: tegels, zoals ChoiceTile in de app: in rust een kaart (--surface, 2px inkt zoals een
-   .ob__chip, --radius-card), gekozen zoals overal --sel-* (rood zacht, rode rand, rode naam); het
-   icoon blijft in beide standen --accent. Indrukken schaalt naar .97. De gedocumenteerde
-   uitzondering is alleen nog de hoogte (112) en --radius-card. */
+/* Scherm 2: tegels, zoals ChoiceTile in de app, in dezelfde grammatica als een pil: in rust een
+   kaart op --surface met 1 px --rule, gekozen --sel-* (rood zacht, 1 px rode rand, rode naam) met
+   het vinkje van 16 vóór het label. Het label houdt in beide standen zijn gewicht (800), dus niets
+   verspringt; het icoon blijft in beide standen --accent. Indrukken schaalt naar .97. Eigen aan de
+   tegel zijn alleen de hoogte (112) en --radius-card. */
 .ob__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2939,7 +2950,7 @@ select.input {
   gap: var(--s4);
   min-height: 112px;
   padding: var(--s4);
-  border: var(--rule-strong-w) solid var(--ink);
+  border: 1px solid var(--rule); /* decoratief, zoals bij .pill: het label maakt hem herkenbaar */
   border-radius: var(--radius-card);
   background: var(--surface);
   color: var(--ink);
@@ -2961,7 +2972,15 @@ select.input {
   width: var(--icon-lg);
   height: var(--icon-lg);
 }
+/* Een lang woord (Wetenschap, Binnenland) met het vinkje ervoor past op 320 of bij grote tekst
+   niet altijd: dan breekt het af met een afbreekstreepje in plaats van uit de tegel te lopen. */
 .ob__tlabel {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--s1);
+  max-width: 100%;
+  hyphens: auto;
+  overflow-wrap: anywhere;
   font-size: var(--t4);
   line-height: var(--lh-4);
   font-weight: var(--fw-head);
@@ -2970,6 +2989,18 @@ select.input {
   border-color: var(--sel-edge);
   background: var(--sel-bg);
   color: var(--sel-fg);
+}
+/* Het vinkje van gekozen, zoals bij .pill: 16, vooraan, in de kleur van het label; midden op de
+   eerste regel, ook als een lang woord afbreekt. */
+.ob__tile[aria-pressed='true'] .ob__tlabel::before {
+  content: '';
+  flex: none;
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  margin-top: calc((var(--lh-4) - var(--icon-sm)) / 2);
+  background: currentColor;
+  -webkit-mask: var(--icon-check) center / contain no-repeat;
+  mask: var(--icon-check) center / contain no-repeat;
 }
 
 /* Scherm 3 en 5: ChipGroups met pillen (.pill, md), gekozen zoals overal: --sel-* met vinkje.
@@ -3515,7 +3546,7 @@ select.input {
   color: var(--ink-3);
 }
 .srcitem__sum {
-  --lines: 3;
+  --lines: 2;
   max-inline-size: var(--measure-prose);
   margin-top: var(--s2);
   color: var(--ink-2);
@@ -4699,9 +4730,12 @@ html[data-images='hoofd'] .media--social {
   width: var(--s4);
   height: var(--s4);
   border-radius: 50%;
-  background: var(--accent);
-  color: var(--on-accent);
-  box-shadow: 0 0 0 2px var(--paper); /* snijdt door de ring: beide blijven scherp */
+  /* gekozen zoals overal (C1): rood zacht, 1 px rode rand, vinkje in accent; geen vol rood */
+  background: var(--sel-bg);
+  color: var(--sel-fg);
+  box-shadow:
+    inset 0 0 0 1px var(--sel-edge),
+    0 0 0 2px var(--paper); /* snijdt door de ring: beide blijven scherp */
   opacity: 0;
   transform: scale(0.6);
   transition:

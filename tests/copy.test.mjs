@@ -26,12 +26,19 @@ test('Welkom: intro-punten in de volgorde van de app, vijf stappen, geen "In é�
   assert.match(s, /Inloggen/)
 })
 
-test('Welkom: papier op merkrood en gekozen tegels in --sel-* (W2)', () => {
+test('Welkom: papier op merkrood; tegel in rust 1 px --rule, gekozen --sel-* met vinkje (W2, C1)', () => {
   const css = read('styles.css')
   assert.match(css, /--paper-brand: #f5f1e8/)
   assert.match(css, /\.ob--open \{\s*--on-brand-red: var\(--paper-brand\)/)
+  const rest = css.slice(css.indexOf('.ob__tile {'))
+  assert.match(rest.slice(0, rest.indexOf('}')), /border: 1px solid var\(--rule\)/, 'in rust 1 px --rule, geen 2 px inkt')
   const tile = css.slice(css.indexOf(".ob__tile[aria-pressed='true'] {"))
   assert.match(tile.slice(0, 140), /--sel-edge[\s\S]*--sel-bg[\s\S]*--sel-fg/)
+  const check = css.slice(css.indexOf(".ob__tile[aria-pressed='true'] .ob__tlabel::before {"))
+  assert.ok(check.length < css.length, 'gekozen tegel heeft een vinkje vóór het label')
+  assert.match(check.slice(0, check.indexOf('}')), /--icon-sm[\s\S]*--icon-check/)
+  // Het label houdt zijn gewicht in beide standen: geen font-weight in de gekozen stand.
+  assert.ok(!/font-weight/.test(tile.slice(0, tile.indexOf('}'))))
 })
 
 test('Opstartscherm: in index.html vóór de app, één sprong van 1,6 s, sessievlag, en Splash.jsx neemt het over (W4)', () => {
