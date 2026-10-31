@@ -245,10 +245,7 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
       {paper ? (
         <div className="col ob__col" ref={paperCol} inert={red ? '' : undefined}>
           {quick ? null : (
-            <span className="ob__n" aria-label={`Stap ${step + 1} van ${STEPS}`}>
-              {step + 1}
-              <small>/{STEPS}</small>
-            </span>
+            <span className="ob__n" aria-label={`Stap ${step + 1} van ${STEPS}`}>{step + 1}<small>⁄{STEPS}</small></span>
           )}
 
           {quick ? (
@@ -442,9 +439,7 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
             </div>
           </div>
           <div className="col ob__col">
-            <span className="ob__n" aria-label={`Stap 1 van ${STEPS}`}>
-              1<small>/{STEPS}</small>
-            </span>
+            <span className="ob__n" aria-label={`Stap 1 van ${STEPS}`}>1<small>⁄{STEPS}</small></span>
             <h1 id={paper ? undefined : 'ob-title'} ref={redHead} tabIndex={-1} className="ob__hero">
               Minder scrollen. Meer lezen.
             </h1>

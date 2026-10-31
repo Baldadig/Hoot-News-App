@@ -66,7 +66,7 @@ export default function Search({ onBack, backLabel = 'Terug' }) {
           </Empty>
         ) : results.length === 0 ? (
           <Empty
-            title={`Niets gevonden voor "${q.trim()}"`}
+            title={`Niets gevonden voor ‘${q.trim()}’`}
             action={
               scope === 'mijn' ? (
                 <button type="button" className="btn btn--quiet" onClick={() => setScope('alle')}>

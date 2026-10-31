@@ -68,7 +68,8 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 |---|---|---|---|
 | `t6-lead` | serif 800, 30–34 px, 1.15 | `.title` / breed `.largeTitle`, serif bold | Kop van het hoofdverhaal |
 | `t5-screen` | serif 800, 27 px | grote navigatietitel in serif heavy (`.largeTitle`); klein in de balk serif bold (`.headline`) | Schermtitel (Middageditie, Stroom, Selectie …) |
-| `t4-item` | serif 800, 18 px | `.title3`, serif bold | Kop van een bericht |
+| `head-lg-item` | serif 800, 22/26 px | `.title2`, serif bold | Grote itemkop: een bericht in een brede lijst, het eerste stuk van een vak, een bladtitel |
+| `t4-item` | serif 800, 18/22 px | `.title3`, serif bold | Kop van een bericht |
 | `t3-body` | sans 400, 17 px, 1.5 | `.body` | Lopende tekst, intro van het hoofdverhaal |
 | `t2-sum` | sans 400, 15 px, 1.5 | `.subheadline` | Intro van een bericht in een lijst, in `ink-2` |
 | `t2-ui` | sans 600, 15 px, 1.3 | `.subheadline` semibold | Bronnaam (600), knoppen, chips |

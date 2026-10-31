@@ -15,7 +15,8 @@
   --edge: #8f8574; /* rand van velden en filterknoppen: 3:1, waar een lijn iets betekent */
   /* Krantenrood, alleen voor: rubriek en kicker · de actieve navigatie · gekozen (via --sel-*) ·
      links in lopende tekst · merkmomenten (woordmerk, einde van de editie, Welkom) · en
-     bewust "Vergelijk N bronnen" / "+ bronnen". Acties zijn --action, focus is --focus. */
+     bewust "Vergelijk N bronnen" / "+ bronnen". Acties zijn --action, focus is --focus. Een
+     schakelaar aan is inkt, geen rood: op Bronnen blijven de ster en 'gratis' het enige rood. */
   --accent: #a3201b;
   --accent-soft: #f4e3de; /* alleen 'gekozen'; decoratie is --tint */
   --on-accent: #ffffff;
@@ -177,8 +178,8 @@
   --lh-1: 1rem; /* 16 */
   --lh-2: 1.25rem; /* 20 */
   --lh-3: 1.5rem; /* 24 */
-  --lh-4: 1.25rem; /* 20 */
-  --lh-head-lg: 1.5rem; /* 24 */
+  --lh-4: 1.375rem; /* 22: lijstkoppen van vier, vijf regels houden lucht tussen staart en stok */
+  --lh-head-lg: 1.625rem; /* 26 */
   --lh-5: 2rem; /* 32 */
   --lh-6: 2.25rem; /* 36, vanaf 720 40 */
   --lh-display: 2.25rem; /* 36 */
@@ -1493,14 +1494,20 @@ select.input {
   box-shadow:
     var(--shadow-thumb),
     inset 0 0 0 1px var(--hairline);
-  transition: transform var(--dur-1) var(--ease);
+  transition:
+    transform var(--dur-1) var(--ease),
+    background-color var(--dur-1) var(--ease);
 }
 .switch[aria-checked='true'] .switch__track {
-  background: var(--accent);
-  box-shadow: inset 0 0 0 1px var(--accent);
+  background: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
 }
 .switch[aria-checked='true'] .switch__thumb {
   transform: translateX(calc(var(--switch-w) - var(--switch-thumb) - 2 * var(--switch-inset)));
+}
+/* In donker is inkt licht: daarop zou de lichte duim verdwijnen. Aan wordt de duim daar papier. */
+:root[data-theme='dark'] .switch[aria-checked='true'] .switch__thumb {
+  background: var(--paper);
 }
 /* Focus om de baan, niet om het raakvlak van 60 × 44: zo volgt de ring de vorm die je ziet. */
 .switch:focus-visible {
@@ -1512,6 +1519,12 @@ select.input {
 }
 
 /* ---------- Gedeelde onderdelen van een bericht ---------- */
+/* Cijfers in een kolom: tijd onder de bronnaam, nummers in de inhoud en op de kaarten, de
+   stapteller. Even breed, zodat "4 uur" en "41 min" niet verspringen; koppen en lopende tekst
+   blijven proportioneel. */
+:is(.srcmeta__time, .srcbtn__time, .dtoc__n, .dcard__rank, .ob__n) {
+  font-variant-numeric: tabular-nums;
+}
 /* Een bericht. De lijnen ertussen zijn van de lijst (.rows); het bericht meet zichzelf, zodat de
    actieregel zich naar de kolom voegt en niet naar het scherm (zie .meta). */
 .entry {
@@ -2753,7 +2766,8 @@ select.input {
   justify-content: space-between;
   min-height: var(--tap);
 }
-/* Stap, --s2 onder de bovenregel (iOS counter): het cijfer in display, "/5" stil erachter. */
+/* Stap, --s2 onder de bovenregel (iOS counter): één breuk, het cijfer in display en "⁄5" (breukstreep
+   U+2044) er direct achter, regular en stil. */
 .ob__n {
   display: block;
   margin-top: var(--s2);
@@ -2764,9 +2778,11 @@ select.input {
   font-weight: var(--fw-head);
 }
 .ob__n small {
-  margin-inline-start: var(--s1);
+  margin: 0;
   color: var(--ink-3);
   font-size: var(--t3);
+  line-height: var(--lh-3); /* eigen regelhoogte, anders rekt de noemer de regel van 36 op tot 41 */
+  font-weight: var(--fw-regular);
 }
 /* Het kleine woordmerk met punt (BrandLogo, 20 hoog ≈ 65 breed; iOS WelcomeMark 0,4 × 160), op
    elke stap op dezelfde plek (.ob__head): het opstartscherm landt erop en de iris sluit tot de punt. */
@@ -2814,7 +2830,7 @@ select.input {
   color: var(--on-brand-red);
 }
 .ob--open .ob__n small {
-  color: var(--on-brand-red); /* op rood is de hele teller papier (iOS counter) */
+  color: var(--on-brand-red-2); /* op rood: het cijfer papier, de noemer papier 85 procent */
 }
 /* De rode intro is een eigen laag over de papieren stap heen: de schijf van de iris. Dezelfde
    kolomopbouw (.ob__col + .ob__foot), scrolt zelf, en ligt boven de sticky knoprij van het papier
@@ -3697,7 +3713,7 @@ html[data-images='hoofd'] .media--social {
   padding: var(--s2) 0;
   border-top: 1px solid var(--rule);
   font-size: var(--t3);
-  line-height: var(--lh-4); /* 20: koppen in een lijst staan dicht, zoals een itemkop */
+  line-height: var(--lh-4); /* 22: koppen in een lijst, zoals een itemkop */
 }
 .reader__rest a {
   color: inherit;

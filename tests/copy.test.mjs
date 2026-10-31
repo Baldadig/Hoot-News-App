@@ -97,3 +97,29 @@ test('Geen kloktijden in webteksten: dagdelen in de Editie, de Selectie, Instell
   assert.match(read('views/Over.jsx'), /in de ochtend, middag en vroege avond\./)
   assert.match(read('views/Over.jsx'), /De Selectie verschijnt elke maandagochtend\./)
 })
+
+test('Aanhalen met ‘ ’: geen rechte aanhalingstekens om gebruikerstekst in de schermen (T6)', () => {
+  // Alleen de .jsx-bestanden: daar staat tekst die je leest. Selectors als [data-id="${…}"] in
+  // .js zijn code en blijven recht.
+  const jsx = walk(root).filter((f) => f.endsWith('.jsx'))
+  for (const f of jsx) {
+    const hit = read(f.slice(root.length)).match(/["']\$\{[^}]*\}["']/)
+    assert.equal(hit, null, `${f.slice(root.length)}: ${hit?.[0]}`)
+  }
+  assert.match(read('views/Search.jsx'), /Niets gevonden voor ‘\$\{q\.trim\(\)\}’/)
+})
+
+test('Welkom: één stapteller als breuk met breukstreep ⁄, zonder spatie (T7)', () => {
+  const s = read('views/Welcome.jsx')
+  const n = s.match(/<span className="ob__n"[^>]*>[^\n]*<\/span>/g) || []
+  assert.equal(n.length, 2, 'beide tellers op één regel')
+  assert.ok(n.every((t) => /\}>(\{step \+ 1\}|1)<small>⁄\{STEPS\}<\/small><\/span>/.test(t)))
+  assert.ok(!/<small>\/\{STEPS\}/.test(s))
+})
+
+test('Schakelaar aan is inkt, geen rood; tabelcijfers in de kolommen (K2, T8)', () => {
+  const css = read('styles.css')
+  const on = css.slice(css.indexOf(".switch[aria-checked='true'] .switch__track {")).slice(0, 120)
+  assert.match(on, /background: var\(--ink\);\s*box-shadow: inset 0 0 0 1px var\(--ink\)/)
+  assert.match(css, /:is\(\.srcmeta__time, \.srcbtn__time, \.dtoc__n, \.dcard__rank, \.ob__n\) \{\s*font-variant-numeric: tabular-nums;/)
+})
