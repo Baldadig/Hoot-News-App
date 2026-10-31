@@ -72,7 +72,7 @@ export function detectLang({ title = '', summary = '', text = '', url = '' } = {
 }
 
 // De taal van een bericht en of die afwijkt van de hoofdtaal van zijn bron. Onzeker: de brontaal.
-// Een bron zonder opgegeven taal (Bluesky, vakbronnen) krijgt nooit `offLang`.
+// Een bron zonder opgegeven taal (Bluesky, een meertalige vakbron) krijgt nooit `offLang`.
 export function langOf(item, sourceLang) {
   const found = detectLang(item)
   const lang = found || sourceLang || null

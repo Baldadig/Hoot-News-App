@@ -63,7 +63,7 @@ test('zichtbaarheid: lezer-taal = app-taal (nl)', () => {
   assert.equal(visibleFor({ lang: 'en', offLang: true }, 'en'), true) // straks in een Engelse app
   assert.equal(visibleFor({ lang: 'nl', offLang: true }), true) // Nederlands stuk bij een Engelse bron
   assert.equal(visibleFor({ lang: 'nl', offLang: true }, 'en'), false)
-  // Een bron zonder taal (vakbron, Bluesky) krijgt nooit offLang.
+  // Een bron zonder taal (Bluesky) krijgt nooit offLang.
   assert.equal(langOf({ title: 'Prosecution demands community service for tram driver who ran a red light' }, undefined).offLang, false)
 })
 
