@@ -2,8 +2,8 @@
 // vastleggen. Draait op een vast ritme (functions/feed-refresh.mjs); de app krijgt het
 // resultaat kant-en-klaar (functions/feed.mjs) en hoeft nooit op het ophalen te wachten.
 import Anthropic from '@anthropic-ai/sdk'
-import { byRecency, sigWords, sharedCount, buildStories, editionSlot, previousSlotId, previousOf, selectEdition, relinkEdition, widelyCovered, signatures, sameEvent } from './stories.mjs'
-import { matchTrending, insertBubble } from './bubble.mjs'
+import { byRecency, sigWords, sharedCount, buildStories, editionSlot, previousSlotId, previousOf, selectEdition, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
+import { matchTrending, insertBubble, bubbleCandidates, areasOf, nearStories } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
 import { articleKey, mergeSnippets, isLiveblog } from './snippets.mjs'
 import { SOURCES, BLUESKY_AUTHORS, BLUESKY_HOURS, BSKY_BRAND, MAIN_IDS, MUSIC_IDS, EDITION_CATS, UA } from './sources.mjs'
@@ -49,9 +49,13 @@ export async function buildFeed({ now = Date.now() } = {}) {
   await imagesFromArticles(items, now)
   borrowPreviews(items, mainGroups.flatMap((g) => g.items))
 
-  // 5. Verhalen: bundelen over alle bronnen (behalve regionaal en muziek).
+  // 5. Verhalen: bundelen over alle bronnen (behalve regionaal en muziek), met per verhaal de
+  //    kenmerken van al zijn stukken (`keys`): het toestel kent van een verhaal alleen de eigen
+  //    bronnen en moet toch weten wat er in de vorige Editie al over geschreven was. In de
+  //    uitgebreide stand (H6): twee namen in de kop binnen twaalf uur, EU-landen en instituten in
+  //    twee talen, een los stuk bij de kern van een groot verhaal.
   const articlePool = storyPool(items)
-  const stories = buildStories(articlePool, registry, { mainIds: MAIN_IDS })
+  const stories = buildStories(articlePool, registry, { mainIds: MAIN_IDS, keys: true, extended: true })
   const poolById = new Map(articlePool.map((i) => [i.id, i]))
   for (const st of stories) for (const id of st.itemIds) poolById.get(id).storyId = st.id
 
@@ -367,10 +371,12 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
       const shown = [...excludeItemIds].map((id) => sig.get(id)).filter(Boolean)
       const fresh = pool.filter((a) => !sig.has(a.id) || !shown.some((s) => sameEvent(sig.get(a.id), s)))
       // Nederlandstalig waar dat kan (Hoot is voor Nederlandse lezers, en wie met de gratis
-      // Nederlandse startset begint, krijgt geen Engels stuk midden in de editie); anders alles.
-      const opts = { excludeItemIds, excludeStoryIds, coveredTitles: rows().map((r) => r.title), max: 3, now }
-      const nl = matchTrending(trends, fresh.filter((a) => dutch(a.source)), opts)
-      const picks = nl.length ? nl : matchTrending(trends, fresh, opts)
+      // Nederlandse startset begint, krijgt geen Engels stuk midden in de editie); daarna de rest.
+      // Naast het stuk in de editie zes kandidaten, hooguit twee per gebied: de persoonlijke Editie
+      // kiest daaruit wat buiten jouw profiel valt (een sportlezer krijgt geen voetbal).
+      const opts = { excludeItemIds, excludeStoryIds, coveredTitles: rows().map((r) => r.title), max: Infinity, now }
+      const areaOf = (p) => areasOf(byId.get(p.id), SOURCE.get(byId.get(p.id)?.source)?.cat)
+      const picks = bubbleCandidates([matchTrending(trends, fresh.filter((a) => dutch(a.source)), opts), matchTrending(trends, fresh, opts)], { areaOf })
       // Het sterkste signaal krijgt een plek in de editie zelf; de rest staat in het blok eronder.
       stored.entries = insertBubble(stored.entries, picks[0])
       stored.bubble = picks.slice(1)
@@ -395,6 +401,9 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
   }
   if (changed && stored.entries.length) await kvSet(key, stored)
 
+  const isFree = (id) => SOURCE.has(id) && !SOURCE.get(id).paid
+  const isSport = (i) => SOURCE.get(i.source)?.cat === 'sport' || (i.topics || []).some((t) => SPORT_TOPICS.has(t))
+
   // Gepubliceerd = vast: de berichten zoals ze bij het samenstellen waren (kop, intro, beeld)
   // gaan mee als `items`; latere wijzigingen in de feed zie je in de Stroom, niet in de editie.
   // De verwijzing naar het verhaal (de bundel achter "+N bronnen") volgt wel de actuele indeling.
@@ -414,11 +423,9 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
       bubble: stored.bubble || [],
       brief: stored.brief?.sections?.length ? stored.brief : null,
       // Actueel (niet vast): waaruit de persoonlijke editie "Waar iedereen over schrijft" kiest.
-      wide: widelyCovered(stories, byId, {
-        isFree: (id) => SOURCE.has(id) && !SOURCE.get(id).paid,
-        isDutch: (id) => SOURCE.get(id)?.lang === 'nl',
-        isSport: (i) => SOURCE.get(i.source)?.cat === 'sport' || (i.topics || []).some((t) => SPORT_TOPICS.has(t)),
-      }),
+      wide: widelyCovered(stories, byId, { isFree, isDutch: dutch, isSport }),
+      // Actueel: waaruit de persoonlijke Editie "Naast je bubbel" kiest als geen trend buiten je profiel valt.
+      near: nearStories(stories, byId, { isFree, isDutch: dutch, isSport, isLive, now }),
     },
   }
 }

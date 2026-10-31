@@ -4,6 +4,7 @@
 import { DESKS, desksOf, primaryDesk, weight } from './desks.mjs'
 
 import { hash } from '../../shared/util.mjs'
+import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX } from '../../shared/editor.mjs'
 export { hash }
 
 // Een onleesbare tijd telt als heel oud (anders geeft de vergelijking NaN en raakt de sortering,
@@ -61,10 +62,65 @@ const ALIAS = {
   // Voornamen van wereldleiders tellen als die leider (anders is "Donald" een sterke naam).
   donald: 'trump', benjamin: 'netanyahu', vladimir: 'putin', volodymyr: 'zelensky', emmanuel: 'macron', keir: 'starmer', friedrich: 'merz', recep: 'erdogan', narendra: 'modi', giorgia: 'meloni', viktor: 'orban', kamala: 'harris', joe: 'biden', elon: 'musk', jinping: 'xi',
 }
+// H6 (iii), alleen in de uitgebreide stand (`extended`, zie buildStories): landen en adjectieven van
+// alle EU-landen (plus hoofdsteden die in het nieuws van vandaag stonden), Nederlands en Engels, naar
+// één sleutel die als zwakke naam telt. "Pools" en "Poolse" waren anders twee sterke
+// namen die samen al bijna een verhaal maakten, en "Poland" een derde die er niet bij kon.
+const EU = {
+  belgie: 'belgium', belgische: 'belgium', belgisch: 'belgium', belgen: 'belgium', belgium: 'belgium', belgian: 'belgium', belgians: 'belgium',
+  bulgarije: 'bulgaria', bulgaarse: 'bulgaria', bulgaars: 'bulgaria', bulgaria: 'bulgaria', bulgarian: 'bulgaria',
+  cyprus: 'cyprus', cypriotische: 'cyprus', cypriot: 'cyprus',
+  denemarken: 'denmark', deense: 'denmark', deens: 'denmark', denen: 'denmark', denmark: 'denmark', danish: 'denmark', danes: 'denmark',
+  estland: 'estonia', estse: 'estonia', estisch: 'estonia', estonia: 'estonia', estonian: 'estonia',
+  finland: 'finland', finse: 'finland', fins: 'finland', finnen: 'finland', finnish: 'finland', finns: 'finland',
+  griekenland: 'greece', griekse: 'greece', grieks: 'greece', grieken: 'greece', greece: 'greece', greek: 'greece', greeks: 'greece',
+  hongarije: 'hungary', hongaarse: 'hungary', hongaars: 'hungary', hongaren: 'hungary', hungary: 'hungary', hungarian: 'hungary', hungarians: 'hungary',
+  ierland: 'ireland', ierse: 'ireland', iers: 'ireland', ieren: 'ireland', ireland: 'ireland', irish: 'ireland',
+  italie: 'italy', italiaanse: 'italy', italiaans: 'italy', italianen: 'italy', italy: 'italy', italian: 'italy', italians: 'italy',
+  kroatie: 'croatia', kroatische: 'croatia', kroatisch: 'croatia', kroaten: 'croatia', croatia: 'croatia', croatian: 'croatia',
+  letland: 'latvia', letse: 'latvia', lets: 'latvia', latvia: 'latvia', latvian: 'latvia',
+  litouwen: 'lithuania', litouwse: 'lithuania', litouws: 'lithuania', lithuania: 'lithuania', lithuanian: 'lithuania',
+  luxemburg: 'luxembourg', luxemburgse: 'luxembourg', luxembourg: 'luxembourg',
+  malta: 'malta', maltese: 'malta',
+  oostenrijk: 'austria', oostenrijkse: 'austria', oostenrijks: 'austria', oostenrijkers: 'austria', austria: 'austria', austrian: 'austria', austrians: 'austria',
+  polen: 'poland', poolse: 'poland', pools: 'poland', poland: 'poland', polish: 'poland', poles: 'poland',
+  portugal: 'portugal', portugese: 'portugal', portugees: 'portugal', portugezen: 'portugal', portuguese: 'portugal',
+  roemenie: 'romania', roemeense: 'romania', roemeens: 'romania', roemenen: 'romania', romania: 'romania', romanian: 'romania', romanians: 'romania',
+  slovenie: 'slovenia', sloveense: 'slovenia', sloveens: 'slovenia', slovenia: 'slovenia', slovenian: 'slovenia',
+  slowakije: 'slovakia', slowaakse: 'slovakia', slowaaks: 'slovakia', slovakia: 'slovakia', slovak: 'slovakia', slovakian: 'slovakia',
+  spanje: 'spain', spaanse: 'spain', spaans: 'spain', spanjaarden: 'spain', spain: 'spain', spanish: 'spain', spaniards: 'spain',
+  tsjechie: 'czechia', tsjechische: 'czechia', tsjechisch: 'czechia', tsjechen: 'czechia', czechia: 'czechia', czech: 'czechia', czechs: 'czechia',
+  zweden: 'sweden', zweedse: 'sweden', zweeds: 'sweden', sweden: 'sweden', swedish: 'sweden', swedes: 'sweden',
+  // EU-hoofdsteden die als plaats in het nieuws van vandaag stonden. Geen buurlanden: "Servië" als
+  // zwakke naam liet een fotoreportage uit het Servische verkiezingsverhaal vallen (clustering-2610).
+  warschau: 'warsaw', warsaw: 'warsaw', wenen: 'vienna', vienna: 'vienna', lissabon: 'lisbon', lisbon: 'lisbon', athene: 'athens', athens: 'athens', boedapest: 'budapest', budapest: 'budapest', praag: 'prague', prague: 'prague', kopenhagen: 'copenhagen', copenhagen: 'copenhagen', stockholm: 'stockholm', dublin: 'dublin',
+}
+// Uitgebreide stand, naast de landen: één partij in twee talen ("Chinese Communistische Partij" /
+// "Communist party"). Sterk, want de partij wijst wél een gebeurtenis aan (de zuiveringen van vandaag).
+const PARTY = { communistische: 'communist', communistisch: 'communist', communist: 'communist', communists: 'communist' }
+const ALIAS_EXT = { ...ALIAS, ...EU, ...PARTY }
+// Uitgebreide stand: Nederlandse en Engelse spelling van dezelfde naam uit het Cyrillisch verschillen
+// systematisch in "sj" tegenover "sh" ("Olesjky"/"Oleshky", "Poesjkin"/"Pushkin"). Eén spelling voor
+// de sleutel; na de alias, zodat "Tsjechië" eerst gewoon Tsjechië wordt.
+const translit = (k) => k.replace(/sj/g, 'sh')
 // Te algemeen om op zichzelf een gebeurtenis aan te wijzen: landen, steden, regeringsleiders,
 // diensten. Twee verhalen die alleen zo'n naam delen gaan niet samen (zie sameEvent).
 const WEAK = new Set(
   'us russia ukraine germany france uk china israel iran nederland europe nato un putin zelensky trump biden harris vance netanyahu musk xi macron starmer merz erdogan modi meloni orban schoof pentagon congress senate senaat congres kremlin whitehouse ice fbi cia nasa who gaza taiwan india japan canada mexico brazil turkije turkey syria syrie venezuela korea northkorea southkorea texas california florida georgia carolina virginia ohio michigan arizona nevada pennsylvania wisconsin washington brussel brussels londen london parijs paris moskou moscow kyiv kiev berlijn berlin seoul busan pyongyang tokio tokyo peking beijing jeruzalem jerusalem teheran tehran amsterdam rotterdam'.split(
+    ' '
+  )
+)
+// Uitgebreide stand: de EU-sleutels (en Wall Street en Hongkong, plaatsen) zijn ook zwak.
+const WEAK_EXT = new Set([...WEAK, ...Object.values(EU), 'wallstreet', 'hongkong'])
+// H6 (iv), uitgebreide stand: een hoofdletterwoord van drie letters uit de woordenschat telt ook als
+// naam ("Fab", "Leo", "Max"), maar niet als het een gewoon woord is dat in koppen (In Titelkast, na
+// een dubbele punt) met een hoofdletter staat. Gemeten op de dagpool: "Man" (uit "Man Utd") maakte
+// van een schietpartij in Amsterdam en een vonnis in Ronse één verhaal. "Hof" los is ook geen naam:
+// "het Hof" staat dagelijks met hoofdletter in Nederlands en Belgisch rechtbanknieuws, en het hof in
+// Den Haag en het hof in Arnhem zijn twee rechtbanken. Het Grondwettelijk Hof telt via de samengestelde
+// naam (COMPOUND_EXT), niet via dit losse woord.
+const COMMON_3 = new Set(
+  'man men dag dit dat hoe wat wie kan wil dan ter wet zee weg bal kop oog nog ook nee wel zet mol pan dam vol tel zak kom hij zij wij ons mij jou hof cup one can are you our all get got off see she his yet way key isn big day war own bad hat fat few buy pay eat web hub led doe fee pat old new now how why who its has had was not but and the for too two ten six red top end run set put say ask let may yes far low out via per pro mid pre non ago sea bay oil'.split(
     ' '
   )
 )
@@ -115,15 +171,51 @@ const CONCEPTS = [
   ['missile', /\b(raket\w*|missile\w*|rocket\w*|drone\w*)\b/, false],
 ]
 
+// H6 (iii), uitgebreide stand: begrippen die de dagpool miste. De Binance-roof stond in zeven eentalige
+// verhalen (NL én EN, "hack" en "roof" zijn geen gebeurtenis-woord), de alliantie van Canada en de EU in
+// twee. Alleen in de uitgebreide stand, zodat het kenmerk in de gewone stand gelijk blijft.
+const CONCEPTS_EXT = [
+  ...CONCEPTS,
+  ['hack', /\b(hack\w*|gehackt|cyberaanval\w*|cyberattack\w*|datalek|data breach|ransomware)\b/, true],
+  ['theft', /\b(roof|beroofd|gestolen|diefstal|steal|stole|stolen|theft|heist|robbery|overval\w*)\b/, true],
+  ['pact', /\b(akkoord|alliantie|verdrag|handelsakkoord|alliance|treaty|pact|trade deal)\b/, false],
+  // De evacuatie van Olesjky stond in een Nederlands en een Engels verhaal; de zuiveringen in de
+  // Chinese partij ook. Geen van beide heeft een gebeurtenis-woord uit de gewone lijst.
+  ['evacuate', /\b(evacu\w*|geevacueerd|ontruim\w*)\b/, false],
+  ['purge', /\b(zuivering\w*|gezuiverd|purge\w*|expels?|expelled|expulsion\w*)\b/, true],
+  ['market', /\b(beurs\w*|aandelen|aandeel|nasdaq|aex|stock market|stocks|shares|selloff|sell-off|plunge\w*|kelder\w*|gekelderd)\b/, false],
+]
+
 // Samengestelde landnamen als één woord, zodat "Noord-" en "Zuid-" geen losse namen worden.
 const COMPOUND = [
   [/\b(Noord|North)[- ]Korea\b/g, 'Northkorea'],
   [/\b(Zuid|South)[- ]Korea\b/g, 'Southkorea'],
 ]
-const joinCompounds = (text) => COMPOUND.reduce((t, [re, to]) => t.replace(re, to), String(text || ''))
-const tokenize = (text) => joinCompounds(text).replace(/\b([A-Z])\.(?=[A-Z]\.)/g, '$1').replace(/\b([A-Z]{2,})\./g, '$1').replace(/[’']s\b/g, '').match(/[\p{L}\p{N}]+/gu) || []
+// H6 (iii), uitgebreide stand: instituten in twee talen als één naam ("Grondwettelijk Hof",
+// "Constitutioneel Hof", "constitutional court", "top court" → Constitutionalcourt), en Wall Street als
+// één plaats (zwak, zie EU). De samengestelde naam krijgt ook het begrip `court` (zie signature).
+const COMPOUND_EXT = [
+  ...COMPOUND,
+  [/\b(Grondwettelijk|Constitutioneel|Constitutionele|Grondwettelijke)\s+(Hof|hof)\b/g, 'Constitutionalcourt'],
+  [/\b(Constitutional|constitutional|Top|top)\s+(Court|court|Tribunal|tribunal)\b/g, 'Constitutionalcourt'],
+  [/\b(Hooggerechtshof|hooggerechtshof)\b/g, 'Supremecourt'],
+  [/\b(Supreme|supreme)\s+(Court|court)\b/g, 'Supremecourt'],
+  [/\b(Wall|wall)\s+(Street|street)\b/g, 'Wallstreet'],
+  [/\bHong\s+Kong\b/g, 'Hongkong'],
+]
+// Een instituut is een naam zonder land: elk land heeft een grondwettelijk hof, elke Amerikaanse staat
+// een Supreme Court. Als gedeelde sterke naam telt het alleen samen met een gedeelde zwakke naam
+// (land, stad), en niet als beide stukken daarnaast een eigen plaats noemen die de ander niet kent:
+// het hof van Israël en dat van Brazilië over een kieswet zijn twee rechtbanken, het Georgia Supreme
+// Court en het Pennsylvania Supreme Court ook, al liggen beide in de VS (zie sharedStrong).
+const INSTITUTES = new Set(['constitutionalcourt', 'supremecourt'])
+const joinCompounds = (text, ext = false) => (ext ? COMPOUND_EXT : COMPOUND).reduce((t, [re, to]) => t.replace(re, to), String(text || ''))
+const tokenize = (text, ext = false) => joinCompounds(text, ext).replace(/\b([A-Z])\.(?=[A-Z]\.)/g, '$1').replace(/\b([A-Z]{2,})\./g, '$1').replace(/[’']s\b/g, '').match(/[\p{L}\p{N}]+/gu) || []
 const isCap = (w) => /^\p{Lu}\p{Ll}/u.test(w)
 const isAcronym = (w) => /^\p{Lu}{2,6}$/u.test(w)
+// Uitgebreide stand: ook een afkorting met cijfers ("G20", "RTX", "PS5"); "G20" was anders geen naam,
+// en de geschrapte groepsfoto met Lavrov stond in vier verhalen.
+const isAcronymExt = (w) => isAcronym(w) || /^\p{Lu}{1,3}\d{1,3}$/u.test(w)
 // Koppen In Titelkast (NYT, Wired) zeggen niets over wat een naam is.
 const isTitleCase = (title) => {
   const words = tokenize(title).filter((w) => w.length >= 4)
@@ -131,11 +223,12 @@ const isTitleCase = (title) => {
 }
 
 // Woordenschat van namen: woorden die midden in een gewone zin met een hoofdletter staan.
-function nameVocabulary(articles) {
+function nameVocabulary(articles, ext = false) {
   const vocab = new Set()
   const scan = (text) => {
     let sentenceStart = true
-    for (const part of String(text || '').split(/(\s+)/)) {
+    // Samengestelde namen eerst samenvoegen: ze lopen over een spatie ("Grondwettelijk Hof").
+    for (const part of (ext ? joinCompounds(text, true) : String(text || '')).split(/(\s+)/)) {
       if (!part.trim()) continue
       const words = tokenize(part)
       for (const w of words) {
@@ -152,60 +245,162 @@ function nameVocabulary(articles) {
   return vocab
 }
 
+// Verbindingswoorden binnen een naam ("Virgil van Dijk", "Ursula von der Leyen"): ze breken een reeks
+// hoofdletterwoorden niet (zie `runs` in signature).
+const CONNECT = new Set(['van', 'de', 'der', 'den', 'du', 'da', 'di', 'la', 'le', 'von', 'bin', 'al', 'el', 'y', 'of'])
+// Een reeks: aaneengesloten sterke namen in één zinsdeel (tussen leestekens), zoals "Kylian Mbappé" of
+// "Patrick Stewart". Twee stukken die alleen zo'n reeks delen, delen één persoon, niet twee namen.
+const SEGMENT = /[^\p{L}\p{N}\s’'\-]+/u
+
 // Kenmerk van één artikel: sterke namen, zwakke namen, gebeurtenis-begrippen.
-function signature(article, vocab) {
+// `ext` (H6, uitgebreide stand van buildStories): EU-landen en instituten via ALIAS_EXT/COMPOUND_EXT,
+// hoofdletterwoorden van drie letters die in de woordenschat staan tellen ook ("Hof", "Fab"), en het
+// kenmerk draagt `runs`: de reeksen sterke namen in kop en tekst (voor sameEvent regel i).
+function signature(article, vocab, ext = false) {
+  const alias = ext ? ALIAS_EXT : ALIAS
+  const weakSet = ext ? WEAK_EXT : WEAK
+  const minLen = ext ? 3 : 4
+  const acr = ext ? isAcronymExt : isAcronym
+  const concepts_ = ext ? CONCEPTS_EXT : CONCEPTS
   const raw = `${article.title}. ${article.text || article.summary || ''}`
   const strong = new Set()
   const weak = new Set()
   const known = new Set() // bekende algemene namen, ook uit koppen in Titelkast (alleen voor sameSubject)
-  for (const w of tokenize(raw)) {
-    if (isCap(w) || isAcronym(w)) {
-      const k = ALIAS[norm(w)] || norm(w)
-      if (WEAK.has(k)) known.add(k)
+  // De sleutel van een naam: de alias, in de uitgebreide stand ook in één spelling (translit).
+  const aliasOf = (k) => (ext ? translit(alias[k] || k) : alias[k] || k)
+  // De sterke sleutel van een woord, of null.
+  const acronyms = new Set() // sleutels die uit een afkorting komen (XIV, PSG)
+  const strongKey = (w) => {
+    let key = null
+    if (acr(w)) key = norm(w)
+    // Alleen woorden mét hoofdletter die ook elders midden in een zin als naam voorkomen.
+    else if (w.length >= minLen && isCap(w) && vocab.has(norm(w)) && !(w.length === 3 && COMMON_3.has(norm(w)))) key = norm(w)
+    if (!key) return null
+    key = aliasOf(key)
+    if (NOT_A_NAME.has(key) || weakSet.has(key) || key.length < 3) return null
+    if (acr(w)) acronyms.add(key)
+    return key
+  }
+  for (const w of tokenize(raw, ext)) {
+    if (isCap(w) || acr(w)) {
+      const k = aliasOf(norm(w))
+      if (weakSet.has(k)) known.add(k)
     }
     let key = null
-    if (isAcronym(w)) key = norm(w)
-    // Alleen woorden mét hoofdletter die ook elders midden in een zin als naam voorkomen.
-    else if (w.length >= 4 && isCap(w) && vocab.has(norm(w))) key = norm(w)
+    if (acr(w)) key = norm(w)
+    else if (w.length >= minLen && isCap(w) && vocab.has(norm(w)) && !(w.length === 3 && COMMON_3.has(norm(w)))) key = norm(w)
     if (!key) continue
-    key = ALIAS[key] || key
+    key = aliasOf(key)
     if (NOT_A_NAME.has(key)) continue
-    if (WEAK.has(key)) weak.add(key)
+    if (weakSet.has(key)) weak.add(key)
     else if (key.length >= 3) strong.add(key)
   }
   const text = norm(raw)
   const concepts = new Set()
   let rare = 0
-  for (const [id, re, isRare] of CONCEPTS) {
+  for (const [id, re, isRare] of concepts_) {
     if (re.test(text)) {
       concepts.add(id)
       if (isRare) rare++
     }
   }
-  return { words: sigWords(article.title), strong, weak, known, concepts, rareIds: new Set(CONCEPTS.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: timeOf(article) }
+  const out = { words: sigWords(article.title), strong, weak, known, concepts, rareIds: new Set(concepts_.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: timeOf(article) }
+  if (ext) {
+    // Een samengesteld instituut is ook een rechtbank-begrip (het losse woord "court" is weg).
+    if (strong.has('constitutionalcourt') || strong.has('supremecourt')) concepts.add('court')
+    const runsOf = (text) => {
+      const runs = []
+      for (const part of joinCompounds(text, ext).split(SEGMENT)) {
+        let run = []
+        for (const w of tokenize(part)) {
+          const k = strongKey(w)
+          if (k) run.push(k)
+          else if (!(run.length && CONNECT.has(norm(w)))) (run.length && runs.push(run), (run = []))
+        }
+        if (run.length) runs.push(run)
+      }
+      return runs
+    }
+    out.runs = runsOf(raw)
+    out.titleRuns = runsOf(article.title)
+    // Een naam van drie letters die alleen vóór een andere naam staat is een voornaam ("Kim Jong",
+    // "Max Verstappen"): die telt niet apart, net als "Donald" (ALIAS). "Hof", "Fab 28" en "Leo XIV"
+    // (een afkorting erachter is geen achternaam) blijven staan.
+    const alone = new Set(out.runs.filter((run) => run.length === 1).map(([k]) => k))
+    const firstName = (k) => out.runs.some((run) => run.some((x, j) => x === k && j < run.length - 1 && !acronyms.has(run[j + 1])))
+    for (const k of [...strong]) if (k.length === 3 && !acronyms.has(k) && !alone.has(k) && firstName(k)) strong.delete(k)
+    out.runs = out.runs.map((run) => run.filter((k) => strong.has(k))).filter((run) => run.length)
+    out.titleRuns = out.titleRuns.map((run) => run.filter((k) => strong.has(k))).filter((run) => run.length)
+  }
+  return out
+}
+
+// Hoeveel verschillende namen delen twee kenmerken? Sterke namen die in a of in b in dezelfde reeks
+// staan ("Kylian" en "Mbappé") tellen als één. Zonder `runs` (gewone stand) telt elke naam apart.
+// `title`: alleen namen die in beide koppen staan (regel i): de tekst van een voorbeschouwing noemt
+// alle clubs van het weekend, de kop zegt waar het stuk over gaat.
+export function sharedEntities(a, b, title = false) {
+  const inRuns = (runs) => new Set(runs.flat())
+  const sa = title && a.titleRuns ? inRuns(a.titleRuns) : a.strong
+  const sb = title && b.titleRuns ? inRuns(b.titleRuns) : b.strong
+  const shared = [...sa].filter((k) => sb.has(k))
+  if (!a.runs || !b.runs) return shared.length
+  const parent = new Map(shared.map((k) => [k, k]))
+  const find = (k) => {
+    while (parent.get(k) !== k) k = parent.get(k)
+    return k
+  }
+  for (const runs of [a.runs, b.runs]) for (const run of runs) {
+    const ks = run.filter((k) => parent.has(k))
+    for (let i = 1; i < ks.length; i++) parent.set(find(ks[i]), find(ks[0]))
+  }
+  return new Set(shared.map(find)).size
+}
+
+// Gedeelde sterke namen. In de uitgebreide stand telt een instituut (INSTITUTES) alleen mee als beide
+// kenmerken ook een zwakke naam delen en niet elk een eigen, ongedeelde zwakke naam hebben (twee
+// rechtbanken in twee plaatsen). In de gewone stand komt zo'n sleutel niet voor (COMPOUND_EXT).
+function sharedStrong(a, b, ext = false) {
+  const n = sharedCount(a.strong, b.strong)
+  if (!ext || !n) return n
+  const inst = [...a.strong].filter((k) => INSTITUTES.has(k) && b.strong.has(k)).length
+  if (!inst) return n
+  if (!sharedCount(a.weak, b.weak)) return n - inst
+  const own = (x, y) => [...x.weak].some((k) => !y.weak.has(k))
+  return own(a, b) && own(b, a) ? n - inst : n
 }
 
 const WORD_WINDOW = 48 * 60 * 60 * 1000
 const EVENT_WINDOW = 36 * 60 * 60 * 1000
+const NAMES_WINDOW = 12 * 60 * 60 * 1000 // H6 (i): twee namen gemeen is alleen vlak na elkaar genoeg
 
 // Gaan twee artikelen over dezelfde gebeurtenis?
-export function sameEvent(a, b) {
+// `ext` (H6 (i), uitgebreide stand): twee stukken die binnen twaalf uur twee verschillende eigen namen
+// in de kop delen (geen land, geen titelwoord, en niet één persoon met voor- en achternaam) gaan over
+// hetzelfde, ook zonder gebeurtenis-woord: "Apple haalt Nvidia in" en "Apple Overtakes Nvidia". Zo'n
+// paar heeft geen vertaalbaar werkwoord, en de woordregel ziet over de taalgrens niets. Alleen de kop:
+// in de tekst noemt een voorbeschouwing alle clubs van het weekend (gemeten: één voetbalverhaal van
+// twaalf bronnen over PSG, Arsenal én Liverpool).
+export function sameEvent(a, b, ext = false) {
   const dt = Math.abs(a.t - b.t)
   // Beide noemen namen, maar geen enkele dezelfde: twee gebeurtenissen van dezelfde soort
   // ("president erkent nederlaag bij verkiezingen" in Brazilië en in Servië).
-  if (a.strong.size && b.strong.size && !sharedCount(a.strong, b.strong) && !sharedCount(a.weak, b.weak)) return false
+  if (a.strong.size && b.strong.size && !sharedStrong(a, b, ext) && !sharedCount(a.weak, b.weak)) return false
   // Zelfde taal: ≥3 gedeelde kernwoorden in de kop én ≥40% van de kortste kop.
   if (dt <= WORD_WINDOW) {
     const n = sharedCount(a.words, b.words)
     if (n >= 3 && n / Math.min(a.words.size, b.words.size) >= 0.4) return true
   }
   if (dt > EVENT_WINDOW) return false
-  const strong = sharedCount(a.strong, b.strong)
+  // Uitgebreide stand: een instituut zonder gedeeld land telt niet als naam (sharedStrong).
+  const strong = sharedStrong(a, b, ext)
   const weak = sharedCount(a.weak, b.weak)
   const concepts = sharedCount(a.concepts, b.concepts)
   const rare = sharedCount(a.rareIds, b.rareIds)
   // A. Twee gedeelde namen plus nog iets (voorkomt: zelfde persoon, andere gebeurtenis).
   if (strong >= 2 && strong + weak + concepts >= 3) return true
+  // H6 (i). Twee verschillende namen in beide koppen, vlak na elkaar: zie boven.
+  if (ext && strong >= 2 && dt <= NAMES_WINDOW && sharedEntities(a, b, true) >= 2) return true
   // B. Eén naam, hetzelfde soort gebeurtenis, en nog een aanknopingspunt.
   if (strong >= 1 && concepts >= 1 && weak + concepts >= 2) return true
   // C. Geen naam gemeen, maar een zeldzame combinatie van gebeurtenis-woorden.
@@ -237,9 +432,13 @@ export function sameSubject(a, b) {
   return dt <= SUBJECT_WINDOW && shared.some((k) => !BROAD.has(k))
 }
 
-export function signatures(articles) {
-  const vocab = nameVocabulary(articles)
-  return new Map(articles.map((a) => [a.id, signature(a, vocab)]))
+// `extra`: berichten die wel een kenmerk krijgen maar niet meetellen voor de woordenschat van namen
+// (de koppen van een vorige Editie, zie selectForReader).
+// `extended`: de uitgebreide stand van H6 (zie buildStories); standaard uit, dan is het kenmerk gelijk
+// aan vroeger.
+export function signatures(articles, extra = [], { extended = false } = {}) {
+  const vocab = nameVocabulary(articles, extended)
+  return new Map([...articles, ...extra].map((a) => [a.id, signature(a, vocab, extended)]))
 }
 
 // Een bericht van meer dan een dag oud (een portret, een analyse van gisteren) is achtergrond:
@@ -275,9 +474,25 @@ export const isLive = (a) => LIVE_TITLE.test(a.title || '') || /\/live(blog)?[-/
 const CORE_FROM = 6
 const coreDegree = (size) => (size >= 10 ? 3 : 2)
 
-export function buildStories(articles, registry = {}, { mainIds = new Set() } = {}) {
+// `keys`: geef elk verhaal zijn kenmerken mee (`keys`: de namen en gebeurtenis-begrippen van ál zijn
+// stukken, gesorteerd). De server zet dit aan: zo weet een toestel, dat van een verhaal alleen de
+// stukken uit de eigen bronnen kent, toch wat er in de vorige Editie al over geschreven was
+// (developedSince). Standaard uit: dan is de uitvoer byte-gelijk aan vroeger (meetlat). De kenmerken
+// voor `keys` staan altijd in de gewone stand, ook als het bundelen uitgebreid is: het toestel rekent
+// developedSince op gewone signaturen (personal.js, en de iOS-bundel), en een gewone sleutel die in de
+// uitgebreide stand anders heet of wegvalt ("wall" + "street" → Wallstreet zwak, "belgische" →
+// belgium zwak, "olesjky" → oleshky) telde anders als nieuw: twee Nederlandse stukken die Wall Street
+// noemen gaven in hun eentje een vals "Vervolg".
+// `extended`: sameEvent gericht uitgebreid (aanvulling-pariteit-herhaling.md H6): (i) twee eigen
+// namen binnen twaalf uur, (ii) een los stuk dat de kern van een groot verhaal noemt hoort erbij,
+// (iii) EU-landen en instituten als één naam, (iv) namen van drie letters. De server en de dagreeks
+// zetten dit aan; standaard uit, zodat de meetlat (buildStories + selectEdition) byte-gelijk blijft.
+export function buildStories(articles, registry = {}, { mainIds = new Set(), keys = false, extended = false } = {}) {
   const list = articles.filter((a) => !DIGEST.test(a.title || '') && !isLive(a)).sort(byRecency)
-  const sig = signatures(list)
+  const sig = signatures(list, [], { extended })
+  // `keys` in de stand van het toestel (zie boven), met de woordenschat van álle aangeboden berichten:
+  // het toestel rekent zijn kenmerken ook over dagoverzichten en liveblogs.
+  const keySig = keys ? signatures(articles) : sig
   const now = list.length ? timeOf(list[0]) : null // het nieuwste bericht: zo laat is het in deze feeds
   // 1. Alle paren die over dezelfde gebeurtenis gaan.
   const links = new Map(list.map((a) => [a.id, new Set()]))
@@ -287,7 +502,7 @@ export function buildStories(articles, registry = {}, { mainIds = new Set() } = 
     for (let j = i + 1; j < list.length; j++) {
       const sj = sig.get(list[j].id)
       if (si.t && sj.t && si.t - sj.t > WORD_WINDOW) break // gesorteerd op tijd
-      if (sameEvent(si, sj)) {
+      if (sameEvent(si, sj, extended)) {
         links.get(list[i].id).add(list[j].id)
         links.get(list[j].id).add(list[i].id)
       }
@@ -348,6 +563,9 @@ export function buildStories(articles, registry = {}, { mainIds = new Set() } = 
   settle(new Set(list.map((a) => a.id)))
   for (const g of groups.values()) g.sort(byRecency)
 
+  // 4. (H6 ii, uitgebreide stand) Een los stuk dat de kern van een groot verhaal noemt, hoort erbij.
+  if (extended) attachLoose(groups, list, sig)
+
   const stories = []
   const used = new Set()
   for (const items of groups.values()) {
@@ -372,12 +590,95 @@ export function buildStories(articles, registry = {}, { mainIds = new Set() } = 
       itemIds: items.map((i) => i.id),
       sourceCount: sourceIds.size,
       ownCount: new Set(own.map((i) => i.source)).size,
+      // De rubriek uit álle berichten van het verhaal, niet uit wat een lezer volgt: zo heet
+      // hetzelfde verhaal voor iedereen hetzelfde (de persoonlijke Editie neemt hem over).
+      desk: primaryDesk(items.map((i) => desksOf(i))),
       sourceNames: names,
       latestAt: items[0].publishedAt || null,
       firstAt: items[items.length - 1].publishedAt || null,
+      ...(keys ? { keys: storyKeys(items, keySig) } : {}),
     })
   }
   return stories
+}
+
+// H6 (ii): een los stuk (in geen enkele groep van twee of meer) dat minstens CORE_SHARED sterke namen
+// deelt met de kern van een groot verhaal (≥ CORE_FROM bronnen; kern = de namen die in minstens de
+// helft van zijn stukken staan), binnen EVENT_WINDOW van dat verhaal, hoort erbij. Zo komt de
+// NYT-necrologie ("Patrick Stewart Was Regal, Stately and Quite Hilarious", zonder sterfwoord) bij het
+// verhaal over zijn dood. Twee slotten, bewust (negatieve fixtures: Mbappé-opinies, Intel-explosie):
+// - de gedeelde namen zijn twee verschillende (sharedEntities), óf het stuk deelt ook een
+//   gebeurtenis-begrip met de kern (de stem van de paus: `election`), óf de kern is een overlijden
+//   (`dead` in minstens een derde van de stukken: de portretten en eerbetonen van de dag erna noemen
+//   de dood zelf niet meer; gemeten 8 van 17 bij Stewart): wie dood is, is die dag maar één
+//   gebeurtenis; een levende voetballer is er twee (de Ballon d'Or én de rel in China, zonder gedeeld
+//   begrip);
+// - een opiniestuk hoort nergens bij: het gaat over de persoon, niet over wat er gebeurde.
+// Bij meer kandidaten wint het verhaal met de meeste gedeelde namen, dan de meeste bronnen, dan de
+// laagste id (totale volgorde).
+const CORE_SHARED = 2
+function attachLoose(groups, list, sig) {
+  const inGroup = new Set()
+  for (const items of groups.values()) if (new Set(items.map((i) => i.source)).size >= 2) for (const i of items) inGroup.add(i.id)
+  const big = []
+  for (const [gid, items] of groups) {
+    if (new Set(items.map((i) => i.source)).size < CORE_FROM) continue
+    const count = new Map()
+    const weakCount = new Map()
+    const conceptCount = new Map()
+    let dead = 0
+    for (const i of items) {
+      const s = sig.get(i.id)
+      if (!s) continue
+      for (const k of s.strong) count.set(k, (count.get(k) || 0) + 1)
+      for (const k of s.weak) weakCount.set(k, (weakCount.get(k) || 0) + 1)
+      for (const k of s.concepts) conceptCount.set(k, (conceptCount.get(k) || 0) + 1)
+      if (s.concepts.has('dead')) dead++
+    }
+    const half = items.length / 2
+    const core = new Set([...count].filter(([, n]) => n >= half).map(([k]) => k))
+    if (core.size < CORE_SHARED) continue
+    const weak = new Set([...weakCount].filter(([, n]) => n >= half).map(([k]) => k))
+    const concepts = new Set([...conceptCount].filter(([, n]) => n >= half).map(([k]) => k))
+    const ts = items.map((i) => timeOf(i)).filter(Boolean)
+    big.push({ gid, items, core, weak, concepts, dead: dead * 3 >= items.length, from: Math.min(...ts), to: Math.max(...ts), sources: new Set(items.map((i) => i.source)).size })
+  }
+  if (!big.length) return
+  // De kern als kenmerk: sterke en zwakke namen van minstens de helft van de stukken, met de reeksen
+  // van alle stukken (voor sharedEntities). Een instituut in de kern telt, net als in sameEvent, alleen
+  // met een gedeeld land (sharedStrong).
+  const coreSig = (b) => ({ strong: b.core, weak: b.weak, runs: [...b.items.map((i) => sig.get(i.id)?.runs || [])].flat() })
+  for (const a of list) {
+    if (inGroup.has(a.id) || a.type === 'opinie') continue
+    const sa = sig.get(a.id)
+    if (!sa || sa.strong.size < CORE_SHARED || !sa.t) continue
+    let best = null
+    for (const b of big) {
+      if (sa.t < b.from - EVENT_WINDOW || sa.t > b.to + EVENT_WINDOW) continue
+      const shared = sharedStrong(sa, coreSig(b), true)
+      if (shared < CORE_SHARED) continue
+      if (!b.dead && sharedEntities(sa, coreSig(b)) < CORE_SHARED && !sharedCount(sa.concepts, b.concepts)) continue
+      if (!best || shared > best.shared || (shared === best.shared && (b.sources > best.b.sources || (b.sources === best.b.sources && b.gid < best.b.gid)))) best = { b, shared }
+    }
+    if (!best) continue
+    best.b.items.push(a)
+    best.b.items.sort(byRecency)
+    inGroup.add(a.id)
+  }
+}
+
+// De kenmerken van een verhaal: alle sterke namen en gebeurtenis-begrippen van zijn stukken, één keer
+// en gesorteerd (totale volgorde, zodat web en server dezelfde lijst maken). Hooguit KEYS_MAX.
+export const KEYS_MAX = 80
+export function storyKeys(items, sig) {
+  const out = new Set()
+  for (const i of items) {
+    const s = sig.get(i.id)
+    if (!s) continue
+    for (const k of s.strong) out.add(k)
+    for (const k of s.concepts) out.add(k)
+  }
+  return [...out].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)).slice(0, KEYS_MAX)
 }
 
 // ---------- Editie ----------
@@ -392,18 +693,119 @@ export function previousSlotId(slot) {
   return `${new Date(Date.UTC(y, m - 1, d - 1)).toISOString().slice(0, 10)}-avond`
 }
 
-// Wat uit een vastgelegde editie telt als "stond er al" (zie selectEdition).
-export function previousOf(edition) {
-  if (!edition?.entries?.length) return null
+// Wat uit een vastgelegde editie telt als "stond er al" (zie selectEdition en selectForReader).
+// `itemIds` zijn alle stukken van de verhalen van toen (de entries van een persoonlijke Editie dragen
+// ze zelf, de algemene Editie via `edition.stories`); `titles` de getoonde koppen en `shown` de
+// getoonde berichten zelf (kop, intro, tijd), zodat een tweede verhaal over dezelfde gebeurtenis
+// (ander id) ook herkend wordt (sameSubject in selectForReader). `keysOf` (verhaal-id → Set) zijn de
+// kenmerken van toen per verhaal (`keys`, van de server: alle stukken uit alle bronnen), zodat
+// "ontwikkeld" niet afhangt van welke stukken dit toestel kent (developedSince).
+// Eén Editie, of een samenvatting ervan zoals die in `user_state.edition.history` staat (historyOf:
+// de id-lijsten als arrays, `keys` per verhaal als object).
+const isHistoryRow = (x) => Array.isArray(x?.storyIds)
+function previousOfOne(x) {
+  if (!x) return null
+  if (isHistoryRow(x)) {
+    return {
+      id: typeof x.id === 'string' ? x.id : '',
+      keysOf: new Map(Object.entries(x.keys && typeof x.keys === 'object' ? x.keys : {}).filter(([, ks]) => Array.isArray(ks) && ks.length).map(([id, ks]) => [id, new Set(ks)])),
+      storyIds: new Set(x.storyIds),
+      itemIds: new Set(Array.isArray(x.itemIds) ? x.itemIds : []),
+      leadIds: new Set(Array.isArray(x.leadIds) ? x.leadIds : []),
+      leadStoryId: typeof x.leadStoryId === 'string' ? x.leadStoryId : null,
+      at: Date.parse(x.builtAt) || 0,
+      titles: new Set(Array.isArray(x.titles) ? x.titles : []),
+      shown: Array.isArray(x.shown) ? x.shown.filter((s) => s && typeof s.title === 'string') : [],
+    }
+  }
+  const edition = x
+  if (!edition.entries?.length) return null
   const stories = edition.entries.filter((e) => e.kind === 'story')
   const lead = edition.entries[0]
+  const byId = new Map((edition.items || []).map((i) => [i.id, i]))
+  const shown = edition.entries.map((e) => byId.get(e.leadId || e.id)).filter((i) => i?.title)
+  const keysOf = new Map()
+  for (const e of [...stories, ...(edition.stories || [])]) if (Array.isArray(e.keys) && e.keys.length) for (const id of [e.id, e.formerId, ...(e.formerIds || [])].filter(Boolean)) keysOf.set(id, new Set([...(keysOf.get(id) || []), ...e.keys]))
   return {
+    id: typeof edition.id === 'string' ? edition.id : '',
+    keysOf,
     storyIds: new Set(stories.flatMap((e) => [e.id, e.formerId].filter(Boolean))),
     itemIds: new Set([...edition.entries.map((e) => e.leadId || e.id), ...stories.flatMap((e) => e.itemIds || []), ...(edition.stories || []).flatMap((st) => st.itemIds || [])]),
     leadIds: new Set([lead.leadId || lead.id]),
     leadStoryId: lead.kind === 'story' ? lead.id : null,
     at: Date.parse(edition.builtAt) || 0,
+    titles: new Set(edition.entries.map((e) => e.title || byId.get(e.leadId || e.id)?.title).filter(Boolean)),
+    shown: shown.map((i) => ({ id: i.id, title: i.title, summary: i.summary || '', publishedAt: i.publishedAt || edition.builtAt })),
   }
+}
+
+// `previous` over één of meer Edities (aanvulling-pariteit-herhaling.md H3): de laatste drie vastgelegde
+// Edities van deze lezer (vandaag plus gisteravond), als Edities of als history-regels (H5), door elkaar.
+// Vereniging van verhalen, stukken, hoofdberichten, koppen en getoonde berichten; `keysOf` per verhaal
+// verenigd; `atOf` per verhaal is de builtAt van de laatste Editie waarin het stond (developedSince
+// rekent "nieuw" vanaf dat moment); `leadStoryIds` alle hoofdverhalen, `leadStoryId` en `at` die van de
+// laatste Editie. Met één Editie is de uitkomst gelijk aan vroeger (selectEdition blijft byte-gelijk).
+export function previousOf(editions) {
+  const ps = (Array.isArray(editions) ? editions : [editions]).map(previousOfOne).filter(Boolean)
+  if (!ps.length) return null
+  // Oudste eerst, nieuwste laatst; totale volgorde (tijd, dan id) zodat elk toestel hetzelfde rekent.
+  ps.sort((a, b) => a.at - b.at || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+  const u = (k) => new Set(ps.flatMap((p) => [...p[k]]))
+  const atOf = new Map()
+  const keysOf = new Map()
+  for (const p of ps) {
+    for (const id of p.storyIds) atOf.set(id, Math.max(atOf.get(id) || 0, p.at))
+    for (const [id, ks] of p.keysOf) keysOf.set(id, new Set([...(keysOf.get(id) || []), ...ks]))
+  }
+  const last = ps[ps.length - 1]
+  return {
+    keysOf,
+    storyIds: u('storyIds'),
+    itemIds: u('itemIds'),
+    leadIds: u('leadIds'),
+    leadStoryId: last.leadStoryId,
+    leadStoryIds: new Set(ps.map((p) => p.leadStoryId).filter(Boolean)),
+    at: last.at,
+    atOf,
+    titles: u('titles'),
+    shown: ps.flatMap((p) => p.shown),
+  }
+}
+
+// De samenvatting van een vastgelegde Editie voor `user_state.edition.history` (H5): wat previousOf
+// ervan nodig heeft, als platte JSON (arrays en een object per verhaal voor `keys`). Een regel die al
+// een samenvatting is, blijft zoals hij is.
+export const HISTORY_MAX = 3
+export function historyOf(edition) {
+  if (!edition) return null
+  if (isHistoryRow(edition)) return edition
+  const p = previousOfOne(edition)
+  if (!p) return null
+  return {
+    id: edition.id,
+    builtAt: edition.builtAt,
+    storyIds: [...p.storyIds],
+    itemIds: [...p.itemIds],
+    leadIds: [...p.leadIds],
+    leadStoryId: p.leadStoryId,
+    titles: [...p.titles],
+    shown: p.shown,
+    keys: Object.fromEntries([...p.keysOf].map(([id, ks]) => [id, [...ks]])),
+  }
+}
+
+// De laatste `n` vastgelegde Edities uit een lijst van Edities en/of history-regels: ontdubbeld op id
+// (de eerste wint), nieuwste eerst (builtAt, dan id: totale volgorde). Voor `previous` en `history`.
+export function recentEditions(list = [], n = HISTORY_MAX) {
+  const seen = new Set()
+  const out = []
+  for (const e of list) {
+    if (!e || typeof e.id !== 'string' || !e.id || seen.has(e.id) || !(Date.parse(e.builtAt) > 0)) continue
+    seen.add(e.id)
+    out.push(e)
+  }
+  out.sort((a, b) => Date.parse(b.builtAt) - Date.parse(a.builtAt) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+  return out.slice(0, n)
 }
 
 export function editionSlot(now = new Date()) {
@@ -445,6 +847,51 @@ export function repeatPenalty(st, items, previous) {
   const developing = fresh >= 3 && fresh / items.length >= 0.3
   const wasLead = previous.leadStoryId === st.id || items.some((i) => previous.leadIds?.has(i.id))
   return (developing ? DEVELOPING_PENALTY : REPEAT_PENALTY) + (wasLead ? REPEAT_LEAD_PENALTY : 0)
+}
+
+// Voor de persoonlijke Editie is gezien een filter, geen straf (aanvulling-pariteit-herhaling.md H1):
+// een verhaal uit je vorige Editie doet nergens meer mee, tenzij het zich ontwikkelde (H2). Een
+// 11-bronnenverhaal hield anders na straf genoeg punten om in Ochtend, Middag én Avond te staan,
+// telkens met een andere bron als kop.
+export function seenBefore(st, items, previous) {
+  if (!previous) return false
+  if (previous.storyIds?.has(st.id) || (st.formerIds || []).some((id) => previous.storyIds?.has(id))) return true
+  return items.some((i) => previous.itemIds?.has(i.id))
+}
+
+// Ontwikkeld: minstens DEVELOPED_FRESH stukken van ná de vorige Editie die daar niet in stonden, én de
+// kop van het zwaarste nieuwe stuk draagt minstens DEVELOPED_SIG namen of gebeurtenis-begrippen die in
+// geen enkel stuk van toen voorkwamen. Op kenmerken (signature, via ALIAS), niet op woorden: een
+// vertaalde kop is nooit "nieuw".
+// "Van toen" mag niet afhangen van wat dit toestel kent: het kent van een verhaal alleen de stukken uit
+// jouw bronnen plus de koppen van de algemene Editie, en een portret of necrologie heeft altijd eigen
+// namen (Shakespeare, Jean-Luc Picard) die bij de andere bronnen van toen wél al stonden. Daarom
+// legt elke plek de kenmerken van zijn hele verhaal vast (`keys`, van de server over alle bronnen;
+// `previous.keysOf`), en komen daar de kenmerken bij van de oude stukken die het toestel zelf kent
+// (`known`: ook uit de algemene Editie). Als extra slot telt een nieuwe naam alleen als nog een ander
+// nieuw stuk hem noemt: een echte ontwikkeling (staatsbegrafenis in Westminster Abbey) melden
+// meerdere nieuwe stukken, een eigenaardigheid van één stuk niet. `sig`: signatures over alle
+// bekende berichten. Uitvoer: { fresh, lead, newSig } of null. `previous.at` mag per verhaal
+// verschillen (`atOf`, als previous meer Edities omvat).
+export const DEVELOPED_FRESH = 2
+export const DEVELOPED_SIG = 2
+export function developedSince(st, items, previous, sig, { mainIds = new Set(), preferred = null, now = null, known = null } = {}) {
+  const at = previous.atOf?.get(st.id) ?? previous.at ?? 0
+  const isNew = (i) => !previous.itemIds?.has(i.id) && !!i.publishedAt && Date.parse(i.publishedAt) > at
+  const fresh = items.filter(isNew)
+  if (fresh.length < DEVELOPED_FRESH) return null
+  const keysOf = (i) => {
+    const s = sig.get(i.id)
+    return s ? [...s.strong, ...s.concepts] : []
+  }
+  const then = new Set()
+  for (const id of [st.id, ...(st.formerIds || [])]) for (const k of previous.keysOf?.get(id) || []) then.add(k)
+  const all = known ? (st.itemIds || []).map((id) => known.get(id)).filter(Boolean) : items
+  for (const i of [...all, ...items]) if (!isNew(i)) for (const k of keysOf(i)) then.add(k)
+  const lead = leadCandidates(fresh, mainIds, preferred, now)[0]
+  const others = fresh.filter((i) => i !== lead).map(keysOf)
+  const newSig = keysOf(lead).filter((k) => !then.has(k) && others.some((ks) => ks.includes(k))).length
+  return newSig >= DEVELOPED_SIG ? { fresh, lead, newSig } : null
 }
 
 // Een verhaal of bericht uit een voorkeursbron weegt zwaarder (zo'n twee bronnen dekking).
@@ -520,6 +967,135 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
   // Volgorde: belangrijkste eerst (het hoofdverhaal is het zwaarste nieuws van het moment).
   entries.sort((a, b) => b.w - a.w)
   return entries.map(({ w, ...e }) => e)
+}
+
+// De persoonlijke selectie (De Redacteur, Hoot-design/algoritme/bouwspec.md §3). Zelfde kandidaten,
+// hoofdbericht-regels, één plek per onderwerp en verhaalvenster als selectEdition (die blijft voor
+// de algemene Editie ongewijzigd), met vijf verschillen:
+// 1. "eigen bronnen" in het basisgewicht zijn die van de lezer (`mainIds`);
+// 2. persoonlijke punten uit het profiel (shared/editor.mjs), begrensd, plus een vast zaad dat
+//    alleen gelijke stand breekt;
+// 3. de rubrieken volgen jouw indeling: eerst de voorpagina (voor iedereen gelijk), dan je zetels
+//    (deskPlan), dan aanvullen op gewicht;
+// 4. al gelezen zonder nieuws doet nergens meer mee, en een los bericht blijft zo lang staan als
+//    het tempo van zijn bron (`ctx.tempo`, zie tempoWindows);
+// 5. wat in je vorige Editie stond (`previous`) is een filter, geen straf (seenBefore): het komt
+//    alleen terug als het zich ontwikkelde (developedSince), dan met het zwaarste nieuwe stuk als
+//    kop, "Vervolg · N nieuwe stukken" als waarom (`vervolg`) en lager in de volgorde. Een kandidaat
+//    over hetzelfde onderwerp als een vorige kop (ander verhaal-id) komt ook niet terug.
+// `prof`: profileOf. `ctx`: { readIds, tempo, storyDesk, known, sigKnown } (`known`: alle bekende
+// berichten op id, `sigKnown` hun kenmerken, voor developedSince). `plan: false` slaat voorpagina en
+// indeling over (het extra blok). Rekenregels als in shared/editor.mjs: elke sortering is totaal.
+// Uitvoer: de plekken met `w` en `parts` (het waarom wordt daarna gezet), `itemIds`, `title` en de
+// `keys` van het verhaal (zodat previousOf de hele Editie van toen kent), plus `deskOrder`.
+const textOrder = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
+export function selectForReader(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = '' } = {}) {
+  const byId = new Map(pool.map((i) => [i.id, i]))
+  // De getoonde berichten van de vorige Editie (of, van een oudere Editie, alleen de koppen) krijgen
+  // een kenmerk met de woordenschat van de pool van nu.
+  const prevShown = previous?.shown?.length ? previous.shown : [...(previous?.titles || [])].map((title) => ({ title, publishedAt: new Date(previous.at || now).toISOString() }))
+  const prevArts = prevShown.map((a, k) => ({ ...a, id: `vorige:${k}` }))
+  const sig = signatures(pool, prevArts)
+  const vorige = prevArts.map((a) => sig.get(a.id))
+  const sigKnown = ctx.sigKnown || sig // alles wat het toestel kent (composePersonal), voor "van toen"
+  const fresh = (iso, hours) => iso && now - Date.parse(iso) < hours * 60 * 60 * 1000
+  const entries = []
+  const placed = []
+  const leadCount = {}
+  let prevLead = null
+  const same = (ids, sigs) => ids.some((id) => sig.has(id) && sigs.some((s) => sameSubject(sig.get(id), s)))
+  // Eén plek per onderwerp, ook tegenover de koppen van de vorige Editie; een ontwikkeld verhaal
+  // gaat vanzelf over zijn eigen vorige kop en wordt daar niet op afgewezen.
+  const clashes = (c) => same(c.ids, placed) || (!c.vervolg && same(c.ids, vorige))
+  const place = (ids) => {
+    for (const id of ids) if (sig.has(id)) placed.push(sig.get(id))
+  }
+  const pickLead = (items) => {
+    const cands = leadCandidates(items, mainIds, preferred, now)
+    const current = cands.filter((i) => !isStale(i, now))
+    const recent = current.length ? current : cands
+    const ownOnly = recent.filter((i) => mainIds.has(i.source))
+    const from = ownOnly.length ? ownOnly : recent
+    return from.find((i) => i.source !== prevLead && (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from.find((i) => (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from[0]
+  }
+  // De rubriek van een verhaal is voor iedereen gelijk: st.desk uit buildStories (of `ctx.storyDesk`),
+  // ook als die leeg is. Alleen een verhaal van een oudere server zonder rubriek krijgt de
+  // hoofdrubriek uit wat deze lezer ervan heeft.
+  const storyDesk = (st, primary) => (ctx.storyDesk?.has(st.id) ? ctx.storyDesk.get(st.id) : st.desk !== undefined ? st.desk : primary)
+
+  const cands = []
+  for (const st of stories) {
+    if (!fresh(st.latestAt, 24)) continue
+    const items = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
+    if (!items.length) continue
+    // Gezien in je vorige Editie: alleen terug als het zich ontwikkelde, en dan lager (de straf
+    // telt hier alleen voor de volgorde, niet voor de plek).
+    let dev = null
+    let straf = 0
+    if (seenBefore(st, items, previous)) {
+      dev = developedSince(st, items, previous, sigKnown, { mainIds, preferred, now, known: ctx.known })
+      if (!dev) continue
+      const wasLead = previous.leadStoryId === st.id || previous.leadStoryIds?.has(st.id) || items.some((i) => previous.leadIds?.has(i.id))
+      straf = DEVELOPING_PENALTY + (wasLead ? REPEAT_LEAD_PENALTY : 0)
+    }
+    const primary = primaryDesk(items.map((it) => desksOf(it)))
+    const mine = new Set(items.map((i) => i.source)).size // eigen bronnen in het verhaal
+    const belang = weight({ sourceCount: st.sourceCount, ownCount: mine, latestAt: st.latestAt }, now) - straf
+    const parts = personalParts(items, prof, ctx)
+    cands.push({ kind: 'story', id: st.id, st, items, ids: st.itemIds, primary, home: homeDesk(items, storyDesk(st, primary) ?? primary, prof), belang, parts, sc: st.sourceCount, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) })
+  }
+  for (const it of pool) {
+    if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || it.storyId || isLive(it)) continue
+    if (!fresh(it.publishedAt, ctx.tempo?.get(it.source) || TEMPO_MIN_H) || !(it.summary || it.image)) continue
+    if (previous?.itemIds?.has(it.id) || ctx.readIds?.has(it.id)) continue // stond er al, of je las het al
+    const primary = primaryDesk([desksOf(it)])
+    const belang = weight({ sourceCount: 1, ownCount: 1, latestAt: it.publishedAt }, now) - 2
+    const parts = personalParts([it], prof, ctx)
+    cands.push({ kind: 'item', id: it.id, it, items: [it], ids: [it.id], primary, home: homeDesk([it], primary, prof), belang, parts, sc: 1, vervolg: 0, w: belang + sumParts(parts) + jitter(seed, it.id) })
+  }
+  const heaviest = (a, b) => b.w - a.w || textOrder(a.id, b.id) || textOrder(a.kind, b.kind)
+  cands.sort(heaviest)
+
+  const used = new Set()
+  const take = (c, desk, extra = {}) => {
+    if (used.has(c) || clashes(c)) return false
+    used.add(c)
+    place(c.ids)
+    const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, ...(c.vervolg ? { vervolg: c.vervolg } : {}), ...extra }
+    if (c.kind === 'story') {
+      // De kop van een ontwikkeld verhaal is het zwaarste nieuwe stuk, niet een oud stuk uit een andere bron.
+      const lead = pickLead(c.dev ? c.dev.fresh : c.items)
+      leadCount[lead.source] = (leadCount[lead.source] || 0) + 1
+      prevLead = lead.source
+      entries.push({ kind: 'story', id: c.st.id, leadId: lead.id, itemIds: c.st.itemIds, title: lead.title || null, ...(c.st.keys ? { keys: c.st.keys } : {}), ...base })
+    } else entries.push({ kind: 'item', id: c.it.id, itemIds: [c.it.id], title: c.it.title || null, ...base })
+    return true
+  }
+  let deskOrder = []
+  if (plan) {
+    // 1. De voorpagina: het zwaarste nieuws van het moment, voor iedereen gelijk. Alleen wat je al
+    //    las of waar je "minder" op stemde, zakt (de rest van je profiel telt hier niet).
+    const frontOf = (c) => c.belang + (c.parts.less?.pts || 0)
+    const front = cands.filter((c) => c.kind === 'story' && c.sc >= FRONT_MIN && !c.parts.seen).sort((a, b) => frontOf(b) - frontOf(a) || heaviest(a, b))
+    for (const c of front) {
+      if (entries.length >= Math.min(FRONT_MAX, size) || (entries.length >= FRONT && c.sc < FRONT_BIG)) break
+      take(c, storyDesk(c.st, c.primary), { front: true })
+    }
+    // 2. Jouw rubrieken, in de volgorde van de zetels: per zetel de zwaarste kandidaat die er thuishoort.
+    deskOrder = deskPlan(prof, size - entries.length, entries.map((e) => e.desk)).order
+    for (const d of deskOrder) {
+      if (entries.length >= size) break
+      cands.some((c) => c.home === d && !c.parts.seen && take(c, d, { planned: true }))
+    }
+  }
+  // 3. Aanvullen met wat het zwaarst weegt.
+  for (const c of cands) {
+    if (entries.length >= size) break
+    if (c.parts.seen) continue
+    take(c, plan ? c.home : null)
+  }
+  entries.sort((a, b) => b.w - a.w || textOrder(a.id, b.id))
+  return Object.assign(entries, { deskOrder })
 }
 
 // De editie ligt vast, maar verhaal-id's niet: na een latere verversing kan een id bij een andere

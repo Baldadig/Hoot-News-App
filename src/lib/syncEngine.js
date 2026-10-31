@@ -69,8 +69,9 @@ export function emptyAccountData(prefs = {}) {
 export class SyncEngine {
   // api: { pull(), pushState(local), upsertSaved([[key, entry]]), deleteSaved([key]) } — gooit bij fouten.
   // getLocal()/setLocal(next): { prefs, read, seen, saved } van de app.
-  constructor({ uid, api, storage, getLocal, setLocal, onStatus = () => {}, schedule = (fn, ms) => setTimeout(fn, ms), cancel = (t) => clearTimeout(t), isOnline = () => true }) {
-    Object.assign(this, { uid, api, storage, getLocal, setLocal, onStatus, schedule, cancel, isOnline })
+  // onPulled(): na de eerste geslaagde ophaalronde (de Editie wacht daarop, usePersonalEdition.js).
+  constructor({ uid, api, storage, getLocal, setLocal, onStatus = () => {}, onPulled = () => {}, schedule = (fn, ms) => setTimeout(fn, ms), cancel = (t) => clearTimeout(t), isOnline = () => true }) {
+    Object.assign(this, { uid, api, storage, getLocal, setLocal, onStatus, onPulled, schedule, cancel, isOnline })
     this.timer = null
     this.failures = 0
     this.queue = Promise.resolve()
@@ -152,7 +153,10 @@ export class SyncEngine {
         saved: Object.fromEntries(Object.entries(remoteSaved).map(([k, v]) => [k, fingerprint(v)])),
       }
       this.mode = 'continue'
-      this.pulled = true
+      if (!this.pulled) {
+        this.pulled = true
+        this.onPulled()
+      }
       this.saveBase()
       this.failures = 0
       await this.flushNow()
