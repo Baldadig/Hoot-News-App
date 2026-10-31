@@ -15,7 +15,7 @@ import { selectForReader, EDITION_SIZE, signatures, sameEvent, seenBefore, devel
 import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
 import { trustedTopics, OTHER_SPORT } from '../../netlify/lib/topics.mjs'
 import { INTERESTS } from './topics.js'
-import { supplyOf, profileOf, personalParts, sumParts, tempoWindows, outsideProfile, strongestFamily, whyOf, geoOf, NEIGHBOURS, FAMILY_OF, FOREIGN_DESKS, INT_MAX, MIN_WHY_PTS, FRONT_BIG, OUTSIDE_FAMILY, KERN, KERN_MIN } from '../../shared/editor.mjs'
+import { supplyOf, profileOf, personalParts, sumParts, tempoWindows, outsideProfile, strongestFamily, whyOf, geoOf, NEIGHBOURS, FAMILY_OF, FOREIGN_DESKS, INT_MAX, FRONT_BIG, chosenReason, chosenDesks, OUTSIDE_FAMILY, KERN, KERN_MIN } from '../../shared/editor.mjs'
 
 export const EXTERN = 'extern' // rubriek van een aangevuld verhaal
 export const WIDE = 'breed' // "Waar iedereen over schrijft"
@@ -191,11 +191,20 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const geos = members.map((m) => geoOf(m, desk, foreign))
     const int = geos.filter((g) => g === 'int').length
     const abroad = FOREIGN_DESKS.has(desk) || (!big && (foreign || (int > geos.filter((g) => g === 'nl').length && int * 2 >= geos.length)))
-    return abroad && (personalParts(members, prof, {}, { desk, foreign }).interest?.pts || 0) < MIN_WHY_PTS
+    return abroad && !chosenReason(personalParts(members, prof, {}, { desk, foreign }))
   }
+  // "Waar iedereen over schrijft" is zonder Wereld geen buitenland zonder reden (feedback 31 oktober: de
+  // G20 bij bi-po-ec, met "Trump" in één van dertien stukken; een reden telt alleen als het verhaal als
+  // geheel hem draagt, chosenReason). Buitenlands is hier ook een verhaal van vooral buitenlandse bronnen
+  // zonder rubriek (`wideAbroad`: Christa Pike). Alleen groot nieuws (FRONT_BIG) komt dan nog, zoals
+  // eerder: met een buitenlandse rubriek binnen de grens (`capAbroad`), zonder rubriek altijd; het heet dan
+  // "Groot nieuws", niet "Waar iedereen over schrijft" (`big` op de plek, zie whyOf).
+  const wideAbroad = (w) => unchosenAbroad(w.item.id, w.storyId)
+  const wideCapped = (w) => unchosenAbroad(w.item.id, w.storyId, bigWide(w))
+  const wideBlocked = (w, room) => (!bigWide(w) && wideAbroad(w)) || (!room && wideCapped(w))
   // Een plek vrijhouden alleen voor een breed verhaal dat zeker mag; een buitenlands verhaal kan na de
   // selectie nog, als de grens het toelaat, in de plaats van je lichtste plek.
-  const wideAny = (global.wide || []).some((w) => w?.item?.id && !covered(w) && unread(w.item.id, w.storyId) && !unchosenAbroad(w.item.id, w.storyId, bigWide(w)))
+  const wideAny = (global.wide || []).some((w) => w?.item?.id && !covered(w) && unread(w.item.id, w.storyId) && !wideBlocked(w, true))
   const size = EDITION_SIZE - (bubbleEntry ? 1 : 0) - (wideAny ? 1 : 0)
   const opts = { mainIds: followed, now, previous, preferred, prof, ctx, seed }
   // Het extra blok kiest er een paar meer, zodat een verhaal dat het nieuws al heeft (de dood van een
@@ -228,7 +237,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   //    profiel; anders het minst passende vrije verhaal (laagste fit, dan de meeste bronnen).
   //    Vóór het aanvullen gekozen, zodat het zijn eigen label krijgt in plaats van "Buiten je bronnen".
   const fitOf = (w) => Math.max(0, ...(w.topics || []).map((t) => Math.max(prof.topicP[t] || 0, prof.shareOf[t] || 0)))
-  const free = (w) => w?.item?.id && !taken.has(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !(abroad >= INT_MAX && unchosenAbroad(w.item.id, w.storyId, bigWide(w)))
+  const free = (w) => w?.item?.id && !taken.has(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !wideBlocked(w, abroad < INT_MAX)
   //    Groot nieuws dat er nog niet in staat, gaat voor (zie hierboven), ook daar eerst buiten je profiel.
   const wide0 =
     (global.wide || []).find((w) => free(w) && bigWide(w) && outsideProfile(w.topics, prof)) ||
@@ -251,8 +260,9 @@ export function composePersonal({ global, stories = [], items = [], sources = []
       swapped = 1
     } else wide = null // geen plek om te ruilen
   }
-  if (wide && unchosenAbroad(wide.item.id, wide.storyId, bigWide(wide))) abroad++
-  const wideEntry = wide ? withHistory({ kind: 'story', id: wide.storyId, leadId: wide.item.id, desk: WIDE, sourceCount: wide.sourceCount }, wide.item.id, wide.storyId) : null
+  const wideForeign = !!wide && wideAbroad(wide)
+  if (wide && wideCapped(wide)) abroad++
+  const wideEntry = wide ? withHistory({ kind: 'story', id: wide.storyId, leadId: wide.item.id, desk: WIDE, sourceCount: wide.sourceCount, ...(wideForeign ? { big: true } : {}) }, wide.item.id, wide.storyId) : null
   if (wideEntry) for (const id of [wide.item.id, ...(storyById.get(wide.storyId)?.itemIds || [])]) taken.add(id)
 
   // 5. Aanvullen uit de algemene editie, zonder dubbel verhaal, in jouw volgorde: wat bij je past
@@ -268,7 +278,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // Ook hier hooguit INT_MAX buitenlandse plekken zonder persoonlijke reden (zie selectForReader);
   // is er dan te weinig, dan toch.
   const fill = []
-  const unchosenG = (g) => FOREIGN_DESKS.has(g.desk) && (personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), prof, {}, { desk: g.desk }).interest?.pts || 0) < MIN_WHY_PTS
+  const unchosenG = (g) => FOREIGN_DESKS.has(g.desk) && !chosenReason(personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), prof, {}, { desk: g.desk }))
   const fillUp = (to) => {
     for (const strict of [true, false]) {
       for (const { g } of fillCands) {
@@ -339,9 +349,10 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   //    server, over alle bronnen): zo weet de volgende Editie precies wat er stond, ook wat dit
   //    toestel zelf niet kent (developedSince).
   const srcName = new Map(sources.map((s) => [s.id, s.name]))
+  const mineDesks = chosenDesks(prof) // "Jouw rubriek" alleen voor een rubriek die bij je keuzes hoort
   const out = entries.map((e) => {
-    const why = whyOf(e, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk: e.desk, plannedDesk: !!e.planned, sourceName: (s) => srcName.get(s) || s })
-    const { w, parts, planned, front, vervolg, ...rest } = e
+    const why = whyOf(e, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk: e.desk, plannedDesk: !!e.planned && mineDesks.has(e.desk), sourceName: (s) => srcName.get(s) || s })
+    const { w, parts, planned, front, vervolg, big, ...rest } = e
     const lead = e.leadId || e.id
     const itemIds = e.kind === 'story' ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead]
     const keys = e.kind === 'story' ? e.keys || storyById.get(e.id)?.keys : null

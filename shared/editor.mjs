@@ -13,7 +13,7 @@
 import { INTERESTS, topicById } from '../src/lib/topics.js'
 import { MIN_EVENTS } from '../src/lib/affinity.js'
 import { DESKS, DESK_LABEL, desksOf, storyForeignOf, VL_HOME } from '../netlify/lib/desks.mjs'
-import { shownTopics } from '../netlify/lib/topics.mjs'
+import { shownTopics, OTHER_SPORT } from '../netlify/lib/topics.mjs'
 
 // De buitenlandse kernrubrieken (Binnenland is Nederland, zie netlify/lib/desks.mjs).
 export const FOREIGN_DESKS = new Set(['buitenland', 'vs', 'middenoosten', 'oekraine'])
@@ -60,11 +60,15 @@ export function profileOf({ interests = [], topics = [], affinity = null, taste 
   // lijst (zoals Welkom die bewaart) telt als geërfd: alles, maar minder sterk. Zo lekt Games niet
   // mee met wie Tech kiest.
   const expl = {}
+  const inherited = new Set()
   for (const f of INTERESTS) {
     if (!interests.includes(f.id)) continue
     const picked = f.topics.filter((t) => topics.includes(t))
     const sharp = picked.length > 0 && picked.length < f.topics.length
-    for (const t of f.topics) expl[t] = sharp ? (picked.includes(t) ? 1 : 0) : W_INHERITED
+    for (const t of f.topics) {
+      expl[t] = sharp ? (picked.includes(t) ? 1 : 0) : W_INHERITED
+      if (!sharp) inherited.add(t)
+    }
   }
   // Geleerd: lees je een onderwerp vaker dan je bronnen erover schrijven (de lift)? Lineair en
   // zonder log, zodat elke JS-motor hetzelfde uitrekent.
@@ -95,7 +99,10 @@ export function profileOf({ interests = [], topics = [], affinity = null, taste 
     const v = Math.round(clamp(Math.max(e, r) + (W_TASTE * (tt[t] || 0)) / TASTE_SCALE, -1, 1) * 100) / 100
     if (v < P_MIN && v > -P_MIN) continue
     topicP[t] = v
-    origin[t] = r > e ? 'geleerd' : 'gekozen'
+    // Geërfd: de hele interesse gekozen, niet dit onderwerp (en geen "meer hiervan"). Het waarom noemt dan
+    // de interesse, niet het onderwerp (feedback 31 oktober: "Omdat je Den Haag volgt" voor wie Politiek
+    // koos, bij rellen in de stad Den Haag).
+    origin[t] = r > e ? 'geleerd' : inherited.has(t) && !((tt[t] || 0) > 0) ? 'geërfd' : 'gekozen'
   }
   // Per gebied het sterkste onderwerp (voor de indeling, het extra blok en de bubbel).
   const family = {}
@@ -142,16 +149,33 @@ export const SUM_MAX = 40
 // is een treffer GEO_NL ("Omdat je Binnenland volgt"), hooguit zo sterk als een geërfde interesse.
 // `geo`: 'nl', 'int' of null (geoOf).
 export const GEO_NL = 'geo:nl'
+// Sport is sport (feedback 31 oktober: Aston Villa die naar de rechter stapt tegen Carragher was "Misdaad
+// & recht", en telde als Nederlands): een sportbericht krijgt geen onderwerp of treffer van Binnenland.
+// Sport: een sportonderwerp, een sportbron, een sport-URL of sport zonder eigen onderwerp (darts).
+const SPORT_URL = /\/(sport|voetbal|premier-league|eredivisie|formule-1|wielrennen|tennis)\//i
+export function isSport(item, catOf = null) {
+  if ((item.topics || []).some((t) => FAMILY_OF[t] === 'sport')) return true
+  if (catOf?.get(item.source) === 'sport') return true
+  return SPORT_URL.test(item.url || '') || OTHER_SPORT.test(`${item.title || ''} ${item.summary || ''}`)
+}
+// Politiek zonder Wereld is Nederlandse en Europese politiek (feedback 31 oktober: wie Binnenland,
+// Politiek en Economie koos, opende met de paus die in Amerika stemt, Lula en Wall Street "omdat je
+// Trump volgt"): VS-politiek en Trump tellen dan alleen als je dat onderwerp zelf koos, en bij een
+// buitenlands bericht telt een geërfd onderwerp van Politiek alleen als het Europa is.
+const US_TOPICS = new Set(['vs-politiek', 'trump'])
 function topicHits(item, prof, geo = null) {
-  const ts = item.topics || []
+  const sport = isSport(item, prof.catOf)
+  const ts = (item.topics || []).filter((t) => !(sport && FAMILY_OF[t] === 'binnenland' && prof.topicP[t] > 0))
   const abroad = geo === 'int' && !VL_HOME.has(item.source)
+  const world = (prof.family.wereld || 0) >= OUTSIDE_FAMILY
+  const notChosenPol = (t) => !world && FAMILY_OF[t] === 'politiek' && prof.topicP[t] > 0 && prof.origin?.[t] === 'geërfd' && (US_TOPICS.has(t) || (abroad && t !== 'europa'))
   // VS-politiek is ook geografie: het trefwoord "verkiezing" maakte van Lula's zege in Brazilië VS-politiek.
   const notUs = ts.includes('vs-politiek') && !desksOf(item).has('vs')
   // `seen`: kop of intro noemt het onderwerp zelf (shownTopics); alleen zo'n treffer mag het waarom zijn.
   const vis = shownTopics(item)
-  const out = ts.filter((t) => prof.topicP[t] !== undefined && !(abroad && FAMILY_OF[t] === 'binnenland' && prof.topicP[t] > 0) && !(notUs && t === 'vs-politiek' && prof.topicP[t] > 0)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source, seen: !vis || vis.includes(t) }))
+  const out = ts.filter((t) => prof.topicP[t] !== undefined && !(abroad && FAMILY_OF[t] === 'binnenland' && prof.topicP[t] > 0) && !(notUs && t === 'vs-politiek' && prof.topicP[t] > 0) && !notChosenPol(t)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source, seen: !vis || vis.includes(t) }))
   const fb = prof.family.binnenland || 0
-  if (fb > 0 && geo === 'nl') out.push({ t: GEO_NL, f: 'binnenland', v: Math.min(fb, W_INHERITED), s: item.source, seen: true })
+  if (fb > 0 && geo === 'nl' && !sport) out.push({ t: GEO_NL, f: 'binnenland', v: Math.min(fb, W_INHERITED), s: item.source, seen: true })
   if (!ts.length) {
     const cat = prof.catOf.get(item.source)
     const fam = cat && INTERESTS.find((f) => f.cats.includes(cat))
@@ -203,7 +227,9 @@ export function personalParts(items = [], prof, ctx = {}, story = {}) {
     const label = [...new Map((seenPos.length ? seenPos : pos).map((h) => [h.t, h])).values()]
       .map((h) => ({ ...h, c: coverOf(h) * h.v }))
       .sort((a, b) => b.c - a.c || (a.t === GEO_NL) - (b.t === GEO_NL) || strongestFirst(a, b))[0] // het onderwerp zelf gaat voor "Binnenland"
-    parts.interest = { pts: Math.round(P.INTEREST * best.v * (0.5 + 0.5 * cover)), t: label.t, f: label.f, origin: prof.origin?.[label.t] || 'gekozen', ...(seenPos.length ? {} : { shown: false }) }
+    // `cov`: welk deel van de berichten het label draagt (voor chosenReason: één stuk met "Trump" in een
+    // verhaal van dertien is geen reden van het verhaal).
+    parts.interest = { pts: Math.round(P.INTEREST * best.v * (0.5 + 0.5 * cover)), t: label.t, f: label.f, origin: prof.origin?.[label.t] || 'gekozen', cov: coverOf(label), ...(seenPos.length ? {} : { shown: false }) }
     // Een snijvlak alleen als beide gebieden het verhaal echt raken (feedback 31 oktober: "Raakt
     // Wetenschap én Binnenland" bij de rellen in Den Haag, door het trefwoord "angst"; "Raakt Cultuur
     // én Wetenschap" bij een animeprijs van Variety): elk gebied in meer dan de helft van de berichten,
@@ -303,13 +329,23 @@ export function strongestFamily(prof) {
 // Eén korte zin per plek. Alleen een reden die echt de doorslag gaf (≥ MIN_WHY_PTS); anders
 // blijft de rubriek staan. Geen getallen behalve het aantal bronnen of stukken.
 export const MIN_WHY_PTS = 5
+// Een gekozen reden voor een verhaal: een interessepunt van minstens MIN_WHY_PTS dat minstens de helft
+// van de berichten draagt (het verhaal als geheel, niet één los bericht; feedback
+// 31 oktober: de G20 met "Trump" in één van dertien stukken was geen gekozen reden).
+export const chosenReason = (parts = {}) => {
+  const it = parts.interest
+  if (!it || (it.pts || 0) < MIN_WHY_PTS) return false
+  // Alleen de rubriek van een vakbron (geen onderwerp) is een reden als al je stukken ervan zijn.
+  return String(it.t).startsWith('bron:') ? (it.cov ?? 1) >= 1 : (it.cov ?? 1) * 2 >= 1
+}
 export const FRONT_SOURCES = 6 // vanaf zoveel bronnen is een verhaal zonder persoonlijke reden groot nieuws
 export const DESK_NAMES = { ...DESK_LABEL, tech: 'Tech', economie: 'Economie', regio: 'Regio' }
 const WHY_ORDER = ['followUp', 'cross', 'interest', 'favorite', 'mine', 'sourceRead']
 const topicLabel = (t) => topicById(t)?.label || t
 
 // `entry`: de plek ({ desk, front, near, vervolg }). `parts`: de persoonlijke punten van de kandidaat.
-// `plannedDesk`: de plek kwam uit jouw indeling. Uitvoer: { code, text }.
+// `plannedDesk`: de plek kwam uit jouw indeling én die rubriek hoort bij wat je koos (chosenDesks);
+// alleen dan "Jouw rubriek", anders gewoon de rubriek. Uitvoer: { code, text }.
 export function whyOf(entry = {}, { parts = {}, sourceCount = 0, desk = entry.desk ?? null, plannedDesk = false, labelOf = topicLabel, sourceName = (s) => s, deskLabel = (d) => DESK_NAMES[d] || d } = {}) {
   // Stond in je vorige Editie en ontwikkelde zich: dat gaat vóór elke andere reden, ook op de voorpagina.
   if (entry.vervolg) return { code: 'vervolg', text: `Vervolg · ${entry.vervolg} nieuwe stukken` }
@@ -318,7 +354,8 @@ export function whyOf(entry = {}, { parts = {}, sourceCount = 0, desk = entry.de
     if (entry.near) return { code: 'buur', text: `Naast je bubbel · grenst aan ${FAMILY_LABEL[entry.near] || entry.near}` }
     return { code: 'bubbel', text: 'Buiten je bubbel · via Google Trends' }
   }
-  if (entry.desk === 'breed') return { code: 'breed', text: `Waar iedereen over schrijft · ${sourceCount} bronnen` }
+  // Een buitenlands breed verhaal zonder reden (alleen groot nieuws, voor wie Wereld niet koos): groot nieuws.
+  if (entry.desk === 'breed') return entry.big ? { code: 'groot', text: `Groot nieuws · ${sourceCount} bronnen` } : { code: 'breed', text: `Waar iedereen over schrijft · ${sourceCount} bronnen` }
   // Groot nieuws is groot: vanaf FRONT_SOURCES bronnen. Een kleiner Nederlands verhaal op de voorpagina
   // (FRONT_NL_HOME) krijgt zijn eigen reden, of zijn rubriek (feedback 31 oktober: "Groot nieuws · 3
   // bronnen" bij het zeehondencentrum).
@@ -333,6 +370,7 @@ export function whyOf(entry = {}, { parts = {}, sourceCount = 0, desk = entry.de
     // NOS Cultuur over de dood van Patrick Stewart zei de vriendin niets; zij koos Cultuur).
     if (p.t.startsWith('bron:')) return { code: 'vak', text: `Omdat je ${FAMILY_LABEL[p.f] || 'dit gebied'} volgt` }
     if (p.t === GEO_NL) return { code, text: `Omdat je ${FAMILY_LABEL.binnenland} volgt` }
+    if (p.origin === 'geërfd') return { code, text: `Omdat je ${FAMILY_LABEL[p.f] || labelOf(p.t)} volgt` }
     if (p.origin === 'geleerd') return { code: 'learned', text: `Omdat je vaak over ${labelOf(p.t)} leest` }
     return { code, text: `Omdat je ${labelOf(p.t)} volgt` }
   }
@@ -383,6 +421,22 @@ export const TOPIC_DESK = {
   ai: ['tech'], tech: ['tech'], gadgets: ['tech'], privacy: ['tech'], ev: ['tech'], games: ['tech'],
   klimaat: ['wetenschap'], gezondheid: ['wetenschap'], ruimte: ['wetenschap'], natuur: ['wetenschap'], brein: ['wetenschap'],
 }
+// De rubrieken die bij je keuzes horen: een gekozen of geërfd onderwerp (niet geleerd, niet "minder")
+// dat bij die rubriek hoort. Een kernrubriek die elke krant heeft, is niet "jouw" rubriek (feedback 31
+// oktober: "Jouw rubriek Binnenland" voor wie Cultuur en Wetenschap koos).
+// Politiek zonder Wereld (zie topicHits): een geërfd onderwerp van Politiek geeft geen buitenlandse
+// rubriek (geen VS-zetels voor wie Politiek koos als Den Haag en Brussel).
+function topicDesks(t, prof) {
+  const ds = TOPIC_DESK[t] || []
+  if (FAMILY_OF[t] !== 'politiek' || prof?.origin?.[t] !== 'geërfd' || (prof?.family?.wereld || 0) >= OUTSIDE_FAMILY) return ds
+  return ds.filter((d) => !FOREIGN_DESKS.has(d))
+}
+export function chosenDesks(prof) {
+  const out = new Set()
+  for (const [t, v] of Object.entries(prof?.topicP || {})) if (v > 0 && prof.origin?.[t] !== 'geleerd') for (const d of topicDesks(t, prof)) out.add(d)
+  if (prof?.family?.binnenland > 0) out.add('binnenland')
+  return out
+}
 export const DESK_CAP = 3
 export const KERN_MIN = 3
 // Wie interesses koos maar Wereld niet, krijgt de buitenlandse kernrubrieken lichter: een krant met
@@ -425,7 +479,7 @@ export function deskPlan(prof, seats, front = [], filled = []) {
   const best = {}
   for (const [t, v] of Object.entries(prof?.topicP || {})) {
     if (v <= 0) continue
-    for (const d of TOPIC_DESK[t] || []) best[d] = Math.max(best[d] || 0, v)
+    for (const d of topicDesks(t, prof)) best[d] = Math.max(best[d] || 0, v)
   }
   for (const d of PLAN_DESKS) if (best[d]) w[d] += DESK_GAIN * best[d]
   // Wie Binnenland koos, wil Nederland, niet alleen zijn thema's (wonen, zorg...): Binnenland krijgt

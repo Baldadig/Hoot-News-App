@@ -4,7 +4,7 @@
 import { DESKS, desksOf, primaryDesk, storyDesks, deskOfStory, storyForeignOf, weight } from './desks.mjs'
 
 import { hash } from '../../shared/util.mjs'
-import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, KERN, KERN_MIN, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX, FOREIGN_DESKS, NL_OTHER_W, FRONT_NL_MIN, FRONT_NL_HOME, INT_MAX, MIN_WHY_PTS, OUTSIDE_FAMILY } from '../../shared/editor.mjs'
+import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, KERN, KERN_MIN, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX, FOREIGN_DESKS, NL_OTHER_W, FRONT_NL_MIN, FRONT_NL_HOME, INT_MAX, OUTSIDE_FAMILY, chosenReason } from '../../shared/editor.mjs'
 export { hash }
 
 // Een onleesbare tijd telt als heel oud (anders geeft de vergelijking NaN en raakt de sortering,
@@ -1095,8 +1095,11 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   // een buitenlandse rubriek, of een verhaal met minder dan de helft Nederlandse bronnen (de dood van
   // Patrick Stewart heeft geen rubriek, maar is geen Nederlands nieuws).
   const foreign = (c) => FOREIGN_DESKS.has(c.desk) || c.nl * 2 < c.sc
+  // Nederlands nieuws: niet buitenlands, en Binnenland of Regio als rubriek.
+  const homeNews = (c) => !!c && !foreign(c) && !FOREIGN_DESKS.has(c.primary) && !FOREIGN_DESKS.has(c.home) && [c.desk, c.primary, c.home].some((d) => d === 'binnenland' || d === 'regio')
   const abroad = (c) => foreign(c) || FOREIGN_DESKS.has(c.primary) || FOREIGN_DESKS.has(c.home)
-  const unchosen = (c) => abroad(c) && (c.parts.interest?.pts || 0) < MIN_WHY_PTS
+  // Een reden telt alleen als het verhaal als geheel hem draagt (chosenReason in shared/editor.mjs).
+  const unchosen = (c) => abroad(c) && !chosenReason(c.parts)
   const capOn = plan && Object.keys(prof?.family || {}).length > 0
   // Wie interesses koos maar Wereld niet (`strictInt`), krijgt in de hele Editie hooguit INT_MAX
   // buitenlandse verhalen zonder reden, een buitenlands verhaal op de voorpagina en groot nieuws
@@ -1154,9 +1157,11 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     // 2. Jouw rubrieken, in de volgorde van de zetels: per zetel de zwaarste kandidaat die er thuishoort.
     // De grens wijkt alleen voor de kernregel: een krant heeft minstens KERN_MIN kernrubrieken.
     const kernShort = (d) => KERN.includes(d) && !entries.some((e) => e.desk === d) && new Set(entries.map((e) => e.desk).filter((x) => KERN.includes(x))).size < KERN_MIN
+    // Zonder Wereld gaat de kernregel niet langs de grens voor een buitenlandse rubriek als er al buitenland
+    // zonder reden staat (feedback 31 oktober: de VS-verkiezingen naast Polen bij wie alleen Binnenland koos).
     for (const d of deskOrder) {
       if (entries.length >= size) break
-      const force = kernShort(d)
+      const force = kernShort(d) && !(strictInt && FOREIGN_DESKS.has(d) && counted.size >= INT_MAX)
       cands.some((c) => c.home === d && !c.parts.seen && takeCapped(c, d, { planned: true }, force, force))
     }
   }
@@ -1181,6 +1186,13 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     const moved = prof.family.binnenland > 0 ? entries.slice(0, Math.max(0, lastHome)).filter((e) => e.front && isForeign(e)) : []
     const rest = entries.filter((e) => !moved.includes(e) && !late.includes(e))
     if (moved.length) rest.splice(rest.indexOf(entries[lastHome]) + 1, 0, ...moved)
+    // Wie Binnenland koos, krijgt als eerste plek een Nederlands verhaal, ook als een buitenlands verhaal
+    // met een reden zwaarder weegt (feedback 31 oktober: bi-po-ec opende met de paus, Lula en Wall
+    // Street): de Nederlandse voorpagina, anders het zwaarste Nederlandse verhaal.
+    if (prof.family.binnenland > 0 && rest.length && !homeNews(candOf.get(rest[0].id))) {
+      const first = rest.find((e) => e.front && homeNews(candOf.get(e.id))) || rest.find((e) => homeNews(candOf.get(e.id)))
+      if (first) rest.splice(0, 0, ...rest.splice(rest.indexOf(first), 1))
+    }
     entries.splice(0, entries.length, ...rest, ...late)
   }
   // `abroad`: de buitenlandse plekken zonder persoonlijke reden buiten de voorpagina (hun id's), zodat

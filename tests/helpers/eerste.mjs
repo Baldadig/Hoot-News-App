@@ -40,13 +40,18 @@ export function firstSetup(p, sources) {
 const FOREIGN = new Set(['oekraine', 'middenoosten', 'vs', 'buitenland'])
 const FIXED = new Set(['bubbel', 'breed'])
 const dutchSource = (s) => !!s && s.lang === 'nl' && !VL_HOME.has(s.id)
+// Sport, los van de regel (isSport in shared/editor.mjs): een sportbron, een sport-URL of een sportwoord.
+const SPORT_WORDS = /(?<![\p{L}])(voetbal|football|premier league|eredivisie|champions league|darts|formule 1|wielren\p{L}*|tennis)(?![\p{L}])/iu
+const sporty = (i, s) => s?.cat === 'sport' || /\/(sport|voetbal|premier-league)\//i.test(i.url || '') || SPORT_WORDS.test(textOf(i))
 // Nederlands (NL), buitenlands (INT) of overig (OV), aan de berichten van een plek: buitenlands is een
-// bericht met een buitenlandse rubriek, Nederlands een Nederlandstalig bericht (niet Vlaams) zonder.
+// bericht met een buitenlandse rubriek, Nederlands een Nederlandstalig bericht (niet Vlaams) zonder. Een
+// sportbericht zonder Nederlandse plaats, instelling of persoon is geen Nederlands nieuws, ook niet uit
+// een Nederlandse bron (feedback 31 oktober: Aston Villa tegen Carragher telde als Nederlandse plek).
 export function geoOfMembers(members, src) {
   let f = 0, n = 0, o = 0
   for (const i of members) {
     if ([...desksOf(i)].some((d) => FOREIGN.has(d))) f++
-    else if (dutchSource(src.get(i.source))) n++
+    else if (dutchSource(src.get(i.source)) && !(sporty(i, src.get(i.source)) && !placeSignals(i).nl)) n++
     else o++
   }
   const tot = f + n + o || 1

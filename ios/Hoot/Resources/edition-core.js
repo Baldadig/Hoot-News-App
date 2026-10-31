@@ -48,7 +48,8 @@ var HootCore = (() => {
   // netlify/lib/topics.mjs
   var KW = [
     // Politiek
-    ["nederland", /\b(kabinet|tweede kamer|eerste kamer|den haag|binnenhof|catshuis|prinsjesdag|miljoenennota|rijksoverheid|coalitie|formatie|minister van|staatssecretaris|kamerlid|kamerleden|\bpvv\b|\bvvd\b|\bd66\b|groenlinks|\bpvda\b|\bcda\b|\bsgp\b|\bbbb\b|\bja21\b|wilders|schoof|timmermans|yesilgoz|omtzigt|jetten|bontenbal)\b/i],
+    // Niet "den haag": dat is ook de stad (feedback 31 oktober: rellen in Den Haag waren "Den Haag", de politiek).
+    ["nederland", /\b(kabinet|tweede kamer|eerste kamer|binnenhof|catshuis|prinsjesdag|miljoenennota|rijksoverheid|coalitie|formatie|minister van|staatssecretaris|kamerlid|kamerleden|\bpvv\b|\bvvd\b|\bd66\b|groenlinks|\bpvda\b|\bcda\b|\bsgp\b|\bbbb\b|\bja21\b|wilders|schoof|timmermans|yesilgoz|omtzigt|jetten|bontenbal)\b/i],
     ["europa", /\b(europese unie|europese commissie|europees parlement|europese leiders|eu-landen|\beu\b|brussel|von der leyen|european union|european commission|european parliament|eurozone|schengen)\b/i],
     ["vs-politiek", /\b(senate|senaat|congress|congres|white house|witte huis|republikein|republican|democraat|democrat|\bgop\b|supreme court|hooggerechtshof|pentagon|capitol|vance|house of representatives|justice department|governor|gouverneur)\b/i],
     ["trump", /\btrump\b/i],
@@ -105,7 +106,8 @@ var HootCore = (() => {
     "vs-politiek": /\b(verkiezing|election)\b/i,
     brein: /\bangst\b/i,
     film: /\b(netflix|hbo)\b/i,
-    media: /\b(omroep|npo)\b/i
+    media: /\b(omroep|npo)\b/i,
+    nederland: /\bden haag\b/i
   };
   function trustedTopics(it) {
     const had = it.topics || [];
@@ -690,11 +692,15 @@ var HootCore = (() => {
   }
   function profileOf({ interests = [], topics = [], affinity = null, taste = null, favorites = [], followed = /* @__PURE__ */ new Set(), sources = [], supply = null } = {}) {
     const expl = {};
+    const inherited = /* @__PURE__ */ new Set();
     for (const f of INTERESTS) {
       if (!interests.includes(f.id)) continue;
       const picked = f.topics.filter((t) => topics.includes(t));
       const sharp = picked.length > 0 && picked.length < f.topics.length;
-      for (const t of f.topics) expl[t] = sharp ? picked.includes(t) ? 1 : 0 : W_INHERITED;
+      for (const t of f.topics) {
+        expl[t] = sharp ? picked.includes(t) ? 1 : 0 : W_INHERITED;
+        if (!sharp) inherited.add(t);
+      }
     }
     const n = affinity?.n || 0;
     const learned = n >= MIN_EVENTS;
@@ -720,7 +726,7 @@ var HootCore = (() => {
       const v = Math.round(clamp(Math.max(e, r) + W_TASTE * (tt[t] || 0) / TASTE_SCALE, -1, 1) * 100) / 100;
       if (v < P_MIN && v > -P_MIN) continue;
       topicP[t] = v;
-      origin[t] = r > e ? "geleerd" : "gekozen";
+      origin[t] = r > e ? "geleerd" : inherited.has(t) && !((tt[t] || 0) > 0) ? "geërfd" : "gekozen";
     }
     const family = {};
     for (const [t, v] of Object.entries(topicP)) {
@@ -759,14 +765,24 @@ var HootCore = (() => {
   var SUM_MIN = -30;
   var SUM_MAX = 40;
   var GEO_NL = "geo:nl";
+  var SPORT_URL = /\/(sport|voetbal|premier-league|eredivisie|formule-1|wielrennen|tennis)\//i;
+  function isSport(item, catOf = null) {
+    if ((item.topics || []).some((t) => FAMILY_OF[t] === "sport")) return true;
+    if (catOf?.get(item.source) === "sport") return true;
+    return SPORT_URL.test(item.url || "") || OTHER_SPORT.test(`${item.title || ""} ${item.summary || ""}`);
+  }
+  var US_TOPICS = /* @__PURE__ */ new Set(["vs-politiek", "trump"]);
   function topicHits(item, prof, geo = null) {
-    const ts = item.topics || [];
+    const sport = isSport(item, prof.catOf);
+    const ts = (item.topics || []).filter((t) => !(sport && FAMILY_OF[t] === "binnenland" && prof.topicP[t] > 0));
     const abroad = geo === "int" && !VL_HOME.has(item.source);
+    const world = (prof.family.wereld || 0) >= OUTSIDE_FAMILY;
+    const notChosenPol = (t) => !world && FAMILY_OF[t] === "politiek" && prof.topicP[t] > 0 && prof.origin?.[t] === "geërfd" && (US_TOPICS.has(t) || abroad && t !== "europa");
     const notUs = ts.includes("vs-politiek") && !desksOf(item).has("vs");
     const vis = shownTopics(item);
-    const out = ts.filter((t) => prof.topicP[t] !== void 0 && !(abroad && FAMILY_OF[t] === "binnenland" && prof.topicP[t] > 0) && !(notUs && t === "vs-politiek" && prof.topicP[t] > 0)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source, seen: !vis || vis.includes(t) }));
+    const out = ts.filter((t) => prof.topicP[t] !== void 0 && !(abroad && FAMILY_OF[t] === "binnenland" && prof.topicP[t] > 0) && !(notUs && t === "vs-politiek" && prof.topicP[t] > 0) && !notChosenPol(t)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source, seen: !vis || vis.includes(t) }));
     const fb = prof.family.binnenland || 0;
-    if (fb > 0 && geo === "nl") out.push({ t: GEO_NL, f: "binnenland", v: Math.min(fb, W_INHERITED), s: item.source, seen: true });
+    if (fb > 0 && geo === "nl" && !sport) out.push({ t: GEO_NL, f: "binnenland", v: Math.min(fb, W_INHERITED), s: item.source, seen: true });
     if (!ts.length) {
       const cat = prof.catOf.get(item.source);
       const fam = cat && INTERESTS.find((f) => f.cats.includes(cat));
@@ -797,7 +813,7 @@ var HootCore = (() => {
       const coverOf = (l) => hits.filter((hs) => hs.some((h) => h.t === l.t || vak(h) && !vak(l) && h.f === l.f)).length / items.length;
       const seenPos = pos.filter((h) => h.seen);
       const label = [...new Map((seenPos.length ? seenPos : pos).map((h) => [h.t, h])).values()].map((h) => ({ ...h, c: coverOf(h) * h.v })).sort((a, b) => b.c - a.c || (a.t === GEO_NL) - (b.t === GEO_NL) || strongestFirst(a, b))[0];
-      parts.interest = { pts: Math.round(P.INTEREST * best.v * (0.5 + 0.5 * cover)), t: label.t, f: label.f, origin: prof.origin?.[label.t] || "gekozen", ...seenPos.length ? {} : { shown: false } };
+      parts.interest = { pts: Math.round(P.INTEREST * best.v * (0.5 + 0.5 * cover)), t: label.t, f: label.f, origin: prof.origin?.[label.t] || "gekozen", cov: coverOf(label), ...seenPos.length ? {} : { shown: false } };
       const famCat = (h) => FAMILY_OF_CAT[prof.catOf?.get(h.s)];
       const crossHits = hits.map((hs) => hs.filter((h) => h.v >= CROSS_MIN && h.seen && (!famCat(h) || famCat(h) === h.f)));
       const famCover = (f) => crossHits.filter((hs) => hs.some((h) => h.f === f)).length * 2 > items.length;
@@ -870,6 +886,11 @@ var HootCore = (() => {
     return Object.entries(prof.family).sort((a, b) => b[1] - a[1] || byId(a[0], b[0]))[0]?.[0] || null;
   }
   var MIN_WHY_PTS = 5;
+  var chosenReason = (parts = {}) => {
+    const it = parts.interest;
+    if (!it || (it.pts || 0) < MIN_WHY_PTS) return false;
+    return String(it.t).startsWith("bron:") ? (it.cov ?? 1) >= 1 : (it.cov ?? 1) * 2 >= 1;
+  };
   var FRONT_SOURCES = 6;
   var DESK_NAMES = { ...DESK_LABEL, tech: "Tech", economie: "Economie", regio: "Regio" };
   var WHY_ORDER = ["followUp", "cross", "interest", "favorite", "mine", "sourceRead"];
@@ -881,7 +902,7 @@ var HootCore = (() => {
       if (entry.near) return { code: "buur", text: `Naast je bubbel · grenst aan ${FAMILY_LABEL[entry.near] || entry.near}` };
       return { code: "bubbel", text: "Buiten je bubbel · via Google Trends" };
     }
-    if (entry.desk === "breed") return { code: "breed", text: `Waar iedereen over schrijft · ${sourceCount} bronnen` };
+    if (entry.desk === "breed") return entry.big ? { code: "groot", text: `Groot nieuws · ${sourceCount} bronnen` } : { code: "breed", text: `Waar iedereen over schrijft · ${sourceCount} bronnen` };
     if (entry.front && sourceCount >= FRONT_SOURCES) return { code: "groot", text: `Groot nieuws · ${sourceCount} bronnen` };
     const rank = (k) => WHY_ORDER.includes(k) ? WHY_ORDER.indexOf(k) : WHY_ORDER.length;
     const [code, p] = Object.entries(parts).filter(([k, x]) => (x.pts || 0) >= MIN_WHY_PTS && !(k === "interest" && x.shown === false)).sort((a, b) => b[1].pts - a[1].pts || rank(a[0]) - rank(b[0]) || byId(a[0], b[0]))[0] || [];
@@ -890,6 +911,7 @@ var HootCore = (() => {
     if (code === "interest") {
       if (p.t.startsWith("bron:")) return { code: "vak", text: `Omdat je ${FAMILY_LABEL[p.f] || "dit gebied"} volgt` };
       if (p.t === GEO_NL) return { code, text: `Omdat je ${FAMILY_LABEL.binnenland} volgt` };
+      if (p.origin === "geërfd") return { code, text: `Omdat je ${FAMILY_LABEL[p.f] || labelOf(p.t)} volgt` };
       if (p.origin === "geleerd") return { code: "learned", text: `Omdat je vaak over ${labelOf(p.t)} leest` };
       return { code, text: `Omdat je ${labelOf(p.t)} volgt` };
     }
@@ -952,6 +974,17 @@ var HootCore = (() => {
     natuur: ["wetenschap"],
     brein: ["wetenschap"]
   };
+  function topicDesks(t, prof) {
+    const ds = TOPIC_DESK[t] || [];
+    if (FAMILY_OF[t] !== "politiek" || prof?.origin?.[t] !== "geërfd" || (prof?.family?.wereld || 0) >= OUTSIDE_FAMILY) return ds;
+    return ds.filter((d) => !FOREIGN_DESKS.has(d));
+  }
+  function chosenDesks(prof) {
+    const out = /* @__PURE__ */ new Set();
+    for (const [t, v] of Object.entries(prof?.topicP || {})) if (v > 0 && prof.origin?.[t] !== "geleerd") for (const d of topicDesks(t, prof)) out.add(d);
+    if (prof?.family?.binnenland > 0) out.add("binnenland");
+    return out;
+  }
   var DESK_CAP = 3;
   var KERN_MIN = 3;
   var KERN_INT_W = 0.7;
@@ -972,7 +1005,7 @@ var HootCore = (() => {
     const best = {};
     for (const [t, v] of Object.entries(prof?.topicP || {})) {
       if (v <= 0) continue;
-      for (const d of TOPIC_DESK[t] || []) best[d] = Math.max(best[d] || 0, v);
+      for (const d of topicDesks(t, prof)) best[d] = Math.max(best[d] || 0, v);
     }
     for (const d of PLAN_DESKS) if (best[d]) w[d] += DESK_GAIN * best[d];
     if (prof?.family?.binnenland > 0) w.binnenland += DESK_GAIN * prof.family.binnenland;
@@ -1750,8 +1783,9 @@ var HootCore = (() => {
       return true;
     };
     const foreign = (c) => FOREIGN_DESKS.has(c.desk) || c.nl * 2 < c.sc;
+    const homeNews = (c) => !!c && !foreign(c) && !FOREIGN_DESKS.has(c.primary) && !FOREIGN_DESKS.has(c.home) && [c.desk, c.primary, c.home].some((d) => d === "binnenland" || d === "regio");
     const abroad = (c) => foreign(c) || FOREIGN_DESKS.has(c.primary) || FOREIGN_DESKS.has(c.home);
-    const unchosen = (c) => abroad(c) && (c.parts.interest?.pts || 0) < MIN_WHY_PTS;
+    const unchosen = (c) => abroad(c) && !chosenReason(c.parts);
     const capOn = plan && Object.keys(prof?.family || {}).length > 0;
     const strictInt = capOn && (prof?.family?.wereld || 0) < OUTSIDE_FAMILY;
     const counted = /* @__PURE__ */ new Set();
@@ -1792,7 +1826,7 @@ var HootCore = (() => {
       const kernShort = (d) => KERN.includes(d) && !entries.some((e) => e.desk === d) && new Set(entries.map((e) => e.desk).filter((x) => KERN.includes(x))).size < KERN_MIN;
       for (const d of deskOrder) {
         if (entries.length >= size) break;
-        const force = kernShort(d);
+        const force = kernShort(d) && !(strictInt && FOREIGN_DESKS.has(d) && counted.size >= INT_MAX);
         cands.some((c) => c.home === d && !c.parts.seen && takeCapped(c, d, { planned: true }, force, force));
       }
     }
@@ -1813,6 +1847,10 @@ var HootCore = (() => {
       const moved = prof.family.binnenland > 0 ? entries.slice(0, Math.max(0, lastHome)).filter((e) => e.front && isForeign(e)) : [];
       const rest = entries.filter((e) => !moved.includes(e) && !late.includes(e));
       if (moved.length) rest.splice(rest.indexOf(entries[lastHome]) + 1, 0, ...moved);
+      if (prof.family.binnenland > 0 && rest.length && !homeNews(candOf.get(rest[0].id))) {
+        const first = rest.find((e) => e.front && homeNews(candOf.get(e.id))) || rest.find((e) => homeNews(candOf.get(e.id)));
+        if (first) rest.splice(0, 0, ...rest.splice(rest.indexOf(first), 1));
+      }
       entries.splice(0, entries.length, ...rest, ...late);
     }
     const abroadIds = new Set([...used].filter((c) => unchosen(c) && !entries.find((e) => e.id === c.id)?.front).map((c) => c.id));
@@ -1929,9 +1967,12 @@ var HootCore = (() => {
       const geos = members.map((m) => geoOf(m, desk, foreign));
       const int = geos.filter((g) => g === "int").length;
       const abroad2 = FOREIGN_DESKS.has(desk) || !big && (foreign || int > geos.filter((g) => g === "nl").length && int * 2 >= geos.length);
-      return abroad2 && (personalParts(members, prof, {}, { desk, foreign }).interest?.pts || 0) < MIN_WHY_PTS;
+      return abroad2 && !chosenReason(personalParts(members, prof, {}, { desk, foreign }));
     };
-    const wideAny = (global.wide || []).some((w) => w?.item?.id && !covered(w) && unread(w.item.id, w.storyId) && !unchosenAbroad(w.item.id, w.storyId, bigWide(w)));
+    const wideAbroad = (w) => unchosenAbroad(w.item.id, w.storyId);
+    const wideCapped = (w) => unchosenAbroad(w.item.id, w.storyId, bigWide(w));
+    const wideBlocked = (w, room) => !bigWide(w) && wideAbroad(w) || !room && wideCapped(w);
+    const wideAny = (global.wide || []).some((w) => w?.item?.id && !covered(w) && unread(w.item.id, w.storyId) && !wideBlocked(w, true));
     const size = EDITION_SIZE - (bubbleEntry ? 1 : 0) - (wideAny ? 1 : 0);
     const opts = { mainIds: followed, now, previous, preferred, prof, ctx, seed };
     const extraAll = extraPool.length ? selectForReader(mineStories, extraPool, { ...opts, size: 2 * EXTRA_MAX, plan: false }) : [];
@@ -1954,7 +1995,7 @@ var HootCore = (() => {
     const membersOf = (e) => /* @__PURE__ */ new Set([e.leadId || e.id, ...e.kind === "story" ? storyById.get(e.id)?.itemIds || e.itemIds || [] : []]);
     const taken = new Set(own.flatMap((e) => [...membersOf(e)]));
     const fitOf = (w) => Math.max(0, ...(w.topics || []).map((t) => Math.max(prof.topicP[t] || 0, prof.shareOf[t] || 0)));
-    const free = (w) => w?.item?.id && !taken.has(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !(abroad >= INT_MAX && unchosenAbroad(w.item.id, w.storyId, bigWide(w)));
+    const free = (w) => w?.item?.id && !taken.has(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !wideBlocked(w, abroad < INT_MAX);
     const wide0 = (global.wide || []).find((w) => free(w) && bigWide(w) && outsideProfile(w.topics, prof)) || (global.wide || []).find((w) => free(w) && bigWide(w)) || (global.wide || []).find((w) => free(w) && outsideProfile(w.topics, prof)) || (global.wide || []).filter(free).sort((a, b) => fitOf(a) - fitOf(b) || b.sourceCount - a.sourceCount || byText(a.storyId, b.storyId))[0];
     let wide = wide0 ? { ...wide0, item: wideLead(wide0) } : null;
     let swapped = 0;
@@ -1969,15 +2010,16 @@ var HootCore = (() => {
         swapped = 1;
       } else wide = null;
     }
-    if (wide && unchosenAbroad(wide.item.id, wide.storyId, bigWide(wide))) abroad++;
-    const wideEntry = wide ? withHistory({ kind: "story", id: wide.storyId, leadId: wide.item.id, desk: WIDE, sourceCount: wide.sourceCount }, wide.item.id, wide.storyId) : null;
+    const wideForeign = !!wide && wideAbroad(wide);
+    if (wide && wideCapped(wide)) abroad++;
+    const wideEntry = wide ? withHistory({ kind: "story", id: wide.storyId, leadId: wide.item.id, desk: WIDE, sourceCount: wide.sourceCount, ...wideForeign ? { big: true } : {} }, wide.item.id, wide.storyId) : null;
     if (wideEntry) for (const id of [wide.item.id, ...storyById.get(wide.storyId)?.itemIds || []]) taken.add(id);
     const globalItems = new Map((global.items || []).map((i) => [i.id, i]));
     const noFavorites = { ...prof, favorites: /* @__PURE__ */ new Set() };
     const fillTo = size - extra.length + (wideAny && !wideEntry ? 1 : 0) - swapped;
     const fillCands = global.entries.map((g, idx) => ({ g, idx, score: sumParts(personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), noFavorites, {}, { desk: g.desk })) - 2 * idx })).filter((x) => x.g !== bubbleEntry && unread(x.g.leadId || x.g.id, x.g.kind === "story" ? x.g.id : null)).sort((a, b) => b.score - a.score || a.idx - b.idx);
     const fill = [];
-    const unchosenG = (g) => FOREIGN_DESKS.has(g.desk) && (personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), prof, {}, { desk: g.desk }).interest?.pts || 0) < MIN_WHY_PTS;
+    const unchosenG = (g) => FOREIGN_DESKS.has(g.desk) && !chosenReason(personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), prof, {}, { desk: g.desk }));
     const fillUp = (to) => {
       for (const strict of [true, false]) {
         for (const { g } of fillCands) {
@@ -2025,9 +2067,10 @@ var HootCore = (() => {
     const wideById = new Map([...(global.wide || []).map((w) => w?.item).filter(Boolean), ...wide ? [wide.item] : [], ...nearItem ? [nearItem] : []].map((i) => [i.id, i]));
     const itemOf = (id) => poolById.get(id) || wideById.get(id) || globalItems.get(id) || itemAny.get(id);
     const srcName = new Map(sources.map((s) => [s.id, s.name]));
+    const mineDesks = chosenDesks(prof);
     const out = entries.map((e) => {
-      const why = whyOf(e, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk: e.desk, plannedDesk: !!e.planned, sourceName: (s) => srcName.get(s) || s });
-      const { w, parts, planned, front, vervolg, ...rest } = e;
+      const why = whyOf(e, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk: e.desk, plannedDesk: !!e.planned && mineDesks.has(e.desk), sourceName: (s) => srcName.get(s) || s });
+      const { w, parts, planned, front, vervolg, big, ...rest } = e;
       const lead = e.leadId || e.id;
       const itemIds = e.kind === "story" ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead];
       const keys = e.kind === "story" ? e.keys || storyById.get(e.id)?.keys : null;

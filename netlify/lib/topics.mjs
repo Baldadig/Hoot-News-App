@@ -2,7 +2,8 @@
 // Liever een onderwerp te weinig dan een verkeerd: woorden met dubbele betekenis staan er niet in.
 const KW = [
   // Politiek
-  ['nederland', /\b(kabinet|tweede kamer|eerste kamer|den haag|binnenhof|catshuis|prinsjesdag|miljoenennota|rijksoverheid|coalitie|formatie|minister van|staatssecretaris|kamerlid|kamerleden|\bpvv\b|\bvvd\b|\bd66\b|groenlinks|\bpvda\b|\bcda\b|\bsgp\b|\bbbb\b|\bja21\b|wilders|schoof|timmermans|yesilgoz|omtzigt|jetten|bontenbal)\b/i],
+  // Niet "den haag": dat is ook de stad (feedback 31 oktober: rellen in Den Haag waren "Den Haag", de politiek).
+  ['nederland', /\b(kabinet|tweede kamer|eerste kamer|binnenhof|catshuis|prinsjesdag|miljoenennota|rijksoverheid|coalitie|formatie|minister van|staatssecretaris|kamerlid|kamerleden|\bpvv\b|\bvvd\b|\bd66\b|groenlinks|\bpvda\b|\bcda\b|\bsgp\b|\bbbb\b|\bja21\b|wilders|schoof|timmermans|yesilgoz|omtzigt|jetten|bontenbal)\b/i],
   ['europa', /\b(europese unie|europese commissie|europees parlement|europese leiders|eu-landen|\beu\b|brussel|von der leyen|european union|european commission|european parliament|eurozone|schengen)\b/i],
   ['vs-politiek', /\b(senate|senaat|congress|congres|white house|witte huis|republikein|republican|democraat|democrat|\bgop\b|supreme court|hooggerechtshof|pentagon|capitol|vance|house of representatives|justice department|governor|gouverneur)\b/i],
   ['trump', /\btrump\b/i],
@@ -68,6 +69,7 @@ const RETIRED = {
   brein: /\bangst\b/i,
   film: /\b(netflix|hbo)\b/i,
   media: /\b(omroep|npo)\b/i,
+  nederland: /\bden haag\b/i,
 }
 // De onderwerpen van een bericht zoals de lezer ze kan nagaan: die van de server, zonder wat alleen een
 // teruggetrokken trefwoord verklaart. Alleen weglaten, niets toevoegen: een nieuw trefwoord (zoals
