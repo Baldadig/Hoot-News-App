@@ -294,11 +294,11 @@
     }
     /* Eén beslisregel voor de markering op de kaart én de uitleg ernaast, uit het aantal bronnen per verhaal.
        Bovenaan: vijf of meer bronnen is groot nieuws, twee of meer is meerdere bronnen. Tweede kaart: meerdere bronnen als dat nog vrij is,
-       anders uit je eigen bronnen. Derde kaart: buiten je bubbel. De pagina kent de bronnen van de bezoeker niet, dus geen 'jouw kranten'. */
+       anders ook het lezen waard (één bron). Derde kaart: buiten je bubbel. De pagina kent de bronnen van de bezoeker niet, dus geen 'jouw kranten'. */
     var REDEN = {
       groot: ['Groot nieuws', 'Veel bronnen schrijven erover. Dit wil je weten.'],
       meer: ['Meerdere bronnen', 'Niet één krant, maar meerdere vinden het belangrijk.'],
-      eigen: ['Uit je eigen bronnen', 'Uit een bron die je zelf hebt gekozen.'],
+      eigen: ['Ook het lezen waard', 'Eén bron schrijft erover, en het is de moeite waard.'],
       bubbel: ['Buiten je bubbel', 'Iets wat je anders niet had gelezen.']
     };
     function redenen(ns) {
