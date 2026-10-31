@@ -210,7 +210,7 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
           <a className="setrow setrow--link" href="#/instellingen">
             <span className="setrow__text">
               <span className="setrow__label">Alle instellingen</span>
-              <span className="setrow__hint">Account, weergave, editie, buiten je bubbel.</span>
+              <span className="setrow__hint">Account, weergave, Editie, buiten je bubbel.</span>
             </span>
             <span className="caret" aria-hidden="true">
               <CaretIcon size={ICON_SM} />

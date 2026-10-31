@@ -524,7 +524,7 @@ export default function StyleGuide({ stream }) {
             <strong>Afstand</strong>: 4 · 8 · 12 · 16 · 24 · 32 · 48 px (<code>--s1</code> t/m <code>--s7</code>). Elke marge, padding en gap komt hiervandaan; niets daartussen.
           </li>
           <li>
-            <strong>Vorm</strong>, op rol: bediening 8 (icoonknop, veld, de hoverlaag van een tekstknop) · kaart 12 (kaart, beeld, einde van de editie) · blad 16 (dialogen en bladen) · pil (knoppen, pillen, segmenten, schakelaar, melding) · rond (avatars, logo’s, stippen).
+            <strong>Vorm</strong>, op rol: bediening 8 (icoonknop, veld, de hoverlaag van een tekstknop) · kaart 12 (kaart, beeld, einde van de Editie) · blad 16 (dialogen en bladen) · pil (knoppen, pillen, segmenten, schakelaar, melding) · rond (avatars, logo’s, stippen).
           </li>
           <li>
             <strong>Bediening</strong>: 36 (altijd met een raakvlak van 44) · 44 · 52 hoog. Iconen 22; in een pil, rij of uitklapper 16.

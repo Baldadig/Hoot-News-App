@@ -201,7 +201,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               </a>
             }
           >
-            Er zijn te weinig verse verhalen om een editie van te maken. In de Stroom staat alles wat er wél is.
+            Er zijn te weinig verse verhalen om een Editie van te maken. In de Stroom staat alles wat er wél is.
           </Empty>
         ) : (
           <>
