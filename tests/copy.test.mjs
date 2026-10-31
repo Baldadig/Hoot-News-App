@@ -195,8 +195,11 @@ test('De Editie telt: nummer in de kicker, "N van N" op de rode kaart, de bubbel
   assert.match(css, /\.is-read \.kicker__n \{\s*color: var\(--ink-3\)/)
 })
 
-test('Eén rechterlijn: schermkop van de leesschermen en de eindkaart stoppen op --measure (K3)', () => {
+test('Eén rechterlijn: de lijn onder de kop en de eindkaart stoppen op --measure, de iconenrij niet (K3)', () => {
   const css = read('styles.css')
-  assert.match(css, /\.col--read > \.vh \{/)
+  // Wat in de kop onder de rij staat (rubriekenlijn, stapel, metaregel) stopt op het leesblok ...
+  assert.match(css, /\.col--read > \.vh > :where\(:not\(\.vh__row\)\)/)
+  // ... maar de kop zelf niet: titel en iconen staan op elke tab op dezelfde plek.
+  assert.doesNotMatch(css, /\.col--read > \.vh[,\s]*\{/)
   assert.match(css, /\.endcap \{[^}]*max-inline-size: var\(--measure\)/)
 })
