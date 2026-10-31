@@ -55,9 +55,12 @@
   /* ---------- 2 · de pagina ---------- */
   function start() {
     requestAnimationFrame(function () { requestAnimationFrame(function () { R.classList.remove('init'); }); });
-    var RM = matchMedia('(prefers-reduced-motion: reduce)'), reduce = RM.matches;
-    function opRM(fn) { if (RM.addEventListener) RM.addEventListener('change', fn); else if (RM.addListener) RM.addListener(fn); }
-    opRM(function () { reduce = RM.matches; });
+    /* reduced motion: één variabele, alleen bijgewerkt door de change-listener. Lees RM.matches nergens anders,
+       anders ziet Chrome bij de wijziging geen verschil meer en vuurt het change-event niet. */
+    var RM = matchMedia('(prefers-reduced-motion: reduce)'), reduce = RM.matches, bijRM = [];
+    function opRM(fn) { bijRM.push(fn); }
+    function rmWissel(e) { reduce = !!(e && typeof e.matches === 'boolean' ? e.matches : RM.matches); bijRM.forEach(function (fn) { fn(); }); }
+    if (RM.addEventListener) RM.addEventListener('change', rmWissel); else if (RM.addListener) RM.addListener(rmWissel);
     var IO = 'IntersectionObserver' in window;
     function $(s, c) { return (c || document).querySelector(s); }
     function $$(s, c) { return [].slice.call((c || document).querySelectorAll(s)); }
@@ -73,7 +76,7 @@
     function klok(sectie, scene, rust) {
       var k = { pos: 0, duur: 0, teken: null, auto: true, klaar: false };
       var zicht = false, muis = false, focus = false, raf = 0, vorig = 0;
-      function mag() { return !!k.teken && !k.klaar && zicht && !document.hidden && !RM.matches && (!k.auto || (!muis && !focus)); }
+      function mag() { return !!k.teken && !k.klaar && zicht && !document.hidden && !reduce && (!k.auto || (!muis && !focus)); }
       function tik(nu) {
         raf = 0; if (!mag()) return;
         if (vorig) k.pos = Math.min(k.duur, k.pos + Math.min(100, nu - vorig));
@@ -94,7 +97,8 @@
       sectie.addEventListener('focusout', function (e) { focus = !!(e.relatedTarget && sectie.contains(e.relatedTarget)); k.kijk(); });
       zichtbaar(sectie, function (aan) { zicht = aan; k.kijk(); });
       document.addEventListener('visibilitychange', k.kijk);
-      opRM(function () { if (RM.matches) rust(); k.kijk(); });
+      /* gaat reduced motion aan, dan terug naar de rustige stand; een begonnen ronde telt als gespeeld en hervat later niet halverwege */
+      opRM(function () { if (reduce) { if (k.pos > 0) k.klaar = true; rust(); } k.kijk(); });
       return k;
     }
 
@@ -118,7 +122,7 @@
       if (!zon) return;
       zon.style.opacity = '1';
       if (reduce || a === b) { plaats(b); return; }
-      var t0 = performance.now(), dur = 1600;
+      var t0 = performance.now(), dur = ZON;
       (function stap(nu) {
         if (id !== zonAnim) return;
         var p = Math.min(1, (nu - t0) / dur);
@@ -137,7 +141,7 @@
       return Math.max(0, rol.offsetTop + rol.offsetHeight - zicht);
     }
     /* één dagdeel uitlezen duurt SEG ms: even kijken, in twee halen naar beneden, "Je bent bij." laten staan, dan uitfaden */
-    var SEG = 12480;
+    var SEG = 12480, ZON = 1600;
     function lezen(lijst, eind, metZon) {
       return function (pos) {
         var n = lijst.length, i = Math.min(n, Math.floor(pos / SEG)), s = pos - i * SEG;
@@ -157,7 +161,7 @@
         var k = Math.floor((pos - 12000) / SEG);
         if (k < 0) { plaats(T[lijst[0]]); zon.style.opacity = '1'; return; }
         k = Math.min(k, n - 1);
-        var za = T[lijst[k]], zb = T[k + 1 < n ? lijst[k + 1] : eind], q = (pos - k * SEG - 12000) / 1600;
+        var za = T[lijst[k]], zb = T[k + 1 < n ? lijst[k + 1] : eind], q = (pos - k * SEG - 12000) / ZON;
         if (q >= 1 || za === zb) { plaats(zb); zon.style.opacity = '1'; }
         else if (zb < za) { if (q < .325) { plaats(za); zon.style.opacity = '0'; } else { plaats(zb); zon.style.opacity = '1'; } }
         else { plaats(za + (zb - za) * ease(q)); zon.style.opacity = '1'; }
@@ -194,7 +198,8 @@
         if (!autoE) { var j = ORDE.indexOf(huidig); autoE = lezen([ORDE[j], ORDE[(j + 1) % 3], ORDE[(j + 2) % 3]], ORDE[j], true); }
         autoE(pos);
       };
-      kE.duur = 3 * SEG;
+      /* de ronde loopt door tot de zon zijn laatste stap naar het dagdeel van nu heeft afgemaakt: een nette eindstand */
+      kE.duur = 2 * SEG + 12000 + ZON;
       kE.kijk();
     }
 
