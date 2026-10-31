@@ -138,3 +138,6 @@ export const BlueskyArt = art(
     </g>
   </>
 )
+
+export const StreamArt = art('stream', <>{sheet}<g className="empty__lint"><path d="M30 50c12-8 24 8 36 0M30 60c12-8 24 8 36 0M30 70c12-8 24 8 36 0" /></g></>)
+export const EditionArt = art('edition', <>{sheet}<path d="M30 46h18M30 54h22M30 62h14" /><path className="empty__lint" d="M58 14v10h16" /></>)

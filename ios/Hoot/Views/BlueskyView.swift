@@ -16,7 +16,7 @@ struct BlueskyFeed: View {
         LazyVStack(alignment: .leading, spacing: 0) {
             if people.count > 1 { chips(people, who: who) }
             if store.status == .loading && posts.isEmpty {
-                ProgressView().frame(maxWidth: .infinity, minHeight: 240)
+                WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
             } else if posts.isEmpty {
                 if people.isEmpty {
                     EmptyState(title: "Je volgt nog niemand", systemImage: "bubble.left.and.bubble.right", text: "Voeg mensen toe met hun @-naam, bijvoorbeeld @naam.bsky.social.", action: onAdd.map { (label: "Iemand toevoegen", systemImage: "plus", run: $0) })
@@ -136,7 +136,7 @@ struct BlueskyAccountsView: View {
                             .keyboardType(.URL)
                             .submitLabel(.done)
                             .onSubmit(add)
-                        if busy { ProgressView() } else { Button("Volg", action: add).disabled(input.trimmingCharacters(in: .whitespaces).isEmpty) }
+                        if busy { WaitingMark(size: 16, text: false) } else { Button("Volg", action: add).disabled(input.trimmingCharacters(in: .whitespaces).isEmpty) }
                     }
                 } header: {
                     FormHeader("Iemand volgen")

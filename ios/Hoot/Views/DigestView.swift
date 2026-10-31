@@ -37,7 +37,7 @@ struct DigestView: View {
                     } else if store.digestStatus == .failed {
                         EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnt de Selectie hier.", retry: { await store.loadDigest(force: true) })
                     } else {
-                        ProgressView().frame(maxWidth: .infinity, minHeight: 240)
+                        WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
                     }
                 }
                 .padding(.horizontal)
@@ -49,7 +49,7 @@ struct DigestView: View {
             .navigationTitle("Selectie")
             .hootScreenTitle()
             .settingsButton()
-            .refreshable { await store.loadDigest(force: true) }
+            .hootRefresh { await store.loadDigest(force: true) }
             .sheet(isPresented: $choosing) {
                 NavigationStack {
                     DigestFieldsList()

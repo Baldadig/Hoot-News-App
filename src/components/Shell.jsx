@@ -1,3 +1,5 @@
+import { WaitingMark } from './WaitingMark.jsx'
+import { useEmptyDraw } from '../hooks/useEmptyDraw.js'
 import { timeAgo } from '../lib/time.js'
 import { BrandLogo } from './Brand.jsx'
 import { useHoot } from './Items.jsx'
@@ -100,8 +102,8 @@ export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing,
         ) : null}
         {tools}
         {onRefresh ? (
-          <button type="button" className={`iconbtn${refreshing ? ' is-spinning' : ''}`} onClick={onRefresh} disabled={refreshing} aria-label={at ? `Verversen, bijgewerkt ${at}` : 'Verversen'} title={at ? `Verversen · bijgewerkt ${at}` : undefined}>
-            <RefreshIcon />
+          <button type="button" className="iconbtn" onClick={onRefresh} disabled={refreshing} aria-label={at ? `Verversen, bijgewerkt ${at}` : 'Verversen'} title={at ? `Verversen · bijgewerkt ${at}` : undefined}>
+            {refreshing ? <WaitingMark size={8} text={false} /> : <RefreshIcon />}
           </button>
         ) : null}
         {showSearch ? (
@@ -148,7 +150,7 @@ export function StatusLine({ online, refreshing, refreshError, meta, allDown = f
     )
   // Stil scherm (Editie): het draaiende ververs-icoon zegt genoeg; een regel die komt en gaat
   // zou de inhoud laten verspringen.
-  if (refreshing) return quiet ? <p className="visually-hidden" role="status">Verversen…</p> : <p className="status" role="status">Verversen…</p>
+  if (refreshing) return quiet ? <p className="visually-hidden" role="status">Even kijken bij je bronnen</p> : <p className="status" role="status">Even kijken bij je bronnen</p>
   if (allDown)
     return (
       <p className="status status--warn" role="status">
@@ -220,8 +222,9 @@ export function Skeleton({ rows = 5, layout, lead = false }) {
 // Zonder art, en altijd bij een fout, blijft hij links op de kolomlijn.
 export function Empty({ title, children, action, tone = 'neutral', label, art: Art = null }) {
   const page = Art && tone !== 'error'
+  const drawRef = useEmptyDraw(!!page)
   return (
-    <div className={`empty${tone === 'error' ? ' empty--error' : ''}${page ? ' empty--page' : ''}`}>
+    <div ref={drawRef} className={`empty${tone === 'error' ? ' empty--error' : ''}${page ? ' empty--page' : ''}`}>
       {page ? <Art /> : null}
       {label ? <p className="label label--meta empty__label">{label}</p> : null}
       <h2 className={`${page ? 'head-5' : 'head-lg'} empty__title`}>{title}</h2>

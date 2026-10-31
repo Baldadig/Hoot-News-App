@@ -28,7 +28,7 @@ struct ArticleReaderView: View {
                     VStack(alignment: .leading, spacing: Space.s4) {
                         Kicker(text: sourceName)
                         Text(item.title.isEmpty ? (item.summary ?? "") : typeset(item.title, lang: source?.lang)).font(Theme.headline(.title)).lineLimit(4).fixedSize(horizontal: false, vertical: true)
-                        ProgressView("Artikel laden…").frame(maxWidth: .infinity).padding(.top, Space.s5)
+                        WaitingMark().frame(maxWidth: .infinity).padding(.top, Space.s5)
                         Spacer()
                     }
                     .padding()

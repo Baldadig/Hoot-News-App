@@ -151,10 +151,10 @@ const NL_ELSEWHERE = new Set(
 const MIXED = new Set(['vak:verfassungsblog']) // Duits en Engels door elkaar
 export function vakLang(s) {
   if (MIXED.has(s.id)) return null
-  if (NL_ELSEWHERE.has(s.id) || /\.(nl|be)$/.test(hostname(s.urls[0]))) return 'nl'
+  if (NL_ELSEWHERE.has(s.id) || /\.(nl|be|nu)$/.test(hostname(s.urls[0]))) return 'nl'
   return 'en'
 }
-const withLang = (s) => (s.lang !== undefined ? s : { ...s, lang: vakLang(s) })
+const withLang = (s) => ({ ...s, lang: vakLang(s) })
 
 export const VAK_SOURCES = [
   ...BASE_SOURCES.map((s) => {

@@ -3908,8 +3908,9 @@ select.input {
 }
 .fitem .thumb {
   display: block;
-  width: var(--thumb-sm);
-  height: var(--thumb-sm);
+  width: var(--thumb-w);
+  height: var(--thumb-h);
+  border-radius: var(--radius-sm);
 }
 /* De omhulsels zetten de buitenlijn: tussen het hoofdverhaal en de kleinere eronder (smal scherm)
    of, breed, alleen boven de twee onder het hoofdverhaal (de zijkolom heeft een lijn links). */
@@ -4442,8 +4443,9 @@ html[data-images='hoofd'] .media--social {
    van het nieuws, net als boven "Verder in deze Editie". Alleen als er een Editie is: bij laden of
    een fout staat er niets onder om te beginnen. :where houdt dit op (0,1,0), zodat de band van
    Inkt de lijn kan weghalen. */
-.edtop:where(:has(> .edmeta)) {
-  border-bottom: var(--rule-strong);
+.edrule {
+  margin: 0; border: 0; border-top: var(--rule-strong);
+  transform-origin: left center;
 }
 
 /* De metaregel is .vh__sub (t2, --ink-3), met een punt tussen de delen. De punt hangt achter het
@@ -5319,3 +5321,14 @@ html[data-images='hoofd'] .media--social {
   font-size: var(--t2);
   color: var(--ink-3);
 }
+
+/* Ronde 3: de wachtende punt en de blijvende leesgrens. */
+.waiting { display: inline-flex; align-items: center; gap: var(--s3); color: var(--ink-3); }
+.waiting--dot { display: inline-flex; width: 22px; height: 22px; justify-content: center; }
+.waiting__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.waiting svg .brand__dot, .waiting__dot { animation: hoot-breathe 8.25s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+@keyframes hoot-breathe { 0%,100% { transform: scale(1); } 33% { transform: scale(1.06); } 66% { transform: scale(.92); } }
+.seen { display: flex; align-items: center; gap: var(--s3); padding-block: var(--s3); color: var(--ink-2); font-family: var(--serif); font-size: var(--t2); }
+.seen::before, .seen::after { content: ''; flex: 1; height: 1px; background: var(--accent); }
+.stream-new { animation: rise 200ms var(--ease) backwards; animation-delay: var(--rise-delay, 0ms); }
+@media (prefers-reduced-motion: reduce) { .waiting svg .brand__dot, .waiting__dot, .stream-new { animation: none; } }

@@ -70,7 +70,7 @@ struct Item: Codable, Identifiable, Hashable {
 }
 
 extension Item {
-    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, url, image, publishedAt, author, readMin, type, section, handle, linkTitle, imageMeta, imageRatio, video, videoPoster, topics }
+    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, url, image, publishedAt, author, readMin, type, section, handle, linkTitle, imageMeta, imageRatio, video, videoPoster, topics, mainTopics }
     // Een post heeft geen kop; die mag dus ontbreken.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -97,6 +97,7 @@ extension Item {
         video = try? c.decodeIfPresent(String.self, forKey: .video)
         videoPoster = try? c.decodeIfPresent(String.self, forKey: .videoPoster)
         topics = try? c.decodeIfPresent([String].self, forKey: .topics)
+        mainTopics = try? c.decodeIfPresent([String].self, forKey: .mainTopics)
     }
 }
 

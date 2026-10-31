@@ -1,0 +1,17 @@
+{
+  "ochtend": {
+    "naam": "Ochtendeditie",
+    "volgende": "in de middag",
+    "dagdeel": "in de ochtend"
+  },
+  "middag": {
+    "naam": "Middageditie",
+    "volgende": "in de vroege avond",
+    "dagdeel": "in de middag"
+  },
+  "avond": {
+    "naam": "Avondeditie",
+    "volgende": "morgenochtend",
+    "dagdeel": "in de vroege avond"
+  }
+}

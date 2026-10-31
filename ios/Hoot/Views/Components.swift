@@ -61,8 +61,23 @@ struct SafariView: UIViewControllerRepresentable {
 // Daarom in donker ink3: de baan blijft neutraal en de duim blijft te zien.
 struct InkSwitch: ToggleStyle {
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceMotion) private var still
     func makeBody(configuration: Configuration) -> some View {
-        Toggle(configuration).tint(scheme == .dark ? Theme.ink3 : Theme.ink)
+        Button { configuration.isOn.toggle() } label: {
+            HStack {
+                configuration.label
+                Spacer(minLength: Space.s3)
+                Capsule().fill(configuration.isOn ? Theme.ink : Theme.ink.opacity(0.16))
+                    .frame(width: 51, height: 31)
+                    .overlay(alignment: configuration.isOn ? .trailing : .leading) {
+                        Circle().fill(configuration.isOn && scheme == .dark ? Theme.paper : .white)
+                            .frame(width: 27, height: 27).padding(2)
+                    }
+            }.frame(minHeight: Space.tap).contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .animation(still ? nil : .easeOut(duration: 0.14), value: configuration.isOn)
+        .accessibilityRepresentation { Toggle(isOn: configuration.$isOn) { configuration.label }.toggleStyle(.switch) }
     }
 }
 
@@ -602,6 +617,7 @@ struct ItemRow: View {
             } else {
                 Text(item.title)
                     .font(Theme.headline(.title3))
+                    .lineSpacing(2)
                     .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                     .fixedSize(horizontal: false, vertical: true)
                 // Hele zinnen tot de maat van de regelinstelling (T2); de regelgrens is alleen een vangnet: één
@@ -672,8 +688,10 @@ struct StaleNotice: View {
 
 // Een lege plek (K6), gelijk aan .empty op het web: een stil lijnicoon in `rule`, de titel als
 // serifkop in inkt, s2 lucht, de uitleg in ink2 (.empty__text) op een smalle maat en een inktknop als vervolgstap. Het blijft
-// een ContentUnavailableView: die centreert in de hoogte en leest goed voor met VoiceOver.
+// een eigen compositie; foutstaten behouden de systeemweergave.
 struct EmptyState: View {
+    @Environment(\.accessibilityReduceMotion) private var still
+    @State private var presented = false
     let title: String
     let systemImage: String
     var text: String = ""
@@ -682,6 +700,24 @@ struct EmptyState: View {
     // Of een eigen vervolgstap als knop, zoals iemand toevoegen bij een lege Bluesky.
     var action: (label: String, systemImage: String?, run: () -> Void)? = nil
     var body: some View {
+        if retry == nil {
+            VStack(spacing: Space.s3) {
+                EmptyPageArt(kind: EmptyPageKind(symbol: systemImage))
+                Group {
+                Text(title).font(Theme.headline(.title2)).foregroundStyle(Theme.ink)
+                if !text.isEmpty { Text(text).foregroundStyle(Theme.ink2).multilineTextAlignment(.center).frame(maxWidth: Layout.emptyText) }
+                if let action {
+                    Button(action: action.run) { Text(action.label) }.buttonStyle(.ink)
+                }
+                }.opacity(still || presented ? 1 : 0).offset(y: still || presented ? 0 : 10)
+            }.padding(.vertical, Space.s7).frame(maxWidth: .infinity, minHeight: 360)
+                .task {
+                    guard !still else { presented = true; return }
+                    try? await Task.sleep(for: .milliseconds(540))
+                    guard !Task.isCancelled else { return }
+                    withAnimation(.easeOut(duration: 0.2)) { presented = true }
+                }
+        } else {
         ContentUnavailableView {
             Label {
                 Text(title).font(Theme.headline(.title2)).foregroundStyle(Theme.ink)
@@ -709,6 +745,7 @@ struct EmptyState: View {
                 }
                 .buttonStyle(.ink)
             }
+        }
         }
     }
 }

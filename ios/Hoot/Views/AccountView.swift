@@ -144,7 +144,7 @@ struct AccountView: View {
                 }
             }
             .disabled(account.status == .loading)
-            .overlay { if account.status == .loading { ProgressView() } }
+            .overlay { if account.status == .loading { WaitingMark(size: 16, text: false) } }
             if let message = account.message {
                 Text(message)
                     .font(.footnote)

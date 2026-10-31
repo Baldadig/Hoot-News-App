@@ -32,6 +32,13 @@ final class LabelTests: XCTestCase {
         }
     }
 
+    func testDeOnderwerpenUitDeKopKomenMeeUitDeAPI() throws {
+        let json = #"{"id":"a","source":"nos","url":"https://nos.nl/a","title":"De stad krijgt meer groen","topics":["nederland","klimaat"],"mainTopics":["nederland"]}"#
+        let item = try JSONDecoder().decode(Item.self, from: Data(json.utf8))
+        XCTAssertEqual(item.mainTopics, ["nederland"])
+        XCTAssertEqual(try JSONDecoder().decode(Item.self, from: JSONEncoder().encode(item)).mainTopics, ["nederland"])
+    }
+
     // De plek van De Redacteur in de Editie (Desk.plek): Buiten je bubbel noemt waar het vandaan komt.
     func testDePlekZegtWaarHetVandaanKomt() {
         func entry(_ desk: String, count: Int? = nil, via: [String] = []) -> EditionEntry {

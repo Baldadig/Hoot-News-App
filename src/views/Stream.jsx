@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { Entry, useHoot } from '../components/Items.jsx'
 import { StreamLine } from '../components/StreamLine.jsx'
-import { FilterIcon, ArrowUpIcon } from '../components/icons.jsx'
+import { StreamArt, FilterIcon, ArrowUpIcon } from '../components/icons.jsx'
 import { Dialog, DialogHeader } from '../components/Dialog.jsx'
 import { inInterest } from '../lib/topics.js'
 import { rubriekRij, alsRubriek, actieveRubriek, kiesRubriek, rijBronnen, inRijVolgorde, legeRegel } from '../lib/streamline.js'
@@ -53,6 +53,7 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
   const ref = useRef(null)
   const [sheet, setSheet] = useState(false)
   const [atDepth, setAtDepth] = useState(false)
+  const [freshShown, setFreshShown] = useState(0)
 
   // De rij kent alleen hoofdrubrieken: een oud onderwerp-filter wordt zijn rubriek (alsRubriek).
   const filters = alsRubriek({ bron: params.bron || '', onderwerp: params.onderwerp || '', rubriek: params.rubriek || '', soort: params.soort || '' })
@@ -96,6 +97,7 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
   // Niet alles tegelijk tekenen: eerst één portie, de volgende zodra je het eind nadert. Kom je
   // terug op een plek verderop, dan tekenen we in één keer tot daar (de leespositie blijft kloppen).
   const posKey = positionKey('stroom', filters)
+  useEffect(() => setFreshShown(0), [posKey])
   const [limit, setLimit] = useState(PAGE)
   useEffect(() => {
     const at = readJSON(posKey, null)?.id
@@ -166,7 +168,7 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
         </ViewHeader>
 
         {pendingCount > 0 ? (
-          <button type="button" className="btn btn--accent newpill" aria-label={`${pendingCount} ${pendingCount === 1 ? 'nieuw bericht' : 'nieuwe berichten'} tonen`} onClick={() => (onShowNew(), ref.current?.scrollTo({ top: 0 }))}>
+          <button type="button" className="btn btn--accent newpill" aria-label={`${pendingCount} ${pendingCount === 1 ? 'nieuw bericht' : 'nieuwe berichten'} tonen`} onClick={() => { setFreshShown(!picks.size && !filters.rubriek && !filters.onderwerp && !filters.soort ? pendingCount : 0); onShowNew(); ref.current?.scrollTo({ top: 0 }) }}>
             <ArrowUpIcon />
             {pendingCount} {pendingCount === 1 ? 'nieuw bericht' : 'nieuwe berichten'}
           </button>
@@ -195,7 +197,7 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
                 ) : null}
               </div>
             ) : list.length === 0 ? (
-              <Empty
+              <Empty art={StreamArt}
                 title={offSource ? `${srcName(offSource)} staat uit` : 'Al je bronnen staan uit'}
                 action={
                   offSource ? (
@@ -212,8 +214,11 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
               </Empty>
             ) : (
               <div className={`list rows${preview === 'alles' ? '' : ` list--lines-${preview}`}`}>
-                {shown.map((item) => (
-                  <Entry key={item.id} item={item} story={item.storyId ? storiesById.get(item.storyId) : null} />
+                {shown.map((item, index) => (
+                  <div key={item.id} className={index < Math.min(freshShown, 6) ? 'stream-new' : undefined} style={index < 6 ? { '--rise-delay': `${index * 40}ms` } : undefined}>
+                    {freshShown > 0 && index === freshShown ? <div className="seen" role="separator"><span>Hier was je gebleven</span></div> : null}
+                    <Entry item={item} story={item.storyId ? storiesById.get(item.storyId) : null} />
+                  </div>
                 ))}
                 {shown.length < list.length ? <div ref={more} className="listmore" aria-hidden="true" /> : <p className="listend">Je bent bij.</p>}
               </div>

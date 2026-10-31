@@ -50,7 +50,7 @@ export const EDITION_SIZE = 10
 export const UP_NEXT = Object.fromEntries(Object.entries(SLOTS).map(([slot, s]) => [slot, s.volgende]))
 export function upNext(slot) {
   const when = SLOTS[slot]?.volgende
-  return when ? ` De volgende staat ${when} voor je klaar.` : ''
+  return when ? ` De volgende staat ${when} klaar.` : ''
 }
 
 // Welke onderdelen het overzicht niet noemt (op volgorde): die tonen we eronder, zodat er

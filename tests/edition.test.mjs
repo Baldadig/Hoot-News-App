@@ -118,9 +118,9 @@ test('het hoofdverhaal heeft altijd een scherp beeld: anders schuift de eerste p
 
 // Het einde van de Editie zegt in dagdelen wanneer de volgende er is, zoals de app (geen kloktijden).
 test('upNext: de volgende editie in dagdelen, nooit een kloktijd', () => {
-  assert.equal(upNext('ochtend'), ' De volgende staat in de middag voor je klaar.')
-  assert.equal(upNext('middag'), ' De volgende staat in de vroege avond voor je klaar.')
-  assert.equal(upNext('avond'), ' De volgende staat morgenochtend voor je klaar.')
+  assert.equal(upNext('ochtend'), ' De volgende staat in de middag klaar.')
+  assert.equal(upNext('middag'), ' De volgende staat in de vroege avond klaar.')
+  assert.equal(upNext('avond'), ' De volgende staat morgenochtend klaar.')
   assert.equal(upNext(undefined), '')
   assert.equal(upNext('nacht'), '')
   for (const t of Object.values(UP_NEXT)) assert.doesNotMatch(t, /\d/)

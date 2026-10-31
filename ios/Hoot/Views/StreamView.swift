@@ -3,6 +3,7 @@ import SwiftUI
 // Stroom: alles van je bronnen, nieuwste eerst. Bovenaan de lijn met rubrieken en de bronnenstapel
 // (StreamLine): Alles, je rubrieken en Buiten je bubbel. Bluesky staat bij Instellingen.
 struct StreamView: View {
+    @Environment(\.accessibilityReduceMotion) private var still
     @Environment(HootStore.self) private var store
     @Environment(\.scenePhase) private var phase
     @Environment(Reader.self) private var reader
@@ -69,7 +70,7 @@ struct StreamView: View {
                         // (die blijven bewaard): offline of zonder bronnen zie je het altijd.
                         let niets = items.isEmpty && store.stream.isEmpty
                         if store.status == .loading && niets {
-                            ProgressView().frame(maxWidth: .infinity, minHeight: 240)
+                            WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
                         } else if niets {
                             if store.status == .failed {
                                 EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnen hier de berichten van je bronnen.", retry: store.load)
@@ -85,6 +86,7 @@ struct StreamView: View {
                                 // Daaronder heb je alles al gezien.
                                 if fresh > 0 && i == fresh { SeenMarker() }
                                 ItemRow(item: item, story: store.story(of: item))
+                                    .transition(still ? .opacity : .move(edge: .top).combined(with: .opacity))
                                 if !(fresh > 0 && i == fresh - 1) { Rule() }
                             }
                             if items.count > limit {
@@ -97,6 +99,7 @@ struct StreamView: View {
                     }
                     .padding(.horizontal)
                     .column()
+                    .animation(still ? nil : .easeOut(duration: 0.2), value: items.first?.id)
                 }
             }
             .debugScroll()
@@ -107,7 +110,7 @@ struct StreamView: View {
             .hootScreenTitle()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .refreshable { await store.load() }
+            .hootRefresh { await store.load() }
             .toolbar {
                 // Bediening is stil (design system): grijs en zonder glazen rondje, zoals het tandwiel.
                 ToolbarItem(placement: .topBarTrailing) {
@@ -201,7 +204,7 @@ private struct SeenMarker: View {
     var body: some View {
         HStack(spacing: Space.s3) {
             Rectangle().fill(Theme.accent).frame(height: 1)
-            Text("Hier was je gebleven").font(.caption.weight(.bold)).foregroundStyle(Theme.accent).fixedSize()
+            Text("Hier was je gebleven").font(.system(.footnote, design: .serif)).foregroundStyle(Theme.ink2).fixedSize()
             Rectangle().fill(Theme.accent).frame(height: 1)
         }
         .padding(.vertical, Space.s3)

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
-import { SparkleIcon, CaretIcon, CloseIcon, ICON_SM } from '../components/icons.jsx'
+import { EditionArt, SparkleIcon, CaretIcon, CloseIcon, ICON_SM } from '../components/icons.jsx'
 import { BriefReader } from '../components/BriefReader.jsx'
 import { BrandLogo } from '../components/Brand.jsx'
 import { KopSun, EindeSun } from '../components/SunArt.jsx'
@@ -17,6 +17,7 @@ import { TermHelp } from '../components/Terms.jsx'
 import { Why } from '../components/Why.js'
 import { labelFor } from '../lib/label.js'
 import { wholeSentences } from '../../shared/zinnen.mjs'
+import { usePrintEdition } from '../hooks/usePrintEdition.js'
 import { useIntroMax } from '../lib/intro.js'
 
 // Rubriek van elke plek in de editie (komt van de server), als label boven het verhaal. Zelfde
@@ -59,7 +60,7 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
         </span>
         {item.image ? (
           <span className="thumb">
-            <Img url={item.image} width="64" height="64" />
+            <Img url={item.image} width="96" height="64" />
           </span>
         ) : null}
       </a>
@@ -141,6 +142,8 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
     if (!active && hintSeen.current) onHintDone?.()
   }, [active, onHintDone])
 
+  usePrintEdition(ref, edition?.id, active, ready && rows.length > 0)
+
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
       <div className="col col--wide col--front">
@@ -183,6 +186,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               </p>
             </>
           ) : null}
+          {ready ? <hr className="edrule" /> : null}
         </div>
         {ready && hasBrief ? (
           <button type="button" className="briefcta" onClick={() => setReading(true)} aria-haspopup="dialog">
@@ -234,7 +238,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
         ) : failedLoad ? (
           <LoadError onRetry={onRefresh} />
         ) : rows.length === 0 ? (
-          <Empty
+          <Empty art={EditionArt}
             title="Er is nog geen Editie"
             action={
               <a className="btn" href="#/stroom">

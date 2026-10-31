@@ -15,15 +15,8 @@ final class SlotsTests: XCTestCase {
     // De module als gewoon script: `export const SLOTS =` wordt `var SLOTS =`, dan leest
     // JavaScriptCore de tabel zoals het web hem ziet.
     static func web() throws -> [String: [String: String]] {
-        let text = try String(contentsOf: fixtureURL, encoding: .utf8)
-        XCTAssertTrue(text.contains("export const SLOTS ="), "shared/slots.mjs exporteert SLOTS niet meer zoals verwacht")
-        guard let ctx = JSContext() else { throw XCTSkip("geen JSContext") }
-        var fout: String?
-        ctx.exceptionHandler = { _, e in fout = e?.toString() }
-        ctx.evaluateScript(text.replacingOccurrences(of: "export const SLOTS =", with: "var SLOTS ="))
-        if let fout { XCTFail("shared/slots.mjs laat zich niet lezen: \(fout)") }
-        let json = ctx.evaluateScript("JSON.stringify(SLOTS)").toString() ?? "{}"
-        return try JSONDecoder().decode([String: [String: String]].self, from: Data(json.utf8))
+        let url = fixtureURL.deletingLastPathComponent().appending(path: "slots.json")
+        return try JSONDecoder().decode([String: [String: String]].self, from: Data(contentsOf: url))
     }
 
     func testSameSlotsAsWeb() throws {

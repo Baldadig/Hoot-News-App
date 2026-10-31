@@ -6,7 +6,7 @@
 //   npm run build:core            bouwt en schrijft
 //   node scripts/build-edition-core.mjs --check   alleen vergelijken met het ingecheckte bestand
 import { build } from 'esbuild'
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -62,6 +62,7 @@ if (isMain) {
   } else {
     mkdirSync(dirname(resolve(ROOT, OUT)), { recursive: true })
     writeFileSync(resolve(ROOT, OUT), fresh)
+    copyFileSync(resolve(ROOT, 'shared/slots.json'), resolve(ROOT, 'ios/Hoot/Resources/slots.json'))
     console.log(`${OUT}: ${(fresh.length / 1024).toFixed(0)} kB, sha256 ${hashOf(fresh).slice(0, 12)}`)
   }
 }

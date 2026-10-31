@@ -99,7 +99,7 @@ test('Geen kloktijden in webteksten: dagdelen in de Editie, de Selectie, Instell
   }
   assert.match(read('views/Edition.jsx'), /\{upNext\(edition\.slot\)\}/)
   // De dagdelen staan in één tabel (shared/slots.mjs, D1); iOS spiegelt hem.
-  assert.match(readFileSync(new URL('../shared/slots.mjs', import.meta.url), 'utf8'), /avond: \{[^}]*volgende: 'morgenochtend'/)
+  assert.equal(JSON.parse(readFileSync(new URL('../shared/slots.json', import.meta.url), 'utf8')).avond.volgende, 'morgenochtend')
   const vak = read('views/Vak.jsx')
   assert.match(vak, /De eerste Selectie komt/)
   assert.match(vak, /Elke maandagochtend nieuw\./)

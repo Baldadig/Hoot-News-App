@@ -16,11 +16,12 @@ struct EditionRowModel: Identifiable {
 // volgende er is en het dagdeel zelf. Geen kloktijden, alleen deze woorden.
 // Spiegel van shared/slots.mjs, getoetst in SlotsTests: verander je hier een woord, dan daar ook.
 enum Slots {
-    static let all: [String: (naam: String, volgende: String, dagdeel: String)] = [
-        "ochtend": (naam: "Ochtendeditie", volgende: "in de middag", dagdeel: "in de ochtend"),
-        "middag": (naam: "Middageditie", volgende: "in de vroege avond", dagdeel: "in de middag"),
-        "avond": (naam: "Avondeditie", volgende: "morgenochtend", dagdeel: "in de vroege avond"),
-    ]
+    struct Slot: Decodable { let naam, volgende, dagdeel: String }
+    static let all: [String: Slot] = {
+        guard let url = Bundle.main.url(forResource: "slots", withExtension: "json"),
+              let data = try? Data(contentsOf: url), let table = try? JSONDecoder().decode([String: Slot].self, from: data) else { preconditionFailure("Dagdelen ontbreken in de bundel") }
+        return table
+    }()
     static func naam(_ slot: String) -> String { all[slot]?.naam ?? "Editie" }
 }
 
@@ -100,6 +101,9 @@ struct EditionView: View {
     @Environment(\.brandHandoff) private var handoff
     @Environment(\.accessibilityReduceMotion) private var still
     @Environment(EditionAlerts.self) private var alerts
+    @AppStorage("seenEdition") private var seenEdition = ""
+    @State private var ruleDrawn = true
+    @State private var storyShown = true
     @State private var endVisible = false // de zon onderaan is in beeld
     @State private var risenAt: Date? // sinds wanneer die zon opkomt (één keer)
     @State private var alertsOn = false // net "ja" gezegd op het seintje onderaan
@@ -125,7 +129,7 @@ struct EditionView: View {
     private var upNext: String {
         guard let volgende = store.edition?.slot.flatMap({ Slots.all[$0]?.volgende }) else { return "" }
         // Vaste spatie in "je klaar.": de zin eindigt nooit met één woord alleen op de laatste regel.
-        return " De volgende staat \(volgende) voor je\u{00A0}klaar."
+        return " De volgende staat \(volgende) klaar."
     }
 
     @State private var path = NavigationPath()
@@ -203,7 +207,7 @@ struct EditionView: View {
                         ScreenTitle(title, gap: 0).frame(maxWidth: .infinity, alignment: .leading)
                     }
                     if store.status == .loading && rows.isEmpty {
-                        ProgressView().frame(maxWidth: .infinity, minHeight: 240)
+                        WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
                     } else if rows.isEmpty {
                         if store.status == .failed {
                             EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Hoot heeft nog geen Editie op dit toestel. Zodra je verbinding hebt, verschijnt hij hier.", retry: store.load)
@@ -219,7 +223,9 @@ struct EditionView: View {
                             .padding(.bottom, Space.s4)
                         // Kon er niet ververst worden, dan zegt dat het onder de datum: titel en datum blijven bij elkaar.
                         StaleNotice(gap: Space.s4)
+                        StrongRule(drawn: ruleDrawn).padding(.bottom, Space.s4)
                         slot(rows[0]) { LeadCard(item: rows[0].item, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
+                            .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
                         if wide {
                             // Breed: de rest in twee kolommen, elk verhaal met een lijn erboven.
                             LazyVGrid(columns: [GridItem(.flexible(), spacing: Space.s6, alignment: .top), GridItem(.flexible(), spacing: Space.s6, alignment: .top)], alignment: .leading, spacing: Space.s2) {
@@ -301,7 +307,7 @@ struct EditionView: View {
             .hootScreenTitle() // het verhaal wint van de schermtitel (C7)
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .refreshable { await store.load() }
+            .hootRefresh { await store.load() }
             .toolbar {
                 // Het woordmerk, klein linksboven: je ziet waar je bent, zonder dat het de krant overneemt.
                 // Hier landt het opstartscherm op.
@@ -309,6 +315,23 @@ struct EditionView: View {
                     .sharedBackgroundVisibility(.hidden)
             }
             .settingsButton()
+            .task(id: store.shownEdition?.id) {
+                guard let id = store.shownEdition?.id, seenEdition != id, !store.editionRows.isEmpty else { return }
+                while handoff?.landed == false || handoff?.leaving == true {
+                    try? await Task.sleep(for: .milliseconds(50))
+                    if Task.isCancelled { return }
+                }
+                seenEdition = id
+                ruleDrawn = false; storyShown = false
+                if still {
+                    withAnimation(.easeOut(duration: 0.2)) { ruleDrawn = true; storyShown = true }
+                } else {
+                    withAnimation(.timingCurve(0.2,0.8,0.2,1,duration: 0.4)) { ruleDrawn = true }
+                    try? await Task.sleep(for: .milliseconds(480))
+                    guard !Task.isCancelled else { ruleDrawn = true; storyShown = true; return }
+                    withAnimation(.timingCurve(0.2,0.7,0.2,1,duration: 0.2)) { storyShown = true }
+                }
+            }
             .task(id: store.editionRows.count) {
                 // `-HootScreen verhaal`: het eerste verhaal met de meeste bronnen, om te vergelijken.
                 if DebugLaunch.screen("verhaal"), path.isEmpty, let story = store.editionRows.compactMap(\.story).max(by: { ($0.sourceCount ?? 1) < ($1.sourceCount ?? 1) }) { path.append(story) }
