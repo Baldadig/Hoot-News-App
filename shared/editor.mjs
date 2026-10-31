@@ -12,7 +12,10 @@
 // localeCompare; elke sortering heeft een totale vergelijker die eindigt op id.
 import { INTERESTS, topicById } from '../src/lib/topics.js'
 import { MIN_EVENTS } from '../src/lib/affinity.js'
-import { DESKS, DESK_LABEL } from '../netlify/lib/desks.mjs'
+import { DESKS, DESK_LABEL, desksOf, storyForeignOf, VL_HOME } from '../netlify/lib/desks.mjs'
+
+// De buitenlandse kernrubrieken (Binnenland is Nederland, zie netlify/lib/desks.mjs).
+export const FOREIGN_DESKS = new Set(['buitenland', 'vs', 'middenoosten', 'oekraine'])
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
 const sum = (xs) => xs.reduce((s, v) => s + v, 0)
@@ -128,9 +131,20 @@ export const SUM_MAX = 40
 // Wat het profiel over één bericht zegt: zijn onderwerpen, en voor een bericht zonder enig
 // onderwerp de rubriek van een vakbron (een stuk van Carbon Brief zonder trefwoord is toch
 // wetenschap). Een treffer is { t, f, v }: onderwerp, gebied, waarde.
-function topicHits(item, prof) {
+//
+// Binnenland is geografie, geen lijst thema's (feedback 31 oktober: het Poolse hof kreeg "Omdat je
+// Misdaad & recht volgt"). Een onderwerp van Binnenland (wonen, zorg, misdaad...) telt niet bij een
+// buitenlands bericht; wel bij een Vlaamse bron, die je zelf koos. En wie Binnenland koos, wil het
+// Nederlandse nieuws, ook zonder trefwoord (het zeehondencentrum, het kabinet): elk Nederlands bericht
+// is een treffer GEO_NL ("Omdat je Binnenland volgt"), hooguit zo sterk als een geërfde interesse.
+// `geo`: 'nl', 'int' of null (geoOf).
+export const GEO_NL = 'geo:nl'
+function topicHits(item, prof, geo = null) {
   const ts = item.topics || []
-  const out = ts.filter((t) => prof.topicP[t] !== undefined).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t] }))
+  const abroad = geo === 'int' && !VL_HOME.has(item.source)
+  const out = ts.filter((t) => prof.topicP[t] !== undefined && !(abroad && FAMILY_OF[t] === 'binnenland' && prof.topicP[t] > 0)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t] }))
+  const fb = prof.family.binnenland || 0
+  if (fb > 0 && geo === 'nl') out.push({ t: GEO_NL, f: 'binnenland', v: Math.min(fb, W_INHERITED) })
   if (!ts.length) {
     const cat = prof.catOf.get(item.source)
     const fam = cat && INTERESTS.find((f) => f.cats.includes(cat))
@@ -140,14 +154,30 @@ function topicHits(item, prof) {
 }
 const strongestFirst = (a, b) => b.v - a.v || byId(a.t, b.t)
 
+// Waar een bericht over gaat: 'nl' (Binnenland), 'int' (buitenland) of null. De rubriek van het
+// verhaal (`desk`, voor iedereen gelijk) gaat voor; anders het bericht zelf, in de context van zijn
+// verhaal: een verhaal met vooral buitenlandse bronnen (`foreign`) is buitenland, ook als het
+// NOS-stuk erover geen land noemt (Christa Pike, de mislukte executie in de VS).
+export function geoOf(item, desk = null, foreign = false) {
+  if (desk === 'binnenland') return 'nl'
+  if (FOREIGN_DESKS.has(desk)) return 'int'
+  const ds = desksOf(item, { storyForeign: foreign })
+  for (const d of ds) if (FOREIGN_DESKS.has(d)) return 'int' // zoals primaryDesk: het land gaat voor
+  if (ds.has('binnenland')) return 'nl'
+  return foreign ? 'int' : null
+}
+
 // De persoonlijke punten van een kandidaat. `items`: zijn berichten uit je eigen bronnen.
 // `ctx.readIds`: wat je al las (een Set). Elk part is { pts, ... } met wat het waarom nodig heeft.
 // Al gelezen zonder nieuws is geen punt maar een filter: dan staat er `seen` (0 punten), en de
-// selectie slaat de kandidaat over.
-export function personalParts(items = [], prof, ctx = {}) {
+// selectie slaat de kandidaat over. `story`: wat voor iedereen gelijk is aan het verhaal, als de
+// selectie dat weet: zijn rubriek (`desk`, st.desk) en of het vooral buitenlandse bronnen heeft
+// (`foreign`); anders kijken we naar de berichten zelf.
+export function personalParts(items = [], prof, ctx = {}, story = {}) {
   const parts = {}
   if (!items.length) return parts
-  const hits = items.map((i) => topicHits(i, prof))
+  const foreign = story.foreign ?? (items.length > 1 && storyForeignOf(items))
+  const hits = items.map((i) => topicHits(i, prof, geoOf(i, story.desk ?? null, foreign)))
   const flat = hits.flat()
   const pos = flat.filter((h) => h.v > 0).sort(strongestFirst)
   if (pos.length) {
@@ -159,7 +189,7 @@ export function personalParts(items = [], prof, ctx = {}) {
     const coverOf = (t) => hits.filter((hs) => hs.some((h) => h.t === t)).length / items.length
     const label = [...new Map(pos.map((h) => [h.t, h])).values()]
       .map((h) => ({ ...h, c: coverOf(h.t) * h.v }))
-      .sort((a, b) => b.c - a.c || strongestFirst(a, b))[0]
+      .sort((a, b) => b.c - a.c || (a.t === GEO_NL) - (b.t === GEO_NL) || strongestFirst(a, b))[0] // het onderwerp zelf gaat voor "Binnenland"
     parts.interest = { pts: Math.round(P.INTEREST * best.v * (0.5 + 0.5 * cover)), t: label.t, f: label.f, origin: prof.origin?.[label.t] || 'gekozen' }
     const second = pos.find((h) => h.f !== best.f && h.v >= CROSS_MIN)
     if (second && best.v >= CROSS_MIN) parts.cross = { pts: P.CROSS, f: [best.f, second.f] }
@@ -275,6 +305,7 @@ export function whyOf(entry = {}, { parts = {}, sourceCount = 0, desk = entry.de
   if (parts.cross && (code === 'interest' || code === 'cross')) return { code: 'cross', text: `Raakt ${FAMILY_LABEL[parts.cross.f[0]]} én ${FAMILY_LABEL[parts.cross.f[1]]}` }
   if (code === 'interest') {
     if (p.t.startsWith('bron:')) return { code: 'vak', text: 'Uit je vakbronnen' }
+    if (p.t === GEO_NL) return { code, text: `Omdat je ${FAMILY_LABEL.binnenland} volgt` }
     if (p.origin === 'geleerd') return { code: 'learned', text: `Omdat je vaak over ${labelOf(p.t)} leest` }
     return { code, text: `Omdat je ${labelOf(p.t)} volgt` }
   }
@@ -312,9 +343,10 @@ export function profileSummary(prof) {
 // een dubbele zetel is om voor te ruilen.
 export const KERN = [...DESKS] // binnenland, buitenland, vs, middenoosten, oekraine, wetenschap
 export const OWN_DESKS = ['tech', 'economie', 'regio']
-// Het gewicht van een rubriek is 1 (kern) of 0 (eigen pagina), plus DESK_GAIN × het sterkste
-// onderwerp dat erbij hoort: wie VS-politiek volgt, krijgt een tweede VS-zetel, geen tweede
-// Binnenland. De tabel is letterlijk die van het referentieprototype.
+// Het gewicht van een rubriek is 1 (kern; KERN_INT_W voor de buitenlandse kernrubrieken als je
+// interesses koos maar Wereld niet) of 0 (eigen pagina; Regio ook 0 zonder regiobron), plus DESK_GAIN ×
+// het sterkste onderwerp dat erbij hoort: wie VS-politiek volgt, krijgt een tweede VS-zetel, geen
+// tweede Binnenland. De tabel is letterlijk die van het referentieprototype.
 export const DESK_GAIN = 3
 export const TOPIC_DESK = {
   nederland: ['binnenland'], verkiezingen: ['binnenland', 'vs'], 'vs-politiek': ['vs'], trump: ['vs'], europa: ['buitenland'],
@@ -326,29 +358,56 @@ export const TOPIC_DESK = {
 }
 export const DESK_CAP = 3
 export const KERN_MIN = 3
+// Wie interesses koos maar Wereld niet, krijgt de buitenlandse kernrubrieken lichter: een krant met
+// buitenland, maar Binnenland krijgt eerder een tweede zetel (feedback 31 oktober: de eerste Editie
+// van een nieuwe lezer met Binnenland was half buitenland).
+export const KERN_INT_W = 0.7
 // De voorpagina: de FRONT zwaarste verhalen met ≥ FRONT_MIN bronnen, voor iedereen gelijk, plus
 // elk verhaal vanaf FRONT_BIG bronnen, tot hooguit FRONT_MAX.
 export const FRONT = 2
 export const FRONT_MIN = 6
 export const FRONT_BIG = 10
 export const FRONT_MAX = 3
+// Een Nederlandse krant (feedback 31 oktober: de eerste Editie had alleen buitenland bovenaan):
+// - voor het belang telt een bron van buiten Nederland half (NL_OTHER_W): `eff` = NL-bronnen +
+//   0,5 × de rest; het label houdt de echte telling;
+// - op de voorpagina alleen verhalen met minstens FRONT_NL_MIN Nederlandse bronnen, en hooguit één
+//   buitenlands verhaal (een buitenlandse rubriek, of minder dan de helft Nederlandse bronnen),
+//   tenzij een tweede ook in Nederland breed is (FRONT_NL_INT);
+// - staat er dan nog geen Nederlands verhaal op, dan komt het zwaarste met minstens FRONT_NL_HOME
+//   Nederlandse bronnen erbij (een Nederlands verhaal: niet buitenlands);
+// - groot nieuws (vanaf FRONT_BIG bronnen) dat niet op de voorpagina past, krijgt toch een plek;
+// - wie interesses koos, krijgt buiten de voorpagina hooguit INT_MAX buitenlandse plekken zonder
+//   persoonlijke reden (een interessepunt van minstens MIN_WHY_PTS).
+export const NL_OTHER_W = 0.5
+export const FRONT_NL_MIN = 2
+export const FRONT_NL_INT = 5
+export const FRONT_NL_HOME = 3
+export const INT_MAX = 1
 const PLAN_DESKS = [...KERN, ...OWN_DESKS] // vaste volgorde: bij gelijke stand wint de eerste
 
 // De zetels voor `seats` plekken, in de volgorde waarin ze worden toegekend. Zonder keuzes is dat
 // precies KERN: de gewone krant. `front`: de rubrieken die de voorpagina al heeft (st.desk, voor
-// iedereen gelijk); die tellen mee voor de kernregel. Uitvoer: { order, weights } (weights
-// afgerond, ter inzage).
-export function deskPlan(prof, seats, front = []) {
+// iedereen gelijk); die tellen mee voor de kernregel. `filled`: rubrieken die al een plek hebben (de
+// voorpagina en groot nieuws, in selectForReader): die tellen als toegekende zetel, zodat de volgende
+// zetel in die rubriek pas later komt. Uitvoer: { order, weights } (weights afgerond, ter inzage).
+export function deskPlan(prof, seats, front = [], filled = []) {
   const w = {}
-  for (const d of PLAN_DESKS) w[d] = KERN.includes(d) ? 1 : 0
+  const chose = Object.keys(prof?.family || {}).length > 0
+  const world = (prof?.family?.wereld || 0) >= OUTSIDE_FAMILY
+  for (const d of PLAN_DESKS) w[d] = KERN.includes(d) ? (chose && !world && FOREIGN_DESKS.has(d) ? KERN_INT_W : 1) : 0
   const best = {}
   for (const [t, v] of Object.entries(prof?.topicP || {})) {
     if (v <= 0) continue
     for (const d of TOPIC_DESK[t] || []) best[d] = Math.max(best[d] || 0, v)
   }
   for (const d of PLAN_DESKS) if (best[d]) w[d] += DESK_GAIN * best[d]
+  // Regio alleen als je een regiobron volgt: anders blijft die zetel leeg en gaat de plek naar het
+  // zwaarste wat er over is.
+  if (prof?.followed?.size && prof?.catOf && ![...prof.followed].some((id) => prof.catOf.get(id) === 'regio')) w.regio = 0
   const got = {}
   for (const d of PLAN_DESKS) got[d] = 0
+  for (const d of filled) if (d in got) got[d]++
   const order = []
   while (order.length < seats) {
     let pick = null

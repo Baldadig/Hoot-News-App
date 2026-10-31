@@ -63,3 +63,89 @@ test('een verhaal telt voor de rubriek waar het vooral over gaat', () => {
   assert.equal(primaryDesk([]), null)
   assert.equal(primaryDesk([s('wetenschap'), s(), s(), s(), s()]), null) // één losse vermelding van vijf
 })
+
+// ---- Binnenland is Nederland (feedback 31 oktober) ----
+// Koppen uit de momentopname van 30 oktober (avond) en de live feed van 31 oktober.
+import { isBinnenland, storyForeignOf, deskOfStory, NL_HOME, VL_HOME } from '../netlify/lib/desks.mjs'
+import { SOURCES } from '../netlify/lib/sources.mjs'
+
+test('Binnenland: de Nederlandse en Vlaamse bronnen in desks.mjs volgen de catalogus', () => {
+  const want = SOURCES.filter((s) => s.cat === 'nl' || s.cat === 'regio' || s.id === 'fd').map((s) => s.id).sort()
+  assert.deepEqual([...NL_HOME].sort(), want)
+  assert.deepEqual([...VL_HOME].sort(), [...SOURCES.filter((s) => s.cat === 'vl').map((s) => s.id), 'sporza'].sort())
+})
+
+const BINNENLAND = [
+  { source: 'nos', title: 'Premier Jetten wil weer doorpraten over belastingplan, maar niet over stikstof' },
+  { source: 'volkskrant', title: 'Kabinet stelt stikstofwetten uit: minister Van Essen wil na overleg met boeren meer tijd' },
+  { source: 'nos', title: 'Man rent op koning af bij werkbezoek in Ursem, beveiligers grijpen in' },
+  { source: 'trouw', title: 'Meer rust? Graag. Maar op welke dag maakt veel organisaties niet uit', url: 'https://www.trouw.nl/binnenland/meer-rust' },
+  { source: 'telegraaf', title: 'Egyptisch spionnennetwerk actief in Nederland, ’de lange arm van Cairo’ reikt zelfs tot Ajax', url: 'https://www.telegraaf.nl/binnenland/x' }, // sterk bezit wint van Cairo
+  { source: 'nu', title: 'Tienduizenden huishoudens per brief gewaarschuwd voor tijgermug in de buurt' }, // nu ook NU.nl
+  { source: 'nd', title: 'De SGP zet hoog in met rechts blok, maar kabinet hint op akkoord door het midden met CU en 50Plus' },
+  { source: 'hln', title: 'Verwarde man stormt op koning Willem-Alexander af bij werkbezoek, beveiligers moeten ingrijpen' }, // Vlaamse bron, maar over Nederland
+  { source: 'ed', title: 'Eindhoven gaat eigenaren verplichten leegstaande woningen te verhuren' },
+  { source: 'fd', title: 'Minister Vincent Karremans: ‘Hinder van Schiphol blijft altijd’' },
+  { source: 'guardian', title: 'Dutch coalition talks collapse as Wilders walks out' }, // buitenlandse bron, sterk bezit
+  { source: 'ad', title: 'Paniek in onderwereld: politie valt massaal binnen op zoek naar Google Pixel-telefoons' }, // een bedrijfsnaam is geen plek
+  { source: 'nos', title: 'Premier Jetten bij G20-top in Johannesburg' }, // randgeval, bewust: een Nederlandse speler in het buitenland
+]
+for (const it of BINNENLAND) test(`Binnenland: ${it.source} | ${it.title}`, () => assert.ok(desksOf(it).has('binnenland')))
+
+// [bericht, opties, rubriek die het dan wel is (of null)]
+const NIET = [
+  [{ source: 'nrc', title: 'Heel Silicon Valley heeft belang bij slagen van beursgang Anthropic' }, {}, 'buitenland'],
+  [{ source: 'nos', title: "Wat leren we van de grootste cryptoroof ooit? 'Hou je mond over wat je bezit'", summary: 'Een paar transacties van in totaal zo’n 18.000 bitcoin, van het grootste cryptoplatform ter wereld, Binance, naar een anonieme digitale portemonnee.' }, {}, 'buitenland'],
+  [{ source: 'ad', title: 'Reisgids Chili ontploft na slechte recensie Nederlandse toerist', url: 'https://www.ad.nl/binnenland/reisgids-chili' }, {}, 'buitenland'], // "Nederlandse" is zwak bezit
+  [{ source: 'standaard', title: 'Honderdduizenden Italianen komen op straat, maar protesten verlopen grotendeels vreedzaam', url: 'https://www.standaard.be/binnenland/x' }, {}, 'buitenland'],
+  [{ source: 'demorgen', title: '‘Een inschattingsfout’: nederlaag tegen Bouchez blijft premier De Wever achtervolgen', url: 'https://www.demorgen.be/politiek/x' }, {}, 'buitenland'],
+  [{ source: 'gva', title: 'Praktisch rijexamen in Vlaanderen vanaf januari enkel nog na theoretisch in Vlaanderen', url: 'https://www.gva.be/binnenland/x' }, {}, 'buitenland'],
+  [{ source: 'hbvl', title: 'Verdachte in onderzoek naar dood van Brusselse politieman Nordine El Talbi vrijgelaten', url: 'https://www.hbvl.be/binnenland/x' }, {}, 'buitenland'],
+  [{ source: 'gva', title: 'Arizona zocht al naar 42 miljard, maar heeft het budgettaire tij nog altijd niet gekeerd', url: 'https://www.gva.be/politiek/x' }, {}, 'buitenland'], // de Belgische coalitie "Arizona"
+  [{ source: 'nieuwsblad', title: 'Lachen op een begrafenis is geen schande', url: 'https://www.nieuwsblad.be/binnenland/x' }, {}, 'buitenland'], // Vlaamse /binnenland/ is België
+  [{ source: 'fd', title: 'Het Zuid-Afrikaanse Howick laat zien ook zonder het ANC te kunnen', url: 'https://fd.nl/politiek/x' }, {}, 'buitenland'],
+  [{ source: 'fd', title: 'Lagarde stapt op, het gevecht om de opvolging kan beginnen', summary: 'De Europese Centrale Bank zoekt een nieuwe president.', url: 'https://fd.nl/politiek/x' }, {}, 'buitenland'],
+  [{ source: 'volkskrant', title: 'Historische beursval: Alphabet verliest 500 miljard dollar aan beurswaarde', url: 'https://www.volkskrant.nl/buitenland/x' }, {}, 'buitenland'], // de bron zet het zelf onder Buitenland
+  [{ source: 'nos', title: 'Pools hof oordeelt over onafhankelijkheid rechters' }, {}, 'buitenland'],
+  [{ source: 'nos', title: 'Warschau en Kopenhagen sluiten grens voor vrachtverkeer' }, {}, 'buitenland'], // hoofdsteden ontbraken in de patronen
+  [{ source: 'nu', title: 'Zeldzame vondst in Pompeï: 2.000 jaar oude kast vol persoonlijke bezittingen' }, {}, 'buitenland'],
+  [{ source: 'volkskrant', title: 'Hoe Sarah J. Maas 75 miljoen boeken wist te verkopen', url: 'https://www.volkskrant.nl/cultuur-media/x' }, {}, null], // cultuur: eigen soort
+  [{ source: 'nos', title: 'Ajax wint met 3-0 van PSV', topics: ['voetbal'] }, {}, null], // sport: eigen soort
+  [{ source: 'nyt', title: 'Christa Pike Describes Pain and Isolation After Botched Execution' }, {}, null], // buitenlandse bron zonder Nederlands bezit
+  [{ source: 'nos', title: 'Bedroefde reacties om dood Patrick Stewart: ‘Een man om van te houden’' }, { storyForeign: true }, null], // verhaal van vooral NYT, Variety en de Guardian
+]
+for (const [it, opts, alt] of NIET) {
+  test(`geen Binnenland: ${it.source} | ${it.title}`, () => {
+    const ds = desksOf(it, opts)
+    assert.ok(!ds.has('binnenland'), [...ds].join(','))
+    if (alt) assert.ok(ds.has(alt), `verwacht ${alt}, kreeg ${[...ds]}`)
+    assert.equal(isBinnenland(it, opts), false)
+  })
+}
+
+test('Binnenland: een verhaal van vooral buitenlandse bronnen is geen Binnenland, ook al zegt het NOS-stuk niets buitenlands', () => {
+  const items = [
+    { source: 'nos', title: 'Bedroefde reacties om dood Patrick Stewart' },
+    { source: 'nyt', title: 'Patrick Stewart, Star Trek captain, dies at 86' },
+    { source: 'bbc', title: 'Sir Patrick Stewart dies aged 86' },
+    { source: 'guardian', title: 'Patrick Stewart obituary' },
+  ]
+  assert.equal(storyForeignOf(items), true)
+  assert.notEqual(deskOfStory(items), 'binnenland')
+  assert.ok(desksOf(items[0]).has('binnenland'), 'los, zonder verhaal, blijft het NOS-stuk Binnenland')
+})
+test('Binnenland: een Nederlands verhaal uit drie Nederlandse bronnen blijft Binnenland', () => {
+  const items = [
+    { source: 'nd', title: 'De SGP zet hoog in met rechts blok' },
+    { source: 'trouw', title: 'Na de zoveelste ronde gesprekken over het Belastingplan zijn alleen 50Plus en ChristenUnie tevreden' },
+    { source: 'nu', title: "Rechts blok somber na 'stevig' gesprek met kabinet" },
+  ]
+  assert.equal(storyForeignOf(items), false)
+  assert.equal(deskOfStory(items), 'binnenland')
+})
+test('Binnenland: namen die ook een gewoon woord zijn tellen alleen met hoofdletter', () => {
+  assert.ok(!desksOf({ source: 'nyt', title: 'Clues leiden investigators to a cold case in Ohio' }).has('binnenland'))
+  assert.ok(desksOf({ source: 'guardian', title: 'Students protest in Leiden over housing' }).has('binnenland'))
+  assert.ok(!desksOf({ source: 'standaard', title: 'PVDA wil hogere lonen' }).has('binnenland')) // PVDA is Belgisch, PvdA Nederlands
+  assert.ok(desksOf({ source: 'guardian', title: 'PvdA and GroenLinks merge' }).has('binnenland'))
+})

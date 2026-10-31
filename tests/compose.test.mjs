@@ -107,7 +107,7 @@ test('De Redacteur: de nieuwe lezer krijgt de gewone krant, zonder persoonlijk w
 test('De Redacteur: een verhaal op de voorpagina heeft voor iedereen dezelfde rubriek', () => {
   const desks = new Map()
   for (const { persona, edition } of eds) {
-    for (const e of edition.entries.filter((x) => x.why.code === 'groot' && x.kind === 'story')) {
+    for (const e of edition.entries.filter((x) => x._front && x.kind === 'story')) {
       if (!desks.has(e.id)) desks.set(e.id, e.desk)
       assert.equal(e.desk, desks.get(e.id), `${persona.id}: ${e.id}`)
     }

@@ -190,8 +190,8 @@ test('editie: spreiding over bronnen maakt een achtergrondstuk nooit de kop', ()
   const now = NOW
   // De vorige plek heeft een Guardian-kop; het tweede verhaal heeft alleen een vers Guardian-stuk
   // en een portret van gisteren uit een eigen bron.
-  const a1 = art('guardian', 'Dutch cabinet collapses in The Hague after coalition row', 'x', 1, { image: 'https://x/1.jpg', section: 'binnenland' })
-  const rest = ['bbc', 'reuters', 'wapo'].map((src) => art(src, 'Dutch government collapses in The Hague', 'x', 1, { section: 'binnenland' }))
+  const a1 = art('guardian', 'Dutch cabinet collapses after Wilders quits coalition', 'x', 1, { image: 'https://x/1.jpg' })
+  const rest = ['bbc', 'reuters', 'wapo'].map((src) => art(src, 'Dutch government collapses as Wilders quits', 'x', 1))
   const b1 = art('guardian', 'Lula wins Brazil election', 'x', 2)
   const b2 = art('volkskrant', 'Portret: André Janones, de man achter Lula', 'x', 40)
   const pool = [a1, ...rest, b1, b2]

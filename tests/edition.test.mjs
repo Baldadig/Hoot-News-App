@@ -60,6 +60,25 @@ test('server: twee onderdelen wijzen nooit naar hetzelfde verhaal', () => {
   assert.equal(out[1].id, 's1d777vr')
 })
 
+// Feedback 31 oktober: het NOS-stuk over de dood van Patrick Stewart stond als Binnenland in de algemene
+// Editie, omdat het zijn verhaal (vooral NYT, Variety en de Guardian) kwijtraakte en de rubriek van het
+// losse bericht kreeg.
+test('server: raakt het hoofdbericht zijn verhaal kwijt, dan telt de rubriek van het verhaal, niet Binnenland', () => {
+  const its = [
+    { id: 'n1', source: 'nos', title: 'Bedroefde reacties om dood Patrick Stewart' },
+    { id: 'y1', source: 'nyt', title: 'Patrick Stewart, Star Trek captain, dies at 86' },
+    { id: 'b1', source: 'bbc', title: 'Sir Patrick Stewart dies aged 86' },
+    { id: 'g1', source: 'guardian', title: 'Patrick Stewart obituary' },
+  ]
+  const byId = new Map(its.map((i) => [i.id, i]))
+  const snapshot = [{ id: 'sStew', leadId: 'n1', itemIds: its.map((i) => i.id), sourceCount: 4 }]
+  const [loose] = relinkEdition([{ kind: 'story', id: 'sStew', leadId: 'n1', desk: null }], { stories: [], snapshot, byId })
+  assert.equal(loose.kind, 'item')
+  assert.notEqual(loose.desk, 'binnenland')
+  const [kept] = relinkEdition([{ kind: 'story', id: 'sStew', leadId: 'n1', desk: 'buitenland' }], { stories: [], snapshot, byId })
+  assert.equal(kept.desk, 'buitenland') // de rubriek van de selectie gaat voor
+})
+
 test('gepubliceerd is vast: dezelfde id met een nieuwe kop in de feed verandert de editie niet', () => {
   // Audit 22-10: id met een opgeslagen Kyiv-kop kreeg live een kop over Duitse sabotage.
   const published = new Map([['qskuc4', { ...witkoff, title: 'Russische aanvallen op Kyiv na gesprek Witkoff' }]])
