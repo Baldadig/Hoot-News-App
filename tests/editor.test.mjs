@@ -147,7 +147,7 @@ test('punten: een vakbron telt alleen voor berichten zonder onderwerp', () => {
   assert.equal(zonder.interest.t, 'bron:wetenschap')
   assert.equal(zonder.interest.pts, 11) // 18 × 0,6 × 1
   assert.equal(G.whyOf({}, { parts: zonder }).code, 'vak')
-  assert.equal(G.whyOf({}, { parts: zonder }).text, 'Uit je vakbronnen')
+  assert.equal(G.whyOf({}, { parts: zonder }).text, 'Omdat je Wetenschap volgt')
   assert.equal(G.personalParts([it('b', 'carbon', ['europa'])], p).interest, undefined)
   // Zonder interesse in dat gebied telt de vakbron niet.
   assert.equal(G.personalParts([it('c', 'carbon', [])], prof()).interest, undefined)
@@ -207,13 +207,15 @@ test('waarom: een geleerd onderwerp uit het profiel geeft "vaak over … leest"'
 test('waarom: het label komt van de treffer die het verhaal het best dekt', () => {
   const p = prof({ interests: ['politiek', 'wereld'], topics: ['vs-politiek', 'middenoosten'], taste: { topics: { middenoosten: -2 } } })
   // vs-politiek (1) in één van drie stukken, Midden-Oosten (0,88) in alle drie.
-  const its = [it('a', 'nos', ['vs-politiek', 'middenoosten']), it('b', 'nrc', ['middenoosten']), it('c', 'verge', ['middenoosten'])]
+  const its = [it('a', 'nos', ['vs-politiek', 'middenoosten'], { title: 'Witte Huis stuurt gezant naar Gaza' }), it('b', 'nrc', ['middenoosten']), it('c', 'verge', ['middenoosten'])]
   const parts = G.personalParts(its, p)
   assert.equal(parts.interest.t, 'middenoosten')
   assert.equal(parts.interest.pts, 18) // sterkte van het beste onderwerp, dekking van alles
-  assert.equal(G.whyOf({}, { parts }).text, 'Raakt Politiek én Wereld')
-  const zonderCross = { interest: parts.interest }
-  assert.equal(G.whyOf({}, { parts: zonderCross }).text, 'Omdat je Midden-Oosten volgt')
+  // Geen snijvlak: Politiek raakt maar één van de drie stukken (elk gebied moet meer dan de helft raken).
+  assert.equal(parts.cross, undefined)
+  assert.equal(G.whyOf({}, { parts }).text, 'Omdat je Midden-Oosten volgt')
+  const metCross = G.personalParts([its[0], it('d', 'nrc', ['vs-politiek', 'middenoosten'], { title: 'Trump en het Witte Huis over Gaza' }), its[1]], p)
+  assert.equal(G.whyOf({}, { parts: metCross }).text, 'Raakt Politiek én Wereld')
 })
 
 test('waarom: vaste plekken, voorkeursbron, eigen bronnen en de volgorde bij gelijke stand', () => {
@@ -295,7 +297,7 @@ test('indeling: een VS-lezer krijgt als eerste zetel VS, en minstens twee', () =
   const vs = G.deskPlan(prof({ interests: ['politiek'], topics: ['vs-politiek', 'trump'] }), 7)
   assert.equal(vs.order[0], 'vs')
   assert.ok(vs.order.filter((d) => d === 'vs').length >= 2, vs.order.join(','))
-  assert.equal(vs.weights.vs, 4)
+  assert.equal(vs.weights.vs, 3.7) // 0,7 (buitenlandse kernrubriek, Wereld niet gekozen) + 3 × 1
   assert.equal(vs.order.length, 7)
 })
 
@@ -335,9 +337,10 @@ test('indeling: bij gelijke stand de vaste volgorde, eerst KERN en dan de eigen 
 
 test('indeling: te weinig kernrubrieken? De laatste dubbele zetel ruilt voor de zwaarste die ontbreekt', () => {
   // Tech, Economie en Regio zwaar, Binnenland 4. Zonder ruil bij 6 zetels: binnenland, tech, economie,
-  // regio, binnenland, buitenland (twee kernrubrieken). De dubbele Binnenland ruilt voor VS.
+  // regio, binnenland, wetenschap (twee kernrubrieken). De dubbele Binnenland ruilt voor Buitenland
+  // (0,7: Wereld niet gekozen, de eerste in de vaste volgorde).
   const p = prof({ interests: ['tech', 'economie', 'binnenland'], topics: ['ai', 'energie', 'wonen', 'verkeer'] })
-  assert.deepEqual(G.deskPlan(p, 6).order, ['binnenland', 'tech', 'economie', 'regio', 'vs', 'buitenland'])
+  assert.deepEqual(G.deskPlan(p, 6).order, ['binnenland', 'tech', 'economie', 'regio', 'buitenland', 'wetenschap'])
   for (const seats of [6, 8, 10]) {
     const order = G.deskPlan(p, seats).order
     assert.equal(order.length, seats)
@@ -356,18 +359,46 @@ test('indeling: een eigen pagina die er één keer staat, ruilt nooit weg (allee
     const order = G.deskPlan(p, seats).order
     for (const d of G.OWN_DESKS) assert.ok(order.includes(d), `${seats}: ${order}`)
   }
-  assert.deepEqual(G.deskPlan(prof({ interests: ['tech'], topics: ['ai'] }), 3).order, ['tech', 'binnenland', 'buitenland'])
+  assert.deepEqual(G.deskPlan(prof({ interests: ['tech'], topics: ['ai'] }), 3).order, ['tech', 'binnenland', 'wetenschap'])
 })
 
 test('indeling: de voorpagina telt mee voor de kernregel', () => {
-  // Brabant: drie zetels. Heeft de voorpagina al Buitenland (en twee verhalen zonder rubriek), dan
-  // is de zetel Buitenland dubbel en ruilt hij voor de zwaarste ontbrekende kernrubriek.
+  // Brabant: drie zetels. Heeft de voorpagina al Wetenschap (en twee verhalen zonder rubriek), dan
+  // is de zetel Wetenschap dubbel en ruilt hij voor de zwaarste ontbrekende kernrubriek.
   const p = prof({ interests: ['binnenland'], topics: ['misdaad'] })
-  assert.deepEqual(G.deskPlan(p, 3).order, ['binnenland', 'regio', 'buitenland'])
-  assert.deepEqual(G.deskPlan(p, 3, ['buitenland', null, null]).order, ['binnenland', 'regio', 'vs'])
+  assert.deepEqual(G.deskPlan(p, 3).order, ['binnenland', 'regio', 'wetenschap'])
+  assert.deepEqual(G.deskPlan(p, 3, ['wetenschap', null, null]).order, ['binnenland', 'regio', 'buitenland'])
   // Heeft de voorpagina al drie kernrubrieken, dan hoeft er niets te ruilen.
   assert.deepEqual(G.deskPlan(p, 3, ['binnenland', 'buitenland', 'vs']).order, ['binnenland', 'regio', 'binnenland'])
   assert.deepEqual(G.deskPlan(prof(), 6, ['vs']).order, G.KERN) // zonder keuzes blijft het KERN
+})
+
+// Feedback 31 oktober: de eerste Editie van een nieuwe lezer met Binnenland was half buitenland.
+test('indeling: wie interesses koos maar Wereld niet, krijgt de buitenlandse kernrubrieken lichter (0,7)', () => {
+  const bi = G.deskPlan(prof({ interests: ['binnenland', 'cultuur', 'wetenschap'] }), 6)
+  for (const d of ['buitenland', 'vs', 'middenoosten', 'oekraine']) assert.equal(bi.weights[d], G.KERN_INT_W, d)
+  assert.equal(bi.weights.binnenland, 4.6) // 1 + 3 × 0,6 (de thema's) + 3 × 0,6 (Nederland, het land)
+  // Binnenland krijgt zijn tweede zetel (4,6 / 3 = 1,53) vóór de eerste buitenlandse (0,7).
+  assert.ok(bi.order.indexOf('binnenland', 1) < bi.order.indexOf('buitenland'), bi.order.join(','))
+  // Zonder keuzes, of met Wereld, blijft het 1.
+  assert.equal(G.deskPlan(prof(), 6).weights.buitenland, 1)
+  assert.equal(G.deskPlan(prof({ interests: ['wereld', 'binnenland'] }), 6).weights.vs, 1)
+})
+
+test('indeling: Regio alleen als je een regiobron volgt', () => {
+  const zonder = G.deskPlan(prof({ interests: ['binnenland'], followed: new Set(['nos', 'nu']) }), 4)
+  assert.equal(zonder.weights.regio, 0)
+  assert.ok(!zonder.order.includes('regio'), zonder.order.join(','))
+  const met = G.deskPlan(prof({ interests: ['binnenland'], followed: new Set(['nos', 'bd']), sources: [...SOURCES, { id: 'bd', cat: 'regio' }] }), 4)
+  assert.equal(met.weights.regio, 1.8)
+  assert.ok(met.order.includes('regio'), met.order.join(','))
+})
+
+test('indeling: een rubriek die al een plek heeft (groot nieuws), telt als toegekende zetel', () => {
+  const p = prof({ interests: ['binnenland'], topics: ['misdaad'] })
+  assert.deepEqual(G.deskPlan(p, 3).order, ['binnenland', 'regio', 'wetenschap'])
+  // Binnenland heeft er al een: de volgende Binnenland-zetel komt pas na Regio (4 / 3 < 4).
+  assert.deepEqual(G.deskPlan(p, 3, [], ['binnenland']).order, ['regio', 'binnenland', 'wetenschap'])
 })
 
 test('rubriek: een eigen pagina als het verhaal echt over dat gebied gaat, anders de hoofdrubriek', () => {
@@ -390,4 +421,32 @@ test('rubriek: een eigen pagina als het verhaal echt over dat gebied gaat, ander
   const both = prof({ interests: ['tech', 'economie'] })
   assert.equal(G.homeDesk([{ id: 'x', source: 'nos', topics: ['ai', 'bedrijven'] }], 'buitenland', both), 'tech')
   assert.equal(G.homeDesk([{ id: 'x', source: 'nos', topics: ['ai', 'bedrijven'] }], 'buitenland', prof({ interests: ['tech', 'economie'], topics: ['bedrijven'] })), 'economie')
+})
+
+// ---------- Binnenland is geografie (feedback 31 oktober) ----------
+test('Binnenland: een onderwerp van Binnenland telt niet bij buitenlands nieuws', () => {
+  const p = prof({ interests: ['binnenland'] })
+  const pools = { source: 'nos', title: 'Pools hof oordeelt over onafhankelijkheid rechters', topics: ['misdaad'] }
+  assert.equal(G.personalParts([pools], p).interest, undefined)
+  // Ook niet als het NOS-stuk geen land noemt, maar het verhaal vooral buitenlandse bronnen heeft.
+  const pike = { source: 'nos', title: 'Christa Pike reageert na mislukte executie', topics: ['misdaad'] }
+  assert.equal(G.personalParts([pike], p, {}, { foreign: true }).interest, undefined)
+  assert.equal(G.personalParts([pike], p, {}, { desk: 'vs' }).interest, undefined)
+  // Een Nederlands misdaadbericht wel.
+  const nl = { source: 'nos', title: 'Politie Rotterdam pakt drie verdachten op na schietpartij', topics: ['misdaad'] }
+  assert.equal(G.personalParts([nl], p).interest.t, 'misdaad')
+  // Een Vlaamse bron koos je zelf: daar telt het onderwerp wel (de Vlaamse lezer).
+  assert.equal(G.personalParts([{ source: 'standaard', title: 'Brusselse politie pakt verdachten op', topics: ['misdaad'] }], p).interest.t, 'misdaad')
+})
+
+test('Binnenland: wie het koos, krijgt Nederlands nieuws ook zonder trefwoord ("Omdat je Binnenland volgt")', () => {
+  const p = prof({ interests: ['binnenland', 'cultuur'] })
+  const zeehond = { source: 'nu', title: 'Zeehondencentrum Pieterburen voorlopig gered van faillissement', topics: [] }
+  const parts = G.personalParts([zeehond], p)
+  assert.equal(parts.interest.t, G.GEO_NL)
+  assert.equal(G.whyOf({ desk: 'binnenland' }, { parts }).text, 'Omdat je Binnenland volgt')
+  assert.equal(G.personalParts([zeehond], prof({ interests: ['cultuur'] })).interest, undefined) // niet gekozen
+  assert.equal(G.personalParts([{ source: 'nyt', title: 'Hurricane hits Florida coast', topics: [] }], p).interest, undefined)
+  // Hooguit zo sterk als een geërfde interesse.
+  assert.ok(parts.interest.pts <= Math.round(G.P.INTEREST * G.W_INHERITED))
 })

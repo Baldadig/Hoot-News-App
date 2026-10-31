@@ -47,11 +47,14 @@ test('selectie: de voorpagina is voor iedereen gelijk, met de rubriek van de ser
   const tech = run({ prof: { interests: ['tech'], topics: ['ai'] } }).filter((e) => e.front)
   assert.deepEqual(plain.map((e) => [e.id, e.desk]), [['s-kab', 'binnenland'], ['s-zel', 'oekraine']])
   assert.deepEqual(tech.map((e) => [e.id, e.desk]), plain.map((e) => [e.id, e.desk]))
-  // Vanaf FRONT_BIG bronnen óók op de voorpagina, tot FRONT_MAX.
+  // Vanaf FRONT_BIG bronnen óók op de voorpagina, tot FRONT_MAX, maar hooguit één buitenlands verhaal:
+  // het tweede grote buitenlandse verhaal krijgt een plek als groot nieuws, niet op de voorpagina.
   const w = world()
   w.stories.find((s) => s.id === 's-vance').sourceCount = 11
   w.stories.find((s) => s.id === 's-zel').sourceCount = 10
-  assert.deepEqual(run({}, w).filter((e) => e.front).map((e) => e.id).sort(), ['s-kab', 's-vance', 's-zel'])
+  const big = run({}, w)
+  assert.deepEqual(big.filter((e) => e.front).map((e) => e.id).sort(), ['s-kab', 's-vance'])
+  assert.ok(big.some((e) => e.id === 's-zel' && !e.front))
   // Een lege rubriek van de server blijft leeg (niet de rubriek uit wat deze lezer heeft).
   const x = world()
   x.stories.find((s) => s.id === 's-kab').desk = null
@@ -105,7 +108,9 @@ test('selectie: minder hiervan laat een verhaal van de voorpagina zakken', () =>
   const front = (o) => run(o, w()).filter((e) => e.front).map((e) => e.id)
   assert.ok(front({}).includes('s-kab'))
   const less = run({ prof: { taste: { topics: { nederland: -12 } } } }, w())
-  assert.deepEqual(less.filter((e) => e.front).map((e) => e.id), ['s-zel', 's-vance'])
+  // Zelensky gaat voor; Vance mag er niet bij (hooguit één buitenlands verhaal), dus het kabinet zakt
+  // naar de tweede plek.
+  assert.deepEqual(less.filter((e) => e.front).map((e) => e.id), ['s-zel', 's-kab'])
   const kab = less.find((e) => e.id === 's-kab')
   if (kab) assert.equal(kab.parts.less.pts, -12) // zakt, maar mag elders nog staan
 })
@@ -153,7 +158,9 @@ test('momentopname: de klimaatlezer begint met Wetenschap; de nieuwe lezer krijg
 test('momentopname: elke indeling heeft hooguit drie zetels per rubriek en minstens drie kernrubrieken', () => {
   for (const [id, r] of runs) {
     const order = r.sel.deskOrder
-    assert.ok(new Set(order.filter((d) => G.KERN.includes(d))).size >= G.KERN_MIN, `${id}: ${order}`)
+    // De kernregel telt de voorpagina en het groot nieuws mee (die vullen al een rubriek).
+    const desks = [...r.sel.map((e) => e.desk), ...order]
+    assert.ok(new Set(desks.filter((d) => G.KERN.includes(d))).size >= G.KERN_MIN, `${id}: ${order}`)
     for (const d of new Set(order)) assert.ok(order.filter((x) => x === d).length <= G.DESK_CAP, `${id}: ${order}`)
   }
 })
@@ -187,4 +194,62 @@ test('momentopname: selectEdition is ongewijzigd naast selectForReader', () => {
   const articles = snap.items.filter((i) => i.kind === 'article')
   const sel = selectEdition(snap.stories, articles, { mainIds: new Set(['nos', 'nrc']), now })
   for (const e of sel) assert.deepEqual(Object.keys(e).filter((k) => !['kind', 'id', 'leadId', 'desk'].includes(k)), [], JSON.stringify(e))
+})
+
+// ---------- Een Nederlandse krant (feedback 31 oktober) ----------
+// `nlCount`: hoeveel bronnen Nederlands zijn (storiesForReader rekent het uit de catalogus).
+function nlWorld() {
+  const w = world()
+  const set = (id, o) => Object.assign(w.stories.find((s) => s.id === id), o)
+  set('s-kab', { sourceCount: 4, nlCount: 4 })
+  set('s-zel', { sourceCount: 9, nlCount: 3 })
+  set('s-vance', { sourceCount: 8, nlCount: 2 })
+  set('s-brand', { sourceCount: 3, nlCount: 3 })
+  return w
+}
+const binnenland = { interests: ['binnenland'] }
+
+test('voorpagina: hooguit één buitenlands verhaal, tenzij een tweede ook in Nederland breed is', () => {
+  const front = run({}, nlWorld()).filter((e) => e.front).map((e) => e.id)
+  assert.ok(front.includes('s-zel'))
+  assert.ok(!front.includes('s-vance'), front.join(',')) // tweede buitenlandse, maar 2 Nederlandse bronnen
+  const w = nlWorld()
+  w.stories.find((s) => s.id === 's-vance').nlCount = 5
+  assert.ok(run({}, w).filter((e) => e.front).some((e) => e.id === 's-vance'))
+})
+
+test('voorpagina: staat er geen Nederlands verhaal op, dan het zwaarste met minstens drie Nederlandse bronnen', () => {
+  const front = run({}, nlWorld()).filter((e) => e.front).map((e) => e.id)
+  assert.ok(front.includes('s-kab'), front.join(',')) // 4 bronnen, onder FRONT_MIN, maar Nederlands
+  // Voor iedereen gelijk, ook voor wie andere interesses heeft.
+  assert.deepEqual(run({ prof: { interests: ['tech'], topics: ['ai'] } }, nlWorld()).filter((e) => e.front).map((e) => e.id), front)
+  // Wie "minder" stemde op het onderwerp, krijgt het niet opgedrongen.
+  const less = run({ prof: { taste: { topics: { nederland: -12 } } } }, nlWorld()).filter((e) => e.front).map((e) => e.id)
+  assert.ok(!less.includes('s-kab'), less.join(','))
+})
+
+test('voorpagina: een Nederlandse bron telt voor het belang vol, een buitenlandse half', () => {
+  const a = run({}, nlWorld()).find((e) => e.id === 's-zel')
+  const w = nlWorld()
+  w.stories.find((s) => s.id === 's-zel').nlCount = 9
+  const b = run({}, w).find((e) => e.id === 's-zel')
+  assert.equal(b.w - a.w, 4 * 0.5 * 6) // zes bronnen van buiten Nederland: elk de helft van 4 punten
+})
+
+test('grens: wie interesses koos, krijgt buiten de voorpagina hooguit INT_MAX buitenland zonder reden', () => {
+  const w = nlWorld()
+  // Meer buitenland dan plekken: vier losse buitenlandse berichten zonder onderwerp.
+  const extra = [['Parijs', 'havens'], ['Berlijn', 'scholen'], ['Madrid', 'treinen'], ['Warschau', 'mijnen']].map(([stad, wat]) => art('nos', `${stad}: ${wat} dicht na conflict over ${wat}geld`))
+  w.pool.push(...extra)
+  const sel = run({ prof: binnenland, opts: { size: 6 } }, w)
+  const zonderReden = sel.filter((e) => !e.front && ['buitenland', 'vs', 'middenoosten', 'oekraine'].includes(e.desk) && (e.parts.interest?.pts || 0) < G.MIN_WHY_PTS)
+  assert.ok(zonderReden.length <= G.INT_MAX, zonderReden.map((e) => e.id).join(','))
+  assert.equal(sel.length, 6)
+  // Is er te weinig zonder buitenland, dan toch: een volle selectie.
+  const vol = run({ prof: binnenland, opts: { size: 10 } }, w)
+  assert.equal(vol.length, 10)
+  assert.ok(vol.abroad.size > G.INT_MAX)
+  assert.ok(sel.abroad.size <= G.INT_MAX, [...sel.abroad].join(',')) // de eigen telling van de selectie
+  // Zonder keuzes geen grens: de gewone krant.
+  assert.ok(run({ opts: { size: 8 } }, w).filter((e) => !e.front && ['buitenland', 'vs', 'middenoosten', 'oekraine'].includes(e.desk)).length > G.INT_MAX)
 })

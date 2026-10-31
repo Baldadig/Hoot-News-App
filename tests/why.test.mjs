@@ -44,7 +44,7 @@ test('why-label: geen getallen behalve de bronnen- of stukkentelling', () => {
       const line = whyLine(e.why)
       // Een getal mag alleen een telling zijn (of in een onderwerpnaam staan, zoals Formule 1):
       // nooit punten, gewichten of een kloktijd.
-      if (line) assert.ok(!/\d+(,\d+)?\s*(punten|pts|%|:\d\d|uur)/.test(line) && (!/^\d|·\s*\d/.test(line) || /\d+ (bronnen|nieuwe stukken)/.test(line)), `${p.id}: ${line}`)
+      if (line) assert.ok(!/\d+(,\d+)?\s*(punten|pts|%|:\d\d|uur)/.test(line) && (!/^\d|·\s*\d/.test(line) || /\d+ (bronnen|nieuwe stukken|van je bronnen)/.test(line)), `${p.id}: ${line}`)
     }
   }
 })
