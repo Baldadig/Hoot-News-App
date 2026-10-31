@@ -272,3 +272,18 @@ test('P8-3: de samenvatting alleen bij de Editie die er nog staat (zelfde id en 
   assert.equal(pg.table[0].edition.brief, null)
   assert.equal(pg.table[0].edition.basis, 'b2')
 })
+
+// ---------- De maten van §3 (tests/helpers/pariteit.mjs, ook de meetlat in meting/acceptatie.mjs) ----------
+import { measureParity } from './helpers/pariteit.mjs'
+
+test('§3: pariteit web-route vs server-route = 0/10, en twee toestellen van één account byte-gelijk, twaalf persona\'s', async (t) => {
+  const m = await measureParity(snap)
+  t.diagnostic(`route: ${m.routeAnders.toFixed(2)}/10 anders, byte-gelijk ${Math.round(m.routeByte * 100)} %; met leesprofiel op het web ${m.routeAndersAffinity.toFixed(2)}/10 (§8, informatie); twee toestellen: ${m.toestellenAnders.toFixed(2)}/10 anders, byte-gelijk ${Math.round(m.toestellenByte * 100)} % (zonder account ${m.toestellenAlleen.toFixed(2)}/10), schrijfacties per wedloop ${m.schrijfacties}`)
+  assert.equal(m.rows.length, 12)
+  assert.equal(m.routeAnders, 0)
+  assert.equal(m.routeByte, 1)
+  assert.equal(m.toestellenAnders, 0)
+  assert.equal(m.toestellenByte, 1)
+  assert.equal(m.schrijfacties, 1)
+  assert.ok(m.toestellenAlleen > 0, 'zonder account zouden de toestellen verschillen: de meting bewijst iets')
+})
