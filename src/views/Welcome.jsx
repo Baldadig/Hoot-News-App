@@ -7,15 +7,15 @@ import SunArt from '../components/SunArt.jsx'
 import { CaretIcon, INTEREST_ICONS } from '../components/icons.jsx'
 import { vakByDomain } from '../../shared/vak.mjs'
 import { INTERESTS, STARTER, topicById, resolveTopics, starterGroups } from '../lib/topics.js'
-import { sourcesOn, proposeSources, moreSources, sourceLine, packPages, pickedFrom } from '../lib/welcome.js'
+import { sourcesOn, proposeSources, moreSources, packPages, pickedFrom } from '../lib/welcome.js'
 import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, waitFor, sleep, tintTimes, openTimes, reducedPlan, crossPlan, rootColor, IRIS, IRIS_BACK, IRIS_MS, STEP_OUT_MS, STEP_IN_MS } from '../lib/motion.js'
 
 // Onboarding, gelijk aan de app (ios/Hoot/Views/WelcomeView.swift) en zonder scrollen: elke pagina
 // past in één scherm, ook op 375 × 667. Wat niet past (pillen) verdeelt `Paged` over meer pagina's.
 //   intro (rood)  → drie veegpagina's (Editie, Stroom, Selectie), elk met zijn zon
 //   → interesses (tegels) → Wat precies? (eigen pagina, alle pillen open, Overslaan)
-//   → Je Hoot (je bronnen als voorstel; Aanpassen opent Je bronnen, een eigen pagina, per pagina
-//   een paar bronnen; Je Selectie optioneel) → de Editie.
+//   → Je bronnen (compact raster met echte logo’s, direct aan/uit; Meer bronnen bladert)
+//   → Je Selectie (eigen stap, optioneel) → de Editie.
 // Niets staat vooraf aan: het voorstel voor de bronnen is voor iedereen gelijk (alleen gratis,
 // Nederlands eerst, zie lib/welcome.js) en de interesses, onderwerpen en Selectie beginnen leeg.
 // Knoppen staan pas op de laatste veegpagina; eerder veeg je (muis slepen, trackpad, pijltjes) of
@@ -43,7 +43,6 @@ const DOTS = PAGES.length + 1 // de intro telt mee
 const SWIPE_PX = 48
 
 const toggleIn = (list, id) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id])
-const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`
 
 export default function Welcome({ sources, prefs, muted = new Set(), onDone, onClose = null, onSignIn = null, leaving = false, onLeft = () => {} }) {
   const reopen = !!onClose
@@ -96,8 +95,6 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
   // gratis, Nederlands eerst). Opnieuw kiezen begint bij wat nu aan staat.
   const proposal = useMemo(() => (reopen ? sourcesOn(pickable, muted) : proposeSources(pickable, interests)), [reopen, pickable, muted, interests])
   const mine = edited ?? proposal
-  const names = mine.map((id) => byId.get(id)?.name).filter(Boolean)
-  const line = pickable.length ? sourceLine(names) : 'Bronnen laden…'
 
   // Nieuwe pagina: de kop voorlezen (schermlezer), pas als de overgang klaar is.
   useEffect(() => {
@@ -292,7 +289,6 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
     items: d.fields.map((f) => ({ id: f.id, label: f.label, on: vak.includes(f.id) })),
     toggle: (id) => setVak((l) => toggleIn(l, id)),
   }))
-  const vakLine = vak.length ? plural(vak.length, 'onderwerp', 'onderwerpen') : 'Later kiezen'
   const last = sub >= pages - 1 // de laatste subpagina
   useEffect(() => {
     if (sub > pages - 1) setSub(Math.max(0, pages - 1))
@@ -300,20 +296,19 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
 
   // Je bronnen: het voorstel eerst, dan wat verder bij je interesses past. De volgorde ligt vast, ook
   // als je iets aan- of uitzet: een rij blijft op zijn plek.
-  const rows = useMemo(() => [...new Set([...proposal, ...moreSources(pickable, interests, [])])].filter((id) => byId.has(id)), [proposal, pickable, interests, byId])
+  const rows = useMemo(() => [...new Set([...proposal, ...moreSources(pickable, interests, []), ...pickable.map(s => s.id)])].filter((id) => byId.has(id)), [proposal, pickable, interests, byId])
 
   // ---- Wat er onder de kop staat, per pagina ----
   const next = () => {
     if (view === 'kies') show('precies')
     else if (view === 'precies') (last ? show('hoot') : show('precies', sub + 1))
-    else if (view === 'selectie') (last ? show('hoot') : show('selectie', sub + 1))
-    else if (view === 'bronnen') show('hoot') // Klaar op elke pagina; verder bladeren met 'Meer bronnen'
-    else if (view === 'hoot') finish()
+    else if (view === 'selectie') (last ? finish() : show('selectie', sub + 1))
+    else if (view === 'bronnen' || view === 'hoot') show('selectie')
   }
   const previous = () => {
     if (view === 'kies') backToPager()
     else if (view === 'precies') (sub > 0 ? show('precies', sub - 1) : show('kies'))
-    else if (view === 'hoot') show('precies')
+    else if (view === 'hoot') (sub > 0 ? show('hoot', sub - 1) : show('precies'))
     else if (view === 'bronnen') (sub > 0 ? show('bronnen', sub - 1) : show('hoot'))
     else if (view === 'selectie') (sub > 0 ? show('selectie', sub - 1) : show('hoot'))
   }
@@ -326,17 +321,19 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
     view === 'kies'
       ? { label: interests.length ? 'Verder' : 'Kies minstens één', disabled: !interests.length }
       : view === 'hoot'
-        ? { label: mine.length ? 'Naar je Editie' : 'Kies minstens één bron', disabled: !mine.length || !pickable.length }
+        ? { label: mine.length ? 'Naar Selectie' : 'Kies één bron', disabled: !mine.length || !pickable.length }
         : view === 'bronnen'
-          ? { label: 'Klaar' }
+          ? { label: 'Naar Selectie', disabled: !mine.length || !pickable.length }
           : view === 'selectie'
-            ? { label: last ? 'Klaar' : 'Verder' }
+            ? { label: last ? 'Naar je Editie' : 'Verder' }
           : { label: 'Verder' }
   const skip =
     view === 'precies'
       ? { label: 'Overslaan', onClick: () => go(() => (setPicked([]), setView('hoot'), setSub(0))) } // overslaan = alles: wat je aantikte vervalt
       : view === 'selectie'
-        ? { label: 'Later kiezen', onClick: () => show('hoot') }
+        ? { label: vak.length ? 'Klaar' : 'Later kiezen', onClick: finish }
+        : view === 'hoot'
+          ? { label: last ? 'Eerste bronnen' : 'Meer bronnen', onClick: () => show('hoot', last ? 0 : sub + 1), hidden: pages <= 1 }
         : view === 'bronnen' && !last
           ? { label: 'Meer bronnen', onClick: () => show('bronnen', sub + 1) }
           : view === 'bronnen' && !reopen
@@ -344,7 +341,7 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
             : reopen
           ? { label: 'Sluiten zonder opslaan', onClick: onClose }
           : null
-  const counter = view === 'precies' || view === 'selectie' || view === 'bronnen'
+  const counter = view === 'hoot' || view === 'precies' || view === 'selectie' || view === 'bronnen'
   const topLink = reopen && view === 'kies' ? null : <BackButton label="Terug" onClick={previous} className="ob__back" />
 
   // Het papier staat onder het rood: niet te bedienen zolang de rode laag er is (ook tijdens de
@@ -352,7 +349,7 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
   // voor schermlezers al weg. Vervaagt het hele scherm (`leaving`), dan is niets erin te bedienen
   // en is het voor schermlezers al weg.
   return (
-    <div className="welcome ob" role="dialog" aria-modal={leaving ? undefined : 'true'} aria-labelledby="ob-title" aria-hidden={leaving ? 'true' : undefined} inert={leaving ? '' : undefined} ref={root} onPointerDown={onDown} onPointerUp={onUp} onWheel={onWheel}>
+    <div className={`welcome ob${view === 'hoot' || view === 'bronnen' ? ' ob--sources' : ''}`} role="dialog" aria-modal={leaving ? undefined : 'true'} aria-labelledby="ob-title" aria-hidden={leaving ? 'true' : undefined} inert={leaving ? '' : undefined} ref={root} onPointerDown={onDown} onPointerUp={onUp} onWheel={onWheel}>
       {paper ? (
         <div className="col ob__head" inert={red ? '' : undefined}>
           <div className="ob__top">
@@ -453,8 +450,9 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
                 <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
                   Je bronnen
                 </h1>
-                <p className="ob__sub">{reopen ? 'Zet aan wat je wilt lezen.' : 'Zet aan wat je wilt lezen. Later pas je alles aan bij Bronnen.'}</p>
-                <PagedRows ids={rows} byId={byId} on={mine} onPick={pickSource} page={sub} onPages={setPages} />
+                <p className="ob__sub">Voorgesteld bij je interesses. Tik om te wijzigen.</p>
+                <p className="ob__sourcecount" role="status">{mine.length} gekozen</p>
+                <PagedSourceGrid ids={rows} byId={byId} on={mine} onPick={pickSource} page={sub} onPages={setPages} />
               </>
             ) : view === 'selectie' ? (
               <>
@@ -467,27 +465,11 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
             ) : (
               <>
                 <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
-                  Je Hoot
+                  Je bronnen
                 </h1>
-                <p className="ob__sub">{reopen ? 'Je bronnen en je Selectie.' : 'Voorgesteld bij je interesses, allemaal gratis.'}</p>
-                <div className="ob__rows">
-                  <button type="button" className="ob__row" onClick={() => show('bronnen')} disabled={!pickable.length}>
-                    <span>
-                      <span className="ob__rk">Je bronnen</span>
-                      <span className="ob__rv">{line}</span>
-                    </span>
-                    <span className="ob__ra">Aanpassen</span>
-                  </button>
-                  <button type="button" className="ob__row" onClick={() => show('selectie')}>
-                    <span>
-                      <span className="ob__rk">Je Selectie</span>
-                      <span className="ob__rv">{vakLine}</span>
-                    </span>
-                    <span className="ob__ra">
-                      <CaretIcon size={16} />
-                    </span>
-                  </button>
-                </div>
+                <p className="ob__sub">Voorgesteld bij je interesses. Tik om te wijzigen.</p>
+                <p className="ob__sourcecount" role="status">{mine.length} gekozen</p>
+                {pickable.length ? <PagedSourceGrid ids={rows} byId={byId} on={mine} onPick={pickSource} page={sub} onPages={setPages} /> : <p role="status">Bronnen laden…</p>}
               </>
             )}
           </div>
@@ -632,62 +614,59 @@ function Paged({ groups, page, onPages }) {
   )
 }
 
-// Je bronnen zonder scrollen, zoals Paged maar per rij: de verborgen kopie meet elke rij, en
-// packPages verdeelt ze over pagina's (zo veel als er past).
-function PagedRows({ ids, byId, on, onPick, page, onPages }) {
+// Herkenbare bronkaarten. Meet hele gridrijen, zodat logo's en namen op één scherm passen.
+function PagedSourceGrid({ ids, byId, on, onPick, page, onPages }) {
   const fit = useRef(null)
   const meas = useRef(null)
   const [pages, setPages] = useState(() => [ids.map((_, i) => i)])
   const measure = useCallback(() => {
-    const f = fit.current
-    const m = meas.current
+    const f = fit.current, m = meas.current
     if (!f || !m) return
-    const next = packPages([...m.children].map((k) => k.offsetHeight), f.clientHeight, 0)
-    setPages((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next))
-  }, [])
-  useLayoutEffect(measure, [measure, ids.length])
+    const style = getComputedStyle(m)
+    const columns = style.gridTemplateColumns.split(' ').filter(Boolean).length || 2
+    const gap = parseFloat(style.rowGap) || 0
+    const cards = [...m.children]
+    const heights = []
+    for (let i = 0; i < cards.length; i += columns) heights.push(Math.max(...cards.slice(i, i + columns).map(c => c.offsetHeight)))
+    // Hooguit 16 herkenbare bronnen tegelijk; bij weinig hoogte/grote letters minder.
+    const rowPages = [[]]
+    let used = 0
+    heights.forEach((height, row) => {
+      const current = rowPages.at(-1)
+      if (current.length && (used + gap + height > f.clientHeight || (current.length + 1) * columns > 16)) {
+        rowPages.push([row])
+        used = height
+      } else {
+        used += (current.length ? gap : 0) + height
+        current.push(row)
+      }
+    })
+    const next = rowPages.map(rows => rows.flatMap(row => Array.from({ length: Math.min(columns, ids.length - row * columns) }, (_, col) => row * columns + col)))
+    setPages(prev => JSON.stringify(prev) === JSON.stringify(next) ? prev : next)
+  }, [ids.length])
+  useLayoutEffect(measure)
   useEffect(() => {
     const f = fit.current
-    if (!f) return
     const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null
-    ro?.observe(f)
+    if (f) ro?.observe(f)
     document.fonts?.ready?.then(measure)
     addEventListener('resize', measure)
-    return () => {
-      ro?.disconnect()
-      removeEventListener('resize', measure)
-    }
+    return () => { ro?.disconnect(); removeEventListener('resize', measure) }
   }, [measure])
   useEffect(() => onPages(pages.length), [pages.length, onPages])
   const cur = pages[Math.min(page, pages.length - 1)] || []
-  const row = (id) => (
-    <li key={id}>
-      <SourcePick s={byId.get(id)} on={on.includes(id)} onClick={() => onPick(id)} />
-    </li>
-  )
-  return (
-    <div className="ob__fit" ref={fit}>
-      <ul className="ob__sources">{cur.map((i) => ids[i] && row(ids[i]))}</ul>
-      <ul className="ob__sources ob__measure" ref={meas} aria-hidden="true" inert="">
-        {ids.map((id) => row(id))}
-      </ul>
-    </div>
-  )
-}
-
-function SourcePick({ s, on, onClick }) {
-  return (
-    <button type="button" className="ob__src" aria-pressed={on} onClick={onClick}>
+  const card = id => {
+    const s = byId.get(id)
+    if (!s) return null
+    return <li key={id}><button type="button" className="ob__sourcecard" aria-label={`${s.name}, ${s.paid ? 'abonnement' : 'gratis'}${s.lang === 'en' ? ', Engels' : ''}`} aria-pressed={on.includes(id)} onClick={() => onPick(id)}>
       <SourceMark source={s} size={32} />
-      <span className="ob__stext">
-        <span className="ob__sname">
-          <span className="ob__snm">{s.name}</span>
-          {s.paid ? <span className="ob__tag">abonnement</span> : <span className="ob__tag ob__tag--free">gratis</span>}
-          {s.lang === 'en' ? <span className="ob__tag">EN</span> : null}
-        </span>
-        <span className="ob__sabout">{s.about}</span>
-      </span>
+      <span className="ob__sourcecard-name">{s.name}</span>
+      <span className="ob__sourcecard-meta">{s.paid ? 'Abonnement' : 'Gratis'}{s.lang === 'en' ? ' · EN' : ''}</span>
       <span className="ob__check" aria-hidden="true" />
-    </button>
-  )
+    </button></li>
+  }
+  return <div className="ob__fit ob__sourcefit" ref={fit}>
+    <ul className="ob__sourcegrid">{cur.map(i => card(ids[i]))}</ul>
+    <ul className="ob__sourcegrid ob__measure" ref={meas} aria-hidden="true" inert="">{ids.map(card)}</ul>
+  </div>
 }

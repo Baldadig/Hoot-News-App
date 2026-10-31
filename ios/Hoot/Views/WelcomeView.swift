@@ -3,11 +3,11 @@ import SwiftUI
 // Het welkom, zoals op de website (src/views/Welcome.jsx) en in het onboarding-plan: eerst vegen, dan
 // één keer kiezen. Een rode intro met de zon in papier, dan de iris naar papier met drie pagina's
 // (Editie, Stroom, Selectie, elk met een eigen zon), en pas op de laatste de knoppen. Daarna je
-// interesses, Wat precies? op een eigen pagina met alle onderwerpen open (over te slaan), Je Hoot met
-// het voorstel voor je bronnen (Aanpassen: Je bronnen) en je Selectie (Later kiezen: Je Selectie), en
+// interesses, Wat precies? op een eigen pagina (over te slaan), een compact raster van echte
+// bronlogo’s (aan/uit, Meer bronnen om te bladeren), daarna een aparte Je Selectie-pagina, en
 // tot slot Een seintje?. Niets in het welkom scrolt: elke pagina past op één scherm, ook op de kleinste
 // iPhone en bij grote tekst. Past iets niet, dan verdelen Wat precies?, Je bronnen en Je Selectie zich
-// over meer pagina's (de maten volgen de tekstgrootte; Je bronnen heeft Klaar op elke pagina en Meer bronnen
+// over meer pagina's (de maten volgen de tekstgrootte; Je bronnen heeft Naar Selectie op elke pagina en Meer bronnen
 // om door te bladeren). Alleen bij de toegankelijkheidsgroottes (AX1+) staat alles op één pagina die scrolt.
 // "Liever meteen lezen" begint zonder vragen met gratis Nederlandse bronnen en zet geen vak.
 // Het merk loopt erdoorheen: het opstartscherm landt op "hoot." linksboven op de rode intro (het rood
@@ -33,7 +33,6 @@ struct WelcomeView: View {
     @State private var page = 0 // de uitleg: 0 Editie, 1 Stroom, 2 Selectie (de rode intro is pagina 1 van 4)
     @State private var subpage = 0 // de subpagina van Wat precies?, Je bronnen en Je Selectie
     @State private var offered: [String] = [] // Je bronnen: het voorstel eerst, dan wat verder past; de volgorde ligt vast
-    @State private var rowH: [String: CGFloat] = [:] // Je bronnen: hoe hoog elke rij is (gemeten)
     @State private var interests: [String] = []
     @State private var picked: [String] = [] // Wat precies?: wat je aantikte; niets = alles binnen die interesse
     @State private var chosen: [String]? // bronnen: het voorstel, pas ingevuld als je bij die pagina komt en ze er zijn
@@ -124,6 +123,7 @@ struct WelcomeView: View {
                 headFocus = true
             }
         }
+        .onChange(of: subCount) { if subpage >= subCount { subpage = max(0, subCount - 1) } }
         .onChange(of: brand?.landed ?? true) { startSun() }
     }
 
@@ -161,9 +161,10 @@ struct WelcomeView: View {
     // Je bronnen: wat nu aan staat eerst, dan wat verder bij je interesses past. Eén keer, zodat een bron die je
     // uitzet op zijn plek blijft staan.
     private func offerSources() {
-        guard offered.isEmpty, let chosen, !store.newsSources.isEmpty, step == .bronnen else { return }
+        guard offered.isEmpty, let chosen, !store.newsSources.isEmpty, [.hoot, .bronnen].contains(step) else { return }
         var ids = chosen
-        for id in HootStore.always + store.alsoSuggested(interests: interests) where !ids.contains(id) && store.source(id) != nil { ids.append(id) }
+        let extra = (HootStore.always + store.alsoSuggested(interests: interests)).sorted { (store.source($0)?.paid == true ? 1 : 0) < (store.source($1)?.paid == true ? 1 : 0) }
+        for id in extra + store.newsSources.map(\.id) where !ids.contains(id) && store.source(id) != nil { ids.append(id) }
         offered = ids
     }
 
@@ -186,13 +187,11 @@ struct WelcomeView: View {
             subpage = 0
             go(.precies)
         case .precies:
-            if subpage + 1 < subCount { turn { subpage += 1 } } else { go(.hoot) }
-        case .bronnen: go(.hoot) // Klaar op elke pagina
+            if subpage + 1 < subCount { turn { subpage += 1 } } else { subpage = 0; go(.hoot) }
+        case .bronnen: subpage = 0; go(.selectie)
         case .selectie:
-            if subpage + 1 < subCount { turn { subpage += 1 } } else { go(.hoot) }
-        case .hoot:
-            apply()
-            if asks { go(.seintje) } else { onDone() }
+            if subpage + 1 < subCount { turn { subpage += 1 } } else { complete() }
+        case .hoot: subpage = 0; go(.selectie)
         case .seintje:
             asking = true
             Task {
@@ -205,15 +204,23 @@ struct WelcomeView: View {
         }
     }
 
+    private func complete() {
+        apply()
+        if asks { subpage = 0; go(.seintje) } else { onDone() }
+    }
+
     private func back() {
         switch step {
         case .interesses: page = 2; go(.uitleg)
         case .precies:
             if subpage > 0 { turn { subpage -= 1 } } else { go(.interesses) }
-        case .bronnen, .selectie:
-            if subpage > 0 { turn { subpage -= 1 } } else { go(.hoot) }
-        case .hoot: subpage = max(0, subCountOf(.precies) - 1); go(.precies)
-        case .seintje: go(.hoot)
+        case .bronnen:
+            if subpage > 0 { turn { subpage -= 1 } } else { subpage = 0; go(.hoot) }
+        case .selectie:
+            if subpage > 0 { turn { subpage -= 1 } } else { subpage = 0; go(.hoot) }
+        case .hoot:
+            if subpage > 0 { turn { subpage -= 1 } } else { subpage = max(0, subCountOf(.precies) - 1); go(.precies) }
+        case .seintje: subpage = 0; go(.selectie)
         case .intro, .uitleg: break
         }
     }
@@ -505,19 +512,31 @@ struct WelcomeView: View {
                         .accessibilityLabel(title)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityFocused($headFocus)
-                    if subCount > 1 {
+                    if subCount > 1 && step != .hoot && step != .bronnen {
                         Text("\(subpage + 1) van \(subCount)")
                             .font(.subheadline)
                             .foregroundStyle(Theme.ink3)
                             .monospacedDigit()
                     }
-                    Text(sub)
-                        .font(.body)
-                        .foregroundStyle(Theme.ink2)
-                        .fixedSize(horizontal: false, vertical: true)
+                    if step == .hoot || step == .bronnen {
+                        Text(sub).font(.subheadline).foregroundStyle(Theme.ink2)
+                            .fixedSize(horizontal: false, vertical: true)
+                        HStack {
+                            Text("\(chosen?.count ?? 0) gekozen")
+                            Spacer()
+                            if subCount > 1 { Text("\(subpage + 1) van \(subCount)").monospacedDigit() }
+                        }
+                        .font(.caption).foregroundStyle(Theme.ink3)
+                        .accessibilityElement(children: .combine)
+                    } else {
+                        Text(sub)
+                            .font(.body)
+                            .foregroundStyle(Theme.ink2)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { headH = $0 }
-                choices.padding(.top, Space.s5)
+                choices.padding(.top, step == .hoot || step == .bronnen ? Space.s3 : Space.s5)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, Space.s4)
@@ -570,7 +589,7 @@ struct WelcomeView: View {
         switch step {
         case .interesses: "Wat interesseert je?"
         case .precies: "Wat precies?"
-        case .hoot: "Je Hoot"
+        case .hoot: "Je bronnen"
         case .bronnen: "Je bronnen"
         case .selectie: "Je Selectie"
         case .seintje: "Een seintje?"
@@ -582,8 +601,8 @@ struct WelcomeView: View {
         switch step {
         case .interesses: "Kies er een paar. Daarmee maken we je Editie en kiezen we je bronnen."
         case .precies: "Kies wat je boeit. Niets kiezen is alles."
-        case .hoot: "Ons voorstel. Pas aan wat je wilt."
-        case .bronnen: reopen ? "Zet aan wat je wilt lezen." : "Zet aan wat je wilt lezen. Later pas je alles aan bij Bronnen."
+        case .hoot: "Voorgesteld bij je interesses. Tik om te wijzigen."
+        case .bronnen: "Voorgesteld bij je interesses. Tik om te wijzigen."
         case .selectie: "Elke maandag de drie beste stukken van de week, per onderwerp. Kies wat bij je werk of hobby past."
         case .seintje: "Een stil seintje als je Editie klaarligt."
         case .intro, .uitleg: ""
@@ -594,8 +613,8 @@ struct WelcomeView: View {
         switch step {
         case .interesses: tiles
         case .precies: precies
-        case .hoot: hootRows
-        case .bronnen: bronnen
+        case .hoot: sourcePreview
+        case .bronnen: sourcePreview
         case .selectie: selectie
         case .seintje: preview
         case .intro, .uitleg: EmptyView()
@@ -624,7 +643,7 @@ struct WelcomeView: View {
     }
 
     // Hoeveel ruimte een pagina heeft voor de keuzes zelf (onder kop en uitleg, boven de knoppen).
-    private var room: CGFloat { roomH - headH - Space.s2 - Space.s4 - Space.s5 - Space.s4 }
+    private var room: CGFloat { roomH - headH - Space.s2 - Space.s4 - (step == .hoot || step == .bronnen ? Space.s3 : Space.s5) - Space.s4 }
     private var metrics: WelcomePages.Metrics { WelcomePages.Metrics(typeSize) }
     // Bij de toegankelijkheidsgroottes geen pagina's van één onderwerp of één bron: één pagina die scrolt.
     private var scrolls: Bool { typeSize.isAccessibilitySize }
@@ -668,16 +687,11 @@ struct WelcomeView: View {
         return WelcomePages.split(heights, room: room, gap: Space.s5).map { $0.map { parts[$0] } }
     }
 
-    // Je bronnen: de rijen over pagina's, op de gemeten hoogte van elke rij.
-    private var sourcePages: [[String]] {
-        guard roomH > 0, !scrolls, !offered.isEmpty, offered.allSatisfy({ rowH[$0] != nil }) else { return [offered] }
-        return WelcomePages.split(offered.map { rowH[$0] ?? 0 }, room: room, gap: 0).map { $0.map { offered[$0] } }
-    }
-
     private func subCountOf(_ s: Step) -> Int {
         switch s {
         case .precies, .selectie: chipPages(for: s).count
-        case .bronnen: sourcePages.count
+        case .bronnen: sourcePreviewPages.count
+        case .hoot: sourcePreviewPages.count
         default: 1
         }
     }
@@ -717,83 +731,32 @@ struct WelcomeView: View {
         }
     }
 
-    private var bronnen: some View {
-        let pages = sourcePages
-        let mine = pages.indices.contains(subpage) ? pages[subpage] : pages.last ?? []
-        func pick(_ id: String) -> some View {
-            SourcePick(source: store.source(id)!, on: chosen?.contains(id) == true) {
-                chosen = toggled(chosen ?? [], id)
-            }
-        }
-        return VStack(alignment: .leading, spacing: 0) {
-            ForEach(mine.filter { store.source($0) != nil }, id: \.self) { id in pick(id) }
-        }
-        .opacity(roomH > 0 && offered.allSatisfy { rowH[$0] != nil } ? 1 : 0)
-        // Een verborgen kopie meet elke rij; WelcomePages.split verdeelt ze dan over de pagina's.
-        .background(alignment: .topLeading) {
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(offered.filter { store.source($0) != nil }, id: \.self) { id in
-                    pick(id).background(GeometryReader { g in Color.clear.preference(key: RowHeights.self, value: [id: g.size.height]) })
+    // Je voorgestelde bronnen zijn de keuze zelf, met herkenbare logo’s.
+    private var sourceColumns: Int { scrolls ? 1 : typeSize >= .xxLarge ? 2 : width < 352 ? 3 : 4 }
+    private var sourceCardHeight: CGFloat { typeSize >= .xxLarge ? 144 : typeSize == .xLarge ? 112 : 96 }
+    private var sourcePreviewPages: [[String]] {
+        let ids = offered.filter { store.source($0) != nil }
+        guard roomH > 0, !scrolls else { return [ids] }
+        let perPage = min(16, max(1, Int((room + Space.s2) / (sourceCardHeight + Space.s2))) * sourceColumns)
+        return stride(from: 0, to: max(1, ids.count), by: perPage).map { Array(ids.dropFirst($0).prefix(perPage)) }
+    }
+    private func pickSource(_ id: String) {
+        chosen = toggled(chosen ?? [], id)
+    }
+    @ViewBuilder private var sourcePreview: some View {
+        let pages = sourcePreviewPages
+        let ids = pages.indices.contains(subpage) ? pages[subpage] : pages.last ?? []
+        if chosen == nil {
+            ProgressView("Bronnen laden…")
+        } else {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: Space.s2), count: sourceColumns), spacing: Space.s2) {
+                ForEach(ids, id: \.self) { id in
+                    if let source = store.source(id) {
+                        SourceTile(source: source, on: chosen?.contains(id) == true, height: sourceCardHeight) { pickSource(id) }
+                    }
                 }
             }
-            .frame(width: max(120, width - Space.s4 * 2))
-            .fixedSize(horizontal: false, vertical: true) // de eigen hoogte, niet die van de pagina
-            .opacity(0)
-            .allowsHitTesting(false)
-            .accessibilityHidden(true)
         }
-        .onPreferenceChange(RowHeights.self) { rowH.merge($0) { _, new in new } }
-    }
-
-    // ---- Je Hoot ----
-
-    // Zo ver is het voorstel: "NOS, NU.nl en 4 meer".
-    private var sourcesLine: String {
-        guard let ids = chosen else { return "De bronnen worden geladen…" }
-        let names = ids.compactMap { store.source($0)?.name }
-        switch names.count {
-        case 0: return "Kies minstens één bron"
-        case 1: return names[0]
-        case 2: return "\(names[0]) en \(names[1])"
-        case 3: return "\(names[0]), \(names[1]) en \(names[2])"
-        default: return "\(names[0]), \(names[1]) en \(names.count - 2) meer"
-        }
-    }
-
-    private var vakLine: String {
-        vak.isEmpty ? "Later kiezen" : vak.count == 1 ? "1 onderwerp" : "\(vak.count) onderwerpen"
-    }
-
-    private var hootRows: some View {
-        VStack(spacing: Space.s3) {
-            hootRow("Je bronnen", value: sourcesLine, trailing: AnyView(Text("Aanpassen").font(.subheadline.weight(.semibold))), disabled: chosen == nil) { subpage = 0; go(.bronnen) }
-            hootRow("Je Selectie", value: vakLine, trailing: AnyView(Image(systemName: "chevron.right").font(.footnote.weight(.bold)).foregroundStyle(Theme.ink3)), disabled: false) { subpage = 0; go(.selectie) }
-        }
-    }
-
-    private func hootRow(_ label: String, value: String, trailing: AnyView, disabled: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: Space.s3) {
-                VStack(alignment: .leading, spacing: Space.s0) {
-                    Text(label).font(.headline.weight(.heavy))
-                    Text(value).font(.subheadline).foregroundStyle(Theme.ink2).fixedSize(horizontal: false, vertical: true)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                trailing
-            }
-            .multilineTextAlignment(.leading)
-            .padding(Space.s4)
-            .frame(minHeight: 64)
-            .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
-            .overlay(RoundedRectangle(cornerRadius: Radius.md).strokeBorder(Theme.rule, lineWidth: 1))
-            .contentShape(RoundedRectangle(cornerRadius: Radius.md))
-        }
-        .buttonStyle(ChoicePress())
-        .disabled(disabled)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(label), \(value)")
-        .accessibilityHint(label == "Je bronnen" ? "Aanpassen" : "Kies je onderwerpen")
-        .accessibilityAddTraits(.isButton)
     }
 
     // Het seintje: een nagemaakte melding die zacht binnenvalt, zoals een echte.
@@ -814,14 +777,18 @@ struct WelcomeView: View {
 
     private func ctaButton(_ label: String, onRed: Bool, off: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(label)
-                .font(.headline.weight(.heavy))
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .frame(maxWidth: .infinity, minHeight: 52)
-                .foregroundStyle(onRed ? Theme.brandRed : Theme.paper)
-                .background(onRed ? Self.paperWhite : Theme.ink, in: Capsule())
-                .contentShape(Capsule())
+            ZStack {
+                Capsule().fill(onRed ? Self.paperWhite : Theme.ink)
+                Text(label)
+                    .font(.headline.weight(.heavy))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .foregroundStyle(onRed ? Theme.brandRed : Theme.paper)
+                    .padding(.horizontal, Space.s4)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 52)
+            .contentShape(Capsule())
         }
         .buttonStyle(ChoicePress())
         .disabled(off || asking)
@@ -861,9 +828,9 @@ struct WelcomeView: View {
         switch step {
         case .interesses: (interests.isEmpty ? "Kies minstens één" : "Verder", interests.isEmpty)
         case .precies: ("Verder", false)
-        case .bronnen: ("Klaar", chosen?.isEmpty == true) // op elke pagina; verder bladeren met Meer bronnen
-        case .selectie: (subpage + 1 < subCount ? "Verder" : "Klaar", false)
-        case .hoot: (asks ? "Verder" : "Naar je Editie", chosen?.isEmpty == true)
+        case .bronnen: (chosen?.isEmpty != false ? "Kies één bron" : "Naar Selectie", chosen == nil || chosen?.isEmpty == true) // op elke pagina; verder bladeren met Meer bronnen
+        case .selectie: (subpage + 1 < subCount || asks ? "Verder" : "Naar je Editie", false)
+        case .hoot: (chosen?.isEmpty != false ? "Kies één bron" : "Naar Selectie", chosen == nil || chosen?.isEmpty == true)
         case .seintje: ("Ja, graag", false)
         case .intro, .uitleg: ("", false)
         }
@@ -871,10 +838,11 @@ struct WelcomeView: View {
 
     private var link: (label: String, action: () -> Void)? {
         switch step {
-        case .precies: ("Overslaan", { picked = []; go(.hoot) }) // overslaan = alles binnen je interesses
-        case .bronnen where subpage + 1 < subCount: ("Meer bronnen", { turn { subpage += 1 } })
+        case .precies: ("Overslaan", { picked = []; subpage = 0; go(.hoot) }) // overslaan = alles binnen je interesses
+        case .hoot where subCount > 1, .bronnen where subCount > 1: (subpage + 1 < subCount ? "Meer bronnen" : "Eerste bronnen", { turn { subpage = subpage + 1 < subCount ? subpage + 1 : 0 } })
+        case .selectie: (vak.isEmpty ? "Later kiezen" : "Klaar", complete)
         case .seintje: ("Nu niet", { onDone() }) // onder het einde van de Editie kan het later nog
-        case .interesses where reopen, .hoot where reopen: ("Sluiten zonder opslaan", { onCancel?() })
+        case .interesses where reopen: ("Sluiten zonder opslaan", { onCancel?() })
         default: nil
         }
     }
@@ -987,12 +955,6 @@ enum WelcomePages {
     }
 }
 
-// De hoogte van elke bronrij, gemeten in een verborgen kopie (Je bronnen).
-private struct RowHeights: PreferenceKey {
-    static let defaultValue: [String: CGFloat] = [:]
-    static func reduce(value: inout [String: CGFloat], nextValue: () -> [String: CGFloat]) { value.merge(nextValue()) { _, new in new } }
-}
-
 // "hoot." klein linksboven in het welkom, als tekening (`BrandWord`) op 0,4 van het opstartscherm:
 // 64 breed, de kleinste maat van het merk, net als in de Editie. Op merkrood alles papier, op papier
 // inkt met de punt in accent. Op rood en op papier op precies dezelfde plek en maat: het opstartscherm
@@ -1018,89 +980,41 @@ struct WelcomeMark: View {
     }
 }
 
-// Een bron om aan of uit te zetten (.ob__src): logo, naam met labels, wat het is, en een rond vinkje.
-// Dicht op elkaar, zoals op het web: naam en labels op één regel (de labels krimpen niet, de naam krijgt
-// zo nodig een beletselteken) en wat het is ook op één regel. Zo is elke rij even hoog en passen er meer
-// bronnen op een pagina. Bij de toegankelijkheidsgroottes (één pagina die scrolt) mag de tekst doorlopen.
-private struct SourcePick: View {
+// Een herkenbare bronkaart: het logo blijft ook uitgeschakeld zichtbaar.
+private struct SourceTile: View {
     let source: Source
     let on: Bool
+    let height: CGFloat
     let action: () -> Void
     @Environment(\.dynamicTypeSize) private var typeSize
-
     var body: some View {
-        let lines = typeSize.isAccessibilitySize ? nil : 1 as Int?
         Button(action: action) {
-            HStack(spacing: Space.s3) {
-                SourceAvatar(source: source, size: 32).opacity(on ? 1 : 0.5)
-                VStack(alignment: .leading, spacing: 0) {
-                    if lines == nil {
-                        // Grote tekst: de naam over de hele breedte, de labels eronder.
-                        name.fixedSize(horizontal: false, vertical: true)
-                        Flow { tags } // "abonnement" en "EN" passen bij de grootste tekst niet naast elkaar
-                    } else {
-                        HStack(alignment: .firstTextBaseline, spacing: Space.s1) {
-                            name.lineLimit(1).truncationMode(.tail).layoutPriority(-1)
-                            tags
-                        }
-                    }
-                    if let about = source.about, !about.isEmpty {
-                        Text(about)
-                            .font(.subheadline)
-                            .foregroundStyle(Theme.ink3)
-                            .lineLimit(lines)
-                            .truncationMode(.tail)
-                            .fixedSize(horizontal: false, vertical: lines == nil)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                check
+            VStack(spacing: 4) {
+                SourceAvatar(source: source, size: 32)
+                Text(source.name).font(.caption.weight(.semibold))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(typeSize.isAccessibilitySize ? nil : 2).fixedSize(horizontal: false, vertical: true)
+                    .frame(minHeight: typeSize >= .xxLarge ? 40 : 29)
+                Text((source.paid == true ? "Abonnement" : "Gratis") + (source.lang == "en" ? " · EN" : ""))
+                    .font(.caption2).foregroundStyle(Theme.ink3)
             }
-            .multilineTextAlignment(.leading)
-            .padding(.vertical, Space.s2)
-            .frame(minHeight: Space.tap)
-            .contentShape(Rectangle())
-            .overlay(alignment: .bottom) { Rule() }
+            .padding(.vertical, 6)
+            .padding(.horizontal, 3)
+            .frame(maxWidth: .infinity, minHeight: height)
+            .foregroundStyle(Theme.ink)
+            .background(on ? Theme.accentSoft : Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
+            .overlay(RoundedRectangle(cornerRadius: Radius.md).strokeBorder(on ? Theme.accent : Theme.rule, lineWidth: 1))
+            .overlay(alignment: .topTrailing) {
+                Image(systemName: on ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 16)).foregroundStyle(on ? Theme.accent : Theme.ink3)
+                    .padding(3).accessibilityHidden(true)
+            }
+            .contentShape(RoundedRectangle(cornerRadius: Radius.md))
         }
         .buttonStyle(ChoicePress())
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel([source.name, source.paid == true ? "abonnement" : "gratis", source.lang == "en" ? "Engels" : nil, source.about].compactMap { $0 }.joined(separator: ", "))
+        .accessibilityLabel([source.name, source.paid == true ? "abonnement" : "gratis", source.lang == "en" ? "Engels" : nil].compactMap { $0 }.joined(separator: ", "))
         .accessibilityAddTraits(on ? [.isButton, .isSelected] : .isButton)
-    }
-
-    private var name: some View {
-        Text(source.name).font(.body.weight(.heavy)).foregroundStyle(Theme.ink)
-    }
-
-    // Labels in een inkttint (rood is voor wat aan staat).
-    @ViewBuilder private var tags: some View {
-        tag(source.paid == true ? "abonnement" : "gratis")
-        if source.lang == "en" { tag("EN") }
-    }
-
-    private func tag(_ text: String) -> some View {
-        Text(text)
-            .font(.caption.weight(.bold))
-            .foregroundStyle(Theme.ink2)
-            .padding(.horizontal, Space.s1)
-            .background(Theme.rule, in: Capsule())
-            .fixedSize()
-    }
-
-    // Het ronde vinkje in de grammatica van gekozen (zie Choice.swift): in rust een rand `edge`, gekozen
-    // rood zacht met een rode rand en het vinkje in accent. Geen wit op rood: dat is voor het merk.
-    private var check: some View {
-        ZStack {
-            Circle().strokeBorder(Theme.edge, lineWidth: 1).opacity(on ? 0 : 1)
-            Circle().fill(Theme.accentSoft).overlay(Circle().strokeBorder(Theme.accent, lineWidth: 1)).opacity(on ? 1 : 0)
-            Image(systemName: "checkmark")
-                .font(.system(size: 13, weight: .heavy))
-                .foregroundStyle(Theme.accent)
-                .opacity(on ? 1 : 0)
-        }
-        .frame(width: Space.s6, height: Space.s6)
-        .animation(.easeOut(duration: 0.15), value: on)
-        .accessibilityHidden(true)
     }
 }
 

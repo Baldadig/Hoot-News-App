@@ -11,6 +11,8 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 - **Eén plek per verhaal:** een los bericht uit de algemene Editie staat er niet meer naast zijn eigen verhaal.
 - **Onbekend telt niet als binnenland:** een stuk uit een buitenlandse nieuwsbron zonder herkende plaats, dat geen Nederlandse of Vlaamse uitgever brengt, telt mee voor het plafond van twee (NPR over het Amerikaanse hooggerechtshof). Vakstukken over tech, economie, wetenschap, cultuur of sport niet. Een buitenlandse stad in de kop (Frankfurt, Keulen) maakt een stuk Buitenland.
 - **Het hele verhaal bepaalt waar het speelt:** één Nederlands bericht maakt een buitenlands verhaal geen Binnenland. Heidi Klum op Halloween (NU tussen RTL, BBC en Variety) kreeg "Omdat je Binnenland volgt" en nam een internationale plek in.
+- **Bronnen kiezen in Welkom:** compact raster met echte bronlogo’s en namen, tot 16 tegelijk. Voorgestelde bronnen staan vooraan; Meer bronnen bladert door het hele aanbod. Je keuzes blijven staan en een lege keuze kan niet verder.
+- **Selectie als vervolgstap:** kies na je bronnen je eigen onderwerpen, of kies later. Web en iOS volgen dezelfde volgorde.
 
 ## [1.57.0] — 2026-10-31 — Hoot verhuist naar gethoot.app, een Stroom van 36 uur en de signatuurronde
 

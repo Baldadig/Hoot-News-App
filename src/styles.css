@@ -5370,3 +5370,21 @@ html[data-images='hoofd'] .media--social {
 .seen::before, .seen::after { content: ''; flex: 1; height: 1px; background: var(--accent); }
 .stream-new { animation: rise 200ms var(--ease) backwards; animation-delay: var(--rise-delay, 0ms); }
 @media (prefers-reduced-motion: reduce) { .waiting svg .brand__dot, .waiting__dot, .stream-new { animation: none; } }
+
+/* Welkom: je voorgestelde bronnen direct herkennen en kiezen. */
+/* Bronkeuze: 4 × 4 op normale telefoons; minder kolommen bij weinig breedte/grote tekst. */
+.ob--sources .ob__title { margin-top:var(--s3) }
+.ob--sources .ob__sub { font-size:var(--t2); line-height:1.35 }
+.ob__sourcecount { margin-top:var(--s2); color:var(--ink-3); font-size:var(--t1) }
+.ob__sourcefit { margin-top:var(--s3) }
+.ob__sourcegrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,max(4.6rem,calc((100% - 3 * var(--s2)) / 4))),1fr)); gap:var(--s2); margin:0; padding:0; list-style:none }
+.ob__sourcegrid > li { min-width:0 }
+.ob__sourcecard { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; width:100%; min-height:96px; padding:6px 3px; border:1px solid var(--rule); border-radius:var(--radius-card); background:var(--surface); color:var(--ink); text-align:center; cursor:pointer; transition:background-color var(--dur-1) var(--ease),border-color var(--dur-1) var(--ease) }
+.ob__sourcecard[aria-pressed='true'] { border-color:var(--accent); background:var(--sel-bg) }
+.ob__sourcecard .mark { flex:none }
+.ob__sourcecard-name { display:flex; align-items:center; justify-content:center; min-height:2.4em; font-size:var(--t0); line-height:1.2; font-weight:var(--fw-ui); overflow-wrap:anywhere }
+.ob__sourcecard-meta { font-size:var(--t0); line-height:1.2; color:var(--ink-3); overflow-wrap:anywhere }
+.ob__sourcecard .ob__check { position:absolute; top:3px; right:3px; width:16px; height:16px }
+.ob__sourcecard[aria-pressed='true'] .ob__check { background:var(--accent); border-color:var(--accent) }
+.ob__sourcecard[aria-pressed='true'] .ob__check::after { width:12px; height:12px; background:var(--paper) }
+@media(min-width:560px) { .ob__sourcecard { min-height:104px; padding:var(--s2) } .ob__sourcecard-name { font-size:var(--t1) } }
