@@ -13,7 +13,7 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
 | ✅ | TestFlight | Build 18 (0.17) klaar; interne groep "Team Hoot" met Alex, automatische distributie. |
 | ✅ | App-informatie | Ondertitel, categorieën Nieuws + Tijdschriften en kranten. |
 | ✅ | Leeftijd | 13+ (zie LEEFTIJD.md; geen onbeperkte webtoegang, geen UGC/sociale media). |
-| ✅ | App Privacy | "Geen gegevens verzameld", gepubliceerd; privacybeleid https://hootnews.nl/#/privacy (bijgewerkt voor de app). |
+| ✅ | App Privacy | "Geen gegevens verzameld", gepubliceerd; privacybeleid https://gethoot.app/#/privacy (bijgewerkt voor de app; zelfde pagina als hootnews.nl). |
 | ✅ | Prijs en landen | Gratis; Nederland en België. |
 | ✅ | Versie 1.0: teksten | Promotietekst, beschrijving, trefwoorden, support- en marketing-URL, copyright 2026 Baldadig, notities voor de beoordelaar. |
 | ✅ | Contentrechten | Ingevuld door Alex (28 okt): bevat inhoud van derden, rechten aanwezig. |
@@ -63,11 +63,11 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
 | 🟡 | Naam beschikbaar? | | "Hoot" alleen is waarschijnlijk bezet; App Store Connect zegt het bij het aanmaken. Alternatief: *Hoot: rustig nieuws*. |
 | ✅ | Categorie: Nieuws (tweede: Tijdschriften en kranten) | `primary_category.txt` | |
 | ✅ | Copyright: 2026 Alex Vrees | `copyright.txt` | |
-| ✅ | Privacybeleid-URL: https://hootnews.nl/#/privacy | `privacy_url.txt` | |
+| ✅ | Privacybeleid-URL: https://gethoot.app/#/privacy | `privacy_url.txt` | Sinds 31-10 op gethoot.app (alias van dezelfde Netlify-site). In App Store Connect bij 1.0.1 bijwerken. |
 | ✅ | Privacybeleid dekt de app | | Alinea "De app voor iPhone en iPad" en contactadres toegevoegd (web 1.32.4). |
-| ✅ | **Support-URL met contactgegevens** | `support_url.txt` | `https://hootnews.nl/#/over`: pagina "Over Hoot" met contact en veelgestelde vragen (web 1.32.4), ook voor nieuwe bezoekers direct leesbaar. |
-| 👤 | **Mailadres hallo@hootnews.nl aanmaken** | | Bij je domeinbeheerder, als echte mailbox of als doorstuuradres naar je eigen mail. Stuur daarna één testmail. |
-| ✅ | Marketing-URL: https://hootnews.nl | `marketing_url.txt` | Optioneel. |
+| ✅ | **Support-URL met contactgegevens** | `support_url.txt` | `https://gethoot.app/#/over`: pagina "Over Hoot" met contact en veelgestelde vragen (web 1.32.4), ook voor nieuwe bezoekers direct leesbaar. |
+| ✅ | **Contactadres info@gethoot.app** | | 31-10: gethoot.app in Google Workspace (Baldadig) als secundair domein, MX/SPF/DKIM/DMARC bij TransIP; info@gethoot.app is een alias op alex@baldadig.nl. Overal als contact- en supportadres gebruiken (App Store Connect: contactgegevens bij App Review en de Support-URL). |
+| ✅ | Marketing-URL: https://gethoot.app | `marketing_url.txt` | Wordt later de landingspagina (plan in Hoot-design/gethoot). |
 
 ## 4. Beelden
 
@@ -110,3 +110,19 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
 4. 👤 Vul de productpagina in (teksten uit `metadata/`, beelden uit `screenshots/`).
 5. 👤 App Privacy, Leeftijd, Prijs: zie de documenten hierboven.
 6. 👤 Kies de build → **Ter beoordeling indienen**. Beoordeling duurt meestal 1–2 dagen.
+
+## 1.0.1 (build 36) indienen — stappen (bijgewerkt 31-10-2026)
+
+1. Alles samengevoegd en gekeurd op main (designronde, signatuurronde, KISS-teksten, onboarding, De Redacteur, taalregel), web en iOS gelijk.
+2. Alex pusht main; Netlify zet hootnews.nl en gethoot.app live (zelfde site; gethoot.app heeft een eigen Let's Encrypt-certificaat).
+3. Controle live: https://gethoot.app/#/over en https://gethoot.app/#/privacy laden met geldig certificaat; contactadres op beide pagina's is info@gethoot.app; het privacybeleid zegt dat de app de Editie op het toestel samenstelt.
+4. Build 36 archiveren en uploaden naar App Store Connect (versie 1.0.1).
+5. In App Store Connect bij versie 1.0.1 invullen of bijwerken:
+   - Support-URL: https://gethoot.app/#/over
+   - Marketing-URL: https://gethoot.app
+   - Privacybeleid-URL (App-informatie): https://gethoot.app/#/privacy
+   - Contactgegevens App Review: info@gethoot.app
+   - Naam: Hoot: je nieuws op één plek · ondertitel, beschrijving, trefwoorden en releasenotes uit `metadata/nl-NL/` (geen kloktijden)
+   - Nieuwe schermafbeeldingen (nieuw Welkom, Editie met waarom-regels, Stroom Tijdlijn/Krant, Selectie)
+6. Versie 1.0 (build 27) uit review halen, 1.0.1 (build 36) koppelen en indienen. De verklaringen en de laatste klik zijn van Alex.
+7. Daarna stilstand tot Apple accepteert.

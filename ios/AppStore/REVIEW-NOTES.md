@@ -4,7 +4,7 @@ Plak de Engelse tekst hieronder in App Store Connect → je versie → **App Rev
 
 ---
 
-Hoot News is a calm news reader for Dutch-speaking readers, made by Baldadig.nl. No account is needed: on the welcome screen, "Stel je Hoot samen" (choose interests and sources) or "Of kijk eerst even rond" (start with free Dutch sources) both give the full app. Signing in is optional and only syncs settings and saved items with hootnews.nl.
+Hoot News is a calm news reader for Dutch-speaking readers, made by Baldadig.nl. No account is needed: on the welcome screen, "Stel je Hoot samen" (choose interests and sources) or "Of kijk eerst even rond" (start with free Dutch sources) both give the full app. Signing in is optional and only syncs settings and saved items with the Hoot website (gethoot.app, also reachable as hootnews.nl).
 
 What the app does
 - Edition: three times a day (06:00, 12:00, 17:00 Amsterdam time) an edition of ten stories, composed on our server from the reader's own sources and interests. The reader's chosen sources, interests and favourite sources are sent to our server to compose it; nothing is stored.
@@ -19,7 +19,7 @@ Where the content comes from
 
 Privacy
 - No analytics, no advertising, no tracking. Without an account, preferences, saved items, read state and reading preferences stay on the device.
-- Optional account (Settings → Account, or "Log in met je account" on the welcome screen): Sign in with Apple or Google. It syncs sources, interests, read state and saved items with the same account on hootnews.nl (Supabase, EU). Hoot accounts are invite-only for now: after signing in, a new user is asked for an invitation code. Invitation code for review: [CODE]. Accounts can be deleted in the app: Settings → Account → "Account verwijderen" removes the account and all synced data from the server.
+- Optional account (Settings → Account, or "Log in met je account" on the welcome screen): Sign in with Apple or Google. It syncs sources, interests, read state and saved items with the same account on the Hoot website, gethoot.app (Supabase, EU). Hoot accounts are invite-only for now: after signing in, a new user is asked for an invitation code. Invitation code for review: [CODE]. Accounts can be deleted in the app: Settings → Account → "Account verwijderen" removes the account and all synced data from the server.
 
 Navigating the app
 - Tabs: Editie (Edition), Stroom (Stream), Selectie (weekly selection), Bewaard (Saved), Search. Settings: the gear button at the top right.
@@ -27,3 +27,5 @@ Navigating the app
 - On iPad and on wide windows the layout switches to two columns and the tab bar can become a sidebar.
 
 Contact: see the App Review contact details.
+
+Contact for App Review: info@gethoot.app
