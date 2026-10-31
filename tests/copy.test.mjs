@@ -16,14 +16,17 @@ test('Stroom-instelling heet "Lees de Stroom als" (W1)', () => {
   assert.ok(allSrc().every((s) => !s.includes('Indeling van lijsten')))
 })
 
-test('Welkom: intro-punten in de volgorde van de app, vijf stappen, geen "In één minuut bij" (W2)', () => {
+test('Welkom: veegpagina\'s in de volgorde van de app (Editie, Stroom, Selectie), zonder oude stappen (W2)', () => {
   const s = read('views/Welcome.jsx')
-  const i = ['Je Editie', 'De Stroom', 'Je Selectie'].map((t) => s.indexOf(`title="${t}"`))
-  assert.ok(i.every((x) => x >= 0), 'alle drie de titels staan erin')
+  const i = ["title: 'Je Editie'", "title: 'De Stroom'", "title: 'Je Selectie'"].map((t) => s.indexOf(t))
+  assert.ok(i.every((x) => x >= 0), 'alle drie de pagina\'s staan erin')
   assert.ok(i[0] < i[1] && i[1] < i[2], 'Editie, Stroom, Selectie')
-  assert.match(s, /const STEPS = 5\b/)
   assert.ok(!s.includes('In één minuut bij'))
+  assert.ok(!/STEPS/.test(s), 'geen stapteller meer')
   assert.match(s, /Inloggen/)
+  // Wat precies? is een eigen pagina met Overslaan; Je Selectie staat achter Je Hoot.
+  assert.match(s, /Wat precies\?/)
+  assert.match(s, /label: 'Overslaan'/)
 })
 
 test('Welkom: papier op merkrood; tegel in rust 1 px --rule, gekozen --sel-* met vinkje (W2, C1)', () => {
@@ -124,14 +127,6 @@ test('Aanhalen met ‘ ’: geen rechte aanhalingstekens om gebruikerstekst in d
   assert.match(read('views/Search.jsx'), /Niets gevonden voor ‘\$\{q\.trim\(\)\}’/)
 })
 
-test('Welkom: één stapteller als breuk met breukstreep ⁄, zonder spatie (T7)', () => {
-  const s = read('views/Welcome.jsx')
-  const n = s.match(/<span className="ob__n"[^>]*>[^\n]*<\/span>/g) || []
-  assert.equal(n.length, 2, 'beide tellers op één regel')
-  assert.ok(n.every((t) => /\}>(\{step \+ 1\}|1)<small>⁄\{STEPS\}<\/small><\/span>/.test(t)))
-  assert.ok(!/<small>\/\{STEPS\}/.test(s))
-})
-
 test('Schakelaar aan is inkt, geen rood; tabelcijfers alleen in de schreefloze tijdregels (K2, T8)', () => {
   const css = read('styles.css')
   const on = css.slice(css.indexOf(".switch[aria-checked='true'] .switch__track {")).slice(0, 120)
@@ -167,11 +162,14 @@ test('Selectie zegt overal onderwerpen: "Onderwerpen · 3" en "1 stuk" (C5, zoal
   assert.ok(strings.every((s) => !/vakgebied/i.test(s)), 'vakgebied niet in de tekst')
 })
 
-test('Welkom 1 onder 720: de drie punten verdelen het rood tussen belofte en knop (K4)', () => {
+test('Welkom scrolt niet: kolom van vaste hoogte, pillen verdeeld over pagina\'s, vangnet alleen op de buitenste laag (K4)', () => {
   const css = read('styles.css')
-  const block = css.slice(css.indexOf('@media (max-width: 719px) {')).slice(0, 260)
-  assert.match(block, /\.ob__red > \.ob__col \{\s*display: flex;\s*flex-direction: column;/)
-  assert.match(block, /\.ob__red \.ob__points \{\s*margin-block: auto;/)
+  assert.match(css, /\.ob__col \{\s*display: flex;\s*flex: 1;\s*flex-direction: column;\s*min-height: 0;/)
+  assert.match(css, /\.ob__fit \{\s*position: relative;\s*flex: 1;\s*min-height: 0;/)
+  assert.match(css, /\.ob__measure \{[^}]*visibility: hidden;/)
+  assert.match(read('views/Welcome.jsx'), /packPages\(/)
+  // De zon: een tekening met de kleuren uit de CSS, niet uit de component.
+  assert.match(css, /\.ob--open \.sun \{\s*--sun-disc: var\(--on-brand-red\);/)
 })
 
 test('Voorpagina: raster pas in een raam breder dan 48rem, met een zijkolom van 17rem tot 52rem (K5)', () => {
