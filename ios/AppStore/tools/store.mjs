@@ -23,8 +23,8 @@ const SHOTS = [
 // Eigen tekst voor de krantentextuur (geen tekst van uitgevers).
 const FILLER =
   'Het nieuws van vandaag staat klaar. Lees het rustig, op je eigen tempo, zonder dat er iets verspringt. ' +
-  'Drie keer per dag een editie van tien verhalen, en dan houdt het op. Wie meer wil, opent de Stroom ' +
-  'met alles van de eigen bronnen, het nieuwste bovenaan. Elke maandag het beste uit je vak, gekozen ' +
+  'Drie keer per dag een Editie van tien verhalen, en dan ben je bij. Wie meer wil, opent de Stroom ' +
+  'met alles van de eigen bronnen, het nieuwste bovenaan. Elke maandag je Selectie, het beste uit je vak, gekozen ' +
   'door vakmensen en geschreven door mensen. Geen meldingen die om aandacht vragen, geen eindeloze ' +
   'tijdlijn, geen reclame. Alleen de krant, zoals je hem op zaterdag leest: met koffie, aan tafel, en ' +
   'met een einde waarop je weet dat je bij bent. '
