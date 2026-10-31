@@ -16,9 +16,11 @@ struct StreamView: View {
     @SceneStorage("streamRubriek") private var rubriek = DebugLaunch.startRubriek ?? ""
     @State private var debugStart = true // Debug: het startargument voor de rubriek is nog niet gebruikt
 
+    // Koos je geen interesses, dan alle acht (rubriekRij op het web).
     static func tabs(interests: [String], bubble: Bool) -> [(id: String, label: String)] {
-        [("", "Alles")]
-            + Rubriek.alle.filter { interests.contains($0.id) }.map { (id: $0.id, label: $0.label) }
+        let chosen = Rubriek.alle.filter { interests.contains($0.id) }
+        return [("", "Alles")]
+            + (chosen.isEmpty ? Rubriek.alle : chosen).map { (id: $0.id, label: $0.label) }
             + (bubble ? [("bubbel", "Buiten je bubbel")] : [])
     }
 

@@ -40,11 +40,11 @@ enum Desk {
         return e.desk.flatMap { labels[$0] }
     }
 
-    // Het label boven het verhaal (StoryLabel.label, gelijk aan src/lib/label.js): je (sub)interesse als het
-    // verhaal die raakt, anders de rubriek; het waarom alleen als het iets toevoegt; "Buiten je bronnen" staat
+    // Het label boven het verhaal (StoryLabel.label, gelijk aan src/lib/label.js): "interesse · onderwerp" bij
+    // een sterke treffer, anders de rubriek; het waarom alleen als het iets toevoegt; "Buiten je bronnen" staat
     // in de bronregel.
-    static func label(_ e: EditionEntry, item: Item, sourceCat: String?, follows: [String], interests: [String], followed: Bool) -> StoryLabel.Result {
-        StoryLabel.label(topics: item.topics ?? [], follows: follows, interests: interests, cat: sourceCat, desk: e.desk, deskLabel: plek(e), whyCode: e.why?.code, whyText: e.why?.text, followed: followed || ["bubbel", "breed"].contains(e.desk ?? ""))
+    static func label(_ e: EditionEntry, item: Item, sourceCat: String?, follows: [String], followed: Bool) -> StoryLabel.Result {
+        StoryLabel.label(topics: item.topics ?? [], mainTopics: item.mainTopics ?? [], follows: follows, cat: sourceCat, desk: e.desk, deskLabel: plek(e), whyCode: e.why?.code, whyText: e.why?.text, followed: followed || ["bubbel", "breed"].contains(e.desk ?? ""))
     }
 }
 
@@ -74,7 +74,7 @@ extension HootStore {
             let leadId = e.kind == "story" ? (e.leadId ?? e.id) : e.id
             guard let item = published[leadId] ?? itemsById[leadId] else { return nil }
             let story = e.kind == "story" ? storiesById[e.id] : item.storyId.flatMap { storiesById[$0] }
-            let l = Desk.label(e, item: item, sourceCat: self.source(item.source)?.cat, follows: topics, interests: interests, followed: on.contains(item.source))
+            let l = Desk.label(e, item: item, sourceCat: self.source(item.source)?.cat, follows: topics, followed: on.contains(item.source))
             return EditionRowModel(id: e.id, item: item, story: story, label: l.kicker, desk: e.desk, why: l.why, outside: l.outside)
         }
         // Hoofdverhaal met scherp beeld (geen bubbel of "waar iedereen over schrijft").

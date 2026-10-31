@@ -9,24 +9,26 @@ final class LabelTests: XCTestCase {
         .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         .appending(path: "tests/fixtures/label-cases.json")
 
-    // Elk geval uit de gedeelde fixture: dezelfde invoer, dezelfde uitkomst als labelFor op het web.
+    // Elk geval uit de gedeelde fixture (`input` → `expect`): dezelfde invoer, dezelfde uitkomst als labelFor
+    // op het web. Velden die ontbreken hebben hun standaard (lijsten leeg, followed true, de rest null).
     func testGedeeldeGevallen() throws {
         let data = try Data(contentsOf: Self.fixtureURL)
         let doc = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
         let cases = try XCTUnwrap(doc["cases"] as? [[String: Any]])
-        XCTAssertGreaterThan(cases.count, 20)
+        XCTAssertGreaterThanOrEqual(cases.count, 25)
+        XCTAssertTrue(cases.contains { ($0["name"] as? String)?.hasPrefix("Breskens") == true })
         for c in cases {
             let name = c["name"] as? String ?? "?"
-            let i = c["in"] as? [String: Any] ?? [:]
-            let o = c["out"] as? [String: Any] ?? [:]
+            let i = c["input"] as? [String: Any] ?? [:]
+            let o = try XCTUnwrap(c["expect"] as? [String: Any], name)
             let why = i["why"] as? [String: Any]
             let r = StoryLabel.label(
-                topics: i["topics"] as? [String] ?? [], follows: i["follows"] as? [String] ?? [], interests: i["interests"] as? [String],
+                topics: i["topics"] as? [String] ?? [], mainTopics: i["mainTopics"] as? [String] ?? [], follows: i["follows"] as? [String] ?? [],
                 cat: i["cat"] as? String, desk: i["desk"] as? String, deskLabel: i["deskLabel"] as? String, section: i["section"] as? String,
                 whyCode: why?["code"] as? String, whyText: why?["text"] as? String, followed: i["followed"] as? Bool ?? true)
-            if o.keys.contains("kicker") { XCTAssertEqual(r.kicker, o["kicker"] as? String, name) }
-            if o.keys.contains("why") { XCTAssertEqual(r.why, o["why"] as? String, name) }
-            if let out = o["outside"] as? Bool { XCTAssertEqual(r.outside, out, name) }
+            XCTAssertEqual(r.kicker, o["kicker"] as? String, name)
+            XCTAssertEqual(r.why, (o["why"] as? [String: Any])?["text"] as? String, name)
+            XCTAssertEqual(r.outside, o["outside"] as? Bool, name)
         }
     }
 

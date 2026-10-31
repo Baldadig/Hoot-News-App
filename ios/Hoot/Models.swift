@@ -52,6 +52,7 @@ struct Item: Codable, Identifiable, Hashable {
     var video: String? // HLS-afspeellijst
     var videoPoster: String?
     var topics: [String]? // onderwerpen (server), voor je smaak
+    var mainTopics: [String]? // de onderwerpen die het verhaal dragen: uit de kop en het vak van de bron (server, voor het label)
 
     var date: Date? { publishedAt.flatMap(HootDate.parse) }
     var link: URL? { URL(string: url) }

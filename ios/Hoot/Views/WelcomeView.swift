@@ -7,7 +7,8 @@ import SwiftUI
 // het voorstel voor je bronnen (Aanpassen: Je bronnen) en je Selectie (Later kiezen: Je Selectie), en
 // tot slot Een seintje?. Niets in het welkom scrolt: elke pagina past op één scherm, ook op de kleinste
 // iPhone en bij grote tekst. Past iets niet, dan verdelen Wat precies?, Je bronnen en Je Selectie zich
-// over meer pagina's (de maten volgen de tekstgrootte); een pagina scrolt alleen als er echt niets meer te splitsen is.
+// over meer pagina's (de maten volgen de tekstgrootte; Je bronnen heeft Klaar op elke pagina en Meer bronnen
+// om door te bladeren). Alleen bij de toegankelijkheidsgroottes (AX1+) staat alles op één pagina die scrolt.
 // "Liever meteen lezen" begint zonder vragen met gratis Nederlandse bronnen en zet geen vak.
 // Het merk loopt erdoorheen: het opstartscherm landt op "hoot." linksboven op de rode intro (het rood
 // blijft), en bij het eerste papier sluit het rood zich als een iris tot de punt van "hoot." op papier.
@@ -186,7 +187,8 @@ struct WelcomeView: View {
             go(.precies)
         case .precies:
             if subpage + 1 < subCount { turn { subpage += 1 } } else { go(.hoot) }
-        case .bronnen, .selectie:
+        case .bronnen: go(.hoot) // Klaar op elke pagina
+        case .selectie:
             if subpage + 1 < subCount { turn { subpage += 1 } } else { go(.hoot) }
         case .hoot:
             apply()
@@ -489,26 +491,25 @@ struct WelcomeView: View {
         .background(Theme.paper.ignoresSafeArea())
     }
 
-    // Een keuzepagina: kop, uitleg en de keuzes. Past op één scherm; alleen als dat echt niet kan
-    // (heel grote tekst) scrolt hij.
+    // Een keuzepagina: kop, uitleg en de keuzes. Past op één scherm; bij de toegankelijkheidsgroottes
+    // (AX1 en groter) is er geen andere optie: dan staat alles op één pagina die scrolt.
     private var choicePage: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 VStack(alignment: .leading, spacing: Space.s2) {
-                    HStack(alignment: .firstTextBaseline, spacing: Space.s3) {
-                        Text(title)
-                            .font(.system(.title, design: .serif, weight: .heavy))
-                            .tracking(-0.4)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityAddTraits(.isHeader)
-                            .accessibilityFocused($headFocus)
-                        Spacer(minLength: 0)
-                        if subCount > 1 {
-                            Text("\(subpage + 1) van \(subCount)")
-                                .font(.subheadline)
-                                .foregroundStyle(Theme.ink3)
-                                .monospacedDigit()
-                        }
+                    // De kop heeft de hele breedte (het vraagteken blijft bij zijn woord); de teller staat eronder.
+                    Text(title.replacingOccurrences(of: "?", with: "\u{2060}?"))
+                        .font(.system(.title, design: .serif, weight: .heavy))
+                        .tracking(-0.4)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityLabel(title)
+                        .accessibilityAddTraits(.isHeader)
+                        .accessibilityFocused($headFocus)
+                    if subCount > 1 {
+                        Text("\(subpage + 1) van \(subCount)")
+                            .font(.subheadline)
+                            .foregroundStyle(Theme.ink3)
+                            .monospacedDigit()
                     }
                     Text(sub)
                         .font(.body)
@@ -625,6 +626,8 @@ struct WelcomeView: View {
     // Hoeveel ruimte een pagina heeft voor de keuzes zelf (onder kop en uitleg, boven de knoppen).
     private var room: CGFloat { roomH - headH - Space.s2 - Space.s4 - Space.s5 - Space.s4 }
     private var metrics: WelcomePages.Metrics { WelcomePages.Metrics(typeSize) }
+    // Bij de toegankelijkheidsgroottes geen pagina's van één onderwerp of één bron: één pagina die scrolt.
+    private var scrolls: Bool { typeSize.isAccessibilitySize }
 
     // De groepen van deze stap: je gekozen interesses met hun onderwerpen, of de domeinen van de Selectie.
     private func groups(for step: Step) -> [ChipGroup] {
@@ -645,7 +648,7 @@ struct WelcomeView: View {
     // dan wordt hij zelf in stukken gedeeld, elk met de kop erboven.
     private func chipPages(for step: Step) -> [[ChipGroup]] {
         let all = groups(for: step)
-        guard roomH > 0 else { return [all] }
+        guard roomH > 0, !scrolls else { return [all] }
         let m = metrics
         let line = max(120, width - Space.s4 * 2)
         let maxRows = max(1, Int((room - m.header - WelcomePages.headerGap + WelcomePages.gap) / (m.chip + WelcomePages.gap)))
@@ -667,7 +670,7 @@ struct WelcomeView: View {
 
     // Je bronnen: de rijen over pagina's, op de gemeten hoogte van elke rij.
     private var sourcePages: [[String]] {
-        guard roomH > 0, !offered.isEmpty, offered.allSatisfy({ rowH[$0] != nil }) else { return [offered] }
+        guard roomH > 0, !scrolls, !offered.isEmpty, offered.allSatisfy({ rowH[$0] != nil }) else { return [offered] }
         return WelcomePages.split(offered.map { rowH[$0] ?? 0 }, room: room, gap: 0).map { $0.map { offered[$0] } }
     }
 
@@ -858,7 +861,8 @@ struct WelcomeView: View {
         switch step {
         case .interesses: (interests.isEmpty ? "Kies minstens één" : "Verder", interests.isEmpty)
         case .precies: ("Verder", false)
-        case .bronnen, .selectie: (subpage + 1 < subCount ? "Verder" : "Klaar", step == .bronnen && chosen?.isEmpty == true && subpage + 1 >= subCount)
+        case .bronnen: ("Klaar", chosen?.isEmpty == true) // op elke pagina; verder bladeren met Meer bronnen
+        case .selectie: (subpage + 1 < subCount ? "Verder" : "Klaar", false)
         case .hoot: (asks ? "Verder" : "Naar je Editie", chosen?.isEmpty == true)
         case .seintje: ("Ja, graag", false)
         case .intro, .uitleg: ("", false)
@@ -868,6 +872,7 @@ struct WelcomeView: View {
     private var link: (label: String, action: () -> Void)? {
         switch step {
         case .precies: ("Overslaan", { picked = []; go(.hoot) }) // overslaan = alles binnen je interesses
+        case .bronnen where subpage + 1 < subCount: ("Meer bronnen", { turn { subpage += 1 } })
         case .seintje: ("Nu niet", { onDone() }) // onder het einde van de Editie kan het later nog
         case .interesses where reopen, .hoot where reopen: ("Sluiten zonder opslaan", { onCancel?() })
         default: nil
@@ -1014,33 +1019,46 @@ struct WelcomeMark: View {
 }
 
 // Een bron om aan of uit te zetten (.ob__src): logo, naam met labels, wat het is, en een rond vinkje.
+// Dicht op elkaar, zoals op het web: naam en labels op één regel (de labels krimpen niet, de naam krijgt
+// zo nodig een beletselteken) en wat het is ook op één regel. Zo is elke rij even hoog en passen er meer
+// bronnen op een pagina. Bij de toegankelijkheidsgroottes (één pagina die scrolt) mag de tekst doorlopen.
 private struct SourcePick: View {
     let source: Source
     let on: Bool
     let action: () -> Void
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
+        let lines = typeSize.isAccessibilitySize ? nil : 1 as Int?
         Button(action: action) {
             HStack(spacing: Space.s3) {
-                SourceAvatar(source: source, size: 40).opacity(on ? 1 : 0.5)
-                VStack(alignment: .leading, spacing: Space.s0) {
-                    ViewThatFits(in: .horizontal) {
-                        HStack(spacing: Space.s2) { name; tags }
-                        VStack(alignment: .leading, spacing: Space.s1) { name; HStack(spacing: Space.s2) { tags } }
+                SourceAvatar(source: source, size: 32).opacity(on ? 1 : 0.5)
+                VStack(alignment: .leading, spacing: 0) {
+                    if lines == nil {
+                        // Grote tekst: de naam over de hele breedte, de labels eronder.
+                        name.fixedSize(horizontal: false, vertical: true)
+                        Flow { tags } // "abonnement" en "EN" passen bij de grootste tekst niet naast elkaar
+                    } else {
+                        HStack(alignment: .firstTextBaseline, spacing: Space.s1) {
+                            name.lineLimit(1).truncationMode(.tail).layoutPriority(-1)
+                            tags
+                        }
                     }
                     if let about = source.about, !about.isEmpty {
                         Text(about)
                             .font(.subheadline)
                             .foregroundStyle(Theme.ink3)
-                            .fixedSize(horizontal: false, vertical: true)
+                            .lineLimit(lines)
+                            .truncationMode(.tail)
+                            .fixedSize(horizontal: false, vertical: lines == nil)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 check
             }
             .multilineTextAlignment(.leading)
-            .padding(.vertical, Space.s3)
-            .frame(minHeight: 64)
+            .padding(.vertical, Space.s2)
+            .frame(minHeight: Space.tap)
             .contentShape(Rectangle())
             .overlay(alignment: .bottom) { Rule() }
         }
@@ -1064,8 +1082,7 @@ private struct SourcePick: View {
         Text(text)
             .font(.caption.weight(.bold))
             .foregroundStyle(Theme.ink2)
-            .padding(.horizontal, Space.s2)
-            .padding(.vertical, Space.s0)
+            .padding(.horizontal, Space.s1)
             .background(Theme.rule, in: Capsule())
             .fixedSize()
     }
