@@ -272,7 +272,8 @@ struct SettingsView: View {
 // uit dezelfde bundel (profileSummary), in drie lijsten zoals op de website. Gekozen: je interesses en
 // waar je 'meer hiervan' bij zei. Geleerd: wat je vaker opent of bewaart dan je bronnen erover
 // schrijven (blijft op dit toestel), elk met Vergeet dit. Minder: waar je 'minder hiervan' bij zei,
-// met de weg terug. Gewone taal, geen getallen. Zonder iets geleerd zegt de lijst dat.
+// met de weg terug. Gewone taal, geen getallen. Zonder iets geleerd zegt de lijst dat. Wat je hier
+// verandert telt pas bij de volgende Editie: die van dit dagdeel staat al en blijft staan.
 struct LearnedSection: View {
     @Environment(HootStore.self) private var store
     @State private var summary = ProfileSummary()
@@ -287,7 +288,7 @@ struct LearnedSection: View {
                 }
             }
             ForEach(summary.learned, id: \.self) { t in
-                LearnedRow(title: Taste.label(t), hint: "Lees je vaak, dus komt vaker in je Editie.", action: "Vergeet dit") {
+                LearnedRow(title: Taste.label(t), hint: "Dit lees je vaak, dus het komt vaker in je Editie.", action: "Vergeet dit") {
                     withAnimation { store.forgetTopic(t) }
                 }
             }
@@ -302,7 +303,7 @@ struct LearnedSection: View {
         } header: {
             Text("Wat Hoot van je leerde")
         } footer: {
-            Text("Jouw Editie volgt wat je koos, wat je vaak opent of bewaart en waar je minder van wilde. Wat je leest blijft op dit toestel; je keuzes gaan mee met je account.").foregroundStyle(Theme.ink3)
+            Text("Jouw Editie volgt wat je koos, wat je vaak opent of bewaart en waar je minder van wilde. Wat je leest blijft op dit toestel; je keuzes gaan mee met je account. Wat je hier verandert, telt vanaf je volgende Editie; die van dit dagdeel blijft staan.").foregroundStyle(Theme.ink3)
         }
         .task(id: key) { summary = await store.profileSummary() }
         .animation(.default, value: summary)

@@ -33,7 +33,7 @@ test('oudere smaak vervaagt', () => {
 })
 
 // ---- Meer of minder hiervan ----
-import { vote, tasteScore, tasteSummary, TASTE_MAX, TASTE_CAP, emptyTaste } from '../src/lib/affinity.js'
+import { vote, tasteScore, TASTE_MAX, TASTE_CAP, emptyTaste } from '../src/lib/affinity.js'
 
 test('meer of minder: vooral op het onderwerp, een beetje op de bron, begrensd', () => {
   const story = [{ source: 'nos', topics: ['voetbal', 'ajax'] }, { source: 'vi', topics: ['voetbal'] }]
@@ -48,7 +48,7 @@ test('meer of minder: vooral op het onderwerp, een beetje op de bron, begrensd',
   t = vote(t, story, 1)
   assert.ok(t.topics.voetbal > -TASTE_CAP)
   assert.equal(tasteScore([{ source: 'nrc', topics: ['klimaat'] }], t), 0, 'ander onderwerp: niets')
-  assert.deepEqual(tasteSummary(vote(emptyTaste(), [{ source: 'x', topics: ['ai'] }], 1)), { more: ['ai'], less: [] })
+  // Wat Hoot van je leerde leest de smaak via profileSummary (shared/editor.mjs, tests/editor.test.mjs).
 })
 
 test('meer of minder: Bluesky-posts tellen niet, lege smaak is neutraal', () => {

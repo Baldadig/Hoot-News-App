@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { ViewHeader } from '../components/Shell.jsx'
 import { DisplayControls } from '../components/Display.jsx'
 import { useHoot } from '../components/Items.jsx'
@@ -5,7 +6,6 @@ import { Switch } from './Sources.jsx'
 import { AccountSettings } from '../components/Account.jsx'
 import { PLACES, NO_WEATHER } from '../lib/weather.js'
 import { VAK_FIELD_IDS } from '../../shared/vak.mjs'
-import { useMemo } from 'react'
 import { topicById } from '../lib/topics.js'
 import { CaretIcon, ICON_SM } from '../components/icons.jsx'
 import { supplyOf, profileOf, profileSummary } from '../../shared/editor.mjs'
@@ -113,7 +113,8 @@ export default function Settings({ meta, account, syncStatus, affinity = null, o
 // Editie, in drie lijsten. Gekozen: je interesses en waar je 'meer hiervan' bij zei. Geleerd: wat
 // je vaker opent of bewaart dan je bronnen erover schrijven (blijft op dit toestel); elk onderwerp
 // met 'Vergeet dit'. Minder: waar je 'minder hiervan' bij zei, met de weg terug. Gewone taal, geen
-// getallen. Zonder iets geleerd zegt de lijst dat.
+// getallen. Zonder iets geleerd zegt de lijst dat. Wat je hier verandert telt pas bij de volgende
+// Editie: die van dit dagdeel staat al en blijft staan.
 function Learned({ affinity, onForget }) {
   const { prefs, setPref, itemsById, sourcesById, muted } = useHoot()
   const summary = useMemo(() => {
@@ -130,11 +131,11 @@ function Learned({ affinity, onForget }) {
   return (
     <>
       <h2 className="label label--section sect">Wat Hoot van je leerde</h2>
-      <p className="hint learned__intro">Jouw Editie volgt wat je koos, wat je vaak opent of bewaart en waar je minder van wilde. Wat je leest blijft op dit toestel; je keuzes gaan mee met je account.</p>
+      <p className="hint learned__intro">Jouw Editie volgt wat je koos, wat je vaak opent of bewaart en waar je minder van wilde. Wat je leest blijft op dit toestel; je keuzes gaan mee met je account. Wat je hier verandert, telt vanaf je volgende Editie; die van dit dagdeel blijft staan.</p>
       <div className="rows">
         {summary.chosen.length ? <Row label="Gekozen" hint={summary.chosen.map(name).join(', ')} /> : null}
         {summary.learned.map((t) => (
-          <Row key={t} label={name(t)} hint="Lees je vaak, dus komt vaker in je Editie.">
+          <Row key={t} label={name(t)} hint="Dit lees je vaak, dus het komt vaker in je Editie.">
             <button type="button" className="btn btn--quiet" onClick={() => onForget?.(t)}>
               Vergeet dit
             </button>

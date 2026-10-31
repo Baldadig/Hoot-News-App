@@ -63,6 +63,7 @@ export const VOTE_SOURCE = 1
 export const TASTE_CAP = 12 // drie keer dezelfde kant op is genoeg
 export const TASTE_MAX = 6 // hooguit zoveel erbij of eraf; groot nieuws (veel bronnen) blijft staan
 const KEEP_TASTE = 40
+// Dezelfde vorm als DEFAULT_PREFS.taste; ook het beginpunt van de persona's (tests/fixtures, meetlat).
 export const emptyTaste = () => ({ topics: {}, sources: {} })
 
 const clampTaste = (v) => Math.max(-TASTE_CAP, Math.min(TASTE_CAP, v))
@@ -95,10 +96,4 @@ export function tasteScore(items, taste) {
   const topic = topics.reduce((sum, x) => sum + (t[x] || 0), 0)
   const source = s[items[0]?.source] || 0
   return Math.max(-TASTE_MAX, Math.min(TASTE_MAX, topic / 2 + source))
-}
-
-// Voor "Wat Hoot van je leerde": de onderwerpen waar je meer of minder van wilt.
-export function tasteSummary(taste) {
-  const e = Object.entries(taste?.topics || {})
-  return { more: e.filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).map(([k]) => k), less: e.filter(([, v]) => v < 0).sort((a, b) => a[1] - b[1]).map(([k]) => k) }
 }
