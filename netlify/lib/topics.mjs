@@ -4,7 +4,7 @@ const KW = [
   // Politiek
   ['nederland', /\b(kabinet|tweede kamer|eerste kamer|den haag|binnenhof|catshuis|prinsjesdag|miljoenennota|rijksoverheid|coalitie|formatie|minister van|staatssecretaris|kamerlid|kamerleden|\bpvv\b|\bvvd\b|\bd66\b|groenlinks|\bpvda\b|\bcda\b|\bsgp\b|\bbbb\b|\bja21\b|wilders|schoof|timmermans|yesilgoz|omtzigt|jetten|bontenbal)\b/i],
   ['europa', /\b(europese unie|europese commissie|europees parlement|europese leiders|eu-landen|\beu\b|brussel|von der leyen|european union|european commission|european parliament|eurozone|schengen)\b/i],
-  ['vs-politiek', /\b(verkiezing|election|senate|senaat|congress|congres|white house|witte huis|republikein|republican|democraat|democrat|\bgop\b|supreme court|hooggerechtshof|pentagon|capitol|vance|house of representatives|justice department|governor|gouverneur)\b/i],
+  ['vs-politiek', /\b(senate|senaat|congress|congres|white house|witte huis|republikein|republican|democraat|democrat|\bgop\b|supreme court|hooggerechtshof|pentagon|capitol|vance|house of representatives|justice department|governor|gouverneur)\b/i],
   ['trump', /\btrump\b/i],
   ['verkiezingen', /\b(verkiezing|verkiezingen|election|elections|stembus|peiling|peilingen|\bpoll(s)?\b|campagne|campaign|kandidaat|candidate|referendum|stemmen geteld)\b/i],
   // Binnenland
@@ -39,7 +39,7 @@ const KW = [
   ['gezondheid', /\b(gezondheid|health|kanker|cancer|vaccin|vaccine|virus|ebola|covid|corona|medicijn|medicine|drug trial|alzheimer|dementie|dementia|obesitas|obesity|diabetes|hartziekte|heart disease|\brivm\b|\bwho\b|pandemie|pandemic|epidemie)\b/i],
   ['ruimte', /\b(ruimtevaart|\bnasa\b|\besa\b|spacex|maanlanding|moon landing|mars|astronaut|telescoop|telescope|sterrenstelsel|zwart gat|black hole|planeet|planet|asteroïde|asteroid|satelliet|satellite|james webb)\b/i],
   ['natuur', /\b(natuur|nature|dieren|animals|biodiversiteit|biodiversity|diersoort|species|uitgestorven|extinct|vogels|birds|walvis|whale|bossen|forest|oceaan|ocean|wolf|insecten|insects|koraal|coral)\b/i],
-  ['brein', /\b(psycholog|brein|brain|hersenen|neuroscien|neurolog|depressie|depression|angst|anxiety|mentale gezondheid|mental health|slaaptekort|sleep study|adhd|autisme|autism)\b/i],
+  ['brein', /\b(psycholog|brein|brain|hersenen|neuroscien|neurolog|depressie|depression|angststoornis|angststoornissen|angstklachten|anxiety|mentale gezondheid|mental health|slaaptekort|sleep study|adhd|autisme|autism)\b/i],
   // Cultuur
   ['muziek', /\b(album|single|concert|festival|popmuziek|band|zanger|zangeres|rapper|songwriter|tournee|tour dates|setlist|grammy|edison|hitlijst|top 40|lowlands|pinkpop|paradiso|melkweg|eurovisie|eurovision|songfestival)\b/i],
   ['film', /\b(film|movie|tv-serie|televisieserie|tv series|netflix|hbo|disney\+|oscar|oscars|bioscoop|cinema|regisseur|actrice|actress|box office|streamingdienst|trailer|première)\b/i],

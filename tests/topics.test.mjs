@@ -53,3 +53,12 @@ test('startset "Liever meteen lezen": bestaande, gratis bronnen, Nederlands voor
   assert.equal(groups.flatMap((g) => g.sources).length, ids.length)
   assert.equal(starterGroups([{ id: 'nos', paid: true }]).length, 0) // een betaalde bron komt er nooit in
 })
+
+// Keurpunt 31 oktober: "uit angst voor rellen" is geen Psychologie & brein, en "election" is geen VS-politiek.
+test('trefwoorden: angst en verkiezing alleen in hun eigen betekenis', () => {
+  assert.ok(!keywordTopics('Den Haag zet zich schrap: winkeliers timmeren hun zaken dicht uit angst voor rellen').includes('brein'))
+  assert.ok(keywordTopics('Steeds meer jongeren met een angststoornis').includes('brein'))
+  const lula = keywordTopics('Lula’s surprise election victory sends agri-commodities tumbling')
+  assert.ok(!lula.includes('vs-politiek') && lula.includes('verkiezingen'), lula.join(','))
+  assert.ok(keywordTopics('Republicans in Congress block the spending bill').includes('vs-politiek'))
+})

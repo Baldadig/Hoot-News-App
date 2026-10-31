@@ -207,13 +207,15 @@ test('waarom: een geleerd onderwerp uit het profiel geeft "vaak over … leest"'
 test('waarom: het label komt van de treffer die het verhaal het best dekt', () => {
   const p = prof({ interests: ['politiek', 'wereld'], topics: ['vs-politiek', 'middenoosten'], taste: { topics: { middenoosten: -2 } } })
   // vs-politiek (1) in één van drie stukken, Midden-Oosten (0,88) in alle drie.
-  const its = [it('a', 'nos', ['vs-politiek', 'middenoosten']), it('b', 'nrc', ['middenoosten']), it('c', 'verge', ['middenoosten'])]
+  const its = [it('a', 'nos', ['vs-politiek', 'middenoosten'], { title: 'Witte Huis stuurt gezant naar Gaza' }), it('b', 'nrc', ['middenoosten']), it('c', 'verge', ['middenoosten'])]
   const parts = G.personalParts(its, p)
   assert.equal(parts.interest.t, 'middenoosten')
   assert.equal(parts.interest.pts, 18) // sterkte van het beste onderwerp, dekking van alles
-  assert.equal(G.whyOf({}, { parts }).text, 'Raakt Politiek én Wereld')
-  const zonderCross = { interest: parts.interest }
-  assert.equal(G.whyOf({}, { parts: zonderCross }).text, 'Omdat je Midden-Oosten volgt')
+  // Geen snijvlak: Politiek raakt maar één van de drie stukken (elk gebied moet meer dan de helft raken).
+  assert.equal(parts.cross, undefined)
+  assert.equal(G.whyOf({}, { parts }).text, 'Omdat je Midden-Oosten volgt')
+  const metCross = G.personalParts([its[0], it('d', 'nrc', ['vs-politiek', 'middenoosten'], { title: 'Trump en het Witte Huis over Gaza' }), its[1]], p)
+  assert.equal(G.whyOf({}, { parts: metCross }).text, 'Raakt Politiek én Wereld')
 })
 
 test('waarom: vaste plekken, voorkeursbron, eigen bronnen en de volgorde bij gelijke stand', () => {
@@ -375,8 +377,8 @@ test('indeling: de voorpagina telt mee voor de kernregel', () => {
 test('indeling: wie interesses koos maar Wereld niet, krijgt de buitenlandse kernrubrieken lichter (0,7)', () => {
   const bi = G.deskPlan(prof({ interests: ['binnenland', 'cultuur', 'wetenschap'] }), 6)
   for (const d of ['buitenland', 'vs', 'middenoosten', 'oekraine']) assert.equal(bi.weights[d], G.KERN_INT_W, d)
-  assert.equal(bi.weights.binnenland, 2.8)
-  // Binnenland krijgt zijn tweede zetel (2,8 / 3 = 0,93) vóór de eerste buitenlandse (0,7).
+  assert.equal(bi.weights.binnenland, 4.6) // 1 + 3 × 0,6 (de thema's) + 3 × 0,6 (Nederland, het land)
+  // Binnenland krijgt zijn tweede zetel (4,6 / 3 = 1,53) vóór de eerste buitenlandse (0,7).
   assert.ok(bi.order.indexOf('binnenland', 1) < bi.order.indexOf('buitenland'), bi.order.join(','))
   // Zonder keuzes, of met Wereld, blijft het 1.
   assert.equal(G.deskPlan(prof(), 6).weights.buitenland, 1)

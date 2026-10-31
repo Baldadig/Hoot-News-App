@@ -4,7 +4,7 @@
 import { DESKS, desksOf, primaryDesk, storyDesks, deskOfStory, storyForeignOf, weight } from './desks.mjs'
 
 import { hash } from '../../shared/util.mjs'
-import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, KERN, KERN_MIN, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX, FOREIGN_DESKS, NL_OTHER_W, FRONT_NL_MIN, FRONT_NL_INT, FRONT_NL_HOME, INT_MAX, MIN_WHY_PTS } from '../../shared/editor.mjs'
+import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, KERN, KERN_MIN, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX, FOREIGN_DESKS, NL_OTHER_W, FRONT_NL_MIN, FRONT_NL_HOME, INT_MAX, MIN_WHY_PTS } from '../../shared/editor.mjs'
 export { hash }
 
 // Een onleesbare tijd telt als heel oud (anders geeft de vergelijking NaN en raakt de sortering,
@@ -1120,7 +1120,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     const room = () => Math.min(FRONT_MAX, size) - (hasHome || !home.length ? 0 : 1) // een plek voor Nederland
     for (const c of front) {
       if (entries.length >= room() || (entries.length >= FRONT && c.eff < FRONT_BIG)) break
-      if (c.nl < FRONT_NL_MIN || (foreign(c) && ints >= 1 && c.nl < FRONT_NL_INT)) continue
+      if (c.nl < FRONT_NL_MIN || (foreign(c) && ints >= 1)) continue
       if (!take(c, c.desk, { front: true })) continue
       if (foreign(c)) ints++
       if (dutch(c)) hasHome = true

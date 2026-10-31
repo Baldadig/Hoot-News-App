@@ -47,11 +47,14 @@ test('selectie: de voorpagina is voor iedereen gelijk, met de rubriek van de ser
   const tech = run({ prof: { interests: ['tech'], topics: ['ai'] } }).filter((e) => e.front)
   assert.deepEqual(plain.map((e) => [e.id, e.desk]), [['s-kab', 'binnenland'], ['s-zel', 'oekraine']])
   assert.deepEqual(tech.map((e) => [e.id, e.desk]), plain.map((e) => [e.id, e.desk]))
-  // Vanaf FRONT_BIG bronnen óók op de voorpagina, tot FRONT_MAX.
+  // Vanaf FRONT_BIG bronnen óók op de voorpagina, tot FRONT_MAX, maar hooguit één buitenlands verhaal:
+  // het tweede grote buitenlandse verhaal krijgt een plek als groot nieuws, niet op de voorpagina.
   const w = world()
   w.stories.find((s) => s.id === 's-vance').sourceCount = 11
   w.stories.find((s) => s.id === 's-zel').sourceCount = 10
-  assert.deepEqual(run({}, w).filter((e) => e.front).map((e) => e.id).sort(), ['s-kab', 's-vance', 's-zel'])
+  const big = run({}, w)
+  assert.deepEqual(big.filter((e) => e.front).map((e) => e.id).sort(), ['s-kab', 's-vance'])
+  assert.ok(big.some((e) => e.id === 's-zel' && !e.front))
   // Een lege rubriek van de server blijft leeg (niet de rubriek uit wat deze lezer heeft).
   const x = world()
   x.stories.find((s) => s.id === 's-kab').desk = null
@@ -105,7 +108,9 @@ test('selectie: minder hiervan laat een verhaal van de voorpagina zakken', () =>
   const front = (o) => run(o, w()).filter((e) => e.front).map((e) => e.id)
   assert.ok(front({}).includes('s-kab'))
   const less = run({ prof: { taste: { topics: { nederland: -12 } } } }, w())
-  assert.deepEqual(less.filter((e) => e.front).map((e) => e.id), ['s-zel', 's-vance'])
+  // Zelensky gaat voor; Vance mag er niet bij (hooguit één buitenlands verhaal), dus het kabinet zakt
+  // naar de tweede plek.
+  assert.deepEqual(less.filter((e) => e.front).map((e) => e.id), ['s-zel', 's-kab'])
   const kab = less.find((e) => e.id === 's-kab')
   if (kab) assert.equal(kab.parts.less.pts, -12) // zakt, maar mag elders nog staan
 })

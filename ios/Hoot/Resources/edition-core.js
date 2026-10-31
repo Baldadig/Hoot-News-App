@@ -145,10 +145,16 @@ var HootCore = (() => {
     "rijnmond",
     "maasvlakte",
     "afsluitdijk",
-    "zuidas",
+    "zuidas\\p{L}*",
     "bijlmer",
     "osdorp",
-    "vinex"
+    "vinex",
+    "wadden\\p{L}*",
+    "pieterburen",
+    "lauwersoog",
+    "hoofddorp",
+    "catshuis",
+    "binnenhof"
   ];
   var NL_INST = [
     "tweede kamer",
@@ -198,7 +204,9 @@ var HootCore = (() => {
     "rabobank",
     "groningengas",
     "koningsdag",
-    "elfstedentocht"
+    "elfstedentocht",
+    "aex",
+    "damrak"
   ];
   var NL_PERSONS = ["jetten", "wilders", "yeşilgöz", "yesilgoz", "timmermans", "bontenbal", "van der plas", "omtzigt", "eerdmans", "markuszower", "dijkhoff", "van essen", "peter r\\. de vries"];
   var NL_PARTIES = W(["PVV", "VVD", "D66", "CDA", "GroenLinks", "PvdA", "GL-PvdA", "SP", "NSC", "BBB", "JA21", "FvD", "Forum voor Democratie", "PvdD", "Partij voor de Dieren", "DENK", "SGP", "ChristenUnie", "CU", "50Plus", "50PLUS", "BIJ1"], "u");
@@ -334,6 +342,8 @@ var HootCore = (() => {
     "nieuw-zeeland\\p{L}*",
     "pompeï",
     "pompeii",
+    "paaseiland",
+    "easter island",
     "noors\\p{L}*",
     "zweeds\\p{L}*",
     "tbilisi",
@@ -343,7 +353,12 @@ var HootCore = (() => {
     "kyoto",
     "bali",
     "binance",
-    "musk"
+    "musk",
+    "koning charles",
+    "prins william",
+    "prins harry",
+    "prinses kate",
+    "koning frederik"
   ]);
   var BE = W([
     "belgi\\p{L}*",
@@ -365,6 +380,9 @@ var HootCore = (() => {
     "kortrijk",
     "aalst",
     "brussel\\p{L}*",
+    "koning filip",
+    "koningin mathilde",
+    "prinses elisabeth",
     "de wever",
     "bouchez",
     "van bossuyt",
@@ -382,11 +400,11 @@ var HootCore = (() => {
     oekraine: /\b(oekra\w*|ukrain\w*|zelensk\w*|kyiv|kiev|kyjiv|kharkiv|charkiv|odesa|donetsk|donbas|krim|crimea|dnipro|kramatorsk)\b/i,
     middenoosten: /\b(israël|israel\w*|gaza|hamas|hezbollah|libanon|lebanon|iran\w*|teheran|tehran|khamenei|netanyahu|syri\w*|jemen|yemen|houthi\w*|irak|iraq|saudi\w*|westelijke jordaanoever|west bank|jordani\w*|qatar|golfstaten|midden-oosten|middle east|palestijn\w*|palestin\w*)\b/i,
     vs: /\b(trump|biden|vance|witte huis|white house|washington|congres\w*|congress|senaat|senate|republikein\w*|republican\w*|democra(at|ten|tic|ts)|pentagon|hegseth|midterms?|tussentijdse verkiezingen|amerikaan\w*|american|verenigde staten|united states|u\.s\.|new york|california|californi\w*|texas|florida|chicago|supreme court|hooggerechtshof|fbi|ice)\b/i,
-    wetenschap: /\b(wetenschap\w*|onderzoekers|onderzoek toont|studie|scientist\w*|researchers|science|study finds|nobelprijs|nobel prize|klimaat\w*|climate|nasa|esa|astronom\w*|ruimtevaart|telescoop|telescope|natuurkunde|physics|biolog\w*|evolutie|evolution|genetic\w*|genetica|vaccin\w*|medicijn|geneesmiddel|quantum|kwantum|archeolog\w*|fossiel|fossil|aardbeving|earthquake|vulkaan|volcano|neurolog\w*|hersenonderzoek)\b/i,
+    wetenschap: /\b(wetenschap\w*|onderzoekers|onderzoek toont|studie|scientist\w*|researchers|science|study finds|nobelprijs (?:voor de )?(?:natuurkunde|scheikunde|geneeskunde)|nobel prize in (?:physics|chemistry|medicine)|klimaat\w*|climate|nasa|esa|astronom\w*|ruimtevaart|telescoop|telescope|natuurkunde|physics|biolog\w*|genetic\w*|genetica|vaccin\w*|medicijn|geneesmiddel|quantum|kwantum|archeolog\w*|fossiel|fossil|aardbeving|earthquake|vulkaan|volcano|neurolog\w*|hersenonderzoek)\b/i,
     buitenland: /\b(frankrijk|france|french|frans\w*|parijs|paris|duitsland|germany|german|duits\w*|berlijn|berlin|brit\w*|engeland|england|london|londen|verenigd koninkrijk|united kingdom|spanje|spain|itali\w*|polen|poland|belgi\w*|brussel|brussels|europese unie|european union|\beu\b|navo|nato|china|chinees|chinese|peking|beijing|taiwan|japan\w*|korea\w*|india\w*|pakistan|afghanistan|rusland|russia\w*|russisch\w*|poetin|putin|kremlin|moskou|moscow|turkije|turkey|erdogan|afrika|africa|nigeria|soedan|sudan|egypte|egypt|brazili\w*|mexico|venezuela\w*|maduro|argentini\w*|canada\w*|australi\w*|albani\w*|albane\w*|spaans\w*|pools\w*|turks\w*|griek\w*|zweed\w*|deens\w*|oostenrijk\w*|zwitser\w*|portug\w*|hongaar\w*|indiase|mexica\w*|canad\w*|egypt\w*|japans\w*|koreaan\w*|afrikaan\w*|europe\w*|europa|servi\w*|hongarije|hungary|orbán|griekenland|greece|zweden|noorwegen|denemarken|oostenrijk|zwitserland|ierland|portugal|tsjechi\w*|roemeni\w*|bulgarije|georgi\w*|armeni\w*|azerbeidzjan|wit-rusland|belarus|filipijnen|indonesi\w*|vietnam|thailand|myanmar|bangladesh|sri lanka|nepal|kenia|ethiopi\w*|somali\w*|congo|zuid-afrika|south africa|haïti|haiti|cuba|colombia|chili|peru)\b/i
   };
   var KIND_TOPICS = /* @__PURE__ */ new Set(["voetbal", "f1", "wielrennen", "tennis", "wintersport", "olympisch", "muziek", "film", "boeken", "kunst", "games"]);
-  var KIND_PATH = /\/(sport|cultuur|cultuur-media|entertainment|showbizz|show|film|muziek|boeken|media)\//i;
+  var KIND_PATH = /\/(sport[\w-]*|voetbal|cultuur|cultuur-media|entertainment|showbizz|show|film|muziek|boeken|media)\//i;
   var ownKind = ({ topics = [], url = "", section = "" }) => (topics || []).some((t) => KIND_TOPICS.has(t)) || KIND_PATH.test(url || "") || /^(sport|cultuur)/i.test(section || "");
   function placeSignals({ title = "", summary = "", text = "" }) {
     const t = `${title} ${summary || text}`;
@@ -395,6 +413,40 @@ var HootCore = (() => {
       foreign: FOREIGN_EXTRA.test(t) || BE.test(t) || BE_CASE.test(t)
     };
   }
+  var NL_WEAK = W([
+    "nederlands\\p{L}*",
+    "nederlander\\p{L}*",
+    "gemeente\\p{L}*",
+    "gemeentelijk\\p{L}*",
+    "burgemeester\\p{L}*",
+    "wethouder\\p{L}*",
+    "provincie\\p{L}*",
+    "provinciale",
+    "waterschap\\p{L}*",
+    "politie\\p{L}*",
+    "agenten",
+    "brandweer\\p{L}*",
+    "rechtbank",
+    "kabinet",
+    "ministerie",
+    "staatssecretaris",
+    "minister van",
+    "vakbond\\p{L}*",
+    "fnv",
+    "cao\\p{L}*",
+    "huisarts\\p{L}*",
+    "zorgverzekeraar\\p{L}*",
+    "basisschool",
+    "mbo",
+    "woningcorporatie\\p{L}*",
+    "huurders",
+    "asielzoekers\\p{L}*",
+    "azc",
+    "stikstof\\p{L}*"
+  ]);
+  var NL_TOPICS = /* @__PURE__ */ new Set(["nederland", "wonen", "zorg", "onderwijs", "misdaad", "migratie", "verkeer"]);
+  var NL_SECTION = /binnenland|\/politiek\/|\/nederland\/|\/regio\/|\/112-?nieuws/;
+  var NOT_HOME_SECTION = /(^|\s)(tech|economie|wetenschap|opinie|columns?)(\s|$)|\/(tech|economie|financiele-markten|bedrijfsleven|beurs|wetenschap|[\w-]*magazine|lifestyle|leven|boulevard|showbizz|opinie|columns?|columns-opinie|meningen|recepten|vacatures|partnercontent|varia|puzzels?|ps|uit-in-[\w-]+|geloof|religie-filosofie|tijdgeest|samenleving|duurzaamheid-economie)\//;
   var textForeignOf = ({ title = "", summary = "", text = "", cats = "" }) => {
     const t = `${title} ${summary || text} ${cats}`;
     return RE.oekraine.test(t) || RE.middenoosten.test(t) || RE.vs.test(t) || RE.buitenland.test(t);
@@ -403,14 +455,17 @@ var HootCore = (() => {
     const home = NL_HOME.has(it.source);
     const sig = placeSignals(it);
     const abroad = foreign || sig.foreign;
+    const nl = abroad ? placeSignals({ title: it.title || "" }).nl : sig.nl;
     const sec = `${it.section || ""} ${it.url || ""}`.toLowerCase();
-    if (home && /binnenland|\/politiek\//.test(sec) && (!abroad || sig.nl)) return true;
+    if (home && /binnenland|\/politiek\//.test(sec) && (!abroad || nl)) return true;
     if (ownKind(it)) return false;
-    if (home && /buitenland|\/world\//.test(sec) && !sig.nl) return false;
-    if (sig.nl) return true;
+    if (home && /buitenland|\/world\//.test(sec) && !placeSignals({ title: it.title || "" }).nl) return false;
+    if (nl && (home || !abroad)) return true;
     if (!home) return false;
     if (abroad || storyForeign) return false;
-    return true;
+    const ts = it.topics || [];
+    if (NL_SECTION.test(sec) || ts.some((t) => NL_TOPICS.has(t)) || NL_WEAK.test(`${it.title || ""} ${it.summary || it.text || ""}`)) return true;
+    return it.source !== "fd" && ts.every((t) => NL_TOPICS.has(t)) && !NOT_HOME_SECTION.test(sec);
   }
   function storyForeignOf(items = []) {
     const src = new Set(items.map((i) => i.source));
@@ -533,6 +588,7 @@ var HootCore = (() => {
   var byId = (a, b) => a < b ? -1 : a > b ? 1 : 0;
   var FAMILY_OF = Object.fromEntries(INTERESTS.flatMap((f) => f.topics.map((t) => [t, f.id])));
   var FAMILY_LABEL = Object.fromEntries(INTERESTS.map((f) => [f.id, f.label]));
+  var FAMILY_OF_CAT = Object.fromEntries(INTERESTS.flatMap((f) => f.cats.filter((c) => c !== "regio").map((c) => [c, f.id])));
   var W_INHERITED = 0.6;
   var W_READ = 0.8;
   var W_TASTE = 0.75;
@@ -624,13 +680,14 @@ var HootCore = (() => {
   function topicHits(item, prof, geo = null) {
     const ts = item.topics || [];
     const abroad = geo === "int" && !VL_HOME.has(item.source);
-    const out = ts.filter((t) => prof.topicP[t] !== void 0 && !(abroad && FAMILY_OF[t] === "binnenland" && prof.topicP[t] > 0)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t] }));
+    const notUs = ts.includes("vs-politiek") && !desksOf(item).has("vs");
+    const out = ts.filter((t) => prof.topicP[t] !== void 0 && !(abroad && FAMILY_OF[t] === "binnenland" && prof.topicP[t] > 0) && !(notUs && t === "vs-politiek" && prof.topicP[t] > 0)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source }));
     const fb = prof.family.binnenland || 0;
-    if (fb > 0 && geo === "nl") out.push({ t: GEO_NL, f: "binnenland", v: Math.min(fb, W_INHERITED) });
+    if (fb > 0 && geo === "nl") out.push({ t: GEO_NL, f: "binnenland", v: Math.min(fb, W_INHERITED), s: item.source });
     if (!ts.length) {
       const cat = prof.catOf.get(item.source);
       const fam = cat && INTERESTS.find((f) => f.cats.includes(cat));
-      if (fam && prof.family[fam.id]) out.push({ t: `bron:${cat}`, f: fam.id, v: SOURCE_CAT_P * prof.family[fam.id] });
+      if (fam && prof.family[fam.id]) out.push({ t: `bron:${cat}`, f: fam.id, v: SOURCE_CAT_P * prof.family[fam.id], s: item.source });
     }
     return out;
   }
@@ -656,8 +713,13 @@ var HootCore = (() => {
       const coverOf = (t) => hits.filter((hs) => hs.some((h) => h.t === t)).length / items.length;
       const label = [...new Map(pos.map((h) => [h.t, h])).values()].map((h) => ({ ...h, c: coverOf(h.t) * h.v })).sort((a, b) => b.c - a.c || (a.t === GEO_NL) - (b.t === GEO_NL) || strongestFirst(a, b))[0];
       parts.interest = { pts: Math.round(P.INTEREST * best.v * (0.5 + 0.5 * cover)), t: label.t, f: label.f, origin: prof.origin?.[label.t] || "gekozen" };
-      const second = pos.find((h) => h.f !== best.f && h.v >= CROSS_MIN);
-      if (second && best.v >= CROSS_MIN) parts.cross = { pts: P.CROSS, f: [best.f, second.f] };
+      const famCat = (h) => FAMILY_OF_CAT[prof.catOf?.get(h.s)];
+      const crossHits = hits.map((hs) => hs.filter((h) => h.v >= CROSS_MIN && (!famCat(h) || famCat(h) === h.f)));
+      const famCover = (f) => crossHits.filter((hs) => hs.some((h) => h.f === f)).length * 2 > items.length;
+      const cross = pos.filter((h) => h.v >= CROSS_MIN && famCover(h.f));
+      const first = cross[0];
+      const second = first && cross.find((h) => h.f !== first.f);
+      if (second) parts.cross = { pts: P.CROSS, f: [first.f, second.f] };
     }
     const neg = flat.filter((h) => h.v < 0).sort((a, b) => a.v - b.v || byId(a.t, b.t));
     if (neg.length) parts.less = { pts: Math.round(P.LESS * neg[0].v), t: neg[0].t };
@@ -735,7 +797,7 @@ var HootCore = (() => {
       return { code: "bubbel", text: "Buiten je bubbel · via Google Trends" };
     }
     if (entry.desk === "breed") return { code: "breed", text: `Waar iedereen over schrijft · ${sourceCount} bronnen` };
-    if (entry.front) return { code: "groot", text: `Groot nieuws · ${sourceCount} bronnen` };
+    if (entry.front && sourceCount >= FRONT_SOURCES) return { code: "groot", text: `Groot nieuws · ${sourceCount} bronnen` };
     const rank = (k) => WHY_ORDER.includes(k) ? WHY_ORDER.indexOf(k) : WHY_ORDER.length;
     const [code, p] = Object.entries(parts).filter(([, x]) => (x.pts || 0) >= MIN_WHY_PTS).sort((a, b) => b[1].pts - a[1].pts || rank(a[0]) - rank(b[0]) || byId(a[0], b[0]))[0] || [];
     if (code === "followUp") return { code, text: `Vervolg op wat je las · ${p.n} nieuwe stukken` };
@@ -814,7 +876,6 @@ var HootCore = (() => {
   var FRONT_MAX = 3;
   var NL_OTHER_W = 0.5;
   var FRONT_NL_MIN = 2;
-  var FRONT_NL_INT = 5;
   var FRONT_NL_HOME = 3;
   var INT_MAX = 1;
   var PLAN_DESKS = [...KERN, ...OWN_DESKS];
@@ -829,6 +890,7 @@ var HootCore = (() => {
       for (const d of TOPIC_DESK[t] || []) best[d] = Math.max(best[d] || 0, v);
     }
     for (const d of PLAN_DESKS) if (best[d]) w[d] += DESK_GAIN * best[d];
+    if (prof?.family?.binnenland > 0) w.binnenland += DESK_GAIN * prof.family.binnenland;
     if (prof?.followed?.size && prof?.catOf && ![...prof.followed].some((id) => prof.catOf.get(id) === "regio")) w.regio = 0;
     const got = {};
     for (const d of PLAN_DESKS) got[d] = 0;
@@ -1625,7 +1687,7 @@ var HootCore = (() => {
       const room = () => Math.min(FRONT_MAX, size) - (hasHome || !home.length ? 0 : 1);
       for (const c of front) {
         if (entries.length >= room() || entries.length >= FRONT && c.eff < FRONT_BIG) break;
-        if (c.nl < FRONT_NL_MIN || foreign(c) && ints >= 1 && c.nl < FRONT_NL_INT) continue;
+        if (c.nl < FRONT_NL_MIN || foreign(c) && ints >= 1) continue;
         if (!take(c, c.desk, { front: true })) continue;
         if (foreign(c)) ints++;
         if (dutch(c)) hasHome = true;

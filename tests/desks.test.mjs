@@ -149,3 +149,46 @@ test('Binnenland: namen die ook een gewoon woord zijn tellen alleen met hoofdlet
   assert.ok(!desksOf({ source: 'standaard', title: 'PVDA wil hogere lonen' }).has('binnenland')) // PVDA is Belgisch, PvdA Nederlands
   assert.ok(desksOf({ source: 'guardian', title: 'PvdA and GroenLinks merge' }).has('binnenland'))
 })
+
+// ---- Binnenland vraagt bewijs (keurpunt 31 oktober, live feed) ----
+// Een Nederlandse bron maakt een stuk niet Nederlands. Koppen uit de live feed van 31 oktober.
+const NIET_NL = [
+  { source: 'volkskrant', section: 'Tech', url: 'https://www.volkskrant.nl/tech/liveblog-tech-musk-ai-meta-amazon~b1/', topics: ['ai', 'tech'], title: 'Apple haalt Nvidia in en is opnieuw meest waardevolle bedrijf ter wereld' },
+  { source: 'nd', url: 'https://www.nd.nl/varia/varia/1337046/apple-haalt-nvidia', topics: ['economie', 'bedrijven', 'ai', 'tech'], title: 'Apple haalt Nvidia in als meest waardevolle bedrijf ter wereld' },
+  { source: 'nrc', url: 'https://www.nrc.nl/nieuws/2026/10/30/met-ai-snijdt-google-a1', topics: ['ai', 'tech'], title: 'Met AI snijdt Google in zijn eigen vlees' },
+  { source: 'nrc', url: 'https://www.nrc.nl/nieuws/2026/10/30/pangram-als-oldschool-a2', topics: ['ai'], title: 'Pangram als oldschool actieheld: de vijand verslaan maar ten koste van wat?' },
+  { source: 'fd', url: 'https://fd.nl/financiele-markten/1617449/met-beursgang', topics: ['bedrijven', 'geld', 'ai'], title: 'Beursgang Anthropic geeft beleggers eindelijk een tastbare AI-barometer' },
+  { source: 'nd', url: 'https://www.nd.nl/varia/varia/1337041/chipfabrikant-intel', topics: ['economie', 'bedrijven', 'tech'], title: 'Chipfabrikant Intel keldert op Wall Street na zwakke verwachting' },
+  { source: 'nu', url: 'https://www.nu.nl/tech/6414689/telefoons-en-laptops.html', topics: [], title: 'Telefoons en laptops steeds duurder, tekort aan chips houdt tot zeker 2028 aan' }, // rubriek Tech
+  { source: 'ad', url: 'https://www.ad.nl/voetbal/clarence-seedorf~a1/', topics: [], title: 'Clarence Seedorf pakt eerste overwinning met Corinthians in degradatiekraker' }, // sport
+  // Twijfelgeval, vastgelegd: een Vlaamse bron over de Nederlandse én de Britse royals is geen Binnenland
+  // (sterk bezit uit een buitenlandse bron telt alleen zonder buitenlandse plek of naam).
+  { source: 'hbvl', url: 'https://www.hbvl.be/cnt/royals', title: 'ROYALS. Prinses Amalia kiest voor betaalbare mode en koning Charles toont danstalent' },
+]
+for (const it of NIET_NL) test(`geen Binnenland zonder bewijs: ${it.source} | ${it.title}`, () => assert.ok(!desksOf(it).has('binnenland'), [...desksOf(it)].join(',')))
+
+const WEL_NL = [
+  { source: 'nos', url: 'https://nos.nl/l/2637380', topics: [], title: "Zeehondencentrum stelt faillissement voorlopig uit na 'overweldigende steun'", summary: 'Het voormalige Zeehondencentrum Pieterburen vraagt voorlopig geen faillissement aan.' },
+  { source: 'nos', url: 'https://nos.nl/l/2637364', topics: ['misdaad'], title: 'Advocaat getaserde bezorger: man is gewond en doet aangifte tegen agent' }, // onderwerp van Binnenland
+  { source: 'bd', url: 'https://www.bd.nl/112-nieuws-meierijstad/brand-gemeld~a1/', topics: [], title: 'Brand gemeld bij bedrijf in Schijndel, brandweer treft alleen rook aan' }, // regionaal, 112
+  { source: 'fd', url: 'https://fd.nl/economie/1617611/nederlandse-economie', topics: [], title: 'Nederlandse economie verrast met groei van 0,6% in derde kwartaal' }, // zwak bezit
+  { source: 'hbvl', url: 'https://www.hbvl.be/cnt/royals2', title: 'Prinses Amalia viert haar verjaardag met een etentje' }, // Vlaamse bron, alleen Nederlands bezit
+]
+for (const it of WEL_NL) test(`Binnenland met bewijs: ${it.source} | ${it.title}`, () => assert.ok(desksOf(it).has('binnenland'), [...desksOf(it)].join(',')))
+
+test('rubrieken: de Nobelprijs voor de Vrede is geen Wetenschap', () => {
+  const it = { source: 'volkskrant', section: 'Buitenland', title: 'Laatste onafhankelijke Russische krant stopt onder druk van het Kremlin', summary: 'Novaja Gazeta was de krant van Dmitri Moeratov, die in 2021 de Nobelprijs voor de Vrede ontving.' }
+  assert.ok(!desksOf(it).has('wetenschap'), [...desksOf(it)].join(','))
+  assert.ok(desksOf({ source: 'nos', title: 'Nobelprijs voor de natuurkunde naar onderzoekers van kwantumchips' }).has('wetenschap'))
+})
+
+test('Binnenland: met een buitenlandse plek moet het Nederlandse bezit in de kop staan', () => {
+  const iran = { source: 'volkskrant', section: 'Buitenland', url: 'https://www.volkskrant.nl/buitenland/iran-meldt~b7/', topics: ['middenoosten'], title: 'Iran meldt aanvallen in Straat van Hormuz, VAE zegt olielek gestopt te hebben', summary: 'KLM vliegt tot en met 27 maart niet van Amsterdam naar Dubai, meldt de luchtvaartmaatschappij.' }
+  assert.ok(!desksOf(iran).has('binnenland'), [...desksOf(iran)].join(','))
+  const ahold = { source: 'volkskrant', section: 'Economie', url: 'https://www.volkskrant.nl/economie/ahold~b5/', topics: [], title: 'Ahold blijft maar uitbreiden: dit keer in Tsjechië en Slowakije', summary: 'Ahold Delhaize, moederbedrijf van onder meer Albert Heijn, neemt honderden supermarkten van het Britse Tesco over.' }
+  assert.ok(!desksOf(ahold).has('binnenland'), [...desksOf(ahold)].join(','))
+})
+test('rubrieken: "evolution" in een nieuwsbrief over crypto is geen Wetenschap', () => {
+  const it = { source: 'atlantic', title: 'A Very Bad 24 Hours for Crypto', summary: 'This is an edition of Over/Under, a newsletter on the latest in prediction markets, gambling, and the evolution of everyday risk.' }
+  assert.ok(!desksOf(it).has('wetenschap'), [...desksOf(it)].join(','))
+})

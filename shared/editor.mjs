@@ -24,6 +24,8 @@ const byId = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
 
 export const FAMILY_OF = Object.fromEntries(INTERESTS.flatMap((f) => f.topics.map((t) => [t, f.id])))
 export const FAMILY_LABEL = Object.fromEntries(INTERESTS.map((f) => [f.id, f.label]))
+// Het gebied van een vakbron (de rubriek in de catalogus): een cultuursite is Cultuur.
+const FAMILY_OF_CAT = Object.fromEntries(INTERESTS.flatMap((f) => f.cats.filter((c) => c !== 'regio').map((c) => [c, f.id])))
 
 // ---------- 1. Het profiel: per onderwerp een waarde van −1 tot 1 ----------
 export { MIN_EVENTS } // pas na zoveel handelingen telt lezen mee (src/lib/affinity.js)
@@ -142,13 +144,15 @@ export const GEO_NL = 'geo:nl'
 function topicHits(item, prof, geo = null) {
   const ts = item.topics || []
   const abroad = geo === 'int' && !VL_HOME.has(item.source)
-  const out = ts.filter((t) => prof.topicP[t] !== undefined && !(abroad && FAMILY_OF[t] === 'binnenland' && prof.topicP[t] > 0)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t] }))
+  // VS-politiek is ook geografie: het trefwoord "verkiezing" maakte van Lula's zege in Brazilië VS-politiek.
+  const notUs = ts.includes('vs-politiek') && !desksOf(item).has('vs')
+  const out = ts.filter((t) => prof.topicP[t] !== undefined && !(abroad && FAMILY_OF[t] === 'binnenland' && prof.topicP[t] > 0) && !(notUs && t === 'vs-politiek' && prof.topicP[t] > 0)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source }))
   const fb = prof.family.binnenland || 0
-  if (fb > 0 && geo === 'nl') out.push({ t: GEO_NL, f: 'binnenland', v: Math.min(fb, W_INHERITED) })
+  if (fb > 0 && geo === 'nl') out.push({ t: GEO_NL, f: 'binnenland', v: Math.min(fb, W_INHERITED), s: item.source })
   if (!ts.length) {
     const cat = prof.catOf.get(item.source)
     const fam = cat && INTERESTS.find((f) => f.cats.includes(cat))
-    if (fam && prof.family[fam.id]) out.push({ t: `bron:${cat}`, f: fam.id, v: SOURCE_CAT_P * prof.family[fam.id] })
+    if (fam && prof.family[fam.id]) out.push({ t: `bron:${cat}`, f: fam.id, v: SOURCE_CAT_P * prof.family[fam.id], s: item.source })
   }
   return out
 }
@@ -191,8 +195,17 @@ export function personalParts(items = [], prof, ctx = {}, story = {}) {
       .map((h) => ({ ...h, c: coverOf(h.t) * h.v }))
       .sort((a, b) => b.c - a.c || (a.t === GEO_NL) - (b.t === GEO_NL) || strongestFirst(a, b))[0] // het onderwerp zelf gaat voor "Binnenland"
     parts.interest = { pts: Math.round(P.INTEREST * best.v * (0.5 + 0.5 * cover)), t: label.t, f: label.f, origin: prof.origin?.[label.t] || 'gekozen' }
-    const second = pos.find((h) => h.f !== best.f && h.v >= CROSS_MIN)
-    if (second && best.v >= CROSS_MIN) parts.cross = { pts: P.CROSS, f: [best.f, second.f] }
+    // Een snijvlak alleen als beide gebieden het verhaal echt raken (feedback 31 oktober: "Raakt
+    // Wetenschap én Binnenland" bij de rellen in Den Haag, door het trefwoord "angst"; "Raakt Cultuur
+    // én Wetenschap" bij een animeprijs van Variety): elk gebied in meer dan de helft van de berichten,
+    // en een vakbron telt alleen voor zijn eigen gebied (Variety is Cultuur, geen Gezondheid).
+    const famCat = (h) => FAMILY_OF_CAT[prof.catOf?.get(h.s)]
+    const crossHits = hits.map((hs) => hs.filter((h) => h.v >= CROSS_MIN && (!famCat(h) || famCat(h) === h.f)))
+    const famCover = (f) => crossHits.filter((hs) => hs.some((h) => h.f === f)).length * 2 > items.length
+    const cross = pos.filter((h) => h.v >= CROSS_MIN && famCover(h.f))
+    const first = cross[0]
+    const second = first && cross.find((h) => h.f !== first.f)
+    if (second) parts.cross = { pts: P.CROSS, f: [first.f, second.f] }
   }
   const neg = flat.filter((h) => h.v < 0).sort((a, b) => a.v - b.v || byId(a.t, b.t))
   if (neg.length) parts.less = { pts: Math.round(P.LESS * neg[0].v), t: neg[0].t }
@@ -297,7 +310,10 @@ export function whyOf(entry = {}, { parts = {}, sourceCount = 0, desk = entry.de
     return { code: 'bubbel', text: 'Buiten je bubbel · via Google Trends' }
   }
   if (entry.desk === 'breed') return { code: 'breed', text: `Waar iedereen over schrijft · ${sourceCount} bronnen` }
-  if (entry.front) return { code: 'groot', text: `Groot nieuws · ${sourceCount} bronnen` }
+  // Groot nieuws is groot: vanaf FRONT_SOURCES bronnen. Een kleiner Nederlands verhaal op de voorpagina
+  // (FRONT_NL_HOME) krijgt zijn eigen reden, of zijn rubriek (feedback 31 oktober: "Groot nieuws · 3
+  // bronnen" bij het zeehondencentrum).
+  if (entry.front && sourceCount >= FRONT_SOURCES) return { code: 'groot', text: `Groot nieuws · ${sourceCount} bronnen` }
   // Het zwaarste part telt; bij gelijke stand de volgorde van de tabel in de bouwspec (§6).
   const rank = (k) => (WHY_ORDER.includes(k) ? WHY_ORDER.indexOf(k) : WHY_ORDER.length)
   const [code, p] = Object.entries(parts).filter(([, x]) => (x.pts || 0) >= MIN_WHY_PTS).sort((a, b) => b[1].pts - a[1].pts || rank(a[0]) - rank(b[0]) || byId(a[0], b[0]))[0] || []
@@ -372,8 +388,8 @@ export const FRONT_MAX = 3
 // - voor het belang telt een bron van buiten Nederland half (NL_OTHER_W): `eff` = NL-bronnen +
 //   0,5 × de rest; het label houdt de echte telling;
 // - op de voorpagina alleen verhalen met minstens FRONT_NL_MIN Nederlandse bronnen, en hooguit één
-//   buitenlands verhaal (een buitenlandse rubriek, of minder dan de helft Nederlandse bronnen),
-//   tenzij een tweede ook in Nederland breed is (FRONT_NL_INT);
+//   buitenlands verhaal (een buitenlandse rubriek, of minder dan de helft Nederlandse bronnen; feedback
+//   31 oktober: Polen én Call of Duty in Korea bovenaan was voor de vriendin te veel buitenland);
 // - staat er dan nog geen Nederlands verhaal op, dan komt het zwaarste met minstens FRONT_NL_HOME
 //   Nederlandse bronnen erbij (een Nederlands verhaal: niet buitenlands);
 // - groot nieuws (vanaf FRONT_BIG bronnen) dat niet op de voorpagina past, krijgt toch een plek;
@@ -381,7 +397,6 @@ export const FRONT_MAX = 3
 //   persoonlijke reden (een interessepunt van minstens MIN_WHY_PTS).
 export const NL_OTHER_W = 0.5
 export const FRONT_NL_MIN = 2
-export const FRONT_NL_INT = 5
 export const FRONT_NL_HOME = 3
 export const INT_MAX = 1
 const PLAN_DESKS = [...KERN, ...OWN_DESKS] // vaste volgorde: bij gelijke stand wint de eerste
@@ -402,6 +417,10 @@ export function deskPlan(prof, seats, front = [], filled = []) {
     for (const d of TOPIC_DESK[t] || []) best[d] = Math.max(best[d] || 0, v)
   }
   for (const d of PLAN_DESKS) if (best[d]) w[d] += DESK_GAIN * best[d]
+  // Wie Binnenland koos, wil Nederland, niet alleen zijn thema's (wonen, zorg...): Binnenland krijgt
+  // het gewicht van die thema's nog een keer, als land (feedback 31 oktober: de vriendin wilde
+  // Binnenland in haar Editie, en kreeg één Binnenland-zetel tegen twee voor Wetenschap).
+  if (prof?.family?.binnenland > 0) w.binnenland += DESK_GAIN * prof.family.binnenland
   // Regio alleen als je een regiobron volgt: anders blijft die zetel leeg en gaat de plek naar het
   // zwaarste wat er over is.
   if (prof?.followed?.size && prof?.catOf && ![...prof.followed].some((id) => prof.catOf.get(id) === 'regio')) w.regio = 0

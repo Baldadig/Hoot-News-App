@@ -29,7 +29,8 @@ const NL_PLACES = [
   'amersfoort', 'zaanstad', 'zaandam', "'s-hertogenbosch", 'den bosch', 'zwolle', 'maastricht', 'dordrecht', 'zoetermeer',   'deventer', 'alkmaar', 'venlo', 'leeuwarden', 'helmond', 'heerlen', 'hilversum', 'schiedam', 'lelystad',   'roermond', 'sittard', 'geleen', 'vlissingen', 'middelburg', 'terneuzen', 'purmerend', 'hengelo', 'den helder', 'harderwijk', 'vught',
   'boxtel', 'ursem', 'overasselt', 'westland', 'schiphol', 'texel', 'ameland', 'terschelling', 'waddenzee', 'ijsselmeer', 'markermeer',
   'volendam', 'zandvoort', 'scheveningen', 'katwijk', 'noordwijk', 'wageningen', 'doetinchem', 'zutphen', 'roosendaal', 'bergen op zoom',
-  'kerkrade', 'rijnmond', 'maasvlakte', 'afsluitdijk', 'zuidas', 'bijlmer', 'osdorp', 'vinex',
+  'kerkrade', 'rijnmond', 'maasvlakte', 'afsluitdijk', 'zuidas\\p{L}*', 'bijlmer', 'osdorp', 'vinex',
+  'wadden\\p{L}*', 'pieterburen', 'lauwersoog', 'hoofddorp', 'catshuis', 'binnenhof',
 ]
 const NL_INST = [
   'tweede kamer', 'eerste kamer', 'kamerleden', 'kamerlid', 'kamervragen', 'kamermeerderheid', 'kamerdebat', 'staten-generaal', 'provinciale staten', 'statenlid',
@@ -37,7 +38,7 @@ const NL_INST = [
   'rijkswaterstaat', 'rivm', 'knmi', 'prorail', 'nvwa', 'belastingdienst', 'toeslagen\\p{L}*', 'openbaar ministerie', 'raad van state',
   'hoge raad', 'algemene rekenkamer', 'marechaussee', 'nctv', 'aivd', 'mivd', 'de nederlandsche bank', 
   'prinsjesdag', 'miljoenennota', 'belastingplan', 'box 3', 'npo', 'klm', 'ns-\\p{L}+', 'albert heijn',
-  'asml', 'tata steel', 'abn amro', 'rabobank', 'groningengas', 'koningsdag', 'elfstedentocht',
+  'asml', 'tata steel', 'abn amro', 'rabobank', 'groningengas', 'koningsdag', 'elfstedentocht', 'aex', 'damrak',
 ]
 const NL_PERSONS = ['jetten', 'wilders', 'yeşilgöz', 'yesilgoz', 'timmermans', 'bontenbal', 'van der plas', 'omtzigt', 'eerdmans', 'markuszower', 'dijkhoff', 'van essen', 'peter r\\. de vries']
 // Partijen: hoofdlettergevoelig (PvdA is Nederlands, PVDA Belgisch; CU, SP en BBB alleen als afkorting).
@@ -57,12 +58,12 @@ const FOREIGN_EXTRA = W([
   'bosnië', 'kroatië', 'kroatisch\\p{L}*', 'sloveni\\p{L}*', 'slowak\\p{L}*', 'litouw\\p{L}*', 'letland', 'letse', 'estland', 'estse', 'baltisch\\p{L}*', 'moldav\\p{L}*',
   'siberië', 'kaukasus', 'chileens\\p{L}*', 'peruaans\\p{L}*', 'colombiaans\\p{L}*', 'cubaans\\p{L}*', 'nigeriaans\\p{L}*', 'keniaans\\p{L}*', 'marokk\\p{L}*', 'algerij\\p{L}*', 'tunesi\\p{L}*', 'libi\\p{L}*',
   'iraans\\p{L}*', 'afghaans\\p{L}*', 'pakistaans\\p{L}*', 'thais\\p{L}*', 'vietnamees\\p{L}*', 'indonesisch\\p{L}*', 'filipijns\\p{L}*', 'australisch\\p{L}*', 'nieuw-zeeland\\p{L}*',
-  'pompeï', 'pompeii', 'noors\\p{L}*', 'zweeds\\p{L}*', 'tbilisi', 'georgisch\\p{L}*', 'abu dhabi', 'dubai', 'kyoto', 'bali',
-  'binance', 'musk',
+  'pompeï', 'pompeii', 'paaseiland', 'easter island', 'noors\\p{L}*', 'zweeds\\p{L}*', 'tbilisi', 'georgisch\\p{L}*', 'abu dhabi', 'dubai', 'kyoto', 'bali',
+  'binance', 'musk', 'koning charles', 'prins william', 'prins harry', 'prinses kate', 'koning frederik',
 ])
 const BE = W([
   'belgi\\p{L}*', 'belg', 'belgen', 'vlaanderen', 'vlaams\\p{L}*', 'wallonië', 'waals\\p{L}*', 'antwerp\\p{L}*', 'gent', 'gentse', 'brugge', 'leuven', 'charleroi', 'hasselt',
-  'mechelen', 'oostende', 'kortrijk', 'aalst', 'brussel\\p{L}*', 'de wever', 'bouchez', 'van bossuyt', 'verlinden', 'demir', 'n-va', 'vlaams belang', 'open vld', 'cd&v', 'abvv', 'acv',
+  'mechelen', 'oostende', 'kortrijk', 'aalst', 'brussel\\p{L}*', 'koning filip', 'koningin mathilde', 'prinses elisabeth', 'de wever', 'bouchez', 'van bossuyt', 'verlinden', 'demir', 'n-va', 'vlaams belang', 'open vld', 'cd&v', 'abvv', 'acv',
 ])
 const BE_CASE = W(['PVDA', 'MR', 'Vooruit', 'Luik'], 'u')
 
@@ -70,13 +71,13 @@ const RE = {
   oekraine: /\b(oekra\w*|ukrain\w*|zelensk\w*|kyiv|kiev|kyjiv|kharkiv|charkiv|odesa|donetsk|donbas|krim|crimea|dnipro|kramatorsk)\b/i,
   middenoosten: /\b(israël|israel\w*|gaza|hamas|hezbollah|libanon|lebanon|iran\w*|teheran|tehran|khamenei|netanyahu|syri\w*|jemen|yemen|houthi\w*|irak|iraq|saudi\w*|westelijke jordaanoever|west bank|jordani\w*|qatar|golfstaten|midden-oosten|middle east|palestijn\w*|palestin\w*)\b/i,
   vs: /\b(trump|biden|vance|witte huis|white house|washington|congres\w*|congress|senaat|senate|republikein\w*|republican\w*|democra(at|ten|tic|ts)|pentagon|hegseth|midterms?|tussentijdse verkiezingen|amerikaan\w*|american|verenigde staten|united states|u\.s\.|new york|california|californi\w*|texas|florida|chicago|supreme court|hooggerechtshof|fbi|ice)\b/i,
-  wetenschap: /\b(wetenschap\w*|onderzoekers|onderzoek toont|studie|scientist\w*|researchers|science|study finds|nobelprijs|nobel prize|klimaat\w*|climate|nasa|esa|astronom\w*|ruimtevaart|telescoop|telescope|natuurkunde|physics|biolog\w*|evolutie|evolution|genetic\w*|genetica|vaccin\w*|medicijn|geneesmiddel|quantum|kwantum|archeolog\w*|fossiel|fossil|aardbeving|earthquake|vulkaan|volcano|neurolog\w*|hersenonderzoek)\b/i,
+  wetenschap: /\b(wetenschap\w*|onderzoekers|onderzoek toont|studie|scientist\w*|researchers|science|study finds|nobelprijs (?:voor de )?(?:natuurkunde|scheikunde|geneeskunde)|nobel prize in (?:physics|chemistry|medicine)|klimaat\w*|climate|nasa|esa|astronom\w*|ruimtevaart|telescoop|telescope|natuurkunde|physics|biolog\w*|genetic\w*|genetica|vaccin\w*|medicijn|geneesmiddel|quantum|kwantum|archeolog\w*|fossiel|fossil|aardbeving|earthquake|vulkaan|volcano|neurolog\w*|hersenonderzoek)\b/i,
   buitenland: /\b(frankrijk|france|french|frans\w*|parijs|paris|duitsland|germany|german|duits\w*|berlijn|berlin|brit\w*|engeland|england|london|londen|verenigd koninkrijk|united kingdom|spanje|spain|itali\w*|polen|poland|belgi\w*|brussel|brussels|europese unie|european union|\beu\b|navo|nato|china|chinees|chinese|peking|beijing|taiwan|japan\w*|korea\w*|india\w*|pakistan|afghanistan|rusland|russia\w*|russisch\w*|poetin|putin|kremlin|moskou|moscow|turkije|turkey|erdogan|afrika|africa|nigeria|soedan|sudan|egypte|egypt|brazili\w*|mexico|venezuela\w*|maduro|argentini\w*|canada\w*|australi\w*|albani\w*|albane\w*|spaans\w*|pools\w*|turks\w*|griek\w*|zweed\w*|deens\w*|oostenrijk\w*|zwitser\w*|portug\w*|hongaar\w*|indiase|mexica\w*|canad\w*|egypt\w*|japans\w*|koreaan\w*|afrikaan\w*|europe\w*|europa|servi\w*|hongarije|hungary|orbán|griekenland|greece|zweden|noorwegen|denemarken|oostenrijk|zwitserland|ierland|portugal|tsjechi\w*|roemeni\w*|bulgarije|georgi\w*|armeni\w*|azerbeidzjan|wit-rusland|belarus|filipijnen|indonesi\w*|vietnam|thailand|myanmar|bangladesh|sri lanka|nepal|kenia|ethiopi\w*|somali\w*|congo|zuid-afrika|south africa|haïti|haiti|cuba|colombia|chili|peru)\b/i,
 }
 
 // Sport, cultuur en games hebben hun eigen soort (kindOf in src/lib/personal.js): geen Binnenland.
 const KIND_TOPICS = new Set(['voetbal', 'f1', 'wielrennen', 'tennis', 'wintersport', 'olympisch', 'muziek', 'film', 'boeken', 'kunst', 'games'])
-const KIND_PATH = /\/(sport|cultuur|cultuur-media|entertainment|showbizz|show|film|muziek|boeken|media)\//i
+const KIND_PATH = /\/(sport[\w-]*|voetbal|cultuur|cultuur-media|entertainment|showbizz|show|film|muziek|boeken|media)\//i
 const ownKind = ({ topics = [], url = '', section = '' }) => (topics || []).some((t) => KIND_TOPICS.has(t)) || KIND_PATH.test(url || '') || /^(sport|cultuur)/i.test(section || '')
 
 // Wat de kop en intro zeggen: sterk Nederlands bezit, en of er een buitenlandse plek, land of naam in
@@ -89,17 +90,43 @@ export function placeSignals({ title = '', summary = '', text = '' }) {
   }
 }
 
-// Is dit bericht Binnenland? In deze volgorde (de eerste die geldt, beslist):
+// Nederlands bezit, ZWAK: woorden die in een Nederlandse krant meestal over Nederland gaan (de
+// gemeente, de politie, "Nederlandse"), maar ook over elders kunnen gaan. Telt alleen bij een
+// Nederlandse bron zonder buitenlandse plek (regel 6 hieronder), nooit alleen.
+const NL_WEAK = W([
+  'nederlands\\p{L}*', 'nederlander\\p{L}*', 'gemeente\\p{L}*', 'gemeentelijk\\p{L}*', 'burgemeester\\p{L}*', 'wethouder\\p{L}*', 'provincie\\p{L}*', 'provinciale', 'waterschap\\p{L}*',
+  'politie\\p{L}*', 'agenten', 'brandweer\\p{L}*', 'rechtbank', 'kabinet', 'ministerie', 'staatssecretaris', 'minister van', 'vakbond\\p{L}*', 'fnv', 'cao\\p{L}*',
+  'huisarts\\p{L}*', 'zorgverzekeraar\\p{L}*', 'basisschool', 'mbo', 'woningcorporatie\\p{L}*', 'huurders', 'asielzoekers\\p{L}*', 'azc', 'stikstof\\p{L}*',
+])
+// Onderwerpen (netlify/lib/topics.mjs) die bij een Nederlandse bron over Nederland gaan: Den Haag en
+// de onderwerpen van Binnenland. Andere onderwerpen (AI, Big Tech, de beurs) zeggen niets over het land.
+const NL_TOPICS = new Set(['nederland', 'wonen', 'zorg', 'onderwijs', 'misdaad', 'migratie', 'verkeer'])
+const NL_SECTION = /binnenland|\/politiek\/|\/nederland\/|\/regio\/|\/112-?nieuws/
+// Rubrieken van een Nederlandse krant die niet over het land gaan: tech, economie en de beurs,
+// wetenschap, het magazine, lifestyle, opinie en columns, de puzzel. Daar is een stuk zonder bewijs
+// geen Binnenland.
+const NOT_HOME_SECTION = /(^|\s)(tech|economie|wetenschap|opinie|columns?)(\s|$)|\/(tech|economie|financiele-markten|bedrijfsleven|beurs|wetenschap|[\w-]*magazine|lifestyle|leven|boulevard|showbizz|opinie|columns?|columns-opinie|meningen|recepten|vacatures|partnercontent|varia|puzzels?|ps|uit-in-[\w-]+|geloof|religie-filosofie|tijdgeest|samenleving|duurzaamheid-economie)\//
+
+// Is dit bericht Binnenland? Binnenland is Nederland, en daar moet bewijs voor zijn: een Nederlandse
+// bron maakt een stuk niet Nederlands (feedback 31 oktober: Apple die Nvidia inhaalt, Google en AI,
+// de beursgang van Anthropic stonden onder Binnenland). In deze volgorde (de eerste die geldt, beslist):
 //  1. Een Nederlandse bron zet het zelf onder Binnenland of Politiek (URL of rubriek): ja, tenzij er
 //     een buitenlandse plek in kop of intro staat zonder sterk Nederlands bezit (AD over Chili).
 //  2. Sport, cultuur en games: nee (eigen soort). Een Nederlandse bron die het zelf onder Buitenland
 //     zet: nee.
 //  3. Sterk Nederlands bezit in kop of intro: ja, ook bij een buitenlandse plek ("Premier Jetten bij
-//     G20-top in Johannesburg") en ook uit een buitenlandse bron (de Guardian over Wilders).
+//     G20-top in Johannesburg"), maar dan moet het bezit in de kop staan (regels 1 tot 3). Uit een
+//     buitenlandse bron alleen zonder buitenlandse plek: de Guardian over Wilders wel, een Vlaams
+//     royaltyrondje over Amalia én koning Charles niet.
 //  4. Geen Nederlandse bron: nee (Vlaamse /binnenland/ is België).
 //  5. Een buitenlandse plek, land of naam, of het verhaal bestaat vooral uit buitenlandse bronnen
 //     (`storyForeign`): nee.
-//  6. Anders: ja (een Nederlandse krant over iets zonder buitenland).
+//  6. Ja met ander bewijs: een Nederlandse rubriek in de URL (/nederland/, /regio/, /112-nieuws/), een
+//     onderwerp van Binnenland of Den Haag, of zwak bezit (de gemeente, de politie, "Nederlandse").
+//  7. Zonder bewijs alleen een nieuwsbericht van een algemene Nederlandse of regionale krant (niet het
+//     FD) zonder enig ander onderwerp dan die van Binnenland en Den Haag, en niet uit een rubriek als
+//     tech, economie, het magazine of opinie (NOT_HOME_SECTION): de lijnbus in Hoogersmilde wel, een
+//     Nederlandse krant over Apple, Google of AI niet (onderwerp AI of Big Tech, of de rubriek Tech).
 // `foreign`: wat desksOf al uit de tekst haalde (buitenland, VS, Midden-Oosten, Oekraïne); los
 // aangeroepen rekent isBinnenland het zelf uit.
 const textForeignOf = ({ title = '', summary = '', text = '', cats = '' }) => {
@@ -110,14 +137,19 @@ export function isBinnenland(it, { storyForeign = false, foreign = textForeignOf
   const home = NL_HOME.has(it.source)
   const sig = placeSignals(it)
   const abroad = foreign || sig.foreign
+  // Met een buitenlandse plek moet het Nederlandse bezit in de kop staan: daar staat het onderwerp. Een
+  // intro die meldt dat KLM niet naar Dubai vliegt, maakt een stuk over Iran geen Binnenland.
+  const nl = abroad ? placeSignals({ title: it.title || '' }).nl : sig.nl
   const sec = `${it.section || ''} ${it.url || ''}`.toLowerCase()
-  if (home && /binnenland|\/politiek\//.test(sec) && (!abroad || sig.nl)) return true
+  if (home && /binnenland|\/politiek\//.test(sec) && (!abroad || nl)) return true
   if (ownKind(it)) return false
-  if (home && /buitenland|\/world\//.test(sec) && !sig.nl) return false
-  if (sig.nl) return true
+  if (home && /buitenland|\/world\//.test(sec) && !placeSignals({ title: it.title || '' }).nl) return false
+  if (nl && (home || !abroad)) return true
   if (!home) return false
   if (abroad || storyForeign) return false
-  return true
+  const ts = it.topics || []
+  if (NL_SECTION.test(sec) || ts.some((t) => NL_TOPICS.has(t)) || NL_WEAK.test(`${it.title || ''} ${it.summary || it.text || ''}`)) return true
+  return it.source !== 'fd' && ts.every((t) => NL_TOPICS.has(t)) && !NOT_HOME_SECTION.test(sec)
 }
 
 // Een verhaal gaat vooral over het buitenland als minder dan de helft van zijn bronnen Nederlands is
