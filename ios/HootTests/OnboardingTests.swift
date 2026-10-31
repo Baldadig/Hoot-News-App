@@ -4,6 +4,25 @@ import XCTest
 // Het welkom: niets scrolt (Wat precies? verdeelt zich over pagina's die passen), het voorstel voor je
 // bronnen is neutraal (alleen gratis, Nederlands eerst) en uitloggen wist je keuzes op het toestel.
 final class OnboardingTests: XCTestCase {
+    // De winkel schrijft naar UserDefaults.standard van de app waarin de test draait. Zet vooraf alle
+    // `hoot.*`-sleutels opzij en zet ze na elke test terug, zodat de simulator zijn data houdt en de
+    // volgorde van de tests er niet toe doet.
+    private var saved: [String: Any] = [:]
+    private var hootKeys: [String] { UserDefaults.standard.dictionaryRepresentation().keys.filter { $0.hasPrefix("hoot.") } }
+
+    override func setUp() {
+        super.setUp()
+        let d = UserDefaults.standard
+        saved = Dictionary(uniqueKeysWithValues: hootKeys.compactMap { k in d.object(forKey: k).map { (k, $0) } })
+    }
+
+    override func tearDown() {
+        let d = UserDefaults.standard
+        for k in hootKeys { d.removeObject(forKey: k) }
+        for (k, v) in saved { d.set(v, forKey: k) }
+        super.tearDown()
+    }
+
     // ---- Wat precies? over pagina's ----
 
     func testRowsWrapAtTheLineWidth() {

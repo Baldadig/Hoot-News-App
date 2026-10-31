@@ -21,6 +21,14 @@ final class LabelTests: XCTestCase {
         XCTAssertEqual(kicker(["klimaat"], interests: ["cultuur"]), "Wetenschap")
         XCTAssertNil(kicker([], interests: ["cultuur"]))
     }
+    func testEenLosBijonderwerpMaaktGeenCultuurVanHetNieuws() {
+        // Rubberboot met migranten, per ongeluk ook als "film" getagd: de plek zegt Binnenland.
+        XCTAssertEqual(kicker(["migratie", "film"], desk: "binnenland", interests: ["cultuur"], picked: ["film"]), "Binnenland")
+        XCTAssertEqual(kicker(["migratie", "film"], desk: "buitenland", interests: ["cultuur"], picked: ["film"]), "Buitenland")
+        // Gaat het verhaal er wel over (hoofdonderwerp of dezelfde plek), dan telt je interesse.
+        XCTAssertEqual(kicker(["film", "migratie"], desk: "binnenland", interests: ["cultuur"], picked: ["film"]), "Cultuur · Film & series")
+        XCTAssertEqual(kicker(["migratie", "zorg"], desk: "binnenland", interests: ["binnenland"], picked: []), "Binnenland")
+    }
     func testEenSportbronIsSport() {
         XCTAssertEqual(kicker(["nederland"], cat: "sport", desk: "binnenland", interests: ["politiek"]), "Sport")
         XCTAssertEqual(kicker(["voetbal"], cat: "sport", interests: ["sport"], picked: ["voetbal"]), "Sport · Voetbal")

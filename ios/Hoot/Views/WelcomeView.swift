@@ -520,28 +520,12 @@ struct WelcomeView: View {
             .padding(.horizontal, Space.s4)
             .padding(.top, Space.s2)
             .padding(.bottom, Space.s4)
-            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentH = $0; fitLog() }
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentH = $0 }
             .opacity(fade)
         }
         .id("\(step.rawValue)-\(preciesPage)") // elke pagina bovenaan
         .scrollBounceBehavior(.basedOnSize)
-        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { roomH = $0; fitLog() }
-    }
-
-    // Alleen in Debug: past de pagina zonder scrollen? (`ONBFIT` in /private/tmp/claude-501/onbfit.log)
-    private func fitLog() {
-        #if DEBUG
-        guard roomH > 0, contentH > 0 else { return }
-        let line = "ONBFIT \(step.rawValue)\(step == .precies ? "\(preciesPage + 1)/\(preciesPages.count)" : "") content=\(Int(contentH)) room=\(Int(roomH)) \(contentH <= roomH + 0.5 ? "OK" : "OVERFLOW")\n"
-        let url = URL(fileURLWithPath: "/private/tmp/claude-501/onbfit.log")
-        if let h = try? FileHandle(forWritingTo: url) {
-            h.seekToEndOfFile()
-            h.write(Data(line.utf8))
-            try? h.close()
-        } else {
-            try? Data(line.utf8).write(to: url)
-        }
-        #endif
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { roomH = $0 }
     }
 
     // Bovenaan: het woordmerk links, op elke pagina op dezelfde plek; rechts terug (of inloggen).
@@ -610,9 +594,9 @@ struct WelcomeView: View {
     }
 
     // Interesses als tegels, liggend en 64 hoog (acht tegels in vier rijen): twee naast elkaar, vier op
-    // een brede pagina, één bij heel grote tekst.
+    // een brede pagina, één vanaf xxLarge (dan krijgt de naam ruimte en blijven icoon, vinkje en naam onder elkaar).
     private var tiles: some View {
-        let count = typeSize.isAccessibilitySize ? 1 : width >= 560 ? 4 : 2
+        let count = typeSize >= .xxLarge ? 1 : width >= 560 ? 4 : 2
         return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: Space.s3, alignment: .top), count: count), spacing: Space.s3) {
             ForEach(Rubriek.alle) { r in
                 ChoiceTile(label: r.label, icon: r.icon, on: interests.contains(r.id), compact: true) { interests = toggled(interests, r.id) }

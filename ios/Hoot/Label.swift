@@ -10,6 +10,9 @@ enum StoryLabel {
     // Rubrieken waar de lezer zijn vak of zijn bubbel van maakt: die houden hun eigen label.
     static let own: Set<String> = ["bubbel", "breed"]
 
+    // Bij welke rubriek hoort de plek van De Redacteur? (de plek zelf zegt wat het verhaal is)
+    static let deskRubriek = ["binnenland": "binnenland", "regio": "binnenland", "buitenland": "wereld", "vs": "wereld", "middenoosten": "wereld", "oekraine": "wereld", "wetenschap": "wetenschap", "tech": "tech", "economie": "economie"]
+
     // `topics`: de onderwerpen van het verhaal. `sourceCat`: de rubriek van de bron in de catalogus.
     // `desk`: de plek van De Redacteur (binnenland, tech, …). `interests`: de rubrieken die de lezer koos.
     // `picked`: de onderwerpen die de lezer zelf aantikte (leeg = alles van de rubriek, dus geen sub).
@@ -20,7 +23,14 @@ enum StoryLabel {
         if sourceCat == "sport" {
             rubriek = Rubriek.byId["sport"] // een sportbron is Sport, wat de onderwerpen ook zeggen
         } else {
-            let wanted = hit.filter { interests.contains($0.id) }
+            // Je interesse telt alleen als het verhaal er echt over gaat: de plek zegt hetzelfde, of het eerste
+            // (hoofd)onderwerp hoort erbij. Eén los bijonderwerp (een boot met migranten die ook "media" raakt)
+            // maakt er nog geen Cultuur van. Zonder plek is er niets dat tegenspreekt, dan telt elke raak.
+            let wanted = hit.filter { r in
+                guard interests.contains(r.id) else { return false }
+                guard let d = desk, let home = deskRubriek[d] else { return true }
+                return home == r.id || topics.first.map(r.topics.contains) == true
+            }
             // Eerst een rubriek met een aangetikt onderwerp erin, dan de eerste die de lezer koos.
             rubriek = wanted.first { r in r.topics.contains { mine.contains($0) && picked.contains($0) } } ?? wanted.first
         }

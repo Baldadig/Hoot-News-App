@@ -133,7 +133,8 @@ struct ChoiceTile: View {
         Image(systemName: icon)
             .font(.system(size: size))
             .foregroundStyle(Theme.accent)
-            .frame(width: compact ? 32 : nil)
+            .fixedSize()
+            .frame(width: compact ? 36 : nil, alignment: .leading) // vaste kolom: breed icoon (toneelmaskers) schuift vinkje en naam niet op
             .accessibilityHidden(true)
     }
 
@@ -148,7 +149,7 @@ struct ChoiceTile: View {
             Text(label).multilineTextAlignment(.leading)
         }
         .font(.headline.weight(.heavy))
-        .lineLimit(compact && !typeSize.isAccessibilitySize ? 1 : nil) // liggend: één regel, de letter krimpt iets mee
+        .lineLimit(compact && typeSize < .xxLarge ? 1 : 3) // liggend: één regel; bij grotere tekst staat de tegel op een eigen rij en mag de naam omslaan
         .minimumScaleFactor(0.8)
         .foregroundStyle(on ? Theme.accent : Theme.ink)
     }
