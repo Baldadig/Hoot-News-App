@@ -59,7 +59,7 @@ export function dayOf(articles, sources) {
   for (const sl of SLOTS) {
     const pool = articles.filter((i) => Date.parse(i.publishedAt) <= sl.now)
     const articlePool = pool.filter(inStories)
-    const stories = buildStories(articlePool, registry, { mainIds: MAIN_IDS, keys: true })
+    const stories = buildStories(articlePool, registry, { mainIds: MAIN_IDS, keys: true, extended: true })
     registry = Object.fromEntries(stories.flatMap((st) => st.itemIds.map((id) => [id, { s: st.id }])))
     const byId = new Map(pool.map((i) => [i.id, i]))
     const entries = selectEdition(stories, articlePool, { mainIds: MAIN_IDS, now: sl.now, previous: previousOf(stored) })
@@ -209,12 +209,13 @@ export function runDay(articles, sources, { personas = DAG_PERSONAS, variants = 
   out.summary.grootNieuwsDag = grootKans ? grootRaak / grootKans : 1
   // Tweetalige verhalen (H6): verhalen met zowel een Nederlandse als een Engelse bron, gebundeld over
   // de hele dagpool (alles van de laatste DAY_WINDOW vóór het nieuwste bericht), op dezelfde basis als
-  // de diagnose (paren.mjs: 142 verhalen, 22 tweetalig); niet alleen de Avond.
+  // de diagnose (paren.mjs: 142 verhalen, 22 tweetalig); niet alleen de Avond. In de uitgebreide
+  // stand, zoals de server bundelt (build.mjs).
   const lang = new Map(sources.map((s) => [s.id, s.lang]))
   const end = Math.max(...articles.map((i) => Date.parse(i.publishedAt)))
   const dayPool = articles.filter(inStoriesOf(sources)).filter((i) => end - Date.parse(i.publishedAt) < DAY_WINDOW)
   const dayById = new Map(dayPool.map((i) => [i.id, i]))
-  const dayStories = buildStories(dayPool, {}, { mainIds: MAIN_IDS })
+  const dayStories = buildStories(dayPool, {}, { mainIds: MAIN_IDS, extended: true })
   const langsOf = (st) => new Set(st.itemIds.map((id) => lang.get(dayById.get(id)?.source)).filter(Boolean))
   out.summary.tweetalig = dayStories.filter((st) => langsOf(st).has('nl') && langsOf(st).has('en')).length
   out.summary.verhalen = dayStories.length

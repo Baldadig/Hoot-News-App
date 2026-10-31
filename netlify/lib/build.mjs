@@ -51,9 +51,11 @@ export async function buildFeed({ now = Date.now() } = {}) {
 
   // 5. Verhalen: bundelen over alle bronnen (behalve regionaal en muziek), met per verhaal de
   //    kenmerken van al zijn stukken (`keys`): het toestel kent van een verhaal alleen de eigen
-  //    bronnen en moet toch weten wat er in de vorige Editie al over geschreven was.
+  //    bronnen en moet toch weten wat er in de vorige Editie al over geschreven was. In de
+  //    uitgebreide stand (H6): twee namen in de kop binnen twaalf uur, EU-landen en instituten in
+  //    twee talen, een los stuk bij de kern van een groot verhaal.
   const articlePool = storyPool(items)
-  const stories = buildStories(articlePool, registry, { mainIds: MAIN_IDS, keys: true })
+  const stories = buildStories(articlePool, registry, { mainIds: MAIN_IDS, keys: true, extended: true })
   const poolById = new Map(articlePool.map((i) => [i.id, i]))
   for (const st of stories) for (const id of st.itemIds) poolById.get(id).storyId = st.id
 

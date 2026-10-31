@@ -1,9 +1,11 @@
 // De Redacteur: "al gezien in een eerdere Editie" (Hoot-design/algoritme/aanvulling-pariteit-herhaling.md
 // §2 H1–H4, §3 T1–T9). Overgenomen uit de diagnose (scratchpad/diagnose/herhaling/herhaling.test.mjs).
-// Wat nog bij een volgend pakket hoort (H6: sameEvent), staat als todo.
+// T5, T5n en T6 toetsen H6 (sameEvent in de uitgebreide stand); de fixtures uit de live-data staan in
+// tests/h6.test.mjs.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { selectForReader, previousOf, historyOf, recentEditions, HISTORY_MAX, signatures, sameEvent, seenBefore, developedSince, storyKeys } from '../netlify/lib/stories.mjs'
+import { readFileSync } from 'node:fs'
+import { selectForReader, previousOf, historyOf, recentEditions, HISTORY_MAX, signatures, sameEvent, buildStories, seenBefore, developedSince, storyKeys } from '../netlify/lib/stories.mjs'
 import { composePersonal } from '../src/lib/personal.js'
 import { profileOf } from '../shared/editor.mjs'
 
@@ -220,25 +222,52 @@ test('H3/H5: recentEditions houdt de laatste drie, ontdubbeld op id, nieuwste ee
   assert.deepEqual(recentEditions([]), [])
 })
 
-test('T5 H6: dezelfde gebeurtenis in het Nederlands en het Engels met twee namen en zonder gebeurtenis-woord', { todo: 'H6 (sameEvent regel i) komt in een volgend pakket' }, () => {
+test('T5 H6 (i): dezelfde gebeurtenis in het Nederlands en het Engels met twee namen in de kop en zonder gebeurtenis-woord', () => {
   const a = art('nd', 'nrc', 'Apple haalt Nvidia in als meest waardevolle bedrijf ter wereld', new Date(NOW - 36e5).toISOString(), { summary: 'De beurswaarde van Apple steeg donderdag boven die van Nvidia.' })
   const b = art('bb', 'economist', 'Apple Overtakes Nvidia to Become World’s Most Valuable Company', new Date(NOW - 30e5).toISOString(), { summary: 'Apple’s market value rose above Nvidia’s on Thursday.' })
-  const sig = signatures([a, b])
-  assert.equal(sameEvent(sig.get('nd'), sig.get('bb')), true)
+  const sig = signatures([a, b], [], { extended: true })
+  assert.equal(sameEvent(sig.get('nd'), sig.get('bb'), true), true)
+  // In de gewone stand (de meetlat) verandert er niets.
+  const oud = signatures([a, b])
+  assert.equal(sameEvent(oud.get('nd'), oud.get('bb')), false)
+  // Twee namen die één persoon zijn ("Kylian Mbappé") tellen als één: geen gebeurtenis.
+  const c = art('c1', 'telegraaf', 'Rob Hoogland: wat jammer dat Kylian Mbappé zijn excuses heeft geboden', new Date(NOW - 36e5).toISOString(), { summary: 'Column over Kylian Mbappé en zijn excuses aan China.' })
+  const d = art('d1', 'guardian', 'Kylian Mbappé loses Ballon d’Or vote by 28 points to Harry Kane', new Date(NOW - 30e5).toISOString(), { summary: 'The vote breakdown shows Kylian Mbappé came close to winning.' })
+  const sig2 = signatures([c, d], [], { extended: true })
+  assert.equal(sameEvent(sig2.get('c1'), sig2.get('d1'), true), false)
+  // En niet na meer dan twaalf uur: dan is het dezelfde persoon in ander nieuws.
+  const e = { ...b, id: 'bb2', publishedAt: new Date(NOW - 20 * 36e5).toISOString() }
+  const sig3 = signatures([a, e], [], { extended: true })
+  assert.equal(sameEvent(sig3.get('nd'), sig3.get('bb2'), true), false)
 })
 
 test('T5n H6: Intel-koersval en Intel-fabrieksexplosie blijven twee gebeurtenissen', () => {
   const a = art('ik', 'tweakers', 'Aandeel Intel zakt 8 procent na tegenvallende kwartaalcijfers', new Date(NOW - 36e5).toISOString(), { summary: 'Beleggers reageren op de omzet van Intel, die lager uitviel dan verwacht.' })
   const b = art('ie', 'ars', 'Explosion at Intel fab in Arizona injures three workers', new Date(NOW - 30e5).toISOString(), { summary: 'Intel said the blast at its Chandler plant happened during maintenance; three workers were injured.' })
-  const sig = signatures([a, b])
-  assert.equal(sameEvent(sig.get('ik'), sig.get('ie')), false)
+  const sig = signatures([a, b], [], { extended: true })
+  assert.equal(sameEvent(sig.get('ik'), sig.get('ie'), true), false)
+  const oud = signatures([a, b])
+  assert.equal(sameEvent(oud.get('ik'), oud.get('ie')), false)
 })
 
-test('T6 H6: een necrologie uit een andere bron hoort bij het verhaal over het overlijden', { todo: 'H6 (sameEvent regel ii) komt in een volgend pakket' }, () => {
-  const a = art('a1', 'nos', 'Bedroefde reacties om dood Patrick Stewart: ‘Een man om van te houden’', new Date(NOW - 36e5).toISOString(), { summary: 'De Britse acteur Patrick Stewart is op 85-jarige leeftijd overleden.' })
-  const b = art('b1', 'nyt', 'Patrick Stewart Was Regal, Stately and Quite Hilarious', new Date(NOW - 30e5).toISOString(), { summary: 'An appraisal of the actor, who played Captain Picard and Professor X.' })
-  const sig = signatures([a, b])
-  assert.equal(sameEvent(sig.get('a1'), sig.get('b1')), true)
+// Regel (ii) werkt niet per paar maar per verhaal (attachLoose in buildStories): de necrologie deelt
+// alleen de persoon met het verhaal, en hoort er alleen bij omdat de kern van dat verhaal een
+// overlijden is. Op de echte berichten van 30-10 (tests/fixtures/clustering-3010.json).
+test('T6 H6 (ii): een necrologie zonder sterfwoord hoort bij het verhaal over het overlijden (≥ 6 bronnen), niet bij een paar', () => {
+  const items = JSON.parse(readFileSync(new URL('./fixtures/clustering-3010.json', import.meta.url), 'utf8'))
+  const byTitle = (re) => items.find((i) => re.test(i.title)).id
+  const nyt = byTitle(/^Patrick Stewart Was Regal/)
+  const nos = byTitle(/^Bedroefde reacties om dood Patrick Stewart/)
+  const stories = buildStories(items, {}, { extended: true })
+  const st = stories.find((s) => s.itemIds.includes(nos))
+  assert.ok(st && st.sourceCount >= 6, 'het Stewart-verhaal heeft minstens zes bronnen')
+  assert.ok(st.itemIds.includes(nyt), 'de NYT-necrologie hoort bij het verhaal over zijn dood')
+  // In de gewone stand blijft de necrologie los (de meetlat verandert niet).
+  const oud = buildStories(items)
+  assert.ok(!oud.some((s) => s.itemIds.includes(nyt)))
+  // Per paar is het geen gebeurtenis: één persoon, geen begrip.
+  const sig = signatures(items, [], { extended: true })
+  assert.equal(sameEvent(sig.get(nos), sig.get(nyt), true), false)
 })
 
 test('T7 H1: de aanvulling uit de algemene Editie en "Waar iedereen over schrijft" respecteren previous', () => {

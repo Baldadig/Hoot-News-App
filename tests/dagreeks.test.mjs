@@ -5,9 +5,11 @@
 // Vier varianten voor `previous`: `code` (hetzelfde toestel, zoals de hook: de laatste Editie met haar
 // history), `drie` (alle Edities van de dag), `account` (ander toestel, alleen wat in het account staat)
 // en `sprong` (ander toestel, en niemand stelde de Middag samen). Sinds H3/H5 geldt "herhaald zonder
-// ontwikkeling = 0" hard in alle vier, ook Ochtend→Avond. Eén drempel van §3 staat hier bewust nog als
-// todo, met een vaste afspraak wanneer hij hard wordt: "tweetalig ≥ 35" bij H6 (sameEvent gericht
-// uitgebreid). Tot dan is "alle harde drempels gehaald" niet "§3 gehaald".
+// ontwikkeling = 0" hard in alle vier, ook Ochtend→Avond. Eén drempel van §3 staat hier als todo:
+// "tweetalig ≥ 35". H6 (sameEvent gericht uitgebreid, `extended`) bracht de dagpool met live-momentopname
+// van 22 naar 31 van 143 (alleen de momentopname van 19:00Z: van 17 van 97 naar 22 van 100); de stand na H6 is
+// wél hard, zodat H6 niet terugvalt. Zolang de todo open staat is "alle harde drempels gehaald" niet
+// "§3 gehaald".
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { loadSnapshot } from './helpers/snapshot.mjs'
@@ -71,9 +73,16 @@ test('dagreeks: groot nieuws aanwezig óf vandaag al getoond = 100 %', () => {
 
 // Teller en noemer op de basis van de diagnose: alle verhalen van de dagpool (met de live-momentopname
 // erbij 22 van 142, zoals §3 zegt; alleen op de momentopname van 19:00Z minder), niet alleen de Avond.
-test('dagreeks: ≥ 35 tweetalige verhalen in de dagpool', { todo: 'spec §3 hard; wordt hard bij H6 (sameEvent gericht uitgebreid)' }, () => {
+test('dagreeks: ≥ 35 tweetalige verhalen in de dagpool', { todo: 'spec §3 hard; na H6 31 van 143 (met live), 22 van 100 (zonder): de rest is binnenland en sport zonder tegenhanger' }, () => {
   assert.ok(S.verhalen > 60, `dagpool heeft ${S.verhalen} verhalen`)
   assert.ok(S.tweetalig >= 35, `${S.tweetalig} van ${S.verhalen}`)
+})
+
+// De stand na H6 op de momentopname alleen (npm test kent de live-momentopname niet): Apple/Nvidia,
+// het Poolse Hof, Olesjky, de Chinese partij en de Intel-koersval zijn tweetalig geworden. Hard, zodat
+// een volgende wijziging aan sameEvent niet stil terugvalt.
+test('dagreeks: H6 houdt stand — ≥ 22 tweetalige verhalen op de momentopname (vóór H6: 17)', () => {
+  assert.ok(S.tweetalig >= 22, `${S.tweetalig} van ${S.verhalen}`)
 })
 
 // De meting zelf: composePersonal krijgt per persona alleen toestelkennis, en geen persona kent de
