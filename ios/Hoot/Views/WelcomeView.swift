@@ -403,16 +403,19 @@ struct WelcomeView: View {
         .padding(.top, inSheet ? Space.s2 : 0) // in een blad: even lucht onder de rand
     }
 
-    // Waar je bent: "2/6", het cijfer groot in de krantenletter.
+    // Waar je bent: "2⁄6" als één breuk, het cijfer groot in de krantenletter (32, gelijk aan
+    // --t-display), de breukstreep U+2044 direct erachter met de noemer klein en rustig. Het web telt
+    // tot 5, iOS tot 6 (de stap Meldingen): het bewuste verschil uit het brandboard.
     private func counter(_ s: Step, onRed: Bool) -> some View {
         let n = (flow.firstIndex(of: s) ?? 0) + 1
-        return HStack(alignment: .firstTextBaseline, spacing: Space.s0) {
+        return HStack(alignment: .firstTextBaseline, spacing: 0) {
             Text("\(n)")
-                .font(.system(size: 36, weight: .heavy, design: .serif))
+                .font(.system(size: 32, weight: .heavy, design: .serif))
+                .monospacedDigit() // tabelcijfers: de breuk springt niet als het cijfer verandert
                 .foregroundStyle(onRed ? Self.paperWhite : Theme.accent)
-            Text("/\(flow.count)")
-                .font(.system(.body, design: .serif, weight: .heavy))
-                .foregroundStyle(onRed ? Self.paperWhite : Theme.ink3)
+            Text("\u{2044}\(flow.count)")
+                .font(.system(size: 17, weight: .regular, design: .serif))
+                .foregroundStyle(onRed ? Self.paperWhite.opacity(0.85) : Theme.ink3) // op rood papier 85 procent
         }
         .padding(.top, Space.s2)
         .accessibilityElement(children: .ignore)

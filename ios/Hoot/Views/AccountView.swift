@@ -192,7 +192,7 @@ struct AccountView: View {
                 Button("Nu synchroniseren") { Task { await account.pull() } }
                     .disabled(account.sync == .syncing)
             } footer: {
-                Text("Je bronnen, interesses, vakgebieden, gelezen en bewaarde stukken gaan mee met je account. Weergave en lezen (zoals waar artikelen openen) blijven per toestel.").foregroundStyle(Theme.ink3)
+                Text("Je bronnen, interesses, onderwerpen, gelezen en bewaarde stukken gaan mee met je account. Weergave en lezen (zoals waar artikelen openen) blijven per toestel.").foregroundStyle(Theme.ink3)
             }
             manage
         }

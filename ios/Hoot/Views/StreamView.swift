@@ -46,6 +46,9 @@ struct StreamView: View {
                         stapel: !social && (sources.count > 1 || !picks.isEmpty),
                         knopAs: knopAs
                     )
+                    // De rubriekenlijn groeit mee tot de eerste accessibility-maat: groter past "Buiten je
+                    // bubbel" niet meer naast Alles en de stapel (zoals de bovenregel van het welkom).
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                     .padding(.bottom, Space.s2) // samen met de ruimte boven het eerste bericht 16
                     .padding(.horizontal)
                     .column()

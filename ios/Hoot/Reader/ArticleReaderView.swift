@@ -176,7 +176,9 @@ enum ReaderHTML {
         .kicker { font-family: -apple-system, system-ui, sans-serif; font-size: .72em; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin: 0 0 .6em; }
         h1.title { font-size: min(1.75em, 48px); line-height: 1.15; font-weight: 800; margin: 0 0 .4em; } /* bij heel grote tekst niet een heel scherm kop */
         .meta { font-family: -apple-system, system-ui, sans-serif; font-size: .8em; color: var(--ink-3); margin: 0 0 1.6em; padding-bottom: 1em; border-bottom: 1px solid var(--rule); }
-        h1, h2, h3, h4 { line-height: 1.25; -webkit-hyphens: auto; hyphens: auto; } /* lange woorden bij grote tekst: afbreken met een streepje, in de taal van de bron */
+        h1, h2, h3, h4 { line-height: 1.25; -webkit-hyphens: manual; hyphens: manual; } /* eigennamen in de kop breken nooit af */
+        h1 { overflow-wrap: anywhere; text-wrap: balance; } /* een woord breder dan de kolom breekt zonder streepje, regels even lang */
+        main.hyphenate :is(h2, h3, h4) { -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 10 4 4; } /* alleen bij Heel groot: lange woorden in tussenkoppen afbreken, in de taal van de bron */
         h2 { font-size: 1.3em; margin: 1.6em 0 .5em; } h3 { font-size: 1.12em; margin: 1.4em 0 .4em; }
         p { margin: 0 0 1em; }
         a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
@@ -188,7 +190,7 @@ enum ReaderHTML {
         table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; font-size: .85em; } /* een brede tabel scrolt zelf, niet de hele pagina */
         main { overflow-wrap: break-word; } /* lange links breken af in plaats van de pagina te verbreden */ td, th { border-bottom: 1px solid var(--rule); padding: .4em; text-align: left; }
         pre, code { font-family: ui-monospace, Menlo, monospace; font-size: .85em; white-space: pre-wrap; }
-        </style></head><body><main>
+        </style></head><body><main\(scale > 1.3 ? " class=\"hyphenate\"" : "")>
         <p class="kicker">\(escape(sourceName))</p>
         <h1 class="title">\(title)</h1>
         \(meta.isEmpty ? "" : "<p class=\"meta\">\(meta)</p>")

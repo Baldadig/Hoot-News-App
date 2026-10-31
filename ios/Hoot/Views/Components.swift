@@ -246,7 +246,7 @@ struct SourceLine: View {
             SourceMark(item: item)
             VStack(alignment: .leading, spacing: 0) {
                 Text(item.sourceName ?? item.source).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
-                Text(meta).font(.caption).foregroundStyle(Theme.ink3)
+                Text(meta).font(.caption).monospacedDigit().foregroundStyle(Theme.ink3) // tabelcijfers: de tijden staan in een kolom
             }
             .lineLimit(oneLine ? 1 : nil)
             .fixedSize(horizontal: false, vertical: true)

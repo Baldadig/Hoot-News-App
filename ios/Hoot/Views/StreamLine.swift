@@ -22,11 +22,12 @@ struct StreamLine: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.dynamicTypeSize) private var typeSize
     // De lijn: aanraakvlak 44 + 2 lucht boven en onder = 48, plus de haarlijn van 1. Groeit mee met
     // grote Dynamische tekst, zodat de rubrieken altijd passen, maar krimpt nooit: onder 44 tikt slecht.
     @ScaledMetric(relativeTo: .body) private var bandMee: CGFloat = Space.tap + Space.s1
     private var band: CGFloat { max(Space.tap + Space.s1, bandMee) }
-    @ScaledMetric(relativeTo: .subheadline) private var labelMax: CGFloat = 150 // de naam: hooguit 10 letters breed
+    @ScaledMetric(relativeTo: .subheadline) private var labelMax: CGFloat = 96 // de naam ("NOS", "3 bronnen"): hooguit 96 breed, daarna loopt hij uit
     // De naam (SF 15 vet) gecentreerd staat 1 hoger dan de rubrieken (New York 17): zelfde basislijn.
     @ScaledMetric(relativeTo: .body) private var basis: CGFloat = 1
     @State private var lineW: CGFloat = 0
@@ -54,7 +55,8 @@ struct StreamLine: View {
     private static let stepOpen = Space.tap + Space.s1 // open: knoppen van 44, 4 ertussen
     private static let pad = Space.s2 // binnenrand van de stapelknop, en tussen naam en logo's
     private static let edgeBasis = (Space.tap - small) / 2 // 8: het voorste logo in een vak van 44 aan de rand
-    private static let deckMax = 3
+    // Drie logo's in de stapel; bij grote tekst één, zodat de rubrieken ruimte houden ("Buiten je bubbel" heel).
+    private var deckMax: Int { typeSize.isAccessibilitySize ? 1 : 3 }
     private static let ring: CGFloat = 3.2 // papierring om het logo; dicht 3,2 × 28/36 = 2,5
     private nonisolated static let ruimte = "rubrieken" // coördinaten van de rubriekenrij
 
@@ -386,7 +388,7 @@ struct StreamLine: View {
     private var tekort: CGFloat { allesW > 0 ? max(0, Space.tap - allesW - Space.s2) : 0 }
 
     private var chosen: [Source] { bronnen.filter { picks.contains($0.id) } } // in de volgorde van de rij
-    private var deck: [String] { (picks.isEmpty ? bronnen : chosen).prefix(Self.deckMax).map(\.id) }
+    private var deck: [String] { (picks.isEmpty ? bronnen : chosen).prefix(deckMax).map(\.id) }
     private var namen: String { Self.opsomming(chosen.map(\.name)) }
     private var keuze: String { picks.count == 1 ? chosen.first?.name ?? "1 bron" : "\(picks.count) bronnen" }
 

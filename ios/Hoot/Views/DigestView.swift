@@ -80,7 +80,7 @@ struct DigestView: View {
         let picked = fields.reduce(0) { $0 + $1.top.count }
         return VStack(alignment: .leading, spacing: Space.s2) {
             Kicker(text: d.preview == true ? "Voorproefje · de afgelopen zeven dagen" : "Week \(d.week ?? 0) · \(Self.span(d.from, d.to))")
-            Text("\(picked == 1 ? "1 stuk" : "\(picked) stukken") in \(fields.count == 1 ? "1 vakgebied" : "\(fields.count) vakgebieden")")
+            Text("\(picked == 1 ? "1 stuk" : "\(picked) stukken") in \(fields.count == 1 ? "1 onderwerp" : "\(fields.count) onderwerpen")")
                 .font(Theme.headline(.title2))
                 .fixedSize(horizontal: false, vertical: true)
             if d.preview == true, let next = d.next.flatMap(HootDate.parse) {
@@ -182,7 +182,7 @@ private struct DigestCard: View {
                     FramedImage(url: ImageURL.url(item.image, .large), ratio: feature ? 16 / 9 : 2)
                 }
                 VStack(alignment: .leading, spacing: Space.s2) {
-                    Text(String(format: "%02d", rank)).font(Theme.headline(.headline)).foregroundStyle(Theme.accent)
+                    Text(String(format: "%02d", rank)).font(Theme.headline(.headline)).monospacedDigit().foregroundStyle(Theme.accent) // tabelcijfers: 01, 02, 03 even breed
                     Text(item.title)
                         .font(Theme.headline(feature ? .title2 : .title3))
                         .foregroundStyle(store.isRead(item.asItem) ? Theme.ink3 : Theme.ink)
