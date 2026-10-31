@@ -5,7 +5,7 @@ Hoot kiest zijn opmaak op de beschikbare breedte, niet op het apparaat (`Hoot/Vi
 | Breedte | Voorbeelden | Opmaak |
 |---|---|---|
 | Smal (< 700 pt) | iPhone, iPhone mini, iPhone Duo dichtgevouwen, iPad in een smal venster | Eén kolom; tabbalk onderin die bij scrollen krimpt. |
-| Breed (≥ 700 pt) | iPad, iPhone Duo opengevouwen, iPhone Pro Max liggend | Hoofdverhaal met beeld en kop naast elkaar, verhalen in twee kolommen, Digest-kaarten naast elkaar. Tabbalk bovenaan, of als zijbalk (knop links). |
+| Breed (≥ 700 pt) | iPad, iPhone Duo opengevouwen, iPhone Pro Max liggend | Hoofdverhaal met beeld en kop naast elkaar, verhalen in twee kolommen, Selectie-kaarten naast elkaar. Tabbalk bovenaan, of als zijbalk (knop links). |
 
 Lopende lijsten (Stroom, verhaal vergelijken) houden een leesbreedte van hooguit 680 pt, zodat regels niet te lang worden.
 

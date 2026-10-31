@@ -19,13 +19,13 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
 | ✅ | Contentrechten | Ingevuld door Alex (28 okt): bevat inhoud van derden, rechten aanwezig. |
 | ✅ | Contactgegevens App Review | Alex Vrees, alex@baldadig.nl. Uitbrengen: handmatig na goedkeuring. |
 | ✅ | Digital Services Act | Handelaar, ingevuld door Alex (28 okt). |
-| 🟡 | Schermafbeeldingen | iPhone 6,3" (1206×2622) en iPad (11"-opname in 13"-formaat) staan erin; Digest-beeld na 2 nov opnieuw (volle week). |
+| 🟡 | Schermafbeeldingen | iPhone 6,3" (1206×2622) en iPad (11"-opname in 13"-formaat) staan erin; Selectie-beeld na 2 nov opnieuw (volle week). |
 | ✅ | Versie 1.0 | Build 27 ingediend op 28 oktober om 21:54 ("Waiting for Review"). Build 26 (20:11) teruggetrokken: onzichtbare "Verder" en sync-fouten, gevonden in de slooptest. Handmatig uitbrengen na goedkeuring. |
 | ✅ | Inloggen (Google en Apple) | Google Cloud: iOS-client "Hoot iOS" en inlogscherm "In production". Supabase: iOS-client-id bij Google, Apple aan (nl.hootnews.Hoot), functie `delete_my_account`. |
 | ✅ | Privacylabels | E-mailadres, gebruikers-ID, productinteractie: gekoppeld aan je account, alleen voor de werking van de app, geen tracking. |
 | ✅ | Review-notities | Bijgewerkt, met een uitnodigingscode voor de beoordelaar. De code staat alleen in App Store Connect › App Review-informatie, nooit in deze repo. "Sign-in required" uit. |
 | ⬜ | Header op de productpagina | Nieuw in App Store Connect: één header-afbeelding, 5244 × 2950 of 3840 × 1646 px. Maken in de stijl van de schermafbeeldingen (merkrood, witte krantenletter). Optioneel. |
-| ⬜ | Digest-beeld | Na goedkeuring, vanaf maandag 2 november: nieuw Digest-beeld voor versie 1.0.1. |
+| ⬜ | Selectie-beeld | Na goedkeuring, vanaf maandag 2 november: nieuw Selectie-beeld voor versie 1.0.1. |
 
 ## 1. Account en registratie
 
@@ -99,7 +99,7 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
 |---|---|---|
 | ✅ | Notities voor de beoordelaar (Engels) | [REVIEW-NOTES.md](REVIEW-NOTES.md): wat de app doet, waar de inhoud vandaan komt, geen inloggen nodig. |
 | 🟡 | **Inhoud van derden (richtlijn 5.2)** | Hoot toont koppen, intro's en beelden uit openbare feeds en linkt naar de uitgever. Apple kan vragen of je dat mag. De notities leggen het uit; houd er rekening mee dat Apple om toestemming van uitgevers kan vragen. |
-| 🟡 | **Minimale functionaliteit (richtlijn 4.2)** | Hoot is native (geen website in een schil) met eigen functies (editie, vergelijken, Digest, bewaren). |
+| 🟡 | **Minimale functionaliteit (richtlijn 4.2)** | Hoot is native (geen website in een schil) met eigen functies (editie, vergelijken, Selectie, bewaren). |
 | 👤 | Contactgegevens voor de beoordelaar | Naam, telefoon en e-mail in App Store Connect. |
 
 ## 9. Uploaden en indienen
