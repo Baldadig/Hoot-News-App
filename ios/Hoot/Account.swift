@@ -195,6 +195,7 @@ final class Account {
     func signOut() async {
         if session != nil { _ = try? await call("auth/v1/logout", method: "POST") }
         forget()
+        store?.forgetChoices() // wie hierna leest begint neutraal: je keuzes gaan van het toestel
     }
 
     // Account verwijderen: alles op de server weg (profiel, instellingen, Bewaard). Wat op dit

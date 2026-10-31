@@ -90,7 +90,7 @@ final class HootStore {
         enabled = Set(Self.load("hoot.enabled") ?? [String]())
         quickPending = Self.load("hoot.quickPending") ?? false
         browsing = Self.load("hoot.browsing") ?? false
-        digestFields = Self.load("hoot.digestFields") ?? ["paid-social", "ux", "design", "ai", "ecommerce"]
+        digestFields = Self.load("hoot.digestFields") ?? [] // een nieuwe lezer kiest zijn vak zelf (of later)
         // Eenmalig overzetten uit UserDefaults (versie 0.3 en eerder).
         let oldSaved: [Item]? = Self.load("hoot.saved")
         let oldRead: [String]? = Self.load("hoot.read")
@@ -316,12 +316,35 @@ final class HootStore {
         if next != interests { interests = next }
         if mine != topics { topics = mine }
     }
-    // Welke bronnen in het welkom vooraf aan staan (suggestSources in src/lib/topics.js).
-    func suggested(interests: [String], topics: [String]) -> [String] {
-        newsSources.filter { $0.pick == true }.filter { s in
-            if let t = s.forTopic { return topics.contains(t) }
-            return s.forInterests.map { $0.contains(where: interests.contains) } ?? true
-        }.map(\.id)
+    // Het voorstel in het welkom (onboarding-plan): altijd NOS, NU.nl en RTL Nieuws, en per gekozen
+    // interesse een of twee gratis bronnen, Nederlands eerst. Een betaalde bron staat nooit vooraf
+    // aan; die kies je zelf bij Aanpassen of later bij Bronnen. Nog niets geladen: de lijst zoals hij
+    // is (bij het laden valt weg wat niet bestaat).
+    static let always = ["nos", "nu", "rtl"]
+    static let pickFor: [String: [String]] = [
+        "wereld": ["bbc"], "tech": ["tweakers"], "wetenschap": ["quanta"], "cultuur": ["nos-cultuur", "3voor12"], "sport": ["nos-sport", "vi"],
+    ]
+    // Wat er bij Aanpassen onder ‘Ook bij je interesses’ staat (aan te zetten, niet vooraf aan).
+    static let alsoFor: [String: [String]] = [
+        "politiek": ["nrc", "volkskrant", "ftm", "politico-eu"], "binnenland": ["ad", "parool", "trouw"],
+        "wereld": ["guardian", "aljazeera", "nyt", "economist"], "economie": ["fd", "ft", "economist"],
+        "tech": ["theverge", "ars"], "wetenschap": ["nature"], "cultuur": ["variety", "pitchfork"], "sport": ["wielerflits", "sporza"],
+    ]
+    func suggested(interests: [String]) -> [String] {
+        var ids = Self.always
+        for r in Rubriek.alle where interests.contains(r.id) {
+            for id in Self.pickFor[r.id] ?? [] where !ids.contains(id) { ids.append(id) }
+        }
+        guard !newsSources.isEmpty else { return ids }
+        return ids.filter { id in newsSources.contains { $0.id == id && $0.paid != true } }
+    }
+    // De andere bronnen bij je interesses, voor Aanpassen: eerst wat het voorstel niet aanzette.
+    func alsoSuggested(interests: [String]) -> [String] {
+        var ids: [String] = []
+        for r in Rubriek.alle where interests.contains(r.id) {
+            for id in (Self.alsoFor[r.id] ?? []) + (Self.pickFor[r.id] ?? []) where !ids.contains(id) { ids.append(id) }
+        }
+        return ids.filter { id in newsSources.contains { $0.id == id } }
     }
     // Welkom klaar (applyWelcome in src/lib/welcome.js): interesses, onderwerpen en bronnen worden je
     // instellingen. Alleen de bronnen die in het welkom te kiezen waren (`shown`) veranderen.
@@ -331,11 +354,38 @@ final class HootStore {
         if ids != interests { interests = ids }
         if mine != topics { topics = mine }
         if let vak, vak != digestFields { digestFields = vak }
+        // Nog geen bronnen geladen: alleen wat je koos staat aan, zodra ze er zijn (zoals quickStart).
+        if shown.isEmpty { enabled = on; quickPending = true }
         muted = muted.filter { !seen.contains($0) }.union(shown.filter { !($0.optional ?? false) && !on.contains($0.id) }.map(\.id))
         enabled = enabled.filter { !seen.contains($0) }.union(shown.filter { ($0.optional ?? false) && on.contains($0.id) }.map(\.id))
         browsing = false
         rebuildStream()
         reloadParts()
+        refreshPersonal()
+    }
+
+    // Uitgelogd: de persoonlijke keuzes gaan van het toestel, zodat wie hierna leest neutraal begint.
+    // Interesses, onderwerpen, voorkeursbronnen, vak, smaak en je eigen Bluesky-accounts weg; de
+    // bronnen terug naar het gratis Nederlandse begin (de startset). Bewaard en gelezen blijven,
+    // net als weergave en lezen (die horen bij het toestel).
+    func forgetChoices() {
+        interests = []
+        topics = []
+        favorites = []
+        digestFields = []
+        taste = Taste()
+        less = []
+        affinity = Affinity()
+        ownBluesky = []
+        let start = Set(Self.starter)
+        enabled = start
+        if sources.isEmpty {
+            quickPending = true
+        } else {
+            muted = Set(newsSources.map(\.id).filter { !start.contains($0) })
+            rebuildStream()
+            reloadParts()
+        }
         refreshPersonal()
     }
 

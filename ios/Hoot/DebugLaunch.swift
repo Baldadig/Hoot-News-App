@@ -12,7 +12,8 @@ import SwiftUI
 //   -HootOnboarded YES   (zonder welkom, mét opstartscherm; met -HootStartTab stroom: de opstart naar de Stroom)
 //   -HootSlowSplash <n>   (de overgang van het opstartscherm n keer zo langzaam, en de iris in het welkom)
 //   -HootFresh YES   (het welkom als nieuwe gebruiker, met opstartscherm)
-//   -HootWelcomeStep interesses|precies|bronnen|selectie|seintje|snel   (het welkom op die stap; zonder
+//   -HootWelcomeStep uitleg1|uitleg2|uitleg3|interesses|precies|hoot|bronnen|selectie|seintje   (het welkom op die
+//                                             pagina, bronnen en selectie met het blad open; zonder
 //                                             -HootFresh ook als nieuwe gebruiker)
 //   -HootInterests politiek,tech,cultuur   (in het welkom al gekozen)
 //   -HootNotifyIn <s>   (één echt seintje "Editie ligt klaar" over s seconden; toestemming eerst geven)
