@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { CompactItem, Meta, SaveButton, useHoot, linkOf } from '../components/Items.jsx'
+import { CompactItem, Meta, SaveButton, ShareButton, useHoot, linkOf } from '../components/Items.jsx'
 import { isFollowing } from '../lib/follow.js'
 import { CloseIcon, CaretIcon, ICON_SM } from '../components/icons.jsx'
 import { BackButton } from '../components/Shell.jsx'
@@ -90,6 +90,8 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
               Volg
             </span>
           </button>
+          {/* Het verhaal delen = het stuk bovenaan delen, met de link van zijn uitgever (zoals de app). */}
+          {lead ? <ShareButton item={lead} label="verhaal" /> : null}
           <SaveButton id={story.id} kind="story" payload={lead ? withLead(story, lead.id) : story} label="verhaal" />
           {!overlay ? (
             <button type="button" className="iconbtn" onClick={onClose} aria-label="Paneel sluiten">

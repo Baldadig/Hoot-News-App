@@ -38,6 +38,8 @@ import { usePersonalEdition } from './hooks/usePersonalEdition.js'
 import { toggleFollow } from './lib/follow.js'
 import { subscribe as onUpdate, isReady as updateReady, applyUpdate, dismissUpdate } from './lib/swUpdate.js'
 import { indexStories, resolveStory, toggleSaved, restoreSaved } from './lib/saved.js'
+import { shareItem, shareNotice } from './lib/share.js'
+import Splash from './components/Splash.jsx'
 
 // Schermen die je zelden opent laden pas als je ze opent (de service worker heeft ze al klaarstaan).
 const Search = lazy(() => import('./views/Search.jsx'))
@@ -46,6 +48,13 @@ const Privacy = lazy(() => import('./views/Privacy.jsx'))
 const Over = lazy(() => import('./views/Over.jsx'))
 const StyleGuide = lazy(() => import('./views/StyleGuide.jsx'))
 const Welcome = lazy(() => import('./views/Welcome.jsx'))
+
+// Het opstartscherm staat al in index.html (koude lading, of op het beginscherm): dan neemt
+// components/Splash.jsx het over tot er iets te lezen is.
+const splashShown = () => {
+  const s = document.getElementById('splash')
+  return !!s && !s.hidden
+}
 
 const PAGES = ['zoek', 'stijl', 'welkom', 'instellingen', 'privacy', 'over']
 const byRecency = (a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || '')
@@ -90,6 +99,8 @@ export default function App() {
   }, [prefs.textSize, prefs.images])
   const [display, setDisplay] = useState(false)
   const openDisplay = useCallback(() => setDisplay(true), [])
+  const [splash, setSplash] = useState(splashShown)
+  const endSplash = useCallback(() => setSplash(false), [])
   const { data, status, refreshing, refreshError, reload, pendingCount, applyPending, loadRelated } = useFeed(prefs)
   const online = useOnline()
   const { theme, setTheme } = useTheme(prefs.palette)
@@ -241,6 +252,19 @@ export default function App() {
     setAnnounce('Teruggezet in Bewaard')
   }, [undo, setSaved])
 
+  // Delen (src/lib/share.js): het deelblad van het toestel zegt zelf wat er gebeurde; alleen bij
+  // het klembord (of als het misgaat) een korte melding in dezelfde pil als de andere.
+  const [notice, setNotice] = useState('')
+  useEffect(() => {
+    if (!notice) return
+    const t = setTimeout(() => setNotice(''), 3000)
+    return () => clearTimeout(t)
+  }, [notice])
+  const share = useCallback(async (item) => {
+    const said = shareNotice(await shareItem(item))
+    if (said) setNotice(said)
+  }, [])
+
   const toggleSave = useCallback(
     (kind, id, payload) => {
       if (saved[id]) {
@@ -304,6 +328,12 @@ export default function App() {
     [setSeenStories],
   )
 
+  // Weg uit Welkom: geen harde knip maar een overvloeier van 0,45 s (lib/motion.js crossPlan, zoals
+  // de app). Welkom blijft staan en vervaagt (`leavingWelcome`) over de Editie, die eronder al
+  // getekend is en bij het afronden eerst je keuzes krijgt; is het vervaagd, dan gaat het weg.
+  const [leavingWelcome, setLeavingWelcome] = useState(false)
+  const welcomeLeft = useCallback(() => setLeavingWelcome(false), [])
+
   // Welkom klaar: interesses, onderwerpen en bronnen worden je instellingen (src/lib/welcome.js).
   // "Liever meteen lezen" (alleen bij de eerste start) geeft lege interesses en onderwerpen en de
   // startset als bronnen. Sluit je het welkom bij opnieuw kiezen, dan komt het hier niet langs en
@@ -312,6 +342,7 @@ export default function App() {
     (choice) => {
       setPrefs((p) => applyWelcome(p, choice))
       route.go('editie', {}, { replace: true })
+      setLeavingWelcome(true)
     },
     [setPrefs, route.go],
   )
@@ -343,7 +374,15 @@ export default function App() {
   const beforeWelcome = useRef('editie')
   if (path !== 'welkom') beforeWelcome.current = path
   const reopenWelcome = showWelcome && !!prefs.onboarded
-  const closeWelcome = useCallback(() => route.back(beforeWelcome.current), [route.back])
+  const closeWelcome = useCallback(() => {
+    route.back(beforeWelcome.current)
+    setLeavingWelcome(true)
+  }, [route.back])
+  // Zolang Welkom nog vervaagt, houdt het zijn vorm (opnieuw kiezen of de eerste keer): anders
+  // wisselen de tekst en de sluitknop nog net voor het weg is.
+  const welcomeDrawn = showWelcome || leavingWelcome
+  const reopenHeld = useRef(false)
+  if (showWelcome) reopenHeld.current = reopenWelcome
 
   // Nog geen account, maar wel via een uitnodigingslink gekomen? Als je een eind in je Editie of
   // Stroom hebt gelezen, één keer vragen of je wilt inloggen (zie src/lib/join.js).
@@ -436,8 +475,8 @@ export default function App() {
   // Twee standen op breed scherm: lezen (geen paneel, de leeskolom staat in het midden) en
   // vergelijken (paneel rechts). Het paneel komt er alleen na een bewuste klik: op
   // "Vergelijk bronnen" boven de lijst, of op "+N bronnen" bij een bericht.
-  // Indeling van berichten: 'tijdlijn' (beeld groot in het midden, bron bovenaan — zoals een
-  // sociale tijdlijn) of 'krant' (kop links, klein beeld rechts).
+  // Lees de Stroom als: 'tijdlijn' (kop, intro, beeld 2:1 over de volle breedte, bron eronder)
+  // of 'krant' (kop en intro links, klein beeld 3:2 rechts) — dezelfde twee vormen als in de app.
   const layout = prefs.layout === 'krant' ? 'krant' : 'tijdlijn'
   const setLayout = useCallback((layout) => setPrefs((p) => ({ ...p, layout })), [setPrefs])
   const panelOpen = hasPanel && prefs.panel === 'open'
@@ -501,6 +540,7 @@ export default function App() {
       account,
       saved,
       toggleSave,
+      share,
       read,
       markRead,
       openSource,
@@ -512,18 +552,20 @@ export default function App() {
       muted,
       setMuted,
     }),
-    [less, voteOn, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, openDisplay, account, saved, toggleSave, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories],
+    [less, voteOn, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, openDisplay, account, saved, toggleSave, share, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories],
   )
 
   const hideMain = overlay || showWelcome
-  // Achter het welkomscherm tekenen we de schermen nog niet (scheelt het laden van beeld
-  // dat je niet ziet).
-  const shown = showWelcome ? null : path
+  // Achter Welkom staat alleen het scherm waar je straks landt: de eerste keer de Editie (die laadt
+  // en personaliseert zo al tijdens Welkom, en de overvloeier aan het eind komt op een getekende
+  // krant, niet op een skelet), bij opnieuw kiezen het scherm waar je vandaan kwam. De andere
+  // schermen tekenen we daar nog niet (scheelt het laden van beeld dat je niet ziet).
+  const shown = showWelcome ? (reopenWelcome ? beforeWelcome.current : 'editie') : path
   // Een scherm wordt pas opgebouwd als je er voor het eerst komt (daarna blijft het staan,
   // met zijn leespositie). Verborgen schermen laadden anders al hun beeld alvast mee:
   // de browser stelt beeld in een verborgen scherm niet uit.
   const visited = useRef(new Set())
-  if (shown) visited.current.add(shown)
+  if (shown && MAIN.includes(shown)) visited.current.add(shown)
   const was = (d) => visited.current.has(d)
 
   // "Naar de inhoud": focus naar het scherm dat je voor je hebt — zonder de route te
@@ -538,7 +580,9 @@ export default function App() {
   }
   return (
     <HootContext.Provider value={ctx}>
-      <div className={`app${story || panelOpen ? ' has-panel' : ''}`}>
+      {/* Achter het opstartscherm is niets te bedienen (ook niet voor een schermlezer), maar de Editie
+          tekent wel al: het opstartscherm wacht erop. */}
+      <div className={`app${story || panelOpen ? ' has-panel' : ''}`} inert={splash ? '' : undefined}>
         {/* Is het verhaal een dialoog (smal scherm), dan valt alles daarbuiten weg voor de focus. */}
         <a className="skip" href="#inhoud" onClick={skip} inert={hideMain ? '' : undefined}>
           Naar de inhoud
@@ -636,7 +680,11 @@ export default function App() {
         <DisplaySheet open={display} onClose={() => setDisplay(false)} account={account} syncStatus={syncStatus} />
         <JoinSheet open={!!joinOpen && account.status === 'out'} reason={joinOpen || undefined} invited={invited} onClose={() => setJoinOpen(false)} onSignIn={account.signIn} />
         <div className="toasts" aria-live="polite" inert={overlay ? '' : undefined}>
-          {undo ? (
+          {notice ? (
+            <div className="toast" key={notice}>
+              <span>{notice}</span>
+            </div>
+          ) : undo ? (
             <div className="toast">
               <span>Verwijderd uit Bewaard</span>
               <button type="button" className="linkbtn" onClick={undoRemove}>
@@ -668,12 +716,13 @@ export default function App() {
             </span>
           ) : null}
         </div>
-        {showWelcome ? (
+        {welcomeDrawn ? (
           <Suspense fallback={null}>
-            <Welcome account={account} sources={sources} prefs={prefs} muted={muted} onDone={finishOnboarding} onClose={reopenWelcome ? closeWelcome : null} />
+            <Welcome sources={sources} prefs={prefs} muted={muted} onDone={finishOnboarding} onClose={reopenHeld.current ? closeWelcome : null} onSignIn={account.status === 'out' ? () => setJoinOpen('welkom') : null} leaving={leavingWelcome} onLeft={welcomeLeft} />
           </Suspense>
         ) : null}
       </div>
+      {splash ? <Splash ready={status !== 'loading'} toWelcome={showWelcome} onDone={endSplash} /> : null}
     </HootContext.Provider>
   )
 }

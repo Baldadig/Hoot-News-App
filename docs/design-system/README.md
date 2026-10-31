@@ -6,7 +6,7 @@ Hoot is een rustige nieuwslezer: drie keer per dag een editie van tien verhalen 
 - **Lijnen en witruimte, geen omlijnde kaarten.** Berichten scheid je met een `rule`-haarlijn en `s5`; een kaart (`surface`, `radius`) alleen voor iets dat echt los staat: een stuk uit de Selectie, een melding, een blad.
 - **Drie rollen voor letters.** Koppen en schermtitels in `serif`; bediening, lijsten, intro's en metadata in `sans`; lange leestekst in de lezer weer in `serif`.
 - **Eén accent.** `accent` markeert rubriek, actief, "+N bronnen", het label "gratis" en het punt van het woordmerk. Nooit als vlakvulling van een heel scherm, en nooit voor gewone bediening: iconen in de kop (instellingen, zoeken, verversen) zijn `ink-3`.
-- **Merkmomenten in merkrood.** Op een handvol vaste momenten wordt het krantenrood een vol vlak (`brand-red` met `on-brand-red`): het opstartscherm van de app, het welkom, het einde van de editie ("Je bent bij.") en de deel- en App Store-beelden. Juist omdat de rest papier en inkt is, voelt dat fris; daarom nergens anders, en nooit op een scherm waar je leest.
+- **Merkmomenten in merkrood.** Op een handvol vaste momenten wordt het krantenrood een vol vlak (`brand-red` met `on-brand-red`): het opstartscherm (app en web), het welkom, het einde van de editie ("Je bent bij.") en de deel- en App Store-beelden. Juist omdat de rest papier en inkt is, voelt dat fris; daarom nergens anders, en nooit op een scherm waar je leest.
 - **Niets beweegt terwijl je leest.** Nieuwe berichten wachten achter een knop; de leespositie verschuift nooit vanzelf.
 - **Een einde.** Elke lijst die eindigt, zegt dat. Het einde is leidend; verder lezen mag, maar als rustige link, nooit als knop die je doortrekt.
 
@@ -49,6 +49,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 | Actieve chip | `accent` op `accent-soft` | — |
 | Tekst op rood | `on-accent` op `accent` | — |
 | Merkmoment (vol vlak) | `on-brand-red` op `brand-red` | — |
+| Welkom, de rode intro | `paper-brand` op `brand-red` (web en iOS: papier, niet wit) | — |
 | Waarschuwing en fouttekst (met woorden) | `warn` | `paper` |
 | Rand van een veld of filterknop | `edge` | `paper`, `surface` |
 
@@ -81,7 +82,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 ## Ruimte en vorm
 
 - **Eén schaal van 4 px:** `s1` 4, `s2` 8, `s3` 12, `s4` 16, `s5` 24, `s6` 32, `s7` 48. Elke marge, padding en tussenruimte komt hiervandaan, ook in Swift (`Space.s1`–`Space.s7`). De enige uitzondering is `s0` (2 px): tussen twee regels van één label, zoals bronnaam en tijd.
-- **Maten van dingen** (geen ruimte) hebben eigen tokens: icoon 22, bronlogo 24 in de bronregel en 28–30 in de bronnenrij, miniatuur 76 (web 64–88 naar indeling). Elk aanraakdoel is minstens `tap` (44 × 44), ook als het zichtbare deel kleiner is.
+- **Maten van dingen** (geen ruimte) hebben eigen tokens: icoon 22, bronlogo 24 in de bronregel en 28–30 in de bronnenrij, miniatuur 96 × 64 (3:2; web op een smalle telefoon 84 × 56, bij grote tekst 108 × 72) en 64 vierkant op de voorpagina. Elk aanraakdoel is minstens `tap` (44 × 44), ook als het zichtbare deel kleiner is.
 - **Zijmarge** is `gutter` (16 px). De leesbreedte is `readable` (680 px); brede pagina's (Editie, Selectie op iPad en desktop) gaan tot `wide` (1000 px).
 - **Vier hoeken:** `radius-sm` (8) voor miniaturen; `radius` (12) voor beeld, kaarten, meldingen, velden en icoonknoppen; `radius-lg` (16) voor bladen; `radius-pill` voor chips, knoppen met tekst, schakelaars en bronlogo's. In Swift `Radius.sm`, `.md`, `.lg`.
 - **Schaduw alleen voor wat zweeft** (`shadow-float`). Inhoud ligt plat: diepte komt van `surface` op `paper`. Zwevend zijn precies drie dingen: de melding "Ongedaan maken" (web en iOS), de knop met nieuwe berichten en terug naar boven. Glas (iOS) heeft zijn eigen diepte en krijgt geen extra schaduw.
@@ -93,7 +94,8 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 - **Alleen scherpe beelden:** een hoofdverhaal alleen met een beeld van minstens 700 px breed, een groot beeld vanaf 400 px; anders geen beeld.
 - **Vaste verhoudingen**, bijgesneden en niet uitgerekt:
   - hoofdbeeld 16:9 (iPhone), 2:1 (iPad mini) of 3:2 (breed);
-  - miniatuur vierkant, met `radius-sm` tot `radius`.
+  - een bericht in de Stroom, Bewaard en Zoeken heeft twee vormen, op web en iOS gelijk ("Lees de Stroom als"): **Tijdlijn** — kop, intro, het beeld over de volle kolombreedte in 2:1 (`radius`), de bronregel eronder; **Krant** — kop en intro links, een klein beeld 3:2 rechts met vaste breedte (`thumb`, `radius-sm`), de bronregel onder de tekst. Op alle breedtes dezelfde twee vormen;
+  - miniatuur op de voorpagina vierkant, met `radius-sm`.
 - **Bij heel grote tekst** valt de miniatuur weg: de kop krijgt de hele breedte.
 - **Bronlogo's** zijn cirkels, zonder naam eronder: het logo is genoeg.
 - **De lijn bovenaan de Stroom** (web en iOS gelijk):
@@ -108,12 +110,15 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 - `dur-1` (140 ms) voor een directe reactie (bewaren, chip), `dur-2` (200 ms) voor iets dat in beeld komt; curve `ease`, `cubic-bezier(0.2, 0.7, 0.2, 1)`.
 - `dur-3` (400 ms) voor iets dat van plek wisselt: de bronnenstapel die uitwaaiert en de rode streep onder de rubrieken. Curve `ease-glide`, `cubic-bezier(0.2, 0.8, 0.2, 1)`: vlot weg, zacht geland.
 - Alleen dekking, verplaatsing en kleur; nooit iets dat de leespositie verschuift. Alles valt weg bij Verminder beweging.
+- Merkbeweging (brandboard §03, `src/lib/motion.js`): de iris in Welkom sluit het merkrood in 700 ms (`cubic-bezier(0.6, 0, 0.2, 1)`) tot de punt van het kleine woordmerk op papier, en opent bij Terug weer (`cubic-bezier(0.8, 0, 0.4, 1)`); de laatste 40 % kleurt het rood mee naar `accent` (in donker koraal). Dit loopt via de Web Animations API, buiten de CSS-regel voor Verminder beweging, en wordt daar één fade van 350 ms.
+- Het opstartscherm (brandboard §03a/b, `index.html` + `src/components/Splash.jsx`): bij een koude lading (nog geen vlag `hoot:splashed` in sessionStorage) en op het beginscherm bij elke start een vlak in `brand-red` met het woordmerk in `paper-brand` (160 × 49, als LaunchMark in de app) en de stuiterende punt: één sprong van 1,6 s (y −9/0/−2/0 pt, deuk 1,12 × 0,88 vanaf de onderkant), een CSS-`@keyframes` die bij Verminder beweging stilstaat. Het staat minstens één sprong en hooguit 5 s, tot de Editie er is (die laadt intussen). Dan glijdt het woordmerk naar het kleine "hoot." (de kop van de Editie op smal, het woordmerk in de zijbalk op breed; `cubic-bezier(0.3, 0, 0.1, 1)`, 55 % van de tijd) en sluit het rood als iris tot zijn punt in 600 ms (dezelfde curve en tint als in Welkom); zonder "hoot." in beeld sluit het tot de eigen punt en vervaagt het 150 ms. Voor nieuwe gebruikers landt het woordmerk, in de rust van de sprong, op de rode intro van Welkom (700 ms; het rood blijft) en vervaagt het opstartscherm in 300 ms; de iris komt dan bij de eerste papieren stap. Verminder beweging: fade van 350 ms. Zolang het staat, is de app `inert` en kleurt de browserbalk merkrood. De stijl staat in `index.html`, omdat het er moet zijn vóór `styles.css` geladen is; het is de laag `z-splash`.
+- Van Welkom naar de Editie (`crossPlan` in `src/lib/motion.js`, als `.easeInOut(0.45)` in HootApp.swift): geen harde knip en geen skelet, maar een overvloeier van 450 ms, alleen dekking. De Editie staat al achter Welkom (App.jsx tekent hem tijdens Welkom, dus hij laadt en personaliseert intussen); bij Naar je Editie of Sluiten vervaagt het hele welkomscherm erover en gaat het dan pas weg, niet te bedienen zolang het vervaagt. Ook bij Verminder beweging: er verplaatst niets.
 
 ## Toestanden
 
 - **Leeg:** wat er komt en wat je kunt doen ("Nog niets bewaard. Tik op het bladwijzericoon bij een bericht om het hier te bewaren.").
 - **Geen verbinding:** de laatst bewaarde versie, met "Verversen lukt nu niet. Je ziet de versie van 10:10." en "Opnieuw". Zonder eerdere versie een melding met de knop "Probeer opnieuw".
-- **Het einde van de editie:** een kaart in merkrood met de "h.", "Je bent bij.", "Dit was de avondeditie van dinsdag 27 oktober. De volgende staat klaar om 06:00." en "Toch verder lezen in de Stroom".
+- **Het einde van de editie:** een kaart in merkrood met de "h.", "Je bent bij.", "Dit was de avondeditie van dinsdag 27 oktober. De volgende staat morgenochtend voor je klaar." (dagdelen, nooit kloktijden: na de ochtend "in de middag", na de middag "in de vroege avond") en "Toch verder lezen in de Stroom".
 - **Gelezen:** de kop in `ink-3` in plaats van `ink`.
 - **Verwijderen:** één ding (een bewaard bericht) gaat meteen, met daarna zes seconden "Ongedaan maken" (web: melding; iOS: balk onderaan, ook voorgelezen door VoiceOver). Alles tegelijk wissen ("Bewaarde artikelen verwijderen", "Alles als ongelezen markeren") vraagt bevestiging, met een zichtbare "Annuleer" en precies wat er verdwijnt.
 
@@ -130,7 +135,8 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 - **Tikbare iconen:**
   - in `ink-3`;
   - actief in `accent`;
-  - bewaren is een bladwijzer (vol in `accent` = bewaard).
+  - bewaren is een bladwijzer (vol in `accent` = bewaard);
+  - delen staat links van bewaren (web: Phosphor "Export", iOS: `square.and.arrow.up`) en deelt altijd de link van de uitgever met de kop als titel, nooit een Hoot-link. Op het web via het deelblad van het toestel; zonder deelblad gaat de link naar het klembord met de melding "Link gekopieerd".
 - **Keuzeknoppen (chips)** die aan staan, tonen een vinkje en `accent`: nooit alleen een kleur.
 
 ## Per platform
@@ -142,6 +148,7 @@ Bewuste verschillen, omdat elk platform zijn eigen conventies heeft:
 - **Lege toestand:** web met een serif-titel en uitleg in `ink-2`; iOS met de standaardweergave van het systeem (`ContentUnavailableView`) met dezelfde teksten.
 - **Bronnaam:** op de website kapt een lange naam af op één regel; in de app loopt hij door.
 - **Alleen in de app:** de Hoot-lezer (zie ReaderPage) en de Bluesky-keuze bovenaan de Stroom.
+- **Delen:** in de app in het contextmenu (lang drukken), in de lezer en bij een verhaal; op het web is er geen lang drukken, dus staat delen als icoon in de actieregel van elk bericht, naast bewaren, en in de kop van een verhaal.
 
 ## Toegankelijkheid
 
@@ -149,4 +156,4 @@ Bewuste verschillen, omdat elk platform zijn eigen conventies heeft:
 - Elk aanraakdoel is minstens 44 × 44, en groeit mee: knoppen en chips hebben een minimumhoogte, geen vaste hoogte.
 - **Toetsenbordfocus (web):** een rand van 2 px in `accent`, 2 px buiten het element (`:focus-visible`). De volgorde volgt de leesvolgorde; na het sluiten van een blad of dialoog gaat de focus terug naar wat het opende.
 - Dynamische tekst (iOS) en zoomen (web) werken tot de grootste maten. Labels lopen dan door in plaats van af te breken, en decoratie (miniaturen, vak-iconen) maakt plaats voor tekst.
-- Wat bij elkaar hoort, leest VoiceOver als één element. De bron, bewaren en "+N bronnen" blijven aparte knoppen met een duidelijk label ("Vergelijk 5 andere bronnen").
+- Wat bij elkaar hoort, leest VoiceOver als één element. De bron, delen, bewaren en "+N bronnen" blijven aparte knoppen met een duidelijk label ("Deel dit bericht", "Vergelijk 5 andere bronnen").

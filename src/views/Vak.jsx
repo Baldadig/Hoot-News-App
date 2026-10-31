@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { ViewHeader, Empty, Skeleton, LoadError } from '../components/Shell.jsx'
-import { SaveButton, SourceMark, useHoot } from '../components/Items.jsx'
+import { SaveButton, ShareButton, SourceMark, useHoot } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
 import { ChipGroup } from '../components/ChipGroup.jsx'
 import { Disclosure } from '../components/Disclosure.jsx'
@@ -16,7 +16,8 @@ const DOMAIN_ICON = { marketing: MegaphoneIcon, creatie: PaletteIcon, tech: Code
 const iconOf = (f) => ICON[f.id] || DOMAIN_ICON[f.domain] || SparkleIcon
 const DAY = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long', timeZone: 'Europe/Amsterdam' })
 const WEEKDAY = new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Amsterdam' })
-// "12 t/m 18 oktober": de week loopt tot maandag 07:00, dus de laatste dag is de zondag ervoor.
+// "12 t/m 18 oktober": de week loopt tot de maandagochtend waarop de Selectie verschijnt (`to`),
+// dus de laatste dag is de zondag ervoor.
 function span(from, to) {
   const a = DAY.format(new Date(from))
   const b = DAY.format(new Date(Date.parse(to) - 8 * 36e5))
@@ -27,7 +28,7 @@ function span(from, to) {
 const two = (n) => String(n).padStart(2, '0')
 const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
-// Wie, waar en wanneer — met bewaren rechts. Geen knop naar de bron: vakbronnen staan niet in de Stroom.
+// Wie, waar en wanneer — met delen en bewaren rechts. Geen knop naar de bron: vakbronnen staan niet in de Stroom.
 function Source({ item }) {
   return (
     <div className="meta">
@@ -42,6 +43,7 @@ function Source({ item }) {
           </span>
         </span>
       </span>
+      <ShareButton item={item} label="stuk" />
       <SaveButton id={item.id} payload={item} label="stuk" />
     </div>
   )
@@ -94,7 +96,7 @@ function Card({ item, rank, feature = false }) {
   )
 }
 
-// Selectie: elke maandag om 07:00 per vakgebied de drie belangrijkste stukken van de week ervoor,
+// Selectie: elke maandagochtend per vakgebied de drie belangrijkste stukken van de week ervoor,
 // door mensen geschreven (zie netlify/lib/vak.mjs). Opbouw als een tijdschrift: een kop met de
 // week, een inhoudsopgave, en per vak één groot stuk, twee kaarten en een korte lijst.
 export default function Vak({ active, digest, status, onRefresh }) {
@@ -140,7 +142,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
               <p className="head-lg dmast__lede">
                 {picked} stukken in {fields.length === 1 ? '1 onderwerp' : `${fields.length} onderwerpen`}
               </p>
-              {digest.preview ? <p className="dmast__note">De eerste volle Selectie komt {WEEKDAY.format(new Date(digest.next))} om 7 uur.</p> : <p className="dmast__note">Elke maandag om 7 uur een nieuwe.</p>}
+              {digest.preview ? <p className="dmast__note">De eerste volle Selectie komt {WEEKDAY.format(new Date(digest.next))} in de ochtend.</p> : <p className="dmast__note">Elke maandagochtend een nieuwe.</p>}
             </header>
 
             {/* Inhoud: per vak de drie koppen; tik = naar het stuk in de digest */}

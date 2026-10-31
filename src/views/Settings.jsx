@@ -59,12 +59,12 @@ export default function Settings({ meta, account, syncStatus, onBack, backLabel 
               <option value={NO_WEATHER}>Geen weer</option>
             </select>
           </div>
-          <Row label="Edities" hint="Om 6, 12 en 17 uur tien verhalen. Daarna ligt de Editie vast." />
+          <Row label="Edities" hint="Drie keer per dag tien verhalen: in de ochtend, middag en vroege avond. Daarna ligt de Editie vast." />
         </div>
 
         <h2 className="label label--section sect">Extra</h2>
         <div className="rows">
-          <Row label="Selectie in het menu" hint="Elke maandag per onderwerp de drie belangrijkste stukken. Onderwerpen kies je in de Selectie.">
+          <Row label="Selectie in het menu" hint="Elke maandagochtend per onderwerp de drie belangrijkste stukken van de week, door mensen geschreven. Onderwerpen kies je in de Selectie.">
             <Switch checked={prefs.vak.length > 0} onChange={(v) => setPref('vak', v ? VAK_FIELD_IDS : [])} label="Selectie in het menu" />
           </Row>
           <Row label="Bluesky in het menu" hint="Posts van mensen die je volgt.">

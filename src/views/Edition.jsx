@@ -4,11 +4,11 @@ import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf } 
 import { Img } from '../components/Img.jsx'
 import { SparkleIcon, CaretIcon, ICON_SM } from '../components/icons.jsx'
 import { BriefReader } from '../components/BriefReader.jsx'
-import { BrandMark } from '../components/Brand.jsx'
+import { BrandMark, BrandLogo } from '../components/Brand.jsx'
 import Weather from '../components/Weather.jsx'
 import { longDate } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
-import { resolveEditionEntry, heroFirst, EDITION_SIZE } from '../lib/edition.js'
+import { resolveEditionEntry, heroFirst, EDITION_SIZE, upNext } from '../lib/edition.js'
 import { fitsHero } from '../lib/img.js'
 import { followedNow } from '../lib/follow.js'
 import { TermHelp } from '../components/Terms.jsx'
@@ -124,6 +124,12 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             overzicht; de inktlijn eronder is het begin van het nieuws. Eén blok, zodat de kleur
             "Inkt" er een band van kan maken. */}
         <div className="edtop">
+          {/* Het kleine woordmerk linksboven, zoals in de app (Wordmark in EditionView): je ziet waar
+              je bent zonder dat het de krant overneemt, en het opstartscherm landt erop. Op breed
+              scherm staat het in de zijbalk (.edbrand verdwijnt dan). */}
+          <div className="edbrand">
+            <BrandLogo height={20} />
+          </div>
           <ViewHeader title={title} sub={edition ? null : sub} onRefresh={onRefresh} refreshing={refreshing} compare />
           {ready ? (
             <>
@@ -263,7 +269,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               <BrandMark size={44} />
               <h2 className="head-5 endcap__title">Je bent bij.</h2>
               <p className="endcap__text">
-                Dit was de {SLOT[edition.slot].toLowerCase()} van {longDate(edition.date)}. De volgende staat klaar om {edition.next}.
+                Dit was de {SLOT[edition.slot].toLowerCase()} van {longDate(edition.date)}.{upNext(edition.slot)}
               </p>
               {/* Het einde is leidend; verder lezen mag, maar als rustige link (geen knop die je doortrekt). */}
               <a className="linkbtn endcap__more" href="#/stroom">

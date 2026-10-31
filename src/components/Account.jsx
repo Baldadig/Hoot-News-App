@@ -166,6 +166,12 @@ const JOIN = {
     title: 'Jouw Editie in één minuut',
     text: 'Bovenaan je Editie een korte samenvatting van de verhalen, geschreven door AI, met de bronnen erbij. Ook gaan je bronnen, onderwerpen en Bewaard mee naar je andere toestellen.',
   },
+  // Inloggen rechtsboven op de rode intro van Welkom (zoals in de app): je hebt nog niets ingesteld.
+  welkom: {
+    kicker: 'Al lid?',
+    title: 'Log in op je Hoot',
+    text: 'Log in met Google. Dan staan je bronnen, onderwerpen en Bewaard van je andere toestellen hier ook klaar.',
+  },
   sync: {
     kicker: 'Hoot op al je toestellen',
     title: 'Bewaar wat je net hebt ingesteld',

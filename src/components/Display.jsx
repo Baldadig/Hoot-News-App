@@ -43,13 +43,14 @@ export function DisplayControls() {
           { value: 'inkt', label: 'Inkt', aria: 'Inkt: wit blad met een donkere kop boven de Editie' },
         ]}
       />
+      {/* Zelfde naam en twee vormen als in de app (SettingsView); de pref blijft 'layout'. */}
       <Seg
-        label="Indeling van lijsten"
+        label="Lees de Stroom als"
         value={prefs.layout}
         onChange={(v) => setPref('layout', v)}
         options={[
-          { value: 'tijdlijn', label: 'Tijdlijn' },
-          { value: 'krant', label: 'Krant' },
+          { value: 'tijdlijn', label: 'Tijdlijn', aria: 'Tijdlijn: kop, intro en het beeld over de volle breedte' },
+          { value: 'krant', label: 'Krant', aria: 'Krant: kop en intro links, een klein beeld rechts' },
         ]}
       />
       <Seg
