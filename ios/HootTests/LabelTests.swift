@@ -1,57 +1,33 @@
 import XCTest
 @testable import Hoot
 
-// Het label boven een verhaal (StoryLabel). Elk geval hieronder is hetzelfde als in tests/label.test.mjs op
-// het web, in dezelfde volgorde: verander je hier een regel of geval, dan daar ook. De laatste test is een
-// aanvulling die het web nog moet overnemen (zie StoryLabel.label).
+// Het label boven een verhaal (StoryLabel). De gevallen staan in tests/fixtures/label-cases.json, die het
+// web (tests/label.test.mjs) ook leest: een nieuw geval of een andere regel zet je daar, voor beide.
 final class LabelTests: XCTestCase {
-    private let follows = ["nederland", "film", "oekraine"]
-    private func l(_ topics: [String] = [], follows: [String]? = nil, cat: String? = nil, desk: String? = nil, deskLabel: String? = nil, section: String? = nil, code: String? = nil, text: String? = nil, followed: Bool = true) -> StoryLabel.Result {
-        StoryLabel.label(topics: topics, follows: follows ?? self.follows, cat: cat, desk: desk, deskLabel: deskLabel, section: section, whyCode: code, whyText: text, followed: followed)
-    }
+    // ios/HootTests/LabelTests.swift → <repo>/tests/fixtures/label-cases.json (zoals EditionParityTests).
+    static let fixtureURL = URL(fileURLWithPath: #filePath)
+        .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        .appending(path: "tests/fixtures/label-cases.json")
 
-    func testVerhaalOverEenOnderwerpDatJeVolgt_InteresseOnderwerp() {
-        XCTAssertEqual(l(["nederland"], deskLabel: "Binnenland").kicker, "Politiek · Den Haag")
-        XCTAssertEqual(l(["film", "muziek"], deskLabel: "Cultuur").kicker, "Cultuur · Film & series")
-        XCTAssertEqual(l(["oekraine"], deskLabel: "Oekraïne").kicker, "Wereld · Oekraïne & Rusland")
-    }
-
-    func testRaaktHetVerhaalNietsWatJeVolgt_DeRubriek() {
-        XCTAssertEqual(l(["wonen"], deskLabel: "Binnenland").kicker, "Binnenland")
-        XCTAssertEqual(l([], follows: [], section: "Economie").kicker, "Economie")
-        XCTAssertNil(StoryLabel.label().kicker)
-    }
-
-    func testEenSportbronIsSport() {
-        XCTAssertEqual(l(cat: "sport", deskLabel: "Binnenland").kicker, "Sport")
-        XCTAssertEqual(l(["nederland"], cat: "sport").kicker, "Politiek · Den Haag") // je interesse gaat voor
-    }
-
-    func testHetWaaromAlleenAlsDieIetsToevoegt() {
-        let omdat = "Omdat je Den Haag volgt"
-        XCTAssertNil(l(["nederland"], code: "interest", text: omdat).why) // de kicker zegt het al
-        XCTAssertEqual(l(["wonen"], code: "interest", text: omdat).why, omdat) // de kicker zegt het niet
-        for (code, text) in [("followUp", "Vervolg op wat je las · 2 nieuwe stukken"), ("groot", "Groot nieuws · 11 bronnen"), ("favorite", "Uit je voorkeursbron NOS"), ("buur", "Naast je bubbel · grenst aan Sport")] {
-            XCTAssertEqual(l(["nederland"], code: code, text: text).why, text)
+    // Elk geval uit de gedeelde fixture: dezelfde invoer, dezelfde uitkomst als labelFor op het web.
+    func testGedeeldeGevallen() throws {
+        let data = try Data(contentsOf: Self.fixtureURL)
+        let doc = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let cases = try XCTUnwrap(doc["cases"] as? [[String: Any]])
+        XCTAssertGreaterThan(cases.count, 20)
+        for c in cases {
+            let name = c["name"] as? String ?? "?"
+            let i = c["in"] as? [String: Any] ?? [:]
+            let o = c["out"] as? [String: Any] ?? [:]
+            let why = i["why"] as? [String: Any]
+            let r = StoryLabel.label(
+                topics: i["topics"] as? [String] ?? [], follows: i["follows"] as? [String] ?? [], interests: i["interests"] as? [String],
+                cat: i["cat"] as? String, desk: i["desk"] as? String, deskLabel: i["deskLabel"] as? String, section: i["section"] as? String,
+                whyCode: why?["code"] as? String, whyText: why?["text"] as? String, followed: i["followed"] as? Bool ?? true)
+            if o.keys.contains("kicker") { XCTAssertEqual(r.kicker, o["kicker"] as? String, name) }
+            if o.keys.contains("why") { XCTAssertEqual(r.why, o["why"] as? String, name) }
+            if let out = o["outside"] as? Bool { XCTAssertEqual(r.outside, out, name) }
         }
-        for code in ["rubriek", "extern", "bubbel", "breed"] { XCTAssertNil(l(code: code, text: "x").why) }
-        XCTAssertNil(l(code: "groot", text: "  ").why)
-    }
-
-    func testBuitenJeBronnenHoortBijDeBronregel_NietBijDeKicker() {
-        let a = l(desk: "extern", deskLabel: "Buiten je bronnen", section: "Wereld", code: "extern", text: "Buiten je bronnen")
-        XCTAssertTrue(a.outside)
-        XCTAssertEqual(a.kicker, "Wereld")
-        XCTAssertNil(a.why)
-        let b = l(deskLabel: "Tech", followed: false)
-        XCTAssertEqual(b.kicker, "Tech")
-        XCTAssertTrue(b.outside)
-        XCTAssertFalse(l(deskLabel: "Tech").outside)
-    }
-
-    func testBuitenJeBubbelEnWaarIedereenOverSchrijftBlijvenHunEigenKicker() {
-        XCTAssertEqual(l(["nederland"], desk: "bubbel", deskLabel: "Buiten je bubbel · via Google Trends").kicker, "Buiten je bubbel · via Google Trends")
-        XCTAssertEqual(l(["nederland"], desk: "breed", deskLabel: "Waar iedereen over schrijft · 9 bronnen").kicker, "Waar iedereen over schrijft · 9 bronnen")
     }
 
     // De plek van De Redacteur in de Editie (Desk.plek): Buiten je bubbel noemt waar het vandaan komt.
@@ -63,11 +39,5 @@ final class LabelTests: XCTestCase {
         XCTAssertEqual(Desk.plek(entry("bubbel")), "Buiten je bubbel")
         XCTAssertEqual(Desk.plek(entry("breed", count: 9)), "Waar iedereen over schrijft · 9 bronnen")
         XCTAssertEqual(Desk.plek(entry("binnenland")), "Binnenland")
-    }
-
-    // Aanvulling op het web: een los bijonderwerp maakt er geen interesse van (zie StoryLabel.label).
-    func testEenLosBijonderwerpMaaktGeenCultuurVanHetNieuws() {
-        XCTAssertEqual(l(["migratie", "film"], desk: "binnenland", deskLabel: "Binnenland").kicker, "Binnenland")
-        XCTAssertEqual(l(["film", "migratie"], desk: "binnenland", deskLabel: "Binnenland").kicker, "Cultuur · Film & series")
     }
 }

@@ -366,9 +366,12 @@ final class HootStore {
 
     // Uitgelogd: de persoonlijke keuzes gaan van het toestel, zodat wie hierna leest neutraal begint.
     // Interesses, onderwerpen, voorkeursbronnen, vak, smaak en je eigen Bluesky-accounts weg; de
-    // bronnen terug naar het gratis Nederlandse begin (de startset). Bewaard en gelezen blijven,
-    // net als weergave en lezen (die horen bij het toestel).
+    // bronnen terug naar het gratis Nederlandse begin (de startset). Ook Bewaard en wat je las gaan
+    // weg: dat is persoonlijk (in je account blijft het staan). Weergave en lezen blijven, die horen
+    // bij het toestel.
     func forgetChoices() {
+        clearSaved()
+        clearRead()
         interests = []
         topics = []
         favorites = []

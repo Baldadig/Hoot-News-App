@@ -151,13 +151,15 @@ struct SettingsView: View {
                 alertsSection
 
                 Section {
-                    Toggle(isOn: $store.bluesky) {
-                        FormLabel("Bluesky in de Stroom", systemImage: "bubble.left.and.bubble.right")
+                    // Niet meer in de rij van de Stroom (daar staan alleen je rubrieken): hier, op een eigen pagina.
+                    Toggle(isOn: $store.bluesky.animation()) {
+                        FormLabel("Bluesky volgen", systemImage: "bubble.left.and.bubble.right")
+                    }
+                    if store.bluesky {
+                        NavigationLink(value: "bluesky") { FormLabel("Posts", systemImage: "text.bubble") }
                     }
                 } header: {
                     FormHeader("Bluesky")
-                } footer: {
-                    Text("Bovenaan de Stroom; daar voeg je mensen toe.").foregroundStyle(Theme.ink3)
                 }
                 .hootRows()
 
@@ -261,6 +263,8 @@ struct SettingsView: View {
                     SourcesList().navigationTitle("Bronnen").navigationBarTitleDisplayMode(.inline)
                 } else if page == "abonnementen" {
                     SubscriptionsView().navigationTitle("Je abonnementen").navigationBarTitleDisplayMode(.inline)
+                } else if page == "bluesky" {
+                    BlueskyPage()
                 } else if page == "interesses" {
                     InterestsList().navigationTitle("Interesses").navigationBarTitleDisplayMode(.inline)
                 } else {

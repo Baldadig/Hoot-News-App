@@ -1,0 +1,740 @@
+{
+ "about": "Het label boven een verhaal in de Editie: dezelfde gevallen voor het web (tests/label.test.mjs, src/lib/label.js) en iOS (ios/HootTests/LabelTests.swift, ios/Hoot/Label.swift). `in`: topics (hoofdonderwerp eerst), follows (gevolgde onderwerpen), interests (gekozen rubrieken; zonder: af te leiden uit follows), cat, desk, deskLabel, section, why {code,text}, followed. `out`: alleen de genoemde velden worden getoetst; why is de tekst of null.",
+ "cases": [
+  {
+   "name": "aangetikt hoofdonderwerp: interesse · onderwerp",
+   "in": {
+    "follows": [
+     "nederland",
+     "film",
+     "oekraine"
+    ],
+    "interests": [
+     "politiek",
+     "wereld",
+     "cultuur"
+    ],
+    "topics": [
+     "nederland"
+    ],
+    "deskLabel": "Binnenland"
+   },
+   "out": {
+    "kicker": "Politiek · Den Haag"
+   }
+  },
+  {
+   "name": "aangetikt hoofdonderwerp, cultuur",
+   "in": {
+    "follows": [
+     "nederland",
+     "film",
+     "oekraine"
+    ],
+    "interests": [
+     "politiek",
+     "wereld",
+     "cultuur"
+    ],
+    "topics": [
+     "film",
+     "muziek"
+    ],
+    "deskLabel": "Cultuur"
+   },
+   "out": {
+    "kicker": "Cultuur · Film & series"
+   }
+  },
+  {
+   "name": "aangetikt hoofdonderwerp, wereld",
+   "in": {
+    "follows": [
+     "nederland",
+     "film",
+     "oekraine"
+    ],
+    "interests": [
+     "politiek",
+     "wereld",
+     "cultuur"
+    ],
+    "topics": [
+     "oekraine"
+    ],
+    "deskLabel": "Oekraïne"
+   },
+   "out": {
+    "kicker": "Wereld · Oekraïne & Rusland"
+   }
+  },
+  {
+   "name": "raakt niets wat je volgt: de plek",
+   "in": {
+    "follows": [
+     "nederland",
+     "film",
+     "oekraine"
+    ],
+    "interests": [
+     "politiek",
+     "wereld",
+     "cultuur"
+    ],
+    "topics": [
+     "wonen"
+    ],
+    "deskLabel": "Binnenland"
+   },
+   "out": {
+    "kicker": "Binnenland"
+   }
+  },
+  {
+   "name": "niets gevolgd: de rubriek van het bericht",
+   "in": {
+    "topics": [],
+    "follows": [],
+    "section": "Economie"
+   },
+   "out": {
+    "kicker": "Economie"
+   }
+  },
+  {
+   "name": "niets bekend: geen kicker",
+   "in": {},
+   "out": {
+    "kicker": null,
+    "why": null,
+    "outside": false
+   }
+  },
+  {
+   "name": "een sportbron is Sport",
+   "in": {
+    "follows": [
+     "nederland",
+     "film",
+     "oekraine"
+    ],
+    "interests": [
+     "politiek",
+     "wereld",
+     "cultuur"
+    ],
+    "cat": "sport",
+    "deskLabel": "Binnenland"
+   },
+   "out": {
+    "kicker": "Sport"
+   }
+  },
+  {
+   "name": "je interesse gaat voor de sportbron",
+   "in": {
+    "follows": [
+     "nederland",
+     "film",
+     "oekraine"
+    ],
+    "interests": [
+     "politiek",
+     "wereld",
+     "cultuur"
+    ],
+    "cat": "sport",
+    "topics": [
+     "nederland"
+    ]
+   },
+   "out": {
+    "kicker": "Politiek · Den Haag"
+   }
+  },
+  {
+   "name": "waarom weg: de kicker zegt het al",
+   "in": {
+    "follows": [
+     "nederland",
+     "film",
+     "oekraine"
+    ],
+    "interests": [
+     "politiek",
+     "wereld",
+     "cultuur"
+    ],
+    "topics": [
+     "nederland"
+    ],
+    "why": {
+     "code": "interest",
+     "text": "Omdat je Den Haag volgt"
+    }
+   },
+   "out": {
+    "why": null
+   }
+  },
+  {
+   "name": "waarom blijft: de kicker zegt het niet",
+   "in": {
+    "follows": [
+     "nederland",
+     "film",
+     "oekraine"
+    ],
+    "interests": [
+     "politiek",
+     "wereld",
+     "cultuur"
+    ],
+    "topics": [
+     "wonen"
+    ],
+    "why": {
+     "code": "interest",
+     "text": "Omdat je Den Haag volgt"
+    }
+   },
+   "out": {
+    "why": "Omdat je Den Haag volgt"
+   }
+  },
+  {
+   "name": "waarom blijft: followUp",
+   "in": {
+    "follows": [
+     "nederland",
+     "film",
+     "oekraine"
+    ],
+    "interests": [
+     "politiek",
+     "wereld",
+     "cultuur"
+    ],
+    "topics": [
+     "nederland"
+    ],
+    "why": {
+     "code": "followUp",
+     "text": "Vervolg op wat je las · 2 nieuwe stukken"
+    }
+   },
+   "out": {
+    "why": "Vervolg op wat je las · 2 nieuwe stukken"
+   }
+  },
+  {
+   "name": "waarom blijft: groot",
+   "in": {
+    "follows": [
+     "nederland",
+     "film",
+     "oekraine"
+    ],
+    "interests": [
+     "politiek",
+     "wereld",
+     "cultuur"
+    ],
+    "topics": [
+     "nederland"
+    ],
+    "why": {
+     "code": "groot",
+     "text": "Groot nieuws · 11 bronnen"
+    }
+   },
+   "out": {
+    "why": "Groot nieuws · 11 bronnen"
+   }
+  },
+  {
+   "name": "waarom blijft: favorite",
+   "in": {
+    "follows": [
+     "nederland",
+     "film",
+     "oekraine"
+    ],
+    "interests": [
+     "politiek",
+     "wereld",
+     "cultuur"
+    ],
+    "topics": [
+     "nederland"
+    ],
+    "why": {
+     "code": "favorite",
+     "text": "Uit je voorkeursbron NOS"
+    }
+   },
+   "out": {
+    "why": "Uit je voorkeursbron NOS"
+   }
+  },
+  {
+   "name": "waarom blijft: buur",
+   "in": {
+    "follows": [
+     "nederland",
+     "film",
+     "oekraine"
+    ],
+    "interests": [
+     "politiek",
+     "wereld",
+     "cultuur"
+    ],
+    "topics": [
+     "nederland"
+    ],
+    "why": {
+     "code": "buur",
+     "text": "Naast je bubbel · grenst aan Sport"
+    }
+   },
+   "out": {
+    "why": "Naast je bubbel · grenst aan Sport"
+   }
+  },
+  {
+   "name": "waarom zegt het label al: rubriek",
+   "in": {
+    "why": {
+     "code": "rubriek",
+     "text": "x"
+    }
+   },
+   "out": {
+    "why": null
+   }
+  },
+  {
+   "name": "waarom zegt het label al: extern",
+   "in": {
+    "why": {
+     "code": "extern",
+     "text": "x"
+    }
+   },
+   "out": {
+    "why": null
+   }
+  },
+  {
+   "name": "waarom zegt het label al: bubbel",
+   "in": {
+    "why": {
+     "code": "bubbel",
+     "text": "x"
+    }
+   },
+   "out": {
+    "why": null
+   }
+  },
+  {
+   "name": "waarom zegt het label al: breed",
+   "in": {
+    "why": {
+     "code": "breed",
+     "text": "x"
+    }
+   },
+   "out": {
+    "why": null
+   }
+  },
+  {
+   "name": "leeg waarom: weg",
+   "in": {
+    "why": {
+     "code": "groot",
+     "text": "  "
+    }
+   },
+   "out": {
+    "why": null
+   }
+  },
+  {
+   "name": "Buiten je bronnen hoort bij de bronregel",
+   "in": {
+    "desk": "extern",
+    "deskLabel": "Buiten je bronnen",
+    "section": "Wereld",
+    "why": {
+     "code": "extern",
+     "text": "Buiten je bronnen"
+    }
+   },
+   "out": {
+    "kicker": "Wereld",
+    "why": null,
+    "outside": true
+   }
+  },
+  {
+   "name": "bron niet gevolgd: buiten je bronnen",
+   "in": {
+    "deskLabel": "Tech",
+    "followed": false
+   },
+   "out": {
+    "kicker": "Tech",
+    "outside": true
+   }
+  },
+  {
+   "name": "bron gevolgd: niet buiten",
+   "in": {
+    "deskLabel": "Tech"
+   },
+   "out": {
+    "outside": false
+   }
+  },
+  {
+   "name": "Buiten je bubbel houdt zijn kicker",
+   "in": {
+    "follows": [
+     "nederland",
+     "film",
+     "oekraine"
+    ],
+    "interests": [
+     "politiek",
+     "wereld",
+     "cultuur"
+    ],
+    "desk": "bubbel",
+    "deskLabel": "Buiten je bubbel · via Google Trends",
+    "topics": [
+     "nederland"
+    ]
+   },
+   "out": {
+    "kicker": "Buiten je bubbel · via Google Trends"
+   }
+  },
+  {
+   "name": "Waar iedereen over schrijft houdt zijn kicker",
+   "in": {
+    "follows": [
+     "nederland",
+     "film",
+     "oekraine"
+    ],
+    "interests": [
+     "politiek",
+     "wereld",
+     "cultuur"
+    ],
+    "desk": "breed",
+    "deskLabel": "Waar iedereen over schrijft · 9 bronnen",
+    "topics": [
+     "nederland"
+    ]
+   },
+   "out": {
+    "kicker": "Waar iedereen over schrijft · 9 bronnen"
+   }
+  },
+  {
+   "name": "los bijonderwerp maakt geen Cultuur van het nieuws",
+   "in": {
+    "follows": [
+     "nederland",
+     "film",
+     "oekraine"
+    ],
+    "interests": [
+     "politiek",
+     "wereld",
+     "cultuur"
+    ],
+    "topics": [
+     "migratie",
+     "film"
+    ],
+    "desk": "binnenland",
+    "deskLabel": "Binnenland"
+   },
+   "out": {
+    "kicker": "Binnenland"
+   }
+  },
+  {
+   "name": "hoofdonderwerp film blijft Cultuur",
+   "in": {
+    "follows": [
+     "nederland",
+     "film",
+     "oekraine"
+    ],
+    "interests": [
+     "politiek",
+     "wereld",
+     "cultuur"
+    ],
+    "topics": [
+     "film",
+     "migratie"
+    ],
+    "desk": "binnenland",
+    "deskLabel": "Binnenland"
+   },
+   "out": {
+    "kicker": "Cultuur · Film & series"
+   }
+  },
+  {
+   "name": "los bijonderwerp zonder plek: de plek",
+   "in": {
+    "follows": [
+     "nederland",
+     "film",
+     "oekraine"
+    ],
+    "interests": [
+     "politiek",
+     "wereld",
+     "cultuur"
+    ],
+    "topics": [
+     "wonen",
+     "nederland"
+    ],
+    "deskLabel": "Binnenland"
+   },
+   "out": {
+    "kicker": "Binnenland"
+   }
+  },
+  {
+   "name": "plek buitenland en je koos Wereld: Wereld (Poolse rechter)",
+   "in": {
+    "follows": [
+     "oekraine",
+     "middenoosten",
+     "azie",
+     "afrika",
+     "latam",
+     "geopolitiek"
+    ],
+    "interests": [
+     "wereld"
+    ],
+    "topics": [
+     "europa"
+    ],
+    "desk": "buitenland",
+    "deskLabel": "Buitenland"
+   },
+   "out": {
+    "kicker": "Wereld"
+   }
+  },
+  {
+   "name": "Wereld gekozen, China niet aangetikt: geen dubbel waarom",
+   "in": {
+    "follows": [
+     "oekraine",
+     "middenoosten",
+     "azie",
+     "afrika",
+     "latam",
+     "geopolitiek"
+    ],
+    "interests": [
+     "wereld"
+    ],
+    "topics": [
+     "azie"
+    ],
+    "desk": "buitenland",
+    "deskLabel": "Buitenland",
+    "why": {
+     "code": "interest",
+     "text": "Omdat je China & Azië volgt"
+    }
+   },
+   "out": {
+    "kicker": "Wereld",
+    "why": null
+   }
+  },
+  {
+   "name": "niet aangetikt hoofdonderwerp: alleen de rubriek",
+   "in": {
+    "follows": [
+     "oekraine",
+     "middenoosten",
+     "azie",
+     "afrika",
+     "latam",
+     "geopolitiek"
+    ],
+    "interests": [
+     "wereld"
+    ],
+    "topics": [
+     "azie"
+    ],
+    "deskLabel": "Azië"
+   },
+   "out": {
+    "kicker": "Wereld"
+   }
+  },
+  {
+   "name": "plek oekraine met aangetikt onderwerp",
+   "in": {
+    "follows": [
+     "nederland",
+     "film",
+     "oekraine"
+    ],
+    "interests": [
+     "politiek",
+     "wereld",
+     "cultuur"
+    ],
+    "topics": [
+     "oekraine"
+    ],
+    "desk": "oekraine",
+    "deskLabel": "Oekraïne"
+   },
+   "out": {
+    "kicker": "Wereld · Oekraïne & Rusland"
+   }
+  },
+  {
+   "name": "kicker is een gekozen rubriek: geen dubbel waarom",
+   "in": {
+    "follows": [
+     "oekraine",
+     "middenoosten",
+     "azie",
+     "afrika",
+     "latam",
+     "geopolitiek"
+    ],
+    "interests": [
+     "wereld"
+    ],
+    "section": "Wereld",
+    "why": {
+     "code": "interest",
+     "text": "Omdat je China & Azië volgt"
+    }
+   },
+   "out": {
+    "kicker": "Wereld",
+    "why": null
+   }
+  },
+  {
+   "name": "plek binnenland en je koos Binnenland: de plek gaat voor",
+   "in": {
+    "follows": [
+     "nederland",
+     "wonen",
+     "zorg",
+     "onderwijs",
+     "misdaad",
+     "migratie",
+     "verkeer"
+    ],
+    "interests": [
+     "politiek",
+     "binnenland"
+    ],
+    "topics": [
+     "nederland"
+    ],
+    "desk": "binnenland",
+    "deskLabel": "Binnenland"
+   },
+   "out": {
+    "kicker": "Binnenland"
+   }
+  },
+  {
+   "name": "zwak onderwerp media geeft geen kicker",
+   "in": {
+    "follows": [
+     "muziek",
+     "film",
+     "boeken",
+     "kunst",
+     "media"
+    ],
+    "interests": [
+     "cultuur"
+    ],
+    "topics": [
+     "media"
+    ],
+    "desk": "binnenland",
+    "deskLabel": "Binnenland"
+   },
+   "out": {
+    "kicker": "Binnenland"
+   }
+  },
+  {
+   "name": "zwak onderwerp media als bijonderwerp",
+   "in": {
+    "follows": [
+     "muziek",
+     "film",
+     "boeken",
+     "kunst",
+     "media"
+    ],
+    "interests": [
+     "cultuur"
+    ],
+    "topics": [
+     "misdaad",
+     "media"
+    ],
+    "deskLabel": "Binnenland"
+   },
+   "out": {
+    "kicker": "Binnenland"
+   }
+  },
+  {
+   "name": "plek van een rubriek die je niet koos: de plek",
+   "in": {
+    "follows": [
+     "oekraine",
+     "middenoosten",
+     "azie",
+     "afrika",
+     "latam",
+     "geopolitiek"
+    ],
+    "interests": [
+     "wereld"
+    ],
+    "topics": [
+     "wonen"
+    ],
+    "desk": "binnenland",
+    "deskLabel": "Binnenland"
+   },
+   "out": {
+    "kicker": "Binnenland"
+   }
+  }
+ ]
+}

@@ -867,7 +867,7 @@ struct WelcomeView: View {
 
     private var link: (label: String, action: () -> Void)? {
         switch step {
-        case .precies: ("Overslaan", { go(.hoot) })
+        case .precies: ("Overslaan", { picked = []; go(.hoot) }) // overslaan = alles binnen je interesses
         case .seintje: ("Nu niet", { onDone() }) // onder het einde van de Editie kan het later nog
         case .interesses where reopen, .hoot where reopen: ("Sluiten zonder opslaan", { onCancel?() })
         default: nil
@@ -1089,18 +1089,19 @@ private struct SourcePick: View {
 
 // Een melding zoals iOS hem toont, met het icoon van Hoot ("h." op papier): wat je straks krijgt.
 // Een plaatje, dus voor VoiceOver verborgen; de tekst erboven zegt het al.
-private struct AlertPreview: View {
+struct AlertPreview: View {
+    static let body = "Je \(Slots.naam("ochtend")) ligt klaar. Tien verhalen, dan ben je bij."
     var body: some View {
-        let slot = EditionAlerts.slots[0]
+        // Letterlijk uit het onboarding-plan (seintjeHTML), gelijk aan het web.
         HStack(alignment: .center, spacing: Space.s3) {
             AppMark()
             VStack(alignment: .leading, spacing: Space.s0) {
                 HStack(alignment: .firstTextBaseline) {
-                    Text(slot.title).font(.subheadline.weight(.semibold)).lineLimit(1)
+                    Text("Hoot").font(.subheadline.weight(.semibold)).lineLimit(1)
                     Spacer(minLength: Space.s2)
                     Text("nu").font(.footnote).foregroundStyle(Theme.ink3)
                 }
-                Text(slot.body).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(2) // zoals iOS: liever een tweede regel dan "…"
+                Text(Self.body).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(2) // zoals iOS: liever een tweede regel dan "…"
             }
         }
         .padding(.horizontal, Space.s4)

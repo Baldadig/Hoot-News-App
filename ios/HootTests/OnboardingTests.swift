@@ -10,16 +10,27 @@ final class OnboardingTests: XCTestCase {
     private var saved: [String: Any] = [:]
     private var hootKeys: [String] { UserDefaults.standard.dictionaryRepresentation().keys.filter { $0.hasPrefix("hoot.") } }
 
+    // Uitloggen wist ook Bewaard en gelezen (saved.json, read.json in Application Support/Hoot): die
+    // bestanden gaan net zo opzij en terug.
+    private var files: [String: Data] = [:]
+    private static let folder = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("Hoot", isDirectory: true)
+    private static let names = ["saved.json", "read.json"]
+
     override func setUp() {
         super.setUp()
         let d = UserDefaults.standard
         saved = Dictionary(uniqueKeysWithValues: hootKeys.compactMap { k in d.object(forKey: k).map { (k, $0) } })
+        files = Dictionary(uniqueKeysWithValues: Self.names.compactMap { n in (try? Data(contentsOf: Self.folder.appendingPathComponent(n))).map { (n, $0) } })
     }
 
     override func tearDown() {
         let d = UserDefaults.standard
         for k in hootKeys { d.removeObject(forKey: k) }
         for (k, v) in saved { d.set(v, forKey: k) }
+        for n in Self.names {
+            let url = Self.folder.appendingPathComponent(n)
+            if let data = files[n] { try? data.write(to: url, options: .atomic) } else { try? FileManager.default.removeItem(at: url) }
+        }
         super.tearDown()
     }
 
@@ -135,5 +146,19 @@ final class OnboardingTests: XCTestCase {
         XCTAssertEqual(store.topics, [])
         XCTAssertEqual(store.digestFields, [])
         XCTAssertEqual(store.favorites, [])
+        // Bewaard en wat je las zijn persoonlijk: ook weg van het toestel.
+        XCTAssertEqual(store.saved.count, 0)
+        XCTAssertEqual(store.readIds, [])
+    }
+
+    // ---- De Stroom ----
+
+    // Alleen Alles en de hoofdrubrieken die je koos, in vaste volgorde, Buiten je bubbel als laatste.
+    func testStreamTabsAreOnlyChosenRubriekenInFixedOrder() {
+        XCTAssertEqual(StreamView.tabs(interests: ["sport", "politiek", "wereld"], bubble: true).map(\.id), ["", "politiek", "wereld", "sport", "bubbel"])
+        XCTAssertEqual(StreamView.tabs(interests: ["cultuur", "binnenland"], bubble: false).map(\.label), ["Alles", "Binnenland", "Cultuur"])
+        XCTAssertEqual(StreamView.tabs(interests: [], bubble: true).map(\.label), ["Alles", "Buiten je bubbel"])
+        let all = StreamView.tabs(interests: Rubriek.alle.map(\.id).reversed(), bubble: true).map(\.label)
+        XCTAssertEqual(all, ["Alles", "Politiek", "Binnenland", "Wereld", "Economie", "Tech", "Wetenschap", "Cultuur", "Sport", "Buiten je bubbel"])
     }
 }

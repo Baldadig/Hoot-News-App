@@ -3,8 +3,8 @@ import SwiftUI
 // Alleen in Debug, voor schermafbeeldingen en audits: de app opent meteen op een bepaald scherm,
 // zonder te tikken (zie ios/AppStore/tools/device-screens.sh). Startargumenten:
 //   -HootStartTab editie|stroom|digest|bewaard|zoek
-//   -HootScreen verhaal|lezer|bronnen|bluesky|stroom-bronnen|video|instellingen|instellingen-bronnen|instellingen-interesses|instellingen-vakken|instellingen-abonnementen|instellingen-wissen|seintje
-//   -HootRubriek wereld|bubbel|bluesky|…   -HootPicks nos,nrc   (de Stroom op een rubriek, met gekozen bronnen;
+//   -HootScreen verhaal|lezer|bronnen|stroom-bronnen|video|instellingen|instellingen-bronnen|instellingen-interesses|instellingen-vakken|instellingen-abonnementen|instellingen-wissen|seintje
+//   -HootRubriek wereld|bubbel|…   -HootPicks nos,nrc   (de Stroom op een rubriek, met gekozen bronnen;
 //                                             met -HootScreen stroom-bronnen staat de stapel open)
 //   -HootScroll midden|onder|slot   -HootQuery <tekst>   -HootDark YES   -HootLargeText YES   -HootOffline YES
 //   -HootLayout tijdlijn|krant   (de Stroom in die indeling, los van de instelling)
@@ -73,7 +73,7 @@ enum DebugLaunch {
 
     static func screen(_ name: String) -> Bool { screen == name }
     // De Stroom op deze rubriek; gaat vóór wat iOS van de vorige keer terugzet.
-    static var startRubriek: String? { rubriek ?? (screen("bluesky") ? "bluesky" : nil) }
+    static var startRubriek: String? { rubriek }
 }
 
 extension View {

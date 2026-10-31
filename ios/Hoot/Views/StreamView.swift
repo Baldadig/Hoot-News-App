@@ -1,32 +1,37 @@
 import SwiftUI
 
 // Stroom: alles van je bronnen, nieuwste eerst. Bovenaan de lijn met rubrieken en de bronnenstapel
-// (StreamLine). Bluesky is daar een rubriek, naast Alles en Buiten je bubbel: een eigen tabblad zou
-// de zesde worden, en dan verstopt iOS Bewaard en Zoeken achter "Meer".
+// (StreamLine): Alles, je rubrieken en Buiten je bubbel. Bluesky staat bij Instellingen.
 struct StreamView: View {
     @Environment(HootStore.self) private var store
     @Environment(\.scenePhase) private var phase
     @Environment(Reader.self) private var reader
     @State private var behindReader = false // de lezer ligt eroverheen: dat is geen vertrek uit de Stroom
     @State private var showSources = DebugLaunch.screen("bronnen")
-    @State private var showAccounts = false
     @State private var limit = 60
     @State private var picks: Set<String> = Set(DebugLaunch.picks) // de bronnen uit de stapel (leeg = alle)
     @State private var lijn = LijnStand()
     @State private var knopAs: CGFloat? // de knop rechtsboven: het voorste logo van de stapel ligt eronder
-    // De rubriek: "" is Alles; "bubbel" en "bluesky" zijn eigen lijsten, de rest een van de acht.
+    // De rubriek: "" is Alles; "bubbel" is een eigen lijst, de rest een van de gekozen rubrieken.
     @SceneStorage("streamRubriek") private var rubriek = DebugLaunch.startRubriek ?? ""
     @State private var debugStart = true // Debug: het startargument voor de rubriek is nog niet gebruikt
+
+    static func tabs(interests: [String], bubble: Bool) -> [(id: String, label: String)] {
+        [("", "Alles")]
+            + Rubriek.alle.filter { interests.contains($0.id) }.map { (id: $0.id, label: $0.label) }
+            + (bubble ? [("bubbel", "Buiten je bubbel")] : [])
+    }
 
     var body: some View {
         NavigationStack {
             let bubble = store.bubbleItems
-            let lezen: [(id: String, label: String)] = [("", "Alles")]
-                + (bubble.isEmpty ? [] : [("bubbel", "Buiten je bubbel")])
-                + (store.bluesky ? [("bluesky", "Bluesky")] : [])
-            // Een rubriek die er niet (meer) is, valt terug op Alles: Bluesky uit, of geen bubbel in deze editie.
-            let rub = lezen.contains { $0.id == rubriek } || Rubriek.byId[rubriek] != nil ? rubriek : ""
-            let social = rub == "bluesky"
+            // De rij: alleen Alles en de hoofdrubrieken die je koos, in de vaste volgorde van Rubriek.alle
+            // (Politiek, Binnenland, Wereld, Economie, Tech, Wetenschap, Cultuur, Sport), en Buiten je
+            // bubbel als laatste. Geen onderwerpen of andere tabs; gelijk aan het web.
+            let tabs = Self.tabs(interests: store.interests, bubble: !bubble.isEmpty)
+            let lezen = Array(tabs.prefix(1)), rubrieken = Array(tabs.dropFirst())
+            // Een rubriek die er niet (meer) is, valt terug op Alles: niet meer gekozen, of geen bubbel in deze editie.
+            let rub = rubrieken.contains { $0.id == rubriek } ? rubriek : ""
             let sources = store.stripSources
             // "Buiten je bubbel" komt juist uit bronnen die je niet volgt: daar telt de bronkeuze niet.
             let cats = Dictionary(store.followed.map { ($0.id, $0.cat) }, uniquingKeysWith: { a, _ in a })
@@ -46,9 +51,9 @@ struct StreamView: View {
                         picks: $picks,
                         open: $lijn.open,
                         lezen: lezen,
-                        rubrieken: Rubriek.alle.map { (id: $0.id, label: $0.label) },
+                        rubrieken: rubrieken,
                         bronnen: sources,
-                        stapel: !social && (sources.count > 1 || !picks.isEmpty),
+                        stapel: sources.count > 1 || !picks.isEmpty,
                         knopAs: knopAs
                     )
                     // De rubriekenlijn groeit mee tot de eerste accessibility-maat: groter past "Buiten je
@@ -57,68 +62,61 @@ struct StreamView: View {
                     .padding(.bottom, Space.s2) // samen met de ruimte boven het eerste bericht 16
                     .padding(.horizontal)
                     .column()
-                    if social {
-                        BlueskyFeed { showAccounts = true }.padding(.horizontal).column()
-                    } else {
-                        LazyVStack(alignment: .leading, spacing: 0) {
-                            // Het grote lege scherm gaat over de hele Stroom, los van rubriek en bronkeuze
-                            // (die blijven bewaard): offline of zonder bronnen zie je het altijd.
-                            let niets = items.isEmpty && store.stream.isEmpty
-                            if store.status == .loading && niets {
-                                ProgressView().frame(maxWidth: .infinity, minHeight: 240)
-                            } else if niets {
-                                if store.status == .failed {
-                                    EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnen hier de berichten van je bronnen.", retry: store.load)
-                                } else {
-                                    EmptyState(title: "Al je bronnen staan uit.", systemImage: "water.waves", action: (label: "Naar Bronnen", systemImage: nil, run: { showSources = true }))
-                                }
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        // Het grote lege scherm gaat over de hele Stroom, los van rubriek en bronkeuze
+                        // (die blijven bewaard): offline of zonder bronnen zie je het altijd.
+                        let niets = items.isEmpty && store.stream.isEmpty
+                        if store.status == .loading && niets {
+                            ProgressView().frame(maxWidth: .infinity, minHeight: 240)
+                        } else if niets {
+                            if store.status == .failed {
+                                EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnen hier de berichten van je bronnen.", retry: store.load)
                             } else {
-                                StaleNotice().padding(.top, Space.s2) // 16 onder de lijn, net als een bericht
-                                if items.isEmpty { quiet(rub, sources: sources) }
-                                // Waar je de vorige keer was: alleen in de hele Stroom (die telt `newInStream`).
-                                let fresh = picks.isEmpty && rub.isEmpty ? store.newInStream : 0
-                                ForEach(Array(items.prefix(limit).enumerated()), id: \.element.id) { i, item in
-                                    // Daaronder heb je alles al gezien.
-                                    if fresh > 0 && i == fresh { SeenMarker() }
-                                    ItemRow(item: item, story: store.story(of: item))
-                                    if !(fresh > 0 && i == fresh - 1) { Rule() }
-                                }
-                                if items.count > limit {
-                                    Button("Meer berichten") { limit += 60 }
-                                        .buttonStyle(.glass)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, Space.s5)
-                                }
+                                EmptyState(title: "Al je bronnen staan uit.", systemImage: "water.waves", action: (label: "Naar Bronnen", systemImage: nil, run: { showSources = true }))
+                            }
+                        } else {
+                            StaleNotice().padding(.top, Space.s2) // 16 onder de lijn, net als een bericht
+                            if items.isEmpty { quiet(rub, sources: sources) }
+                            // Waar je de vorige keer was: alleen in de hele Stroom (die telt `newInStream`).
+                            let fresh = picks.isEmpty && rub.isEmpty ? store.newInStream : 0
+                            ForEach(Array(items.prefix(limit).enumerated()), id: \.element.id) { i, item in
+                                // Daaronder heb je alles al gezien.
+                                if fresh > 0 && i == fresh { SeenMarker() }
+                                ItemRow(item: item, story: store.story(of: item))
+                                if !(fresh > 0 && i == fresh - 1) { Rule() }
+                            }
+                            if items.count > limit {
+                                Button("Meer berichten") { limit += 60 }
+                                    .buttonStyle(.glass)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, Space.s5)
                             }
                         }
-                        .padding(.horizontal)
-                        .column()
                     }
+                    .padding(.horizontal)
+                    .column()
                 }
             }
             .debugScroll()
             .background(Theme.paper)
             // Scrollen klapt de stapel dicht (ernaast tikken doet de lijn zelf).
             .onScrollPhaseChange { _, now in if now == .interacting, lijn.open { lijn.open = false } }
-            .navigationTitle("Stroom") // de rode streep zegt al welke rubriek, ook bij Bluesky
+            .navigationTitle("Stroom") // de rode streep zegt al welke rubriek
             .hootScreenTitle()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .refreshable { await store.load() }
             .toolbar {
                 // Bediening is stil (design system): grijs en zonder glazen rondje, zoals het tandwiel.
-                // Eén vaste knop waarvan alleen het icoon wisselt: zo blijft het tandwiel ernaast op zijn plek
-                // als je tussen de rubrieken en Bluesky wisselt. Bij Bluesky een plus: iemand toevoegen.
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         lijn.open = false // ook met VoiceOver, waar geen echte tik naast de lijn valt
-                        if social { showAccounts = true } else { showSources = true }
+                        showSources = true
                     } label: {
-                        Image(systemName: social ? "plus" : "dot.radiowaves.up.forward")
-                            .contentTransition(.symbolEffect(.replace))
+                        Image(systemName: "dot.radiowaves.up.forward")
                             .frame(width: 24, height: 24)
                     }
-                    .accessibilityLabel(social ? "Bluesky-account toevoegen" : "Bronnen")
+                    .accessibilityLabel("Bronnen")
                     .tint(Theme.ink3)
                     // Op de knop zelf meten, niet op het icoon: dat zou de werkbalk anders opmaken.
                     .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midX } action: { knopAs = $0 }
@@ -126,7 +124,6 @@ struct StreamView: View {
                 .sharedBackgroundVisibility(.hidden)
             }
             .sheet(isPresented: $showSources) { SourcesView().debugAppearance() }
-            .sheet(isPresented: $showAccounts) { BlueskyAccountsView().debugAppearance() }
             .settingsButton()
         }
         .onAppear {

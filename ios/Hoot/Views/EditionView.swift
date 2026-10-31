@@ -43,8 +43,8 @@ enum Desk {
     // Het label boven het verhaal (StoryLabel.label, gelijk aan src/lib/label.js): je (sub)interesse als het
     // verhaal die raakt, anders de rubriek; het waarom alleen als het iets toevoegt; "Buiten je bronnen" staat
     // in de bronregel.
-    static func label(_ e: EditionEntry, item: Item, sourceCat: String?, follows: [String], followed: Bool) -> StoryLabel.Result {
-        StoryLabel.label(topics: item.topics ?? [], follows: follows, cat: sourceCat, desk: e.desk, deskLabel: plek(e), whyCode: e.why?.code, whyText: e.why?.text, followed: followed || ["bubbel", "breed"].contains(e.desk ?? ""))
+    static func label(_ e: EditionEntry, item: Item, sourceCat: String?, follows: [String], interests: [String], followed: Bool) -> StoryLabel.Result {
+        StoryLabel.label(topics: item.topics ?? [], follows: follows, interests: interests, cat: sourceCat, desk: e.desk, deskLabel: plek(e), whyCode: e.why?.code, whyText: e.why?.text, followed: followed || ["bubbel", "breed"].contains(e.desk ?? ""))
     }
 }
 
@@ -74,7 +74,7 @@ extension HootStore {
             let leadId = e.kind == "story" ? (e.leadId ?? e.id) : e.id
             guard let item = published[leadId] ?? itemsById[leadId] else { return nil }
             let story = e.kind == "story" ? storiesById[e.id] : item.storyId.flatMap { storiesById[$0] }
-            let l = Desk.label(e, item: item, sourceCat: self.source(item.source)?.cat, follows: topics, followed: on.contains(item.source))
+            let l = Desk.label(e, item: item, sourceCat: self.source(item.source)?.cat, follows: topics, interests: interests, followed: on.contains(item.source))
             return EditionRowModel(id: e.id, item: item, story: story, label: l.kicker, desk: e.desk, why: l.why, outside: l.outside)
         }
         // Hoofdverhaal met scherp beeld (geen bubbel of "waar iedereen over schrijft").
@@ -100,6 +100,8 @@ struct EditionView: View {
     @Environment(\.brandHandoff) private var handoff
     @Environment(\.accessibilityReduceMotion) private var still
     @Environment(EditionAlerts.self) private var alerts
+    @State private var endVisible = false // de zon onderaan is in beeld
+    @State private var risenAt: Date? // sinds wanneer die zon opkomt (één keer)
     @State private var alertsOn = false // net "ja" gezegd op het seintje onderaan
     // Bij een koude start ligt de krant 8 pt lager en schuift op zijn plek terwijl het rood van het
     // opstartscherm zich sluit, met dezelfde curve: het merk landt, de krant gaat open.
@@ -187,7 +189,19 @@ struct EditionView: View {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     let rows = store.editionRows
                     // De schermtitel in de scroll, direct boven de metaregel (zoals .vh__sub op het web).
-                    ScreenTitle(title, gap: 0)
+                    // Met een kleine, stille zon ernaast: zijn hoogte toont het dagdeel (onboarding-plan, ‘De zon
+                    // in de Editie’). Laag bij de Ochtend- en Avondeditie, hoog bij de Middageditie.
+                    // Past de naam er bij grote tekst niet meer naast, dan alleen de naam (nooit afgebroken).
+                    ViewThatFits(in: .horizontal) {
+                        HStack(alignment: .bottom, spacing: Space.s3) {
+                            ScreenTitle(title, gap: 0).fixedSize()
+                            Spacer(minLength: 0)
+                            if let slot = store.edition?.slot, EditionSun.height[slot] != nil {
+                                EditionSun(slot: slot).padding(.bottom, Space.s1)
+                            }
+                        }
+                        ScreenTitle(title, gap: 0).frame(maxWidth: .infinity, alignment: .leading)
+                    }
                     if store.status == .loading && rows.isEmpty {
                         ProgressView().frame(maxWidth: .infinity, minHeight: 240)
                     } else if rows.isEmpty {
@@ -225,10 +239,14 @@ struct EditionView: View {
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,
                         // en wanneer de volgende er is.
                         VStack(spacing: Space.s3) {
-                            // Het teken "h." als tekening, 44 hoog; op merkrood alles papier, ook de punt.
-                            // Tot "Je bent bij." 16, zoals op het web.
-                            BrandMark(height: 44, ink: Theme.onBrandRed, dot: Theme.onBrandRed)
-                                .padding(.bottom, Space.s4 - Space.s3)
+                            // De zon komt hier één keer op (6 s), zodra het vlak in beeld komt, en ademt
+                            // dan; in papier op merkrood. Het enige merkmoment tijdens het lezen. Met
+                            // Verminder beweging staat hij al op (OnboardingArt, variant intro).
+                            OnboardingArt(kind: .intro, onRed: true, active: endVisible, scale: 120 / OnboardingArt.size.width, since: risenAt)
+                                .onScrollVisibilityChange(threshold: 0.5) { visible in
+                                    endVisible = visible
+                                    if visible && risenAt == nil { risenAt = .now }
+                                }
                             Text("Je bent bij.").font(Theme.headline(.title))
                             Text("Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(endDate)").\(upNext)")
                                 .font(.subheadline)
@@ -402,5 +420,24 @@ struct MakeItYours: View {
         .column()
         .transition(.move(edge: .bottom).combined(with: .opacity))
         .accessibilityElement(children: .contain)
+    }
+}
+
+// De kleine zon naast de naam van de Editie (miniSun in het onboarding-plan): 44 × 26, horizon op 20,
+// zon r 8, alles onder de horizon geknipt. Stil; de hoogte toont het dagdeel, zonder kloktijd.
+struct EditionSun: View {
+    let slot: String
+    static let height: [String: CGFloat] = ["ochtend": 17, "middag": 9, "avond": 21]
+
+    var body: some View {
+        Canvas { ctx, _ in
+            var sky = ctx
+            sky.clip(to: Path(CGRect(x: 0, y: 0, width: 44, height: 20)))
+            let cy = Self.height[slot] ?? 17
+            sky.fill(Path(ellipseIn: CGRect(x: 22 - 8, y: cy - 8, width: 16, height: 16)), with: .color(Theme.accent))
+            ctx.stroke(Path { $0.move(to: CGPoint(x: 4, y: 20)); $0.addLine(to: CGPoint(x: 40, y: 20)) }, with: .color(Theme.ink), lineWidth: 1.5)
+        }
+        .frame(width: 44, height: 26)
+        .accessibilityHidden(true)
     }
 }

@@ -209,3 +209,25 @@ struct BlueskyAccountsView: View {
         }
     }
 }
+
+// Bluesky op een eigen pagina (Instellingen › Bluesky › Posts): de posts van wie je volgt, met een
+// plus om iemand toe te voegen. De rij van de Stroom heeft alleen je rubrieken.
+struct BlueskyPage: View {
+    @State private var adding = false
+    var body: some View {
+        ScrollView {
+            BlueskyFeed { adding = true }.padding(.horizontal).column()
+        }
+        .background(Theme.paper)
+        .navigationTitle("Bluesky")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { adding = true } label: { Image(systemName: "plus") }
+                    .accessibilityLabel("Bluesky-account toevoegen")
+                    .tint(Theme.ink3)
+            }
+        }
+        .sheet(isPresented: $adding) { BlueskyAccountsView().debugAppearance() }
+    }
+}
