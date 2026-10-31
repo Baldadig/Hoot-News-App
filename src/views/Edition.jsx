@@ -251,10 +251,11 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             {rows.length > FRONT ? (
               <div className="front__rest">
                 <h2 className="label label--section front__more">Verder in deze Editie</h2>
+                {/* De Editie is een krant, op web en in de app: deze rijen volgen 'Lees de Stroom als' niet. */}
                 <div className="list rows">
                   {rows.slice(FRONT).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
-                      <CompactItem item={r.item} story={r.story} note={r.note} why={r.why} taste={r.key} />
+                      <CompactItem item={r.item} story={r.story} note={r.note} why={r.why} taste={r.key} plain />
                     </Slot>
                   ))}
                 </div>

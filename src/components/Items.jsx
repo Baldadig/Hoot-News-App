@@ -202,8 +202,8 @@ export function LeadStory({ item, story, note, why = null, followed = null, prio
 // Twee vormen, dezelfde als in de app (ItemRow): "tijdlijn" — kop, intro en het beeld over de
 // volle kolombreedte in 2:1, de bronregel eronder — en "krant" — kop en intro links, een klein
 // beeld in 3:2 rechts met een vaste breedte (--thumb-w), de bronregel onder de tekst. Op alle
-// breedtes dezelfde twee vormen. `plain` houdt de krant-vorm aan, voor smalle plekken zoals het
-// vergelijkpaneel.
+// breedtes dezelfde twee vormen. `plain` houdt de krant-vorm aan: in de Editie (die is een krant, op
+// web en in de app) en op smalle plekken zoals het vergelijkpaneel.
 export function CompactItem({ item, story, note, why = null, showSave = true, plain = false, taste = null }) {
   const { markRead, read, layout } = useHoot()
   const cls = `entry compact${read.has(item.id) ? ' is-read' : ''}`
