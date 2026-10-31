@@ -214,7 +214,7 @@ struct SourcesView: View {
                 .navigationTitle("Bronnen")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { dismiss() } }
+                    ToolbarItem(placement: .topBarTrailing) { Button("Klaar") { dismiss() } } // tekst in inkt, zoals Instellingen
                 }
         }
         .presentationDetents([.large]) // een rustig, dicht blad: geen feed die erdoorheen schijnt
@@ -238,7 +238,7 @@ struct SourcesList: View {
             ForEach(Self.cats, id: \.0) { cat, label in
                 let list = store.newsSources.filter { $0.cat == cat }
                 if !list.isEmpty {
-                    Section(label) {
+                    Section {
                         ForEach(list) { s in
                             HStack(spacing: Space.s1) {
                             if store.isOn(s) {
@@ -263,11 +263,15 @@ struct SourcesList: View {
                             }
                             }
                         }
+                    } header: {
+                        FormHeader(label)
                     }
+                    .hootRows()
                     .id(cat)
                 }
             }
         }
+        .hootForm()
         .debugJump(proxy, to: last, when: store.newsSources.count)
         }
     }

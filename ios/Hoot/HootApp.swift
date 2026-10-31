@@ -50,7 +50,8 @@ struct HootApp: App {
             .environment(store)
             .environment(account)
             .environment(alerts)
-            .tint(Theme.accent)
+            .tint(Theme.ink) // bediening is inkt: schakelaars, waarden, tekstknoppen; rood is voor wat gekozen is
+            .toggleStyle(InkSwitch())
             .overlay {
                 if splash { SplashView(handoff: handoff) }
             }
@@ -195,12 +196,14 @@ struct RootView: View {
 
     var body: some View {
         TabView(selection: $tab) {
-            Tab("Editie", systemImage: "newspaper", value: Destination.editie) { EditionView() }
-            Tab("Stroom", systemImage: "water.waves", value: Destination.stroom) { StreamView() }
-            Tab("Selectie", systemImage: "books.vertical", value: Destination.digest) { DigestView() }
-            Tab("Bewaard", systemImage: "bookmark", value: Destination.bewaard) { SavedView() }
-            Tab(value: Destination.zoek, role: .search) { SearchView() }
+            Tab("Editie", systemImage: "newspaper", value: Destination.editie) { EditionView().tint(Theme.ink) }
+            Tab("Stroom", systemImage: "water.waves", value: Destination.stroom) { StreamView().tint(Theme.ink) }
+            Tab("Selectie", systemImage: "books.vertical", value: Destination.digest) { DigestView().tint(Theme.ink) }
+            Tab("Bewaard", systemImage: "bookmark", value: Destination.bewaard) { SavedView().tint(Theme.ink) }
+            Tab(value: Destination.zoek, role: .search) { SearchView().tint(Theme.ink) }
         }
+        // De actieve tab is rood, zoals op het web: dat is waar je bent. De inhoud houdt de inkt.
+        .tint(Theme.accent)
         .tabViewStyle(.sidebarAdaptable) // iPad en brede vensters: zijbalk of tabbalk bovenaan
         .environment(\.openTab) { tab = $0 }
         .background { if reader.item == nil { shortcuts } } // niet achter de open lezer
@@ -253,7 +256,7 @@ struct RootView: View {
                 if item.isPost && url.host()?.hasSuffix("bsky.app") == true {
                     SafariView(url: url, reader: false).ignoresSafeArea()
                 } else {
-                    ArticleReaderView(item: item)
+                    ArticleReaderView(item: item).tint(Theme.ink) // niet het rood van de tabbalk
                 }
             } else {
                 Color.clear.onAppear { reader.item = nil }

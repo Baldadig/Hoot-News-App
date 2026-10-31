@@ -137,7 +137,7 @@ struct EditionView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Button("Ongedaan maken") { withAnimation(.snappy) { store.undoLess(row.id, items: items) } }
                     .font(.subheadline.weight(.semibold))
-                    .tint(Theme.accent)
+                    .tint(Theme.ink) // bediening: inkt, geen rood
                     .frame(minHeight: Space.tap)
             }
             .transition(.opacity)

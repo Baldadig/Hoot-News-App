@@ -153,6 +153,7 @@ struct SubscriptionsView: View {
         let mine = all.filter { followed.contains($0.source.id) || loggedIn.contains($0.domain) }
         let more = all.filter { !followed.contains($0.source.id) && !loggedIn.contains($0.domain) }
         List {
+            Group {
             Section {
                 if mine.isEmpty {
                     Text("Geen van je bronnen heeft een abonnement.").foregroundStyle(Theme.ink3)
@@ -181,8 +182,12 @@ struct SubscriptionsView: View {
             }
             Section {
                 Button("Overal uitloggen in de lezer", role: .destructive) { confirmForget = true }
+                    .foregroundStyle(Theme.ink) // bediening in inkt; de melding erna heeft Log uit in rood
             }
+            }
+            .hootRows() // Group geeft het door aan elke sectie
         }
+        .hootForm()
         .task(id: all.map(\.domain)) { await refresh(all) } // opnieuw zodra de bronnen (van de server) binnen zijn
         .sheet(item: $login, onDismiss: { Task { await refresh(PublisherLogin.all(store)) } }) { LoginWebView(target: $0) }
         .alert("Uitloggen bij \(leaving?.source.name ?? "")?", isPresented: Binding(get: { leaving != nil }, set: { if !$0 { leaving = nil } })) {
@@ -227,7 +232,7 @@ struct SubscriptionsView: View {
                     }
                     .foregroundStyle(Theme.accent)
                 } else {
-                    Text("Inloggen").foregroundStyle(Theme.accent)
+                    Text("Inloggen").foregroundStyle(Theme.ink) // een handeling: inkt; rood is voor Ingelogd
                 }
             }
         }
@@ -256,7 +261,7 @@ struct SubscriptionsRow: View {
         LabeledContent {
             if count > 0 { Text("\(count) ingelogd") }
         } label: {
-            Label("Inloggen bij je abonnementen", systemImage: "key")
+            FormLabel("Inloggen bij je abonnementen", systemImage: "key")
         }
         .task(id: PublisherLogin.all(store).map(\.domain)) {
             let found = await PublisherLogin.loggedIn(PublisherLogin.all(store).map(\.domain)).count

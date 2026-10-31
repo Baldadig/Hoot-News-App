@@ -74,11 +74,15 @@ struct AccountView: View {
                 signIn
             } else {
                 Form {
-                    if account.status == .noInvite { invite } else { member }
-                    if let message = account.message {
-                        Section { Label(message, systemImage: "exclamationmark.circle").foregroundStyle(Theme.accent) }
+                    Group {
+                        if account.status == .noInvite { invite } else { member }
+                        if let message = account.message {
+                            Section { Label(message, systemImage: "exclamationmark.circle").foregroundStyle(Theme.accent) }
+                        }
                     }
+                    .hootRows() // Group geeft het door aan elke sectie
                 }
+                .hootForm()
                 .navigationTitle("Account")
             }
         }
@@ -202,6 +206,7 @@ struct AccountView: View {
         Section {
             Button("Uitloggen") { Task { await account.signOut() } }
             Button("Account verwijderen", role: .destructive) { confirmDelete = true }
+                .foregroundStyle(Theme.ink) // bediening in inkt; de melding erna heeft Verwijder in rood
         }
     }
 

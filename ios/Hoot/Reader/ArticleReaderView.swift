@@ -67,9 +67,10 @@ struct ArticleReaderView: View {
             }
             .background(Theme.paper)
             .navigationBarTitleDisplayMode(.inline)
+            // De werkbalk is stil: iconen in ink3. Alleen bewaard springt eruit, in rood (SaveButton).
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Sluit", systemImage: "xmark") { dismiss() }
+                    Button("Sluit", systemImage: "xmark") { dismiss() }.tint(Theme.ink3)
                 }
                 ToolbarItemGroup(placement: .primaryAction) {
                     Menu {
@@ -82,9 +83,10 @@ struct ArticleReaderView: View {
                     } label: {
                         Label("Tekstgrootte", systemImage: "textformat.size")
                     }
+                    .tint(Theme.ink3)
                     if let link = item.link {
-                        ShareItemLink(item: item, link: link)
-                        Button("Open bij \(sourceName)", systemImage: "safari") { openURL(link) }
+                        ShareItemLink(item: item, link: link).tint(Theme.ink3)
+                        Button("Open bij \(sourceName)", systemImage: "safari") { openURL(link) }.tint(Theme.ink3)
                     }
                     SaveButton(item: item)
                 }
@@ -274,12 +276,9 @@ struct LoginWebView: View {
                 .navigationTitle("Inloggen bij \(target.name)")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    // Pas na het inloggen is "Klaar" de volgende stap, in rood; daarvoor een gewone knop
-                    // (iOS kleurt een bevestigingsknop anders vanzelf).
-                    if done {
-                        ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { dismiss() } }
-                    } else {
-                        ToolbarItem(placement: .topBarTrailing) { Button("Klaar", systemImage: "checkmark") { dismiss() }.tint(Theme.ink3) }
+                    // "Klaar" als tekst in inkt; pas na het inloggen is het de volgende stap, en dan halfvet.
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Klaar") { dismiss() }.fontWeight(done ? .semibold : .regular)
                     }
                 }
                 .safeAreaInset(edge: .top) {

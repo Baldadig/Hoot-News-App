@@ -56,6 +56,16 @@ struct SafariView: UIViewControllerRepresentable {
     func updateUIViewController(_ vc: SFSafariViewController, context: Context) {}
 }
 
+// Een schakelaar die aan staat is inkt (brandboard; .switch op het web). In donker is inkt licht en
+// verdwijnt de witte duim van iOS erin; het web maakt de duim daar papier, maar dat laat iOS niet toe.
+// Daarom in donker ink3: de baan blijft neutraal en de duim blijft te zien.
+struct InkSwitch: ToggleStyle {
+    @Environment(\.colorScheme) private var scheme
+    func makeBody(configuration: Configuration) -> some View {
+        Toggle(configuration).tint(scheme == .dark ? Theme.ink3 : Theme.ink)
+    }
+}
+
 // Een knop op papier: inkt met papier, een pil, gewicht 800 (brandboard: Knop). Rood is voor het merk
 // en voor wat gekozen is, niet voor wat je doet; een tweede knop is stil (`.glass` of een link).
 struct InkButtonStyle: ButtonStyle {
@@ -73,6 +83,41 @@ struct InkButtonStyle: ButtonStyle {
 }
 extension ButtonStyle where Self == InkButtonStyle {
     static var ink: InkButtonStyle { InkButtonStyle() }
+}
+
+// Een formulier op papier (Instellingen en wat eronder hangt), zoals elk ander scherm van Hoot: geen
+// systeemgrijs, rijen op `surface` met een haarlijn `rule` (`hootRows`), iconen stil in ink3
+// (`FormLabel`). Bediening is inkt (de tint van de app); rood is alleen voor wat gekozen is met
+// gewicht: de ster, 'gratis'.
+extension View {
+    func hootForm() -> some View {
+        scrollContentBackground(.hidden).background(Theme.paper)
+    }
+}
+
+// Het label van een rij in zo'n formulier, met het icoon in ink3. Een eigen labelstijl helpt niet:
+// in een schakelaar, keuzelijst of LabeledContent slaat iOS die over en kleurt het icoon met de tint.
+struct FormLabel: View {
+    let title: String
+    let systemImage: String
+    init(_ title: String, systemImage: String) { self.title = title; self.systemImage = systemImage }
+    var body: some View {
+        Label { Text(title) } icon: { Image(systemName: systemImage).foregroundStyle(Theme.ink3) }
+    }
+}
+
+// Een sectie in zo'n formulier: rijen op `surface`, de scheidingslijn in `rule`.
+extension View {
+    func hootRows() -> some View {
+        listRowBackground(Theme.surface).listRowSeparatorTint(Theme.rule)
+    }
+}
+
+// De kop boven een sectie: een kicker in inkt, zoals `GroupTitle` (die in ink3 staat).
+struct FormHeader: View {
+    let text: String
+    init(_ text: String) { self.text = text }
+    var body: some View { GroupTitle(text: text, tone: Theme.ink).textCase(nil) }
 }
 
 // Haarlijn tussen berichten: `rule`, één pixel, decoratief.

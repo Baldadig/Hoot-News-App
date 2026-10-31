@@ -85,7 +85,7 @@ struct WelcomeView: View {
                 AccountView { onDone() }
             }
         }
-        .tint(Theme.accent)
+        .tint(Theme.ink) // bediening is inkt; rood is voor wat gekozen is
         .interactiveDismissDisabled(onCancel == nil)
         .debugAppearance()
         .onAppear(perform: prepare)
@@ -732,16 +732,18 @@ private struct SourcePick: View {
             .fixedSize()
     }
 
+    // Het ronde vinkje in de grammatica van gekozen (zie Choice.swift): in rust een rand `edge`, gekozen
+    // rood zacht met een rode rand en het vinkje in accent. Geen wit op rood: dat is voor het merk.
     private var check: some View {
         ZStack {
-            Circle().strokeBorder(Theme.ink, lineWidth: 2).opacity(on ? 0 : 1)
-            Circle().fill(Theme.accent).opacity(on ? 1 : 0)
+            Circle().strokeBorder(Theme.edge, lineWidth: 1).opacity(on ? 0 : 1)
+            Circle().fill(Theme.accentSoft).overlay(Circle().strokeBorder(Theme.accent, lineWidth: 1)).opacity(on ? 1 : 0)
             Image(systemName: "checkmark")
                 .font(.system(size: 13, weight: .heavy))
-                .foregroundStyle(Theme.onAccent)
+                .foregroundStyle(Theme.accent)
                 .opacity(on ? 1 : 0)
         }
-        .frame(width: 28, height: 28)
+        .frame(width: Space.s6, height: Space.s6)
         .animation(.easeOut(duration: 0.15), value: on)
         .accessibilityHidden(true)
     }

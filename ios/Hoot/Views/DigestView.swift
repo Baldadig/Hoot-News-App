@@ -53,7 +53,7 @@ struct DigestView: View {
                     DigestFieldsList()
                         .navigationTitle("Onderwerpen")
                         .navigationBarTitleDisplayMode(.inline)
-                        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { choosing = false } } }
+                        .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Klaar") { choosing = false } } }
                 }
                 .debugAppearance()
             }
@@ -68,7 +68,7 @@ struct DigestView: View {
         return Button { choosing = true } label: {
             Label(count == 0 ? "Kies onderwerpen" : "Onderwerpen · \(count)", systemImage: "slider.horizontal.3")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Theme.accent)
+                .foregroundStyle(Theme.ink) // een tekstactie: inkt, zoals --action op het web
         }
         .buttonStyle(.glass)
         .padding(.vertical, Space.s1)
@@ -116,9 +116,9 @@ private struct FieldSection: View {
                 Image(systemName: icon)
                     .font(.title3)
                     .dynamicTypeSize(...DynamicTypeSize.xxxLarge) // blijft binnen zijn cirkel
-                    .foregroundStyle(Theme.accent)
+                    .foregroundStyle(Theme.ink3) // een plaatje bij het onderwerp, geen keuze: stil, zonder rood
                     .frame(width: 44, height: 44)
-                    .glassEffect(.regular.tint(Theme.accent.opacity(0.12)), in: .circle)
+                    .glassEffect(.regular.tint(Theme.ink.opacity(0.06)), in: .circle)
                 }
                 VStack(alignment: .leading, spacing: Space.s0) {
                     Text(field.label).font(Theme.headline(.title2))

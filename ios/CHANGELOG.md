@@ -10,6 +10,7 @@
 - **Einde van de Editie (build 36):** de datum in de eindzin breekt niet meer tussen dag en maand: "31 oktober" blijft bij elkaar (vaste spatie, alleen in die zin).
 - **Lezer, teller en cijfers (build 36):** de lezer breekt koppen niet meer af (geen "Captain Pi-card"; alleen bij Heel groot lange woorden in tussenkoppen); de stapteller in Welkom is één breuk, "2⁄6"; tijden in de bronnenlijst en de nummers in de Selectie staan in tabelcijfers; de Selectie zegt "in 3 onderwerpen"; bij grote tekst houdt de Stroom één logo in de stapel en groeit de rubriekenlijn tot de eerste accessibility-maat, zodat "Buiten je bubbel" heel blijft.
 - **Naam in de Stroom (build 36):** de rode naam van je gekozen bron past weer bij normale tekst ("de Volkskrant", "The Economist", tot 150 breed); alleen bij grote tekst houdt hij het op 96 en loopt een lange naam uit.
+- **Bediening in inkt (build 36):** Instellingen staat op papier (rijen op surface met een haarlijn, kopjes als kicker in inkt, iconen in ink3, Klaar als tekst); schakelaars, waarden, de lezer-werkbalk, de schijf in de Selectie en Ongedaan maken zijn inkt, de actieve tab blijft rood; gekozen heeft één grammatica in chip, tegel en rond vinkje: in rust een haarlijn, gekozen rood zacht met een rode rand en een vinkje vooraan.
 - **Selectie:** 37 onderwerpen in acht domeinen. Je kiest ze via de knop Onderwerpen.
 - **Meer of minder hiervan:** druk lang op een verhaal in de Editie.
   - Bij minder klapt het verhaal in, met de mogelijkheid om het ongedaan te maken.
