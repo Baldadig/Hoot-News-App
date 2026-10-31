@@ -8,7 +8,7 @@ test('status verschijnt bij een uitgevallen bron die je volgt', () => {
   const st = sourceStatus([src('nrc'), src('leftlaser', false), src('ft', false, false)])
   assert.deepEqual(st.failed, [{ id: 'leftlaser', name: 'LEFTLASER' }])
   assert.equal(st.allDown, false)
-  assert.equal(statusLabel(st.failed.length), 'één bron tijdelijk niet bereikbaar')
+  assert.equal(statusLabel(st.failed.length), 'één bron niet bereikbaar')
 })
 
 test('herhaalde fouten stapelen niet op: één status per bron', () => {

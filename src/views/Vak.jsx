@@ -139,16 +139,16 @@ export default function Vak({ active, digest, status, onRefresh }) {
         ) : status === 'error' && !digest ? (
           <LoadError onRetry={onRefresh} />
         ) : !chosen.length ? (
-          <Empty title="Kies je onderwerpen">Kies hierboven wat je volgt, voor je werk of uit interesse. Elke maandag staan hier dan per onderwerp de drie belangrijkste stukken van de week.</Empty>
+          <Empty title="Kies je onderwerpen">Elke maandag staan hier per onderwerp de drie beste stukken.</Empty>
         ) : digest ? (
           <>
             {/* Kop: welke week, en wat je te lezen krijgt */}
             <header className="dmast">
-              <p className="label label--kicker dmast__week">{digest.preview ? 'Voorproefje · de afgelopen zeven dagen' : `Week ${digest.week} · ${span(digest.from, digest.to)}`}</p>
+              <p className="label label--kicker dmast__week">{digest.preview ? 'Voorproefje van deze week' : `Week ${digest.week} · ${span(digest.from, digest.to)}`}</p>
               <p className="head-lg dmast__lede">
                 {picked === 1 ? '1 stuk' : `${picked} stukken`} in {fields.length === 1 ? '1 onderwerp' : `${fields.length} onderwerpen`}
               </p>
-              {digest.preview ? <p className="dmast__note">De eerste volle Selectie komt {WEEKDAY.format(new Date(digest.next))} in de ochtend.</p> : <p className="dmast__note">Elke maandagochtend een nieuwe.</p>}
+              {digest.preview ? <p className="dmast__note">De eerste Selectie komt {WEEKDAY.format(new Date(digest.next))}.</p> : <p className="dmast__note">Elke maandagochtend nieuw.</p>}
             </header>
 
             {/* Inhoud: per vak de drie koppen; tik = naar het stuk in de digest */}
@@ -234,8 +234,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
             })}
 
             <Disclosure className="dhow" summaryClassName="linkbtn linkbtn--plain" summary="Hoe kiest Hoot deze stukken?">
-              <p>Gekozen uit {seen} stukken van kenners en vakbladen in de onderwerpen die je volgt, op drie gronden: hoeveel bronnen over hetzelfde schreven, of een redactie het uitkoos (zoals Sidebar), en wie het schreef (een kenner telt zwaarder dan een vakblad, een bedrijfsblog alleen als anderen erover schrijven).</p>
-              <p>Alleen stukken van mensen: geen gesponsorde stukken, webinars, podcasts of lijstjes. De tekst bij elk stuk is de intro van de schrijver zelf, niet van AI.</p>
+              <p>Uit {seen} stukken van kenners en vakbladen: wat veel bronnen oppikken, wat een redactie uitkoos en wie het schreef. Niets gesponsord; de intro is van de schrijver.</p>
             </Disclosure>
           </>
         ) : null}

@@ -38,9 +38,9 @@ export function DisplayControls() {
         value={prefs.palette}
         onChange={(v) => setPref('palette', v)}
         options={[
-          { value: 'papier', label: 'Papier', aria: 'Papier: alles op warm papier' },
-          { value: 'blad', label: 'Blad', aria: 'Blad: menu op papier, de inhoud op een wit blad' },
-          { value: 'inkt', label: 'Inkt', aria: 'Inkt: wit blad met een donkere kop boven de Editie' },
+          { value: 'papier', label: 'Papier', aria: 'Papier: warm papier' },
+          { value: 'blad', label: 'Blad', aria: 'Blad: wit blad op papier' },
+          { value: 'inkt', label: 'Inkt', aria: 'Inkt: donkere kop' },
         ]}
       />
       {/* Zelfde naam en twee vormen als in de app (SettingsView); de pref blijft 'layout'. */}
@@ -49,8 +49,8 @@ export function DisplayControls() {
         value={prefs.layout}
         onChange={(v) => setPref('layout', v)}
         options={[
-          { value: 'tijdlijn', label: 'Tijdlijn', aria: 'Tijdlijn: kop, intro en het beeld over de volle breedte' },
-          { value: 'krant', label: 'Krant', aria: 'Krant: kop en intro links, een klein beeld rechts' },
+          { value: 'tijdlijn', label: 'Tijdlijn', aria: 'Tijdlijn: groot beeld' },
+          { value: 'krant', label: 'Krant', aria: 'Krant: klein beeld ernaast' },
         ]}
       />
       <Seg
@@ -64,7 +64,7 @@ export function DisplayControls() {
         ]}
       />
       <Seg
-        label="Voorvertoning in de Stroom"
+        label="Intro"
         value={prefs.preview}
         onChange={(v) => setPref('preview', v)}
         options={[

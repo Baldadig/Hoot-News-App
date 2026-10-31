@@ -1,4 +1,4 @@
-import { clock } from '../lib/time.js'
+import { timeAgo } from '../lib/time.js'
 import { BrandLogo } from './Brand.jsx'
 import { useHoot } from './Items.jsx'
 import { BooksIcon, ButterflyIcon, EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, BackIcon, AccountIcon, SettingsIcon } from './icons.jsx'
@@ -77,13 +77,13 @@ export function BackButton({ label, onClick, ariaLabel, nav = false, className =
 // `account`: de knop Account en weergave (rechtsboven). `onBack` + `backLabel`: terug, vóór de titel
 // in dezelfde rij; `backInNav`: dit scherm staat ook in de zijbalk, dus daar geen terugknop.
 // `tools`: eigen knoppen van het scherm, vóór verversen (de Stroom: de filterknop).
-// `updatedAt`: hoe vers het is, in de knop Verversen ("bijgewerkt om 13:50") in plaats van een regel.
+// `updatedAt`: hoe vers het is, in de knop Verversen ("bijgewerkt 20 min geleden", nooit een kloktijd) in plaats van een regel.
 // Onder de rij staat hooguit één metaregel (.vh__sub), over de volle breedte, zodat hij nooit tussen
 // titel en knoppen wordt samengeperst. Daarna volgt de inhoud op --after-header.
 export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing, updatedAt, showSearch = true, compare = false, account = true, tools = null, onBack, backLabel = 'Terug', backInNav = false, children }) {
   const hoot = useHoot()
   const panel = hoot?.panel
-  const at = clock(updatedAt)
+  const at = timeAgo(updatedAt)
   return (
     <header className="vh">
       <div className="vh__row">
@@ -100,7 +100,7 @@ export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing,
         ) : null}
         {tools}
         {onRefresh ? (
-          <button type="button" className={`iconbtn${refreshing ? ' is-spinning' : ''}`} onClick={onRefresh} disabled={refreshing} aria-label={at ? `Verversen, bijgewerkt om ${at}` : 'Verversen'} title={at ? `Verversen · bijgewerkt om ${at}` : undefined}>
+          <button type="button" className={`iconbtn${refreshing ? ' is-spinning' : ''}`} onClick={onRefresh} disabled={refreshing} aria-label={at ? `Verversen, bijgewerkt ${at}` : 'Verversen'} title={at ? `Verversen · bijgewerkt ${at}` : undefined}>
             <RefreshIcon />
           </button>
         ) : null}
@@ -135,12 +135,12 @@ function AccountButton({ account, onClick }) {
 // Onderscheidt: offline · verversen mislukt · álle bronnen onbereikbaar · gewoon bijgewerkt.
 // Eén of enkele uitgevallen bronnen horen hier niet: die staan stil onder Bronnen → Bronstatus.
 export function StatusLine({ online, refreshing, refreshError, meta, allDown = false, onRetry, quiet = false }) {
-  const at = clock(meta?.updatedAt)
-  if (!online) return <p className="status status--warn" role="status">Je bent offline. Je ziet wat om {at || 'eerder'} is opgehaald.</p>
+  const at = timeAgo(meta?.updatedAt)
+  if (!online) return <p className="status status--warn" role="status">Je bent offline. Dit is het nieuws van {at || 'eerder'}.</p>
   if (refreshError)
     return (
       <p className="status status--warn" role="status">
-        Verversen lukt nu niet. Je ziet de versie van {at || 'eerder'}.{' '}
+        Verversen lukt nu niet.{' '}
         <button type="button" className="linkbtn" onClick={onRetry}>
           Opnieuw
         </button>
@@ -152,13 +152,13 @@ export function StatusLine({ online, refreshing, refreshError, meta, allDown = f
   if (allDown)
     return (
       <p className="status status--warn" role="status">
-        Je bronnen zijn nu niet bereikbaar. Je ziet wat eerder is opgehaald.{' '}
+        Je bronnen zijn nu niet bereikbaar.{' '}
         <button type="button" className="linkbtn" onClick={onRetry}>
-          Opnieuw proberen
+          Opnieuw
         </button>
       </p>
     )
-  return at && !quiet ? <p className="status">Bijgewerkt om {at}</p> : null
+  return at && !quiet ? <p className="status">Bijgewerkt {at}</p> : null
 }
 
 // Laden: een skelet in de vorm van wat er komt, zodat de inhoud bij het landen niet verspringt.
@@ -225,7 +225,7 @@ export function Empty({ title, children, action, tone = 'neutral', label, art: A
       {page ? <Art /> : null}
       {label ? <p className="label label--meta empty__label">{label}</p> : null}
       <h2 className={`${page ? 'head-5' : 'head-lg'} empty__title`}>{title}</h2>
-      <p className="empty__text">{children}</p>
+      {children ? <p className="empty__text">{children}</p> : null}
       {action}
     </div>
   )

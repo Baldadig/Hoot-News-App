@@ -87,7 +87,7 @@ test('Delen: deelknop naast bewaren, de link van de uitgever, "Link gekopieerd" 
 
 test('Geen kloktijden in webteksten: dagdelen in de Editie, de Selectie, Instellingen en Over (W7)', () => {
   // Commentaar telt niet mee (daar mag de server-afsluiting staan); 'uur geleden' en een
-  // status-tijdstip ("Bijgewerkt om 13:50", zoals iOS "Je ziet de versie van 10:10") blijven.
+  // relatieve tijd ("Bijgewerkt 20 min geleden") blijven; een kloktijd in de status is er niet meer.
   const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
   const files = walk(root).filter((f) => /\.(jsx?|mjs)$/.test(f))
   for (const f of files) {
@@ -95,15 +95,16 @@ test('Geen kloktijden in webteksten: dagdelen in de Editie, de Selectie, Instell
     assert.doesNotMatch(s, /\bom \d{1,2}(:\d{2})? uur\b/, `${f}: "om N uur"`)
     assert.doesNotMatch(s, /\b0?[67]:00\b|\b1[27]:00\b/, `${f}: een editietijd als kloktijd`)
     assert.doesNotMatch(s, /staat klaar om|maandag om/, `${f}: kloktijd in een zin`)
+    assert.doesNotMatch(s, /(bijgewerkt|gecontroleerd|opgehaald|versie van) om\b/i, `${f}: kloktijd in een status`)
   }
   assert.match(read('views/Edition.jsx'), /\{upNext\(edition\.slot\)\}/)
   // De dagdelen staan in één tabel (shared/slots.mjs, D1); iOS spiegelt hem.
   assert.match(readFileSync(new URL('../shared/slots.mjs', import.meta.url), 'utf8'), /avond: \{[^}]*volgende: 'morgenochtend'/)
   const vak = read('views/Vak.jsx')
-  assert.match(vak, /in de ochtend\.<\/p>/)
-  assert.match(vak, /Elke maandagochtend een nieuwe\./)
+  assert.match(vak, /De eerste Selectie komt/)
+  assert.match(vak, /Elke maandagochtend nieuw\./)
   // Dezelfde drie dagdelen in dezelfde woorden als iOS (WelcomeView `.seintje`).
-  assert.match(read('views/Settings.jsx'), /in de ochtend, middag en vroege avond\./)
+  // Settings zegt het niet meer (KISS): het ritme staat alleen op Over.
   assert.match(read('views/Over.jsx'), /in de ochtend, middag en vroege avond\./)
   assert.match(read('views/Over.jsx'), /De Selectie verschijnt elke maandagochtend\./)
 })
@@ -122,7 +123,7 @@ test('Aanhalen met ‘ ’: geen rechte aanhalingstekens om gebruikerstekst in d
     const quoted = text.match(/(?:^|[\s(>])"(?=\p{L})[^"<>{}=\n]*(?:\n[^"<>{}=\n]*)?[\p{L}.!?…]"(?=[\s,.:;)!?<…]|$)/mu)
     assert.equal(quoted, null, `${f.slice(root.length)}: ${quoted?.[0].trim()}`)
   }
-  assert.match(read('views/Stream.jsx'), /‘Opinie’ staat er alleen als/)
+  assert.match(read('views/Stream.jsx'), /Opinie: zoals de bron het noemt/)
   assert.match(read('views/Privacy.jsx'), /‘meer\s+hiervan’ of ‘minder hiervan’/)
   assert.match(read('views/Search.jsx'), /Niets gevonden voor ‘\$\{q\.trim\(\)\}’/)
 })
@@ -211,4 +212,19 @@ test('Het verhaal wint van de schermtitel: .vh__title is head-5, .lead__title he
   const css = read('styles.css')
   const rem = (name) => Number(new RegExp(`--${name}: ([\\d.]+)rem`).exec(css)[1])
   assert.ok(rem('t6') > rem('t5') && rem('lh-6') > rem('lh-5'), 'de kop van het verhaal is groter dan de schermtitel')
+})
+
+test('KISS-teksten (kiss-teksten.json): geen rij zonder bediening, geen oude uitleg, contact info@gethoot.app', () => {
+  const settings = read('views/Settings.jsx')
+  assert.doesNotMatch(settings, /label="Edities"/, 'de uitlegrij Edities is weg')
+  assert.doesNotMatch(settings, />Extra<|in het menu/, 'Extra heet Menu')
+  assert.match(settings, /Telt vanaf je volgende Editie\./)
+  assert.doesNotMatch(read('views/Edition.jsx'), /Instellingen › Edities|edhint/, 'de eenmalige Editie-hint is weg')
+  for (const f of ['views/Over.jsx', 'views/Privacy.jsx']) {
+    const s = read(f)
+    assert.doesNotMatch(s, /hootnews\.nl/, `${f}: domein`)
+    assert.match(s, /info@gethoot\.app/, `${f}: contact`)
+  }
+  assert.match(read('views/Privacy.jsx'), /De Redacteur[\s\S]*op je toestel/)
+  assert.match(read('views/Stream.jsx'), /Je bent bij\./)
 })

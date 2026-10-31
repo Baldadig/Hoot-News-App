@@ -4073,6 +4073,10 @@ html[data-images='hoofd'] .media--social {
 .learned__intro {
   margin: 0 0 var(--s3);
 }
+/* Tussenkop boven Vaak gelezen / Minder: een stille kop, lucht erboven op de schaal. */
+.learned__sub {
+  margin: var(--s4) 0 var(--s1);
+}
 /* Een rij die naar een ander scherm gaat: de caret (16, --ink-3) aan het eind, zoals bij een
    uitklapper (.srcgroup), dus op dezelfde plek tegen de rechterlijn. */
 .setrow--link > .caret {
@@ -4444,26 +4448,6 @@ html[data-images='hoofd'] .media--social {
 /* De metaregel is altijd het laatste in de kop: lucht tussen de metaregel en de inktlijn. */
 .edmeta:last-child {
   padding-bottom: var(--s3);
-}
-
-/* De eenmalige uitleg bij "Jouw Editie" (na het eerste Welkom): een gewone .hint met een kleine X
-   (36, .hit 44 raakvlak) ernaast. De X staat met zijn midden op het midden van de eerste regel en
-   met de tekening (niet het vak) op de kolomlijn, ook als de tekst op breed scherm bij
-   --measure-prose ophoudt: dan staat hij onder de caret van de rij erboven. */
-.edhint {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--s2);
-}
-.edhint > .hint {
-  flex: 1;
-  margin-top: 0;
-}
-.edhint__x {
-  width: var(--control-sm);
-  height: var(--control-sm);
-  margin-block: calc((var(--lh-1-read) - var(--control-sm)) / 2);
-  margin-inline: auto calc((var(--icon-sm) - var(--control-sm)) / 2);
 }
 
 /* De ingang naar het overzicht in één minuut: een stille bedieningsrij direct onder de inktlijn,

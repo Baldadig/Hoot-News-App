@@ -18,7 +18,7 @@ export default function Privacy({ onBack, backLabel }) {
           <li>de laatst geladen nieuwsfeed (voor een snelle start) en het weer van vandaag;</li>
           <li>waar je in een lijst was, en de laatst gebruikte inlogstap.</li>
         </ul>
-        <p>Je wist dit door de websitegegevens van hootnews.nl in je browser te verwijderen.</p>
+        <p>Je wist dit door de websitegegevens van de site in je browser te verwijderen.</p>
 
         <h2 className="label label--section sect">Met een account</h2>
         <p>
@@ -28,7 +28,7 @@ export default function Privacy({ onBack, backLabel }) {
         </p>
         <p>
           Log je uit, dan gaan die gegevens van dit toestel af; ze blijven in je account. Een ander account op hetzelfde toestel krijgt ze nooit te zien. Je account verwijder je zelf in de app
-          (Instellingen › Account › Account verwijderen), of je mailt naar <a href="mailto:hallo@hootnews.nl">hallo@hootnews.nl</a>. Dan verdwijnen je account, je instellingen en je
+          (Instellingen › Account › Account verwijderen), of je mailt naar <a href="mailto:info@gethoot.app">info@gethoot.app</a>. Dan verdwijnen je account, je instellingen en je
           bewaarde stukken van de server.
         </p>
 
@@ -63,14 +63,14 @@ export default function Privacy({ onBack, backLabel }) {
         </p>
         <ul>
           <li>
-            <strong>Het nieuws</strong> haalt de app op bij hootnews.nl, net als de website.
+            <strong>Het nieuws</strong> haalt de app op bij de Hoot-server, net als de website.
           </li>
           <li>
-            <strong>Je eigen Editie:</strong> om die samen te stellen stuurt de app je bronnen, interesses, voorkeursbronnen, meer en minder hiervan en die leesvoorkeuren (zonder je naam, zonder een vast kenmerk van je
-            toestel) naar hootnews.nl. De server stelt je Editie samen, stuurt hem terug en bewaart niets van wat je stuurde.
+            <strong>Je eigen Editie</strong> stelt De Redacteur samen, op je toestel. Je bronnen, interesses en wat je las verlaten het toestel daarvoor niet; er is geen leesprofiel op een server. Alleen als dat op je toestel
+            niet lukt, is de server de terugval: dan gaan je bronnen en interesses (zonder je naam, zonder een vast kenmerk van je toestel) naar de Hoot-server, die de Editie samenstelt, terugstuurt en niets bewaart van wat je stuurde.
           </li>
           <li>
-            <strong>De Hoot-lezer</strong> laadt het artikel op je toestel bij de uitgever, zoals Safari dat doet, en toont alleen de tekst en beelden. Er gaat niets via hootnews.nl. Log je in de
+            <strong>De Hoot-lezer</strong> laadt het artikel op je toestel bij de uitgever, zoals Safari dat doet, en toont alleen de tekst en beelden. Er gaat niets via de Hoot-server. Log je in de
             lezer in bij een abonnement, dan typ je je gegevens op de site van de uitgever zelf; Hoot ziet ze niet. Wat de uitgever bewaart (je inlog, je toestemming voor cookies) blijft
             alleen in de lezer op dit toestel. Je wist het met &ldquo;Overal uitloggen in de lezer&rdquo; bij Instellingen › Abonnementen.
           </li>
@@ -91,7 +91,7 @@ export default function Privacy({ onBack, backLabel }) {
 
         <h2 className="label label--section sect">Contact</h2>
         <p>
-          Vragen over je gegevens? Mail naar <a href="mailto:hallo@hootnews.nl">hallo@hootnews.nl</a>.
+          Vragen over je gegevens? Mail naar <a href="mailto:info@gethoot.app">info@gethoot.app</a>.
         </p>
         <p>Bijgewerkt op 28 oktober 2026.</p>
       </div>

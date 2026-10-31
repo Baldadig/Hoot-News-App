@@ -17,7 +17,7 @@ export function sourceStatus(sources = [], muted = new Set()) {
 // Tekst voor schermlezers bij het puntje in de navigatie (betekenis hangt niet aan kleur).
 export function statusLabel(count) {
   if (!count) return ''
-  return count === 1 ? 'één bron tijdelijk niet bereikbaar' : `${count} bronnen tijdelijk niet bereikbaar`
+  return count === 1 ? 'één bron niet bereikbaar' : `${count} bronnen niet bereikbaar`
 }
 
 // Valt een bron uit, dan houden we de berichten die we al van die bron hadden.

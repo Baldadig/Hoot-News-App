@@ -27,7 +27,6 @@ function FilterSheet({ open, onClose, params, clear, setFilter, count }) {
     <Dialog open={open} onClose={onClose} labelledBy="sheet-title">
       <DialogHeader id="sheet-title" title="Filters" onClose={onClose} />
 
-      <h3 className="label label--section sheet__label">Soort</h3>
       <div className="chips">
         {KINDS.map((k) => (
           <button key={k.id} type="button" className="pill" aria-pressed={(params.soort || '') === k.id} onClick={() => setFilter('soort', k.id)}>
@@ -35,11 +34,11 @@ function FilterSheet({ open, onClose, params, clear, setFilter, count }) {
           </button>
         ))}
       </div>
-      <p className="sheet__note">‘Opinie’ staat er alleen als de bron het zelf zo noemt.</p>
+      <p className="sheet__note">Opinie: zoals de bron het noemt.</p>
 
       <div className="sheet__foot">
         <button type="button" className="btn btn--quiet" onClick={clear}>
-          Wis alle filters
+          Wis filters
         </button>
         <button type="button" className="btn" onClick={onClose}>
           Toon {count} {count === 1 ? 'bericht' : 'berichten'}
@@ -140,7 +139,7 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
 
   // De filterknop (soort) staat in de kop; wat je verder filtert zie je op de lijn.
   const filterButton = (
-    <button type="button" className={`iconbtn filterbtn${filters.soort ? ' is-on' : ''}`} onClick={() => setSheet(true)} aria-haspopup="dialog" aria-label={`Filters: soort${filters.soort ? `, nu ${kindName(filters.soort)}` : ''}`} title="Filters: soort (Alles, Artikelen, Opinie)">
+    <button type="button" className={`iconbtn filterbtn${filters.soort ? ' is-on' : ''}`} onClick={() => setSheet(true)} aria-haspopup="dialog" aria-label={`Filters: soort${filters.soort ? `, nu ${kindName(filters.soort)}` : ''}`} title="Filters">
       <FilterIcon />
       {filters.soort ? <span className="filterbtn__dot" aria-hidden="true" /> : null}
     </button>
@@ -195,27 +194,26 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
               </div>
             ) : list.length === 0 ? (
               <Empty
-                title="Geen berichten voor dit filter"
+                title={offSource ? `${srcName(offSource)} staat uit` : 'Al je bronnen staan uit'}
                 action={
                   offSource ? (
                     <button type="button" className="btn" onClick={() => setMuted(offSource, true)}>
                       Zet {srcName(offSource)} aan
                     </button>
                   ) : (
-                    <button type="button" className="btn" onClick={clear}>
-                      Wis filters
-                    </button>
+                    <a className="btn" href="#/bronnen">
+                      Naar Bronnen
+                    </a>
                   )
                 }
               >
-                {offSource ? `${srcName(offSource)} staat uit. Zet de bron aan om de berichten in je Stroom te zien.` : 'Al je bronnen staan uit. Zet er een aan bij Bronnen.'}
               </Empty>
             ) : (
               <div className={`list rows${preview === 'alles' ? '' : ` list--lines-${preview}`}`}>
                 {shown.map((item) => (
                   <Entry key={item.id} item={item} story={item.storyId ? storiesById.get(item.storyId) : null} />
                 ))}
-                {shown.length < list.length ? <div ref={more} className="listmore" aria-hidden="true" /> : <p className="listend">Dit is alles wat je bronnen nu aanbieden.</p>}
+                {shown.length < list.length ? <div ref={more} className="listmore" aria-hidden="true" /> : <p className="listend">Je bent bij.</p>}
               </div>
             )}
           </>

@@ -262,7 +262,7 @@ const TYPE = [
   ['compact__sum', 'Samenvatting', '.compact__sum', 'Premier en ministers praten deze week met alle fracties over het plan.'],
   ['drow__label', 'Bediening en bronnaam', '.drow__label', 'Tekstgrootte'],
   ['hint', 'Uitleg', '.hint', 'Wat bij je interesses past, gaat voor in je Editie.'],
-  ['status', 'Meta: tijd, aantallen, status', '.status', 'Bijgewerkt om 13:50'],
+  ['status', 'Meta: tijd, aantallen, status', '.status', 'Bijgewerkt 20 min geleden'],
   ['label label--section', 'Sectiekop', '.label--section', 'Je volgt'],
   ['label label--kicker', 'Kicker: de rubriek', '.label--kicker', 'Binnenland'],
   ['label label--meta', 'Meta-label', '.label--meta', 'Kon niet laden'],

@@ -2,7 +2,7 @@ import { ViewHeader } from '../components/Shell.jsx'
 
 // Over en contact: wie Hoot maakt en hoe je hem bereikt. Dit is ook de support-pagina van de
 // app in de App Store (Apple eist een pagina met een manier om contact op te nemen).
-const MAIL = 'hallo@hootnews.nl'
+const MAIL = 'info@gethoot.app'
 
 export default function Over({ onBack, backLabel }) {
   return (
