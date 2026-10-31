@@ -1,4 +1,4 @@
-import { receiveMove } from './lib/domain-migration.js'
+import { receiveMove, dropMoveFragment } from './lib/domain-migration.js'
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
@@ -18,7 +18,14 @@ import { loadFeedCache } from './lib/feedCache.js'
 import { migrate } from './lib/migrate.js'
 
 async function start() {
-  await receiveMove()
+  // Verhuizing van hootnews.nl: lukt dat niet (geen verwijzer, oude browser zonder
+  // DecompressionStream, te groot), dan start Hoot gewoon zonder de meegebrachte gegevens.
+  try {
+    await receiveMove()
+  } catch (error) {
+    console.warn('Verhuizing overgeslagen', error)
+    try { dropMoveFragment() } catch { /* geen geschiedenis: niets weg te halen */ }
+  }
 // Uitnodigingslink (?uitnodiging=…) en terugkomst van Google (#id_token=…): onthouden en uit de
 // adresbalk halen, vóór de app die als route leest.
 captureInvite()
@@ -71,8 +78,4 @@ loadFeedCache().finally(() =>
 registerUpdates()
 
 }
-start().catch(() => {
-  const root = document.getElementById('root')
-  root.textContent = 'Overzetten lukt nu niet. Je gegevens staan nog op hootnews.nl.'
-  const back = document.createElement('a'); back.href = 'https://hootnews.nl/'; back.textContent = ' Probeer opnieuw'; root.append(back)
-})
+start().catch((error) => console.error(error))
