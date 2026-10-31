@@ -1962,6 +1962,9 @@ var HootCore = (() => {
     return Object.assign(entries, { deskOrder, abroad: abroadIds, counted });
   }
 
+  // shared/stroom.mjs
+  var forEdition = (it) => !it?.streamOnly;
+
   // src/lib/personal.js
   var EXTERN = "extern";
   var WIDE = "breed";
@@ -2000,7 +2003,7 @@ var HootCore = (() => {
   }
   function composePersonal({ global, stories = [], items = [], sources = [], followed = /* @__PURE__ */ new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = /* @__PURE__ */ new Set() }) {
     if (!global?.entries?.length) return null;
-    items = items.map(withTrustedTopics);
+    items = items.filter(forEdition).map(withTrustedTopics);
     global = { ...global, items: (global.items || []).map(withTrustedTopics), wide: (global.wide || []).map((w) => w?.item ? { ...w, item: withTrustedTopics(w.item) } : w) };
     const catOf = new Map(sources.map((s) => [s.id, s.cat]));
     const kindOf = (i) => {
@@ -2323,7 +2326,7 @@ var HootCore = (() => {
       favorites: input.favorites || [],
       followed,
       sources: input.sources || [],
-      supply: supplyOf(input.items || [], followed)
+      supply: supplyOf((input.items || []).filter(forEdition), followed)
     });
     return profileSummary(prof);
   }

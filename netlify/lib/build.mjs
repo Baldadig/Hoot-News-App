@@ -8,7 +8,7 @@ import { createBrief, briefRows } from './brief.mjs'
 import { articleKey, mergeSnippets, isLiveblog } from './snippets.mjs'
 import { SOURCES, BLUESKY_AUTHORS, BLUESKY_HOURS, BSKY_BRAND, MAIN_IDS, MUSIC_IDS, EDITION_CATS, UA } from './sources.mjs'
 import { loadSourceWithRetry } from './rss.mjs'
-import { STORE_KEY, mergeStream, storeOf } from './stream.mjs'
+import { STORE_KEY, splitFeed, storeOf, withLatest } from './stream.mjs'
 import { loadSnippets, loadTrends, loadSourceAvatars, loadBlueskyProfiles, loadBskyCards } from './lookups.mjs'
 import { loadOgImage } from './og.mjs'
 import { measureFeedImages } from './image-measure.mjs'
@@ -20,6 +20,7 @@ import { fetchAuthorPosts } from '../../shared/bluesky.mjs'
 import { hash, safeHttpUrl } from '../../shared/util.mjs'
 import { withoutCopies, titleKey } from '../../shared/dedupe.mjs'
 import { visibleFor, READER_LANG } from '../../shared/lang.mjs'
+import { inStroom, forEdition } from '../../shared/stroom.mjs'
 
 const MIN = 6e4
 const DAY = 864e5
@@ -40,31 +41,40 @@ export async function buildFeed({ now = Date.now() } = {}) {
   const avatars = remember('avatars-v1', DAY, loadSourceAvatars, { now, valid: (m) => Object.values(m).some(Boolean) })
   const handles = BLUESKY_AUTHORS.map((a) => a.handle)
   const profiles = handles.length === 0 ? Promise.resolve({}) : remember('bsky-profiles-' + hash(handles.join()), DAY, () => loadBlueskyProfiles(handles), { now, valid: (m) => Object.keys(m).length > 0 }).catch(() => ({}))
-  // De hele feed per bron; de grens (36 uur, hooguit 60) volgt na het samenvoegen met wat we
-  // eerder zagen (stream.mjs).
+  // De hele feed per bron; daaruit twee lijsten (shared/stroom.mjs).
   const [fetched, bskyGroups, registry, stored] = await Promise.all([
     settle(SOURCES, (s) => loadSourceWithRetry(s, avatars, { limit: Infinity })),
     settle(BLUESKY_AUTHORS, (a) => loadBluesky(a, now)),
     kvGet('registry-v1').then((r) => (r && typeof r === 'object' ? r : {})),
     kvGet(STORE_KEY).catch(() => null),
   ])
-  const mainGroups = mergeStream(fetched, stored, { now })
+  // De Stroom: per bron alles van de afgelopen 36 uur, hooguit 60, samen met wat we eerder zagen.
+  // De verhalen en de Editie: het oude venster, zoals vóór de 36-uursgrens (de eerste 30 van de
+  // feed, per rubriek minder). Juist de trage bronnen met achtergrondstukken reiken daarin verder
+  // terug dan 36 uur: dat is het materiaal voor de bubbel en de verdieping (stream.mjs, splitFeed).
+  const { mainGroups, streamIds, editionIds, editionExtra } = splitFeed(fetched, stored, { now })
+  // Bluesky-posts horen bij allebei (ze hebben hun eigen 36 uur, BLUESKY_HOURS).
+  const inWindow = (it) => it.kind === 'post' || streamIds.has(it.id)
+  const inPool = (it) => it.kind === 'post' || editionIds.has(it.id)
 
-  // 2. De Stroom, 3. gaten vullen, 4. voorvertoningen lenen.
-  const items = streamItems([...mainGroups, ...bskyGroups].flatMap((g) => g.items))
+  // 2. De berichten, 3. gaten vullen, 4. voorvertoningen lenen.
+  const items = streamItems([...mainGroups.flatMap((g) => g.items), ...editionExtra, ...bskyGroups.flatMap((g) => g.items)])
   const gaps = await fillGaps(items, now)
   await imagesFromBluesky(items, now)
   await imagesFromArticles(items, now)
-  borrowPreviews(items, mainGroups.flatMap((g) => g.items))
-  // Bewaren zoals ze nu zijn (met beeld en inleiding), vóór de verhalen er hun id aan hangen.
-  await kvSet(STORE_KEY, storeOf(mainGroups)).catch(() => {})
+  borrowPreviews(items, [...mainGroups.flatMap((g) => g.items), ...editionExtra])
+  // Bewaren zoals ze nu zijn (met beeld en inleiding), vóór de verhalen er hun id aan hangen. Met
+  // wat een gelijktijdige ronde in een andere instantie intussen schreef (withLatest).
+  const latest = await kvGet(STORE_KEY).catch(() => null)
+  await kvSet(STORE_KEY, storeOf(withLatest(mainGroups, latest, { now }))).catch(() => {})
 
   // 5. Verhalen: bundelen over alle bronnen (behalve regionaal en muziek), met per verhaal de
   //    kenmerken van al zijn stukken (`keys`): het toestel kent van een verhaal alleen de eigen
   //    bronnen en moet toch weten wat er in de vorige Editie al over geschreven was. In de
   //    uitgebreide stand (H6): twee namen in de kop binnen twaalf uur, EU-landen en instituten in
   //    twee talen, een los stuk bij de kern van een groot verhaal.
-  const articlePool = storyPool(items)
+  //    Uit het oude venster (inPool), niet uit de Stroom.
+  const articlePool = storyPool(items.filter(inPool))
   const stories = buildStories(articlePool, registry, { mainIds: MAIN_IDS, keys: true, extended: true })
   const poolById = new Map(articlePool.map((i) => [i.id, i]))
   for (const st of stories) for (const id of st.itemIds) poolById.get(id).storyId = st.id
@@ -72,11 +82,12 @@ export async function buildFeed({ now = Date.now() } = {}) {
   // 6. Eerst-gezien-tijd per bericht, en bij welk verhaal het hoort (houdt id's stabiel).
   await updateRegistry(registry, items, now)
 
-  const out = items.map(toClient).filter((i) => i.url) // laatste vangnet: geen link, geen bericht
+  // Elk bericht zegt of het alleen voor de Editie of alleen voor de Stroom is (shared/stroom.mjs).
+  const out = items.map((it) => toClient(it, { editionOnly: !inWindow(it), streamOnly: !inPool(it) })).filter((i) => i.url) // laatste vangnet: geen link, geen bericht
 
   // 7. De editie van dit dagdeel (één keer samengesteld, daarna vast). Ook daar telt elk stuk
   // één keer, al brengen vijf zusterkranten het.
-  const edition = await composeEdition({ now, stories, articlePool: articlePool.filter(inEdition), pool: editionPool(out, articlePool), anthropic })
+  const edition = await composeEdition({ now, stories, articlePool: articlePool.filter(inEdition), pool: editionPool(out.filter(forEdition), articlePool), anthropic })
   // Eerst de vastgelegde hoofdbeelden, dan de hoofden van de verhalen, dan de rest.
   // Zo kan de begrensde wachtrij niet worden opgeslokt door alleen de nieuwste Stroom-berichten.
   const outById = new Map(out.map(i => [i.id, i]))
@@ -90,14 +101,16 @@ export async function buildFeed({ now = Date.now() } = {}) {
   const liveStoryIds = new Set(stories.map((st) => st.id))
   const haveOut = new Set(out.map((i) => i.id))
 
-  // De app haalt per bron alleen wat je volgt (`parts`). In de kern staat wat iedereen nodig
-  // heeft: de bronnen, de verhalen met al hun berichten (om te vergelijken) en de editie.
+  // De app haalt per bron alleen wat je volgt (`parts`): de Stroom én de voeding van De Redacteur
+  // op het toestel, met de vlaggen van shared/stroom.mjs. In de kern staat wat iedereen nodig
+  // heeft: de bronnen, de verhalen met al hun berichten (om te vergelijken) en de editie. `items`
+  // (de oude vorm, refresh.mjs) is alleen de Stroom.
   const parts = {}
   for (const it of out) (parts[it.source] ||= []).push(it)
   const storyItems = out.filter((i) => i.storyId)
   return {
     sources: sourceList({ mainGroups, bskyGroups, avatars: await avatars, profiles: await profiles }),
-    items: out,
+    items: out.filter(inStroom),
     parts,
     related: [...storyItems, ...edition.snapshot.items.filter((i) => !haveOut.has(i.id) || !i.storyId)],
     stories: [...stories, ...edition.snapshot.stories.filter((st) => !liveStoryIds.has(st.id))],
@@ -319,7 +332,7 @@ async function updateRegistry(registry, list, now) {
 
 // ---------- Wat de app van een bericht krijgt ----------
 // Lege velden laten we weg: dat scheelt een kwart van de omvang.
-function toClient(it) {
+function toClient(it, { editionOnly = false, streamOnly = false } = {}) {
   const topics = keywordTopics(`${it.title} ${it.text || it.summary || ''} ${it.cats || ''}`)
   // Gespecialiseerde bronnen dragen hun onderwerp mee (een gamessite gaat over games).
   const src = SOURCE.get(it.source)
@@ -360,6 +373,8 @@ function toClient(it) {
     video: safeHttpUrl(it.video),
     videoPoster: safeHttpUrl(it.videoPoster),
     publishedAt: it.publishedAt,
+    editionOnly,
+    streamOnly,
   })
 }
 const compact = (o) => {

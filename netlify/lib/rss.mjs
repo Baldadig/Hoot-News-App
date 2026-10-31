@@ -2,7 +2,8 @@
 import Parser from 'rss-parser'
 import { hash, safeHttpUrl } from '../../shared/util.mjs'
 import { typeset } from '../../shared/typeset.mjs'
-import { BRAND, PER_SOURCE_LIMIT, UA } from './sources.mjs'
+import { BRAND, UA, editionWindowOf } from './sources.mjs'
+import { firstOf } from './stream.mjs'
 import { favicon, toText, clip, preview, cleanUrl, hostname, safeIso, plausibleTime } from './text.mjs'
 import { langOf } from '../../shared/lang.mjs'
 
@@ -114,9 +115,10 @@ async function readFeed(url) {
   return parser.parseString((await res.text()).replace(/^[\s\uFEFF]+/, ''))
 }
 
-// `limit`: hoeveel berichten in de taal van de bron (feedvolgorde). De Stroom vraagt alles
-// (Infinity) en kapt zelf af op tijd en aantal (stream.mjs); de vakbronnen houden de standaard.
-export async function loadSource(src, avatarsP, { limit = PER_SOURCE_LIMIT } = {}) {
+// `limit`: hoeveel berichten in de taal van de bron (feedvolgorde). Standaard het oude venster
+// (editionWindowOf: 30, per rubriek minder). De feed-opbouw vraagt alles (Infinity): de Stroom kapt
+// zelf af op tijd en aantal (stream.mjs), de verhalen en de Editie nemen het oude venster (firstOf, stream.mjs).
+export async function loadSource(src, avatarsP, { limit = editionWindowOf(src) } = {}) {
   let lastErr
   for (const url of src.urls) {
     try {
@@ -173,11 +175,7 @@ export async function loadSource(src, avatarsP, { limit = PER_SOURCE_LIMIT } = {
           publishedAt: plausibleTime(it.isoDate || (it.pubDate ? safeIso(it.pubDate) : null), fetchedAt),
         }
       }).filter((i) => i.url && i.title) // zonder geldige (http/https) link of zonder kop niet tonen
-      // De grens per bron telt alleen berichten in de taal van de bron: anders drukken de
-      // Engelstalige Parool-stukken (een derde van de feed) de Nederlandse eruit. Afwijkende
-      // berichten binnen die grens blijven, gemarkeerd.
-      let kept = 0
-      const items = mapped.filter((i) => (i.offLang ? kept < limit : kept < limit && ++kept))
+      const items = firstOf(mapped, limit) // de grens telt alleen berichten in de brontaal
       return { id: src.id, name: src.name, ok: true, used: url, count: items.length, items }
     } catch (e) {
       lastErr = e

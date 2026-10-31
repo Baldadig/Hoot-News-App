@@ -1,8 +1,11 @@
 // De Stroom per bron: alles van de afgelopen 36 uur, hooguit 60, samengevoegd met wat we eerder zagen.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { recentOf, mergeSource, mergeStream, storeOf, STORE_KEY } from '../netlify/lib/stream.mjs'
-import { STREAM_HOURS, STREAM_MAX, BLUESKY_HOURS, PER_SOURCE_LIMIT, SOURCES } from '../netlify/lib/sources.mjs'
+import { recentOf, mergeSource, mergeStream, storeOf, withLatest, splitFeed, firstOf, STORE_KEY } from '../netlify/lib/stream.mjs'
+import { STREAM_HOURS, STREAM_MAX, BLUESKY_HOURS, PER_SOURCE_LIMIT, SOURCES, editionWindowOf } from '../netlify/lib/sources.mjs'
+import { inStroom, forEdition } from '../shared/stroom.mjs'
+import { inStream } from '../src/lib/sourcesel.js'
+import { freshCount } from '../src/lib/fresh.js'
 import { loadSource } from '../netlify/lib/rss.mjs'
 import { fetchAuthorPosts } from '../shared/bluesky.mjs'
 import { kvGet, kvSet } from '../netlify/lib/kv.mjs'
@@ -94,12 +97,59 @@ async function withFetch(handler, fn) {
   }
 }
 
-test('loadSource: de Stroom krijgt de hele feed (Infinity), standaard blijft de grens van de vakbronnen', async () => {
+test('loadSource: de opbouw krijgt de hele feed (Infinity), standaard blijft het oude venster', async () => {
   const src = SOURCES.find((s) => s.id === 'nos')
   await withFetch(async () => new Response(rss(80)), async () => {
     assert.equal((await loadSource(src, Promise.resolve({}), { limit: Infinity })).items.length, 80)
     assert.equal((await loadSource(src, Promise.resolve({}))).items.length, PER_SOURCE_LIMIT)
   })
+})
+
+// ---- De verhalen en de Editie houden het oude venster ----
+test('het oude venster: 30 per bron, per rubriek minder, muziek 12', () => {
+  assert.equal(editionWindowOf({ cat: 'int' }), 30)
+  assert.equal(editionWindowOf({ cat: 'regio' }), 20)
+  assert.equal(editionWindowOf({ cat: 'vl' }), 25)
+  assert.equal(editionWindowOf({ cat: 'cultuur', music: true }), 12)
+  const list = [{ id: 'a', offLang: true }, { id: 'b' }, { id: 'c' }, { id: 'd' }]
+  assert.deepEqual(firstOf(list, 2).map((i) => i.id), ['a', 'b', 'c'])
+})
+
+test('splitFeed: een Telegraph-stuk van 40 uur voedt de Editie maar komt niet in de Stroom', () => {
+  const tg = (n, h) => ({ ...item(n, h), id: 'tg' + n, source: 'telegraph', url: 'https://www.telegraph.co.uk/' + n })
+  const fetched = [{ id: 'telegraph', ok: true, items: [tg(1, 2), tg(2, 40)] }]
+  const { mainGroups, streamIds, editionIds, editionExtra } = splitFeed(fetched, null, { now: NOW })
+  assert.deepEqual(mainGroups[0].items.map((i) => i.id), ['tg1'])
+  assert.ok(editionIds.has('tg2') && !streamIds.has('tg2'))
+  assert.deepEqual(editionExtra.map((i) => i.id), ['tg2'])
+  // Een drukke bron: in de Stroom 60, voor de Editie de eerste 30 van de feed, zoals voorheen.
+  const busy = Array.from({ length: 80 }, (_, n) => item(n, n * 0.3))
+  const nos = splitFeed([{ id: 'nos', ok: true, items: busy }], null, { now: NOW })
+  assert.equal(nos.mainGroups[0].items.length, 60)
+  assert.equal(nos.editionIds.size, 30)
+  assert.equal(nos.editionExtra.length, 0)
+})
+
+test('de vlaggen: editionOnly niet in de Stroom (web), streamOnly niet voor De Redacteur', () => {
+  const old = { id: 'o', kind: 'article', source: 'telegraph', editionOnly: true }
+  const extra = { id: 'x', kind: 'article', source: 'nu', streamOnly: true }
+  const both = { id: 'b', kind: 'article', source: 'nos' }
+  assert.equal(inStroom(old), false)
+  assert.equal(inStream(old, {}), false)
+  assert.equal(inStream(extra, {}), true)
+  assert.equal(forEdition(extra), false)
+  assert.equal(forEdition(both) && inStroom(both), true)
+  assert.equal(freshCount([], [old, extra, both]), 2)
+})
+
+test('withLatest: wat een gelijktijdige ronde intussen bewaarde gaat niet verloren', () => {
+  const mine = [{ id: 'nos', items: [item(1, 1, { seenAt: NOW })] }]
+  const out = withLatest(mine, { nos: [item(2, 5, { seenAt: NOW - H }), item(1, 1)], weg: [item(9, 1)], nu: 'kapot' }, { now: NOW })
+  assert.deepEqual(out[0].items.map((i) => i.id), ['i1', 'i2'])
+  assert.equal(out[0].items[0].seenAt, NOW) // ons exemplaar voor
+  assert.equal(out[0].items[1].seenAt, NOW - H) // niet opnieuw "gezien"
+  assert.equal(out.length, 1) // een bron die niet meer bestaat valt eruit
+  assert.equal(withLatest(mine, null, { now: NOW })[0].items.length, 1)
 })
 
 // ---- Bluesky: dezelfde 36 uur ----
@@ -132,9 +182,42 @@ test('buildFeed bewaart berichten die uit de feed verdwijnen en laat ze na 36 uu
     assert.ok(second.parts.nos.every((i) => !('seenAt' in i)), 'interne velden gaan niet naar de app')
     const stored = await kvGet(STORE_KEY)
     assert.equal(stored.nos.length, 3)
-    // Zeven uur later is de storm 37 uur oud: weg uit de Stroom (en de verhalen).
+    // Zeven uur later is de storm 37 uur oud: weg uit de Stroom (de feed noemt hem ook niet meer).
     const third = await buildFeed({ now: t0 + 7 * H })
     assert.deepEqual(third.parts.nos.map((i) => i.title), ['Treinverkeer rond Utrecht ligt plat', 'Kabinet presenteert plannen voor woningbouw'])
     assert.ok(third.items.every((i) => t0 + 7 * H - Date.parse(i.publishedAt) <= STREAM_HOURS * H))
+  })
+})
+
+test('buildFeed: stukken van 40 uur uit The Telegraph en The Guardian voeden de verhalen, niet de Stroom', async () => {
+  const { buildFeed } = await import('../netlify/lib/build.mjs')
+  const t0 = Date.now()
+  const feed = (host, items) => `<?xml version="1.0"?><rss version="2.0"><channel><title>${host}</title>${items.map(([k, h, slug]) => `<item><title>${k}</title><link>https://${host}/${slug}</link><pubDate>${new Date(t0 - h * H).toUTCString()}</pubDate></item>`).join('')}</channel></rss>`
+  // Verschillende koppen: de verhalen tellen een gelijke kop maar één keer (storyPool).
+  const tgEvent = 'Ukraine and Russia agree to large prisoner exchange after talks in Istanbul'
+  const gdEvent = 'Russia and Ukraine swap hundreds of prisoners after Istanbul talks'
+  const feeds = {
+    'telegraph.co.uk/rss.xml': feed('www.telegraph.co.uk', [['Bank of England holds interest rates steady again', 3, 'rates'], [tgEvent, 40, 'swap']]),
+    'theguardian.com/world/rss': feed('www.theguardian.com', [['Floods hit southern Spain as storm moves inland', 2, 'floods'], [gdEvent, 39, 'prisoners']]),
+  }
+  await kvSet(STORE_KEY, null)
+  const handler = async (input) => {
+    const url = typeof input === 'string' ? input : input.url
+    const hit = Object.keys(feeds).find((k) => url.includes(k))
+    return hit ? new Response(feeds[hit]) : new Response('', { status: 404 })
+  }
+  await withFetch(handler, async () => {
+    const out = await buildFeed({ now: t0 })
+    const old = out.parts.telegraph.find((i) => i.url.endsWith('/swap'))
+    // In het bron-deel, gemarkeerd: het toestel rekent er De Redacteur mee, de Stroom laat hem weg.
+    assert.ok(old && old.editionOnly === true)
+    assert.ok(!out.items.some((i) => i.id === old.id), 'niet in de Stroom (items, de oude vorm)')
+    assert.ok(!out.parts.telegraph.filter(inStroom).some((i) => i.id === old.id), 'niet in de Stroom van het deel')
+    assert.ok(!out.parts.telegraph.find((i) => i.url.endsWith('/rates')).editionOnly)
+    // In de verhalen (articlePool): het verhaal van de gevangenenruil bundelt beide oude stukken.
+    const story = out.stories.find((st) => st.itemIds.includes(old.id))
+    assert.ok(story, 'het stuk van 40 uur zit in articlePool en dus in een verhaal')
+    assert.ok(story.itemIds.includes(out.parts.guardian.find((i) => i.url.endsWith('/prisoners')).id))
+    assert.ok(out.related.some((i) => i.id === old.id), 'en in de vergelijkingsdata')
   })
 })

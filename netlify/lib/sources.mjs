@@ -125,6 +125,7 @@ export const BLUESKY_AUTHORS = []
 // games en cultuur 15, muziek 12) kapten drukke bronnen al na een paar uur af (een regionale krant
 // na 3 à 5 uur, Polygon na 4,5 uur), dus juist die 36 uur. Wat een feed niet meer noemt, bewaren
 // we (stream.mjs): zo reikt ook een drukke bron als NU.nl of de NOS de hele 36 uur terug.
+// Alleen voor de Stroom: de verhalen en de Editie houden het oude venster (editionWindowOf).
 export const STREAM_HOURS = 36
 export const STREAM_MAX = 60
 // Bluesky volgt dezelfde 36 uur (ook de eigen accounts in de app: shared/bluesky.mjs, Bluesky.swift).
@@ -137,7 +138,13 @@ export const MUSIC_IDS = new Set(SOURCES.filter((s) => s.music).map((s) => s.id)
 // Niet: regionaal (veel gedeelde stukken), Vlaanderen, sport, games en cultuur.
 export const EDITION_CATS = new Set(['nl', 'int', 'economie', 'tech', 'wetenschap'])
 
-// Standaardgrens van loadSource (rss.mjs): de vakbronnen van de Selectie. De Stroom haalt de hele
-// feed op en kapt pas af na het samenvoegen (STREAM_HOURS, STREAM_MAX).
+// Het oude venster: de eerste 30 berichten van de feed (regio 20, Vlaanderen 25, sport 20, games
+// en cultuur 15, muziek 12). Dat blijft de voeding van de verhalen en de Editie (build.mjs), en de
+// standaardgrens van loadSource (de vakbronnen van de Selectie). Juist de trage bronnen met
+// achtergrondstukken (The Telegraph, Nature, The New Yorker) reiken daarin verder terug dan 36 uur,
+// en dat materiaal hebben de bubbel en de verdieping nodig. De 36 uur en de 60 gelden alleen voor
+// de Stroom.
 export const PER_SOURCE_LIMIT = 30
+export const LIMIT_BY_CAT = { regio: 20, vl: 25, sport: 20, games: 15, cultuur: 15 }
+export const editionWindowOf = (src) => (src?.music ? 12 : LIMIT_BY_CAT[src?.cat] || PER_SOURCE_LIMIT)
 export const UA = 'HootReader/0.4 (+https://hootnews.nl) news aggregator'
