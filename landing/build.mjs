@@ -28,7 +28,7 @@ const dOf = f => fs.readFileSync(APP + '/public/brand/' + f, 'utf8').match(/<pat
 const WM_D = dOf('hoot-logo-ink.svg'), MARK_D = dOf('hoot-mark-ink.svg');
 
 // het kleine inline script: oude #/-links doorsturen, en de js-klasse
-const INLINE = "(function(){var h=location.hash,q=location.search;if(h.indexOf('#/')===0||h.indexOf('#id_token=')===0||/[?&]uitnodiging=/.test(q)){location.replace('/lees/'+q+h)}})();";
+const { INLINE } = await import('./inline.mjs');
 const HASH = 'sha256-' + crypto.createHash('sha256').update(INLINE).digest('base64');
 
 // de Stroom-lijsten
