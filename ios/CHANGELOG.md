@@ -2,6 +2,10 @@
 
 ## [1.0.1] — in de maak (TestFlight: build 34 en 35 op 29-10-2026; build 36 lokaal klaar)
 
+- **De Redacteur op de iPhone (build 36):** jouw Editie wordt op het toestel samengesteld met dezelfde rekenkern als de website (edition-core.js in JavaScriptCore), met het waarom per plek; telefoon en web nemen elkaars Editie over (de eerste schrijver wint, via je account), `previous` kijkt drie Edities terug, en als de rekenkern faalt stelt de server samen.
+- **Het waarom en wat Hoot leerde (build 36):** onder de rubriek van elke plek in jouw Editie staat kort waarom hij er staat ("Omdat je AI volgt", "3 van je bronnen schrijven erover"), stil in inkt-3 zoals op de website; Instellingen krijgt de sectie Wat Hoot van je leerde met gekozen, geleerd (Vergeet dit) en minder (Ongedaan maken) uit dezelfde rekenkern; als lid rekent de app pas na de eerste sync-pull, de pull haalt `edition` mee, en de kenmerken van toen (`keys`) gaan mee in de geschiedenis; rubriek Regio heeft een label.
+- **Geschiedenis drie diep (build 36):** de `history` van jouw Editie verloor bij elk dagdeel het dagdeel ervóór (de vorige Editie werd weggegooid in plaats van samengevat), zodat de Avond de Ochtend niet meer kende; nu vat de rekenkern haar samen, de regel heeft precies de vorm van de website (met `leadStoryId` en `shown`) en `previous` rekent in dezelfde volgorde als daar.
+- **Geschiedenis in de vorm van het web (build 36):** de `history` van jouw Editie is nu precies die van de website — de drie Edities ervóór, nooit zichzelf — zodat telefoon en web elkaars geschiedenis lezen zonder haar te herschrijven; de volle Editie uit je account telt mee als het toestel een dagdeel oversloeg dat het web wél vastlegde (de Avond kent dan Middag én Ochtend), en wat lokaal van een andere lezer is (anoniem naast je account, of je account na uitloggen) telt niet mee.
 - **Selectie:** 37 onderwerpen in acht domeinen. Je kiest ze via de knop Onderwerpen.
 - **Meer of minder hiervan:** druk lang op een verhaal in de Editie.
   - Bij minder klapt het verhaal in, met de mogelijkheid om het ongedaan te maken.

@@ -165,24 +165,13 @@ struct SettingsView: View {
                     NavigationLink(value: "bronnen") {
                         LabeledContent { Text(store.favorites.isEmpty ? "Geen" : "\(store.favorites.count)") } label: { Label("Voorkeursbronnen", systemImage: "star") }
                     }
-                    // Wat je zelf aangaf met meer of minder hiervan (lang drukken op een verhaal).
-                    if !store.taste.more.isEmpty || !store.taste.less.isEmpty {
-                        VStack(alignment: .leading, spacing: Space.s1) {
-                            Label("Wat Hoot van je leerde", systemImage: "hand.thumbsup")
-                            Group {
-                                if !store.taste.more.isEmpty { Text("Meer: \(store.taste.more.prefix(6).map(Taste.label).joined(separator: ", "))") }
-                                if !store.taste.less.isEmpty { Text("Minder: \(store.taste.less.prefix(6).map(Taste.label).joined(separator: ", "))") }
-                            }
-                            .font(.subheadline)
-                            .foregroundStyle(Theme.ink3)
-                        }
-                        Button("Wis wat Hoot leerde", role: .destructive) { withAnimation { store.clearTaste() } }
-                    }
                 } header: {
                     Text("Jouw Editie")
                 } footer: {
                     Text("Je Editie komt uit je eigen bronnen. Wat bij je interesses past en wat van je voorkeursbronnen komt (de ster bij Bronnen) gaat voor. Ook wat je opent en bewaart telt mee; dat blijft op dit toestel. Meer of minder van iets? Druk lang op een verhaal in de Editie; dat gaat mee met je account.").foregroundStyle(Theme.ink3)
                 }
+
+                LearnedSection().id("geleerd")
 
                 Section("Bronnen en onderwerpen") {
                     NavigationLink(value: "bronnen") {
@@ -242,7 +231,7 @@ struct SettingsView: View {
                 }
                 .id("over")
             }
-            .debugJump(proxy, to: "over", when: 0)
+            .debugJump(proxy, to: DebugLaunch.screen("instellingen-geleerd") ? "geleerd" : "over", when: 0)
             .task { await store.loadDigest() } // voor het aantal vakgebieden dat de server levert
             }
             .navigationTitle("Instellingen")
@@ -274,6 +263,70 @@ struct SettingsView: View {
                 }
             } message: {
                 Text(confirmClear == "bewaard" ? "\(store.saved.count == 1 ? "1 artikel verdwijnt" : "\(store.saved.count) artikelen verdwijnen") uit Bewaard\(savedSyncs ? ", op al je apparaten en op hootnews.nl" : ""). Dit kun je niet ongedaan maken." : "Wat je las, wordt weer gewoon getoond. Je bewaarde artikelen blijven staan.")
+            }
+        }
+    }
+}
+
+// Wat Hoot van je leerde (bouwspec §8): hetzelfde profiel als De Redacteur gebruikt voor jouw Editie,
+// uit dezelfde bundel (profileSummary), in drie lijsten zoals op de website. Gekozen: je interesses en
+// waar je 'meer hiervan' bij zei. Geleerd: wat je vaker opent of bewaart dan je bronnen erover
+// schrijven (blijft op dit toestel), elk met Vergeet dit. Minder: waar je 'minder hiervan' bij zei,
+// met de weg terug. Gewone taal, geen getallen. Zonder iets geleerd zegt de lijst dat.
+struct LearnedSection: View {
+    @Environment(HootStore.self) private var store
+    @State private var summary = ProfileSummary()
+    // Opnieuw rekenen als je profiel verandert: keuzes, smaak, lezen of bronnen.
+    private var key: String { "\(store.interests)|\(store.topics)|\(store.favorites)|\(store.taste.topics)|\(store.affinity.n)|\(store.followed.count)|\(store.itemsById.count)" }
+
+    var body: some View {
+        Section {
+            if !summary.chosen.isEmpty {
+                LabeledContent("Gekozen") {
+                    Text(summary.chosen.map(Taste.label).joined(separator: ", ")).multilineTextAlignment(.trailing)
+                }
+            }
+            ForEach(summary.learned, id: \.self) { t in
+                LearnedRow(title: Taste.label(t), hint: "Lees je vaak, dus komt vaker in je Editie.", action: "Vergeet dit") {
+                    withAnimation { store.forgetTopic(t) }
+                }
+            }
+            ForEach(summary.less, id: \.self) { t in
+                LearnedRow(title: Taste.label(t), hint: "Hier wilde je minder van.", action: "Ongedaan maken") {
+                    withAnimation { store.restoreLess(t) }
+                }
+            }
+            if summary.learned.isEmpty && summary.less.isEmpty {
+                LearnedRow(title: "Uit je lezen", hint: "Hoot heeft nog niets uit je lezen afgeleid.", action: nil) {}
+            }
+        } header: {
+            Text("Wat Hoot van je leerde")
+        } footer: {
+            Text("Jouw Editie volgt wat je koos, wat je vaak opent of bewaart en waar je minder van wilde. Wat je leest blijft op dit toestel; je keuzes gaan mee met je account.").foregroundStyle(Theme.ink3)
+        }
+        .task(id: key) { summary = await store.profileSummary() }
+        .animation(.default, value: summary)
+    }
+}
+
+// Eén onderwerp met wat Hoot ervan vindt en, als het kan, de weg terug: een rustige knop rechts.
+private struct LearnedRow: View {
+    let title: String
+    let hint: String
+    let action: String?
+    let run: () -> Void
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: Space.s3) {
+            VStack(alignment: .leading, spacing: Space.s0) {
+                Text(title)
+                Text(hint).font(.subheadline).foregroundStyle(Theme.ink3)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            if let action {
+                Button(action, action: run)
+                    .font(.subheadline.weight(.semibold))
+                    .buttonStyle(.borderless)
+                    .tint(Theme.accent)
             }
         }
     }

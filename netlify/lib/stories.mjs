@@ -701,19 +701,24 @@ export function previousSlotId(slot) {
 // kenmerken van toen per verhaal (`keys`, van de server: alle stukken uit alle bronnen), zodat
 // "ontwikkeld" niet afhangt van welke stukken dit toestel kent (developedSince).
 // Eén Editie, of een samenvatting ervan zoals die in `user_state.edition.history` staat (historyOf:
-// de id-lijsten als arrays, `keys` per verhaal als object).
+// de id-lijsten als arrays, `keys` per verhaal als object). Ook de platte vorm die POST /api/edition
+// aanneemt telt (`at` in ms zonder builtAt, `keysOf` al als Map): de rekenkern van de app
+// (src/lib/editionCore.js) leest hiermee en mag niets anders rekenen dan het web.
 const isHistoryRow = (x) => Array.isArray(x?.storyIds)
 function previousOfOne(x) {
   if (!x) return null
   if (isHistoryRow(x)) {
+    const keysOf = new Map()
+    if (x.keysOf instanceof Map) for (const [id, ks] of x.keysOf) keysOf.set(id, new Set(ks))
+    else for (const [id, ks] of Object.entries(x.keys && typeof x.keys === 'object' ? x.keys : {})) if (Array.isArray(ks) && ks.length) keysOf.set(id, new Set(ks))
     return {
       id: typeof x.id === 'string' ? x.id : '',
-      keysOf: new Map(Object.entries(x.keys && typeof x.keys === 'object' ? x.keys : {}).filter(([, ks]) => Array.isArray(ks) && ks.length).map(([id, ks]) => [id, new Set(ks)])),
+      keysOf,
       storyIds: new Set(x.storyIds),
       itemIds: new Set(Array.isArray(x.itemIds) ? x.itemIds : []),
       leadIds: new Set(Array.isArray(x.leadIds) ? x.leadIds : []),
       leadStoryId: typeof x.leadStoryId === 'string' ? x.leadStoryId : null,
-      at: Date.parse(x.builtAt) || 0,
+      at: Date.parse(x.builtAt) || Number(x.at) || 0,
       titles: new Set(Array.isArray(x.titles) ? x.titles : []),
       shown: Array.isArray(x.shown) ? x.shown.filter((s) => s && typeof s.title === 'string') : [],
     }
