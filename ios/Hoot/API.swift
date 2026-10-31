@@ -11,7 +11,9 @@ enum HootAPI {
         #if DEBUG
         if let value = UserDefaults.standard.string(forKey: "HootAPIBase"), let url = URL(string: value), url.scheme == "https" { return url }
         #endif
-        return URL(string: "https://gethoot.app")!
+        // 1.0.1 (build 38) blijft op hootnews.nl: die API werkt nu al en blijft na de verhuizing
+        // naar gethoot.app/lees bestaan (geen redirect op /api/*). Pas een latere build stapt over.
+        return URL(string: "https://hootnews.nl")!
     }()
 
     static let session: URLSession = {

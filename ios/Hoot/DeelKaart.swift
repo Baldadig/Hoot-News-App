@@ -148,8 +148,22 @@ struct DeelKaartExport: Transferable {
             guard let data = await MainActor.run(body: { DeelKaart(item: export.item, format: export.format).png() }) else { throw URLError(.cannotDecodeContentData) }
             return data
         }
-        ProxyRepresentation { export in
-            URL(string: "https://gethoot.app/deel/\(export.item.id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? export.item.id)")!
+        ProxyRepresentation { export in export.link }
+    }
+
+    // Deellink op hootnews.nl (werkt nu al en verwijst na de verhuizing door naar gethoot.app/deel/),
+    // met de uitgeverslink erbij: is het verhaal niet meer bewaard, dan stuurt /deel/ daarheen.
+    var link: URL {
+        var parts = URLComponents()
+        parts.scheme = "https"
+        parts.host = "hootnews.nl"
+        parts.path = "/deel/" + item.id
+        // Zelf coderen: URLQueryItem laat & en = in de waarde staan (zoals encodeURIComponent op het web).
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
+        if let source = item.link, source.scheme == "https" || source.scheme == "http",
+           let value = source.absoluteString.addingPercentEncoding(withAllowedCharacters: allowed) {
+            parts.percentEncodedQuery = "bron=" + value
         }
+        return parts.url ?? item.link ?? URL(string: "https://hootnews.nl")!
     }
 }

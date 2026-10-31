@@ -1,4 +1,4 @@
-import { shareRecord } from '../lib/share-records.mjs'
+import { shareRecord, publisherFallback } from '../lib/share-records.mjs'
 import { hootOgImage } from '../lib/og.mjs'
 import { safeHttpUrl } from '../../shared/util.mjs'
 const esc = text => String(text || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
@@ -8,7 +8,12 @@ export async function handleSharePage(req, { find = shareRecord } = {}) {
   let id
   try { id = decodeURIComponent(url.pathname.split('/').pop()) } catch { return new Response('Ongeldig adres.', { status: 400 }) }
   const item = await find(id)
-  if (!item || !safeHttpUrl(item.url)) return new Response('Verhaal niet gevonden.', { status: 404, headers: { 'Cache-Control': 'no-store' } })
+  if (!item || !safeHttpUrl(item.url)) {
+    // Niet meer bewaard: dan naar het artikel bij de uitgever, als de link dat meedraagt.
+    const fallback = publisherFallback(url.searchParams.get('bron'))
+    if (fallback) return new Response(null, { status: 302, headers: { Location: fallback, 'Cache-Control': 'public, max-age=300', 'Referrer-Policy': 'no-referrer' } })
+    return new Response('Verhaal niet gevonden.', { status: 404, headers: { 'Cache-Control': 'no-store' } })
+  }
   const canonical = `${url.origin}/deel/${encodeURIComponent(id)}`
   const image = hootOgImage(url.origin, id)
   const title = esc(item.title)

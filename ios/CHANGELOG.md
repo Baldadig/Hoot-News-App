@@ -8,6 +8,7 @@
 - Wachtmarkering, lege bladzijden, leesgrens en schakelaars bijgewerkt; dagdelen uit gedeelde JSON.
 - Gethoot.app/lees lokaal voorbereid als nieuwe plek; domeinen, auth en livegang volgen na controle door Claude.
 - Build 37 voorbereid; exportvrijstelling voor standaard HTTPS vastgelegd.
+- Build 38: de app blijft voor 1.0.1 op de API van hootnews.nl (werkt nu al, blijft na de verhuizing bestaan). Gedeelde verhalen krijgen een hootnews.nl/deel/-link met de uitgeverslink erbij, zodat een oud verhaal naar de uitgever gaat in plaats van een dode pagina.
 
 - Verhalen delen als Hoot-krantenkop in merkrood, in liggend en staand formaat (A3).
 

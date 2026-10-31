@@ -22,7 +22,8 @@ export function shareTitle(item) {
 export const shareLink = (item) => {
   const source = safeHttpUrl(item?.url)
   if (!source) return null
-  return item?.id && item.kind !== 'post' ? `https://gethoot.app/deel/${encodeURIComponent(item.id)}` : source
+  // De uitgeverslink gaat mee (?bron=…): is het verhaal niet meer bewaard, dan stuurt /deel/ daarheen.
+  return item?.id && item.kind !== 'post' ? `https://gethoot.app/deel/${encodeURIComponent(item.id)}?bron=${encodeURIComponent(source)}` : source
 }
 
 // Wat er te delen valt, in de vorm van navigator.share: { title, url }, of null zonder link.

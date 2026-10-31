@@ -58,3 +58,19 @@ test('A3: deelgegevens blijven vindbaar na het verdwijnen uit de feed, ook via v
   assert.equal((await shareRecord('verhaal')).title, cases[0].title)
   assert.equal(await shareRecord('../../secret'), null)
 })
+
+// Review 1.0.1, punt 7: na 90 dagen of buiten de 12000 bewaarde verhalen geen dode link.
+test('deellink: onbekend verhaal met uitgeverslink gaat naar de uitgever, nooit naar een vreemd domein', async () => {
+  const page = (q) => handleSharePage(new Request('https://gethoot.app/deel/oud' + q), { find: async () => null })
+  const ok = await page('?bron=' + encodeURIComponent('https://nos.nl/artikel/123-kop'))
+  assert.equal(ok.status, 302)
+  assert.equal(ok.headers.get('location'), 'https://nos.nl/artikel/123-kop')
+  assert.equal((await page('?bron=' + encodeURIComponent('https://www.theguardian.com/world/x'))).headers.get('location'), 'https://www.theguardian.com/world/x')
+  for (const bad of ['https://evil.example/nos.nl', 'http://nos.nl/a', 'javascript:alert(1)', 'https://nos.nl.evil.example/a', 'https://user:pw@nos.nl/a', 'https://x.bsky.social/a']) {
+    assert.equal((await page('?bron=' + encodeURIComponent(bad))).status, 404, bad)
+  }
+  assert.equal((await page('')).status, 404)
+  // Bekend verhaal: gewoon de deelpagina, de meegegeven link telt niet.
+  const known = await handleSharePage(new Request('https://gethoot.app/deel/kort?bron=' + encodeURIComponent('https://nos.nl/b')), { find: async () => ({ id: 'kort', title: 'Kop', url: 'https://nos.nl/a', section: 'Nieuws', source: 'nos' }) })
+  assert.equal(known.status, 200)
+})

@@ -32,6 +32,13 @@ final class DeelKaartTests: XCTestCase {
         XCTAssertNotNil(UIFont(name: "Newsreader-ExtraBold", size: 48))
         XCTAssertNotNil(UIFont(name: "SourceSans3-SemiBold", size: 20))
     }
+    // Build 38: deellink op hootnews.nl met de uitgeverslink erbij (zie netlify/functions/deel.mjs).
+    func testDeellinkOpHootnewsMetUitgeverslink() {
+        let item = Item(id: "abc:1", source: "nos", title: "Kop", url: "https://nos.nl/artikel/1?a=b&c=d")
+        let link = DeelKaartExport(item: item).link.absoluteString
+        XCTAssertEqual(link, "https://hootnews.nl/deel/abc:1?bron=https%3A%2F%2Fnos.nl%2Fartikel%2F1%3Fa%3Db%26c%3Dd")
+        XCTAssertEqual(HootAPI.base.absoluteString, "https://hootnews.nl")
+    }
     func testExtreemLangeKopBlijftBinnenVierRegels() {
         for format in DeelKaartFormat.allCases {
             let result = DeelKaartStyle.titleLines(String(repeating: "Een extreem lange kop & <bijzonder> nieuws uit São Paulo ", count: 100), format: format)

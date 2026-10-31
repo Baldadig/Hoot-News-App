@@ -37,6 +37,7 @@ test('domein: oude API en nieuwe origin passeren; oude HTML verhuist en oude dee
   assert.ok((await html.text()).includes('/lees/move-out.js'))
   const card = legacy(new Request('https://hootnews.nl/deel/a'))
   assert.equal(card.status, 301); assert.equal(card.headers.get('location'), 'https://gethoot.app/deel/a')
+  assert.equal(legacy(new Request('https://hootnews.nl/deel/a?bron=https%3A%2F%2Fnos.nl%2Fx')).headers.get('location'), 'https://gethoot.app/deel/a?bron=https%3A%2F%2Fnos.nl%2Fx')
 })
 
 test('verhuizen: echt opgeslagen thema en nieuwe accounteigenaar worden gerespecteerd', async () => {
