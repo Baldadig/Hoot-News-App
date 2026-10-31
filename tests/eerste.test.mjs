@@ -7,10 +7,10 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { gunzipSync } from 'node:zlib'
 import { loadSnapshot } from './helpers/snapshot.mjs'
-import { FRONT_SOURCES } from '../shared/editor.mjs'
+import { FRONT_SOURCES, chosenReason, visibleReason } from '../shared/editor.mjs'
 import { FIRST, measureFirst, verdictFirst, DREMPELS_EERSTE, measureBinnenland, firstSetup, notDutch } from './helpers/eerste.mjs'
 import { composePersonal } from '../src/lib/personal.js'
-import { desksOf } from '../netlify/lib/desks.mjs'
+import { desksOf, isNonEuropean } from '../netlify/lib/desks.mjs'
 import { retag, retagDiff } from './helpers/retag.mjs'
 
 const gz = (f) => JSON.parse(gunzipSync(readFileSync(new URL(`./fixtures/${f}`, import.meta.url))).toString('utf8'))
@@ -22,7 +22,11 @@ const live = gz('snapshot-2026-10-31-0930.json.gz')
 // niet gelijk aan hertagd (andere onderwerpen bij honderden berichten, een rubriek per verhaal), dus de
 // lezerstoets draait op allebei.
 const liveRetag = retag(live)
-const SNAPS = [['30 oktober avond', loadSnapshot()], ['31 oktober ochtend (live)', ochtend], ['31 oktober 09:30 (live)', live], ['31 oktober 09:30 (hertagd)', liveRetag]]
+// De live feed van 31 oktober 10:50Z (derde ronde): Maher en Kid Rock, Carney, de witte dwergen en de
+// rubberboot bij Zeeland, ruw en hertagd. Hierop keurde de lezerstoets af.
+const live1050 = gz('snapshot-2026-10-31-1050.json.gz')
+const live1050Retag = retag(live1050)
+const SNAPS = [['30 oktober avond', loadSnapshot()], ['31 oktober ochtend (live)', ochtend], ['31 oktober 09:30 (live)', live], ['31 oktober 09:30 (hertagd)', liveRetag], ['31 oktober 10:50 (live)', live1050], ['31 oktober 10:50 (hertagd)', live1050Retag]]
 
 for (const [label, snap] of SNAPS) {
   const rows = measureFirst(snap)
@@ -215,3 +219,53 @@ test('31 oktober 09:30 · Engels voetbal: Aston Villa tegen Carragher is Sport, 
     }
   }
 })
+
+// ---- Derde ronde (feedback 31 oktober, live feed 10:50Z): vier keurpunten, als regels getest ----
+const ZONDER_WERELD = [...FIRST, ...MORE].filter((p) => !p.interests.includes('wereld'))
+const CANADA = /Canad|Carney|Kanada/i
+for (const [tag, data] of [['live', live1050], ['hertagd', live1050Retag]]) {
+  const editionOf = (p) => editionOfData(p, data)
+
+  test(`31 oktober 10:50 (${tag}) · 1. een buitenlands verhaal zonder reden staat niet in de Editie van wie Wereld niet koos, met "Het nieuws van nu" al helemaal niet`, () => {
+    for (const p of ZONDER_WERELD) {
+      const es = editionOf(p)
+      assert.equal(es.length, 10, p.id)
+      assert.ok(!find(es, 'Bill Maher Fact-Checks Kid Rock'), `${p.id}: Maher en Kid Rock`)
+      // Een buitenlandse rubriek zonder gekozen reden mag alleen als groot nieuws, breed verhaal of bubbel met een eigen label.
+      for (const e of es) if (e.desk == null && /^Het nieuws van nu$/.test(e.why?.text || '')) assert.ok(!['vs', 'buitenland', 'middenoosten', 'oekraine'].some((d) => desksOf(live1050.items.find((i) => i.id === (e.leadId || e.id)) || {}).has(d)), `${p.id}: ${e.title}`)
+    }
+  })
+
+  test(`31 oktober 10:50 (${tag}) · 1. de maat: een reden die het waarom niet noemt, is geen reden`, () => {
+    assert.equal(chosenReason({ interest: { pts: 11, t: 'film', f: 'cultuur', cov: 1, shown: false } }), false)
+    assert.equal(chosenReason({ interest: { pts: 11, t: 'film', f: 'cultuur', cov: 1 } }), true)
+    assert.equal(visibleReason({ interest: { pts: 11, shown: false } }), false)
+    assert.equal(visibleReason({ interest: { pts: 11, shown: false }, mine: { pts: 9, n: 4 } }), true)
+    for (const r of measureFirst(data, ZONDER_WERELD)) for (const e of r.entries) assert.ok(!(e.real && e.whyText === 'Het nieuws van nu'), `${r.id}: ${e.title}`)
+  })
+
+  test(`31 oktober 10:50 (${tag}) · 2. Politiek zonder Wereld is Nederlandse en Europese politiek: de Canadese premier is dat niet`, () => {
+    assert.ok(isNonEuropean({ title: 'Special episode: An exclusive interview with Canadian PM Mark Carney' }))
+    assert.ok(isNonEuropean({ title: 'EU und Kanada erzielen Einigung' }))
+    assert.ok(!isNonEuropean({ title: 'Mark Carney puts deadline on EU ‘associate membership’ push' }))
+    for (const p of ZONDER_WERELD.filter((x) => x.interests.includes('politiek'))) {
+      for (const e of editionOf(p)) assert.ok(!(/Politiek/.test(e.why?.text || '') && CANADA.test(e.title)), `${p.id}: ${e.title} (${e.why.text})`)
+    }
+  })
+
+  test(`31 oktober 10:50 (${tag}) · 3. de rubriek van het verhaal gaat voor de vakreden van de bron: wetenschap is geen Tech`, () => {
+    for (const p of ZONDER_WERELD.filter((x) => !x.interests.includes('wetenschap'))) {
+      assert.ok(!find(editionOf(p), 'White Dwarfs') || !/Tech/.test(find(editionOf(p), 'White Dwarfs').why.text), p.id)
+    }
+    const r = editionOf(persona('bi-te-ec'))
+    for (const e of r) if (e.desk === 'wetenschap') assert.ok(!/Omdat je Tech volgt/.test(e.why.text), `${e.title}: ${e.why.text}`)
+  })
+
+  test(`31 oktober 10:50 (${tag}) · 4. de maat: Hulpdiensten bij Zeeland is Nederlands, ook als Belgische kranten erover schrijven`, () => {
+    for (const r of measureFirst(data, FIRST)) {
+      const e = r.entries.find((x) => x.title.startsWith('Video | Hulpdiensten halen tientallen mensen van rubberboot'))
+      if (e) assert.equal(e.geo, 'NL', r.id)
+      assert.equal(r.valsBinnenland, 0, r.id)
+    }
+  })
+}

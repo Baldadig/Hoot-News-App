@@ -15,7 +15,7 @@ import { selectForReader, EDITION_SIZE, signatures, sameEvent, seenBefore, devel
 import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
 import { trustedTopics, OTHER_SPORT } from '../../netlify/lib/topics.mjs'
 import { INTERESTS } from './topics.js'
-import { supplyOf, profileOf, personalParts, sumParts, tempoWindows, outsideProfile, strongestFamily, whyOf, geoOf, NEIGHBOURS, FAMILY_OF, FOREIGN_DESKS, INT_MAX, FRONT_BIG, chosenReason, chosenDesks, OUTSIDE_FAMILY, KERN, KERN_MIN } from '../../shared/editor.mjs'
+import { supplyOf, profileOf, personalParts, sumParts, tempoWindows, outsideProfile, strongestFamily, whyOf, geoOf, NEIGHBOURS, FAMILY_OF, FOREIGN_DESKS, INT_MAX, FRONT_BIG, chosenReason, visibleReason, chosenDesks, OUTSIDE_FAMILY, KERN, KERN_MIN } from '../../shared/editor.mjs'
 
 export const EXTERN = 'extern' // rubriek van een aangevuld verhaal
 export const WIDE = 'breed' // "Waar iedereen over schrijft"
@@ -224,9 +224,14 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   for (const e of extraAll) {
     if (extra.length >= extraN) break
     if ((e.itemIds || [e.id]).some((id) => inNews.has(id))) continue
-    const gi = extraAll.abroad.has(e.id)
-    if (capAbroad && gi && abroad >= INT_MAX) continue
-    if (gi) abroad++
+    // Zonder Wereld is buitenland dat bij zichzelf niets zegt hier nooit een optie (feedback 31 oktober:
+    // "Bill Maher fact-checkt Kid Rock" stond als "Het nieuws van nu" op plek 10 bij wie Cultuur koos); het
+    // extra blok is een extraatje, de aanvulling kiest iets anders. Een plek met een zichtbare reden van een
+    // ander soort (de voorkeursbron, vijf van je bronnen) komt alleen binnen de grens, en telt er niet voor mee.
+    const un = extraAll.abroad.has(e.id) && !e.parts?.favorite // een voorkeursbron is een keuze van de lezer
+    const said = visibleReason(e.parts)
+    if (capAbroad && un && (abroad >= INT_MAX || (strictInt && !said))) continue
+    if (un && !said) abroad++
     extra.push({ ...e, desk: null })
   }
   const own = [...news, ...extra]
@@ -278,7 +283,8 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // Ook hier hooguit INT_MAX buitenlandse plekken zonder persoonlijke reden (zie selectForReader);
   // is er dan te weinig, dan toch.
   const fill = []
-  const unchosenG = (g) => FOREIGN_DESKS.has(g.desk) && !chosenReason(personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), prof, {}, { desk: g.desk }))
+  // Een aangevuld verhaal zonder rubriek is niet vrij van de grens: de berichten zeggen of het buitenland is.
+  const unchosenG = (g) => (FOREIGN_DESKS.has(g.desk) ? !chosenReason(personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), prof, {}, { desk: g.desk })) : !g.desk && unchosenAbroad(g.leadId || g.id, g.kind === 'story' ? g.id : null))
   const fillUp = (to) => {
     for (const strict of [true, false]) {
       for (const { g } of fillCands) {

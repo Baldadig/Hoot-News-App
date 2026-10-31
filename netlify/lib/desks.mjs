@@ -71,6 +71,19 @@ const BE = W([
 ])
 const BE_CASE = W(['PVDA', 'MR', 'Vooruit', 'Luik'], 'u')
 
+// Niet-Europese landen, werelddelen en bijvoeglijke naamwoorden (Nederlands en Engels): voor wie
+// Politiek koos en Wereld niet, is een politiek stuk over Canada's premier geen Nederlandse of
+// Europese politiek, ook niet als het uit een Europese bron komt (feedback 31 oktober: een interview met
+// de Canadese premier Carney van Politico Europe was "Omdat je Politiek volgt"). Alleen de kop telt.
+const NON_EUROPE = W([
+  'canad\\p{L}*', 'chin(?:a|ese|ees)', 'chinezen', 'japan\\p{L}*', 'korea\\p{L}*', 'india', 'indian', 'indiase?', 'indiaas', 'pakistan\\p{L}*', 'bangladesh', 'azië', 'asia\\p{L}*', 'aziatisch\\p{L}*',
+  'brazili\\p{L}*', 'brazil\\p{L}*', 'mexic\\p{L}*', 'argentin\\p{L}*', 'venezuela\\p{L}*', 'cuba\\p{L}*', 'colombia\\p{L}*', 'chili', 'chileens\\p{L}*', 'peru', 'latijns-amerika', 'latin america',
+  'australi\\p{L}*', 'nieuw-zeeland\\p{L}*', 'new zealand', 'afrika\\p{L}*', 'africa\\p{L}*', 'nigeria\\p{L}*', 'soedan', 'sudan\\p{L}*', 'egypt\\p{L}*', 'egypte', 'kenia', 'kenya\\p{L}*', 'ethiopi\\p{L}*', 'congo\\p{L}*',
+  'iran\\p{L}*', 'israel\\p{L}*', 'israël', 'gaza', 'saudi\\p{L}*', 'taiwan\\p{L}*', 'afghan\\p{L}*', 'syri\\p{L}*',
+  'kanad\\p{L}*', 'indien', 'brasilien', 'mexiko', 'australien', 'vereinigte staaten', 'usa', 'états-unis', 'canadien\\p{L}*', 'verenigde staten', 'united states', 'amerika\\p{L}*', 'america\\p{L}*', 'u\\.s\\.',
+])
+export const isNonEuropean = (it) => NON_EUROPE.test(it?.title || '')
+
 const RE = {
   oekraine: /\b(oekra\w*|ukrain\w*|zelensk\w*|kyiv|kiev|kyjiv|kharkiv|charkiv|odesa|donetsk|donbas|krim|crimea|dnipro|kramatorsk)\b/i,
   middenoosten: /\b(israël|israel\w*|gaza|hamas|hezbollah|libanon|lebanon|iran\w*|teheran|tehran|khamenei|netanyahu|syri\w*|jemen|yemen|houthi\w*|irak|iraq|saudi\w*|westelijke jordaanoever|west bank|jordani\w*|qatar|golfstaten|midden-oosten|middle east|palestijn\w*|palestin\w*)\b/i,

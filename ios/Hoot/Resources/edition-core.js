@@ -475,6 +475,71 @@ var HootCore = (() => {
     "acv"
   ]);
   var BE_CASE = W(["PVDA", "MR", "Vooruit", "Luik"], "u");
+  var NON_EUROPE = W([
+    "canad\\p{L}*",
+    "chin(?:a|ese|ees)",
+    "chinezen",
+    "japan\\p{L}*",
+    "korea\\p{L}*",
+    "india",
+    "indian",
+    "indiase?",
+    "indiaas",
+    "pakistan\\p{L}*",
+    "bangladesh",
+    "azië",
+    "asia\\p{L}*",
+    "aziatisch\\p{L}*",
+    "brazili\\p{L}*",
+    "brazil\\p{L}*",
+    "mexic\\p{L}*",
+    "argentin\\p{L}*",
+    "venezuela\\p{L}*",
+    "cuba\\p{L}*",
+    "colombia\\p{L}*",
+    "chili",
+    "chileens\\p{L}*",
+    "peru",
+    "latijns-amerika",
+    "latin america",
+    "australi\\p{L}*",
+    "nieuw-zeeland\\p{L}*",
+    "new zealand",
+    "afrika\\p{L}*",
+    "africa\\p{L}*",
+    "nigeria\\p{L}*",
+    "soedan",
+    "sudan\\p{L}*",
+    "egypt\\p{L}*",
+    "egypte",
+    "kenia",
+    "kenya\\p{L}*",
+    "ethiopi\\p{L}*",
+    "congo\\p{L}*",
+    "iran\\p{L}*",
+    "israel\\p{L}*",
+    "israël",
+    "gaza",
+    "saudi\\p{L}*",
+    "taiwan\\p{L}*",
+    "afghan\\p{L}*",
+    "syri\\p{L}*",
+    "kanad\\p{L}*",
+    "indien",
+    "brasilien",
+    "mexiko",
+    "australien",
+    "vereinigte staaten",
+    "usa",
+    "états-unis",
+    "canadien\\p{L}*",
+    "verenigde staten",
+    "united states",
+    "amerika\\p{L}*",
+    "america\\p{L}*",
+    "u\\.s\\."
+  ]);
+  var isNonEuropean = (it) => NON_EUROPE.test(it?.title || "");
   var RE = {
     oekraine: /\b(oekra\w*|ukrain\w*|zelensk\w*|kyiv|kiev|kyjiv|kharkiv|charkiv|odesa|donetsk|donbas|krim|crimea|dnipro|kramatorsk)\b/i,
     middenoosten: /\b(israël|israel\w*|gaza|hamas|hezbollah|libanon|lebanon|iran\w*|teheran|tehran|khamenei|netanyahu|syri\w*|jemen|yemen|houthi\w*|irak|iraq|saudi\w*|westelijke jordaanoever|west bank|jordani\w*|qatar|golfstaten|midden-oosten|middle east|palestijn\w*|palestin\w*)\b/i,
@@ -772,12 +837,12 @@ var HootCore = (() => {
     return SPORT_URL.test(item.url || "") || OTHER_SPORT.test(`${item.title || ""} ${item.summary || ""}`);
   }
   var US_TOPICS = /* @__PURE__ */ new Set(["vs-politiek", "trump"]);
-  function topicHits(item, prof, geo = null) {
+  function topicHits(item, prof, geo = null, area = null) {
     const sport = isSport(item, prof.catOf);
     const ts = (item.topics || []).filter((t) => !(sport && FAMILY_OF[t] === "binnenland" && prof.topicP[t] > 0));
     const abroad = geo === "int" && !VL_HOME.has(item.source);
     const world = (prof.family.wereld || 0) >= OUTSIDE_FAMILY;
-    const notChosenPol = (t) => !world && FAMILY_OF[t] === "politiek" && prof.topicP[t] > 0 && prof.origin?.[t] === "geërfd" && (US_TOPICS.has(t) || abroad && t !== "europa");
+    const notChosenPol = (t) => !world && FAMILY_OF[t] === "politiek" && prof.topicP[t] > 0 && prof.origin?.[t] === "geërfd" && (US_TOPICS.has(t) || abroad && (t !== "europa" || isNonEuropean(item)));
     const notUs = ts.includes("vs-politiek") && !desksOf(item).has("vs");
     const vis = shownTopics(item);
     const out = ts.filter((t) => prof.topicP[t] !== void 0 && !(abroad && FAMILY_OF[t] === "binnenland" && prof.topicP[t] > 0) && !(notUs && t === "vs-politiek" && prof.topicP[t] > 0) && !notChosenPol(t)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source, seen: !vis || vis.includes(t) }));
@@ -786,11 +851,13 @@ var HootCore = (() => {
     if (!ts.length) {
       const cat = prof.catOf.get(item.source);
       const fam = cat && INTERESTS.find((f) => f.cats.includes(cat));
-      if (fam && prof.family[fam.id]) out.push({ t: `bron:${cat}`, f: fam.id, v: SOURCE_CAT_P * prof.family[fam.id], s: item.source, seen: true });
+      const famId = area && fam && area !== fam.id ? area : fam?.id;
+      if (famId && prof.family[famId]) out.push({ t: `bron:${famId === fam.id ? cat : famId}`, f: famId, v: SOURCE_CAT_P * prof.family[famId], s: item.source, seen: true });
     }
     return out;
   }
   var strongestFirst = (a, b) => b.v - a.v || byId(a.t, b.t);
+  var areaOfDesk = (desk) => desk === "wetenschap" ? "wetenschap" : null;
   function geoOf(item, desk = null, foreign = false) {
     if (desk === "binnenland") return "nl";
     if (FOREIGN_DESKS.has(desk)) return "int";
@@ -803,7 +870,7 @@ var HootCore = (() => {
     const parts = {};
     if (!items.length) return parts;
     const foreign = story.foreign ?? (items.length > 1 && storyForeignOf(items));
-    const hits = items.map((i) => topicHits(i, prof, geoOf(i, story.desk ?? null, foreign)));
+    const hits = items.map((i) => topicHits(i, prof, geoOf(i, story.desk ?? null, foreign), areaOfDesk(story.desk ?? (items.length === 1 && desksOf(i).has("wetenschap") ? "wetenschap" : null))));
     const flat = hits.flat();
     const pos = flat.filter((h) => h.v > 0).sort(strongestFirst);
     if (pos.length) {
@@ -888,9 +955,10 @@ var HootCore = (() => {
   var MIN_WHY_PTS = 5;
   var chosenReason = (parts = {}) => {
     const it = parts.interest;
-    if (!it || (it.pts || 0) < MIN_WHY_PTS) return false;
+    if (!it || (it.pts || 0) < MIN_WHY_PTS || it.shown === false) return false;
     return String(it.t).startsWith("bron:") ? (it.cov ?? 1) >= 1 : (it.cov ?? 1) * 2 >= 1;
   };
+  var visibleReason = (parts = {}) => Object.entries(parts).some(([k, x]) => (x.pts || 0) >= MIN_WHY_PTS && !(k === "interest" && x.shown === false));
   var FRONT_SOURCES = 6;
   var DESK_NAMES = { ...DESK_LABEL, tech: "Tech", economie: "Economie", regio: "Regio" };
   var WHY_ORDER = ["followUp", "cross", "interest", "favorite", "mine", "sourceRead"];
@@ -1986,9 +2054,10 @@ var HootCore = (() => {
     for (const e of extraAll) {
       if (extra.length >= extraN) break;
       if ((e.itemIds || [e.id]).some((id) => inNews.has(id))) continue;
-      const gi = extraAll.abroad.has(e.id);
-      if (capAbroad && gi && abroad >= INT_MAX) continue;
-      if (gi) abroad++;
+      const un = extraAll.abroad.has(e.id) && !e.parts?.favorite;
+      const said = visibleReason(e.parts);
+      if (capAbroad && un && (abroad >= INT_MAX || strictInt && !said)) continue;
+      if (un && !said) abroad++;
       extra.push({ ...e, desk: null });
     }
     const own = [...news, ...extra];
@@ -2019,7 +2088,7 @@ var HootCore = (() => {
     const fillTo = size - extra.length + (wideAny && !wideEntry ? 1 : 0) - swapped;
     const fillCands = global.entries.map((g, idx) => ({ g, idx, score: sumParts(personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), noFavorites, {}, { desk: g.desk })) - 2 * idx })).filter((x) => x.g !== bubbleEntry && unread(x.g.leadId || x.g.id, x.g.kind === "story" ? x.g.id : null)).sort((a, b) => b.score - a.score || a.idx - b.idx);
     const fill = [];
-    const unchosenG = (g) => FOREIGN_DESKS.has(g.desk) && !chosenReason(personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), prof, {}, { desk: g.desk }));
+    const unchosenG = (g) => FOREIGN_DESKS.has(g.desk) ? !chosenReason(personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), prof, {}, { desk: g.desk })) : !g.desk && unchosenAbroad(g.leadId || g.id, g.kind === "story" ? g.id : null);
     const fillUp = (to) => {
       for (const strict of [true, false]) {
         for (const { g } of fillCands) {

@@ -12,7 +12,7 @@
 // localeCompare; elke sortering heeft een totale vergelijker die eindigt op id.
 import { INTERESTS, topicById } from '../src/lib/topics.js'
 import { MIN_EVENTS } from '../src/lib/affinity.js'
-import { DESKS, DESK_LABEL, desksOf, storyForeignOf, VL_HOME } from '../netlify/lib/desks.mjs'
+import { DESKS, DESK_LABEL, desksOf, storyForeignOf, isNonEuropean, VL_HOME } from '../netlify/lib/desks.mjs'
 import { shownTopics, OTHER_SPORT } from '../netlify/lib/topics.mjs'
 
 // De buitenlandse kernrubrieken (Binnenland is Nederland, zie netlify/lib/desks.mjs).
@@ -163,12 +163,16 @@ export function isSport(item, catOf = null) {
 // Trump volgt"): VS-politiek en Trump tellen dan alleen als je dat onderwerp zelf koos, en bij een
 // buitenlands bericht telt een geërfd onderwerp van Politiek alleen als het Europa is.
 const US_TOPICS = new Set(['vs-politiek', 'trump'])
-function topicHits(item, prof, geo = null) {
+// Een Europese bron maakt niet-Europese politiek geen Europese (feedback 31 oktober: een interview met de
+// Canadese premier Carney van Politico Europe was "Omdat je Politiek volgt" voor wie Binnenland en Politiek
+// koos): `europa` telt bij een buitenlands bericht alleen als de kop geen niet-Europees land of werelddeel
+// noemt (isNonEuropean). `area`: het onderwerpsgebied van de rubriek van het verhaal (areaOfDesk).
+function topicHits(item, prof, geo = null, area = null) {
   const sport = isSport(item, prof.catOf)
   const ts = (item.topics || []).filter((t) => !(sport && FAMILY_OF[t] === 'binnenland' && prof.topicP[t] > 0))
   const abroad = geo === 'int' && !VL_HOME.has(item.source)
   const world = (prof.family.wereld || 0) >= OUTSIDE_FAMILY
-  const notChosenPol = (t) => !world && FAMILY_OF[t] === 'politiek' && prof.topicP[t] > 0 && prof.origin?.[t] === 'geërfd' && (US_TOPICS.has(t) || (abroad && t !== 'europa'))
+  const notChosenPol = (t) => !world && FAMILY_OF[t] === 'politiek' && prof.topicP[t] > 0 && prof.origin?.[t] === 'geërfd' && (US_TOPICS.has(t) || (abroad && (t !== 'europa' || isNonEuropean(item))))
   // VS-politiek is ook geografie: het trefwoord "verkiezing" maakte van Lula's zege in Brazilië VS-politiek.
   const notUs = ts.includes('vs-politiek') && !desksOf(item).has('vs')
   // `seen`: kop of intro noemt het onderwerp zelf (shownTopics); alleen zo'n treffer mag het waarom zijn.
@@ -179,7 +183,11 @@ function topicHits(item, prof, geo = null) {
   if (!ts.length) {
     const cat = prof.catOf.get(item.source)
     const fam = cat && INTERESTS.find((f) => f.cats.includes(cat))
-    if (fam && prof.family[fam.id]) out.push({ t: `bron:${cat}`, f: fam.id, v: SOURCE_CAT_P * prof.family[fam.id], s: item.source, seen: true })
+    // De rubriek van het verhaal gaat voor de rubriek van de hele bron (feedback 31 oktober: Wired over
+    // witte dwergen, een wetenschapsverhaal, was "Omdat je Tech volgt"): is het verhaal Wetenschap, dan telt
+    // het voor Wetenschap, en wie dat niet koos krijgt geen vakreden.
+    const famId = area && fam && area !== fam.id ? area : fam?.id
+    if (famId && prof.family[famId]) out.push({ t: `bron:${famId === fam.id ? cat : famId}`, f: famId, v: SOURCE_CAT_P * prof.family[famId], s: item.source, seen: true })
   }
   return out
 }
@@ -189,6 +197,11 @@ const strongestFirst = (a, b) => b.v - a.v || byId(a.t, b.t)
 // verhaal (`desk`, voor iedereen gelijk) gaat voor; anders het bericht zelf, in de context van zijn
 // verhaal: een verhaal met vooral buitenlandse bronnen (`foreign`) is buitenland, ook als het
 // NOS-stuk erover geen land noemt (Christa Pike, de mislukte executie in de VS).
+// De rubriek van een verhaal als onderwerp (niet als plaats): Wetenschap. Binnenland en de buitenlandse
+// rubrieken zeggen waar het speelt, niet waar het over gaat; een techbron over een ontdekking in de
+// sterrenkunde is Wetenschap.
+export const areaOfDesk = (desk) => (desk === 'wetenschap' ? 'wetenschap' : null)
+
 export function geoOf(item, desk = null, foreign = false) {
   if (desk === 'binnenland') return 'nl'
   if (FOREIGN_DESKS.has(desk)) return 'int'
@@ -208,7 +221,7 @@ export function personalParts(items = [], prof, ctx = {}, story = {}) {
   const parts = {}
   if (!items.length) return parts
   const foreign = story.foreign ?? (items.length > 1 && storyForeignOf(items))
-  const hits = items.map((i) => topicHits(i, prof, geoOf(i, story.desk ?? null, foreign)))
+  const hits = items.map((i) => topicHits(i, prof, geoOf(i, story.desk ?? null, foreign), areaOfDesk(story.desk ?? (items.length === 1 && desksOf(i).has('wetenschap') ? 'wetenschap' : null))))
   const flat = hits.flat()
   const pos = flat.filter((h) => h.v > 0).sort(strongestFirst)
   if (pos.length) {
@@ -334,10 +347,13 @@ export const MIN_WHY_PTS = 5
 // 31 oktober: de G20 met "Trump" in één van dertien stukken was geen gekozen reden).
 export const chosenReason = (parts = {}) => {
   const it = parts.interest
-  if (!it || (it.pts || 0) < MIN_WHY_PTS) return false
+  // Een reden die het waarom niet kan noemen (kop of intro noemen het onderwerp niet, `shown: false`) is geen reden.
+  if (!it || (it.pts || 0) < MIN_WHY_PTS || it.shown === false) return false
   // Alleen de rubriek van een vakbron (geen onderwerp) is een reden als al je stukken ervan zijn.
   return String(it.t).startsWith('bron:') ? (it.cov ?? 1) >= 1 : (it.cov ?? 1) * 2 >= 1
 }
+// Zegt de plek iets bij zichzelf? Een punt van minstens MIN_WHY_PTS dat het waarom ook kan noemen (whyOf).
+export const visibleReason = (parts = {}) => Object.entries(parts).some(([k, x]) => (x.pts || 0) >= MIN_WHY_PTS && !(k === 'interest' && x.shown === false))
 export const FRONT_SOURCES = 6 // vanaf zoveel bronnen is een verhaal zonder persoonlijke reden groot nieuws
 export const DESK_NAMES = { ...DESK_LABEL, tech: 'Tech', economie: 'Economie', regio: 'Regio' }
 const WHY_ORDER = ['followUp', 'cross', 'interest', 'favorite', 'mine', 'sourceRead']

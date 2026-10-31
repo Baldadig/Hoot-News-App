@@ -16,7 +16,7 @@ import { mutedSet } from '../../src/lib/sourcesel.js'
 import { buildStories, selectEdition } from '../../netlify/lib/stories.mjs'
 import { MAIN_IDS } from '../../netlify/lib/sources.mjs'
 import { desksOf, placeSignals, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
-import { FRONT_SOURCES } from '../../shared/editor.mjs'
+import { FRONT_SOURCES, chosenReason } from '../../shared/editor.mjs'
 
 export const FIRST = [
   { id: 'vriendin', interests: ['binnenland', 'cultuur', 'wetenschap'] },
@@ -47,11 +47,19 @@ const sporty = (i, s) => s?.cat === 'sport' || /\/(sport|voetbal|premier-league)
 // bericht met een buitenlandse rubriek, Nederlands een Nederlandstalig bericht (niet Vlaams) zonder. Een
 // sportbericht zonder Nederlandse plaats, instelling of persoon is geen Nederlands nieuws, ook niet uit
 // een Nederlandse bron (feedback 31 oktober: Aston Villa tegen Carragher telde als Nederlandse plek).
+// Een bericht over Nederland uit een Belgische krant (Hulpdiensten bij Breskens in De Morgen, VRT, GVA) heeft
+// een buitenlandse rubriek omdat de bron Vlaams is, maar de gebeurtenis is Nederlands: het telt als
+// Nederlands nieuws, niet als buitenland (feedback 31 oktober: een rubberboot bij Zeeland telde als INT).
+// Bewijs is een Nederlandse plaats, provincie of instelling in kop of intro (placeSignals.home) en geen
+// buitenlandse plek in de kop.
+const dutchEvent = (i) => placeSignals(i).home && !placeSignals({ title: i.title || '' }).foreign
 export function geoOfMembers(members, src) {
   let f = 0, n = 0, o = 0
   for (const i of members) {
-    if ([...desksOf(i)].some((d) => FOREIGN.has(d))) f++
-    else if (dutchSource(src.get(i.source)) && !(sporty(i, src.get(i.source)) && !placeSignals(i).nl)) n++
+    const s = src.get(i.source)
+    if (!sporty(i, s) && dutchEvent(i) && ([...desksOf(i)].some((d) => d === 'binnenland') || VL_HOME.has(i.source) || dutchSource(s))) n++
+    else if ([...desksOf(i)].some((d) => FOREIGN.has(d))) f++
+    else if (dutchSource(s) && !(sporty(i, s) && !placeSignals(i).nl)) n++
     else o++
   }
   const tot = f + n + o || 1
@@ -89,8 +97,12 @@ export function firstEdition(data, p, compose = composePersonal) {
       nlNews: m.some((i) => ['nl', 'regio'].includes(src.get(i.source)?.cat)),
       fixed: FIXED.has(e.desk),
       front: e._front !== undefined ? !!e._front : e.why?.code === 'groot', // een samensteller van vóór _front: het waarom
-      // Een gekozen reden: een interessepunt dat telt; een Binnenland-reden bij een buitenlandse plek telt niet.
-      real: !!it && it.pts >= 5 && !(it.f === 'binnenland' && geo !== 'NL'),
+      // Een gekozen reden: een interessepunt dat telt, dat het verhaal draagt (chosenReason) en dat de plek ook
+      // zegt (geen kale rubriek of "Het nieuws van nu"); een Binnenland-reden bij een buitenlandse plek telt niet.
+      real: !!it && it.pts >= 5 && (chosenReason(e._parts) || /^Jouw rubriek/.test(e.why?.text || '')) && !(e.why?.code === 'rubriek' && !/^Jouw rubriek/.test(e.why?.text || '')) && !(it.f === 'binnenland' && geo !== 'NL'),
+      // Past bij de keuze: een interessepunt dat telt en dat het verhaal draagt, ook als de plek het niet zegt
+      // (de kop noemt het onderwerp niet): dat is een kwestie van het waarom, niet van de inhoud. `real` is strenger.
+      fit: !!it && it.pts >= 5 && (it.cov ?? 1) * 2 >= 1 && !(it.f === 'binnenland' && geo !== 'NL'),
       falseBi: it?.f === 'binnenland' && geo !== 'NL',
       why: e.why?.code,
       whyText: e.why?.text || '',
@@ -117,7 +129,7 @@ export function measureFirst(data, personas = FIRST, compose = composePersonal) 
       nl: es.filter((x) => x.geo === 'NL').length,
       int: es.filter((x) => x.geo === 'INT').length,
       plekken: es.length,
-      passend: es.filter((x) => !x.fixed && (x.real || (bi && x.geo === 'NL' && x.nlNews))).length,
+      passend: es.filter((x) => !x.fixed && (x.fit || (bi && x.geo === 'NL' && x.nlNews))).length,
       grootKlein: es.filter((x) => x.grootKlein).length,
       entries: es,
     }
