@@ -105,6 +105,15 @@ struct EditionView: View {
         return date.formatted(HootDate.style(.dateTime.weekday(.wide).day().month(.wide))).capitalizedFirst
     }
 
+    // De datum in de eindzin: klein, met een vaste spatie tussen dag en maand ("31\u{00A0}oktober"),
+    // zodat het getal nooit alleen aan het einde van een regel blijft staan. Alleen hier; de
+    // metaregel bovenaan houdt zijn gewone spatie.
+    private var endDate: String {
+        var d = dateLine.lowercased()
+        if let last = d.range(of: " ", options: .backwards) { d.replaceSubrange(last, with: "\u{00A0}") }
+        return d
+    }
+
     // Wanneer de volgende er is, in dagdelen uit Slots: geen kloktijden.
     private var upNext: String {
         guard let volgende = store.edition?.slot.flatMap({ Slots.all[$0]?.volgende }) else { return "" }
@@ -212,7 +221,7 @@ struct EditionView: View {
                             // Het teken "h." als tekening, 44 hoog; op merkrood alles papier, ook de punt.
                             BrandMark(height: 44, ink: Theme.onBrandRed, dot: Theme.onBrandRed)
                             Text("Je bent bij.").font(Theme.headline(.title))
-                            Text("Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(dateLine.lowercased())").\(upNext)")
+                            Text("Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(endDate)").\(upNext)")
                                 .font(.subheadline)
                                 .multilineTextAlignment(.center)
                                 .frame(maxWidth: Layout.endcap) // ± 30 tekens per regel, zoals --measure-end
