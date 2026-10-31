@@ -49,7 +49,8 @@ export function useCloudSync(account, { prefs, setPrefs, saved, setSaved, readId
         if (error) throw error
       },
     }
-    const e = new SyncEngine({ uid, api, storage: localStorage, getLocal, setLocal, onStatus: setStatus, isOnline: () => navigator.onLine !== false })
+    setPulled(false) // een ander account, of opnieuw ingelogd: eerst weer ophalen
+    const e = new SyncEngine({ uid, api, storage: localStorage, getLocal, setLocal, onStatus: setStatus, onPulled: () => setPulled(true), isOnline: () => navigator.onLine !== false })
     engine.current = e
     e.start()
     // Verbinding terug: openstaande wijzigingen wegschrijven, of eerst ophalen als dat nog niet
@@ -87,7 +88,8 @@ export function useCloudSync(account, { prefs, setPrefs, saved, setSaved, readId
     engine.current = null
     forgetAccount(localStorage, setLocal, latest.current.prefs)
     setStatus('idle')
+    setPulled(false)
   }, [setLocal])
 
-  return { status, forget }
+  return { status, pulled, forget }
 }

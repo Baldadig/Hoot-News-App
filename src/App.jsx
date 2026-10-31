@@ -106,7 +106,7 @@ export default function App() {
 
   // Account: inloggen met Google; als lid gaan instellingen, Bewaard en gelezen mee.
   const rawAccount = useAccount()
-  const { status: syncStatus, forget: forgetAccount } = useCloudSync(rawAccount, { prefs: rawPrefs, setPrefs, saved, setSaved, readIds, setReadIds, seen: seenStories, setSeen: setSeenStories })
+  const { status: syncStatus, pulled: syncPulled, forget: forgetAccount } = useCloudSync(rawAccount, { prefs: rawPrefs, setPrefs, saved, setSaved, readIds, setReadIds, seen: seenStories, setSeen: setSeenStories })
   // Uitloggen haalt ook de gegevens van dat account van dit toestel (zie syncEngine.js).
   const signOut = rawAccount.signOut
   const account = useMemo(() => ({ ...rawAccount, signOut: async () => (await signOut(), forgetAccount()) }), [rawAccount, signOut, forgetAccount])
@@ -156,7 +156,7 @@ export default function App() {
   // Digest: pas ophalen als je de tab hebt aangezet (of hem opent).
   const vak = useVak(prefs.vak.length > 0 || route.path === 'digest')
   // Jouw editie: samengesteld uit je eigen bronnen en interesses (zie src/lib/personal.js).
-  const { edition: myEdition, member } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount, affinity, readIds: read })
+  const { edition: myEdition, member } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount, affinity, readIds: read, sync: { status: syncStatus, pulled: syncPulled } })
   const socialIds = useMemo(() => new Set(social.sources.map((s) => 'bsky:' + s.handle)), [social.sources])
 
   const stream = useMemo(() => {
