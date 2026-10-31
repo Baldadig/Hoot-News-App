@@ -8,6 +8,8 @@ import { normTitle } from '../netlify/lib/text.mjs'
 import { loadSource } from '../netlify/lib/rss.mjs'
 import { buildStories } from '../netlify/lib/stories.mjs'
 import { SOURCES } from '../netlify/lib/sources.mjs'
+import { VAK_SOURCES } from '../netlify/lib/vak.mjs'
+import { feedLang } from '../netlify/lib/vakBronnen.mjs'
 
 // Eén typografische hand (T6 stap 2, D3). De gevallen staan in een fixture die iOS ook leest (I5),
 // zodat de lezer-kop op het toestel net zo gezet wordt als de koppen van de server.
@@ -66,6 +68,35 @@ test('loadSource zet kop en intro in de taal van de bron', async () => {
     assert.equal(nl.items[0].url, 'https://example.org/a?x=1-2')
     const de = await loadSource({ id: 'test', name: 'Test', cat: 'nieuws', lang: 'de', urls: ['https://example.org/feed'] }, Promise.resolve({}))
     assert.equal(de.items[0].title, "Christa Pike: 'Ik heb constant pijn'")
+  } finally {
+    globalThis.fetch = origFetch
+  }
+})
+
+// De drie secties zijn gelijk: ook de Selectie krijgt gezette koppen. typeset() laat alles zonder
+// nl of en letterlijk, dus elke bron van Editie, Stroom en Selectie moet een van die twee hebben.
+test('elke bron en elke vakbron heeft nl of en', () => {
+  const zonder = [...SOURCES, ...VAK_SOURCES].filter((s) => !['nl', 'en'].includes(s.lang)).map((s) => s.id)
+  assert.deepEqual(zonder, [])
+  assert.equal(feedLang('https://www.tijd.be/rss/nieuws.xml'), 'nl')
+  assert.equal(feedLang('https://www.gemeente.nu/feed/'), 'nl')
+  assert.equal(feedLang('https://www.prdaily.com/feed/'), 'en')
+})
+
+test('loadSource zet ook de koppen van een vakbron (Selectie)', async () => {
+  const FEED = `<?xml version="1.0"?><rss version="2.0"><channel><title>Vak</title>
+<item><title>Lars Postmus (Draft Digital): 'Emotie werkt ook op performance'</title><link>https://example.org/v</link><description>Google's AI-modus...</description></item>
+</channel></rss>`
+  const origFetch = globalThis.fetch
+  globalThis.fetch = async () => new Response(FEED, { status: 200, headers: { 'content-type': 'application/rss+xml' } })
+  try {
+    const nl = VAK_SOURCES.find((s) => s.id === 'vak:logeion')
+    const en = VAK_SOURCES.find((s) => s.id === 'vak:prdaily')
+    for (const src of [nl, en]) {
+      const r = await loadSource(src, Promise.resolve({}))
+      assert.equal(r.items[0].title, 'Lars Postmus (Draft Digital): ‘Emotie werkt ook op performance’', src.id)
+      assert.equal(r.items[0].summary, 'Google’s AI-modus…', src.id)
+    }
   } finally {
     globalThis.fetch = origFetch
   }

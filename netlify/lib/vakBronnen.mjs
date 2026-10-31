@@ -2,7 +2,12 @@
 // is bij het toevoegen opgehaald en geteld (minstens twee stukken in 30 dagen). Met FITS per
 // onderwerp: alleen nodig voor bronnen die breder schrijven (`filter`) of bij meer onderwerpen horen.
 // Wekelijks nagelopen: zie healthOf in vak.mjs.
-const V = (id, name, kind, fields, url, more = {}) => ({ id: 'vak:' + id, name, kind, fields, urls: [url], cat: 'vak', ...more })
+// De taal van een vakbron, voor typeset() (T6, D3: één typografische hand, ook in de Selectie).
+// Afgeleid uit het domein van de feed: .nl, .be en .nu zijn Nederlands, de rest Engels. Een
+// Nederlandse bron op .com telt dan als Engels; dat geeft niets, typeset zet nl en en met dezelfde
+// regels. Wie een andere taal heeft geeft `lang` zelf mee (dan blijft de kop letterlijk).
+export const feedLang = (url) => (/\.(nl|be|nu)$/i.test(new URL(url).hostname) ? 'nl' : 'en')
+const V = (id, name, kind, fields, url, more = {}) => ({ id: 'vak:' + id, name, kind, fields, urls: [url], cat: 'vak', lang: feedLang(url), ...more })
 
 export const MORE_SOURCES = [
   // marketing-design
