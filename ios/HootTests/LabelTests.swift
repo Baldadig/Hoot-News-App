@@ -1,69 +1,73 @@
 import XCTest
 @testable import Hoot
 
-// Het label boven een verhaal (StoryLabel). De gevallen zijn dezelfde als bij src/lib/label.js op het web:
-// verander je hier een regel, dan daar ook.
+// Het label boven een verhaal (StoryLabel). Elk geval hieronder is hetzelfde als in tests/label.test.mjs op
+// het web, in dezelfde volgorde: verander je hier een regel of geval, dan daar ook. De laatste test is een
+// aanvulling die het web nog moet overnemen (zie StoryLabel.label).
 final class LabelTests: XCTestCase {
-    private func kicker(_ topics: [String], cat: String? = nil, desk: String? = nil, interests: [String] = [], picked: [String] = []) -> String? {
-        StoryLabel.kicker(topics: topics, sourceCat: cat, desk: desk, interests: interests, picked: picked)
+    private let follows = ["nederland", "film", "oekraine"]
+    private func l(_ topics: [String] = [], follows: [String]? = nil, cat: String? = nil, desk: String? = nil, deskLabel: String? = nil, section: String? = nil, code: String? = nil, text: String? = nil, followed: Bool = true) -> StoryLabel.Result {
+        StoryLabel.label(topics: topics, follows: follows ?? self.follows, cat: cat, desk: desk, deskLabel: deskLabel, section: section, whyCode: code, whyText: text, followed: followed)
     }
 
-    func testSubinteresseGaatVoorRubriek() {
-        XCTAssertEqual(kicker(["nederland", "europa"], interests: ["politiek"], picked: ["nederland"]), "Politiek · Den Haag")
-        XCTAssertEqual(kicker(["film"], interests: ["cultuur"], picked: ["film"]), "Cultuur · Film & series")
+    func testVerhaalOverEenOnderwerpDatJeVolgt_InteresseOnderwerp() {
+        XCTAssertEqual(l(["nederland"], deskLabel: "Binnenland").kicker, "Politiek · Den Haag")
+        XCTAssertEqual(l(["film", "muziek"], deskLabel: "Cultuur").kicker, "Cultuur · Film & series")
+        XCTAssertEqual(l(["oekraine"], deskLabel: "Oekraïne").kicker, "Wereld · Oekraïne & Rusland")
     }
-    func testZonderAangetikteSubGeenSub() {
-        XCTAssertEqual(kicker(["film"], interests: ["cultuur"], picked: []), "Cultuur")
-        XCTAssertEqual(kicker(["film"], interests: ["cultuur"], picked: ["muziek"]), "Cultuur")
+
+    func testRaaktHetVerhaalNietsWatJeVolgt_DeRubriek() {
+        XCTAssertEqual(l(["wonen"], deskLabel: "Binnenland").kicker, "Binnenland")
+        XCTAssertEqual(l([], follows: [], section: "Economie").kicker, "Economie")
+        XCTAssertNil(StoryLabel.label().kicker)
     }
-    func testRaaktHetVerhaalDeInteresseNiet_DanDeRubriek() {
-        XCTAssertEqual(kicker(["voetbal"], desk: "binnenland", interests: ["cultuur"], picked: ["film"]), "Binnenland")
-        XCTAssertEqual(kicker(["klimaat"], interests: ["cultuur"]), "Wetenschap")
-        XCTAssertNil(kicker([], interests: ["cultuur"]))
-    }
-    func testEenLosBijonderwerpMaaktGeenCultuurVanHetNieuws() {
-        // Rubberboot met migranten, per ongeluk ook als "film" getagd: de plek zegt Binnenland.
-        XCTAssertEqual(kicker(["migratie", "film"], desk: "binnenland", interests: ["cultuur"], picked: ["film"]), "Binnenland")
-        XCTAssertEqual(kicker(["migratie", "film"], desk: "buitenland", interests: ["cultuur"], picked: ["film"]), "Buitenland")
-        // Gaat het verhaal er wel over (hoofdonderwerp of dezelfde plek), dan telt je interesse.
-        XCTAssertEqual(kicker(["film", "migratie"], desk: "binnenland", interests: ["cultuur"], picked: ["film"]), "Cultuur · Film & series")
-        XCTAssertEqual(kicker(["migratie", "zorg"], desk: "binnenland", interests: ["binnenland"], picked: []), "Binnenland")
-    }
+
     func testEenSportbronIsSport() {
-        XCTAssertEqual(kicker(["nederland"], cat: "sport", desk: "binnenland", interests: ["politiek"]), "Sport")
-        XCTAssertEqual(kicker(["voetbal"], cat: "sport", interests: ["sport"], picked: ["voetbal"]), "Sport · Voetbal")
-    }
-    func testBronrubriekAlsErNietsAnders() {
-        XCTAssertEqual(kicker([], cat: "tech"), "Tech")
-    }
-    func testRubriekMetAangetikteSubWintVanEersteRubriek() {
-        XCTAssertEqual(kicker(["nederland", "film"], interests: ["politiek", "cultuur"], picked: ["film"]), "Cultuur · Film & series")
-        XCTAssertEqual(kicker(["nederland", "film"], interests: ["politiek", "cultuur"]), "Politiek")
+        XCTAssertEqual(l(cat: "sport", deskLabel: "Binnenland").kicker, "Sport")
+        XCTAssertEqual(l(["nederland"], cat: "sport").kicker, "Politiek · Den Haag") // je interesse gaat voor
     }
 
-    func testWaaromAlleenAlsHetIetsToevoegt() {
-        XCTAssertNil(StoryLabel.why(code: "rubriek", text: "Rubriek Binnenland", kicker: "Binnenland"))
-        XCTAssertNil(StoryLabel.why(code: "extern", text: "Buiten je bronnen", kicker: nil))
-        XCTAssertNil(StoryLabel.why(code: nil, text: "  ", kicker: nil))
-        XCTAssertNil(StoryLabel.why(code: nil, text: nil, kicker: "Politiek"))
-    }
-    func testOmdatJeVolgtValtWegAlsDeKickerHetZegt() {
-        XCTAssertNil(StoryLabel.why(code: "interest", text: "Omdat je Film & series volgt", kicker: "Cultuur · Film & series"))
-        XCTAssertNil(StoryLabel.why(code: "interest", text: "Omdat je Den Haag volgt", kicker: "Politiek · Den Haag"))
-        XCTAssertEqual(StoryLabel.why(code: "interest", text: "Omdat je Trump volgt", kicker: "Binnenland"), "Omdat je Trump volgt")
-    }
-    func testWatWelBlijft() {
-        XCTAssertEqual(StoryLabel.why(code: "followUp", text: "Vervolg op wat je las · 2 nieuwe stukken", kicker: "Politiek"), "Vervolg op wat je las · 2 nieuwe stukken")
-        XCTAssertEqual(StoryLabel.why(code: "groot", text: "Groot nieuws · 7 bronnen", kicker: "Wereld"), "Groot nieuws · 7 bronnen")
-        XCTAssertEqual(StoryLabel.why(code: "favorite", text: "Uit je voorkeursbron NRC", kicker: nil), "Uit je voorkeursbron NRC")
-        XCTAssertEqual(StoryLabel.why(code: "buur", text: "Naast je bubbel · grenst aan Tech", kicker: nil), "Naast je bubbel · grenst aan Tech")
+    func testHetWaaromAlleenAlsDieIetsToevoegt() {
+        let omdat = "Omdat je Den Haag volgt"
+        XCTAssertNil(l(["nederland"], code: "interest", text: omdat).why) // de kicker zegt het al
+        XCTAssertEqual(l(["wonen"], code: "interest", text: omdat).why, omdat) // de kicker zegt het niet
+        for (code, text) in [("followUp", "Vervolg op wat je las · 2 nieuwe stukken"), ("groot", "Groot nieuws · 11 bronnen"), ("favorite", "Uit je voorkeursbron NOS"), ("buur", "Naast je bubbel · grenst aan Sport")] {
+            XCTAssertEqual(l(["nederland"], code: code, text: text).why, text)
+        }
+        for code in ["rubriek", "extern", "bubbel", "breed"] { XCTAssertNil(l(code: code, text: "x").why) }
+        XCTAssertNil(l(code: "groot", text: "  ").why)
     }
 
-    func testBuitenJeBronnenHoortBijDeBronregel() {
-        XCTAssertTrue(StoryLabel.outside(desk: "extern", followed: true))
-        XCTAssertTrue(StoryLabel.outside(desk: "tech", followed: false))
-        XCTAssertFalse(StoryLabel.outside(desk: "tech", followed: true))
-        XCTAssertFalse(StoryLabel.outside(desk: "bubbel", followed: false))
-        XCTAssertFalse(StoryLabel.outside(desk: "breed", followed: false))
+    func testBuitenJeBronnenHoortBijDeBronregel_NietBijDeKicker() {
+        let a = l(desk: "extern", deskLabel: "Buiten je bronnen", section: "Wereld", code: "extern", text: "Buiten je bronnen")
+        XCTAssertTrue(a.outside)
+        XCTAssertEqual(a.kicker, "Wereld")
+        XCTAssertNil(a.why)
+        let b = l(deskLabel: "Tech", followed: false)
+        XCTAssertEqual(b.kicker, "Tech")
+        XCTAssertTrue(b.outside)
+        XCTAssertFalse(l(deskLabel: "Tech").outside)
+    }
+
+    func testBuitenJeBubbelEnWaarIedereenOverSchrijftBlijvenHunEigenKicker() {
+        XCTAssertEqual(l(["nederland"], desk: "bubbel", deskLabel: "Buiten je bubbel · via Google Trends").kicker, "Buiten je bubbel · via Google Trends")
+        XCTAssertEqual(l(["nederland"], desk: "breed", deskLabel: "Waar iedereen over schrijft · 9 bronnen").kicker, "Waar iedereen over schrijft · 9 bronnen")
+    }
+
+    // De plek van De Redacteur in de Editie (Desk.plek): Buiten je bubbel noemt waar het vandaan komt.
+    func testDePlekZegtWaarHetVandaanKomt() {
+        func entry(_ desk: String, count: Int? = nil, via: [String] = []) -> EditionEntry {
+            EditionEntry(kind: "item", id: "a", desk: desk, sourceCount: count, terms: via.map { EntryTerm(term: "x", via: $0) })
+        }
+        XCTAssertEqual(Desk.plek(entry("bubbel", via: ["google", "bluesky", "google"])), "Buiten je bubbel · via Google Trends en Bluesky")
+        XCTAssertEqual(Desk.plek(entry("bubbel")), "Buiten je bubbel")
+        XCTAssertEqual(Desk.plek(entry("breed", count: 9)), "Waar iedereen over schrijft · 9 bronnen")
+        XCTAssertEqual(Desk.plek(entry("binnenland")), "Binnenland")
+    }
+
+    // Aanvulling op het web: een los bijonderwerp maakt er geen interesse van (zie StoryLabel.label).
+    func testEenLosBijonderwerpMaaktGeenCultuurVanHetNieuws() {
+        XCTAssertEqual(l(["migratie", "film"], desk: "binnenland", deskLabel: "Binnenland").kicker, "Binnenland")
+        XCTAssertEqual(l(["film", "migratie"], desk: "binnenland", deskLabel: "Binnenland").kicker, "Cultuur · Film & series")
     }
 }

@@ -68,11 +68,4 @@ final class SentencesTests: XCTestCase {
         XCTAssertEqual(introMax(lines: 2, thumb: true), 104)
         XCTAssertEqual(introMax(lines: 3, thumb: true), 160)
     }
-
-    // De telling van de Editie: het hoofdverhaal is 01, Buiten je bubbel telt niet mee.
-    func testEditionCount() {
-        let item = { (id: String) in Item(id: id, source: "nos", title: id, url: "https://example.org/\(id)") }
-        let rows = ["a", "b", "c", "d"].map { EditionRowModel(id: $0, item: item($0), story: nil, label: nil, desk: $0 == "c" ? "bubbel" : "binnenland") }
-        XCTAssertEqual(EditionCount.numbers(rows), ["a": 1, "b": 2, "d": 3])
-    }
 }

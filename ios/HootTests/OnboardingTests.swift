@@ -58,6 +58,40 @@ final class OnboardingTests: XCTestCase {
         }
     }
 
+    func testMetricsGrowWithTheTextSize() {
+        let normal = WelcomePages.Metrics(.large)
+        let big = WelcomePages.Metrics(.accessibility3)
+        XCTAssertEqual(normal.chip, WelcomePages.chip) // bij normale tekst blijft 40
+        XCTAssertGreaterThan(big.chip, normal.chip)
+        XCTAssertGreaterThan(big.header, normal.header)
+        XCTAssertGreaterThan(WelcomePages.groupHeight(rows: 2, metrics: big), WelcomePages.groupHeight(rows: 2, metrics: normal))
+    }
+
+    func testOversizedChipCountsItsExtraLine() {
+        let m = WelcomePages.Metrics(.large)
+        let plain = WelcomePages.groupHeight(chips: [100, 100], width: 300, metrics: m)
+        XCTAssertEqual(plain, WelcomePages.groupHeight(rows: 1, metrics: m))
+        XCTAssertGreaterThan(WelcomePages.groupHeight(chips: [500], width: 300, metrics: m), WelcomePages.groupHeight(rows: 1, metrics: m))
+    }
+
+    func testChunksSplitATallGroupIntoPagesOfMaxRows() {
+        // drie onderwerpen per regel van 300 (3 x 90 + 2 x 8 = 286); twee regels per stuk
+        let chips = [CGFloat](repeating: 90, count: 8)
+        XCTAssertEqual(WelcomePages.chunks(chips: chips, width: 300, maxRows: 2), [[0, 1, 2, 3, 4, 5], [6, 7]])
+        XCTAssertEqual(WelcomePages.chunks(chips: chips, width: 300, maxRows: 9), [[0, 1, 2, 3, 4, 5, 6, 7]])
+        XCTAssertEqual(WelcomePages.chunks(chips: chips, width: 300, maxRows: 1), [[0, 1, 2], [3, 4, 5], [6, 7]])
+        XCTAssertEqual(WelcomePages.chunks(chips: [], width: 300, maxRows: 2), [[]])
+    }
+
+    func testEveryChunkFitsItsRows() {
+        let chips: [CGFloat] = [120, 80, 150, 60, 200, 90, 110, 70, 130]
+        for maxRows in 1 ... 4 {
+            for part in WelcomePages.chunks(chips: chips, width: 300, maxRows: maxRows) where !part.isEmpty {
+                XCTAssertLessThanOrEqual(WelcomePages.rows(chips: part.map { chips[$0] }, width: 300), maxRows)
+            }
+        }
+    }
+
     // ---- Het voorstel ----
 
     @MainActor func testSuggestionStartsWithFreeDutchSources() {

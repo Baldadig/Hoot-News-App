@@ -28,19 +28,23 @@ enum Desk {
     // Zelfde namen als DESK_NAMES in shared/editor.mjs; 'regio' vult De Redacteur uit je regionale bronnen.
     static let labels = ["binnenland": "Binnenland", "buitenland": "Buitenland", "vs": "VS", "middenoosten": "Midden-Oosten", "oekraine": "Oekraïne", "wetenschap": "Wetenschap", "tech": "Tech", "economie": "Economie", "regio": "Regio", "bubbel": "Buiten je bubbel", "extern": "Buiten je bronnen"]
 
-    // Het label boven het verhaal (StoryLabel.kicker): je (sub)interesse als het verhaal die raakt, anders de
-    // rubriek. "Buiten je bronnen" staat niet meer boven het verhaal maar in de bronregel (StoryLabel.outside).
-    static func label(_ e: EditionEntry, item: Item, sourceCat: String?, interests: [String], picked: [String]) -> String? {
+    // De naam van de plek, zoals deskLabel op het web: Buiten je bubbel noemt waar het vandaan komt.
+    private static let via = ["google": "Google Trends", "bluesky": "Bluesky", "wikipedia": "Wikipedia"]
+    static func plek(_ e: EditionEntry) -> String? {
         if e.desk == "breed" { return e.sourceCount.map { "Waar iedereen over schrijft · \($0) bronnen" } ?? "Waar iedereen over schrijft" }
-        if e.desk == "bubbel" { return labels["bubbel"] }
-        return StoryLabel.kicker(topics: item.topics ?? [], sourceCat: sourceCat, desk: e.desk, interests: interests, picked: picked)
+        if e.desk == "bubbel", let terms = e.terms, !terms.isEmpty {
+            var seen = Set<String>()
+            let namen = terms.compactMap { $0.via.map { via[$0] ?? $0 } }.filter { seen.insert($0).inserted }
+            if !namen.isEmpty { return "\(labels["bubbel"] ?? "Buiten je bubbel") · via \(namen.joined(separator: " en "))" }
+        }
+        return e.desk.flatMap { labels[$0] }
     }
 
-    // Het waarom onder de rubriek (whyLine in src/components/Why.js, bouwspec §6): één korte zin, of niets
-    // als het label het al zegt of niets toevoegt (zie StoryLabel.why). De algemene Editie en een Editie
-    // van vóór het waarom hebben er geen.
-    static func why(_ e: EditionEntry, kicker: String?) -> String? {
-        StoryLabel.why(code: e.why?.code, text: e.why?.text, kicker: kicker)
+    // Het label boven het verhaal (StoryLabel.label, gelijk aan src/lib/label.js): je (sub)interesse als het
+    // verhaal die raakt, anders de rubriek; het waarom alleen als het iets toevoegt; "Buiten je bronnen" staat
+    // in de bronregel.
+    static func label(_ e: EditionEntry, item: Item, sourceCat: String?, follows: [String], followed: Bool) -> StoryLabel.Result {
+        StoryLabel.label(topics: item.topics ?? [], follows: follows, cat: sourceCat, desk: e.desk, deskLabel: plek(e), whyCode: e.why?.code, whyText: e.why?.text, followed: followed || ["bubbel", "breed"].contains(e.desk ?? ""))
     }
 }
 
@@ -66,29 +70,18 @@ extension HootStore {
         guard let edition = shownEdition else { return [] }
         let published = Dictionary((edition.items ?? []).map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
         let on = Set(followed.map(\.id))
-        let picked = Rubriek.picked(from: topics, interests: interests)
         let rows: [EditionRowModel] = edition.entries.filter { bubble || $0.desk != "bubbel" }.compactMap { e in
             let leadId = e.kind == "story" ? (e.leadId ?? e.id) : e.id
             guard let item = published[leadId] ?? itemsById[leadId] else { return nil }
             let story = e.kind == "story" ? storiesById[e.id] : item.storyId.flatMap { storiesById[$0] }
-            let kicker = Desk.label(e, item: item, sourceCat: self.source(item.source)?.cat, interests: interests, picked: picked)
-            return EditionRowModel(id: e.id, item: item, story: story, label: kicker, desk: e.desk, why: Desk.why(e, kicker: kicker), outside: StoryLabel.outside(desk: e.desk, followed: on.contains(item.source)))
+            let l = Desk.label(e, item: item, sourceCat: self.source(item.source)?.cat, follows: topics, followed: on.contains(item.source))
+            return EditionRowModel(id: e.id, item: item, story: story, label: l.kicker, desk: e.desk, why: l.why, outside: l.outside)
         }
         // Hoofdverhaal met scherp beeld (geen bubbel of "waar iedereen over schrijft").
         let ok: (EditionRowModel) -> Bool = { ImageURL.fitsHero($0.item.image) && !["bubbel", "breed"].contains($0.desk ?? "") }
         guard let first = rows.first, !ok(first), let i = rows.firstIndex(where: ok) else { return rows }
         var out = rows
         out.insert(out.remove(at: i), at: 0)
-        return out
-    }
-}
-
-// De telling van de Editie (T3): de getoonde rijen op volgorde, het hoofdverhaal is 01. Buiten je
-// bubbel telt niet mee; die staat erbuiten. Zoals countEdition op het web.
-enum EditionCount {
-    static func numbers(_ rows: [EditionRowModel]) -> [String: Int] {
-        var out: [String: Int] = [:]
-        for row in rows where row.desk != "bubbel" { out[row.id] = out.count + 1 }
         return out
     }
 }
@@ -193,7 +186,6 @@ struct EditionView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     let rows = store.editionRows
-                    let numbers = EditionCount.numbers(rows)
                     // De schermtitel in de scroll, direct boven de metaregel (zoals .vh__sub op het web).
                     ScreenTitle(title, gap: 0)
                     if store.status == .loading && rows.isEmpty {
@@ -213,32 +205,26 @@ struct EditionView: View {
                             .padding(.bottom, Space.s4)
                         // Kon er niet ververst worden, dan zegt dat het onder de datum: titel en datum blijven bij elkaar.
                         StaleNotice(gap: Space.s4)
-                        slot(rows[0]) { LeadCard(item: rows[0].item, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, number: numbers[rows[0].id]) }
+                        slot(rows[0]) { LeadCard(item: rows[0].item, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
                         if wide {
                             // Breed: de rest in twee kolommen, elk verhaal met een lijn erboven.
                             LazyVGrid(columns: [GridItem(.flexible(), spacing: Space.s6, alignment: .top), GridItem(.flexible(), spacing: Space.s6, alignment: .top)], alignment: .leading, spacing: Space.s2) {
                                 ForEach(rows.dropFirst()) { row in
                                     VStack(alignment: .leading, spacing: 0) {
                                         Rule().padding(.vertical, Space.s2)
-                                        slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, number: numbers[row.id]) }
+                                        slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
                                     }
                                 }
                             }
                         } else {
                             ForEach(rows.dropFirst()) { row in
                                 Rule().padding(.vertical, Space.s2)
-                                slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, number: numbers[row.id]) }
+                                slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
                             }
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,
                         // en wanneer de volgende er is.
                         VStack(spacing: Space.s3) {
-                            // De telling rond: "10 van 10", stil boven het merk (geen beweging, geen trilling).
-                            if !numbers.isEmpty {
-                                Text("\(numbers.count) van \(numbers.count)")
-                                    .font(.system(.body, design: .serif).monospacedDigit())
-                                    .opacity(0.85)
-                            }
                             // Het teken "h." als tekening, 44 hoog; op merkrood alles papier, ook de punt.
                             // Tot "Je bent bij." 16, zoals op het web.
                             BrandMark(height: 44, ink: Theme.onBrandRed, dot: Theme.onBrandRed)

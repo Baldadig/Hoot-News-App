@@ -4,20 +4,17 @@ import SwiftUI
 // één keer kiezen. Een rode intro met de zon in papier, dan de iris naar papier met drie pagina's
 // (Editie, Stroom, Selectie, elk met een eigen zon), en pas op de laatste de knoppen. Daarna je
 // interesses, Wat precies? op een eigen pagina met alle onderwerpen open (over te slaan), Je Hoot met
-// het voorstel voor je bronnen (Aanpassen) en je Selectie (Later kiezen), en tot slot Een seintje?.
-// Niets in het welkom scrolt: elke pagina past op één scherm, ook op de kleinste iPhone. Past iets niet
-// (heel grote tekst), dan verdeelt Wat precies? zich over meer pagina's en scrolt de rest alleen dan.
+// het voorstel voor je bronnen (Aanpassen: Je bronnen) en je Selectie (Later kiezen: Je Selectie), en
+// tot slot Een seintje?. Niets in het welkom scrolt: elke pagina past op één scherm, ook op de kleinste
+// iPhone en bij grote tekst. Past iets niet, dan verdelen Wat precies?, Je bronnen en Je Selectie zich
+// over meer pagina's (de maten volgen de tekstgrootte); een pagina scrolt alleen als er echt niets meer te splitsen is.
 // "Liever meteen lezen" begint zonder vragen met gratis Nederlandse bronnen en zet geen vak.
 // Het merk loopt erdoorheen: het opstartscherm landt op "hoot." linksboven op de rode intro (het rood
 // blijft), en bij het eerste papier sluit het rood zich als een iris tot de punt van "hoot." op papier.
 // Ook vanuit Instellingen (`reopen`: alles begint bij wat je nu hebt, sluiten slaat niets op) en na
 // even rondkijken (`start: .interesses`, in een blad met Annuleer).
 struct WelcomeView: View {
-    enum Step: String { case intro, uitleg, interesses, precies, hoot, seintje }
-    enum Blad: String, Identifiable {
-        case bronnen, selectie
-        var id: String { rawValue }
-    }
+    enum Step: String { case intro, uitleg, interesses, precies, hoot, bronnen, selectie, seintje }
 
     var reopen = false
     var start: Step = .intro
@@ -33,13 +30,13 @@ struct WelcomeView: View {
 
     @State private var step: Step
     @State private var page = 0 // de uitleg: 0 Editie, 1 Stroom, 2 Selectie (de rode intro is pagina 1 van 4)
-    @State private var preciesPage = 0
+    @State private var subpage = 0 // de subpagina van Wat precies?, Je bronnen en Je Selectie
+    @State private var offered: [String] = [] // Je bronnen: het voorstel eerst, dan wat verder past; de volgorde ligt vast
+    @State private var rowH: [String: CGFloat] = [:] // Je bronnen: hoe hoog elke rij is (gemeten)
     @State private var interests: [String] = []
     @State private var picked: [String] = [] // Wat precies?: wat je aantikte; niets = alles binnen die interesse
     @State private var chosen: [String]? // bronnen: het voorstel, pas ingevuld als je bij die pagina komt en ze er zijn
     @State private var vak: [String] = [] // de eerste keer leeg: een nieuwe lezer kiest zijn vak zelf, of later
-    @State private var blad: Blad?
-    @State private var openAfter: Blad? // Debug: het blad opent zodra het voorstel er is
     @State private var prepared = false
     @State private var asksAlert: Bool? // vast bij binnenkomst: dan verspringt er niets
     @State private var asking = false
@@ -64,7 +61,6 @@ struct WelcomeView: View {
     init(reopen: Bool = false, start: Step = .intro, onCancel: (() -> Void)? = nil, onDone: @escaping () -> Void) {
         var first = start
         var firstPage = 0
-        var open: Blad?
         #if DEBUG
         // `-HootWelcomeStep uitleg2|interesses|precies|hoot|bronnen|selectie|seintje`
         if first == .intro, let name = DebugLaunch.welcomeStep {
@@ -72,8 +68,6 @@ struct WelcomeView: View {
             case "uitleg", "uitleg1": first = .uitleg
             case "uitleg2": first = .uitleg; firstPage = 1
             case "uitleg3": first = .uitleg; firstPage = 2
-            case "bronnen": first = .hoot; open = .bronnen
-            case "selectie": first = .hoot; open = .selectie
             default: if let s = Step(rawValue: name) { first = s }
             }
         }
@@ -84,7 +78,6 @@ struct WelcomeView: View {
         self.onDone = onDone
         _step = State(initialValue: first)
         _page = State(initialValue: firstPage)
-        _openAfter = State(initialValue: open)
         _red = State(initialValue: first == .intro)
     }
 
@@ -123,6 +116,7 @@ struct WelcomeView: View {
         .onChange(of: store.newsSources.count) { fill() }
         .onChange(of: step) {
             fill()
+            offerSources()
             // De kop van de nieuwe pagina voorlezen (VoiceOver), zoals de focus op de kop op het web.
             Task {
                 try? await Task.sleep(for: .milliseconds(400))
@@ -130,12 +124,6 @@ struct WelcomeView: View {
             }
         }
         .onChange(of: brand?.landed ?? true) { startSun() }
-        .sheet(item: $blad) { b in
-            switch b {
-            case .bronnen: SourcesSheet(chosen: Binding(get: { chosen ?? [] }, set: { chosen = $0 }), interests: interests)
-            case .selectie: FieldsSheet(vak: $vak)
-            }
-        }
     }
 
     // ---- Keuzes ----
@@ -164,9 +152,18 @@ struct WelcomeView: View {
     // Het voorstel voor je bronnen, zodra ze er zijn: opnieuw kiezen begint bij wat je volgt, de eerste
     // keer bij wat bij je interesses past (alleen gratis, Nederlands eerst).
     private func fill() {
-        guard !store.newsSources.isEmpty, step == .hoot || step == .seintje, chosen == nil else { return }
+        guard !store.newsSources.isEmpty, [.hoot, .bronnen, .selectie, .seintje].contains(step), chosen == nil else { return }
         chosen = reopen ? store.followed.map(\.id) : store.suggested(interests: interests)
-        if let b = openAfter { openAfter = nil; blad = b }
+        offerSources()
+    }
+
+    // Je bronnen: wat nu aan staat eerst, dan wat verder bij je interesses past. Eén keer, zodat een bron die je
+    // uitzet op zijn plek blijft staan.
+    private func offerSources() {
+        guard offered.isEmpty, let chosen, !store.newsSources.isEmpty, step == .bronnen else { return }
+        var ids = chosen
+        for id in HootStore.always + store.alsoSuggested(interests: interests) where !ids.contains(id) && store.source(id) != nil { ids.append(id) }
+        offered = ids
     }
 
     private func toggled(_ list: [String], _ id: String) -> [String] { list.contains(id) ? list.filter { $0 != id } : list + [id] }
@@ -184,10 +181,13 @@ struct WelcomeView: View {
             // Opnieuw kiezen: wat je volgt (en wat je hier al aan- of uitzette). Eerste keer: opnieuw
             // voorstellen, want je interesses kunnen veranderd zijn.
             if !reopen { chosen = nil }
-            preciesPage = 0
+            offered = []
+            subpage = 0
             go(.precies)
         case .precies:
-            if preciesPage + 1 < preciesPages.count { turn { preciesPage += 1 } } else { go(.hoot) }
+            if subpage + 1 < subCount { turn { subpage += 1 } } else { go(.hoot) }
+        case .bronnen, .selectie:
+            if subpage + 1 < subCount { turn { subpage += 1 } } else { go(.hoot) }
         case .hoot:
             apply()
             if asks { go(.seintje) } else { onDone() }
@@ -207,8 +207,10 @@ struct WelcomeView: View {
         switch step {
         case .interesses: page = 2; go(.uitleg)
         case .precies:
-            if preciesPage > 0 { turn { preciesPage -= 1 } } else { go(.interesses) }
-        case .hoot: preciesPage = max(0, preciesPages.count - 1); go(.precies)
+            if subpage > 0 { turn { subpage -= 1 } } else { go(.interesses) }
+        case .bronnen, .selectie:
+            if subpage > 0 { turn { subpage -= 1 } } else { go(.hoot) }
+        case .hoot: subpage = max(0, subCountOf(.precies) - 1); go(.precies)
         case .seintje: go(.hoot)
         case .intro, .uitleg: break
         }
@@ -501,8 +503,8 @@ struct WelcomeView: View {
                             .accessibilityAddTraits(.isHeader)
                             .accessibilityFocused($headFocus)
                         Spacer(minLength: 0)
-                        if step == .precies, preciesPages.count > 1 {
-                            Text("\(preciesPage + 1) van \(preciesPages.count)")
+                        if subCount > 1 {
+                            Text("\(subpage + 1) van \(subCount)")
                                 .font(.subheadline)
                                 .foregroundStyle(Theme.ink3)
                                 .monospacedDigit()
@@ -523,7 +525,7 @@ struct WelcomeView: View {
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentH = $0 }
             .opacity(fade)
         }
-        .id("\(step.rawValue)-\(preciesPage)") // elke pagina bovenaan
+        .id("\(step.rawValue)-\(subpage)") // elke pagina bovenaan
         .scrollBounceBehavior(.basedOnSize)
         .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { roomH = $0 }
     }
@@ -568,6 +570,8 @@ struct WelcomeView: View {
         case .interesses: "Wat interesseert je?"
         case .precies: "Wat precies?"
         case .hoot: "Je Hoot"
+        case .bronnen: "Je bronnen"
+        case .selectie: "Je Selectie"
         case .seintje: "Een seintje?"
         case .intro, .uitleg: ""
         }
@@ -578,6 +582,8 @@ struct WelcomeView: View {
         case .interesses: "Kies er een paar. Daarmee maken we je Editie en kiezen we je bronnen."
         case .precies: "Kies wat je boeit. Niets kiezen is alles."
         case .hoot: "Ons voorstel. Pas aan wat je wilt."
+        case .bronnen: reopen ? "Zet aan wat je wilt lezen." : "Zet aan wat je wilt lezen. Later pas je alles aan bij Bronnen."
+        case .selectie: "Elke maandag de drie beste stukken van de week, per onderwerp. Kies wat bij je werk of hobby past."
         case .seintje: "Een stil seintje als je Editie klaarligt."
         case .intro, .uitleg: ""
         }
@@ -588,6 +594,8 @@ struct WelcomeView: View {
         case .interesses: tiles
         case .precies: precies
         case .hoot: hootRows
+        case .bronnen: bronnen
+        case .selectie: selectie
         case .seintje: preview
         case .intro, .uitleg: EmptyView()
         }
@@ -604,39 +612,134 @@ struct WelcomeView: View {
         }
     }
 
-    // ---- Wat precies? ----
+    // ---- Pagina's zonder scrollen: Wat precies?, Je bronnen, Je Selectie ----
 
-    // De gekozen interesses, verdeeld over pagina's die op een scherm passen (WelcomePages).
-    private var preciesPages: [[Rubriek]] {
-        let mine = Rubriek.alle.filter { interests.contains($0.id) }
-        guard roomH > 0, step == .precies || step == .interesses || step == .hoot else { return [mine] }
-        let line = max(120, width - Space.s4 * 2)
-        let heights = mine.map { r in
-            WelcomePages.groupHeight(rows: WelcomePages.rows(chips: r.topics.map { Self.chipWidth(Taste.label($0)) }, width: line))
-        }
-        let room = roomH - headH - Space.s2 - Space.s4 - Space.s5 - Space.s4
-        return WelcomePages.split(heights, room: room, gap: Space.s5).map { $0.map { mine[$0] } }
+    // Een groep keuzes (een interesse, een domein) of een stuk ervan als de groep alleen al te hoog is.
+    private struct ChipGroup: Identifiable {
+        let id: String
+        let title: String
+        let icon: String?
+        let chips: [(id: String, label: String)]
     }
 
+    // Hoeveel ruimte een pagina heeft voor de keuzes zelf (onder kop en uitleg, boven de knoppen).
+    private var room: CGFloat { roomH - headH - Space.s2 - Space.s4 - Space.s5 - Space.s4 }
+    private var metrics: WelcomePages.Metrics { WelcomePages.Metrics(typeSize) }
+
+    // De groepen van deze stap: je gekozen interesses met hun onderwerpen, of de domeinen van de Selectie.
+    private func groups(for step: Step) -> [ChipGroup] {
+        switch step {
+        case .selectie:
+            return DigestFieldsList.domains.enumerated().compactMap { i, d in
+                let chips = d.fields.filter { store.offersField($0.id) }.map { (id: $0.id, label: $0.label) }
+                return chips.isEmpty ? nil : ChipGroup(id: "d\(i)", title: d.label, icon: nil, chips: chips)
+            }
+        default:
+            return Rubriek.alle.filter { interests.contains($0.id) }.map { r in
+                ChipGroup(id: r.id, title: r.label, icon: r.icon, chips: r.topics.map { (id: $0, label: Taste.label($0)) })
+            }
+        }
+    }
+
+    // Groepen verdeeld over pagina's die op een scherm passen (WelcomePages). Past een groep alleen al niet,
+    // dan wordt hij zelf in stukken gedeeld, elk met de kop erboven.
+    private func chipPages(for step: Step) -> [[ChipGroup]] {
+        let all = groups(for: step)
+        guard roomH > 0 else { return [all] }
+        let m = metrics
+        let line = max(120, width - Space.s4 * 2)
+        let maxRows = max(1, Int((room - m.header - WelcomePages.headerGap + WelcomePages.gap) / (m.chip + WelcomePages.gap)))
+        var parts: [ChipGroup] = []
+        for g in all {
+            let widths = g.chips.map { chipWidth($0.label) }
+            let whole = WelcomePages.groupHeight(chips: widths, width: line, metrics: m)
+            if whole <= room {
+                parts.append(g)
+            } else {
+                for (n, idx) in WelcomePages.chunks(chips: widths, width: line, maxRows: maxRows).enumerated() {
+                    parts.append(ChipGroup(id: "\(g.id)-\(n)", title: g.title, icon: g.icon, chips: idx.map { g.chips[$0] }))
+                }
+            }
+        }
+        let heights = parts.map { WelcomePages.groupHeight(chips: $0.chips.map { chipWidth($0.label) }, width: line, metrics: m) }
+        return WelcomePages.split(heights, room: room, gap: Space.s5).map { $0.map { parts[$0] } }
+    }
+
+    // Je bronnen: de rijen over pagina's, op de gemeten hoogte van elke rij.
+    private var sourcePages: [[String]] {
+        guard roomH > 0, !offered.isEmpty, offered.allSatisfy({ rowH[$0] != nil }) else { return [offered] }
+        return WelcomePages.split(offered.map { rowH[$0] ?? 0 }, room: room, gap: 0).map { $0.map { offered[$0] } }
+    }
+
+    private func subCountOf(_ s: Step) -> Int {
+        switch s {
+        case .precies, .selectie: chipPages(for: s).count
+        case .bronnen: sourcePages.count
+        default: 1
+        }
+    }
+    private var subCount: Int { subCountOf(step) }
+
     // Hoe breed een onderwerp ongeveer wordt (met de ruimte voor het vinkje, dat erbij komt als hij gekozen is).
-    private static func chipWidth(_ text: String) -> CGFloat {
-        let base = UIFont.preferredFont(forTextStyle: .subheadline)
-        let font = UIFont(descriptor: base.fontDescriptor.addingAttributes([.traits: [UIFontDescriptor.TraitKey.weight: UIFont.Weight.semibold]]), size: base.pointSize)
+    private func chipWidth(_ text: String) -> CGFloat {
+        let font = UIFont.systemFont(ofSize: metrics.subheadline.pointSize, weight: .semibold)
         return ceil((text as NSString).size(withAttributes: [.font: font]).width) + Space.s3 * 2 + 18
     }
 
-    private var precies: some View {
-        let pages = preciesPages
-        let mine = pages.indices.contains(preciesPage) ? pages[preciesPage] : pages.last ?? []
+    private func chipPage(_ pages: [[ChipGroup]], isOn: @escaping (String) -> Bool, toggle: @escaping (String) -> Void) -> some View {
+        let mine = pages.indices.contains(subpage) ? pages[subpage] : pages.last ?? []
         return VStack(alignment: .leading, spacing: Space.s5) {
-            ForEach(mine) { r in
+            ForEach(mine) { g in
                 VStack(alignment: .leading, spacing: Space.s3) {
-                    GroupTitle(text: r.label, icon: r.icon)
-                    TopicChips(rubriek: r, picked: picked, dense: true) { t in picked = toggled(picked, t) }
+                    GroupTitle(text: g.title, icon: g.icon)
+                    Flow {
+                        ForEach(g.chips, id: \.id) { c in
+                            ChoiceChip(label: c.label, on: isOn(c.id), dense: true) { toggle(c.id) }
+                        }
+                    }
                 }
             }
         }
         .opacity(roomH > 0 ? 1 : 0) // pas tonen als we weten hoeveel er past
+    }
+
+    private var precies: some View {
+        chipPage(chipPages(for: .precies), isOn: { picked.contains($0) }) { picked = toggled(picked, $0) }
+    }
+
+    private var selectie: some View {
+        chipPage(chipPages(for: .selectie), isOn: { vak.contains($0) }) { id in
+            let on = vak.contains(id)
+            vak = DigestFieldsList.fields.map(\.id).filter { $0 == id ? !on : vak.contains($0) }
+        }
+    }
+
+    private var bronnen: some View {
+        let pages = sourcePages
+        let mine = pages.indices.contains(subpage) ? pages[subpage] : pages.last ?? []
+        func pick(_ id: String) -> some View {
+            SourcePick(source: store.source(id)!, on: chosen?.contains(id) == true) {
+                chosen = toggled(chosen ?? [], id)
+            }
+        }
+        return VStack(alignment: .leading, spacing: 0) {
+            ForEach(mine.filter { store.source($0) != nil }, id: \.self) { id in pick(id) }
+        }
+        .opacity(roomH > 0 && offered.allSatisfy { rowH[$0] != nil } ? 1 : 0)
+        // Een verborgen kopie meet elke rij; WelcomePages.split verdeelt ze dan over de pagina's.
+        .background(alignment: .topLeading) {
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(offered.filter { store.source($0) != nil }, id: \.self) { id in
+                    pick(id).background(GeometryReader { g in Color.clear.preference(key: RowHeights.self, value: [id: g.size.height]) })
+                }
+            }
+            .frame(width: max(120, width - Space.s4 * 2))
+            .fixedSize(horizontal: false, vertical: true) // de eigen hoogte, niet die van de pagina
+            .opacity(0)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+        }
+        .onPreferenceChange(RowHeights.self) { rowH.merge($0) { _, new in new } }
     }
 
     // ---- Je Hoot ----
@@ -660,8 +763,8 @@ struct WelcomeView: View {
 
     private var hootRows: some View {
         VStack(spacing: Space.s3) {
-            hootRow("Je bronnen", value: sourcesLine, trailing: AnyView(Text("Aanpassen").font(.subheadline.weight(.semibold))), disabled: chosen == nil) { blad = .bronnen }
-            hootRow("Je Selectie", value: vakLine, trailing: AnyView(Image(systemName: "chevron.right").font(.footnote.weight(.bold)).foregroundStyle(Theme.ink3)), disabled: false) { blad = .selectie }
+            hootRow("Je bronnen", value: sourcesLine, trailing: AnyView(Text("Aanpassen").font(.subheadline.weight(.semibold))), disabled: chosen == nil) { subpage = 0; go(.bronnen) }
+            hootRow("Je Selectie", value: vakLine, trailing: AnyView(Image(systemName: "chevron.right").font(.footnote.weight(.bold)).foregroundStyle(Theme.ink3)), disabled: false) { subpage = 0; go(.selectie) }
         }
     }
 
@@ -755,6 +858,7 @@ struct WelcomeView: View {
         switch step {
         case .interesses: (interests.isEmpty ? "Kies minstens één" : "Verder", interests.isEmpty)
         case .precies: ("Verder", false)
+        case .bronnen, .selectie: (subpage + 1 < subCount ? "Verder" : "Klaar", step == .bronnen && chosen?.isEmpty == true && subpage + 1 >= subCount)
         case .hoot: (asks ? "Verder" : "Naar je Editie", chosen?.isEmpty == true)
         case .seintje: ("Ja, graag", false)
         case .intro, .uitleg: ("", false)
@@ -771,14 +875,47 @@ struct WelcomeView: View {
     }
 }
 
-// Wat precies? verdeeld over pagina's die op een scherm passen: nooit scrollen. De onderwerpen van een
-// interesse staan bij elkaar; past een heel groepje niet meer op de pagina, dan begint er een nieuwe.
-// Zuivere rekenwerk, getoetst in WelcomePagesTests.
+// Wat precies?, Je bronnen en Je Selectie verdeeld over pagina's die op een scherm passen: nooit scrollen.
+// De onderwerpen van een interesse staan bij elkaar; past een heel groepje niet meer op de pagina, dan
+// begint er een nieuwe, en past een groepje alleen al niet, dan wordt het zelf gedeeld (chunks).
+// De maten volgen de tekstgrootte (Metrics). Zuiver rekenwerk, getoetst in OnboardingTests.
 enum WelcomePages {
-    static let chip: CGFloat = Space.tap - Space.s1 // hoogte van één onderwerp
+    static let chip: CGFloat = Space.tap - Space.s1 // hoogte van één onderwerp bij normale tekst
     static let gap: CGFloat = Space.s2 // tussen onderwerpen
-    static let header: CGFloat = 20 // de kop van een groep (icoon en naam)
+    static let header: CGFloat = 20 // de kop van een groep (icoon en naam) bij normale tekst
     static let headerGap: CGFloat = Space.s3
+
+    // De hoogtes bij een tekstgrootte: een onderwerp is minstens 40 hoog en groeit mee met de regel; de kop
+    // van een groep met zijn icoon ook.
+    struct Metrics {
+        var chip = WelcomePages.chip
+        var header = WelcomePages.header
+        var subheadline = UIFont.preferredFont(forTextStyle: .subheadline)
+
+        init() {}
+        init(_ size: DynamicTypeSize) {
+            let category: UIContentSizeCategory = switch size {
+            case .xSmall: .extraSmall
+            case .small: .small
+            case .medium: .medium
+            case .large: .large
+            case .xLarge: .extraLarge
+            case .xxLarge: .extraExtraLarge
+            case .xxxLarge: .extraExtraExtraLarge
+            case .accessibility1: .accessibilityMedium
+            case .accessibility2: .accessibilityLarge
+            case .accessibility3: .accessibilityExtraLarge
+            case .accessibility4: .accessibilityExtraExtraLarge
+            case .accessibility5: .accessibilityExtraExtraExtraLarge
+            @unknown default: .large
+            }
+            let traits = UITraitCollection(preferredContentSizeCategory: category)
+            subheadline = UIFont.preferredFont(forTextStyle: .subheadline, compatibleWith: traits)
+            let body = UIFont.preferredFont(forTextStyle: .body, compatibleWith: traits)
+            chip = max(WelcomePages.chip, ceil(subheadline.lineHeight) + Space.s2 * 2)
+            header = max(WelcomePages.header, ceil(body.lineHeight))
+        }
+    }
 
     // Hoeveel regels de onderwerpen vullen als ze met `gap` ertussen op regels van `width` komen.
     static func rows(chips: [CGFloat], width: CGFloat) -> Int {
@@ -795,8 +932,36 @@ enum WelcomePages {
         return chips.isEmpty ? 0 : rows
     }
 
-    static func groupHeight(rows: Int) -> CGFloat {
-        header + headerGap + CGFloat(rows) * chip + CGFloat(max(0, rows - 1)) * gap
+    static func groupHeight(rows: Int, metrics m: Metrics = Metrics()) -> CGFloat {
+        m.header + headerGap + CGFloat(rows) * m.chip + CGFloat(max(0, rows - 1)) * gap
+    }
+
+    // Een onderwerp breder dan de regel breekt zijn naam af op een tweede regel: die regel telt mee.
+    static func groupHeight(chips: [CGFloat], width: CGFloat, metrics m: Metrics) -> CGFloat {
+        let wrapped = chips.reduce(0) { $0 + ($1 > width ? Int(ceil($1 / width)) - 1 : 0) }
+        return groupHeight(rows: rows(chips: chips, width: width), metrics: m) + CGFloat(wrapped) * ceil(m.subheadline.lineHeight)
+    }
+
+    // Een groep die alleen al te hoog is, in stukken van hooguit `maxRows` regels (de indices van de onderwerpen).
+    static func chunks(chips: [CGFloat], width: CGFloat, maxRows: Int) -> [[Int]] {
+        var out: [[Int]] = [[]]
+        var rows = 1
+        var x: CGFloat = 0
+        for (i, w) in chips.enumerated() {
+            let w = min(w, width)
+            if x > 0, x + w > width {
+                rows += 1
+                x = 0
+            }
+            if rows > maxRows {
+                out.append([])
+                rows = 1
+                x = 0
+            }
+            out[out.count - 1].append(i)
+            x += w + gap
+        }
+        return out
     }
 
     // Welke groepen (op volgorde) op welke pagina komen; een groep die alleen al te hoog is, staat op
@@ -817,115 +982,10 @@ enum WelcomePages {
     }
 }
 
-// ---- De bladen bij Je Hoot ----
-
-// Aanpassen: de bronnen die aan staan en wat er verder bij je interesses past. Allemaal te kiezen; de
-// voorgestelde zijn gratis, een bron met abonnement staat er alleen als aanbod bij. Later pas je alles
-// aan bij Bronnen. De lijst staat vast zolang het blad open is: een bron die je uitzet blijft te vinden.
-private struct SourcesSheet: View {
-    @Binding var chosen: [String]
-    let interests: [String]
-    @Environment(HootStore.self) private var store
-    @Environment(\.dismiss) private var dismiss
-    @State private var offered: [String] = []
-
-    private var on: [String] { offered.filter(chosen.contains) }
-    private var also: [String] { offered.filter { !chosen.contains($0) } }
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: Space.s5) {
-                    Text("Voorgesteld bij je interesses, allemaal gratis. Later pas je alles aan bij Bronnen.")
-                        .font(.body)
-                        .foregroundStyle(Theme.ink2)
-                        .fixedSize(horizontal: false, vertical: true)
-                    group("Aan", count: on.count, ids: on)
-                    if !also.isEmpty { group("Ook bij je interesses", count: nil, ids: also) }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, Space.s4)
-                .padding(.vertical, Space.s4)
-            }
-            .background(Theme.paper)
-            .navigationTitle("Je bronnen")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) { Button("Klaar") { dismiss() }.fontWeight(.semibold) }
-            }
-        }
-        .tint(Theme.ink)
-        .presentationDetents([.large])
-        .onAppear {
-            guard offered.isEmpty else { return }
-            var ids = chosen
-            for id in HootStore.always + store.alsoSuggested(interests: interests) where !ids.contains(id) && store.source(id) != nil { ids.append(id) }
-            offered = ids
-        }
-    }
-
-    private func group(_ label: String, count: Int?, ids: [String]) -> some View {
-        VStack(alignment: .leading, spacing: Space.s1) {
-            HStack {
-                GroupTitle(text: label)
-                if let count { Text("\(count)").font(.caption.weight(.bold)).foregroundStyle(Theme.ink3).monospacedDigit() }
-            }
-            ForEach(ids.compactMap { store.source($0) }) { s in
-                SourcePick(source: s, on: chosen.contains(s.id)) {
-                    chosen = chosen.contains(s.id) ? chosen.filter { $0 != s.id } : chosen + [s.id]
-                }
-            }
-        }
-    }
-}
-
-// Je Selectie, optioneel: de onderwerpen die de server heeft, per domein. Niets kiezen is prima; je
-// doet het later bij Instellingen.
-private struct FieldsSheet: View {
-    @Binding var vak: [String]
-    @Environment(HootStore.self) private var store
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: Space.s5) {
-                    Text("Elke maandag de drie beste stukken van de week, per onderwerp. Kies wat bij je werk of hobby past.")
-                        .font(.body)
-                        .foregroundStyle(Theme.ink2)
-                        .fixedSize(horizontal: false, vertical: true)
-                    ForEach(DigestFieldsList.domains, id: \.label) { domain in
-                        let offered = domain.fields.filter { store.offersField($0.id) }
-                        if !offered.isEmpty {
-                            VStack(alignment: .leading, spacing: Space.s3) {
-                                GroupTitle(text: domain.label)
-                                Flow {
-                                    ForEach(offered, id: \.id) { f in
-                                        ChoiceChip(label: f.label, on: vak.contains(f.id)) {
-                                            let on = vak.contains(f.id)
-                                            vak = DigestFieldsList.fields.map(\.id).filter { $0 == f.id ? !on : vak.contains($0) }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, Space.s4)
-                .padding(.vertical, Space.s4)
-            }
-            .background(Theme.paper)
-            .navigationTitle("Je Selectie")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) { Button("Klaar") { dismiss() }.fontWeight(.semibold) }
-            }
-        }
-        .tint(Theme.ink)
-        .presentationDetents([.large])
-        .task { await store.loadDigest() }
-    }
+// De hoogte van elke bronrij, gemeten in een verborgen kopie (Je bronnen).
+private struct RowHeights: PreferenceKey {
+    static let defaultValue: [String: CGFloat] = [:]
+    static func reduce(value: inout [String: CGFloat], nextValue: () -> [String: CGFloat]) { value.merge(nextValue()) { _, new in new } }
 }
 
 // "hoot." klein linksboven in het welkom, als tekening (`BrandWord`) op 0,4 van het opstartscherm:

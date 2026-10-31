@@ -182,30 +182,19 @@ private struct WordmarkBody: View {
 struct Kicker: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     let text: String?
-    // De telling van de Editie (T3): "01 · BUITENLAND". Het nummer in de schreef van de koppen, zwaar en
-    // in tabelcijfers, rood; gelezen in ink3, net als de kop. Zonder rubriek staat het nummer alleen.
-    var number: Int? = nil
-    var read = false
     private func label(_ s: String) -> String { typeSize.isAccessibilitySize ? s : s.uppercased() }
     private var dot: Text { Text(" · ").foregroundStyle(Theme.ink3) }
     var body: some View {
         let parts = text.map { $0.isEmpty ? [] : $0.components(separatedBy: " · ") } ?? []
-        if number != nil || !parts.isEmpty {
+        if !parts.isEmpty {
             // Bij heel grote tekst geen kapitalen: die worden dan breder en zwaarder dan de kop.
             // Meerdere labels ("Binnenland · Buiten je bronnen"): de punt ertussen in `ink3`.
             let labels = parts.map { Text(label($0)).foregroundStyle(Theme.accent) }
             let rubric = labels.dropFirst().reduce(labels.first ?? Text("")) { acc, p in Text("\(acc)\(dot)\(p)") }
-            let joined: Text = {
-                guard let number else { return rubric }
-                let n = Text(String(format: "%02d", number))
-                    .font(.system(.headline, design: .serif, weight: .heavy).monospacedDigit())
-                    .foregroundStyle(read ? Theme.ink3 : Theme.accent)
-                return parts.isEmpty ? n : Text("\(n)\(dot)\(rubric)")
-            }()
             if typeSize.isAccessibilitySize {
-                joined.font(.caption.weight(.semibold))
+                rubric.font(.caption.weight(.semibold))
             } else {
-                joined.font(.caption.weight(.heavy)).tracking(0.6)
+                rubric.font(.caption.weight(.heavy)).tracking(0.6)
             }
         }
     }
@@ -480,7 +469,6 @@ struct LeadCard: View {
     var why: String? // het waarom van de plek (jouw Editie)
     var outside = false // buiten je bronnen: de bronregel zegt het
     var story: Story?
-    var number: Int? // de telling van de Editie: 01 tot 10
 
     private var hasImage: Bool { store.showsImage(lead: true) && ImageURL.fitsHero(item.image) }
 
@@ -492,9 +480,9 @@ struct LeadCard: View {
     private var text: some View {
         VStack(alignment: .leading, spacing: Space.s3) {
             // Rubriek en waarom dicht op elkaar (één blokje boven de kop), zoals op de website.
-            if label != nil || why != nil || number != nil {
+            if label != nil || why != nil {
                 VStack(alignment: .leading, spacing: Space.s1) {
-                    Kicker(text: label, number: number, read: store.isRead(item))
+                    Kicker(text: label)
                     WhyLine(text: why)
                 }
             }
@@ -550,7 +538,6 @@ struct ItemRow: View {
     var story: Story?
     var linkSource = true
     var form: Form?
-    var number: Int? // de telling van de Editie: 01 tot 10
 
     private var chosen: Form { form ?? (store.layout == "krant" ? .krant : .tijdlijn) }
     private var timeline: Bool { !item.isPost && (chosen == .tijdlijn || typeSize.isAccessibilitySize) }
@@ -597,9 +584,9 @@ struct ItemRow: View {
 
     private var text: some View {
         VStack(alignment: .leading, spacing: Space.s2) {
-            if label != nil || why != nil || number != nil {
+            if label != nil || why != nil {
                 VStack(alignment: .leading, spacing: Space.s1) {
-                    Kicker(text: label, number: number, read: store.isRead(item))
+                    Kicker(text: label)
                     WhyLine(text: why)
                 }
             }

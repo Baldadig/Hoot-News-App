@@ -125,12 +125,8 @@ struct SettingsView: View {
                 } header: {
                     FormHeader("Editie en Stroom")
                 } footer: {
-                    // Wat "Jouw Editie" in de metaregel betekent, één keer uitgelegd (zoals de hint op het web).
-                    VStack(alignment: .leading, spacing: Space.s2) {
-                        Text("Jouw Editie is samengesteld uit jouw bronnen en interesses.")
-                        Text("Buiten je bubbel: veelgelezen, niet in je Editie.")
-                    }
-                    .foregroundStyle(Theme.ink3)
+                    Text("Buiten je bubbel: veelgelezen, niet in je Editie.")
+                        .foregroundStyle(Theme.ink3)
                 }
                 .hootRows()
 
