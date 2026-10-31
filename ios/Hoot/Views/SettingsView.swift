@@ -79,7 +79,7 @@ struct SettingsView: View {
         } header: {
             FormHeader("Seintjes")
         } footer: {
-            Text(denied ? "Meldingen van Hoot staan uit. Zet ze aan in de Instellingen-app." : "Een stil seintje, zonder geluid, een paar minuten nadat je Editie klaarligt. Alleen op dit toestel.").foregroundStyle(Theme.ink3)
+            Text(denied ? "Meldingen staan uit in de Instellingen-app." : "Een stil seintje als je Editie klaarligt.").foregroundStyle(Theme.ink3)
         }
         .hootRows()
         .animation(.default, value: store.notify && alerts.allowed)
@@ -98,7 +98,7 @@ struct SettingsView: View {
                         Text("Alleen hoofdverhaal").tag("hoofd")
                         Text("Uit").tag("uit")
                     } label: {
-                        FormLabel("Afbeeldingen", systemImage: "photo")
+                        FormLabel("Beeld", systemImage: "photo")
                     }
                     // Als een segment, direct te zien in de Stroom erachter: tijdlijn (het beeld groot onder de
                     // kop, zoals een tijdlijn) of krant (klein ernaast, zoals een krantensite).
@@ -117,7 +117,7 @@ struct SettingsView: View {
                         Text("3 regels").tag(3)
                         Text("Hele intro").tag(0)
                     } label: {
-                        FormLabel("Intro bij berichten", systemImage: "text.alignleft")
+                        FormLabel("Intro", systemImage: "text.alignleft")
                     }
                     Toggle(isOn: $store.bubble) {
                         FormLabel("Buiten je bubbel", systemImage: "sparkle.magnifyingglass")
@@ -128,7 +128,7 @@ struct SettingsView: View {
                     // Wat "Jouw Editie" in de metaregel betekent, één keer uitgelegd (zoals de hint op het web).
                     VStack(alignment: .leading, spacing: Space.s2) {
                         Text("Jouw Editie is samengesteld uit jouw bronnen en interesses.")
-                        Text("Tijdlijn: het beeld groot onder de kop. Krant: klein ernaast, zoals op een krantensite. Ook in Bewaard en Zoeken. Buiten je bubbel: één verhaal waar veel mensen nu naar zoeken en dat niet in je Editie staat.")
+                        Text("Buiten je bubbel: veelgelezen, niet in je Editie.")
                     }
                     .foregroundStyle(Theme.ink3)
                 }
@@ -148,7 +148,7 @@ struct SettingsView: View {
                 } header: {
                     FormHeader("Lezen")
                 } footer: {
-                    Text(store.openWith == "lezer" ? "De lezer toont alleen de tekst en beelden, in de opmaak van Hoot. Log één keer in bij je abonnementen om ook hun hele artikelen hier te lezen." : "Artikelen openen in Safari. Daar ben je al ingelogd bij je abonnementen, met je wachtwoorden en Google of Apple.").foregroundStyle(Theme.ink3)
+                    Text(store.openWith == "lezer" ? "Log in bij je abonnementen voor hele artikelen." : "Daar ben je al ingelogd bij je abonnementen.").foregroundStyle(Theme.ink3)
                 }
                 .hootRows()
 
@@ -161,7 +161,7 @@ struct SettingsView: View {
                 } header: {
                     FormHeader("Bluesky")
                 } footer: {
-                    Text("Bovenaan de Stroom staat dan de rubriek Bluesky. Daar voeg je mensen toe met hun @-naam.").foregroundStyle(Theme.ink3)
+                    Text("Bovenaan de Stroom; daar voeg je mensen toe.").foregroundStyle(Theme.ink3)
                 }
                 .hootRows()
 
@@ -171,13 +171,10 @@ struct SettingsView: View {
                             Text(InterestsList.summary(store.interests)).lineLimit(1)
                         } label: { FormLabel("Interesses", systemImage: "heart.text.square") }
                     }
-                    NavigationLink(value: "bronnen") {
-                        LabeledContent { Text(store.favorites.isEmpty ? "Geen" : "\(store.favorites.count)") } label: { FormLabel("Voorkeursbronnen", systemImage: "star") }
-                    }
                 } header: {
                     FormHeader("Jouw Editie")
                 } footer: {
-                    Text("Je Editie komt uit je eigen bronnen. Wat bij je interesses past en wat van je voorkeursbronnen komt (de ster bij Bronnen) gaat voor. Ook wat je opent en bewaart telt mee; dat blijft op dit toestel. Meer of minder van iets? Druk lang op een verhaal in de Editie; dat gaat mee met je account.").foregroundStyle(Theme.ink3)
+                    Text("Meer of minder van iets? Druk lang op een verhaal.").foregroundStyle(Theme.ink3)
                 }
                 .hootRows()
 
@@ -188,10 +185,10 @@ struct SettingsView: View {
                         LabeledContent { Text("\(store.followed.count) aan") } label: { FormLabel("Bronnen", systemImage: "dot.radiowaves.up.forward") }
                     }
                     NavigationLink(value: "vakken") {
-                        LabeledContent { Text("\(store.digestFields.filter(store.offersField).count) gekozen") } label: { FormLabel("Onderwerpen", systemImage: "books.vertical") }
+                        LabeledContent { Text("\(store.digestFields.filter(store.offersField).count) gekozen") } label: { FormLabel("Selectie", systemImage: "books.vertical") }
                     }
                 } header: {
-                    FormHeader("Bronnen en onderwerpen")
+                    FormHeader("Bronnen en Selectie")
                 }
                 .hootRows()
 
@@ -204,7 +201,7 @@ struct SettingsView: View {
                     .foregroundStyle(Theme.ink)
                     .accessibilityHint("Opent Hoot in de Instellingen-app")
                 } footer: {
-                    Text("In de Instellingen-app van je toestel. De tekstgrootte volgt je toestel (Toegankelijkheid › Weergave en tekstgrootte).").foregroundStyle(Theme.ink3)
+                    Text("De tekstgrootte volgt je toestel.").foregroundStyle(Theme.ink3)
                 }
                 .hootRows()
 
@@ -239,15 +236,16 @@ struct SettingsView: View {
                     }
                     .foregroundStyle(Theme.ink)
                 } footer: {
-                    Text("Je ziet het welkom weer en kiest opnieuw je interesses en bronnen. Wat je bewaarde en las, blijft.").foregroundStyle(Theme.ink3)
+                    Text("Bewaard en gelezen blijven.").foregroundStyle(Theme.ink3)
                 }
                 .hootRows()
 
                 Section {
                     LabeledContent("Versie", value: version)
                     LabeledContent("Gemaakt door") { Link("Baldadig.nl", destination: URL(string: "https://baldadig.nl")!) }
-                    Link(destination: URL(string: "https://hootnews.nl/#/privacy")!) { OutboundRow(title: "Privacybeleid", systemImage: "hand.raised") }.foregroundStyle(Theme.ink)
-                    Link(destination: URL(string: "https://hootnews.nl")!) { OutboundRow(title: "hootnews.nl", systemImage: "globe") }.foregroundStyle(Theme.ink)
+                    Link(destination: URL(string: "https://gethoot.app/#/privacy")!) { OutboundRow(title: "Privacybeleid", systemImage: "hand.raised") }.foregroundStyle(Theme.ink)
+                    Link(destination: URL(string: "https://gethoot.app")!) { OutboundRow(title: "Website", systemImage: "globe") }.foregroundStyle(Theme.ink)
+                    Link(destination: URL(string: "mailto:info@gethoot.app")!) { OutboundRow(title: "Contact", systemImage: "envelope") }.foregroundStyle(Theme.ink)
                 } header: {
                     FormHeader("Over")
                 }
@@ -270,7 +268,7 @@ struct SettingsView: View {
                 } else if page == "interesses" {
                     InterestsList().navigationTitle("Interesses").navigationBarTitleDisplayMode(.inline)
                 } else {
-                    DigestFieldsList().navigationTitle("Onderwerpen").navigationBarTitleDisplayMode(.inline)
+                    DigestFieldsList().navigationTitle("Selectie").navigationBarTitleDisplayMode(.inline)
                 }
             }
             .toolbar {
@@ -287,7 +285,7 @@ struct SettingsView: View {
                     Button("Markeer als ongelezen", role: .destructive) { store.clearRead() }
                 }
             } message: {
-                Text(confirmClear == "bewaard" ? "\(store.saved.count == 1 ? "1 artikel verdwijnt" : "\(store.saved.count) artikelen verdwijnen") uit Bewaard\(savedSyncs ? ", op al je apparaten en op hootnews.nl" : ""). Dit kun je niet ongedaan maken." : "Wat je las, wordt weer gewoon getoond. Je bewaarde artikelen blijven staan.")
+                Text(confirmClear == "bewaard" ? "\(store.saved.count == 1 ? "1 artikel verdwijnt" : "\(store.saved.count) artikelen verdwijnen") uit Bewaard\(savedSyncs ? ", ook op je andere toestellen" : ""). Dit kun je niet ongedaan maken." : "Bewaard blijft staan.")
             }
         }
     }
@@ -312,23 +310,25 @@ struct LearnedSection: View {
                     Text(summary.chosen.map(Taste.label).joined(separator: ", ")).multilineTextAlignment(.trailing)
                 }
             }
+            if !summary.learned.isEmpty { Text("Vaak gelezen").font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink3) }
             ForEach(summary.learned, id: \.self) { t in
-                LearnedRow(title: Taste.label(t), hint: "Dit lees je vaak, dus het komt vaker in je Editie.", action: "Vergeet dit") {
+                LearnedRow(title: Taste.label(t), hint: nil, action: "Vergeet dit") {
                     withAnimation { store.forgetTopic(t) }
                 }
             }
+            if !summary.less.isEmpty { Text("Minder").font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink3) }
             ForEach(summary.less, id: \.self) { t in
-                LearnedRow(title: Taste.label(t), hint: "Hier wilde je minder van.", action: "Ongedaan maken") {
+                LearnedRow(title: Taste.label(t), hint: nil, action: "Ongedaan maken") {
                     withAnimation { store.restoreLess(t) }
                 }
             }
             if summary.learned.isEmpty && summary.less.isEmpty {
-                LearnedRow(title: "Uit je lezen", hint: "Hoot heeft nog niets uit je lezen afgeleid.", action: nil) {}
+                LearnedRow(title: "Nog niets", hint: nil, action: nil) {}
             }
         } header: {
             FormHeader("Wat Hoot van je leerde")
         } footer: {
-            Text("Jouw Editie volgt wat je koos, wat je vaak opent of bewaart en waar je minder van wilde. Wat je leest blijft op dit toestel; je keuzes gaan mee met je account. Wat je hier verandert, telt vanaf je volgende Editie; die van dit dagdeel blijft staan.").foregroundStyle(Theme.ink3)
+            Text("Telt vanaf je volgende Editie.").foregroundStyle(Theme.ink3)
         }
         .hootRows()
         .task(id: key) { summary = await store.profileSummary() }
@@ -339,14 +339,14 @@ struct LearnedSection: View {
 // Eén onderwerp met wat Hoot ervan vindt en, als het kan, de weg terug: een rustige knop rechts.
 private struct LearnedRow: View {
     let title: String
-    let hint: String
+    var hint: String? = nil
     let action: String?
     let run: () -> Void
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: Space.s3) {
             VStack(alignment: .leading, spacing: Space.s0) {
                 Text(title)
-                Text(hint).font(.subheadline).foregroundStyle(Theme.ink3)
+                if let hint { Text(hint).font(.subheadline).foregroundStyle(Theme.ink3) }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             if let action {
@@ -402,7 +402,7 @@ struct InterestsList: View {
                     }
                 }
             } footer: {
-                Text("Kies wat je het meest boeit. Kies je niets, dan krijg je alles binnen dat onderwerp. Wat hierbij past, gaat voor in je Editie; echt groot nieuws blijft bovenaan, ook als het buiten je interesses valt.").foregroundStyle(Theme.ink3)
+                Text("Kies je niets, dan krijg je alles. Groot nieuws staat altijd bovenaan.").foregroundStyle(Theme.ink3)
             }
             .hootRows()
         }
@@ -452,7 +452,7 @@ struct DigestFieldsList: View {
                 }
             }
             Section {} footer: {
-                Text("Elke maandagochtend per onderwerp de drie belangrijkste stukken van de week, door mensen geschreven.").foregroundStyle(Theme.ink3)
+                Text("Elke maandag het beste per onderwerp.").foregroundStyle(Theme.ink3)
             }
         }
         .hootForm()

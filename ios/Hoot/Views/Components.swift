@@ -279,6 +279,7 @@ struct SourceLine: View {
     let item: Item
     var story: Story?
     var linkSource = true // tik op de bron = alles van die bron (niet op het bronscherm zelf)
+    var outside = false // het verhaal staat buiten de bronnen die je volgt
     var body: some View {
         // Op één regel als het past; anders bron en tijd bovenaan (mogen afbreken) en de knoppen
         // eronder. Nooit een vaste breedte: bij heel grote tekst duwt die anders de hele kolom
@@ -320,7 +321,7 @@ struct SourceLine: View {
     }
 
     private var meta: String {
-        [HootDate.ago(item.date), store.source(item.source)?.paid == true ? "abonnement" : nil].compactMap { $0 }.joined(separator: " · ")
+        [HootDate.ago(item.date), store.source(item.source)?.paid == true ? "abonnement" : nil, outside ? StoryLabel.outsideText : nil].compactMap { $0 }.joined(separator: " · ")
     }
 
     // `compact`: true = "+N bronnen", false = "Vergelijk N bronnen", nil = wat past.
@@ -477,6 +478,7 @@ struct LeadCard: View {
     let item: Item
     var label: String?
     var why: String? // het waarom van de plek (jouw Editie)
+    var outside = false // buiten je bronnen: de bronregel zegt het
     var story: Story?
     var number: Int? // de telling van de Editie: 01 tot 10
 
@@ -524,7 +526,7 @@ struct LeadCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
             .opensArticle(item)
-            SourceLine(item: item, story: story)
+            SourceLine(item: item, story: story, outside: outside)
         }
     }
 }
@@ -544,6 +546,7 @@ struct ItemRow: View {
     let item: Item
     var label: String?
     var why: String? // het waarom van de plek (jouw Editie)
+    var outside = false // buiten je bronnen: de bronregel zegt het
     var story: Story?
     var linkSource = true
     var form: Form?
@@ -587,7 +590,7 @@ struct ItemRow: View {
             }
             .contentShape(Rectangle())
             .opensArticle(item)
-            SourceLine(item: item, story: story, linkSource: linkSource)
+            SourceLine(item: item, story: story, linkSource: linkSource, outside: outside)
         }
         .padding(.vertical, Space.s2)
     }

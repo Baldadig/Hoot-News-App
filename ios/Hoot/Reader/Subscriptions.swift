@@ -160,7 +160,7 @@ struct SubscriptionsView: View {
                 }
                 ForEach(mine) { row($0) }
             } footer: {
-                Text("Log één keer in; daarna lees je de artikelen helemaal in de lezer. Je typt je gegevens op de site van de uitgever zelf; Hoot ziet ze niet. Je inlog blijft alleen op dit toestel. Ingelogd staat erbij als Hoot je inlog bij die uitgever herkent; niet elke site laat dat zien. Veeg naar links om bij één uitgever uit te loggen.").foregroundStyle(Theme.ink3)
+                Text("Log één keer in voor hele artikelen. Veeg naar links om uit te loggen.").foregroundStyle(Theme.ink3)
             }
             if !more.isEmpty {
                 // Eigen uitklapregel i.p.v. DisclosureGroup: die laat de rijen inspringen, en dan
@@ -200,7 +200,7 @@ struct SubscriptionsView: View {
                 }
             }
         } message: {
-            Text("De lezer vergeet je inlog en toestemmingen bij \(leaving?.source.name ?? "deze uitgever"). Je abonnement zelf blijft gewoon bestaan.")
+            Text("Je abonnement blijft bestaan.")
         }
         .alert("Overal uitloggen in de lezer?", isPresented: $confirmForget) {
             Button("Annuleer", role: .cancel) {}
@@ -210,7 +210,7 @@ struct SubscriptionsView: View {
                 loggedIn = []
             }
         } message: {
-            Text("De lezer vergeet je inlog en toestemmingen bij alle uitgevers. Je abonnementen zelf blijven gewoon bestaan.")
+            Text("Je abonnementen blijven bestaan.")
         }
     }
 

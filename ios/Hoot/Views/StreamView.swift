@@ -70,7 +70,7 @@ struct StreamView: View {
                                 if store.status == .failed {
                                     EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnen hier de berichten van je bronnen.", retry: store.load)
                                 } else {
-                                    EmptyState(title: "Nog niets", systemImage: "water.waves", text: "Zet bronnen aan via Bronnen rechtsboven.")
+                                    EmptyState(title: "Al je bronnen staan uit.", systemImage: "water.waves", action: (label: "Naar Bronnen", systemImage: nil, run: { showSources = true }))
                                 }
                             } else {
                                 StaleNotice().padding(.top, Space.s2) // 16 onder de lijn, net als een bericht
@@ -236,7 +236,7 @@ struct SourcesList: View {
         ScrollViewReader { proxy in
         List {
             Section {
-                Text("Gratis: alles is te lezen. Abonnement: veel artikelen alleen met een abonnement bij de uitgever. Een bron aanzetten sluit geen abonnement af.")
+                Text("Abonnement: hele artikelen alleen voor abonnees. Aanzetten kost niets.")
                     .font(.footnote)
                     .foregroundStyle(Theme.ink3)
             }
@@ -372,9 +372,9 @@ struct SearchView: View {
             .background(Theme.paper)
             .overlay {
                 if q.count < 2 {
-                    EmptyState(title: "Zoek in je nieuws", systemImage: "magnifyingglass", text: "Hoot zoekt in de koppen en intro’s van alles wat nu in je Stroom staat.")
+                    EmptyState(title: "Zoek in je nieuws", systemImage: "magnifyingglass", text: "In koppen en intro’s van je Stroom.")
                 } else if hits.isEmpty {
-                    EmptyState(title: "Niets gevonden voor ‘\(query.trimmingCharacters(in: .whitespaces))’", systemImage: "magnifyingglass", text: "Hoot zoekt alleen in de koppen en intro’s van wat nu in je Stroom staat, niet in hele artikelen of oudere berichten.")
+                    EmptyState(title: "Niets gevonden voor ‘\(query.trimmingCharacters(in: .whitespaces))’", systemImage: "magnifyingglass", text: "Hoot zoekt in koppen en intro’s van je Stroom.")
                 }
             }
             .navigationTitle("Zoeken")

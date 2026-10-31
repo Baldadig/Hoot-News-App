@@ -285,10 +285,10 @@ struct LoginWebView: View {
                     Group {
                         if done {
                             // De bevestiging: je bent binnen, en wat je nu kunt.
-                            Label("Je bent ingelogd bij \(target.name). Tik op Klaar om verder te lezen.", systemImage: "checkmark.circle.fill")
+                            Label("Ingelogd bij \(target.name). Tik op Klaar.", systemImage: "checkmark.circle.fill")
                                 .foregroundStyle(Theme.accent)
                         } else {
-                            Text("Log in zoals je op de website gewend bent. Je inlog blijft alleen in de lezer van Hoot op dit toestel.")
+                            Text("Log in zoals altijd. Hoot ziet je wachtwoord niet.")
                                 .foregroundStyle(Theme.ink3)
                         }
                     }
