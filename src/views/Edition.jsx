@@ -8,7 +8,7 @@ import { BrandMark, BrandLogo } from '../components/Brand.jsx'
 import Weather from '../components/Weather.jsx'
 import { longDate } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
-import { resolveEditionEntry, heroFirst, EDITION_SIZE, upNext } from '../lib/edition.js'
+import { resolveEditionEntry, heroFirst, numberRows, countOf, two, EDITION_SIZE, upNext } from '../lib/edition.js'
 import { SLOTS } from '../../shared/slots.mjs'
 import { fitsHero } from '../lib/img.js'
 import { followedNow } from '../lib/follow.js'
@@ -31,7 +31,7 @@ const FRONT = 6 // voorpagina: hoofdverhaal, drie ernaast en twee eronder
 // kolom smal, dan krijgt de bron een eigen regel en staan vergelijken en bewaren eronder.
 // Volg je het verhaal, dan staat dat stil achter de rubriek ('Je volgt'). Het waarom van de plek
 // (jouw Editie) staat als stille regel onder de rubriek, boven de kop (zie Why.js).
-function FrontItem({ item, story, note, why = null, followed, taste }) {
+function FrontItem({ item, story, note, n = null, why = null, followed, taste }) {
   const { markRead, read } = useHoot()
   const opinie = item.type === 'opinie'
   const title = item.title
@@ -39,8 +39,9 @@ function FrontItem({ item, story, note, why = null, followed, taste }) {
   const summary = wholeSentences(item.summary, fit.max, fit.rek) // hele zinnen, nooit "…"
   return (
     <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
-      {note || opinie || followed ? (
+      {n || note || opinie || followed ? (
         <p className="label label--kicker kicker">
+          {n ? <span className="kicker__n">{two(n)}</span> : null}
           {note ? <span>{note}</span> : null}
           {opinie ? <span className="kicker__type">Opinie</span> : null}
           {followed ? <span className="label--meta front__followed">{followed}</span> : null}
@@ -102,7 +103,9 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
       return { key: e.id, index, desk: e.desk, item: r.item, story: r.story, note, why: e.why || null }
     })
     .filter(Boolean)
-  const rows = heroFirst(placed, fitsHero)
+  // De telling (numberRows): elke rij krijgt zijn nummer in de getoonde volgorde; N is het totaal.
+  const rows = numberRows(heroFirst(placed, fitsHero))
+  const count = countOf(rows)
 
   // Je volgt, zonder dubbelingen: een gevolgd verhaal dat op de voorpagina staat (en niet is
   // ingeklapt), krijgt daar 'Je volgt' achter de rubriek en valt uit het lijstje erboven. Wat je
@@ -248,13 +251,13 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 Is het raam niet breder dan 48rem (telefoon, tablet staand, of met het vergelijkpaneel open), dan staan ze onder elkaar. */}
             <div className="front">
               <Slot less={less} row={rows[0]}>
-                <LeadStory item={rows[0].item} story={rows[0].story} note={rows[0].note} why={rows[0].why} followed={onFront.get(rows[0].key)} priority={active} taste={rows[0].key} />
+                <LeadStory item={rows[0].item} story={rows[0].story} note={rows[0].note} n={rows[0].n} why={rows[0].why} followed={onFront.get(rows[0].key)} priority={active} taste={rows[0].key} />
               </Slot>
               {rows.length > 1 ? (
                 <div className="front__side rows">
                   {rows.slice(1, 4).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
-                      <FrontItem item={r.item} story={r.story} note={r.note} why={r.why} followed={onFront.get(r.key)} taste={r.key} />
+                      <FrontItem item={r.item} story={r.story} note={r.note} n={r.n} why={r.why} followed={onFront.get(r.key)} taste={r.key} />
                     </Slot>
                   ))}
                 </div>
@@ -265,7 +268,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 <div className="front__under rows">
                   {rows.slice(4, FRONT).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
-                      <FrontItem item={r.item} story={r.story} note={r.note} why={r.why} followed={onFront.get(r.key)} taste={r.key} />
+                      <FrontItem item={r.item} story={r.story} note={r.note} n={r.n} why={r.why} followed={onFront.get(r.key)} taste={r.key} />
                     </Slot>
                   ))}
                 </div>
@@ -278,7 +281,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 <div className="list rows">
                   {rows.slice(FRONT).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
-                      <CompactItem item={r.item} story={r.story} note={r.note} why={r.why} taste={r.key} plain />
+                      <CompactItem item={r.item} story={r.story} note={r.note} n={r.n} why={r.why} taste={r.key} plain />
                     </Slot>
                   ))}
                 </div>
@@ -296,6 +299,12 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               </section>
             ) : null}
             <div className="endcap">
+              {/* De telling rond: "10 van 10" boven het merk, stil op rood (bij een korte Editie "7 van 7"). */}
+              {count ? (
+                <p className="endcap__count">
+                  {count} van {count}
+                </p>
+              ) : null}
               <BrandMark size={44} />
               <h2 className="head-5 endcap__title">Je bent bij.</h2>
               <p className="endcap__text">

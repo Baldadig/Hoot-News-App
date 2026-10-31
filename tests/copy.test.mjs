@@ -182,3 +182,21 @@ test('Voorpagina: raster pas in een raam breder dan 48rem, met een zijkolom van 
   assert.match(css, /@container front \(48rem < width < 52rem\) \{\s*\.front \{\s*--front-side: 17rem;/)
   assert.match(css, /@container front \(min-width: 52rem\)/)
 })
+
+test('De Editie telt: nummer in de kicker, "N van N" op de rode kaart, de bubbel telt niet (T3)', () => {
+  const ed = read('views/Edition.jsx')
+  assert.match(ed, /numberRows\(heroFirst\(/, 'de telling na heroFirst')
+  assert.match(ed, /\{count\} van \{count\}/, '"van" op de kaart')
+  assert.ok(ed.indexOf('endcap__count') < ed.indexOf('<BrandMark'), 'de telling staat boven het merk')
+  assert.match(read('components/Items.jsx'), /className="kicker__n">\{two\(n\)\}/)
+  assert.match(read('lib/edition.js'), /desk === 'bubbel' \? null/)
+  const css = read('styles.css')
+  assert.match(css, /\.kicker__n \{[^}]*font-family: var\(--serif\)[^}]*color: var\(--accent\)/)
+  assert.match(css, /\.is-read \.kicker__n \{\s*color: var\(--ink-3\)/)
+})
+
+test('Eén rechterlijn: schermkop van de leesschermen en de eindkaart stoppen op --measure (K3)', () => {
+  const css = read('styles.css')
+  assert.match(css, /\.col--read > \.vh \{/)
+  assert.match(css, /\.endcap \{[^}]*max-inline-size: var\(--measure\)/)
+})

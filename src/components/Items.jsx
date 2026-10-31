@@ -13,6 +13,7 @@ import { directVideo } from '../../shared/bluesky.mjs'
 import { safeHttpUrl } from '../../shared/util.mjs'
 import { wholeSentences } from '../../shared/zinnen.mjs'
 import { useIntroMax } from '../lib/intro.js'
+import { two } from '../lib/edition.js'
 
 // Bewaarde berichten komen uit opslag (dit toestel, of je account), niet vers van de server:
 // ook daar alleen http(s) in een href. Zonder geldige link is het een link zonder doel.
@@ -76,8 +77,11 @@ export function ShareButton({ item, label = 'bericht' }) {
   )
 }
 
-function Kicker({ item, extra, followed }) {
+// De rubriek boven de kop. In de Editie staat de telling vooraan (`n`: "01 · BUITENLAND", zie
+// numberRows in src/lib/edition.js); de punt ertussen is die van .kicker.
+function Kicker({ item, extra, followed, n = null }) {
   const bits = []
+  if (n) bits.push(<span key="n" className="kicker__n">{two(n)}</span>)
   if (extra) bits.push(<span key="x">{extra}</span>)
   if (item.type === 'opinie') bits.push(<span key="t" className="kicker__type">Opinie</span>)
   if (item.section && !extra) bits.push(<span key="s">{item.section}</span>) // de rubriek van de Editie gaat voor die van de bron
@@ -181,7 +185,7 @@ const Summary = ({ item, className, fit = { max: Infinity, rek: Infinity } }) =>
 
 // ---- Vorm 1: hoofdverhaal ----
 // `priority`: dit is het eerste beeld dat je ziet (alleen het zichtbare hoofdverhaal).
-export function LeadStory({ item, story, note, why = null, followed = null, priority = false, taste = null }) {
+export function LeadStory({ item, story, note, n = null, why = null, followed = null, priority = false, taste = null }) {
   const { markRead, read } = useHoot()
   return (
     <article className={`entry lead${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
@@ -193,7 +197,7 @@ export function LeadStory({ item, story, note, why = null, followed = null, prio
             <Img url={item.image} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} />
           </div>
         ) : null}
-        <Kicker item={item} extra={note} followed={followed} />
+        <Kicker item={item} extra={note} followed={followed} n={n} />
         <Why why={why} />
         <h2 className="head-6 lead__title">{item.title}</h2>
         <Summary item={item} className="lead__sum" fit={{ max: 240, rek: 240 }} />
@@ -213,20 +217,20 @@ export function LeadStory({ item, story, note, why = null, followed = null, prio
 // web en in de app) en op smalle plekken zoals het vergelijkpaneel.
 // `lines`: hoeveel regels intro (1, 2, 3 of 'alles'); standaard de instelling van de Stroom, en in
 // de krant-vorm van de Editie en het vergelijkpaneel (`plain`) 2, zoals de app.
-export function CompactItem({ item, story, note, why = null, showSave = true, plain = false, taste = null, lines }) {
+export function CompactItem({ item, story, note, n = null, why = null, showSave = true, plain = false, taste = null, lines }) {
   const { markRead, read, layout, prefs } = useHoot()
   const introMax = useIntroMax()
-  const n = lines ?? (plain ? 2 : prefs?.preview ?? 2)
+  const lineCount = lines ?? (plain ? 2 : prefs?.preview ?? 2)
   const cls = `entry compact${read.has(item.id) ? ' is-read' : ''}`
   if (layout === 'tijdlijn' && !plain) {
     return (
       <article className={`${cls} compact--tl`} data-id={item.id}>
         {/* Zelfde volgorde als op de voorpagina: rubriek (met het waarom), kop, samenvatting, beeld, dan de bron. */}
         <a className="compact__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
-          <Kicker item={item} extra={note} />
+          <Kicker item={item} extra={note} n={n} />
           <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
-          <Summary item={item} className="compact__sum" fit={introMax(n)} />
+          <Summary item={item} className="compact__sum" fit={introMax(lineCount)} />
           {item.image && fitsLarge(item.image) ? (
             <div className="media media--tl">
               <Img url={item.image} kind="lead" />
@@ -241,10 +245,10 @@ export function CompactItem({ item, story, note, why = null, showSave = true, pl
     <article className={cls} data-id={item.id}>
       <a className="compact__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         <div className="compact__text">
-          <Kicker item={item} extra={note} />
+          <Kicker item={item} extra={note} n={n} />
           <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
-          <Summary item={item} className="compact__sum" fit={introMax(n, 'rij', !!item.image)} />
+          <Summary item={item} className="compact__sum" fit={introMax(lineCount, 'rij', !!item.image)} />
         </div>
         {item.image ? (
           <div className="thumb">

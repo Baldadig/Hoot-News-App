@@ -637,12 +637,14 @@ select {
   padding: var(--safe-t) calc(var(--gutter) + var(--safe-r)) var(--s7) calc(var(--gutter) + var(--safe-l));
 }
 /* Het raam van een scherm. Tot 960 één leesblok (--measure), gecentreerd; vanaf 960 het
-   paginaraam (--page, hieronder), op elke tab even breed. De schermkop (.vh) loopt altijd over
-   het hele raam, dus titel en iconen staan op elke tab op dezelfde plek. Wat eronder staat,
-   kiest zijn breedte per soort scherm:
+   paginaraam (--page, hieronder), op elke tab even breed. De titel staat op elke tab op dezelfde
+   plek (links, op de lijn van het raam); de schermkop (.vh) en wat eronder staat kiezen hun
+   breedte per soort scherm:
    - .col--read: lezen (Stroom, Bewaard, Zoeken, Bluesky, Over, Privacy, Designsysteem). Elk blok
-     stopt op --measure en staat links, op de lijn van de titel; rechts blijft lucht. Zoeken heeft
-     geen titelrij: daar hoort het veld bij de resultaten en stopt de kop dus ook op --measure.
+     stopt op --measure en staat links, op de lijn van de titel; rechts blijft lucht. Ook de
+     schermkop (titel, iconen, de rubriekenlijn): die eindigt op het leesblok, zodat kop en lijst
+     één rechterlijn delen. Het raam zelf blijft links verankerd (audit §2: een lege rechterbaan
+     op desktop is normaal).
    - .col--form: een formulier (Bronnen, Instellingen). Stopt op --measure-form, zodat een label
      en zijn schakelaar bij elkaar blijven.
    - .col--wide: een voorpagina (Editie, Selectie). Gebruikt het hele raam.
@@ -655,7 +657,7 @@ select {
 /* :where houdt het gewicht op één klasse, zodat een blok dat zelf smaller is (lopende tekst op
    --measure-prose, een hint) zijn eigen maat houdt. */
 .col--read > :where(:not(.vh)),
-.col--read > .vh:has(> .searchbar) {
+.col--read > .vh {
   max-inline-size: var(--measure);
 }
 .col--form > :where(:not(.vh)) {
@@ -1612,6 +1614,36 @@ select.input {
 .kicker__type {
   color: var(--accent);
 }
+/* De telling van de Editie (numberRows): "01 · BUITENLAND". Het nummer in Newsreader 800 op t3, in
+   rood binnen de rolregel van de rubriek; de punt erna is die van de kicker (--ink-3). Regelhoogte
+   lh-1, dus de kicker blijft 16 hoog en het ritme eronder op 4 px. Op die regel zakt Newsreader op
+   t3 1 px onder de basislijn van de kapitalen (gemeten); --kicker-n-lift tilt hem optisch terug,
+   zonder de regel te verhogen (align-items: baseline zou de kicker 17 hoog maken). Proportionele
+   cijfers: zie hierboven, Newsreader heeft geen tabelcijfers. Gelezen: het nummer wordt stil. */
+/* Met een nummer breekt de rubriek in zichzelf, niet als geheel naar een volgende regel: anders
+   staat het nummer alleen en begint de regel eronder met de punt. De tweede regel hangt dan onder
+   de rubriek, het nummer blijft vooraan. */
+.kicker:has(> .kicker__n) {
+  flex-wrap: nowrap;
+}
+.kicker:has(> .kicker__n) > span {
+  min-width: 0;
+}
+.kicker__n {
+  flex: none;
+  --kicker-n-lift: -1px;
+  translate: 0 var(--kicker-n-lift);
+  font-family: var(--serif);
+  font-size: var(--t3);
+  line-height: var(--lh-1);
+  font-weight: var(--fw-head);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--accent);
+}
+.is-read .kicker__n {
+  color: var(--ink-3);
+}
 /* Het waarom van een plek in jouw Editie (Why.js): één stille zin onder de rubriek, in de maat van
    tijd en toelichting (t1/lh-1, --ink-3), zonder kapitalen en zonder rood. Volgt het op een rubriek,
    dan staat het er zonder tussenruimte als tweede regel van hetzelfde label op (zoals bronnaam en
@@ -2127,19 +2159,34 @@ select.input {
   text-align: center;
 }
 
-/* Het einde van de Editie: een merkmoment, in merkrood. Het merk en de knop in papier (--on-brand-red). */
+/* Het einde van de Editie: een merkmoment, in merkrood. Het merk en de knop in papier (--on-brand-red).
+   Even breed als de lijst erboven (--measure) en links verankerd: kop, lijst en kaart eindigen op
+   één rechterlijn, ook op breed scherm waar de voorpagina het hele raam gebruikt. */
 .endcap {
   --brand: var(--on-brand-red);
   --accent: var(--on-brand-red);
   display: grid;
   justify-items: center;
   gap: var(--s3);
+  max-inline-size: var(--measure);
   margin: var(--s6) 0 var(--s4);
   padding: var(--s7) var(--s5) var(--s6);
   border-radius: var(--radius-card);
   background: var(--brand-red);
   color: var(--on-brand-red);
   text-align: center;
+}
+/* De telling rond ("10 van 10", numberRows): stil boven het merk, in de maat van lopende tekst. */
+.endcap__count {
+  font-family: var(--serif);
+  font-size: var(--t3);
+  line-height: var(--lh-3);
+  font-weight: var(--fw-regular);
+  color: var(--on-brand-red-2);
+}
+/* Tussen het merk en 'Je bent bij.' s4 (de gap s3 plus s1); de rest van de kaart houdt s3. */
+.endcap__title {
+  margin-top: var(--s1);
 }
 
 .endcap__text {

@@ -60,3 +60,17 @@ export function uncovered(brief, count) {
   if (!refs.size) return []
   return [...Array(count).keys()].filter((i) => !refs.has(i))
 }
+
+// De telling: de Editie nummert wat je ziet, in de getoonde volgorde (dus na heroFirst). Het
+// hoofdverhaal is 01. "Buiten je bubbel" telt niet mee (dat staat er naast je Editie, niet in);
+// "Waar iedereen over schrijft" (breed) wel. Een ingeklapte plek (minder hiervan) houdt zijn
+// nummer, zodat de telling niet verspringt. Elke rij krijgt `n` (1-based, of null); het totaal
+// is het hoogste nummer ("10 van 10" op de rode kaart). iOS EditionView doet hetzelfde.
+export function numberRows(rows) {
+  let n = 0
+  return rows.map((r) => ({ ...r, n: r.desk === 'bubbel' ? null : ++n }))
+}
+export const countOf = (rows) => rows.reduce((m, r) => (r.n ? Math.max(m, r.n) : m), 0)
+
+// Een nummer van de telling in twee cijfers: 01 tot 10 (zoals de Selectie).
+export const two = (n) => String(n).padStart(2, '0')

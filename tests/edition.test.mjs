@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { resolveEditionEntry, uncovered, heroFirst, upNext, UP_NEXT } from '../src/lib/edition.js'
+import { resolveEditionEntry, uncovered, heroFirst, upNext, UP_NEXT, numberRows, countOf, two } from '../src/lib/edition.js'
 import { fitsHero } from '../src/lib/img.js'
 import { relinkEdition } from '../netlify/lib/stories.mjs'
 
@@ -105,4 +105,19 @@ test('upNext: de volgende editie in dagdelen, nooit een kloktijd', () => {
   assert.equal(upNext(undefined), '')
   assert.equal(upNext('nacht'), '')
   for (const t of Object.values(UP_NEXT)) assert.doesNotMatch(t, /\d/)
+})
+
+test('de telling: 01 is het hoofdverhaal, de bubbel telt niet mee, breed wel (T3)', () => {
+  const rows = numberRows([{ desk: 'vs' }, { desk: 'bubbel' }, { desk: 'breed' }, { desk: 'tech' }])
+  assert.deepEqual(rows.map((r) => r.n), [1, null, 2, 3])
+  assert.equal(countOf(rows), 3) // "3 van 3" op de rode kaart
+  assert.equal(two(rows[0].n), '01')
+  assert.equal(two(10), '10')
+  assert.equal(countOf(numberRows([])), 0)
+})
+
+test('de telling volgt de getoonde volgorde (na heroFirst)', () => {
+  const ok = { image: 'groot.jpg' }
+  const rows = numberRows(heroFirst([{ key: 'a', desk: 'vs', item: {} }, { key: 'b', desk: 'tech', item: ok }], () => true))
+  assert.deepEqual(rows.map((r) => [r.key, r.n]), [['b', 1], ['a', 2]])
 })
