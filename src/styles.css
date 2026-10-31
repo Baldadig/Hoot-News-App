@@ -2870,6 +2870,22 @@ select.input {
   padding: 0;
   list-style: none;
 }
+/* Onder 720 (vanaf 720 staat alles al in het midden): de rode kolom is een flex-kolom en de drie
+   punten nemen de vrije hoogte boven en onder zich, zodat belofte, punten en knop het scherm
+   verdelen in plaats van een leeg rood vlak boven de knop. De afstand tot de belofte (--s6) blijft
+   als binnenrand, ook als er geen hoogte over is; onder de punten maakt --s4 met de --s4 boven de
+   knoprij ook --s6, dus de lucht boven en onder de punten is gelijk, zoals vanaf 720. */
+@media (max-width: 719px) {
+  .ob__red > .ob__col {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: var(--s4);
+  }
+  .ob__red .ob__points {
+    margin-block: auto;
+    padding-top: var(--s6);
+  }
+}
 .ob__point {
   display: flex;
   align-items: flex-start;
@@ -3792,11 +3808,13 @@ html[data-images='hoofd'] .media--social {
   margin-top: var(--s2);
 }
 
-/* Voorpagina vanaf een raam van 42rem (672; tablet staand heeft 688): hoofdverhaal links boven,
-   drie kleinere in de kolom rechts, twee eronder. De zijkolom is minstens --front-side. Onder
-   42rem blijft er naast die zijkolom te weinig over voor de kop van het hoofdverhaal (vier
-   regels, bronregel afgekapt), dus dan één kolom. In rem, zodat het meeschuift met Tekstgrootte. */
-@container front (min-width: 42rem) {
+/* Voorpagina in een raam breder dan 48rem (768): hoofdverhaal links boven, drie kleinere in de
+   kolom rechts, twee eronder. De zijkolom is minstens --front-side. Tot en met 48rem (tablet
+   staand, de band van 960 tot 1200, en het raam met het vergelijkpaneel open, dat op 1440 precies
+   48rem is) blijft er naast die zijkolom te weinig over: een zijkolom met koppen van drie woorden
+   per regel, en een hoofdverhaal met afgekapte bronregel. Dan één kolom. In rem, zodat het
+   meeschuift met Tekstgrootte. */
+@container front (width > 48rem) {
   .front {
     display: grid;
     grid-template-areas:
@@ -3823,6 +3841,13 @@ html[data-images='hoofd'] .media--social {
   }
   .front__under {
     grid-area: under;
+  }
+}
+/* Net boven de grens (48 tot 52rem) een wat bredere zijkolom, zodat zijn koppen niet op drie
+   woorden per regel breken; vanaf 52rem is er plaats genoeg en geldt weer de vaste --front-side. */
+@container front (48rem < width < 52rem) {
+  .front {
+    --front-side: 17rem;
   }
 }
 /* Pas bij een ruim raam (52rem) staan de twee onder het hoofdverhaal naast elkaar, elk minstens

@@ -96,7 +96,7 @@ function Card({ item, rank, feature = false }) {
   )
 }
 
-// Selectie: elke maandagochtend per vakgebied de drie belangrijkste stukken van de week ervoor,
+// Selectie: elke maandagochtend per onderwerp de drie belangrijkste stukken van de week ervoor,
 // door mensen geschreven (zie netlify/lib/vak.mjs). Opbouw als een tijdschrift: een kop met de
 // week, een inhoudsopgave, en per vak één groot stuk, twee kaarten en een korte lijst.
 export default function Vak({ active, digest, status, onRefresh }) {
@@ -115,7 +115,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
     <section className="view" hidden={!active} ref={ref} aria-label="Selectie">
       <div className="col col--wide">
         <ViewHeader title="Selectie" onRefresh={onRefresh} refreshing={status === 'refreshing' || status === 'loading'}>
-          <Disclosure className="vakpick" open={!chosen.length} summaryClassName="linkbtn linkbtn--plain vakpick__sum" summary={chosen.length ? `Onderwerpen (${chosen.length})` : 'Kies onderwerpen'}>
+          <Disclosure className="vakpick" open={!chosen.length} summaryClassName="linkbtn linkbtn--plain vakpick__sum" summary={chosen.length ? `Onderwerpen · ${chosen.length}` : 'Kies onderwerpen'}>
             {vakByDomain().map((d) => (
               <ChipGroup key={d.id} label={d.label} listClassName="vakpick__chips">
                 {d.fields.map((f) => (
@@ -140,7 +140,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
             <header className="dmast">
               <p className="label label--kicker dmast__week">{digest.preview ? 'Voorproefje · de afgelopen zeven dagen' : `Week ${digest.week} · ${span(digest.from, digest.to)}`}</p>
               <p className="head-lg dmast__lede">
-                {picked} stukken in {fields.length === 1 ? '1 onderwerp' : `${fields.length} onderwerpen`}
+                {picked === 1 ? '1 stuk' : `${picked} stukken`} in {fields.length === 1 ? '1 onderwerp' : `${fields.length} onderwerpen`}
               </p>
               {digest.preview ? <p className="dmast__note">De eerste volle Selectie komt {WEEKDAY.format(new Date(digest.next))} in de ochtend.</p> : <p className="dmast__note">Elke maandagochtend een nieuwe.</p>}
             </header>

@@ -149,3 +149,29 @@ test('Beeldverhoudingen zijn tokens: Tijdlijn 2:1 als --media-tl, ook in tokens.
   const readme = readFileSync(join(docs, 'README.md'), 'utf8')
   for (const n of ['`media-tl`', '`lh-4`', '`lh-head-lg`']) assert.ok(readme.includes(n), n)
 })
+
+test('Selectie zegt overal onderwerpen: "Onderwerpen · 3" en "1 stuk" (C5, zoals iOS)', () => {
+  const vak = read('views/Vak.jsx')
+  assert.match(vak, /`Onderwerpen · \$\{chosen\.length\}`/)
+  assert.ok(!vak.includes('Onderwerpen ('), 'geen telling tussen haakjes meer')
+  assert.match(vak, /picked === 1 \? '1 stuk' : `\$\{picked\} stukken`/)
+  // 'vakgebied' alleen nog in code en commentaar, nooit in een zichtbare tekst.
+  const strings = vak.replace(/\/\/.*$|\/\*[\s\S]*?\*\/|\{\/\*[\s\S]*?\*\/\}/gm, '').match(/'[^']*'|"[^"]*"|`[^`]*`|>[^<{]+</g) || []
+  assert.ok(strings.every((s) => !/vakgebied/i.test(s)), 'vakgebied niet in de tekst')
+})
+
+test('Welkom 1 onder 720: de drie punten verdelen het rood tussen belofte en knop (K4)', () => {
+  const css = read('styles.css')
+  const block = css.slice(css.indexOf('@media (max-width: 719px) {')).slice(0, 260)
+  assert.match(block, /\.ob__red > \.ob__col \{\s*display: flex;\s*flex-direction: column;/)
+  assert.match(block, /\.ob__red \.ob__points \{\s*margin-block: auto;/)
+})
+
+test('Voorpagina: raster pas in een raam breder dan 48rem, met een zijkolom van 17rem tot 52rem (K5)', () => {
+  const css = read('styles.css')
+  // Strikt breder: het raam met het vergelijkpaneel open is op 1440 precies 48rem, en dan één kolom.
+  assert.match(css, /@container front \(width > 48rem\) \{\s*\.front \{\s*display: grid;/)
+  assert.ok(!/@container front \(min-width: 42rem\)/.test(css), 'de oude grens van 42rem is weg')
+  assert.match(css, /@container front \(48rem < width < 52rem\) \{\s*\.front \{\s*--front-side: 17rem;/)
+  assert.match(css, /@container front \(min-width: 52rem\)/)
+})

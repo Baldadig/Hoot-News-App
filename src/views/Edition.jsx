@@ -242,7 +242,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               </section>
             ) : null}
             {/* Voorpagina: het hoofdverhaal groot, daarnaast drie kleinere — altijd in krant-vorm.
-                Is het raam smaller dan 42rem (telefoon), dan staan ze onder elkaar. */}
+                Is het raam niet breder dan 48rem (telefoon, tablet staand, of met het vergelijkpaneel open), dan staan ze onder elkaar. */}
             <div className="front">
               <Slot less={less} row={rows[0]}>
                 <LeadStory item={rows[0].item} story={rows[0].story} note={rows[0].note} why={rows[0].why} followed={onFront.get(rows[0].key)} priority={active} taste={rows[0].key} />
