@@ -1,8 +1,9 @@
 import XCTest
 @testable import Hoot
 
-// Hele zinnen (T2, D2): de knip van wholeSentences in de app is die van shared/zinnen.mjs. Beide lezen
-// dezelfde gevallen uit tests/fixtures/zinnen.json; verschilt er één, dan knippen web en app anders.
+// Hele zinnen (T2, D2): de knip van wholeSentences moet gelijk worden aan die van het web. Dat is nog af
+// te stemmen met het web: zodra er een gedeelde fixture (tests/fixtures/zinnen.json) is, leest testFixture
+// die; tot dan slaat hij zichzelf over en toetst alleen testRules.
 final class SentencesTests: XCTestCase {
     // ios/HootTests/SentencesTests.swift → <repo>/tests/fixtures/zinnen.json (zoals EditionParityTests).
     static let fixtureURL = URL(fileURLWithPath: #filePath)
@@ -15,7 +16,7 @@ final class SentencesTests: XCTestCase {
     // (`max`, weg of null = de standaard) en de uitkomst (`out`/`expected`).
     static func cases() throws -> [Case] {
         guard FileManager.default.fileExists(atPath: fixtureURL.path) else {
-            throw XCTSkip("tests/fixtures/zinnen.json ontbreekt nog (komt met shared/zinnen.mjs van het web)")
+            throw XCTSkip("tests/fixtures/zinnen.json ontbreekt nog: de knip is nog af te stemmen met het web")
         }
         let json = try JSONSerialization.jsonObject(with: Data(contentsOf: fixtureURL))
         let list = (json as? [[String: Any]]) ?? ((json as? [String: Any])?["cases"] as? [[String: Any]]) ?? []
@@ -44,6 +45,12 @@ final class SentencesTests: XCTestCase {
         // Geen hele zin: tot de laatste komma, anders niets.
         XCTAssertEqual(wholeSentences("Na een lange nacht onderhandelen, met veel koffie, kwam er toch een akkoord.", max: 50), "Na een lange nacht onderhandelen, met veel koffie")
         XCTAssertEqual(wholeSentences("Eén lange zin zonder enige komma die maar doorgaat tot ver na de maat.", max: 30), "")
+        // Een decimale komma is geen zinsdeel: nooit "met 3" of "trekt 2".
+        XCTAssertEqual(wholeSentences("De economie groeide in het derde kwartaal met 3,5 procent, meer dan verwacht door economen en het CPB.", max: 60), "De economie groeide in het derde kwartaal met 3,5 procent")
+        XCTAssertEqual(wholeSentences("Het kabinet trekt 2,4 miljard euro uit voor de zorg in de regio's, vooral voor ouderen.", max: 48), "")
+        XCTAssertEqual(wholeSentences("De economie groeide in het derde kwartaal met 3,5 procent en dat is meer dan verwacht.", max: 60), "")
+        // Ook niet als de maat precies na de decimale komma valt.
+        XCTAssertEqual(wholeSentences("Het kabinet trekt 2,4 miljard uit, zegt de minister vandaag in Den Haag.", max: 20), "")
         // Nooit een beletselteken aan het eind.
         XCTAssertEqual(wholeSentences("Het eerste is af. Het tweede wordt wereldni…", max: 240), "Het eerste is af.")
         XCTAssertEqual(wholeSentences("Het eerste is af. Het tweede wordt wereldni...", max: 240), "Het eerste is af.")

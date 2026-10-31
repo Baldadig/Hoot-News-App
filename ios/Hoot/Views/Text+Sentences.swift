@@ -1,14 +1,15 @@
 import Foundation
 
-// De intro van een bericht in hele zinnen, nooit midden in een woord (T2). Spiegel van
-// shared/zinnen.mjs, getoetst in SentencesTests met dezelfde gevallen (tests/fixtures/zinnen.json):
-// verander je hier een regel, dan daar ook.
+// De intro van een bericht in hele zinnen, nooit midden in een woord (T2). De knip moet gelijk worden
+// aan die van het web; dat is nog af te stemmen met het web (er is nog geen gedeelde fixture), tot dan
+// toetst SentencesTests de regels hieronder.
 //
 // - Zolang de hele tekst past en niet op een beletselteken eindigt: de tekst zelf.
 // - Anders zoveel hele zinnen als er binnen `max` passen. Een zin eindigt op . ! of ? (eventueel met
 //   een aanhalingsteken of haakje erachter), gevolgd door een spatie en een hoofdletter, cijfer of
 //   aanhalingsteken. Een afkorting ("o.a.", "dr.", "bijv.") of een initiaal ("J. Smit") is geen einde.
-// - Past er geen hele zin: tot de laatste komma binnen `max`, en anders niets ("").
+// - Past er geen hele zin: tot de laatste komma binnen `max`, en anders niets (""). Alleen een komma
+//   met een spatie of het einde erachter telt: de decimale komma in "3,5 procent" is geen zinsdeel.
 // - Hoot eindigt nooit met een beletselteken.
 // Lengtes tellen in UTF-16, zoals `length` in JavaScript, zodat web en app op dezelfde plek knippen.
 func wholeSentences(_ text: String, max: Int = 240) -> String {
@@ -27,10 +28,11 @@ func wholeSentences(_ text: String, max: Int = 240) -> String {
     }
     if !out.isEmpty { return out }
 
-    // Geen hele zin die past: tot de laatste komma binnen de maat, zonder de komma zelf.
-    let room = String(clean.utf16.prefix(max)) ?? ""
-    if let comma = room.lastIndex(of: ",") {
-        let part = room[..<comma].trimmingCharacters(in: .whitespaces)
+    // Geen hele zin die past: tot de laatste komma binnen de maat, zonder de komma zelf. Een komma
+    // tussen twee cijfers ("3,5", "2,4 miljard") telt niet: daar knippen maakt van 3,5 procent 3.
+    let commas = clean.matches(of: /,(?=\s|$)/).map(\.range.lowerBound)
+    if let comma = commas.last(where: { clean.utf16.distance(from: clean.startIndex, to: $0) < max }) {
+        let part = clean[..<comma].trimmingCharacters(in: .whitespaces)
         if !part.isEmpty && !part.hasSuffix("…") && !part.hasSuffix("...") { return part }
     }
     return ""
@@ -51,7 +53,7 @@ func introMax(lines: Int, thumb: Bool) -> Int {
 
 enum Sentences {
     // Woorden met een punt die geen zin beëindigen (kleine letters, zonder de laatste punt).
-    // Gelijk aan de lijst in shared/zinnen.mjs.
+    // Nog af te stemmen met het web.
     static let abbreviations: Set<String> = [
         "dr", "drs", "ir", "ing", "mr", "mrs", "ms", "mevr", "dhr", "prof", "st", "jr", "sr",
         "bijv", "bv", "ca", "nr", "jl", "vs", "etc", "resp", "evt", "incl", "excl", "mln", "mld", "mrd",
