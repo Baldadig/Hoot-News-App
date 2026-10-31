@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { K, W, H, HZ, CX, LINE, STILL, WATER_PT_S, breathe, halo, introSun, editieSun, waterShift, WATER_ROWS } from '../src/lib/sun.js'
+import { K, W, H, HZ, CX, LINE, STILL, WATER_PT_S, breathe, halo, introSun, editieSun, kopSun, eindeSun, waterShift, WATER_ROWS } from '../src/lib/sun.js'
 
 const near = (a, b, e = 1e-6) => assert.ok(Math.abs(a - b) < e, `${a} ≉ ${b}`)
 
@@ -49,7 +49,27 @@ test('Editie: 6 s op en 6 s onder', () => {
 })
 
 test('stilbeelden voor Verminder beweging', () => {
-  assert.deepEqual(STILL, { intro: 1.6, editie: 4, stroom: 1.6, selectie: 1.6 })
+  assert.deepEqual(STILL, { intro: 1.6, editie: 4, stroom: 1.6, selectie: 1.6, einde: 6 })
+})
+
+test('de zon in de Editie: klein en stil in de kop, laag in ochtend en avond, hoog in de middag', () => {
+  const o = kopSun('ochtend')
+  const m = kopSun('middag')
+  const a = kopSun('avond')
+  assert.equal(o.cy, a.cy)
+  assert.ok(m.cy < o.cy - 20 * K, 'middag duidelijk hoger')
+  assert.ok(o.cy < HZ && o.cy + o.r > HZ, 'laag: de schijf raakt de horizon')
+  assert.ok(m.cy - m.r > HZ - 140 * 0.72, 'hoog: binnen het kader')
+  for (const s of [o, m, a]) near(s.r, 22 * K)
+})
+
+test('de zon onderaan de Editie: één keer op in 6 s, dan stil; stil bij Verminder beweging', () => {
+  near(eindeSun(0).cy, HZ + 23 * K) // achter de horizon
+  near(eindeSun(6).cy, HZ - 10 * K)
+  near(eindeSun(60).cy, HZ - 10 * K) // blijft staan, geen lus
+  near(eindeSun(0, true).cy, HZ - 10 * K) // stil: hij staat op
+  assert.ok(eindeSun(3).cy < HZ + 23 * K && eindeSun(3).cy > HZ - 10 * K)
+  near(eindeSun(3).r, eindeSun(5.9).r) // geen adem
 })
 
 test('water: 9 pt/s naar links, herhaling 140k', () => {

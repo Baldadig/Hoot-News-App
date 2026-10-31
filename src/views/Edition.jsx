@@ -4,7 +4,8 @@ import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf } 
 import { Img } from '../components/Img.jsx'
 import { SparkleIcon, CaretIcon, CloseIcon, ICON_SM } from '../components/icons.jsx'
 import { BriefReader } from '../components/BriefReader.jsx'
-import { BrandMark, BrandLogo } from '../components/Brand.jsx'
+import { BrandLogo } from '../components/Brand.jsx'
+import { KopSun, EindeSun } from '../components/SunArt.jsx'
 import Weather from '../components/Weather.jsx'
 import { longDate } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
@@ -99,9 +100,9 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
       const r = resolveEditionEntry(e, { storiesById, itemsById, published, muted })
       if (!r) return null
       const label = e.desk === 'breed' ? `Waar iedereen over schrijft · ${e.sourceCount} bronnen` : deskLabel({ ...e, desk: r.desk })
-      // Het label (lib/label.js): de interesse van de lezer als het verhaal die raakt, anders de rubriek;
+      // Het label (lib/label.js): de interesse van de lezer als het verhaal die echt draagt, anders de rubriek;
       // de waarom-regel alleen als die iets toevoegt; 'Buiten je bronnen' staat bij de bronregel.
-      const l = labelFor({ topics: r.item.topics, follows: prefs?.topics || [], cat: sourcesById?.get(r.item.source)?.cat, desk: e.desk, deskLabel: label, why: e.why, followed: r.followed || ['bubbel', 'breed'].includes(e.desk) })
+      const l = labelFor({ topics: r.item.topics, mainTopics: r.item.mainTopics, follows: prefs?.topics || [], cat: sourcesById?.get(r.item.source)?.cat, desk: r.desk, deskLabel: label, why: e.why, followed: r.followed || ['bubbel', 'breed'].includes(e.desk) })
       return { key: e.id, index, desk: e.desk, item: r.item, story: r.story, note: l.kicker, why: l.why, outside: l.outside }
     })
     .filter(Boolean)
@@ -153,7 +154,19 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
           <div className="edbrand">
             <BrandLogo height={20} />
           </div>
-          <ViewHeader title={title} sub={edition ? null : sub} onRefresh={onRefresh} refreshing={refreshing} compare />
+          <ViewHeader
+            title={
+              edition?.slot ? (
+                <>
+                  {title}
+                  {/* De kleine, stille zon: zijn hoogte toont het dagdeel (plan 01/05). */}
+                  <KopSun slot={edition.slot} />
+                </>
+              ) : (
+                title
+              )
+            }
+            sub={edition ? null : sub} onRefresh={onRefresh} refreshing={refreshing} compare />
           {ready ? (
             <>
               <StatusLine {...statusProps} quiet />
@@ -306,7 +319,8 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                   {count} van {count}
                 </p>
               ) : null}
-              <BrandMark size={44} />
+              {/* Het enige merkmoment tijdens het lezen: de zon komt één keer op (plan 01/05). */}
+              <EindeSun className="endcap__sun" />
               <h2 className="head-5 endcap__title">Je bent bij.</h2>
               <p className="endcap__text">
                 Dit was de {title} van {longDate(edition.date)}.{upNext(edition.slot)}

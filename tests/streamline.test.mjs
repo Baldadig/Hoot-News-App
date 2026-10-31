@@ -1,38 +1,41 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { rubriekRij, actieveRubriek, kiesRubriek, rijBronnen, inRijVolgorde, stapel, keuzeLabel, joinNL, plek, legeRegel, stapelTeksten, zeg, bezier, STEP_OPEN, STEP, PEEK, SMALL, LOGO } from '../src/lib/streamline.js'
+import { rubriekRij, alsRubriek, actieveRubriek, kiesRubriek, rijBronnen, inRijVolgorde, stapel, keuzeLabel, joinNL, plek, legeRegel, stapelTeksten, zeg, bezier, STEP_OPEN, STEP, PEEK, SMALL, LOGO } from '../src/lib/streamline.js'
 
 const sigs = (rij) => rij.items.map((r) => r.sig)
 
-test('rubrieken: zonder eigen onderwerpen de acht rubrieken, na Alles (en de bubbel) de kolomlijn', () => {
+const ALLE = ['Alles', 'Politiek', 'Binnenland', 'Wereld', 'Economie', 'Tech', 'Wetenschap', 'Cultuur', 'Sport']
+
+test('rubrieken: alleen hoofdrubrieken in vaste volgorde, Buiten je bubbel als laatste', () => {
   const rij = rubriekRij({ hasBubble: true })
-  assert.deepEqual(rij.items.map((r) => r.label), ['Alles', 'Buiten je bubbel', 'Politiek', 'Binnenland', 'Wereld', 'Economie', 'Tech', 'Wetenschap', 'Cultuur', 'Sport'])
-  assert.equal(rij.sep, 2)
+  assert.deepEqual(rij.items.map((r) => r.label), [...ALLE, 'Buiten je bubbel'])
   assert.equal(rij.items[0].key, null)
-  assert.equal(rij.items[2].key, 'rubriek')
-  assert.equal(rubriekRij({}).sep, 1) // geen bubbel: alleen Alles links van de lijn
+  assert.equal(rij.items[1].key, 'rubriek')
+  assert.deepEqual(rubriekRij({}).items.map((r) => r.label), ALLE) // geen bubbel: geen tab
 })
 
-test('rubrieken: volg je onderwerpen, dan die (gepinde eerst) als onderwerp', () => {
-  const rij = rubriekRij({ mine: ['ai', 'nederland', 'oekraine'], pinned: ['oekraine'] })
-  assert.deepEqual(sigs(rij), ['', 'onderwerp=oekraine', 'onderwerp=ai', 'onderwerp=nederland'])
-  assert.equal(rij.items[1].label, 'Oekraïne & Rusland')
+test('rubrieken: alleen wat je koos, in de vaste volgorde (niet de volgorde van kiezen); Alles altijd', () => {
+  const rij = rubriekRij({ interests: ['sport', 'politiek', 'cultuur'], hasBubble: true })
+  assert.deepEqual(rij.items.map((r) => r.label), ['Alles', 'Politiek', 'Cultuur', 'Sport', 'Buiten je bubbel'])
+  assert.deepEqual(rubriekRij({ interests: ['tech'] }).items.map((r) => r.label), ['Alles', 'Tech'])
+  // onbekende interesses tellen niet; niets geldigs gekozen = alle acht
+  assert.deepEqual(rubriekRij({ interests: ['xyz'] }).items.map((r) => r.label), ALLE)
+  // geen subonderwerpen, ook niet als je onderwerpen volgt
+  assert.ok(rij.items.every((r) => r.key !== 'onderwerp' || r.id === 'bubbel'))
 })
 
-test('een actief filter dat niet in de rij staat, komt direct na de kolomlijn', () => {
-  const rij = rubriekRij({ hasBubble: true, filters: { onderwerp: 'ai' } })
-  assert.deepEqual(sigs(rij).slice(0, 4), ['', 'onderwerp=bubbel', 'onderwerp=ai', 'rubriek=politiek'])
-  assert.equal(rij.items[2].label, 'AI')
-  assert.equal(rij.sep, 2)
-  // de rubriek 'tech' is iets anders dan het onderwerp 'tech' (Big Tech)
-  const mijn = rubriekRij({ mine: ['tech'], filters: { rubriek: 'tech' } })
-  assert.deepEqual(sigs(mijn), ['', 'rubriek=tech', 'onderwerp=tech'])
-  // al in de rij: niets erbij
+test('een actieve rubriek die je niet koos staat op zijn vaste plek; de bubbel blijft zichtbaar', () => {
+  assert.deepEqual(sigs(rubriekRij({ interests: ['sport', 'politiek'], filters: { rubriek: 'wereld' } })), ['', 'rubriek=politiek', 'rubriek=wereld', 'rubriek=sport'])
+  assert.deepEqual(sigs(rubriekRij({ interests: ['tech'], filters: { onderwerp: 'bubbel' } })), ['', 'rubriek=tech', 'onderwerp=bubbel'])
   assert.equal(rubriekRij({ filters: { rubriek: 'sport' } }).items.length, 9)
-  // de bubbel zonder bubbel (oude link): toch zichtbaar, links van de lijn
-  assert.deepEqual(sigs(rubriekRij({ filters: { onderwerp: 'bubbel' } })).slice(0, 2), ['', 'onderwerp=bubbel'])
-  // onbekend: de id als naam
-  assert.equal(rubriekRij({ filters: { onderwerp: 'xyz' } }).items[1].label, 'xyz')
+})
+
+test('een oud onderwerp-filter wordt zijn rubriek', () => {
+  assert.deepEqual(alsRubriek({ onderwerp: 'ai', bron: 'nos' }), { onderwerp: '', rubriek: 'tech', bron: 'nos' })
+  assert.deepEqual(alsRubriek({ onderwerp: 'nederland' }), { onderwerp: '', rubriek: 'politiek' })
+  assert.deepEqual(alsRubriek({ onderwerp: 'bubbel' }), { onderwerp: 'bubbel' })
+  assert.deepEqual(alsRubriek({ onderwerp: 'xyz' }), { onderwerp: '', rubriek: '' })
+  assert.deepEqual(alsRubriek({ rubriek: 'wereld' }), { rubriek: 'wereld' })
 })
 
 test('actieve rubriek en kiezen: onderwerp en rubriek sluiten elkaar uit, de rest blijft', () => {

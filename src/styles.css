@@ -3073,6 +3073,21 @@ select.input {
   stroke-width: 2;
   stroke-linecap: round;
 }
+/* In de Editie (plan 01/05): klein en stil naast de naam, en onderaan in papier op merkrood. */
+.sun--kop {
+  width: auto;
+  height: 0.75em;
+  margin-left: 0.3em;
+  align-self: center;
+}
+.endcap .sun {
+  --sun-disc: var(--on-brand-red);
+  --sun-line: var(--on-brand-red);
+}
+.endcap__sun {
+  width: auto;
+  height: 4.5rem;
+}
 .ob__art {
   width: auto;
   height: clamp(6.5rem, 27dvh, 14rem);
@@ -3231,34 +3246,14 @@ select.input {
 .ob--open .ob__next {
   color: var(--on-brand-red-2);
 }
-.ob__kbd {
-  color: var(--ink-3);
-  font-size: var(--t1);
-  line-height: var(--lh-1-read);
-  text-align: center;
-}
-.ob--open .ob__kbd {
-  color: var(--on-brand-red-2);
-}
-@media (hover: none) {
-  .ob__kbd,
-  .ob__only-mouse {
-    display: none;
-  }
-}
-@media (hover: hover) {
-  .ob__only-touch {
-    display: none;
-  }
-}
 .ob__slot .ob__cta {
   width: 100%;
 }
 
 /* Interesses: tegels, zoals ChoiceTile in de app, in dezelfde grammatica als een pil: in rust een
    kaart op --surface met 1 px --rule, gekozen --sel-* (rood zacht, 1 px rode rand, rode naam) met
-   het vinkje van 16 vóór het label. Het label houdt in beide standen zijn gewicht (800), dus niets
-   verspringt; het icoon blijft in beide standen --accent. Indrukken schaalt naar .97. Compact
+   het vinkje van 16 rechts. Het label houdt in beide standen zijn gewicht (800), dus niets
+   verspringt; het icoon blijft in beide standen staan, in --accent; het vinkje staat rechts. Indrukken schaalt naar .97. Compact
    (icoon links van het label), zodat vier rijen op elk scherm passen. */
 .ob__grid {
   display: grid;
@@ -3301,9 +3296,8 @@ select.input {
   width: var(--icon);
   height: var(--icon);
 }
-/* Elk label blijft op één regel (Binnenland, Wetenschap): het vinkje van gekozen neemt daarom de
-   plaats van het icoon in, in plaats van het woord te laten afbreken. Pas op een heel smal scherm
-   (320) mag een lang woord nog afbreken. */
+/* Elk label blijft op één regel (Binnenland, Wetenschap), ook met het icoon links en het vinkje
+   rechts. Pas op een heel smal scherm (320) mag een lang woord nog afbreken. */
 .ob__tile {
   gap: var(--s2);
   padding: 0 var(--s2);
@@ -3328,18 +3322,14 @@ select.input {
   background: var(--sel-bg);
   color: var(--sel-fg);
 }
-/* Het vinkje van gekozen, zoals bij .pill: 16, in de kleur van het label, op de plek van het icoon. */
-.ob__tile[aria-pressed='true'] .ob__ticon svg {
-  opacity: 0;
-}
+/* Het vinkje van gekozen, zoals bij .pill: 16, in de kleur van het label, rechts in de tegel (het plan:
+   .tile::after). Het icoon blijft staan. */
 .ob__tile[aria-pressed='true']::after {
   content: '';
-  position: absolute;
-  top: 50%;
-  left: calc(var(--s2) + (var(--icon) - var(--icon-sm)) / 2);
+  flex: none;
+  margin-left: auto;
   width: var(--icon-sm);
   height: var(--icon-sm);
-  transform: translateY(-50%);
   background: currentColor;
   -webkit-mask: var(--icon-check) center / contain no-repeat;
   mask: var(--icon-check) center / contain no-repeat;
@@ -3347,8 +3337,8 @@ select.input {
 
 /* Wat precies? en Je Selectie: ChipGroups met pillen (.pill, md), gekozen zoals overal: --sel-* met
    vinkje. .ob__chip is alleen een haakje. Wat op de pagina past staat in .ob__fit; de verborgen
-   .ob__measure heeft dezelfde groepen, alle pillen gekozen (dan zijn ze het breedst), en meet
-   welke groepen samen op een pagina passen. */
+   .ob__measure heeft dezelfde groepen, met de keuze zoals die nu is, en meet welke groepen samen
+   op een pagina passen. */
 .ob__fit {
   position: relative;
   flex: 1;
@@ -3469,12 +3459,15 @@ select.input {
   flex-direction: column;
   min-width: 0;
 }
-/* Naam en labels op één basislijn; past het niet, dan gaat een label naar de volgende regel. */
+/* Naam en labels op één regel, ook op 375: zo is elke rij even hoog. De labels zijn compact en
+   krimpen niet; is het echt te krap, dan krijgt de naam een beletselteken. */
 .ob__sname {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: baseline;
-  gap: 0 var(--s2);
+  gap: 0 var(--s1);
+  min-width: 0;
+  white-space: nowrap;
   font-size: var(--t3);
   line-height: var(--lh-3);
   font-weight: var(--fw-head);
@@ -3487,8 +3480,14 @@ select.input {
   text-overflow: ellipsis;
   white-space: nowrap; /* één regel: zo passen er meer bronnen op een pagina */
 }
+.ob__snm {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .ob__tag {
-  padding: 0 var(--s2);
+  flex: none;
+  padding: 0 var(--s1);
   border-radius: var(--radius-pill);
   background: var(--rule);
   color: var(--ink-2);

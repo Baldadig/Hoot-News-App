@@ -18,7 +18,8 @@ import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, 
 //   een paar bronnen; Je Selectie optioneel) → de Editie.
 // Niets staat vooraf aan: het voorstel voor de bronnen is voor iedereen gelijk (alleen gratis,
 // Nederlands eerst, zie lib/welcome.js) en de interesses, onderwerpen en Selectie beginnen leeg.
-// Knoppen staan pas op de laatste veegpagina; eerder veeg je (muis slepen, trackpad, pijltjes).
+// Knoppen staan pas op de laatste veegpagina; eerder veeg je (muis slepen, trackpad, pijltjes) of
+// tik je op 'Veeg verder →' (de enige hint, zoals het plan).
 // Bovenaan op elke pagina het kleine woordmerk linksboven, rechts Inloggen of Terug.
 // De rode intro is een eigen laag (.ob__red) over de papieren pagina heen: de schijf van de iris.
 // Van rood naar papier krimpt het rood als cirkel tot de punt van het kleine woordmerk op papier
@@ -306,7 +307,7 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
     if (view === 'kies') show('precies')
     else if (view === 'precies') (last ? show('hoot') : show('precies', sub + 1))
     else if (view === 'selectie') (last ? show('hoot') : show('selectie', sub + 1))
-    else if (view === 'bronnen') (last ? show('hoot') : show('bronnen', sub + 1))
+    else if (view === 'bronnen') show('hoot') // Klaar op elke pagina; verder bladeren met 'Meer bronnen'
     else if (view === 'hoot') finish()
   }
   const previous = () => {
@@ -326,15 +327,21 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
       ? { label: interests.length ? 'Verder' : 'Kies minstens één', disabled: !interests.length }
       : view === 'hoot'
         ? { label: mine.length ? 'Naar je Editie' : 'Kies minstens één bron', disabled: !mine.length || !pickable.length }
-        : view === 'selectie' || view === 'bronnen'
-          ? { label: last ? 'Klaar' : 'Verder' }
+        : view === 'bronnen'
+          ? { label: 'Klaar' }
+          : view === 'selectie'
+            ? { label: last ? 'Klaar' : 'Verder' }
           : { label: 'Verder' }
   const skip =
     view === 'precies'
-      ? { label: 'Overslaan', onClick: () => show('hoot') }
+      ? { label: 'Overslaan', onClick: () => go(() => (setPicked([]), setView('hoot'), setSub(0))) } // overslaan = alles: wat je aantikte vervalt
       : view === 'selectie'
         ? { label: 'Later kiezen', onClick: () => show('hoot') }
-        : reopen
+        : view === 'bronnen' && !last
+          ? { label: 'Meer bronnen', onClick: () => show('bronnen', sub + 1) }
+          : view === 'bronnen' && !reopen
+            ? { label: 'Meer bronnen', hidden: true } // houdt de plek, zodat de pagina even hoog blijft
+            : reopen
           ? { label: 'Sluiten zonder opslaan', onClick: onClose }
           : null
   const counter = view === 'precies' || view === 'selectie' || view === 'bronnen'
@@ -394,13 +401,9 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
               <div className="ob__slot">
                 <div data-shown={pg < PAGES.length - 1} inert={pg < PAGES.length - 1 ? undefined : ''}>
                   <button type="button" className="ob__next" onClick={forward}>
-                    <u>
-                      <span className="ob__only-touch">Veeg verder</span>
-                      <span className="ob__only-mouse">Volgende</span>
-                    </u>
+                    <u>Veeg verder</u>
                     <span aria-hidden="true">→</span>
                   </button>
-                  <p className="ob__kbd">Of veeg, of gebruik de pijltjes.</p>
                 </div>
                 <div data-shown={pg === PAGES.length - 1} inert={pg === PAGES.length - 1 ? undefined : ''}>
                   <button type="button" className="btn btn--lg ob__cta" onClick={() => show('kies')}>
@@ -499,7 +502,7 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
                 {cta.label}
               </button>
               {skip ? (
-                <button type="button" className="linkbtn linkbtn--plain ob__skip" onClick={skip.onClick}>
+                <button type="button" className="linkbtn linkbtn--plain ob__skip" onClick={skip.onClick} style={skip.hidden ? { visibility: 'hidden' } : undefined} aria-hidden={skip.hidden ? 'true' : undefined} tabIndex={skip.hidden ? -1 : undefined}>
                   {skip.label}
                 </button>
               ) : null}
@@ -542,13 +545,9 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
               <div className="ob__slot">
                 <div data-shown="true">
                   <button type="button" className="ob__next" onClick={forward}>
-                    <u>
-                      <span className="ob__only-touch">Veeg verder</span>
-                      <span className="ob__only-mouse">Volgende</span>
-                    </u>
+                    <u>Veeg verder</u>
                     <span aria-hidden="true">→</span>
                   </button>
-                  <p className="ob__kbd">Of veeg, of gebruik de pijltjes.</p>
                 </div>
               </div>
             </div>
@@ -570,18 +569,17 @@ function Dots({ cur, onPick }) {
   )
 }
 
-// Eén groep pillen: een label, 'Alles' vooraan (Wat precies?) en de pillen. `worst` zet alles op
-// gekozen (het vinkje maakt een pil breder), voor het meten.
-function Group({ g, worst = false }) {
+// Eén groep pillen: een label, 'Alles' vooraan (Wat precies?) en de pillen.
+function Group({ g }) {
   return (
     <ChipGroup label={g.label} icon={g.icon} level={2} className="ob__group" labelClassName="ob__gtitle">
       {g.all ? (
-        <button type="button" className="pill ob__chip" aria-pressed={worst || g.all.on} onClick={g.all.click}>
+        <button type="button" className="pill ob__chip" aria-pressed={g.all.on} onClick={g.all.click}>
           Alles
         </button>
       ) : null}
       {g.items.map((it) => (
-        <button key={it.id} type="button" className="pill ob__chip" aria-pressed={worst || it.on} onClick={() => g.toggle(it.id)}>
+        <button key={it.id} type="button" className="pill ob__chip" aria-pressed={it.on} onClick={() => g.toggle(it.id)}>
           {it.label}
         </button>
       ))}
@@ -590,8 +588,9 @@ function Group({ g, worst = false }) {
 }
 
 // Groepen pillen zonder scrollen: wat op de pagina past staat erop, de rest op de volgende. Een
-// verborgen kopie van alle groepen (alle pillen gekozen = het breedst) wordt gemeten tegen de
-// hoogte die de pagina heeft (packPages in lib/welcome.js); bij elke maatwijziging opnieuw.
+// verborgen kopie van alle groepen, met de keuze zoals die nu is, wordt gemeten tegen de hoogte die
+// de pagina heeft (packPages in lib/welcome.js); bij elke maatwijziging en elke tik opnieuw. Zo
+// telt een pagina niet met het slechtste geval en staan er geen halflege pagina's.
 function Paged({ groups, page, onPages }) {
   const fit = useRef(null)
   const meas = useRef(null)
@@ -604,7 +603,7 @@ function Paged({ groups, page, onPages }) {
     const next = packPages([...m.children].map((k) => k.offsetHeight), f.clientHeight, gap)
     setPages((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next))
   }, [])
-  useLayoutEffect(measure, [measure, groups.length])
+  useLayoutEffect(measure) // na elke tekening: een tik kan een pil breder maken (het vinkje)
   useEffect(() => {
     const f = fit.current
     if (!f) return
@@ -626,7 +625,7 @@ function Paged({ groups, page, onPages }) {
       </div>
       <div className="ob__groups ob__measure" ref={meas} aria-hidden="true" inert="">
         {groups.map((g) => (
-          <Group key={g.key} g={g} worst />
+          <Group key={g.key} g={g} />
         ))}
       </div>
     </div>
@@ -682,7 +681,7 @@ function SourcePick({ s, on, onClick }) {
       <SourceMark source={s} size={32} />
       <span className="ob__stext">
         <span className="ob__sname">
-          {s.name}
+          <span className="ob__snm">{s.name}</span>
           {s.paid ? <span className="ob__tag">abonnement</span> : <span className="ob__tag ob__tag--free">gratis</span>}
           {s.lang === 'en' ? <span className="ob__tag">EN</span> : null}
         </span>

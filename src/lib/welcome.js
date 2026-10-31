@@ -49,15 +49,17 @@ export function sourceLine(names = []) {
 
 // ---- Niets scrolt in het welkom: groepen pillen over pagina's verdeeld ----
 // `heights` zijn de hoogtes van de groepen (px), `avail` de hoogte die een pagina heeft, `gap` de
-// ruimte tussen twee groepen. Geeft per pagina de nummers van de groepen, in volgorde: zo veel
-// als er past, en een groep die alleen al te hoog is staat op een eigen pagina.
-export function packPages(heights = [], avail = 0, gap = 0) {
+// ruimte tussen twee groepen. Geeft per pagina de nummers van de groepen, in volgorde: zo weinig
+// pagina's als kan, en daarbinnen zo gelijk mogelijk gevuld (geen halflege laatste pagina: 11
+// bronnen van 5 per pagina worden 4, 4 en 3). Een groep die alleen al te hoog is staat op een
+// eigen pagina.
+function greedy(heights, cap, gap) {
   const pages = []
   let page = []
   let used = 0
   heights.forEach((h, i) => {
     const next = page.length ? used + gap + h : h
-    if (page.length && next > avail) {
+    if (page.length && next > cap) {
       pages.push(page)
       page = [i]
       used = h
@@ -67,7 +69,40 @@ export function packPages(heights = [], avail = 0, gap = 0) {
     }
   })
   if (page.length) pages.push(page)
-  return pages.length ? pages : [[]]
+  return pages
+}
+export function packPages(heights = [], avail = 0, gap = 0) {
+  const n = heights.length
+  if (!n) return [[]]
+  const k = greedy(heights, avail, gap).length // zo weinig pagina's als kan
+  // Daarbinnen zo gelijk mogelijk: de kleinste som van (lege ruimte)² over de pagina's, met de
+  // groepen in hun volgorde (een kleine tabel: hooguit enkele tientallen groepen).
+  const used = (a, b) => heights.slice(a, b).reduce((s, h) => s + h, 0) + gap * (b - a - 1)
+  const cost = (a, b) => {
+    const u = used(a, b)
+    if (u <= avail) return (avail - u) ** 2
+    return b - a === 1 ? 0 : Infinity // alleen een groep die alleen al te hoog is mag over de rand
+  }
+  const best = Array.from({ length: k + 1 }, () => Array(n + 1).fill(Infinity))
+  const from = Array.from({ length: k + 1 }, () => Array(n + 1).fill(-1))
+  best[0][0] = 0
+  for (let p = 1; p <= k; p++)
+    for (let b = 1; b <= n; b++)
+      for (let a = p - 1; a < b; a++) {
+        const c = best[p - 1][a] + cost(a, b)
+        if (c <= best[p][b] && Number.isFinite(c)) { // bij gelijke stand: de eerdere pagina's voller
+          best[p][b] = c
+          from[p][b] = a
+        }
+      }
+  if (!Number.isFinite(best[k][n])) return greedy(heights, avail, gap)
+  const pages = []
+  for (let p = k, b = n; p > 0; p--) {
+    const a = from[p][b]
+    pages.unshift(Array.from({ length: b - a }, (_, i) => a + i))
+    b = a
+  }
+  return pages
 }
 
 // Wat je per interesse aantikte, uit de lijst onderwerpen die je volgt (resolveTopics): volg je

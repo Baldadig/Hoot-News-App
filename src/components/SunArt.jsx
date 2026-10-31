@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef } from 'react'
-import { K, W, H, HZ, CX, LINE, STILL, breathe, halo, introSun, editieSun, waterShift, WATER_ROWS } from '../lib/sun.js'
+import { K, W, H, HZ, CX, LINE, STILL, RISE_S, breathe, halo, introSun, editieSun, kopSun, eindeSun, waterShift, WATER_ROWS } from '../lib/sun.js'
 import { reduced } from '../lib/motion.js'
+import { watch } from '../lib/inview.js'
 
 // De punt als zon in Welkom (iOS OnboardingArt.swift): één SVG van 168 × 140 met vier varianten.
 // - intro: op de rode intro, in papier; komt één keer op achter de horizon en ademt dan
@@ -114,6 +115,79 @@ export default function SunArt({ kind, className = '' }) {
           ))}
         </g>
       ) : null}
+    </svg>
+  )
+}
+
+// ---- De zon in de Editie (plan 01/05) ----
+
+// Klein en stil naast de naam van de Editie. Zijn hoogte toont het dagdeel (lib/sun.js kopSun):
+// laag in de ochtend en de vroege avond, hoog in de middag. Het kader is bijgesneden tot de lucht
+// boven de horizon; de lijn houdt op elke maat 1,5 px.
+export function KopSun({ slot }) {
+  const id = useId().replace(/:/g, '')
+  const v = kopSun(slot)
+  return (
+    <svg className={`sun sun--kop sun--${slot || 'editie'}`} viewBox={`${CX - LINE} 20 ${2 * LINE} ${HZ - 20 + 2}`} aria-hidden="true" focusable="false">
+      <defs>
+        <clipPath id={`${id}-sky`}>
+          <rect x={CX - LINE} y={0} width={2 * LINE} height={HZ} />
+        </clipPath>
+      </defs>
+      <circle className="sun__disc" clipPath={`url(#${id}-sky)`} cx={CX} cy={v.cy} r={v.r} />
+      <line className="sun__line" x1={CX - LINE} x2={CX + LINE} y1={HZ} y2={HZ} vectorEffect="non-scaling-stroke" />
+    </svg>
+  )
+}
+
+// Onderaan, boven 'Je bent bij.': de zon komt één keer op (6 s) zodra het vlak in beeld is, en
+// staat dan stil. Bij Verminder beweging staat hij meteen op.
+export function EindeSun({ className = '' }) {
+  const id = useId().replace(/:/g, '')
+  const svg = useRef(null)
+  const sun = useRef(null)
+  useEffect(() => {
+    const s = sun.current
+    if (!s) return
+    const put = (v) => {
+      s.setAttribute('r', f2(v.r))
+      s.setAttribute('cy', f2(v.cy))
+    }
+    if (reduced()) {
+      put(eindeSun(STILL.einde, true))
+      return
+    }
+    put(eindeSun(0))
+    let leave = null
+    let t0 = null
+    const stop = watch(svg.current, { threshold: 0.6 }, (e) => {
+      if (!e.isIntersecting || t0 != null) return
+      t0 = nowS()
+      leave = join((t) => {
+        const local = t - t0
+        put(eindeSun(local))
+        if (local >= RISE_S) {
+          leave?.()
+          leave = null
+        }
+      })
+    })
+    return () => {
+      stop()
+      leave?.()
+    }
+  }, [])
+  return (
+    <svg ref={svg} className={`sun sun--einde ${className}`.trim()} viewBox={`0 0 ${W} ${H}`} aria-hidden="true" focusable="false">
+      <defs>
+        <clipPath id={`${id}-sky`}>
+          <rect x={-20} y={-20} width={W + 40} height={HZ + 20} />
+        </clipPath>
+      </defs>
+      <g clipPath={`url(#${id}-sky)`}>
+        <circle ref={sun} className="sun__disc" cx={CX} cy={HZ + 23 * K} r={22 * K} />
+      </g>
+      <line className="sun__line" x1={CX - LINE} x2={CX + LINE} y1={HZ} y2={HZ} />
     </svg>
   )
 }

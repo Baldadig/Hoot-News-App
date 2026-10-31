@@ -92,6 +92,10 @@ test('pillen over pagina\'s: zo veel als past, een te hoge groep staat alleen', 
   assert.deepEqual(packPages([100, 100, 100], 319, 10), [[0, 1], [2]])
   assert.deepEqual(packPages([100, 500, 100], 300, 10), [[0], [1], [2]])
   assert.deepEqual(packPages([], 300, 10), [[]])
+  // zo weinig pagina's als kan, en gelijk gevuld: geen halflege laatste pagina
+  assert.deepEqual(packPages(Array(11).fill(61), 315, 0).map((p) => p.length), [4, 4, 3])
+  assert.deepEqual(packPages(Array(10).fill(61), 315, 0).map((p) => p.length), [5, 5])
+  assert.deepEqual(packPages([200, 60, 60, 60], 300, 10).map((p) => p.length), [1, 3]) // 200 en 200 hoog
   assert.deepEqual(packPages([40, 40], 0, 10), [[0], [1]])
 })
 

@@ -89,7 +89,7 @@ function useWide(query) {
 
 export default function App() {
   const route = useRoute()
-  const [rawPrefs, setPrefs] = useStored('hoot:prefs', { muted: [], pinned: ['nederland', 'vs-politiek', 'ai'], onboarded: true }) // zonder opslag (migrate.js kon niets schrijven): geen welkom
+  const [rawPrefs, setPrefs] = useStored('hoot:prefs', { muted: [], pinned: [], onboarded: true }) // zonder opslag (migrate.js kon niets schrijven): geen welkom
   const prefs = useMemo(() => normalizePrefs(rawPrefs), [rawPrefs])
   const setPref = useCallback((key, value) => setPrefs((p) => ({ ...p, [key]: value })), [setPrefs])
   // Tekstgrootte en beeld werken via attributen op <html> (zie styles.css).
@@ -620,8 +620,6 @@ export default function App() {
               stream={stream}
               params={path === 'stroom' ? route.params : navMem.stroom || {}}
               go={route.go}
-              pinned={prefs.pinned}
-              mine={prefs.topics}
               sources={sources}
               loading={loading}
               failedLoad={failedLoad}

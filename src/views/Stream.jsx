@@ -5,7 +5,7 @@ import { StreamLine } from '../components/StreamLine.jsx'
 import { FilterIcon, ArrowUpIcon } from '../components/icons.jsx'
 import { Dialog, DialogHeader } from '../components/Dialog.jsx'
 import { inInterest } from '../lib/topics.js'
-import { rubriekRij, actieveRubriek, kiesRubriek, rijBronnen, inRijVolgorde, legeRegel } from '../lib/streamline.js'
+import { rubriekRij, alsRubriek, actieveRubriek, kiesRubriek, rijBronnen, inRijVolgorde, legeRegel } from '../lib/streamline.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { positionKey } from '../lib/context.js'
 import { readJSON } from '../lib/store.js'
@@ -48,13 +48,14 @@ function FilterSheet({ open, onClose, params, clear, setFilter, count }) {
   )
 }
 
-export default function Stream({ active, stream, params, go, pinned, mine = [], bubble = [], preview = 2, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
+export default function Stream({ active, stream, params, go, bubble = [], preview = 2, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
   const { storiesById, sourcesById, muted, setMuted, prefs } = useHoot()
   const ref = useRef(null)
   const [sheet, setSheet] = useState(false)
   const [atDepth, setAtDepth] = useState(false)
 
-  const filters = { bron: params.bron || '', onderwerp: params.onderwerp || '', rubriek: params.rubriek || '', soort: params.soort || '' }
+  // De rij kent alleen hoofdrubrieken: een oud onderwerp-filter wordt zijn rubriek (alsRubriek).
+  const filters = alsRubriek({ bron: params.bron || '', onderwerp: params.onderwerp || '', rubriek: params.rubriek || '', soort: params.soort || '' })
   // `bron` is één id of een lijst met komma's (meer bronnen tegelijk); leeg = alle bronnen.
   const pickList = useMemo(() => filters.bron.split(',').filter(Boolean), [filters.bron])
   const picks = useMemo(() => new Set(pickList), [pickList])
@@ -121,10 +122,11 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
   // dan altijd dezelfde URL (en dus dezelfde leespositie).
   // Een bron kiezen zet de rubriek terug op Alles: je kijkt dan naar die bron, niet naar een onderwerp.
   const togglePick = (id) => apply({ ...filters, onderwerp: '', rubriek: '', bron: inRijVolgorde(picks.has(id) ? pickList.filter((p) => p !== id) : [...pickList, id], rij).join(',') })
-  // De rubrieken: Alles en Buiten je bubbel, dan je onderwerpen of de acht rubrieken.
+  // De rubrieken: Alles, je hoofdrubrieken in vaste volgorde, Buiten je bubbel als laatste.
+  const interests = prefs?.interests || []
   const rubrieken = useMemo(
-    () => rubriekRij({ mine, pinned, hasBubble: bubble.length > 0, filters: { onderwerp: filters.onderwerp, rubriek: filters.rubriek } }),
-    [mine, pinned, bubble.length, filters.onderwerp, filters.rubriek],
+    () => rubriekRij({ interests, hasBubble: bubble.length > 0, filters: { onderwerp: filters.onderwerp, rubriek: filters.rubriek } }),
+    [interests.join(','), bubble.length, filters.onderwerp, filters.rubriek], // eslint-disable-line react-hooks/exhaustive-deps
   )
   const actief = actieveRubriek(filters)
 

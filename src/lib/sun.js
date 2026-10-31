@@ -16,7 +16,7 @@ export const WATER_PT_S = 9 // stromend water in de Stroom
 
 // Verminder beweging: een stilbeeld. De Editie op t = 4 (genoeg zon), de intro staat op, de rest
 // op t = 1,6.
-export const STILL = { intro: 1.6, editie: 4, stroom: 1.6, selectie: 1.6 }
+export const STILL = { intro: 1.6, editie: 4, stroom: 1.6, selectie: 1.6, einde: RISE_S }
 
 export const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x))
 export const lerp = (a, b, p) => a + (b - a) * p
@@ -44,6 +44,20 @@ export function introSun(t, local, still = false) {
 export function editieSun(t) {
   const p = quad(tri(t / RISE_S))
   return { r: 22 * K * breathe(t), cy: HZ - 10 * K + (1 - p) * 30 * K }
+}
+
+// In de Editie zelf (plan 01/05): een kleine, stille zon in de kop. Zijn hoogte toont het dagdeel,
+// zonder kloktijd: laag bij de Ochtend- en de Avondeditie, hoog bij de Middageditie.
+export function kopSun(slot) {
+  return { r: 22 * K, cy: slot === 'middag' ? HZ - 30 * K : HZ - 6 * K }
+}
+
+// Het einde van de Editie: de zon komt één keer op boven 'Je bent bij.' (6 s, easeInOutQuad, zodra
+// het vlak in beeld is) en staat dan stil. Geen adem: in de Editie beweegt verder niets. Stil
+// (Verminder beweging): hij staat op.
+export function eindeSun(local, still = false) {
+  const p = still ? 1 : quad(clamp(local / RISE_S))
+  return { r: 22 * K, cy: lerp(HZ + 23 * K, HZ - 10 * K, p) }
 }
 
 // De Stroom: het water schuift 9 pt/s naar links, met een herhaling van 140k.

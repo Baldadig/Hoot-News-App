@@ -16,10 +16,18 @@ import edition from '../netlify/functions/edition.mjs'
 const NOW = Date.parse('2026-10-28T10:00:00Z')
 const iso = (minsAgo) => new Date(NOW - minsAgo * 6e4).toISOString()
 const art = (id, source, title, minsAgo = 10, extra = {}) => ({ id, source, sourceName: source.toUpperCase(), kind: 'article', title, summary: `${title}. Meer daarover.`, publishedAt: iso(minsAgo), url: `https://${source}.nl/${id}`, ...extra })
-const elapsed = (fn) => {
-  const t = performance.now()
-  fn()
-  return performance.now() - t
+// Rekentijd van dit proces (ms), niet de klok: `npm test` draait de bestanden naast elkaar, en dan
+// telt de klok ook de tijd dat een ander bestand de processor had. Dat maakte deze tests wisselvallig.
+// Het beste van twee keer, zodat een toevallige opruimronde (GC) niet de doorslag geeft.
+const elapsed = (fn, runs = 2) => {
+  let best = Infinity
+  for (let i = 0; i < runs; i++) {
+    const t = process.cpuUsage()
+    fn()
+    const d = process.cpuUsage(t)
+    best = Math.min(best, (d.user + d.system) / 1000)
+  }
+  return best
 }
 
 // ---------- Samenvoegen (sync.js) ----------
