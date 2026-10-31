@@ -60,7 +60,7 @@ export default function Settings({ meta, account, syncStatus, affinity = null, o
               <option value={NO_WEATHER}>Geen weer</option>
             </select>
           </div>
-          <Row label="Edities" hint="Drie keer per dag tien verhalen: in de ochtend, middag en vroege avond. Daarna ligt de Editie vast." />
+          <Row label="Edities" hint="Drie keer per dag tien verhalen: in de ochtend, middag en vroege avond. Daarna ligt de Editie vast. Jouw Editie is samengesteld uit jouw bronnen en interesses." />
         </div>
 
         <h2 className="label label--section sect">Extra</h2>

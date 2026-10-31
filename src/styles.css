@@ -75,6 +75,7 @@
   --measure: 720px; /* leesblok */
   --measure-prose: 58ch; /* lopende tekst, samenvattingen en hints: ten hoogste ± 75 tekens per regel (een ch is de breedte van een 0, breder dan een gemiddelde letter; 65ch gaf tot 83) */
   --measure-form: 560px; /* Bronnen en Instellingen */
+  --measure-end: 30ch; /* einde van de Editie: kort, gebalanceerd */
   --front-side: 16rem; /* zijkolom van de voorpagina, minstens: "Vergelijk N bronnen" past naast ⋯ en bewaren */
   --sheet-w: 560px;
   --nav-w: 208px;
@@ -981,10 +982,22 @@ select {
 
 /* Na de kop: altijd --after-header tot de eerste inhoud, op elk scherm; de inhoud zelf zet
    bovenaan geen eigen marge. (0,2,0), zodat het wint van een onderdeel dat elders een
-   bovenmarge heeft (.sect, .empty). De Editie heeft een kop met meer erin (.edtop). */
+   bovenmarge heeft (.sect, .empty). De Editie heeft een kop met meer erin (.edtop): de stille
+   rij van het overzicht (.briefcta) hangt direct onder de lijn en hoort bij de kop; pas na die
+   rij komt --after-header. Een korte Editie zegt het als hint (.edshort) op --s3 onder de lijn of
+   de rij, en dan volgt het nieuws op --after-header. */
 .col > .vh + *,
-.col > .edtop + * {
+.col > .edtop + *,
+.col > .briefcta + *,
+.col > .edshort + * {
   margin-top: var(--after-header);
+}
+.col > .edtop + .briefcta {
+  margin-top: 0;
+}
+.col > .edtop + .edshort,
+.col > .briefcta + .edshort {
+  margin-top: var(--s3);
 }
 /* Een lijst begint met de lucht van zijn eerste bericht (.entry: --s4 boven): de kop van dat
    bericht staat dan ook op --after-header. */
@@ -1764,23 +1777,21 @@ select.input {
   text-decoration: none;
 }
 
-/* Op een telefoon eerst kop en kern, dan het beeld; vanaf tabletbreedte het beeld bovenaan. */
+/* Hoofdverhaal: overal beeld eerst, zoals de app; dan rubriek, kop, kern en de bronregel, die zo
+   bij zijn tekst blijft. Op een telefoon 2:1; vanaf 720 een liggende strook (21:9, ± 300 px hoog),
+   zodat kop en kern van het eerste verhaal zonder scrollen in beeld staan. */
 .lead__link {
   display: flex;
   flex-direction: column;
 }
 .media--lead {
-  aspect-ratio: 16 / 9;
-  margin: var(--s4) 0 var(--s1);
+  aspect-ratio: 2 / 1;
+  margin: 0 0 var(--s4);
   border-radius: var(--radius-card);
 }
-/* Breed scherm: een liggende strook boven de kop (± 300 px hoog), zodat kop en kern van het
-   eerste verhaal zonder scrollen in beeld staan. */
 @media (min-width: 720px) {
   .media--lead {
-    order: -1;
     aspect-ratio: 21 / 9;
-    margin: 0 0 var(--s4);
   }
 }
 
@@ -2095,8 +2106,9 @@ select.input {
 }
 
 .endcap__text {
-  max-inline-size: var(--measure-prose);
+  max-inline-size: var(--measure-end);
   color: var(--on-brand-red);
+  text-wrap: balance;
 }
 /* Verder lezen: een .linkbtn, stiller op merkrood; bij hover de volle tekstkleur. */
 .endcap__more {
@@ -3623,8 +3635,8 @@ html[data-images='hoofd'] .media--social {
   border-radius: 0;
   font-family: var(--serif);
 }
-/* De Lezer staat in de Editie direct na de kop, en .col > .edtop + * (0,2,0) geeft dat element
-   --after-header erboven. Een dialoog plaatst zich met zijn marge, dus die staat hier op (0,2,0). */
+/* Een dialoog plaatst zich met zijn marge; een regel als .col > .vh + * (0,2,0) mag die niet
+   verzetten, dus die staat hier op (0,2,0). In de Editie staat de Lezer achteraan in de kolom. */
 .dialog.reader {
   margin: 0;
 }
@@ -3930,10 +3942,10 @@ html[data-images='hoofd'] .media--social {
    moet er zijn vóór dit bestand geladen is. Het sluiten (iris, landing, fade) komt uit
    lib/motion.js via components/Splash.jsx. --z-splash hierboven is zijn laag. */
 
-/* Editie: de kop. Titel, één metaregel en de ingang naar het overzicht; de inktlijn eronder
-   (--rule-strong) is het begin van het nieuws, net als boven "Verder in deze Editie". Alleen als
-   er een Editie is: bij laden of een fout staat er niets onder om te beginnen. :where houdt dit
-   op (0,1,0), zodat de band van Inkt de lijn kan weghalen. */
+/* Editie: de kop. Titel en één metaregel; de inktlijn direct eronder (--rule-strong) is het begin
+   van het nieuws, net als boven "Verder in deze Editie". Alleen als er een Editie is: bij laden of
+   een fout staat er niets onder om te beginnen. :where houdt dit op (0,1,0), zodat de band van
+   Inkt de lijn kan weghalen. */
 .edtop:where(:has(> .edmeta)) {
   border-bottom: var(--rule-strong);
 }
@@ -3954,23 +3966,24 @@ html[data-images='hoofd'] .media--social {
 .edmeta__wx:empty {
   display: none;
 }
-/* Zonder ingang eronder: lucht tussen de metaregel en de inktlijn. */
+/* De metaregel is altijd het laatste in de kop: lucht tussen de metaregel en de inktlijn. */
 .edmeta:last-child {
   padding-bottom: var(--s3);
 }
 
-/* De ingang naar het overzicht in één minuut: een rij van --row-sm met een media-object van
-   --slot-sm, dus de tekst op 32, net als de bronnaam eronder. De caret (16) staat tegen de lijn. */
+/* De ingang naar het overzicht in één minuut: een stille bedieningsrij direct onder de inktlijn,
+   geen verhaal. Een rij van --row-sm met een media-object van --slot-sm, dus de tekst op 32, net
+   als de bronnaam eronder; de titel in Source Sans 600 (t2/lh-2), het icoon in --ink-3, een
+   haarlijn eronder. De caret (16) staat tegen de lijn. */
 .briefcta {
   display: flex;
   align-items: center;
   gap: var(--s2);
   width: 100%;
   min-height: var(--row-sm);
-  margin-top: var(--s3);
   padding: var(--s3) 0;
   border: 0;
-  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
   background: none;
   color: var(--ink);
   text-align: left;
@@ -3981,13 +3994,19 @@ html[data-images='hoofd'] .media--social {
   flex: none;
   place-items: center;
   width: var(--slot-sm);
-  color: var(--ink-2);
+  color: var(--ink-3);
 }
 .briefcta__text {
   display: flex;
   flex: 1;
   flex-direction: column;
   min-width: 0;
+}
+.briefcta__title {
+  font-family: var(--sans);
+  font-size: var(--t2);
+  font-weight: var(--fw-ui);
+  line-height: var(--lh-2);
 }
 .briefcta__sub {
   color: var(--ink-3);

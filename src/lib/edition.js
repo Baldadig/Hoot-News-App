@@ -1,3 +1,5 @@
+import { SLOTS } from '../../shared/slots.mjs'
+
 // Editie-onderdelen weergeven — pure functies (tests/edition.test.mjs).
 //
 // Eén vaste selectie: de tien onderdelen van de server zijn de editie, voor iedereen gelijk, en
@@ -43,10 +45,11 @@ export function heroFirst(rows, goodImage) {
 export const EDITION_SIZE = 10
 
 // Wanneer de volgende editie er is, in dagdelen: geen kloktijden in de teksten (iOS EditionView
-// `upNext`). De server stuurt wel `next: '12:00'` mee; dat gebruiken we niet meer voor de tekst.
-export const UP_NEXT = { ochtend: 'in de middag', middag: 'in de vroege avond', avond: 'morgenochtend' }
+// `upNext`). De woorden staan in shared/slots.mjs; de server stuurt wel `next: '12:00'` mee, maar
+// dat gebruiken we niet voor de tekst.
+export const UP_NEXT = Object.fromEntries(Object.entries(SLOTS).map(([slot, s]) => [slot, s.volgende]))
 export function upNext(slot) {
-  const when = UP_NEXT[slot]
+  const when = SLOTS[slot]?.volgende
   return when ? ` De volgende staat ${when} voor je klaar.` : ''
 }
 

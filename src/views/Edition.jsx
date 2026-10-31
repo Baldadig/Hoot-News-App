@@ -9,6 +9,7 @@ import Weather from '../components/Weather.jsx'
 import { longDate } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { resolveEditionEntry, heroFirst, EDITION_SIZE, upNext } from '../lib/edition.js'
+import { SLOTS } from '../../shared/slots.mjs'
 import { fitsHero } from '../lib/img.js'
 import { followedNow } from '../lib/follow.js'
 import { TermHelp } from '../components/Terms.jsx'
@@ -77,7 +78,6 @@ function LessNote({ entryKey, item, story }) {
 }
 // Elke plek: het verhaal zelf, of ingeklapt als je er minder van wilde.
 const Slot = ({ less, row, children }) => (less.includes(row.key) ? <LessNote entryKey={row.key} item={row.item} story={row.story} /> : children)
-const SLOT = { ochtend: 'Ochtendeditie', middag: 'Middageditie', avond: 'Avondeditie' }
 
 export default function Edition({ active, edition, bubble = [], brief = null, briefForMembers = false, onJoin, loading, failedLoad, statusProps, onRefresh, refreshing }) {
   const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account } = useHoot()
@@ -119,16 +119,16 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
 
   useScrollMemory(ref, 'hoot:pos-editie:' + (edition?.id || ''), rows.length > 0, rows.length, active)
 
-  const title = edition ? SLOT[edition.slot] : 'Editie'
+  const title = SLOTS[edition?.slot]?.naam || 'Editie' // de naam van het dagdeel (shared/slots.mjs)
   const ready = !loading && !failedLoad && rows.length > 0
   const sub = edition ? longDate(edition.date).replace(/^./, (c) => c.toUpperCase()) : null
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
       <div className="col col--wide col--front">
-        {/* De kop van de Editie: titel, één metaregel (datum · weer · omvang) en de ingang naar het
-            overzicht; de inktlijn eronder is het begin van het nieuws. Eén blok, zodat de kleur
-            "Inkt" er een band van kan maken. */}
+        {/* De kop van de Editie: titel en één metaregel (datum · weer · wiens Editie); de inktlijn
+            eronder is het begin van het nieuws. Eén blok, zodat de kleur "Inkt" er een band van kan
+            maken. De ingang naar het overzicht staat ónder de lijn, als stille bedieningsrij. */}
         <div className="edtop">
           {/* Het kleine woordmerk linksboven, zoals in de app (Wordmark in EditionView): je ziet waar
               je bent zonder dat het de krant overneemt, en het opstartscherm landt erop. Op breed
@@ -140,54 +140,55 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
           {ready ? (
             <>
               <StatusLine {...statusProps} quiet />
-              {/* Eén metaregel, net als onder elke schermkop: datum, het weer en waar de Editie uit
-                  bestaat. Geen weer, dan valt het tussenstuk weg (en zijn punt). Een korte Editie
-                  zegt hoeveel verhalen er zijn als eigen deel, met dezelfde punt ervoor. */}
+              {/* Eén metaregel, net als onder elke schermkop en zoals in de app: datum, het weer en
+                  wiens Editie het is. Geen weer, dan valt het tussenstuk weg (en zijn punt). Waar
+                  jouw Editie uit bestaat, staat bij Instellingen → Edities. */}
               <p className="vh__sub edmeta">
                 <span>{sub}</span>
                 <span className="edmeta__wx">
                   <Weather />
                 </span>
-                <span>{edition.personal ? 'Samengesteld uit jouw bronnen en interesses' : 'De Editie voor iedereen'}</span>
-                {rows.length < EDITION_SIZE ? (
-                  <span>
-                    {rows.length} {rows.length === 1 ? 'verhaal' : 'verhalen'}: er was niet meer nieuws dat breed genoeg werd gebracht
-                  </span>
-                ) : null}
+                <span>{edition.personal ? 'Jouw Editie' : 'De Editie voor iedereen'}</span>
               </p>
-              {hasBrief ? (
-                <button type="button" className="briefcta" onClick={() => setReading(true)} aria-haspopup="dialog">
-                  <span className="briefcta__icon" aria-hidden="true">
-                    <SparkleIcon />
-                  </span>
-                  <span className="briefcta__text">
-                    <span className="head-4 briefcta__title">De Editie in één minuut</span>
-                    <span className="briefcta__sub">Samenvatting door AI, met de bronnen erbij</span>
-                  </span>
-                  <span className="briefcta__go" aria-hidden="true">
-                    <CaretIcon size={ICON_SM} />
-                  </span>
-                </button>
-              ) : null}
-              {!hasBrief && briefForMembers ? (
-                // Hoot is op uitnodiging: dat staat er al vóór je inlogt. Ingelogd zonder lidmaatschap?
-                // Dan brengt de knop je naar het veld voor je uitnodigingscode (Instellingen).
-                <button type="button" className="briefcta" onClick={onJoin} aria-haspopup={account?.status === 'noInvite' ? undefined : 'dialog'}>
-                  <span className="briefcta__icon" aria-hidden="true">
-                    <SparkleIcon />
-                  </span>
-                  <span className="briefcta__text">
-                    <span className="head-4 briefcta__title">Jouw Editie in één minuut</span>
-                    <span className="briefcta__sub">{account?.status === 'noInvite' ? 'Voor leden: vul je uitnodigingscode in' : 'Voor leden, op uitnodiging'}</span>
-                  </span>
-                  <span className="briefcta__go" aria-hidden="true">
-                    <CaretIcon size={ICON_SM} />
-                  </span>
-                </button>
-              ) : null}
             </>
           ) : null}
         </div>
+        {ready && hasBrief ? (
+          <button type="button" className="briefcta" onClick={() => setReading(true)} aria-haspopup="dialog">
+            <span className="briefcta__icon" aria-hidden="true">
+              <SparkleIcon />
+            </span>
+            <span className="briefcta__text">
+              <span className="briefcta__title">De Editie in één minuut</span>
+              <span className="briefcta__sub">Samenvatting door AI, met de bronnen erbij</span>
+            </span>
+            <span className="briefcta__go" aria-hidden="true">
+              <CaretIcon size={ICON_SM} />
+            </span>
+          </button>
+        ) : null}
+        {ready && !hasBrief && briefForMembers ? (
+          // Hoot is op uitnodiging: dat staat er al vóór je inlogt. Ingelogd zonder lidmaatschap?
+          // Dan brengt de knop je naar het veld voor je uitnodigingscode (Instellingen).
+          <button type="button" className="briefcta" onClick={onJoin} aria-haspopup={account?.status === 'noInvite' ? undefined : 'dialog'}>
+            <span className="briefcta__icon" aria-hidden="true">
+              <SparkleIcon />
+            </span>
+            <span className="briefcta__text">
+              <span className="briefcta__title">Jouw Editie in één minuut</span>
+              <span className="briefcta__sub">{account?.status === 'noInvite' ? 'Voor leden: vul je uitnodigingscode in' : 'Voor leden, op uitnodiging'}</span>
+            </span>
+            <span className="briefcta__go" aria-hidden="true">
+              <CaretIcon size={ICON_SM} />
+            </span>
+          </button>
+        ) : null}
+        {/* Een korte Editie zegt hoeveel verhalen er zijn: een hint onder de lijn, niet in de metaregel. */}
+        {ready && rows.length < EDITION_SIZE ? (
+          <p className="hint edshort">
+            {rows.length} {rows.length === 1 ? 'verhaal' : 'verhalen'}: er was niet meer nieuws dat breed genoeg werd gebracht
+          </p>
+        ) : null}
         {loading ? (
           <Skeleton rows={4} />
         ) : failedLoad ? (
@@ -220,7 +221,6 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 </ul>
               </section>
             ) : null}
-            {hasBrief ? <BriefReader open={reading} onClose={() => setReading(false)} brief={brief} rows={rows} kicker={`${title} · ${longDate(edition.date)}`} /> : null}
             {/* Voorpagina: het hoofdverhaal groot, daarnaast drie kleinere — altijd in krant-vorm.
                 Is het raam smaller dan 42rem (telefoon), dan staan ze onder elkaar. */}
             <div className="front">
@@ -276,13 +276,15 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               <BrandMark size={44} />
               <h2 className="head-5 endcap__title">Je bent bij.</h2>
               <p className="endcap__text">
-                Dit was de {SLOT[edition.slot]} van {longDate(edition.date)}.{upNext(edition.slot)}
+                Dit was de {title} van {longDate(edition.date)}.{upNext(edition.slot)}
               </p>
               {/* Het einde is leidend; verder lezen mag, maar als rustige link (geen knop die je doortrekt). */}
               <a className="linkbtn endcap__more" href="#/stroom">
                 Of lees verder in de Stroom
               </a>
             </div>
+            {/* Het overzicht in één minuut: een dialoog, dus achteraan; hij neemt geen plek in de kolom. */}
+            {hasBrief ? <BriefReader open={reading} onClose={() => setReading(false)} brief={brief} rows={rows} kicker={`${title} · ${longDate(edition.date)}`} /> : null}
           </>
         )}
       </div>
