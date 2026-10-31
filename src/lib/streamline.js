@@ -108,9 +108,9 @@ export function stapelTeksten(namen = []) {
   return {
     label: `Bronnen kiezen, nu: ${has ? joinNL(namen) : 'alle bronnen'}`,
     title: has ? `Bronnen: ${joinNL(namen)}` : 'Filter op bron',
-    // Alle bronnen zegt wat de volgende tik doet
-    hint: has ? 'Zet de keuze terug op alle bronnen.' : 'Klapt de rij dicht.',
-    allTitle: has ? 'Alle bronnen: zet de keuze terug' : 'Alle bronnen: klap de rij dicht',
+    // KISS: de knop heet gewoon Alle bronnen
+    hint: 'Alle bronnen',
+    allTitle: 'Alle bronnen',
   }
 }
 export const zeg = {

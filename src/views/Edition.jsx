@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
-import { SparkleIcon, CaretIcon, ICON_SM } from '../components/icons.jsx'
+import { SparkleIcon, CaretIcon, CloseIcon, ICON_SM } from '../components/icons.jsx'
 import { BriefReader } from '../components/BriefReader.jsx'
 import { BrandMark, BrandLogo } from '../components/Brand.jsx'
 import Weather from '../components/Weather.jsx'
@@ -84,7 +84,7 @@ function LessNote({ entryKey, item, story }) {
 // Elke plek: het verhaal zelf, of ingeklapt als je er minder van wilde.
 const Slot = ({ less, row, children }) => (less.includes(row.key) ? <LessNote entryKey={row.key} item={row.item} story={row.story} /> : children)
 
-export default function Edition({ active, edition, bubble = [], brief = null, briefForMembers = false, onJoin, loading, failedLoad, statusProps, onRefresh, refreshing }) {
+export default function Edition({ active, edition, bubble = [], brief = null, briefForMembers = false, onJoin, hint = false, onHintDone, loading, failedLoad, statusProps, onRefresh, refreshing }) {
   const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account, prefs, sourcesById } = useHoot()
   const following = followedNow(followStories, storiesById, newInStory)
   const ref = useRef(null)
@@ -130,6 +130,15 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
   const title = SLOTS[edition?.slot]?.naam || 'Editie' // de naam van het dagdeel (shared/slots.mjs)
   const ready = !loading && !failedLoad && rows.length > 0
   const sub = edition ? longDate(edition.date).replace(/^./, (c) => c.toUpperCase()) : null
+
+  // Eén keer na het eerste Welkom: wat "Jouw Editie" in de metaregel betekent (src/lib/welcome.js).
+  // Hij gaat weg met de X, of vanzelf zodra je de Editie verlaat nadat je hem zag.
+  const showHint = hint && ready && !!edition?.personal
+  const hintSeen = useRef(false)
+  if (showHint && active) hintSeen.current = true
+  useEffect(() => {
+    if (!active && hintSeen.current) onHintDone?.()
+  }, [active, onHintDone])
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
@@ -191,6 +200,14 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               <CaretIcon size={ICON_SM} />
             </span>
           </button>
+        ) : null}
+        {showHint ? (
+          <div className="edhint">
+            <p className="hint">Jouw Editie: gekozen uit jouw bronnen en interesses.</p>
+            <button type="button" className="iconbtn hit edhint__x" onClick={onHintDone} aria-label="Uitleg sluiten">
+              <CloseIcon size={ICON_SM} />
+            </button>
+          </div>
         ) : null}
         {/* Een korte Editie zegt hoeveel verhalen er zijn: een hint onder de lijn, niet in de metaregel. */}
         {ready && rows.length < EDITION_SIZE ? (

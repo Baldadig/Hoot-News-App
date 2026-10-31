@@ -86,7 +86,7 @@ export function pickedFrom(topics = [], interests = [], all = []) {
 // Koos je opnieuw (je was al eens door het welkom), dan blijven je vaste onderwerpen staan voor
 // zover je ze nog volgt; bij de eerste start worden het de eerste drie van je onderwerpen.
 // Alleen bij de eerste start komt er één keer de uitleg bij "Jouw Editie" onder de kop van de
-// Editie (`editieHint`, Edition.jsx); hij wordt niet meer getoond (KISS); de vlag blijft in de voorkeuren.
+// Editie (`editieHint`, Edition.jsx).
 export function applyWelcome(p, choice) {
   const on = new Set(choice.sources)
   const shown = new Set(choice.all.map((s) => s.id))

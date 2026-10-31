@@ -139,7 +139,7 @@ export default function Stream({ active, stream, params, go, pinned, mine = [], 
 
   // De filterknop (soort) staat in de kop; wat je verder filtert zie je op de lijn.
   const filterButton = (
-    <button type="button" className={`iconbtn filterbtn${filters.soort ? ' is-on' : ''}`} onClick={() => setSheet(true)} aria-haspopup="dialog" aria-label={`Filters: soort${filters.soort ? `, nu ${kindName(filters.soort)}` : ''}`} title="Filters">
+    <button type="button" className={`iconbtn filterbtn${filters.soort ? ' is-on' : ''}`} onClick={() => setSheet(true)} aria-haspopup="dialog" aria-label={`Filters${filters.soort ? `, nu ${kindName(filters.soort)}` : ''}`} title="Filters">
       <FilterIcon />
       {filters.soort ? <span className="filterbtn__dot" aria-hidden="true" /> : null}
     </button>

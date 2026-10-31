@@ -123,7 +123,7 @@ function Learned({ affinity, onForget }) {
       <p className="hint learned__intro">Telt vanaf je volgende Editie.</p>
       <div className="rows">
         {summary.chosen.length ? <Row label="Gekozen" hint={summary.chosen.map(name).join(', ')} /> : null}
-        {nothingLearned ? <Row label="Nog niets" /> : null}
+        {nothingLearned ? <Row label="Nog niets." /> : null}
       </div>
       {summary.learned.length ? (
         <>

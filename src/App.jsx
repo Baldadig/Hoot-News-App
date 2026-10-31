@@ -349,6 +349,8 @@ export default function App() {
 
   // De eenmalige uitleg bij "Jouw Editie" (na het eerste Welkom, src/lib/welcome.js) is gezien.
 
+  const endEditieHint = useCallback(() => setPref('editieHint', false), [setPref])
+
   const setMuted = useCallback((id, on) => setPrefs((p) => toggleSource(normalizePrefs(p), sourcesById.get(id) || { id }, on)), [setPrefs, sourcesById])
 
   const reloadAll = useCallback(() => {
@@ -600,6 +602,8 @@ export default function App() {
               brief={prefs.brief ? myEdition?.brief || null : null}
               briefForMembers={prefs.brief && !member && ['out', 'noInvite'].includes(rawAccount.status)}
               onJoin={() => (rawAccount.status === 'noInvite' ? route.go('instellingen') : setJoinOpen('brief'))}
+              hint={!!rawPrefs.editieHint}
+              onHintDone={endEditieHint}
               edition={myEdition}
               loading={loading || (!!data?.edition && !myEdition)}
               failedLoad={failedLoad}

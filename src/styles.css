@@ -4450,6 +4450,25 @@ html[data-images='hoofd'] .media--social {
   padding-bottom: var(--s3);
 }
 
+/* De eenmalige uitleg bij "Jouw Editie" (na het eerste Welkom): een gewone .hint met een kleine X
+   (36, .hit 44 raakvlak) ernaast. De X staat met zijn midden op het midden van de eerste regel en
+   met de tekening (niet het vak) op de kolomlijn. */
+.edhint {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s2);
+}
+.edhint > .hint {
+  flex: 1;
+  margin-top: 0;
+}
+.edhint__x {
+  width: var(--control-sm);
+  height: var(--control-sm);
+  margin-block: calc((var(--lh-1-read) - var(--control-sm)) / 2);
+  margin-inline: auto calc((var(--icon-sm) - var(--control-sm)) / 2);
+}
+
 /* De ingang naar het overzicht in één minuut: een stille bedieningsrij direct onder de inktlijn,
    geen verhaal. Een rij van --row-sm met een media-object van --slot-sm, dus de tekst op 32, net
    als de bronnaam eronder; de titel in Source Sans 600 (t2/lh-2), het icoon in --ink-3, een

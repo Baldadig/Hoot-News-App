@@ -169,13 +169,13 @@ const JOIN = {
   // Inloggen rechtsboven op de rode intro van Welkom (zoals in de app): je hebt nog niets ingesteld.
   welkom: {
     kicker: 'Al lid?',
-    title: 'Log in op je Hoot',
-    text: 'Log in met Google.',
+    title: 'Log in met Google.',
+    text: null,
   },
   sync: {
     kicker: 'Hoot op al je toestellen',
     title: 'Log in om te bewaren wat je instelde',
-    text: 'Dan gaat het mee naar al je toestellen.',
+    text: null,
   },
 }
 
@@ -184,7 +184,7 @@ export function JoinSheet({ open, reason = 'sync', invited = false, onClose, onS
   return (
     <Dialog open={open} onClose={onClose} className="sheet--join" labelledBy="join-title">
       <DialogHeader id="join-title" label={copy.kicker} title={copy.title} onClose={onClose} />
-      <p className="join__text">{copy.text}</p>
+      {copy.text ? <p className="join__text">{copy.text}</p> : null}
       <p className="join__text">
         {invited
           ? 'Je bent uitgenodigd. Log in, dan ben je meteen lid.'

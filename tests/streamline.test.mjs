@@ -98,8 +98,8 @@ test('een lege lijst: één regel met wie, waar en welke soort', () => {
 test('wat de stapel zegt', () => {
   assert.equal(stapelTeksten([]).label, 'Bronnen kiezen, nu: alle bronnen')
   assert.equal(stapelTeksten(['NOS', 'NRC']).label, 'Bronnen kiezen, nu: NOS en NRC')
-  assert.equal(stapelTeksten([]).hint, 'Klapt de rij dicht.')
-  assert.equal(stapelTeksten(['NOS']).hint, 'Zet de keuze terug op alle bronnen.')
+  assert.equal(stapelTeksten([]).hint, 'Alle bronnen')
+  assert.equal(stapelTeksten(['NOS']).allTitle, 'Alle bronnen')
   assert.equal(zeg.bron('NOS', true, ['NOS', 'NRC']), 'NOS aan. Nu: NOS en NRC.')
   assert.equal(zeg.bron('NOS', false, []), 'NOS uit. Alle bronnen.')
   assert.equal(zeg.dicht(['NOS']), 'Rij dicht. Bronnen: NOS.')

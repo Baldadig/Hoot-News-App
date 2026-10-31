@@ -219,7 +219,7 @@ test('KISS-teksten (kiss-teksten.json): geen rij zonder bediening, geen oude uit
   assert.doesNotMatch(settings, /label="Edities"/, 'de uitlegrij Edities is weg')
   assert.doesNotMatch(settings, />Extra<|in het menu/, 'Extra heet Menu')
   assert.match(settings, /Telt vanaf je volgende Editie\./)
-  assert.doesNotMatch(read('views/Edition.jsx'), /Instellingen › Edities|edhint/, 'de eenmalige Editie-hint is weg')
+  assert.match(read('views/Edition.jsx'), /Jouw Editie: gekozen uit jouw bronnen en interesses\./, 'de Editie-hint is de korte KISS-tekst')
   for (const f of ['views/Over.jsx', 'views/Privacy.jsx']) {
     const s = read(f)
     assert.doesNotMatch(s, /hootnews\.nl/, `${f}: domein`)
