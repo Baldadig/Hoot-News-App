@@ -691,7 +691,7 @@ export default function StyleGuide({ stream }) {
               </button>
             }
           >
-            Tik op de bladwijzer bij een verhaal. Het staat hier tot je het hebt gelezen, ook zonder verbinding.
+            Tik op de bladwijzer bij een verhaal. Het blijft hier staan, ook als het uit de Stroom is verdwenen.
           </Empty>
           <p className="sg__spec">
             <code>Empty art</code> · de lege bladzijde · titel {parts(specs.empty || '')}

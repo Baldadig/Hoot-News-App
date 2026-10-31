@@ -53,7 +53,7 @@ export default function Saved({ active }) {
               </a>
             }
           >
-            Tik op de bladwijzer bij een verhaal. Het staat hier tot je het hebt gelezen, ook zonder verbinding.
+            Tik op de bladwijzer bij een verhaal. Het blijft hier staan, ook als het uit de Stroom is verdwenen.
           </Empty>
         ) : (
           <>
