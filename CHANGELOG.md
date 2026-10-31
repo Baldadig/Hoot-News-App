@@ -2,6 +2,31 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.55.0] — 2026-10-31 — Eén designsysteem, de website gelijk aan de app, en De Redacteur stelt je Editie samen
+
+- **Designronde (WP00–WP20):** alle schermen zijn nagemeten en op één systeem gezet, van tokens tot de Stijl-pagina. Vóór en na zijn opgenomen op 375, 768, 1024, 1280 en 1440, licht en donker: 696 opnames, met dezelfde data.
+  - **Rood heeft één betekenis:** rubriek, actieve navigatie, gekozen, een link in de tekst en het merk. Focus is overal inkt (was 10 van 70 schermen, nu 70 van 70). Klassen met rode tekst: van 16 naar 12, allemaal binnen die regel.
+  - **Type op één schaal:** van 15 lettergroottes naar 13, en 4.038 gevallen buiten de schaal naar 0. Regelhoogtes van 24 waarden naar 11, alle op 4 px (14.406 gevallen die er niet op stonden, nu 0). Nieuw is `.head-lg` (22/24), de stap die tussen 18 en 27 ontbrak.
+  - **Bediening met vaste maten:** knoppen 36, 44 en 52 (was ook 38, 41 en 56), 20 knopstijlen werden 11, één hoverlaag, één druklaag, één disabled-regel en één taal voor 'gekozen'.
+  - **Een vast paginaraam op desktop:** titel, kopiconen en linkerlijn staan op elke tab op dezelfde plek (vóór sprongen ze 140 px). Instellingen heeft een vaste plek onderin de zijbalk, één terugknop, één metaregel onder de titel.
+  - **Eén Dialog** voor bladen en de Lezer, met een rand en een donkerder scrim in donker. Eén bronregel, één familie iconen met een draaiende caret, één kaartvorm. Lege staten en fouten staan op de kolomlijn.
+- **Stroom:** de scheiding tussen wat je leest en de rubrieken is weg, en de rubriekstreep is altijd rood, ook in het palet Inkt.
+- **Lees de Stroom als Tijdlijn of Krant,** in Instellingen. Tijdlijn: kop, intro en het beeld groot over de hele breedte (2:1). Krant: kop en intro met een klein beeld (3:2) rechts. Dezelfde keuze als in de app, en hij gaat mee met je account. De Editie blijft een krant.
+- **Selectie:** nieuw onderwerp Geekcultuur, onder Cultuur & vrije tijd: sf, fantasy, strips, bordspellen en internetcultuur.
+- **Bluesky:** volg je nog niemand, dan staat er een knop 'Iemand toevoegen' in de lege rubriek.
+- **Welkom als de app:** een rode intro met het woordmerk linksboven en Inloggen, dan in stappen je interesses, Wat precies?, je bronnen en je Selectie, met tegels en keuzeknoppen op papier. Bij de eerste stap sluit het rood zich als een iris tot de punt van 'hoot.'; bij Terug opent hij weer. De teksten zijn die van de app: Editie, Stroom en Selectie, in die volgorde.
+- **Opstartscherm op het web:** merkrood met de stuiterende punt, dan de iris naar het kleine 'hoot.' linksboven in de Editie, zoals in de app.
+- **Van Welkom naar de Editie** met een overvloeier van 0,45 s. De Editie staat er dan al.
+- **Delen:** de link van de uitgever via het deelblad van je toestel, of anders naar het klembord met 'Link gekopieerd'.
+- **Geen kloktijden meer:** de Editie, de Selectie, Instellingen en Over zeggen ochtend, middag of vroege avond, en de Edities heten Ochtendeditie, Middageditie en Avondeditie.
+- **De Redacteur: jouw Editie, samengesteld voor jou.** Een goede redacteur kent zijn lezer en deelt de krant voor iedereen net anders in: de voorpagina is voor iedereen gelijk, daarna volgen jouw rubrieken. Hoot doet dat nu op je toestel, met een klein profiel van wat je koos, waar je op meer of minder drukte, en wat je opent en bewaart, afgezet tegen wat je bronnen brengen.
+  - **Het waarom:** onder de rubriek van elke plek staat één korte zin waarom hij er staat ("Omdat je Klimaat volgt", "3 van je bronnen schrijven erover", "Vervolg op wat je las"). Nooit getallen of scores. Was het verschil klein, dan blijft alleen de rubriek staan.
+  - **Wat Hoot van je leerde,** in Instellingen: gekozen, geleerd (Vergeet dit) en minder (Ongedaan maken). Een wijziging telt bij je volgende Editie; de Editie van dit dagdeel blijft staan.
+  - **Herhaling opgelost:** een verhaal dat je al las komt niet terug tenzij er echt iets bij kwam, ook niet met een andere kop uit een andere bron. De voorpagina, de aanvulling, 'Waar iedereen over schrijft' en 'Buiten je bubbel' kennen nu alle drie de Edities ervóór, en die geschiedenis gaat met je account mee tussen telefoon en web.
+  - **Pariteit opgelost:** web en app rekenen met dezelfde rekenkern, dezelfde invoer en de start van het dagdeel in plaats van de klok. Voor één account wint de eerste schrijver en neemt het andere toestel die Editie over, byte-gelijk. Als lid wacht de Editie op één geslaagde sync-ronde.
+  - **Server-route als terugval:** faalt de rekenkern op het toestel, dan stelt de server samen met dezelfde regels, zonder je leesprofiel. Dat profiel blijft op je toestel; de server ontvangt het niet.
+  - **Wat lezers merken:** tien plekken, met bovenaan groot nieuws voor iedereen en altijd minstens drie gewone krantenrubrieken, dus geen bubbel. Je eigen bronnen wegen mee waar eerst Hoots basisbronnen telden. Trage bronnen zoals Carbon Brief en Quanta vallen niet meer weg. Buiten je bubbel ligt echt buiten jouw wereld, of anders net ernaast ("Naast je bubbel · grenst aan Sport"). De Editie ligt vast zodra hij is samengesteld; met dezelfde invoer krijg je dezelfde Editie, op het web en op je iPhone.
+
 ## [1.54.0] — 2026-10-29 — Uit de nachtreview: geen stil dataverlies, kranten compleet, eerlijk over de uitnodiging
 
 - **Synchroniseren (website):** Hoot schrijft pas iets naar je account als het ophalen één keer is gelukt. Mislukte die eerste ronde, bijvoorbeeld offline op een nieuw toestel, dan bleven je bronnen, interesses en gelezen-lijst niet altijd bewaard.
