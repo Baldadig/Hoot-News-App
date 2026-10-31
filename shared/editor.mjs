@@ -13,7 +13,7 @@
 import { INTERESTS, topicById } from '../src/lib/topics.js'
 import { MIN_EVENTS } from '../src/lib/affinity.js'
 import { DESKS, DESK_LABEL, desksOf, storyForeignOf, isNonEuropean, VL_HOME, NL_HOME } from '../netlify/lib/desks.mjs'
-import { shownTopics, OTHER_SPORT } from '../netlify/lib/topics.mjs'
+import { shownTopics, keywordTopics, OTHER_SPORT } from '../netlify/lib/topics.mjs'
 
 // De buitenlandse kernrubrieken (Binnenland is Nederland, zie netlify/lib/desks.mjs).
 export const FOREIGN_DESKS = new Set(['buitenland', 'vs', 'middenoosten', 'oekraine'])
@@ -181,11 +181,16 @@ function topicHits(item, prof, geo = null, area = null, politics = false) {
   const abroad = geo === 'int' && !VL_HOME.has(item.source)
   const world = (prof.family.wereld || 0) >= OUTSIDE_FAMILY
   const notChosenPol = (t) => !world && FAMILY_OF[t] === 'politiek' && prof.topicP[t] > 0 && prof.origin?.[t] === 'geërfd' && (US_TOPICS.has(t) || (abroad && (t !== 'europa' || isNonEuropean(item))))
+  // Amerikaanse politiek zonder Wereld: alleen Politiek of Wereld kan het waarom zijn. Economie telt hier
+  // alleen met een zakenbron of een zakenkop (feedback 31 oktober: "Trump and GOP Close Midterms With Ugly
+  // Personal Attacks" was "Omdat je Economie volgt" via 'inflation' in de intro).
+  const headTopics = politics ? keywordTopics(item.title || '') : []
+  const politicsWhy = (t) => FAMILY_OF[t] === 'politiek' || FAMILY_OF[t] === 'wereld' || (FAMILY_OF[t] === 'economie' && (FAMILY_OF_CAT[prof.catOf?.get(item.source)] === 'economie' || headTopics.includes(t)))
   // VS-politiek is ook geografie: het trefwoord "verkiezing" maakte van Lula's zege in Brazilië VS-politiek.
   const notUs = ts.includes('vs-politiek') && !desksOf(item).has('vs')
   // `seen`: kop of intro noemt het onderwerp zelf (shownTopics); alleen zo'n treffer mag het waarom zijn.
   const vis = shownTopics(item)
-  const out = ts.filter((t) => prof.topicP[t] !== undefined && !(abroad && FAMILY_OF[t] === 'binnenland' && prof.topicP[t] > 0) && !(notUs && t === 'vs-politiek' && prof.topicP[t] > 0) && !notChosenPol(t)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source, seen: (!vis || vis.includes(t)) && !(politics && !POLITICS_FAMILIES.has(FAMILY_OF[t]) && (politics === 'desk' || FAMILY_OF_CAT[prof.catOf?.get(item.source)] !== FAMILY_OF[t])) }))
+  const out = ts.filter((t) => prof.topicP[t] !== undefined && !(abroad && FAMILY_OF[t] === 'binnenland' && prof.topicP[t] > 0) && !(notUs && t === 'vs-politiek' && prof.topicP[t] > 0) && !notChosenPol(t)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source, seen: (!vis || vis.includes(t)) && !(politics && !POLITICS_FAMILIES.has(FAMILY_OF[t]) && (politics === 'desk' || FAMILY_OF_CAT[prof.catOf?.get(item.source)] !== FAMILY_OF[t])) && !(politics && !world && !politicsWhy(t)) }))
   const fb = prof.family.binnenland || 0
   if (fb > 0 && geo === 'nl' && !sport) out.push({ t: GEO_NL, f: 'binnenland', v: Math.min(fb, W_INHERITED), s: item.source, seen: true })
   if (!ts.length) {

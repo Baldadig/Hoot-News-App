@@ -299,6 +299,21 @@ for (const [tag, data] of [['live', live1200], ['hertagd', live1200Retag]]) {
       }
     }
   })
+
+  test(`31 oktober 12:00 (${tag}) · 3. Amerikaanse politiek zonder Wereld is nooit "Economie" zonder zakenbron of zakenkop (Midterms en persoonlijke aanvallen)`, () => {
+    for (const p of ZONDER_WERELD.filter((x) => x.interests.includes('economie'))) {
+      for (const e of editionOf(p)) {
+        if (/^Trump and GOP Close Midterms/.test(e.title)) assert.ok(!/Economie/.test(e.why.text), `${p.id}: ${e.why.text}`)
+      }
+    }
+  })
+
+  test(`31 oktober 12:00 / 10:50 (${tag}) · 1. een buitenlands verhaal in een niet-gekozen rubriek (Pompeï, Wetenschap) blijft weg zonder gekozen reden`, () => {
+    const d = tag === 'live' ? live1050 : live1050Retag
+    for (const p of ZONDER_WERELD.filter((x) => !x.interests.includes('wetenschap'))) {
+      assert.ok(!find(editionOfData(p, d), 'Zeldzame vondst in Pompe'), `${p.id}: Pompeï zonder gekozen reden`)
+    }
+  })
 }
 
 test('31 oktober 12:00 · "indien" en "chili" in een Nederlandse kop maken het geen niet-Europees stuk', () => {

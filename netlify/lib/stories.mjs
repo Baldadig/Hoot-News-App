@@ -4,7 +4,7 @@
 import { DESKS, desksOf, primaryDesk, storyDesks, deskOfStory, storyForeignOf, weight } from './desks.mjs'
 
 import { hash } from '../../shared/util.mjs'
-import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, KERN, KERN_MIN, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX, FOREIGN_DESKS, NL_OTHER_W, FRONT_NL_MIN, FRONT_NL_HOME, INT_MAX, OUTSIDE_FAMILY, chosenReason } from '../../shared/editor.mjs'
+import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, KERN, KERN_MIN, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX, FOREIGN_DESKS, geoOf, NL_OTHER_W, FRONT_NL_MIN, FRONT_NL_HOME, INT_MAX, OUTSIDE_FAMILY, chosenReason, visibleReason } from '../../shared/editor.mjs'
 export { hash }
 
 // Een onleesbare tijd telt als heel oud (anders geeft de vergelijking NaN en raakt de sortering,
@@ -1097,7 +1097,17 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   const foreign = (c) => FOREIGN_DESKS.has(c.desk) || c.nl * 2 < c.sc
   // Nederlands nieuws: niet buitenlands, en Binnenland of Regio als rubriek.
   const homeNews = (c) => !!c && !foreign(c) && !FOREIGN_DESKS.has(c.primary) && !FOREIGN_DESKS.has(c.home) && [c.desk, c.primary, c.home].some((d) => d === 'binnenland' || d === 'regio')
-  const abroad = (c) => foreign(c) || FOREIGN_DESKS.has(c.primary) || FOREIGN_DESKS.has(c.home)
+  // Ook een verhaal in een rubriek die geen plaats noemt (Wetenschap: de kast van Pompeï) is buitenland als
+  // zijn berichten buiten Nederland spelen (geoOf), zoals composePersonal (unchosenAbroad) het telt.
+  const geoAbroad = (c) => {
+    if (c.geoInt === undefined) {
+      const geos = c.items.map((i) => geoOf(i, c.desk, c.nl * 2 < c.sc))
+      const int = geos.filter((g) => g === 'int').length
+      c.geoInt = int > geos.filter((g) => g === 'nl').length && int * 2 >= geos.length
+    }
+    return c.geoInt
+  }
+  const abroad = (c) => foreign(c) || FOREIGN_DESKS.has(c.primary) || FOREIGN_DESKS.has(c.home) || geoAbroad(c)
   // Een reden telt alleen als het verhaal als geheel hem draagt (chosenReason in shared/editor.mjs).
   const unchosen = (c) => abroad(c) && !chosenReason(c.parts)
   const capOn = plan && Object.keys(prof?.family || {}).length > 0
@@ -1110,7 +1120,14 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   // plek telt ook niet mee en komt achteraan. `counted`: de verhalen die tegen de grens tellen.
   const strictInt = capOn && (prof?.family?.wereld || 0) < OUTSIDE_FAMILY
   const counted = new Set()
-  const capped = (c) => capOn && unchosen(c) && counted.size >= INT_MAX
+  // Na voorpagina en groot nieuws (`honest`) krijgt zonder Wereld ook die ene buitenlandse plek alleen een
+  // verhaal met een reden die de lezer ziet (feedback 31 oktober: de kast van Pompeï stond er als kale
+  // "Rubriek Wetenschap" bij wie Wetenschap niet koos); alleen als er anders te weinig is, gaat het erlangs.
+  let honest = false
+  // Buitenland zonder reden dat de lezer ziet, zonder Wereld: voor een rubriek die niet zelf buitenlands is
+  // (Wetenschap) haalt ook de kernregel het er niet in; de buitenlandse rubrieken houden de kernregel.
+  const mute = (c) => honest && strictInt && unchosen(c) && !visibleReason(c.parts)
+  const capped = (c) => capOn && unchosen(c) && (counted.size >= INT_MAX || (honest && strictInt && !visibleReason(c.parts)))
   // `exempt`: gaat langs de grens en telt dan ook niet mee (zonder Wereld: de kernregel, en groot nieuws
   // zonder buitenlandse rubriek).
   const takeCapped = (c, desk, extra, force = false, exempt = false) => {
@@ -1153,6 +1170,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     }
     // Groot nieuws dat zo een plek kreeg, vult al een zetel van zijn rubriek (de voorpagina niet: die
     // komt bovenop je indeling, zoals altijd).
+    honest = true
     deskOrder = deskPlan(prof, size - entries.length, entries.map((e) => e.desk), entries.filter((e) => !e.front).map((e) => e.desk)).order
     // 2. Jouw rubrieken, in de volgorde van de zetels: per zetel de zwaarste kandidaat die er thuishoort.
     // De grens wijkt alleen voor de kernregel: een krant heeft minstens KERN_MIN kernrubrieken.
@@ -1162,7 +1180,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     for (const d of deskOrder) {
       if (entries.length >= size) break
       const force = kernShort(d) && !(strictInt && FOREIGN_DESKS.has(d) && counted.size >= INT_MAX)
-      cands.some((c) => c.home === d && !c.parts.seen && takeCapped(c, d, { planned: true }, force, force))
+      cands.some((c) => c.home === d && !c.parts.seen && !(mute(c) && !FOREIGN_DESKS.has(c.desk)) && takeCapped(c, d, { planned: true }, force, force))
     }
   }
   // 3. Aanvullen met wat het zwaarst weegt; is er dan nog plek, dan zonder grens.

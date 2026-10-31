@@ -283,8 +283,9 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // Ook hier hooguit INT_MAX buitenlandse plekken zonder persoonlijke reden (zie selectForReader);
   // is er dan te weinig, dan toch.
   const fill = []
-  // Een aangevuld verhaal zonder rubriek is niet vrij van de grens: de berichten zeggen of het buitenland is.
-  const unchosenG = (g) => (FOREIGN_DESKS.has(g.desk) ? !chosenReason(personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), prof, {}, { desk: g.desk })) : !g.desk && unchosenAbroad(g.leadId || g.id, g.kind === 'story' ? g.id : null))
+  // Een aangevuld verhaal is niet vrij van de grens als de lezer zijn rubriek niet koos: een wetenschapsverhaal
+  // over Pompeï is buitenland zonder reden (feedback 31 oktober); de berichten zeggen of het buitenland is.
+  const unchosenG = (g) => (FOREIGN_DESKS.has(g.desk) ? !chosenReason(personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), prof, {}, { desk: g.desk })) : unchosenAbroad(g.leadId || g.id, g.kind === 'story' ? g.id : null))
   const fillUp = (to) => {
     for (const strict of [true, false]) {
       for (const { g } of fillCands) {

@@ -844,9 +844,11 @@ var HootCore = (() => {
     const abroad = geo === "int" && !VL_HOME.has(item.source);
     const world = (prof.family.wereld || 0) >= OUTSIDE_FAMILY;
     const notChosenPol = (t) => !world && FAMILY_OF[t] === "politiek" && prof.topicP[t] > 0 && prof.origin?.[t] === "geërfd" && (US_TOPICS.has(t) || abroad && (t !== "europa" || isNonEuropean(item)));
+    const headTopics = politics ? keywordTopics(item.title || "") : [];
+    const politicsWhy = (t) => FAMILY_OF[t] === "politiek" || FAMILY_OF[t] === "wereld" || FAMILY_OF[t] === "economie" && (FAMILY_OF_CAT[prof.catOf?.get(item.source)] === "economie" || headTopics.includes(t));
     const notUs = ts.includes("vs-politiek") && !desksOf(item).has("vs");
     const vis = shownTopics(item);
-    const out = ts.filter((t) => prof.topicP[t] !== void 0 && !(abroad && FAMILY_OF[t] === "binnenland" && prof.topicP[t] > 0) && !(notUs && t === "vs-politiek" && prof.topicP[t] > 0) && !notChosenPol(t)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source, seen: (!vis || vis.includes(t)) && !(politics && !POLITICS_FAMILIES.has(FAMILY_OF[t]) && (politics === "desk" || FAMILY_OF_CAT[prof.catOf?.get(item.source)] !== FAMILY_OF[t])) }));
+    const out = ts.filter((t) => prof.topicP[t] !== void 0 && !(abroad && FAMILY_OF[t] === "binnenland" && prof.topicP[t] > 0) && !(notUs && t === "vs-politiek" && prof.topicP[t] > 0) && !notChosenPol(t)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source, seen: (!vis || vis.includes(t)) && !(politics && !POLITICS_FAMILIES.has(FAMILY_OF[t]) && (politics === "desk" || FAMILY_OF_CAT[prof.catOf?.get(item.source)] !== FAMILY_OF[t])) && !(politics && !world && !politicsWhy(t)) }));
     const fb = prof.family.binnenland || 0;
     if (fb > 0 && geo === "nl" && !sport) out.push({ t: GEO_NL, f: "binnenland", v: Math.min(fb, W_INHERITED), s: item.source, seen: true });
     if (!ts.length) {
@@ -1856,12 +1858,22 @@ var HootCore = (() => {
     };
     const foreign = (c) => FOREIGN_DESKS.has(c.desk) || c.nl * 2 < c.sc;
     const homeNews = (c) => !!c && !foreign(c) && !FOREIGN_DESKS.has(c.primary) && !FOREIGN_DESKS.has(c.home) && [c.desk, c.primary, c.home].some((d) => d === "binnenland" || d === "regio");
-    const abroad = (c) => foreign(c) || FOREIGN_DESKS.has(c.primary) || FOREIGN_DESKS.has(c.home);
+    const geoAbroad = (c) => {
+      if (c.geoInt === void 0) {
+        const geos = c.items.map((i) => geoOf(i, c.desk, c.nl * 2 < c.sc));
+        const int = geos.filter((g) => g === "int").length;
+        c.geoInt = int > geos.filter((g) => g === "nl").length && int * 2 >= geos.length;
+      }
+      return c.geoInt;
+    };
+    const abroad = (c) => foreign(c) || FOREIGN_DESKS.has(c.primary) || FOREIGN_DESKS.has(c.home) || geoAbroad(c);
     const unchosen = (c) => abroad(c) && !chosenReason(c.parts);
     const capOn = plan && Object.keys(prof?.family || {}).length > 0;
     const strictInt = capOn && (prof?.family?.wereld || 0) < OUTSIDE_FAMILY;
     const counted = /* @__PURE__ */ new Set();
-    const capped = (c) => capOn && unchosen(c) && counted.size >= INT_MAX;
+    let honest = false;
+    const mute = (c) => honest && strictInt && unchosen(c) && !visibleReason(c.parts);
+    const capped = (c) => capOn && unchosen(c) && (counted.size >= INT_MAX || honest && strictInt && !visibleReason(c.parts));
     const takeCapped = (c, desk, extra, force = false, exempt = false) => {
       if (!force && capped(c) || !take(c, desk, extra)) return false;
       if (unchosen(c) && !(strictInt && exempt)) counted.add(c.id);
@@ -1894,12 +1906,13 @@ var HootCore = (() => {
           takeCapped(c, c.desk, {}, force, force);
         }
       }
+      honest = true;
       deskOrder = deskPlan(prof, size - entries.length, entries.map((e) => e.desk), entries.filter((e) => !e.front).map((e) => e.desk)).order;
       const kernShort = (d) => KERN.includes(d) && !entries.some((e) => e.desk === d) && new Set(entries.map((e) => e.desk).filter((x) => KERN.includes(x))).size < KERN_MIN;
       for (const d of deskOrder) {
         if (entries.length >= size) break;
         const force = kernShort(d) && !(strictInt && FOREIGN_DESKS.has(d) && counted.size >= INT_MAX);
-        cands.some((c) => c.home === d && !c.parts.seen && takeCapped(c, d, { planned: true }, force, force));
+        cands.some((c) => c.home === d && !c.parts.seen && !(mute(c) && !FOREIGN_DESKS.has(c.desk)) && takeCapped(c, d, { planned: true }, force, force));
       }
     }
     for (const c of cands) {
@@ -2092,7 +2105,7 @@ var HootCore = (() => {
     const fillTo = size - extra.length + (wideAny && !wideEntry ? 1 : 0) - swapped;
     const fillCands = global.entries.map((g, idx) => ({ g, idx, score: sumParts(personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), noFavorites, {}, { desk: g.desk })) - 2 * idx })).filter((x) => x.g !== bubbleEntry && unread(x.g.leadId || x.g.id, x.g.kind === "story" ? x.g.id : null)).sort((a, b) => b.score - a.score || a.idx - b.idx);
     const fill = [];
-    const unchosenG = (g) => FOREIGN_DESKS.has(g.desk) ? !chosenReason(personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), prof, {}, { desk: g.desk })) : !g.desk && unchosenAbroad(g.leadId || g.id, g.kind === "story" ? g.id : null);
+    const unchosenG = (g) => FOREIGN_DESKS.has(g.desk) ? !chosenReason(personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), prof, {}, { desk: g.desk })) : unchosenAbroad(g.leadId || g.id, g.kind === "story" ? g.id : null);
     const fillUp = (to) => {
       for (const strict of [true, false]) {
         for (const { g } of fillCands) {
