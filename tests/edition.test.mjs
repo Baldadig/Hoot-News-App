@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { resolveEditionEntry, uncovered, heroFirst } from '../src/lib/edition.js'
+import { resolveEditionEntry, uncovered, heroFirst, upNext, UP_NEXT } from '../src/lib/edition.js'
 import { fitsHero } from '../src/lib/img.js'
 import { relinkEdition } from '../netlify/lib/stories.mjs'
 
@@ -95,4 +95,14 @@ test('het hoofdverhaal heeft altijd een scherp beeld: anders schuift de eerste p
   // Al goed: niets verandert. Nergens een goed beeld: volgorde blijft.
   assert.equal(heroFirst([row('a0', sharp), row('a1', small)], fitsHero)[0].key, 'a0')
   assert.deepEqual(heroFirst([row('b0', small), row('b1', null)], fitsHero).map((r) => r.key), ['b0', 'b1'])
+})
+
+// Het einde van de Editie zegt in dagdelen wanneer de volgende er is, zoals de app (geen kloktijden).
+test('upNext: de volgende editie in dagdelen, nooit een kloktijd', () => {
+  assert.equal(upNext('ochtend'), ' De volgende staat in de middag voor je klaar.')
+  assert.equal(upNext('middag'), ' De volgende staat in de vroege avond voor je klaar.')
+  assert.equal(upNext('avond'), ' De volgende staat morgenochtend voor je klaar.')
+  assert.equal(upNext(undefined), '')
+  assert.equal(upNext('nacht'), '')
+  for (const t of Object.values(UP_NEXT)) assert.doesNotMatch(t, /\d/)
 })

@@ -1,6 +1,6 @@
 // De persoonlijke editie — pure functies (tests/personal.test.mjs).
 //
-// Per dagdeel (dezelfde 06:00 / 12:00 / 17:00 als de algemene editie) stellen we jouw editie
+// Per dagdeel (ochtend, middag en vroege avond, gelijk met de algemene editie) stellen we jouw editie
 // samen uit jouw bronnen, met hetzelfde selectiewerk als de server (netlify/lib/stories.mjs):
 // per rubriek het belangrijkste verhaal, één plek per gebeurtenis, afwisseling in hoofdberichten.
 // Je interesses geven voorrang; de rubrieken blijven, zodat het een krant is en geen bubbel.

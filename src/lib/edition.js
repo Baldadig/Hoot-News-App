@@ -42,6 +42,14 @@ export function heroFirst(rows, goodImage) {
 // Hoeveel verhalen een volle editie heeft (de server streeft naar tien).
 export const EDITION_SIZE = 10
 
+// Wanneer de volgende editie er is, in dagdelen: geen kloktijden in de teksten (iOS EditionView
+// `upNext`). De server stuurt wel `next: '12:00'` mee; dat gebruiken we niet meer voor de tekst.
+export const UP_NEXT = { ochtend: 'in de middag', middag: 'in de vroege avond', avond: 'morgenochtend' }
+export function upNext(slot) {
+  const when = UP_NEXT[slot]
+  return when ? ` De volgende staat ${when} voor je klaar.` : ''
+}
+
 // Welke onderdelen het overzicht niet noemt (op volgorde): die tonen we eronder, zodat er
 // niets stilletjes wegvalt.
 export function uncovered(brief, count) {

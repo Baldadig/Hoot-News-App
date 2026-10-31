@@ -35,7 +35,7 @@ export default function Over({ onBack, backLabel }) {
           Safari. Safari kan per site onthouden dat je de Lezer-weergave wilt (aA › Gebruik Lezer automatisch).
         </p>
         <h3 className="head-4">Wanneer verschijnt de Editie?</h3>
-        <p>Om 6, 12 en 17 uur. Daarna ligt hij vast, zodat je hem uit kunt lezen. De Selectie verschijnt elke maandag om 7 uur.</p>
+        <p>Drie keer per dag: in de ochtend, middag en vroege avond. Daarna ligt hij vast, zodat je hem uit kunt lezen. De Selectie verschijnt elke maandagochtend.</p>
         <h3 className="head-4">Wat gebeurt er met mijn gegevens?</h3>
         <p>
           Zo weinig mogelijk: zie <a href="#/privacy">Privacy</a>.

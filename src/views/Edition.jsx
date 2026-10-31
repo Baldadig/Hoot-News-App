@@ -8,7 +8,7 @@ import { BrandMark, BrandLogo } from '../components/Brand.jsx'
 import Weather from '../components/Weather.jsx'
 import { longDate } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
-import { resolveEditionEntry, heroFirst, EDITION_SIZE } from '../lib/edition.js'
+import { resolveEditionEntry, heroFirst, EDITION_SIZE, upNext } from '../lib/edition.js'
 import { fitsHero } from '../lib/img.js'
 import { followedNow } from '../lib/follow.js'
 import { TermHelp } from '../components/Terms.jsx'
@@ -269,7 +269,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               <BrandMark size={44} />
               <h2 className="head-5 endcap__title">Je bent bij.</h2>
               <p className="endcap__text">
-                Dit was de {SLOT[edition.slot].toLowerCase()} van {longDate(edition.date)}. De volgende staat klaar om {edition.next}.
+                Dit was de {SLOT[edition.slot].toLowerCase()} van {longDate(edition.date)}.{upNext(edition.slot)}
               </p>
               {/* Het einde is leidend; verder lezen mag, maar als rustige link (geen knop die je doortrekt). */}
               <a className="linkbtn endcap__more" href="#/stroom">

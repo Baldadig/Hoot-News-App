@@ -74,3 +74,25 @@ test('Delen: deelknop naast bewaren, de link van de uitgever, "Link gekopieerd" 
   // De kop van de app voor een bericht zonder kop (Bluesky) staat in de lib, niet in een component.
   assert.ok(!items.includes('linkTitle ||'), 'de deeltitel komt uit lib/share.js')
 })
+
+test('Geen kloktijden in webteksten: dagdelen in de Editie, de Selectie, Instellingen en Over (W7)', () => {
+  // Commentaar telt niet mee (daar mag de server-afsluiting staan); 'uur geleden' en een
+  // status-tijdstip ("Bijgewerkt om 13:50", zoals iOS "Je ziet de versie van 10:10") blijven.
+  const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
+  const files = walk(root).filter((f) => /\.(jsx?|mjs)$/.test(f))
+  for (const f of files) {
+    const s = strip(read(f.slice(root.length)))
+    assert.doesNotMatch(s, /\bom \d{1,2}(:\d{2})? uur\b/, `${f}: "om N uur"`)
+    assert.doesNotMatch(s, /\b0?[67]:00\b|\b1[27]:00\b/, `${f}: een editietijd als kloktijd`)
+    assert.doesNotMatch(s, /staat klaar om|maandag om/, `${f}: kloktijd in een zin`)
+  }
+  assert.match(read('views/Edition.jsx'), /\{upNext\(edition\.slot\)\}/)
+  assert.match(read('lib/edition.js'), /avond: 'morgenochtend'/)
+  const vak = read('views/Vak.jsx')
+  assert.match(vak, /in de ochtend\.<\/p>/)
+  assert.match(vak, /Elke maandagochtend een nieuwe\./)
+  // Dezelfde drie dagdelen in dezelfde woorden als iOS (WelcomeView `.seintje`).
+  assert.match(read('views/Settings.jsx'), /in de ochtend, middag en vroege avond\./)
+  assert.match(read('views/Over.jsx'), /in de ochtend, middag en vroege avond\./)
+  assert.match(read('views/Over.jsx'), /De Selectie verschijnt elke maandagochtend\./)
+})
