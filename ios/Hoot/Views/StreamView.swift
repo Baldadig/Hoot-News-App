@@ -372,15 +372,15 @@ struct SearchView: View {
             .background(Theme.paper)
             .overlay {
                 if q.count < 2 {
-                    EmptyState(title: "Zoek in je nieuws", systemImage: "magnifyingglass", text: "Hoot zoekt in de koppen en intro's van alles wat nu in je Stroom staat.")
+                    EmptyState(title: "Zoek in je nieuws", systemImage: "magnifyingglass", text: "Hoot zoekt in de koppen en intro’s van alles wat nu in je Stroom staat.")
                 } else if hits.isEmpty {
-                    EmptyState(title: "Niets gevonden voor ‘\(query.trimmingCharacters(in: .whitespaces))’", systemImage: "magnifyingglass", text: "Hoot zoekt alleen in de koppen en intro's van wat nu in je Stroom staat, niet in hele artikelen of oudere berichten.")
+                    EmptyState(title: "Niets gevonden voor ‘\(query.trimmingCharacters(in: .whitespaces))’", systemImage: "magnifyingglass", text: "Hoot zoekt alleen in de koppen en intro’s van wat nu in je Stroom staat, niet in hele artikelen of oudere berichten.")
                 }
             }
             .navigationTitle("Zoeken")
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .searchable(text: $query, prompt: "Zoek in koppen en intro's")
+            .searchable(text: $query, prompt: "Zoek in koppen en intro’s")
         }
     }
 }

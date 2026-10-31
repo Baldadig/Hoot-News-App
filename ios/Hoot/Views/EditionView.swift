@@ -193,7 +193,7 @@ struct EditionView: View {
                     let rows = store.editionRows
                     let numbers = EditionCount.numbers(rows)
                     // De schermtitel in de scroll, direct boven de metaregel (zoals .vh__sub op het web).
-                    ScreenTitle(title)
+                    ScreenTitle(title, gap: 0)
                     if store.status == .loading && rows.isEmpty {
                         ProgressView().frame(maxWidth: .infinity, minHeight: 240)
                     } else if rows.isEmpty {

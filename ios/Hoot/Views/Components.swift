@@ -122,15 +122,18 @@ struct FormHeader: View {
 
 // De schermtitel als eerste regel in de scroll (C7): bewust stil tegenover het hoofdverhaal, zoals
 // .head-5 tegenover .head-6 op het web. De navigatiebalk staat inline; zijn titel blijft voor
-// VoiceOver en de terugknop, deze is wat je ziet.
+// VoiceOver en de terugknop, deze is wat je ziet. Onder de titel staat op elk scherm dezelfde lucht
+// (s2) tot wat volgt; alleen de metaregel van de Editie hoort bij de titel en sluit aan (gap 0).
 struct ScreenTitle: View {
     let text: String
-    init(_ text: String) { self.text = text }
+    var gap: CGFloat = Space.s2
+    init(_ text: String, gap: CGFloat = Space.s2) { self.text = text; self.gap = gap }
     var body: some View {
         Text(text)
             .font(Theme.headline(.title))
             .foregroundStyle(Theme.ink)
             .fixedSize(horizontal: false, vertical: true)
+            .padding(.bottom, gap)
             .accessibilityAddTraits(.isHeader)
     }
 }
@@ -672,7 +675,7 @@ struct StaleNotice: View {
 }
 
 // Een lege plek (K6), gelijk aan .empty op het web: een stil lijnicoon in `rule`, de titel als
-// serifkop in inkt, de uitleg in ink3 op een smalle maat en een inktknop als vervolgstap. Het blijft
+// serifkop in inkt, s2 lucht, de uitleg in ink2 (.empty__text) op een smalle maat en een inktknop als vervolgstap. Het blijft
 // een ContentUnavailableView: die centreert in de hoogte en leest goed voor met VoiceOver.
 struct EmptyState: View {
     let title: String
@@ -686,14 +689,19 @@ struct EmptyState: View {
         ContentUnavailableView {
             Label {
                 Text(title).font(Theme.headline(.title2)).foregroundStyle(Theme.ink)
+                    .padding(.bottom, Space.s2) // lucht tussen titel en uitleg, zoals .empty__title
             } icon: {
+                // Op maat via een frame: een lettergrootte zet ContentUnavailableView zelf terug.
                 Image(systemName: systemImage)
-                    .font(.system(size: Layout.emptyIcon, weight: .ultraLight))
+                    .resizable()
+                    .fontWeight(.ultraLight)
+                    .scaledToFit()
+                    .frame(width: Layout.emptyIcon, height: Layout.emptyIcon)
                     .foregroundStyle(Theme.rule) // decoratief: de lijn, geen grijs systeemicoon
             }
         } description: {
             Text(text)
-                .foregroundStyle(Theme.ink3) // niet het lichtere grijs van het systeem
+                .foregroundStyle(Theme.ink2) // zoals .empty__text, niet het lichtere grijs van het systeem
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: Layout.emptyText)
         } actions: {
