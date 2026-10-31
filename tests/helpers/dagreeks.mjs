@@ -207,6 +207,29 @@ export function runDay(articles, sources, { personas = DAG_PERSONAS, variants = 
   }
   for (const v of variants) out.summary[v] = { opeenvolgend: total(v, (r) => r.opeenvolgend), ochtendAvond: total(v, (r) => [r.ochtendAvond]) }
   out.summary.grootNieuwsDag = grootKans ? grootRaak / grootKans : 1
+  // Woordenschat-kloof (keuring P5b-3): de kenmerken die het toestel zelf rekent (gewone signaturen over
+  // wat het kent: eigen bronnen plus de koppen van de algemene Editie, zoals composePersonal) moeten per
+  // stuk in de `keys` van zijn verhaal staan, anders telt een gewone sleutel die de server anders
+  // schrijft als "nieuw" en wordt een herhaling een vals Vervolg. Geteld over alle persona's en dagdelen:
+  // stukken met zo'n kloof, en de verhalen waarin ze zitten.
+  let kloofStukken = 0
+  const kloofVerhalen = new Set()
+  for (const p of PERSONAS.filter((x) => personas.includes(x.id))) {
+    const setup = setupFor(p, sources, 'echt')
+    for (const d of day) {
+      const known = d.pool.filter((i) => setup.followed.has(i.source))
+      const sigDev = signatures([...new Map([...known, ...d.global.items].map((i) => [i.id, i])).values()])
+      for (const st of d.stories) {
+        const keys = new Set(st.keys || [])
+        for (const id of st.itemIds) {
+          const s = sigDev.get(id)
+          if (s && [...s.strong, ...s.concepts].some((k) => !keys.has(k))) (kloofStukken++, kloofVerhalen.add(`${d.sl.id}/${st.id}`))
+        }
+      }
+    }
+  }
+  out.summary.keysKloof = kloofStukken
+  out.summary.keysKloofVerhalen = kloofVerhalen.size
   // Tweetalige verhalen (H6): verhalen met zowel een Nederlandse als een Engelse bron, gebundeld over
   // de hele dagpool (alles van de laatste DAY_WINDOW vóór het nieuwste bericht), op dezelfde basis als
   // de diagnose (paren.mjs: 142 verhalen, 22 tweetalig); niet alleen de Avond. In de uitgebreide

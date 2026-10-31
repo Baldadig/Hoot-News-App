@@ -270,6 +270,54 @@ test('T6 H6 (ii): een necrologie zonder sterfwoord hoort bij het verhaal over he
   assert.equal(sameEvent(sig.get(nos), sig.get(nyt), true), false)
 })
 
+// Keuring P5b-3: de kenmerken van toen (`keys`, van de server) staan in dezelfde stand als het toestel
+// rekent (gewone signaturen, personal.js), ook als de server uitgebreid bundelt. Anders is een gewone
+// sleutel die in de uitgebreide stand anders heet of wegvalt ("wall" + "street" → Wallstreet zwak)
+// voor het toestel "nieuw", en geven twee Nederlandse stukken die Wall Street noemen in hun eentje een
+// vals "Vervolg · 2 nieuwe stukken". Toets: per verhaal zijn de toestelkenmerken van zijn stukken ⊆ keys,
+// op de volledige pool én op de pool van een toestel dat de helft van de bronnen volgt.
+test('H2 keys: de toestelkenmerken (gewone stand) van elk stuk staan in de keys van zijn verhaal, ook bij uitgebreid bundelen', () => {
+  const items = JSON.parse(readFileSync(new URL('./fixtures/clustering-3010.json', import.meta.url), 'utf8'))
+  const stories = buildStories(items, {}, { keys: true, extended: true })
+  assert.ok(stories.length >= 8 && stories.every((st) => Array.isArray(st.keys) && st.keys.length), `${stories.length} verhalen`)
+  const sources = [...new Set(items.map((i) => i.source))].sort()
+  const half = new Set(sources.filter((_, k) => k % 2 === 0))
+  for (const pool of [items, items.filter((i) => half.has(i.source))]) {
+    const sig = signatures(pool)
+    for (const st of stories) {
+      const keys = new Set(st.keys)
+      for (const id of st.itemIds) {
+        const s = sig.get(id)
+        if (!s) continue
+        const missing = [...s.strong, ...s.concepts].filter((k) => !keys.has(k))
+        assert.deepEqual(missing, [], `${st.id} ${id}: ${missing.join(',')} niet in keys`)
+      }
+    }
+  }
+})
+
+test('H2 keys: twee Nederlandse stukken over Wall Street zijn geen Vervolg als het toestel de oude stukken alleen via keys kent', () => {
+  const en = ['bloomberg', 'nyt', 'guardian'].map((src, k) => art('en' + k, src, 'Intel and Amazon slump on Wall Street as Nasdaq falls 3%', new Date(OCHTEND - 36e5 * (1 + k * 0.1)).toISOString(), { summary: 'Shares of Intel and Amazon fell sharply on Wall Street after weak earnings.' }))
+  const nl = ['nd', 'tijd'].map((src, k) => art('nl' + k, src, 'Intel en Amazon diep in het rood op Wall Street', new Date(NOW - 36e5 * (1 + k * 0.1)).toISOString(), { summary: 'De aandelen van Intel en Amazon zakten hard op Wall Street na tegenvallende cijfers.' }))
+  const all = [...en, ...nl]
+  const stories = buildStories(all, {}, { keys: true, extended: true })
+  assert.equal(stories.length, 1, 'één verhaal in twee talen')
+  const [st] = stories
+  assert.equal(st.itemIds.length, 5)
+  // Gewone stand: "Wall" en "Street" zijn twee sterke namen, en staan dus in keys.
+  assert.ok(st.keys.includes('wall') && st.keys.includes('street'), st.keys.join(','))
+  // Het toestel (alleen de Nederlandse bronnen) kent de Engelse stukken van de Ochtend alleen via keys.
+  const previous = { at: OCHTEND, itemIds: new Set(en.map((i) => i.id)), storyIds: new Set([st.id]), keysOf: new Map([[st.id, st.keys]]) }
+  const sig = signatures(nl)
+  const known = new Map(nl.map((i) => [i.id, i]))
+  assert.equal(developedSince(st, nl, previous, sig, { mainIds: new Set(['nd', 'tijd']), now: NOW, known }), null)
+  // Met keys in de uitgebreide stand (de regressie van H6) was het wél een vals Vervolg.
+  const extKeys = storyKeys(all, signatures(all, [], { extended: true }))
+  assert.ok(!extKeys.includes('wall'), 'uitgebreid: Wallstreet is zwak en staat niet in keys')
+  const dev = developedSince(st, nl, { ...previous, keysOf: new Map([[st.id, extKeys]]) }, sig, { mainIds: new Set(['nd', 'tijd']), now: NOW, known })
+  assert.ok(dev && dev.newSig >= 2, 'de regressie die deze toets vastlegt')
+})
+
 test('T7 H1: de aanvulling uit de algemene Editie en "Waar iedereen over schrijft" respecteren previous', () => {
   const global = { id: '2026-10-30-middag', slot: 'middag', date: '2026-10-30', builtAt: new Date(NOW).toISOString(), entries: [{ kind: 'story', id: 'st-stewart', leadId: 'pw0', desk: 'buitenland', itemIds: stStewart.itemIds }], items: [stewart[0]], bubble: [], wide: [{ storyId: 'st-stewart', sourceCount: 11, topics: [], item: stewart[1] }] }
   // Lezer volgt alleen twee kleine bronnen: zijn Editie wordt aangevuld uit de algemene.

@@ -113,11 +113,14 @@ const WEAK = new Set(
 // Uitgebreide stand: de EU-sleutels (en Wall Street en Hongkong, plaatsen) zijn ook zwak.
 const WEAK_EXT = new Set([...WEAK, ...Object.values(EU), 'wallstreet', 'hongkong'])
 // H6 (iv), uitgebreide stand: een hoofdletterwoord van drie letters uit de woordenschat telt ook als
-// naam ("Hof", "Fab", "Leo", "Max"), maar niet als het een gewoon woord is dat in koppen (In
-// Titelkast, na een dubbele punt) met een hoofdletter staat. Gemeten op de dagpool: "Man" (uit "Man
-// Utd") maakte van een schietpartij in Amsterdam en een vonnis in Ronse één verhaal.
+// naam ("Fab", "Leo", "Max"), maar niet als het een gewoon woord is dat in koppen (In Titelkast, na
+// een dubbele punt) met een hoofdletter staat. Gemeten op de dagpool: "Man" (uit "Man Utd") maakte
+// van een schietpartij in Amsterdam en een vonnis in Ronse één verhaal. "Hof" los is ook geen naam:
+// "het Hof" staat dagelijks met hoofdletter in Nederlands en Belgisch rechtbanknieuws, en het hof in
+// Den Haag en het hof in Arnhem zijn twee rechtbanken. Het Grondwettelijk Hof telt via de samengestelde
+// naam (COMPOUND_EXT), niet via dit losse woord.
 const COMMON_3 = new Set(
-  'man men dag dit dat hoe wat wie kan wil dan ter wet zee weg bal kop oog nog ook nee wel zet mol pan dam vol tel zak kom hij zij wij ons mij jou cup one can are you our all get got off see she his yet way key isn big day war own bad hat fat few buy pay eat web hub led doe fee pat old new now how why who its has had was not but and the for too two ten six red top end run set put say ask let may yes far low out via per pro mid pre non ago sea bay oil'.split(
+  'man men dag dit dat hoe wat wie kan wil dan ter wet zee weg bal kop oog nog ook nee wel zet mol pan dam vol tel zak kom hij zij wij ons mij jou hof cup one can are you our all get got off see she his yet way key isn big day war own bad hat fat few buy pay eat web hub led doe fee pat old new now how why who its has had was not but and the for too two ten six red top end run set put say ask let may yes far low out via per pro mid pre non ago sea bay oil'.split(
     ' '
   )
 )
@@ -200,6 +203,12 @@ const COMPOUND_EXT = [
   [/\b(Wall|wall)\s+(Street|street)\b/g, 'Wallstreet'],
   [/\bHong\s+Kong\b/g, 'Hongkong'],
 ]
+// Een instituut is een naam zonder land: elk land heeft een grondwettelijk hof, elke Amerikaanse staat
+// een Supreme Court. Als gedeelde sterke naam telt het alleen samen met een gedeelde zwakke naam
+// (land, stad), en niet als beide stukken daarnaast een eigen plaats noemen die de ander niet kent:
+// het hof van Israël en dat van Brazilië over een kieswet zijn twee rechtbanken, het Georgia Supreme
+// Court en het Pennsylvania Supreme Court ook, al liggen beide in de VS (zie sharedStrong).
+const INSTITUTES = new Set(['constitutionalcourt', 'supremecourt'])
 const joinCompounds = (text, ext = false) => (ext ? COMPOUND_EXT : COMPOUND).reduce((t, [re, to]) => t.replace(re, to), String(text || ''))
 const tokenize = (text, ext = false) => joinCompounds(text, ext).replace(/\b([A-Z])\.(?=[A-Z]\.)/g, '$1').replace(/\b([A-Z]{2,})\./g, '$1').replace(/[’']s\b/g, '').match(/[\p{L}\p{N}]+/gu) || []
 const isCap = (w) => /^\p{Lu}\p{Ll}/u.test(w)
@@ -348,6 +357,19 @@ export function sharedEntities(a, b, title = false) {
   return new Set(shared.map(find)).size
 }
 
+// Gedeelde sterke namen. In de uitgebreide stand telt een instituut (INSTITUTES) alleen mee als beide
+// kenmerken ook een zwakke naam delen en niet elk een eigen, ongedeelde zwakke naam hebben (twee
+// rechtbanken in twee plaatsen). In de gewone stand komt zo'n sleutel niet voor (COMPOUND_EXT).
+function sharedStrong(a, b, ext = false) {
+  const n = sharedCount(a.strong, b.strong)
+  if (!ext || !n) return n
+  const inst = [...a.strong].filter((k) => INSTITUTES.has(k) && b.strong.has(k)).length
+  if (!inst) return n
+  if (!sharedCount(a.weak, b.weak)) return n - inst
+  const own = (x, y) => [...x.weak].some((k) => !y.weak.has(k))
+  return own(a, b) && own(b, a) ? n - inst : n
+}
+
 const WORD_WINDOW = 48 * 60 * 60 * 1000
 const EVENT_WINDOW = 36 * 60 * 60 * 1000
 const NAMES_WINDOW = 12 * 60 * 60 * 1000 // H6 (i): twee namen gemeen is alleen vlak na elkaar genoeg
@@ -363,14 +385,15 @@ export function sameEvent(a, b, ext = false) {
   const dt = Math.abs(a.t - b.t)
   // Beide noemen namen, maar geen enkele dezelfde: twee gebeurtenissen van dezelfde soort
   // ("president erkent nederlaag bij verkiezingen" in Brazilië en in Servië).
-  if (a.strong.size && b.strong.size && !sharedCount(a.strong, b.strong) && !sharedCount(a.weak, b.weak)) return false
+  if (a.strong.size && b.strong.size && !sharedStrong(a, b, ext) && !sharedCount(a.weak, b.weak)) return false
   // Zelfde taal: ≥3 gedeelde kernwoorden in de kop én ≥40% van de kortste kop.
   if (dt <= WORD_WINDOW) {
     const n = sharedCount(a.words, b.words)
     if (n >= 3 && n / Math.min(a.words.size, b.words.size) >= 0.4) return true
   }
   if (dt > EVENT_WINDOW) return false
-  const strong = sharedCount(a.strong, b.strong)
+  // Uitgebreide stand: een instituut zonder gedeeld land telt niet als naam (sharedStrong).
+  const strong = sharedStrong(a, b, ext)
   const weak = sharedCount(a.weak, b.weak)
   const concepts = sharedCount(a.concepts, b.concepts)
   const rare = sharedCount(a.rareIds, b.rareIds)
@@ -454,7 +477,12 @@ const coreDegree = (size) => (size >= 10 ? 3 : 2)
 // `keys`: geef elk verhaal zijn kenmerken mee (`keys`: de namen en gebeurtenis-begrippen van ál zijn
 // stukken, gesorteerd). De server zet dit aan: zo weet een toestel, dat van een verhaal alleen de
 // stukken uit de eigen bronnen kent, toch wat er in de vorige Editie al over geschreven was
-// (developedSince). Standaard uit: dan is de uitvoer byte-gelijk aan vroeger (meetlat).
+// (developedSince). Standaard uit: dan is de uitvoer byte-gelijk aan vroeger (meetlat). De kenmerken
+// voor `keys` staan altijd in de gewone stand, ook als het bundelen uitgebreid is: het toestel rekent
+// developedSince op gewone signaturen (personal.js, en de iOS-bundel), en een gewone sleutel die in de
+// uitgebreide stand anders heet of wegvalt ("wall" + "street" → Wallstreet zwak, "belgische" →
+// belgium zwak, "olesjky" → oleshky) telde anders als nieuw: twee Nederlandse stukken die Wall Street
+// noemen gaven in hun eentje een vals "Vervolg".
 // `extended`: sameEvent gericht uitgebreid (aanvulling-pariteit-herhaling.md H6): (i) twee eigen
 // namen binnen twaalf uur, (ii) een los stuk dat de kern van een groot verhaal noemt hoort erbij,
 // (iii) EU-landen en instituten als één naam, (iv) namen van drie letters. De server en de dagreeks
@@ -462,6 +490,9 @@ const coreDegree = (size) => (size >= 10 ? 3 : 2)
 export function buildStories(articles, registry = {}, { mainIds = new Set(), keys = false, extended = false } = {}) {
   const list = articles.filter((a) => !DIGEST.test(a.title || '') && !isLive(a)).sort(byRecency)
   const sig = signatures(list, [], { extended })
+  // `keys` in de stand van het toestel (zie boven), met de woordenschat van álle aangeboden berichten:
+  // het toestel rekent zijn kenmerken ook over dagoverzichten en liveblogs.
+  const keySig = keys ? signatures(articles) : sig
   const now = list.length ? timeOf(list[0]) : null // het nieuwste bericht: zo laat is het in deze feeds
   // 1. Alle paren die over dezelfde gebeurtenis gaan.
   const links = new Map(list.map((a) => [a.id, new Set()]))
@@ -565,7 +596,7 @@ export function buildStories(articles, registry = {}, { mainIds = new Set(), key
       sourceNames: names,
       latestAt: items[0].publishedAt || null,
       firstAt: items[items.length - 1].publishedAt || null,
-      ...(keys ? { keys: storyKeys(items, sig) } : {}),
+      ...(keys ? { keys: storyKeys(items, keySig) } : {}),
     })
   }
   return stories
@@ -593,24 +624,30 @@ function attachLoose(groups, list, sig) {
   for (const [gid, items] of groups) {
     if (new Set(items.map((i) => i.source)).size < CORE_FROM) continue
     const count = new Map()
+    const weakCount = new Map()
     const conceptCount = new Map()
     let dead = 0
     for (const i of items) {
       const s = sig.get(i.id)
       if (!s) continue
       for (const k of s.strong) count.set(k, (count.get(k) || 0) + 1)
+      for (const k of s.weak) weakCount.set(k, (weakCount.get(k) || 0) + 1)
       for (const k of s.concepts) conceptCount.set(k, (conceptCount.get(k) || 0) + 1)
       if (s.concepts.has('dead')) dead++
     }
     const half = items.length / 2
     const core = new Set([...count].filter(([, n]) => n >= half).map(([k]) => k))
     if (core.size < CORE_SHARED) continue
+    const weak = new Set([...weakCount].filter(([, n]) => n >= half).map(([k]) => k))
     const concepts = new Set([...conceptCount].filter(([, n]) => n >= half).map(([k]) => k))
     const ts = items.map((i) => timeOf(i)).filter(Boolean)
-    big.push({ gid, items, core, concepts, dead: dead * 3 >= items.length, from: Math.min(...ts), to: Math.max(...ts), sources: new Set(items.map((i) => i.source)).size })
+    big.push({ gid, items, core, weak, concepts, dead: dead * 3 >= items.length, from: Math.min(...ts), to: Math.max(...ts), sources: new Set(items.map((i) => i.source)).size })
   }
   if (!big.length) return
-  const coreSig = (b) => ({ strong: b.core, runs: [...b.items.map((i) => sig.get(i.id)?.runs || [])].flat() })
+  // De kern als kenmerk: sterke en zwakke namen van minstens de helft van de stukken, met de reeksen
+  // van alle stukken (voor sharedEntities). Een instituut in de kern telt, net als in sameEvent, alleen
+  // met een gedeeld land (sharedStrong).
+  const coreSig = (b) => ({ strong: b.core, weak: b.weak, runs: [...b.items.map((i) => sig.get(i.id)?.runs || [])].flat() })
   for (const a of list) {
     if (inGroup.has(a.id) || a.type === 'opinie') continue
     const sa = sig.get(a.id)
@@ -618,7 +655,7 @@ function attachLoose(groups, list, sig) {
     let best = null
     for (const b of big) {
       if (sa.t < b.from - EVENT_WINDOW || sa.t > b.to + EVENT_WINDOW) continue
-      const shared = [...sa.strong].filter((k) => b.core.has(k)).length
+      const shared = sharedStrong(sa, coreSig(b), true)
       if (shared < CORE_SHARED) continue
       if (!b.dead && sharedEntities(sa, coreSig(b)) < CORE_SHARED && !sharedCount(sa.concepts, b.concepts)) continue
       if (!best || shared > best.shared || (shared === best.shared && (b.sources > best.b.sources || (b.sources === best.b.sources && b.gid < best.b.gid)))) best = { b, shared }

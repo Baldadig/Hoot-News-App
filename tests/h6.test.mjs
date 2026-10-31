@@ -7,7 +7,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { buildStories, isLive } from '../netlify/lib/stories.mjs'
+import { buildStories, isLive, signatures, sameEvent } from '../netlify/lib/stories.mjs'
 
 const items = JSON.parse(readFileSync(new URL('./fixtures/clustering-3010.json', import.meta.url), 'utf8'))
 const stories = buildStories(items, {}, { extended: true })
@@ -95,4 +95,51 @@ test('H6: de fixtures van 22-10, 26-10, 28-10 en 29-10 bundelen in de uitgebreid
     assert.equal(Math.max(0, ...nieuw.map((s) => s.sourceCount)), Math.max(0, ...oud.map((s) => s.sourceCount)), `${f}: grootste bundel`)
     assert.deepEqual(nieuw.map((s) => [...s.itemIds].sort()).sort(), oud.map((s) => [...s.itemIds].sort()).sort(), `${f}: dezelfde bundels`)
   }
+})
+
+// Keuring H6 (iii)/(iv): een instituut is een naam zonder land, en "Hof" los is geen naam. Synthetische
+// paren naast de fixture: de uitgebreide stand mag hier niets samenvoegen wat de gewone stand ook los
+// laat; het Poolse Hof (met gedeeld land) en het Amerikaanse Hooggerechtshof (één land, één hof) blijven
+// wél één gebeurtenis in twee talen.
+const NOW = Date.parse('2026-10-30T11:00:00Z')
+const art = (id, source, title, summary, h = 0) => ({ id, kind: 'article', source, sourceName: source, title, summary, publishedAt: new Date(NOW - 36e5 * h).toISOString() })
+const paar = (a, b) => {
+  const ext = signatures([a, b], [], { extended: true })
+  const oud = signatures([a, b])
+  return { ext: sameEvent(ext.get(a.id), ext.get(b.id), true), oud: sameEvent(oud.get(a.id), oud.get(b.id)), sig: ext }
+}
+
+test('H6 (iii) negatief: twee hoogste rechtbanken in twee landen over een kieswet zijn twee gebeurtenissen', () => {
+  const a = art('il', 'guardian', 'Israel’s top court blocks election law', 'The court in Jerusalem said the law passed by the Knesset violates the constitution. Israel heads to the polls in March.')
+  const b = art('br', 'nyt', 'Brazil’s top court upholds election result', 'The court in Brasília rejected a challenge by the opposition. Brazil voted on Sunday.', 1)
+  const r = paar(a, b)
+  assert.ok(r.sig.get('il').strong.has('constitutionalcourt') && r.sig.get('br').strong.has('constitutionalcourt'), 'beide koppen dragen het instituut')
+  assert.equal(r.ext, false)
+  assert.equal(r.oud, false)
+})
+
+test('H6 (iii) negatief: het Georgia Supreme Court en het Pennsylvania Supreme Court over kiesregels zijn twee rechtbanken, ook al liggen beide in de VS', () => {
+  const a = art('ga', 'nyt', 'Georgia Supreme Court Upholds New Voting Rules Before Midterms', 'The Georgia Supreme Court ruled that the state may enforce the new election rules in November, days before the U.S. midterms.')
+  const b = art('pa', 'politico', 'Pennsylvania Supreme Court strikes down mail ballot deadline', 'The Pennsylvania Supreme Court said the election rule violates the state constitution ahead of the U.S. midterms.', 1)
+  const r = paar(a, b)
+  assert.ok(r.sig.get('ga').weak.has('us') && r.sig.get('pa').weak.has('us'), 'beide noemen de VS')
+  assert.equal(r.ext, false)
+})
+
+test('H6 (iv) negatief: "Hof" los is geen naam — het hof in Den Haag en het hof in Arnhem zijn twee rechtbanken', () => {
+  const a = art('dh', 'nos', 'Hof in Den Haag veroordeelt man voor moord', 'Het hof in Den Haag heeft de man veroordeeld tot twintig jaar cel voor de moord op zijn buurman. Het Hof volgde de eis.')
+  const b = art('ar', 'nu', 'Hof Arnhem spreekt verdachte vrij van moord', 'Het hof in Arnhem vindt het bewijs voor de moord onvoldoende, zei de voorzitter van het Hof.', 1)
+  const r = paar(a, b)
+  assert.ok(!r.sig.get('dh').strong.has('hof') && !r.sig.get('ar').strong.has('hof'))
+  assert.equal(r.ext, false)
+  assert.equal(r.oud, false)
+})
+
+test('H6 (iii) positief: het instituut telt mét een gedeeld land — het Poolse Hof zonder stad, en het Amerikaanse Hooggerechtshof, in twee talen', () => {
+  const pl = paar(art('p1', 'nos', 'Constitutionele crisis in Polen: voorzitter Grondwettelijk Hof geschorst', 'De politieke crisis in Polen rond het Grondwettelijk Hof blijft verder escaleren.'), art('p2', 'bbc', 'Poland’s top court president suspended as crisis deepens', 'The constitutional court in Poland is at the centre of a political crisis.', 1))
+  assert.equal(pl.ext, true)
+  assert.equal(pl.oud, false)
+  const us = paar(art('u1', 'nrc', 'Hooggerechtshof buigt zich over de heffingen van Trump', 'Het Amerikaanse Hooggerechtshof behandelt de zaak over de importheffingen van president Trump.'), art('u2', 'nyt', 'Supreme Court Hears Challenge to Trump’s Tariffs', 'The Supreme Court heard arguments over President Trump’s tariffs on Wednesday.', 1))
+  assert.equal(us.ext, true)
+  assert.equal(us.oud, false)
 })

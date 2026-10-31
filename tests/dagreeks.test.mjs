@@ -7,9 +7,13 @@
 // en `sprong` (ander toestel, en niemand stelde de Middag samen). Sinds H3/H5 geldt "herhaald zonder
 // ontwikkeling = 0" hard in alle vier, ook Ochtend→Avond. Eén drempel van §3 staat hier als todo:
 // "tweetalig ≥ 35". H6 (sameEvent gericht uitgebreid, `extended`) bracht de dagpool met live-momentopname
-// van 22 naar 31 van 143 (alleen de momentopname van 19:00Z: van 17 van 97 naar 22 van 100); de stand na H6 is
-// wél hard, zodat H6 niet terugvalt. Zolang de todo open staat is "alle harde drempels gehaald" niet
-// "§3 gehaald".
+// van 22 naar 31 van 143 (alleen de momentopname van 19:00Z: van 17 van 97 naar 22 van 100). Dat is een
+// afwijking van de aanvulling die de bouwer niet zelf kan sluiten: óf §3 wordt aangepast met de
+// onderbouwing (wat eentalig blijft is binnenland en sport zonder tegenhanger in de andere taal), óf er
+// komen meer regels. Tot Alex of de orkestratie dat beslist, is "alle harde drempels gehaald" niet
+// "§3 gehaald". De stand na H6 staat hier los daarvan hard als regressiewacht, zodat H6 niet terugvalt.
+// Sinds de keuring van P5b-3 is ook hard: geen woordenschat-kloof tussen de keys van de server en de
+// kenmerken die het toestel rekent (keysKloof = 0).
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { loadSnapshot } from './helpers/snapshot.mjs'
@@ -25,7 +29,7 @@ test('dagreeks: drie dagdelen, vijf persona\'s, vier varianten, elke Editie vol'
     t.diagnostic(`previous=${v}: ${line({ label: 'opeenvolgend', ...S[v].opeenvolgend })}`)
     t.diagnostic(`previous=${v}: ${line({ label: 'ochtend→avond', ...S[v].ochtendAvond })}`)
   }
-  t.diagnostic(`groot nieuws aanwezig óf vandaag al getoond: ${S.grootNieuwsDag}; tweetalige verhalen in de dagpool: ${S.tweetalig} van ${S.verhalen}`)
+  t.diagnostic(`groot nieuws aanwezig óf vandaag al getoond: ${S.grootNieuwsDag}; tweetalige verhalen in de dagpool: ${S.tweetalig} van ${S.verhalen}; woordenschat-kloof: ${S.keysKloof} stukken`)
   assert.equal(Object.keys(res.personas).length, 5)
   assert.deepEqual(VARIANTS, ['code', 'drie', 'account', 'sprong'])
   for (const r of Object.values(res.personas)) for (const v of VARIANTS) {
@@ -73,16 +77,24 @@ test('dagreeks: groot nieuws aanwezig óf vandaag al getoond = 100 %', () => {
 
 // Teller en noemer op de basis van de diagnose: alle verhalen van de dagpool (met de live-momentopname
 // erbij 22 van 142, zoals §3 zegt; alleen op de momentopname van 19:00Z minder), niet alleen de Avond.
-test('dagreeks: ≥ 35 tweetalige verhalen in de dagpool', { todo: 'spec §3 hard; na H6 31 van 143 (met live), 22 van 100 (zonder): de rest is binnenland en sport zonder tegenhanger' }, () => {
+test('dagreeks: ≥ 35 tweetalige verhalen in de dagpool', { todo: 'spec §3 hard, niet gehaald: na H6 31 van 143 (met live), 22 van 100 (zonder); afwijking ter beslissing (§3 aanpassen of meer regels), niet door de bouwer te sluiten' }, () => {
   assert.ok(S.verhalen > 60, `dagpool heeft ${S.verhalen} verhalen`)
   assert.ok(S.tweetalig >= 35, `${S.tweetalig} van ${S.verhalen}`)
 })
 
-// De stand na H6 op de momentopname alleen (npm test kent de live-momentopname niet): Apple/Nvidia,
-// het Poolse Hof, Olesjky, de Chinese partij en de Intel-koersval zijn tweetalig geworden. Hard, zodat
-// een volgende wijziging aan sameEvent niet stil terugvalt.
-test('dagreeks: H6 houdt stand — ≥ 22 tweetalige verhalen op de momentopname (vóór H6: 17)', () => {
+// Regressiewacht, geen drempel van §3: de stand na H6 op de momentopname alleen (npm test kent de
+// live-momentopname niet): Apple/Nvidia, het Poolse Hof, Olesjky, de Chinese partij en de Intel-koersval
+// zijn tweetalig geworden. Hard, zodat een volgende wijziging aan sameEvent niet stil terugvalt.
+test('dagreeks: regressiewacht H6 — ≥ 22 tweetalige verhalen op de momentopname (vóór H6: 17)', () => {
   assert.ok(S.tweetalig >= 22, `${S.tweetalig} van ${S.verhalen}`)
+})
+
+// Keuring P5b-3: de kenmerken die het toestel zelf rekent (gewone signaturen over eigen bronnen plus de
+// koppen van de algemene Editie) staan per stuk in de keys van zijn verhaal, voor elke persona en elk
+// dagdeel. Vóór de herstelling: 21 stukken in 12 van 100 verhalen op de dagpool ("wall" + "street",
+// "hong" + "kong", "belgische", "olesjky").
+test('dagreeks: geen woordenschat-kloof tussen de server-keys en de toestelkenmerken (keysKloof = 0)', () => {
+  assert.equal(S.keysKloof, 0, `${S.keysKloof} stukken in ${S.keysKloofVerhalen} verhalen`)
 })
 
 // De meting zelf: composePersonal krijgt per persona alleen toestelkennis, en geen persona kent de
