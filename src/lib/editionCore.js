@@ -16,6 +16,7 @@
 import { composePersonal, withoutDebug, editionBasis, earlierEditions } from './personal.js'
 import { previousOf, historyOf, recentEditions, HISTORY_MAX } from '../../netlify/lib/stories.mjs'
 import { profileOf, supplyOf, profileSummary } from '../../shared/editor.mjs'
+import { forEdition } from '../../shared/stroom.mjs'
 
 export const CORE_VERSION = 1
 export const HISTORY_SIZE = HISTORY_MAX // zoveel Edities diep kijkt `previous` (aanvulling H3)
@@ -145,7 +146,7 @@ export function profileSummaryOf(input) {
     favorites: input.favorites || [],
     followed,
     sources: input.sources || [],
-    supply: supplyOf(input.items || [], followed),
+    supply: supplyOf((input.items || []).filter(forEdition), followed),
   })
   return profileSummary(prof)
 }

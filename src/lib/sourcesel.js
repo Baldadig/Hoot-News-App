@@ -1,4 +1,5 @@
 // Welke bronnen staan uit, en wat hoort in welke lijst — pure functies (tests/sourcesel.test.mjs).
+import { inStroom } from '../../shared/stroom.mjs'
 
 // Uit = wat je zelf hebt uitgezet, plus optionele bronnen die je (nog) niet hebt aangezet.
 export function mutedSet(prefs, sources = []) {
@@ -20,8 +21,10 @@ export function toggleSource(prefs, source, on) {
 }
 
 // Bluesky-posts staan in de eigen Bluesky-lijst; in de Stroom alleen van accounts die je
-// daar ook wilt (`bskyInStream`).
+// daar ook wilt (`bskyInStream`). Wat alleen voor De Redacteur is (`editionOnly`: ouder dan 36 uur),
+// nooit (shared/stroom.mjs).
 export const isPost = (it) => it.kind === 'post'
 export function inStream(it, prefs) {
+  if (!inStroom(it)) return false
   return !isPost(it) || (prefs.bskyInStream || []).includes(it.source)
 }

@@ -514,7 +514,7 @@ final class HootStore {
     private func rebuildStream() {
         let on = Set(followed.map(\.id))
         stream = itemsById.values
-            .filter { $0.kind == "article" && on.contains($0.source) }
+            .filter { $0.kind == "article" && on.contains($0.source) && $0.editionOnly != true }
             .sorted { ($0.publishedAt ?? "") > ($1.publishedAt ?? "") }
         copyKeys = Dictionary(stream.map { ($0.id, Self.keys(of: $0)) }, uniquingKeysWith: { a, _ in a })
         #if DEBUG
@@ -790,7 +790,7 @@ final class HootStore {
     // onderwerpen mee (de rest heeft het profiel niet nodig).
     func profileSummary() async -> ProfileSummary {
         let on = Set(followed.map(\.id))
-        let pool: [[String: Any]] = itemsById.values.filter { $0.kind == "article" && on.contains($0.source) }.map { ["kind": "article", "source": $0.source, "topics": $0.topics ?? []] }
+        let pool: [[String: Any]] = itemsById.values.filter { $0.kind == "article" && on.contains($0.source) && $0.streamOnly != true }.map { ["kind": "article", "source": $0.source, "topics": $0.topics ?? []] }
         let input: [String: Any] = [
             "interests": interests, "topics": topics, "favorites": favorites, "followed": Array(on),
             "affinity": affinity.n > 0 ? Self.encoded(affinity) : NSNull(), "taste": taste.isEmpty ? NSNull() : Self.encoded(taste),

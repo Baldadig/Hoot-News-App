@@ -15,6 +15,7 @@ import { selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, seen
 import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
 import { trustedTopics, OTHER_SPORT } from '../../netlify/lib/topics.mjs'
 import { INTERESTS } from './topics.js'
+import { forEdition } from '../../shared/stroom.mjs'
 import { supplyOf, profileOf, personalParts, sumParts, tempoWindows, outsideProfile, strongestFamily, whyOf, geoOf, NEIGHBOURS, FAMILY_OF, FOREIGN_DESKS, INT_MAX, FRONT_BIG, chosenReason, visibleReason, chosenDesks, OUTSIDE_FAMILY, KERN, KERN_MIN } from '../../shared/editor.mjs'
 
 export const EXTERN = 'extern' // rubriek van een aangevuld verhaal
@@ -86,7 +87,9 @@ export function storiesForReader(stories = [], items = [], followed = new Set(),
 // Velden met een `_` (zoals `_parts`) zijn alleen ter inzage; withoutDebug haalt ze eraf.
 export function composePersonal({ global, stories = [], items = [], sources = [], followed = new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = new Set() }) {
   if (!global?.entries?.length) return null
-  items = items.map(withTrustedTopics)
+  // Wat alleen in de Stroom hoort (streamOnly) telt niet mee: De Redacteur rekent met het oude venster
+  // per bron, ook op het toestel (shared/stroom.mjs).
+  items = items.filter(forEdition).map(withTrustedTopics)
   global = { ...global, items: (global.items || []).map(withTrustedTopics), wide: (global.wide || []).map((w) => (w?.item ? { ...w, item: withTrustedTopics(w.item) } : w)) }
   const catOf = new Map(sources.map((s) => [s.id, s.cat]))
   // Soort bericht: de rubriek van de bron, tenzij het onderwerp sport, cultuur of games is.

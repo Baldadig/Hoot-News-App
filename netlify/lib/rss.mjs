@@ -2,7 +2,8 @@
 import Parser from 'rss-parser'
 import { hash, safeHttpUrl } from '../../shared/util.mjs'
 import { typeset } from '../../shared/typeset.mjs'
-import { BRAND, PER_SOURCE_LIMIT, LIMIT_BY_CAT, UA } from './sources.mjs'
+import { BRAND, UA, editionWindowOf } from './sources.mjs'
+import { firstOf } from './stream.mjs'
 import { favicon, toText, clip, preview, cleanUrl, hostname, safeIso, plausibleTime } from './text.mjs'
 import { langOf } from '../../shared/lang.mjs'
 
@@ -114,7 +115,10 @@ async function readFeed(url) {
   return parser.parseString((await res.text()).replace(/^[\s\uFEFF]+/, ''))
 }
 
-export async function loadSource(src, avatarsP) {
+// `limit`: hoeveel berichten in de taal van de bron (feedvolgorde). Standaard het oude venster
+// (editionWindowOf: 30, per rubriek minder). De feed-opbouw vraagt alles (Infinity): de Stroom kapt
+// zelf af op tijd en aantal (stream.mjs), de verhalen en de Editie nemen het oude venster (firstOf, stream.mjs).
+export async function loadSource(src, avatarsP, { limit = editionWindowOf(src) } = {}) {
   let lastErr
   for (const url of src.urls) {
     try {
@@ -124,8 +128,6 @@ export async function loadSource(src, avatarsP) {
       // Mooie merk-avatar: 1) Bluesky-profiel, 2) X-profiel via unavatar.io, 3) favicon.
       const brandAvatar = avatars[src.id] || (src.x ? `https://unavatar.io/x/${src.x}` : null)
       const fresh = (feed.items || []).map((it) => [it, categoriesOf(it)]).filter(([it, cats]) => !isNoise(it, cats) && (!src.keep || String(it.link || '').includes(src.keep)))
-      // Muziek: minder per bron, zodat het nieuws niet wordt weggedrukt.
-      const limit = src.music ? 12 : LIMIT_BY_CAT[src.cat] || PER_SOURCE_LIMIT
       const mapped = fresh.map(([it, cats]) => {
         const link = safeHttpUrl(cleanUrl(it.link || it.guid || ''))
         const domain = hostname(link)
@@ -173,11 +175,7 @@ export async function loadSource(src, avatarsP) {
           publishedAt: plausibleTime(it.isoDate || (it.pubDate ? safeIso(it.pubDate) : null), fetchedAt),
         }
       }).filter((i) => i.url && i.title) // zonder geldige (http/https) link of zonder kop niet tonen
-      // De grens per bron telt alleen berichten in de taal van de bron: anders drukken de
-      // Engelstalige Parool-stukken (een derde van de feed) de Nederlandse eruit. Afwijkende
-      // berichten binnen die grens blijven, gemarkeerd.
-      let kept = 0
-      const items = mapped.filter((i) => (i.offLang ? kept < limit : kept < limit && ++kept))
+      const items = firstOf(mapped, limit) // de grens telt alleen berichten in de brontaal
       return { id: src.id, name: src.name, ok: true, used: url, count: items.length, items }
     } catch (e) {
       lastErr = e
@@ -186,10 +184,10 @@ export async function loadSource(src, avatarsP) {
   return { id: src.id, name: src.name, ok: false, used: null, count: 0, items: [], error: String((lastErr && lastErr.message) || lastErr) }
 }
 // Eén herhaalpoging bij een mislukte bron (korte hapering), daarna opgeven zonder de rest te blokkeren.
-export async function loadSourceWithRetry(src, avatarsP) {
-  const first = await loadSource(src, avatarsP)
+export async function loadSourceWithRetry(src, avatarsP, opts) {
+  const first = await loadSource(src, avatarsP, opts)
   if (first.ok) return first
   await new Promise((r) => setTimeout(r, 350))
-  const second = await loadSource(src, avatarsP)
+  const second = await loadSource(src, avatarsP, opts)
   return second.ok ? second : first
 }

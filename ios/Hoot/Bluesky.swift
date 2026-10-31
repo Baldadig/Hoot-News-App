@@ -1,7 +1,7 @@
 import Foundation
 
 // Bluesky: de accounts die je zelf volgt, rechtstreeks via de publieke API, net als de website
-// (shared/bluesky.mjs): eigen posts van de afgelopen 48 uur, geen reposts of antwoorden. De vaste
+// (shared/bluesky.mjs): eigen posts van de afgelopen 36 uur, geen reposts of antwoorden. De vaste
 // accounts van Hoot komen van de server, als delen per bron.
 struct BlueskyAccount: Codable, Hashable, Identifiable {
     let handle: String
@@ -42,7 +42,7 @@ enum Bluesky {
     }
 
     // Eigen posts van de afgelopen `hours` uur, bladzijde voor bladzijde (100 per keer, hooguit 8).
-    static func posts(of account: BlueskyAccount, hours: Double = 48) async throws -> [Item] {
+    static func posts(of account: BlueskyAccount, hours: Double = 36) async throws -> [Item] {
         let since = Date.now.addingTimeInterval(-hours * 3600)
         var own: [[String: Any]] = []
         var cursor: String?

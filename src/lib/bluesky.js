@@ -24,7 +24,7 @@ export async function resolveProfile(input) {
   return { handle: d.handle, name: (d.displayName || '').trim() || d.handle, avatar: safeHttpUrl(d.avatar) } // komt in een <img src>: alleen http(s)
 }
 
-// De afgelopen 48 uur van één account (zelfde vorm en id's als de server: shared/bluesky.mjs).
+// De afgelopen 36 uur van één account (zelfde vorm en id's als de server: shared/bluesky.mjs).
 export async function fetchAuthorItems(handle, name) {
   const posts = await fetchAuthorPosts(handle, { name })
   return posts.map((p) => ({ ...p, topics: [] }))

@@ -55,6 +55,10 @@ struct Item: Codable, Identifiable, Hashable {
     var videoPoster: String?
     var topics: [String]? // onderwerpen (server), voor je smaak
     var mainTopics: [String]? // de onderwerpen die het verhaal dragen: uit de kop en het vak van de bron (server, voor het label)
+    // Een bron-deel is de Stroom én de voeding van De Redacteur (shared/stroom.mjs): `editionOnly` (ouder
+    // dan 36 uur) komt niet in de Stroom, `streamOnly` telt niet mee voor de Editie.
+    var editionOnly: Bool?
+    var streamOnly: Bool?
 
     var date: Date? { publishedAt.flatMap(HootDate.parse) }
     var link: URL? { URL(string: url) }
@@ -70,7 +74,7 @@ struct Item: Codable, Identifiable, Hashable {
 }
 
 extension Item {
-    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, url, image, publishedAt, author, readMin, type, section, handle, linkTitle, imageMeta, imageRatio, video, videoPoster, topics, mainTopics }
+    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, url, image, publishedAt, author, readMin, type, section, handle, linkTitle, imageMeta, imageRatio, video, videoPoster, topics, mainTopics, editionOnly, streamOnly }
     // Een post heeft geen kop; die mag dus ontbreken.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -98,6 +102,8 @@ extension Item {
         videoPoster = try? c.decodeIfPresent(String.self, forKey: .videoPoster)
         topics = try? c.decodeIfPresent([String].self, forKey: .topics)
         mainTopics = try? c.decodeIfPresent([String].self, forKey: .mainTopics)
+        editionOnly = try? c.decodeIfPresent(Bool.self, forKey: .editionOnly)
+        streamOnly = try? c.decodeIfPresent(Bool.self, forKey: .streamOnly)
     }
 }
 
