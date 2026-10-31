@@ -203,3 +203,14 @@ test('Eén rechterlijn: de lijn onder de kop en de eindkaart stoppen op --measur
   assert.doesNotMatch(css, /\.col--read > \.vh[,\s]*\{/)
   assert.match(css, /\.endcap \{[^}]*max-inline-size: var\(--measure\)/)
 })
+
+test('Het verhaal wint van de schermtitel: .vh__title is head-5, .lead__title head-6 en groter (C7)', () => {
+  const tags = (s, cls) => [...s.matchAll(new RegExp(`className="([^"]*\\b${cls}\\b[^"]*)"`, 'g'))].map((m) => m[1].split(/\s+/))
+  const screen = allSrc().flatMap((s) => tags(s, 'vh__title'))
+  const lead = allSrc().flatMap((s) => tags(s, 'lead__title'))
+  assert.ok(screen.length && screen.every((c) => c.includes('head-5')), 'schermtitel is head-5')
+  assert.ok(lead.length && lead.every((c) => c.includes('head-6')), 'hoofdverhaal is head-6')
+  const css = read('styles.css')
+  const rem = (name) => Number(new RegExp(`--${name}: ([\\d.]+)rem`).exec(css)[1])
+  assert.ok(rem('t6') > rem('t5') && rem('lh-6') > rem('lh-5'), 'de kop van het verhaal is groter dan de schermtitel')
+})

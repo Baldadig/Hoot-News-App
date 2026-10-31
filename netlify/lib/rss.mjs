@@ -1,6 +1,7 @@
 // RSS/Atom-feeds ophalen en omzetten naar Hoot-berichten.
 import Parser from 'rss-parser'
 import { hash, safeHttpUrl } from '../../shared/util.mjs'
+import { typeset } from '../../shared/typeset.mjs'
 import { BRAND, PER_SOURCE_LIMIT, LIMIT_BY_CAT, UA } from './sources.mjs'
 import { favicon, toText, clip, preview, cleanUrl, hostname, safeIso, plausibleTime } from './text.mjs'
 
@@ -126,8 +127,11 @@ export async function loadSource(src, avatarsP) {
       const items = fresh.slice(0, src.music ? 12 : LIMIT_BY_CAT[src.cat] || PER_SOURCE_LIMIT).map(([it, cats]) => {
         const link = safeHttpUrl(cleanUrl(it.link || it.guid || ''))
         const domain = hostname(link)
-        const title = toText(it.title || '').trim()
-        const fullText = introOf(it, title)
+        // Eén typografische hand (D3): kop en intro worden hier, vóór opslag, één keer gezet in de
+        // taal van de bron. Al opgeslagen koppen blijven zoals ze zijn; normTitle en de ontdubbeling
+        // zien geen verschil (leestekens tellen daar niet).
+        const title = typeset(toText(it.title || '').trim(), src.lang)
+        const fullText = typeset(introOf(it, title), src.lang)
         const teaser = clip(fullText, 280)
         const summary = preview(fullText)
         // Leestijd alleen tonen als de feed de echte artikeltekst meelevert (NOS, The Verge);

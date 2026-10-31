@@ -66,8 +66,8 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 
 | Stijl | Web | iOS | Waar |
 |---|---|---|---|
-| `t6-lead` | serif 800, 30–34 px, 1.15 | `.title` / breed `.largeTitle`, serif bold | Kop van het hoofdverhaal |
-| `t5-screen` | serif 800, 27 px | grote navigatietitel in serif heavy (`.largeTitle`); klein in de balk serif bold (`.headline`) | Schermtitel (Middageditie, Stroom, Selectie …) |
+| `t6-lead` (`head-6`) | serif 800, 30/36 px, vanaf 720 px 34/40 | `.largeTitle`, serif bold (breed doet dat al) | Kop van het hoofdverhaal |
+| `t5-screen` (`head-5`) | serif 800, 27/32 px | `Theme.headline(.title)`, serif bold (I5; nu nog `.largeTitle` heavy); klein in de balk serif bold (`.headline`) | Schermtitel (Middageditie, Stroom, Selectie …) |
 | `head-lg-item` | serif 800, 22/26 px (`lh-head-lg`) | `.title2`, serif bold | Grote itemkop: een bericht in een brede lijst, het eerste stuk van een vak, een bladtitel |
 | `t4-item` | serif 800, 18/22 px (`lh-4`) | `.title3`, serif bold | Kop van een bericht |
 | `t3-body` | sans 400, 17 px, 1.5 | `.body` | Lopende tekst, intro van het hoofdverhaal |
@@ -76,6 +76,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 | `t1-meta` | sans 400, 13 px | `.caption` | Tijd, labels, toelichting |
 | `kicker` | sans 800, 13 px, kapitalen, +0.06em, 1.3 | `.caption` heavy, kapitalen | Rubriek; de punt tussen twee labels in `ink-3`; bij heel grote tekst zonder kapitalen |
 
+- **Het verhaal wint van de schermtitel** (C7). De schermtitel (`head-5`, 27/32) zegt waar je bent; het oog landt op het nieuws: de kop van het hoofdverhaal (`head-6`, 30/36, vanaf 720 px 34/40) is altijd groter. Op het web staat dit zo; iOS volgt (I5): schermtitel `Theme.headline(.title)`, hoofdverhaal `.largeTitle` serif.
 - **Koppen** krijgen `text-wrap: balance` (hoofdverhaal) of `pretty` (berichten) en breken nooit af met "…".
 - **Intro's:** bij het hoofdverhaal hele zinnen (4–6 regels). In een lijst kies je zelf 1–3 regels of de hele intro; een ingekorte intro eindigt met "…", zodat je ziet dat er meer is.
 - **De lezer** zet lopende tekst in de serif: 1,06rem × je tekstgrootte, regelafstand 1.6, hooguit `readable` breed.
