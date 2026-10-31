@@ -1,9 +1,10 @@
 import SwiftUI
 
-// Kiezen zoals in het welkom op de website (src/styles.css → .ob__tile, .ob__chip): tegels voor
-// de interesses, zware keuzeknoppen voor wat daaronder valt. Gekozen is rood zacht met een rode rand,
-// zoals een pil in het brandboard (--sel-*): de knop krijgt er een vinkje bij, zodat het niet alleen
-// aan de kleur hangt. Voor VoiceOver telt "geselecteerd".
+// Kiezen zoals in het welkom op de website (src/styles.css → .ob__tile, .ob__chip). Eén grammatica
+// voor "gekozen", op web en iOS gelijk (brandboard: de ambacht): in rust een haarlijn `rule` zonder
+// vlak, gewicht 600; gekozen rood zacht met een rode rand van 1 pt en een vinkje vooraan, in hetzelfde
+// gewicht, zodat het niet alleen aan de kleur hangt en niets verspringt. Zo in de chip, de tegel en het
+// ronde vinkje bij de bronnen. Voor VoiceOver telt "geselecteerd".
 
 // Keuzeknoppen die doorlopen naar de volgende regel. Een knop die breder is dan de regel krijgt
 // de hele breedte en breekt zijn tekst af (grote tekst).
@@ -55,6 +56,7 @@ struct ChoicePress: ButtonStyle {
 struct ChoiceChip: View {
     let label: String
     let on: Bool
+    var dense = false // in het welkom, waar niets mag scrollen: 40 hoog en smaller
     let action: () -> Void
     @Environment(\.accessibilityReduceMotion) private var still
 
@@ -71,13 +73,13 @@ struct ChoiceChip: View {
                 }
                 Text(label).multilineTextAlignment(.leading)
             }
-            .font(.subheadline.weight(.bold))
+            .font(.subheadline.weight(.semibold))
             .foregroundStyle(on ? Theme.accent : Theme.ink)
-            .padding(.horizontal, Space.s4)
+            .padding(.horizontal, dense ? Space.s3 : Space.s4)
             .padding(.vertical, Space.s2)
-            .frame(minHeight: Space.tap)
-            .background(on ? Theme.accentSoft : Theme.surface, in: Capsule())
-            .overlay(Capsule().strokeBorder(on ? Theme.accent : Theme.ink, lineWidth: 2))
+            .frame(minHeight: dense ? Space.tap - Space.s1 : Space.tap)
+            .background(on ? Theme.accentSoft : Color.clear, in: Capsule()) // in rust geen vlak: alleen de haarlijn
+            .overlay(Capsule().strokeBorder(on ? Theme.accent : Theme.rule, lineWidth: 1))
             .contentShape(Capsule())
         }
         .buttonStyle(ChoicePress())
@@ -85,35 +87,71 @@ struct ChoiceChip: View {
     }
 }
 
-// Een interesse als tegel (.ob__tile): icoon boven, naam onder.
+// Een interesse als tegel (.ob__tile): icoon en naam. Het icoon blijft rood (het onderwerp, niet de
+// keuze); gekozen krijgt de naam een vinkje ervoor, zoals de chip. Staand (icoon boven, 112 hoog) of,
+// in het welkom waar niets mag scrollen, liggend: icoon links van de naam, 64 hoog.
 struct ChoiceTile: View {
     let label: String
     let icon: String
     let on: Bool
+    var compact = false
     let action: () -> Void
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: Space.s4) {
-                Image(systemName: icon)
-                    .font(.system(size: 34))
-                    .foregroundStyle(Theme.accent)
-                    .accessibilityHidden(true)
-                Spacer(minLength: 0)
-                Text(label)
-                    .font(.headline.weight(.heavy))
-                    .foregroundStyle(on ? Theme.accent : Theme.ink)
-                    .multilineTextAlignment(.leading)
+            Group {
+                if compact {
+                    HStack(spacing: Space.s2) {
+                        glyph(22)
+                        name
+                        Spacer(minLength: 0)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 64 - Space.s3 * 2, alignment: .leading)
+                    .padding(.horizontal, Space.s3)
+                    .padding(.vertical, Space.s3)
+                } else {
+                    VStack(alignment: .leading, spacing: Space.s4) {
+                        glyph(34)
+                        Spacer(minLength: 0)
+                        name
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 112 - Space.s4 * 2, alignment: .leading) // 112 met de rand erbij, zoals op het web
+                    .padding(Space.s4)
+                }
             }
-            .frame(maxWidth: .infinity, minHeight: 112 - Space.s4 * 2, alignment: .leading) // 112 met de rand erbij, zoals op het web
-            .padding(Space.s4)
             .background(on ? Theme.accentSoft : Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
-            .overlay(RoundedRectangle(cornerRadius: Radius.md).strokeBorder(on ? Theme.accent : Theme.ink, lineWidth: 2))
+            .overlay(RoundedRectangle(cornerRadius: Radius.md).strokeBorder(on ? Theme.accent : Theme.rule, lineWidth: 1))
             .contentShape(RoundedRectangle(cornerRadius: Radius.md))
         }
         .buttonStyle(ChoicePress())
         .animation(.easeOut(duration: 0.14), value: on)
         .accessibilityAddTraits(on ? .isSelected : [])
+    }
+
+    private func glyph(_ size: CGFloat) -> some View {
+        Image(systemName: icon)
+            .font(.system(size: size))
+            .foregroundStyle(Theme.accent)
+            .fixedSize()
+            .frame(width: compact ? 36 : nil, alignment: .leading) // vaste kolom: breed icoon (toneelmaskers) schuift vinkje en naam niet op
+            .accessibilityHidden(true)
+    }
+
+    private var name: some View {
+        HStack(alignment: .firstTextBaseline, spacing: Space.s1) {
+            if on {
+                Image(systemName: "checkmark")
+                    .font(.caption.weight(.heavy))
+                    .transition(.opacity)
+                    .accessibilityHidden(true)
+            }
+            Text(label).multilineTextAlignment(.leading)
+        }
+        .font(.headline.weight(.heavy))
+        .lineLimit(compact && typeSize < .xxLarge ? 1 : 3) // liggend: één regel; bij grotere tekst staat de tegel op een eigen rij en mag de naam omslaan
+        .minimumScaleFactor(0.8)
+        .foregroundStyle(on ? Theme.accent : Theme.ink)
     }
 }
 
@@ -121,22 +159,25 @@ struct ChoiceTile: View {
 struct TopicChips: View {
     let rubriek: Rubriek
     let picked: [String]
+    var dense = false
     let toggle: (String) -> Void
 
     var body: some View {
         Flow {
             ForEach(rubriek.topics, id: \.self) { t in
-                ChoiceChip(label: Taste.label(t), on: picked.contains(t)) { toggle(t) }
+                ChoiceChip(label: Taste.label(t), on: picked.contains(t), dense: dense) { toggle(t) }
             }
         }
     }
 }
 
 // De kop boven een groep keuzes (.ob__gtitle): klein, in kapitalen en ink3, eventueel met een
-// icoon in accent. Hoofdletters lezen slecht in grote tekst (zoals Kicker): dan gewoon.
+// icoon in accent. Hoofdletters lezen slecht in grote tekst (zoals Kicker): dan gewoon. Boven een
+// sectie in Instellingen in inkt (`FormHeader`).
 struct GroupTitle: View {
     let text: String
     var icon: String? = nil
+    var tone: Color = Theme.ink3
     @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
@@ -148,7 +189,7 @@ struct GroupTitle: View {
                 Text(text.uppercased()).font(.caption.weight(.heavy)).tracking(0.6)
             }
         }
-        .foregroundStyle(Theme.ink3)
+        .foregroundStyle(tone)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(text)
         .accessibilityAddTraits(.isHeader)

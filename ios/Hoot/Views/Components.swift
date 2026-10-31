@@ -56,6 +56,16 @@ struct SafariView: UIViewControllerRepresentable {
     func updateUIViewController(_ vc: SFSafariViewController, context: Context) {}
 }
 
+// Een schakelaar die aan staat is inkt (brandboard; .switch op het web). In donker is inkt licht en
+// verdwijnt de witte duim van iOS erin; het web maakt de duim daar papier, maar dat laat iOS niet toe.
+// Daarom in donker ink3: de baan blijft neutraal en de duim blijft te zien.
+struct InkSwitch: ToggleStyle {
+    @Environment(\.colorScheme) private var scheme
+    func makeBody(configuration: Configuration) -> some View {
+        Toggle(configuration).tint(scheme == .dark ? Theme.ink3 : Theme.ink)
+    }
+}
+
 // Een knop op papier: inkt met papier, een pil, gewicht 800 (brandboard: Knop). Rood is voor het merk
 // en voor wat gekozen is, niet voor wat je doet; een tweede knop is stil (`.glass` of een link).
 struct InkButtonStyle: ButtonStyle {
@@ -73,6 +83,67 @@ struct InkButtonStyle: ButtonStyle {
 }
 extension ButtonStyle where Self == InkButtonStyle {
     static var ink: InkButtonStyle { InkButtonStyle() }
+}
+
+// Een formulier op papier (Instellingen en wat eronder hangt), zoals elk ander scherm van Hoot: geen
+// systeemgrijs, rijen op `surface` met een haarlijn `rule` (`hootRows`), iconen stil in ink3
+// (`FormLabel`). Bediening is inkt (de tint van de app); rood is alleen voor wat gekozen is met
+// gewicht: de ster, 'gratis'.
+extension View {
+    func hootForm() -> some View {
+        scrollContentBackground(.hidden).background(Theme.paper)
+    }
+}
+
+// Het label van een rij in zo'n formulier, met het icoon in ink3. Een eigen labelstijl helpt niet:
+// in een schakelaar, keuzelijst of LabeledContent slaat iOS die over en kleurt het icoon met de tint.
+struct FormLabel: View {
+    let title: String
+    let systemImage: String
+    init(_ title: String, systemImage: String) { self.title = title; self.systemImage = systemImage }
+    var body: some View {
+        Label { Text(title) } icon: { Image(systemName: systemImage).foregroundStyle(Theme.ink3) }
+    }
+}
+
+// Een sectie in zo'n formulier: rijen op `surface`, de scheidingslijn in `rule`.
+extension View {
+    func hootRows() -> some View {
+        listRowBackground(Theme.surface).listRowSeparatorTint(Theme.rule)
+    }
+}
+
+// De kop boven een sectie: een kicker in inkt, zoals `GroupTitle` (die in ink3 staat).
+struct FormHeader: View {
+    let text: String
+    init(_ text: String) { self.text = text }
+    var body: some View { GroupTitle(text: text, tone: Theme.ink).textCase(nil) }
+}
+
+// De schermtitel als eerste regel in de scroll (C7): bewust stil tegenover het hoofdverhaal, zoals
+// .head-5 tegenover .head-6 op het web. De navigatiebalk staat inline; zijn titel blijft voor
+// VoiceOver en de terugknop, deze is wat je ziet. Onder de titel staat op elk scherm dezelfde lucht
+// (s2) tot wat volgt; alleen de metaregel van de Editie hoort bij de titel en sluit aan (gap 0).
+struct ScreenTitle: View {
+    let text: String
+    var gap: CGFloat = Space.s2
+    init(_ text: String, gap: CGFloat = Space.s2) { self.text = text; self.gap = gap }
+    var body: some View {
+        Text(text)
+            .font(Theme.headline(.title))
+            .foregroundStyle(Theme.ink)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.bottom, gap)
+            .accessibilityAddTraits(.isHeader)
+    }
+}
+
+extension View {
+    // Een hoofdscherm met de titel in de scroll: de balk inline en zonder eigen titel, zodat die niet
+    // dubbel staat. De navigationTitle blijft voor VoiceOver, de terugknop en het tabblad.
+    func hootScreenTitle() -> some View {
+        navigationBarTitleDisplayMode(.inline).toolbar(removing: .title)
+    }
 }
 
 // Haarlijn tussen berichten: `rule`, één pixel, decoratief.
@@ -112,18 +183,18 @@ struct Kicker: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     let text: String?
     private func label(_ s: String) -> String { typeSize.isAccessibilitySize ? s : s.uppercased() }
+    private var dot: Text { Text(" · ").foregroundStyle(Theme.ink3) }
     var body: some View {
-        if let text, !text.isEmpty {
+        let parts = text.map { $0.isEmpty ? [] : $0.components(separatedBy: " · ") } ?? []
+        if !parts.isEmpty {
             // Bij heel grote tekst geen kapitalen: die worden dan breder en zwaarder dan de kop.
             // Meerdere labels ("Binnenland · Buiten je bronnen"): de punt ertussen in `ink3`.
-            let parts = text.components(separatedBy: " · ")
-            let joined = parts.dropFirst().reduce(Text(label(parts[0])).foregroundStyle(Theme.accent)) { acc, p in
-                Text("\(acc)\(Text(" · ").foregroundStyle(Theme.ink3))\(Text(label(p)).foregroundStyle(Theme.accent))")
-            }
+            let labels = parts.map { Text(label($0)).foregroundStyle(Theme.accent) }
+            let rubric = labels.dropFirst().reduce(labels.first ?? Text("")) { acc, p in Text("\(acc)\(dot)\(p)") }
             if typeSize.isAccessibilitySize {
-                joined.font(.caption.weight(.semibold))
+                rubric.font(.caption.weight(.semibold))
             } else {
-                joined.font(.caption.weight(.heavy)).tracking(0.6)
+                rubric.font(.caption.weight(.heavy)).tracking(0.6)
             }
         }
     }
@@ -143,22 +214,6 @@ struct WhyLine: View {
                 .accessibilityLabel("Waarom: \(text)")
         }
     }
-}
-
-// De intro van een bericht in hele zinnen (tot ongeveer `max` tekens), in plaats van een zin die
-// halverwege afbreekt. Zonder volledige zin: de tekst zoals hij is.
-func wholeSentences(_ text: String, max: Int = 240) -> String {
-    var out = ""
-    var rest = Substring(text)
-    while let end = rest.firstMatch(of: /[.!?…]["”’)]?(\s+|$)/) {
-        let sentence = rest[..<end.range.upperBound]
-        if !out.isEmpty && out.count + sentence.count > max { break }
-        out += sentence
-        rest = rest[end.range.upperBound...]
-        if out.count >= max { break }
-    }
-    let trimmed = out.trimmingCharacters(in: .whitespaces)
-    return trimmed.isEmpty || trimmed.hasSuffix("…") || trimmed.hasSuffix("...") ? text : trimmed
 }
 
 struct RemoteImage: View {
@@ -213,6 +268,7 @@ struct SourceLine: View {
     let item: Item
     var story: Story?
     var linkSource = true // tik op de bron = alles van die bron (niet op het bronscherm zelf)
+    var outside = false // het verhaal staat buiten de bronnen die je volgt
     var body: some View {
         // Op één regel als het past; anders bron en tijd bovenaan (mogen afbreken) en de knoppen
         // eronder. Nooit een vaste breedte: bij heel grote tekst duwt die anders de hele kolom
@@ -246,7 +302,7 @@ struct SourceLine: View {
             SourceMark(item: item)
             VStack(alignment: .leading, spacing: 0) {
                 Text(item.sourceName ?? item.source).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
-                Text(meta).font(.caption).foregroundStyle(Theme.ink3)
+                Text(meta).font(.caption).monospacedDigit().foregroundStyle(Theme.ink3) // tabelcijfers: de tijden staan in een kolom
             }
             .lineLimit(oneLine ? 1 : nil)
             .fixedSize(horizontal: false, vertical: true)
@@ -254,7 +310,7 @@ struct SourceLine: View {
     }
 
     private var meta: String {
-        [HootDate.ago(item.date), store.source(item.source)?.paid == true ? "abonnement" : nil].compactMap { $0 }.joined(separator: " · ")
+        [HootDate.ago(item.date), store.source(item.source)?.paid == true ? "abonnement" : nil, outside ? StoryLabel.outsideText : nil].compactMap { $0 }.joined(separator: " · ")
     }
 
     // `compact`: true = "+N bronnen", false = "Vergelijk N bronnen", nil = wat past.
@@ -411,6 +467,7 @@ struct LeadCard: View {
     let item: Item
     var label: String?
     var why: String? // het waarom van de plek (jouw Editie)
+    var outside = false // buiten je bronnen: de bronregel zegt het
     var story: Story?
 
     private var hasImage: Bool { store.showsImage(lead: true) && ImageURL.fitsHero(item.image) }
@@ -430,11 +487,11 @@ struct LeadCard: View {
                 }
             }
             Text(item.title)
-                .font(Theme.headline(wide ? .largeTitle : .title))
+                .font(Theme.headline(.largeTitle)) // het verhaal wint van de schermtitel (C7), op elke breedte
                 .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                 .fixedSize(horizontal: false, vertical: true)
-            if let summary = item.summary, !summary.isEmpty {
-                Text(wholeSentences(summary)).font(wide ? .title3 : .body).foregroundStyle(Theme.ink2).lineLimit(wide ? 6 : 5).fixedSize(horizontal: false, vertical: true)
+            if let intro = item.summary.map({ wholeSentences($0) }), !intro.isEmpty {
+                Text(intro).font(wide ? .title3 : .body).foregroundStyle(Theme.ink2).lineLimit(wide ? 6 : 5).fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -457,7 +514,7 @@ struct LeadCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
             .opensArticle(item)
-            SourceLine(item: item, story: story)
+            SourceLine(item: item, story: story, outside: outside)
         }
     }
 }
@@ -477,6 +534,7 @@ struct ItemRow: View {
     let item: Item
     var label: String?
     var why: String? // het waarom van de plek (jouw Editie)
+    var outside = false // buiten je bronnen: de bronregel zegt het
     var story: Story?
     var linkSource = true
     var form: Form?
@@ -519,7 +577,7 @@ struct ItemRow: View {
             }
             .contentShape(Rectangle())
             .opensArticle(item)
-            SourceLine(item: item, story: story, linkSource: linkSource)
+            SourceLine(item: item, story: story, linkSource: linkSource, outside: outside)
         }
         .padding(.vertical, Space.s2)
     }
@@ -540,8 +598,11 @@ struct ItemRow: View {
                     .font(Theme.headline(.title3))
                     .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                     .fixedSize(horizontal: false, vertical: true)
-                if let summary = item.summary, !summary.isEmpty {
-                    Text(summary).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(store.preview == 0 ? nil : store.preview)
+                // Hele zinnen tot de maat van de regelinstelling (T2); de regelgrens is alleen een vangnet: één
+                // regel extra, bij grotere tekst het dubbele (dezelfde tekens nemen dan meer regels, en een
+                // afgeknipte zin zou alsnog op een beletselteken eindigen).
+                if let intro = item.summary.map({ wholeSentences($0, max: introMax(lines: store.preview, thumb: hasPicture && !timeline)) }), !intro.isEmpty {
+                    Text(intro).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1)
                 }
             }
         }
@@ -561,28 +622,51 @@ private struct PlayBadge: View {
     }
 }
 
-// Verversen lukte niet: zeg eerlijk welke versie je ziet, met een knop om het opnieuw te proberen.
+// Verversen lukte niet: zeg eerlijk dat je de laatste versie ziet, met een knop om het opnieuw te
+// proberen. Geen kloktijd (huisregel), en geen vlak: een haarlijn op papier, zodat de melding naast
+// het nieuws staat in plaats van erbovenop. 'Opnieuw' in inkt, niet in het rood van de tint.
 struct StaleNotice: View {
     @Environment(HootStore.self) private var store
+    var gap: CGFloat = Space.s3 // ruimte eronder; in de Editie 16, gelijk aan die tussen datum en melding
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         if store.stale {
-            HStack(alignment: .firstTextBaseline, spacing: Space.s3) {
+            // Midden uitgelijnd: bij twee regels erboven en eronder even veel ruimte. Bij heel grote
+            // tekst staat de knop onder de zin, op dezelfde kolomlijn (anders breekt hij af: "Op-nieuw").
+            HStack(spacing: Space.s3) {
                 Image(systemName: "wifi.slash").foregroundStyle(Theme.ink3)
-                Text(message).font(.subheadline).foregroundStyle(Theme.ink3).frame(maxWidth: .infinity, alignment: .leading)
-                Button("Opnieuw") { Task { await store.load() } }.font(.subheadline.weight(.semibold)).frame(minHeight: Space.tap)
+                if typeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 0) {
+                        message.padding(.top, Space.s2)
+                        retry
+                    }
+                } else {
+                    message
+                    retry
+                }
             }
-            .padding(Space.s3)
-            .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-            .padding(.bottom, Space.s3)
+            .padding(.horizontal, Space.s3)
+            .padding(.vertical, Space.s1) // met de knop van 44 een melding van 52, ook als de zin twee regels neemt
+            .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous).strokeBorder(Theme.rule, lineWidth: 1))
+            .padding(.bottom, gap)
             .accessibilityElement(children: .combine)
         }
     }
-    private var message: String {
-        guard let at = store.updatedAt else { return "Verversen lukt nu niet." }
-        return "Verversen lukt nu niet. Je ziet de versie van \(at.formatted(date: .omitted, time: .shortened))."
+    private var message: some View {
+        Text("Verversen lukt nu niet. Je ziet de laatste versie.").font(.subheadline).foregroundStyle(Theme.ink3).frame(maxWidth: .infinity, alignment: .leading)
+    }
+    private var retry: some View {
+        Button("Opnieuw") { Task { await store.load() } }
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(Theme.ink)
+            .fixedSize()
+            .frame(minHeight: Space.tap)
     }
 }
 
+// Een lege plek (K6), gelijk aan .empty op het web: een stil lijnicoon in `rule`, de titel als
+// serifkop in inkt, s2 lucht, de uitleg in ink2 (.empty__text) op een smalle maat en een inktknop als vervolgstap. Het blijft
+// een ContentUnavailableView: die centreert in de hoogte en leest goed voor met VoiceOver.
 struct EmptyState: View {
     let title: String
     let systemImage: String
@@ -590,15 +674,35 @@ struct EmptyState: View {
     // Opnieuw proberen als knop naast het trekgebaar (dat niet iedereen kent of kan maken).
     var retry: (() async -> Void)? = nil
     // Of een eigen vervolgstap als knop, zoals iemand toevoegen bij een lege Bluesky.
-    var action: (label: String, systemImage: String, run: () -> Void)? = nil
+    var action: (label: String, systemImage: String?, run: () -> Void)? = nil
     var body: some View {
         ContentUnavailableView {
-            Label(title, systemImage: systemImage)
+            Label {
+                Text(title).font(Theme.headline(.title2)).foregroundStyle(Theme.ink)
+                    .padding(.bottom, Space.s2) // lucht tussen titel en uitleg, zoals .empty__title
+            } icon: {
+                // Op maat via een frame: een lettergrootte zet ContentUnavailableView zelf terug.
+                Image(systemName: systemImage)
+                    .resizable()
+                    .fontWeight(.ultraLight)
+                    .scaledToFit()
+                    .frame(width: Layout.emptyIcon, height: Layout.emptyIcon)
+                    .foregroundStyle(Theme.rule) // decoratief: de lijn, geen grijs systeemicoon
+            }
         } description: {
-            Text(text).foregroundStyle(Theme.ink3) // niet het lichtere grijs van het systeem
+            Text(text)
+                .foregroundStyle(Theme.ink2) // zoals .empty__text, niet het lichtere grijs van het systeem
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: Layout.emptyText)
         } actions: {
-            if let retry { Button("Probeer opnieuw") { Task { await retry() } }.buttonStyle(.glass) }
-            if let action { Button(action.label, systemImage: action.systemImage, action: action.run).buttonStyle(.glass) }
+            // De inktknop, zoals op het web: één vervolgstap, inkt op papier.
+            if let retry { Button("Probeer opnieuw") { Task { await retry() } }.buttonStyle(.ink) }
+            if let action {
+                Button(action: action.run) {
+                    if let icon = action.systemImage { Label(action.label, systemImage: icon) } else { Text(action.label) }
+                }
+                .buttonStyle(.ink)
+            }
         }
     }
 }

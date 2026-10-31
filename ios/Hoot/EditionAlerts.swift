@@ -31,10 +31,11 @@ final class EditionAlerts {
         let title: String
         let body: String
     }
+    // De naam komt uit dezelfde tabel als de Editie zelf (Slots, spiegel van shared/slots.mjs).
     static let slots = [
-        Slot(id: "ochtend", hour: 6, name: "Ochtendeditie", short: "Ochtend", icon: "sunrise", title: "Je Ochtendeditie ligt klaar", body: "Het nieuws van de nacht, rustig op een rij."),
-        Slot(id: "middag", hour: 12, name: "Middageditie", short: "Middag", icon: "sun.max", title: "Je Middageditie ligt klaar", body: "Wat er sinds vanochtend gebeurde, op een rij."),
-        Slot(id: "avond", hour: 17, name: "Avondeditie", short: "Avond", icon: "sunset", title: "Je Avondeditie ligt klaar", body: "De dag op een rij, voor wanneer het jou uitkomt."),
+        Slot(id: "ochtend", hour: 6, name: Slots.naam("ochtend"), short: "Ochtend", icon: "sunrise", title: "Je \(Slots.naam("ochtend")) ligt klaar", body: "Het nieuws van de nacht, rustig op een rij."),
+        Slot(id: "middag", hour: 12, name: Slots.naam("middag"), short: "Middag", icon: "sun.max", title: "Je \(Slots.naam("middag")) ligt klaar", body: "Wat er sinds vanochtend gebeurde, op een rij."),
+        Slot(id: "avond", hour: 17, name: Slots.naam("avond"), short: "Avond", icon: "sunset", title: "Je \(Slots.naam("avond")) ligt klaar", body: "De dag op een rij, voor wanneer het jou uitkomt."),
     ]
     private static let delay = 3 // minuten na het hele uur
     private static let days = 7

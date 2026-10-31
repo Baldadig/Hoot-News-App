@@ -139,28 +139,36 @@ struct BlueskyAccountsView: View {
                         if busy { ProgressView() } else { Button("Volg", action: add).disabled(input.trimmingCharacters(in: .whitespaces).isEmpty) }
                     }
                 } header: {
-                    Text("Iemand volgen")
+                    FormHeader("Iemand volgen")
                 } footer: {
                     if let error { Text(error).foregroundStyle(Theme.warn) } else { Text("Je ziet hun eigen posts van de afgelopen twee dagen: geen reposts en geen antwoorden.").foregroundStyle(Theme.ink3) }
                 }
+                .hootRows()
                 let own = store.socialSources.filter { store.isOwn($0.id) }
                 if !own.isEmpty {
-                    Section("Door jou toegevoegd") {
+                    Section {
                         ForEach(own) { s in row(s) }
                             .onDelete { idx in for i in idx { store.removeBluesky(own[i].id) } }
+                    } header: {
+                        FormHeader("Door jou toegevoegd")
                     }
+                    .hootRows()
                 }
                 let hoot = store.socialSources.filter { !store.isOwn($0.id) }
                 if !hoot.isEmpty {
-                    Section("Van Hoot") {
+                    Section {
                         ForEach(hoot) { s in row(s) }
+                    } header: {
+                        FormHeader("Van Hoot")
                     }
+                    .hootRows()
                 }
             }
+            .hootForm()
             .navigationTitle("Bluesky-accounts")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { dismiss() } }
+                ToolbarItem(placement: .topBarTrailing) { Button("Klaar") { dismiss() } } // tekst in inkt, zoals Instellingen
             }
         }
     }
@@ -199,5 +207,27 @@ struct BlueskyAccountsView: View {
             }
             busy = false
         }
+    }
+}
+
+// Bluesky op een eigen pagina (Instellingen › Bluesky › Posts): de posts van wie je volgt, met een
+// plus om iemand toe te voegen. De rij van de Stroom heeft alleen je rubrieken.
+struct BlueskyPage: View {
+    @State private var adding = false
+    var body: some View {
+        ScrollView {
+            BlueskyFeed { adding = true }.padding(.horizontal).column()
+        }
+        .background(Theme.paper)
+        .navigationTitle("Bluesky")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { adding = true } label: { Image(systemName: "plus") }
+                    .accessibilityLabel("Bluesky-account toevoegen")
+                    .tint(Theme.ink3)
+            }
+        }
+        .sheet(isPresented: $adding) { BlueskyAccountsView().debugAppearance() }
     }
 }

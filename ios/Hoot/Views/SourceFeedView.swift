@@ -85,7 +85,7 @@ struct SourceFeedView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     let on = store.isFavorite(id)
                     Button(on ? "Geen voorkeursbron" : "Maak voorkeursbron", systemImage: on ? "star.fill" : "star") { store.setFavorite(id, !on) }
-                        .tint(Theme.accent)
+                        .tint(on ? Theme.accent : Theme.ink3) // de ster: rood als hij aan staat, zoals bij Bronnen
                 }
             }
         }

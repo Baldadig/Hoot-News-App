@@ -19,7 +19,7 @@ struct AccountRow: View {
                         Text("Even geduld …").font(.subheadline).foregroundStyle(Theme.ink3)
                     case .out:
                         Text("Inloggen").font(.headline)
-                        Text("Je Editie en Bewaard op al je apparaten").font(.subheadline).foregroundStyle(Theme.ink3)
+                        Text("Op al je toestellen").font(.subheadline).foregroundStyle(Theme.ink3)
                     }
                 }
             }
@@ -52,7 +52,7 @@ extension Account {
         switch sync {
         case .syncing: "Synchroniseren …"
         case .failed: "Synchroniseren lukte niet; straks opnieuw"
-        case .ok, .idle: syncedAt.map { "Gesynchroniseerd om \($0.formatted(date: .omitted, time: .shortened))" } ?? "Ingelogd"
+        case .ok, .idle: syncedAt == nil ? "Ingelogd" : "Gesynchroniseerd"
         }
     }
 }
@@ -74,11 +74,15 @@ struct AccountView: View {
                 signIn
             } else {
                 Form {
-                    if account.status == .noInvite { invite } else { member }
-                    if let message = account.message {
-                        Section { Label(message, systemImage: "exclamationmark.circle").foregroundStyle(Theme.accent) }
+                    Group {
+                        if account.status == .noInvite { invite } else { member }
+                        if let message = account.message {
+                            Section { Label(message, systemImage: "exclamationmark.circle").foregroundStyle(Theme.accent) }
+                        }
                     }
+                    .hootRows() // Group geeft het door aan elke sectie
                 }
+                .hootForm()
                 .navigationTitle("Account")
             }
         }
@@ -88,7 +92,7 @@ struct AccountView: View {
             Button("Annuleer", role: .cancel) {}
             Button("Verwijder", role: .destructive) { Task { _ = await account.deleteAccount() } }
         } message: {
-            Text("Je account, je instellingen en je bewaarde stukken verdwijnen van de server, ook op hootnews.nl. Wat op deze iPhone staat, blijft. Dit kun je niet ongedaan maken. Ingelogd met Apple? Dan vraagt Apple nog om een bevestiging.")
+            Text("Je account en Bewaard verdwijnen, ook op de website. Wat op deze iPhone staat, blijft. Dit kun je niet ongedaan maken.")
         }
     }
 
@@ -102,12 +106,12 @@ struct AccountView: View {
             Text("Inloggen")
                 .font(Theme.headline(.title))
                 .padding(.top, Space.s5) // het getekende merk heeft geen lucht onder de letters, zoals tekst
-            Text("Je Hoot op al je apparaten.")
+            Text("Hoot op al je toestellen.")
                 .font(.body)
                 .foregroundStyle(Theme.ink2)
                 .multilineTextAlignment(.center)
                 .padding(.top, Space.s2)
-            Text("Hoot is nog op uitnodiging. Kreeg je er een? Log in en vul daarna je code in.")
+            Text("Hoot is op uitnodiging. Heb je een code? Log in en vul hem in.")
                 .font(.subheadline)
                 .foregroundStyle(Theme.ink3)
                 .multilineTextAlignment(.center)
@@ -162,7 +166,7 @@ struct AccountView: View {
             Section {
                 LabeledContent("Ingelogd als", value: account.session?.email ?? "–")
             } footer: {
-                Text("Hoot is nog op uitnodiging. Heb je een uitnodigingslink gekregen? Plak hem hieronder, of alleen de code erin.").foregroundStyle(Theme.ink3)
+                Text("Plak je uitnodigingslink of code.").foregroundStyle(Theme.ink3)
             }
             Section {
                 TextField("Uitnodigingslink of code", text: $code)
@@ -192,7 +196,7 @@ struct AccountView: View {
                 Button("Nu synchroniseren") { Task { await account.pull() } }
                     .disabled(account.sync == .syncing)
             } footer: {
-                Text("Je bronnen, interesses, vakgebieden, gelezen en bewaarde stukken gaan mee met je account. Weergave en lezen (zoals waar artikelen openen) blijven per toestel.").foregroundStyle(Theme.ink3)
+                Text("Weergave en lezen blijven per toestel.").foregroundStyle(Theme.ink3)
             }
             manage
         }
@@ -202,6 +206,7 @@ struct AccountView: View {
         Section {
             Button("Uitloggen") { Task { await account.signOut() } }
             Button("Account verwijderen", role: .destructive) { confirmDelete = true }
+                .foregroundStyle(Theme.ink) // bediening in inkt; de melding erna heeft Verwijder in rood
         }
     }
 

@@ -102,7 +102,7 @@ final class Account {
         guard items.first(where: { $0.name == "state" })?.value == request.state,
               let code = items.first(where: { $0.name == "code" })?.value
         else {
-            if items.contains(where: { $0.name == "error" }) { message = "Inloggen bij Google is niet gelukt." }
+            if items.contains(where: { $0.name == "error" }) { message = "Inloggen met Google is niet gelukt." }
             return
         }
         status = .loading
@@ -121,7 +121,7 @@ final class Account {
             guard let token = (try JSONSerialization.jsonObject(with: data) as? [String: Any])?["id_token"] as? String else { throw Failure.login }
             try await signIn(provider: "google", token: token, nonce: request.nonce)
         } catch {
-            fail("Inloggen met Google is niet gelukt. Probeer het nog eens.")
+            fail("Inloggen met Google is niet gelukt.")
         }
     }
 
@@ -142,7 +142,7 @@ final class Account {
             return
         }
         status = .loading
-        do { try await signIn(provider: "apple", token: token, nonce: appleNonce) } catch { fail("Inloggen met Apple is niet gelukt. Probeer het nog eens.") }
+        do { try await signIn(provider: "apple", token: token, nonce: appleNonce) } catch { fail("Inloggen met Apple is niet gelukt.") }
     }
 
     private func signIn(provider: String, token: String, nonce: String) async throws {
@@ -185,16 +185,17 @@ final class Account {
                 status = .member
                 await pull()
             } else {
-                message = "Deze code werkt niet (meer). Vraag om een nieuwe uitnodiging."
+                message = "Deze code werkt niet. Vraag een nieuwe uitnodiging."
             }
         } catch {
-            message = "Dat lukte niet. Controleer je verbinding en probeer het opnieuw."
+            message = "Dat lukte niet. Probeer het opnieuw."
         }
     }
 
     func signOut() async {
         if session != nil { _ = try? await call("auth/v1/logout", method: "POST") }
         forget()
+        store?.forgetChoices() // wie hierna leest begint neutraal: je keuzes gaan van het toestel
     }
 
     // Account verwijderen: alles op de server weg (profiel, instellingen, Bewaard). Wat op dit
@@ -213,7 +214,7 @@ final class Account {
             UserDefaults.standard.removeObject(forKey: "hoot.owner")
             return true
         } catch {
-            message = "Verwijderen is niet gelukt. Controleer je verbinding en probeer het opnieuw."
+            message = "Verwijderen is niet gelukt. Probeer het opnieuw."
             return false
         }
     }

@@ -14,6 +14,7 @@ struct DigestView: View {
             ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
+                    ScreenTitle("Selectie") // de schermtitel in de scroll (C7), boven de onderwerpenknop
                     picker
                     if let d = store.digest {
                         header(d)
@@ -46,6 +47,7 @@ struct DigestView: View {
             }
             .background(Theme.paper)
             .navigationTitle("Selectie")
+            .hootScreenTitle()
             .settingsButton()
             .refreshable { await store.loadDigest(force: true) }
             .sheet(isPresented: $choosing) {
@@ -53,7 +55,7 @@ struct DigestView: View {
                     DigestFieldsList()
                         .navigationTitle("Onderwerpen")
                         .navigationBarTitleDisplayMode(.inline)
-                        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { choosing = false } } }
+                        .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Klaar") { choosing = false } } }
                 }
                 .debugAppearance()
             }
@@ -68,7 +70,7 @@ struct DigestView: View {
         return Button { choosing = true } label: {
             Label(count == 0 ? "Kies onderwerpen" : "Onderwerpen · \(count)", systemImage: "slider.horizontal.3")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Theme.accent)
+                .foregroundStyle(Theme.ink) // een tekstactie: inkt, zoals --action op het web
         }
         .buttonStyle(.glass)
         .padding(.vertical, Space.s1)
@@ -80,7 +82,7 @@ struct DigestView: View {
         let picked = fields.reduce(0) { $0 + $1.top.count }
         return VStack(alignment: .leading, spacing: Space.s2) {
             Kicker(text: d.preview == true ? "Voorproefje · de afgelopen zeven dagen" : "Week \(d.week ?? 0) · \(Self.span(d.from, d.to))")
-            Text("\(picked == 1 ? "1 stuk" : "\(picked) stukken") in \(fields.count == 1 ? "1 vakgebied" : "\(fields.count) vakgebieden")")
+            Text("\(picked == 1 ? "1 stuk" : "\(picked) stukken") in \(fields.count == 1 ? "1 onderwerp" : "\(fields.count) onderwerpen")")
                 .font(Theme.headline(.title2))
                 .fixedSize(horizontal: false, vertical: true)
             if d.preview == true, let next = d.next.flatMap(HootDate.parse) {
@@ -116,9 +118,9 @@ private struct FieldSection: View {
                 Image(systemName: icon)
                     .font(.title3)
                     .dynamicTypeSize(...DynamicTypeSize.xxxLarge) // blijft binnen zijn cirkel
-                    .foregroundStyle(Theme.accent)
+                    .foregroundStyle(Theme.ink3) // een plaatje bij het onderwerp, geen keuze: stil, zonder rood
                     .frame(width: 44, height: 44)
-                    .glassEffect(.regular.tint(Theme.accent.opacity(0.12)), in: .circle)
+                    .glassEffect(.regular.tint(Theme.ink.opacity(0.06)), in: .circle)
                 }
                 VStack(alignment: .leading, spacing: Space.s0) {
                     Text(field.label).font(Theme.headline(.title2))
@@ -182,14 +184,14 @@ private struct DigestCard: View {
                     FramedImage(url: ImageURL.url(item.image, .large), ratio: feature ? 16 / 9 : 2)
                 }
                 VStack(alignment: .leading, spacing: Space.s2) {
-                    Text(String(format: "%02d", rank)).font(Theme.headline(.headline)).foregroundStyle(Theme.accent)
+                    Text(String(format: "%02d", rank)).font(Theme.headline(.headline)).monospacedDigit().foregroundStyle(Theme.accent) // tabelcijfers: 01, 02, 03 even breed
                     Text(item.title)
                         .font(Theme.headline(feature ? .title2 : .title3))
                         .foregroundStyle(store.isRead(item.asItem) ? Theme.ink3 : Theme.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     // Waarom dit stuk: rustige metadata onder de kop, zodat de kop voorgaat.
                     if let why = item.why, !why.isEmpty { Text(why.joined(separator: " · ")).font(.caption).foregroundStyle(Theme.ink3) }
-                    if let summary = item.summary { Text(summary).font(feature ? .body : .subheadline).foregroundStyle(Theme.ink2).lineLimit(feature ? 4 : 3) }
+                    if let intro = item.summary.map({ wholeSentences($0, max: feature ? 260 : 200) }), !intro.isEmpty { Text(intro).font(feature ? .body : .subheadline).foregroundStyle(Theme.ink2).lineLimit(feature ? 5 : 4) } // hele zinnen; de regelgrens is een vangnet
                 }
                 .padding(.horizontal, Space.s4)
                 .padding(.top, showImage ? 4 : 16)

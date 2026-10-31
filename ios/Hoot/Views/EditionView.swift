@@ -9,27 +9,42 @@ struct EditionRowModel: Identifiable {
     let label: String?
     let desk: String?
     var why: String? = nil // het waarom van de plek (jouw Editie), of niets
+    var outside = false // buiten de bronnen die je volgt: dat zegt de bronregel
+}
+
+// De drie dagdelen van de Editie: per slot de naam (met hoofdletter, zoals Editie), wanneer de
+// volgende er is en het dagdeel zelf. Geen kloktijden, alleen deze woorden.
+// Spiegel van shared/slots.mjs, getoetst in SlotsTests: verander je hier een woord, dan daar ook.
+enum Slots {
+    static let all: [String: (naam: String, volgende: String, dagdeel: String)] = [
+        "ochtend": (naam: "Ochtendeditie", volgende: "in de middag", dagdeel: "in de ochtend"),
+        "middag": (naam: "Middageditie", volgende: "in de vroege avond", dagdeel: "in de middag"),
+        "avond": (naam: "Avondeditie", volgende: "morgenochtend", dagdeel: "in de vroege avond"),
+    ]
+    static func naam(_ slot: String) -> String { all[slot]?.naam ?? "Editie" }
 }
 
 enum Desk {
     // Zelfde namen als DESK_NAMES in shared/editor.mjs; 'regio' vult De Redacteur uit je regionale bronnen.
     static let labels = ["binnenland": "Binnenland", "buitenland": "Buitenland", "vs": "VS", "middenoosten": "Midden-Oosten", "oekraine": "Oekraïne", "wetenschap": "Wetenschap", "tech": "Tech", "economie": "Economie", "regio": "Regio", "bubbel": "Buiten je bubbel", "extern": "Buiten je bronnen"]
-    static let slots = ["ochtend": "Ochtendeditie", "middag": "Middageditie", "avond": "Avondeditie"]
 
-    static func label(_ e: EditionEntry, followed: Bool) -> String? {
-        let base: String?
-        if e.desk == "breed" { base = e.sourceCount.map { "Waar iedereen over schrijft · \($0) bronnen" } ?? "Waar iedereen over schrijft" } else { base = e.desk.flatMap { labels[$0] } }
-        if followed || ["bubbel", "extern", "breed"].contains(e.desk ?? "") { return base }
-        return [base, "Buiten je bronnen"].compactMap { $0 }.joined(separator: " · ")
+    // De naam van de plek, zoals deskLabel op het web: Buiten je bubbel noemt waar het vandaan komt.
+    private static let via = ["google": "Google Trends", "bluesky": "Bluesky", "wikipedia": "Wikipedia"]
+    static func plek(_ e: EditionEntry) -> String? {
+        if e.desk == "breed" { return e.sourceCount.map { "Waar iedereen over schrijft · \($0) bronnen" } ?? "Waar iedereen over schrijft" }
+        if e.desk == "bubbel", let terms = e.terms, !terms.isEmpty {
+            var seen = Set<String>()
+            let namen = terms.compactMap { $0.via.map { via[$0] ?? $0 } }.filter { seen.insert($0).inserted }
+            if !namen.isEmpty { return "\(labels["bubbel"] ?? "Buiten je bubbel") · via \(namen.joined(separator: " en "))" }
+        }
+        return e.desk.flatMap { labels[$0] }
     }
 
-    // Het waarom onder de rubriek (whyLine in src/components/Why.js, bouwspec §6): één korte zin, of
-    // niets als het rubrieklabel het al zegt ("Buiten je bronnen", "Buiten je bubbel", "Waar iedereen
-    // over schrijft", de rubriek zelf). De algemene Editie en een Editie van vóór het waarom hebben er geen.
-    static let whyInLabel: Set<String> = ["rubriek", "extern", "bubbel", "breed"]
-    static func why(_ e: EditionEntry) -> String? {
-        guard let text = e.why?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
-        return whyInLabel.contains(e.why?.code ?? "") ? nil : text
+    // Het label boven het verhaal (StoryLabel.label, gelijk aan src/lib/label.js): "interesse · onderwerp" bij
+    // een sterke treffer, anders de rubriek; het waarom alleen als het iets toevoegt; "Buiten je bronnen" staat
+    // in de bronregel.
+    static func label(_ e: EditionEntry, item: Item, sourceCat: String?, follows: [String], followed: Bool) -> StoryLabel.Result {
+        StoryLabel.label(topics: item.topics ?? [], mainTopics: item.mainTopics ?? [], follows: follows, cat: sourceCat, desk: e.desk, deskLabel: plek(e), whyCode: e.why?.code, whyText: e.why?.text, followed: followed || ["bubbel", "breed"].contains(e.desk ?? ""))
     }
 }
 
@@ -59,7 +74,8 @@ extension HootStore {
             let leadId = e.kind == "story" ? (e.leadId ?? e.id) : e.id
             guard let item = published[leadId] ?? itemsById[leadId] else { return nil }
             let story = e.kind == "story" ? storiesById[e.id] : item.storyId.flatMap { storiesById[$0] }
-            return EditionRowModel(id: e.id, item: item, story: story, label: Desk.label(e, followed: on.contains(item.source)), desk: e.desk, why: Desk.why(e))
+            let l = Desk.label(e, item: item, sourceCat: self.source(item.source)?.cat, follows: topics, followed: on.contains(item.source))
+            return EditionRowModel(id: e.id, item: item, story: story, label: l.kicker, desk: e.desk, why: l.why, outside: l.outside)
         }
         // Hoofdverhaal met scherp beeld (geen bubbel of "waar iedereen over schrijft").
         let ok: (EditionRowModel) -> Bool = { ImageURL.fitsHero($0.item.image) && !["bubbel", "breed"].contains($0.desk ?? "") }
@@ -84,24 +100,32 @@ struct EditionView: View {
     @Environment(\.brandHandoff) private var handoff
     @Environment(\.accessibilityReduceMotion) private var still
     @Environment(EditionAlerts.self) private var alerts
+    @State private var endVisible = false // de zon onderaan is in beeld
+    @State private var risenAt: Date? // sinds wanneer die zon opkomt (één keer)
     @State private var alertsOn = false // net "ja" gezegd op het seintje onderaan
     // Bij een koude start ligt de krant 8 pt lager en schuift op zijn plek terwijl het rood van het
     // opstartscherm zich sluit, met dezelfde curve: het merk landt, de krant gaat open.
     private var rising: Bool { !still && handoff?.landed == false && handoff?.leaving == false }
-    private var title: String { store.edition?.slot.flatMap { Desk.slots[$0] } ?? "Editie" }
+    private var title: String { store.edition?.slot.flatMap { Slots.all[$0]?.naam } ?? "Editie" }
     private var dateLine: String {
         guard let d = store.edition?.date, let date = HootDate.day(d) else { return "" }
         return date.formatted(HootDate.style(.dateTime.weekday(.wide).day().month(.wide))).capitalizedFirst
     }
 
-    // Wanneer de volgende er is, in dagdelen: geen kloktijden.
+    // De datum in de eindzin: klein, met een vaste spatie tussen dag en maand ("31\u{00A0}oktober"),
+    // zodat het getal nooit alleen aan het einde van een regel blijft staan. Alleen hier; de
+    // metaregel bovenaan houdt zijn gewone spatie.
+    private var endDate: String {
+        var d = dateLine.lowercased()
+        if let last = d.range(of: " ", options: .backwards) { d.replaceSubrange(last, with: "\u{00A0}") }
+        return d
+    }
+
+    // Wanneer de volgende er is, in dagdelen uit Slots: geen kloktijden.
     private var upNext: String {
-        switch store.edition?.slot {
-        case "ochtend": " De volgende staat in de middag voor je klaar."
-        case "middag": " De volgende staat in de vroege avond voor je klaar."
-        case "avond": " De volgende staat morgenochtend voor je klaar."
-        default: ""
-        }
+        guard let volgende = store.edition?.slot.flatMap({ Slots.all[$0]?.volgende }) else { return "" }
+        // Vaste spatie in "je klaar.": de zin eindigt nooit met één woord alleen op de laatste regel.
+        return " De volgende staat \(volgende) voor je\u{00A0}klaar."
     }
 
     @State private var path = NavigationPath()
@@ -120,7 +144,7 @@ struct EditionView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Button("Ongedaan maken") { withAnimation(.snappy) { store.undoLess(row.id, items: items) } }
                     .font(.subheadline.weight(.semibold))
-                    .tint(Theme.accent)
+                    .tint(Theme.ink) // bediening: inkt, geen rood
                     .frame(minHeight: Space.tap)
             }
             .transition(.opacity)
@@ -164,6 +188,20 @@ struct EditionView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     let rows = store.editionRows
+                    // De schermtitel in de scroll, direct boven de metaregel (zoals .vh__sub op het web).
+                    // Met een kleine, stille zon ernaast: zijn hoogte toont het dagdeel (onboarding-plan, ‘De zon
+                    // in de Editie’). Laag bij de Ochtend- en Avondeditie, hoog bij de Middageditie.
+                    // Past de naam er bij grote tekst niet meer naast, dan alleen de naam (nooit afgebroken).
+                    ViewThatFits(in: .horizontal) {
+                        HStack(alignment: .bottom, spacing: Space.s3) {
+                            ScreenTitle(title, gap: 0).fixedSize()
+                            Spacer(minLength: 0)
+                            if let slot = store.edition?.slot, EditionSun.height[slot] != nil {
+                                EditionSun(slot: slot).padding(.bottom, Space.s1)
+                            }
+                        }
+                        ScreenTitle(title, gap: 0).frame(maxWidth: .infinity, alignment: .leading)
+                    }
                     if store.status == .loading && rows.isEmpty {
                         ProgressView().frame(maxWidth: .infinity, minHeight: 240)
                     } else if rows.isEmpty {
@@ -173,37 +211,47 @@ struct EditionView: View {
                             EmptyState(title: "Er is nog geen Editie", systemImage: "newspaper", text: "In de Stroom staat alles wat er wél is.")
                         }
                     } else {
-                        StaleNotice()
-                        Text([dateLine, store.isPersonal ? "Jouw Editie" : "De Editie voor iedereen"].filter { !$0.isEmpty }.joined(separator: " · "))
+                        // Eén metaregel, zoals op het web. De vaste spatie vóór de punt houdt die bij de
+                        // datum als de regel bij grote tekst breekt ("oktober ·", niet "· Jouw Editie").
+                        Text([dateLine, store.isPersonal ? "Jouw Editie" : "De Editie voor iedereen"].filter { !$0.isEmpty }.joined(separator: "\u{00A0}· "))
                             .font(.subheadline)
                             .foregroundStyle(Theme.ink3)
                             .padding(.bottom, Space.s4)
-                        slot(rows[0]) { LeadCard(item: rows[0].item, label: rows[0].label, why: rows[0].why, story: rows[0].story) }
+                        // Kon er niet ververst worden, dan zegt dat het onder de datum: titel en datum blijven bij elkaar.
+                        StaleNotice(gap: Space.s4)
+                        slot(rows[0]) { LeadCard(item: rows[0].item, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
                         if wide {
                             // Breed: de rest in twee kolommen, elk verhaal met een lijn erboven.
                             LazyVGrid(columns: [GridItem(.flexible(), spacing: Space.s6, alignment: .top), GridItem(.flexible(), spacing: Space.s6, alignment: .top)], alignment: .leading, spacing: Space.s2) {
                                 ForEach(rows.dropFirst()) { row in
                                     VStack(alignment: .leading, spacing: 0) {
                                         Rule().padding(.vertical, Space.s2)
-                                        slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, story: row.story, form: .krant) }
+                                        slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
                                     }
                                 }
                             }
                         } else {
                             ForEach(rows.dropFirst()) { row in
                                 Rule().padding(.vertical, Space.s2)
-                                slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, story: row.story, form: .krant) }
+                                slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
                             }
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,
                         // en wanneer de volgende er is.
                         VStack(spacing: Space.s3) {
-                            // Het teken "h." als tekening, 44 hoog; op merkrood alles papier, ook de punt.
-                            BrandMark(height: 44, ink: Theme.onBrandRed, dot: Theme.onBrandRed)
+                            // De zon komt hier één keer op (6 s), zodra het vlak in beeld komt, en ademt
+                            // dan; in papier op merkrood. Het enige merkmoment tijdens het lezen. Met
+                            // Verminder beweging staat hij al op (OnboardingArt, variant intro).
+                            OnboardingArt(kind: .intro, onRed: true, active: endVisible, scale: 120 / OnboardingArt.size.width, since: risenAt)
+                                .onScrollVisibilityChange(threshold: 0.5) { visible in
+                                    endVisible = visible
+                                    if visible && risenAt == nil { risenAt = .now }
+                                }
                             Text("Je bent bij.").font(Theme.headline(.title))
-                            Text("Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(dateLine.lowercased())").\(upNext)")
+                            Text("Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(endDate)").\(upNext)")
                                 .font(.subheadline)
                                 .multilineTextAlignment(.center)
+                                .frame(maxWidth: Layout.endcap) // ± 30 tekens per regel, zoals --measure-end
                             // De links direct onder elkaar: hun aanraakvlak (44 pt) is de ruimte ertussen,
                             // zodat tekst, seintje en Stroom op gelijke afstand staan.
                             VStack(spacing: 0) {
@@ -249,7 +297,8 @@ struct EditionView: View {
             }
             .debugScroll()
             .background(Theme.paper)
-            .navigationTitle(title)
+            .navigationTitle(title) // voor VoiceOver en de terugknop; je ziet de titel in de scroll
+            .hootScreenTitle() // het verhaal wint van de schermtitel (C7)
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .refreshable { await store.load() }
@@ -371,5 +420,24 @@ struct MakeItYours: View {
         .column()
         .transition(.move(edge: .bottom).combined(with: .opacity))
         .accessibilityElement(children: .contain)
+    }
+}
+
+// De kleine zon naast de naam van de Editie (miniSun in het onboarding-plan): 44 × 26, horizon op 20,
+// zon r 8, alles onder de horizon geknipt. Stil; de hoogte toont het dagdeel, zonder kloktijd.
+struct EditionSun: View {
+    let slot: String
+    static let height: [String: CGFloat] = ["ochtend": 17, "middag": 9, "avond": 21]
+
+    var body: some View {
+        Canvas { ctx, _ in
+            var sky = ctx
+            sky.clip(to: Path(CGRect(x: 0, y: 0, width: 44, height: 20)))
+            let cy = Self.height[slot] ?? 17
+            sky.fill(Path(ellipseIn: CGRect(x: 22 - 8, y: cy - 8, width: 16, height: 16)), with: .color(Theme.accent))
+            ctx.stroke(Path { $0.move(to: CGPoint(x: 4, y: 20)); $0.addLine(to: CGPoint(x: 40, y: 20)) }, with: .color(Theme.ink), lineWidth: 1.5)
+        }
+        .frame(width: 44, height: 26)
+        .accessibilityHidden(true)
     }
 }

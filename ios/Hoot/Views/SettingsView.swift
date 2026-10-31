@@ -37,7 +37,7 @@ struct SettingsView: View {
                 guard !alerts.allowed else { return }
                 Task { if await !alerts.ask() { withAnimation { store.notify = false } } }
             })) {
-                Label("Seintje bij een nieuwe Editie", systemImage: "bell")
+                FormLabel("Seintje bij een nieuwe Editie", systemImage: "bell")
             }
             .disabled(denied) // de knop en de voettekst eronder zeggen waarom
             if store.notify && alerts.allowed {
@@ -64,7 +64,7 @@ struct SettingsView: View {
                             }
                             .accessibilityElement(children: .ignore)
                             .accessibilityLabel(slot.name)
-                        } icon: { Image(systemName: slot.icon) }
+                        } icon: { Image(systemName: slot.icon).foregroundStyle(Theme.ink3) }
                     }
                 }
             }
@@ -77,10 +77,11 @@ struct SettingsView: View {
                 .accessibilityHint("Opent de meldingen van Hoot in de Instellingen-app")
             }
         } header: {
-            Text("Seintjes")
+            FormHeader("Seintjes")
         } footer: {
-            Text(denied ? "Meldingen van Hoot staan uit. Zet ze aan in de Instellingen-app." : "Een stil seintje, zonder geluid, een paar minuten nadat je Editie klaarligt. Alleen op dit toestel.").foregroundStyle(Theme.ink3)
+            Text(denied ? "Meldingen staan uit in de Instellingen-app." : "Een stil seintje als je Editie klaarligt.").foregroundStyle(Theme.ink3)
         }
+        .hootRows()
         .animation(.default, value: store.notify && alerts.allowed)
         .task { await alerts.refresh() }
     }
@@ -90,19 +91,19 @@ struct SettingsView: View {
         NavigationStack(path: $path) {
             ScrollViewReader { proxy in
             Form {
-                Section { AccountRow() }
+                Section { AccountRow() }.hootRows()
                 Section {
                     Picker(selection: $store.images) {
                         Text("Aan").tag("aan")
                         Text("Alleen hoofdverhaal").tag("hoofd")
                         Text("Uit").tag("uit")
                     } label: {
-                        Label("Afbeeldingen", systemImage: "photo")
+                        FormLabel("Beeld", systemImage: "photo")
                     }
                     // Als een segment, direct te zien in de Stroom erachter: tijdlijn (het beeld groot onder de
                     // kop, zoals een tijdlijn) of krant (klein ernaast, zoals een krantensite).
                     VStack(alignment: .leading, spacing: Space.s2) {
-                        Label("Lees de Stroom als", systemImage: "rectangle.grid.1x2")
+                        FormLabel("Lees de Stroom als", systemImage: "rectangle.grid.1x2")
                         Picker("Lees de Stroom als", selection: $store.layout) {
                             Text("Tijdlijn").tag("tijdlijn")
                             Text("Krant").tag("krant")
@@ -116,16 +117,18 @@ struct SettingsView: View {
                         Text("3 regels").tag(3)
                         Text("Hele intro").tag(0)
                     } label: {
-                        Label("Intro bij berichten", systemImage: "text.alignleft")
+                        FormLabel("Intro", systemImage: "text.alignleft")
                     }
                     Toggle(isOn: $store.bubble) {
-                        Label("Buiten je bubbel", systemImage: "sparkle.magnifyingglass")
+                        FormLabel("Buiten je bubbel", systemImage: "sparkle.magnifyingglass")
                     }
                 } header: {
-                    Text("Editie en Stroom")
+                    FormHeader("Editie en Stroom")
                 } footer: {
-                    Text("Tijdlijn: het beeld groot onder de kop. Krant: klein ernaast, zoals op een krantensite. Ook in Bewaard en Zoeken. Buiten je bubbel: één verhaal waar veel mensen nu naar zoeken en dat niet in je Editie staat.").foregroundStyle(Theme.ink3)
+                    Text("Buiten je bubbel: veelgelezen, niet in je Editie.")
+                        .foregroundStyle(Theme.ink3)
                 }
+                .hootRows()
 
                 // Eén keuze (waar openen artikelen), met de uitzonderingen alleen als die gelden.
                 Section {
@@ -133,54 +136,59 @@ struct SettingsView: View {
                         Text("In de lezer").tag("lezer")
                         Text("In Safari").tag("safari")
                     } label: {
-                        Label("Artikelen openen", systemImage: "doc.richtext")
+                        FormLabel("Artikelen openen", systemImage: "doc.richtext")
                     }
                     if store.openWith == "lezer" {
                         NavigationLink(value: "abonnementen") { SubscriptionsRow() }
                     }
                 } header: {
-                    Text("Lezen")
+                    FormHeader("Lezen")
                 } footer: {
-                    Text(store.openWith == "lezer" ? "De lezer toont alleen de tekst en beelden, in de opmaak van Hoot. Log één keer in bij je abonnementen om ook hun hele artikelen hier te lezen." : "Artikelen openen in Safari. Daar ben je al ingelogd bij je abonnementen, met je wachtwoorden en Google of Apple.").foregroundStyle(Theme.ink3)
+                    Text(store.openWith == "lezer" ? "Log in bij je abonnementen voor hele artikelen." : "Daar ben je al ingelogd bij je abonnementen.").foregroundStyle(Theme.ink3)
                 }
+                .hootRows()
 
                 alertsSection
 
                 Section {
-                    Toggle(isOn: $store.bluesky) {
-                        Label("Bluesky in de Stroom", systemImage: "bubble.left.and.bubble.right")
+                    // Niet meer in de rij van de Stroom (daar staan alleen je rubrieken): hier, op een eigen pagina.
+                    Toggle(isOn: $store.bluesky.animation()) {
+                        FormLabel("Bluesky volgen", systemImage: "bubble.left.and.bubble.right")
+                    }
+                    if store.bluesky {
+                        NavigationLink(value: "bluesky") { FormLabel("Posts", systemImage: "text.bubble") }
                     }
                 } header: {
-                    Text("Bluesky")
-                } footer: {
-                    Text("Bovenaan de Stroom staat dan de rubriek Bluesky. Daar voeg je mensen toe met hun @-naam.").foregroundStyle(Theme.ink3)
+                    FormHeader("Bluesky")
                 }
+                .hootRows()
 
                 Section {
                     NavigationLink(value: "interesses") {
                         LabeledContent {
                             Text(InterestsList.summary(store.interests)).lineLimit(1)
-                        } label: { Label("Interesses", systemImage: "heart.text.square") }
-                    }
-                    NavigationLink(value: "bronnen") {
-                        LabeledContent { Text(store.favorites.isEmpty ? "Geen" : "\(store.favorites.count)") } label: { Label("Voorkeursbronnen", systemImage: "star") }
+                        } label: { FormLabel("Interesses", systemImage: "heart.text.square") }
                     }
                 } header: {
-                    Text("Jouw Editie")
+                    FormHeader("Jouw Editie")
                 } footer: {
-                    Text("Je Editie komt uit je eigen bronnen. Wat bij je interesses past en wat van je voorkeursbronnen komt (de ster bij Bronnen) gaat voor. Ook wat je opent en bewaart telt mee; dat blijft op dit toestel. Meer of minder van iets? Druk lang op een verhaal in de Editie; dat gaat mee met je account.").foregroundStyle(Theme.ink3)
+                    Text("Meer of minder van iets? Druk lang op een verhaal.").foregroundStyle(Theme.ink3)
                 }
+                .hootRows()
 
                 LearnedSection().id("geleerd")
 
-                Section("Bronnen en onderwerpen") {
+                Section {
                     NavigationLink(value: "bronnen") {
-                        LabeledContent { Text("\(store.followed.count) aan") } label: { Label("Bronnen", systemImage: "dot.radiowaves.up.forward") }
+                        LabeledContent { Text("\(store.followed.count) aan") } label: { FormLabel("Bronnen", systemImage: "dot.radiowaves.up.forward") }
                     }
                     NavigationLink(value: "vakken") {
-                        LabeledContent { Text("\(store.digestFields.filter(store.offersField).count) gekozen") } label: { Label("Onderwerpen", systemImage: "books.vertical") }
+                        LabeledContent { Text("\(store.digestFields.filter(store.offersField).count) gekozen") } label: { FormLabel("Selectie", systemImage: "books.vertical") }
                     }
+                } header: {
+                    FormHeader("Bronnen en Selectie")
                 }
+                .hootRows()
 
                 Section {
                     Button {
@@ -191,20 +199,26 @@ struct SettingsView: View {
                     .foregroundStyle(Theme.ink)
                     .accessibilityHint("Opent Hoot in de Instellingen-app")
                 } footer: {
-                    Text("In de Instellingen-app van je toestel. De tekstgrootte volgt je toestel (Toegankelijkheid › Weergave en tekstgrootte).").foregroundStyle(Theme.ink3)
+                    Text("De tekstgrootte volgt je toestel.").foregroundStyle(Theme.ink3)
                 }
+                .hootRows()
 
                 Section {
+                    // In inkt, zoals alle bediening: de melding erna zegt wat er verdwijnt, met Verwijder in rood.
                     Button(role: .destructive) { confirmClear = "gelezen" } label: {
-                        Label("Alles als ongelezen markeren", systemImage: "eye.slash")
+                        FormLabel("Alles als ongelezen markeren", systemImage: "eye.slash")
                     }
+                    .foregroundStyle(Theme.ink)
                     Button(role: .destructive) { confirmClear = "bewaard" } label: {
-                        Label("Bewaarde artikelen verwijderen", systemImage: "bookmark.slash")
+                        FormLabel("Bewaarde artikelen verwijderen", systemImage: "bookmark.slash")
                     }
+                    .foregroundStyle(Theme.ink)
                     .disabled(store.saved.isEmpty)
+                    .opacity(store.saved.isEmpty ? 0.45 : 1) // uit: zichtbaar stil, zoals een inktknop
                 } header: {
-                    Text(savedSyncs ? "Gelezen en Bewaard" : "Op dit toestel")
+                    FormHeader(savedSyncs ? "Gelezen en Bewaard" : "Op dit toestel")
                 }
+                .hootRows()
 
                 // Terug naar het welkom: opnieuw kiezen, of opnieuw inloggen. Wat je bewaarde en las blijft.
                 Section {
@@ -216,21 +230,27 @@ struct SettingsView: View {
                             store.onboarded = false
                         }
                     } label: {
-                        Label("Stel Hoot opnieuw in", systemImage: "arrow.counterclockwise")
+                        FormLabel("Stel Hoot opnieuw in", systemImage: "arrow.counterclockwise")
                     }
                     .foregroundStyle(Theme.ink)
                 } footer: {
-                    Text("Je ziet het welkom weer en kiest opnieuw je interesses en bronnen. Wat je bewaarde en las, blijft.").foregroundStyle(Theme.ink3)
+                    Text("Bewaard en gelezen blijven.").foregroundStyle(Theme.ink3)
                 }
+                .hootRows()
 
-                Section("Over") {
+                Section {
                     LabeledContent("Versie", value: version)
                     LabeledContent("Gemaakt door") { Link("Baldadig.nl", destination: URL(string: "https://baldadig.nl")!) }
-                    Link(destination: URL(string: "https://hootnews.nl/#/privacy")!) { OutboundRow(title: "Privacybeleid", systemImage: "hand.raised") }.foregroundStyle(Theme.ink)
-                    Link(destination: URL(string: "https://hootnews.nl")!) { OutboundRow(title: "hootnews.nl", systemImage: "globe") }.foregroundStyle(Theme.ink)
+                    Link(destination: URL(string: "https://gethoot.app/#/privacy")!) { OutboundRow(title: "Privacybeleid", systemImage: "hand.raised") }.foregroundStyle(Theme.ink)
+                    Link(destination: URL(string: "https://gethoot.app")!) { OutboundRow(title: "Website", systemImage: "globe") }.foregroundStyle(Theme.ink)
+                    Link(destination: URL(string: "mailto:info@gethoot.app")!) { OutboundRow(title: "Contact", systemImage: "envelope") }.foregroundStyle(Theme.ink)
+                } header: {
+                    FormHeader("Over")
                 }
+                .hootRows()
                 .id("over")
             }
+            .hootForm()
             .debugJump(proxy, to: DebugLaunch.screen("instellingen-geleerd") ? "geleerd" : "over", when: 0)
             .task { await store.loadDigest() } // voor het aantal vakgebieden dat de server levert
             }
@@ -243,14 +263,17 @@ struct SettingsView: View {
                     SourcesList().navigationTitle("Bronnen").navigationBarTitleDisplayMode(.inline)
                 } else if page == "abonnementen" {
                     SubscriptionsView().navigationTitle("Je abonnementen").navigationBarTitleDisplayMode(.inline)
+                } else if page == "bluesky" {
+                    BlueskyPage()
                 } else if page == "interesses" {
                     InterestsList().navigationTitle("Interesses").navigationBarTitleDisplayMode(.inline)
                 } else {
-                    DigestFieldsList().navigationTitle("Onderwerpen").navigationBarTitleDisplayMode(.inline)
+                    DigestFieldsList().navigationTitle("Selectie").navigationBarTitleDisplayMode(.inline)
                 }
             }
             .toolbar {
-                ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { dismiss() } }
+                // Klaar als tekst in inkt (een bevestigingsknop kleurt iOS vanzelf als een gevulde cirkel).
+                ToolbarItem(placement: .topBarTrailing) { Button("Klaar") { dismiss() } }
             }
             // Een melding met een zichtbare Annuleer (een actieblad zonder die knop laat de veilige
             // uitweg aan een tik ernaast over), en precies wat er verandert.
@@ -262,7 +285,7 @@ struct SettingsView: View {
                     Button("Markeer als ongelezen", role: .destructive) { store.clearRead() }
                 }
             } message: {
-                Text(confirmClear == "bewaard" ? "\(store.saved.count == 1 ? "1 artikel verdwijnt" : "\(store.saved.count) artikelen verdwijnen") uit Bewaard\(savedSyncs ? ", op al je apparaten en op hootnews.nl" : ""). Dit kun je niet ongedaan maken." : "Wat je las, wordt weer gewoon getoond. Je bewaarde artikelen blijven staan.")
+                Text(confirmClear == "bewaard" ? "\(store.saved.count == 1 ? "1 artikel verdwijnt" : "\(store.saved.count) artikelen verdwijnen") uit Bewaard\(savedSyncs ? ", ook op je andere toestellen" : ""). Dit kun je niet ongedaan maken." : "Bewaard blijft staan.")
             }
         }
     }
@@ -287,24 +310,27 @@ struct LearnedSection: View {
                     Text(summary.chosen.map(Taste.label).joined(separator: ", ")).multilineTextAlignment(.trailing)
                 }
             }
+            if !summary.learned.isEmpty { Text("Vaak gelezen").font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink3) }
             ForEach(summary.learned, id: \.self) { t in
-                LearnedRow(title: Taste.label(t), hint: "Dit lees je vaak, dus het komt vaker in je Editie.", action: "Vergeet dit") {
+                LearnedRow(title: Taste.label(t), hint: nil, action: "Vergeet dit") {
                     withAnimation { store.forgetTopic(t) }
                 }
             }
+            if !summary.less.isEmpty { Text("Minder").font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink3) }
             ForEach(summary.less, id: \.self) { t in
-                LearnedRow(title: Taste.label(t), hint: "Hier wilde je minder van.", action: "Ongedaan maken") {
+                LearnedRow(title: Taste.label(t), hint: nil, action: "Ongedaan maken") {
                     withAnimation { store.restoreLess(t) }
                 }
             }
             if summary.learned.isEmpty && summary.less.isEmpty {
-                LearnedRow(title: "Uit je lezen", hint: "Hoot heeft nog niets uit je lezen afgeleid.", action: nil) {}
+                LearnedRow(title: "Nog niets", hint: nil, action: nil) {}
             }
         } header: {
-            Text("Wat Hoot van je leerde")
+            FormHeader("Wat Hoot van je leerde")
         } footer: {
-            Text("Jouw Editie volgt wat je koos, wat je vaak opent of bewaart en waar je minder van wilde. Wat je leest blijft op dit toestel; je keuzes gaan mee met je account. Wat je hier verandert, telt vanaf je volgende Editie; die van dit dagdeel blijft staan.").foregroundStyle(Theme.ink3)
+            Text("Telt vanaf je volgende Editie.").foregroundStyle(Theme.ink3)
         }
+        .hootRows()
         .task(id: key) { summary = await store.profileSummary() }
         .animation(.default, value: summary)
     }
@@ -313,21 +339,21 @@ struct LearnedSection: View {
 // Eén onderwerp met wat Hoot ervan vindt en, als het kan, de weg terug: een rustige knop rechts.
 private struct LearnedRow: View {
     let title: String
-    let hint: String
+    var hint: String? = nil
     let action: String?
     let run: () -> Void
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: Space.s3) {
             VStack(alignment: .leading, spacing: Space.s0) {
                 Text(title)
-                Text(hint).font(.subheadline).foregroundStyle(Theme.ink3)
+                if let hint { Text(hint).font(.subheadline).foregroundStyle(Theme.ink3) }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             if let action {
                 Button(action, action: run)
                     .font(.subheadline.weight(.semibold))
                     .buttonStyle(.borderless)
-                    .tint(Theme.accent)
+                    .tint(Theme.ink) // bediening: inkt, geen rood
             }
         }
     }
@@ -362,7 +388,7 @@ struct InterestsList: View {
                                     Text(r.label)
                                     if !on { Text(Self.about[r.id] ?? "").font(.caption).foregroundStyle(Theme.ink3) }
                                 }
-                            } icon: { Image(systemName: r.icon) }
+                            } icon: { Image(systemName: r.icon).foregroundStyle(Theme.ink3) }
                         }
                         // De scheidingslijn begint bij de naam, ook als er keuzeknoppen onder staan.
                         .alignmentGuide(.listRowSeparatorLeading) { $0[.listRowSeparatorLeading] }
@@ -376,9 +402,11 @@ struct InterestsList: View {
                     }
                 }
             } footer: {
-                Text("Kies wat je het meest boeit. Kies je niets, dan krijg je alles binnen dat onderwerp. Wat hierbij past, gaat voor in je Editie; echt groot nieuws blijft bovenaan, ook als het buiten je interesses valt.").foregroundStyle(Theme.ink3)
+                Text("Kies je niets, dan krijg je alles. Groot nieuws staat altijd bovenaan.").foregroundStyle(Theme.ink3)
             }
+            .hootRows()
         }
+        .hootForm()
         .onAppear { self.picked = mine }
         // Van je account of een ander toestel: dan geldt wat daar gekozen is.
         .onChange(of: store.topics) {
@@ -409,21 +437,25 @@ struct DigestFieldsList: View {
             ForEach(Self.domains, id: \.label) { domain in
                 let offered = domain.fields.filter { store.offersField($0.id) }
                 if !offered.isEmpty {
-                    Section(domain.label) {
+                    Section {
                         ForEach(offered, id: \.id) { f in
                             Toggle(isOn: Binding(get: { store.digestFields.contains(f.id) }, set: { on in
                                 store.digestFields = on ? Self.fields.map(\.id).filter { $0 == f.id || store.digestFields.contains($0) } : store.digestFields.filter { $0 != f.id }
                             })) {
-                                Label(f.label, systemImage: f.icon)
+                                FormLabel(f.label, systemImage: f.icon)
                             }
                         }
+                    } header: {
+                        FormHeader(domain.label)
                     }
+                    .hootRows()
                 }
             }
             Section {} footer: {
-                Text("Elke maandagochtend per onderwerp de drie belangrijkste stukken van de week, door mensen geschreven.").foregroundStyle(Theme.ink3)
+                Text("Elke maandag het beste per onderwerp.").foregroundStyle(Theme.ink3)
             }
         }
+        .hootForm()
         .task { await store.loadDigest() }
     }
 }
@@ -462,7 +494,7 @@ struct OutboundRow: View {
     let systemImage: String
     var body: some View {
         HStack {
-            Label { Text(title).foregroundStyle(Theme.ink) } icon: { Image(systemName: systemImage).foregroundStyle(Theme.accent) }
+            Label { Text(title).foregroundStyle(Theme.ink) } icon: { Image(systemName: systemImage).foregroundStyle(Theme.ink3) }
             Spacer()
             Image(systemName: "arrow.up.forward").font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink3)
         }

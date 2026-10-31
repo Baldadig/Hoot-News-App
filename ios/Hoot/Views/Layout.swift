@@ -10,6 +10,10 @@ enum Layout {
     // (beide op de 4-pt-schaal). Op het web is dat --thumb-size.
     static let thumb: CGFloat = 96
     static let thumbLarge: CGFloat = 108
+    static let endcap: CGFloat = 300 // einde van de Editie, ± 30ch zoals --measure-end
+    // Lege staat (K6): het lijnicoon 64 en de uitleg op ± 34ch, zoals .empty op het web.
+    static let emptyIcon: CGFloat = 96 // de lijntekening van de lege bladzijde (K6, signatuurmoment 7)
+    static let emptyText: CGFloat = 320
 }
 
 // Ruimte: één schaal van 4 pt, gelijk aan --s1…--s7 op de website. Elke padding en tussenruimte

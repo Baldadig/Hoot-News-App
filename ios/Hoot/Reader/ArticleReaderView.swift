@@ -27,7 +27,7 @@ struct ArticleReaderView: View {
                 case .loading:
                     VStack(alignment: .leading, spacing: Space.s4) {
                         Kicker(text: sourceName)
-                        Text(item.title.isEmpty ? (item.summary ?? "") : item.title).font(Theme.headline(.title)).lineLimit(4).fixedSize(horizontal: false, vertical: true)
+                        Text(item.title.isEmpty ? (item.summary ?? "") : typeset(item.title, lang: source?.lang)).font(Theme.headline(.title)).lineLimit(4).fixedSize(horizontal: false, vertical: true)
                         ProgressView("Artikel laden…").frame(maxWidth: .infinity).padding(.top, Space.s5)
                         Spacer()
                     }
@@ -67,9 +67,10 @@ struct ArticleReaderView: View {
             }
             .background(Theme.paper)
             .navigationBarTitleDisplayMode(.inline)
+            // De werkbalk is stil: iconen in ink3. Alleen bewaard springt eruit, in rood (SaveButton).
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Sluit", systemImage: "xmark") { dismiss() }
+                    Button("Sluit", systemImage: "xmark") { dismiss() }.tint(Theme.ink3)
                 }
                 ToolbarItemGroup(placement: .primaryAction) {
                     Menu {
@@ -82,9 +83,10 @@ struct ArticleReaderView: View {
                     } label: {
                         Label("Tekstgrootte", systemImage: "textformat.size")
                     }
+                    .tint(Theme.ink3)
                     if let link = item.link {
-                        ShareItemLink(item: item, link: link)
-                        Button("Open bij \(sourceName)", systemImage: "safari") { openURL(link) }
+                        ShareItemLink(item: item, link: link).tint(Theme.ink3)
+                        Button("Open bij \(sourceName)", systemImage: "safari") { openURL(link) }.tint(Theme.ink3)
                     }
                     SaveButton(item: item)
                 }
@@ -161,7 +163,7 @@ enum ReaderHTML {
 
     static func page(_ a: Article, item: Item, sourceName: String, size: Int, lang: String? = nil) -> String {
         let scale = scales[min(max(size, 0), scales.count - 1)]
-        let title = escape(a.title.isEmpty ? item.title : a.title)
+        let title = escape(typeset(a.title.isEmpty ? item.title : a.title, lang: lang)) // de lezer haalt de kop zelf: zetten zoals de server (T6)
         let meta = [a.byline, item.date.map { HootDate.ago($0) }].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.map(escape).joined(separator: " · ")
         return """
         <!doctype html><html lang="\(escape(lang ?? "nl"))"><head><meta charset="utf-8">
@@ -176,7 +178,9 @@ enum ReaderHTML {
         .kicker { font-family: -apple-system, system-ui, sans-serif; font-size: .72em; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin: 0 0 .6em; }
         h1.title { font-size: min(1.75em, 48px); line-height: 1.15; font-weight: 800; margin: 0 0 .4em; } /* bij heel grote tekst niet een heel scherm kop */
         .meta { font-family: -apple-system, system-ui, sans-serif; font-size: .8em; color: var(--ink-3); margin: 0 0 1.6em; padding-bottom: 1em; border-bottom: 1px solid var(--rule); }
-        h1, h2, h3, h4 { line-height: 1.25; -webkit-hyphens: auto; hyphens: auto; } /* lange woorden bij grote tekst: afbreken met een streepje, in de taal van de bron */
+        h1, h2, h3, h4 { line-height: 1.25; -webkit-hyphens: manual; hyphens: manual; } /* eigennamen in de kop breken nooit af */
+        h1 { overflow-wrap: anywhere; text-wrap: balance; } /* een woord breder dan de kolom breekt zonder streepje, regels even lang */
+        main.hyphenate :is(h2, h3, h4) { -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 10 4 4; } /* alleen bij Heel groot: lange woorden in tussenkoppen afbreken, in de taal van de bron */
         h2 { font-size: 1.3em; margin: 1.6em 0 .5em; } h3 { font-size: 1.12em; margin: 1.4em 0 .4em; }
         p { margin: 0 0 1em; }
         a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
@@ -188,7 +192,7 @@ enum ReaderHTML {
         table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; font-size: .85em; } /* een brede tabel scrolt zelf, niet de hele pagina */
         main { overflow-wrap: break-word; } /* lange links breken af in plaats van de pagina te verbreden */ td, th { border-bottom: 1px solid var(--rule); padding: .4em; text-align: left; }
         pre, code { font-family: ui-monospace, Menlo, monospace; font-size: .85em; white-space: pre-wrap; }
-        </style></head><body><main>
+        </style></head><body><main\(scale > 1.3 ? " class=\"hyphenate\"" : "")>
         <p class="kicker">\(escape(sourceName))</p>
         <h1 class="title">\(title)</h1>
         \(meta.isEmpty ? "" : "<p class=\"meta\">\(meta)</p>")
@@ -272,22 +276,19 @@ struct LoginWebView: View {
                 .navigationTitle("Inloggen bij \(target.name)")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    // Pas na het inloggen is "Klaar" de volgende stap, in rood; daarvoor een gewone knop
-                    // (iOS kleurt een bevestigingsknop anders vanzelf).
-                    if done {
-                        ToolbarItem(placement: .confirmationAction) { Button("Klaar", systemImage: "checkmark") { dismiss() } }
-                    } else {
-                        ToolbarItem(placement: .topBarTrailing) { Button("Klaar", systemImage: "checkmark") { dismiss() }.tint(Theme.ink3) }
+                    // "Klaar" als tekst in inkt; pas na het inloggen is het de volgende stap, en dan halfvet.
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Klaar") { dismiss() }.fontWeight(done ? .semibold : .regular)
                     }
                 }
                 .safeAreaInset(edge: .top) {
                     Group {
                         if done {
                             // De bevestiging: je bent binnen, en wat je nu kunt.
-                            Label("Je bent ingelogd bij \(target.name). Tik op Klaar om verder te lezen.", systemImage: "checkmark.circle.fill")
+                            Label("Ingelogd bij \(target.name). Tik op Klaar.", systemImage: "checkmark.circle.fill")
                                 .foregroundStyle(Theme.accent)
                         } else {
-                            Text("Log in zoals je op de website gewend bent. Je inlog blijft alleen in de lezer van Hoot op dit toestel.")
+                            Text("Log in zoals altijd. Hoot ziet je wachtwoord niet.")
                                 .foregroundStyle(Theme.ink3)
                         }
                     }
