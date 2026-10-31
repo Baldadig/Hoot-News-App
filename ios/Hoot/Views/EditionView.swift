@@ -11,10 +11,21 @@ struct EditionRowModel: Identifiable {
     var why: String? = nil // het waarom van de plek (jouw Editie), of niets
 }
 
+// De drie dagdelen van de Editie: per slot de naam (met hoofdletter, zoals Editie), wanneer de
+// volgende er is en het dagdeel zelf. Geen kloktijden, alleen deze woorden.
+// Spiegel van shared/slots.mjs, getoetst in SlotsTests: verander je hier een woord, dan daar ook.
+enum Slots {
+    static let all: [String: (naam: String, volgende: String, dagdeel: String)] = [
+        "ochtend": (naam: "Ochtendeditie", volgende: "in de middag", dagdeel: "in de ochtend"),
+        "middag": (naam: "Middageditie", volgende: "in de vroege avond", dagdeel: "in de middag"),
+        "avond": (naam: "Avondeditie", volgende: "morgenochtend", dagdeel: "in de vroege avond"),
+    ]
+    static func naam(_ slot: String) -> String { all[slot]?.naam ?? "Editie" }
+}
+
 enum Desk {
     // Zelfde namen als DESK_NAMES in shared/editor.mjs; 'regio' vult De Redacteur uit je regionale bronnen.
     static let labels = ["binnenland": "Binnenland", "buitenland": "Buitenland", "vs": "VS", "middenoosten": "Midden-Oosten", "oekraine": "Oekraïne", "wetenschap": "Wetenschap", "tech": "Tech", "economie": "Economie", "regio": "Regio", "bubbel": "Buiten je bubbel", "extern": "Buiten je bronnen"]
-    static let slots = ["ochtend": "Ochtendeditie", "middag": "Middageditie", "avond": "Avondeditie"]
 
     static func label(_ e: EditionEntry, followed: Bool) -> String? {
         let base: String?
@@ -88,20 +99,17 @@ struct EditionView: View {
     // Bij een koude start ligt de krant 8 pt lager en schuift op zijn plek terwijl het rood van het
     // opstartscherm zich sluit, met dezelfde curve: het merk landt, de krant gaat open.
     private var rising: Bool { !still && handoff?.landed == false && handoff?.leaving == false }
-    private var title: String { store.edition?.slot.flatMap { Desk.slots[$0] } ?? "Editie" }
+    private var title: String { store.edition?.slot.flatMap { Slots.all[$0]?.naam } ?? "Editie" }
     private var dateLine: String {
         guard let d = store.edition?.date, let date = HootDate.day(d) else { return "" }
         return date.formatted(HootDate.style(.dateTime.weekday(.wide).day().month(.wide))).capitalizedFirst
     }
 
-    // Wanneer de volgende er is, in dagdelen: geen kloktijden.
+    // Wanneer de volgende er is, in dagdelen uit Slots: geen kloktijden.
     private var upNext: String {
-        switch store.edition?.slot {
-        case "ochtend": " De volgende staat in de middag voor je klaar."
-        case "middag": " De volgende staat in de vroege avond voor je klaar."
-        case "avond": " De volgende staat morgenochtend voor je klaar."
-        default: ""
-        }
+        guard let volgende = store.edition?.slot.flatMap({ Slots.all[$0]?.volgende }) else { return "" }
+        // Vaste spatie in "je klaar.": de zin eindigt nooit met één woord alleen op de laatste regel.
+        return " De volgende staat \(volgende) voor je\u{00A0}klaar."
     }
 
     @State private var path = NavigationPath()
@@ -173,11 +181,14 @@ struct EditionView: View {
                             EmptyState(title: "Er is nog geen Editie", systemImage: "newspaper", text: "In de Stroom staat alles wat er wél is.")
                         }
                     } else {
-                        StaleNotice()
-                        Text([dateLine, store.isPersonal ? "Jouw Editie" : "De Editie voor iedereen"].filter { !$0.isEmpty }.joined(separator: " · "))
+                        // Eén metaregel, zoals op het web. De vaste spatie vóór de punt houdt die bij de
+                        // datum als de regel bij grote tekst breekt ("oktober ·", niet "· Jouw Editie").
+                        Text([dateLine, store.isPersonal ? "Jouw Editie" : "De Editie voor iedereen"].filter { !$0.isEmpty }.joined(separator: "\u{00A0}· "))
                             .font(.subheadline)
                             .foregroundStyle(Theme.ink3)
                             .padding(.bottom, Space.s4)
+                        // Kon er niet ververst worden, dan zegt dat het onder de datum: titel en datum blijven bij elkaar.
+                        StaleNotice(gap: Space.s4)
                         slot(rows[0]) { LeadCard(item: rows[0].item, label: rows[0].label, why: rows[0].why, story: rows[0].story) }
                         if wide {
                             // Breed: de rest in twee kolommen, elk verhaal met een lijn erboven.
@@ -204,6 +215,7 @@ struct EditionView: View {
                             Text("Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(dateLine.lowercased())").\(upNext)")
                                 .font(.subheadline)
                                 .multilineTextAlignment(.center)
+                                .frame(maxWidth: Layout.endcap) // ± 30 tekens per regel, zoals --measure-end
                             // De links direct onder elkaar: hun aanraakvlak (44 pt) is de ruimte ertussen,
                             // zodat tekst, seintje en Stroom op gelijke afstand staan.
                             VStack(spacing: 0) {

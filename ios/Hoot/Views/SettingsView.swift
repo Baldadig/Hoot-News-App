@@ -124,7 +124,12 @@ struct SettingsView: View {
                 } header: {
                     Text("Editie en Stroom")
                 } footer: {
-                    Text("Tijdlijn: het beeld groot onder de kop. Krant: klein ernaast, zoals op een krantensite. Ook in Bewaard en Zoeken. Buiten je bubbel: één verhaal waar veel mensen nu naar zoeken en dat niet in je Editie staat.").foregroundStyle(Theme.ink3)
+                    // Wat "Jouw Editie" in de metaregel betekent, één keer uitgelegd (zoals de hint op het web).
+                    VStack(alignment: .leading, spacing: Space.s2) {
+                        Text("Jouw Editie is samengesteld uit jouw bronnen en interesses.")
+                        Text("Tijdlijn: het beeld groot onder de kop. Krant: klein ernaast, zoals op een krantensite. Ook in Bewaard en Zoeken. Buiten je bubbel: één verhaal waar veel mensen nu naar zoeken en dat niet in je Editie staat.")
+                    }
+                    .foregroundStyle(Theme.ink3)
                 }
 
                 // Eén keuze (waar openen artikelen), met de uitzonderingen alleen als die gelden.

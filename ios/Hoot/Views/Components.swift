@@ -561,25 +561,45 @@ private struct PlayBadge: View {
     }
 }
 
-// Verversen lukte niet: zeg eerlijk welke versie je ziet, met een knop om het opnieuw te proberen.
+// Verversen lukte niet: zeg eerlijk dat je de laatste versie ziet, met een knop om het opnieuw te
+// proberen. Geen kloktijd (huisregel), en geen vlak: een haarlijn op papier, zodat de melding naast
+// het nieuws staat in plaats van erbovenop. 'Opnieuw' in inkt, niet in het rood van de tint.
 struct StaleNotice: View {
     @Environment(HootStore.self) private var store
+    var gap: CGFloat = Space.s3 // ruimte eronder; in de Editie 16, gelijk aan die tussen datum en melding
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         if store.stale {
-            HStack(alignment: .firstTextBaseline, spacing: Space.s3) {
+            // Midden uitgelijnd: bij twee regels erboven en eronder even veel ruimte. Bij heel grote
+            // tekst staat de knop onder de zin, op dezelfde kolomlijn (anders breekt hij af: "Op-nieuw").
+            HStack(spacing: Space.s3) {
                 Image(systemName: "wifi.slash").foregroundStyle(Theme.ink3)
-                Text(message).font(.subheadline).foregroundStyle(Theme.ink3).frame(maxWidth: .infinity, alignment: .leading)
-                Button("Opnieuw") { Task { await store.load() } }.font(.subheadline.weight(.semibold)).frame(minHeight: Space.tap)
+                if typeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 0) {
+                        message.padding(.top, Space.s2)
+                        retry
+                    }
+                } else {
+                    message
+                    retry
+                }
             }
-            .padding(Space.s3)
-            .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-            .padding(.bottom, Space.s3)
+            .padding(.horizontal, Space.s3)
+            .padding(.vertical, Space.s1) // met de knop van 44 een melding van 52, ook als de zin twee regels neemt
+            .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous).strokeBorder(Theme.rule, lineWidth: 1))
+            .padding(.bottom, gap)
             .accessibilityElement(children: .combine)
         }
     }
-    private var message: String {
-        guard let at = store.updatedAt else { return "Verversen lukt nu niet." }
-        return "Verversen lukt nu niet. Je ziet de versie van \(at.formatted(date: .omitted, time: .shortened))."
+    private var message: some View {
+        Text("Verversen lukt nu niet. Je ziet de laatste versie.").font(.subheadline).foregroundStyle(Theme.ink3).frame(maxWidth: .infinity, alignment: .leading)
+    }
+    private var retry: some View {
+        Button("Opnieuw") { Task { await store.load() } }
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(Theme.ink)
+            .fixedSize()
+            .frame(minHeight: Space.tap)
     }
 }
 
