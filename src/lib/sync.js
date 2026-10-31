@@ -1,8 +1,9 @@
 // Synchroniseren tussen toestellen — pure functies (tests/sync.test.mjs).
 
-// Instellingen die met je account meegaan. Wat bij het toestel hoort (indeling, tekstgrootte,
-// het paneel, de installatietip) blijft per toestel.
-export const SYNCED_PREFS = ['muted', 'pinned', 'enabled', 'interests', 'topics', 'preview', 'images', 'bubble', 'brief', 'bluesky', 'bskyInStream', 'onboarded', 'weatherPlace', 'followStories', 'vak', 'favorites', 'social', 'taste']
+// Instellingen die met je account meegaan, ook hoe je de Stroom leest (`layout`: Tijdlijn of Krant,
+// de app schrijft hem in hetzelfde veld). Wat bij het toestel hoort (tekstgrootte, kleur, het paneel,
+// de installatietip) blijft per toestel.
+export const SYNCED_PREFS = ['muted', 'pinned', 'enabled', 'interests', 'topics', 'preview', 'images', 'layout', 'bubble', 'brief', 'bluesky', 'bskyInStream', 'onboarded', 'weatherPlace', 'followStories', 'vak', 'favorites', 'social', 'taste']
 
 export const pickSynced = (prefs = {}) => Object.fromEntries(SYNCED_PREFS.filter((k) => k in prefs).map((k) => [k, prefs[k]]))
 

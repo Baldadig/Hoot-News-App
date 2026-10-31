@@ -224,8 +224,7 @@ final class HootStore {
     private var applyingRemote = false
     private func synced() { if !applyingRemote { syncTick &+= 1 } }
 
-    // Je instellingen in de vorm van de website (SYNCED_PREFS in src/lib/sync.js). `layout` staat daar
-    // nog niet bij: de app schrijft hem al in hetzelfde veld, het web volgt.
+    // Je instellingen in de vorm van de website (SYNCED_PREFS in src/lib/sync.js), `layout` erbij.
     var syncedPrefs: [String: Any] {
         [
             "muted": muted.sorted(), "enabled": enabled.sorted(), "vak": digestFields, "images": images, "layout": layout,

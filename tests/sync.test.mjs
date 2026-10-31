@@ -2,8 +2,8 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { mergeRead, mergeSaved, pickSynced } from '../src/lib/sync.js'
 
-test('alleen de gedeelde instellingen gaan mee; indeling en tekstgrootte blijven per toestel', () => {
-  assert.deepEqual(pickSynced({ layout: 'krant', textSize: 'groot', pinned: ['ai'], muted: ['nos'] }), { pinned: ['ai'], muted: ['nos'] })
+test('alleen de gedeelde instellingen gaan mee; hoe je de Stroom leest ook, tekstgrootte blijft per toestel', () => {
+  assert.deepEqual(pickSynced({ layout: 'krant', textSize: 'groot', pinned: ['ai'], muted: ['nos'] }), { layout: 'krant', pinned: ['ai'], muted: ['nos'] })
 })
 
 test('gelezen: samengevoegd zonder dubbelen, de nieuwste blijven', () => {

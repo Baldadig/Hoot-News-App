@@ -42,7 +42,7 @@ function app(local, { online = true } = {}) {
   }
   return a
 }
-const empty = { prefs: { layout: 'krant' }, read: [], seen: {}, saved: {} }
+const empty = { prefs: { textSize: 'groot' }, read: [], seen: {}, saved: {} }
 const entry = (id, savedAt = 1) => ({ kind: 'item', savedAt, item: { id, title: id } })
 
 test('eigenaar: zelfde account gaat door, anoniem wordt samengevoegd, een ander account vervangen', () => {
@@ -62,7 +62,7 @@ test('A → uitloggen → B in dezelfde browser: niets van A komt bij B', async 
   forgetAccount(ls, a.opts.setLocal, a.local.prefs) // uitloggen
   assert.deepEqual(a.local.saved, {})
   assert.deepEqual(a.local.read, [])
-  assert.equal(a.local.prefs.layout, 'krant') // toestelvoorkeur blijft
+  assert.equal(a.local.prefs.textSize, 'groot') // toestelvoorkeur blijft
   assert.equal(a.local.prefs.muted, undefined)
   assert.equal(ls.getItem(OWNER_KEY), 'anon')
   const B = server({ saved: { y: entry('y') } })
