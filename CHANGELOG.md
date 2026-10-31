@@ -2,6 +2,18 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## [1.56.0] — 2026-10-31 — De Redacteur kent je, een nieuwe Welkom met zonnen, en web en app gelijk
+
+- **De Redacteur, persoonlijk en gelijk op web en iOS:** Binnenland is Nederland. Een Binnenland-plek moet echt over Nederland gaan, en een lezer met Binnenland krijgt in zijn eerste Editie Nederlandse verhalen. Hooguit één buitenlands verhaal zonder dat je Wereld koos, en dan staat erbij waarom. Het label past bij het verhaal (Amerikaanse politiek is buitenland, geen economie). Eén gebeurtenis krijgt één plek: de rubberboot bij Breskens staat er niet twee keer in. Web en app rekenen met dezelfde kern en geven dezelfde Editie.
+- **Nieuwe Welkom met zonnetjes:** een rode intro waarin de zon opkomt, dan veeg je door Editie, Stroom en Selectie, elk met een eigen zon. Je interesses als tegels op één regel, Wat precies? op een eigen pagina, Je bronnen en Je Selectie als pagina's zonder scrollen. Een kleine, stille zon staat ook naast de naam van de Editie.
+- **Neutrale standaarden:** het voorstel voor je bronnen is gratis en Nederlands, en je Selectie begint leeg tot je zelf kiest.
+- **KISS-teksten:** kortere uitleg, betere labels en minder hints, op het web en in de app gelijk. Geen kloktijden meer in de teksten.
+- **Labels:** boven een verhaal staat je interesse alleen als het verhaal er echt over gaat (uit de kop of het vak van de bron); anders de rubriek. Web en app lezen dezelfde testgevallen.
+- **Stroom-tabs:** de Stroom toont Alles en je gekozen hoofdrubrieken in vaste volgorde, Buiten je bubbel als laatste. Koos je niets, dan alle acht.
+- **Creatieve ronde 1 en 2:** de Editie telt, dagdelen uit één tabel, lege staten als compositie, één grammatica voor gekozen, intro's in hele zinnen en koppen zoals een krant ze zet (gekrulde aanhaling, kastlijntje, vaste spatie). De app knipt en zet nu precies als het web, met dezelfde testgevallen.
+- **/api/voorpagina:** de bovenste drie plekken van de algemene Editie voor de landingspagina op gethoot.app: kop, bron, rubriek en aantal bronnen.
+- **Contact:** info@gethoot.app, in Over, Privacy en de app.
+
 ## [1.55.0] — 2026-10-31 — Eén designsysteem, de website gelijk aan de app, en De Redacteur stelt je Editie samen
 
 - **Designronde (WP00–WP20):** alle schermen zijn nagemeten en op één systeem gezet, van tokens tot de Stijl-pagina. Vóór en na zijn opgenomen op 375, 768, 1024, 1280 en 1440, licht en donker: 696 opnames, met dezelfde data.
