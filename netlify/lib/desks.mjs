@@ -2,6 +2,7 @@
 // Elke editie probeert per rubriek het belangrijkste verhaal van het moment te hebben:
 // binnenland, buitenland, VS, Midden-Oosten, Oekraïne en wetenschap (plus, in feed.mjs,
 // één verhaal van buiten je bubbel).
+import { OTHER_SPORT } from './topics.mjs'
 
 export const DESKS = ['binnenland', 'buitenland', 'vs', 'middenoosten', 'oekraine', 'wetenschap']
 export const DESK_LABEL = { binnenland: 'Binnenland', buitenland: 'Buitenland', vs: 'VS', middenoosten: 'Midden-Oosten', oekraine: 'Oekraïne', wetenschap: 'Wetenschap', bubbel: 'Buiten je bubbel' }
@@ -37,9 +38,12 @@ const NL_INST = [
   'kabinet-\\p{L}+', 'premier jetten', 'koning willem-alexander', 'willem-alexander', 'koningin máxima', 'prinses amalia', 'koningshuis',
   'rijkswaterstaat', 'rivm', 'knmi', 'prorail', 'nvwa', 'belastingdienst', 'toeslagen\\p{L}*', 'openbaar ministerie', 'raad van state',
   'hoge raad', 'algemene rekenkamer', 'marechaussee', 'nctv', 'aivd', 'mivd', 'de nederlandsche bank', 
-  'prinsjesdag', 'miljoenennota', 'belastingplan', 'box 3', 'npo', 'klm', 'ns-\\p{L}+', 'albert heijn',
-  'asml', 'tata steel', 'abn amro', 'rabobank', 'groningengas', 'koningsdag', 'elfstedentocht', 'aex', 'damrak',
+  'prinsjesdag', 'miljoenennota', 'belastingplan', 'box 3', 'npo', 'ns-\\p{L}+', 'groningengas', 'koningsdag', 'elfstedentocht',
 ]
+// Nederlandse bedrijven en de beurs: Nederlands bezit, maar ze werken ook in het buitenland. Met een
+// buitenlandse plek bewijzen ze niets (feedback 31 oktober: "KLM-crew vol ongeloof" over een dode
+// Lufthansa-medewerker in India stond onder Binnenland).
+const NL_CORP = W(['klm', 'albert heijn', 'asml', 'tata steel', 'abn amro', 'rabobank', 'aex', 'damrak'])
 const NL_PERSONS = ['jetten', 'wilders', 'yeşilgöz', 'yesilgoz', 'timmermans', 'bontenbal', 'van der plas', 'omtzigt', 'eerdmans', 'markuszower', 'dijkhoff', 'van essen', 'peter r\\. de vries']
 // Partijen: hoofdlettergevoelig (PvdA is Nederlands, PVDA Belgisch; CU, SP en BBB alleen als afkorting).
 const NL_PARTIES = W(['PVV', 'VVD', 'D66', 'CDA', 'GroenLinks', 'PvdA', 'GL-PvdA', 'SP', 'NSC', 'BBB', 'JA21', 'FvD', 'Forum voor Democratie', 'PvdD', 'Partij voor de Dieren', 'DENK', 'SGP', 'ChristenUnie', 'CU', '50Plus', '50PLUS', 'BIJ1'], 'u')
@@ -77,15 +81,24 @@ const RE = {
 
 // Sport, cultuur en games hebben hun eigen soort (kindOf in src/lib/personal.js): geen Binnenland.
 const KIND_TOPICS = new Set(['voetbal', 'f1', 'wielrennen', 'tennis', 'wintersport', 'olympisch', 'muziek', 'film', 'boeken', 'kunst', 'games'])
-const KIND_PATH = /\/(sport[\w-]*|voetbal|cultuur|cultuur-media|entertainment|showbizz|show|film|muziek|boeken|media)\//i
-const ownKind = ({ topics = [], url = '', section = '' }) => (topics || []).some((t) => KIND_TOPICS.has(t)) || KIND_PATH.test(url || '') || /^(sport|cultuur)/i.test(section || '')
+// De boulevard (RTL) is showbizz (feedback 31 oktober: de voogdij van de ex-man van Halle Berry stond
+// onder Binnenland); darts en andere sport zonder eigen onderwerp is sport (OTHER_SPORT).
+const KIND_PATH = /\/(sport[\w-]*|voetbal|darts|cultuur|cultuur-media|entertainment|showbizz|boulevard|show|film|muziek|boeken|media)\//i
+const ownKind = ({ topics = [], url = '', section = '', title = '' }) => (topics || []).some((t) => KIND_TOPICS.has(t)) || KIND_PATH.test(url || '') || /^(sport|cultuur)/i.test(section || '') || OTHER_SPORT.test(title || '')
 
 // Wat de kop en intro zeggen: sterk Nederlands bezit, en of er een buitenlandse plek, land of naam in
 // staat (de patronen van de rubrieken plus FOREIGN_EXTRA en België).
+// `home`: hetzelfde zonder de Nederlandse bedrijven (NL_CORP), het bezit dat ook bij een buitenlandse
+// plek telt; `strong`: alleen NL_STRONG (plaatsen, instellingen, personen), zonder de namen met
+// hoofdletter en de partijen, voor een Vlaamse bron (Ten Ede in Pijperzele is geen Ede).
 export function placeSignals({ title = '', summary = '', text = '' }) {
   const t = `${title} ${summary || text}`
+  const strong = NL_STRONG.test(t)
+  const home = strong || NL_CASE.test(t) || NL_PARTIES.test(t)
   return {
-    nl: NL_STRONG.test(t) || NL_CASE.test(t) || NL_PARTIES.test(t),
+    nl: home || NL_CORP.test(t),
+    home,
+    strong,
     foreign: FOREIGN_EXTRA.test(t) || BE.test(t) || BE_CASE.test(t),
   }
 }
@@ -115,7 +128,9 @@ const NOT_HOME_SECTION = /(^|\s)(tech|economie|wetenschap|opinie|columns?)(\s|$)
 //  2. Sport, cultuur en games: nee (eigen soort). Een Nederlandse bron die het zelf onder Buitenland
 //     zet: nee.
 //  3. Sterk Nederlands bezit in kop of intro: ja, ook bij een buitenlandse plek ("Premier Jetten bij
-//     G20-top in Johannesburg"), maar dan moet het bezit in de kop staan (regels 1 tot 3). Uit een
+//     G20-top in Johannesburg"), maar dan moet het bezit in de kop staan (regels 1 tot 3) en is een
+//     Nederlands bedrijf geen bewijs (KLM bij een dode Lufthansa-medewerker in India). Een Vlaamse bron
+//     alleen met een Nederlandse plaats, instelling of persoon in de kop. Uit een
 //     buitenlandse bron alleen zonder buitenlandse plek: de Guardian over Wilders wel, een Vlaams
 //     royaltyrondje over Amalia én koning Charles niet.
 //  4. Geen Nederlandse bron: nee (Vlaamse /binnenland/ is België).
@@ -139,11 +154,14 @@ export function isBinnenland(it, { storyForeign = false, foreign = textForeignOf
   const abroad = foreign || sig.foreign
   // Met een buitenlandse plek moet het Nederlandse bezit in de kop staan: daar staat het onderwerp. Een
   // intro die meldt dat KLM niet naar Dubai vliegt, maakt een stuk over Iran geen Binnenland.
-  const nl = abroad ? placeSignals({ title: it.title || '' }).nl : sig.nl
+  // Een Nederlands bedrijf (KLM) bewijst dan niets, en een Vlaamse bron moet een echte Nederlandse plaats,
+  // instelling of persoon in de kop hebben.
+  const head = placeSignals({ title: it.title || '' })
+  const nl = VL_HOME.has(it.source) ? head.strong : abroad ? head.home : sig.nl
   const sec = `${it.section || ''} ${it.url || ''}`.toLowerCase()
   if (home && /binnenland|\/politiek\//.test(sec) && (!abroad || nl)) return true
   if (ownKind(it)) return false
-  if (home && /buitenland|\/world\//.test(sec) && !placeSignals({ title: it.title || '' }).nl) return false
+  if (home && /buitenland|\/world\//.test(sec) && !head.home) return false
   if (nl && (home || !abroad)) return true
   if (!home) return false
   if (abroad || storyForeign) return false

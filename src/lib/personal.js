@@ -12,9 +12,10 @@
 // Rekenregels als in shared/editor.mjs (web en iOS moeten bit-gelijk uitkomen): alleen + − × ÷,
 // Math.round/min/max/floor en Date.parse; elke sortering heeft een totale vergelijker.
 import { selectForReader, EDITION_SIZE, signatures, sameEvent, seenBefore, developedSince, recentEditions } from '../../netlify/lib/stories.mjs'
-import { deskOfStory, VL_HOME } from '../../netlify/lib/desks.mjs'
+import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
+import { trustedTopics, OTHER_SPORT } from '../../netlify/lib/topics.mjs'
 import { INTERESTS } from './topics.js'
-import { supplyOf, profileOf, personalParts, sumParts, tempoWindows, outsideProfile, strongestFamily, whyOf, NEIGHBOURS, FAMILY_OF, FOREIGN_DESKS, INT_MAX, MIN_WHY_PTS, FRONT_BIG } from '../../shared/editor.mjs'
+import { supplyOf, profileOf, personalParts, sumParts, tempoWindows, outsideProfile, strongestFamily, whyOf, geoOf, NEIGHBOURS, FAMILY_OF, FOREIGN_DESKS, INT_MAX, MIN_WHY_PTS, FRONT_BIG, OUTSIDE_FAMILY, KERN, KERN_MIN } from '../../shared/editor.mjs'
 
 export const EXTERN = 'extern' // rubriek van een aangevuld verhaal
 export const WIDE = 'breed' // "Waar iedereen over schrijft"
@@ -36,6 +37,20 @@ const TOPIC_KIND = { voetbal: 'sport', f1: 'sport', wielrennen: 'sport', tennis:
 const SPECIALIST = new Set(['tech', 'economie', 'wetenschap'])
 const NEAR_MIN_SOURCES = 3 // "Naast je bubbel": een verhaal dat breed genoeg gedekt is
 const byText = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
+
+// De onderwerpen zoals de lezer ze kan nagaan (trustedTopics in netlify/lib/topics.mjs): een server van
+// vóór de laatste trefwoorden levert nog "angst" als Brein en "meldt Omroep Zeeland" als Media. Een kopie
+// alleen als er iets verandert, en één keer per bericht (de rubriek per bericht wordt ook onthouden).
+const trusted = new WeakMap()
+export function withTrustedTopics(it) {
+  if (!it || typeof it !== 'object' || !it.topics) return it
+  let c = trusted.get(it)
+  if (!c) {
+    const t = trustedTopics(it)
+    trusted.set(it, (c = t === it.topics ? it : { ...it, topics: t }))
+  }
+  return c
+}
 
 // De verhalen zoals deze lezer ze ziet. `ownCount` telt de verschillende bronnen in het verhaal
 // die jij volgt (de server telt Hoots basisbronnen): zo krijgt een verhaal dat van jouw bronnen
@@ -71,9 +86,12 @@ export function storiesForReader(stories = [], items = [], followed = new Set(),
 // Velden met een `_` (zoals `_parts`) zijn alleen ter inzage; withoutDebug haalt ze eraf.
 export function composePersonal({ global, stories = [], items = [], sources = [], followed = new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = new Set() }) {
   if (!global?.entries?.length) return null
+  items = items.map(withTrustedTopics)
+  global = { ...global, items: (global.items || []).map(withTrustedTopics), wide: (global.wide || []).map((w) => (w?.item ? { ...w, item: withTrustedTopics(w.item) } : w)) }
   const catOf = new Map(sources.map((s) => [s.id, s.cat]))
   // Soort bericht: de rubriek van de bron, tenzij het onderwerp sport, cultuur of games is.
   const kindOf = (i) => {
+    if (OTHER_SPORT.test(`${i.title || ''} ${i.summary || ''}`)) return 'sport' // darts heeft geen onderwerp (en Netflix maakt het geen film)
     const byTopic = (i.topics || []).map((t) => TOPIC_KIND[t]).find(Boolean)
     if (byTopic) return byTopic
     const cat = catOf.get(i.source)
@@ -151,7 +169,33 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     if (vervolg) out = e.kind === 'item' ? { ...out, id: leadId, vervolg } : { ...out, leadId, vervolg }
     return out
   }
-  const wideAny = (global.wide || []).some((w) => w?.item?.id && !covered(w) && unread(w.item.id, w.storyId))
+  // Wie interesses koos maar Wereld niet, krijgt buitenland zonder reden hooguit INT_MAX keer in de hele
+  // Editie (zie selectForReader): is die grens al bereikt, dan is een buitenlands breed verhaal of
+  // bubbelstuk geen optie meer, ook niet als groot nieuws (feedback 31 oktober: de G20 en Oekraïne bij de
+  // vriendin, die het Poolse hof al op de voorpagina had).
+  const capAbroad = Object.keys(prof.family).length > 0
+  const strictInt = capAbroad && (prof.family.wereld || 0) < OUTSIDE_FAMILY
+  const mineById = new Map(mineStories.map((st) => [st.id, st]))
+  // `big`: groot nieuws telt alleen als buitenland met een buitenlandse rubriek (zie selectForReader).
+  const unchosenAbroad = (id, sid, big = false) => {
+    if (!strictInt) return false
+    const st = mineById.get(sid || storyOfItem.get(id))
+    // Zonder verhaal: dezelfde gebeurtenis bij andere bronnen (het AD noemt Corinthians, de NOS "de
+    // Braziliaanse club Corinthians").
+    const sig = st ? null : sigAll.get(id)
+    const mates = sig ? [...sigAll].filter(([x, s2]) => x !== id && sameEvent(sig, s2)).map(([x]) => x) : []
+    const members = [...new Set([id, ...(st?.itemIds || []), ...mates])].map((x) => itemAny.get(x)).filter(Boolean)
+    if (!members.length) return false
+    const desk = st ? st.desk : null
+    const foreign = st && st.nlCount !== undefined ? st.nlCount * 2 < st.sourceCount : members.length > 1 && storyForeignOf(members)
+    const geos = members.map((m) => geoOf(m, desk, foreign))
+    const int = geos.filter((g) => g === 'int').length
+    const abroad = FOREIGN_DESKS.has(desk) || (!big && (foreign || (int > geos.filter((g) => g === 'nl').length && int * 2 >= geos.length)))
+    return abroad && (personalParts(members, prof, {}, { desk, foreign }).interest?.pts || 0) < MIN_WHY_PTS
+  }
+  // Een plek vrijhouden alleen voor een breed verhaal dat zeker mag; een buitenlands verhaal kan na de
+  // selectie nog, als de grens het toelaat, in de plaats van je lichtste plek.
+  const wideAny = (global.wide || []).some((w) => w?.item?.id && !covered(w) && unread(w.item.id, w.storyId) && !unchosenAbroad(w.item.id, w.storyId, bigWide(w)))
   const size = EDITION_SIZE - (bubbleEntry ? 1 : 0) - (wideAny ? 1 : 0)
   const opts = { mainIds: followed, now, previous, preferred, prof, ctx, seed }
   // Het extra blok kiest er een paar meer, zodat een verhaal dat het nieuws al heeft (de dood van een
@@ -166,8 +210,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const news = sel.map((e) => (!e.planned && !e.front && SPECIALIST.has(leadCat(e)) ? { ...e, desk: leadCat(e) } : e))
   const inNews = new Set(news.flatMap((e) => e.itemIds || [e.id]))
   // Buitenland zonder persoonlijke reden blijft ook hier binnen de grens (INT_MAX, zie selectForReader).
-  const capAbroad = Object.keys(prof.family).length > 0
-  let abroad = sel.abroad.size
+  let abroad = sel.counted.size
   const extra = []
   for (const e of extraAll) {
     if (extra.length >= extraN) break
@@ -185,7 +228,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   //    profiel; anders het minst passende vrije verhaal (laagste fit, dan de meeste bronnen).
   //    Vóór het aanvullen gekozen, zodat het zijn eigen label krijgt in plaats van "Buiten je bronnen".
   const fitOf = (w) => Math.max(0, ...(w.topics || []).map((t) => Math.max(prof.topicP[t] || 0, prof.shareOf[t] || 0)))
-  const free = (w) => w?.item?.id && !taken.has(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId)
+  const free = (w) => w?.item?.id && !taken.has(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !(abroad >= INT_MAX && unchosenAbroad(w.item.id, w.storyId, bigWide(w)))
   //    Groot nieuws dat er nog niet in staat, gaat voor (zie hierboven), ook daar eerst buiten je profiel.
   const wide0 =
     (global.wide || []).find((w) => free(w) && bigWide(w) && outsideProfile(w.topics, prof)) ||
@@ -197,14 +240,18 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // dan ruilt je lichtste plek ervoor (niet de voorpagina, niet ander groot nieuws).
   let swapped = 0
   if (wide && !wideAny) {
-    const light = news.map((e, i) => ({ e, i })).filter(({ e }) => !e.front && (e.sourceCount || 0) < FRONT_BIG).sort((a, b) => a.e.w - b.e.w || byText(b.e.id, a.e.id))[0]
+    // Niet de enige plek van een kernrubriek als de Editie er dan te weinig heeft (een krant, geen bubbel).
+    const kernOf = (es) => new Set(es.map((x) => x.desk).filter((d) => KERN.includes(d))).size
+    const keepsKern = (e) => kernOf(news.filter((x) => x !== e)) >= Math.min(KERN_MIN, kernOf(news))
+    const light = news.map((e, i) => ({ e, i })).filter(({ e }) => !e.front && (e.sourceCount || 0) < FRONT_BIG && keepsKern(e)).sort((a, b) => a.e.w - b.e.w || byText(b.e.id, a.e.id))[0]
     if (light) {
       news.splice(light.i, 1)
       for (const id of membersOf(light.e)) taken.delete(id)
-      if (sel.abroad.has(light.e.id)) abroad--
+      if (sel.counted.has(light.e.id)) abroad--
       swapped = 1
     } else wide = null // geen plek om te ruilen
   }
+  if (wide && unchosenAbroad(wide.item.id, wide.storyId, bigWide(wide))) abroad++
   const wideEntry = wide ? withHistory({ kind: 'story', id: wide.storyId, leadId: wide.item.id, desk: WIDE, sourceCount: wide.sourceCount }, wide.item.id, wide.storyId) : null
   if (wideEntry) for (const id of [wide.item.id, ...(storyById.get(wide.storyId)?.itemIds || [])]) taken.add(id)
 
@@ -222,18 +269,21 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // is er dan te weinig, dan toch.
   const fill = []
   const unchosenG = (g) => FOREIGN_DESKS.has(g.desk) && (personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), prof, {}, { desk: g.desk }).interest?.pts || 0) < MIN_WHY_PTS
-  for (const strict of [true, false]) {
-    for (const { g } of fillCands) {
-      if (news.length + fill.length >= fillTo) break
-      const m = membersOf(g)
-      if ([...m].some((id) => taken.has(id))) continue
-      const gi = unchosenG(g)
-      if (strict && capAbroad && gi && abroad >= INT_MAX) continue
-      for (const id of m) taken.add(id)
-      if (gi) abroad++
-      fill.push(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null }, g.leadId || g.id, g.kind === 'story' ? g.id : null))
+  const fillUp = (to) => {
+    for (const strict of [true, false]) {
+      for (const { g } of fillCands) {
+        if (news.length + fill.length >= to) break
+        const m = membersOf(g)
+        if ([...m].some((id) => taken.has(id))) continue
+        const gi = unchosenG(g)
+        if (strict && capAbroad && gi && abroad >= INT_MAX) continue
+        for (const id of m) taken.add(id)
+        if (gi) abroad++
+        fill.push(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null }, g.leadId || g.id, g.kind === 'story' ? g.id : null))
+      }
     }
   }
+  fillUp(fillTo)
 
   // 6. Buiten je bubbel: niet iets dat al in je Editie staat, en ook niet iets binnen je profiel
   //    (geen Ajax voor de sportlezer). Geen trend-signaal buiten je profiel? Dan het breedst gedekte
@@ -242,7 +292,9 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const topicsOfStory = (sid, id) => [...new Set((storyById.get(sid)?.itemIds || [id]).flatMap((x) => itemAny.get(x)?.topics || []))]
   let nearItem = null
   if (bubbleEntry) {
-    const okB = (b) => itemAny.has(b.id) && !clashes(b.id) && unread(b.id, b.storyId) && outsideProfile(topicsOfStory(b.storyId, b.id), prof)
+    // Zonder Wereld geen buitenlands bubbelstuk (feedback 31 oktober: Seedorf bij Corinthians, Braziliaans
+    // voetbal, ook voor wie alleen Binnenland koos): dan het volgende signaal, of "Naast je bubbel".
+    const okB = (b) => itemAny.has(b.id) && !clashes(b.id) && unread(b.id, b.storyId) && outsideProfile(topicsOfStory(b.storyId, b.id), prof) && !(abroad >= INT_MAX && unchosenAbroad(b.id, b.storyId))
     // Eerst het signaal dat de algemene editie koos, dan de andere kandidaten van de server.
     const first = (global.bubble || []).find((b) => b.id === bubbleEntry.id) || { id: bubbleEntry.id }
     const alt = [first, ...(global.bubble || [])].find(okB)
@@ -256,7 +308,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
         .filter((st) => st.sourceCount >= NEAR_MIN_SOURCES && now - Date.parse(st.latestAt) < 24 * 36e5)
         .sort((a, b) => b.sourceCount - a.sourceCount || byText(a.id, b.id))
         .map((st) => ({ storyId: st.id, sourceCount: st.sourceCount, topics: topicsOfStory(st.id), item: itemAny.get(st.leadId) || st.itemIds.map((x) => itemAny.get(x)).find(Boolean) }))
-      const fits = (w) => w?.item?.id && !clashes(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && unread(w.item.id, w.storyId) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t]))
+      const fits = (w) => w?.item?.id && !clashes(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && unread(w.item.id, w.storyId) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t])) && !(abroad >= INT_MAX && unchosenAbroad(w.item.id, w.storyId))
       const pick = [...(global.near || []), ...recent].find(fits)
       bubbleEntry = pick ? withHistory({ kind: 'story', id: pick.storyId, leadId: pick.item.id, desk: 'bubbel', near: home }, pick.item.id, pick.storyId) : null
       if (pick) {
@@ -265,6 +317,10 @@ export function composePersonal({ global, stories = [], items = [], sources = []
       }
     }
   }
+
+  // Geen bubbelstuk gevonden: dan vult de algemene Editie die plek, zodat er altijd tien staan.
+  if (bubbleEntry) taken.add(bubbleEntry.leadId || bubbleEntry.id)
+  else if (global.entries.some((e) => e.desk === 'bubbel')) fillUp(fillTo + 1)
 
   // 7. Volgorde: eigen nieuws, aangevuld nieuws, dan sport/cultuur; "Buiten je bubbel" op plek 6,
   //    "Waar iedereen over schrijft" direct daarna.

@@ -13,6 +13,7 @@
 import { INTERESTS, topicById } from '../src/lib/topics.js'
 import { MIN_EVENTS } from '../src/lib/affinity.js'
 import { DESKS, DESK_LABEL, desksOf, storyForeignOf, VL_HOME } from '../netlify/lib/desks.mjs'
+import { shownTopics } from '../netlify/lib/topics.mjs'
 
 // De buitenlandse kernrubrieken (Binnenland is Nederland, zie netlify/lib/desks.mjs).
 export const FOREIGN_DESKS = new Set(['buitenland', 'vs', 'middenoosten', 'oekraine'])
@@ -146,13 +147,15 @@ function topicHits(item, prof, geo = null) {
   const abroad = geo === 'int' && !VL_HOME.has(item.source)
   // VS-politiek is ook geografie: het trefwoord "verkiezing" maakte van Lula's zege in Brazilië VS-politiek.
   const notUs = ts.includes('vs-politiek') && !desksOf(item).has('vs')
-  const out = ts.filter((t) => prof.topicP[t] !== undefined && !(abroad && FAMILY_OF[t] === 'binnenland' && prof.topicP[t] > 0) && !(notUs && t === 'vs-politiek' && prof.topicP[t] > 0)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source }))
+  // `seen`: kop of intro noemt het onderwerp zelf (shownTopics); alleen zo'n treffer mag het waarom zijn.
+  const vis = shownTopics(item)
+  const out = ts.filter((t) => prof.topicP[t] !== undefined && !(abroad && FAMILY_OF[t] === 'binnenland' && prof.topicP[t] > 0) && !(notUs && t === 'vs-politiek' && prof.topicP[t] > 0)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source, seen: !vis || vis.includes(t) }))
   const fb = prof.family.binnenland || 0
-  if (fb > 0 && geo === 'nl') out.push({ t: GEO_NL, f: 'binnenland', v: Math.min(fb, W_INHERITED), s: item.source })
+  if (fb > 0 && geo === 'nl') out.push({ t: GEO_NL, f: 'binnenland', v: Math.min(fb, W_INHERITED), s: item.source, seen: true })
   if (!ts.length) {
     const cat = prof.catOf.get(item.source)
     const fam = cat && INTERESTS.find((f) => f.cats.includes(cat))
-    if (fam && prof.family[fam.id]) out.push({ t: `bron:${cat}`, f: fam.id, v: SOURCE_CAT_P * prof.family[fam.id], s: item.source })
+    if (fam && prof.family[fam.id]) out.push({ t: `bron:${cat}`, f: fam.id, v: SOURCE_CAT_P * prof.family[fam.id], s: item.source, seen: true })
   }
   return out
 }
@@ -190,19 +193,25 @@ export function personalParts(items = [], prof, ctx = {}, story = {}) {
     // Het label komt van de treffer die het verhaal het best dekt (dekking × waarde), niet van
     // het ene bericht met het sterkste onderwerp: een gemengd verhaal is geen VS-politiek omdat
     // één stuk dat is.
-    const coverOf = (t) => hits.filter((hs) => hs.some((h) => h.t === t)).length / items.length
-    const label = [...new Map(pos.map((h) => [h.t, h])).values()]
-      .map((h) => ({ ...h, c: coverOf(h.t) * h.v }))
+    // Een stuk van een vakbron zonder onderwerp (NOS Cultuur over de dood van Patrick Stewart) telt mee
+    // voor het onderwerp van hetzelfde gebied dat de andere stukken noemen: "Film & series", niet "Uit je
+    // vakbronnen". Alleen een onderwerp dat kop of intro noemt (`seen`) kan het label zijn; is er geen,
+    // dan geeft de interesse wel punten maar geen waarom (`shown: false`).
+    const vak = (h) => h.t.startsWith('bron:')
+    const coverOf = (l) => hits.filter((hs) => hs.some((h) => h.t === l.t || (vak(h) && !vak(l) && h.f === l.f))).length / items.length
+    const seenPos = pos.filter((h) => h.seen)
+    const label = [...new Map((seenPos.length ? seenPos : pos).map((h) => [h.t, h])).values()]
+      .map((h) => ({ ...h, c: coverOf(h) * h.v }))
       .sort((a, b) => b.c - a.c || (a.t === GEO_NL) - (b.t === GEO_NL) || strongestFirst(a, b))[0] // het onderwerp zelf gaat voor "Binnenland"
-    parts.interest = { pts: Math.round(P.INTEREST * best.v * (0.5 + 0.5 * cover)), t: label.t, f: label.f, origin: prof.origin?.[label.t] || 'gekozen' }
+    parts.interest = { pts: Math.round(P.INTEREST * best.v * (0.5 + 0.5 * cover)), t: label.t, f: label.f, origin: prof.origin?.[label.t] || 'gekozen', ...(seenPos.length ? {} : { shown: false }) }
     // Een snijvlak alleen als beide gebieden het verhaal echt raken (feedback 31 oktober: "Raakt
     // Wetenschap én Binnenland" bij de rellen in Den Haag, door het trefwoord "angst"; "Raakt Cultuur
     // én Wetenschap" bij een animeprijs van Variety): elk gebied in meer dan de helft van de berichten,
     // en een vakbron telt alleen voor zijn eigen gebied (Variety is Cultuur, geen Gezondheid).
     const famCat = (h) => FAMILY_OF_CAT[prof.catOf?.get(h.s)]
-    const crossHits = hits.map((hs) => hs.filter((h) => h.v >= CROSS_MIN && (!famCat(h) || famCat(h) === h.f)))
+    const crossHits = hits.map((hs) => hs.filter((h) => h.v >= CROSS_MIN && h.seen && (!famCat(h) || famCat(h) === h.f)))
     const famCover = (f) => crossHits.filter((hs) => hs.some((h) => h.f === f)).length * 2 > items.length
-    const cross = pos.filter((h) => h.v >= CROSS_MIN && famCover(h.f))
+    const cross = pos.filter((h) => h.v >= CROSS_MIN && h.seen && famCover(h.f))
     const first = cross[0]
     const second = first && cross.find((h) => h.f !== first.f)
     if (second) parts.cross = { pts: P.CROSS, f: [first.f, second.f] }
@@ -316,11 +325,13 @@ export function whyOf(entry = {}, { parts = {}, sourceCount = 0, desk = entry.de
   if (entry.front && sourceCount >= FRONT_SOURCES) return { code: 'groot', text: `Groot nieuws · ${sourceCount} bronnen` }
   // Het zwaarste part telt; bij gelijke stand de volgorde van de tabel in de bouwspec (§6).
   const rank = (k) => (WHY_ORDER.includes(k) ? WHY_ORDER.indexOf(k) : WHY_ORDER.length)
-  const [code, p] = Object.entries(parts).filter(([, x]) => (x.pts || 0) >= MIN_WHY_PTS).sort((a, b) => b[1].pts - a[1].pts || rank(a[0]) - rank(b[0]) || byId(a[0], b[0]))[0] || []
+  const [code, p] = Object.entries(parts).filter(([k, x]) => (x.pts || 0) >= MIN_WHY_PTS && !(k === 'interest' && x.shown === false)).sort((a, b) => b[1].pts - a[1].pts || rank(a[0]) - rank(b[0]) || byId(a[0], b[0]))[0] || []
   if (code === 'followUp') return { code, text: `Vervolg op wat je las · ${p.n} nieuwe stukken` }
   if (parts.cross && (code === 'interest' || code === 'cross')) return { code: 'cross', text: `Raakt ${FAMILY_LABEL[parts.cross.f[0]]} én ${FAMILY_LABEL[parts.cross.f[1]]}` }
   if (code === 'interest') {
-    if (p.t.startsWith('bron:')) return { code: 'vak', text: 'Uit je vakbronnen' }
+    // Een vakbron zonder onderwerp: het gebied dat je koos (feedback 31 oktober: "Uit je vakbronnen" bij
+    // NOS Cultuur over de dood van Patrick Stewart zei de vriendin niets; zij koos Cultuur).
+    if (p.t.startsWith('bron:')) return { code: 'vak', text: `Omdat je ${FAMILY_LABEL[p.f] || 'dit gebied'} volgt` }
     if (p.t === GEO_NL) return { code, text: `Omdat je ${FAMILY_LABEL.binnenland} volgt` }
     if (p.origin === 'geleerd') return { code: 'learned', text: `Omdat je vaak over ${labelOf(p.t)} leest` }
     return { code, text: `Omdat je ${labelOf(p.t)} volgt` }

@@ -102,6 +102,8 @@ export function measureFirst(data, personas = FIRST, compose = composePersonal) 
     const bi = p.interests.includes('binnenland')
     return {
       id: p.id,
+      // Buitenland zonder gekozen reden in de hele Editie: voorpagina, groot nieuws, breed en bubbel meegeteld.
+      intTotaal: p.interests.includes('wereld') ? null : es.filter((x) => x.geo === 'INT' && !x.real).length,
       binnenland: bi ? es.filter((x) => !x.fixed && x.geo === 'NL' && x.nlNews).length : null,
       intOngekozen: es.filter((x) => !x.fixed && !x.front && x.geo === 'INT' && !x.real).length,
       voorpaginaNl: es.filter((x) => x.front && x.geo === 'NL').length,
@@ -144,15 +146,18 @@ export function verdictFirst(rows) {
 }
 
 // ---- Binnenland is Nederland ----
-// Fout: een Binnenland-label bij een bericht dat aantoonbaar niet over Nederland gaat. Zonder sterk
-// Nederlands bezit (een plaats, instelling, partij of persoon die alleen in Nederland bestaat) is dat:
+// Fout: een Binnenland-label bij een bericht dat aantoonbaar niet over Nederland gaat. Een Vlaamse bron
+// zonder Nederlandse plaats, instelling of persoon in de kop (de slagerij in Pijperzele), en een stuk uit
+// de showbizz-rubriek (de boulevard van RTL over Halle Berry), zijn dat altijd. Verder, zonder sterk
+// Nederlands bezit (een plaats, instelling, partij of persoon die alleen in Nederland bestaat; een
+// Nederlands bedrijf als KLM telt niet, dat werkt ook in India):
 //  - een buitenlandse plek, land of naam in kop of intro, of een verhaal van vooral buitenlandse bronnen;
 //  - een buitenlands bedrijf, merk of markt uit FOREIGN_NAMES (een eigen lijst van de maat, niet van de
 //    regel in desks.mjs: zo ziet de maat wat de regel mist, zoals Apple, Google en Anthropic), tenzij het
 //    bericht een Nederlands thema heeft (politie, zorg, wonen);
 //  - Engelse tekst (een Nederlands stuk is Nederlandstalig).
 // Een Nederlandse bron telt nooit als bewijs (dat deed de vorige maat, en dan is 0 altijd de uitkomst).
-const FOREIGN_NAMES = /(?<![\p{L}\p{N}])(apple|iphone|nvidia|google|alphabet|anthropic|openai|chatgpt|microsoft|meta|facebook|instagram|whatsapp|amazon|intel|tesla|netflix|spotify|samsung|tiktok|bytedance|x\.com|youtube|uber|airbnb|disney|warner|paramount|lufthansa|boeing|wall street|nasdaq|dow jones|s&p 500|silicon valley|hollywood|pangram|call of duty|nintendo|sony|playstation|xbox)(?![\p{L}\p{N}])/iu
+const FOREIGN_NAMES = /(?<![\p{L}\p{N}])(halle berry|taylor swift|beyoncé|kardashian|britney spears|leonardo dicaprio|tom cruise|apple|iphone|nvidia|google|alphabet|anthropic|openai|chatgpt|microsoft|meta|facebook|instagram|whatsapp|amazon|intel|tesla|netflix|spotify|samsung|tiktok|bytedance|x\.com|youtube|uber|airbnb|disney|warner|paramount|lufthansa|boeing|wall street|nasdaq|dow jones|s&p 500|silicon valley|hollywood|pangram|call of duty|nintendo|sony|playstation|xbox)(?![\p{L}\p{N}])/iu
 // Woorden die alleen Engels zijn (niet "is", "of" of "over", die ook Nederlands zijn).
 const ENGLISH = /(?<![\p{L}])(the|and|with|from|after|says|said|into|will|would|their|been|which)(?![\p{L}])/giu
 const english = (t) => (t.match(ENGLISH) || []).length >= 2
@@ -160,14 +165,24 @@ const english = (t) => (t.match(ENGLISH) || []).length >= 2
 // zoekt naar Google Pixel-telefoons is Binnenland.
 const NL_THEMES = new Set(['nederland', 'wonen', 'zorg', 'onderwijs', 'misdaad', 'migratie', 'verkeer'])
 const textOf = (i) => `${i.title || ''} ${i.summary || ''}`
+// Landen, los van de patronen in desks.mjs: zo telt "India" ook als de regel het bericht om KLM toch
+// Nederlands vond. Geen bijvoeglijke naamwoorden die ook een taal of soort zijn ("Engelse les").
+const FOREIGN_PLACES = /(?<![\p{L}\p{N}])(india|indiase|indiaas|bangalore|duitsland|frankrijk|belgi\p{L}*|spanje|italië|polen|brazili\p{L}*|verenigde staten|engeland|china|japan|rusland|oekraïn\p{L}*|turkije|griekenland)(?![\p{L}\p{N}])/iu
+const SHOWBIZ = /\/(boulevard|showbizz|entertainment|celebrities)\//i
 function notDutch(i, storyForeign = false) {
-  if (placeSignals(i).nl) return null
-  if (placeSignals(i).foreign || [...desksOf(i)].some((d) => FOREIGN.has(d))) return 'buitenlandse plek'
+  const head = placeSignals({ title: i.title || '' })
+  if (VL_HOME.has(i.source) && !head.strong) return 'Vlaamse bron'
+  if (SHOWBIZ.test(i.url || '')) return 'showbizz-rubriek'
+  const sig = placeSignals(i)
+  const abroad = sig.foreign || FOREIGN_PLACES.test(textOf(i)) || [...desksOf(i)].some((d) => FOREIGN.has(d))
+  if (abroad ? head.home : sig.nl) return null // een Nederlands bedrijf telt alleen zonder buitenlandse plek
+  if (abroad) return 'buitenlandse plek'
   if (storyForeign) return 'verhaal van vooral buitenlandse bronnen'
   if (FOREIGN_NAMES.test(textOf(i)) && !(i.topics || []).some((t) => NL_THEMES.has(t))) return 'buitenlandse naam'
   if (english(textOf(i))) return 'Engelse tekst'
   return null
 }
+export { notDutch }
 const hashOf = (s) => {
   let h = 5381
   for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0

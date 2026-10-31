@@ -4,7 +4,7 @@
 import { DESKS, desksOf, primaryDesk, storyDesks, deskOfStory, storyForeignOf, weight } from './desks.mjs'
 
 import { hash } from '../../shared/util.mjs'
-import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, KERN, KERN_MIN, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX, FOREIGN_DESKS, NL_OTHER_W, FRONT_NL_MIN, FRONT_NL_HOME, INT_MAX, MIN_WHY_PTS } from '../../shared/editor.mjs'
+import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, KERN, KERN_MIN, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX, FOREIGN_DESKS, NL_OTHER_W, FRONT_NL_MIN, FRONT_NL_HOME, INT_MAX, MIN_WHY_PTS, OUTSIDE_FAMILY } from '../../shared/editor.mjs'
 export { hash }
 
 // Een onleesbare tijd telt als heel oud (anders geeft de vergelijking NaN en raakt de sortering,
@@ -1098,11 +1098,21 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   const abroad = (c) => foreign(c) || FOREIGN_DESKS.has(c.primary) || FOREIGN_DESKS.has(c.home)
   const unchosen = (c) => abroad(c) && (c.parts.interest?.pts || 0) < MIN_WHY_PTS
   const capOn = plan && Object.keys(prof?.family || {}).length > 0
-  let intN = 0
-  const capped = (c) => capOn && unchosen(c) && intN >= INT_MAX
-  const takeCapped = (c, desk, extra, force = false) => {
+  // Wie interesses koos maar Wereld niet (`strictInt`), krijgt in de hele Editie hooguit INT_MAX
+  // buitenlandse verhalen zonder reden, een buitenlands verhaal op de voorpagina en groot nieuws
+  // meegeteld (feedback 31 oktober: de vriendin kreeg het Poolse hof op de voorpagina, de G20 als groot
+  // nieuws én Oekraïne als breed verhaal). Groot nieuws uit een buitenlandse rubriek gaat dan niet meer
+  // langs de grens; groot nieuws zonder rubriek (de dood van Patrick Stewart) wel, en dat telt niet mee.
+  // Verder gaat alleen de kernregel (een krant heeft minstens KERN_MIN kernrubrieken) er nog langs; zo'n
+  // plek telt ook niet mee en komt achteraan. `counted`: de verhalen die tegen de grens tellen.
+  const strictInt = capOn && (prof?.family?.wereld || 0) < OUTSIDE_FAMILY
+  const counted = new Set()
+  const capped = (c) => capOn && unchosen(c) && counted.size >= INT_MAX
+  // `exempt`: gaat langs de grens en telt dan ook niet mee (zonder Wereld: de kernregel, en groot nieuws
+  // zonder buitenlandse rubriek).
+  const takeCapped = (c, desk, extra, force = false, exempt = false) => {
     if ((!force && capped(c)) || !take(c, desk, extra)) return false
-    if (unchosen(c)) intN++
+    if (unchosen(c) && !(strictInt && exempt)) counted.add(c.id)
     return true
   }
   let deskOrder = []
@@ -1121,8 +1131,10 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     for (const c of front) {
       if (entries.length >= room() || (entries.length >= FRONT && c.eff < FRONT_BIG)) break
       if (c.nl < FRONT_NL_MIN || (foreign(c) && ints >= 1)) continue
+      if (strictInt && capped(c)) continue
       if (!take(c, c.desk, { front: true })) continue
       if (foreign(c)) ints++
+      if (strictInt && unchosen(c) && FOREIGN_DESKS.has(c.desk)) counted.add(c.id)
       if (dutch(c)) hasHome = true
     }
     if (!hasHome) home.some((c) => take(c, c.desk, { front: true }))
@@ -1131,7 +1143,10 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     // ontbreekt, wordt "Waar iedereen over schrijft": composePersonal); buitenland telt mee voor de grens.
     for (const c of front) {
       if (entries.length >= Math.min(FRONT_MAX, size)) break
-      if (c.sc >= FRONT_BIG && !used.has(c)) takeCapped(c, c.desk, {}, true)
+      if (c.sc >= FRONT_BIG && !used.has(c)) {
+        const force = !(strictInt && FOREIGN_DESKS.has(c.desk))
+        takeCapped(c, c.desk, {}, force, force)
+      }
     }
     // Groot nieuws dat zo een plek kreeg, vult al een zetel van zijn rubriek (de voorpagina niet: die
     // komt bovenop je indeling, zoals altijd).
@@ -1142,7 +1157,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     for (const d of deskOrder) {
       if (entries.length >= size) break
       const force = kernShort(d)
-      cands.some((c) => c.home === d && !c.parts.seen && takeCapped(c, d, { planned: true }, force))
+      cands.some((c) => c.home === d && !c.parts.seen && takeCapped(c, d, { planned: true }, force, force))
     }
   }
   // 3. Aanvullen met wat het zwaarst weegt; is er dan nog plek, dan zonder grens.
@@ -1155,10 +1170,24 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     if (!c.parts.seen) takeCapped(c, plan ? c.home : null, {}, true)
   }
   entries.sort((a, b) => b.w - a.w || textOrder(a.id, b.id))
+  // Zonder Wereld komt buitenland zonder reden buiten de voorpagina achteraan, en wie Binnenland koos,
+  // opent met Nederland: een buitenlands verhaal op de voorpagina komt na de Nederlandse (feedback 31
+  // oktober: wie alleen Binnenland koos, kreeg Polen als eerste verhaal).
+  if (strictInt) {
+    const candOf = new Map([...used].map((c) => [c.id, c]))
+    const isForeign = (e) => foreign(candOf.get(e.id))
+    const lastHome = entries.reduce((k, e, i) => (e.front && !isForeign(e) ? i : k), -1)
+    const late = entries.filter((e) => !e.front && unchosen(candOf.get(e.id)))
+    const moved = prof.family.binnenland > 0 ? entries.slice(0, Math.max(0, lastHome)).filter((e) => e.front && isForeign(e)) : []
+    const rest = entries.filter((e) => !moved.includes(e) && !late.includes(e))
+    if (moved.length) rest.splice(rest.indexOf(entries[lastHome]) + 1, 0, ...moved)
+    entries.splice(0, entries.length, ...rest, ...late)
+  }
   // `abroad`: de buitenlandse plekken zonder persoonlijke reden buiten de voorpagina (hun id's), zodat
   // composePersonal bij het extra blok en het aanvullen dezelfde grens aanhoudt.
+  // `counted`: wat tegen de grens telt (zonder Wereld ook een buitenlands verhaal op de voorpagina, niet de kernregel).
   const abroadIds = new Set([...used].filter((c) => unchosen(c) && !entries.find((e) => e.id === c.id)?.front).map((c) => c.id))
-  return Object.assign(entries, { deskOrder, abroad: abroadIds })
+  return Object.assign(entries, { deskOrder, abroad: abroadIds, counted })
 }
 
 // De editie ligt vast, maar verhaal-id's niet: na een latere verversing kan een id bij een andere

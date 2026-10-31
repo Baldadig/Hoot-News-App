@@ -147,7 +147,7 @@ test('punten: een vakbron telt alleen voor berichten zonder onderwerp', () => {
   assert.equal(zonder.interest.t, 'bron:wetenschap')
   assert.equal(zonder.interest.pts, 11) // 18 × 0,6 × 1
   assert.equal(G.whyOf({}, { parts: zonder }).code, 'vak')
-  assert.equal(G.whyOf({}, { parts: zonder }).text, 'Uit je vakbronnen')
+  assert.equal(G.whyOf({}, { parts: zonder }).text, 'Omdat je Wetenschap volgt')
   assert.equal(G.personalParts([it('b', 'carbon', ['europa'])], p).interest, undefined)
   // Zonder interesse in dat gebied telt de vakbron niet.
   assert.equal(G.personalParts([it('c', 'carbon', [])], prof()).interest, undefined)
