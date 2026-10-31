@@ -161,7 +161,7 @@ export async function loadSource(src, avatarsP) {
           readMin,
           publishedAt: plausibleTime(it.isoDate || (it.pubDate ? safeIso(it.pubDate) : null), fetchedAt),
         }
-      }).filter((i) => i.url) // zonder geldige (http/https) link niet tonen
+      }).filter((i) => i.url && i.title) // zonder geldige (http/https) link of zonder kop niet tonen
       return { id: src.id, name: src.name, ok: true, used: url, count: items.length, items }
     } catch (e) {
       lastErr = e

@@ -430,7 +430,8 @@ export default function StyleGuide({ stream }) {
 
   const withStory = stream.find((i) => i.kind === 'article' && i.storyId && i.image)
   const article = stream.find((i) => i.kind === 'article' && i.image && i.summary) || stream.find((i) => i.kind === 'article')
-  const longest = [...stream].filter((i) => i.kind === 'article').sort((a, b) => b.title.length - a.title.length)[0]
+  // Een artikel zonder kop (oude feed, cartoon) mag de sortering niet laten struikelen.
+  const longest = [...stream].filter((i) => i.kind === 'article' && i.title).sort((a, b) => (b.title || '').length - (a.title || '').length)[0]
   const bare = stream.find((i) => i.kind === 'article' && !i.image) || (article ? { ...article, id: article.id + '-x', image: null, summary: '' } : null)
   const post = stream.find((i) => i.kind === 'post')
   const source = article ? { ...(sourcesById?.get(article.source) || {}), id: article.source, name: article.sourceName, avatar: article.avatar, avatarContain: article.avatarContain, brandColor: article.brandColor, ok: true, count: 24 } : null
