@@ -12,7 +12,7 @@
 // localeCompare; elke sortering heeft een totale vergelijker die eindigt op id.
 import { INTERESTS, topicById } from '../src/lib/topics.js'
 import { MIN_EVENTS } from '../src/lib/affinity.js'
-import { DESKS, DESK_LABEL, desksOf, storyForeignOf, isNonEuropean, VL_HOME } from '../netlify/lib/desks.mjs'
+import { DESKS, DESK_LABEL, desksOf, storyForeignOf, isNonEuropean, VL_HOME, NL_HOME } from '../netlify/lib/desks.mjs'
 import { shownTopics, OTHER_SPORT } from '../netlify/lib/topics.mjs'
 
 // De buitenlandse kernrubrieken (Binnenland is Nederland, zie netlify/lib/desks.mjs).
@@ -167,7 +167,15 @@ const US_TOPICS = new Set(['vs-politiek', 'trump'])
 // Canadese premier Carney van Politico Europe was "Omdat je Politiek volgt" voor wie Binnenland en Politiek
 // koos): `europa` telt bij een buitenlands bericht alleen als de kop geen niet-Europees land of werelddeel
 // noemt (isNonEuropean). `area`: het onderwerpsgebied van de rubriek van het verhaal (areaOfDesk).
-function topicHits(item, prof, geo = null, area = null) {
+// Een verhaal over politiek in het buitenland (VS, Midden-Oosten, Oekraïne, of een bericht met VS-politiek
+// of Trump als onderwerp) krijgt geen label uit een ander vakgebied (feedback 31 oktober: Texaanse
+// Republikeinen was "Omdat je Wetenschap volgt" via een geërfd onderwerp gezondheid, Talarico "Tech"):
+// zo'n onderwerp mag punten geven, maar kan het waarom niet zijn, tenzij de bron zelf een vakbron van dat
+// gebied is (The Verge over Trump en chips blijft Tech) en het verhaal niet in een politiekrubriek staat.
+const POLITICS_DESKS = new Set(['vs', 'middenoosten', 'oekraine'])
+const POLITICS_FAMILIES = new Set(['politiek', 'wereld', 'economie', 'binnenland'])
+const politicsItem = (i, deskOfStory = null) => POLITICS_DESKS.has(deskOfStory) || [...desksOf(i)].some((d) => POLITICS_DESKS.has(d)) || (i.topics || []).some((t) => US_TOPICS.has(t))
+function topicHits(item, prof, geo = null, area = null, politics = false) {
   const sport = isSport(item, prof.catOf)
   const ts = (item.topics || []).filter((t) => !(sport && FAMILY_OF[t] === 'binnenland' && prof.topicP[t] > 0))
   const abroad = geo === 'int' && !VL_HOME.has(item.source)
@@ -177,7 +185,7 @@ function topicHits(item, prof, geo = null, area = null) {
   const notUs = ts.includes('vs-politiek') && !desksOf(item).has('vs')
   // `seen`: kop of intro noemt het onderwerp zelf (shownTopics); alleen zo'n treffer mag het waarom zijn.
   const vis = shownTopics(item)
-  const out = ts.filter((t) => prof.topicP[t] !== undefined && !(abroad && FAMILY_OF[t] === 'binnenland' && prof.topicP[t] > 0) && !(notUs && t === 'vs-politiek' && prof.topicP[t] > 0) && !notChosenPol(t)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source, seen: !vis || vis.includes(t) }))
+  const out = ts.filter((t) => prof.topicP[t] !== undefined && !(abroad && FAMILY_OF[t] === 'binnenland' && prof.topicP[t] > 0) && !(notUs && t === 'vs-politiek' && prof.topicP[t] > 0) && !notChosenPol(t)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source, seen: (!vis || vis.includes(t)) && !(politics && !POLITICS_FAMILIES.has(FAMILY_OF[t]) && (politics === 'desk' || FAMILY_OF_CAT[prof.catOf?.get(item.source)] !== FAMILY_OF[t])) }))
   const fb = prof.family.binnenland || 0
   if (fb > 0 && geo === 'nl' && !sport) out.push({ t: GEO_NL, f: 'binnenland', v: Math.min(fb, W_INHERITED), s: item.source, seen: true })
   if (!ts.length) {
@@ -208,6 +216,9 @@ export function geoOf(item, desk = null, foreign = false) {
   const ds = desksOf(item, { storyForeign: foreign })
   for (const d of ds) if (FOREIGN_DESKS.has(d)) return 'int' // zoals primaryDesk: het land gaat voor
   if (ds.has('binnenland')) return 'nl'
+  // VS-politiek of Trump uit een bron van buiten Nederland is buitenland, ook zonder rubriek (feedback
+  // 31 oktober: een NYT-stuk over een senaatsverkiezing zonder VS-rubriek kwam als "Het nieuws van nu" binnen).
+  if (!NL_HOME.has(item.source) && (item.topics || []).some((t) => US_TOPICS.has(t))) return 'int'
   return foreign ? 'int' : null
 }
 
@@ -221,7 +232,9 @@ export function personalParts(items = [], prof, ctx = {}, story = {}) {
   const parts = {}
   if (!items.length) return parts
   const foreign = story.foreign ?? (items.length > 1 && storyForeignOf(items))
-  const hits = items.map((i) => topicHits(i, prof, geoOf(i, story.desk ?? null, foreign), areaOfDesk(story.desk ?? (items.length === 1 && desksOf(i).has('wetenschap') ? 'wetenschap' : null))))
+  // 'desk': de rubriek van het verhaal zelf is VS, Midden-Oosten of Oekraïne (ook een techbron verandert dat niet).
+  const politicsOf = (i) => (POLITICS_DESKS.has(story.desk) ? 'desk' : politicsItem(i))
+  const hits = items.map((i) => topicHits(i, prof, geoOf(i, story.desk ?? null, foreign), areaOfDesk(story.desk ?? (items.length === 1 && desksOf(i).has('wetenschap') ? 'wetenschap' : null)), politicsOf(i)))
   const flat = hits.flat()
   const pos = flat.filter((h) => h.v > 0).sort(strongestFirst)
   if (pos.length) {
@@ -554,7 +567,9 @@ const OWN_DESK_TOPICS = Object.fromEntries(OWN_DESKS.map((d) => [d, new Set(INTE
 export function servesDesks(items = [], primary = null, prof) {
   const out = new Set(primary ? [primary] : [])
   for (const d of OWN_DESKS) {
-    const byTopic = d !== 'regio' && items.some((i) => (i.topics || []).some((t) => OWN_DESK_TOPICS[d].has(t)))
+    // Een verhaal over politiek in het buitenland (politicsItem) is geen Tech- of Economie-verhaal omdat de
+    // tagger er "tech" bij zette (Talarico, Trump en de midterms): alleen een vakbron van dat gebied telt.
+    const byTopic = d !== 'regio' && items.some((i) => !politicsItem(i) && (i.topics || []).some((t) => OWN_DESK_TOPICS[d].has(t)))
     if (byTopic || items.some((i) => OWN_DESK_CAT[d].includes(prof.catOf.get(i.source)))) out.add(d)
   }
   return out
@@ -564,6 +579,9 @@ export function servesDesks(items = [], primary = null, prof) {
 // gebied gaat (sterkte > 0: een stuk over de beursgang van Anthropic is Tech, geen Binnenland);
 // anders de hoofdrubriek. Zonder hoofdrubriek de eigen pagina die het verhaal kan vullen.
 export function homeDesk(items = [], primary = null, prof) {
+  // Het VS-, Midden-Oosten- of Oekraïneverhaal blijft daar staan, ook als één stuk uit een techbron komt
+  // (Talarico met een Wired-stuk over Musk was "Omdat je Tech volgt").
+  if (POLITICS_DESKS.has(primary)) return primary
   const s = servesDesks(items, null, prof)
   const strength = (d) => Math.max(0, ...items.flatMap((i) => (i.topics || []).filter((t) => (TOPIC_DESK[t] || []).includes(d)).map((t) => prof.topicP[t] || 0)))
   const ranked = OWN_DESKS.filter((d) => s.has(d))

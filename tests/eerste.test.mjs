@@ -26,6 +26,9 @@ const liveRetag = retag(live)
 // rubberboot bij Zeeland, ruw en hertagd. Hierop keurde de lezerstoets af.
 const live1050 = gz('snapshot-2026-10-31-1050.json.gz')
 const live1050Retag = retag(live1050)
+// De live feed van 31 oktober 12:00Z (vierde ronde): Haley Stevens, de Texaanse Republikeinen en Talarico.
+const live1200 = gz('snapshot-2026-10-31-1200.json.gz')
+const live1200Retag = retag(live1200)
 const SNAPS = [['30 oktober avond', loadSnapshot()], ['31 oktober ochtend (live)', ochtend], ['31 oktober 09:30 (live)', live], ['31 oktober 09:30 (hertagd)', liveRetag], ['31 oktober 10:50 (live)', live1050], ['31 oktober 10:50 (hertagd)', live1050Retag]]
 
 for (const [label, snap] of SNAPS) {
@@ -269,3 +272,37 @@ for (const [tag, data] of [['live', live1050], ['hertagd', live1050Retag]]) {
     }
   })
 }
+
+// ---- Vierde ronde (feedback 31 oktober, live feed 12:00Z) ----
+import { geoOfMembers } from './helpers/eerste.mjs'
+for (const [tag, data] of [['live', live1200], ['hertagd', live1200Retag]]) {
+  const editionOf = (p) => editionOfData(p, data)
+  const srcMap = new Map(data.sources.map((s) => [s.id, s]))
+
+  test(`31 oktober 12:00 (${tag}) · 1. VS-politiek uit een buitenlandse bron zonder rubriek is buitenland, ook voor de maat`, () => {
+    const hs = data.items.filter((i) => /^Why Haley Stevens/.test(i.title || ''))
+    assert.ok(hs.length)
+    assert.equal(geoOfMembers(hs, srcMap), 'INT')
+    for (const p of ZONDER_WERELD) {
+      const es = editionOf(p)
+      assert.ok(!find(es, 'Why Haley Stevens'), `${p.id}: Haley Stevens zonder gekozen reden`)
+      const r = measureFirst(data, [p])[0]
+      assert.ok(r.intOngekozen <= 2, `${p.id}: ${r.intOngekozen}`)
+    }
+  })
+
+  test(`31 oktober 12:00 (${tag}) · 3. een vakgebied-label past bij het verhaal: Texaanse Republikeinen zijn geen Wetenschap, Talarico geen Tech`, () => {
+    for (const p of ZONDER_WERELD) {
+      for (const e of editionOf(p)) {
+        if (/^The Texas Republicans Who Have Had Enough/.test(e.title)) assert.ok(!/Wetenschap/.test(e.why.text), `${p.id}: ${e.why.text}`)
+        if (/^Talarico Makes Final Election Pitch/.test(e.title)) assert.ok(!/Tech/.test(e.why.text), `${p.id}: ${e.why.text}`)
+      }
+    }
+  })
+}
+
+test('31 oktober 12:00 · "indien" en "chili" in een Nederlandse kop maken het geen niet-Europees stuk', () => {
+  assert.ok(!isNonEuropean({ title: 'Kabinet legt maatregel op, indien nodig ook in Brussel' }))
+  assert.ok(!isNonEuropean({ title: 'Chili con carne in de kantine van de Tweede Kamer' }))
+  assert.ok(isNonEuropean({ title: 'India en Chileense president spreken af' }))
+})

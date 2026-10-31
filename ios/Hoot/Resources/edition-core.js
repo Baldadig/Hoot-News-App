@@ -497,7 +497,6 @@ var HootCore = (() => {
     "venezuela\\p{L}*",
     "cuba\\p{L}*",
     "colombia\\p{L}*",
-    "chili",
     "chileens\\p{L}*",
     "peru",
     "latijns-amerika",
@@ -525,7 +524,6 @@ var HootCore = (() => {
     "afghan\\p{L}*",
     "syri\\p{L}*",
     "kanad\\p{L}*",
-    "indien",
     "brasilien",
     "mexiko",
     "australien",
@@ -837,7 +835,10 @@ var HootCore = (() => {
     return SPORT_URL.test(item.url || "") || OTHER_SPORT.test(`${item.title || ""} ${item.summary || ""}`);
   }
   var US_TOPICS = /* @__PURE__ */ new Set(["vs-politiek", "trump"]);
-  function topicHits(item, prof, geo = null, area = null) {
+  var POLITICS_DESKS = /* @__PURE__ */ new Set(["vs", "middenoosten", "oekraine"]);
+  var POLITICS_FAMILIES = /* @__PURE__ */ new Set(["politiek", "wereld", "economie", "binnenland"]);
+  var politicsItem = (i, deskOfStory2 = null) => POLITICS_DESKS.has(deskOfStory2) || [...desksOf(i)].some((d) => POLITICS_DESKS.has(d)) || (i.topics || []).some((t) => US_TOPICS.has(t));
+  function topicHits(item, prof, geo = null, area = null, politics = false) {
     const sport = isSport(item, prof.catOf);
     const ts = (item.topics || []).filter((t) => !(sport && FAMILY_OF[t] === "binnenland" && prof.topicP[t] > 0));
     const abroad = geo === "int" && !VL_HOME.has(item.source);
@@ -845,7 +846,7 @@ var HootCore = (() => {
     const notChosenPol = (t) => !world && FAMILY_OF[t] === "politiek" && prof.topicP[t] > 0 && prof.origin?.[t] === "geërfd" && (US_TOPICS.has(t) || abroad && (t !== "europa" || isNonEuropean(item)));
     const notUs = ts.includes("vs-politiek") && !desksOf(item).has("vs");
     const vis = shownTopics(item);
-    const out = ts.filter((t) => prof.topicP[t] !== void 0 && !(abroad && FAMILY_OF[t] === "binnenland" && prof.topicP[t] > 0) && !(notUs && t === "vs-politiek" && prof.topicP[t] > 0) && !notChosenPol(t)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source, seen: !vis || vis.includes(t) }));
+    const out = ts.filter((t) => prof.topicP[t] !== void 0 && !(abroad && FAMILY_OF[t] === "binnenland" && prof.topicP[t] > 0) && !(notUs && t === "vs-politiek" && prof.topicP[t] > 0) && !notChosenPol(t)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source, seen: (!vis || vis.includes(t)) && !(politics && !POLITICS_FAMILIES.has(FAMILY_OF[t]) && (politics === "desk" || FAMILY_OF_CAT[prof.catOf?.get(item.source)] !== FAMILY_OF[t])) }));
     const fb = prof.family.binnenland || 0;
     if (fb > 0 && geo === "nl" && !sport) out.push({ t: GEO_NL, f: "binnenland", v: Math.min(fb, W_INHERITED), s: item.source, seen: true });
     if (!ts.length) {
@@ -864,13 +865,15 @@ var HootCore = (() => {
     const ds = desksOf(item, { storyForeign: foreign });
     for (const d of ds) if (FOREIGN_DESKS.has(d)) return "int";
     if (ds.has("binnenland")) return "nl";
+    if (!NL_HOME.has(item.source) && (item.topics || []).some((t) => US_TOPICS.has(t))) return "int";
     return foreign ? "int" : null;
   }
   function personalParts(items = [], prof, ctx = {}, story = {}) {
     const parts = {};
     if (!items.length) return parts;
     const foreign = story.foreign ?? (items.length > 1 && storyForeignOf(items));
-    const hits = items.map((i) => topicHits(i, prof, geoOf(i, story.desk ?? null, foreign), areaOfDesk(story.desk ?? (items.length === 1 && desksOf(i).has("wetenschap") ? "wetenschap" : null))));
+    const politicsOf = (i) => POLITICS_DESKS.has(story.desk) ? "desk" : politicsItem(i);
+    const hits = items.map((i) => topicHits(i, prof, geoOf(i, story.desk ?? null, foreign), areaOfDesk(story.desk ?? (items.length === 1 && desksOf(i).has("wetenschap") ? "wetenschap" : null)), politicsOf(i)));
     const flat = hits.flat();
     const pos = flat.filter((h) => h.v > 0).sort(strongestFirst);
     if (pos.length) {
@@ -1120,12 +1123,13 @@ var HootCore = (() => {
   function servesDesks(items = [], primary = null, prof) {
     const out = new Set(primary ? [primary] : []);
     for (const d of OWN_DESKS) {
-      const byTopic = d !== "regio" && items.some((i) => (i.topics || []).some((t) => OWN_DESK_TOPICS[d].has(t)));
+      const byTopic = d !== "regio" && items.some((i) => !politicsItem(i) && (i.topics || []).some((t) => OWN_DESK_TOPICS[d].has(t)));
       if (byTopic || items.some((i) => OWN_DESK_CAT[d].includes(prof.catOf.get(i.source)))) out.add(d);
     }
     return out;
   }
   function homeDesk(items = [], primary = null, prof) {
+    if (POLITICS_DESKS.has(primary)) return primary;
     const s = servesDesks(items, null, prof);
     const strength = (d) => Math.max(0, ...items.flatMap((i) => (i.topics || []).filter((t) => (TOPIC_DESK[t] || []).includes(d)).map((t) => prof.topicP[t] || 0)));
     const ranked = OWN_DESKS.filter((d) => s.has(d)).map((d) => ({ d, v: strength(d) })).sort((a, b) => b.v - a.v || OWN_DESKS.indexOf(a.d) - OWN_DESKS.indexOf(b.d));

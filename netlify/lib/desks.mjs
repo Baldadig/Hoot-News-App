@@ -77,10 +77,10 @@ const BE_CASE = W(['PVDA', 'MR', 'Vooruit', 'Luik'], 'u')
 // de Canadese premier Carney van Politico Europe was "Omdat je Politiek volgt"). Alleen de kop telt.
 const NON_EUROPE = W([
   'canad\\p{L}*', 'chin(?:a|ese|ees)', 'chinezen', 'japan\\p{L}*', 'korea\\p{L}*', 'india', 'indian', 'indiase?', 'indiaas', 'pakistan\\p{L}*', 'bangladesh', 'azië', 'asia\\p{L}*', 'aziatisch\\p{L}*',
-  'brazili\\p{L}*', 'brazil\\p{L}*', 'mexic\\p{L}*', 'argentin\\p{L}*', 'venezuela\\p{L}*', 'cuba\\p{L}*', 'colombia\\p{L}*', 'chili', 'chileens\\p{L}*', 'peru', 'latijns-amerika', 'latin america',
+  'brazili\\p{L}*', 'brazil\\p{L}*', 'mexic\\p{L}*', 'argentin\\p{L}*', 'venezuela\\p{L}*', 'cuba\\p{L}*', 'colombia\\p{L}*', 'chileens\\p{L}*', 'peru', 'latijns-amerika', 'latin america',
   'australi\\p{L}*', 'nieuw-zeeland\\p{L}*', 'new zealand', 'afrika\\p{L}*', 'africa\\p{L}*', 'nigeria\\p{L}*', 'soedan', 'sudan\\p{L}*', 'egypt\\p{L}*', 'egypte', 'kenia', 'kenya\\p{L}*', 'ethiopi\\p{L}*', 'congo\\p{L}*',
   'iran\\p{L}*', 'israel\\p{L}*', 'israël', 'gaza', 'saudi\\p{L}*', 'taiwan\\p{L}*', 'afghan\\p{L}*', 'syri\\p{L}*',
-  'kanad\\p{L}*', 'indien', 'brasilien', 'mexiko', 'australien', 'vereinigte staaten', 'usa', 'états-unis', 'canadien\\p{L}*', 'verenigde staten', 'united states', 'amerika\\p{L}*', 'america\\p{L}*', 'u\\.s\\.',
+  'kanad\\p{L}*', 'brasilien', 'mexiko', 'australien', 'vereinigte staaten', 'usa', 'états-unis', 'canadien\\p{L}*', 'verenigde staten', 'united states', 'amerika\\p{L}*', 'america\\p{L}*', 'u\\.s\\.',
 ])
 export const isNonEuropean = (it) => NON_EUROPE.test(it?.title || '')
 
