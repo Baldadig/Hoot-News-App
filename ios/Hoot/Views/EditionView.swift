@@ -192,6 +192,8 @@ struct EditionView: View {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     let rows = store.editionRows
                     let numbers = EditionCount.numbers(rows)
+                    // De schermtitel in de scroll, direct boven de metaregel (zoals .vh__sub op het web).
+                    ScreenTitle(title)
                     if store.status == .loading && rows.isEmpty {
                         ProgressView().frame(maxWidth: .infinity, minHeight: 240)
                     } else if rows.isEmpty {
@@ -289,7 +291,8 @@ struct EditionView: View {
             }
             .debugScroll()
             .background(Theme.paper)
-            .navigationTitle(title)
+            .navigationTitle(title) // voor VoiceOver en de terugknop; je ziet de titel in de scroll
+            .hootScreenTitle() // het verhaal wint van de schermtitel (C7)
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .refreshable { await store.load() }

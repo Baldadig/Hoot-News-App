@@ -36,6 +36,11 @@ struct StreamView: View {
             })
             ScrollView {
                 VStack(spacing: 0) {
+                    // De schermtitel in de scroll (C7), op de kolomlijn boven de rubriekenlijn.
+                    ScreenTitle("Stroom")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                        .column()
                     StreamLine(
                         rubriek: Binding(get: { rub }, set: { rubriek = $0 }),
                         picks: $picks,
@@ -96,6 +101,7 @@ struct StreamView: View {
             // Scrollen klapt de stapel dicht (ernaast tikken doet de lijn zelf).
             .onScrollPhaseChange { _, now in if now == .interacting, lijn.open { lijn.open = false } }
             .navigationTitle("Stroom") // de rode streep zegt al welke rubriek, ook bij Bluesky
+            .hootScreenTitle()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .refreshable { await store.load() }
@@ -281,20 +287,31 @@ struct SourcesList: View {
 // mogelijkheid het ongedaan te maken (zoals op de website).
 struct SavedView: View {
     @Environment(HootStore.self) private var store
+    @Environment(\.openTab) private var openTab
     @State private var removed: (index: Int, item: Item)?
     var body: some View {
         NavigationStack {
             Group {
                 if store.saved.isEmpty {
-                    EmptyState(title: "Nog niets bewaard", systemImage: "bookmark", text: "Tik op het bladwijzericoon bij een bericht om het hier te bewaren.")
+                    // Dezelfde woorden als op het web, met de Editie als vervolgstap.
+                    VStack(alignment: .leading, spacing: 0) {
+                        ScreenTitle("Bewaard").padding(.horizontal)
+                        EmptyState(title: "Nog niets bewaard", systemImage: "bookmark", text: "Tik op de bladwijzer bij een verhaal. Het staat hier tot je het hebt gelezen, ook zonder verbinding.", action: (label: "Naar de Editie", systemImage: nil, run: { openTab(.editie) }))
+                    }
+                    .column()
                 } else {
                     List {
-                        ForEach(store.saved) { item in
-                            ItemRow(item: item, linkSource: false).listRowBackground(Theme.surface)
-                        }
-                        .onDelete { offsets in
-                            if let i = offsets.first { removed = (i, store.saved[i]) }
-                            store.removeSaved(at: offsets)
+                        Section {
+                            ForEach(store.saved) { item in
+                                ItemRow(item: item, linkSource: false).listRowBackground(Theme.surface)
+                            }
+                            .onDelete { offsets in
+                                if let i = offsets.first { removed = (i, store.saved[i]) }
+                                store.removeSaved(at: offsets)
+                            }
+                        } header: {
+                            // De schermtitel als kop van de lijst (C7), op de lijn van de rijen.
+                            ScreenTitle("Bewaard").textCase(nil).listRowInsets(EdgeInsets())
                         }
                     }
                     .scrollContentBackground(.hidden)
@@ -327,6 +344,7 @@ struct SavedView: View {
             .animation(.easeOut(duration: 0.2), value: removed?.item.id)
             .background(Theme.paper)
             .navigationTitle("Bewaard")
+            .hootScreenTitle()
             .settingsButton()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
@@ -354,9 +372,9 @@ struct SearchView: View {
             .background(Theme.paper)
             .overlay {
                 if q.count < 2 {
-                    ContentUnavailableView("Zoek in je nieuws", systemImage: "magnifyingglass", description: Text("Hoot zoekt in de koppen en intro's van alles wat nu in je Stroom staat."))
+                    EmptyState(title: "Zoek in je nieuws", systemImage: "magnifyingglass", text: "Hoot zoekt in de koppen en intro's van alles wat nu in je Stroom staat.")
                 } else if hits.isEmpty {
-                    ContentUnavailableView("Niets gevonden voor ‘\(query.trimmingCharacters(in: .whitespaces))’", systemImage: "magnifyingglass", description: Text("Hoot zoekt alleen in de koppen en intro's van wat nu in je Stroom staat, niet in hele artikelen of oudere berichten."))
+                    EmptyState(title: "Niets gevonden voor ‘\(query.trimmingCharacters(in: .whitespaces))’", systemImage: "magnifyingglass", text: "Hoot zoekt alleen in de koppen en intro's van wat nu in je Stroom staat, niet in hele artikelen of oudere berichten.")
                 }
             }
             .navigationTitle("Zoeken")

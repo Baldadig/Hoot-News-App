@@ -120,6 +120,29 @@ struct FormHeader: View {
     var body: some View { GroupTitle(text: text, tone: Theme.ink).textCase(nil) }
 }
 
+// De schermtitel als eerste regel in de scroll (C7): bewust stil tegenover het hoofdverhaal, zoals
+// .head-5 tegenover .head-6 op het web. De navigatiebalk staat inline; zijn titel blijft voor
+// VoiceOver en de terugknop, deze is wat je ziet.
+struct ScreenTitle: View {
+    let text: String
+    init(_ text: String) { self.text = text }
+    var body: some View {
+        Text(text)
+            .font(Theme.headline(.title))
+            .foregroundStyle(Theme.ink)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityAddTraits(.isHeader)
+    }
+}
+
+extension View {
+    // Een hoofdscherm met de titel in de scroll: de balk inline en zonder eigen titel, zodat die niet
+    // dubbel staat. De navigationTitle blijft voor VoiceOver, de terugknop en het tabblad.
+    func hootScreenTitle() -> some View {
+        navigationBarTitleDisplayMode(.inline).toolbar(removing: .title)
+    }
+}
+
 // Haarlijn tussen berichten: `rule`, één pixel, decoratief.
 struct Rule: View {
     var body: some View { Rectangle().fill(Theme.rule).frame(height: 1).accessibilityHidden(true) }
@@ -471,7 +494,7 @@ struct LeadCard: View {
                 }
             }
             Text(item.title)
-                .font(Theme.headline(wide ? .largeTitle : .title))
+                .font(Theme.headline(.largeTitle)) // het verhaal wint van de schermtitel (C7), op elke breedte
                 .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                 .fixedSize(horizontal: false, vertical: true)
             if let intro = item.summary.map({ wholeSentences($0) }), !intro.isEmpty {
@@ -648,6 +671,9 @@ struct StaleNotice: View {
     }
 }
 
+// Een lege plek (K6), gelijk aan .empty op het web: een stil lijnicoon in `rule`, de titel als
+// serifkop in inkt, de uitleg in ink3 op een smalle maat en een inktknop als vervolgstap. Het blijft
+// een ContentUnavailableView: die centreert in de hoogte en leest goed voor met VoiceOver.
 struct EmptyState: View {
     let title: String
     let systemImage: String
@@ -655,15 +681,30 @@ struct EmptyState: View {
     // Opnieuw proberen als knop naast het trekgebaar (dat niet iedereen kent of kan maken).
     var retry: (() async -> Void)? = nil
     // Of een eigen vervolgstap als knop, zoals iemand toevoegen bij een lege Bluesky.
-    var action: (label: String, systemImage: String, run: () -> Void)? = nil
+    var action: (label: String, systemImage: String?, run: () -> Void)? = nil
     var body: some View {
         ContentUnavailableView {
-            Label(title, systemImage: systemImage)
+            Label {
+                Text(title).font(Theme.headline(.title2)).foregroundStyle(Theme.ink)
+            } icon: {
+                Image(systemName: systemImage)
+                    .font(.system(size: Layout.emptyIcon, weight: .ultraLight))
+                    .foregroundStyle(Theme.rule) // decoratief: de lijn, geen grijs systeemicoon
+            }
         } description: {
-            Text(text).foregroundStyle(Theme.ink3) // niet het lichtere grijs van het systeem
+            Text(text)
+                .foregroundStyle(Theme.ink3) // niet het lichtere grijs van het systeem
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: Layout.emptyText)
         } actions: {
-            if let retry { Button("Probeer opnieuw") { Task { await retry() } }.buttonStyle(.glass) }
-            if let action { Button(action.label, systemImage: action.systemImage, action: action.run).buttonStyle(.glass) }
+            // De inktknop, zoals op het web: één vervolgstap, inkt op papier.
+            if let retry { Button("Probeer opnieuw") { Task { await retry() } }.buttonStyle(.ink) }
+            if let action {
+                Button(action: action.run) {
+                    if let icon = action.systemImage { Label(action.label, systemImage: icon) } else { Text(action.label) }
+                }
+                .buttonStyle(.ink)
+            }
         }
     }
 }

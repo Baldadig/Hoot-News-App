@@ -27,7 +27,7 @@ struct ArticleReaderView: View {
                 case .loading:
                     VStack(alignment: .leading, spacing: Space.s4) {
                         Kicker(text: sourceName)
-                        Text(item.title.isEmpty ? (item.summary ?? "") : item.title).font(Theme.headline(.title)).lineLimit(4).fixedSize(horizontal: false, vertical: true)
+                        Text(item.title.isEmpty ? (item.summary ?? "") : typeset(item.title, lang: source?.lang)).font(Theme.headline(.title)).lineLimit(4).fixedSize(horizontal: false, vertical: true)
                         ProgressView("Artikel laden…").frame(maxWidth: .infinity).padding(.top, Space.s5)
                         Spacer()
                     }
@@ -163,7 +163,7 @@ enum ReaderHTML {
 
     static func page(_ a: Article, item: Item, sourceName: String, size: Int, lang: String? = nil) -> String {
         let scale = scales[min(max(size, 0), scales.count - 1)]
-        let title = escape(a.title.isEmpty ? item.title : a.title)
+        let title = escape(typeset(a.title.isEmpty ? item.title : a.title, lang: lang)) // de lezer haalt de kop zelf: zetten zoals de server (T6)
         let meta = [a.byline, item.date.map { HootDate.ago($0) }].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.map(escape).joined(separator: " · ")
         return """
         <!doctype html><html lang="\(escape(lang ?? "nl"))"><head><meta charset="utf-8">
