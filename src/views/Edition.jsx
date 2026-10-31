@@ -276,7 +276,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               <BrandMark size={44} />
               <h2 className="head-5 endcap__title">Je bent bij.</h2>
               <p className="endcap__text">
-                Dit was de {SLOT[edition.slot].toLowerCase()} van {longDate(edition.date)}.{upNext(edition.slot)}
+                Dit was de {SLOT[edition.slot]} van {longDate(edition.date)}.{upNext(edition.slot)}
               </p>
               {/* Het einde is leidend; verder lezen mag, maar als rustige link (geen knop die je doortrekt). */}
               <a className="linkbtn endcap__more" href="#/stroom">

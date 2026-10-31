@@ -8,6 +8,9 @@ import { SyncEngine, forgetAccount, ownerOf } from '../lib/syncEngine.js'
 // status: idle | pending (wacht op verbinding of bundelt) | syncing | ok | error (probeert opnieuw)
 export function useCloudSync(account, { prefs, setPrefs, saved, setSaved, readIds, setReadIds, seen, setSeen }) {
   const [status, setStatus] = useState('idle')
+  // Eén geslaagde ophaalronde gehad (SyncEngine.onPulled): dan pas rekent de Editie als lid
+  // (usePersonalEdition, bouwspec P8-2). Terug op false bij een ander account of uitloggen.
+  const [pulled, setPulled] = useState(false)
   const uid = account.status === 'in' ? account.user.id : null
   const client = account.client
   const engine = useRef(null)
