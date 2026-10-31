@@ -134,6 +134,13 @@
   --thumb-w: 96px;
   --thumb-h: 64px;
   --thumb-sm: 64px; /* klein beeld op de voorpagina en in een linkkaart (vierkant) */
+  /* Beeldverhoudingen. Tijdlijn 2:1 is een besluit (iOS FramedImage ratio 2): het beeld over de
+     volle kolom. Het hoofdverhaal op een telefoon en de grote kaart van de Selectie vanaf 720 zijn
+     ook 2:1, maar een eigen keuze; daarom een eigen naam, zodat de een niet met de ander meeschuift. */
+  --media-tl: 2 / 1;
+  --media-lead: 2 / 1;
+  --media-lead-wide: 21 / 9; /* hoofdverhaal vanaf 720: een liggende strook */
+  --media-card: 16 / 9; /* kaart van de Selectie */
   --mark-logo-pad: 14%; /* lucht rond een uitgeverslogo in zijn schijf */
   --underline-offset: 3px;
   --tabbar-h: 52px;
@@ -1519,10 +1526,11 @@ select.input {
 }
 
 /* ---------- Gedeelde onderdelen van een bericht ---------- */
-/* Cijfers in een kolom: tijd onder de bronnaam, nummers in de inhoud en op de kaarten, de
-   stapteller. Even breed, zodat "4 uur" en "41 min" niet verspringen; koppen en lopende tekst
-   blijven proportioneel. */
-:is(.srcmeta__time, .srcbtn__time, .dtoc__n, .dcard__rank, .ob__n) {
+/* Cijfers in een kolom: de tijd onder de bronnaam (Source Sans 3). Even breed, zodat "4 uur" en
+   "41 min" niet verspringen; koppen en lopende tekst blijven proportioneel. Alleen de schreefloze:
+   Newsreader zoals Fontsource hem levert (latin 400/800) heeft geen tabelcijfers, dus de
+   serif-nummers (de stapteller .ob__n, de inhoud .dtoc__n, de rang .dcard__rank) blijven proportioneel. */
+:is(.srcmeta__time, .srcbtn__time) {
   font-variant-numeric: tabular-nums;
 }
 /* Een bericht. De lijnen ertussen zijn van de lijst (.rows); het bericht meet zichzelf, zodat de
@@ -1802,13 +1810,13 @@ select.input {
   flex-direction: column;
 }
 .media--lead {
-  aspect-ratio: 2 / 1;
+  aspect-ratio: var(--media-lead);
   margin: 0 0 var(--s4);
   border-radius: var(--radius-card);
 }
 @media (min-width: 720px) {
   .media--lead {
-    aspect-ratio: 21 / 9;
+    aspect-ratio: var(--media-lead-wide);
   }
 }
 
@@ -1905,7 +1913,7 @@ select.input {
 }
 .media--tl {
   width: 100%;
-  aspect-ratio: 2 / 1;
+  aspect-ratio: var(--media-tl);
   margin: var(--s3) 0 0; /* onder: de actieregel houdt zelf --s3 tot de bron */
   border: 1px solid var(--rule);
   border-radius: var(--radius-card);
@@ -4244,7 +4252,7 @@ html[data-images='hoofd'] .media--social {
   text-decoration: none;
 }
 .dcard__media {
-  aspect-ratio: 16 / 9;
+  aspect-ratio: var(--media-card);
 }
 .dcard__body {
   padding: var(--s4) var(--s4) 0;
@@ -4303,7 +4311,7 @@ html[data-images='hoofd'] .media--social {
 }
 @media (min-width: 720px) {
   .dcard--feature .dcard__media {
-    aspect-ratio: 2 / 1;
+    aspect-ratio: var(--media-lead);
   }
   .dcard--feature .dcard__body,
   .dcard--feature .dcard__foot {

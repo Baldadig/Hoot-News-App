@@ -103,9 +103,17 @@ test('Aanhalen met ‘ ’: geen rechte aanhalingstekens om gebruikerstekst in d
   // .js zijn code en blijven recht.
   const jsx = walk(root).filter((f) => f.endsWith('.jsx'))
   for (const f of jsx) {
-    const hit = read(f.slice(root.length)).match(/["']\$\{[^}]*\}["']/)
+    const src = read(f.slice(root.length))
+    const hit = src.match(/["']\$\{[^}]*\}["']/)
     assert.equal(hit, null, `${f.slice(root.length)}: ${hit?.[0]}`)
+    // Ook letterlijke tekst in JSX: "Opinie" of "meer hiervan" (ook over een regelafbreking). Een
+    // attribuut (className="…") staat achter een =, dus dat telt niet; commentaar ook niet.
+    const text = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/[^\n]*/g, '$1')
+    const quoted = text.match(/(?:^|[\s(>])"(?=\p{L})[^"<>{}=\n]*(?:\n[^"<>{}=\n]*)?[\p{L}.!?…]"(?=[\s,.:;)!?<…]|$)/mu)
+    assert.equal(quoted, null, `${f.slice(root.length)}: ${quoted?.[0].trim()}`)
   }
+  assert.match(read('views/Stream.jsx'), /‘Opinie’ staat er alleen als/)
+  assert.match(read('views/Privacy.jsx'), /‘meer\s+hiervan’ of ‘minder hiervan’/)
   assert.match(read('views/Search.jsx'), /Niets gevonden voor ‘\$\{q\.trim\(\)\}’/)
 })
 
@@ -117,9 +125,27 @@ test('Welkom: één stapteller als breuk met breukstreep ⁄, zonder spatie (T7)
   assert.ok(!/<small>\/\{STEPS\}/.test(s))
 })
 
-test('Schakelaar aan is inkt, geen rood; tabelcijfers in de kolommen (K2, T8)', () => {
+test('Schakelaar aan is inkt, geen rood; tabelcijfers alleen in de schreefloze tijdregels (K2, T8)', () => {
   const css = read('styles.css')
   const on = css.slice(css.indexOf(".switch[aria-checked='true'] .switch__track {")).slice(0, 120)
   assert.match(on, /background: var\(--ink\);\s*box-shadow: inset 0 0 0 1px var\(--ink\)/)
-  assert.match(css, /:is\(\.srcmeta__time, \.srcbtn__time, \.dtoc__n, \.dcard__rank, \.ob__n\) \{\s*font-variant-numeric: tabular-nums;/)
+  // Alleen de schreefloze tijdregels: Newsreader (Fontsource latin 400/800) heeft geen tnum, dus een
+  // serif-nummer (.ob__n, .dtoc__n, .dcard__rank) erin zetten doet niets.
+  assert.match(css, /:is\(\.srcmeta__time, \.srcbtn__time\) \{\s*font-variant-numeric: tabular-nums;/)
+  const tnum = css.replace(/\/\*[\s\S]*?\*\//g, '').match(/[^{}]*\{\s*font-variant-numeric: tabular-nums;/g) || []
+  assert.ok(tnum.every((r) => !/\.ob__n|\.dtoc__n|\.dcard__rank/.test(r)), 'geen tabelcijfers op een serif-nummer')
+})
+
+test('Beeldverhoudingen zijn tokens: Tijdlijn 2:1 als --media-tl, ook in tokens.json en de README (D4)', () => {
+  const css = read('styles.css')
+  assert.match(css, /--media-tl: 2 \/ 1;/)
+  assert.match(css, /\.media--tl \{[^}]*aspect-ratio: var\(--media-tl\);/)
+  // Geen losse verhouding meer buiten de tokens.
+  assert.deepEqual(css.match(/aspect-ratio: \d/g), null)
+  const docs = fileURLToPath(new URL('../docs/design-system/', import.meta.url))
+  const tokens = JSON.parse(readFileSync(join(docs, 'tokens.json'), 'utf8'))
+  const names = Object.values(tokens).flatMap((g) => g?.tokens?.map((t) => t.name) || [])
+  for (const n of ['media-tl', 'thumb', 'lh-4', 'lh-head-lg']) assert.ok(names.includes(n), n)
+  const readme = readFileSync(join(docs, 'README.md'), 'utf8')
+  for (const n of ['`media-tl`', '`lh-4`', '`lh-head-lg`']) assert.ok(readme.includes(n), n)
 })

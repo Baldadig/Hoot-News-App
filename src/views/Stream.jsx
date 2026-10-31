@@ -35,7 +35,7 @@ function FilterSheet({ open, onClose, params, clear, setFilter, count }) {
           </button>
         ))}
       </div>
-      <p className="sheet__note">"Opinie" staat er alleen als de bron het zelf zo noemt.</p>
+      <p className="sheet__note">‘Opinie’ staat er alleen als de bron het zelf zo noemt.</p>
 
       <div className="sheet__foot">
         <button type="button" className="btn btn--quiet" onClick={clear}>
