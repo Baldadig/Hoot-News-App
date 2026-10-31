@@ -100,14 +100,39 @@ final class EditionClaimTests: XCTestCase {
         XCTAssertTrue(HootStore.mayCompose(status: nil, uid: nil, pulled: false, sync: .idle))
     }
 
-    // H3: de laatste drie dagdelen uit toestel en account samen, elk één keer, zonder het huidige.
-    func testRecentHistoryKeepsLastThree() {
+    // H3: de laatste drie dagdelen uit toestel en account samen (earlierEditions in de rekenkern, zoals
+    // loadPersonal ze vraagt), elk één keer, nieuw naar oud, zonder het huidige; lokaal alleen van deze lezer.
+    func testEarlierKeepsLastThree() async throws {
         let row = { (id: String, at: String) -> [String: Any] in ["id": id, "builtAt": at, "storyIds": [id]] }
-        let local = [row("d4", "2026-10-31T11:00:00Z"), row("d3", "2026-10-31T05:00:00Z"), row("d2", "2026-10-30T16:00:00Z")]
-        let account = [row("d4", "2026-10-31T11:00:00Z"), row("d3", "2026-10-31T05:00:00Z"), row("d1", "2026-10-30T11:00:00Z")]
-        let out = HootStore.recentHistory(local + account + [row("d5", "2026-10-31T16:00:00Z")], except: "d5")
-        XCTAssertEqual(out.map { $0["id"] as? String }, ["d4", "d3", "d2"], "nieuw naar oud, d1 valt af, d5 (nu) niet meegeteld")
-        XCTAssertEqual(HootStore.recentHistory([], except: "x").count, 0)
+        let json = { (o: Any) in String(decoding: try! JSONSerialization.data(withJSONObject: o), as: UTF8.self) }
+        let ids = { (s: String) in ((try? JSONSerialization.jsonObject(with: Data(s.utf8))) as? [[String: Any]])?.compactMap { $0["id"] as? String } }
+        let local: [String: Any] = ["id": "d5", "owner": Self.uid, "history": [row("d4", "2026-10-31T11:00:00Z"), row("d3", "2026-10-31T05:00:00Z"), row("d2", "2026-10-30T16:00:00Z")]]
+        let account: [String: Any] = ["id": "d5", "history": [row("d4", "2026-10-31T11:00:00Z"), row("d3", "2026-10-31T05:00:00Z"), row("d1", "2026-10-30T11:00:00Z")]]
+        let out = try await EditionEngine.shared.earlier(local: json(local), account: json(account), id: "d5", owner: Self.uid)
+        XCTAssertEqual(ids(out), ["d4", "d3", "d2"], "nieuw naar oud, d1 valt af, d5 (nu) niet meegeteld")
+        let niets = try await EditionEngine.shared.earlier(local: "null", account: "null", id: "x", owner: Self.uid)
+        XCTAssertEqual(niets, "[]")
+        let uitgelogd = try await EditionEngine.shared.earlier(local: json(local), account: "null", id: "d5", owner: "anon")
+        XCTAssertEqual(ids(uitgelogd), [], "lokaal van het lid telt na uitloggen niet")
+        let alleenAccount = try await EditionEngine.shared.earlier(local: "null", account: json(account), id: "d5", owner: "anon")
+        XCTAssertEqual(ids(alleenAccount), ["d4", "d3", "d1"], "de rij uit het account telt altijd")
+    }
+
+    // Anoniem komt nooit in user_state: zonder sessie doet claimEdition geen PATCH en geeft niets terug,
+    // en fetchEdition leest niets.
+    func testAnonNeverClaims() async throws {
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [FakePostgREST.self]
+        let a = Account()
+        a.transport = URLSession(configuration: config)
+        try XCTSkipIf(a.status != .out, "er staat een echte sessie in de Keychain van deze simulator")
+        let claim = try await a.claimEdition(edition("2026-10-31-middag", mark: "anon"), id: "2026-10-31-middag")
+        XCTAssertFalse(claim.won)
+        XCTAssertNil(claim.edition)
+        let fetched = try await a.fetchEdition()
+        XCTAssertNil(fetched)
+        XCTAssertEqual(FakePostgREST.patches, 0, "geen PATCH zonder sessie")
+        XCTAssertTrue(FakePostgREST.requests.isEmpty, "geen enkel verzoek naar user_state")
     }
 }
 

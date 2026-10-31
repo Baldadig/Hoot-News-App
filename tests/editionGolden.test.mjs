@@ -4,9 +4,11 @@
 // rekenregels voor bit-gelijkheid.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createContext, runInContext } from 'node:vm'
-import { compose, composeEdition, basisOf, editionBasis, historyOf, nextHistory, mergePrevious, previousFrom, profileSummaryOf, HISTORY_SIZE } from '../src/lib/editionCore.js'
+import { compose, composeEdition, basisOf, editionBasis, historyOf, nextHistory, mergePrevious, previousFrom, earlierEditions, earlierEditionsJSON, recentEditions, profileSummaryOf, HISTORY_SIZE } from '../src/lib/editionCore.js'
 import { buildCore, readCore, hashOf } from '../scripts/build-edition-core.mjs'
 
 const golden = JSON.parse(readFileSync(new URL('./fixtures/edition-golden.json', import.meta.url), 'utf8'))
@@ -102,58 +104,176 @@ test('history (H5): de samenvatting van een Editie heeft precies de sleutels van
   assert.deepEqual(a, b)
   assert.deepEqual(a, c, 'ook de platte vorm met `at`, zoals POST /api/edition hem krijgt')
   assert.equal(previousFrom(null), null)
-  // De geschiedenis houdt de laatste drie, deze voorop, elk dagdeel één keer.
-  const hist = nextHistory([{ ...row, id: 'x' }, { ...row, id: 'y' }, { ...row, id: 'z' }], output)
+  // De geschiedenis: de Edities ervóór, nieuwste eerst, de laatste drie — nooit de Editie zelf (de vorm van het web).
+  const eerder = (id, h) => ({ ...row, id, builtAt: new Date(Date.parse(row.builtAt) - h * 36e5).toISOString() })
+  const hist = nextHistory([eerder('z', 18), eerder('x', 6), eerder('w', 24), eerder('y', 12), { ...row, id: output.id }], output)
   assert.equal(hist.length, HISTORY_SIZE)
-  assert.equal(hist[0].id, output.id)
-  assert.equal(nextHistory(hist, output).length, HISTORY_SIZE)
-  assert.equal(nextHistory(hist, output).filter((h) => h.id === output.id).length, 1)
+  assert.deepEqual(hist.map((h) => h.id), ['x', 'y', 'z'], 'nieuwste eerst, de vierde valt af, de Editie zelf nooit')
+  assert.deepEqual(nextHistory(hist, output), hist, 'regels die al samenvattingen zijn, komen ongewijzigd terug')
+  assert.deepEqual(nextHistory([output], output), [], 'alleen zichzelf: een lege geschiedenis')
 })
 
-// De laatste drie dagdelen uit wat het toestel en het account vastlegden, zoals HootStore.recentHistory:
-// elk dagdeel één keer (de eerste vermelding wint), nieuw naar oud, zonder het dagdeel van nu.
-function recentHistory(rows, except, size = 3) {
-  const seen = new Set()
-  const unique = rows.filter((r) => r?.id && r.id !== except && !seen.has(r.id) && seen.add(r.id))
-  return unique.map((r, i) => [r, i]).sort((a, b) => (Date.parse(b[0].builtAt) || 0) - (Date.parse(a[0].builtAt) || 0) || a[1] - b[1]).map(([r]) => r).slice(0, size)
+// Drie dagdelen van dezelfde lezer, en een vierde en vijfde; `previous` plat en gesorteerd om twee
+// uitkomsten met deepEqual te vergelijken; de ids van een lijst.
+const O = ['d1-ochtend', '2026-10-31T05:00:00.000Z'], M = ['d1-middag', '2026-10-31T11:00:00.000Z'], A = ['d1-avond', '2026-10-31T16:00:00.000Z'], N = ['d2-ochtend', '2026-11-01T05:00:00.000Z']
+const ids = (list) => list.map((r) => r.id)
+const flat = (p) => p && JSON.parse(JSON.stringify({ ...p, storyIds: [...p.storyIds].sort(), itemIds: [...p.itemIds].sort(), leadIds: [...p.leadIds].sort(), titles: [...p.titles].sort(), leadStoryIds: [...p.leadStoryIds], atOf: Object.fromEntries(p.atOf), keysOf: Object.fromEntries([...p.keysOf].map(([k, v]) => [k, [...v].sort()])) }))
+
+// Vastgelegde Edities zoals het toestel (loadPersonal → keep) en het web (usePersonalEdition) ze bewaren:
+// dezelfde Editie op een ander dagdeel, van lezer `owner`, met de `history` die bij het vastleggen
+// meegaat — nextHistory over earlierEditions, dus de Edities ervóór, nooit zichzelf.
+function scenario() {
+  const { output } = byName.klimaat
+  const dagdeel = ([id, builtAt], owner = 'u1') => ({ ...output, id, builtAt, owner })
+  const vastgelegd = (e, { local = null, account = null } = {}) => ({ ...e, history: nextHistory(earlierEditions({ local, account, id: e.id, owner: e.owner }), e) })
+  return { output, dagdeel, vastgelegd }
 }
 
-test('H3/H5: drie dagdelen achter elkaar op het toestel — de geschiedenis wordt drie diep en de Avond kent de Ochtend', () => {
-  const { output } = byName.klimaat
-  const dagdeel = (id, builtAt) => ({ ...output, id, builtAt })
-  // Ochtend: vastgelegd zoals keep() hem bewaart (met de eigen regel voorop).
-  const ochtend = dagdeel('d1-ochtend', '2026-10-31T05:00:00.000Z')
-  ochtend.history = nextHistory([], ochtend)
-  assert.deepEqual(ochtend.history.map((h) => h.id), ['d1-ochtend'])
-  // Middag: `prior` zoals loadPersonal hem bouwt — de hele vorige Editie voorop, dan haar history.
-  let prior = recentHistory([ochtend, ...ochtend.history], 'd1-middag')
-  assert.ok(!Array.isArray(prior[0].storyIds), 'de volle Editie wint van haar eigen regel, zoals op het web')
-  const middag = dagdeel('d1-middag', '2026-10-31T11:00:00.000Z')
-  middag.history = nextHistory(prior, middag)
-  assert.deepEqual(middag.history.map((h) => h.id), ['d1-middag', 'd1-ochtend'], 'de volle Editie wordt samengevat, niet weggegooid')
+test('H3/H5: drie dagdelen achter elkaar op het toestel — history in de vorm van het web (de Edities ervóór, nooit zichzelf), drie diep, en de Avond kent de Ochtend', () => {
+  const { output, dagdeel, vastgelegd } = scenario()
+  const ochtend = vastgelegd(dagdeel(O))
+  assert.deepEqual(ochtend.history, [], 'de eerste Editie: niets ervóór')
+  // Middag: earlierEditions geeft de Ochtend voluit (haar history is leeg).
+  let prior = earlierEditions({ local: ochtend, account: null, id: M[0], owner: 'u1' })
+  assert.deepEqual(ids(prior), ['d1-ochtend'])
+  assert.ok(prior[0].entries, 'de volle Editie, niet een regel')
+  const middag = vastgelegd(dagdeel(M), { local: ochtend })
+  assert.deepEqual(ids(middag.history), ['d1-ochtend'], 'de Editie ervóór, samengevat; de Middag zelf niet')
   assert.ok(middag.history.every((h) => Array.isArray(h.storyIds) && !h.entries), 'alleen regels in de geschiedenis')
-  assert.deepEqual(Object.keys(middag.history[1]), HISTORY_KEYS)
-  // Avond: drie diep, en `previous` kent de Ochtend nog (atOf op haar builtAt).
-  prior = recentHistory([middag, ...middag.history], 'd1-avond')
-  const avond = dagdeel('d1-avond', '2026-10-31T16:00:00.000Z')
-  avond.history = nextHistory(prior, avond)
-  assert.equal(avond.history.length, 3)
-  assert.deepEqual(avond.history.map((h) => h.id), ['d1-avond', 'd1-middag', 'd1-ochtend'])
+  assert.deepEqual(Object.keys(middag.history[0]), HISTORY_KEYS)
+  assert.deepEqual(middag.history, prior.map(historyOf), 'precies earlier.map(historyOf), zoals usePersonalEdition schrijft')
+  // Avond: de Middag voluit, de Ochtend als regel; de volle Editie wint van haar eigen regel (de eerste vermelding).
+  prior = earlierEditions({ local: middag, account: null, id: A[0], owner: 'u1' })
+  assert.deepEqual(ids(prior), ['d1-middag', 'd1-ochtend'])
+  assert.ok(prior[0].entries && Array.isArray(prior[1].storyIds))
+  const avond = vastgelegd(dagdeel(A), { local: middag })
+  assert.deepEqual(ids(avond.history), ['d1-middag', 'd1-ochtend'])
+  // `previous` kent de Ochtend nog (atOf op haar builtAt); at en leadStoryId zijn van de nieuwste.
   const previous = mergePrevious(prior)
   const storyId = output.entries.find((e) => e.kind === 'story').id
   assert.equal(previous.atOf.get(storyId), Date.parse(middag.builtAt), 'at per verhaal: de laatste Editie waarin het stond')
-  const alleenOchtend = mergePrevious(prior.filter((r) => r.id === 'd1-ochtend'))
-  assert.equal(alleenOchtend.atOf.get(storyId), Date.parse(ochtend.builtAt), 'de Ochtend staat er nog in')
-  // leadStoryId en at zijn van de nieuwste Editie, hoe de lijst ook aangeleverd wordt (iOS: nieuw → oud).
+  assert.equal(mergePrevious(prior.filter((r) => r.id === 'd1-ochtend')).atOf.get(storyId), Date.parse(ochtend.builtAt), 'de Ochtend staat er nog in')
   assert.equal(previous.at, Date.parse(middag.builtAt))
   assert.deepEqual(mergePrevious([...prior].reverse()), previous, 'volgorde van de invoer doet er niet toe')
   const gemengd = [{ ...historyOf(ochtend), leadStoryId: 'oud' }, { ...historyOf(middag), leadStoryId: 'nieuw' }]
   assert.equal(mergePrevious(gemengd).leadStoryId, 'nieuw')
   assert.equal(mergePrevious([...gemengd].reverse()).leadStoryId, 'nieuw')
-  // Een vierde dagdeel: de Ochtend valt af.
-  const nacht = dagdeel('d2-ochtend', '2026-11-01T05:00:00.000Z')
-  nacht.history = nextHistory(recentHistory([avond, ...avond.history], 'd2-ochtend'), nacht)
-  assert.deepEqual(nacht.history.map((h) => h.id), ['d2-ochtend', 'd1-avond', 'd1-middag'])
+  // Een vierde dagdeel: drie diep; een vijfde: de Ochtend valt af.
+  const nacht = vastgelegd(dagdeel(N), { local: avond })
+  assert.deepEqual(ids(nacht.history), ['d1-avond', 'd1-middag', 'd1-ochtend'])
+  assert.equal(nacht.history.length, HISTORY_SIZE)
+  const later = vastgelegd(dagdeel(['d2-middag', '2026-11-01T11:00:00.000Z']), { local: nacht })
+  assert.deepEqual(ids(later.history), ['d2-ochtend', 'd1-avond', 'd1-middag'])
+  // recentEditions: een regel zonder builtAt telt niet, zoals op het web.
+  assert.deepEqual(ids(recentEditions([{ ...historyOf(ochtend), id: 'kaal', builtAt: undefined }, ochtend])), ['d1-ochtend'])
+})
+
+test('P8-1/H5: Middag overgeslagen op het toestel, het web schreef de Middag met history [Ochtend] — de Avond op iOS kent [Middag, Ochtend], gelijk aan het web', () => {
+  const { output, dagdeel, vastgelegd } = scenario()
+  const ochtend = vastgelegd(dagdeel(O)) // op het toestel én in het account
+  // Het web stelde de Middag samen (met de Ochtend uit het account) en schreef haar in user_state.
+  const webMiddag = vastgelegd(dagdeel(M), { local: null, account: ochtend })
+  assert.deepEqual(ids(webMiddag.history), ['d1-ochtend'])
+  // Het toestel sloeg de Middag over: lokaal nog de Ochtend, in het account de Middag van het web.
+  const prior = earlierEditions({ local: ochtend, account: webMiddag, id: A[0], owner: 'u1' })
+  assert.deepEqual(ids(prior), ['d1-middag', 'd1-ochtend'], 'de volle Editie uit het account telt mee als zij van een ander dagdeel is')
+  assert.ok(prior[0].entries, 'de Middag voluit')
+  const previous = mergePrevious(prior)
+  const storyId = output.entries.find((e) => e.kind === 'story').id
+  assert.equal(previous.at, Date.parse(webMiddag.builtAt), 'previous kent de Middag')
+  assert.equal(previous.atOf.get(storyId), Date.parse(webMiddag.builtAt))
+  // Een toestel met niets lokaal (het web na het wissen van zijn opslag) rekent uit het account hetzelfde.
+  assert.deepEqual(flat(previous), flat(mergePrevious(earlierEditions({ local: null, account: webMiddag, id: A[0], owner: 'u1' }))))
+  const avond = vastgelegd(dagdeel(A), { local: ochtend, account: webMiddag })
+  assert.deepEqual(ids(avond.history), ['d1-middag', 'd1-ochtend'])
+  assert.deepEqual(avond.history[0], historyOf(webMiddag))
+})
+
+test('H5: web en app wisselen van geschiedenis — door het web geschreven en door iOS gelezen en omgekeerd geeft hetzelfde previous, en overnemen herschrijft niets', () => {
+  const { dagdeel, vastgelegd } = scenario()
+  const ochtend = vastgelegd(dagdeel(O))
+  // iOS → web: iOS schreef de Middag (history [Ochtend]); het web leest voor de Avond alleen uit het account.
+  const iosMiddag = vastgelegd(dagdeel(M), { local: ochtend })
+  const webEarlier = earlierEditions({ local: null, account: iosMiddag, id: A[0], owner: 'u1' })
+  const iosEarlier = earlierEditions({ local: iosMiddag, account: iosMiddag, id: A[0], owner: 'u1' })
+  assert.deepEqual(ids(webEarlier), ['d1-middag', 'd1-ochtend'])
+  assert.deepEqual(flat(mergePrevious(webEarlier)), flat(mergePrevious(iosEarlier)))
+  assert.deepEqual(nextHistory(webEarlier, dagdeel(A)), nextHistory(iosEarlier, dagdeel(A)), 'beide schrijven dezelfde history voor de Avond')
+  // web → iOS: het web schreef de Middag; iOS leest voor de Avond met lokaal de Ochtend.
+  const webMiddag = vastgelegd(dagdeel(M), { local: null, account: ochtend })
+  const iosEarlier2 = earlierEditions({ local: ochtend, account: webMiddag, id: A[0], owner: 'u1' })
+  const webEarlier2 = earlierEditions({ local: webMiddag, account: webMiddag, id: A[0], owner: 'u1' })
+  assert.deepEqual(flat(mergePrevious(iosEarlier2)), flat(mergePrevious(webEarlier2)))
+  assert.deepEqual(nextHistory(iosEarlier2, dagdeel(A)), nextHistory(webEarlier2, dagdeel(A)))
+  // Overnemen (adopt): een door het web geschreven Editie krijgt haar history ongewijzigd terug, ook als
+  // het toestel een oudere Editie van deze lezer heeft.
+  for (const local of [null, ochtend, { ...ochtend, history: [] }]) {
+    const adopted = nextHistory(earlierEditions({ local, account: webMiddag, id: webMiddag.id, owner: 'u1' }), webMiddag)
+    assert.deepEqual(adopted, webMiddag.history, 'adopt herschrijft een web-geschreven geschiedenis niet')
+  }
+  // En andersom: het web neemt een iOS-Middag over en houdt haar history.
+  assert.deepEqual(earlierEditions({ local: ochtend, account: iosMiddag, id: iosMiddag.id, owner: 'u1' }).map(historyOf), iosMiddag.history)
+})
+
+test('eigenaarsfilter: wat lokaal van een andere lezer is, telt niet — anon bij lid u1 geeft niets, en na uitloggen rekent anon niet met de geschiedenis van het lid', () => {
+  const { dagdeel, vastgelegd } = scenario()
+  const anon = vastgelegd(dagdeel(O, 'anon'))
+  const lid = vastgelegd(dagdeel(M), { local: null, account: vastgelegd(dagdeel(O)) })
+  assert.deepEqual(earlierEditions({ local: anon, account: null, id: M[0], owner: 'u1' }), [], 'anon-lokaal bij lid u1: prior leeg')
+  assert.equal(previousFrom(earlierEditions({ local: anon, account: null, id: M[0], owner: 'u1' })), null)
+  assert.deepEqual(earlierEditions({ local: lid, account: null, id: A[0], owner: 'anon' }), [], 'na uitloggen: de Middag en haar history van het lid tellen niet')
+  assert.deepEqual(ids(earlierEditions({ local: lid, account: null, id: A[0], owner: 'u1' })), ['d1-middag', 'd1-ochtend'], 'dezelfde lezer wél')
+  assert.deepEqual(ids(earlierEditions({ local: anon, account: null, id: M[0], owner: 'anon' })), ['d1-ochtend'])
+  assert.deepEqual(ids(earlierEditions({ local: anon, account: null, id: M[0], owner: null })), ['d1-ochtend'], 'zonder eigenaar geen filter')
+  // De rij uit het account is altijd van deze lezer en telt mee, ook naast anon-lokaal.
+  assert.deepEqual(ids(earlierEditions({ local: anon, account: lid, id: A[0], owner: 'u1' })), ['d1-middag', 'd1-ochtend'])
+  // De JSON-ingang die Swift aanroept: "null" voor niets.
+  assert.equal(earlierEditionsJSON('null', 'null', 'x', 'u1'), '[]')
+  assert.deepEqual(JSON.parse(earlierEditionsJSON(JSON.stringify(anon), 'null', M[0], 'u1')), [])
+  assert.deepEqual(ids(JSON.parse(earlierEditionsJSON(JSON.stringify(anon), JSON.stringify(lid), A[0], 'u1'))), ['d1-middag', 'd1-ochtend'])
+})
+
+// Pariteit met de webcode zelf (Hoot-herhaling, branch algoritme-herhaling): dezelfde scenario's door
+// src/lib/personal.js (earlierEditions) en netlify/lib/stories.mjs (historyOf, previousOf, recentEditions)
+// van het web en door de rekenkern hier, deepEqual. Het pad komt uit HOOT_WEB of de zusterworktree naast
+// deze repo; ontbreekt hij, dan slaat de test over (de tests hierboven blijven de rekenkern toetsen).
+const WEB = process.env.HOOT_WEB || resolve(fileURLToPath(new URL('../..', import.meta.url)), 'Hoot-herhaling')
+test('pariteit met Hoot-herhaling: earlierEditions, history en previous van web en app zijn deepEqual in alle scenario’s (iOS→web, web→iOS, overslaan, eigenaar)', { skip: !existsSync(resolve(WEB, 'src/lib/personal.js')) && `geen webworktree op ${WEB}` }, async () => {
+  const web = await import(pathToFileURL(resolve(WEB, 'netlify/lib/stories.mjs')).href)
+  const webPersonal = await import(pathToFileURL(resolve(WEB, 'src/lib/personal.js')).href)
+  assert.equal(HISTORY_SIZE, web.HISTORY_MAX)
+  const { dagdeel } = scenario()
+  const plain = (x) => JSON.parse(JSON.stringify(x))
+  // Vastleggen zoals het web het doet, met de webcode.
+  const webVast = (e, { local = null, account = null } = {}) => ({ ...e, history: webPersonal.earlierEditions({ local, account, id: e.id, owner: e.owner }).map(web.historyOf).filter(Boolean) })
+  const ochtend = webVast(dagdeel(O)), anon = webVast(dagdeel(O, 'anon'))
+  const webMiddag = webVast(dagdeel(M), { local: null, account: ochtend })
+  const iosMiddag = { ...dagdeel(M), history: nextHistory(earlierEditions({ local: ochtend, account: null, id: M[0], owner: 'u1' }), dagdeel(M)) }
+  assert.deepEqual(plain(iosMiddag.history), plain(webMiddag.history), 'iOS en web schrijven dezelfde history voor de Middag')
+  const avond = webVast(dagdeel(A), { local: webMiddag, account: webMiddag })
+  const cases = [
+    { naam: 'eerste dagdeel', local: null, account: null, id: O[0], owner: 'u1' },
+    { naam: 'tweede dagdeel', local: ochtend, account: ochtend, id: M[0], owner: 'u1' },
+    { naam: 'P8-1: Middag overgeslagen, web schreef haar', local: ochtend, account: webMiddag, id: A[0], owner: 'u1' },
+    { naam: 'web leest iOS-Middag', local: null, account: iosMiddag, id: A[0], owner: 'u1' },
+    { naam: 'iOS leest eigen Middag plus account', local: iosMiddag, account: webMiddag, id: A[0], owner: 'u1' },
+    { naam: 'adopt van de Middag', local: ochtend, account: webMiddag, id: M[0], owner: 'u1' },
+    { naam: 'vierde dagdeel', local: avond, account: avond, id: N[0], owner: 'u1' },
+    { naam: 'anon-lokaal bij lid', local: anon, account: null, id: M[0], owner: 'u1' },
+    { naam: 'na uitloggen', local: avond, account: null, id: N[0], owner: 'anon' },
+    { naam: 'zonder eigenaar', local: anon, account: null, id: M[0], owner: null },
+  ]
+  for (const c of cases) {
+    const mine = earlierEditions(c), theirs = webPersonal.earlierEditions(c)
+    assert.deepEqual(plain(mine), plain(theirs), `${c.naam}: earlierEditions`)
+    assert.deepEqual(plain(nextHistory(mine, { id: c.id })), plain(theirs.map(web.historyOf).filter(Boolean)), `${c.naam}: history`)
+    assert.deepEqual(flat(mergePrevious(mine)), flat(web.previousOf(theirs)), `${c.naam}: previous`)
+  }
+  // De samenvatting zelf, sleutel voor sleutel in dezelfde volgorde; en regels zonder builtAt vallen bij beiden af.
+  assert.deepEqual(Object.keys(historyOf(ochtend)), Object.keys(web.historyOf(ochtend)))
+  assert.deepEqual(plain(historyOf(ochtend)), plain(web.historyOf(ochtend)))
+  const kaal = { ...web.historyOf(ochtend), id: 'kaal', builtAt: undefined }
+  assert.deepEqual(ids(recentEditions([kaal, ochtend, webMiddag])), ids(web.recentEditions([kaal, ochtend, webMiddag])))
 })
 
 test('H2/H5: de kenmerken van toen (`keys` per plek) gaan als `keys` mee in de history-regel en komen als keysOf terug', () => {

@@ -28,6 +28,8 @@ var HootCore = (() => {
     basisOf: () => basisOf,
     compose: () => compose,
     composeEdition: () => composeEdition,
+    earlierEditions: () => earlierEditions,
+    earlierEditionsJSON: () => earlierEditionsJSON,
     editionBasis: () => editionBasis,
     historyJSON: () => historyJSON,
     historyOf: () => historyOf,
@@ -39,7 +41,8 @@ var HootCore = (() => {
     previousOf: () => previousOf2,
     profileSummary: () => profileSummary,
     profileSummaryJSON: () => profileSummaryJSON,
-    profileSummaryOf: () => profileSummaryOf
+    profileSummaryOf: () => profileSummaryOf,
+    recentEditions: () => recentEditions
   });
 
   // netlify/lib/desks.mjs
@@ -1044,17 +1047,31 @@ var HootCore = (() => {
       keys: Object.fromEntries([...p.keysOf || []].map(([id, ks]) => [id, [...ks]]))
     };
   }
-  function nextHistory(prior = [], edition) {
-    const row = historyOf(edition);
-    const seen = new Set(row ? [row.id] : []);
-    const rest = [];
-    for (const h of (Array.isArray(prior) ? prior : []).map(historyOf)) {
-      if (!h || typeof h.id !== "string" || !h.id || seen.has(h.id) || h.id === edition?.id) continue;
-      seen.add(h.id);
-      rest.push(h);
+  function recentEditions(list = [], n = HISTORY_SIZE) {
+    const seen = /* @__PURE__ */ new Set();
+    const out = [];
+    for (const e of Array.isArray(list) ? list : []) {
+      if (!e || typeof e.id !== "string" || !e.id || seen.has(e.id) || !(Date.parse(e.builtAt) > 0)) continue;
+      seen.add(e.id);
+      out.push(e);
     }
-    rest.sort((a, b) => (Date.parse(b.builtAt) || 0) - (Date.parse(a.builtAt) || 0) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-    return [...row ? [row] : [], ...rest].slice(0, HISTORY_SIZE);
+    out.sort((a, b) => Date.parse(b.builtAt) - Date.parse(a.builtAt) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    return out.slice(0, n);
+  }
+  function earlierEditions({ local = null, account = null, id = null, owner = null } = {}) {
+    const rows = [];
+    const add = (e) => {
+      if (!e || typeof e !== "object") return;
+      if (Array.isArray(e.history)) rows.push(...e.history);
+      if (e.id !== id) rows.push(e);
+    };
+    if (local && (!owner || local.owner === owner)) add(local);
+    add(account);
+    return recentEditions(rows);
+  }
+  function nextHistory(prior = [], edition) {
+    const rows = (Array.isArray(prior) ? prior : []).filter((x) => x && x.id !== edition?.id);
+    return recentEditions(rows).map(historyOf).filter(Boolean);
   }
   function previousOne(x) {
     if (!x || typeof x !== "object") return null;
@@ -1159,6 +1176,10 @@ var HootCore = (() => {
     const prior = typeof priorJSON === "string" ? JSON.parse(priorJSON) : priorJSON;
     const edition = typeof editionJSON === "string" ? JSON.parse(editionJSON) : editionJSON;
     return JSON.stringify(nextHistory(prior, edition));
+  }
+  function earlierEditionsJSON(localJSON, accountJSON, id, owner) {
+    const parse = (v) => typeof v === "string" ? JSON.parse(v) : v;
+    return JSON.stringify(earlierEditions({ local: parse(localJSON) ?? null, account: parse(accountJSON) ?? null, id: id ?? null, owner: owner ?? null }));
   }
   function previousJSON(listJSON) {
     const p = previousFrom(typeof listJSON === "string" ? JSON.parse(listJSON) : listJSON);

@@ -585,22 +585,20 @@ final class HootStore {
             if let theirs, fits(Self.decodeEdition(theirs)), !force { await adopt(theirs, owner: owner); return } // (b)
         }
         do {
-            // (c) De geschiedenis: wat dit toestel en je account vastlegden (H5), plus de vorige Editie
-            // van dit toestel zelf, voluit en voorop (zij wint van haar eigen regel, zoals op het web);
-            // samen de laatste drie dagdelen, en de rekenkern voegt ze samen tot `previous` (H3) en vat
-            // de volle Editie samen tot een regel in de nieuwe `history` (nextHistory). Een overgenomen
-            // Editie staat in beide, dus elk dagdeel telt één keer.
-            var prior = (personalRaw?["history"] as? [[String: Any]] ?? []) + (theirs?["history"] as? [[String: Any]] ?? [])
-            if let p = personalRaw, p["id"] as? String != global.id, p["owner"] as? String == owner { prior.insert(p, at: 0) }
-            prior = Self.recentHistory(prior, except: global.id)
+            // (c) De Edities van vóór deze (H3/H5), precies als earlierEditions op het web: wat dit toestel
+            // vastlegde (als het van deze lezer is) en wat in je account staat, elk met haar `history`, en
+            // de Editie zelf voluit als zij van een ander dagdeel is — ook die uit je account, want dit
+            // toestel kan een dagdeel overgeslagen hebben dat het web wél vastlegde (P8-1). Samen de
+            // laatste drie dagdelen; de rekenkern voegt ze samen tot `previous` en vat ze samen tot de
+            // nieuwe `history` (nextHistory): de Edities ervóór, nooit deze zelf, zoals het web schrijft.
+            let prior = Self.rows(try await EditionEngine.shared.earlier(local: Self.json(personalRaw), account: Self.json(theirs), id: global.id, owner: owner))
             forced.insert(global.id)
             let input = try composeInput(global: global, owner: owner, previous: prior)
             let out = try await EditionEngine.shared.compose(input: input)
             guard var mine = try JSONSerialization.jsonObject(with: out) as? [String: Any], mine["id"] as? String == global.id else { throw EditionEngine.Failure.noResult }
             // Veranderde er intussen iets (bron gedempt, uitgelogd)? Dan komt er zo een nieuwe ronde.
             guard followed.map(\.id) == followedIds, ownerNow == owner else { return }
-            let history = try await EditionEngine.shared.nextHistory(prior: Self.json(prior), edition: String(decoding: out, as: UTF8.self))
-            mine["history"] = (try? JSONSerialization.jsonObject(with: Data(history.utf8))) as? [[String: Any]] ?? []
+            mine["history"] = Self.rows(try await EditionEngine.shared.nextHistory(prior: Self.json(prior), edition: String(decoding: out, as: UTF8.self)))
             keep(mine)
             if DebugLaunch.engine { return } // gedwongen samengesteld: niet naar je account
             if account?.uid != nil, let a = account, let claim = try? await a.claimEdition(mine, id: global.id), !claim.won {
@@ -616,32 +614,24 @@ final class HootStore {
     // Welke dagdelen al gedwongen zijn samengesteld (`-HootEngine`): daarna gewoon weer (a).
     private var forced: Set<String> = []
 
-    // De laatste drie dagdelen uit wat dit toestel en je account vastlegden: elk dagdeel één keer (de
-    // eerste vermelding wint: die van dit toestel, en de hele Editie van haar eigen regel), op builtAt
-    // van nieuw naar oud, zonder het dagdeel dat nu wordt samengesteld. Regels zijn history-regels (H5)
-    // of een hele vastgelegde Editie; de rekenkern leest beide en vat de Editie samen (historyOf).
-    static func recentHistory(_ rows: [[String: Any]], except id: String, size: Int = 3) -> [[String: Any]] {
-        var seen = Set<String>()
-        let unique = rows.filter { row in
-            guard let rid = row["id"] as? String, rid != id, !seen.contains(rid) else { return false }
-            seen.insert(rid)
-            return true
-        }
-        let at = { (row: [String: Any]) in (row["builtAt"] as? String).flatMap(HootDate.parse)?.timeIntervalSince1970 ?? 0 }
-        return Array(unique.enumerated().sorted { (at($0.element), $1.offset) > (at($1.element), $0.offset) }.map(\.element).prefix(size))
-    }
-
     // De Editie van een ander toestel overnemen, en vastleggen alsof hij hier gemaakt is: dan is hij
-    // ook hier het `previous` van het volgende dagdeel (P8-5). Zonder `history` krijgt hij die hier.
+    // ook hier het `previous` van het volgende dagdeel (P8-5). Haar `history` wordt die van het web bij
+    // overnemen: de Edities van toen van beide toestellen (zijn geschiedenis plus wat dit toestel van
+    // deze lezer vastlegde), samengevat, nieuwste eerst, zonder haarzelf. Heeft dit toestel niets nieuws,
+    // dan komt een door het web geschreven geschiedenis ongewijzigd terug.
     private func adopt(_ raw: [String: Any], owner: String) async {
         var e = raw
         e["owner"] = owner
-        let id = e["id"] as? String
-        if (e["history"] as? [[String: Any]])?.contains(where: { $0["id"] as? String == id }) != true {
-            let prior = (e["history"] as? [[String: Any]] ?? []) + (personalRaw?["history"] as? [[String: Any]] ?? [])
-            if let h = try? await EditionEngine.shared.nextHistory(prior: Self.json(prior), edition: Self.json(e)), let rows = (try? JSONSerialization.jsonObject(with: Data(h.utf8))) as? [[String: Any]] { e["history"] = rows }
+        if let id = e["id"] as? String, let prior = try? await EditionEngine.shared.earlier(local: Self.json(personalRaw), account: Self.json(raw), id: id, owner: owner),
+           let h = try? await EditionEngine.shared.nextHistory(prior: prior, edition: Self.json(e)) {
+            e["history"] = Self.rows(h)
         }
         keep(e)
+    }
+
+    // Een JSON-lijst van objecten (regels, Edities) terug naar Swift.
+    private static func rows(_ json: String) -> [[String: Any]] {
+        (try? JSONSerialization.jsonObject(with: Data(json.utf8))) as? [[String: Any]] ?? []
     }
 
     private func keep(_ raw: [String: Any]) {
@@ -653,8 +643,9 @@ final class HootStore {
         guard let data = try? JSONSerialization.data(withJSONObject: raw) else { return nil }
         return try? JSONDecoder().decode(Edition.self, from: data)
     }
-    private static func json(_ object: Any) -> String {
-        guard JSONSerialization.isValidJSONObject(object), let data = try? JSONSerialization.data(withJSONObject: object) else { return "null" }
+    // Als JSON-tekst voor de rekenkern; niets (nil, of geen geldig object) wordt "null".
+    private static func json(_ object: Any?) -> String {
+        guard let object, JSONSerialization.isValidJSONObject(object), let data = try? JSONSerialization.data(withJSONObject: object) else { return "null" }
         return String(decoding: data, as: UTF8.self)
     }
     private static func encoded<T: Encodable>(_ value: T) -> Any {
@@ -693,7 +684,7 @@ final class HootStore {
     // wat je las en wat er in je vorige Edities stond. Het antwoord draagt `fallback: true` en gaat
     // nooit naar je account.
     private func fallbackPersonal(_ global: Edition, owner: String, basis: String?) async {
-        let body = PersonalRequest(followed: followed.map(\.id), interests: interests, topics: topics, favorites: favorites, taste: taste.isEmpty ? nil : taste, readIds: Array(readIds.suffix(1500)), previous: previousForServer(global))
+        let body = PersonalRequest(followed: followed.map(\.id), interests: interests, topics: topics, favorites: favorites, taste: taste.isEmpty ? nil : taste, readIds: Array(readIds.suffix(1500)), previous: previousForServer(global, owner: owner))
         guard let data = try? await HootAPI.postData("api/edition", body),
               var mine = ((try? JSONSerialization.jsonObject(with: data)) as? [String: Any])?["edition"] as? [String: Any],
               mine["id"] as? String == global.id else { return }
@@ -705,8 +696,10 @@ final class HootStore {
     }
 
     // `previous` voor de server: de vereniging van wat dit toestel vastlegde (de vorige Editie en de
-    // geschiedenis), in de platte vorm die POST /api/edition leest.
-    private func previousForServer(_ global: Edition) -> PreviousEdition? {
+    // geschiedenis), in de platte vorm die POST /api/edition leest. Alleen wat van deze lezer is: na
+    // uitloggen rekent "anon" niet met de geschiedenis van het lid (zoals earlierEditions op het web).
+    private func previousForServer(_ global: Edition, owner: String) -> PreviousEdition? {
+        guard personalRaw?["owner"] as? String == owner else { return nil }
         var rows = personalRaw?["history"] as? [[String: Any]] ?? []
         if let p = personal, p.id != global.id, let lead = p.entries.first {
             let stories = p.entries.filter { $0.kind == "story" }

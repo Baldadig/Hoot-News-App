@@ -144,9 +144,17 @@ final class EditionEngine: @unchecked Sendable {
         try await call("historyJSON", [editionJSON])
     }
 
-    // De geschiedenis na het vastleggen van een Editie: deze voorop, de laatste drie.
+    // De geschiedenis die bij het vastleggen van een Editie meegaat: de samenvattingen van de Edities
+    // ervóór (nieuwste eerst, de laatste drie), nooit de Editie zelf — de vorm van het web (H5).
     func nextHistory(prior priorJSON: String, edition editionJSON: String) async throws -> String {
         try await call("nextHistoryJSON", [priorJSON, editionJSON])
+    }
+
+    // De Edities van vóór dit dagdeel uit wat dit toestel (`local`) en je account (`account`) vastlegden,
+    // als JSON-lijst (Edities en/of history-regels, nieuwste eerst, de laatste drie): precies
+    // earlierEditions op het web. Wat lokaal van een andere lezer is, telt niet mee. "null" voor niets.
+    func earlier(local localJSON: String, account accountJSON: String, id: String, owner: String) async throws -> String {
+        try await call("earlierEditionsJSON", [localJSON, accountJSON, id, owner])
     }
 
     // Het `previous` dat de rekenkern uit een lijst Edities en/of history-regels maakt (H3), plat als
