@@ -81,6 +81,16 @@ extension HootStore {
     }
 }
 
+// De telling van de Editie (T3): de getoonde rijen op volgorde, het hoofdverhaal is 01. Buiten je
+// bubbel telt niet mee; die staat erbuiten. Zoals countEdition op het web.
+enum EditionCount {
+    static func numbers(_ rows: [EditionRowModel]) -> [String: Int] {
+        var out: [String: Int] = [:]
+        for row in rows where row.desk != "bubbel" { out[row.id] = out.count + 1 }
+        return out
+    }
+}
+
 struct EditionView: View {
     // `-HootScroll slot`: het voorlaatste verhaal bovenaan, zodat het einde met twee verhalen erboven in beeld staat.
     static func slotTarget(_ rows: [EditionRowModel]) -> String? {
@@ -181,6 +191,7 @@ struct EditionView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     let rows = store.editionRows
+                    let numbers = EditionCount.numbers(rows)
                     if store.status == .loading && rows.isEmpty {
                         ProgressView().frame(maxWidth: .infinity, minHeight: 240)
                     } else if rows.isEmpty {
@@ -198,28 +209,36 @@ struct EditionView: View {
                             .padding(.bottom, Space.s4)
                         // Kon er niet ververst worden, dan zegt dat het onder de datum: titel en datum blijven bij elkaar.
                         StaleNotice(gap: Space.s4)
-                        slot(rows[0]) { LeadCard(item: rows[0].item, label: rows[0].label, why: rows[0].why, story: rows[0].story) }
+                        slot(rows[0]) { LeadCard(item: rows[0].item, label: rows[0].label, why: rows[0].why, story: rows[0].story, number: numbers[rows[0].id]) }
                         if wide {
                             // Breed: de rest in twee kolommen, elk verhaal met een lijn erboven.
                             LazyVGrid(columns: [GridItem(.flexible(), spacing: Space.s6, alignment: .top), GridItem(.flexible(), spacing: Space.s6, alignment: .top)], alignment: .leading, spacing: Space.s2) {
                                 ForEach(rows.dropFirst()) { row in
                                     VStack(alignment: .leading, spacing: 0) {
                                         Rule().padding(.vertical, Space.s2)
-                                        slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, story: row.story, form: .krant) }
+                                        slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, story: row.story, form: .krant, number: numbers[row.id]) }
                                     }
                                 }
                             }
                         } else {
                             ForEach(rows.dropFirst()) { row in
                                 Rule().padding(.vertical, Space.s2)
-                                slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, story: row.story, form: .krant) }
+                                slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, story: row.story, form: .krant, number: numbers[row.id]) }
                             }
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,
                         // en wanneer de volgende er is.
                         VStack(spacing: Space.s3) {
+                            // De telling rond: "10 van 10", stil boven het merk (geen beweging, geen trilling).
+                            if !numbers.isEmpty {
+                                Text("\(numbers.count) van \(numbers.count)")
+                                    .font(.system(.body, design: .serif).monospacedDigit())
+                                    .opacity(0.85)
+                            }
                             // Het teken "h." als tekening, 44 hoog; op merkrood alles papier, ook de punt.
+                            // Tot "Je bent bij." 16, zoals op het web.
                             BrandMark(height: 44, ink: Theme.onBrandRed, dot: Theme.onBrandRed)
+                                .padding(.bottom, Space.s4 - Space.s3)
                             Text("Je bent bij.").font(Theme.headline(.title))
                             Text("Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(endDate)").\(upNext)")
                                 .font(.subheadline)

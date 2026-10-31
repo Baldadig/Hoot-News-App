@@ -189,7 +189,7 @@ private struct DigestCard: View {
                         .fixedSize(horizontal: false, vertical: true)
                     // Waarom dit stuk: rustige metadata onder de kop, zodat de kop voorgaat.
                     if let why = item.why, !why.isEmpty { Text(why.joined(separator: " · ")).font(.caption).foregroundStyle(Theme.ink3) }
-                    if let summary = item.summary { Text(summary).font(feature ? .body : .subheadline).foregroundStyle(Theme.ink2).lineLimit(feature ? 4 : 3) }
+                    if let intro = item.summary.map({ wholeSentences($0, max: feature ? 260 : 200) }), !intro.isEmpty { Text(intro).font(feature ? .body : .subheadline).foregroundStyle(Theme.ink2).lineLimit(feature ? 5 : 4) } // hele zinnen; de regelgrens is een vangnet
                 }
                 .padding(.horizontal, Space.s4)
                 .padding(.top, showImage ? 4 : 16)

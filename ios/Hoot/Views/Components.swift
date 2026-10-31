@@ -156,15 +156,26 @@ private struct WordmarkBody: View {
 struct Kicker: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     let text: String?
+    // De telling van de Editie (T3): "01 · BUITENLAND". Het nummer in de schreef van de koppen, zwaar en
+    // in tabelcijfers, rood; gelezen in ink3, net als de kop. Zonder rubriek staat het nummer alleen.
+    var number: Int? = nil
+    var read = false
     private func label(_ s: String) -> String { typeSize.isAccessibilitySize ? s : s.uppercased() }
+    private var dot: Text { Text(" · ").foregroundStyle(Theme.ink3) }
     var body: some View {
-        if let text, !text.isEmpty {
+        let parts = text.map { $0.isEmpty ? [] : $0.components(separatedBy: " · ") } ?? []
+        if number != nil || !parts.isEmpty {
             // Bij heel grote tekst geen kapitalen: die worden dan breder en zwaarder dan de kop.
             // Meerdere labels ("Binnenland · Buiten je bronnen"): de punt ertussen in `ink3`.
-            let parts = text.components(separatedBy: " · ")
-            let joined = parts.dropFirst().reduce(Text(label(parts[0])).foregroundStyle(Theme.accent)) { acc, p in
-                Text("\(acc)\(Text(" · ").foregroundStyle(Theme.ink3))\(Text(label(p)).foregroundStyle(Theme.accent))")
-            }
+            let labels = parts.map { Text(label($0)).foregroundStyle(Theme.accent) }
+            let rubric = labels.dropFirst().reduce(labels.first ?? Text("")) { acc, p in Text("\(acc)\(dot)\(p)") }
+            let joined: Text = {
+                guard let number else { return rubric }
+                let n = Text(String(format: "%02d", number))
+                    .font(.system(.headline, design: .serif, weight: .heavy).monospacedDigit())
+                    .foregroundStyle(read ? Theme.ink3 : Theme.accent)
+                return parts.isEmpty ? n : Text("\(n)\(dot)\(rubric)")
+            }()
             if typeSize.isAccessibilitySize {
                 joined.font(.caption.weight(.semibold))
             } else {
@@ -188,22 +199,6 @@ struct WhyLine: View {
                 .accessibilityLabel("Waarom: \(text)")
         }
     }
-}
-
-// De intro van een bericht in hele zinnen (tot ongeveer `max` tekens), in plaats van een zin die
-// halverwege afbreekt. Zonder volledige zin: de tekst zoals hij is.
-func wholeSentences(_ text: String, max: Int = 240) -> String {
-    var out = ""
-    var rest = Substring(text)
-    while let end = rest.firstMatch(of: /[.!?…]["”’)]?(\s+|$)/) {
-        let sentence = rest[..<end.range.upperBound]
-        if !out.isEmpty && out.count + sentence.count > max { break }
-        out += sentence
-        rest = rest[end.range.upperBound...]
-        if out.count >= max { break }
-    }
-    let trimmed = out.trimmingCharacters(in: .whitespaces)
-    return trimmed.isEmpty || trimmed.hasSuffix("…") || trimmed.hasSuffix("...") ? text : trimmed
 }
 
 struct RemoteImage: View {
@@ -457,6 +452,7 @@ struct LeadCard: View {
     var label: String?
     var why: String? // het waarom van de plek (jouw Editie)
     var story: Story?
+    var number: Int? // de telling van de Editie: 01 tot 10
 
     private var hasImage: Bool { store.showsImage(lead: true) && ImageURL.fitsHero(item.image) }
 
@@ -468,9 +464,9 @@ struct LeadCard: View {
     private var text: some View {
         VStack(alignment: .leading, spacing: Space.s3) {
             // Rubriek en waarom dicht op elkaar (één blokje boven de kop), zoals op de website.
-            if label != nil || why != nil {
+            if label != nil || why != nil || number != nil {
                 VStack(alignment: .leading, spacing: Space.s1) {
-                    Kicker(text: label)
+                    Kicker(text: label, number: number, read: store.isRead(item))
                     WhyLine(text: why)
                 }
             }
@@ -478,8 +474,8 @@ struct LeadCard: View {
                 .font(Theme.headline(wide ? .largeTitle : .title))
                 .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                 .fixedSize(horizontal: false, vertical: true)
-            if let summary = item.summary, !summary.isEmpty {
-                Text(wholeSentences(summary)).font(wide ? .title3 : .body).foregroundStyle(Theme.ink2).lineLimit(wide ? 6 : 5).fixedSize(horizontal: false, vertical: true)
+            if let intro = item.summary.map({ wholeSentences($0) }), !intro.isEmpty {
+                Text(intro).font(wide ? .title3 : .body).foregroundStyle(Theme.ink2).lineLimit(wide ? 6 : 5).fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -525,6 +521,7 @@ struct ItemRow: View {
     var story: Story?
     var linkSource = true
     var form: Form?
+    var number: Int? // de telling van de Editie: 01 tot 10
 
     private var chosen: Form { form ?? (store.layout == "krant" ? .krant : .tijdlijn) }
     private var timeline: Bool { !item.isPost && (chosen == .tijdlijn || typeSize.isAccessibilitySize) }
@@ -571,9 +568,9 @@ struct ItemRow: View {
 
     private var text: some View {
         VStack(alignment: .leading, spacing: Space.s2) {
-            if label != nil || why != nil {
+            if label != nil || why != nil || number != nil {
                 VStack(alignment: .leading, spacing: Space.s1) {
-                    Kicker(text: label)
+                    Kicker(text: label, number: number, read: store.isRead(item))
                     WhyLine(text: why)
                 }
             }
@@ -585,8 +582,11 @@ struct ItemRow: View {
                     .font(Theme.headline(.title3))
                     .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                     .fixedSize(horizontal: false, vertical: true)
-                if let summary = item.summary, !summary.isEmpty {
-                    Text(summary).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(store.preview == 0 ? nil : store.preview)
+                // Hele zinnen tot de maat van de regelinstelling (T2); de regelgrens is alleen een vangnet: één
+                // regel extra, bij grotere tekst het dubbele (dezelfde tekens nemen dan meer regels, en een
+                // afgeknipte zin zou alsnog op een beletselteken eindigen).
+                if let intro = item.summary.map({ wholeSentences($0, max: introMax(lines: store.preview, thumb: hasPicture && !timeline)) }), !intro.isEmpty {
+                    Text(intro).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1)
                 }
             }
         }
