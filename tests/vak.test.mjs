@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { vakWeek, isReading, cleanTitle, fieldOf, sameSubject, isArticleLink, composeVak, mergePool, VAK_SOURCES, ogImageFrom, wantsOgImage, addOgImages } from '../netlify/lib/vak.mjs'
+import { vakWeek, isReading, cleanTitle, fieldOf, sameSubject, isArticleLink, composeVak, mergePool, VAK_SOURCES, ogImageFrom, wantsOgImage, addOgImages, loadVakItems, vakLang } from '../netlify/lib/vak.mjs'
 import { normalizePrefs } from '../src/lib/prefs.js'
 
 // Meta Newsroom staat niet meer bij de bronnen (paste zelden); als bedrijfsblog blijft hij handig in de test.
@@ -210,4 +210,55 @@ test('Geekcultuur: eigen bronnen, en de regel pakt sf, strips en bordspellen maa
   // Vaste linklijsten en digests van de ongefilterde bronnen tellen niet als stuk.
   for (const t of ['Free Comics and Gaga – This Week’s Links', "Spider-Man Turns 60 – This Week's Links", 'News Digest for October 24, 2026', 'Freebies, Sales, and Charity Bundles for October 19, 2026', 'RPG Print News – Dragonbane, Shadowdark and More', 'RPG Crowdfunding News – Mothership 2e']) assert.equal(isReading({ title: t }), false, t)
   assert.equal(isReading({ title: 'Why Print News Still Matters to Comics' }), true)
+})
+
+// Taal: een Engelstalig stuk bij een Nederlandse vakbron valt af (live op 31-10: ArchiNed 3 van de
+// 30 in het Engels, de Archiprix-stukken; ManagementSite en Trendbeheer elk één).
+const ARCHIPRIX = {
+  title: 'Mountain Nomads Revitalizing the rural identity – Archiprix 2026',
+  summary: 'After carrying out thorough fieldwork, Fabia Sainz Fernandez reimagined the local farm typology in Asturias (Spain) as a public and inclusive landscape.',
+  url: 'https://www.archined.nl/2026/10/mountain-nomads-archiprix-2026/',
+}
+const DUTCH = {
+  title: 'Het nieuwe stadhuis van Amsterdam krijgt een open plein aan de Amstel',
+  summary: 'De architecten kozen voor een gebouw dat zich naar de stad opent, met een plein dat de hele dag toegankelijk is voor iedereen.',
+  url: 'https://www.archined.nl/2026/10/stadhuis-amsterdam/',
+}
+
+test('taal: elke vakbron heeft een hoofdtaal; Nederlands op .nl/.be en de lijst daarbuiten', () => {
+  assert.equal(src('archined').lang, 'nl')
+  assert.equal(src('managementsite').lang, 'nl')
+  assert.equal(src('trendbeheer').lang, 'nl') // .com, maar Nederlandstalig
+  assert.equal(src('tweakers').lang, 'nl')
+  assert.equal(src('archdaily').lang, 'en')
+  assert.equal(src('hidde').lang, 'en') // Nederlander, schrijft in het Engels
+  assert.equal(src('verfassungsblog').lang, null) // meertalig: geen hoofdtaal
+  assert.ok(VAK_SOURCES.every((s) => s.lang !== undefined))
+  assert.equal(vakLang({ id: 'vak:x', urls: ['https://www.voorbeeld.be/feed'] }), 'nl')
+})
+
+test('taal: het Engelstalige Archiprix-stuk van ArchiNed valt af bij het ophalen', async () => {
+  const xml = `<?xml version="1.0"?><rss version="2.0"><channel><title>ArchiNed</title>${[ARCHIPRIX, DUTCH]
+    .map((i) => `<item><title>${i.title}</title><link>${i.url}</link><description>${i.summary}</description><pubDate>Fri, 30 Oct 2026 09:00:00 GMT</pubDate></item>`)
+    .join('')}</channel></rss>`
+  const orig = globalThis.fetch
+  globalThis.fetch = async () => new Response(xml, { status: 200, headers: { 'content-type': 'application/rss+xml' } })
+  try {
+    const { items } = await loadVakItems([src('archined')])
+    assert.deepEqual(items.map((i) => i.title), [DUTCH.title])
+  } finally {
+    globalThis.fetch = orig
+  }
+})
+
+test('taal: ook een Archiprix-stuk dat al in de voorraad stond (zonder offLang) komt niet in de Vakweek', () => {
+  const now = Date.parse('2026-10-23T10:00:00Z')
+  const at = '2026-10-14T09:00:00.000Z'
+  const pool = [
+    { id: 'en', source: 'vak:archined', sourceName: 'ArchiNed', publishedAt: at, ...ARCHIPRIX },
+    { id: 'nl', source: 'vak:archined', sourceName: 'ArchiNed', publishedAt: at, ...DUTCH },
+  ]
+  const arch = composeVak(pool, { now, sources: SOURCES }).fields.find((f) => f.id === 'architectuur')
+  const ids = [...arch.top, ...arch.more].map((e) => e.id)
+  assert.deepEqual(ids, ['nl'])
 })

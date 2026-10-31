@@ -11,6 +11,7 @@
 // webinars, podcasts, vacatures of "10 tools"-lijstjes. Geen AI-tekst: bij elk stuk staat de
 // eigen intro van de schrijver.
 import { loadSourceWithRetry } from './rss.mjs'
+import { visibleFor, langOf } from '../../shared/lang.mjs'
 import { tzOffsetMs, hostname } from './text.mjs'
 import { loadOgImage } from './og.mjs'
 export { ogImageFrom, loadOgImage } from './og.mjs'
@@ -138,6 +139,23 @@ const ORDER = {
   'vak:adformatie': ['paid-social', 'pr', 'social', 'design', 'merk'],
   'vak:marketingtribune': ['paid-social', 'social', 'merk'],
 }
+// Hoofdtaal per vakbron (`lang`), zodat een anderstalig stuk binnen een bron afvalt (shared/lang.mjs):
+// ArchiNed brengt Engelstalige Archiprix-stukken, ManagementSite en Trendbeheer soms ook. Nederlands:
+// alles op .nl of .be, plus de Nederlandstalige bronnen op een ander domein (hieronder). Geen
+// hoofdtaal: bronnen die bewust in meer talen schrijven. De rest is Engelstalig.
+const NL_ELSEWHERE = new Set(
+  ['frankwatching', 'photofacts', 'fotodok', 'iusmentis', 'tweakers', 'tweakers-games', 'thuiswinkel', 'esb', 'changeinc', 'verheggen', 'gemeentenu', 'writteninmusic', 'gonzocircus', 'tzum', 'trendbeheer', 'gamekings'].map(
+    (id) => 'vak:' + id,
+  ),
+)
+const MIXED = new Set(['vak:verfassungsblog']) // Duits en Engels door elkaar
+export function vakLang(s) {
+  if (MIXED.has(s.id)) return null
+  if (NL_ELSEWHERE.has(s.id) || /\.(nl|be)$/.test(hostname(s.urls[0]))) return 'nl'
+  return 'en'
+}
+const withLang = (s) => (s.lang !== undefined ? s : { ...s, lang: vakLang(s) })
+
 export const VAK_SOURCES = [
   ...BASE_SOURCES.map((s) => {
     const more = EXTEND.filter(([id]) => id === s.id).map(([, f]) => f)
@@ -145,7 +163,11 @@ export const VAK_SOURCES = [
     return ORDER[s.id] ? { ...s, fields: ORDER[s.id].filter((f) => fields.includes(f)) } : more.length ? { ...s, fields } : s
   }),
   ...MORE_SOURCES,
-]
+].map(withLang)
+
+// Past een stuk in de taal van zijn bron (of in die van de lezer)? Opnieuw bepaald uit kop, intro en
+// link, zodat ook stukken die al in de voorraad stonden (zonder `offLang`) afvallen.
+export const inReaderLang = (it, src) => visibleFor({ ...it, ...langOf({ title: it.title, summary: it.summary || it.text, url: it.url }, src?.lang) })
 
 export { VAK_FIELDS, VAK_FIELD_IDS, VAK_DOMAINS }
 
@@ -279,7 +301,7 @@ export function composeVak(pool, { now = Date.now(), sources = VAK_SOURCES, top 
   const preview = !!since && since > full.from
   const wk = preview ? { ...full, from: new Date(now - 7 * 864e5).toISOString(), to: new Date(now).toISOString() } : full
   const byId = new Map(sources.map((s) => [s.id, s]))
-  const inWeek = pool.filter((i) => i.publishedAt >= wk.from && i.publishedAt < wk.to && byId.has(i.source) && isReading(i) && (byId.get(i.source).kind !== 'curator' || isArticleLink(i.url)))
+  const inWeek = pool.filter((i) => i.publishedAt >= wk.from && i.publishedAt < wk.to && byId.has(i.source) && isReading(i) && inReaderLang(i, byId.get(i.source)) && (byId.get(i.source).kind !== 'curator' || isArticleLink(i.url)))
 
   const df = new Map()
   for (const it of inWeek) for (const w of words(textOf(it))) df.set(w, (df.get(w) || 0) + 1)
@@ -390,7 +412,8 @@ export async function loadVakItems(sources = VAK_SOURCES) {
   // Alleen wat bij een onderwerp past en om te lezen is: brede bronnen (een krant, een
   // rubrieksfeed) leveren veel meer dan we bewaren willen.
   const byId = new Map(sources.map((s) => [s.id, s]))
-  const keep = (i) => byId.has(i.source) && isReading(i) && fieldOf(i, byId.get(i.source))
+  // Een bericht in een andere taal dan zijn bron (ArchiNed in het Engels) valt af: zie vakLang.
+  const keep = (i) => byId.has(i.source) && visibleFor(i) && isReading(i) && fieldOf(i, byId.get(i.source))
   const slim = ({ text, cats, ...it }) => it // de artikeltekst en rubrieken hebben we hier niet nodig
   return { items: results.flatMap((r) => r.items).filter(keep).map(slim), status: results.map((r) => ({ id: r.id, ok: r.ok, count: r.count, newest: newest(r) })) }
 }
