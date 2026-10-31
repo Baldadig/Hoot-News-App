@@ -396,32 +396,38 @@ struct ArticleActions: ViewModifier {
     }
 }
 
-// Delen via het deelmenu van iOS: altijd de link van de uitgever (nooit een Hoot-link), met de
-// Hoot-kop als voorbeeld, want betaalde sites geven het deelblad soms alleen "Abonneer nu".
-// Geen apart bericht erbij: dan staat in Berichten de kop niet dubbel boven de rijke link.
-// Zet in leeslijst, Instapaper en andere lezers staan er vanzelf in als ze er zijn.
+// Artikelen delen als Hoot-krantenkop. Posts behouden hun eigen link en voorbeeld.
 struct ShareItemLink: View {
+    @Environment(HootStore.self) private var store
     let item: Item
     let link: URL
+    private var cardItem: Item {
+        var value = item
+        if value.section == nil {
+            let labels = ["binnenland": "Binnenland", "buitenland": "Wereld", "wereld": "Wereld", "economie": "Economie", "tech": "Tech", "wetenschap": "Wetenschap", "cultuur": "Cultuur", "sport": "Sport", "politiek": "Politiek", "music": "Cultuur"]
+            value.section = store.source(item.source)?.cat.flatMap { labels[$0] } ?? "Nieuws"
+        }
+        return value
+    }
     var body: some View {
-        let title = item.shareTitle
-        if let image = ImageURL.url(item.image, .thumb) ?? item.avatar.flatMap(URL.init(string:)) {
-            let preview = SharePreviewImage(url: image)
-            ShareLink(item: link, subject: Text(title), preview: SharePreview(title, image: preview, icon: preview)) { label }
+        if item.isPost {
+            if let image = ImageURL.url(item.image, .thumb) ?? item.avatar.flatMap(URL.init(string:)) {
+                let preview = SharePreviewImage(url: image)
+                ShareLink(item: link, subject: Text(item.shareTitle), preview: SharePreview(item.shareTitle, image: preview, icon: preview)) { label }
+            } else {
+                ShareLink(item: link, subject: Text(item.shareTitle), preview: SharePreview(item.shareTitle)) { label }
+            }
         } else {
-            ShareLink(item: link, subject: Text(title), preview: SharePreview(title)) { label }
+            ShareLink(item: DeelKaartExport(item: cardItem), subject: Text(item.shareTitle),
+                      preview: SharePreview(item.shareTitle, image: DeelKaartExport(item: cardItem, format: .link))) { label }
         }
     }
-
     private var label: some View { Label("Deel", systemImage: "square.and.arrow.up") }
 }
 
-// Het beeld bij het stuk (of anders het logo van de bron) bovenin het deelblad. Het deelblad haalt
-// het pas op als het opengaat, en meestal staat het al in de cache.
 struct SharePreviewImage: Transferable {
     let url: URL
     static var transferRepresentation: some TransferRepresentation {
-        // Als PNG: het deelblad leest niet elk formaat (WebP van de NOS bijvoorbeeld).
         DataRepresentation(exportedContentType: .png) { image in
             let data = try await URLSession.shared.data(from: image.url).0
             guard let png = UIImage(data: data)?.pngData() else { throw URLError(.cannotDecodeContentData) }

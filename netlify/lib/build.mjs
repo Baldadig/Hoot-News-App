@@ -11,6 +11,7 @@ import { loadSourceWithRetry } from './rss.mjs'
 import { loadSnippets, loadTrends, loadSourceAvatars, loadBlueskyProfiles, loadBskyCards } from './lookups.mjs'
 import { loadOgImage } from './og.mjs'
 import { measureFeedImages } from './image-measure.mjs'
+import { rememberShareRecords } from './share-records.mjs'
 import { keywordTopics } from './topics.mjs'
 import { normTitle, preview } from './text.mjs'
 import { kvGet, kvSet, remember, storageMode } from './kv.mjs'
@@ -50,8 +51,6 @@ export async function buildFeed({ now = Date.now() } = {}) {
   await imagesFromArticles(items, now)
   borrowPreviews(items, mainGroups.flatMap((g) => g.items))
 
-  await measureFeedImages(items, now)
-
   // 5. Verhalen: bundelen over alle bronnen (behalve regionaal en muziek), met per verhaal de
   //    kenmerken van al zijn stukken (`keys`): het toestel kent van een verhaal alleen de eigen
   //    bronnen en moet toch weten wat er in de vorige Editie al over geschreven was. In de
@@ -70,6 +69,15 @@ export async function buildFeed({ now = Date.now() } = {}) {
   // 7. De editie van dit dagdeel (één keer samengesteld, daarna vast). Ook daar telt elk stuk
   // één keer, al brengen vijf zusterkranten het.
   const edition = await composeEdition({ now, stories, articlePool: articlePool.filter(inEdition), pool: editionPool(out, articlePool), anthropic })
+  // Eerst de vastgelegde hoofdbeelden, dan de hoofden van de verhalen, dan de rest.
+  // Zo kan de begrensde wachtrij niet worden opgeslokt door alleen de nieuwste Stroom-berichten.
+  const outById = new Map(out.map(i => [i.id, i]))
+  const beforeImages = JSON.stringify(edition.snapshot.items.map(i => i.imageMeta))
+  await measureFeedImages([...edition.public.items, ...stories.map(st => outById.get(st.leadId)).filter(Boolean), ...out, ...edition.snapshot.items], now)
+  if (beforeImages !== JSON.stringify(edition.snapshot.items.map(i => i.imageMeta))) {
+    await kvSet('edition3-' + edition.public.id, edition.snapshot).catch(() => {})
+  }
+  await rememberShareRecords([...edition.snapshot.items, ...out], [...edition.snapshot.stories, ...stories], SOURCES, now).catch(() => {})
   // Wat intussen uit de feeds is verdwenen halen we uit de momentopname van de editie.
   const liveStoryIds = new Set(stories.map((st) => st.id))
   const haveOut = new Set(out.map((i) => i.id))

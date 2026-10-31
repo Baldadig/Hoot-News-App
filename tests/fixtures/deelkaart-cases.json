@@ -1,0 +1,79 @@
+[
+  {
+    "id": "kort",
+    "title": "De stad krijgt meer groen",
+    "section": "Binnenland",
+    "sourceName": "NOS",
+    "source": "nos",
+    "url": "https://nos.nl/a",
+    "expected": {
+      "link": {
+        "lines": [
+          "De stad krijgt meer groen"
+        ],
+        "size": 72
+      },
+      "staand": {
+        "lines": [
+          "De stad krijgt",
+          "meer groen"
+        ],
+        "size": 48
+      }
+    }
+  },
+  {
+    "id": "lang",
+    "title": "Onderzoekers ontdekken hoe kleine veranderingen in de inrichting van Nederlandse steden een groot verschil kunnen maken voor bewoners en de natuur om hen heen",
+    "section": "Wetenschap",
+    "sourceName": "NRC",
+    "source": "nrc",
+    "url": "https://nrc.nl/a",
+    "expected": {
+      "link": {
+        "lines": [
+          "Onderzoekers ontdekken hoe kleine",
+          "veranderingen in de inrichting van Nederlandse",
+          "steden een groot verschil kunnen maken voor",
+          "bewoners en de natuur om hen heen"
+        ],
+        "size": 44
+      },
+      "staand": {
+        "lines": [
+          "Onderzoekers ontdekken hoe kleine",
+          "veranderingen in de inrichting van",
+          "Nederlandse steden een groot verschil kunnen",
+          "maken voor bewoners en de natuur om hen…"
+        ],
+        "size": 20
+      }
+    }
+  },
+  {
+    "id": "naam",
+    "title": "Zoë Šimůnek brengt ‘L’été à São Paulo’ naar Nederland",
+    "section": "Cultuur",
+    "sourceName": "de Volkskrant",
+    "source": "vk",
+    "url": "https://volkskrant.nl/a",
+    "expected": {
+      "link": {
+        "lines": [
+          "Zoë Šimůnek brengt ‘L’été à",
+          "São Paulo’ naar Nederland"
+        ],
+        "size": 72
+      },
+      "staand": {
+        "lines": [
+          "Zoë Šimůnek",
+          "brengt ‘L’été à São",
+          "Paulo’",
+          "naar Nederland"
+        ],
+        "size": 48
+      }
+    }
+  }
+]

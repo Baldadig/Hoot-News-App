@@ -4,6 +4,11 @@
 // slaan we over: daar staat alleen de kop op. Nooit voor betaalde bronnen.
 import { UA } from './sources.mjs'
 
+// Het eigen deelbeeld hoort bij een servermatig leesbare Hoot-deelpagina.
+export function hootOgImage(origin, id, format = 'link') {
+  return `${origin}/api/deelkaart?id=${encodeURIComponent(id)}&f=${format === 'staand' ? 'staand' : 'link'}`
+}
+
 const GENERATED = /\/api\/og\b|\/og\?|\/og\/v\d|opengraph\.githubassets/i
 export function ogImageFrom(html) {
   const head = html.split(/<\/head>/i)[0]

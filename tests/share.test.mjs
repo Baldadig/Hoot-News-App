@@ -65,3 +65,17 @@ test('shareNotice: alleen bij het klembord en bij mislukken een melding', () => 
   assert.equal(shareNotice('gedeeld'), '')
   assert.equal(shareNotice('geannuleerd'), '')
 })
+
+test('A3: artikel deelt PNG met Hoot-link; zonder bestandsdeling of bij netwerkfout link kopiëren', async () => {
+  const item = { id: 'abc', kind: 'article', title: 'Kop', url: 'https://nos.nl/a' }
+  const calls = [], copied = []
+  const nav = { share: async data => calls.push(data), canShare: () => true, clipboard: { writeText: async url => copied.push(url) } }
+  const fetcher = async () => new Response(new Uint8Array([137, 80, 78, 71]), { headers: { 'content-type': 'image/png' } })
+  assert.equal(await shareItem(item, nav, { fetcher }), 'gedeeld')
+  assert.equal(calls[0].url, 'https://hootnews.nl/deel/abc')
+  assert.equal(calls[0].files[0].type, 'image/png')
+  assert.equal(await shareItem(item, { ...nav, canShare: () => false }, { fetcher }), 'gekopieerd')
+  assert.equal(await shareItem(item, nav, { fetcher: async () => { throw new Error('offline') } }), 'gekopieerd')
+  assert.deepEqual(copied, ['https://hootnews.nl/deel/abc', 'https://hootnews.nl/deel/abc'])
+  assert.equal(shareLink({ ...item, kind: 'post' }), item.url)
+})

@@ -45,6 +45,7 @@ struct Item: Codable, Identifiable, Hashable {
     var author: String?
     var readMin: Int?
     var type: String?
+    var section: String?
     // Alleen bij Bluesky-posts
     var handle: String?
     var linkTitle: String? // titel van een gedeelde link
@@ -69,7 +70,7 @@ struct Item: Codable, Identifiable, Hashable {
 }
 
 extension Item {
-    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, url, image, publishedAt, author, readMin, type, handle, linkTitle, imageMeta, imageRatio, video, videoPoster, topics }
+    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, url, image, publishedAt, author, readMin, type, section, handle, linkTitle, imageMeta, imageRatio, video, videoPoster, topics }
     // Een post heeft geen kop; die mag dus ontbreken.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -87,6 +88,7 @@ extension Item {
         publishedAt = try? c.decodeIfPresent(String.self, forKey: .publishedAt)
         author = try? c.decodeIfPresent(String.self, forKey: .author)
         readMin = try? c.decodeIfPresent(Int.self, forKey: .readMin)
+        section = try? c.decodeIfPresent(String.self, forKey: .section)
         type = try? c.decodeIfPresent(String.self, forKey: .type)
         handle = try? c.decodeIfPresent(String.self, forKey: .handle)
         linkTitle = try? c.decodeIfPresent(String.self, forKey: .linkTitle)

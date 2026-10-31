@@ -1,8 +1,4 @@
-// Delen — zoals in de app (ShareItemLink in Components.swift): altijd de link van de uitgever,
-// nooit een Hoot-link, met de kop als titel. Geen apart bericht erbij: dan staat de kop niet
-// dubbel boven de rijke link. Met het deelblad van het toestel (navigator.share) als dat er is;
-// anders gaat de link naar het klembord en zegt App.jsx "Link gekopieerd".
-// De tekstlogica staat hier los van de componenten, zodat tests/share.test.mjs haar kan draaien.
+// Delen met een eigen Hoot-kaart voor artikelen; posts houden hun bronlink.
 import { safeHttpUrl } from '../../shared/util.mjs'
 
 export const SHARE_CUT = 100
@@ -22,8 +18,12 @@ export function shareTitle(item) {
   return (space > 0 ? cut.slice(0, space) : cut) + '…'
 }
 
-// De link die gedeeld wordt: alleen http(s) van de uitgever (shared/util.mjs), anders niets.
-export const shareLink = (item) => safeHttpUrl(item?.url)
+// Artikelen krijgen een Hoot-deelpagina; zonder geldige bronlink valt er niets te delen.
+export const shareLink = (item) => {
+  const source = safeHttpUrl(item?.url)
+  if (!source) return null
+  return item?.id && item.kind !== 'post' ? `https://hootnews.nl/deel/${encodeURIComponent(item.id)}` : source
+}
 
 // Wat er te delen valt, in de vorm van navigator.share: { title, url }, of null zonder link.
 export function shareData(item) {
@@ -41,13 +41,25 @@ export function sharePlan(nav = typeof navigator !== 'undefined' ? navigator : {
 // Deel een bericht. Geeft terug wat er gebeurde: 'gedeeld' (het deelblad ging open en dicht),
 // 'gekopieerd' (de link staat op het klembord), 'geannuleerd' (je sloot het deelblad zelf),
 // 'mislukt' (geen link, of de browser weigerde). App.jsx zet daar de melding bij.
-export async function shareItem(item, nav = typeof navigator !== 'undefined' ? navigator : {}) {
+export async function shareItem(item, nav = typeof navigator !== 'undefined' ? navigator : {}, { fetcher = fetch, FileClass = File } = {}) {
   const data = shareData(item)
   if (!data) return 'mislukt'
-  const plan = sharePlan(nav, data)
+  const ownCard = item?.id && item.kind !== 'post'
+  let payload = data
+  if (ownCard && typeof nav.share === 'function' && typeof nav.canShare === 'function') {
+    try {
+      const response = await fetcher(`/api/deelkaart?id=${encodeURIComponent(item.id)}&f=staand`, { signal: AbortSignal.timeout(5000) })
+      if (response.ok && /image\/png/i.test(response.headers.get('content-type') || '')) {
+        const file = new FileClass([await response.blob()], 'hoot-krantenkop.png', { type: 'image/png' })
+        const withFile = { ...data, files: [file] }
+        if (nav.canShare(withFile)) payload = withFile
+      }
+    } catch { /* Link kopiëren als de kaart niet beschikbaar is. */ }
+  }
+  const plan = ownCard && !payload.files ? (nav.clipboard?.writeText ? 'klembord' : 'geen') : sharePlan(nav, payload)
   if (plan === 'blad') {
     try {
-      await nav.share(data)
+      await nav.share(payload)
       return 'gedeeld'
     } catch (e) {
       if (e?.name === 'AbortError') return 'geannuleerd'

@@ -2,6 +2,8 @@
 
 ## Onuitgebracht
 
+- Verhalen delen als Hoot-krantenkop in merkrood, in liggend en staand formaat (A3).
+
 - Hoofdbeelden: meet egale randen vooraf en toon staande beelden in een eigen verhouding (A1).
 
 ## [1.0.1] — 2026-10-31 — De Redacteur op de iPhone, Welkom zoals het web, Tijdlijn | Krant (build 36; TestFlight: build 34 en 35 op 29-10-2026)

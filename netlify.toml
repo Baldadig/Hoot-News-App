@@ -8,7 +8,8 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["sharp"]
+  external_node_modules = ["sharp", "@resvg/resvg-js"]
+  included_files = ["shared/deelkaart/**", "public/brand/hoot-logo-mono.svg"]
 
 # De API-routes (/api/feed, /api/tts, /api/save) staan in de functies zelf (export const config).
 

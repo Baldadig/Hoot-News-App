@@ -1,0 +1,47 @@
+{
+  "red": "#a3201b",
+  "paper": "#f5f1e8",
+  "domain": "gethoot.app",
+  "formats": {
+    "link": {
+      "width": 1200,
+      "height": 630,
+      "margin": 64,
+      "ruleTop": 40,
+      "logoY": 60,
+      "logoWidth": 160,
+      "ruleBottom": 128,
+      "kickerY": 160,
+      "kickerSize": 20,
+      "titleY": 208,
+      "titleSize": 72,
+      "minTitleSize": 32,
+      "lineHeight": 1.08,
+      "hairlineY": 526,
+      "sourceY": 546,
+      "sourceSize": 22,
+      "siteY": 588,
+      "siteSize": 22
+    },
+    "staand": {
+      "width": 540,
+      "height": 675,
+      "margin": 40,
+      "ruleTop": 40,
+      "logoY": 60,
+      "logoWidth": 150,
+      "ruleBottom": 128,
+      "kickerY": 164,
+      "kickerSize": 18,
+      "titleY": 212,
+      "titleSize": 48,
+      "minTitleSize": 20,
+      "lineHeight": 1.12,
+      "hairlineY": 500,
+      "sourceY": 524,
+      "sourceSize": 20,
+      "siteY": 610,
+      "siteSize": 20
+    }
+  }
+}
