@@ -56,8 +56,11 @@ export function makeGolden(snap = loadSnapshot()) {
   return CASES.map((c) => {
     const { input, full } = inputFor(snap, c)
     const output = compose(input)
-    // De ingekorte invoer moet dezelfde plekken geven als de hele momentopname.
-    const same = JSON.stringify(full.entries.map(({ _parts, ...e }) => e)) === JSON.stringify(output.entries.map(({ itemIds, title, ...e }) => e))
+    // De ingekorte invoer moet dezelfde plekken geven als de hele momentopname. Vergeleken op wat de
+    // plek is (verhaal, hoofdbericht, rubriek, waarom); itemIds, title en keys komen uit het verhaal
+    // zelf en staan sinds P5b/H2 al in de uitvoer van composePersonal, dus aan beide kanten.
+    const plek = ({ _parts, itemIds, title, keys, ...e }) => e
+    const same = JSON.stringify(full.entries.map(plek)) === JSON.stringify(output.entries.map(plek))
     if (!same) throw new Error(`${c.name}: de ingekorte invoer geeft een andere Editie dan de momentopname`)
     return { name: c.name, input, output }
   })

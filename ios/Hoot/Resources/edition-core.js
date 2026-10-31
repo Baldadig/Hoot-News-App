@@ -38,7 +38,7 @@ var HootCore = (() => {
     nextHistoryJSON: () => nextHistoryJSON,
     previousFrom: () => previousFrom,
     previousJSON: () => previousJSON,
-    previousOf: () => previousOf2,
+    previousOf: () => previousOf,
     profileSummary: () => profileSummary,
     profileSummaryJSON: () => profileSummaryJSON,
     profileSummaryOf: () => profileSummaryOf,
@@ -334,6 +334,7 @@ var HootCore = (() => {
   var WHY_ORDER = ["followUp", "cross", "interest", "favorite", "mine", "sourceRead"];
   var topicLabel = (t) => topicById(t)?.label || t;
   function whyOf(entry = {}, { parts = {}, sourceCount = 0, desk = entry.desk ?? null, plannedDesk = false, labelOf = topicLabel, sourceName = (s) => s, deskLabel = (d) => DESK_NAMES[d] || d } = {}) {
+    if (entry.vervolg) return { code: "vervolg", text: `Vervolg · ${entry.vervolg} nieuwe stukken` };
     if (entry.desk === "extern") return { code: "extern", text: "Buiten je bronnen" };
     if (entry.desk === "bubbel") {
       if (entry.near) return { code: "buur", text: `Naast je bubbel · grenst aan ${FAMILY_LABEL[entry.near] || entry.near}` };
@@ -584,8 +585,174 @@ var HootCore = (() => {
     elon: "musk",
     jinping: "xi"
   };
+  var EU = {
+    belgie: "belgium",
+    belgische: "belgium",
+    belgisch: "belgium",
+    belgen: "belgium",
+    belgium: "belgium",
+    belgian: "belgium",
+    belgians: "belgium",
+    bulgarije: "bulgaria",
+    bulgaarse: "bulgaria",
+    bulgaars: "bulgaria",
+    bulgaria: "bulgaria",
+    bulgarian: "bulgaria",
+    cyprus: "cyprus",
+    cypriotische: "cyprus",
+    cypriot: "cyprus",
+    denemarken: "denmark",
+    deense: "denmark",
+    deens: "denmark",
+    denen: "denmark",
+    denmark: "denmark",
+    danish: "denmark",
+    danes: "denmark",
+    estland: "estonia",
+    estse: "estonia",
+    estisch: "estonia",
+    estonia: "estonia",
+    estonian: "estonia",
+    finland: "finland",
+    finse: "finland",
+    fins: "finland",
+    finnen: "finland",
+    finnish: "finland",
+    finns: "finland",
+    griekenland: "greece",
+    griekse: "greece",
+    grieks: "greece",
+    grieken: "greece",
+    greece: "greece",
+    greek: "greece",
+    greeks: "greece",
+    hongarije: "hungary",
+    hongaarse: "hungary",
+    hongaars: "hungary",
+    hongaren: "hungary",
+    hungary: "hungary",
+    hungarian: "hungary",
+    hungarians: "hungary",
+    ierland: "ireland",
+    ierse: "ireland",
+    iers: "ireland",
+    ieren: "ireland",
+    ireland: "ireland",
+    irish: "ireland",
+    italie: "italy",
+    italiaanse: "italy",
+    italiaans: "italy",
+    italianen: "italy",
+    italy: "italy",
+    italian: "italy",
+    italians: "italy",
+    kroatie: "croatia",
+    kroatische: "croatia",
+    kroatisch: "croatia",
+    kroaten: "croatia",
+    croatia: "croatia",
+    croatian: "croatia",
+    letland: "latvia",
+    letse: "latvia",
+    lets: "latvia",
+    latvia: "latvia",
+    latvian: "latvia",
+    litouwen: "lithuania",
+    litouwse: "lithuania",
+    litouws: "lithuania",
+    lithuania: "lithuania",
+    lithuanian: "lithuania",
+    luxemburg: "luxembourg",
+    luxemburgse: "luxembourg",
+    luxembourg: "luxembourg",
+    malta: "malta",
+    maltese: "malta",
+    oostenrijk: "austria",
+    oostenrijkse: "austria",
+    oostenrijks: "austria",
+    oostenrijkers: "austria",
+    austria: "austria",
+    austrian: "austria",
+    austrians: "austria",
+    polen: "poland",
+    poolse: "poland",
+    pools: "poland",
+    poland: "poland",
+    polish: "poland",
+    poles: "poland",
+    portugal: "portugal",
+    portugese: "portugal",
+    portugees: "portugal",
+    portugezen: "portugal",
+    portuguese: "portugal",
+    roemenie: "romania",
+    roemeense: "romania",
+    roemeens: "romania",
+    roemenen: "romania",
+    romania: "romania",
+    romanian: "romania",
+    romanians: "romania",
+    slovenie: "slovenia",
+    sloveense: "slovenia",
+    sloveens: "slovenia",
+    slovenia: "slovenia",
+    slovenian: "slovenia",
+    slowakije: "slovakia",
+    slowaakse: "slovakia",
+    slowaaks: "slovakia",
+    slovakia: "slovakia",
+    slovak: "slovakia",
+    slovakian: "slovakia",
+    spanje: "spain",
+    spaanse: "spain",
+    spaans: "spain",
+    spanjaarden: "spain",
+    spain: "spain",
+    spanish: "spain",
+    spaniards: "spain",
+    tsjechie: "czechia",
+    tsjechische: "czechia",
+    tsjechisch: "czechia",
+    tsjechen: "czechia",
+    czechia: "czechia",
+    czech: "czechia",
+    czechs: "czechia",
+    zweden: "sweden",
+    zweedse: "sweden",
+    zweeds: "sweden",
+    sweden: "sweden",
+    swedish: "sweden",
+    swedes: "sweden",
+    // EU-hoofdsteden die als plaats in het nieuws van vandaag stonden. Geen buurlanden: "Servië" als
+    // zwakke naam liet een fotoreportage uit het Servische verkiezingsverhaal vallen (clustering-2610).
+    warschau: "warsaw",
+    warsaw: "warsaw",
+    wenen: "vienna",
+    vienna: "vienna",
+    lissabon: "lisbon",
+    lisbon: "lisbon",
+    athene: "athens",
+    athens: "athens",
+    boedapest: "budapest",
+    budapest: "budapest",
+    praag: "prague",
+    prague: "prague",
+    kopenhagen: "copenhagen",
+    copenhagen: "copenhagen",
+    stockholm: "stockholm",
+    dublin: "dublin"
+  };
+  var PARTY = { communistische: "communist", communistisch: "communist", communist: "communist", communists: "communist" };
+  var ALIAS_EXT = { ...ALIAS, ...EU, ...PARTY };
+  var translit = (k) => k.replace(/sj/g, "sh");
   var WEAK = new Set(
     "us russia ukraine germany france uk china israel iran nederland europe nato un putin zelensky trump biden harris vance netanyahu musk xi macron starmer merz erdogan modi meloni orban schoof pentagon congress senate senaat congres kremlin whitehouse ice fbi cia nasa who gaza taiwan india japan canada mexico brazil turkije turkey syria syrie venezuela korea northkorea southkorea texas california florida georgia carolina virginia ohio michigan arizona nevada pennsylvania wisconsin washington brussel brussels londen london parijs paris moskou moscow kyiv kiev berlijn berlin seoul busan pyongyang tokio tokyo peking beijing jeruzalem jerusalem teheran tehran amsterdam rotterdam".split(
+      " "
+    )
+  );
+  var WEAK_EXT = /* @__PURE__ */ new Set([...WEAK, ...Object.values(EU), "wallstreet", "hongkong"]);
+  var COMMON_3 = new Set(
+    "man men dag dit dat hoe wat wie kan wil dan ter wet zee weg bal kop oog nog ook nee wel zet mol pan dam vol tel zak kom hij zij wij ons mij jou hof cup one can are you our all get got off see she his yet way key isn big day war own bad hat fat few buy pay eat web hub led doe fee pat old new now how why who its has had was not but and the for too two ten six red top end run set put say ask let may yes far low out via per pro mid pre non ago sea bay oil".split(
       " "
     )
   );
@@ -630,23 +797,45 @@ var HootCore = (() => {
     ["award", /\b(wint|winnaar|gewonnen|wins|winner|awarded|award)\b/, false],
     ["missile", /\b(raket\w*|missile\w*|rocket\w*|drone\w*)\b/, false]
   ];
+  var CONCEPTS_EXT = [
+    ...CONCEPTS,
+    ["hack", /\b(hack\w*|gehackt|cyberaanval\w*|cyberattack\w*|datalek|data breach|ransomware)\b/, true],
+    ["theft", /\b(roof|beroofd|gestolen|diefstal|steal|stole|stolen|theft|heist|robbery|overval\w*)\b/, true],
+    ["pact", /\b(akkoord|alliantie|verdrag|handelsakkoord|alliance|treaty|pact|trade deal)\b/, false],
+    // De evacuatie van Olesjky stond in een Nederlands en een Engels verhaal; de zuiveringen in de
+    // Chinese partij ook. Geen van beide heeft een gebeurtenis-woord uit de gewone lijst.
+    ["evacuate", /\b(evacu\w*|geevacueerd|ontruim\w*)\b/, false],
+    ["purge", /\b(zuivering\w*|gezuiverd|purge\w*|expels?|expelled|expulsion\w*)\b/, true],
+    ["market", /\b(beurs\w*|aandelen|aandeel|nasdaq|aex|stock market|stocks|shares|selloff|sell-off|plunge\w*|kelder\w*|gekelderd)\b/, false]
+  ];
   var COMPOUND = [
     [/\b(Noord|North)[- ]Korea\b/g, "Northkorea"],
     [/\b(Zuid|South)[- ]Korea\b/g, "Southkorea"]
   ];
-  var joinCompounds = (text) => COMPOUND.reduce((t, [re, to]) => t.replace(re, to), String(text || ""));
-  var tokenize = (text) => joinCompounds(text).replace(/\b([A-Z])\.(?=[A-Z]\.)/g, "$1").replace(/\b([A-Z]{2,})\./g, "$1").replace(/[’']s\b/g, "").match(/[\p{L}\p{N}]+/gu) || [];
+  var COMPOUND_EXT = [
+    ...COMPOUND,
+    [/\b(Grondwettelijk|Constitutioneel|Constitutionele|Grondwettelijke)\s+(Hof|hof)\b/g, "Constitutionalcourt"],
+    [/\b(Constitutional|constitutional|Top|top)\s+(Court|court|Tribunal|tribunal)\b/g, "Constitutionalcourt"],
+    [/\b(Hooggerechtshof|hooggerechtshof)\b/g, "Supremecourt"],
+    [/\b(Supreme|supreme)\s+(Court|court)\b/g, "Supremecourt"],
+    [/\b(Wall|wall)\s+(Street|street)\b/g, "Wallstreet"],
+    [/\bHong\s+Kong\b/g, "Hongkong"]
+  ];
+  var INSTITUTES = /* @__PURE__ */ new Set(["constitutionalcourt", "supremecourt"]);
+  var joinCompounds = (text, ext = false) => (ext ? COMPOUND_EXT : COMPOUND).reduce((t, [re, to]) => t.replace(re, to), String(text || ""));
+  var tokenize = (text, ext = false) => joinCompounds(text, ext).replace(/\b([A-Z])\.(?=[A-Z]\.)/g, "$1").replace(/\b([A-Z]{2,})\./g, "$1").replace(/[’']s\b/g, "").match(/[\p{L}\p{N}]+/gu) || [];
   var isCap = (w) => /^\p{Lu}\p{Ll}/u.test(w);
   var isAcronym = (w) => /^\p{Lu}{2,6}$/u.test(w);
+  var isAcronymExt = (w) => isAcronym(w) || /^\p{Lu}{1,3}\d{1,3}$/u.test(w);
   var isTitleCase = (title) => {
     const words = tokenize(title).filter((w) => w.length >= 4);
     return words.length >= 3 && words.filter(isCap).length / words.length >= 0.6;
   };
-  function nameVocabulary(articles) {
+  function nameVocabulary(articles, ext = false) {
     const vocab = /* @__PURE__ */ new Set();
     const scan = (text) => {
       let sentenceStart = true;
-      for (const part of String(text || "").split(/(\s+)/)) {
+      for (const part of (ext ? joinCompounds(text, true) : String(text || "")).split(/(\s+)/)) {
         if (!part.trim()) continue;
         const words = tokenize(part);
         for (const w of words) {
@@ -662,51 +851,122 @@ var HootCore = (() => {
     }
     return vocab;
   }
-  function signature(article, vocab) {
+  var CONNECT = /* @__PURE__ */ new Set(["van", "de", "der", "den", "du", "da", "di", "la", "le", "von", "bin", "al", "el", "y", "of"]);
+  var SEGMENT = /[^\p{L}\p{N}\s’'\-]+/u;
+  function signature(article, vocab, ext = false) {
+    const alias = ext ? ALIAS_EXT : ALIAS;
+    const weakSet = ext ? WEAK_EXT : WEAK;
+    const minLen = ext ? 3 : 4;
+    const acr = ext ? isAcronymExt : isAcronym;
+    const concepts_ = ext ? CONCEPTS_EXT : CONCEPTS;
     const raw = `${article.title}. ${article.text || article.summary || ""}`;
     const strong = /* @__PURE__ */ new Set();
     const weak = /* @__PURE__ */ new Set();
     const known = /* @__PURE__ */ new Set();
-    for (const w of tokenize(raw)) {
-      if (isCap(w) || isAcronym(w)) {
-        const k = ALIAS[norm(w)] || norm(w);
-        if (WEAK.has(k)) known.add(k);
+    const aliasOf = (k) => ext ? translit(alias[k] || k) : alias[k] || k;
+    const acronyms = /* @__PURE__ */ new Set();
+    const strongKey = (w) => {
+      let key = null;
+      if (acr(w)) key = norm(w);
+      else if (w.length >= minLen && isCap(w) && vocab.has(norm(w)) && !(w.length === 3 && COMMON_3.has(norm(w)))) key = norm(w);
+      if (!key) return null;
+      key = aliasOf(key);
+      if (NOT_A_NAME.has(key) || weakSet.has(key) || key.length < 3) return null;
+      if (acr(w)) acronyms.add(key);
+      return key;
+    };
+    for (const w of tokenize(raw, ext)) {
+      if (isCap(w) || acr(w)) {
+        const k = aliasOf(norm(w));
+        if (weakSet.has(k)) known.add(k);
       }
       let key = null;
-      if (isAcronym(w)) key = norm(w);
-      else if (w.length >= 4 && isCap(w) && vocab.has(norm(w))) key = norm(w);
+      if (acr(w)) key = norm(w);
+      else if (w.length >= minLen && isCap(w) && vocab.has(norm(w)) && !(w.length === 3 && COMMON_3.has(norm(w)))) key = norm(w);
       if (!key) continue;
-      key = ALIAS[key] || key;
+      key = aliasOf(key);
       if (NOT_A_NAME.has(key)) continue;
-      if (WEAK.has(key)) weak.add(key);
+      if (weakSet.has(key)) weak.add(key);
       else if (key.length >= 3) strong.add(key);
     }
     const text = norm(raw);
     const concepts = /* @__PURE__ */ new Set();
     let rare = 0;
-    for (const [id, re, isRare] of CONCEPTS) {
+    for (const [id, re, isRare] of concepts_) {
       if (re.test(text)) {
         concepts.add(id);
         if (isRare) rare++;
       }
     }
-    return { words: sigWords(article.title), strong, weak, known, concepts, rareIds: new Set(CONCEPTS.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: timeOf(article) };
+    const out = { words: sigWords(article.title), strong, weak, known, concepts, rareIds: new Set(concepts_.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: timeOf(article) };
+    if (ext) {
+      if (strong.has("constitutionalcourt") || strong.has("supremecourt")) concepts.add("court");
+      const runsOf = (text2) => {
+        const runs = [];
+        for (const part of joinCompounds(text2, ext).split(SEGMENT)) {
+          let run = [];
+          for (const w of tokenize(part)) {
+            const k = strongKey(w);
+            if (k) run.push(k);
+            else if (!(run.length && CONNECT.has(norm(w)))) run.length && runs.push(run), run = [];
+          }
+          if (run.length) runs.push(run);
+        }
+        return runs;
+      };
+      out.runs = runsOf(raw);
+      out.titleRuns = runsOf(article.title);
+      const alone = new Set(out.runs.filter((run) => run.length === 1).map(([k]) => k));
+      const firstName = (k) => out.runs.some((run) => run.some((x, j) => x === k && j < run.length - 1 && !acronyms.has(run[j + 1])));
+      for (const k of [...strong]) if (k.length === 3 && !acronyms.has(k) && !alone.has(k) && firstName(k)) strong.delete(k);
+      out.runs = out.runs.map((run) => run.filter((k) => strong.has(k))).filter((run) => run.length);
+      out.titleRuns = out.titleRuns.map((run) => run.filter((k) => strong.has(k))).filter((run) => run.length);
+    }
+    return out;
+  }
+  function sharedEntities(a, b, title = false) {
+    const inRuns = (runs) => new Set(runs.flat());
+    const sa = title && a.titleRuns ? inRuns(a.titleRuns) : a.strong;
+    const sb = title && b.titleRuns ? inRuns(b.titleRuns) : b.strong;
+    const shared = [...sa].filter((k) => sb.has(k));
+    if (!a.runs || !b.runs) return shared.length;
+    const parent = new Map(shared.map((k) => [k, k]));
+    const find = (k) => {
+      while (parent.get(k) !== k) k = parent.get(k);
+      return k;
+    };
+    for (const runs of [a.runs, b.runs]) for (const run of runs) {
+      const ks = run.filter((k) => parent.has(k));
+      for (let i = 1; i < ks.length; i++) parent.set(find(ks[i]), find(ks[0]));
+    }
+    return new Set(shared.map(find)).size;
+  }
+  function sharedStrong(a, b, ext = false) {
+    const n = sharedCount(a.strong, b.strong);
+    if (!ext || !n) return n;
+    const inst = [...a.strong].filter((k) => INSTITUTES.has(k) && b.strong.has(k)).length;
+    if (!inst) return n;
+    if (!sharedCount(a.weak, b.weak)) return n - inst;
+    const own = (x, y) => [...x.weak].some((k) => !y.weak.has(k));
+    return own(a, b) && own(b, a) ? n - inst : n;
   }
   var WORD_WINDOW = 48 * 60 * 60 * 1e3;
   var EVENT_WINDOW = 36 * 60 * 60 * 1e3;
-  function sameEvent(a, b) {
+  var NAMES_WINDOW = 12 * 60 * 60 * 1e3;
+  function sameEvent(a, b, ext = false) {
     const dt = Math.abs(a.t - b.t);
-    if (a.strong.size && b.strong.size && !sharedCount(a.strong, b.strong) && !sharedCount(a.weak, b.weak)) return false;
+    if (a.strong.size && b.strong.size && !sharedStrong(a, b, ext) && !sharedCount(a.weak, b.weak)) return false;
     if (dt <= WORD_WINDOW) {
       const n = sharedCount(a.words, b.words);
       if (n >= 3 && n / Math.min(a.words.size, b.words.size) >= 0.4) return true;
     }
     if (dt > EVENT_WINDOW) return false;
-    const strong = sharedCount(a.strong, b.strong);
+    const strong = sharedStrong(a, b, ext);
     const weak = sharedCount(a.weak, b.weak);
     const concepts = sharedCount(a.concepts, b.concepts);
     const rare = sharedCount(a.rareIds, b.rareIds);
     if (strong >= 2 && strong + weak + concepts >= 3) return true;
+    if (ext && strong >= 2 && dt <= NAMES_WINDOW && sharedEntities(a, b, true) >= 2) return true;
     if (strong >= 1 && concepts >= 1 && weak + concepts >= 2) return true;
     if (rare >= 2 && concepts >= 3 && weak + strong >= 1) return true;
     if (sharedCount(a.words, b.words) >= 3 && strong + weak >= 1) return true;
@@ -724,9 +984,9 @@ var HootCore = (() => {
     if (shared.length >= 2 || shared.length >= 1 && sharedCount(a.strong, b.strong) >= 1) return true;
     return dt <= SUBJECT_WINDOW && shared.some((k) => !BROAD.has(k));
   }
-  function signatures(articles) {
-    const vocab = nameVocabulary(articles);
-    return new Map(articles.map((a) => [a.id, signature(a, vocab)]));
+  function signatures(articles, extra = [], { extended = false } = {}) {
+    const vocab = nameVocabulary(articles, extended);
+    return new Map([...articles, ...extra].map((a) => [a.id, signature(a, vocab, extended)]));
   }
   var STALE_AFTER = 24 * 60 * 60 * 1e3;
   var isStale = (item, now) => !!now && now - timeOf(item) > STALE_AFTER;
@@ -738,40 +998,141 @@ var HootCore = (() => {
   var isLive = (a) => LIVE_TITLE.test(a.title || "") || /\/live(blog)?[-/]|[-/]liveblog/i.test(a.url || "");
   var EDITION_SIZE = 10;
   var MAX_LEADS_PER_SOURCE = 3;
-  function previousOf(edition) {
-    if (!edition?.entries?.length) return null;
+  var isHistoryRow = (x) => Array.isArray(x?.storyIds);
+  function previousOfOne(x) {
+    if (!x) return null;
+    if (isHistoryRow(x)) {
+      const keysOf2 = /* @__PURE__ */ new Map();
+      if (x.keysOf instanceof Map) for (const [id, ks] of x.keysOf) keysOf2.set(id, new Set(ks));
+      else for (const [id, ks] of Object.entries(x.keys && typeof x.keys === "object" ? x.keys : {})) if (Array.isArray(ks) && ks.length) keysOf2.set(id, new Set(ks));
+      return {
+        id: typeof x.id === "string" ? x.id : "",
+        keysOf: keysOf2,
+        storyIds: new Set(x.storyIds),
+        itemIds: new Set(Array.isArray(x.itemIds) ? x.itemIds : []),
+        leadIds: new Set(Array.isArray(x.leadIds) ? x.leadIds : []),
+        leadStoryId: typeof x.leadStoryId === "string" ? x.leadStoryId : null,
+        at: Date.parse(x.builtAt) || Number(x.at) || 0,
+        titles: new Set(Array.isArray(x.titles) ? x.titles : []),
+        shown: Array.isArray(x.shown) ? x.shown.filter((s) => s && typeof s.title === "string") : []
+      };
+    }
+    const edition = x;
+    if (!edition.entries?.length) return null;
     const stories = edition.entries.filter((e) => e.kind === "story");
     const lead = edition.entries[0];
+    const byId2 = new Map((edition.items || []).map((i) => [i.id, i]));
+    const shown = edition.entries.map((e) => byId2.get(e.leadId || e.id)).filter((i) => i?.title);
+    const keysOf = /* @__PURE__ */ new Map();
+    for (const e of [...stories, ...edition.stories || []]) if (Array.isArray(e.keys) && e.keys.length) for (const id of [e.id, e.formerId, ...e.formerIds || []].filter(Boolean)) keysOf.set(id, /* @__PURE__ */ new Set([...keysOf.get(id) || [], ...e.keys]));
     return {
+      id: typeof edition.id === "string" ? edition.id : "",
+      keysOf,
       storyIds: new Set(stories.flatMap((e) => [e.id, e.formerId].filter(Boolean))),
       itemIds: /* @__PURE__ */ new Set([...edition.entries.map((e) => e.leadId || e.id), ...stories.flatMap((e) => e.itemIds || []), ...(edition.stories || []).flatMap((st) => st.itemIds || [])]),
       leadIds: /* @__PURE__ */ new Set([lead.leadId || lead.id]),
       leadStoryId: lead.kind === "story" ? lead.id : null,
-      at: Date.parse(edition.builtAt) || 0
+      at: Date.parse(edition.builtAt) || 0,
+      titles: new Set(edition.entries.map((e) => e.title || byId2.get(e.leadId || e.id)?.title).filter(Boolean)),
+      shown: shown.map((i) => ({ id: i.id, title: i.title, summary: i.summary || "", publishedAt: i.publishedAt || edition.builtAt }))
     };
   }
-  var REPEAT_PENALTY = 70;
+  function previousOf(editions) {
+    const ps = (Array.isArray(editions) ? editions : [editions]).map(previousOfOne).filter(Boolean);
+    if (!ps.length) return null;
+    ps.sort((a, b) => a.at - b.at || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    const u = (k) => new Set(ps.flatMap((p) => [...p[k]]));
+    const atOf = /* @__PURE__ */ new Map();
+    const keysOf = /* @__PURE__ */ new Map();
+    for (const p of ps) {
+      for (const id of p.storyIds) atOf.set(id, Math.max(atOf.get(id) || 0, p.at));
+      for (const [id, ks] of p.keysOf) keysOf.set(id, /* @__PURE__ */ new Set([...keysOf.get(id) || [], ...ks]));
+    }
+    const last = ps[ps.length - 1];
+    return {
+      keysOf,
+      storyIds: u("storyIds"),
+      itemIds: u("itemIds"),
+      leadIds: u("leadIds"),
+      leadStoryId: last.leadStoryId,
+      leadStoryIds: new Set(ps.map((p) => p.leadStoryId).filter(Boolean)),
+      at: last.at,
+      atOf,
+      titles: u("titles"),
+      shown: ps.flatMap((p) => p.shown)
+    };
+  }
+  var HISTORY_MAX = 3;
+  function historyOf(edition) {
+    if (!edition) return null;
+    if (isHistoryRow(edition)) return edition;
+    const p = previousOfOne(edition);
+    if (!p) return null;
+    return {
+      id: edition.id,
+      builtAt: edition.builtAt,
+      storyIds: [...p.storyIds],
+      itemIds: [...p.itemIds],
+      leadIds: [...p.leadIds],
+      leadStoryId: p.leadStoryId,
+      titles: [...p.titles],
+      shown: p.shown,
+      keys: Object.fromEntries([...p.keysOf].map(([id, ks]) => [id, [...ks]]))
+    };
+  }
+  function recentEditions(list = [], n = HISTORY_MAX) {
+    const seen = /* @__PURE__ */ new Set();
+    const out = [];
+    for (const e of list) {
+      if (!e || typeof e.id !== "string" || !e.id || seen.has(e.id) || !(Date.parse(e.builtAt) > 0)) continue;
+      seen.add(e.id);
+      out.push(e);
+    }
+    out.sort((a, b) => Date.parse(b.builtAt) - Date.parse(a.builtAt) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    return out.slice(0, n);
+  }
   var DEVELOPING_PENALTY = 25;
   var REPEAT_LEAD_PENALTY = 30;
-  function repeatPenalty(st, items, previous) {
-    if (!previous) return 0;
-    const seen = previous.storyIds?.has(st.id) || items.some((i) => previous.itemIds?.has(i.id));
-    if (!seen) return 0;
-    const fresh = items.filter((i) => !previous.itemIds?.has(i.id) && i.publishedAt && Date.parse(i.publishedAt) > previous.at).length;
-    const developing = fresh >= 3 && fresh / items.length >= 0.3;
-    const wasLead = previous.leadStoryId === st.id || items.some((i) => previous.leadIds?.has(i.id));
-    return (developing ? DEVELOPING_PENALTY : REPEAT_PENALTY) + (wasLead ? REPEAT_LEAD_PENALTY : 0);
+  function seenBefore(st, items, previous) {
+    if (!previous) return false;
+    if (previous.storyIds?.has(st.id) || (st.formerIds || []).some((id) => previous.storyIds?.has(id))) return true;
+    return items.some((i) => previous.itemIds?.has(i.id));
+  }
+  var DEVELOPED_FRESH = 2;
+  var DEVELOPED_SIG = 2;
+  function developedSince(st, items, previous, sig, { mainIds = /* @__PURE__ */ new Set(), preferred = null, now = null, known = null } = {}) {
+    const at = previous.atOf?.get(st.id) ?? previous.at ?? 0;
+    const isNew = (i) => !previous.itemIds?.has(i.id) && !!i.publishedAt && Date.parse(i.publishedAt) > at;
+    const fresh = items.filter(isNew);
+    if (fresh.length < DEVELOPED_FRESH) return null;
+    const keysOf = (i) => {
+      const s = sig.get(i.id);
+      return s ? [...s.strong, ...s.concepts] : [];
+    };
+    const then = /* @__PURE__ */ new Set();
+    for (const id of [st.id, ...st.formerIds || []]) for (const k of previous.keysOf?.get(id) || []) then.add(k);
+    const all = known ? (st.itemIds || []).map((id) => known.get(id)).filter(Boolean) : items;
+    for (const i of [...all, ...items]) if (!isNew(i)) for (const k of keysOf(i)) then.add(k);
+    const lead = leadCandidates(fresh, mainIds, preferred, now)[0];
+    const others = fresh.filter((i) => i !== lead).map(keysOf);
+    const newSig = keysOf(lead).filter((k) => !then.has(k) && others.some((ks) => ks.includes(k))).length;
+    return newSig >= DEVELOPED_SIG ? { fresh, lead, newSig } : null;
   }
   var textOrder = (a, b) => a < b ? -1 : a > b ? 1 : 0;
   function selectForReader(stories, pool, { mainIds = /* @__PURE__ */ new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = "" } = {}) {
     const byId2 = new Map(pool.map((i) => [i.id, i]));
-    const sig = signatures(pool);
+    const prevShown = previous?.shown?.length ? previous.shown : [...previous?.titles || []].map((title) => ({ title, publishedAt: new Date(previous.at || now).toISOString() }));
+    const prevArts = prevShown.map((a, k) => ({ ...a, id: `vorige:${k}` }));
+    const sig = signatures(pool, prevArts);
+    const vorige = prevArts.map((a) => sig.get(a.id));
+    const sigKnown = ctx.sigKnown || sig;
     const fresh = (iso, hours) => iso && now - Date.parse(iso) < hours * 60 * 60 * 1e3;
     const entries = [];
     const placed = [];
     const leadCount = {};
     let prevLead = null;
-    const clashes = (ids) => ids.some((id) => sig.has(id) && placed.some((s) => sameSubject(sig.get(id), s)));
+    const same = (ids, sigs) => ids.some((id) => sig.has(id) && sigs.some((s) => sameSubject(sig.get(id), s)));
+    const clashes = (c) => same(c.ids, placed) || !c.vervolg && same(c.ids, vorige);
     const place = (ids) => {
       for (const id of ids) if (sig.has(id)) placed.push(sig.get(id));
     };
@@ -789,11 +1150,19 @@ var HootCore = (() => {
       if (!fresh(st.latestAt, 24)) continue;
       const items = st.itemIds.map((id) => byId2.get(id)).filter(Boolean);
       if (!items.length) continue;
+      let dev = null;
+      let straf = 0;
+      if (seenBefore(st, items, previous)) {
+        dev = developedSince(st, items, previous, sigKnown, { mainIds, preferred, now, known: ctx.known });
+        if (!dev) continue;
+        const wasLead = previous.leadStoryId === st.id || previous.leadStoryIds?.has(st.id) || items.some((i) => previous.leadIds?.has(i.id));
+        straf = DEVELOPING_PENALTY + (wasLead ? REPEAT_LEAD_PENALTY : 0);
+      }
       const primary = primaryDesk(items.map((it) => desksOf(it)));
       const mine = new Set(items.map((i) => i.source)).size;
-      const belang = weight({ sourceCount: st.sourceCount, ownCount: mine, latestAt: st.latestAt }, now) - repeatPenalty(st, items, previous);
+      const belang = weight({ sourceCount: st.sourceCount, ownCount: mine, latestAt: st.latestAt }, now) - straf;
       const parts = personalParts(items, prof, ctx);
-      cands.push({ kind: "story", id: st.id, st, items, ids: st.itemIds, primary, home: homeDesk(items, storyDesk(st, primary) ?? primary, prof), belang, parts, sc: st.sourceCount, w: belang + sumParts(parts) + jitter(seed, st.id) });
+      cands.push({ kind: "story", id: st.id, st, items, ids: st.itemIds, primary, home: homeDesk(items, storyDesk(st, primary) ?? primary, prof), belang, parts, sc: st.sourceCount, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) });
     }
     for (const it of pool) {
       if (!mainIds.has(it.source) || it.kind !== "article" || it.type === "opinie" || it.storyId || isLive(it)) continue;
@@ -802,22 +1171,22 @@ var HootCore = (() => {
       const primary = primaryDesk([desksOf(it)]);
       const belang = weight({ sourceCount: 1, ownCount: 1, latestAt: it.publishedAt }, now) - 2;
       const parts = personalParts([it], prof, ctx);
-      cands.push({ kind: "item", id: it.id, it, items: [it], ids: [it.id], primary, home: homeDesk([it], primary, prof), belang, parts, sc: 1, w: belang + sumParts(parts) + jitter(seed, it.id) });
+      cands.push({ kind: "item", id: it.id, it, items: [it], ids: [it.id], primary, home: homeDesk([it], primary, prof), belang, parts, sc: 1, vervolg: 0, w: belang + sumParts(parts) + jitter(seed, it.id) });
     }
     const heaviest = (a, b) => b.w - a.w || textOrder(a.id, b.id) || textOrder(a.kind, b.kind);
     cands.sort(heaviest);
     const used = /* @__PURE__ */ new Set();
     const take = (c, desk, extra = {}) => {
-      if (used.has(c) || clashes(c.ids)) return false;
+      if (used.has(c) || clashes(c)) return false;
       used.add(c);
       place(c.ids);
-      const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, ...extra };
+      const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, ...c.vervolg ? { vervolg: c.vervolg } : {}, ...extra };
       if (c.kind === "story") {
-        const lead = pickLead(c.items);
+        const lead = pickLead(c.dev ? c.dev.fresh : c.items);
         leadCount[lead.source] = (leadCount[lead.source] || 0) + 1;
         prevLead = lead.source;
-        entries.push({ kind: "story", id: c.st.id, leadId: lead.id, ...base });
-      } else entries.push({ kind: "item", id: c.it.id, ...base });
+        entries.push({ kind: "story", id: c.st.id, leadId: lead.id, itemIds: c.st.itemIds, title: lead.title || null, ...c.st.keys ? { keys: c.st.keys } : {}, ...base });
+      } else entries.push({ kind: "item", id: c.it.id, itemIds: [c.it.id], title: c.it.title || null, ...base });
       return true;
     };
     let deskOrder = [];
@@ -881,7 +1250,9 @@ var HootCore = (() => {
     const tempo = tempoWindows(items.filter((i) => followed.has(i.source)));
     const mineStories = storiesForReader(stories, items, followed, [...items, ...global.items || []]);
     const storyDesk = new Map(mineStories.map((st) => [st.id, st.desk]));
-    const ctx = { readIds, tempo, storyDesk };
+    const itemAny = new Map([...items, ...global.items || []].map((i) => [i.id, i]));
+    const sigAll = signatures([...itemAny.values()].filter((i) => i.kind !== "post"));
+    const ctx = { readIds, tempo, storyDesk, known: itemAny, sigKnown: sigAll };
     const seed = `${editionBasis([...followed], interests, topics, favorites)}|${global.id}`;
     const tech = INTERESTS.find((f) => f.id === "tech")?.topics || [];
     const gamesSharp = interests.includes("tech") && topics.includes("games") && !tech.every((t) => topics.includes(t));
@@ -893,7 +1264,6 @@ var HootCore = (() => {
     const storyById = new Map(stories.map((s) => [s.id, s]));
     const ownIds = new Set(items.filter((i) => followed.has(i.source)).map((i) => i.id));
     const covered = (w) => ownIds.has(w.item.id) || (storyById.get(w.storyId)?.itemIds || []).some((id) => ownIds.has(id));
-    const itemAny = new Map([...items, ...global.items || []].map((i) => [i.id, i]));
     const storyOfItem = new Map(stories.flatMap((s) => s.itemIds.map((id) => [id, s.id])));
     const readOf = (id, sid) => {
       if (!readIds.size || !id) return {};
@@ -903,14 +1273,25 @@ var HootCore = (() => {
       const { seen, followUp } = personalParts(ids.map((x) => itemAny.get(x)).filter(Boolean), prof, { readIds });
       return followUp ? { followUp } : { seen: seen || { pts: 0 } };
     };
-    const unread = (id, sid) => !readOf(id, sid).seen;
-    const withFollowUp = (e, id, sid) => {
+    const preferred = new Set(favorites.filter((id) => followed.has(id)));
+    const againOf = (id, sid) => {
+      if (!previous || !id) return {};
+      const st = storyById.get(sid || storyOfItem.get(id) || itemAny.get(id)?.storyId);
+      const members = [.../* @__PURE__ */ new Set([id, ...st?.itemIds || []])].map((x) => itemAny.get(x)).filter(Boolean);
+      if (!seenBefore(st || { id }, members, previous)) return {};
+      const dev = st ? developedSince(st, members, previous, sigAll, { mainIds: followed, preferred, now, known: itemAny }) : null;
+      return dev ? { vervolg: dev.fresh.length, leadId: dev.lead.id } : { seen: true };
+    };
+    const unread = (id, sid) => !readOf(id, sid).seen && !againOf(id, sid).seen;
+    const withHistory = (e, id, sid) => {
       const { followUp } = readOf(id, sid);
-      return followUp ? { ...e, parts: { ...e.parts || {}, followUp } } : e;
+      const { vervolg, leadId } = againOf(id, sid);
+      let out2 = followUp ? { ...e, parts: { ...e.parts || {}, followUp } } : e;
+      if (vervolg) out2 = e.kind === "item" ? { ...out2, id: leadId, vervolg } : { ...out2, leadId, vervolg };
+      return out2;
     };
     const wideAny = (global.wide || []).some((w) => w?.item?.id && !covered(w) && unread(w.item.id, w.storyId));
     const size = EDITION_SIZE - (bubbleEntry ? 1 : 0) - (wideAny ? 1 : 0);
-    const preferred = new Set(favorites.filter((id) => followed.has(id)));
     const opts = { mainIds: followed, now, previous, preferred, prof, ctx, seed };
     const extra = extraPool.length ? selectForReader(mineStories, extraPool, { ...opts, size: EXTRA_MAX, plan: false }).map((e) => ({ ...e, desk: null })) : [];
     const leadCat = (e) => catOf.get(pool.find((i) => i.id === (e.leadId || e.id))?.source);
@@ -922,7 +1303,7 @@ var HootCore = (() => {
     const fitOf = (w) => Math.max(0, ...(w.topics || []).map((t) => Math.max(prof.topicP[t] || 0, prof.shareOf[t] || 0)));
     const free = (w) => w?.item?.id && !taken.has(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && !covered(w) && unread(w.item.id, w.storyId);
     const wide = (global.wide || []).find((w) => free(w) && outsideProfile(w.topics, prof)) || (global.wide || []).filter(free).sort((a, b) => fitOf(a) - fitOf(b) || b.sourceCount - a.sourceCount || byText(a.storyId, b.storyId))[0];
-    const wideEntry = wide ? withFollowUp({ kind: "story", id: wide.storyId, leadId: wide.item.id, desk: WIDE, sourceCount: wide.sourceCount }, wide.item.id, wide.storyId) : null;
+    const wideEntry = wide ? withHistory({ kind: "story", id: wide.storyId, leadId: wide.item.id, desk: WIDE, sourceCount: wide.sourceCount }, wide.item.id, wide.storyId) : null;
     if (wideEntry) for (const id of [wide.item.id, ...storyById.get(wide.storyId)?.itemIds || []]) taken.add(id);
     const globalItems = new Map((global.items || []).map((i) => [i.id, i]));
     const noFavorites = { ...prof, favorites: /* @__PURE__ */ new Set() };
@@ -934,9 +1315,8 @@ var HootCore = (() => {
       const m = membersOf(g);
       if ([...m].some((id) => taken.has(id))) continue;
       for (const id of m) taken.add(id);
-      fill.push(withFollowUp({ ...g, desk: EXTERN, fromDesk: g.desk || null }, g.leadId || g.id, g.kind === "story" ? g.id : null));
+      fill.push(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null }, g.leadId || g.id, g.kind === "story" ? g.id : null));
     }
-    const sigAll = signatures([...itemAny.values()].filter((i) => i.kind !== "post"));
     const clashes = (id) => taken.has(id) || sigAll.has(id) && [...taken].some((x) => sigAll.has(x) && sameEvent(sigAll.get(id), sigAll.get(x)));
     const topicsOfStory = (sid, id) => [...new Set((storyById.get(sid)?.itemIds || [id]).flatMap((x) => itemAny.get(x)?.topics || []))];
     let nearItem = null;
@@ -946,14 +1326,14 @@ var HootCore = (() => {
       const alt = [first, ...global.bubble || []].find(okB);
       if (alt) {
         if (alt.id !== bubbleEntry.id) bubbleEntry = { kind: "item", id: alt.id, desk: "bubbel", terms: alt.terms };
-        bubbleEntry = withFollowUp(bubbleEntry, alt.id, alt.storyId);
+        bubbleEntry = withHistory(bubbleEntry, alt.id, alt.storyId);
       } else {
         const home = strongestFamily(prof);
         const next = new Set(NEIGHBOURS[home] || []);
         const recent = stories.filter((st) => st.sourceCount >= NEAR_MIN_SOURCES && now - Date.parse(st.latestAt) < 24 * 36e5).sort((a, b) => b.sourceCount - a.sourceCount || byText(a.id, b.id)).map((st) => ({ storyId: st.id, sourceCount: st.sourceCount, topics: topicsOfStory(st.id), item: itemAny.get(st.leadId) || st.itemIds.map((x) => itemAny.get(x)).find(Boolean) }));
         const fits = (w) => w?.item?.id && !clashes(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && unread(w.item.id, w.storyId) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t]));
         const pick = [...global.near || [], ...recent].find(fits);
-        bubbleEntry = pick ? withFollowUp({ kind: "story", id: pick.storyId, leadId: pick.item.id, desk: "bubbel", near: home }, pick.item.id, pick.storyId) : null;
+        bubbleEntry = pick ? withHistory({ kind: "story", id: pick.storyId, leadId: pick.item.id, desk: "bubbel", near: home }, pick.item.id, pick.storyId) : null;
         if (pick) {
           nearItem = pick.item;
           for (const id of [pick.item.id, ...storyById.get(pick.storyId)?.itemIds || []]) taken.add(id);
@@ -963,15 +1343,18 @@ var HootCore = (() => {
     const entries = [...news, ...fill, ...extra];
     if (bubbleEntry && !entries.some((e) => (e.leadId || e.id) === (bubbleEntry.leadId || bubbleEntry.id))) entries.splice(Math.min(5, entries.length), 0, bubbleEntry);
     if (wideEntry) entries.splice(Math.min(6, entries.length), 0, wideEntry);
-    const srcName = new Map(sources.map((s) => [s.id, s.name]));
-    const out = entries.map((e) => {
-      const why = whyOf(e, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk: e.desk, plannedDesk: !!e.planned, sourceName: (s) => srcName.get(s) || s });
-      const { w, parts, planned, front, ...rest } = e;
-      return { ...rest, why, _parts: parts || {} };
-    });
     const poolById = new Map(pool.map((i) => [i.id, i]));
     const wideById = new Map([...(global.wide || []).map((w) => w?.item).filter(Boolean), ...wide ? [wide.item] : [], ...nearItem ? [nearItem] : []].map((i) => [i.id, i]));
     const itemOf = (id) => poolById.get(id) || wideById.get(id) || globalItems.get(id) || itemAny.get(id);
+    const srcName = new Map(sources.map((s) => [s.id, s.name]));
+    const out = entries.map((e) => {
+      const why = whyOf(e, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk: e.desk, plannedDesk: !!e.planned, sourceName: (s) => srcName.get(s) || s });
+      const { w, parts, planned, front, vervolg, ...rest } = e;
+      const lead = e.leadId || e.id;
+      const itemIds = e.kind === "story" ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead];
+      const keys = e.kind === "story" ? e.keys || storyById.get(e.id)?.keys : null;
+      return { ...rest, itemIds, ...keys ? { keys } : {}, title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {} };
+    });
     const shown = [...new Set(out.map((e) => e.leadId || e.id))];
     return {
       id: global.id,
@@ -994,70 +1377,6 @@ var HootCore = (() => {
     const strip = (o) => Object.fromEntries(Object.entries(o).filter(([k]) => !k.startsWith("_")));
     return { ...strip(edition), entries: (edition.entries || []).map(strip) };
   }
-  function editionBasis(followed = [], interests = [], topics = [], favorites = []) {
-    const parts = [[...followed].sort().join(","), [...interests].sort().join(","), [...topics].sort().join(",")];
-    if (favorites.length) parts.push([...favorites].sort().join(","));
-    const text = parts.join("|");
-    let h = 5381;
-    for (let i = 0; i < text.length; i++) h = (h * 33 ^ text.charCodeAt(i)) >>> 0;
-    return h.toString(36);
-  }
-
-  // src/lib/editionCore.js
-  var CORE_VERSION = 1;
-  var HISTORY_SIZE = 3;
-  var asSet = (v) => v instanceof Set ? v : new Set(Array.isArray(v) ? v : []);
-  function keysOfEntries(edition) {
-    const out = /* @__PURE__ */ new Map();
-    for (const e of [...edition.entries || [], ...edition.stories || []]) {
-      if (!Array.isArray(e.keys) || !e.keys.length) continue;
-      for (const id of [e.id, e.formerId, ...e.formerIds || []].filter(Boolean)) out.set(id, /* @__PURE__ */ new Set([...out.get(id) || [], ...e.keys]));
-    }
-    return out;
-  }
-  function previousOf2(edition) {
-    const p = previousOf(edition);
-    if (!p) return null;
-    const byId2 = new Map((edition.items || []).map((i) => [i.id, i]));
-    const shown = edition.entries.map((e) => byId2.get(e.leadId || e.id)).filter((i) => i?.title);
-    return {
-      ...p,
-      id: typeof edition.id === "string" ? edition.id : "",
-      keysOf: p.keysOf instanceof Map ? p.keysOf : keysOfEntries(edition),
-      titles: p.titles || new Set(edition.entries.map((e) => e.title || byId2.get(e.leadId || e.id)?.title).filter(Boolean)),
-      shown: p.shown || shown.map((i) => ({ id: i.id, title: i.title, summary: i.summary || "", publishedAt: i.publishedAt || edition.builtAt }))
-    };
-  }
-  var isHistoryRow = (x) => Array.isArray(x?.storyIds);
-  var byTime = (a, b) => a.at - b.at || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
-  function historyOf(edition) {
-    if (!edition) return null;
-    if (isHistoryRow(edition)) return edition;
-    const p = previousOf2(edition);
-    if (!p) return null;
-    return {
-      id: edition.id,
-      builtAt: edition.builtAt,
-      storyIds: [...p.storyIds],
-      itemIds: [...p.itemIds],
-      leadIds: [...p.leadIds],
-      leadStoryId: p.leadStoryId ?? null,
-      titles: [...p.titles],
-      shown: p.shown,
-      keys: Object.fromEntries([...p.keysOf || []].map(([id, ks]) => [id, [...ks]]))
-    };
-  }
-  function recentEditions(list = [], n = HISTORY_SIZE) {
-    const seen = /* @__PURE__ */ new Set();
-    const out = [];
-    for (const e of Array.isArray(list) ? list : []) {
-      if (!e || typeof e.id !== "string" || !e.id || seen.has(e.id) || !(Date.parse(e.builtAt) > 0)) continue;
-      seen.add(e.id);
-      out.push(e);
-    }
-    out.sort((a, b) => Date.parse(b.builtAt) - Date.parse(a.builtAt) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-    return out.slice(0, n);
-  }
   function earlierEditions({ local = null, account = null, id = null, owner = null } = {}) {
     const rows = [];
     const add = (e) => {
@@ -1069,59 +1388,28 @@ var HootCore = (() => {
     add(account);
     return recentEditions(rows);
   }
+  function editionBasis(followed = [], interests = [], topics = [], favorites = []) {
+    const parts = [[...followed].sort().join(","), [...interests].sort().join(","), [...topics].sort().join(",")];
+    if (favorites.length) parts.push([...favorites].sort().join(","));
+    const text = parts.join("|");
+    let h = 5381;
+    for (let i = 0; i < text.length; i++) h = (h * 33 ^ text.charCodeAt(i)) >>> 0;
+    return h.toString(36);
+  }
+
+  // src/lib/editionCore.js
+  var CORE_VERSION = 1;
+  var HISTORY_SIZE = HISTORY_MAX;
+  var asSet = (v) => v instanceof Set ? v : new Set(Array.isArray(v) ? v : []);
+  var mergePrevious = previousOf;
   function nextHistory(prior = [], edition) {
     const rows = (Array.isArray(prior) ? prior : []).filter((x) => x && x.id !== edition?.id);
     return recentEditions(rows).map(historyOf).filter(Boolean);
   }
-  function previousOne(x) {
-    if (!x || typeof x !== "object") return null;
-    if (isHistoryRow(x)) {
-      const keysOf = /* @__PURE__ */ new Map();
-      if (x.keysOf instanceof Map) for (const [id, ks] of x.keysOf) keysOf.set(id, new Set(ks));
-      else for (const [id, ks] of Object.entries(x.keys && typeof x.keys === "object" ? x.keys : {})) if (Array.isArray(ks) && ks.length) keysOf.set(id, new Set(ks));
-      return {
-        id: typeof x.id === "string" ? x.id : "",
-        keysOf,
-        storyIds: new Set(x.storyIds),
-        itemIds: new Set(Array.isArray(x.itemIds) ? x.itemIds : []),
-        leadIds: new Set(Array.isArray(x.leadIds) ? x.leadIds : []),
-        leadStoryId: typeof x.leadStoryId === "string" ? x.leadStoryId : null,
-        at: Date.parse(x.builtAt) || Number(x.at) || 0,
-        titles: new Set(Array.isArray(x.titles) ? x.titles : []),
-        shown: Array.isArray(x.shown) ? x.shown.filter((s) => s && typeof s.title === "string") : []
-      };
-    }
-    return previousOf2(x);
-  }
-  function mergePrevious(list) {
-    const ps = (Array.isArray(list) ? list : [list]).map(previousOne).filter(Boolean);
-    if (!ps.length) return null;
-    ps.sort(byTime);
-    const u = (k) => new Set(ps.flatMap((p) => [...p[k] || []]));
-    const atOf = /* @__PURE__ */ new Map();
-    const keysOf = /* @__PURE__ */ new Map();
-    for (const p of ps) {
-      for (const id of p.storyIds) atOf.set(id, Math.max(atOf.get(id) || 0, p.at));
-      for (const [id, ks] of p.keysOf || []) keysOf.set(id, /* @__PURE__ */ new Set([...keysOf.get(id) || [], ...ks]));
-    }
-    const last = ps[ps.length - 1];
-    return {
-      keysOf,
-      storyIds: u("storyIds"),
-      itemIds: u("itemIds"),
-      leadIds: u("leadIds"),
-      leadStoryId: last.leadStoryId ?? null,
-      leadStoryIds: new Set(ps.map((p) => p.leadStoryId).filter(Boolean)),
-      at: last.at,
-      atOf,
-      titles: u("titles"),
-      shown: ps.flatMap((p) => p.shown || [])
-    };
-  }
   function previousFrom(v) {
     if (!v) return null;
-    if (Array.isArray(v)) return mergePrevious(v);
-    if (Array.isArray(v.storyIds) || v.entries) return mergePrevious([v]);
+    if (Array.isArray(v)) return previousOf(v);
+    if (Array.isArray(v.storyIds) || v.entries) return previousOf([v]);
     return null;
   }
   function inputOf(input) {
@@ -1156,7 +1444,8 @@ var HootCore = (() => {
       const lead = e.leadId || e.id;
       const itemIds = e.itemIds || (e.kind === "story" ? storyById.get(e.id)?.itemIds || [lead] : [lead]);
       const title = e.title !== void 0 ? e.title : itemById.get(lead)?.title || null;
-      return { ...e, itemIds, title };
+      const keys = e.kind === "story" ? e.keys || storyById.get(e.id)?.keys : null;
+      return { ...e, itemIds, ...keys ? { keys } : {}, title };
     });
     const basis = editionBasis([...args.followed], args.interests, args.topics, args.favorites);
     return { ...withoutDebug({ ...mine, entries }), basis, owner: typeof input.owner === "string" && input.owner ? input.owner : "anon" };
