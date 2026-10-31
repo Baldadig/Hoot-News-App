@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef } from 'react'
-import { K, W, H, HZ, CX, LINE, STILL, breathe, halo, introSun, editieSun, waterShift } from '../lib/sun.js'
+import { K, W, H, HZ, CX, LINE, STILL, breathe, halo, introSun, editieSun, waterShift, WATER_ROWS } from '../lib/sun.js'
 import { reduced } from '../lib/motion.js'
 
 // De punt als zon in Welkom (iOS OnboardingArt.swift): één SVG van 168 × 140 met vier varianten.
@@ -30,10 +30,8 @@ function join(paint) {
 const f2 = (x) => x.toFixed(2)
 
 // Het water van de Stroom: twee rijen streepjes, vier keer herhaald zodat het schuiven naadloos is.
-const ROWS = [
-  { y: HZ + 13.75, o: 0.3, off: 0, segs: [[0, 20], [28, 28], [64, 16], [88, 24], [120, 20]] },
-  { y: HZ + 25, o: 0.18, off: 12.5, segs: [[0, 14], [26, 22], [60, 12], [84, 18], [120, 16]] },
-]
+// De dekking staat op de groep (opacity) en niet per streepje (stroke-opacity): zo tellen
+// overlappende kappen niet dubbel. Het laatste streepje raakt het eerste van de herhaling niet (140k).
 
 export default function SunArt({ kind, className = '' }) {
   const id = useId().replace(/:/g, '')
@@ -104,12 +102,12 @@ export default function SunArt({ kind, className = '' }) {
       <line className="sun__line" x1={CX - LINE} x2={CX + LINE} y1={HZ} y2={HZ} strokeOpacity={kind === 'stroom' ? 0.6 : undefined} />
       {kind === 'stroom' ? (
         <g clipPath={`url(#${id}-water)`}>
-          {ROWS.map((row, i) => (
-            <g key={i} ref={(el) => (water.current[i] = el)} className="sun__water" strokeOpacity={row.o}>
+          {WATER_ROWS.map((row, i) => (
+            <g key={i} ref={(el) => (water.current[i] = el)} className="sun__water" opacity={row.o}>
               {[0, 1, 2, 3].flatMap((rep) =>
                 row.segs.map(([x, w], j) => {
                   const x0 = CX - 70 + row.off + rep * 140 * K + x * K
-                  return <line key={`${rep}-${j}`} x1={x0} x2={x0 + w * K} y1={row.y} y2={row.y} />
+                  return <line key={`${rep}-${j}`} x1={x0} x2={x0 + w * K} y1={HZ + row.dy} y2={HZ + row.dy} />
                 }),
               )}
             </g>

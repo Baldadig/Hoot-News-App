@@ -14,6 +14,7 @@ import { fitsHero } from '../lib/img.js'
 import { followedNow } from '../lib/follow.js'
 import { TermHelp } from '../components/Terms.jsx'
 import { Why } from '../components/Why.js'
+import { labelFor } from '../lib/label.js'
 import { wholeSentences } from '../../shared/zinnen.mjs'
 import { useIntroMax } from '../lib/intro.js'
 
@@ -31,7 +32,7 @@ const FRONT = 6 // voorpagina: hoofdverhaal, drie ernaast en twee eronder
 // kolom smal, dan krijgt de bron een eigen regel en staan vergelijken en bewaren eronder.
 // Volg je het verhaal, dan staat dat stil achter de rubriek ('Je volgt'). Het waarom van de plek
 // (jouw Editie) staat als stille regel onder de rubriek, boven de kop (zie Why.js).
-function FrontItem({ item, story, note, n = null, why = null, followed, taste }) {
+function FrontItem({ item, story, note, n = null, why = null, followed, taste, outside = false }) {
   const { markRead, read } = useHoot()
   const opinie = item.type === 'opinie'
   const title = item.title
@@ -62,7 +63,7 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste })
         ) : null}
       </a>
       <TermHelp text={`${title} ${summary || ''}`} max={1} />
-      <Meta item={item} story={story} taste={taste} />
+      <Meta item={item} story={story} taste={taste} outside={outside} />
     </article>
   )
 }
@@ -84,7 +85,7 @@ function LessNote({ entryKey, item, story }) {
 const Slot = ({ less, row, children }) => (less.includes(row.key) ? <LessNote entryKey={row.key} item={row.item} story={row.story} /> : children)
 
 export default function Edition({ active, edition, bubble = [], brief = null, briefForMembers = false, onJoin, hint = false, onHintDone, loading, failedLoad, statusProps, onRefresh, refreshing }) {
-  const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account } = useHoot()
+  const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account, prefs, sourcesById } = useHoot()
   const following = followedNow(followStories, storiesById, newInStory)
   const ref = useRef(null)
 
@@ -98,9 +99,10 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
       const r = resolveEditionEntry(e, { storiesById, itemsById, published, muted })
       if (!r) return null
       const label = e.desk === 'breed' ? `Waar iedereen over schrijft · ${e.sourceCount} bronnen` : deskLabel({ ...e, desk: r.desk })
-      // "Buiten je bubbel" en "Buiten je bronnen" zeggen het zelf al; elders een label als je de bron niet volgt.
-      const note = r.followed || ['bubbel', 'extern', 'breed'].includes(e.desk) ? label : [label, 'Buiten je bronnen'].filter(Boolean).join(' · ')
-      return { key: e.id, index, desk: e.desk, item: r.item, story: r.story, note, why: e.why || null }
+      // Het label (lib/label.js): de interesse van de lezer als het verhaal die raakt, anders de rubriek;
+      // de waarom-regel alleen als die iets toevoegt; 'Buiten je bronnen' staat bij de bronregel.
+      const l = labelFor({ topics: r.item.topics, follows: prefs?.topics || [], cat: sourcesById?.get(r.item.source)?.cat, desk: e.desk, deskLabel: label, why: e.why, followed: r.followed || ['bubbel', 'breed'].includes(e.desk) })
+      return { key: e.id, index, desk: e.desk, item: r.item, story: r.story, note: l.kicker, why: l.why, outside: l.outside }
     })
     .filter(Boolean)
   // De telling (numberRows): elke rij krijgt zijn nummer in de getoonde volgorde; N is het totaal.
@@ -252,13 +254,13 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 Is het raam niet breder dan 48rem (telefoon, tablet staand, of met het vergelijkpaneel open), dan staan ze onder elkaar. */}
             <div className="front">
               <Slot less={less} row={rows[0]}>
-                <LeadStory item={rows[0].item} story={rows[0].story} note={rows[0].note} n={rows[0].n} why={rows[0].why} followed={onFront.get(rows[0].key)} priority={active} taste={rows[0].key} />
+                <LeadStory item={rows[0].item} story={rows[0].story} note={rows[0].note} why={rows[0].why} outside={rows[0].outside} followed={onFront.get(rows[0].key)} priority={active} taste={rows[0].key} />
               </Slot>
               {rows.length > 1 ? (
                 <div className="front__side rows">
                   {rows.slice(1, 4).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
-                      <FrontItem item={r.item} story={r.story} note={r.note} n={r.n} why={r.why} followed={onFront.get(r.key)} taste={r.key} />
+                      <FrontItem item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} />
                     </Slot>
                   ))}
                 </div>
@@ -269,7 +271,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 <div className="front__under rows">
                   {rows.slice(4, FRONT).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
-                      <FrontItem item={r.item} story={r.story} note={r.note} n={r.n} why={r.why} followed={onFront.get(r.key)} taste={r.key} />
+                      <FrontItem item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} />
                     </Slot>
                   ))}
                 </div>
@@ -282,7 +284,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 <div className="list rows">
                   {rows.slice(FRONT).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
-                      <CompactItem item={r.item} story={r.story} note={r.note} n={r.n} why={r.why} taste={r.key} plain />
+                      <CompactItem item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} taste={r.key} plain />
                     </Slot>
                   ))}
                 </div>

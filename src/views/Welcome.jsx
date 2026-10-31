@@ -2,7 +2,6 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { SourceMark } from '../components/Items.jsx'
 import { BackButton } from '../components/Shell.jsx'
 import { ChipGroup } from '../components/ChipGroup.jsx'
-import { Dialog, DialogHeader } from '../components/Dialog.jsx'
 import { BrandLogo, useBrandBar } from '../components/Brand.jsx'
 import SunArt from '../components/SunArt.jsx'
 import { CaretIcon, INTEREST_ICONS } from '../components/icons.jsx'
@@ -15,7 +14,8 @@ import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, 
 // past in één scherm, ook op 375 × 667. Wat niet past (pillen) verdeelt `Paged` over meer pagina's.
 //   intro (rood)  → drie veegpagina's (Editie, Stroom, Selectie), elk met zijn zon
 //   → interesses (tegels) → Wat precies? (eigen pagina, alle pillen open, Overslaan)
-//   → Je Hoot (je bronnen als voorstel, Aanpassen in een blad; Je Selectie optioneel) → de Editie.
+//   → Je Hoot (je bronnen als voorstel; Aanpassen opent Je bronnen, een eigen pagina, per pagina
+//   een paar bronnen; Je Selectie optioneel) → de Editie.
 // Niets staat vooraf aan: het voorstel voor de bronnen is voor iedereen gelijk (alleen gratis,
 // Nederlands eerst, zie lib/welcome.js) en de interesses, onderwerpen en Selectie beginnen leeg.
 // Knoppen staan pas op de laatste veegpagina; eerder veeg je (muis slepen, trackpad, pijltjes).
@@ -46,16 +46,14 @@ const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`
 
 export default function Welcome({ sources, prefs, muted = new Set(), onDone, onClose = null, onSignIn = null, leaving = false, onLeft = () => {} }) {
   const reopen = !!onClose
-  const [view, setView] = useState(reopen ? 'kies' : 'intro') // intro | pager | kies | precies | hoot | selectie
+  const [view, setView] = useState(reopen ? 'kies' : 'intro') // intro | pager | kies | precies | hoot | bronnen | selectie
   const [pg, setPg] = useState(0) // de veegpagina (0 = Editie)
-  const [sub, setSub] = useState(0) // de subpagina van Wat precies? en Je Selectie
+  const [sub, setSub] = useState(0) // de subpagina van Wat precies?, Je bronnen en Je Selectie
   const [pages, setPages] = useState(1) // hoeveel subpagina's er nu zijn
   const [interests, setInterests] = useState(() => prefs.interests || [])
   const [picked, setPicked] = useState(() => pickedFrom(prefs.topics || [], prefs.interests || [], INTERESTS))
   const [edited, setEdited] = useState(null) // je eigen bronnenkeuze; zolang null geldt het voorstel
-  const [off, setOff] = useState([]) // in het blad uitgezet, blijft er te vinden
   const [vak, setVak] = useState(() => prefs.vak || [])
-  const [sheet, setSheet] = useState(false)
   const [red, setRed] = useState(!reopen) // de rode intro-laag staat er (ook nog tijdens het sluiten)
   const [phase, setPhase] = useState('open') // 'open' | 'closing' (rood → papier) | 'opening' (terug)
   const head = useRef(null) // de kop van de papieren pagina
@@ -153,13 +151,10 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
     }
   }, [phase])
 
-  // Escape sluit het welkom als je het opnieuw opende (de eerste keer moet je erdoor). Een open
-  // blad sluit zelf met Escape en laat het welkom staan.
-  const sheetOpen = useRef(false)
-  sheetOpen.current = sheet
+  // Escape sluit het welkom als je het opnieuw opende (de eerste keer moet je erdoor).
   useEffect(() => {
     if (!onClose) return
-    const onKey = (e) => e.key === 'Escape' && !e.defaultPrevented && !sheetOpen.current && onClose()
+    const onKey = (e) => e.key === 'Escape' && !e.defaultPrevented && onClose()
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
@@ -212,7 +207,7 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
   // ---- Vegen ----
   // Op de intro en de veegpagina's: naar links is verder, naar rechts terug. Muis slepen, trackpad
   // (zijwaarts), swipe en de pijltjestoetsen doen hetzelfde als de link en de bolletjes.
-  const live = (view === 'intro' || view === 'pager') && phase === 'open' && !sheet && !leaving
+  const live = (view === 'intro' || view === 'pager') && phase === 'open' && !leaving
   const forward = () => {
     if (view === 'intro') leaveIntro(() => (setView('pager'), setPg(0)))
     else if (view === 'pager' && pg < PAGES.length - 1) setPg(pg + 1)
@@ -268,10 +263,7 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
   const pickInterest = (id) => setInterests((l) => toggleIn(l, id))
   const pickTopic = (id) => setPicked((l) => toggleIn(l, id))
   const allOf = (i) => setPicked((l) => l.filter((t) => !i.topics.includes(t)))
-  const pickSource = (id) => {
-    setEdited(mine.includes(id) ? mine.filter((x) => x !== id) : [...mine, id])
-    setOff((l) => (mine.includes(id) ? [...l, id] : l.filter((x) => x !== id)))
-  }
+  const pickSource = (id) => setEdited(mine.includes(id) ? mine.filter((x) => x !== id) : [...mine, id])
   const finish = () => onDone({ interests, topics, sources: mine, all: pickable, vak })
   // "Liever meteen lezen": de startset met gratis bronnen, zonder interesses, onderwerpen of vak.
   const startIds = () => {
@@ -305,23 +297,23 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
     if (sub > pages - 1) setSub(Math.max(0, pages - 1))
   }, [sub, pages])
 
-  // Het blad Aanpassen: wat aan staat, en wat bij je interesses past.
-  const more = useMemo(() => {
-    const extra = off.filter((id) => byId.has(id) && !mine.includes(id))
-    return [...new Set([...extra, ...moreSources(pickable, interests, mine)])]
-  }, [off, byId, mine, pickable, interests])
+  // Je bronnen: het voorstel eerst, dan wat verder bij je interesses past. De volgorde ligt vast, ook
+  // als je iets aan- of uitzet: een rij blijft op zijn plek.
+  const rows = useMemo(() => [...new Set([...proposal, ...moreSources(pickable, interests, [])])].filter((id) => byId.has(id)), [proposal, pickable, interests, byId])
 
   // ---- Wat er onder de kop staat, per pagina ----
   const next = () => {
     if (view === 'kies') show('precies')
     else if (view === 'precies') (last ? show('hoot') : show('precies', sub + 1))
     else if (view === 'selectie') (last ? show('hoot') : show('selectie', sub + 1))
+    else if (view === 'bronnen') (last ? show('hoot') : show('bronnen', sub + 1))
     else if (view === 'hoot') finish()
   }
   const previous = () => {
     if (view === 'kies') backToPager()
     else if (view === 'precies') (sub > 0 ? show('precies', sub - 1) : show('kies'))
     else if (view === 'hoot') show('precies')
+    else if (view === 'bronnen') (sub > 0 ? show('bronnen', sub - 1) : show('hoot'))
     else if (view === 'selectie') (sub > 0 ? show('selectie', sub - 1) : show('hoot'))
   }
   const backToPager = () =>
@@ -334,7 +326,7 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
       ? { label: interests.length ? 'Verder' : 'Kies minstens één', disabled: !interests.length }
       : view === 'hoot'
         ? { label: mine.length ? 'Naar je Editie' : 'Kies minstens één bron', disabled: !mine.length || !pickable.length }
-        : view === 'selectie'
+        : view === 'selectie' || view === 'bronnen'
           ? { label: last ? 'Klaar' : 'Verder' }
           : { label: 'Verder' }
   const skip =
@@ -345,7 +337,7 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
         : reopen
           ? { label: 'Sluiten zonder opslaan', onClick: onClose }
           : null
-  const counter = view === 'precies' || view === 'selectie'
+  const counter = view === 'precies' || view === 'selectie' || view === 'bronnen'
   const topLink = reopen && view === 'kies' ? null : <BackButton label="Terug" onClick={previous} className="ob__back" />
 
   // Het papier staat onder het rood: niet te bedienen zolang de rode laag er is (ook tijdens de
@@ -450,8 +442,16 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
                 <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
                   Wat precies?
                 </h1>
-                <p className="ob__sub">Hoeft niet. Kies je niets, dan krijg je alles.</p>
+                <p className="ob__sub">Kies wat je wilt volgen, of sla over voor alles.</p>
                 <Paged groups={fineGroups} page={sub} onPages={setPages} />
+              </>
+            ) : view === 'bronnen' ? (
+              <>
+                <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
+                  Je bronnen
+                </h1>
+                <p className="ob__sub">{reopen ? 'Zet aan wat je wilt lezen.' : 'Zet aan wat je wilt lezen. Later pas je alles aan bij Bronnen.'}</p>
+                <PagedRows ids={rows} byId={byId} on={mine} onPick={pickSource} page={sub} onPages={setPages} />
               </>
             ) : view === 'selectie' ? (
               <>
@@ -466,9 +466,9 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
                 <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
                   Je Hoot
                 </h1>
-                <p className="ob__sub">{reopen ? 'Je bronnen en je Selectie.' : 'Voorgesteld bij je interesses, allemaal gratis. Later pas je alles aan bij Bronnen.'}</p>
+                <p className="ob__sub">{reopen ? 'Je bronnen en je Selectie.' : 'Voorgesteld bij je interesses, allemaal gratis.'}</p>
                 <div className="ob__rows">
-                  <button type="button" className="ob__row" onClick={() => setSheet(true)} aria-haspopup="dialog" disabled={!pickable.length}>
+                  <button type="button" className="ob__row" onClick={() => show('bronnen')} disabled={!pickable.length}>
                     <span>
                       <span className="ob__rk">Je bronnen</span>
                       <span className="ob__rv">{line}</span>
@@ -555,24 +555,6 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
           </div>
         </div>
       ) : null}
-
-      <Dialog open={sheet} onClose={() => setSheet(false)} labelledBy="ob-sheet-title">
-        <DialogHeader id="ob-sheet-title" title="Je bronnen" onClose={() => setSheet(false)} />
-        {reopen ? null : <p className="hint">Voorgesteld bij je interesses, allemaal gratis. Later pas je alles aan bij Bronnen.</p>}
-        <h3 className="label label--section sheet__label">Aan · {mine.length}</h3>
-        <SourceList ids={mine} byId={byId} on onPick={pickSource} />
-        {more.length ? (
-          <>
-            <h3 className="label label--section sheet__label">Ook bij je interesses</h3>
-            <SourceList ids={more} byId={byId} onPick={pickSource} />
-          </>
-        ) : null}
-        <div className="sheet__foot">
-          <button type="button" className="btn" onClick={() => setSheet(false)}>
-            Klaar
-          </button>
-        </div>
-      </Dialog>
     </div>
   )
 }
@@ -651,22 +633,53 @@ function Paged({ groups, page, onPages }) {
   )
 }
 
-function SourceList({ ids, byId, on = false, onPick }) {
+// Je bronnen zonder scrollen, zoals Paged maar per rij: de verborgen kopie meet elke rij, en
+// packPages verdeelt ze over pagina's (zo veel als er past).
+function PagedRows({ ids, byId, on, onPick, page, onPages }) {
+  const fit = useRef(null)
+  const meas = useRef(null)
+  const [pages, setPages] = useState(() => [ids.map((_, i) => i)])
+  const measure = useCallback(() => {
+    const f = fit.current
+    const m = meas.current
+    if (!f || !m) return
+    const next = packPages([...m.children].map((k) => k.offsetHeight), f.clientHeight, 0)
+    setPages((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next))
+  }, [])
+  useLayoutEffect(measure, [measure, ids.length])
+  useEffect(() => {
+    const f = fit.current
+    if (!f) return
+    const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null
+    ro?.observe(f)
+    document.fonts?.ready?.then(measure)
+    addEventListener('resize', measure)
+    return () => {
+      ro?.disconnect()
+      removeEventListener('resize', measure)
+    }
+  }, [measure])
+  useEffect(() => onPages(pages.length), [pages.length, onPages])
+  const cur = pages[Math.min(page, pages.length - 1)] || []
+  const row = (id) => (
+    <li key={id}>
+      <SourcePick s={byId.get(id)} on={on.includes(id)} onClick={() => onPick(id)} />
+    </li>
+  )
   return (
-    <ul className="ob__sources">
-      {ids.map((id) => byId.get(id)).filter(Boolean).map((s) => (
-        <li key={s.id}>
-          <SourcePick s={s} on={on} onClick={() => onPick(s.id)} />
-        </li>
-      ))}
-    </ul>
+    <div className="ob__fit" ref={fit}>
+      <ul className="ob__sources">{cur.map((i) => ids[i] && row(ids[i]))}</ul>
+      <ul className="ob__sources ob__measure" ref={meas} aria-hidden="true" inert="">
+        {ids.map((id) => row(id))}
+      </ul>
+    </div>
   )
 }
 
 function SourcePick({ s, on, onClick }) {
   return (
     <button type="button" className="ob__src" aria-pressed={on} onClick={onClick}>
-      <SourceMark source={s} size={40} />
+      <SourceMark source={s} size={32} />
       <span className="ob__stext">
         <span className="ob__sname">
           {s.name}

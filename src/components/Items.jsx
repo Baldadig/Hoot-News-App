@@ -91,7 +91,8 @@ function Kicker({ item, extra, followed, n = null }) {
 
 // Bronregel: logo, naam en tijd op één vaste plek, onder de kop en de samenvatting. Tikken
 // toont alles van die bron.
-export function SourceMeta({ item }) {
+// `outside`: de bron staat niet bij je bronnen; dat gaat op de regel voor de leestijd (de regel is smal).
+export function SourceMeta({ item, outside = false }) {
   const { openSource, sourcesById } = useHoot()
   const paid = sourcesById?.get(item.source)?.paid
   return (
@@ -101,8 +102,9 @@ export function SourceMeta({ item }) {
         <span className="srcmeta__name">{item.sourceName}</span>
         <span className="srcmeta__time">
           <time dateTime={item.publishedAt || undefined}>{timeAgo(item.publishedAt)}</time>
-          {item.readMin ? <span className="srcbtn__read"> · {readTime(item.readMin)}</span> : null}
+          {item.readMin && !outside ? <span className="srcbtn__read"> · {readTime(item.readMin)}</span> : null}
           {paid ? <span className="srcbtn__read"> · abonnement</span> : null}
+          {outside ? <span className="srcbtn__read"> · Buiten je bronnen</span> : null}
         </span>
       </span>
     </button>
@@ -113,13 +115,13 @@ export function SourceMeta({ item }) {
 // een, dan blijft zijn plek leeg, zodat "Vergelijk", delen en bewaren in elke rij van een scherm
 // op dezelfde x staan (een scherm zonder meer of minder heeft die plek niet, zie .meta). Delen en
 // bewaren zijn op het web wat het contextmenu in de app is: elke rij heeft ze, zonder lang drukken.
-export function Meta({ item, story, showSave = true, taste = null }) {
+export function Meta({ item, story, showSave = true, taste = null, outside = false }) {
   const { openStory, newInStory } = useHoot()
   const fresh = story ? newInStory(story) : 0
   const others = story ? story.sourceCount - 1 : 0
   return (
     <div className="meta">
-      <SourceMeta item={item} />
+      <SourceMeta item={item} outside={outside} />
       {story && others > 0 ? (
         <button type="button" className="linkbtn linkbtn--plain morebtn" onClick={() => openStory(story.id, item.id)} aria-label={`Vergelijk met ${others} andere ${others === 1 ? 'bron' : 'bronnen'}${fresh ? `, ${fresh} nieuw` : ''}`}>
           {fresh ? <span className="dot" aria-hidden="true" /> : null}
@@ -185,7 +187,7 @@ const Summary = ({ item, className, fit = { max: Infinity, rek: Infinity } }) =>
 
 // ---- Vorm 1: hoofdverhaal ----
 // `priority`: dit is het eerste beeld dat je ziet (alleen het zichtbare hoofdverhaal).
-export function LeadStory({ item, story, note, n = null, why = null, followed = null, priority = false, taste = null }) {
+export function LeadStory({ item, story, note, n = null, why = null, followed = null, priority = false, taste = null, outside = false }) {
   const { markRead, read } = useHoot()
   return (
     <article className={`entry lead${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
@@ -204,7 +206,7 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
         {item.author ? <p className="byline">Door {item.author}</p> : null}
       </a>
       <TermHelp text={`${item.title} ${item.summary || ''}`} />
-      <Meta item={item} story={story} taste={taste} />
+      <Meta item={item} story={story} taste={taste} outside={outside} />
     </article>
   )
 }
@@ -217,7 +219,7 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
 // web en in de app) en op smalle plekken zoals het vergelijkpaneel.
 // `lines`: hoeveel regels intro (1, 2, 3 of 'alles'); standaard de instelling van de Stroom, en in
 // de krant-vorm van de Editie en het vergelijkpaneel (`plain`) 2, zoals de app.
-export function CompactItem({ item, story, note, n = null, why = null, showSave = true, plain = false, taste = null, lines }) {
+export function CompactItem({ item, story, note, n = null, why = null, showSave = true, plain = false, taste = null, lines, outside = false }) {
   const { markRead, read, layout, prefs } = useHoot()
   const introMax = useIntroMax()
   const lineCount = lines ?? (plain ? 2 : prefs?.preview ?? 2)
@@ -237,7 +239,7 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
             </div>
           ) : null}
         </a>
-        <Meta item={item} story={story} showSave={showSave} taste={taste} />
+        <Meta item={item} story={story} showSave={showSave} taste={taste} outside={outside} />
       </article>
     )
   }
@@ -257,7 +259,7 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
           </div>
         ) : null}
       </a>
-      <Meta item={item} story={story} showSave={showSave} taste={taste} />
+      <Meta item={item} story={story} showSave={showSave} taste={taste} outside={outside} />
     </article>
   )
 }

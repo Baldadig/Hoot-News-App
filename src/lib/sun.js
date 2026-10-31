@@ -48,3 +48,11 @@ export function editieSun(t) {
 
 // De Stroom: het water schuift 9 pt/s naar links, met een herhaling van 140k.
 export const waterShift = (t) => ((t / 5) * 36 * K) % (140 * K)
+
+// Het water: twee rijen streepjes [x, breedte] in k-eenheden binnen een herhaling van 140k, de
+// tweede rij 12,5 verschoven. Het laatste streepje raakt het eerste van de volgende herhaling niet
+// (tests/sun.test.mjs), zodat de ronde kappen nooit overlappen.
+export const WATER_ROWS = [
+  { dy: 13.75, o: 0.3, off: 0, segs: [[0, 20], [28, 28], [64, 16], [88, 24], [120, 16]] },
+  { dy: 25, o: 0.18, off: 12.5, segs: [[0, 14], [26, 22], [60, 12], [84, 18], [120, 16]] },
+]

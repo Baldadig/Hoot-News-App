@@ -3301,32 +3301,45 @@ select.input {
   width: var(--icon);
   height: var(--icon);
 }
-/* Een lang woord (Wetenschap, Binnenland) met het vinkje ervoor past op 320 of bij grote tekst
-   niet altijd: dan breekt het af met een afbreekstreepje in plaats van uit de tegel te lopen. */
+/* Elk label blijft op één regel (Binnenland, Wetenschap): het vinkje van gekozen neemt daarom de
+   plaats van het icoon in, in plaats van het woord te laten afbreken. Pas op een heel smal scherm
+   (320) mag een lang woord nog afbreken. */
+.ob__tile {
+  gap: var(--s2);
+  padding: 0 var(--s2);
+  position: relative;
+}
 .ob__tlabel {
-  display: inline-flex;
-  align-items: flex-start;
-  gap: var(--s1);
   min-width: 0;
-  hyphens: auto;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
   font-size: var(--t3);
   line-height: var(--lh-4);
   font-weight: var(--fw-head);
+}
+@media (max-width: 340px) {
+  .ob__tlabel {
+    white-space: normal;
+    hyphens: auto;
+    overflow-wrap: anywhere;
+  }
 }
 .ob__tile[aria-pressed='true'] {
   border-color: var(--sel-edge);
   background: var(--sel-bg);
   color: var(--sel-fg);
 }
-/* Het vinkje van gekozen, zoals bij .pill: 16, vooraan, in de kleur van het label; midden op de
-   eerste regel, ook als een lang woord afbreekt. */
-.ob__tile[aria-pressed='true'] .ob__tlabel::before {
+/* Het vinkje van gekozen, zoals bij .pill: 16, in de kleur van het label, op de plek van het icoon. */
+.ob__tile[aria-pressed='true'] .ob__ticon svg {
+  opacity: 0;
+}
+.ob__tile[aria-pressed='true']::after {
   content: '';
-  flex: none;
+  position: absolute;
+  top: 50%;
+  left: calc(var(--s2) + (var(--icon) - var(--icon-sm)) / 2);
   width: var(--icon-sm);
   height: var(--icon-sm);
-  margin-top: calc((var(--lh-4) - var(--icon-sm)) / 2);
+  transform: translateY(-50%);
   background: currentColor;
   -webkit-mask: var(--icon-check) center / contain no-repeat;
   mask: var(--icon-check) center / contain no-repeat;
@@ -3394,7 +3407,7 @@ select.input {
   align-items: center;
   gap: var(--s3);
   width: 100%;
-  min-height: var(--row-lg);
+  min-height: var(--tap);
   padding: var(--s2) 0;
   border: 0;
   border-bottom: 1px solid var(--rule);
@@ -3436,10 +3449,10 @@ select.input {
 .ob__src {
   display: flex;
   align-items: center;
-  gap: var(--s4);
+  gap: var(--s3);
   width: 100%;
-  min-height: var(--row-lg);
-  padding: var(--s3) 0;
+  min-height: var(--tap);
+  padding: var(--s2) 0;
   border: 0;
   border-bottom: 1px solid var(--rule);
   background: none;
@@ -3467,9 +3480,12 @@ select.input {
   font-weight: var(--fw-head);
 }
 .ob__sabout {
+  overflow: hidden;
   color: var(--ink-3);
   font-size: var(--t2);
   line-height: var(--lh-2);
+  text-overflow: ellipsis;
+  white-space: nowrap; /* één regel: zo passen er meer bronnen op een pagina */
 }
 .ob__tag {
   padding: 0 var(--s2);
