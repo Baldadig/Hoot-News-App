@@ -9,6 +9,7 @@
 - **Editie, kop en einde (build 36):** de dagdelen komen uit één tabel met het web (shared/slots.mjs, getoetst in SlotsTests), ook in de seintjes; het einde is één zin op hooguit 300 pt zonder losse laatste woord; de metaregel houdt "oktober ·" bij elkaar bij grote tekst en Instellingen legt "Jouw Editie" uit; de offline-melding staat onder de datum, als haarlijn op papier, met Opnieuw in inkt en zonder kloktijd.
 - **Einde van de Editie (build 36):** de datum in de eindzin breekt niet meer tussen dag en maand: "31 oktober" blijft bij elkaar (vaste spatie, alleen in die zin).
 - **Lezer, teller en cijfers (build 36):** de lezer breekt koppen niet meer af (geen "Captain Pi-card"; alleen bij Heel groot lange woorden in tussenkoppen); de stapteller in Welkom is één breuk, "2⁄6"; tijden in de bronnenlijst en de nummers in de Selectie staan in tabelcijfers; de Selectie zegt "in 3 onderwerpen"; bij grote tekst houdt de Stroom één logo in de stapel en groeit de rubriekenlijn tot de eerste accessibility-maat, zodat "Buiten je bubbel" heel blijft.
+- **Naam in de Stroom (build 36):** de rode naam van je gekozen bron past weer bij normale tekst ("de Volkskrant", "The Economist", tot 150 breed); alleen bij grote tekst houdt hij het op 96 en loopt een lange naam uit.
 - **Selectie:** 37 onderwerpen in acht domeinen. Je kiest ze via de knop Onderwerpen.
 - **Meer of minder hiervan:** druk lang op een verhaal in de Editie.
   - Bij minder klapt het verhaal in, met de mogelijkheid om het ongedaan te maken.

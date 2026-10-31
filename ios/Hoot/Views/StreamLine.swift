@@ -27,7 +27,11 @@ struct StreamLine: View {
     // grote Dynamische tekst, zodat de rubrieken altijd passen, maar krimpt nooit: onder 44 tikt slecht.
     @ScaledMetric(relativeTo: .body) private var bandMee: CGFloat = Space.tap + Space.s1
     private var band: CGFloat { max(Space.tap + Space.s1, bandMee) }
-    @ScaledMetric(relativeTo: .subheadline) private var labelMax: CGFloat = 96 // de naam ("NOS", "3 bronnen"): hooguit 96 breed, daarna loopt hij uit
+    // De naam ("de Volkskrant", "3 bronnen"): hooguit 150 breed, daarna loopt hij uit. Bij grote tekst
+    // hooguit 96, zodat de rubrieken ruimte houden; "NOS" past dan nog, een lange naam loopt uit.
+    @ScaledMetric(relativeTo: .subheadline) private var labelRuim: CGFloat = 150
+    @ScaledMetric(relativeTo: .subheadline) private var labelKrap: CGFloat = 96
+    private var labelMax: CGFloat { typeSize.isAccessibilitySize ? labelKrap : labelRuim }
     // De naam (SF 15 vet) gecentreerd staat 1 hoger dan de rubrieken (New York 17): zelfde basislijn.
     @ScaledMetric(relativeTo: .body) private var basis: CGFloat = 1
     @State private var lineW: CGFloat = 0
