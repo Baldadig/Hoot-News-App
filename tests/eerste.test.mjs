@@ -316,6 +316,44 @@ for (const [tag, data] of [['live', live1200], ['hertagd', live1200Retag]]) {
   })
 }
 
+// Vijfde ronde (feedback 31 oktober): de rubberboot bij Breskens stond twee keer in één Editie, als NOS-verhaal
+// en als Volkskrant-stuk ("Hulpdiensten rukken uit voor boot voor Zeeuwse kust"), zonder gedeeld bericht
+// in de verhalen van het toestel en zonder gedeeld gebeurtenis-woord. Eén plek per gebeurtenis (sameSubject).
+import { signatures, sameSubject } from '../netlify/lib/stories.mjs'
+for (const [tag, data] of [['12:00 live', live1200], ['12:00 hertagd', live1200Retag], ['10:50 live', live1050], ['10:50 hertagd', live1050Retag]]) {
+  test(`31 oktober ${tag} · één gebeurtenis staat maar één keer in de Editie (Breskens)`, () => {
+    const all = new Map([...data.items, ...(data.edition.items || [])].map((i) => [i.id, i]))
+    const sig = signatures([...all.values()].filter((i) => i.kind !== 'post'))
+    const storyById = new Map(data.stories.map((s) => [s.id, s]))
+    for (const p of [...FIRST, ...MORE]) {
+      const es = editionOfData(p, data)
+      const boat = es.filter((e) => /Breskens|Zeeuwse kust|rubberboot/i.test(e.title))
+      assert.ok(boat.length <= 1, `${p.id}: ${boat.map((e) => e.title).join(' | ')}`)
+      const mem = es.map((e) => new Set([e.leadId || e.id, ...(e.kind === 'story' ? storyById.get(e.id)?.itemIds || [] : [])]))
+      for (let a = 0; a < es.length; a++) for (let b = a + 1; b < es.length; b++) {
+        assert.ok(![...mem[a]].some((x) => mem[b].has(x)), `${p.id}: ${es[a].title} | ${es[b].title}`)
+        const la = sig.get(es[a].leadId || es[a].id)
+        const lb = sig.get(es[b].leadId || es[b].id)
+        if (la && lb) assert.ok(!sameSubject(la, lb), `${p.id}: ${es[a].title} | ${es[b].title}`)
+      }
+    }
+  })
+}
+
+test('31 oktober · sameSubject: één plaatsnaam in de kop, drie kernwoorden en hetzelfde getal is hetzelfde onderwerp', () => {
+  const t = '2026-10-31T09:00:00Z'
+  const arts = [
+    { id: 'nos', title: 'Rubberboot met tientallen migranten van zee gehaald bij Breskens', summary: 'Hulpdiensten hebben vanochtend een rubberboot met 38 mensen van zee gehaald bij Breskens. De boot is naar een jachthaven in Cadzand gesleept.', publishedAt: t },
+    { id: 'vk', title: 'Hulpdiensten rukken uit voor boot voor Zeeuwse kust, twee opvarenden aangehouden wegens mensensmokkel', summary: 'De hulpdiensten zijn in Zeeuws-Vlaanderen in groten getale uitgerukt voor een rubberboot voor de kust van Breskens met 38 opvarenden.', publishedAt: t },
+    { id: 'ander', title: 'Brand in loods bij Breskens, hulpdiensten met groot materieel ter plaatse', summary: 'In een loods aan de haven van Breskens woedt een grote brand. Er zijn geen gewonden.', publishedAt: t },
+    { id: 'naam', title: 'Wethouder Breskens opent nieuwe haven', summary: 'De wethouder van Sluis opende zaterdag de vernieuwde haven in Breskens.', publishedAt: t },
+  ]
+  const sig = signatures(arts)
+  assert.equal(sameSubject(sig.get('nos'), sig.get('vk')), true)
+  assert.equal(sameSubject(sig.get('nos'), sig.get('ander')), false)
+  assert.equal(sameSubject(sig.get('vk'), sig.get('naam')), false)
+})
+
 test('31 oktober 12:00 · "indien" en "chili" in een Nederlandse kop maken het geen niet-Europees stuk', () => {
   assert.ok(!isNonEuropean({ title: 'Kabinet legt maatregel op, indien nodig ook in Brussel' }))
   assert.ok(!isNonEuropean({ title: 'Chili con carne in de kantine van de Tweede Kamer' }))

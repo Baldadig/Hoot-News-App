@@ -1155,6 +1155,11 @@ var HootCore = (() => {
     for (const w of norm(title).replace(/[^a-z0-9 ]/g, " ").split(/\s+/)) if (w.length >= 4 && !STOP.has(w) && !/^\d+$/.test(w)) out.add(w);
     return out;
   }
+  function numbersOf(text) {
+    const out = /* @__PURE__ */ new Set();
+    for (const n of String(text || "").match(/\d+(?:[.,]\d+)?/g) || []) if (n.replace(/\D/g, "").length >= 2 && !/^(19|20)\d\d$/.test(n)) out.add(n.replace(",", "."));
+    return out;
+  }
   function sharedCount(a, b) {
     let n = 0;
     for (const w of a) if (b.has(w)) n++;
@@ -1557,7 +1562,7 @@ var HootCore = (() => {
         if (isRare) rare++;
       }
     }
-    const out = { words: sigWords(article.title), strong, weak, known, concepts, rareIds: new Set(concepts_.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: timeOf(article) };
+    const out = { words: sigWords(article.title), strong, weak, known, concepts, rareIds: new Set(concepts_.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: timeOf(article), raw };
     if (ext) {
       if (strong.has("constitutionalcourt") || strong.has("supremecourt")) concepts.add("court");
       const runsOf = (text2) => {
@@ -1633,10 +1638,25 @@ var HootCore = (() => {
   }
   var BROAD = /* @__PURE__ */ new Set(["us", "europe", "un", "nato", "uk", "trump", "whitehouse", "congress", "nederland"]);
   var SUBJECT_WINDOW = 12 * 60 * 60 * 1e3;
+  var textCache = /* @__PURE__ */ new WeakMap();
+  var subjectText = (s) => {
+    let t = textCache.get(s);
+    if (!t) textCache.set(s, t = { words: sigWords(s.raw), nums: numbersOf(s.raw) });
+    return t;
+  };
   function sameSubject(a, b) {
     if (sameEvent(a, b)) return true;
     const dt = Math.abs(a.t - b.t);
     if (dt > EVENT_WINDOW) return false;
+    if (dt <= SUBJECT_WINDOW && a.raw !== void 0 && b.raw !== void 0) {
+      const names = [...a.strong].filter((k) => b.strong.has(k));
+      if (names.some((k) => a.words.has(k) || b.words.has(k))) {
+        const ta = subjectText(a);
+        const tb = subjectText(b);
+        const words = [...ta.words].filter((w) => tb.words.has(w) && !a.strong.has(w) && !b.strong.has(w)).length;
+        if (words >= 4 || words >= 3 && sharedCount(ta.nums, tb.nums) >= 1) return true;
+      }
+    }
     const shared = [...a.known].filter((k) => b.known.has(k));
     const concepts = sharedCount(a.concepts, b.concepts);
     if (!concepts) return false;
@@ -2078,10 +2098,12 @@ var HootCore = (() => {
       extra.push({ ...e, desk: null });
     }
     const own = [...news, ...extra];
-    const membersOf = (e) => /* @__PURE__ */ new Set([e.leadId || e.id, ...e.kind === "story" ? storyById.get(e.id)?.itemIds || e.itemIds || [] : []]);
+    const membersOf = (e) => /* @__PURE__ */ new Set([e.leadId || e.id, ...e.kind === "story" ? [...storyById.get(e.id)?.itemIds || [], ...e.itemIds || []] : []]);
     const taken = new Set(own.flatMap((e) => [...membersOf(e)]));
+    const leads = own.map((e) => e.leadId || e.id);
+    const sameAsPlaced = (id) => sigAll.has(id) && leads.some((x) => x !== id && sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x)));
     const fitOf = (w) => Math.max(0, ...(w.topics || []).map((t) => Math.max(prof.topicP[t] || 0, prof.shareOf[t] || 0)));
-    const free = (w) => w?.item?.id && !taken.has(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !wideBlocked(w, abroad < INT_MAX);
+    const free = (w) => w?.item?.id && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !wideBlocked(w, abroad < INT_MAX);
     const wide0 = (global.wide || []).find((w) => free(w) && bigWide(w) && outsideProfile(w.topics, prof)) || (global.wide || []).find((w) => free(w) && bigWide(w)) || (global.wide || []).find((w) => free(w) && outsideProfile(w.topics, prof)) || (global.wide || []).filter(free).sort((a, b) => fitOf(a) - fitOf(b) || b.sourceCount - a.sourceCount || byText(a.storyId, b.storyId))[0];
     let wide = wide0 ? { ...wide0, item: wideLead(wide0) } : null;
     let swapped = 0;
@@ -2091,7 +2113,10 @@ var HootCore = (() => {
       const light = news.map((e, i) => ({ e, i })).filter(({ e }) => !e.front && (e.sourceCount || 0) < FRONT_BIG && keepsKern(e)).sort((a, b) => a.e.w - b.e.w || byText(b.e.id, a.e.id))[0];
       if (light) {
         news.splice(light.i, 1);
-        for (const id of membersOf(light.e)) taken.delete(id);
+        taken.clear();
+        for (const e of [...news, ...extra]) for (const id of membersOf(e)) taken.add(id);
+        const li = leads.indexOf(light.e.leadId || light.e.id);
+        if (li >= 0) leads.splice(li, 1);
         if (sel.counted.has(light.e.id)) abroad--;
         swapped = 1;
       } else wide = null;
@@ -2099,7 +2124,10 @@ var HootCore = (() => {
     const wideForeign = !!wide && wideAbroad(wide);
     if (wide && wideCapped(wide)) abroad++;
     const wideEntry = wide ? withHistory({ kind: "story", id: wide.storyId, leadId: wide.item.id, desk: WIDE, sourceCount: wide.sourceCount, ...wideForeign ? { big: true } : {} }, wide.item.id, wide.storyId) : null;
-    if (wideEntry) for (const id of [wide.item.id, ...storyById.get(wide.storyId)?.itemIds || []]) taken.add(id);
+    if (wideEntry) {
+      for (const id of [wide.item.id, ...storyById.get(wide.storyId)?.itemIds || []]) taken.add(id);
+      leads.push(wide.item.id);
+    }
     const globalItems = new Map((global.items || []).map((i) => [i.id, i]));
     const noFavorites = { ...prof, favorites: /* @__PURE__ */ new Set() };
     const fillTo = size - extra.length + (wideAny && !wideEntry ? 1 : 0) - swapped;
@@ -2111,10 +2139,11 @@ var HootCore = (() => {
         for (const { g } of fillCands) {
           if (news.length + fill.length >= to) break;
           const m = membersOf(g);
-          if ([...m].some((id) => taken.has(id))) continue;
+          if ([...m].some((id) => taken.has(id)) || sameAsPlaced(g.leadId || g.id)) continue;
           const gi = unchosenG(g);
           if (strict && capAbroad && gi && abroad >= INT_MAX) continue;
           for (const id of m) taken.add(id);
+          leads.push(g.leadId || g.id);
           if (gi) abroad++;
           fill.push(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null }, g.leadId || g.id, g.kind === "story" ? g.id : null));
         }

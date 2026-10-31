@@ -29,6 +29,13 @@ export function sigWords(title) {
   for (const w of norm(title).replace(/[^a-z0-9 ]/g, ' ').split(/\s+/)) if (w.length >= 4 && !STOP.has(w) && !/^\d+$/.test(w)) out.add(w) // jaartallen en getallen zeggen niets
   return out
 }
+// Getallen van minstens twee cijfers die geen jaartal zijn ("38 opvarenden", "6,3 miljard"): twee stukken
+// met hetzelfde getal in de tekst noemen vaak dezelfde gebeurtenis (sameSubject regel E).
+export function numbersOf(text) {
+  const out = new Set()
+  for (const n of String(text || '').match(/\d+(?:[.,]\d+)?/g) || []) if (n.replace(/\D/g, '').length >= 2 && !/^(19|20)\d\d$/.test(n)) out.add(n.replace(',', '.'))
+  return out
+}
 export function sharedCount(a, b) {
   let n = 0
   for (const w of a) if (b.has(w)) n++
@@ -304,7 +311,8 @@ function signature(article, vocab, ext = false) {
       if (isRare) rare++
     }
   }
-  const out = { words: sigWords(article.title), strong, weak, known, concepts, rareIds: new Set(concepts_.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: timeOf(article) }
+  // `raw`: kop en tekst, alleen voor sameSubject regel E (subjectText, pas uitgerekend als het nodig is).
+  const out = { words: sigWords(article.title), strong, weak, known, concepts, rareIds: new Set(concepts_.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: timeOf(article), raw }
   if (ext) {
     // Een samengesteld instituut is ook een rechtbank-begrip (het losse woord "court" is weg).
     if (strong.has('constitutionalcourt') || strong.has('supremecourt')) concepts.add('court')
@@ -417,10 +425,31 @@ export function sameEvent(a, b, ext = false) {
 // over één verkiezingsdag in tien verhalen.
 const BROAD = new Set(['us', 'europe', 'un', 'nato', 'uk', 'trump', 'whitehouse', 'congress', 'nederland'])
 const SUBJECT_WINDOW = 12 * 60 * 60 * 1000
+// De kernwoorden en getallen van kop en tekst samen, één keer per kenmerk.
+const textCache = new WeakMap()
+const subjectText = (s) => {
+  let t = textCache.get(s)
+  if (!t) textCache.set(s, (t = { words: sigWords(s.raw), nums: numbersOf(s.raw) }))
+  return t
+}
 export function sameSubject(a, b) {
   if (sameEvent(a, b)) return true
   const dt = Math.abs(a.t - b.t)
   if (dt > EVENT_WINDOW) return false
+  // E. Eén eigen naam gemeen die in een van de koppen staat, en kop plus tekst delen verder minstens vier
+  //    kernwoorden, of drie en een getal: het nieuws van hetzelfde moment over dezelfde plek of persoon
+  //    zonder gedeeld gebeurtenis-woord (feedback 31 oktober: "Rubberboot met tientallen migranten van zee
+  //    gehaald bij Breskens" en "Hulpdiensten rukken uit voor boot voor Zeeuwse kust", allebei met 38
+  //    opvarenden, stonden twee keer in één Editie).
+  if (dt <= SUBJECT_WINDOW && a.raw !== undefined && b.raw !== undefined) {
+    const names = [...a.strong].filter((k) => b.strong.has(k))
+    if (names.some((k) => a.words.has(k) || b.words.has(k))) {
+      const ta = subjectText(a)
+      const tb = subjectText(b)
+      const words = [...ta.words].filter((w) => tb.words.has(w) && !a.strong.has(w) && !b.strong.has(w)).length
+      if (words >= 4 || (words >= 3 && sharedCount(ta.nums, tb.nums) >= 1)) return true
+    }
+  }
   const shared = [...a.known].filter((k) => b.known.has(k))
   const concepts = sharedCount(a.concepts, b.concepts)
   if (!concepts) return false

@@ -11,7 +11,7 @@
 //
 // Rekenregels als in shared/editor.mjs (web en iOS moeten bit-gelijk uitkomen): alleen + − × ÷,
 // Math.round/min/max/floor en Date.parse; elke sortering heeft een totale vergelijker.
-import { selectForReader, EDITION_SIZE, signatures, sameEvent, seenBefore, developedSince, recentEditions } from '../../netlify/lib/stories.mjs'
+import { selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, seenBefore, developedSince, recentEditions } from '../../netlify/lib/stories.mjs'
 import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
 import { trustedTopics, OTHER_SPORT } from '../../netlify/lib/topics.mjs'
 import { INTERESTS } from './topics.js'
@@ -235,14 +235,22 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     extra.push({ ...e, desk: null })
   }
   const own = [...news, ...extra]
-  const membersOf = (e) => new Set([e.leadId || e.id, ...(e.kind === 'story' ? storyById.get(e.id)?.itemIds || e.itemIds || [] : [])])
+  // De berichten van een plek: het verhaal zoals het toestel het nu kent én zoals de algemene Editie het
+  // vastlegde (`itemIds`), want de server kan een gebeurtenis sindsdien anders gebundeld hebben (feedback 31
+  // oktober: de rubberboot bij Breskens stond als twee verhalen in één Editie, die via de algemene Editie
+  // twee Vlaamse stukken deelden).
+  const membersOf = (e) => new Set([e.leadId || e.id, ...(e.kind === 'story' ? [...(storyById.get(e.id)?.itemIds || []), ...(e.itemIds || [])] : [])])
   const taken = new Set(own.flatMap((e) => [...membersOf(e)]))
+  // Ook zonder gedeeld bericht geen tweede plek over hetzelfde onderwerp (sameSubject, zoals selectForReader):
+  // de koppen van wat er al staat.
+  const leads = own.map((e) => e.leadId || e.id)
+  const sameAsPlaced = (id) => sigAll.has(id) && leads.some((x) => x !== id && sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x)))
 
   // 4. Waar iedereen over schrijft: bij voorkeur de eerste (in de volgorde van de server) buiten je
   //    profiel; anders het minst passende vrije verhaal (laagste fit, dan de meeste bronnen).
   //    Vóór het aanvullen gekozen, zodat het zijn eigen label krijgt in plaats van "Buiten je bronnen".
   const fitOf = (w) => Math.max(0, ...(w.topics || []).map((t) => Math.max(prof.topicP[t] || 0, prof.shareOf[t] || 0)))
-  const free = (w) => w?.item?.id && !taken.has(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !wideBlocked(w, abroad < INT_MAX)
+  const free = (w) => w?.item?.id && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !wideBlocked(w, abroad < INT_MAX)
   //    Groot nieuws dat er nog niet in staat, gaat voor (zie hierboven), ook daar eerst buiten je profiel.
   const wide0 =
     (global.wide || []).find((w) => free(w) && bigWide(w) && outsideProfile(w.topics, prof)) ||
@@ -260,7 +268,11 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const light = news.map((e, i) => ({ e, i })).filter(({ e }) => !e.front && (e.sourceCount || 0) < FRONT_BIG && keepsKern(e)).sort((a, b) => a.e.w - b.e.w || byText(b.e.id, a.e.id))[0]
     if (light) {
       news.splice(light.i, 1)
-      for (const id of membersOf(light.e)) taken.delete(id)
+      // Alleen wat geen andere plek nog heeft, komt vrij: twee plekken kunnen een bericht delen.
+      taken.clear()
+      for (const e of [...news, ...extra]) for (const id of membersOf(e)) taken.add(id)
+      const li = leads.indexOf(light.e.leadId || light.e.id)
+      if (li >= 0) leads.splice(li, 1)
       if (sel.counted.has(light.e.id)) abroad--
       swapped = 1
     } else wide = null // geen plek om te ruilen
@@ -268,7 +280,10 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const wideForeign = !!wide && wideAbroad(wide)
   if (wide && wideCapped(wide)) abroad++
   const wideEntry = wide ? withHistory({ kind: 'story', id: wide.storyId, leadId: wide.item.id, desk: WIDE, sourceCount: wide.sourceCount, ...(wideForeign ? { big: true } : {}) }, wide.item.id, wide.storyId) : null
-  if (wideEntry) for (const id of [wide.item.id, ...(storyById.get(wide.storyId)?.itemIds || [])]) taken.add(id)
+  if (wideEntry) {
+    for (const id of [wide.item.id, ...(storyById.get(wide.storyId)?.itemIds || [])]) taken.add(id)
+    leads.push(wide.item.id)
+  }
 
   // 5. Aanvullen uit de algemene editie, zonder dubbel verhaal, in jouw volgorde: wat bij je past
   //    eerst, "minder" achteraan, verder de volgorde van de server. Werd er geen breed verhaal
@@ -291,10 +306,11 @@ export function composePersonal({ global, stories = [], items = [], sources = []
       for (const { g } of fillCands) {
         if (news.length + fill.length >= to) break
         const m = membersOf(g)
-        if ([...m].some((id) => taken.has(id))) continue
+        if ([...m].some((id) => taken.has(id)) || sameAsPlaced(g.leadId || g.id)) continue
         const gi = unchosenG(g)
         if (strict && capAbroad && gi && abroad >= INT_MAX) continue
         for (const id of m) taken.add(id)
+        leads.push(g.leadId || g.id)
         if (gi) abroad++
         fill.push(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null }, g.leadId || g.id, g.kind === 'story' ? g.id : null))
       }
