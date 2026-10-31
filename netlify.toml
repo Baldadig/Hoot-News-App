@@ -8,6 +8,7 @@
 
 [functions]
   node_bundler = "esbuild"
+  external_node_modules = ["sharp"]
 
 # De API-routes (/api/feed, /api/tts, /api/save) staan in de functies zelf (export const config).
 

@@ -473,7 +473,7 @@ struct LeadCard: View {
     private var hasImage: Bool { store.showsImage(lead: true) && ImageURL.fitsHero(item.image) }
 
     private var image: some View {
-        FramedImage(url: ImageURL.url(item.image, .large), ratio: spacious ? 3 / 2 : wide ? 2 : 16 / 9)
+        MeasuredLeadImage(item: item, spacious: spacious)
             .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
     }
 
@@ -499,9 +499,9 @@ struct LeadCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Space.s3) {
             Group {
-                if spacious && hasImage {
+                if spacious && hasImage && item.imageMeta?.portrait == true {
                     HStack(alignment: .top, spacing: Space.s6) {
-                        image.frame(maxWidth: .infinity)
+                        image.frame(width: 300)
                         text.frame(maxWidth: .infinity, alignment: .leading)
                     }
                 } else {

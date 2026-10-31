@@ -141,6 +141,8 @@
      ook 2:1, maar een eigen keuze; daarom een eigen naam, zodat de een niet met de ander meeschuift. */
   --media-tl: 2 / 1;
   --media-lead: 2 / 1;
+  --media-lead-portrait: 4 / 5;
+  --media-lead-portrait-wide: 3 / 4;
   --media-lead-wide: 21 / 9; /* hoofdverhaal vanaf 720: een liggende strook */
   --media-card: 16 / 9; /* kaart van de Selectie */
   --mark-logo-pad: 14%; /* lucht rond een uitgeverslogo in zijn schijf */
@@ -1864,6 +1866,28 @@ select.input {
   .media--lead {
     aspect-ratio: var(--media-lead-wide);
   }
+}
+
+/* A1: de verhouding staat vast voordat het beeld laadt. De fallback vergroot het
+   origineel vanuit de gemeten inhoud; ook asymmetrische balken vallen buiten het vlak. */
+.media--measured { position: relative; container-type: size; }
+.media--measured img {
+  position: absolute; left: 50%; top: 50%;
+  width: var(--crop-width); height: var(--crop-height); max-width: none;
+  transform: translate(calc(-50% + var(--crop-x)), calc(-50% + var(--crop-y)));
+}
+@supports (object-view-box: inset(0%)) {
+  .media--measured img {
+    width: 100%; height: 100%; inset: 0; transform: none;
+    object-view-box: inset(var(--crop-inset)); object-fit: cover;
+  }
+}
+.media--lead.media--portrait { aspect-ratio: var(--media-lead-portrait); }
+@media (min-width: 720px) {
+  .lead__link--portrait { display: grid; grid-template-columns: 300px minmax(0, 1fr); column-gap: var(--s5); align-content: start; }
+  .lead__link--portrait > .media--portrait { grid-column: 1; grid-row: 1 / span 6; aspect-ratio: var(--media-lead-portrait-wide); margin-bottom: 0; align-self: start; }
+  .lead__link--portrait > :not(.media--portrait) { grid-column: 2; }
+  html[data-images='uit'] .lead__link--portrait { display: flex; }
 }
 
 .lead__title {

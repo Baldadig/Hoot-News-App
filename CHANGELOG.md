@@ -2,6 +2,10 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## Onuitgebracht
+
+- Hoofdbeelden: meet egale randen vooraf en toon staande beelden in een eigen verhouding (A1).
+
 ## [1.56.0] — 2026-10-31 — De Redacteur kent je, een nieuwe Welkom met zonnen, en web en app gelijk
 
 - **De Redacteur, persoonlijk en gelijk op web en iOS:** Binnenland is Nederland. Een Binnenland-plek moet echt over Nederland gaan, en een lezer met Binnenland krijgt in zijn eerste Editie Nederlandse verhalen. Hooguit één buitenlands verhaal zonder dat je Wereld koos, en dan staat erbij waarom. Het label past bij het verhaal (Amerikaanse politiek is buitenland, geen economie). Eén gebeurtenis krijgt één plek: de rubberboot bij Breskens staat er niet twee keer in. Web en app rekenen met dezelfde kern en geven dezelfde Editie.

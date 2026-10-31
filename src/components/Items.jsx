@@ -1,6 +1,7 @@
 import { createContext, useContext, useState } from 'react'
 import { timeAgo, readTime } from '../lib/time.js'
 import { BookmarkIcon, PlayIcon, MoreIcon, ShareIcon } from './icons.jsx'
+import { imageMeta, portraitImage, cropStyle } from '../lib/image-meta.js'
 import { shareLink } from '../lib/share.js'
 import { topicById } from '../lib/topics.js'
 import { savedKey, withLead } from '../lib/saved.js'
@@ -191,12 +192,12 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
   const { markRead, read } = useHoot()
   return (
     <article className={`entry lead${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
-      <a className="lead__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+      <a className={`lead__link${portraitImage(item) ? ' lead__link--portrait' : ''}`} href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         {/* Overal beeld eerst, zoals de app: dan rubriek, kop en kern, zodat de bronregel bij zijn
             tekst blijft. Het waarom van de plek (jouw Editie) staat stil onder de rubriek, zie Why.js. */}
         {item.image && fitsHero(item.image) ? (
-          <div className="media media--lead">
-            <Img url={item.image} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} />
+          <div className={`media media--lead${portraitImage(item) ? ' media--portrait' : ''}${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+            {imageMeta(item) ? <img src={item.image} alt="" loading={priority ? 'eager' : 'lazy'} fetchpriority={priority ? 'high' : undefined} referrerPolicy="no-referrer" onLoad={priority ? rememberLead : undefined} /> : <Img url={item.image} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} />}
           </div>
         ) : null}
         <Kicker item={item} extra={note} followed={followed} n={n} />

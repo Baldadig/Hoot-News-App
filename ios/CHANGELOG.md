@@ -1,5 +1,9 @@
 # Changelog — Hoot voor iOS
 
+## Onuitgebracht
+
+- Hoofdbeelden: meet egale randen vooraf en toon staande beelden in een eigen verhouding (A1).
+
 ## [1.0.1] — 2026-10-31 — De Redacteur op de iPhone, Welkom zoals het web, Tijdlijn | Krant (build 36; TestFlight: build 34 en 35 op 29-10-2026)
 
 - **De Redacteur kent je (build 36):** dezelfde rekenkern als web 1.56.0: Binnenland is Nederland, hooguit één buitenlands verhaal zonder dat je Wereld koos (met het waarom), een label dat bij het verhaal past en één plek per gebeurtenis.

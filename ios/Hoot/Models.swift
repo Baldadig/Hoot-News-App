@@ -48,6 +48,7 @@ struct Item: Codable, Identifiable, Hashable {
     // Alleen bij Bluesky-posts
     var handle: String?
     var linkTitle: String? // titel van een gedeelde link
+    var imageMeta: ImageMeasure?
     var imageRatio: Double? // breedte/hoogte van een geplaatste foto of video
     var video: String? // HLS-afspeellijst
     var videoPoster: String?
@@ -68,7 +69,7 @@ struct Item: Codable, Identifiable, Hashable {
 }
 
 extension Item {
-    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, url, image, publishedAt, author, readMin, type, handle, linkTitle, imageRatio, video, videoPoster, topics }
+    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, url, image, publishedAt, author, readMin, type, handle, linkTitle, imageMeta, imageRatio, video, videoPoster, topics }
     // Een post heeft geen kop; die mag dus ontbreken.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -89,6 +90,7 @@ extension Item {
         type = try? c.decodeIfPresent(String.self, forKey: .type)
         handle = try? c.decodeIfPresent(String.self, forKey: .handle)
         linkTitle = try? c.decodeIfPresent(String.self, forKey: .linkTitle)
+        imageMeta = try? c.decodeIfPresent(ImageMeasure.self, forKey: .imageMeta)
         imageRatio = try? c.decodeIfPresent(Double.self, forKey: .imageRatio)
         video = try? c.decodeIfPresent(String.self, forKey: .video)
         videoPoster = try? c.decodeIfPresent(String.self, forKey: .videoPoster)

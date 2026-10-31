@@ -10,6 +10,7 @@ import { SOURCES, BLUESKY_AUTHORS, BLUESKY_HOURS, BSKY_BRAND, MAIN_IDS, MUSIC_ID
 import { loadSourceWithRetry } from './rss.mjs'
 import { loadSnippets, loadTrends, loadSourceAvatars, loadBlueskyProfiles, loadBskyCards } from './lookups.mjs'
 import { loadOgImage } from './og.mjs'
+import { measureFeedImages } from './image-measure.mjs'
 import { keywordTopics } from './topics.mjs'
 import { normTitle, preview } from './text.mjs'
 import { kvGet, kvSet, remember, storageMode } from './kv.mjs'
@@ -48,6 +49,8 @@ export async function buildFeed({ now = Date.now() } = {}) {
   await imagesFromBluesky(items, now)
   await imagesFromArticles(items, now)
   borrowPreviews(items, mainGroups.flatMap((g) => g.items))
+
+  await measureFeedImages(items, now)
 
   // 5. Verhalen: bundelen over alle bronnen (behalve regionaal en muziek), met per verhaal de
   //    kenmerken van al zijn stukken (`keys`): het toestel kent van een verhaal alleen de eigen
@@ -327,6 +330,7 @@ function toClient(it) {
     linkTitle: it.linkTitle,
     image: safeHttpUrl(it.image),
     imageRatio: it.imageRatio,
+    imageMeta: it.imageMeta,
     video: safeHttpUrl(it.video),
     videoPoster: safeHttpUrl(it.videoPoster),
     publishedAt: it.publishedAt,
