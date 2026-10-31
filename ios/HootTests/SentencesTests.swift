@@ -1,28 +1,30 @@
 import XCTest
 @testable import Hoot
 
-// Hele zinnen (T2, D2): de knip van wholeSentences moet gelijk worden aan die van het web. Dat is nog af
-// te stemmen met het web: zodra er een gedeelde fixture (tests/fixtures/zinnen.json) is, leest testFixture
-// die; tot dan slaat hij zichzelf over en toetst alleen testRules.
+// Hele zinnen (T2, D2): de knip van wholeSentences is gelijk aan die van het web. testFixture leest de
+// gedeelde fixture (tests/fixtures/zinnen.json), die tests/zinnen.test.mjs op het web ook draait.
 final class SentencesTests: XCTestCase {
     // ios/HootTests/SentencesTests.swift → <repo>/tests/fixtures/zinnen.json (zoals EditionParityTests).
     static let fixtureURL = URL(fileURLWithPath: #filePath)
         .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         .appending(path: "tests/fixtures/zinnen.json")
 
-    struct Case { let name: String, text: String, max: Int?, out: String }
+    struct Case { let name: String, text: String, max: Int, rek: Int?, out: String }
 
-    // De fixture: een lijst gevallen, of `{ "cases": [...] }`. Per geval de tekst (`text`/`in`), de maat
-    // (`max`, weg of null = de standaard) en de uitkomst (`out`/`expected`).
+    // De fixture: `{ "zinnen": [...] }` (zoals het web hem schrijft), of een lijst / `{ "cases": [...] }`.
+    // Per geval de tekst (`invoer`), de maat (`max`, null = alles), `rek` (weg = max) en de uitkomst (`verwacht`).
     static func cases() throws -> [Case] {
         guard FileManager.default.fileExists(atPath: fixtureURL.path) else {
-            throw XCTSkip("tests/fixtures/zinnen.json ontbreekt nog: de knip is nog af te stemmen met het web")
+            throw XCTSkip("tests/fixtures/zinnen.json ontbreekt")
         }
         let json = try JSONSerialization.jsonObject(with: Data(contentsOf: fixtureURL))
-        let list = (json as? [[String: Any]]) ?? ((json as? [String: Any])?["cases"] as? [[String: Any]]) ?? []
+        let dict = json as? [String: Any]
+        let list = (json as? [[String: Any]]) ?? (dict?["zinnen"] as? [[String: Any]]) ?? (dict?["cases"] as? [[String: Any]]) ?? []
         return list.enumerated().compactMap { i, c in
-            guard let text = (c["text"] ?? c["in"]) as? String, let out = (c["out"] ?? c["expected"]) as? String else { return nil }
-            return Case(name: (c["name"] as? String) ?? "geval \(i + 1)", text: text, max: c["max"] as? Int, out: out)
+            guard let text = (c["invoer"] ?? c["text"] ?? c["in"]) as? String,
+                  let out = (c["verwacht"] ?? c["out"] ?? c["expected"]) as? String else { return nil }
+            let name = (c["naam"] ?? c["name"]) as? String ?? "geval \(i + 1)"
+            return Case(name: name, text: text, max: c["max"] as? Int ?? Int.max, rek: c["rek"] as? Int, out: out)
         }
     }
 
@@ -30,8 +32,24 @@ final class SentencesTests: XCTestCase {
         let all = try Self.cases()
         XCTAssertFalse(all.isEmpty, "geen gevallen gelezen uit zinnen.json")
         for c in all {
-            let got = c.max.map { wholeSentences(c.text, max: $0) } ?? wholeSentences(c.text)
+            let got = wholeSentences(c.text, max: c.max, rek: c.rek)
             XCTAssertEqual(got, c.out, c.name)
+            XCTAssertFalse(got.hasSuffix("…") || got.hasSuffix("..."), "\(c.name): nooit een beletselteken")
+        }
+    }
+
+    // introMax(lines:width:font:) gelijk aan introMax in shared/zinnen.mjs ('alles' = 0, null = alles).
+    func testIntroMaxFixture() throws {
+        let json = try JSONSerialization.jsonObject(with: Data(contentsOf: Self.fixtureURL)) as? [String: Any]
+        let list = json?["introMax"] as? [[String: Any]] ?? []
+        XCTAssertFalse(list.isEmpty, "geen introMax-gevallen in zinnen.json")
+        for c in list {
+            let lines = c["lines"] as? Int ?? 0
+            let width = (c["width"] as? NSNumber)?.doubleValue ?? 0, font = (c["font"] as? NSNumber)?.doubleValue ?? 0
+            let want = c["verwacht"] as? [String: Any] ?? [:]
+            let got = introMax(lines: lines, width: width, font: font)
+            XCTAssertEqual(got.max, want["max"] as? Int ?? Int.max, "max \(c)")
+            XCTAssertEqual(got.rek, want["rek"] as? Int ?? Int.max, "rek \(c)")
         }
     }
 

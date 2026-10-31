@@ -490,7 +490,7 @@ struct LeadCard: View {
                 .font(Theme.headline(.largeTitle)) // het verhaal wint van de schermtitel (C7), op elke breedte
                 .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                 .fixedSize(horizontal: false, vertical: true)
-            if let intro = item.summary.map({ wholeSentences($0) }), !intro.isEmpty {
+            if let intro = item.summary.map({ wholeSentences($0, max: 240) }), !intro.isEmpty {
                 Text(intro).font(wide ? .title3 : .body).foregroundStyle(Theme.ink2).lineLimit(wide ? 6 : 5).fixedSize(horizontal: false, vertical: true)
             }
         }
