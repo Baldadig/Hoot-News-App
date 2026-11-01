@@ -2,6 +2,7 @@
 // --final opent ook de bevroren controle; --regression meet alleen de bekende regressies.
 import { readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
+import { isDeepStrictEqual } from 'node:util'
 import { desksOf, primaryDesk } from '../netlify/lib/desks.mjs'
 import { EDITOR_REVISION } from '../shared/editor-version.mjs'
 const root = new URL('../', import.meta.url)
@@ -10,6 +11,17 @@ const fixture = JSON.parse(read('tests/fixtures/categorie-set-v2.json'))
 const provenance = JSON.parse(read('docs/codex-blokken/categorie/provenance.json'))
 for (const [file, hash] of Object.entries(provenance.hashes)) {
   if (createHash('sha256').update(read('docs/codex-blokken/categorie/'+file)).digest('hex') !== hash) throw Error('Bevroren annotatie gewijzigd: '+file)
+}
+// De daadwerkelijk gescoorde fixture moet ook exact bij de bevroren invoer/labels passen.
+const frozenLabels = JSON.parse(read('docs/codex-blokken/categorie/v2a-blinde-labels.json'))
+const frozenInput = new Map(JSON.parse(read('docs/codex-blokken/categorie/v2a-blinde-invoer.json')).map(r=>[r.id,r]))
+const actual = new Map(fixture.cases.filter(r=>r.cohort==='v2a').map(r=>[r.id,r]))
+if (actual.size !== frozenLabels.length) throw Error('V2a-set gewijzigd sinds bevriezing')
+for (const frozen of frozenLabels) {
+  const row = actual.get(frozen.id)
+  if (!row || !isDeepStrictEqual({id:row.id,split:row.split,group:row.group,label:row.label},frozen)) throw Error('Gescoord label of split wijkt af: '+frozen.id)
+  const input = frozenInput.get(frozen.id)
+  for (const [key,value] of Object.entries(input)) if (!isDeepStrictEqual(row.article[key]??null,value)) throw Error('Gescoorde tekst wijkt af: '+frozen.id+' '+key)
 }
 const groups = new Map(), ids = new Set()
 for (const row of fixture.cases) {
