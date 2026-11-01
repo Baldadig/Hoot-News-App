@@ -28,6 +28,23 @@ final class Account {
     var message: String? // wat er misging, in gewone woorden
 
     private weak var store: HootStore?
+    // Ook opnieuw inloggen als dezelfde gebruiker is een nieuwe sessie. Oude antwoorden,
+    // fouten en defer-blokken mogen daar niets meer aan veranderen.
+    private var generation: UInt64 = 0
+    private func current(_ version: UInt64, _ uid: String?) -> Bool {
+        generation == version && session?.uid == uid
+    }
+    private func invalidateWork() {
+        generation &+= 1
+        pushTask?.cancel()
+        refreshing = nil // een transport mag nog antwoorden; de generatieguard beslist
+        busy = false
+        again = false
+        pulled = false
+        remoteEdition = nil
+        syncedAt = nil
+        sync = .idle
+    }
 
     struct Session: Codable {
         var access: String
@@ -58,8 +75,9 @@ final class Account {
     #if DEBUG
     // Voor de tests: een nepsessie als lid, zonder Keychain en zonder netwerk (de `transport` bepaalt wat
     // de "server" antwoordt). Alleen in Debug.
-    func stub(uid: String, transport: URLSession) {
-        session = Session(access: "test", refresh: "test", expires: .distantFuture, uid: uid, email: nil, name: nil)
+    func stub(uid: String, transport: URLSession, expires: Date = .distantFuture) {
+        invalidateWork()
+        session = Session(access: "test", refresh: "test", expires: expires, uid: uid, email: nil, name: nil)
         status = .member
         self.transport = transport
     }
@@ -74,7 +92,7 @@ final class Account {
     // ---- Inloggen met Google ----
     // De app-client van Google (type iOS, bundel nl.hootnews.Hoot) met PKCE: geen geheim in de app.
     // Google geeft een id-token; dat wisselt Supabase in voor een sessie, net als op de website.
-    struct GoogleRequest { let url: URL; let scheme: String; fileprivate let verifier, nonce, state, redirect: String }
+    struct GoogleRequest { let url: URL; let scheme: String; fileprivate let verifier, nonce, state, redirect: String; fileprivate let generation: UInt64 }
 
     func googleRequest() -> GoogleRequest {
         let verifier = Self.random(32)
@@ -94,10 +112,11 @@ final class Account {
             .init(name: "state", value: state),
             .init(name: "prompt", value: "select_account"),
         ]
-        return GoogleRequest(url: c.url!, scheme: scheme, verifier: verifier, nonce: nonce, state: state, redirect: redirect)
+        return GoogleRequest(url: c.url!, scheme: scheme, verifier: verifier, nonce: nonce, state: state, redirect: redirect, generation: generation)
     }
 
     func finishGoogle(_ request: GoogleRequest, callback: URL) async {
+        guard request.generation == generation else { return }
         let items = URLComponents(url: callback, resolvingAgainstBaseURL: false)?.queryItems ?? []
         guard items.first(where: { $0.name == "state" })?.value == request.state,
               let code = items.first(where: { $0.name == "code" })?.value
@@ -118,21 +137,27 @@ final class Account {
             ]
             r.httpBody = form.percentEncodedQuery?.data(using: .utf8)
             let (data, _) = try await URLSession.shared.data(for: r)
+            guard request.generation == generation else { return }
             guard let token = (try JSONSerialization.jsonObject(with: data) as? [String: Any])?["id_token"] as? String else { throw Failure.login }
             try await signIn(provider: "google", token: token, nonce: request.nonce)
         } catch {
+            guard request.generation == generation else { return }
             fail("Inloggen met Google is niet gelukt.")
         }
     }
 
     // ---- Inloggen met Apple ----
     private var appleNonce = ""
+    private var appleGeneration: UInt64?
     func prepare(_ request: ASAuthorizationAppleIDRequest) {
+        appleGeneration = generation
         appleNonce = Self.random(16)
         request.requestedScopes = [.email]
         request.nonce = Self.sha256(appleNonce)
     }
     func finishApple(_ result: Result<ASAuthorization, Error>) async {
+        guard appleGeneration == generation else { return }
+        let version = generation
         guard case let .success(auth) = result,
               let credential = auth.credential as? ASAuthorizationAppleIDCredential,
               let data = credential.identityToken, let token = String(data: data, encoding: .utf8)
@@ -142,7 +167,8 @@ final class Account {
             return
         }
         status = .loading
-        do { try await signIn(provider: "apple", token: token, nonce: appleNonce) } catch { fail("Inloggen met Apple is niet gelukt.") }
+        do { try await signIn(provider: "apple", token: token, nonce: appleNonce) }
+        catch { if version == generation { fail("Inloggen met Apple is niet gelukt.") } }
     }
 
     private func signIn(provider: String, token: String, nonce: String) async throws {
@@ -160,14 +186,18 @@ final class Account {
     // ---- Lid of niet ----
     private func resolve() async {
         guard let s = session else { status = .out; return }
+        let version = generation
         do {
             let data = try await call("rest/v1/profiles?select=id&id=eq.\(s.uid)")
+            guard current(version, s.uid) else { return }
             let rows = (try JSONSerialization.jsonObject(with: data) as? [Any]) ?? []
             status = rows.isEmpty ? .noInvite : .member
             if status == .member { await pull() }
         } catch Failure.signedOut {
+            guard current(version, s.uid) else { return }
             forget()
         } catch {
+            guard current(version, s.uid) else { return }
             // Geen verbinding: je bent nog steeds ingelogd; straks opnieuw. Jouw Editie wacht niet.
             if status == .loading { status = .member }
             store?.refreshPersonal()
@@ -176,10 +206,12 @@ final class Account {
 
     // Een uitnodigingscode (de code achter ?uitnodiging= in je link, of de hele link).
     func redeem(_ input: String) async {
+        let version = generation, identity = session?.uid
         let code = input.split(separator: "uitnodiging=").last.map { String($0.prefix { $0 != "&" }) }?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard !code.isEmpty else { return }
         do {
             let data = try await call("rest/v1/rpc/redeem_invite", method: "POST", body: ["p_code": code])
+            guard current(version, identity) else { return }
             if String(data: data, encoding: .utf8)?.contains("true") == true {
                 message = nil
                 status = .member
@@ -188,14 +220,30 @@ final class Account {
                 message = "Deze code werkt niet. Vraag een nieuwe uitnodiging."
             }
         } catch {
+            guard current(version, identity) else { return }
             message = "Dat lukte niet. Probeer het opnieuw."
         }
     }
 
     func signOut() async {
-        if session != nil { _ = try? await call("auth/v1/logout", method: "POST") }
+        let previous = session
         forget()
-        store?.forgetChoices() // wie hierna leest begint neutraal: je keuzes gaan van het toestel
+        if let store {
+            store.forgetChoices() // wie hierna leest begint neutraal: je keuzes gaan van het toestel
+            // Pas na het wissen is de lokale inhoud anoniem. Bij een verlopen sessie (forget)
+            // blijft de eigenaar juist staan, zodat privégegevens niet met een ander account mengen.
+            UserDefaults.standard.removeObject(forKey: "hoot.owner")
+        }
+        // Lokaal meteen uitgelogd. Een trage uitlogrespons kan een nieuwe login niet uitwissen.
+        if let previous {
+            var request = URLRequest(url: URL(string: "auth/v1/logout", relativeTo: HootConfig.supabaseURL)!)
+            request.httpMethod = "POST"
+            request.setValue(HootConfig.supabaseKey, forHTTPHeaderField: "apikey")
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue("Bearer \(previous.access)", forHTTPHeaderField: "Authorization")
+            request.timeoutInterval = 20
+            _ = try? await transport.data(for: request)
+        }
     }
 
     // Account verwijderen: alles op de server weg (profiel, instellingen, Bewaard). Wat op dit
@@ -203,17 +251,24 @@ final class Account {
     // dit, richtlijn 5.1.1(v)): Apple vraagt even om een bevestiging, en met die verse code trekt
     // de server de toegang in. Annuleer je dat, dan blijft je account bestaan.
     func deleteAccount() async -> Bool {
+        let version = generation, identity = session?.uid
         do {
-            if try await signedInWithApple() {
+            let apple = try await signedInWithApple()
+            guard current(version, identity) else { return false }
+            if apple {
                 let code: String?
                 do { code = try await AppleReauth().code() } catch { return false } // zelf geannuleerd: niets verwijderd
+                guard current(version, identity) else { return false }
                 if let code { await revokeApple(code) } else { Self.log.error("Apple gaf geen code; account wordt toch verwijderd") }
             }
+            guard current(version, identity) else { return false }
             _ = try await call("rest/v1/rpc/delete_my_account", method: "POST", body: [String: String]())
+            guard current(version, identity) else { return false }
             forget()
             UserDefaults.standard.removeObject(forKey: "hoot.owner")
             return true
         } catch {
+            guard current(version, identity) else { return false }
             message = "Verwijderen is niet gelukt. Probeer het opnieuw."
             return false
         }
@@ -230,8 +285,10 @@ final class Account {
     // Het geheim staat niet in de app: de server (api/apple-revoke) wisselt de code in en trekt het
     // token in. Lukt dat niet, dan toch verwijderen: je gegevens weg is belangrijker. Wel vastleggen.
     private func revokeApple(_ code: String) async {
+        let version = generation, identity = session?.uid
         do {
             try await refreshIfNeeded()
+            guard current(version, identity) else { return }
             guard let s = session else { return }
             var r = URLRequest(url: HootAPI.base.appendingPathComponent("api/apple-revoke"))
             r.httpMethod = "POST"
@@ -248,6 +305,7 @@ final class Account {
     }
 
     private func forget() {
+        invalidateWork()
         session = nil
         Keychain.delete()
         status = .out
@@ -292,19 +350,24 @@ final class Account {
     // Ophalen en samenvoegen, daarna wegschrijven wat hier nog openstaat.
     func pull() async {
         guard status == .member, let store, let uid = session?.uid else { return }
+        let version = generation
         if busy { again = true; return }
         busy = true
         let editsAtStart = edits
         defer {
-            busy = false
-            if again { again = false; schedule() }
+            if current(version, uid) {
+                busy = false
+                if again { again = false; schedule() }
+            }
         }
         sync = .syncing
         do {
             // Met `edition` erbij (bouwspec-aanvulling P8-1b): wat een ander toestel al vastlegde, komt zo
             // in dezelfde ronde mee als je instellingen.
             let stateData = try await call("rest/v1/user_state?select=prefs,read_ids,edition&user_id=eq.\(uid)")
+            guard current(version, uid) else { return }
             let savedData = try await call("rest/v1/saved_items?select=key,entry&user_id=eq.\(uid)")
+            guard current(version, uid) else { return }
             let row = ((try JSONSerialization.jsonObject(with: stateData) as? [[String: Any]]) ?? []).first ?? [:]
             let remotePrefs = row["prefs"] as? [String: Any] ?? [:]
             let remoteRead = row["read_ids"] as? [String] ?? []
@@ -345,6 +408,7 @@ final class Account {
             let read = Array(store.readIds.suffix(1500))
             if !NSDictionary(dictionary: prefs).isEqual(to: remotePrefs) || read != remoteRead {
                 _ = try await call("rest/v1/user_state?user_id=eq.\(uid)", method: "PATCH", body: ["prefs": prefs, "read_ids": read, "updated_at": ISO8601DateFormatter().string(from: .now)] as [String: Any])
+                guard current(version, uid) else { return }
             }
             if !added.isEmpty {
                 let now = Date.now.timeIntervalSince1970 * 1000
@@ -354,10 +418,12 @@ final class Account {
                     return ["user_id": uid, "key": item.id, "entry": ["kind": "item", "savedAt": at, "item": obj], "saved_at": ISO8601DateFormatter().string(from: Date(timeIntervalSince1970: at / 1000))]
                 }
                 _ = try await call("rest/v1/saved_items", method: "POST", body: rows, prefer: "resolution=merge-duplicates")
+                guard current(version, uid) else { return }
             }
             if !removed.isEmpty {
                 let list = removed.map { "\"\($0)\"" }.joined(separator: ",")
                 _ = try await call("rest/v1/saved_items?user_id=eq.\(uid)&key=in.(\(list.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? list))", method: "DELETE")
+                guard current(version, uid) else { return }
             }
             // De basis is wat de server nu heeft (wat we net samenvoegden), niet wat er intussen hier
             // bij kwam: anders ziet de volgende ronde een net bewaard stuk als elders verwijderd.
@@ -366,8 +432,10 @@ final class Account {
             sync = .ok
             syncedAt = .now
         } catch Failure.signedOut {
+            guard current(version, uid) else { return }
             forget()
         } catch {
+            guard current(version, uid) else { return }
             sync = .failed // de volgende wijziging of de volgende keer openen probeert het opnieuw
             store.refreshPersonal() // jouw Editie wacht niet langer op je account (zoals de website bij sync 'failed')
         }
@@ -401,6 +469,7 @@ final class Account {
     private static let log = Logger(subsystem: "nl.hootnews.Hoot", category: "account") // nooit tokens of codes
 
     private func call(_ path: String, method: String = "GET", body: Any? = nil, authorized: Bool = true, prefer: String? = nil) async throws -> Data {
+        let version = generation, identity = session?.uid
         var r = URLRequest(url: URL(string: path, relativeTo: HootConfig.supabaseURL)!)
         r.httpMethod = method
         r.setValue(HootConfig.supabaseKey, forHTTPHeaderField: "apikey")
@@ -408,11 +477,13 @@ final class Account {
         if let prefer { r.setValue(prefer, forHTTPHeaderField: "Prefer") }
         if authorized {
             try await refreshIfNeeded()
+            guard current(version, identity) else { throw CancellationError() }
             guard let s = session else { throw Failure.signedOut }
             r.setValue("Bearer \(s.access)", forHTTPHeaderField: "Authorization")
         }
         if let body { r.httpBody = try JSONSerialization.data(withJSONObject: body) }
         let (data, response) = try await transport.data(for: r)
+        guard current(version, identity) else { throw CancellationError() }
         let code = (response as? HTTPURLResponse)?.statusCode ?? 0
         if code == 401 && authorized { throw Failure.signedOut }
         guard (200 ..< 300).contains(code) else { throw Failure.http(code) }
@@ -424,32 +495,36 @@ final class Account {
     private var refreshing: Task<Void, Error>?
     private func refreshIfNeeded() async throws {
         guard let s = session, s.expires < .now.addingTimeInterval(60) else { return }
+        let version = generation
         if let refreshing { return try await refreshing.value }
-        let task = Task { try await refresh(s) }
+        let task = Task { try await refresh(s, version: version) }
         refreshing = task
-        defer { refreshing = nil }
+        defer { if current(version, s.uid) { refreshing = nil } }
         try await task.value
     }
 
-    private func refresh(_ s: Session) async throws {
+    private func refresh(_ s: Session, version: UInt64) async throws {
         var r = URLRequest(url: URL(string: "auth/v1/token?grant_type=refresh_token", relativeTo: HootConfig.supabaseURL)!)
         r.httpMethod = "POST"
         r.setValue(HootConfig.supabaseKey, forHTTPHeaderField: "apikey")
         r.setValue("application/json", forHTTPHeaderField: "Content-Type")
         r.httpBody = try JSONSerialization.data(withJSONObject: ["refresh_token": s.refresh])
         let (data, response) = try await transport.data(for: r)
+        guard current(version, s.uid) else { throw CancellationError() }
         let code = (response as? HTTPURLResponse)?.statusCode ?? 0
         if [400, 401, 403].contains(code) { throw Failure.signedOut } // ingetrokken of verlopen (niet: te veel verzoeken)
         guard code == 200 else { throw Failure.http(code) }
-        try keep(data)
+        try keep(data, replacingSession: false)
     }
 
     // Een sessie van Supabase bewaren (in de Keychain, alleen op dit toestel).
-    private func keep(_ data: Data) throws {
+    private func keep(_ data: Data, replacingSession: Bool = true) throws {
         guard let o = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               let access = o["access_token"] as? String, let refresh = o["refresh_token"] as? String,
               let user = o["user"] as? [String: Any], let uid = user["id"] as? String
         else { throw Failure.login }
+        if replacingSession { invalidateWork() }
+        else if uid != session?.uid { throw Failure.login }
         let meta = user["user_metadata"] as? [String: Any]
         let s = Session(access: access, refresh: refresh, expires: .now.addingTimeInterval(o["expires_in"] as? Double ?? 3600), uid: uid,
                         email: user["email"] as? String, name: (meta?["full_name"] ?? meta?["name"]) as? String)

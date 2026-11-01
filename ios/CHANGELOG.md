@@ -2,6 +2,8 @@
 
 ## Onuitgebracht
 
+- Uitloggen en accountwisseling maken lopende synchronisatie- en tokenantwoorden ongeldig. Oude antwoorden kunnen geen privéleesstatus, sessie of eigenaar terugzetten of een nieuwe login uitloggen.
+
 - Nieuwe Editie: perslijn en hoofdverhaal verschijnen één keer na de iris, met vervagen bij Verminder beweging.
 - Taalfilter voor tweetalige bronnen en juiste hoofdtaal van vakbronnen.
 - Rustige voorpagina: geen zwaar nieuws of sport, hooguit één groot Wereld-verhaal.
