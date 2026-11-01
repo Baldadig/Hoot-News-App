@@ -1,0 +1,209 @@
+[
+  {
+    "id": "1j4slfn",
+    "desk": "overig",
+    "subjectCountry": null,
+    "mainTopic": "persoonlijk leven",
+    "eventId": null,
+    "uncertain": true,
+    "reason": "Persoonlijk portret over werk, verbouwing en rouw. Geen plaats of land genoemd; Nederland niet afleiden uit NRC of Nederlandse namen."
+  },
+  {
+    "id": "tpwg3x",
+    "desk": "overig",
+    "subjectCountry": null,
+    "mainTopic": "fotografie",
+    "eventId": null,
+    "uncertain": true,
+    "reason": "Een internationaal weekoverzicht met meerdere onderwerpen. De ene fotobijschriftlocatie Essen bepaalt niet het land van de hele reeks."
+  },
+  {
+    "id": "lkrvjm",
+    "desk": "buitenland",
+    "subjectCountry": null,
+    "mainTopic": "ebola-uitbraak en volksgezondheid",
+    "eventId": null,
+    "uncertain": true,
+    "reason": "Concrete epidemie en internationale verspreidingsdreiging, geen onderzoeksresultaat. Afrika omvat meerdere landen; het Verenigd Koninkrijk is een mogelijk gevolggebied, niet aantoonbaar de kernlocatie."
+  },
+  {
+    "id": "fruigv",
+    "desk": "vs",
+    "subjectCountry": "US",
+    "mainTopic": "Amerikaans wetenschapsbeleid",
+    "eventId": null,
+    "uncertain": false,
+    "reason": "Trump en de ontmanteling van het Amerikaanse onderzoekssysteem vormen de hoofdzaak. Wetenschap is het beleidsdomein; geen verslag van een afzonderlijke wetenschappelijke ontdekking."
+  },
+  {
+    "id": "1r0emhe",
+    "desk": "buitenland",
+    "subjectCountry": "DE",
+    "mainTopic": "inlichtingendiensten en internationale samenwerking",
+    "eventId": "de-arrestatie-ex-chef-geheime-dienst-samenwerking-vs",
+    "uncertain": false,
+    "reason": "De aanleiding is de arrestatie van een Duitse ex-chef en de gevolgen voor de BND. Amerikaanse betrokkenheid maakt het geen binnenlandse Amerikaanse hoofdzaak."
+  },
+  {
+    "id": "g3t7bq",
+    "desk": "buitenland",
+    "subjectCountry": "EE",
+    "mainTopic": "Estse buitenlandpolitiek",
+    "eventId": null,
+    "uncertain": false,
+    "reason": "De uitspraak en opstelling van de Estse premier staan centraal. Trump en Poetin zijn gesprekspartners/onderwerpen; er staat geen concrete Oekraïense gebeurtenis in de tekst."
+  },
+  {
+    "id": "xyfsc6",
+    "desk": "buitenland",
+    "subjectCountry": "CA",
+    "mainTopic": "Canadese handels- en buitenlandpolitiek",
+    "eventId": null,
+    "uncertain": false,
+    "reason": "Carney bespreekt expliciet de keuze van Canada om de banden met de EU te verdiepen. VS en Trump vormen de context van die Canadese koers."
+  },
+  {
+    "id": "65zh66",
+    "desk": "buitenland",
+    "subjectCountry": null,
+    "mainTopic": "Europese diplomatie tegenover Trump",
+    "eventId": null,
+    "uncertain": true,
+    "reason": "Vergelijking van Europese/NAVO- en Canadese benaderingen van Trump. Geen enkel land is aantoonbaar de exclusieve hoofdlocatie; niet tot VS reduceren op basis van de naam Trump."
+  },
+  {
+    "id": "ghl9ws",
+    "desk": "buitenland",
+    "subjectCountry": null,
+    "mainTopic": "internationale verkiezingsopkomst",
+    "eventId": null,
+    "uncertain": true,
+    "reason": "Vergelijkt verkiezingen in Brazilië, Israël en Servië. Meerdere landen en verschillende gebeurtenissen; Israël rechtvaardigt niet de rubriek Midden-Oosten voor het geheel."
+  },
+  {
+    "id": "ev93x5",
+    "desk": "buitenland",
+    "subjectCountry": null,
+    "mainTopic": "verkiezingsstrategie en opkomst",
+    "eventId": null,
+    "uncertain": true,
+    "reason": "Overkoepelende analyse van Brazilië, Servië, Israël en VS. Geen afzonderlijk land of één verkiezingsgebeurtenis als hoofdzaak aanwijzen."
+  },
+  {
+    "id": "55rqj8",
+    "desk": "vs",
+    "subjectCountry": "US",
+    "mainTopic": "Amerikaanse senaatsverkiezingen en brandstofprijzen",
+    "eventId": null,
+    "uncertain": false,
+    "reason": "De expliciete hoofdzaak is het effect op Amerikaanse Senaatsraces en de partijpolitieke inzet daarvan. Oorlog in Iran is de oorzaak, niet de geografische rubriek van de binnenlandse verkiezingsstrijd."
+  },
+  {
+    "id": "10rtp1b",
+    "desk": "middenoosten",
+    "subjectCountry": null,
+    "mainTopic": "historische Amerikaans-Iraanse rivaliteit",
+    "eventId": null,
+    "uncertain": true,
+    "reason": "Historische analyse over Libanon, Iran en Amerikaanse betrekkingen in het Midden-Oosten. Het betreft geen éénlandverhaal; de niet nader geïdentificeerde moord uit 1984 is onvoldoende voor een gebeurtenis-id."
+  },
+  {
+    "id": "1x52bf2",
+    "desk": "overig",
+    "subjectCountry": null,
+    "mainTopic": "literatuur en auteursinterview",
+    "eventId": null,
+    "uncertain": true,
+    "reason": "Het interview en Grunbergs nieuwe roman staan voorop. Gaza/Israël en een fictieve ontvoering maken dit niet automatisch een nieuwsgebeurtenis in het Midden-Oosten; het land van het interview ontbreekt."
+  },
+  {
+    "id": "1pl7uqa",
+    "desk": "buitenland",
+    "subjectCountry": null,
+    "mainTopic": "G20-diplomatie rond Rusland en Oekraïne",
+    "eventId": "g20-familiefoto-geannuleerd-protest-russische-minister",
+    "uncertain": true,
+    "reason": "Een diplomatiek incident bij de G20 is de gebeurtenis. Oekraïne wordt als reden voor het conflict genoemd; de locatie/het gastland van de bijeenkomst ontbreekt. Buitenland is daarom de veiligste hoofdrubriek, met geopolitieke context."
+  },
+  {
+    "id": "10x36qb",
+    "desk": "wetenschap",
+    "subjectCountry": null,
+    "mainTopic": "voedingsingrediënten en insecten",
+    "eventId": null,
+    "uncertain": true,
+    "reason": "De kop belooft uitleg over de biologische herkomst van een snoepingrediënt. Populairwetenschappelijke lezing is aannemelijk, maar de korte intro toont alleen Halloween-context; cultuur/voeding is ook verdedigbaar. Land ontbreekt."
+  },
+  {
+    "id": "16n47m0",
+    "desk": "wetenschap",
+    "subjectCountry": null,
+    "mainTopic": "gezondheid en mazelen",
+    "eventId": null,
+    "uncertain": true,
+    "reason": "De kop gaat over een zeldzame ziektevariant en een door artsen waargenomen toename. De intro over Amish-bruiloften noemt geen land en onderbouwt het medische verband nog niet. Gezondheidsduiding, met onzekerheid door ontbrekende context."
+  },
+  {
+    "id": "x0jhky",
+    "desk": "overig",
+    "subjectCountry": null,
+    "mainTopic": "cultuur en wetenschapsinspiratie",
+    "eventId": "patrick-stewart-overlijden",
+    "uncertain": true,
+    "reason": "Het overlijden en de rol van een acteur staan centraal; inspiratie voor wetenschappers is de invalshoek. Wetenschap is medeonderwerp, maar Nature als uitgever maakt het niet vanzelf een onderzoeksbericht. Land niet genoemd."
+  },
+  {
+    "id": "uj1vtn",
+    "desk": null,
+    "subjectCountry": null,
+    "mainTopic": "persoonlijk of politiek interview",
+    "eventId": null,
+    "uncertain": true,
+    "reason": "De aangeleverde kop en intro identificeren geen land, ambt of verkiezing. Een politieke context is mogelijk, maar niet controleerbaar uit deze tekst. Niet op naamherkenning of NYT als uitgever de rubriek VS vastzetten."
+  },
+  {
+    "id": "1bsses9",
+    "desk": "wetenschap",
+    "subjectCountry": null,
+    "mainTopic": "kwaliteit van wetenschappelijke publicaties",
+    "eventId": null,
+    "uncertain": true,
+    "reason": "Gaat inhoudelijk over wetenschappelijke publicaties, onderbouwing en kwaliteit van onderzoek. Geen land of afzonderlijke gebeurtenis genoemd; de rubriek Wetenschap is wel inhoudelijk duidelijk."
+  },
+  {
+    "id": "ubu8bn",
+    "desk": "overig",
+    "subjectCountry": null,
+    "mainTopic": "maatschappij en complottheorieën",
+    "eventId": null,
+    "uncertain": true,
+    "reason": "Een algemene beschouwing over complottheorieën in tijden van onrust. Geen land en geen expliciete wetenschappelijke studie of concrete buitenlandse gebeurtenis als bewijs voor een specifiekere rubriek."
+  },
+  {
+    "id": "12g3irm",
+    "desk": "buitenland",
+    "subjectCountry": "CD",
+    "mainTopic": "ebola-uitbraak",
+    "eventId": "cd-ebola-uitbraak-meer-dan-5000-doden",
+    "uncertain": false,
+    "reason": "Concrete omvang van een epidemie in de expliciet genoemde Democratische Republiek Congo. De historische vergelijking met andere landen verandert de hoofdlocatie niet; dit is uitbraaknieuws, geen nieuw onderzoeksresultaat."
+  },
+  {
+    "id": "13581lh",
+    "desk": "overig",
+    "subjectCountry": "US",
+    "mainTopic": "economie en AI-investeringen",
+    "eventId": null,
+    "uncertain": false,
+    "reason": "De hoofdvraag is het effect van de AI-boom op de economie. Dallas en de Amerikaanse energie-/datacentereconomie staan expliciet in de intro. In de gegeven taxonomie ontbreekt Economie als rubriek; daarom Overig met het economische hoofdonderwerp."
+  },
+  {
+    "id": "15i9omw",
+    "desk": "wetenschap",
+    "subjectCountry": null,
+    "mainTopic": "biomedisch onderzoek met AI",
+    "eventId": "ai-agent-injecteert-gentherapie-in-muizenbrein",
+    "uncertain": true,
+    "reason": "Een concrete biomedische onderzoekshandeling is de hoofdzaak; AI is het gebruikte middel. Geen land of naam van de startup genoemd. Gebeurtenis inhoudelijk herkenbaar, maar voor koppeling aan andere publicaties zijn meer identificerende gegevens nodig."
+  }
+]

@@ -1,0 +1,599 @@
+{
+  "frozenAt": "2026-11-01T15:11:52.197092+01:00",
+  "oldFixtureSHA256": "97c8f9ac9b1f45282fba3e3c0210d5f8b52befcf3e03662ae69776fbc4e71515",
+  "oldMissingPublicationDays": [],
+  "oldArchiveDay": "2026-10-31",
+  "newPublicationDay": "2026-11-01",
+  "timezone": "Europe/Amsterdam",
+  "collectionMode": "v2a: andere publicatiedag; één verzamelronde, niet één atomair feedmoment",
+  "partsRequested": 83,
+  "partsWithDifferentVersion": 35,
+  "parts": [
+    {
+      "id": "eurogamer",
+      "requestedVersion": "iv3akq",
+      "etag": "\"iv3akq-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:32.602Z"
+    },
+    {
+      "id": "nrc",
+      "requestedVersion": "1im6cvh",
+      "etag": "\"1im6cvh-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:32.625Z"
+    },
+    {
+      "id": "telegraaf",
+      "requestedVersion": "1yhc1ae",
+      "etag": "\"rjrlnt-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.012Z"
+    },
+    {
+      "id": "bd",
+      "requestedVersion": "1u6f4sc",
+      "etag": "\"1dcbgnp-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.020Z"
+    },
+    {
+      "id": "sporza",
+      "requestedVersion": "g8lrfb",
+      "etag": "\"12oa75i-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.023Z"
+    },
+    {
+      "id": "wielerflits",
+      "requestedVersion": "1us7ji9",
+      "etag": "\"w4af3h-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.088Z"
+    },
+    {
+      "id": "vi",
+      "requestedVersion": "wnh4jj",
+      "etag": "\"cusxrr-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.097Z"
+    },
+    {
+      "id": "nu",
+      "requestedVersion": "1w3wwhf",
+      "etag": "\"1oq9jh-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.187Z"
+    },
+    {
+      "id": "espn",
+      "requestedVersion": "14sqy4u",
+      "etag": "\"14sqy4u-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:33.199Z"
+    },
+    {
+      "id": "nd",
+      "requestedVersion": "5ioc39",
+      "etag": "\"etaedq-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.220Z"
+    },
+    {
+      "id": "nos-sport",
+      "requestedVersion": "q6ozot",
+      "etag": "\"1cs4no0-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.242Z"
+    },
+    {
+      "id": "scmp",
+      "requestedVersion": "1xtxyc7",
+      "etag": "\"1t9nqk2-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.234Z"
+    },
+    {
+      "id": "fd",
+      "requestedVersion": "lyuttm",
+      "etag": "\"1helxfn-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.400Z"
+    },
+    {
+      "id": "gva",
+      "requestedVersion": "6hsni3",
+      "etag": "\"1r6f0h4-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.400Z"
+    },
+    {
+      "id": "nieuwsblad",
+      "requestedVersion": "40t9dh",
+      "etag": "\"1ib2cce-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.399Z"
+    },
+    {
+      "id": "nhd",
+      "requestedVersion": "av1o7b",
+      "etag": "\"1l65qyp-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.254Z"
+    },
+    {
+      "id": "hln",
+      "requestedVersion": "20u5zi",
+      "etag": "\"1o0ui57-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.399Z"
+    },
+    {
+      "id": "haarlemsdagblad",
+      "requestedVersion": "11z3u4n",
+      "etag": "\"m5oakh-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.404Z"
+    },
+    {
+      "id": "lc",
+      "requestedVersion": "amufxu",
+      "etag": "\"1amf8tt-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.429Z"
+    },
+    {
+      "id": "bloomberg",
+      "requestedVersion": "1cvowom",
+      "etag": "\"1cvowom-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:33.550Z"
+    },
+    {
+      "id": "guardian-sport",
+      "requestedVersion": "1grbn31",
+      "etag": "\"w83td3-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.552Z"
+    },
+    {
+      "id": "ad",
+      "requestedVersion": "1cub5s1",
+      "etag": "\"196rw1p-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.557Z"
+    },
+    {
+      "id": "gelderlander",
+      "requestedVersion": "oscql8",
+      "etag": "\"1wy1ko0-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.574Z"
+    },
+    {
+      "id": "volkskrant",
+      "requestedVersion": "1xvmn9x",
+      "etag": "\"1xvmn9x-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:33.587Z"
+    },
+    {
+      "id": "hbvl",
+      "requestedVersion": "119mxz6",
+      "etag": "\"keu6bf-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.590Z"
+    },
+    {
+      "id": "guardian",
+      "requestedVersion": "cg9jk3",
+      "etag": "\"cg9jk3-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:33.611Z"
+    },
+    {
+      "id": "nyt",
+      "requestedVersion": "12a2985",
+      "etag": "\"12a2985-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:33.711Z"
+    },
+    {
+      "id": "tubantia",
+      "requestedVersion": "1adl70s",
+      "etag": "\"1adl70s-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:33.716Z"
+    },
+    {
+      "id": "ed",
+      "requestedVersion": "kmqhcj",
+      "etag": "\"kmqhcj-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:33.716Z"
+    },
+    {
+      "id": "dvhn",
+      "requestedVersion": "36og8b",
+      "etag": "\"36og8b-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:33.744Z"
+    },
+    {
+      "id": "pzc",
+      "requestedVersion": "u8kw6h",
+      "etag": "\"u8kw6h-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:33.746Z"
+    },
+    {
+      "id": "bndestem",
+      "requestedVersion": "ocvc7x",
+      "etag": "\"oxjr8n-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.762Z"
+    },
+    {
+      "id": "standaard",
+      "requestedVersion": "z5izow",
+      "etag": "\"1fs2z1q-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.924Z"
+    },
+    {
+      "id": "demorgen",
+      "requestedVersion": "brwtlo",
+      "etag": "\"1xpq4gy-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.923Z"
+    },
+    {
+      "id": "stentor",
+      "requestedVersion": "1xc7t1k",
+      "etag": "\"1xc7t1k-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:33.924Z"
+    },
+    {
+      "id": "rtl",
+      "requestedVersion": "1g21745",
+      "etag": "\"5hm01i-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.927Z"
+    },
+    {
+      "id": "leidschdagblad",
+      "requestedVersion": "10g71ti",
+      "etag": "\"10g71ti-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:33.927Z"
+    },
+    {
+      "id": "aljazeera",
+      "requestedVersion": "14di7ew",
+      "etag": "\"1unc8fn-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:33.928Z"
+    },
+    {
+      "id": "nos",
+      "requestedVersion": "xhluyo",
+      "etag": "\"xhluyo-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.081Z"
+    },
+    {
+      "id": "variety",
+      "requestedVersion": "114kdew",
+      "etag": "\"1xpty9b-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:34.086Z"
+    },
+    {
+      "id": "trouw",
+      "requestedVersion": "16rgk4v",
+      "etag": "\"16rgk4v-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.085Z"
+    },
+    {
+      "id": "independent",
+      "requestedVersion": "6u9z40",
+      "etag": "\"2wuybw-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:34.090Z"
+    },
+    {
+      "id": "bbc",
+      "requestedVersion": "1dkacqj",
+      "etag": "\"1dkacqj-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.094Z"
+    },
+    {
+      "id": "vrt",
+      "requestedVersion": "15quaag",
+      "etag": "\"9r26we-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:34.094Z"
+    },
+    {
+      "id": "parool",
+      "requestedVersion": "4ompm",
+      "etag": "\"4ompm-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.239Z"
+    },
+    {
+      "id": "npr",
+      "requestedVersion": "a95rvq",
+      "etag": "\"a95rvq-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.242Z"
+    },
+    {
+      "id": "polygon",
+      "requestedVersion": "b9pb1q",
+      "etag": "\"1f6qhf-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:34.245Z"
+    },
+    {
+      "id": "dw",
+      "requestedVersion": "1j8ud16",
+      "etag": "\"xovlve-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:34.254Z"
+    },
+    {
+      "id": "atlantic",
+      "requestedVersion": "1sj4wu0",
+      "etag": "\"1sj4wu0-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.260Z"
+    },
+    {
+      "id": "theverge",
+      "requestedVersion": "1umlmaf",
+      "etag": "\"1umlmaf-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.261Z"
+    },
+    {
+      "id": "ign",
+      "requestedVersion": "1k5c6fp",
+      "etag": "\"1k5c6fp-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.448Z"
+    },
+    {
+      "id": "tijd",
+      "requestedVersion": "xcre8o",
+      "etag": "\"1cichlo-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:34.449Z"
+    },
+    {
+      "id": "economist",
+      "requestedVersion": "1g2odwn",
+      "etag": "\"1g2odwn-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.449Z"
+    },
+    {
+      "id": "lemonde",
+      "requestedVersion": "1im4j5p",
+      "etag": "\"q03usc-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:34.449Z"
+    },
+    {
+      "id": "tweakers",
+      "requestedVersion": "1g7rse5",
+      "etag": "\"1g7rse5-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.450Z"
+    },
+    {
+      "id": "bbc-sport",
+      "requestedVersion": "1iwfymk",
+      "etag": "\"1iwfymk-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.448Z"
+    },
+    {
+      "id": "rollingstone",
+      "requestedVersion": "bs17mg",
+      "etag": "\"e5j8b3-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:34.604Z"
+    },
+    {
+      "id": "autosport",
+      "requestedVersion": "vowu7g",
+      "etag": "\"vowu7g-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.604Z"
+    },
+    {
+      "id": "ft",
+      "requestedVersion": "1edd541",
+      "etag": "\"1edd541-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.608Z"
+    },
+    {
+      "id": "politico-eu",
+      "requestedVersion": "fvitkm",
+      "etag": "\"fvitkm-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.615Z"
+    },
+    {
+      "id": "wired",
+      "requestedVersion": "17bdpaf",
+      "etag": "\"17bdpaf-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.612Z"
+    },
+    {
+      "id": "limburger",
+      "requestedVersion": "1l5av4f",
+      "etag": "\"1l5av4f-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.615Z"
+    },
+    {
+      "id": "newyorker",
+      "requestedVersion": "13k98r1",
+      "etag": "\"13k98r1-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.631Z"
+    },
+    {
+      "id": "sciam",
+      "requestedVersion": "1y1tbgl",
+      "etag": "\"1y1tbgl-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.769Z"
+    },
+    {
+      "id": "gamespot",
+      "requestedVersion": "1my51el",
+      "etag": "\"1gqak65-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:34.776Z"
+    },
+    {
+      "id": "npr-music",
+      "requestedVersion": "1ivz5cu",
+      "etag": "\"1ivz5cu-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.781Z"
+    },
+    {
+      "id": "guardian-culture",
+      "requestedVersion": "6nooz5",
+      "etag": "\"6nooz5-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.786Z"
+    },
+    {
+      "id": "politico",
+      "requestedVersion": "cwn5gd",
+      "etag": "\"cwn5gd-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.784Z"
+    },
+    {
+      "id": "guardian-music",
+      "requestedVersion": "1je63yn",
+      "etag": "\"1je63yn-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.824Z"
+    },
+    {
+      "id": "carbonbrief",
+      "requestedVersion": "1u5p3q4",
+      "etag": "\"1u5p3q4-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.974Z"
+    },
+    {
+      "id": "ftm",
+      "requestedVersion": "1xu5z6h",
+      "etag": "\"1xu5z6h-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.974Z"
+    },
+    {
+      "id": "stereogum",
+      "requestedVersion": "7wkr33",
+      "etag": "\"7wkr33-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.974Z"
+    },
+    {
+      "id": "telegraph",
+      "requestedVersion": "4mo1sr",
+      "etag": "\"4mo1sr-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.973Z"
+    },
+    {
+      "id": "techcrunch",
+      "requestedVersion": "smzvp9",
+      "etag": "\"1s3i1ir-df\"",
+      "versionMatches": false,
+      "collectedAt": "2026-11-01T14:03:34.974Z"
+    },
+    {
+      "id": "3voor12",
+      "requestedVersion": "1tdjyq6",
+      "etag": "\"1tdjyq6-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.988Z"
+    },
+    {
+      "id": "nos-cultuur",
+      "requestedVersion": "xbpabz",
+      "etag": "\"xbpabz-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:34.996Z"
+    },
+    {
+      "id": "ars",
+      "requestedVersion": "11vmgq1",
+      "etag": "\"11vmgq1-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:35.127Z"
+    },
+    {
+      "id": "foreignpolicy",
+      "requestedVersion": "1bxagkl",
+      "etag": "\"1bxagkl-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:35.132Z"
+    },
+    {
+      "id": "pitchfork",
+      "requestedVersion": "19d8tdj",
+      "etag": "\"19d8tdj-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:35.137Z"
+    },
+    {
+      "id": "quietus",
+      "requestedVersion": "ybradh",
+      "etag": "\"ybradh-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:35.138Z"
+    },
+    {
+      "id": "quanta",
+      "requestedVersion": "o6itxx",
+      "etag": "\"o6itxx-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:35.152Z"
+    },
+    {
+      "id": "mittr",
+      "requestedVersion": "mfczgl",
+      "etag": "\"mfczgl-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:35.153Z"
+    },
+    {
+      "id": "nature",
+      "requestedVersion": "uf92io",
+      "etag": "\"uf92io-df\"",
+      "versionMatches": true,
+      "collectedAt": "2026-11-01T14:03:35.383Z"
+    }
+  ],
+  "hashes": {
+    "v2a-blinde-invoer.json": "06c3604b5ea1ad50c6bc1912172d99c462c679be2c92cc695c306bdff1ebcb75",
+    "v2a-blinde-labels.json": "efca1adcbff567e8c39a80b294e8a8b7d1322ba16800178631101c41cad0c3bd"
+  },
+  "exclusions": "Id, URL en oude storyIds plus conservatieve semantische beoordeling tegen alle 150 oude koppen. Verkiezingscampagnes, Binance, oud protest-/migrantenbootnieuws en reeds bekeken voorpagina/regressies uitgesloten. Brede uitsluitingen veroorzaken steekproefbias; geen populatieschatting."
+}

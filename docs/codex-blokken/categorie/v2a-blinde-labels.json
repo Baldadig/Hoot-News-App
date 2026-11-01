@@ -1,0 +1,5104 @@
+[
+  {
+    "id": "1glt0fy",
+    "split": "development",
+    "group": "v2a:wckt-10000",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "wckt-10000",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Krommenhoek en Slendebroek pakken World Cup-tickets op 10.000 meter, nu 5.000 meter voor vrouwen",
+        "summary": "Ontknoping op het WCKT: vanmiddag worden de laatste World Cup-tickets verdeeld."
+      }
+    }
+  },
+  {
+    "id": "1h3gxn3",
+    "split": "control",
+    "group": "v2a:gaza-aanvallen-1101",
+    "label": {
+      "desk": "middenoosten",
+      "subjectCountry": "PS",
+      "subjectCountries": [
+        "PS"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "oorlog",
+      "eventId": "gaza-aanvallen-1101",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: oorlog. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "At least eight Palestinians killed in Israeli attacks across Gaza",
+        "summary": "Four-year-old among eight Palestinians killed in Israeli drone attacks across the Gaza Strip."
+      }
+    }
+  },
+  {
+    "id": "6ewzc9",
+    "split": "control",
+    "group": "v2a:stroke-25",
+    "label": {
+      "desk": "wetenschap",
+      "subjectCountry": "US",
+      "subjectCountries": [
+        "US"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "gezondheid",
+      "eventId": "stroke-25",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: gezondheid. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "What Happens When You Have a Stroke at 25",
+        "summary": "When I was 22, I moved to New York City to be a bar-mitzvah motivator."
+      }
+    }
+  },
+  {
+    "id": "1c1ybwg",
+    "split": "development",
+    "group": "v2a:breeders-cup",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "US",
+      "subjectCountries": [
+        "US"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "breeders-cup",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Moore wins Breeders’ Cup Turf for record sixth time",
+        "summary": "Jockey Ryan Moore and trainer Aidan O’Brien both made history as they won the Breeders’ Cup Turf with Benvenuto Cellini."
+      }
+    }
+  },
+  {
+    "id": "1jzlj6o",
+    "split": "control",
+    "group": "v2a:brazil-market",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "BR",
+      "subjectCountries": [
+        "BR"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "economie",
+      "eventId": "brazil-market",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: economie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Brazil Shakeup Sounds Warning on Crowded Emerging-Market Trades",
+        "summary": "Brazil’s market selloff has delivered a stark warning to emerging-market investors: crowded trades can unravel with alarming speed."
+      }
+    }
+  },
+  {
+    "id": "4zqire",
+    "split": "development",
+    "group": "v2a:eindhoven-gracht",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "misdaad",
+      "eventId": "eindhoven-gracht",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: misdaad. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Dode gevonden in gracht in Eindhoven, duikers van de politie gaan het water in",
+        "summary": "In een gracht in Eindhoven is zondagochtend een dode aangetroffen."
+      }
+    }
+  },
+  {
+    "id": "1mkahia",
+    "split": "control",
+    "group": "v2a:belgische-begroting",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "BE",
+      "subjectCountries": [
+        "BE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "politiek",
+      "eventId": "belgische-begroting",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: politiek. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Een ‘fiscale horrorlijst’ van Les Engagés zorgt plots voor onrust in begrotingsopmaak",
+        "summary": "In de jacht op een begrotingsakkoord verhit een ‘fiscale horrorlijst’ van Les Engagés plots de gemoederen. ‘Dit is onaanvaardbaar.’…"
+      }
+    }
+  },
+  {
+    "id": "1d9g036",
+    "split": "development",
+    "group": "v2a:emmen-denbosch",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "emmen-denbosch",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "FC Emmen na bekersucces in eigen huis tegen FC Den Bosch. Volg de wedstrijd hier",
+        "summary": ""
+      }
+    }
+  },
+  {
+    "id": "sn9xyd",
+    "split": "development",
+    "group": "v2a:duitsland-kernafval",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "DE",
+      "subjectCountries": [
+        "DE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "energie",
+      "eventId": "duitsland-kernafval",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: energie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Germany’s search for a nuclear waste site",
+        "summary": "Finland has become the first country with a final storage facility for nuclear waste. Germany is still searching for a site, while some countries have yet to start."
+      }
+    }
+  },
+  {
+    "id": "1dej1zz",
+    "split": "control",
+    "group": "v2a:india-data",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "IN",
+      "subjectCountries": [
+        "IN"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "maatschappij",
+      "eventId": "india-data",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Cheap data is great for Indians but not for India’s reputation",
+        "summary": "The internet brings out the worst in everyone"
+      }
+    }
+  },
+  {
+    "id": "19x96dt",
+    "split": "development",
+    "group": "v2a:saibari-operatie",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "DE",
+      "subjectCountries": [
+        "DE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "saibari-operatie",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Ismael Saibari voorlopig niet inzetbaar bij Bayern München na operatie aan enkel",
+        "summary": "Ismael Saibari is voorlopig niet inzetbaar voor zijn club Bayern München na een succesvolle operatie aan zijn rechterenkel."
+      }
+    }
+  },
+  {
+    "id": "1boorn1",
+    "split": "development",
+    "group": "v2a:basketbal-bracket",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "US",
+      "subjectCountries": [
+        "US"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "basketbal-bracket",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Bracketology: Welcome to the 76-team field!",
+        "summary": "We have eight new teams in the field, but South Carolina and UConn remain No. 1 and 2."
+      }
+    }
+  },
+  {
+    "id": "bcwhz8",
+    "split": "control",
+    "group": "v2a:pikmin4-switch2",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "global",
+      "mainTopic": "games",
+      "eventId": "pikmin4-switch2",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: games. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Geen enkelvoudig land: wereldwijde hoofdzaak.",
+      "evidence": {
+        "title": "Pikmin 4 Nintendo Switch 2 Edition launches 12th November and a demo is out tomorrow",
+        "summary": "Pikmin 4 Nintendo Switch 2 Edition will launch on 12th November, bundled with a new mode called Dandori Academy. Read more"
+      }
+    }
+  },
+  {
+    "id": "18io2b5",
+    "split": "development",
+    "group": "v2a:vogelgriep-ophok",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "landbouw",
+      "eventId": "vogelgriep-ophok",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: landbouw. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Ook in ‘jubileumjaar’ voor vogelgriep worstelen pluimveehouders nog steeds",
+        "summary": "Vorige week woensdag kondigde het kabinet een landelijke ophokplicht af. Nergens in Nederland mogen de dieren van pluimveehouders nog naar buiten."
+      }
+    }
+  },
+  {
+    "id": "oc41hf",
+    "split": "development",
+    "group": "v2a:nz-wong",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "NZ",
+      "subjectCountries": [
+        "NZ"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "politiek",
+      "eventId": "nz-wong",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: politiek. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "New Zealand’s kingmaker could be a 38-year-old ex-KPMG consultant",
+        "summary": "Fiji-born Qiulae Wong backs ‘land tax’ to fund universal basic income and push down housing prices"
+      }
+    }
+  },
+  {
+    "id": "tlqdji",
+    "split": "control",
+    "group": "v2a:jeugdzorg-kalverboer",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "zorg",
+      "eventId": "jeugdzorg-kalverboer",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: zorg. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Podcast | ‘We hebben van de jeugdzorg een jungle gemaakt,’ zegt Kinder­ombudsman Margrite Kalverboer",
+        "summary": "In ‘Follow the Money interviewt’ spreken journalisten Annette van Soest en Harm Ede Botje met sleutelfiguren uit verschillende FTM-dossiers."
+      }
+    }
+  },
+  {
+    "id": "b53y7q",
+    "split": "development",
+    "group": "v2a:november-games",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "global",
+      "mainTopic": "games",
+      "eventId": "november-games",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: games. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Geen enkelvoudig land: wereldwijde hoofdzaak.",
+      "evidence": {
+        "title": "The Biggest New Game Releases Of November 2026",
+        "summary": "Who would possibly think it’s a good idea to launch a new game in the same month as Grand Theft Auto 6?"
+      }
+    }
+  },
+  {
+    "id": "gjur56",
+    "split": "development",
+    "group": "v2a:lydia-vlucht",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "reizen",
+      "eventId": "lydia-vlucht",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: reizen. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Lydia (30) miste twee keer haar vlucht en dat kostte haar 650 euro",
+        "summary": "Lydia de Vries (30) miste haar vlucht, boekte een nieuw ticket en miste ook die vlucht. De schade: 650 euro."
+      }
+    }
+  },
+  {
+    "id": "1qnd1ba",
+    "split": "development",
+    "group": "v2a:theater-november",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "multiple",
+      "mainTopic": "cultuur",
+      "eventId": "theater-november",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: cultuur. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Meer dan één land of regio is de hoofdzaak.",
+      "evidence": {
+        "title": "The best theatre to stream this month: the Gisèle Pelicot trial becomes an all-star play that ‘just floors you’",
+        "summary": "An unmissable documentary play, Tom Stoppard’s Arcadia with luminous Isis Hainsworth and ecstatic dance in a Norwegian museum are among November’s highlights Swiss…"
+      }
+    }
+  },
+  {
+    "id": "1toti5c",
+    "split": "development",
+    "group": "v2a:de-la-soul-playlist",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "muziek",
+      "eventId": "de-la-soul-playlist",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: muziek. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "‘It seems weird for an MC – but lyrics have never been a thing for me’: De La Soul’s honest playlist",
+        "summary": "Rapper Pos of the hip hop greats favours Barry White for the bedroom and sobs to Stevie Wonder, but which cheese-rock hit does he love on the sly?"
+      }
+    }
+  },
+  {
+    "id": "1kjodas",
+    "split": "development",
+    "group": "v2a:canelo-mbilli",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "SA",
+      "subjectCountries": [
+        "SA"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "canelo-mbilli",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Canelo Álvarez wins back world title as Houthi attacks cast shadow over Riyadh",
+        "summary": "Mexican star wins unanimous decision over Mbilli Álvarez, 36, regains WBC title after Crawford defeat Read Bryan Armen Graham’s round-by-round report Mexico’s Saúl…"
+      }
+    }
+  },
+  {
+    "id": "pn59i3",
+    "split": "development",
+    "group": "v2a:duitse-genz-protestfamilie",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "DE",
+      "subjectCountries": [
+        "DE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "onrust",
+      "eventId": "frankfurt-protest",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: onrust. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Politie nog steeds aanwezig in Frankfurt na rellen",
+        "summary": "De Duitse politie is nog steeds aanwezig in Frankfurt, waar zaterdagavond laat rellen uitbraken. De situatie in het centrum kalmeerde volgens Bild pas rond 03.00 uur."
+      }
+    }
+  },
+  {
+    "id": "48x36b",
+    "split": "development",
+    "group": "v2a:kortrijk-standard",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "BE",
+      "subjectCountries": [
+        "BE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "kortrijk-standard",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Red Bull-pressing van Daniel Beichler levert KV Kortrijk eerste punt op: Het vergt veel energie, maar kan wel de oplossing zijn”",
+        "summary": "Standard is voorlopig de weg kwijt en maakte er zaterdag tegen staartploeg KV Kortrijk maar een zootje van."
+      }
+    }
+  },
+  {
+    "id": "uawn7e",
+    "split": "control",
+    "group": "v2a:cod-switch-lag",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "global",
+      "mainTopic": "games",
+      "eventId": "cod-switch-lag",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: games. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Geen enkelvoudig land: wereldwijde hoofdzaak.",
+      "evidence": {
+        "title": "Input Lag Is So Bad in Call of Duty: Modern Warfare 4 on Nintendo Switch 2 That Players Suffer From a ‘Competitive Disadvantage’",
+        "summary": "If you’re playing Call of Duty: Modern Warfare 4 on Nintendo Switch 2, beware: you’re at a disadvantage in competitive Multiplayer due to crushing input lag that is much worse than the other platforms."
+      }
+    }
+  },
+  {
+    "id": "93ovuq",
+    "split": "control",
+    "group": "v2a:flydubai-kaping",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "AE",
+      "subjectCountries": [
+        "AE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "luchtvaart",
+      "eventId": "flydubai-kaping",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: luchtvaart. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Identities of pilots who landed hijacked FlyDubai plane after attack on Captain Smit Machchhar revealed",
+        "summary": "Henson Steven from Fiji and South Africa’s Rowan Tooth honoured by UAE government"
+      }
+    }
+  },
+  {
+    "id": "12dh4f5",
+    "split": "development",
+    "group": "v2a:beyer-memoir",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "multiple",
+      "mainTopic": "cultuur",
+      "eventId": "beyer-memoir",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: cultuur. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Meer dan één land of regio is de hoofdzaak.",
+      "evidence": {
+        "title": "Noraly Beyer is jaloers op huilende mensen. ’Wat echt in je omgaat, blijft bij jezelf’",
+        "summary": "Oud-nieuwslezer en columnist Noraly Beyer schreef een memoir over haar jaren in een internaat in Roermond, haar werk in Nederland en Suriname en het verlies van haar vriend Joost Prinsen."
+      }
+    }
+  },
+  {
+    "id": "x14lt3",
+    "split": "control",
+    "group": "v2a:barrie-afscheid",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "cultuur",
+      "eventId": "barrie-afscheid",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: cultuur. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Na zestig jaar neemt Barrie Stevens (82) afscheid van het toneel: ’Ik heb geen glitter meer nodig, geen masker’",
+        "summary": "Barrie Stevens (82) neemt afscheid van het toneel. Dat doet hij met zijn allerlaatste voorstelling ’The importance of being Barrie’."
+      }
+    }
+  },
+  {
+    "id": "13zq6h6",
+    "split": "control",
+    "group": "v2a:india-genz-duiding",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "IN",
+      "subjectCountries": [
+        "IN"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "maatschappij",
+      "eventId": "india-genz-duiding",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Behind India’s Gen Z protests, ‘a huge gap’ between aspirations and reality",
+        "summary": "Geographer Avishek Jha, who studies youth unemployment and social movements in India, explains the structural roots of the crisis behind months of protests led by the Cockroach People’s Party."
+      }
+    }
+  },
+  {
+    "id": "cwu481",
+    "split": "development",
+    "group": "v2a:lotto-limburg",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "maatschappij",
+      "eventId": "lotto-limburg",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Twee Limburgers winnen ieder ruim 170.000 euro bij Lotto Jackpot",
+        "summary": "Zowel een inwoner van de gemeente Echt-Susteren als een van Venlo heeft zaterdag 171.428,57 euro gewonnen bij de Lotto Jackpot."
+      }
+    }
+  },
+  {
+    "id": "1t0hou9",
+    "split": "development",
+    "group": "v2a:autoverkoop-oktober",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "economie",
+      "eventId": "autoverkoop-oktober",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: economie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Autoverkoop daalt licht, branche wacht nog op eindsprint hybrides",
+        "summary": "De Nederlandse autoverkoop is in oktober licht gedaald. Daarmee blijft het wachten op de voorspelde ‘eindsprint’ in de verkoop van hybride modellen."
+      }
+    }
+  },
+  {
+    "id": "2ro1e5",
+    "split": "control",
+    "group": "v2a:weesp-nederhorst",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "weesp-nederhorst",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "FC Weesp verschaft zichzelf wat lucht met winst in de derby tegen Nederhorst: ’Het is niet altijd zo druk als nu’",
+        "summary": "De tweede overwinning van het seizoen is binnen voor FC Weesp. De derby tegen Nederhorst werd pas in de slotminuut met 2-1 beslist."
+      }
+    }
+  },
+  {
+    "id": "1tbb5zy",
+    "split": "control",
+    "group": "v2a:belgische-begroting",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "BE",
+      "subjectCountries": [
+        "BE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "politiek",
+      "eventId": "belgische-begroting",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: politiek. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "LIVE POLITIEK. Gesprek tussen De Wever en Vandenbroucke zit erop, nu is het aan Clarinval",
+        "summary": "Volg hier alle recente updates uit de Belgische politiek."
+      }
+    }
+  },
+  {
+    "id": "1r0eo9k",
+    "split": "control",
+    "group": "v2a:wekker-1101",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "nieuwsoverzicht",
+      "eventId": "wekker-1101",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: nieuwsoverzicht. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Wekdienst 1/11: Kunstwerk in Amsterdam voor kindslachtoffers Gaza • Eerste marathon van Den Haag",
+        "summary": "Goedemorgen! Het kunstwerk Wall of Tears is de komende tijd te zien in Amsterdam. Het is een gedenkteken voor de kindslachtoffers in Gaza."
+      }
+    }
+  },
+  {
+    "id": "n1ic8m",
+    "split": "development",
+    "group": "v2a:pec-ado",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "pec-ado",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Mbayo bezorgt PEC drie belangrijke punten in kelderkraker tegen ADO",
+        "summary": "PEC Zwolle heeft drie belangrijke punten gepakt onderin de eredivisie."
+      }
+    }
+  },
+  {
+    "id": "17waoxa",
+    "split": "development",
+    "group": "v2a:pre-k-religie",
+    "label": {
+      "desk": "vs",
+      "subjectCountry": "US",
+      "subjectCountries": [
+        "US"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "rechtspraak",
+      "eventId": "pre-k-religie",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: rechtspraak. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Supreme Court hears religious freedom case centered on universal pre-K program",
+        "summary": "The Archdiocese of Denver wants to be able to turn away LGBTQ families from Catholic preschools that receive state funding."
+      }
+    }
+  },
+  {
+    "id": "7nex6p",
+    "split": "control",
+    "group": "v2a:nso-kennedy",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "US",
+      "subjectCountries": [
+        "US"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "cultuur",
+      "eventId": "nso-kennedy",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: cultuur. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "The National Symphony Orchestra is at a crossroads. Can it survive?",
+        "summary": "When the Kennedy Center closed in September, it left an important American orchestra without a home."
+      }
+    }
+  },
+  {
+    "id": "t5ehc",
+    "split": "development",
+    "group": "v2a:broring-groningen",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "maatschappij",
+      "eventId": "broring-groningen",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Herman Bröring blikt terug op afwikkeling schade Groningen: ‘Juist degenen met de grootste noden hebben de lastigste positie’",
+        "summary": "Al jarenlang geeft hoogleraar Herman Bröring duiding over de gaswinning in Groningen. Nu hij met pensioen gaat, kan hij het onderwerp niet loslaten."
+      }
+    }
+  },
+  {
+    "id": "ls7ln9",
+    "split": "development",
+    "group": "v2a:weekweer",
+    "label": {
+      "desk": null,
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "weer",
+      "eventId": "weekweer",
+      "uncertain": {
+        "desk": true,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: weer. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Zonnige week in aantocht met kans op nachtvorst: ‘Het wordt behoorlijk koud’",
+        "summary": "Komende week wordt het kouder, maar blijft het voornamelijk droog. Er is ruimte voor de zon en de temperatuur komt uit op zo’n 8 tot 12 graden."
+      }
+    }
+  },
+  {
+    "id": "zzb9fo",
+    "split": "development",
+    "group": "v2a:reeves-eu",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "GB",
+      "subjectCountries": [
+        "GB"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "politiek",
+      "eventId": "reeves-eu",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: politiek. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "UK’s future lies in EU, says Rachel Reeves",
+        "summary": "The intervention by the former British chancellor comes ahead of a UK-EU summit later this month."
+      }
+    }
+  },
+  {
+    "id": "10mpi68",
+    "split": "development",
+    "group": "v2a:zelda-retrospectief",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "global",
+      "mainTopic": "games",
+      "eventId": "zelda-retrospectief",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: games. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Geen enkelvoudig land: wereldwijde hoofdzaak.",
+      "evidence": {
+        "title": "15 Years Ago, Zelda Told its Most Memorable Story with its Worst Gameplay",
+        "summary": "Zelda’s most memorable story still shines, but the motion controls, Fi, and repeat fights often make it a tough replay"
+      }
+    }
+  },
+  {
+    "id": "a5zwfm",
+    "split": "development",
+    "group": "v2a:paaseiland-toerist",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "CL",
+      "subjectCountries": [
+        "CL"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "maatschappij",
+      "eventId": "paaseiland-toerist",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Nederlander walgt van ‘leugens’ na homofobe rel op Paaseiland: ‘Zeker niet geflirt of gezoend’",
+        "summary": "De Nederlandse toerist die op Paaseiland homofobe scheldpartijen en bedreigingen kreeg, beschuldigt de Chileense reisgids van leugens."
+      }
+    }
+  },
+  {
+    "id": "kosesc",
+    "split": "development",
+    "group": "v2a:snl-abrams",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "US",
+      "subjectCountries": [
+        "US"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "muziek",
+      "eventId": "snl-abrams",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: muziek. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "‘SNL’: Watch Gracie Abrams Perform ‘Hit the Wall,’ ‘Here You Come, There You Go’",
+        "summary": "The singer-songwriter plays one song from her latest album, Daughter from Hell, and another from its deluxe version"
+      }
+    }
+  },
+  {
+    "id": "2xpcxp",
+    "split": "development",
+    "group": "v2a:fennek-elektrisch",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "defensie",
+      "eventId": "fennek-elektrisch",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: defensie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Dit is het elektrische pantservoertuig van Defensie: ‘Hele zware groene Tesla’",
+        "summary": "De landmacht heeft een Fennek-verkenningsvoertuig omgebouwd van diesel- naar elektromotor. Een stillere motor kan voordelen opleveren op het slagveld."
+      }
+    }
+  },
+  {
+    "id": "euet80",
+    "split": "development",
+    "group": "v2a:tattoo-onzichtbaar",
+    "label": {
+      "desk": "wetenschap",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "global",
+      "mainTopic": "technologie",
+      "eventId": "tattoo-onzichtbaar",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: technologie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Geen enkelvoudig land: wereldwijde hoofdzaak.",
+      "evidence": {
+        "title": "These tattoos can magically' disappear—here’s how they work",
+        "summary": "How handy would it be if you could make your tattoos invisible for a job interview in the morning and reveal them again for a party in the evening?"
+      }
+    }
+  },
+  {
+    "id": "1je0pk8",
+    "split": "control",
+    "group": "v2a:india-tank-grens",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": null,
+      "subjectCountries": [
+        "IN",
+        "CN"
+      ],
+      "geographicalClass": "multiple",
+      "mainTopic": "defensie",
+      "eventId": "india-tank-grens",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: defensie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Meer dan één land of regio is de hoofdzaak.",
+      "evidence": {
+        "title": "Armour vs altitude: India’s light tank dilemma along China border",
+        "summary": "India’s new high-altitude combat tank was designed to go where its heavier armoured fighting vehicles cannot: the thin mountain air, narrow roads and small bridges along its disputed border with China."
+      }
+    }
+  },
+  {
+    "id": "1uya0jx",
+    "split": "development",
+    "group": "v2a:koppenberg-1101",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "BE",
+      "subjectCountries": [
+        "BE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "koppenberg-1101",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "LIVESTREAM (15 uur): Thibau Nys begint aan zijn veldritseizoen op de Koppenberg, slaat hij net als vorig jaar meteen toe?",
+        "summary": "Zondag is het 1 november en dat wil zeggen dat het tijd is voor de Koppenbergcross. Thibau Nys begint er aan zijn veldritseizoen en verdedigt zijn titel."
+      }
+    }
+  },
+  {
+    "id": "lj8oic",
+    "split": "control",
+    "group": "v2a:mars-simulatie",
+    "label": {
+      "desk": "wetenschap",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "ruimtevaart",
+      "eventId": "mars-simulatie",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: ruimtevaart. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Leven zoals op Mars: deze vier vrijwilligers deden het een jaar lang en zijn net ‘vrij’",
+        "summary": "Vier vrijwilligers leefden een jaar lang in een 3D-geprinte simulatie van Mars, om toekomstige missies naar de planeet te ondersteunen. Nu gingen de deuren opnieuw open."
+      }
+    }
+  },
+  {
+    "id": "16pxw4u",
+    "split": "development",
+    "group": "v2a:genz-stereotypen",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "maatschappij",
+      "eventId": "genz-stereotypen",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Gen Z lui en sneller een burn-out? ‘Oudere generaties gingen door tot ze omvielen, jongeren trekken eerder aan de bel’",
+        "summary": "Lui, veeleisend, deeltijds werkend en bijna altijd op vakantie: zo staat generatie Z bekend. Maar klopt het?"
+      }
+    }
+  },
+  {
+    "id": "52r3jx",
+    "split": "development",
+    "group": "v2a:renoa-vezel",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "global",
+      "mainTopic": "technologie",
+      "eventId": "renoa-vezel",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: technologie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Geen enkelvoudig land: wereldwijde hoofdzaak.",
+      "evidence": {
+        "title": "Here’s what ‘renoa’ — the first new fiber in 25 years — feels like",
+        "summary": "Startup Everbloom’s new material, renoa, is the first new fiber in 25 years, and it feels very familiar."
+      }
+    }
+  },
+  {
+    "id": "hj8kd4",
+    "split": "development",
+    "group": "v2a:challenges-mabel",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "opvoeding",
+      "eventId": "challenges-mabel",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: opvoeding. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Mabels (46) kind doet enge online challenges: ’Hoe zorg ik dat het niet gevaarlijk wordt?’",
+        "summary": "Mabel (46): „Mijn kind doet soms mee aan van die enge online challenges. Ik vind het helemaal niks en maak me zorgen dat het een keer misgaat."
+      }
+    }
+  },
+  {
+    "id": "8n1v8o",
+    "split": "development",
+    "group": "v2a:prop45-datacenters",
+    "label": {
+      "desk": "vs",
+      "subjectCountry": "US",
+      "subjectCountries": [
+        "US"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "politiek",
+      "eventId": "prop45-datacenters",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: politiek. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Prop 45 in California could be hiding a loophole for data centers",
+        "summary": "A high-stakes California ballot measure pitched as a fast track for ‘essential’ infrastructure could wind up giving data center developers a loophole to evade public scrutiny, environmental advocates warn."
+      }
+    }
+  },
+  {
+    "id": "2dngo5",
+    "split": "development",
+    "group": "v2a:terrine-recept",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "BE",
+      "subjectCountries": [
+        "BE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "eten",
+      "eventId": "terrine-recept",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: eten. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Recept: terrine van kool, gehakt, gerookt spek en stoemp",
+        "summary": "Chef Géry Van Peteghem van bistro Kartouche in Elsene deelt zijn recept voor terrine van kool, gehakt, gerookt spek en stoemp."
+      }
+    }
+  },
+  {
+    "id": "1o1cqwm",
+    "split": "development",
+    "group": "v2a:ratelband-zoektocht",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "maatschappij",
+      "eventId": "ratelband-zoektocht",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Kinderen van ‘vermiste’ Ratelband lopen vast bij instanties: ‘We weten het even niet meer’",
+        "summary": "Rolls en Minou Ratelband, twee van de oudere kinderen van de al dan niet vermiste Emile Ratelband, lopen vast bij de instanties in hun zoektocht naar hun vader."
+      }
+    }
+  },
+  {
+    "id": "rztacb",
+    "split": "development",
+    "group": "v2a:altman-ram",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "global",
+      "mainTopic": "technologie",
+      "eventId": "altman-ram",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: technologie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Geen enkelvoudig land: wereldwijde hoofdzaak.",
+      "evidence": {
+        "title": ".Geek – Sam Altman: het is heel erg dat mensen ram in hun pc hebben zitten",
+        "summary": "Ben jij een van die gelukkigen die nog een klein beetje ram in een game-pc heeft zitten? Dan ben jij onderdeel van het probleem, vindt OpenAI-ceo Sam Altman."
+      }
+    }
+  },
+  {
+    "id": "1ntfy91",
+    "split": "development",
+    "group": "v2a:valladolid-dao",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "ES",
+      "subjectCountries": [
+        "ES"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "cultuur",
+      "eventId": "valladolid-dao",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: cultuur. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Valladolid Festival Prizes: Alain Gomis’ ‘Dao’ Wins Golden Spike, ‘La Gradiva’ Takes Silver",
+        "summary": "French-Senegalese filmmaker Alain Gomis’ “Dao,” an expansive family saga spanning Europe and Africa, was awarded the Golden Spike for best film at Spain’s 71st…"
+      }
+    }
+  },
+  {
+    "id": "lohppp",
+    "split": "control",
+    "group": "v2a:maaskant-tuvalu",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [
+        "TV",
+        "NL"
+      ],
+      "geographicalClass": "multiple",
+      "mainTopic": "sport",
+      "eventId": "maaskant-tuvalu",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Meer dan één land of regio is de hoofdzaak.",
+      "evidence": {
+        "title": "Hoe de liefde tussen Nederland en Tuvalu is ontstaan: ‘Dit is géén grap’",
+        "summary": "Robert Maaskant is de nieuwe bondscoach van Tuvalu."
+      }
+    }
+  },
+  {
+    "id": "z2lojb",
+    "split": "development",
+    "group": "v2a:koppenberg-1101",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "BE",
+      "subjectCountries": [
+        "BE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "koppenberg-1101",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Wielrennen op TV: X2O Trofee Koppenbergcross",
+        "summary": "Wielerliefhebbers kunnen tijdens het seizoen volop genieten van live wielrennen. Op tv, online, via livestreams of allerlei andere kanalen."
+      }
+    }
+  },
+  {
+    "id": "1bpjxat",
+    "split": "control",
+    "group": "v2a:space-heaters",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "global",
+      "mainTopic": "consument",
+      "eventId": "space-heaters",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: consument. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Geen enkelvoudig land: wereldwijde hoofdzaak.",
+      "evidence": {
+        "title": "8 Best Space Heaters (2026): Tested, Measured, and Mistreated",
+        "summary": "These portable heaters will heat a room quickly, quietly, and safely."
+      }
+    }
+  },
+  {
+    "id": "y4m2ju",
+    "split": "development",
+    "group": "v2a:lydia-vlucht",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "reizen",
+      "eventId": "lydia-vlucht",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: reizen. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Lydia (30) miste twee keer haar vlucht en dat kostte haar 650 euro",
+        "summary": "Lydia de Vries (30) miste haar vlucht, boekte een nieuw ticket en miste ook die vlucht. De schade: 650 euro."
+      }
+    }
+  },
+  {
+    "id": "11ccw36",
+    "split": "development",
+    "group": "v2a:rajasthan-marmer",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "IN",
+      "subjectCountries": [
+        "IN"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "milieu",
+      "eventId": "rajasthan-marmer",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: milieu. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "‘Like Kashmir’: How a toxic marble dump yard became a tourist spot in India",
+        "summary": "Vast ‘snow yard’ in otherwise arid Rajasthan attracts hundreds of tourists daily, but residents face major health risks."
+      }
+    }
+  },
+  {
+    "id": "wb4ukl",
+    "split": "control",
+    "group": "v2a:guilfoyle-athene",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": null,
+      "subjectCountries": [
+        "GR",
+        "US"
+      ],
+      "geographicalClass": "multiple",
+      "mainTopic": "politiek",
+      "eventId": "guilfoyle-athene",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: politiek. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Meer dan één land of regio is de hoofdzaak.",
+      "evidence": {
+        "title": "The Menacing MAGA Way to Remake European Politics",
+        "summary": "At a dinner in Athens in March, Kimberly Guilfoyle, then the U.S. ambassador to Greece, made a statement that elegantly combined arrogance with menace."
+      }
+    }
+  },
+  {
+    "id": "ywjiqg",
+    "split": "development",
+    "group": "v2a:vucic-orban-vergelijking",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": null,
+      "subjectCountries": [
+        "RS",
+        "HU"
+      ],
+      "geographicalClass": "multiple",
+      "mainTopic": "politiek",
+      "eventId": "vucic-orban-vergelijking",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: politiek. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Meer dan één land of regio is de hoofdzaak.",
+      "evidence": {
+        "title": "How the downfall of Serbia’s Vučiċ mirrored that of Hungary’s Orbán",
+        "summary": "Defeat for Serbia’s Aleksandar Vučiċ in last weekend’s vote was a carbon copy of Viktor Orbán’s fall in Hungary."
+      }
+    }
+  },
+  {
+    "id": "1ie4e3o",
+    "split": "development",
+    "group": "v2a:motogp-maleisie",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "MY",
+      "subjectCountries": [
+        "MY"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "motogp-maleisie",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Marquez wins in Malaysia to extend MotoGP lead",
+        "summary": "Reigning champion Marc Marquez takes a 44-point lead over title rival Jorge Martin by winning the Malaysian Grand Prix."
+      }
+    }
+  },
+  {
+    "id": "1c3v0zi",
+    "split": "control",
+    "group": "v2a:red-eagles",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "sport",
+      "eventId": "red-eagles",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Red Eagles blijft maar op nul punten steken, ook aanwinst Verkroost raakt gefrustreerd: ‘Dan val ik weleens uit in de kleedkamer’",
+        "summary": "Red Eagles wacht nog altijd op de eerste zege van dit seizoen in de eredivisie."
+      }
+    }
+  },
+  {
+    "id": "1x1gowe",
+    "split": "control",
+    "group": "v2a:brooks-expansie",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "multiple",
+      "mainTopic": "economie",
+      "eventId": "brooks-expansie",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: economie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Meer dan één land of regio is de hoofdzaak.",
+      "evidence": {
+        "title": "Brooks Steps Up Global Push as Running Boom Builds",
+        "summary": "Brooks Running CEO Dan Sheridan tells Bloomberg This Weekend that a global running boom and consumers’ continued focus on health and wellness are helping drive growth, with the company expanding in markets including Europe and China."
+      }
+    }
+  },
+  {
+    "id": "d5uj8g",
+    "split": "development",
+    "group": "v2a:cambuur-goahead-vuurwerk",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "cambuur-goahead-vuurwerk",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Go Ahead Eagles heeft eerste daders vuurwerk bij SC Cambuur in beeld",
+        "summary": "Go Ahead Eagles heeft de eerste daders in beeld die zaterdagavond vuurwerk hebben afgestoken tijdens het uitduel in de eredivisie met SC Cambuur."
+      }
+    }
+  },
+  {
+    "id": "1dgj77a",
+    "split": "development",
+    "group": "v2a:bolivia-noodtoestand",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "BO",
+      "subjectCountries": [
+        "BO"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "ramp",
+      "eventId": "bolivia-noodtoestand",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: ramp. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "‘Super El Niño’ zorgt voor extreme droogte en overstromingen in Bolivia, president roept noodtoestand uit",
+        "summary": "De Boliviaanse president Rodrigo Paz heeft zaterdag (lokale tijd) de noodtoestand afgekondigd om de droogte en overstromingen te bestrijden als gevolg van het weerfenomeen 'El Niño'."
+      }
+    }
+  },
+  {
+    "id": "1x78uz7",
+    "split": "control",
+    "group": "v2a:saqqara-hoogeveen",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "wonen",
+      "eventId": "saqqara-hoogeveen",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: wonen. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Bouw appartementencomplex Saqqara in Hoogeveen laat nog altijd op zich wachten",
+        "summary": "De bouw van appartementencomplex Saqqara aan de Griendtsveenweg in Hoogeveen laat nog even op zich wachten. Eerst moet asbest worden verwijderd uit het kantoorpand."
+      }
+    }
+  },
+  {
+    "id": "1a0efwv",
+    "split": "development",
+    "group": "v2a:merkel-president",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "DE",
+      "subjectCountries": [
+        "DE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "politiek",
+      "eventId": "merkel-president",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: politiek. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Germany news: Merkel calls for first female president",
+        "summary": "Former Chancellor Angela Merkel says it’s time to consider a woman as Germany’s next president."
+      }
+    }
+  },
+  {
+    "id": "akgnmr",
+    "split": "development",
+    "group": "v2a:eindhoven-gracht",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "misdaad",
+      "eventId": "eindhoven-gracht",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: misdaad. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Overleden man (31) uit in Eindhoven gehaald, slachtoffer lag waarschijnlijk ‘al enige tijd’ in het water",
+        "summary": "In een gracht in Eindhoven is zondagochtend een 31-jarige overleden man aangetroffen."
+      }
+    }
+  },
+  {
+    "id": "r1qbl0",
+    "split": "development",
+    "group": "v2a:college-week9",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "US",
+      "subjectCountries": [
+        "US"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "college-week9",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "College kickers? College kickers! Meet Week 9's unlikely heroes",
+        "summary": "Kickers came through in the clutch in Week 9, and elsewhere, Miami, Utah and UCLA all stayed undefeated."
+      }
+    }
+  },
+  {
+    "id": "18k6x6p",
+    "split": "development",
+    "group": "v2a:dune-blood-ice",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "global",
+      "mainTopic": "games",
+      "eventId": "dune-blood-ice",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: games. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Geen enkelvoudig land: wereldwijde hoofdzaak.",
+      "evidence": {
+        "title": "Dune: Awakening’s free Blood and Ice expansion swaps sand for snow on 1st December",
+        "summary": "Funcom’s survival MMO Dune: Awakening is heading north with a free expansion that trades the deserts of Arrakis for a frozen new map. Read more"
+      }
+    }
+  },
+  {
+    "id": "ut3u8a",
+    "split": "development",
+    "group": "v2a:vuurwerk-compensatie",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "economie",
+      "eventId": "vuurwerk-compensatie",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: economie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Vuurwerkbranche vreest faillissementen: ‘Eén jaar compensatie is niet genoeg’",
+        "summary": "Vuurwerkverkopers krijgen een jaar vergoeding voor de gemiste inkomsten. Te weinig om een nieuw verdienmodel op poten te zetten, vinden zij."
+      }
+    }
+  },
+  {
+    "id": "1hqm23t",
+    "split": "control",
+    "group": "v2a:nec-seizoen",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "nec-seizoen",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Het seizoen is amper begonnen of NEC raakt het doel al uit het zicht: ‘Het is te zwart-wit om te zeggen dat we te weinig kwaliteit hebben’",
+        "summary": "Eind oktober en de doelstelling is mijlenver weg voor NEC."
+      }
+    }
+  },
+  {
+    "id": "tiul5r",
+    "split": "development",
+    "group": "v2a:khan-robotaxi",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "GB",
+      "subjectCountries": [
+        "GB"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "mobiliteit",
+      "eventId": "khan-robotaxi",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: mobiliteit. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Sadiq Khan calls for cap on numbers of robotaxis on London streets",
+        "summary": "Mayor questions impact on air quality, congestion and jobs as government poised to allow driverless vehicles in capital London’s mayor has called for a cap on the…"
+      }
+    }
+  },
+  {
+    "id": "shy94f",
+    "split": "control",
+    "group": "v2a:dart-guangzhou",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "CN",
+      "subjectCountries": [
+        "CN"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "dart-guangzhou",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "GB’s Harriet Dart wins maiden WTA title at 30 with Guangzhou Open triumph",
+        "summary": "Briton beats 18-year-old Austrian Lilli Tagger 4-6, 6-3, 6-4 Dart, a qualifier, was competing in her first WTA final Britain’s Harriet Dart won her first WTA title after coming from a set down to beat Lilli Tagger in the final of the Guangzhou Open in China."
+      }
+    }
+  },
+  {
+    "id": "1diygbj",
+    "split": "development",
+    "group": "v2a:ratman-opvolging",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "cultuur",
+      "eventId": "ratman-opvolging",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: cultuur. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Deze man propte 41 jaar lang levende ratten in zijn mond voor spookattractie, nu neemt zijn dochter de fakkel over",
+        "summary": "Liefst 41 jaar lang propte Harry Lewetzow, alias ‘Ratman’, levende ratten in zijn mond met als enig doel om mensen de stuipen op het lijf te jagen."
+      }
+    }
+  },
+  {
+    "id": "77ae12",
+    "split": "control",
+    "group": "v2a:duinwijck-mette",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "duinwijck-mette",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Met de 14-jarige Mette Kool binnen de lijnen dendert Duinwijck door in de eredivisie. ’Wil wel de hele dag bezig zijn met badminton’",
+        "summary": "De Duinwijck-trein dendert verder door in de eredivisie."
+      }
+    }
+  },
+  {
+    "id": "1q1rgoj",
+    "split": "development",
+    "group": "v2a:mageean-overlijden",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "IE",
+      "subjectCountries": [
+        "IE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "mageean-overlijden",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Olympiër en Europees kampioene Ciara Mageean (34) overleden aan gevolgen van kanker",
+        "summary": "De Ierse Ciara Mageean, voormalig Europees kampioene op de 1.500 meter, is op 34-jarige leeftijd overleden aan de gevolgen van kanker. Dat raakte zondag bekend."
+      }
+    }
+  },
+  {
+    "id": "kmv15d",
+    "split": "development",
+    "group": "v2a:koppenberg-1101",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "BE",
+      "subjectCountries": [
+        "BE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "koppenberg-1101",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "LIVE. Niks aan te doen: dominante Lucinda Brand heerst voor tweede jaar op rij op mythische Koppenberg",
+        "summary": "Vandaag staat de Koppenbergcross op het programma. Voor Thibau Nys (23) is het de eerste veldrit van het nieuwe seizoen."
+      }
+    }
+  },
+  {
+    "id": "1tjsap5",
+    "split": "development",
+    "group": "v2a:ea-mass-effect-graffiti",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "ES",
+      "subjectCountries": [
+        "ES"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "games",
+      "eventId": "ea-mass-effect-graffiti",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: games. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Save Mass Effect Graffiti Reportedly Spray-Painted Outside EA Building",
+        "summary": "An EA office building in Madrid was vandalized with the words ‘Save Mass Effect’ just days after the company announced it had shuttered series developer BioWare."
+      }
+    }
+  },
+  {
+    "id": "1stuyr6",
+    "split": "development",
+    "group": "v2a:paus-zuidamerika",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "multiple",
+      "mainTopic": "religie",
+      "eventId": "paus-zuidamerika",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: religie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Meer dan één land of regio is de hoofdzaak.",
+      "evidence": {
+        "title": "How Pope Leo is preparing for high altitude South America trip just weeks after lung cancer operation",
+        "summary": "Pope Leo is due to embark on one of the most intense papal tours in decades, just weeks after surgery."
+      }
+    }
+  },
+  {
+    "id": "gfmo95",
+    "split": "development",
+    "group": "v2a:klaverjassen",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "gezondheid",
+      "eventId": "klaverjassen",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: gezondheid. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Misschien is klaverjassen wel een goede vervanger van explosieve balsporten om kwetsuren te voorkomen",
+        "summary": ""
+      }
+    }
+  },
+  {
+    "id": "16r1xca",
+    "split": "development",
+    "group": "v2a:palestine-action-londen",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "GB",
+      "subjectCountries": [
+        "GB"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "maatschappij",
+      "eventId": "palestine-action-londen",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Minstens 139 arrestaties bij protest Palestine Action in Londen",
+        "summary": "In Londen zijn zaterdag minstens 139 mensen gearresteerd omdat ze deelnamen aan een bijeenkomst ter ondersteuning van de organisatie Palestine Action."
+      }
+    }
+  },
+  {
+    "id": "11m20at",
+    "split": "development",
+    "group": "v2a:korenmiddag-sevenum",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "cultuur",
+      "eventId": "korenmiddag-sevenum",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: cultuur. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Sing Challenge Festival krijgt opvolger in vorm van Korenmiddag",
+        "summary": "De tweede editie van de Sing Challenge Korenmiddag vindt plaats op zondag 8 november bij FEC Sevenum."
+      }
+    }
+  },
+  {
+    "id": "yljzt6",
+    "split": "development",
+    "group": "v2a:duitse-genz-protestfamilie",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "DE",
+      "subjectCountries": [
+        "DE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "onrust",
+      "eventId": "keulen-protest",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: onrust. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Agenten gewond in Keulen na rellen",
+        "summary": "Bij rellen in Keulen zaterdagavond zijn 23 agenten gewond geraakt, meldt de politie in een persbericht."
+      }
+    }
+  },
+  {
+    "id": "d489zl",
+    "split": "development",
+    "group": "v2a:scooter-laren",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "rechtspraak",
+      "eventId": "scooter-laren",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: rechtspraak. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Taakstraf voor Eemnesser (20) die met zijn scooter een ongeluk veroorzaakte in Laren",
+        "summary": "Omdat hij als scooterrijder in Laren een ongeluk veroorzaakte waarbij hijzelf en een vriendin botbreuken opliepen, is een 20-jarige Eemnesser door de Utrechtse rechtbank…"
+      }
+    }
+  },
+  {
+    "id": "eq8eda",
+    "split": "control",
+    "group": "v2a:martens-houthakken",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "sport",
+      "eventId": "martens-houthakken",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Gelenaar Koen Martens wordt zevende op het wereldkampioenschap houthakken",
+        "summary": "Hij had gehoopt op een zesde plaats, want dan zou hij de finale hebben gehaald, maar ook met de zevende plaats is hij heel tevreden."
+      }
+    }
+  },
+  {
+    "id": "1r0eoe5",
+    "split": "control",
+    "group": "v2a:bus-breda",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "misdaad",
+      "eventId": "bus-breda",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: misdaad. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Gewonden bij vecht- en steekpartij in bus in Breda, jongen van 17 opgepakt",
+        "summary": "In Breda zijn gisteravond laat twee groepen jongeren met elkaar slaags geraakt. Een jongen liep daarbij een steek- of snijwond op, een ander is in elkaar geslagen."
+      }
+    }
+  },
+  {
+    "id": "n1ic8i",
+    "split": "development",
+    "group": "v2a:wckt-10000",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "wckt-10000",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Krommenhoek wint ook 10.000 meter kwalificatietoernooi, Slendebroek maakt indruk",
+        "summary": "Jasper Krommenhoek heeft na de 5.000 meter ook de 10.000 meter gewonnen bij het het wereldbekerkwalificatietoernooi in Thialf."
+      }
+    }
+  },
+  {
+    "id": "15mr60k",
+    "split": "development",
+    "group": "v2a:ajax-az-familie",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "brandt-ajax",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Door Julian Brandt kunnen anderen bij Ajax schitteren: als hij uitvalt, is dat meteen een gemis",
+        "summary": "Geen speler in de Eredivisie creëert zo veel kansen als Julian Brandt (30), die deze zomer van Borussia Dortmund naar Ajax kwam."
+      }
+    }
+  },
+  {
+    "id": "nufj70",
+    "split": "development",
+    "group": "v2a:meiland-robinson",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "televisie",
+      "eventId": "meiland-robinson",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: televisie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Maxime Meiland had bewijsdrang in Expeditie Robinson: ‘Ben geen prinsesje’",
+        "summary": "Maxime Meiland, Sjinkie Knegt, Shelley Vol en Boaz Kok wagen zich dit jaar aan een avontuur op een onbewoond eiland in Expeditie Robinson."
+      }
+    }
+  },
+  {
+    "id": "19fnza3",
+    "split": "development",
+    "group": "v2a:autobranden-almelo",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "misdaad",
+      "eventId": "autobranden-almelo",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: misdaad. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Man (43) uit Amsterdam aangehouden voor autobranden Almelo",
+        "summary": "De politie heeft een 43-jarige man uit Amsterdam aangehouden die mogelijk betrokken was bij een of meerdere autobranden in Almelo zaterdagavond."
+      }
+    }
+  },
+  {
+    "id": "1m5xj6v",
+    "split": "development",
+    "group": "v2a:merz-azie",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": null,
+      "subjectCountries": [
+        "DE",
+        "SG",
+        "JP",
+        "KR"
+      ],
+      "geographicalClass": "multiple",
+      "mainTopic": "politiek",
+      "eventId": "merz-azie",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: politiek. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Meer dan één land of regio is de hoofdzaak.",
+      "evidence": {
+        "title": "How Merz’s five-day Asia trip ended up being mostly about Europe",
+        "summary": "Security concerns are following the German Chancellor to Singapore, Japan and Korea. And his proposal for a new trade alliance is already facing hurdles."
+      }
+    }
+  },
+  {
+    "id": "kxu5b0",
+    "split": "control",
+    "group": "v2a:boeken-november",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "global",
+      "mainTopic": "cultuur",
+      "eventId": "boeken-november",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: cultuur. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Geen enkelvoudig land: wereldwijde hoofdzaak.",
+      "evidence": {
+        "title": "The 10 Most Anticipated Sci-Fi and Fantasy Books of November 2026",
+        "summary": "Get cozy with sky pirates, faerie princesses, and political schemes"
+      }
+    }
+  },
+  {
+    "id": "x19agx",
+    "split": "development",
+    "group": "v2a:assembly-canada",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [
+        "CA",
+        "US"
+      ],
+      "geographicalClass": "multiple",
+      "mainTopic": "televisie",
+      "eventId": "assembly-canada",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: televisie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Meer dan één land of regio is de hoofdzaak.",
+      "evidence": {
+        "title": "How to Watch ‘The Assembly’ Canada Season 2 Online In the U.S.",
+        "summary": "The Canadian version of the unconventional interview series is back for a second season. Here’s how viewers in the U.S. can watch online"
+      }
+    }
+  },
+  {
+    "id": "myd8xd",
+    "split": "control",
+    "group": "v2a:loveisblind-roel",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "televisie",
+      "eventId": "loveisblind-roel",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: televisie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Roël uit Love Is Blind doet uit liefde concessie voor Jaslynn",
+        "summary": "Na een hectische periode in ‘Love Is Blind: Nederland’ breekt voor Roël en Jaslynn uit een nieuw hoofdstuk aan. De twee zijn verloofd en gaan binnenkort samenwonen."
+      }
+    }
+  },
+  {
+    "id": "1tiq43o",
+    "split": "control",
+    "group": "v2a:arsenal-academie",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [
+        "GB",
+        "BE"
+      ],
+      "geographicalClass": "multiple",
+      "mainTopic": "sport",
+      "eventId": "arsenal-academie",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Meer dan één land of regio is de hoofdzaak.",
+      "evidence": {
+        "title": "Architect van academie Club Brugge zet nu lijnen uit bij Arsenal: ‘Willen hét opleidingsverhaal van Engeland schrijven’",
+        "summary": "Van talenten klaarstomen voor de Jupiler Pro League naar toptalenten voorbereiden op de Premier League."
+      }
+    }
+  },
+  {
+    "id": "bhdz1m",
+    "split": "development",
+    "group": "v2a:wckt-10000",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "wckt-10000",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "LIVE WCKT | Krommenhoek en Slendebroek pakken World Cup-tickets op 10.000 meter, Bergsma grijpt mis",
+        "summary": "Ontknoping op het WCKT: vanmiddag worden de laatste World Cup-tickets verdeeld."
+      }
+    }
+  },
+  {
+    "id": "jx1ilr",
+    "split": "development",
+    "group": "v2a:pec-ado",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "pec-ado",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "PEC Zwolle neemt met zege afstand van degradatiezone, zorgen ADO Den Haag nemen toe",
+        "summary": "PEC Zwolle heeft zondag voor de derde keer dit seizoen een competitieduel gewonnen."
+      }
+    }
+  },
+  {
+    "id": "buh7gh",
+    "split": "control",
+    "group": "v2a:zelda-gta-industrie",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "global",
+      "mainTopic": "games",
+      "eventId": "zelda-gta-industrie",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: games. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Geen enkelvoudig land: wereldwijde hoofdzaak.",
+      "evidence": {
+        "title": "New Zelda and GTA represent a games industry that no longer exists",
+        "summary": "This is The Stepback, a weekly newsletter breaking down one essential story from the tech world. For more on the biggest game releases of the year, follow Andrew Webster."
+      }
+    }
+  },
+  {
+    "id": "8boaow",
+    "split": "development",
+    "group": "v2a:cambuur-goahead-vuurwerk",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "cambuur-goahead-vuurwerk",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Go Ahead Eagles heeft eerste daders vuurwerk bij SC Cambuur in beeld",
+        "summary": "Go Ahead Eagles heeft de eerste daders in beeld die zaterdagavond vuurwerk hebben afgestoken tijdens het uitduel in de eredivisie met SC Cambuur."
+      }
+    }
+  },
+  {
+    "id": "2bihdx",
+    "split": "development",
+    "group": "v2a:gta-consolekosten",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "global",
+      "mainTopic": "games",
+      "eventId": "gta-consolekosten",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: games. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Geen enkelvoudig land: wereldwijde hoofdzaak.",
+      "evidence": {
+        "title": "Achtergrond – Een console kopen voor GTA VI? Dit betaal je voor een PS5 of XBOX",
+        "summary": "Na 13 jaar wachten komt GTA VI op 19 november uit. Voorlopig gebeurt dat alleen op de PS5 en XBOX Series X/S. Wat betaal je daar tegenwoordig voor?"
+      }
+    }
+  },
+  {
+    "id": "1u9xrh",
+    "split": "development",
+    "group": "v2a:ajax-az-familie",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "ajax-az",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Echteld nuchter na nederlaag: ‘Als je zo goed tegen Ajax speelt…’",
+        "summary": "Na afloop van de wedstrijd Ajax – AZ sprak verslaggever Kalum van Oudheusden met trainer Leeroy Echteld en Peer Koopmeiners."
+      }
+    }
+  },
+  {
+    "id": "itb84k",
+    "split": "control",
+    "group": "v2a:crematie-belgie",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "BE",
+      "subjectCountries": [
+        "BE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "maatschappij",
+      "eventId": "crematie-belgie",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "8 op de 10 Vlamingen kiezen voor crematie: grote verschillen met Brussel en Wallonië",
+        "summary": "Steeds meer mensen worden gecremeerd na hun overlijden: in Vlaanderen stijgt de crematiegraad dit jaar voor het eerst boven de 80 procent."
+      }
+    }
+  },
+  {
+    "id": "h3wab8",
+    "split": "development",
+    "group": "v2a:orts-seizoenzege",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "sport",
+      "eventId": "orts-seizoenzege",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Felipe Orts ziet keuze om te passen voor Koppenbergcross meteen lonen",
+        "summary": "Felipe Orts heeft zaterdag zijn eerste zege van het seizoen geboekt."
+      }
+    }
+  },
+  {
+    "id": "fz0o9e",
+    "split": "development",
+    "group": "v2a:chromagraph-yedlin",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "US",
+      "subjectCountries": [
+        "US"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "technologie",
+      "eventId": "chromagraph-yedlin",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: technologie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "The Hollywood Color Nerd Who Shot ‘Knives Out’ Explains His Viral iPhone Camera App",
+        "summary": "The Chromagraph Camera app costs $13 dollars and processes iPhone photos with the same color math Rian Johnson’s cinematographer, Steve Yedlin, uses for film."
+      }
+    }
+  },
+  {
+    "id": "s3ibyp",
+    "split": "development",
+    "group": "v2a:saibari-operatie",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "DE",
+      "subjectCountries": [
+        "DE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "saibari-operatie",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Ismael Saibari voorlopig niet inzetbaar bij Bayern München na operatie aan enkel",
+        "summary": "Ismael Saibari is voorlopig niet inzetbaar voor zijn club Bayern München na een succesvolle operatie aan zijn rechterenkel."
+      }
+    }
+  },
+  {
+    "id": "1tz93ce",
+    "split": "control",
+    "group": "v2a:hamawy-vragen",
+    "label": {
+      "desk": null,
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "politiek",
+      "eventId": "hamawy-vragen",
+      "uncertain": {
+        "desk": true,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: politiek. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "The Questions Adam Hamawy Won’t Answer",
+        "summary": "The photograph, from April 1993, shows a burly sheikh sitting on a couch wearing a gray kaftan, a white-and-crimson turban, and black sunglasses."
+      }
+    }
+  },
+  {
+    "id": "hz74jl",
+    "split": "development",
+    "group": "v2a:ranasingha-eiland",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": null,
+      "subjectCountries": [
+        "CK",
+        "LK"
+      ],
+      "geographicalClass": "multiple",
+      "mainTopic": "migratie",
+      "eventId": "ranasingha-eiland",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: migratie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Meer dan één land of regio is de hoofdzaak.",
+      "evidence": {
+        "title": "I’ve been stuck on a tiny Pacific island for years and can’t get a transit visa to fly home",
+        "summary": "Ruchira Ranasingha, 50, has been stranded in the Cook Islands since 2023 and wants to return to Sri Lanka."
+      }
+    }
+  },
+  {
+    "id": "m9bb2b",
+    "split": "development",
+    "group": "v2a:mageean-overlijden",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "IE",
+      "subjectCountries": [
+        "IE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "mageean-overlijden",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Former European champion and two-time Olympian Mageean dies aged 34",
+        "summary": "Ciara Mageean, who won a European title and twice represented Ireland at the Olympics, dies aged 34."
+      }
+    }
+  },
+  {
+    "id": "1fvi7zk",
+    "split": "development",
+    "group": "v2a:emmen-denbosch",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "emmen-denbosch",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "LIVE | IJzersterke start van FC Den Bosch in Emmen",
+        "summary": "FC Den Bosch heeft z’n laatste vijf wedstrijden niet verloren (vier keer in de competitie en een bekerduel), maar blijft het ook op bezoek bij het sterke FC Emmen zonder nederlaag?"
+      }
+    }
+  },
+  {
+    "id": "jtbo85",
+    "split": "development",
+    "group": "v2a:china-aandelensteun",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "CN",
+      "subjectCountries": [
+        "CN"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "economie",
+      "eventId": "china-aandelensteun",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: economie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "China to Convene Meeting on Supporting Stock Market, Reports Say",
+        "summary": "China’s central bank and its securities regulator will hold a meeting on Monday to discuss the use of tools designed to support the country’s capital market, according to local media."
+      }
+    }
+  },
+  {
+    "id": "r3a9r4",
+    "split": "development",
+    "group": "v2a:stroopwafelprijs",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "economie",
+      "eventId": "stroopwafelprijs",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: economie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Stroopwafeloorlog tussen Dirk, Jumbo en Albert Heijn gaat verder: 12 koeken kosten hier 34 cent",
+        "summary": "De stroopwafeloorlog tussen supermarkten zorgt voor een ongekend lage prijs in de schappen. Halverwege deze maand kostte een pakje stroopwafels 38 cent."
+      }
+    }
+  },
+  {
+    "id": "v2jzs0",
+    "split": "development",
+    "group": "v2a:palestine-action-londen",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "GB",
+      "subjectCountries": [
+        "GB"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "maatschappij",
+      "eventId": "palestine-action-londen",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Minstens 139 arrestaties bij steunprotest voor verboden organisatie Palestine Action in Londen",
+        "summary": "In Londen zijn zaterdag minstens 139 mensen gearresteerd omdat ze deelnamen aan een bijeenkomst ter ondersteuning van de organisatie Palestine Action."
+      }
+    }
+  },
+  {
+    "id": "d6yo7s",
+    "split": "development",
+    "group": "v2a:bien-mur",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "economie",
+      "eventId": "bien-mur",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: economie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Van Dubai tot Suriname: ondernemers Ramon en Irma uit Meppel lanceren wandkunstmerk Bien Mur. ’We hebben altijd ons eigen pad gevolgd’",
+        "summary": "Van winkelinterieurs en fotoshoots tot internationale projecten in Dubai en Tel Aviv. Irma en Ramon Veelo zijn al jaren actief in de creatieve wereld."
+      }
+    }
+  },
+  {
+    "id": "zr6izd",
+    "split": "control",
+    "group": "v2a:china-podcasts",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "CN",
+      "subjectCountries": [
+        "CN"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "maatschappij",
+      "eventId": "china-podcasts",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Hit podcasts reveal the angst of China’s youth",
+        "summary": "The government is getting twitchy about their growing popularity"
+      }
+    }
+  },
+  {
+    "id": "7ud7mk",
+    "split": "development",
+    "group": "v2a:ajax-az-familie",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "ajax-az",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Wijze raad Jordi Cruijff helpt Ajax na slijtageslag tegen AZ: ‘Slecht spelen en toch winnen, voelt als de loterij’",
+        "summary": "Ajax versloeg AZ voor het eerst in vijf jaar. Net als tegen Sparta trok de club die het publiek altijd wil vermaken de punten over de streep ‘door te lijden’."
+      }
+    }
+  },
+  {
+    "id": "1y73a44",
+    "split": "development",
+    "group": "v2a:nfl-draft2027",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "US",
+      "subjectCountries": [
+        "US"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "nfl-draft2027",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Kiper updates his 2027 Big Board: Ranking the top 25 NFL draft prospects",
+        "summary": "Seven quarterbacks ranked in the top 25? This NFL draft class could be fun. Mel Kiper Jr. stacks the best players on the board as of late October."
+      }
+    }
+  },
+  {
+    "id": "1eyafix",
+    "split": "control",
+    "group": "v2a:xantium-spinout",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "economie",
+      "eventId": "xantium-spinout",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: economie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Quant hedge fund to spin out of Tudor in record $9bn launch",
+        "summary": "Xantium to separate from company controlled by billionaire Paul Tudor Jones II next year"
+      }
+    }
+  },
+  {
+    "id": "r9t0h3",
+    "split": "development",
+    "group": "v2a:linzensoep",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "global",
+      "mainTopic": "eten",
+      "eventId": "linzensoep",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: eten. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Geen enkelvoudig land: wereldwijde hoofdzaak.",
+      "evidence": {
+        "title": "Wat Eten We Vandaag: Linzensoep met venkelworst en spinazie",
+        "summary": "Grove linzensoep uit de soepmaker met gebakken venkelworst en spinazie."
+      }
+    }
+  },
+  {
+    "id": "j0zd11",
+    "split": "development",
+    "group": "v2a:rugby-au-wales",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [
+        "AU",
+        "GB"
+      ],
+      "geographicalClass": "multiple",
+      "mainTopic": "sport",
+      "eventId": "rugby-au-wales",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Meer dan één land of regio is de hoofdzaak.",
+      "evidence": {
+        "title": "Australia 124-6 Wales: Women’s Rugby League World Cup – as it happened",
+        "summary": "Match report: Records tumble as merciless Jillaroos destroy Wales in Rugby League World Cup And the two teams are out in the glorious spring sunshine."
+      }
+    }
+  },
+  {
+    "id": "1tj1aho",
+    "split": "development",
+    "group": "v2a:koppenberg-1101",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "BE",
+      "subjectCountries": [
+        "BE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "koppenberg-1101",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Marie Schreiber pakt door op Koppenberg: enkel Brand en Casasola zijn mee, Thibau Nys maakt zich op voor comeback in het veld",
+        "summary": "Het veldritseizoen gaat nu écht van start, met de Koppenbergcross op de kalender en Thibau Nys die de modder in duikt."
+      }
+    }
+  },
+  {
+    "id": "1xh1nze",
+    "split": "control",
+    "group": "v2a:barrie-afscheid",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "cultuur",
+      "eventId": "barrie-afscheid",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: cultuur. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Na zestig jaar neemt Barrie Stevens (82) afscheid van het toneel: ’Ik heb geen glitter meer nodig, geen masker’",
+        "summary": "Barrie Stevens (82) neemt afscheid van het toneel. Dat doet hij met zijn allerlaatste voorstelling ’The importance of being Barrie’."
+      }
+    }
+  },
+  {
+    "id": "1mixa7p",
+    "split": "development",
+    "group": "v2a:meulebeke-beek",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "BE",
+      "subjectCountries": [
+        "BE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "ongeval",
+      "eventId": "meulebeke-beek",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: ongeval. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Bejaard echtpaar uit Meulebeke duikt met auto in beek: “Ze hebben geluk, want een week geleden stond het water veel hoger”",
+        "summary": "“Ze bleven bewonderenswaardig kalm in hun penibele situatie.”"
+      }
+    }
+  },
+  {
+    "id": "si4rzt",
+    "split": "development",
+    "group": "v2a:holmes-documentaire",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "US",
+      "subjectCountries": [
+        "US"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "cultuur",
+      "eventId": "holmes-documentaire",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: cultuur. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Everyone Is Running a Con in You Can See Everything",
+        "summary": "Everyone is running a con in the Elizabeth Holmes Documentary You Can See Everything."
+      }
+    }
+  },
+  {
+    "id": "14ags4s",
+    "split": "control",
+    "group": "v2a:moskou-waarschuwing",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "RU",
+      "subjectCountries": [
+        "RU"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "veiligheid",
+      "eventId": "moskou-waarschuwing",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: veiligheid. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "US warns Russia about ‘mass casualty event’ plot to attack Moscow",
+        "summary": "The alert has prompted the evacuation of Tsaritsyno Museum Reserve, only days before planned peace talks in Abu Dhabi"
+      }
+    }
+  },
+  {
+    "id": "koln6w",
+    "split": "control",
+    "group": "v2a:jan-verduurzamen",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "wonen",
+      "eventId": "jan-verduurzamen",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: wonen. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Hoe verduurzaam je een huis uit 1920? Jan (72) heeft nul op de meter en betaalt nog 20 euro per maand",
+        "summary": "Een energierekening van 20 euro per maand voor een huis van ruim een eeuw oud."
+      }
+    }
+  },
+  {
+    "id": "qpgub7",
+    "split": "development",
+    "group": "v2a:vespucci-doodsoorzaak",
+    "label": {
+      "desk": "wetenschap",
+      "subjectCountry": "IT",
+      "subjectCountries": [
+        "IT"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "geschiedenis",
+      "eventId": "vespucci-doodsoorzaak",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: geschiedenis. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "The mystery surrounding death of Botticelli’s muse solved by science after more than five centuries",
+        "summary": "Simonetta Vespucci, the legendary model of the 15th-century Florentine artist, did not die of tuberculosis, as historians had believed."
+      }
+    }
+  },
+  {
+    "id": "nu7x9o",
+    "split": "control",
+    "group": "v2a:duinwijck-mette",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "duinwijck-mette",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Met de 14-jarige Mette Kool binnen de lijnen dendert Duinwijck door in de eredivisie. ’Wil wel de hele dag bezig zijn met badminton’",
+        "summary": "De Duinwijck-trein dendert verder door in de eredivisie."
+      }
+    }
+  },
+  {
+    "id": "f2lvsk",
+    "split": "control",
+    "group": "v2a:blankenberge-spoor",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "BE",
+      "subjectCountries": [
+        "BE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "mobiliteit",
+      "eventId": "blankenberge-spoor",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: mobiliteit. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Nachtelijke spoorwerken van Infrabel veroorzaken geluids- en lichthinder",
+        "summary": "Infrabel voert opnieuw spoorwerken uit in Blankenberge, tussen het station en de Dulleweg."
+      }
+    }
+  },
+  {
+    "id": "n1ichq",
+    "split": "development",
+    "group": "v2a:twente-vrouwen",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "twente-vrouwen",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Winnen geen toevalligheid voor Twente Vrouwen: ‘Basis is vrouwentak met kampioensstandaarden’",
+        "summary": "Trots zijn dat je de nul hebt gehouden, kunnen verdedigen als team en hardop uitspreken dat je kampioen wilt worden: bij koploper FC Twente Vrouwen, dat vandaag nummer…"
+      }
+    }
+  },
+  {
+    "id": "1negevd",
+    "split": "development",
+    "group": "v2a:eu-groene-steden",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "multiple",
+      "mainTopic": "klimaat",
+      "eventId": "eu-groene-steden",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: klimaat. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Meer dan één land of regio is de hoofdzaak.",
+      "evidence": {
+        "title": "Een race die Europa wel wint: groenere steden",
+        "summary": "We moeten meedoen met de AI-wedloop, klinkt het vaak. Als we verliezen van de VS en China, verliezen we onze toekomst."
+      }
+    }
+  },
+  {
+    "id": "ip4m1a",
+    "split": "control",
+    "group": "v2a:marathon-geschiedenis",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "US",
+      "subjectCountries": [
+        "US"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "marathon-geschiedenis",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "How Marathons Changed",
+        "summary": "The New York City Marathon is happening this morning."
+      }
+    }
+  },
+  {
+    "id": "wrih0w",
+    "split": "development",
+    "group": "v2a:weekweer",
+    "label": {
+      "desk": null,
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "weer",
+      "eventId": "weekweer",
+      "uncertain": {
+        "desk": true,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: weer. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "‘Typisch novemberweer’ vanaf tweede week nieuwe maand",
+        "summary": "Hoewel november nog met rustig en overwegend droog herfstweer begint, neemt vanaf de tweede week de kans op regen en stevige wind toe."
+      }
+    }
+  },
+  {
+    "id": "b601j0",
+    "split": "control",
+    "group": "v2a:sollfrank-oorlogsgevaar",
+    "label": {
+      "desk": null,
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "defensie",
+      "eventId": "sollfrank-oorlogsgevaar",
+      "uncertain": {
+        "desk": true,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: defensie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Security Sunday: Wie real ist die Kriegsgefahr? – mit General Alexander Sollfrank",
+        "summary": "Präsentiert von YouTube."
+      }
+    }
+  },
+  {
+    "id": "4s33uo",
+    "split": "development",
+    "group": "v2a:departed-retrospectief",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "global",
+      "mainTopic": "cultuur",
+      "eventId": "departed-retrospectief",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: cultuur. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Geen enkelvoudig land: wereldwijde hoofdzaak.",
+      "evidence": {
+        "title": "20 Years Later, The Departed’s Best Line Is Still One Of The Greatest Quotes In Gangster Movie History",
+        "summary": "Jack Nicholson delivered mob cinema’s ultimate statement of power."
+      }
+    }
+  },
+  {
+    "id": "kqv0e9",
+    "split": "development",
+    "group": "v2a:tenhag-ronaldo",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "GB",
+      "subjectCountries": [
+        "GB"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "tenhag-ronaldo",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Erik ten Hag velt opnieuw hard oordeel over Cristiano Ronaldo: ‘Als je niet fit bent, ben je kansloos’",
+        "summary": "Erik ten Hag heeft bij ESPN opnieuw teruggeblikt op zijn veelbesproken samenwerking met Cristiano Ronaldo bij Manchester United."
+      }
+    }
+  },
+  {
+    "id": "h84zur",
+    "split": "development",
+    "group": "v2a:sem-portret",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "cultuur",
+      "eventId": "sem-portret",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: cultuur. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Hier is acteur Sem van der Horst stiekem onzeker over",
+        "summary": "Waar is Sem van der Horst (21) het meest trots? Met welke acteur zou hij ooit nog willen samenwerken? En wat is eigenlijk zijn lievelingseten?"
+      }
+    }
+  },
+  {
+    "id": "14t705x",
+    "split": "development",
+    "group": "v2a:hamasaki-ziekenhuis",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "HK",
+      "subjectCountries": [
+        "HK"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "misdaad",
+      "eventId": "hamasaki-ziekenhuis",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: misdaad. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Ex-Japanese adult film actress awake after alleged drugging in Hong Kong",
+        "summary": "Former Japanese adult film actress Mao Hamasaki has regained consciousness after being admitted to intensive care at a Hong Kong hospital following an alleged drugging while she was working at a club in Tsim Sha Tsui."
+      }
+    }
+  },
+  {
+    "id": "1m57ff1",
+    "split": "development",
+    "group": "v2a:cercle-antwerp",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "BE",
+      "subjectCountries": [
+        "BE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "cercle-antwerp",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "LIVE: Cercle Brugge kent droomstart na rust met openingsgoal, zesde seizoennederlaag dreigt voor Antwerp",
+        "summary": "Na negen speeldagen heeft Cercle Brugge nog altijd niet kunnen winnen in de Jupiler Pro League."
+      }
+    }
+  },
+  {
+    "id": "d79sza",
+    "split": "development",
+    "group": "v2a:wckt-10000",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "wckt-10000",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "LIVE schaatsen | Krommenhoek verrast met beste tijd op 10.000 meter, publiek op de banken voor Bergsma",
+        "summary": "Bij het World Cup-kwalificatietoernooi in Thialf is het zondag tijd voor de 1000 meter. Eerst rijden de mannen om 12.00 uur de 10 kilometer en de vrouwen de 5000 meter."
+      }
+    }
+  },
+  {
+    "id": "2drcw3",
+    "split": "development",
+    "group": "v2a:energie-aanval-1101",
+    "label": {
+      "desk": "oekraine",
+      "subjectCountry": "UA",
+      "subjectCountries": [
+        "UA"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "oorlog",
+      "eventId": "energie-aanval-1101",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: oorlog. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Honderdduizenden Oekraïners zonder elektriciteit na Russische aanvallen",
+        "summary": "Rusland heeft in de nacht van zaterdag op zondag energie-infrastructuur in vier Oekraïense regio’s aangevallen. Daardoor zitten honderdduizenden Oekraïners zonder stroom."
+      }
+    }
+  },
+  {
+    "id": "16o1jwl",
+    "split": "control",
+    "group": "v2a:doevelaar-curacao",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [
+        "CW",
+        "NL"
+      ],
+      "geographicalClass": "multiple",
+      "mainTopic": "cultuur",
+      "eventId": "doevelaar-curacao",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: cultuur. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Meer dan één land of regio is de hoofdzaak.",
+      "evidence": {
+        "title": "De Twentse nuchterheid verruilde ze voor de Caribische zon: ‘Soms voelt het alsof ik de loterij heb gewonnen’",
+        "summary": "Grafisch vormgever en kunstenaar Martina Doevelaar (59) is geboren en getogen in Denekamp. Ze leeft en werkt inmiddels vijftien jaar op het zonnige Curaçao."
+      }
+    }
+  },
+  {
+    "id": "vuuw91",
+    "split": "development",
+    "group": "v2a:holografische-assistent",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "global",
+      "mainTopic": "technologie",
+      "eventId": "holografische-assistent",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: technologie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Geen enkelvoudig land: wereldwijde hoofdzaak.",
+      "evidence": {
+        "title": ".Geek – Youtuber maakt holografische AI-assistent met singleboardcomputer en oledscherm",
+        "summary": "Heb je altijd al willen praten met je eigen holografische AI-assistent?"
+      }
+    }
+  },
+  {
+    "id": "1lcle42",
+    "split": "control",
+    "group": "v2a:snl-brewers",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "US",
+      "subjectCountries": [
+        "US"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "televisie",
+      "eventId": "snl-brewers",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: televisie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "‘SNL’ Celebrates Milwaukee Brewers’ World Series Win With Bobby Moynihan’s Drunk Uncle on Weekend Update",
+        "summary": "“Saturday Night Live” paid tribute to the Milwaukee Brewers’ historic World Series win during a Weekend Update segment that featured the return of Bobby Moynihan’s Drunk Uncle commentator character."
+      }
+    }
+  },
+  {
+    "id": "1dscd7l",
+    "split": "development",
+    "group": "v2a:ajax-miami",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "US",
+      "subjectCountries": [
+        "US"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "ajax-miami",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Ajax Onder-16 geeft het weg in Miami en loopt finale Messi Cup mis",
+        "summary": "Het is Ajax Onder-16 niet gelukt om in Miami de finale van de Messi Cup te bereiken."
+      }
+    }
+  },
+  {
+    "id": "1qcxxuz",
+    "split": "development",
+    "group": "v2a:duitse-genz-protestfamilie",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "DE",
+      "subjectCountries": [
+        "DE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "onrust",
+      "eventId": "frankfurt-protest",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: onrust. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Relschoppers plunderen winkels in Frankfurt na jongerenprotest: honderd arrestaties",
+        "summary": "Haagse winkeliers maken zich op voor een roerige dag. In de binnenstad hebben veel winkeliers planken voor de ruiten getimmerd."
+      }
+    }
+  },
+  {
+    "id": "a2qpfj",
+    "split": "control",
+    "group": "v2a:humbeek-tram",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "BE",
+      "subjectCountries": [
+        "BE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "geschiedenis",
+      "eventId": "humbeek-tram",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: geschiedenis. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Exact 65 jaar geleden reed de laatste tram van Humbeek naar Brussel: ‘Had niet mogen verdwijnen’",
+        "summary": "In Humbeek bij Grimbergen herdenken ze dit weekend het einde van de boerentram."
+      }
+    }
+  },
+  {
+    "id": "1gaqe26",
+    "split": "development",
+    "group": "v2a:koppenberg-1101",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "BE",
+      "subjectCountries": [
+        "BE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "koppenberg-1101",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Voorbeschouwing: X2O Trofee Koppenberg 2026 – Comeback van Thibau Nys en speciale cross voor Fem van Empel",
+        "summary": "In het veldritwereldje wordt de Koppenbergcross nog altijd als de échte start van het seizoen gezien."
+      }
+    }
+  },
+  {
+    "id": "qn94t1",
+    "split": "control",
+    "group": "v2a:ny-datacentermoratorium",
+    "label": {
+      "desk": "vs",
+      "subjectCountry": "US",
+      "subjectCountries": [
+        "US"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "politiek",
+      "eventId": "ny-datacentermoratorium",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: politiek. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "What Democrats Can Learn From New York’s Data Center Moratorium",
+        "summary": "With a number of anti-data-center candidates poised to win on Tuesday, New York provides a glimpse at the tensions around actually having to do something about the digital infrastructure."
+      }
+    }
+  },
+  {
+    "id": "18ewkr1",
+    "split": "control",
+    "group": "v2a:marathon-denhaag",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "marathon-denhaag",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Saurey Kibet en Doreen Chesang winnen eerste editie van marathon Den Haag",
+        "summary": "De Keniaan Elijah Saurey Kibet en de Oegandese Doreen Chesang hebben zondag de eerste editie van de marathon van Den Haag gewonnen."
+      }
+    }
+  },
+  {
+    "id": "socs98",
+    "split": "development",
+    "group": "v2a:bulgarije-presidentsronde",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "BG",
+      "subjectCountries": [
+        "BG"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "politiek",
+      "eventId": "bulgarije-presidentsronde",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: politiek. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Bulgarians vote in presidential run-off amid Black Sea tensions",
+        "summary": "Voters in Bulgaria weigh economic challenges and attacks on ships in a race marked by record low turnout."
+      }
+    }
+  },
+  {
+    "id": "m366a7",
+    "split": "control",
+    "group": "v2a:alexander-arnold",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "ES",
+      "subjectCountries": [
+        "ES"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "alexander-arnold",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Third-choice? Inside Alexander-Arnold’s struggles in Madrid",
+        "summary": "Trent Alexander-Arnold is currently third-choice right-back at Real Madrid – where does his future lie?"
+      }
+    }
+  },
+  {
+    "id": "1ro5msy",
+    "split": "development",
+    "group": "v2a:paaseiland-toerist",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "CL",
+      "subjectCountries": [
+        "CL"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "maatschappij",
+      "eventId": "paaseiland-toerist",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Nederlander walgt van ‘leugens’ na homofobe rel op Paaseiland: ‘Zeker niet geflirt of gezoend’",
+        "summary": "De Nederlandse toerist die op Paaseiland homofobe scheldpartijen en bedreigingen kreeg, beschuldigt de Chileense reisgids van leugens."
+      }
+    }
+  },
+  {
+    "id": "1mogdpz",
+    "split": "control",
+    "group": "v2a:opec-december",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "multiple",
+      "mainTopic": "economie",
+      "eventId": "opec-december",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: economie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Meer dan één land of regio is de hoofdzaak.",
+      "evidence": {
+        "title": "OPEC+ Leaves Oil Output Targets Unchanged for December",
+        "summary": "Seven members of the OPEC+ group of oil producers agreed to keep output quotas unchanged in December, after unwinding the last of their voluntary cuts in September."
+      }
+    }
+  },
+  {
+    "id": "wnsr3z",
+    "split": "development",
+    "group": "v2a:eindhoven-gracht",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "misdaad",
+      "eventId": "eindhoven-gracht",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: misdaad. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Dode gevonden in gracht in Eindhoven, duikers halen lichaam uit water",
+        "summary": "In een gracht in Eindhoven is zondagochtend een dode aangetroffen."
+      }
+    }
+  },
+  {
+    "id": "quunmi",
+    "split": "development",
+    "group": "v2a:bolivia-noodtoestand",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "BO",
+      "subjectCountries": [
+        "BO"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "ramp",
+      "eventId": "bolivia-noodtoestand",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: ramp. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Boliviaanse president roept noodtoestand uit wegens ‘super El Niño’",
+        "summary": "De Boliviaanse president Rodrigo Paz heeft zaterdag (lokale tijd) de noodtoestand afgekondigd om de droogte en overstromingen te bestrijden als gevolg van het weerfenomeen 'El Niño'."
+      }
+    }
+  },
+  {
+    "id": "1oymyim",
+    "split": "development",
+    "group": "v2a:kringloop-leek",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "maatschappij",
+      "eventId": "kringloop-leek",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Kringloop Leek helpt minima: Robin Hood bewijst in vier jaar tijd haar bestaansrecht",
+        "summary": "Steeds meer mensen weten de weg te vinden naar de bijna vier jaar geleden geopende kringloopwinkel Robin Hood Noord op Industriepark 6 in Leek."
+      }
+    }
+  },
+  {
+    "id": "1s32qf1",
+    "split": "development",
+    "group": "v2a:duitse-genz-protestfamilie",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "DE",
+      "subjectCountries": [
+        "DE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "onrust",
+      "eventId": "duitsland-protesten-1101",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: onrust. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Germany news: Gen Z group calls for new protests",
+        "summary": "The group behind German demonstrations this weekend has called for more protests to keep pressure on the government to act."
+      }
+    }
+  },
+  {
+    "id": "1d6dthj",
+    "split": "development",
+    "group": "v2a:eindhoven-gracht",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "misdaad",
+      "eventId": "eindhoven-gracht",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: misdaad. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Dode gevonden in gracht in Eindhoven, veel brandweer en politie aanwezig",
+        "summary": "In een gracht in Eindhoven is zaterdagochtend een dode aangetroffen."
+      }
+    }
+  },
+  {
+    "id": "j4cr2g",
+    "split": "control",
+    "group": "v2a:swinney-banner",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "US",
+      "subjectCountries": [
+        "US"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "swinney-banner",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Clemson’s Swinney irked by ‘shameful’ plane banner urging FSU to fire Norvell",
+        "summary": "Before Florida State’s 36-24 loss to Clemson on Saturday night, a plane carrying a banner urging the school to fire Seminoles coach Mike Norvell hovered over Doak Campbell Stadium, a move Tigers coach Dabo Swinney called ‘embarrassing’ and ‘shameful.’"
+      }
+    }
+  },
+  {
+    "id": "pliwu2",
+    "split": "development",
+    "group": "v2a:duitse-genz-protestfamilie",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "DE",
+      "subjectCountries": [
+        "DE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "onrust",
+      "eventId": "duitsland-protesten-1101",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: onrust. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Scholierenprotest Duitsland loopt uit op rellen in grote steden",
+        "summary": "In 34 Duitse steden waren zaterdag protesten tegen onder meer achterstallig onderhoud van scholen en tegen de dienstplicht."
+      }
+    }
+  },
+  {
+    "id": "1yv6nz7",
+    "split": "development",
+    "group": "v2a:duitsland-gasvoorraad",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "DE",
+      "subjectCountries": [
+        "DE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "energie",
+      "eventId": "duitsland-gasvoorraad",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: energie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Germany fails to meet winter gas storage target",
+        "summary": "Prices could rise for other EU countries as bloc’s biggest economy will be forced to rely on more spot market purchases"
+      }
+    }
+  },
+  {
+    "id": "m2w7sm",
+    "split": "development",
+    "group": "v2a:ajax-az-familie",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "ajax-az",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Sofyan Amrabat verpersoon­lijkt het huidige Ajax: ‘Als je geen City bent, moet je kunnen lijden’",
+        "summary": "Ajax versloeg AZ voor het eerst in vijf jaar. Net als tegen Sparta trok de club die het publiek altijd wil vermaken de punten over de streep ‘door te lijden’."
+      }
+    }
+  },
+  {
+    "id": "3tl15v",
+    "split": "control",
+    "group": "v2a:duinwijck-mette",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "duinwijck-mette",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Met de 14-jarige Mette Kool binnen de lijnen dendert Duinwijck door in de eredivisie. ’Het is veel, maar als ik nu zou mogen kiezen, wil ik de hele dag bezig zijn met badminton’",
+        "summary": "De Duinwijck-trein dendert verder door in de eredivisie."
+      }
+    }
+  },
+  {
+    "id": "diksjj",
+    "split": "development",
+    "group": "v2a:ratman-opvolging",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "cultuur",
+      "eventId": "ratman-opvolging",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: cultuur. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Deze man propte 41 jaar lang levende ratten in zijn mond voor spookattractie, nu neemt zijn dochter de fakkel over",
+        "summary": "Liefst 41 jaar lang propte Harry Lewetzow, alias ‘Ratman’, levende ratten in zijn mond met als enig doel om mensen de stuipen op het lijf te jagen."
+      }
+    }
+  },
+  {
+    "id": "1xh4mzd",
+    "split": "development",
+    "group": "v2a:antwerpen-pakket",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "BE",
+      "subjectCountries": [
+        "BE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "misdaad",
+      "eventId": "antwerpen-pakket",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: misdaad. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "23-jarige man opgepakt in Antwerpen na vondst van explosief pakket op straat: voorbijganger spot jerrycan met vuurwerk en slaat alarm",
+        "summary": "De Lange Beeldekensstraat in Antwerpen is zondagochtend ruim twee uur afgezet na een melding van een verdacht pakket."
+      }
+    }
+  },
+  {
+    "id": "8yd75q",
+    "split": "development",
+    "group": "v2a:christensen-inbraak",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "cultuur",
+      "eventId": "christensen-inbraak",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: cultuur. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Star Wars Actor Hayden Christensen Says a Man Who Burgled His House Recognized Him Then Gave His Stuff Back Mid-Robbery",
+        "summary": "Anakin Skywalker actor Hayden Christensen has revealed the strangest fan encounter he’s ever had."
+      }
+    }
+  },
+  {
+    "id": "1ixeauz",
+    "split": "development",
+    "group": "v2a:duitse-genz-protestfamilie",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "DE",
+      "subjectCountries": [
+        "DE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "onrust",
+      "eventId": "duitsland-protesten-1101",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: onrust. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Rioters loot stores in Germany as Gen Z-led protests turn violent",
+        "summary": "Latest in a wave of protests across Europe"
+      }
+    }
+  },
+  {
+    "id": "36agpx",
+    "split": "development",
+    "group": "v2a:zorg-huisarts",
+    "label": {
+      "desk": null,
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "zorg",
+      "eventId": "zorg-huisarts",
+      "uncertain": {
+        "desk": true,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: zorg. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Waarom steeds meer zorg van ziekenhuis naar huisarts verschuift (en de keerzijde daarvan): ’We gaan maar door’",
+        "summary": "Een bloedtest, injectie of wondzorg: voor veel medische zaken die eerder in het ziekenhuis plaatsvonden, kunnen we nu bij de huisarts terecht."
+      }
+    }
+  },
+  {
+    "id": "1oelykm",
+    "split": "control",
+    "group": "v2a:zvl-waterpolo",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "zvl-waterpolo",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Waterpolomannen ZVL-1886 beleven succesvolle week in eigen huis en blijven ongeslagen",
+        "summary": "De waterpolomannen van ZVL-1886 zijn nog steeds ongeslagen."
+      }
+    }
+  },
+  {
+    "id": "12ztzri",
+    "split": "development",
+    "group": "v2a:bevo-eupen",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "BE",
+      "subjectCountries": [
+        "BE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "bevo-eupen",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Bevo wint lastige uitwedstrijd van Eupen: ‘We waren koelbloediger in de slotfase’",
+        "summary": "Humby Bevo won zaterdag uit met 30-28 van Eupen. Door de zege klimt de Panningse ploeg naar de vijfde plek in de Super Handball League."
+      }
+    }
+  },
+  {
+    "id": "44tj9y",
+    "split": "development",
+    "group": "v2a:palestine-action-londen",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "GB",
+      "subjectCountries": [
+        "GB"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "maatschappij",
+      "eventId": "palestine-action-londen",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Meer dan 300 arrestaties bij protest Palestine Action in Londen",
+        "summary": "Bij een protest van Palestine Action zijn in Londen zaterdag 325 arrestaties verricht, meldt de Britse politie. Zaterdagavond werden nog 139 arrestaties gemeld."
+      }
+    }
+  },
+  {
+    "id": "17ucb1a",
+    "split": "development",
+    "group": "v2a:ksv-dss",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "ksv-dss",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "KSV is ook concurrent DSS de baas en nog foutloos in handbal tweede divisie",
+        "summary": "KSV kreeg met DSS de zwaarste kluif tot nu toe dit seizoen voorgeschoteld."
+      }
+    }
+  },
+  {
+    "id": "47gr3g",
+    "split": "control",
+    "group": "v2a:baal-holsbeek",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "BE",
+      "subjectCountries": [
+        "BE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "baal-holsbeek",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Lastige wedstrijd eindigt in winst voor Holsbeek B tegen Baal B",
+        "summary": "De wedstrijd tussen Baal B en Holsbeek B ging alle kanten op."
+      }
+    }
+  },
+  {
+    "id": "n1icig",
+    "split": "development",
+    "group": "v2a:motogp-maleisie",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "MY",
+      "subjectCountries": [
+        "MY"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "motogp-maleisie",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Machtsvertoon Márquez in MotoGP Maleisië: ruim vier seconden voorsprong",
+        "summary": "MotoGP-coureur Marc Márquez heeft de grote prijs van Kuala Lumpur gewonnen. De Spanjaard won de Grand Prix van Maleisië met ruim vier seconden voorsprong."
+      }
+    }
+  },
+  {
+    "id": "v9vhld",
+    "split": "control",
+    "group": "v2a:wijkagent-john",
+    "label": {
+      "desk": null,
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "maatschappij",
+      "eventId": "wijkagent-john",
+      "uncertain": {
+        "desk": true,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Wijkagent John was altijd bereikbaar – ook als hij vrij was | Luisterverhaal op zondag",
+        "summary": "Wijkagent John Heij gaat met vervroegd pensioen. Het liefst reed hij zonder agenda op zijn motor door ‘zijn’ wijken, aanspreekbaar voor iedereen."
+      }
+    }
+  },
+  {
+    "id": "v70pl0",
+    "split": "control",
+    "group": "v2a:vakantieverhuur-regels",
+    "label": {
+      "desk": null,
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "wonen",
+      "eventId": "vakantieverhuur-regels",
+      "uncertain": {
+        "desk": true,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: wonen. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Strengere regels voor vakantieverhuur moeten overlast in woonwijken aanpakken",
+        "summary": "Wie een woning verhuurt aan toeristen of naast zo’n woning woont, krijgt vanaf zondag te maken met strengere regels."
+      }
+    }
+  },
+  {
+    "id": "18bj7fe",
+    "split": "control",
+    "group": "v2a:alaska-rankedchoice",
+    "label": {
+      "desk": "vs",
+      "subjectCountry": "US",
+      "subjectCountries": [
+        "US"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "politiek",
+      "eventId": "alaska-rankedchoice",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: politiek. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Did the Peltola Campaign Seal the Fate of Alaska’s Ranked Choice Vote?",
+        "summary": "Beyond hotly contested Senate and governor’s races, Alaskans will decide Tuesday whether to scrap the state’s unique ballot."
+      }
+    }
+  },
+  {
+    "id": "12k25vk",
+    "split": "development",
+    "group": "v2a:ajax-az-familie",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "ajax-az",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Ajax nadert koploper Feyenoord tot één punt: ‘We hebben gewonnen door samen te lijden’",
+        "summary": "Na elf edities zonder zege won Ajax eindelijk weer eens van AZ: 1-0."
+      }
+    }
+  },
+  {
+    "id": "1abuwqv",
+    "split": "development",
+    "group": "v2a:ajax-az-familie",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "ajax-az",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Jordi Cruijff herleeft wijze raad na slijtageslag tegen AZ: ‘Slecht spelen en toch winnen voelt als de loterij’",
+        "summary": "Ajax versloeg AZ voor het eerst in vijf jaar. Net als tegen Sparta trok de club die het publiek altijd wil vermaken de punten over de streep ‘door te lijden’."
+      }
+    }
+  },
+  {
+    "id": "10uclq9",
+    "split": "control",
+    "group": "v2a:carbid-vuurwerk",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "maatschappij",
+      "eventId": "carbid-vuurwerk",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Carbid rukt op als alternatief voor knallen met vuurwerk",
+        "summary": "Nu er vanaf dit jaar een vuurwerkverbod geldt, stijgt de verkoop van carbid. Traditioneel wordt er vooral in het noorden en oosten mee geknald."
+      }
+    }
+  },
+  {
+    "id": "1k0ut83",
+    "split": "development",
+    "group": "v2a:hongkong-krantenprijs",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "HK",
+      "subjectCountries": [
+        "HK"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "economie",
+      "eventId": "hongkong-krantenprijs",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: economie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "3 Hong Kong Chinese-language newspapers raise retail prices by HK$3",
+        "summary": "Three Chinese-language newspapers in Hong Kong have raised their retail prices by HK$3 (40 US cents) this month, marking the first sector-wide adjustment in two years."
+      }
+    }
+  },
+  {
+    "id": "1ydphib",
+    "split": "development",
+    "group": "v2a:koppenberg-1101",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "BE",
+      "subjectCountries": [
+        "BE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "koppenberg-1101",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Koningin van de Koppenberg: Lucinda Brand schudt nummertje uit haar benen om zichzelf op te volgen als triomfator",
+        "summary": "Geen houden aan de wereldkampioene. Lucinda Brand heeft zichzelf opgevolgd als winnares van de Koppenbergcross. Halverwege de wedstrijd koos de Nederlandse het ruime sop."
+      }
+    }
+  },
+  {
+    "id": "nbk86v",
+    "split": "development",
+    "group": "v2a:ratelband-zoektocht",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "maatschappij",
+      "eventId": "ratelband-zoektocht",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Kinderen van ‘vermiste’ Ratelband lopen vast bij instanties: ‘We weten het even niet meer’",
+        "summary": "Rolls en Minou Ratelband, twee van de oudere kinderen van de al dan niet vermiste Emile Ratelband, lopen vast bij de instanties in hun zoektocht naar hun vader."
+      }
+    }
+  },
+  {
+    "id": "2drcwb",
+    "split": "development",
+    "group": "v2a:bulgarije-presidentsronde",
+    "label": {
+      "desk": "buitenland",
+      "subjectCountry": "BG",
+      "subjectCountries": [
+        "BG"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "politiek",
+      "eventId": "bulgarije-presidentsronde",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: politiek. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Bulgaren kiezen nieuwe president terwijl drone-aanvallen boven Zwarte Zee toenemen",
+        "summary": "De Bulgaren kiezen zondag een nieuwe president. De race gaat tussen de Ruslandgezinde uittredende premier Iliana Jotova of haar pro-Europese uitdager Andrej Gjoerov."
+      }
+    }
+  },
+  {
+    "id": "jkwyv5",
+    "split": "control",
+    "group": "v2a:china-pakketjesheffing",
+    "label": {
+      "desk": null,
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "economie",
+      "eventId": "china-pakketjesheffing",
+      "uncertain": {
+        "desk": true,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: economie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Stelling | De extra heffing op goedkope pakjes uit China is terecht",
+        "summary": "Pakketjes van webshops als AliExpress en Temu zijn door een nieuwe heffing opnieuw 2 euro duurder geworden."
+      }
+    }
+  },
+  {
+    "id": "1qsoxtp",
+    "split": "development",
+    "group": "v2a:feyenoord-fortuna",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "feyenoord-fortuna",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Valente zelfkritisch: ‘Ik ben er hard mee bezig’",
+        "summary": "Luciano Valente stak zaterdagavond op de persconferentie na het duel tussen Feyenoord en Fortuna Sittard hand in eigen boezem."
+      }
+    }
+  },
+  {
+    "id": "aflg02",
+    "split": "control",
+    "group": "v2a:kamp-fly",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "BE",
+      "subjectCountries": [
+        "BE"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "televisie",
+      "eventId": "kamp-fly",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: televisie. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "In ‘Kamp Fly’ gaan 8 jongeren op avontuur met Fly en Tom Waes: ‘Hier kunnen volwassenen iets van leren’",
+        "summary": "Acht jongeren die worstelen om hun diploma secundair onderwijs te halen weer zelfvertrouwen geven om hun plaats in de samenleving te vinden."
+      }
+    }
+  },
+  {
+    "id": "10mn615",
+    "split": "control",
+    "group": "v2a:lafay-contract",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "sport",
+      "eventId": "lafay-contract",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Victor Lafay kan niet blijven bij Unibet Rose Rockets: ‘Ben ook niet op zoek naar een contract’",
+        "summary": "Victor Lafay werd in aanloop naar het seizoen 2026 met veel tromgeroffel binnengehaald door Unibet Rose Rockets, maar zijn avontuur bij de ploeg van Bas Tietema draaide uit op een grote teleurstelling."
+      }
+    }
+  },
+  {
+    "id": "1uqwf7k",
+    "split": "development",
+    "group": "v2a:sterren-puinringen",
+    "label": {
+      "desk": "wetenschap",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "global",
+      "mainTopic": "ruimtevaart",
+      "eventId": "sterren-puinringen",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: ruimtevaart. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Geen enkelvoudig land: wereldwijde hoofdzaak.",
+      "evidence": {
+        "title": "A Newly Discovered Trail of Cosmic Debris Illustrates How the End of the Solar System Could Look",
+        "summary": "A dying star 1,600 light-years from Earth is surrounded by two rings of gas and dust that astronomers believe are the remnants of the planetary bodies it once hosted."
+      }
+    }
+  },
+  {
+    "id": "1ih703j",
+    "split": "development",
+    "group": "v2a:genz-stereotypen",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "maatschappij",
+      "eventId": "genz-stereotypen",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Verslaggever Vera (21), zelf gen Z, onderzoekt wat er klopt van de vooroordelen over haar generatie",
+        "summary": "Lui, veeleisend, deeltijds werkend en bijna altijd op vakantie: zo staat generatie Z bekend. Maar klopt het?"
+      }
+    }
+  },
+  {
+    "id": "zp3gyz",
+    "split": "development",
+    "group": "v2a:wnba-valkyries",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "US",
+      "subjectCountries": [
+        "US"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "wnba-valkyries",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Golden State Valkyries defeat Atlanta Dream to capture first WNBA crown",
+        "summary": "Gabby Williams, named Most Valuable Player, sets records for most points (137) and most steals (18) in the WNBA Finals."
+      }
+    }
+  },
+  {
+    "id": "yuhlws",
+    "split": "development",
+    "group": "v2a:manu-chelsea",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "GB",
+      "subjectCountries": [
+        "GB"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "manu-chelsea",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Has Martinez become a liability for Man Utd?",
+        "summary": "Match of the Day pundits Danny Murphy and Stephan Warnock analyse Lisandro Martinez’s performance in Manchester United’s 2-0 defeat to Chelsea, where the Argentinian defender was sent off."
+      }
+    }
+  },
+  {
+    "id": "3spylr",
+    "split": "development",
+    "group": "v2a:genz-stereotypen",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "maatschappij",
+      "eventId": "genz-stereotypen",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Gen Z lui en sneller een burn-out? ‘Oudere generaties gingen door tot ze omvielen, jongeren trekken eerder aan de bel’",
+        "summary": "Lui, veeleisend, deeltijds werkend en bijna altijd op vakantie: zo staat generatie Z bekend. Maar klopt het?"
+      }
+    }
+  },
+  {
+    "id": "1qcjg0m",
+    "split": "development",
+    "group": "v2a:ajax-az-familie",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "sport",
+      "eventId": "ajax-az",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Sofyan Amrabat verpersoonlijkt het huidige Ajax: ‘Als je geen City bent, moet je kunnen lijden’",
+        "summary": "Ajax versloeg AZ voor het eerst in vijf jaar. Net als tegen Sparta trok de club die het publiek altijd wil vermaken de punten over de streep ‘door te lijden’."
+      }
+    }
+  },
+  {
+    "id": "1pkxxzg",
+    "split": "control",
+    "group": "v2a:groningen-klimaatbezoek",
+    "label": {
+      "desk": "binnenland",
+      "subjectCountry": "NL",
+      "subjectCountries": [
+        "NL"
+      ],
+      "geographicalClass": "domestic",
+      "mainTopic": "klimaat",
+      "eventId": "groningen-klimaatbezoek",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: klimaat. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "100 internationale onderzoekers bekijken Groningse klimaatmaatregelen",
+        "summary": "Sexy is het niet. Toch staan veertig internationale bezoekers in de Reitdiepwijk te turen naar de slootkant."
+      }
+    }
+  },
+  {
+    "id": "bybs7q",
+    "split": "development",
+    "group": "v2a:pensioen-sociaal",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": null,
+      "subjectCountries": [],
+      "geographicalClass": "unknown",
+      "mainTopic": "maatschappij",
+      "eventId": "pensioen-sociaal",
+      "uncertain": {
+        "desk": false,
+        "country": true,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: maatschappij. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land onvoldoende uit de tekst vast te stellen.",
+      "evidence": {
+        "title": "Pensioen gaat niet alleen om geld: denk ook eens aan het sociale aspect van deze levensfase",
+        "summary": "Bij het zien van het woord ‘pensioen’ is de kans groot dat je aan geldzaken denkt."
+      }
+    }
+  },
+  {
+    "id": "1jzoips",
+    "split": "control",
+    "group": "v2a:nfl-fantasy-week8",
+    "label": {
+      "desk": "overig",
+      "subjectCountry": "US",
+      "subjectCountries": [
+        "US"
+      ],
+      "geographicalClass": "foreign",
+      "mainTopic": "sport",
+      "eventId": "nfl-fantasy-week8",
+      "uncertain": {
+        "desk": false,
+        "country": false,
+        "topic": false,
+        "event": false
+      },
+      "reason": "Hoofdzaak: sport. Beoordeeld op kop en intro; uitgeversland niet gebruikt. Land van de beschreven plaats, instelling of gebeurtenis; niet van de uitgever.",
+      "evidence": {
+        "title": "Don’t be surprised if … Jaxon Smith-Njigba does what no receiver has ever done",
+        "summary": "Don’t be surprised if Jaxon Smith-Njigba makes NFL history, don’t underestimate Baker Mayfield and more bold predictions."
+      }
+    }
+  }
+]
