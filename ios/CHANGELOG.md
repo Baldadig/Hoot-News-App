@@ -3,6 +3,7 @@
 ## Onuitgebracht
 
 - Uitloggen en accountwisseling maken lopende synchronisatie- en tokenantwoorden ongeldig. Oude antwoorden kunnen geen privéleesstatus, sessie of eigenaar terugzetten of een nieuwe login uitloggen.
+- Deelkaarten: uitgeverslogo en bronnaam in papiertint op merkrood, met lokaal gebundelde logo’s en een beginletter als terugval.
 
 - Nieuwe Editie: perslijn en hoofdverhaal verschijnen één keer na de iris, met vervagen bij Verminder beweging.
 - Taalfilter voor tweetalige bronnen en juiste hoofdtaal van vakbronnen.

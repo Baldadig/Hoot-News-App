@@ -26,8 +26,40 @@ for (const format of ['link', 'staand']) {
   }
 }
 test('A3: beide platforms bundelen precies dezelfde maten, glyphmaten en lettertypes', async () => {
-  for (const file of ['layout.json', 'advances.json', 'Newsreader-800.ttf', 'SourceSans3-600.ttf', 'newsreader-OFL.txt', 'source-sans-3-OFL.txt']) {
+  for (const file of ['layout.json', 'advances.json', 'publisher-marks.json', 'Newsreader-800.ttf', 'SourceSans3-600.ttf', 'newsreader-OFL.txt', 'source-sans-3-OFL.txt']) {
     assert.deepEqual(await readFile(new URL(`../shared/deelkaart/${file}`, import.meta.url)), await readFile(new URL(`../ios/Hoot/Resources/Deelkaart/${file}`, import.meta.url)), file)
+  }
+})
+
+test('uitgeverslogo’s zijn lokaal ingebedde PNG’s in uitsluitend papiertint', async () => {
+  const marks = JSON.parse(await readFile(new URL('../shared/deelkaart/publisher-marks.json', import.meta.url)))
+  for (const source of ['nos', 'nrc', 'nyt']) assert.ok(marks[source], source)
+  for (const [source, uri] of Object.entries(marks)) {
+    assert.match(uri, /^data:image\/png;base64,/, source)
+    const { data, info } = await sharp(Buffer.from(uri.split(',')[1], 'base64')).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+    assert.equal(info.width, 84); assert.equal(info.height, 84)
+    let ink = 0
+    for (let i = 0; i < data.length; i += 4) if (data[i + 3]) {
+      assert.deepEqual([...data.subarray(i, i + 3)], [245, 241, 232], source)
+      ink++
+    }
+    assert.ok(ink > 10, source)
+  }
+})
+
+test('deelkaart met logo, zonder logo, kapot logo en lange bronnaam blijft een geldige PNG', async () => {
+  const item = { ...cases[0], sourceName: 'Een zeer lange naam van een onderzoeksredactie '.repeat(8) }
+  for (const format of ['link', 'staand']) {
+    const normal = await renderCard(item, format)
+    const fallback = await renderCard(item, format, { marks: {} })
+    const broken = await renderCard(item, format, { marks: { nos: 'data:image/png;base64,iVBORkapot' } })
+    assert.notDeepEqual(normal, fallback)
+    assert.deepEqual(broken, fallback)
+    for (const png of [normal, fallback, broken]) {
+      const metadata = await sharp(png).metadata()
+      assert.equal(metadata.width, layout.formats[format].width)
+      assert.equal(metadata.height, layout.formats[format].height)
+    }
   }
 })
 test('A3: foutcodes, HEAD en ETag zonder opnieuw tekenen', async () => {

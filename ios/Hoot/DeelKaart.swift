@@ -28,6 +28,16 @@ enum DeelKaartStyle {
         guard let url = resource("advances", "json"), let data = try? Data(contentsOf: url), let value = try? JSONDecoder().decode([String: Double].self, from: data) else { preconditionFailure("Deelkaart-glyphmaten ontbreken in de bundel") }
         return value
     }()
+    static let publisherMarks: [String: String] = {
+        guard let url = resource("publisher-marks", "json"), let data = try? Data(contentsOf: url),
+              let marks = try? JSONDecoder().decode([String: String].self, from: data) else { return [:] }
+        return marks
+    }()
+    static func publisherMark(_ source: String) -> UIImage? {
+        guard let value = publisherMarks[source], value.hasPrefix("data:image/png;base64,"),
+              let data = Data(base64Encoded: String(value.dropFirst("data:image/png;base64,".count))) else { return nil }
+        return UIImage(data: data)
+    }
     private static let fonts: Void = {
         for name in ["Newsreader-800", "SourceSans3-600"] {
             if let url = resource(name, "ttf") { CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil) }
@@ -123,7 +133,22 @@ struct DeelKaart: View {
                 text(line, y: f.titleY + Double(index) * title.size * f.lineHeight, size: title.size, serif: true)
             }
             rule(f.hairlineY)
-            text(String(DeelKaartStyle.clean(item.sourceName ?? item.source).prefix(140)), y: f.sourceY, size: f.sourceSize)
+            HStack(spacing: 12) {
+                ZStack {
+                    if let mark = DeelKaartStyle.publisherMark(item.source) {
+                        Image(uiImage: mark).resizable().scaledToFit()
+                    } else {
+                        Circle().strokeBorder(paper, lineWidth: 1)
+                        Text(String(DeelKaartStyle.clean(item.sourceName ?? item.source).prefix(1)))
+                            .font(DeelKaartStyle.font(16))
+                    }
+                }.frame(width: 28, height: 28)
+                Text(String(DeelKaartStyle.clean(item.sourceName ?? item.source).prefix(140)))
+                    .font(DeelKaartStyle.font(f.sourceSize)).lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: true)
+            }
+            .frame(width: f.width - 2 * f.margin, height: 28, alignment: .leading).clipped()
+            .offset(x: f.margin, y: f.sourceY - (28 - f.sourceSize) / 2)
             text(DeelKaartStyle.layout.domain, y: f.siteY, size: f.siteSize)
         }
         .foregroundStyle(paper)
