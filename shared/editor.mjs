@@ -116,7 +116,7 @@ export function profileOf({ interests = [], topics = [], affinity = null, taste 
   const sourceP = {}
   for (const [s, a] of Object.entries(as)) sourceP[s] = Math.min(1, (SOURCE_FULL * a) / sSum)
   const catOf = new Map(sources.map((s) => [s.id, s.cat]))
-  return { topicP, origin, family, sourceP, shareOf, favorites: new Set(favorites), followed, catOf }
+  return { topicP, origin, family, sourceP, shareOf, favorites: new Set(favorites), followed, catOf, interests: new Set(interests) }
 }
 
 // ---------- 2. De punten: bovenop het gewone gewicht van een verhaal ----------
@@ -156,7 +156,7 @@ const SPORT_URL = /\/(sport|voetbal|premier-league|eredivisie|formule-1|wielrenn
 export function isSport(item, catOf = null) {
   if ((item.topics || []).some((t) => FAMILY_OF[t] === 'sport')) return true
   if (catOf?.get(item.source) === 'sport') return true
-  return SPORT_URL.test(item.url || '') || OTHER_SPORT.test(`${item.title || ''} ${item.summary || ''}`)
+  return SPORT_URL.test(item.url || '') || /\b(eredivisie\w*|voetbalwedstrijd\w*)\b/i.test(`${item.title || ''} ${item.summary || ''}`) || OTHER_SPORT.test(`${item.title || ''} ${item.summary || ''}`)
 }
 // Politiek zonder Wereld is Nederlandse en Europese politiek (feedback 31 oktober: wie Binnenland,
 // Politiek en Economie koos, opende met de paus die in Amerika stemt, Lula en Wall Street "omdat je
@@ -174,7 +174,7 @@ const US_TOPICS = new Set(['vs-politiek', 'trump'])
 // gebied is (The Verge over Trump en chips blijft Tech) en het verhaal niet in een politiekrubriek staat.
 const POLITICS_DESKS = new Set(['vs', 'middenoosten', 'oekraine'])
 const POLITICS_FAMILIES = new Set(['politiek', 'wereld', 'economie', 'binnenland'])
-const politicsItem = (i, deskOfStory = null) => POLITICS_DESKS.has(deskOfStory) || [...desksOf(i)].some((d) => POLITICS_DESKS.has(d)) || (i.topics || []).some((t) => US_TOPICS.has(t))
+const politicsItem = (i, deskOfStory = null) => POLITICS_DESKS.has(deskOfStory) || [...desksOf(i)].some((d) => POLITICS_DESKS.has(d) || (FOREIGN_DESKS.has(d) && /\b(vn-top|summit|regering|government|minister|verkiezingen|elections|onderhandelingen)\b/i.test(i.title || ''))) || (i.topics || []).some((t) => US_TOPICS.has(t))
 function topicHits(item, prof, geo = null, area = null, politics = false) {
   const sport = isSport(item, prof.catOf)
   const ts = (item.topics || []).filter((t) => !(sport && FAMILY_OF[t] === 'binnenland' && prof.topicP[t] > 0))
@@ -191,6 +191,9 @@ function topicHits(item, prof, geo = null, area = null, politics = false) {
   // `seen`: kop of intro noemt het onderwerp zelf (shownTopics); alleen zo'n treffer mag het waarom zijn.
   const vis = shownTopics(item)
   const out = ts.filter((t) => prof.topicP[t] !== undefined && !(abroad && FAMILY_OF[t] === 'binnenland' && prof.topicP[t] > 0) && !(notUs && t === 'vs-politiek' && prof.topicP[t] > 0) && !notChosenPol(t)).map((t) => ({ t, f: FAMILY_OF[t], v: prof.topicP[t], s: item.source, seen: (!vis || vis.includes(t)) && !(politics && !POLITICS_FAMILIES.has(FAMILY_OF[t]) && (politics === 'desk' || FAMILY_OF_CAT[prof.catOf?.get(item.source)] !== FAMILY_OF[t])) && !(politics && !world && !politicsWhy(t)) }))
+  // Een aantoonbare wetenschappelijke hoofdzaak telt ook voor de gekozen familie wanneer een
+  // secundaire AI-tag aanwezig is; algemene wetenschap past niet altijd in één van de vijf subtopics.
+  if (area && !politics && prof.family[area] > 0 && !out.some(h => h.f === area && h.v > 0)) out.push({ t: `gebied:${area}`, f: area, v: Math.min(prof.family[area], W_INHERITED), s: item.source, seen: true })
   const fb = prof.family.binnenland || 0
   if (fb > 0 && geo === 'nl' && !sport) out.push({ t: GEO_NL, f: 'binnenland', v: Math.min(fb, W_INHERITED), s: item.source, seen: true })
   if (!ts.length) {
@@ -372,7 +375,7 @@ export const chosenReason = (parts = {}) => {
 }
 // Zegt de plek iets bij zichzelf? Een punt van minstens MIN_WHY_PTS dat het waarom ook kan noemen (whyOf).
 export const visibleReason = (parts = {}) => Object.entries(parts).some(([k, x]) => (x.pts || 0) >= MIN_WHY_PTS && !(k === 'interest' && x.shown === false))
-export const FRONT_SOURCES = 6 // vanaf zoveel bronnen is een verhaal zonder persoonlijke reden groot nieuws
+export const FRONT_SOURCES = 8 // vijf uitgevers uit twee landen wordt via entry.big bewezen
 export const DESK_NAMES = { ...DESK_LABEL, tech: 'Tech', economie: 'Economie', regio: 'Regio' }
 const WHY_ORDER = ['followUp', 'cross', 'interest', 'favorite', 'mine', 'sourceRead']
 const topicLabel = (t) => topicById(t)?.label || t
@@ -393,7 +396,7 @@ export function whyOf(entry = {}, { parts = {}, sourceCount = 0, desk = entry.de
   // Groot nieuws is groot: vanaf FRONT_SOURCES bronnen. Een kleiner Nederlands verhaal op de voorpagina
   // (FRONT_NL_HOME) krijgt zijn eigen reden, of zijn rubriek (feedback 31 oktober: "Groot nieuws · 3
   // bronnen" bij het zeehondencentrum).
-  if (entry.front && sourceCount >= FRONT_SOURCES) return { code: 'groot', text: `Groot nieuws · ${sourceCount} bronnen` }
+  if (entry.front && (entry.big ?? sourceCount >= FRONT_SOURCES)) return { code: 'groot', text: `Groot nieuws · ${sourceCount} bronnen` }
   // Het zwaarste part telt; bij gelijke stand de volgorde van de tabel in de bouwspec (§6).
   const rank = (k) => (WHY_ORDER.includes(k) ? WHY_ORDER.indexOf(k) : WHY_ORDER.length)
   const [code, p] = Object.entries(parts).filter(([k, x]) => (x.pts || 0) >= MIN_WHY_PTS && !(k === 'interest' && x.shown === false)).sort((a, b) => b[1].pts - a[1].pts || rank(a[0]) - rank(b[0]) || byId(a[0], b[0]))[0] || []
@@ -403,6 +406,7 @@ export function whyOf(entry = {}, { parts = {}, sourceCount = 0, desk = entry.de
     // Een vakbron zonder onderwerp: het gebied dat je koos (feedback 31 oktober: "Uit je vakbronnen" bij
     // NOS Cultuur over de dood van Patrick Stewart zei de vriendin niets; zij koos Cultuur).
     if (p.t.startsWith('bron:')) return { code: 'vak', text: `Omdat je ${FAMILY_LABEL[p.f] || 'dit gebied'} volgt` }
+    if (p.t.startsWith('gebied:')) return { code, text: `Omdat je ${FAMILY_LABEL[p.f] || 'dit gebied'} volgt` }
     if (p.t === GEO_NL) return { code, text: `Omdat je ${FAMILY_LABEL.binnenland} volgt` }
     if (p.origin === 'geërfd') return { code, text: `Omdat je ${FAMILY_LABEL[p.f] || labelOf(p.t)} volgt` }
     if (p.origin === 'geleerd') return { code: 'learned', text: `Omdat je vaak over ${labelOf(p.t)} leest` }
@@ -411,7 +415,7 @@ export function whyOf(entry = {}, { parts = {}, sourceCount = 0, desk = entry.de
   if (code === 'favorite') return { code, text: `Uit je voorkeursbron ${sourceName(p.source)}` }
   if (code === 'mine') return { code, text: `${p.n} van je bronnen schrijven erover` }
   if (code === 'sourceRead') return { code, text: 'Uit een bron die je veel leest' }
-  if (sourceCount >= FRONT_SOURCES) return { code: 'groot', text: `Groot nieuws · ${sourceCount} bronnen` }
+  if (entry.big ?? sourceCount >= FRONT_SOURCES) return { code: 'groot', text: `Groot nieuws · ${sourceCount} bronnen` }
   if (desk && plannedDesk) return { code: 'rubriek', text: `Jouw rubriek ${deskLabel(desk)}` }
   return { code: 'rubriek', text: desk ? `Rubriek ${deskLabel(desk)}` : 'Het nieuws van nu' }
 }
@@ -469,6 +473,7 @@ export function chosenDesks(prof) {
   const out = new Set()
   for (const [t, v] of Object.entries(prof?.topicP || {})) if (v > 0 && prof.origin?.[t] !== 'geleerd') for (const d of topicDesks(t, prof)) out.add(d)
   if (prof?.family?.binnenland > 0) out.add('binnenland')
+  else out.delete('binnenland') // Politiek of een los onderwerp is niet de gekozen rubriek Binnenland
   return out
 }
 export const DESK_CAP = 3
@@ -481,23 +486,14 @@ export const KERN_INT_W = 0.7
 // elk verhaal vanaf FRONT_BIG bronnen, tot hooguit FRONT_MAX.
 export const FRONT = 2
 export const FRONT_MIN = 6
-export const FRONT_BIG = 10
+export const FRONT_BIG = 8
 export const FRONT_MAX = 3
-// Een Nederlandse krant (feedback 31 oktober: de eerste Editie had alleen buitenland bovenaan):
-// - voor het belang telt een bron van buiten Nederland half (NL_OTHER_W): `eff` = NL-bronnen +
-//   0,5 × de rest; het label houdt de echte telling;
-// - op de voorpagina alleen verhalen met minstens FRONT_NL_MIN Nederlandse bronnen, en hooguit één
-//   buitenlands verhaal (een buitenlandse rubriek, of minder dan de helft Nederlandse bronnen; feedback
-//   31 oktober: Polen én Call of Duty in Korea bovenaan was voor de vriendin te veel buitenland);
-// - staat er dan nog geen Nederlands verhaal op, dan komt het zwaarste met minstens FRONT_NL_HOME
-//   Nederlandse bronnen erbij (een Nederlands verhaal: niet buitenlands);
-// - groot nieuws (vanaf FRONT_BIG bronnen) dat niet op de voorpagina past, krijgt toch een plek;
-// - wie interesses koos, krijgt buiten de voorpagina hooguit INT_MAX buitenlandse plekken zonder
-//   persoonlijke reden (een interessepunt van minstens MIN_WHY_PTS).
-export const NL_OTHER_W = 0.5
+// Dekking telt gelijk, ongeacht de taal/vestigingsplaats van een uitgever. Nederlandse actualiteit
+// houdt een plek voor wie Binnenland koos; voor wie Wereld koos geldt geen Nederlandse toegangsdrempel.
+export const NL_OTHER_W = 1
 export const FRONT_NL_MIN = 2
 export const FRONT_NL_HOME = 3
-export const INT_MAX = 1
+export const INT_MAX = 2
 const PLAN_DESKS = [...KERN, ...OWN_DESKS] // vaste volgorde: bij gelijke stand wint de eerste
 
 // De zetels voor `seats` plekken, in de volgorde waarin ze worden toegekend. Zonder keuzes is dat

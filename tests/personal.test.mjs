@@ -40,7 +40,7 @@ test('hoofdberichten komen uit je eigen bronnen; een gedeeld verhaal krijgt een 
 })
 
 test('aanvullen uit de algemene editie: zonder dubbele gebeurtenis, met label', () => {
-  const e = make()
+  const e = make({ interests: ['wereld'] })
   const ext = e.entries.filter((x) => x.desk === 'extern')
   assert.deepEqual(ext.map((x) => x.id), ['g1', 'g2']) // sWoning zat er al in (zelfde verhaal)
   assert.equal(ext[0].fromDesk, 'buitenland')
@@ -195,7 +195,7 @@ test('een bericht van een vakbron krijgt de rubriek van de bron (buiten de indel
     art('fr1', 'nos', 'Franse president ontbindt parlement in Parijs', { publishedAt: ago(0.5) }),
   ]
   const st = [...stories, { id: 'sBrit', leadId: 'bu1', itemIds: ['bu1', 'bu2'], sourceCount: 3, latestAt: ago(0.4) }, { id: 'sFrans', leadId: 'fr1', itemIds: ['fr1'], sourceCount: 3, latestAt: ago(0.5) }]
-  const e = composePersonal({ global, stories: st, items: [...items, ...abroad, review], sources, followed, now: NOW, builtAt: 'T' })
+  const e = composePersonal({ global, stories: st, items: [...items, ...abroad, review], sources, followed, interests: ['wereld'], now: NOW, builtAt: 'T' })
   assert.deepEqual(['sBrit', 'sFrans'].map((id) => e.entries.find((x) => x.id === id).desk), ['buitenland', 'buitenland'])
   assert.equal(e.entries.find((x) => (x.leadId || x.id) === 'rv').desk, 'tech')
 })
@@ -239,7 +239,7 @@ test('eigen bronnen zijn die van de lezer: een verhaal uit één eigen bron krij
   assert.equal(mine.ownCount, 1)
   assert.equal(weight(mine, NOW) - weight(st[0], NOW), 100)
   assert.equal(st[0].ownCount, 0) // het origineel blijft zoals de server het gaf
-  const ids = composePersonal({ global, stories: st, items: its, followed: fol, now: NOW, builtAt: 'T' }).entries.map((x) => x.id)
+  const ids = composePersonal({ global, stories: st, items: its, followed: fol, interests: ['wereld'], now: NOW, builtAt: 'T' }).entries.map((x) => x.id)
   assert.ok(ids.includes('sCop') && ids.indexOf('sCop') < ids.indexOf('n9'), ids.join(','))
 })
 

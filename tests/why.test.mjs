@@ -33,7 +33,7 @@ test('why-label: niets zonder why (algemene of oudere Editie) en niets als het l
   assert.equal(whyLine(whyOf({}, { desk: 'vs', plannedDesk: true })), null)
   // Wat wél iets toevoegt aan het rubrieklabel.
   assert.equal(whyLine(whyOf({ desk: 'bubbel', near: 'sport' })), 'Naast je bubbel · grenst aan Sport')
-  assert.equal(whyLine(whyOf({}, { sourceCount: 7, desk: 'binnenland' })), 'Groot nieuws · 7 bronnen')
+  assert.equal(whyLine(whyOf({}, { sourceCount: 8, desk: 'binnenland' })), 'Groot nieuws · 8 bronnen')
 })
 
 test('why-label: geen getallen behalve de bronnen- of stukkentelling', () => {

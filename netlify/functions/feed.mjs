@@ -37,6 +37,14 @@ export default async (req, context) => {
   }
   if (!doc) return bron ? fail(404, 'Onbekende bron.') : Response.json({ items: [] }, { status: 503, headers: FRESH })
 
+  // Een expliciete deelversie mag nooit stil andere inhoud leveren. Historische versies
+  // bewaren we hier niet; de client moet bij verval de feedmetadata opnieuw ophalen.
+  const requestedVersion = q.get('v')
+  if ((bron || deel === 'verhalen') && requestedVersion && requestedVersion !== doc.etag) {
+    const expired = fail(410, 'Deze feedversie is niet meer beschikbaar. Haal de feed opnieuw op.')
+    return req.method === 'HEAD' ? new Response(null, { status: expired.status, headers: expired.headers }) : expired
+  }
+
   const etag = `"${doc.etag}"`
   const cache = (bron || deel === 'verhalen') && q.get('v') === doc.etag ? FOREVER : FRESH
   const headers = { 'Content-Type': 'application/json; charset=utf-8', ETag: etag, ...cache }

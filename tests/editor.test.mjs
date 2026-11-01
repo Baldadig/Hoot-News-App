@@ -193,7 +193,9 @@ test('waarom: alleen een echte reden; gekozen, geleerd en de rubriek', () => {
   assert.equal(G.whyOf({}, { desk: 'vs', plannedDesk: true }).text, 'Jouw rubriek VS')
   assert.equal(G.whyOf({}, { desk: 'tech', plannedDesk: true }).text, 'Jouw rubriek Tech')
   assert.equal(G.whyOf({}, {}).text, 'Het nieuws van nu')
-  assert.deepEqual(G.whyOf({}, { sourceCount: 7, desk: 'binnenland' }), { code: 'groot', text: 'Groot nieuws · 7 bronnen' })
+  assert.deepEqual(G.whyOf({}, { sourceCount: 7, desk: 'binnenland' }), { code: 'rubriek', text: 'Rubriek Binnenland' })
+  assert.deepEqual(G.whyOf({}, { sourceCount: 8, desk: 'binnenland' }), { code: 'groot', text: 'Groot nieuws · 8 bronnen' })
+  assert.deepEqual(G.whyOf({ front: true, big: true }, { sourceCount: 5 }), { code: 'groot', text: 'Groot nieuws · 5 bronnen' })
 })
 
 test('waarom: een geleerd onderwerp uit het profiel geeft "vaak over … leest"', () => {
