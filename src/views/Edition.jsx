@@ -160,11 +160,11 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
           <ViewHeader
             title={
               edition?.slot ? (
-                <>
-                  {title}
+                <span className="edtitle">
+                  <span className="edtitle__text">{title}</span>
                   {/* De kleine, stille zon: zijn hoogte toont het dagdeel (plan 01/05). */}
                   <KopSun slot={edition.slot} />
-                </>
+                </span>
               ) : (
                 title
               )

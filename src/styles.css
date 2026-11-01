@@ -4475,6 +4475,44 @@ html[data-images='hoofd'] .media--social {
   padding-bottom: var(--s3);
 }
 
+/* Desktop: zon en naam delen hun basislijn. De SVG houdt in ieder dagdeel hetzelfde kader;
+   alleen de zon binnen dat kader wisselt van hoogte. Mobiele kop en verhaalrijen blijven gelijk. */
+.edtitle {
+  display: contents;
+}
+@media (min-width: 960px) {
+  .edtop .edtitle {
+    display: inline-flex;
+    align-items: baseline;
+    column-gap: var(--s4);
+  }
+  .edtop .sun--kop {
+    height: 0.65em;
+    flex: none;
+    align-self: baseline;
+    margin-inline-start: 0;
+  }
+  .edtop .edmeta {
+    margin-top: var(--s2);
+    padding-bottom: var(--s4);
+  }
+  .edtop .edmeta__wx {
+    display: inline;
+    vertical-align: baseline;
+  }
+  .edtop .edmeta__wx:empty {
+    display: none;
+  }
+  .edtop .weather {
+    display: inline;
+    font-variant-numeric: tabular-nums;
+  }
+  .edtop .weather svg {
+    vertical-align: -0.2em;
+    margin-inline-end: var(--s1);
+  }
+}
+
 /* De eenmalige uitleg bij "Jouw Editie" (na het eerste Welkom): een gewone .hint met een kleine X
    (36, .hit 44 raakvlak) ernaast. De X staat met zijn midden op het midden van de eerste regel en
    met de tekening (niet het vak) op de kolomlijn. */
