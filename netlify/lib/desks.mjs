@@ -1,8 +1,9 @@
+import { countriesIn, usPoliticsIn } from '../../shared/article-signals.mjs'
 // Rubrieken voor de editie — pure functies (getest in tests/desks.test.mjs).
 // Elke editie probeert per rubriek het belangrijkste verhaal van het moment te hebben:
 // binnenland, buitenland, VS, Midden-Oosten, Oekraïne en wetenschap (plus, in feed.mjs,
 // één verhaal van buiten je bubbel).
-import { OTHER_SPORT } from './topics.mjs'
+import { OTHER_SPORT, keywordTopics } from './topics.mjs'
 
 export const DESKS = ['binnenland', 'buitenland', 'vs', 'middenoosten', 'oekraine', 'wetenschap']
 export const DESK_LABEL = { binnenland: 'Binnenland', buitenland: 'Buitenland', vs: 'VS', middenoosten: 'Midden-Oosten', oekraine: 'Oekraïne', wetenschap: 'Wetenschap', bubbel: 'Buiten je bubbel' }
@@ -23,11 +24,11 @@ const W = (alts, flags = 'iu') => new RegExp(`(?<![\\p{L}\\p{N}])(?:${alts.join(
 // bestaan, of "Nederland" zelf ("actief in Nederland"). Alleen "Nederlandse" of "Nederlander" is
 // zwak en telt niet ("Nederlandse toerist in Chili" gaat over Chili). Clubs (Ajax, PSV) niet: sport.
 const NL_PLACES = [
-  'nederland', 'holland', 'den haag', 'haagse?', "'s-gravenhage", 'randstad',
+  'nederland', 'netherlands', 'the hague', 'dutch', 'holland', 'den haag', 'haagse?', "'s-gravenhage", 'randstad',
   'groningen', 'groningse?', 'friesland', 'friese', 'drenthe', 'drentse', 'overijssel', 'flevoland', 'gelderland', 'gelderse',
   'utrecht', 'utrechtse', 'noord-holland', 'zuid-holland', 'zeeland', 'zeeuwse?', 'noord-brabant', 'brabantse?', 'veluwe', 'achterhoek', 'twente', 'twentse',
   'amsterdam\\p{L}*', 'rotterdam\\p{L}*', 'eindhoven\\p{L}*', 'tilburg\\p{L}*', 'almere', 'breda', 'nijmegen', 'arnhem', 'haarlem', 'enschede', 'apeldoorn',
-  'amersfoort', 'zaanstad', 'zaandam', "'s-hertogenbosch", 'den bosch', 'zwolle', 'maastricht', 'dordrecht', 'zoetermeer',   'deventer', 'alkmaar', 'venlo', 'leeuwarden', 'helmond', 'heerlen', 'hilversum', 'schiedam', 'lelystad',   'roermond', 'sittard', 'geleen', 'vlissingen', 'middelburg', 'terneuzen', 'purmerend', 'hengelo', 'den helder', 'harderwijk', 'vught',
+  'amersfoort', 'zaanstad', 'zaandam', "'s-hertogenbosch", 'den bosch', 'zwolle', 'maastricht', 'dordrecht', 'zoetermeer',   'deventer', 'alkmaar', 'venlo', 'leeuwarden', 'helmond', 'heerlen', 'hilversum', 'schiedam', 'lelystad',   'roermond', 'sittard', 'geleen', 'vlissingen', 'middelburg', 'terneuzen', 'zeeuws-vlaanderen', 'breskens', 'purmerend', 'hengelo', 'den helder', 'harderwijk', 'vught',
   'boxtel', 'ursem', 'overasselt', 'westland', 'schiphol', 'texel', 'ameland', 'terschelling', 'waddenzee', 'ijsselmeer', 'markermeer',
   'volendam', 'zandvoort', 'scheveningen', 'katwijk', 'noordwijk', 'wageningen', 'doetinchem', 'zutphen', 'roosendaal', 'bergen op zoom',
   'kerkrade', 'rijnmond', 'maasvlakte', 'afsluitdijk', 'zuidas\\p{L}*', 'bijlmer', 'osdorp', 'vinex',
@@ -85,11 +86,11 @@ const NON_EUROPE = W([
 export const isNonEuropean = (it) => NON_EUROPE.test(it?.title || '')
 
 const RE = {
-  oekraine: /\b(oekra\w*|ukrain\w*|zelensk\w*|kyiv|kiev|kyjiv|kharkiv|charkiv|odesa|donetsk|donbas|krim|crimea|dnipro|kramatorsk)\b/i,
+  oekraine: /\b(oekra\w*|ukrain\w*|zelensk\w*|kyiv|kiev|kyjiv|kharkiv|charkiv|olesjky|oleshky|odesa|donetsk|donbas|krim|crimea|dnipro|kramatorsk)\b/i,
   middenoosten: /\b(israël|israel\w*|gaza|hamas|hezbollah|libanon|lebanon|iran\w*|teheran|tehran|khamenei|netanyahu|syri\w*|jemen|yemen|houthi\w*|irak|iraq|saudi\w*|westelijke jordaanoever|west bank|jordani\w*|qatar|golfstaten|midden-oosten|middle east|palestijn\w*|palestin\w*)\b/i,
   vs: /\b(trump|biden|vance|witte huis|white house|washington|congres\w*|congress|senaat|senate|republikein\w*|republican\w*|democra(at|ten|tic|ts)|pentagon|hegseth|midterms?|tussentijdse verkiezingen|amerikaan\w*|american|verenigde staten|united states|u\.s\.|new york|california|californi\w*|texas|florida|chicago|supreme court|hooggerechtshof|fbi|ice)\b/i,
   wetenschap: /\b(wetenschap\w*|onderzoekers|onderzoek toont|studie|scientist\w*|researchers|science|study finds|nobelprijs (?:voor de )?(?:natuurkunde|scheikunde|geneeskunde)|nobel prize in (?:physics|chemistry|medicine)|klimaat\w*|climate|nasa|esa|astronom\w*|ruimtevaart|telescoop|telescope|natuurkunde|physics|biolog\w*|genetic\w*|genetica|vaccin\w*|medicijn|geneesmiddel|quantum|kwantum|archeolog\w*|fossiel|fossil|aardbeving|earthquake|vulkaan|volcano|neurolog\w*|hersenonderzoek)\b/i,
-  buitenland: /\b(frankrijk|france|french|frans\w*|parijs|paris|duitsland|germany|german|duits\w*|berlijn|berlin|brit\w*|engeland|england|london|londen|verenigd koninkrijk|united kingdom|spanje|spain|itali\w*|polen|poland|belgi\w*|brussel|brussels|europese unie|european union|\beu\b|navo|nato|china|chinees|chinese|peking|beijing|taiwan|japan\w*|korea\w*|india\w*|pakistan|afghanistan|rusland|russia\w*|russisch\w*|poetin|putin|kremlin|moskou|moscow|turkije|turkey|erdogan|afrika|africa|nigeria|soedan|sudan|egypte|egypt|brazili\w*|mexico|venezuela\w*|maduro|argentini\w*|canada\w*|australi\w*|albani\w*|albane\w*|spaans\w*|pools\w*|turks\w*|griek\w*|zweed\w*|deens\w*|oostenrijk\w*|zwitser\w*|portug\w*|hongaar\w*|indiase|mexica\w*|canad\w*|egypt\w*|japans\w*|koreaan\w*|afrikaan\w*|europe\w*|europa|servi\w*|hongarije|hungary|orbán|griekenland|greece|zweden|noorwegen|denemarken|oostenrijk|zwitserland|ierland|portugal|tsjechi\w*|roemeni\w*|bulgarije|georgi\w*|armeni\w*|azerbeidzjan|wit-rusland|belarus|filipijnen|indonesi\w*|vietnam|thailand|myanmar|bangladesh|sri lanka|nepal|kenia|ethiopi\w*|somali\w*|congo|zuid-afrika|south africa|haïti|haiti|cuba|colombia|chili|peru)\b/i,
+  buitenland: /\b(frankrijk|france|french|frans\w*|parijs|paris|duitsland|germany|german|duits\w*|berlijn|berlin|brit\w*|engeland|england|london|londen|verenigd koninkrijk|united kingdom|spanje|spain|itali\w*|polen|poland|estland|estonia\w*|estse|senegal\w*|brazil\w*|belgi\w*|brussel|brussels|europese unie|european union|\beu\b|navo|nato|china|chinees|chinese|peking|beijing|taiwan|japan\w*|korea\w*|india\w*|pakistan|afghanistan|rusland|russia\w*|russisch\w*|poetin|putin|kremlin|moskou|moscow|turkije|turkey|erdogan|afrika|africa|nigeria|soedan|sudan|egypte|egypt|brazili\w*|mexico|venezuela\w*|maduro|argentini\w*|canada\w*|australi\w*|albani\w*|albane\w*|spaans\w*|pools\w*|turks\w*|griek\w*|zweed\w*|deens\w*|oostenrijk\w*|zwitser\w*|portug\w*|hongaar\w*|indiase|mexica\w*|canad\w*|egypt\w*|japans\w*|koreaan\w*|afrikaan\w*|europe\w*|europa|servi\w*|serbi\w*|hongarije|hungary|hungarian|orbán|griekenland|greece|zweden|sweden|swedish|noorwegen|norway|norwegian|denemarken|denmark|danish|oostenrijk|austria\w*|zwitserland|switzerland|ierland|ireland|portugal|tsjechi\w*|czech\w*|roemeni\w*|romania\w*|bulgarije|bulgaria\w*|georgi\w*|armeni\w*|azerbeidzjan|azerbaijan\w*|wit-rusland|belarus|filipijnen|philippine\w*|indonesi\w*|vietnam|thailand|myanmar|bangladesh|sri lanka|nepal|kenia|kenya\w*|ethiopi\w*|somali\w*|congo|zuid-afrika|south africa|haïti|haiti|cuba|colombia|chili|peru)\b/i,
 }
 
 // Sport, cultuur en games hebben hun eigen soort (kindOf in src/lib/personal.js): geen Binnenland.
@@ -97,7 +98,17 @@ const KIND_TOPICS = new Set(['voetbal', 'f1', 'wielrennen', 'tennis', 'winterspo
 // De boulevard (RTL) is showbizz (feedback 31 oktober: de voogdij van de ex-man van Halle Berry stond
 // onder Binnenland); darts en andere sport zonder eigen onderwerp is sport (OTHER_SPORT).
 const KIND_PATH = /\/(sport[\w-]*|voetbal|darts|cultuur|cultuur-media|entertainment|showbizz|boulevard|show|film|muziek|boeken|media)\//i
-const ownKind = ({ topics = [], url = '', section = '', title = '' }) => (topics || []).some((t) => KIND_TOPICS.has(t)) || KIND_PATH.test(url || '') || /^(sport|cultuur)/i.test(section || '') || OTHER_SPORT.test(title || '')
+const CULTURE_SPORT = /\b(middenvelder|hattrick|hat-trick|scoorde|doelpunt|club.*contract|smaakmaker.*club|psg|premier league|concert\w*|halloweenkostuum|captain picard|star trek|patrick stewart|acteur|actrice|film|filmfestival)\b/i
+const ownKind = (it) => {
+  const visible = `${it.title || ''} ${it.summary || ''}`
+  const election = /\b(elections?|verkiezing\w*|midterms?|political texts|senaat|senate)\b/i.test(`${it.title || ''} ${(it.url || '').replace(/[-_/]/g, ' ')}`)
+  // Oude feeds kunnen een sporttag uit een voetnoot bevatten. Een echte politieke hoofdzaak en
+  // géén zichtbaar sport/cultuuronderwerp gaan dan vóór die oude tag (bv. verkiezingsopinie met f1).
+  if (election && usPoliticsIn(visible + ' ' + (it.url || '').replace(/[-_/]/g, ' ')) && !keywordTopics(visible).some(t => KIND_TOPICS.has(t))) return false
+  if (/\b(journal article|research finds|study finds)\b/i.test(it.title || '')) return false
+  return (it.mainTopics || it.topics || []).some(t => KIND_TOPICS.has(t)) || KIND_PATH.test(it.url || '') || /^(sport|cultuur)/i.test(it.section || '') || OTHER_SPORT.test(it.title || '') || CULTURE_SPORT.test(visible)
+}
+
 
 // Wat de kop en intro zeggen: sterk Nederlands bezit, en of er een buitenlandse plek, land of naam in
 // staat (de patronen van de rubrieken plus FOREIGN_EXTRA en België).
@@ -112,7 +123,7 @@ export function placeSignals({ title = '', summary = '', text = '' }) {
     nl: home || NL_CORP.test(t),
     home,
     strong,
-    foreign: FOREIGN_EXTRA.test(t) || BE.test(t) || BE_CASE.test(t),
+    foreign: FOREIGN_EXTRA.test(t) || BE.test(t.replace(/zeeuws-vlaanderen/gi, '')) || BE_CASE.test(t),
   }
 }
 
@@ -159,7 +170,7 @@ const NOT_HOME_SECTION = /(^|\s)(tech|economie|wetenschap|opinie|columns?)(\s|$)
 // aangeroepen rekent isBinnenland het zelf uit.
 const textForeignOf = ({ title = '', summary = '', text = '', cats = '' }) => {
   const t = `${title} ${summary || text} ${cats}`
-  return RE.oekraine.test(t) || RE.middenoosten.test(t) || RE.vs.test(t) || RE.buitenland.test(t)
+  return RE.oekraine.test(t) || RE.middenoosten.test(t) || usPoliticsIn(t) || RE.buitenland.test(t)
 }
 export function isBinnenland(it, { storyForeign = false, foreign = textForeignOf(it) } = {}) {
   const home = NL_HOME.has(it.source)
@@ -172,8 +183,8 @@ export function isBinnenland(it, { storyForeign = false, foreign = textForeignOf
   const head = placeSignals({ title: it.title || '' })
   const nl = VL_HOME.has(it.source) ? head.strong : abroad ? head.home : sig.nl
   const sec = `${it.section || ''} ${it.url || ''}`.toLowerCase()
-  if (home && /binnenland|\/politiek\//.test(sec) && (!abroad || nl)) return true
   if (ownKind(it)) return false
+  if (home && /binnenland|\/politiek\//.test(sec) && (!abroad || nl)) return true
   if (home && /buitenland|\/world\//.test(sec) && !head.home) return false
   if (nl && (home || !abroad)) return true
   if (!home) return false
@@ -186,10 +197,14 @@ export function isBinnenland(it, { storyForeign = false, foreign = textForeignOf
 // Een verhaal gaat vooral over het buitenland als minder dan de helft van zijn bronnen Nederlands is
 // (het NOS-stuk over de dood van Patrick Stewart, tussen NYT, Variety en de Guardian).
 export function storyForeignOf(items = []) {
-  const src = new Set(items.map((i) => i.source))
-  let nl = 0
-  for (const s of src) if (NL_HOME.has(s)) nl++
-  return nl * 2 < src.size
+  const votes = new Map()
+  for (const item of items) {
+    const ds = desksOf(item)
+    const foreign = ['buitenland', 'vs', 'middenoosten', 'oekraine'].some(d => ds.has(d))
+    if (!votes.has(item.source) || ds.has('binnenland')) votes.set(item.source, ds.has('binnenland') ? 'nl' : foreign ? 'int' : null)
+  }
+  const known = [...votes.values()].filter(Boolean)
+  return known.length > 0 && known.filter(g => g === 'int').length * 2 > known.length
 }
 
 // Rubrieken van één bericht. `section` is de rubriek die de bron zelf meegeeft (de Volkskrant).
@@ -208,18 +223,31 @@ function deskSet(it, storyForeign) {
   const { title = '', summary = '', text = '', url = '', section = '', cats = '' } = it
   const t = `${title} ${summary || text} ${cats}`
   const out = new Set()
+  if (ownKind(it)) return out
   const sec = `${section} ${url}`.toLowerCase()
-  if (RE.oekraine.test(t)) out.add('oekraine')
-  if (RE.middenoosten.test(t)) out.add('middenoosten')
-  if (RE.vs.test(t)) out.add('vs')
-  if (RE.wetenschap.test(t) || /wetenschap|\/science\/|\/health\//.test(sec)) out.add('wetenschap')
+  const headCountries = countriesIn(title)
+  const headHome = placeSignals({ title }).home
+  const geoText = headHome || headCountries.length ? title : t
+  if (RE.oekraine.test(geoText)) out.add('oekraine')
+  if (RE.middenoosten.test(geoText)) out.add('middenoosten')
+  const usSection = /\/us\//.test(sec)
+  // Een specifieke bronrubriek/slug kan de ontbrekende context in een korte kop leveren (midterms).
+  const path = String(url).split('?')[0].replace(/[-_/]/g, ' ')
+  if (usPoliticsIn(headHome ? title : `${t} ${path}`) || usSection || countriesIn(geoText).includes('us')) out.add('vs')
+  const education = /\b(leraar|basisschool|docent|onderwijs)\b/i.test(title) && !/\b(onderzoek|studie|research|study)\b/i.test(title)
+  if (!education && (RE.wetenschap.test(title) || /wetenschap|\/science\/|\/health\//.test(sec) || /\b(journal article|scholarship|research finds|study finds)\b/i.test(t))) out.add('wetenschap')
   const specific = out.has('oekraine') || out.has('middenoosten') || out.has('vs')
-  const textForeign = specific || RE.buitenland.test(t)
+  // Een land of stad uit countriesIn in de kop (Frankfurt, Keulen) is ook een buitenlandse plek, ook als
+  // RE.buitenland die naam niet kent: anders werd de NOS over plunderingen in Frankfurt Binnenland.
+  const textForeign = specific || RE.buitenland.test(geoText) || headCountries.some((c) => c !== 'nl')
   if (isBinnenland(it, { storyForeign, foreign: textForeign })) {
     out.add('binnenland') // Nederland gaat voor: een Nederlandse speler in het buitenland is Binnenland
   } else if (!specific && (textForeign || /buitenland|\/world\//.test(sec) || placeSignals(it).foreign || VL_HOME.has(it.source))) {
     out.add('buitenland')
   }
+  if (headHome && out.has('binnenland')) for (const d of ['buitenland', 'vs', 'middenoosten', 'oekraine']) if (!usPoliticsIn(title) && !RE[d]?.test(title)) out.delete(d)
+  if (out.has('vs') && /\b(senate races|senaatsverkiezingen|midterms)\b/i.test(title)) { out.delete('middenoosten'); out.delete('oekraine') }
+  if (headCountries.some(c => !['us','ua','il','ir','lb'].includes(c)) && /^(?:premier|duitse media|canad)/i.test(title)) { out.delete('vs'); out.delete('oekraine'); out.add('buitenland') }
   return out
 }
 

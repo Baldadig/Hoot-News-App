@@ -207,7 +207,7 @@ struct EditionView: View {
                         }
                         ScreenTitle(title, gap: 0).frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    if store.status == .loading && rows.isEmpty {
+                    if rows.isEmpty && (store.status == .loading || (store.status != .failed && store.edition != nil && store.shownEdition == nil)) {
                         WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
                     } else if rows.isEmpty {
                         if store.status == .failed {

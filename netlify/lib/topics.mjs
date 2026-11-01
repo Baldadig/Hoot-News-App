@@ -1,3 +1,4 @@
+import { usPoliticsIn } from '../../shared/article-signals.mjs'
 // Onderwerpen op trefwoord (Nederlands en Engels). De id's komen overeen met src/lib/topics.js.
 // Liever een onderwerp te weinig dan een verkeerd: woorden met dubbele betekenis staan er niet in.
 const KW = [
@@ -5,7 +6,6 @@ const KW = [
   // Niet "den haag": dat is ook de stad (feedback 31 oktober: rellen in Den Haag waren "Den Haag", de politiek).
   ['nederland', /\b(kabinet|tweede kamer|eerste kamer|binnenhof|catshuis|prinsjesdag|miljoenennota|rijksoverheid|coalitie|formatie|minister van|staatssecretaris|kamerlid|kamerleden|\bpvv\b|\bvvd\b|\bd66\b|groenlinks|\bpvda\b|\bcda\b|\bsgp\b|\bbbb\b|\bja21\b|wilders|schoof|timmermans|yesilgoz|omtzigt|jetten|bontenbal)\b/i],
   ['europa', /\b(europese unie|europese commissie|europees parlement|europese leiders|eu-landen|\beu\b|brussel|von der leyen|european union|european commission|european parliament|eurozone|schengen)\b/i],
-  ['vs-politiek', /\b(senate|senaat|congress|congres|white house|witte huis|republikein|republican|democraat|democrat|\bgop\b|supreme court|hooggerechtshof|pentagon|capitol|vance|house of representatives|justice department|governor|gouverneur)\b/i],
   ['trump', /\btrump\b/i],
   ['verkiezingen', /\b(verkiezing|verkiezingen|election|elections|stembus|peiling|peilingen|\bpoll(s)?\b|campagne|campaign|kandidaat|candidate|referendum|stemmen geteld)\b/i],
   // Binnenland
@@ -48,7 +48,7 @@ const KW = [
   ['kunst', /\b(museum|tentoonstelling|exhibition|kunstenaar|kunstwerk|artwork|schilderij|painting|beeldhouw|sculpture|theater|theatre|opera|ballet|rijksmuseum|stedelijk|van gogh|rembrandt|veiling|auction)\b/i],
   ['media', /\b(omroep(?! (?:zeeland|brabant|gelderland|west|flevoland|limburg))|\bnpo\b(?! radio)|journalistiek|journalism|tv-programma|talkshow|presentator|mediabedrijf|dpg media|mediahuis|press freedom|persvrijheid|mediawet)\b/i],
   // Sport
-  ['voetbal', /\b(voetbal|football|soccer|eredivisie|ajax|psv|feyenoord|oranje|champions league|europa league|premier league|la liga|bundesliga|knvb|wk-kwalificatie|world cup|keeper|doelpunt|penalty|ballon d.or|gouden bal)\b/i],
+  ['voetbal', /\b(voetbal\w*|football|soccer|eredivisie\w*|ajax|psv|feyenoord|oranje|champions league|europa league|premier league|la liga|bundesliga|knvb|wk-kwalificatie|world cup|keeper|doelpunt|penalty|ballon d.or|gouden bal)\b/i],
   ['f1', /\b(formule 1|formula 1|formula one|\bf1\b|verstappen|grand prix|red bull racing|ferrari|mercedes-amg|mclaren|hamilton|leclerc|norris|piastri)\b/i],
   ['wielrennen', /\b(wielren|wielrenner|cycling|tour de france|giro|vuelta|peloton|etappe|stage win|klassieker|van der poel|vingegaard|pogačar|pogacar|veldrijden|cyclocross)\b/i],
   ['tennis', /\b(tennis|wimbledon|roland garros|us open|australian open|\batp\b|\bwta\b|grand slam|djokovic|alcaraz|sinner|swiatek|sabalenka)\b/i],
@@ -65,7 +65,7 @@ export const OTHER_SPORT = /\b(darts\w*|darter\w*|snooker|rugby|honkbal|baseball
 // trefwoord verklaart. Feedback 31 oktober: "uit angst voor rellen" was Brein (Wetenschap), "meldt
 // Omroep Zeeland" Media, de Netflix-dartsshow Film, "verkiezing" in Brazilië VS-politiek.
 const RETIRED = {
-  'vs-politiek': /\b(verkiezing|election)\b/i,
+  'vs-politiek': /./s,
   brein: /\bangst\b/i,
   film: /\b(netflix|hbo)\b/i,
   media: /\b(omroep|npo)\b/i,
@@ -100,6 +100,20 @@ export function shownTopics(it) {
 export function keywordTopics(text) {
   const out = []
   for (const [id, re] of KW) if (re.test(text)) out.push(id)
+  if (usPoliticsIn(text)) out.push('vs-politiek')
+  // Merknaam alleen met digitale context; het taalkundige woord pangram is geen AI-onderwerp.
+  if (/\bPangram\b/.test(text) && /\b(internet|ai|detector|detectie|kunstmatige intelligentie)\b/i.test(text) && !out.includes('ai')) out.push('ai')
   if (out.includes('trump') && !out.includes('vs-politiek')) out.push('vs-politiek')
   return out
+}
+
+// De zichtbare kop en intro zijn het bewijs; een voetnoot verderop in RSS-HTML is geen onderwerp.
+export function articleTopics(it, own = []) {
+  const headline = keywordTopics(it.title || '')
+  const intro = keywordTopics(it.summary || String(it.text || '').slice(0, 600))
+  const topics = [...new Set([...headline, ...intro, ...own])]
+  // Een losse bedrijfsvermelding in de intro maakt een overlijden/incident geen Tech.
+  const weak = new Set(['tech', 'media', 'film', 'brein'])
+  const accepted = topics.filter(t => !weak.has(t) || headline.includes(t) || own.includes(t))
+  return { topics: accepted, mainTopics: [...new Set([...headline, ...own])].filter(t => accepted.includes(t)) }
 }

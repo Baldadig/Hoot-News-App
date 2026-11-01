@@ -41,6 +41,27 @@ final class EditionParityTests: XCTestCase {
         return out
     }
 
+    func testPublisherEvidenceSurvivesStoryCacheRoundTrip() throws {
+        let data = Data(#"{"id":"s","itemIds":["a"],"sourceCount":5,"publisherCount":5,"publisherCountries":["NL","GB"],"desk":"buitenland"}"#.utf8)
+        let story = try JSONDecoder().decode(Story.self, from: data)
+        let restored = try JSONDecoder().decode(Story.self, from: JSONEncoder().encode(story))
+        XCTAssertEqual(restored.publisherCount, 5)
+        XCTAssertEqual(restored.publisherCountries, ["NL", "GB"])
+        XCTAssertEqual(restored.desk, "buitenland")
+        let legacy = try JSONDecoder().decode(Story.self, from: Data(#"{"id":"old","itemIds":[]}"#.utf8))
+        XCTAssertNil(legacy.publisherCount)
+        XCTAssertNil(legacy.publisherCountries)
+    }
+
+    @MainActor
+    func testPersonalEditionMustBeReadyBeforeShowingItsNews() throws {
+        let candidate = try JSONDecoder().decode(Edition.self, from: Data(#"{"id":"e","owner":"anon","entries":[],"items":[]}"#.utf8))
+        XCTAssertNil(HootStore.visiblePersonal(nil, id: "e", owner: "anon"))
+        XCTAssertNil(HootStore.visiblePersonal(candidate, id: "other-slot", owner: "anon"))
+        XCTAssertNil(HootStore.visiblePersonal(candidate, id: "e", owner: "other-reader"))
+        XCTAssertEqual(HootStore.visiblePersonal(candidate, id: "e", owner: "anon")?.id, "e")
+    }
+
     func testFixtureHasFourReaders() throws {
         let g = try Self.golden()
         XCTAssertEqual(g.map(\.name), ["nieuw", "klimaat", "vs", "vs-zonder-topics"])

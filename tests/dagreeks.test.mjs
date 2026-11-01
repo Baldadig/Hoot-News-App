@@ -24,7 +24,10 @@ const snap = loadSnapshot()
 const res = runDay(articlesOf(snap), snap.sources)
 const S = res.summary
 
-test('dagreeks: drie dagdelen, vijf persona\'s, vier varianten, elke Editie vol', (t) => {
+// Normen 1 november 2026: liever korter dan ongeoorloofd aanvullen. Op toestelkennis zijn er 's ochtends
+// en 's middags niet altijd tien toegelaten plekken (zonder Wereld alleen groot buitenlands nieuws,
+// geen sport zonder sportkeuze); een Editie is dan korter, nooit leeg en nooit langer dan tien.
+test('dagreeks: drie dagdelen, vijf persona\'s, vier varianten, elke Editie gevuld met wat de normen toelaten', (t) => {
   for (const v of VARIANTS) {
     t.diagnostic(`previous=${v}: ${line({ label: 'opeenvolgend', ...S[v].opeenvolgend })}`)
     t.diagnostic(`previous=${v}: ${line({ label: 'ochtend→avond', ...S[v].ochtendAvond })}`)
@@ -34,11 +37,14 @@ test('dagreeks: drie dagdelen, vijf persona\'s, vier varianten, elke Editie vol'
   assert.deepEqual(VARIANTS, ['code', 'drie', 'account', 'sprong'])
   for (const r of Object.values(res.personas)) for (const v of VARIANTS) {
     assert.equal(r.variants[v].editions.length, SCHEDULE[v].length, `${r.name} ${v}`)
-    for (const ed of r.variants[v].editions) assert.equal(ed.entries.length, 10, `${r.name} ${v} ${ed.id}`)
+    for (const ed of r.variants[v].editions) assert.ok(ed.entries.length >= 6 && ed.entries.length <= 10, `${r.name} ${v} ${ed.id}: ${ed.entries.length}`)
+    // De Avond heeft op deze dag genoeg toegelaten aanbod voor tien plekken.
+    assert.equal(r.variants[v].editions.at(-1).entries.length, 10, `${r.name} ${v} avond`)
   }
-  for (const v of ['code', 'drie', 'account']) assert.equal(S[v].opeenvolgend.plekken, 100, v)
-  for (const v of VARIANTS) assert.equal(S[v].ochtendAvond.plekken, 50, v)
-  assert.equal(S.sprong.opeenvolgend.plekken, 50, 'bij sprong is Ochtend→Avond de enige overgang')
+  // De maten tellen elke plek van de latere Editie van een overgang.
+  const len = (v, pick) => Object.values(res.personas).reduce((n, r) => n + pick(r.variants[v].editions).reduce((m, ed) => m + ed.entries.length, 0), 0)
+  for (const v of VARIANTS) assert.equal(S[v].opeenvolgend.plekken, len(v, (eds) => eds.slice(1)), v)
+  for (const v of VARIANTS) assert.equal(S[v].ochtendAvond.plekken, len(v, (eds) => eds.slice(-1)), v)
 })
 
 test('dagreeks: herhaald zonder ontwikkeling, opeenvolgend = 0 (code, drie, account, sprong)', () => {
@@ -121,7 +127,11 @@ test('dagreeks: history per Editie — Ochtend leeg, Middag [Ochtend], Avond [Mi
       assert.ok(ed.history.length <= HISTORY_MAX)
       for (const h of ed.history) {
         assert.ok(Array.isArray(h.storyIds) && Array.isArray(h.itemIds) && Array.isArray(h.titles) && h.builtAt, `${r.name} ${v} ${ed.id}: history-regel ${h.id}`)
-        assert.ok(Object.keys(h.keys).length > 0, `${r.name} ${v} ${ed.id}: history-regel ${h.id} zonder keys`)
+        // Keys horen bij verhaalplekken. Een Editie met alleen losse berichten (normen 1 november: niet-groot
+        // buitenland valt af) heeft er geen; elke Editie met een verhaal wel.
+        const src = r.variants[v].editions.find((x) => x.id === h.id)
+        const hasStory = src.entries.some((e) => e.kind === 'story')
+        assert.equal(Object.keys(h.keys).length > 0, hasStory, `${r.name} ${v} ${ed.id}: history-regel ${h.id} ${hasStory ? 'zonder keys' : 'met keys zonder verhaal'}`)
       }
     }
   }

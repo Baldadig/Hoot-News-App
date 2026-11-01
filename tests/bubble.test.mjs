@@ -199,7 +199,7 @@ test('/api/edition negeert affinity en geeft geen punten mee', async () => {
   const post = async (extra) => (await (await edition(new Request('http://x/api/edition', { method: 'POST', body: JSON.stringify({ followed: ['nos'], ...extra }) }))).json()).edition
   const plain = await post({})
   const learned = await post({ affinity: { n: 200, topics: { klimaat: 80 }, sources: { nos: 80 } } })
-  assert.ok(plain.entries.length >= 3)
+  assert.deepEqual(plain.entries.map(e => e.leadId || e.id).sort(), ['n1', 'n3']) // Brussel is geen groot nieuws; geen Wereld gekozen
   assert.deepEqual(learned, plain)
   assert.ok(learned.entries.every((e) => !Object.keys(e).some((k) => k.startsWith('_')) && !/leest/.test(e.why?.text || '')))
   assert.ok(!Object.keys(learned).some((k) => k.startsWith('_')))

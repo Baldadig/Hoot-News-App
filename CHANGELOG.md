@@ -2,6 +2,16 @@
 
 Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lang/nl/) aan.
 
+## Onuitgebracht
+
+- **De Redacteur, fase 1:** zonder de interesse Wereld hooguit twee internationale plekken in je hele Editie, en alleen bij groot nieuws: acht uitgevers, of vijf uit minstens twee landen. Een gekozen onderwerp, voorkeursbron of breed verhaal maakt daar geen uitzondering op. Met Wereld geldt geen plafond. Wie Binnenland koos, opent met Nederlands nieuws, ook samen met Wereld.
+- **Sport alleen als je Sport koos:** wat je leest telt daar niet voor. De enige uitzondering is een Nederlandse WK- of Olympische finale, titel of gouden medaille die groot nieuws is.
+- **Liever korter dan opgevuld:** is er niet genoeg dat bij je past, dan is de Editie korter. Een lege plek gaat eerst naar je eigen nieuws, pas daarna naar de algemene Editie. Buiten je bubbel en Waar iedereen over schrijft staan er alleen als er een stuk is dat mag.
+- **Eerlijke telling:** elke uitgever telt even zwaar, ongeacht taal of land; sectiefeeds als NOS Sport tellen als NOS. Waar een verhaal speelt, haalt Hoot uit de berichten zelf, niet uit het land van de uitgever. India's Congrespartij is geen VS, de rellen in Den Haag zijn Binnenland, en Engelse landnamen (Serbia, Sweden) tellen als buitenland.
+- **Eén plek per verhaal:** een los bericht uit de algemene Editie staat er niet meer naast zijn eigen verhaal.
+- **Onbekend telt niet als binnenland:** een stuk uit een buitenlandse nieuwsbron zonder herkende plaats, dat geen Nederlandse of Vlaamse uitgever brengt, telt mee voor het plafond van twee (NPR over het Amerikaanse hooggerechtshof). Vakstukken over tech, economie, wetenschap, cultuur of sport niet. Een buitenlandse stad in de kop (Frankfurt, Keulen) maakt een stuk Buitenland.
+- **Het hele verhaal bepaalt waar het speelt:** één Nederlands bericht maakt een buitenlands verhaal geen Binnenland. Heidi Klum op Halloween (NU tussen RTL, BBC en Variety) kreeg "Omdat je Binnenland volgt" en nam een internationale plek in.
+
 ## [1.57.0] — 2026-10-31 — Hoot verhuist naar gethoot.app, een Stroom van 36 uur en de signatuurronde
 
 - **Nieuwe plek:** gethoot.app is het adres van Hoot. De landingspagina staat op gethoot.app, de nieuwssite op gethoot.app/lees. hootnews.nl stuurt door en neemt je instellingen en Bewaard mee; de API op hootnews.nl blijft werken. Inloggen (Google, magic link) werkt op het nieuwe adres.

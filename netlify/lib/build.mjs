@@ -1,3 +1,4 @@
+import { EDITOR_REVISION, editionCacheKey } from '../../shared/editor-version.mjs'
 // De feed samenstellen: alles ophalen, de Stroom vullen, bundelen tot verhalen en de editie
 // vastleggen. Draait op een vast ritme (functions/feed-refresh.mjs); de app krijgt het
 // resultaat kant-en-klaar (functions/feed.mjs) en hoeft nooit op het ophalen te wachten.
@@ -13,7 +14,7 @@ import { loadSnippets, loadTrends, loadSourceAvatars, loadBlueskyProfiles, loadB
 import { loadOgImage } from './og.mjs'
 import { measureFeedImages } from './image-measure.mjs'
 import { rememberShareRecords } from './share-records.mjs'
-import { keywordTopics } from './topics.mjs'
+import { keywordTopics, articleTopics } from './topics.mjs'
 import { normTitle, preview } from './text.mjs'
 import { kvGet, kvSet, remember, storageMode } from './kv.mjs'
 import { fetchAuthorPosts } from '../../shared/bluesky.mjs'
@@ -94,7 +95,7 @@ export async function buildFeed({ now = Date.now() } = {}) {
   const beforeImages = JSON.stringify(edition.snapshot.items.map(i => i.imageMeta))
   await measureFeedImages([...edition.public.items, ...stories.map(st => outById.get(st.leadId)).filter(Boolean), ...out, ...edition.snapshot.items], now)
   if (beforeImages !== JSON.stringify(edition.snapshot.items.map(i => i.imageMeta))) {
-    await kvSet('edition3-' + edition.public.id, edition.snapshot).catch(() => {})
+    await kvSet(editionCacheKey(edition.public.id), edition.snapshot).catch(() => {})
   }
   await rememberShareRecords([...edition.snapshot.items, ...out], [...edition.snapshot.stories, ...stories], SOURCES, now).catch(() => {})
   // Wat intussen uit de feeds is verdwenen halen we uit de momentopname van de editie.
@@ -333,14 +334,9 @@ async function updateRegistry(registry, list, now) {
 // ---------- Wat de app van een bericht krijgt ----------
 // Lege velden laten we weg: dat scheelt een kwart van de omvang.
 function toClient(it, { editionOnly = false, streamOnly = false } = {}) {
-  const topics = keywordTopics(`${it.title} ${it.text || it.summary || ''} ${it.cats || ''}`)
-  // Gespecialiseerde bronnen dragen hun onderwerp mee (een gamessite gaat over games).
   const src = SOURCE.get(it.source)
   const own = [...(src?.topics || []), ...(src?.music ? ['muziek'] : [])]
-  for (const t of own) if (!topics.includes(t)) topics.push(t)
-  // De onderwerpen die het verhaal dragen: uit de kop, en het vak van de bron. Het label in de Editie
-  // (src/lib/label.js) noemt alleen zo'n onderwerp; een losse vermelding in de tekst is te zwak.
-  const mainTopics = [...new Set([...keywordTopics(it.title || ''), ...own])].filter((t) => topics.includes(t))
+  const { topics, mainTopics } = articleTopics(it, own)
   return compact({
     id: it.id,
     kind: it.kind,
@@ -386,10 +382,10 @@ const compact = (o) => {
 // Per dagdeel één keer samengesteld en daarna vast: selectie en volgorde veranderen niet meer;
 // een verhaal dat nog loopt toont wel zijn nieuwe publicaties. Daarbij (één keer, dan vast):
 // "Buiten je bubbel" en het AI-overzicht.
-// 'edition3-': sleutel verhoogd bij de opbouw met rubrieken (v1.15).
+// Een nieuwe Redacteur-revisie krijgt een eigen snapshot; alleen geschiedenis valt terug op edition3.
 async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
   const slot = editionSlot(new Date(now))
-  const key = 'edition3-' + slot.id
+  const key = editionCacheKey(slot.id)
   const byId = new Map(pool.map((i) => [i.id, i]))
   let stored = await kvGet(key)
   let changed = false
@@ -399,7 +395,7 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
     const newsIds = new Set(newsPool.map((a) => a.id))
     const newsStories = stories.filter((st) => st.itemIds.some((id) => newsIds.has(id)))
     // Wat in de vorige editie stond, komt alleen terug als het zich echt ontwikkelde.
-    const previous = previousOf(await kvGet('edition3-' + previousSlotId(slot)).catch(() => null))
+    const previous = previousOf(await kvGet(editionCacheKey(previousSlotId(slot))).catch(() => null) || await kvGet('edition3-' + previousSlotId(slot)).catch(() => null))
     const entries = selectEdition(newsStories, newsPool, { mainIds: MAIN_IDS, now, previous })
     const snapStories = entries.filter((e) => e.kind === 'story').map((e) => stories.find((st) => st.id === e.id))
     const snapIds = new Set([...snapStories.flatMap((st) => st.itemIds), ...entries.filter((e) => e.kind === 'item').map((e) => e.id)])
@@ -467,7 +463,7 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
       date: slot.date,
       next: slot.next,
       builtAt: stored.builtAt,
-      version: `${stored.id}@${stored.builtAt}`,
+      version: `${EDITOR_REVISION}:${stored.id}@${stored.builtAt}`,
       entries: relinkEdition(stored.entries, { stories, snapshot: stored.stories, byId: new Map([...snapItems, ...byId]) }),
       items: [...new Set(shown)].map((id) => snapItems.get(id)).filter(Boolean),
       bubble: stored.bubble || [],

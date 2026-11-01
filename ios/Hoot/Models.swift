@@ -114,11 +114,14 @@ struct Story: Codable, Identifiable, Hashable {
     var itemIds: [String]
     var sourceCount: Int?
     var sourceNames: [String]?
+    var publisherCount: Int?
+    var publisherCountries: [String]?
+    var desk: String?
     var latestAt: String?
 
     // `tappedId` hoort niet in de opslag: het geldt alleen voor één keer openen.
     private enum CodingKeys: String, CodingKey {
-        case id, leadId, itemIds, sourceCount, sourceNames, latestAt
+        case id, leadId, itemIds, sourceCount, sourceNames, publisherCount, publisherCountries, desk, latestAt
     }
 }
 

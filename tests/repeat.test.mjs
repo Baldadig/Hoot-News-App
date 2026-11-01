@@ -63,7 +63,9 @@ test('Buiten je bubbel gaat niet over iets wat al in je eigen editie staat', () 
   const other = art('ot', 'guardian', 'Heatwave grips southern Spain as wildfires spread near Valencia', 1, { summary: 'Firefighters battle blazes near Valencia.' })
   const st = [{ id: 'st-rs', itemIds: serbia.map((i) => i.id), sourceCount: 3, ownCount: 3, latestAt: serbia[0].publishedAt }]
   const global = { id: 'e', entries: [{ kind: 'story', id: 'st-rs', leadId: 'rs0', desk: 'buitenland' }, { kind: 'item', id: 'gl', desk: 'bubbel', terms: [] }], items: [...serbia, live, other], bubble: [{ id: 'ot', terms: [] }] }
-  const mine = composePersonal({ global, stories: st, items: [...serbia, live, other], sources: ['nos', 'volkskrant', 'nrc'].map((id) => ({ id, cat: 'nl' })), followed: new Set(['nos', 'volkskrant', 'nrc']), now: NOW })
+  // Met Wereld: zonder Wereld zijn Servië en de hittegolf in Spanje (geen groot nieuws) sinds de normen
+  // van 1 november helemaal geen optie, en dan toetst dit niets over de bubbel.
+  const mine = composePersonal({ global, stories: st, items: [...serbia, live, other], sources: ['nos', 'volkskrant', 'nrc'].map((id) => ({ id, cat: 'nl' })), followed: new Set(['nos', 'volkskrant', 'nrc']), interests: ['wereld'], now: NOW })
   const bubble = mine.entries.find((e) => e.desk === 'bubbel')
   assert.equal(bubble?.id, 'ot')
 })

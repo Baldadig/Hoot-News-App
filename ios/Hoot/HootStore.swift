@@ -571,10 +571,13 @@ final class HootStore {
     }
 
     // ---- Jouw Editie ----
-    // De Editie die je ziet: jouw Editie van dit dagdeel als die er is en van jou is, anders die voor
-    // iedereen. Veranderen je bronnen of interesses net, dan blijft de vastgelegde staan tot de nieuwe
-    // er is (bouwspec-aanvulling P8-1), zoals op de website.
-    var shownEdition: Edition? { personal != nil && personal?.id == edition?.id && personal?.owner == ownerNow ? personal : edition }
+    // Toon alleen jouw samengestelde Editie. De algemene feed kent jouw interesses niet en mag
+    // tijdens het laden niet kort langs de buitenland-/sportgrens of Nederlandse opening gaan.
+    var shownEdition: Edition? { Self.visiblePersonal(personal, id: edition?.id, owner: ownerNow) }
+    static func visiblePersonal(_ candidate: Edition?, id: String?, owner: String) -> Edition? {
+        guard let candidate, let id, candidate.id == id, candidate.owner == owner else { return nil }
+        return candidate
+    }
     var isPersonal: Bool { shownEdition?.personal == true }
     func isFavorite(_ id: String) -> Bool { favorites.contains(id) }
     func setFavorite(_ id: String, _ on: Bool) { favorites = on ? Array(Set(favorites + [id])).sorted() : favorites.filter { $0 != id } }

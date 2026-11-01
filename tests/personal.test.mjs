@@ -40,7 +40,7 @@ test('hoofdberichten komen uit je eigen bronnen; een gedeeld verhaal krijgt een 
 })
 
 test('aanvullen uit de algemene editie: zonder dubbele gebeurtenis, met label', () => {
-  const e = make()
+  const e = make({ interests: ['wereld'] })
   const ext = e.entries.filter((x) => x.desk === 'extern')
   assert.deepEqual(ext.map((x) => x.id), ['g1', 'g2']) // sWoning zat er al in (zelfde verhaal)
   assert.equal(ext[0].fromDesk, 'buitenland')
@@ -195,7 +195,7 @@ test('een bericht van een vakbron krijgt de rubriek van de bron (buiten de indel
     art('fr1', 'nos', 'Franse president ontbindt parlement in Parijs', { publishedAt: ago(0.5) }),
   ]
   const st = [...stories, { id: 'sBrit', leadId: 'bu1', itemIds: ['bu1', 'bu2'], sourceCount: 3, latestAt: ago(0.4) }, { id: 'sFrans', leadId: 'fr1', itemIds: ['fr1'], sourceCount: 3, latestAt: ago(0.5) }]
-  const e = composePersonal({ global, stories: st, items: [...items, ...abroad, review], sources, followed, now: NOW, builtAt: 'T' })
+  const e = composePersonal({ global, stories: st, items: [...items, ...abroad, review], sources, followed, interests: ['wereld'], now: NOW, builtAt: 'T' })
   assert.deepEqual(['sBrit', 'sFrans'].map((id) => e.entries.find((x) => x.id === id).desk), ['buitenland', 'buitenland'])
   assert.equal(e.entries.find((x) => (x.leadId || x.id) === 'rv').desk, 'tech')
 })
@@ -239,7 +239,7 @@ test('eigen bronnen zijn die van de lezer: een verhaal uit één eigen bron krij
   assert.equal(mine.ownCount, 1)
   assert.equal(weight(mine, NOW) - weight(st[0], NOW), 100)
   assert.equal(st[0].ownCount, 0) // het origineel blijft zoals de server het gaf
-  const ids = composePersonal({ global, stories: st, items: its, followed: fol, now: NOW, builtAt: 'T' }).entries.map((x) => x.id)
+  const ids = composePersonal({ global, stories: st, items: its, followed: fol, interests: ['wereld'], now: NOW, builtAt: 'T' }).entries.map((x) => x.id)
   assert.ok(ids.includes('sCop') && ids.indexOf('sCop') < ids.indexOf('n9'), ids.join(','))
 })
 
@@ -264,4 +264,45 @@ test('verhalen per lezer: zonder st.desk van de server rekenen we hem uit alle b
   const b = storiesForReader(st, [its[0]], new Set(['nyt']), its)
   assert.equal(a[0].desk, 'vs')
   assert.equal(b[0].desk, 'vs')
+})
+
+// Keuring 1 november (live feed 10:40, hertagd): een buitenlands verhaal met één NU-bericht erin was voor wie
+// Binnenland koos "Omdat je Binnenland volgt", en nam als Nederlandse voorpagina een van de twee internationale
+// plekken in. De geo van een verhaalplek volgt het hele verhaal (storyForeignOf, internationalNews), niet dat
+// ene lid: NU zegt binnenland, RTL en de BBC zeggen VS, Telegraaf en Variety niets.
+test('een buitenlands verhaal met een NU-lid is geen Binnenland (Heidi Klum op Halloween)', async () => {
+  const { internationalNews } = await import('../shared/edition-policy.mjs')
+  const { storyForeignOf } = await import('../netlify/lib/desks.mjs')
+  const sources = [{ id: 'nu', cat: 'nl', lang: 'nl' }, { id: 'rtl', cat: 'nl', lang: 'nl' }, { id: 'telegraaf', cat: 'nl', lang: 'nl' }, { id: 'bbc', cat: 'nieuws', lang: 'en' }, { id: 'variety', cat: 'cultuur', lang: 'en' }]
+  // De zes berichten zoals de live feed ze leverde (alleen de tijden zijn verschoven).
+  const klum = [
+    art('1q071xd', 'rtl', 'Heidi Klum stapt in eigen afgehakte linkerhand voor Halloween', { summary: 'Heid Klum organiseert ieder jaar een Halloweenfeest in New York. En ook dit jaar steelt ze de show.', topics: [], url: 'https://www.rtl.nl/nieuws/buitenland/video/2110b44c-4cf6-456e-9439-d953753921f2/heidi-klum-stapt-eigen-afgehakte', publishedAt: ago(1.2) }),
+    art('v0ocyu', 'nu', 'Heidi Klum pakt weer uit met Halloween en gaat verkleed als afgezaagde hand', { summary: 'Heidi Klum ging dit jaar tijdens haar jaarlijkse Halloweenfeest verkleed als afgezaagde hand.', topics: [], url: 'https://www.nu.nl/achterklap/6415107/heidi-klum-pakt-weer-uit-met-halloween-en-gaat-verkleed-als-afgezaagde-hand.html', publishedAt: ago(2.2) }),
+    art('kdfyzg', 'telegraaf', 'Heidi Klum verschijnt in gruwelijk Halloweenkostuum op rode loper', { summary: 'Heidi Klum (53) heeft opnieuw alles uit de kast gehaald voor haar jaarlijkse Halloweenfeest in New York.', topics: [], url: 'https://www.telegraaf.nl/video/heidi-klum-verschijnt-in-gruwelijk-halloweenkostuum-op-rode-loper/163912344.html', publishedAt: ago(2.4) }),
+    art('15u8ija', 'rtl', 'Heidi Klum maakt zichzelf opnieuw onherkenbaar voor Halloween', { summary: 'Heidi Klum (53) heeft Halloween opnieuw naar haar hand gezet.', topics: [], url: 'https://www.rtl.nl/boulevard/artikel/5662295/heidi-klum-maakt-zichzelf-opnieuw-onherkenbaar-voor-halloween', publishedAt: ago(3.4) }),
+    art('1xjlp5z', 'bbc', 'Watch: Heidi Klum as giant severed hand for Halloween bash', { summary: 'The supermodel and TV host provided a gory new shock at her New York event.', topics: [], url: 'https://www.bbc.co.uk/news/videos/cj040yd1xdrlo', publishedAt: ago(5.3) }),
+    art('7sjk91', 'variety', 'Heidi Klum Dressed Up as a Severed Human Hand for Her Annual Halloween Party', { summary: 'Is it really Halloween without Heidi Klum?', topics: ['gezondheid', 'film'], url: 'https://variety.com/2026/scene/news/heidi-klum-halloween-2026-severed-human-hand-costume-1236935653/', publishedAt: ago(7.5) }),
+  ]
+  const home = [
+    art('h1', 'nu', 'Sovjet Ereveld in Leusden opnieuw beklad, leuzen tegen communisten', { publishedAt: ago(1) }),
+    art('h2', 'telegraaf', 'Sovjet-ereveld in Leusden opnieuw beklad met leuzen', { publishedAt: ago(1.1) }),
+    art('h3', 'rtl', 'Ereveld in Leusden beklad', { publishedAt: ago(1.3) }),
+    art('h4', 'nu', 'Geen deal met oppositie over belastingplan, woensdag debat in Tweede Kamer', { publishedAt: ago(2) }),
+    art('h5', 'telegraaf', 'Nog geen deal belastingplan na nieuwe gespreksronde in Den Haag', { publishedAt: ago(2.2) }),
+    art('h6', 'nu', 'Gewonden bij steekpartij in bus in Breda', { publishedAt: ago(3) }),
+    art('h7', 'rtl', 'Tilburgse studenten overmeesteren inbreker in studentenhuis', { publishedAt: ago(3.5) }),
+  ]
+  assert.ok(storyForeignOf(klum) && internationalNews(klum, null, { publisherCountries: ['NL', 'GB', 'US'] }), 'het verhaal zelf is buitenlands')
+  const st = [
+    { id: 's1gfhthv', leadId: 'v0ocyu', itemIds: klum.map((i) => i.id), sourceCount: 5, latestAt: ago(1.2), desk: null, publisherCountries: ['NL', 'GB', 'US'] }, // de rubriek zoals de nieuwe server hem zet (deskOfStory),
+    { id: 'sLeusden', leadId: 'h1', itemIds: ['h1', 'h2', 'h3'], sourceCount: 3, latestAt: ago(1), desk: 'binnenland', publisherCountries: ['NL'] },
+    { id: 'sBelasting', leadId: 'h4', itemIds: ['h4', 'h5'], sourceCount: 2, latestAt: ago(2), desk: 'binnenland', publisherCountries: ['NL'] },
+  ]
+  const e = composePersonal({ global, stories: st, items: [...klum, ...home], sources, followed: new Set(['nu', 'rtl', 'telegraaf']), interests: ['binnenland'], now: NOW, builtAt: 'T' })
+  const k = e.entries.find((x) => x.id === 's1gfhthv' || klum.some((i) => i.id === (x.leadId || x.id)))
+  if (k) {
+    assert.notEqual(k.why?.text, 'Omdat je Binnenland volgt', JSON.stringify(k.why))
+    assert.notEqual(k._parts?.interest?.f, 'binnenland', JSON.stringify(k._parts))
+  }
+  assert.ok(!/Klum/.test(e.items.find((i) => i.id === (e.entries[0].leadId || e.entries[0].id))?.title || ''), 'geen Klum als opening')
 })

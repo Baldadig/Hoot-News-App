@@ -1,10 +1,12 @@
+import { coverageOf, majorNews, allowedNews, internationalNews, worldChosen } from '../../shared/edition-policy.mjs'
+import { eventScope, conflictingEvents } from '../../shared/article-signals.mjs'
 // Verhalen (bundels), hoofdbericht en editie — pure functies, los van het ophalen,
 // zodat ze te testen zijn (zie tests/).
 
 import { DESKS, desksOf, primaryDesk, storyDesks, deskOfStory, storyForeignOf, weight } from './desks.mjs'
 
 import { hash } from '../../shared/util.mjs'
-import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, KERN, KERN_MIN, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX, FOREIGN_DESKS, geoOf, NL_OTHER_W, FRONT_NL_MIN, FRONT_NL_HOME, INT_MAX, OUTSIDE_FAMILY, chosenReason, visibleReason } from '../../shared/editor.mjs'
+import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, KERN, KERN_MIN, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX, FOREIGN_DESKS, NL_OTHER_W, INT_MAX } from '../../shared/editor.mjs'
 export { hash }
 
 // Een onleesbare tijd telt als heel oud (anders geeft de vergelijking NaN en raakt de sortering,
@@ -12,7 +14,7 @@ export { hash }
 const timeOf = (a) => Date.parse(a.publishedAt) || 0
 export const byRecency = (a, b) => timeOf(b) - timeOf(a)
 
-// Bronnen die in het Nederlands schrijven (voor taalvoorkeur bij het hoofdbericht).
+// Legacy-export voor oudere meettools; geeft geen bonus meer bij de kopselectie.
 export const NL_SOURCES = new Set(['nrc', 'nos', 'volkskrant', 'tweakers'])
 
 const deaccent = (s) => s.normalize('NFKD').replace(/[̀-ͯ]/g, '')
@@ -312,7 +314,7 @@ function signature(article, vocab, ext = false) {
     }
   }
   // `raw`: kop en tekst, alleen voor sameSubject regel E (subjectText, pas uitgerekend als het nodig is).
-  const out = { words: sigWords(article.title), strong, weak, known, concepts, rareIds: new Set(concepts_.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: timeOf(article), raw }
+  const out = { eventScope: eventScope(article), words: sigWords(article.title), strong, weak, known, concepts, rareIds: new Set(concepts_.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: timeOf(article), raw }
   if (ext) {
     // Een samengesteld instituut is ook een rechtbank-begrip (het losse woord "court" is weg).
     if (strong.has('constitutionalcourt') || strong.has('supremecourt')) concepts.add('court')
@@ -390,6 +392,7 @@ const NAMES_WINDOW = 12 * 60 * 60 * 1000 // H6 (i): twee namen gemeen is alleen 
 // in de tekst noemt een voorbeschouwing alle clubs van het weekend (gemeten: één voetbalverhaal van
 // twaalf bronnen over PSG, Arsenal én Liverpool).
 export function sameEvent(a, b, ext = false) {
+  if (conflictingEvents(a.eventScope, b.eventScope)) return false
   const dt = Math.abs(a.t - b.t)
   // Beide noemen namen, maar geen enkele dezelfde: twee gebeurtenissen van dezelfde soort
   // ("president erkent nederlaag bij verkiezingen" in Brazilië en in Servië).
@@ -476,15 +479,15 @@ export function signatures(articles, extra = [], { extended = false } = {}) {
 const STALE_AFTER = 24 * 60 * 60 * 1000
 export const isStale = (item, now) => !!now && now - timeOf(item) > STALE_AFTER
 
-// Volgorde van kandidaten voor het hoofdbericht: eigen bronnen eerst, dan Nederlands,
-// dan met preview, met beeld, en het nieuwste.
+// Volgorde van kandidaten voor het hoofdbericht: eigen/voorkeursbronnen, nieuws boven opinie,
+// dan met preview, met beeld, en het nieuwste. Geen bonus voor land of taal van de uitgever.
 // `preferred`: je voorkeursbronnen (de ster bij een bron); die gaan nog vóór je andere bronnen.
 // `now`: het moment van samenstellen (zonder: geen achtergrond-regel).
 export function leadCandidates(items, mainIds, preferred = null, now = null) {
   // Een opiniestuk is nooit het hoofdbericht als er een nieuwsbericht is.
   // Een podcast of liveblog is ook nooit het hoofdbericht (een promo, of over van alles tegelijk).
   // Achtergrond weegt zwaarder mee dan alle voorkeuren samen (27): een vers bericht gaat altijd voor.
-  const score = (i) => (i.type === 'opinie' ? -16 : 0) + (/\bpodcast\b/i.test(i.title || '') || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (NL_SOURCES.has(i.source) ? 4 : 0) + (i.summary ? 2 : 0) + (i.image ? 1 : 0)
+  const score = (i) => (i.type === 'opinie' ? -16 : 0) + (/\bpodcast\b/i.test(i.title || '') || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (i.summary ? 2 : 0) + (i.image ? 1 : 0)
   return [...items].sort((a, b) => score(b) - score(a) || byRecency(a, b))
 }
 
@@ -618,6 +621,7 @@ export function buildStories(articles, registry = {}, { mainIds = new Set(), key
       leadId: leadCandidates(items, mainIds, null, now)[0].id,
       itemIds: items.map((i) => i.id),
       sourceCount: sourceIds.size,
+      ...coverageOf(items),
       ownCount: new Set(own.map((i) => i.source)).size,
       // De rubriek uit álle berichten van het verhaal, niet uit wat een lezer volgt: zo heet
       // hetzelfde verhaal voor iedereen hetzelfde (de persoonlijke Editie neemt hem over).
@@ -683,6 +687,7 @@ function attachLoose(groups, list, sig) {
     if (!sa || sa.strong.size < CORE_SHARED || !sa.t) continue
     let best = null
     for (const b of big) {
+      if (b.items.some(i => conflictingEvents(sa.eventScope, sig.get(i.id)?.eventScope))) continue
       if (sa.t < b.from - EVENT_WINDOW || sa.t > b.to + EVENT_WINDOW) continue
       const shared = sharedStrong(sa, coreSig(b), true)
       if (shared < CORE_SHARED) continue
@@ -1078,14 +1083,19 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     const primary = deskOfStory(items)
     const desk = storyDesk(st, primary)
     const mine = new Set(items.map((i) => i.source)).size // eigen bronnen in het verhaal
-    // Nederlandse bronnen tellen vol, de rest half (`nlCount`: storiesForReader; zonder telt alles vol).
+    // Elke onafhankelijke bron telt vol; land/taal van de uitgever verandert het nieuwsgewicht niet.
     const nl = st.nlCount ?? st.sourceCount
     const eff = nl + NL_OTHER_W * (st.sourceCount - nl)
     const belang = weight({ sourceCount: eff, ownCount: mine, latestAt: st.latestAt }, now) - straf
     // De punten uit al je eigen berichten van het verhaal (`ctx.own`), ook die buiten deze pool.
     const mineAll = ctx.own ? st.itemIds.map((id) => ctx.own.get(id) || byId.get(id)).filter(Boolean) : items
-    const parts = personalParts(mineAll, prof, ctx, { desk, foreign: nl * 2 < st.sourceCount })
-    cands.push({ kind: 'story', id: st.id, st, items, ids: st.itemIds, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) })
+    // Of het verhaal buitenlands is, volgt het hele verhaal (alles wat het toestel ervan kent, `ctx.known`),
+    // niet je eigen stukken: anders maakte één NU-bericht van Heidi Klum op Halloween (naast RTL, Telegraaf,
+    // BBC en Variety) een buitenlands verhaal tot "Omdat je Binnenland volgt" (keuring 1 november).
+    const whole = ctx.known ? st.itemIds.map((id) => ctx.known.get(id) || byId.get(id)).filter(Boolean) : items
+    const intl = internationalNews(whole, desk, st)
+    const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) || intl })
+    cands.push({ kind: 'story', id: st.id, st, items, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) })
   }
   for (const it of pool) {
     if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || it.storyId || isLive(it)) continue
@@ -1104,11 +1114,13 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   cands.sort(heaviest)
 
   const used = new Set()
+  const foreign = c => c.intl ?? internationalNews(c.items, c.desk, c.st)
   const take = (c, desk, extra = {}) => {
-    if (used.has(c) || clashes(c)) return false
+    if (used.has(c) || clashes(c) || !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk)) return false
+    if (plan && !worldChosen(prof) && foreign(c) && entries.filter(e => { const x = cands.find(c => c.id === e.id); return x && foreign(x) }).length >= INT_MAX) return false
     used.add(c)
     place(c.ids)
-    const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, ...(c.vervolg ? { vervolg: c.vervolg } : {}), ...extra }
+    const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, big: majorNews(c.st || {sourceCount:1}, c.items), ...(c.vervolg ? { vervolg: c.vervolg } : {}), ...extra }
     if (c.kind === 'story') {
       // De kop van een ontwikkeld verhaal is het zwaarste nieuwe stuk, niet een oud stuk uit een andere bron.
       const lead = pickLead(c.dev ? c.dev.fresh : c.items)
@@ -1118,88 +1130,53 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     } else entries.push({ kind: 'item', id: c.it.id, itemIds: [c.it.id], title: c.it.title || null, ...base })
     return true
   }
-  // Buitenland zonder persoonlijke reden (geen interessepunt van MIN_WHY_PTS) is begrensd voor wie
-  // interesses koos: hooguit INT_MAX plekken buiten de voorpagina (`force` gaat erlangs: groot nieuws,
-  // de kernregel, en als er anders te weinig is; een Editie heeft altijd tien plekken). Buitenlands:
-  // een buitenlandse rubriek, of een verhaal met minder dan de helft Nederlandse bronnen (de dood van
-  // Patrick Stewart heeft geen rubriek, maar is geen Nederlands nieuws).
-  const foreign = (c) => FOREIGN_DESKS.has(c.desk) || c.nl * 2 < c.sc
-  // Nederlands nieuws: niet buitenlands, en Binnenland of Regio als rubriek.
-  const homeNews = (c) => !!c && !foreign(c) && !FOREIGN_DESKS.has(c.primary) && !FOREIGN_DESKS.has(c.home) && [c.desk, c.primary, c.home].some((d) => d === 'binnenland' || d === 'regio')
-  // Ook een verhaal in een rubriek die geen plaats noemt (Wetenschap: de kast van Pompeï) is buitenland als
-  // zijn berichten buiten Nederland spelen (geoOf), zoals composePersonal (unchosenAbroad) het telt.
-  const geoAbroad = (c) => {
-    if (c.geoInt === undefined) {
-      const geos = c.items.map((i) => geoOf(i, c.desk, c.nl * 2 < c.sc))
-      const int = geos.filter((g) => g === 'int').length
-      c.geoInt = int > geos.filter((g) => g === 'nl').length && int * 2 >= geos.length
-    }
-    return c.geoInt
-  }
-  const abroad = (c) => foreign(c) || FOREIGN_DESKS.has(c.primary) || FOREIGN_DESKS.has(c.home) || geoAbroad(c)
-  // Een reden telt alleen als het verhaal als geheel hem draagt (chosenReason in shared/editor.mjs).
-  const unchosen = (c) => abroad(c) && !chosenReason(c.parts)
-  const capOn = plan && Object.keys(prof?.family || {}).length > 0
-  // Wie interesses koos maar Wereld niet (`strictInt`), krijgt in de hele Editie hooguit INT_MAX
-  // buitenlandse verhalen zonder reden, een buitenlands verhaal op de voorpagina en groot nieuws
-  // meegeteld (feedback 31 oktober: de vriendin kreeg het Poolse hof op de voorpagina, de G20 als groot
-  // nieuws én Oekraïne als breed verhaal). Groot nieuws uit een buitenlandse rubriek gaat dan niet meer
-  // langs de grens; groot nieuws zonder rubriek (de dood van Patrick Stewart) wel, en dat telt niet mee.
-  // Verder gaat alleen de kernregel (een krant heeft minstens KERN_MIN kernrubrieken) er nog langs; zo'n
-  // plek telt ook niet mee en komt achteraan. `counted`: de verhalen die tegen de grens tellen.
-  const strictInt = capOn && (prof?.family?.wereld || 0) < OUTSIDE_FAMILY
+  // Alle buitenlandse plekken tellen, ook een gekozen thema, voorpagina en breed nieuws.
+  // De harde toelating in take() kan niet door force/fallback worden omzeild. Een verhaal is buitenlands
+  // naar het hele verhaal (`c.intl`), zoals composePersonal het telt: een Halloween-stuk van Heidi Klum met
+  // NU, RTL en Telegraaf naast BBC en Variety is geen Nederlandse voorpagina.
+  const homeNews = c => !!c && !foreign(c) && [c.desk,c.primary,c.home].some(d => d === 'binnenland' || d === 'regio')
+  const unchosen = foreign
+  const strictInt = !worldChosen(prof)
   const counted = new Set()
-  // Na voorpagina en groot nieuws (`honest`) krijgt zonder Wereld ook die ene buitenlandse plek alleen een
-  // verhaal met een reden die de lezer ziet (feedback 31 oktober: de kast van Pompeï stond er als kale
-  // "Rubriek Wetenschap" bij wie Wetenschap niet koos); alleen als er anders te weinig is, gaat het erlangs.
-  let honest = false
-  // Buitenland zonder reden dat de lezer ziet, zonder Wereld: voor een rubriek die niet zelf buitenlands is
-  // (Wetenschap) haalt ook de kernregel het er niet in; de buitenlandse rubrieken houden de kernregel.
-  const mute = (c) => honest && strictInt && unchosen(c) && !visibleReason(c.parts)
-  const capped = (c) => capOn && unchosen(c) && (counted.size >= INT_MAX || (honest && strictInt && !visibleReason(c.parts)))
-  // `exempt`: gaat langs de grens en telt dan ook niet mee (zonder Wereld: de kernregel, en groot nieuws
-  // zonder buitenlandse rubriek).
-  const takeCapped = (c, desk, extra, force = false, exempt = false) => {
+  const capped = c => strictInt && foreign(c) && counted.size >= INT_MAX
+  const takeCapped = (c, desk, extra, force = false) => {
     if ((!force && capped(c)) || !take(c, desk, extra)) return false
-    if (unchosen(c) && !(strictInt && exempt)) counted.add(c.id)
+    if (foreign(c)) counted.add(c.id)
     return true
   }
   let deskOrder = []
   if (plan) {
     // 1. De voorpagina: het zwaarste nieuws van het moment, voor iedereen gelijk. Alleen wat je al
     //    las of waar je "minder" op stemde, zakt (de rest van je profiel telt hier niet). Een
-    //    Nederlandse voorpagina: zie FRONT_NL_MIN en verder in shared/editor.mjs.
+    //    Binnenland reserveert een Nederlandse opening; uitgeverland is geen toegangsdrempel.
     const frontOf = (c) => c.belang + (c.parts.less?.pts || 0)
     const byFront = (a, b) => frontOf(b) - frontOf(a) || heaviest(a, b)
-    const front = cands.filter((c) => c.kind === 'story' && c.sc >= FRONT_MIN && !c.parts.seen).sort(byFront)
-    const dutch = (c) => c.st.nlCount !== undefined && !foreign(c) && c.nl >= FRONT_NL_HOME
-    const home = cands.filter((c) => c.kind === 'story' && !c.parts.seen && !c.parts.less && dutch(c)).sort(byFront)
-    let ints = 0
+    const worldReader = worldChosen(prof)
+    const domesticReader = (prof?.family?.binnenland || 0) > 0 || (!worldReader && Object.keys(prof?.family || {}).length === 0)
+    const front = cands.filter((c) => c.kind === 'story' && (c.sc >= FRONT_MIN || majorNews(c.st, c.items)) && !c.parts.seen).sort(byFront)
+    const dutch = c => homeNews(c)
+    const home = !domesticReader ? [] : cands.filter(c => !c.parts.seen && !c.parts.less && dutch(c)).sort(byFront)
     let hasHome = false
     const room = () => Math.min(FRONT_MAX, size) - (hasHome || !home.length ? 0 : 1) // een plek voor Nederland
     for (const c of front) {
-      if (entries.length >= room() || (entries.length >= FRONT && c.eff < FRONT_BIG)) break
-      if (c.nl < FRONT_NL_MIN || (foreign(c) && ints >= 1)) continue
+      if (entries.length >= room() || (entries.length >= FRONT && !majorNews(c.st, c.items))) break
       if (strictInt && capped(c)) continue
       if (!take(c, c.desk, { front: true })) continue
-      if (foreign(c)) ints++
-      if (strictInt && unchosen(c) && FOREIGN_DESKS.has(c.desk)) counted.add(c.id)
+      if (foreign(c)) counted.add(c.id)
       if (dutch(c)) hasHome = true
     }
     if (!hasHome) home.some((c) => take(c, c.desk, { front: true }))
-    // Groot nieuws (vanaf FRONT_BIG bronnen) dat niet op de Nederlandse voorpagina past, krijgt toch
+    // Groot nieuws (acht uitgevers, of vijf uit minstens twee landen) dat niet op de Nederlandse voorpagina past, krijgt toch
     // een plek, zolang voorpagina en groot nieuws samen hooguit FRONT_MAX plekken zijn (wat dan nog
     // ontbreekt, wordt "Waar iedereen over schrijft": composePersonal); buitenland telt mee voor de grens.
     for (const c of front) {
       if (entries.length >= Math.min(FRONT_MAX, size)) break
-      if (c.sc >= FRONT_BIG && !used.has(c)) {
-        const force = !(strictInt && FOREIGN_DESKS.has(c.desk))
-        takeCapped(c, c.desk, {}, force, force)
+      if (majorNews(c.st, c.items) && !used.has(c)) {
+        takeCapped(c, c.desk, {}, true)
       }
     }
     // Groot nieuws dat zo een plek kreeg, vult al een zetel van zijn rubriek (de voorpagina niet: die
     // komt bovenop je indeling, zoals altijd).
-    honest = true
     deskOrder = deskPlan(prof, size - entries.length, entries.map((e) => e.desk), entries.filter((e) => !e.front).map((e) => e.desk)).order
     // 2. Jouw rubrieken, in de volgorde van de zetels: per zetel de zwaarste kandidaat die er thuishoort.
     // De grens wijkt alleen voor de kernregel: een krant heeft minstens KERN_MIN kernrubrieken.
@@ -1209,10 +1186,10 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     for (const d of deskOrder) {
       if (entries.length >= size) break
       const force = kernShort(d) && !(strictInt && FOREIGN_DESKS.has(d) && counted.size >= INT_MAX)
-      cands.some((c) => c.home === d && !c.parts.seen && !(mute(c) && !FOREIGN_DESKS.has(c.desk)) && takeCapped(c, d, { planned: true }, force, force))
+      cands.some((c) => c.home === d && !c.parts.seen && takeCapped(c, d, { planned: true }, force))
     }
   }
-  // 3. Aanvullen met wat het zwaarst weegt; is er dan nog plek, dan zonder grens.
+  // 3. Aanvullen op gewicht; ook de laatste terugval respecteert de harde nieuwsgrenzen.
   for (const c of cands) {
     if (entries.length >= size) break
     if (!c.parts.seen) takeCapped(c, plan ? c.home : null)
@@ -1225,7 +1202,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   // Zonder Wereld komt buitenland zonder reden buiten de voorpagina achteraan, en wie Binnenland koos,
   // opent met Nederland: een buitenlands verhaal op de voorpagina komt na de Nederlandse (feedback 31
   // oktober: wie alleen Binnenland koos, kreeg Polen als eerste verhaal).
-  if (strictInt) {
+  if (strictInt || prof.family.binnenland > 0) {
     const candOf = new Map([...used].map((c) => [c.id, c]))
     const isForeign = (e) => foreign(candOf.get(e.id))
     const lastHome = entries.reduce((k, e, i) => (e.front && !isForeign(e) ? i : k), -1)
@@ -1244,7 +1221,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   }
   // `abroad`: de buitenlandse plekken zonder persoonlijke reden buiten de voorpagina (hun id's), zodat
   // composePersonal bij het extra blok en het aanvullen dezelfde grens aanhoudt.
-  // `counted`: wat tegen de grens telt (zonder Wereld ook een buitenlands verhaal op de voorpagina, niet de kernregel).
+  // `counted`: alle internationale plekken, inclusief voorpagina en kernrubrieken.
   const abroadIds = new Set([...used].filter((c) => unchosen(c) && !entries.find((e) => e.id === c.id)?.front).map((c) => c.id))
   return Object.assign(entries, { deskOrder, abroad: abroadIds, counted })
 }
@@ -1293,13 +1270,14 @@ export function relinkEdition(entries = [], { stories = [], snapshot = [], byId 
 export function widelyCovered(stories = [], byId = new Map(), { isFree = () => false, isDutch = () => false, isSport = () => false, min = 6, max = 8 } = {}) {
   const out = []
   for (const st of [...stories].sort((a, b) => b.sourceCount - a.sourceCount)) {
-    if (out.length >= max || st.sourceCount < min) break
+    if (out.length >= max) break
     const items = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
+    if (st.sourceCount < min && !majorNews(st, items)) continue
     if (!items.length || items.filter(isSport).length * 2 >= items.length) continue
     const free = items.filter((i) => isFree(i.source) && !isLive(i) && i.type !== 'opinie')
-    const lead = free.find((i) => isDutch(i.source) && i.summary) || free.find((i) => i.summary) || free[0]
+    const lead = leadCandidates(free, new Set())[0] // dezelfde kwaliteit/actualiteit, geen landbonus
     if (!lead) continue
-    out.push({ storyId: st.id, sourceCount: st.sourceCount, topics: [...new Set(items.flatMap((i) => i.topics || []))], item: lead })
+    out.push({ storyId: st.id, sourceCount: st.sourceCount, ...coverageOf(items), topics: [...new Set(items.flatMap((i) => i.topics || []))], item: lead })
   }
   return out
 }

@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { gunzipSync } from 'node:zlib'
 import { loadSnapshot } from './helpers/snapshot.mjs'
-import { FRONT_SOURCES, chosenReason, visibleReason } from '../shared/editor.mjs'
+import { FRONT_SOURCES, chosenReason, visibleReason, isSport, INT_MAX } from '../shared/editor.mjs'
 import { FIRST, measureFirst, verdictFirst, DREMPELS_EERSTE, measureBinnenland, firstSetup, notDutch } from './helpers/eerste.mjs'
 import { composePersonal } from '../src/lib/personal.js'
 import { desksOf, isNonEuropean } from '../netlify/lib/desks.mjs'
@@ -100,12 +100,16 @@ for (const [tag, data] of [['live', live], ['hertagd', liveRetag]]) {
 const live = data
 const editionOf = (p) => editionOfData(p, live)
 
-test(`31 oktober 09:30 (${tag}) · de vriendin: geen G20, geen Oekraïne, hooguit één buitenlands verhaal zonder reden`, () => {
+// Normen 1 november 2026: zonder Wereld hooguit twee internationale plekken, alleen groot nieuws. De G20
+// (elf uitgevers uit vier landen) is groot nieuws en mag dan, binnen het plafond; Oekraïne (Oleshky) en
+// Braziliaans voetbal (Seedorf) zijn dat niet.
+test(`31 oktober 09:30 (${tag}) · de vriendin: geen Oekraïne of Seedorf, hooguit twee buitenlandse verhalen en alleen groot nieuws`, () => {
   const es = editionOf(persona('vriendin'))
   assert.equal(es.length, 10)
-  for (const kop of ['Groepsfoto G20', 'Hundreds evacuated from Russian-occupied Oleshky', 'Clarence Seedorf']) assert.ok(!find(es, kop), kop)
+  for (const kop of ['Hundreds evacuated from Russian-occupied Oleshky', 'Clarence Seedorf']) assert.ok(!find(es, kop), kop)
   const r = measureFirst(live, [persona('vriendin')])[0]
-  assert.ok(r.intTotaal <= 1, r.entries.filter((e) => e.geo === 'INT' && !e.real).map((e) => e.title).join(' | '))
+  assert.ok(r.intAlle <= INT_MAX, r.entries.filter((e) => e.geo === 'INT').map((e) => e.title).join(' | '))
+  assert.ok(r.entries.filter((e) => e.geo === 'INT').every((e) => e.why === 'groot' || e.front), r.entries.filter((e) => e.geo === 'INT').map((e) => `${e.title} (${e.whyText})`).join(' | '))
   assert.ok(r.nl >= 5, `NL ${r.nl}`)
 })
 
@@ -114,7 +118,7 @@ test(`31 oktober 09:30 (${tag}) · wie Binnenland koos, opent met Nederland: gee
     const r = measureFirst(live, [persona(id)])[0]
     assert.equal(r.entries[0].geo, 'NL', `${id}: ${r.entries[0].title}`)
     assert.ok(r.entries.slice(0, 2).filter((e) => e.geo === 'INT').length <= 1, id)
-    assert.ok(!find(editionOf(persona(id)), 'Groepsfoto G20'), `${id}: G20`)
+    assert.ok(r.intAlle <= INT_MAX, `${id}: ${r.intAlle} internationaal`) // de G20 mag, als groot nieuws binnen het plafond
   }
 })
 
@@ -146,15 +150,21 @@ test(`31 oktober 09:30 (${tag}) · Binnenland: KLM in India, de boulevard en een
   }
 })
 
-test(`31 oktober 09:30 (${tag}) · Buiten je bubbel: geen Braziliaans voetbal voor wie alleen Binnenland koos`, () => {
-  const b = editionOf(persona('bi')).find((e) => e.desk === 'bubbel')
-  assert.ok(b && !/Corinthians/.test(b.title), b?.title)
+// Sport alleen bij een expliciete sportkeuze (normen 1 november): zijn alle bubbelkandidaten sport of
+// niet-groot buitenland, dan blijft de plek leeg in plaats van ongeoorloofd gevuld.
+test(`31 oktober 09:30 (${tag}) · Buiten je bubbel: geen Braziliaans voetbal en geen sport voor wie alleen Binnenland koos`, () => {
+  const es = editionOf(persona('bi'))
+  const b = es.find((e) => e.desk === 'bubbel')
+  assert.ok(!b || !/Corinthians/.test(b.title), b?.title)
+  const catOf = new Map(live.sources.map((s) => [s.id, s.cat]))
+  for (const e of es) assert.ok(!isSport(live.items.find((i) => i.id === (e.leadId || e.id)) || {}, catOf), e.title)
+  assert.ok(!es.some((e) => /Corinthians|Seedorf/.test(e.title)))
 })
 }
 
 // ---- Tweede ronde (feedback 31 oktober): Binnenland zonder Wereld, het brede verhaal, eerlijke labels ----
 // Op alle momentopnames, ook de hertagde: wie Binnenland koos en Wereld niet, opent met een Nederlands
-// verhaal; buitenland op de voorpagina alleen als groot nieuws en hooguit één; Politiek is dan Den Haag en
+// verhaal; buitenland alleen als groot nieuws en hooguit twee in de hele Editie (normen 1 november); Politiek is dan Den Haag en
 // Brussel (geen VS-politiek, Trump of verkiezingen elders als reden); en "Waar iedereen over schrijft" is
 // geen buitenland zonder reden.
 for (const [label, snap] of SNAPS) {
@@ -164,7 +174,8 @@ for (const [label, snap] of SNAPS) {
       assert.equal(es.length, 10, r.id)
       assert.equal(es[0].geo, 'NL', `${r.id}: ${es[0].title}`)
       assert.ok(es.slice(0, 2).filter((e) => e.geo === 'INT').length <= 1, r.id)
-      assert.ok(r.voorpaginaInt <= 1, `${r.id}: ${r.voorpaginaInt} buitenlandse verhalen op de voorpagina`)
+      // Normen 1 november: hooguit INT_MAX internationale plekken in de hele Editie (was: één op de voorpagina).
+      assert.ok(r.intAlle <= INT_MAX, `${r.id}: ${r.intAlle} buitenlandse verhalen`)
       for (const e of es.filter((x) => x.geo === 'INT')) {
         assert.ok(!/VS-politiek|Trump|Verkiezingen/.test(e.whyText), `${r.id}: ${e.title} (${e.whyText})`)
         assert.ok(!(e.why === 'breed' && !e.real), `${r.id}: breed buitenland zonder reden: ${e.title}`)
