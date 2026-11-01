@@ -1111,7 +1111,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   const used = new Set()
   const take = (c, desk, extra = {}) => {
     if (used.has(c) || clashes(c) || !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk)) return false
-    if (plan && !worldChosen(prof) && internationalNews(c.items, c.desk) && entries.filter(e => { const x = cands.find(c => c.id === e.id); return x && internationalNews(x.items, x.desk) }).length >= INT_MAX) return false
+    if (plan && !worldChosen(prof) && internationalNews(c.items, c.desk, c.st) && entries.filter(e => { const x = cands.find(c => c.id === e.id); return x && internationalNews(x.items, x.desk, x.st) }).length >= INT_MAX) return false
     used.add(c)
     place(c.ids)
     const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, big: majorNews(c.st || {sourceCount:1}, c.items), ...(c.vervolg ? { vervolg: c.vervolg } : {}), ...extra }
@@ -1126,7 +1126,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   }
   // Alle buitenlandse plekken tellen, ook een gekozen thema, voorpagina en breed nieuws.
   // De harde toelating in take() kan niet door force/fallback worden omzeild.
-  const foreign = c => internationalNews(c.items, c.desk)
+  const foreign = c => internationalNews(c.items, c.desk, c.st)
   const homeNews = c => !!c && !foreign(c) && [c.desk,c.primary,c.home].some(d => d === 'binnenland' || d === 'regio')
   const unchosen = foreign
   const strictInt = !worldChosen(prof)

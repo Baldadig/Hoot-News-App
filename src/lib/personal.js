@@ -1,4 +1,4 @@
-import { majorNews, internationalNews, allowedNews, worldChosen, sportChosen, exceptionalDutchSport } from '../../shared/edition-policy.mjs'
+import { majorNews, internationalNews, allowedNews, worldChosen, sportChosen, exceptionalDutchSport, coverageOf } from '../../shared/edition-policy.mjs'
 import { EDITOR_REVISION } from '../../shared/editor-version.mjs'
 // De persoonlijke editie — pure functies (tests/personal.test.mjs, tests/compose.test.mjs).
 //
@@ -70,12 +70,19 @@ export function storiesForReader(stories = [], items = [], followed = new Set(),
     byId ||= new Map(all.map((i) => [i.id, i]))
     return deskOfStory(st.itemIds.map((id) => byId.get(id)).filter(Boolean))
   }
+  const homeOf = (st) => {
+    byId ||= new Map(all.map((i) => [i.id, i]))
+    return coverageOf(st.itemIds.map((id) => byId.get(id)).filter(Boolean)).publisherCountries.some((c) => c === 'NL' || c === 'BE')
+  }
   const dutch = new Set(sources.filter((s) => s.lang === 'nl' && !VL_HOME.has(s.id)).map((s) => s.name))
   return stories.map((st) => ({
     ...st,
     ownCount: new Set(st.itemIds.map((id) => ownSource.get(id)).filter(Boolean)).size,
     desk: st.desk !== undefined ? st.desk : deskOf(st),
     ...(st.nlCount === undefined && dutch.size && st.sourceNames ? { nlCount: st.sourceNames.filter((n) => dutch.has(n)).length } : {}),
+    // Brengt een Nederlandse of Vlaamse uitgever dit verhaal (internationalNews)? Een oudere server levert
+    // `publisherCountries` niet; dan uit alles wat we van het verhaal hebben, niet alleen je eigen bronnen.
+    ...(st.publisherCountries === undefined ? { homeCovered: homeOf(st) } : {}),
   }))
 }
 
@@ -182,7 +189,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const members = [...new Set([id, ...(st?.itemIds || []), ...(entry.itemIds || [])])].map(x => itemAny.get(x)).filter(Boolean)
     const meta = st || entry
     const desk = st?.desk ?? entry.fromDesk ?? entry.desk ?? null
-    return { allowed: allowedNews(prof, meta, members, desk), abroad: internationalNews(members, desk), members, meta, desk }
+    return { allowed: allowedNews(prof, meta, members, desk), abroad: internationalNews(members, desk, meta), members, meta, desk }
   }
   const unchosenAbroad = (id, sid) => capAbroad && policyOf(id, sid).abroad
   const eligible = (id, sid, entry = {}) => {

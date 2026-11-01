@@ -9,7 +9,7 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 - **Liever korter dan opgevuld:** is er niet genoeg dat bij je past, dan is de Editie korter. Een lege plek gaat eerst naar je eigen nieuws, pas daarna naar de algemene Editie. Buiten je bubbel en Waar iedereen over schrijft staan er alleen als er een stuk is dat mag.
 - **Eerlijke telling:** elke uitgever telt even zwaar, ongeacht taal of land; sectiefeeds als NOS Sport tellen als NOS. Waar een verhaal speelt, haalt Hoot uit de berichten zelf, niet uit het land van de uitgever. India's Congrespartij is geen VS, de rellen in Den Haag zijn Binnenland, en Engelse landnamen (Serbia, Sweden) tellen als buitenland.
 - **Eén plek per verhaal:** een los bericht uit de algemene Editie staat er niet meer naast zijn eigen verhaal.
-- **Feed:** een verlopen versie van een bron of van de verhalen geeft een duidelijke fout in plaats van andere inhoud.
+- **Onbekend telt niet als binnenland:** een stuk uit een buitenlandse nieuwsbron zonder herkende plaats, dat geen Nederlandse of Vlaamse uitgever brengt, telt mee voor het plafond van twee (NPR over het Amerikaanse hooggerechtshof). Vakstukken over tech, economie, wetenschap, cultuur of sport niet. Een buitenlandse stad in de kop (Frankfurt, Keulen) maakt een stuk Buitenland.
 
 ## [1.57.0] — 2026-10-31 — Hoot verhuist naar gethoot.app, een Stroom van 36 uur en de signatuurronde
 

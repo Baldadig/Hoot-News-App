@@ -119,3 +119,18 @@ test('the broad-news pool includes a five-publisher story covered in two countri
   assert.equal(broad.length,1)
   assert.deepEqual(broad[0].publisherCountries,['GB','NL'])
 })
+
+test('onbekende plaats uit een buitenlandse nieuwsbron telt mee voor het plafond (NPR, hooggerechtshof)', () => {
+  const npr = mk('npr-scotus','Supreme Court hears religious freedom case centered on universal pre-K program','npr')
+  npr.summary = 'The justices weigh whether a state can exclude religious preschools from a universal program.'
+  assert.equal(internationalNews([npr], null), true)
+  const prof = profileOf({ interests:['politiek'], sources:[{ id:'npr', cat:'int' }] })
+  assert.equal(allowedNews(prof, { sourceCount:1 }, [npr], null), false, 'geen groot nieuws: niet toegelaten zonder Wereld')
+  // Een Nederlandse bron zonder plaats blijft onbekend en telt niet als buitenland.
+  assert.equal(internationalNews([mk('nos-x','Kabinet presenteert plannen','nos')], null), false)
+  // Een vakstuk is geen buitenlands nieuws; met een Nederlandse uitgever erbij blijft onbekend onbekend.
+  assert.equal(internationalNews([mk('npr-ai','The two most interesting risks to Anthropic','npr',['ai'])], null), false)
+  assert.equal(internationalNews([npr], null, { publisherCountries:['NL','US'] }), false)
+  // Wetenschap uit een buitenlandse bron is geen buitenlands nieuws.
+  assert.equal(internationalNews([mk('g-sci','New telescope images reveal early galaxies','guardian')], 'wetenschap'), false)
+})

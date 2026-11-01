@@ -237,7 +237,9 @@ function deskSet(it, storyForeign) {
   const education = /\b(leraar|basisschool|docent|onderwijs)\b/i.test(title) && !/\b(onderzoek|studie|research|study)\b/i.test(title)
   if (!education && (RE.wetenschap.test(title) || /wetenschap|\/science\/|\/health\//.test(sec) || /\b(journal article|scholarship|research finds|study finds)\b/i.test(t))) out.add('wetenschap')
   const specific = out.has('oekraine') || out.has('middenoosten') || out.has('vs')
-  const textForeign = specific || RE.buitenland.test(geoText)
+  // Een land of stad uit countriesIn in de kop (Frankfurt, Keulen) is ook een buitenlandse plek, ook als
+  // RE.buitenland die naam niet kent: anders werd de NOS over plunderingen in Frankfurt Binnenland.
+  const textForeign = specific || RE.buitenland.test(geoText) || headCountries.some((c) => c !== 'nl')
   if (isBinnenland(it, { storyForeign, foreign: textForeign })) {
     out.add('binnenland') // Nederland gaat voor: een Nederlandse speler in het buitenland is Binnenland
   } else if (!specific && (textForeign || /buitenland|\/world\//.test(sec) || placeSignals(it).foreign || VL_HOME.has(it.source))) {

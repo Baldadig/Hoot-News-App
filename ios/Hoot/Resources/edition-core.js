@@ -785,7 +785,7 @@ var HootCore = (() => {
     const education = /\b(leraar|basisschool|docent|onderwijs)\b/i.test(title) && !/\b(onderzoek|studie|research|study)\b/i.test(title);
     if (!education && (RE.wetenschap.test(title) || /wetenschap|\/science\/|\/health\//.test(sec) || /\b(journal article|scholarship|research finds|study finds)\b/i.test(t))) out.add("wetenschap");
     const specific = out.has("oekraine") || out.has("middenoosten") || out.has("vs");
-    const textForeign = specific || RE.buitenland.test(geoText);
+    const textForeign = specific || RE.buitenland.test(geoText) || headCountries.some((c) => c !== "nl");
     if (isBinnenland(it, { storyForeign, foreign: textForeign })) {
       out.add("binnenland");
     } else if (!specific && (textForeign || /buitenland|\/world\//.test(sec) || placeSignals(it).foreign || VL_HOME.has(it.source))) {
@@ -1257,10 +1257,15 @@ var HootCore = (() => {
   }
   var worldChosen = (prof) => prof.interests ? prof.interests.has("wereld") : (prof.family?.wereld || 0) >= 0.5;
   var sportChosen = (prof) => prof.interests ? prof.interests.has("sport") : (prof.family?.sport || 0) >= 0.5;
-  function internationalNews(items = [], desk = null) {
+  var FOREIGN_NEWS = /* @__PURE__ */ new Set(["nyt", "atlantic", "newyorker", "foreignpolicy", "politico", "npr", "bloomberg", "guardian", "bbc", "economist", "ft", "independent", "telegraph", "dw", "lemonde", "aljazeera", "scmp"]);
+  var BEAT = /* @__PURE__ */ new Set(["economie", "tech", "wetenschap", "cultuur", "sport"]);
+  var generalNews = (item) => !(item?.topics || []).some((t) => BEAT.has(FAMILY_OF[t]));
+  var homeCovered = (items, story) => story?.homeCovered === true || (story?.publisherCountries || []).some((c) => c === "NL" || c === "BE") || items.some((i) => ["NL", "BE"].includes(publisherCountry(i?.source)));
+  function internationalNews(items = [], desk = null, story = null) {
     if (["buitenland", "vs", "middenoosten", "oekraine"].includes(desk)) return true;
     const foreign = storyForeignOf(items);
-    const geos = items.map((i) => geoOf(i, desk, foreign));
+    const unknownAbroad = desk !== "wetenschap" && !homeCovered(items, story);
+    const geos = items.map((i) => geoOf(i, desk, foreign) ?? (unknownAbroad && FOREIGN_NEWS.has(i?.source) && generalNews(i) ? "int" : null));
     const abroad = geos.filter((g) => g === "int").length;
     return foreign || abroad > geos.filter((g) => g === "nl").length && abroad * 2 >= geos.length;
   }
@@ -1270,7 +1275,7 @@ var HootCore = (() => {
   }
   function allowedNews(prof, story, items, desk = null) {
     if (items.some((i) => isSport(i, prof.catOf)) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return false;
-    return worldChosen(prof) || !internationalNews(items, desk) || majorNews(story, items);
+    return worldChosen(prof) || !internationalNews(items, desk, story) || majorNews(story, items);
   }
 
   // shared/editor-version.mjs
@@ -2002,9 +2007,9 @@ var HootCore = (() => {
     const used = /* @__PURE__ */ new Set();
     const take = (c, desk, extra = {}) => {
       if (used.has(c) || clashes(c) || !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk)) return false;
-      if (plan && !worldChosen(prof) && internationalNews(c.items, c.desk) && entries.filter((e) => {
+      if (plan && !worldChosen(prof) && internationalNews(c.items, c.desk, c.st) && entries.filter((e) => {
         const x = cands.find((c2) => c2.id === e.id);
-        return x && internationalNews(x.items, x.desk);
+        return x && internationalNews(x.items, x.desk, x.st);
       }).length >= INT_MAX) return false;
       used.add(c);
       place(c.ids);
@@ -2017,7 +2022,7 @@ var HootCore = (() => {
       } else entries.push({ kind: "item", id: c.it.id, itemIds: [c.it.id], title: c.it.title || null, ...base });
       return true;
     };
-    const foreign = (c) => internationalNews(c.items, c.desk);
+    const foreign = (c) => internationalNews(c.items, c.desk, c.st);
     const homeNews = (c) => !!c && !foreign(c) && [c.desk, c.primary, c.home].some((d) => d === "binnenland" || d === "regio");
     const unchosen = foreign;
     const strictInt = !worldChosen(prof);
@@ -2119,12 +2124,19 @@ var HootCore = (() => {
       byId2 ||= new Map(all.map((i) => [i.id, i]));
       return deskOfStory(st.itemIds.map((id) => byId2.get(id)).filter(Boolean));
     };
+    const homeOf = (st) => {
+      byId2 ||= new Map(all.map((i) => [i.id, i]));
+      return coverageOf(st.itemIds.map((id) => byId2.get(id)).filter(Boolean)).publisherCountries.some((c) => c === "NL" || c === "BE");
+    };
     const dutch = new Set(sources.filter((s) => s.lang === "nl" && !VL_HOME.has(s.id)).map((s) => s.name));
     return stories.map((st) => ({
       ...st,
       ownCount: new Set(st.itemIds.map((id) => ownSource.get(id)).filter(Boolean)).size,
       desk: st.desk !== void 0 ? st.desk : deskOf(st),
-      ...st.nlCount === void 0 && dutch.size && st.sourceNames ? { nlCount: st.sourceNames.filter((n) => dutch.has(n)).length } : {}
+      ...st.nlCount === void 0 && dutch.size && st.sourceNames ? { nlCount: st.sourceNames.filter((n) => dutch.has(n)).length } : {},
+      // Brengt een Nederlandse of Vlaamse uitgever dit verhaal (internationalNews)? Een oudere server levert
+      // `publisherCountries` niet; dan uit alles wat we van het verhaal hebben, niet alleen je eigen bronnen.
+      ...st.publisherCountries === void 0 ? { homeCovered: homeOf(st) } : {}
     }));
   }
   function composePersonal({ global, stories = [], items = [], sources = [], followed = /* @__PURE__ */ new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = /* @__PURE__ */ new Set() }) {
@@ -2193,7 +2205,7 @@ var HootCore = (() => {
       const members = [.../* @__PURE__ */ new Set([id, ...st?.itemIds || [], ...entry.itemIds || []])].map((x) => itemAny.get(x)).filter(Boolean);
       const meta = st || entry;
       const desk = st?.desk ?? entry.fromDesk ?? entry.desk ?? null;
-      return { allowed: allowedNews(prof, meta, members, desk), abroad: internationalNews(members, desk), members, meta, desk };
+      return { allowed: allowedNews(prof, meta, members, desk), abroad: internationalNews(members, desk, meta), members, meta, desk };
     };
     const unchosenAbroad = (id, sid) => capAbroad && policyOf(id, sid).abroad;
     const eligible = (id, sid, entry = {}) => {

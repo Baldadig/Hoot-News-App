@@ -203,3 +203,9 @@ test('rubrieken: "evolution" in een nieuwsbrief over crypto is geen Wetenschap',
   const it = { source: 'atlantic', title: 'A Very Bad 24 Hours for Crypto', summary: 'This is an edition of Over/Under, a newsletter on the latest in prediction markets, gambling, and the evolution of everyday risk.' }
   assert.ok(!desksOf(it).has('wetenschap'), [...desksOf(it)].join(','))
 })
+
+test('een buitenlandse stad in de kop is Buitenland, ook als de rubriekregel haar niet kent (Frankfurt)', () => {
+  assert.deepEqual([...desksOf({ source: 'nos', title: 'Nacht vol plunderingen en branden in Frankfurt na dag met vreedzame protesten', summary: 'In meerdere Duitse steden liepen protesten uit op geweld.' })], ['buitenland'])
+  assert.deepEqual([...desksOf({ source: 'nd', title: 'Politie nog steeds aanwezig in Frankfurt na rellen' })], ['buitenland'])
+  assert.deepEqual([...desksOf({ source: 'nos', title: 'Den Haag wordt marathonstad in tijd van groeiende hardloopgekte' })], ['binnenland'])
+})

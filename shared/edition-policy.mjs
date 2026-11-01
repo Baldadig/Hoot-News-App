@@ -1,5 +1,5 @@
 // Vastgestelde redactionele normen, 1 november 2026. Geen modelcalls.
-import { geoOf, isSport, FRONT_BIG } from './editor.mjs'
+import { geoOf, isSport, FRONT_BIG, FAMILY_OF } from './editor.mjs'
 import { storyForeignOf, NL_HOME, VL_HOME } from '../netlify/lib/desks.mjs'
 
 // Expliciete uitgeverlanden; taal en het land in een artikel zijn nooit bewijs hiervoor.
@@ -28,10 +28,23 @@ export function majorNews(story = {}, items = []) {
 }
 export const worldChosen = prof => prof.interests ? prof.interests.has('wereld') : (prof.family?.wereld || 0) >= 0.5
 export const sportChosen = prof => prof.interests ? prof.interests.has('sport') : (prof.family?.sport || 0) >= 0.5
-export function internationalNews(items = [], desk = null) {
+// Algemene nieuwsfeeds van buitenlandse uitgevers (geen sectiefeeds als npr-music of guardian-sport).
+// Brengt geen enkele Nederlandse of Vlaamse uitgever het verhaal, dan telt een stuk daaruit zonder
+// herkende plaats voor het plafond als buitenland: onbekend mag het harde plafond van twee niet omzeilen
+// (NPR over het Amerikaanse hooggerechtshof zonder landnaam in kop of intro). Met een Nederlandse of
+// Vlaamse uitgever erbij blijft onbekend onbekend. Een vakstuk (economie, tech, wetenschap, cultuur, sport)
+// is geen buitenlands nieuws: The Economist over Google of NPR over AI blijft onbekend.
+// `story.publisherCountries` (de hele gebeurtenis, van de server) gaat voor: een lezer die alleen de NYT
+// volgt, ziet niet dat NOS het ook bracht.
+const FOREIGN_NEWS = new Set(['nyt','atlantic','newyorker','foreignpolicy','politico','npr','bloomberg','guardian','bbc','economist','ft','independent','telegraph','dw','lemonde','aljazeera','scmp'])
+const BEAT = new Set(['economie','tech','wetenschap','cultuur','sport'])
+const generalNews = item => !(item?.topics || []).some(t => BEAT.has(FAMILY_OF[t]))
+const homeCovered = (items, story) => story?.homeCovered === true || (story?.publisherCountries || []).some(c => c === 'NL' || c === 'BE') || items.some(i => ['NL','BE'].includes(publisherCountry(i?.source)))
+export function internationalNews(items = [], desk = null, story = null) {
   if (['buitenland','vs','middenoosten','oekraine'].includes(desk)) return true
   const foreign = storyForeignOf(items)
-  const geos = items.map(i => geoOf(i, desk, foreign))
+  const unknownAbroad = desk !== 'wetenschap' && !homeCovered(items, story)
+  const geos = items.map(i => geoOf(i, desk, foreign) ?? (unknownAbroad && FOREIGN_NEWS.has(i?.source) && generalNews(i) ? 'int' : null))
   const abroad = geos.filter(g => g === 'int').length
   return foreign || (abroad > geos.filter(g => g === 'nl').length && abroad * 2 >= geos.length)
 }
@@ -42,5 +55,5 @@ export function exceptionalDutchSport(story, items) {
 }
 export function allowedNews(prof, story, items, desk = null) {
   if (items.some(i => isSport(i, prof.catOf)) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return false
-  return worldChosen(prof) || !internationalNews(items, desk) || majorNews(story, items)
+  return worldChosen(prof) || !internationalNews(items, desk, story) || majorNews(story, items)
 }
