@@ -369,7 +369,8 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
   .held .wacht{min-height:0;padding:0;border:0;border-radius:0;gap:0}
   .held .wacht-i{display:none}
   .held .wacht span{display:block;line-height:1.35}
-  .held .wacht small,.held .wacht b,.held .wacht-gratis{display:inline;font:500 .9375rem/1.35 var(--tekst);letter-spacing:0;text-transform:none;font-style:normal}
+  .held .wacht small,.held .wacht b{display:none}
+  .held .wacht-gratis{display:block;font:500 .9375rem/1.45 var(--tekst);letter-spacing:0;text-transform:none;font-style:normal}
   .held .gratis{display:none}
   .held .scene{margin-top:var(--s5)}
 }
@@ -446,3 +447,13 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 /* De preview zelf is te pauzeren; alleen toetsenbordfocus tekent een rand. */
 .scene[role="button"]{cursor:pointer}
 .scene[role="button"]:focus-visible{outline-offset:-4px}
+
+/* afsluiting en voet rustig (Alex 1-11): één knop, één stille regel, gelijke tussenruimtes, voet op mobiel gecentreerd */
+.einde .actie{margin-top:var(--s5)}
+.einde .gratis{margin-top:var(--s3);font-weight:500;font-size:.9375rem;line-height:1.45;text-align:center;color:var(--op-rood)}
+.voet nav a{display:inline-flex;align-items:center}
+@media (max-width:719px){
+  .voet-in{flex-direction:column;align-items:center;text-align:center;gap:var(--s2);padding-top:var(--s5);padding-bottom:var(--s6)}
+  .voet nav{flex-wrap:wrap;justify-content:center;gap:0 var(--s5);margin-top:var(--s1)}
+  .voet-in p{flex-basis:auto;font-weight:500;font-size:.875rem;color:var(--op-rood);margin-top:var(--s1)}
+}
