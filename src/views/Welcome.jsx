@@ -50,6 +50,7 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
   const [pg, setPg] = useState(0) // de veegpagina (0 = Editie)
   const [sub, setSub] = useState(0) // de subpagina van Wat precies?, Je bronnen en Je Selectie
   const [pages, setPages] = useState(1) // hoeveel subpagina's er nu zijn
+  const sourceReturn = useRef({ view: 'hoot', sub: 0, pages: 1 })
   const [interests, setInterests] = useState(() => prefs.interests || [])
   const [picked, setPicked] = useState(() => pickedFrom(prefs.topics || [], prefs.interests || [], INTERESTS))
   const [edited, setEdited] = useState(null) // je eigen bronnenkeuze; zolang null geldt het voorstel
@@ -303,14 +304,21 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
     if (view === 'kies') show('precies')
     else if (view === 'precies') (last ? show('hoot') : show('precies', sub + 1))
     else if (view === 'selectie') (last ? finish() : show('selectie', sub + 1))
-    else if (view === 'bronnen' || view === 'hoot') show('selectie')
+    else if (view === 'bronnen' || view === 'hoot') {
+      sourceReturn.current = { view, sub, pages }
+      show('selectie')
+    }
   }
   const previous = () => {
     if (view === 'kies') backToPager()
     else if (view === 'precies') (sub > 0 ? show('precies', sub - 1) : show('kies'))
     else if (view === 'hoot') (sub > 0 ? show('hoot', sub - 1) : show('precies'))
     else if (view === 'bronnen') (sub > 0 ? show('bronnen', sub - 1) : show('hoot'))
-    else if (view === 'selectie') (sub > 0 ? show('selectie', sub - 1) : show('hoot'))
+    else if (view === 'selectie') (sub > 0 ? show('selectie', sub - 1) : go(() => {
+      setView(sourceReturn.current.view)
+      setSub(sourceReturn.current.sub)
+      setPages(sourceReturn.current.pages)
+    }))
   }
   const backToPager = () =>
     go(() => {
@@ -325,20 +333,18 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
         : view === 'bronnen'
           ? { label: 'Naar Selectie', disabled: !mine.length || !pickable.length }
           : view === 'selectie'
-            ? { label: last ? 'Naar je Editie' : 'Verder' }
+            ? { label: last ? (vak.length ? 'Klaar' : 'Later kiezen') : 'Verder' }
           : { label: 'Verder' }
   const skip =
     view === 'precies'
       ? { label: 'Overslaan', onClick: () => go(() => (setPicked([]), setView('hoot'), setSub(0))) } // overslaan = alles: wat je aantikte vervalt
-      : view === 'selectie'
+      : view === 'selectie' && !last
         ? { label: vak.length ? 'Klaar' : 'Later kiezen', onClick: finish }
-        : view === 'hoot'
-          ? { label: last ? 'Eerste bronnen' : 'Meer bronnen', onClick: () => show('hoot', last ? 0 : sub + 1), hidden: pages <= 1 }
-        : view === 'bronnen' && !last
-          ? { label: 'Meer bronnen', onClick: () => show('bronnen', sub + 1) }
-          : view === 'bronnen' && !reopen
-            ? { label: 'Meer bronnen', hidden: true } // houdt de plek, zodat de pagina even hoog blijft
-            : reopen
+        : view === 'selectie'
+          ? null
+        : view === 'hoot' || view === 'bronnen'
+          ? { label: last ? 'Eerste bronnen' : 'Meer bronnen', onClick: () => show(view, last ? 0 : sub + 1), hidden: pages <= 1 }
+          : reopen
           ? { label: 'Sluiten zonder opslaan', onClick: onClose }
           : null
   const counter = view === 'hoot' || view === 'precies' || view === 'selectie' || view === 'bronnen'
@@ -488,6 +494,9 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
                   {skip.label}
                 </button>
               ) : null}
+              {reopen && (view === 'hoot' || view === 'bronnen') ? (
+                <button type="button" className="linkbtn linkbtn--plain ob__skip" onClick={onClose}>Sluiten zonder opslaan</button>
+              ) : null}
             </div>
           </div>
         </>
@@ -629,18 +638,10 @@ function PagedSourceGrid({ ids, byId, on, onPick, page, onPages }) {
     const heights = []
     for (let i = 0; i < cards.length; i += columns) heights.push(Math.max(...cards.slice(i, i + columns).map(c => c.offsetHeight)))
     // Hooguit 16 herkenbare bronnen tegelijk; bij weinig hoogte/grote letters minder.
-    const rowPages = [[]]
-    let used = 0
-    heights.forEach((height, row) => {
-      const current = rowPages.at(-1)
-      if (current.length && (used + gap + height > f.clientHeight || (current.length + 1) * columns > 16)) {
-        rowPages.push([row])
-        used = height
-      } else {
-        used += (current.length ? gap : 0) + height
-        current.push(row)
-      }
-    })
+    const maxRows = Math.max(1, Math.floor(16 / columns))
+    const rowHeight = Math.max(0, ...heights)
+    const room = Math.min(f.clientHeight, maxRows * rowHeight + Math.max(0, maxRows - 1) * gap)
+    const rowPages = packPages(heights, room, gap)
     const next = rowPages.map(rows => rows.flatMap(row => Array.from({ length: Math.min(columns, ids.length - row * columns) }, (_, col) => row * columns + col)))
     setPages(prev => JSON.stringify(prev) === JSON.stringify(next) ? prev : next)
   }, [ids.length])
@@ -660,7 +661,7 @@ function PagedSourceGrid({ ids, byId, on, onPick, page, onPages }) {
     if (!s) return null
     return <li key={id}><button type="button" className="ob__sourcecard" aria-label={`${s.name}, ${s.paid ? 'abonnement' : 'gratis'}${s.lang === 'en' ? ', Engels' : ''}`} aria-pressed={on.includes(id)} onClick={() => onPick(id)}>
       <SourceMark source={s} size={32} />
-      <span className="ob__sourcecard-name">{s.name}</span>
+      <span className="ob__sourcecard-name"><span>{s.name}</span></span>
       <span className="ob__sourcecard-meta">{s.paid ? 'Abonnement' : 'Gratis'}{s.lang === 'en' ? ' · EN' : ''}</span>
       <span className="ob__check" aria-hidden="true" />
     </button></li>

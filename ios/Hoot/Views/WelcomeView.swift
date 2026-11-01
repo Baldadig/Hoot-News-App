@@ -36,6 +36,8 @@ struct WelcomeView: View {
     @State private var interests: [String] = []
     @State private var picked: [String] = [] // Wat precies?: wat je aantikte; niets = alles binnen die interesse
     @State private var chosen: [String]? // bronnen: het voorstel, pas ingevuld als je bij die pagina komt en ze er zijn
+    @State private var sourceReturnStep: Step = .hoot
+    @State private var sourceReturnPage = 0
     @State private var vak: [String] = [] // de eerste keer leeg: een nieuwe lezer kiest zijn vak zelf, of later
     @State private var prepared = false
     @State private var asksAlert: Bool? // vast bij binnenkomst: dan verspringt er niets
@@ -188,10 +190,10 @@ struct WelcomeView: View {
             go(.precies)
         case .precies:
             if subpage + 1 < subCount { turn { subpage += 1 } } else { subpage = 0; go(.hoot) }
-        case .bronnen: subpage = 0; go(.selectie)
+        case .bronnen: sourceReturnStep = step; sourceReturnPage = subpage; subpage = 0; go(.selectie)
         case .selectie:
             if subpage + 1 < subCount { turn { subpage += 1 } } else { complete() }
-        case .hoot: subpage = 0; go(.selectie)
+        case .hoot: sourceReturnStep = step; sourceReturnPage = subpage; subpage = 0; go(.selectie)
         case .seintje:
             asking = true
             Task {
@@ -217,7 +219,7 @@ struct WelcomeView: View {
         case .bronnen:
             if subpage > 0 { turn { subpage -= 1 } } else { subpage = 0; go(.hoot) }
         case .selectie:
-            if subpage > 0 { turn { subpage -= 1 } } else { subpage = 0; go(.hoot) }
+            if subpage > 0 { turn { subpage -= 1 } } else { subpage = sourceReturnPage; go(sourceReturnStep) }
         case .hoot:
             if subpage > 0 { turn { subpage -= 1 } } else { subpage = max(0, subCountOf(.precies) - 1); go(.precies) }
         case .seintje: subpage = 0; go(.selectie)
@@ -733,7 +735,7 @@ struct WelcomeView: View {
 
     // Je voorgestelde bronnen zijn de keuze zelf, met herkenbare logo’s.
     private var sourceColumns: Int { scrolls ? 1 : typeSize >= .xxLarge ? 2 : width < 352 ? 3 : 4 }
-    private var sourceCardHeight: CGFloat { typeSize >= .xxLarge ? 144 : typeSize == .xLarge ? 112 : 96 }
+    private var sourceCardHeight: CGFloat { WelcomePages.sourceCardHeight(typeSize) }
     private var sourcePreviewPages: [[String]] {
         let ids = offered.filter { store.source($0) != nil }
         guard roomH > 0, !scrolls else { return [ids] }
@@ -817,6 +819,9 @@ struct WelcomeView: View {
                 if let link { linkButton(link.label, action: link.action) } else { Color.clear }
             }
             .frame(height: Space.tap)
+            if reopen && (step == .hoot || step == .bronnen) {
+                linkButton("Sluiten zonder opslaan") { onCancel?() }
+            }
         }
         .dynamicTypeSize(...DynamicTypeSize.accessibility1)
         .padding(.horizontal, Space.s4)
@@ -829,7 +834,7 @@ struct WelcomeView: View {
         case .interesses: (interests.isEmpty ? "Kies minstens één" : "Verder", interests.isEmpty)
         case .precies: ("Verder", false)
         case .bronnen: (chosen?.isEmpty != false ? "Kies één bron" : "Naar Selectie", chosen == nil || chosen?.isEmpty == true) // op elke pagina; verder bladeren met Meer bronnen
-        case .selectie: (subpage + 1 < subCount || asks ? "Verder" : "Naar je Editie", false)
+        case .selectie: (subpage + 1 < subCount ? "Verder" : (vak.isEmpty ? "Later kiezen" : "Klaar"), false)
         case .hoot: (chosen?.isEmpty != false ? "Kies één bron" : "Naar Selectie", chosen == nil || chosen?.isEmpty == true)
         case .seintje: ("Ja, graag", false)
         case .intro, .uitleg: ("", false)
@@ -840,7 +845,7 @@ struct WelcomeView: View {
         switch step {
         case .precies: ("Overslaan", { picked = []; subpage = 0; go(.hoot) }) // overslaan = alles binnen je interesses
         case .hoot where subCount > 1, .bronnen where subCount > 1: (subpage + 1 < subCount ? "Meer bronnen" : "Eerste bronnen", { turn { subpage = subpage + 1 < subCount ? subpage + 1 : 0 } })
-        case .selectie: (vak.isEmpty ? "Later kiezen" : "Klaar", complete)
+        case .selectie where subpage + 1 < subCount: (vak.isEmpty ? "Later kiezen" : "Klaar", complete)
         case .seintje: ("Nu niet", { onDone() }) // onder het einde van de Editie kan het later nog
         case .interesses where reopen: ("Sluiten zonder opslaan", { onCancel?() })
         default: nil
@@ -864,6 +869,8 @@ enum WelcomePages {
         var chip = WelcomePages.chip
         var header = WelcomePages.header
         var subheadline = UIFont.preferredFont(forTextStyle: .subheadline)
+        var caption = UIFont.preferredFont(forTextStyle: .caption1)
+        var caption2 = UIFont.preferredFont(forTextStyle: .caption2)
 
         init() {}
         init(_ size: DynamicTypeSize) {
@@ -884,10 +891,17 @@ enum WelcomePages {
             }
             let traits = UITraitCollection(preferredContentSizeCategory: category)
             subheadline = UIFont.preferredFont(forTextStyle: .subheadline, compatibleWith: traits)
+            caption = UIFont.preferredFont(forTextStyle: .caption1, compatibleWith: traits)
+            caption2 = UIFont.preferredFont(forTextStyle: .caption2, compatibleWith: traits)
             let body = UIFont.preferredFont(forTextStyle: .body, compatibleWith: traits)
             chip = max(WelcomePages.chip, ceil(subheadline.lineHeight) + Space.s2 * 2)
             header = max(WelcomePages.header, ceil(body.lineHeight))
         }
+    }
+
+    static func sourceCardHeight(_ size: DynamicTypeSize) -> CGFloat {
+        let metrics = Metrics(size)
+        return max(96, 32 + ceil(metrics.caption.lineHeight * 2) + ceil(metrics.caption2.lineHeight) + 8 + 12)
     }
 
     // Hoeveel regels de onderwerpen vullen als ze met `gap` ertussen op regels van `width` komen.
@@ -981,26 +995,29 @@ struct WelcomeMark: View {
 }
 
 // Een herkenbare bronkaart: het logo blijft ook uitgeschakeld zichtbaar.
-private struct SourceTile: View {
+struct SourceTile: View {
     let source: Source
     let on: Bool
     let height: CGFloat
     let action: () -> Void
     @Environment(\.dynamicTypeSize) private var typeSize
+    private var nameHeight: CGFloat { ceil(WelcomePages.Metrics(typeSize).caption.lineHeight * 2) }
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {
                 SourceAvatar(source: source, size: 32)
                 Text(source.name).font(.caption.weight(.semibold))
                     .multilineTextAlignment(.center)
-                    .lineLimit(typeSize.isAccessibilitySize ? nil : 2).fixedSize(horizontal: false, vertical: true)
-                    .frame(minHeight: typeSize >= .xxLarge ? 40 : 29)
+                    .lineLimit(2).minimumScaleFactor(0.75)
+                    .frame(height: nameHeight)
                 Text((source.paid == true ? "Abonnement" : "Gratis") + (source.lang == "en" ? " · EN" : ""))
                     .font(.caption2).foregroundStyle(Theme.ink3)
+                    .lineLimit(1).minimumScaleFactor(0.75)
             }
             .padding(.vertical, 6)
             .padding(.horizontal, 3)
-            .frame(maxWidth: .infinity, minHeight: height)
+            .frame(maxWidth: .infinity)
+            .frame(height: height)
             .foregroundStyle(Theme.ink)
             .background(on ? Theme.accentSoft : Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
             .overlay(RoundedRectangle(cornerRadius: Radius.md).strokeBorder(on ? Theme.accent : Theme.rule, lineWidth: 1))

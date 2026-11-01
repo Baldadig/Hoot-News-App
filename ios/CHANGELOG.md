@@ -1,14 +1,14 @@
-## Nog uit te brengen · blok 13
-- Rustig inlogpaneel bij korte betaalde artikelen, weg te vegen/sluiten; na zeven dagen per bron maximaal één herinnering. Lange knopnamen lopen alleen door als de echte tekst niet past, zonder verkleinen of afkappen.
-
 # Changelog — Hoot voor iOS
-
-- Lezer: pas na 400 ms “Artikel laden”, geen bronnentekst of flits bij snel laden; oude wachttaak wordt geannuleerd.
 
 ## Onuitgebracht
 
+- Rustig inlogpaneel bij korte betaalde artikelen, weg te vegen/sluiten; na zeven dagen per bron maximaal één herinnering. Lange knopnamen lopen alleen door als de echte tekst niet past, zonder verkleinen of afkappen.
+- Lezer: pas na 400 ms “Artikel laden”, geen bronnentekst of flits bij snel laden; oude wachttaak wordt geannuleerd.
+
 - Uitloggen en accountwisseling maken lopende synchronisatie- en tokenantwoorden ongeldig. Oude antwoorden kunnen geen privéleesstatus, sessie of eigenaar terugzetten of een nieuwe login uitloggen.
 - Deelkaarten: uitgeverslogo en bronnaam in papiertint op merkrood, met lokaal gebundelde logo’s en een beginletter als terugval.
+- Bronkeuze in Welkom: gemeten vaste kaarthoogtes, annuleren zonder opslaan, gelijkmatige bronpagina’s, terug naar de vorige bronpagina en één afsluitknop bij Je Selectie.
+
 - Welkom: compact raster met echte bronlogo’s en namen (tot 16 tegelijk), alle bronnen bereikbaar, keuze blijft bewaard bij bladeren. Je Selectie is een aparte vervolgstap. Grotere tekst krijgt meer ruimte; hoofdknoppen houden hun vaste vorm.
 
 - Nieuwe Editie: perslijn en hoofdverhaal verschijnen één keer na de iris, met vervagen bij Verminder beweging.
