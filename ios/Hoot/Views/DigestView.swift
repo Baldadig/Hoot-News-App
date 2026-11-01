@@ -340,6 +340,7 @@ private struct DigestCard: View {
 
 
 struct SelectionIndex: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
     let fields: [DigestField]
     let onClose: () -> Void
     let onPick: (String) -> Void
@@ -352,13 +353,16 @@ struct SelectionIndex: View {
                         Section {
                             ForEach(rows) { field in
                                 Button { onPick(field.id) } label: {
-                                    HStack(alignment: .firstTextBaseline, spacing: Space.s3) {
+                                    let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: Space.s2)) : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: Space.s3))
+                                    layout {
                                         Text(field.label).fixedSize(horizontal: false, vertical: true)
-                                        Spacer(minLength: Space.s2)
+                                        if !typeSize.isAccessibilitySize { Spacer(minLength: Space.s2) }
                                         Text(field.top.count == 1 ? "1 stuk" : "\(field.top.count) stukken")
                                             .font(.caption).foregroundStyle(Theme.ink3)
+                                            .fixedSize(horizontal: false, vertical: true)
                                     }
-                                    .foregroundStyle(Theme.ink).frame(minHeight: Space.tap)
+                                    .foregroundStyle(Theme.ink)
+                                    .frame(maxWidth: .infinity, minHeight: Space.tap, alignment: .leading)
                                 }
                                 .accessibilityIdentifier("selectie-jump-" + field.id)
                             }
