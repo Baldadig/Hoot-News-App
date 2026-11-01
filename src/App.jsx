@@ -1,3 +1,4 @@
+import { selectionOwnerReady } from './lib/selection-fold.js'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { HootContext } from './components/Items.jsx'
 import { CloseIcon } from './components/icons.jsx'
@@ -174,12 +175,12 @@ export default function App() {
     const seen = new Set()
     const out = []
     for (const it of [...(data?.items || []), ...social.items]) {
-      if (!it.url || seen.has(it.id) || muted.has(it.source) || !inStream(it, prefs)) continue
+      if (!it.url || seen.has(it.id) || muted.has(it.source) || (isPost(it) && !sourcesById.has(it.source)) || !inStream(it, prefs)) continue
       seen.add(it.id)
       out.push(it)
     }
     return social.items.length ? out.sort(byRecency) : out
-  }, [data, social.items, muted, prefs])
+  }, [data, social.items, muted, prefs, sourcesById])
 
   // Bluesky: alle posts van de accounts die je volgt (eigen bestemming).
   const posts = useMemo(() => {
@@ -542,6 +543,7 @@ export default function App() {
       setTheme,
       openDisplay,
       account,
+      selectionReady: selectionOwnerReady(account),
       saved,
       toggleSave,
       share,
@@ -556,7 +558,7 @@ export default function App() {
       muted,
       setMuted,
     }),
-    [less, voteOn, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, openDisplay, account, saved, toggleSave, share, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories],
+    [less, voteOn, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, openDisplay, account, syncStatus, syncPulled, saved, toggleSave, share, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories],
   )
 
   const hideMain = overlay || showWelcome
@@ -639,7 +641,10 @@ export default function App() {
               onToggle={setMuted}
               ownHandles={socialIds}
               onAdd={social.addSource}
-              onRemove={social.removeSource}
+              onRemove={(handle) => {
+                setPref('bskyInStream', (prefs.bskyInStream || []).filter(id => id !== 'bsky:' + handle))
+                social.removeSource(handle)
+              }}
               params={path === 'bluesky' ? route.params : navMem.bluesky || {}}
               go={route.go}
               onRefresh={reloadAll}

@@ -85,7 +85,10 @@ struct StreamView: View {
                             ForEach(Array(items.prefix(limit).enumerated()), id: \.element.id) { i, item in
                                 // Daaronder heb je alles al gezien.
                                 if fresh > 0 && i == fresh { SeenMarker() }
-                                ItemRow(item: item, story: store.story(of: item))
+                                Group {
+                                    if item.isPost { PostRow(item: item) }
+                                    else { ItemRow(item: item, story: store.story(of: item)) }
+                                }
                                     .transition(still ? .opacity : .move(edge: .top).combined(with: .opacity))
                                 if !(fresh > 0 && i == fresh - 1) { Rule() }
                             }

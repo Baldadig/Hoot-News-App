@@ -15,9 +15,9 @@ test('optionele bronnen staan uit tot je ze aanzet; gewone tot je ze uitzet', ()
 })
 
 test('Bluesky-posts staan niet in de Stroom, tenzij je dat per account kiest', () => {
-  const post = { kind: 'post', source: 'bsky:atrupar.com' }
+  const post = { kind: 'post', source: 'bsky:atrupar.com', publishedAt: new Date().toISOString() }
   const art = { kind: 'article', source: 'nos' }
   assert.equal(inStream(post, { bskyInStream: [] }), false)
-  assert.equal(inStream(post, { bskyInStream: ['bsky:atrupar.com'] }), true)
+  assert.equal(inStream(post, { bluesky: true, bskyInStream: ['bsky:atrupar.com'] }), true)
   assert.equal(inStream(art, {}), true)
 })

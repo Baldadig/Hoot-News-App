@@ -5389,3 +5389,26 @@ html[data-images='hoofd'] .media--social {
 .ob__sourcecard[aria-pressed='true'] .ob__check { background:var(--accent); border-color:var(--accent) }
 .ob__sourcecard[aria-pressed='true'] .ob__check::after { width:12px; height:12px; background:var(--paper) }
 @media(min-width:560px) { .ob__sourcecard { height:max(104px,calc(58px + 3.6 * var(--t1))); padding:var(--s2) } .ob__sourcecard-name { font-size:var(--t1) } }
+/* Selectie: navigeren staat los van onderwerpen volgen. Geen vaste of zwevende index. */
+.dnav { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s3) var(--s4); margin: var(--s4) 0; }
+.dnav__dialog { max-width: 32rem; }
+.dnav__group + .dnav__group { margin-top: var(--s5); }
+.dnav__group > h2 { margin-bottom: var(--s2); }
+.dnav__item { min-height: var(--tap); background: transparent; border: 0; color: var(--ink); font: inherit; width: 100%; display: flex; justify-content: space-between; align-items: baseline; gap: var(--s3); text-align: left; padding: var(--s2) 0; border-bottom: 1px solid var(--rule); }
+.dnav__item > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.dnav__count { color: var(--ink-3); font-size: var(--t1); flex-shrink: 0; }
+.dfield > .dfield__head { display: block; }
+.dfield__toggle { background: transparent; border: 0; padding: 0; display: flex; align-items: center; gap: var(--s3); min-height: var(--tap); width: 100%; text-align: left; color: inherit; font: inherit; }
+.dfield__heading { min-width: 0; flex: 1; }
+.dfield__title, .dfield__about { display: block; }
+.dfield__title { overflow-wrap: anywhere; }
+.dfield__about { font-family: var(--sans); font-weight: 400; }
+.dfield__count { display: grid; justify-items: end; gap: var(--s1); font-family: var(--sans); font-size: var(--t1); font-weight: 400; color: var(--ink-3); }
+.dfield__chevron { display: block; width: 8px; height: 8px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); margin: var(--s1); }
+.dfield__toggle[aria-expanded="true"] .dfield__chevron { transform: rotate(225deg); }
+.dfield__icon { flex-shrink: 0; }
+.dfield__toggle:focus-visible { outline-offset: var(--s1); }
+@media (max-width: 359px) { .dfield__icon { display: none; } }
+
+.dfield--closed { margin-top: var(--s3); }
+.dfield--closed > .dfield__head { margin-bottom: 0; padding-top: var(--s3); }

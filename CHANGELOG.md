@@ -4,6 +4,8 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- **Stroom en Selectie:** Bluesky per account ook in de Stroom, gelijk op web en iOS; onderwerpindex en lokaal inklapbare Selectie-onderwerpen. Native beelden proberen bij een CDN-fout één keer het originele bronbeeld.
+
 - **De Redacteur, fase 1:** zonder de interesse Wereld hooguit twee internationale plekken in je hele Editie, en alleen bij groot nieuws: acht uitgevers, of vijf uit minstens twee landen. Een gekozen onderwerp, voorkeursbron of breed verhaal maakt daar geen uitzondering op. Met Wereld geldt geen plafond. Wie Binnenland koos, opent met Nederlands nieuws, ook samen met Wereld.
 - **Sport alleen als je Sport koos:** wat je leest telt daar niet voor. De enige uitzondering is een Nederlandse WK- of Olympische finale, titel of gouden medaille die groot nieuws is.
 - **Liever korter dan opgevuld:** is er niet genoeg dat bij je past, dan is de Editie korter. Een lege plek gaat eerst naar je eigen nieuws, pas daarna naar de algemene Editie. Buiten je bubbel en Waar iedereen over schrijft staan er alleen als er een stuk is dat mag.

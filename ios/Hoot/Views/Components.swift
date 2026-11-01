@@ -233,14 +233,16 @@ struct WhyLine: View {
 
 struct RemoteImage: View {
     let url: URL?
+    @State private var loader = RemoteImageLoader()
     var body: some View {
-        AsyncImage(url: url, transaction: Transaction(animation: .easeOut(duration: 0.2))) { phase in
-            if let image = phase.image {
-                image.resizable().scaledToFill()
+        Group {
+            if let image = loader.image {
+                Image(uiImage: image).resizable().scaledToFill()
             } else {
                 Rectangle().fill(.quaternary)
             }
         }
+        .task(id: url) { await loader.load(url) }
         .clipped()
         .accessibilityHidden(true)
     }

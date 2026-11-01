@@ -10,6 +10,9 @@
 - Bronkeuze in Welkom: gemeten vaste kaarthoogtes, annuleren zonder opslaan, gelijkmatige bronpagina’s, terug naar de vorige bronpagina en één afsluitknop bij Je Selectie.
 
 - Welkom: compact raster met echte bronlogo’s en namen (tot 16 tegelijk), alle bronnen bereikbaar, keuze blijft bewaard bij bladeren. Je Selectie is een aparte vervolgstap. Grotere tekst krijgt meer ruimte; hoofdknoppen houden hun vaste vorm.
+- Beeldfallback van de eigen Netlify-beeld-CDN naar het originele bronbeeld; geen herhaallus bij fouten.
+- Bluesky: per account Ook in de Stroom, met synchronisatie, 36-uursvenster en directe verwerking van uitzetten/ontvolgen/uitloggen. Oude laadantwoorden kunnen een verwijderd account niet terugzetten.
+- Selectie: Ga naar onderwerp, individuele secties en alles in-/uitklappen; lokale inklapstand per lezer, ook over weken. Navigeren opent eerst het onderwerp en springt zonder animatie naar de kop.
 
 - Nieuwe Editie: perslijn en hoofdverhaal verschijnen één keer na de iris, met vervagen bij Verminder beweging.
 - Taalfilter voor tweetalige bronnen en juiste hoofdtaal van vakbronnen.
