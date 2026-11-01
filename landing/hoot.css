@@ -438,7 +438,10 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 @media(min-width:900px) and (max-width:1099px){
   .held .binnen{gap:var(--s7)}
   .held .scene{--avail:calc((100cqw - 2 * var(--gutc) - 48px) / 2)}
+  .held .wacht b{white-space:nowrap}
 }
+/* de App Store-badge staat naast de webknop op de zon-scène: een dichte rode ondergrond houdt horizon en ringen erachter */
+.held .wacht{background:var(--bg);transition:background-color var(--ga) ease,color var(--ga) ease,border-color var(--ga) ease}
 
 /* De preview zelf is te pauzeren; alleen toetsenbordfocus tekent een rand. */
 .scene[role="button"]{cursor:pointer}
