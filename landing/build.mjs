@@ -20,7 +20,7 @@ fs.writeFileSync(path.join(OUT, 'assets', CSSFILE), css); fs.writeFileSync(path.
 // fonts (alleen wat gebruikt wordt, alleen latin)
 const FD = APP + '/node_modules/@fontsource';
 const fonts = { 'newsreader-800.woff2': FD + '/newsreader/files/newsreader-latin-800-normal.woff2' };
-for (const w of [400, 600, 700]) fonts[`source-sans-3-${w}.woff2`] = FD + `/source-sans-3/files/source-sans-3-latin-${w}-normal.woff2`;
+for (const w of [400, 600, 700, 800]) fonts[`source-sans-3-${w}.woff2`] = FD + `/source-sans-3/files/source-sans-3-latin-${w}-normal.woff2`;
 for (const [n, p] of Object.entries(fonts)) fs.copyFileSync(p, path.join(OUT, 'fonts', n));
 
 // merk

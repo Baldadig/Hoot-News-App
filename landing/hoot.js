@@ -1,5 +1,5 @@
 /* gethoot.app · v4. Geen trackers, geen cookies, geen opslag. Eén bestand:
-   1. het ritueel (kleuren per dagdeel, vóór de eerste weergave)  2. de gang van de zon, de Editie die zichzelf één rondje uitleest, de Stroom die één rondje van rubriek wisselt, parallax, De Redacteur met de echte Editie, de stuiterende punt. */
+   1. het ritueel (kleuren per dagdeel, vóór de eerste weergave)  2. de gang van de zon, de rustige, herhalende demo’s van Editie, Stroom en Selectie, parallax, De Redacteur met de echte Editie, de stuiterende punt. */
 (function () {
   'use strict';
   var R = document.documentElement;
@@ -70,40 +70,64 @@
     }
     function ease(p) { return p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; }
 
-    /* De klok achter de bewegende demo's (WCAG 2.2.2): de tijd loopt alleen als de demo in beeld is en het tabblad zichtbaar.
-       Een automatische ronde pauzeert ook zolang de muis boven de demo hangt of iets in de sectie focus heeft, speelt hooguit één keer
-       en eindigt in een nette eindstand. Met reduced motion (ook als dat later wordt aangezet) staat alles stil. */
+    /* Rustige herhaling, alleen in beeld en in een zichtbaar tabblad. De preview zelf werkt
+       ook op touch; hover/focus pauzeert tijdelijk. Reduced motion houdt de demo stil. */
     function klok(sectie, scene, rust) {
-      var k = { pos: 0, duur: 0, teken: null, auto: true, klaar: false };
-      var zicht = false, muis = false, focus = false, raf = 0, vorig = 0;
-      function mag() { return !!k.teken && !k.klaar && zicht && !document.hidden && !reduce && (!k.auto || (!muis && !focus)); }
+      var k = { pos: 0, duur: 0, teken: null, auto: true, klaar: false, herhaal: true, tempo: 1 };
+      var zicht = false, muis = false, focus = false, pauze = false, raf = 0, vorig = 0;
+      var naam = scene.getAttribute('data-motion') || 'preview';
+      function mag() { return !!k.teken && !k.klaar && !pauze && zicht && !document.hidden && !reduce && (!k.auto || (!muis && !focus)); }
       function tik(nu) {
         raf = 0; if (!mag()) return;
-        if (vorig) k.pos = Math.min(k.duur, k.pos + Math.min(100, nu - vorig));
+        if (vorig) k.pos = Math.min(k.duur, k.pos + Math.min(100, nu - vorig) * k.tempo);
         vorig = nu; k.teken(k.pos);
-        if (k.pos >= k.duur) { k.klaar = true; return; }
+        if (k.pos >= k.duur) {
+          if (!k.herhaal || k.duur <= 0) { k.klaar = true; return; }
+          k.pos = 0; vorig = 0; k.teken(0);
+        }
         raf = requestAnimationFrame(tik);
       }
       k.kijk = function () {
         if (mag()) { if (!raf) { vorig = 0; raf = requestAnimationFrame(tik); } }
         else if (raf) { cancelAnimationFrame(raf); raf = 0; }
       };
-      /* een ronde die de bezoeker zelf start (een dagdeel kiezen): loopt ook door met de muis erboven of de focus op de knop */
-      k.speel = function (duur, teken) { k.pos = 0; k.duur = duur; k.teken = teken; k.auto = false; k.klaar = false; k.kijk(); };
+      k.speel = function (duur, teken) { k.pos = 0; k.duur = duur; k.teken = teken; k.auto = false; k.klaar = false; k.teken(0); k.kijk(); };
       k.bezig = function () { return !!k.teken && k.pos > 0 && !k.klaar; };
-      scene.addEventListener('mouseenter', function () { muis = true; k.kijk(); });
-      scene.addEventListener('mouseleave', function () { muis = false; k.kijk(); });
-      sectie.addEventListener('focusin', function () { focus = true; k.kijk(); });
-      sectie.addEventListener('focusout', function (e) { focus = !!(e.relatedTarget && sectie.contains(e.relatedTarget)); k.kijk(); });
+      function bediening() {
+        scene.setAttribute('data-paused', String(pauze));
+        if (reduce) {
+          scene.removeAttribute('role'); scene.removeAttribute('tabindex'); scene.removeAttribute('aria-label');
+        } else {
+          scene.setAttribute('role', 'button'); scene.setAttribute('tabindex', '0');
+          scene.setAttribute('aria-label', 'Animatie van de ' + naam + (pauze ? ' hervatten' : ' pauzeren'));
+        }
+      }
+      function wissel() {
+        if (reduce) return;
+        pauze = !pauze; muis = false; bediening(); k.kijk();
+      }
+      bediening();
+      scene.addEventListener('click', wissel);
+      scene.addEventListener('keydown', function (e) {
+        if (!reduce && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); wissel(); }
+      });
+      scene.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') { muis = true; k.kijk(); } });
+      scene.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') { muis = false; k.kijk(); } });
+      function inFocus(node) { return !!(node && sectie.contains(node) && !scene.contains(node)); }
+      sectie.addEventListener('focusin', function (e) { focus = inFocus(e.target); k.kijk(); });
+      sectie.addEventListener('focusout', function (e) { focus = inFocus(e.relatedTarget); k.kijk(); });
       zichtbaar(sectie, function (aan) { zicht = aan; k.kijk(); });
       document.addEventListener('visibilitychange', k.kijk);
-      /* gaat reduced motion aan, dan terug naar de rustige stand; een begonnen ronde telt als gespeeld en hervat later niet halverwege */
-      opRM(function () { if (reduce) { if (k.pos > 0) k.klaar = true; rust(); } k.kijk(); });
+      opRM(function () {
+        bediening();
+        if (reduce) { k.pos = 0; k.klaar = false; rust(); }
+        k.kijk();
+      });
       return k;
     }
 
     /* ---- 01 Editie: de gang van de zon. De telefoon leest de Editie uit tot "Je bent bij.", dan het volgende dagdeel;
-       na één rondje langs ochtend, middag en avond staat hij weer bovenaan bij het dagdeel van nu, en blijft staan. ---- */
+       na een rondje langs ochtend, middag en avond begint de rustige cyclus opnieuw. ---- */
     var TXT = { ochtend: ['Ochtendeditie', 'vanmiddag'], middag: ['Middageditie', 'vanavond'], avond: ['Avondeditie', 'morgenochtend'] };
     var ORDE = ['ochtend', 'middag', 'avond'], T = { ochtend: 0, middag: .5, avond: 1 };
     var dagen = $('.dagen'), zon = dagen && $('.dagzon', dagen);
@@ -169,7 +193,7 @@
     }
     function rustE() {
       zonAnim++;
-      if (rol) { rol.style.transform = 'translateY(0)'; rol.style.opacity = '1'; }
+      if (rol) { rol.style.transition = reduce ? 'none' : 'opacity .45s ease'; rol.style.transform = 'translateY(0)'; rol.style.opacity = '1'; }
       if (zon) zon.style.opacity = '1';
       if (!gekozen) zetTekst(R.getAttribute('data-dagdeel') || 'ochtend');
       plaats(T[huidig]);
@@ -192,6 +216,8 @@
     if (scE && rol && tst) {
       rol.style.transition = 'opacity .45s ease';
       kE = klok(scE.closest('.band'), scE, rustE);
+      kE.tempo = .6;
+      opRM(function () { rol.style.transition = reduce ? 'none' : 'opacity .45s ease'; });
       /* de automatische ronde begint bij het dagdeel van nu en eindigt daar ook weer */
       var autoE = null;
       kE.teken = function (pos) {
@@ -203,10 +229,10 @@
       kE.kijk();
     }
 
-    /* ---- 02 Stroom: in de app wisselen de rubrieken vanzelf; één rondje, dan terug op Alles ---- */
+    /* ---- 02 Stroom: de voorbeeldrubrieken wisselen rustig en herhalen vanaf Alles. ---- */
     var scS = $('.sc-stroom'), rij = scS && $('.sc-tabrij', scS), ind = rij && $('.sc-ind', rij);
     if (scS) {
-      var RUB = ['alles', 'binnenland', 'buitenland', 'cultuur'], ri = 0, STAP = 3400;
+      var RUB = ['alles', 'binnenland', 'buitenland', 'cultuur'], ri = 0, STAP = 6500;
       var toon = function (k, anim) {
         $$('[data-m]', rij).forEach(function (m) {
           var aan = m.getAttribute('data-m') === k; m.className = aan ? 'on' : '';
@@ -219,10 +245,28 @@
       };
       toon('alles', false);
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { toon(RUB[ri], false); });
-      var kS = klok(scS.closest('.band'), scS, function () { ri = 0; toon('alles', false); });
+      var kS = klok(scS.closest('.band'), scS, function () { ri = 0; toon('alles', false); $$('.water', scS).forEach(function (w) { w.style.backgroundPosition = ''; }); });
       kS.duur = RUB.length * STAP;
-      kS.teken = function (pos) { var i = Math.floor(pos / STAP) % RUB.length; if (i !== ri) { ri = i; toon(RUB[ri], true); } };
+      var water = $$('.water', scS);
+      kS.teken = function (pos) {
+        var i = Math.floor(pos / STAP) % RUB.length;
+        if (i !== ri) { ri = i; toon(RUB[ri], true); }
+        water.forEach(function (w, j) { w.style.backgroundPosition = (Math.sin(2 * Math.PI * pos / kS.duur) * (j ? -5 : 8)).toFixed(2) + 'px 0'; });
+      };
       kS.kijk();
+    }
+
+    /* ---- 03 Selectie: de herkenbare ringen bewegen hooguit 2,5%, in een cyclus van 24 s. ---- */
+    var scV = $('.sc-selectie');
+    if (scV) {
+      var ringen = $$('.rg', scV);
+      var kV = klok(scV.closest('.band'), scV, function () { ringen.forEach(function (r) { r.style.transform = ''; }); });
+      kV.duur = 24000;
+      kV.teken = function (pos) {
+        var golf = Math.sin(2 * Math.PI * pos / kV.duur);
+        ringen.forEach(function (r, i) { r.style.transform = 'scale(' + (1 + golf * (.015 + i * .005)).toFixed(4) + ')'; });
+      };
+      kV.kijk();
     }
 
     /* parallax: de zon komt op terwijl de band in beeld schuift, het scherm schuift een tikje mee */
@@ -273,7 +317,12 @@
     var pod = $('.podium');
     function lijn() {
       if (!pod) return;
-      var mob = innerWidth < 720, desk = innerWidth >= 900, pr = pod.getBoundingClientRect(), gap = desk ? 10 : 6;
+      if (innerWidth < 720) {
+        $$('.uitleg li', pod).forEach(function (li) { li.classList.remove('weg'); li.style.removeProperty('top'); li.style.removeProperty('--lijnw'); });
+        pod.style.minHeight = ''; pod.classList.add('klaar'); /* mobiel: alle drie de regels onder de telefoon, als gewone tekst */
+        return;
+      }
+      var mob = false, desk = innerWidth >= 900, pr = pod.getBoundingClientRect(), gap = desk ? 10 : 6;
       var scope = mob ? $('.rd-tel', pod) : pod, onder = 0, vol = false; /* mobiel: de regels in de telefoon; anders de iPad (staat eerst) */
       $$('.uitleg li', pod).forEach(function (li) {
         li.classList.remove('weg');
@@ -324,7 +373,7 @@
 
     /* de echte Editie van vandaag in dezelfde vorm: alleen de koppen, rubrieken en bronnen wisselen. Faalt het ophalen, dan blijft het voorbeeld staan. */
     /* De voorpagina-API selecteert uitsluitend drie rustige, actuele koppen. */
-    var LIVE = true;
+    var LIVE = false; // Vaste, herkenbare voorbeelden tot de nieuwsclassificatie opnieuw is gekeurd.
     if (LIVE && pod && window.fetch) {
       var haal = function () {
         var ac = window.AbortController ? new AbortController() : null;

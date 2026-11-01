@@ -4,6 +4,7 @@
 @font-face{font-family:"Source Sans 3";font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/source-sans-3-400.woff2) format("woff2")}
 @font-face{font-family:"Source Sans 3";font-style:normal;font-weight:600;font-display:swap;src:url(/fonts/source-sans-3-600.woff2) format("woff2")}
 @font-face{font-family:"Source Sans 3";font-style:normal;font-weight:700;font-display:swap;src:url(/fonts/source-sans-3-700.woff2) format("woff2")}
+@font-face{font-family:"Source Sans 3";font-style:normal;font-weight:800;font-display:swap;src:url(/fonts/source-sans-3-800.woff2) format("woff2")}
 @font-face{font-family:"Hoot Kop Terug";src:local(Georgia),local("Times New Roman");size-adjust:93%;ascent-override:96%;descent-override:26%;line-gap-override:0%}
 @font-face{font-family:"Hoot Tekst Terug";src:local(Arial),local("Helvetica Neue");size-adjust:96%;ascent-override:100%;descent-override:27%;line-gap-override:0%}
 
@@ -45,7 +46,7 @@ button{font:inherit;color:inherit}
 .sym{position:absolute;width:0;height:0;overflow:hidden}
 .skip{position:absolute;left:var(--s4);top:-80px;z-index:20;padding:var(--s3) var(--s4);background:var(--inkt);color:var(--papier);border-radius:8px;font-weight:700}
 .skip:focus{top:var(--s3)}
-:focus-visible{outline:3px solid var(--focus,var(--inkt));outline-offset:3px;border-radius:6px}
+:focus-visible{outline:2px solid var(--focus,var(--inkt));outline-offset:2px;border-radius:6px}
 h1,h2{font-family:var(--kop);font-weight:800;letter-spacing:-.028em;line-height:1;text-wrap:balance}
 
 /* kleur vloeit mee met het dagdeel, nooit een knipper */
@@ -63,9 +64,9 @@ body,.band,.top,.voet,.scherm,.scherm *,.label,.lead,.zon,.rg,.dag span,.dag::be
 .binnen{position:relative;max-width:none;padding-inline:max(var(--rand),calc((100% - var(--max)) / 2))}
 .tekst{position:relative;z-index:3;padding-bottom:0}
 .kol{padding-bottom:var(--s5)}
-.label{display:flex;align-items:center;gap:var(--s2);margin-bottom:var(--s3);font:700 .9375rem/1 var(--tekst);letter-spacing:.14em;text-transform:uppercase;color:var(--label)}
+.label{display:flex;align-items:center;gap:var(--s2);margin-bottom:var(--s3);font:800 .9375rem/1 var(--tekst);letter-spacing:.06em;text-transform:uppercase;color:var(--label)}
 .label .nr::after{content:"\00a0·"}
-.kicker{margin-bottom:var(--s4);font:700 .8125rem/1.2 var(--tekst);letter-spacing:.14em;text-transform:uppercase}
+.kicker{margin-bottom:var(--s4);font:800 .8125rem/1.2 var(--tekst);letter-spacing:.06em;text-transform:uppercase}
 h1{font-size:clamp(3.25rem,14vw,6rem)}
 h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .lead{margin-top:var(--s3);max-width:min(100%,36ch);font-size:1.125rem;line-height:1.4;color:var(--dim);text-wrap:pretty}
@@ -79,12 +80,12 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .actie{display:grid;gap:var(--s3);justify-items:start;margin-top:var(--s5)}
 .actie.mid{justify-items:center}
 .wacht{display:inline-flex;align-items:center;gap:var(--s3);min-height:56px;padding:var(--s2) var(--s5) var(--s2) var(--s3);border:1.5px solid color-mix(in srgb,var(--op-rood) 62%,transparent);border-radius:16px;cursor:default;user-select:none}
-.wacht-i{width:30px;height:27px;flex:none}
+.wacht-i{width:30px;height:27px;flex:none;fill:var(--op-rood);--wm-dot:var(--op-rood)}
 .wacht-i path{fill:var(--op-rood)}
 .wacht span{display:grid;line-height:1.1;text-align:left}
 .wacht small{font:600 .75rem/1.1 var(--tekst);letter-spacing:.1em;text-transform:uppercase}
 .wacht b{font:700 1.25rem/1.1 var(--tekst);letter-spacing:-.01em}
-.knop{display:inline-flex;align-items:center;gap:var(--s2);min-height:56px;padding:var(--s2) var(--s5);border-radius:16px;background:var(--op-rood);color:#1A1814;font:700 1.0625rem/1.1 var(--tekst);text-decoration:none;transition:transform .2s ease,box-shadow .2s ease}
+.knop{display:inline-flex;align-items:center;gap:var(--s2);min-height:52px;padding:var(--s2) var(--s5);border-radius:999px;background:var(--op-rood);color:var(--rood);font:800 1.0625rem/1.1 var(--tekst);text-decoration:none;transition:transform .2s ease,box-shadow .2s ease}
 .knop svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s ease}
 @media (hover:hover){.knop:hover{box-shadow:0 0 0 4px color-mix(in srgb,var(--op-rood) 32%,transparent)}}
 @media (hover:hover) and (prefers-reduced-motion:no-preference){.knop:hover{transform:translateY(-2px)}.knop:hover svg{transform:translateX(3px)}}
@@ -382,3 +383,63 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .rd-item .sc-bron span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .podium .sc-vgl{flex:none;width:10.6em;text-align:right}
+
+/* Goedgekeurde landingsreview: drie voordelen als leesbare tekst onder de hero. */
+.voordelen h2{font-size:clamp(2rem,5vw,3.5rem);max-width:20ch}
+.voordeel-lijst{display:grid;gap:var(--s6);margin-top:var(--s6)}
+.voordeel-lijst h3{font:800 1.25rem/1.2 var(--tekst);margin-bottom:var(--s2)}
+.voordeel-lijst p{max-width:48ch;color:var(--inkt2)}
+.actie .knop{order:-1}
+@media(min-width:720px){.voordeel-lijst{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:719px){
+  .podium{display:flex;flex-direction:column;gap:var(--s5)}
+  .podium .uitleg{position:static;order:2;display:grid;gap:var(--s4);padding:0}
+  .podium .uitleg li,.podium .uitleg li.weg,.podium .uitleg li[data-bij=w2]{position:static;display:block;visibility:visible;width:auto;text-align:left;inset:auto;font-size:1rem}
+  .podium .uitleg li::before,.podium .uitleg li::after{display:none}
+  .podium .rd-tel{margin-inline:auto}
+}
+@media(min-width:900px) and (max-width:1099px){
+  .held .binnen{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s6);align-items:end}
+  .held .tekst{align-self:center}
+  .held h1{font-size:clamp(3.5rem,7vw,4.75rem)}
+  .held .scene{--avail:calc((100cqw - 2 * var(--gutc) - 32px) / 2);--w:min(340px,var(--avail));margin-top:0}
+}
+.actie .knop{flex:0 0 auto;white-space:nowrap}
+
+/* Kleine FAQ: native details werken met aanraking, toetsenbord en schermlezer. */
+.faq{padding-block:var(--s7)}
+.faq h2{font-size:clamp(2rem,5vw,3.5rem);max-width:20ch}
+.faq-lijst{max-width:48rem;margin-top:var(--s6)}
+.faq details{border-bottom:1px solid var(--lijn)}
+.faq details:first-child{border-top:1px solid var(--lijn)}
+.faq summary{cursor:pointer;min-height:56px;padding:var(--s4) 0;font:800 1.125rem/1.4 var(--tekst)}
+.faq summary::marker{color:var(--accent)}
+.faq details p{max-width:65ch;padding-bottom:var(--s5);color:var(--inkt2)}
+
+/* Meer lucht rond leeswerk, acties en de drie signature-demo's. */
+.actie{margin-top:var(--s7)}
+.held .lead{margin-top:var(--s6)}
+.dagen{margin-top:var(--s7)}
+@media(max-width:719px){
+  .held .actie{margin-top:var(--s6);gap:var(--s4)}
+  .held .scene{margin-top:var(--s7)}
+  .editie .scene,.stroom .scene,.selectie .scene{margin-top:var(--s7)}
+}
+/* ≥1100: de hero houdt zijn balans (telefoon gelijk met regel 2); alleen de drie demo's krijgen meer lucht. */
+@media(min-width:1100px){
+  .editie .binnen,.stroom .binnen,.selectie .binnen{gap:var(--s8)}
+  .editie .scene,.stroom .scene,.selectie .scene{--avail:calc((100cqw - 2 * var(--gutc) - 64px) / 2)}
+  .held .lead,.held .actie{margin-top:var(--s5)}
+  /* de langere lead blijft drie regels en de App Store-regel één, zodat de band (en dus het toestel) even hoog blijft */
+  .held .lead{max-width:38ch}
+  .held .wacht b{white-space:nowrap}
+}
+
+@media(min-width:900px) and (max-width:1099px){
+  .held .binnen{gap:var(--s7)}
+  .held .scene{--avail:calc((100cqw - 2 * var(--gutc) - 48px) / 2)}
+}
+
+/* De preview zelf is te pauzeren; alleen toetsenbordfocus tekent een rand. */
+.scene[role="button"]{cursor:pointer}
+.scene[role="button"]:focus-visible{outline-offset:-4px}

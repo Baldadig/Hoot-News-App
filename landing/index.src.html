@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Hoot · Nieuws met een einde</title>
-<meta name="description" content="Hoot is een rustige Nederlandse nieuwslezer. Drie keer per dag een Editie van tien verhalen uit je eigen bronnen. Gratis, zonder account. Binnenkort in de App Store.">
+<meta name="description" content="Hoot is een rustige Nederlandse nieuwslezer. Drie keer per dag een Editie uit je eigen bronnen die je kunt uitlezen. Gratis, zonder account. Binnenkort in de App Store.">
 <link rel="canonical" href="https://gethoot.app/">
 <meta name="theme-color" content="#A3201B">
 <meta name="color-scheme" content="light dark">
@@ -13,7 +13,7 @@
 <meta property="og:locale" content="nl_NL">
 <meta property="og:url" content="https://gethoot.app/">
 <meta property="og:title" content="Hoot · Nieuws met een einde">
-<meta property="og:description" content="Drie keer per dag een Editie van tien verhalen uit je eigen bronnen. Lees hem uit, dan ben je bij. Gratis, zonder account.">
+<meta property="og:description" content="Drie keer per dag een Editie uit je eigen bronnen die je kunt uitlezen. Lees hem uit, dan ben je bij. Gratis, zonder account.">
 <meta property="og:image" content="https://gethoot.app/img/og.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
@@ -21,7 +21,7 @@
 <meta property="og:image:alt" content="Hoot. Nieuws met een einde. Een telefoon waar de zon achter opkomt, op een rood vlak.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Hoot · Nieuws met een einde">
-<meta name="twitter:description" content="Drie keer per dag een Editie van tien verhalen uit je eigen bronnen. Lees hem uit, dan ben je bij.">
+<meta name="twitter:description" content="Drie keer per dag een Editie uit je eigen bronnen die je kunt uitlezen. Lees hem uit, dan ben je bij.">
 <meta name="twitter:image" content="https://gethoot.app/img/og.png">
 <meta name="twitter:image:alt" content="Hoot. Nieuws met een einde. Een telefoon waar de zon achter opkomt, op een rood vlak.">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -30,14 +30,15 @@
 <link rel="preload" href="/fonts/newsreader-800.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/source-sans-3-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/source-sans-3-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/source-sans-3-800.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/{{CSSFILE}}">
 <script>{{INLINE}}</script>
 <script src="/assets/{{JSFILE}}"></script>
 </head>
 <body>
 <svg class="sym" width="0" height="0" aria-hidden="true" focusable="false"><defs>
-  <symbol id="wm" viewBox="0 0 239.45 73.5"><path d="{{WM_D}}"/><circle class="wm-d" cx="231.75" cy="65.8" r="7.7"/></symbol>
-  <symbol id="mark" viewBox="0 0 82.15 72"><path d="{{MARK_D}}"/><circle class="wm-d" cx="74.45" cy="64.3" r="7.7"/></symbol>
+  <symbol id="wm" viewBox="0 0 239.45 73.5"><path d="{{WM_D}}"/><circle class="wm-d" fill="var(--wm-dot,currentColor)" cx="231.75" cy="65.8" r="7.7"/></symbol>
+  <symbol id="mark" viewBox="0 0 82.15 72"><path d="{{MARK_D}}"/><circle class="wm-d" fill="var(--wm-dot,currentColor)" cx="74.45" cy="64.3" r="7.7"/></symbol>
   <symbol id="i-tand" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
   <symbol id="i-bm" viewBox="0 0 14 18"><path d="M1.5 1.5h11v15L7 12.5l-5.5 4z"/></symbol>
   <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 7h16M7 12h10M10 17h4"/></symbol>
@@ -64,14 +65,14 @@
 <section class="band rood held" aria-labelledby="h-held">
   <div class="binnen">
     <div class="tekst">
-      <p class="kicker">Voor iPhone en iPad</p>
+      <p class="kicker">Lees nu op het web</p>
       <h1 id="h-held"><span class="rgl">Nieuws</span> <span class="rgl">met een</span> <span class="rgl">einde<span class="punt">.</span></span></h1>
-      <p class="lead">Drie keer per dag een Editie uit bronnen die je vertrouwt. Lees hem uit, dan ben je bij.</p>
+      <p class="lead">Kies je bronnen en interesses. Hoot maakt er drie keer per dag een Editie van die je kunt uitlezen. Lees hem uit, dan ben je bij.</p>
       <div class="actie">
         <p class="wacht"><svg class="wacht-i" viewBox="0 0 82.15 72" aria-hidden="true"><use href="#mark"/></svg><span><small>Binnenkort</small> <b>in de App Store</b><em class="wacht-gratis"> · gratis, geen account nodig</em></span></p>
-        <a class="knop" href="/lees/">Lees alvast op het web<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pijl"/></svg></a>
+        <a class="knop" href="/lees/">Probeer Hoot op het web<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pijl"/></svg></a>
       </div>
-      <p class="gratis">Gratis. Geen account nodig.</p>
+      <p class="gratis">Gratis lezen. Geen account nodig.</p>
     </div>
     <div class="scene sc-held">
       <div class="zonplek zp-held" aria-hidden="true"><div class="zonclip"><div class="zonwrap"><i class="rg rg3"></i><i class="rg rg2"></i><i class="rg rg1"></i><i class="zon"></i></div></div></div>
@@ -97,12 +98,23 @@
 </section>
 
 <!-- 01 Editie: de gang van de zon over de dag, de telefoon leest de Editie uit tot "Je bent bij." -->
+<section class="band papier voordelen" aria-labelledby="h-voordelen">
+  <div class="binnen kol">
+    <h2 id="h-voordelen">Jouw nieuws, rustig bij elkaar<span class="punt">.</span></h2>
+    <ul class="voordeel-lijst">
+      <li><h3>Een Editie die je kunt uitlezen</h3><p>Ochtend, middag en avond. Met een duidelijk einde.</p></li>
+      <li><h3>Meerdere bronnen bij hetzelfde verhaal</h3><p>Bekijk hoe verschillende uitgevers over dezelfde gebeurtenis schrijven.</p></li>
+      <li><h3>Jouw bronnen, rustig bij elkaar</h3><p>Kies wat je volgt. Hoot brengt het samen in de Editie, Stroom en Selectie.</p></li>
+    </ul>
+  </div>
+</section>
+
 <section class="band wit editie" id="editie" aria-labelledby="h-editie">
   <div class="binnen om">
     <div class="tekst">
       <p class="label"><span class="nr">01</span> Editie</p>
       <h2 id="h-editie">Dan ben je bij<span class="punt">.</span></h2>
-      <p class="lead">Ochtend, middag en avond staan er tien verhalen voor je klaar.</p>
+      <p class="lead">Ochtend, middag en avond staat er een Editie voor je klaar die je kunt uitlezen.</p>
       <div class="dagen" role="group" aria-label="Kies een dagdeel">
         <svg class="boog" viewBox="0 0 380 136" preserveAspectRatio="none" aria-hidden="true"><path d="M45.6 84Q190-24 334.4 84"/><line x1="0" x2="380" y1="104" y2="104"/></svg>
         <i class="dagzon" aria-hidden="true"></i>
@@ -111,7 +123,7 @@
         <button type="button" class="dag" data-dag="avond" aria-pressed="false"><span>Avond</span></button>
       </div>
     </div>
-    <div class="scene sc-editie">
+    <div id="demo-editie" data-motion="Editie" class="scene sc-editie">
       <figure class="toestel" aria-label="De Editie op iPhone: vier verhalen, en aan het eind: Je bent bij.">
         <div class="scherm" aria-hidden="true"><div class="sc-in"><div class="sc-rol">
           <div class="sc-rij"><svg class="sc-logo" viewBox="0 0 239.45 73.5"><use href="#wm"/></svg><svg class="sc-ico" viewBox="0 0 24 24"><use href="#i-tand"/></svg></div>
@@ -153,7 +165,7 @@
       <h2 id="h-stroom">Al je bronnen, één Stroom<span class="punt">.</span></h2>
       <p class="lead">Tussendoor het laatste uit je eigen bronnen, nieuwste eerst. Hoot onthoudt waar je was.</p>
     </div>
-    <div class="scene sc-stroom" data-scene>
+    <div id="demo-stroom" data-motion="Stroom" class="scene sc-stroom" data-scene>
       <div class="zonplek zp-stroom" aria-hidden="true"><div class="zonclip"><div class="zonwrap"><i class="zon"></i></div></div><i class="water"></i><i class="water w2"></i></div>
       <figure class="toestel" aria-label="De Stroom op iPhone: het laatste uit je bronnen, per rubriek, met de regel Hier was je gebleven">
         <div class="scherm" aria-hidden="true"><div class="sc-in">
@@ -174,9 +186,9 @@
     <div class="tekst">
       <p class="label"><span class="nr">03</span> Selectie</p>
       <h2 id="h-selectie">Het beste van de week<span class="punt">.</span></h2>
-      <p class="lead">Elke maandag de beste stukken per onderwerp.</p>
+      <p class="lead">Elke maandagochtend verzamelt Hoot de beste stukken van de afgelopen week, per onderwerp. Kies wat bij je werk, hobby of interesses past: achtergrond, verdieping en verhalen om rustig voor te gaan zitten.</p>
     </div>
-    <div class="scene sc-selectie" data-scene>
+    <div id="demo-selectie" data-motion="Selectie" class="scene sc-selectie" data-scene>
       <div class="zonplek zp-ring" aria-hidden="true"><div class="zonclip"><div class="zonwrap"><i class="rg rg3"></i><i class="rg rg2"></i><i class="rg rg1"></i><i class="zon"></i></div></div></div>
       <figure class="toestel" aria-label="De Selectie op iPhone: lange stukken per onderwerp">
         <div class="scherm" aria-hidden="true"><div class="sc-in">
@@ -200,6 +212,7 @@
     <p class="label"><span class="nr">04</span> De Redacteur</p>
     <h2 id="h-red">Bij elk verhaal zie je waarom<span class="punt">.</span></h2>
   </div>
+
   <div class="podium" data-live data-n="14 3 1">
     <ul class="uitleg">
       <li class="r" data-bij="w1"><b>Groot nieuws</b>Veel bronnen schrijven erover. Dit wil je weten.</li>
@@ -239,16 +252,41 @@
   </div>
 </section>
 
+<!-- Kleine FAQ: praktische vragen vóór de laatste webactie. -->
+<section class="band papier faq" id="vragen" aria-labelledby="h-vragen">
+  <div class="binnen kol">
+    <h2 id="h-vragen">Veelgestelde vragen<span class="punt">.</span></h2>
+    <div class="faq-lijst">
+      <details>
+        <summary>Is Hoot gratis?</summary>
+        <p>Ja. Hoot is gratis en je kunt zonder account beginnen op het web. Een Hoot-account is op dit moment op uitnodiging.</p>
+      </details>
+      <details>
+        <summary>Kan ik ook betaalde artikelen lezen?</summary>
+        <p>Voor betaalde artikelen gebruik je je eigen abonnement bij de uitgever. Hoot geeft geen extra toegang tot artikelen achter een betaalmuur.</p>
+      </details>
+      <details>
+        <summary>Wat is het verschil tussen Editie, Stroom en Selectie?</summary>
+        <p>De Editie verschijnt in de ochtend, middag en avond en heeft een duidelijk einde. In de Stroom lees je tussendoor het laatste uit je bronnen. De Selectie brengt elke maandagochtend de beste stukken van de afgelopen week, per onderwerp.</p>
+      </details>
+      <details>
+        <summary>Wat betekent ‘Vergelijk bronnen’?</summary>
+        <p>Hoot brengt artikelen over dezelfde gebeurtenis bij elkaar. Via ‘Vergelijk bronnen’ bekijk je hoe verschillende uitgevers erover schrijven en kies je welk bericht je wilt lezen.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
 <!-- einde -->
 <section class="band rood einde" aria-labelledby="h-einde">
   <div class="binnen kol mid">
     <h2 id="h-einde">Je weet genoeg<span class="punt bal"><span class="bal-i">.</span></span></h2>
-    <p class="lead">Je eerste Editie staat al klaar.</p>
+    <p class="lead">Ontdek Hoot in je browser.</p>
     <div class="actie mid">
       <p class="wacht"><svg class="wacht-i" viewBox="0 0 82.15 72" aria-hidden="true"><use href="#mark"/></svg><span><small>Binnenkort</small> <b>in de App Store</b></span></p>
-      <a class="knop" href="/lees/">Lees alvast op het web<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pijl"/></svg></a>
+      <a class="knop" href="/lees/">Probeer Hoot op het web<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pijl"/></svg></a>
     </div>
-    <p class="gratis">Gratis. Geen account nodig.</p>
+    <p class="gratis">Gratis lezen. Geen account nodig.</p>
   </div>
 </section>
 </main>
