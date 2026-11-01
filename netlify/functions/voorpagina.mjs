@@ -9,6 +9,8 @@ import { readDoc, KEYS } from '../lib/kv.mjs'
 import { isDutch } from '../lib/voorpagina-pool.mjs'
 import { DESK_LABEL, desksOf, primaryDesk } from '../lib/desks.mjs'
 import { INTERESTS } from '../../src/lib/topics.js'
+import { signatures, sameSubject } from '../lib/stories.mjs'
+import { keywordTopics, OTHER_SPORT } from '../lib/topics.mjs'
 
 export const PLACES = 3
 const ORIGINS = new Set(['https://gethoot.app', 'https://www.gethoot.app'])
@@ -33,9 +35,25 @@ export const HEAVY_WORDS = [
   'rellen', 'verkracht', 'misbruik', 'executie', 'geëxecuteerd', 'gijzel', 'terreur', 'terroris', 'zelfmoord', 'suïcide',
   'kanker', 'ziek', 'slachtoffer', 'schietpartij', 'neergeschoten', 'doodgeschoten', 'steekpartij', 'neergestoken',
   'bombardement', 'gewond', 'opgepakt', 'aangehouden', 'ontvoer', 'mishandel', 'mensensmokkel', 'migrant', 'vluchteling', 'brand', 'kinderporno', 'zedenzaak', 'zedendelict',
+  'aanhouding', 'relschopper', 'ongeregeld', 'plunder', 'oprui',
 ]
 const HEAVY_RE = new RegExp(`(?<![\\p{L}])(?:${HEAVY_WORDS.map(w => w === 'brand' ? 'brand(?!weer)' : w).join('|')})`, 'iu')
-export const isHeavy = (item) => HEAVY_RE.test(`${item?.title || ''} ${item?.summary || ''}`)
+const UNREST = new Set(['misdaad', 'rellen', 'geweld', 'ramp', 'rampen', 'oorlog', 'terrorisme'])
+export const isHeavy = (item, desk = item?.desk) =>
+  [desk, item?.desk, item?.section].some(d => UNREST.has(String(d || '').toLowerCase())) ||
+  [...(item?.topics || []), ...(item?.mainTopics || [])].some(t => UNREST.has(t)) ||
+  HEAVY_RE.test(`${item?.title || ''} ${item?.summary || ''}`)
+
+const SPORT_TOPICS = new Set(['voetbal', 'f1', 'wielrennen', 'wielersport', 'tennis', 'darts', 'sport', 'olympisch', 'wintersport', 'basketbal'])
+const SECTION_KIND = /(?:^|[/\s-])(sport\w*|voetbal|cultuur\w*|entertainment|showbizz|boulevard|film|muziek|boeken|media)(?:[/\s-]|$)/i
+function contentKind(item) {
+  const visible = `${item.title || ''} ${item.summary || ''}`
+  const topics = [...(item.mainTopics || []), ...(item.topics || []), ...keywordTopics(visible)]
+  const section = SECTION_KIND.exec(`${item.section || ''} ${item.url || ''}`)?.[1]?.toLowerCase()
+  if (topics.some(t => SPORT_TOPICS.has(t)) || OTHER_SPORT.test(visible) || /\b(?:(?:eredivisie|voetbal|tennis|hockey|beker|competitie)wedstrijd\w*|marathon\w*|hardloop\w*)\b/i.test(visible) || /^(sport|voetbal)/.test(section || '')) return 'sport'
+  if (section || topics.some(t => ['muziek', 'film', 'boeken', 'kunst'].includes(t))) return 'cultuur'
+  return null
+}
 
 export { isDutch }
 
@@ -46,9 +64,13 @@ TOPIC_RUBRIEK.nederland = 'binnenland'
 // Rubriek van een plek: de rubriek van de Editie zelf, anders afgeleid uit de bron en de onderwerpen.
 // null = geen duidelijke rubriek (nog altijd welkom, na de rustige rubrieken).
 export function rubriek(item, desk, srcCat) {
+  // Een vakonderwerp gaat vóór een oude geografische stempel. Een film- of showbizzbericht
+  // wordt niet Binnenland enkel omdat de uitgever Nederlands is.
+  const kind = contentKind(item)
+  if (kind) return kind
   if (desk && (CALM_WEIGHT[desk] || HEAVY_DESKS.has(desk))) return desk
   if (['sport', 'tech', 'cultuur'].includes(srcCat)) return srcCat
-  for (const t of item.topics || []) if (TOPIC_RUBRIEK[t]) return TOPIC_RUBRIEK[t]
+  for (const t of [...(item.mainTopics || []), ...(item.topics || []), ...keywordTopics(`${item.title || ''} ${item.summary || ''}`)]) if (TOPIC_RUBRIEK[t]) return TOPIC_RUBRIEK[t]
   if (srcCat === 'nl' && (item.topics || []).some((t) => ['wonen', 'zorg', 'onderwijs', 'migratie', 'verkeer'].includes(t))) return 'binnenland'
   return null
 }
@@ -61,18 +83,19 @@ export function extract(start, places = PLACES, openImageSources = OPEN_IMAGE_SO
   const srcs = new Map((start.sources || []).map((s) => [s.id, s]))
   const byId = new Map([...(start.items || []), ...(ed.items || [])].map((i) => [i.id, i]))
   const stories = new Map((start.stories || []).map((s) => [s.id, s]))
+  const storyOf = new Map((start.stories || []).flatMap(s => (s.itemIds || [s.leadId]).filter(Boolean).map(id => [id, s.id])))
 
-  const make = (item, desk, sourceCount, order) => {
+  const make = (item, desk, sourceCount, order, storyId = null) => {
     if (!item?.title) return null
     const src = srcs.get(item.source)
-    const sport = src?.cat === 'sport' || desk === 'sport' || [...(item.mainTopics || []), ...(item.topics || [])].some(t => ['voetbal','f1','wielrennen','wielersport','tennis','darts','sport','olympisch','wintersport','basketbal'].includes(t))
-    if (!isDutch(item, src?.lang) || isHeavy(item) || sport) return null
+    const sport = src?.cat === 'sport' || desk === 'sport' || contentKind(item) === 'sport'
+    if (!isDutch(item, src?.lang) || isHeavy(item, desk) || sport) return null
     // Een bericht uit de voorpagina-pool draagt zijn rubriek al (uitgerekend met URL en rubriek van de bron).
     const resolvedDesk = CALM_WEIGHT[desk] || HEAVY_DESKS.has(desk) ? desk : 'desk' in item ? item.desk : primaryDesk([desksOf(item)])
     const r = rubriek(item, resolvedDesk, src?.cat)
     const heavy = HEAVY_DESKS.has(r)
     if (heavy && (sourceCount || 1) < 5) return null
-    return { item, rubriek: r, sourceCount: sourceCount || 1, order, heavy }
+    return { item, storyId: storyId || item.storyId || storyOf.get(item.id), rubriek: r, sourceCount: sourceCount || 1, order, heavy }
   }
 
   const cands = []
@@ -80,26 +103,26 @@ export function extract(start, places = PLACES, openImageSources = OPEN_IMAGE_SO
   ed.entries.forEach((e, idx) => {
     const story = e.kind === 'story' ? stories.get(e.id) : null
     const item = byId.get(e.kind === 'story' ? e.leadId || story?.leadId : e.id)
-    const c = make(item, e.desk || null, e.kind === 'story' ? e.sourceCount || story?.sourceCount || 1 : 1, idx)
+    const c = make(item, e.desk || null, e.kind === 'story' ? e.sourceCount || story?.sourceCount || 1 : 1, idx, story?.id)
     if (e.kind === 'story') used.add(e.id)
     if (c) cands.push(c)
   })
 
-  // Te weinig rustige plekken? Vul aan met de overige verhalen van dezelfde dagdeel-pool (laatste 24 uur),
-  // voor zover de feed hun bericht meelevert.
-  if (cands.filter((c) => !c.heavy).length < places) {
+  // Bekijk ook de overige verhalen van dezelfde dagdeel-pool (laatste 24 uur). Drie kandidaten
+  // kunnen na ontdubbelen te weinig zijn; bovendien kan de pool een ontbrekende rubriek leveren.
+  {
     const ref = Date.parse(ed.builtAt) || Math.max(0, ...(start.stories || []).map((s) => Date.parse(s.latestAt) || 0))
     const rest = (start.stories || []).filter((s) => !used.has(s.id) && ref - (Date.parse(s.latestAt) || 0) <= 864e5)
     rest.forEach((s, i) => {
       const item = byId.get(s.leadId) || (s.itemIds || []).map((id) => byId.get(id)).find(Boolean)
-      const c = make(item, item ? primaryDesk([desksOf(item)]) : null, s.sourceCount, 1000 + i)
+      const c = make(item, item ? primaryDesk([desksOf(item)]) : null, s.sourceCount, 1000 + i, s.id)
       if (c) cands.push(c)
     })
   }
 
   // Ook losse publicaties uit dezelfde opgeslagen feedpool mogen aanvullen. Ze hebben nog
   // niet altijd een verhaal; alleen de Editie-items lezen zou juist rustige cultuur/tech missen.
-  if (cands.filter(c => !c.heavy).length < places) {
+  {
     const ref = Date.parse(ed.builtAt) || 0
     for (const [i, item] of (start.items || []).entries()) {
       if (item.kind === 'post' || !Number.isFinite(Date.parse(item.publishedAt)) || ref - Date.parse(item.publishedAt) > 864e5) continue
@@ -115,14 +138,20 @@ export function extract(start, places = PLACES, openImageSources = OPEN_IMAGE_SO
   // plekken, en alleen als het dan nog geen drie zijn de zwaardere rubrieken.
   const rank = (a, b) => (CALM_WEIGHT[b.rubriek] || 0) - (CALM_WEIGHT[a.rubriek] || 0) || a.order - b.order || b.sourceCount - a.sourceCount
   const picked = []
+  const sig = signatures([...new Map(cands.map(c => [c.item.id, c.item])).values()])
+  const duplicate = (a, b) => a.item.id === b.item.id ||
+    (a.storyId && a.storyId === b.storyId) ||
+    a.item.title.trim().toLocaleLowerCase('nl') === b.item.title.trim().toLocaleLowerCase('nl') ||
+    sameSubject(sig.get(a.item.id), sig.get(b.item.id))
+  const available = c => !picked.some(p => duplicate(p, c))
   const pickFrom = (list) => {
     const sorted = [...list].sort(rank)
-    for (const c of sorted) if (picked.length < places && !picked.some((p) => p.rubriek === c.rubriek)) picked.push(c)
-    for (const c of sorted) if (picked.length < places && !picked.includes(c)) picked.push(c)
+    for (const c of sorted) if (picked.length < places && available(c) && !picked.some((p) => p.rubriek === c.rubriek)) picked.push(c)
+    for (const c of sorted) if (picked.length < places && available(c)) picked.push(c)
   }
   pickFrom(cands.filter((c) => !c.heavy))
   if (picked.length < places) {
-    const world = cands.filter(c => c.heavy).sort(rank)[0]
+    const world = cands.filter(c => c.heavy && available(c)).sort(rank)[0]
     if (world) picked.push(world)
   }
 
@@ -164,7 +193,7 @@ export default async (req) => {
   } catch {
     edition = null
   }
-  if (!edition) return new Response(JSON.stringify({ edition: null }), { status: 503, headers: { ...base(origin), 'Cache-Control': 'no-store' } })
+  if (!edition) return new Response(req.method === 'HEAD' ? null : JSON.stringify({ edition: null }), { status: 503, headers: { ...base(origin), 'Cache-Control': 'no-store' } })
   return new Response(req.method === 'HEAD' ? null : JSON.stringify({ edition }), { headers: { ...base(origin), 'Cache-Control': CACHE } })
 }
 

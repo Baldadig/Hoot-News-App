@@ -41,6 +41,76 @@ const feed = () => ({
 })
 const get = (headers = {}, method = 'GET') => voorpagina(new Request('http://x/api/voorpagina', { method, headers }))
 
+test('onrust wordt ook herkend aan tags, rubriek en incidenttaal zonder het woord rellen', () => {
+  assert.ok(isHeavy({ title: 'De rust keert terug', topics: ['misdaad'] }))
+  assert.ok(isHeavy({ title: 'De situatie is veranderd', mainTopics: ['oorlog'] }))
+  assert.ok(isHeavy({ title: 'De situatie is veranderd', desk: 'geweld' }))
+  assert.ok(isHeavy({ title: 'De situatie is veranderd', desk: 'geweld' }, null))
+  assert.ok(isHeavy({ title: 'De situatie is veranderd', section: 'Misdaad' }))
+  assert.ok(isHeavy({ title: 'De rust keert terug', summary: 'De politie meldt tientallen aanhoudingen.' }))
+  assert.ok(isHeavy({ title: 'Geen grootschalige oploop van jonge relschoppers' }))
+  assert.ok(!isHeavy({ title: 'Museum opent een nieuwe zaal', topics: ['kunst'] }))
+})
+
+test('één kop per cluster, ook zonder storyId op de afzonderlijke publicaties', () => {
+  const f = feed()
+  const copy = it('a-copy', 'nrc', 'NRC', 'Een andere kop over het akkoord')
+  f.items = [copy]
+  f.stories[0].itemIds = ['a', copy.id]
+  f.edition.entries.splice(2, 0, { kind: 'item', id: copy.id, desk: 'binnenland' })
+  const result = extract(f)
+  assert.equal(result.entries.length, 3)
+  assert.equal(result.entries.filter(e => /akkoord/i.test(e.title)).length, 1)
+})
+
+test('varianten zonder cluster-id krijgen één plek; de pool vult na ontdubbelen aan', () => {
+  const f = feed()
+  const a = it('event-a', 'nos', 'NOS', 'Rijksmuseum opent tentoonstelling over Rembrandt', { topics: ['kunst'] })
+  const b = it('event-b', 'nrc', 'NRC', 'Tentoonstelling over Rembrandt opent in Rijksmuseum', { topics: ['kunst'] })
+  f.edition.items = [a, b, it('third', 'nos', 'NOS', 'Een nieuwe planeet ontdekt', { topics: ['ruimte'] })]
+  f.edition.entries = f.edition.items.map(i => ({ kind: 'item', id: i.id }))
+  f.stories = []
+  f.items = [it('extra', 'nos', 'NOS', 'Gemeente maakt meer ruimte voor woningbouw', { topics: ['wonen'], publishedAt: '2026-10-31T04:00:00Z' })]
+  const r = extract(f)
+  assert.equal(r.entries.length, 3)
+  assert.equal(r.entries.filter(e => /Rembrandt/.test(e.title)).length, 1)
+  assert.ok(r.entries.some(e => /woningbouw/.test(e.title)))
+})
+
+test('drie rustige koppen met één bron zijn genoeg; spreiding bekijkt ook de overige pool', () => {
+  const f = feed()
+  f.stories = []
+  f.edition.items = [1, 2, 3].map(n => it('huis-' + n, 'nos', 'NOS', 'Woningbouwplan ' + n, { topics: ['wonen'] }))
+  f.edition.entries = f.edition.items.map(i => ({ kind: 'item', id: i.id, desk: 'binnenland' }))
+  f.items = [it('kunst', 'nrc', 'NRC', 'Museum opent de deuren', { topics: ['kunst'], publishedAt: '2026-10-31T04:00:00Z' }), it('ruimte', 'nos', 'NOS', 'Een nieuwe planeet ontdekt', { topics: ['ruimte'], publishedAt: '2026-10-31T04:00:00Z' })]
+  const r = extract(f)
+  assert.deepEqual(new Set(r.entries.map(e => e.desk)), new Set(['binnenland', 'cultuur', 'wetenschap']))
+  assert.ok(r.entries.every(e => e.sourceCount === 1))
+})
+
+test('sport zonder tags valt af; cultuur krijgt geen onjuiste Binnenland-stempel', () => {
+  const f = feed()
+  f.edition.entries.unshift({ kind: 'item', id: 'coach', desk: 'binnenland' })
+  f.edition.items.push(it('coach', 'nos', 'NOS', 'AZ-coach blikt terug op zijn eerste seizoen', { section: 'Sport' }))
+  assert.ok(extract(f).entries.every(e => !/AZ-coach/.test(e.title)))
+  assert.equal(rubriek({ topics: ['film'] }, 'binnenland', 'nl'), 'cultuur')
+  assert.equal(rubriek({ title: 'Een verrassend halloweenkostuum', section: 'Showbizz' }, 'binnenland', 'nl'), 'cultuur')
+  assert.equal(rubriek({ title: 'Schrijfwedstrijd voor jonge auteurs', topics: ['boeken'] }, 'binnenland', 'nl'), 'cultuur')
+})
+
+test('alleen onrust levert ook via de HTTP-handler 503 in plaats van drie ongeschikte koppen', async () => {
+  const f = feed()
+  f.stories = []
+  f.items = []
+  f.edition.items = [1, 2, 3].map(n => it('onrust-' + n, 'nos', 'NOS', 'De situatie verandert ' + n, { topics: ['misdaad'] }))
+  f.edition.entries = f.edition.items.map(i => ({ kind: 'item', id: i.id, desk: 'binnenland' }))
+  await writeDoc(KEYS.start, { body: JSON.stringify(f), etag: 'onrust' })
+  const r = await get({ origin: 'https://gethoot.app' })
+  assert.equal(r.status, 503)
+  assert.deepEqual(await r.json(), { edition: null })
+  assert.equal(r.headers.get('cache-control'), 'no-store')
+})
+
 test('vorm: slot, datum en drie plekken met alleen de kleine velden', () => {
   const r = extract(feed())
   assert.equal(r.slot, 'ochtend')
@@ -253,12 +323,39 @@ test('voorpagina-pool: alleen Nederlands, geen posts, hooguit 36 uur en 200 beri
   ]
   const pool = voorpaginaPool(items, sources, now)
   assert.deepEqual(pool.items.map((i) => i.id), ['nl', 'rand'])
-  assert.deepEqual(Object.keys(pool.items[0]).sort(), ['desk', 'id', 'image', 'publishedAt', 'source', 'sourceName', 'storyId', 'summary', 'title', 'topics'])
+  assert.deepEqual(Object.keys(pool.items[0]).sort(), ['desk', 'id', 'image', 'publishedAt', 'section', 'source', 'sourceName', 'storyId', 'summary', 'title', 'topics'])
   assert.ok(!JSON.stringify(pool).includes('nos.nl/artikel')) // geen uitgeverslinks in de pool
   const many = Array.from({ length: 260 }, (_, n) => it('m' + n, 'nos', 'NOS', 'Kop ' + n, { publishedAt: new Date(now - n * 6e4).toISOString() }))
   const big = voorpaginaPool(many, sources, now)
   assert.equal(big.items.length, 200)
   assert.equal(big.items[0].id, 'm0') // de nieuwste
+})
+
+test('pool bewaart tags en rubriekbewijs zonder de URL; sport en cultuur blijven gelijk aan de volledige feed', () => {
+  const f = feed()
+  const sport = it('sport-path', 'nos', 'NOS', 'De trainer vertelt', { url: 'https://nos.nl/sport/de-trainer', topics: [], mainTopics: [] })
+  const culture = it('culture-path', 'nrc', 'NRC', 'Een verrassend halloweenkostuum', { url: 'https://nrc.nl/showbizz/het-kostuum', topics: [] })
+  const unrest = it('unrest-tag', 'nos', 'NOS', 'De rust keert terug', { mainTopics: ['rellen'] })
+  f.edition.items.push(sport, culture, unrest)
+  f.edition.entries.unshift(...[sport, culture, unrest].map(i => ({ kind: 'item', id: i.id, desk: 'binnenland' })))
+  const pool = voorpaginaPool(f.edition.items, f.sources, Date.parse('2026-10-31T12:00:00Z'))
+  assert.equal(pool.items.find(i => i.id === sport.id).section, 'sport')
+  assert.equal(pool.items.find(i => i.id === culture.id).section, 'showbizz')
+  assert.deepEqual(pool.items.find(i => i.id === unrest.id).mainTopics, ['rellen'])
+  assert.ok(pool.items.every(i => !('url' in i)))
+  const direct = extract(f)
+  assert.deepEqual(extract(withPool({ ...f, items: [], edition: { ...f.edition, items: [] } }, pool)), direct)
+  assert.ok(direct.entries.every(e => !/trainer|rust keert/.test(e.title)))
+  assert.equal(direct.entries.find(e => /halloweenkostuum/.test(e.title)).desk, 'cultuur')
+})
+
+test('HEAD heeft ook bij 503 geen body, met dezelfde veilige CORS- en cacheheaders', async () => {
+  await writeDoc(KEYS.start, { body: '{}', etag: 'head-empty' })
+  const r = await get({ origin: 'https://gethoot.app' }, 'HEAD')
+  assert.equal(r.status, 503)
+  assert.equal(await r.text(), '')
+  assert.equal(r.headers.get('cache-control'), 'no-store')
+  assert.equal(r.headers.get('access-control-allow-origin'), 'https://gethoot.app')
 })
 
 test('endpoint: echte productievorm (KEYS.start + KEYS.voorpagina) geeft 200 met drie koppen', async () => {
