@@ -10,6 +10,7 @@ struct ArticleReaderView: View {
     @Environment(\.openURL) private var openURL
     let item: Item
     @State private var loader = ArticleLoader()
+    @State private var waiting = ReaderWaitingState()
     @AppStorage("hoot.readerSize") private var size = 1
     @State private var login: LoginTarget?
     @State private var signedIn = false // ingelogd bij deze uitgever: dan geen balk "Zie je maar een deel?"
@@ -25,15 +26,7 @@ struct ArticleReaderView: View {
             Group {
                 switch loader.state {
                 case .loading:
-                    VStack(alignment: .leading, spacing: Space.s4) {
-                        Kicker(text: sourceName)
-                        Text(item.title.isEmpty ? (item.summary ?? "") : typeset(item.title, lang: source?.lang)).font(Theme.headline(.title)).lineLimit(4).fixedSize(horizontal: false, vertical: true)
-                        WaitingMark().frame(maxWidth: .infinity).padding(.top, Space.s5)
-                        Spacer()
-                    }
-                    .padding()
-                    .frame(maxWidth: Layout.readable)
-                    .frame(maxWidth: .infinity)
+                    ReaderLoadingView(title: item.title.isEmpty ? (item.summary ?? "") : typeset(item.title, lang: source?.lang), sourceName: sourceName, waiting: waiting)
                 case let .ready(article):
                     ArticleWebView(html: ReaderHTML.page(article, item: item, sourceName: sourceName, size: size, lang: source?.lang), baseURL: item.link)
                         .ignoresSafeArea(edges: .bottom)
@@ -114,7 +107,11 @@ struct ArticleReaderView: View {
             if DebugLaunch.screen("inloggen") { login = LoginTarget(name: sourceName, url: loginURL) }
             #endif
         }
-        .onDisappear { loader.stop() }
+        .task(id: loader.state == .loading) {
+            waiting.reset()
+            if loader.state == .loading { await waiting.wait() }
+        }
+        .onDisappear { waiting.reset(); loader.stop() }
     }
 
     private func isSignedIn() async -> Bool {
@@ -332,5 +329,39 @@ struct LoginWebView: View {
                 return
             }
         }
+    }
+}
+
+// Alleen de indicatie wacht; het artikel zelf wordt meteen geladen. Annuleren voorkomt een flits
+// als de pagina al klaar is of de lezer gesloten is.
+@MainActor @Observable
+final class ReaderWaitingState {
+    private(set) var visible = false
+    func wait() async {
+        do {
+            try await Task.sleep(for: .milliseconds(400))
+            guard !Task.isCancelled else { return }
+            visible = true
+        } catch { /* snelle laadactie of vertrek: geen indicatie */ }
+    }
+    func reset() { visible = false }
+}
+
+struct ReaderLoadingView: View {
+    let title: String
+    let sourceName: String
+    let waiting: ReaderWaitingState
+    var body: some View {
+        VStack(alignment: .leading, spacing: Space.s4) {
+            Kicker(text: sourceName)
+            Text(title).font(Theme.headline(.title)).lineLimit(4).fixedSize(horizontal: false, vertical: true)
+            if waiting.visible {
+                WaitingMark(label: "Artikel laden").frame(maxWidth: .infinity).padding(.top, Space.s5)
+            }
+            Spacer()
+        }
+        .padding()
+        .frame(maxWidth: Layout.readable)
+        .frame(maxWidth: .infinity)
     }
 }

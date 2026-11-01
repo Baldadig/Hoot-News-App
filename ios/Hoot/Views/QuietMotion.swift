@@ -4,6 +4,7 @@ struct WaitingMark: View {
     @Environment(\.accessibilityReduceMotion) private var still
     var size: CGFloat = 24
     var text = true
+    var label = "Even kijken bij je bronnen"
     var body: some View {
         HStack(spacing: Space.s3) {
             ZStack {
@@ -11,8 +12,8 @@ struct WaitingMark: View {
                 GlyphShape(glyphs: Brand.mark, part: .dot).fill(Theme.accent)
                     .phaseAnimator(still ? [1.0] : [1.0, 1.06, 0.92]) { view, scale in view.scaleEffect(scale, anchor: .bottomTrailing) } animation: { _ in .easeInOut(duration: 2.75) }
             }.frame(width: size * Brand.mark.size.width / Brand.mark.size.height, height: size).accessibilityHidden(true)
-            if text { Text("Even kijken bij je bronnen").font(.subheadline).foregroundStyle(Theme.ink3) }
-        }.accessibilityElement(children: .combine)
+            if text { Text(label).font(.subheadline).foregroundStyle(Theme.ink3) }
+        }.accessibilityElement(children: .ignore).accessibilityLabel(label)
     }
 }
 

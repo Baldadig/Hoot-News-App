@@ -1,5 +1,7 @@
 # Changelog — Hoot voor iOS
 
+- Lezer: pas na 400 ms “Artikel laden”, geen bronnentekst of flits bij snel laden; oude wachttaak wordt geannuleerd.
+
 ## Onuitgebracht
 
 - Uitloggen en accountwisseling maken lopende synchronisatie- en tokenantwoorden ongeldig. Oude antwoorden kunnen geen privéleesstatus, sessie of eigenaar terugzetten of een nieuwe login uitloggen.
