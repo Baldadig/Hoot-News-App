@@ -220,7 +220,10 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // vastlegde (`itemIds`), want de server kan een gebeurtenis sindsdien anders gebundeld hebben (feedback 31
   // oktober: de rubberboot bij Breskens stond als twee verhalen in één Editie, die via de algemene Editie
   // twee Vlaamse stukken deelden).
-  const membersOf = (e) => new Set([e.leadId || e.id, ...(e.kind === 'story' ? [...(storyById.get(e.id)?.itemIds || []), ...(e.itemIds || [])] : [])])
+  // Een los bericht uit de algemene Editie kan bij een verhaal horen dat hier al staat (`formerId`, of
+  // het verhaal van het bericht volgens de server): dan zijn de berichten van dat verhaal ook bezet.
+  const serverStory = (e) => (e.kind === 'story' ? null : e.formerId || itemAny.get(e.leadId || e.id)?.storyId || null)
+  const membersOf = (e) => new Set([e.leadId || e.id, ...(e.kind === 'story' ? [...(storyById.get(e.id)?.itemIds || []), ...(e.itemIds || [])] : storyById.get(serverStory(e))?.itemIds || [])])
   const taken = new Set(own.flatMap((e) => [...membersOf(e)]))
   // Ook zonder gedeeld bericht geen tweede plek over hetzelfde onderwerp (sameSubject, zoals selectForReader):
   // de koppen van wat er al staat.
@@ -270,7 +273,9 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   //    gekozen, dan is die plek ook voor de aanvulling.
   const globalItems = new Map((global.items || []).map((i) => [i.id, i]))
   const noFavorites = { ...prof, favorites: new Set() }
-  const fillTo = size - extra.length + (wideAny && !wideEntry ? 1 : 0) - swapped
+  // Een gereserveerde plek die leeg blijft (geen toegelaten breed verhaal of bubbelstuk) gaat eerst naar
+  // toegelaten eigen nieuws (stap 8), pas daarna naar de algemene Editie: zo blijft de Editie van jou.
+  const fillTo = size - extra.length - swapped
   const fillCands = global.entries
     .map((g, idx) => ({ g, idx, score: sumParts(personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), noFavorites, {}, { desk: g.desk })) - 2 * idx }))
     .filter((x) => x.g !== bubbleEntry && unread(x.g.leadId || x.g.id, x.g.kind === 'story' ? x.g.id : null))
@@ -330,7 +335,6 @@ export function composePersonal({ global, stories = [], items = [], sources = []
 
   // Geen bubbelstuk gevonden: dan vult de algemene Editie die plek, zodat er altijd tien staan.
   if (bubbleEntry) taken.add(bubbleEntry.leadId || bubbleEntry.id)
-  else if (global.entries.some((e) => e.desk === 'bubbel')) fillUp(fillTo + 1)
 
   // 7. Volgorde: eigen nieuws, aangevuld nieuws, dan sport/cultuur; "Buiten je bubbel" op plek 6,
   //    "Waar iedereen over schrijft" direct daarna.
@@ -358,6 +362,12 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   }
   entries.forEach(accept)
   if (accepted.length < EDITION_SIZE) selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE }).forEach(accept)
+  // Dan pas aanvullen uit de algemene Editie, met dezelfde toelating en zonder dubbel verhaal.
+  for (const { g } of fillCands) {
+    if (accepted.length >= EDITION_SIZE) break
+    if (sameAsPlaced(g.leadId || g.id) || [...membersOf(g)].some((id) => taken.has(id) && !finalTaken.has(id) && false)) continue
+    accept(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null }, g.leadId || g.id, g.kind === 'story' ? g.id : null))
+  }
   entries = accepted
   // Binnenland blijft de opening, ook bij een combinatie met Wereld en bij serveraanvulling.
   if (prof.interests.has('binnenland')) {

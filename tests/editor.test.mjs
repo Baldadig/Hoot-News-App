@@ -299,7 +299,9 @@ test('indeling: een VS-lezer krijgt als eerste zetel VS, en minstens twee', () =
   const vs = G.deskPlan(prof({ interests: ['politiek'], topics: ['vs-politiek', 'trump'] }), 7)
   assert.equal(vs.order[0], 'vs')
   assert.ok(vs.order.filter((d) => d === 'vs').length >= 2, vs.order.join(','))
-  assert.equal(vs.weights.vs, 3.7) // 0,7 (buitenlandse kernrubriek, Wereld niet gekozen) + 3 × 1
+  // Normen 1 november: zonder Wereld geen eigen zetel voor een buitenlandse kernrubriek (KERN_INT_W = 0);
+  // alleen het gekozen onderwerp telt: 0 + 3 × 1.
+  assert.equal(vs.weights.vs, 3)
   assert.equal(vs.order.length, 7)
 })
 
@@ -309,7 +311,10 @@ test('indeling: een techlezer krijgt hooguit drie Tech-zetels en minstens drie k
     const tech = G.deskPlan(prof({ interests: ['tech'], topics: ['ai'] }), seats).order
     assert.ok(tech.filter((d) => d === 'tech').length <= G.DESK_CAP, `${seats}: ${tech}`)
     assert.ok(new Set(tech.filter((d) => G.KERN.includes(d))).size >= G.KERN_MIN, `${seats}: ${tech}`)
-    assert.equal(tech.length, seats)
+    // Zonder Wereld zijn er niet altijd genoeg rubrieken met gewicht voor elke zetel (de buitenlandse
+    // kernrubrieken hebben er geen, normen 1 november): de rest vult de selectie op gewicht.
+    assert.ok(tech.length <= seats && tech.length >= seats - 1, `${seats}: ${tech}`)
+    assert.equal(G.deskPlan(prof({ interests: ['tech', 'wereld'], topics: ['ai'] }), seats).order.length, seats)
   }
   for (const seats of [1, 2, 3, 4, 5, 6]) {
     const tech = G.deskPlan(prof({ interests: ['tech'], topics: ['ai'] }), seats).order
@@ -376,12 +381,13 @@ test('indeling: de voorpagina telt mee voor de kernregel', () => {
 })
 
 // Feedback 31 oktober: de eerste Editie van een nieuwe lezer met Binnenland was half buitenland.
-test('indeling: wie interesses koos maar Wereld niet, krijgt de buitenlandse kernrubrieken lichter (0,7)', () => {
+test('indeling: wie interesses koos maar Wereld niet, krijgt geen zetel voor de buitenlandse kernrubrieken (normen 1 november)', () => {
   const bi = G.deskPlan(prof({ interests: ['binnenland', 'cultuur', 'wetenschap'] }), 6)
   for (const d of ['buitenland', 'vs', 'middenoosten', 'oekraine']) assert.equal(bi.weights[d], G.KERN_INT_W, d)
   assert.equal(bi.weights.binnenland, 4.6) // 1 + 3 × 0,6 (de thema's) + 3 × 0,6 (Nederland, het land)
-  // Binnenland krijgt zijn tweede zetel (4,6 / 3 = 1,53) vóór de eerste buitenlandse (0,7).
-  assert.ok(bi.order.indexOf('binnenland', 1) < bi.order.indexOf('buitenland'), bi.order.join(','))
+  // Geen zetel voor Buitenland, VS, Midden-Oosten of Oekraïne: alleen groot nieuws mag, en dat staat al
+  // op de voorpagina. De kernregel kan er wel een terugzetten als er anders te weinig kernrubrieken zijn.
+  assert.ok(!bi.order.some((d) => ['vs', 'middenoosten', 'oekraine'].includes(d)), bi.order.join(','))
   // Zonder keuzes, of met Wereld, blijft het 1.
   assert.equal(G.deskPlan(prof(), 6).weights.buitenland, 1)
   assert.equal(G.deskPlan(prof({ interests: ['wereld', 'binnenland'] }), 6).weights.vs, 1)

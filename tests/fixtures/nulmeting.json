@@ -1,5 +1,5 @@
 {
- "about": "Nulmeting op de momentopname van 30 oktober 2026 (avond): composePersonal en selectEdition van v1.54.0, vóór De Redacteur. keys = de plekken (verhaalsleutels) per persona in scenario \"nu\"; general = de algemene Editie (buildStories + selectEdition met de basisbronnen) uit dezelfde berichten.",
+ "about": "Nulmeting op de momentopname van 30 oktober 2026 (avond): composePersonal en selectEdition van v1.54.0, vóór De Redacteur. keys = de plekken (verhaalsleutels) per persona in scenario \"nu\"; general = de algemene Editie (buildStories + selectEdition met de basisbronnen) uit dezelfde berichten. Redacteur stap 1 (1 november 2026): general opnieuw vastgelegd na de goedgekeurde classificatie (geen Binnenland/Wetenschap uit uitgeverland of onderwijs, Christa Pike onder VS), de dekkingvelden publisherCount/publisherCountries en de hoofdberichtkeuze zonder taalbonus; keys en jaccard blijven de nulmeting van v1.54.0.",
  "snapshot": "2026-10-30T19:00:17.373Z",
  "jaccard": 0.4621,
  "keys": {
@@ -148,7 +148,7 @@
   ]
  },
  "general": {
-  "stories": "966805500b4f3b8fbfbcedd65b8e3e7bd42c52c7fb8961c864e011f3fcc6dc92",
+  "stories": "96f9ee6fbaccb3949daa703691efcd5d85b99212805de3af5b6911d942cc4972",
   "entries": [
    {
     "kind": "story",
@@ -166,7 +166,7 @@
     "kind": "story",
     "id": "srjbii3",
     "leadId": "1r0emmx",
-    "desk": null
+    "desk": "vs"
    },
    {
     "kind": "story",
@@ -188,9 +188,9 @@
    },
    {
     "kind": "story",
-    "id": "s3t4ow1",
-    "leadId": "1b1mrvc",
-    "desk": "vs"
+    "id": "s355g5y",
+    "leadId": "1r0emsc",
+    "desk": null
    },
    {
     "kind": "story",
@@ -206,7 +206,7 @@
    },
    {
     "kind": "item",
-    "id": "stjkwf",
+    "id": "1bsses9",
     "desk": "wetenschap"
    }
   ]

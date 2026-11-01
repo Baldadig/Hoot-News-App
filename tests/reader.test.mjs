@@ -33,28 +33,40 @@ function world() {
 }
 const profOf = (o = {}) => G.profileOf({ sources: SOURCES, followed: OWN, ...o })
 const run = (o = {}, w = world()) => selectForReader(w.stories, w.pool, { mainIds: OWN, now: NOW, size: 6, prof: profOf(o.prof), ctx: o.ctx || {}, seed: 'zaad', ...o.opts })
+// Normen 1 november 2026: zonder de interesse Wereld alleen groot buitenlands nieuws (acht uitgevers,
+// of vijf uit twee landen), hooguit twee plekken. In deze kleine wereld zijn Zelensky (7 bronnen, één
+// land), Vance (6) en de Braziliaanse ontbossing geen groot nieuws. Wie Wereld koos, heeft geen plafond;
+// de toetsen op lengte en mechaniek gebruiken die lezer.
+const WERELD = { interests: ['wereld'] }
 
 test('selectie: precies het gevraagde aantal plekken, deterministisch, gesorteerd op gewicht', () => {
-  const sel = run()
+  const sel = run({ prof: WERELD })
   assert.equal(sel.length, 6)
-  assert.equal(JSON.stringify(sel), JSON.stringify(run()))
+  assert.equal(JSON.stringify(sel), JSON.stringify(run({ prof: WERELD })))
+  // Zonder Wereld liever korter dan ongeoorloofd aanvullen: alleen wat de norm toelaat.
+  const plain = run()
+  assert.deepEqual(plain.map((e) => e.id), ['s-kab', 's-ai', 's-brand', 'i10'])
   for (let i = 1; i < sel.length; i++) assert.ok(sel[i - 1].w >= sel[i].w)
   for (const e of sel) assert.ok(e.parts && typeof e.w === 'number' && e.desk !== undefined, JSON.stringify(e))
 })
 
 test('selectie: de voorpagina is voor iedereen gelijk, met de rubriek van de server', () => {
+  // Gelijk voor iedereen met dezelfde keuze voor Wereld; zonder Wereld valt Zelensky (geen groot nieuws) af.
   const plain = run().filter((e) => e.front)
   const tech = run({ prof: { interests: ['tech'], topics: ['ai'] } }).filter((e) => e.front)
-  assert.deepEqual(plain.map((e) => [e.id, e.desk]), [['s-kab', 'binnenland'], ['s-zel', 'oekraine']])
+  assert.deepEqual(plain.map((e) => [e.id, e.desk]), [['s-kab', 'binnenland']])
   assert.deepEqual(tech.map((e) => [e.id, e.desk]), plain.map((e) => [e.id, e.desk]))
-  // Vanaf FRONT_BIG bronnen óók op de voorpagina, tot FRONT_MAX, maar hooguit één buitenlands verhaal:
-  // het tweede grote buitenlandse verhaal krijgt een plek als groot nieuws, niet op de voorpagina.
+  const wereld = run({ prof: WERELD }).filter((e) => e.front)
+  const wereldTech = run({ prof: { interests: ['wereld', 'tech'], topics: ['ai'] } }).filter((e) => e.front)
+  assert.deepEqual(wereld.map((e) => [e.id, e.desk]), [['s-kab', 'binnenland'], ['s-zel', 'oekraine']])
+  assert.deepEqual(wereldTech.map((e) => [e.id, e.desk]), wereld.map((e) => [e.id, e.desk]))
+  // Vanaf FRONT_BIG (acht) bronnen óók op de voorpagina, tot FRONT_MAX. De oude regel "hooguit één
+  // buitenlands verhaal op de voorpagina" is vervangen door het plafond van twee in de hele Editie.
   const w = world()
   w.stories.find((s) => s.id === 's-vance').sourceCount = 11
   w.stories.find((s) => s.id === 's-zel').sourceCount = 10
   const big = run({}, w)
-  assert.deepEqual(big.filter((e) => e.front).map((e) => e.id).sort(), ['s-kab', 's-vance'])
-  assert.ok(big.some((e) => e.id === 's-zel' && !e.front))
+  assert.deepEqual(big.filter((e) => e.front).map((e) => e.id).sort(), ['s-kab', 's-vance', 's-zel'])
   // Een lege rubriek van de server blijft leeg (niet de rubriek uit wat deze lezer heeft).
   const x = world()
   x.stories.find((s) => s.id === 's-kab').desk = null
@@ -76,9 +88,10 @@ test('selectie: jouw zetels vullen met wat er thuishoort; een eigen pagina gaat 
 test('selectie: al gelezen zonder nieuws doet nergens mee, ook niet op de voorpagina', () => {
   const w = world()
   const kab = w.stories.find((s) => s.id === 's-kab')
-  const sel = run({ ctx: { readIds: new Set([kab.itemIds[0]]) } }, w)
+  const sel = run({ prof: WERELD, ctx: { readIds: new Set([kab.itemIds[0]]) } }, w)
   assert.ok(!sel.some((e) => e.id === 's-kab'))
   assert.equal(sel.length, 6)
+  assert.ok(!run({ ctx: { readIds: new Set([kab.itemIds[0]]) } }, w).some((e) => e.id === 's-kab'))
   // Een los bericht dat je las, ook niet.
   const loose = w.loose[0].id
   assert.ok(!run({ ctx: { readIds: new Set([loose]) }, opts: { size: 9 } }, w).some((e) => e.id === loose))
@@ -87,9 +100,9 @@ test('selectie: al gelezen zonder nieuws doet nergens mee, ook niet op de voorpa
 
 test('selectie: een los bericht blijft zo lang staan als het tempo van zijn bron', () => {
   const w = world()
-  const slow = w.loose[1] // 40 uur oud
-  assert.ok(!run({ opts: { size: 9 } }, w).some((e) => e.id === slow.id)) // standaard 14 uur
-  assert.ok(run({ ctx: { tempo: new Map([['carbon', 72]]) }, opts: { size: 9 } }, w).some((e) => e.id === slow.id))
+  const slow = w.loose[1] // 40 uur oud; over het Noordpoolijs, dus buitenland: een Wereld-lezer
+  assert.ok(!run({ prof: WERELD, opts: { size: 9 } }, w).some((e) => e.id === slow.id)) // standaard 14 uur
+  assert.ok(run({ prof: WERELD, ctx: { tempo: new Map([['carbon', 72]]) }, opts: { size: 9 } }, w).some((e) => e.id === slow.id))
 })
 
 test('selectie: zonder indeling (het extra blok) geen voorpagina en geen rubriek', () => {
@@ -105,14 +118,16 @@ test('selectie: minder hiervan laat een verhaal van de voorpagina zakken', () =>
     x.stories.find((s) => s.id === 's-kab').sourceCount = 7 // even zwaar als Zelensky
     return x
   }
+  // Een Wereld-lezer: zonder Wereld zijn Zelensky en Vance hier geen groot nieuws en dus geen optie.
   const front = (o) => run(o, w()).filter((e) => e.front).map((e) => e.id)
-  assert.ok(front({}).includes('s-kab'))
-  const less = run({ prof: { taste: { topics: { nederland: -12 } } } }, w())
-  // Zelensky gaat voor; Vance mag er niet bij (hooguit één buitenlands verhaal), dus het kabinet zakt
-  // naar de tweede plek.
-  assert.deepEqual(less.filter((e) => e.front).map((e) => e.id), ['s-zel', 's-kab'])
+  assert.ok(front({ prof: WERELD }).includes('s-kab'))
+  const less = run({ prof: { ...WERELD, taste: { topics: { nederland: -12 } } } }, w())
+  // Zelensky en Vance gaan voor (de regel "hooguit één buitenlands verhaal" geldt niet meer), het
+  // kabinet zakt van de voorpagina.
+  assert.deepEqual(less.filter((e) => e.front).map((e) => e.id), ['s-zel', 's-vance'])
   const kab = less.find((e) => e.id === 's-kab')
-  if (kab) assert.equal(kab.parts.less.pts, -12) // zakt, maar mag elders nog staan
+  assert.ok(kab && !kab.front)
+  assert.equal(kab.parts.less.pts, -12) // zakt, maar mag elders nog staan
 })
 
 // ---------- De momentopname, twaalf persona's ----------
@@ -142,11 +157,17 @@ test('momentopname: acht plekken, deterministisch, geen dubbele plekken', () => 
   }
 })
 
-test('momentopname: de VS-lezer begint met VS en krijgt minstens twee VS-plekken', () => {
+// Normen 1 november: zonder Wereld heft een voorkeursthema (VS-politiek) het plafond niet op. De
+// indeling begint met VS; de plekken zelf zijn hooguit twee keer groot buitenlands nieuws. Met Wereld
+// erbij krijgt dezelfde lezer minstens twee VS-plekken.
+test('momentopname: de VS-lezer begint met VS en krijgt minstens twee VS-plekken als hij Wereld koos', () => {
   const r = runs.get('vs')
   assert.equal(r.sel.deskOrder[0], 'vs')
   assert.ok(r.sel.deskOrder.filter((d) => d === 'vs').length >= 2, r.sel.deskOrder.join(','))
-  assert.ok(r.sel.filter((e) => e.desk === 'vs').length >= 2, r.sel.map((e) => e.desk).join(','))
+  assert.ok(r.sel.counted.size <= G.INT_MAX, r.sel.map((e) => e.desk).join(','))
+  const p = PERSONAS.find((x) => x.id === 'vs')
+  const w = selFor({ ...p, interests: [...p.interests, 'wereld'] })
+  assert.ok(w.sel.filter((e) => e.desk === 'vs').length >= 2, w.sel.map((e) => e.desk).join(','))
 })
 
 test('momentopname: de klimaatlezer begint met Wetenschap; de nieuwe lezer krijgt KERN', () => {
@@ -209,47 +230,53 @@ function nlWorld() {
 }
 const binnenland = { interests: ['binnenland'] }
 
-test('voorpagina: hooguit één buitenlands verhaal, tenzij een tweede ook in Nederland breed is', () => {
+// Normen 1 november 2026 vervangen de Nederlandse voorpagina van 31 oktober (hooguit één buitenlands
+// verhaal, minstens twee Nederlandse bronnen, buitenlandse bronnen tellen half): elke uitgever telt
+// gelijk, groot nieuws is acht uitgevers of vijf uit twee landen, zonder Wereld hooguit twee
+// internationale plekken in de hele Editie, en wie Binnenland koos opent met Nederlands nieuws.
+test('voorpagina: zonder Wereld alleen groot buitenlands nieuws, ook met minder Nederlandse bronnen', () => {
   const front = run({}, nlWorld()).filter((e) => e.front).map((e) => e.id)
-  assert.ok(front.includes('s-zel'))
-  assert.ok(!front.includes('s-vance'), front.join(',')) // tweede buitenlandse, maar 2 Nederlandse bronnen
+  assert.ok(front.includes('s-zel') && front.includes('s-vance'), front.join(',')) // 9 en 8 uitgevers
   const w = nlWorld()
-  w.stories.find((s) => s.id === 's-vance').nlCount = 5
-  assert.ok(run({}, w).filter((e) => e.front).some((e) => e.id === 's-vance'))
+  w.stories.find((s) => s.id === 's-vance').sourceCount = 7 // geen groot nieuws meer
+  assert.ok(!run({}, w).some((e) => e.id === 's-vance'))
+  assert.ok(run({ prof: WERELD }, w).some((e) => e.id === 's-vance')) // met Wereld wel
 })
 
-test('voorpagina: staat er geen Nederlands verhaal op, dan het zwaarste met minstens drie Nederlandse bronnen', () => {
-  const front = run({}, nlWorld()).filter((e) => e.front).map((e) => e.id)
-  assert.ok(front.includes('s-kab'), front.join(',')) // 4 bronnen, onder FRONT_MIN, maar Nederlands
-  // Voor iedereen gelijk, ook voor wie andere interesses heeft.
-  assert.deepEqual(run({ prof: { interests: ['tech'], topics: ['ai'] } }, nlWorld()).filter((e) => e.front).map((e) => e.id), front)
-  // Wie "minder" stemde op het onderwerp, krijgt het niet opgedrongen.
-  const less = run({ prof: { taste: { topics: { nederland: -12 } } } }, nlWorld()).filter((e) => e.front).map((e) => e.id)
-  assert.ok(!less.includes('s-kab'), less.join(','))
+test('voorpagina: wie Binnenland koos, opent met Nederlands nieuws, ook onder FRONT_MIN', () => {
+  const sel = run({ prof: binnenland }, nlWorld())
+  assert.equal(sel[0].id, 's-kab') // 4 bronnen, Nederlands
+  assert.ok(sel[0].front)
+  // Ook met Wereld erbij.
+  assert.equal(run({ prof: { interests: ['binnenland', 'wereld'] } }, nlWorld())[0].id, 's-kab')
+  // Wie "minder" stemde op het onderwerp, krijgt het niet opgedrongen: dan een ander Nederlands verhaal.
+  const less = run({ prof: { ...binnenland, taste: { topics: { nederland: -12 } } } }, nlWorld())
+  assert.ok(!less.filter((e) => e.front).some((e) => e.id === 's-kab'))
+  assert.equal(less[0].id, 's-brand')
 })
 
-test('voorpagina: een Nederlandse bron telt voor het belang vol, een buitenlandse half', () => {
+test('voorpagina: elke bron telt gelijk voor het belang, ongeacht taal of land van de uitgever', () => {
   const a = run({}, nlWorld()).find((e) => e.id === 's-zel')
   const w = nlWorld()
   w.stories.find((s) => s.id === 's-zel').nlCount = 9
   const b = run({}, w).find((e) => e.id === 's-zel')
-  assert.equal(b.w - a.w, 4 * 0.5 * 6) // zes bronnen van buiten Nederland: elk de helft van 4 punten
+  assert.equal(b.w - a.w, 0)
 })
 
-test('grens: wie interesses koos, krijgt buiten de voorpagina hooguit INT_MAX buitenland zonder reden', () => {
+test('grens: zonder Wereld hooguit INT_MAX internationale plekken, alleen groot nieuws; liever korter', () => {
   const w = nlWorld()
   // Meer buitenland dan plekken: vier losse buitenlandse berichten zonder onderwerp.
   const extra = [['Parijs', 'havens'], ['Berlijn', 'scholen'], ['Madrid', 'treinen'], ['Warschau', 'mijnen']].map(([stad, wat]) => art('nos', `${stad}: ${wat} dicht na conflict over ${wat}geld`))
   w.pool.push(...extra)
-  const sel = run({ prof: binnenland, opts: { size: 6 } }, w)
-  const zonderReden = sel.filter((e) => !e.front && ['buitenland', 'vs', 'middenoosten', 'oekraine'].includes(e.desk) && (e.parts.interest?.pts || 0) < G.MIN_WHY_PTS)
-  assert.ok(zonderReden.length <= G.INT_MAX, zonderReden.map((e) => e.id).join(','))
-  assert.equal(sel.length, 6)
-  // Is er te weinig zonder buitenland, dan toch: een volle selectie.
-  const vol = run({ prof: binnenland, opts: { size: 10 } }, w)
-  assert.equal(vol.length, 10)
-  assert.ok(vol.abroad.size > G.INT_MAX)
-  assert.ok(sel.abroad.size <= G.INT_MAX, [...sel.abroad].join(',')) // de eigen telling van de selectie
-  // Zonder keuzes geen grens: de gewone krant.
-  assert.ok(run({ opts: { size: 8 } }, w).filter((e) => !e.front && ['buitenland', 'vs', 'middenoosten', 'oekraine'].includes(e.desk)).length > G.INT_MAX)
+  const ids = new Set(extra.map((i) => i.id))
+  for (const prof of [binnenland, {}, { interests: ['tech'], topics: ['ai'] }]) {
+    const vol = run({ prof, opts: { size: 10 } }, w)
+    assert.ok(vol.counted.size <= G.INT_MAX, [...vol.counted].join(','))
+    assert.ok(!vol.some((e) => ids.has(e.id)), vol.map((e) => e.id).join(',')) // geen groot nieuws
+    assert.ok(vol.length < 10) // geen ongeoorloofde aanvulling om tien te halen
+  }
+  // Met Wereld geen plafond: de losse buitenlandse berichten mogen dan wel.
+  const wereld = run({ prof: WERELD, opts: { size: 10 } }, w)
+  assert.equal(wereld.length, 10)
+  assert.ok(wereld.counted.size > G.INT_MAX)
 })

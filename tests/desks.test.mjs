@@ -123,16 +123,27 @@ for (const [it, opts, alt] of NIET) {
   })
 }
 
-test('Binnenland: een verhaal van vooral buitenlandse bronnen is geen Binnenland, ook al zegt het NOS-stuk niets buitenlands', () => {
+// Normen 1 november 2026: het land of de taal van een uitgever zegt niet waar een verhaal speelt.
+// storyForeignOf telt daarom de plaats in de berichten zelf, niet het aandeel Nederlandse bronnen.
+// De dood van Patrick Stewart is cultuur (eigen soort, geen plaats): geen Binnenland en ook geen
+// internationale plek; een verhaal dat in de berichten buiten Nederland speelt, is wel buitenlands.
+test('Binnenland: een verhaal dat in zijn berichten buiten Nederland speelt, is geen Binnenland; uitgeverland telt niet', () => {
   const items = [
     { source: 'nos', title: 'Bedroefde reacties om dood Patrick Stewart' },
     { source: 'nyt', title: 'Patrick Stewart, Star Trek captain, dies at 86' },
     { source: 'bbc', title: 'Sir Patrick Stewart dies aged 86' },
     { source: 'guardian', title: 'Patrick Stewart obituary' },
   ]
-  assert.equal(storyForeignOf(items), true)
+  assert.equal(storyForeignOf(items), false)
   assert.notEqual(deskOfStory(items), 'binnenland')
-  assert.ok(desksOf(items[0]).has('binnenland'), 'los, zonder verhaal, blijft het NOS-stuk Binnenland')
+  assert.ok(!desksOf(items[0]).has('binnenland'), 'het NOS-stuk over de dood van een acteur is cultuur')
+  const kremlin = [
+    { source: 'nos', title: 'Laatste onafhankelijke Russische krant stopt onder druk van het Kremlin' },
+    { source: 'nyt', title: 'Russian News Outlet That Defied Kremlin Will Shut Down' },
+    { source: 'nrc', title: 'Novaja Gazeta stopt: Rusland legt kritische krant het zwijgen op' },
+  ]
+  assert.equal(storyForeignOf(kremlin), true) // ook met twee van de drie bronnen Nederlands
+  assert.notEqual(deskOfStory(kremlin), 'binnenland')
 })
 test('Binnenland: een Nederlands verhaal uit drie Nederlandse bronnen blijft Binnenland', () => {
   const items = [

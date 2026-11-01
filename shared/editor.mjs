@@ -446,8 +446,8 @@ export function profileSummary(prof) {
 // een dubbele zetel is om voor te ruilen.
 export const KERN = [...DESKS] // binnenland, buitenland, vs, middenoosten, oekraine, wetenschap
 export const OWN_DESKS = ['tech', 'economie', 'regio']
-// Het gewicht van een rubriek is 1 (kern; KERN_INT_W voor de buitenlandse kernrubrieken als je
-// interesses koos maar Wereld niet) of 0 (eigen pagina; Regio ook 0 zonder regiobron), plus DESK_GAIN ×
+// Het gewicht van een rubriek is 1 (kern; KERN_INT_W voor de buitenlandse kernrubrieken en KERN_SCI_W
+// voor Wetenschap als je interesses koos maar Wereld niet) of 0 (eigen pagina; Regio ook 0 zonder regiobron), plus DESK_GAIN ×
 // het sterkste onderwerp dat erbij hoort: wie VS-politiek volgt, krijgt een tweede VS-zetel, geen
 // tweede Binnenland. De tabel is letterlijk die van het referentieprototype.
 export const DESK_GAIN = 3
@@ -478,10 +478,13 @@ export function chosenDesks(prof) {
 }
 export const DESK_CAP = 3
 export const KERN_MIN = 3
-// Wie interesses koos maar Wereld niet, krijgt de buitenlandse kernrubrieken lichter: een krant met
-// buitenland, maar Binnenland krijgt eerder een tweede zetel (feedback 31 oktober: de eerste Editie
-// van een nieuwe lezer met Binnenland was half buitenland).
-export const KERN_INT_W = 0.7
+// Wie interesses koos maar Wereld niet, mag volgens de normen van 1 november alleen groot buitenlands
+// nieuws (hooguit twee plekken), en dat staat al op de voorpagina. De buitenlandse kernrubrieken krijgen
+// dan geen eigen zetel (KERN_INT_W), en Wetenschap, waarvan het aanbod grotendeels buitenlands is, een
+// kleine (KERN_SCI_W): anders vult dezelfde ene Nederlandse plek die zetel bij iedereen. Een gekozen
+// onderwerp in zo'n rubriek telt wel (DESK_GAIN), en de kernregel (KERN_MIN) blijft.
+export const KERN_INT_W = 0
+export const KERN_SCI_W = 0.2
 // De voorpagina: de FRONT zwaarste verhalen met ≥ FRONT_MIN bronnen, voor iedereen gelijk, plus
 // elk verhaal vanaf FRONT_BIG bronnen, tot hooguit FRONT_MAX.
 export const FRONT = 2
@@ -505,7 +508,7 @@ export function deskPlan(prof, seats, front = [], filled = []) {
   const w = {}
   const chose = Object.keys(prof?.family || {}).length > 0
   const world = (prof?.family?.wereld || 0) >= OUTSIDE_FAMILY
-  for (const d of PLAN_DESKS) w[d] = KERN.includes(d) ? (chose && !world && FOREIGN_DESKS.has(d) ? KERN_INT_W : 1) : 0
+  for (const d of PLAN_DESKS) w[d] = !KERN.includes(d) ? 0 : !chose || world ? 1 : FOREIGN_DESKS.has(d) ? KERN_INT_W : d === 'wetenschap' ? KERN_SCI_W : 1
   const best = {}
   for (const [t, v] of Object.entries(prof?.topicP || {})) {
     if (v <= 0) continue

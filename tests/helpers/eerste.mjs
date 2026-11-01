@@ -16,7 +16,8 @@ import { mutedSet } from '../../src/lib/sourcesel.js'
 import { buildStories, selectEdition } from '../../netlify/lib/stories.mjs'
 import { MAIN_IDS } from '../../netlify/lib/sources.mjs'
 import { desksOf, placeSignals, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
-import { FRONT_SOURCES, chosenReason } from '../../shared/editor.mjs'
+import { chosenReason, INT_MAX } from '../../shared/editor.mjs'
+import { majorNews } from '../../shared/edition-policy.mjs'
 
 export const FIRST = [
   { id: 'vriendin', interests: ['binnenland', 'cultuur', 'wetenschap'] },
@@ -109,8 +110,9 @@ export function firstEdition(data, p, compose = composePersonal) {
       falseBi: it?.f === 'binnenland' && geo !== 'NL',
       why: e.why?.code,
       whyText: e.why?.text || '',
-      // "Groot nieuws" belooft een groot verhaal: onder FRONT_SOURCES bronnen is het label uitgehold.
-      grootKlein: e.why?.code === 'groot' && (e.sourceCount || ctx.storyById.get(e.id)?.sourceCount || 0) < FRONT_SOURCES,
+      // "Groot nieuws" belooft een groot verhaal: sinds de normen van 1 november acht uitgevers, of vijf uit
+      // minstens twee uitgeverlanden (majorNews). Daaronder is het label uitgehold.
+      grootKlein: e.why?.code === 'groot' && !majorNews((e.kind === 'story' && ctx.storyById.get(e.id)) || ctx.storyOfItem.get(e.leadId || e.id) || { sourceCount: e.sourceCount || 0 }, m),
       title: ctx.itemById.get(e.leadId || e.id)?.title || '',
     }
   })
@@ -126,8 +128,12 @@ export function measureFirst(data, personas = FIRST, compose = composePersonal) 
       intTotaal: p.interests.includes('wereld') ? null : es.filter((x) => x.geo === 'INT' && !x.real).length,
       binnenland: bi ? es.filter((x) => !x.fixed && x.geo === 'NL' && x.nlNews).length : null,
       intOngekozen: es.filter((x) => !x.fixed && !x.front && x.geo === 'INT' && !x.real).length,
-      voorpaginaNl: es.filter((x) => x.front && x.geo === 'NL').length,
-      voorpaginaInt: es.filter((x) => x.front && x.geo === 'INT').length,
+      // Normen 1 november: zonder Wereld telt elke internationale plek, ook met een reden (null met Wereld).
+      intAlle: p.interests.includes('wereld') ? null : es.filter((x) => x.geo === 'INT').length,
+      // Alleen wie Binnenland koos, krijgt een Nederlandse opening gegarandeerd (null zonder Binnenland).
+      voorpaginaNl: bi ? es.filter((x) => x.front && x.geo === 'NL').length : null,
+      opentNl: bi ? es[0]?.geo === 'NL' : null,
+      voorpaginaInt: p.interests.includes('wereld') ? null : es.filter((x) => x.front && x.geo === 'INT').length,
       valsBinnenland: es.filter((x) => x.falseBi).length,
       nl: es.filter((x) => x.geo === 'NL').length,
       int: es.filter((x) => x.geo === 'INT').length,
@@ -143,9 +149,14 @@ export function measureFirst(data, personas = FIRST, compose = composePersonal) 
 export const DREMPELS_EERSTE = [
   { key: 'binnenlandMin', label: 'eerste Editie, lezer met Binnenland: Nederlandse plekken (kleinste)', min: 3, hard: true },
   { key: 'intOngekozenMax', label: 'eerste Editie: buitenland zonder gekozen reden, buiten voorpagina en vaste plekken (grootste)', max: 2, hard: true },
-  { key: 'voorpaginaNlMin', label: 'eerste Editie: Nederlandse verhalen op de voorpagina (kleinste)', min: 1, hard: true },
-  { key: 'voorpaginaIntMax', label: 'eerste Editie: buitenlandse verhalen op de voorpagina (grootste)', max: 1, hard: true },
-  { key: 'grootKlein', label: 'eerste Editie: "Groot nieuws" bij minder dan 6 bronnen (totaal)', max: 0, hard: true },
+  // Normen 1 november 2026 (vervangen "hooguit één buitenlands verhaal op de voorpagina" en "Groot nieuws
+  // vanaf 6 bronnen"): zonder Wereld hooguit INT_MAX internationale plekken in de hele Editie, wie
+  // Binnenland koos opent met Nederlands nieuws, groot nieuws is acht uitgevers of vijf uit twee landen.
+  { key: 'voorpaginaNlMin', label: 'eerste Editie, lezer met Binnenland: Nederlandse verhalen op de voorpagina (kleinste)', min: 1, hard: true },
+  { key: 'opentNlMin', label: 'eerste Editie, lezer met Binnenland: opent met Nederlands nieuws (kleinste, 1 = ja)', min: 1, hard: true },
+  { key: 'voorpaginaIntMax', label: 'eerste Editie, lezer zonder Wereld: buitenlandse verhalen op de voorpagina (grootste)', max: INT_MAX, hard: true },
+  { key: 'intAlleMax', label: 'eerste Editie, lezer zonder Wereld: internationale plekken in de hele Editie (grootste)', max: INT_MAX, hard: true },
+  { key: 'grootKlein', label: 'eerste Editie: "Groot nieuws" zonder acht uitgevers of vijf uit twee landen (totaal)', max: 0, hard: true },
   { key: 'valsBinnenland', label: 'eerste Editie: buitenlandse plek met Binnenland als reden (totaal)', max: 0, hard: true },
   { key: 'passendMin', label: 'eerste Editie: plekken die bij de keuze passen (kleinste)', min: 4, hard: true },
   { key: 'passendMin', label: 'eerste Editie: plekken die bij de keuze passen (streven)', min: 5, hard: false },
@@ -156,8 +167,10 @@ export function verdictFirst(rows) {
   return {
     binnenlandMin: Math.min(...bi.map((r) => r.binnenland)),
     intOngekozenMax: Math.max(...rows.map((r) => r.intOngekozen)),
-    voorpaginaNlMin: Math.min(...rows.map((r) => r.voorpaginaNl)),
-    voorpaginaIntMax: Math.max(...rows.map((r) => r.voorpaginaInt)),
+    voorpaginaNlMin: Math.min(...bi.map((r) => r.voorpaginaNl)),
+    opentNlMin: Math.min(...bi.map((r) => (r.opentNl ? 1 : 0))),
+    voorpaginaIntMax: Math.max(0, ...rows.filter((r) => r.voorpaginaInt !== null).map((r) => r.voorpaginaInt)),
+    intAlleMax: Math.max(0, ...rows.filter((r) => r.intAlle !== null).map((r) => r.intAlle)),
     valsBinnenland: rows.reduce((s, r) => s + r.valsBinnenland, 0),
     passendMin: Math.min(...rows.map((r) => r.passend)),
     grootKlein: rows.reduce((s, r) => s + r.grootKlein, 0),
