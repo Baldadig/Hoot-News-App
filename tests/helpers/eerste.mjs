@@ -17,7 +17,7 @@ import { buildStories, selectEdition } from '../../netlify/lib/stories.mjs'
 import { MAIN_IDS } from '../../netlify/lib/sources.mjs'
 import { desksOf, placeSignals, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
 import { chosenReason, INT_MAX } from '../../shared/editor.mjs'
-import { majorNews } from '../../shared/edition-policy.mjs'
+import { majorNews, internationalNews } from '../../shared/edition-policy.mjs'
 
 export const FIRST = [
   { id: 'vriendin', interests: ['binnenland', 'cultuur', 'wetenschap'] },
@@ -96,6 +96,10 @@ export function firstEdition(data, p, compose = composePersonal) {
     const m = ctx.membersOf(e)
     const geo = geoOfMembers(m, src)
     const it = e._parts?.interest
+    // Een Binnenland-reden is ook vals bij een verhaal dat volgens de eigen regel buitenlands is, ook als de
+    // maat het als Nederlands telt (keuring 1 november: Heidi Klum met een NU-lid tussen BBC en Variety).
+    const st = e.kind === 'story' ? ctx.storyById.get(e.id) : null
+    const abroadByRule = !!st && m.length > 1 && internationalNews(m, st.desk ?? null, st)
     return {
       geo,
       nlNews: m.some((i) => ['nl', 'regio'].includes(src.get(i.source)?.cat)),
@@ -107,7 +111,7 @@ export function firstEdition(data, p, compose = composePersonal) {
       // Past bij de keuze: een interessepunt dat telt en dat het verhaal draagt, ook als de plek het niet zegt
       // (de kop noemt het onderwerp niet): dat is een kwestie van het waarom, niet van de inhoud. `real` is strenger.
       fit: !!it && it.pts >= 5 && (it.cov ?? 1) * 2 >= 1 && !(it.f === 'binnenland' && geo !== 'NL'),
-      falseBi: it?.f === 'binnenland' && geo !== 'NL',
+      falseBi: it?.f === 'binnenland' && (geo !== 'NL' || abroadByRule),
       why: e.why?.code,
       whyText: e.why?.text || '',
       // "Groot nieuws" belooft een groot verhaal: sinds de normen van 1 november acht uitgevers, of vijf uit

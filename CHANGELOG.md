@@ -10,6 +10,7 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 - **Eerlijke telling:** elke uitgever telt even zwaar, ongeacht taal of land; sectiefeeds als NOS Sport tellen als NOS. Waar een verhaal speelt, haalt Hoot uit de berichten zelf, niet uit het land van de uitgever. India's Congrespartij is geen VS, de rellen in Den Haag zijn Binnenland, en Engelse landnamen (Serbia, Sweden) tellen als buitenland.
 - **Eén plek per verhaal:** een los bericht uit de algemene Editie staat er niet meer naast zijn eigen verhaal.
 - **Onbekend telt niet als binnenland:** een stuk uit een buitenlandse nieuwsbron zonder herkende plaats, dat geen Nederlandse of Vlaamse uitgever brengt, telt mee voor het plafond van twee (NPR over het Amerikaanse hooggerechtshof). Vakstukken over tech, economie, wetenschap, cultuur of sport niet. Een buitenlandse stad in de kop (Frankfurt, Keulen) maakt een stuk Buitenland.
+- **Het hele verhaal bepaalt waar het speelt:** één Nederlands bericht maakt een buitenlands verhaal geen Binnenland. Heidi Klum op Halloween (NU tussen RTL, BBC en Variety) kreeg "Omdat je Binnenland volgt" en nam een internationale plek in.
 
 ## [1.57.0] — 2026-10-31 — Hoot verhuist naar gethoot.app, een Stroom van 36 uur en de signatuurronde
 

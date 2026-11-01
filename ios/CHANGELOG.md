@@ -8,7 +8,7 @@
 - Wachtmarkering, lege bladzijden, leesgrens en schakelaars bijgewerkt; dagdelen uit gedeelde JSON.
 - Gethoot.app/lees lokaal voorbereid als nieuwe plek; domeinen, auth en livegang volgen na controle door Claude.
 - Build 37 voorbereid; exportvrijstelling voor standaard HTTPS vastgelegd.
-- Build 39: De Redacteur, fase 1. Zonder de interesse Wereld hooguit twee internationale plekken in je Editie, en alleen bij groot nieuws (acht uitgevers, of vijf uit minstens twee landen). Sport alleen als je Sport koos. Wie Binnenland koos, opent met Nederlands nieuws. Liever een kortere Editie dan een plek die niet past. Een buitenlands stuk zonder herkende plaats telt mee voor het plafond. Tijdens het samenstellen toont de app geen algemene Editie meer, maar wacht op de jouwe. Zelfde rekenkern als het web.
+- Build 39: De Redacteur, fase 1. Zonder de interesse Wereld hooguit twee internationale plekken in je Editie, en alleen bij groot nieuws (acht uitgevers, of vijf uit minstens twee landen). Sport alleen als je Sport koos. Wie Binnenland koos, opent met Nederlands nieuws. Liever een kortere Editie dan een plek die niet past. Een buitenlands stuk zonder herkende plaats telt mee voor het plafond. Tijdens het samenstellen toont de app geen algemene Editie meer, maar wacht op de jouwe. Zelfde rekenkern als het web. Een buitenlands verhaal met één Nederlands bericht erin is geen Binnenland.
 - Build 38: de app blijft voor 1.0.1 op de API van hootnews.nl (werkt nu al, blijft na de verhuizing bestaan). Gedeelde verhalen krijgen een hootnews.nl/deel/-link met de uitgeverslink erbij, zodat een oud verhaal naar de uitgever gaat in plaats van een dode pagina.
 
 - Verhalen delen als Hoot-krantenkop in merkrood, in liggend en staand formaat (A3).

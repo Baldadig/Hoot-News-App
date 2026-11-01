@@ -1988,8 +1988,10 @@ var HootCore = (() => {
       const eff = nl + NL_OTHER_W * (st.sourceCount - nl);
       const belang = weight({ sourceCount: eff, ownCount: mine, latestAt: st.latestAt }, now) - straf;
       const mineAll = ctx.own ? st.itemIds.map((id) => ctx.own.get(id) || byId2.get(id)).filter(Boolean) : items;
-      const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) });
-      cands.push({ kind: "story", id: st.id, st, items, ids: st.itemIds, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) });
+      const whole = ctx.known ? st.itemIds.map((id) => ctx.known.get(id) || byId2.get(id)).filter(Boolean) : items;
+      const intl = internationalNews(whole, desk, st);
+      const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) || intl });
+      cands.push({ kind: "story", id: st.id, st, items, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) });
     }
     for (const it of pool) {
       if (!mainIds.has(it.source) || it.kind !== "article" || it.type === "opinie" || it.storyId || isLive(it)) continue;
@@ -2005,11 +2007,12 @@ var HootCore = (() => {
     const heaviest = (a, b) => b.w - a.w || textOrder(a.id, b.id) || textOrder(a.kind, b.kind);
     cands.sort(heaviest);
     const used = /* @__PURE__ */ new Set();
+    const foreign = (c) => c.intl ?? internationalNews(c.items, c.desk, c.st);
     const take = (c, desk, extra = {}) => {
       if (used.has(c) || clashes(c) || !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk)) return false;
-      if (plan && !worldChosen(prof) && internationalNews(c.items, c.desk, c.st) && entries.filter((e) => {
+      if (plan && !worldChosen(prof) && foreign(c) && entries.filter((e) => {
         const x = cands.find((c2) => c2.id === e.id);
-        return x && internationalNews(x.items, x.desk, x.st);
+        return x && foreign(x);
       }).length >= INT_MAX) return false;
       used.add(c);
       place(c.ids);
@@ -2022,7 +2025,6 @@ var HootCore = (() => {
       } else entries.push({ kind: "item", id: c.it.id, itemIds: [c.it.id], title: c.it.title || null, ...base });
       return true;
     };
-    const foreign = (c) => internationalNews(c.items, c.desk, c.st);
     const homeNews = (c) => !!c && !foreign(c) && [c.desk, c.primary, c.home].some((d) => d === "binnenland" || d === "regio");
     const unchosen = foreign;
     const strictInt = !worldChosen(prof);

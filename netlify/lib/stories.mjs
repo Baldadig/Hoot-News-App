@@ -1089,8 +1089,13 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     const belang = weight({ sourceCount: eff, ownCount: mine, latestAt: st.latestAt }, now) - straf
     // De punten uit al je eigen berichten van het verhaal (`ctx.own`), ook die buiten deze pool.
     const mineAll = ctx.own ? st.itemIds.map((id) => ctx.own.get(id) || byId.get(id)).filter(Boolean) : items
-    const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) })
-    cands.push({ kind: 'story', id: st.id, st, items, ids: st.itemIds, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) })
+    // Of het verhaal buitenlands is, volgt het hele verhaal (alles wat het toestel ervan kent, `ctx.known`),
+    // niet je eigen stukken: anders maakte één NU-bericht van Heidi Klum op Halloween (naast RTL, Telegraaf,
+    // BBC en Variety) een buitenlands verhaal tot "Omdat je Binnenland volgt" (keuring 1 november).
+    const whole = ctx.known ? st.itemIds.map((id) => ctx.known.get(id) || byId.get(id)).filter(Boolean) : items
+    const intl = internationalNews(whole, desk, st)
+    const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) || intl })
+    cands.push({ kind: 'story', id: st.id, st, items, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) })
   }
   for (const it of pool) {
     if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || it.storyId || isLive(it)) continue
@@ -1109,9 +1114,10 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   cands.sort(heaviest)
 
   const used = new Set()
+  const foreign = c => c.intl ?? internationalNews(c.items, c.desk, c.st)
   const take = (c, desk, extra = {}) => {
     if (used.has(c) || clashes(c) || !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk)) return false
-    if (plan && !worldChosen(prof) && internationalNews(c.items, c.desk, c.st) && entries.filter(e => { const x = cands.find(c => c.id === e.id); return x && internationalNews(x.items, x.desk, x.st) }).length >= INT_MAX) return false
+    if (plan && !worldChosen(prof) && foreign(c) && entries.filter(e => { const x = cands.find(c => c.id === e.id); return x && foreign(x) }).length >= INT_MAX) return false
     used.add(c)
     place(c.ids)
     const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, big: majorNews(c.st || {sourceCount:1}, c.items), ...(c.vervolg ? { vervolg: c.vervolg } : {}), ...extra }
@@ -1125,8 +1131,9 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     return true
   }
   // Alle buitenlandse plekken tellen, ook een gekozen thema, voorpagina en breed nieuws.
-  // De harde toelating in take() kan niet door force/fallback worden omzeild.
-  const foreign = c => internationalNews(c.items, c.desk, c.st)
+  // De harde toelating in take() kan niet door force/fallback worden omzeild. Een verhaal is buitenlands
+  // naar het hele verhaal (`c.intl`), zoals composePersonal het telt: een Halloween-stuk van Heidi Klum met
+  // NU, RTL en Telegraaf naast BBC en Variety is geen Nederlandse voorpagina.
   const homeNews = c => !!c && !foreign(c) && [c.desk,c.primary,c.home].some(d => d === 'binnenland' || d === 'regio')
   const unchosen = foreign
   const strictInt = !worldChosen(prof)
