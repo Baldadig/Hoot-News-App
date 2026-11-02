@@ -59,3 +59,7 @@ Aparte koppeling eb3661f: theme/themeDark als gevalideerde strings in native imp
 ### B01 · Gebeurtenisbundels
 
 8818e68; aparte broncodecommit. De volledige nacontrole B01-R1 is groen: 935 webtests + 1 TODO, 96 native tests, build en harde acceptatie. Jaccard nu 0,34, rijk 0,36. De eerder geteste 17f45fa is vervangen na inhoudelijke nacontrole op onbedoelde taalsplitsing; B01-R1 is het beslissende bewijs. De gegenereerde native kern bleef bij die laatste servercorrectie bytegelijk. Zie [Redacteur-verslag](beta-redacteur.md) en [definitieve logs](beta/controle-B01-R1.json).
+
+### B02 · Wegingproef tijdelijk buiten de actieve beta
+
+765f865 bewaard op beta-bronweging-proef. Volledige native suite 96 groen, build en externe harde acceptatie groen; web 937 geslaagd + één echte dagreeksregressie + één bestaande TODO. De nieuwe lezer krijgt in één Middageditie vijf plekken tegenover de vaste ondergrens zes. Geen grens aangepast; eerst het conflict kwaliteit/korter versus minimum zes verduidelijken. Met reset --keep is uitsluitend de eigen ongepubliceerde proef uit de actieve branch gehaald; commit en meetbewijs blijven behouden. De branch blijft op de groene B1-basis voor de onafhankelijke B6/B4-werkzaamheden.

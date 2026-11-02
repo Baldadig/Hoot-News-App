@@ -27,3 +27,9 @@ Definitieve volledige controle B01-R1: 935 webtests geslaagd, 1 bestaande TODO; 
 ## Nog uit te voeren
 
 B2 bronweging → B6 bronruis/kopbalans → B4 onderwerp-land → B3 vaknieuws/plafond/aanvulreden → B5 ongepaste vulling → B7 zichtbare waarom/eindzin → B8 lokale correctie en meer/minder. Per punt eigen broncodecommit, core/golden/meting en expliciete risico’s. Daarna C-audit/bediening en D-installatie op de bevestigde iPhone 16 Pro.
+
+## B2 · Bronweging, proef apart gehouden
+
+Proefcommit 765f865 staat veilig op beta-bronweging-proef en is voorlopig niet actief op beta-integratie. Vaste +100 vervalt; gekozen uitgevers geven +2 per uitgever tot maximaal +8. Algemene weging negeert de oude ownCount van vaste merken volledig. Sectiefeeds gebruiken publisherCount. Gerichte weging-/persoonlijk-/goldentests groen (97 + 33). Volledige ronde: native 96 groen, build en alle externe harde acceptatiedrempels groen (Jaccard nu 0,34, rijk 0,35), maar npm test heeft één echte regressie naast de bestaande TODO: nieuwe lezer, Middageditie uit de dagproef, vijf plekken tegenover de harde zes. Geen drempel verlaagd. De proef is daarom uit de actieve integratie gehaald tot de normconflict-vraag aan Alex is beantwoord of passend aanvullend aanbod dit kan oplossen. Doorwerken aan onafhankelijke B6 en B4; B2 blijft verplicht terug te beoordelen bij B3.
+
+De oorspronkelijke nulmeting is ongewijzigd. De proef voegt een aparte actuele algemene golden toe; de generatiescript/test-aanpassing houdt exactheid in stand zonder de historische nulmeting te herschrijven. De persoonlijke golden verandert volgorde en één klimaatplek door de nieuwe weging, invoer blijft gelijk. Bewijs: controle-B02.json en B02-weight-before/after.json, B02-golden-diff.json. Geen vrijgave voor deze proef.
