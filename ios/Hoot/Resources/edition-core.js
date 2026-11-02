@@ -1497,10 +1497,29 @@ var HootCore = (() => {
     if (!majorNews(story, items)) return false;
     return items.some((i) => /\b(nederland\w*|netherlands|dutch|oranje)\b/i.test(i.title || "") && /\b(wk|wereldkampioenschap\w*|world cup|olympisch\w*|olympic\w*)\b/i.test(i.title || "") && /\b(finale|final|kampioen\w*|goud|gold)\b/i.test(i.title || ""));
   }
+  var specialistMemo = /* @__PURE__ */ new WeakMap();
+  function specialistMatch(prof, items = [], desk = null) {
+    if (!prof?.topicP || !prof?.favorites || ![...BEAT].some((f) => (prof.family?.[f] || 0) >= 0.5)) return false;
+    if (!items.length) return false;
+    let memo2 = specialistMemo.get(prof);
+    if (!memo2) specialistMemo.set(prof, memo2 = { next: /* @__PURE__ */ new WeakMap(), values: /* @__PURE__ */ new Map() });
+    for (const item of items) {
+      if (!item || typeof item !== "object") return false;
+      let next = memo2.next.get(item);
+      if (!next) memo2.next.set(item, next = { next: /* @__PURE__ */ new WeakMap(), values: /* @__PURE__ */ new Map() });
+      memo2 = next;
+    }
+    if (memo2.values.has(desk)) return memo2.values.get(desk);
+    const hit = personalParts(items, prof, {}, { desk, foreign: true }).interest;
+    const match = !!hit && items.filter((i) => keywordTopics(`${i.title || ""} ${i.summary || ""}`).some((t) => FAMILY_OF[t] === hit.f)).length * 2 >= items.length && BEAT.has(hit.f) && hit.shown !== false && hit.cov >= 0.5 && (prof.family?.[hit.f] || 0) >= 0.5;
+    memo2.values.set(desk, match);
+    return match;
+  }
+  var cappedInternational = (prof, items = [], desk = null, story = null) => internationalNews(items, desk, story) && !specialistMatch(prof, items, desk);
   function newsRejection(prof, story, items, desk = null) {
     if (onlyGalleries(items)) return "alleen-galerijen";
     if ((sportStory(story, items, prof.catOf) || items.some((i) => isSport(i, prof.catOf))) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return "sport-niet-gekozen";
-    if (!worldChosen(prof) && internationalNews(items, desk, story) && !majorNews(story, items)) return "internationaal-niet-groot-genoeg";
+    if (!worldChosen(prof) && cappedInternational(prof, items, desk, story) && !majorNews(story, items)) return "internationaal-niet-groot-genoeg";
     return null;
   }
   var allowedNews = (prof, story, items, desk = null) => newsRejection(prof, story, items, desk) === null;
@@ -2233,7 +2252,7 @@ var HootCore = (() => {
       const whole = ctx.known ? st.itemIds.map((id) => ctx.known.get(id) || byId2.get(id)).filter(Boolean) : items;
       const intl = internationalNews(whole, desk, st);
       const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) || intl });
-      cands.push({ kind: "story", id: st.id, st, items, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) });
+      cands.push({ kind: "story", id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) });
     }
     for (const it of pool) {
       if (!mainIds.has(it.source) || it.kind !== "article" || it.type === "opinie" || it.storyId && storyOfItem().has(it.id) || isLive(it)) {
@@ -2262,11 +2281,12 @@ var HootCore = (() => {
     cands.sort(heaviest);
     const used = /* @__PURE__ */ new Set();
     const foreign = (c) => c.intl ?? internationalNews(c.items, c.desk, c.st);
+    const cappedWorld = (c) => cappedInternational(prof, c.whole || c.items, c.desk, c.st);
     const take = (c, desk, extra = {}) => {
       if (used.has(c) || clashes(c) || !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk)) return false;
-      if (plan && !worldChosen(prof) && foreign(c) && entries.filter((e) => {
+      if (plan && !worldChosen(prof) && cappedWorld(c) && entries.filter((e) => {
         const x = cands.find((c2) => c2.id === e.id);
-        return x && foreign(x);
+        return x && cappedWorld(x);
       }).length >= INT_MAX) return false;
       used.add(c);
       place(c.ids);
@@ -2283,10 +2303,10 @@ var HootCore = (() => {
     const unchosen = foreign;
     const strictInt = !worldChosen(prof);
     const counted = /* @__PURE__ */ new Set();
-    const capped = (c) => strictInt && foreign(c) && counted.size >= INT_MAX;
+    const capped = (c) => strictInt && cappedWorld(c) && counted.size >= INT_MAX;
     const takeCapped = (c, desk, extra, force = false) => {
       if (!force && capped(c) || !take(c, desk, extra)) return false;
-      if (foreign(c)) counted.add(c.id);
+      if (cappedWorld(c)) counted.add(c.id);
       return true;
     };
     let deskOrder = [];
@@ -2304,7 +2324,7 @@ var HootCore = (() => {
         if (entries.length >= room() || entries.length >= FRONT && !majorNews(c.st, c.items)) break;
         if (strictInt && capped(c)) continue;
         if (!take(c, c.desk, { front: true })) continue;
-        if (foreign(c)) counted.add(c.id);
+        if (cappedWorld(c)) counted.add(c.id);
         if (dutch(c)) hasHome = true;
       }
       if (!hasHome) home.some((c) => take(c, c.desk, { front: true }));
@@ -2416,7 +2436,7 @@ var HootCore = (() => {
     const tempo = tempoWindows(items.filter((i) => followed.has(i.source)));
     const mineStories = storiesForReader(stories, items, followed, [...items, ...global.items || []], sources);
     const storyDesk = new Map(mineStories.map((st) => [st.id, st.desk]));
-    const itemAny = new Map([...items, ...global.items || []].map((i) => [i.id, i]));
+    const itemAny = new Map([...items, ...global.items || [], ...[...global.wide || [], ...global.near || []].map((w) => w?.item).filter(Boolean)].map((i) => [i.id, i]));
     const sigAll = signatures([...itemAny.values()].filter((i) => i.kind !== "post"));
     const ctx = { readIds, tempo, storyDesk, known: itemAny, sigKnown: sigAll, own: new Map(pool.map((i) => [i.id, i])) };
     const seed = `${editionBasis([...followed], interests, topics, favorites)}|${global.id}`;
@@ -2465,12 +2485,12 @@ var HootCore = (() => {
       const members = [.../* @__PURE__ */ new Set([id, ...st?.itemIds || [], ...entry.itemIds || []])].map((x) => itemAny.get(x)).filter(Boolean);
       const meta = st || entry;
       const desk = st?.desk ?? entry.fromDesk ?? entry.desk ?? null;
-      return { allowed: allowedNews(prof, meta, members, desk), abroad: internationalNews(members, desk, meta), members, meta, desk };
+      return { allowed: allowedNews(prof, meta, members, desk), abroad: internationalNews(members, desk, meta), capped: cappedInternational(prof, members, desk, meta), members, meta, desk };
     };
-    const unchosenAbroad = (id, sid) => capAbroad && policyOf(id, sid).abroad;
+    const unchosenAbroad = (id, sid) => capAbroad && policyOf(id, sid).capped;
     const eligible = (id, sid, entry = {}) => {
       const p = policyOf(id, sid, entry);
-      return p.allowed && (!capAbroad || !p.abroad || abroad < INT_MAX);
+      return p.allowed && (!capAbroad || !p.capped || abroad < INT_MAX);
     };
     const wideAny = (global.wide || []).some((w) => w?.item?.id && !covered(w) && unread(w.item.id, w.storyId));
     const size = EDITION_SIZE - (bubbleEntry ? 1 : 0) - (wideAny ? 1 : 0);
@@ -2525,9 +2545,25 @@ var HootCore = (() => {
     const globalItems = new Map((global.items || []).map((i) => [i.id, i]));
     const noFavorites = { ...prof, favorites: /* @__PURE__ */ new Set() };
     const fillTo = size - extra.length - swapped;
-    const fillCands = global.entries.map((g, idx) => ({ g, idx, score: sumParts(personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), noFavorites, {}, { desk: g.desk })) - 2 * idx })).filter((x) => x.g !== bubbleEntry && unread(x.g.leadId || x.g.id, x.g.kind === "story" ? x.g.id : null)).sort((a, b) => b.score - a.score || a.idx - b.idx);
+    const supplementReason = (g) => {
+      const id = g.leadId || g.id, sid = g.kind === "story" ? g.id : null;
+      const p = policyOf(id, sid, g);
+      if (!p.allowed) return null;
+      const it = itemAny.get(id);
+      if (!it || !(now - Date.parse(it.publishedAt) >= 0) || now - Date.parse(it.publishedAt) >= 24 * 36e5) return null;
+      if (majorNews(p.meta, p.members)) return "groot";
+      if (worldChosen(prof) && p.abroad && kindOf(it) === "nieuws") return "passend";
+      const hit = personalParts(p.members, prof, {}, { desk: p.desk, foreign: p.abroad }).interest;
+      if (hit && hit.shown !== false && hit.cov >= 0.5 && hit.pts > 0 && !hit.t.startsWith("bron:")) return "passend";
+      if (followed.has(it.source) && kindOf(it) === "nieuws") return "eigen";
+      if (!interests.length && !topics.length && !p.abroad && ["binnenland", "regio"].includes(p.desk)) return "basis";
+      return null;
+    };
+    const otherPool = [...global.wide || [], ...global.near || []].filter((w) => w?.item?.id).map((w) => ({ kind: "story", id: w.storyId, leadId: w.item.id, desk: storyById.get(w.storyId)?.desk ?? null, sourceCount: w.sourceCount }));
+    const supplementPool = [...new Map([...global.entries, ...otherPool].map((g) => [`${g.kind}:${g.id}`, g])).values()];
+    const fillCands = supplementPool.map((g, idx) => ({ g, idx, score: sumParts(personalParts([itemAny.get(g.leadId || g.id)].filter(Boolean), noFavorites, {}, { desk: g.desk })) - 2 * idx })).filter((x) => supplementReason(x.g) && x.g !== bubbleEntry && unread(x.g.leadId || x.g.id, x.g.kind === "story" ? x.g.id : null)).sort((a, b) => b.score - a.score || a.idx - b.idx);
     const fill = [];
-    const unchosenG = (g) => capAbroad && policyOf(g.leadId || g.id, g.kind === "story" ? g.id : null, g).abroad;
+    const unchosenG = (g) => capAbroad && policyOf(g.leadId || g.id, g.kind === "story" ? g.id : null, g).capped;
     const fillUp = (to) => {
       for (const { g } of fillCands) {
         if (news.length + fill.length >= to) break;
@@ -2538,7 +2574,7 @@ var HootCore = (() => {
         for (const id of m) taken.add(id);
         leads.push(g.leadId || g.id);
         if (gi) abroad++;
-        fill.push(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null }, g.leadId || g.id, g.kind === "story" ? g.id : null));
+        fill.push(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }, g.leadId || g.id, g.kind === "story" ? g.id : null));
       }
     };
     fillUp(fillTo);
@@ -2579,8 +2615,8 @@ var HootCore = (() => {
       const p = policyOf(id, e.kind === "story" ? e.id : null, e);
       const ids = [...membersOf(e)];
       if (ids.some((x) => finalTaken.has(x)) || sigAll.has(id) && finalLeads.some((x) => sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x)))) return;
-      if (!p.allowed || capAbroad && p.abroad && internationalCount >= INT_MAX) return;
-      if (p.abroad) internationalCount++;
+      if (!p.allowed || capAbroad && p.capped && internationalCount >= INT_MAX) return;
+      if (p.capped) internationalCount++;
       ids.forEach((x) => finalTaken.add(x));
       finalLeads.push(id);
       accepted.push(e);
@@ -2589,8 +2625,7 @@ var HootCore = (() => {
     if (accepted.length < EDITION_SIZE) selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE }).forEach(accept);
     for (const { g } of fillCands) {
       if (accepted.length >= EDITION_SIZE) break;
-      if (sameAsPlaced(g.leadId || g.id) || [...membersOf(g)].some((id) => taken.has(id) && !finalTaken.has(id) && false)) continue;
-      accept(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null }, g.leadId || g.id, g.kind === "story" ? g.id : null));
+      accept(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }, g.leadId || g.id, g.kind === "story" ? g.id : null));
     }
     entries = accepted;
     if (prof.interests.has("binnenland")) {
@@ -2625,7 +2660,7 @@ var HootCore = (() => {
         const p = policyOf(id, sid, entry);
         if (!unread(id, sid)) return "eerder-getoond-of-gelezen";
         if (!p.allowed) return newsRejection(prof, p.meta, p.members, p.desk);
-        if (capAbroad && p.abroad && internationalCount >= INT_MAX) return "internationaal-plafond";
+        if (capAbroad && p.capped && internationalCount >= INT_MAX) return "internationaal-plafond";
         return "onverklaard";
       };
       for (const d of decisions) {
@@ -2640,17 +2675,13 @@ var HootCore = (() => {
       }
       const examined = new Set(decisions.flatMap((d) => d.itemIds));
       for (const i of pool) if (!examined.has(i.id)) decisions.push({ kind: "item", id: i.id, itemIds: [i.id], reason: !extraKinds.has(kindOf(i)) && kindOf(i) !== "nieuws" ? "niet-gekozen-vakgebied" : "onverklaard" });
-      for (const g of global.entries) {
+      for (const g of supplementPool) {
         const id = g.leadId || g.id, sid = g.kind === "story" ? g.id : null;
-        decisions.push({ kind: g.kind, id: g.id, itemIds: [...membersOf(g)], route: "algemene-editie", reason: represented([...membersOf(g)]) ? "vertegenwoordigd" : finalReason(id, sid, g) });
-      }
-      for (const w of global.wide || []) if (w?.item?.id) {
-        const ids = [w.item.id, ...storyById.get(w.storyId)?.itemIds || []];
-        decisions.push({ kind: "story", id: w.storyId, itemIds: ids, route: "breed", reason: represented(ids) ? "vertegenwoordigd" : finalReason(w.item.id, w.storyId, w) === "onverklaard" ? wideEntry ? "brede-plek-bezet" : "onverklaard" : finalReason(w.item.id, w.storyId, w) });
+        decisions.push({ kind: g.kind, id: g.id, itemIds: [...membersOf(g)], route: "algemene-editie", reason: represented([...membersOf(g)]) ? "vertegenwoordigd" : !supplementReason(g) ? finalReason(id, sid, g) === "onverklaard" ? "geen-aantoonbare-aanvulreden" : finalReason(id, sid, g) : finalReason(id, sid, g) });
       }
       const counts = Object.fromEntries([...new Set(decisions.map((d) => d.reason))].sort().map((r) => [r, decisions.filter((d) => d.reason === r).length]));
       const unresolved = decisions.filter((d) => /onverk|onbekend|route-vol|gekozen-in-route/.test(d.reason));
-      supply = { target: 6, floor: 4, selected: out.length, ownArticles: pool.length, decisions, counts, unresolved: unresolved.length, proven: out.length >= 4 && unresolved.length === 0 };
+      supply = { target: EDITION_SIZE, auditBelow: 6, floor: 4, selected: out.length, ownArticles: pool.length, decisions, counts, unresolved: unresolved.length, proven: out.length >= 4 && unresolved.length === 0 };
     }
     const shown2 = [...new Set(out.map((e) => e.leadId || e.id))];
     return {

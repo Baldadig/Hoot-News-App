@@ -1,0 +1,11 @@
+{
+  "step": "B03-R1",
+  "status": "onderbroken voor memo-optimalisatie",
+  "reden": "herhaalde vakrelevantie-berekeningen; geen afgeronde groene ronde",
+  "checksVoltooid": {
+    "core": 0,
+    "build": 0
+  },
+  "logs": "/tmp/hoot-beta/B03-R1",
+  "voorgaandeRonde": "B03 bevat de oude capmeetlat en faalt daardoor; niet als groen gebruiken"
+}

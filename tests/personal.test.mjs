@@ -177,11 +177,15 @@ test('"Waar iedereen over schrijft" nooit over een verhaal dat je eigen bronnen 
   const g = { ...global, wide: [{ storyId: 'sKyiv', sourceCount: 6, topics: ['oekraine'], item: kyiv }] }
   const e = composePersonal({ global: g, stories: st, items: [...items, nosKyiv], followed, now: NOW, builtAt: 'T' })
   assert.ok(!e.entries.some((x) => x.desk === 'breed'))
-  assert.ok(!e.items.some((i) => i.source === 'guardian'))
+  assert.ok(e.items.some((i) => i.source === 'guardian'), 'de beschikbare eigen versie is dertig uur oud; een actuele externe versie mag met een eerlijke aanvulreden')
+  assert.equal(e.entries.find(x=>(x.leadId||x.id)==='k1')?.supplement,'groot')
   // Zonder eigen bron in het verhaal komt het er wel, via de gratis bron.
   const st2 = [...stories, { id: 'sKyiv', leadId: 'k1', itemIds: ['k1'], sourceCount: 6 }]
   const e2 = composePersonal({ global: g, stories: st2, items, followed, now: NOW, builtAt: 'T' })
-  assert.equal(e2.entries.find((x) => x.desk === 'breed')?.id, 'sKyiv')
+  assert.ok(!e2.entries.some(x=>x.desk === 'breed'), 'zes uitgevers uit één land is zonder Wereld geen groot nieuws')
+  const st3 = st2.map(s=>s.id === 'sKyiv' ? {...s,publisherCount:8,publisherCountries:['GB']} : s)
+  const e3 = composePersonal({global:g,stories:st3,items,followed,now:NOW,builtAt:'T'})
+  assert.equal(e3.entries.find(x=>x.desk === 'breed')?.id,'sKyiv')
 })
 
 test('een bericht van een vakbron krijgt de rubriek van de bron (buiten de indeling)', () => {

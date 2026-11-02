@@ -1,0 +1,45 @@
+{
+  "step": "B03-definitief",
+  "head": "7de240af99ccedc292b20952ebd06bba7de11e8e",
+  "checks": [
+    {
+      "check": "core",
+      "exit": 0,
+      "seconds": 0.36,
+      "log": "/tmp/hoot-beta/B03-R3/core.log"
+    },
+    {
+      "check": "web",
+      "exit": 0,
+      "seconds": 453.0,
+      "log": "/tmp/hoot-beta/B03-R3/web.log",
+      "counts": {
+        "tests": 972,
+        "pass": 971,
+        "fail": 0,
+        "skipped": 0,
+        "todo": 1
+      }
+    },
+    {
+      "check": "build",
+      "exit": 0,
+      "seconds": 57.35,
+      "log": "/tmp/hoot-beta/B03-R3/build.log"
+    },
+    {
+      "check": "acceptatie",
+      "exit": 0,
+      "seconds": 393.29,
+      "log": "/tmp/hoot-beta/B03-R3/acceptatie.log"
+    },
+    {
+      "check": "native",
+      "exit": 0,
+      "tests": 99,
+      "log": "/tmp/hoot-beta/B03-native-R4.log"
+    }
+  ],
+  "note": "Web/core/build/acceptatie uit R3. Native R3 vond ontbrekende CodingKeys voor wide/near; uitsluitend native decoder hersteld en de volledige native suite opnieuw gedraaid (R4).",
+  "coreSha256": "0aa6461163620bdad571b5a94ac9755e22fd20e26b6d0978cc001642178b6f28"
+}

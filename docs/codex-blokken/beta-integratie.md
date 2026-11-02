@@ -67,3 +67,7 @@ Aparte koppeling eb3661f: theme/themeDark als gevalideerde strings in native imp
 ### B02 definitief · bronweging en aanbodbewijs
 
 De bronweging is na Alex’ normantwoord teruggenomen in de actieve beta. Zes doel/vier vloer met bewijs, geen andere drempel versoepeld. B02-R1 volledig groen (966 web + één bestaande TODO; 98 native). Details en korte Middageditie in `beta-redacteur.md` en `beta/B02-shortages.json`.
+
+### B03/B04/B06 · kern en weergave
+
+B06 koppen/introfilter groen (961 web, 98 native). B04 onderwerpplaats groen (969 web, 98 native); V2a-controlepercentage blijft 42/58 en is dus open kwaliteitsdoel. B03 vaknieuws/aanvullen definitief groen (971 web, 99 native), met tien als doel en bewijs onder zes. Zie beta-redacteur.md voor afwijkingen, eerdere mislukte rondes en resterende serverafhankelijkheid.

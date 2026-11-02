@@ -1,7 +1,8 @@
 // Vastgestelde redactionele normen, 1 november 2026. Geen modelcalls.
-import { geoOf, isSport, FRONT_BIG, FAMILY_OF } from './editor.mjs'
+import { geoOf, isSport, FRONT_BIG, FAMILY_OF, personalParts } from './editor.mjs'
 import { storyForeignOf, NL_HOME, VL_HOME } from '../netlify/lib/desks.mjs'
 import { SOURCES } from '../netlify/lib/sources.mjs'
+import { keywordTopics } from '../netlify/lib/topics.mjs'
 
 // Expliciete uitgeverlanden; taal en het land in een artikel zijn nooit bewijs hiervoor.
 // Onbekende uitgevers leveren geen extra land op. Sectiefeeds blijven dezelfde uitgever.
@@ -88,10 +89,33 @@ export function exceptionalDutchSport(story, items) {
   // Bewijs moet in één kop staan: geen samengeraapte woorden uit verschillende artikelen.
   return items.some(i => /\b(nederland\w*|netherlands|dutch|oranje)\b/i.test(i.title || '') && /\b(wk|wereldkampioenschap\w*|world cup|olympisch\w*|olympic\w*)\b/i.test(i.title || '') && /\b(finale|final|kampioen\w*|goud|gold)\b/i.test(i.title || ''))
 }
+// Het plafond betreft algemeen wereldnieuws. Een aantoonbaar relevant vakverhaal
+// houdt zijn echte geografie, maar verbruikt geen algemene Wereld-plek.
+const specialistMemo = new WeakMap()
+export function specialistMatch(prof, items = [], desk = null) {
+  if (!prof?.topicP || !prof?.favorites || ![...BEAT].some(f=>(prof.family?.[f] || 0)>=0.5)) return false
+  if (!items.length) return false
+  // Profielen en berichten zijn onveranderlijke invoer; identiteiten vormen een zwakke trie.
+  // Geen sleutel op alleen artikel-id: een bijgewerkt bericht moet opnieuw worden beoordeeld.
+  let memo = specialistMemo.get(prof)
+  if (!memo) specialistMemo.set(prof, memo = {next:new WeakMap(),values:new Map()})
+  for (const item of items) {
+    if (!item || typeof item !== 'object') return false
+    let next = memo.next.get(item)
+    if (!next) memo.next.set(item,next = {next:new WeakMap(),values:new Map()})
+    memo = next
+  }
+  if (memo.values.has(desk)) return memo.values.get(desk)
+  const hit = personalParts(items, prof, {}, {desk, foreign:true}).interest
+  const match = !!hit && items.filter(i=>keywordTopics(`${i.title || ''} ${i.summary || ''}`).some(t=>FAMILY_OF[t] === hit.f)).length * 2 >= items.length && BEAT.has(hit.f) && hit.shown !== false && hit.cov >= 0.5 && (prof.family?.[hit.f] || 0) >= 0.5
+  memo.values.set(desk,match)
+  return match
+}
+export const cappedInternational = (prof, items = [], desk = null, story = null) => internationalNews(items,desk,story) && !specialistMatch(prof,items,desk)
 export function newsRejection(prof, story, items, desk = null) {
   if (onlyGalleries(items)) return 'alleen-galerijen'
   if ((sportStory(story, items, prof.catOf) || items.some(i => isSport(i, prof.catOf))) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return 'sport-niet-gekozen'
-  if (!worldChosen(prof) && internationalNews(items, desk, story) && !majorNews(story, items)) return 'internationaal-niet-groot-genoeg'
+  if (!worldChosen(prof) && cappedInternational(prof, items, desk, story) && !majorNews(story, items)) return 'internationaal-niet-groot-genoeg'
   return null
 }
 export const allowedNews = (prof, story, items, desk = null) => newsRejection(prof, story, items, desk) === null

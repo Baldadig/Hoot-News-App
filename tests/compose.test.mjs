@@ -6,7 +6,7 @@ import assert from 'node:assert/strict'
 import { loadSnapshot, editionsNu, composeFor, readIdsOf, contextOf, keyOf, keysOf, membersOf, bigStories, pairwise } from './helpers/snapshot.mjs'
 import { composePersonal, withoutDebug } from '../src/lib/personal.js'
 import { profileOf, supplyOf, outsideProfile, isSport, KERN, FAMILY_OF, INT_MAX } from '../shared/editor.mjs'
-import { internationalNews, majorNews } from '../shared/edition-policy.mjs'
+import { internationalNews, cappedInternational, majorNews } from '../shared/edition-policy.mjs'
 import { PERSONAS, setupFor } from './helpers/snapshot.mjs'
 
 const snap = loadSnapshot()
@@ -21,7 +21,7 @@ const deskOf = (e) => (e.desk === 'extern' ? e.fromDesk : e.desk)
 // Normen 1 november 2026: zonder Wereld hooguit INT_MAX internationale plekken, alleen groot nieuws.
 const storyOf = (e) => ctx.storyById.get(keyOf(e, ctx)) || {}
 const abroadOf = (e) => internationalNews(membersOf(e, ctx), storyOf(e).desk ?? deskOf(e))
-const intCount = (edition) => edition.entries.filter(abroadOf).length
+const intCount = (edition) => { const r = eds.find(r=>r.edition === edition); const prof = r ? profOf(r) : profileOf(); return edition.entries.filter(e=>cappedInternational(prof,membersOf(e,ctx),storyOf(e).desk ?? deskOf(e),storyOf(e))).length }
 
 test('De Redacteur: tien plekken, deterministisch, groot nieuws, Buiten je bubbel en een waarom', () => {
   for (const { persona, setup, edition } of eds) {
@@ -43,7 +43,7 @@ test('De Redacteur: tien plekken, deterministisch, groot nieuws, Buiten je bubbe
     // Buiten je bubbel hooguit één keer; geen plek als elk kandidaatstuk de normen breekt (sport zonder keuze).
     assert.ok(edition.entries.filter((e) => e.desk === 'bubbel').length <= 1, id)
     if (!world) assert.ok(intCount(edition) <= INT_MAX, `${id}: ${intCount(edition)} internationaal`)
-    if (!world) for (const e of edition.entries.filter(abroadOf)) assert.ok(majorNews(storyOf(e), membersOf(e, ctx)), `${id}: ${e.id} internationaal zonder groot nieuws`)
+    if (!world) for (const e of edition.entries.filter(e=>cappedInternational(profOf({setup}),membersOf(e,ctx),storyOf(e).desk ?? deskOf(e),storyOf(e)))) assert.ok(majorNews(storyOf(e), membersOf(e, ctx)), `${id}: ${e.id} internationaal zonder groot nieuws`)
     for (const e of edition.entries) assert.ok(e.why?.code && e.why?.text, `${id}: ${e.id}`)
   }
 })
@@ -118,7 +118,8 @@ test('De Redacteur: de klimaatlezer krijgt klimaat, met Wetenschap als eerste ru
 test('De Redacteur: de VS-lezer krijgt twee VS-plekken als hij Wereld koos, anders hooguit twee keer groot buitenland', () => {
   const { edition } = byPersona.vs
   assert.ok(intCount(edition) <= INT_MAX, `${intCount(edition)}`)
-  for (const e of edition.entries.filter(abroadOf)) assert.ok(majorNews(storyOf(e), membersOf(e, ctx)), e.id)
+  const prof = profOf(byPersona.vs)
+  for (const e of edition.entries.filter(e=>cappedInternational(prof,membersOf(e,ctx),storyOf(e).desk ?? deskOf(e),storyOf(e)))) assert.ok(majorNews(storyOf(e), membersOf(e, ctx)), e.id)
   const p = PERSONAS.find((x) => x.id === 'vs')
   const setup = setupFor({ ...p, interests: [...p.interests, 'wereld'] }, snap.sources, 'echt')
   const world = composeFor(snap, { ...setup, readIds: readIdsOf(snap, p, setup.followed) })

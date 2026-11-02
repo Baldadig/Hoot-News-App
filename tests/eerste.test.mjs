@@ -74,7 +74,7 @@ test('31 oktober ochtend (live) · Binnenland: Apple, Google, Pangram en Anthrop
 // De vriendin op de live feed: geen Wetenschap-rubriek of -reden bij buitenlands nieuws.
 test('31 oktober ochtend (live) · eerste Editie: de vriendin krijgt geen buitenland met een reden van haar interesses', () => {
   const r = measureFirst(ochtend, FIRST.filter((p) => p.id === 'vriendin'))[0]
-  for (const e of r.entries.filter((x) => x.geo === 'INT' && !x.fixed && !x.front)) assert.ok(!/Wetenschap|Binnenland/.test(e.whyText), `${e.title}: ${e.whyText}`)
+  for (const e of r.entries.filter((x) => x.geo === 'INT' && !x.specialist && !x.fixed && !x.front)) assert.ok(!/Wetenschap|Binnenland/.test(e.whyText), `${e.title}: ${e.whyText}`)
 })
 
 // ---- Lezerstoets op de live feed van 31 oktober 09:30Z (feedback punten 3, 4 en 5) ----
@@ -103,13 +103,13 @@ const editionOf = (p) => editionOfData(p, live)
 // Normen 1 november 2026: zonder Wereld hooguit twee internationale plekken, alleen groot nieuws. De G20
 // (elf uitgevers uit vier landen) is groot nieuws en mag dan, binnen het plafond; Oekraïne (Oleshky) en
 // Braziliaans voetbal (Seedorf) zijn dat niet.
-test(`31 oktober 09:30 (${tag}) · de vriendin: geen Oekraïne of Seedorf, hooguit twee buitenlandse verhalen en alleen groot nieuws`, () => {
+test(`31 oktober 09:30 (${tag}) · de vriendin: geen Oekraïne of Seedorf, hooguit twee algemene buitenlandse verhalen; vaknieuws alleen met inhoudelijk bewijs`, () => {
   const es = editionOf(persona('vriendin'))
   assert.equal(es.length, 10)
   for (const kop of ['Hundreds evacuated from Russian-occupied Oleshky', 'Clarence Seedorf']) assert.ok(!find(es, kop), kop)
   const r = measureFirst(live, [persona('vriendin')])[0]
-  assert.ok(r.intAlle <= INT_MAX, r.entries.filter((e) => e.geo === 'INT').map((e) => e.title).join(' | '))
-  assert.ok(r.entries.filter((e) => e.geo === 'INT').every((e) => e.why === 'groot' || e.front), r.entries.filter((e) => e.geo === 'INT').map((e) => `${e.title} (${e.whyText})`).join(' | '))
+  assert.ok(r.wereldAlle <= INT_MAX, r.entries.filter((e) => e.geo === 'INT').map((e) => e.title).join(' | '))
+  assert.ok(r.entries.filter((e) => e.geo === 'INT').every((e) => e.specialist || e.why === 'groot' || e.front), r.entries.filter((e) => e.geo === 'INT').map((e) => `${e.title} (${e.whyText})`).join(' | '))
   assert.ok(r.nl >= 5, `NL ${r.nl}`)
 })
 
@@ -118,7 +118,7 @@ test(`31 oktober 09:30 (${tag}) · wie Binnenland koos, opent met Nederland: gee
     const r = measureFirst(live, [persona(id)])[0]
     assert.equal(r.entries[0].geo, 'NL', `${id}: ${r.entries[0].title}`)
     assert.ok(r.entries.slice(0, 2).filter((e) => e.geo === 'INT').length <= 1, id)
-    assert.ok(r.intAlle <= INT_MAX, `${id}: ${r.intAlle} internationaal`) // de G20 mag, als groot nieuws binnen het plafond
+    assert.ok(r.wereldAlle <= INT_MAX, `${id}: ${r.wereldAlle} internationaal`) // de G20 mag, als groot nieuws binnen het plafond
   }
 })
 
@@ -175,8 +175,8 @@ for (const [label, snap] of SNAPS) {
       assert.equal(es[0].geo, 'NL', `${r.id}: ${es[0].title}`)
       assert.ok(es.slice(0, 2).filter((e) => e.geo === 'INT').length <= 1, r.id)
       // Normen 1 november: hooguit INT_MAX internationale plekken in de hele Editie (was: één op de voorpagina).
-      assert.ok(r.intAlle <= INT_MAX, `${r.id}: ${r.intAlle} buitenlandse verhalen`)
-      for (const e of es.filter((x) => x.geo === 'INT')) {
+      assert.ok(r.wereldAlle <= INT_MAX, `${r.id}: ${r.wereldAlle} buitenlandse verhalen`)
+      for (const e of es.filter((x) => x.geo === 'INT' && !x.specialist)) {
         assert.ok(!/VS-politiek|Trump|Verkiezingen/.test(e.whyText), `${r.id}: ${e.title} (${e.whyText})`)
         assert.ok(!(e.why === 'breed' && !e.real), `${r.id}: breed buitenland zonder reden: ${e.title}`)
       }

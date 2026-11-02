@@ -62,6 +62,15 @@ final class EditionParityTests: XCTestCase {
         XCTAssertEqual(HootStore.visiblePersonal(candidate, id: "e", owner: "anon")?.id, "e")
     }
 
+    func testCandidatePoolsSurviveFallbackSerialization() throws {
+        let data = Data(#"{"id":"e","entries":[],"wide":[{"storyId":"s","sourceCount":8,"publisherCount":8,"publisherCountries":["NL","GB"],"topics":["tech"],"item":{"id":"a","source":"nos","title":"Een verhaal","url":"https://nos.nl/a"}}],"near":[{"storyId":"n","sourceCount":3,"item":{"id":"b","source":"bbc","title":"Nog een verhaal","url":"https://bbc.com/a"}}]}"#.utf8)
+        let first = try JSONDecoder().decode(Edition.self,from:data)
+        let again = try JSONDecoder().decode(Edition.self,from:JSONEncoder().encode(first))
+        XCTAssertEqual(first,again)
+        XCTAssertEqual(again.near?.first?.item.id,"b")
+        XCTAssertEqual(again.wide?.first?.publisherCountries,["NL","GB"])
+    }
+
     func testFixtureHasFourReaders() throws {
         let g = try Self.golden()
         XCTAssertEqual(g.map(\.name), ["nieuw", "klimaat", "vs", "vs-zonder-topics"])

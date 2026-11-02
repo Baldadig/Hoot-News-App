@@ -191,6 +191,15 @@ struct ProfileSummary: Codable, Hashable {
     var less: [String] = []
 }
 
+// Bekende kandidaatpools ook bewaren als de ruwe startcache ontbreekt.
+struct EditionCandidate: Codable, Hashable {
+    var storyId: String
+    var sourceCount: Int?
+    var publisherCount: Int?
+    var publisherCountries: [String]?
+    var topics: [String]?
+    var item: Item
+}
 struct Edition: Codable, Hashable {
     let id: String
     var slot: String?
@@ -204,6 +213,8 @@ struct Edition: Codable, Hashable {
     // djb2), van wie hij is (gebruikers-id of "anon"), of hij van de server kwam toen de rekenkern
     // faalde (`fallback`), en de geschiedenis voor `previous`.
     var version: String?
+    var wide: [EditionCandidate]?
+    var near: [EditionCandidate]?
     var basedOn: String?
     var basis: String?
     var owner: String?
@@ -304,7 +315,7 @@ extension FeedStart {
 }
 
 extension Edition {
-    enum CodingKeys: String, CodingKey { case id, slot, date, next, entries, items, builtAt, personal, version, basedOn, basis, owner, fallback, history }
+    enum CodingKeys: String, CodingKey { case id, slot, date, next, entries, items, builtAt, personal, version, wide, near, basedOn, basis, owner, fallback, history }
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(String.self, forKey: .id)
@@ -316,6 +327,8 @@ extension Edition {
         builtAt = try? c.decodeIfPresent(String.self, forKey: .builtAt)
         personal = try? c.decodeIfPresent(Bool.self, forKey: .personal)
         version = try? c.decodeIfPresent(String.self, forKey: .version)
+        wide = c.contains(.wide) ? c.lossy([EditionCandidate].self,forKey:.wide) : nil
+        near = c.contains(.near) ? c.lossy([EditionCandidate].self,forKey:.near) : nil
         basedOn = try? c.decodeIfPresent(String.self, forKey: .basedOn)
         basis = try? c.decodeIfPresent(String.self, forKey: .basis)
         owner = try? c.decodeIfPresent(String.self, forKey: .owner)

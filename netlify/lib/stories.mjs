@@ -1,5 +1,5 @@
 import { cleanIntro, headlineFit } from '../../shared/edition-display.mjs'
-import { coverageOf, majorNews, newsRejection, allowedNews, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery } from '../../shared/edition-policy.mjs'
+import { coverageOf, majorNews, newsRejection, allowedNews, cappedInternational, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery } from '../../shared/edition-policy.mjs'
 import { eventScope, conflictingEvents } from '../../shared/article-signals.mjs'
 // Verhalen (bundels), hoofdbericht en editie — pure functies, los van het ophalen,
 // zodat ze te testen zijn (zie tests/).
@@ -1186,7 +1186,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     const whole = ctx.known ? st.itemIds.map((id) => ctx.known.get(id) || byId.get(id)).filter(Boolean) : items
     const intl = internationalNews(whole, desk, st)
     const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) || intl })
-    cands.push({ kind: 'story', id: st.id, st, items, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) })
+    cands.push({ kind: 'story', id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) })
   }
   for (const it of pool) {
     if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || (it.storyId && storyOfItem().has(it.id)) || isLive(it)) { reject('item', it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? 'via-verhaal' : 'vorm-of-bron-niet-toegelaten'); continue }
@@ -1206,9 +1206,10 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
 
   const used = new Set()
   const foreign = c => c.intl ?? internationalNews(c.items, c.desk, c.st)
+  const cappedWorld = c => cappedInternational(prof,c.whole || c.items,c.desk,c.st)
   const take = (c, desk, extra = {}) => {
     if (used.has(c) || clashes(c) || !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk)) return false
-    if (plan && !worldChosen(prof) && foreign(c) && entries.filter(e => { const x = cands.find(c => c.id === e.id); return x && foreign(x) }).length >= INT_MAX) return false
+    if (plan && !worldChosen(prof) && cappedWorld(c) && entries.filter(e => { const x = cands.find(c => c.id === e.id); return x && cappedWorld(x) }).length >= INT_MAX) return false
     used.add(c)
     place(c.ids)
     const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, big: majorNews(c.st || {sourceCount:1}, c.items), ...(c.vervolg ? { vervolg: c.vervolg } : {}), ...extra }
@@ -1229,10 +1230,10 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   const unchosen = foreign
   const strictInt = !worldChosen(prof)
   const counted = new Set()
-  const capped = c => strictInt && foreign(c) && counted.size >= INT_MAX
+  const capped = c => strictInt && cappedWorld(c) && counted.size >= INT_MAX
   const takeCapped = (c, desk, extra, force = false) => {
     if ((!force && capped(c)) || !take(c, desk, extra)) return false
-    if (foreign(c)) counted.add(c.id)
+    if (cappedWorld(c)) counted.add(c.id)
     return true
   }
   let deskOrder = []
@@ -1253,7 +1254,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
       if (entries.length >= room() || (entries.length >= FRONT && !majorNews(c.st, c.items))) break
       if (strictInt && capped(c)) continue
       if (!take(c, c.desk, { front: true })) continue
-      if (foreign(c)) counted.add(c.id)
+      if (cappedWorld(c)) counted.add(c.id)
       if (dutch(c)) hasHome = true
     }
     if (!hasHome) home.some((c) => take(c, c.desk, { front: true }))
