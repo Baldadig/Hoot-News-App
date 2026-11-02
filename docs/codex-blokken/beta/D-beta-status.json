@@ -6,8 +6,8 @@
   "signatureVerified": true,
   "existingProfileUsed": true,
   "installed": true,
-  "launchVerified": false,
-  "launchBlocker": "iPhone vergrendeld; ontgrendelvraag gesteld",
+  "launchVerified": true,
+  "launchBlocker": null,
   "accountTransport": "compile-only HOOT_LOCAL_BETA; geen echte Keychain-sessie lezen/wissen; transport geblokkeerd",
   "localGuardTests": {
     "pass": 2,
@@ -15,5 +15,14 @@
     "log": "/tmp/hoot-beta/local-guard.log"
   },
   "mainAndLandingUntouched": true,
-  "uploadOrDeploy": false
+  "uploadOrDeploy": false,
+  "physicalUIChecks": [
+    "lokale accountpagina zonder login",
+    "verhaalmenu Meer/Minder en vier foutredenen",
+    "nummering tot 10",
+    "bubbel apart zonder nummer",
+    "eindkaart 10 van 10 / Dan ben je bij"
+  ],
+  "dataPreservedAfterLaunch": true,
+  "remainingLabelFinding": "P1: Michigan-plek vs wordt in de UI overschreven door middenoosten-tag"
 }

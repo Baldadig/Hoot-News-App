@@ -1,0 +1,28 @@
+{
+  "stage": "after-launch",
+  "sameSettings": {
+    "hoot.muted": true,
+    "hoot.enabled": true,
+    "hoot.interests": true,
+    "hoot.topics": true,
+    "hoot.favorites": true,
+    "hoot.digestFields": true,
+    "hoot.ownBluesky": true,
+    "hoot.bskyInStream": true,
+    "hoot.bluesky": true,
+    "hoot.taste": true,
+    "hoot.images": true,
+    "hoot.layout": true,
+    "hoot.owner": true
+  },
+  "sameFiles": {
+    "read.json": true,
+    "saved.json": true
+  },
+  "edition": {
+    "regularCount": 10,
+    "optionalBubbleCount": 1,
+    "slot": "avond",
+    "date": "2026-11-02"
+  }
+}

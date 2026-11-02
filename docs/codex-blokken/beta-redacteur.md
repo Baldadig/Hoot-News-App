@@ -126,3 +126,10 @@ B08-controle: 980 webtests groen + bestaande TODO; build, gedeelde kern en alle 
 Na B8 en de kleine auditpunten: 980 webtests geslaagd plus één bestaande TODO, 102 native tests geslaagd, gedeelde kern, webbuild, golden en alle harde acceptatiedrempels groen (`beta/controle-FINAAL.json`). Golden/core na de finale bronstand opnieuw gegenereerd zonder bronwijziging. Jaccard nu/rijk 0,32/0,32, ongewijzigde plafonds ≤0,38/≤0,40. Twaalf actuele profielen hebben tien genummerde verhalen; de optionele bubbel telt apart. De historische tekorten uit B3 blijven en zijn opnieuw vastgelegd in `beta/B-final-shortages.json`. V2b is uitsluitend op byte-identiteit gecontroleerd, geen voorspellingen of labels ingezien voor afstelling.
 
 Dit is een lokale beta en geen bewijs van een foutloos nieuwsalgoritme. Met name het V2a-controledoel, nieuw serveraanbod, verse-dagmeting en echte accountpariteit vragen Claude’s keuring. De lokale meldfunctie bewaart feedback maar stuurt die niet door en past classificatie niet zelfstandig aan.
+
+
+### Fysieke nacontrole · Michigan-label blijft een releasepunt
+
+De lokale beta start op Alex’ iPhone 16 Pro; nummering, aparte bubbel, positieve eindkaart en verhaalmenu zijn echt bediend/gezien. De persoonlijke Editie bevat tien gewone verhalen plus één bubbel. Gegevens zijn na de proefstart behouden. De schermopname herstelde na opnieuw verbinden van Device Hub.
+
+Bij het Michigan-verhaal is de opgeslagen redactionele plek al `vs`, maar de oude artikel-tag is `middenoosten` (geen mainTopics). De huidige gedeelde labelbetekenis laat elk Wereld-onderwerp bij een VS-plek winnen, waardoor web/native een verkeerde geografische kicker kunnen tonen. De fysieke screenshot bevestigt dat op de iPhone. Dit vereist behalve vernieuwde backendgegevens óók keuring/herstel van labelvoorrang; het is geen geslaagde volledige oplossing van B4. Zie `beta/D-michigan-labelbewijs.json` voor een minimale openbare reproductie-input. Niet afgesteld op V2b en in deze nacontrole geen broncode gewijzigd. De eerdere 980/102 geslaagde tests blijven geldig voor dezelfde productbroncode, maar dekten dit labelconflict nog niet.
