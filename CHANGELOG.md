@@ -4,6 +4,8 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- De optionele beeldmeting laadt Sharp pas bij gebruik; een ontbrekende native binary maakt de feedmodule niet meer onlaadbaar. Bij een meetfout blijft de bestaande beeldweergave beschikbaar.
+
 - Een wereldtocht krijgt geen Oekraïne-label door Rusland als routepunt in de intro. Bestaande algemene buitenlandplekken vragen voor een geografisch onderwerp bewijs uit de kop; werkelijk oorlogsnieuws behoudt zijn onderwerp.
 
 - Een concrete geografische plek in de Editie gaat vóór een conflicterende gevolgde landtag: Michigan blijft VS, ook bij een oude Midden-Oostentag. Web en iOS delen de regressiegevallen.

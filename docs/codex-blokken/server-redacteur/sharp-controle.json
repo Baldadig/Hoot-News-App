@@ -1,0 +1,34 @@
+{
+  "dockerAvailable": false,
+  "linuxContainerRun": false,
+  "reason": "Geen Docker/OrbStack/daemon aanwezig in deze omgeving.",
+  "nativeFailureRegression": {
+    "before": "ERR_DLOPEN_FAILED bij koude feedmodule-import",
+    "after": "feedmodule importeert; beeldmeting geeft null; geen importcrash",
+    "tests": 6,
+    "failures": 0
+  },
+  "build": "netlify build --offline --context production geslaagd op darwin-arm64; geen productie-artifact voor Linuxclaim",
+  "externalModules": [
+    "sharp",
+    "@resvg/resvg-js"
+  ],
+  "linuxOptionalDependenciesInLock": [
+    "node_modules/@img/sharp-libvips-linux-x64",
+    "node_modules/@img/sharp-linux-x64"
+  ],
+  "localBundleArchitecture": {
+    "feed": [
+      "node_modules/@img/sharp-darwin-arm64/lib/sharp-darwin-arm64-0.35.5.node"
+    ],
+    "edition": [
+      "node_modules/@img/sharp-darwin-arm64/lib/sharp-darwin-arm64-0.35.5.node"
+    ],
+    "feed-refresh": [
+      "node_modules/@img/sharp-darwin-arm64/lib/sharp-darwin-arm64-0.35.5.node"
+    ],
+    "deelkaart": [
+      "node_modules/@resvg/resvg-js-darwin-arm64/resvgjs.darwin-arm64.node"
+    ]
+  }
+}

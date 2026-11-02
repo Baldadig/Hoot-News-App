@@ -1,14 +1,18 @@
 // Alleen servercode: sharp hoort niet in de gedeelde editiekern voor JavaScriptCore.
-import sharp from 'sharp'
 import { kvGet, kvSet } from './kv.mjs'
 
 export const MAX_IMAGE_BYTES = 8 * 1024 * 1024
 const MAX_PIXELS = 20_000_000
 const DELTA = 12
+// Een ontbrekende native binary mag het laden van feed/refresh niet blokkeren.
+// Alleen de optionele beeldmeting wacht op Sharp; de bestaande weergave blijft de terugval.
+let sharpReady
+const loadSharp = () => sharpReady ||= import('sharp').then(module => module.default)
 
 export async function measureImage(bytes) {
   try {
     if (!bytes?.length || bytes.length > MAX_IMAGE_BYTES) return null
+    const sharp = await loadSharp()
     const image = sharp(bytes, { limitInputPixels: MAX_PIXELS, animated: false, failOn: 'error' })
     const meta = await image.metadata()
     if (!['jpeg', 'png', 'webp', 'avif', 'gif'].includes(meta.format) || meta.pages > 1) return null
