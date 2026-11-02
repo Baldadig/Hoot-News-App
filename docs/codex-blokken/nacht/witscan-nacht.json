@@ -641,5 +641,45 @@
         "reason": "Ongewijzigde artikelfoto"
       }
     ]
+  },
+  {
+    "file": "native-instellingen-nacht-definitief.jpg",
+    "exclusions": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 1472,
+        "height": 165,
+        "reason": "Mac boven het app-scherm"
+      },
+      {
+        "x": 0,
+        "y": 165,
+        "width": 650,
+        "height": 1565,
+        "reason": "Mac links van het app-scherm"
+      },
+      {
+        "x": 1303,
+        "y": 165,
+        "width": 169,
+        "height": 1565,
+        "reason": "Mac rechts van het app-scherm"
+      },
+      {
+        "x": 650,
+        "y": 1585,
+        "width": 653,
+        "height": 145,
+        "reason": "Mac en apparaatframe onder het app-scherm"
+      },
+      {
+        "x": 650,
+        "y": 165,
+        "width": 653,
+        "height": 101,
+        "reason": "Systeemstatusbalk"
+      }
+    ]
   }
 ]
