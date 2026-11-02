@@ -1,7 +1,10 @@
 // Instellingen — één plek voor de standaardwaarden en het opschonen van wat er is opgeslagen
 // (getest in tests/prefs.test.mjs).
+import { themePref, darkPref } from './theme.js'
 import { VAK_FIELD_IDS } from '../../shared/vak.mjs'
 export const DEFAULT_PREFS = {
+  theme: 'system',
+  themeDark: 'dark',
   muted: [],
   pinned: [], // neutraal: niemands voorkeur als standaard
   onboarded: true,
@@ -19,7 +22,7 @@ export const DEFAULT_PREFS = {
   bluesky: false, // Bluesky als eigen bestemming in het menu
   favorites: [], // voorkeursbronnen (ster): wegen zwaarder in je Editie en staan vooraan
   vak: [], // vakgebieden in de Selectie (shared/vak.mjs); leeg = geen tab Selectie
-  bskyInStream: [], // Bluesky-accounts die óók in de Stroom staan (standaard alleen in Bluesky)
+  bskyInStream: [], // expliciete keuze; oude profielen zonder dit veld behouden hun gevolgde accounts
   weatherPlace: 'de-bilt', // neutraal; plaats voor het weer in de Editie (src/lib/weather.js), of 'geen'
   followStories: [], // verhalen die je volgt: [{ id, title, at }] (src/lib/follow.js)
   taste: { topics: {}, sources: {} }, // meer of minder hiervan (src/lib/affinity.js); gaat mee met je account
@@ -28,6 +31,8 @@ export const DEFAULT_PREFS = {
 export function normalizePrefs(raw) {
   const p = raw && typeof raw === 'object' ? raw : {}
   const out = { ...DEFAULT_PREFS, ...p }
+  out.theme = themePref(out.theme)
+  out.themeDark = darkPref(out.themeDark)
   // Oudere opslag: "Kort/Volledig" wordt "2 regels/alles".
   if (p.preview == null && p.density) out.preview = p.density === 'volledig' ? 'alles' : 2
   if (![1, 2, 3, 'alles'].includes(out.preview)) out.preview = 2
@@ -50,6 +55,7 @@ export function normalizePrefs(raw) {
   out.vak = Array.isArray(out.vak) ? out.vak.filter((f) => VAK_FIELD_IDS.includes(f)) : []
   // Bluesky-accounts die je zelf toevoegde ({ handle, name, avatar }); gaan mee met je account.
   out.social = Array.isArray(out.social) ? out.social.filter((a) => a && typeof a.handle === 'string') : []
+  if (!Object.hasOwn(p, 'bskyInStream')) out.bskyInStream = [...new Set(out.social.map(a => 'bsky:' + a.handle))]
   // Opgeruimde instellingen (voorlezen en Instapaper, tot v1.19) niet meer meedragen.
   for (const k of ['instapaper', 'readAloud', 'voice']) delete out[k]
   return out

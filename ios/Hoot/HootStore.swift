@@ -67,9 +67,22 @@ final class HootStore {
     // Je account (Account.swift), voor de eigenaar van je Editie en user_state.edition.
     weak var account: Account?
     // Bluesky als eigen tabblad, met de vaste accounts van Hoot en wie je zelf toevoegt.
-    var bluesky: Bool { didSet { save("hoot.bluesky", bluesky); synced(); if bluesky { reloadParts(); Task { await loadOwnPosts() } } } }
-    private(set) var ownBluesky: [BlueskyAccount] { didSet { save("hoot.ownBluesky", ownBluesky); synced() } }
-    private var ownPosts: [Item] = []
+    var bluesky: Bool { didSet {
+        save("hoot.bluesky", bluesky); synced()
+        ownPostsGeneration += 1
+        rebuildStream(); reloadParts()
+        if bluesky { Task { await loadOwnPosts() } }
+    } }
+    var bskyInStream: Set<String> { didSet { save("hoot.bskyInStream", bskyInStream.sorted()); rebuildStream(); synced() } }
+    private(set) var ownBluesky: [BlueskyAccount] { didSet {
+        save("hoot.ownBluesky", ownBluesky); synced(); ownPostsGeneration += 1
+        let kept = Set(ownBluesky.map(\.id))
+        ownPosts.removeAll { !kept.contains($0.source) }
+        rebuildStream()
+    } }
+    private var ownPosts: [Item] = [] { didSet { rebuildStream() } }
+    private var ownPostsGeneration = 0
+    @ObservationIgnored var socialPostsLoader: @Sendable (BlueskyAccount) async throws -> [Item] = { try await Bluesky.posts(of: $0) }
 
     // Laatste verversing mislukt: je ziet de versie van `updatedAt`.
     private(set) var stale = false
@@ -79,7 +92,7 @@ final class HootStore {
     // bezoek: die schuift niet mee terwijl je leest, pas als je de Stroom opnieuw opent.
     private var streamSeen: Date? { didSet { save("hoot.streamSeen", streamSeen) } }
     private(set) var streamMark: Date?
-    func openStream() { streamMark = DebugLaunch.seenMinutes.map { Date.now.addingTimeInterval(-$0 * 60) } ?? streamSeen }
+    func openStream() { rebuildStream(); streamMark = DebugLaunch.seenMinutes.map { Date.now.addingTimeInterval(-$0 * 60) } ?? streamSeen }
     func leaveStream() { if let newest = stream.first?.date, newest > (streamSeen ?? .distantPast) { streamSeen = newest } }
     // Geteld zoals de Stroom ze toont: een stuk bij twee zusterkranten is één bericht (anders staat
     // de streep 'Daaronder heb je alles al gezien' te laag).
@@ -144,7 +157,11 @@ final class HootStore {
         personal = Self.read("edition.json")
         personalRaw = Self.readRaw("edition.json")
         bluesky = Self.load("hoot.bluesky") ?? false
-        ownBluesky = Self.load("hoot.ownBluesky") ?? []
+        let keptSocial: [BlueskyAccount] = Self.load("hoot.ownBluesky") ?? []
+        ownBluesky = keptSocial
+        // Oude native profielen kenden deze schakelaar niet: gevolgde eigen accounts blijven zichtbaar.
+        // Een opgeslagen lege lijst is wel een bewuste keuze en blijft leeg.
+        bskyInStream = Set(Self.load("hoot.bskyInStream") ?? keptSocial.map(\.id))
         importSettings()
     }
 
@@ -157,15 +174,18 @@ final class HootStore {
             var vak: [String]?
             var images: String?
             var layout: String?
+            var theme: String?
+            var themeDark: String?
             var bubble: Bool?
             var bluesky: Bool?
+            var bskyInStream: [String]?
             var preview: Int?
             var interests: [String]?
             var topics: [String]?
             var favorites: [String]?
             var social: [BlueskyAccount]? // eigen Bluesky-accounts, zoals op de website
             var taste: Taste?
-            enum CodingKeys: String, CodingKey { case muted, enabled, vak, images, layout, bubble, bluesky, preview, interests, topics, favorites, social, taste }
+            enum CodingKeys: String, CodingKey { case muted, enabled, vak, images, layout, theme, themeDark, bubble, bluesky, bskyInStream, preview, interests, topics, favorites, social, taste }
             init(from decoder: Decoder) throws {
                 let c = try decoder.container(keyedBy: CodingKeys.self)
                 muted = try? c.decodeIfPresent([String].self, forKey: .muted)
@@ -173,8 +193,11 @@ final class HootStore {
                 vak = try? c.decodeIfPresent([String].self, forKey: .vak)
                 images = try? c.decodeIfPresent(String.self, forKey: .images)
                 layout = try? c.decodeIfPresent(String.self, forKey: .layout)
+                theme = try? c.decodeIfPresent(String.self, forKey: .theme)
+                themeDark = try? c.decodeIfPresent(String.self, forKey: .themeDark)
                 bubble = try? c.decodeIfPresent(Bool.self, forKey: .bubble)
                 bluesky = try? c.decodeIfPresent(Bool.self, forKey: .bluesky)
+                bskyInStream = try? c.decodeIfPresent([String].self, forKey: .bskyInStream)
                 interests = try? c.decodeIfPresent([String].self, forKey: .interests)
                 topics = try? c.decodeIfPresent([String].self, forKey: .topics)
                 favorites = try? c.decodeIfPresent([String].self, forKey: .favorites)
@@ -197,6 +220,14 @@ final class HootStore {
     // Alleen wat echt anders is: elke toewijzing laadt opnieuw (Bluesky, jouw editie), en dat zou
     // anders na elke synchronisatie gebeuren, ook als er niets veranderde.
     private func apply(_ p: Import.Prefs?, unite: Bool = false) {
+        let legacySocial = p?.bskyInStream == nil && UserDefaults.standard.object(forKey: "hoot.bskyInStream") == nil
+        if p?.theme != nil || p?.themeDark != nil {
+            let local = ThemePreferences.read()
+            let next = ThemePreferences(theme: p?.theme ?? local.theme, dark: p?.themeDark ?? local.dark)
+            // Eerst de echo-grens, daarna AppStorage bijwerken: vertraagde notificaties tellen niet als lokale wijziging.
+            observedTheme = next
+            next.write()
+        }
         if let v = p?.muted, Set(v) != muted { muted = Set(v); save("hoot.muted", v) }
         if let v = p?.enabled, Set(v) != enabled { enabled = Set(v); save("hoot.enabled", v) }
         if let v = p?.vak, v != digestFields { digestFields = v; save("hoot.digestFields", v) }
@@ -204,6 +235,10 @@ final class HootStore {
         if let v = p?.layout, v != layout, ["tijdlijn", "krant"].contains(v) { layout = v; save("hoot.layout", v) }
         if let v = p?.bubble, v != bubble { bubble = v; save("hoot.bubble", v) }
         if let v = p?.bluesky, v != bluesky { bluesky = v; save("hoot.bluesky", v) }
+        if let v = p?.bskyInStream {
+            let next = Set(v.filter { $0.hasPrefix("bsky:") }).union(unite ? bskyInStream : [])
+            if next != bskyInStream { bskyInStream = next }
+        }
         if let v = p?.preview, v != preview, (0 ... 3).contains(v) { preview = v; save("hoot.preview", v) }
         if let v = p?.interests, v != interests { interests = v; save("hoot.interests", v) }
         if let v = p?.topics, v != topics { topics = v; save("hoot.topics", v) }
@@ -215,6 +250,7 @@ final class HootStore {
             let next = unite ? v + ownBluesky.filter { a in !v.contains { $0.handle == a.handle } } : v
             if next != ownBluesky { ownBluesky = next; Task { await loadOwnPosts() } }
         }
+        if legacySocial { bskyInStream.formUnion(followedSocial.map(\.id)) }
     }
 
     // ---- Synchroniseren met je account (Account.swift) ----
@@ -222,13 +258,22 @@ final class HootStore {
     // Wat van de server komt, telt niet mee (anders gaat het meteen weer terug).
     private(set) var syncTick = 0
     private var applyingRemote = false
+    @ObservationIgnored private var observedTheme = ThemePreferences.read()
+    func themePreferencesChanged() {
+        let next = ThemePreferences.read()
+        guard next != observedTheme else { return }
+        observedTheme = next
+        synced()
+    }
     private func synced() { if !applyingRemote { syncTick &+= 1 } }
 
     // Je instellingen in de vorm van de website (SYNCED_PREFS in src/lib/sync.js), `layout` erbij.
     var syncedPrefs: [String: Any] {
-        [
+        let theme = ThemePreferences.read()
+        return [
+            "theme": theme.theme, "themeDark": theme.dark,
             "muted": muted.sorted(), "enabled": enabled.sorted(), "vak": digestFields, "images": images, "layout": layout,
-            "bubble": bubble, "bluesky": bluesky, "preview": preview == 0 ? "alles" as Any : preview as Any,
+            "bubble": bubble, "bluesky": bluesky, "bskyInStream": bskyInStream.sorted(), "preview": preview == 0 ? "alles" as Any : preview as Any,
             "interests": interests, "topics": topics, "favorites": favorites, "onboarded": true,
             "taste": ["topics": taste.topics, "sources": taste.sources],
             "social": ownBluesky.map { ["handle": $0.handle, "name": $0.name, "avatar": $0.avatar as Any] },
@@ -241,6 +286,13 @@ final class HootStore {
         applyingRemote = true
         defer { applyingRemote = false }
         let following = followingIds
+        // Een oud web-/iOS-profiel kan bskyInStream nog missen. Bij dezelfde eigenaar behouden;
+        // bij een andere eigenaar nooit diens vorige Bluesky-keuzes of late posts overnemen.
+        if let reader = account?.uid, let previous = UserDefaults.standard.string(forKey: "hoot.owner"), reader != previous {
+            bskyInStream = []
+            ownBluesky = []
+            ownPosts = []
+        }
         if let prefs, let p = try? JSONDecoder().decode(Import.Prefs.self, from: prefs) {
             apply(p, unite: unite)
             onboarded = true
@@ -380,6 +432,8 @@ final class HootStore {
         less = []
         affinity = Affinity()
         ownBluesky = []
+        bskyInStream = []
+        ownPosts = []
         let start = Set(Self.starter)
         enabled = start
         if sources.isEmpty {
@@ -419,18 +473,23 @@ final class HootStore {
         await loadOwnPosts()
     }
     func removeBluesky(_ id: String) {
+        bskyInStream.remove(id)
         ownBluesky.removeAll { $0.id == id }
         ownPosts.removeAll { $0.source == id }
     }
     func loadOwnPosts() async {
+        ownPostsGeneration += 1
+        let round = ownPostsGeneration
         let accounts = ownBluesky.filter { a in !muted.contains(a.id) && !sources.contains { $0.id == a.id } }
         guard bluesky, !accounts.isEmpty else { return }
+        let load = socialPostsLoader
         let lists = await withTaskGroup(of: [Item].self) { group in
-            for a in accounts { group.addTask { (try? await Bluesky.posts(of: a)) ?? [] } }
+            for a in accounts { group.addTask { (try? await load(a)) ?? [] } }
             var all: [[Item]] = []
             for await list in group { all.append(list) }
             return all
         }
+        guard bluesky, round == ownPostsGeneration, !Task.isCancelled else { return }
         ownPosts = lists.flatMap { $0 }
     }
     func source(_ id: String) -> Source? { sources.first { $0.id == id } }
@@ -513,9 +572,20 @@ final class HootStore {
 
     private func rebuildStream() {
         let on = Set(followed.map(\.id))
-        stream = itemsById.values
-            .filter { $0.kind == "article" && on.contains($0.source) && $0.editionOnly != true }
-            .sorted { ($0.publishedAt ?? "") > ($1.publishedAt ?? "") }
+        let social = Set(followedSocial.map(\.id))
+        var seen = Set<String>()
+        let eligible = (Array(itemsById.values) + ownPosts).filter { item in
+            guard seen.insert(item.id).inserted else { return false }
+            if item.isPost { return SocialStream.allows(item, enabled: bluesky, followed: social, selected: bskyInStream) }
+            return item.kind == "article" && on.contains(item.source) && item.editionOnly != true
+        }
+        // Eén datumconversie per bericht, ook met tijdzones in eigen posts; niet per vergelijking.
+        var dated: [(item: Item, date: Date)] = eligible.map { ($0, $0.date ?? .distantPast) }
+        dated.sort { a, b in
+            if a.date == b.date { return a.item.id < b.item.id }
+            return a.date > b.date
+        }
+        stream = dated.map { $0.item }
         copyKeys = Dictionary(stream.map { ($0.id, Self.keys(of: $0)) }, uniquingKeysWith: { a, _ in a })
         #if DEBUG
         // App Store-opnamen: de gekozen verhalen bovenaan.
@@ -578,7 +648,7 @@ final class HootStore {
         guard let candidate, let id, candidate.id == id, candidate.owner == owner else { return nil }
         return candidate
     }
-    var isPersonal: Bool { shownEdition?.personal == true }
+    var isPersonal: Bool { shownEdition?.personal == true && (!interests.isEmpty || !topics.isEmpty || !favorites.isEmpty) }
     func isFavorite(_ id: String) -> Bool { favorites.contains(id) }
     func setFavorite(_ id: String, _ on: Bool) { favorites = on ? Array(Set(favorites + [id])).sorted() : favorites.filter { $0 != id } }
 

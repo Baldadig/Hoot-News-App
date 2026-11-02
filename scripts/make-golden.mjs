@@ -11,11 +11,12 @@
 import { writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { loadSnapshot, nowOf, PERSONAS, setupFor, readIdsOf, composeFor } from '../tests/helpers/snapshot.mjs'
+import { loadSnapshot, nowOf, PERSONAS, setupFor, readIdsOf, composeFor, generalEdition, storiesPrint } from '../tests/helpers/snapshot.mjs'
 import { compose } from '../src/lib/editionCore.js'
 import { ROOT } from './build-edition-core.mjs'
 
 export const GOLDEN = 'tests/fixtures/edition-golden.json'
+export const GENERAL_GOLDEN = 'tests/fixtures/edition-general-golden.json'
 export const CASES = [
   { name: 'nieuw', persona: 'nieuw' },
   { name: 'klimaat', persona: 'klimaat' },
@@ -68,6 +69,8 @@ export function makeGolden(snap = loadSnapshot()) {
 
 const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 if (isMain) {
+  const general = generalEdition(loadSnapshot())
+  writeFileSync(resolve(ROOT, GENERAL_GOLDEN), JSON.stringify({ stories: storiesPrint(general.stories), entries: general.entries }) + '\n')
   const golden = makeGolden()
   const text = JSON.stringify(golden)
   writeFileSync(resolve(ROOT, GOLDEN), text + '\n')

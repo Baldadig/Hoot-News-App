@@ -263,7 +263,8 @@ html[data-text='groot'] {
 }
 
 /* Kleur — donker (JS zet data-theme; 'systeem' volgt het toestel) */
-:root[data-theme='dark'] {
+:root[data-theme='dark'],
+:root[data-theme='night'] {
   --paper: #151310;
   --surface: #1e1b17;
   --ink: #f1ece2;
@@ -313,7 +314,7 @@ html[data-text='groot'] {
   --band-accent-soft: #3a1e1b; /* gekozen op de band, in beide thema's */
   --top: var(--sheet);
 }
-:root[data-palette][data-theme='dark'] {
+:root[data-palette][data-theme='dark'], :root[data-palette][data-theme='night'] {
   --sheet: var(--surface);
   --sheet-surface: #27231e;
   --sheet-edge: var(--rule);
@@ -323,6 +324,12 @@ html[data-text='groot'] {
   --band-ink-3: var(--ink-3);
   --band-rule: #2e2a25;
 }
+/* Nacht: dezelfde donkere rollen, alleen de paginagrond echt zwart. */
+:root[data-theme='night'] { --paper: #000000; --thumb: var(--ink); color-scheme: dark; }
+:root[data-palette][data-theme='night'] { --sheet: #000000; --sheet-surface: #1e1b17; --band: #000000; --top: #000000; }
+:root[data-theme='night'] .seg { flex-wrap: wrap; }
+:root .sg__colors { grid-template-columns: minmax(0,1.5fr) repeat(3,minmax(0,1fr)); }
+
 
 /* ---------- Basis ---------- */
 *,
@@ -1531,7 +1538,8 @@ select.input {
   transform: translateX(calc(var(--switch-w) - var(--switch-thumb) - 2 * var(--switch-inset)));
 }
 /* In donker is inkt licht: daarop zou de lichte duim verdwijnen. Aan wordt de duim daar papier. */
-:root[data-theme='dark'] .switch[aria-checked='true'] .switch__thumb {
+:root[data-theme='dark'] .switch[aria-checked='true'] .switch__thumb,
+:root[data-theme='night'] .switch[aria-checked='true'] .switch__thumb {
   background: var(--paper);
 }
 /* Focus om de baan, niet om het raakvlak van 60 × 44: zo volgt de ring de vorm die je ziet. */
@@ -1584,7 +1592,7 @@ select.input {
   content: attr(data-letter);
   color: var(--brand, var(--accent));
 }
-:root[data-theme='dark'] .mark::before {
+:root[data-theme='dark'] .mark::before, :root[data-theme='night'] .mark::before {
   color: var(--ink);
 }
 .mark img {
@@ -1613,7 +1621,7 @@ select.input {
 .is-read .kicker .kicker__type {
   color: var(--ink-3);
 }
-.kicker span + span::before {
+.kicker > span + span::before {
   content: '·';
   margin-right: var(--s2);
   color: var(--ink-3);
@@ -1652,15 +1660,15 @@ select.input {
   color: var(--ink-3);
 }
 /* Het waarom van een plek in jouw Editie (Why.js): één stille zin onder de rubriek, in de maat van
-   tijd en toelichting (t1/lh-1, --ink-3), zonder kapitalen en zonder rood. Volgt het op een rubriek,
+   toelichting (t2/lh-2, --ink-2), zonder kapitalen en zonder rood. Volgt het op een rubriek,
    dan staat het er zonder tussenruimte als tweede regel van hetzelfde label op (zoals bronnaam en
    tijd in .srcmeta__text: alleen de regelhoogte scheidt ze). */
 .why {
   margin: 0 0 var(--s2);
   max-inline-size: var(--measure-prose);
-  color: var(--ink-3);
-  font-size: var(--t1);
-  line-height: var(--lh-1);
+  color: var(--ink-2);
+  font-size: var(--t2);
+  line-height: var(--lh-2);
 }
 .kicker:has(+ .why) {
   margin-bottom: 0;
@@ -4475,6 +4483,44 @@ html[data-images='hoofd'] .media--social {
   padding-bottom: var(--s3);
 }
 
+/* Desktop: zon en naam delen hun basislijn. De SVG houdt in ieder dagdeel hetzelfde kader;
+   alleen de zon binnen dat kader wisselt van hoogte. Mobiele kop en verhaalrijen blijven gelijk. */
+.edtitle {
+  display: contents;
+}
+@media (min-width: 960px) {
+  .edtop .edtitle {
+    display: inline-flex;
+    align-items: baseline;
+    column-gap: var(--s4);
+  }
+  .edtop .sun--kop {
+    height: 0.65em;
+    flex: none;
+    align-self: baseline;
+    margin-inline-start: 0;
+  }
+  .edtop .edmeta {
+    margin-top: var(--s2);
+    padding-bottom: var(--s4);
+  }
+  .edtop .edmeta__wx {
+    display: inline;
+    vertical-align: baseline;
+  }
+  .edtop .edmeta__wx:empty {
+    display: none;
+  }
+  .edtop .weather {
+    display: inline;
+    font-variant-numeric: tabular-nums;
+  }
+  .edtop .weather svg {
+    vertical-align: -0.2em;
+    margin-inline-end: var(--s1);
+  }
+}
+
 /* De eenmalige uitleg bij "Jouw Editie" (na het eerste Welkom): een gewone .hint met een kleine X
    (36, .hit 44 raakvlak) ernaast. De X staat met zijn midden op het midden van de eerste regel en
    met de tekening (niet het vak) op de kolomlijn. */
@@ -4861,7 +4907,7 @@ html[data-images='hoofd'] .media--social {
   position: relative;
   height: calc(var(--line-h) + 1px);
 }
-:root[data-theme='dark'] .line {
+:root[data-theme='dark'] .line, :root[data-theme='night'] .line {
   --hair: var(--ink-3);
   --dim: 0.6;
 }
@@ -5332,3 +5378,69 @@ html[data-images='hoofd'] .media--social {
 .seen::before, .seen::after { content: ''; flex: 1; height: 1px; background: var(--accent); }
 .stream-new { animation: rise 200ms var(--ease) backwards; animation-delay: var(--rise-delay, 0ms); }
 @media (prefers-reduced-motion: reduce) { .waiting svg .brand__dot, .waiting__dot, .stream-new { animation: none; } }
+
+/* Welkom: je voorgestelde bronnen direct herkennen en kiezen. */
+/* Bronkeuze: 4 × 4 op normale telefoons; minder kolommen bij weinig breedte/grote tekst. */
+.ob--sources .ob__title { margin-top:var(--s3) }
+.ob--sources .ob__sub { font-size:var(--t2); line-height:1.35 }
+.ob__sourcecount { margin-top:var(--s2); color:var(--ink-3); font-size:var(--t1) }
+.ob__sourcefit { margin-top:var(--s3) }
+.ob__sourcegrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,max(4.6rem,calc((100% - 3 * var(--s2)) / 4))),1fr)); gap:var(--s2); margin:0; padding:0; list-style:none }
+.ob__sourcegrid > li { min-width:0 }
+.ob__sourcecard { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; width:100%; height:max(96px,calc(54px + 3.6 * var(--t0))); padding:6px 3px; border:1px solid var(--rule); border-radius:var(--radius-card); background:var(--surface); color:var(--ink); text-align:center; cursor:pointer; transition:background-color var(--dur-1) var(--ease),border-color var(--dur-1) var(--ease) }
+.ob__sourcecard[aria-pressed='true'] { border-color:var(--accent); background:var(--sel-bg) }
+.ob__sourcecard .mark { flex:none }
+.ob__sourcecard-name { display:flex; align-items:center; justify-content:center; flex:none; height:2.4em; width:100%; font-size:var(--t0); line-height:1.2; font-weight:var(--fw-ui); overflow-wrap:anywhere }
+.ob__sourcecard-name > span { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
+.ob__sourcecard-meta { flex:none; max-width:100%; font-size:var(--t0); line-height:1.2; color:var(--ink-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.ob__sourcecard .ob__check { position:absolute; top:3px; right:3px; width:16px; height:16px }
+.ob__sourcecard[aria-pressed='true'] .ob__check { background:var(--accent); border-color:var(--accent) }
+.ob__sourcecard[aria-pressed='true'] .ob__check::after { width:12px; height:12px; background:var(--paper) }
+@media(min-width:560px) { .ob__sourcecard { height:max(104px,calc(58px + 3.6 * var(--t1))); padding:var(--s2) } .ob__sourcecard-name { font-size:var(--t1) } }
+/* Selectie: navigeren staat los van onderwerpen volgen. Geen vaste of zwevende index. */
+.dnav { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s3) var(--s4); margin: var(--s4) 0; }
+.dnav__dialog { max-width: 32rem; }
+.dnav__group + .dnav__group { margin-top: var(--s5); }
+.dnav__group > h2 { margin-bottom: var(--s2); }
+.dnav__item { min-height: var(--tap); background: transparent; border: 0; color: var(--ink); font: inherit; width: 100%; display: flex; justify-content: space-between; align-items: baseline; gap: var(--s3); text-align: left; padding: var(--s2) 0; border-bottom: 1px solid var(--rule); }
+.dnav__item > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.dnav__count { color: var(--ink-3); font-size: var(--t1); flex-shrink: 0; }
+.dfield > .dfield__head { display: block; }
+.dfield__toggle { background: transparent; border: 0; padding: 0; display: flex; align-items: center; gap: var(--s3); min-height: var(--tap); width: 100%; text-align: left; color: inherit; font: inherit; }
+.dfield__heading { min-width: 0; flex: 1; }
+.dfield__title, .dfield__about { display: block; }
+.dfield__title { overflow-wrap: anywhere; }
+.dfield__about { font-family: var(--sans); font-weight: 400; }
+.dfield__count { display: grid; justify-items: end; gap: var(--s1); font-family: var(--sans); font-size: var(--t1); font-weight: 400; color: var(--ink-3); }
+.dfield__chevron { display: block; width: 8px; height: 8px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); margin: var(--s1); }
+.dfield__toggle[aria-expanded="true"] .dfield__chevron { transform: rotate(225deg); }
+.dfield__icon { flex-shrink: 0; }
+.dfield__toggle:focus-visible { outline-offset: var(--s1); }
+@media (max-width: 359px) { .dfield__icon { display: none; } }
+
+.dfield--closed { margin-top: var(--s3); }
+.dfield--closed > .dfield__head { margin-bottom: 0; padding-top: var(--s3); }
+/* Editie: vaste cijfervakken in Newsreader, ook zonder tnum in het letterbestand. */
+.kicker__n { display: inline-flex; font-variant-numeric: tabular-nums; }
+.kicker__digit { display: inline-block; inline-size: 1ch; text-align: center; }
+.endcap__count { font-variant-numeric: tabular-nums; }
+
+/* Op breed web hangt de telling naast de tekst, binnen de eigen kaartmarge. */
+@media (min-width: 960px) {
+  .front .entry:has(.kicker__n), .front__rest .entry:has(.kicker__n) { padding-inline-start: calc(2ch + var(--s3)); }
+  .front .kicker:has(> .kicker__n), .front__rest .kicker:has(> .kicker__n) { position: relative; }
+  .front .kicker > .kicker__n, .front__rest .kicker > .kicker__n { position: absolute; inset-inline-end: calc(100% + var(--s3)); }
+  .front .kicker > .kicker__n + span::before, .front__rest .kicker > .kicker__n + span::before { content: none; }
+}
+
+/* Gedeeld kopbudget: smalle halve kolommen krijgen hooguit vier regels; de volledige
+   kop blijft in de linktekst en bij openen beschikbaar. Grote tekst schakelt eerder naar één kolom. */
+@container front (min-width: 48rem) {
+  .front__side .fitem__title, .front__under .fitem__title {
+    display: -webkit-box; -webkit-box-orient: vertical;
+    -webkit-line-clamp: var(--headline-lines, 4); overflow: hidden;
+  }
+}
+
+/* Verhaalopties blijven binnen de metaregel op smalle schermen. */
+.taste { flex-wrap: wrap; }

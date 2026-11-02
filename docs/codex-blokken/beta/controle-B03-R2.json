@@ -1,0 +1,44 @@
+{
+  "step": "B03-R2",
+  "head": "7de240af99ccedc292b20952ebd06bba7de11e8e",
+  "checks": [
+    {
+      "check": "core",
+      "exit": 0,
+      "seconds": 0.52,
+      "log": "/tmp/hoot-beta/B03-R2/core.log"
+    },
+    {
+      "check": "web",
+      "exit": 0,
+      "seconds": 389.03,
+      "log": "/tmp/hoot-beta/B03-R2/web.log",
+      "counts": {
+        "tests": 972,
+        "pass": 971,
+        "fail": 0,
+        "skipped": 0,
+        "todo": 1
+      }
+    },
+    {
+      "check": "build",
+      "exit": 0,
+      "seconds": 109.92,
+      "log": "/tmp/hoot-beta/B03-R2/build.log"
+    },
+    {
+      "check": "acceptatie",
+      "exit": 0,
+      "seconds": 359.0,
+      "log": "/tmp/hoot-beta/B03-R2/acceptatie.log"
+    },
+    {
+      "check": "native",
+      "exit": 0,
+      "seconds": 447.0,
+      "log": "/tmp/hoot-beta/B03-R2/native.log",
+      "tests": 98
+    }
+  ]
+}

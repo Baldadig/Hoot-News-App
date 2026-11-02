@@ -1,0 +1,27 @@
+{
+  "headline": "Inside the Abdul El-Sayed-Haley Stevens Meltdown in Michigan",
+  "entryDesk": "vs",
+  "itemTopics": [
+    "middenoosten"
+  ],
+  "itemMainTopics": null,
+  "scope": "Alleen openbare kop en tags uit de getoonde Editie; geen account- of voorkeurgegevens.",
+  "reproduction": {
+    "topics": [
+      "middenoosten"
+    ],
+    "mainTopics": [],
+    "follows": [
+      "middenoosten"
+    ],
+    "desk": "vs",
+    "deskLabel": "VS"
+  },
+  "actual": {
+    "kicker": "Wereld · Midden-Oosten",
+    "why": null,
+    "outside": false
+  },
+  "expectedGeographicalKicker": "VS",
+  "fixed": false
+}

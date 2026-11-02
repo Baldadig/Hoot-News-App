@@ -29,12 +29,13 @@ extension HootStore {
     // De eerste drie vormen de stapel; de namen van een keuze staan in dezelfde volgorde.
     var stripSources: [Source] {
         let counts = Dictionary(grouping: stream, by: \.source).mapValues(\.count)
-        return followed.sorted { a, b in
+        let news = followed.sorted { a, b in
             let fa = favorites.firstIndex(of: a.id), fb = favorites.firstIndex(of: b.id)
             if let fa, let fb { return fa < fb }
             if (fa != nil) != (fb != nil) { return fa != nil }
             return (counts[a.id] ?? 0) > (counts[b.id] ?? 0)
         }
+        return news + (bluesky ? followedSocial.filter { bskyInStream.contains($0.id) } : [])
     }
 }
 

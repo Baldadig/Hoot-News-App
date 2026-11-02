@@ -1,0 +1,21 @@
+{
+  "basis": "geintegreerde A + B6-build op iPad mini A17 Pro 26.1",
+  "bediening": "Device Hub via CUA",
+  "selectiePopover": true,
+  "selectieIndexOpen": true,
+  "selectieIndexDoelAangetikt": true,
+  "selectieIndexScrollpositieVisueelGekeurd": false,
+  "rotatieMetBehoudSelectie": true,
+  "onboardingBronnenNaarSelectieEnTerug": true,
+  "gekozenBronnenBehouden": 4,
+  "bronPaginaBehouden": "2 van 6",
+  "nachtKeuzeAangetiktEnAXWaardeBevestigd": true,
+  "herinrichtingTechConceptGeannuleerd": true,
+  "controlePersistenteInteresses": [
+    "binnenland"
+  ],
+  "exact699en700Interactief": false,
+  "hardwareKeyboardEnVoiceOver": false,
+  "beperking": "AX-bediening werkt; Hub-schermafbeeldingen worden vervormd/tot een dun venster vastgelegd. Dit is geen visuele goedkeuring van alle geometrie.",
+  "laatsteNativePoging": "Na ontgrendeling: fysieke iPhone 16 Pro gestart, opname na opnieuw verbinden hersteld; gerichte menu-/telcontrole geslaagd"
+}

@@ -1,0 +1,87 @@
+{
+  "formula": "(Lmax + 0.05) / (Lmin + 0.05)",
+  "colors": {
+    "paper": "#000000",
+    "surface": "#1e1b17",
+    "ink": "#f1ece2",
+    "ink-2": "#cbc3b5",
+    "ink-3": "#a39b8d",
+    "rule": "#34302a",
+    "edge": "#766e61",
+    "accent": "#ec7a70",
+    "accent-soft": "#3a1e1b",
+    "brandRed": "#a3201b"
+  },
+  "rows": [
+    {
+      "role": "paper",
+      "value": "#000000",
+      "onBlack": 1,
+      "onSurface": 1.2243494115802196,
+      "onCurrentPaper": 1.1325169410632456
+    },
+    {
+      "role": "surface",
+      "value": "#1e1b17",
+      "onBlack": 1.2243494115802196,
+      "onSurface": 1,
+      "onCurrentPaper": 1.0810870612061294
+    },
+    {
+      "role": "ink",
+      "value": "#f1ece2",
+      "onBlack": 17.836532880257728,
+      "onSurface": 14.568172052483627,
+      "onCurrentPaper": 15.749462311364791
+    },
+    {
+      "role": "ink-2",
+      "value": "#cbc3b5",
+      "onBlack": 12.012583887062835,
+      "onSurface": 9.81140169092634,
+      "onCurrentPaper": 10.606979420356405
+    },
+    {
+      "role": "ink-3",
+      "value": "#a39b8d",
+      "onBlack": 7.630461444422377,
+      "onSurface": 6.232258023936191,
+      "onCurrentPaper": 6.737613511775495
+    },
+    {
+      "role": "rule",
+      "value": "#34302a",
+      "onBlack": 1.6022272791101249,
+      "onSurface": 1.3086356426979397,
+      "onCurrentPaper": 1.41474906115391
+    },
+    {
+      "role": "edge",
+      "value": "#766e61",
+      "onBlack": 4.1732959934423395,
+      "onSurface": 3.4085825124512708,
+      "onCurrentPaper": 3.6849744512645493
+    },
+    {
+      "role": "accent",
+      "value": "#ec7a70",
+      "onBlack": 7.584357262980803,
+      "onSurface": 6.194601958596094,
+      "onCurrentPaper": 6.696904026760384
+    },
+    {
+      "role": "accent-soft",
+      "value": "#3a1e1b",
+      "onBlack": 1.3814437883274946,
+      "onSurface": 1.12830845121616,
+      "onCurrentPaper": 1.2197996676593181
+    },
+    {
+      "role": "brandRed",
+      "value": "#a3201b",
+      "onBlack": 2.7797371510301425,
+      "onSurface": 2.2703789659542086,
+      "onCurrentPaper": 2.4544773241276463
+    }
+  ]
+}

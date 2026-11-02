@@ -1,0 +1,142 @@
+{
+  "intro": [
+    {
+      "name": "updated only",
+      "in": "Updated at 6:16 p.m.",
+      "out": ""
+    },
+    {
+      "name": "updated prefix",
+      "in": "Updated at 6:16 p.m. The talks resume tomorrow.",
+      "out": "The talks resume tomorrow."
+    },
+    {
+      "name": "clock newline",
+      "in": "18:16 CET\nDe gesprekken gaan morgen verder.",
+      "out": "De gesprekken gaan morgen verder."
+    },
+    {
+      "name": "Dutch prefix",
+      "in": "Bijgewerkt om 18:16 — De gesprekken gaan morgen verder.",
+      "out": "De gesprekken gaan morgen verder."
+    },
+    {
+      "name": "English date",
+      "in": "Updated November 2, 2026 at 6:16 p.m.\nThe talks resume.",
+      "out": "The talks resume."
+    },
+    {
+      "name": "Dutch date",
+      "in": "Gepubliceerd op 2 november 2026 om 18:16\nDe gesprekken gaan verder.",
+      "out": "De gesprekken gaan verder."
+    },
+    {
+      "name": "date only",
+      "in": "Updated on November 2, 2026\nThe talks resume.",
+      "out": "The talks resume."
+    },
+    {
+      "name": "byline newline",
+      "in": "By Eva de Vries\nDe gesprekken gaan verder.",
+      "out": "De gesprekken gaan verder."
+    },
+    {
+      "name": "agency",
+      "in": "By Reuters\nThe talks resume.",
+      "out": "The talks resume."
+    },
+    {
+      "name": "chained",
+      "in": "Updated at 6:16 p.m.\nBy The New York Times\nAdvertisement\nThe talks resume.",
+      "out": "The talks resume."
+    },
+    {
+      "name": "body verb updated",
+      "in": "Updated advice saved lives.",
+      "out": "Updated advice saved lives."
+    },
+    {
+      "name": "body by",
+      "in": "By doing this, doctors saved lives.",
+      "out": "By doing this, doctors saved lives."
+    },
+    {
+      "name": "body door",
+      "in": "Door de storm viel de stroom uit.",
+      "out": "Door de storm viel de stroom uit."
+    },
+    {
+      "name": "body time",
+      "in": "At 6:16 p.m. the fire started.",
+      "out": "At 6:16 p.m. the fire started."
+    },
+    {
+      "name": "decimal",
+      "in": "6.16 procent is een flinke stijging.",
+      "out": "6.16 procent is een flinke stijging."
+    },
+    {
+      "name": "ordinary",
+      "in": "Een gewoon verhaal over Nederland.",
+      "out": "Een gewoon verhaal over Nederland."
+    },
+    {
+      "name": "whitespace",
+      "in": "  Een rustige\nzin.  ",
+      "out": "Een rustige zin."
+    },
+    {
+      "name": "banner only",
+      "in": "Lees meer…",
+      "out": ""
+    },
+    {
+      "name": "clock only",
+      "in": "6:16 p.m.",
+      "out": ""
+    },
+    {
+      "name": "many prefixes",
+      "in": "Updated at 6:16 p.m.\nUpdated at 6:16 p.m.\nUpdated at 6:16 p.m.\nUpdated at 6:16 p.m.\nUpdated at 6:16 p.m.\nUpdated at 6:16 p.m.\nUpdated at 6:16 p.m.\nUpdated at 6:16 p.m.\nUpdated at 6:16 p.m.\nUpdated at 6:16 p.m.\nThe talks resume.",
+      "out": ""
+    },
+    {
+      "name": "known byline separated",
+      "in": "By Eva de Vries — The talks resume.",
+      "author": "Eva de Vries",
+      "out": "The talks resume."
+    },
+    {
+      "name": "literal known author",
+      "in": "By Eva (Nieuws) — The talks resume.",
+      "author": "Eva (Nieuws)",
+      "out": "The talks resume."
+    }
+  ],
+  "headline": [
+    {
+      "length": 0,
+      "tier": "large"
+    },
+    {
+      "length": 70,
+      "tier": "large"
+    },
+    {
+      "length": 71,
+      "tier": "medium"
+    },
+    {
+      "length": 100,
+      "tier": "medium"
+    },
+    {
+      "length": 101,
+      "tier": "compact"
+    },
+    {
+      "length": 146,
+      "tier": "compact"
+    }
+  ]
+}

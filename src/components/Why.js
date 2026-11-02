@@ -11,13 +11,13 @@ export const WHY_IN_LABEL = new Set(['rubriek', 'extern', 'bubbel', 'breed'])
 // vóór het waarom, of een reden die het label al zegt).
 export function whyLine(why) {
   if (!why || typeof why.text !== 'string' || !why.text.trim()) return null
-  return WHY_IN_LABEL.has(why.code) ? null : why.text
+  return why.code === 'interest' || /^Omdat je .+ volgt\.?$/.test(why.text) || (WHY_IN_LABEL.has(why.code) && why.detail !== true) ? null : why.text
 }
 
 // Hiërarchie van een plek: rubriek (kicker) > kop > intro > why/bron. Het waarom hoort bij de plek,
 // niet bij het artikel, dus het staat bij de rubriek (direct eronder, zoals in de bouwspec), maar
-// stil: inkt-3, label-hoogte (t1/lh-1), gewone zin, geen kapitalen, geen rood. De kop blijft zo het
-// zwaarste element; het waarom is het zachtste erboven.
+// rustig maar leesbaar: inkt-2, toelichtingsmaat (t2/lh-2), gewone zin, geen kapitalen, geen rood. De kop blijft zo het
+// zwaarste element; het waarom blijft ondergeschikt.
 export function Why({ why }) {
   const text = whyLine(why)
   return text ? createElement('p', { className: 'why' }, text) : null

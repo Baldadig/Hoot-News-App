@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { ViewHeader, Empty, Skeleton, LoadError } from '../components/Shell.jsx'
 import { SaveButton, ShareButton, SourceMark, useHoot } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
@@ -8,7 +8,9 @@ import { MegaphoneIcon, CursorIcon, PaletteIcon, SparkleIcon, CartIcon, Magnifie
 import { timeAgo } from '../lib/time.js'
 import { fitsHero, fitsLarge } from '../lib/img.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
-import { vakByDomain } from '../../shared/vak.mjs'
+import { Dialog, DialogHeader } from '../components/Dialog.jsx'
+import { useSelectionFold } from '../hooks/useSelectionFold.js'
+import { vakByDomain, VAK_FIELDS } from '../../shared/vak.mjs'
 import { wholeSentences } from '../../shared/zinnen.mjs'
 import { useIntroMax } from '../lib/intro.js'
 
@@ -28,7 +30,7 @@ function span(from, to) {
   return ma === mb ? `${da} t/m ${db} ${mb}` : `${a} t/m ${b}`
 }
 const two = (n) => String(n).padStart(2, '0')
-const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
 
 // Wie, waar en wanneer — met delen en bewaren rechts. Geen knop naar de bron: vakbronnen staan niet in de Stroom.
 function Source({ item }) {
@@ -106,11 +108,32 @@ function Card({ item, rank, feature = false }) {
 // door mensen geschreven (zie netlify/lib/vak.mjs). Opbouw als een tijdschrift: een kop met de
 // week, een inhoudsopgave, en per vak één groot stuk, twee kaarten en een korte lijst.
 export default function Vak({ active, digest, status, onRefresh }) {
-  const { prefs, setPref } = useHoot()
+  const { prefs, setPref, account, selectionReady = true } = useHoot()
   const ref = useRef(null)
   const chosen = prefs.vak || []
-  const fields = (digest?.fields || []).filter((f) => chosen.includes(f.id))
-  useScrollMemory(ref, 'hoot:pos-vak:' + (digest?.id || ''), fields.length > 0, (digest?.id || '') + chosen.join(), active)
+  const owner = account?.status === 'in' ? account.user.id : 'anon'
+  const byId = new Map((digest?.fields || []).map(f => [f.id, f]))
+  const fields = VAK_FIELDS.filter(f => chosen.includes(f.id)).map(f => ({ ...f, ...byId.get(f.id), top: byId.get(f.id)?.top || [], more: byId.get(f.id)?.more || [] }))
+  const [closed, setClosed] = useSelectionFold(owner, chosen, selectionReady)
+  const [navigating, setNavigating] = useState(false)
+  const [jump, setJump] = useState(null)
+  const allClosed = fields.length > 0 && fields.every(f => closed.includes(f.id))
+  useScrollMemory(ref, 'hoot:pos-vak:' + owner + ':' + (digest?.id || ''), fields.length > 0, (digest?.id || '') + chosen.join() + closed.join(), active)
+  useEffect(() => {
+    if (!jump || navigating || !active) return
+    const token = requestAnimationFrame(() => {
+      const heading = document.getElementById(`dh-${jump.id}`)
+      if (jump.owner === owner && heading) {
+        heading.focus({ preventScroll: true })
+        heading.scrollIntoView({ behavior: 'instant', block: 'start' })
+      }
+      setJump(null)
+    })
+    return () => cancelAnimationFrame(token)
+  }, [jump, navigating, active, owner])
+  useEffect(() => { setNavigating(false); setJump(null) }, [owner, active])
+  const jumpTo = id => { setClosed(closed.filter(x => x !== id)); setJump({ id, owner }); setNavigating(false) }
+  const toggleField = id => setClosed(closed.includes(id) ? closed.filter(x => x !== id) : [...closed, id])
 
   const order = vakByDomain().flatMap((d) => d.fields.map((f) => f.id))
   const toggle = (id) => setPref('vak', chosen.includes(id) ? chosen.filter((f) => f !== id) : order.filter((f) => f === id || chosen.includes(f)))
@@ -151,49 +174,36 @@ export default function Vak({ active, digest, status, onRefresh }) {
               {digest.preview ? <p className="dmast__note">De eerste Selectie komt {WEEKDAY.format(new Date(digest.next))}.</p> : <p className="dmast__note">Elke maandagochtend nieuw.</p>}
             </header>
 
-            {/* Inhoud: per vak de drie koppen; tik = naar het stuk in de digest */}
-            <nav className="dtoc" data-n={fields.length} aria-label="In deze Selectie">
-              {fields.map((f) => {
-                const Icon = iconOf(f)
-                return (
-                  <div key={f.id} className="dtoc__field">
-                    <button type="button" className="head-4 dtoc__head" onClick={() => scrollTo(`d-${f.id}`)}>
-                      <span className="dtoc__icon">
-                        <Icon />
-                      </span>
-                      {f.label}
-                    </button>
-                    <ol className="dtoc__list">
-                      {f.top.map((it, i) => (
-                        <li key={it.id}>
-                          <button type="button" className="head-4" onClick={() => scrollTo(`d-${it.id}`)}>
-                            <span className="dtoc__n">{two(i + 1)}</span>
-                            <span>{it.title}</span>
-                          </button>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                )
+            {fields.length ? <nav className="dnav" aria-label="Navigeren in de Selectie">
+              <button type="button" className="btn btn--quiet" disabled={!selectionReady} aria-haspopup="dialog" onClick={() => setNavigating(true)}>Ga naar onderwerp</button>
+              {fields.length > 1 ? <button type="button" className="linkbtn hit" disabled={!selectionReady} onClick={() => setClosed(allClosed ? [] : fields.map(f => f.id))}>{allClosed ? 'Alles uitklappen' : 'Alles inklappen'}</button> : null}
+            </nav> : null}
+            <Dialog open={navigating} onClose={() => setNavigating(false)} labelledBy="selectie-index-title" className="dnav__dialog">
+              <DialogHeader id="selectie-index-title" title="Ga naar onderwerp" onClose={() => setNavigating(false)}/>
+              {vakByDomain().map(domain => {
+                const rows = fields.filter(f => f.domain === domain.id)
+                return rows.length ? <section className="dnav__group" key={domain.id} aria-label={domain.label}>
+                  <h2 className="label">{domain.label}</h2>
+                  {rows.map(f => <button className="dnav__item hit" type="button" key={f.id} onClick={() => jumpTo(f.id)} aria-label={`${f.label}, ${f.top.length === 1 ? '1 stuk' : `${f.top.length} stukken`}`}>
+                    <span>{f.label}</span><span className="dnav__count">{f.top.length === 1 ? '1 stuk' : `${f.top.length} stukken`}</span>
+                  </button>)}
+                </section> : null
               })}
-            </nav>
+            </Dialog>
 
             {fields.map((f) => {
               const Icon = iconOf(f)
               const [first, ...rest] = f.top
               return (
-                <section key={f.id} className="dfield" id={`d-${f.id}`} aria-labelledby={`dh-${f.id}`}>
-                  <header className="dfield__head">
-                    <span className="dfield__icon">
-                      <Icon />
-                    </span>
-                    <div>
-                      <h2 className="head-lg dfield__title" id={`dh-${f.id}`}>
-                        {f.label}
-                      </h2>
-                      <p className="dfield__about">{f.about}</p>
-                    </div>
-                  </header>
+                <section key={f.id} className={`dfield${closed.includes(f.id) ? ' dfield--closed' : ''}`} id={`d-${f.id}`} data-id={`field:${f.id}`} aria-labelledby={`dh-${f.id}`}>
+                  <h2 className="head-lg dfield__head">
+                    <button type="button" id={`dh-${f.id}`} className="dfield__toggle" disabled={!selectionReady} aria-label={`${f.label}, ${f.top.length === 1 ? '1 stuk' : `${f.top.length} stukken`}`} aria-expanded={!closed.includes(f.id)} aria-controls={`dc-${f.id}`} onClick={() => toggleField(f.id)}>
+                      <span className="dfield__icon"><Icon /></span>
+                      <span className="dfield__heading"><span className="dfield__title">{f.label}</span>{!closed.includes(f.id) ? <span className="dfield__about">{f.about}</span> : null}</span>
+                      <span className="dfield__count">{f.top.length === 1 ? '1 stuk' : `${f.top.length} stukken`}<span className="dfield__chevron" aria-hidden="true"></span></span>
+                    </button>
+                  </h2>
+                  <div id={`dc-${f.id}`} hidden={closed.includes(f.id)}>
                   {first ? (
                     <>
                       <div id={`d-${first.id}`} className="dfield__anchor">
@@ -229,6 +239,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
                       </ol>
                     </div>
                   ) : null}
+                  </div>
                 </section>
               )
             })}

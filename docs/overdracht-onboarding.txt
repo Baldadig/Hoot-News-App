@@ -1,0 +1,74 @@
+OVERDRACHT AAN CLAUDE — ONBOARDING
+31 oktober 2026
+
+STATUS
+Alex heeft het interactieve concept Compact raster goedgekeurd en gevraagd dit in de app te
+verwerken en een update voor Claude klaar te zetten. De implementatie staat in web én iOS.
+Claude beoordeelt, voegt samen en zet live. Deze branch is uitsluitend lokaal vastgelegd.
+
+Branch: onboarding-bronnen
+Implementatiecommit: a871fb0
+Worktree: ../Hoot-sig-web
+Basis van de implementatie: b7d84a2 (v1.57.0).
+Laatste gecontroleerde main: f593ed9. Een git merge-tree-controle met main gaf geen conflicten;
+er is daarmee geen echte merge uitgevoerd.
+
+WAT IS VERANDERD
+- De oude samenvatting Je Hoot met twee regels is vervangen door visuele bronkeuze.
+- Echte bronlogo’s en namen, aan/uit-vinkje, gratis/abonnement en waar nodig EN.
+- Op normale telefoons 4 kolommen, maximaal 16 bronkaarten per pagina.
+- Meer dan 16 bronnen kiezen mag: Meer bronnen bladert met behoud van de keuzes.
+- Kleinere schermen en grotere letters krijgen minder kaarten per pagina; iOS AX krijgt een
+  scrollbare kolom. De iOS-hoofdknop behoudt ook bij grootste tekst zijn vaste vorm.
+- Naar Selectie werkt vanaf iedere bronnenpagina. Je Selectie is daarna een eigen stap.
+- Later kiezen bewaart de bronkeuze met een lege Selectie; Klaar bewaart gekozen Selectie-onderwerpen.
+- Een lege bronkeuze kan niet verder. Kaarten verspringen niet bij aan- of uitzetten.
+
+BRONVOLGORDE OP BASIS VAN INTERESSES — EXPLICIET DOOR ALEX GEVRAAGD
+De eerder gekozen interesses sturen het aanbod, in beide clients:
+1. Het voorstel bij de interesses, met NOS, NU.nl en RTL Nieuws als vaste algemene basis.
+   Alleen deze gratis voorgestelde bronnen beginnen aangevinkt.
+2. Andere bronnen die aansluiten bij de interesses, gratis vóór abonnement.
+3. De overige beschikbare nieuwsbronnen uit de catalogus.
+Binnen de groepen gebruiken we een vaste volgorde. Er is geen puntenscore per aantal matches.
+Voorbeelden: bij Tech komt Tweakers in het voorstel, The Verge en Ars Technica bij andere
+passende bronnen; bij Wereld komt BBC in het voorstel. De bronkeuze vult niet automatisch
+16 aangevinkte bronnen. Opnieuw kiezen begint met de bronnen die de gebruiker al volgt.
+
+Waar dit is verwerkt:
+- src/views/Welcome.jsx: proposal en rows verbinden interesses met proposeSources/moreSources.
+- src/lib/welcome.js: bestaande ALWAYS, PICK en ALSO-regels worden gebruikt.
+- ios/Hoot/Views/WelcomeView.swift: fill/offerSources en het compacte sourcePreview-raster.
+- ios/Hoot/HootStore.swift: bestaande suggested/alsoSuggested-regels worden gebruikt.
+
+VALIDATIE
+- npm test: 865 geslaagd, 0 mislukt, 1 bestaande TODO (866 totaal).
+- npm run build: geslaagd.
+- iOS: 51 tests geslaagd, 0 mislukt, TEST SUCCEEDED.
+- Gerichte hercontrole: node --test tests/welcome.test.mjs: alle 12 geslaagd.
+- git diff --check: schoon.
+- Samenvoegcontrole met main f593ed9: geen conflicten.
+- Web handmatig: 16 kaarten op 390x844, 9 op 320x667, aanpassing bij 150% tekst,
+  geen overlap of horizontale overflow; lichte en donkere weergave.
+- 18 bronnen over twee pagina’s gekozen, heen/terug naar Selectie, daarna afgerond:
+  18 unieke bron-id’s en een lege Selectie bleven behouden.
+- Een gekozen Selectie-onderwerp (Merk & reclame) wordt correct bewaard als vak: ["merk"].
+- Native: echte simulatorbeelden gecontroleerd bij normale tekst, XXXL en AX5.
+  De volledige native route moet Claude vóór release nog interactief op toestel controleren,
+  inclusief de eventuele meldingsvraag na Selectie.
+
+PREVIEW
+In deze worktree:
+node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 5871
+http://127.0.0.1:5871/lees/tests/visual/onboarding.html?theme=dark
+Voor 150% tekst: voeg &text=large toe.
+De testpagina heeft vier vaste testinteresses; de productie-onboarding begint met lege interesses.
+De fixture is een vaste publieke broncatalogus. De testpagina is geen productie-ingang.
+
+BEWIJS EN UITGEBREID RAPPORT
+../Hoot-design/onboarding-bronnen-2026-10-31/OVERDRACHT-CLAUDE.txt
+In dezelfde map: definitieve web- en iOS-schermafbeeldingen en volledige test-/buildlogs.
+
+VERVOLG DOOR CLAUDE
+Review branch onboarding-bronnen, controleer de native route op toestel en voeg daarna samen
+volgens de bestaande releaseafspraken. Versienummers, publicatie en Apple-upload zijn aan Claude.

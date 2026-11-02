@@ -17,7 +17,8 @@
 //   drie    : previousOf over alle eerdere Edities van de dag (H3 zonder de history-mechaniek);
 //   account : een ander toestel zonder lokale Edities, met de Editie en `history` uit het account (H5);
 //   sprong  : als account, maar niemand stelde de Middag samen: de Avond kent alleen de Ochtend.
-import { buildStories, selectEdition, relinkEdition, widelyCovered, previousOf, historyOf, recentEditions, signatures, sameSubject } from '../../netlify/lib/stories.mjs'
+import { buildStories, selectEdition, relinkEdition, widelyCovered, previousOf, historyOf, recentEditions, signatures, sameSubject, isLive } from '../../netlify/lib/stories.mjs'
+import { nearStories } from '../../netlify/lib/bubble.mjs'
 import { MAIN_IDS, MUSIC_IDS } from '../../netlify/lib/sources.mjs'
 import { composePersonal, withoutDebug, earlierEditions } from '../../src/lib/personal.js'
 import { PERSONAS, setupFor } from '../fixtures/personas.mjs'
@@ -71,6 +72,7 @@ export function dayOf(articles, sources) {
       entries: relinkEdition(entries, { stories, snapshot: snapStories, byId }),
       items: [...new Set(entries.map(leadOf))].map((id) => byId.get(id)).filter(Boolean),
       bubble: [], brief: null,
+      near: nearStories(stories, byId, { isFree: id => SRC.has(id) && !SRC.get(id).paid, isDutch: id => SRC.get(id)?.lang === 'nl', isSport: i => SRC.get(i.source)?.cat === 'sport' || (i.topics || []).some(t => SPORT_TOPICS.has(t)), isLive, now: sl.now }),
       wide: widelyCovered(stories, byId, { isFree: (id) => SRC.has(id) && !SRC.get(id).paid, isDutch: (id) => SRC.get(id)?.lang === 'nl', isSport: (i) => SRC.get(i.source)?.cat === 'sport' || (i.topics || []).some((t) => SPORT_TOPICS.has(t)) }),
     }
     day.push({ sl, pool, stories, byId, global, storyOf: new Map(stories.flatMap((st) => st.itemIds.map((id) => [id, st]))) })
@@ -173,7 +175,7 @@ export function runDay(articles, sources, { personas = DAG_PERSONAS, variants = 
         const known = d.pool.filter((i) => setup.followed.has(i.source))
         const mine = composePersonal({ global: d.global, stories: d.stories, items: known, sources, followed: setup.followed, interests: setup.interests, topics: setup.topics, favorites: setup.favorites, affinity: setup.affinity, taste: setup.taste, now: d.sl.now, previous, readIds: new Set() })
         // Vastgelegd zoals de hook dat doet: met owner, basis en de history van de Edities ervóór.
-        eds.push({ ...withoutDebug(mine), owner: OWNER, basis: 'x', history: earlier.map(historyOf).filter(Boolean) })
+        eds.push({ ...withoutDebug(mine), ...(mine?._supply ? {_supply:mine._supply} : {}), owner: OWNER, basis: 'x', history: earlier.map(historyOf).filter(Boolean) })
         // Groot nieuws aanwezig óf vandaag al getoond (alleen voor de variant die de code zelf gebruikt).
         if (eds.length > 1 && v === 'code') {
           const big = bigOf(d)

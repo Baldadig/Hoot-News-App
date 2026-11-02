@@ -1,0 +1,19 @@
+--- a/algoritme/meting/acceptatie.mjs
++++ b/algoritme/meting/acceptatie.mjs
+@@ -156,12 +156,13 @@
+       const prof = EDITOR.profileOf({ ...setup, sources: snap.sources })
+       const world = POLICY.worldChosen(prof)
+       const deskOfE = (e) => ctx.storyById.get(M.keyOf(e, ctx))?.desk ?? (e.desk === 'extern' ? e.fromDesk : e.desk) ?? null
+-      const ints = es.filter((e) => POLICY.internationalNews(M.membersOf(e, ctx), deskOfE(e))).length
++      const cappedNews = (items,desk,story) => POLICY.cappedInternational ? POLICY.cappedInternational(prof,items,desk,story) : POLICY.internationalNews(items,desk,story)
++      const ints = es.filter((e) => cappedNews(M.membersOf(e, ctx), deskOfE(e),ctx.storyById.get(M.keyOf(e,ctx)))).length
+       const keys = M.keysOf(ed, ctx)
+-      const admissible = (st, items) => items.length > 0 && POLICY.allowedNews(prof, st || {}, items, st?.desk ?? null) && (world || !POLICY.internationalNews(items, st?.desk ?? null) || ints < EDITOR.INT_MAX)
++      const admissible = (st, items) => items.length > 0 && POLICY.allowedNews(prof, st || {}, items, st?.desk ?? null) && (world || !cappedNews(items, st?.desk ?? null,st) || ints < EDITOR.INT_MAX)
+       const pres = M.bigNewsPresent(ed, ctx, big)
+       const missing = big.filter((st) => !keys.has(st.id) && !es.some((e) => M.membersOf(e, ctx).some((i) => st.itemIds.includes(i.id))))
+-      const excused = missing.filter((st) => !world && POLICY.internationalNews(storyOf(st), st.desk ?? null) && ints >= EDITOR.INT_MAX).length
++      const excused = missing.filter((st) => !world && cappedNews(storyOf(st), st.desk ?? null,st) && ints >= EDITOR.INT_MAX).length
+       grootNorm += (pres.present + excused) / (pres.of || 1)
+       const bubbleCands = [...snap.edition.entries.filter((e) => e.desk === 'bubbel').map((e) => ({ id: e.leadId || e.id, storyId: e.kind === 'story' ? e.id : null })), ...(snap.edition.bubble || [])]
+       const candOk = (id, sid) => { const st = ctx.storyById.get(sid || ctx.storyOfItem.get(id)); const items = st ? storyOf(st) : [ctx.itemById.get(id)].filter(Boolean); return !keys.has(st?.id || id) && admissible(st, items) }

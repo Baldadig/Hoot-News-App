@@ -3,7 +3,7 @@
 const words = pattern => new RegExp(`(?<![\\p{L}\\p{N}])(?:${pattern})(?![\\p{L}\\p{N}])`, 'iu')
 const COUNTRIES = [
   ['nl', 'nederland|netherlands|dutch|den haag|the hague|zeeuws-vlaanderen|breskens|amsterdam|rotterdam|utrecht|eindhoven'],
-  ['us', 'verenigde staten|united states|u\\.s\\.|usa|amerikaan\\p{L}*|american\\p{L}*|washington|michigan|ohio|texas|california|florida|new york'],
+  ['us', 'verenigde staten|united states|u\\.s\\.|usa|amerikaan\\p{L}*|american\\p{L}*|washington|michigan|ohio|texas|california|florida|new york|colorado|denver'],
   ['in', 'india|indiaas|indiase|indian|new delhi|mumbai|modi'],
   ['fr', 'frankrijk|france|frans|franse|fransen|french|parijs|paris|marseille'],
   ['de', 'duitsland|germany|german|duitse?|duitsers|berlijn|berlin|frankfurt|hamburg|keulen|cologne|munich'],
@@ -18,6 +18,7 @@ const COUNTRIES = [
   ['es', 'spanje|spain|spaans\\p{L}*|madrid'], ['it', 'itali\\p{L}*|rome|milaan|lucca'],
   ['pl', 'polen|poland|poolse?|warschau'], ['ee', 'estland|estse?|estonia\\p{L}*'],
   ['sn', 'senegal\\p{L}*'], ['sa', 'saudi\\p{L}*|saoedi\\p{L}*|saudische?'],
+  ['nz', 'new zealand|nieuw-zeeland'],
   ['au', 'australi\\p{L}*'], ['tr', 'turkije|turkey|turks\\p{L}*|erdogan'],
 ].map(([id, pattern]) => [id, words(pattern)])
 export function countriesIn(text = '') {
@@ -38,6 +39,12 @@ export function usPoliticsIn(text = '') {
 }
 
 const LOCAL_INCIDENT = words('protest\\p{L}*|betoging\\p{L}*|demonstrat\\p{L}*|rally|rallies|riot\\p{L}*|rellen|onrust|arrest\\p{L}*|aanhouding\\p{L}*|aangehouden|police|politie|schietpartij|shooting|explosi\\p{L}*|brand|fire|crash')
+// Een wedstrijddiscipline is gebeurteniscontext, geen reden om alle sport van dezelfde dag te bundelen.
+const SPORT_EVENTS = [
+  ['f1', /\b(?:f1|formula one|formula 1|formule 1|grand prix|verstappen|antonelli|norris|leclerc|piastri)\b/i],
+  ['running', /\b(?:marathon|hardlopen|hardloper\w*|nageeye|kipruto|chepkirui)\b/i],
+  ['cycling', /\b(?:veldrit\w*|veldrijd\w*|koppenberg\w*|cyclocross|tour de france|giro d.italia)\b/i],
+]
 const LOCATIONS = ['den haag|the hague', 'frankfurt', 'parijs|paris', 'marseille', 'berlijn|berlin', 'hamburg', 'keulen|cologne', 'amsterdam', 'rotterdam', 'utrecht', 'new delhi', 'mumbai'].map((p, id) => [id, words(p)])
 export function eventScope(article = {}) {
   const title = article.title || ''
@@ -45,9 +52,10 @@ export function eventScope(article = {}) {
   const cities = LOCATIONS.filter(([, re]) => re.test(title)).map(([id]) => id)
   const actions = [...title.matchAll(new RegExp(LOCAL_INCIDENT.source, 'giu'))].length
   const overview = countries.length > 1 && (cities.length > 1 || (/[,;]/.test(title) && actions > 1))
-  return { local: LOCAL_INCIDENT.test(`${title} ${article.summary || ''}`), countries, cities, overview }
+  return { local: LOCAL_INCIDENT.test(`${title} ${article.summary || ''}`), countries, cities, overview, sports: SPORT_EVENTS.filter(([, re]) => re.test(title)).map(([id]) => id) }
 }
 export function conflictingEvents(a, b) {
+  if (a?.sports?.length && b?.sports?.length && !a.sports.some(s => b.sports.includes(s))) return true
   if (!a?.local || !b?.local) return false
   // Een overzicht van lokale gebeurtenissen in meerdere landen vormt geen brug tussen die gebeurtenissen.
   if (a.overview || b.overview) return true

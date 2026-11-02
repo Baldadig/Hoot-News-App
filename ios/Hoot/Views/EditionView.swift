@@ -1,15 +1,56 @@
 import SwiftUI
 
-// Editie: drie keer per dag tien verhalen, met een einde. Het hoofdverhaal heeft altijd een
-// scherp beeld (anders schuift het eerste verhaal mét goed beeld naar voren, net als op het web).
+// Editie: drie keer per dag hooguit tien genummerde verhalen. De redactionele volgorde blijft leidend;
+// een optioneel bubbelverhaal staat los en ongenummerd na de gewone reeks.
 struct EditionRowModel: Identifiable {
     let id: String
     let item: Item
     let story: Story?
     let label: String?
     let desk: String?
+    var number: Int? = nil
     var why: String? = nil // het waarom van de plek (jouw Editie), of niets
     var outside = false // buiten de bronnen die je volgt: dat zegt de bronregel
+}
+
+// Nummer pas na de beeldvolgorde; de bubbel staat buiten de telling.
+enum EditionNumbering {
+    static func rows(_ rows: [EditionRowModel]) -> [EditionRowModel] {
+        var n = 0
+        return rows.map { row in
+            var row = row
+            if row.desk == "bubbel" { row.number = nil }
+            else { n += 1; row.number = n }
+            return row
+        }
+    }
+    static func count(_ rows: [EditionRowModel]) -> Int { rows.compactMap(\.number).max() ?? 0 }
+}
+
+// Titel en wachtmarkering delen één normale verticale opmaak; geen overlay op de kop.
+struct EditionHeader: View {
+    let title: String
+    let slot: String?
+    var waiting = false
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .bottom, spacing: Space.s3) {
+                    ScreenTitle(title, gap: 0).fixedSize()
+                    Spacer(minLength: 0)
+                    if let slot, EditionSun.height[slot] != nil {
+                        EditionSun(slot: slot).padding(.bottom, Space.s1)
+                    }
+                }
+                ScreenTitle(title, gap: 0).frame(maxWidth: .infinity, alignment: .leading)
+            }
+            if waiting {
+                WaitingMark().frame(maxWidth: .infinity, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.vertical, Space.s3)
+            }
+        }
+    }
 }
 
 // De drie dagdelen van de Editie: per slot de naam (met hoofdletter, zoals Editie), wanneer de
@@ -45,7 +86,7 @@ enum Desk {
     // een sterke treffer, anders de rubriek; het waarom alleen als het iets toevoegt; "Buiten je bronnen" staat
     // in de bronregel.
     static func label(_ e: EditionEntry, item: Item, sourceCat: String?, follows: [String], followed: Bool) -> StoryLabel.Result {
-        StoryLabel.label(topics: item.topics ?? [], mainTopics: item.mainTopics ?? [], follows: follows, cat: sourceCat, desk: e.desk, deskLabel: plek(e), whyCode: e.why?.code, whyText: e.why?.text, followed: followed || ["bubbel", "breed"].contains(e.desk ?? ""))
+        StoryLabel.label(topics: item.topics ?? [], mainTopics: item.mainTopics ?? [], follows: follows, cat: sourceCat, desk: e.desk, deskLabel: plek(e), whyCode: e.why?.code, whyText: e.why?.text, whyDetail: e.why?.detail == true, followed: followed || ["bubbel", "breed"].contains(e.desk ?? ""))
     }
 }
 
@@ -76,14 +117,10 @@ extension HootStore {
             guard let item = published[leadId] ?? itemsById[leadId] else { return nil }
             let story = e.kind == "story" ? storiesById[e.id] : item.storyId.flatMap { storiesById[$0] }
             let l = Desk.label(e, item: item, sourceCat: self.source(item.source)?.cat, follows: topics, followed: on.contains(item.source))
-            return EditionRowModel(id: e.id, item: item, story: story, label: l.kicker, desk: e.desk, why: l.why, outside: l.outside)
+            return EditionRowModel(id: e.id, item: item, story: story, label: l.kicker ?? "Nieuws", desk: e.desk, why: l.why, outside: l.outside)
         }
-        // Hoofdverhaal met scherp beeld (geen bubbel of "waar iedereen over schrijft").
-        let ok: (EditionRowModel) -> Bool = { ImageURL.fitsHero($0.item.image) && !["bubbel", "breed"].contains($0.desk ?? "") }
-        guard let first = rows.first, !ok(first), let i = rows.firstIndex(where: ok) else { return rows }
-        var out = rows
-        out.insert(out.remove(at: i), at: 0)
-        return out
+        // De redactionele volgorde blijft de leesvolgorde, ook zonder groot beeld bij de opening.
+        return rows
     }
 }
 
@@ -98,6 +135,7 @@ struct EditionView: View {
     @Environment(HootStore.self) private var store
     @Environment(\.openTab) private var openTab
     @Environment(\.isWide) private var wide
+    @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.brandHandoff) private var handoff
     @Environment(\.accessibilityReduceMotion) private var still
     @Environment(EditionAlerts.self) private var alerts
@@ -133,6 +171,7 @@ struct EditionView: View {
         return " De volgende staat \(volgende) klaar."
     }
 
+    @State private var refreshWaiting = false
     @State private var path = NavigationPath()
     @State private var nudge = false // "Maak Hoot van jou", na even rondkijken
     @State private var setup = false
@@ -143,6 +182,7 @@ struct EditionView: View {
         let items = [row.item] + (row.story?.itemIds ?? []).filter { $0 != row.item.id }.compactMap { store.itemsById[$0] }
         if store.less.contains(row.id) {
             HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
+                EditionNumber(number: row.number, read: store.isRead(row.item))
                 Text("Je ziet minder over \(Taste.about(items)).")
                     .font(.subheadline)
                     .foregroundStyle(Theme.ink3)
@@ -192,21 +232,14 @@ struct EditionView: View {
             ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
-                    let rows = store.editionRows
+                    let numbered = EditionNumbering.rows(store.editionRows)
+                    let rows = numbered.filter { $0.desk != "bubbel" }
+                    let outsideRows = numbered.filter { $0.desk == "bubbel" }
                     // De schermtitel in de scroll, direct boven de metaregel (zoals .vh__sub op het web).
                     // Met een kleine, stille zon ernaast: zijn hoogte toont het dagdeel (onboarding-plan, ‘De zon
                     // in de Editie’). Laag bij de Ochtend- en Avondeditie, hoog bij de Middageditie.
                     // Past de naam er bij grote tekst niet meer naast, dan alleen de naam (nooit afgebroken).
-                    ViewThatFits(in: .horizontal) {
-                        HStack(alignment: .bottom, spacing: Space.s3) {
-                            ScreenTitle(title, gap: 0).fixedSize()
-                            Spacer(minLength: 0)
-                            if let slot = store.edition?.slot, EditionSun.height[slot] != nil {
-                                EditionSun(slot: slot).padding(.bottom, Space.s1)
-                            }
-                        }
-                        ScreenTitle(title, gap: 0).frame(maxWidth: .infinity, alignment: .leading)
-                    }
+                    EditionHeader(title: title, slot: store.edition?.slot, waiting: refreshWaiting && !rows.isEmpty)
                     if rows.isEmpty && (store.status == .loading || (store.status != .failed && store.edition != nil && store.shownEdition == nil)) {
                         WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
                     } else if rows.isEmpty {
@@ -218,34 +251,49 @@ struct EditionView: View {
                     } else {
                         // Eén metaregel, zoals op het web. De vaste spatie vóór de punt houdt die bij de
                         // datum als de regel bij grote tekst breekt ("oktober ·", niet "· Jouw Editie").
-                        Text([dateLine, store.isPersonal ? "Jouw Editie" : "De Editie voor iedereen"].filter { !$0.isEmpty }.joined(separator: "\u{00A0}· "))
+                        Text([dateLine, store.isPersonal ? "Jouw Editie" : store.shownEdition?.personal == true ? "Om te beginnen" : "De Editie voor iedereen"].filter { !$0.isEmpty }.joined(separator: "\u{00A0}· "))
                             .font(.subheadline)
                             .foregroundStyle(Theme.ink3)
                             .padding(.bottom, Space.s4)
                         // Kon er niet ververst worden, dan zegt dat het onder de datum: titel en datum blijven bij elkaar.
                         StaleNotice(gap: Space.s4)
                         StrongRule(drawn: ruleDrawn).padding(.bottom, Space.s4)
-                        slot(rows[0]) { LeadCard(item: rows[0].item, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
+                        if !EditionLimits.hasMinimum(EditionNumbering.count(rows)) {
+                            EmptyState(title:"Nog geen Editie",systemImage:"newspaper",text:"Er is nog te weinig passend nieuws voor een Editie. In de Stroom kun je verder lezen.")
+                        }
+                        slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
                             .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
-                        if wide {
+                        if wide && !typeSize.isAccessibilitySize {
                             // Breed: de rest in twee kolommen, elk verhaal met een lijn erboven.
                             LazyVGrid(columns: [GridItem(.flexible(), spacing: Space.s6, alignment: .top), GridItem(.flexible(), spacing: Space.s6, alignment: .top)], alignment: .leading, spacing: Space.s2) {
                                 ForEach(rows.dropFirst()) { row in
                                     VStack(alignment: .leading, spacing: 0) {
                                         Rule().padding(.vertical, Space.s2)
-                                        slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
+                                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, headlineLines: EditionDisplay.halfHeadlineLines) }
                                     }
                                 }
                             }
                         } else {
                             ForEach(rows.dropFirst()) { row in
                                 Rule().padding(.vertical, Space.s2)
-                                slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
+                                slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
+                            }
+                        }
+                        if !outsideRows.isEmpty {
+                            StrongRule().padding(.top, Space.s5)
+                            Text("Buiten je bubbel").font(Theme.headline(.title2)).accessibilityAddTraits(.isHeader).padding(.vertical,Space.s3)
+                            ForEach(outsideRows) { row in
+                                slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,form:.krant) }
                             }
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,
                         // en wanneer de volgende er is.
+                        if EditionLimits.hasMinimum(EditionNumbering.count(rows)) {
                         VStack(spacing: Space.s3) {
+                            let count = EditionNumbering.count(rows)
+                            if count > 0 {
+                                Text("\(count) van \(count)").font(.system(.body, design: .serif)).monospacedDigit().opacity(0.85)
+                            }
                             // De zon komt hier één keer op (6 s), zodra het vlak in beeld komt, en ademt
                             // dan; in papier op merkrood. Het enige merkmoment tijdens het lezen. Met
                             // Verminder beweging staat hij al op (OnboardingArt, variant intro).
@@ -254,7 +302,7 @@ struct EditionView: View {
                                     endVisible = visible
                                     if visible && risenAt == nil { risenAt = .now }
                                 }
-                            Text("Je bent bij.").font(Theme.headline(.title))
+                            Text("Dan ben je bij.").font(Theme.headline(.title))
                             Text("Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(endDate)").\(upNext)")
                                 .font(.subheadline)
                                 .multilineTextAlignment(.center)
@@ -280,6 +328,7 @@ struct EditionView: View {
                         .background(Theme.brandRed, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
                         .padding(.top, Space.s6)
                         .padding(.bottom, Space.s4)
+                        }
                     }
                 }
                 .padding(.horizontal)
@@ -308,7 +357,7 @@ struct EditionView: View {
             .hootScreenTitle() // het verhaal wint van de schermtitel (C7)
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .hootRefresh { await store.load() }
+            .hootRefresh(indicator: false, onWaiting: { refreshWaiting = $0 }) { await store.load() }
             .toolbar {
                 // Het woordmerk, klein linksboven: je ziet waar je bent, zonder dat het de krant overneemt.
                 // Hier landt het opstartscherm op.

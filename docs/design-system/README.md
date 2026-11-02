@@ -97,7 +97,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 - **Vaste verhoudingen**, bijgesneden en niet uitgerekt:
   - hoofdbeeld 2:1 bij liggend beeld, 4:5 bij staand beeld en 3:4 naast de tekst op een breed scherm;
   - een bericht in de Stroom, Bewaard en Zoeken heeft twee vormen, op web en iOS gelijk ("Lees de Stroom als"): **Tijdlijn** — kop, intro, het beeld over de volle kolombreedte in 2:1 (`media-tl`, `radius`), de bronregel eronder; **Krant** — kop en intro links, een klein beeld 3:2 rechts met vaste breedte (`thumb`, `radius-sm`), de bronregel onder de tekst. Op alle breedtes dezelfde twee vormen;
-  - miniatuur op de voorpagina vierkant, met `radius-sm`.
+  - miniatuur op de voorpagina 3:2, met `radius-sm`.
 - **Bij heel grote tekst** valt de miniatuur weg: de kop krijgt de hele breedte.
 - **Bronlogo's** zijn cirkels, zonder naam eronder: het logo is genoeg.
 - **De lijn bovenaan de Stroom** (web en iOS gelijk):

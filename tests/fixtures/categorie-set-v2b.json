@@ -1,0 +1,3178 @@
+{
+  "schemaVersion": 2,
+  "annotation": "Voorlopige Codex-beoordelingen, geen menselijke gold standard. Blind op kop/intro en expliciete plaats-/instellingskennis; geen classifier of feedvoorspellingen bekeken. Onzekerheid expliciet behouden.",
+  "controlOnly": true,
+  "notForTuning": true,
+  "publicationDay": "2026-11-02",
+  "timezone": "Europe/Amsterdam",
+  "baseline": "docs/codex-blokken/categorie-v2b/baseline-overlap.json",
+  "cases": [
+    {
+      "id": "1ewsua8",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:1ewsua8",
+      "article": {
+        "id": "1ewsua8",
+        "kind": "article",
+        "source": "ad",
+        "sourceName": "AD",
+        "title": "De grote misvatting die ervoor zorgt dat mannen elkaar niet aanspreken na foute opmerkingen tegen vrouwen",
+        "summary": "Mannen moeten veel vaker hun mond opentrekken als vrienden, collega’s of teamgenoten seksueel grensoverschrijdende opmerkingen tegen vrouwen maken.",
+        "url": "https://www.ad.nl/binnenland/de-grote-misvatting-die-ervoor-zorgt-dat-mannen-elkaar-niet-aanspreken-na-foute-opmerkingen-tegen-vrouwen~aad2b674/",
+        "publishedAt": "2026-11-02T06:30:47.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:40:18.898Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "global",
+        "mainTopic": "maatschappij",
+        "eventId": null,
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": true
+        },
+        "reason": "Algemene analyse van aanspreekgedrag en seksisme; geen land of concrete gebeurtenis genoemd.",
+        "evidence": {
+          "title": "De grote misvatting die ervoor zorgt dat mannen elkaar niet aanspreken na foute opmerkingen tegen vrouwen",
+          "summary": "Mannen moeten veel vaker hun mond opentrekken als vrienden, collega’s of teamgenoten seksueel grensoverschrijdende opmerkingen tegen vrouwen maken."
+        }
+      },
+      "selectionIndex": 0
+    },
+    {
+      "id": "7p2qjh",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:iran-sevda-moeder-regime",
+      "article": {
+        "id": "7p2qjh",
+        "kind": "article",
+        "source": "bbc",
+        "sourceName": "BBC",
+        "title": "Iran killed her teenage daughter – now she is facing up to the regime",
+        "summary": "Samira’s 16-year-old daughter Sevda was shot dead as they took part in mass protests in January.",
+        "url": "https://www.bbc.co.uk/news/articles/c3qjn8117kwjo?at_medium=RSS&at_campaign=rss",
+        "publishedAt": "2026-11-02T06:00:54.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:40:18.898Z"
+      },
+      "label": {
+        "desk": "middenoosten",
+        "subjectCountry": "IR",
+        "subjectCountries": [
+          "IR"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "politiek",
+        "eventId": "iran-sevda-moeder-regime",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Iran en de dood van Sevda bij protesten staan expliciet in kop en intro; dit is geen oorlogsmelding in de Straat van Hormuz.",
+        "evidence": {
+          "title": "Iran killed her teenage daughter – now she is facing up to the regime",
+          "summary": "Samira’s 16-year-old daughter Sevda was shot dead as they took part in mass protests in January."
+        }
+      },
+      "selectionIndex": 3
+    },
+    {
+      "id": "1o9b9e7",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:dobbin-me-onderzoeksfinanciering",
+      "article": {
+        "id": "1o9b9e7",
+        "kind": "article",
+        "source": "bbc-sport",
+        "sourceName": "BBC Sport",
+        "title": "Sportspeople back Dobbin’s PM plea on ME funding",
+        "summary": "A total of 360 sportspeople sign a letter calling on the prime minister to meet Beth Dobbin and increase funding towards ME research.",
+        "url": "https://www.bbc.co.uk/sport/athletics/articles/c63r53wvy4q5o?at_medium=RSS&at_campaign=rss",
+        "publishedAt": "2026-11-02T06:30:24.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:40:18.898Z"
+      },
+      "label": {
+        "desk": "wetenschap",
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "unknown",
+        "mainTopic": "gezondheid",
+        "eventId": "dobbin-me-onderzoeksfinanciering",
+        "uncertain": {
+          "desk": false,
+          "country": true,
+          "topic": false,
+          "event": false
+        },
+        "reason": "De vraag gaat om financiering van ME-onderzoek, niet om een sportuitslag. Het land van de premier staat niet in kop of intro.",
+        "evidence": {
+          "title": "Sportspeople back Dobbin’s PM plea on ME funding",
+          "summary": "A total of 360 sportspeople sign a letter calling on the prime minister to meet Beth Dobbin and increase funding towards ME research."
+        }
+      },
+      "selectionIndex": 4
+    },
+    {
+      "id": "ec8chh",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:mahle-schott-india-beursgang",
+      "article": {
+        "id": "ec8chh",
+        "kind": "article",
+        "source": "bloomberg",
+        "sourceName": "Bloomberg",
+        "title": "German Firms Mahle, Schott Said to Seek Banks for India IPOs",
+        "summary": "Two German companies, Mahle GmbH and Schott Pharma AG, are exploring initial public offerings of their Indian businesses that could raise as much as $400 million each…",
+        "url": "https://www.bloomberg.com/news/articles/2026-11-02/german-firms-mahle-schott-said-to-seek-banks-for-india-ipos",
+        "publishedAt": "2026-11-02T06:39:31.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T07:00:22.560Z"
+      },
+      "label": {
+        "desk": "buitenland",
+        "subjectCountry": null,
+        "subjectCountries": [
+          "DE",
+          "IN"
+        ],
+        "geographicalClass": "multiple",
+        "mainTopic": "economie",
+        "eventId": "mahle-schott-india-beursgang",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Duitse bedrijven bereiden beursgangen van hun Indiase activiteiten voor; beide landen zijn onderwerp.",
+        "evidence": {
+          "title": "German Firms Mahle, Schott Said to Seek Banks for India IPOs",
+          "summary": "Two German companies, Mahle GmbH and Schott Pharma AG, are exploring initial public offerings of their Indian businesses that could raise as much as $400 million each…"
+        }
+      },
+      "selectionIndex": 6
+    },
+    {
+      "id": "9l29f0",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:moreno-opa-psychose",
+      "article": {
+        "id": "9l29f0",
+        "kind": "article",
+        "source": "bndestem",
+        "sourceName": "BN DeStem",
+        "title": "Moreno zat in een psychose toen hij zijn opa doodstak",
+        "summary": "De 23-jarige Moreno heeft al tijden last van psychoses. De laatste weken denkt hij dat hij gevolgd wordt en heeft hij ter bescherming messen bij zich.",
+        "url": "https://www.bndestem.nl/binnenland/moreno-zat-in-een-psychose-toen-hij-zijn-opa-doodstak~a23d90df/",
+        "publishedAt": "2026-11-02T07:00:03.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T07:00:22.560Z"
+      },
+      "label": {
+        "desk": null,
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "unknown",
+        "mainTopic": "misdaad",
+        "eventId": "moreno-opa-psychose",
+        "uncertain": {
+          "desk": true,
+          "country": true,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Een dodelijke steekpartij en psychose zijn duidelijk; kop en intro noemen geen land. Niet uit de Nederlandse uitgever afleiden.",
+        "evidence": {
+          "title": "Moreno zat in een psychose toen hij zijn opa doodstak",
+          "summary": "De 23-jarige Moreno heeft al tijden last van psychoses. De laatste weken denkt hij dat hij gevolgd wordt en heeft hij ter bescherming messen bij zich."
+        }
+      },
+      "selectionIndex": 7
+    },
+    {
+      "id": "iti79h",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:warriors-clippers-lendeborg-37",
+      "article": {
+        "id": "iti79h",
+        "kind": "article",
+        "source": "espn",
+        "sourceName": "ESPN",
+        "title": "Lendeborg dazzles again with 37, regrets ‘falling into peer pressure’ to chase 40",
+        "summary": "Yaxel Lendeborg hit six 3s and scored 37 points -- the most by a Warriors rookie since Stephen Curry in 2010 -- as Golden State beat the Clippers on Sunday night while resting Curry and Draymond Green.",
+        "url": "https://www.espn.com/nba/story/_/id/50356142/yaxel-lendeborg-scores-37-points-most-warriors-rookie-stephen-curry",
+        "publishedAt": "2026-11-02T06:36:10.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:40:18.898Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": "US",
+        "subjectCountries": [
+          "US"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "sport",
+        "eventId": "warriors-clippers-lendeborg-37",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Basketbalwedstrijd Golden State tegen de Clippers en de 37 punten van Lendeborg; land volgt uit de Amerikaanse teams, niet uit ESPN.",
+        "evidence": {
+          "title": "Lendeborg dazzles again with 37, regrets ‘falling into peer pressure’ to chase 40",
+          "summary": "Yaxel Lendeborg hit six 3s and scored 37 points -- the most by a Warriors rookie since Stephen Curry in 2010 -- as Golden State beat the Clippers on Sunday night while resting Curry and Draymond Green."
+        }
+      },
+      "selectionIndex": 12
+    },
+    {
+      "id": "tbclly",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:euronext-knibbe-benoeming",
+      "article": {
+        "id": "tbclly",
+        "kind": "article",
+        "source": "fd",
+        "sourceName": "Het Financieele Dagblad",
+        "title": "Beursbedrijf Euronext trekt David Knibbe (NN) aan als nieuwe ceo",
+        "summary": "Beursbedrijf Euronext verleidt de topman van Nationale-Nederlanden tot een opvallende transfer.",
+        "url": "https://fd.nl/financiele-markten/1617756/beursbedrijf-euronext-trekt-david-knibbe-nn-aan-als-nieuwe-ceo",
+        "publishedAt": "2026-11-02T06:05:48.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:20:16.844Z"
+      },
+      "label": {
+        "desk": null,
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "multiple",
+        "mainTopic": "economie",
+        "eventId": "euronext-knibbe-benoeming",
+        "uncertain": {
+          "desk": true,
+          "country": true,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Bestuurswissel tussen NN en het grensoverschrijdende Euronext. Kop en intro geven onvoldoende uitsluitsel over één primair onderwerp-land.",
+        "evidence": {
+          "title": "Beursbedrijf Euronext trekt David Knibbe (NN) aan als nieuwe ceo",
+          "summary": "Beursbedrijf Euronext verleidt de topman van Nationale-Nederlanden tot een opvallende transfer."
+        }
+      },
+      "selectionIndex": 13
+    },
+    {
+      "id": "ftq44y",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:bullough-witwassen-interview",
+      "article": {
+        "id": "ftq44y",
+        "kind": "article",
+        "source": "ftm",
+        "sourceName": "Follow the Money",
+        "title": "Sterauteur Oliver Bullough: ‘De strijd tegen witwassen is volledig mislukt’",
+        "summary": "Wereldwijd groeit het gebruik van digitale betaalmiddelen. Toch zijn er meer dollar- en eurobiljetten in omloop dan ooit tevoren. Criminelen zijn namelijk dol op cash.",
+        "url": "https://www.ftm.nl/artikelen/interview-sterauteur-oliver-bullough-falend-anti-witwasbeleid",
+        "publishedAt": "2026-11-02T05:00:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T05:10:16.614Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "global",
+        "mainTopic": "economie",
+        "eventId": "bullough-witwassen-interview",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Interview over wereldwijd witwassen en contant geld; geen enkelvoudige nationale gebeurtenis.",
+        "evidence": {
+          "title": "Sterauteur Oliver Bullough: ‘De strijd tegen witwassen is volledig mislukt’",
+          "summary": "Wereldwijd groeit het gebruik van digitale betaalmiddelen. Toch zijn er meer dollar- en eurobiljetten in omloop dan ooit tevoren. Criminelen zijn namelijk dol op cash."
+        }
+      },
+      "selectionIndex": 16
+    },
+    {
+      "id": "16o3n5z",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:altforst-school-sluiting-2027",
+      "article": {
+        "id": "16o3n5z",
+        "kind": "article",
+        "source": "gelderlander",
+        "sourceName": "De Gelderlander",
+        "title": "Scholenkoepel is niet te vermurwen: kleine dorpsschool in Altforst moet tóch dicht",
+        "summary": "De kleine dorpsschool in Altforst moet in 2027 echt sluiten. Dat heeft het bestuur van scholenkoepel Groeisaam besloten.",
+        "url": "https://www.gelderlander.nl/west-maas-en-waal/scholenkoepel-is-niet-te-vermurwen-kleine-dorpsschool-in-altforst-moet-toch-dicht~a44719f7/",
+        "publishedAt": "2026-11-02T06:39:14.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:50:19.504Z"
+      },
+      "label": {
+        "desk": "binnenland",
+        "subjectCountry": "NL",
+        "subjectCountries": [
+          "NL"
+        ],
+        "geographicalClass": "domestic",
+        "mainTopic": "onderwijs",
+        "eventId": "altforst-school-sluiting-2027",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Het besluit betreft de dorpsschool in Altforst en de Nederlandse scholenkoepel Groeisaam.",
+        "evidence": {
+          "title": "Scholenkoepel is niet te vermurwen: kleine dorpsschool in Altforst moet tóch dicht",
+          "summary": "De kleine dorpsschool in Altforst moet in 2027 echt sluiten. Dat heeft het bestuur van scholenkoepel Groeisaam besloten."
+        }
+      },
+      "selectionIndex": 17
+    },
+    {
+      "id": "144crix",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:wa-gezichtsherkenning-proef",
+      "article": {
+        "id": "144crix",
+        "kind": "article",
+        "source": "guardian",
+        "sourceName": "The Guardian",
+        "title": "Police use facial recognition to scan one million faces in WA trial leading to 122 arrests",
+        "summary": "Deployments of surveillance vans over five months resulted in nine false alerts and led officers to engage with 146 registered sex offenders Get our breaking news email…",
+        "url": "https://www.theguardian.com/australia-news/2026/nov/02/wa-police-facial-recognition-technology-trial",
+        "publishedAt": "2026-11-02T06:12:52.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T02:20:19.562Z"
+      },
+      "label": {
+        "desk": null,
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "unknown",
+        "mainTopic": "veiligheid",
+        "eventId": "wa-gezichtsherkenning-proef",
+        "uncertain": {
+          "desk": true,
+          "country": true,
+          "topic": false,
+          "event": false
+        },
+        "reason": "WA is in kop en intro niet uitgeschreven. De URL wijst naar Australia News, maar voor een tekstlabel blijft het land onzeker.",
+        "evidence": {
+          "title": "Police use facial recognition to scan one million faces in WA trial leading to 122 arrests",
+          "summary": "Deployments of surveillance vans over five months resulted in nine false alerts and led officers to engage with 146 registered sex offenders Get our breaking news email…"
+        }
+      },
+      "selectionIndex": 18
+    },
+    {
+      "id": "xxfus9",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:xxfus9",
+      "article": {
+        "id": "xxfus9",
+        "kind": "article",
+        "source": "guardian-music",
+        "sourceName": "The Guardian Muziek",
+        "title": "‘They said we incited riots’: explosive punks Bad Brains on drugs, self-destruction and recording from jail",
+        "summary": "Young, black and fuelled by self-help mantras, they were reputedly the best live band on Earth.",
+        "url": "https://www.theguardian.com/music/2026/nov/02/riots-explosive-punks-bad-brains-first-studio-recording",
+        "publishedAt": "2026-11-02T05:00:32.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T05:10:16.614Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "unknown",
+        "mainTopic": "muziek",
+        "eventId": null,
+        "uncertain": {
+          "desk": false,
+          "country": true,
+          "topic": false,
+          "event": true
+        },
+        "reason": "Een terugblik/interview met Bad Brains; geweldswoorden beschrijven het bandverleden, geen actuele rellen. Geen land in de tekst.",
+        "evidence": {
+          "title": "‘They said we incited riots’: explosive punks Bad Brains on drugs, self-destruction and recording from jail",
+          "summary": "Young, black and fuelled by self-help mantras, they were reputedly the best live band on Earth."
+        }
+      },
+      "selectionIndex": 19
+    },
+    {
+      "id": "hv8mij",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:cummins-starcc-hazlewood-engeland-rust",
+      "article": {
+        "id": "hv8mij",
+        "kind": "article",
+        "source": "guardian-sport",
+        "sourceName": "The Guardian Sport",
+        "title": "Australia Test captain Pat Cummins to miss upcoming England matches",
+        "summary": "Starc and Hazlewood also rested before busy summer Beardman and Shaw set to make their team debuts Test captain Pat Cummins and fellow quicks Mitchell Starc and Josh Hazlewood will be rested during Australia’s upcoming one-day and T20 series against England.",
+        "url": "https://www.theguardian.com/sport/2026/nov/02/australia-test-captain-pat-cummins-to-miss-upcoming-england-matches",
+        "publishedAt": "2026-11-02T04:23:48.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T04:50:47.448Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": null,
+        "subjectCountries": [
+          "AU",
+          "GB"
+        ],
+        "geographicalClass": "multiple",
+        "mainTopic": "sport",
+        "eventId": "cummins-starcc-hazlewood-engeland-rust",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Cricketselectie voor Australië tegen Engeland; twee nationale ploegen zijn onderwerp.",
+        "evidence": {
+          "title": "Australia Test captain Pat Cummins to miss upcoming England matches",
+          "summary": "Starc and Hazlewood also rested before busy summer Beardman and Shaw set to make their team debuts Test captain Pat Cummins and fellow quicks Mitchell Starc and Josh Hazlewood will be rested during Australia’s upcoming one-day and T20 series against England."
+        }
+      },
+      "selectionIndex": 20
+    },
+    {
+      "id": "zh53fr",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:lier-trage-wegen-vlaanderen",
+      "article": {
+        "id": "zh53fr",
+        "kind": "article",
+        "source": "gva",
+        "sourceName": "Gazet van Antwerpen",
+        "title": "Liers stadsbestuur vreest voor toekomst trage wegen en uit bezorgdheid bij Vlaanderen: “Dreigen vogelvrij verklaard te worden”",
+        "summary": "Het Lierse stadsbestuur maakt zich zorgen over de toekomst van de trage wegen.",
+        "url": "https://www.gva.be/regio/antwerpen/rivierenland/lier/liers-stadsbestuur-vreest-voor-toekomst-trage-wegen-en-uit-bezorgdheid-bij-vlaanderen-dreigen-vogelvrij-verklaard-te-worden/163880417.html",
+        "publishedAt": "2026-11-02T06:35:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:50:19.504Z"
+      },
+      "label": {
+        "desk": "buitenland",
+        "subjectCountry": "BE",
+        "subjectCountries": [
+          "BE"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "politiek",
+        "eventId": "lier-trage-wegen-vlaanderen",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Liers stadsbestuur richt zich tot Vlaanderen over lokale wegen; België volgt uit de benoemde bestuurslagen.",
+        "evidence": {
+          "title": "Liers stadsbestuur vreest voor toekomst trage wegen en uit bezorgdheid bij Vlaanderen: “Dreigen vogelvrij verklaard te worden”",
+          "summary": "Het Lierse stadsbestuur maakt zich zorgen over de toekomst van de trage wegen."
+        }
+      },
+      "selectionIndex": 21
+    },
+    {
+      "id": "16p1otf",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:trump-rsf-vijandenlijst",
+      "article": {
+        "id": "16p1otf",
+        "kind": "article",
+        "source": "haarlemsdagblad",
+        "sourceName": "Haarlems Dagblad",
+        "title": "Donald Trump op lijst met vijanden van persvrijheid",
+        "summary": "De Amerikaanse president Donald Trump is toegevoegd aan de lijst met vijanden van de persvrijheid van Reporters sans frontières (RSF).",
+        "url": "https://www.haarlemsdagblad.nl/buitenland/donald-trump-op-lijst-met-vijanden-van-persvrijheid/163942545.html",
+        "publishedAt": "2026-11-02T06:37:40.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:50:19.504Z"
+      },
+      "label": {
+        "desk": "vs",
+        "subjectCountry": "US",
+        "subjectCountries": [
+          "US"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "persvrijheid",
+        "eventId": "trump-rsf-vijandenlijst",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "De Amerikaanse president komt op de RSF-lijst van persvrijheidsvijanden. Dit is onderscheiden van verkiezingscampagnes en peilingen.",
+        "evidence": {
+          "title": "Donald Trump op lijst met vijanden van persvrijheid",
+          "summary": "De Amerikaanse president Donald Trump is toegevoegd aan de lijst met vijanden van de persvrijheid van Reporters sans frontières (RSF)."
+        }
+      },
+      "selectionIndex": 22
+    },
+    {
+      "id": "4rsxed",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:evenepoel-hardlopen-tokio",
+      "article": {
+        "id": "4rsxed",
+        "kind": "article",
+        "source": "hln",
+        "sourceName": "Het Laatste Nieuws",
+        "title": "Van rust is weinig sprake: Remco Evenepoel gaat voor tweede dag op rij lopen in Tokio",
+        "summary": "Wat doen voetballers na die 90 minuten op het veld? Of renners wanneer hun fietscomputer uitstaat?",
+        "url": "https://www.hln.be/sport/van-rust-is-weinig-sprake-remco-evenepoel-gaat-voor-tweede-dag-op-rij-lopen-in-tokio~aea3dedc/",
+        "publishedAt": "2026-11-02T06:58:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T07:00:22.560Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": "JP",
+        "subjectCountries": [
+          "JP"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "sport",
+        "eventId": "evenepoel-hardlopen-tokio",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Hardloopactiviteit van Evenepoel in Tokio; de locatie is Japan, niet het land van de Belgische sporter.",
+        "evidence": {
+          "title": "Van rust is weinig sprake: Remco Evenepoel gaat voor tweede dag op rij lopen in Tokio",
+          "summary": "Wat doen voetballers na die 90 minuten op het veld? Of renners wanneer hun fietscomputer uitstaat?"
+        }
+      },
+      "selectionIndex": 24
+    },
+    {
+      "id": "gu945l",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:bautista-kratos-rolvoorbereiding",
+      "article": {
+        "id": "gu945l",
+        "kind": "article",
+        "source": "ign",
+        "sourceName": "IGN",
+        "title": "Dave Bautista Reveals He’s Gained 20 Pounds of Muscle to Play Kratos in the God of War Series",
+        "summary": null,
+        "url": "https://www.ign.com/articles/dave-bautista-reveals-hes-gained-20-pounds-of-muscle-to-play-kratos-in-the-god-of-war-series",
+        "publishedAt": "2026-11-02T03:37:04.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T07:00:22.560Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "unknown",
+        "mainTopic": "film",
+        "eventId": "bautista-kratos-rolvoorbereiding",
+        "uncertain": {
+          "desk": false,
+          "country": true,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Acteur bereidt zich voor op een televisierol; geen land in de kop, geen intro. Geen VS aannemen vanwege de uitgever.",
+        "evidence": {
+          "title": "Dave Bautista Reveals He’s Gained 20 Pounds of Muscle to Play Kratos in the God of War Series",
+          "summary": ""
+        }
+      },
+      "selectionIndex": 25
+    },
+    {
+      "id": "thg8na",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:oekraine-waarschuwingsapp-hack-1102",
+      "article": {
+        "id": "thg8na",
+        "kind": "article",
+        "source": "independent",
+        "sourceName": "The Independent",
+        "title": "Ukraine-Russia war latest: Kyiv says emergency alert app hacked by ‘enemy influence’ after nuclear warnings",
+        "summary": "Ukraine said there was ‘no radiation threat’ despite warnings from the app",
+        "url": "https://www.independent.co.uk/news/world/europe/ukraine-russia-war-live-putin-zelensky-cyberattack-air-raid-b3077274.html",
+        "publishedAt": "2026-11-02T06:28:38.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T05:20:16.698Z"
+      },
+      "label": {
+        "desk": "oekraine",
+        "subjectCountry": "UA",
+        "subjectCountries": [
+          "UA"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "cyberveiligheid",
+        "eventId": "oekraine-waarschuwingsapp-hack-1102",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Kyiv en een gehackte Oekraïense alarmapp zijn de hoofdzaak; nieuwe cyberaanval, geen herlabelde evacuatie of Patriot-deal.",
+        "evidence": {
+          "title": "Ukraine-Russia war latest: Kyiv says emergency alert app hacked by ‘enemy influence’ after nuclear warnings",
+          "summary": "Ukraine said there was ‘no radiation threat’ despite warnings from the app"
+        }
+      },
+      "selectionIndex": 26
+    },
+    {
+      "id": "g4d23d",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:g4d23d",
+      "article": {
+        "id": "g4d23d",
+        "kind": "article",
+        "source": "lc",
+        "sourceName": "Leeuwarder Courant",
+        "title": "Gewonde bij explosie in caravan in Sneek & auto botst tegen boom in Leeuwarden: bestuurder gewond",
+        "summary": "Branden, ongelukken, files, vertragingen en korte nieuwsberichten: met dit liveblog volg je 112-nieuws en ander kort nieuws in Friesland op de voet.",
+        "url": "https://www.lc.nl/regio/friesland/gewonde-bij-explosie-in-caravan-in-sneek-auto-botst-tegen-boom-in-leeuwarden-bestuurder-gewond/158213940.html",
+        "publishedAt": "2026-11-02T06:36:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:50:19.504Z"
+      },
+      "label": {
+        "desk": "binnenland",
+        "subjectCountry": "NL",
+        "subjectCountries": [
+          "NL"
+        ],
+        "geographicalClass": "domestic",
+        "mainTopic": "veiligheid",
+        "eventId": null,
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": true
+        },
+        "reason": "Liveblog met twee verschillende incidenten in Sneek en Leeuwarden. Niet één verzonnen gebeurtenis-id voor alle Friese incidenten gebruiken.",
+        "evidence": {
+          "title": "Gewonde bij explosie in caravan in Sneek & auto botst tegen boom in Leeuwarden: bestuurder gewond",
+          "summary": "Branden, ongelukken, files, vertragingen en korte nieuwsberichten: met dit liveblog volg je 112-nieuws en ander kort nieuws in Friesland op de voet."
+        }
+      },
+      "selectionIndex": 27
+    },
+    {
+      "id": "5iapq4",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:frankrijk-onbesliste-kiezers-2027",
+      "article": {
+        "id": "5iapq4",
+        "kind": "article",
+        "source": "lemonde",
+        "sourceName": "Le Monde in English",
+        "title": "‘I might let my children vote for me’: Inside the minds of France’s undecided voters",
+        "summary": "Too many candidates, disillusionment with Macron, fears of a far-right victory… Although many voters are interested in politics, they’ve become deeply disillusioned and still don’t know who they will vote for in the 2027 presidential elections.",
+        "url": "https://www.lemonde.fr/en/politics/article/2026/11/02/i-might-let-my-children-vote-for-me-inside-the-minds-of-france-s-undecided-voters_6769270_5.html",
+        "publishedAt": "2026-11-02T03:00:04.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T03:50:18.123Z"
+      },
+      "label": {
+        "desk": "buitenland",
+        "subjectCountry": "FR",
+        "subjectCountries": [
+          "FR"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "politiek",
+        "eventId": "frankrijk-onbesliste-kiezers-2027",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "De Franse presidentsverkiezing van 2027 en onbesliste Franse kiezers zijn expliciet onderwerp.",
+        "evidence": {
+          "title": "‘I might let my children vote for me’: Inside the minds of France’s undecided voters",
+          "summary": "Too many candidates, disillusionment with Macron, fears of a far-right victory… Although many voters are interested in politics, they’ve become deeply disillusioned and still don’t know who they will vote for in the 2027 presidential elections."
+        }
+      },
+      "selectionIndex": 29
+    },
+    {
+      "id": "1rt8dft",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:afm-communicatie-nabestaandenpensioen",
+      "article": {
+        "id": "1rt8dft",
+        "kind": "article",
+        "source": "nd",
+        "sourceName": "Nederlands Dagblad",
+        "title": "AFM: duidelijkere communicatie over nabestaandenpensioen nodig",
+        "summary": "Pensioenuitvoerders moeten beter hun best doen om te voorkomen dat nabestaanden onbewust niet gedekt zijn bij het overlijden van een partner, vindt de Autoriteit Financiële Markten (AFM).",
+        "url": "https://www.nd.nl/varia/varia/1337198/afm-duidelijkere-communicatie-over-nabestaandenpensioen-nodig",
+        "publishedAt": "2026-11-02T06:55:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T07:00:22.560Z"
+      },
+      "label": {
+        "desk": "binnenland",
+        "subjectCountry": "NL",
+        "subjectCountries": [
+          "NL"
+        ],
+        "geographicalClass": "domestic",
+        "mainTopic": "pensioen",
+        "eventId": "afm-communicatie-nabestaandenpensioen",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "De Nederlandse AFM en communicatie door pensioenuitvoerders; andere hoofdzaak dan de oude column over het sociale leven na pensioen.",
+        "evidence": {
+          "title": "AFM: duidelijkere communicatie over nabestaandenpensioen nodig",
+          "summary": "Pensioenuitvoerders moeten beter hun best doen om te voorkomen dat nabestaanden onbewust niet gedekt zijn bij het overlijden van een partner, vindt de Autoriteit Financiële Markten (AFM)."
+        }
+      },
+      "selectionIndex": 32
+    },
+    {
+      "id": "1r0enf6",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:juan-atkins-overlijden",
+      "article": {
+        "id": "1r0enf6",
+        "kind": "article",
+        "source": "nos",
+        "sourceName": "NOS",
+        "title": "Techno-grondlegger Juan Atkins (64) overleden",
+        "summary": "De Amerikaanse dj en producer Juan Atkins is op 64-jarige leeftijd overleden. Dat meldt zijn management. Atkins geldt als een van de grondleggers van de technomuziek.",
+        "url": "https://nos.nl/l/2637695",
+        "publishedAt": "2026-11-02T06:49:52.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T07:00:22.560Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": "US",
+        "subjectCountries": [
+          "US"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "muziek",
+        "eventId": "juan-atkins-overlijden",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Overlijden van de expliciet Amerikaanse technoartiest Juan Atkins; cultuurnieuws, geen Amerikaanse politiek.",
+        "evidence": {
+          "title": "Techno-grondlegger Juan Atkins (64) overleden",
+          "summary": "De Amerikaanse dj en producer Juan Atkins is op 64-jarige leeftijd overleden. Dat meldt zijn management. Atkins geldt als een van de grondleggers van de technomuziek."
+        }
+      },
+      "selectionIndex": 35
+    },
+    {
+      "id": "1cnerb3",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:florida-zakenjet-crash-negen-doden",
+      "article": {
+        "id": "1cnerb3",
+        "kind": "article",
+        "source": "npr",
+        "sourceName": "NPR",
+        "title": "9 dead as jet nosedives and erupts into fireball near busy roadway in South Florida",
+        "summary": "U.S. Transportation Secretary Duffy says all nine people died aboard a business jet that crashed into a Florida neighborhood.",
+        "url": "https://www.npr.org/2026/11/02/g-s1-151211/south-florida-jet-crash",
+        "publishedAt": "2026-11-02T06:13:28.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:20:16.844Z"
+      },
+      "label": {
+        "desk": "vs",
+        "subjectCountry": "US",
+        "subjectCountries": [
+          "US"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "ramp",
+        "eventId": "florida-zakenjet-crash-negen-doden",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Een zakenvliegtuig stort neer in Florida; land staat in de plaats en de Amerikaanse minister in de intro.",
+        "evidence": {
+          "title": "9 dead as jet nosedives and erupts into fireball near busy roadway in South Florida",
+          "summary": "U.S. Transportation Secretary Duffy says all nine people died aboard a business jet that crashed into a Florida neighborhood."
+        }
+      },
+      "selectionIndex": 38
+    },
+    {
+      "id": "16wd4yq",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:energieprijzen-ongelijkheid-warmtepomp",
+      "article": {
+        "id": "16wd4yq",
+        "kind": "article",
+        "source": "nrc",
+        "sourceName": "NRC",
+        "title": "Warmtepomp aan of verwarming uit? De energiecrisis toont de kloof tussen arm en rijk",
+        "summary": "De winter komt eraan. Door de spanningen in het Midden-Oosten stijgen de gasprijzen, en dat zien we nu terug op onze energierekening.",
+        "url": "https://www.nrc.nl/nieuws/2026/11/02/warmtepomp-aan-of-verwarming-uit-de-energiecrisis-toont-de-kloof-tussen-arm-en-rijk-a4940259",
+        "publishedAt": "2026-11-02T04:00:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T04:20:20.035Z"
+      },
+      "label": {
+        "desk": null,
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "unknown",
+        "mainTopic": "energie",
+        "eventId": "energieprijzen-ongelijkheid-warmtepomp",
+        "uncertain": {
+          "desk": true,
+          "country": true,
+          "topic": false,
+          "event": false
+        },
+        "reason": "De hoofdzaak is de ongelijke invloed van energieprijzen op huishoudens. Het land van die huishoudens wordt niet genoemd; Midden-Oosten is de aanleiding.",
+        "evidence": {
+          "title": "Warmtepomp aan of verwarming uit? De energiecrisis toont de kloof tussen arm en rijk",
+          "summary": "De winter komt eraan. Door de spanningen in het Midden-Oosten stijgen de gasprijzen, en dat zien we nu terug op onze energierekening."
+        }
+      },
+      "selectionIndex": 39
+    },
+    {
+      "id": "1go3cpt",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:philipmorris-klacht-verhitte-tabak",
+      "article": {
+        "id": "1go3cpt",
+        "kind": "article",
+        "source": "parool",
+        "sourceName": "Het Parool",
+        "title": "Nieuwe aangifte tegen Philip Morris om ‘valse claim over’ verhitte tabak: ‘Hier staat 15 jaar gevangenisstraf op’",
+        "summary": "Er komt een nieuwe aangifte tegen tabaksproducent Philip Morris, nu voor bedrog en misleiding.",
+        "url": "https://www.parool.nl/nederland/nieuwe-aangifte-tegen-philip-morris-om-valse-claim-over-verhitte-tabak-hier-staat-15-jaar-gevangenisstraf-op~be6888ac/",
+        "publishedAt": "2026-11-02T06:39:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:50:19.504Z"
+      },
+      "label": {
+        "desk": null,
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "unknown",
+        "mainTopic": "gezondheid",
+        "eventId": "philipmorris-klacht-verhitte-tabak",
+        "uncertain": {
+          "desk": true,
+          "country": true,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Nieuwe klacht over misleidende tabaksclaims; rechtsgebied niet expliciet in kop of intro. Niet Nederland afleiden uit de uitgever.",
+        "evidence": {
+          "title": "Nieuwe aangifte tegen Philip Morris om ‘valse claim over’ verhitte tabak: ‘Hier staat 15 jaar gevangenisstraf op’",
+          "summary": "Er komt een nieuwe aangifte tegen tabaksproducent Philip Morris, nu voor bedrog en misleiding."
+        }
+      },
+      "selectionIndex": 42
+    },
+    {
+      "id": "guy4oe",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:guy4oe",
+      "article": {
+        "id": "guy4oe",
+        "kind": "article",
+        "source": "polygon",
+        "sourceName": "Polygon",
+        "title": "Luke Skywalker’s Single Greatest Star Wars Line Hits Harder Than Any Sci-Fi Quote Since",
+        "summary": "Luke Skywalker is easily the greatest ‘Star Wars’ character of all time. But what was his best quote?",
+        "url": "https://www.polygon.com/luke-skywalker-best-quote-has-nothing-to-do-with-darth-vader/",
+        "publishedAt": "2026-11-02T05:00:17.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T05:00:19.326Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "global",
+        "mainTopic": "film",
+        "eventId": null,
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": true
+        },
+        "reason": "Film-/franchisebeschouwing over een fictief Star Wars-personage, geen geografisch nieuws of echt citaatincident.",
+        "evidence": {
+          "title": "Luke Skywalker’s Single Greatest Star Wars Line Hits Harder Than Any Sci-Fi Quote Since",
+          "summary": "Luke Skywalker is easily the greatest ‘Star Wars’ character of all time. But what was his best quote?"
+        }
+      },
+      "selectionIndex": 45
+    },
+    {
+      "id": "gmkhuj",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:veersemeer-natuurplannen-recreatie",
+      "article": {
+        "id": "gmkhuj",
+        "kind": "article",
+        "source": "pzc",
+        "sourceName": "PZC",
+        "title": "Recreatiesector slaat alarm over natuurplannen Veerse Meer: ‘Niet alles op slot gooien’",
+        "summary": "Afgesloten eilanden, verdwenen steigers en minder ruimte om te wandelen, fietsen of varen.",
+        "url": "https://www.pzc.nl/veere/recreatiesector-slaat-alarm-over-natuurplannen-veerse-meer-niet-alles-op-slot-gooien~a0265b37/",
+        "publishedAt": "2026-11-02T07:00:06.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T07:00:22.560Z"
+      },
+      "label": {
+        "desk": "binnenland",
+        "subjectCountry": "NL",
+        "subjectCountries": [
+          "NL"
+        ],
+        "geographicalClass": "domestic",
+        "mainTopic": "natuur",
+        "eventId": "veersemeer-natuurplannen-recreatie",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Natuurplannen voor het Veerse Meer en de lokale recreatiesector.",
+        "evidence": {
+          "title": "Recreatiesector slaat alarm over natuurplannen Veerse Meer: ‘Niet alles op slot gooien’",
+          "summary": "Afgesloten eilanden, verdwenen steigers en minder ruimte om te wandelen, fietsen of varen."
+        }
+      },
+      "selectionIndex": 46
+    },
+    {
+      "id": "qkwhbp",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:blunt-synopsis-the-last-path",
+      "article": {
+        "id": "qkwhbp",
+        "kind": "article",
+        "source": "quietus",
+        "sourceName": "The Quietus",
+        "title": "The Last Path – Blunt Synopsis",
+        "summary": "Blunt Synopsis Formerly known as Bad Amputee, trio from the north-east of England take things slow.",
+        "url": "https://thequietus.com/quietus-reviews/the-last-path-blunt-synopsis-review/",
+        "publishedAt": "2026-11-02T06:00:00.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:10:15.619Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": "GB",
+        "subjectCountries": [
+          "GB"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "muziek",
+        "eventId": "blunt-synopsis-the-last-path",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Muziekbespreking van een trio dat expliciet uit Noordoost-Engeland komt; geen algemene Britse politiek.",
+        "evidence": {
+          "title": "The Last Path – Blunt Synopsis",
+          "summary": "Blunt Synopsis Formerly known as Bad Amputee, trio from the north-east of England take things slow."
+        }
+      },
+      "selectionIndex": 47
+    },
+    {
+      "id": "ht11st",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:styles-msg-residency-afsluiting",
+      "article": {
+        "id": "ht11st",
+        "kind": "article",
+        "source": "rollingstone",
+        "sourceName": "Rolling Stone",
+        "title": "Harry Styles Ended His Historic Madison Square Garden Run — And This Song Captured It All",
+        "summary": "The bass-filled record ‘Season 2 Weight Loss’ became an essential part of how we understand the singer, especially across his 30-night New York residency",
+        "url": "https://www.rollingstone.com/music/music-features/harry-styles-madison-square-garden-end-season-2-weight-loss-1235648505/",
+        "publishedAt": "2026-11-01T23:03:54.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-01T23:20:35.980Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": "US",
+        "subjectCountries": [
+          "US"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "muziek",
+        "eventId": "styles-msg-residency-afsluiting",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Afsluiting van de concertreeks in Madison Square Garden/New York, los van het eerder gelabelde halloweenkostuum van Styles.",
+        "evidence": {
+          "title": "Harry Styles Ended His Historic Madison Square Garden Run — And This Song Captured It All",
+          "summary": "The bass-filled record ‘Season 2 Weight Loss’ became an essential part of how we understand the singer, especially across his 30-night New York residency"
+        }
+      },
+      "selectionIndex": 48
+    },
+    {
+      "id": "ur6kn7",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:china-vijfde-plenum-overzicht",
+      "article": {
+        "id": "ur6kn7",
+        "kind": "article",
+        "source": "scmp",
+        "sourceName": "South China Morning Post",
+        "title": "China’s fifth plenum: everything you need to know from the war on corruption to promotions",
+        "summary": "We have put together stories from our coverage of China’s fifth plenum. If you would like to see more of our reporting, please consider subscribing. 1.",
+        "url": "https://www.scmp.com/news/china/article/3372950/chinas-fifth-plenum-everything-you-need-know-war-corruption-promotions",
+        "publishedAt": "2026-11-02T06:52:44.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T07:00:22.560Z"
+      },
+      "label": {
+        "desk": "buitenland",
+        "subjectCountry": "CN",
+        "subjectCountries": [
+          "CN"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "politiek",
+        "eventId": "china-vijfde-plenum-overzicht",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Vijfde plenum, corruptie en promoties in China; niet hetzelfde bericht als de aangekondigde aandelensteunvergadering.",
+        "evidence": {
+          "title": "China’s fifth plenum: everything you need to know from the war on corruption to promotions",
+          "summary": "We have put together stories from our coverage of China’s fifth plenum. If you would like to see more of our reporting, please consider subscribing. 1."
+        }
+      },
+      "selectionIndex": 50
+    },
+    {
+      "id": "1y3n5bm",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:a50-heerde-ongeval-vangrail",
+      "article": {
+        "id": "1y3n5bm",
+        "kind": "article",
+        "source": "stentor",
+        "sourceName": "De Stentor",
+        "title": "Rijstrook A50 bij Heerde dicht na nachtelijk ongeluk: vangrail wordt gerepareerd",
+        "summary": "Wie deze ochtend vanaf knooppunt Hattemerbroek richting Apeldoorn wil, moet rekening houden met flinke vertraging. Vanwege een ongeluk is een van de rijstroken dicht.",
+        "url": "https://www.destentor.nl/112-nieuws-heerde/rijstrook-a50-bij-heerde-dicht-na-nachtelijk-ongeluk-vangrail-wordt-gerepareerd~a052a96c/",
+        "publishedAt": "2026-11-02T06:40:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:50:19.504Z"
+      },
+      "label": {
+        "desk": "binnenland",
+        "subjectCountry": "NL",
+        "subjectCountries": [
+          "NL"
+        ],
+        "geographicalClass": "domestic",
+        "mainTopic": "verkeer",
+        "eventId": "a50-heerde-ongeval-vangrail",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Nachtelijk ongeluk en herstel van de vangrail op de A50 bij Heerde; plaatsgebonden gebeurtenis.",
+        "evidence": {
+          "title": "Rijstrook A50 bij Heerde dicht na nachtelijk ongeluk: vangrail wordt gerepareerd",
+          "summary": "Wie deze ochtend vanaf knooppunt Hattemerbroek richting Apeldoorn wil, moet rekening houden met flinke vertraging. Vanwege een ongeluk is een van de rijstroken dicht."
+        }
+      },
+      "selectionIndex": 53
+    },
+    {
+      "id": "1kcbdxi",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:intermiami-newengland-messi-zege",
+      "article": {
+        "id": "1kcbdxi",
+        "kind": "article",
+        "source": "telegraaf",
+        "sourceName": "De Telegraaf",
+        "title": "Lionel Messi (39) buigt achterstand tegen New Engeland Revolution om: assist én winnende goal voor Inter Miami",
+        "summary": "Opnieuw een hoofdrol voor Lionel Messi. Met een assist en de winnende goal bezorgde de 39-jarige Argentijnse vedette Inter Miami alsnog een zege tegen New England…",
+        "url": "https://www.telegraaf.nl/sport/voetbal/lionel-messi-39-buigt-achterstand-tegen-new-engeland-revolution-om-assist-en-winnende-goal-voor-inter-miami/163942417.html",
+        "publishedAt": "2026-11-02T06:50:02.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T07:00:22.560Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": "US",
+        "subjectCountries": [
+          "US"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "sport",
+        "eventId": "intermiami-newengland-messi-zege",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "MLS-wedstrijd Inter Miami tegen New England; Argentijnse nationaliteit van Messi is niet het land van het onderwerp.",
+        "evidence": {
+          "title": "Lionel Messi (39) buigt achterstand tegen New Engeland Revolution om: assist én winnende goal voor Inter Miami",
+          "summary": "Opnieuw een hoofdrol voor Lionel Messi. Met een assist en de winnende goal bezorgde de 39-jarige Argentijnse vedette Inter Miami alsnog een zege tegen New England…"
+        }
+      },
+      "selectionIndex": 55
+    },
+    {
+      "id": "17swy11",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:jackery-kleinere-lfp-powerstations",
+      "article": {
+        "id": "17swy11",
+        "kind": "article",
+        "source": "theverge",
+        "sourceName": "The Verge",
+        "title": "Jackery made its portable power stations even smaller",
+        "summary": "Jackery announced a new portable power station that uses the safer and longer-lasting lithium iron phosphate (LFP) batteries the company first introduced in 2023.",
+        "url": "https://www.theverge.com/tech/1023173/jackery-explorer-100d-portable-power-station-battery-lithium-iron-phosphate",
+        "publishedAt": "2026-11-02T05:00:00.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T05:00:19.326Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "global",
+        "mainTopic": "tech",
+        "eventId": "jackery-kleinere-lfp-powerstations",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Aankondiging van draagbare energieproducten; geen land als hoofdzaak in de tekst.",
+        "evidence": {
+          "title": "Jackery made its portable power stations even smaller",
+          "summary": "Jackery announced a new portable power station that uses the safer and longer-lasting lithium iron phosphate (LFP) batteries the company first introduced in 2023."
+        }
+      },
+      "selectionIndex": 57
+    },
+    {
+      "id": "2tmd5c",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:excelsior-nul-negen-reacties",
+      "article": {
+        "id": "2tmd5c",
+        "kind": "article",
+        "source": "vi",
+        "sourceName": "Voetbal International",
+        "title": "‘We hebben elkaar in de steek gelaten’",
+        "summary": "De snoeiharde nederlaag hakt erin bij Excelsior. Een ‘halloween experience’ werd het genoemd. De 0-9 zorgde logischerwijs voor frustraties en verwijten.",
+        "url": "https://www.vi.nl/pro/ruben-den-uil-en-stijn-van-gassel-beschouwen-de-0-9-nederlaag-van-excelsior",
+        "publishedAt": "2026-11-02T07:00:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T07:00:22.560Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": "NL",
+        "subjectCountries": [
+          "NL"
+        ],
+        "geographicalClass": "domestic",
+        "mainTopic": "sport",
+        "eventId": "excelsior-nul-negen-reacties",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Reacties op de 0-9-nederlaag van de Nederlandse club Excelsior; andere wedstrijd dan de Ajax-AZ- en Emmen-Den Bosch-gevallen.",
+        "evidence": {
+          "title": "‘We hebben elkaar in de steek gelaten’",
+          "summary": "De snoeiharde nederlaag hakt erin bij Excelsior. Een ‘halloween experience’ werd het genoemd. De 0-9 zorgde logischerwijs voor frustraties en verwijten."
+        }
+      },
+      "selectionIndex": 62
+    },
+    {
+      "id": "1apy5qv",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:1apy5qv",
+      "article": {
+        "id": "1apy5qv",
+        "kind": "article",
+        "source": "volkskrant",
+        "sourceName": "de Volkskrant",
+        "title": "Misschien hoort bij afscheid juist dat er geen antwoord meer komt",
+        "summary": "Wat gebeurt er met ons rouwproces als we het herinneren aan en verbeelden van een overleden persoon gedeeltelijk aan AI overlaten?",
+        "url": "https://www.volkskrant.nl/columns-opinie/opinie-misschien-hoort-bij-afscheid-juist-dat-er-geen-antwoord-meer-komt~bfd5815d/",
+        "publishedAt": "2026-11-02T05:00:28.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:30:19.772Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "global",
+        "mainTopic": "maatschappij",
+        "eventId": null,
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": true
+        },
+        "reason": "Beschouwing over rouw en het met AI verbeelden van overledenen; geen specifiek land of losse nieuwsgebeurtenis.",
+        "evidence": {
+          "title": "Misschien hoort bij afscheid juist dat er geen antwoord meer komt",
+          "summary": "Wat gebeurt er met ons rouwproces als we het herinneren aan en verbeelden van een overleden persoon gedeeltelijk aan AI overlaten?"
+        }
+      },
+      "selectionIndex": 63
+    },
+    {
+      "id": "10j7g7m",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:antwerpen-westerlo-spelersbus-drugscontrole",
+      "article": {
+        "id": "10j7g7m",
+        "kind": "article",
+        "source": "vrt",
+        "sourceName": "VRT NWS",
+        "title": "Antwerpse politie haalt spelersbus van Westerlo uit verkeer voor controle met drugshond",
+        "summary": "Dit weekend heeft de Antwerpse politie de spelersbus van voetbalploeg Westerlo uit het verkeer gehaald en gecontroleerd op drugs.",
+        "url": "https://vrtnws.be/p.6KpLGNDP4",
+        "publishedAt": "2026-11-02T06:18:04.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:30:19.772Z"
+      },
+      "label": {
+        "desk": "buitenland",
+        "subjectCountry": "BE",
+        "subjectCountries": [
+          "BE"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "veiligheid",
+        "eventId": "antwerpen-westerlo-spelersbus-drugscontrole",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Een Antwerpse politiecontrole van de spelersbus van Westerlo. Politieoptreden is de gebeurtenis, geen wedstrijdverslag.",
+        "evidence": {
+          "title": "Antwerpse politie haalt spelersbus van Westerlo uit verkeer voor controle met drugshond",
+          "summary": "Dit weekend heeft de Antwerpse politie de spelersbus van voetbalploeg Westerlo uit het verkeer gehaald en gecontroleerd op drugs."
+        }
+      },
+      "selectionIndex": 64
+    },
+    {
+      "id": "o0s4mk",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:middelkerke-avondcross-planning",
+      "article": {
+        "id": "o0s4mk",
+        "kind": "article",
+        "source": "wielerflits",
+        "sourceName": "WielerFlits",
+        "title": "Superprestige Middelkerke plots avondcross op donderdag voor EK: ‘Niet iedereen is enthousiast’",
+        "summary": "De tweede manche van de Superprestige in Middelkerke ondergaat dit jaar een metamorfose.",
+        "url": "https://www.wielerflits.nl/nieuws/superprestige-middelkerke-plots-avondcross-op-donderdag-voor-ek-niet-iedereen-is-enthousiast/",
+        "publishedAt": "2026-11-02T06:45:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:50:19.504Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": "BE",
+        "subjectCountries": [
+          "BE"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "sport",
+        "eventId": "middelkerke-avondcross-planning",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "De wedstrijdplanning in Middelkerke is een andere manche/plaats dan de eerder gelabelde Koppenbergcross.",
+        "evidence": {
+          "title": "Superprestige Middelkerke plots avondcross op donderdag voor EK: ‘Niet iedereen is enthousiast’",
+          "summary": "De tweede manche van de Superprestige in Middelkerke ondergaat dit jaar een metamorfose."
+        }
+      },
+      "selectionIndex": 65
+    },
+    {
+      "id": "1mjyo5m",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:1mjyo5m",
+      "article": {
+        "id": "1mjyo5m",
+        "kind": "article",
+        "source": "bbc-sport",
+        "sourceName": "BBC Sport",
+        "title": "Who am I? Plus today’s other quizzes",
+        "summary": "Test your ball knowledge against today’s Who Am I?, Five in Five and Brainteaser.",
+        "url": "https://www.bbc.co.uk/sport/football/articles/cx30erg1d2rjo?at_medium=RSS&at_campaign=rss",
+        "publishedAt": "2026-11-02T06:24:40.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:30:19.772Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "global",
+        "mainTopic": "sport",
+        "eventId": null,
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": true
+        },
+        "reason": "Sportquizzen zonder nieuwsgebeurtenis of onderwerp-land; Britse uitgever is geen locatiebewijs.",
+        "evidence": {
+          "title": "Who am I? Plus today’s other quizzes",
+          "summary": "Test your ball knowledge against today’s Who Am I?, Five in Five and Brainteaser."
+        }
+      },
+      "selectionIndex": 70
+    },
+    {
+      "id": "15cuye6",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:apollo-europese-leningentak-adic",
+      "article": {
+        "id": "15cuye6",
+        "kind": "article",
+        "source": "bloomberg",
+        "sourceName": "Bloomberg",
+        "title": "Apollo Opens European Loan Arm With ADIC Cash, Meissner as Chair",
+        "summary": "Apollo Global Management Inc. is launching its €10 billion ($11.2 billion) private-credit arm for Europe with backers including the Abu Dhabi Investment Council, plus a…",
+        "url": "https://www.bloomberg.com/news/articles/2026-11-02/apollo-opens-european-loan-arm-with-adic-cash-meissner-as-chair",
+        "publishedAt": "2026-11-02T06:30:00.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:50:19.504Z"
+      },
+      "label": {
+        "desk": "buitenland",
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "multiple",
+        "mainTopic": "economie",
+        "eventId": "apollo-europese-leningentak-adic",
+        "uncertain": {
+          "desk": false,
+          "country": true,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Europese krediettak met een investeerder uit Abu Dhabi; meerdere regio's, onvoldoende aanwijzing voor één nationaal hoofdland.",
+        "evidence": {
+          "title": "Apollo Opens European Loan Arm With ADIC Cash, Meissner as Chair",
+          "summary": "Apollo Global Management Inc. is launching its €10 billion ($11.2 billion) private-credit arm for Europe with backers including the Abu Dhabi Investment Council, plus a…"
+        }
+      },
+      "selectionIndex": 72
+    },
+    {
+      "id": "u8tv4n",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:eindhoven-medische-kindgegevens",
+      "article": {
+        "id": "u8tv4n",
+        "kind": "article",
+        "source": "ed",
+        "sourceName": "Eindhovens Dagblad",
+        "title": "Eindhoven deelt medische gegevens van kinderen terwijl dat niet mag: ‘Dit past niet binnen een rechtsstaat’",
+        "summary": "Eindhoven gaat door met het delen van medische en andere gevoelige gegevens van kinderen met jeugdbeschermingsinstanties. „De gemeente gaat voorbij aan de privacywet.",
+        "url": "https://www.ed.nl/eindhoven/eindhoven-deelt-medische-gegevens-van-kinderen-terwijl-dat-niet-mag-dit-past-niet-binnen-een-rechtsstaat~ac4ac8f3/",
+        "publishedAt": "2026-11-02T06:09:16.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:10:15.619Z"
+      },
+      "label": {
+        "desk": "binnenland",
+        "subjectCountry": "NL",
+        "subjectCountries": [
+          "NL"
+        ],
+        "geographicalClass": "domestic",
+        "mainTopic": "privacy",
+        "eventId": "eindhoven-medische-kindgegevens",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Delen van medische kindgegevens door de gemeente Eindhoven; los van het eerdere landelijke jeugdzorginterview.",
+        "evidence": {
+          "title": "Eindhoven deelt medische gegevens van kinderen terwijl dat niet mag: ‘Dit past niet binnen een rechtsstaat’",
+          "summary": "Eindhoven gaat door met het delen van medische en andere gevoelige gegevens van kinderen met jeugdbeschermingsinstanties. „De gemeente gaat voorbij aan de privacywet."
+        }
+      },
+      "selectionIndex": 77
+    },
+    {
+      "id": "9jcw1k",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:colts-jaguars-42-7-steichen",
+      "article": {
+        "id": "9jcw1k",
+        "kind": "article",
+        "source": "espn",
+        "sourceName": "ESPN",
+        "title": "Colts’ Steichen to ‘evaluate everything,’ including QB, after 42-7 drubbing",
+        "summary": "After the Colts’ 42-7 loss to the Jaguars on Sunday, the Colts coach Shane Steichen left open the possibility of significant changes, including at quarterback.",
+        "url": "https://www.espn.com/nfl/story/_/id/50353308/colts-shane-steichen-evaluate-everything-42-7-loss",
+        "publishedAt": "2026-11-02T06:36:10.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T00:50:18.705Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": "US",
+        "subjectCountries": [
+          "US"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "sport",
+        "eventId": "colts-jaguars-42-7-steichen",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Amerikaanse footballwedstrijd Colts-Jaguars en de reactie van coach Steichen; andere wedstrijd dan de oude college-footballgevallen.",
+        "evidence": {
+          "title": "Colts’ Steichen to ‘evaluate everything,’ including QB, after 42-7 drubbing",
+          "summary": "After the Colts’ 42-7 loss to the Jaguars on Sunday, the Colts coach Shane Steichen left open the possibility of significant changes, including at quarterback."
+        }
+      },
+      "selectionIndex": 78
+    },
+    {
+      "id": "1cgwidz",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:cubacrisis-1962-terugblik",
+      "article": {
+        "id": "1cgwidz",
+        "kind": "article",
+        "source": "foreignpolicy",
+        "sourceName": "Foreign Policy",
+        "title": "The Biggest October Surprise of All",
+        "summary": "A crisis that brought the U.S. and the Soviets to the brink of nuclear war in 1962 reshaped U.S. politics.",
+        "url": "https://foreignpolicy.com/2026/11/02/biggest-october-surprise-1962-cuba/",
+        "publishedAt": "2026-11-02T05:01:26.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T05:40:17.983Z"
+      },
+      "label": {
+        "desk": "vs",
+        "subjectCountry": null,
+        "subjectCountries": [
+          "US",
+          "CU"
+        ],
+        "geographicalClass": "multiple",
+        "mainTopic": "geschiedenis",
+        "eventId": "cubacrisis-1962-terugblik",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Historische Cuba-crisis en invloed op Amerikaanse politiek; Sovjet-Unie als historische landcode SU, geen modern Rusland veronderstellen.",
+        "evidence": {
+          "title": "The Biggest October Surprise of All",
+          "summary": "A crisis that brought the U.S. and the Soviets to the brink of nuclear war in 1962 reshaped U.S. politics."
+        },
+        "historicalSubjectCountries": [
+          "SU"
+        ]
+      },
+      "selectionIndex": 80
+    },
+    {
+      "id": "111k4ge",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:rba-verwachte-rentestijging-minns",
+      "article": {
+        "id": "111k4ge",
+        "kind": "article",
+        "source": "guardian",
+        "sourceName": "The Guardian",
+        "title": "Minns warns expected RBA rate rise will see ‘shops close that don’t reopen’ as pressure mounts on PM",
+        "summary": "Frustration grows over the economy with one Labor MP saying voter anger is already high ahead of Reserve Bank of Australia decision Get our daily political email, free…",
+        "url": "https://www.theguardian.com/australia-news/2026/nov/02/minns-warns-rba-rate-rise-job-losses-economy",
+        "publishedAt": "2026-11-02T06:08:33.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:10:15.619Z"
+      },
+      "label": {
+        "desk": "buitenland",
+        "subjectCountry": "AU",
+        "subjectCountries": [
+          "AU"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "economie",
+        "eventId": "rba-verwachte-rentestijging-minns",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Verwachte rentestap van de expliciet genoemde Reserve Bank of Australia en de gevolgen voor winkels.",
+        "evidence": {
+          "title": "Minns warns expected RBA rate rise will see ‘shops close that don’t reopen’ as pressure mounts on PM",
+          "summary": "Frustration grows over the economy with one Labor MP saying voter anger is already high ahead of Reserve Bank of Australia decision Get our daily political email, free…"
+        }
+      },
+      "selectionIndex": 83
+    },
+    {
+      "id": "1y96zo6",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:koningshooikt-reveil-troostconcert",
+      "article": {
+        "id": "1y96zo6",
+        "kind": "article",
+        "source": "gva",
+        "sourceName": "Gazet van Antwerpen",
+        "title": "Eerste Reveil-troostconcert in Koningshooikt: “Wat ons verbindt, is de liefde voor wie er niet meer is”",
+        "summary": "Voor het eerst vond op de begraafplaats van Koningshooikt een Reveil-troostconcert plaats. Zondagavond kwamen inwoners er samen om hun overleden dierbaren te herdenken.",
+        "url": "https://www.gva.be/regio/antwerpen/rivierenland/lier/eerste-reveil-troostconcert-in-koningshooikt-wat-ons-verbindt-is-de-liefde-voor-wie-er-niet-meer-is/163942059.html",
+        "publishedAt": "2026-11-02T05:57:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:20:16.844Z"
+      },
+      "label": {
+        "desk": "buitenland",
+        "subjectCountry": "BE",
+        "subjectCountries": [
+          "BE"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "maatschappij",
+        "eventId": "koningshooikt-reveil-troostconcert",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Een lokaal herdenkingsconcert in Koningshooikt; niet samenvoegen met concerten in andere plaatsen.",
+        "evidence": {
+          "title": "Eerste Reveil-troostconcert in Koningshooikt: “Wat ons verbindt, is de liefde voor wie er niet meer is”",
+          "summary": "Voor het eerst vond op de begraafplaats van Koningshooikt een Reveil-troostconcert plaats. Zondagavond kwamen inwoners er samen om hun overleden dierbaren te herdenken."
+        }
+      },
+      "selectionIndex": 85
+    },
+    {
+      "id": "5v5fx4",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:nieuwvennep-oosterdreef-explosie-1102",
+      "article": {
+        "id": "5v5fx4",
+        "kind": "article",
+        "source": "haarlemsdagblad",
+        "sourceName": "Haarlems Dagblad",
+        "title": "Explosief afgegaan bij pand in Nieuw-Vennep",
+        "summary": "In de nacht van zondag op maandag rond 3.00 uur is in een pand aan de Oosterdreef in Nieuw-Vennep een explosief afgegaan.",
+        "url": "https://www.haarlemsdagblad.nl/regio/haarlem/explosief-afgegaan-bij-pand-in-nieuw-vennep/163942454.html",
+        "publishedAt": "2026-11-02T06:34:25.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:50:19.504Z"
+      },
+      "label": {
+        "desk": "binnenland",
+        "subjectCountry": "NL",
+        "subjectCountries": [
+          "NL"
+        ],
+        "geographicalClass": "domestic",
+        "mainTopic": "misdaad",
+        "eventId": "nieuwvennep-oosterdreef-explosie-1102",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Explosie aan de Oosterdreef in Nieuw-Vennep; geen algemene groep van Nederlandse explosies.",
+        "evidence": {
+          "title": "Explosief afgegaan bij pand in Nieuw-Vennep",
+          "summary": "In de nacht van zondag op maandag rond 3.00 uur is in een pand aan de Oosterdreef in Nieuw-Vennep een explosief afgegaan."
+        }
+      },
+      "selectionIndex": 86
+    },
+    {
+      "id": "mbh6ew",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:cregger-residentevil-filmreactie",
+      "article": {
+        "id": "mbh6ew",
+        "kind": "article",
+        "source": "ign",
+        "sourceName": "IGN",
+        "title": "Zach Cregger Was ‘Frustrated’ the Conversation Around Resident Evil ‘Didn’t Have Anything to Do With the Movie’",
+        "summary": "Horror filmmaker Zach Cregger has explained why he was ‘frustrated’ that much of the conversation around his Resident Evil film ‘didn’t have anything to do with the movie.’",
+        "url": "https://www.ign.com/articles/zach-cregger-was-frustrated-the-conversation-around-resident-evil-didnt-have-anything-to-do-with-the-movie",
+        "publishedAt": "2026-11-02T03:05:35.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T04:20:20.035Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "unknown",
+        "mainTopic": "film",
+        "eventId": "cregger-residentevil-filmreactie",
+        "uncertain": {
+          "desk": false,
+          "country": true,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Regisseur bespreekt reacties op zijn film Resident Evil; hoofdzaak is film, geen actuele geweldsdaad. Land ontbreekt.",
+        "evidence": {
+          "title": "Zach Cregger Was ‘Frustrated’ the Conversation Around Resident Evil ‘Didn’t Have Anything to Do With the Movie’",
+          "summary": "Horror filmmaker Zach Cregger has explained why he was ‘frustrated’ that much of the conversation around his Resident Evil film ‘didn’t have anything to do with the movie.’"
+        }
+      },
+      "selectionIndex": 89
+    },
+    {
+      "id": "1hs2hxs",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:russische-desinformatie-vk",
+      "article": {
+        "id": "1hs2hxs",
+        "kind": "article",
+        "source": "independent",
+        "sourceName": "The Independent",
+        "title": "Russia ramps up disinformation war on UK with propaganda claiming Britain is ‘ungovernable and defenceless’",
+        "summary": "Exclusive: Putin’s campaign to erode trust and cause chaos has reached staggering levels amid Britain’s support for Ukraine and Russia’s closer relations with Donald…",
+        "url": "https://www.independent.co.uk/news/uk/home-news/russia-uk-putin-burnham-ukraine-war-b3077284.html",
+        "publishedAt": "2026-11-02T06:02:13.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:10:15.619Z"
+      },
+      "label": {
+        "desk": "buitenland",
+        "subjectCountry": null,
+        "subjectCountries": [
+          "RU",
+          "GB"
+        ],
+        "geographicalClass": "multiple",
+        "mainTopic": "politiek",
+        "eventId": "russische-desinformatie-vk",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Russische desinformatie gericht op het Verenigd Koninkrijk; beide landen zijn inhoudelijk onderwerp.",
+        "evidence": {
+          "title": "Russia ramps up disinformation war on UK with propaganda claiming Britain is ‘ungovernable and defenceless’",
+          "summary": "Exclusive: Putin’s campaign to erode trust and cause chaos has reached staggering levels amid Britain’s support for Ukraine and Russia’s closer relations with Donald…"
+        }
+      },
+      "selectionIndex": 90
+    },
+    {
+      "id": "1sshfkw",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:leiden-roebels-vechtpartij-taakstraffen",
+      "article": {
+        "id": "1sshfkw",
+        "kind": "article",
+        "source": "leidschdagblad",
+        "sourceName": "Leidsch Dagblad",
+        "title": "’De verdachte lijkt plezier te hebben in zoveel geweld, want hij lacht erbij’. Taakstraffen voor forse vechtpartij in Leidse studentenkroeg",
+        "summary": "In studentencafé Roebels in Leiden ontstond maart dit jaar een hevige vechtpartij nadat drie jongemannen uit Oegstgeest, Warmond en Leiden vanwege vervelend gedrag de kroeg uit werden gezet.",
+        "url": "https://www.leidschdagblad.nl/regio/leiden/de-verdachte-lijkt-plezier-te-hebben-in-zoveel-geweld-want-hij-lacht-erbij.-taakstraffen-voor-forse-vechtpartij-in-leidse-studentenkroeg/163861290.html",
+        "publishedAt": "2026-11-02T06:00:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:20:16.844Z"
+      },
+      "label": {
+        "desk": "binnenland",
+        "subjectCountry": "NL",
+        "subjectCountries": [
+          "NL"
+        ],
+        "geographicalClass": "domestic",
+        "mainTopic": "rechtspraak",
+        "eventId": "leiden-roebels-vechtpartij-taakstraffen",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Vonnis over een vechtpartij in de Leidse studentenkroeg Roebels; geen Duitse of Haagse rellen.",
+        "evidence": {
+          "title": "’De verdachte lijkt plezier te hebben in zoveel geweld, want hij lacht erbij’. Taakstraffen voor forse vechtpartij in Leidse studentenkroeg",
+          "summary": "In studentencafé Roebels in Leiden ontstond maart dit jaar een hevige vechtpartij nadat drie jongemannen uit Oegstgeest, Warmond en Leiden vanwege vervelend gedrag de kroeg uit werden gezet."
+        }
+      },
+      "selectionIndex": 92
+    },
+    {
+      "id": "1swbuh7",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:baltische-vrijwilligersverdediging",
+      "article": {
+        "id": "1swbuh7",
+        "kind": "article",
+        "source": "lemonde",
+        "sourceName": "Le Monde in English",
+        "title": "Baltic volunteer forces play vital role in countering the Russian threat",
+        "summary": "Thirty-five years after challenging Soviet rule in the name of democracy, Estonia, Latvia, and Lithuania now rely in part on volunteer citizen organizations that attract tens of thousands of members to help defend their countries.",
+        "url": "https://www.lemonde.fr/en/le-monde-events/article/2026/11/02/baltic-volunteer-forces-play-vital-role-in-countering-the-russian-threat_6769237_88.html",
+        "publishedAt": "2026-11-01T23:31:28.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-01T23:50:32.369Z"
+      },
+      "label": {
+        "desk": "buitenland",
+        "subjectCountry": null,
+        "subjectCountries": [
+          "EE",
+          "LV",
+          "LT"
+        ],
+        "geographicalClass": "multiple",
+        "mainTopic": "defensie",
+        "eventId": "baltische-vrijwilligersverdediging",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Verdedigingsorganisaties in Estland, Letland en Litouwen. Rusland is de dreiging, niet één verondersteld onderwerp-land.",
+        "evidence": {
+          "title": "Baltic volunteer forces play vital role in countering the Russian threat",
+          "summary": "Thirty-five years after challenging Soviet rule in the name of democracy, Estonia, Latvia, and Lithuania now rely in part on volunteer citizen organizations that attract tens of thousands of members to help defend their countries."
+        }
+      },
+      "selectionIndex": 93
+    },
+    {
+      "id": "euae3d",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:dumoulin-newyork-marathon-record",
+      "article": {
+        "id": "euae3d",
+        "kind": "article",
+        "source": "limburger",
+        "sourceName": "De Limburger",
+        "title": "Tom Dumoulin maakt opnieuw indruk en loopt in New York razendsnel persoonlijk record op marathon",
+        "summary": "Tom Dumoulin (35) blijft maar indrukmaken als hardloper.",
+        "url": "https://www.limburger.nl/regio/maastricht/tom-dumoulin-maakt-opnieuw-indruk-en-loopt-in-new-york-razendsnel-persoonlijk-record-op-marathon/163942053.html",
+        "publishedAt": "2026-11-02T06:30:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:50:19.504Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": "US",
+        "subjectCountries": [
+          "US"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "sport",
+        "eventId": "dumoulin-newyork-marathon-record",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Persoonlijk record van Dumoulin in New York; niet de marathon van Den Haag of een algemene marathonbeschouwing.",
+        "evidence": {
+          "title": "Tom Dumoulin maakt opnieuw indruk en loopt in New York razendsnel persoonlijk record op marathon",
+          "summary": "Tom Dumoulin (35) blijft maar indrukmaken als hardloper."
+        }
+      },
+      "selectionIndex": 94
+    },
+    {
+      "id": "9b3u6p",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:ieper-gedenksteen-kruispunt",
+      "article": {
+        "id": "9b3u6p",
+        "kind": "article",
+        "source": "nieuwsblad",
+        "sourceName": "Het Nieuwsblad",
+        "title": "De gevaarlijkste plek ter wereld herken je 111 jaar later aan deze steen: “Hij herinnert aan de vreselijke kost van oorlog”",
+        "summary": "Een Iepers kruispunt werd 111 jaar geleden berucht als gevaarlijkste plek ter wereld en kreeg zondag een nieuwe gedenksteen, ingeluid door Britse belleman Chris (70).",
+        "url": "https://www.nieuwsblad.be/regio/west-vlaanderen/westhoek/ieper/de-gevaarlijkste-plek-ter-wereld-herken-je-111-jaar-later-aan-deze-steen-hij-herinnert-aan-de-vreselijke-kost-van-oorlog/163860519.html",
+        "publishedAt": "2026-11-02T06:30:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T07:00:22.560Z"
+      },
+      "label": {
+        "desk": "buitenland",
+        "subjectCountry": "BE",
+        "subjectCountries": [
+          "BE"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "geschiedenis",
+        "eventId": "ieper-gedenksteen-kruispunt",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Nieuwe gedenksteen in Ieper voor een historisch kruispunt; land van de Britse belleman is niet de gebeurtenislocatie.",
+        "evidence": {
+          "title": "De gevaarlijkste plek ter wereld herken je 111 jaar later aan deze steen: “Hij herinnert aan de vreselijke kost van oorlog”",
+          "summary": "Een Iepers kruispunt werd 111 jaar geleden berucht als gevaarlijkste plek ter wereld en kreeg zondag een nieuwe gedenksteen, ingeluid door Britse belleman Chris (70)."
+        }
+      },
+      "selectionIndex": 97
+    },
+    {
+      "id": "1r0enfa",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:spaanse-treinramp-identificatie-1102",
+      "article": {
+        "id": "1r0enfa",
+        "kind": "article",
+        "source": "nos",
+        "sourceName": "NOS",
+        "title": "Zeker twaalf buitenlanders onder dodelijke slachtoffers treinramp Spanje",
+        "summary": "Het aantal dodelijke buitenlandse slachtoffers van de treinramp in Spanje vorige week is gestegen naar twaalf. In totaal kwamen 69 mensen om het leven.",
+        "url": "https://nos.nl/l/2637691",
+        "publishedAt": "2026-11-02T06:33:23.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:40:18.898Z"
+      },
+      "label": {
+        "desk": "buitenland",
+        "subjectCountry": "ES",
+        "subjectCountries": [
+          "ES"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "ramp",
+        "eventId": "spaanse-treinramp-identificatie-1102",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Identificatie van buitenlandse slachtoffers van de treinramp in Spanje; hun onbekende nationaliteit verandert de locatie niet.",
+        "evidence": {
+          "title": "Zeker twaalf buitenlanders onder dodelijke slachtoffers treinramp Spanje",
+          "summary": "Het aantal dodelijke buitenlandse slachtoffers van de treinramp in Spanje vorige week is gestegen naar twaalf. In totaal kwamen 69 mensen om het leven."
+        }
+      },
+      "selectionIndex": 98
+    },
+    {
+      "id": "1l4l5wi",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:michaelmann-schot-been",
+      "article": {
+        "id": "1l4l5wi",
+        "kind": "article",
+        "source": "nos-cultuur",
+        "sourceName": "NOS Cultuur & Media",
+        "title": "Heat-regisseur Michael Mann schiet zichzelf per ongeluk in been",
+        "summary": "De Amerikaanse regisseur Michael Mann is kort in het ziekenhuis opgenomen nadat hij zichzelf per ongeluk in een van zijn benen had geschoten.",
+        "url": "https://nos.nl/l/2637685",
+        "publishedAt": "2026-11-02T03:29:59.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T03:50:18.123Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "unknown",
+        "mainTopic": "cultuur",
+        "eventId": "michaelmann-schot-been",
+        "uncertain": {
+          "desk": false,
+          "country": true,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Een ongeval van een filmregisseur. Amerikaanse nationaliteit staat vast, maar de plaats van het schietongeval staat niet in kop of intro.",
+        "evidence": {
+          "title": "Heat-regisseur Michael Mann schiet zichzelf per ongeluk in been",
+          "summary": "De Amerikaanse regisseur Michael Mann is kort in het ziekenhuis opgenomen nadat hij zichzelf per ongeluk in een van zijn benen had geschoten."
+        }
+      },
+      "selectionIndex": 99
+    },
+    {
+      "id": "10e4dak",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:10e4dak",
+      "article": {
+        "id": "10e4dak",
+        "kind": "article",
+        "source": "nrc",
+        "sourceName": "NRC",
+        "title": "Pauze",
+        "summary": "Vanmorgen deed ik mijn boodschappen in de plaatselijke supermarkt. Twee jonge vakkenvullers waren met elkaar in gesprek over het komende pauzemoment.",
+        "url": "https://www.nrc.nl/nieuws/2026/11/02/pauze-a4940236",
+        "publishedAt": "2026-11-02T00:00:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T00:20:16.612Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "unknown",
+        "mainTopic": "column",
+        "eventId": null,
+        "uncertain": {
+          "desk": false,
+          "country": true,
+          "topic": false,
+          "event": true
+        },
+        "reason": "Supermarktcolumn zonder benoemde plaats of land; geen locatie uit de Nederlandstalige krant afleiden.",
+        "evidence": {
+          "title": "Pauze",
+          "summary": "Vanmorgen deed ik mijn boodschappen in de plaatselijke supermarkt. Twee jonge vakkenvullers waren met elkaar in gesprek over het komende pauzemoment."
+        }
+      },
+      "selectionIndex": 101
+    },
+    {
+      "id": "1vw3y1d",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:knmi-plaatselijke-waarschuwingscodes",
+      "article": {
+        "id": "1vw3y1d",
+        "kind": "article",
+        "source": "nu",
+        "sourceName": "NU.nl",
+        "title": "KNMI waarschuwt nu anders voor gevaarlijk weer: ‘Hopelijk minder vaak onnodig’",
+        "summary": "Het KNMI waarschuwt vanaf maandag niet meer per provincie voor gevaarlijk weer, maar werkt met plaatselijke kleurcodes.",
+        "url": "https://www.nu.nl/binnenland/6415114/knmi-waarschuwt-nu-anders-voor-gevaarlijk-weer-hopelijk-minder-vaak-onnodig.html",
+        "publishedAt": "2026-11-02T05:30:47.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T05:40:17.983Z"
+      },
+      "label": {
+        "desk": "binnenland",
+        "subjectCountry": "NL",
+        "subjectCountries": [
+          "NL"
+        ],
+        "geographicalClass": "domestic",
+        "mainTopic": "weer",
+        "eventId": "knmi-plaatselijke-waarschuwingscodes",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Het Nederlandse KNMI stapt over van provinciale naar plaatselijke waarschuwingen; andere gebeurtenis dan de eerdere weekweersverwachting.",
+        "evidence": {
+          "title": "KNMI waarschuwt nu anders voor gevaarlijk weer: ‘Hopelijk minder vaak onnodig’",
+          "summary": "Het KNMI waarschuwt vanaf maandag niet meer per provincie voor gevaarlijk weer, maar werkt met plaatselijke kleurcodes."
+        }
+      },
+      "selectionIndex": 102
+    },
+    {
+      "id": "dv226r",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:deelvanmij-jelmar-stamceldonor",
+      "article": {
+        "id": "dv226r",
+        "kind": "article",
+        "source": "parool",
+        "sourceName": "Het Parool",
+        "title": "Jelmar van Belle gaat op zoek naar de anonieme stamceldonor die zijn leven redde – maar dan volgt de verwoestende plottwist",
+        "summary": "In de rubriek Han Lips schrijven verschillende redacteuren van Het Parool elke dag over wat hun opvalt op tv. Vandaag: Deel van mij.",
+        "url": "https://www.parool.nl/han-lips/jelmar-van-belle-gaat-op-zoek-naar-de-anonieme-stamceldonor-die-zijn-leven-redde-maar-dan-volgt-de-verwoestende-plottwist~b5a88f22/",
+        "publishedAt": "2026-11-02T06:15:36.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:20:16.844Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "unknown",
+        "mainTopic": "televisie",
+        "eventId": "deelvanmij-jelmar-stamceldonor",
+        "uncertain": {
+          "desk": false,
+          "country": true,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Bespreking van televisieprogramma Deel van mij; het onderwerp is niet een nieuwe medische onderzoeksuitkomst. Land van het persoonlijke verhaal ontbreekt.",
+        "evidence": {
+          "title": "Jelmar van Belle gaat op zoek naar de anonieme stamceldonor die zijn leven redde – maar dan volgt de verwoestende plottwist",
+          "summary": "In de rubriek Han Lips schrijven verschillende redacteuren van Het Parool elke dag over wat hun opvalt op tv. Vandaag: Deel van mij."
+        }
+      },
+      "selectionIndex": 104
+    },
+    {
+      "id": "nidu7o",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:merz-cdu-kreisvorsitzenden",
+      "article": {
+        "id": "nidu7o",
+        "kind": "article",
+        "source": "politico-eu",
+        "sourceName": "Politico Europe",
+        "title": "Merz und die Wut der Basis",
+        "summary": "Friedrich Merz steht vor einer heiklen Mission:Der CDU-Chef trifft auf die Kreisvorsitzenden und damit auf die teils kritischsten offiziellen Stimmen seiner Partei.",
+        "url": "https://www.politico.eu/podcast/berlin-playbook-podcast/merz-und-die-wut-der-basis/",
+        "publishedAt": "2026-11-02T04:30:00.000Z",
+        "lang": "de",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T04:50:47.448Z",
+        "declaredSourceLang": "en"
+      },
+      "label": {
+        "desk": "buitenland",
+        "subjectCountry": "DE",
+        "subjectCountries": [
+          "DE"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "politiek",
+        "eventId": "merz-cdu-kreisvorsitzenden",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Merz ontmoet kritische lokale CDU-voorzitters; Duitsland volgt uit de partij en bestuursrol, los van zijn eerdere Aziëreis.",
+        "evidence": {
+          "title": "Merz und die Wut der Basis",
+          "summary": "Friedrich Merz steht vor einer heiklen Mission:Der CDU-Chef trifft auf die Kreisvorsitzenden und damit auf die teils kritischsten offiziellen Stimmen seiner Partei."
+        }
+      },
+      "selectionIndex": 105
+    },
+    {
+      "id": "11iilwj",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:cliffbooth-release-aankondiging",
+      "article": {
+        "id": "11iilwj",
+        "kind": "article",
+        "source": "polygon",
+        "sourceName": "Polygon",
+        "title": "Quentin Tarantino’s First New Movie in 7 Years Officially Arrives in Theaters Next Month",
+        "summary": "The Once Upon a Time in Hollywood universe returns with a new crime thriller from David Fincher and Quentin Tarantino, arriving on Netflix next month.",
+        "url": "https://www.polygon.com/quentin-tarantino-the-further-mis-adventures-of-cliff-booth-release-date/",
+        "publishedAt": "2026-11-02T04:00:17.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T04:20:20.035Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "global",
+        "mainTopic": "film",
+        "eventId": "cliffbooth-release-aankondiging",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Aankondiging van een filmrelease; Hollywood in een filmtitel is geen actuele Amerikaanse beleidsgebeurtenis.",
+        "evidence": {
+          "title": "Quentin Tarantino’s First New Movie in 7 Years Officially Arrives in Theaters Next Month",
+          "summary": "The Once Upon a Time in Hollywood universe returns with a new crime thriller from David Fincher and Quentin Tarantino, arriving on Netflix next month."
+        }
+      },
+      "selectionIndex": 106
+    },
+    {
+      "id": "15n2l5c",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:china-nieuweenergie-zakenjet",
+      "article": {
+        "id": "15n2l5c",
+        "kind": "article",
+        "source": "scmp",
+        "sourceName": "South China Morning Post",
+        "title": "Chinese start-up says it is developing country’s first home-grown new-energy business jet",
+        "summary": "A newly established Chinese start-up is developing what it describes as the country’s first home-grown new-energy business jet, adding to China’s efforts to cut aviation emissions.",
+        "url": "https://www.scmp.com/economy/china-economy/article/3372959/chinese-start-says-it-developing-countrys-first-home-grown-new-energy-business-jet",
+        "publishedAt": "2026-11-02T06:51:37.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T07:00:22.560Z"
+      },
+      "label": {
+        "desk": "buitenland",
+        "subjectCountry": "CN",
+        "subjectCountries": [
+          "CN"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "tech",
+        "eventId": "china-nieuweenergie-zakenjet",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "De eerste eigen nieuwe-energie-zakenjet van een Chinese start-up; China is expliciet de hoofdzaak.",
+        "evidence": {
+          "title": "Chinese start-up says it is developing country’s first home-grown new-energy business jet",
+          "summary": "A newly established Chinese start-up is developing what it describes as the country’s first home-grown new-energy business jet, adding to China’s efforts to cut aviation emissions."
+        }
+      },
+      "selectionIndex": 110
+    },
+    {
+      "id": "vy0tts",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:amsterdam-columbusstraat-brand-1102",
+      "article": {
+        "id": "vy0tts",
+        "kind": "article",
+        "source": "telegraaf",
+        "sourceName": "De Telegraaf",
+        "title": "Brand in portiekwoning Amsterdam-West, twaalf woningen ontruimd",
+        "summary": "In een portiekwoning aan de Columbusstraat in Amsterdam-West is maandagochtend vroeg brand op een zolder uitgebroken. Ongeveer twaalf woningen zijn ontruimd.",
+        "url": "https://www.telegraaf.nl/binnenland/brand-in-portiekwoning-amsterdam-west-twaalf-woningen-ontruimd/163942452.html",
+        "publishedAt": "2026-11-02T06:36:16.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:50:19.504Z"
+      },
+      "label": {
+        "desk": "binnenland",
+        "subjectCountry": "NL",
+        "subjectCountries": [
+          "NL"
+        ],
+        "geographicalClass": "domestic",
+        "mainTopic": "brand",
+        "eventId": "amsterdam-columbusstraat-brand-1102",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Brand en woningontruimingen aan de Columbusstraat in Amsterdam-West; niet de Franse woningbrand uit V1.",
+        "evidence": {
+          "title": "Brand in portiekwoning Amsterdam-West, twaalf woningen ontruimd",
+          "summary": "In een portiekwoning aan de Columbusstraat in Amsterdam-West is maandagochtend vroeg brand op een zolder uitgebroken. Ongeveer twaalf woningen zijn ontruimd."
+        }
+      },
+      "selectionIndex": 114
+    },
+    {
+      "id": "d130xx",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:almelo-terraslasten",
+      "article": {
+        "id": "d130xx",
+        "kind": "article",
+        "source": "tubantia",
+        "sourceName": "Tubantia",
+        "title": "Almelose horeca luidt noodklok: ‘Zaken moeten voor terras duizenden euro’s meer betalen’",
+        "summary": "Een binnenstad met mooie nieuwe pleinen, maar waar je nog geen kop koffie kunt bestellen. Het is momenteel een spookbeeld voor de Almelose horeca.",
+        "url": "https://www.tubantia.nl/almelo/almelose-horeca-luidt-noodklok-zaken-moeten-voor-terras-duizenden-euros-meer-betalen~a3617683/",
+        "publishedAt": "2026-11-02T06:30:44.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:40:18.898Z"
+      },
+      "label": {
+        "desk": "binnenland",
+        "subjectCountry": "NL",
+        "subjectCountries": [
+          "NL"
+        ],
+        "geographicalClass": "domestic",
+        "mainTopic": "economie",
+        "eventId": "almelo-terraslasten",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Almelose horeca reageert op de kosten van terrassen; andere lokale gebeurtenis dan autobranden in Almelo.",
+        "evidence": {
+          "title": "Almelose horeca luidt noodklok: ‘Zaken moeten voor terras duizenden euro’s meer betalen’",
+          "summary": "Een binnenstad met mooie nieuwe pleinen, maar waar je nog geen kop koffie kunt bestellen. Het is momenteel een spookbeeld voor de Almelose horeca."
+        }
+      },
+      "selectionIndex": 117
+    },
+    {
+      "id": "c5i5yx",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:bolobolobolo-uk-opnamen-afgerond",
+      "article": {
+        "id": "c5i5yx",
+        "kind": "article",
+        "source": "variety",
+        "sourceName": "Variety",
+        "title": "Siddhant Chaturvedi, Alizeh, Jimmy Shergill’s 1990s British Punjabi Music Drama ‘Bolo Bolo Bolo,’ Directed by Vikas Bahl, Wraps U.K. Shoot (EXCLUSIVE)",
+        "summary": "Bollywood filmmaker Vikas Bahl has finished filming in the U.K. on “Bolo Bolo Bolo,” a coming-of-age musical drama set during the boom in Punjabi music across Britain in the early 1990s.",
+        "url": "https://variety.com/2026/film/news/siddhant-chaturvedi-jimmy-shergill-bolo-bolo-bolo-uk-shoot-wrap-1236937033/",
+        "publishedAt": "2026-11-02T05:30:00.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T05:30:18.342Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": "GB",
+        "subjectCountries": [
+          "GB"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "film",
+        "eventId": "bolobolobolo-uk-opnamen-afgerond",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Afronding van Britse opnamen voor een muziekfilm die zich in Brits-Punjabse gemeenschappen afspeelt; niet het herkomstland van de Indiase maker als locatie gebruiken.",
+        "evidence": {
+          "title": "Siddhant Chaturvedi, Alizeh, Jimmy Shergill’s 1990s British Punjabi Music Drama ‘Bolo Bolo Bolo,’ Directed by Vikas Bahl, Wraps U.K. Shoot (EXCLUSIVE)",
+          "summary": "Bollywood filmmaker Vikas Bahl has finished filming in the U.K. on “Bolo Bolo Bolo,” a coming-of-age musical drama set during the boom in Punjabi music across Britain in the early 1990s."
+        }
+      },
+      "selectionIndex": 118
+    },
+    {
+      "id": "pvfq64",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:portland-houston-janssen-3-1",
+      "article": {
+        "id": "pvfq64",
+        "kind": "article",
+        "source": "vi",
+        "sourceName": "Voetbal International",
+        "title": "‘Bully’ Janssen laat Portland Timbers dromen van MLS-play-offs",
+        "summary": "Vincent Janssen was zondag goud waard voor Portland Timbers. De 32-jarige Nederlander was betrokken bij alle goals in een 3-1 zege op Houston Dynamo.",
+        "url": "https://www.vi.nl/nieuws/janssen-laat-portland-timbers-dromen-van-mls-play-offs",
+        "publishedAt": "2026-11-02T06:50:49.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T07:00:22.560Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": "US",
+        "subjectCountries": [
+          "US"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "sport",
+        "eventId": "portland-houston-janssen-3-1",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Footballwedstrijd Portland Timbers-Houston Dynamo in de MLS; Nederlandse nationaliteit van Janssen is niet de plaats van de wedstrijd.",
+        "evidence": {
+          "title": "‘Bully’ Janssen laat Portland Timbers dromen van MLS-play-offs",
+          "summary": "Vincent Janssen was zondag goud waard voor Portland Timbers. De 32-jarige Nederlander was betrokken bij alle goals in een 3-1 zege op Houston Dynamo."
+        }
+      },
+      "selectionIndex": 119
+    },
+    {
+      "id": "1h305tu",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:rusland-gas-europa-oekraine-vs-plan",
+      "article": {
+        "id": "1h305tu",
+        "kind": "article",
+        "source": "volkskrant",
+        "sourceName": "de Volkskrant",
+        "title": "WSJ: ‘VS willen gaslevering Rusland aan Europa via Oekraïne, met Amerikaanse tussenpersoon’",
+        "summary": "De Oekraïense bevolking leeft al ruim vier jaar in onzekerheid door de Russische terreur. Vredesgesprekken leverden tot nu toe weinig op, de gevechten gaan door.",
+        "url": "https://www.volkskrant.nl/buitenland/wsj-vs-willen-gaslevering-rusland-aan-europa-via-oekraine-met-amerikaanse-tussenpersoon~bde4fbe2/",
+        "publishedAt": "2026-11-02T04:17:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T05:20:16.698Z"
+      },
+      "label": {
+        "desk": null,
+        "subjectCountry": null,
+        "subjectCountries": [
+          "RU",
+          "UA",
+          "US"
+        ],
+        "geographicalClass": "multiple",
+        "mainTopic": "energie",
+        "eventId": "rusland-gas-europa-oekraine-vs-plan",
+        "uncertain": {
+          "desk": true,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Grensoverschrijdend gasplan via Oekraïne met een Amerikaanse tussenpersoon; onvoldoende eenduidig voor VS of Oekraïne als hoofdrubriek.",
+        "evidence": {
+          "title": "WSJ: ‘VS willen gaslevering Rusland aan Europa via Oekraïne, met Amerikaanse tussenpersoon’",
+          "summary": "De Oekraïense bevolking leeft al ruim vier jaar in onzekerheid door de Russische terreur. Vredesgesprekken leverden tot nu toe weinig op, de gevechten gaan door."
+        }
+      },
+      "selectionIndex": 120
+    },
+    {
+      "id": "1hz0mt5",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:reinderink-doorbraak-interview",
+      "article": {
+        "id": "1hz0mt5",
+        "kind": "article",
+        "source": "wielerflits",
+        "sourceName": "WielerFlits",
+        "title": "De doorbraak van Pepijn Reinderink: ‘Ik kan meer koersen winnen’",
+        "summary": "Voor Pepijn Reinderink zal 2026 de boeken ingaan als het jaar van de doorbraak.",
+        "url": "https://www.wielerflits.nl/nieuws/de-doorbraak-van-pepijn-reinderink-ik-kan-meer-koersen-winnen/",
+        "publishedAt": "2026-11-02T06:24:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:30:19.772Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "unknown",
+        "mainTopic": "sport",
+        "eventId": "reinderink-doorbraak-interview",
+        "uncertain": {
+          "desk": false,
+          "country": true,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Terugblik op het wielerjaar van Reinderink; geen land van een specifieke koers genoemd.",
+        "evidence": {
+          "title": "De doorbraak van Pepijn Reinderink: ‘Ik kan meer koersen winnen’",
+          "summary": "Voor Pepijn Reinderink zal 2026 de boeken ingaan als het jaar van de doorbraak."
+        }
+      },
+      "selectionIndex": 122
+    },
+    {
+      "id": "60ty7z",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:101dalmatiers-nederlandse-musical-recensie",
+      "article": {
+        "id": "60ty7z",
+        "kind": "article",
+        "source": "ad",
+        "sourceName": "AD",
+        "title": "Toptalent Kim-Lian van der Meij uitblinker in rommelige musical 101 Dalmatiërs",
+        "summary": "Soms komen er musicals langs, waarvan je na afloop denkt: deze had ik best kunnen overslaan. De Nederlandse versie van 101 Dalmatiërs valt in die categorie.",
+        "url": "https://www.ad.nl/show/toptalent-kim-lian-van-der-meij-uitblinker-in-rommelige-musical-101-dalmatiers~a6e30c47/",
+        "publishedAt": "2026-11-02T06:00:26.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:10:15.619Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": "NL",
+        "subjectCountries": [
+          "NL"
+        ],
+        "geographicalClass": "domestic",
+        "mainTopic": "theater",
+        "eventId": "101dalmatiers-nederlandse-musical-recensie",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Recensie van de expliciet Nederlandse musicalversie; geen internationaal incident.",
+        "evidence": {
+          "title": "Toptalent Kim-Lian van der Meij uitblinker in rommelige musical 101 Dalmatiërs",
+          "summary": "Soms komen er musicals langs, waarvan je na afloop denkt: deze had ik best kunnen overslaan. De Nederlandse versie van 101 Dalmatiërs valt in die categorie."
+        }
+      },
+      "selectionIndex": 123
+    },
+    {
+      "id": "zx183",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:wales-nationschampionship-voorbeschouwing",
+      "article": {
+        "id": "zx183",
+        "kind": "article",
+        "source": "bbc-sport",
+        "sourceName": "BBC Sport",
+        "title": "How will Wales fare on Nations Championship return?",
+        "summary": "BBC Sport Wales provides a recap of what has happened so far in the inaugural Nations Championship and what will occur during the next month?",
+        "url": "https://www.bbc.co.uk/sport/rugby-union/articles/c6jrwpepgpg5o?at_medium=RSS&at_campaign=rss",
+        "publishedAt": "2026-11-02T05:39:05.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T05:50:16.110Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": "GB",
+        "subjectCountries": [
+          "GB"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "sport",
+        "eventId": "wales-nationschampionship-voorbeschouwing",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Wales en de Nations Championship; andere competitie dan de eerder opgenomen vrouwen-rugbyleaguewedstrijd Australië-Wales.",
+        "evidence": {
+          "title": "How will Wales fare on Nations Championship return?",
+          "summary": "BBC Sport Wales provides a recap of what has happened so far in the inaugural Nations Championship and what will occur during the next month?"
+        }
+      },
+      "selectionIndex": 127
+    },
+    {
+      "id": "161017u",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:oss-euterpelaan-tankstation-onderzoek",
+      "article": {
+        "id": "161017u",
+        "kind": "article",
+        "source": "bd",
+        "sourceName": "Brabants Dagblad",
+        "title": "Politie doet onderzoek bij tankstation in Oss en neemt bewijsmateriaal mee",
+        "summary": "De politie heeft zondagavond onderzoek gedaan bij tankstation Total De Ruwaard aan de Euterpelaan in Oss. Daarbij was ook een beveiligingsbedrijf aanwezig.",
+        "url": "https://www.bd.nl/112-nieuws-oss/politie-doet-onderzoek-bij-tankstation-in-oss-en-neemt-bewijsmateriaal-mee~a89cfe89/",
+        "publishedAt": "2026-11-02T06:29:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:30:19.772Z"
+      },
+      "label": {
+        "desk": "binnenland",
+        "subjectCountry": "NL",
+        "subjectCountries": [
+          "NL"
+        ],
+        "geographicalClass": "domestic",
+        "mainTopic": "misdaad",
+        "eventId": "oss-euterpelaan-tankstation-onderzoek",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Politieonderzoek aan de Euterpelaan in Oss; geen locatie-overstijgend misdaadcluster.",
+        "evidence": {
+          "title": "Politie doet onderzoek bij tankstation in Oss en neemt bewijsmateriaal mee",
+          "summary": "De politie heeft zondagavond onderzoek gedaan bij tankstation Total De Ruwaard aan de Euterpelaan in Oss. Daarbij was ook een beveiligingsbedrijf aanwezig."
+        }
+      },
+      "selectionIndex": 128
+    },
+    {
+      "id": "1m622sz",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:anthropic-ipo-japanse-investeerders",
+      "article": {
+        "id": "1m622sz",
+        "kind": "article",
+        "source": "bloomberg",
+        "sourceName": "Bloomberg",
+        "title": "Anthropic Seeks Up to $3.5 Billion in Japan for Its Mega US IPO",
+        "summary": "Anthropic PBC aims to raise up to $3.5 billion from Japanese investors in its initial public offering in the US, bringing the landmark share sale by the artificial-intelligence startup to a market starved of first-time offerings.",
+        "url": "https://www.bloomberg.com/news/articles/2026-11-02/anthropic-seeks-up-to-3-5-billion-in-japan-for-its-mega-us-ipo",
+        "publishedAt": "2026-11-02T06:23:18.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:40:18.898Z"
+      },
+      "label": {
+        "desk": "vs",
+        "subjectCountry": null,
+        "subjectCountries": [
+          "US",
+          "JP"
+        ],
+        "geographicalClass": "multiple",
+        "mainTopic": "economie",
+        "eventId": "anthropic-ipo-japanse-investeerders",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Amerikaanse beursgang van Anthropic met Japanse investeerders; niet verwarren met de eerdere financieringsdoelstelling van OpenAI.",
+        "evidence": {
+          "title": "Anthropic Seeks Up to $3.5 Billion in Japan for Its Mega US IPO",
+          "summary": "Anthropic PBC aims to raise up to $3.5 billion from Japanese investors in its initial public offering in the US, bringing the landmark share sale by the artificial-intelligence startup to a market starved of first-time offerings."
+        }
+      },
+      "selectionIndex": 129
+    },
+    {
+      "id": "1ptqbj8",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:nac-kruys-opmars",
+      "article": {
+        "id": "1ptqbj8",
+        "kind": "article",
+        "source": "bndestem",
+        "sourceName": "BN DeStem",
+        "title": "‘Geen tovenaar’, wel een wondermiddel: de cijfers achter opmars van NAC onder Kruys",
+        "summary": "„Natuurlijk zal ik de tijd nodig hebben. Ik ben geen tovenaar die alles wat we nu bespreken in één keer gaat doen.”",
+        "url": "https://www.bndestem.nl/nac/geen-tovenaar-wel-een-wondermiddel-de-cijfers-achter-opmars-van-nac-onder-kruys~a6d053683/",
+        "publishedAt": "2026-11-02T06:30:45.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:40:18.898Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": "NL",
+        "subjectCountries": [
+          "NL"
+        ],
+        "geographicalClass": "domestic",
+        "mainTopic": "sport",
+        "eventId": "nac-kruys-opmars",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Analyse van NAC onder trainer Kruys; andere club en hoofdzaak dan de NEC- en Ajax-verhalen uit de oude sets.",
+        "evidence": {
+          "title": "‘Geen tovenaar’, wel een wondermiddel: de cijfers achter opmars van NAC onder Kruys",
+          "summary": "„Natuurlijk zal ik de tijd nodig hebben. Ik ben geen tovenaar die alles wat we nu bespreken in één keer gaat doen.”"
+        }
+      },
+      "selectionIndex": 130
+    },
+    {
+      "id": "f1prul",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:groningen-straatartiesten-regels",
+      "article": {
+        "id": "f1prul",
+        "kind": "article",
+        "source": "dvhn",
+        "sourceName": "Dagblad van het Noorden",
+        "title": "Straatartiesten mogen in Groningen toch langer optreden dan een kwartier. ’We gaan er echt niet met een stopwatch bij staan’",
+        "summary": "De gemeente Groningen stapt waarschijnlijk af van de regel dat straatartiesten niet langer dan een kwartier op één plek mogen staan.",
+        "url": "https://www.dvhn.nl/regio/groningen/stad/straatartiesten-mogen-in-groningen-toch-langer-optreden-dan-een-kwartier.-we-gaan-er-echt-niet-met-een-stopwatch-bij-staan/163853647.html",
+        "publishedAt": "2026-11-02T06:00:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:20:16.844Z"
+      },
+      "label": {
+        "desk": "binnenland",
+        "subjectCountry": "NL",
+        "subjectCountries": [
+          "NL"
+        ],
+        "geographicalClass": "domestic",
+        "mainTopic": "cultuur",
+        "eventId": "groningen-straatartiesten-regels",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Gemeentelijke regels voor optreedduur van straatartiesten in Groningen; los van Groningse aardbevingsschade of klimaatbezoek.",
+        "evidence": {
+          "title": "Straatartiesten mogen in Groningen toch langer optreden dan een kwartier. ’We gaan er echt niet met een stopwatch bij staan’",
+          "summary": "De gemeente Groningen stapt waarschijnlijk af van de regel dat straatartiesten niet langer dan een kwartier op één plek mogen staan."
+        }
+      },
+      "selectionIndex": 132
+    },
+    {
+      "id": "18rtl5p",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:zuidkorea-ai-begroting-2027",
+      "article": {
+        "id": "18rtl5p",
+        "kind": "article",
+        "source": "dw",
+        "sourceName": "Deutsche Welle",
+        "title": "South Korea to pour billions into AI",
+        "summary": "President Lee Jae Myung has presented his record-breaking budget proposal for 2027, including major investments in AI and other tech.",
+        "url": "https://www.dw.com/en/south-korea-to-pour-billions-into-ai/a-79825118?maca=en-rss-en-all-1573-rdf",
+        "publishedAt": "2026-11-02T05:01:00.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T05:10:16.614Z"
+      },
+      "label": {
+        "desk": "buitenland",
+        "subjectCountry": "KR",
+        "subjectCountries": [
+          "KR"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "economie",
+        "eventId": "zuidkorea-ai-begroting-2027",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Zuid-Korea presenteert een begroting met AI-investeringen; land is expliciet en niet de nationaliteit van DW.",
+        "evidence": {
+          "title": "South Korea to pour billions into AI",
+          "summary": "President Lee Jae Myung has presented his record-breaking budget proposal for 2027, including major investments in AI and other tech."
+        }
+      },
+      "selectionIndex": 133
+    },
+    {
+      "id": "qv9lc6",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:mauro-junior-psv-eerste-thuisgoal",
+      "article": {
+        "id": "qv9lc6",
+        "kind": "article",
+        "source": "ed",
+        "sourceName": "Eindhovens Dagblad",
+        "title": "Heel bijzondere mijlpaal voor Mauro Júnior bij PSV",
+        "summary": "Mauro Júnior had tot zaterdagavond nog nooit tijdens een eredivisiewedstrijd van PSV gescoord in het Philips Stadion. Tot zaterdagavond dus.",
+        "url": "https://www.ed.nl/psv/heel-bijzondere-mijlpaal-voor-mauro-junior-bij-psv~a6db33ae/",
+        "publishedAt": "2026-11-02T06:00:27.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:10:15.619Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": "NL",
+        "subjectCountries": [
+          "NL"
+        ],
+        "geographicalClass": "domestic",
+        "mainTopic": "sport",
+        "eventId": "mauro-junior-psv-eerste-thuisgoal",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Eerste thuisgoal in de Eredivisie van Mauro Júnior bij PSV; andere gebeurtenis dan een bekerloting met PSV.",
+        "evidence": {
+          "title": "Heel bijzondere mijlpaal voor Mauro Júnior bij PSV",
+          "summary": "Mauro Júnior had tot zaterdagavond nog nooit tijdens een eredivisiewedstrijd van PSV gescoord in het Philips Stadion. Tot zaterdagavond dus."
+        }
+      },
+      "selectionIndex": 134
+    },
+    {
+      "id": "zthb",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:nhs-pews-kinderwaarschuwing",
+      "article": {
+        "id": "zthb",
+        "kind": "article",
+        "source": "guardian",
+        "sourceName": "The Guardian",
+        "title": "World’s largest early warning system for severe child illness to launch in NHS A&Es across England",
+        "summary": "Paediatric early warning system (Pews) uses a vital signs scoring system to assess whether a child is deteriorating The world’s largest “early warning system” to spot…",
+        "url": "https://www.theguardian.com/society/2026/nov/02/nhs-early-warning-system-child-illness-england",
+        "publishedAt": "2026-11-02T06:00:35.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:20:16.844Z"
+      },
+      "label": {
+        "desk": "buitenland",
+        "subjectCountry": "GB",
+        "subjectCountries": [
+          "GB"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "gezondheid",
+        "eventId": "nhs-pews-kinderwaarschuwing",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Lancering van een systeem in NHS-spoedafdelingen in Engeland; zorginvoering, niet alleen een laboratoriumstudie.",
+        "evidence": {
+          "title": "World’s largest early warning system for severe child illness to launch in NHS A&Es across England",
+          "summary": "Paediatric early warning system (Pews) uses a vital signs scoring system to assess whether a child is deteriorating The world’s largest “early warning system” to spot…"
+        }
+      },
+      "selectionIndex": 139
+    },
+    {
+      "id": "o8dv0y",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:belgen-ziek-doorwerken-onderzoek",
+      "article": {
+        "id": "o8dv0y",
+        "kind": "article",
+        "source": "gva",
+        "sourceName": "Gazet van Antwerpen",
+        "title": "Kwart van Belgen werkt altijd, ook als ze ziek zijn",
+        "summary": "Meer dan een kwart van de Belgen geeft aan altijd te gaan werken, ook als ze ziek zijn.",
+        "url": "https://www.gva.be/binnenland/kwart-van-belgen-werkt-altijd-ook-als-ze-ziek-zijn/163941725.html",
+        "publishedAt": "2026-11-02T05:09:42.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T05:30:18.342Z"
+      },
+      "label": {
+        "desk": "buitenland",
+        "subjectCountry": "BE",
+        "subjectCountries": [
+          "BE"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "arbeid",
+        "eventId": "belgen-ziek-doorwerken-onderzoek",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Onderzoek naar ziek doorwerken door Belgen; België staat in de kop en intro.",
+        "evidence": {
+          "title": "Kwart van Belgen werkt altijd, ook als ze ziek zijn",
+          "summary": "Meer dan een kwart van de Belgen geeft aan altijd te gaan werken, ook als ze ziek zijn."
+        }
+      },
+      "selectionIndex": 141
+    },
+    {
+      "id": "7e47m4",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:noordholland-minima-buskorting",
+      "article": {
+        "id": "7e47m4",
+        "kind": "article",
+        "source": "haarlemsdagblad",
+        "sourceName": "Haarlems Dagblad",
+        "title": "Passagiers met krappe beurs goedkoper met de bus dankzij provincie",
+        "summary": "Passagiers met een krappe beurs kunnen goedkoper met de bus, dankzij de provincie Noord-Holland.",
+        "url": "https://www.haarlemsdagblad.nl/regio/haarlem/passagiers-met-krappe-beurs-goedkoper-met-de-bus-dankzij-provincie/163751313.html",
+        "publishedAt": "2026-11-02T06:15:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:30:19.772Z"
+      },
+      "label": {
+        "desk": "binnenland",
+        "subjectCountry": "NL",
+        "subjectCountries": [
+          "NL"
+        ],
+        "geographicalClass": "domestic",
+        "mainTopic": "vervoer",
+        "eventId": "noordholland-minima-buskorting",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Buskorting voor lage inkomens door de provincie Noord-Holland; niet het land van een busmaatschappij afleiden.",
+        "evidence": {
+          "title": "Passagiers met krappe beurs goedkoper met de bus dankzij provincie",
+          "summary": "Passagiers met een krappe beurs kunnen goedkoper met de bus, dankzij de provincie Noord-Holland."
+        }
+      },
+      "selectionIndex": 142
+    },
+    {
+      "id": "1c0k5eh",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:vk-permanentverblijf-vijftienjaar",
+      "article": {
+        "id": "1c0k5eh",
+        "kind": "article",
+        "source": "hbvl",
+        "sourceName": "Het Belang van Limburg",
+        "title": "Britse regering wil migranten tot vijftien jaar laten wachten op permanent verblijf",
+        "summary": "De Britse minister van Binnenlandse Zaken Shabana Mahmood stelt later vandaag ingrijpende nieuwe regels voor over hoelang legale migranten zullen moeten wachten op een permanente verblijfsvergunning.",
+        "url": "https://www.hbvl.be/buitenland/britse-regering-wil-migranten-tot-vijftien-jaar-laten-wachten-op-permanent-verblijf/163941873.html",
+        "publishedAt": "2026-11-02T05:36:46.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:00:20.175Z"
+      },
+      "label": {
+        "desk": "buitenland",
+        "subjectCountry": "GB",
+        "subjectCountries": [
+          "GB"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "migratie",
+        "eventId": "vk-permanentverblijf-vijftienjaar",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Britse regering stelt nieuwe wachttijden voor legaal verblijvende migranten voor; geen slavernij-excuses of Amerikaanse migratie.",
+        "evidence": {
+          "title": "Britse regering wil migranten tot vijftien jaar laten wachten op permanent verblijf",
+          "summary": "De Britse minister van Binnenlandse Zaken Shabana Mahmood stelt later vandaag ingrijpende nieuwe regels voor over hoelang legale migranten zullen moeten wachten op een permanente verblijfsvergunning."
+        }
+      },
+      "selectionIndex": 143
+    },
+    {
+      "id": "8lj3wh",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:sydney-gewapende-reactie-eenheid",
+      "article": {
+        "id": "8lj3wh",
+        "kind": "article",
+        "source": "independent",
+        "sourceName": "The Independent",
+        "title": "Sydney deploys armed police with assault rifles in security crackdown after Bondi massacre",
+        "summary": "Australia’s first permanent specialist armed response unit has begun patrolling crowded public spaces, prompting concerns from human rights groups",
+        "url": "https://www.independent.co.uk/news/world/australasia/sydney-bondi-beach-armed-police-patrols-b3077264.html",
+        "publishedAt": "2026-11-02T05:59:50.000Z",
+        "lang": "en",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T06:10:15.619Z"
+      },
+      "label": {
+        "desk": "buitenland",
+        "subjectCountry": "AU",
+        "subjectCountries": [
+          "AU"
+        ],
+        "geographicalClass": "foreign",
+        "mainTopic": "veiligheid",
+        "eventId": "sydney-gewapende-reactie-eenheid",
+        "uncertain": {
+          "desk": false,
+          "country": false,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Nieuwe permanente gewapende politie-eenheid in Sydney; geen Londens protest of aanhouding uit de oude sets.",
+        "evidence": {
+          "title": "Sydney deploys armed police with assault rifles in security crackdown after Bondi massacre",
+          "summary": "Australia’s first permanent specialist armed response unit has begun patrolling crowded public spaces, prompting concerns from human rights groups"
+        }
+      },
+      "selectionIndex": 145
+    },
+    {
+      "id": "1m4p1vw",
+      "cohort": "v2b",
+      "split": "control",
+      "group": "v2b:kane-ballondor-column",
+      "article": {
+        "id": "1m4p1vw",
+        "kind": "article",
+        "source": "leidschdagblad",
+        "sourceName": "Leidsch Dagblad",
+        "title": "De vader van Harry Kane deed precies het juiste, vindt Kim Lammers, die de beste voetballer ter wereld nu wél op waarde schat",
+        "summary": "Afgelopen week was de Ballon d’Or-verkiezing. En heel eerlijk: ik had me er niet zo in verdiept.",
+        "url": "https://www.leidschdagblad.nl/sport/de-vader-van-harry-kane-deed-precies-het-juiste-vindt-kim-lammers-die-de-beste-voetballer-ter-wereld-nu-wel-op-waarde-schat/163926438.html",
+        "publishedAt": "2026-11-02T05:21:00.000Z",
+        "lang": "nl",
+        "publicationDay": "2026-11-02",
+        "firstSeenAt": "2026-11-02T05:40:17.983Z"
+      },
+      "label": {
+        "desk": "overig",
+        "subjectCountry": null,
+        "subjectCountries": [],
+        "geographicalClass": "unknown",
+        "mainTopic": "sport",
+        "eventId": "kane-ballondor-column",
+        "uncertain": {
+          "desk": false,
+          "country": true,
+          "topic": false,
+          "event": false
+        },
+        "reason": "Sportcolumn over Kane en de Ballon d’Or; geen land van de prijsuitreiking of van de columnist genoemd.",
+        "evidence": {
+          "title": "De vader van Harry Kane deed precies het juiste, vindt Kim Lammers, die de beste voetballer ter wereld nu wél op waarde schat",
+          "summary": "Afgelopen week was de Ballon d’Or-verkiezing. En heel eerlijk: ik had me er niet zo in verdiept."
+        }
+      },
+      "selectionIndex": 147
+    }
+  ]
+}

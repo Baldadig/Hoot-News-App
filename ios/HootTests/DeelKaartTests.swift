@@ -47,6 +47,27 @@ final class DeelKaartTests: XCTestCase {
         }
     }
 
+    func testIngebeddeUitgeverslogosEnTerugvalZonderNetwerk() throws {
+        XCTAssertNil(DeelKaartStyle.publisherMark("onbekende-bron"))
+        for (source, name) in [("nos", "NOS"), ("nrc", "NRC"), ("nyt", "The New York Times"), ("onbekende-bron", String(repeating: "Een zeer lange bronnaam ", count: 12))] {
+            if source != "onbekende-bron" {
+                let mark = try XCTUnwrap(DeelKaartStyle.publisherMark(source))
+                XCTAssertEqual(mark.size.width, 84); XCTAssertEqual(mark.size.height, 84)
+            }
+            var item = Item(id: "publisher-" + source, source: source, title: "De stad krijgt meer groen", url: "https://nos.nl/a")
+            item.sourceName = name; item.section = "Binnenland"
+            for format in DeelKaartFormat.allCases {
+                let data = try XCTUnwrap(DeelKaart(item: item, format: format).png())
+                let image = try XCTUnwrap(UIImage(data: data))
+                let f = DeelKaartStyle.layout.formats[format.rawValue]!
+                XCTAssertEqual(image.size.width, f.width); XCTAssertEqual(image.size.height, f.height)
+                let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.png")
+                attachment.name = "publisher-ios-\(source)-\(format.rawValue).png"
+                attachment.lifetime = .keepAlways; add(attachment)
+            }
+        }
+    }
+
     // De echte LeadCard met lokaal onderschepte beeldresponsen: geen afhankelijkheid van uitgevers.
     func testHoofdbeeldOpIPhoneEnIPad() async throws {
         URLProtocol.registerClass(LeadFixtureProtocol.self)

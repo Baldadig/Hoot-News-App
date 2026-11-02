@@ -13,7 +13,7 @@ import Foundation
 // `Int.max` is "alles" (Infinity op het web); zonder `rek` is rek gelijk aan max.
 func wholeSentences(_ text: String, max: Int = 240, rek: Int? = nil) -> String {
     let rek = rek ?? max
-    var s = Sentences.squeeze(text) as NSString
+    var s = EditionDisplay.cleanIntro(text) as NSString
     if s.length == 0 { return "" }
     var cut = false
     if let m = Sentences.trailingEllipsis.firstMatch(in: s as String, range: NSRange(location: 0, length: s.length)) {

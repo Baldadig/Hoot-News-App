@@ -1,0 +1,31 @@
+{
+  "bubbleNumberCount": 0,
+  "displayOrder": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "Buiten je bubbel"
+  ],
+  "endCount": "10 van 10",
+  "endTitle": "Dan ben je bij.",
+  "numbers": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10"
+  ],
+  "overflow": false
+}

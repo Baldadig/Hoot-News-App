@@ -1,4 +1,5 @@
-import { coverageOf, majorNews, allowedNews, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery } from '../../shared/edition-policy.mjs'
+import { cleanIntro, headlineFit } from '../../shared/edition-display.mjs'
+import { EDITION_TARGET, coverageOf, majorNews, newsRejection, lightVideoFiller, allowedNews, cappedInternational, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery } from '../../shared/edition-policy.mjs'
 import { eventScope, conflictingEvents } from '../../shared/article-signals.mjs'
 // Verhalen (bundels), hoofdbericht en editie — pure functies, los van het ophalen,
 // zodat ze te testen zijn (zie tests/).
@@ -436,6 +437,7 @@ const subjectText = (s) => {
   return t
 }
 export function sameSubject(a, b) {
+  if (conflictingEvents(a.eventScope, b.eventScope)) return false
   if (sameEvent(a, b)) return true
   const dt = Math.abs(a.t - b.t)
   if (dt > EVENT_WINDOW) return false
@@ -483,13 +485,14 @@ export const isStale = (item, now) => !!now && now - timeOf(item) > STALE_AFTER
 // dan met preview, met beeld, en het nieuwste. Geen bonus voor land of taal van de uitgever.
 // `preferred`: je voorkeursbronnen (de ster bij een bron); die gaan nog vóór je andere bronnen.
 // `now`: het moment van samenstellen (zonder: geen achtergrond-regel).
-export function leadCandidates(items, mainIds, preferred = null, now = null) {
+export function leadCandidates(items, mainIds, preferred = null, now = null, { role = 'neutral' } = {}) {
   // Een opiniestuk is nooit het hoofdbericht als er een nieuwsbericht is.
   // Een podcast of liveblog is ook nooit het hoofdbericht (een promo, of over van alles tegelijk).
   // Achtergrond weegt zwaarder mee dan alle voorkeuren samen (27): een vers bericht gaat altijd voor.
   // Een fotogalerij of slideshow is nooit het hoofdbericht als er iets anders is (isGallery).
-  const score = (i) => (i.type === 'opinie' ? -16 : 0) + (/\bpodcast\b/i.test(i.title || '') || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (i.summary ? 2 : 0) + (i.image ? 1 : 0)
-  return [...items].sort((a, b) => score(b) - score(a) || byRecency(a, b))
+  const score = (i) => (i.type === 'opinie' ? -16 : 0) + (/\bpodcast\b/i.test(i.title || '') || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image ? 1 : 0) + (role === 'front' ? headlineFit(i.title) : 0)
+  const scores = new Map(items.map(i => [i, score(i)]))
+  return [...items].sort((a, b) => scores.get(b) - scores.get(a) || byRecency(a, b))
 }
 
 // Verhalen: verbonden groepen van artikelen over dezelfde gebeurtenis (≥2 bronnen).
@@ -594,6 +597,82 @@ export function buildStories(articles, registry = {}, { mainIds = new Set(), key
     }
   }
   settle(new Set(list.map((a) => a.id)))
+  // Verbonden zijn is geen gedeelde gebeurtenis. Twee dichte groepen kunnen via een paar
+  // overzichtsstukken één component worden. Elke uiteindelijke groep houdt daarom een direct
+  // verbonden anker én minstens tweederde onderlinge steun per lid. Het anker komt uit de meest
+  // samenhangende buurt, niet uit de overzichtskop die toevallig de meeste losse verhalen noemt.
+  const coherentParts = (ids) => {
+    if (ids.length < 3) return [ids]
+    const noConflicts = ids.every(a => ids.every(b => a === b || !conflictingEvents(sig.get(a).eventScope, sig.get(b).eventScope)))
+    const common = field => [...sig.get(ids[0])[field]].filter(k => ids.every(id => sig.get(id)[field].has(k)))
+    // Meertalige verslaggeving kan een verbinding missen terwijl de hele groep dezelfde concrete
+    // namen of zeldzame gebeurteniscombinatie draagt. Dat inhoudelijke bewijs gaat vóór graafdichtheid.
+    const counts = field => {
+      const seen = new Map()
+      for (const id of ids) for (const k of sig.get(id)[field]) seen.set(k, (seen.get(k) || 0) + 1)
+      return [...seen.values()]
+    }
+    // Een grote gebeurtenis heeft ook achtergrondstukken zonder de naam in de kop. Behoud ze bij
+    // een vrijwel overal genoemde concrete naam (85%) en een gedeeld gebeurtenistype (minstens de helft).
+    // Dit is geen vrijstelling voor landen/leiders uit WEAK of voor algemene sportwoorden.
+    const nucleus = counts('strong').some(n => n * 100 >= ids.length * 85)
+      && counts('concepts').some(n => n * 2 >= ids.length)
+    if (noConflicts && (ids.length < CORE_FROM || common('strong').length >= 2 || common('rareIds').length >= 2 || nucleus)) return [ids]
+    const edge = (a, b) => links.get(a).has(b)
+    const conflict = (a, b) => conflictingEvents(sig.get(a).eventScope, sig.get(b).eventScope)
+    const coherent = (part) => part.every(a => part.every(b => a === b || !conflict(a, b)))
+      && part.some(a => part.every(b => a === b || edge(a, b)))
+      && part.every(a => part.filter(b => a !== b && edge(a, b)).length * 3 >= (part.length - 1) * 2)
+    if (coherent(ids)) return [ids]
+    const remaining = new Set(ids), out = []
+    while (remaining.size) {
+      const neighbourhood = a => {
+        const ns = [...links.get(a)].filter(b => remaining.has(b))
+        let closed = 0
+        for (let i = 0; i < ns.length; i++) for (let j = i + 1; j < ns.length; j++) if (edge(ns[i], ns[j])) closed++
+        return { id: a, closed, possible: Math.max(1, ns.length * (ns.length - 1) / 2), degree: ns.length }
+      }
+      const ranked = [...remaining].map(neighbourhood).sort((a, b) =>
+        b.closed * a.possible - a.closed * b.possible || b.degree - a.degree || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+      const anchor = ranked[0].id, part = [anchor]
+      remaining.delete(anchor)
+      for (const { id } of ranked.slice(1)) if (edge(anchor, id) && coherent([...part, id])) {
+        part.push(id)
+        remaining.delete(id)
+      }
+      out.push(part)
+    }
+    // Een ontbrekende taalverbinding mag een concrete naam niet in twee verhalen breken.
+    // Na samenvoegen blijft alleen de doorsnede van de kernen over: x → (x,y) → y wordt nooit
+    // alsnog één keten. Algemene sport-/rubriekwoorden zijn geen naam van een gebeurtenis.
+    const generic = new Set(['world', 'league', 'rugby', 'formula', 'formule', 'grand', 'prix', 'driver', 'drivers', 'race', 'marathon'])
+    const namedCore = part => {
+      const count = new Map()
+      for (const id of part) for (const key of sig.get(id).strong) if (!generic.has(key)) count.set(key, (count.get(key) || 0) + 1)
+      return new Set([...count].filter(([, n]) => n * 2 >= part.length).map(([key]) => key))
+    }
+    const merged = []
+    for (const part of out) {
+      const core = namedCore(part)
+      const target = merged.find(g => [...core].some(k => g.core.has(k)) && part.every(a => g.ids.every(b => !conflict(a, b))))
+      if (target) {
+        target.core = new Set([...target.core].filter(k => core.has(k)))
+        target.ids.push(...part)
+      } else merged.push({ ids: part, core })
+    }
+    // Alleen ontbrekende naamherkenning (bijvoorbeeld een Nederlandse kop zonder vliegtuigtype)
+    // is geen bewijs voor een tweede gebeurtenis. Zonder tegenstrijdige context zijn er minstens
+    // twee verschillende inhoudelijke kernen nodig om de groep definitief te splitsen.
+    if (noConflicts && merged.filter(g => g.core.size > 0).length < 2) return [ids]
+    return merged.map(g => g.ids)
+  }
+  // De server gebruikt extended; de oude, gewone stand blijft de historische nulmeting.
+  if (extended) for (const [gid, items] of [...groups]) {
+    const parts = coherentParts(items.map(i => i.id))
+    if (parts.length === 1) continue
+    groups.delete(gid)
+    for (const ids of parts) groups.set(ids[0], ids.map(id => byId.get(id)))
+  }
   for (const g of groups.values()) g.sort(byRecency)
 
   // 4. (H6 ii, uitgebreide stand) Een los stuk dat de kern van een groot verhaal noemt, hoort erbij.
@@ -721,7 +800,7 @@ export function storyKeys(items, sig) {
 }
 
 // ---------- Editie ----------
-export const EDITION_SIZE = 10
+export const EDITION_SIZE = EDITION_TARGET
 const MAX_LEADS_PER_SOURCE = 3
 
 // De editie vóór deze: middag → ochtend, avond → middag, ochtend → gisteravond.
@@ -953,7 +1032,7 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     for (const id of ids) if (sig.has(id)) placed.push(sig.get(id))
   }
   const pickLead = (items) => {
-    const all = leadCandidates(items, mainIds, preferred, now)
+    const all = leadCandidates(items, mainIds, preferred, now, { role: entries.length < 3 ? 'front' : 'neutral' })
     const cands = all.some((i) => !isGallery(i)) ? all.filter((i) => !isGallery(i)) : all // geen galerij als kop, ook niet als enige eigen bron
     // Vers nieuws eerst: een achtergrondstuk van gisteren wordt alleen de kop als er niets recents
     // is. Ook niet om de bronnen te spreiden of omdat de verse bron al vaak de kop is.
@@ -969,22 +1048,22 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
   const cands = []
   for (const st of stories) {
     if (!fresh(st.latestAt, 24)) continue
-    const items = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
+    const items = st.itemIds.map((id) => byId.get(id)).filter(Boolean).filter(i=>!lightVideoFiller(i))
     if (!items.length) continue
     // De algemene Editie is nieuws: een sportverhaal (ook met een kop zonder sporttag) en een verhaal van
     // alleen galerijen doen niet mee, behalve groot Oranje-sportnieuws (exceptionalDutchSport).
     if (items.every(isGallery) || (sportStory(st, items) && !exceptionalDutchSport(st, items))) continue
     const per = storyDesks(items)
     const fav = preferred?.size && items.some((i) => preferred.has(i.source)) ? FAVORITE_BONUS : 0
-    cands.push({ kind: 'story', st, items, ids: st.itemIds, desks: new Set(per.flatMap((x) => [...x])), primary: primaryDesk(per), w: weight(st, now) - repeatPenalty(st, items, previous) + fav })
+    cands.push({ kind: 'story', st, items, ids: st.itemIds, desks: new Set(per.flatMap((x) => [...x])), primary: primaryDesk(per), w: weight({ sourceCount: st.publisherCount ?? st.sourceCount, latestAt: st.latestAt }, now) - repeatPenalty(st, items, previous) + fav })
   }
   for (const it of pool) {
     if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || it.storyId || isLive(it)) continue // een liveblog is geen editieplek
     if (!fresh(it.publishedAt, 14) || !(it.summary || it.image)) continue
     if (previous?.itemIds?.has(it.id)) continue // stond er al
-    if (isGallery(it)) continue // een galerij is geen eigen plek
+    if (isGallery(it) || lightVideoFiller(it)) continue // een galerij is geen eigen plek
     const desks = desksOf(it)
-    cands.push({ kind: 'item', it, ids: [it.id], desks, primary: primaryDesk([desks]), w: weight({ sourceCount: 1, ownCount: 1, latestAt: it.publishedAt }, now) - 2 + (preferred?.has(it.source) ? FAVORITE_BONUS : 0) })
+    cands.push({ kind: 'item', it, ids: [it.id], desks, primary: primaryDesk([desks]), w: weight({ sourceCount: 1, latestAt: it.publishedAt }, now) - 2 + (preferred?.has(it.source) ? FAVORITE_BONUS : 0) })
   }
   if (bonus) for (const c of cands) c.w += bonus(c.kind === 'story' ? c.items : [c.it])
   cands.sort((a, b) => b.w - a.w)
@@ -1039,7 +1118,7 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
 // Uitvoer: de plekken met `w` en `parts` (het waarom wordt daarna gezet), `itemIds`, `title` en de
 // `keys` van het verhaal (zodat previousOf de hele Editie van toen kent), plus `deskOrder`.
 const textOrder = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
-export function selectForReader(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = '' } = {}) {
+export function selectForReader(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = '', audit = null } = {}) {
   const byId = new Map(pool.map((i) => [i.id, i]))
   // De getoonde berichten van de vorige Editie (of, van een oudere Editie, alleen de koppen) krijgen
   // een kenmerk met de woordenschat van de pool van nu.
@@ -1061,7 +1140,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     for (const id of ids) if (sig.has(id)) placed.push(sig.get(id))
   }
   const pickLead = (items) => {
-    const all = leadCandidates(items, mainIds, preferred, now)
+    const all = leadCandidates(items, mainIds, preferred, now, { role: entries.length < 3 ? 'front' : 'neutral' })
     const cands = all.some((i) => !isGallery(i)) ? all.filter((i) => !isGallery(i)) : all // geen galerij als kop, ook niet als enige eigen bron
     const current = cands.filter((i) => !isStale(i, now))
     const recent = current.length ? current : cands
@@ -1076,27 +1155,29 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   let storyMap = null
   const storyOfItem = () => (storyMap ||= new Map(stories.flatMap((st) => (st.itemIds || []).map((id) => [id, st]))))
 
+  const reject = (kind, id, ids, reason) => { if (audit) audit.push({kind, id, itemIds: ids, reason}) }
   const cands = []
   for (const st of stories) {
-    if (!fresh(st.latestAt, 24)) continue
-    const items = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
-    if (!items.length) continue
+    if (!fresh(st.latestAt, 24)) { reject('story', st.id, st.itemIds, 'ouder-dan-verhaalvenster'); continue }
+    const raw = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
+    const items = raw.filter(i=>!lightVideoFiller(i,prof))
+    if (!items.length) { reject('story', st.id, st.itemIds, raw.length ? 'licht-videorondje-buiten-interesse' : 'geen-bekend-artikel'); continue }
     // Gezien in je vorige Editie: alleen terug als het zich ontwikkelde, en dan lager (de straf
     // telt hier alleen voor de volgorde, niet voor de plek).
     let dev = null
     let straf = 0
     if (seenBefore(st, items, previous)) {
       dev = developedSince(st, items, previous, sigKnown, { mainIds, preferred, now, known: ctx.known })
-      if (!dev) continue
+      if (!dev) { reject('story', st.id, st.itemIds, 'eerder-getoond-zonder-ontwikkeling'); continue }
       const wasLead = previous.leadStoryId === st.id || previous.leadStoryIds?.has(st.id) || items.some((i) => previous.leadIds?.has(i.id))
       straf = DEVELOPING_PENALTY + (wasLead ? REPEAT_LEAD_PENALTY : 0)
     }
     const primary = deskOfStory(items)
     const desk = storyDesk(st, primary)
-    const mine = new Set(items.map((i) => i.source)).size // eigen bronnen in het verhaal
+    const mine = coverageOf(items).publisherCount // onafhankelijke gekozen uitgevers, niet hun sectiefeeds
     // Elke onafhankelijke bron telt vol; land/taal van de uitgever verandert het nieuwsgewicht niet.
     const nl = st.nlCount ?? st.sourceCount
-    const eff = nl + NL_OTHER_W * (st.sourceCount - nl)
+    const eff = st.publisherCount ?? (nl + NL_OTHER_W * (st.sourceCount - nl))
     const belang = weight({ sourceCount: eff, ownCount: mine, latestAt: st.latestAt }, now) - straf
     // De punten uit al je eigen berichten van het verhaal (`ctx.own`), ook die buiten deze pool.
     const mineAll = ctx.own ? st.itemIds.map((id) => ctx.own.get(id) || byId.get(id)).filter(Boolean) : items
@@ -1106,16 +1187,16 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     const whole = ctx.known ? st.itemIds.map((id) => ctx.known.get(id) || byId.get(id)).filter(Boolean) : items
     const intl = internationalNews(whole, desk, st)
     const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) || intl })
-    cands.push({ kind: 'story', id: st.id, st, items, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) })
+    cands.push({ kind: 'story', id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) })
   }
   for (const it of pool) {
-    if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || it.storyId || isLive(it)) continue
-    if (!fresh(it.publishedAt, ctx.tempo?.get(it.source) || TEMPO_MIN_H) || !(it.summary || it.image)) continue
-    if (previous?.itemIds?.has(it.id) || ctx.readIds?.has(it.id)) continue // stond er al, of je las het al
+    if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || (it.storyId && storyOfItem().has(it.id)) || isLive(it)) { reject('item', it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? 'via-verhaal' : 'vorm-of-bron-niet-toegelaten'); continue }
+    if (!fresh(it.publishedAt, ctx.tempo?.get(it.source) || TEMPO_MIN_H) || !(it.summary || it.image)) { reject('item', it.id, [it.id], 'te-oud-of-geen-intro-en-beeld'); continue }
+    if (previous?.itemIds?.has(it.id) || ctx.readIds?.has(it.id)) { reject('item', it.id, [it.id], 'eerder-getoond-of-gelezen'); continue } // stond er al, of je las het al
     // Hoort het bij een verhaal waarvan je al een stuk las (ook zonder storyId op het bericht), dan
     // telt dat ook: zonder nieuws doet het niet meer mee.
     const mates = ctx.readIds?.size ? storyOfItem().get(it.id) : null
-    if (mates && personalParts(mates.itemIds.map((id) => ctx.own?.get(id) || byId.get(id)).filter(Boolean), prof, { readIds: ctx.readIds }).seen) continue
+    if (mates && personalParts(mates.itemIds.map((id) => ctx.own?.get(id) || byId.get(id)).filter(Boolean), prof, { readIds: ctx.readIds }).seen) { reject('item', it.id, [it.id], 'verhaal-al-gelezen'); continue }
     const primary = primaryDesk([desksOf(it)])
     const belang = weight({ sourceCount: 1, ownCount: 1, latestAt: it.publishedAt }, now) - 2
     const parts = personalParts([it], prof, ctx)
@@ -1126,9 +1207,10 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
 
   const used = new Set()
   const foreign = c => c.intl ?? internationalNews(c.items, c.desk, c.st)
+  const cappedWorld = c => cappedInternational(prof,c.whole || c.items,c.desk,c.st)
   const take = (c, desk, extra = {}) => {
     if (used.has(c) || clashes(c) || !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk)) return false
-    if (plan && !worldChosen(prof) && foreign(c) && entries.filter(e => { const x = cands.find(c => c.id === e.id); return x && foreign(x) }).length >= INT_MAX) return false
+    if (plan && !worldChosen(prof) && cappedWorld(c) && entries.filter(e => { const x = cands.find(c => c.id === e.id); return x && cappedWorld(x) }).length >= INT_MAX) return false
     used.add(c)
     place(c.ids)
     const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, big: majorNews(c.st || {sourceCount:1}, c.items), ...(c.vervolg ? { vervolg: c.vervolg } : {}), ...extra }
@@ -1149,10 +1231,10 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   const unchosen = foreign
   const strictInt = !worldChosen(prof)
   const counted = new Set()
-  const capped = c => strictInt && foreign(c) && counted.size >= INT_MAX
+  const capped = c => strictInt && cappedWorld(c) && counted.size >= INT_MAX
   const takeCapped = (c, desk, extra, force = false) => {
     if ((!force && capped(c)) || !take(c, desk, extra)) return false
-    if (foreign(c)) counted.add(c.id)
+    if (cappedWorld(c)) counted.add(c.id)
     return true
   }
   let deskOrder = []
@@ -1173,7 +1255,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
       if (entries.length >= room() || (entries.length >= FRONT && !majorNews(c.st, c.items))) break
       if (strictInt && capped(c)) continue
       if (!take(c, c.desk, { front: true })) continue
-      if (foreign(c)) counted.add(c.id)
+      if (cappedWorld(c)) counted.add(c.id)
       if (dutch(c)) hasHome = true
     }
     if (!hasHome) home.some((c) => take(c, c.desk, { front: true }))
@@ -1234,6 +1316,10 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   // composePersonal bij het extra blok en het aanvullen dezelfde grens aanhoudt.
   // `counted`: alle internationale plekken, inclusief voorpagina en kernrubrieken.
   const abroadIds = new Set([...used].filter((c) => unchosen(c) && !entries.find((e) => e.id === c.id)?.front).map((c) => c.id))
+  if (audit) for (const c of cands) {
+    const reason = used.has(c) ? 'gekozen-in-route' : c.parts.seen ? 'verhaal-al-gelezen' : clashes(c) ? 'zelfde-onderwerp-gekozen-of-eerder' : !allowedNews(prof, c.st || {sourceCount:1}, c.items, c.desk) ? newsRejection(prof,c.st || {sourceCount:1},c.items,c.desk) : capped(c) ? 'internationaal-plafond' : entries.length >= size ? 'route-vol' : 'onverklaard'
+    reject(c.kind, c.id, c.ids, reason)
+  }
   return Object.assign(entries, { deskOrder, abroad: abroadIds, counted })
 }
 

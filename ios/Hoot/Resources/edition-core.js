@@ -45,6 +45,74 @@ var HootCore = (() => {
     recentEditions: () => recentEditions
   });
 
+  // shared/edition-display.json
+  var edition_display_default = {
+    revision: "edition-display-2026-11-02",
+    headline: {
+      largeMax: 70,
+      mediumMax: 100,
+      halfLines: 4
+    },
+    intro: {
+      maxPrefixes: 8,
+      knownAuthor: "^(?:by|door|written by)\\s+{author}(?:[\\t ]*[·|—–:,-][\\t ]*|\\s*\\n\\s*|\\s*$)",
+      rules: [
+        {
+          source: "^(?:last updated|updated|published|laatst bijgewerkt|bijgewerkt|gepubliceerd)(?:\\s+(?:at|on|op|om))?\\s+(?:(?:\\d{4}[-/]\\d{1,2}[-/]\\d{1,2}|\\d{1,2}[./-]\\d{1,2}[./-]\\d{2,4}|(?:Jan(?:uary|uari)?|Feb(?:ruary|ruari)?|Mar(?:ch)?|Maart|Apr(?:il)?|May|Mei|Jun(?:e|i)?|Jul(?:y|i)?|Aug(?:ust|ustus)?|Sep(?:tember)?|Oct(?:ober)?|Okt(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\s+\\d{1,2}(?:,?\\s+\\d{4})?|\\d{1,2}\\s+(?:Jan(?:uary|uari)?|Feb(?:ruary|ruari)?|Mar(?:ch)?|Maart|Apr(?:il)?|May|Mei|Jun(?:e|i)?|Jul(?:y|i)?|Aug(?:ust|ustus)?|Sep(?:tember)?|Oct(?:ober)?|Okt(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)(?:\\s+\\d{4})?)(?:\\s+(?:at|om))?\\s+)?(?:[01]?\\d|2[0-3]):[0-5]\\d(?:\\s*[ap]\\.?m\\.?)?(?:\\s*(?:UTC|GMT|CEST|CET|EST|EDT|ET|PST|PDT|PT))?[\\t ]*[.·|—–:,-]*\\s*",
+          flags: "iu"
+        },
+        {
+          source: "^(?:last updated|updated|published|laatst bijgewerkt|bijgewerkt|gepubliceerd)(?:\\s+(?:on|op))?\\s+(?:\\d{4}[-/]\\d{1,2}[-/]\\d{1,2}|\\d{1,2}[./-]\\d{1,2}[./-]\\d{2,4}|(?:Jan(?:uary|uari)?|Feb(?:ruary|ruari)?|Mar(?:ch)?|Maart|Apr(?:il)?|May|Mei|Jun(?:e|i)?|Jul(?:y|i)?|Aug(?:ust|ustus)?|Sep(?:tember)?|Oct(?:ober)?|Okt(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\s+\\d{1,2}(?:,?\\s+\\d{4})?|\\d{1,2}\\s+(?:Jan(?:uary|uari)?|Feb(?:ruary|ruari)?|Mar(?:ch)?|Maart|Apr(?:il)?|May|Mei|Jun(?:e|i)?|Jul(?:y|i)?|Aug(?:ust|ustus)?|Sep(?:tember)?|Oct(?:ober)?|Okt(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)(?:\\s+\\d{4})?)\\.?[\\t ]*(?:\\n|$)",
+          flags: "iu"
+        },
+        {
+          source: "^(?:[01]?\\d|2[0-3]):[0-5]\\d(?:\\s*[ap]\\.?m\\.?)?(?:\\s*(?:UTC|GMT|CEST|CET|EST|EDT|ET|PST|PDT|PT))?\\.?[\\t ]*(?:\\n|$)",
+          flags: "iu"
+        },
+        {
+          source: "^(?:[Bb][Yy]|[Dd][Oo][Oo][Rr]|[Ww]ritten [Bb]y)\\s+(?:[A-ZÀ-ÖØ-Þ][\\p{L}\\p{M}.’'-]*)(?:[ \\t]+(?:(?:[A-ZÀ-ÖØ-Þ][\\p{L}\\p{M}.’'-]*)|van|de|den|der|von|ten|ter|da|di|du|la|le)){0,7}(?:,[ \\t]*(?:[A-ZÀ-ÖØ-Þ][\\p{L}\\p{M}.’'-]*)(?:[ \\t]+(?:[A-ZÀ-ÖØ-Þ][\\p{L}\\p{M}.’'-]*)){0,5})?[ \\t]*(?:\\n|$)",
+          flags: "u"
+        },
+        {
+          source: "^(?:advertisement|advertentie|read more|lees meer|continue reading|verder lezen)[.…:»>]*[\\t ]*(?:\\n|$)",
+          flags: "iu"
+        }
+      ]
+    }
+  };
+
+  // shared/edition-display.mjs
+  var rules = edition_display_default.intro.rules.map((r) => new RegExp(r.source, r.flags));
+  var escaped = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  function cleanIntro(text, author = null) {
+    if (typeof text !== "string") return "";
+    let value = text.replace(/\r\n?/g, "\n").trim();
+    const knownAuthor = typeof author === "string" && author.trim().length > 1 && author.length <= 120 ? new RegExp(edition_display_default.intro.knownAuthor.replace("{author}", escaped(author.trim())), "iu") : null;
+    const strip = (v) => {
+      for (const re of rules) v = v.replace(re, "").trim();
+      return knownAuthor ? v.replace(knownAuthor, "").trim() : v;
+    };
+    for (let n = 0; n < edition_display_default.intro.maxPrefixes; n++) {
+      const next = strip(value);
+      if (next === value) break;
+      value = next;
+    }
+    if (strip(value) !== value) return "";
+    return value.replace(/\s+/g, " ").trim();
+  }
+  function withCleanIntro(item) {
+    if (!item || item.kind === "post") return item;
+    const summary = typeof item.summary === "string" ? cleanIntro(item.summary, item.author) : item.summary;
+    const text = typeof item.text === "string" ? cleanIntro(item.text, item.author) : item.text;
+    return summary === item.summary && text === item.text ? item : { ...item, summary, ...item.text === void 0 ? {} : { text } };
+  }
+  function headlineTier(title = "") {
+    const n = String(title).length;
+    return n <= edition_display_default.headline.largeMax ? "large" : n <= edition_display_default.headline.mediumMax ? "medium" : "compact";
+  }
+  var HALF_HEADLINE_LINES = edition_display_default.headline.halfLines;
+  var headlineFit = (title) => ({ large: 0.25, medium: 0.125, compact: 0 })[headlineTier(title)];
+
   // src/lib/topics.js
   var T = (id, label) => ({ id, label });
   var TOPICS = [
@@ -113,7 +181,7 @@ var HootCore = (() => {
   var words = (pattern) => new RegExp(`(?<![\\p{L}\\p{N}])(?:${pattern})(?![\\p{L}\\p{N}])`, "iu");
   var COUNTRIES = [
     ["nl", "nederland|netherlands|dutch|den haag|the hague|zeeuws-vlaanderen|breskens|amsterdam|rotterdam|utrecht|eindhoven"],
-    ["us", "verenigde staten|united states|u\\.s\\.|usa|amerikaan\\p{L}*|american\\p{L}*|washington|michigan|ohio|texas|california|florida|new york"],
+    ["us", "verenigde staten|united states|u\\.s\\.|usa|amerikaan\\p{L}*|american\\p{L}*|washington|michigan|ohio|texas|california|florida|new york|colorado|denver"],
     ["in", "india|indiaas|indiase|indian|new delhi|mumbai|modi"],
     ["fr", "frankrijk|france|frans|franse|fransen|french|parijs|paris|marseille"],
     ["de", "duitsland|germany|german|duitse?|duitsers|berlijn|berlin|frankfurt|hamburg|keulen|cologne|munich"],
@@ -134,6 +202,7 @@ var HootCore = (() => {
     ["ee", "estland|estse?|estonia\\p{L}*"],
     ["sn", "senegal\\p{L}*"],
     ["sa", "saudi\\p{L}*|saoedi\\p{L}*|saudische?"],
+    ["nz", "new zealand|nieuw-zeeland"],
     ["au", "australi\\p{L}*"],
     ["tr", "turkije|turkey|turks\\p{L}*|erdogan"]
   ].map(([id, pattern]) => [id, words(pattern)]);
@@ -152,6 +221,11 @@ var HootCore = (() => {
     return US_PARTY.test(text) || countries.includes("us") && US_INSTITUTION.test(text) || /\bICE\b/.test(text) && /\b(agents?|immigration|deport\w*|arrest\w*|invallen)\b/i.test(text);
   }
   var LOCAL_INCIDENT = words("protest\\p{L}*|betoging\\p{L}*|demonstrat\\p{L}*|rally|rallies|riot\\p{L}*|rellen|onrust|arrest\\p{L}*|aanhouding\\p{L}*|aangehouden|police|politie|schietpartij|shooting|explosi\\p{L}*|brand|fire|crash");
+  var SPORT_EVENTS = [
+    ["f1", /\b(?:f1|formula one|formula 1|formule 1|grand prix|verstappen|antonelli|norris|leclerc|piastri)\b/i],
+    ["running", /\b(?:marathon|hardlopen|hardloper\w*|nageeye|kipruto|chepkirui)\b/i],
+    ["cycling", /\b(?:veldrit\w*|veldrijd\w*|koppenberg\w*|cyclocross|tour de france|giro d.italia)\b/i]
+  ];
   var LOCATIONS = ["den haag|the hague", "frankfurt", "parijs|paris", "marseille", "berlijn|berlin", "hamburg", "keulen|cologne", "amsterdam", "rotterdam", "utrecht", "new delhi", "mumbai"].map((p, id) => [id, words(p)]);
   function eventScope(article = {}) {
     const title = article.title || "";
@@ -159,9 +233,10 @@ var HootCore = (() => {
     const cities = LOCATIONS.filter(([, re]) => re.test(title)).map(([id]) => id);
     const actions = [...title.matchAll(new RegExp(LOCAL_INCIDENT.source, "giu"))].length;
     const overview = countries.length > 1 && (cities.length > 1 || /[,;]/.test(title) && actions > 1);
-    return { local: LOCAL_INCIDENT.test(`${title} ${article.summary || ""}`), countries, cities, overview };
+    return { local: LOCAL_INCIDENT.test(`${title} ${article.summary || ""}`), countries, cities, overview, sports: SPORT_EVENTS.filter(([, re]) => re.test(title)).map(([id]) => id) };
   }
   function conflictingEvents(a, b) {
+    if (a?.sports?.length && b?.sports?.length && !a.sports.some((s) => b.sports.includes(s))) return true;
     if (!a?.local || !b?.local) return false;
     if (a.overview || b.overview) return true;
     if (a.countries.length && b.countries.length && !a.countries.some((c) => b.countries.includes(c))) return true;
@@ -223,7 +298,7 @@ var HootCore = (() => {
     ["wintersport", /\b(schaatsen|schaatser|skating|speed skating|elfstedentocht|thialf|shorttrack|skiën|skiing|wereldbeker schaatsen|wintersport|biatlon|biathlon|snowboard)\b/i],
     ["olympisch", /\b(olympisch|olympic|olympics|\bnoc\*nsf\b|\bioc\b|paralympi|atletiek|athletics|zwemmen|swimming|turnen|gymnastics|hockey|volleybal|handbal)\b/i]
   ];
-  var OTHER_SPORT = /\b(darts\w*|darter\w*|snooker|rugby|honkbal|baseball|basketbal|basketball|ijshockey|motogp)\b/i;
+  var OTHER_SPORT = /\b(darts\w*|darter\w*|snooker|rugby|honkbal|baseball|basketbal|basketball|ijshockey|motogp|handbal\w*|handball|uitwedstrijd\w*|vrouwentak|veldrijd\w*|veldrit\w*|koppenberg\w*|eredivisie\w*|voetbal\w*)\b/i;
   var RETIRED = {
     "vs-politiek": /./s,
     brein: /\bangst\b/i,
@@ -671,7 +746,7 @@ var HootCore = (() => {
     oekraine: /\b(oekra\w*|ukrain\w*|zelensk\w*|kyiv|kiev|kyjiv|kharkiv|charkiv|olesjky|oleshky|odesa|donetsk|donbas|krim|crimea|dnipro|kramatorsk)\b/i,
     middenoosten: /\b(israël|israel\w*|gaza|hamas|hezbollah|libanon|lebanon|iran\w*|teheran|tehran|khamenei|netanyahu|syri\w*|jemen|yemen|houthi\w*|irak|iraq|saudi\w*|westelijke jordaanoever|west bank|jordani\w*|qatar|golfstaten|midden-oosten|middle east|palestijn\w*|palestin\w*)\b/i,
     vs: /\b(trump|biden|vance|witte huis|white house|washington|congres\w*|congress|senaat|senate|republikein\w*|republican\w*|democra(at|ten|tic|ts)|pentagon|hegseth|midterms?|tussentijdse verkiezingen|amerikaan\w*|american|verenigde staten|united states|u\.s\.|new york|california|californi\w*|texas|florida|chicago|supreme court|hooggerechtshof|fbi|ice)\b/i,
-    wetenschap: /\b(wetenschap\w*|onderzoekers|onderzoek toont|studie|scientist\w*|researchers|science|study finds|nobelprijs (?:voor de )?(?:natuurkunde|scheikunde|geneeskunde)|nobel prize in (?:physics|chemistry|medicine)|klimaat\w*|climate|nasa|esa|astronom\w*|ruimtevaart|telescoop|telescope|natuurkunde|physics|biolog\w*|genetic\w*|genetica|vaccin\w*|medicijn|geneesmiddel|quantum|kwantum|archeolog\w*|fossiel|fossil|aardbeving|earthquake|vulkaan|volcano|neurolog\w*|hersenonderzoek)\b/i,
+    wetenschap: /\b(wetenschap\w*|onderzoekers|onderzoek toont|studie|scientist\w*|researchers|science|study finds|nobelprijs (?:voor de )?(?:natuurkunde|scheikunde|geneeskunde)|nobel prize in (?:physics|chemistry|medicine)|klimaat\w*|climate|solar system|cosmic debris|light-years|nasa|esa|astronom\w*|ruimtevaart|telescoop|telescope|natuurkunde|physics|biolog\w*|genetic\w*|genetica|vaccin\w*|medicijn|geneesmiddel|quantum|kwantum|archeolog\w*|fossiel|fossil|aardbeving|earthquake|vulkaan|volcano|neurolog\w*|hersenonderzoek)\b/i,
     buitenland: /\b(frankrijk|france|french|frans\w*|parijs|paris|duitsland|germany|german|duits\w*|berlijn|berlin|brit\w*|engeland|england|london|londen|verenigd koninkrijk|united kingdom|spanje|spain|itali\w*|polen|poland|estland|estonia\w*|estse|senegal\w*|brazil\w*|belgi\w*|brussel|brussels|europese unie|european union|\beu\b|navo|nato|china|chinees|chinese|peking|beijing|taiwan|japan\w*|korea\w*|india\w*|pakistan|afghanistan|rusland|russia\w*|russisch\w*|poetin|putin|kremlin|moskou|moscow|turkije|turkey|erdogan|afrika|africa|nigeria|soedan|sudan|egypte|egypt|brazili\w*|mexico|venezuela\w*|maduro|argentini\w*|canada\w*|australi\w*|albani\w*|albane\w*|spaans\w*|pools\w*|turks\w*|griek\w*|zweed\w*|deens\w*|oostenrijk\w*|zwitser\w*|portug\w*|hongaar\w*|indiase|mexica\w*|canad\w*|egypt\w*|japans\w*|koreaan\w*|afrikaan\w*|europe\w*|europa|servi\w*|serbi\w*|hongarije|hungary|hungarian|orbán|griekenland|greece|zweden|sweden|swedish|noorwegen|norway|norwegian|denemarken|denmark|danish|oostenrijk|austria\w*|zwitserland|switzerland|ierland|ireland|portugal|tsjechi\w*|czech\w*|roemeni\w*|romania\w*|bulgarije|bulgaria\w*|georgi\w*|armeni\w*|azerbeidzjan|azerbaijan\w*|wit-rusland|belarus|filipijnen|philippine\w*|indonesi\w*|vietnam|thailand|myanmar|bangladesh|sri lanka|nepal|kenia|kenya\w*|ethiopi\w*|somali\w*|congo|zuid-afrika|south africa|haïti|haiti|cuba|colombia|chili|peru)\b/i
   };
   var KIND_TOPICS = /* @__PURE__ */ new Set(["voetbal", "f1", "wielrennen", "tennis", "wintersport", "olympisch", "muziek", "film", "boeken", "kunst", "games"]);
@@ -679,6 +754,8 @@ var HootCore = (() => {
   var CULTURE_SPORT = /\b(middenvelder|hattrick|hat-trick|scoorde|doelpunt|club.*contract|smaakmaker.*club|psg|premier league|concert\w*|halloweenkostuum|captain picard|star trek|patrick stewart|acteur|actrice|film|filmfestival)\b/i;
   var ownKind = (it) => {
     const visible = `${it.title || ""} ${it.summary || ""}`;
+    if (/^(?:recept:|wat eten we vandaag:)/i.test(it.title || "") || /\/(?:koken-en-eten|geld|vrouw|opmerkelijk)\//i.test(it.url || "")) return true;
+    if (/\b(drugging|murder|verkrachting|doodgeschoten|mishandeld)\b/i.test(it.title || "") && countriesIn(it.title || "").length) return false;
     const election = /\b(elections?|verkiezing\w*|midterms?|political texts|senaat|senate)\b/i.test(`${it.title || ""} ${(it.url || "").replace(/[-_/]/g, " ")}`);
     if (election && usPoliticsIn(visible + " " + (it.url || "").replace(/[-_/]/g, " ")) && !keywordTopics(visible).some((t) => KIND_TOPICS.has(t))) return false;
     if (/\b(journal article|research finds|study finds)\b/i.test(it.title || "")) return false;
@@ -728,7 +805,7 @@ var HootCore = (() => {
   ]);
   var NL_TOPICS = /* @__PURE__ */ new Set(["nederland", "wonen", "zorg", "onderwijs", "misdaad", "migratie", "verkeer"]);
   var NL_SECTION = /binnenland|\/politiek\/|\/nederland\/|\/regio\/|\/112-?nieuws/;
-  var NOT_HOME_SECTION = /(^|\s)(tech|economie|wetenschap|opinie|columns?)(\s|$)|\/(tech|economie|financiele-markten|bedrijfsleven|beurs|wetenschap|[\w-]*magazine|lifestyle|leven|boulevard|showbizz|opinie|columns?|columns-opinie|meningen|recepten|vacatures|partnercontent|varia|puzzels?|ps|uit-in-[\w-]+|geloof|religie-filosofie|tijdgeest|samenleving|duurzaamheid-economie)\//;
+  var NOT_HOME_SECTION = /(^|\s)(tech|economie|wetenschap|opinie|columns?)(\s|$)|\/(tech|economie|financiele-markten|bedrijfsleven|beurs|wetenschap|[\w-]*magazine|lifestyle|leven|boulevard|showbizz|opinie|columns?|columns-opinie|meningen|recepten|vacatures|partnercontent|varia|puzzels?|geld|vrouw|opmerkelijk|eten|ps|uit-in-[\w-]+|geloof|religie-filosofie|tijdgeest|samenleving|duurzaamheid-economie)\//;
   var textForeignOf = ({ title = "", summary = "", text = "", cats = "" }) => {
     const t = `${title} ${summary || text} ${cats}`;
     return RE.oekraine.test(t) || RE.middenoosten.test(t) || usPoliticsIn(t) || RE.buitenland.test(t);
@@ -768,20 +845,39 @@ var HootCore = (() => {
     const k = storyForeign ? "f" : "n";
     return m[k] || (m[k] = deskSet(it, storyForeign));
   }
+  function subjectPlaceOf(it = {}) {
+    const head = (it.title || "").replace(/\bPalestine Action\b/gi, "activistengroep");
+    const fromHead = countriesIn(head);
+    const usElection = fromHead.includes("us") && /\b(democra\w*|republic\w*|republikein\w*|senate|senaat)\b/i.test(head) || /\b(senate races|midterms)\b/i.test(head) && usPoliticsIn(`${head} ${it.summary || ""}`);
+    if (usElection) return { countries: ["us"], basis: "verkiezingsplaats", text: "United States", evidence: head };
+    if (fromHead.length) return { countries: fromHead, basis: "kop", text: head };
+    if (usPoliticsIn(head)) return { countries: ["us"], basis: "kop-institutie", text: head };
+    let path = "";
+    try {
+      path = new URL(it.url).pathname.replace(/[-_/]/g, " ");
+    } catch {
+    }
+    if (/\/us\//i.test(String(it.url || "").split("?")[0])) return { countries: ["us"], basis: "bronrubriek", text: `United States ${head}` };
+    const fromPath = countriesIn(path);
+    if (fromPath.length) return { countries: fromPath, basis: "url", text: `${head} ${path}` };
+    const intro = `${head} ${it.summary || it.text || ""} ${it.cats || ""}`;
+    return { countries: countriesIn(intro), basis: "intro-of-onbekend", text: intro };
+  }
   function deskSet(it, storyForeign) {
     const { title = "", summary = "", text = "", url = "", section = "", cats = "" } = it;
     const t = `${title} ${summary || text} ${cats}`;
     const out = /* @__PURE__ */ new Set();
     if (ownKind(it)) return out;
     const sec = `${section} ${url}`.toLowerCase();
-    const headCountries = countriesIn(title);
+    const place = subjectPlaceOf(it);
+    const headCountries = countriesIn(title.replace(/\bPalestine Action\b/gi, "activistengroep"));
     const headHome = placeSignals({ title }).home;
-    const geoText = headHome || headCountries.length ? title : t;
+    const geoText = headHome ? title : place.text;
     if (RE.oekraine.test(geoText)) out.add("oekraine");
     if (RE.middenoosten.test(geoText)) out.add("middenoosten");
     const usSection = /\/us\//.test(sec);
     const path = String(url).split("?")[0].replace(/[-_/]/g, " ");
-    if (usPoliticsIn(headHome ? title : `${t} ${path}`) || usSection || countriesIn(geoText).includes("us")) out.add("vs");
+    if (usPoliticsIn(geoText) || !headCountries.length && !headHome && (usSection || usPoliticsIn(path)) || countriesIn(geoText).includes("us")) out.add("vs");
     const education = /\b(leraar|basisschool|docent|onderwijs)\b/i.test(title) && !/\b(onderzoek|studie|research|study)\b/i.test(title);
     if (!education && (RE.wetenschap.test(title) || /wetenschap|\/science\/|\/health\//.test(sec) || /\b(journal article|scholarship|research finds|study finds)\b/i.test(t))) out.add("wetenschap");
     const specific = out.has("oekraine") || out.has("middenoosten") || out.has("vs");
@@ -818,9 +914,10 @@ var HootCore = (() => {
     for (const d of PRIORITY) if (count[d] && (!best || count[d] > count[best])) best = d;
     return best && count[best] * 2 >= itemDesks.length ? best : null;
   }
-  function weight({ sourceCount = 1, ownCount = 1, latestAt }, now = Date.now()) {
+  function weight({ sourceCount = 1, ownCount = 0, latestAt }, now = Date.now()) {
     const h = latestAt ? (now - Date.parse(latestAt)) / 36e5 : 99;
-    return (ownCount > 0 ? 100 : 0) + sourceCount * 4 + (h <= 3 ? 4 : h <= 6 ? 3 : h <= 12 ? 1 : 0);
+    const chosen = Number.isFinite(ownCount) ? Math.min(4, Math.max(0, ownCount)) : 0;
+    return sourceCount * 4 + chosen * 2 + (h <= 3 ? 4 : h <= 6 ? 3 : h <= 12 ? 1 : 0);
   }
 
   // shared/editor.mjs
@@ -1332,6 +1429,15 @@ var HootCore = (() => {
   var MAIN_IDS = new Set(SOURCES.filter((s) => s.base && !s.music).map((s) => s.id));
   var MUSIC_IDS = new Set(SOURCES.filter((s) => s.music).map((s) => s.id));
 
+  // shared/edition-limits.json
+  var edition_limits_default = { target: 10, auditBelow: 6, floor: 4 };
+
+  // shared/edition-limits.mjs
+  var EDITION_TARGET = edition_limits_default.target;
+  var EDITION_AUDIT_BELOW = edition_limits_default.auditBelow;
+  var EDITION_FLOOR = edition_limits_default.floor;
+  var editionStoryCount = (entries = []) => Array.isArray(entries) ? entries.filter((e) => e.desk !== "bubbel").length : 0;
+
   // shared/edition-policy.mjs
   var ALIAS = { "nos-sport": "nos", "nos-cultuur": "nos", "bbc-sport": "bbc", "guardian-sport": "guardian", "guardian-music": "guardian", "guardian-culture": "guardian", "npr-music": "npr" };
   var COUNTRIES2 = Object.fromEntries(Object.entries({
@@ -1400,14 +1506,43 @@ var HootCore = (() => {
     if (!majorNews(story, items)) return false;
     return items.some((i) => /\b(nederland\w*|netherlands|dutch|oranje)\b/i.test(i.title || "") && /\b(wk|wereldkampioenschap\w*|world cup|olympisch\w*|olympic\w*)\b/i.test(i.title || "") && /\b(finale|final|kampioen\w*|goud|gold)\b/i.test(i.title || ""));
   }
-  function allowedNews(prof, story, items, desk = null) {
-    if (onlyGalleries(items)) return false;
-    if ((sportStory(story, items, prof.catOf) || items.some((i) => isSport(i, prof.catOf))) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return false;
-    return worldChosen(prof) || !internationalNews(items, desk, story) || majorNews(story, items);
+  var specialistMemo = /* @__PURE__ */ new WeakMap();
+  function specialistMatch(prof, items = [], desk = null) {
+    if (!prof?.topicP || !prof?.favorites || ![...BEAT].some((f) => (prof.family?.[f] || 0) >= 0.5)) return false;
+    if (!items.length) return false;
+    let memo2 = specialistMemo.get(prof);
+    if (!memo2) specialistMemo.set(prof, memo2 = { next: /* @__PURE__ */ new WeakMap(), values: /* @__PURE__ */ new Map() });
+    for (const item of items) {
+      if (!item || typeof item !== "object") return false;
+      let next = memo2.next.get(item);
+      if (!next) memo2.next.set(item, next = { next: /* @__PURE__ */ new WeakMap(), values: /* @__PURE__ */ new Map() });
+      memo2 = next;
+    }
+    if (memo2.values.has(desk)) return memo2.values.get(desk);
+    const hit = personalParts(items, prof, {}, { desk, foreign: true }).interest;
+    const match = !!hit && items.filter((i) => keywordTopics(`${i.title || ""} ${i.summary || ""}`).some((t) => FAMILY_OF[t] === hit.f)).length * 2 >= items.length && BEAT.has(hit.f) && hit.shown !== false && hit.cov >= 0.5 && (prof.family?.[hit.f] || 0) >= 0.5;
+    memo2.values.set(desk, match);
+    return match;
   }
+  var cappedInternational = (prof, items = [], desk = null, story = null) => internationalNews(items, desk, story) && !specialistMatch(prof, items, desk);
+  function lightVideoFiller(item, prof = null) {
+    const title = item?.title || "";
+    if (/\b(evidence of|video evidence|videobewijs|bewijs van|investigation into|onderzoek naar|war crimes|oorlogsmisdrijven)\b/i.test(title)) return false;
+    const curated = /\b(get in the spirit|these (?:horror|spooky|scary|halloween)|best (?:horror|spooky|scary|halloween)|(?:horror|halloween|spooky|scary).*(?:roundup|round-up|collection|to watch))\b/i.test(title);
+    const video = /\b(youtube|tiktok|videos?|trailers?)\b/i.test(title);
+    return curated && video && !((prof?.family?.cultuur || 0) >= 0.5 && (prof?.topicP?.film || 0) >= 0.5);
+  }
+  function newsRejection(prof, story, items, desk = null) {
+    if (onlyGalleries(items)) return "alleen-galerijen";
+    if (items.length && items.every((i) => lightVideoFiller(i, prof))) return "licht-videorondje-buiten-interesse";
+    if ((sportStory(story, items, prof.catOf) || items.some((i) => isSport(i, prof.catOf))) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return "sport-niet-gekozen";
+    if (!worldChosen(prof) && cappedInternational(prof, items, desk, story) && !majorNews(story, items)) return "internationaal-niet-groot-genoeg";
+    return null;
+  }
+  var allowedNews = (prof, story, items, desk = null) => newsRejection(prof, story, items, desk) === null;
 
   // shared/editor-version.mjs
-  var EDITOR_REVISION = "redacteur-2026-11-01-r2";
+  var EDITOR_REVISION = "redacteur-2026-11-02-beta2";
 
   // netlify/lib/stories.mjs
   var timeOf = (a) => Date.parse(a.publishedAt) || 0;
@@ -1915,6 +2050,7 @@ var HootCore = (() => {
     return t;
   };
   function sameSubject(a, b) {
+    if (conflictingEvents(a.eventScope, b.eventScope)) return false;
     if (sameEvent(a, b)) return true;
     const dt = Math.abs(a.t - b.t);
     if (dt > EVENT_WINDOW) return false;
@@ -1939,13 +2075,14 @@ var HootCore = (() => {
   }
   var STALE_AFTER = 24 * 60 * 60 * 1e3;
   var isStale = (item, now) => !!now && now - timeOf(item) > STALE_AFTER;
-  function leadCandidates(items, mainIds, preferred = null, now = null) {
-    const score = (i) => (i.type === "opinie" ? -16 : 0) + (/\bpodcast\b/i.test(i.title || "") || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (i.summary ? 2 : 0) + (i.image ? 1 : 0);
-    return [...items].sort((a, b) => score(b) - score(a) || byRecency(a, b));
+  function leadCandidates(items, mainIds, preferred = null, now = null, { role = "neutral" } = {}) {
+    const score = (i) => (i.type === "opinie" ? -16 : 0) + (/\bpodcast\b/i.test(i.title || "") || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image ? 1 : 0) + (role === "front" ? headlineFit(i.title) : 0);
+    const scores = new Map(items.map((i) => [i, score(i)]));
+    return [...items].sort((a, b) => scores.get(b) - scores.get(a) || byRecency(a, b));
   }
   var LIVE_TITLE = /^\W*live\b|\blive ?blog\b|\b(war|oorlog) (latest|live)\b|\blatest:|\blatest updates\b/i;
   var isLive = (a) => LIVE_TITLE.test(a.title || "") || /\/live(blog)?[-/]|[-/]liveblog/i.test(a.url || "");
-  var EDITION_SIZE = 10;
+  var EDITION_SIZE = EDITION_TARGET;
   var MAX_LEADS_PER_SOURCE = 3;
   var isHistoryRow = (x) => Array.isArray(x?.storyIds);
   function previousOfOne(x) {
@@ -2068,7 +2205,7 @@ var HootCore = (() => {
     return newSig >= DEVELOPED_SIG ? { fresh, lead, newSig } : null;
   }
   var textOrder = (a, b) => a < b ? -1 : a > b ? 1 : 0;
-  function selectForReader(stories, pool, { mainIds = /* @__PURE__ */ new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = "" } = {}) {
+  function selectForReader(stories, pool, { mainIds = /* @__PURE__ */ new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = "", audit = null } = {}) {
     const byId2 = new Map(pool.map((i) => [i.id, i]));
     const prevShown = previous?.shown?.length ? previous.shown : [...previous?.titles || []].map((title) => ({ title, publishedAt: new Date(previous.at || now).toISOString() }));
     const prevArts = prevShown.map((a, k) => ({ ...a, id: `vorige:${k}` }));
@@ -2086,7 +2223,7 @@ var HootCore = (() => {
       for (const id of ids) if (sig.has(id)) placed.push(sig.get(id));
     };
     const pickLead = (items) => {
-      const all = leadCandidates(items, mainIds, preferred, now);
+      const all = leadCandidates(items, mainIds, preferred, now, { role: entries.length < 3 ? "front" : "neutral" });
       const cands2 = all.some((i) => !isGallery(i)) ? all.filter((i) => !isGallery(i)) : all;
       const current = cands2.filter((i) => !isStale(i, now));
       const recent = current.length ? current : cands2;
@@ -2097,37 +2234,62 @@ var HootCore = (() => {
     const storyDesk = (st, primary) => ctx.storyDesk?.has(st.id) ? ctx.storyDesk.get(st.id) : st.desk !== void 0 ? st.desk : primary;
     let storyMap = null;
     const storyOfItem = () => storyMap ||= new Map(stories.flatMap((st) => (st.itemIds || []).map((id) => [id, st])));
+    const reject = (kind, id, ids, reason) => {
+      if (audit) audit.push({ kind, id, itemIds: ids, reason });
+    };
     const cands = [];
     for (const st of stories) {
-      if (!fresh(st.latestAt, 24)) continue;
-      const items = st.itemIds.map((id) => byId2.get(id)).filter(Boolean);
-      if (!items.length) continue;
+      if (!fresh(st.latestAt, 24)) {
+        reject("story", st.id, st.itemIds, "ouder-dan-verhaalvenster");
+        continue;
+      }
+      const raw = st.itemIds.map((id) => byId2.get(id)).filter(Boolean);
+      const items = raw.filter((i) => !lightVideoFiller(i, prof));
+      if (!items.length) {
+        reject("story", st.id, st.itemIds, raw.length ? "licht-videorondje-buiten-interesse" : "geen-bekend-artikel");
+        continue;
+      }
       let dev = null;
       let straf = 0;
       if (seenBefore(st, items, previous)) {
         dev = developedSince(st, items, previous, sigKnown, { mainIds, preferred, now, known: ctx.known });
-        if (!dev) continue;
+        if (!dev) {
+          reject("story", st.id, st.itemIds, "eerder-getoond-zonder-ontwikkeling");
+          continue;
+        }
         const wasLead = previous.leadStoryId === st.id || previous.leadStoryIds?.has(st.id) || items.some((i) => previous.leadIds?.has(i.id));
         straf = DEVELOPING_PENALTY + (wasLead ? REPEAT_LEAD_PENALTY : 0);
       }
       const primary = deskOfStory(items);
       const desk = storyDesk(st, primary);
-      const mine = new Set(items.map((i) => i.source)).size;
+      const mine = coverageOf(items).publisherCount;
       const nl = st.nlCount ?? st.sourceCount;
-      const eff = nl + NL_OTHER_W * (st.sourceCount - nl);
+      const eff = st.publisherCount ?? nl + NL_OTHER_W * (st.sourceCount - nl);
       const belang = weight({ sourceCount: eff, ownCount: mine, latestAt: st.latestAt }, now) - straf;
       const mineAll = ctx.own ? st.itemIds.map((id) => ctx.own.get(id) || byId2.get(id)).filter(Boolean) : items;
       const whole = ctx.known ? st.itemIds.map((id) => ctx.known.get(id) || byId2.get(id)).filter(Boolean) : items;
       const intl = internationalNews(whole, desk, st);
       const parts = personalParts(mineAll, prof, ctx, { desk, foreign: storyForeignOf(mineAll) || intl });
-      cands.push({ kind: "story", id: st.id, st, items, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) });
+      cands.push({ kind: "story", id: st.id, st, items, whole, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) });
     }
     for (const it of pool) {
-      if (!mainIds.has(it.source) || it.kind !== "article" || it.type === "opinie" || it.storyId || isLive(it)) continue;
-      if (!fresh(it.publishedAt, ctx.tempo?.get(it.source) || TEMPO_MIN_H) || !(it.summary || it.image)) continue;
-      if (previous?.itemIds?.has(it.id) || ctx.readIds?.has(it.id)) continue;
+      if (!mainIds.has(it.source) || it.kind !== "article" || it.type === "opinie" || it.storyId && storyOfItem().has(it.id) || isLive(it)) {
+        reject("item", it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? "via-verhaal" : "vorm-of-bron-niet-toegelaten");
+        continue;
+      }
+      if (!fresh(it.publishedAt, ctx.tempo?.get(it.source) || TEMPO_MIN_H) || !(it.summary || it.image)) {
+        reject("item", it.id, [it.id], "te-oud-of-geen-intro-en-beeld");
+        continue;
+      }
+      if (previous?.itemIds?.has(it.id) || ctx.readIds?.has(it.id)) {
+        reject("item", it.id, [it.id], "eerder-getoond-of-gelezen");
+        continue;
+      }
       const mates = ctx.readIds?.size ? storyOfItem().get(it.id) : null;
-      if (mates && personalParts(mates.itemIds.map((id) => ctx.own?.get(id) || byId2.get(id)).filter(Boolean), prof, { readIds: ctx.readIds }).seen) continue;
+      if (mates && personalParts(mates.itemIds.map((id) => ctx.own?.get(id) || byId2.get(id)).filter(Boolean), prof, { readIds: ctx.readIds }).seen) {
+        reject("item", it.id, [it.id], "verhaal-al-gelezen");
+        continue;
+      }
       const primary = primaryDesk([desksOf(it)]);
       const belang = weight({ sourceCount: 1, ownCount: 1, latestAt: it.publishedAt }, now) - 2;
       const parts = personalParts([it], prof, ctx);
@@ -2137,11 +2299,12 @@ var HootCore = (() => {
     cands.sort(heaviest);
     const used = /* @__PURE__ */ new Set();
     const foreign = (c) => c.intl ?? internationalNews(c.items, c.desk, c.st);
+    const cappedWorld = (c) => cappedInternational(prof, c.whole || c.items, c.desk, c.st);
     const take = (c, desk, extra = {}) => {
       if (used.has(c) || clashes(c) || !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk)) return false;
-      if (plan && !worldChosen(prof) && foreign(c) && entries.filter((e) => {
+      if (plan && !worldChosen(prof) && cappedWorld(c) && entries.filter((e) => {
         const x = cands.find((c2) => c2.id === e.id);
-        return x && foreign(x);
+        return x && cappedWorld(x);
       }).length >= INT_MAX) return false;
       used.add(c);
       place(c.ids);
@@ -2158,10 +2321,10 @@ var HootCore = (() => {
     const unchosen = foreign;
     const strictInt = !worldChosen(prof);
     const counted = /* @__PURE__ */ new Set();
-    const capped = (c) => strictInt && foreign(c) && counted.size >= INT_MAX;
+    const capped = (c) => strictInt && cappedWorld(c) && counted.size >= INT_MAX;
     const takeCapped = (c, desk, extra, force = false) => {
       if (!force && capped(c) || !take(c, desk, extra)) return false;
-      if (foreign(c)) counted.add(c.id);
+      if (cappedWorld(c)) counted.add(c.id);
       return true;
     };
     let deskOrder = [];
@@ -2179,7 +2342,7 @@ var HootCore = (() => {
         if (entries.length >= room() || entries.length >= FRONT && !majorNews(c.st, c.items)) break;
         if (strictInt && capped(c)) continue;
         if (!take(c, c.desk, { front: true })) continue;
-        if (foreign(c)) counted.add(c.id);
+        if (cappedWorld(c)) counted.add(c.id);
         if (dutch(c)) hasHome = true;
       }
       if (!hasHome) home.some((c) => take(c, c.desk, { front: true }));
@@ -2221,6 +2384,10 @@ var HootCore = (() => {
       entries.splice(0, entries.length, ...rest, ...late);
     }
     const abroadIds = new Set([...used].filter((c) => unchosen(c) && !entries.find((e) => e.id === c.id)?.front).map((c) => c.id));
+    if (audit) for (const c of cands) {
+      const reason = used.has(c) ? "gekozen-in-route" : c.parts.seen ? "verhaal-al-gelezen" : clashes(c) ? "zelfde-onderwerp-gekozen-of-eerder" : !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk) ? newsRejection(prof, c.st || { sourceCount: 1 }, c.items, c.desk) : capped(c) ? "internationaal-plafond" : entries.length >= size ? "route-vol" : "onverklaard";
+      reject(c.kind, c.id, c.ids, reason);
+    }
     return Object.assign(entries, { deskOrder, abroad: abroadIds, counted });
   }
 
@@ -2272,8 +2439,8 @@ var HootCore = (() => {
   }
   function composePersonal({ global, stories = [], items = [], sources = [], followed = /* @__PURE__ */ new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = /* @__PURE__ */ new Set() }) {
     if (!global?.entries?.length) return null;
-    items = items.filter(forEdition).map(withTrustedTopics);
-    global = { ...global, items: (global.items || []).map(withTrustedTopics), wide: (global.wide || []).map((w) => w?.item ? { ...w, item: withTrustedTopics(w.item) } : w) };
+    items = items.filter(forEdition).map(withCleanIntro).map(withTrustedTopics);
+    global = { ...global, items: (global.items || []).map(withCleanIntro).map(withTrustedTopics), wide: (global.wide || []).map((w) => w?.item ? { ...w, item: withTrustedTopics(withCleanIntro(w.item)) } : w) };
     const catOf = new Map(sources.map((s) => [s.id, s.cat]));
     const kindOf = (i) => {
       if (isSport(i, catOf)) return "sport";
@@ -2287,7 +2454,7 @@ var HootCore = (() => {
     const tempo = tempoWindows(items.filter((i) => followed.has(i.source)));
     const mineStories = storiesForReader(stories, items, followed, [...items, ...global.items || []], sources);
     const storyDesk = new Map(mineStories.map((st) => [st.id, st.desk]));
-    const itemAny = new Map([...items, ...global.items || []].map((i) => [i.id, i]));
+    const itemAny = new Map([...items, ...global.items || [], ...[...global.wide || [], ...global.near || []].map((w) => w?.item).filter(Boolean)].map((i) => [i.id, i]));
     const sigAll = signatures([...itemAny.values()].filter((i) => i.kind !== "post"));
     const ctx = { readIds, tempo, storyDesk, known: itemAny, sigKnown: sigAll, own: new Map(pool.map((i) => [i.id, i])) };
     const seed = `${editionBasis([...followed], interests, topics, favorites)}|${global.id}`;
@@ -2336,21 +2503,24 @@ var HootCore = (() => {
       const members = [.../* @__PURE__ */ new Set([id, ...st?.itemIds || [], ...entry.itemIds || []])].map((x) => itemAny.get(x)).filter(Boolean);
       const meta = st || entry;
       const desk = st?.desk ?? entry.fromDesk ?? entry.desk ?? null;
-      return { allowed: allowedNews(prof, meta, members, desk), abroad: internationalNews(members, desk, meta), members, meta, desk };
+      return { allowed: allowedNews(prof, meta, members, desk), abroad: internationalNews(members, desk, meta), capped: cappedInternational(prof, members, desk, meta), members, meta, desk };
     };
-    const unchosenAbroad = (id, sid) => capAbroad && policyOf(id, sid).abroad;
+    const unchosenAbroad = (id, sid) => capAbroad && policyOf(id, sid).capped;
     const eligible = (id, sid, entry = {}) => {
       const p = policyOf(id, sid, entry);
-      return p.allowed && (!capAbroad || !p.abroad || abroad < INT_MAX);
+      return p.allowed && (!capAbroad || !p.capped || abroad < INT_MAX);
     };
     const wideAny = (global.wide || []).some((w) => w?.item?.id && !covered(w) && unread(w.item.id, w.storyId));
-    const size = EDITION_SIZE - (bubbleEntry ? 1 : 0) - (wideAny ? 1 : 0);
+    const size = EDITION_SIZE - (wideAny ? 1 : 0);
     const opts = { mainIds: followed, now, previous, preferred, prof, ctx, seed };
     const extraAll = extraPool.length ? selectForReader(mineStories, extraPool, { ...opts, size: 2 * EXTRA_MAX, plan: false }) : [];
     const extraN = Math.min(EXTRA_MAX, extraAll.length);
     const leadCat = (e) => catOf.get(pool.find((i) => i.id === (e.leadId || e.id))?.source);
     const sel = selectForReader(mineStories, newsPool, { ...opts, size: size - extraN });
-    const news = sel.map((e) => !e.planned && !e.front && SPECIALIST.has(leadCat(e)) ? { ...e, desk: leadCat(e) } : e);
+    const news = sel.map((e) => {
+      const review = /^(review|test)\s*:/i.test(pool.find((i) => i.id === (e.leadId || e.id))?.title || "");
+      return SPECIALIST.has(leadCat(e)) && (review || !e.planned && !e.front) ? { ...e, desk: leadCat(e) } : e;
+    });
     const inNews = new Set(news.flatMap((e) => e.itemIds || [e.id]));
     let abroad = sel.counted.size;
     const extra = [];
@@ -2396,9 +2566,25 @@ var HootCore = (() => {
     const globalItems = new Map((global.items || []).map((i) => [i.id, i]));
     const noFavorites = { ...prof, favorites: /* @__PURE__ */ new Set() };
     const fillTo = size - extra.length - swapped;
-    const fillCands = global.entries.map((g, idx) => ({ g, idx, score: sumParts(personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), noFavorites, {}, { desk: g.desk })) - 2 * idx })).filter((x) => x.g !== bubbleEntry && unread(x.g.leadId || x.g.id, x.g.kind === "story" ? x.g.id : null)).sort((a, b) => b.score - a.score || a.idx - b.idx);
+    const supplementReason = (g) => {
+      const id = g.leadId || g.id, sid = g.kind === "story" ? g.id : null;
+      const p = policyOf(id, sid, g);
+      if (!p.allowed) return null;
+      const it = itemAny.get(id);
+      if (!it || !(now - Date.parse(it.publishedAt) >= 0) || now - Date.parse(it.publishedAt) >= 24 * 36e5) return null;
+      if (majorNews(p.meta, p.members)) return "groot";
+      if (worldChosen(prof) && p.abroad && kindOf(it) === "nieuws") return "passend";
+      const hit = personalParts(p.members, prof, {}, { desk: p.desk, foreign: p.abroad }).interest;
+      if (hit && hit.shown !== false && hit.cov >= 0.5 && hit.pts > 0 && !hit.t.startsWith("bron:")) return "passend";
+      if (followed.has(it.source) && kindOf(it) === "nieuws") return "eigen";
+      if (!interests.length && !topics.length && !p.abroad && ["binnenland", "regio"].includes(p.desk)) return "basis";
+      return null;
+    };
+    const otherPool = [...global.wide || [], ...global.near || []].filter((w) => w?.item?.id).map((w) => ({ kind: "story", id: w.storyId, leadId: w.item.id, desk: storyById.get(w.storyId)?.desk ?? null, sourceCount: w.sourceCount }));
+    const supplementPool = [...new Map([...global.entries, ...otherPool].map((g) => [`${g.kind}:${g.id}`, g])).values()];
+    const fillCands = supplementPool.map((g, idx) => ({ g, idx, score: sumParts(personalParts([itemAny.get(g.leadId || g.id)].filter(Boolean), noFavorites, {}, { desk: g.desk })) - 2 * idx })).filter((x) => supplementReason(x.g) && x.g !== bubbleEntry && unread(x.g.leadId || x.g.id, x.g.kind === "story" ? x.g.id : null)).sort((a, b) => b.score - a.score || a.idx - b.idx);
     const fill = [];
-    const unchosenG = (g) => capAbroad && policyOf(g.leadId || g.id, g.kind === "story" ? g.id : null, g).abroad;
+    const unchosenG = (g) => capAbroad && policyOf(g.leadId || g.id, g.kind === "story" ? g.id : null, g).capped;
     const fillUp = (to) => {
       for (const { g } of fillCands) {
         if (news.length + fill.length >= to) break;
@@ -2409,7 +2595,7 @@ var HootCore = (() => {
         for (const id of m) taken.add(id);
         leads.push(g.leadId || g.id);
         if (gi) abroad++;
-        fill.push(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null }, g.leadId || g.id, g.kind === "story" ? g.id : null));
+        fill.push(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }, g.leadId || g.id, g.kind === "story" ? g.id : null));
       }
     };
     fillUp(fillTo);
@@ -2438,20 +2624,20 @@ var HootCore = (() => {
     }
     if (bubbleEntry) taken.add(bubbleEntry.leadId || bubbleEntry.id);
     let entries = [...news, ...fill, ...extra];
-    if (bubbleEntry && !entries.some((e) => (e.leadId || e.id) === (bubbleEntry.leadId || bubbleEntry.id))) entries.splice(Math.min(5, entries.length), 0, bubbleEntry);
     if (wideEntry) entries.splice(Math.min(6, entries.length), 0, wideEntry);
     const finalTaken = /* @__PURE__ */ new Set();
     const finalLeads = [];
     let internationalCount = 0;
     const accepted = [];
+    let capacity = EDITION_SIZE;
     const accept = (e) => {
-      if (accepted.length >= EDITION_SIZE) return;
+      if (accepted.length >= capacity) return;
       const id = e.leadId || e.id;
       const p = policyOf(id, e.kind === "story" ? e.id : null, e);
       const ids = [...membersOf(e)];
       if (ids.some((x) => finalTaken.has(x)) || sigAll.has(id) && finalLeads.some((x) => sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x)))) return;
-      if (!p.allowed || capAbroad && p.abroad && internationalCount >= INT_MAX) return;
-      if (p.abroad) internationalCount++;
+      if (!p.allowed || capAbroad && p.capped && internationalCount >= INT_MAX) return;
+      if (p.capped) internationalCount++;
       ids.forEach((x) => finalTaken.add(x));
       finalLeads.push(id);
       accepted.push(e);
@@ -2460,14 +2646,17 @@ var HootCore = (() => {
     if (accepted.length < EDITION_SIZE) selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE }).forEach(accept);
     for (const { g } of fillCands) {
       if (accepted.length >= EDITION_SIZE) break;
-      if (sameAsPlaced(g.leadId || g.id) || [...membersOf(g)].some((id) => taken.has(id) && !finalTaken.has(id) && false)) continue;
-      accept(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null }, g.leadId || g.id, g.kind === "story" ? g.id : null));
+      accept(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }, g.leadId || g.id, g.kind === "story" ? g.id : null));
+    }
+    if (bubbleEntry) {
+      capacity = accepted.length + 1;
+      accept(bubbleEntry);
     }
     entries = accepted;
     if (prof.interests.has("binnenland")) {
       const first = entries.findIndex((e) => {
         const p = policyOf(e.leadId || e.id, e.kind === "story" ? e.id : null, e);
-        return !p.abroad && ["binnenland", "regio"].includes(p.desk);
+        return e.desk !== "bubbel" && !p.abroad && ["binnenland", "regio"].includes(p.desk);
       });
       if (first > 0) entries.unshift(...entries.splice(first, 1));
     }
@@ -2477,13 +2666,56 @@ var HootCore = (() => {
     const srcName = new Map(sources.map((s) => [s.id, s.name]));
     const mineDesks = chosenDesks(prof);
     const out = entries.map((e) => {
-      const why = whyOf(e, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk: e.desk, plannedDesk: !!e.planned && mineDesks.has(e.desk), sourceName: (s) => srcName.get(s) || s });
+      let why = whyOf(e, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk: e.desk, plannedDesk: !!e.planned && mineDesks.has(e.desk), sourceName: (s) => srcName.get(s) || s });
+      if (e.supplement && !e.vervolg) {
+        const p = policyOf(e.leadId || e.id, e.kind === "story" ? e.id : null, e);
+        const hit = personalParts(p.members, prof, {}, { desk: p.desk, foreign: p.abroad }).interest;
+        const family = INTERESTS.find((x) => x.id === hit?.f)?.label || (worldChosen(prof) ? "Wereld" : "je interesses");
+        const reasons = { groot: `Groot nieuws · ${p.meta.publisherCount || p.meta.sourceCount || e.sourceCount || 1} bronnen`, passend: `Aanvulling bij ${family}`, basis: "Actueel nieuws uit Nederland", eigen: "Uit je gekozen bronnen" };
+        if (reasons[e.supplement]) why = { ...why, text: reasons[e.supplement], detail: true };
+      }
       const { w, parts, planned, front, vervolg, big, ...rest } = e;
       const lead = e.leadId || e.id;
       const itemIds = e.kind === "story" ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead];
       const keys = e.kind === "story" ? e.keys || storyById.get(e.id)?.keys : null;
       return { ...rest, itemIds, ...keys ? { keys } : {}, title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front };
     });
+    let supply = null;
+    const regularCount = editionStoryCount(out);
+    if (regularCount < EDITION_AUDIT_BELOW) {
+      const decisions = [];
+      selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE, audit: decisions });
+      if (extraPool.length) selectForReader(mineStories, extraPool, { ...opts, size: 2 * EXTRA_MAX, plan: false, audit: decisions });
+      const selectedIds = new Set(out.flatMap((e) => e.itemIds || [e.leadId || e.id]));
+      const selectedSigs = out.map((e) => sigAll.get(e.leadId || e.id)).filter(Boolean);
+      const represented = (ids) => ids.some((id) => selectedIds.has(id) || sigAll.has(id) && selectedSigs.some((s) => sameSubject(sigAll.get(id), s)));
+      const finalReason = (id, sid, entry = {}) => {
+        const p = policyOf(id, sid, entry);
+        if (!unread(id, sid)) return "eerder-getoond-of-gelezen";
+        if (!p.allowed) return newsRejection(prof, p.meta, p.members, p.desk);
+        if (capAbroad && p.capped && internationalCount >= INT_MAX) return "internationaal-plafond";
+        return "onverklaard";
+      };
+      for (const d of decisions) {
+        if (represented(d.itemIds)) d.reason = "vertegenwoordigd";
+        else if (d.reason === "gekozen-in-route") d.reason = finalReason(d.itemIds.find((id) => itemAny.has(id)) || d.id, d.kind === "story" ? d.id : null);
+      }
+      for (const d of decisions) {
+        if (d.reason === "via-verhaal") {
+          const st = storyByItem.get(d.id);
+          d.reason = st ? decisions.find((x) => x.kind === "story" && x.id === st.id)?.reason || "onverklaard-verhaal" : "onbekend-verhaal-id";
+        }
+      }
+      const examined = new Set(decisions.flatMap((d) => d.itemIds));
+      for (const i of pool) if (!examined.has(i.id)) decisions.push({ kind: "item", id: i.id, itemIds: [i.id], reason: !extraKinds.has(kindOf(i)) && kindOf(i) !== "nieuws" ? "niet-gekozen-vakgebied" : "onverklaard" });
+      for (const g of supplementPool) {
+        const id = g.leadId || g.id, sid = g.kind === "story" ? g.id : null;
+        decisions.push({ kind: g.kind, id: g.id, itemIds: [...membersOf(g)], route: "algemene-editie", reason: represented([...membersOf(g)]) ? "vertegenwoordigd" : !supplementReason(g) ? finalReason(id, sid, g) === "onverklaard" ? "geen-aantoonbare-aanvulreden" : finalReason(id, sid, g) : finalReason(id, sid, g) });
+      }
+      const counts = Object.fromEntries([...new Set(decisions.map((d) => d.reason))].sort().map((r) => [r, decisions.filter((d) => d.reason === r).length]));
+      const unresolved = decisions.filter((d) => /onverk|onbekend|route-vol|gekozen-in-route/.test(d.reason));
+      supply = { target: EDITION_SIZE, auditBelow: EDITION_AUDIT_BELOW, floor: EDITION_FLOOR, selected: regularCount, totalSlots: out.length, ownArticles: pool.length, decisions, counts, unresolved: unresolved.length, proven: regularCount >= EDITION_FLOOR && unresolved.length === 0 };
+    }
     const shown2 = [...new Set(out.map((e) => e.leadId || e.id))];
     return {
       id: global.id,
@@ -2498,7 +2730,8 @@ var HootCore = (() => {
       items: shown2.map(itemOf).filter(Boolean),
       bubble: global.bubble || [],
       brief: null,
-      _plan: sel.deskOrder
+      _plan: sel.deskOrder,
+      ...supply ? { _supply: supply } : {}
     };
   }
   function withoutDebug(edition) {

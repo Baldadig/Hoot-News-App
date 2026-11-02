@@ -1,0 +1,19 @@
+{
+  "step": "B06-R1",
+  "web": {
+    "pass": 961,
+    "fail": 0,
+    "todo": 1,
+    "log": "/tmp/hoot-beta/B06-web-R1.log"
+  },
+  "native": {
+    "pass": 98,
+    "fail": 0,
+    "log": "/tmp/hoot-beta/B06-native-R1.log"
+  },
+  "core": 0,
+  "build": 0,
+  "hardAcceptance": 0,
+  "initialRound": "controle-B06.json",
+  "note": "Alleen de oude kopassertie en het nieuwe rendertesttoken hersteld; productcode gelijk aan oorspronkelijke groene build/acceptatie."
+}

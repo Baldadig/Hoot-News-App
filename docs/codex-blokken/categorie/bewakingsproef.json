@@ -1,0 +1,6 @@
+{
+  "mutation": "alleen in procesgeheugen: eerste gescoorde V2a-rubriek gewijzigd",
+  "rejected": true,
+  "error": "Gescoord label of split wijkt af",
+  "fixtureOnDiskUnchanged": true
+}

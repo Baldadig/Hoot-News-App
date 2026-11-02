@@ -1,0 +1,16 @@
+{
+  "now":"2026-11-01T14:00:00Z",
+  "source":"bsky:persoon.example",
+  "cases":[
+    {"name":"volgen is niet instemmen","enabled":true,"followed":true,"selected":false,"ageHours":1,"expected":false},
+    {"name":"gekozen en gevolgd","enabled":true,"followed":true,"selected":true,"ageHours":1,"expected":true},
+    {"name":"globaal uit","enabled":false,"followed":true,"selected":true,"ageHours":1,"expected":false},
+    {"name":"ontvolgd","enabled":true,"followed":false,"selected":true,"ageHours":1,"expected":false},
+    {"name":"36 uur inclusief","enabled":true,"followed":true,"selected":true,"ageHours":36,"expected":true},
+    {"name":"ouder dan 36 uur","enabled":true,"followed":true,"selected":true,"ageHours":36.01,"expected":false},
+    {"name":"geen datum","enabled":true,"followed":true,"selected":true,"ageHours":null,"expected":false},
+    {"name":"verre toekomst","enabled":true,"followed":true,"selected":true,"ageHours":-1,"expected":false},
+    {"name":"alleen Editie","enabled":true,"followed":true,"selected":true,"ageHours":1,"editionOnly":true,"expected":false},
+    {"name":"alleen Stroom is toegestaan","enabled":true,"followed":true,"selected":true,"ageHours":1,"streamOnly":true,"expected":true}
+  ]
+}

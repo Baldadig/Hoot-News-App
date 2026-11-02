@@ -1,0 +1,6 @@
+# Vanuit Hoot-beta-integratie; alleen lokaal. Geen archive of provisioning-updates.
+xcodebuild -project ios/Hoot.xcodeproj -scheme Hoot -configuration Debug -destination 'id=00008140-001240313E3B801C' -derivedDataPath /tmp/hoot-beta/device-build CODE_SIGN_STYLE=Automatic CODE_SIGN_IDENTITY='Apple Development' 'SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG HOOT_LOCAL_BETA' build
+codesign --verify --deep --strict /tmp/hoot-beta/device-build/Build/Products/Debug-iphoneos/Hoot.app
+xcrun devicectl device install app --device 00008140-001240313E3B801C /tmp/hoot-beta/device-build/Build/Products/Debug-iphoneos/Hoot.app
+xcrun devicectl device process launch --device 00008140-001240313E3B801C --terminate-existing nl.hootnews.Hoot -- -HootEngine YES
+# Die laatste start is na ontgrendeling geslaagd; gerichte native bediening en gegevensbehoud gecontroleerd.

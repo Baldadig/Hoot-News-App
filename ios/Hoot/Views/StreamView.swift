@@ -9,6 +9,7 @@ struct StreamView: View {
     @Environment(Reader.self) private var reader
     @State private var behindReader = false // de lezer ligt eroverheen: dat is geen vertrek uit de Stroom
     @State private var showSources = DebugLaunch.screen("bronnen")
+    @State private var refreshWaiting = false
     @State private var limit = 60
     @State private var picks: Set<String> = Set(DebugLaunch.picks) // de bronnen uit de stapel (leeg = alle)
     @State private var lijn = LijnStand()
@@ -45,10 +46,17 @@ struct StreamView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     // De schermtitel in de scroll (C7), op de kolomlijn boven de rubriekenlijn.
-                    ScreenTitle("Stroom")
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal)
-                        .column()
+                    VStack(alignment: .leading, spacing: 0) {
+                        ScreenTitle("Stroom")
+                        if refreshWaiting {
+                            WaitingMark().frame(maxWidth: .infinity, alignment: .leading)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.vertical, Space.s3)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                    .column()
                     StreamLine(
                         rubriek: Binding(get: { rub }, set: { rubriek = $0 }),
                         picks: $picks,
@@ -85,7 +93,10 @@ struct StreamView: View {
                             ForEach(Array(items.prefix(limit).enumerated()), id: \.element.id) { i, item in
                                 // Daaronder heb je alles al gezien.
                                 if fresh > 0 && i == fresh { SeenMarker() }
-                                ItemRow(item: item, story: store.story(of: item))
+                                Group {
+                                    if item.isPost { PostRow(item: item) }
+                                    else { ItemRow(item: item, story: store.story(of: item)) }
+                                }
                                     .transition(still ? .opacity : .move(edge: .top).combined(with: .opacity))
                                 if !(fresh > 0 && i == fresh - 1) { Rule() }
                             }
@@ -110,7 +121,7 @@ struct StreamView: View {
             .hootScreenTitle()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .hootRefresh { await store.load() }
+            .hootRefresh(indicator: false, onWaiting: { refreshWaiting = $0 }) { await store.load() }
             .toolbar {
                 // Bediening is stil (design system): grijs en zonder glazen rondje, zoals het tandwiel.
                 ToolbarItem(placement: .topBarTrailing) {

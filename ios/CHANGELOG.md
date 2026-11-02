@@ -2,6 +2,25 @@
 
 ## Onuitgebracht
 
+- Beta-afwerking: Stroom-laadtekst onder de titel, minimaal 44 pt voor dichte onderwerpkeuzes, consequente 3:2-miniaturen en één duidelijk bubbelblok na de genummerde Editie.
+
+- Lokale beta: hooguit tien genummerde verhalen, bubbel apart; leesbare selectiereden, eerlijk begin en positief einde. Via lang drukken op een artikel ook lokale foutmelding; melden verandert de smaak niet.
+
+- Editie: zichtbare nummering, werkelijke eindtelling zonder bubbel en een laadmelding onder de titel.
+
+- Rustig inlogpaneel bij korte betaalde artikelen, weg te vegen/sluiten; na zeven dagen per bron maximaal één herinnering. Lange knopnamen lopen alleen door als de echte tekst niet past, zonder verkleinen of afkappen.
+- Lezer: pas na 400 ms “Artikel laden”, geen bronnentekst of flits bij snel laden; oude wachttaak wordt geannuleerd.
+
+- Uitloggen en accountwisseling maken lopende synchronisatie- en tokenantwoorden ongeldig. Oude antwoorden kunnen geen privéleesstatus, sessie of eigenaar terugzetten of een nieuwe login uitloggen.
+- Deelkaarten: uitgeverslogo en bronnaam in papiertint op merkrood, met lokaal gebundelde logo’s en een beginletter als terugval.
+- Bronkeuze in Welkom: gemeten vaste kaarthoogtes, annuleren zonder opslaan, gelijkmatige bronpagina’s, terug naar de vorige bronpagina en één afsluitknop bij Je Selectie.
+
+- Welkom: compact raster met echte bronlogo’s en namen (tot 16 tegelijk), alle bronnen bereikbaar, keuze blijft bewaard bij bladeren. Je Selectie is een aparte vervolgstap. Grotere tekst krijgt meer ruimte; hoofdknoppen houden hun vaste vorm.
+- Beeldfallback van de eigen Netlify-beeld-CDN naar het originele bronbeeld; geen herhaallus bij fouten.
+- Bluesky: per account Ook in de Stroom, met synchronisatie, 36-uursvenster en directe verwerking van uitzetten/ontvolgen/uitloggen. Oude laadantwoorden kunnen een verwijderd account niet terugzetten.
+- Selectie: Ga naar onderwerp, individuele secties en alles in-/uitklappen; lokale inklapstand per lezer, ook over weken. Navigeren opent eerst het onderwerp en springt zonder animatie naar de kop.
+- Lokale keuze Systeem, Licht, Donker en Nacht, met een eigen avondvariant en zwarte lezerachtergrond.
+
 - Nieuwe Editie: perslijn en hoofdverhaal verschijnen één keer na de iris, met vervagen bij Verminder beweging.
 - Taalfilter voor tweetalige bronnen en juiste hoofdtaal van vakbronnen.
 - Rustige voorpagina: geen zwaar nieuws of sport, hooguit één groot Wereld-verhaal.

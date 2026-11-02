@@ -1,0 +1,44 @@
+{
+  "step": "B06",
+  "head": "f3295029632d8de4489431c3ae856ae351e4c0b0",
+  "checks": [
+    {
+      "check": "core",
+      "exit": 0,
+      "seconds": 1.02,
+      "log": "/tmp/hoot-beta/B06/core.log"
+    },
+    {
+      "check": "web",
+      "exit": 1,
+      "seconds": 386.19,
+      "log": "/tmp/hoot-beta/B06/web.log",
+      "counts": {
+        "tests": 962,
+        "pass": 960,
+        "fail": 1,
+        "skipped": 0,
+        "todo": 1
+      }
+    },
+    {
+      "check": "build",
+      "exit": 0,
+      "seconds": 63.48,
+      "log": "/tmp/hoot-beta/B06/build.log"
+    },
+    {
+      "check": "acceptatie",
+      "exit": 0,
+      "seconds": 326.7,
+      "log": "/tmp/hoot-beta/B06/acceptatie.log"
+    },
+    {
+      "check": "native",
+      "exit": 65,
+      "seconds": 108.25,
+      "log": "/tmp/hoot-beta/B06/native.log",
+      "tests": null
+    }
+  ]
+}

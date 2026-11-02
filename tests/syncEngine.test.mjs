@@ -227,3 +227,14 @@ test('ander account (replace): de lege stand gaat nooit naar de server, wat je i
   assert.deepEqual(Object.keys(a.local.saved).sort(), ['s', 'y'])
   assert.equal(a.local.read.includes('van-A'), false)
 })
+
+test('Nacht en automatische avondvariant reizen via hetzelfde profiel naar een tweede webtoestel', async () => {
+  const shared = server()
+  const first = app({...empty,prefs:{theme:'night',themeDark:'night'}})
+  await new SyncEngine({uid:'night-reader',api:shared.api,storage:storage(),...first.opts}).start()
+  assert.equal(shared.db.prefs.theme,'night')
+  const second = app(empty)
+  await new SyncEngine({uid:'night-reader',api:shared.api,storage:storage({[OWNER_KEY]:'night-reader'}),...second.opts}).start()
+  assert.equal(second.local.prefs.theme,'night')
+  assert.equal(second.local.prefs.themeDark,'night')
+})

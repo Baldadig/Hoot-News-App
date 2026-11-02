@@ -50,20 +50,21 @@ test('verhuizen: echt opgeslagen thema en nieuwe accounteigenaar worden gerespec
   assert.equal(target.getItem('hoot:prefs'), null)
 })
 
-// Review 1.0.1, punt 2: één bezoek aan gethoot.app/lees schrijft al { onboarded: false, schema: 3 }.
+// Review 1.0.1, punt 2: één bezoek aan gethoot.app/lees schrijft al { onboarded: false, schema: 4, theme:'system', themeDark:'dark' }.
 test('verhuizen: een standaardprofiel van een eerder bezoek verdringt de meegebrachte instellingen niet', () => {
   const target = storage(); migrate(target)
-  assert.deepEqual(JSON.parse(target.getItem('hoot:prefs')), { onboarded: false, schema: 3 })
+  assert.deepEqual(JSON.parse(target.getItem('hoot:prefs')), { onboarded: false, schema: 4, theme:'system', themeDark:'dark' })
   const old = storage({ 'hoot:prefs': JSON.stringify({ onboarded: true, schema: 3, enabled: ['nrc'], interests: ['cultuur'], layout: 'krant' }), 'hoot:read': '["a"]' })
   applyMove(target, movePayload(old), 'https://hootnews.nl')
   const prefs = JSON.parse(target.getItem('hoot:prefs'))
-  assert.deepEqual(prefs, { onboarded: true, schema: 3, enabled: ['nrc'], interests: ['cultuur'], layout: 'krant' })
+  assert.deepEqual(prefs, { onboarded: true, schema: 3, theme:'system', themeDark:'dark', enabled: ['nrc'], interests: ['cultuur'], layout: 'krant' })
   assert.equal(target.getItem('hoot:read'), '["a"]')
+  assert.equal(migrate(target), true)
   assert.equal(migrate(target), false) // al op schema
   // Zonder vlag en schema (oudere opslag): geen welkom, en migrate.js zet ze daarna nog om.
   const t2 = storage(); migrate(t2)
   applyMove(t2, { version: 1, values: { 'hoot:prefs': '{"layout":"krant"}' } }, 'https://hootnews.nl')
-  assert.deepEqual(JSON.parse(t2.getItem('hoot:prefs')), { onboarded: true, layout: 'krant' })
+  assert.deepEqual(JSON.parse(t2.getItem('hoot:prefs')), { onboarded: true, theme:'system', themeDark:'dark', layout: 'krant' })
   assert.equal(migrate(t2), true)
   // Een echt gebruikte nieuwe Hoot (welkom afgerond) blijft leidend.
   const t3 = storage({ 'hoot:prefs': '{"onboarded":true,"schema":3,"layout":"tijdlijn"}' })

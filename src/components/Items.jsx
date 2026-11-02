@@ -1,3 +1,5 @@
+import { CORRECTION_REASONS } from '../lib/corrections.mjs'
+import { cleanIntro, headlineTier } from '../../shared/edition-display.mjs'
 import { createContext, useContext, useState } from 'react'
 import { timeAgo, readTime } from '../lib/time.js'
 import { BookmarkIcon, PlayIcon, MoreIcon, ShareIcon } from './icons.jsx'
@@ -14,7 +16,7 @@ import { directVideo } from '../../shared/bluesky.mjs'
 import { safeHttpUrl } from '../../shared/util.mjs'
 import { wholeSentences } from '../../shared/zinnen.mjs'
 import { useIntroMax } from '../lib/intro.js'
-import { two } from '../lib/edition.js'
+import { EditionNumber } from './EditionNumber.jsx'
 
 // Bewaarde berichten komen uit opslag (dit toestel, of je account), niet vers van de server:
 // ook daar alleen http(s) in een href. Zonder geldige link is het een link zonder doel.
@@ -82,7 +84,7 @@ export function ShareButton({ item, label = 'bericht' }) {
 // numberRows in src/lib/edition.js); de punt ertussen is die van .kicker.
 function Kicker({ item, extra, followed, n = null }) {
   const bits = []
-  if (n) bits.push(<span key="n" className="kicker__n">{two(n)}</span>)
+  if (n) bits.push(<EditionNumber key="n" n={n} />)
   if (extra) bits.push(<span key="x">{extra}</span>)
   if (item.type === 'opinie') bits.push(<span key="t" className="kicker__type">Opinie</span>)
   if (item.section && !extra) bits.push(<span key="s">{item.section}</span>) // de rubriek van de Editie gaat voor die van de bron
@@ -117,7 +119,7 @@ export function SourceMeta({ item, outside = false }) {
 // op dezelfde x staan (een scherm zonder meer of minder heeft die plek niet, zie .meta). Delen en
 // bewaren zijn op het web wat het contextmenu in de app is: elke rij heeft ze, zonder lang drukken.
 export function Meta({ item, story, showSave = true, taste = null, outside = false }) {
-  const { openStory, newInStory } = useHoot()
+  const { openStory, newInStory, voteOn, reportMistake } = useHoot()
   const fresh = story ? newInStory(story) : 0
   const others = story ? story.sourceCount - 1 : 0
   return (
@@ -130,7 +132,7 @@ export function Meta({ item, story, showSave = true, taste = null, outside = fal
           <span className="morebtn__short">+{others} {others === 1 ? 'bron' : 'bronnen'}</span>
         </button>
       ) : null}
-      {taste ? <TasteButton entryKey={taste} item={item} story={story} /> : null}
+      {(taste || voteOn || reportMistake) && item.kind !== 'post' ? <TasteButton entryKey={taste || story?.id || item.id} item={item} story={story} /> : null}
       <ShareButton item={item} />
       {showSave ? story ? <SaveButton id={story.id} kind="story" payload={withLead(story, item.id)} label="verhaal" /> : <SaveButton id={item.id} payload={item} /> : null}
     </div>
@@ -140,29 +142,33 @@ export function Meta({ item, story, showSave = true, taste = null, outside = fal
 // De berichten van een plek in de Editie (het verhaal, of het losse bericht).
 export const itemsOfEntry = (item, story, itemsById) => (story ? [item, ...(story.itemIds || []).filter((id) => id !== item.id).map((id) => itemsById?.get(id)).filter(Boolean)] : [item])
 
-// Meer of minder hiervan (src/lib/affinity.js). Rustig: één knop die twee keuzes opent.
+// Verhaalopties: smaak en foutmelding zijn aparte acties. Eén rustige ingang in de metaregel.
 export function TasteButton({ entryKey, item, story }) {
-  const { voteOn, itemsById } = useHoot()
+  const { voteOn, itemsById, reportMistake } = useHoot()
   const [open, setOpen] = useState(false)
   const [said, setSaid] = useState(null)
+  const [reporting, setReporting] = useState(false)
   const items = itemsOfEntry(item, story, itemsById)
   const pick = (dir) => {
     voteOn(entryKey, items, dir)
     setOpen(false)
-    if (dir > 0) setSaid(`Je ziet meer over ${aboutOf(items)}`)
+    setSaid(`Je voorkeur voor ${dir > 0 ? 'meer' : 'minder'} over ${aboutOf(items)} is bewaard.`)
   }
-  if (said) return <span className="taste__said" role="status">{said}</span>
+  if (said) return <span className="taste__said" role="status">{said}<button type="button" className="linkbtn linkbtn--plain hit" onClick={() => setSaid(null)}>Oké</button></span>
+  if (reporting) return <span className="taste" role="group" aria-label="Klopt dit niet?">{Object.entries(CORRECTION_REASONS).map(([reason,label])=><button type="button" className="pill pill--sm hit" key={reason} onClick={() => {const ok=reportMistake?.(item,story?.id || null,reason);setReporting(false);setOpen(false);setSaid(ok?'Melding bewaard op dit toestel. Nog niet verstuurd.':'De melding kon niet worden bewaard.')}}>{label}</button>)}<button type="button" className="linkbtn hit" onClick={()=>setReporting(false)}>Annuleer</button></span>
   return open ? (
     <span className="taste" role="group" aria-label="Meer of minder hiervan">
-      <button type="button" className="pill pill--sm hit" onClick={() => pick(1)}>
+      {voteOn ? <><button type="button" className="pill pill--sm hit" onClick={() => pick(1)}>
         Meer hiervan
       </button>
       <button type="button" className="pill pill--sm hit" onClick={() => pick(-1)}>
         Minder hiervan
-      </button>
+      </button></> : null}
+      {reportMistake ? <button type="button" className="pill pill--sm hit" onClick={()=>setReporting(true)}>Klopt dit niet?</button> : null}
+      <button type="button" className="linkbtn hit" onClick={()=>setOpen(false)}>Sluiten</button>
     </span>
   ) : (
-    <button type="button" className="iconbtn" onClick={() => setOpen(true)} aria-label="Meer of minder hiervan" title="Meer of minder hiervan">
+    <button type="button" className="iconbtn" onClick={() => setOpen(true)} aria-label="Verhaalopties: meer, minder of een fout melden" title="Verhaalopties">
       <MoreIcon />
     </button>
   )
@@ -177,7 +183,7 @@ export function aboutOf(items) {
 // Hoot eindigt nooit met een beletselteken: een te lange eerste zin mag één regel doorlopen, en de
 // line-clamp in de CSS staat precies die regel ruimer. `fit`: { max, rek }.
 const Summary = ({ item, className, fit = { max: Infinity, rek: Infinity } }) => {
-  const text = wholeSentences(item.summary, fit.max, fit.rek)
+  const text = wholeSentences(cleanIntro(item.summary, item.author), fit.max, fit.rek)
   return text ? (
     <p className={className}>
       {text}
@@ -190,6 +196,8 @@ const Summary = ({ item, className, fit = { max: Infinity, rek: Infinity } }) =>
 // `priority`: dit is het eerste beeld dat je ziet (alleen het zichtbare hoofdverhaal).
 export function LeadStory({ item, story, note, n = null, why = null, followed = null, priority = false, taste = null, outside = false }) {
   const { markRead, read } = useHoot()
+  const tier = headlineTier(item.title)
+  const titleRole = tier === 'compact' ? 'head-lg' : tier === 'medium' ? 'head-5' : 'head-6'
   return (
     <article className={`entry lead${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <a className={`lead__link${portraitImage(item) ? ' lead__link--portrait' : ''}`} href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
@@ -202,7 +210,7 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
         ) : null}
         <Kicker item={item} extra={note} followed={followed} n={n} />
         <Why why={why} />
-        <h2 className="head-6 lead__title">{item.title}</h2>
+        <h2 className={`${titleRole} lead__title`}>{item.title}</h2>
         <Summary item={item} className="lead__sum" fit={{ max: 240, rek: 240 }} />
         {item.author ? <p className="byline">Door {item.author}</p> : null}
       </a>

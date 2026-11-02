@@ -40,6 +40,17 @@ enum ImageURL {
         return u
     }
 
+    // Alleen onze bekende CDN-route mag één keer naar het oorspronkelijke HTTPS-beeld terugvallen.
+    static func originalFallback(for sized: URL) -> URL? {
+        guard sized.scheme == "https", sized.host() == HootAPI.base.host(), sized.path() == "/.netlify/images",
+              let parts = URLComponents(url: sized, resolvingAgainstBaseURL: false),
+              let values = parts.queryItems?.filter({ $0.name == "url" }), values.count == 1,
+              let raw = values.first?.value, let original = URL(string: raw),
+              original.scheme == "https", let host = original.host(), cdnHosts.contains(host),
+              original.user == nil, original.password == nil, original != sized else { return nil }
+        return original
+    }
+
     // Hoe breed een beeld hooguit is, als het adres dat verraadt; anders nil.
     static func knownWidth(_ raw: String?) -> Int? {
         guard let raw, let u = URLComponents(string: raw), let host = u.host else { return nil }

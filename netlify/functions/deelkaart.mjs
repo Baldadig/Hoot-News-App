@@ -10,7 +10,7 @@ export async function handleCard(req, { find = shareRecord, render = renderCard 
   if (!cardFormat(format)) return fail(400, 'Onbekend formaat.')
   const item = await find(q.get('id'))
   if (!item) return fail(404, 'Verhaal niet gevonden.')
-  const etag = `"${hash(JSON.stringify([item.id, item.title, item.section, item.sourceName, item.source]) + format + 'kaart-v1')}"`
+  const etag = `"${hash(JSON.stringify([item.id, item.title, item.section, item.sourceName, item.source]) + format + 'kaart-v2-publisher')}"`
   const headers = { 'Content-Type': 'image/png', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'public, max-age=3600', 'Netlify-CDN-Cache-Control': 'public, durable, s-maxage=86400, stale-while-revalidate=604800', ETag: etag }
   if (req.headers.get('if-none-match') === etag) return new Response(null, { status: 304, headers })
   if (req.method === 'HEAD') return new Response(null, { headers })

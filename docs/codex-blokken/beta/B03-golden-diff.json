@@ -1,0 +1,86 @@
+[
+  {
+    "fixture": "edition-golden.json",
+    "name": "klimaat",
+    "beforeEntries": [
+      "1r0emuz",
+      "x0jhky",
+      "1mg305i",
+      "1ko7y4i",
+      "y5limg",
+      "stjkwf",
+      "rgh6j3",
+      "1r0emmx",
+      "bs4wwk",
+      "4kssn2"
+    ],
+    "afterEntries": [
+      "1r0emuz",
+      "x0jhky",
+      "1mg305i",
+      "1ko7y4i",
+      "stjkwf",
+      "rgh6j3",
+      "1r0emmx",
+      "7yhds4",
+      "1woxi4g",
+      "4kssn2"
+    ]
+  },
+  {
+    "fixture": "edition-golden.json",
+    "name": "vs",
+    "beforeEntries": [
+      "1xin4tc",
+      "1mg305i",
+      "1r0emmx",
+      "16wfgec",
+      "1sysr3f",
+      "1r0emuw",
+      "1arg6cp",
+      "qqz8dt",
+      "3xpku9",
+      "16n47m0"
+    ],
+    "afterEntries": [
+      "1xin4tc",
+      "1mg305i",
+      "1r0emmx",
+      "16wfgec",
+      "1sysr3f",
+      "1r0emuw",
+      "1arg6cp",
+      "1mqix7a",
+      "11quh1m",
+      "16n47m0"
+    ]
+  },
+  {
+    "fixture": "edition-golden.json",
+    "name": "vs-zonder-topics",
+    "beforeEntries": [
+      "1xin4tc",
+      "1mg305i",
+      "1r0emmx",
+      "16wfgec",
+      "1sysr3f",
+      "1r0emuw",
+      "4kssn2",
+      "b25qsi",
+      "1488akf",
+      "qqz8dt"
+    ],
+    "afterEntries": [
+      "1xin4tc",
+      "1mg305i",
+      "1r0emmx",
+      "16wfgec",
+      "1sysr3f",
+      "1r0emuw",
+      "4kssn2",
+      "b25qsi",
+      "1488akf",
+      "1mqix7a"
+    ]
+  }
+]

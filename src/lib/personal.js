@@ -1,4 +1,5 @@
-import { majorNews, internationalNews, allowedNews, worldChosen, sportChosen, exceptionalDutchSport, coverageOf } from '../../shared/edition-policy.mjs'
+import { withCleanIntro } from '../../shared/edition-display.mjs'
+import { EDITION_AUDIT_BELOW, EDITION_FLOOR, editionStoryCount, majorNews, internationalNews, newsRejection, allowedNews, cappedInternational, worldChosen, sportChosen, exceptionalDutchSport, coverageOf } from '../../shared/edition-policy.mjs'
 import { EDITOR_REVISION } from '../../shared/editor-version.mjs'
 // De persoonlijke editie — pure functies (tests/personal.test.mjs, tests/compose.test.mjs).
 //
@@ -57,7 +58,7 @@ export function withTrustedTopics(it) {
 
 // De verhalen zoals deze lezer ze ziet. `ownCount` telt de verschillende bronnen in het verhaal
 // die jij volgt (de server telt Hoots basisbronnen): zo krijgt een verhaal dat van jouw bronnen
-// alleen Carbon Brief brengt toch de +100 voor "eigen bron" in weight(). De rubriek (`desk`) zet de
+// alleen Carbon Brief brengt toch de begrensde bijdrage voor gekozen bronnen in weight(). De rubriek (`desk`) zet de
 // server uit alle berichten en is voor iedereen gelijk; een oudere server leverde hem nog niet,
 // dan rekenen we hem hier uit dezelfde berichten uit (`all`: alles wat we van het verhaal hebben).
 // `nlCount`: hoeveel van de bronnen Nederlandstalig zijn (niet Vlaams), uit `sourceNames` en de
@@ -98,8 +99,8 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   if (!global?.entries?.length) return null
   // Wat alleen in de Stroom hoort (streamOnly) telt niet mee: De Redacteur rekent met het oude venster
   // per bron, ook op het toestel (shared/stroom.mjs).
-  items = items.filter(forEdition).map(withTrustedTopics)
-  global = { ...global, items: (global.items || []).map(withTrustedTopics), wide: (global.wide || []).map((w) => (w?.item ? { ...w, item: withTrustedTopics(w.item) } : w)) }
+  items = items.filter(forEdition).map(withCleanIntro).map(withTrustedTopics)
+  global = { ...global, items: (global.items || []).map(withCleanIntro).map(withTrustedTopics), wide: (global.wide || []).map((w) => (w?.item ? { ...w, item: withTrustedTopics(withCleanIntro(w.item)) } : w)) }
   const catOf = new Map(sources.map((s) => [s.id, s.cat]))
   // Soort bericht: de rubriek van de bron, tenzij het onderwerp sport, cultuur of games is.
   const kindOf = (i) => {
@@ -118,7 +119,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const storyDesk = new Map(mineStories.map((st) => [st.id, st.desk]))
   // Alles wat het toestel kent (eigen bronnen plus de algemene Editie), met kenmerken: voor de
   // bubbel en voor "ontwikkeld sinds je vorige Editie" (developedSince).
-  const itemAny = new Map([...items, ...(global.items || [])].map((i) => [i.id, i]))
+  const itemAny = new Map([...items, ...(global.items || []), ...[...(global.wide || []), ...(global.near || [])].map(w=>w?.item).filter(Boolean)].map((i) => [i.id, i]))
   const sigAll = signatures([...itemAny.values()].filter((i) => i.kind !== 'post'))
   // `own`: al je eigen berichten, zodat de punten van een verhaal ook tellen wat je ervan leest in
   // sport of cultuur (de dood van Patrick Stewart is Film voor wie Cultuur koos).
@@ -189,15 +190,15 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const members = [...new Set([id, ...(st?.itemIds || []), ...(entry.itemIds || [])])].map(x => itemAny.get(x)).filter(Boolean)
     const meta = st || entry
     const desk = st?.desk ?? entry.fromDesk ?? entry.desk ?? null
-    return { allowed: allowedNews(prof, meta, members, desk), abroad: internationalNews(members, desk, meta), members, meta, desk }
+    return { allowed: allowedNews(prof, meta, members, desk), abroad: internationalNews(members, desk, meta), capped: cappedInternational(prof,members,desk,meta), members, meta, desk }
   }
-  const unchosenAbroad = (id, sid) => capAbroad && policyOf(id, sid).abroad
+  const unchosenAbroad = (id, sid) => capAbroad && policyOf(id, sid).capped
   const eligible = (id, sid, entry = {}) => {
     const p = policyOf(id, sid, entry)
-    return p.allowed && (!capAbroad || !p.abroad || abroad < INT_MAX)
+    return p.allowed && (!capAbroad || !p.capped || abroad < INT_MAX)
   }
   const wideAny = (global.wide || []).some(w => w?.item?.id && !covered(w) && unread(w.item.id, w.storyId))
-  const size = EDITION_SIZE - (bubbleEntry ? 1 : 0) - (wideAny ? 1 : 0)
+  const size = EDITION_SIZE - (wideAny ? 1 : 0)
   const opts = { mainIds: followed, now, previous, preferred, prof, ctx, seed }
   // Het extra blok kiest er een paar meer, zodat een verhaal dat het nieuws al heeft (de dood van een
   // acteur, met een stuk van NOS Cultuur) er niet twee keer in staat.
@@ -208,7 +209,10 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   //    een vakbron krijgt de rubriek van die bron.
   const leadCat = (e) => catOf.get(pool.find((i) => i.id === (e.leadId || e.id))?.source)
   const sel = selectForReader(mineStories, newsPool, { ...opts, size: size - extraN })
-  const news = sel.map((e) => (!e.planned && !e.front && SPECIALIST.has(leadCat(e)) ? { ...e, desk: leadCat(e) } : e))
+  const news = sel.map((e) => {
+    const review = /^(review|test)\s*:/i.test(pool.find(i=>i.id === (e.leadId || e.id))?.title || '')
+    return SPECIALIST.has(leadCat(e)) && (review || (!e.planned && !e.front)) ? {...e,desk:leadCat(e)} : e
+  })
   const inNews = new Set(news.flatMap((e) => e.itemIds || [e.id]))
   // Elke internationale plek telt tegen de grens, ook met een persoonlijke reden.
   let abroad = sel.counted.size
@@ -283,15 +287,31 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // Een gereserveerde plek die leeg blijft (geen toegelaten breed verhaal of bubbelstuk) gaat eerst naar
   // toegelaten eigen nieuws (stap 8), pas daarna naar de algemene Editie: zo blijft de Editie van jou.
   const fillTo = size - extra.length - swapped
-  const fillCands = global.entries
-    .map((g, idx) => ({ g, idx, score: sumParts(personalParts([globalItems.get(g.leadId || g.id)].filter(Boolean), noFavorites, {}, { desk: g.desk })) - 2 * idx }))
-    .filter((x) => x.g !== bubbleEntry && unread(x.g.leadId || x.g.id, x.g.kind === 'story' ? x.g.id : null))
+  const supplementReason = g => {
+    const id = g.leadId || g.id, sid = g.kind === 'story' ? g.id : null
+    const p = policyOf(id,sid,g)
+    if (!p.allowed) return null
+    const it = itemAny.get(id)
+    if (!it || !(now - Date.parse(it.publishedAt) >= 0) || now - Date.parse(it.publishedAt) >= 24 * 36e5) return null
+    if (majorNews(p.meta,p.members)) return 'groot'
+    if (worldChosen(prof) && p.abroad && kindOf(it) === 'nieuws') return 'passend'
+    const hit = personalParts(p.members,prof,{}, {desk:p.desk,foreign:p.abroad}).interest
+    if (hit && hit.shown !== false && hit.cov >= 0.5 && hit.pts > 0 && !hit.t.startsWith('bron:')) return 'passend'
+    if (followed.has(it.source) && kindOf(it) === 'nieuws') return 'eigen'
+    if (!interests.length && !topics.length && !p.abroad && ['binnenland','regio'].includes(p.desk)) return 'basis'
+    return null
+  }
+  const otherPool = [...(global.wide || []), ...(global.near || [])].filter(w=>w?.item?.id).map(w=>({kind:'story',id:w.storyId,leadId:w.item.id,desk:storyById.get(w.storyId)?.desk ?? null,sourceCount:w.sourceCount}))
+  const supplementPool = [...new Map([...global.entries,...otherPool].map(g=>[`${g.kind}:${g.id}`,g])).values()]
+  const fillCands = supplementPool
+    .map((g, idx) => ({ g, idx, score: sumParts(personalParts([itemAny.get(g.leadId || g.id)].filter(Boolean), noFavorites, {}, { desk: g.desk })) - 2 * idx }))
+    .filter((x) => supplementReason(x.g) && x.g !== bubbleEntry && unread(x.g.leadId || x.g.id, x.g.kind === 'story' ? x.g.id : null))
     .sort((a, b) => b.score - a.score || a.idx - b.idx)
   // Ook serveraanvulling houdt dezelfde harde grens, ongeacht een persoonlijke reden.
   const fill = []
   // Een aangevuld verhaal is niet vrij van de grens als de lezer zijn rubriek niet koos: een wetenschapsverhaal
   // over Pompeï is buitenland zonder reden (feedback 31 oktober); de berichten zeggen of het buitenland is.
-  const unchosenG = g => capAbroad && policyOf(g.leadId || g.id, g.kind === 'story' ? g.id : null, g).abroad
+  const unchosenG = g => capAbroad && policyOf(g.leadId || g.id, g.kind === 'story' ? g.id : null, g).capped
   const fillUp = (to) => {
     for (const { g } of fillCands) {
       if (news.length + fill.length >= to) break
@@ -302,7 +322,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
       for (const id of m) taken.add(id)
       leads.push(g.leadId || g.id)
       if (gi) abroad++
-      fill.push(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null }, g.leadId || g.id, g.kind === 'story' ? g.id : null))
+      fill.push(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }, g.leadId || g.id, g.kind === 'story' ? g.id : null))
     }
   }
   fillUp(fillTo)
@@ -346,7 +366,6 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // 7. Volgorde: eigen nieuws, aangevuld nieuws, dan sport/cultuur; "Buiten je bubbel" op plek 6,
   //    "Waar iedereen over schrijft" direct daarna.
   let entries = [...news, ...fill, ...extra]
-  if (bubbleEntry && !entries.some((e) => (e.leadId || e.id) === (bubbleEntry.leadId || bubbleEntry.id))) entries.splice(Math.min(5, entries.length), 0, bubbleEntry)
   if (wideEntry) entries.splice(Math.min(6, entries.length), 0, wideEntry)
 
   // Vul vrijgevallen gereserveerde plekken met toegelaten eigen nieuws; de norm wijkt niet
@@ -355,14 +374,15 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const finalLeads = []
   let internationalCount = 0
   const accepted = []
+  let capacity = EDITION_SIZE
   const accept = e => {
-    if (accepted.length >= EDITION_SIZE) return
+    if (accepted.length >= capacity) return
     const id = e.leadId || e.id
     const p = policyOf(id, e.kind === 'story' ? e.id : null, e)
     const ids = [...membersOf(e)]
     if (ids.some(x => finalTaken.has(x)) || (sigAll.has(id) && finalLeads.some(x => sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x))))) return
-    if (!p.allowed || (capAbroad && p.abroad && internationalCount >= INT_MAX)) return
-    if (p.abroad) internationalCount++
+    if (!p.allowed || (capAbroad && p.capped && internationalCount >= INT_MAX)) return
+    if (p.capped) internationalCount++
     ids.forEach(x => finalTaken.add(x))
     finalLeads.push(id)
     accepted.push(e)
@@ -372,15 +392,16 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // Dan pas aanvullen uit de algemene Editie, met dezelfde toelating en zonder dubbel verhaal.
   for (const { g } of fillCands) {
     if (accepted.length >= EDITION_SIZE) break
-    if (sameAsPlaced(g.leadId || g.id) || [...membersOf(g)].some((id) => taken.has(id) && !finalTaken.has(id) && false)) continue
-    accept(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null }, g.leadId || g.id, g.kind === 'story' ? g.id : null))
+    accept(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }, g.leadId || g.id, g.kind === 'story' ? g.id : null))
   }
+  // Pas na hooguit tien gewone plekken: één optionele bubbel, met dezelfde inhouds- en dubbelgrenzen.
+  if (bubbleEntry) { capacity = accepted.length + 1; accept(bubbleEntry) }
   entries = accepted
   // Binnenland blijft de opening, ook bij een combinatie met Wereld en bij serveraanvulling.
   if (prof.interests.has('binnenland')) {
     const first = entries.findIndex(e => {
       const p = policyOf(e.leadId || e.id, e.kind === 'story' ? e.id : null, e)
-      return !p.abroad && ['binnenland','regio'].includes(p.desk)
+      return e.desk !== 'bubbel' && !p.abroad && ['binnenland','regio'].includes(p.desk)
     })
     if (first > 0) entries.unshift(...entries.splice(first, 1))
   }
@@ -398,13 +419,58 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const srcName = new Map(sources.map((s) => [s.id, s.name]))
   const mineDesks = chosenDesks(prof) // "Jouw rubriek" alleen voor een rubriek die bij je keuzes hoort
   const out = entries.map((e) => {
-    const why = whyOf(e, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk: e.desk, plannedDesk: !!e.planned && mineDesks.has(e.desk), sourceName: (s) => srcName.get(s) || s })
+    let why = whyOf(e, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk: e.desk, plannedDesk: !!e.planned && mineDesks.has(e.desk), sourceName: (s) => srcName.get(s) || s })
+    if (e.supplement && !e.vervolg) {
+      const p = policyOf(e.leadId || e.id,e.kind === 'story' ? e.id : null,e)
+      const hit = personalParts(p.members,prof,{}, {desk:p.desk,foreign:p.abroad}).interest
+      const family = INTERESTS.find(x=>x.id === hit?.f)?.label || (worldChosen(prof) ? 'Wereld' : 'je interesses')
+      const reasons = {groot:`Groot nieuws · ${p.meta.publisherCount || p.meta.sourceCount || e.sourceCount || 1} bronnen`,passend:`Aanvulling bij ${family}`,basis:'Actueel nieuws uit Nederland',eigen:'Uit je gekozen bronnen'}
+      if (reasons[e.supplement]) why = {...why,text:reasons[e.supplement],detail:true}
+    }
     const { w, parts, planned, front, vervolg, big, ...rest } = e
     const lead = e.leadId || e.id
     const itemIds = e.kind === 'story' ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead]
     const keys = e.kind === 'story' ? e.keys || storyById.get(e.id)?.keys : null
     return { ...rest, itemIds, ...(keys ? { keys } : {}), title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front }
   })
+  // Bij een korte Editie geen blinde minimumverlaging: elke bekende kandidaat krijgt een
+  // terminale reden uit dezelfde selectieroute. Dit is lokaal debugbewijs, geen accountpayload.
+  let supply = null
+  const regularCount = editionStoryCount(out)
+  if (regularCount < EDITION_AUDIT_BELOW) {
+    const decisions = []
+    selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE, audit: decisions })
+    if (extraPool.length) selectForReader(mineStories, extraPool, { ...opts, size: 2 * EXTRA_MAX, plan: false, audit: decisions })
+    const selectedIds = new Set(out.flatMap(e => e.itemIds || [e.leadId || e.id]))
+    const selectedSigs = out.map(e => sigAll.get(e.leadId || e.id)).filter(Boolean)
+    const represented = ids => ids.some(id => selectedIds.has(id) || (sigAll.has(id) && selectedSigs.some(s => sameSubject(sigAll.get(id), s))))
+    const finalReason = (id, sid, entry = {}) => {
+      const p = policyOf(id, sid, entry)
+      if (!unread(id, sid)) return 'eerder-getoond-of-gelezen'
+      if (!p.allowed) return newsRejection(prof,p.meta,p.members,p.desk)
+      if (capAbroad && p.capped && internationalCount >= INT_MAX) return 'internationaal-plafond'
+      return 'onverklaard'
+    }
+    for (const d of decisions) {
+      if (represented(d.itemIds)) d.reason = 'vertegenwoordigd'
+      else if (d.reason === 'gekozen-in-route') d.reason = finalReason(d.itemIds.find(id => itemAny.has(id)) || d.id, d.kind === 'story' ? d.id : null)
+    }
+    for (const d of decisions) {
+      if (d.reason === 'via-verhaal') {
+        const st = storyByItem.get(d.id)
+        d.reason = st ? (decisions.find(x => x.kind === 'story' && x.id === st.id)?.reason || 'onverklaard-verhaal') : 'onbekend-verhaal-id'
+      }
+    }
+    const examined = new Set(decisions.flatMap(d => d.itemIds))
+    for (const i of pool) if (!examined.has(i.id)) decisions.push({kind:'item',id:i.id,itemIds:[i.id],reason: !extraKinds.has(kindOf(i)) && kindOf(i) !== 'nieuws' ? 'niet-gekozen-vakgebied' : 'onverklaard'})
+    for (const g of supplementPool) {
+      const id = g.leadId || g.id, sid = g.kind === 'story' ? g.id : null
+      decisions.push({kind:g.kind,id:g.id,itemIds:[...membersOf(g)],route:'algemene-editie',reason: represented([...membersOf(g)]) ? 'vertegenwoordigd' : !supplementReason(g) ? (finalReason(id,sid,g) === 'onverklaard' ? 'geen-aantoonbare-aanvulreden' : finalReason(id,sid,g)) : finalReason(id,sid,g)})
+    }
+    const counts = Object.fromEntries([...new Set(decisions.map(d=>d.reason))].sort().map(r=>[r,decisions.filter(d=>d.reason===r).length]))
+    const unresolved = decisions.filter(d=>/onverk|onbekend|route-vol|gekozen-in-route/.test(d.reason))
+    supply = {target:EDITION_SIZE,auditBelow:EDITION_AUDIT_BELOW,floor:EDITION_FLOOR,selected:regularCount,totalSlots:out.length,ownArticles:pool.length,decisions,counts,unresolved:unresolved.length,proven:regularCount>=EDITION_FLOOR && unresolved.length===0}
+  }
   const shown = [...new Set(out.map((e) => e.leadId || e.id))]
   return {
     id: global.id,
@@ -420,6 +486,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     bubble: global.bubble || [],
     brief: null,
     _plan: sel.deskOrder,
+    ...(supply ? { _supply: supply } : {}),
   }
 }
 
@@ -466,6 +533,7 @@ export function personalRows(edition) {
   const byId = new Map((edition?.items || []).map((i) => [i.id, i]))
   const rows = []
   ;(edition?.entries || []).forEach((e, entry) => {
+    if (e.desk === 'bubbel') return
     const item = byId.get(e.leadId || e.id)
     if (item) rows.push({ entry, sourceName: item.sourceName, title: item.title, summary: item.summary || '' })
   })

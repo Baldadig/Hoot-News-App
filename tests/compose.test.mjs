@@ -1,3 +1,4 @@
+import { editionStoryCount } from '../shared/edition-policy.mjs'
 // De Redacteur op de vaste momentopname (P5, Hoot-design/algoritme/bouwspec.md §11.4): de twaalf
 // persona's in scenario "nu", met hun leesgeschiedenis als read_ids (zoals meting/acceptatie.mjs).
 // De harde regels van de Editie gelden voor iedereen; per persona een paar herkenbare uitkomsten.
@@ -6,7 +7,7 @@ import assert from 'node:assert/strict'
 import { loadSnapshot, editionsNu, composeFor, readIdsOf, contextOf, keyOf, keysOf, membersOf, bigStories, pairwise } from './helpers/snapshot.mjs'
 import { composePersonal, withoutDebug } from '../src/lib/personal.js'
 import { profileOf, supplyOf, outsideProfile, isSport, KERN, FAMILY_OF, INT_MAX } from '../shared/editor.mjs'
-import { internationalNews, majorNews } from '../shared/edition-policy.mjs'
+import { internationalNews, cappedInternational, majorNews } from '../shared/edition-policy.mjs'
 import { PERSONAS, setupFor } from './helpers/snapshot.mjs'
 
 const snap = loadSnapshot()
@@ -21,14 +22,16 @@ const deskOf = (e) => (e.desk === 'extern' ? e.fromDesk : e.desk)
 // Normen 1 november 2026: zonder Wereld hooguit INT_MAX internationale plekken, alleen groot nieuws.
 const storyOf = (e) => ctx.storyById.get(keyOf(e, ctx)) || {}
 const abroadOf = (e) => internationalNews(membersOf(e, ctx), storyOf(e).desk ?? deskOf(e))
-const intCount = (edition) => edition.entries.filter(abroadOf).length
+const intCount = (edition) => { const r = eds.find(r=>r.edition === edition); const prof = r ? profOf(r) : profileOf(); return edition.entries.filter(e=>cappedInternational(prof,membersOf(e,ctx),storyOf(e).desk ?? deskOf(e),storyOf(e))).length }
 
 test('De Redacteur: tien plekken, deterministisch, groot nieuws, Buiten je bubbel en een waarom', () => {
   for (const { persona, setup, edition } of eds) {
     const id = persona.id
     // Normen 1 november: liever korter dan ongeoorloofd aanvullen. Op deze momentopname is er genoeg
     // toegelaten aanbod voor tien plekken.
-    assert.equal(edition.entries.length, 10, id)
+    assert.equal(editionStoryCount(edition.entries), 10, id)
+    assert.ok(edition.entries.length <= 11,id)
+    if (edition.entries.some(e=>e.desk === 'bubbel')) assert.equal(edition.entries.at(-1).desk,'bubbel',id)
     const readIds = persona.interests.length + persona.topics.length ? readIdsOf(snap, persona, setup.followed) : new Set()
     const again = composePersonal({ global: snap.edition, stories: snap.stories, items: snap.items, sources: snap.sources, now: Date.parse(snap.meta.updatedAt), builtAt: snap.meta.updatedAt, previous: null, ...setup, readIds })
     assert.equal(JSON.stringify(again), JSON.stringify(edition), id)
@@ -43,7 +46,7 @@ test('De Redacteur: tien plekken, deterministisch, groot nieuws, Buiten je bubbe
     // Buiten je bubbel hooguit één keer; geen plek als elk kandidaatstuk de normen breekt (sport zonder keuze).
     assert.ok(edition.entries.filter((e) => e.desk === 'bubbel').length <= 1, id)
     if (!world) assert.ok(intCount(edition) <= INT_MAX, `${id}: ${intCount(edition)} internationaal`)
-    if (!world) for (const e of edition.entries.filter(abroadOf)) assert.ok(majorNews(storyOf(e), membersOf(e, ctx)), `${id}: ${e.id} internationaal zonder groot nieuws`)
+    if (!world) for (const e of edition.entries.filter(e=>cappedInternational(profOf({setup}),membersOf(e,ctx),storyOf(e).desk ?? deskOf(e),storyOf(e)))) assert.ok(majorNews(storyOf(e), membersOf(e, ctx)), `${id}: ${e.id} internationaal zonder groot nieuws`)
     for (const e of edition.entries) assert.ok(e.why?.code && e.why?.text, `${id}: ${e.id}`)
   }
 })
@@ -82,7 +85,7 @@ test('De Redacteur: een gelezen aanvulling komt niet terug', () => {
   const keys = new Set(fill.map((e) => keyOf(e, ctx)))
   const again = composeFor(snap, { ...base, readIds: all })
   assert.deepEqual(again.entries.filter((e) => keys.has(keyOf(e, ctx))).map((e) => e.id), [])
-  assert.ok(again.entries.length >= first.entries.length - fill.length, `${again.entries.length} plekken`)
+  assert.ok(editionStoryCount(again.entries) >= editionStoryCount(first.entries) - fill.length, `${editionStoryCount(again.entries)} plekken`)
   assert.equal(again.entries.filter((e) => e.desk === 'bubbel').length, 1)
 
   // Alleen de kop gelezen: terug alleen als vervolg (≥ 2 nieuwe stukken), met dat in de parts.
@@ -118,7 +121,8 @@ test('De Redacteur: de klimaatlezer krijgt klimaat, met Wetenschap als eerste ru
 test('De Redacteur: de VS-lezer krijgt twee VS-plekken als hij Wereld koos, anders hooguit twee keer groot buitenland', () => {
   const { edition } = byPersona.vs
   assert.ok(intCount(edition) <= INT_MAX, `${intCount(edition)}`)
-  for (const e of edition.entries.filter(abroadOf)) assert.ok(majorNews(storyOf(e), membersOf(e, ctx)), e.id)
+  const prof = profOf(byPersona.vs)
+  for (const e of edition.entries.filter(e=>cappedInternational(prof,membersOf(e,ctx),storyOf(e).desk ?? deskOf(e),storyOf(e)))) assert.ok(majorNews(storyOf(e), membersOf(e, ctx)), e.id)
   const p = PERSONAS.find((x) => x.id === 'vs')
   const setup = setupFor({ ...p, interests: [...p.interests, 'wereld'] }, snap.sources, 'echt')
   const world = composeFor(snap, { ...setup, readIds: readIdsOf(snap, p, setup.followed) })

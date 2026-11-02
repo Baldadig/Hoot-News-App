@@ -1,0 +1,38 @@
+[
+  {
+    "name": "nieuw",
+    "changedOutputFields": [
+      "basis",
+      "entries",
+      "items"
+    ],
+    "entriesChanged": true,
+    "inputChanged": false
+  },
+  {
+    "name": "klimaat",
+    "changedOutputFields": [
+      "basis"
+    ],
+    "entriesChanged": false,
+    "inputChanged": false
+  },
+  {
+    "name": "vs",
+    "changedOutputFields": [
+      "basis"
+    ],
+    "entriesChanged": false,
+    "inputChanged": false
+  },
+  {
+    "name": "vs-zonder-topics",
+    "changedOutputFields": [
+      "basis",
+      "entries",
+      "items"
+    ],
+    "entriesChanged": true,
+    "inputChanged": false
+  }
+]

@@ -19,7 +19,7 @@ test('rubrieken uit kop, samenvatting, bron en rubriek van de bron', () => {
 test('van het moment: meer bronnen en verser weegt zwaarder', () => {
   const now = Date.parse('2026-10-19T10:00:00Z')
   assert.ok(weight({ sourceCount: 5, ownCount: 2, latestAt: '2026-10-19T09:00:00Z' }, now) > weight({ sourceCount: 5, ownCount: 2, latestAt: '2026-10-18T20:00:00Z' }, now))
-  assert.ok(weight({ sourceCount: 2, ownCount: 1, latestAt: '2026-10-19T09:00:00Z' }, now) > weight({ sourceCount: 6, ownCount: 0, latestAt: '2026-10-19T09:00:00Z' }, now))
+  assert.ok(weight({ sourceCount: 2, ownCount: 1, latestAt: '2026-10-19T09:00:00Z' }, now) < weight({ sourceCount: 6, ownCount: 0, latestAt: '2026-10-19T09:00:00Z' }, now))
 })
 
 const NOW = Date.parse('2026-10-19T10:00:00Z')
@@ -45,13 +45,13 @@ test('elke rubriek krijgt zijn belangrijkste verhaal, ook als één onderwerp he
   assert.equal(new Set(e.map((x) => x.id)).size, e.length)
 })
 
-test('één verhaal van buiten je bubbel op plek 6; het minst belangrijke aanvullende verhaal maakt plaats', () => {
+test('één optioneel bubbelverhaal na tien genummerde verhalen, zonder verdringing', () => {
   const entries = [...'abcdefghij'].map((id, i) => ({ kind: 'item', id, desk: i < 6 ? 'x' : null }))
   const out = insertBubble(entries, { id: 'bub', terms: [{ term: 't', via: 'google' }] })
-  assert.equal(out.length, 10)
-  assert.equal(out[5].id, 'bub')
-  assert.equal(out[5].desk, 'bubbel')
-  assert.ok(!out.some((x) => x.id === 'j'))
+  assert.equal(out.length, 11)
+  assert.equal(out[10].id, 'bub')
+  assert.equal(out[10].desk, 'bubbel')
+  assert.ok(out.some((x) => x.id === 'j'))
   assert.equal(insertBubble(entries, null), entries)
 })
 

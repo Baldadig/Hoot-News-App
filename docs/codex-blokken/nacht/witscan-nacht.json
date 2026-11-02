@@ -1,0 +1,685 @@
+[
+  {
+    "file": "web-keuze-nacht.jpg",
+    "exclusions": [
+      {
+        "height": 179,
+        "reason": "foto/uitgeversbeeld",
+        "width": 358,
+        "x": 16,
+        "y": 259
+      },
+      {
+        "height": 24,
+        "reason": "merkvlak/bronlogo",
+        "width": 24,
+        "x": 16,
+        "y": 724
+      },
+      {
+        "height": 24,
+        "reason": "foto/uitgeversbeeld",
+        "width": 24,
+        "x": 16,
+        "y": 724
+      },
+      {
+        "height": 56,
+        "reason": "foto/uitgeversbeeld",
+        "width": 84,
+        "x": 290,
+        "y": 827
+      }
+    ]
+  },
+  {
+    "file": "web-instellingen-nacht-blad.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-instellingen-nacht-inkt.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-popup-nacht.jpg",
+    "exclusions": [
+      {
+        "height": 179,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 358,
+        "x": 16,
+        "y": 227
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 692
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 692
+      },
+      {
+        "height": 49,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 84,
+        "x": 290,
+        "y": 795
+      }
+    ]
+  },
+  {
+    "file": "web-editie-nacht.jpg",
+    "exclusions": [
+      {
+        "height": 179,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 358,
+        "x": 16,
+        "y": 227
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 692
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 692
+      },
+      {
+        "height": 49,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 84,
+        "x": 290,
+        "y": 795
+      }
+    ]
+  },
+  {
+    "file": "web-eindkaart-nacht.jpg",
+    "exclusions": [
+      {
+        "height": 12,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 84,
+        "x": 290,
+        "y": 0
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 94
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 94
+      },
+      {
+        "height": 56,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 84,
+        "x": 290,
+        "y": 157
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 273
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 273
+      },
+      {
+        "height": 376,
+        "reason": "Bestaand merkvlak",
+        "width": 358,
+        "x": 16,
+        "y": 351
+      }
+    ]
+  },
+  {
+    "file": "web-stroom-nacht.jpg",
+    "exclusions": [
+      {
+        "height": 28,
+        "reason": "Bestaand merkvlak",
+        "width": 28,
+        "x": 338,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 28,
+        "x": 338,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaand merkvlak",
+        "width": 28,
+        "x": 322,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 28,
+        "x": 322,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaand merkvlak",
+        "width": 28,
+        "x": 306,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 28,
+        "x": 306,
+        "y": 66
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 177,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 356,
+        "x": 17,
+        "y": 196
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 392
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 392
+      },
+      {
+        "height": 177,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 356,
+        "x": 17,
+        "y": 568
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 764
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 764
+      }
+    ]
+  },
+  {
+    "file": "web-selectie-nacht.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-instellingen-nacht.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-leeg-nacht.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-onboarding-nacht.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-keuze-auto-nacht.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-editie-auto-nacht.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-stroom-auto-nacht.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-selectie-auto-nacht.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "ios-account-auto-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "ios-account-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "ios-editie-auto-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "ios-editie-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "ios-eindkaart-auto-nacht.png",
+    "exclusions": [
+      {
+        "x": 48,
+        "y": 1230,
+        "width": 1074,
+        "height": 1250,
+        "reason": "Bestaande rode eindkaart met vast merkpapier"
+      },
+      {
+        "x": 832,
+        "y": 650,
+        "width": 295,
+        "height": 215,
+        "reason": "Ongewijzigde foto boven de eindkaart"
+      },
+      {
+        "x": 830,
+        "y": 0,
+        "width": 295,
+        "height": 230,
+        "reason": "Gedeeltelijk zichtbare foto bovenin"
+      }
+    ]
+  },
+  {
+    "file": "ios-eindkaart-nacht.png",
+    "exclusions": [
+      {
+        "x": 48,
+        "y": 1230,
+        "width": 1074,
+        "height": 1250,
+        "reason": "Bestaande rode eindkaart met vast merkpapier"
+      },
+      {
+        "x": 832,
+        "y": 650,
+        "width": 295,
+        "height": 215,
+        "reason": "Ongewijzigde foto boven de eindkaart"
+      },
+      {
+        "x": 830,
+        "y": 0,
+        "width": 295,
+        "height": 230,
+        "reason": "Gedeeltelijk zichtbare foto bovenin"
+      }
+    ]
+  },
+  {
+    "file": "ios-instellingen-auto-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "ios-instellingen-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "ios-keuze-auto-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "ios-keuze-nacht-ax5.png",
+    "exclusions": []
+  },
+  {
+    "file": "ios-keuze-nacht-xxxl.png",
+    "exclusions": []
+  },
+  {
+    "file": "ios-keuze-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "ios-laden-auto-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "ios-laden-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "ios-lezer-html-auto-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "ios-lezer-html-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "ios-onboarding-auto-nacht.png",
+    "exclusions": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 1170,
+        "height": 2532,
+        "reason": "Bestaand merkrood welkom met vast papier"
+      }
+    ]
+  },
+  {
+    "file": "ios-onboarding-nacht.png",
+    "exclusions": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 1170,
+        "height": 2532,
+        "reason": "Bestaand merkrood welkom met vast papier"
+      }
+    ]
+  },
+  {
+    "file": "ios-selectie-auto-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "ios-selectie-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "ios-stroom-auto-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "ios-stroom-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "ipad-editie-liggend-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "ipad-editie-staand-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "ipad-instellingen-liggend-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "ipad-instellingen-staand-nacht.png",
+    "exclusions": []
+  },
+  {
+    "file": "native-ipad-lezer-nacht.jpg",
+    "exclusions": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 1472,
+        "height": 603,
+        "reason": "Mac/Device Hub buiten het app-scherm"
+      },
+      {
+        "x": 0,
+        "y": 603,
+        "width": 555,
+        "height": 1127,
+        "reason": "Mac buiten het app-scherm"
+      },
+      {
+        "x": 1398,
+        "y": 603,
+        "width": 74,
+        "height": 1127,
+        "reason": "Mac buiten het app-scherm"
+      },
+      {
+        "x": 555,
+        "y": 1157,
+        "width": 843,
+        "height": 573,
+        "reason": "Mac en apparaatframe onder het app-scherm"
+      },
+      {
+        "x": 555,
+        "y": 603,
+        "width": 843,
+        "height": 24,
+        "reason": "Systeemstatusbalk"
+      }
+    ]
+  },
+  {
+    "file": "native-ipad-lezer-overscroll-nacht.jpg",
+    "exclusions": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 1472,
+        "height": 603,
+        "reason": "Mac/Device Hub buiten het app-scherm"
+      },
+      {
+        "x": 0,
+        "y": 603,
+        "width": 555,
+        "height": 1127,
+        "reason": "Mac buiten het app-scherm"
+      },
+      {
+        "x": 1398,
+        "y": 603,
+        "width": 74,
+        "height": 1127,
+        "reason": "Mac buiten het app-scherm"
+      },
+      {
+        "x": 555,
+        "y": 1157,
+        "width": 843,
+        "height": 573,
+        "reason": "Mac en apparaatframe onder het app-scherm"
+      },
+      {
+        "x": 555,
+        "y": 603,
+        "width": 843,
+        "height": 24,
+        "reason": "Systeemstatusbalk"
+      }
+    ]
+  },
+  {
+    "file": "native-ipad-abonnementspaneel-nacht.jpg",
+    "exclusions": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 1472,
+        "height": 603,
+        "reason": "Mac/Device Hub buiten het app-scherm"
+      },
+      {
+        "x": 0,
+        "y": 603,
+        "width": 555,
+        "height": 1127,
+        "reason": "Mac buiten het app-scherm"
+      },
+      {
+        "x": 1398,
+        "y": 603,
+        "width": 74,
+        "height": 1127,
+        "reason": "Mac buiten het app-scherm"
+      },
+      {
+        "x": 555,
+        "y": 1157,
+        "width": 843,
+        "height": 573,
+        "reason": "Mac en apparaatframe onder het app-scherm"
+      },
+      {
+        "x": 555,
+        "y": 603,
+        "width": 843,
+        "height": 24,
+        "reason": "Systeemstatusbalk"
+      },
+      {
+        "x": 723,
+        "y": 936,
+        "width": 506,
+        "height": 126,
+        "reason": "Ongewijzigde artikelfoto"
+      }
+    ]
+  },
+  {
+    "file": "native-instellingen-nacht-definitief.jpg",
+    "exclusions": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 1472,
+        "height": 165,
+        "reason": "Mac boven het app-scherm"
+      },
+      {
+        "x": 0,
+        "y": 165,
+        "width": 650,
+        "height": 1565,
+        "reason": "Mac links van het app-scherm"
+      },
+      {
+        "x": 1303,
+        "y": 165,
+        "width": 169,
+        "height": 1565,
+        "reason": "Mac rechts van het app-scherm"
+      },
+      {
+        "x": 650,
+        "y": 1585,
+        "width": 653,
+        "height": 145,
+        "reason": "Mac en apparaatframe onder het app-scherm"
+      },
+      {
+        "x": 650,
+        "y": 165,
+        "width": 653,
+        "height": 101,
+        "reason": "Systeemstatusbalk"
+      }
+    ]
+  }
+]

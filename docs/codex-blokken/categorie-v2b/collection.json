@@ -1,0 +1,611 @@
+{
+  "root": {
+    "url": "https://gethoot.app/api/feed",
+    "etag": "\"1gnnxm8\"",
+    "sha256": "553341b76b750bbf47b0cc6a7ae301fee9c641dd57d379b520365fbaded0ae4f",
+    "collectedAt": "2026-11-02T07:10:07.521007+00:00"
+  },
+  "parts": [
+    {
+      "url": "https://gethoot.app/api/feed?bron=nos",
+      "etag": "\"1ob6jlj\"",
+      "sha256": "278d72f28e4067e6d3f32a51152b0bb6f3e34f4a91ce24a0837943879817bac7",
+      "collectedAt": "2026-11-02T07:10:08.132111+00:00",
+      "source": "nos"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=nu",
+      "etag": "\"1dfvq4o\"",
+      "sha256": "03dba76f8ec18ca0fb5ea7b6c663b08c1ba3277f2fa05f67e428b0e758f03949",
+      "collectedAt": "2026-11-02T07:10:08.209331+00:00",
+      "source": "nu"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=ad",
+      "etag": "\"1y9nd9f\"",
+      "sha256": "d202de5cfa3b0841677eeb95ed1540ce5da3f0fb15f08949d78b47bfc771bb01",
+      "collectedAt": "2026-11-02T07:10:08.723958+00:00",
+      "source": "ad"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=telegraaf",
+      "etag": "\"q1fbig\"",
+      "sha256": "b7edee782258d9f99f4e74c52c8e5e53a2d9886aa8cd94af024c3debdc165b32",
+      "collectedAt": "2026-11-02T07:10:08.874295+00:00",
+      "source": "telegraaf"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=rtl",
+      "etag": "\"r8mlo\"",
+      "sha256": "de6c7565ee4143cb9bea59b39c771a1baaff8c36fd823a21f867190b6a4564f4",
+      "collectedAt": "2026-11-02T07:10:09.391267+00:00",
+      "source": "rtl"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=volkskrant",
+      "etag": "\"xf7pl6\"",
+      "sha256": "424eecf6e079bd989656531d5557ce9c512f0697c73d96d847b53e6cff191dc9",
+      "collectedAt": "2026-11-02T07:10:09.522820+00:00",
+      "source": "volkskrant"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=nd",
+      "etag": "\"k1ol5\"",
+      "sha256": "86ef6bb7714797253e9bd73c9ede0f4cde793bb39dffdc619f2bbae4f95d9ff1",
+      "collectedAt": "2026-11-02T07:10:09.555241+00:00",
+      "source": "nd"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=nrc",
+      "etag": "\"11xmd7x\"",
+      "sha256": "7addb296e94198ee4284955e038119d89c28a1d6a778b19e989f6f9f29838ec6",
+      "collectedAt": "2026-11-02T07:10:09.566123+00:00",
+      "source": "nrc"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=parool",
+      "etag": "\"l4fuz4\"",
+      "sha256": "01804eca0b4fb8e1d8995b2c486327de41470033cf9d573972653292aad325e9",
+      "collectedAt": "2026-11-02T07:10:09.644482+00:00",
+      "source": "parool"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=trouw",
+      "etag": "\"1bne3to\"",
+      "sha256": "592cae4d15f08a60ed6ce588b1c96a5e8bbd320ff9fb8416dfa82738bff90ecc",
+      "collectedAt": "2026-11-02T07:10:09.698279+00:00",
+      "source": "trouw"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=ftm",
+      "etag": "\"1k1o16t\"",
+      "sha256": "cbda967dbde630e707db39be85aaed88c0c46c180885da6d8531fb34d7d3b45e",
+      "collectedAt": "2026-11-02T07:10:10.030781+00:00",
+      "source": "ftm"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=leidschdagblad",
+      "etag": "\"1f67ewy\"",
+      "sha256": "e15e29b7c70e5420fe7d2876b9c984bd65b42afa70cdab5e133a1e621591f829",
+      "collectedAt": "2026-11-02T07:10:10.181370+00:00",
+      "source": "leidschdagblad"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=nhd",
+      "etag": "\"p3rvdq\"",
+      "sha256": "012333a14bd0b024c089be6cd189191fd64f50c1e7975bc5d2ffcb0a08677a45",
+      "collectedAt": "2026-11-02T07:10:10.211363+00:00",
+      "source": "nhd"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=haarlemsdagblad",
+      "etag": "\"1mf4s6s\"",
+      "sha256": "19c1f5d1eafe864f04cad1b07ba19d78767c1b01c1445bb9129e819a41279554",
+      "collectedAt": "2026-11-02T07:10:10.227321+00:00",
+      "source": "haarlemsdagblad"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=lc",
+      "etag": "\"1vnte1z\"",
+      "sha256": "f76d696c7434ce7b5e0cefecc42a9bc63f4e4d0410fbc5f861a3b43c3e928410",
+      "collectedAt": "2026-11-02T07:10:10.395019+00:00",
+      "source": "lc"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=dvhn",
+      "etag": "\"n0bi6r\"",
+      "sha256": "99356fa131351a77b31937ff7c86a0d4fa104346515afad21969cbcf21fa7bec",
+      "collectedAt": "2026-11-02T07:10:10.567030+00:00",
+      "source": "dvhn"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=gelderlander",
+      "etag": "\"16avdgc\"",
+      "sha256": "8505719d922cc7709824d33d762df2c098c220dcb4f21f11c3bb8d50341223a9",
+      "collectedAt": "2026-11-02T07:10:10.590636+00:00",
+      "source": "gelderlander"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=stentor",
+      "etag": "\"pbicnc\"",
+      "sha256": "904812680444f9bde11ab1281a96b055c9689340e7bbb46ebf4b4d9d8cd24a83",
+      "collectedAt": "2026-11-02T07:10:10.613933+00:00",
+      "source": "stentor"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=limburger",
+      "etag": "\"112q28j\"",
+      "sha256": "8cc20d8af38f797d2b7b9df972522fccb84a32d5e93fabf6ce277cf8e624d820",
+      "collectedAt": "2026-11-02T07:10:10.714011+00:00",
+      "source": "limburger"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=pzc",
+      "etag": "\"1ghls0m\"",
+      "sha256": "2ca3bfda18c0ef33f7bf901a8acb4e48c445dfed32408b14ea08b212ac0ec065",
+      "collectedAt": "2026-11-02T07:10:10.961309+00:00",
+      "source": "pzc"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=bd",
+      "etag": "\"4vf735\"",
+      "sha256": "6fc5e454160a700ca15725c93a3a1b9d5b502b63b264c89da65297711f9077b5",
+      "collectedAt": "2026-11-02T07:10:11.077537+00:00",
+      "source": "bd"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=tubantia",
+      "etag": "\"8go7aq\"",
+      "sha256": "aabe6cc7b712a1c2f6bb5ce8d0cf065cec528d5a87d27ad602638a29503dabf5",
+      "collectedAt": "2026-11-02T07:10:11.089615+00:00",
+      "source": "tubantia"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=ed",
+      "etag": "\"1y64xtw\"",
+      "sha256": "c7e9cb301ec6d60335db349163e65fe27d834a42f2bd2c1dfd12912582203655",
+      "collectedAt": "2026-11-02T07:10:11.156123+00:00",
+      "source": "ed"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=vrt",
+      "etag": "\"1ckj18i\"",
+      "sha256": "772303267cb65b070f700a1169b2bd93f280ce64b236b1c2aadb29b4a38d744d",
+      "collectedAt": "2026-11-02T07:10:11.285535+00:00",
+      "source": "vrt"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=bndestem",
+      "etag": "\"121ioyw\"",
+      "sha256": "1ad2af30e0eec86a626d0745449cac0c14d16d9e0cfcfd6b741d0258402db8de",
+      "collectedAt": "2026-11-02T07:10:11.373248+00:00",
+      "source": "bndestem"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=tijd",
+      "etag": "\"1beiici\"",
+      "sha256": "8646d9a2d76294bdd6c290c7cc83e6e80f0da2d3e33051b32110f70aa7d97631",
+      "collectedAt": "2026-11-02T07:10:11.414596+00:00",
+      "source": "tijd"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=standaard",
+      "etag": "\"bcn8iy\"",
+      "sha256": "88bb530512946c959b95d5ee99957b3aadb2218660411cc8d58dcb35952e1620",
+      "collectedAt": "2026-11-02T07:10:11.622010+00:00",
+      "source": "standaard"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=nieuwsblad",
+      "etag": "\"1ur19ic\"",
+      "sha256": "97d8df9a68fa331f2a2d5f42febe5fbebb5414354c5fb680e82c313beb28df37",
+      "collectedAt": "2026-11-02T07:10:11.630946+00:00",
+      "source": "nieuwsblad"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=demorgen",
+      "etag": "\"zf3ew2\"",
+      "sha256": "2c5a3a88382649799300ca771a46f9e3ee29395866a89f07a5d5ecc89f556087",
+      "collectedAt": "2026-11-02T07:10:11.690496+00:00",
+      "source": "demorgen"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=hln",
+      "etag": "\"krukm0\"",
+      "sha256": "8b944c9243e0ca535e04e1521836da8a4740b174e5b93b922f48de4474db2e8a",
+      "collectedAt": "2026-11-02T07:10:11.738003+00:00",
+      "source": "hln"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=hbvl",
+      "etag": "\"qlhg37\"",
+      "sha256": "7eaec5e77bf441e1ed72d09dd59f377095542a3bc6c1efdf7149fdb3ff90a79b",
+      "collectedAt": "2026-11-02T07:10:11.748696+00:00",
+      "source": "hbvl"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=nyt",
+      "etag": "\"15ik82d\"",
+      "sha256": "0b166367d06020cfa57d36a42a4027410d318ef48dc1901ad0c39335a574b110",
+      "collectedAt": "2026-11-02T07:10:11.945632+00:00",
+      "source": "nyt"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=guardian",
+      "etag": "\"hagqyl\"",
+      "sha256": "b51cb376b9d808279dba1a0c666602e009159214704942fad65fd37be399207f",
+      "collectedAt": "2026-11-02T07:10:12.008986+00:00",
+      "source": "guardian"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=gva",
+      "etag": "\"1v6u3p8\"",
+      "sha256": "c4143b2c81955df68b9c43dcb7570a73eb01f5de60927477f4c3f38035429103",
+      "collectedAt": "2026-11-02T07:10:12.010580+00:00",
+      "source": "gva"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=economist",
+      "etag": "\"1pm1flr\"",
+      "sha256": "954725488411f33bb39144c8df7182a810f424bc567866345b3d144d1380dea3",
+      "collectedAt": "2026-11-02T07:10:12.127727+00:00",
+      "source": "economist"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=bbc",
+      "etag": "\"kx86do\"",
+      "sha256": "a353dd04868c4b35c686d11db4b0e8a84e7aad9fb20befa40481214778a208de",
+      "collectedAt": "2026-11-02T07:10:12.265082+00:00",
+      "source": "bbc"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=ft",
+      "etag": "\"17ho3xe\"",
+      "sha256": "e0d19afb995a61b8146c8e9f3a25657da4a498d33528943211897a1fccbb5493",
+      "collectedAt": "2026-11-02T07:10:12.287013+00:00",
+      "source": "ft"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=foreignpolicy",
+      "etag": "\"5b5ad5\"",
+      "sha256": "2f341742e6756d8e0f08a08dd509dd9805691c1be3748cb6ad86607a356610ea",
+      "collectedAt": "2026-11-02T07:10:12.401302+00:00",
+      "source": "foreignpolicy"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=politico-eu",
+      "etag": "\"nkfvqk\"",
+      "sha256": "61724e5f85eb3ef84c0be65f7fb665a12621d897251788831c05278e9adcf696",
+      "collectedAt": "2026-11-02T07:10:12.450830+00:00",
+      "source": "politico-eu"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=newyorker",
+      "etag": "\"vpk0m5\"",
+      "sha256": "600b33cf4924e62f9ef17f7decbcfede607ecac5de90187877e19ef143e1adaa",
+      "collectedAt": "2026-11-02T07:10:12.483693+00:00",
+      "source": "newyorker"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=atlantic",
+      "etag": "\"1p1t1q6\"",
+      "sha256": "52c5dc1f622e20f18f3d972c4b71e930783bab1eea5e000f3c25d5fc9d6e30e1",
+      "collectedAt": "2026-11-02T07:10:12.518049+00:00",
+      "source": "atlantic"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=politico",
+      "etag": "\"17k838v\"",
+      "sha256": "3cda813379ff9f9046895f64236c9089bda221b070415af938b5e5875d5cb039",
+      "collectedAt": "2026-11-02T07:10:12.651420+00:00",
+      "source": "politico"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=aljazeera",
+      "etag": "\"acqu51\"",
+      "sha256": "bc389e72a552d627a7d67e6c07cb60680a9e1e5bc15dbbf3094e468e8a594d4f",
+      "collectedAt": "2026-11-02T07:10:12.659004+00:00",
+      "source": "aljazeera"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=npr",
+      "etag": "\"kp0db6\"",
+      "sha256": "0958bac07fd8032242029612321a3fbd12b1625d686ac07909e7a43859f5d3d5",
+      "collectedAt": "2026-11-02T07:10:12.742460+00:00",
+      "source": "npr"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=lemonde",
+      "etag": "\"6d2dwo\"",
+      "sha256": "169e8fcb501b729b827adfc27e089c30699a16ed3e255270f69a2e34c6fd950a",
+      "collectedAt": "2026-11-02T07:10:12.771720+00:00",
+      "source": "lemonde"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=dw",
+      "etag": "\"1ftpp2c\"",
+      "sha256": "e539ffb3c15ca3a19163a07f74a1bb4049d0381774f9498ec141a9f0235ce65e",
+      "collectedAt": "2026-11-02T07:10:12.868074+00:00",
+      "source": "dw"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=telegraph",
+      "etag": "\"1eqgtp7\"",
+      "sha256": "84820a41d1cfd379ecf9716ef1c2dbdf390a434fe21eaae083939648b3ac2c1b",
+      "collectedAt": "2026-11-02T07:10:12.960216+00:00",
+      "source": "telegraph"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=independent",
+      "etag": "\"sm61w\"",
+      "sha256": "18d8dd7bee59eb9ddb1a4a02f371404d6f6aa869ec1724deced7494d03627725",
+      "collectedAt": "2026-11-02T07:10:13.015869+00:00",
+      "source": "independent"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=scmp",
+      "etag": "\"15pq1a2\"",
+      "sha256": "b85867351cab322ee7e4f7791d63e5725433d55d227b5dc6314adff6c183db57",
+      "collectedAt": "2026-11-02T07:10:13.254853+00:00",
+      "source": "scmp"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=fd",
+      "etag": "\"1bo8394\"",
+      "sha256": "72f5917286b9f0ff428f69120af5234afc143dc14d1d90ac17a2980929b271a8",
+      "collectedAt": "2026-11-02T07:10:13.340813+00:00",
+      "source": "fd"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=tweakers",
+      "etag": "\"1xqkfu2\"",
+      "sha256": "bb676efce4b4652f583137273c08ba4486242f3c130a1ee179a7cc58d2a3d00d",
+      "collectedAt": "2026-11-02T07:10:13.363680+00:00",
+      "source": "tweakers"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=wired",
+      "etag": "\"i79g7o\"",
+      "sha256": "3c88555abfcf0350a212280308ab390ec5769266b65fbedc16a26b6742c93d30",
+      "collectedAt": "2026-11-02T07:10:13.515237+00:00",
+      "source": "wired"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=ars",
+      "etag": "\"1lb9b92\"",
+      "sha256": "55d8722ed1b017e90324f50248d29a9ea428aed217c1a3a2c0aeb7d4b0677fea",
+      "collectedAt": "2026-11-02T07:10:13.566724+00:00",
+      "source": "ars"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=theverge",
+      "etag": "\"egb4cr\"",
+      "sha256": "f7ad9c3e9517a6c4853bbbe0cedd2e9e5ce5bfe050d22c10f24054ef5089b186",
+      "collectedAt": "2026-11-02T07:10:13.589144+00:00",
+      "source": "theverge"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=mittr",
+      "etag": "\"1vsrdtv\"",
+      "sha256": "00c5ae2c1ba6575d4a433a3faf623ed492f1cbe6f6cca4eef5545026912a8983",
+      "collectedAt": "2026-11-02T07:10:13.704928+00:00",
+      "source": "mittr"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=bloomberg",
+      "etag": "\"1lhiw92\"",
+      "sha256": "bce79ad11f948d7a66b5f3fa7fb0fec795049602a66c592ad5788c4fd0bd8265",
+      "collectedAt": "2026-11-02T07:10:13.705113+00:00",
+      "source": "bloomberg"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=techcrunch",
+      "etag": "\"1c4uuht\"",
+      "sha256": "113a5e6bce8b54fb5545c0455e407c5b0496c2afc4116fff2a643d149248d811",
+      "collectedAt": "2026-11-02T07:10:13.712032+00:00",
+      "source": "techcrunch"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=ign",
+      "etag": "\"qfb4fv\"",
+      "sha256": "0e70c3b9766d426c7b1f4c796db8e5d63fee06cc3de10517820123d135b347d7",
+      "collectedAt": "2026-11-02T07:10:13.859876+00:00",
+      "source": "ign"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=eurogamer",
+      "etag": "\"ttf50\"",
+      "sha256": "0008da47ac05f98f11bb238e14fc61451219e620d6a47b894d9e83a4aeebed83",
+      "collectedAt": "2026-11-02T07:10:13.966930+00:00",
+      "source": "eurogamer"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=quanta",
+      "etag": "\"o6itxx\"",
+      "sha256": "9f851338f83b23057213bdf17bebbbc4ca82810c8f3120ce62f7c9207f33c7f1",
+      "collectedAt": "2026-11-02T07:10:14.011252+00:00",
+      "source": "quanta"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=polygon",
+      "etag": "\"acnb0m\"",
+      "sha256": "6ae0ceb29ab41775dc40b7ec8e5ccfd0c6022a99936f288a1a4a4029c93da7f4",
+      "collectedAt": "2026-11-02T07:10:14.033691+00:00",
+      "source": "polygon"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=sciam",
+      "etag": "\"bl9hid\"",
+      "sha256": "bef910f595dc0afd63f9ca5b3dc882fcd89bfc5687168a280f29404d6bccfdbc",
+      "collectedAt": "2026-11-02T07:10:14.058613+00:00",
+      "source": "sciam"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=gamespot",
+      "etag": "\"2i9anr\"",
+      "sha256": "7078de4b797d34f70ab47af3d54fec865f86f4d797e85c26af825f076f03c2a4",
+      "collectedAt": "2026-11-02T07:10:14.081242+00:00",
+      "source": "gamespot"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=nature",
+      "etag": "\"1xu8lh1\"",
+      "sha256": "19f55d05f4c71d435b30426af63145d1ea116d5d7868a60f71b91135ad7fe797",
+      "collectedAt": "2026-11-02T07:10:14.224015+00:00",
+      "source": "nature"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=carbonbrief",
+      "etag": "\"1pkzwgs\"",
+      "sha256": "728acb31424557f5bdb6aaddac371c5440eafb32fb90766e0015b74b4ce1c9db",
+      "collectedAt": "2026-11-02T07:10:14.290083+00:00",
+      "source": "carbonbrief"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=nos-sport",
+      "etag": "\"14l2ot3\"",
+      "sha256": "919349da781657a7f0214b004975349f704b35385e2247d389d85b3e1fe1baaa",
+      "collectedAt": "2026-11-02T07:10:14.331027+00:00",
+      "source": "nos-sport"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=vi",
+      "etag": "\"duuvhq\"",
+      "sha256": "6c13f11f7aa33f0e12b630196336514caf6275fde5a76173fee18036d7c1d68f",
+      "collectedAt": "2026-11-02T07:10:14.352281+00:00",
+      "source": "vi"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=wielerflits",
+      "etag": "\"8y4m25\"",
+      "sha256": "f2b69f4a7d26fdf320ee67b362bd1517ff91e6b97253ec97c9ff811306fcb72c",
+      "collectedAt": "2026-11-02T07:10:14.365225+00:00",
+      "source": "wielerflits"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=sporza",
+      "etag": "\"1uck8tq\"",
+      "sha256": "134c39c487105e7cd171261e318a04620b574162c66e704f6ba7aa5022f03751",
+      "collectedAt": "2026-11-02T07:10:14.492922+00:00",
+      "source": "sporza"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=bbc-sport",
+      "etag": "\"1uuancd\"",
+      "sha256": "78481f8183daab1769f18457fbb11129be1dc12346feca5803f4a6b5db470acc",
+      "collectedAt": "2026-11-02T07:10:14.577014+00:00",
+      "source": "bbc-sport"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=nos-cultuur",
+      "etag": "\"jdspbc\"",
+      "sha256": "9260568909695be638d9ece712db6cb6fe510c983cd40a097e0bb756dfea8671",
+      "collectedAt": "2026-11-02T07:10:14.658601+00:00",
+      "source": "nos-cultuur"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=autosport",
+      "etag": "\"q4ky58\"",
+      "sha256": "4241db14446e3cad9c0a618c380d965799584ebe03b7c9ed456b4308beebd44c",
+      "collectedAt": "2026-11-02T07:10:14.748504+00:00",
+      "source": "autosport"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=espn",
+      "etag": "\"1dowais\"",
+      "sha256": "9c9d4aaea7c00366eac539793122f7d0936a44ee76ee7413e3feeaf22b8225be",
+      "collectedAt": "2026-11-02T07:10:14.758434+00:00",
+      "source": "espn"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=3voor12",
+      "etag": "\"1hgctox\"",
+      "sha256": "28aa03ea54d37d6a19cbbfbd3aaeb0d3f00e08932284556746e5dcee992f7f86",
+      "collectedAt": "2026-11-02T07:10:14.795923+00:00",
+      "source": "3voor12"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=guardian-sport",
+      "etag": "\"1b6tos0\"",
+      "sha256": "ff7f0bb7d37a50d9757278be51b22fa12f043f6f1b578c07a704674db11d307d",
+      "collectedAt": "2026-11-02T07:10:14.876797+00:00",
+      "source": "guardian-sport"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=pitchfork",
+      "etag": "\"7cl9uw\"",
+      "sha256": "b0e685d7eba2ed88d610e9bdb6427cad83c66744636d5522fa3eba7e24b3d979",
+      "collectedAt": "2026-11-02T07:10:14.909177+00:00",
+      "source": "pitchfork"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=rollingstone",
+      "etag": "\"1tmkexi\"",
+      "sha256": "c8d7361b325aceb6c52212261f32212ec8fecd17fce689274f32fa5b8a71b0bc",
+      "collectedAt": "2026-11-02T07:10:15.081017+00:00",
+      "source": "rollingstone"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=guardian-music",
+      "etag": "\"16uzm5b\"",
+      "sha256": "ce2ec0033c6c2813869b7b04fbf6955b19f7a2105df83011d9ceb2ef27e8452c",
+      "collectedAt": "2026-11-02T07:10:15.111415+00:00",
+      "source": "guardian-music"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=quietus",
+      "etag": "\"vkpxw7\"",
+      "sha256": "42ed840bb22718916366d103526f3839ae0949e44de8b9d62035fc98aa49976b",
+      "collectedAt": "2026-11-02T07:10:15.115084+00:00",
+      "source": "quietus"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=stereogum",
+      "etag": "\"1r6khnm\"",
+      "sha256": "04c7970df7204b5230679c933476aae73985fe8352cb7f50c45f24602a90c967",
+      "collectedAt": "2026-11-02T07:10:15.127746+00:00",
+      "source": "stereogum"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=npr-music",
+      "etag": "\"ot1rjy\"",
+      "sha256": "af1567cdff25ac21e9d107558449a0e294c928f27a16211e3bda703b814df7f6",
+      "collectedAt": "2026-11-02T07:10:15.272755+00:00",
+      "source": "npr-music"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=variety",
+      "etag": "\"kz5dg4\"",
+      "sha256": "c808be8b0c6a33b30647fbfe46c1edb98eafb2f86cb9d720967a11f3188b6f49",
+      "collectedAt": "2026-11-02T07:10:15.282367+00:00",
+      "source": "variety"
+    },
+    {
+      "url": "https://gethoot.app/api/feed?bron=guardian-culture",
+      "etag": "\"tnqahk\"",
+      "sha256": "41c26ebb903d2d32a500a51acb677a83adc8a55ad1996b69fb0bd12f268b1201",
+      "collectedAt": "2026-11-02T07:10:15.384436+00:00",
+      "source": "guardian-culture"
+    }
+  ],
+  "failed": [],
+  "totalItems": 3345,
+  "newDayCandidates": 865,
+  "excludedIdentity": [
+    {
+      "id": "2drcwb",
+      "reason": "id"
+    },
+    {
+      "id": "z2lojb",
+      "reason": "id"
+    },
+    {
+      "id": "1boorn1",
+      "reason": "id"
+    }
+  ],
+  "oldFixtureSHA256": "87da89742b161c89342870de17653c8582030aaef9e15768f88282cb3c583f32",
+  "blindFieldsOnly": true,
+  "noAtomicSnapshotClaim": true
+}

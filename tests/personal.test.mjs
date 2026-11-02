@@ -1,3 +1,4 @@
+import { editionStoryCount } from '../shared/edition-policy.mjs'
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { composePersonal, personalRows, editionBasis, INTEREST_BONUS, storiesForReader } from '../src/lib/personal.js'
@@ -51,7 +52,7 @@ test('"Buiten je bubbel" houdt zijn plek, en nooit meer dan tien', () => {
   const e = make()
   assert.equal(e.entries.filter((x) => x.desk === 'bubbel').length, 1)
   const many = Array.from({ length: 20 }, (_, i) => art('x' + i, 'nos', `Ander nieuws nummer ${i} over onderwerp ${i}`, { publishedAt: ago(i % 5) }))
-  assert.ok(make({ items: [...items, ...many] }).entries.length <= 10)
+  assert.ok(editionStoryCount(make({ items: [...items, ...many] }).entries) <= 10)
 })
 
 test('interesses geven voorrang: met interesse Tech gaat het (oudere) chipnieuws voor de storm', () => {
@@ -74,7 +75,7 @@ test('echt groot nieuws (veel bronnen) blijft boven een bericht uit je interesse
 test('rijen voor de samenvatting volgen de plekken van jouw editie', () => {
   const e = make()
   const rows = personalRows(e)
-  assert.equal(rows.length, e.entries.length)
+  assert.equal(rows.length, editionStoryCount(e.entries))
   assert.equal(rows[0].entry, 0)
   assert.ok(rows.every((r) => r.title && r.sourceName))
 })
@@ -130,7 +131,7 @@ test('"Waar iedereen over schrijft": buiten je interesses, niet dubbel, met de l
   assert.equal(wide[0].id, 'sVirus') // het tech-verhaal valt binnen je interesse: overgeslagen
   assert.equal(wide[0].sourceCount, 12)
   assert.ok(e.items.find((i) => i.id === 'w1'))
-  assert.ok(e.entries.length <= 10)
+  assert.ok(editionStoryCount(e.entries) <= 10)
   // Staat het al in je editie, dan niet nog eens.
   const dup = composePersonal({ global: { ...global, wide: [{ storyId: 'sWoning', sourceCount: 9, topics: [], item: items[0] }] }, stories, items, followed, now: NOW, builtAt: 'T' })
   assert.equal(dup.entries.filter((x) => x.desk === 'breed').length, 0)
@@ -166,7 +167,7 @@ test('een breed verhaal dat anders als aanvulling zou komen, krijgt zijn eigen l
   // Alles al in je eigen editie: dan geen breed verhaal, maar ook geen plek minder.
   const all = composePersonal({ global: { ...global, wide: [{ storyId: 'sWoning', sourceCount: 9, topics: [], item: items[0] }] }, stories, items, followed, now: NOW, builtAt: 'T' })
   const none = composePersonal({ global, stories, items, followed, now: NOW, builtAt: 'T' })
-  assert.equal(all.entries.length, none.entries.length)
+  assert.equal(editionStoryCount(all.entries), editionStoryCount(none.entries))
 })
 
 test('"Waar iedereen over schrijft" nooit over een verhaal dat je eigen bronnen ook brengen', () => {
@@ -177,11 +178,15 @@ test('"Waar iedereen over schrijft" nooit over een verhaal dat je eigen bronnen 
   const g = { ...global, wide: [{ storyId: 'sKyiv', sourceCount: 6, topics: ['oekraine'], item: kyiv }] }
   const e = composePersonal({ global: g, stories: st, items: [...items, nosKyiv], followed, now: NOW, builtAt: 'T' })
   assert.ok(!e.entries.some((x) => x.desk === 'breed'))
-  assert.ok(!e.items.some((i) => i.source === 'guardian'))
+  assert.ok(e.items.some((i) => i.source === 'guardian'), 'de beschikbare eigen versie is dertig uur oud; een actuele externe versie mag met een eerlijke aanvulreden')
+  assert.equal(e.entries.find(x=>(x.leadId||x.id)==='k1')?.supplement,'groot')
   // Zonder eigen bron in het verhaal komt het er wel, via de gratis bron.
   const st2 = [...stories, { id: 'sKyiv', leadId: 'k1', itemIds: ['k1'], sourceCount: 6 }]
   const e2 = composePersonal({ global: g, stories: st2, items, followed, now: NOW, builtAt: 'T' })
-  assert.equal(e2.entries.find((x) => x.desk === 'breed')?.id, 'sKyiv')
+  assert.ok(!e2.entries.some(x=>x.desk === 'breed'), 'zes uitgevers uit één land is zonder Wereld geen groot nieuws')
+  const st3 = st2.map(s=>s.id === 'sKyiv' ? {...s,publisherCount:8,publisherCountries:['GB']} : s)
+  const e3 = composePersonal({global:g,stories:st3,items,followed,now:NOW,builtAt:'T'})
+  assert.equal(e3.entries.find(x=>x.desk === 'breed')?.id,'sKyiv')
 })
 
 test('een bericht van een vakbron krijgt de rubriek van de bron (buiten de indeling)', () => {
@@ -213,7 +218,7 @@ test('wat je vaak leest, krijgt voorrang in je editie', async () => {
   const liked = items.find((i) => (i.topics || []).length) || items[0]
   for (let n = 0; n < 12; n++) affinity = learn(affinity, liked)
   const withTaste = make({ affinity })
-  assert.ok(withTaste.entries.length > 0)
+  assert.ok(editionStoryCount(withTaste.entries) > 0)
   assert.ok(withTaste.items.some((i) => i.id === liked.id || (i.topics || []).some((t) => (liked.topics || []).includes(t))))
 })
 
@@ -226,7 +231,7 @@ test('voorkeursbronnen gaan voor: hun verhaal hoger en hun bericht als hoofdberi
   assert.equal(lead(fav), 'r1') // met voorkeur voor NRC: het NRC-bericht
 })
 
-test('eigen bronnen zijn die van de lezer: een verhaal uit één eigen bron krijgt de +100', () => {
+test('eigen bronnen zijn die van de lezer: één gekozen uitgever geeft een begrensde bijdrage', () => {
   // Carbon Brief is geen basisbron: de server telde dit verhaal als ownCount 0.
   const its = [
     art('c1', 'carbonbrief', 'China zet nieuwe stap richting klimaatdoel voor COP31', { publishedAt: ago(2) }),
@@ -237,7 +242,7 @@ test('eigen bronnen zijn die van de lezer: een verhaal uit één eigen bron krij
   const fol = new Set(['carbonbrief', 'nos'])
   const [mine] = storiesForReader(st, its, fol)
   assert.equal(mine.ownCount, 1)
-  assert.equal(weight(mine, NOW) - weight(st[0], NOW), 100)
+  assert.equal(weight(mine, NOW) - weight(st[0], NOW), 2)
   assert.equal(st[0].ownCount, 0) // het origineel blijft zoals de server het gaf
   const ids = composePersonal({ global, stories: st, items: its, followed: fol, interests: ['wereld'], now: NOW, builtAt: 'T' }).entries.map((x) => x.id)
   assert.ok(ids.includes('sCop') && ids.indexOf('sCop') < ids.indexOf('n9'), ids.join(','))

@@ -1,21 +1,22 @@
 import { SYNCED_PREFS } from './sync.js'
 
 // Eerste-partij verhuizing: alleen Hoot-instellingen en leesgegevens, nooit inlogtokens.
-export const MOVE_KEYS = ['hoot:prefs', 'hoot:theme', 'hoot:read', 'hoot:saved-v2', 'hoot:saved-items', 'hoot:stories-seen', 'hoot:affinity', 'hoot:my-edition', 'hoot:less', 'hoot:social-sources']
+export const MOVE_KEYS = ['hoot:prefs', 'hoot:theme', 'hoot:theme-dark', 'hoot:read', 'hoot:saved-v2', 'hoot:saved-items', 'hoot:stories-seen', 'hoot:affinity', 'hoot:my-edition', 'hoot:less', 'hoot:social-sources']
 export const LEGACY_ORIGINS = new Set(['https://hootnews.nl', 'https://www.hootnews.nl'])
 const LIMIT = 2 * 1024 * 1024
 // Bekende app-routes, ook dieper (#/stroom/sport) en met filters (#/stroom?rubriek=cultuur).
 const ROUTE = /^#\/(editie|stroom|digest|bluesky|bewaard|bronnen|zoek|instellingen|privacy|over)(?:[/?][^\s#<>"']*)?$/
 const accountOwner = storage => { const owner = storage.getItem('hoot:owner') || storage.getItem('hoot:synced-user'); return owner && owner !== 'anon' }
 const validateValue = (key, value) => {
-  if (key === 'hoot:theme') { if (!['system', 'light', 'dark'].includes(value)) throw new Error('Ongeldig thema'); return value }
+  if (key === 'hoot:theme') { if (!['system', 'light', 'dark', 'night'].includes(value)) throw new Error('Ongeldig thema'); return value }
+  if (key === 'hoot:theme-dark') { if (!['dark','night'].includes(value)) throw new Error('Ongeldige avondstand'); return value }
   return JSON.parse(value)
 }
 export function movePayload(storage, route = '#/editie') {
   const values = {}
   const account = accountOwner(storage)
   for (const key of MOVE_KEYS) {
-    if (account && key !== 'hoot:prefs' && key !== 'hoot:theme') continue
+    if (account && key !== 'hoot:prefs' && key !== 'hoot:theme' && key !== 'hoot:theme-dark') continue
     const value = storage.getItem(key)
     if (value == null) continue
     try {

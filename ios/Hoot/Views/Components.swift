@@ -6,7 +6,7 @@ import UniformTypeIdentifiers
 // bij Newsreader op het web en schaalt mee met Dynamische tekst), de rest in San Francisco.
 enum Theme {
     // De kleuren van het design system (zelfde namen en waarden als src/styles.css).
-    static let paper = Color("Paper") // pagina
+    static let paper = Color(uiColor: NachtKleur.paper) // pagina
     static let surface = Color("Surface") // kaart, blad, melding
     static let ink = Color("Ink") // koppen en tekst
     static let ink2 = Color("Ink2") // intro's en samenvattingen
@@ -44,12 +44,14 @@ final class Reader {
 }
 
 struct SafariView: UIViewControllerRepresentable {
+    @Environment(\.nachtActief) private var nacht
     let url: URL
     var reader = false
     func makeUIViewController(context: Context) -> SFSafariViewController {
         let config = SFSafariViewController.Configuration()
         config.entersReaderIfAvailable = reader
         let vc = SFSafariViewController(url: url, configuration: config)
+        if nacht { vc.preferredBarTintColor = .black; vc.view.backgroundColor = .black }
         vc.dismissButtonStyle = .close
         return vc
     }
@@ -60,6 +62,7 @@ struct SafariView: UIViewControllerRepresentable {
 // verdwijnt de witte duim van iOS erin; het web maakt de duim daar papier, maar dat laat iOS niet toe.
 // Daarom in donker ink3: de baan blijft neutraal en de duim blijft te zien.
 struct InkSwitch: ToggleStyle {
+    @Environment(\.nachtActief) private var nacht
     @Environment(\.colorScheme) private var scheme
     @Environment(\.accessibilityReduceMotion) private var still
     func makeBody(configuration: Configuration) -> some View {
@@ -70,7 +73,7 @@ struct InkSwitch: ToggleStyle {
                 Capsule().fill(configuration.isOn ? Theme.ink : Theme.ink.opacity(0.16))
                     .frame(width: 51, height: 31)
                     .overlay(alignment: configuration.isOn ? .trailing : .leading) {
-                        Circle().fill(configuration.isOn && scheme == .dark ? Theme.paper : .white)
+                        Circle().fill(configuration.isOn && scheme == .dark ? Theme.paper : nacht ? Theme.ink : .white)
                             .frame(width: 27, height: 27).padding(2)
                     }
             }.frame(minHeight: Space.tap).contentShape(Rectangle())
@@ -194,17 +197,37 @@ private struct WordmarkBody: View {
     }
 }
 
+// Systeemserif is de native tegenhanger van Newsreader. Cijfers blijven tabelcijfers.
+struct EditionNumber: View {
+    @Environment(\.isWide) private var wide
+    let number: Int?
+    var read = false
+    var body: some View {
+        if let number {
+            Text(String(format: "%02d", number))
+                .font(.system(.callout, design: .serif, weight: .heavy)).monospacedDigit()
+                .frame(minWidth: wide ? 24 : nil, alignment: .leading)
+                .foregroundStyle(read ? Theme.ink3 : Theme.accent)
+        }
+    }
+}
+
 struct Kicker: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     let text: String?
+    var number: Int? = nil
+    var read = false
     private func label(_ s: String) -> String { typeSize.isAccessibilitySize ? s : s.uppercased() }
     private var dot: Text { Text(" · ").foregroundStyle(Theme.ink3) }
     var body: some View {
         let parts = text.map { $0.isEmpty ? [] : $0.components(separatedBy: " · ") } ?? []
-        if !parts.isEmpty {
+        HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
+            EditionNumber(number: number, read: read)
+            if number != nil && !parts.isEmpty { Text("·").font(.caption).foregroundStyle(Theme.ink3).accessibilityHidden(true) }
+            if !parts.isEmpty {
             // Bij heel grote tekst geen kapitalen: die worden dan breder en zwaarder dan de kop.
             // Meerdere labels ("Binnenland · Buiten je bronnen"): de punt ertussen in `ink3`.
-            let labels = parts.map { Text(label($0)).foregroundStyle(Theme.accent) }
+            let labels = parts.map { Text(label($0)).foregroundStyle(read ? Theme.ink3 : Theme.accent) }
             let rubric = labels.dropFirst().reduce(labels.first ?? Text("")) { acc, p in Text("\(acc)\(dot)\(p)") }
             if typeSize.isAccessibilitySize {
                 rubric.font(.caption.weight(.semibold))
@@ -212,19 +235,20 @@ struct Kicker: View {
                 rubric.font(.caption.weight(.heavy)).tracking(0.6)
             }
         }
+        }
     }
 }
 
 // Het waarom van een plek in jouw Editie (Desk.why, zoals Why.js op de website): direct onder de rubriek,
-// boven de kop, maar stil: inkt-3, de maat van het label, een gewone zin zonder kapitalen en zonder rood.
-// De kop blijft het zwaarste element; het waarom is het zachtste erboven.
+// boven de kop, rustig maar leesbaar: inkt-2, subheadline, een gewone zin zonder kapitalen en zonder rood.
+// De kop blijft het zwaarste element; het waarom blijft ondergeschikt.
 struct WhyLine: View {
     let text: String?
     var body: some View {
         if let text, !text.isEmpty {
             Text(text)
-                .font(.caption)
-                .foregroundStyle(Theme.ink3)
+                .font(.subheadline)
+                .foregroundStyle(Theme.ink2)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityLabel("Waarom: \(text)")
         }
@@ -233,14 +257,16 @@ struct WhyLine: View {
 
 struct RemoteImage: View {
     let url: URL?
+    @State private var loader = RemoteImageLoader()
     var body: some View {
-        AsyncImage(url: url, transaction: Transaction(animation: .easeOut(duration: 0.2))) { phase in
-            if let image = phase.image {
-                image.resizable().scaledToFill()
+        Group {
+            if let image = loader.image {
+                Image(uiImage: image).resizable().scaledToFill()
             } else {
                 Rectangle().fill(.quaternary)
             }
         }
+        .task(id: url) { await loader.load(url) }
         .clipped()
         .accessibilityHidden(true)
     }
@@ -385,11 +411,14 @@ struct SaveButton: View {
     }
 }
 
-// Tik = lezen; lang drukken = bewaren, delen of openen in Safari, en in de Editie: meer of minder hiervan.
+// Tik = lezen; lang drukken = bewaren, delen, smaak kiezen of een lokale foutmelding bewaren.
 struct ArticleActions: ViewModifier {
     @Environment(HootStore.self) private var store
     @Environment(Reader.self) private var reader
     @Environment(\.tasteVote) private var tasteVote
+    @State private var noticeTitle = ""
+    @State private var noticeText = ""
+    @State private var noticeOpen = false
     let item: Item
     func body(content: Content) -> some View {
         Button { reader.open(item, store: store) } label: { content }
@@ -401,13 +430,35 @@ struct ArticleActions: ViewModifier {
                     ShareItemLink(item: item, link: link)
                     Link(destination: link) { Label("Open in Safari", systemImage: "safari") }
                 }
-                if let tasteVote {
+                if !item.isPost {
                     Section {
-                        Button("Meer hiervan", systemImage: "hand.thumbsup") { tasteVote(true) }
-                        Button("Minder hiervan", systemImage: "hand.thumbsdown") { tasteVote(false) }
+                        Button("Meer hiervan", systemImage: "hand.thumbsup") { respond(true) }
+                        Button("Minder hiervan", systemImage: "hand.thumbsdown") { respond(false) }
+                    }
+                    Menu("Klopt dit niet?", systemImage: "flag") {
+                        ForEach(CorrectionReason.allCases, id: \.self) { reason in
+                            Button(reason.label) {
+                                let ok = store.reportMistake(item,reason:reason)
+                                noticeTitle = ok ? "Melding bewaard" : "Niet bewaard"
+                                noticeText = ok ? "De melding staat op dit toestel en is nog niet verstuurd." : "Probeer het later opnieuw."
+                                noticeOpen = true
+                            }
+                        }
                     }
                 }
             }
+            .alert(noticeTitle,isPresented:$noticeOpen) { Button("Oké",role:.cancel) {} } message: { Text(noticeText) }
+    }
+    private func respond(_ up: Bool) {
+        if let tasteVote { tasteVote(up) }
+        else {
+            let story = store.story(of:item)
+            let members = [item] + (story?.itemIds ?? []).filter{$0 != item.id}.compactMap{store.itemsById[$0]}
+            store.vote(story?.id ?? item.id,items:members,up:up)
+            noticeTitle = "Voorkeur bewaard"
+            noticeText = "Telt vanaf je volgende Editie."
+            noticeOpen = true
+        }
     }
 }
 
@@ -486,6 +537,7 @@ struct LeadCard: View {
     @Environment(\.isWide) private var wide
     @Environment(\.isSpacious) private var spacious
     let item: Item
+    var number: Int? = nil
     var label: String?
     var why: String? // het waarom van de plek (jouw Editie)
     var outside = false // buiten je bronnen: de bronregel zegt het
@@ -501,14 +553,14 @@ struct LeadCard: View {
     private var text: some View {
         VStack(alignment: .leading, spacing: Space.s3) {
             // Rubriek en waarom dicht op elkaar (één blokje boven de kop), zoals op de website.
-            if label != nil || why != nil {
+            if number != nil || label != nil || why != nil {
                 VStack(alignment: .leading, spacing: Space.s1) {
-                    Kicker(text: label)
+                    Kicker(text: label, number: number, read: store.isRead(item))
                     WhyLine(text: why)
                 }
             }
             Text(item.title)
-                .font(Theme.headline(.largeTitle)) // het verhaal wint van de schermtitel (C7), op elke breedte
+                .font(Theme.headline(EditionDisplay.headlineStyle(item.title))) // bestaande rollen, passend bij de koplengte
                 .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                 .fixedSize(horizontal: false, vertical: true)
             if let intro = item.summary.map({ wholeSentences($0, max: 240) }), !intro.isEmpty {
@@ -553,12 +605,14 @@ struct ItemRow: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @ScaledMetric(relativeTo: .title3) private var thumb: CGFloat = Layout.thumb
     let item: Item
+    var number: Int? = nil
     var label: String?
     var why: String? // het waarom van de plek (jouw Editie)
     var outside = false // buiten je bronnen: de bronregel zegt het
     var story: Story?
     var linkSource = true
     var form: Form?
+    var headlineLines: Int? = nil
 
     private var chosen: Form { form ?? (store.layout == "krant" ? .krant : .tijdlijn) }
     private var timeline: Bool { !item.isPost && (chosen == .tijdlijn || typeSize.isAccessibilitySize) }
@@ -605,9 +659,9 @@ struct ItemRow: View {
 
     private var text: some View {
         VStack(alignment: .leading, spacing: Space.s2) {
-            if label != nil || why != nil {
+            if number != nil || label != nil || why != nil {
                 VStack(alignment: .leading, spacing: Space.s1) {
-                    Kicker(text: label)
+                    Kicker(text: label, number: number, read: store.isRead(item))
                     WhyLine(text: why)
                 }
             }
@@ -617,6 +671,9 @@ struct ItemRow: View {
             } else {
                 Text(item.title)
                     .font(Theme.headline(.title3))
+                    .lineLimit(headlineLines)
+                    .truncationMode(.tail)
+                    .accessibilityLabel(item.title)
                     .lineSpacing(2)
                     .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                     .fixedSize(horizontal: false, vertical: true)

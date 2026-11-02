@@ -1,0 +1,32 @@
+{
+  "baseline": "d0955e305d93298acff7a871481b69f78aea3372",
+  "provenance": "Gereconstrueerd uit Alex' gemelde kop en bron in afronding-todo.md. Geen originele feedmetadata beschikbaar; intro, id en datum zijn synthetische testinvoer.",
+  "rows": [
+    {
+      "interests": [],
+      "before": 1,
+      "after": 0
+    },
+    {
+      "interests": [
+        "tech"
+      ],
+      "before": 1,
+      "after": 0
+    },
+    {
+      "interests": [
+        "wereld"
+      ],
+      "before": 1,
+      "after": 0
+    },
+    {
+      "interests": [
+        "cultuur"
+      ],
+      "before": 1,
+      "after": 1
+    }
+  ]
+}

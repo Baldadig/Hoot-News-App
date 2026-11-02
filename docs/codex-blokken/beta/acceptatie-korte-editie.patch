@@ -1,0 +1,21 @@
+--- a/algoritme/meting/acceptatie.mjs
++++ b/algoritme/meting/acceptatie.mjs
+@@ -221,6 +221,9 @@
+ // hard: geen woordenschat-kloof tussen de keys van de server en de kenmerken die het toestel rekent.
+ const DAG_VARIANTS = ['code', 'drie', 'account', 'sprong']
+ export const DREMPELS_DAG = [
++  // Alex 2 november: zes doel, vier harde vloer; vijf/vier uitsluitend met sluitend kandidatenbewijs.
++  { key: 'editieVloer', label: 'dagreeks: kleinste Editie (zes doel, vier vloer)', min: 4, hard: true },
++  { key: 'kortZonderBewijs', label: 'dagreeks: minder dan zes zonder volledig kandidatenbewijs', max: 0, hard: true },
+   { key: 'zonderOMA_code', label: 'herhaald zonder ontwikkeling, O→M→A, previous=code (van 100)', max: 0, hard: true },
+   { key: 'zonderOMA_drie', label: 'herhaald zonder ontwikkeling, O→M→A, previous=drie', max: 0, hard: true },
+   { key: 'zonderOMA_account', label: 'herhaald zonder ontwikkeling, O→M→A, previous=account', max: 0, hard: true },
+@@ -266,6 +269,8 @@
+     zelfdeOnderwerp: sum((s) => s.opeenvolgend.zelfdeOnderwerp + s.ochtendAvond.zelfdeOnderwerp),
+     vervolgZonderSig: sum((s) => s.opeenvolgend.vervolgZonderSig + s.ochtendAvond.vervolgZonderSig),
+     grootNieuwsDag: S.grootNieuwsDag, tweetalig: S.tweetalig, tweetaligH6: S.tweetalig,
++    editieVloer: Math.min(...Object.values(res.personas).flatMap(p => Object.values(p.variants).flatMap(v => v.editions.map(e => e.entries.length)))),
++    kortZonderBewijs: Object.values(res.personas).flatMap(p => Object.values(p.variants).flatMap(v => v.editions)).filter(e => e.entries.length < 6 && !(e._supply?.proven && e._supply.unresolved === 0 && e._supply.selected === e.entries.length)).length,
+     keysKloof: S.keysKloof ?? NaN, // een oudere checkout meet de kloof nog niet
+   }
+   console.log(`\n== scenario dag · ${res.day.map((d) => `${d.sl.slot} ${d.pool.length} art / ${d.stories.length} verhalen`).join(', ')}; dagpool ${S.verhalen} verhalen; woordenschat-kloof ${S.keysKloof ?? '–'} stukken ==`)

@@ -10,7 +10,10 @@ struct AccountRow: View {
             HStack(spacing: Space.s3) {
                 AccountBadge(size: 40)
                 VStack(alignment: .leading, spacing: Space.s0) {
-                    switch account.status {
+                    if Account.localBeta {
+                        Text("Lokale beta").font(.headline)
+                        Text("Accountsynchronisatie uit").font(.subheadline).foregroundStyle(Theme.ink3)
+                    } else { switch account.status {
                     case .member, .noInvite:
                         Text(account.session?.name ?? account.session?.email ?? "Je account").font(.headline)
                         Text(account.status == .noInvite ? "Nog geen lid" : account.syncLine).font(.subheadline).foregroundStyle(Theme.ink3)
@@ -20,7 +23,7 @@ struct AccountRow: View {
                     case .out:
                         Text("Inloggen").font(.headline)
                         Text("Op al je toestellen").font(.subheadline).foregroundStyle(Theme.ink3)
-                    }
+                    }}
                 }
             }
             .padding(.vertical, Space.s1)
@@ -30,6 +33,7 @@ struct AccountRow: View {
 
 // Rond: de eerste letter van je naam, of een silhouet als je niet bent ingelogd.
 struct AccountBadge: View {
+    @Environment(\.nachtActief) private var nacht
     @Environment(Account.self) private var account
     var size: CGFloat
     var body: some View {
@@ -37,7 +41,7 @@ struct AccountBadge: View {
         ZStack {
             Circle().fill(letter == nil ? Theme.ink3.opacity(0.15) : Theme.accent)
             if let letter {
-                Text(letter).font(.system(size: size * 0.45, weight: .bold, design: .serif)).foregroundStyle(.white)
+                Text(letter).font(.system(size: size * 0.45, weight: .bold, design: .serif)).foregroundStyle(nacht ? Theme.paper : .white)
             } else {
                 Image(systemName: "person.fill").font(.system(size: size * 0.45)).foregroundStyle(Theme.ink3)
             }
@@ -61,6 +65,7 @@ extension Account {
 struct AccountView: View {
     @Environment(Account.self) private var account
     @Environment(\.webAuthenticationSession) private var webAuth
+    @Environment(\.nachtActief) private var nacht
     @Environment(\.colorScheme) private var scheme
     @State private var code = ""
     @State private var confirmDelete = false
@@ -70,7 +75,14 @@ struct AccountView: View {
 
     var body: some View {
         Group {
-            if account.status == .out || account.status == .loading {
+            if Account.localBeta {
+                VStack(alignment: .leading, spacing: Space.s3) {
+                    Text("Lokale beta").font(Theme.headline(.title2))
+                    Text("Je leest met de keuzes op dit toestel. Accountsynchronisatie is in deze beta uitgeschakeld.").foregroundStyle(Theme.ink2)
+                }
+                .padding(Space.s5)
+                .navigationTitle("Account")
+            } else if account.status == .out || account.status == .loading {
                 signIn
             } else {
                 Form {
@@ -111,7 +123,7 @@ struct AccountView: View {
                 .foregroundStyle(Theme.ink2)
                 .multilineTextAlignment(.center)
                 .padding(.top, Space.s2)
-            Text("Hoot is op uitnodiging. Heb je een code? Log in en vul hem in.")
+            Text("Een account is op uitnodiging. Lezen kan zonder account. Heb je een code? Log in en vul hem in.")
                 .font(.subheadline)
                 .foregroundStyle(Theme.ink3)
                 .multilineTextAlignment(.center)
@@ -122,8 +134,9 @@ struct AccountView: View {
                 // Elk in de eigen huisstijl, maar even groot: zelfde hoogte, afronding en letter.
                 // Apple (Human Interface Guidelines): zwart op licht, wit op donker; de tekst geeft iOS zelf.
                 SignInWithAppleButton(.signIn) { account.prepare($0) } onCompletion: { result in Task { await account.finishApple(result) } }
-                    .signInWithAppleButtonStyle(scheme == .dark ? .white : .black)
-                    .id(scheme) // de knop van Apple neemt een nieuwe stijl pas over als hij opnieuw wordt gemaakt
+                    .signInWithAppleButtonStyle(scheme == .dark && !nacht ? .white : .black)
+                    .colorMultiply(nacht ? Theme.ink : .white)
+                    .id("\(scheme)-\(nacht)") // de knop van Apple neemt een nieuwe stijl pas over als hij opnieuw wordt gemaakt
                     .frame(height: Self.buttonHeight)
                     .clipShape(RoundedRectangle(cornerRadius: Self.buttonRadius))
                 // Google (branding guidelines "Sign in with Google"): licht thema wit met grijze rand,

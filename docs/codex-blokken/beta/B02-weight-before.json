@@ -1,0 +1,26 @@
+[
+  {
+    "ownCount": 0,
+    "weight": 28
+  },
+  {
+    "ownCount": 1,
+    "weight": 128
+  },
+  {
+    "ownCount": 2,
+    "weight": 128
+  },
+  {
+    "ownCount": 4,
+    "weight": 128
+  },
+  {
+    "ownCount": 8,
+    "weight": 128
+  },
+  {
+    "ownCount": 100,
+    "weight": 128
+  }
+]

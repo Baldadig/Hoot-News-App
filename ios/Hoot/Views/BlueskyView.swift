@@ -55,7 +55,7 @@ struct BlueskyFeed: View {
 }
 
 // Eén post: wie, wanneer, de tekst, en een foto of gedeelde link.
-private struct PostRow: View {
+struct PostRow: View {
     @Environment(HootStore.self) private var store
     let item: Item
 
@@ -141,7 +141,7 @@ struct BlueskyAccountsView: View {
                 } header: {
                     FormHeader("Iemand volgen")
                 } footer: {
-                    if let error { Text(error).foregroundStyle(Theme.warn) } else { Text("Je ziet hun eigen posts van de afgelopen twee dagen: geen reposts en geen antwoorden.").foregroundStyle(Theme.ink3) }
+                    if let error { Text(error).foregroundStyle(Theme.warn) } else { Text("Je ziet hun eigen posts van de afgelopen 36 uur: geen reposts en geen antwoorden.").foregroundStyle(Theme.ink3) }
                 }
                 .hootRows()
                 let own = store.socialSources.filter { store.isOwn($0.id) }
@@ -174,22 +174,29 @@ struct BlueskyAccountsView: View {
     }
 
     private func row(_ s: Source) -> some View {
-        Toggle(isOn: Binding(get: { store.isOn(s) }, set: { on in
-            store.setOn(s, on)
-            if on, store.isOwn(s.id) { Task { await store.loadOwnPosts() } }
-        })) {
-            HStack(spacing: Space.s3) {
-                AsyncImage(url: s.avatar.flatMap(URL.init(string:))) { phase in
-                    if let image = phase.image { image.resizable().scaledToFill() } else { Circle().fill(.quaternary) }
-                }
-                .frame(width: 28, height: 28)
-                .clipShape(Circle())
-                .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(s.name)
-                    Text("@" + s.id.replacing(/^bsky:/, with: "")).font(.caption).foregroundStyle(Theme.ink3)
+        VStack(alignment: .leading, spacing: Space.s2) {
+            Toggle(isOn: Binding(get: { store.isOn(s) }, set: { on in
+                store.setOn(s, on)
+                if on, store.isOwn(s.id) { Task { await store.loadOwnPosts() } }
+            })) {
+                HStack(spacing: Space.s3) {
+                    AsyncImage(url: s.avatar.flatMap(URL.init(string:))) { phase in
+                        if let image = phase.image { image.resizable().scaledToFill() } else { Circle().fill(.quaternary) }
+                    }
+                    .frame(width: 28, height: 28)
+                    .clipShape(Circle())
+                    .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(s.name)
+                        Text("@" + s.id.replacing(/^bsky:/, with: "")).font(.caption).foregroundStyle(Theme.ink3)
+                    }
                 }
             }
+            Toggle("Ook in de Stroom", isOn: Binding(get: { store.bskyInStream.contains(s.id) }, set: { on in
+                if on { store.bskyInStream.insert(s.id) } else { store.bskyInStream.remove(s.id) }
+            }))
+            .disabled(!store.isOn(s))
+            .accessibilityLabel("\(s.name) ook in de Stroom")
         }
     }
 

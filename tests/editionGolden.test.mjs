@@ -1,3 +1,4 @@
+import { editionStoryCount } from '../shared/edition-limits.mjs'
 // Pariteit web en iOS (bouwspec §9): de rekenkern geeft uit de vaste invoer van vier lezers byte voor
 // byte de vastgelegde uitvoer, ook als kale bundel zonder node eromheen (zoals JavaScriptCore op de
 // iPhone hem draait). De ingecheckte bundel moet bij zijn, en het samenstelpad houdt zich aan de
@@ -18,7 +19,7 @@ const names = ['nieuw', 'klimaat', 'vs', 'vs-zonder-topics']
 test('de golden fixture heeft de vier lezers, elk met een volle Editie en een waarom per plek', () => {
   assert.deepEqual(golden.map((g) => g.name), names)
   for (const g of golden) {
-    assert.equal(g.output.entries.length, 10, g.name)
+    assert.equal(editionStoryCount(g.output.entries), 10, g.name)
     assert.ok(g.output.entries.every((e) => e.why?.text && Array.isArray(e.itemIds) && 'title' in e), `${g.name}: why, itemIds en title op elke plek`)
     assert.equal(g.output.owner, 'anon')
     assert.equal(typeof g.output.basis, 'string')

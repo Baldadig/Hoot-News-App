@@ -1,3 +1,4 @@
+import { editionStoryCount } from '../shared/edition-policy.mjs'
 // Feedback 31 oktober, punten 3 en 4: Binnenland is Nederland, en de eerste Editie van een nieuwe lezer
 // leunt niet op buitenland. Op twee vaste momentopnames: de avond van 30 oktober en de live feed van
 // 31 oktober (ochtend, de feed waarop het keurpunt de vorige ronde zag falen). Dezelfde maten draait
@@ -74,7 +75,7 @@ test('31 oktober ochtend (live) · Binnenland: Apple, Google, Pangram en Anthrop
 // De vriendin op de live feed: geen Wetenschap-rubriek of -reden bij buitenlands nieuws.
 test('31 oktober ochtend (live) · eerste Editie: de vriendin krijgt geen buitenland met een reden van haar interesses', () => {
   const r = measureFirst(ochtend, FIRST.filter((p) => p.id === 'vriendin'))[0]
-  for (const e of r.entries.filter((x) => x.geo === 'INT' && !x.fixed && !x.front)) assert.ok(!/Wetenschap|Binnenland/.test(e.whyText), `${e.title}: ${e.whyText}`)
+  for (const e of r.entries.filter((x) => x.geo === 'INT' && !x.specialist && !x.fixed && !x.front)) assert.ok(!/Wetenschap|Binnenland/.test(e.whyText), `${e.title}: ${e.whyText}`)
 })
 
 // ---- Lezerstoets op de live feed van 31 oktober 09:30Z (feedback punten 3, 4 en 5) ----
@@ -103,13 +104,13 @@ const editionOf = (p) => editionOfData(p, live)
 // Normen 1 november 2026: zonder Wereld hooguit twee internationale plekken, alleen groot nieuws. De G20
 // (elf uitgevers uit vier landen) is groot nieuws en mag dan, binnen het plafond; Oekraïne (Oleshky) en
 // Braziliaans voetbal (Seedorf) zijn dat niet.
-test(`31 oktober 09:30 (${tag}) · de vriendin: geen Oekraïne of Seedorf, hooguit twee buitenlandse verhalen en alleen groot nieuws`, () => {
+test(`31 oktober 09:30 (${tag}) · de vriendin: geen Oekraïne of Seedorf, hooguit twee algemene buitenlandse verhalen; vaknieuws alleen met inhoudelijk bewijs`, () => {
   const es = editionOf(persona('vriendin'))
-  assert.equal(es.length, 10)
+  assert.equal(editionStoryCount(es), 10)
   for (const kop of ['Hundreds evacuated from Russian-occupied Oleshky', 'Clarence Seedorf']) assert.ok(!find(es, kop), kop)
   const r = measureFirst(live, [persona('vriendin')])[0]
-  assert.ok(r.intAlle <= INT_MAX, r.entries.filter((e) => e.geo === 'INT').map((e) => e.title).join(' | '))
-  assert.ok(r.entries.filter((e) => e.geo === 'INT').every((e) => e.why === 'groot' || e.front), r.entries.filter((e) => e.geo === 'INT').map((e) => `${e.title} (${e.whyText})`).join(' | '))
+  assert.ok(r.wereldAlle <= INT_MAX, r.entries.filter((e) => e.geo === 'INT').map((e) => e.title).join(' | '))
+  assert.ok(r.entries.filter((e) => e.geo === 'INT').every((e) => e.specialist || e.why === 'groot' || e.front), r.entries.filter((e) => e.geo === 'INT').map((e) => `${e.title} (${e.whyText})`).join(' | '))
   assert.ok(r.nl >= 5, `NL ${r.nl}`)
 })
 
@@ -118,7 +119,7 @@ test(`31 oktober 09:30 (${tag}) · wie Binnenland koos, opent met Nederland: gee
     const r = measureFirst(live, [persona(id)])[0]
     assert.equal(r.entries[0].geo, 'NL', `${id}: ${r.entries[0].title}`)
     assert.ok(r.entries.slice(0, 2).filter((e) => e.geo === 'INT').length <= 1, id)
-    assert.ok(r.intAlle <= INT_MAX, `${id}: ${r.intAlle} internationaal`) // de G20 mag, als groot nieuws binnen het plafond
+    assert.ok(r.wereldAlle <= INT_MAX, `${id}: ${r.wereldAlle} internationaal`) // de G20 mag, als groot nieuws binnen het plafond
   }
 })
 
@@ -171,12 +172,12 @@ for (const [label, snap] of SNAPS) {
   test(`${label} · Binnenland zonder Wereld (bi-po-ec, bi-po, bi-te-ec): Nederland eerst, Politiek is Den Haag en Brussel`, () => {
     for (const r of measureFirst(snap, [persona('bi-po-ec'), ...MORE])) {
       const es = r.entries
-      assert.equal(es.length, 10, r.id)
+      assert.equal(editionStoryCount(es), 10, r.id)
       assert.equal(es[0].geo, 'NL', `${r.id}: ${es[0].title}`)
       assert.ok(es.slice(0, 2).filter((e) => e.geo === 'INT').length <= 1, r.id)
       // Normen 1 november: hooguit INT_MAX internationale plekken in de hele Editie (was: één op de voorpagina).
-      assert.ok(r.intAlle <= INT_MAX, `${r.id}: ${r.intAlle} buitenlandse verhalen`)
-      for (const e of es.filter((x) => x.geo === 'INT')) {
+      assert.ok(r.wereldAlle <= INT_MAX, `${r.id}: ${r.wereldAlle} buitenlandse verhalen`)
+      for (const e of es.filter((x) => x.geo === 'INT' && !x.specialist)) {
         assert.ok(!/VS-politiek|Trump|Verkiezingen/.test(e.whyText), `${r.id}: ${e.title} (${e.whyText})`)
         assert.ok(!(e.why === 'breed' && !e.real), `${r.id}: breed buitenland zonder reden: ${e.title}`)
       }
@@ -243,7 +244,7 @@ for (const [tag, data] of [['live', live1050], ['hertagd', live1050Retag]]) {
   test(`31 oktober 10:50 (${tag}) · 1. een buitenlands verhaal zonder reden staat niet in de Editie van wie Wereld niet koos, met "Het nieuws van nu" al helemaal niet`, () => {
     for (const p of ZONDER_WERELD) {
       const es = editionOf(p)
-      assert.equal(es.length, 10, p.id)
+      assert.equal(editionStoryCount(es), 10, p.id)
       assert.ok(!find(es, 'Bill Maher Fact-Checks Kid Rock'), `${p.id}: Maher en Kid Rock`)
       // Een buitenlandse rubriek zonder gekozen reden mag alleen als groot nieuws, breed verhaal of bubbel met een eigen label.
       for (const e of es) if (e.desk == null && /^Het nieuws van nu$/.test(e.why?.text || '')) assert.ok(!['vs', 'buitenland', 'middenoosten', 'oekraine'].some((d) => desksOf(live1050.items.find((i) => i.id === (e.leadId || e.id)) || {}).has(d)), `${p.id}: ${e.title}`)

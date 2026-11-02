@@ -1,0 +1,6317 @@
+{
+  "ceiling": "#f1ece2",
+  "luminance": 0.8418266440128864,
+  "tolerance": 0.005,
+  "report": [
+    {
+      "file": "web-keuze-nacht.jpg",
+      "exclusions": [
+        {
+          "height": 179,
+          "reason": "foto/uitgeversbeeld",
+          "width": 358,
+          "x": 16,
+          "y": 259
+        },
+        {
+          "height": 24,
+          "reason": "merkvlak/bronlogo",
+          "width": 24,
+          "x": 16,
+          "y": 724
+        },
+        {
+          "height": 24,
+          "reason": "foto/uitgeversbeeld",
+          "width": 24,
+          "x": 16,
+          "y": 724
+        },
+        {
+          "height": 56,
+          "reason": "foto/uitgeversbeeld",
+          "width": 84,
+          "x": 290,
+          "y": 827
+        }
+      ],
+      "width": 390,
+      "height": 844,
+      "brightPixels": 298,
+      "hotspots": [
+        {
+          "at": "64,608",
+          "pixels": 31
+        },
+        {
+          "at": "0,128",
+          "pixels": 27
+        },
+        {
+          "at": "96,512",
+          "pixels": 24
+        },
+        {
+          "at": "32,160",
+          "pixels": 23
+        },
+        {
+          "at": "32,608",
+          "pixels": 22
+        },
+        {
+          "at": "64,512",
+          "pixels": 21
+        },
+        {
+          "at": "32,512",
+          "pixels": 18
+        },
+        {
+          "at": "0,96",
+          "pixels": 17
+        },
+        {
+          "at": "32,128",
+          "pixels": 16
+        },
+        {
+          "at": "32,800",
+          "pixels": 14
+        },
+        {
+          "at": "0,160",
+          "pixels": 13
+        },
+        {
+          "at": "0,416",
+          "pixels": 11
+        },
+        {
+          "at": "0,800",
+          "pixels": 9
+        },
+        {
+          "at": "160,224",
+          "pixels": 8
+        },
+        {
+          "at": "32,96",
+          "pixels": 6
+        },
+        {
+          "at": "32,416",
+          "pixels": 6
+        },
+        {
+          "at": "32,704",
+          "pixels": 6
+        },
+        {
+          "at": "128,224",
+          "pixels": 5
+        },
+        {
+          "at": "0,512",
+          "pixels": 5
+        },
+        {
+          "at": "0,608",
+          "pixels": 5
+        },
+        {
+          "at": "64,160",
+          "pixels": 4
+        },
+        {
+          "at": "128,512",
+          "pixels": 3
+        },
+        {
+          "at": "224,224",
+          "pixels": 2
+        },
+        {
+          "at": "192,224",
+          "pixels": 1
+        },
+        {
+          "at": "256,224",
+          "pixels": 1
+        }
+      ],
+      "bounds": {
+        "minX": 17,
+        "minY": 121,
+        "maxX": 263,
+        "maxY": 831
+      }
+    },
+    {
+      "file": "web-instellingen-nacht-blad.jpg",
+      "exclusions": [],
+      "width": 390,
+      "height": 844,
+      "brightPixels": 345,
+      "hotspots": [
+        {
+          "at": "32,64",
+          "pixels": 20
+        },
+        {
+          "at": "96,416",
+          "pixels": 19
+        },
+        {
+          "at": "64,512",
+          "pixels": 19
+        },
+        {
+          "at": "32,224",
+          "pixels": 18
+        },
+        {
+          "at": "64,416",
+          "pixels": 18
+        },
+        {
+          "at": "32,192",
+          "pixels": 16
+        },
+        {
+          "at": "32,32",
+          "pixels": 15
+        },
+        {
+          "at": "0,192",
+          "pixels": 14
+        },
+        {
+          "at": "32,416",
+          "pixels": 14
+        },
+        {
+          "at": "32,512",
+          "pixels": 14
+        },
+        {
+          "at": "0,64",
+          "pixels": 11
+        },
+        {
+          "at": "64,192",
+          "pixels": 11
+        },
+        {
+          "at": "0,224",
+          "pixels": 10
+        },
+        {
+          "at": "0,320",
+          "pixels": 10
+        },
+        {
+          "at": "32,544",
+          "pixels": 10
+        },
+        {
+          "at": "32,0",
+          "pixels": 9
+        },
+        {
+          "at": "0,32",
+          "pixels": 8
+        },
+        {
+          "at": "64,64",
+          "pixels": 8
+        },
+        {
+          "at": "32,704",
+          "pixels": 8
+        },
+        {
+          "at": "0,0",
+          "pixels": 6
+        },
+        {
+          "at": "0,416",
+          "pixels": 6
+        },
+        {
+          "at": "0,608",
+          "pixels": 6
+        },
+        {
+          "at": "0,736",
+          "pixels": 6
+        },
+        {
+          "at": "64,0",
+          "pixels": 5
+        },
+        {
+          "at": "160,128",
+          "pixels": 5
+        },
+        {
+          "at": "32,320",
+          "pixels": 5
+        },
+        {
+          "at": "64,448",
+          "pixels": 5
+        },
+        {
+          "at": "0,640",
+          "pixels": 5
+        },
+        {
+          "at": "32,736",
+          "pixels": 5
+        },
+        {
+          "at": "128,128",
+          "pixels": 4
+        },
+        {
+          "at": "128,416",
+          "pixels": 4
+        },
+        {
+          "at": "0,448",
+          "pixels": 4
+        },
+        {
+          "at": "64,544",
+          "pixels": 4
+        },
+        {
+          "at": "32,608",
+          "pixels": 4
+        },
+        {
+          "at": "64,32",
+          "pixels": 3
+        },
+        {
+          "at": "96,128",
+          "pixels": 3
+        },
+        {
+          "at": "0,512",
+          "pixels": 3
+        },
+        {
+          "at": "32,640",
+          "pixels": 3
+        },
+        {
+          "at": "32,448",
+          "pixels": 2
+        },
+        {
+          "at": "0,704",
+          "pixels": 2
+        },
+        {
+          "at": "64,128",
+          "pixels": 1
+        },
+        {
+          "at": "96,448",
+          "pixels": 1
+        },
+        {
+          "at": "0,544",
+          "pixels": 1
+        }
+      ],
+      "bounds": {
+        "minX": 17,
+        "minY": 28,
+        "maxX": 184,
+        "maxY": 739
+      }
+    },
+    {
+      "file": "web-instellingen-nacht-inkt.jpg",
+      "exclusions": [],
+      "width": 390,
+      "height": 844,
+      "brightPixels": 345,
+      "hotspots": [
+        {
+          "at": "32,64",
+          "pixels": 20
+        },
+        {
+          "at": "96,416",
+          "pixels": 19
+        },
+        {
+          "at": "64,512",
+          "pixels": 19
+        },
+        {
+          "at": "32,224",
+          "pixels": 18
+        },
+        {
+          "at": "64,416",
+          "pixels": 18
+        },
+        {
+          "at": "32,192",
+          "pixels": 16
+        },
+        {
+          "at": "32,32",
+          "pixels": 15
+        },
+        {
+          "at": "0,192",
+          "pixels": 14
+        },
+        {
+          "at": "32,416",
+          "pixels": 14
+        },
+        {
+          "at": "32,512",
+          "pixels": 14
+        },
+        {
+          "at": "0,64",
+          "pixels": 11
+        },
+        {
+          "at": "64,192",
+          "pixels": 11
+        },
+        {
+          "at": "0,224",
+          "pixels": 10
+        },
+        {
+          "at": "0,320",
+          "pixels": 10
+        },
+        {
+          "at": "32,544",
+          "pixels": 10
+        },
+        {
+          "at": "32,0",
+          "pixels": 9
+        },
+        {
+          "at": "0,32",
+          "pixels": 8
+        },
+        {
+          "at": "64,64",
+          "pixels": 8
+        },
+        {
+          "at": "32,704",
+          "pixels": 8
+        },
+        {
+          "at": "0,0",
+          "pixels": 6
+        },
+        {
+          "at": "0,416",
+          "pixels": 6
+        },
+        {
+          "at": "0,608",
+          "pixels": 6
+        },
+        {
+          "at": "0,736",
+          "pixels": 6
+        },
+        {
+          "at": "64,0",
+          "pixels": 5
+        },
+        {
+          "at": "160,128",
+          "pixels": 5
+        },
+        {
+          "at": "32,320",
+          "pixels": 5
+        },
+        {
+          "at": "64,448",
+          "pixels": 5
+        },
+        {
+          "at": "0,640",
+          "pixels": 5
+        },
+        {
+          "at": "32,736",
+          "pixels": 5
+        },
+        {
+          "at": "128,128",
+          "pixels": 4
+        },
+        {
+          "at": "128,416",
+          "pixels": 4
+        },
+        {
+          "at": "0,448",
+          "pixels": 4
+        },
+        {
+          "at": "64,544",
+          "pixels": 4
+        },
+        {
+          "at": "32,608",
+          "pixels": 4
+        },
+        {
+          "at": "64,32",
+          "pixels": 3
+        },
+        {
+          "at": "96,128",
+          "pixels": 3
+        },
+        {
+          "at": "0,512",
+          "pixels": 3
+        },
+        {
+          "at": "32,640",
+          "pixels": 3
+        },
+        {
+          "at": "32,448",
+          "pixels": 2
+        },
+        {
+          "at": "0,704",
+          "pixels": 2
+        },
+        {
+          "at": "64,128",
+          "pixels": 1
+        },
+        {
+          "at": "96,448",
+          "pixels": 1
+        },
+        {
+          "at": "0,544",
+          "pixels": 1
+        }
+      ],
+      "bounds": {
+        "minX": 17,
+        "minY": 28,
+        "maxX": 184,
+        "maxY": 739
+      }
+    },
+    {
+      "file": "web-popup-nacht.jpg",
+      "exclusions": [
+        {
+          "height": 179,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 358,
+          "x": 16,
+          "y": 227
+        },
+        {
+          "height": 24,
+          "reason": "Bestaand merkvlak",
+          "width": 24,
+          "x": 16,
+          "y": 692
+        },
+        {
+          "height": 24,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 24,
+          "x": 16,
+          "y": 692
+        },
+        {
+          "height": 49,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 84,
+          "x": 290,
+          "y": 795
+        }
+      ],
+      "width": 390,
+      "height": 844,
+      "brightPixels": 299,
+      "hotspots": [
+        {
+          "at": "64,608",
+          "pixels": 31
+        },
+        {
+          "at": "0,128",
+          "pixels": 27
+        },
+        {
+          "at": "96,512",
+          "pixels": 24
+        },
+        {
+          "at": "32,160",
+          "pixels": 23
+        },
+        {
+          "at": "32,608",
+          "pixels": 22
+        },
+        {
+          "at": "64,512",
+          "pixels": 21
+        },
+        {
+          "at": "32,512",
+          "pixels": 18
+        },
+        {
+          "at": "0,96",
+          "pixels": 17
+        },
+        {
+          "at": "32,128",
+          "pixels": 16
+        },
+        {
+          "at": "0,416",
+          "pixels": 14
+        },
+        {
+          "at": "32,800",
+          "pixels": 14
+        },
+        {
+          "at": "0,160",
+          "pixels": 13
+        },
+        {
+          "at": "0,704",
+          "pixels": 11
+        },
+        {
+          "at": "32,704",
+          "pixels": 9
+        },
+        {
+          "at": "0,800",
+          "pixels": 9
+        },
+        {
+          "at": "32,416",
+          "pixels": 7
+        },
+        {
+          "at": "32,96",
+          "pixels": 6
+        },
+        {
+          "at": "0,512",
+          "pixels": 5
+        },
+        {
+          "at": "0,608",
+          "pixels": 5
+        },
+        {
+          "at": "64,160",
+          "pixels": 4
+        },
+        {
+          "at": "128,512",
+          "pixels": 3
+        }
+      ],
+      "bounds": {
+        "minX": 17,
+        "minY": 121,
+        "maxX": 134,
+        "maxY": 831
+      }
+    },
+    {
+      "file": "web-editie-nacht.jpg",
+      "exclusions": [
+        {
+          "height": 179,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 358,
+          "x": 16,
+          "y": 227
+        },
+        {
+          "height": 24,
+          "reason": "Bestaand merkvlak",
+          "width": 24,
+          "x": 16,
+          "y": 692
+        },
+        {
+          "height": 24,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 24,
+          "x": 16,
+          "y": 692
+        },
+        {
+          "height": 49,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 84,
+          "x": 290,
+          "y": 795
+        }
+      ],
+      "width": 390,
+      "height": 844,
+      "brightPixels": 4261,
+      "hotspots": [
+        {
+          "at": "256,576",
+          "pixels": 112
+        },
+        {
+          "at": "192,576",
+          "pixels": 112
+        },
+        {
+          "at": "224,576",
+          "pixels": 111
+        },
+        {
+          "at": "32,64",
+          "pixels": 104
+        },
+        {
+          "at": "128,576",
+          "pixels": 104
+        },
+        {
+          "at": "128,64",
+          "pixels": 102
+        },
+        {
+          "at": "320,576",
+          "pixels": 101
+        },
+        {
+          "at": "128,512",
+          "pixels": 99
+        },
+        {
+          "at": "224,544",
+          "pixels": 99
+        },
+        {
+          "at": "96,64",
+          "pixels": 98
+        },
+        {
+          "at": "288,576",
+          "pixels": 97
+        },
+        {
+          "at": "64,512",
+          "pixels": 95
+        },
+        {
+          "at": "32,544",
+          "pixels": 95
+        },
+        {
+          "at": "192,544",
+          "pixels": 95
+        },
+        {
+          "at": "32,576",
+          "pixels": 95
+        },
+        {
+          "at": "128,544",
+          "pixels": 94
+        },
+        {
+          "at": "96,576",
+          "pixels": 93
+        },
+        {
+          "at": "64,576",
+          "pixels": 91
+        },
+        {
+          "at": "160,544",
+          "pixels": 88
+        },
+        {
+          "at": "160,64",
+          "pixels": 85
+        },
+        {
+          "at": "64,544",
+          "pixels": 85
+        },
+        {
+          "at": "160,480",
+          "pixels": 83
+        },
+        {
+          "at": "96,512",
+          "pixels": 80
+        },
+        {
+          "at": "96,544",
+          "pixels": 79
+        },
+        {
+          "at": "160,576",
+          "pixels": 76
+        },
+        {
+          "at": "160,512",
+          "pixels": 73
+        },
+        {
+          "at": "32,512",
+          "pixels": 72
+        },
+        {
+          "at": "32,32",
+          "pixels": 70
+        },
+        {
+          "at": "192,480",
+          "pixels": 70
+        },
+        {
+          "at": "64,64",
+          "pixels": 67
+        },
+        {
+          "at": "192,512",
+          "pixels": 66
+        },
+        {
+          "at": "32,448",
+          "pixels": 65
+        },
+        {
+          "at": "96,480",
+          "pixels": 65
+        },
+        {
+          "at": "64,128",
+          "pixels": 62
+        },
+        {
+          "at": "64,480",
+          "pixels": 62
+        },
+        {
+          "at": "128,480",
+          "pixels": 58
+        },
+        {
+          "at": "0,576",
+          "pixels": 57
+        },
+        {
+          "at": "0,512",
+          "pixels": 56
+        },
+        {
+          "at": "96,448",
+          "pixels": 51
+        },
+        {
+          "at": "192,448",
+          "pixels": 51
+        },
+        {
+          "at": "160,448",
+          "pixels": 50
+        },
+        {
+          "at": "160,128",
+          "pixels": 49
+        },
+        {
+          "at": "64,448",
+          "pixels": 46
+        },
+        {
+          "at": "32,480",
+          "pixels": 46
+        },
+        {
+          "at": "0,64",
+          "pixels": 45
+        },
+        {
+          "at": "0,544",
+          "pixels": 44
+        },
+        {
+          "at": "0,448",
+          "pixels": 42
+        },
+        {
+          "at": "256,544",
+          "pixels": 41
+        },
+        {
+          "at": "128,448",
+          "pixels": 39
+        },
+        {
+          "at": "0,480",
+          "pixels": 39
+        },
+        {
+          "at": "32,128",
+          "pixels": 38
+        },
+        {
+          "at": "0,32",
+          "pixels": 36
+        },
+        {
+          "at": "96,128",
+          "pixels": 36
+        },
+        {
+          "at": "128,128",
+          "pixels": 36
+        },
+        {
+          "at": "224,448",
+          "pixels": 35
+        },
+        {
+          "at": "64,32",
+          "pixels": 33
+        },
+        {
+          "at": "224,480",
+          "pixels": 33
+        },
+        {
+          "at": "320,128",
+          "pixels": 32
+        },
+        {
+          "at": "192,128",
+          "pixels": 28
+        },
+        {
+          "at": "224,128",
+          "pixels": 25
+        },
+        {
+          "at": "256,128",
+          "pixels": 24
+        },
+        {
+          "at": "288,128",
+          "pixels": 23
+        },
+        {
+          "at": "352,128",
+          "pixels": 22
+        },
+        {
+          "at": "256,448",
+          "pixels": 19
+        },
+        {
+          "at": "256,480",
+          "pixels": 16
+        },
+        {
+          "at": "0,0",
+          "pixels": 15
+        },
+        {
+          "at": "32,672",
+          "pixels": 13
+        },
+        {
+          "at": "64,672",
+          "pixels": 9
+        },
+        {
+          "at": "192,64",
+          "pixels": 8
+        },
+        {
+          "at": "0,128",
+          "pixels": 8
+        },
+        {
+          "at": "64,0",
+          "pixels": 6
+        },
+        {
+          "at": "224,64",
+          "pixels": 4
+        },
+        {
+          "at": "32,0",
+          "pixels": 3
+        }
+      ],
+      "bounds": {
+        "minX": 17,
+        "minY": 25,
+        "maxX": 373,
+        "maxY": 699
+      }
+    },
+    {
+      "file": "web-eindkaart-nacht.jpg",
+      "exclusions": [
+        {
+          "height": 12,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 84,
+          "x": 290,
+          "y": 0
+        },
+        {
+          "height": 24,
+          "reason": "Bestaand merkvlak",
+          "width": 24,
+          "x": 16,
+          "y": 94
+        },
+        {
+          "height": 24,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 24,
+          "x": 16,
+          "y": 94
+        },
+        {
+          "height": 56,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 84,
+          "x": 290,
+          "y": 157
+        },
+        {
+          "height": 24,
+          "reason": "Bestaand merkvlak",
+          "width": 24,
+          "x": 16,
+          "y": 273
+        },
+        {
+          "height": 24,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 24,
+          "x": 16,
+          "y": 273
+        },
+        {
+          "height": 376,
+          "reason": "Bestaand merkvlak",
+          "width": 358,
+          "x": 16,
+          "y": 351
+        }
+      ],
+      "width": 390,
+      "height": 844,
+      "brightPixels": 1830,
+      "hotspots": [
+        {
+          "at": "96,32",
+          "pixels": 98
+        },
+        {
+          "at": "64,32",
+          "pixels": 86
+        },
+        {
+          "at": "32,192",
+          "pixels": 82
+        },
+        {
+          "at": "32,32",
+          "pixels": 78
+        },
+        {
+          "at": "192,192",
+          "pixels": 77
+        },
+        {
+          "at": "160,192",
+          "pixels": 71
+        },
+        {
+          "at": "32,0",
+          "pixels": 69
+        },
+        {
+          "at": "128,32",
+          "pixels": 67
+        },
+        {
+          "at": "64,192",
+          "pixels": 63
+        },
+        {
+          "at": "192,0",
+          "pixels": 59
+        },
+        {
+          "at": "128,192",
+          "pixels": 58
+        },
+        {
+          "at": "128,0",
+          "pixels": 56
+        },
+        {
+          "at": "96,192",
+          "pixels": 54
+        },
+        {
+          "at": "64,0",
+          "pixels": 53
+        },
+        {
+          "at": "192,32",
+          "pixels": 47
+        },
+        {
+          "at": "160,0",
+          "pixels": 46
+        },
+        {
+          "at": "224,32",
+          "pixels": 44
+        },
+        {
+          "at": "96,0",
+          "pixels": 43
+        },
+        {
+          "at": "32,224",
+          "pixels": 41
+        },
+        {
+          "at": "0,192",
+          "pixels": 39
+        },
+        {
+          "at": "0,32",
+          "pixels": 38
+        },
+        {
+          "at": "224,0",
+          "pixels": 36
+        },
+        {
+          "at": "0,0",
+          "pixels": 33
+        },
+        {
+          "at": "224,192",
+          "pixels": 33
+        },
+        {
+          "at": "160,32",
+          "pixels": 31
+        },
+        {
+          "at": "64,224",
+          "pixels": 30
+        },
+        {
+          "at": "256,32",
+          "pixels": 29
+        },
+        {
+          "at": "224,160",
+          "pixels": 27
+        },
+        {
+          "at": "192,160",
+          "pixels": 26
+        },
+        {
+          "at": "96,224",
+          "pixels": 25
+        },
+        {
+          "at": "32,160",
+          "pixels": 24
+        },
+        {
+          "at": "0,160",
+          "pixels": 23
+        },
+        {
+          "at": "0,224",
+          "pixels": 23
+        },
+        {
+          "at": "64,160",
+          "pixels": 22
+        },
+        {
+          "at": "160,160",
+          "pixels": 22
+        },
+        {
+          "at": "128,160",
+          "pixels": 19
+        },
+        {
+          "at": "96,160",
+          "pixels": 18
+        },
+        {
+          "at": "96,256",
+          "pixels": 16
+        },
+        {
+          "at": "160,96",
+          "pixels": 14
+        },
+        {
+          "at": "64,256",
+          "pixels": 14
+        },
+        {
+          "at": "64,96",
+          "pixels": 13
+        },
+        {
+          "at": "96,96",
+          "pixels": 13
+        },
+        {
+          "at": "192,96",
+          "pixels": 12
+        },
+        {
+          "at": "32,256",
+          "pixels": 12
+        },
+        {
+          "at": "32,96",
+          "pixels": 9
+        },
+        {
+          "at": "128,96",
+          "pixels": 8
+        },
+        {
+          "at": "64,64",
+          "pixels": 4
+        },
+        {
+          "at": "32,64",
+          "pixels": 4
+        },
+        {
+          "at": "128,64",
+          "pixels": 4
+        },
+        {
+          "at": "256,192",
+          "pixels": 4
+        },
+        {
+          "at": "128,256",
+          "pixels": 4
+        },
+        {
+          "at": "256,0",
+          "pixels": 3
+        },
+        {
+          "at": "96,64",
+          "pixels": 2
+        },
+        {
+          "at": "160,64",
+          "pixels": 2
+        },
+        {
+          "at": "0,64",
+          "pixels": 1
+        },
+        {
+          "at": "192,64",
+          "pixels": 1
+        }
+      ],
+      "bounds": {
+        "minX": 17,
+        "minY": 5,
+        "maxX": 275,
+        "maxY": 280
+      }
+    },
+    {
+      "file": "web-stroom-nacht.jpg",
+      "exclusions": [
+        {
+          "height": 28,
+          "reason": "Bestaand merkvlak",
+          "width": 28,
+          "x": 338,
+          "y": 66
+        },
+        {
+          "height": 28,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 28,
+          "x": 338,
+          "y": 66
+        },
+        {
+          "height": 28,
+          "reason": "Bestaand merkvlak",
+          "width": 28,
+          "x": 322,
+          "y": 66
+        },
+        {
+          "height": 28,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 28,
+          "x": 322,
+          "y": 66
+        },
+        {
+          "height": 28,
+          "reason": "Bestaand merkvlak",
+          "width": 28,
+          "x": 306,
+          "y": 66
+        },
+        {
+          "height": 28,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 28,
+          "x": 306,
+          "y": 66
+        },
+        {
+          "height": 22.399993896484375,
+          "reason": "Bestaand merkvlak",
+          "width": 22.399993896484375,
+          "x": 308.79998779296875,
+          "y": 68.80000305175781
+        },
+        {
+          "height": 22.399993896484375,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 22.399993896484375,
+          "x": 308.79998779296875,
+          "y": 68.80000305175781
+        },
+        {
+          "height": 22.399993896484375,
+          "reason": "Bestaand merkvlak",
+          "width": 22.399993896484375,
+          "x": 308.79998779296875,
+          "y": 68.80000305175781
+        },
+        {
+          "height": 22.399993896484375,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 22.399993896484375,
+          "x": 308.79998779296875,
+          "y": 68.80000305175781
+        },
+        {
+          "height": 22.399993896484375,
+          "reason": "Bestaand merkvlak",
+          "width": 22.399993896484375,
+          "x": 308.79998779296875,
+          "y": 68.80000305175781
+        },
+        {
+          "height": 22.399993896484375,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 22.399993896484375,
+          "x": 308.79998779296875,
+          "y": 68.80000305175781
+        },
+        {
+          "height": 22.399993896484375,
+          "reason": "Bestaand merkvlak",
+          "width": 22.399993896484375,
+          "x": 308.79998779296875,
+          "y": 68.80000305175781
+        },
+        {
+          "height": 22.399993896484375,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 22.399993896484375,
+          "x": 308.79998779296875,
+          "y": 68.80000305175781
+        },
+        {
+          "height": 22.399993896484375,
+          "reason": "Bestaand merkvlak",
+          "width": 22.399993896484375,
+          "x": 308.79998779296875,
+          "y": 68.80000305175781
+        },
+        {
+          "height": 22.399993896484375,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 22.399993896484375,
+          "x": 308.79998779296875,
+          "y": 68.80000305175781
+        },
+        {
+          "height": 177,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 356,
+          "x": 17,
+          "y": 196
+        },
+        {
+          "height": 24,
+          "reason": "Bestaand merkvlak",
+          "width": 24,
+          "x": 16,
+          "y": 392
+        },
+        {
+          "height": 24,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 24,
+          "x": 16,
+          "y": 392
+        },
+        {
+          "height": 177,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 356,
+          "x": 17,
+          "y": 568
+        },
+        {
+          "height": 24,
+          "reason": "Bestaand merkvlak",
+          "width": 24,
+          "x": 16,
+          "y": 764
+        },
+        {
+          "height": 24,
+          "reason": "Bestaande foto of uitgeverslogo",
+          "width": 24,
+          "x": 16,
+          "y": 764
+        }
+      ],
+      "width": 390,
+      "height": 844,
+      "brightPixels": 1673,
+      "hotspots": [
+        {
+          "at": "128,480",
+          "pixels": 64
+        },
+        {
+          "at": "32,448",
+          "pixels": 60
+        },
+        {
+          "at": "288,448",
+          "pixels": 57
+        },
+        {
+          "at": "64,32",
+          "pixels": 55
+        },
+        {
+          "at": "64,128",
+          "pixels": 54
+        },
+        {
+          "at": "96,480",
+          "pixels": 54
+        },
+        {
+          "at": "32,128",
+          "pixels": 53
+        },
+        {
+          "at": "160,480",
+          "pixels": 52
+        },
+        {
+          "at": "128,128",
+          "pixels": 51
+        },
+        {
+          "at": "192,448",
+          "pixels": 51
+        },
+        {
+          "at": "256,448",
+          "pixels": 51
+        },
+        {
+          "at": "224,448",
+          "pixels": 49
+        },
+        {
+          "at": "32,32",
+          "pixels": 48
+        },
+        {
+          "at": "224,128",
+          "pixels": 46
+        },
+        {
+          "at": "256,128",
+          "pixels": 45
+        },
+        {
+          "at": "160,448",
+          "pixels": 45
+        },
+        {
+          "at": "160,128",
+          "pixels": 44
+        },
+        {
+          "at": "32,480",
+          "pixels": 44
+        },
+        {
+          "at": "288,128",
+          "pixels": 43
+        },
+        {
+          "at": "192,480",
+          "pixels": 42
+        },
+        {
+          "at": "64,448",
+          "pixels": 39
+        },
+        {
+          "at": "192,128",
+          "pixels": 38
+        },
+        {
+          "at": "0,0",
+          "pixels": 37
+        },
+        {
+          "at": "128,448",
+          "pixels": 36
+        },
+        {
+          "at": "96,128",
+          "pixels": 35
+        },
+        {
+          "at": "0,448",
+          "pixels": 35
+        },
+        {
+          "at": "32,0",
+          "pixels": 33
+        },
+        {
+          "at": "64,480",
+          "pixels": 33
+        },
+        {
+          "at": "96,448",
+          "pixels": 32
+        },
+        {
+          "at": "96,32",
+          "pixels": 29
+        },
+        {
+          "at": "0,480",
+          "pixels": 28
+        },
+        {
+          "at": "64,0",
+          "pixels": 26
+        },
+        {
+          "at": "224,480",
+          "pixels": 25
+        },
+        {
+          "at": "0,32",
+          "pixels": 22
+        },
+        {
+          "at": "160,384",
+          "pixels": 21
+        },
+        {
+          "at": "0,128",
+          "pixels": 19
+        },
+        {
+          "at": "64,384",
+          "pixels": 18
+        },
+        {
+          "at": "96,0",
+          "pixels": 16
+        },
+        {
+          "at": "96,384",
+          "pixels": 14
+        },
+        {
+          "at": "320,128",
+          "pixels": 13
+        },
+        {
+          "at": "128,384",
+          "pixels": 13
+        },
+        {
+          "at": "64,768",
+          "pixels": 12
+        },
+        {
+          "at": "32,384",
+          "pixels": 11
+        },
+        {
+          "at": "128,768",
+          "pixels": 11
+        },
+        {
+          "at": "0,64",
+          "pixels": 10
+        },
+        {
+          "at": "64,736",
+          "pixels": 9
+        },
+        {
+          "at": "96,768",
+          "pixels": 9
+        },
+        {
+          "at": "320,448",
+          "pixels": 8
+        },
+        {
+          "at": "96,736",
+          "pixels": 7
+        },
+        {
+          "at": "160,768",
+          "pixels": 7
+        },
+        {
+          "at": "160,736",
+          "pixels": 5
+        },
+        {
+          "at": "32,768",
+          "pixels": 5
+        },
+        {
+          "at": "32,736",
+          "pixels": 4
+        },
+        {
+          "at": "128,736",
+          "pixels": 3
+        },
+        {
+          "at": "32,64",
+          "pixels": 2
+        }
+      ],
+      "bounds": {
+        "minX": 17,
+        "minY": 22,
+        "maxX": 329,
+        "maxY": 771
+      }
+    },
+    {
+      "file": "web-selectie-nacht.jpg",
+      "exclusions": [],
+      "width": 390,
+      "height": 844,
+      "brightPixels": 6125,
+      "hotspots": [
+        {
+          "at": "224,576",
+          "pixels": 95
+        },
+        {
+          "at": "96,576",
+          "pixels": 86
+        },
+        {
+          "at": "192,576",
+          "pixels": 82
+        },
+        {
+          "at": "96,160",
+          "pixels": 80
+        },
+        {
+          "at": "160,448",
+          "pixels": 77
+        },
+        {
+          "at": "160,640",
+          "pixels": 76
+        },
+        {
+          "at": "160,576",
+          "pixels": 75
+        },
+        {
+          "at": "288,448",
+          "pixels": 74
+        },
+        {
+          "at": "64,576",
+          "pixels": 72
+        },
+        {
+          "at": "96,640",
+          "pixels": 68
+        },
+        {
+          "at": "96,704",
+          "pixels": 68
+        },
+        {
+          "at": "224,160",
+          "pixels": 67
+        },
+        {
+          "at": "96,448",
+          "pixels": 67
+        },
+        {
+          "at": "128,576",
+          "pixels": 67
+        },
+        {
+          "at": "64,512",
+          "pixels": 64
+        },
+        {
+          "at": "192,448",
+          "pixels": 63
+        },
+        {
+          "at": "288,160",
+          "pixels": 62
+        },
+        {
+          "at": "64,160",
+          "pixels": 61
+        },
+        {
+          "at": "192,160",
+          "pixels": 60
+        },
+        {
+          "at": "256,384",
+          "pixels": 59
+        },
+        {
+          "at": "32,160",
+          "pixels": 58
+        },
+        {
+          "at": "64,448",
+          "pixels": 58
+        },
+        {
+          "at": "32,576",
+          "pixels": 58
+        },
+        {
+          "at": "64,640",
+          "pixels": 57
+        },
+        {
+          "at": "224,640",
+          "pixels": 57
+        },
+        {
+          "at": "32,32",
+          "pixels": 56
+        },
+        {
+          "at": "192,288",
+          "pixels": 56
+        },
+        {
+          "at": "256,352",
+          "pixels": 56
+        },
+        {
+          "at": "64,384",
+          "pixels": 56
+        },
+        {
+          "at": "128,640",
+          "pixels": 56
+        },
+        {
+          "at": "96,320",
+          "pixels": 55
+        },
+        {
+          "at": "64,352",
+          "pixels": 55
+        },
+        {
+          "at": "224,704",
+          "pixels": 55
+        },
+        {
+          "at": "64,320",
+          "pixels": 53
+        },
+        {
+          "at": "64,704",
+          "pixels": 53
+        },
+        {
+          "at": "224,288",
+          "pixels": 52
+        },
+        {
+          "at": "160,384",
+          "pixels": 52
+        },
+        {
+          "at": "192,704",
+          "pixels": 52
+        },
+        {
+          "at": "128,160",
+          "pixels": 51
+        },
+        {
+          "at": "64,288",
+          "pixels": 51
+        },
+        {
+          "at": "224,352",
+          "pixels": 51
+        },
+        {
+          "at": "128,448",
+          "pixels": 51
+        },
+        {
+          "at": "192,640",
+          "pixels": 51
+        },
+        {
+          "at": "256,288",
+          "pixels": 50
+        },
+        {
+          "at": "256,672",
+          "pixels": 50
+        },
+        {
+          "at": "160,160",
+          "pixels": 49
+        },
+        {
+          "at": "64,256",
+          "pixels": 49
+        },
+        {
+          "at": "224,384",
+          "pixels": 49
+        },
+        {
+          "at": "256,448",
+          "pixels": 49
+        },
+        {
+          "at": "192,320",
+          "pixels": 48
+        },
+        {
+          "at": "128,320",
+          "pixels": 48
+        },
+        {
+          "at": "128,384",
+          "pixels": 48
+        },
+        {
+          "at": "256,416",
+          "pixels": 48
+        },
+        {
+          "at": "128,768",
+          "pixels": 48
+        },
+        {
+          "at": "288,352",
+          "pixels": 46
+        },
+        {
+          "at": "96,416",
+          "pixels": 46
+        },
+        {
+          "at": "224,448",
+          "pixels": 46
+        },
+        {
+          "at": "96,256",
+          "pixels": 45
+        },
+        {
+          "at": "192,672",
+          "pixels": 45
+        },
+        {
+          "at": "32,704",
+          "pixels": 45
+        },
+        {
+          "at": "96,768",
+          "pixels": 45
+        },
+        {
+          "at": "256,160",
+          "pixels": 44
+        },
+        {
+          "at": "192,384",
+          "pixels": 44
+        },
+        {
+          "at": "32,448",
+          "pixels": 44
+        },
+        {
+          "at": "64,672",
+          "pixels": 44
+        },
+        {
+          "at": "128,704",
+          "pixels": 44
+        },
+        {
+          "at": "160,320",
+          "pixels": 43
+        },
+        {
+          "at": "128,352",
+          "pixels": 43
+        },
+        {
+          "at": "96,384",
+          "pixels": 43
+        },
+        {
+          "at": "64,768",
+          "pixels": 43
+        },
+        {
+          "at": "320,160",
+          "pixels": 42
+        },
+        {
+          "at": "128,256",
+          "pixels": 42
+        },
+        {
+          "at": "224,416",
+          "pixels": 42
+        },
+        {
+          "at": "160,704",
+          "pixels": 42
+        },
+        {
+          "at": "64,32",
+          "pixels": 41
+        },
+        {
+          "at": "160,416",
+          "pixels": 41
+        },
+        {
+          "at": "96,512",
+          "pixels": 41
+        },
+        {
+          "at": "160,672",
+          "pixels": 41
+        },
+        {
+          "at": "256,640",
+          "pixels": 40
+        },
+        {
+          "at": "160,256",
+          "pixels": 39
+        },
+        {
+          "at": "160,288",
+          "pixels": 39
+        },
+        {
+          "at": "160,352",
+          "pixels": 38
+        },
+        {
+          "at": "192,352",
+          "pixels": 38
+        },
+        {
+          "at": "32,640",
+          "pixels": 38
+        },
+        {
+          "at": "0,0",
+          "pixels": 37
+        },
+        {
+          "at": "256,576",
+          "pixels": 37
+        },
+        {
+          "at": "160,608",
+          "pixels": 37
+        },
+        {
+          "at": "96,672",
+          "pixels": 37
+        },
+        {
+          "at": "128,416",
+          "pixels": 36
+        },
+        {
+          "at": "32,768",
+          "pixels": 36
+        },
+        {
+          "at": "128,288",
+          "pixels": 35
+        },
+        {
+          "at": "224,672",
+          "pixels": 35
+        },
+        {
+          "at": "96,352",
+          "pixels": 34
+        },
+        {
+          "at": "64,64",
+          "pixels": 33
+        },
+        {
+          "at": "96,288",
+          "pixels": 33
+        },
+        {
+          "at": "32,384",
+          "pixels": 33
+        },
+        {
+          "at": "64,416",
+          "pixels": 33
+        },
+        {
+          "at": "128,608",
+          "pixels": 33
+        },
+        {
+          "at": "288,384",
+          "pixels": 32
+        },
+        {
+          "at": "32,256",
+          "pixels": 31
+        },
+        {
+          "at": "128,480",
+          "pixels": 31
+        },
+        {
+          "at": "128,512",
+          "pixels": 31
+        },
+        {
+          "at": "160,512",
+          "pixels": 31
+        },
+        {
+          "at": "64,0",
+          "pixels": 30
+        },
+        {
+          "at": "96,480",
+          "pixels": 29
+        },
+        {
+          "at": "32,0",
+          "pixels": 28
+        },
+        {
+          "at": "320,448",
+          "pixels": 28
+        },
+        {
+          "at": "256,704",
+          "pixels": 28
+        },
+        {
+          "at": "32,64",
+          "pixels": 27
+        },
+        {
+          "at": "192,416",
+          "pixels": 27
+        },
+        {
+          "at": "64,608",
+          "pixels": 27
+        },
+        {
+          "at": "128,672",
+          "pixels": 27
+        },
+        {
+          "at": "32,608",
+          "pixels": 26
+        },
+        {
+          "at": "256,480",
+          "pixels": 25
+        },
+        {
+          "at": "32,320",
+          "pixels": 24
+        },
+        {
+          "at": "64,480",
+          "pixels": 24
+        },
+        {
+          "at": "160,480",
+          "pixels": 24
+        },
+        {
+          "at": "32,512",
+          "pixels": 24
+        },
+        {
+          "at": "96,32",
+          "pixels": 23
+        },
+        {
+          "at": "224,608",
+          "pixels": 23
+        },
+        {
+          "at": "0,32",
+          "pixels": 22
+        },
+        {
+          "at": "32,352",
+          "pixels": 22
+        },
+        {
+          "at": "224,480",
+          "pixels": 22
+        },
+        {
+          "at": "320,480",
+          "pixels": 22
+        },
+        {
+          "at": "256,608",
+          "pixels": 22
+        },
+        {
+          "at": "96,608",
+          "pixels": 22
+        },
+        {
+          "at": "192,608",
+          "pixels": 22
+        },
+        {
+          "at": "288,672",
+          "pixels": 22
+        },
+        {
+          "at": "96,64",
+          "pixels": 21
+        },
+        {
+          "at": "288,288",
+          "pixels": 20
+        },
+        {
+          "at": "192,480",
+          "pixels": 20
+        },
+        {
+          "at": "160,768",
+          "pixels": 20
+        },
+        {
+          "at": "32,416",
+          "pixels": 19
+        },
+        {
+          "at": "32,480",
+          "pixels": 18
+        },
+        {
+          "at": "0,160",
+          "pixels": 17
+        },
+        {
+          "at": "288,480",
+          "pixels": 17
+        },
+        {
+          "at": "192,512",
+          "pixels": 17
+        },
+        {
+          "at": "96,544",
+          "pixels": 17
+        },
+        {
+          "at": "32,288",
+          "pixels": 16
+        },
+        {
+          "at": "32,672",
+          "pixels": 16
+        },
+        {
+          "at": "96,0",
+          "pixels": 15
+        },
+        {
+          "at": "0,64",
+          "pixels": 15
+        },
+        {
+          "at": "224,320",
+          "pixels": 13
+        },
+        {
+          "at": "32,544",
+          "pixels": 11
+        },
+        {
+          "at": "128,544",
+          "pixels": 10
+        },
+        {
+          "at": "288,608",
+          "pixels": 9
+        },
+        {
+          "at": "64,544",
+          "pixels": 8
+        },
+        {
+          "at": "160,544",
+          "pixels": 8
+        },
+        {
+          "at": "224,544",
+          "pixels": 8
+        },
+        {
+          "at": "288,640",
+          "pixels": 8
+        },
+        {
+          "at": "352,224",
+          "pixels": 7
+        },
+        {
+          "at": "352,480",
+          "pixels": 7
+        },
+        {
+          "at": "192,544",
+          "pixels": 6
+        },
+        {
+          "at": "0,256",
+          "pixels": 5
+        },
+        {
+          "at": "352,448",
+          "pixels": 5
+        },
+        {
+          "at": "128,64",
+          "pixels": 4
+        },
+        {
+          "at": "0,512",
+          "pixels": 4
+        },
+        {
+          "at": "96,128",
+          "pixels": 3
+        },
+        {
+          "at": "288,704",
+          "pixels": 3
+        },
+        {
+          "at": "160,128",
+          "pixels": 2
+        },
+        {
+          "at": "256,320",
+          "pixels": 2
+        },
+        {
+          "at": "288,320",
+          "pixels": 2
+        },
+        {
+          "at": "128,128",
+          "pixels": 1
+        },
+        {
+          "at": "192,128",
+          "pixels": 1
+        },
+        {
+          "at": "224,128",
+          "pixels": 1
+        },
+        {
+          "at": "256,544",
+          "pixels": 1
+        }
+      ],
+      "bounds": {
+        "minX": 17,
+        "minY": 22,
+        "maxX": 373,
+        "maxY": 783
+      }
+    },
+    {
+      "file": "web-instellingen-nacht.jpg",
+      "exclusions": [],
+      "width": 390,
+      "height": 844,
+      "brightPixels": 754,
+      "hotspots": [
+        {
+          "at": "160,32",
+          "pixels": 74
+        },
+        {
+          "at": "96,32",
+          "pixels": 57
+        },
+        {
+          "at": "128,32",
+          "pixels": 53
+        },
+        {
+          "at": "64,32",
+          "pixels": 47
+        },
+        {
+          "at": "128,0",
+          "pixels": 44
+        },
+        {
+          "at": "96,0",
+          "pixels": 42
+        },
+        {
+          "at": "32,256",
+          "pixels": 29
+        },
+        {
+          "at": "32,64",
+          "pixels": 25
+        },
+        {
+          "at": "64,0",
+          "pixels": 24
+        },
+        {
+          "at": "160,0",
+          "pixels": 23
+        },
+        {
+          "at": "32,480",
+          "pixels": 21
+        },
+        {
+          "at": "0,256",
+          "pixels": 19
+        },
+        {
+          "at": "64,576",
+          "pixels": 19
+        },
+        {
+          "at": "64,256",
+          "pixels": 18
+        },
+        {
+          "at": "32,32",
+          "pixels": 17
+        },
+        {
+          "at": "96,480",
+          "pixels": 17
+        },
+        {
+          "at": "32,576",
+          "pixels": 17
+        },
+        {
+          "at": "192,32",
+          "pixels": 16
+        },
+        {
+          "at": "64,480",
+          "pixels": 16
+        },
+        {
+          "at": "0,64",
+          "pixels": 14
+        },
+        {
+          "at": "0,288",
+          "pixels": 13
+        },
+        {
+          "at": "32,288",
+          "pixels": 13
+        },
+        {
+          "at": "32,96",
+          "pixels": 12
+        },
+        {
+          "at": "192,0",
+          "pixels": 11
+        },
+        {
+          "at": "64,64",
+          "pixels": 11
+        },
+        {
+          "at": "0,480",
+          "pixels": 10
+        },
+        {
+          "at": "0,672",
+          "pixels": 10
+        },
+        {
+          "at": "0,96",
+          "pixels": 9
+        },
+        {
+          "at": "32,0",
+          "pixels": 8
+        },
+        {
+          "at": "0,32",
+          "pixels": 8
+        },
+        {
+          "at": "0,576",
+          "pixels": 7
+        },
+        {
+          "at": "32,128",
+          "pixels": 6
+        },
+        {
+          "at": "96,192",
+          "pixels": 6
+        },
+        {
+          "at": "32,384",
+          "pixels": 6
+        },
+        {
+          "at": "0,384",
+          "pixels": 5
+        },
+        {
+          "at": "64,96",
+          "pixels": 4
+        },
+        {
+          "at": "32,768",
+          "pixels": 4
+        },
+        {
+          "at": "0,128",
+          "pixels": 3
+        },
+        {
+          "at": "128,192",
+          "pixels": 3
+        },
+        {
+          "at": "0,768",
+          "pixels": 3
+        },
+        {
+          "at": "0,0",
+          "pixels": 2
+        },
+        {
+          "at": "32,672",
+          "pixels": 2
+        },
+        {
+          "at": "64,128",
+          "pixels": 1
+        },
+        {
+          "at": "96,160",
+          "pixels": 1
+        },
+        {
+          "at": "64,192",
+          "pixels": 1
+        },
+        {
+          "at": "192,192",
+          "pixels": 1
+        },
+        {
+          "at": "160,192",
+          "pixels": 1
+        },
+        {
+          "at": "128,480",
+          "pixels": 1
+        }
+      ],
+      "bounds": {
+        "minX": 17,
+        "minY": 22,
+        "maxX": 200,
+        "maxY": 790
+      }
+    },
+    {
+      "file": "web-leeg-nacht.jpg",
+      "exclusions": [],
+      "width": 390,
+      "height": 844,
+      "brightPixels": 1582,
+      "hotspots": [
+        {
+          "at": "160,416",
+          "pixels": 155
+        },
+        {
+          "at": "192,416",
+          "pixels": 144
+        },
+        {
+          "at": "128,416",
+          "pixels": 109
+        },
+        {
+          "at": "224,416",
+          "pixels": 104
+        },
+        {
+          "at": "96,288",
+          "pixels": 97
+        },
+        {
+          "at": "256,288",
+          "pixels": 97
+        },
+        {
+          "at": "192,288",
+          "pixels": 84
+        },
+        {
+          "at": "128,288",
+          "pixels": 82
+        },
+        {
+          "at": "160,288",
+          "pixels": 75
+        },
+        {
+          "at": "224,288",
+          "pixels": 70
+        },
+        {
+          "at": "288,288",
+          "pixels": 60
+        },
+        {
+          "at": "64,32",
+          "pixels": 58
+        },
+        {
+          "at": "32,32",
+          "pixels": 51
+        },
+        {
+          "at": "96,32",
+          "pixels": 50
+        },
+        {
+          "at": "64,288",
+          "pixels": 43
+        },
+        {
+          "at": "128,448",
+          "pixels": 42
+        },
+        {
+          "at": "256,448",
+          "pixels": 41
+        },
+        {
+          "at": "96,0",
+          "pixels": 36
+        },
+        {
+          "at": "96,416",
+          "pixels": 33
+        },
+        {
+          "at": "0,32",
+          "pixels": 31
+        },
+        {
+          "at": "256,416",
+          "pixels": 31
+        },
+        {
+          "at": "0,0",
+          "pixels": 28
+        },
+        {
+          "at": "224,448",
+          "pixels": 22
+        },
+        {
+          "at": "32,0",
+          "pixels": 17
+        },
+        {
+          "at": "64,0",
+          "pixels": 14
+        },
+        {
+          "at": "96,448",
+          "pixels": 8
+        }
+      ],
+      "bounds": {
+        "minX": 19,
+        "minY": 22,
+        "maxX": 307,
+        "maxY": 463
+      }
+    },
+    {
+      "file": "web-onboarding-nacht.jpg",
+      "exclusions": [],
+      "width": 390,
+      "height": 844,
+      "brightPixels": 1921,
+      "hotspots": [
+        {
+          "at": "32,64",
+          "pixels": 113
+        },
+        {
+          "at": "224,64",
+          "pixels": 97
+        },
+        {
+          "at": "160,64",
+          "pixels": 83
+        },
+        {
+          "at": "192,64",
+          "pixels": 83
+        },
+        {
+          "at": "96,64",
+          "pixels": 79
+        },
+        {
+          "at": "64,64",
+          "pixels": 74
+        },
+        {
+          "at": "32,32",
+          "pixels": 70
+        },
+        {
+          "at": "128,64",
+          "pixels": 69
+        },
+        {
+          "at": "256,64",
+          "pixels": 63
+        },
+        {
+          "at": "64,192",
+          "pixels": 61
+        },
+        {
+          "at": "0,64",
+          "pixels": 58
+        },
+        {
+          "at": "288,192",
+          "pixels": 52
+        },
+        {
+          "at": "256,192",
+          "pixels": 42
+        },
+        {
+          "at": "64,416",
+          "pixels": 42
+        },
+        {
+          "at": "288,64",
+          "pixels": 38
+        },
+        {
+          "at": "224,800",
+          "pixels": 38
+        },
+        {
+          "at": "0,32",
+          "pixels": 36
+        },
+        {
+          "at": "256,352",
+          "pixels": 34
+        },
+        {
+          "at": "64,32",
+          "pixels": 33
+        },
+        {
+          "at": "96,192",
+          "pixels": 33
+        },
+        {
+          "at": "224,416",
+          "pixels": 33
+        },
+        {
+          "at": "288,352",
+          "pixels": 32
+        },
+        {
+          "at": "256,416",
+          "pixels": 32
+        },
+        {
+          "at": "160,800",
+          "pixels": 32
+        },
+        {
+          "at": "256,256",
+          "pixels": 31
+        },
+        {
+          "at": "128,800",
+          "pixels": 31
+        },
+        {
+          "at": "224,192",
+          "pixels": 30
+        },
+        {
+          "at": "64,352",
+          "pixels": 29
+        },
+        {
+          "at": "192,800",
+          "pixels": 27
+        },
+        {
+          "at": "64,256",
+          "pixels": 26
+        },
+        {
+          "at": "96,416",
+          "pixels": 26
+        },
+        {
+          "at": "224,352",
+          "pixels": 24
+        },
+        {
+          "at": "288,256",
+          "pixels": 23
+        },
+        {
+          "at": "256,96",
+          "pixels": 20
+        },
+        {
+          "at": "256,288",
+          "pixels": 20
+        },
+        {
+          "at": "224,256",
+          "pixels": 19
+        },
+        {
+          "at": "64,288",
+          "pixels": 18
+        },
+        {
+          "at": "96,256",
+          "pixels": 17
+        },
+        {
+          "at": "256,800",
+          "pixels": 17
+        },
+        {
+          "at": "0,0",
+          "pixels": 15
+        },
+        {
+          "at": "32,192",
+          "pixels": 14
+        },
+        {
+          "at": "32,416",
+          "pixels": 14
+        },
+        {
+          "at": "288,288",
+          "pixels": 13
+        },
+        {
+          "at": "320,192",
+          "pixels": 12
+        },
+        {
+          "at": "224,320",
+          "pixels": 12
+        },
+        {
+          "at": "32,256",
+          "pixels": 11
+        },
+        {
+          "at": "320,352",
+          "pixels": 11
+        },
+        {
+          "at": "32,320",
+          "pixels": 10
+        },
+        {
+          "at": "288,320",
+          "pixels": 10
+        },
+        {
+          "at": "256,320",
+          "pixels": 9
+        },
+        {
+          "at": "96,800",
+          "pixels": 9
+        },
+        {
+          "at": "96,96",
+          "pixels": 8
+        },
+        {
+          "at": "128,96",
+          "pixels": 8
+        },
+        {
+          "at": "160,96",
+          "pixels": 8
+        },
+        {
+          "at": "224,96",
+          "pixels": 8
+        },
+        {
+          "at": "96,288",
+          "pixels": 8
+        },
+        {
+          "at": "224,288",
+          "pixels": 8
+        },
+        {
+          "at": "32,96",
+          "pixels": 7
+        },
+        {
+          "at": "64,0",
+          "pixels": 6
+        },
+        {
+          "at": "64,96",
+          "pixels": 6
+        },
+        {
+          "at": "192,96",
+          "pixels": 6
+        },
+        {
+          "at": "32,288",
+          "pixels": 5
+        },
+        {
+          "at": "64,320",
+          "pixels": 5
+        },
+        {
+          "at": "32,352",
+          "pixels": 5
+        },
+        {
+          "at": "32,0",
+          "pixels": 3
+        },
+        {
+          "at": "0,96",
+          "pixels": 2
+        },
+        {
+          "at": "320,320",
+          "pixels": 2
+        },
+        {
+          "at": "288,96",
+          "pixels": 1
+        }
+      ],
+      "bounds": {
+        "minX": 17,
+        "minY": 25,
+        "maxX": 328,
+        "maxY": 816
+      }
+    },
+    {
+      "file": "web-keuze-auto-nacht.jpg",
+      "exclusions": [],
+      "width": 390,
+      "height": 844,
+      "brightPixels": 754,
+      "hotspots": [
+        {
+          "at": "160,32",
+          "pixels": 74
+        },
+        {
+          "at": "96,32",
+          "pixels": 57
+        },
+        {
+          "at": "128,32",
+          "pixels": 53
+        },
+        {
+          "at": "64,32",
+          "pixels": 47
+        },
+        {
+          "at": "128,0",
+          "pixels": 44
+        },
+        {
+          "at": "96,0",
+          "pixels": 42
+        },
+        {
+          "at": "32,256",
+          "pixels": 29
+        },
+        {
+          "at": "32,64",
+          "pixels": 25
+        },
+        {
+          "at": "64,0",
+          "pixels": 24
+        },
+        {
+          "at": "160,0",
+          "pixels": 23
+        },
+        {
+          "at": "32,480",
+          "pixels": 21
+        },
+        {
+          "at": "0,256",
+          "pixels": 19
+        },
+        {
+          "at": "64,576",
+          "pixels": 19
+        },
+        {
+          "at": "64,256",
+          "pixels": 18
+        },
+        {
+          "at": "32,32",
+          "pixels": 17
+        },
+        {
+          "at": "96,480",
+          "pixels": 17
+        },
+        {
+          "at": "32,576",
+          "pixels": 17
+        },
+        {
+          "at": "192,32",
+          "pixels": 16
+        },
+        {
+          "at": "64,480",
+          "pixels": 16
+        },
+        {
+          "at": "0,64",
+          "pixels": 14
+        },
+        {
+          "at": "0,288",
+          "pixels": 13
+        },
+        {
+          "at": "32,288",
+          "pixels": 13
+        },
+        {
+          "at": "32,96",
+          "pixels": 12
+        },
+        {
+          "at": "192,0",
+          "pixels": 11
+        },
+        {
+          "at": "64,64",
+          "pixels": 11
+        },
+        {
+          "at": "0,480",
+          "pixels": 10
+        },
+        {
+          "at": "0,672",
+          "pixels": 10
+        },
+        {
+          "at": "0,96",
+          "pixels": 9
+        },
+        {
+          "at": "32,0",
+          "pixels": 8
+        },
+        {
+          "at": "0,32",
+          "pixels": 8
+        },
+        {
+          "at": "0,576",
+          "pixels": 7
+        },
+        {
+          "at": "32,128",
+          "pixels": 6
+        },
+        {
+          "at": "96,192",
+          "pixels": 6
+        },
+        {
+          "at": "32,384",
+          "pixels": 6
+        },
+        {
+          "at": "0,384",
+          "pixels": 5
+        },
+        {
+          "at": "64,96",
+          "pixels": 4
+        },
+        {
+          "at": "32,768",
+          "pixels": 4
+        },
+        {
+          "at": "0,128",
+          "pixels": 3
+        },
+        {
+          "at": "128,192",
+          "pixels": 3
+        },
+        {
+          "at": "0,768",
+          "pixels": 3
+        },
+        {
+          "at": "0,0",
+          "pixels": 2
+        },
+        {
+          "at": "32,672",
+          "pixels": 2
+        },
+        {
+          "at": "64,128",
+          "pixels": 1
+        },
+        {
+          "at": "96,160",
+          "pixels": 1
+        },
+        {
+          "at": "64,192",
+          "pixels": 1
+        },
+        {
+          "at": "192,192",
+          "pixels": 1
+        },
+        {
+          "at": "160,192",
+          "pixels": 1
+        },
+        {
+          "at": "128,480",
+          "pixels": 1
+        }
+      ],
+      "bounds": {
+        "minX": 17,
+        "minY": 22,
+        "maxX": 200,
+        "maxY": 790
+      }
+    },
+    {
+      "file": "web-editie-auto-nacht.jpg",
+      "exclusions": [],
+      "width": 390,
+      "height": 844,
+      "brightPixels": 754,
+      "hotspots": [
+        {
+          "at": "160,32",
+          "pixels": 74
+        },
+        {
+          "at": "96,32",
+          "pixels": 57
+        },
+        {
+          "at": "128,32",
+          "pixels": 53
+        },
+        {
+          "at": "64,32",
+          "pixels": 47
+        },
+        {
+          "at": "128,0",
+          "pixels": 44
+        },
+        {
+          "at": "96,0",
+          "pixels": 42
+        },
+        {
+          "at": "32,256",
+          "pixels": 29
+        },
+        {
+          "at": "32,64",
+          "pixels": 25
+        },
+        {
+          "at": "64,0",
+          "pixels": 24
+        },
+        {
+          "at": "160,0",
+          "pixels": 23
+        },
+        {
+          "at": "32,480",
+          "pixels": 21
+        },
+        {
+          "at": "0,256",
+          "pixels": 19
+        },
+        {
+          "at": "64,576",
+          "pixels": 19
+        },
+        {
+          "at": "64,256",
+          "pixels": 18
+        },
+        {
+          "at": "32,32",
+          "pixels": 17
+        },
+        {
+          "at": "96,480",
+          "pixels": 17
+        },
+        {
+          "at": "32,576",
+          "pixels": 17
+        },
+        {
+          "at": "192,32",
+          "pixels": 16
+        },
+        {
+          "at": "64,480",
+          "pixels": 16
+        },
+        {
+          "at": "0,64",
+          "pixels": 14
+        },
+        {
+          "at": "0,288",
+          "pixels": 13
+        },
+        {
+          "at": "32,288",
+          "pixels": 13
+        },
+        {
+          "at": "32,96",
+          "pixels": 12
+        },
+        {
+          "at": "192,0",
+          "pixels": 11
+        },
+        {
+          "at": "64,64",
+          "pixels": 11
+        },
+        {
+          "at": "0,480",
+          "pixels": 10
+        },
+        {
+          "at": "0,672",
+          "pixels": 10
+        },
+        {
+          "at": "0,96",
+          "pixels": 9
+        },
+        {
+          "at": "32,0",
+          "pixels": 8
+        },
+        {
+          "at": "0,32",
+          "pixels": 8
+        },
+        {
+          "at": "0,576",
+          "pixels": 7
+        },
+        {
+          "at": "32,128",
+          "pixels": 6
+        },
+        {
+          "at": "96,192",
+          "pixels": 6
+        },
+        {
+          "at": "32,384",
+          "pixels": 6
+        },
+        {
+          "at": "0,384",
+          "pixels": 5
+        },
+        {
+          "at": "64,96",
+          "pixels": 4
+        },
+        {
+          "at": "32,768",
+          "pixels": 4
+        },
+        {
+          "at": "0,128",
+          "pixels": 3
+        },
+        {
+          "at": "128,192",
+          "pixels": 3
+        },
+        {
+          "at": "0,768",
+          "pixels": 3
+        },
+        {
+          "at": "0,0",
+          "pixels": 2
+        },
+        {
+          "at": "32,672",
+          "pixels": 2
+        },
+        {
+          "at": "64,128",
+          "pixels": 1
+        },
+        {
+          "at": "96,160",
+          "pixels": 1
+        },
+        {
+          "at": "64,192",
+          "pixels": 1
+        },
+        {
+          "at": "192,192",
+          "pixels": 1
+        },
+        {
+          "at": "160,192",
+          "pixels": 1
+        },
+        {
+          "at": "128,480",
+          "pixels": 1
+        }
+      ],
+      "bounds": {
+        "minX": 17,
+        "minY": 22,
+        "maxX": 200,
+        "maxY": 790
+      }
+    },
+    {
+      "file": "web-stroom-auto-nacht.jpg",
+      "exclusions": [],
+      "width": 390,
+      "height": 844,
+      "brightPixels": 754,
+      "hotspots": [
+        {
+          "at": "160,32",
+          "pixels": 74
+        },
+        {
+          "at": "96,32",
+          "pixels": 57
+        },
+        {
+          "at": "128,32",
+          "pixels": 53
+        },
+        {
+          "at": "64,32",
+          "pixels": 47
+        },
+        {
+          "at": "128,0",
+          "pixels": 44
+        },
+        {
+          "at": "96,0",
+          "pixels": 42
+        },
+        {
+          "at": "32,256",
+          "pixels": 29
+        },
+        {
+          "at": "32,64",
+          "pixels": 25
+        },
+        {
+          "at": "64,0",
+          "pixels": 24
+        },
+        {
+          "at": "160,0",
+          "pixels": 23
+        },
+        {
+          "at": "32,480",
+          "pixels": 21
+        },
+        {
+          "at": "0,256",
+          "pixels": 19
+        },
+        {
+          "at": "64,576",
+          "pixels": 19
+        },
+        {
+          "at": "64,256",
+          "pixels": 18
+        },
+        {
+          "at": "32,32",
+          "pixels": 17
+        },
+        {
+          "at": "96,480",
+          "pixels": 17
+        },
+        {
+          "at": "32,576",
+          "pixels": 17
+        },
+        {
+          "at": "192,32",
+          "pixels": 16
+        },
+        {
+          "at": "64,480",
+          "pixels": 16
+        },
+        {
+          "at": "0,64",
+          "pixels": 14
+        },
+        {
+          "at": "0,288",
+          "pixels": 13
+        },
+        {
+          "at": "32,288",
+          "pixels": 13
+        },
+        {
+          "at": "32,96",
+          "pixels": 12
+        },
+        {
+          "at": "192,0",
+          "pixels": 11
+        },
+        {
+          "at": "64,64",
+          "pixels": 11
+        },
+        {
+          "at": "0,480",
+          "pixels": 10
+        },
+        {
+          "at": "0,672",
+          "pixels": 10
+        },
+        {
+          "at": "0,96",
+          "pixels": 9
+        },
+        {
+          "at": "32,0",
+          "pixels": 8
+        },
+        {
+          "at": "0,32",
+          "pixels": 8
+        },
+        {
+          "at": "0,576",
+          "pixels": 7
+        },
+        {
+          "at": "32,128",
+          "pixels": 6
+        },
+        {
+          "at": "96,192",
+          "pixels": 6
+        },
+        {
+          "at": "32,384",
+          "pixels": 6
+        },
+        {
+          "at": "0,384",
+          "pixels": 5
+        },
+        {
+          "at": "64,96",
+          "pixels": 4
+        },
+        {
+          "at": "32,768",
+          "pixels": 4
+        },
+        {
+          "at": "0,128",
+          "pixels": 3
+        },
+        {
+          "at": "128,192",
+          "pixels": 3
+        },
+        {
+          "at": "0,768",
+          "pixels": 3
+        },
+        {
+          "at": "0,0",
+          "pixels": 2
+        },
+        {
+          "at": "32,672",
+          "pixels": 2
+        },
+        {
+          "at": "64,128",
+          "pixels": 1
+        },
+        {
+          "at": "96,160",
+          "pixels": 1
+        },
+        {
+          "at": "64,192",
+          "pixels": 1
+        },
+        {
+          "at": "192,192",
+          "pixels": 1
+        },
+        {
+          "at": "160,192",
+          "pixels": 1
+        },
+        {
+          "at": "128,480",
+          "pixels": 1
+        }
+      ],
+      "bounds": {
+        "minX": 17,
+        "minY": 22,
+        "maxX": 200,
+        "maxY": 790
+      }
+    },
+    {
+      "file": "web-selectie-auto-nacht.jpg",
+      "exclusions": [],
+      "width": 390,
+      "height": 844,
+      "brightPixels": 754,
+      "hotspots": [
+        {
+          "at": "160,32",
+          "pixels": 74
+        },
+        {
+          "at": "96,32",
+          "pixels": 57
+        },
+        {
+          "at": "128,32",
+          "pixels": 53
+        },
+        {
+          "at": "64,32",
+          "pixels": 47
+        },
+        {
+          "at": "128,0",
+          "pixels": 44
+        },
+        {
+          "at": "96,0",
+          "pixels": 42
+        },
+        {
+          "at": "32,256",
+          "pixels": 29
+        },
+        {
+          "at": "32,64",
+          "pixels": 25
+        },
+        {
+          "at": "64,0",
+          "pixels": 24
+        },
+        {
+          "at": "160,0",
+          "pixels": 23
+        },
+        {
+          "at": "32,480",
+          "pixels": 21
+        },
+        {
+          "at": "0,256",
+          "pixels": 19
+        },
+        {
+          "at": "64,576",
+          "pixels": 19
+        },
+        {
+          "at": "64,256",
+          "pixels": 18
+        },
+        {
+          "at": "32,32",
+          "pixels": 17
+        },
+        {
+          "at": "96,480",
+          "pixels": 17
+        },
+        {
+          "at": "32,576",
+          "pixels": 17
+        },
+        {
+          "at": "192,32",
+          "pixels": 16
+        },
+        {
+          "at": "64,480",
+          "pixels": 16
+        },
+        {
+          "at": "0,64",
+          "pixels": 14
+        },
+        {
+          "at": "0,288",
+          "pixels": 13
+        },
+        {
+          "at": "32,288",
+          "pixels": 13
+        },
+        {
+          "at": "32,96",
+          "pixels": 12
+        },
+        {
+          "at": "192,0",
+          "pixels": 11
+        },
+        {
+          "at": "64,64",
+          "pixels": 11
+        },
+        {
+          "at": "0,480",
+          "pixels": 10
+        },
+        {
+          "at": "0,672",
+          "pixels": 10
+        },
+        {
+          "at": "0,96",
+          "pixels": 9
+        },
+        {
+          "at": "32,0",
+          "pixels": 8
+        },
+        {
+          "at": "0,32",
+          "pixels": 8
+        },
+        {
+          "at": "0,576",
+          "pixels": 7
+        },
+        {
+          "at": "32,128",
+          "pixels": 6
+        },
+        {
+          "at": "96,192",
+          "pixels": 6
+        },
+        {
+          "at": "32,384",
+          "pixels": 6
+        },
+        {
+          "at": "0,384",
+          "pixels": 5
+        },
+        {
+          "at": "64,96",
+          "pixels": 4
+        },
+        {
+          "at": "32,768",
+          "pixels": 4
+        },
+        {
+          "at": "0,128",
+          "pixels": 3
+        },
+        {
+          "at": "128,192",
+          "pixels": 3
+        },
+        {
+          "at": "0,768",
+          "pixels": 3
+        },
+        {
+          "at": "0,0",
+          "pixels": 2
+        },
+        {
+          "at": "32,672",
+          "pixels": 2
+        },
+        {
+          "at": "64,128",
+          "pixels": 1
+        },
+        {
+          "at": "96,160",
+          "pixels": 1
+        },
+        {
+          "at": "64,192",
+          "pixels": 1
+        },
+        {
+          "at": "192,192",
+          "pixels": 1
+        },
+        {
+          "at": "160,192",
+          "pixels": 1
+        },
+        {
+          "at": "128,480",
+          "pixels": 1
+        }
+      ],
+      "bounds": {
+        "minX": 17,
+        "minY": 22,
+        "maxX": 200,
+        "maxY": 790
+      }
+    },
+    {
+      "file": "ios-account-auto-nacht.png",
+      "exclusions": [],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 0,
+      "hotspots": [],
+      "bounds": null
+    },
+    {
+      "file": "ios-account-nacht.png",
+      "exclusions": [],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 0,
+      "hotspots": [],
+      "bounds": null
+    },
+    {
+      "file": "ios-editie-auto-nacht.png",
+      "exclusions": [],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 5158,
+      "hotspots": [
+        {
+          "at": "64,2400",
+          "pixels": 769
+        },
+        {
+          "at": "64,2368",
+          "pixels": 671
+        },
+        {
+          "at": "64,1504",
+          "pixels": 604
+        },
+        {
+          "at": "64,1536",
+          "pixels": 541
+        },
+        {
+          "at": "96,2400",
+          "pixels": 449
+        },
+        {
+          "at": "96,1536",
+          "pixels": 361
+        },
+        {
+          "at": "64,1568",
+          "pixels": 348
+        },
+        {
+          "at": "96,2368",
+          "pixels": 292
+        },
+        {
+          "at": "32,2400",
+          "pixels": 260
+        },
+        {
+          "at": "32,1536",
+          "pixels": 219
+        },
+        {
+          "at": "96,1504",
+          "pixels": 211
+        },
+        {
+          "at": "32,2368",
+          "pixels": 154
+        },
+        {
+          "at": "64,2432",
+          "pixels": 96
+        },
+        {
+          "at": "32,1504",
+          "pixels": 81
+        },
+        {
+          "at": "96,1568",
+          "pixels": 81
+        },
+        {
+          "at": "32,1568",
+          "pixels": 15
+        },
+        {
+          "at": "96,2432",
+          "pixels": 6
+        }
+      ],
+      "bounds": {
+        "minX": 51,
+        "minY": 1515,
+        "maxX": 116,
+        "maxY": 2436
+      }
+    },
+    {
+      "file": "ios-editie-nacht.png",
+      "exclusions": [],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 5158,
+      "hotspots": [
+        {
+          "at": "64,2400",
+          "pixels": 769
+        },
+        {
+          "at": "64,2368",
+          "pixels": 671
+        },
+        {
+          "at": "64,1504",
+          "pixels": 604
+        },
+        {
+          "at": "64,1536",
+          "pixels": 541
+        },
+        {
+          "at": "96,2400",
+          "pixels": 449
+        },
+        {
+          "at": "96,1536",
+          "pixels": 361
+        },
+        {
+          "at": "64,1568",
+          "pixels": 348
+        },
+        {
+          "at": "96,2368",
+          "pixels": 292
+        },
+        {
+          "at": "32,2400",
+          "pixels": 260
+        },
+        {
+          "at": "32,1536",
+          "pixels": 219
+        },
+        {
+          "at": "96,1504",
+          "pixels": 211
+        },
+        {
+          "at": "32,2368",
+          "pixels": 154
+        },
+        {
+          "at": "64,2432",
+          "pixels": 96
+        },
+        {
+          "at": "32,1504",
+          "pixels": 81
+        },
+        {
+          "at": "96,1568",
+          "pixels": 81
+        },
+        {
+          "at": "32,1568",
+          "pixels": 15
+        },
+        {
+          "at": "96,2432",
+          "pixels": 6
+        }
+      ],
+      "bounds": {
+        "minX": 51,
+        "minY": 1515,
+        "maxX": 116,
+        "maxY": 2436
+      }
+    },
+    {
+      "file": "ios-eindkaart-auto-nacht.png",
+      "exclusions": [
+        {
+          "x": 48,
+          "y": 1230,
+          "width": 1074,
+          "height": 1250,
+          "reason": "Bestaande rode eindkaart met vast merkpapier"
+        },
+        {
+          "x": 832,
+          "y": 650,
+          "width": 295,
+          "height": 215,
+          "reason": "Ongewijzigde foto boven de eindkaart"
+        },
+        {
+          "x": 830,
+          "y": 0,
+          "width": 295,
+          "height": 230,
+          "reason": "Gedeeltelijk zichtbare foto bovenin"
+        }
+      ],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 0,
+      "hotspots": [],
+      "bounds": null
+    },
+    {
+      "file": "ios-eindkaart-nacht.png",
+      "exclusions": [
+        {
+          "x": 48,
+          "y": 1230,
+          "width": 1074,
+          "height": 1250,
+          "reason": "Bestaande rode eindkaart met vast merkpapier"
+        },
+        {
+          "x": 832,
+          "y": 650,
+          "width": 295,
+          "height": 215,
+          "reason": "Ongewijzigde foto boven de eindkaart"
+        },
+        {
+          "x": 830,
+          "y": 0,
+          "width": 295,
+          "height": 230,
+          "reason": "Gedeeltelijk zichtbare foto bovenin"
+        }
+      ],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 0,
+      "hotspots": [],
+      "bounds": null
+    },
+    {
+      "file": "ios-instellingen-auto-nacht.png",
+      "exclusions": [],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 0,
+      "hotspots": [],
+      "bounds": null
+    },
+    {
+      "file": "ios-instellingen-nacht.png",
+      "exclusions": [],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 0,
+      "hotspots": [],
+      "bounds": null
+    },
+    {
+      "file": "ios-keuze-auto-nacht.png",
+      "exclusions": [],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 0,
+      "hotspots": [],
+      "bounds": null
+    },
+    {
+      "file": "ios-keuze-nacht-ax5.png",
+      "exclusions": [],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 0,
+      "hotspots": [],
+      "bounds": null
+    },
+    {
+      "file": "ios-keuze-nacht-xxxl.png",
+      "exclusions": [],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 0,
+      "hotspots": [],
+      "bounds": null
+    },
+    {
+      "file": "ios-keuze-nacht.png",
+      "exclusions": [],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 0,
+      "hotspots": [],
+      "bounds": null
+    },
+    {
+      "file": "ios-laden-auto-nacht.png",
+      "exclusions": [],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 0,
+      "hotspots": [],
+      "bounds": null
+    },
+    {
+      "file": "ios-laden-nacht.png",
+      "exclusions": [],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 0,
+      "hotspots": [],
+      "bounds": null
+    },
+    {
+      "file": "ios-lezer-html-auto-nacht.png",
+      "exclusions": [],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 0,
+      "hotspots": [],
+      "bounds": null
+    },
+    {
+      "file": "ios-lezer-html-nacht.png",
+      "exclusions": [],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 0,
+      "hotspots": [],
+      "bounds": null
+    },
+    {
+      "file": "ios-onboarding-auto-nacht.png",
+      "exclusions": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 1170,
+          "height": 2532,
+          "reason": "Bestaand merkrood welkom met vast papier"
+        }
+      ],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 0,
+      "hotspots": [],
+      "bounds": null
+    },
+    {
+      "file": "ios-onboarding-nacht.png",
+      "exclusions": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 1170,
+          "height": 2532,
+          "reason": "Bestaand merkrood welkom met vast papier"
+        }
+      ],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 0,
+      "hotspots": [],
+      "bounds": null
+    },
+    {
+      "file": "ios-selectie-auto-nacht.png",
+      "exclusions": [],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 1139,
+      "hotspots": [
+        {
+          "at": "128,2144",
+          "pixels": 393
+        },
+        {
+          "at": "96,2144",
+          "pixels": 365
+        },
+        {
+          "at": "128,2176",
+          "pixels": 100
+        },
+        {
+          "at": "160,2144",
+          "pixels": 91
+        },
+        {
+          "at": "128,2112",
+          "pixels": 65
+        },
+        {
+          "at": "96,2112",
+          "pixels": 64
+        },
+        {
+          "at": "96,2176",
+          "pixels": 51
+        },
+        {
+          "at": "160,2176",
+          "pixels": 10
+        }
+      ],
+      "bounds": {
+        "minX": 99,
+        "minY": 2135,
+        "maxX": 164,
+        "maxY": 2198
+      }
+    },
+    {
+      "file": "ios-selectie-nacht.png",
+      "exclusions": [],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 1139,
+      "hotspots": [
+        {
+          "at": "128,2144",
+          "pixels": 393
+        },
+        {
+          "at": "96,2144",
+          "pixels": 365
+        },
+        {
+          "at": "128,2176",
+          "pixels": 100
+        },
+        {
+          "at": "160,2144",
+          "pixels": 91
+        },
+        {
+          "at": "128,2112",
+          "pixels": 65
+        },
+        {
+          "at": "96,2112",
+          "pixels": 64
+        },
+        {
+          "at": "96,2176",
+          "pixels": 51
+        },
+        {
+          "at": "160,2176",
+          "pixels": 10
+        }
+      ],
+      "bounds": {
+        "minX": 99,
+        "minY": 2135,
+        "maxX": 164,
+        "maxY": 2198
+      }
+    },
+    {
+      "file": "ios-stroom-auto-nacht.png",
+      "exclusions": [],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 14361,
+      "hotspots": [
+        {
+          "at": "928,544",
+          "pixels": 811
+        },
+        {
+          "at": "64,1120",
+          "pixels": 793
+        },
+        {
+          "at": "64,2336",
+          "pixels": 755
+        },
+        {
+          "at": "64,1760",
+          "pixels": 713
+        },
+        {
+          "at": "64,2304",
+          "pixels": 696
+        },
+        {
+          "at": "928,512",
+          "pixels": 683
+        },
+        {
+          "at": "64,1088",
+          "pixels": 644
+        },
+        {
+          "at": "64,1728",
+          "pixels": 635
+        },
+        {
+          "at": "992,544",
+          "pixels": 560
+        },
+        {
+          "at": "960,544",
+          "pixels": 539
+        },
+        {
+          "at": "992,512",
+          "pixels": 515
+        },
+        {
+          "at": "960,512",
+          "pixels": 467
+        },
+        {
+          "at": "96,1760",
+          "pixels": 460
+        },
+        {
+          "at": "1056,544",
+          "pixels": 450
+        },
+        {
+          "at": "1056,512",
+          "pixels": 431
+        },
+        {
+          "at": "1024,512",
+          "pixels": 415
+        },
+        {
+          "at": "1024,544",
+          "pixels": 394
+        },
+        {
+          "at": "96,1120",
+          "pixels": 391
+        },
+        {
+          "at": "96,2304",
+          "pixels": 330
+        },
+        {
+          "at": "96,2336",
+          "pixels": 323
+        },
+        {
+          "at": "32,1760",
+          "pixels": 289
+        },
+        {
+          "at": "96,1088",
+          "pixels": 263
+        },
+        {
+          "at": "96,1728",
+          "pixels": 259
+        },
+        {
+          "at": "992,576",
+          "pixels": 195
+        },
+        {
+          "at": "32,1120",
+          "pixels": 194
+        },
+        {
+          "at": "64,1792",
+          "pixels": 188
+        },
+        {
+          "at": "32,2304",
+          "pixels": 169
+        },
+        {
+          "at": "32,2336",
+          "pixels": 146
+        },
+        {
+          "at": "992,480",
+          "pixels": 144
+        },
+        {
+          "at": "928,576",
+          "pixels": 131
+        },
+        {
+          "at": "32,1088",
+          "pixels": 126
+        },
+        {
+          "at": "32,1728",
+          "pixels": 123
+        },
+        {
+          "at": "1056,576",
+          "pixels": 118
+        },
+        {
+          "at": "1024,576",
+          "pixels": 117
+        },
+        {
+          "at": "896,544",
+          "pixels": 115
+        },
+        {
+          "at": "960,576",
+          "pixels": 102
+        },
+        {
+          "at": "896,512",
+          "pixels": 101
+        },
+        {
+          "at": "928,480",
+          "pixels": 86
+        },
+        {
+          "at": "1024,480",
+          "pixels": 86
+        },
+        {
+          "at": "1056,480",
+          "pixels": 86
+        },
+        {
+          "at": "960,480",
+          "pixels": 70
+        },
+        {
+          "at": "1088,544",
+          "pixels": 66
+        },
+        {
+          "at": "1088,512",
+          "pixels": 58
+        },
+        {
+          "at": "64,1152",
+          "pixels": 56
+        },
+        {
+          "at": "64,2272",
+          "pixels": 42
+        },
+        {
+          "at": "96,1792",
+          "pixels": 26
+        }
+      ],
+      "bounds": {
+        "minX": 51,
+        "minY": 506,
+        "maxX": 1094,
+        "maxY": 2366
+      }
+    },
+    {
+      "file": "ios-stroom-nacht.png",
+      "exclusions": [],
+      "width": 1170,
+      "height": 2532,
+      "brightPixels": 14361,
+      "hotspots": [
+        {
+          "at": "928,544",
+          "pixels": 811
+        },
+        {
+          "at": "64,1120",
+          "pixels": 793
+        },
+        {
+          "at": "64,2336",
+          "pixels": 755
+        },
+        {
+          "at": "64,1760",
+          "pixels": 713
+        },
+        {
+          "at": "64,2304",
+          "pixels": 696
+        },
+        {
+          "at": "928,512",
+          "pixels": 683
+        },
+        {
+          "at": "64,1088",
+          "pixels": 644
+        },
+        {
+          "at": "64,1728",
+          "pixels": 635
+        },
+        {
+          "at": "992,544",
+          "pixels": 560
+        },
+        {
+          "at": "960,544",
+          "pixels": 539
+        },
+        {
+          "at": "992,512",
+          "pixels": 515
+        },
+        {
+          "at": "960,512",
+          "pixels": 467
+        },
+        {
+          "at": "96,1760",
+          "pixels": 460
+        },
+        {
+          "at": "1056,544",
+          "pixels": 450
+        },
+        {
+          "at": "1056,512",
+          "pixels": 431
+        },
+        {
+          "at": "1024,512",
+          "pixels": 415
+        },
+        {
+          "at": "1024,544",
+          "pixels": 394
+        },
+        {
+          "at": "96,1120",
+          "pixels": 391
+        },
+        {
+          "at": "96,2304",
+          "pixels": 330
+        },
+        {
+          "at": "96,2336",
+          "pixels": 323
+        },
+        {
+          "at": "32,1760",
+          "pixels": 289
+        },
+        {
+          "at": "96,1088",
+          "pixels": 263
+        },
+        {
+          "at": "96,1728",
+          "pixels": 259
+        },
+        {
+          "at": "992,576",
+          "pixels": 195
+        },
+        {
+          "at": "32,1120",
+          "pixels": 194
+        },
+        {
+          "at": "64,1792",
+          "pixels": 188
+        },
+        {
+          "at": "32,2304",
+          "pixels": 169
+        },
+        {
+          "at": "32,2336",
+          "pixels": 146
+        },
+        {
+          "at": "992,480",
+          "pixels": 144
+        },
+        {
+          "at": "928,576",
+          "pixels": 131
+        },
+        {
+          "at": "32,1088",
+          "pixels": 126
+        },
+        {
+          "at": "32,1728",
+          "pixels": 123
+        },
+        {
+          "at": "1056,576",
+          "pixels": 118
+        },
+        {
+          "at": "1024,576",
+          "pixels": 117
+        },
+        {
+          "at": "896,544",
+          "pixels": 115
+        },
+        {
+          "at": "960,576",
+          "pixels": 102
+        },
+        {
+          "at": "896,512",
+          "pixels": 101
+        },
+        {
+          "at": "928,480",
+          "pixels": 86
+        },
+        {
+          "at": "1024,480",
+          "pixels": 86
+        },
+        {
+          "at": "1056,480",
+          "pixels": 86
+        },
+        {
+          "at": "960,480",
+          "pixels": 70
+        },
+        {
+          "at": "1088,544",
+          "pixels": 66
+        },
+        {
+          "at": "1088,512",
+          "pixels": 58
+        },
+        {
+          "at": "64,1152",
+          "pixels": 56
+        },
+        {
+          "at": "64,2272",
+          "pixels": 42
+        },
+        {
+          "at": "96,1792",
+          "pixels": 26
+        }
+      ],
+      "bounds": {
+        "minX": 51,
+        "minY": 506,
+        "maxX": 1094,
+        "maxY": 2366
+      }
+    },
+    {
+      "file": "ipad-editie-liggend-nacht.png",
+      "exclusions": [],
+      "width": 3399,
+      "height": 2232,
+      "brightPixels": 6767,
+      "hotspots": [
+        {
+          "at": "256,1952",
+          "pixels": 728
+        },
+        {
+          "at": "288,1952",
+          "pixels": 647
+        },
+        {
+          "at": "256,1248",
+          "pixels": 605
+        },
+        {
+          "at": "1760,1888",
+          "pixels": 554
+        },
+        {
+          "at": "288,1248",
+          "pixels": 549
+        },
+        {
+          "at": "256,1216",
+          "pixels": 527
+        },
+        {
+          "at": "256,1984",
+          "pixels": 504
+        },
+        {
+          "at": "288,1216",
+          "pixels": 376
+        },
+        {
+          "at": "288,1984",
+          "pixels": 370
+        },
+        {
+          "at": "1792,1888",
+          "pixels": 327
+        },
+        {
+          "at": "256,1920",
+          "pixels": 215
+        },
+        {
+          "at": "1760,1856",
+          "pixels": 209
+        },
+        {
+          "at": "256,1280",
+          "pixels": 188
+        },
+        {
+          "at": "1792,1856",
+          "pixels": 151
+        },
+        {
+          "at": "1760,1920",
+          "pixels": 135
+        },
+        {
+          "at": "288,1920",
+          "pixels": 131
+        },
+        {
+          "at": "1728,1888",
+          "pixels": 128
+        },
+        {
+          "at": "288,1280",
+          "pixels": 112
+        },
+        {
+          "at": "224,1952",
+          "pixels": 91
+        },
+        {
+          "at": "224,1248",
+          "pixels": 87
+        },
+        {
+          "at": "1792,1920",
+          "pixels": 67
+        },
+        {
+          "at": "1728,1856",
+          "pixels": 42
+        },
+        {
+          "at": "224,1216",
+          "pixels": 13
+        },
+        {
+          "at": "224,1984",
+          "pixels": 11
+        }
+      ],
+      "bounds": {
+        "minX": 251,
+        "minY": 1224,
+        "maxX": 1815,
+        "maxY": 2006
+      }
+    },
+    {
+      "file": "ipad-editie-staand-nacht.png",
+      "exclusions": [],
+      "width": 2232,
+      "height": 3399,
+      "brightPixels": 15009,
+      "hotspots": [
+        {
+          "at": "64,2112",
+          "pixels": 818
+        },
+        {
+          "at": "64,2688",
+          "pixels": 790
+        },
+        {
+          "at": "64,2080",
+          "pixels": 710
+        },
+        {
+          "at": "1184,3296",
+          "pixels": 709
+        },
+        {
+          "at": "64,2656",
+          "pixels": 704
+        },
+        {
+          "at": "64,1248",
+          "pixels": 631
+        },
+        {
+          "at": "64,3360",
+          "pixels": 624
+        },
+        {
+          "at": "64,1216",
+          "pixels": 610
+        },
+        {
+          "at": "1184,3328",
+          "pixels": 610
+        },
+        {
+          "at": "1184,1952",
+          "pixels": 590
+        },
+        {
+          "at": "1184,2656",
+          "pixels": 486
+        },
+        {
+          "at": "1184,2688",
+          "pixels": 422
+        },
+        {
+          "at": "96,2112",
+          "pixels": 403
+        },
+        {
+          "at": "96,1248",
+          "pixels": 388
+        },
+        {
+          "at": "96,2688",
+          "pixels": 378
+        },
+        {
+          "at": "1216,3296",
+          "pixels": 377
+        },
+        {
+          "at": "1152,3296",
+          "pixels": 373
+        },
+        {
+          "at": "96,2656",
+          "pixels": 369
+        },
+        {
+          "at": "96,2080",
+          "pixels": 344
+        },
+        {
+          "at": "64,1280",
+          "pixels": 252
+        },
+        {
+          "at": "1152,1952",
+          "pixels": 237
+        },
+        {
+          "at": "96,3360",
+          "pixels": 237
+        },
+        {
+          "at": "1184,3264",
+          "pixels": 230
+        },
+        {
+          "at": "32,1248",
+          "pixels": 222
+        },
+        {
+          "at": "96,1216",
+          "pixels": 218
+        },
+        {
+          "at": "32,2112",
+          "pixels": 218
+        },
+        {
+          "at": "32,2656",
+          "pixels": 218
+        },
+        {
+          "at": "1184,1984",
+          "pixels": 207
+        },
+        {
+          "at": "1152,2656",
+          "pixels": 197
+        },
+        {
+          "at": "32,2080",
+          "pixels": 196
+        },
+        {
+          "at": "32,2688",
+          "pixels": 196
+        },
+        {
+          "at": "1152,3328",
+          "pixels": 186
+        },
+        {
+          "at": "1216,3328",
+          "pixels": 186
+        },
+        {
+          "at": "1216,1952",
+          "pixels": 185
+        },
+        {
+          "at": "1216,2656",
+          "pixels": 166
+        },
+        {
+          "at": "1152,2688",
+          "pixels": 158
+        },
+        {
+          "at": "1184,1920",
+          "pixels": 153
+        },
+        {
+          "at": "1216,2688",
+          "pixels": 142
+        },
+        {
+          "at": "64,3392",
+          "pixels": 114
+        },
+        {
+          "at": "32,3360",
+          "pixels": 108
+        },
+        {
+          "at": "1216,1984",
+          "pixels": 97
+        },
+        {
+          "at": "1152,1984",
+          "pixels": 93
+        },
+        {
+          "at": "96,3392",
+          "pixels": 92
+        },
+        {
+          "at": "32,1216",
+          "pixels": 88
+        },
+        {
+          "at": "32,3392",
+          "pixels": 60
+        },
+        {
+          "at": "96,1280",
+          "pixels": 45
+        },
+        {
+          "at": "64,2624",
+          "pixels": 42
+        },
+        {
+          "at": "1184,2624",
+          "pixels": 42
+        },
+        {
+          "at": "1216,1920",
+          "pixels": 26
+        },
+        {
+          "at": "1152,1920",
+          "pixels": 25
+        },
+        {
+          "at": "1152,3264",
+          "pixels": 13
+        },
+        {
+          "at": "1216,3264",
+          "pixels": 13
+        },
+        {
+          "at": "64,2048",
+          "pixels": 4
+        },
+        {
+          "at": "64,2144",
+          "pixels": 4
+        },
+        {
+          "at": "32,1280",
+          "pixels": 3
+        }
+      ],
+      "bounds": {
+        "minX": 51,
+        "minY": 1224,
+        "maxX": 1232,
+        "maxY": 3398
+      }
+    },
+    {
+      "file": "ipad-instellingen-liggend-nacht.png",
+      "exclusions": [],
+      "width": 3399,
+      "height": 2232,
+      "brightPixels": 0,
+      "hotspots": [],
+      "bounds": null
+    },
+    {
+      "file": "ipad-instellingen-staand-nacht.png",
+      "exclusions": [],
+      "width": 2232,
+      "height": 3399,
+      "brightPixels": 0,
+      "hotspots": [],
+      "bounds": null
+    },
+    {
+      "file": "native-ipad-lezer-nacht.jpg",
+      "exclusions": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 1472,
+          "height": 603,
+          "reason": "Mac/Device Hub buiten het app-scherm"
+        },
+        {
+          "x": 0,
+          "y": 603,
+          "width": 555,
+          "height": 1127,
+          "reason": "Mac buiten het app-scherm"
+        },
+        {
+          "x": 1398,
+          "y": 603,
+          "width": 74,
+          "height": 1127,
+          "reason": "Mac buiten het app-scherm"
+        },
+        {
+          "x": 555,
+          "y": 1157,
+          "width": 843,
+          "height": 573,
+          "reason": "Mac en apparaatframe onder het app-scherm"
+        },
+        {
+          "x": 555,
+          "y": 603,
+          "width": 843,
+          "height": 24,
+          "reason": "Systeemstatusbalk"
+        }
+      ],
+      "width": 1472,
+      "height": 1730,
+      "brightPixels": 751,
+      "hotspots": [
+        {
+          "at": "736,704",
+          "pixels": 78
+        },
+        {
+          "at": "832,704",
+          "pixels": 72
+        },
+        {
+          "at": "864,704",
+          "pixels": 68
+        },
+        {
+          "at": "800,704",
+          "pixels": 62
+        },
+        {
+          "at": "896,704",
+          "pixels": 58
+        },
+        {
+          "at": "768,704",
+          "pixels": 51
+        },
+        {
+          "at": "928,704",
+          "pixels": 40
+        },
+        {
+          "at": "960,704",
+          "pixels": 32
+        },
+        {
+          "at": "736,736",
+          "pixels": 25
+        },
+        {
+          "at": "928,736",
+          "pixels": 22
+        },
+        {
+          "at": "800,672",
+          "pixels": 21
+        },
+        {
+          "at": "864,736",
+          "pixels": 20
+        },
+        {
+          "at": "832,736",
+          "pixels": 19
+        },
+        {
+          "at": "896,736",
+          "pixels": 18
+        },
+        {
+          "at": "800,736",
+          "pixels": 17
+        },
+        {
+          "at": "704,704",
+          "pixels": 14
+        },
+        {
+          "at": "768,736",
+          "pixels": 14
+        },
+        {
+          "at": "736,800",
+          "pixels": 12
+        },
+        {
+          "at": "768,800",
+          "pixels": 10
+        },
+        {
+          "at": "768,1024",
+          "pixels": 10
+        },
+        {
+          "at": "736,1024",
+          "pixels": 9
+        },
+        {
+          "at": "864,672",
+          "pixels": 8
+        },
+        {
+          "at": "992,704",
+          "pixels": 8
+        },
+        {
+          "at": "768,672",
+          "pixels": 6
+        },
+        {
+          "at": "960,672",
+          "pixels": 6
+        },
+        {
+          "at": "704,672",
+          "pixels": 6
+        },
+        {
+          "at": "960,736",
+          "pixels": 6
+        },
+        {
+          "at": "704,736",
+          "pixels": 6
+        },
+        {
+          "at": "704,800",
+          "pixels": 6
+        },
+        {
+          "at": "704,1024",
+          "pixels": 6
+        },
+        {
+          "at": "896,672",
+          "pixels": 5
+        },
+        {
+          "at": "800,800",
+          "pixels": 5
+        },
+        {
+          "at": "800,1024",
+          "pixels": 5
+        },
+        {
+          "at": "736,672",
+          "pixels": 2
+        },
+        {
+          "at": "1120,896",
+          "pixels": 1
+        },
+        {
+          "at": "928,896",
+          "pixels": 1
+        },
+        {
+          "at": "1120,1056",
+          "pixels": 1
+        },
+        {
+          "at": "800,1088",
+          "pixels": 1
+        }
+      ],
+      "bounds": {
+        "minX": 725,
+        "minY": 698,
+        "maxX": 1142,
+        "maxY": 1113
+      }
+    },
+    {
+      "file": "native-ipad-lezer-overscroll-nacht.jpg",
+      "exclusions": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 1472,
+          "height": 603,
+          "reason": "Mac/Device Hub buiten het app-scherm"
+        },
+        {
+          "x": 0,
+          "y": 603,
+          "width": 555,
+          "height": 1127,
+          "reason": "Mac buiten het app-scherm"
+        },
+        {
+          "x": 1398,
+          "y": 603,
+          "width": 74,
+          "height": 1127,
+          "reason": "Mac buiten het app-scherm"
+        },
+        {
+          "x": 555,
+          "y": 1157,
+          "width": 843,
+          "height": 573,
+          "reason": "Mac en apparaatframe onder het app-scherm"
+        },
+        {
+          "x": 555,
+          "y": 603,
+          "width": 843,
+          "height": 24,
+          "reason": "Systeemstatusbalk"
+        }
+      ],
+      "width": 1472,
+      "height": 1730,
+      "brightPixels": 788,
+      "hotspots": [
+        {
+          "at": "736,704",
+          "pixels": 78
+        },
+        {
+          "at": "832,704",
+          "pixels": 72
+        },
+        {
+          "at": "864,704",
+          "pixels": 68
+        },
+        {
+          "at": "800,704",
+          "pixels": 62
+        },
+        {
+          "at": "896,704",
+          "pixels": 58
+        },
+        {
+          "at": "768,704",
+          "pixels": 51
+        },
+        {
+          "at": "928,704",
+          "pixels": 40
+        },
+        {
+          "at": "992,704",
+          "pixels": 32
+        },
+        {
+          "at": "960,704",
+          "pixels": 30
+        },
+        {
+          "at": "736,736",
+          "pixels": 25
+        },
+        {
+          "at": "928,736",
+          "pixels": 22
+        },
+        {
+          "at": "800,672",
+          "pixels": 21
+        },
+        {
+          "at": "864,736",
+          "pixels": 20
+        },
+        {
+          "at": "832,736",
+          "pixels": 19
+        },
+        {
+          "at": "896,736",
+          "pixels": 18
+        },
+        {
+          "at": "800,736",
+          "pixels": 17
+        },
+        {
+          "at": "704,704",
+          "pixels": 14
+        },
+        {
+          "at": "768,736",
+          "pixels": 14
+        },
+        {
+          "at": "1024,704",
+          "pixels": 13
+        },
+        {
+          "at": "736,800",
+          "pixels": 12
+        },
+        {
+          "at": "768,800",
+          "pixels": 10
+        },
+        {
+          "at": "768,1024",
+          "pixels": 10
+        },
+        {
+          "at": "736,1024",
+          "pixels": 9
+        },
+        {
+          "at": "864,672",
+          "pixels": 8
+        },
+        {
+          "at": "768,672",
+          "pixels": 6
+        },
+        {
+          "at": "960,672",
+          "pixels": 6
+        },
+        {
+          "at": "704,672",
+          "pixels": 6
+        },
+        {
+          "at": "960,736",
+          "pixels": 6
+        },
+        {
+          "at": "704,736",
+          "pixels": 6
+        },
+        {
+          "at": "704,800",
+          "pixels": 6
+        },
+        {
+          "at": "704,1024",
+          "pixels": 6
+        },
+        {
+          "at": "896,672",
+          "pixels": 5
+        },
+        {
+          "at": "800,800",
+          "pixels": 5
+        },
+        {
+          "at": "800,1024",
+          "pixels": 5
+        },
+        {
+          "at": "992,672",
+          "pixels": 3
+        },
+        {
+          "at": "736,672",
+          "pixels": 2
+        },
+        {
+          "at": "1120,896",
+          "pixels": 1
+        },
+        {
+          "at": "1120,1056",
+          "pixels": 1
+        },
+        {
+          "at": "800,1088",
+          "pixels": 1
+        }
+      ],
+      "bounds": {
+        "minX": 725,
+        "minY": 698,
+        "maxX": 1142,
+        "maxY": 1113
+      }
+    },
+    {
+      "file": "native-ipad-abonnementspaneel-nacht.jpg",
+      "exclusions": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 1472,
+          "height": 603,
+          "reason": "Mac/Device Hub buiten het app-scherm"
+        },
+        {
+          "x": 0,
+          "y": 603,
+          "width": 555,
+          "height": 1127,
+          "reason": "Mac buiten het app-scherm"
+        },
+        {
+          "x": 1398,
+          "y": 603,
+          "width": 74,
+          "height": 1127,
+          "reason": "Mac buiten het app-scherm"
+        },
+        {
+          "x": 555,
+          "y": 1157,
+          "width": 843,
+          "height": 573,
+          "reason": "Mac en apparaatframe onder het app-scherm"
+        },
+        {
+          "x": 555,
+          "y": 603,
+          "width": 843,
+          "height": 24,
+          "reason": "Systeemstatusbalk"
+        },
+        {
+          "x": 723,
+          "y": 936,
+          "width": 506,
+          "height": 126,
+          "reason": "Ongewijzigde artikelfoto"
+        }
+      ],
+      "width": 1472,
+      "height": 1730,
+      "brightPixels": 2523,
+      "hotspots": [
+        {
+          "at": "640,1088",
+          "pixels": 210
+        },
+        {
+          "at": "608,1088",
+          "pixels": 175
+        },
+        {
+          "at": "576,1088",
+          "pixels": 119
+        },
+        {
+          "at": "672,1088",
+          "pixels": 117
+        },
+        {
+          "at": "800,704",
+          "pixels": 74
+        },
+        {
+          "at": "736,704",
+          "pixels": 73
+        },
+        {
+          "at": "1024,704",
+          "pixels": 71
+        },
+        {
+          "at": "800,736",
+          "pixels": 71
+        },
+        {
+          "at": "1120,736",
+          "pixels": 70
+        },
+        {
+          "at": "1024,736",
+          "pixels": 69
+        },
+        {
+          "at": "736,736",
+          "pixels": 65
+        },
+        {
+          "at": "1088,736",
+          "pixels": 64
+        },
+        {
+          "at": "960,704",
+          "pixels": 63
+        },
+        {
+          "at": "832,704",
+          "pixels": 62
+        },
+        {
+          "at": "832,736",
+          "pixels": 60
+        },
+        {
+          "at": "992,704",
+          "pixels": 59
+        },
+        {
+          "at": "1056,704",
+          "pixels": 58
+        },
+        {
+          "at": "768,704",
+          "pixels": 55
+        },
+        {
+          "at": "768,736",
+          "pixels": 54
+        },
+        {
+          "at": "1056,736",
+          "pixels": 53
+        },
+        {
+          "at": "1120,768",
+          "pixels": 52
+        },
+        {
+          "at": "800,768",
+          "pixels": 48
+        },
+        {
+          "at": "1088,704",
+          "pixels": 46
+        },
+        {
+          "at": "1056,768",
+          "pixels": 45
+        },
+        {
+          "at": "1088,768",
+          "pixels": 44
+        },
+        {
+          "at": "1024,768",
+          "pixels": 44
+        },
+        {
+          "at": "864,704",
+          "pixels": 43
+        },
+        {
+          "at": "544,1088",
+          "pixels": 43
+        },
+        {
+          "at": "1152,736",
+          "pixels": 42
+        },
+        {
+          "at": "736,768",
+          "pixels": 37
+        },
+        {
+          "at": "832,768",
+          "pixels": 34
+        },
+        {
+          "at": "768,768",
+          "pixels": 33
+        },
+        {
+          "at": "1152,768",
+          "pixels": 33
+        },
+        {
+          "at": "992,736",
+          "pixels": 32
+        },
+        {
+          "at": "896,704",
+          "pixels": 31
+        },
+        {
+          "at": "1120,704",
+          "pixels": 30
+        },
+        {
+          "at": "704,736",
+          "pixels": 30
+        },
+        {
+          "at": "928,704",
+          "pixels": 27
+        },
+        {
+          "at": "704,768",
+          "pixels": 27
+        },
+        {
+          "at": "992,768",
+          "pixels": 26
+        },
+        {
+          "at": "704,704",
+          "pixels": 17
+        },
+        {
+          "at": "1184,768",
+          "pixels": 14
+        },
+        {
+          "at": "800,672",
+          "pixels": 13
+        },
+        {
+          "at": "1056,672",
+          "pixels": 13
+        },
+        {
+          "at": "960,736",
+          "pixels": 13
+        },
+        {
+          "at": "832,672",
+          "pixels": 10
+        },
+        {
+          "at": "864,736",
+          "pixels": 9
+        },
+        {
+          "at": "576,1120",
+          "pixels": 9
+        },
+        {
+          "at": "704,672",
+          "pixels": 8
+        },
+        {
+          "at": "672,1120",
+          "pixels": 8
+        },
+        {
+          "at": "896,672",
+          "pixels": 7
+        },
+        {
+          "at": "736,672",
+          "pixels": 4
+        },
+        {
+          "at": "928,672",
+          "pixels": 2
+        },
+        {
+          "at": "1024,672",
+          "pixels": 2
+        },
+        {
+          "at": "864,672",
+          "pixels": 1
+        },
+        {
+          "at": "960,672",
+          "pixels": 1
+        },
+        {
+          "at": "1120,864",
+          "pixels": 1
+        },
+        {
+          "at": "960,864",
+          "pixels": 1
+        },
+        {
+          "at": "704,1088",
+          "pixels": 1
+        }
+      ],
+      "bounds": {
+        "minX": 568,
+        "minY": 698,
+        "maxX": 1195,
+        "maxY": 1121
+      }
+    },
+    {
+      "file": "native-instellingen-nacht-definitief.jpg",
+      "exclusions": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 1472,
+          "height": 165,
+          "reason": "Mac boven het app-scherm"
+        },
+        {
+          "x": 0,
+          "y": 165,
+          "width": 650,
+          "height": 1565,
+          "reason": "Mac links van het app-scherm"
+        },
+        {
+          "x": 1303,
+          "y": 165,
+          "width": 169,
+          "height": 1565,
+          "reason": "Mac rechts van het app-scherm"
+        },
+        {
+          "x": 650,
+          "y": 1585,
+          "width": 653,
+          "height": 145,
+          "reason": "Mac en apparaatframe onder het app-scherm"
+        },
+        {
+          "x": 650,
+          "y": 165,
+          "width": 653,
+          "height": 101,
+          "reason": "Systeemstatusbalk"
+        }
+      ],
+      "width": 1472,
+      "height": 1730,
+      "brightPixels": 2547,
+      "hotspots": [
+        {
+          "at": "1280,1568",
+          "pixels": 274
+        },
+        {
+          "at": "640,1568",
+          "pixels": 254
+        },
+        {
+          "at": "1152,448",
+          "pixels": 77
+        },
+        {
+          "at": "1184,1344",
+          "pixels": 72
+        },
+        {
+          "at": "1184,416",
+          "pixels": 68
+        },
+        {
+          "at": "1184,1120",
+          "pixels": 60
+        },
+        {
+          "at": "1184,1152",
+          "pixels": 55
+        },
+        {
+          "at": "1184,1376",
+          "pixels": 49
+        },
+        {
+          "at": "1152,1152",
+          "pixels": 43
+        },
+        {
+          "at": "704,1472",
+          "pixels": 43
+        },
+        {
+          "at": "736,576",
+          "pixels": 42
+        },
+        {
+          "at": "704,576",
+          "pixels": 41
+        },
+        {
+          "at": "704,1056",
+          "pixels": 41
+        },
+        {
+          "at": "896,320",
+          "pixels": 40
+        },
+        {
+          "at": "992,320",
+          "pixels": 39
+        },
+        {
+          "at": "1184,448",
+          "pixels": 39
+        },
+        {
+          "at": "736,1280",
+          "pixels": 37
+        },
+        {
+          "at": "960,320",
+          "pixels": 36
+        },
+        {
+          "at": "1024,320",
+          "pixels": 36
+        },
+        {
+          "at": "768,1056",
+          "pixels": 34
+        },
+        {
+          "at": "736,1472",
+          "pixels": 34
+        },
+        {
+          "at": "1152,1376",
+          "pixels": 33
+        },
+        {
+          "at": "1280,1536",
+          "pixels": 31
+        },
+        {
+          "at": "736,1056",
+          "pixels": 28
+        },
+        {
+          "at": "704,1280",
+          "pixels": 28
+        },
+        {
+          "at": "800,1472",
+          "pixels": 28
+        },
+        {
+          "at": "928,320",
+          "pixels": 27
+        },
+        {
+          "at": "1152,416",
+          "pixels": 25
+        },
+        {
+          "at": "768,1280",
+          "pixels": 24
+        },
+        {
+          "at": "768,1472",
+          "pixels": 24
+        },
+        {
+          "at": "704,864",
+          "pixels": 23
+        },
+        {
+          "at": "736,864",
+          "pixels": 23
+        },
+        {
+          "at": "1152,1120",
+          "pixels": 23
+        },
+        {
+          "at": "640,1536",
+          "pixels": 22
+        },
+        {
+          "at": "736,832",
+          "pixels": 20
+        },
+        {
+          "at": "768,864",
+          "pixels": 20
+        },
+        {
+          "at": "1152,1344",
+          "pixels": 18
+        },
+        {
+          "at": "1152,928",
+          "pixels": 17
+        },
+        {
+          "at": "896,1376",
+          "pixels": 17
+        },
+        {
+          "at": "960,736",
+          "pixels": 16
+        },
+        {
+          "at": "800,864",
+          "pixels": 16
+        },
+        {
+          "at": "832,1472",
+          "pixels": 16
+        },
+        {
+          "at": "832,736",
+          "pixels": 14
+        },
+        {
+          "at": "864,736",
+          "pixels": 14
+        },
+        {
+          "at": "1184,928",
+          "pixels": 14
+        },
+        {
+          "at": "1184,320",
+          "pixels": 13
+        },
+        {
+          "at": "1216,320",
+          "pixels": 13
+        },
+        {
+          "at": "1216,416",
+          "pixels": 13
+        },
+        {
+          "at": "1184,480",
+          "pixels": 13
+        },
+        {
+          "at": "1120,640",
+          "pixels": 13
+        },
+        {
+          "at": "704,832",
+          "pixels": 13
+        },
+        {
+          "at": "1216,448",
+          "pixels": 12
+        },
+        {
+          "at": "800,640",
+          "pixels": 12
+        },
+        {
+          "at": "800,832",
+          "pixels": 12
+        },
+        {
+          "at": "800,448",
+          "pixels": 11
+        },
+        {
+          "at": "768,448",
+          "pixels": 11
+        },
+        {
+          "at": "1088,640",
+          "pixels": 11
+        },
+        {
+          "at": "1088,736",
+          "pixels": 11
+        },
+        {
+          "at": "1056,736",
+          "pixels": 11
+        },
+        {
+          "at": "960,1152",
+          "pixels": 11
+        },
+        {
+          "at": "832,448",
+          "pixels": 10
+        },
+        {
+          "at": "896,640",
+          "pixels": 10
+        },
+        {
+          "at": "800,736",
+          "pixels": 10
+        },
+        {
+          "at": "768,832",
+          "pixels": 10
+        },
+        {
+          "at": "896,1152",
+          "pixels": 10
+        },
+        {
+          "at": "992,1152",
+          "pixels": 10
+        },
+        {
+          "at": "768,640",
+          "pixels": 9
+        },
+        {
+          "at": "832,640",
+          "pixels": 9
+        },
+        {
+          "at": "1216,928",
+          "pixels": 9
+        },
+        {
+          "at": "736,928",
+          "pixels": 9
+        },
+        {
+          "at": "768,928",
+          "pixels": 9
+        },
+        {
+          "at": "768,1152",
+          "pixels": 9
+        },
+        {
+          "at": "928,1376",
+          "pixels": 9
+        },
+        {
+          "at": "768,1376",
+          "pixels": 9
+        },
+        {
+          "at": "864,448",
+          "pixels": 8
+        },
+        {
+          "at": "896,448",
+          "pixels": 8
+        },
+        {
+          "at": "1152,640",
+          "pixels": 8
+        },
+        {
+          "at": "928,640",
+          "pixels": 8
+        },
+        {
+          "at": "928,736",
+          "pixels": 8
+        },
+        {
+          "at": "1024,736",
+          "pixels": 8
+        },
+        {
+          "at": "704,928",
+          "pixels": 8
+        },
+        {
+          "at": "800,1056",
+          "pixels": 8
+        },
+        {
+          "at": "800,1152",
+          "pixels": 8
+        },
+        {
+          "at": "1184,1536",
+          "pixels": 8
+        },
+        {
+          "at": "768,1536",
+          "pixels": 8
+        },
+        {
+          "at": "832,1568",
+          "pixels": 8
+        },
+        {
+          "at": "1120,1568",
+          "pixels": 8
+        },
+        {
+          "at": "928,448",
+          "pixels": 7
+        },
+        {
+          "at": "1184,640",
+          "pixels": 7
+        },
+        {
+          "at": "896,736",
+          "pixels": 7
+        },
+        {
+          "at": "768,736",
+          "pixels": 7
+        },
+        {
+          "at": "992,736",
+          "pixels": 7
+        },
+        {
+          "at": "928,1152",
+          "pixels": 7
+        },
+        {
+          "at": "832,1376",
+          "pixels": 7
+        },
+        {
+          "at": "1056,1536",
+          "pixels": 7
+        },
+        {
+          "at": "960,288",
+          "pixels": 6
+        },
+        {
+          "at": "1120,736",
+          "pixels": 6
+        },
+        {
+          "at": "832,1152",
+          "pixels": 6
+        },
+        {
+          "at": "1056,1152",
+          "pixels": 6
+        },
+        {
+          "at": "768,1344",
+          "pixels": 6
+        },
+        {
+          "at": "1216,640",
+          "pixels": 5
+        },
+        {
+          "at": "1088,1152",
+          "pixels": 5
+        },
+        {
+          "at": "1024,1152",
+          "pixels": 5
+        },
+        {
+          "at": "800,1568",
+          "pixels": 5
+        },
+        {
+          "at": "1056,1568",
+          "pixels": 5
+        },
+        {
+          "at": "1184,1568",
+          "pixels": 5
+        },
+        {
+          "at": "864,1568",
+          "pixels": 5
+        },
+        {
+          "at": "864,640",
+          "pixels": 4
+        },
+        {
+          "at": "1152,960",
+          "pixels": 4
+        },
+        {
+          "at": "1216,960",
+          "pixels": 4
+        },
+        {
+          "at": "800,1376",
+          "pixels": 4
+        },
+        {
+          "at": "864,1376",
+          "pixels": 4
+        },
+        {
+          "at": "1088,1536",
+          "pixels": 4
+        },
+        {
+          "at": "1152,1568",
+          "pixels": 4
+        },
+        {
+          "at": "672,1568",
+          "pixels": 4
+        },
+        {
+          "at": "1248,1568",
+          "pixels": 4
+        },
+        {
+          "at": "1248,320",
+          "pixels": 3
+        },
+        {
+          "at": "736,960",
+          "pixels": 3
+        },
+        {
+          "at": "864,1152",
+          "pixels": 3
+        },
+        {
+          "at": "864,1536",
+          "pixels": 3
+        },
+        {
+          "at": "768,1568",
+          "pixels": 3
+        },
+        {
+          "at": "1248,448",
+          "pixels": 2
+        },
+        {
+          "at": "1216,480",
+          "pixels": 2
+        },
+        {
+          "at": "960,640",
+          "pixels": 2
+        },
+        {
+          "at": "704,960",
+          "pixels": 2
+        },
+        {
+          "at": "800,1536",
+          "pixels": 2
+        },
+        {
+          "at": "832,1536",
+          "pixels": 2
+        },
+        {
+          "at": "1120,1536",
+          "pixels": 2
+        },
+        {
+          "at": "1152,1536",
+          "pixels": 2
+        },
+        {
+          "at": "896,288",
+          "pixels": 1
+        },
+        {
+          "at": "896,672",
+          "pixels": 1
+        },
+        {
+          "at": "768,960",
+          "pixels": 1
+        },
+        {
+          "at": "1184,960",
+          "pixels": 1
+        },
+        {
+          "at": "768,1120",
+          "pixels": 1
+        },
+        {
+          "at": "832,1120",
+          "pixels": 1
+        },
+        {
+          "at": "1024,1120",
+          "pixels": 1
+        },
+        {
+          "at": "1088,1568",
+          "pixels": 1
+        }
+      ],
+      "bounds": {
+        "minX": 650,
+        "minY": 318,
+        "maxX": 1302,
+        "maxY": 1584
+      }
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "rows": [
+    {
+      "persona": "haags",
+      "regular": 10,
+      "bubble": 1,
+      "bubbleIsLast": true
+    },
+    {
+      "persona": "ai",
+      "regular": 10,
+      "bubble": 1,
+      "bubbleIsLast": true
+    },
+    {
+      "persona": "gamer",
+      "regular": 10,
+      "bubble": 1,
+      "bubbleIsLast": true
+    },
+    {
+      "persona": "klimaat",
+      "regular": 10,
+      "bubble": 0,
+      "bubbleIsLast": true
+    },
+    {
+      "persona": "belegger",
+      "regular": 10,
+      "bubble": 1,
+      "bubbleIsLast": true
+    },
+    {
+      "persona": "wereld",
+      "regular": 10,
+      "bubble": 1,
+      "bubbleIsLast": true
+    },
+    {
+      "persona": "muziek",
+      "regular": 10,
+      "bubble": 0,
+      "bubbleIsLast": true
+    },
+    {
+      "persona": "koers",
+      "regular": 10,
+      "bubble": 1,
+      "bubbleIsLast": true
+    },
+    {
+      "persona": "vlaming",
+      "regular": 10,
+      "bubble": 1,
+      "bubbleIsLast": true
+    },
+    {
+      "persona": "brabant",
+      "regular": 10,
+      "bubble": 1,
+      "bubbleIsLast": true
+    },
+    {
+      "persona": "nieuw",
+      "regular": 10,
+      "bubble": 0,
+      "bubbleIsLast": true
+    },
+    {
+      "persona": "vs",
+      "regular": 10,
+      "bubble": 0,
+      "bubbleIsLast": true
+    }
+  ],
+  "jaccardAll": 0.32757780718307034,
+  "jaccardRegular": 0.3221239544768957
+}

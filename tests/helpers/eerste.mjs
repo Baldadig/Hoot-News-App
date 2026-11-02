@@ -16,8 +16,8 @@ import { mutedSet } from '../../src/lib/sourcesel.js'
 import { buildStories, selectEdition } from '../../netlify/lib/stories.mjs'
 import { MAIN_IDS } from '../../netlify/lib/sources.mjs'
 import { desksOf, placeSignals, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
-import { chosenReason, INT_MAX } from '../../shared/editor.mjs'
-import { majorNews, internationalNews } from '../../shared/edition-policy.mjs'
+import { chosenReason, INT_MAX, profileOf } from '../../shared/editor.mjs'
+import { majorNews, internationalNews, specialistMatch } from '../../shared/edition-policy.mjs'
 
 export const FIRST = [
   { id: 'vriendin', interests: ['binnenland', 'cultuur', 'wetenschap'] },
@@ -91,6 +91,7 @@ export function firstEdition(data, p, compose = composePersonal) {
   const src = new Map(data.sources.map((s) => [s.id, s]))
   const ctx = contextOf(data)
   const setup = firstSetup(p, data.sources)
+  const prof = profileOf({...setup,sources:data.sources})
   const ed = compose({ global: data.edition, stories: data.stories, items: data.items, sources: data.sources, now: Date.parse(data.edition.builtAt), builtAt: data.edition.builtAt, previous: null, ...setup })
   return (ed?.entries || []).map((e) => {
     const m = ctx.membersOf(e)
@@ -102,6 +103,8 @@ export function firstEdition(data, p, compose = composePersonal) {
     const abroadByRule = !!st && m.length > 1 && internationalNews(m, st.desk ?? null, st)
     return {
       geo,
+      desk:e.desk,
+      specialist: specialistMatch(prof,m,st?.desk ?? e.fromDesk ?? e.desk),
       nlNews: m.some((i) => ['nl', 'regio'].includes(src.get(i.source)?.cat)),
       fixed: FIXED.has(e.desk),
       front: e._front !== undefined ? !!e._front : e.why?.code === 'groot', // een samensteller van vóór _front: het waarom
@@ -124,20 +127,21 @@ export function firstEdition(data, p, compose = composePersonal) {
 
 export function measureFirst(data, personas = FIRST, compose = composePersonal) {
   return personas.map((p) => {
-    const es = firstEdition(data, p, compose)
+    const es = firstEdition(data, p, compose).filter(e=>e.desk !== 'bubbel')
     const bi = p.interests.includes('binnenland')
     return {
       id: p.id,
       // Buitenland zonder gekozen reden in de hele Editie: voorpagina, groot nieuws, breed en bubbel meegeteld.
       intTotaal: p.interests.includes('wereld') ? null : es.filter((x) => x.geo === 'INT' && !x.real).length,
       binnenland: bi ? es.filter((x) => !x.fixed && x.geo === 'NL' && x.nlNews).length : null,
-      intOngekozen: es.filter((x) => !x.fixed && !x.front && x.geo === 'INT' && !x.real).length,
+      intOngekozen: es.filter((x) => !x.fixed && !x.front && x.geo === 'INT' && !x.specialist && !x.real).length,
       // Normen 1 november: zonder Wereld telt elke internationale plek, ook met een reden (null met Wereld).
-      intAlle: p.interests.includes('wereld') ? null : es.filter((x) => x.geo === 'INT').length,
+      intAlle: p.interests.includes('wereld') ? null : es.filter((x) => x.geo === 'INT').length, // echte geografie blijft zichtbaar
+      wereldAlle: p.interests.includes('wereld') ? null : es.filter(x=>x.geo === 'INT' && !x.specialist).length,
       // Alleen wie Binnenland koos, krijgt een Nederlandse opening gegarandeerd (null zonder Binnenland).
       voorpaginaNl: bi ? es.filter((x) => x.front && x.geo === 'NL').length : null,
       opentNl: bi ? es[0]?.geo === 'NL' : null,
-      voorpaginaInt: p.interests.includes('wereld') ? null : es.filter((x) => x.front && x.geo === 'INT').length,
+      voorpaginaInt: p.interests.includes('wereld') ? null : es.filter((x) => x.front && x.geo === 'INT' && !x.specialist).length,
       valsBinnenland: es.filter((x) => x.falseBi).length,
       nl: es.filter((x) => x.geo === 'NL').length,
       int: es.filter((x) => x.geo === 'INT').length,
@@ -159,7 +163,7 @@ export const DREMPELS_EERSTE = [
   { key: 'voorpaginaNlMin', label: 'eerste Editie, lezer met Binnenland: Nederlandse verhalen op de voorpagina (kleinste)', min: 1, hard: true },
   { key: 'opentNlMin', label: 'eerste Editie, lezer met Binnenland: opent met Nederlands nieuws (kleinste, 1 = ja)', min: 1, hard: true },
   { key: 'voorpaginaIntMax', label: 'eerste Editie, lezer zonder Wereld: buitenlandse verhalen op de voorpagina (grootste)', max: INT_MAX, hard: true },
-  { key: 'intAlleMax', label: 'eerste Editie, lezer zonder Wereld: internationale plekken in de hele Editie (grootste)', max: INT_MAX, hard: true },
+  { key: 'wereldAlleMax', label: 'eerste Editie, lezer zonder Wereld: algemeen internationaal nieuws (grootste)', max: INT_MAX, hard: true },
   { key: 'grootKlein', label: 'eerste Editie: "Groot nieuws" zonder acht uitgevers of vijf uit twee landen (totaal)', max: 0, hard: true },
   { key: 'valsBinnenland', label: 'eerste Editie: buitenlandse plek met Binnenland als reden (totaal)', max: 0, hard: true },
   { key: 'passendMin', label: 'eerste Editie: plekken die bij de keuze passen (kleinste)', min: 4, hard: true },
@@ -174,6 +178,7 @@ export function verdictFirst(rows) {
     voorpaginaNlMin: Math.min(...bi.map((r) => r.voorpaginaNl)),
     opentNlMin: Math.min(...bi.map((r) => (r.opentNl ? 1 : 0))),
     voorpaginaIntMax: Math.max(0, ...rows.filter((r) => r.voorpaginaInt !== null).map((r) => r.voorpaginaInt)),
+    wereldAlleMax: Math.max(...rows.filter(r=>r.wereldAlle !== null).map(r=>r.wereldAlle)),
     intAlleMax: Math.max(0, ...rows.filter((r) => r.intAlle !== null).map((r) => r.intAlle)),
     valsBinnenland: rows.reduce((s, r) => s + r.valsBinnenland, 0),
     passendMin: Math.min(...rows.map((r) => r.passend)),

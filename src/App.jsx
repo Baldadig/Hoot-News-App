@@ -1,3 +1,5 @@
+import { recordCorrection } from './lib/corrections.mjs'
+import { selectionOwnerReady } from './lib/selection-fold.js'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { HootContext } from './components/Items.jsx'
 import { CloseIcon } from './components/icons.jsx'
@@ -103,7 +105,7 @@ export default function App() {
   const endSplash = useCallback(() => setSplash(false), [])
   const { data, status, refreshing, refreshError, reload, pendingCount, applyPending, loadRelated } = useFeed(prefs)
   const online = useOnline()
-  const { theme, setTheme } = useTheme(prefs.palette)
+  const { theme, setTheme, themeDark, setThemeDark } = useTheme(prefs.palette, prefs, setPref)
   const hasPanel = useWide('(min-width: 1200px)')
   const [refreshKey, setRefreshKey] = useState(0)
   const setSocial = useCallback((list) => setPref('social', list), [setPref])
@@ -174,12 +176,12 @@ export default function App() {
     const seen = new Set()
     const out = []
     for (const it of [...(data?.items || []), ...social.items]) {
-      if (!it.url || seen.has(it.id) || muted.has(it.source) || !inStream(it, prefs)) continue
+      if (!it.url || seen.has(it.id) || muted.has(it.source) || (isPost(it) && !sourcesById.has(it.source)) || !inStream(it, prefs)) continue
       seen.add(it.id)
       out.push(it)
     }
     return social.items.length ? out.sort(byRecency) : out
-  }, [data, social.items, muted, prefs])
+  }, [data, social.items, muted, prefs, sourcesById])
 
   // Bluesky: alle posts van de accounts die je volgt (eigen bestemming).
   const posts = useMemo(() => {
@@ -526,10 +528,19 @@ export default function App() {
     [prefs.taste, setPref, setLess],
   )
 
+  const reportMistake = useCallback((item, storyId, reason) => {
+    const owner = account.status === 'loading' ? null : account.user?.id || 'anon'
+    let ok = false
+    try { ok = recordCorrection(window.localStorage, owner, {item, storyId, reason}) } catch {}
+    setNotice(ok ? 'Melding bewaard op dit toestel. Nog niet verstuurd.' : 'De melding kon niet worden bewaard.')
+    return ok
+  }, [account.status, account.user?.id])
+
   const ctx = useMemo(
     () => ({
       less: less || [],
       voteOn,
+      reportMistake,
       undoLess,
       followStory,
       followStories: prefs.followStories,
@@ -538,10 +549,11 @@ export default function App() {
       setLayout,
       prefs,
       setPref,
-      theme,
+      theme, themeDark, setThemeDark,
       setTheme,
       openDisplay,
       account,
+      selectionReady: selectionOwnerReady(account),
       saved,
       toggleSave,
       share,
@@ -556,7 +568,7 @@ export default function App() {
       muted,
       setMuted,
     }),
-    [less, voteOn, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, openDisplay, account, saved, toggleSave, share, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories],
+    [less, voteOn, reportMistake, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, themeDark, setThemeDark, openDisplay, account, syncStatus, syncPulled, saved, toggleSave, share, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories],
   )
 
   const hideMain = overlay || showWelcome
@@ -639,7 +651,10 @@ export default function App() {
               onToggle={setMuted}
               ownHandles={socialIds}
               onAdd={social.addSource}
-              onRemove={social.removeSource}
+              onRemove={(handle) => {
+                setPref('bskyInStream', (prefs.bskyInStream || []).filter(id => id !== 'bsky:' + handle))
+                social.removeSource(handle)
+              }}
               params={path === 'bluesky' ? route.params : navMem.bluesky || {}}
               go={route.go}
               onRefresh={reloadAll}

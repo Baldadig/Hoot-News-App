@@ -1,3 +1,4 @@
+import { cleanIntro } from '../../shared/edition-display.mjs'
 // RSS/Atom-feeds ophalen en omzetten naar Hoot-berichten.
 import Parser from 'rss-parser'
 import { hash, safeHttpUrl } from '../../shared/util.mjs'
@@ -135,7 +136,7 @@ export async function loadSource(src, avatarsP, { limit = editionWindowOf(src) }
         // taal van de bron. Al opgeslagen koppen blijven zoals ze zijn; normTitle en de ontdubbeling
         // zien geen verschil (leestekens tellen daar niet).
         const title = typeset(toText(it.title || '').trim(), src.lang)
-        const fullText = typeset(introOf(it, title), src.lang)
+        const fullText = typeset(cleanIntro(introOf(it, title), authorOf(it)), src.lang)
         const teaser = clip(fullText, 280)
         const summary = preview(fullText)
         // Leestijd alleen tonen als de feed de echte artikeltekst meelevert (NOS, The Verge);

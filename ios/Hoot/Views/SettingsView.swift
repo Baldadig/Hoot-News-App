@@ -4,10 +4,11 @@ import SwiftUI
 // - alleen wat je in de app vaak wilt aanpassen; wat bij het systeem hoort (achtergrond,
 //   tekstgrootte, hoe meldingen eruitzien) via de pagina van Hoot in de Instellingen-app. Het
 //   seintje bij een nieuwe Editie staat wél hier: welke edities, dat is een keuze in Hoot;
-// - geen eigen licht/donker: de app volgt de keuze van je iPhone;
+// - Systeem volgt de iPhone; Licht, Donker en Nacht zijn een bewuste eigen keuze;
 // - geen opties die (nog) niet werken of nu niet van toepassing zijn;
 // - wissen alleen na bevestiging, met Annuleer.
 struct SettingsView: View {
+    @Environment(\.nachtActief) private var nacht
     @Environment(HootStore.self) private var store
     @Environment(Account.self) private var account
     @Environment(\.dismiss) private var dismiss
@@ -109,6 +110,7 @@ struct SettingsView: View {
                             Text("Krant").tag("krant")
                         }
                         .pickerStyle(.segmented)
+                        .colorMultiply(nacht ? Theme.ink : .white)
                         .labelsHidden()
                     }
                     Picker(selection: $store.preview) {
@@ -147,6 +149,8 @@ struct SettingsView: View {
                     Text(store.openWith == "lezer" ? "Log in bij je abonnementen voor hele artikelen." : "Daar ben je al ingelogd bij je abonnementen.").foregroundStyle(Theme.ink3)
                 }
                 .hootRows()
+
+                Section { WeergaveKeuze() } header: { FormHeader("Weergave") }.hootRows()
 
                 alertsSection
 
@@ -483,7 +487,7 @@ private struct SettingsButton: ViewModifier {
     func body(content: Content) -> some View {
         content
             .toolbar { AccountButton(open: $open) }
-            .sheet(isPresented: $open) { SettingsView().debugAppearance() }
+            .sheet(isPresented: $open) { SettingsView().debugAppearance().modifier(HootWeergave()) }
             .onAppear { if DebugLaunch.screen?.hasPrefix("instellingen") == true { open = true } }
     }
 }

@@ -2,7 +2,8 @@
 // weergave (main.jsx). Het schemanummer staat in de instellingen; staat dat al op SCHEMA, dan
 // gebeurt er niets. Pure functie over een opslag met getItem/setItem/removeItem
 // (tests/migrate.test.mjs).
-export const SCHEMA = 3
+import { themePref, darkPref } from './theme.js'
+export const SCHEMA = 4
 
 const read = (ls, key) => {
   try {
@@ -30,6 +31,8 @@ export function migrate(ls) {
   // Caches van vroeger (de feed van nu staat in IndexedDB, zie feedCache.js).
   for (const k of ['hoot:saved-items', 'hoot:feed-cache', 'hoot:feed-v2']) ls.removeItem(k)
 
+  next.theme = themePref(next.theme ?? ls.getItem('hoot:theme'))
+  next.themeDark = darkPref(next.themeDark ?? ls.getItem('hoot:theme-dark'))
   next.schema = SCHEMA
   ls.setItem('hoot:prefs', JSON.stringify(next))
   return true

@@ -1,8 +1,9 @@
+import { editionStoryCount } from '../shared/edition-limits.mjs'
 // De meetlat op de vaste momentopname (tests/helpers/snapshot.mjs): de twaalf persona's, de
 // nulmeting en de algemene Editie als vaste referentie. Zie Hoot-design/algoritme/bouwspec.md (P0).
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { loadSnapshot, loadNulmeting, generalEdition, storiesPrint, editionsNu, contextOf, keysOf, pairwise, PERSONAS, setupFor } from './helpers/snapshot.mjs'
+import { loadSnapshot, loadNulmeting, loadGeneralGolden, generalEdition, storiesPrint, editionsNu, contextOf, keysOf, pairwise, PERSONAS, setupFor } from './helpers/snapshot.mjs'
 import { storiesForReader } from '../src/lib/personal.js'
 
 const snap = loadSnapshot()
@@ -30,7 +31,7 @@ test('meetlat: de huidige persoonlijke Editie, gemeten tegen de nulmeting', (t) 
   const jac = pairwise(eds.map(({ edition }) => keysOf(edition, ctx)))
   const moved = eds.reduce((n, { persona, edition }) => n + [...keysOf(edition, ctx)].filter((k) => !nul.keys[persona.id].includes(k)).length, 0)
   t.diagnostic(`gem. Jaccard nu: ${jac.toFixed(4)} (nulmeting ${nul.jaccard}); ${moved} plekken anders dan de nulmeting`)
-  for (const { persona, edition } of eds) assert.equal(edition.entries.length, 10, persona.id)
+  for (const { persona, edition } of eds) assert.equal(editionStoryCount(edition.entries), 10, persona.id)
   assert.ok(jac <= nul.jaccard + 1e-9, `Jaccard ${jac} > nulmeting ${nul.jaccard}`)
 })
 
@@ -44,8 +45,8 @@ test('meetlat: st.desk is voor alle persona\'s gelijk, ownCount niet', () => {
   assert.ok(new Set(per.map((sts) => JSON.stringify(sts.map((st) => st.ownCount)))).size > 1)
 })
 
-test('meetlat: de algemene Editie (bundelen + selectEdition) is byte-identiek aan de nulmeting', () => {
-  const g = generalEdition(snap)
-  assert.equal(storiesPrint(g.stories), nul.general.stories)
-  assert.equal(JSON.stringify(g.entries), JSON.stringify(nul.general.entries))
+test('meetlat: de algemene Editie is byte-identiek aan de expliciet vastgelegde algoritme-golden', () => {
+  const g = generalEdition(snap), expected = loadGeneralGolden()
+  assert.equal(storiesPrint(g.stories), expected.stories)
+  assert.equal(JSON.stringify(g.entries), JSON.stringify(expected.entries))
 })

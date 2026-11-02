@@ -187,7 +187,11 @@ test('De Editie telt: nummer in de kicker, "N van N" op de rode kaart, de bubbel
   assert.match(ed, /numberRows\(heroFirst\(/, 'de telling na heroFirst')
   assert.match(ed, /\{count\} van \{count\}/, '"van" op de kaart')
   assert.ok(ed.indexOf('endcap__count') < ed.indexOf('<EindeSun'), 'de telling staat boven de zon (het merk)')
-  assert.match(read('components/Items.jsx'), /className="kicker__n">\{two\(n\)\}/)
+  assert.match(read('components/Items.jsx'), /<EditionNumber key="n" n=\{n\}/)
+  assert.match(read('components/EditionNumber.jsx'), /aria-label=\{two\(n\)\}/)
+  assert.match(ed, /<LeadStory n=\{rows\[0\]\.n\}/)
+  assert.match(ed, /<FrontItem n=\{r\.n\}/)
+  assert.match(ed, /<CompactItem n=\{r\.n\}/)
   assert.match(read('lib/edition.js'), /desk === 'bubbel' \? null/)
   const css = read('styles.css')
   assert.match(css, /\.kicker__n \{[^}]*font-family: var\(--serif\)[^}]*color: var\(--accent\)/)
@@ -203,12 +207,12 @@ test('Eén rechterlijn: de lijn onder de kop en de eindkaart stoppen op --measur
   assert.match(css, /\.endcap \{[^}]*max-inline-size: var\(--measure\)/)
 })
 
-test('Het verhaal wint van de schermtitel: .vh__title is head-5, .lead__title head-6 en groter (C7)', () => {
+test('Schermtitel blijft head-5; korte hoofdkoppen head-6, lange koppen schalen via het gedeelde contract (B6)', () => {
   const tags = (s, cls) => [...s.matchAll(new RegExp(`className="([^"]*\\b${cls}\\b[^"]*)"`, 'g'))].map((m) => m[1].split(/\s+/))
   const screen = allSrc().flatMap((s) => tags(s, 'vh__title'))
-  const lead = allSrc().flatMap((s) => tags(s, 'lead__title'))
   assert.ok(screen.length && screen.every((c) => c.includes('head-5')), 'schermtitel is head-5')
-  assert.ok(lead.length && lead.every((c) => c.includes('head-6')), 'hoofdverhaal is head-6')
+  assert.match(read('components/Items.jsx'), /headlineTier\(item.title\)/)
+  assert.match(read('components/Items.jsx'), /head-lg.*head-5.*head-6/)
   const css = read('styles.css')
   const rem = (name) => Number(new RegExp(`--${name}: ([\\d.]+)rem`).exec(css)[1])
   assert.ok(rem('t6') > rem('t5') && rem('lh-6') > rem('lh-5'), 'de kop van het verhaal is groter dan de schermtitel')

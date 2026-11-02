@@ -6,13 +6,17 @@ import WebKit
 // de website.
 struct ArticleReaderView: View {
     @Environment(HootStore.self) private var store
+    @Environment(\.nachtActief) private var nacht
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     let item: Item
     @State private var loader = ArticleLoader()
+    @State private var waiting = ReaderWaitingState()
     @AppStorage("hoot.readerSize") private var size = 1
     @State private var login: LoginTarget?
     @State private var signedIn = false // ingelogd bij deze uitgever: dan geen balk "Zie je maar een deel?"
+    @State private var loginReminders = ReaderLoginReminderStore()
+    @State private var loginPanelVisible = false
     @State private var welcome = false // even de bevestiging na het inloggen
 
     private var source: Source? { store.source(item.source) }
@@ -20,25 +24,26 @@ struct ArticleReaderView: View {
     private var domain: String? { loginURL.flatMap(PublisherLogin.domain(of:)) }
     private var sourceName: String { item.sourceName ?? source?.name ?? "" }
 
+    private var shouldOfferLogin: Bool {
+        guard case let .ready(article) = loader.state else { return false }
+        return source?.paid == true && article.length < 2500 && !signedIn && loginURL != nil
+    }
+
     var body: some View {
         NavigationStack {
             Group {
                 switch loader.state {
                 case .loading:
-                    VStack(alignment: .leading, spacing: Space.s4) {
-                        Kicker(text: sourceName)
-                        Text(item.title.isEmpty ? (item.summary ?? "") : typeset(item.title, lang: source?.lang)).font(Theme.headline(.title)).lineLimit(4).fixedSize(horizontal: false, vertical: true)
-                        WaitingMark().frame(maxWidth: .infinity).padding(.top, Space.s5)
-                        Spacer()
-                    }
-                    .padding()
-                    .frame(maxWidth: Layout.readable)
-                    .frame(maxWidth: .infinity)
+                    ReaderLoadingView(title: item.title.isEmpty ? (item.summary ?? "") : typeset(item.title, lang: source?.lang), sourceName: sourceName, waiting: waiting)
                 case let .ready(article):
-                    ArticleWebView(html: ReaderHTML.page(article, item: item, sourceName: sourceName, size: size, lang: source?.lang), baseURL: item.link)
+                    ArticleWebView(html: ReaderHTML.page(article, item: item, sourceName: sourceName, size: size, lang: source?.lang, night: nacht), baseURL: item.link)
                         .ignoresSafeArea(edges: .bottom)
                         .safeAreaInset(edge: .bottom) {
-                            if source?.paid == true && article.length < 2500 && !signedIn { paywallNote }
+                            if loginPanelVisible && shouldOfferLogin {
+                                ReaderLoginPanel(sourceName: sourceName, login: {
+                                    login = LoginTarget(name: sourceName, url: loginURL)
+                                }, close: closeLoginPanel)
+                            }
                         }
                 case .visit:
                     VStack(spacing: 0) {
@@ -52,7 +57,7 @@ struct ArticleReaderView: View {
                         }
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(.bar)
+                        .background(nacht ? AnyShapeStyle(Theme.paper) : AnyShapeStyle(.bar))
                     }
                 case .failed:
                     ContentUnavailableView {
@@ -114,7 +119,15 @@ struct ArticleReaderView: View {
             if DebugLaunch.screen("inloggen") { login = LoginTarget(name: sourceName, url: loginURL) }
             #endif
         }
-        .onDisappear { loader.stop() }
+        .task(id: loader.state == .loading) {
+            waiting.reset()
+            if loader.state == .loading { await waiting.wait() }
+        }
+        .onChange(of: shouldOfferLogin, initial: true) { _, eligible in
+            guard eligible else { loginPanelVisible = false; return }
+            loginPanelVisible = loginReminders.claim(for: item.source)
+        }
+        .onDisappear { waiting.reset(); loader.stop() }
     }
 
     private func isSignedIn() async -> Bool {
@@ -137,31 +150,18 @@ struct ArticleReaderView: View {
         }
     }
 
-    // Een betaalde bron met weinig tekst: waarschijnlijk zie je maar het begin. Weg zodra je bij
-    // deze uitgever bent ingelogd: dan is een kort stuk gewoon kort.
-    private var paywallNote: some View {
-        VStack(alignment: .leading, spacing: Space.s2) {
-            Text("Zie je maar een deel? Ben je abonnee van \(sourceName), log dan één keer in; daarna lees je de hele stukken hier.")
-                .font(.footnote)
-                .foregroundStyle(Theme.ink3)
-            HStack {
-                Button("Inloggen bij \(sourceName)") { login = LoginTarget(name: sourceName, url: loginURL) }
-                    .buttonStyle(.ink)
-                Button("Bij de uitgever") { if let url = item.link { openURL(url) } }
-                    .buttonStyle(.glass)
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.bar)
+    private func closeLoginPanel() {
+        loginReminders.dismiss(for: item.source)
+        loginPanelVisible = false
     }
+
 }
 
 // De opmaak van een artikel: HTML met de kleuren en letters van Hoot. JavaScript staat uit.
 enum ReaderHTML {
     static let scales = [0.9, 1.0, 1.15, 1.32]
 
-    static func page(_ a: Article, item: Item, sourceName: String, size: Int, lang: String? = nil) -> String {
+    static func page(_ a: Article, item: Item, sourceName: String, size: Int, lang: String? = nil, night: Bool = false) -> String {
         let scale = scales[min(max(size, 0), scales.count - 1)]
         let title = escape(typeset(a.title.isEmpty ? item.title : a.title, lang: lang)) // de lezer haalt de kop zelf: zetten zoals de server (T6)
         let meta = [a.byline, item.date.map { HootDate.ago($0) }].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.map(escape).joined(separator: " · ")
@@ -192,6 +192,7 @@ enum ReaderHTML {
         table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; font-size: .85em; } /* een brede tabel scrolt zelf, niet de hele pagina */
         main { overflow-wrap: break-word; } /* lange links breken af in plaats van de pagina te verbreden */ td, th { border-bottom: 1px solid var(--rule); padding: .4em; text-align: left; }
         pre, code { font-family: ui-monospace, Menlo, monospace; font-size: .85em; white-space: pre-wrap; }
+        \(night ? ":root { --paper:#000000; --ink:#f1ece2; --ink-3:#a39b8d; --accent:#ec7a70; color-scheme:dark; }" : "")
         </style></head><body><main\(scale > 1.3 ? " class=\"hyphenate\"" : "")>
         <p class="kicker">\(escape(sourceName))</p>
         <h1 class="title">\(title)</h1>
@@ -219,7 +220,8 @@ struct ArticleWebView: UIViewRepresentable {
         config.defaultWebpagePreferences.allowsContentJavaScript = false
         let view = WKWebView(frame: .zero, configuration: config)
         view.isOpaque = false
-        view.backgroundColor = .clear
+        view.backgroundColor = NachtKleur.paper
+        view.underPageBackgroundColor = NachtKleur.paper
         view.scrollView.backgroundColor = .clear
         view.navigationDelegate = context.coordinator
         return view
@@ -260,6 +262,7 @@ struct LoginTarget: Identifiable {
 }
 
 struct LoginWebView: View {
+    @Environment(\.nachtActief) private var nacht
     @Environment(\.dismiss) private var dismiss
     let target: LoginTarget
     @State private var webView: WKWebView = {
@@ -296,7 +299,7 @@ struct LoginWebView: View {
                     .padding(.horizontal)
                     .padding(.vertical, Space.s2)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.bar)
+                    .background(nacht ? AnyShapeStyle(Theme.paper) : AnyShapeStyle(.bar))
                     .animation(.easeInOut(duration: 0.3), value: done)
                 }
                 .sensoryFeedback(.success, trigger: done) { _, now in now }
@@ -332,5 +335,39 @@ struct LoginWebView: View {
                 return
             }
         }
+    }
+}
+
+// Alleen de indicatie wacht; het artikel zelf wordt meteen geladen. Annuleren voorkomt een flits
+// als de pagina al klaar is of de lezer gesloten is.
+@MainActor @Observable
+final class ReaderWaitingState {
+    private(set) var visible = false
+    func wait() async {
+        do {
+            try await Task.sleep(for: .milliseconds(400))
+            guard !Task.isCancelled else { return }
+            visible = true
+        } catch { /* snelle laadactie of vertrek: geen indicatie */ }
+    }
+    func reset() { visible = false }
+}
+
+struct ReaderLoadingView: View {
+    let title: String
+    let sourceName: String
+    let waiting: ReaderWaitingState
+    var body: some View {
+        VStack(alignment: .leading, spacing: Space.s4) {
+            Kicker(text: sourceName)
+            Text(title).font(Theme.headline(.title)).lineLimit(4).fixedSize(horizontal: false, vertical: true)
+            if waiting.visible {
+                WaitingMark(label: "Artikel laden").frame(maxWidth: .infinity).padding(.top, Space.s5)
+            }
+            Spacer()
+        }
+        .padding()
+        .frame(maxWidth: Layout.readable)
+        .frame(maxWidth: .infinity)
     }
 }

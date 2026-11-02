@@ -109,6 +109,7 @@
           animation: none;
         }
       }
+      :root[data-theme='night'], :root[data-theme='night'] body { background: #000000; color-scheme: dark; }
     </style>
     <link rel="icon" href="/lees/favicon.svg?v=2" type="image/svg+xml" />
     <link rel="alternate icon" href="/lees/icons/favicon-32.png?v=2" />
@@ -123,10 +124,17 @@
       // Zet thema en kleur vóór render (geen flits): voorkeur uit localStorage, 'system' volgt het OS.
       (function () {
         try {
-          var p = localStorage.getItem('hoot:theme') || 'system'
-          var dark = p === 'dark' || (p !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
-          document.documentElement.dataset.theme = dark ? 'dark' : 'light'
-          var k = (JSON.parse(localStorage.getItem('hoot:prefs') || '{}') || {}).palette
+          var saved = {}
+          try { saved = JSON.parse(localStorage.getItem('hoot:prefs') || '{}') || {} } catch (e) {}
+          var p = saved.theme || localStorage.getItem('hoot:theme') || 'system'
+          if (['system','light','dark','night'].indexOf(p) < 0) p = 'system'
+          var evening = (saved.themeDark || localStorage.getItem('hoot:theme-dark')) === 'night' ? 'night' : 'dark'
+          var actual = p === 'system' ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? evening : 'light') : p
+          var dark = actual !== 'light'
+          document.documentElement.dataset.theme = actual
+          document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+          document.querySelectorAll('meta[name="theme-color"]').forEach(function(m) { m.content = actual === 'night' ? '#000000' : dark ? '#151310' : '#f5f1e8'; m.removeAttribute('media') })
+          var k = saved.palette
           if (k === 'blad' || k === 'inkt') document.documentElement.dataset.palette = k
         } catch (e) {}
       })()

@@ -1,3 +1,6 @@
+import { hasEditionMinimum } from '../../shared/edition-limits.mjs'
+import { cleanIntro, HALF_HEADLINE_LINES } from '../../shared/edition-display.mjs'
+import { EditionNumber } from '../components/EditionNumber.jsx'
 import { useEffect, useRef, useState } from 'react'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf } from '../components/Items.jsx'
@@ -9,7 +12,7 @@ import { KopSun, EindeSun } from '../components/SunArt.jsx'
 import Weather from '../components/Weather.jsx'
 import { longDate } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
-import { resolveEditionEntry, heroFirst, numberRows, countOf, two, EDITION_SIZE, upNext } from '../lib/edition.js'
+import { resolveEditionEntry, heroFirst, numberRows, countOf, EDITION_SIZE, upNext } from '../lib/edition.js'
 import { SLOTS } from '../../shared/slots.mjs'
 import { fitsHero } from '../lib/img.js'
 import { followedNow } from '../lib/follow.js'
@@ -39,12 +42,12 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
   const opinie = item.type === 'opinie'
   const title = item.title
   const fit = useIntroMax()(2, item.image ? 'voorpagina' : 'rij')
-  const summary = wholeSentences(item.summary, fit.max, fit.rek) // hele zinnen, nooit "…"
+  const summary = wholeSentences(cleanIntro(item.summary, item.author), fit.max, fit.rek) // hele zinnen, nooit "…"
   return (
-    <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
+    <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id} style={{ '--headline-lines': HALF_HEADLINE_LINES }}>
       {n || note || opinie || followed ? (
         <p className="label label--kicker kicker">
-          {n ? <span className="kicker__n">{two(n)}</span> : null}
+          {n ? <EditionNumber n={n} /> : null}
           {note ? <span>{note}</span> : null}
           {opinie ? <span className="kicker__type">Opinie</span> : null}
           {followed ? <span className="label--meta front__followed">{followed}</span> : null}
@@ -71,11 +74,12 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
 }
 
 // Een verhaal waar je "minder hiervan" op zei: ingeklapt tot één regel, met de weg terug.
-function LessNote({ entryKey, item, story }) {
+function LessNote({ entryKey, item, story, n }) {
   const { undoLess, itemsById } = useHoot()
   const items = itemsOfEntry(item, story, itemsById)
   return (
     <p className="lessnote" role="status">
+      <EditionNumber n={n} />
       <span>Je ziet minder over {aboutOf(items)}.</span>
       <button type="button" className="linkbtn linkbtn--plain lessnote__undo" onClick={() => undoLess(entryKey, items)}>
         Ongedaan maken
@@ -84,7 +88,7 @@ function LessNote({ entryKey, item, story }) {
   )
 }
 // Elke plek: het verhaal zelf, of ingeklapt als je er minder van wilde.
-const Slot = ({ less, row, children }) => (less.includes(row.key) ? <LessNote entryKey={row.key} item={row.item} story={row.story} /> : children)
+const Slot = ({ less, row, children }) => (less.includes(row.key) ? <LessNote n={row.n} entryKey={row.key} item={row.item} story={row.story} /> : children)
 
 export default function Edition({ active, edition, bubble = [], brief = null, briefForMembers = false, onJoin, hint = false, onHintDone, loading, failedLoad, statusProps, onRefresh, refreshing }) {
   const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account, prefs, sourcesById } = useHoot()
@@ -98,18 +102,23 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
   const published = new Map((edition?.items || []).map((i) => [i.id, i]))
   const placed = (edition?.entries || [])
     .map((e, index) => {
+      if (e.desk === 'bubbel' && prefs?.bubble === false) return null
       const r = resolveEditionEntry(e, { storiesById, itemsById, published, muted })
       if (!r) return null
       const label = e.desk === 'breed' ? `Waar iedereen over schrijft · ${e.sourceCount} bronnen` : deskLabel({ ...e, desk: r.desk })
       // Het label (lib/label.js): de interesse van de lezer als het verhaal die echt draagt, anders de rubriek;
       // de waarom-regel alleen als die iets toevoegt; 'Buiten je bronnen' staat bij de bronregel.
       const l = labelFor({ topics: r.item.topics, mainTopics: r.item.mainTopics, follows: prefs?.topics || [], cat: sourcesById?.get(r.item.source)?.cat, desk: r.desk, deskLabel: label, why: e.why, followed: r.followed || ['bubbel', 'breed'].includes(e.desk) })
-      return { key: e.id, index, desk: e.desk, item: r.item, story: r.story, note: l.kicker, why: l.why, outside: l.outside }
+      return { key: e.id, index, desk: e.desk, item: r.item, story: r.story, note: l.kicker || 'Nieuws', why: l.why, outside: l.outside }
     })
     .filter(Boolean)
   // De telling (numberRows): elke rij krijgt zijn nummer in de getoonde volgorde; N is het totaal.
-  const rows = numberRows(heroFirst(placed, fitsHero))
+  const numbered = numberRows(heroFirst(placed, fitsHero))
+  const rows = numbered.filter(r=>r.desk !== 'bubbel')
+  const editionBubble = numbered.filter(r=>r.desk === 'bubbel')
   const count = countOf(rows)
+  const hasMinimum = hasEditionMinimum(count)
+  const hasPersonalLabel = !!edition?.personal && ['interests','topics','favorites'].some(k=>prefs?.[k]?.length)
 
   // Je volgt, zonder dubbelingen: een gevolgd verhaal dat op de voorpagina staat (en niet is
   // ingeklapt), krijgt daar 'Je volgt' achter de rubriek en valt uit het lijstje erboven. Wat je
@@ -135,7 +144,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
 
   // Eén keer na het eerste Welkom: wat "Jouw Editie" in de metaregel betekent (src/lib/welcome.js).
   // Hij gaat weg met de X, of vanzelf zodra je de Editie verlaat nadat je hem zag.
-  const showHint = hint && ready && !!edition?.personal
+  const showHint = hint && ready && hasPersonalLabel
   const hintSeen = useRef(false)
   if (showHint && active) hintSeen.current = true
   useEffect(() => {
@@ -160,11 +169,11 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
           <ViewHeader
             title={
               edition?.slot ? (
-                <>
-                  {title}
+                <span className="edtitle">
+                  <span className="edtitle__text">{title}</span>
                   {/* De kleine, stille zon: zijn hoogte toont het dagdeel (plan 01/05). */}
                   <KopSun slot={edition.slot} />
-                </>
+                </span>
               ) : (
                 title
               )
@@ -182,7 +191,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 <span className="edmeta__wx">
                   <Weather />
                 </span>
-                <span>{edition.personal ? 'Jouw Editie' : 'De Editie voor iedereen'}</span>
+                <span>{hasPersonalLabel ? 'Jouw Editie' : edition.personal ? 'Om te beginnen' : 'De Editie voor iedereen'}</span>
               </p>
             </>
           ) : null}
@@ -227,9 +236,9 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
           </div>
         ) : null}
         {/* Een korte Editie zegt hoeveel verhalen er zijn: een hint onder de lijn, niet in de metaregel. */}
-        {ready && rows.length < EDITION_SIZE ? (
+        {ready && hasMinimum && rows.length < EDITION_SIZE ? (
           <p className="hint edshort">
-            {rows.length} {rows.length === 1 ? 'verhaal' : 'verhalen'}: er was niet meer nieuws dat breed genoeg werd gebracht
+            {rows.length} {rows.length === 1 ? 'verhaal' : 'verhalen'}: er was niet meer passend nieuws beschikbaar
           </p>
         ) : null}
         {loading ? (
@@ -267,15 +276,16 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             ) : null}
             {/* Voorpagina: het hoofdverhaal groot, daarnaast drie kleinere — altijd in krant-vorm.
                 Is het raam niet breder dan 48rem (telefoon, tablet staand, of met het vergelijkpaneel open), dan staan ze onder elkaar. */}
+            {!hasMinimum ? <Empty title="Nog geen Editie" action={<a className="linkbtn" href="#/stroom">Naar de Stroom</a>}>Er is nog te weinig passend nieuws voor een Editie.</Empty> : null}
             <div className="front">
               <Slot less={less} row={rows[0]}>
-                <LeadStory item={rows[0].item} story={rows[0].story} note={rows[0].note} why={rows[0].why} outside={rows[0].outside} followed={onFront.get(rows[0].key)} priority={active} taste={rows[0].key} />
+                <LeadStory n={rows[0].n} item={rows[0].item} story={rows[0].story} note={rows[0].note} why={rows[0].why} outside={rows[0].outside} followed={onFront.get(rows[0].key)} priority={active} taste={rows[0].key} />
               </Slot>
               {rows.length > 1 ? (
                 <div className="front__side rows">
                   {rows.slice(1, 4).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
-                      <FrontItem item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} />
+                      <FrontItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} />
                     </Slot>
                   ))}
                 </div>
@@ -286,7 +296,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 <div className="front__under rows">
                   {rows.slice(4, FRONT).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
-                      <FrontItem item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} />
+                      <FrontItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} />
                     </Slot>
                   ))}
                 </div>
@@ -299,24 +309,20 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 <div className="list rows">
                   {rows.slice(FRONT).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
-                      <CompactItem item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} taste={r.key} plain />
+                      <CompactItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} taste={r.key} plain />
                     </Slot>
                   ))}
                 </div>
               </div>
             ) : null}
-            {bubble.length ? (
+            {editionBubble.length ? (
               <section className="bubble" aria-label="Buiten je bubbel">
                 <h2 className="label label--section front__more">Buiten je bubbel</h2>
-                <p className="hint bubble__hint">Wat anderen nu lezen of zoeken en wat niet in je Editie zit — ook uit bronnen die je niet volgt.</p>
-                <div className="list rows">
-                  {bubble.map((b) => (
-                    <CompactItem key={b.id} item={b.item} story={b.storyId ? storiesById.get(b.storyId) : null} note={`Via ${[...new Set(b.terms.map((t) => VIA[t.via] || t.via))].join(' en ')}`} plain />
-                  ))}
-                </div>
+                <p className="hint bubble__hint">Een verhaal naast je Editie.</p>
+                {editionBubble.map(r=><Slot key={r.key} less={less} row={r}><CompactItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} plain /></Slot>)}
               </section>
             ) : null}
-            <div className="endcap">
+            {hasMinimum ? (<div className="endcap">
               {/* De telling rond: "10 van 10" boven het merk, stil op rood (bij een korte Editie "7 van 7"). */}
               {count ? (
                 <p className="endcap__count">
@@ -325,7 +331,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               ) : null}
               {/* Het enige merkmoment tijdens het lezen: de zon komt één keer op (plan 01/05). */}
               <EindeSun className="endcap__sun" />
-              <h2 className="head-5 endcap__title">Je bent bij.</h2>
+              <h2 className="head-5 endcap__title">Dan ben je bij.</h2>
               <p className="endcap__text">
                 Dit was de {title} van {longDate(edition.date)}.{upNext(edition.slot)}
               </p>
@@ -333,7 +339,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               <a className="linkbtn endcap__more" href="#/stroom">
                 Of lees verder in de Stroom
               </a>
-            </div>
+            </div>) : null}
             {/* Het overzicht in één minuut: een dialoog, dus achteraan; hij neemt geen plek in de kolom. */}
             {hasBrief ? <BriefReader open={reading} onClose={() => setReading(false)} brief={brief} rows={rows} kicker={`${title} · ${longDate(edition.date)}`} /> : null}
           </>

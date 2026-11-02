@@ -87,10 +87,13 @@ extension Item {
         avatar = try? c.decodeIfPresent(String.self, forKey: .avatar)
         brandColor = try? c.decodeIfPresent(String.self, forKey: .brandColor)
         storyId = try? c.decodeIfPresent(String.self, forKey: .storyId)
-        summary = try? c.decodeIfPresent(String.self, forKey: .summary)
+        let rawSummary = try? c.decodeIfPresent(String.self, forKey: .summary)
+        summary = rawSummary
         image = try? c.decodeIfPresent(String.self, forKey: .image)
         publishedAt = try? c.decodeIfPresent(String.self, forKey: .publishedAt)
-        author = try? c.decodeIfPresent(String.self, forKey: .author)
+        let rawAuthor = try? c.decodeIfPresent(String.self, forKey: .author)
+        author = rawAuthor
+        if kind != "post" { summary = rawSummary.map { EditionDisplay.cleanIntro($0, author: rawAuthor) } }
         readMin = try? c.decodeIfPresent(Int.self, forKey: .readMin)
         section = try? c.decodeIfPresent(String.self, forKey: .section)
         type = try? c.decodeIfPresent(String.self, forKey: .type)
@@ -134,6 +137,7 @@ struct EntryTerm: Codable, Hashable {
 struct EntryWhy: Codable, Hashable {
     var code: String?
     var text: String?
+    var detail: Bool?
 }
 
 struct EditionEntry: Codable, Hashable {
@@ -188,6 +192,15 @@ struct ProfileSummary: Codable, Hashable {
     var less: [String] = []
 }
 
+// Bekende kandidaatpools ook bewaren als de ruwe startcache ontbreekt.
+struct EditionCandidate: Codable, Hashable {
+    var storyId: String
+    var sourceCount: Int?
+    var publisherCount: Int?
+    var publisherCountries: [String]?
+    var topics: [String]?
+    var item: Item
+}
 struct Edition: Codable, Hashable {
     let id: String
     var slot: String?
@@ -201,6 +214,8 @@ struct Edition: Codable, Hashable {
     // djb2), van wie hij is (gebruikers-id of "anon"), of hij van de server kwam toen de rekenkern
     // faalde (`fallback`), en de geschiedenis voor `previous`.
     var version: String?
+    var wide: [EditionCandidate]?
+    var near: [EditionCandidate]?
     var basedOn: String?
     var basis: String?
     var owner: String?
@@ -301,7 +316,7 @@ extension FeedStart {
 }
 
 extension Edition {
-    enum CodingKeys: String, CodingKey { case id, slot, date, next, entries, items, builtAt, personal, version, basedOn, basis, owner, fallback, history }
+    enum CodingKeys: String, CodingKey { case id, slot, date, next, entries, items, builtAt, personal, version, wide, near, basedOn, basis, owner, fallback, history }
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(String.self, forKey: .id)
@@ -313,6 +328,8 @@ extension Edition {
         builtAt = try? c.decodeIfPresent(String.self, forKey: .builtAt)
         personal = try? c.decodeIfPresent(Bool.self, forKey: .personal)
         version = try? c.decodeIfPresent(String.self, forKey: .version)
+        wide = c.contains(.wide) ? c.lossy([EditionCandidate].self,forKey:.wide) : nil
+        near = c.contains(.near) ? c.lossy([EditionCandidate].self,forKey:.near) : nil
         basedOn = try? c.decodeIfPresent(String.self, forKey: .basedOn)
         basis = try? c.decodeIfPresent(String.self, forKey: .basis)
         owner = try? c.decodeIfPresent(String.self, forKey: .owner)

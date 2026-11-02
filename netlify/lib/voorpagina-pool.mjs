@@ -38,6 +38,10 @@ export function voorpaginaPool(items = [], sources = [], now = Date.now()) {
         storyId: i.storyId || null,
       }
       if (i.mainTopics?.length) out.mainTopics = i.mainTopics
+      // Alleen de rubrieknaam uit het pad bewaren, geen uitgevers-URL. Nodig om sport en
+      // cultuur ook zonder onderwerp-tags te herkennen, net als bij de volledige feed.
+      const section = i.section || /\/(sport[\w-]*|voetbal|cultuur[\w-]*|entertainment|showbizz|boulevard|film|muziek|boeken|media)\//i.exec(i.url || '')?.[1]
+      if (section) out.section = section
       if (i.lang) out.lang = i.lang
       if (/^https:\/\//.test(i.image || '')) out.image = i.image
       return out
