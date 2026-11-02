@@ -37,7 +37,16 @@ test('dagreeks: drie dagdelen, vijf persona\'s, vier varianten, elke Editie gevu
   assert.deepEqual(VARIANTS, ['code', 'drie', 'account', 'sprong'])
   for (const r of Object.values(res.personas)) for (const v of VARIANTS) {
     assert.equal(r.variants[v].editions.length, SCHEDULE[v].length, `${r.name} ${v}`)
-    for (const ed of r.variants[v].editions) assert.ok(ed.entries.length >= 6 && ed.entries.length <= 10, `${r.name} ${v} ${ed.id}: ${ed.entries.length}`)
+    for (const ed of r.variants[v].editions) {
+      assert.ok(ed.entries.length >= 4 && ed.entries.length <= 10, `${r.name} ${v} ${ed.id}: ${ed.entries.length}; onder vier is geen Editie`)
+      if (ed.entries.length < 6) {
+        assert.ok(ed._supply?.proven, `${r.name} ${v} ${ed.id}: ontbrekend of onvolledig kandidatenbewijs`)
+        assert.equal(ed._supply.unresolved, 0)
+        assert.equal(ed._supply.selected, ed.entries.length)
+        assert.ok(ed._supply.decisions.length > 0)
+        t.diagnostic(`kort, bewezen: ${r.name} ${v} ${ed.id}; ${ed.entries.length} plekken, ${ed._supply.ownArticles} eigen artikelen; ${JSON.stringify(ed._supply.counts)}`)
+      }
+    }
     // De Avond heeft op deze dag genoeg toegelaten aanbod voor tien plekken.
     assert.equal(r.variants[v].editions.at(-1).entries.length, 10, `${r.name} ${v} avond`)
   }

@@ -1,5 +1,5 @@
 import { cleanIntro, headlineFit } from '../../shared/edition-display.mjs'
-import { coverageOf, majorNews, allowedNews, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery } from '../../shared/edition-policy.mjs'
+import { coverageOf, majorNews, newsRejection, allowedNews, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery } from '../../shared/edition-policy.mjs'
 import { eventScope, conflictingEvents } from '../../shared/article-signals.mjs'
 // Verhalen (bundels), hoofdbericht en editie — pure functies, los van het ophalen,
 // zodat ze te testen zijn (zie tests/).
@@ -1118,7 +1118,7 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
 // Uitvoer: de plekken met `w` en `parts` (het waarom wordt daarna gezet), `itemIds`, `title` en de
 // `keys` van het verhaal (zodat previousOf de hele Editie van toen kent), plus `deskOrder`.
 const textOrder = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
-export function selectForReader(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = '' } = {}) {
+export function selectForReader(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = '', audit = null } = {}) {
   const byId = new Map(pool.map((i) => [i.id, i]))
   // De getoonde berichten van de vorige Editie (of, van een oudere Editie, alleen de koppen) krijgen
   // een kenmerk met de woordenschat van de pool van nu.
@@ -1155,18 +1155,19 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   let storyMap = null
   const storyOfItem = () => (storyMap ||= new Map(stories.flatMap((st) => (st.itemIds || []).map((id) => [id, st]))))
 
+  const reject = (kind, id, ids, reason) => { if (audit) audit.push({kind, id, itemIds: ids, reason}) }
   const cands = []
   for (const st of stories) {
-    if (!fresh(st.latestAt, 24)) continue
+    if (!fresh(st.latestAt, 24)) { reject('story', st.id, st.itemIds, 'ouder-dan-verhaalvenster'); continue }
     const items = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
-    if (!items.length) continue
+    if (!items.length) { reject('story', st.id, st.itemIds, 'geen-bekend-artikel'); continue }
     // Gezien in je vorige Editie: alleen terug als het zich ontwikkelde, en dan lager (de straf
     // telt hier alleen voor de volgorde, niet voor de plek).
     let dev = null
     let straf = 0
     if (seenBefore(st, items, previous)) {
       dev = developedSince(st, items, previous, sigKnown, { mainIds, preferred, now, known: ctx.known })
-      if (!dev) continue
+      if (!dev) { reject('story', st.id, st.itemIds, 'eerder-getoond-zonder-ontwikkeling'); continue }
       const wasLead = previous.leadStoryId === st.id || previous.leadStoryIds?.has(st.id) || items.some((i) => previous.leadIds?.has(i.id))
       straf = DEVELOPING_PENALTY + (wasLead ? REPEAT_LEAD_PENALTY : 0)
     }
@@ -1188,13 +1189,13 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     cands.push({ kind: 'story', id: st.id, st, items, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) })
   }
   for (const it of pool) {
-    if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || it.storyId || isLive(it)) continue
-    if (!fresh(it.publishedAt, ctx.tempo?.get(it.source) || TEMPO_MIN_H) || !(it.summary || it.image)) continue
-    if (previous?.itemIds?.has(it.id) || ctx.readIds?.has(it.id)) continue // stond er al, of je las het al
+    if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || (it.storyId && storyOfItem().has(it.id)) || isLive(it)) { reject('item', it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? 'via-verhaal' : 'vorm-of-bron-niet-toegelaten'); continue }
+    if (!fresh(it.publishedAt, ctx.tempo?.get(it.source) || TEMPO_MIN_H) || !(it.summary || it.image)) { reject('item', it.id, [it.id], 'te-oud-of-geen-intro-en-beeld'); continue }
+    if (previous?.itemIds?.has(it.id) || ctx.readIds?.has(it.id)) { reject('item', it.id, [it.id], 'eerder-getoond-of-gelezen'); continue } // stond er al, of je las het al
     // Hoort het bij een verhaal waarvan je al een stuk las (ook zonder storyId op het bericht), dan
     // telt dat ook: zonder nieuws doet het niet meer mee.
     const mates = ctx.readIds?.size ? storyOfItem().get(it.id) : null
-    if (mates && personalParts(mates.itemIds.map((id) => ctx.own?.get(id) || byId.get(id)).filter(Boolean), prof, { readIds: ctx.readIds }).seen) continue
+    if (mates && personalParts(mates.itemIds.map((id) => ctx.own?.get(id) || byId.get(id)).filter(Boolean), prof, { readIds: ctx.readIds }).seen) { reject('item', it.id, [it.id], 'verhaal-al-gelezen'); continue }
     const primary = primaryDesk([desksOf(it)])
     const belang = weight({ sourceCount: 1, ownCount: 1, latestAt: it.publishedAt }, now) - 2
     const parts = personalParts([it], prof, ctx)
@@ -1313,6 +1314,10 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   // composePersonal bij het extra blok en het aanvullen dezelfde grens aanhoudt.
   // `counted`: alle internationale plekken, inclusief voorpagina en kernrubrieken.
   const abroadIds = new Set([...used].filter((c) => unchosen(c) && !entries.find((e) => e.id === c.id)?.front).map((c) => c.id))
+  if (audit) for (const c of cands) {
+    const reason = used.has(c) ? 'gekozen-in-route' : c.parts.seen ? 'verhaal-al-gelezen' : clashes(c) ? 'zelfde-onderwerp-gekozen-of-eerder' : !allowedNews(prof, c.st || {sourceCount:1}, c.items, c.desk) ? newsRejection(prof,c.st || {sourceCount:1},c.items,c.desk) : capped(c) ? 'internationaal-plafond' : entries.length >= size ? 'route-vol' : 'onverklaard'
+    reject(c.kind, c.id, c.ids, reason)
+  }
   return Object.assign(entries, { deskOrder, abroad: abroadIds, counted })
 }
 

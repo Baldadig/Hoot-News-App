@@ -1,5 +1,5 @@
 import { withCleanIntro } from '../../shared/edition-display.mjs'
-import { majorNews, internationalNews, allowedNews, worldChosen, sportChosen, exceptionalDutchSport, coverageOf } from '../../shared/edition-policy.mjs'
+import { majorNews, internationalNews, newsRejection, allowedNews, worldChosen, sportChosen, exceptionalDutchSport, coverageOf } from '../../shared/edition-policy.mjs'
 import { EDITOR_REVISION } from '../../shared/editor-version.mjs'
 // De persoonlijke editie — pure functies (tests/personal.test.mjs, tests/compose.test.mjs).
 //
@@ -406,6 +406,47 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const keys = e.kind === 'story' ? e.keys || storyById.get(e.id)?.keys : null
     return { ...rest, itemIds, ...(keys ? { keys } : {}), title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front }
   })
+  // Bij een korte Editie geen blinde minimumverlaging: elke bekende kandidaat krijgt een
+  // terminale reden uit dezelfde selectieroute. Dit is lokaal debugbewijs, geen accountpayload.
+  let supply = null
+  if (out.length < 6) {
+    const decisions = []
+    selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE, audit: decisions })
+    if (extraPool.length) selectForReader(mineStories, extraPool, { ...opts, size: 2 * EXTRA_MAX, plan: false, audit: decisions })
+    const selectedIds = new Set(out.flatMap(e => e.itemIds || [e.leadId || e.id]))
+    const selectedSigs = out.map(e => sigAll.get(e.leadId || e.id)).filter(Boolean)
+    const represented = ids => ids.some(id => selectedIds.has(id) || (sigAll.has(id) && selectedSigs.some(s => sameSubject(sigAll.get(id), s))))
+    const finalReason = (id, sid, entry = {}) => {
+      const p = policyOf(id, sid, entry)
+      if (!unread(id, sid)) return 'eerder-getoond-of-gelezen'
+      if (!p.allowed) return newsRejection(prof,p.meta,p.members,p.desk)
+      if (capAbroad && p.abroad && internationalCount >= INT_MAX) return 'internationaal-plafond'
+      return 'onverklaard'
+    }
+    for (const d of decisions) {
+      if (represented(d.itemIds)) d.reason = 'vertegenwoordigd'
+      else if (d.reason === 'gekozen-in-route') d.reason = finalReason(d.itemIds.find(id => itemAny.has(id)) || d.id, d.kind === 'story' ? d.id : null)
+    }
+    for (const d of decisions) {
+      if (d.reason === 'via-verhaal') {
+        const st = storyByItem.get(d.id)
+        d.reason = st ? (decisions.find(x => x.kind === 'story' && x.id === st.id)?.reason || 'onverklaard-verhaal') : 'onbekend-verhaal-id'
+      }
+    }
+    const examined = new Set(decisions.flatMap(d => d.itemIds))
+    for (const i of pool) if (!examined.has(i.id)) decisions.push({kind:'item',id:i.id,itemIds:[i.id],reason: !extraKinds.has(kindOf(i)) && kindOf(i) !== 'nieuws' ? 'niet-gekozen-vakgebied' : 'onverklaard'})
+    for (const g of global.entries) {
+      const id = g.leadId || g.id, sid = g.kind === 'story' ? g.id : null
+      decisions.push({kind:g.kind,id:g.id,itemIds:[...membersOf(g)],route:'algemene-editie',reason: represented([...membersOf(g)]) ? 'vertegenwoordigd' : finalReason(id,sid,g)})
+    }
+    for (const w of global.wide || []) if (w?.item?.id) {
+      const ids = [w.item.id, ...(storyById.get(w.storyId)?.itemIds || [])]
+      decisions.push({kind:'story',id:w.storyId,itemIds:ids,route:'breed',reason: represented(ids) ? 'vertegenwoordigd' : (finalReason(w.item.id,w.storyId,w) === 'onverklaard' ? (wideEntry ? 'brede-plek-bezet' : 'onverklaard') : finalReason(w.item.id,w.storyId,w))})
+    }
+    const counts = Object.fromEntries([...new Set(decisions.map(d=>d.reason))].sort().map(r=>[r,decisions.filter(d=>d.reason===r).length]))
+    const unresolved = decisions.filter(d=>/onverk|onbekend|route-vol|gekozen-in-route/.test(d.reason))
+    supply = {target:6,floor:4,selected:out.length,ownArticles:pool.length,decisions,counts,unresolved:unresolved.length,proven:out.length>=4 && unresolved.length===0}
+  }
   const shown = [...new Set(out.map((e) => e.leadId || e.id))]
   return {
     id: global.id,
@@ -421,6 +462,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     bubble: global.bubble || [],
     brief: null,
     _plan: sel.deskOrder,
+    ...(supply ? { _supply: supply } : {}),
   }
 }
 

@@ -1475,11 +1475,13 @@ var HootCore = (() => {
     if (!majorNews(story, items)) return false;
     return items.some((i) => /\b(nederland\w*|netherlands|dutch|oranje)\b/i.test(i.title || "") && /\b(wk|wereldkampioenschap\w*|world cup|olympisch\w*|olympic\w*)\b/i.test(i.title || "") && /\b(finale|final|kampioen\w*|goud|gold)\b/i.test(i.title || ""));
   }
-  function allowedNews(prof, story, items, desk = null) {
-    if (onlyGalleries(items)) return false;
-    if ((sportStory(story, items, prof.catOf) || items.some((i) => isSport(i, prof.catOf))) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return false;
-    return worldChosen(prof) || !internationalNews(items, desk, story) || majorNews(story, items);
+  function newsRejection(prof, story, items, desk = null) {
+    if (onlyGalleries(items)) return "alleen-galerijen";
+    if ((sportStory(story, items, prof.catOf) || items.some((i) => isSport(i, prof.catOf))) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return "sport-niet-gekozen";
+    if (!worldChosen(prof) && internationalNews(items, desk, story) && !majorNews(story, items)) return "internationaal-niet-groot-genoeg";
+    return null;
   }
+  var allowedNews = (prof, story, items, desk = null) => newsRejection(prof, story, items, desk) === null;
 
   // shared/editor-version.mjs
   var EDITOR_REVISION = "redacteur-2026-11-02-beta1";
@@ -2145,7 +2147,7 @@ var HootCore = (() => {
     return newSig >= DEVELOPED_SIG ? { fresh, lead, newSig } : null;
   }
   var textOrder = (a, b) => a < b ? -1 : a > b ? 1 : 0;
-  function selectForReader(stories, pool, { mainIds = /* @__PURE__ */ new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = "" } = {}) {
+  function selectForReader(stories, pool, { mainIds = /* @__PURE__ */ new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = "", audit = null } = {}) {
     const byId2 = new Map(pool.map((i) => [i.id, i]));
     const prevShown = previous?.shown?.length ? previous.shown : [...previous?.titles || []].map((title) => ({ title, publishedAt: new Date(previous.at || now).toISOString() }));
     const prevArts = prevShown.map((a, k) => ({ ...a, id: `vorige:${k}` }));
@@ -2174,16 +2176,28 @@ var HootCore = (() => {
     const storyDesk = (st, primary) => ctx.storyDesk?.has(st.id) ? ctx.storyDesk.get(st.id) : st.desk !== void 0 ? st.desk : primary;
     let storyMap = null;
     const storyOfItem = () => storyMap ||= new Map(stories.flatMap((st) => (st.itemIds || []).map((id) => [id, st])));
+    const reject = (kind, id, ids, reason) => {
+      if (audit) audit.push({ kind, id, itemIds: ids, reason });
+    };
     const cands = [];
     for (const st of stories) {
-      if (!fresh(st.latestAt, 24)) continue;
+      if (!fresh(st.latestAt, 24)) {
+        reject("story", st.id, st.itemIds, "ouder-dan-verhaalvenster");
+        continue;
+      }
       const items = st.itemIds.map((id) => byId2.get(id)).filter(Boolean);
-      if (!items.length) continue;
+      if (!items.length) {
+        reject("story", st.id, st.itemIds, "geen-bekend-artikel");
+        continue;
+      }
       let dev = null;
       let straf = 0;
       if (seenBefore(st, items, previous)) {
         dev = developedSince(st, items, previous, sigKnown, { mainIds, preferred, now, known: ctx.known });
-        if (!dev) continue;
+        if (!dev) {
+          reject("story", st.id, st.itemIds, "eerder-getoond-zonder-ontwikkeling");
+          continue;
+        }
         const wasLead = previous.leadStoryId === st.id || previous.leadStoryIds?.has(st.id) || items.some((i) => previous.leadIds?.has(i.id));
         straf = DEVELOPING_PENALTY + (wasLead ? REPEAT_LEAD_PENALTY : 0);
       }
@@ -2200,11 +2214,23 @@ var HootCore = (() => {
       cands.push({ kind: "story", id: st.id, st, items, ids: st.itemIds, intl, primary, desk, home: homeDesk(items, desk ?? primary, prof), belang, parts, sc: st.sourceCount, nl, eff, dev, vervolg: dev ? dev.fresh.length : 0, w: belang + sumParts(parts) + jitter(seed, st.id) });
     }
     for (const it of pool) {
-      if (!mainIds.has(it.source) || it.kind !== "article" || it.type === "opinie" || it.storyId || isLive(it)) continue;
-      if (!fresh(it.publishedAt, ctx.tempo?.get(it.source) || TEMPO_MIN_H) || !(it.summary || it.image)) continue;
-      if (previous?.itemIds?.has(it.id) || ctx.readIds?.has(it.id)) continue;
+      if (!mainIds.has(it.source) || it.kind !== "article" || it.type === "opinie" || it.storyId && storyOfItem().has(it.id) || isLive(it)) {
+        reject("item", it.id, [it.id], it.storyId && storyOfItem().has(it.id) ? "via-verhaal" : "vorm-of-bron-niet-toegelaten");
+        continue;
+      }
+      if (!fresh(it.publishedAt, ctx.tempo?.get(it.source) || TEMPO_MIN_H) || !(it.summary || it.image)) {
+        reject("item", it.id, [it.id], "te-oud-of-geen-intro-en-beeld");
+        continue;
+      }
+      if (previous?.itemIds?.has(it.id) || ctx.readIds?.has(it.id)) {
+        reject("item", it.id, [it.id], "eerder-getoond-of-gelezen");
+        continue;
+      }
       const mates = ctx.readIds?.size ? storyOfItem().get(it.id) : null;
-      if (mates && personalParts(mates.itemIds.map((id) => ctx.own?.get(id) || byId2.get(id)).filter(Boolean), prof, { readIds: ctx.readIds }).seen) continue;
+      if (mates && personalParts(mates.itemIds.map((id) => ctx.own?.get(id) || byId2.get(id)).filter(Boolean), prof, { readIds: ctx.readIds }).seen) {
+        reject("item", it.id, [it.id], "verhaal-al-gelezen");
+        continue;
+      }
       const primary = primaryDesk([desksOf(it)]);
       const belang = weight({ sourceCount: 1, ownCount: 1, latestAt: it.publishedAt }, now) - 2;
       const parts = personalParts([it], prof, ctx);
@@ -2298,6 +2324,10 @@ var HootCore = (() => {
       entries.splice(0, entries.length, ...rest, ...late);
     }
     const abroadIds = new Set([...used].filter((c) => unchosen(c) && !entries.find((e) => e.id === c.id)?.front).map((c) => c.id));
+    if (audit) for (const c of cands) {
+      const reason = used.has(c) ? "gekozen-in-route" : c.parts.seen ? "verhaal-al-gelezen" : clashes(c) ? "zelfde-onderwerp-gekozen-of-eerder" : !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk) ? newsRejection(prof, c.st || { sourceCount: 1 }, c.items, c.desk) : capped(c) ? "internationaal-plafond" : entries.length >= size ? "route-vol" : "onverklaard";
+      reject(c.kind, c.id, c.ids, reason);
+    }
     return Object.assign(entries, { deskOrder, abroad: abroadIds, counted });
   }
 
@@ -2561,6 +2591,45 @@ var HootCore = (() => {
       const keys = e.kind === "story" ? e.keys || storyById.get(e.id)?.keys : null;
       return { ...rest, itemIds, ...keys ? { keys } : {}, title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front };
     });
+    let supply = null;
+    if (out.length < 6) {
+      const decisions = [];
+      selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE, audit: decisions });
+      if (extraPool.length) selectForReader(mineStories, extraPool, { ...opts, size: 2 * EXTRA_MAX, plan: false, audit: decisions });
+      const selectedIds = new Set(out.flatMap((e) => e.itemIds || [e.leadId || e.id]));
+      const selectedSigs = out.map((e) => sigAll.get(e.leadId || e.id)).filter(Boolean);
+      const represented = (ids) => ids.some((id) => selectedIds.has(id) || sigAll.has(id) && selectedSigs.some((s) => sameSubject(sigAll.get(id), s)));
+      const finalReason = (id, sid, entry = {}) => {
+        const p = policyOf(id, sid, entry);
+        if (!unread(id, sid)) return "eerder-getoond-of-gelezen";
+        if (!p.allowed) return newsRejection(prof, p.meta, p.members, p.desk);
+        if (capAbroad && p.abroad && internationalCount >= INT_MAX) return "internationaal-plafond";
+        return "onverklaard";
+      };
+      for (const d of decisions) {
+        if (represented(d.itemIds)) d.reason = "vertegenwoordigd";
+        else if (d.reason === "gekozen-in-route") d.reason = finalReason(d.itemIds.find((id) => itemAny.has(id)) || d.id, d.kind === "story" ? d.id : null);
+      }
+      for (const d of decisions) {
+        if (d.reason === "via-verhaal") {
+          const st = storyByItem.get(d.id);
+          d.reason = st ? decisions.find((x) => x.kind === "story" && x.id === st.id)?.reason || "onverklaard-verhaal" : "onbekend-verhaal-id";
+        }
+      }
+      const examined = new Set(decisions.flatMap((d) => d.itemIds));
+      for (const i of pool) if (!examined.has(i.id)) decisions.push({ kind: "item", id: i.id, itemIds: [i.id], reason: !extraKinds.has(kindOf(i)) && kindOf(i) !== "nieuws" ? "niet-gekozen-vakgebied" : "onverklaard" });
+      for (const g of global.entries) {
+        const id = g.leadId || g.id, sid = g.kind === "story" ? g.id : null;
+        decisions.push({ kind: g.kind, id: g.id, itemIds: [...membersOf(g)], route: "algemene-editie", reason: represented([...membersOf(g)]) ? "vertegenwoordigd" : finalReason(id, sid, g) });
+      }
+      for (const w of global.wide || []) if (w?.item?.id) {
+        const ids = [w.item.id, ...storyById.get(w.storyId)?.itemIds || []];
+        decisions.push({ kind: "story", id: w.storyId, itemIds: ids, route: "breed", reason: represented(ids) ? "vertegenwoordigd" : finalReason(w.item.id, w.storyId, w) === "onverklaard" ? wideEntry ? "brede-plek-bezet" : "onverklaard" : finalReason(w.item.id, w.storyId, w) });
+      }
+      const counts = Object.fromEntries([...new Set(decisions.map((d) => d.reason))].sort().map((r) => [r, decisions.filter((d) => d.reason === r).length]));
+      const unresolved = decisions.filter((d) => /onverk|onbekend|route-vol|gekozen-in-route/.test(d.reason));
+      supply = { target: 6, floor: 4, selected: out.length, ownArticles: pool.length, decisions, counts, unresolved: unresolved.length, proven: out.length >= 4 && unresolved.length === 0 };
+    }
     const shown2 = [...new Set(out.map((e) => e.leadId || e.id))];
     return {
       id: global.id,
@@ -2575,7 +2644,8 @@ var HootCore = (() => {
       items: shown2.map(itemOf).filter(Boolean),
       bubble: global.bubble || [],
       brief: null,
-      _plan: sel.deskOrder
+      _plan: sel.deskOrder,
+      ...supply ? { _supply: supply } : {}
     };
   }
   function withoutDebug(edition) {

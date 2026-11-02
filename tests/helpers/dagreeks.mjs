@@ -173,7 +173,7 @@ export function runDay(articles, sources, { personas = DAG_PERSONAS, variants = 
         const known = d.pool.filter((i) => setup.followed.has(i.source))
         const mine = composePersonal({ global: d.global, stories: d.stories, items: known, sources, followed: setup.followed, interests: setup.interests, topics: setup.topics, favorites: setup.favorites, affinity: setup.affinity, taste: setup.taste, now: d.sl.now, previous, readIds: new Set() })
         // Vastgelegd zoals de hook dat doet: met owner, basis en de history van de Edities ervóór.
-        eds.push({ ...withoutDebug(mine), owner: OWNER, basis: 'x', history: earlier.map(historyOf).filter(Boolean) })
+        eds.push({ ...withoutDebug(mine), ...(mine?._supply ? {_supply:mine._supply} : {}), owner: OWNER, basis: 'x', history: earlier.map(historyOf).filter(Boolean) })
         // Groot nieuws aanwezig óf vandaag al getoond (alleen voor de variant die de code zelf gebruikt).
         if (eds.length > 1 && v === 'code') {
           const big = bigOf(d)

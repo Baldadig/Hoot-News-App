@@ -88,8 +88,10 @@ export function exceptionalDutchSport(story, items) {
   // Bewijs moet in één kop staan: geen samengeraapte woorden uit verschillende artikelen.
   return items.some(i => /\b(nederland\w*|netherlands|dutch|oranje)\b/i.test(i.title || '') && /\b(wk|wereldkampioenschap\w*|world cup|olympisch\w*|olympic\w*)\b/i.test(i.title || '') && /\b(finale|final|kampioen\w*|goud|gold)\b/i.test(i.title || ''))
 }
-export function allowedNews(prof, story, items, desk = null) {
-  if (onlyGalleries(items)) return false
-  if ((sportStory(story, items, prof.catOf) || items.some(i => isSport(i, prof.catOf))) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return false
-  return worldChosen(prof) || !internationalNews(items, desk, story) || majorNews(story, items)
+export function newsRejection(prof, story, items, desk = null) {
+  if (onlyGalleries(items)) return 'alleen-galerijen'
+  if ((sportStory(story, items, prof.catOf) || items.some(i => isSport(i, prof.catOf))) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return 'sport-niet-gekozen'
+  if (!worldChosen(prof) && internationalNews(items, desk, story) && !majorNews(story, items)) return 'internationaal-niet-groot-genoeg'
+  return null
 }
+export const allowedNews = (prof, story, items, desk = null) => newsRejection(prof, story, items, desk) === null

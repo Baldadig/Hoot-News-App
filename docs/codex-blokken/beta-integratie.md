@@ -63,3 +63,7 @@ Aparte koppeling eb3661f: theme/themeDark als gevalideerde strings in native imp
 ### B02 · Wegingproef tijdelijk buiten de actieve beta
 
 765f865 bewaard op beta-bronweging-proef. Volledige native suite 96 groen, build en externe harde acceptatie groen; web 937 geslaagd + één echte dagreeksregressie + één bestaande TODO. De nieuwe lezer krijgt in één Middageditie vijf plekken tegenover de vaste ondergrens zes. Geen grens aangepast; eerst het conflict kwaliteit/korter versus minimum zes verduidelijken. Met reset --keep is uitsluitend de eigen ongepubliceerde proef uit de actieve branch gehaald; commit en meetbewijs blijven behouden. De branch blijft op de groene B1-basis voor de onafhankelijke B6/B4-werkzaamheden.
+
+### B02 definitief · bronweging en aanbodbewijs
+
+De bronweging is na Alex’ normantwoord teruggenomen in de actieve beta. Zes doel/vier vloer met bewijs, geen andere drempel versoepeld. B02-R1 volledig groen (966 web + één bestaande TODO; 98 native). Details en korte Middageditie in `beta-redacteur.md` en `beta/B02-shortages.json`.
