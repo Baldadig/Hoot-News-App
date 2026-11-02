@@ -87,10 +87,13 @@ extension Item {
         avatar = try? c.decodeIfPresent(String.self, forKey: .avatar)
         brandColor = try? c.decodeIfPresent(String.self, forKey: .brandColor)
         storyId = try? c.decodeIfPresent(String.self, forKey: .storyId)
-        summary = try? c.decodeIfPresent(String.self, forKey: .summary)
+        let rawSummary = try? c.decodeIfPresent(String.self, forKey: .summary)
+        summary = rawSummary
         image = try? c.decodeIfPresent(String.self, forKey: .image)
         publishedAt = try? c.decodeIfPresent(String.self, forKey: .publishedAt)
-        author = try? c.decodeIfPresent(String.self, forKey: .author)
+        let rawAuthor = try? c.decodeIfPresent(String.self, forKey: .author)
+        author = rawAuthor
+        if kind != "post" { summary = rawSummary.map { EditionDisplay.cleanIntro($0, author: rawAuthor) } }
         readMin = try? c.decodeIfPresent(Int.self, forKey: .readMin)
         section = try? c.decodeIfPresent(String.self, forKey: .section)
         type = try? c.decodeIfPresent(String.self, forKey: .type)

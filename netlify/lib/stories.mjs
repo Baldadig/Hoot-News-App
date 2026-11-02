@@ -1,3 +1,4 @@
+import { cleanIntro, headlineFit } from '../../shared/edition-display.mjs'
 import { coverageOf, majorNews, allowedNews, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery } from '../../shared/edition-policy.mjs'
 import { eventScope, conflictingEvents } from '../../shared/article-signals.mjs'
 // Verhalen (bundels), hoofdbericht en editie — pure functies, los van het ophalen,
@@ -484,13 +485,14 @@ export const isStale = (item, now) => !!now && now - timeOf(item) > STALE_AFTER
 // dan met preview, met beeld, en het nieuwste. Geen bonus voor land of taal van de uitgever.
 // `preferred`: je voorkeursbronnen (de ster bij een bron); die gaan nog vóór je andere bronnen.
 // `now`: het moment van samenstellen (zonder: geen achtergrond-regel).
-export function leadCandidates(items, mainIds, preferred = null, now = null) {
+export function leadCandidates(items, mainIds, preferred = null, now = null, { role = 'neutral' } = {}) {
   // Een opiniestuk is nooit het hoofdbericht als er een nieuwsbericht is.
   // Een podcast of liveblog is ook nooit het hoofdbericht (een promo, of over van alles tegelijk).
   // Achtergrond weegt zwaarder mee dan alle voorkeuren samen (27): een vers bericht gaat altijd voor.
   // Een fotogalerij of slideshow is nooit het hoofdbericht als er iets anders is (isGallery).
-  const score = (i) => (i.type === 'opinie' ? -16 : 0) + (/\bpodcast\b/i.test(i.title || '') || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (i.summary ? 2 : 0) + (i.image ? 1 : 0)
-  return [...items].sort((a, b) => score(b) - score(a) || byRecency(a, b))
+  const score = (i) => (i.type === 'opinie' ? -16 : 0) + (/\bpodcast\b/i.test(i.title || '') || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image ? 1 : 0) + (role === 'front' ? headlineFit(i.title) : 0)
+  const scores = new Map(items.map(i => [i, score(i)]))
+  return [...items].sort((a, b) => scores.get(b) - scores.get(a) || byRecency(a, b))
 }
 
 // Verhalen: verbonden groepen van artikelen over dezelfde gebeurtenis (≥2 bronnen).
@@ -1030,7 +1032,7 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     for (const id of ids) if (sig.has(id)) placed.push(sig.get(id))
   }
   const pickLead = (items) => {
-    const all = leadCandidates(items, mainIds, preferred, now)
+    const all = leadCandidates(items, mainIds, preferred, now, { role: entries.length < 3 ? 'front' : 'neutral' })
     const cands = all.some((i) => !isGallery(i)) ? all.filter((i) => !isGallery(i)) : all // geen galerij als kop, ook niet als enige eigen bron
     // Vers nieuws eerst: een achtergrondstuk van gisteren wordt alleen de kop als er niets recents
     // is. Ook niet om de bronnen te spreiden of omdat de verse bron al vaak de kop is.
@@ -1138,7 +1140,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     for (const id of ids) if (sig.has(id)) placed.push(sig.get(id))
   }
   const pickLead = (items) => {
-    const all = leadCandidates(items, mainIds, preferred, now)
+    const all = leadCandidates(items, mainIds, preferred, now, { role: entries.length < 3 ? 'front' : 'neutral' })
     const cands = all.some((i) => !isGallery(i)) ? all.filter((i) => !isGallery(i)) : all // geen galerij als kop, ook niet als enige eigen bron
     const current = cands.filter((i) => !isStale(i, now))
     const recent = current.length ? current : cands

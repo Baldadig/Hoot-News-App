@@ -30,16 +30,10 @@ export function resolveEditionEntry(e, { storiesById, itemsById, published = new
   return { item, story, desk, followed: !muted.has(item.source) }
 }
 
-// Het hoofdverhaal staat groot met beeld: een plek zonder goed beeld (te klein, of geen) wordt
-// het nooit. Dan schuift de eerste plek mét goed beeld naar voren; de rest houdt zijn volgorde.
-// "Buiten je bubbel" en "Waar iedereen over schrijft" zijn geen hoofdverhaal. Geen enkele plek
-// met goed beeld: dan blijft de volgorde staan (het hoofdverhaal komt dan zonder beeld).
-export function heroFirst(rows, goodImage) {
-  const ok = (r) => !!r.item?.image && goodImage(r.item.image) && !['bubbel', 'breed'].includes(r.desk)
-  if (!rows.length || ok(rows[0])) return rows
-  const i = rows.findIndex(ok)
-  return i < 0 ? rows : [rows[i], ...rows.slice(0, i), ...rows.slice(i + 1)]
-}
+// De volgorde van De Redacteur is ook de leesvolgorde. Een ontbrekend of klein beeld mag
+// een Nederlandse opening niet vervangen door een ander verhaal. De historische helpernaam
+// blijft beschikbaar voor de nummeringsroute; de kop past zich aan de inhoud aan.
+export function heroFirst(rows) { return rows }
 
 // Hoeveel verhalen een volle editie heeft (de server streeft naar tien).
 export const EDITION_SIZE = 10

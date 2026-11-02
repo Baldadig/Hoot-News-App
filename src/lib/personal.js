@@ -1,3 +1,4 @@
+import { withCleanIntro } from '../../shared/edition-display.mjs'
 import { majorNews, internationalNews, allowedNews, worldChosen, sportChosen, exceptionalDutchSport, coverageOf } from '../../shared/edition-policy.mjs'
 import { EDITOR_REVISION } from '../../shared/editor-version.mjs'
 // De persoonlijke editie — pure functies (tests/personal.test.mjs, tests/compose.test.mjs).
@@ -98,8 +99,8 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   if (!global?.entries?.length) return null
   // Wat alleen in de Stroom hoort (streamOnly) telt niet mee: De Redacteur rekent met het oude venster
   // per bron, ook op het toestel (shared/stroom.mjs).
-  items = items.filter(forEdition).map(withTrustedTopics)
-  global = { ...global, items: (global.items || []).map(withTrustedTopics), wide: (global.wide || []).map((w) => (w?.item ? { ...w, item: withTrustedTopics(w.item) } : w)) }
+  items = items.filter(forEdition).map(withCleanIntro).map(withTrustedTopics)
+  global = { ...global, items: (global.items || []).map(withCleanIntro).map(withTrustedTopics), wide: (global.wide || []).map((w) => (w?.item ? { ...w, item: withTrustedTopics(withCleanIntro(w.item)) } : w)) }
   const catOf = new Map(sources.map((s) => [s.id, s.cat]))
   // Soort bericht: de rubriek van de bron, tenzij het onderwerp sport, cultuur of games is.
   const kindOf = (i) => {

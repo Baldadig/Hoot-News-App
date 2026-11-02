@@ -1,0 +1,34 @@
+{
+  "revision": "edition-display-2026-11-02",
+  "headline": {
+    "largeMax": 70,
+    "mediumMax": 100,
+    "halfLines": 4
+  },
+  "intro": {
+    "maxPrefixes": 8,
+    "knownAuthor": "^(?:by|door|written by)\\s+{author}(?:[\\t ]*[·|—–:,-][\\t ]*|\\s*\\n\\s*|\\s*$)",
+    "rules": [
+      {
+        "source": "^(?:last updated|updated|published|laatst bijgewerkt|bijgewerkt|gepubliceerd)(?:\\s+(?:at|on|op|om))?\\s+(?:(?:\\d{4}[-/]\\d{1,2}[-/]\\d{1,2}|\\d{1,2}[./-]\\d{1,2}[./-]\\d{2,4}|(?:Jan(?:uary|uari)?|Feb(?:ruary|ruari)?|Mar(?:ch)?|Maart|Apr(?:il)?|May|Mei|Jun(?:e|i)?|Jul(?:y|i)?|Aug(?:ust|ustus)?|Sep(?:tember)?|Oct(?:ober)?|Okt(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\s+\\d{1,2}(?:,?\\s+\\d{4})?|\\d{1,2}\\s+(?:Jan(?:uary|uari)?|Feb(?:ruary|ruari)?|Mar(?:ch)?|Maart|Apr(?:il)?|May|Mei|Jun(?:e|i)?|Jul(?:y|i)?|Aug(?:ust|ustus)?|Sep(?:tember)?|Oct(?:ober)?|Okt(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)(?:\\s+\\d{4})?)(?:\\s+(?:at|om))?\\s+)?(?:[01]?\\d|2[0-3]):[0-5]\\d(?:\\s*[ap]\\.?m\\.?)?(?:\\s*(?:UTC|GMT|CEST|CET|EST|EDT|ET|PST|PDT|PT))?[\\t ]*[.·|—–:,-]*\\s*",
+        "flags": "iu"
+      },
+      {
+        "source": "^(?:last updated|updated|published|laatst bijgewerkt|bijgewerkt|gepubliceerd)(?:\\s+(?:on|op))?\\s+(?:\\d{4}[-/]\\d{1,2}[-/]\\d{1,2}|\\d{1,2}[./-]\\d{1,2}[./-]\\d{2,4}|(?:Jan(?:uary|uari)?|Feb(?:ruary|ruari)?|Mar(?:ch)?|Maart|Apr(?:il)?|May|Mei|Jun(?:e|i)?|Jul(?:y|i)?|Aug(?:ust|ustus)?|Sep(?:tember)?|Oct(?:ober)?|Okt(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\s+\\d{1,2}(?:,?\\s+\\d{4})?|\\d{1,2}\\s+(?:Jan(?:uary|uari)?|Feb(?:ruary|ruari)?|Mar(?:ch)?|Maart|Apr(?:il)?|May|Mei|Jun(?:e|i)?|Jul(?:y|i)?|Aug(?:ust|ustus)?|Sep(?:tember)?|Oct(?:ober)?|Okt(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)(?:\\s+\\d{4})?)\\.?[\\t ]*(?:\\n|$)",
+        "flags": "iu"
+      },
+      {
+        "source": "^(?:[01]?\\d|2[0-3]):[0-5]\\d(?:\\s*[ap]\\.?m\\.?)?(?:\\s*(?:UTC|GMT|CEST|CET|EST|EDT|ET|PST|PDT|PT))?\\.?[\\t ]*(?:\\n|$)",
+        "flags": "iu"
+      },
+      {
+        "source": "^(?:[Bb][Yy]|[Dd][Oo][Oo][Rr]|[Ww]ritten [Bb]y)\\s+(?:[A-ZÀ-ÖØ-Þ][\\p{L}\\p{M}.’'-]*)(?:[ \\t]+(?:(?:[A-ZÀ-ÖØ-Þ][\\p{L}\\p{M}.’'-]*)|van|de|den|der|von|ten|ter|da|di|du|la|le)){0,7}(?:,[ \\t]*(?:[A-ZÀ-ÖØ-Þ][\\p{L}\\p{M}.’'-]*)(?:[ \\t]+(?:[A-ZÀ-ÖØ-Þ][\\p{L}\\p{M}.’'-]*)){0,5})?[ \\t]*(?:\\n|$)",
+        "flags": "u"
+      },
+      {
+        "source": "^(?:advertisement|advertentie|read more|lees meer|continue reading|verder lezen)[.…:»>]*[\\t ]*(?:\\n|$)",
+        "flags": "iu"
+      }
+    ]
+  }
+}

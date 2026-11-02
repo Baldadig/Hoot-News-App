@@ -45,6 +45,74 @@ var HootCore = (() => {
     recentEditions: () => recentEditions
   });
 
+  // shared/edition-display.json
+  var edition_display_default = {
+    revision: "edition-display-2026-11-02",
+    headline: {
+      largeMax: 70,
+      mediumMax: 100,
+      halfLines: 4
+    },
+    intro: {
+      maxPrefixes: 8,
+      knownAuthor: "^(?:by|door|written by)\\s+{author}(?:[\\t ]*[·|—–:,-][\\t ]*|\\s*\\n\\s*|\\s*$)",
+      rules: [
+        {
+          source: "^(?:last updated|updated|published|laatst bijgewerkt|bijgewerkt|gepubliceerd)(?:\\s+(?:at|on|op|om))?\\s+(?:(?:\\d{4}[-/]\\d{1,2}[-/]\\d{1,2}|\\d{1,2}[./-]\\d{1,2}[./-]\\d{2,4}|(?:Jan(?:uary|uari)?|Feb(?:ruary|ruari)?|Mar(?:ch)?|Maart|Apr(?:il)?|May|Mei|Jun(?:e|i)?|Jul(?:y|i)?|Aug(?:ust|ustus)?|Sep(?:tember)?|Oct(?:ober)?|Okt(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\s+\\d{1,2}(?:,?\\s+\\d{4})?|\\d{1,2}\\s+(?:Jan(?:uary|uari)?|Feb(?:ruary|ruari)?|Mar(?:ch)?|Maart|Apr(?:il)?|May|Mei|Jun(?:e|i)?|Jul(?:y|i)?|Aug(?:ust|ustus)?|Sep(?:tember)?|Oct(?:ober)?|Okt(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)(?:\\s+\\d{4})?)(?:\\s+(?:at|om))?\\s+)?(?:[01]?\\d|2[0-3]):[0-5]\\d(?:\\s*[ap]\\.?m\\.?)?(?:\\s*(?:UTC|GMT|CEST|CET|EST|EDT|ET|PST|PDT|PT))?[\\t ]*[.·|—–:,-]*\\s*",
+          flags: "iu"
+        },
+        {
+          source: "^(?:last updated|updated|published|laatst bijgewerkt|bijgewerkt|gepubliceerd)(?:\\s+(?:on|op))?\\s+(?:\\d{4}[-/]\\d{1,2}[-/]\\d{1,2}|\\d{1,2}[./-]\\d{1,2}[./-]\\d{2,4}|(?:Jan(?:uary|uari)?|Feb(?:ruary|ruari)?|Mar(?:ch)?|Maart|Apr(?:il)?|May|Mei|Jun(?:e|i)?|Jul(?:y|i)?|Aug(?:ust|ustus)?|Sep(?:tember)?|Oct(?:ober)?|Okt(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\s+\\d{1,2}(?:,?\\s+\\d{4})?|\\d{1,2}\\s+(?:Jan(?:uary|uari)?|Feb(?:ruary|ruari)?|Mar(?:ch)?|Maart|Apr(?:il)?|May|Mei|Jun(?:e|i)?|Jul(?:y|i)?|Aug(?:ust|ustus)?|Sep(?:tember)?|Oct(?:ober)?|Okt(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)(?:\\s+\\d{4})?)\\.?[\\t ]*(?:\\n|$)",
+          flags: "iu"
+        },
+        {
+          source: "^(?:[01]?\\d|2[0-3]):[0-5]\\d(?:\\s*[ap]\\.?m\\.?)?(?:\\s*(?:UTC|GMT|CEST|CET|EST|EDT|ET|PST|PDT|PT))?\\.?[\\t ]*(?:\\n|$)",
+          flags: "iu"
+        },
+        {
+          source: "^(?:[Bb][Yy]|[Dd][Oo][Oo][Rr]|[Ww]ritten [Bb]y)\\s+(?:[A-ZÀ-ÖØ-Þ][\\p{L}\\p{M}.’'-]*)(?:[ \\t]+(?:(?:[A-ZÀ-ÖØ-Þ][\\p{L}\\p{M}.’'-]*)|van|de|den|der|von|ten|ter|da|di|du|la|le)){0,7}(?:,[ \\t]*(?:[A-ZÀ-ÖØ-Þ][\\p{L}\\p{M}.’'-]*)(?:[ \\t]+(?:[A-ZÀ-ÖØ-Þ][\\p{L}\\p{M}.’'-]*)){0,5})?[ \\t]*(?:\\n|$)",
+          flags: "u"
+        },
+        {
+          source: "^(?:advertisement|advertentie|read more|lees meer|continue reading|verder lezen)[.…:»>]*[\\t ]*(?:\\n|$)",
+          flags: "iu"
+        }
+      ]
+    }
+  };
+
+  // shared/edition-display.mjs
+  var rules = edition_display_default.intro.rules.map((r) => new RegExp(r.source, r.flags));
+  var escaped = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  function cleanIntro(text, author = null) {
+    if (typeof text !== "string") return "";
+    let value = text.replace(/\r\n?/g, "\n").trim();
+    const knownAuthor = typeof author === "string" && author.trim().length > 1 && author.length <= 120 ? new RegExp(edition_display_default.intro.knownAuthor.replace("{author}", escaped(author.trim())), "iu") : null;
+    const strip = (v) => {
+      for (const re of rules) v = v.replace(re, "").trim();
+      return knownAuthor ? v.replace(knownAuthor, "").trim() : v;
+    };
+    for (let n = 0; n < edition_display_default.intro.maxPrefixes; n++) {
+      const next = strip(value);
+      if (next === value) break;
+      value = next;
+    }
+    if (strip(value) !== value) return "";
+    return value.replace(/\s+/g, " ").trim();
+  }
+  function withCleanIntro(item) {
+    if (!item || item.kind === "post") return item;
+    const summary = typeof item.summary === "string" ? cleanIntro(item.summary, item.author) : item.summary;
+    const text = typeof item.text === "string" ? cleanIntro(item.text, item.author) : item.text;
+    return summary === item.summary && text === item.text ? item : { ...item, summary, ...item.text === void 0 ? {} : { text } };
+  }
+  function headlineTier(title = "") {
+    const n = String(title).length;
+    return n <= edition_display_default.headline.largeMax ? "large" : n <= edition_display_default.headline.mediumMax ? "medium" : "compact";
+  }
+  var HALF_HEADLINE_LINES = edition_display_default.headline.halfLines;
+  var headlineFit = (title) => ({ large: 0.25, medium: 0.125, compact: 0 })[headlineTier(title)];
+
   // src/lib/topics.js
   var T = (id, label) => ({ id, label });
   var TOPICS = [
@@ -1946,9 +2014,10 @@ var HootCore = (() => {
   }
   var STALE_AFTER = 24 * 60 * 60 * 1e3;
   var isStale = (item, now) => !!now && now - timeOf(item) > STALE_AFTER;
-  function leadCandidates(items, mainIds, preferred = null, now = null) {
-    const score = (i) => (i.type === "opinie" ? -16 : 0) + (/\bpodcast\b/i.test(i.title || "") || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (i.summary ? 2 : 0) + (i.image ? 1 : 0);
-    return [...items].sort((a, b) => score(b) - score(a) || byRecency(a, b));
+  function leadCandidates(items, mainIds, preferred = null, now = null, { role = "neutral" } = {}) {
+    const score = (i) => (i.type === "opinie" ? -16 : 0) + (/\bpodcast\b/i.test(i.title || "") || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (cleanIntro(i.summary, i.author) ? 2 : 0) + (i.image ? 1 : 0) + (role === "front" ? headlineFit(i.title) : 0);
+    const scores = new Map(items.map((i) => [i, score(i)]));
+    return [...items].sort((a, b) => scores.get(b) - scores.get(a) || byRecency(a, b));
   }
   var LIVE_TITLE = /^\W*live\b|\blive ?blog\b|\b(war|oorlog) (latest|live)\b|\blatest:|\blatest updates\b/i;
   var isLive = (a) => LIVE_TITLE.test(a.title || "") || /\/live(blog)?[-/]|[-/]liveblog/i.test(a.url || "");
@@ -2093,7 +2162,7 @@ var HootCore = (() => {
       for (const id of ids) if (sig.has(id)) placed.push(sig.get(id));
     };
     const pickLead = (items) => {
-      const all = leadCandidates(items, mainIds, preferred, now);
+      const all = leadCandidates(items, mainIds, preferred, now, { role: entries.length < 3 ? "front" : "neutral" });
       const cands2 = all.some((i) => !isGallery(i)) ? all.filter((i) => !isGallery(i)) : all;
       const current = cands2.filter((i) => !isStale(i, now));
       const recent = current.length ? current : cands2;
@@ -2279,8 +2348,8 @@ var HootCore = (() => {
   }
   function composePersonal({ global, stories = [], items = [], sources = [], followed = /* @__PURE__ */ new Set(), interests = [], topics = [], now = Date.parse(global?.builtAt) || Date.now(), builtAt = new Date(now).toISOString(), previous = null, affinity = null, favorites = [], taste = null, readIds = /* @__PURE__ */ new Set() }) {
     if (!global?.entries?.length) return null;
-    items = items.filter(forEdition).map(withTrustedTopics);
-    global = { ...global, items: (global.items || []).map(withTrustedTopics), wide: (global.wide || []).map((w) => w?.item ? { ...w, item: withTrustedTopics(w.item) } : w) };
+    items = items.filter(forEdition).map(withCleanIntro).map(withTrustedTopics);
+    global = { ...global, items: (global.items || []).map(withCleanIntro).map(withTrustedTopics), wide: (global.wide || []).map((w) => w?.item ? { ...w, item: withTrustedTopics(withCleanIntro(w.item)) } : w) };
     const catOf = new Map(sources.map((s) => [s.id, s.cat]));
     const kindOf = (i) => {
       if (isSport(i, catOf)) return "sport";

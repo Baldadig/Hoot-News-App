@@ -14,6 +14,7 @@ await Promise.all([document.fonts.load('800 32px Newsreader'), document.fonts.lo
 window.cls = 0
 window.shifts = []
 new PerformanceObserver(list => { for (const e of list.getEntries()) if (!e.hadRecentInput) { window.cls += e.value; window.shifts.push({value:e.value,sources:e.sources.map(s=>({node:s.node?.outerHTML.slice(0,100),previous:s.previousRect,current:s.currentRect}))}) } }).observe({ type: 'layout-shift', buffered: true })
+if (q.get('long') === '1') { item.title = '500 Patriot-raketten van VS deze winter nog niet ingezet, waarschuwt Zelensky: ‘Leveringen beginnen pas over paar jaar’'; item.summary = 'Updated at 6:16 p.m. De levering van de raketten begint pas later. De afspraken worden verder uitgewerkt.' }
 const noop = () => {}
 const context = { read: new Set(), saved: [], markRead: noop, toggleSave: noop, openSource: noop, sourcesById: new Map(), share: noop }
 createRoot(document.getElementById('root')).render(<HootContext.Provider value={context}><main style={{ maxWidth: 1000, margin: '0 auto', padding: '32px 16px' }}><LeadStory item={item} priority /></main></HootContext.Provider>)

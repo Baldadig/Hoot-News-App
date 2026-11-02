@@ -1,3 +1,4 @@
+import { cleanIntro } from '../../shared/edition-display.mjs'
 import { EDITOR_REVISION, editionCacheKey } from '../../shared/editor-version.mjs'
 // De feed samenstellen: alles ophalen, de Stroom vullen, bundelen tot verhalen en de editie
 // vastleggen. Draait op een vast ritme (functions/feed-refresh.mjs); de app krijgt het
@@ -356,7 +357,7 @@ function toClient(it, { editionOnly = false, streamOnly = false } = {}) {
     storyId: it.storyId,
     firstSeenAt: it.firstSeenAt,
     title: it.title,
-    summary: it.summary,
+    summary: it.kind === 'post' ? it.summary : cleanIntro(it.summary, it.author),
     borrowedFrom: it.borrowedFrom,
     readMin: it.readMin,
     topics,

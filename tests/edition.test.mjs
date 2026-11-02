@@ -105,13 +105,13 @@ test('wat het overzicht niet noemt komt eronder, op volgorde', () => {
   assert.deepEqual(uncovered({ sections: [{ text: 'oud, zonder refs' }] }, 6), []) // oud overzicht: niets te zeggen
 })
 
-test('het hoofdverhaal heeft altijd een scherp beeld: anders schuift de eerste plek met goed beeld naar voren', () => {
+test('de redactionele opening blijft staan, ook zonder scherp beeld', () => {
   const small = 'https://i.guim.co.uk/img/media/a/master/1.jpg?width=140&quality=85&s=x'
   const sharp = 'https://images.cdn.nos.nl/a-1024x576.webp'
   const row = (key, image, desk = null) => ({ key, index: Number(key.slice(1)), desk, item: { id: key, image } })
   const rows = [row('r0', small), row('r1', null), row('r2', sharp, 'bubbel'), row('r3', sharp)]
-  assert.deepEqual(heroFirst(rows, fitsHero).map((r) => r.key), ['r3', 'r0', 'r1', 'r2'])
-  // Al goed: niets verandert. Nergens een goed beeld: volgorde blijft.
+  assert.deepEqual(heroFirst(rows, fitsHero).map((r) => r.key), ['r0', 'r1', 'r2', 'r3'])
+  // Beeldkwaliteit verandert de redactionele volgorde niet.
   assert.equal(heroFirst([row('a0', sharp), row('a1', small)], fitsHero)[0].key, 'a0')
   assert.deepEqual(heroFirst([row('b0', small), row('b1', null)], fitsHero).map((r) => r.key), ['b0', 'b1'])
 })
@@ -138,5 +138,5 @@ test('de telling: 01 is het hoofdverhaal, de bubbel telt niet mee, breed wel (T3
 test('de telling volgt de getoonde volgorde (na heroFirst)', () => {
   const ok = { image: 'groot.jpg' }
   const rows = numberRows(heroFirst([{ key: 'a', desk: 'vs', item: {} }, { key: 'b', desk: 'tech', item: ok }], () => true))
-  assert.deepEqual(rows.map((r) => [r.key, r.n]), [['b', 1], ['a', 2]])
+  assert.deepEqual(rows.map((r) => [r.key, r.n]), [['a', 1], ['b', 2]])
 })

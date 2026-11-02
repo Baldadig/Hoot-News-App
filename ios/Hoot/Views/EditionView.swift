@@ -119,12 +119,8 @@ extension HootStore {
             let l = Desk.label(e, item: item, sourceCat: self.source(item.source)?.cat, follows: topics, followed: on.contains(item.source))
             return EditionRowModel(id: e.id, item: item, story: story, label: l.kicker, desk: e.desk, why: l.why, outside: l.outside)
         }
-        // Hoofdverhaal met scherp beeld (geen bubbel of "waar iedereen over schrijft").
-        let ok: (EditionRowModel) -> Bool = { ImageURL.fitsHero($0.item.image) && !["bubbel", "breed"].contains($0.desk ?? "") }
-        guard let first = rows.first, !ok(first), let i = rows.firstIndex(where: ok) else { return rows }
-        var out = rows
-        out.insert(out.remove(at: i), at: 0)
-        return out
+        // De redactionele volgorde blijft de leesvolgorde, ook zonder groot beeld bij de opening.
+        return rows
     }
 }
 
@@ -139,6 +135,7 @@ struct EditionView: View {
     @Environment(HootStore.self) private var store
     @Environment(\.openTab) private var openTab
     @Environment(\.isWide) private var wide
+    @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.brandHandoff) private var handoff
     @Environment(\.accessibilityReduceMotion) private var still
     @Environment(EditionAlerts.self) private var alerts
@@ -261,13 +258,13 @@ struct EditionView: View {
                         StrongRule(drawn: ruleDrawn).padding(.bottom, Space.s4)
                         slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
                             .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
-                        if wide {
+                        if wide && !typeSize.isAccessibilitySize {
                             // Breed: de rest in twee kolommen, elk verhaal met een lijn erboven.
                             LazyVGrid(columns: [GridItem(.flexible(), spacing: Space.s6, alignment: .top), GridItem(.flexible(), spacing: Space.s6, alignment: .top)], alignment: .leading, spacing: Space.s2) {
                                 ForEach(rows.dropFirst()) { row in
                                     VStack(alignment: .leading, spacing: 0) {
                                         Rule().padding(.vertical, Space.s2)
-                                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
+                                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, headlineLines: EditionDisplay.halfHeadlineLines) }
                                     }
                                 }
                             }

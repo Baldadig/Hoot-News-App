@@ -1,3 +1,4 @@
+import { cleanIntro, headlineTier } from '../../shared/edition-display.mjs'
 import { createContext, useContext, useState } from 'react'
 import { timeAgo, readTime } from '../lib/time.js'
 import { BookmarkIcon, PlayIcon, MoreIcon, ShareIcon } from './icons.jsx'
@@ -177,7 +178,7 @@ export function aboutOf(items) {
 // Hoot eindigt nooit met een beletselteken: een te lange eerste zin mag één regel doorlopen, en de
 // line-clamp in de CSS staat precies die regel ruimer. `fit`: { max, rek }.
 const Summary = ({ item, className, fit = { max: Infinity, rek: Infinity } }) => {
-  const text = wholeSentences(item.summary, fit.max, fit.rek)
+  const text = wholeSentences(cleanIntro(item.summary, item.author), fit.max, fit.rek)
   return text ? (
     <p className={className}>
       {text}
@@ -190,6 +191,8 @@ const Summary = ({ item, className, fit = { max: Infinity, rek: Infinity } }) =>
 // `priority`: dit is het eerste beeld dat je ziet (alleen het zichtbare hoofdverhaal).
 export function LeadStory({ item, story, note, n = null, why = null, followed = null, priority = false, taste = null, outside = false }) {
   const { markRead, read } = useHoot()
+  const tier = headlineTier(item.title)
+  const titleRole = tier === 'compact' ? 'head-lg' : tier === 'medium' ? 'head-5' : 'head-6'
   return (
     <article className={`entry lead${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <a className={`lead__link${portraitImage(item) ? ' lead__link--portrait' : ''}`} href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
@@ -202,7 +205,7 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
         ) : null}
         <Kicker item={item} extra={note} followed={followed} n={n} />
         <Why why={why} />
-        <h2 className="head-6 lead__title">{item.title}</h2>
+        <h2 className={`${titleRole} lead__title`}>{item.title}</h2>
         <Summary item={item} className="lead__sum" fit={{ max: 240, rek: 240 }} />
         {item.author ? <p className="byline">Door {item.author}</p> : null}
       </a>

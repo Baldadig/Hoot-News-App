@@ -1,3 +1,4 @@
+import { cleanIntro } from './edition-display.mjs'
 // Intro's in hele zinnen (T2, D2). Huisregel: Hoot eindigt nooit met een beletselteken. Een intro
 // is een of meer hele zinnen die in de gekozen regels passen; is de eerste zin net te lang, dan
 // mag die één regel doorlopen (de regel die de clamp vrijhoudt). Anders een stuk tot een komma dat
@@ -47,7 +48,7 @@ function commaPiece(s, max) {
 // regel meer). Anders een stuk tot een komma dat zelf iets zegt (commaPiece), anders ''. Een
 // afgekapt slot ("…") gaat eraf met het halve stuk ervoor.
 export function wholeSentences(text, max = Infinity, rek = max) {
-  let s = String(text ?? '').replace(/\s+/g, ' ').trim()
+  let s = cleanIntro(text)
   if (!s) return ''
   let cut = false
   if (TRAILING_ELLIPSIS.test(s)) {
