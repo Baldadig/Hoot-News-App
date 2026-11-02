@@ -37,3 +37,7 @@ f568f7f → 00aa0e4, 476370d → 7155b13 en a1e5521 → 29b78c0. Alleen het beoo
 ### A06 · Stroom en Selectie
 
 e164349 → 720f32c, e2c76c7 → 9eb7cca. CSS-staart bevat zowel het bronraster als Selectie-navigatie; alle changelogregels behouden. HootStore combineerde schoon met Main-fase 1. Extra commit 2bebb2b migreert alleen ontbrekende Bluesky-keuzes; expliciet [] blijft uit, met herstart-/importtests. Web 923 geslaagd + 1 TODO, build en alle harde acceptatiedrempels groen. Eerste native compile faalde op Observation-initialisatie; lokale inleesvariabele hersteld, daarna volledige native suite 84 geslaagd. Webcode niet gewijzigd bij dit compileherstel. [Logs inclusief herstel](beta/controle-A06.json). Echte account-sync blijft ongeprobeerd.
+
+### A07 · Nummering en wachtmarkering
+
+794c2d1 → 9242495 en b05e268 → 973f528. CSS-conflict bij het bestandseinde opgelost met behoud van bronraster, Selectie-index én cijfervakken. QuietMotion combineerde automatisch: label voor lezer blijft instelbaar, indicator/onWaiting-callback blijft beschikbaar. Changelogregels allemaal behouden. Web 923 geslaagd + 1 TODO, native 86 geslaagd, build en alle harde acceptatiedrempels groen. [Logverwijzingen](beta/controle-A07.json).
