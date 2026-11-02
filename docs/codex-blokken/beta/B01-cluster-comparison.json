@@ -1,0 +1,1752 @@
+[
+  {
+    "file": "snapshot-2026-10-30-avond.json.gz",
+    "articles": 1730,
+    "before": 148,
+    "after": 148,
+    "largestBefore": 15,
+    "largestAfter": 15,
+    "changed": []
+  },
+  {
+    "file": "snapshot-2026-10-31-0930.json.gz",
+    "articles": 1720,
+    "before": 130,
+    "after": 133,
+    "largestBefore": 31,
+    "largestAfter": 23,
+    "changed": [
+      {
+        "before": {
+          "id": "s1gqmxti",
+          "sources": 13,
+          "items": [
+            {
+              "id": "u0dsgr",
+              "title": "Verstappen botst met ex-ploegmaat Lawson en haalt uit: \"Niet slim als je voor je zitje vecht\""
+            },
+            {
+              "id": "x73y5",
+              "title": "Gridstraf van één plek voor Verstappen en Lawson na aanvaring"
+            },
+            {
+              "id": "16jo5nr",
+              "title": "Op deze tijden komt Max Verstappen vanavond in actie tijdens GP van Mexico"
+            },
+            {
+              "id": "v0zmhb",
+              "title": "Geïrriteerde Max Verstappen krijgt gridstraf na opvallend akkefietje met oud-teamgenoot: “Weet niet wat er in zijn hoofd omging”"
+            },
+            {
+              "id": "mofory",
+              "title": "Geïrriteerde Max Verstappen krijgt gridstraf na opvallend akkefietje met oud-teamgenoot: “Weet niet wat er in zijn hoofd omging”"
+            },
+            {
+              "id": "y2y5ho",
+              "title": "Geïrriteerde Max Verstappen krijgt gridstraf na opvallend akkefietje met oud-teamgenoot: “Weet niet wat er in zijn hoofd omging”"
+            },
+            {
+              "id": "1swe5gz",
+              "title": "Zo laat komen Verstappen en op titel jagende Antonelli zaterdag in actie tijdens kwalificatie"
+            },
+            {
+              "id": "1cgy7ib",
+              "title": "Geïrriteerde Max Verstappen krijgt gridstraf na opvallend akkefietje met oud-teamgenoot Liam Lawson: ’Niet heel verstandig in zijn positie’"
+            },
+            {
+              "id": "fg4zgc",
+              "title": "Max Verstappen en Liam Lawson op de bon geslingerd voor opmerkelijk incident in tweede vrije training Mexico: ‘Niet zo slim als je voor een stoeltje vecht’"
+            },
+            {
+              "id": "13s9lxb",
+              "title": "Ruziënde Verstappen snapt niets van actie oud-teamgenoot, maar krijgt zelf óók gridstraf: ‘Onacceptabel’"
+            },
+            {
+              "id": "1hbtt1f",
+              "title": "Verstappen en Lawson krijgen allebei gridstraf na aanvaring tijdens training Mexico"
+            },
+            {
+              "id": "svzxhj",
+              "title": "Stewards penalise Verstappen, Lawson after “unacceptable” F1 Mexico GP practice clash"
+            },
+            {
+              "id": "1qw2vk6",
+              "title": "Verstappen and Lawson given grid penalties for Mexico practice collision"
+            },
+            {
+              "id": "10b8vy5",
+              "title": "Verstappen haalt uit naar Lawson: 'Niet slim van hem om ruzie met mij te zoeken'"
+            },
+            {
+              "id": "1fsbqhu",
+              "title": "Verstappen rijdt met schade vijfde tijd in tweede training Mexico"
+            },
+            {
+              "id": "g5suwl",
+              "title": "The confusion surrounding Colton Herta's F1 superlicence explained"
+            },
+            {
+              "id": "tssb06",
+              "title": "F1 Mexico GP: Leclerc pips McLaren and Mercedes to top FP2"
+            },
+            {
+              "id": "n1idw1",
+              "title": "Verstappen en Lawson krijgen gridstraf na botsing in vrije training Mexico"
+            },
+            {
+              "id": "1gp05mc",
+              "title": "Verstappen rijdt met schade vijfde tijd in tweede training Mexico"
+            },
+            {
+              "id": "ht194n",
+              "title": "Verstappen klokt vijfde tijd na opmerkelijk incident met Lawson in tweede training"
+            },
+            {
+              "id": "1vlwh2s",
+              "title": "Max Verstappen kijkt samen met bekenden toe tijdens eerste training in Mexico, Charles Leclerc direct razendsnel"
+            },
+            {
+              "id": "1m7cy9x",
+              "title": "Fiesta awaits in Mexico City as Kimi Antonelli speeds towards F1 history"
+            },
+            {
+              "id": "xhh17x",
+              "title": "Gepantserde voertuigen en doktersadviezen: zelfs glamoureuze F1-wereld is in Mexico niet immuun voor diarree, diefstal en dreiging"
+            },
+            {
+              "id": "zvwzif",
+              "title": "F1 Mexico GP: Leclerc beats Antonelli to top FP1"
+            },
+            {
+              "id": "tqctcb",
+              "title": "Hamilton on why he is “built differently” to stay in F1 for the “foreseeable future”"
+            },
+            {
+              "id": "1yukg31",
+              "title": "Antonelli skips F1 Mexico GP media day due to illness"
+            }
+          ]
+        },
+        "after": [
+          {
+            "id": "s13vgc23",
+            "sources": 13,
+            "items": [
+              {
+                "id": "u0dsgr",
+                "title": "Verstappen botst met ex-ploegmaat Lawson en haalt uit: \"Niet slim als je voor je zitje vecht\""
+              },
+              {
+                "id": "x73y5",
+                "title": "Gridstraf van één plek voor Verstappen en Lawson na aanvaring"
+              },
+              {
+                "id": "16jo5nr",
+                "title": "Op deze tijden komt Max Verstappen vanavond in actie tijdens GP van Mexico"
+              },
+              {
+                "id": "mofory",
+                "title": "Geïrriteerde Max Verstappen krijgt gridstraf na opvallend akkefietje met oud-teamgenoot: “Weet niet wat er in zijn hoofd omging”"
+              },
+              {
+                "id": "v0zmhb",
+                "title": "Geïrriteerde Max Verstappen krijgt gridstraf na opvallend akkefietje met oud-teamgenoot: “Weet niet wat er in zijn hoofd omging”"
+              },
+              {
+                "id": "y2y5ho",
+                "title": "Geïrriteerde Max Verstappen krijgt gridstraf na opvallend akkefietje met oud-teamgenoot: “Weet niet wat er in zijn hoofd omging”"
+              },
+              {
+                "id": "1swe5gz",
+                "title": "Zo laat komen Verstappen en op titel jagende Antonelli zaterdag in actie tijdens kwalificatie"
+              },
+              {
+                "id": "1cgy7ib",
+                "title": "Geïrriteerde Max Verstappen krijgt gridstraf na opvallend akkefietje met oud-teamgenoot Liam Lawson: ’Niet heel verstandig in zijn positie’"
+              },
+              {
+                "id": "fg4zgc",
+                "title": "Max Verstappen en Liam Lawson op de bon geslingerd voor opmerkelijk incident in tweede vrije training Mexico: ‘Niet zo slim als je voor een stoeltje vecht’"
+              },
+              {
+                "id": "13s9lxb",
+                "title": "Ruziënde Verstappen snapt niets van actie oud-teamgenoot, maar krijgt zelf óók gridstraf: ‘Onacceptabel’"
+              },
+              {
+                "id": "1hbtt1f",
+                "title": "Verstappen en Lawson krijgen allebei gridstraf na aanvaring tijdens training Mexico"
+              },
+              {
+                "id": "svzxhj",
+                "title": "Stewards penalise Verstappen, Lawson after “unacceptable” F1 Mexico GP practice clash"
+              },
+              {
+                "id": "1qw2vk6",
+                "title": "Verstappen and Lawson given grid penalties for Mexico practice collision"
+              },
+              {
+                "id": "10b8vy5",
+                "title": "Verstappen haalt uit naar Lawson: 'Niet slim van hem om ruzie met mij te zoeken'"
+              },
+              {
+                "id": "1fsbqhu",
+                "title": "Verstappen rijdt met schade vijfde tijd in tweede training Mexico"
+              },
+              {
+                "id": "g5suwl",
+                "title": "The confusion surrounding Colton Herta's F1 superlicence explained"
+              },
+              {
+                "id": "tssb06",
+                "title": "F1 Mexico GP: Leclerc pips McLaren and Mercedes to top FP2"
+              },
+              {
+                "id": "n1idw1",
+                "title": "Verstappen en Lawson krijgen gridstraf na botsing in vrije training Mexico"
+              },
+              {
+                "id": "1gp05mc",
+                "title": "Verstappen rijdt met schade vijfde tijd in tweede training Mexico"
+              },
+              {
+                "id": "ht194n",
+                "title": "Verstappen klokt vijfde tijd na opmerkelijk incident met Lawson in tweede training"
+              },
+              {
+                "id": "1vlwh2s",
+                "title": "Max Verstappen kijkt samen met bekenden toe tijdens eerste training in Mexico, Charles Leclerc direct razendsnel"
+              },
+              {
+                "id": "1m7cy9x",
+                "title": "Fiesta awaits in Mexico City as Kimi Antonelli speeds towards F1 history"
+              },
+              {
+                "id": "zvwzif",
+                "title": "F1 Mexico GP: Leclerc beats Antonelli to top FP1"
+              }
+            ]
+          },
+          {
+            "id": "s1gqmxti",
+            "sources": 2,
+            "items": [
+              {
+                "id": "xhh17x",
+                "title": "Gepantserde voertuigen en doktersadviezen: zelfs glamoureuze F1-wereld is in Mexico niet immuun voor diarree, diefstal en dreiging"
+              },
+              {
+                "id": "tqctcb",
+                "title": "Hamilton on why he is “built differently” to stay in F1 for the “foreseeable future”"
+              },
+              {
+                "id": "1yukg31",
+                "title": "Antonelli skips F1 Mexico GP media day due to illness"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "before": {
+          "id": "s1m032np",
+          "sources": 24,
+          "items": [
+            {
+              "id": "qw24o1",
+              "title": "Protests in Poland as president returns to country after Tusk accused of coup against court"
+            },
+            {
+              "id": "bdvdqk",
+              "title": "Pools president Karol Nawrocki roept op tot spoedoverleg voor “herstel van grondwettelijke orde”"
+            },
+            {
+              "id": "g8wbg0",
+              "title": "Pools president Karol Nawrocki roept op tot spoedoverleg voor “herstel van grondwettelijke orde”"
+            },
+            {
+              "id": "1rolz4z",
+              "title": "Pools president Karol Nawrocki roept op tot spoedoverleg voor “herstel van grondwettelijke orde”"
+            },
+            {
+              "id": "h1zsnc",
+              "title": "KIJK. Poolse president wurmt zich met geduw en getrek Grondwettelijk Hof binnen, roept op tot spoedoverleg voor \"herstel van grondwettelijke orde\""
+            },
+            {
+              "id": "2drc6j",
+              "title": "Machtsstrijd Polen escaleert: president roept op tot spoedoverleg voor 'herstel van grondwettelijke orde'"
+            },
+            {
+              "id": "c5ohro",
+              "title": "Poolse president in confrontatie met rechters bij gerechtshof"
+            },
+            {
+              "id": "zbl4ry",
+              "title": "Politieke crisis in Polen na schorsing voorzitter Constitutioneel Hof"
+            },
+            {
+              "id": "lbsxwk",
+              "title": "Veel demonstranten en oproerpolitie bij Constitutioneel Hof Polen"
+            },
+            {
+              "id": "1x2deci",
+              "title": "Oproer in Warschau aan Grondwettelijk Hof, president wil dat regering de ordetroepen terugtrekt"
+            },
+            {
+              "id": "o0cj6h",
+              "title": "Poolse president wurmt zich met geduw en getrek Grondwettelijk Hof binnen, roept op tot spoedoverleg voor ‘herstel van grondwettelijke orde’"
+            },
+            {
+              "id": "e2y5ph",
+              "title": "Poolse president in confrontatie met rechters bij gerechtshof"
+            },
+            {
+              "id": "1gns5sb",
+              "title": "Poolse president in confrontatie met rechters bij gerechtshof"
+            },
+            {
+              "id": "1wuieue",
+              "title": "Poolse president in confrontatie met rechters bij gerechtshof"
+            },
+            {
+              "id": "1tk2ubj",
+              "title": "Veel demonstranten en oproerpolitie bij Constitutioneel Hof Polen"
+            },
+            {
+              "id": "lc78pp",
+              "title": "Veel demonstranten en oproerpolitie bij Constitutioneel Hof Polen"
+            },
+            {
+              "id": "1c07v3k",
+              "title": "Veel demonstranten en oproerpolitie bij Constitutioneel Hof Polen"
+            },
+            {
+              "id": "j2p3ew",
+              "title": "Poolse president laat vliegtuig omkeren na spanningen bij hooggerechtshof"
+            },
+            {
+              "id": "plk2eg",
+              "title": "Riot police deployed to Poland’s constitutional court after judge suspended"
+            },
+            {
+              "id": "d9n3jz",
+              "title": "Poland’s president joins protest amid constitutional crisis at top court"
+            },
+            {
+              "id": "tzzpmc",
+              "title": "Poolse president in ‘fysieke confrontatie’ met rechters na schorsing voorzitter Constitutioneel Hof, politie grijpt in"
+            },
+            {
+              "id": "pohbjv",
+              "title": "Polish riot police deployed as deposed court chief sets off crisis"
+            },
+            {
+              "id": "cljv9q",
+              "title": "Poland suspends top judges as battle over rule of law escalates"
+            },
+            {
+              "id": "xxqzjp",
+              "title": "Poland: Protesters clash with police over sacked court chief"
+            },
+            {
+              "id": "is1ofl",
+              "title": "Poolse president annuleert reis na schorsing hoogste rechter"
+            },
+            {
+              "id": "16yjmi1",
+              "title": "Schorsing Poolse rechter mondt uit in politieke crisis en chaos bij hof"
+            },
+            {
+              "id": "17r1wcl",
+              "title": "Poolse president annuleert reis na schorsing hoogste rechter"
+            },
+            {
+              "id": "1v8vydn",
+              "title": "Poolse president annuleert reis na schorsing hoogste rechter"
+            },
+            {
+              "id": "1r0emqi",
+              "title": "Spanningen rond Pools Constitutioneel Hof, vliegtuig president Nawrocki keert terug"
+            },
+            {
+              "id": "lm1arc",
+              "title": "Tusk-Nawrocki battle escalates as chief judge is ousted from Poland’s top court"
+            },
+            {
+              "id": "1n8g0rr",
+              "title": "Premier en president in Polen lijnrecht tegenover elkaar na crisis over schorsing voorzitter Grondwettelijk hof"
+            }
+          ]
+        },
+        "after": [
+          {
+            "id": "snj57qd",
+            "sources": 16,
+            "items": [
+              {
+                "id": "1rolz4z",
+                "title": "Pools president Karol Nawrocki roept op tot spoedoverleg voor “herstel van grondwettelijke orde”"
+              },
+              {
+                "id": "bdvdqk",
+                "title": "Pools president Karol Nawrocki roept op tot spoedoverleg voor “herstel van grondwettelijke orde”"
+              },
+              {
+                "id": "g8wbg0",
+                "title": "Pools president Karol Nawrocki roept op tot spoedoverleg voor “herstel van grondwettelijke orde”"
+              },
+              {
+                "id": "h1zsnc",
+                "title": "KIJK. Poolse president wurmt zich met geduw en getrek Grondwettelijk Hof binnen, roept op tot spoedoverleg voor \"herstel van grondwettelijke orde\""
+              },
+              {
+                "id": "2drc6j",
+                "title": "Machtsstrijd Polen escaleert: president roept op tot spoedoverleg voor 'herstel van grondwettelijke orde'"
+              },
+              {
+                "id": "c5ohro",
+                "title": "Poolse president in confrontatie met rechters bij gerechtshof"
+              },
+              {
+                "id": "zbl4ry",
+                "title": "Politieke crisis in Polen na schorsing voorzitter Constitutioneel Hof"
+              },
+              {
+                "id": "lbsxwk",
+                "title": "Veel demonstranten en oproerpolitie bij Constitutioneel Hof Polen"
+              },
+              {
+                "id": "1x2deci",
+                "title": "Oproer in Warschau aan Grondwettelijk Hof, president wil dat regering de ordetroepen terugtrekt"
+              },
+              {
+                "id": "o0cj6h",
+                "title": "Poolse president wurmt zich met geduw en getrek Grondwettelijk Hof binnen, roept op tot spoedoverleg voor ‘herstel van grondwettelijke orde’"
+              },
+              {
+                "id": "1gns5sb",
+                "title": "Poolse president in confrontatie met rechters bij gerechtshof"
+              },
+              {
+                "id": "1wuieue",
+                "title": "Poolse president in confrontatie met rechters bij gerechtshof"
+              },
+              {
+                "id": "e2y5ph",
+                "title": "Poolse president in confrontatie met rechters bij gerechtshof"
+              },
+              {
+                "id": "1c07v3k",
+                "title": "Veel demonstranten en oproerpolitie bij Constitutioneel Hof Polen"
+              },
+              {
+                "id": "1tk2ubj",
+                "title": "Veel demonstranten en oproerpolitie bij Constitutioneel Hof Polen"
+              },
+              {
+                "id": "lc78pp",
+                "title": "Veel demonstranten en oproerpolitie bij Constitutioneel Hof Polen"
+              },
+              {
+                "id": "j2p3ew",
+                "title": "Poolse president laat vliegtuig omkeren na spanningen bij hooggerechtshof"
+              },
+              {
+                "id": "plk2eg",
+                "title": "Riot police deployed to Poland’s constitutional court after judge suspended"
+              },
+              {
+                "id": "tzzpmc",
+                "title": "Poolse president in ‘fysieke confrontatie’ met rechters na schorsing voorzitter Constitutioneel Hof, politie grijpt in"
+              },
+              {
+                "id": "is1ofl",
+                "title": "Poolse president annuleert reis na schorsing hoogste rechter"
+              },
+              {
+                "id": "17r1wcl",
+                "title": "Poolse president annuleert reis na schorsing hoogste rechter"
+              },
+              {
+                "id": "1v8vydn",
+                "title": "Poolse president annuleert reis na schorsing hoogste rechter"
+              },
+              {
+                "id": "lm1arc",
+                "title": "Tusk-Nawrocki battle escalates as chief judge is ousted from Poland’s top court"
+              }
+            ]
+          },
+          {
+            "id": "s1m032np",
+            "sources": 7,
+            "items": [
+              {
+                "id": "d9n3jz",
+                "title": "Poland’s president joins protest amid constitutional crisis at top court"
+              },
+              {
+                "id": "pohbjv",
+                "title": "Polish riot police deployed as deposed court chief sets off crisis"
+              },
+              {
+                "id": "cljv9q",
+                "title": "Poland suspends top judges as battle over rule of law escalates"
+              },
+              {
+                "id": "xxqzjp",
+                "title": "Poland: Protesters clash with police over sacked court chief"
+              },
+              {
+                "id": "16yjmi1",
+                "title": "Schorsing Poolse rechter mondt uit in politieke crisis en chaos bij hof"
+              },
+              {
+                "id": "1r0emqi",
+                "title": "Spanningen rond Pools Constitutioneel Hof, vliegtuig president Nawrocki keert terug"
+              },
+              {
+                "id": "1n8g0rr",
+                "title": "Premier en president in Polen lijnrecht tegenover elkaar na crisis over schorsing voorzitter Grondwettelijk hof"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "before": {
+          "id": "s17klun",
+          "sources": 9,
+          "items": [
+            {
+              "id": "pxnw5g",
+              "title": "Gevluchte Flávio Bolsonaro zegt slachtoffer te zijn van vervolging, negeert onderzoeken naar witwassen en corruptie"
+            },
+            {
+              "id": "3dvydg",
+              "title": "Lula’s surprise election victory sends agri-commodities tumbling"
+            },
+            {
+              "id": "1upqch7",
+              "title": "Gevluchte Flávio Bolsonaro zegt slachtoffer te zijn van ‘vervolging’, negeert onderzoeken naar witwassen en corruptie"
+            },
+            {
+              "id": "1q7euju",
+              "title": "Flavio Bolsonaro says he left Brazil because he is the victim of 'persecution'"
+            },
+            {
+              "id": "1uw1kng",
+              "title": "Gevluchte Flávio Bolsonaro zegt slachtoffer te zijn van ‘vervolging’, negeert onderzoeken naar witwassen en corruptie"
+            },
+            {
+              "id": "eaduew",
+              "title": "Trump and Milei under pressure to explain role in Flavio Bolsonaro’s dramatic escape to US"
+            },
+            {
+              "id": "1x9yzvc",
+              "title": "'Bolsonaro-bende' zweert vanuit toevluchtsoord Florida samen tegen Brazilië"
+            },
+            {
+              "id": "1nyr7zh",
+              "title": "‘Amateur morons’: Flávio Bolsonaro’s short-lived ‘president-elect’ claim met with mockery"
+            },
+            {
+              "id": "1o0elvt",
+              "title": "Brazil’s victory for the planet and democracy: seven lessons from Lula’s win"
+            },
+            {
+              "id": "15nn592",
+              "title": "Flávio Bolsonaro Becomes a Florida Man"
+            }
+          ]
+        },
+        "after": [
+          {
+            "id": "s1nbixsk",
+            "sources": 7,
+            "items": [
+              {
+                "id": "pxnw5g",
+                "title": "Gevluchte Flávio Bolsonaro zegt slachtoffer te zijn van vervolging, negeert onderzoeken naar witwassen en corruptie"
+              },
+              {
+                "id": "1upqch7",
+                "title": "Gevluchte Flávio Bolsonaro zegt slachtoffer te zijn van ‘vervolging’, negeert onderzoeken naar witwassen en corruptie"
+              },
+              {
+                "id": "1q7euju",
+                "title": "Flavio Bolsonaro says he left Brazil because he is the victim of 'persecution'"
+              },
+              {
+                "id": "1uw1kng",
+                "title": "Gevluchte Flávio Bolsonaro zegt slachtoffer te zijn van ‘vervolging’, negeert onderzoeken naar witwassen en corruptie"
+              },
+              {
+                "id": "eaduew",
+                "title": "Trump and Milei under pressure to explain role in Flavio Bolsonaro’s dramatic escape to US"
+              },
+              {
+                "id": "1x9yzvc",
+                "title": "'Bolsonaro-bende' zweert vanuit toevluchtsoord Florida samen tegen Brazilië"
+              },
+              {
+                "id": "1nyr7zh",
+                "title": "‘Amateur morons’: Flávio Bolsonaro’s short-lived ‘president-elect’ claim met with mockery"
+              }
+            ]
+          },
+          {
+            "id": "s1o24aps",
+            "sources": 2,
+            "items": [
+              {
+                "id": "3dvydg",
+                "title": "Lula’s surprise election victory sends agri-commodities tumbling"
+              },
+              {
+                "id": "1o0elvt",
+                "title": "Brazil’s victory for the planet and democracy: seven lessons from Lula’s win"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "snapshot-2026-10-31-1050.json.gz",
+    "articles": 1723,
+    "before": 141,
+    "after": 144,
+    "largestBefore": 25,
+    "largestAfter": 21,
+    "changed": [
+      {
+        "before": {
+          "id": "s1gzk8yb",
+          "sources": 6,
+          "items": [
+            {
+              "id": "1x14um8",
+              "title": "Frankrijk zet zich schrap voor Halloween-protesten, groot risico op onrust"
+            },
+            {
+              "id": "11tt3fd",
+              "title": "Cost of living protests to spread to Germany and reignite in France on Halloween"
+            },
+            {
+              "id": "5pvrn2",
+              "title": "Plan for More Protests, This Time on Halloween, Causes Jitters in France"
+            },
+            {
+              "id": "1r0elyt",
+              "title": "Frankrijk zet zich schrap voor 'Halloween'-protesten"
+            },
+            {
+              "id": "4gvz04",
+              "title": "France braces for third Saturday of protests as interior minister warns of street violence on Halloween"
+            },
+            {
+              "id": "1f0rj09",
+              "title": "Frankrijk maakt zich op voor nieuwe, maar weinig zinvolle protesten"
+            }
+          ]
+        },
+        "after": [
+          {
+            "id": "s1p1e6u6",
+            "sources": 5,
+            "items": [
+              {
+                "id": "1x14um8",
+                "title": "Frankrijk zet zich schrap voor Halloween-protesten, groot risico op onrust"
+              },
+              {
+                "id": "11tt3fd",
+                "title": "Cost of living protests to spread to Germany and reignite in France on Halloween"
+              },
+              {
+                "id": "5pvrn2",
+                "title": "Plan for More Protests, This Time on Halloween, Causes Jitters in France"
+              },
+              {
+                "id": "1r0elyt",
+                "title": "Frankrijk zet zich schrap voor 'Halloween'-protesten"
+              },
+              {
+                "id": "4gvz04",
+                "title": "France braces for third Saturday of protests as interior minister warns of street violence on Halloween"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "before": {
+          "id": "s19u8cep",
+          "sources": 14,
+          "items": [
+            {
+              "id": "114w54z",
+              "title": "Twee opvarenden migrantenboot Zeeland opgepakt voor mensensmokkel"
+            },
+            {
+              "id": "11pbo6n",
+              "title": "Hulpdiensten rukken uit voor boot voor Zeeuwse kust, twee opvarenden aangehouden wegens mensensmokkel"
+            },
+            {
+              "id": "dak1fc",
+              "title": "Video | Hulpdiensten halen tientallen mensen van rubberboot in Zeeland"
+            },
+            {
+              "id": "j28bf",
+              "title": "Hulpdiensten rukken uit voor boot met 38 mensen nabij Nederlandse Breskens: 2 opvarenden opgepakt voor mensensmokkel"
+            },
+            {
+              "id": "110wbi2",
+              "title": "Hulpdiensten rukken uit voor boot met 38 mensen bij Breskens, twee opvarenden opgepakt voor mensensmokkel"
+            },
+            {
+              "id": "1n0i629",
+              "title": "Hulpdiensten rukken uit voor boot met 38 mensen nabij Nederlandse Breskens: 2 opvarenden opgepakt voor mensensmokkel"
+            },
+            {
+              "id": "b67se",
+              "title": "Twee vermeende mensensmokkelaars aangehouden na redding rubberboot met tientallen opvarenden in Zeeland"
+            },
+            {
+              "id": "1uuuoj8",
+              "title": "Twee opvarenden migrantenboot Zeeland opgepakt voor mensensmokkel"
+            },
+            {
+              "id": "1jklenq",
+              "title": "Rubberbootje met 38 mensen tegengehouden in Zeeuws-Vlaanderen, twee opvarenden opgepakt voor mensensmokkel"
+            },
+            {
+              "id": "d6nqqp",
+              "title": "Bootje met 38 migranten aangetroffen voor Nederlandse kust, 2 inzittenden opgepakt op verdenking van mensensmokkel"
+            },
+            {
+              "id": "wn2f9u",
+              "title": "Hulpdiensten rukken uit voor boot voor Zeeuwse kust, twee opvarenden aangehouden wegens mensensmokkel"
+            },
+            {
+              "id": "oerka9",
+              "title": "Rubberboot met vermoedelijk tientallen migranten van zee gehaald bij Zeeland"
+            },
+            {
+              "id": "gn4wsb",
+              "title": "Twee opvarenden migrantenboot Zeeland opgepakt voor mensensmokkel"
+            },
+            {
+              "id": "13n81o1",
+              "title": "Twee opvarenden migrantenboot Zeeland opgepakt voor mensensmokkel"
+            },
+            {
+              "id": "14ms93t",
+              "title": "Twee opvarenden migrantenboot Zeeland opgepakt voor mensensmokkel"
+            },
+            {
+              "id": "1r0ely7",
+              "title": "Rubberboot met tientallen migranten van zee gehaald bij Breskens"
+            }
+          ]
+        },
+        "after": [
+          {
+            "id": "s19u8cep",
+            "sources": 10,
+            "items": [
+              {
+                "id": "11pbo6n",
+                "title": "Hulpdiensten rukken uit voor boot voor Zeeuwse kust, twee opvarenden aangehouden wegens mensensmokkel"
+              },
+              {
+                "id": "dak1fc",
+                "title": "Video | Hulpdiensten halen tientallen mensen van rubberboot in Zeeland"
+              },
+              {
+                "id": "110wbi2",
+                "title": "Hulpdiensten rukken uit voor boot met 38 mensen bij Breskens, twee opvarenden opgepakt voor mensensmokkel"
+              },
+              {
+                "id": "1n0i629",
+                "title": "Hulpdiensten rukken uit voor boot met 38 mensen nabij Nederlandse Breskens: 2 opvarenden opgepakt voor mensensmokkel"
+              },
+              {
+                "id": "j28bf",
+                "title": "Hulpdiensten rukken uit voor boot met 38 mensen nabij Nederlandse Breskens: 2 opvarenden opgepakt voor mensensmokkel"
+              },
+              {
+                "id": "b67se",
+                "title": "Twee vermeende mensensmokkelaars aangehouden na redding rubberboot met tientallen opvarenden in Zeeland"
+              },
+              {
+                "id": "1jklenq",
+                "title": "Rubberbootje met 38 mensen tegengehouden in Zeeuws-Vlaanderen, twee opvarenden opgepakt voor mensensmokkel"
+              },
+              {
+                "id": "d6nqqp",
+                "title": "Bootje met 38 migranten aangetroffen voor Nederlandse kust, 2 inzittenden opgepakt op verdenking van mensensmokkel"
+              },
+              {
+                "id": "wn2f9u",
+                "title": "Hulpdiensten rukken uit voor boot voor Zeeuwse kust, twee opvarenden aangehouden wegens mensensmokkel"
+              },
+              {
+                "id": "1r0ely7",
+                "title": "Rubberboot met tientallen migranten van zee gehaald bij Breskens"
+              }
+            ]
+          },
+          {
+            "id": "sn0pwda",
+            "sources": 6,
+            "items": [
+              {
+                "id": "114w54z",
+                "title": "Twee opvarenden migrantenboot Zeeland opgepakt voor mensensmokkel"
+              },
+              {
+                "id": "1uuuoj8",
+                "title": "Twee opvarenden migrantenboot Zeeland opgepakt voor mensensmokkel"
+              },
+              {
+                "id": "oerka9",
+                "title": "Rubberboot met vermoedelijk tientallen migranten van zee gehaald bij Zeeland"
+              },
+              {
+                "id": "13n81o1",
+                "title": "Twee opvarenden migrantenboot Zeeland opgepakt voor mensensmokkel"
+              },
+              {
+                "id": "14ms93t",
+                "title": "Twee opvarenden migrantenboot Zeeland opgepakt voor mensensmokkel"
+              },
+              {
+                "id": "gn4wsb",
+                "title": "Twee opvarenden migrantenboot Zeeland opgepakt voor mensensmokkel"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "before": {
+          "id": "s1m032np",
+          "sources": 18,
+          "items": [
+            {
+              "id": "2drc6j",
+              "title": "Machtsstrijd Polen escaleert: president roept op tot spoedoverleg voor 'herstel van grondwettelijke orde'"
+            },
+            {
+              "id": "12jtzqx",
+              "title": "Polish president Nawrocki pushes his way into top court amid rule-of-law tussle"
+            },
+            {
+              "id": "qw24o1",
+              "title": "Protests in Poland as president returns to country after Tusk accused of coup against court"
+            },
+            {
+              "id": "c5ohro",
+              "title": "Poolse president in confrontatie met rechters bij gerechtshof"
+            },
+            {
+              "id": "zbl4ry",
+              "title": "Politieke crisis in Polen na schorsing voorzitter Constitutioneel Hof"
+            },
+            {
+              "id": "lbsxwk",
+              "title": "Veel demonstranten en oproerpolitie bij Constitutioneel Hof Polen"
+            },
+            {
+              "id": "vt0q55",
+              "title": "Rechtse president Nawrocki clasht met regering-Tusk over schorsing voorzitter Grondwettelijk Hof in Polen: “Trek ordetroepen terug”"
+            },
+            {
+              "id": "o0cj6h",
+              "title": "Poolse president wurmt zich met geduw en getrek Grondwettelijk Hof binnen, roept op tot spoedoverleg voor ‘herstel van grondwettelijke orde’"
+            },
+            {
+              "id": "1gns5sb",
+              "title": "Poolse president in confrontatie met rechters bij gerechtshof"
+            },
+            {
+              "id": "1wuieue",
+              "title": "Poolse president in confrontatie met rechters bij gerechtshof"
+            },
+            {
+              "id": "e2y5ph",
+              "title": "Poolse president in confrontatie met rechters bij gerechtshof"
+            },
+            {
+              "id": "lc78pp",
+              "title": "Veel demonstranten en oproerpolitie bij Constitutioneel Hof Polen"
+            },
+            {
+              "id": "1c07v3k",
+              "title": "Veel demonstranten en oproerpolitie bij Constitutioneel Hof Polen"
+            },
+            {
+              "id": "1tk2ubj",
+              "title": "Veel demonstranten en oproerpolitie bij Constitutioneel Hof Polen"
+            },
+            {
+              "id": "j2p3ew",
+              "title": "Poolse president laat vliegtuig omkeren na spanningen bij hooggerechtshof"
+            },
+            {
+              "id": "plk2eg",
+              "title": "Riot police deployed to Poland’s constitutional court after judge suspended"
+            },
+            {
+              "id": "tzzpmc",
+              "title": "Poolse president in ‘fysieke confrontatie’ met rechters na schorsing voorzitter Constitutioneel Hof, politie grijpt in"
+            },
+            {
+              "id": "pohbjv",
+              "title": "Polish riot police deployed as deposed court chief sets off crisis"
+            },
+            {
+              "id": "cljv9q",
+              "title": "Poland suspends top judges as battle over rule of law escalates"
+            },
+            {
+              "id": "xxqzjp",
+              "title": "Poland: Protesters clash with police over sacked court chief"
+            },
+            {
+              "id": "is1ofl",
+              "title": "Poolse president annuleert reis na schorsing hoogste rechter"
+            },
+            {
+              "id": "16yjmi1",
+              "title": "Schorsing Poolse rechter mondt uit in politieke crisis en chaos bij hof"
+            },
+            {
+              "id": "1v8vydn",
+              "title": "Poolse president annuleert reis na schorsing hoogste rechter"
+            },
+            {
+              "id": "lm1arc",
+              "title": "Tusk-Nawrocki battle escalates as chief judge is ousted from Poland’s top court"
+            },
+            {
+              "id": "1n8g0rr",
+              "title": "Premier en president in Polen lijnrecht tegenover elkaar na crisis over schorsing voorzitter Grondwettelijk hof"
+            }
+          ]
+        },
+        "after": [
+          {
+            "id": "s1m032np",
+            "sources": 14,
+            "items": [
+              {
+                "id": "2drc6j",
+                "title": "Machtsstrijd Polen escaleert: president roept op tot spoedoverleg voor 'herstel van grondwettelijke orde'"
+              },
+              {
+                "id": "12jtzqx",
+                "title": "Polish president Nawrocki pushes his way into top court amid rule-of-law tussle"
+              },
+              {
+                "id": "c5ohro",
+                "title": "Poolse president in confrontatie met rechters bij gerechtshof"
+              },
+              {
+                "id": "zbl4ry",
+                "title": "Politieke crisis in Polen na schorsing voorzitter Constitutioneel Hof"
+              },
+              {
+                "id": "lbsxwk",
+                "title": "Veel demonstranten en oproerpolitie bij Constitutioneel Hof Polen"
+              },
+              {
+                "id": "vt0q55",
+                "title": "Rechtse president Nawrocki clasht met regering-Tusk over schorsing voorzitter Grondwettelijk Hof in Polen: “Trek ordetroepen terug”"
+              },
+              {
+                "id": "o0cj6h",
+                "title": "Poolse president wurmt zich met geduw en getrek Grondwettelijk Hof binnen, roept op tot spoedoverleg voor ‘herstel van grondwettelijke orde’"
+              },
+              {
+                "id": "1gns5sb",
+                "title": "Poolse president in confrontatie met rechters bij gerechtshof"
+              },
+              {
+                "id": "1wuieue",
+                "title": "Poolse president in confrontatie met rechters bij gerechtshof"
+              },
+              {
+                "id": "e2y5ph",
+                "title": "Poolse president in confrontatie met rechters bij gerechtshof"
+              },
+              {
+                "id": "1c07v3k",
+                "title": "Veel demonstranten en oproerpolitie bij Constitutioneel Hof Polen"
+              },
+              {
+                "id": "1tk2ubj",
+                "title": "Veel demonstranten en oproerpolitie bij Constitutioneel Hof Polen"
+              },
+              {
+                "id": "lc78pp",
+                "title": "Veel demonstranten en oproerpolitie bij Constitutioneel Hof Polen"
+              },
+              {
+                "id": "j2p3ew",
+                "title": "Poolse president laat vliegtuig omkeren na spanningen bij hooggerechtshof"
+              },
+              {
+                "id": "plk2eg",
+                "title": "Riot police deployed to Poland’s constitutional court after judge suspended"
+              },
+              {
+                "id": "tzzpmc",
+                "title": "Poolse president in ‘fysieke confrontatie’ met rechters na schorsing voorzitter Constitutioneel Hof, politie grijpt in"
+              },
+              {
+                "id": "cljv9q",
+                "title": "Poland suspends top judges as battle over rule of law escalates"
+              },
+              {
+                "id": "is1ofl",
+                "title": "Poolse president annuleert reis na schorsing hoogste rechter"
+              },
+              {
+                "id": "1v8vydn",
+                "title": "Poolse president annuleert reis na schorsing hoogste rechter"
+              },
+              {
+                "id": "lm1arc",
+                "title": "Tusk-Nawrocki battle escalates as chief judge is ousted from Poland’s top court"
+              },
+              {
+                "id": "1n8g0rr",
+                "title": "Premier en president in Polen lijnrecht tegenover elkaar na crisis over schorsing voorzitter Grondwettelijk hof"
+              }
+            ]
+          },
+          {
+            "id": "s103onzo",
+            "sources": 3,
+            "items": [
+              {
+                "id": "qw24o1",
+                "title": "Protests in Poland as president returns to country after Tusk accused of coup against court"
+              },
+              {
+                "id": "pohbjv",
+                "title": "Polish riot police deployed as deposed court chief sets off crisis"
+              },
+              {
+                "id": "xxqzjp",
+                "title": "Poland: Protesters clash with police over sacked court chief"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "before": {
+          "id": "s1gqmxti",
+          "sources": 11,
+          "items": [
+            {
+              "id": "104xopy",
+              "title": "GP Mexico: Kimi Antonelli is weer fit, wordt hij de jongste wereldkampioen ooit?"
+            },
+            {
+              "id": "u0dsgr",
+              "title": "Verstappen botst met ex-ploegmaat Lawson en haalt uit: \"Niet slim als je voor je zitje vecht\""
+            },
+            {
+              "id": "x73y5",
+              "title": "Gridstraf van één plek voor Verstappen en Lawson na aanvaring"
+            },
+            {
+              "id": "16jo5nr",
+              "title": "Op deze tijden komt Max Verstappen vanavond in actie tijdens GP van Mexico"
+            },
+            {
+              "id": "v0zmhb",
+              "title": "Geïrriteerde Max Verstappen krijgt gridstraf na opvallend akkefietje met oud-teamgenoot: “Weet niet wat er in zijn hoofd omging”"
+            },
+            {
+              "id": "1swe5gz",
+              "title": "Zo laat komen Verstappen en op titel jagende Antonelli zaterdag in actie tijdens kwalificatie"
+            },
+            {
+              "id": "fg4zgc",
+              "title": "Max Verstappen en Liam Lawson op de bon geslingerd voor opmerkelijk incident in tweede vrije training Mexico: ‘Niet zo slim als je voor een stoeltje vecht’"
+            },
+            {
+              "id": "13s9lxb",
+              "title": "Ruziënde Verstappen snapt niets van actie oud-teamgenoot, maar krijgt zelf óók gridstraf: ‘Onacceptabel’"
+            },
+            {
+              "id": "ie44y6",
+              "title": "Verstappen en Lawson krijgen gridstraf na aanvaring tijdens training in Mexico"
+            },
+            {
+              "id": "svzxhj",
+              "title": "Stewards penalise Verstappen, Lawson after “unacceptable” F1 Mexico GP practice clash"
+            },
+            {
+              "id": "1qw2vk6",
+              "title": "Verstappen and Lawson given grid penalties for Mexico practice collision"
+            },
+            {
+              "id": "10b8vy5",
+              "title": "Verstappen haalt uit naar Lawson: 'Niet slim van hem om ruzie met mij te zoeken'"
+            },
+            {
+              "id": "1fsbqhu",
+              "title": "Verstappen rijdt met schade vijfde tijd in tweede training Mexico"
+            },
+            {
+              "id": "g5suwl",
+              "title": "The confusion surrounding Colton Herta's F1 superlicence explained"
+            },
+            {
+              "id": "tssb06",
+              "title": "F1 Mexico GP: Leclerc pips McLaren and Mercedes to top FP2"
+            },
+            {
+              "id": "n1idw1",
+              "title": "Verstappen en Lawson krijgen gridstraf na botsing in vrije training Mexico"
+            },
+            {
+              "id": "1gp05mc",
+              "title": "Verstappen rijdt met schade vijfde tijd in tweede training Mexico"
+            },
+            {
+              "id": "ht194n",
+              "title": "Verstappen klokt vijfde tijd na opmerkelijk incident met Lawson in tweede training"
+            },
+            {
+              "id": "1vlwh2s",
+              "title": "Max Verstappen kijkt samen met bekenden toe tijdens eerste training in Mexico, Charles Leclerc direct razendsnel"
+            },
+            {
+              "id": "1m7cy9x",
+              "title": "Fiesta awaits in Mexico City as Kimi Antonelli speeds towards F1 history"
+            },
+            {
+              "id": "xhh17x",
+              "title": "Gepantserde voertuigen en doktersadviezen: zelfs glamoureuze F1-wereld is in Mexico niet immuun voor diarree, diefstal en dreiging"
+            },
+            {
+              "id": "zvwzif",
+              "title": "F1 Mexico GP: Leclerc beats Antonelli to top FP1"
+            },
+            {
+              "id": "tqctcb",
+              "title": "Hamilton on why he is “built differently” to stay in F1 for the “foreseeable future”"
+            },
+            {
+              "id": "1yukg31",
+              "title": "Antonelli skips F1 Mexico GP media day due to illness"
+            }
+          ]
+        },
+        "after": [
+          {
+            "id": "s13vgc23",
+            "sources": 11,
+            "items": [
+              {
+                "id": "u0dsgr",
+                "title": "Verstappen botst met ex-ploegmaat Lawson en haalt uit: \"Niet slim als je voor je zitje vecht\""
+              },
+              {
+                "id": "x73y5",
+                "title": "Gridstraf van één plek voor Verstappen en Lawson na aanvaring"
+              },
+              {
+                "id": "16jo5nr",
+                "title": "Op deze tijden komt Max Verstappen vanavond in actie tijdens GP van Mexico"
+              },
+              {
+                "id": "v0zmhb",
+                "title": "Geïrriteerde Max Verstappen krijgt gridstraf na opvallend akkefietje met oud-teamgenoot: “Weet niet wat er in zijn hoofd omging”"
+              },
+              {
+                "id": "1swe5gz",
+                "title": "Zo laat komen Verstappen en op titel jagende Antonelli zaterdag in actie tijdens kwalificatie"
+              },
+              {
+                "id": "fg4zgc",
+                "title": "Max Verstappen en Liam Lawson op de bon geslingerd voor opmerkelijk incident in tweede vrije training Mexico: ‘Niet zo slim als je voor een stoeltje vecht’"
+              },
+              {
+                "id": "13s9lxb",
+                "title": "Ruziënde Verstappen snapt niets van actie oud-teamgenoot, maar krijgt zelf óók gridstraf: ‘Onacceptabel’"
+              },
+              {
+                "id": "ie44y6",
+                "title": "Verstappen en Lawson krijgen gridstraf na aanvaring tijdens training in Mexico"
+              },
+              {
+                "id": "svzxhj",
+                "title": "Stewards penalise Verstappen, Lawson after “unacceptable” F1 Mexico GP practice clash"
+              },
+              {
+                "id": "1qw2vk6",
+                "title": "Verstappen and Lawson given grid penalties for Mexico practice collision"
+              },
+              {
+                "id": "10b8vy5",
+                "title": "Verstappen haalt uit naar Lawson: 'Niet slim van hem om ruzie met mij te zoeken'"
+              },
+              {
+                "id": "1fsbqhu",
+                "title": "Verstappen rijdt met schade vijfde tijd in tweede training Mexico"
+              },
+              {
+                "id": "g5suwl",
+                "title": "The confusion surrounding Colton Herta's F1 superlicence explained"
+              },
+              {
+                "id": "tssb06",
+                "title": "F1 Mexico GP: Leclerc pips McLaren and Mercedes to top FP2"
+              },
+              {
+                "id": "n1idw1",
+                "title": "Verstappen en Lawson krijgen gridstraf na botsing in vrije training Mexico"
+              },
+              {
+                "id": "1gp05mc",
+                "title": "Verstappen rijdt met schade vijfde tijd in tweede training Mexico"
+              },
+              {
+                "id": "ht194n",
+                "title": "Verstappen klokt vijfde tijd na opmerkelijk incident met Lawson in tweede training"
+              },
+              {
+                "id": "1vlwh2s",
+                "title": "Max Verstappen kijkt samen met bekenden toe tijdens eerste training in Mexico, Charles Leclerc direct razendsnel"
+              },
+              {
+                "id": "1m7cy9x",
+                "title": "Fiesta awaits in Mexico City as Kimi Antonelli speeds towards F1 history"
+              },
+              {
+                "id": "zvwzif",
+                "title": "F1 Mexico GP: Leclerc beats Antonelli to top FP1"
+              }
+            ]
+          },
+          {
+            "id": "s1gqmxti",
+            "sources": 3,
+            "items": [
+              {
+                "id": "104xopy",
+                "title": "GP Mexico: Kimi Antonelli is weer fit, wordt hij de jongste wereldkampioen ooit?"
+              },
+              {
+                "id": "xhh17x",
+                "title": "Gepantserde voertuigen en doktersadviezen: zelfs glamoureuze F1-wereld is in Mexico niet immuun voor diarree, diefstal en dreiging"
+              },
+              {
+                "id": "1yukg31",
+                "title": "Antonelli skips F1 Mexico GP media day due to illness"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "snapshot-2026-10-31-1200.json.gz",
+    "articles": 270,
+    "before": 6,
+    "after": 6,
+    "largestBefore": 3,
+    "largestAfter": 3,
+    "changed": []
+  },
+  {
+    "file": "snapshot-2026-10-31-ochtend.json.gz",
+    "articles": 1720,
+    "before": 138,
+    "after": 140,
+    "largestBefore": 31,
+    "largestAfter": 31,
+    "changed": [
+      {
+        "before": {
+          "id": "s1gqmxti",
+          "sources": 12,
+          "items": [
+            {
+              "id": "x73y5",
+              "title": "Gridstraf van één plek voor Verstappen en Lawson na aanvaring"
+            },
+            {
+              "id": "16jo5nr",
+              "title": "Op deze tijden komt Max Verstappen vanavond in actie tijdens GP van Mexico"
+            },
+            {
+              "id": "mofory",
+              "title": "Geïrriteerde Max Verstappen krijgt gridstraf na opvallend akkefietje met oud-teamgenoot: “Weet niet wat er in zijn hoofd omging”"
+            },
+            {
+              "id": "v0zmhb",
+              "title": "Geïrriteerde Max Verstappen krijgt gridstraf na opvallend akkefietje met oud-teamgenoot: “Weet niet wat er in zijn hoofd omging”"
+            },
+            {
+              "id": "y2y5ho",
+              "title": "Geïrriteerde Max Verstappen krijgt gridstraf na opvallend akkefietje met oud-teamgenoot: “Weet niet wat er in zijn hoofd omging”"
+            },
+            {
+              "id": "1swe5gz",
+              "title": "Zo laat komen Verstappen en op titel jagende Antonelli zaterdag in actie tijdens kwalificatie"
+            },
+            {
+              "id": "1cgy7ib",
+              "title": "Geïrriteerde Max Verstappen krijgt gridstraf na opvallend akkefietje met oud-teamgenoot Liam Lawson: ’Niet heel verstandig in zijn positie’"
+            },
+            {
+              "id": "fg4zgc",
+              "title": "Max Verstappen en Liam Lawson op de bon geslingerd voor opmerkelijk incident in tweede vrije training Mexico: ‘Niet zo slim als je voor een stoeltje vecht’"
+            },
+            {
+              "id": "13s9lxb",
+              "title": "Ruziënde Verstappen snapt niets van actie oud-teamgenoot, maar krijgt zelf óók gridstraf: ‘Onacceptabel’"
+            },
+            {
+              "id": "ie44y6",
+              "title": "Verstappen en Lawson krijgen gridstraf na aanvaring tijdens training in Mexico"
+            },
+            {
+              "id": "svzxhj",
+              "title": "Stewards penalize Verstappen, Lawson after “unacceptable” F1 Mexico GP practice clash"
+            },
+            {
+              "id": "1qw2vk6",
+              "title": "Verstappen and Lawson given grid penalties for Mexico practice collision"
+            },
+            {
+              "id": "10b8vy5",
+              "title": "Verstappen haalt uit naar Lawson: 'Niet slim van hem om ruzie met mij te zoeken'"
+            },
+            {
+              "id": "1fsbqhu",
+              "title": "Verstappen rijdt met schade vijfde tijd in tweede training Mexico"
+            },
+            {
+              "id": "g5suwl",
+              "title": "The confusion surrounding Colton Herta's F1 superlicence explained"
+            },
+            {
+              "id": "tssb06",
+              "title": "F1 Mexico GP: Leclerc pips McLaren and Mercedes to top FP2"
+            },
+            {
+              "id": "n1idw1",
+              "title": "Verstappen en Lawson krijgen gridstraf na botsing in vrije training Mexico"
+            },
+            {
+              "id": "1gp05mc",
+              "title": "Verstappen rijdt met schade vijfde tijd in tweede training Mexico"
+            },
+            {
+              "id": "ht194n",
+              "title": "Verstappen klokt vijfde tijd na opmerkelijk incident met Lawson in tweede training"
+            },
+            {
+              "id": "1vlwh2s",
+              "title": "Max Verstappen kijkt samen met bekenden toe tijdens eerste training in Mexico, Charles Leclerc direct razendsnel"
+            },
+            {
+              "id": "1m7cy9x",
+              "title": "Fiesta awaits in Mexico City as Kimi Antonelli speeds towards F1 history"
+            },
+            {
+              "id": "xhh17x",
+              "title": "Gepantserde voertuigen en doktersadviezen: zelfs glamoureuze F1-wereld is in Mexico niet immuun voor diarree, diefstal en dreiging"
+            },
+            {
+              "id": "zvwzif",
+              "title": "F1 Mexico GP: Leclerc beats Antonelli to top FP1"
+            },
+            {
+              "id": "tqctcb",
+              "title": "Hamilton on why he is “built differently” to stay in F1 for the “foreseeable future”"
+            },
+            {
+              "id": "1yukg31",
+              "title": "Antonelli skips F1 Mexico GP media day due to illness"
+            }
+          ]
+        },
+        "after": [
+          {
+            "id": "s13vgc23",
+            "sources": 12,
+            "items": [
+              {
+                "id": "x73y5",
+                "title": "Gridstraf van één plek voor Verstappen en Lawson na aanvaring"
+              },
+              {
+                "id": "16jo5nr",
+                "title": "Op deze tijden komt Max Verstappen vanavond in actie tijdens GP van Mexico"
+              },
+              {
+                "id": "mofory",
+                "title": "Geïrriteerde Max Verstappen krijgt gridstraf na opvallend akkefietje met oud-teamgenoot: “Weet niet wat er in zijn hoofd omging”"
+              },
+              {
+                "id": "v0zmhb",
+                "title": "Geïrriteerde Max Verstappen krijgt gridstraf na opvallend akkefietje met oud-teamgenoot: “Weet niet wat er in zijn hoofd omging”"
+              },
+              {
+                "id": "y2y5ho",
+                "title": "Geïrriteerde Max Verstappen krijgt gridstraf na opvallend akkefietje met oud-teamgenoot: “Weet niet wat er in zijn hoofd omging”"
+              },
+              {
+                "id": "1swe5gz",
+                "title": "Zo laat komen Verstappen en op titel jagende Antonelli zaterdag in actie tijdens kwalificatie"
+              },
+              {
+                "id": "1cgy7ib",
+                "title": "Geïrriteerde Max Verstappen krijgt gridstraf na opvallend akkefietje met oud-teamgenoot Liam Lawson: ’Niet heel verstandig in zijn positie’"
+              },
+              {
+                "id": "fg4zgc",
+                "title": "Max Verstappen en Liam Lawson op de bon geslingerd voor opmerkelijk incident in tweede vrije training Mexico: ‘Niet zo slim als je voor een stoeltje vecht’"
+              },
+              {
+                "id": "13s9lxb",
+                "title": "Ruziënde Verstappen snapt niets van actie oud-teamgenoot, maar krijgt zelf óók gridstraf: ‘Onacceptabel’"
+              },
+              {
+                "id": "ie44y6",
+                "title": "Verstappen en Lawson krijgen gridstraf na aanvaring tijdens training in Mexico"
+              },
+              {
+                "id": "svzxhj",
+                "title": "Stewards penalize Verstappen, Lawson after “unacceptable” F1 Mexico GP practice clash"
+              },
+              {
+                "id": "1qw2vk6",
+                "title": "Verstappen and Lawson given grid penalties for Mexico practice collision"
+              },
+              {
+                "id": "10b8vy5",
+                "title": "Verstappen haalt uit naar Lawson: 'Niet slim van hem om ruzie met mij te zoeken'"
+              },
+              {
+                "id": "1fsbqhu",
+                "title": "Verstappen rijdt met schade vijfde tijd in tweede training Mexico"
+              },
+              {
+                "id": "g5suwl",
+                "title": "The confusion surrounding Colton Herta's F1 superlicence explained"
+              },
+              {
+                "id": "tssb06",
+                "title": "F1 Mexico GP: Leclerc pips McLaren and Mercedes to top FP2"
+              },
+              {
+                "id": "n1idw1",
+                "title": "Verstappen en Lawson krijgen gridstraf na botsing in vrije training Mexico"
+              },
+              {
+                "id": "1gp05mc",
+                "title": "Verstappen rijdt met schade vijfde tijd in tweede training Mexico"
+              },
+              {
+                "id": "ht194n",
+                "title": "Verstappen klokt vijfde tijd na opmerkelijk incident met Lawson in tweede training"
+              },
+              {
+                "id": "1vlwh2s",
+                "title": "Max Verstappen kijkt samen met bekenden toe tijdens eerste training in Mexico, Charles Leclerc direct razendsnel"
+              },
+              {
+                "id": "1m7cy9x",
+                "title": "Fiesta awaits in Mexico City as Kimi Antonelli speeds towards F1 history"
+              },
+              {
+                "id": "zvwzif",
+                "title": "F1 Mexico GP: Leclerc beats Antonelli to top FP1"
+              }
+            ]
+          },
+          {
+            "id": "s1gqmxti",
+            "sources": 2,
+            "items": [
+              {
+                "id": "xhh17x",
+                "title": "Gepantserde voertuigen en doktersadviezen: zelfs glamoureuze F1-wereld is in Mexico niet immuun voor diarree, diefstal en dreiging"
+              },
+              {
+                "id": "tqctcb",
+                "title": "Hamilton on why he is “built differently” to stay in F1 for the “foreseeable future”"
+              },
+              {
+                "id": "1yukg31",
+                "title": "Antonelli skips F1 Mexico GP media day due to illness"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "before": {
+          "id": "s17klun",
+          "sources": 9,
+          "items": [
+            {
+              "id": "pxnw5g",
+              "title": "Gevluchte Flávio Bolsonaro zegt slachtoffer te zijn van vervolging, negeert onderzoeken naar witwassen en corruptie"
+            },
+            {
+              "id": "3dvydg",
+              "title": "Lula’s surprise election victory sends agri-commodities tumbling"
+            },
+            {
+              "id": "1upqch7",
+              "title": "Gevluchte Flávio Bolsonaro zegt slachtoffer te zijn van ‘vervolging’, negeert onderzoeken naar witwassen en corruptie"
+            },
+            {
+              "id": "1q7euju",
+              "title": "Flavio Bolsonaro says he left Brazil because he is the victim of 'persecution'"
+            },
+            {
+              "id": "1uw1kng",
+              "title": "Gevluchte Flávio Bolsonaro zegt slachtoffer te zijn van ‘vervolging’, negeert onderzoeken naar witwassen en corruptie"
+            },
+            {
+              "id": "eaduew",
+              "title": "Trump and Milei under pressure to explain role in Flavio Bolsonaro’s dramatic escape to US"
+            },
+            {
+              "id": "1x9yzvc",
+              "title": "'Bolsonaro-bende' zweert vanuit toevluchtsoord Florida samen tegen Brazilië"
+            },
+            {
+              "id": "1nyr7zh",
+              "title": "‘Amateur morons’: Flávio Bolsonaro’s short-lived ‘president-elect’ claim met with mockery"
+            },
+            {
+              "id": "1o0elvt",
+              "title": "Brazil’s victory for the planet and democracy: seven lessons from Lula’s win"
+            },
+            {
+              "id": "15nn592",
+              "title": "Flávio Bolsonaro Becomes a Florida Man"
+            }
+          ]
+        },
+        "after": [
+          {
+            "id": "s1nbixsk",
+            "sources": 7,
+            "items": [
+              {
+                "id": "pxnw5g",
+                "title": "Gevluchte Flávio Bolsonaro zegt slachtoffer te zijn van vervolging, negeert onderzoeken naar witwassen en corruptie"
+              },
+              {
+                "id": "1upqch7",
+                "title": "Gevluchte Flávio Bolsonaro zegt slachtoffer te zijn van ‘vervolging’, negeert onderzoeken naar witwassen en corruptie"
+              },
+              {
+                "id": "1q7euju",
+                "title": "Flavio Bolsonaro says he left Brazil because he is the victim of 'persecution'"
+              },
+              {
+                "id": "1uw1kng",
+                "title": "Gevluchte Flávio Bolsonaro zegt slachtoffer te zijn van ‘vervolging’, negeert onderzoeken naar witwassen en corruptie"
+              },
+              {
+                "id": "eaduew",
+                "title": "Trump and Milei under pressure to explain role in Flavio Bolsonaro’s dramatic escape to US"
+              },
+              {
+                "id": "1x9yzvc",
+                "title": "'Bolsonaro-bende' zweert vanuit toevluchtsoord Florida samen tegen Brazilië"
+              },
+              {
+                "id": "1nyr7zh",
+                "title": "‘Amateur morons’: Flávio Bolsonaro’s short-lived ‘president-elect’ claim met with mockery"
+              }
+            ]
+          },
+          {
+            "id": "s1o24aps",
+            "sources": 2,
+            "items": [
+              {
+                "id": "3dvydg",
+                "title": "Lula’s surprise election victory sends agri-commodities tumbling"
+              },
+              {
+                "id": "1o0elvt",
+                "title": "Brazil’s victory for the planet and democracy: seven lessons from Lula’s win"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "file": "noodfix-sport-2026-11-02.json",
+    "articles": 71,
+    "before": 7,
+    "after": 7,
+    "largestBefore": 16,
+    "largestAfter": 15,
+    "changed": [
+      {
+        "before": {
+          "id": "s1kc59ec",
+          "sources": 10,
+          "items": [
+            {
+              "id": "5euo5v",
+              "title": "Inside the Abdul El-Sayed-Haley Stevens Meltdown in Michigan"
+            },
+            {
+              "id": "1oihx17",
+              "title": "Muhammad Ali’s daughter and grandson endorse El-Sayed"
+            },
+            {
+              "id": "17skkda",
+              "title": "El-Sayed dismisses Stevens’ backing of Republican Senate candidate"
+            },
+            {
+              "id": "l85wz9",
+              "title": "Democrat endorses Republican candidate in key Michigan Senate race as party spat erupts"
+            },
+            {
+              "id": "hckte",
+              "title": "Trump invites Michigan Democrat Stevens to join the Republican Party"
+            },
+            {
+              "id": "1agy9my",
+              "title": "Trump has field day with Haley Stevens’ ‘brave’ flip against Abdul El-Sayed"
+            },
+            {
+              "id": "1fo5pbi",
+              "title": "Trump gushes over Haley Stevens’ flip, spars with hecklers at penultimate midterms rally: Live updates"
+            },
+            {
+              "id": "1flq1wq",
+              "title": "Democrat Haley Stevens heckled as she backs El-Sayed rival"
+            },
+            {
+              "id": "1558kmy",
+              "title": "Haley Stevens Is Sending the Wrong Message"
+            },
+            {
+              "id": "12wx67r",
+              "title": "Why did Democrat Haley Stevens just endorse a Republican for US Senate?"
+            },
+            {
+              "id": "1dpnzl1",
+              "title": "Michigan Senate race upended as Democrat endorses Republican"
+            },
+            {
+              "id": "zqydyz",
+              "title": "Democratische afgevaardigde steunt Republikein Rogers in Michigan"
+            },
+            {
+              "id": "m40zym",
+              "title": "Opmerkelijke draai in Michigan: Democratische afgevaardigde steunt Republikeinse kandidaat"
+            },
+            {
+              "id": "1ixkmks",
+              "title": "Haley Stevens endorses GOP candidate in Michigan Senate race, spurning Abdul El-Sayed"
+            },
+            {
+              "id": "7ohcc8",
+              "title": "Abdul El-Sayed’s primary opponent Haley Stevens endorses GOP candidate in Michigan Senate race"
+            },
+            {
+              "id": "1a8ybtv",
+              "title": "Democratic Rep. Haley Stevens endorses Republican Mike Rogers for Michigan Senate"
+            }
+          ]
+        },
+        "after": [
+          {
+            "id": "s1kc59ec",
+            "sources": 10,
+            "items": [
+              {
+                "id": "5euo5v",
+                "title": "Inside the Abdul El-Sayed-Haley Stevens Meltdown in Michigan"
+              },
+              {
+                "id": "1oihx17",
+                "title": "Muhammad Ali’s daughter and grandson endorse El-Sayed"
+              },
+              {
+                "id": "17skkda",
+                "title": "El-Sayed dismisses Stevens’ backing of Republican Senate candidate"
+              },
+              {
+                "id": "l85wz9",
+                "title": "Democrat endorses Republican candidate in key Michigan Senate race as party spat erupts"
+              },
+              {
+                "id": "hckte",
+                "title": "Trump invites Michigan Democrat Stevens to join the Republican Party"
+              },
+              {
+                "id": "1agy9my",
+                "title": "Trump has field day with Haley Stevens’ ‘brave’ flip against Abdul El-Sayed"
+              },
+              {
+                "id": "1flq1wq",
+                "title": "Democrat Haley Stevens heckled as she backs El-Sayed rival"
+              },
+              {
+                "id": "1558kmy",
+                "title": "Haley Stevens Is Sending the Wrong Message"
+              },
+              {
+                "id": "12wx67r",
+                "title": "Why did Democrat Haley Stevens just endorse a Republican for US Senate?"
+              },
+              {
+                "id": "1dpnzl1",
+                "title": "Michigan Senate race upended as Democrat endorses Republican"
+              },
+              {
+                "id": "zqydyz",
+                "title": "Democratische afgevaardigde steunt Republikein Rogers in Michigan"
+              },
+              {
+                "id": "m40zym",
+                "title": "Opmerkelijke draai in Michigan: Democratische afgevaardigde steunt Republikeinse kandidaat"
+              },
+              {
+                "id": "1ixkmks",
+                "title": "Haley Stevens endorses GOP candidate in Michigan Senate race, spurning Abdul El-Sayed"
+              },
+              {
+                "id": "7ohcc8",
+                "title": "Abdul El-Sayed’s primary opponent Haley Stevens endorses GOP candidate in Michigan Senate race"
+              },
+              {
+                "id": "1a8ybtv",
+                "title": "Democratic Rep. Haley Stevens endorses Republican Mike Rogers for Michigan Senate"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
