@@ -272,7 +272,9 @@ export function primaryDesk(itemDesks = []) {
 }
 
 // Hoe belangrijk "van het moment": dekking telt het zwaarst, versheid geeft een duw.
-export function weight({ sourceCount = 1, ownCount = 1, latestAt }, now = Date.now()) {
+export function weight({ sourceCount = 1, ownCount = 0, latestAt }, now = Date.now()) {
   const h = latestAt ? (now - Date.parse(latestAt)) / 36e5 : 99
-  return (ownCount > 0 ? 100 : 0) + sourceCount * 4 + (h <= 3 ? 4 : h <= 6 ? 3 : h <= 12 ? 1 : 0)
+  // Twee punten per gekozen uitgever, hooguit acht: voorkeur helpt, maar kan dekking niet overheersen.
+  const chosen = Number.isFinite(ownCount) ? Math.min(4, Math.max(0, ownCount)) : 0
+  return sourceCount * 4 + chosen * 2 + (h <= 3 ? 4 : h <= 6 ? 3 : h <= 12 ? 1 : 0)
 }

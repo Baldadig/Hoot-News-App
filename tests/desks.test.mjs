@@ -19,7 +19,7 @@ test('rubrieken uit kop, samenvatting, bron en rubriek van de bron', () => {
 test('van het moment: meer bronnen en verser weegt zwaarder', () => {
   const now = Date.parse('2026-10-19T10:00:00Z')
   assert.ok(weight({ sourceCount: 5, ownCount: 2, latestAt: '2026-10-19T09:00:00Z' }, now) > weight({ sourceCount: 5, ownCount: 2, latestAt: '2026-10-18T20:00:00Z' }, now))
-  assert.ok(weight({ sourceCount: 2, ownCount: 1, latestAt: '2026-10-19T09:00:00Z' }, now) > weight({ sourceCount: 6, ownCount: 0, latestAt: '2026-10-19T09:00:00Z' }, now))
+  assert.ok(weight({ sourceCount: 2, ownCount: 1, latestAt: '2026-10-19T09:00:00Z' }, now) < weight({ sourceCount: 6, ownCount: 0, latestAt: '2026-10-19T09:00:00Z' }, now))
 })
 
 const NOW = Date.parse('2026-10-19T10:00:00Z')

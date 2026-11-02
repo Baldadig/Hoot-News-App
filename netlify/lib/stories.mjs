@@ -1055,7 +1055,7 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     if (items.every(isGallery) || (sportStory(st, items) && !exceptionalDutchSport(st, items))) continue
     const per = storyDesks(items)
     const fav = preferred?.size && items.some((i) => preferred.has(i.source)) ? FAVORITE_BONUS : 0
-    cands.push({ kind: 'story', st, items, ids: st.itemIds, desks: new Set(per.flatMap((x) => [...x])), primary: primaryDesk(per), w: weight(st, now) - repeatPenalty(st, items, previous) + fav })
+    cands.push({ kind: 'story', st, items, ids: st.itemIds, desks: new Set(per.flatMap((x) => [...x])), primary: primaryDesk(per), w: weight({ sourceCount: st.publisherCount ?? st.sourceCount, latestAt: st.latestAt }, now) - repeatPenalty(st, items, previous) + fav })
   }
   for (const it of pool) {
     if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || it.storyId || isLive(it)) continue // een liveblog is geen editieplek
@@ -1063,7 +1063,7 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     if (previous?.itemIds?.has(it.id)) continue // stond er al
     if (isGallery(it)) continue // een galerij is geen eigen plek
     const desks = desksOf(it)
-    cands.push({ kind: 'item', it, ids: [it.id], desks, primary: primaryDesk([desks]), w: weight({ sourceCount: 1, ownCount: 1, latestAt: it.publishedAt }, now) - 2 + (preferred?.has(it.source) ? FAVORITE_BONUS : 0) })
+    cands.push({ kind: 'item', it, ids: [it.id], desks, primary: primaryDesk([desks]), w: weight({ sourceCount: 1, latestAt: it.publishedAt }, now) - 2 + (preferred?.has(it.source) ? FAVORITE_BONUS : 0) })
   }
   if (bonus) for (const c of cands) c.w += bonus(c.kind === 'story' ? c.items : [c.it])
   cands.sort((a, b) => b.w - a.w)
@@ -1172,10 +1172,10 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     }
     const primary = deskOfStory(items)
     const desk = storyDesk(st, primary)
-    const mine = new Set(items.map((i) => i.source)).size // eigen bronnen in het verhaal
+    const mine = coverageOf(items).publisherCount // onafhankelijke gekozen uitgevers, niet hun sectiefeeds
     // Elke onafhankelijke bron telt vol; land/taal van de uitgever verandert het nieuwsgewicht niet.
     const nl = st.nlCount ?? st.sourceCount
-    const eff = nl + NL_OTHER_W * (st.sourceCount - nl)
+    const eff = st.publisherCount ?? (nl + NL_OTHER_W * (st.sourceCount - nl))
     const belang = weight({ sourceCount: eff, ownCount: mine, latestAt: st.latestAt }, now) - straf
     // De punten uit al je eigen berichten van het verhaal (`ctx.own`), ook die buiten deze pool.
     const mineAll = ctx.own ? st.itemIds.map((id) => ctx.own.get(id) || byId.get(id)).filter(Boolean) : items

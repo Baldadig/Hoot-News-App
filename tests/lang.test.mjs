@@ -6,7 +6,7 @@ import { detectLang, langOf, langFromUrl, visibleFor, READER_LANG } from '../sha
 import { loadSource } from '../netlify/lib/rss.mjs'
 import { streamItems } from '../netlify/lib/build.mjs'
 import { SOURCES } from '../netlify/lib/sources.mjs'
-import { loadSnapshot, loadNulmeting, generalEdition, storiesPrint } from './helpers/snapshot.mjs'
+import { loadSnapshot, loadGeneralGolden, generalEdition, storiesPrint } from './helpers/snapshot.mjs'
 
 const PAROOL = 'https://www.parool.nl/amsterdam-news/x~b1/'
 const plain = (title, summary = '') => detectLang({ title, summary }) // zonder link: alleen de tekst
@@ -93,8 +93,8 @@ test('loadSource markeert lang/offLang; de grens telt alleen berichten in de bro
 })
 
 // De momentopname van 30 oktober (avond): alleen de tien Engelstalige Parool-stukken vallen af,
-// en de algemene Editie (bundelen + selectEdition) blijft byte-identiek aan de nulmeting.
-test('momentopname: alleen Engelstalige Parool-stukken zijn offLang; de nulmeting blijft gelijk', () => {
+// en de algemene Editie blijft byte-identiek aan de expliciet vastgelegde algoritme-golden.
+test('momentopname: alleen Engelstalige Parool-stukken zijn offLang; taalfilter bewaart de algoritme-golden', () => {
   const snap = loadSnapshot()
   const SL = new Map(SOURCES.map((s) => [s.id, s.lang]))
   const marked = snap.items.map((i) => ({ ...i, ...langOf(i, SL.get(i.source)) }))
@@ -103,8 +103,8 @@ test('momentopname: alleen Engelstalige Parool-stukken zijn offLang; de nulmetin
   assert.ok(off.every((i) => i.source === 'parool' && i.lang === 'en' && /parool\.nl\/(amsterdam-news|guide)\//.test(i.url)))
   // Zonder de rubriek-regel herkent de tekst ze ook allemaal.
   assert.ok(off.every((i) => detectLang({ ...i, url: '' }) === 'en'))
-  const nul = loadNulmeting()
+  const expected = loadGeneralGolden()
   const g = generalEdition({ ...snap, items: marked.filter((i) => visibleFor(i)) })
-  assert.equal(storiesPrint(g.stories), nul.general.stories)
-  assert.equal(JSON.stringify(g.entries), JSON.stringify(nul.general.entries))
+  assert.equal(storiesPrint(g.stories), expected.stories)
+  assert.equal(JSON.stringify(g.entries), JSON.stringify(expected.entries))
 })

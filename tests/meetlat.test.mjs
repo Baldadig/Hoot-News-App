@@ -2,7 +2,7 @@
 // nulmeting en de algemene Editie als vaste referentie. Zie Hoot-design/algoritme/bouwspec.md (P0).
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { loadSnapshot, loadNulmeting, generalEdition, storiesPrint, editionsNu, contextOf, keysOf, pairwise, PERSONAS, setupFor } from './helpers/snapshot.mjs'
+import { loadSnapshot, loadNulmeting, loadGeneralGolden, generalEdition, storiesPrint, editionsNu, contextOf, keysOf, pairwise, PERSONAS, setupFor } from './helpers/snapshot.mjs'
 import { storiesForReader } from '../src/lib/personal.js'
 
 const snap = loadSnapshot()
@@ -44,8 +44,8 @@ test('meetlat: st.desk is voor alle persona\'s gelijk, ownCount niet', () => {
   assert.ok(new Set(per.map((sts) => JSON.stringify(sts.map((st) => st.ownCount)))).size > 1)
 })
 
-test('meetlat: de algemene Editie (bundelen + selectEdition) is byte-identiek aan de nulmeting', () => {
-  const g = generalEdition(snap)
-  assert.equal(storiesPrint(g.stories), nul.general.stories)
-  assert.equal(JSON.stringify(g.entries), JSON.stringify(nul.general.entries))
+test('meetlat: de algemene Editie is byte-identiek aan de expliciet vastgelegde algoritme-golden', () => {
+  const g = generalEdition(snap), expected = loadGeneralGolden()
+  assert.equal(storiesPrint(g.stories), expected.stories)
+  assert.equal(JSON.stringify(g.entries), JSON.stringify(expected.entries))
 })

@@ -58,7 +58,7 @@ export function withTrustedTopics(it) {
 
 // De verhalen zoals deze lezer ze ziet. `ownCount` telt de verschillende bronnen in het verhaal
 // die jij volgt (de server telt Hoots basisbronnen): zo krijgt een verhaal dat van jouw bronnen
-// alleen Carbon Brief brengt toch de +100 voor "eigen bron" in weight(). De rubriek (`desk`) zet de
+// alleen Carbon Brief brengt toch de begrensde bijdrage voor gekozen bronnen in weight(). De rubriek (`desk`) zet de
 // server uit alle berichten en is voor iedereen gelijk; een oudere server leverde hem nog niet,
 // dan rekenen we hem hier uit dezelfde berichten uit (`all`: alles wat we van het verhaal hebben).
 // `nlCount`: hoeveel van de bronnen Nederlandstalig zijn (niet Vlaams), uit `sourceNames` en de

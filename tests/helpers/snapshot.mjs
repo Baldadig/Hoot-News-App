@@ -19,6 +19,8 @@ export function loadSnapshot() {
   return cached
 }
 export const loadNulmeting = () => JSON.parse(readFileSync(NULMETING_FILE, 'utf8'))
+// Actuele expliciete algoritme-golden; de oorspronkelijke nulmeting wordt niet herschreven.
+export const loadGeneralGolden = () => JSON.parse(readFileSync(new URL('../fixtures/edition-general-golden.json', import.meta.url), 'utf8'))
 export const nowOf = (snap) => Date.parse(snap.meta.updatedAt)
 
 // Dezelfde invoer als de app (zie meting/algoritme/lib/run.mjs): vast tijdstip, geen vorige Editie.
@@ -106,7 +108,7 @@ export function bigStories(snap, { n = 3, hours = 12, min = 6 } = {}) {
 // ---- de algemene Editie op de server ----
 // Opnieuw bundelen en selecteren uit de berichten van de momentopname, zoals build.mjs dat doet
 // (basisbronnen als eigen bronnen, geen vorige Editie). Dient als vaste referentie: selectEdition
-// en de bundeling mogen niet verschuiven.
+// en de bundeling worden bij bewuste wijzigingen opnieuw vastgelegd met make-golden.mjs.
 export function generalEdition(snap) {
   const articles = snap.items.filter((i) => i.kind === 'article')
   const stories = buildStories(articles, {}, { mainIds: MAIN_IDS })

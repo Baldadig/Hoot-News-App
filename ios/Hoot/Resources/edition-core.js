@@ -892,9 +892,10 @@ var HootCore = (() => {
     for (const d of PRIORITY) if (count[d] && (!best || count[d] > count[best])) best = d;
     return best && count[best] * 2 >= itemDesks.length ? best : null;
   }
-  function weight({ sourceCount = 1, ownCount = 1, latestAt }, now = Date.now()) {
+  function weight({ sourceCount = 1, ownCount = 0, latestAt }, now = Date.now()) {
     const h = latestAt ? (now - Date.parse(latestAt)) / 36e5 : 99;
-    return (ownCount > 0 ? 100 : 0) + sourceCount * 4 + (h <= 3 ? 4 : h <= 6 ? 3 : h <= 12 ? 1 : 0);
+    const chosen = Number.isFinite(ownCount) ? Math.min(4, Math.max(0, ownCount)) : 0;
+    return sourceCount * 4 + chosen * 2 + (h <= 3 ? 4 : h <= 6 ? 3 : h <= 12 ? 1 : 0);
   }
 
   // shared/editor.mjs
@@ -2188,9 +2189,9 @@ var HootCore = (() => {
       }
       const primary = deskOfStory(items);
       const desk = storyDesk(st, primary);
-      const mine = new Set(items.map((i) => i.source)).size;
+      const mine = coverageOf(items).publisherCount;
       const nl = st.nlCount ?? st.sourceCount;
-      const eff = nl + NL_OTHER_W * (st.sourceCount - nl);
+      const eff = st.publisherCount ?? nl + NL_OTHER_W * (st.sourceCount - nl);
       const belang = weight({ sourceCount: eff, ownCount: mine, latestAt: st.latestAt }, now) - straf;
       const mineAll = ctx.own ? st.itemIds.map((id) => ctx.own.get(id) || byId2.get(id)).filter(Boolean) : items;
       const whole = ctx.known ? st.itemIds.map((id) => ctx.known.get(id) || byId2.get(id)).filter(Boolean) : items;

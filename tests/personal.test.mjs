@@ -226,7 +226,7 @@ test('voorkeursbronnen gaan voor: hun verhaal hoger en hun bericht als hoofdberi
   assert.equal(lead(fav), 'r1') // met voorkeur voor NRC: het NRC-bericht
 })
 
-test('eigen bronnen zijn die van de lezer: een verhaal uit één eigen bron krijgt de +100', () => {
+test('eigen bronnen zijn die van de lezer: één gekozen uitgever geeft een begrensde bijdrage', () => {
   // Carbon Brief is geen basisbron: de server telde dit verhaal als ownCount 0.
   const its = [
     art('c1', 'carbonbrief', 'China zet nieuwe stap richting klimaatdoel voor COP31', { publishedAt: ago(2) }),
@@ -237,7 +237,7 @@ test('eigen bronnen zijn die van de lezer: een verhaal uit één eigen bron krij
   const fol = new Set(['carbonbrief', 'nos'])
   const [mine] = storiesForReader(st, its, fol)
   assert.equal(mine.ownCount, 1)
-  assert.equal(weight(mine, NOW) - weight(st[0], NOW), 100)
+  assert.equal(weight(mine, NOW) - weight(st[0], NOW), 2)
   assert.equal(st[0].ownCount, 0) // het origineel blijft zoals de server het gaf
   const ids = composePersonal({ global, stories: st, items: its, followed: fol, interests: ['wereld'], now: NOW, builtAt: 'T' }).entries.map((x) => x.id)
   assert.ok(ids.includes('sCop') && ids.indexOf('sCop') < ids.indexOf('n9'), ids.join(','))
