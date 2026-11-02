@@ -19,8 +19,7 @@ final class EditionNumberingTests: XCTestCase {
     func testNativeNumberAndWaitingLayouts() {
         for size in [DynamicTypeSize.large, .xxxLarge] {
             let content = VStack(alignment: .leading, spacing: 16) {
-                ScreenTitle("Ochtendeditie", gap: 0)
-                WaitingMark().fixedSize(horizontal: false, vertical: true)
+                EditionHeader(title: "Ochtendeditie", slot: "ochtend", waiting: true)
                 StrongRule()
                 Kicker(text: "Binnenland", number: 1)
                 Text("Een verhaal dat je rustig kunt lezen").font(Theme.headline(.largeTitle))

@@ -14,7 +14,7 @@ De iOS-verversmarkering staat voor de Editie in de normale documentstroom **onde
 
 - `npm test`: **892 tests, 891 geslaagd, 0 fouten, 1 bestaande TODO**. [Log](editie-nummering/tests-web.log).
 - `npm run build`: geslaagd. [Log](editie-nummering/build-web.log).
-- Native: **55 tests, 0 fouten** op iPhone 17 Pro iOS 26.0. Twee nieuwe tests dekken de getoonde volgorde, bubbel, breed, leeg, korte/volle Editie en renderen kop, wachtmarkering en nummer bij normaal en XXXL. [Log](editie-nummering/tests-ios.log).
+- Native: **55 tests, 0 fouten** op iPhone 17 Pro iOS 26.0. Twee nieuwe tests dekken de getoonde volgorde, bubbel, breed, leeg, korte/volle Editie en renderen de werkelijk gebruikte EditionHeader, wachtmarkering en nummer bij normaal en XXXL. [Log](editie-nummering/tests-ios.log).
 - Web interactief gecontroleerd op 390 en 1280 px. DOM gaf 01–09, zonder bubbelnummer, en ‘9 van 9’. Bij de eigen grote webtekst (19,2 px root) geen horizontale overflow op 390 px. Web heeft geen instelling met de naam XXXL; die term hoort hier bij de native controle.
 - De bestaande bronteksttest is aangepast aan de nieuwe nummercomponent en controleert nu ook de daadwerkelijke doorgifte naar alle drie webrijvormen. De gedragsproeven voor `numberRows` blijven ongewijzigd groen.
 

@@ -27,6 +27,32 @@ enum EditionNumbering {
     static func count(_ rows: [EditionRowModel]) -> Int { rows.compactMap(\.number).max() ?? 0 }
 }
 
+// Titel en wachtmarkering delen één normale verticale opmaak; geen overlay op de kop.
+struct EditionHeader: View {
+    let title: String
+    let slot: String?
+    var waiting = false
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .bottom, spacing: Space.s3) {
+                    ScreenTitle(title, gap: 0).fixedSize()
+                    Spacer(minLength: 0)
+                    if let slot, EditionSun.height[slot] != nil {
+                        EditionSun(slot: slot).padding(.bottom, Space.s1)
+                    }
+                }
+                ScreenTitle(title, gap: 0).frame(maxWidth: .infinity, alignment: .leading)
+            }
+            if waiting {
+                WaitingMark().frame(maxWidth: .infinity, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.vertical, Space.s3)
+            }
+        }
+    }
+}
+
 // De drie dagdelen van de Editie: per slot de naam (met hoofdletter, zoals Editie), wanneer de
 // volgende er is en het dagdeel zelf. Geen kloktijden, alleen deze woorden.
 // Spiegel van shared/slots.mjs, getoetst in SlotsTests: verander je hier een woord, dan daar ook.
@@ -214,21 +240,7 @@ struct EditionView: View {
                     // Met een kleine, stille zon ernaast: zijn hoogte toont het dagdeel (onboarding-plan, ‘De zon
                     // in de Editie’). Laag bij de Ochtend- en Avondeditie, hoog bij de Middageditie.
                     // Past de naam er bij grote tekst niet meer naast, dan alleen de naam (nooit afgebroken).
-                    ViewThatFits(in: .horizontal) {
-                        HStack(alignment: .bottom, spacing: Space.s3) {
-                            ScreenTitle(title, gap: 0).fixedSize()
-                            Spacer(minLength: 0)
-                            if let slot = store.edition?.slot, EditionSun.height[slot] != nil {
-                                EditionSun(slot: slot).padding(.bottom, Space.s1)
-                            }
-                        }
-                        ScreenTitle(title, gap: 0).frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    if refreshWaiting && !rows.isEmpty {
-                        WaitingMark().frame(maxWidth: .infinity, alignment: .leading)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .padding(.vertical, Space.s3)
-                    }
+                    EditionHeader(title: title, slot: store.edition?.slot, waiting: refreshWaiting && !rows.isEmpty)
                     if rows.isEmpty && (store.status == .loading || (store.status != .failed && store.edition != nil && store.shownEdition == nil)) {
                         WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
                     } else if rows.isEmpty {
