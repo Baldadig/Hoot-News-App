@@ -1,0 +1,50 @@
+{
+  "step": "A06",
+  "head": "2bebb2b554ed67f79bb51d76cf990f5485c840e3",
+  "checks": [
+    {
+      "check": "core",
+      "exit": 0,
+      "seconds": 0.38,
+      "log": "/tmp/hoot-beta/A06/core.log"
+    },
+    {
+      "check": "web",
+      "exit": 0,
+      "seconds": 158.96,
+      "log": "/tmp/hoot-beta/A06/web.log",
+      "counts": {
+        "tests": 924,
+        "pass": 923,
+        "fail": 0,
+        "skipped": 0,
+        "todo": 1
+      }
+    },
+    {
+      "check": "build",
+      "exit": 0,
+      "seconds": 24.58,
+      "log": "/tmp/hoot-beta/A06/build.log"
+    },
+    {
+      "check": "acceptatie",
+      "exit": 0,
+      "seconds": 146.06,
+      "log": "/tmp/hoot-beta/A06/acceptatie.log"
+    },
+    {
+      "check": "native",
+      "exit": 65,
+      "seconds": 39.81,
+      "log": "/tmp/hoot-beta/A06/native.log",
+      "tests": null
+    }
+  ],
+  "nativeHerstel": {
+    "exit": 0,
+    "tests": 84,
+    "log": "/tmp/hoot-beta/A06/native-herstel.log",
+    "reason": "Swift Observation: eerst lokale keptSocial inlezen, pas daarna beide opgeslagen eigenschappen initialiseren; alleen Swift gewijzigd, web/build/acceptatie ongewijzigd."
+  }
+}
