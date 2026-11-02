@@ -4,6 +4,12 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- Landingspagina: Selectie-preview over Werk & organisatie, met een rustige werkplekillustratie en de kop ‘Hoe duidelijke afspraken teams sterker maken’.
+
+- Landingspagina: bronvergelijking voorop in de voordelenrij, met drie koppen op twee regels, gelijke scheidingslijnen en uitsluitend begeleidende tekst.
+
+- Landingspagina: meer witruimte tussen slotkop, uitleg, webknop en kleine tekst; ruimere footerlinks en een rustige opmaak op mobiel en tablet.
+
 - De optionele beeldmeting laadt Sharp pas bij gebruik; een ontbrekende native binary maakt de feedmodule niet meer onlaadbaar. Bij een meetfout blijft de bestaande beeldweergave beschikbaar.
 
 - Een wereldtocht krijgt geen Oekraïne-label door Rusland als routepunt in de intro. Bestaande algemene buitenlandplekken vragen voor een geografisch onderwerp bewijs uit de kop; werkelijk oorlogsnieuws behoudt zijn onderwerp.

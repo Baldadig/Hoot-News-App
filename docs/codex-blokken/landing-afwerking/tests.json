@@ -1,0 +1,27 @@
+{
+  "web_tests": {
+    "total": 1000,
+    "passed": 999,
+    "failed": 0,
+    "todo": 1
+  },
+  "build": "passed",
+  "base_main": "78cd0a0",
+  "only_product_files": [
+    "landing/hoot.css",
+    "landing/index.src.html"
+  ],
+  "landing_js_unchanged": true,
+  "no_native_changes": true,
+  "text_correction": {
+    "landing_tests_passed": 2,
+    "build": "passed",
+    "mobile_width": 320,
+    "heading_lines": [
+      2,
+      2,
+      2
+    ],
+    "horizontal_overflow": false
+  }
+}

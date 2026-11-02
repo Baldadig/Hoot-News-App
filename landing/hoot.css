@@ -200,7 +200,7 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 /* zichtbare hoogte per band, in verhouding tot de breedte van het toestel (de tekst in het scherm schaalt mee) */
 .sc-held{--vis:calc(var(--w) * 1.02)}.sc-held .sc-ill{display:none}
 .sc-stroom{--vis:calc(var(--w) * 1.12)}
-.sc-selectie{--vis:calc(var(--w) * 1)}
+.sc-selectie{--vis:calc(var(--w) * 1.32)}
 /* 01 Editie: geen zon naast het toestel (die loopt boven zijn baan); het toestel staat midden in de kolom en leest zelf de Editie uit */
 .sc-editie{--vis:calc(var(--w) * 1.2);--w:min(60cqw,250px)}
 .sc-editie .toestel{right:auto;left:calc(var(--gutc) + (var(--avail) - var(--w)) / 2)}
@@ -285,12 +285,12 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 }
 
 /* ---------- einde ---------- */
-.einde{padding-top:var(--s7)}
-.einde .binnen{padding-bottom:var(--s5)}
+.einde{padding-top:var(--s8)}
+.einde .binnen{padding-bottom:var(--s7)}
 .mid{text-align:center;display:grid;justify-items:center}
 .einde h2{font-size:clamp(2.5rem,12vw,9rem);line-height:.95;white-space:nowrap}
 .held h1 .rgl{display:block}
-.einde .lead{margin:var(--s4) auto 0;text-align:center;max-width:26ch}
+.einde .lead{margin:var(--s5) auto 0;text-align:center;max-width:26ch}
 .bal{display:inline-block;color:#1A1814}
 .bal-i{display:inline-block;transform-origin:50% 76%}
 @media (prefers-reduced-motion:no-preference){
@@ -314,7 +314,7 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
   58.75%,100%{transform:scale(1,1)}
 }
 .voet{border-top:1px solid color-mix(in srgb,var(--op-rood) 32%,transparent)}
-.voet-in{flex-wrap:wrap;gap:var(--s1) var(--s4);padding-top:var(--s4);padding-bottom:var(--s5);font-size:.9375rem;font-weight:600}
+.voet-in{flex-wrap:wrap;gap:var(--s5) var(--s7);padding-top:var(--s6);padding-bottom:var(--s6);font-size:.9375rem;font-weight:600}
 .voet-in .wm{width:72px}
 .voet-in p{flex-basis:100%}
 @media (min-width:720px){.voet-in p{flex-basis:auto}}
@@ -327,8 +327,9 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 @media (min-width:900px){
   .band{padding-top:var(--s7)}
   .kol .tekst{max-width:720px}
-  .einde{padding-top:var(--s8)}
-  .einde .binnen{padding-bottom:var(--s6)}
+  .einde{padding-top:var(--s9)}
+  .einde .binnen{padding-bottom:var(--s8)}
+  .einde .lead{margin-top:var(--s6)}
 }
 @media (min-width:1100px){
   .binnen:not(.kol){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s7);align-items:end}
@@ -386,12 +387,20 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .podium .sc-vgl{flex:none;width:10.6em;text-align:right}
 
 /* Goedgekeurde landingsreview: drie voordelen als leesbare tekst onder de hero. */
-.voordelen h2{font-size:clamp(2rem,5vw,3.5rem);max-width:20ch}
-.voordeel-lijst{display:grid;gap:var(--s6);margin-top:var(--s6)}
-.voordeel-lijst h3{font:800 1.25rem/1.2 var(--tekst);margin-bottom:var(--s2)}
-.voordeel-lijst p{max-width:48ch;color:var(--inkt2)}
+.voordelen .kol{padding-bottom:var(--s7)}
+.voordelen h2{font-size:clamp(1.875rem,3.3vw,2.5rem);line-height:1.12;max-width:32ch}
+.voordeel-lijst{display:grid;gap:var(--s5);margin-top:var(--s5)}
+.voordeel-lijst li{min-width:0;border-top:1px solid var(--lijn);padding-top:var(--s4);display:grid;grid-template-rows:auto 1fr;row-gap:var(--s2);align-content:start}
+.voordeel-lijst h3{font:800 clamp(1.5rem,2.2vw,1.75rem)/1.12 var(--kop);letter-spacing:-.015em;text-wrap:balance}
+.voordeel-lijst h3 span{display:block}
+.voordeel-lijst p{max-width:34ch;color:var(--inkt2)}
+@media(min-width:960px){
+  .voordelen .kol{padding-bottom:var(--s8)}
+  .voordeel-lijst{grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s6);margin-top:calc(var(--s5) + var(--s4))}
+  .voordeel-lijst li{padding-top:var(--s5);row-gap:var(--s5)}
+  .voordeel-lijst h3{min-height:2.24em;max-width:19ch}
+}
 .actie .knop{order:-1}
-@media(min-width:720px){.voordeel-lijst{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:719px){
   .podium{display:flex;flex-direction:column;gap:var(--s5)}
   .podium .uitleg{position:static;order:2;display:grid;gap:var(--s4);padding:0}
@@ -449,11 +458,17 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .scene[role="button"]:focus-visible{outline-offset:-4px}
 
 /* afsluiting en voet rustig (Alex 1-11): één knop, één stille regel, gelijke tussenruimtes, voet op mobiel gecentreerd */
-.einde .actie{margin-top:var(--s5)}
-.einde .gratis{margin-top:var(--s3);font-weight:500;font-size:.9375rem;line-height:1.45;text-align:center;color:var(--op-rood)}
-.voet nav a{display:inline-flex;align-items:center}
+.einde .actie{margin-top:var(--s6)}
+.einde .gratis{margin-top:var(--s5);font-weight:500;font-size:.9375rem;line-height:1.6;text-align:center;color:var(--op-rood)}
+.voet nav{gap:var(--s3) var(--s6)}
+.voet nav a{display:inline-flex;align-items:center;min-height:44px}
+.voet .merk{display:inline-flex;align-items:center;min-height:44px}
+@media(min-width:720px) and (max-width:1099px){
+  .voet-in{justify-content:center}
+  .voet-in p{flex-basis:100%;text-align:center}
+}
 @media (max-width:719px){
-  .voet-in{flex-direction:column;align-items:center;text-align:center;gap:var(--s2);padding-top:var(--s5);padding-bottom:var(--s6)}
-  .voet nav{flex-wrap:wrap;justify-content:center;gap:0 var(--s5);margin-top:var(--s1)}
-  .voet-in p{flex-basis:auto;font-weight:500;font-size:.875rem;color:var(--op-rood);margin-top:var(--s1)}
+  .voet-in{flex-direction:column;align-items:center;text-align:center;gap:var(--s5);padding-top:var(--s6);padding-bottom:var(--s7)}
+  .voet nav{flex-wrap:wrap;justify-content:center;gap:var(--s2) var(--s5);margin-top:0}
+  .voet-in p{flex-basis:auto;font-weight:500;font-size:.875rem;color:var(--op-rood);margin-top:0}
 }

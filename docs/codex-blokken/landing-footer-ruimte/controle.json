@@ -1,0 +1,42 @@
+[
+  {
+    "buttonToNote": 24,
+    "footerBottom": 564.4453125,
+    "footerGaps": "24px 48px",
+    "headingToText": 24,
+    "linkGaps": "12px 32px",
+    "overflow": false,
+    "textToButton": 32,
+    "width": 768
+  },
+  {
+    "buttonToNote": 24,
+    "footerBottom": 599.6484375,
+    "footerGaps": "24px",
+    "headingToText": 24,
+    "linkGaps": "8px 24px",
+    "overflow": false,
+    "textToButton": 32,
+    "width": 390
+  },
+  {
+    "buttonToNote": 24,
+    "footerBottom": 645.1953125,
+    "footerGaps": "24px",
+    "headingToText": 24,
+    "linkGaps": "8px 24px",
+    "overflow": false,
+    "textToButton": 32,
+    "width": 320
+  },
+  {
+    "buttonToNote": 24,
+    "footerBottom": 623.1953125,
+    "footerGaps": "24px 48px",
+    "headingToText": 32,
+    "linkGaps": "12px 32px",
+    "overflow": false,
+    "textToButton": 32,
+    "width": 1440
+  }
+]
