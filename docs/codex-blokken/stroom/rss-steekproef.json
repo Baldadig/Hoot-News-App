@@ -1,0 +1,35 @@
+{
+  "collectedAt": "2026-11-01T14:18:07.421Z",
+  "results": [
+    {
+      "id": "bloomberg",
+      "urls": [
+        "https://feeds.bloomberg.com/markets/news.rss"
+      ],
+      "paid": true,
+      "ok": true,
+      "total": 19,
+      "withImage": 0
+    },
+    {
+      "id": "tijd",
+      "urls": [
+        "https://www.tijd.be/rss/nieuws.xml"
+      ],
+      "paid": true,
+      "ok": true,
+      "total": 10,
+      "withImage": 0
+    },
+    {
+      "id": "sciam",
+      "urls": [
+        "http://rss.sciam.com/ScientificAmerican-Global"
+      ],
+      "paid": true,
+      "ok": true,
+      "total": 50,
+      "withImage": 0
+    }
+  ]
+}

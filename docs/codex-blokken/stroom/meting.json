@@ -1,0 +1,827 @@
+{
+  "collectedAt": "2026-11-01T14:03:35.385Z",
+  "parts": 83,
+  "partVersionMismatch": 35,
+  "total": 3197,
+  "stream": 2682,
+  "editionOnly": 515,
+  "posts": 0,
+  "images": {
+    "missing": 80,
+    "invalid": 0,
+    "cdnEligible": 259,
+    "direct": 2343,
+    "largeSuppressed": 5,
+    "whitelistRejected": 0,
+    "note": "CDN_HOSTS optimaliseert; onbekende host wordt direct geladen. Geen upstream-RSS of HTTP-laadfouten afleiden uit deze clientfeed."
+  },
+  "topMissing": [
+    [
+      "bloomberg",
+      {
+        "total": 31,
+        "noImage": 31,
+        "invalidImage": 0,
+        "cdnEligible": 0,
+        "direct": 0,
+        "largeSuppressed": 0
+      }
+    ],
+    [
+      "tijd",
+      {
+        "total": 15,
+        "noImage": 15,
+        "invalidImage": 0,
+        "cdnEligible": 0,
+        "direct": 0,
+        "largeSuppressed": 0
+      }
+    ],
+    [
+      "lc",
+      {
+        "total": 60,
+        "noImage": 12,
+        "invalidImage": 0,
+        "cdnEligible": 0,
+        "direct": 48,
+        "largeSuppressed": 0
+      }
+    ],
+    [
+      "tweakers",
+      {
+        "total": 17,
+        "noImage": 6,
+        "invalidImage": 0,
+        "cdnEligible": 0,
+        "direct": 11,
+        "largeSuppressed": 0
+      }
+    ],
+    [
+      "sciam",
+      {
+        "total": 5,
+        "noImage": 5,
+        "invalidImage": 0,
+        "cdnEligible": 0,
+        "direct": 0,
+        "largeSuppressed": 0
+      }
+    ],
+    [
+      "aljazeera",
+      {
+        "total": 60,
+        "noImage": 3,
+        "invalidImage": 0,
+        "cdnEligible": 0,
+        "direct": 57,
+        "largeSuppressed": 0
+      }
+    ],
+    [
+      "fd",
+      {
+        "total": 19,
+        "noImage": 2,
+        "invalidImage": 0,
+        "cdnEligible": 0,
+        "direct": 17,
+        "largeSuppressed": 0
+      }
+    ],
+    [
+      "dvhn",
+      {
+        "total": 60,
+        "noImage": 1,
+        "invalidImage": 0,
+        "cdnEligible": 0,
+        "direct": 59,
+        "largeSuppressed": 0
+      }
+    ],
+    [
+      "standaard",
+      {
+        "total": 30,
+        "noImage": 1,
+        "invalidImage": 0,
+        "cdnEligible": 0,
+        "direct": 29,
+        "largeSuppressed": 0
+      }
+    ],
+    [
+      "npr",
+      {
+        "total": 22,
+        "noImage": 1,
+        "invalidImage": 0,
+        "cdnEligible": 21,
+        "direct": 0,
+        "largeSuppressed": 0
+      }
+    ],
+    [
+      "economist",
+      {
+        "total": 5,
+        "noImage": 1,
+        "invalidImage": 0,
+        "cdnEligible": 0,
+        "direct": 4,
+        "largeSuppressed": 4
+      }
+    ],
+    [
+      "npr-music",
+      {
+        "total": 2,
+        "noImage": 1,
+        "invalidImage": 0,
+        "cdnEligible": 1,
+        "direct": 0,
+        "largeSuppressed": 0
+      }
+    ],
+    [
+      "politico",
+      {
+        "total": 2,
+        "noImage": 1,
+        "invalidImage": 0,
+        "cdnEligible": 0,
+        "direct": 1,
+        "largeSuppressed": 0
+      }
+    ],
+    [
+      "eurogamer",
+      {
+        "total": 10,
+        "noImage": 0,
+        "invalidImage": 0,
+        "cdnEligible": 0,
+        "direct": 10,
+        "largeSuppressed": 0
+      }
+    ],
+    [
+      "nrc",
+      {
+        "total": 22,
+        "noImage": 0,
+        "invalidImage": 0,
+        "cdnEligible": 22,
+        "direct": 0,
+        "largeSuppressed": 0
+      }
+    ]
+  ],
+  "bySource": {
+    "eurogamer": {
+      "total": 10,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 10,
+      "largeSuppressed": 0
+    },
+    "nrc": {
+      "total": 22,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 22,
+      "direct": 0,
+      "largeSuppressed": 0
+    },
+    "telegraaf": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "bd": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "sporza": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "wielerflits": {
+      "total": 32,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 32,
+      "largeSuppressed": 0
+    },
+    "vi": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "nu": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "espn": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "nd": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "nos-sport": {
+      "total": 30,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 30,
+      "largeSuppressed": 0
+    },
+    "scmp": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "fd": {
+      "total": 19,
+      "noImage": 2,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 17,
+      "largeSuppressed": 0
+    },
+    "gva": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "nieuwsblad": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "nhd": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "hln": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "haarlemsdagblad": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "lc": {
+      "total": 60,
+      "noImage": 12,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 48,
+      "largeSuppressed": 0
+    },
+    "bloomberg": {
+      "total": 31,
+      "noImage": 31,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 0,
+      "largeSuppressed": 0
+    },
+    "guardian-sport": {
+      "total": 44,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 44,
+      "direct": 0,
+      "largeSuppressed": 0
+    },
+    "ad": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "gelderlander": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "volkskrant": {
+      "total": 53,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 53,
+      "largeSuppressed": 0
+    },
+    "hbvl": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "guardian": {
+      "total": 38,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 38,
+      "direct": 0,
+      "largeSuppressed": 0
+    },
+    "nyt": {
+      "total": 36,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 36,
+      "largeSuppressed": 1
+    },
+    "tubantia": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "ed": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "dvhn": {
+      "total": 60,
+      "noImage": 1,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 59,
+      "largeSuppressed": 0
+    },
+    "pzc": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "bndestem": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "standaard": {
+      "total": 30,
+      "noImage": 1,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 29,
+      "largeSuppressed": 0
+    },
+    "demorgen": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "stentor": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "rtl": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "leidschdagblad": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "aljazeera": {
+      "total": 60,
+      "noImage": 3,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 57,
+      "largeSuppressed": 0
+    },
+    "nos": {
+      "total": 38,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 38,
+      "largeSuppressed": 0
+    },
+    "variety": {
+      "total": 32,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 32,
+      "largeSuppressed": 0
+    },
+    "trouw": {
+      "total": 32,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 32,
+      "largeSuppressed": 0
+    },
+    "independent": {
+      "total": 43,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 43,
+      "largeSuppressed": 0
+    },
+    "bbc": {
+      "total": 24,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 24,
+      "direct": 0,
+      "largeSuppressed": 0
+    },
+    "vrt": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "parool": {
+      "total": 55,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 55,
+      "largeSuppressed": 0
+    },
+    "npr": {
+      "total": 22,
+      "noImage": 1,
+      "invalidImage": 0,
+      "cdnEligible": 21,
+      "direct": 0,
+      "largeSuppressed": 0
+    },
+    "polygon": {
+      "total": 33,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 33,
+      "largeSuppressed": 0
+    },
+    "dw": {
+      "total": 22,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 22,
+      "largeSuppressed": 0
+    },
+    "atlantic": {
+      "total": 14,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 14,
+      "direct": 0,
+      "largeSuppressed": 0
+    },
+    "theverge": {
+      "total": 12,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 12,
+      "largeSuppressed": 0
+    },
+    "ign": {
+      "total": 17,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 17,
+      "largeSuppressed": 0
+    },
+    "tijd": {
+      "total": 15,
+      "noImage": 15,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 0,
+      "largeSuppressed": 0
+    },
+    "economist": {
+      "total": 5,
+      "noImage": 1,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 4,
+      "largeSuppressed": 4
+    },
+    "lemonde": {
+      "total": 25,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 25,
+      "largeSuppressed": 0
+    },
+    "tweakers": {
+      "total": 17,
+      "noImage": 6,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 11,
+      "largeSuppressed": 0
+    },
+    "bbc-sport": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 60,
+      "direct": 0,
+      "largeSuppressed": 0
+    },
+    "rollingstone": {
+      "total": 18,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 18,
+      "largeSuppressed": 0
+    },
+    "autosport": {
+      "total": 10,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 10,
+      "largeSuppressed": 0
+    },
+    "ft": {
+      "total": 26,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 26,
+      "direct": 0,
+      "largeSuppressed": 0
+    },
+    "politico-eu": {
+      "total": 13,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 13,
+      "largeSuppressed": 0
+    },
+    "wired": {
+      "total": 17,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 17,
+      "largeSuppressed": 0
+    },
+    "limburger": {
+      "total": 60,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 60,
+      "largeSuppressed": 0
+    },
+    "newyorker": {
+      "total": 4,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 4,
+      "largeSuppressed": 0
+    },
+    "sciam": {
+      "total": 5,
+      "noImage": 5,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 0,
+      "largeSuppressed": 0
+    },
+    "gamespot": {
+      "total": 4,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 4,
+      "largeSuppressed": 0
+    },
+    "npr-music": {
+      "total": 2,
+      "noImage": 1,
+      "invalidImage": 0,
+      "cdnEligible": 1,
+      "direct": 0,
+      "largeSuppressed": 0
+    },
+    "guardian-culture": {
+      "total": 1,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 1,
+      "direct": 0,
+      "largeSuppressed": 0
+    },
+    "politico": {
+      "total": 2,
+      "noImage": 1,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 1,
+      "largeSuppressed": 0
+    },
+    "guardian-music": {
+      "total": 1,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 1,
+      "direct": 0,
+      "largeSuppressed": 0
+    },
+    "carbonbrief": {
+      "total": 1,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 1,
+      "largeSuppressed": 0
+    },
+    "ftm": {
+      "total": 2,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 2,
+      "largeSuppressed": 0
+    },
+    "stereogum": {
+      "total": 3,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 3,
+      "direct": 0,
+      "largeSuppressed": 0
+    },
+    "telegraph": {
+      "total": 6,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 6,
+      "largeSuppressed": 0
+    },
+    "techcrunch": {
+      "total": 9,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 9,
+      "largeSuppressed": 0
+    },
+    "3voor12": {
+      "total": 2,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 2,
+      "direct": 0,
+      "largeSuppressed": 0
+    },
+    "nos-cultuur": {
+      "total": 1,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 1,
+      "largeSuppressed": 0
+    },
+    "ars": {
+      "total": 2,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 0,
+      "direct": 2,
+      "largeSuppressed": 0
+    },
+    "quietus": {
+      "total": 2,
+      "noImage": 0,
+      "invalidImage": 0,
+      "cdnEligible": 2,
+      "direct": 0,
+      "largeSuppressed": 0
+    }
+  },
+  "synthetic": {
+    "inStroom": true,
+    "webDefault": false,
+    "webOptIn": true,
+    "webArticle": true,
+    "webEditionOnly": false,
+    "nativeCurrentArticleGate": false,
+    "unknownImageHost": {
+      "src": "https://unknown.example/image.jpg"
+    }
+  },
+  "limitations": [
+    "Geen echte gebruiker of persoonlijke Bluesky-accounts gelezen.",
+    "Publieke feed bevat geen client-side eigen Bluesky-posts.",
+    "Geen netwerkfouten bij afbeeldingen gemeten; nul validatieafwijzingen in uitvoer bewijst niet nul fouten vóór toClient."
+  ]
+}
