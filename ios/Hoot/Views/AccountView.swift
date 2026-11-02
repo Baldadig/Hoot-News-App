@@ -10,7 +10,10 @@ struct AccountRow: View {
             HStack(spacing: Space.s3) {
                 AccountBadge(size: 40)
                 VStack(alignment: .leading, spacing: Space.s0) {
-                    switch account.status {
+                    if Account.localBeta {
+                        Text("Lokale beta").font(.headline)
+                        Text("Accountsynchronisatie uit").font(.subheadline).foregroundStyle(Theme.ink3)
+                    } else { switch account.status {
                     case .member, .noInvite:
                         Text(account.session?.name ?? account.session?.email ?? "Je account").font(.headline)
                         Text(account.status == .noInvite ? "Nog geen lid" : account.syncLine).font(.subheadline).foregroundStyle(Theme.ink3)
@@ -20,7 +23,7 @@ struct AccountRow: View {
                     case .out:
                         Text("Inloggen").font(.headline)
                         Text("Op al je toestellen").font(.subheadline).foregroundStyle(Theme.ink3)
-                    }
+                    }}
                 }
             }
             .padding(.vertical, Space.s1)
@@ -72,7 +75,14 @@ struct AccountView: View {
 
     var body: some View {
         Group {
-            if account.status == .out || account.status == .loading {
+            if Account.localBeta {
+                VStack(alignment: .leading, spacing: Space.s3) {
+                    Text("Lokale beta").font(Theme.headline(.title2))
+                    Text("Je leest met de keuzes op dit toestel. Accountsynchronisatie is in deze beta uitgeschakeld.").foregroundStyle(Theme.ink2)
+                }
+                .padding(Space.s5)
+                .navigationTitle("Account")
+            } else if account.status == .out || account.status == .loading {
                 signIn
             } else {
                 Form {

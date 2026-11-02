@@ -18,6 +18,15 @@ import os
 @MainActor
 @Observable
 final class Account {
+    // Alleen via de lokale bouwopdracht; nooit onderdeel van de officiële projectinstellingen.
+    static var localBeta: Bool {
+        #if HOOT_LOCAL_BETA
+        true
+        #else
+        false
+        #endif
+    }
+
     enum Status: Equatable { case out, loading, member, noInvite }
     enum SyncState: Equatable { case idle, syncing, ok, failed }
 
@@ -56,7 +65,7 @@ final class Account {
     }
 
     init() {
-        let kept = Keychain.read()
+        let kept: Session? = Self.localBeta ? nil : Keychain.read()
         session = kept
         status = kept == nil ? .out : .loading
     }
@@ -86,6 +95,7 @@ final class Account {
     func start(_ store: HootStore) async {
         self.store = store
         store.account = self
+        guard !Self.localBeta else { return }
         if session != nil { await resolve() }
     }
 
@@ -116,6 +126,7 @@ final class Account {
     }
 
     func finishGoogle(_ request: GoogleRequest, callback: URL) async {
+        guard !Self.localBeta else { return }
         guard request.generation == generation else { return }
         let items = URLComponents(url: callback, resolvingAgainstBaseURL: false)?.queryItems ?? []
         guard items.first(where: { $0.name == "state" })?.value == request.state,
@@ -156,6 +167,7 @@ final class Account {
         request.nonce = Self.sha256(appleNonce)
     }
     func finishApple(_ result: Result<ASAuthorization, Error>) async {
+        guard !Self.localBeta else { return }
         guard appleGeneration == generation else { return }
         let version = generation
         guard case let .success(auth) = result,
@@ -226,6 +238,12 @@ final class Account {
     }
 
     func signOut() async {
+        if Self.localBeta {
+            invalidateWork()
+            session = nil
+            status = .out
+            return // geen echte Keychain-sessie of opgeslagen keuzes wissen
+        }
         let previous = session
         forget()
         if let store {
@@ -251,6 +269,7 @@ final class Account {
     // dit, richtlijn 5.1.1(v)): Apple vraagt even om een bevestiging, en met die verse code trekt
     // de server de toegang in. Annuleer je dat, dan blijft je account bestaan.
     func deleteAccount() async -> Bool {
+        guard !Self.localBeta else { return false }
         let version = generation, identity = session?.uid
         do {
             let apple = try await signedInWithApple()
@@ -285,6 +304,7 @@ final class Account {
     // Het geheim staat niet in de app: de server (api/apple-revoke) wisselt de code in en trekt het
     // token in. Lukt dat niet, dan toch verwijderen: je gegevens weg is belangrijker. Wel vastleggen.
     private func revokeApple(_ code: String) async {
+        guard !Self.localBeta else { return }
         let version = generation, identity = session?.uid
         do {
             try await refreshIfNeeded()
@@ -307,7 +327,7 @@ final class Account {
     private func forget() {
         invalidateWork()
         session = nil
-        Keychain.delete()
+        if !Self.localBeta { Keychain.delete() }
         status = .out
         sync = .idle
         pulled = false
@@ -469,6 +489,7 @@ final class Account {
     private static let log = Logger(subsystem: "nl.hootnews.Hoot", category: "account") // nooit tokens of codes
 
     private func call(_ path: String, method: String = "GET", body: Any? = nil, authorized: Bool = true, prefer: String? = nil) async throws -> Data {
+        guard !Self.localBeta else { throw Failure.signedOut }
         let version = generation, identity = session?.uid
         var r = URLRequest(url: URL(string: path, relativeTo: HootConfig.supabaseURL)!)
         r.httpMethod = method
@@ -504,6 +525,7 @@ final class Account {
     }
 
     private func refresh(_ s: Session, version: UInt64) async throws {
+        guard !Self.localBeta else { throw Failure.signedOut }
         var r = URLRequest(url: URL(string: "auth/v1/token?grant_type=refresh_token", relativeTo: HootConfig.supabaseURL)!)
         r.httpMethod = "POST"
         r.setValue(HootConfig.supabaseKey, forHTTPHeaderField: "apikey")
@@ -519,6 +541,7 @@ final class Account {
 
     // Een sessie van Supabase bewaren (in de Keychain, alleen op dit toestel).
     private func keep(_ data: Data, replacingSession: Bool = true) throws {
+        guard !Self.localBeta else { throw Failure.signedOut }
         guard let o = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               let access = o["access_token"] as? String, let refresh = o["refresh_token"] as? String,
               let user = o["user"] as? [String: Any], let uid = user["id"] as? String
