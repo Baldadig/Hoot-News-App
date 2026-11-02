@@ -436,6 +436,7 @@ const subjectText = (s) => {
   return t
 }
 export function sameSubject(a, b) {
+  if (conflictingEvents(a.eventScope, b.eventScope)) return false
   if (sameEvent(a, b)) return true
   const dt = Math.abs(a.t - b.t)
   if (dt > EVENT_WINDOW) return false
@@ -594,6 +595,82 @@ export function buildStories(articles, registry = {}, { mainIds = new Set(), key
     }
   }
   settle(new Set(list.map((a) => a.id)))
+  // Verbonden zijn is geen gedeelde gebeurtenis. Twee dichte groepen kunnen via een paar
+  // overzichtsstukken één component worden. Elke uiteindelijke groep houdt daarom een direct
+  // verbonden anker én minstens tweederde onderlinge steun per lid. Het anker komt uit de meest
+  // samenhangende buurt, niet uit de overzichtskop die toevallig de meeste losse verhalen noemt.
+  const coherentParts = (ids) => {
+    if (ids.length < 3) return [ids]
+    const noConflicts = ids.every(a => ids.every(b => a === b || !conflictingEvents(sig.get(a).eventScope, sig.get(b).eventScope)))
+    const common = field => [...sig.get(ids[0])[field]].filter(k => ids.every(id => sig.get(id)[field].has(k)))
+    // Meertalige verslaggeving kan een verbinding missen terwijl de hele groep dezelfde concrete
+    // namen of zeldzame gebeurteniscombinatie draagt. Dat inhoudelijke bewijs gaat vóór graafdichtheid.
+    const counts = field => {
+      const seen = new Map()
+      for (const id of ids) for (const k of sig.get(id)[field]) seen.set(k, (seen.get(k) || 0) + 1)
+      return [...seen.values()]
+    }
+    // Een grote gebeurtenis heeft ook achtergrondstukken zonder de naam in de kop. Behoud ze bij
+    // een vrijwel overal genoemde concrete naam (85%) en een gedeeld gebeurtenistype (minstens de helft).
+    // Dit is geen vrijstelling voor landen/leiders uit WEAK of voor algemene sportwoorden.
+    const nucleus = counts('strong').some(n => n * 100 >= ids.length * 85)
+      && counts('concepts').some(n => n * 2 >= ids.length)
+    if (noConflicts && (ids.length < CORE_FROM || common('strong').length >= 2 || common('rareIds').length >= 2 || nucleus)) return [ids]
+    const edge = (a, b) => links.get(a).has(b)
+    const conflict = (a, b) => conflictingEvents(sig.get(a).eventScope, sig.get(b).eventScope)
+    const coherent = (part) => part.every(a => part.every(b => a === b || !conflict(a, b)))
+      && part.some(a => part.every(b => a === b || edge(a, b)))
+      && part.every(a => part.filter(b => a !== b && edge(a, b)).length * 3 >= (part.length - 1) * 2)
+    if (coherent(ids)) return [ids]
+    const remaining = new Set(ids), out = []
+    while (remaining.size) {
+      const neighbourhood = a => {
+        const ns = [...links.get(a)].filter(b => remaining.has(b))
+        let closed = 0
+        for (let i = 0; i < ns.length; i++) for (let j = i + 1; j < ns.length; j++) if (edge(ns[i], ns[j])) closed++
+        return { id: a, closed, possible: Math.max(1, ns.length * (ns.length - 1) / 2), degree: ns.length }
+      }
+      const ranked = [...remaining].map(neighbourhood).sort((a, b) =>
+        b.closed * a.possible - a.closed * b.possible || b.degree - a.degree || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+      const anchor = ranked[0].id, part = [anchor]
+      remaining.delete(anchor)
+      for (const { id } of ranked.slice(1)) if (edge(anchor, id) && coherent([...part, id])) {
+        part.push(id)
+        remaining.delete(id)
+      }
+      out.push(part)
+    }
+    // Een ontbrekende taalverbinding mag een concrete naam niet in twee verhalen breken.
+    // Na samenvoegen blijft alleen de doorsnede van de kernen over: x → (x,y) → y wordt nooit
+    // alsnog één keten. Algemene sport-/rubriekwoorden zijn geen naam van een gebeurtenis.
+    const generic = new Set(['world', 'league', 'rugby', 'formula', 'formule', 'grand', 'prix', 'driver', 'drivers', 'race', 'marathon'])
+    const namedCore = part => {
+      const count = new Map()
+      for (const id of part) for (const key of sig.get(id).strong) if (!generic.has(key)) count.set(key, (count.get(key) || 0) + 1)
+      return new Set([...count].filter(([, n]) => n * 2 >= part.length).map(([key]) => key))
+    }
+    const merged = []
+    for (const part of out) {
+      const core = namedCore(part)
+      const target = merged.find(g => [...core].some(k => g.core.has(k)) && part.every(a => g.ids.every(b => !conflict(a, b))))
+      if (target) {
+        target.core = new Set([...target.core].filter(k => core.has(k)))
+        target.ids.push(...part)
+      } else merged.push({ ids: part, core })
+    }
+    // Alleen ontbrekende naamherkenning (bijvoorbeeld een Nederlandse kop zonder vliegtuigtype)
+    // is geen bewijs voor een tweede gebeurtenis. Zonder tegenstrijdige context zijn er minstens
+    // twee verschillende inhoudelijke kernen nodig om de groep definitief te splitsen.
+    if (noConflicts && merged.filter(g => g.core.size > 0).length < 2) return [ids]
+    return merged.map(g => g.ids)
+  }
+  // De server gebruikt extended; de oude, gewone stand blijft de historische nulmeting.
+  if (extended) for (const [gid, items] of [...groups]) {
+    const parts = coherentParts(items.map(i => i.id))
+    if (parts.length === 1) continue
+    groups.delete(gid)
+    for (const ids of parts) groups.set(ids[0], ids.map(id => byId.get(id)))
+  }
   for (const g of groups.values()) g.sort(byRecency)
 
   // 4. (H6 ii, uitgebreide stand) Een los stuk dat de kern van een groot verhaal noemt, hoort erbij.

@@ -152,6 +152,11 @@ var HootCore = (() => {
     return US_PARTY.test(text) || countries.includes("us") && US_INSTITUTION.test(text) || /\bICE\b/.test(text) && /\b(agents?|immigration|deport\w*|arrest\w*|invallen)\b/i.test(text);
   }
   var LOCAL_INCIDENT = words("protest\\p{L}*|betoging\\p{L}*|demonstrat\\p{L}*|rally|rallies|riot\\p{L}*|rellen|onrust|arrest\\p{L}*|aanhouding\\p{L}*|aangehouden|police|politie|schietpartij|shooting|explosi\\p{L}*|brand|fire|crash");
+  var SPORT_EVENTS = [
+    ["f1", /\b(?:f1|formula one|formula 1|formule 1|grand prix|verstappen|antonelli|norris|leclerc|piastri)\b/i],
+    ["running", /\b(?:marathon|hardlopen|hardloper\w*|nageeye|kipruto|chepkirui)\b/i],
+    ["cycling", /\b(?:veldrit\w*|veldrijd\w*|koppenberg\w*|cyclocross|tour de france|giro d.italia)\b/i]
+  ];
   var LOCATIONS = ["den haag|the hague", "frankfurt", "parijs|paris", "marseille", "berlijn|berlin", "hamburg", "keulen|cologne", "amsterdam", "rotterdam", "utrecht", "new delhi", "mumbai"].map((p, id) => [id, words(p)]);
   function eventScope(article = {}) {
     const title = article.title || "";
@@ -159,9 +164,10 @@ var HootCore = (() => {
     const cities = LOCATIONS.filter(([, re]) => re.test(title)).map(([id]) => id);
     const actions = [...title.matchAll(new RegExp(LOCAL_INCIDENT.source, "giu"))].length;
     const overview = countries.length > 1 && (cities.length > 1 || /[,;]/.test(title) && actions > 1);
-    return { local: LOCAL_INCIDENT.test(`${title} ${article.summary || ""}`), countries, cities, overview };
+    return { local: LOCAL_INCIDENT.test(`${title} ${article.summary || ""}`), countries, cities, overview, sports: SPORT_EVENTS.filter(([, re]) => re.test(title)).map(([id]) => id) };
   }
   function conflictingEvents(a, b) {
+    if (a?.sports?.length && b?.sports?.length && !a.sports.some((s) => b.sports.includes(s))) return true;
     if (!a?.local || !b?.local) return false;
     if (a.overview || b.overview) return true;
     if (a.countries.length && b.countries.length && !a.countries.some((c) => b.countries.includes(c))) return true;
@@ -1407,7 +1413,7 @@ var HootCore = (() => {
   }
 
   // shared/editor-version.mjs
-  var EDITOR_REVISION = "redacteur-2026-11-01-r2";
+  var EDITOR_REVISION = "redacteur-2026-11-02-beta1";
 
   // netlify/lib/stories.mjs
   var timeOf = (a) => Date.parse(a.publishedAt) || 0;
@@ -1915,6 +1921,7 @@ var HootCore = (() => {
     return t;
   };
   function sameSubject(a, b) {
+    if (conflictingEvents(a.eventScope, b.eventScope)) return false;
     if (sameEvent(a, b)) return true;
     const dt = Math.abs(a.t - b.t);
     if (dt > EVENT_WINDOW) return false;
