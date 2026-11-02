@@ -1,0 +1,20 @@
+[
+  {
+    "file": "src/views/Settings.jsx",
+    "before": "Veelgelezen, niet in je Editie.",
+    "after": "Een extra verhaal naast je Editie.",
+    "old_present_before": true,
+    "expected_copy_present_before": false,
+    "old_present_after": false,
+    "expected_copy_present_after": true
+  },
+  {
+    "file": "ios/Hoot/Views/SettingsView.swift",
+    "before": "Buiten je bubbel: veelgelezen, niet in je Editie.",
+    "after": "Een extra verhaal naast je Editie.",
+    "old_present_before": true,
+    "expected_copy_present_before": false,
+    "old_present_after": false,
+    "expected_copy_present_after": true
+  }
+]

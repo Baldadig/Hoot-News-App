@@ -127,7 +127,7 @@ struct SettingsView: View {
                 } header: {
                     FormHeader("Editie en Stroom")
                 } footer: {
-                    Text("Buiten je bubbel: veelgelezen, niet in je Editie.")
+                    Text("Een extra verhaal naast je Editie.")
                         .foregroundStyle(Theme.ink3)
                 }
                 .hootRows()

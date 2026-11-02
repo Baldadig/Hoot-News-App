@@ -44,7 +44,7 @@ export default function Settings({ meta, account, syncStatus, affinity = null, o
           <Row label="De Editie in één minuut" hint={ai ? 'Samenvatting door AI. Voor leden.' : 'Nog niet beschikbaar.'}>
             <Switch checked={prefs.brief} onChange={(v) => setPref('brief', v)} label="De Editie in één minuut" />
           </Row>
-          <Row label="Buiten je bubbel" hint="Veelgelezen, niet in je Editie.">
+          <Row label="Buiten je bubbel" hint="Een extra verhaal naast je Editie.">
             <Switch checked={prefs.bubble} onChange={(v) => setPref('bubble', v)} label="Buiten je bubbel" />
           </Row>
           <div className="setrow setrow--stack">
