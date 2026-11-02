@@ -29,3 +29,7 @@ Broncommit 38979d9 overgenomen als d688bfd; geen conflict. Web 914 geslaagd + 1 
 ### A04 · Lezerwachttekst en inlogpaneel
 
 7ec70f1 → 3f1187b, daarna uitsluitend de delta-patch vanaf 7552530 → 6874b47. ArticleReaderView en changelog automatisch inhoudelijk samengevoegd; geen dubbele basispatch. Het paneel bewaart zeven dagen stilte en maximaal één herinnering. Web 918 geslaagd + 1 bestaande TODO, native 70 geslaagd, build en alle harde acceptatiedrempels groen. [Logverwijzingen](beta/controle-A04.json). De meegeleverde historische logs bevatten witruimtewaarschuwingen; productcode niet. De refreshcallback volgt bij A07.
+
+### A05 · Onboardingbronnen
+
+f568f7f → 00aa0e4, 476370d → 7155b13 en a1e5521 → 29b78c0. Alleen het beoordeelde bronraster en vijf herstelpunten; geen latere kop-/animatiecode. CSS met desktopkop automatisch gecombineerd. Beide changelogconflicten opgelost door alle onafhankelijke regels te behouden en de nieuwe regels onder één Onuitgebracht-kop te zetten. De aantallen en definitieve logs staan in [controle-A05](beta/controle-A05.json); alle checks groen.
