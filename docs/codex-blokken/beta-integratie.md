@@ -13,3 +13,7 @@ A: beveiliging → rustige voorpagina → editiekop/deelkaart → lezer-wachttek
 Alleen V2a wordt gebruikt voor ontwikkeling/meting. V2b is verzegeld en wordt niet ingezien of gescoord bij het afstellen. De bestaande acceptatiemaat uniekheid is Jaccard-overlap: lager is beter; grens nu maximaal 0,38, niet verruimen.
 
 Per stap komen broncommits, conflictoplossing en echte testresultaten hieronder. Niet-uitgevoerde proeven worden niet als geslaagd vermeld.
+
+### A01 · Beveiliging
+
+Broncommit 3ec9058 overgenomen als 24a05a5; geen conflict. Sessiegeneratie/accountgrens en Sharp 0.35.5 overgenomen. Eigen node_modules met npm ci uit de lockfile: de voorgeschreven gedeelde symlink wees nog op Sharp 0.33.5 en is daarom vervangen zonder Main-dependencies te veranderen. Runtimeversie lokaal werkelijk 0.35.5. Web 906 geslaagd + 1 TODO, build groen; native 59 geslaagd; acceptatie alle harde drempels gehaald. Core opnieuw gebouwd zonder wijziging. Linux/Netlify cold-start blijft een externe releasecontrole, niet uitgevoerd of gedeployd. [Logverwijzingen](beta/controle-A01.json).

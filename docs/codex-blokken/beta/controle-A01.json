@@ -1,0 +1,24 @@
+{
+  "web": {
+    "log": "/tmp/hoot-beta/A01/web.log",
+    "counts": {
+      "tests": 907,
+      "pass": 906,
+      "fail": 0,
+      "todo": 1
+    }
+  },
+  "build": {
+    "log": "/tmp/hoot-beta/A01/build.log"
+  },
+  "native": {
+    "log": "/tmp/hoot-beta/A01/native.log",
+    "tests": 59
+  },
+  "acceptatie": {
+    "log": "/tmp/hoot-beta/A01/acceptatie.log"
+  },
+  "core": {
+    "log": "/tmp/hoot-beta/A01/core.log"
+  }
+}
