@@ -21,3 +21,7 @@ Broncommit 3ec9058 overgenomen als 24a05a5; geen conflict. Sessiegeneratie/accou
 ### A02 · Rustige voorpagina
 
 Broncommit 38979d9 overgenomen als d688bfd; geen conflict. Web 914 geslaagd + 1 bestaande TODO, native 59 geslaagd, build en alle harde acceptatiedrempels groen. Core opnieuw gebouwd zonder wijziging. [Logverwijzingen](beta/controle-A02.json).
+
+### A03 · Desktopkop en deelkaartlogo
+
+98dd0e1 → eb5b360 en ddc9b09 → 36c4a4a. Desktopkop normaal toegepast; alleen ios/CHANGELOG.md botste bij het logo. De beveiligingsregel én logoregel zijn behouden. Web 916 geslaagd + 1 bestaande TODO, native 60 geslaagd; build en alle harde acceptatiedrempels groen. Core ongewijzigd. Logo’s blijven offline ingebed. [Logverwijzingen](beta/controle-A03.json).
