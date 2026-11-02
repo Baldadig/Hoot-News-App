@@ -157,8 +157,11 @@ final class HootStore {
         personal = Self.read("edition.json")
         personalRaw = Self.readRaw("edition.json")
         bluesky = Self.load("hoot.bluesky") ?? false
-        ownBluesky = Self.load("hoot.ownBluesky") ?? []
-        bskyInStream = Set(Self.load("hoot.bskyInStream") ?? [String]())
+        let keptSocial: [BlueskyAccount] = Self.load("hoot.ownBluesky") ?? []
+        ownBluesky = keptSocial
+        // Oude native profielen kenden deze schakelaar niet: gevolgde eigen accounts blijven zichtbaar.
+        // Een opgeslagen lege lijst is wel een bewuste keuze en blijft leeg.
+        bskyInStream = Set(Self.load("hoot.bskyInStream") ?? keptSocial.map(\.id))
         importSettings()
     }
 
@@ -213,6 +216,7 @@ final class HootStore {
     // Alleen wat echt anders is: elke toewijzing laadt opnieuw (Bluesky, jouw editie), en dat zou
     // anders na elke synchronisatie gebeuren, ook als er niets veranderde.
     private func apply(_ p: Import.Prefs?, unite: Bool = false) {
+        let legacySocial = p?.bskyInStream == nil && UserDefaults.standard.object(forKey: "hoot.bskyInStream") == nil
         if let v = p?.muted, Set(v) != muted { muted = Set(v); save("hoot.muted", v) }
         if let v = p?.enabled, Set(v) != enabled { enabled = Set(v); save("hoot.enabled", v) }
         if let v = p?.vak, v != digestFields { digestFields = v; save("hoot.digestFields", v) }
@@ -235,6 +239,7 @@ final class HootStore {
             let next = unite ? v + ownBluesky.filter { a in !v.contains { $0.handle == a.handle } } : v
             if next != ownBluesky { ownBluesky = next; Task { await loadOwnPosts() } }
         }
+        if legacySocial { bskyInStream.formUnion(followedSocial.map(\.id)) }
     }
 
     // ---- Synchroniseren met je account (Account.swift) ----

@@ -19,7 +19,7 @@ export const DEFAULT_PREFS = {
   bluesky: false, // Bluesky als eigen bestemming in het menu
   favorites: [], // voorkeursbronnen (ster): wegen zwaarder in je Editie en staan vooraan
   vak: [], // vakgebieden in de Selectie (shared/vak.mjs); leeg = geen tab Selectie
-  bskyInStream: [], // Bluesky-accounts die óók in de Stroom staan (standaard alleen in Bluesky)
+  bskyInStream: [], // expliciete keuze; oude profielen zonder dit veld behouden hun gevolgde accounts
   weatherPlace: 'de-bilt', // neutraal; plaats voor het weer in de Editie (src/lib/weather.js), of 'geen'
   followStories: [], // verhalen die je volgt: [{ id, title, at }] (src/lib/follow.js)
   taste: { topics: {}, sources: {} }, // meer of minder hiervan (src/lib/affinity.js); gaat mee met je account
@@ -50,6 +50,7 @@ export function normalizePrefs(raw) {
   out.vak = Array.isArray(out.vak) ? out.vak.filter((f) => VAK_FIELD_IDS.includes(f)) : []
   // Bluesky-accounts die je zelf toevoegde ({ handle, name, avatar }); gaan mee met je account.
   out.social = Array.isArray(out.social) ? out.social.filter((a) => a && typeof a.handle === 'string') : []
+  if (!Object.hasOwn(p, 'bskyInStream')) out.bskyInStream = [...new Set(out.social.map(a => 'bsky:' + a.handle))]
   // Opgeruimde instellingen (voorlezen en Instapaper, tot v1.19) niet meer meedragen.
   for (const k of ['instapaper', 'readAloud', 'voice']) delete out[k]
   return out

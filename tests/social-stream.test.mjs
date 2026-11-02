@@ -39,3 +39,12 @@ test('Selectie wacht op de voorkeuren van de juiste eigenaar, niet alleen op een
   assert.equal(selectionOwnerReady({status:'loading'},storage),false)
   assert.equal(selectionOwnerReady({status:'out'},storage),true)
 })
+
+// De oude native profielen hadden geen Ook in de Stroom-veld. Alleen ontbreken migreert.
+import { normalizePrefs } from '../src/lib/prefs.js'
+test('oude gevolgde Bluesky-accounts blijven zichtbaar, expliciet uit blijft uit', () => {
+  const social = [{ handle: 'a.example', name: 'A' }]
+  assert.deepEqual(normalizePrefs({ social }).bskyInStream, ['bsky:a.example'])
+  assert.deepEqual(normalizePrefs({ social, bskyInStream: [] }).bskyInStream, [])
+  assert.deepEqual(normalizePrefs(normalizePrefs({ social })).bskyInStream, ['bsky:a.example'])
+})

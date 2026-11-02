@@ -40,6 +40,19 @@ final class BlueskyStreamStoreTests: XCTestCase {
         store.bluesky=false;XCTAssertTrue(store.stream.isEmpty)
         store.forgetChoices();XCTAssertTrue(store.bskyInStream.isEmpty);XCTAssertTrue(store.posts.isEmpty)
     }
+    func testLegacyFollowedAccountsDefaultOnButExplicitEmptySurvivesRestart() throws {
+        let accounts = [BlueskyAccount(handle: "legacy.example", name: "Legacy", avatar: nil)]
+        UserDefaults.standard.set(try JSONEncoder().encode(accounts), forKey: "hoot.ownBluesky")
+        let store = HootStore()
+        XCTAssertEqual(store.bskyInStream, ["bsky:legacy.example"])
+        store.bskyInStream = []
+        XCTAssertTrue(HootStore().bskyInStream.isEmpty)
+    }
+    func testLegacyImportedAccountsDefaultOn() throws {
+        let store = HootStore()
+        try apply(store, ["social": [["handle": "legacy.example", "name": "Legacy"]]])
+        XCTAssertEqual(store.bskyInStream, ["bsky:legacy.example"])
+    }
     func testMissingOldClientPreferenceIsPreservedButExplicitEmptyClears() throws {
         let store=HootStore();store.bskyInStream=["bsky:a.example"]
         try apply(store,["layout":"krant"])
