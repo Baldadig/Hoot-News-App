@@ -357,7 +357,7 @@ struct EditionView: View {
             .hootScreenTitle() // het verhaal wint van de schermtitel (C7)
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .hootRefresh(indicator: false, onWaiting: { refreshWaiting = $0 }) { await store.load() }
+            .hootRefresh(onWaiting: { refreshWaiting = $0 }) { await store.load() }
             .toolbar {
                 // Het woordmerk, klein linksboven: je ziet waar je bent, zonder dat het de krant overneemt.
                 // Hier landt het opstartscherm op.

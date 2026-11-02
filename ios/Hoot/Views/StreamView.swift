@@ -147,7 +147,7 @@ struct StreamView: View {
             .hootScreenTitle()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .hootRefresh(indicator: false, onWaiting: { refreshWaiting = $0 }) { await store.load() }
+            .hootRefresh(onWaiting: { refreshWaiting = $0 }) { await store.load() }
             .toolbar {
                 // Bediening is stil (design system): grijs en zonder glazen rondje, zoals het tandwiel.
                 ToolbarItem(placement: .topBarTrailing) {
