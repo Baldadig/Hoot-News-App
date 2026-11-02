@@ -12,5 +12,16 @@
     "landing/index.src.html"
   ],
   "landing_js_unchanged": true,
-  "no_native_changes": true
+  "no_native_changes": true,
+  "text_correction": {
+    "landing_tests_passed": 2,
+    "build": "passed",
+    "mobile_width": 320,
+    "heading_lines": [
+      2,
+      2,
+      2
+    ],
+    "horizontal_overflow": false
+  }
 }

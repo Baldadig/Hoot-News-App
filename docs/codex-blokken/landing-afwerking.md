@@ -30,3 +30,9 @@ Open in GitHub Desktop de bestaande werkmap **Hoot-beta-integratie**, branch **l
 Merge **landing-afwerking → main** als één pakket. De footer zit er al in: `landing-footer-ruimte` niet nog apart overnemen. `landing-selectie-tech` evenmin mergen: de AI-inhoud daarvan is vervangen door Werk & organisatie. Het losse voordelenconcept is hiermee naar productcode vertaald; de meest recente controlebeelden staan bij dit pakket.
 
 De app hoeft hiervoor niet opnieuw naar TestFlight. Na de merge kan de bestaande Git/Netlify-route de website bouwen. Controleer daarna op het echte adres de drie onderdelen en kleine mobiele breedte. Alex doet de merge; Claude krijgt deze overdracht voor de woensdagcontrole.
+
+## Tekstcorrectie op verzoek van Alex
+
+De tweede begeleidende tekst is **‘Ochtend, middag en avond een Editie met een duidelijk einde.’** De derde payoff is **‘Jouw bronnen, in één Stroom.’**, verdeeld over ‘Jouw bronnen,’ en ‘in één Stroom.’ Selectie blijft de naam van het aparte productonderdeel.
+
+Controle na deze tekstcorrectie: beide bestaande landingtests geslaagd, productiebuild opnieuw geslaagd; CSS en JavaScript ongewijzigd. De eerdere volledige suite van 999 geslaagde tests + 1 TODO is niet opnieuw als nieuwe meting geclaimd.
