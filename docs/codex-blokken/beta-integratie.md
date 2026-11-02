@@ -1,6 +1,19 @@
 # Beta-integratie · overdracht aan Claude
 
-Status: in uitvoering. Basis main 0a209da; werkbranch beta-integratie. Geen releasevrijgave.
+Status: code, integratie, automatische controles en installatie afgerond op `beta-integratie`, vanaf Main `0a209da`. **Proefstart wacht op ontgrendeling van de iPhone; visuele/accountvrijgave blijft open. Geen releasevrijgave.**
+
+## Claude · lees dit eerst
+
+- **A1–A10 geïntegreerd en getest:** beveiliging/Sharp, rustige API, desktopkop/deelkaart, lezer/wachttekst/inlogpaneel, bronraster, Stroom/Selectie, nummering, categoriegegevens, documenten en Nacht. Native Nacht-profielkoppeling apart in `eb3661f`. Alle oorspronkelijke overlappen zijn inhoudelijk gecombineerd; zie het log hieronder.
+- **B1–B8 gebouwd:** bundelgrens `8818e68`; bronweging `1b00f25` + aanbodbewijs `8556c98`; intro/kopbalans `aee9a5d`; onderwerpplaats `7de240a`; vaknieuws/aanvulling `d0955e3`; videovulling `8a7c3b7`; telling `c5f6cdb`; redenen/eindkaart `82727db`; lokale meldingen `4bca693`. Lees [het meetverslag](beta-redacteur.md) vóór overname; alleen losse broncommits cherry-picken zonder hun genoemde voorwaarden is onvoldoende. De volledige volgorde staat in `beta/commits.txt`.
+- **Norm:** hooguit tien genummerde verhalen, optioneel één bubbel ongenummerd erna. Tien blijft het doel, geen garantie. Onder zes verplicht aanbodbewijs; onder vier geen normale Editie. Geen drempel voor uniekheid verruimd. Zonder Wereld maximaal twee algemene internationale plekken; bewezen relevant vaknieuws valt daarbuiten. Binnenland opent Nederlands. Sportuitzondering blijft smal.
+- **Eindcontrole:** 980 webtests groen + één bestaande TODO; 102 native groen; kern/build/golden en alle harde acceptatiechecks groen. Jaccard nu/rijk 0,32/0,32; twaalf actuele profielen tien gewone verhalen. Historische tekorten en kandidaatbewijs: `beta/B-final-shortages.json`. Laatste broncontrole: [controle-FINAAL](beta/controle-FINAAL.json). Aanvullend twee native lokale-betaguardtests groen.
+- **iPhone 16 Pro:** lokale Debug-beta **1.0.1 (39)** met bestaand profiel geïnstalleerd, gegevens bij installatie behouden. Proefstart nog niet bevestigd door vergrendelde iPhone. `13232f9` voegt uitsluitend via bouwargument `HOOT_LOCAL_BETA` een accountsynchronisatieblokkade toe; **dit argument niet in de officiële build zetten**. Bestaande Keychain-sessie wordt niet gelezen/gewist. API blijft hootnews.nl. [Testlijst](../../BETA-TESTLIJST.md) en [twee-apparatenproef](beta/TWEE-APPARATEN-CHECKLIST.md).
+- **Niet af als productvrijgave:** V2a-controle blijft **42/58**, dus classificatiedoel niet gehaald; ontwikkelset wel verbeterd. V2b is verzegeld en bytegelijk. Niet afstellen op V2b. Backend niet gepubliceerd: nieuwe ingestrege categorisering/bundels komen pas na Claude’s deploy volledig beschikbaar. Lokale feedback wordt nog niet verstuurd. Geen nieuwe AI, database of account-API toegevoegd.
+- **Keuring vóór officiële build:** Sharp 0.35.5 op echte Linux/Netlify koude start; HootStore/Account-eigenaar- en echo-overlap; alle golden-wijzigingen; verse dagproef en resterende korte Edities; koppen/intro’s/aanvulredenen; iPad exact 699/700 pt, index-sprong, AX-tekst en VoiceOver; twee echte apparaten en OLED/Nacht. Ontwerpkeuzes D5 en auditdetails blijven expliciet open. Backenddeploy, landing LIVE-vlag en Apple-release zijn van Claude/Alex.
+- **Overlappen bij overname:** `HootStore.swift` (veiligheid, Bluesky, Nacht, Redacteur), `Components.swift` (Nacht, beelden, nummering, opties), `QuietMotion.swift` (lezertekst én refreshcallback), `ArticleReaderView.swift` (Nacht, laadmelding, inlogpaneel), `EditionView.swift` / `Edition.jsx` / `styles.css`, de gedeelde kern en de changelogs. Neem de oude volledige lezerpaneelpatch niet naast de reeds toegepaste delta over.
+- **Extern meetpakket:** pas in Hoot-design achtereenvolgens `acceptatie-korte-editie.patch`, `acceptatie-vaknieuws.patch`, `acceptatie-genummerde-reeks.patch` toe (in `beta/`). Dit volgt Alex’ expliciete scope/telkeuzes; alle andere harde normen zijn behouden. De meetlat daar is lokaal reeds zo gecontroleerd.
+- **Grenzen gehouden:** Main schoon/ongewijzigd, landing bytegelijk, app- en projectversies gelijk; alleen Sharp-dependency gewijzigd in package.json. Geen push, tag, merge, deploy, Apple-upload, login of Supabase-write. Build 40 is niet gestart. Patch en controle-instructies volgen bij ‘Levering’ onderaan.
 
 ## Grenzen
 
@@ -60,7 +73,7 @@ Aparte koppeling eb3661f: theme/themeDark als gevalideerde strings in native imp
 
 8818e68; aparte broncodecommit. De volledige nacontrole B01-R1 is groen: 935 webtests + 1 TODO, 96 native tests, build en harde acceptatie. Jaccard nu 0,34, rijk 0,36. De eerder geteste 17f45fa is vervangen na inhoudelijke nacontrole op onbedoelde taalsplitsing; B01-R1 is het beslissende bewijs. De gegenereerde native kern bleef bij die laatste servercorrectie bytegelijk. Zie [Redacteur-verslag](beta-redacteur.md) en [definitieve logs](beta/controle-B01-R1.json).
 
-### B02 · Wegingproef tijdelijk buiten de actieve beta
+### B02 · Historisch: tijdelijk apart gehouden, inmiddels geïntegreerd
 
 765f865 bewaard op beta-bronweging-proef. Volledige native suite 96 groen, build en externe harde acceptatie groen; web 937 geslaagd + één echte dagreeksregressie + één bestaande TODO. De nieuwe lezer krijgt in één Middageditie vijf plekken tegenover de vaste ondergrens zes. Geen grens aangepast; eerst het conflict kwaliteit/korter versus minimum zes verduidelijken. Met reset --keep is uitsluitend de eigen ongepubliceerde proef uit de actieve branch gehaald; commit en meetbewijs blijven behouden. De branch blijft op de groene B1-basis voor de onafhankelijke B6/B4-werkzaamheden.
 

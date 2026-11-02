@@ -119,3 +119,10 @@ De bestaande meer/minder-bediening is ook bereikbaar bij artikelen in de Stroom.
 Browserproef op 390 px: de echte TasteButton met een synthetische artikelcontext opent alle vier redenen, bewaart via de echte lokale opslagfunctie en toont de ontvangsttekst zonder horizontale overloop. Screenshots `beta/B08-melding-*.png`. De tests controleren eigenaarscheiding, opslaglimiet, herhalen, corrupte/volle opslag en dat melden geen smaak of syncgegevens verandert. Geen echte accounts gebruikt. Selectiekern/golden ongewijzigd; dit is bediening rond bestaande uitkomsten. Native menu-interactie blijft aanvullend te keuren als Device Hub weer bedienbaar is.
 
 B08-controle: 980 webtests groen + bestaande TODO; build, gedeelde kern en alle harde acceptatiechecks groen (Jaccard 0,32/0,32). De iOS-testlog meldt 101 geslaagde tests zonder assertfouten; Xcode verzamelt bij het vastleggen van deze broncommit nog diagnostiek, dus de procesexit is nog niet als groen geboekt. De finale controle vult dit aan. Golden opnieuw gemaakt zonder wijziging.
+
+
+## Definitieve gezamenlijke nacontrole
+
+Na B8 en de kleine auditpunten: 980 webtests geslaagd plus één bestaande TODO, 102 native tests geslaagd, gedeelde kern, webbuild, golden en alle harde acceptatiedrempels groen (`beta/controle-FINAAL.json`). Golden/core na de finale bronstand opnieuw gegenereerd zonder bronwijziging. Jaccard nu/rijk 0,32/0,32, ongewijzigde plafonds ≤0,38/≤0,40. Twaalf actuele profielen hebben tien genummerde verhalen; de optionele bubbel telt apart. De historische tekorten uit B3 blijven en zijn opnieuw vastgelegd in `beta/B-final-shortages.json`. V2b is uitsluitend op byte-identiteit gecontroleerd, geen voorspellingen of labels ingezien voor afstelling.
+
+Dit is een lokale beta en geen bewijs van een foutloos nieuwsalgoritme. Met name het V2a-controledoel, nieuw serveraanbod, verse-dagmeting en echte accountpariteit vragen Claude’s keuring. De lokale meldfunctie bewaart feedback maar stuurt die niet door en past classificatie niet zelfstandig aan.

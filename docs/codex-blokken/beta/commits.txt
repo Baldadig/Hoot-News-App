@@ -1,0 +1,53 @@
+1a9a4a5 Leg scope en controlevolgorde van de lokale beta-integratie vast
+24a05a5 Bescherm sessiewissels tegen late antwoorden en werk Sharp bij
+1e56fe2 Bevestig de beveiligingscontrole op de beta met eigen dependencies
+d688bfd Maak de voorpagina rustiger en ontdubbel onderwerpen
+bf4f178 Leg de geslaagde integratiecontrole van de rustige voorpagina vast
+eb5b360 Lijn de desktopkop van de Editie rustig uit
+36c4a4a Voeg ingebedde uitgeverslogos in papiertint toe aan deelkaarten
+a105e2f Documenteer de gecombineerde kop- en deelkaartcontrole
+3f1187b Toon pas bij wachten een passende laadmelding in de lezer
+6874b47 Integreer uitsluitend de paneeldelta na de passende lezerwachttekst
+5e59b4a Bevestig de geïntegreerde lezer- en herinneringsregels
+00aa0e4 Maak bronkeuze visueel en geef Selectie een eigen onboardingstap
+7155b13 Leg onboarding en bronvolgorde vast voor review door Claude
+29b78c0 Herstel de vijf beoordeelde punten van de bronkeuze
+f12da87 Leg de volledige onboardingintegratie en controle vast
+720f32c Voeg beeldfallback, Bluesky in de Stroom en Selectienavigatie toe
+9eb7cca Geef onderwerpenindex volle tekstbreedte bij toegankelijkheidstekst
+2bebb2b Behoud gevolgde Bluesky-accounts bij oude profielen zonder Stroom-keuze
+bca9380 Leg Stroom- en Selectiecontrole inclusief native hercontrole vast
+9242495 Herstel Editie-nummering en plaats de wachtmarkering onder de titel
+973f528 Toets de echte Editiekop en neem de aangepaste nummeringscontrole mee
+10f42e2 Leg de geslaagde nummering en gecombineerde wachtmarkering vast
+98a1bb9 Bevries blinde categorieannotaties en onafhankelijke tweede review
+a7b5426 Meet categorieprecisie, recall en onbekende dekking zonder regels te wijzigen
+346a56b Bewaak ook de werkelijk gescoorde labels tegen het bevroren bewijs
+e6f491e Bevries 78 blinde V2b-controlelabels van 2 november
+4d277c3 Lever V2b-herkomst, overlapcontrole en verzegeling op
+eb90b23 Neem het bevroren V2a-meetbewijs mee zonder oude losse patch
+41506e9 Leg categorie-integratie en intacte V2b-verzegeling vast
+5ad2dbd Werk een rustig navigatieplan voor de Selectie uit
+24627a2 Bundel Selectieplan en Stroomonderzoek uitsluitend als documentatie
+a20cb7f Bevestig de documentatie-integratie zonder productwijzigingen
+4ddd6de Voeg Nacht toe op web en iOS met warme bediening en controlebeelden
+af54c3d Leg hervatte native lezercontrole en abonnementspaneel vast
+967ad70 Laat het geopende instellingenblad direct met de themakeuze meegaan
+5bf5348 Rond Nacht af met 59 geslaagde native tests en definitieve beeldmeting
+a507433 Neem de definitieve Nacht-overdracht mee zonder geneste patch
+eb3661f Koppel native weergavevoorkeuren aan het profiel zonder synchronisatie-echo
+7229d05 Bevestig alle geïntegreerde pakketten en de native themaprofielcontrole
+8818e68 Begrens gebeurtenisbundels en voorkom koppeling via overzichtskoppen
+a0d3204 Leg de bundelmeting, behoudsregressie en definitieve acceptatie vast
+f329502 Houd de bronwegingproef apart wegens de onopgeloste dagreeksnorm
+aee9a5d Breng koppen in balans en deel de introfilter tussen web en iOS
+1b00f25 Vervang de vaste merkbonus door begrensde gekozen-uitgeversweging
+8556c98 Bewijs kort aanbod per kandidaat en bewaak de vloer van vier verhalen
+7de240a Scheid onderwerpplaats van uitgever en herstel verkiezings- en protestcontext
+d0955e3 Behoud tien als doel en vul alleen aan met nieuwsbelang of inhoudelijke relevantie
+8a7c3b7 Weer ongepaste videolijstjes zonder passende filminteresse uit de Editie
+c5f6cdb Tel hooguit tien gewone verhalen en zet de optionele bubbel apart erna
+82727db Toon concrete selectieredenen en een eerlijk begin en einde van de Editie
+4bca693 Voeg lokale foutmeldingen toe naast de verhaalvoorkeuren
+7201b13 Werk kleine auditpunten bij en leg de resterende visuele keuring vast
+13232f9 Bouw en installeer een lokale beta met accountsynchronisatie uit
