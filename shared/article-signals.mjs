@@ -3,7 +3,7 @@
 const words = pattern => new RegExp(`(?<![\\p{L}\\p{N}])(?:${pattern})(?![\\p{L}\\p{N}])`, 'iu')
 const COUNTRIES = [
   ['nl', 'nederland|netherlands|dutch|den haag|the hague|zeeuws-vlaanderen|breskens|amsterdam|rotterdam|utrecht|eindhoven'],
-  ['us', 'verenigde staten|united states|u\\.s\\.|usa|amerikaan\\p{L}*|american\\p{L}*|washington|michigan|ohio|texas|california|florida|new york'],
+  ['us', 'verenigde staten|united states|u\\.s\\.|usa|amerikaan\\p{L}*|american\\p{L}*|washington|michigan|ohio|texas|california|florida|new york|colorado|denver'],
   ['in', 'india|indiaas|indiase|indian|new delhi|mumbai|modi'],
   ['fr', 'frankrijk|france|frans|franse|fransen|french|parijs|paris|marseille'],
   ['de', 'duitsland|germany|german|duitse?|duitsers|berlijn|berlin|frankfurt|hamburg|keulen|cologne|munich'],
@@ -18,6 +18,7 @@ const COUNTRIES = [
   ['es', 'spanje|spain|spaans\\p{L}*|madrid'], ['it', 'itali\\p{L}*|rome|milaan|lucca'],
   ['pl', 'polen|poland|poolse?|warschau'], ['ee', 'estland|estse?|estonia\\p{L}*'],
   ['sn', 'senegal\\p{L}*'], ['sa', 'saudi\\p{L}*|saoedi\\p{L}*|saudische?'],
+  ['nz', 'new zealand|nieuw-zeeland'],
   ['au', 'australi\\p{L}*'], ['tr', 'turkije|turkey|turks\\p{L}*|erdogan'],
 ].map(([id, pattern]) => [id, words(pattern)])
 export function countriesIn(text = '') {

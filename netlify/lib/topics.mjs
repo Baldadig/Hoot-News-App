@@ -58,7 +58,7 @@ const KW = [
 // Sport zonder eigen onderwerp (darts, snooker...): geen onderwerp, maar wel sport en geen nieuws
 // (kindOf in src/lib/personal.js, ownKind in desks.mjs). Feedback 31 oktober: de Netflix-dartsshow van
 // Luke Littler stond als Film & series in de Editie van een lezer die Cultuur koos.
-export const OTHER_SPORT = /\b(darts\w*|darter\w*|snooker|rugby|honkbal|baseball|basketbal|basketball|ijshockey|motogp)\b/i
+export const OTHER_SPORT = /\b(darts\w*|darter\w*|snooker|rugby|honkbal|baseball|basketbal|basketball|ijshockey|motogp|handbal\w*|handball|uitwedstrijd\w*|vrouwentak|veldrijd\w*|veldrit\w*|koppenberg\w*|eredivisie\w*|voetbal\w*)\b/i
 
 // Trefwoorden die eruit zijn gegaan. Een server van vóór die wijziging levert ze nog als onderwerp;
 // trustedTopics laat zo'n onderwerp vallen als de zichtbare tekst (kop, intro) het alleen met zo'n oud

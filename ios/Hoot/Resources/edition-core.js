@@ -181,7 +181,7 @@ var HootCore = (() => {
   var words = (pattern) => new RegExp(`(?<![\\p{L}\\p{N}])(?:${pattern})(?![\\p{L}\\p{N}])`, "iu");
   var COUNTRIES = [
     ["nl", "nederland|netherlands|dutch|den haag|the hague|zeeuws-vlaanderen|breskens|amsterdam|rotterdam|utrecht|eindhoven"],
-    ["us", "verenigde staten|united states|u\\.s\\.|usa|amerikaan\\p{L}*|american\\p{L}*|washington|michigan|ohio|texas|california|florida|new york"],
+    ["us", "verenigde staten|united states|u\\.s\\.|usa|amerikaan\\p{L}*|american\\p{L}*|washington|michigan|ohio|texas|california|florida|new york|colorado|denver"],
     ["in", "india|indiaas|indiase|indian|new delhi|mumbai|modi"],
     ["fr", "frankrijk|france|frans|franse|fransen|french|parijs|paris|marseille"],
     ["de", "duitsland|germany|german|duitse?|duitsers|berlijn|berlin|frankfurt|hamburg|keulen|cologne|munich"],
@@ -202,6 +202,7 @@ var HootCore = (() => {
     ["ee", "estland|estse?|estonia\\p{L}*"],
     ["sn", "senegal\\p{L}*"],
     ["sa", "saudi\\p{L}*|saoedi\\p{L}*|saudische?"],
+    ["nz", "new zealand|nieuw-zeeland"],
     ["au", "australi\\p{L}*"],
     ["tr", "turkije|turkey|turks\\p{L}*|erdogan"]
   ].map(([id, pattern]) => [id, words(pattern)]);
@@ -297,7 +298,7 @@ var HootCore = (() => {
     ["wintersport", /\b(schaatsen|schaatser|skating|speed skating|elfstedentocht|thialf|shorttrack|skiën|skiing|wereldbeker schaatsen|wintersport|biatlon|biathlon|snowboard)\b/i],
     ["olympisch", /\b(olympisch|olympic|olympics|\bnoc\*nsf\b|\bioc\b|paralympi|atletiek|athletics|zwemmen|swimming|turnen|gymnastics|hockey|volleybal|handbal)\b/i]
   ];
-  var OTHER_SPORT = /\b(darts\w*|darter\w*|snooker|rugby|honkbal|baseball|basketbal|basketball|ijshockey|motogp)\b/i;
+  var OTHER_SPORT = /\b(darts\w*|darter\w*|snooker|rugby|honkbal|baseball|basketbal|basketball|ijshockey|motogp|handbal\w*|handball|uitwedstrijd\w*|vrouwentak|veldrijd\w*|veldrit\w*|koppenberg\w*|eredivisie\w*|voetbal\w*)\b/i;
   var RETIRED = {
     "vs-politiek": /./s,
     brein: /\bangst\b/i,
@@ -745,7 +746,7 @@ var HootCore = (() => {
     oekraine: /\b(oekra\w*|ukrain\w*|zelensk\w*|kyiv|kiev|kyjiv|kharkiv|charkiv|olesjky|oleshky|odesa|donetsk|donbas|krim|crimea|dnipro|kramatorsk)\b/i,
     middenoosten: /\b(israël|israel\w*|gaza|hamas|hezbollah|libanon|lebanon|iran\w*|teheran|tehran|khamenei|netanyahu|syri\w*|jemen|yemen|houthi\w*|irak|iraq|saudi\w*|westelijke jordaanoever|west bank|jordani\w*|qatar|golfstaten|midden-oosten|middle east|palestijn\w*|palestin\w*)\b/i,
     vs: /\b(trump|biden|vance|witte huis|white house|washington|congres\w*|congress|senaat|senate|republikein\w*|republican\w*|democra(at|ten|tic|ts)|pentagon|hegseth|midterms?|tussentijdse verkiezingen|amerikaan\w*|american|verenigde staten|united states|u\.s\.|new york|california|californi\w*|texas|florida|chicago|supreme court|hooggerechtshof|fbi|ice)\b/i,
-    wetenschap: /\b(wetenschap\w*|onderzoekers|onderzoek toont|studie|scientist\w*|researchers|science|study finds|nobelprijs (?:voor de )?(?:natuurkunde|scheikunde|geneeskunde)|nobel prize in (?:physics|chemistry|medicine)|klimaat\w*|climate|nasa|esa|astronom\w*|ruimtevaart|telescoop|telescope|natuurkunde|physics|biolog\w*|genetic\w*|genetica|vaccin\w*|medicijn|geneesmiddel|quantum|kwantum|archeolog\w*|fossiel|fossil|aardbeving|earthquake|vulkaan|volcano|neurolog\w*|hersenonderzoek)\b/i,
+    wetenschap: /\b(wetenschap\w*|onderzoekers|onderzoek toont|studie|scientist\w*|researchers|science|study finds|nobelprijs (?:voor de )?(?:natuurkunde|scheikunde|geneeskunde)|nobel prize in (?:physics|chemistry|medicine)|klimaat\w*|climate|solar system|cosmic debris|light-years|nasa|esa|astronom\w*|ruimtevaart|telescoop|telescope|natuurkunde|physics|biolog\w*|genetic\w*|genetica|vaccin\w*|medicijn|geneesmiddel|quantum|kwantum|archeolog\w*|fossiel|fossil|aardbeving|earthquake|vulkaan|volcano|neurolog\w*|hersenonderzoek)\b/i,
     buitenland: /\b(frankrijk|france|french|frans\w*|parijs|paris|duitsland|germany|german|duits\w*|berlijn|berlin|brit\w*|engeland|england|london|londen|verenigd koninkrijk|united kingdom|spanje|spain|itali\w*|polen|poland|estland|estonia\w*|estse|senegal\w*|brazil\w*|belgi\w*|brussel|brussels|europese unie|european union|\beu\b|navo|nato|china|chinees|chinese|peking|beijing|taiwan|japan\w*|korea\w*|india\w*|pakistan|afghanistan|rusland|russia\w*|russisch\w*|poetin|putin|kremlin|moskou|moscow|turkije|turkey|erdogan|afrika|africa|nigeria|soedan|sudan|egypte|egypt|brazili\w*|mexico|venezuela\w*|maduro|argentini\w*|canada\w*|australi\w*|albani\w*|albane\w*|spaans\w*|pools\w*|turks\w*|griek\w*|zweed\w*|deens\w*|oostenrijk\w*|zwitser\w*|portug\w*|hongaar\w*|indiase|mexica\w*|canad\w*|egypt\w*|japans\w*|koreaan\w*|afrikaan\w*|europe\w*|europa|servi\w*|serbi\w*|hongarije|hungary|hungarian|orbán|griekenland|greece|zweden|sweden|swedish|noorwegen|norway|norwegian|denemarken|denmark|danish|oostenrijk|austria\w*|zwitserland|switzerland|ierland|ireland|portugal|tsjechi\w*|czech\w*|roemeni\w*|romania\w*|bulgarije|bulgaria\w*|georgi\w*|armeni\w*|azerbeidzjan|azerbaijan\w*|wit-rusland|belarus|filipijnen|philippine\w*|indonesi\w*|vietnam|thailand|myanmar|bangladesh|sri lanka|nepal|kenia|kenya\w*|ethiopi\w*|somali\w*|congo|zuid-afrika|south africa|haïti|haiti|cuba|colombia|chili|peru)\b/i
   };
   var KIND_TOPICS = /* @__PURE__ */ new Set(["voetbal", "f1", "wielrennen", "tennis", "wintersport", "olympisch", "muziek", "film", "boeken", "kunst", "games"]);
@@ -753,6 +754,8 @@ var HootCore = (() => {
   var CULTURE_SPORT = /\b(middenvelder|hattrick|hat-trick|scoorde|doelpunt|club.*contract|smaakmaker.*club|psg|premier league|concert\w*|halloweenkostuum|captain picard|star trek|patrick stewart|acteur|actrice|film|filmfestival)\b/i;
   var ownKind = (it) => {
     const visible = `${it.title || ""} ${it.summary || ""}`;
+    if (/^(?:recept:|wat eten we vandaag:)/i.test(it.title || "") || /\/(?:koken-en-eten|geld|vrouw|opmerkelijk)\//i.test(it.url || "")) return true;
+    if (/\b(drugging|murder|verkrachting|doodgeschoten|mishandeld)\b/i.test(it.title || "") && countriesIn(it.title || "").length) return false;
     const election = /\b(elections?|verkiezing\w*|midterms?|political texts|senaat|senate)\b/i.test(`${it.title || ""} ${(it.url || "").replace(/[-_/]/g, " ")}`);
     if (election && usPoliticsIn(visible + " " + (it.url || "").replace(/[-_/]/g, " ")) && !keywordTopics(visible).some((t) => KIND_TOPICS.has(t))) return false;
     if (/\b(journal article|research finds|study finds)\b/i.test(it.title || "")) return false;
@@ -802,7 +805,7 @@ var HootCore = (() => {
   ]);
   var NL_TOPICS = /* @__PURE__ */ new Set(["nederland", "wonen", "zorg", "onderwijs", "misdaad", "migratie", "verkeer"]);
   var NL_SECTION = /binnenland|\/politiek\/|\/nederland\/|\/regio\/|\/112-?nieuws/;
-  var NOT_HOME_SECTION = /(^|\s)(tech|economie|wetenschap|opinie|columns?)(\s|$)|\/(tech|economie|financiele-markten|bedrijfsleven|beurs|wetenschap|[\w-]*magazine|lifestyle|leven|boulevard|showbizz|opinie|columns?|columns-opinie|meningen|recepten|vacatures|partnercontent|varia|puzzels?|ps|uit-in-[\w-]+|geloof|religie-filosofie|tijdgeest|samenleving|duurzaamheid-economie)\//;
+  var NOT_HOME_SECTION = /(^|\s)(tech|economie|wetenschap|opinie|columns?)(\s|$)|\/(tech|economie|financiele-markten|bedrijfsleven|beurs|wetenschap|[\w-]*magazine|lifestyle|leven|boulevard|showbizz|opinie|columns?|columns-opinie|meningen|recepten|vacatures|partnercontent|varia|puzzels?|geld|vrouw|opmerkelijk|eten|ps|uit-in-[\w-]+|geloof|religie-filosofie|tijdgeest|samenleving|duurzaamheid-economie)\//;
   var textForeignOf = ({ title = "", summary = "", text = "", cats = "" }) => {
     const t = `${title} ${summary || text} ${cats}`;
     return RE.oekraine.test(t) || RE.middenoosten.test(t) || usPoliticsIn(t) || RE.buitenland.test(t);
@@ -842,20 +845,39 @@ var HootCore = (() => {
     const k = storyForeign ? "f" : "n";
     return m[k] || (m[k] = deskSet(it, storyForeign));
   }
+  function subjectPlaceOf(it = {}) {
+    const head = (it.title || "").replace(/\bPalestine Action\b/gi, "activistengroep");
+    const fromHead = countriesIn(head);
+    const usElection = fromHead.includes("us") && /\b(democra\w*|republic\w*|republikein\w*|senate|senaat)\b/i.test(head) || /\b(senate races|midterms)\b/i.test(head) && usPoliticsIn(`${head} ${it.summary || ""}`);
+    if (usElection) return { countries: ["us"], basis: "verkiezingsplaats", text: "United States", evidence: head };
+    if (fromHead.length) return { countries: fromHead, basis: "kop", text: head };
+    if (usPoliticsIn(head)) return { countries: ["us"], basis: "kop-institutie", text: head };
+    let path = "";
+    try {
+      path = new URL(it.url).pathname.replace(/[-_/]/g, " ");
+    } catch {
+    }
+    if (/\/us\//i.test(String(it.url || "").split("?")[0])) return { countries: ["us"], basis: "bronrubriek", text: `United States ${head}` };
+    const fromPath = countriesIn(path);
+    if (fromPath.length) return { countries: fromPath, basis: "url", text: `${head} ${path}` };
+    const intro = `${head} ${it.summary || it.text || ""} ${it.cats || ""}`;
+    return { countries: countriesIn(intro), basis: "intro-of-onbekend", text: intro };
+  }
   function deskSet(it, storyForeign) {
     const { title = "", summary = "", text = "", url = "", section = "", cats = "" } = it;
     const t = `${title} ${summary || text} ${cats}`;
     const out = /* @__PURE__ */ new Set();
     if (ownKind(it)) return out;
     const sec = `${section} ${url}`.toLowerCase();
-    const headCountries = countriesIn(title);
+    const place = subjectPlaceOf(it);
+    const headCountries = countriesIn(title.replace(/\bPalestine Action\b/gi, "activistengroep"));
     const headHome = placeSignals({ title }).home;
-    const geoText = headHome || headCountries.length ? title : t;
+    const geoText = headHome ? title : place.text;
     if (RE.oekraine.test(geoText)) out.add("oekraine");
     if (RE.middenoosten.test(geoText)) out.add("middenoosten");
     const usSection = /\/us\//.test(sec);
     const path = String(url).split("?")[0].replace(/[-_/]/g, " ");
-    if (usPoliticsIn(headHome ? title : `${t} ${path}`) || usSection || countriesIn(geoText).includes("us")) out.add("vs");
+    if (usPoliticsIn(geoText) || !headCountries.length && !headHome && (usSection || usPoliticsIn(path)) || countriesIn(geoText).includes("us")) out.add("vs");
     const education = /\b(leraar|basisschool|docent|onderwijs)\b/i.test(title) && !/\b(onderzoek|studie|research|study)\b/i.test(title);
     if (!education && (RE.wetenschap.test(title) || /wetenschap|\/science\/|\/health\//.test(sec) || /\b(journal article|scholarship|research finds|study finds)\b/i.test(t))) out.add("wetenschap");
     const specific = out.has("oekraine") || out.has("middenoosten") || out.has("vs");

@@ -1,0 +1,3590 @@
+{
+  "revision": "redacteur-2026-11-02-beta1",
+  "annotation": "Voorlopige Codex-beoordelingen, geen menselijke gold standard. V2a blind gelabeld vóór voorspellingen; oorspronkelijke 150 behouden met onafhankelijke tweede beoordeling van 23 twijfelgevallen.",
+  "controlOpened": true,
+  "v2b": {
+    "status": "pending",
+    "minimum": 50,
+    "maximum": 100,
+    "controlOnly": true,
+    "notBeforePublicationDay": "2026-11-02",
+    "rule": "Nieuwe verzamelronde op werkelijk nieuwe dag, geen gebeurtenis/id/URL-overlap; nooit afstellen op deze controle."
+  },
+  "geography": "Rubriekmetingen gestratificeerd op onafhankelijk gelabelde geografie. De huidige classifier levert geen apart landveld; land-precision/recall kan daarom niet eerlijk worden gemeten. Geen uitgeversland als vervanging.",
+  "results": {
+    "v1:development": {
+      "total": 97,
+      "scored": 96,
+      "uncertainGold": 1,
+      "correct": 92,
+      "accuracy": 0.9583333333333334,
+      "unknown": {
+        "raw": 20,
+        "coverage": 0.7938144329896907,
+        "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+      },
+      "perDesk": {
+        "binnenland": {
+          "expected": 19,
+          "predicted": 18,
+          "correct": 18,
+          "precision": 1,
+          "recall": 0.9473684210526315
+        },
+        "buitenland": {
+          "expected": 16,
+          "predicted": 19,
+          "correct": 16,
+          "precision": 0.8421052631578947,
+          "recall": 1
+        },
+        "vs": {
+          "expected": 13,
+          "predicted": 14,
+          "correct": 13,
+          "precision": 0.9285714285714286,
+          "recall": 1
+        },
+        "middenoosten": {
+          "expected": 11,
+          "predicted": 11,
+          "correct": 11,
+          "precision": 1,
+          "recall": 1
+        },
+        "oekraine": {
+          "expected": 11,
+          "predicted": 11,
+          "correct": 11,
+          "precision": 1,
+          "recall": 1
+        },
+        "wetenschap": {
+          "expected": 3,
+          "predicted": 3,
+          "correct": 3,
+          "precision": 1,
+          "recall": 1
+        },
+        "overig": {
+          "expected": 23,
+          "predicted": 20,
+          "correct": 20,
+          "precision": 1,
+          "recall": 0.8695652173913043
+        }
+      },
+      "confusion": {
+        "binnenland": {
+          "binnenland": 18,
+          "buitenland": 1,
+          "vs": 0,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 0
+        },
+        "buitenland": {
+          "binnenland": 0,
+          "buitenland": 16,
+          "vs": 0,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 0
+        },
+        "vs": {
+          "binnenland": 0,
+          "buitenland": 0,
+          "vs": 13,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 0
+        },
+        "middenoosten": {
+          "binnenland": 0,
+          "buitenland": 0,
+          "vs": 0,
+          "middenoosten": 11,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 0
+        },
+        "oekraine": {
+          "binnenland": 0,
+          "buitenland": 0,
+          "vs": 0,
+          "middenoosten": 0,
+          "oekraine": 11,
+          "wetenschap": 0,
+          "overig": 0
+        },
+        "wetenschap": {
+          "binnenland": 0,
+          "buitenland": 0,
+          "vs": 0,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 3,
+          "overig": 0
+        },
+        "overig": {
+          "binnenland": 0,
+          "buitenland": 2,
+          "vs": 1,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 20
+        }
+      },
+      "disagreements": [
+        {
+          "id": "1owyt1y",
+          "expected": "overig",
+          "predicted": "buitenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "d6nqqp",
+          "expected": "binnenland",
+          "predicted": "buitenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "17y9e54",
+          "expected": "overig",
+          "predicted": "buitenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "13581lh",
+          "expected": "overig",
+          "predicted": "vs",
+          "rawUnknown": false
+        }
+      ],
+      "byGeographicalClass": {
+        "domestic": {
+          "total": 0,
+          "scored": 0,
+          "uncertainGold": 0,
+          "correct": 0,
+          "accuracy": null,
+          "unknown": {
+            "raw": 0,
+            "coverage": null,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "buitenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "vs": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "middenoosten": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "oekraine": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "wetenschap": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "overig": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "overig": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            }
+          },
+          "disagreements": []
+        },
+        "foreign": {
+          "total": 0,
+          "scored": 0,
+          "uncertainGold": 0,
+          "correct": 0,
+          "accuracy": null,
+          "unknown": {
+            "raw": 0,
+            "coverage": null,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "buitenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "vs": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "middenoosten": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "oekraine": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "wetenschap": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "overig": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "overig": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            }
+          },
+          "disagreements": []
+        },
+        "multiple": {
+          "total": 0,
+          "scored": 0,
+          "uncertainGold": 0,
+          "correct": 0,
+          "accuracy": null,
+          "unknown": {
+            "raw": 0,
+            "coverage": null,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "buitenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "vs": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "middenoosten": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "oekraine": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "wetenschap": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "overig": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "overig": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            }
+          },
+          "disagreements": []
+        },
+        "global": {
+          "total": 0,
+          "scored": 0,
+          "uncertainGold": 0,
+          "correct": 0,
+          "accuracy": null,
+          "unknown": {
+            "raw": 0,
+            "coverage": null,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "buitenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "vs": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "middenoosten": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "oekraine": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "wetenschap": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "overig": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "overig": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            }
+          },
+          "disagreements": []
+        },
+        "unknown": {
+          "total": 97,
+          "scored": 96,
+          "uncertainGold": 1,
+          "correct": 92,
+          "accuracy": 0.9583333333333334,
+          "unknown": {
+            "raw": 20,
+            "coverage": 0.7938144329896907,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 19,
+              "predicted": 18,
+              "correct": 18,
+              "precision": 1,
+              "recall": 0.9473684210526315
+            },
+            "buitenland": {
+              "expected": 16,
+              "predicted": 19,
+              "correct": 16,
+              "precision": 0.8421052631578947,
+              "recall": 1
+            },
+            "vs": {
+              "expected": 13,
+              "predicted": 14,
+              "correct": 13,
+              "precision": 0.9285714285714286,
+              "recall": 1
+            },
+            "middenoosten": {
+              "expected": 11,
+              "predicted": 11,
+              "correct": 11,
+              "precision": 1,
+              "recall": 1
+            },
+            "oekraine": {
+              "expected": 11,
+              "predicted": 11,
+              "correct": 11,
+              "precision": 1,
+              "recall": 1
+            },
+            "wetenschap": {
+              "expected": 3,
+              "predicted": 3,
+              "correct": 3,
+              "precision": 1,
+              "recall": 1
+            },
+            "overig": {
+              "expected": 23,
+              "predicted": 20,
+              "correct": 20,
+              "precision": 1,
+              "recall": 0.8695652173913043
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 18,
+              "buitenland": 1,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 16,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 13,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 11,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 11,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 3,
+              "overig": 0
+            },
+            "overig": {
+              "binnenland": 0,
+              "buitenland": 2,
+              "vs": 1,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 20
+            }
+          },
+          "disagreements": [
+            {
+              "id": "1owyt1y",
+              "expected": "overig",
+              "predicted": "buitenland",
+              "rawUnknown": false
+            },
+            {
+              "id": "d6nqqp",
+              "expected": "binnenland",
+              "predicted": "buitenland",
+              "rawUnknown": false
+            },
+            {
+              "id": "17y9e54",
+              "expected": "overig",
+              "predicted": "buitenland",
+              "rawUnknown": false
+            },
+            {
+              "id": "13581lh",
+              "expected": "overig",
+              "predicted": "vs",
+              "rawUnknown": false
+            }
+          ]
+        }
+      }
+    },
+    "v1:control": {
+      "total": 53,
+      "scored": 53,
+      "uncertainGold": 0,
+      "correct": 44,
+      "accuracy": 0.8301886792452831,
+      "unknown": {
+        "raw": 15,
+        "coverage": 0.7169811320754716,
+        "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+      },
+      "perDesk": {
+        "binnenland": {
+          "expected": 4,
+          "predicted": 6,
+          "correct": 4,
+          "precision": 0.6666666666666666,
+          "recall": 1
+        },
+        "buitenland": {
+          "expected": 7,
+          "predicted": 6,
+          "correct": 4,
+          "precision": 0.6666666666666666,
+          "recall": 0.5714285714285714
+        },
+        "vs": {
+          "expected": 8,
+          "predicted": 10,
+          "correct": 8,
+          "precision": 0.8,
+          "recall": 1
+        },
+        "middenoosten": {
+          "expected": 4,
+          "predicted": 6,
+          "correct": 4,
+          "precision": 0.6666666666666666,
+          "recall": 1
+        },
+        "oekraine": {
+          "expected": 7,
+          "predicted": 7,
+          "correct": 7,
+          "precision": 1,
+          "recall": 1
+        },
+        "wetenschap": {
+          "expected": 4,
+          "predicted": 3,
+          "correct": 3,
+          "precision": 1,
+          "recall": 0.75
+        },
+        "overig": {
+          "expected": 19,
+          "predicted": 15,
+          "correct": 14,
+          "precision": 0.9333333333333333,
+          "recall": 0.7368421052631579
+        }
+      },
+      "confusion": {
+        "binnenland": {
+          "binnenland": 4,
+          "buitenland": 0,
+          "vs": 0,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 0
+        },
+        "buitenland": {
+          "binnenland": 0,
+          "buitenland": 4,
+          "vs": 1,
+          "middenoosten": 2,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 0
+        },
+        "vs": {
+          "binnenland": 0,
+          "buitenland": 0,
+          "vs": 8,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 0
+        },
+        "middenoosten": {
+          "binnenland": 0,
+          "buitenland": 0,
+          "vs": 0,
+          "middenoosten": 4,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 0
+        },
+        "oekraine": {
+          "binnenland": 0,
+          "buitenland": 0,
+          "vs": 0,
+          "middenoosten": 0,
+          "oekraine": 7,
+          "wetenschap": 0,
+          "overig": 0
+        },
+        "wetenschap": {
+          "binnenland": 0,
+          "buitenland": 0,
+          "vs": 0,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 3,
+          "overig": 1
+        },
+        "overig": {
+          "binnenland": 2,
+          "buitenland": 2,
+          "vs": 1,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 14
+        }
+      },
+      "disagreements": [
+        {
+          "id": "1fn816i",
+          "expected": "overig",
+          "predicted": "binnenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "1j4slfn",
+          "expected": "overig",
+          "predicted": "binnenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "104gxbj",
+          "expected": "overig",
+          "predicted": "buitenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "tpwg3x",
+          "expected": "overig",
+          "predicted": "buitenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "1h623os",
+          "expected": "overig",
+          "predicted": "vs",
+          "rawUnknown": false
+        },
+        {
+          "id": "65zh66",
+          "expected": "buitenland",
+          "predicted": "vs",
+          "rawUnknown": false
+        },
+        {
+          "id": "ghl9ws",
+          "expected": "buitenland",
+          "predicted": "middenoosten",
+          "rawUnknown": false
+        },
+        {
+          "id": "ev93x5",
+          "expected": "buitenland",
+          "predicted": "middenoosten",
+          "rawUnknown": false
+        },
+        {
+          "id": "15i9omw",
+          "expected": "wetenschap",
+          "predicted": "overig",
+          "rawUnknown": true
+        }
+      ],
+      "byGeographicalClass": {
+        "domestic": {
+          "total": 0,
+          "scored": 0,
+          "uncertainGold": 0,
+          "correct": 0,
+          "accuracy": null,
+          "unknown": {
+            "raw": 0,
+            "coverage": null,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "buitenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "vs": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "middenoosten": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "oekraine": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "wetenschap": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "overig": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "overig": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            }
+          },
+          "disagreements": []
+        },
+        "foreign": {
+          "total": 0,
+          "scored": 0,
+          "uncertainGold": 0,
+          "correct": 0,
+          "accuracy": null,
+          "unknown": {
+            "raw": 0,
+            "coverage": null,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "buitenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "vs": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "middenoosten": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "oekraine": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "wetenschap": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "overig": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "overig": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            }
+          },
+          "disagreements": []
+        },
+        "multiple": {
+          "total": 0,
+          "scored": 0,
+          "uncertainGold": 0,
+          "correct": 0,
+          "accuracy": null,
+          "unknown": {
+            "raw": 0,
+            "coverage": null,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "buitenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "vs": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "middenoosten": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "oekraine": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "wetenschap": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "overig": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "overig": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            }
+          },
+          "disagreements": []
+        },
+        "global": {
+          "total": 0,
+          "scored": 0,
+          "uncertainGold": 0,
+          "correct": 0,
+          "accuracy": null,
+          "unknown": {
+            "raw": 0,
+            "coverage": null,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "buitenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "vs": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "middenoosten": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "oekraine": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "wetenschap": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "overig": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "overig": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            }
+          },
+          "disagreements": []
+        },
+        "unknown": {
+          "total": 53,
+          "scored": 53,
+          "uncertainGold": 0,
+          "correct": 44,
+          "accuracy": 0.8301886792452831,
+          "unknown": {
+            "raw": 15,
+            "coverage": 0.7169811320754716,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 4,
+              "predicted": 6,
+              "correct": 4,
+              "precision": 0.6666666666666666,
+              "recall": 1
+            },
+            "buitenland": {
+              "expected": 7,
+              "predicted": 6,
+              "correct": 4,
+              "precision": 0.6666666666666666,
+              "recall": 0.5714285714285714
+            },
+            "vs": {
+              "expected": 8,
+              "predicted": 10,
+              "correct": 8,
+              "precision": 0.8,
+              "recall": 1
+            },
+            "middenoosten": {
+              "expected": 4,
+              "predicted": 6,
+              "correct": 4,
+              "precision": 0.6666666666666666,
+              "recall": 1
+            },
+            "oekraine": {
+              "expected": 7,
+              "predicted": 7,
+              "correct": 7,
+              "precision": 1,
+              "recall": 1
+            },
+            "wetenschap": {
+              "expected": 4,
+              "predicted": 3,
+              "correct": 3,
+              "precision": 1,
+              "recall": 0.75
+            },
+            "overig": {
+              "expected": 19,
+              "predicted": 15,
+              "correct": 14,
+              "precision": 0.9333333333333333,
+              "recall": 0.7368421052631579
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 4,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 4,
+              "vs": 1,
+              "middenoosten": 2,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 8,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 4,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 7,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 3,
+              "overig": 1
+            },
+            "overig": {
+              "binnenland": 2,
+              "buitenland": 2,
+              "vs": 1,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 14
+            }
+          },
+          "disagreements": [
+            {
+              "id": "1fn816i",
+              "expected": "overig",
+              "predicted": "binnenland",
+              "rawUnknown": false
+            },
+            {
+              "id": "1j4slfn",
+              "expected": "overig",
+              "predicted": "binnenland",
+              "rawUnknown": false
+            },
+            {
+              "id": "104gxbj",
+              "expected": "overig",
+              "predicted": "buitenland",
+              "rawUnknown": false
+            },
+            {
+              "id": "tpwg3x",
+              "expected": "overig",
+              "predicted": "buitenland",
+              "rawUnknown": false
+            },
+            {
+              "id": "1h623os",
+              "expected": "overig",
+              "predicted": "vs",
+              "rawUnknown": false
+            },
+            {
+              "id": "65zh66",
+              "expected": "buitenland",
+              "predicted": "vs",
+              "rawUnknown": false
+            },
+            {
+              "id": "ghl9ws",
+              "expected": "buitenland",
+              "predicted": "middenoosten",
+              "rawUnknown": false
+            },
+            {
+              "id": "ev93x5",
+              "expected": "buitenland",
+              "predicted": "middenoosten",
+              "rawUnknown": false
+            },
+            {
+              "id": "15i9omw",
+              "expected": "wetenschap",
+              "predicted": "overig",
+              "rawUnknown": true
+            }
+          ]
+        }
+      }
+    },
+    "v2a:development": {
+      "total": 137,
+      "scored": 134,
+      "uncertainGold": 3,
+      "correct": 125,
+      "accuracy": 0.9328358208955224,
+      "unknown": {
+        "raw": 78,
+        "coverage": 0.4306569343065693,
+        "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+      },
+      "perDesk": {
+        "binnenland": {
+          "expected": 14,
+          "predicted": 17,
+          "correct": 13,
+          "precision": 0.7647058823529411,
+          "recall": 0.9285714285714286
+        },
+        "buitenland": {
+          "expected": 31,
+          "predicted": 34,
+          "correct": 31,
+          "precision": 0.9117647058823529,
+          "recall": 1
+        },
+        "vs": {
+          "expected": 2,
+          "predicted": 2,
+          "correct": 2,
+          "precision": 1,
+          "recall": 1
+        },
+        "middenoosten": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "oekraine": {
+          "expected": 1,
+          "predicted": 1,
+          "correct": 1,
+          "precision": 1,
+          "recall": 1
+        },
+        "wetenschap": {
+          "expected": 3,
+          "predicted": 2,
+          "correct": 2,
+          "precision": 1,
+          "recall": 0.6666666666666666
+        },
+        "overig": {
+          "expected": 83,
+          "predicted": 78,
+          "correct": 76,
+          "precision": 0.9743589743589743,
+          "recall": 0.9156626506024096
+        }
+      },
+      "confusion": {
+        "binnenland": {
+          "binnenland": 13,
+          "buitenland": 0,
+          "vs": 0,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 1
+        },
+        "buitenland": {
+          "binnenland": 0,
+          "buitenland": 31,
+          "vs": 0,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 0
+        },
+        "vs": {
+          "binnenland": 0,
+          "buitenland": 0,
+          "vs": 2,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 0
+        },
+        "middenoosten": {
+          "binnenland": 0,
+          "buitenland": 0,
+          "vs": 0,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 0
+        },
+        "oekraine": {
+          "binnenland": 0,
+          "buitenland": 0,
+          "vs": 0,
+          "middenoosten": 0,
+          "oekraine": 1,
+          "wetenschap": 0,
+          "overig": 0
+        },
+        "wetenschap": {
+          "binnenland": 0,
+          "buitenland": 0,
+          "vs": 0,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 2,
+          "overig": 1
+        },
+        "overig": {
+          "binnenland": 4,
+          "buitenland": 3,
+          "vs": 0,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 76
+        }
+      },
+      "disagreements": [
+        {
+          "id": "euet80",
+          "expected": "wetenschap",
+          "predicted": "overig",
+          "rawUnknown": true
+        },
+        {
+          "id": "16pxw4u",
+          "expected": "overig",
+          "predicted": "binnenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "ut3u8a",
+          "expected": "binnenland",
+          "predicted": "overig",
+          "rawUnknown": true
+        },
+        {
+          "id": "1diygbj",
+          "expected": "overig",
+          "predicted": "buitenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "1fvi7zk",
+          "expected": "overig",
+          "predicted": "binnenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "d6yo7s",
+          "expected": "overig",
+          "predicted": "buitenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "1negevd",
+          "expected": "overig",
+          "predicted": "buitenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "1ih703j",
+          "expected": "overig",
+          "predicted": "binnenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "3spylr",
+          "expected": "overig",
+          "predicted": "binnenland",
+          "rawUnknown": false
+        }
+      ],
+      "byGeographicalClass": {
+        "domestic": {
+          "total": 36,
+          "scored": 36,
+          "uncertainGold": 0,
+          "correct": 33,
+          "accuracy": 0.9166666666666666,
+          "unknown": {
+            "raw": 21,
+            "coverage": 0.4166666666666667,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 14,
+              "predicted": 14,
+              "correct": 13,
+              "precision": 0.9285714285714286,
+              "recall": 0.9285714285714286
+            },
+            "buitenland": {
+              "expected": 0,
+              "predicted": 1,
+              "correct": 0,
+              "precision": 0,
+              "recall": null
+            },
+            "vs": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "middenoosten": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "oekraine": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "wetenschap": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "overig": {
+              "expected": 22,
+              "predicted": 21,
+              "correct": 20,
+              "precision": 0.9523809523809523,
+              "recall": 0.9090909090909091
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 13,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 1
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "overig": {
+              "binnenland": 1,
+              "buitenland": 1,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 20
+            }
+          },
+          "disagreements": [
+            {
+              "id": "ut3u8a",
+              "expected": "binnenland",
+              "predicted": "overig",
+              "rawUnknown": true
+            },
+            {
+              "id": "1fvi7zk",
+              "expected": "overig",
+              "predicted": "binnenland",
+              "rawUnknown": false
+            },
+            {
+              "id": "d6yo7s",
+              "expected": "overig",
+              "predicted": "buitenland",
+              "rawUnknown": false
+            }
+          ]
+        },
+        "foreign": {
+          "total": 61,
+          "scored": 61,
+          "uncertainGold": 0,
+          "correct": 61,
+          "accuracy": 1,
+          "unknown": {
+            "raw": 30,
+            "coverage": 0.5081967213114754,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "buitenland": {
+              "expected": 27,
+              "predicted": 27,
+              "correct": 27,
+              "precision": 1,
+              "recall": 1
+            },
+            "vs": {
+              "expected": 2,
+              "predicted": 2,
+              "correct": 2,
+              "precision": 1,
+              "recall": 1
+            },
+            "middenoosten": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "oekraine": {
+              "expected": 1,
+              "predicted": 1,
+              "correct": 1,
+              "precision": 1,
+              "recall": 1
+            },
+            "wetenschap": {
+              "expected": 1,
+              "predicted": 1,
+              "correct": 1,
+              "precision": 1,
+              "recall": 1
+            },
+            "overig": {
+              "expected": 30,
+              "predicted": 30,
+              "correct": 30,
+              "precision": 1,
+              "recall": 1
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 27,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 2,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 1,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 1,
+              "overig": 0
+            },
+            "overig": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 30
+            }
+          },
+          "disagreements": []
+        },
+        "multiple": {
+          "total": 9,
+          "scored": 9,
+          "uncertainGold": 0,
+          "correct": 8,
+          "accuracy": 0.8888888888888888,
+          "unknown": {
+            "raw": 4,
+            "coverage": 0.5555555555555556,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "buitenland": {
+              "expected": 4,
+              "predicted": 5,
+              "correct": 4,
+              "precision": 0.8,
+              "recall": 1
+            },
+            "vs": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "middenoosten": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "oekraine": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "wetenschap": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "overig": {
+              "expected": 5,
+              "predicted": 4,
+              "correct": 4,
+              "precision": 1,
+              "recall": 0.8
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 4,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "overig": {
+              "binnenland": 0,
+              "buitenland": 1,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 4
+            }
+          },
+          "disagreements": [
+            {
+              "id": "1negevd",
+              "expected": "overig",
+              "predicted": "buitenland",
+              "rawUnknown": false
+            }
+          ]
+        },
+        "global": {
+          "total": 11,
+          "scored": 11,
+          "uncertainGold": 0,
+          "correct": 10,
+          "accuracy": 0.9090909090909091,
+          "unknown": {
+            "raw": 10,
+            "coverage": 0.09090909090909091,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "buitenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "vs": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "middenoosten": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "oekraine": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "wetenschap": {
+              "expected": 2,
+              "predicted": 1,
+              "correct": 1,
+              "precision": 1,
+              "recall": 0.5
+            },
+            "overig": {
+              "expected": 9,
+              "predicted": 10,
+              "correct": 9,
+              "precision": 0.9,
+              "recall": 1
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 1,
+              "overig": 1
+            },
+            "overig": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 9
+            }
+          },
+          "disagreements": [
+            {
+              "id": "euet80",
+              "expected": "wetenschap",
+              "predicted": "overig",
+              "rawUnknown": true
+            }
+          ]
+        },
+        "unknown": {
+          "total": 20,
+          "scored": 17,
+          "uncertainGold": 3,
+          "correct": 13,
+          "accuracy": 0.7647058823529411,
+          "unknown": {
+            "raw": 13,
+            "coverage": 0.35,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 0,
+              "predicted": 3,
+              "correct": 0,
+              "precision": 0,
+              "recall": null
+            },
+            "buitenland": {
+              "expected": 0,
+              "predicted": 1,
+              "correct": 0,
+              "precision": 0,
+              "recall": null
+            },
+            "vs": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "middenoosten": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "oekraine": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "wetenschap": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "overig": {
+              "expected": 17,
+              "predicted": 13,
+              "correct": 13,
+              "precision": 1,
+              "recall": 0.7647058823529411
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "overig": {
+              "binnenland": 3,
+              "buitenland": 1,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 13
+            }
+          },
+          "disagreements": [
+            {
+              "id": "16pxw4u",
+              "expected": "overig",
+              "predicted": "binnenland",
+              "rawUnknown": false
+            },
+            {
+              "id": "1diygbj",
+              "expected": "overig",
+              "predicted": "buitenland",
+              "rawUnknown": false
+            },
+            {
+              "id": "1ih703j",
+              "expected": "overig",
+              "predicted": "binnenland",
+              "rawUnknown": false
+            },
+            {
+              "id": "3spylr",
+              "expected": "overig",
+              "predicted": "binnenland",
+              "rawUnknown": false
+            }
+          ]
+        }
+      }
+    },
+    "v2a:control": {
+      "total": 63,
+      "scored": 58,
+      "uncertainGold": 5,
+      "correct": 42,
+      "accuracy": 0.7241379310344828,
+      "unknown": {
+        "raw": 29,
+        "coverage": 0.5396825396825397,
+        "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+      },
+      "perDesk": {
+        "binnenland": {
+          "expected": 6,
+          "predicted": 7,
+          "correct": 4,
+          "precision": 0.5714285714285714,
+          "recall": 0.6666666666666666
+        },
+        "buitenland": {
+          "expected": 13,
+          "predicted": 15,
+          "correct": 10,
+          "precision": 0.6666666666666666,
+          "recall": 0.7692307692307693
+        },
+        "vs": {
+          "expected": 2,
+          "predicted": 7,
+          "correct": 2,
+          "precision": 0.2857142857142857,
+          "recall": 1
+        },
+        "middenoosten": {
+          "expected": 1,
+          "predicted": 1,
+          "correct": 1,
+          "precision": 1,
+          "recall": 1
+        },
+        "oekraine": {
+          "expected": 0,
+          "predicted": 0,
+          "correct": 0,
+          "precision": null,
+          "recall": null
+        },
+        "wetenschap": {
+          "expected": 2,
+          "predicted": 2,
+          "correct": 1,
+          "precision": 0.5,
+          "recall": 0.5
+        },
+        "overig": {
+          "expected": 34,
+          "predicted": 26,
+          "correct": 24,
+          "precision": 0.9230769230769231,
+          "recall": 0.7058823529411765
+        }
+      },
+      "confusion": {
+        "binnenland": {
+          "binnenland": 4,
+          "buitenland": 0,
+          "vs": 0,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 1,
+          "overig": 1
+        },
+        "buitenland": {
+          "binnenland": 0,
+          "buitenland": 10,
+          "vs": 2,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 1
+        },
+        "vs": {
+          "binnenland": 0,
+          "buitenland": 0,
+          "vs": 2,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 0
+        },
+        "middenoosten": {
+          "binnenland": 0,
+          "buitenland": 0,
+          "vs": 0,
+          "middenoosten": 1,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 0
+        },
+        "oekraine": {
+          "binnenland": 0,
+          "buitenland": 0,
+          "vs": 0,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 0
+        },
+        "wetenschap": {
+          "binnenland": 0,
+          "buitenland": 0,
+          "vs": 1,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 1,
+          "overig": 0
+        },
+        "overig": {
+          "binnenland": 3,
+          "buitenland": 5,
+          "vs": 2,
+          "middenoosten": 0,
+          "oekraine": 0,
+          "wetenschap": 0,
+          "overig": 24
+        }
+      },
+      "disagreements": [
+        {
+          "id": "6ewzc9",
+          "expected": "wetenschap",
+          "predicted": "vs",
+          "rawUnknown": false
+        },
+        {
+          "id": "1jzlj6o",
+          "expected": "overig",
+          "predicted": "buitenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "1r0eo9k",
+          "expected": "binnenland",
+          "predicted": "overig",
+          "rawUnknown": true
+        },
+        {
+          "id": "wb4ukl",
+          "expected": "buitenland",
+          "predicted": "vs",
+          "rawUnknown": false
+        },
+        {
+          "id": "1x1gowe",
+          "expected": "overig",
+          "predicted": "buitenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "1hqm23t",
+          "expected": "overig",
+          "predicted": "binnenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "eq8eda",
+          "expected": "overig",
+          "predicted": "buitenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "1xh1nze",
+          "expected": "overig",
+          "predicted": "binnenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "14ags4s",
+          "expected": "buitenland",
+          "predicted": "vs",
+          "rawUnknown": false
+        },
+        {
+          "id": "ip4m1a",
+          "expected": "overig",
+          "predicted": "vs",
+          "rawUnknown": false
+        },
+        {
+          "id": "18ewkr1",
+          "expected": "overig",
+          "predicted": "binnenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "1mogdpz",
+          "expected": "buitenland",
+          "predicted": "overig",
+          "rawUnknown": true
+        },
+        {
+          "id": "j4cr2g",
+          "expected": "overig",
+          "predicted": "vs",
+          "rawUnknown": false
+        },
+        {
+          "id": "47gr3g",
+          "expected": "overig",
+          "predicted": "buitenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "aflg02",
+          "expected": "overig",
+          "predicted": "buitenland",
+          "rawUnknown": false
+        },
+        {
+          "id": "1pkxxzg",
+          "expected": "binnenland",
+          "predicted": "wetenschap",
+          "rawUnknown": false
+        }
+      ],
+      "byGeographicalClass": {
+        "domestic": {
+          "total": 14,
+          "scored": 14,
+          "uncertainGold": 0,
+          "correct": 10,
+          "accuracy": 0.7142857142857143,
+          "unknown": {
+            "raw": 7,
+            "coverage": 0.5,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 6,
+              "predicted": 6,
+              "correct": 4,
+              "precision": 0.6666666666666666,
+              "recall": 0.6666666666666666
+            },
+            "buitenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "vs": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "middenoosten": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "oekraine": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "wetenschap": {
+              "expected": 0,
+              "predicted": 1,
+              "correct": 0,
+              "precision": 0,
+              "recall": null
+            },
+            "overig": {
+              "expected": 8,
+              "predicted": 7,
+              "correct": 6,
+              "precision": 0.8571428571428571,
+              "recall": 0.75
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 4,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 1,
+              "overig": 1
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "overig": {
+              "binnenland": 2,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 6
+            }
+          },
+          "disagreements": [
+            {
+              "id": "1r0eo9k",
+              "expected": "binnenland",
+              "predicted": "overig",
+              "rawUnknown": true
+            },
+            {
+              "id": "1hqm23t",
+              "expected": "overig",
+              "predicted": "binnenland",
+              "rawUnknown": false
+            },
+            {
+              "id": "18ewkr1",
+              "expected": "overig",
+              "predicted": "binnenland",
+              "rawUnknown": false
+            },
+            {
+              "id": "1pkxxzg",
+              "expected": "binnenland",
+              "predicted": "wetenschap",
+              "rawUnknown": false
+            }
+          ]
+        },
+        "foreign": {
+          "total": 24,
+          "scored": 24,
+          "uncertainGold": 0,
+          "correct": 17,
+          "accuracy": 0.7083333333333334,
+          "unknown": {
+            "raw": 5,
+            "coverage": 0.7916666666666666,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "buitenland": {
+              "expected": 10,
+              "predicted": 12,
+              "correct": 9,
+              "precision": 0.75,
+              "recall": 0.9
+            },
+            "vs": {
+              "expected": 2,
+              "predicted": 6,
+              "correct": 2,
+              "precision": 0.3333333333333333,
+              "recall": 1
+            },
+            "middenoosten": {
+              "expected": 1,
+              "predicted": 1,
+              "correct": 1,
+              "precision": 1,
+              "recall": 1
+            },
+            "oekraine": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "wetenschap": {
+              "expected": 1,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": 0
+            },
+            "overig": {
+              "expected": 10,
+              "predicted": 5,
+              "correct": 5,
+              "precision": 1,
+              "recall": 0.5
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 9,
+              "vs": 1,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 2,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 1,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 1,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "overig": {
+              "binnenland": 0,
+              "buitenland": 3,
+              "vs": 2,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 5
+            }
+          },
+          "disagreements": [
+            {
+              "id": "6ewzc9",
+              "expected": "wetenschap",
+              "predicted": "vs",
+              "rawUnknown": false
+            },
+            {
+              "id": "1jzlj6o",
+              "expected": "overig",
+              "predicted": "buitenland",
+              "rawUnknown": false
+            },
+            {
+              "id": "14ags4s",
+              "expected": "buitenland",
+              "predicted": "vs",
+              "rawUnknown": false
+            },
+            {
+              "id": "ip4m1a",
+              "expected": "overig",
+              "predicted": "vs",
+              "rawUnknown": false
+            },
+            {
+              "id": "j4cr2g",
+              "expected": "overig",
+              "predicted": "vs",
+              "rawUnknown": false
+            },
+            {
+              "id": "47gr3g",
+              "expected": "overig",
+              "predicted": "buitenland",
+              "rawUnknown": false
+            },
+            {
+              "id": "aflg02",
+              "expected": "overig",
+              "predicted": "buitenland",
+              "rawUnknown": false
+            }
+          ]
+        },
+        "multiple": {
+          "total": 7,
+          "scored": 7,
+          "uncertainGold": 0,
+          "correct": 4,
+          "accuracy": 0.5714285714285714,
+          "unknown": {
+            "raw": 4,
+            "coverage": 0.42857142857142855,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "buitenland": {
+              "expected": 3,
+              "predicted": 2,
+              "correct": 1,
+              "precision": 0.5,
+              "recall": 0.3333333333333333
+            },
+            "vs": {
+              "expected": 0,
+              "predicted": 1,
+              "correct": 0,
+              "precision": 0,
+              "recall": null
+            },
+            "middenoosten": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "oekraine": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "wetenschap": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "overig": {
+              "expected": 4,
+              "predicted": 4,
+              "correct": 3,
+              "precision": 0.75,
+              "recall": 0.75
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 1,
+              "vs": 1,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 1
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "overig": {
+              "binnenland": 0,
+              "buitenland": 1,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 3
+            }
+          },
+          "disagreements": [
+            {
+              "id": "wb4ukl",
+              "expected": "buitenland",
+              "predicted": "vs",
+              "rawUnknown": false
+            },
+            {
+              "id": "1x1gowe",
+              "expected": "overig",
+              "predicted": "buitenland",
+              "rawUnknown": false
+            },
+            {
+              "id": "1mogdpz",
+              "expected": "buitenland",
+              "predicted": "overig",
+              "rawUnknown": true
+            }
+          ]
+        },
+        "global": {
+          "total": 5,
+          "scored": 5,
+          "uncertainGold": 0,
+          "correct": 5,
+          "accuracy": 1,
+          "unknown": {
+            "raw": 5,
+            "coverage": 0,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "buitenland": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "vs": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "middenoosten": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "oekraine": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "wetenschap": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "overig": {
+              "expected": 5,
+              "predicted": 5,
+              "correct": 5,
+              "precision": 1,
+              "recall": 1
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "overig": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 5
+            }
+          },
+          "disagreements": []
+        },
+        "unknown": {
+          "total": 13,
+          "scored": 8,
+          "uncertainGold": 5,
+          "correct": 6,
+          "accuracy": 0.75,
+          "unknown": {
+            "raw": 8,
+            "coverage": 0.38461538461538464,
+            "note": "Raw null kan bewust Overig zijn; dit is classifierdekking, geen foutpercentage. Onzekere goudrubrieken zijn niet gescoord."
+          },
+          "perDesk": {
+            "binnenland": {
+              "expected": 0,
+              "predicted": 1,
+              "correct": 0,
+              "precision": 0,
+              "recall": null
+            },
+            "buitenland": {
+              "expected": 0,
+              "predicted": 1,
+              "correct": 0,
+              "precision": 0,
+              "recall": null
+            },
+            "vs": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "middenoosten": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "oekraine": {
+              "expected": 0,
+              "predicted": 0,
+              "correct": 0,
+              "precision": null,
+              "recall": null
+            },
+            "wetenschap": {
+              "expected": 1,
+              "predicted": 1,
+              "correct": 1,
+              "precision": 1,
+              "recall": 1
+            },
+            "overig": {
+              "expected": 7,
+              "predicted": 5,
+              "correct": 5,
+              "precision": 1,
+              "recall": 0.7142857142857143
+            }
+          },
+          "confusion": {
+            "binnenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "buitenland": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "vs": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "middenoosten": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "oekraine": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 0
+            },
+            "wetenschap": {
+              "binnenland": 0,
+              "buitenland": 0,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 1,
+              "overig": 0
+            },
+            "overig": {
+              "binnenland": 1,
+              "buitenland": 1,
+              "vs": 0,
+              "middenoosten": 0,
+              "oekraine": 0,
+              "wetenschap": 0,
+              "overig": 5
+            }
+          },
+          "disagreements": [
+            {
+              "id": "eq8eda",
+              "expected": "overig",
+              "predicted": "buitenland",
+              "rawUnknown": false
+            },
+            {
+              "id": "1xh1nze",
+              "expected": "overig",
+              "predicted": "binnenland",
+              "rawUnknown": false
+            }
+          ]
+        }
+      }
+    }
+  }
+}
