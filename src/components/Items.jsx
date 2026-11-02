@@ -1,3 +1,4 @@
+import { CORRECTION_REASONS } from '../lib/corrections.mjs'
 import { cleanIntro, headlineTier } from '../../shared/edition-display.mjs'
 import { createContext, useContext, useState } from 'react'
 import { timeAgo, readTime } from '../lib/time.js'
@@ -118,7 +119,7 @@ export function SourceMeta({ item, outside = false }) {
 // op dezelfde x staan (een scherm zonder meer of minder heeft die plek niet, zie .meta). Delen en
 // bewaren zijn op het web wat het contextmenu in de app is: elke rij heeft ze, zonder lang drukken.
 export function Meta({ item, story, showSave = true, taste = null, outside = false }) {
-  const { openStory, newInStory } = useHoot()
+  const { openStory, newInStory, voteOn, reportMistake } = useHoot()
   const fresh = story ? newInStory(story) : 0
   const others = story ? story.sourceCount - 1 : 0
   return (
@@ -131,7 +132,7 @@ export function Meta({ item, story, showSave = true, taste = null, outside = fal
           <span className="morebtn__short">+{others} {others === 1 ? 'bron' : 'bronnen'}</span>
         </button>
       ) : null}
-      {taste ? <TasteButton entryKey={taste} item={item} story={story} /> : null}
+      {(taste || voteOn || reportMistake) && item.kind !== 'post' ? <TasteButton entryKey={taste || story?.id || item.id} item={item} story={story} /> : null}
       <ShareButton item={item} />
       {showSave ? story ? <SaveButton id={story.id} kind="story" payload={withLead(story, item.id)} label="verhaal" /> : <SaveButton id={item.id} payload={item} /> : null}
     </div>
@@ -141,29 +142,33 @@ export function Meta({ item, story, showSave = true, taste = null, outside = fal
 // De berichten van een plek in de Editie (het verhaal, of het losse bericht).
 export const itemsOfEntry = (item, story, itemsById) => (story ? [item, ...(story.itemIds || []).filter((id) => id !== item.id).map((id) => itemsById?.get(id)).filter(Boolean)] : [item])
 
-// Meer of minder hiervan (src/lib/affinity.js). Rustig: één knop die twee keuzes opent.
+// Verhaalopties: smaak en foutmelding zijn aparte acties. Eén rustige ingang in de metaregel.
 export function TasteButton({ entryKey, item, story }) {
-  const { voteOn, itemsById } = useHoot()
+  const { voteOn, itemsById, reportMistake } = useHoot()
   const [open, setOpen] = useState(false)
   const [said, setSaid] = useState(null)
+  const [reporting, setReporting] = useState(false)
   const items = itemsOfEntry(item, story, itemsById)
   const pick = (dir) => {
     voteOn(entryKey, items, dir)
     setOpen(false)
-    if (dir > 0) setSaid(`Je ziet meer over ${aboutOf(items)}`)
+    setSaid(`Je voorkeur voor ${dir > 0 ? 'meer' : 'minder'} over ${aboutOf(items)} is bewaard.`)
   }
-  if (said) return <span className="taste__said" role="status">{said}</span>
+  if (said) return <span className="taste__said" role="status">{said}<button type="button" className="linkbtn linkbtn--plain hit" onClick={() => setSaid(null)}>Oké</button></span>
+  if (reporting) return <span className="taste" role="group" aria-label="Klopt dit niet?">{Object.entries(CORRECTION_REASONS).map(([reason,label])=><button type="button" className="pill pill--sm hit" key={reason} onClick={() => {const ok=reportMistake?.(item,story?.id || null,reason);setReporting(false);setOpen(false);setSaid(ok?'Melding bewaard op dit toestel. Nog niet verstuurd.':'De melding kon niet worden bewaard.')}}>{label}</button>)}<button type="button" className="linkbtn hit" onClick={()=>setReporting(false)}>Annuleer</button></span>
   return open ? (
     <span className="taste" role="group" aria-label="Meer of minder hiervan">
-      <button type="button" className="pill pill--sm hit" onClick={() => pick(1)}>
+      {voteOn ? <><button type="button" className="pill pill--sm hit" onClick={() => pick(1)}>
         Meer hiervan
       </button>
       <button type="button" className="pill pill--sm hit" onClick={() => pick(-1)}>
         Minder hiervan
-      </button>
+      </button></> : null}
+      {reportMistake ? <button type="button" className="pill pill--sm hit" onClick={()=>setReporting(true)}>Klopt dit niet?</button> : null}
+      <button type="button" className="linkbtn hit" onClick={()=>setOpen(false)}>Sluiten</button>
     </span>
   ) : (
-    <button type="button" className="iconbtn" onClick={() => setOpen(true)} aria-label="Meer of minder hiervan" title="Meer of minder hiervan">
+    <button type="button" className="iconbtn" onClick={() => setOpen(true)} aria-label="Verhaalopties: meer, minder of een fout melden" title="Verhaalopties">
       <MoreIcon />
     </button>
   )

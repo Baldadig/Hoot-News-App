@@ -2,6 +2,8 @@
 
 ## Onuitgebracht
 
+- Lokale beta: hooguit tien genummerde verhalen, bubbel apart; leesbare selectiereden, eerlijk begin en positief einde. Via lang drukken op een artikel ook lokale foutmelding; melden verandert de smaak niet.
+
 - Editie: zichtbare nummering, werkelijke eindtelling zonder bubbel en een laadmelding onder de titel.
 
 - Rustig inlogpaneel bij korte betaalde artikelen, weg te vegen/sluiten; na zeven dagen per bron maximaal één herinnering. Lange knopnamen lopen alleen door als de echte tekst niet past, zonder verkleinen of afkappen.

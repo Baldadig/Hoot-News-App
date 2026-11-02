@@ -1,3 +1,4 @@
+import { recordCorrection } from './lib/corrections.mjs'
 import { selectionOwnerReady } from './lib/selection-fold.js'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { HootContext } from './components/Items.jsx'
@@ -527,10 +528,19 @@ export default function App() {
     [prefs.taste, setPref, setLess],
   )
 
+  const reportMistake = useCallback((item, storyId, reason) => {
+    const owner = account.status === 'loading' ? null : account.user?.id || 'anon'
+    let ok = false
+    try { ok = recordCorrection(window.localStorage, owner, {item, storyId, reason}) } catch {}
+    setNotice(ok ? 'Melding bewaard op dit toestel. Nog niet verstuurd.' : 'De melding kon niet worden bewaard.')
+    return ok
+  }, [account.status, account.user?.id])
+
   const ctx = useMemo(
     () => ({
       less: less || [],
       voteOn,
+      reportMistake,
       undoLess,
       followStory,
       followStories: prefs.followStories,
@@ -558,7 +568,7 @@ export default function App() {
       muted,
       setMuted,
     }),
-    [less, voteOn, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, themeDark, setThemeDark, openDisplay, account, syncStatus, syncPulled, saved, toggleSave, share, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories],
+    [less, voteOn, reportMistake, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, themeDark, setThemeDark, openDisplay, account, syncStatus, syncPulled, saved, toggleSave, share, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories],
   )
 
   const hideMain = overlay || showWelcome

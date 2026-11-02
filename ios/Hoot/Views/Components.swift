@@ -411,11 +411,14 @@ struct SaveButton: View {
     }
 }
 
-// Tik = lezen; lang drukken = bewaren, delen of openen in Safari, en in de Editie: meer of minder hiervan.
+// Tik = lezen; lang drukken = bewaren, delen, smaak kiezen of een lokale foutmelding bewaren.
 struct ArticleActions: ViewModifier {
     @Environment(HootStore.self) private var store
     @Environment(Reader.self) private var reader
     @Environment(\.tasteVote) private var tasteVote
+    @State private var noticeTitle = ""
+    @State private var noticeText = ""
+    @State private var noticeOpen = false
     let item: Item
     func body(content: Content) -> some View {
         Button { reader.open(item, store: store) } label: { content }
@@ -427,13 +430,35 @@ struct ArticleActions: ViewModifier {
                     ShareItemLink(item: item, link: link)
                     Link(destination: link) { Label("Open in Safari", systemImage: "safari") }
                 }
-                if let tasteVote {
+                if !item.isPost {
                     Section {
-                        Button("Meer hiervan", systemImage: "hand.thumbsup") { tasteVote(true) }
-                        Button("Minder hiervan", systemImage: "hand.thumbsdown") { tasteVote(false) }
+                        Button("Meer hiervan", systemImage: "hand.thumbsup") { respond(true) }
+                        Button("Minder hiervan", systemImage: "hand.thumbsdown") { respond(false) }
+                    }
+                    Menu("Klopt dit niet?", systemImage: "flag") {
+                        ForEach(CorrectionReason.allCases, id: \.self) { reason in
+                            Button(reason.label) {
+                                let ok = store.reportMistake(item,reason:reason)
+                                noticeTitle = ok ? "Melding bewaard" : "Niet bewaard"
+                                noticeText = ok ? "De melding staat op dit toestel en is nog niet verstuurd." : "Probeer het later opnieuw."
+                                noticeOpen = true
+                            }
+                        }
                     }
                 }
             }
+            .alert(noticeTitle,isPresented:$noticeOpen) { Button("Oké",role:.cancel) {} } message: { Text(noticeText) }
+    }
+    private func respond(_ up: Bool) {
+        if let tasteVote { tasteVote(up) }
+        else {
+            let story = store.story(of:item)
+            let members = [item] + (story?.itemIds ?? []).filter{$0 != item.id}.compactMap{store.itemsById[$0]}
+            store.vote(story?.id ?? item.id,items:members,up:up)
+            noticeTitle = "Voorkeur bewaard"
+            noticeText = "Telt vanaf je volgende Editie."
+            noticeOpen = true
+        }
     }
 }
 

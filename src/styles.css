@@ -5441,3 +5441,6 @@ html[data-images='hoofd'] .media--social {
     -webkit-line-clamp: var(--headline-lines, 4); overflow: hidden;
   }
 }
+
+/* Verhaalopties blijven binnen de metaregel op smalle schermen. */
+.taste { flex-wrap: wrap; }

@@ -4,6 +4,8 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- **Lokale beta:** hooguit tien genummerde verhalen en een optionele bubbel apart erna; concrete selectieredenen, eerlijke begintekst en ‘Dan ben je bij’. Verhaalopties met bestaande meer/minder en lokale foutmeldingen, zonder serverbericht.
+
 - **Stroom en Selectie:** Bluesky per account ook in de Stroom, gelijk op web en iOS; onderwerpindex en lokaal inklapbare Selectie-onderwerpen. Native beelden proberen bij een CDN-fout één keer het originele bronbeeld.
 
 - **De Redacteur, fase 1:** zonder de interesse Wereld hooguit twee internationale plekken in je hele Editie, en alleen bij groot nieuws: acht uitgevers, of vijf uit minstens twee landen. Een gekozen onderwerp, voorkeursbron of breed verhaal maakt daar geen uitzondering op. Met Wereld geldt geen plafond. Wie Binnenland koos, opent met Nederlands nieuws, ook samen met Wereld.
