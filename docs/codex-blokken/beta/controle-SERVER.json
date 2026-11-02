@@ -1,0 +1,44 @@
+{
+  "step": "SERVER",
+  "head": "15806549fdcd7909c42d400850b16e5ac31b71b7",
+  "checks": [
+    {
+      "check": "core",
+      "exit": 0,
+      "seconds": 0.96,
+      "log": "/tmp/hoot-beta/SERVER/core.log"
+    },
+    {
+      "check": "web",
+      "exit": 0,
+      "seconds": 174.19,
+      "log": "/tmp/hoot-beta/SERVER/web.log",
+      "counts": {
+        "tests": 991,
+        "pass": 990,
+        "fail": 0,
+        "skipped": 0,
+        "todo": 1
+      }
+    },
+    {
+      "check": "build",
+      "exit": 0,
+      "seconds": 30.9,
+      "log": "/tmp/hoot-beta/SERVER/build.log"
+    },
+    {
+      "check": "acceptatie",
+      "exit": 0,
+      "seconds": 159.8,
+      "log": "/tmp/hoot-beta/SERVER/acceptatie.log"
+    },
+    {
+      "check": "native",
+      "exit": 0,
+      "seconds": 225.45,
+      "log": "/tmp/hoot-beta/SERVER/native.log",
+      "tests": 102
+    }
+  ]
+}
