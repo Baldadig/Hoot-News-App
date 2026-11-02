@@ -858,12 +858,12 @@ struct WelcomeView: View {
 // begint er een nieuwe, en past een groepje alleen al niet, dan wordt het zelf gedeeld (chunks).
 // De maten volgen de tekstgrootte (Metrics). Zuiver rekenwerk, getoetst in OnboardingTests.
 enum WelcomePages {
-    static let chip: CGFloat = Space.tap - Space.s1 // hoogte van één onderwerp bij normale tekst
+    static let chip: CGFloat = Space.tap // hoogte van één onderwerp bij normale tekst
     static let gap: CGFloat = Space.s2 // tussen onderwerpen
     static let header: CGFloat = 20 // de kop van een groep (icoon en naam) bij normale tekst
     static let headerGap: CGFloat = Space.s3
 
-    // De hoogtes bij een tekstgrootte: een onderwerp is minstens 40 hoog en groeit mee met de regel; de kop
+    // De hoogtes bij een tekstgrootte: een onderwerp is minstens 44 hoog en groeit mee met de regel; de kop
     // van een groep met zijn icoon ook.
     struct Metrics {
         var chip = WelcomePages.chip

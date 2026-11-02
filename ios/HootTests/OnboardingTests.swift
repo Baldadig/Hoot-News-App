@@ -72,7 +72,7 @@ final class OnboardingTests: XCTestCase {
     func testMetricsGrowWithTheTextSize() {
         let normal = WelcomePages.Metrics(.large)
         let big = WelcomePages.Metrics(.accessibility3)
-        XCTAssertEqual(normal.chip, WelcomePages.chip) // bij normale tekst blijft 40
+        XCTAssertEqual(normal.chip, WelcomePages.chip) // bij normale tekst blijft 44
         XCTAssertGreaterThan(big.chip, normal.chip)
         XCTAssertGreaterThan(big.header, normal.header)
         XCTAssertGreaterThan(WelcomePages.groupHeight(rows: 2, metrics: big), WelcomePages.groupHeight(rows: 2, metrics: normal))

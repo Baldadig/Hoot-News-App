@@ -1,0 +1,5600 @@
+[
+  {
+    "persona": "nieuw",
+    "variant": "code",
+    "edition": "2026-10-30-ochtend",
+    "selected": 4,
+    "supply": {
+      "target": 10,
+      "auditBelow": 6,
+      "floor": 4,
+      "selected": 4,
+      "totalSlots": 4,
+      "ownArticles": 12,
+      "decisions": [
+        {
+          "kind": "story",
+          "id": "s1plrx0e",
+          "itemIds": [
+            "gh7fc6",
+            "1kgka6z"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sruerny",
+          "itemIds": [
+            "17lsvr6",
+            "onjmcn"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s4yvuts",
+          "itemIds": [
+            "11d36a7",
+            "111b9op"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1ky9wku",
+          "itemIds": [
+            "1gjvdxt",
+            "1l3kndd"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "1hdpdcd",
+            "5xi133"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "1yfkwea",
+            "15nn592"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sngc3y9",
+          "itemIds": [
+            "1s78wbn",
+            "lkrvjm"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1k5nowz",
+          "itemIds": [
+            "107g3ze",
+            "1cqce1r"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s11et5j0",
+          "itemIds": [
+            "tm95mn",
+            "x58eqx"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "item",
+          "id": "b1c0i4",
+          "itemIds": [
+            "b1c0i4"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "item",
+          "id": "ynlaqb",
+          "itemIds": [
+            "ynlaqb"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1xtp27r",
+          "itemIds": [
+            "1xtp27r"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "q5tzxz",
+          "itemIds": [
+            "q5tzxz"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1ft4jzc",
+          "itemIds": [
+            "1ft4jzc"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1dhtpnq",
+          "itemIds": [
+            "1dhtpnq"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "story",
+          "id": "srpiq4s",
+          "itemIds": [
+            "ynlaqb",
+            "1wbrnuj",
+            "h73xql"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "uzs98t",
+          "itemIds": [
+            "uzs98t"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "rmz5vd",
+          "itemIds": [
+            "rmz5vd"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1w8qnzh",
+          "itemIds": [
+            "1w8qnzh"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "4rob9r",
+          "itemIds": [
+            "4rob9r"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "562pyz",
+          "itemIds": [
+            "562pyz"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "1s5cb8z",
+          "itemIds": [
+            "1s5cb8z"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "srpiq4s",
+          "itemIds": [
+            "1wbrnuj",
+            "ynlaqb",
+            "h73xql"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1plrx0e",
+          "itemIds": [
+            "gh7fc6",
+            "1kgka6z"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s4yvuts",
+          "itemIds": [
+            "11d36a7",
+            "111b9op"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1ky9wku",
+          "itemIds": [
+            "1gjvdxt",
+            "1l3kndd"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "5xi133",
+            "1hdpdcd"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s11et5j0",
+          "itemIds": [
+            "tm95mn",
+            "x58eqx"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "1yfkwea",
+            "15nn592"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1w8qnzh",
+          "itemIds": [
+            "1w8qnzh"
+          ],
+          "route": "algemene-editie",
+          "reason": "vertegenwoordigd"
+        }
+      ],
+      "counts": {
+        "geen-aantoonbare-aanvulreden": 3,
+        "geen-bekend-artikel": 11,
+        "internationaal-niet-groot-genoeg": 10,
+        "te-oud-of-geen-intro-en-beeld": 3,
+        "vertegenwoordigd": 5,
+        "vorm-of-bron-niet-toegelaten": 2
+      },
+      "unresolved": 0,
+      "proven": true
+    }
+  },
+  {
+    "persona": "nieuw",
+    "variant": "code",
+    "edition": "2026-10-30-middag",
+    "selected": 5,
+    "supply": {
+      "target": 10,
+      "auditBelow": 6,
+      "floor": 4,
+      "selected": 5,
+      "totalSlots": 5,
+      "ownArticles": 26,
+      "decisions": [
+        {
+          "kind": "story",
+          "id": "spra2pv",
+          "itemIds": [
+            "apkd1q",
+            "1f81a7e",
+            "1laqclq",
+            "170fusr",
+            "cpozvv"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "slq5wlh",
+          "itemIds": [
+            "15dchj1",
+            "alpkyo"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "we9k3d",
+            "1yfkwea",
+            "15nn592"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1r56e3b",
+          "itemIds": [
+            "kbwavq",
+            "23qgwr"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "spawrk",
+          "itemIds": [
+            "nobmw4",
+            "16yunbb"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "so7x6xz",
+          "itemIds": [
+            "1qvyyn3",
+            "mo0l6j"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s17ieeqj",
+          "itemIds": [
+            "rf288t",
+            "11mlve5",
+            "1yukg31",
+            "1pxylew"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1k5nowz",
+          "itemIds": [
+            "y09kph",
+            "ifwsq7",
+            "107g3ze",
+            "1cqce1r"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "q8ntbf",
+            "1hdpdcd",
+            "5xi133"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sqf95ff",
+          "itemIds": [
+            "tazoj0",
+            "n1igje"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "syrqa3w",
+          "itemIds": [
+            "1oh62gr",
+            "rrwm2a"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1tzuqj",
+          "itemIds": [
+            "1kkc62n",
+            "7nvxi"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "ssgszg2",
+          "itemIds": [
+            "onljak",
+            "tsdwol"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1plrx0e",
+          "itemIds": [
+            "gh7fc6",
+            "1kgka6z"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sruerny",
+          "itemIds": [
+            "17lsvr6",
+            "onjmcn"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s4yvuts",
+          "itemIds": [
+            "11d36a7",
+            "111b9op"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1ky9wku",
+          "itemIds": [
+            "1gjvdxt",
+            "1l3kndd"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sngc3y9",
+          "itemIds": [
+            "1s78wbn",
+            "lkrvjm"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s11et5j0",
+          "itemIds": [
+            "tm95mn",
+            "x58eqx"
+          ],
+          "reason": "ouder-dan-verhaalvenster"
+        },
+        {
+          "kind": "item",
+          "id": "b1c0i4",
+          "itemIds": [
+            "b1c0i4"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "item",
+          "id": "ynlaqb",
+          "itemIds": [
+            "ynlaqb"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1w8qnzh",
+          "itemIds": [
+            "1w8qnzh"
+          ],
+          "reason": "eerder-getoond-of-gelezen"
+        },
+        {
+          "kind": "item",
+          "id": "4rob9r",
+          "itemIds": [
+            "4rob9r"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "rmz5vd",
+          "itemIds": [
+            "rmz5vd"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1s5cb8z",
+          "itemIds": [
+            "1s5cb8z"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "562pyz",
+          "itemIds": [
+            "562pyz"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1xtp27r",
+          "itemIds": [
+            "1xtp27r"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "q5tzxz",
+          "itemIds": [
+            "q5tzxz"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1ft4jzc",
+          "itemIds": [
+            "1ft4jzc"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1ktpee9",
+          "itemIds": [
+            "1ktpee9"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "1dhtpnq",
+          "itemIds": [
+            "1dhtpnq"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "item",
+          "id": "1r0ekc5",
+          "itemIds": [
+            "1r0ekc5"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "ogxzb8",
+            "1r0ekc5",
+            "1l4l2sk",
+            "17ipchj",
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "s17ynbfj",
+          "itemIds": [
+            "1ktpee9",
+            "1u5kofi"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "srpiq4s",
+          "itemIds": [
+            "ynlaqb",
+            "1wbrnuj",
+            "h73xql"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1mud5rv",
+          "itemIds": [
+            "1mud5rv"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "afw4te",
+          "itemIds": [
+            "afw4te"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "m8kjz1",
+          "itemIds": [
+            "m8kjz1"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "jfuy6y",
+          "itemIds": [
+            "jfuy6y"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1wp0h7d",
+          "itemIds": [
+            "1wp0h7d"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "e5adpt",
+          "itemIds": [
+            "e5adpt"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1ya4ysd",
+          "itemIds": [
+            "1ya4ysd"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "9wh9v3",
+          "itemIds": [
+            "9wh9v3"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "1e80sru",
+          "itemIds": [
+            "1e80sru"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "q7zpnv",
+          "itemIds": [
+            "q7zpnv"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "uzs98t",
+          "itemIds": [
+            "uzs98t"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "mqnk7z",
+          "itemIds": [
+            "mqnk7z"
+          ],
+          "reason": "niet-gekozen-vakgebied"
+        },
+        {
+          "kind": "item",
+          "id": "192cchu",
+          "itemIds": [
+            "192cchu"
+          ],
+          "reason": "niet-gekozen-vakgebied"
+        },
+        {
+          "kind": "story",
+          "id": "spra2pv",
+          "itemIds": [
+            "1laqclq",
+            "apkd1q",
+            "1f81a7e",
+            "170fusr",
+            "cpozvv"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s17ynbfj",
+          "itemIds": [
+            "1u5kofi",
+            "1ktpee9"
+          ],
+          "route": "algemene-editie",
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "slq5wlh",
+          "itemIds": [
+            "alpkyo",
+            "15dchj1"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1r56e3b",
+          "itemIds": [
+            "kbwavq",
+            "23qgwr"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "spawrk",
+          "itemIds": [
+            "nobmw4",
+            "16yunbb"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "so7x6xz",
+          "itemIds": [
+            "mo0l6j",
+            "1qvyyn3"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "syrqa3w",
+          "itemIds": [
+            "1oh62gr",
+            "rrwm2a"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1tzuqj",
+          "itemIds": [
+            "1kkc62n",
+            "7nvxi"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "16n47m0",
+          "itemIds": [
+            "16n47m0"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "5xi133",
+            "q8ntbf",
+            "1hdpdcd"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "ogxzb8",
+            "1r0ekc5",
+            "1l4l2sk",
+            "17ipchj",
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "route": "algemene-editie",
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "we9k3d",
+            "1yfkwea",
+            "15nn592"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1k5nowz",
+          "itemIds": [
+            "107g3ze",
+            "y09kph",
+            "ifwsq7",
+            "1cqce1r"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        }
+      ],
+      "counts": {
+        "eerder-getoond-of-gelezen": 1,
+        "geen-aantoonbare-aanvulreden": 1,
+        "geen-bekend-artikel": 19,
+        "internationaal-niet-groot-genoeg": 21,
+        "niet-gekozen-vakgebied": 2,
+        "ouder-dan-verhaalvenster": 1,
+        "te-oud-of-geen-intro-en-beeld": 7,
+        "vertegenwoordigd": 9,
+        "vorm-of-bron-niet-toegelaten": 2
+      },
+      "unresolved": 0,
+      "proven": true
+    }
+  },
+  {
+    "persona": "nieuw",
+    "variant": "drie",
+    "edition": "2026-10-30-ochtend",
+    "selected": 4,
+    "supply": {
+      "target": 10,
+      "auditBelow": 6,
+      "floor": 4,
+      "selected": 4,
+      "totalSlots": 4,
+      "ownArticles": 12,
+      "decisions": [
+        {
+          "kind": "story",
+          "id": "s1plrx0e",
+          "itemIds": [
+            "gh7fc6",
+            "1kgka6z"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sruerny",
+          "itemIds": [
+            "17lsvr6",
+            "onjmcn"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s4yvuts",
+          "itemIds": [
+            "11d36a7",
+            "111b9op"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1ky9wku",
+          "itemIds": [
+            "1gjvdxt",
+            "1l3kndd"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "1hdpdcd",
+            "5xi133"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "1yfkwea",
+            "15nn592"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sngc3y9",
+          "itemIds": [
+            "1s78wbn",
+            "lkrvjm"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1k5nowz",
+          "itemIds": [
+            "107g3ze",
+            "1cqce1r"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s11et5j0",
+          "itemIds": [
+            "tm95mn",
+            "x58eqx"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "item",
+          "id": "b1c0i4",
+          "itemIds": [
+            "b1c0i4"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "item",
+          "id": "ynlaqb",
+          "itemIds": [
+            "ynlaqb"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1xtp27r",
+          "itemIds": [
+            "1xtp27r"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "q5tzxz",
+          "itemIds": [
+            "q5tzxz"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1ft4jzc",
+          "itemIds": [
+            "1ft4jzc"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1dhtpnq",
+          "itemIds": [
+            "1dhtpnq"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "story",
+          "id": "srpiq4s",
+          "itemIds": [
+            "ynlaqb",
+            "1wbrnuj",
+            "h73xql"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "uzs98t",
+          "itemIds": [
+            "uzs98t"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "rmz5vd",
+          "itemIds": [
+            "rmz5vd"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1w8qnzh",
+          "itemIds": [
+            "1w8qnzh"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "4rob9r",
+          "itemIds": [
+            "4rob9r"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "562pyz",
+          "itemIds": [
+            "562pyz"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "1s5cb8z",
+          "itemIds": [
+            "1s5cb8z"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "srpiq4s",
+          "itemIds": [
+            "1wbrnuj",
+            "ynlaqb",
+            "h73xql"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1plrx0e",
+          "itemIds": [
+            "gh7fc6",
+            "1kgka6z"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s4yvuts",
+          "itemIds": [
+            "11d36a7",
+            "111b9op"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1ky9wku",
+          "itemIds": [
+            "1gjvdxt",
+            "1l3kndd"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "5xi133",
+            "1hdpdcd"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s11et5j0",
+          "itemIds": [
+            "tm95mn",
+            "x58eqx"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "1yfkwea",
+            "15nn592"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1w8qnzh",
+          "itemIds": [
+            "1w8qnzh"
+          ],
+          "route": "algemene-editie",
+          "reason": "vertegenwoordigd"
+        }
+      ],
+      "counts": {
+        "geen-aantoonbare-aanvulreden": 3,
+        "geen-bekend-artikel": 11,
+        "internationaal-niet-groot-genoeg": 10,
+        "te-oud-of-geen-intro-en-beeld": 3,
+        "vertegenwoordigd": 5,
+        "vorm-of-bron-niet-toegelaten": 2
+      },
+      "unresolved": 0,
+      "proven": true
+    }
+  },
+  {
+    "persona": "nieuw",
+    "variant": "drie",
+    "edition": "2026-10-30-middag",
+    "selected": 5,
+    "supply": {
+      "target": 10,
+      "auditBelow": 6,
+      "floor": 4,
+      "selected": 5,
+      "totalSlots": 5,
+      "ownArticles": 26,
+      "decisions": [
+        {
+          "kind": "story",
+          "id": "spra2pv",
+          "itemIds": [
+            "apkd1q",
+            "1f81a7e",
+            "1laqclq",
+            "170fusr",
+            "cpozvv"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "slq5wlh",
+          "itemIds": [
+            "15dchj1",
+            "alpkyo"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "we9k3d",
+            "1yfkwea",
+            "15nn592"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1r56e3b",
+          "itemIds": [
+            "kbwavq",
+            "23qgwr"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "spawrk",
+          "itemIds": [
+            "nobmw4",
+            "16yunbb"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "so7x6xz",
+          "itemIds": [
+            "1qvyyn3",
+            "mo0l6j"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s17ieeqj",
+          "itemIds": [
+            "rf288t",
+            "11mlve5",
+            "1yukg31",
+            "1pxylew"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1k5nowz",
+          "itemIds": [
+            "y09kph",
+            "ifwsq7",
+            "107g3ze",
+            "1cqce1r"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "q8ntbf",
+            "1hdpdcd",
+            "5xi133"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sqf95ff",
+          "itemIds": [
+            "tazoj0",
+            "n1igje"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "syrqa3w",
+          "itemIds": [
+            "1oh62gr",
+            "rrwm2a"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1tzuqj",
+          "itemIds": [
+            "1kkc62n",
+            "7nvxi"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "ssgszg2",
+          "itemIds": [
+            "onljak",
+            "tsdwol"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1plrx0e",
+          "itemIds": [
+            "gh7fc6",
+            "1kgka6z"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sruerny",
+          "itemIds": [
+            "17lsvr6",
+            "onjmcn"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s4yvuts",
+          "itemIds": [
+            "11d36a7",
+            "111b9op"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1ky9wku",
+          "itemIds": [
+            "1gjvdxt",
+            "1l3kndd"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sngc3y9",
+          "itemIds": [
+            "1s78wbn",
+            "lkrvjm"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s11et5j0",
+          "itemIds": [
+            "tm95mn",
+            "x58eqx"
+          ],
+          "reason": "ouder-dan-verhaalvenster"
+        },
+        {
+          "kind": "item",
+          "id": "b1c0i4",
+          "itemIds": [
+            "b1c0i4"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "item",
+          "id": "ynlaqb",
+          "itemIds": [
+            "ynlaqb"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1w8qnzh",
+          "itemIds": [
+            "1w8qnzh"
+          ],
+          "reason": "eerder-getoond-of-gelezen"
+        },
+        {
+          "kind": "item",
+          "id": "4rob9r",
+          "itemIds": [
+            "4rob9r"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "rmz5vd",
+          "itemIds": [
+            "rmz5vd"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1s5cb8z",
+          "itemIds": [
+            "1s5cb8z"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "562pyz",
+          "itemIds": [
+            "562pyz"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1xtp27r",
+          "itemIds": [
+            "1xtp27r"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "q5tzxz",
+          "itemIds": [
+            "q5tzxz"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1ft4jzc",
+          "itemIds": [
+            "1ft4jzc"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1ktpee9",
+          "itemIds": [
+            "1ktpee9"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "1dhtpnq",
+          "itemIds": [
+            "1dhtpnq"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "item",
+          "id": "1r0ekc5",
+          "itemIds": [
+            "1r0ekc5"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "ogxzb8",
+            "1r0ekc5",
+            "1l4l2sk",
+            "17ipchj",
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "s17ynbfj",
+          "itemIds": [
+            "1ktpee9",
+            "1u5kofi"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "srpiq4s",
+          "itemIds": [
+            "ynlaqb",
+            "1wbrnuj",
+            "h73xql"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1mud5rv",
+          "itemIds": [
+            "1mud5rv"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "afw4te",
+          "itemIds": [
+            "afw4te"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "m8kjz1",
+          "itemIds": [
+            "m8kjz1"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "jfuy6y",
+          "itemIds": [
+            "jfuy6y"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1wp0h7d",
+          "itemIds": [
+            "1wp0h7d"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "e5adpt",
+          "itemIds": [
+            "e5adpt"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1ya4ysd",
+          "itemIds": [
+            "1ya4ysd"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "9wh9v3",
+          "itemIds": [
+            "9wh9v3"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "1e80sru",
+          "itemIds": [
+            "1e80sru"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "q7zpnv",
+          "itemIds": [
+            "q7zpnv"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "uzs98t",
+          "itemIds": [
+            "uzs98t"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "mqnk7z",
+          "itemIds": [
+            "mqnk7z"
+          ],
+          "reason": "niet-gekozen-vakgebied"
+        },
+        {
+          "kind": "item",
+          "id": "192cchu",
+          "itemIds": [
+            "192cchu"
+          ],
+          "reason": "niet-gekozen-vakgebied"
+        },
+        {
+          "kind": "story",
+          "id": "spra2pv",
+          "itemIds": [
+            "1laqclq",
+            "apkd1q",
+            "1f81a7e",
+            "170fusr",
+            "cpozvv"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s17ynbfj",
+          "itemIds": [
+            "1u5kofi",
+            "1ktpee9"
+          ],
+          "route": "algemene-editie",
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "slq5wlh",
+          "itemIds": [
+            "alpkyo",
+            "15dchj1"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1r56e3b",
+          "itemIds": [
+            "kbwavq",
+            "23qgwr"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "spawrk",
+          "itemIds": [
+            "nobmw4",
+            "16yunbb"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "so7x6xz",
+          "itemIds": [
+            "mo0l6j",
+            "1qvyyn3"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "syrqa3w",
+          "itemIds": [
+            "1oh62gr",
+            "rrwm2a"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1tzuqj",
+          "itemIds": [
+            "1kkc62n",
+            "7nvxi"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "16n47m0",
+          "itemIds": [
+            "16n47m0"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "5xi133",
+            "q8ntbf",
+            "1hdpdcd"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "ogxzb8",
+            "1r0ekc5",
+            "1l4l2sk",
+            "17ipchj",
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "route": "algemene-editie",
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "we9k3d",
+            "1yfkwea",
+            "15nn592"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1k5nowz",
+          "itemIds": [
+            "107g3ze",
+            "y09kph",
+            "ifwsq7",
+            "1cqce1r"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        }
+      ],
+      "counts": {
+        "eerder-getoond-of-gelezen": 1,
+        "geen-aantoonbare-aanvulreden": 1,
+        "geen-bekend-artikel": 19,
+        "internationaal-niet-groot-genoeg": 21,
+        "niet-gekozen-vakgebied": 2,
+        "ouder-dan-verhaalvenster": 1,
+        "te-oud-of-geen-intro-en-beeld": 7,
+        "vertegenwoordigd": 9,
+        "vorm-of-bron-niet-toegelaten": 2
+      },
+      "unresolved": 0,
+      "proven": true
+    }
+  },
+  {
+    "persona": "nieuw",
+    "variant": "account",
+    "edition": "2026-10-30-ochtend",
+    "selected": 4,
+    "supply": {
+      "target": 10,
+      "auditBelow": 6,
+      "floor": 4,
+      "selected": 4,
+      "totalSlots": 4,
+      "ownArticles": 12,
+      "decisions": [
+        {
+          "kind": "story",
+          "id": "s1plrx0e",
+          "itemIds": [
+            "gh7fc6",
+            "1kgka6z"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sruerny",
+          "itemIds": [
+            "17lsvr6",
+            "onjmcn"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s4yvuts",
+          "itemIds": [
+            "11d36a7",
+            "111b9op"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1ky9wku",
+          "itemIds": [
+            "1gjvdxt",
+            "1l3kndd"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "1hdpdcd",
+            "5xi133"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "1yfkwea",
+            "15nn592"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sngc3y9",
+          "itemIds": [
+            "1s78wbn",
+            "lkrvjm"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1k5nowz",
+          "itemIds": [
+            "107g3ze",
+            "1cqce1r"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s11et5j0",
+          "itemIds": [
+            "tm95mn",
+            "x58eqx"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "item",
+          "id": "b1c0i4",
+          "itemIds": [
+            "b1c0i4"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "item",
+          "id": "ynlaqb",
+          "itemIds": [
+            "ynlaqb"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1xtp27r",
+          "itemIds": [
+            "1xtp27r"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "q5tzxz",
+          "itemIds": [
+            "q5tzxz"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1ft4jzc",
+          "itemIds": [
+            "1ft4jzc"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1dhtpnq",
+          "itemIds": [
+            "1dhtpnq"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "story",
+          "id": "srpiq4s",
+          "itemIds": [
+            "ynlaqb",
+            "1wbrnuj",
+            "h73xql"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "uzs98t",
+          "itemIds": [
+            "uzs98t"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "rmz5vd",
+          "itemIds": [
+            "rmz5vd"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1w8qnzh",
+          "itemIds": [
+            "1w8qnzh"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "4rob9r",
+          "itemIds": [
+            "4rob9r"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "562pyz",
+          "itemIds": [
+            "562pyz"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "1s5cb8z",
+          "itemIds": [
+            "1s5cb8z"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "srpiq4s",
+          "itemIds": [
+            "1wbrnuj",
+            "ynlaqb",
+            "h73xql"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1plrx0e",
+          "itemIds": [
+            "gh7fc6",
+            "1kgka6z"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s4yvuts",
+          "itemIds": [
+            "11d36a7",
+            "111b9op"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1ky9wku",
+          "itemIds": [
+            "1gjvdxt",
+            "1l3kndd"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "5xi133",
+            "1hdpdcd"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s11et5j0",
+          "itemIds": [
+            "tm95mn",
+            "x58eqx"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "1yfkwea",
+            "15nn592"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1w8qnzh",
+          "itemIds": [
+            "1w8qnzh"
+          ],
+          "route": "algemene-editie",
+          "reason": "vertegenwoordigd"
+        }
+      ],
+      "counts": {
+        "geen-aantoonbare-aanvulreden": 3,
+        "geen-bekend-artikel": 11,
+        "internationaal-niet-groot-genoeg": 10,
+        "te-oud-of-geen-intro-en-beeld": 3,
+        "vertegenwoordigd": 5,
+        "vorm-of-bron-niet-toegelaten": 2
+      },
+      "unresolved": 0,
+      "proven": true
+    }
+  },
+  {
+    "persona": "nieuw",
+    "variant": "account",
+    "edition": "2026-10-30-middag",
+    "selected": 5,
+    "supply": {
+      "target": 10,
+      "auditBelow": 6,
+      "floor": 4,
+      "selected": 5,
+      "totalSlots": 5,
+      "ownArticles": 26,
+      "decisions": [
+        {
+          "kind": "story",
+          "id": "spra2pv",
+          "itemIds": [
+            "apkd1q",
+            "1f81a7e",
+            "1laqclq",
+            "170fusr",
+            "cpozvv"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "slq5wlh",
+          "itemIds": [
+            "15dchj1",
+            "alpkyo"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "we9k3d",
+            "1yfkwea",
+            "15nn592"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1r56e3b",
+          "itemIds": [
+            "kbwavq",
+            "23qgwr"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "spawrk",
+          "itemIds": [
+            "nobmw4",
+            "16yunbb"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "so7x6xz",
+          "itemIds": [
+            "1qvyyn3",
+            "mo0l6j"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s17ieeqj",
+          "itemIds": [
+            "rf288t",
+            "11mlve5",
+            "1yukg31",
+            "1pxylew"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1k5nowz",
+          "itemIds": [
+            "y09kph",
+            "ifwsq7",
+            "107g3ze",
+            "1cqce1r"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "q8ntbf",
+            "1hdpdcd",
+            "5xi133"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sqf95ff",
+          "itemIds": [
+            "tazoj0",
+            "n1igje"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "syrqa3w",
+          "itemIds": [
+            "1oh62gr",
+            "rrwm2a"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1tzuqj",
+          "itemIds": [
+            "1kkc62n",
+            "7nvxi"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "ssgszg2",
+          "itemIds": [
+            "onljak",
+            "tsdwol"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1plrx0e",
+          "itemIds": [
+            "gh7fc6",
+            "1kgka6z"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sruerny",
+          "itemIds": [
+            "17lsvr6",
+            "onjmcn"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s4yvuts",
+          "itemIds": [
+            "11d36a7",
+            "111b9op"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1ky9wku",
+          "itemIds": [
+            "1gjvdxt",
+            "1l3kndd"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sngc3y9",
+          "itemIds": [
+            "1s78wbn",
+            "lkrvjm"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s11et5j0",
+          "itemIds": [
+            "tm95mn",
+            "x58eqx"
+          ],
+          "reason": "ouder-dan-verhaalvenster"
+        },
+        {
+          "kind": "item",
+          "id": "b1c0i4",
+          "itemIds": [
+            "b1c0i4"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "item",
+          "id": "ynlaqb",
+          "itemIds": [
+            "ynlaqb"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1w8qnzh",
+          "itemIds": [
+            "1w8qnzh"
+          ],
+          "reason": "eerder-getoond-of-gelezen"
+        },
+        {
+          "kind": "item",
+          "id": "4rob9r",
+          "itemIds": [
+            "4rob9r"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "rmz5vd",
+          "itemIds": [
+            "rmz5vd"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1s5cb8z",
+          "itemIds": [
+            "1s5cb8z"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "562pyz",
+          "itemIds": [
+            "562pyz"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1xtp27r",
+          "itemIds": [
+            "1xtp27r"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "q5tzxz",
+          "itemIds": [
+            "q5tzxz"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1ft4jzc",
+          "itemIds": [
+            "1ft4jzc"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1ktpee9",
+          "itemIds": [
+            "1ktpee9"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "1dhtpnq",
+          "itemIds": [
+            "1dhtpnq"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "item",
+          "id": "1r0ekc5",
+          "itemIds": [
+            "1r0ekc5"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "ogxzb8",
+            "1r0ekc5",
+            "1l4l2sk",
+            "17ipchj",
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "s17ynbfj",
+          "itemIds": [
+            "1ktpee9",
+            "1u5kofi"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "srpiq4s",
+          "itemIds": [
+            "ynlaqb",
+            "1wbrnuj",
+            "h73xql"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1mud5rv",
+          "itemIds": [
+            "1mud5rv"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "afw4te",
+          "itemIds": [
+            "afw4te"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "m8kjz1",
+          "itemIds": [
+            "m8kjz1"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "jfuy6y",
+          "itemIds": [
+            "jfuy6y"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1wp0h7d",
+          "itemIds": [
+            "1wp0h7d"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "e5adpt",
+          "itemIds": [
+            "e5adpt"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1ya4ysd",
+          "itemIds": [
+            "1ya4ysd"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "9wh9v3",
+          "itemIds": [
+            "9wh9v3"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "1e80sru",
+          "itemIds": [
+            "1e80sru"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "q7zpnv",
+          "itemIds": [
+            "q7zpnv"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "uzs98t",
+          "itemIds": [
+            "uzs98t"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "mqnk7z",
+          "itemIds": [
+            "mqnk7z"
+          ],
+          "reason": "niet-gekozen-vakgebied"
+        },
+        {
+          "kind": "item",
+          "id": "192cchu",
+          "itemIds": [
+            "192cchu"
+          ],
+          "reason": "niet-gekozen-vakgebied"
+        },
+        {
+          "kind": "story",
+          "id": "spra2pv",
+          "itemIds": [
+            "1laqclq",
+            "apkd1q",
+            "1f81a7e",
+            "170fusr",
+            "cpozvv"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s17ynbfj",
+          "itemIds": [
+            "1u5kofi",
+            "1ktpee9"
+          ],
+          "route": "algemene-editie",
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "slq5wlh",
+          "itemIds": [
+            "alpkyo",
+            "15dchj1"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1r56e3b",
+          "itemIds": [
+            "kbwavq",
+            "23qgwr"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "spawrk",
+          "itemIds": [
+            "nobmw4",
+            "16yunbb"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "so7x6xz",
+          "itemIds": [
+            "mo0l6j",
+            "1qvyyn3"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "syrqa3w",
+          "itemIds": [
+            "1oh62gr",
+            "rrwm2a"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1tzuqj",
+          "itemIds": [
+            "1kkc62n",
+            "7nvxi"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "16n47m0",
+          "itemIds": [
+            "16n47m0"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "5xi133",
+            "q8ntbf",
+            "1hdpdcd"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "ogxzb8",
+            "1r0ekc5",
+            "1l4l2sk",
+            "17ipchj",
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "route": "algemene-editie",
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "we9k3d",
+            "1yfkwea",
+            "15nn592"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1k5nowz",
+          "itemIds": [
+            "107g3ze",
+            "y09kph",
+            "ifwsq7",
+            "1cqce1r"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        }
+      ],
+      "counts": {
+        "eerder-getoond-of-gelezen": 1,
+        "geen-aantoonbare-aanvulreden": 1,
+        "geen-bekend-artikel": 19,
+        "internationaal-niet-groot-genoeg": 21,
+        "niet-gekozen-vakgebied": 2,
+        "ouder-dan-verhaalvenster": 1,
+        "te-oud-of-geen-intro-en-beeld": 7,
+        "vertegenwoordigd": 9,
+        "vorm-of-bron-niet-toegelaten": 2
+      },
+      "unresolved": 0,
+      "proven": true
+    }
+  },
+  {
+    "persona": "nieuw",
+    "variant": "sprong",
+    "edition": "2026-10-30-ochtend",
+    "selected": 4,
+    "supply": {
+      "target": 10,
+      "auditBelow": 6,
+      "floor": 4,
+      "selected": 4,
+      "totalSlots": 4,
+      "ownArticles": 12,
+      "decisions": [
+        {
+          "kind": "story",
+          "id": "s1plrx0e",
+          "itemIds": [
+            "gh7fc6",
+            "1kgka6z"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sruerny",
+          "itemIds": [
+            "17lsvr6",
+            "onjmcn"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s4yvuts",
+          "itemIds": [
+            "11d36a7",
+            "111b9op"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1ky9wku",
+          "itemIds": [
+            "1gjvdxt",
+            "1l3kndd"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "1hdpdcd",
+            "5xi133"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "1yfkwea",
+            "15nn592"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sngc3y9",
+          "itemIds": [
+            "1s78wbn",
+            "lkrvjm"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1k5nowz",
+          "itemIds": [
+            "107g3ze",
+            "1cqce1r"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s11et5j0",
+          "itemIds": [
+            "tm95mn",
+            "x58eqx"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "item",
+          "id": "b1c0i4",
+          "itemIds": [
+            "b1c0i4"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "item",
+          "id": "ynlaqb",
+          "itemIds": [
+            "ynlaqb"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1xtp27r",
+          "itemIds": [
+            "1xtp27r"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "q5tzxz",
+          "itemIds": [
+            "q5tzxz"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1ft4jzc",
+          "itemIds": [
+            "1ft4jzc"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1dhtpnq",
+          "itemIds": [
+            "1dhtpnq"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "story",
+          "id": "srpiq4s",
+          "itemIds": [
+            "ynlaqb",
+            "1wbrnuj",
+            "h73xql"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "uzs98t",
+          "itemIds": [
+            "uzs98t"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "rmz5vd",
+          "itemIds": [
+            "rmz5vd"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1w8qnzh",
+          "itemIds": [
+            "1w8qnzh"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "4rob9r",
+          "itemIds": [
+            "4rob9r"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "562pyz",
+          "itemIds": [
+            "562pyz"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "1s5cb8z",
+          "itemIds": [
+            "1s5cb8z"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "srpiq4s",
+          "itemIds": [
+            "1wbrnuj",
+            "ynlaqb",
+            "h73xql"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1plrx0e",
+          "itemIds": [
+            "gh7fc6",
+            "1kgka6z"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s4yvuts",
+          "itemIds": [
+            "11d36a7",
+            "111b9op"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1ky9wku",
+          "itemIds": [
+            "1gjvdxt",
+            "1l3kndd"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "5xi133",
+            "1hdpdcd"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s11et5j0",
+          "itemIds": [
+            "tm95mn",
+            "x58eqx"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "1yfkwea",
+            "15nn592"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1w8qnzh",
+          "itemIds": [
+            "1w8qnzh"
+          ],
+          "route": "algemene-editie",
+          "reason": "vertegenwoordigd"
+        }
+      ],
+      "counts": {
+        "geen-aantoonbare-aanvulreden": 3,
+        "geen-bekend-artikel": 11,
+        "internationaal-niet-groot-genoeg": 10,
+        "te-oud-of-geen-intro-en-beeld": 3,
+        "vertegenwoordigd": 5,
+        "vorm-of-bron-niet-toegelaten": 2
+      },
+      "unresolved": 0,
+      "proven": true
+    }
+  },
+  {
+    "persona": "vs",
+    "variant": "code",
+    "edition": "2026-10-30-ochtend",
+    "selected": 5,
+    "supply": {
+      "target": 10,
+      "auditBelow": 6,
+      "floor": 4,
+      "selected": 5,
+      "totalSlots": 5,
+      "ownArticles": 45,
+      "decisions": [
+        {
+          "kind": "story",
+          "id": "s1plrx0e",
+          "itemIds": [
+            "gh7fc6",
+            "1kgka6z"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sruerny",
+          "itemIds": [
+            "17lsvr6",
+            "onjmcn"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s4yvuts",
+          "itemIds": [
+            "11d36a7",
+            "111b9op"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1ky9wku",
+          "itemIds": [
+            "1gjvdxt",
+            "1l3kndd"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "1hdpdcd",
+            "5xi133"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "1yfkwea",
+            "15nn592"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sngc3y9",
+          "itemIds": [
+            "1s78wbn",
+            "lkrvjm"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s11et5j0",
+          "itemIds": [
+            "tm95mn",
+            "x58eqx"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "b1c0i4",
+          "itemIds": [
+            "b1c0i4"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "item",
+          "id": "ynlaqb",
+          "itemIds": [
+            "ynlaqb"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1xtp27r",
+          "itemIds": [
+            "1xtp27r"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "q5tzxz",
+          "itemIds": [
+            "q5tzxz"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1ft4jzc",
+          "itemIds": [
+            "1ft4jzc"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1dhtpnq",
+          "itemIds": [
+            "1dhtpnq"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "item",
+          "id": "1c8jpp8",
+          "itemIds": [
+            "1c8jpp8"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "jfsrco",
+          "itemIds": [
+            "jfsrco"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1wbrnuj",
+          "itemIds": [
+            "1wbrnuj"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "7hp63",
+          "itemIds": [
+            "7hp63"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "107g3ze",
+          "itemIds": [
+            "107g3ze"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1g3nsl0",
+          "itemIds": [
+            "1g3nsl0"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "4mnv5t",
+          "itemIds": [
+            "4mnv5t"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "3d5q2",
+          "itemIds": [
+            "3d5q2"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "ojkros",
+          "itemIds": [
+            "ojkros"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1la3e68",
+          "itemIds": [
+            "1la3e68"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "w3cuqx",
+          "itemIds": [
+            "w3cuqx"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "13uoq06",
+          "itemIds": [
+            "13uoq06"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1fa7d9d",
+          "itemIds": [
+            "1fa7d9d"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "gorwp1",
+          "itemIds": [
+            "gorwp1"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1hr585t",
+          "itemIds": [
+            "1hr585t"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1egld0e",
+          "itemIds": [
+            "1egld0e"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1uuyu66",
+          "itemIds": [
+            "1uuyu66"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "w4y6jm",
+          "itemIds": [
+            "w4y6jm"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1t30z3g",
+          "itemIds": [
+            "1t30z3g"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "2616u3",
+          "itemIds": [
+            "2616u3"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "kv0u1u",
+          "itemIds": [
+            "kv0u1u"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "m6mxvz",
+          "itemIds": [
+            "m6mxvz"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "2nyabc",
+          "itemIds": [
+            "2nyabc"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "story",
+          "id": "srpiq4s",
+          "itemIds": [
+            "ynlaqb",
+            "1wbrnuj",
+            "h73xql"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1yctqaw",
+          "itemIds": [
+            "1yctqaw"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1k5nowz",
+          "itemIds": [
+            "107g3ze",
+            "1cqce1r"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1uje50v",
+          "itemIds": [
+            "1uje50v"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "17snzto",
+          "itemIds": [
+            "17snzto"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "4wogmv",
+          "itemIds": [
+            "4wogmv"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1elsgk7",
+          "itemIds": [
+            "1elsgk7"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "rmz5vd",
+          "itemIds": [
+            "rmz5vd"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "uzs98t",
+          "itemIds": [
+            "uzs98t"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1hdkk4b",
+          "itemIds": [
+            "1hdkk4b"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "4rob9r",
+          "itemIds": [
+            "4rob9r"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "1w8qnzh",
+          "itemIds": [
+            "1w8qnzh"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "17o22p8",
+          "itemIds": [
+            "17o22p8"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1s5cb8z",
+          "itemIds": [
+            "1s5cb8z"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "562pyz",
+          "itemIds": [
+            "562pyz"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "bkt6i8",
+          "itemIds": [
+            "bkt6i8"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "a3yz13",
+          "itemIds": [
+            "a3yz13"
+          ],
+          "reason": "niet-gekozen-vakgebied"
+        },
+        {
+          "kind": "item",
+          "id": "1wddw7x",
+          "itemIds": [
+            "1wddw7x"
+          ],
+          "reason": "niet-gekozen-vakgebied"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "srpiq4s",
+          "itemIds": [
+            "1wbrnuj",
+            "ynlaqb",
+            "h73xql"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1plrx0e",
+          "itemIds": [
+            "gh7fc6",
+            "1kgka6z"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s4yvuts",
+          "itemIds": [
+            "11d36a7",
+            "111b9op"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1ky9wku",
+          "itemIds": [
+            "1gjvdxt",
+            "1l3kndd"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "5xi133",
+            "1hdpdcd"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s11et5j0",
+          "itemIds": [
+            "tm95mn",
+            "x58eqx"
+          ],
+          "route": "algemene-editie",
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "1yfkwea",
+            "15nn592"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1w8qnzh",
+          "itemIds": [
+            "1w8qnzh"
+          ],
+          "route": "algemene-editie",
+          "reason": "vertegenwoordigd"
+        }
+      ],
+      "counts": {
+        "geen-aantoonbare-aanvulreden": 2,
+        "geen-bekend-artikel": 9,
+        "internationaal-niet-groot-genoeg": 21,
+        "niet-gekozen-vakgebied": 2,
+        "te-oud-of-geen-intro-en-beeld": 24,
+        "vertegenwoordigd": 7,
+        "vorm-of-bron-niet-toegelaten": 2
+      },
+      "unresolved": 0,
+      "proven": true
+    }
+  },
+  {
+    "persona": "vs",
+    "variant": "drie",
+    "edition": "2026-10-30-ochtend",
+    "selected": 5,
+    "supply": {
+      "target": 10,
+      "auditBelow": 6,
+      "floor": 4,
+      "selected": 5,
+      "totalSlots": 5,
+      "ownArticles": 45,
+      "decisions": [
+        {
+          "kind": "story",
+          "id": "s1plrx0e",
+          "itemIds": [
+            "gh7fc6",
+            "1kgka6z"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sruerny",
+          "itemIds": [
+            "17lsvr6",
+            "onjmcn"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s4yvuts",
+          "itemIds": [
+            "11d36a7",
+            "111b9op"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1ky9wku",
+          "itemIds": [
+            "1gjvdxt",
+            "1l3kndd"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "1hdpdcd",
+            "5xi133"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "1yfkwea",
+            "15nn592"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sngc3y9",
+          "itemIds": [
+            "1s78wbn",
+            "lkrvjm"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s11et5j0",
+          "itemIds": [
+            "tm95mn",
+            "x58eqx"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "b1c0i4",
+          "itemIds": [
+            "b1c0i4"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "item",
+          "id": "ynlaqb",
+          "itemIds": [
+            "ynlaqb"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1xtp27r",
+          "itemIds": [
+            "1xtp27r"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "q5tzxz",
+          "itemIds": [
+            "q5tzxz"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1ft4jzc",
+          "itemIds": [
+            "1ft4jzc"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1dhtpnq",
+          "itemIds": [
+            "1dhtpnq"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "item",
+          "id": "1c8jpp8",
+          "itemIds": [
+            "1c8jpp8"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "jfsrco",
+          "itemIds": [
+            "jfsrco"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1wbrnuj",
+          "itemIds": [
+            "1wbrnuj"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "7hp63",
+          "itemIds": [
+            "7hp63"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "107g3ze",
+          "itemIds": [
+            "107g3ze"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1g3nsl0",
+          "itemIds": [
+            "1g3nsl0"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "4mnv5t",
+          "itemIds": [
+            "4mnv5t"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "3d5q2",
+          "itemIds": [
+            "3d5q2"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "ojkros",
+          "itemIds": [
+            "ojkros"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1la3e68",
+          "itemIds": [
+            "1la3e68"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "w3cuqx",
+          "itemIds": [
+            "w3cuqx"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "13uoq06",
+          "itemIds": [
+            "13uoq06"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1fa7d9d",
+          "itemIds": [
+            "1fa7d9d"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "gorwp1",
+          "itemIds": [
+            "gorwp1"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1hr585t",
+          "itemIds": [
+            "1hr585t"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1egld0e",
+          "itemIds": [
+            "1egld0e"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1uuyu66",
+          "itemIds": [
+            "1uuyu66"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "w4y6jm",
+          "itemIds": [
+            "w4y6jm"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1t30z3g",
+          "itemIds": [
+            "1t30z3g"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "2616u3",
+          "itemIds": [
+            "2616u3"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "kv0u1u",
+          "itemIds": [
+            "kv0u1u"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "m6mxvz",
+          "itemIds": [
+            "m6mxvz"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "2nyabc",
+          "itemIds": [
+            "2nyabc"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "story",
+          "id": "srpiq4s",
+          "itemIds": [
+            "ynlaqb",
+            "1wbrnuj",
+            "h73xql"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1yctqaw",
+          "itemIds": [
+            "1yctqaw"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1k5nowz",
+          "itemIds": [
+            "107g3ze",
+            "1cqce1r"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1uje50v",
+          "itemIds": [
+            "1uje50v"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "17snzto",
+          "itemIds": [
+            "17snzto"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "4wogmv",
+          "itemIds": [
+            "4wogmv"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1elsgk7",
+          "itemIds": [
+            "1elsgk7"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "rmz5vd",
+          "itemIds": [
+            "rmz5vd"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "uzs98t",
+          "itemIds": [
+            "uzs98t"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1hdkk4b",
+          "itemIds": [
+            "1hdkk4b"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "4rob9r",
+          "itemIds": [
+            "4rob9r"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "1w8qnzh",
+          "itemIds": [
+            "1w8qnzh"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "17o22p8",
+          "itemIds": [
+            "17o22p8"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1s5cb8z",
+          "itemIds": [
+            "1s5cb8z"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "562pyz",
+          "itemIds": [
+            "562pyz"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "bkt6i8",
+          "itemIds": [
+            "bkt6i8"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "a3yz13",
+          "itemIds": [
+            "a3yz13"
+          ],
+          "reason": "niet-gekozen-vakgebied"
+        },
+        {
+          "kind": "item",
+          "id": "1wddw7x",
+          "itemIds": [
+            "1wddw7x"
+          ],
+          "reason": "niet-gekozen-vakgebied"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "srpiq4s",
+          "itemIds": [
+            "1wbrnuj",
+            "ynlaqb",
+            "h73xql"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1plrx0e",
+          "itemIds": [
+            "gh7fc6",
+            "1kgka6z"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s4yvuts",
+          "itemIds": [
+            "11d36a7",
+            "111b9op"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1ky9wku",
+          "itemIds": [
+            "1gjvdxt",
+            "1l3kndd"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "5xi133",
+            "1hdpdcd"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s11et5j0",
+          "itemIds": [
+            "tm95mn",
+            "x58eqx"
+          ],
+          "route": "algemene-editie",
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "1yfkwea",
+            "15nn592"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1w8qnzh",
+          "itemIds": [
+            "1w8qnzh"
+          ],
+          "route": "algemene-editie",
+          "reason": "vertegenwoordigd"
+        }
+      ],
+      "counts": {
+        "geen-aantoonbare-aanvulreden": 2,
+        "geen-bekend-artikel": 9,
+        "internationaal-niet-groot-genoeg": 21,
+        "niet-gekozen-vakgebied": 2,
+        "te-oud-of-geen-intro-en-beeld": 24,
+        "vertegenwoordigd": 7,
+        "vorm-of-bron-niet-toegelaten": 2
+      },
+      "unresolved": 0,
+      "proven": true
+    }
+  },
+  {
+    "persona": "vs",
+    "variant": "account",
+    "edition": "2026-10-30-ochtend",
+    "selected": 5,
+    "supply": {
+      "target": 10,
+      "auditBelow": 6,
+      "floor": 4,
+      "selected": 5,
+      "totalSlots": 5,
+      "ownArticles": 45,
+      "decisions": [
+        {
+          "kind": "story",
+          "id": "s1plrx0e",
+          "itemIds": [
+            "gh7fc6",
+            "1kgka6z"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sruerny",
+          "itemIds": [
+            "17lsvr6",
+            "onjmcn"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s4yvuts",
+          "itemIds": [
+            "11d36a7",
+            "111b9op"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1ky9wku",
+          "itemIds": [
+            "1gjvdxt",
+            "1l3kndd"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "1hdpdcd",
+            "5xi133"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "1yfkwea",
+            "15nn592"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sngc3y9",
+          "itemIds": [
+            "1s78wbn",
+            "lkrvjm"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s11et5j0",
+          "itemIds": [
+            "tm95mn",
+            "x58eqx"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "b1c0i4",
+          "itemIds": [
+            "b1c0i4"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "item",
+          "id": "ynlaqb",
+          "itemIds": [
+            "ynlaqb"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1xtp27r",
+          "itemIds": [
+            "1xtp27r"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "q5tzxz",
+          "itemIds": [
+            "q5tzxz"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1ft4jzc",
+          "itemIds": [
+            "1ft4jzc"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1dhtpnq",
+          "itemIds": [
+            "1dhtpnq"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "item",
+          "id": "1c8jpp8",
+          "itemIds": [
+            "1c8jpp8"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "jfsrco",
+          "itemIds": [
+            "jfsrco"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1wbrnuj",
+          "itemIds": [
+            "1wbrnuj"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "7hp63",
+          "itemIds": [
+            "7hp63"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "107g3ze",
+          "itemIds": [
+            "107g3ze"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1g3nsl0",
+          "itemIds": [
+            "1g3nsl0"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "4mnv5t",
+          "itemIds": [
+            "4mnv5t"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "3d5q2",
+          "itemIds": [
+            "3d5q2"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "ojkros",
+          "itemIds": [
+            "ojkros"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1la3e68",
+          "itemIds": [
+            "1la3e68"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "w3cuqx",
+          "itemIds": [
+            "w3cuqx"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "13uoq06",
+          "itemIds": [
+            "13uoq06"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1fa7d9d",
+          "itemIds": [
+            "1fa7d9d"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "gorwp1",
+          "itemIds": [
+            "gorwp1"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1hr585t",
+          "itemIds": [
+            "1hr585t"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1egld0e",
+          "itemIds": [
+            "1egld0e"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1uuyu66",
+          "itemIds": [
+            "1uuyu66"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "w4y6jm",
+          "itemIds": [
+            "w4y6jm"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1t30z3g",
+          "itemIds": [
+            "1t30z3g"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "2616u3",
+          "itemIds": [
+            "2616u3"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "kv0u1u",
+          "itemIds": [
+            "kv0u1u"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "m6mxvz",
+          "itemIds": [
+            "m6mxvz"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "2nyabc",
+          "itemIds": [
+            "2nyabc"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "story",
+          "id": "srpiq4s",
+          "itemIds": [
+            "ynlaqb",
+            "1wbrnuj",
+            "h73xql"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1yctqaw",
+          "itemIds": [
+            "1yctqaw"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1k5nowz",
+          "itemIds": [
+            "107g3ze",
+            "1cqce1r"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1uje50v",
+          "itemIds": [
+            "1uje50v"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "17snzto",
+          "itemIds": [
+            "17snzto"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "4wogmv",
+          "itemIds": [
+            "4wogmv"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1elsgk7",
+          "itemIds": [
+            "1elsgk7"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "rmz5vd",
+          "itemIds": [
+            "rmz5vd"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "uzs98t",
+          "itemIds": [
+            "uzs98t"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1hdkk4b",
+          "itemIds": [
+            "1hdkk4b"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "4rob9r",
+          "itemIds": [
+            "4rob9r"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "1w8qnzh",
+          "itemIds": [
+            "1w8qnzh"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "17o22p8",
+          "itemIds": [
+            "17o22p8"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1s5cb8z",
+          "itemIds": [
+            "1s5cb8z"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "562pyz",
+          "itemIds": [
+            "562pyz"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "bkt6i8",
+          "itemIds": [
+            "bkt6i8"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "a3yz13",
+          "itemIds": [
+            "a3yz13"
+          ],
+          "reason": "niet-gekozen-vakgebied"
+        },
+        {
+          "kind": "item",
+          "id": "1wddw7x",
+          "itemIds": [
+            "1wddw7x"
+          ],
+          "reason": "niet-gekozen-vakgebied"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "srpiq4s",
+          "itemIds": [
+            "1wbrnuj",
+            "ynlaqb",
+            "h73xql"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1plrx0e",
+          "itemIds": [
+            "gh7fc6",
+            "1kgka6z"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s4yvuts",
+          "itemIds": [
+            "11d36a7",
+            "111b9op"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1ky9wku",
+          "itemIds": [
+            "1gjvdxt",
+            "1l3kndd"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "5xi133",
+            "1hdpdcd"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s11et5j0",
+          "itemIds": [
+            "tm95mn",
+            "x58eqx"
+          ],
+          "route": "algemene-editie",
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "1yfkwea",
+            "15nn592"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1w8qnzh",
+          "itemIds": [
+            "1w8qnzh"
+          ],
+          "route": "algemene-editie",
+          "reason": "vertegenwoordigd"
+        }
+      ],
+      "counts": {
+        "geen-aantoonbare-aanvulreden": 2,
+        "geen-bekend-artikel": 9,
+        "internationaal-niet-groot-genoeg": 21,
+        "niet-gekozen-vakgebied": 2,
+        "te-oud-of-geen-intro-en-beeld": 24,
+        "vertegenwoordigd": 7,
+        "vorm-of-bron-niet-toegelaten": 2
+      },
+      "unresolved": 0,
+      "proven": true
+    }
+  },
+  {
+    "persona": "vs",
+    "variant": "sprong",
+    "edition": "2026-10-30-ochtend",
+    "selected": 5,
+    "supply": {
+      "target": 10,
+      "auditBelow": 6,
+      "floor": 4,
+      "selected": 5,
+      "totalSlots": 5,
+      "ownArticles": 45,
+      "decisions": [
+        {
+          "kind": "story",
+          "id": "s1plrx0e",
+          "itemIds": [
+            "gh7fc6",
+            "1kgka6z"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sruerny",
+          "itemIds": [
+            "17lsvr6",
+            "onjmcn"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s4yvuts",
+          "itemIds": [
+            "11d36a7",
+            "111b9op"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1ky9wku",
+          "itemIds": [
+            "1gjvdxt",
+            "1l3kndd"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "1hdpdcd",
+            "5xi133"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "1yfkwea",
+            "15nn592"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "sngc3y9",
+          "itemIds": [
+            "1s78wbn",
+            "lkrvjm"
+          ],
+          "reason": "geen-bekend-artikel"
+        },
+        {
+          "kind": "story",
+          "id": "s11et5j0",
+          "itemIds": [
+            "tm95mn",
+            "x58eqx"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "b1c0i4",
+          "itemIds": [
+            "b1c0i4"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "item",
+          "id": "ynlaqb",
+          "itemIds": [
+            "ynlaqb"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1xtp27r",
+          "itemIds": [
+            "1xtp27r"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "q5tzxz",
+          "itemIds": [
+            "q5tzxz"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1ft4jzc",
+          "itemIds": [
+            "1ft4jzc"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1dhtpnq",
+          "itemIds": [
+            "1dhtpnq"
+          ],
+          "reason": "vorm-of-bron-niet-toegelaten"
+        },
+        {
+          "kind": "item",
+          "id": "1c8jpp8",
+          "itemIds": [
+            "1c8jpp8"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "jfsrco",
+          "itemIds": [
+            "jfsrco"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1wbrnuj",
+          "itemIds": [
+            "1wbrnuj"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "7hp63",
+          "itemIds": [
+            "7hp63"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "107g3ze",
+          "itemIds": [
+            "107g3ze"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1g3nsl0",
+          "itemIds": [
+            "1g3nsl0"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "4mnv5t",
+          "itemIds": [
+            "4mnv5t"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "3d5q2",
+          "itemIds": [
+            "3d5q2"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "ojkros",
+          "itemIds": [
+            "ojkros"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1la3e68",
+          "itemIds": [
+            "1la3e68"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "w3cuqx",
+          "itemIds": [
+            "w3cuqx"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "13uoq06",
+          "itemIds": [
+            "13uoq06"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1fa7d9d",
+          "itemIds": [
+            "1fa7d9d"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "gorwp1",
+          "itemIds": [
+            "gorwp1"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1hr585t",
+          "itemIds": [
+            "1hr585t"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1egld0e",
+          "itemIds": [
+            "1egld0e"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1uuyu66",
+          "itemIds": [
+            "1uuyu66"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "w4y6jm",
+          "itemIds": [
+            "w4y6jm"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "1t30z3g",
+          "itemIds": [
+            "1t30z3g"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "2616u3",
+          "itemIds": [
+            "2616u3"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "kv0u1u",
+          "itemIds": [
+            "kv0u1u"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "m6mxvz",
+          "itemIds": [
+            "m6mxvz"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "item",
+          "id": "2nyabc",
+          "itemIds": [
+            "2nyabc"
+          ],
+          "reason": "te-oud-of-geen-intro-en-beeld"
+        },
+        {
+          "kind": "story",
+          "id": "srpiq4s",
+          "itemIds": [
+            "ynlaqb",
+            "1wbrnuj",
+            "h73xql"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1yctqaw",
+          "itemIds": [
+            "1yctqaw"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1k5nowz",
+          "itemIds": [
+            "107g3ze",
+            "1cqce1r"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1uje50v",
+          "itemIds": [
+            "1uje50v"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "17snzto",
+          "itemIds": [
+            "17snzto"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "4wogmv",
+          "itemIds": [
+            "4wogmv"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1elsgk7",
+          "itemIds": [
+            "1elsgk7"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "rmz5vd",
+          "itemIds": [
+            "rmz5vd"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "uzs98t",
+          "itemIds": [
+            "uzs98t"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1hdkk4b",
+          "itemIds": [
+            "1hdkk4b"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "4rob9r",
+          "itemIds": [
+            "4rob9r"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "1w8qnzh",
+          "itemIds": [
+            "1w8qnzh"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "17o22p8",
+          "itemIds": [
+            "17o22p8"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1s5cb8z",
+          "itemIds": [
+            "1s5cb8z"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "562pyz",
+          "itemIds": [
+            "562pyz"
+          ],
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "item",
+          "id": "bkt6i8",
+          "itemIds": [
+            "bkt6i8"
+          ],
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "a3yz13",
+          "itemIds": [
+            "a3yz13"
+          ],
+          "reason": "niet-gekozen-vakgebied"
+        },
+        {
+          "kind": "item",
+          "id": "1wddw7x",
+          "itemIds": [
+            "1wddw7x"
+          ],
+          "reason": "niet-gekozen-vakgebied"
+        },
+        {
+          "kind": "story",
+          "id": "so04fqr",
+          "itemIds": [
+            "kqvql1",
+            "af2slx",
+            "lv5wzt"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "slvqu7i",
+          "itemIds": [
+            "3yn5zq",
+            "x0jhky",
+            "1kupm00",
+            "atkbg0"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "srpiq4s",
+          "itemIds": [
+            "1wbrnuj",
+            "ynlaqb",
+            "h73xql"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1plrx0e",
+          "itemIds": [
+            "gh7fc6",
+            "1kgka6z"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s4yvuts",
+          "itemIds": [
+            "11d36a7",
+            "111b9op"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s1ky9wku",
+          "itemIds": [
+            "1gjvdxt",
+            "1l3kndd"
+          ],
+          "route": "algemene-editie",
+          "reason": "geen-aantoonbare-aanvulreden"
+        },
+        {
+          "kind": "story",
+          "id": "s1pacmk0",
+          "itemIds": [
+            "5xi133",
+            "1hdpdcd"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "story",
+          "id": "s11et5j0",
+          "itemIds": [
+            "tm95mn",
+            "x58eqx"
+          ],
+          "route": "algemene-editie",
+          "reason": "vertegenwoordigd"
+        },
+        {
+          "kind": "story",
+          "id": "s17klun",
+          "itemIds": [
+            "1yfkwea",
+            "15nn592"
+          ],
+          "route": "algemene-editie",
+          "reason": "internationaal-niet-groot-genoeg"
+        },
+        {
+          "kind": "item",
+          "id": "1w8qnzh",
+          "itemIds": [
+            "1w8qnzh"
+          ],
+          "route": "algemene-editie",
+          "reason": "vertegenwoordigd"
+        }
+      ],
+      "counts": {
+        "geen-aantoonbare-aanvulreden": 2,
+        "geen-bekend-artikel": 9,
+        "internationaal-niet-groot-genoeg": 21,
+        "niet-gekozen-vakgebied": 2,
+        "te-oud-of-geen-intro-en-beeld": 24,
+        "vertegenwoordigd": 7,
+        "vorm-of-bron-niet-toegelaten": 2
+      },
+      "unresolved": 0,
+      "proven": true
+    }
+  }
+]

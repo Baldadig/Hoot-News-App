@@ -56,7 +56,7 @@ struct ChoicePress: ButtonStyle {
 struct ChoiceChip: View {
     let label: String
     let on: Bool
-    var dense = false // in het welkom, waar niets mag scrollen: 40 hoog en smaller
+    var dense = false // in het welkom, waar niets mag scrollen: minstens 44 hoog en smaller
     let action: () -> Void
     @Environment(\.accessibilityReduceMotion) private var still
 
@@ -77,7 +77,7 @@ struct ChoiceChip: View {
             .foregroundStyle(on ? Theme.accent : Theme.ink)
             .padding(.horizontal, dense ? Space.s3 : Space.s4)
             .padding(.vertical, Space.s2)
-            .frame(minHeight: dense ? Space.tap - Space.s1 : Space.tap)
+            .frame(minHeight: Space.tap)
             .background(on ? Theme.accentSoft : Color.clear, in: Capsule()) // in rust geen vlak: alleen de haarlijn
             .overlay(Capsule().strokeBorder(on ? Theme.accent : Theme.rule, lineWidth: 1))
             .contentShape(Capsule())

@@ -1,7 +1,7 @@
 import SwiftUI
 
-// Editie: drie keer per dag tien verhalen, met een einde. Het hoofdverhaal heeft altijd een
-// scherp beeld (anders schuift het eerste verhaal mét goed beeld naar voren, net als op het web).
+// Editie: drie keer per dag hooguit tien genummerde verhalen. De redactionele volgorde blijft leidend;
+// een optioneel bubbelverhaal staat los en ongenummerd na de gewone reeks.
 struct EditionRowModel: Identifiable {
     let id: String
     let item: Item
@@ -283,7 +283,7 @@ struct EditionView: View {
                             StrongRule().padding(.top, Space.s5)
                             Text("Buiten je bubbel").font(Theme.headline(.title2)).accessibilityAddTraits(.isHeader).padding(.vertical,Space.s3)
                             ForEach(outsideRows) { row in
-                                slot(row) { ItemRow(item:row.item,label:row.label,why:row.why,outside:row.outside,story:row.story,form:.krant) }
+                                slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,form:.krant) }
                             }
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,

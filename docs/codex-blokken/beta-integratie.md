@@ -66,8 +66,21 @@ Aparte koppeling eb3661f: theme/themeDark als gevalideerde strings in native imp
 
 ### B02 definitief · bronweging en aanbodbewijs
 
-De bronweging is na Alex’ normantwoord teruggenomen in de actieve beta. Zes doel/vier vloer met bewijs, geen andere drempel versoepeld. B02-R1 volledig groen (966 web + één bestaande TODO; 98 native). Details en korte Middageditie in `beta-redacteur.md` en `beta/B02-shortages.json`.
+De bronweging is na Alex’ normantwoord teruggenomen in de actieve beta. Tien als doel, bewijs onder zes en vloer vier, geen andere drempel versoepeld. B02-R1 volledig groen (966 web + één bestaande TODO; 98 native). Details en korte Middageditie in `beta-redacteur.md` en `beta/B02-shortages.json`.
 
 ### B03/B04/B06 · kern en weergave
 
 B06 koppen/introfilter groen (961 web, 98 native). B04 onderwerpplaats groen (969 web, 98 native); V2a-controlepercentage blijft 42/58 en is dus open kwaliteitsdoel. B03 vaknieuws/aanvullen definitief groen (971 web, 99 native), met tien als doel en bewijs onder zes. Zie beta-redacteur.md voor afwijkingen, eerdere mislukte rondes en resterende serverafhankelijkheid.
+
+
+### C · Kleine auditpunten en resterende keuring
+
+Stroom gebruikt nu dezelfde normale titel-plus-wachtregel als Editie, met refreshcallback en zonder overlay. Dichte ChoiceChip blijft minstens 44 pt; de WelcomePages-berekening is tegelijk op 44 gezet, zodat de paginering rekening houdt met de echte hoogte. README noemt voorpagina-miniaturen nu consequent 3:2. Het aparte bubbelblok herhaalt de algemene bubbelkop niet; signalenherkomst blijft zichtbaar. Ook de losse accountpagina zegt nu dat alleen een account op uitnodiging is.
+
+C01: 980 webtests + bestaande TODO, 101 native tests, kern/build en harde acceptatie groen (`beta/controle-C01.json`). De laatste eenvoudige accounttekst/nil-label-opruiming komt mee in de finale gezamenlijke nacontrole. Browserbewijs op 390 px: `beta/C-bubbel-390.png`. Reader-login en laadtekst blijven gedekt door de geïntegreerde native tests, inclusief zeven dagen en maximaal één herinnering.
+
+De eerdere native iPad-proeven en hun grenzen staan in `beta/C-native-proeven.json`: rotatie, popover, onderwerpindex openen, bronkeuze terug/vooruit en annuleren zonder opslaan werkten via AX; volledige visuele sprongpositie, exact 699/700 pt, hardwaretoetsenbord en VoiceOver zijn niet vrijgegeven. De laatste native bediening meldt een vergrendelde Mac; de bestaande ontgrendelvraag staat open. De automatische tests vervangen deze keuring niet. D5 (RGB-afstand versus Delta-E), metaregel-/uitlijningskeuzes en reader-tussenkoppen op AX-maten blijven expliciet bij Claude/Alex; geen oude afgewezen concepten teruggebouwd.
+
+### Actuele korte Edities
+
+De laatste momentopname heeft voor alle twaalf testprofielen tien genummerde verhalen, optioneel één bubbel erna (`beta/B-final-telling.json`). De historische dagproef blijft kort voor nieuw/ochtend (vier; alle varianten), nieuw/middag (vijf; code/drie/account) en VS zonder Wereld/ochtend (vijf; alle varianten). Elke onder-zes-uitkomst heeft volledig bekend kandidatenbewijs, nul onverklaarde afvallers en geen reeks onder vier (`beta/B-final-shortages.json`). Dit bewijst het bekende feedaanbod, geen uitputtende zoektocht bij alle uitgevers. Zes is geen nieuw streefaantal: tien blijft het maximum/doel, kwaliteit begrenst het echte aantal.

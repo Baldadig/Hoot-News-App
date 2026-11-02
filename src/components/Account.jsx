@@ -188,7 +188,7 @@ export function JoinSheet({ open, reason = 'sync', invited = false, onClose, onS
       <p className="join__text">
         {invited
           ? 'Je bent uitgenodigd. Log in, dan ben je meteen lid.'
-          : 'Hoot is op uitnodiging. Heb je een code? Log in en vul hem in.'}
+          : 'Een account is op uitnodiging. Lezen kan zonder account. Heb je een code? Log in en vul hem in.'}
       </p>
       <div className="join__actions">
         <GoogleButton onClick={onSignIn} wide />

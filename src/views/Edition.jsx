@@ -319,7 +319,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               <section className="bubble" aria-label="Buiten je bubbel">
                 <h2 className="label label--section front__more">Buiten je bubbel</h2>
                 <p className="hint bubble__hint">Een verhaal naast je Editie.</p>
-                {editionBubble.map(r=><Slot key={r.key} less={less} row={r}><CompactItem item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} taste={r.key} plain /></Slot>)}
+                {editionBubble.map(r=><Slot key={r.key} less={less} row={r}><CompactItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} plain /></Slot>)}
               </section>
             ) : null}
             {hasMinimum ? (<div className="endcap">

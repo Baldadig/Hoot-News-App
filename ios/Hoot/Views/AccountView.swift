@@ -113,7 +113,7 @@ struct AccountView: View {
                 .foregroundStyle(Theme.ink2)
                 .multilineTextAlignment(.center)
                 .padding(.top, Space.s2)
-            Text("Hoot is op uitnodiging. Heb je een code? Log in en vul hem in.")
+            Text("Een account is op uitnodiging. Lezen kan zonder account. Heb je een code? Log in en vul hem in.")
                 .font(.subheadline)
                 .foregroundStyle(Theme.ink3)
                 .multilineTextAlignment(.center)

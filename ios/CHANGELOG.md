@@ -2,6 +2,8 @@
 
 ## Onuitgebracht
 
+- Beta-afwerking: Stroom-laadtekst onder de titel, minimaal 44 pt voor dichte onderwerpkeuzes, consequente 3:2-miniaturen en één duidelijk bubbelblok na de genummerde Editie.
+
 - Lokale beta: hooguit tien genummerde verhalen, bubbel apart; leesbare selectiereden, eerlijk begin en positief einde. Via lang drukken op een artikel ook lokale foutmelding; melden verandert de smaak niet.
 
 - Editie: zichtbare nummering, werkelijke eindtelling zonder bubbel en een laadmelding onder de titel.
