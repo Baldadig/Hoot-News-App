@@ -1,0 +1,19 @@
+{
+  "origin": "https://gethoot.app/api/feed",
+  "checkedOn": "2026-11-02",
+  "item": {
+    "id": "1r0epyy",
+    "source": "nos",
+    "title": "Britse avonturier voltooit na 28 jaar wereldtocht te voet: ‘Ik heb dit niet alleen gedaan’",
+    "summary": "Hij trok door de beruchte Darién Gap, stak de Beringstraat tussen Alaska en Rusland over en zwom het Kanaal en de Kaspische Zee over.",
+    "url": "https://nos.nl/l/2637763",
+    "topics": [
+      "oekraine"
+    ],
+    "mainTopics": null,
+    "section": null,
+    "publishedAt": "2026-11-02T15:19:12.000Z"
+  },
+  "expectedDesk": "buitenland",
+  "rejectedTopic": "oekraine"
+}

@@ -40,6 +40,7 @@ const PLACE_TOPICS = {
 
 // Draagt dit onderwerp het verhaal? Het past bij de rubriek van de plek, of het staat in de kop.
 export function strongTopic(t, { desk = null, mainTopics = [] } = {}) {
+  if (GEOGRAPHIC_TOPICS.has(t) && desk === 'buitenland' && !mainTopics.includes(t)) return false
   if (GEOGRAPHIC_TOPICS.has(t) && PLACE_TOPICS[desk] && !PLACE_TOPICS[desk].includes(t)) return false
   return (DESK_INTERESTS[desk] || []).includes(INTEREST_OF[t]) || mainTopics.includes(t)
 }

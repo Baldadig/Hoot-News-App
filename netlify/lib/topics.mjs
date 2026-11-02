@@ -107,6 +107,17 @@ export function keywordTopics(text) {
   return out
 }
 
+// Een wereldtocht is geen geopolitiek verhaal doordat Rusland deel van de route is.
+// Alleen de kop en eerste introzin bepalen deze smalle uitzondering; oorlog/geweld blijft tellen.
+function journeyWithoutConflict(it) {
+  const head = it.title || ''
+  const summary = String(it.summary || it.text || '')
+  const first = summary.match(/^[\s\S]*?[.!?](?:\s|$)/)?.[0] || summary
+  return /wereldtocht|wereldreis|avonturier|adventurer|explorer|round.the.world|walk.{0,60}world|world.{0,60}walk/i.test(head)
+    && /te voet|wandel|walk|hike|on foot/i.test(`${head} ${first}`)
+    && !/\b(?:oorlog|war|frontlin\w*|invas\w*|offensief|militair\w*|military|troepen|troops|aanval|attack|bomb\w*|sancti\w*|sanction\w*|poetin|putin|kremlin|arrest\w*|gevangen\w*|prison\w*|ontvoer\w*|kidnap\w*|doodgeschoten|killed)\b/i.test(`${head} ${first}`)
+}
+
 // De zichtbare kop en intro zijn het bewijs; een voetnoot verderop in RSS-HTML is geen onderwerp.
 export function articleTopics(it, own = []) {
   const headline = keywordTopics(it.title || '')
@@ -114,6 +125,7 @@ export function articleTopics(it, own = []) {
   const topics = [...new Set([...headline, ...intro, ...own])]
   // Een losse bedrijfsvermelding in de intro maakt een overlijden/incident geen Tech.
   const weak = new Set(['tech', 'media', 'film', 'brein'])
-  const accepted = topics.filter(t => !weak.has(t) || headline.includes(t) || own.includes(t))
+  const journey = journeyWithoutConflict(it)
+  const accepted = topics.filter(t => !(journey && t === 'oekraine') && (!weak.has(t) || headline.includes(t) || own.includes(t)))
   return { topics: accepted, mainTopics: [...new Set([...headline, ...own])].filter(t => accepted.includes(t)) }
 }

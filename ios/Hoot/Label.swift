@@ -51,6 +51,7 @@ enum StoryLabel {
 
     // Draagt dit onderwerp het verhaal? Het past bij de rubriek van de plek, of het staat in de kop.
     static func strong(_ t: String, desk: String?, mainTopics: [String]) -> Bool {
+        if geographicTopics.contains(t), desk == "buitenland", !mainTopics.contains(t) { return false }
         if geographicTopics.contains(t), let allowed = desk.flatMap({ placeTopics[$0] }), !allowed.contains(t) { return false }
         let past = rubriekOf[t].map { r in (desk.flatMap { deskInterests[$0] } ?? []).contains(r.id) } ?? false
         return past || mainTopics.contains(t)

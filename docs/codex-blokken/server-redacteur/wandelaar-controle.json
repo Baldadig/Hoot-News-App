@@ -1,0 +1,18 @@
+{
+  "case": "Britse wereldtocht te voet",
+  "source": "https://gethoot.app/api/feed",
+  "articleId": "1r0epyy",
+  "oldDesk": "buitenland",
+  "oldTopics": [
+    "oekraine"
+  ],
+  "oldLabel": "Wereld · Oekraïne & Rusland",
+  "newDesk": "buitenland",
+  "newTopics": [],
+  "newLabel": "Buitenland",
+  "webFocusedTests": 47,
+  "nativeLabelTests": 3,
+  "failures": 0,
+  "regressionFailedBeforeFix": true,
+  "scope": "kop en eerste introzin; oorlog/geweld blijft behouden; oude snapshot-tags vallen in het label terug op Buitenland"
+}

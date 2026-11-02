@@ -975,6 +975,45 @@
         "why": null,
         "outside": false
       }
+    },
+    {
+      "name": "Britse wandelaar: oude intro-tag is geen Oekraïne-onderwerp",
+      "input": {
+        "topics": [
+          "oekraine"
+        ],
+        "follows": [
+          "oekraine"
+        ],
+        "desk": "buitenland",
+        "deskLabel": "Buitenland"
+      },
+      "expect": {
+        "kicker": "Buitenland",
+        "why": null,
+        "outside": false
+      }
+    },
+    {
+      "name": "Algemeen buitenland houdt een geografisch hoofdonderwerp uit de kop",
+      "input": {
+        "topics": [
+          "oekraine"
+        ],
+        "mainTopics": [
+          "oekraine"
+        ],
+        "follows": [
+          "oekraine"
+        ],
+        "desk": "buitenland",
+        "deskLabel": "Buitenland"
+      },
+      "expect": {
+        "kicker": "Wereld · Oekraïne & Rusland",
+        "why": null,
+        "outside": false
+      }
     }
   ]
 }
