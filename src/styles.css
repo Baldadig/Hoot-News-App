@@ -263,7 +263,8 @@ html[data-text='groot'] {
 }
 
 /* Kleur — donker (JS zet data-theme; 'systeem' volgt het toestel) */
-:root[data-theme='dark'] {
+:root[data-theme='dark'],
+:root[data-theme='night'] {
   --paper: #151310;
   --surface: #1e1b17;
   --ink: #f1ece2;
@@ -313,7 +314,7 @@ html[data-text='groot'] {
   --band-accent-soft: #3a1e1b; /* gekozen op de band, in beide thema's */
   --top: var(--sheet);
 }
-:root[data-palette][data-theme='dark'] {
+:root[data-palette][data-theme='dark'], :root[data-palette][data-theme='night'] {
   --sheet: var(--surface);
   --sheet-surface: #27231e;
   --sheet-edge: var(--rule);
@@ -323,6 +324,12 @@ html[data-text='groot'] {
   --band-ink-3: var(--ink-3);
   --band-rule: #2e2a25;
 }
+/* Nacht: dezelfde donkere rollen, alleen de paginagrond echt zwart. */
+:root[data-theme='night'] { --paper: #000000; --thumb: var(--ink); color-scheme: dark; }
+:root[data-palette][data-theme='night'] { --sheet: #000000; --sheet-surface: #1e1b17; --band: #000000; --top: #000000; }
+:root[data-theme='night'] .seg { flex-wrap: wrap; }
+:root .sg__colors { grid-template-columns: minmax(0,1.5fr) repeat(3,minmax(0,1fr)); }
+
 
 /* ---------- Basis ---------- */
 *,
@@ -1531,7 +1538,8 @@ select.input {
   transform: translateX(calc(var(--switch-w) - var(--switch-thumb) - 2 * var(--switch-inset)));
 }
 /* In donker is inkt licht: daarop zou de lichte duim verdwijnen. Aan wordt de duim daar papier. */
-:root[data-theme='dark'] .switch[aria-checked='true'] .switch__thumb {
+:root[data-theme='dark'] .switch[aria-checked='true'] .switch__thumb,
+:root[data-theme='night'] .switch[aria-checked='true'] .switch__thumb {
   background: var(--paper);
 }
 /* Focus om de baan, niet om het raakvlak van 60 × 44: zo volgt de ring de vorm die je ziet. */
@@ -1584,7 +1592,7 @@ select.input {
   content: attr(data-letter);
   color: var(--brand, var(--accent));
 }
-:root[data-theme='dark'] .mark::before {
+:root[data-theme='dark'] .mark::before, :root[data-theme='night'] .mark::before {
   color: var(--ink);
 }
 .mark img {
@@ -4899,7 +4907,7 @@ html[data-images='hoofd'] .media--social {
   position: relative;
   height: calc(var(--line-h) + 1px);
 }
-:root[data-theme='dark'] .line {
+:root[data-theme='dark'] .line, :root[data-theme='night'] .line {
   --hair: var(--ink-3);
   --dim: 0.6;
 }

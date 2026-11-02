@@ -29,6 +29,7 @@ final class Playback {
 // Een video in een post: eerst het stilstaande beeld met een afspeelknop (er wordt niets geladen
 // tot je tikt), daarna de speler van het systeem, met volledig scherm. Weg gescrold = pauze.
 struct InlineVideo: View {
+    @Environment(\.nachtActief) private var nacht
     let item: Item
     @State private var player: AVPlayer?
 
@@ -47,7 +48,7 @@ struct InlineVideo: View {
                         }
                         Image(systemName: "play.fill")
                             .font(.title)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(nacht ? Theme.ink : .white)
                             .frame(width: 64, height: 64)
                             .glassEffect(.regular.tint(.black.opacity(0.25)), in: .circle)
                     }

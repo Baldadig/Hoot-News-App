@@ -12,7 +12,7 @@ test('oude opslag: Bewaard omgezet, caches weg, welkom overgeslagen, schema geze
   assert.equal(migrate(ls), true)
   assert.deepEqual(JSON.parse(ls.getItem('hoot:saved-v2')), { a: { kind: 'item', savedAt: 5, item: { id: 'a', title: 'A', savedAt: 5 } } })
   for (const k of ['hoot:saved-items', 'hoot:feed-cache', 'hoot:feed-v2']) assert.equal(ls.getItem(k), null)
-  assert.deepEqual(JSON.parse(ls.getItem('hoot:prefs')), { onboarded: true, schema: SCHEMA })
+  assert.deepEqual(JSON.parse(ls.getItem('hoot:prefs')), { onboarded: true, schema: SCHEMA, theme:'system', themeDark:'dark' })
 })
 
 test('bestaande instellingen blijven; een tweede keer gebeurt er niets', () => {
@@ -28,5 +28,5 @@ test('bestaande instellingen blijven; een tweede keer gebeurt er niets', () => {
 test('nieuw toestel: het welkom wordt getoond', () => {
   const ls = storage()
   migrate(ls)
-  assert.deepEqual(JSON.parse(ls.getItem('hoot:prefs')), { onboarded: false, schema: SCHEMA })
+  assert.deepEqual(JSON.parse(ls.getItem('hoot:prefs')), { onboarded: false, schema: SCHEMA, theme:'system', themeDark:'dark' })
 })

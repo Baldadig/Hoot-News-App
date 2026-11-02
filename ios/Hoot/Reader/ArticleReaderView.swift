@@ -6,6 +6,7 @@ import WebKit
 // de website.
 struct ArticleReaderView: View {
     @Environment(HootStore.self) private var store
+    @Environment(\.nachtActief) private var nacht
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     let item: Item
@@ -35,7 +36,7 @@ struct ArticleReaderView: View {
                 case .loading:
                     ReaderLoadingView(title: item.title.isEmpty ? (item.summary ?? "") : typeset(item.title, lang: source?.lang), sourceName: sourceName, waiting: waiting)
                 case let .ready(article):
-                    ArticleWebView(html: ReaderHTML.page(article, item: item, sourceName: sourceName, size: size, lang: source?.lang), baseURL: item.link)
+                    ArticleWebView(html: ReaderHTML.page(article, item: item, sourceName: sourceName, size: size, lang: source?.lang, night: nacht), baseURL: item.link)
                         .ignoresSafeArea(edges: .bottom)
                         .safeAreaInset(edge: .bottom) {
                             if loginPanelVisible && shouldOfferLogin {
@@ -56,7 +57,7 @@ struct ArticleReaderView: View {
                         }
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(.bar)
+                        .background(nacht ? AnyShapeStyle(Theme.paper) : AnyShapeStyle(.bar))
                     }
                 case .failed:
                     ContentUnavailableView {
@@ -160,7 +161,7 @@ struct ArticleReaderView: View {
 enum ReaderHTML {
     static let scales = [0.9, 1.0, 1.15, 1.32]
 
-    static func page(_ a: Article, item: Item, sourceName: String, size: Int, lang: String? = nil) -> String {
+    static func page(_ a: Article, item: Item, sourceName: String, size: Int, lang: String? = nil, night: Bool = false) -> String {
         let scale = scales[min(max(size, 0), scales.count - 1)]
         let title = escape(typeset(a.title.isEmpty ? item.title : a.title, lang: lang)) // de lezer haalt de kop zelf: zetten zoals de server (T6)
         let meta = [a.byline, item.date.map { HootDate.ago($0) }].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.map(escape).joined(separator: " · ")
@@ -191,6 +192,7 @@ enum ReaderHTML {
         table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; font-size: .85em; } /* een brede tabel scrolt zelf, niet de hele pagina */
         main { overflow-wrap: break-word; } /* lange links breken af in plaats van de pagina te verbreden */ td, th { border-bottom: 1px solid var(--rule); padding: .4em; text-align: left; }
         pre, code { font-family: ui-monospace, Menlo, monospace; font-size: .85em; white-space: pre-wrap; }
+        \(night ? ":root { --paper:#000000; --ink:#f1ece2; --ink-3:#a39b8d; --accent:#ec7a70; color-scheme:dark; }" : "")
         </style></head><body><main\(scale > 1.3 ? " class=\"hyphenate\"" : "")>
         <p class="kicker">\(escape(sourceName))</p>
         <h1 class="title">\(title)</h1>
@@ -218,7 +220,8 @@ struct ArticleWebView: UIViewRepresentable {
         config.defaultWebpagePreferences.allowsContentJavaScript = false
         let view = WKWebView(frame: .zero, configuration: config)
         view.isOpaque = false
-        view.backgroundColor = .clear
+        view.backgroundColor = NachtKleur.paper
+        view.underPageBackgroundColor = NachtKleur.paper
         view.scrollView.backgroundColor = .clear
         view.navigationDelegate = context.coordinator
         return view
@@ -259,6 +262,7 @@ struct LoginTarget: Identifiable {
 }
 
 struct LoginWebView: View {
+    @Environment(\.nachtActief) private var nacht
     @Environment(\.dismiss) private var dismiss
     let target: LoginTarget
     @State private var webView: WKWebView = {
@@ -295,7 +299,7 @@ struct LoginWebView: View {
                     .padding(.horizontal)
                     .padding(.vertical, Space.s2)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.bar)
+                    .background(nacht ? AnyShapeStyle(Theme.paper) : AnyShapeStyle(.bar))
                     .animation(.easeInOut(duration: 0.3), value: done)
                 }
                 .sensoryFeedback(.success, trigger: done) { _, now in now }

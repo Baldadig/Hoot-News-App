@@ -1,0 +1,1059 @@
+[
+  {
+    "file": "web-keuze-licht.jpg",
+    "exclusions": [
+      {
+        "height": 179,
+        "reason": "foto/uitgeversbeeld",
+        "width": 358,
+        "x": 16,
+        "y": 259
+      },
+      {
+        "height": 24,
+        "reason": "merkvlak/bronlogo",
+        "width": 24,
+        "x": 16,
+        "y": 724
+      },
+      {
+        "height": 24,
+        "reason": "foto/uitgeversbeeld",
+        "width": 24,
+        "x": 16,
+        "y": 724
+      },
+      {
+        "height": 56,
+        "reason": "foto/uitgeversbeeld",
+        "width": 84,
+        "x": 290,
+        "y": 827
+      }
+    ]
+  },
+  {
+    "file": "web-keuze-donker.jpg",
+    "exclusions": [
+      {
+        "height": 179,
+        "reason": "foto/uitgeversbeeld",
+        "width": 358,
+        "x": 16,
+        "y": 259
+      },
+      {
+        "height": 24,
+        "reason": "merkvlak/bronlogo",
+        "width": 24,
+        "x": 16,
+        "y": 724
+      },
+      {
+        "height": 24,
+        "reason": "foto/uitgeversbeeld",
+        "width": 24,
+        "x": 16,
+        "y": 724
+      },
+      {
+        "height": 56,
+        "reason": "foto/uitgeversbeeld",
+        "width": 84,
+        "x": 290,
+        "y": 827
+      }
+    ]
+  },
+  {
+    "file": "web-keuze-nacht.jpg",
+    "exclusions": [
+      {
+        "height": 179,
+        "reason": "foto/uitgeversbeeld",
+        "width": 358,
+        "x": 16,
+        "y": 259
+      },
+      {
+        "height": 24,
+        "reason": "merkvlak/bronlogo",
+        "width": 24,
+        "x": 16,
+        "y": 724
+      },
+      {
+        "height": 24,
+        "reason": "foto/uitgeversbeeld",
+        "width": 24,
+        "x": 16,
+        "y": 724
+      },
+      {
+        "height": 56,
+        "reason": "foto/uitgeversbeeld",
+        "width": 84,
+        "x": 290,
+        "y": 827
+      }
+    ]
+  },
+  {
+    "file": "web-instellingen-nacht-blad.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-instellingen-nacht-inkt.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-popup-licht.jpg",
+    "exclusions": [
+      {
+        "height": 179,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 358,
+        "x": 16,
+        "y": 227
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 692
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 692
+      },
+      {
+        "height": 49,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 84,
+        "x": 290,
+        "y": 795
+      }
+    ]
+  },
+  {
+    "file": "web-editie-licht.jpg",
+    "exclusions": [
+      {
+        "height": 179,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 358,
+        "x": 16,
+        "y": 227
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 692
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 692
+      },
+      {
+        "height": 49,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 84,
+        "x": 290,
+        "y": 795
+      }
+    ]
+  },
+  {
+    "file": "web-eindkaart-licht.jpg",
+    "exclusions": [
+      {
+        "height": 12,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 84,
+        "x": 290,
+        "y": 0
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 94
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 94
+      },
+      {
+        "height": 56,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 84,
+        "x": 290,
+        "y": 157
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 273
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 273
+      },
+      {
+        "height": 376,
+        "reason": "Bestaand merkvlak",
+        "width": 358,
+        "x": 16,
+        "y": 351
+      }
+    ]
+  },
+  {
+    "file": "web-stroom-licht.jpg",
+    "exclusions": [
+      {
+        "height": 28,
+        "reason": "Bestaand merkvlak",
+        "width": 28,
+        "x": 338,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 28,
+        "x": 338,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaand merkvlak",
+        "width": 28,
+        "x": 322,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 28,
+        "x": 322,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaand merkvlak",
+        "width": 28,
+        "x": 306,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 28,
+        "x": 306,
+        "y": 66
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 177,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 356,
+        "x": 17,
+        "y": 196
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 392
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 392
+      },
+      {
+        "height": 177,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 356,
+        "x": 17,
+        "y": 568
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 764
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 764
+      }
+    ]
+  },
+  {
+    "file": "web-selectie-licht.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-popup-donker.jpg",
+    "exclusions": [
+      {
+        "height": 179,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 358,
+        "x": 16,
+        "y": 227
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 692
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 692
+      },
+      {
+        "height": 49,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 84,
+        "x": 290,
+        "y": 795
+      }
+    ]
+  },
+  {
+    "file": "web-editie-donker.jpg",
+    "exclusions": [
+      {
+        "height": 179,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 358,
+        "x": 16,
+        "y": 227
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 692
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 692
+      },
+      {
+        "height": 49,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 84,
+        "x": 290,
+        "y": 795
+      }
+    ]
+  },
+  {
+    "file": "web-eindkaart-donker.jpg",
+    "exclusions": [
+      {
+        "height": 12,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 84,
+        "x": 290,
+        "y": 0
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 94
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 94
+      },
+      {
+        "height": 56,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 84,
+        "x": 290,
+        "y": 157
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 273
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 273
+      },
+      {
+        "height": 376,
+        "reason": "Bestaand merkvlak",
+        "width": 358,
+        "x": 16,
+        "y": 351
+      }
+    ]
+  },
+  {
+    "file": "web-stroom-donker.jpg",
+    "exclusions": [
+      {
+        "height": 28,
+        "reason": "Bestaand merkvlak",
+        "width": 28,
+        "x": 338,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 28,
+        "x": 338,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaand merkvlak",
+        "width": 28,
+        "x": 322,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 28,
+        "x": 322,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaand merkvlak",
+        "width": 28,
+        "x": 306,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 28,
+        "x": 306,
+        "y": 66
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 177,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 356,
+        "x": 17,
+        "y": 196
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 392
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 392
+      },
+      {
+        "height": 177,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 356,
+        "x": 17,
+        "y": 568
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 764
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 764
+      }
+    ]
+  },
+  {
+    "file": "web-selectie-donker.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-popup-nacht.jpg",
+    "exclusions": [
+      {
+        "height": 179,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 358,
+        "x": 16,
+        "y": 227
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 692
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 692
+      },
+      {
+        "height": 49,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 84,
+        "x": 290,
+        "y": 795
+      }
+    ]
+  },
+  {
+    "file": "web-editie-nacht.jpg",
+    "exclusions": [
+      {
+        "height": 179,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 358,
+        "x": 16,
+        "y": 227
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 692
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 692
+      },
+      {
+        "height": 49,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 84,
+        "x": 290,
+        "y": 795
+      }
+    ]
+  },
+  {
+    "file": "web-eindkaart-nacht.jpg",
+    "exclusions": [
+      {
+        "height": 12,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 84,
+        "x": 290,
+        "y": 0
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 94
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 94
+      },
+      {
+        "height": 56,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 84,
+        "x": 290,
+        "y": 157
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 273
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 273
+      },
+      {
+        "height": 376,
+        "reason": "Bestaand merkvlak",
+        "width": 358,
+        "x": 16,
+        "y": 351
+      }
+    ]
+  },
+  {
+    "file": "web-stroom-nacht.jpg",
+    "exclusions": [
+      {
+        "height": 28,
+        "reason": "Bestaand merkvlak",
+        "width": 28,
+        "x": 338,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 28,
+        "x": 338,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaand merkvlak",
+        "width": 28,
+        "x": 322,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 28,
+        "x": 322,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaand merkvlak",
+        "width": 28,
+        "x": 306,
+        "y": 66
+      },
+      {
+        "height": 28,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 28,
+        "x": 306,
+        "y": 66
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaand merkvlak",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 22.399993896484375,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 22.399993896484375,
+        "x": 308.79998779296875,
+        "y": 68.80000305175781
+      },
+      {
+        "height": 177,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 356,
+        "x": 17,
+        "y": 196
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 392
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 392
+      },
+      {
+        "height": 177,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 356,
+        "x": 17,
+        "y": 568
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 764
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 764
+      }
+    ]
+  },
+  {
+    "file": "web-selectie-nacht.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-keuze-auto-licht.jpg",
+    "exclusions": [
+      {
+        "height": 179,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 358,
+        "x": 16,
+        "y": 227
+      },
+      {
+        "height": 24,
+        "reason": "Bestaand merkvlak",
+        "width": 24,
+        "x": 16,
+        "y": 692
+      },
+      {
+        "height": 24,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 24,
+        "x": 16,
+        "y": 692
+      },
+      {
+        "height": 49,
+        "reason": "Bestaande foto of uitgeverslogo",
+        "width": 84,
+        "x": 290,
+        "y": 795
+      }
+    ]
+  },
+  {
+    "file": "web-instellingen-licht.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-leeg-licht.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-instellingen-donker.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-leeg-donker.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-instellingen-nacht.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-leeg-nacht.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-onboarding-licht.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-onboarding-donker.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-onboarding-nacht.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-keuze-auto-donker.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-editie-auto-donker.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-stroom-auto-donker.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-selectie-auto-donker.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-keuze-auto-nacht.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-editie-auto-nacht.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-stroom-auto-nacht.jpg",
+    "exclusions": []
+  },
+  {
+    "file": "web-selectie-auto-nacht.jpg",
+    "exclusions": []
+  }
+]

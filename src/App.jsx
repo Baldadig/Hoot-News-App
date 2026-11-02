@@ -104,7 +104,7 @@ export default function App() {
   const endSplash = useCallback(() => setSplash(false), [])
   const { data, status, refreshing, refreshError, reload, pendingCount, applyPending, loadRelated } = useFeed(prefs)
   const online = useOnline()
-  const { theme, setTheme } = useTheme(prefs.palette)
+  const { theme, setTheme, themeDark, setThemeDark } = useTheme(prefs.palette, prefs, setPref)
   const hasPanel = useWide('(min-width: 1200px)')
   const [refreshKey, setRefreshKey] = useState(0)
   const setSocial = useCallback((list) => setPref('social', list), [setPref])
@@ -539,7 +539,7 @@ export default function App() {
       setLayout,
       prefs,
       setPref,
-      theme,
+      theme, themeDark, setThemeDark,
       setTheme,
       openDisplay,
       account,
@@ -558,7 +558,7 @@ export default function App() {
       muted,
       setMuted,
     }),
-    [less, voteOn, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, openDisplay, account, syncStatus, syncPulled, saved, toggleSave, share, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories],
+    [less, voteOn, undoLess, panel, layout, setLayout, prefs, setPref, theme, setTheme, themeDark, setThemeDark, openDisplay, account, syncStatus, syncPulled, saved, toggleSave, share, read, markRead, openSource, openStory, newInStory, itemsById, storiesById, sourcesById, muted, setMuted, followStory, prefs.followStories],
   )
 
   const hideMain = overlay || showWelcome

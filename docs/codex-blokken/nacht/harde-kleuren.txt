@@ -1,0 +1,2 @@
+ios/Hoot/Views/Components.swift:273:            if let image = phase.image { image.resizable().scaledToFill().background(Color.white) } else { Circle().fill(.quaternary) }
+ios/Hoot/Views/SourceFeedView.swift:15:                image.resizable().scaledToFill().background(Color.white)

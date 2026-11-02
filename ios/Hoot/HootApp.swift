@@ -20,8 +20,8 @@ struct HootApp: App {
             return UIFont(descriptor: serif, size: min(d.pointSize, max))
         }
         let bar = UINavigationBar.appearance()
-        bar.largeTitleTextAttributes = [.font: serif(.largeTitle, .heavy, max: 40)]
-        bar.titleTextAttributes = [.font: serif(.headline, .bold)]
+        bar.largeTitleTextAttributes = [.font: serif(.largeTitle, .heavy, max: 40), .foregroundColor: NachtKleur.label]
+        bar.titleTextAttributes = [.font: serif(.headline, .bold), .foregroundColor: NachtKleur.label]
     }
 
     // Alleen bij een koude start: het opstartscherm met de stuiterende punt, tot er iets te lezen is.
@@ -44,6 +44,7 @@ struct HootApp: App {
                     WelcomeView(reopen: store.welcomeAgain, onCancel: store.welcomeAgain ? { leaveWelcome() } : nil) { leaveWelcome() }
                 }
             }
+            .modifier(HootWeergave())
             .accessibilityHidden(splash) // VoiceOver niet achter het opstartscherm
             .environment(\.brandHandoff, handoff)
             .animation(.easeInOut(duration: 0.45), value: store.onboarded)

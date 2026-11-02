@@ -246,7 +246,7 @@ const CONTROLS = [
     render: (s) => (
       <select className={cls('input', s)} aria-label="Voorbeeld" disabled={off(s)} defaultValue="licht">
         <option value="licht">Licht</option>
-        <option value="donker">Donker</option>
+        <option value="donker">Donker</option><option value="nacht">Nacht</option>
       </select>
     ),
   },
@@ -291,7 +291,7 @@ function stateCss(rules, out) {
     }
   }
 }
-// De kleuren van licht en donker als twee klassen (.sg-licht, .sg-donker): alle tokens van :root,
+// Licht, Donker en Nacht als klassen: alle tokens van :root,
 // voor donker met die van :root[data-theme='dark'] erover. Omdat de rollen (--action, --sel-bg …)
 // opnieuw meekomen, lossen ze binnen zo'n klasse op met de kleuren van dat thema.
 function themeCss(sheets) {
@@ -305,7 +305,7 @@ function themeCss(sheets) {
       continue // een stylesheet van een ander domein (lettertypen)
     }
     for (const r of rules) {
-      const into = r.selectorText === ':root' ? light : /^:root\[data-theme=["']dark["']\]$/.test(r.selectorText || '') ? dark : null
+      const into = r.selectorText === ':root' ? light : (r.selectorText || '').split(',').some(s => /^:root\[data-theme=["']dark["']\]$/.test(s.trim())) ? dark : null
       if (!into) continue
       for (let i = 0; i < r.style.length; i++) {
         const p = r.style[i]
@@ -313,7 +313,7 @@ function themeCss(sheets) {
       }
     }
   }
-  return `.sg-licht { ${light.join(' ')} }\n.sg-donker { ${light.join(' ')} ${dark.join(' ')} }`
+  return `.sg-licht { ${light.join(' ')} }\n.sg-donker { ${light.join(' ')} ${dark.join(' ')} }\n.sg-nacht { ${light.join(' ')} ${dark.join(' ')} --paper:#000000; }`
 }
 function buildCss() {
   const out = []
@@ -474,7 +474,7 @@ export default function StyleGuide({ stream }) {
         </ul>
 
         <h2 className="label label--section sect">Kleur</h2>
-        <p className="hint sg__intro">Dezelfde namen in licht en donker; een rol verwijst naar een basiskleur. De stalen tonen Kleur: Papier, de standaard.</p>
+        <p className="hint sg__intro">Dezelfde namen in Licht, Donker en Nacht; een rol verwijst naar een basiskleur. De stalen tonen Kleur: Papier, de standaard.</p>
         <div className="sg__colors">
           <span />
           <span className="sg__tone sg__tone--top sg-licht">
@@ -483,6 +483,7 @@ export default function StyleGuide({ stream }) {
           <span className="sg__tone sg__tone--top sg-donker">
             <span className="label label--meta">Donker</span>
           </span>
+          <span className="sg__tone sg__tone--top sg-nacht"><span className="label label--meta">Nacht</span></span>
           {COLORS.map(([v, label], i) => {
             const end = i === COLORS.length - 1 ? ' sg__tone--end' : ''
             return (
@@ -491,7 +492,7 @@ export default function StyleGuide({ stream }) {
                   <code>{v}</code>
                   <span>{label}</span>
                 </span>
-                {['licht', 'donker'].map((t) => (
+                {['licht', 'donker', 'nacht'].map((t) => (
                   <span key={t} className={`sg__tone sg__tone--row${end} sg-${t}`}>
                     <span className="sg__chip" style={{ background: `var(${v})` }} data-hex={`${t}${v}`} />
                     <code>{hex[`${t}${v}`] || ''}</code>

@@ -20,7 +20,7 @@ function Seg({ label, value, options, onChange }) {
 }
 
 export function DisplayControls() {
-  const { prefs, setPref, theme, setTheme } = useHoot()
+  const { prefs, setPref, theme, setTheme, themeDark, setThemeDark } = useHoot()
   return (
     <div className="drows">
       <Seg
@@ -31,8 +31,10 @@ export function DisplayControls() {
           { value: 'system', label: 'Systeem' },
           { value: 'light', label: 'Licht' },
           { value: 'dark', label: 'Donker' },
+          { value: 'night', label: 'Nacht', aria: 'Nacht, echt zwart' },
         ]}
       />
+      {theme === 'system' ? <Seg label="Als het donker is" value={themeDark} onChange={setThemeDark} options={[{value:'dark',label:'Donker'},{value:'night',label:'Nacht',aria:'Nacht, echt zwart'}]} /> : null}
       <Seg
         label="Kleur"
         value={prefs.palette}

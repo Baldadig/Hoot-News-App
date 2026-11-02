@@ -1,9 +1,8 @@
-## Nog uit te brengen · blok 14
-- Editie: zichtbare nummering, werkelijke eindtelling zonder bubbel en een laadmelding onder de titel.
-
 # Changelog — Hoot voor iOS
 
 ## Onuitgebracht
+
+- Editie: zichtbare nummering, werkelijke eindtelling zonder bubbel en een laadmelding onder de titel.
 
 - Rustig inlogpaneel bij korte betaalde artikelen, weg te vegen/sluiten; na zeven dagen per bron maximaal één herinnering. Lange knopnamen lopen alleen door als de echte tekst niet past, zonder verkleinen of afkappen.
 - Lezer: pas na 400 ms “Artikel laden”, geen bronnentekst of flits bij snel laden; oude wachttaak wordt geannuleerd.
@@ -16,6 +15,7 @@
 - Beeldfallback van de eigen Netlify-beeld-CDN naar het originele bronbeeld; geen herhaallus bij fouten.
 - Bluesky: per account Ook in de Stroom, met synchronisatie, 36-uursvenster en directe verwerking van uitzetten/ontvolgen/uitloggen. Oude laadantwoorden kunnen een verwijderd account niet terugzetten.
 - Selectie: Ga naar onderwerp, individuele secties en alles in-/uitklappen; lokale inklapstand per lezer, ook over weken. Navigeren opent eerst het onderwerp en springt zonder animatie naar de kop.
+- Lokale keuze Systeem, Licht, Donker en Nacht, met een eigen avondvariant en zwarte lezerachtergrond.
 
 - Nieuwe Editie: perslijn en hoofdverhaal verschijnen één keer na de iris, met vervagen bij Verminder beweging.
 - Taalfilter voor tweetalige bronnen en juiste hoofdtaal van vakbronnen.

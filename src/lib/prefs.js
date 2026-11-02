@@ -1,7 +1,10 @@
 // Instellingen — één plek voor de standaardwaarden en het opschonen van wat er is opgeslagen
 // (getest in tests/prefs.test.mjs).
+import { themePref, darkPref } from './theme.js'
 import { VAK_FIELD_IDS } from '../../shared/vak.mjs'
 export const DEFAULT_PREFS = {
+  theme: 'system',
+  themeDark: 'dark',
   muted: [],
   pinned: [], // neutraal: niemands voorkeur als standaard
   onboarded: true,
@@ -28,6 +31,8 @@ export const DEFAULT_PREFS = {
 export function normalizePrefs(raw) {
   const p = raw && typeof raw === 'object' ? raw : {}
   const out = { ...DEFAULT_PREFS, ...p }
+  out.theme = themePref(out.theme)
+  out.themeDark = darkPref(out.themeDark)
   // Oudere opslag: "Kort/Volledig" wordt "2 regels/alles".
   if (p.preview == null && p.density) out.preview = p.density === 'volledig' ? 'alles' : 2
   if (![1, 2, 3, 'alles'].includes(out.preview)) out.preview = 2

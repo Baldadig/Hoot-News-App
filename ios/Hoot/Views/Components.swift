@@ -6,7 +6,7 @@ import UniformTypeIdentifiers
 // bij Newsreader op het web en schaalt mee met Dynamische tekst), de rest in San Francisco.
 enum Theme {
     // De kleuren van het design system (zelfde namen en waarden als src/styles.css).
-    static let paper = Color("Paper") // pagina
+    static let paper = Color(uiColor: NachtKleur.paper) // pagina
     static let surface = Color("Surface") // kaart, blad, melding
     static let ink = Color("Ink") // koppen en tekst
     static let ink2 = Color("Ink2") // intro's en samenvattingen
@@ -44,12 +44,14 @@ final class Reader {
 }
 
 struct SafariView: UIViewControllerRepresentable {
+    @Environment(\.nachtActief) private var nacht
     let url: URL
     var reader = false
     func makeUIViewController(context: Context) -> SFSafariViewController {
         let config = SFSafariViewController.Configuration()
         config.entersReaderIfAvailable = reader
         let vc = SFSafariViewController(url: url, configuration: config)
+        if nacht { vc.preferredBarTintColor = .black; vc.view.backgroundColor = .black }
         vc.dismissButtonStyle = .close
         return vc
     }
@@ -60,6 +62,7 @@ struct SafariView: UIViewControllerRepresentable {
 // verdwijnt de witte duim van iOS erin; het web maakt de duim daar papier, maar dat laat iOS niet toe.
 // Daarom in donker ink3: de baan blijft neutraal en de duim blijft te zien.
 struct InkSwitch: ToggleStyle {
+    @Environment(\.nachtActief) private var nacht
     @Environment(\.colorScheme) private var scheme
     @Environment(\.accessibilityReduceMotion) private var still
     func makeBody(configuration: Configuration) -> some View {
@@ -70,7 +73,7 @@ struct InkSwitch: ToggleStyle {
                 Capsule().fill(configuration.isOn ? Theme.ink : Theme.ink.opacity(0.16))
                     .frame(width: 51, height: 31)
                     .overlay(alignment: configuration.isOn ? .trailing : .leading) {
-                        Circle().fill(configuration.isOn && scheme == .dark ? Theme.paper : .white)
+                        Circle().fill(configuration.isOn && scheme == .dark ? Theme.paper : nacht ? Theme.ink : .white)
                             .frame(width: 27, height: 27).padding(2)
                     }
             }.frame(minHeight: Space.tap).contentShape(Rectangle())
