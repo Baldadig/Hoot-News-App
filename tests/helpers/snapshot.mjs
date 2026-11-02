@@ -113,5 +113,6 @@ export function generalEdition(snap) {
   const entries = selectEdition(stories, articles, { mainIds: MAIN_IDS, now: nowOf(snap) })
   return { stories, entries }
 }
-// Afdruk van de bundels zonder `desk` (die kwam er later bij; de rest blijft gelijk).
-export const storiesPrint = (stories) => createHash('sha256').update(JSON.stringify(stories.map(({ desk, ...st }) => st))).digest('hex')
+// Afdruk van de bundels zonder `desk` en `sport` (die kwamen er later bij, `sport` met de noodfix van
+// 2 november; de rest blijft gelijk).
+export const storiesPrint = (stories) => createHash('sha256').update(JSON.stringify(stories.map(({ desk, sport, ...st }) => st))).digest('hex')

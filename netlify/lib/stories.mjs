@@ -1,4 +1,4 @@
-import { coverageOf, majorNews, allowedNews, internationalNews, worldChosen } from '../../shared/edition-policy.mjs'
+import { coverageOf, majorNews, allowedNews, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery } from '../../shared/edition-policy.mjs'
 import { eventScope, conflictingEvents } from '../../shared/article-signals.mjs'
 // Verhalen (bundels), hoofdbericht en editie — pure functies, los van het ophalen,
 // zodat ze te testen zijn (zie tests/).
@@ -487,7 +487,8 @@ export function leadCandidates(items, mainIds, preferred = null, now = null) {
   // Een opiniestuk is nooit het hoofdbericht als er een nieuwsbericht is.
   // Een podcast of liveblog is ook nooit het hoofdbericht (een promo, of over van alles tegelijk).
   // Achtergrond weegt zwaarder mee dan alle voorkeuren samen (27): een vers bericht gaat altijd voor.
-  const score = (i) => (i.type === 'opinie' ? -16 : 0) + (/\bpodcast\b/i.test(i.title || '') || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (i.summary ? 2 : 0) + (i.image ? 1 : 0)
+  // Een fotogalerij of slideshow is nooit het hoofdbericht als er iets anders is (isGallery).
+  const score = (i) => (i.type === 'opinie' ? -16 : 0) + (/\bpodcast\b/i.test(i.title || '') || isLive(i) ? -16 : 0) + (isStale(i, now) ? -32 : 0) + (isGallery(i) ? -48 : 0) + (preferred?.has(i.source) ? 12 : 0) + (mainIds.has(i.source) ? 8 : 0) + (i.summary ? 2 : 0) + (i.image ? 1 : 0)
   return [...items].sort((a, b) => score(b) - score(a) || byRecency(a, b))
 }
 
@@ -631,6 +632,10 @@ export function buildStories(articles, registry = {}, { mainIds = new Set(), key
       firstAt: items[items.length - 1].publishedAt || null,
       ...(keys ? { keys: storyKeys(items, keySig) } : {}),
     })
+    // Sport op niveau van het verhaal (shared/edition-policy.mjs): alleen gezet als het zo is, zodat andere
+    // verhalen byte-gelijk blijven. De lead hoeft geen sporttag te hebben (een NYT-fotogalerij).
+    const last = stories[stories.length - 1]
+    if (sportStory({ sourceNames: names, keys: last.keys }, items)) last.sport = true
   }
   return stories
 }
@@ -948,7 +953,8 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     for (const id of ids) if (sig.has(id)) placed.push(sig.get(id))
   }
   const pickLead = (items) => {
-    const cands = leadCandidates(items, mainIds, preferred, now)
+    const all = leadCandidates(items, mainIds, preferred, now)
+    const cands = all.some((i) => !isGallery(i)) ? all.filter((i) => !isGallery(i)) : all // geen galerij als kop, ook niet als enige eigen bron
     // Vers nieuws eerst: een achtergrondstuk van gisteren wordt alleen de kop als er niets recents
     // is. Ook niet om de bronnen te spreiden of omdat de verse bron al vaak de kop is.
     const current = cands.filter((i) => !isStale(i, now))
@@ -965,6 +971,9 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     if (!fresh(st.latestAt, 24)) continue
     const items = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
     if (!items.length) continue
+    // De algemene Editie is nieuws: een sportverhaal (ook met een kop zonder sporttag) en een verhaal van
+    // alleen galerijen doen niet mee, behalve groot Oranje-sportnieuws (exceptionalDutchSport).
+    if (items.every(isGallery) || (sportStory(st, items) && !exceptionalDutchSport(st, items))) continue
     const per = storyDesks(items)
     const fav = preferred?.size && items.some((i) => preferred.has(i.source)) ? FAVORITE_BONUS : 0
     cands.push({ kind: 'story', st, items, ids: st.itemIds, desks: new Set(per.flatMap((x) => [...x])), primary: primaryDesk(per), w: weight(st, now) - repeatPenalty(st, items, previous) + fav })
@@ -973,6 +982,7 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || it.storyId || isLive(it)) continue // een liveblog is geen editieplek
     if (!fresh(it.publishedAt, 14) || !(it.summary || it.image)) continue
     if (previous?.itemIds?.has(it.id)) continue // stond er al
+    if (isGallery(it)) continue // een galerij is geen eigen plek
     const desks = desksOf(it)
     cands.push({ kind: 'item', it, ids: [it.id], desks, primary: primaryDesk([desks]), w: weight({ sourceCount: 1, ownCount: 1, latestAt: it.publishedAt }, now) - 2 + (preferred?.has(it.source) ? FAVORITE_BONUS : 0) })
   }
@@ -1051,7 +1061,8 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     for (const id of ids) if (sig.has(id)) placed.push(sig.get(id))
   }
   const pickLead = (items) => {
-    const cands = leadCandidates(items, mainIds, preferred, now)
+    const all = leadCandidates(items, mainIds, preferred, now)
+    const cands = all.some((i) => !isGallery(i)) ? all.filter((i) => !isGallery(i)) : all // geen galerij als kop, ook niet als enige eigen bron
     const current = cands.filter((i) => !isStale(i, now))
     const recent = current.length ? current : cands
     const ownOnly = recent.filter((i) => mainIds.has(i.source))

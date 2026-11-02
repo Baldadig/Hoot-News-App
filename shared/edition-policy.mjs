@@ -1,6 +1,7 @@
 // Vastgestelde redactionele normen, 1 november 2026. Geen modelcalls.
 import { geoOf, isSport, FRONT_BIG, FAMILY_OF } from './editor.mjs'
 import { storyForeignOf, NL_HOME, VL_HOME } from '../netlify/lib/desks.mjs'
+import { SOURCES } from '../netlify/lib/sources.mjs'
 
 // Expliciete uitgeverlanden; taal en het land in een artikel zijn nooit bewijs hiervoor.
 // Onbekende uitgevers leveren geen extra land op. Sectiefeeds blijven dezelfde uitgever.
@@ -18,7 +19,41 @@ export function coverageOf(items = []) {
   const ids = [...new Set(items.map(i => publisherOf(i.source)).filter(Boolean))].sort()
   return { publisherCount: ids.length, publisherCountries: [...new Set(ids.map(publisherCountry).filter(Boolean))].sort() }
 }
+// ---- Noodfix 2 november 2026: sport op niveau van het verhaal, en de galerij ----
+// Een bundel van 64 stukken over een F1-titel, een marathon en meer sport had een NYT-fotogalerij als kop
+// (geen sporttag) en 18 uitgevers: "Groot nieuws" voor iedereen. Sport herken je daarom aan het hele verhaal.
+const SPORT_CAT = new Map(SOURCES.map(s => [s.id, s.cat]))
+const SPORT_NAMES = new Set(SOURCES.filter(s => s.cat === 'sport').map(s => s.name))
+// Sleutelwoorden (story.keys) en kopwoorden die op zichzelf al sport zeggen; losse treffers tellen niet, drie wel.
+const SPORT_KEYS = new Set(['formula','formule','f1','fia','marathon','voetbal','football','soccer','eredivisie','tennis','wimbledon','olympic','olympisch','wielrennen','cycling','nba','nfl','nhl','mlb','rugby','cricket','darts','qualifying','autodromo','interlagos','wk','ek'])
+const SPORT_HEAD = /\b(marathon|grand prix|formula (1|one)|formule 1|f1|premier league|champions league|world cup|wk|ek|eredivisie|olympic\w*|olympisch\w*|nba|nfl)\b/i
+// Een verhaal is sport als de meerderheid van zijn uitgevers sportbron of -sectie is (`story.sport` van de
+// server wint). Een derde, met minstens drie echte sportbronnen en sportwoorden in de kop of de kenmerken,
+// is genoeg: algemene uitgevers (NYT, NPR, Al Jazeera) schrijven mee over de uitslag, maar het blijft sport.
+export function sportStory(story = {}, items = [], catOf = null) {
+  if (typeof story.sport === 'boolean') return story.sport
+  const units = new Map()
+  const bySource = new Map()
+  for (const i of items) if (i?.source) (bySource.get(i.source) || bySource.set(i.source, []).get(i.source)).push(i)
+  for (const [src, its] of bySource) {
+    const dedicated = (catOf?.get(src) ?? SPORT_CAT.get(src)) === 'sport'
+    units.set(its[0].sourceName || src, dedicated || its.filter(i => isSport(i, catOf)).length * 2 >= its.length)
+  }
+  for (const name of story.sourceNames || []) if (!units.has(name)) units.set(name, SPORT_NAMES.has(name))
+  const sport = [...units.values()].filter(Boolean).length
+  if (!units.size || !sport) return false
+  if (sport * 2 >= units.size) return true
+  const evidence = (story.keys || []).filter(k => SPORT_KEYS.has(k)).length >= 3 || items.some(i => SPORT_HEAD.test(i.title || ''))
+  return sport >= 3 && sport * 3 >= units.size && evidence
+}
+// Fotogalerij, slideshow of video-overzicht: nooit het hoofdverhaal als er iets anders is.
+const GALLERY_TITLE = /\b(in photos( and videos?)?|in pictures|photos? and videos?|slideshow|gallery|in beeld|fotoreportage|fotoserie)\b/i
+const GALLERY_URL = /\/(interactive|slideshow|gallery|galleries|fotoserie|in-beeld)\/|[-/](in-photos|in-pictures|photos-and-videos?|slideshow|fotoreportage|fotoserie)\b/i
+export const isGallery = item => GALLERY_TITLE.test(item?.title || '') || GALLERY_URL.test(String(item?.url || '').split('?')[0])
+const onlyGalleries = items => items.length > 0 && items.every(isGallery)
+
 export function majorNews(story = {}, items = []) {
+  if (onlyGalleries(items)) return false
   const coverage = coverageOf(items)
   // Nieuwe backendvelden bevatten de volledige gebeurtenis, ook bij een gedeeltelijke clientpool.
   const observedSources = new Set(items.map(i => i.source).filter(Boolean)).size
@@ -54,6 +89,7 @@ export function exceptionalDutchSport(story, items) {
   return items.some(i => /\b(nederland\w*|netherlands|dutch|oranje)\b/i.test(i.title || '') && /\b(wk|wereldkampioenschap\w*|world cup|olympisch\w*|olympic\w*)\b/i.test(i.title || '') && /\b(finale|final|kampioen\w*|goud|gold)\b/i.test(i.title || ''))
 }
 export function allowedNews(prof, story, items, desk = null) {
-  if (items.some(i => isSport(i, prof.catOf)) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return false
+  if (onlyGalleries(items)) return false
+  if ((sportStory(story, items, prof.catOf) || items.some(i => isSport(i, prof.catOf))) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return false
   return worldChosen(prof) || !internationalNews(items, desk, story) || majorNews(story, items)
 }
