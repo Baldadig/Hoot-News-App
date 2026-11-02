@@ -24,6 +24,10 @@ test('eerste paint gebruikt dezelfde keuze inclusief nachtbalk vóór modules la
   assert.equal(root.dataset.theme,resolvedTheme(theme,themeDark,system))
   if(root.dataset.theme==='night'){assert.equal(meta.content,'#000000');assert.equal(root.style.colorScheme,'dark')}
  }
+ const root={dataset:{},style:{}}
+ vm.runInNewContext(script,{localStorage:store({'hoot:prefs':'{kapot','hoot:theme':'night'}),window:{matchMedia:()=>({matches:false})},document:{documentElement:root,querySelectorAll:()=>[]}})
+ assert.equal(root.dataset.theme,'night')
+
 })
 test('profiel, opschoning en domeinverhuizing bewaren beide nachtkeuzes',()=>{
  assert.deepEqual(pickSynced({theme:'night',themeDark:'night'}),{theme:'night',themeDark:'night'})

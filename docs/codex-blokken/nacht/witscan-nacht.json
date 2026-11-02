@@ -514,5 +514,132 @@
   {
     "file": "ipad-instellingen-staand-nacht.png",
     "exclusions": []
+  },
+  {
+    "file": "native-ipad-lezer-nacht.jpg",
+    "exclusions": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 1472,
+        "height": 603,
+        "reason": "Mac/Device Hub buiten het app-scherm"
+      },
+      {
+        "x": 0,
+        "y": 603,
+        "width": 555,
+        "height": 1127,
+        "reason": "Mac buiten het app-scherm"
+      },
+      {
+        "x": 1398,
+        "y": 603,
+        "width": 74,
+        "height": 1127,
+        "reason": "Mac buiten het app-scherm"
+      },
+      {
+        "x": 555,
+        "y": 1157,
+        "width": 843,
+        "height": 573,
+        "reason": "Mac en apparaatframe onder het app-scherm"
+      },
+      {
+        "x": 555,
+        "y": 603,
+        "width": 843,
+        "height": 24,
+        "reason": "Systeemstatusbalk"
+      }
+    ]
+  },
+  {
+    "file": "native-ipad-lezer-overscroll-nacht.jpg",
+    "exclusions": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 1472,
+        "height": 603,
+        "reason": "Mac/Device Hub buiten het app-scherm"
+      },
+      {
+        "x": 0,
+        "y": 603,
+        "width": 555,
+        "height": 1127,
+        "reason": "Mac buiten het app-scherm"
+      },
+      {
+        "x": 1398,
+        "y": 603,
+        "width": 74,
+        "height": 1127,
+        "reason": "Mac buiten het app-scherm"
+      },
+      {
+        "x": 555,
+        "y": 1157,
+        "width": 843,
+        "height": 573,
+        "reason": "Mac en apparaatframe onder het app-scherm"
+      },
+      {
+        "x": 555,
+        "y": 603,
+        "width": 843,
+        "height": 24,
+        "reason": "Systeemstatusbalk"
+      }
+    ]
+  },
+  {
+    "file": "native-ipad-abonnementspaneel-nacht.jpg",
+    "exclusions": [
+      {
+        "x": 0,
+        "y": 0,
+        "width": 1472,
+        "height": 603,
+        "reason": "Mac/Device Hub buiten het app-scherm"
+      },
+      {
+        "x": 0,
+        "y": 603,
+        "width": 555,
+        "height": 1127,
+        "reason": "Mac buiten het app-scherm"
+      },
+      {
+        "x": 1398,
+        "y": 603,
+        "width": 74,
+        "height": 1127,
+        "reason": "Mac buiten het app-scherm"
+      },
+      {
+        "x": 555,
+        "y": 1157,
+        "width": 843,
+        "height": 573,
+        "reason": "Mac en apparaatframe onder het app-scherm"
+      },
+      {
+        "x": 555,
+        "y": 603,
+        "width": 843,
+        "height": 24,
+        "reason": "Systeemstatusbalk"
+      },
+      {
+        "x": 723,
+        "y": 936,
+        "width": 506,
+        "height": 126,
+        "reason": "Ongewijzigde artikelfoto"
+      }
+    ]
   }
 ]

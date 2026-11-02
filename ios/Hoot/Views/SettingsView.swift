@@ -487,7 +487,7 @@ private struct SettingsButton: ViewModifier {
     func body(content: Content) -> some View {
         content
             .toolbar { AccountButton(open: $open) }
-            .sheet(isPresented: $open) { SettingsView().debugAppearance() }
+            .sheet(isPresented: $open) { SettingsView().debugAppearance().modifier(HootWeergave()) }
             .onAppear { if DebugLaunch.screen?.hasPrefix("instellingen") == true { open = true } }
     }
 }

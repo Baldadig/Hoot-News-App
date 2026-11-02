@@ -34,4 +34,26 @@ import SwiftUI
         XCTAssertTrue(ReaderHTML.page(article,item:item,sourceName:"NOS",size:1,night:true).contains("--paper:#000000"))
         XCTAssertFalse(ReaderHTML.page(article,item:item,sourceName:"NOS",size:1).contains("--paper:#000000"))
     }
+    func testOpenSettingsSheetFollowsLiveChoice() async throws {
+        let suite="hoot-night-sheet-"+UUID().uuidString,defaults=UserDefaults(suiteName:suite)!
+        let oldScreen=UserDefaults.standard.object(forKey:"HootScreen")
+        UserDefaults.standard.set("instellingen",forKey:"HootScreen")
+        defaults.set("night",forKey:"hoot.weergave")
+        let root=Text("Hoot").settingsButton().environment(HootStore()).environment(Account()).environment(EditionAlerts.shared).modifier(HootWeergave()).defaultAppStorage(defaults)
+        let host=UIHostingController(rootView:root)
+        let scene=try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap{$0 as? UIWindowScene}.first)
+        let previous=scene.windows.first(where:{$0.isKeyWindow})
+        let window=UIWindow(windowScene:scene);window.frame=CGRect(x:0,y:0,width:390,height:844);window.rootViewController=host;window.makeKeyAndVisible()
+        defer {window.isHidden=true;previous?.makeKey();defaults.removePersistentDomain(forName:suite);if let oldScreen{UserDefaults.standard.set(oldScreen,forKey:"HootScreen")}else{UserDefaults.standard.removeObject(forKey:"HootScreen")}}
+        try await Task.sleep(for:.milliseconds(900))
+        let sheet=try XCTUnwrap(host.presentedViewController)
+        XCTAssertEqual(sheet.traitCollection.userInterfaceStyle,.dark)
+        defaults.set("light",forKey:"hoot.weergave")
+        try await Task.sleep(for:.milliseconds(500))
+        XCTAssertEqual(sheet.traitCollection.userInterfaceStyle,.light,"Ook het al geopende instellingenblad moet licht worden")
+        defaults.set("night",forKey:"hoot.weergave")
+        try await Task.sleep(for:.milliseconds(500))
+        XCTAssertEqual(sheet.traitCollection.userInterfaceStyle,.dark)
+    }
+
 }
