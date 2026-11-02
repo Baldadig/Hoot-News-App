@@ -1,0 +1,66 @@
+{
+  "rows": [
+    {
+      "persona": "haags",
+      "regular": 9,
+      "bubble": 1
+    },
+    {
+      "persona": "ai",
+      "regular": 9,
+      "bubble": 1
+    },
+    {
+      "persona": "gamer",
+      "regular": 9,
+      "bubble": 1
+    },
+    {
+      "persona": "klimaat",
+      "regular": 10,
+      "bubble": 0
+    },
+    {
+      "persona": "belegger",
+      "regular": 9,
+      "bubble": 1
+    },
+    {
+      "persona": "wereld",
+      "regular": 9,
+      "bubble": 1
+    },
+    {
+      "persona": "muziek",
+      "regular": 10,
+      "bubble": 0
+    },
+    {
+      "persona": "koers",
+      "regular": 9,
+      "bubble": 1
+    },
+    {
+      "persona": "vlaming",
+      "regular": 9,
+      "bubble": 1
+    },
+    {
+      "persona": "brabant",
+      "regular": 9,
+      "bubble": 1
+    },
+    {
+      "persona": "nieuw",
+      "regular": 10,
+      "bubble": 0
+    },
+    {
+      "persona": "vs",
+      "regular": 10,
+      "bubble": 0
+    }
+  ],
+  "jaccardAll": 0.3356006738359679,
+  "jaccardRegular": 0.32445414434050807
+}

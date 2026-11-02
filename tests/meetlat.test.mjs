@@ -1,3 +1,4 @@
+import { editionStoryCount } from '../shared/edition-limits.mjs'
 // De meetlat op de vaste momentopname (tests/helpers/snapshot.mjs): de twaalf persona's, de
 // nulmeting en de algemene Editie als vaste referentie. Zie Hoot-design/algoritme/bouwspec.md (P0).
 import { test } from 'node:test'
@@ -30,7 +31,7 @@ test('meetlat: de huidige persoonlijke Editie, gemeten tegen de nulmeting', (t) 
   const jac = pairwise(eds.map(({ edition }) => keysOf(edition, ctx)))
   const moved = eds.reduce((n, { persona, edition }) => n + [...keysOf(edition, ctx)].filter((k) => !nul.keys[persona.id].includes(k)).length, 0)
   t.diagnostic(`gem. Jaccard nu: ${jac.toFixed(4)} (nulmeting ${nul.jaccard}); ${moved} plekken anders dan de nulmeting`)
-  for (const { persona, edition } of eds) assert.equal(edition.entries.length, 10, persona.id)
+  for (const { persona, edition } of eds) assert.equal(editionStoryCount(edition.entries), 10, persona.id)
   assert.ok(jac <= nul.jaccard + 1e-9, `Jaccard ${jac} > nulmeting ${nul.jaccard}`)
 })
 

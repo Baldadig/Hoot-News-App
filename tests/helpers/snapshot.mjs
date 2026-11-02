@@ -79,7 +79,7 @@ export function keyOf(e, ctx) {
   if (e.kind === 'story') return e.id
   return ctx.storyOfItem.get(e.id) || ctx.itemById.get(e.id)?.storyId || e.id
 }
-export const keysOf = (edition, ctx) => new Set((edition?.entries || []).map((e) => keyOf(e, ctx)))
+export const keysOf = (edition, ctx) => new Set((edition?.entries || []).filter(e=>e.desk !== 'bubbel').map((e) => keyOf(e, ctx)))
 export function membersOf(e, ctx) {
   const st = e.kind === 'story' ? ctx.storyById.get(e.id) : ctx.storyById.get(keyOf(e, ctx))
   return [...new Set([leadOf(e), ...(st?.itemIds || e.itemIds || [])])].map((id) => ctx.itemById.get(id)).filter(Boolean)

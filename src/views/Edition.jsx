@@ -101,6 +101,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
   const published = new Map((edition?.items || []).map((i) => [i.id, i]))
   const placed = (edition?.entries || [])
     .map((e, index) => {
+      if (e.desk === 'bubbel' && prefs?.bubble === false) return null
       const r = resolveEditionEntry(e, { storiesById, itemsById, published, muted })
       if (!r) return null
       const label = e.desk === 'breed' ? `Waar iedereen over schrijft · ${e.sourceCount} bronnen` : deskLabel({ ...e, desk: r.desk })
@@ -111,7 +112,9 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
     })
     .filter(Boolean)
   // De telling (numberRows): elke rij krijgt zijn nummer in de getoonde volgorde; N is het totaal.
-  const rows = numberRows(heroFirst(placed, fitsHero))
+  const numbered = numberRows(heroFirst(placed, fitsHero))
+  const rows = numbered.filter(r=>r.desk !== 'bubbel')
+  const editionBubble = numbered.filter(r=>r.desk === 'bubbel')
   const count = countOf(rows)
 
   // Je volgt, zonder dubbelingen: een gevolgd verhaal dat op de voorpagina staat (en niet is
@@ -308,15 +311,11 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 </div>
               </div>
             ) : null}
-            {bubble.length ? (
+            {editionBubble.length ? (
               <section className="bubble" aria-label="Buiten je bubbel">
                 <h2 className="label label--section front__more">Buiten je bubbel</h2>
-                <p className="hint bubble__hint">Wat anderen nu lezen of zoeken en wat niet in je Editie zit — ook uit bronnen die je niet volgt.</p>
-                <div className="list rows">
-                  {bubble.map((b) => (
-                    <CompactItem key={b.id} item={b.item} story={b.storyId ? storiesById.get(b.storyId) : null} note={`Via ${[...new Set(b.terms.map((t) => VIA[t.via] || t.via))].join(' en ')}`} plain />
-                  ))}
-                </div>
+                <p className="hint bubble__hint">Een verhaal naast je Editie.</p>
+                {editionBubble.map(r=><Slot key={r.key} less={less} row={r}><CompactItem item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} taste={r.key} plain /></Slot>)}
               </section>
             ) : null}
             <div className="endcap">

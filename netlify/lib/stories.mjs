@@ -1,5 +1,5 @@
 import { cleanIntro, headlineFit } from '../../shared/edition-display.mjs'
-import { coverageOf, majorNews, newsRejection, lightVideoFiller, allowedNews, cappedInternational, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery } from '../../shared/edition-policy.mjs'
+import { EDITION_TARGET, coverageOf, majorNews, newsRejection, lightVideoFiller, allowedNews, cappedInternational, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery } from '../../shared/edition-policy.mjs'
 import { eventScope, conflictingEvents } from '../../shared/article-signals.mjs'
 // Verhalen (bundels), hoofdbericht en editie — pure functies, los van het ophalen,
 // zodat ze te testen zijn (zie tests/).
@@ -800,7 +800,7 @@ export function storyKeys(items, sig) {
 }
 
 // ---------- Editie ----------
-export const EDITION_SIZE = 10
+export const EDITION_SIZE = EDITION_TARGET
 const MAX_LEADS_PER_SOURCE = 3
 
 // De editie vóór deze: middag → ochtend, avond → middag, ochtend → gisteravond.

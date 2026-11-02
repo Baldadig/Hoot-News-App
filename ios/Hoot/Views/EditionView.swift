@@ -232,7 +232,9 @@ struct EditionView: View {
             ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
-                    let rows = EditionNumbering.rows(store.editionRows)
+                    let numbered = EditionNumbering.rows(store.editionRows)
+                    let rows = numbered.filter { $0.desk != "bubbel" }
+                    let outsideRows = numbered.filter { $0.desk == "bubbel" }
                     // De schermtitel in de scroll, direct boven de metaregel (zoals .vh__sub op het web).
                     // Met een kleine, stille zon ernaast: zijn hoogte toont het dagdeel (onboarding-plan, ‘De zon
                     // in de Editie’). Laag bij de Ochtend- en Avondeditie, hoog bij de Middageditie.
@@ -272,6 +274,13 @@ struct EditionView: View {
                             ForEach(rows.dropFirst()) { row in
                                 Rule().padding(.vertical, Space.s2)
                                 slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
+                            }
+                        }
+                        if !outsideRows.isEmpty {
+                            StrongRule().padding(.top, Space.s5)
+                            Text("Buiten je bubbel").font(Theme.headline(.title2)).accessibilityAddTraits(.isHeader).padding(.vertical,Space.s3)
+                            ForEach(outsideRows) { row in
+                                slot(row) { ItemRow(item:row.item,label:row.label,why:row.why,outside:row.outside,story:row.story,form:.krant) }
                             }
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,

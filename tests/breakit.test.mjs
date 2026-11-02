@@ -254,8 +254,8 @@ test('bubbel: invoegen in een lege of volle editie zonder rubrieken', () => {
   assert.deepEqual(insertBubble([], { id: 'x', terms: [] }).map((e) => e.id), ['x'])
   const full = Array.from({ length: 10 }, (_, i) => ({ kind: 'item', id: 'e' + i, desk: 'binnenland' }))
   const out = insertBubble(full, { id: 'x', terms: [] })
-  assert.equal(out.length, 10)
-  assert.equal(out[5].id, 'x')
+  assert.equal(out.length, 11)
+  assert.equal(out[10].id, 'x')
   assert.equal(insertBubble(full, null), full)
 })
 

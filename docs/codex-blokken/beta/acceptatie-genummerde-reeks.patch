@@ -1,0 +1,46 @@
+--- a/algoritme/meting/acceptatie.mjs
++++ b/algoritme/meting/acceptatie.mjs
+@@ -169,8 +169,8 @@
+       if (es.some((e) => e.desk === 'bubbel') || !bubbleCands.some((b) => candOk(b.id, b.storyId))) bubbelNorm++
+       if (es.some((e) => e.desk === 'breed') || !(snap.edition.wide || []).some((w) => w?.item?.id && candOk(w.item.id, w.storyId))) breedNorm++
+     }
+-    plekkenMin = Math.min(plekkenMin, es.length)
+-    plekkenMax = Math.max(plekkenMax, es.length)
++    plekkenMin = Math.min(plekkenMin, es.filter(e=>e.desk !== 'bubbel').length)
++    plekkenMax = Math.max(plekkenMax, es.filter(e=>e.desk !== 'bubbel').length)
+   }
+   const g = summary.gem
+   if (POLICY) Object.assign(g, { grootNieuws: grootNorm / PERSONAS.length, bubbel: bubbelNorm / PERSONAS.length, breed: breedNorm / PERSONAS.length })
+@@ -270,8 +270,8 @@
+     zelfdeOnderwerp: sum((s) => s.opeenvolgend.zelfdeOnderwerp + s.ochtendAvond.zelfdeOnderwerp),
+     vervolgZonderSig: sum((s) => s.opeenvolgend.vervolgZonderSig + s.ochtendAvond.vervolgZonderSig),
+     grootNieuwsDag: S.grootNieuwsDag, tweetalig: S.tweetalig, tweetaligH6: S.tweetalig,
+-    editieVloer: Math.min(...Object.values(res.personas).flatMap(p => Object.values(p.variants).flatMap(v => v.editions.map(e => e.entries.length)))),
+-    kortZonderBewijs: Object.values(res.personas).flatMap(p => Object.values(p.variants).flatMap(v => v.editions)).filter(e => e.entries.length < 6 && !(e._supply?.proven && e._supply.unresolved === 0 && e._supply.selected === e.entries.length)).length,
++    editieVloer: Math.min(...Object.values(res.personas).flatMap(p => Object.values(p.variants).flatMap(v => v.editions.map(e => e.entries.filter(x=>x.desk !== 'bubbel').length)))),
++    kortZonderBewijs: Object.values(res.personas).flatMap(p => Object.values(p.variants).flatMap(v => v.editions)).filter(e => e.entries.filter(x=>x.desk !== 'bubbel').length < 6 && !(e._supply?.proven && e._supply.unresolved === 0 && e._supply.selected === e.entries.filter(x=>x.desk !== 'bubbel').length)).length,
+     keysKloof: S.keysKloof ?? NaN, // een oudere checkout meet de kloof nog niet
+   }
+   console.log(`\n== scenario dag · ${res.day.map((d) => `${d.sl.slot} ${d.pool.length} art / ${d.stories.length} verhalen`).join(', ')}; dagpool ${S.verhalen} verhalen; woordenschat-kloof ${S.keysKloof ?? '–'} stukken ==`)
+--- a/algoritme/meting/algoritme/lib/metrics.mjs
++++ b/algoritme/meting/algoritme/lib/metrics.mjs
+@@ -26,7 +26,7 @@
+   const st = e.kind === 'story' ? ctx.storyById.get(e.id) : ctx.storyById.get(keyOf(e, ctx))
+   return [...new Set([leadOf(e), ...(st?.itemIds || e.itemIds || [])])].map((id) => ctx.itemById.get(id)).filter(Boolean)
+ }
+-export const keysOf = (edition, ctx) => new Set((edition?.entries || []).map((e) => keyOf(e, ctx)))
++export const keysOf = (edition, ctx) => new Set((edition?.entries || []).filter(e=>e.desk !== 'bubbel').map((e) => keyOf(e, ctx)))
+ 
+ export function jaccard(a, b) {
+   if (!a.size && !b.size) return 1
+--- a/algoritme/meting/algoritme/lib/run.mjs
++++ b/algoritme/meting/algoritme/lib/run.mjs
+@@ -62,7 +62,7 @@
+       bronnen: setup.followed.size,
+       ms: Math.round(ms * 10) / 10,
+       deterministisch: JSON.stringify(ed) === JSON.stringify(again),
+-      plekken: ed?.entries?.length || 0,
++      plekken: ed?.entries?.filter(e=>e.desk !== 'bubbel').length || 0,
+       soort: M.slotKinds(ed),
+       andersDanAlgemeen: M.differs(ed, snapshot.edition, ctx),
+       doorSignalen: M.differs(ed, kaal, ctx), // plekken die verschuiven door interesses/lezen/stemmen/ster

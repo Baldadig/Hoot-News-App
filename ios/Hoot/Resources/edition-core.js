@@ -1429,6 +1429,15 @@ var HootCore = (() => {
   var MAIN_IDS = new Set(SOURCES.filter((s) => s.base && !s.music).map((s) => s.id));
   var MUSIC_IDS = new Set(SOURCES.filter((s) => s.music).map((s) => s.id));
 
+  // shared/edition-limits.json
+  var edition_limits_default = { target: 10, auditBelow: 6, floor: 4 };
+
+  // shared/edition-limits.mjs
+  var EDITION_TARGET = edition_limits_default.target;
+  var EDITION_AUDIT_BELOW = edition_limits_default.auditBelow;
+  var EDITION_FLOOR = edition_limits_default.floor;
+  var editionStoryCount = (entries = []) => Array.isArray(entries) ? entries.filter((e) => e.desk !== "bubbel").length : 0;
+
   // shared/edition-policy.mjs
   var ALIAS = { "nos-sport": "nos", "nos-cultuur": "nos", "bbc-sport": "bbc", "guardian-sport": "guardian", "guardian-music": "guardian", "guardian-culture": "guardian", "npr-music": "npr" };
   var COUNTRIES2 = Object.fromEntries(Object.entries({
@@ -1533,7 +1542,7 @@ var HootCore = (() => {
   var allowedNews = (prof, story, items, desk = null) => newsRejection(prof, story, items, desk) === null;
 
   // shared/editor-version.mjs
-  var EDITOR_REVISION = "redacteur-2026-11-02-beta1";
+  var EDITOR_REVISION = "redacteur-2026-11-02-beta2";
 
   // netlify/lib/stories.mjs
   var timeOf = (a) => Date.parse(a.publishedAt) || 0;
@@ -2073,7 +2082,7 @@ var HootCore = (() => {
   }
   var LIVE_TITLE = /^\W*live\b|\blive ?blog\b|\b(war|oorlog) (latest|live)\b|\blatest:|\blatest updates\b/i;
   var isLive = (a) => LIVE_TITLE.test(a.title || "") || /\/live(blog)?[-/]|[-/]liveblog/i.test(a.url || "");
-  var EDITION_SIZE = 10;
+  var EDITION_SIZE = EDITION_TARGET;
   var MAX_LEADS_PER_SOURCE = 3;
   var isHistoryRow = (x) => Array.isArray(x?.storyIds);
   function previousOfOne(x) {
@@ -2502,13 +2511,16 @@ var HootCore = (() => {
       return p.allowed && (!capAbroad || !p.capped || abroad < INT_MAX);
     };
     const wideAny = (global.wide || []).some((w) => w?.item?.id && !covered(w) && unread(w.item.id, w.storyId));
-    const size = EDITION_SIZE - (bubbleEntry ? 1 : 0) - (wideAny ? 1 : 0);
+    const size = EDITION_SIZE - (wideAny ? 1 : 0);
     const opts = { mainIds: followed, now, previous, preferred, prof, ctx, seed };
     const extraAll = extraPool.length ? selectForReader(mineStories, extraPool, { ...opts, size: 2 * EXTRA_MAX, plan: false }) : [];
     const extraN = Math.min(EXTRA_MAX, extraAll.length);
     const leadCat = (e) => catOf.get(pool.find((i) => i.id === (e.leadId || e.id))?.source);
     const sel = selectForReader(mineStories, newsPool, { ...opts, size: size - extraN });
-    const news = sel.map((e) => !e.planned && !e.front && SPECIALIST.has(leadCat(e)) ? { ...e, desk: leadCat(e) } : e);
+    const news = sel.map((e) => {
+      const review = /^(review|test)\s*:/i.test(pool.find((i) => i.id === (e.leadId || e.id))?.title || "");
+      return SPECIALIST.has(leadCat(e)) && (review || !e.planned && !e.front) ? { ...e, desk: leadCat(e) } : e;
+    });
     const inNews = new Set(news.flatMap((e) => e.itemIds || [e.id]));
     let abroad = sel.counted.size;
     const extra = [];
@@ -2612,14 +2624,14 @@ var HootCore = (() => {
     }
     if (bubbleEntry) taken.add(bubbleEntry.leadId || bubbleEntry.id);
     let entries = [...news, ...fill, ...extra];
-    if (bubbleEntry && !entries.some((e) => (e.leadId || e.id) === (bubbleEntry.leadId || bubbleEntry.id))) entries.splice(Math.min(5, entries.length), 0, bubbleEntry);
     if (wideEntry) entries.splice(Math.min(6, entries.length), 0, wideEntry);
     const finalTaken = /* @__PURE__ */ new Set();
     const finalLeads = [];
     let internationalCount = 0;
     const accepted = [];
+    let capacity = EDITION_SIZE;
     const accept = (e) => {
-      if (accepted.length >= EDITION_SIZE) return;
+      if (accepted.length >= capacity) return;
       const id = e.leadId || e.id;
       const p = policyOf(id, e.kind === "story" ? e.id : null, e);
       const ids = [...membersOf(e)];
@@ -2636,11 +2648,15 @@ var HootCore = (() => {
       if (accepted.length >= EDITION_SIZE) break;
       accept(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }, g.leadId || g.id, g.kind === "story" ? g.id : null));
     }
+    if (bubbleEntry) {
+      capacity = accepted.length + 1;
+      accept(bubbleEntry);
+    }
     entries = accepted;
     if (prof.interests.has("binnenland")) {
       const first = entries.findIndex((e) => {
         const p = policyOf(e.leadId || e.id, e.kind === "story" ? e.id : null, e);
-        return !p.abroad && ["binnenland", "regio"].includes(p.desk);
+        return e.desk !== "bubbel" && !p.abroad && ["binnenland", "regio"].includes(p.desk);
       });
       if (first > 0) entries.unshift(...entries.splice(first, 1));
     }
@@ -2658,7 +2674,8 @@ var HootCore = (() => {
       return { ...rest, itemIds, ...keys ? { keys } : {}, title: e.title || itemOf(lead)?.title || null, why, _parts: parts || {}, _front: !!front };
     });
     let supply = null;
-    if (out.length < 6) {
+    const regularCount = editionStoryCount(out);
+    if (regularCount < EDITION_AUDIT_BELOW) {
       const decisions = [];
       selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE, audit: decisions });
       if (extraPool.length) selectForReader(mineStories, extraPool, { ...opts, size: 2 * EXTRA_MAX, plan: false, audit: decisions });
@@ -2690,7 +2707,7 @@ var HootCore = (() => {
       }
       const counts = Object.fromEntries([...new Set(decisions.map((d) => d.reason))].sort().map((r) => [r, decisions.filter((d) => d.reason === r).length]));
       const unresolved = decisions.filter((d) => /onverk|onbekend|route-vol|gekozen-in-route/.test(d.reason));
-      supply = { target: EDITION_SIZE, auditBelow: 6, floor: 4, selected: out.length, ownArticles: pool.length, decisions, counts, unresolved: unresolved.length, proven: out.length >= 4 && unresolved.length === 0 };
+      supply = { target: EDITION_SIZE, auditBelow: EDITION_AUDIT_BELOW, floor: EDITION_FLOOR, selected: regularCount, totalSlots: out.length, ownArticles: pool.length, decisions, counts, unresolved: unresolved.length, proven: regularCount >= EDITION_FLOOR && unresolved.length === 0 };
     }
     const shown2 = [...new Set(out.map((e) => e.leadId || e.id))];
     return {

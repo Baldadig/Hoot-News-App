@@ -129,3 +129,5 @@ export function newsRejection(prof, story, items, desk = null) {
   return null
 }
 export const allowedNews = (prof, story, items, desk = null) => newsRejection(prof, story, items, desk) === null
+
+export {EDITION_TARGET,EDITION_AUDIT_BELOW,EDITION_FLOOR,editionStoryCount} from './edition-limits.mjs'

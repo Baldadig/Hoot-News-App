@@ -63,6 +63,7 @@ if (isMain) {
     mkdirSync(dirname(resolve(ROOT, OUT)), { recursive: true })
     writeFileSync(resolve(ROOT, OUT), fresh)
     copyFileSync(resolve(ROOT, 'shared/slots.json'), resolve(ROOT, 'ios/Hoot/Resources/slots.json'))
+    copyFileSync(resolve(ROOT, 'shared/edition-limits.json'), resolve(ROOT, 'ios/Hoot/Resources/edition-limits.json'))
     copyFileSync(resolve(ROOT, 'shared/edition-display.json'), resolve(ROOT, 'ios/Hoot/Resources/edition-display.json'))
     console.log(`${OUT}: ${(fresh.length / 1024).toFixed(0)} kB, sha256 ${hashOf(fresh).slice(0, 12)}`)
   }

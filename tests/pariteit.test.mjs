@@ -1,3 +1,4 @@
+import { editionStoryCount } from '../shared/edition-limits.mjs'
 // Pariteit web en app (Hoot-design/algoritme/aanvulling-pariteit-herhaling.md P8, §3): dezelfde lezer
 // krijgt op elk toestel dezelfde Editie. Hier de server-route (POST /api/edition als terugval, P8-7)
 // tegen de web-route (composePersonal zoals usePersonalEdition.js hem aanroept), op de momentopname.
@@ -33,7 +34,7 @@ test('P8-7: de server-route antwoordt als terugval, met afdruk, zonder eigenaar 
   assert.equal(ed.basis, editionBasis([...setup.followed], setup.interests, setup.topics, setup.favorites))
   assert.equal(ed.version, `${snap.edition.id}@mine@${snap.edition.builtAt}`, 'de versie volgt het dagdeel, op de start ervan')
   assert.equal(ed.builtAt, snap.edition.builtAt, 'now = builtAt, niet de klok')
-  assert.equal(ed.entries.length, 10)
+  assert.equal(editionStoryCount(ed.entries), 10)
   assert.ok(!Object.keys(ed).some((k) => k.startsWith('_')) && ed.entries.every((e) => !Object.keys(e).some((k) => k.startsWith('_'))))
   // Een leeg of ongeldig lichaam geeft toch een Editie (alle bronnen uit, dus uit de algemene Editie), geen fout.
   assert.ok(editionFor(start, [], {})?.entries.length)

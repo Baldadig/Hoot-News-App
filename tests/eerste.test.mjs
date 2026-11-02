@@ -1,3 +1,4 @@
+import { editionStoryCount } from '../shared/edition-policy.mjs'
 // Feedback 31 oktober, punten 3 en 4: Binnenland is Nederland, en de eerste Editie van een nieuwe lezer
 // leunt niet op buitenland. Op twee vaste momentopnames: de avond van 30 oktober en de live feed van
 // 31 oktober (ochtend, de feed waarop het keurpunt de vorige ronde zag falen). Dezelfde maten draait
@@ -105,7 +106,7 @@ const editionOf = (p) => editionOfData(p, live)
 // Braziliaans voetbal (Seedorf) zijn dat niet.
 test(`31 oktober 09:30 (${tag}) · de vriendin: geen Oekraïne of Seedorf, hooguit twee algemene buitenlandse verhalen; vaknieuws alleen met inhoudelijk bewijs`, () => {
   const es = editionOf(persona('vriendin'))
-  assert.equal(es.length, 10)
+  assert.equal(editionStoryCount(es), 10)
   for (const kop of ['Hundreds evacuated from Russian-occupied Oleshky', 'Clarence Seedorf']) assert.ok(!find(es, kop), kop)
   const r = measureFirst(live, [persona('vriendin')])[0]
   assert.ok(r.wereldAlle <= INT_MAX, r.entries.filter((e) => e.geo === 'INT').map((e) => e.title).join(' | '))
@@ -171,7 +172,7 @@ for (const [label, snap] of SNAPS) {
   test(`${label} · Binnenland zonder Wereld (bi-po-ec, bi-po, bi-te-ec): Nederland eerst, Politiek is Den Haag en Brussel`, () => {
     for (const r of measureFirst(snap, [persona('bi-po-ec'), ...MORE])) {
       const es = r.entries
-      assert.equal(es.length, 10, r.id)
+      assert.equal(editionStoryCount(es), 10, r.id)
       assert.equal(es[0].geo, 'NL', `${r.id}: ${es[0].title}`)
       assert.ok(es.slice(0, 2).filter((e) => e.geo === 'INT').length <= 1, r.id)
       // Normen 1 november: hooguit INT_MAX internationale plekken in de hele Editie (was: één op de voorpagina).
@@ -243,7 +244,7 @@ for (const [tag, data] of [['live', live1050], ['hertagd', live1050Retag]]) {
   test(`31 oktober 10:50 (${tag}) · 1. een buitenlands verhaal zonder reden staat niet in de Editie van wie Wereld niet koos, met "Het nieuws van nu" al helemaal niet`, () => {
     for (const p of ZONDER_WERELD) {
       const es = editionOf(p)
-      assert.equal(es.length, 10, p.id)
+      assert.equal(editionStoryCount(es), 10, p.id)
       assert.ok(!find(es, 'Bill Maher Fact-Checks Kid Rock'), `${p.id}: Maher en Kid Rock`)
       // Een buitenlandse rubriek zonder gekozen reden mag alleen als groot nieuws, breed verhaal of bubbel met een eigen label.
       for (const e of es) if (e.desk == null && /^Het nieuws van nu$/.test(e.why?.text || '')) assert.ok(!['vs', 'buitenland', 'middenoosten', 'oekraine'].some((d) => desksOf(live1050.items.find((i) => i.id === (e.leadId || e.id)) || {}).has(d)), `${p.id}: ${e.title}`)

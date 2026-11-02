@@ -97,7 +97,7 @@ final class EditionParityTests: XCTestCase {
         for g in try Self.golden() {
             let out = try await EditionEngine.shared.compose(inputJSON: g.input)
             let e = try JSONDecoder().decode(Edition.self, from: Data(out.utf8))
-            XCTAssertEqual(e.entries.count, 10, g.name)
+            XCTAssertEqual(e.entries.filter{$0.desk != "bubbel"}.count, 10, g.name)
             XCTAssertEqual(e.basis, g.basis, g.name)
             XCTAssertEqual(e.owner, "anon", g.name)
             XCTAssertEqual(e.personal, true, g.name)

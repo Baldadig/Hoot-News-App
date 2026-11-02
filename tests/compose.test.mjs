@@ -1,3 +1,4 @@
+import { editionStoryCount } from '../shared/edition-policy.mjs'
 // De Redacteur op de vaste momentopname (P5, Hoot-design/algoritme/bouwspec.md §11.4): de twaalf
 // persona's in scenario "nu", met hun leesgeschiedenis als read_ids (zoals meting/acceptatie.mjs).
 // De harde regels van de Editie gelden voor iedereen; per persona een paar herkenbare uitkomsten.
@@ -28,7 +29,9 @@ test('De Redacteur: tien plekken, deterministisch, groot nieuws, Buiten je bubbe
     const id = persona.id
     // Normen 1 november: liever korter dan ongeoorloofd aanvullen. Op deze momentopname is er genoeg
     // toegelaten aanbod voor tien plekken.
-    assert.equal(edition.entries.length, 10, id)
+    assert.equal(editionStoryCount(edition.entries), 10, id)
+    assert.ok(edition.entries.length <= 11,id)
+    if (edition.entries.some(e=>e.desk === 'bubbel')) assert.equal(edition.entries.at(-1).desk,'bubbel',id)
     const readIds = persona.interests.length + persona.topics.length ? readIdsOf(snap, persona, setup.followed) : new Set()
     const again = composePersonal({ global: snap.edition, stories: snap.stories, items: snap.items, sources: snap.sources, now: Date.parse(snap.meta.updatedAt), builtAt: snap.meta.updatedAt, previous: null, ...setup, readIds })
     assert.equal(JSON.stringify(again), JSON.stringify(edition), id)
@@ -82,7 +85,7 @@ test('De Redacteur: een gelezen aanvulling komt niet terug', () => {
   const keys = new Set(fill.map((e) => keyOf(e, ctx)))
   const again = composeFor(snap, { ...base, readIds: all })
   assert.deepEqual(again.entries.filter((e) => keys.has(keyOf(e, ctx))).map((e) => e.id), [])
-  assert.ok(again.entries.length >= first.entries.length - fill.length, `${again.entries.length} plekken`)
+  assert.ok(editionStoryCount(again.entries) >= editionStoryCount(first.entries) - fill.length, `${editionStoryCount(again.entries)} plekken`)
   assert.equal(again.entries.filter((e) => e.desk === 'bubbel').length, 1)
 
   // Alleen de kop gelezen: terug alleen als vervolg (≥ 2 nieuwe stukken), met dat in de parts.

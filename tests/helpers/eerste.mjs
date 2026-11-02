@@ -103,6 +103,7 @@ export function firstEdition(data, p, compose = composePersonal) {
     const abroadByRule = !!st && m.length > 1 && internationalNews(m, st.desk ?? null, st)
     return {
       geo,
+      desk:e.desk,
       specialist: specialistMatch(prof,m,st?.desk ?? e.fromDesk ?? e.desk),
       nlNews: m.some((i) => ['nl', 'regio'].includes(src.get(i.source)?.cat)),
       fixed: FIXED.has(e.desk),
@@ -126,7 +127,7 @@ export function firstEdition(data, p, compose = composePersonal) {
 
 export function measureFirst(data, personas = FIRST, compose = composePersonal) {
   return personas.map((p) => {
-    const es = firstEdition(data, p, compose)
+    const es = firstEdition(data, p, compose).filter(e=>e.desk !== 'bubbel')
     const bi = p.interests.includes('binnenland')
     return {
       id: p.id,

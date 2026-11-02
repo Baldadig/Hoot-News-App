@@ -1,0 +1,44 @@
+{
+  "step": "TELLING",
+  "head": "8a7c3b7662f85987636002e990d28d6cf7ed910a",
+  "checks": [
+    {
+      "check": "core",
+      "exit": 0,
+      "seconds": 0.16,
+      "log": "/tmp/hoot-beta/TELLING/core.log"
+    },
+    {
+      "check": "web",
+      "exit": 1,
+      "seconds": 96.34,
+      "log": "/tmp/hoot-beta/TELLING/web.log",
+      "counts": {
+        "tests": 976,
+        "pass": 973,
+        "fail": 2,
+        "skipped": 0,
+        "todo": 1
+      }
+    },
+    {
+      "check": "build",
+      "exit": 0,
+      "seconds": 11.01,
+      "log": "/tmp/hoot-beta/TELLING/build.log"
+    },
+    {
+      "check": "acceptatie",
+      "exit": 0,
+      "seconds": 84.5,
+      "log": "/tmp/hoot-beta/TELLING/acceptatie.log"
+    },
+    {
+      "check": "native",
+      "exit": 0,
+      "seconds": 210.0,
+      "log": "/tmp/hoot-beta/TELLING/native.log",
+      "tests": 100
+    }
+  ]
+}

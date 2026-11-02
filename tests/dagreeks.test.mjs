@@ -1,3 +1,4 @@
+import { editionStoryCount } from '../shared/edition-policy.mjs'
 // De dagreeks op de momentopname (tests/helpers/dagreeks.mjs): Ochtend → Middag → Avond voor vijf
 // persona's, samengesteld op toestelkennis (eigen bronnen + de koppen van de algemene Editie) en
 // gemeten op de volledige pool. De drempels zijn die van Hoot-design/algoritme/aanvulling-pariteit-
@@ -38,17 +39,17 @@ test('dagreeks: drie dagdelen, vijf persona\'s, vier varianten, elke Editie gevu
   for (const r of Object.values(res.personas)) for (const v of VARIANTS) {
     assert.equal(r.variants[v].editions.length, SCHEDULE[v].length, `${r.name} ${v}`)
     for (const ed of r.variants[v].editions) {
-      assert.ok(ed.entries.length >= 4 && ed.entries.length <= 10, `${r.name} ${v} ${ed.id}: ${ed.entries.length}; onder vier is geen Editie`)
-      if (ed.entries.length < 6) {
+      assert.ok(editionStoryCount(ed.entries) >= 4 && editionStoryCount(ed.entries) <= 10, `${r.name} ${v} ${ed.id}: ${editionStoryCount(ed.entries)}; onder vier is geen Editie`)
+      if (editionStoryCount(ed.entries) < 6) {
         assert.ok(ed._supply?.proven, `${r.name} ${v} ${ed.id}: ontbrekend of onvolledig kandidatenbewijs`)
         assert.equal(ed._supply.unresolved, 0)
-        assert.equal(ed._supply.selected, ed.entries.length)
+        assert.equal(ed._supply.selected, editionStoryCount(ed.entries))
         assert.ok(ed._supply.decisions.length > 0)
-        t.diagnostic(`kort, bewezen: ${r.name} ${v} ${ed.id}; ${ed.entries.length} plekken, ${ed._supply.ownArticles} eigen artikelen; ${JSON.stringify(ed._supply.counts)}`)
+        t.diagnostic(`kort, bewezen: ${r.name} ${v} ${ed.id}; ${editionStoryCount(ed.entries)} plekken, ${ed._supply.ownArticles} eigen artikelen; ${JSON.stringify(ed._supply.counts)}`)
       }
     }
     // De Avond heeft op deze dag genoeg toegelaten aanbod voor tien plekken.
-    assert.equal(r.variants[v].editions.at(-1).entries.length, 10, `${r.name} ${v} avond`)
+    assert.equal(editionStoryCount(r.variants[v].editions.at(-1).entries), 10, `${r.name} ${v} avond`)
   }
   // De maten tellen elke plek van de latere Editie van een overgang.
   const len = (v, pick) => Object.values(res.personas).reduce((n, r) => n + pick(r.variants[v].editions).reduce((m, ed) => m + ed.entries.length, 0), 0)

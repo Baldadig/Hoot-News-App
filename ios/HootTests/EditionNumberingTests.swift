@@ -16,6 +16,16 @@ final class EditionNumberingTests: XCTestCase {
         XCTAssertEqual(EditionNumbering.count(EditionNumbering.rows([row("b", desk: "bubbel")])), 0)
         XCTAssertEqual(EditionNumbering.count(EditionNumbering.rows((1...10).map { row(String($0)) })), 10)
     }
+    func testCountAndFloorIgnoreTheOptionalBubble() throws {
+        let root = URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        XCTAssertEqual(try Data(contentsOf:XCTUnwrap(EditionLimits.resourceURL)),try Data(contentsOf:root.appending(path:"shared/edition-limits.json")))
+        XCTAssertEqual(EditionLimits.target,10)
+        XCTAssertEqual(EditionLimits.auditBelow,6)
+        XCTAssertEqual(EditionLimits.floor,4)
+        let short = EditionNumbering.rows([row("a"),row("b"),row("c"),row("surprise",desk:"bubbel")])
+        XCTAssertFalse(EditionLimits.hasMinimum(EditionNumbering.count(short)))
+        XCTAssertTrue(EditionLimits.hasMinimum(4))
+    }
     func testNativeNumberAndWaitingLayouts() {
         for size in [DynamicTypeSize.large, .xxxLarge] {
             let content = VStack(alignment: .leading, spacing: 16) {

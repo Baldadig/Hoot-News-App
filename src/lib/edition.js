@@ -1,3 +1,4 @@
+import { EDITION_TARGET } from '../../shared/edition-limits.mjs'
 import { SLOTS } from '../../shared/slots.mjs'
 
 // Editie-onderdelen weergeven — pure functies (tests/edition.test.mjs).
@@ -36,7 +37,7 @@ export function resolveEditionEntry(e, { storiesById, itemsById, published = new
 export function heroFirst(rows) { return rows }
 
 // Hoeveel verhalen een volle editie heeft (de server streeft naar tien).
-export const EDITION_SIZE = 10
+export const EDITION_SIZE = EDITION_TARGET
 
 // Wanneer de volgende editie er is, in dagdelen: geen kloktijden in de teksten (iOS EditionView
 // `upNext`). De woorden staan in shared/slots.mjs; de server stuurt wel `next: '12:00'` mee, maar

@@ -1,5 +1,5 @@
 import { withCleanIntro } from '../../shared/edition-display.mjs'
-import { majorNews, internationalNews, newsRejection, allowedNews, cappedInternational, worldChosen, sportChosen, exceptionalDutchSport, coverageOf } from '../../shared/edition-policy.mjs'
+import { EDITION_AUDIT_BELOW, EDITION_FLOOR, editionStoryCount, majorNews, internationalNews, newsRejection, allowedNews, cappedInternational, worldChosen, sportChosen, exceptionalDutchSport, coverageOf } from '../../shared/edition-policy.mjs'
 import { EDITOR_REVISION } from '../../shared/editor-version.mjs'
 // De persoonlijke editie — pure functies (tests/personal.test.mjs, tests/compose.test.mjs).
 //
@@ -198,7 +198,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     return p.allowed && (!capAbroad || !p.capped || abroad < INT_MAX)
   }
   const wideAny = (global.wide || []).some(w => w?.item?.id && !covered(w) && unread(w.item.id, w.storyId))
-  const size = EDITION_SIZE - (bubbleEntry ? 1 : 0) - (wideAny ? 1 : 0)
+  const size = EDITION_SIZE - (wideAny ? 1 : 0)
   const opts = { mainIds: followed, now, previous, preferred, prof, ctx, seed }
   // Het extra blok kiest er een paar meer, zodat een verhaal dat het nieuws al heeft (de dood van een
   // acteur, met een stuk van NOS Cultuur) er niet twee keer in staat.
@@ -209,7 +209,10 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   //    een vakbron krijgt de rubriek van die bron.
   const leadCat = (e) => catOf.get(pool.find((i) => i.id === (e.leadId || e.id))?.source)
   const sel = selectForReader(mineStories, newsPool, { ...opts, size: size - extraN })
-  const news = sel.map((e) => (!e.planned && !e.front && SPECIALIST.has(leadCat(e)) ? { ...e, desk: leadCat(e) } : e))
+  const news = sel.map((e) => {
+    const review = /^(review|test)\s*:/i.test(pool.find(i=>i.id === (e.leadId || e.id))?.title || '')
+    return SPECIALIST.has(leadCat(e)) && (review || (!e.planned && !e.front)) ? {...e,desk:leadCat(e)} : e
+  })
   const inNews = new Set(news.flatMap((e) => e.itemIds || [e.id]))
   // Elke internationale plek telt tegen de grens, ook met een persoonlijke reden.
   let abroad = sel.counted.size
@@ -363,7 +366,6 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // 7. Volgorde: eigen nieuws, aangevuld nieuws, dan sport/cultuur; "Buiten je bubbel" op plek 6,
   //    "Waar iedereen over schrijft" direct daarna.
   let entries = [...news, ...fill, ...extra]
-  if (bubbleEntry && !entries.some((e) => (e.leadId || e.id) === (bubbleEntry.leadId || bubbleEntry.id))) entries.splice(Math.min(5, entries.length), 0, bubbleEntry)
   if (wideEntry) entries.splice(Math.min(6, entries.length), 0, wideEntry)
 
   // Vul vrijgevallen gereserveerde plekken met toegelaten eigen nieuws; de norm wijkt niet
@@ -372,8 +374,9 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const finalLeads = []
   let internationalCount = 0
   const accepted = []
+  let capacity = EDITION_SIZE
   const accept = e => {
-    if (accepted.length >= EDITION_SIZE) return
+    if (accepted.length >= capacity) return
     const id = e.leadId || e.id
     const p = policyOf(id, e.kind === 'story' ? e.id : null, e)
     const ids = [...membersOf(e)]
@@ -391,12 +394,14 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     if (accepted.length >= EDITION_SIZE) break
     accept(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }, g.leadId || g.id, g.kind === 'story' ? g.id : null))
   }
+  // Pas na hooguit tien gewone plekken: één optionele bubbel, met dezelfde inhouds- en dubbelgrenzen.
+  if (bubbleEntry) { capacity = accepted.length + 1; accept(bubbleEntry) }
   entries = accepted
   // Binnenland blijft de opening, ook bij een combinatie met Wereld en bij serveraanvulling.
   if (prof.interests.has('binnenland')) {
     const first = entries.findIndex(e => {
       const p = policyOf(e.leadId || e.id, e.kind === 'story' ? e.id : null, e)
-      return !p.abroad && ['binnenland','regio'].includes(p.desk)
+      return e.desk !== 'bubbel' && !p.abroad && ['binnenland','regio'].includes(p.desk)
     })
     if (first > 0) entries.unshift(...entries.splice(first, 1))
   }
@@ -424,7 +429,8 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   // Bij een korte Editie geen blinde minimumverlaging: elke bekende kandidaat krijgt een
   // terminale reden uit dezelfde selectieroute. Dit is lokaal debugbewijs, geen accountpayload.
   let supply = null
-  if (out.length < 6) {
+  const regularCount = editionStoryCount(out)
+  if (regularCount < EDITION_AUDIT_BELOW) {
     const decisions = []
     selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE, audit: decisions })
     if (extraPool.length) selectForReader(mineStories, extraPool, { ...opts, size: 2 * EXTRA_MAX, plan: false, audit: decisions })
@@ -456,7 +462,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     }
     const counts = Object.fromEntries([...new Set(decisions.map(d=>d.reason))].sort().map(r=>[r,decisions.filter(d=>d.reason===r).length]))
     const unresolved = decisions.filter(d=>/onverk|onbekend|route-vol|gekozen-in-route/.test(d.reason))
-    supply = {target:EDITION_SIZE,auditBelow:6,floor:4,selected:out.length,ownArticles:pool.length,decisions,counts,unresolved:unresolved.length,proven:out.length>=4 && unresolved.length===0}
+    supply = {target:EDITION_SIZE,auditBelow:EDITION_AUDIT_BELOW,floor:EDITION_FLOOR,selected:regularCount,totalSlots:out.length,ownArticles:pool.length,decisions,counts,unresolved:unresolved.length,proven:regularCount>=EDITION_FLOOR && unresolved.length===0}
   }
   const shown = [...new Set(out.map((e) => e.leadId || e.id))]
   return {
@@ -520,6 +526,7 @@ export function personalRows(edition) {
   const byId = new Map((edition?.items || []).map((i) => [i.id, i]))
   const rows = []
   ;(edition?.entries || []).forEach((e, entry) => {
+    if (e.desk === 'bubbel') return
     const item = byId.get(e.leadId || e.id)
     if (item) rows.push({ entry, sourceName: item.sourceName, title: item.title, summary: item.summary || '' })
   })

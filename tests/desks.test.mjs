@@ -45,13 +45,13 @@ test('elke rubriek krijgt zijn belangrijkste verhaal, ook als één onderwerp he
   assert.equal(new Set(e.map((x) => x.id)).size, e.length)
 })
 
-test('één verhaal van buiten je bubbel op plek 6; het minst belangrijke aanvullende verhaal maakt plaats', () => {
+test('één optioneel bubbelverhaal na tien genummerde verhalen, zonder verdringing', () => {
   const entries = [...'abcdefghij'].map((id, i) => ({ kind: 'item', id, desk: i < 6 ? 'x' : null }))
   const out = insertBubble(entries, { id: 'bub', terms: [{ term: 't', via: 'google' }] })
-  assert.equal(out.length, 10)
-  assert.equal(out[5].id, 'bub')
-  assert.equal(out[5].desk, 'bubbel')
-  assert.ok(!out.some((x) => x.id === 'j'))
+  assert.equal(out.length, 11)
+  assert.equal(out[10].id, 'bub')
+  assert.equal(out[10].desk, 'bubbel')
+  assert.ok(out.some((x) => x.id === 'j'))
   assert.equal(insertBubble(entries, null), entries)
 })
 
