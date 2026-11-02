@@ -25,3 +25,7 @@ Broncommit 38979d9 overgenomen als d688bfd; geen conflict. Web 914 geslaagd + 1 
 ### A03 · Desktopkop en deelkaartlogo
 
 98dd0e1 → eb5b360 en ddc9b09 → 36c4a4a. Desktopkop normaal toegepast; alleen ios/CHANGELOG.md botste bij het logo. De beveiligingsregel én logoregel zijn behouden. Web 916 geslaagd + 1 bestaande TODO, native 60 geslaagd; build en alle harde acceptatiedrempels groen. Core ongewijzigd. Logo’s blijven offline ingebed. [Logverwijzingen](beta/controle-A03.json).
+
+### A04 · Lezerwachttekst en inlogpaneel
+
+7ec70f1 → 3f1187b, daarna uitsluitend de delta-patch vanaf 7552530 → 6874b47. ArticleReaderView en changelog automatisch inhoudelijk samengevoegd; geen dubbele basispatch. Het paneel bewaart zeven dagen stilte en maximaal één herinnering. Web 918 geslaagd + 1 bestaande TODO, native 70 geslaagd, build en alle harde acceptatiedrempels groen. [Logverwijzingen](beta/controle-A04.json). De meegeleverde historische logs bevatten witruimtewaarschuwingen; productcode niet. De refreshcallback volgt bij A07.
