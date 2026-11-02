@@ -17,3 +17,7 @@ Per stap komen broncommits, conflictoplossing en echte testresultaten hieronder.
 ### A01 · Beveiliging
 
 Broncommit 3ec9058 overgenomen als 24a05a5; geen conflict. Sessiegeneratie/accountgrens en Sharp 0.35.5 overgenomen. Eigen node_modules met npm ci uit de lockfile: de voorgeschreven gedeelde symlink wees nog op Sharp 0.33.5 en is daarom vervangen zonder Main-dependencies te veranderen. Runtimeversie lokaal werkelijk 0.35.5. Web 906 geslaagd + 1 TODO, build groen; native 59 geslaagd; acceptatie alle harde drempels gehaald. Core opnieuw gebouwd zonder wijziging. Linux/Netlify cold-start blijft een externe releasecontrole, niet uitgevoerd of gedeployd. [Logverwijzingen](beta/controle-A01.json).
+
+### A02 · Rustige voorpagina
+
+Broncommit 38979d9 overgenomen als d688bfd; geen conflict. Web 914 geslaagd + 1 bestaande TODO, native 59 geslaagd, build en alle harde acceptatiedrempels groen. Core opnieuw gebouwd zonder wijziging. [Logverwijzingen](beta/controle-A02.json).
