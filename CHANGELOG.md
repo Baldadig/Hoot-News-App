@@ -4,6 +4,8 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- Landingspagina: Selectie-preview over Werk & organisatie, met een rustige werkplekillustratie en de kop ‘Hoe duidelijke afspraken teams sterker maken’.
+
 - Landingspagina: bronvergelijking voorop in de voordelenrij, met drie koppen op twee regels, gelijke scheidingslijnen en uitsluitend begeleidende tekst.
 
 - Landingspagina: meer witruimte tussen slotkop, uitleg, webknop en kleine tekst; ruimere footerlinks en een rustige opmaak op mobiel en tablet.
