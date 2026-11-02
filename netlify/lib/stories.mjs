@@ -1,5 +1,5 @@
 import { cleanIntro, headlineFit } from '../../shared/edition-display.mjs'
-import { coverageOf, majorNews, newsRejection, allowedNews, cappedInternational, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery } from '../../shared/edition-policy.mjs'
+import { coverageOf, majorNews, newsRejection, lightVideoFiller, allowedNews, cappedInternational, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery } from '../../shared/edition-policy.mjs'
 import { eventScope, conflictingEvents } from '../../shared/article-signals.mjs'
 // Verhalen (bundels), hoofdbericht en editie — pure functies, los van het ophalen,
 // zodat ze te testen zijn (zie tests/).
@@ -1048,7 +1048,7 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
   const cands = []
   for (const st of stories) {
     if (!fresh(st.latestAt, 24)) continue
-    const items = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
+    const items = st.itemIds.map((id) => byId.get(id)).filter(Boolean).filter(i=>!lightVideoFiller(i))
     if (!items.length) continue
     // De algemene Editie is nieuws: een sportverhaal (ook met een kop zonder sporttag) en een verhaal van
     // alleen galerijen doen niet mee, behalve groot Oranje-sportnieuws (exceptionalDutchSport).
@@ -1061,7 +1061,7 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || it.storyId || isLive(it)) continue // een liveblog is geen editieplek
     if (!fresh(it.publishedAt, 14) || !(it.summary || it.image)) continue
     if (previous?.itemIds?.has(it.id)) continue // stond er al
-    if (isGallery(it)) continue // een galerij is geen eigen plek
+    if (isGallery(it) || lightVideoFiller(it)) continue // een galerij is geen eigen plek
     const desks = desksOf(it)
     cands.push({ kind: 'item', it, ids: [it.id], desks, primary: primaryDesk([desks]), w: weight({ sourceCount: 1, latestAt: it.publishedAt }, now) - 2 + (preferred?.has(it.source) ? FAVORITE_BONUS : 0) })
   }
@@ -1159,8 +1159,9 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   const cands = []
   for (const st of stories) {
     if (!fresh(st.latestAt, 24)) { reject('story', st.id, st.itemIds, 'ouder-dan-verhaalvenster'); continue }
-    const items = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
-    if (!items.length) { reject('story', st.id, st.itemIds, 'geen-bekend-artikel'); continue }
+    const raw = st.itemIds.map((id) => byId.get(id)).filter(Boolean)
+    const items = raw.filter(i=>!lightVideoFiller(i,prof))
+    if (!items.length) { reject('story', st.id, st.itemIds, raw.length ? 'licht-videorondje-buiten-interesse' : 'geen-bekend-artikel'); continue }
     // Gezien in je vorige Editie: alleen terug als het zich ontwikkelde, en dan lager (de straf
     // telt hier alleen voor de volgorde, niet voor de plek).
     let dev = null

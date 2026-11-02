@@ -1516,8 +1516,16 @@ var HootCore = (() => {
     return match;
   }
   var cappedInternational = (prof, items = [], desk = null, story = null) => internationalNews(items, desk, story) && !specialistMatch(prof, items, desk);
+  function lightVideoFiller(item, prof = null) {
+    const title = item?.title || "";
+    if (/\b(evidence of|video evidence|videobewijs|bewijs van|investigation into|onderzoek naar|war crimes|oorlogsmisdrijven)\b/i.test(title)) return false;
+    const curated = /\b(get in the spirit|these (?:horror|spooky|scary|halloween)|best (?:horror|spooky|scary|halloween)|(?:horror|halloween|spooky|scary).*(?:roundup|round-up|collection|to watch))\b/i.test(title);
+    const video = /\b(youtube|tiktok|videos?|trailers?)\b/i.test(title);
+    return curated && video && !((prof?.family?.cultuur || 0) >= 0.5 && (prof?.topicP?.film || 0) >= 0.5);
+  }
   function newsRejection(prof, story, items, desk = null) {
     if (onlyGalleries(items)) return "alleen-galerijen";
+    if (items.length && items.every((i) => lightVideoFiller(i, prof))) return "licht-videorondje-buiten-interesse";
     if ((sportStory(story, items, prof.catOf) || items.some((i) => isSport(i, prof.catOf))) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return "sport-niet-gekozen";
     if (!worldChosen(prof) && cappedInternational(prof, items, desk, story) && !majorNews(story, items)) return "internationaal-niet-groot-genoeg";
     return null;
@@ -2226,9 +2234,10 @@ var HootCore = (() => {
         reject("story", st.id, st.itemIds, "ouder-dan-verhaalvenster");
         continue;
       }
-      const items = st.itemIds.map((id) => byId2.get(id)).filter(Boolean);
+      const raw = st.itemIds.map((id) => byId2.get(id)).filter(Boolean);
+      const items = raw.filter((i) => !lightVideoFiller(i, prof));
       if (!items.length) {
-        reject("story", st.id, st.itemIds, "geen-bekend-artikel");
+        reject("story", st.id, st.itemIds, raw.length ? "licht-videorondje-buiten-interesse" : "geen-bekend-artikel");
         continue;
       }
       let dev = null;
