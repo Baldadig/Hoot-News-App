@@ -45,3 +45,7 @@ e164349 → 720f32c, e2c76c7 → 9eb7cca. CSS-staart bevat zowel het bronraster 
 ### A08 · Categoriegegevens en verzegeling
 
 086a179 → 98a1bb9, 1aeace3 → a7b5426, 0cf994b → 346a56b; V2b 9933b59 → e6f491e en 6b48dff → 4d277c3. Definitief V2a-bewijs apart meegenomen zonder oude losse patch. Geen classifier gewijzigd. V2b uitsluitend als verzegelde data geïntegreerd; de guard controleert hashes/herkomst zonder classifier te importeren. Geen V2b-koppen of labels ingezien of voorspellingen erop gemaakt. V2a-nulmeting reproduceert 107/134 ontwikkeling en 42/58 controle, bekende regressies 3/4. Web 924 geslaagd + 1 TODO, native 86 geslaagd, build en alle harde acceptatiedrempels groen. [Logverwijzingen](beta/controle-A08.json).
+
+### A09 · Onderzoeken/documentatie
+
+824c364 → 5ad2dbd; definitieve Selectie-overdracht en Stroomonderzoek met meetbewijs → 24627a2. Geen nieuw ophaal-/onderzoeksscript of productwijziging. Web 924 geslaagd + 1 TODO, native 86 geslaagd, build en alle harde acceptatiedrempels groen. [Logverwijzingen](beta/controle-A09.json).
