@@ -20,7 +20,12 @@ Productwijzigingen uitsluitend `landing/index.src.html` en `landing/hoot.css`. G
 - Controlebeelden en JSON in `landing-afwerking/`. Het lokale controlevenster toont de daadwerkelijke gebouwde secties, met een link naar de volledige gebouwde pagina: http://127.0.0.1:61229/review.html.
 - `git diff --check` schoon. Geen native tests nodig; iOS is ongewijzigd.
 
-## Mergen
+## Publiceren en mergen
+
+**Push nog niet uitgevoerd.** `git push -u origin landing-afwerking` stopt met `could not read Username for https://github.com: Device not configured`. De bestaande GitHub Desktop-sessie is geprobeerd, maar de native bediening viel uit met opnamefout -3812, ook na één herstelpoging. Geen nieuwe login of credentials aangevraagd. De branch staat lokaal volledig klaar.
+
+Open in GitHub Desktop de bestaande werkmap **Hoot-beta-integratie**, branch **landing-afwerking**, en kies **Publish branch**. Daarna pas mergen naar main. De gewone werkmap Hoot-News-App staat nog op main. De werkmapkeuze in GitHub Desktop voorkomt dat je de branch probeert uit te checken terwijl die al in de andere werkmap actief is.
+
 
 Merge **landing-afwerking → main** als één pakket. De footer zit er al in: `landing-footer-ruimte` niet nog apart overnemen. `landing-selectie-tech` evenmin mergen: de AI-inhoud daarvan is vervangen door Werk & organisatie. Het losse voordelenconcept is hiermee naar productcode vertaald; de meest recente controlebeelden staan bij dit pakket.
 
