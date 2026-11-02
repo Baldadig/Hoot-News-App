@@ -1613,7 +1613,7 @@ select.input {
 .is-read .kicker .kicker__type {
   color: var(--ink-3);
 }
-.kicker span + span::before {
+.kicker > span + span::before {
   content: '·';
   margin-right: var(--s2);
   color: var(--ink-3);
@@ -5412,3 +5412,15 @@ html[data-images='hoofd'] .media--social {
 
 .dfield--closed { margin-top: var(--s3); }
 .dfield--closed > .dfield__head { margin-bottom: 0; padding-top: var(--s3); }
+/* Editie: vaste cijfervakken in Newsreader, ook zonder tnum in het letterbestand. */
+.kicker__n { display: inline-flex; font-variant-numeric: tabular-nums; }
+.kicker__digit { display: inline-block; inline-size: 1ch; text-align: center; }
+.endcap__count { font-variant-numeric: tabular-nums; }
+
+/* Op breed web hangt de telling naast de tekst, binnen de eigen kaartmarge. */
+@media (min-width: 960px) {
+  .front .entry:has(.kicker__n), .front__rest .entry:has(.kicker__n) { padding-inline-start: calc(2ch + var(--s3)); }
+  .front .kicker:has(> .kicker__n), .front__rest .kicker:has(> .kicker__n) { position: relative; }
+  .front .kicker > .kicker__n, .front__rest .kicker > .kicker__n { position: absolute; inset-inline-end: calc(100% + var(--s3)); }
+  .front .kicker > .kicker__n + span::before, .front__rest .kicker > .kicker__n + span::before { content: none; }
+}

@@ -8,8 +8,23 @@ struct EditionRowModel: Identifiable {
     let story: Story?
     let label: String?
     let desk: String?
+    var number: Int? = nil
     var why: String? = nil // het waarom van de plek (jouw Editie), of niets
     var outside = false // buiten de bronnen die je volgt: dat zegt de bronregel
+}
+
+// Nummer pas na de beeldvolgorde; de bubbel staat buiten de telling.
+enum EditionNumbering {
+    static func rows(_ rows: [EditionRowModel]) -> [EditionRowModel] {
+        var n = 0
+        return rows.map { row in
+            var row = row
+            if row.desk == "bubbel" { row.number = nil }
+            else { n += 1; row.number = n }
+            return row
+        }
+    }
+    static func count(_ rows: [EditionRowModel]) -> Int { rows.compactMap(\.number).max() ?? 0 }
 }
 
 // De drie dagdelen van de Editie: per slot de naam (met hoofdletter, zoals Editie), wanneer de
@@ -133,6 +148,7 @@ struct EditionView: View {
         return " De volgende staat \(volgende) klaar."
     }
 
+    @State private var refreshWaiting = false
     @State private var path = NavigationPath()
     @State private var nudge = false // "Maak Hoot van jou", na even rondkijken
     @State private var setup = false
@@ -143,6 +159,7 @@ struct EditionView: View {
         let items = [row.item] + (row.story?.itemIds ?? []).filter { $0 != row.item.id }.compactMap { store.itemsById[$0] }
         if store.less.contains(row.id) {
             HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
+                EditionNumber(number: row.number, read: store.isRead(row.item))
                 Text("Je ziet minder over \(Taste.about(items)).")
                     .font(.subheadline)
                     .foregroundStyle(Theme.ink3)
@@ -192,7 +209,7 @@ struct EditionView: View {
             ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
-                    let rows = store.editionRows
+                    let rows = EditionNumbering.rows(store.editionRows)
                     // De schermtitel in de scroll, direct boven de metaregel (zoals .vh__sub op het web).
                     // Met een kleine, stille zon ernaast: zijn hoogte toont het dagdeel (onboarding-plan, ‘De zon
                     // in de Editie’). Laag bij de Ochtend- en Avondeditie, hoog bij de Middageditie.
@@ -206,6 +223,11 @@ struct EditionView: View {
                             }
                         }
                         ScreenTitle(title, gap: 0).frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    if refreshWaiting && !rows.isEmpty {
+                        WaitingMark().frame(maxWidth: .infinity, alignment: .leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.vertical, Space.s3)
                     }
                     if rows.isEmpty && (store.status == .loading || (store.status != .failed && store.edition != nil && store.shownEdition == nil)) {
                         WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
@@ -225,7 +247,7 @@ struct EditionView: View {
                         // Kon er niet ververst worden, dan zegt dat het onder de datum: titel en datum blijven bij elkaar.
                         StaleNotice(gap: Space.s4)
                         StrongRule(drawn: ruleDrawn).padding(.bottom, Space.s4)
-                        slot(rows[0]) { LeadCard(item: rows[0].item, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
+                        slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
                             .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
                         if wide {
                             // Breed: de rest in twee kolommen, elk verhaal met een lijn erboven.
@@ -233,19 +255,23 @@ struct EditionView: View {
                                 ForEach(rows.dropFirst()) { row in
                                     VStack(alignment: .leading, spacing: 0) {
                                         Rule().padding(.vertical, Space.s2)
-                                        slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
+                                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
                                     }
                                 }
                             }
                         } else {
                             ForEach(rows.dropFirst()) { row in
                                 Rule().padding(.vertical, Space.s2)
-                                slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
+                                slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
                             }
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,
                         // en wanneer de volgende er is.
                         VStack(spacing: Space.s3) {
+                            let count = EditionNumbering.count(rows)
+                            if count > 0 {
+                                Text("\(count) van \(count)").font(.system(.body, design: .serif)).monospacedDigit().opacity(0.85)
+                            }
                             // De zon komt hier één keer op (6 s), zodra het vlak in beeld komt, en ademt
                             // dan; in papier op merkrood. Het enige merkmoment tijdens het lezen. Met
                             // Verminder beweging staat hij al op (OnboardingArt, variant intro).
@@ -308,7 +334,7 @@ struct EditionView: View {
             .hootScreenTitle() // het verhaal wint van de schermtitel (C7)
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .hootRefresh { await store.load() }
+            .hootRefresh(indicator: false, onWaiting: { refreshWaiting = $0 }) { await store.load() }
             .toolbar {
                 // Het woordmerk, klein linksboven: je ziet waar je bent, zonder dat het de krant overneemt.
                 // Hier landt het opstartscherm op.

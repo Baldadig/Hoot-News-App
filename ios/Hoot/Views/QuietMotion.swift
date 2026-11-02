@@ -31,6 +31,8 @@ struct StrongRule: View {
 // Eén trek per losgelaten gebaar; de leespositie blijft bij een gewone scroll ongemoeid.
 private struct HootRefresh: ViewModifier {
     let action: @MainActor () async -> Void
+    var indicator = true
+    var onWaiting: ((Bool) -> Void)? = nil
     @State private var pulled = false
     @State private var amount: CGFloat = 0
     @State private var busy = false
@@ -50,13 +52,17 @@ private struct HootRefresh: ViewModifier {
                 if new == .idle { pulled = false }
             }
             .overlay(alignment: .top) {
-                if busy || amount > 12 { WaitingMark().padding(.vertical, Space.s3).padding(.horizontal, Space.s4).background(Theme.paper, in: Capsule()).allowsHitTesting(false) }
+                if indicator && (busy || amount > 12) { WaitingMark().padding(.vertical, Space.s3).padding(.horizontal, Space.s4).background(Theme.paper, in: Capsule()).allowsHitTesting(false) }
             }
+            .onChange(of: busy || amount > 12) { _, value in onWaiting?(value) }
+            .onDisappear { onWaiting?(false) }
             .accessibilityAction(named: "Verversen") { refresh() }
     }
 }
 extension View {
-    func hootRefresh(_ action: @escaping @MainActor () async -> Void) -> some View { modifier(HootRefresh(action: action)) }
+    func hootRefresh(indicator: Bool = true, onWaiting: ((Bool) -> Void)? = nil, _ action: @escaping @MainActor () async -> Void) -> some View {
+        modifier(HootRefresh(action: action, indicator: indicator, onWaiting: onWaiting))
+    }
 }
 
 // De lege bladzijde: dezelfde paden en het rode detail als de SVG's op het web.

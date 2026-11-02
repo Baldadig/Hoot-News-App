@@ -1,0 +1,337 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project ios/Hoot.xcodeproj -scheme Hoot -destination id=AB388E9A-E6EF-4302-820B-A643C19C9F40 -resultBundlePath /tmp/hoot-nummering-passed.xcresult test
+
+Writing result bundle at path:
+	/tmp/hoot-nummering-passed.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (2 targets)
+    Target 'HootTests' in project 'Hoot'
+        ➜ Explicit dependency on target 'Hoot' in project 'Hoot'
+    Target 'Hoot' in project 'Hoot' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/alexvrees/Baldadig Dropbox/Alex Vrees/Alex/Claude/Hoot-editie-nummering/ios/Hoot/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: dee441a591b7647d2c6d58131994e8fa
+Build description path: /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/XCBuildData/dee441a591b7647d2c6d58131994e8fa.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.2-24B8118-cc78df9d8a9de6526dea716b1c70fd8e.sdkstatcache
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios/Hoot.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk -o /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.2-24B8118-cc78df9d8a9de6526dea716b1c70fd8e.sdkstatcache
+
+ProcessInfoPlistFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/Info.plist /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios/Info.plist (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios
+    builtin-infoPlistUtility /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios/Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_generated_info.plist -o /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/Info.plist
+
+SwiftDriver HootTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name HootTests -Onone @/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk -target arm64-apple-ios26.0-simulator -g -module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/Developer/Library/Frameworks -c -j8 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.2-24B8118-cc78df9d8a9de6526dea716b1c70fd8e.sdkstatcache -output-file-map /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-generated-files.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-own-target-headers.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-all-target-headers.hmap -Xcc -iquote -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-project-headers.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources-normal/arm64 -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources/arm64 -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-Swift.h -working-directory /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios -experimental-emit-module-separately -disable-cmo
+
+CopySwiftLibs /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot.debug.dylib --scan-folder /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/Frameworks --scan-folder /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns --scan-folder /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/SystemExtensions --scan-folder /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ProcessInfoPlistFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/Info.plist /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/empty-HootTests.plist (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios
+    builtin-infoPlistUtility /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/empty-HootTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -format binary -platform iphonesimulator -o /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/Info.plist
+
+SwiftCompile normal arm64 Compiling\ EditionNumberingTests.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios/HootTests/EditionNumberingTests.swift (in target 'HootTests' from project 'Hoot')
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios/HootTests/EditionNumberingTests.swift (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios
+    builtin-SwiftPerFileCompile EditionNumberingTests.swift
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ HootTests (in target 'HootTests' from project 'Hoot')
+
+SwiftCompile normal arm64 (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios
+    
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for HootTests (in target 'HootTests' from project 'Hoot')
+
+SwiftDriver\ Compilation\ Requirements HootTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name HootTests -Onone @/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk -target arm64-apple-ios26.0-simulator -g -module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/Developer/Library/Frameworks -c -j8 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.2-24B8118-cc78df9d8a9de6526dea716b1c70fd8e.sdkstatcache -output-file-map /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-generated-files.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-own-target-headers.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-all-target-headers.hmap -Xcc -iquote -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-project-headers.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources-normal/arm64 -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources/arm64 -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-Swift.h -working-directory /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios -experimental-emit-module-separately -disable-cmo
+
+Copy /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/HootTests.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.abi.json (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.abi.json /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/HootTests.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/HootTests.swiftmodule/arm64-apple-ios-simulator.swiftmodule /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.swiftmodule (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.swiftmodule /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/HootTests.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+Copy /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/HootTests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.swiftsourceinfo (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.swiftsourceinfo /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/HootTests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+SwiftDriverJobDiscovery normal arm64 Compiling EditionNumberingTests.swift (in target 'HootTests' from project 'Hoot')
+
+SwiftDriver\ Compilation HootTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name HootTests -Onone @/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk -target arm64-apple-ios26.0-simulator -g -module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/Developer/Library/Frameworks -c -j8 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.2-24B8118-cc78df9d8a9de6526dea716b1c70fd8e.sdkstatcache -output-file-map /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-generated-files.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-own-target-headers.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-all-target-headers.hmap -Xcc -iquote -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-project-headers.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources-normal/arm64 -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources/arm64 -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-Swift.h -working-directory /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios -experimental-emit-module-separately -disable-cmo
+
+Ld /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/HootTests normal (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios26.0-simulator -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk -O0 -Xlinker -no_warn_duplicate_libraries -L/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/Developer/Library/Frameworks -filelist /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.LinkFileList -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -bundle_loader /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot -Xlinker -object_path_lto -Xlinker /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.swiftmodule -Xlinker -needed_framework -Xlinker XCTest -framework XCTest -Xlinker -needed-lXCTestSwiftSupport -lXCTestSwiftSupport /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot.debug.dylib -Xlinker -no_adhoc_codesign -o /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/HootTests
+
+CopySwiftLibs /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/HootTests --scan-folder /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/Frameworks --scan-folder /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/PlugIns --scan-folder /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/SystemExtensions --scan-folder /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ExtractAppIntentsMetadata (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name HootTests --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk --xcode-version 27B52 --platform-family iOS --deployment-target 26.0 --bundle-identifier nl.hootnews.HootTests --output /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest --target-triple arm64-apple-ios26.0-simulator --binary-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/HootTests --dependency-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests_dependency_info.dat --stringsdata-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.SwiftFileList --metadata-file-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests.DependencyMetadataFileList --static-metadata-file-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests.DependencyStaticMetadataFileList --swift-const-vals-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-11-02 09:18:36.522 appintentsmetadataprocessor[25140:1926678] Starting App Intents metadata extraction
+2026-11-02 09:18:36.531 appintentsmetadataprocessor[25140:1926678] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+
+CodeSign /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der --strip-disallowed-xattrs /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest
+
+CodeSign /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot.debug.dylib (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der --strip-disallowed-xattrs /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot.debug.dylib
+
+CodeSign /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/__preview.dylib (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der --strip-disallowed-xattrs /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/__preview.dylib
+/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app/__preview.dylib: replacing existing signature
+
+CodeSign /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --entitlements /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app.xcent --timestamp\=none --generate-entitlement-der --strip-disallowed-xattrs /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app
+
+Validate /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-editie-nummering/ios
+    builtin-validationUtility /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Products/Debug-iphonesimulator/Hoot.app -shallow-bundle -infoplist-subpath Info.plist
+
+PruneExplicitPrecompiledModules /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-gdbdczcpskvozhaaywcsyxfphyhf/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+Test Suite 'All tests' started at 2026-11-02 09:18:42.501.
+Test Suite 'HootTests.xctest' started at 2026-11-02 09:18:42.502.
+Test Suite 'DeelKaartTests' started at 2026-11-02 09:18:42.502.
+Test Case '-[HootTests.DeelKaartTests testDeellinkOpHootnewsMetUitgeverslink]' started.
+Test Case '-[HootTests.DeelKaartTests testDeellinkOpHootnewsMetUitgeverslink]' passed (0.001 seconds).
+Test Case '-[HootTests.DeelKaartTests testExtreemLangeKopBlijftBinnenVierRegels]' started.
+Test Case '-[HootTests.DeelKaartTests testExtreemLangeKopBlijftBinnenVierRegels]' passed (0.016 seconds).
+Test Case '-[HootTests.DeelKaartTests testGedeeldeRegelvalEnPNGFormaten]' started.
+IOSurfaceClientSetSurfaceNotify failed e00002c7
+Test Case '-[HootTests.DeelKaartTests testGedeeldeRegelvalEnPNGFormaten]' passed (0.100 seconds).
+Test Case '-[HootTests.DeelKaartTests testHoofdbeeldOpIPhoneEnIPad]' started.
+2026-11-02 09:18:43.566900+0100 Hoot[25167:1927201] [connection] nw_connection_copy_connected_local_endpoint_block_invoke [C2] Connection has no local endpoint
+2026-11-02 09:18:43.567096+0100 Hoot[25167:1927201] [connection] nw_connection_copy_connected_local_endpoint_block_invoke [C2] Connection has no local endpoint
+2026-11-02 09:18:43.661846+0100 Hoot[25167:1927329] [edition-core] rekenkern geladen in 33 ms (versie 1)
+Test Case '-[HootTests.DeelKaartTests testHoofdbeeldOpIPhoneEnIPad]' passed (3.161 seconds).
+Test Suite 'DeelKaartTests' passed at 2026-11-02 09:18:45.782.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 3.279 (3.280) seconds
+Test Suite 'EditionClaimTests' started at 2026-11-02 09:18:45.782.
+Test Case '-[HootTests.EditionClaimTests testAnonNeverClaims]' started.
+Test Case '-[HootTests.EditionClaimTests testAnonNeverClaims]' passed (0.004 seconds).
+Test Case '-[HootTests.EditionClaimTests testEarlierKeepsLastThree]' started.
+Test Case '-[HootTests.EditionClaimTests testEarlierKeepsLastThree]' passed (0.005 seconds).
+Test Case '-[HootTests.EditionClaimTests testFetchWithoutEdition]' started.
+Test Case '-[HootTests.EditionClaimTests testFetchWithoutEdition]' passed (0.002 seconds).
+Test Case '-[HootTests.EditionClaimTests testFilterShape]' started.
+Test Case '-[HootTests.EditionClaimTests testFilterShape]' passed (0.006 seconds).
+Test Case '-[HootTests.EditionClaimTests testFirstWriterWinsSecondAdopts]' started.
+Test Case '-[HootTests.EditionClaimTests testFirstWriterWinsSecondAdopts]' passed (0.003 seconds).
+Test Case '-[HootTests.EditionClaimTests testFitsNeedsIdOwnerAndBasis]' started.
+Test Case '-[HootTests.EditionClaimTests testFitsNeedsIdOwnerAndBasis]' passed (0.001 seconds).
+Test Case '-[HootTests.EditionClaimTests testMayComposeWaitsForPull]' started.
+Test Case '-[HootTests.EditionClaimTests testMayComposeWaitsForPull]' passed (0.000 seconds).
+Test Case '-[HootTests.EditionClaimTests testNextSlotReplacesOld]' started.
+Test Case '-[HootTests.EditionClaimTests testNextSlotReplacesOld]' passed (0.002 seconds).
+Test Suite 'EditionClaimTests' passed at 2026-11-02 09:18:45.808.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.023 (0.026) seconds
+Test Suite 'EditionMotionTests' started at 2026-11-02 09:18:45.808.
+Test Case '-[HootTests.EditionMotionTests testAlleenEenNieuweEditieNaDeIris]' started.
+Test Case '-[HootTests.EditionMotionTests testAlleenEenNieuweEditieNaDeIris]' passed (0.004 seconds).
+Test Suite 'EditionMotionTests' passed at 2026-11-02 09:18:45.813.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'EditionNumberingTests' started at 2026-11-02 09:18:45.813.
+Test Case '-[HootTests.EditionNumberingTests testDisplayedOrderBubbleAndShortEdition]' started.
+Test Case '-[HootTests.EditionNumberingTests testDisplayedOrderBubbleAndShortEdition]' passed (0.001 seconds).
+Test Case '-[HootTests.EditionNumberingTests testNativeNumberAndWaitingLayouts]' started.
+Test Case '-[HootTests.EditionNumberingTests testNativeNumberAndWaitingLayouts]' passed (0.024 seconds).
+Test Suite 'EditionNumberingTests' passed at 2026-11-02 09:18:45.838.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.025 (0.025) seconds
+Test Suite 'EditionParityTests' started at 2026-11-02 09:18:45.839.
+Test Case '-[HootTests.EditionParityTests testBasisMatchesWeb]' started.
+Test Case '-[HootTests.EditionParityTests testBasisMatchesWeb]' passed (0.015 seconds).
+Test Case '-[HootTests.EditionParityTests testComposeMatchesGoldenByteForByte]' started.
+2026-11-02 09:18:46.253694+0100 Hoot[25167:1927222] [edition-core] Editie samengesteld in 399 ms
+2026-11-02 09:18:46.665417+0100 Hoot[25167:1927264] [edition-core] Editie samengesteld in 410 ms
+2026-11-02 09:18:47.067191+0100 Hoot[25167:1927264] [edition-core] Editie samengesteld in 400 ms
+2026-11-02 09:18:47.454417+0100 Hoot[25167:1927264] [edition-core] Editie samengesteld in 386 ms
+Test Case '-[HootTests.EditionParityTests testComposeMatchesGoldenByteForByte]' passed (1.602 seconds).
+Test Case '-[HootTests.EditionParityTests testComposeTime]' started.
+2026-11-02 09:18:47.856410+0100 Hoot[25167:1927023] [edition-core] Editie samengesteld in 399 ms
+2026-11-02 09:18:48.540667+0100 Hoot[25167:1927023] [edition-core] Editie samengesteld in 433 ms
+2026-11-02 09:18:48.951582+0100 Hoot[25167:1927023] [edition-core] Editie samengesteld in 409 ms
+2026-11-02 09:18:49.353802+0100 Hoot[25167:1927023] [edition-core] Editie samengesteld in 402 ms
+2026-11-02 09:18:49.753365+0100 Hoot[25167:1927023] [edition-core] Editie samengesteld in 399 ms
+2026-11-02 09:18:50.151713+0100 Hoot[25167:1927023] [edition-core] Editie samengesteld in 398 ms
+2026-11-02 09:18:50.556125+0100 Hoot[25167:1927023] [edition-core] Editie samengesteld in 404 ms
+2026-11-02 09:18:50.965608+0100 Hoot[25167:1927023] [edition-core] Editie samengesteld in 409 ms
+2026-11-02 09:18:51.365920+0100 Hoot[25167:1927023] [edition-core] Editie samengesteld in 400 ms
+2026-11-02 09:18:51.763423+0100 Hoot[25167:1927023] [edition-core] Editie samengesteld in 397 ms
+2026-11-02 09:18:52.163297+0100 Hoot[25167:1927023] [edition-core] Editie samengesteld in 399 ms
+<unknown>:0: Test Case '-[HootTests.EditionParityTests testComposeTime]' measured [Time, seconds] average: 0.406, relative standard deviation: 2.542%, values: [0.433860, 0.410081, 0.402198, 0.399515, 0.398355, 0.404397, 0.409469, 0.400302, 0.397493, 0.399864], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , polarity: prefers smaller, maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+EditionParityTests: samenstellen gemiddeld 405 ms over 10 keer (max 433 ms)
+Test Case '-[HootTests.EditionParityTests testComposeTime]' passed (4.720 seconds).
+Test Case '-[HootTests.EditionParityTests testFixtureHasFourReaders]' started.
+Test Case '-[HootTests.EditionParityTests testFixtureHasFourReaders]' passed (0.001 seconds).
+Test Case '-[HootTests.EditionParityTests testHistoryRoundTripsBetweenWebAndApp]' started.
+2026-11-02 09:18:52.575030+0100 Hoot[25167:1927200] [edition-core] Editie samengesteld in 397 ms
+Test Case '-[HootTests.EditionParityTests testHistoryRoundTripsBetweenWebAndApp]' passed (0.406 seconds).
+Test Case '-[HootTests.EditionParityTests testHistoryShape]' started.
+2026-11-02 09:18:52.985891+0100 Hoot[25167:1927329] [edition-core] Editie samengesteld in 401 ms
+Test Case '-[HootTests.EditionParityTests testHistoryShape]' passed (0.407 seconds).
+Test Case '-[HootTests.EditionParityTests testHistoryThreeSlotsDeep]' started.
+2026-11-02 09:18:53.398729+0100 Hoot[25167:1927200] [edition-core] Editie samengesteld in 407 ms
+Test Case '-[HootTests.EditionParityTests testHistoryThreeSlotsDeep]' passed (0.416 seconds).
+Test Case '-[HootTests.EditionParityTests testOutputDecodesAsEdition]' started.
+2026-11-02 09:18:53.748118+0100 Hoot[25167:1927331] [edition-core] Editie samengesteld in 340 ms
+2026-11-02 09:18:54.154151+0100 Hoot[25167:1927329] [edition-core] Editie samengesteld in 401 ms
+2026-11-02 09:18:54.555312+0100 Hoot[25167:1927333] [edition-core] Editie samengesteld in 400 ms
+2026-11-02 09:18:54.935142+0100 Hoot[25167:1927333] [edition-core] Editie samengesteld in 379 ms
+Test Case '-[HootTests.EditionParityTests testOutputDecodesAsEdition]' passed (1.529 seconds).
+Test Case '-[HootTests.EditionParityTests testOwnerFilter]' started.
+2026-11-02 09:18:55.338398+0100 Hoot[25167:1927329] [edition-core] Editie samengesteld in 401 ms
+Test Case '-[HootTests.EditionParityTests testOwnerFilter]' passed (0.405 seconds).
+Test Case '-[HootTests.EditionParityTests testPersonalEditionMustBeReadyBeforeShowingItsNews]' started.
+Test Case '-[HootTests.EditionParityTests testPersonalEditionMustBeReadyBeforeShowingItsNews]' passed (0.000 seconds).
+Test Case '-[HootTests.EditionParityTests testPublisherEvidenceSurvivesStoryCacheRoundTrip]' started.
+Test Case '-[HootTests.EditionParityTests testPublisherEvidenceSurvivesStoryCacheRoundTrip]' passed (0.003 seconds).
+Test Case '-[HootTests.EditionParityTests testSkippedSlotKnowsWebMiddag]' started.
+2026-11-02 09:18:55.744994+0100 Hoot[25167:1927331] [edition-core] Editie samengesteld in 398 ms
+Test Case '-[HootTests.EditionParityTests testSkippedSlotKnowsWebMiddag]' passed (0.403 seconds).
+Test Suite 'EditionParityTests' passed at 2026-11-02 09:18:55.749.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 9.908 (9.911) seconds
+Test Suite 'ImageMeasureTests' started at 2026-11-02 09:18:55.750.
+Test Case '-[HootTests.ImageMeasureTests testAsymmetrischeUitsnedeEnVasteVerhouding]' started.
+Test Case '-[HootTests.ImageMeasureTests testAsymmetrischeUitsnedeEnVasteVerhouding]' passed (0.006 seconds).
+Test Case '-[HootTests.ImageMeasureTests testStaandEnOudBericht]' started.
+Test Case '-[HootTests.ImageMeasureTests testStaandEnOudBericht]' passed (0.000 seconds).
+Test Suite 'ImageMeasureTests' passed at 2026-11-02 09:18:55.757.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.006 (0.007) seconds
+Test Suite 'LabelTests' started at 2026-11-02 09:18:55.757.
+Test Case '-[HootTests.LabelTests testDeOnderwerpenUitDeKopKomenMeeUitDeAPI]' started.
+Test Case '-[HootTests.LabelTests testDeOnderwerpenUitDeKopKomenMeeUitDeAPI]' passed (0.000 seconds).
+Test Case '-[HootTests.LabelTests testDePlekZegtWaarHetVandaanKomt]' started.
+Test Case '-[HootTests.LabelTests testDePlekZegtWaarHetVandaanKomt]' passed (0.000 seconds).
+Test Case '-[HootTests.LabelTests testGedeeldeGevallen]' started.
+Test Case '-[HootTests.LabelTests testGedeeldeGevallen]' passed (0.001 seconds).
+Test Suite 'LabelTests' passed at 2026-11-02 09:18:55.760.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'OnboardingTests' started at 2026-11-02 09:18:55.760.
+Test Case '-[HootTests.OnboardingTests testChunksSplitATallGroupIntoPagesOfMaxRows]' started.
+Test Case '-[HootTests.OnboardingTests testChunksSplitATallGroupIntoPagesOfMaxRows]' passed (0.010 seconds).
+Test Case '-[HootTests.OnboardingTests testEveryChunkFitsItsRows]' started.
+Test Case '-[HootTests.OnboardingTests testEveryChunkFitsItsRows]' passed (0.009 seconds).
+Test Case '-[HootTests.OnboardingTests testEveryPageFitsWhenItCan]' started.
+Test Case '-[HootTests.OnboardingTests testEveryPageFitsWhenItCan]' passed (0.009 seconds).
+Test Case '-[HootTests.OnboardingTests testForgetChoicesStartsNeutral]' started.
+Test Case '-[HootTests.OnboardingTests testForgetChoicesStartsNeutral]' passed (0.024 seconds).
+Test Case '-[HootTests.OnboardingTests testGroupHeightGrowsByOneChipPerRow]' started.
+Test Case '-[HootTests.OnboardingTests testGroupHeightGrowsByOneChipPerRow]' passed (0.008 seconds).
+Test Case '-[HootTests.OnboardingTests testMetricsGrowWithTheTextSize]' started.
+Test Case '-[HootTests.OnboardingTests testMetricsGrowWithTheTextSize]' passed (0.008 seconds).
+Test Case '-[HootTests.OnboardingTests testNoStartingProfession]' started.
+Test Case '-[HootTests.OnboardingTests testNoStartingProfession]' passed (0.010 seconds).
+Test Case '-[HootTests.OnboardingTests testOversizedChipCountsItsExtraLine]' started.
+Test Case '-[HootTests.OnboardingTests testOversizedChipCountsItsExtraLine]' passed (0.009 seconds).
+Test Case '-[HootTests.OnboardingTests testRowsWrapAtTheLineWidth]' started.
+Test Case '-[HootTests.OnboardingTests testRowsWrapAtTheLineWidth]' passed (0.009 seconds).
+Test Case '-[HootTests.OnboardingTests testSplitKeepsOrderAndFitsTheRoom]' started.
+Test Case '-[HootTests.OnboardingTests testSplitKeepsOrderAndFitsTheRoom]' passed (0.009 seconds).
+Test Case '-[HootTests.OnboardingTests testStreamTabsAreOnlyChosenRubriekenInFixedOrder]' started.
+Test Case '-[HootTests.OnboardingTests testStreamTabsAreOnlyChosenRubriekenInFixedOrder]' passed (0.009 seconds).
+Test Case '-[HootTests.OnboardingTests testSuggestionFollowsInterestsWithoutDuplicates]' started.
+Test Case '-[HootTests.OnboardingTests testSuggestionFollowsInterestsWithoutDuplicates]' passed (0.009 seconds).
+Test Case '-[HootTests.OnboardingTests testSuggestionNeverHasASubscription]' started.
+Test Case '-[HootTests.OnboardingTests testSuggestionNeverHasASubscription]' passed (0.009 seconds).
+Test Case '-[HootTests.OnboardingTests testSuggestionStartsWithFreeDutchSources]' started.
+Test Case '-[HootTests.OnboardingTests testSuggestionStartsWithFreeDutchSources]' passed (0.009 seconds).
+Test Suite 'OnboardingTests' passed at 2026-11-02 09:18:55.904.
+	 Executed 14 tests, with 0 failures (0 unexpected) in 0.142 (0.144) seconds
+Test Suite 'SentencesTests' started at 2026-11-02 09:18:55.904.
+Test Case '-[HootTests.SentencesTests testFixture]' started.
+Test Case '-[HootTests.SentencesTests testFixture]' passed (0.002 seconds).
+Test Case '-[HootTests.SentencesTests testIntroMax]' started.
+Test Case '-[HootTests.SentencesTests testIntroMax]' passed (0.000 seconds).
+Test Case '-[HootTests.SentencesTests testIntroMaxFixture]' started.
+Test Case '-[HootTests.SentencesTests testIntroMaxFixture]' passed (0.000 seconds).
+Test Case '-[HootTests.SentencesTests testRules]' started.
+Test Case '-[HootTests.SentencesTests testRules]' passed (0.001 seconds).
+Test Suite 'SentencesTests' passed at 2026-11-02 09:18:55.908.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds
+Test Suite 'SlotsTests' started at 2026-11-02 09:18:55.908.
+Test Case '-[HootTests.SlotsTests testAlertsUseTheTable]' started.
+Test Case '-[HootTests.SlotsTests testAlertsUseTheTable]' passed (0.000 seconds).
+Test Case '-[HootTests.SlotsTests testSameSlotsAsWeb]' started.
+Test Case '-[HootTests.SlotsTests testSameSlotsAsWeb]' passed (0.001 seconds).
+Test Case '-[HootTests.SlotsTests testSameWordsAsWeb]' started.
+Test Case '-[HootTests.SlotsTests testSameWordsAsWeb]' passed (0.000 seconds).
+Test Suite 'SlotsTests' passed at 2026-11-02 09:18:55.910.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'TypesetTests' started at 2026-11-02 09:18:55.910.
+Test Case '-[HootTests.TypesetTests testFixture]' started.
+Test Case '-[HootTests.TypesetTests testFixture]' passed (0.013 seconds).
+Test Case '-[HootTests.TypesetTests testRules]' started.
+Test Case '-[HootTests.TypesetTests testRules]' passed (0.009 seconds).
+Test Suite 'TypesetTests' passed at 2026-11-02 09:18:55.933.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.023 (0.023) seconds
+Test Suite 'HootTests.xctest' passed at 2026-11-02 09:18:55.933.
+	 Executed 55 tests, with 0 failures (0 unexpected) in 13.416 (13.431) seconds
+Test Suite 'All tests' passed at 2026-11-02 09:18:55.934.
+	 Executed 55 tests, with 0 failures (0 unexpected) in 13.416 (13.432) seconds
+2026-11-02 09:18:56.232 xcodebuild[25062:1926234] [MT] IDETestOperationsObserverDebug: 19.585 elapsed -- Testing started completed.
+2026-11-02 09:18:56.232 xcodebuild[25062:1926234] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-11-02 09:18:56.232 xcodebuild[25062:1926234] [MT] IDETestOperationsObserverDebug: 19.585 sec, +19.585 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/hoot-nummering-passed.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

@@ -65,8 +65,7 @@ export function uncovered(brief, count) {
 // hoofdverhaal is 01. "Buiten je bubbel" telt niet mee (dat staat er naast je Editie, niet in);
 // "Waar iedereen over schrijft" (breed) wel. Een ingeklapte plek (minder hiervan) houdt zijn
 // nummer, zodat de telling niet verspringt. Elke rij krijgt `n` (1-based, of null); het totaal
-// is het hoogste nummer ("10 van 10" op de rode kaart). Op iOS nog niet: EditionView moet dit
-// overnemen (numberRows, countOf, two; de kicker "01 ·" en "N van N" op de rode kaart).
+// is het hoogste nummer ("10 van 10" op de rode kaart). Native spiegelt dit in EditionNumbering.
 export function numberRows(rows) {
   let n = 0
   return rows.map((r) => ({ ...r, n: r.desk === 'bubbel' ? null : ++n }))

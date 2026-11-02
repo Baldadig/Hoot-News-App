@@ -1,3 +1,6 @@
+## Nog uit te brengen · blok 14
+- Editie: zichtbare nummering, werkelijke eindtelling zonder bubbel en een laadmelding onder de titel.
+
 # Changelog — Hoot voor iOS
 
 ## Onuitgebracht

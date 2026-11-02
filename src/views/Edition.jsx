@@ -1,3 +1,4 @@
+import { EditionNumber } from '../components/EditionNumber.jsx'
 import { useEffect, useRef, useState } from 'react'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf } from '../components/Items.jsx'
@@ -9,7 +10,7 @@ import { KopSun, EindeSun } from '../components/SunArt.jsx'
 import Weather from '../components/Weather.jsx'
 import { longDate } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
-import { resolveEditionEntry, heroFirst, numberRows, countOf, two, EDITION_SIZE, upNext } from '../lib/edition.js'
+import { resolveEditionEntry, heroFirst, numberRows, countOf, EDITION_SIZE, upNext } from '../lib/edition.js'
 import { SLOTS } from '../../shared/slots.mjs'
 import { fitsHero } from '../lib/img.js'
 import { followedNow } from '../lib/follow.js'
@@ -44,7 +45,7 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
     <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       {n || note || opinie || followed ? (
         <p className="label label--kicker kicker">
-          {n ? <span className="kicker__n">{two(n)}</span> : null}
+          {n ? <EditionNumber n={n} /> : null}
           {note ? <span>{note}</span> : null}
           {opinie ? <span className="kicker__type">Opinie</span> : null}
           {followed ? <span className="label--meta front__followed">{followed}</span> : null}
@@ -71,11 +72,12 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
 }
 
 // Een verhaal waar je "minder hiervan" op zei: ingeklapt tot één regel, met de weg terug.
-function LessNote({ entryKey, item, story }) {
+function LessNote({ entryKey, item, story, n }) {
   const { undoLess, itemsById } = useHoot()
   const items = itemsOfEntry(item, story, itemsById)
   return (
     <p className="lessnote" role="status">
+      <EditionNumber n={n} />
       <span>Je ziet minder over {aboutOf(items)}.</span>
       <button type="button" className="linkbtn linkbtn--plain lessnote__undo" onClick={() => undoLess(entryKey, items)}>
         Ongedaan maken
@@ -84,7 +86,7 @@ function LessNote({ entryKey, item, story }) {
   )
 }
 // Elke plek: het verhaal zelf, of ingeklapt als je er minder van wilde.
-const Slot = ({ less, row, children }) => (less.includes(row.key) ? <LessNote entryKey={row.key} item={row.item} story={row.story} /> : children)
+const Slot = ({ less, row, children }) => (less.includes(row.key) ? <LessNote n={row.n} entryKey={row.key} item={row.item} story={row.story} /> : children)
 
 export default function Edition({ active, edition, bubble = [], brief = null, briefForMembers = false, onJoin, hint = false, onHintDone, loading, failedLoad, statusProps, onRefresh, refreshing }) {
   const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account, prefs, sourcesById } = useHoot()
@@ -269,13 +271,13 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 Is het raam niet breder dan 48rem (telefoon, tablet staand, of met het vergelijkpaneel open), dan staan ze onder elkaar. */}
             <div className="front">
               <Slot less={less} row={rows[0]}>
-                <LeadStory item={rows[0].item} story={rows[0].story} note={rows[0].note} why={rows[0].why} outside={rows[0].outside} followed={onFront.get(rows[0].key)} priority={active} taste={rows[0].key} />
+                <LeadStory n={rows[0].n} item={rows[0].item} story={rows[0].story} note={rows[0].note} why={rows[0].why} outside={rows[0].outside} followed={onFront.get(rows[0].key)} priority={active} taste={rows[0].key} />
               </Slot>
               {rows.length > 1 ? (
                 <div className="front__side rows">
                   {rows.slice(1, 4).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
-                      <FrontItem item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} />
+                      <FrontItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} />
                     </Slot>
                   ))}
                 </div>
@@ -286,7 +288,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 <div className="front__under rows">
                   {rows.slice(4, FRONT).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
-                      <FrontItem item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} />
+                      <FrontItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} />
                     </Slot>
                   ))}
                 </div>
@@ -299,7 +301,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 <div className="list rows">
                   {rows.slice(FRONT).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
-                      <CompactItem item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} taste={r.key} plain />
+                      <CompactItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} taste={r.key} plain />
                     </Slot>
                   ))}
                 </div>

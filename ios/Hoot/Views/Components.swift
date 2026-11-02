@@ -194,23 +194,44 @@ private struct WordmarkBody: View {
     }
 }
 
+// Systeemserif is de native tegenhanger van Newsreader. Cijfers blijven tabelcijfers.
+struct EditionNumber: View {
+    @Environment(\.isWide) private var wide
+    let number: Int?
+    var read = false
+    var body: some View {
+        if let number {
+            Text(String(format: "%02d", number))
+                .font(.system(.callout, design: .serif, weight: .heavy)).monospacedDigit()
+                .frame(minWidth: wide ? 24 : nil, alignment: .leading)
+                .foregroundStyle(read ? Theme.ink3 : Theme.accent)
+        }
+    }
+}
+
 struct Kicker: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     let text: String?
+    var number: Int? = nil
+    var read = false
     private func label(_ s: String) -> String { typeSize.isAccessibilitySize ? s : s.uppercased() }
     private var dot: Text { Text(" · ").foregroundStyle(Theme.ink3) }
     var body: some View {
         let parts = text.map { $0.isEmpty ? [] : $0.components(separatedBy: " · ") } ?? []
-        if !parts.isEmpty {
+        HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
+            EditionNumber(number: number, read: read)
+            if number != nil && !parts.isEmpty { Text("·").font(.caption).foregroundStyle(Theme.ink3).accessibilityHidden(true) }
+            if !parts.isEmpty {
             // Bij heel grote tekst geen kapitalen: die worden dan breder en zwaarder dan de kop.
             // Meerdere labels ("Binnenland · Buiten je bronnen"): de punt ertussen in `ink3`.
-            let labels = parts.map { Text(label($0)).foregroundStyle(Theme.accent) }
+            let labels = parts.map { Text(label($0)).foregroundStyle(read ? Theme.ink3 : Theme.accent) }
             let rubric = labels.dropFirst().reduce(labels.first ?? Text("")) { acc, p in Text("\(acc)\(dot)\(p)") }
             if typeSize.isAccessibilitySize {
                 rubric.font(.caption.weight(.semibold))
             } else {
                 rubric.font(.caption.weight(.heavy)).tracking(0.6)
             }
+        }
         }
     }
 }
@@ -488,6 +509,7 @@ struct LeadCard: View {
     @Environment(\.isWide) private var wide
     @Environment(\.isSpacious) private var spacious
     let item: Item
+    var number: Int? = nil
     var label: String?
     var why: String? // het waarom van de plek (jouw Editie)
     var outside = false // buiten je bronnen: de bronregel zegt het
@@ -503,9 +525,9 @@ struct LeadCard: View {
     private var text: some View {
         VStack(alignment: .leading, spacing: Space.s3) {
             // Rubriek en waarom dicht op elkaar (één blokje boven de kop), zoals op de website.
-            if label != nil || why != nil {
+            if number != nil || label != nil || why != nil {
                 VStack(alignment: .leading, spacing: Space.s1) {
-                    Kicker(text: label)
+                    Kicker(text: label, number: number, read: store.isRead(item))
                     WhyLine(text: why)
                 }
             }
@@ -555,6 +577,7 @@ struct ItemRow: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @ScaledMetric(relativeTo: .title3) private var thumb: CGFloat = Layout.thumb
     let item: Item
+    var number: Int? = nil
     var label: String?
     var why: String? // het waarom van de plek (jouw Editie)
     var outside = false // buiten je bronnen: de bronregel zegt het
@@ -607,9 +630,9 @@ struct ItemRow: View {
 
     private var text: some View {
         VStack(alignment: .leading, spacing: Space.s2) {
-            if label != nil || why != nil {
+            if number != nil || label != nil || why != nil {
                 VStack(alignment: .leading, spacing: Space.s1) {
-                    Kicker(text: label)
+                    Kicker(text: label, number: number, read: store.isRead(item))
                     WhyLine(text: why)
                 }
             }
