@@ -53,8 +53,8 @@ enum StoryLabel {
     // (store.topics, op het web prefs.topics). `cat`: de rubriek van de bron. `desk`/`deskLabel`: de plek
     // in de Editie en haar naam. `section`: de rubriek van het bericht zelf. `whyCode`/`whyText`: het
     // waarom van De Redacteur. `followed`: de bron staat bij je bronnen.
-    static func label(topics: [String] = [], mainTopics: [String] = [], follows: [String] = [], cat: String? = nil, desk: String? = nil, deskLabel: String? = nil, section: String? = nil, whyCode: String? = nil, whyText: String? = nil, followed: Bool = true) -> Result {
-        let outside = desk == "extern" || whyCode == "extern" || !followed
+    static func label(topics: [String] = [], mainTopics: [String] = [], follows: [String] = [], cat: String? = nil, desk: String? = nil, deskLabel: String? = nil, section: String? = nil, whyCode: String? = nil, whyText: String? = nil, whyDetail: Bool = false, followed: Bool? = nil) -> Result {
+        let outside = followed == false || (followed == nil && (desk == "extern" || whyCode == "extern"))
         let mine = topics.first { follows.contains($0) && Taste.labels[$0] != nil && rubriekOf[$0] != nil && strong($0, desk: desk, mainTopics: mainTopics) }
         var kicker: String?
         if desk == "bubbel" || desk == "breed" {
@@ -69,7 +69,8 @@ enum StoryLabel {
             kicker = [plek, section].compactMap { $0 }.first { !$0.isEmpty }
         }
         let text = whyText?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let keep = text?.isEmpty == false && !inLabel.contains(whyCode ?? "") && whyCode != "interest"
+        let explicitFollowReason = text?.hasPrefix("Omdat je ") == true && (text?.hasSuffix(" volgt") == true || text?.hasSuffix(" volgt.") == true)
+        let keep = text?.isEmpty == false && (!inLabel.contains(whyCode ?? "") || whyDetail) && whyCode != "interest" && !explicitFollowReason
         return Result(kicker: kicker, why: keep ? whyText : nil, outside: outside)
     }
 }

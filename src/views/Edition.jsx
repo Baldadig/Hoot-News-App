@@ -1,3 +1,4 @@
+import { hasEditionMinimum } from '../../shared/edition-limits.mjs'
 import { cleanIntro, HALF_HEADLINE_LINES } from '../../shared/edition-display.mjs'
 import { EditionNumber } from '../components/EditionNumber.jsx'
 import { useEffect, useRef, useState } from 'react'
@@ -108,7 +109,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
       // Het label (lib/label.js): de interesse van de lezer als het verhaal die echt draagt, anders de rubriek;
       // de waarom-regel alleen als die iets toevoegt; 'Buiten je bronnen' staat bij de bronregel.
       const l = labelFor({ topics: r.item.topics, mainTopics: r.item.mainTopics, follows: prefs?.topics || [], cat: sourcesById?.get(r.item.source)?.cat, desk: r.desk, deskLabel: label, why: e.why, followed: r.followed || ['bubbel', 'breed'].includes(e.desk) })
-      return { key: e.id, index, desk: e.desk, item: r.item, story: r.story, note: l.kicker, why: l.why, outside: l.outside }
+      return { key: e.id, index, desk: e.desk, item: r.item, story: r.story, note: l.kicker || 'Nieuws', why: l.why, outside: l.outside }
     })
     .filter(Boolean)
   // De telling (numberRows): elke rij krijgt zijn nummer in de getoonde volgorde; N is het totaal.
@@ -116,6 +117,8 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
   const rows = numbered.filter(r=>r.desk !== 'bubbel')
   const editionBubble = numbered.filter(r=>r.desk === 'bubbel')
   const count = countOf(rows)
+  const hasMinimum = hasEditionMinimum(count)
+  const hasPersonalLabel = !!edition?.personal && ['interests','topics','favorites'].some(k=>prefs?.[k]?.length)
 
   // Je volgt, zonder dubbelingen: een gevolgd verhaal dat op de voorpagina staat (en niet is
   // ingeklapt), krijgt daar 'Je volgt' achter de rubriek en valt uit het lijstje erboven. Wat je
@@ -141,7 +144,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
 
   // Eén keer na het eerste Welkom: wat "Jouw Editie" in de metaregel betekent (src/lib/welcome.js).
   // Hij gaat weg met de X, of vanzelf zodra je de Editie verlaat nadat je hem zag.
-  const showHint = hint && ready && !!edition?.personal
+  const showHint = hint && ready && hasPersonalLabel
   const hintSeen = useRef(false)
   if (showHint && active) hintSeen.current = true
   useEffect(() => {
@@ -188,7 +191,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 <span className="edmeta__wx">
                   <Weather />
                 </span>
-                <span>{edition.personal ? 'Jouw Editie' : 'De Editie voor iedereen'}</span>
+                <span>{hasPersonalLabel ? 'Jouw Editie' : edition.personal ? 'Om te beginnen' : 'De Editie voor iedereen'}</span>
               </p>
             </>
           ) : null}
@@ -233,9 +236,9 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
           </div>
         ) : null}
         {/* Een korte Editie zegt hoeveel verhalen er zijn: een hint onder de lijn, niet in de metaregel. */}
-        {ready && rows.length < EDITION_SIZE ? (
+        {ready && hasMinimum && rows.length < EDITION_SIZE ? (
           <p className="hint edshort">
-            {rows.length} {rows.length === 1 ? 'verhaal' : 'verhalen'}: er was niet meer nieuws dat breed genoeg werd gebracht
+            {rows.length} {rows.length === 1 ? 'verhaal' : 'verhalen'}: er was niet meer passend nieuws beschikbaar
           </p>
         ) : null}
         {loading ? (
@@ -273,6 +276,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             ) : null}
             {/* Voorpagina: het hoofdverhaal groot, daarnaast drie kleinere — altijd in krant-vorm.
                 Is het raam niet breder dan 48rem (telefoon, tablet staand, of met het vergelijkpaneel open), dan staan ze onder elkaar. */}
+            {!hasMinimum ? <Empty title="Nog geen Editie" action={<a className="linkbtn" href="#/stroom">Naar de Stroom</a>}>Er is nog te weinig passend nieuws voor een Editie.</Empty> : null}
             <div className="front">
               <Slot less={less} row={rows[0]}>
                 <LeadStory n={rows[0].n} item={rows[0].item} story={rows[0].story} note={rows[0].note} why={rows[0].why} outside={rows[0].outside} followed={onFront.get(rows[0].key)} priority={active} taste={rows[0].key} />
@@ -318,7 +322,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 {editionBubble.map(r=><Slot key={r.key} less={less} row={r}><CompactItem item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} taste={r.key} plain /></Slot>)}
               </section>
             ) : null}
-            <div className="endcap">
+            {hasMinimum ? (<div className="endcap">
               {/* De telling rond: "10 van 10" boven het merk, stil op rood (bij een korte Editie "7 van 7"). */}
               {count ? (
                 <p className="endcap__count">
@@ -327,7 +331,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               ) : null}
               {/* Het enige merkmoment tijdens het lezen: de zon komt één keer op (plan 01/05). */}
               <EindeSun className="endcap__sun" />
-              <h2 className="head-5 endcap__title">Je bent bij.</h2>
+              <h2 className="head-5 endcap__title">Dan ben je bij.</h2>
               <p className="endcap__text">
                 Dit was de {title} van {longDate(edition.date)}.{upNext(edition.slot)}
               </p>
@@ -335,7 +339,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               <a className="linkbtn endcap__more" href="#/stroom">
                 Of lees verder in de Stroom
               </a>
-            </div>
+            </div>) : null}
             {/* Het overzicht in één minuut: een dialoog, dus achteraan; hij neemt geen plek in de kolom. */}
             {hasBrief ? <BriefReader open={reading} onClose={() => setReading(false)} brief={brief} rows={rows} kicker={`${title} · ${longDate(edition.date)}`} /> : null}
           </>

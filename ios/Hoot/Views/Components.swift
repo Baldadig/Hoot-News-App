@@ -240,15 +240,15 @@ struct Kicker: View {
 }
 
 // Het waarom van een plek in jouw Editie (Desk.why, zoals Why.js op de website): direct onder de rubriek,
-// boven de kop, maar stil: inkt-3, de maat van het label, een gewone zin zonder kapitalen en zonder rood.
-// De kop blijft het zwaarste element; het waarom is het zachtste erboven.
+// boven de kop, rustig maar leesbaar: inkt-2, subheadline, een gewone zin zonder kapitalen en zonder rood.
+// De kop blijft het zwaarste element; het waarom blijft ondergeschikt.
 struct WhyLine: View {
     let text: String?
     var body: some View {
         if let text, !text.isEmpty {
             Text(text)
-                .font(.caption)
-                .foregroundStyle(Theme.ink3)
+                .font(.subheadline)
+                .foregroundStyle(Theme.ink2)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityLabel("Waarom: \(text)")
         }

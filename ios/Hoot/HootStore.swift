@@ -648,7 +648,7 @@ final class HootStore {
         guard let candidate, let id, candidate.id == id, candidate.owner == owner else { return nil }
         return candidate
     }
-    var isPersonal: Bool { shownEdition?.personal == true }
+    var isPersonal: Bool { shownEdition?.personal == true && (!interests.isEmpty || !topics.isEmpty || !favorites.isEmpty) }
     func isFavorite(_ id: String) -> Bool { favorites.contains(id) }
     func setFavorite(_ id: String, _ on: Bool) { favorites = on ? Array(Set(favorites + [id])).sorted() : favorites.filter { $0 != id } }
 

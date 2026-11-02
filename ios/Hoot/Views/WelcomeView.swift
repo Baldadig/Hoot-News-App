@@ -337,7 +337,7 @@ struct WelcomeView: View {
     // ---- De rode intro en de uitleg ----
 
     private static let pages: [(art: OnboardingArt.Kind, head: String, text: String)] = [
-        (.editie, "Je Editie", "Drie keer per dag tien verhalen.\nDan ben je bij."),
+        (.editie, "Je Editie", "Drie keer per dag hooguit tien verhalen.\nDan ben je bij."),
         (.stroom, "De Stroom", "Alles van je bronnen, nieuwste eerst."),
         (.selectie, "Je Selectie", "Eén keer per week bijgepraat\nover wat jou bezighoudt."),
     ]
@@ -560,7 +560,7 @@ struct WelcomeView: View {
             if onRed || step == .uitleg {
                 Button("Inloggen") { login = true }
                     .font(.body.weight(.semibold))
-                    .accessibilityHint("Hoot is nog op uitnodiging.")
+                    .accessibilityHint("Een account is op uitnodiging. Lezen kan zonder account.")
                     .frame(minHeight: Space.tap)
                     .contentShape(Rectangle())
             } else if inSheet && step == start {

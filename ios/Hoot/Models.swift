@@ -137,6 +137,7 @@ struct EntryTerm: Codable, Hashable {
 struct EntryWhy: Codable, Hashable {
     var code: String?
     var text: String?
+    var detail: Bool?
 }
 
 struct EditionEntry: Codable, Hashable {

@@ -25,7 +25,7 @@ final class LabelTests: XCTestCase {
             let r = StoryLabel.label(
                 topics: i["topics"] as? [String] ?? [], mainTopics: i["mainTopics"] as? [String] ?? [], follows: i["follows"] as? [String] ?? [],
                 cat: i["cat"] as? String, desk: i["desk"] as? String, deskLabel: i["deskLabel"] as? String, section: i["section"] as? String,
-                whyCode: why?["code"] as? String, whyText: why?["text"] as? String, followed: i["followed"] as? Bool ?? true)
+                whyCode: why?["code"] as? String, whyText: why?["text"] as? String, whyDetail: why?["detail"] as? Bool ?? false, followed: i["followed"] as? Bool)
             XCTAssertEqual(r.kicker, o["kicker"] as? String, name)
             XCTAssertEqual(r.why, (o["why"] as? [String: Any])?["text"] as? String, name)
             XCTAssertEqual(r.outside, o["outside"] as? Bool, name)

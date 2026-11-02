@@ -40,8 +40,8 @@ export function strongTopic(t, { desk = null, mainTopics = [] } = {}) {
 // de bron (deelverzameling van topics). `follows`: de onderwerpen die de lezer volgt. `cat`: de
 // rubriek van de bron. `desk`/`deskLabel`: de plek in de Editie. `section`: de rubriek van het
 // bericht zelf. `why`: { code, text } van De Redacteur. `followed`: de bron staat bij je bronnen.
-export function labelFor({ topics = [], mainTopics = [], follows = [], cat = null, desk = null, deskLabel = null, section = null, why = null, followed = true } = {}) {
-  const outside = desk === 'extern' || why?.code === 'extern' || followed === false
+export function labelFor({ topics = [], mainTopics = [], follows = [], cat = null, desk = null, deskLabel = null, section = null, why = null, followed = null } = {}) {
+  const outside = followed === false || (followed == null && (desk === 'extern' || why?.code === 'extern'))
   const mine = topics.find((t) => follows.includes(t) && topicById(t) && INTEREST_OF[t] && strongTopic(t, { desk, mainTopics }))
   let kicker = null
   if (desk === 'bubbel' || desk === 'breed') kicker = deskLabel // 'Buiten je bubbel · via …', 'Waar iedereen over schrijft · N bronnen'
@@ -54,6 +54,6 @@ export function labelFor({ topics = [], mainTopics = [], follows = [], cat = nul
   const text = why && typeof why.text === 'string' && why.text.trim() ? why.text : null
   // 'Omdat je X volgt': zegt de kicker het al (sterke treffer), of rust het op een zwakke treffer
   // ('Omdat je Media volgt' bij migranten op zee). In beide gevallen voegt het niets toe.
-  const keep = text && !IN_LABEL.has(why.code) && why.code !== 'interest'
+  const keep = text && (!IN_LABEL.has(why.code) || why.detail === true) && why.code !== 'interest' && !/^Omdat je .+ volgt\.?$/.test(text)
   return { kicker, why: keep ? { ...why } : null, outside }
 }

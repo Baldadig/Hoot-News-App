@@ -1660,15 +1660,15 @@ select.input {
   color: var(--ink-3);
 }
 /* Het waarom van een plek in jouw Editie (Why.js): één stille zin onder de rubriek, in de maat van
-   tijd en toelichting (t1/lh-1, --ink-3), zonder kapitalen en zonder rood. Volgt het op een rubriek,
+   toelichting (t2/lh-2, --ink-2), zonder kapitalen en zonder rood. Volgt het op een rubriek,
    dan staat het er zonder tussenruimte als tweede regel van hetzelfde label op (zoals bronnaam en
    tijd in .srcmeta__text: alleen de regelhoogte scheidt ze). */
 .why {
   margin: 0 0 var(--s2);
   max-inline-size: var(--measure-prose);
-  color: var(--ink-3);
-  font-size: var(--t1);
-  line-height: var(--lh-1);
+  color: var(--ink-2);
+  font-size: var(--t2);
+  line-height: var(--lh-2);
 }
 .kicker:has(+ .why) {
   margin-bottom: 0;

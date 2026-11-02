@@ -419,7 +419,14 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const srcName = new Map(sources.map((s) => [s.id, s.name]))
   const mineDesks = chosenDesks(prof) // "Jouw rubriek" alleen voor een rubriek die bij je keuzes hoort
   const out = entries.map((e) => {
-    const why = whyOf(e, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk: e.desk, plannedDesk: !!e.planned && mineDesks.has(e.desk), sourceName: (s) => srcName.get(s) || s })
+    let why = whyOf(e, { parts: e.parts || {}, sourceCount: e.sourceCount || storyById.get(e.id)?.sourceCount || 0, desk: e.desk, plannedDesk: !!e.planned && mineDesks.has(e.desk), sourceName: (s) => srcName.get(s) || s })
+    if (e.supplement && !e.vervolg) {
+      const p = policyOf(e.leadId || e.id,e.kind === 'story' ? e.id : null,e)
+      const hit = personalParts(p.members,prof,{}, {desk:p.desk,foreign:p.abroad}).interest
+      const family = INTERESTS.find(x=>x.id === hit?.f)?.label || (worldChosen(prof) ? 'Wereld' : 'je interesses')
+      const reasons = {groot:`Groot nieuws · ${p.meta.publisherCount || p.meta.sourceCount || e.sourceCount || 1} bronnen`,passend:`Aanvulling bij ${family}`,basis:'Actueel nieuws uit Nederland',eigen:'Uit je gekozen bronnen'}
+      if (reasons[e.supplement]) why = {...why,text:reasons[e.supplement],detail:true}
+    }
     const { w, parts, planned, front, vervolg, big, ...rest } = e
     const lead = e.leadId || e.id
     const itemIds = e.kind === 'story' ? e.itemIds || storyById.get(e.id)?.itemIds || [lead] : [lead]

@@ -86,7 +86,7 @@ enum Desk {
     // een sterke treffer, anders de rubriek; het waarom alleen als het iets toevoegt; "Buiten je bronnen" staat
     // in de bronregel.
     static func label(_ e: EditionEntry, item: Item, sourceCat: String?, follows: [String], followed: Bool) -> StoryLabel.Result {
-        StoryLabel.label(topics: item.topics ?? [], mainTopics: item.mainTopics ?? [], follows: follows, cat: sourceCat, desk: e.desk, deskLabel: plek(e), whyCode: e.why?.code, whyText: e.why?.text, followed: followed || ["bubbel", "breed"].contains(e.desk ?? ""))
+        StoryLabel.label(topics: item.topics ?? [], mainTopics: item.mainTopics ?? [], follows: follows, cat: sourceCat, desk: e.desk, deskLabel: plek(e), whyCode: e.why?.code, whyText: e.why?.text, whyDetail: e.why?.detail == true, followed: followed || ["bubbel", "breed"].contains(e.desk ?? ""))
     }
 }
 
@@ -117,7 +117,7 @@ extension HootStore {
             guard let item = published[leadId] ?? itemsById[leadId] else { return nil }
             let story = e.kind == "story" ? storiesById[e.id] : item.storyId.flatMap { storiesById[$0] }
             let l = Desk.label(e, item: item, sourceCat: self.source(item.source)?.cat, follows: topics, followed: on.contains(item.source))
-            return EditionRowModel(id: e.id, item: item, story: story, label: l.kicker, desk: e.desk, why: l.why, outside: l.outside)
+            return EditionRowModel(id: e.id, item: item, story: story, label: l.kicker ?? "Nieuws", desk: e.desk, why: l.why, outside: l.outside)
         }
         // De redactionele volgorde blijft de leesvolgorde, ook zonder groot beeld bij de opening.
         return rows
@@ -251,13 +251,16 @@ struct EditionView: View {
                     } else {
                         // Eén metaregel, zoals op het web. De vaste spatie vóór de punt houdt die bij de
                         // datum als de regel bij grote tekst breekt ("oktober ·", niet "· Jouw Editie").
-                        Text([dateLine, store.isPersonal ? "Jouw Editie" : "De Editie voor iedereen"].filter { !$0.isEmpty }.joined(separator: "\u{00A0}· "))
+                        Text([dateLine, store.isPersonal ? "Jouw Editie" : store.shownEdition?.personal == true ? "Om te beginnen" : "De Editie voor iedereen"].filter { !$0.isEmpty }.joined(separator: "\u{00A0}· "))
                             .font(.subheadline)
                             .foregroundStyle(Theme.ink3)
                             .padding(.bottom, Space.s4)
                         // Kon er niet ververst worden, dan zegt dat het onder de datum: titel en datum blijven bij elkaar.
                         StaleNotice(gap: Space.s4)
                         StrongRule(drawn: ruleDrawn).padding(.bottom, Space.s4)
+                        if !EditionLimits.hasMinimum(EditionNumbering.count(rows)) {
+                            EmptyState(title:"Nog geen Editie",systemImage:"newspaper",text:"Er is nog te weinig passend nieuws voor een Editie. In de Stroom kun je verder lezen.")
+                        }
                         slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
                             .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
                         if wide && !typeSize.isAccessibilitySize {
@@ -285,6 +288,7 @@ struct EditionView: View {
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,
                         // en wanneer de volgende er is.
+                        if EditionLimits.hasMinimum(EditionNumbering.count(rows)) {
                         VStack(spacing: Space.s3) {
                             let count = EditionNumbering.count(rows)
                             if count > 0 {
@@ -298,7 +302,7 @@ struct EditionView: View {
                                     endVisible = visible
                                     if visible && risenAt == nil { risenAt = .now }
                                 }
-                            Text("Je bent bij.").font(Theme.headline(.title))
+                            Text("Dan ben je bij.").font(Theme.headline(.title))
                             Text("Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(endDate)").\(upNext)")
                                 .font(.subheadline)
                                 .multilineTextAlignment(.center)
@@ -324,6 +328,7 @@ struct EditionView: View {
                         .background(Theme.brandRed, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
                         .padding(.top, Space.s6)
                         .padding(.bottom, Space.s4)
+                        }
                     }
                 }
                 .padding(.horizontal)

@@ -35,7 +35,7 @@ import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, 
 
 // De veegpagina's: elk met zijn zon (components/SunArt.jsx).
 const PAGES = [
-  { kind: 'editie', title: 'Je Editie', text: 'Drie keer per dag tien verhalen. Dan ben je bij.' },
+  { kind: 'editie', title: 'Je Editie', text: 'Drie keer per dag hooguit tien verhalen. Dan ben je bij.' },
   { kind: 'stroom', title: 'De Stroom', text: 'Alles van je bronnen, nieuwste eerst.' },
   { kind: 'selectie', title: 'Je Selectie', text: 'Eén keer per week bijgepraat over wat jou bezighoudt.' },
 ]
@@ -364,7 +364,7 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
             </span>
             {view === 'pager' ? (
               onSignIn ? (
-                <button type="button" className="linkbtn linkbtn--plain ob__login" onClick={onSignIn} title="Hoot is nog op uitnodiging.">
+                <button type="button" className="linkbtn linkbtn--plain ob__login" onClick={onSignIn} title="Een account is op uitnodiging. Lezen kan zonder account.">
                   Inloggen
                 </button>
               ) : null
@@ -511,11 +511,11 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
               </span>
               {onSignIn ? (
                 <>
-                  <button type="button" className="linkbtn linkbtn--plain ob__login" onClick={onSignIn} title="Hoot is nog op uitnodiging." aria-describedby="ob-login-hint">
+                  <button type="button" className="linkbtn linkbtn--plain ob__login" onClick={onSignIn} title="Een account is op uitnodiging. Lezen kan zonder account." aria-describedby="ob-login-hint">
                     Inloggen
                   </button>
                   <span id="ob-login-hint" className="visually-hidden">
-                    Hoot is nog op uitnodiging.
+                    Een account is op uitnodiging. Lezen kan zonder account.
                   </span>
                 </>
               ) : null}

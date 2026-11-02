@@ -11,7 +11,7 @@ export default function Over({ onBack, backLabel }) {
         <ViewHeader title="Over Hoot" showSearch={false} onBack={onBack} backLabel={backLabel} />
 
         <p>
-          Hoot zet je nieuws op een rij en houdt dan op: drie keer per dag een Editie van tien verhalen, een Stroom met de bronnen die jij kiest, en elke maandag je Selectie: bijgepraat over wat jou bezighoudt. Hoot is
+          Hoot brengt je nieuws rustig bij elkaar: drie keer per dag een Editie van hooguit tien verhalen, een Stroom met de bronnen die jij kiest, en elke maandag je Selectie: bijgepraat over wat jou bezighoudt. Hoot is
           gratis, heeft geen advertenties en volgt je niet.
         </p>
         <p>
