@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-// Een lokale voorkeur; de profielkoppeling blijft buiten HootStore.
+// De gevalideerde weergavekeuze; HootStore koppelt dezelfde strings aan het webprofiel.
 enum Weergave: String, CaseIterable {
     case system, light, dark, night
     init(stored: String) { self = Self(rawValue: stored) ?? .system }
@@ -79,5 +79,23 @@ struct WeergaveKeuze: View {
                 Text("Nacht").tag("night").accessibilityLabel("Nacht, echt zwart")
             }.frame(minHeight: Space.tap)
         }
+    }
+}
+
+// AppStorage bewaart gewone strings, geen JSON-data zoals de overige HootStore-voorkeuren.
+struct ThemePreferences: Equatable {
+    let theme: String
+    let dark: String
+    init(theme: String, dark: String) {
+        self.theme = Weergave(stored: theme).rawValue
+        self.dark = ["dark", "night"].contains(dark) ? dark : "dark"
+    }
+    static func read(_ defaults: UserDefaults = .standard) -> Self {
+        Self(theme: defaults.string(forKey: "hoot.weergave") ?? "system",
+             dark: defaults.string(forKey: "hoot.weergave.donker") ?? "dark")
+    }
+    func write(_ defaults: UserDefaults = .standard) {
+        if defaults.string(forKey: "hoot.weergave") != theme { defaults.set(theme, forKey: "hoot.weergave") }
+        if defaults.string(forKey: "hoot.weergave.donker") != dark { defaults.set(dark, forKey: "hoot.weergave.donker") }
     }
 }

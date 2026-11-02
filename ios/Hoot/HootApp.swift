@@ -61,6 +61,9 @@ struct HootApp: App {
             .task { await account.start(store) }
             // Wat met je account meegaat: wegschrijven; terug in de app: ophalen.
             .onChange(of: store.syncTick) { account.changed() }
+            .onReceive(NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification).receive(on: RunLoop.main)) { _ in
+                store.themePreferencesChanged()
+            }
             .onChange(of: phase) { _, now in if now == .active { Task { await account.pull() } } }
             // Seintjes: opnieuw plannen bij elke wijziging, bij een nieuwe Editie, terug in de app en als
             // de klok verspringt.

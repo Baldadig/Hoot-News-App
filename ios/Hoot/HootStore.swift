@@ -174,6 +174,8 @@ final class HootStore {
             var vak: [String]?
             var images: String?
             var layout: String?
+            var theme: String?
+            var themeDark: String?
             var bubble: Bool?
             var bluesky: Bool?
             var bskyInStream: [String]?
@@ -183,7 +185,7 @@ final class HootStore {
             var favorites: [String]?
             var social: [BlueskyAccount]? // eigen Bluesky-accounts, zoals op de website
             var taste: Taste?
-            enum CodingKeys: String, CodingKey { case muted, enabled, vak, images, layout, bubble, bluesky, bskyInStream, preview, interests, topics, favorites, social, taste }
+            enum CodingKeys: String, CodingKey { case muted, enabled, vak, images, layout, theme, themeDark, bubble, bluesky, bskyInStream, preview, interests, topics, favorites, social, taste }
             init(from decoder: Decoder) throws {
                 let c = try decoder.container(keyedBy: CodingKeys.self)
                 muted = try? c.decodeIfPresent([String].self, forKey: .muted)
@@ -191,6 +193,8 @@ final class HootStore {
                 vak = try? c.decodeIfPresent([String].self, forKey: .vak)
                 images = try? c.decodeIfPresent(String.self, forKey: .images)
                 layout = try? c.decodeIfPresent(String.self, forKey: .layout)
+                theme = try? c.decodeIfPresent(String.self, forKey: .theme)
+                themeDark = try? c.decodeIfPresent(String.self, forKey: .themeDark)
                 bubble = try? c.decodeIfPresent(Bool.self, forKey: .bubble)
                 bluesky = try? c.decodeIfPresent(Bool.self, forKey: .bluesky)
                 bskyInStream = try? c.decodeIfPresent([String].self, forKey: .bskyInStream)
@@ -217,6 +221,13 @@ final class HootStore {
     // anders na elke synchronisatie gebeuren, ook als er niets veranderde.
     private func apply(_ p: Import.Prefs?, unite: Bool = false) {
         let legacySocial = p?.bskyInStream == nil && UserDefaults.standard.object(forKey: "hoot.bskyInStream") == nil
+        if p?.theme != nil || p?.themeDark != nil {
+            let local = ThemePreferences.read()
+            let next = ThemePreferences(theme: p?.theme ?? local.theme, dark: p?.themeDark ?? local.dark)
+            // Eerst de echo-grens, daarna AppStorage bijwerken: vertraagde notificaties tellen niet als lokale wijziging.
+            observedTheme = next
+            next.write()
+        }
         if let v = p?.muted, Set(v) != muted { muted = Set(v); save("hoot.muted", v) }
         if let v = p?.enabled, Set(v) != enabled { enabled = Set(v); save("hoot.enabled", v) }
         if let v = p?.vak, v != digestFields { digestFields = v; save("hoot.digestFields", v) }
@@ -247,11 +258,20 @@ final class HootStore {
     // Wat van de server komt, telt niet mee (anders gaat het meteen weer terug).
     private(set) var syncTick = 0
     private var applyingRemote = false
+    @ObservationIgnored private var observedTheme = ThemePreferences.read()
+    func themePreferencesChanged() {
+        let next = ThemePreferences.read()
+        guard next != observedTheme else { return }
+        observedTheme = next
+        synced()
+    }
     private func synced() { if !applyingRemote { syncTick &+= 1 } }
 
     // Je instellingen in de vorm van de website (SYNCED_PREFS in src/lib/sync.js), `layout` erbij.
     var syncedPrefs: [String: Any] {
-        [
+        let theme = ThemePreferences.read()
+        return [
+            "theme": theme.theme, "themeDark": theme.dark,
             "muted": muted.sorted(), "enabled": enabled.sorted(), "vak": digestFields, "images": images, "layout": layout,
             "bubble": bubble, "bluesky": bluesky, "bskyInStream": bskyInStream.sorted(), "preview": preview == 0 ? "alles" as Any : preview as Any,
             "interests": interests, "topics": topics, "favorites": favorites, "onboarded": true,
