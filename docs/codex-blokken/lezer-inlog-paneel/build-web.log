@@ -1,0 +1,47 @@
+
+> hoot@1.57.0 build
+> node scripts/build-site.mjs
+
+vite v5.4.21 building for production...
+transforming...
+✓ 186 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/lees/manifest.webmanifest                                    0.53 kB
+dist/lees/index.html                                             11.06 kB │ gzip:   4.35 kB
+dist/lees/assets/source-sans-3-latin-800-normal-5BN8XjkS.woff2   15.54 kB
+dist/lees/assets/source-sans-3-latin-700-normal-CkzU-mV9.woff2   15.60 kB
+dist/lees/assets/source-sans-3-latin-600-normal-DeckBYAU.woff2   15.67 kB
+dist/lees/assets/source-sans-3-latin-400-normal-DQi5PRDE.woff2   15.70 kB
+dist/lees/assets/roboto-latin-500-normal-rpP1_v3s.woff           17.32 kB
+dist/lees/assets/roboto-latin-500-normal-C6iW8rdg.woff2          18.59 kB
+dist/lees/assets/source-sans-3-latin-800-normal-hEWlT0gE.woff    19.85 kB
+dist/lees/assets/source-sans-3-latin-700-normal-B-h9tW5h.woff    19.91 kB
+dist/lees/assets/source-sans-3-latin-400-normal-RR2C27NP.woff    19.99 kB
+dist/lees/assets/source-sans-3-latin-600-normal-Ck0n4g8U.woff    19.99 kB
+dist/lees/assets/newsreader-latin-400-normal-BFBkh4jY.woff2      22.48 kB
+dist/lees/assets/newsreader-latin-800-normal-CeohZmjp.woff2      23.50 kB
+dist/lees/assets/newsreader-latin-400-normal-gRTjlS2D.woff       28.29 kB
+dist/lees/assets/newsreader-latin-800-normal-COT4ygp8.woff       29.20 kB
+dist/lees/assets/index-Cyv4gEAS.css                              81.06 kB │ gzip:  16.44 kB
+dist/lees/assets/Over-RNTPahGN.js                                 2.34 kB │ gzip:   1.09 kB
+dist/lees/assets/Search-DOcYKRs-.js                               3.14 kB │ gzip:   1.47 kB
+dist/lees/assets/Settings-DFfWjbz3.js                             5.12 kB │ gzip:   1.84 kB
+dist/lees/assets/Privacy-DOhOnNyb.js                              6.09 kB │ gzip:   2.22 kB
+dist/lees/assets/Welcome-utEneXGA.js                             16.91 kB │ gzip:   5.56 kB
+dist/lees/assets/StyleGuide-BmgB1oIi.js                          24.52 kB │ gzip:   7.95 kB
+dist/lees/assets/index-Cvs1FVwy.js                              228.19 kB │ gzip:  59.40 kB
+dist/lees/assets/index-DjYWSEky.js                              444.97 kB │ gzip: 156.29 kB
+✓ built in 943ms
+
+PWA v0.21.2
+mode      generateSW
+precache  43 entries (978.38 KiB)
+files generated
+  dist/lees/sw.js
+  dist/lees/workbox-9d79bed4.js
+gebouwd {
+  CSSFILE: 'hoot.2a9e3ee7.css',
+  JSFILE: 'hoot.f0318c13.js',
+  HASH: 'sha256-DIm985shD6ITEyyiMNOlhL0marC71wYU5uUZbZWr7fk='
+}

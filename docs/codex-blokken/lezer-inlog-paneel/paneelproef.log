@@ -1,0 +1,896 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project ios/Hoot.xcodeproj -scheme Hoot -destination id=AB388E9A-E6EF-4302-820B-A643C19C9F40 "-only-testing:HootTests/ReaderLoginPanelTests" -resultBundlePath /tmp/hoot-reader-panel-proef.xcresult test
+
+Writing result bundle at path:
+	/tmp/hoot-reader-panel-proef.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (2 targets)
+    Target 'HootTests' in project 'Hoot'
+        ➜ Explicit dependency on target 'Hoot' in project 'Hoot'
+    Target 'Hoot' in project 'Hoot' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/alexvrees/Baldadig Dropbox/Alex Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+Build description signature: 454ef877a0124be44a1912c3517b6793
+Build description path: /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/XCBuildData/454ef877a0124be44a1912c3517b6793.xcbuilddata
+CreateBuildDirectory /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot.xcodeproj
+    builtin-create-build-directory /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex
+
+CreateBuildDirectory /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot.xcodeproj
+    builtin-create-build-directory /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules
+
+CreateBuildDirectory /Users/alexvrees/Library/Developer/Xcode/DerivedData/CompilationCache.noindex
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot.xcodeproj
+    builtin-create-build-directory /Users/alexvrees/Library/Developer/Xcode/DerivedData/CompilationCache.noindex
+
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.2-24B8118-cc78df9d8a9de6526dea716b1c70fd8e.sdkstatcache
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk -o /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.2-24B8118-cc78df9d8a9de6526dea716b1c70fd8e.sdkstatcache
+
+CreateBuildDirectory /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot.xcodeproj
+    builtin-create-build-directory /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products
+
+CreateBuildDirectory /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot.xcodeproj
+    builtin-create-build-directory /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex
+
+CreateBuildDirectory /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot.xcodeproj
+    builtin-create-build-directory /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator
+
+CreateBuildDirectory /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/PrecompiledHeaders
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot.xcodeproj
+    builtin-create-build-directory /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/PrecompiledHeaders
+
+CreateBuildDirectory /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot.xcodeproj
+    builtin-create-build-directory /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot-fc6627c58d3026fc916bfad700826949-VFS-iphonesimulator/all-product-headers.yaml
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot.xcodeproj
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot-fc6627c58d3026fc916bfad700826949-VFS-iphonesimulator/all-product-headers.yaml
+
+CreateBuildDirectory /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/ExplicitPrecompiledModules
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot.xcodeproj
+    builtin-create-build-directory /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+CreateBuildDirectory /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot.xcodeproj
+    builtin-create-build-directory /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/empty-HootTests.plist (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/empty-HootTests.plist
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.SwiftConstValuesFileList (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests_const_extract_protocols.json (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests_const_extract_protocols.json
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.LinkFileList (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.LinkFileList
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.SwiftFileList (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.SwiftFileList
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-OutputFileMap.json (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-OutputFileMap.json
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests.hmap (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests.hmap
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests.DependencyStaticMetadataFileList (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests.DependencyStaticMetadataFileList
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests.DependencyMetadataFileList (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests.DependencyMetadataFileList
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-project-headers.hmap (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-project-headers.hmap
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-own-target-headers.hmap (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-own-target-headers.hmap
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-generated-files.hmap (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-generated-files.hmap
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-all-target-headers.hmap (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-all-target-headers.hmap
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-all-non-framework-target-headers.hmap (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-all-non-framework-target-headers.hmap
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot_const_extract_protocols.json (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot_const_extract_protocols.json
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.SwiftFileList (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.SwiftFileList
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.SwiftConstValuesFileList (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.LinkFileList (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.LinkFileList
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot-OutputFileMap.json (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot-OutputFileMap.json
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.hmap (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.hmap
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.DependencyStaticMetadataFileList (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.DependencyStaticMetadataFileList
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.DependencyMetadataFileList (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.DependencyMetadataFileList
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-project-headers.hmap (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-project-headers.hmap
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-own-target-headers.hmap (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-own-target-headers.hmap
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-generated-files.hmap (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-generated-files.hmap
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-all-target-headers.hmap (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-all-target-headers.hmap
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-all-non-framework-target-headers.hmap (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-all-non-framework-target-headers.hmap
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-DebugDylibPath-normal-arm64.txt (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-DebugDylibPath-normal-arm64.txt
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-DebugDylibInstallName-normal-arm64.txt (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-DebugDylibInstallName-normal-arm64.txt
+
+WriteAuxiliaryFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources/Entitlements-Simulated.plist (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    write-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources/Entitlements-Simulated.plist
+
+MkDir /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    /bin/mkdir -p /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns
+
+MkDir /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    /bin/mkdir -p /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest
+
+MkDir /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    /bin/mkdir -p /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app
+
+ProcessProductPackaging /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot.entitlements /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app.xcent (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    
+    Entitlements:
+    
+    {
+}
+    
+    builtin-productPackagingUtility /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot.entitlements -entitlements -format xml -o /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app.xcent
+
+ProcessProductPackaging /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot.entitlements /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app-Simulated.xcent (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    
+    Entitlements:
+    
+    {
+    "application-identifier" = "HSBZ66VRTZ.nl.hootnews.Hoot";
+    "com.apple.developer.applesignin" =     (
+        Default
+    );
+}
+    
+    builtin-productPackagingUtility /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot.entitlements -entitlements -format xml -o /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app-Simulated.xcent
+
+ProcessProductPackagingDER /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app.xcent /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app.xcent.der (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    /usr/bin/derq query -f xml -i /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app.xcent -o /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app.xcent.der --raw
+
+ProcessProductPackagingDER /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app-Simulated.xcent /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app-Simulated.xcent.der (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    /usr/bin/derq query -f xml -i /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app-Simulated.xcent -o /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app-Simulated.xcent.der --raw
+
+Ld /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/__preview.dylib normal (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios26.0-simulator -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk -O0 -Xlinker -no_warn_duplicate_libraries -L/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -F/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -install_name @rpath/Hoot.debug.dylib -Xlinker -dead_strip -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot_dependency_info.dat -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __entitlements -Xlinker /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app-Simulated.xcent -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __ents_der -Xlinker /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app-Simulated.xcent.der -Xlinker -no_adhoc_codesign -o /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/__preview.dylib
+
+GenerateAssetSymbols /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Assets.xcassets (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    /Applications/Xcode.app/Contents/Developer/usr/bin/actool /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Assets.xcassets --compile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app --output-format human-readable-text --notices --warnings --export-dependency-info /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_dependencies --output-partial-info-plist /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_generated_info.plist --app-icon AppIcon --accent-color AccentColor --compress-pngs --enable-on-demand-resources YES --development-region nl --target-device iphone --target-device ipad --minimum-deployment-target 26.0 --platform iphonesimulator --bundle-identifier nl.hootnews.Hoot --generate-swift-asset-symbol-extensions NO --generate-swift-asset-symbols /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources/GeneratedAssetSymbols.swift --generate-objc-asset-symbols /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources/GeneratedAssetSymbols.h --generate-asset-symbol-index /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/* com.apple.actool.compilation-results */
+/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources/GeneratedAssetSymbols.h
+/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources/GeneratedAssetSymbols.swift
+
+
+CpResource /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/source-sans-3-OFL.txt /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Resources/Deelkaart/source-sans-3-OFL.txt (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Resources/Deelkaart/source-sans-3-OFL.txt /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app
+
+CpResource /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/slots.json /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Resources/slots.json (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Resources/slots.json /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app
+
+MkDir /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_output/unthinned (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    /bin/mkdir -p /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_output/unthinned
+
+MkDir /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_output/thinned (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    /bin/mkdir -p /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_output/thinned
+
+CpResource /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/newsreader-OFL.txt /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Resources/Deelkaart/newsreader-OFL.txt (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Resources/Deelkaart/newsreader-OFL.txt /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app
+
+CpResource /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/layout.json /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Resources/Deelkaart/layout.json (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Resources/Deelkaart/layout.json /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app
+
+CpResource /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/edition-core.js /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Resources/edition-core.js (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Resources/edition-core.js /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app
+
+CpResource /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/advances.json /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Resources/Deelkaart/advances.json (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Resources/Deelkaart/advances.json /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app
+
+CpResource /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/SourceSans3-600.ttf /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Resources/Deelkaart/SourceSans3-600.ttf (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Resources/Deelkaart/SourceSans3-600.ttf /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app
+
+CpResource /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Readability.js /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Reader/Readability.js (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Reader/Readability.js /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app
+
+CpResource /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PrivacyInfo.xcprivacy /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/PrivacyInfo.xcprivacy (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/PrivacyInfo.xcprivacy /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app
+
+CpResource /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Newsreader-800.ttf /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Resources/Deelkaart/Newsreader-800.ttf (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Resources/Deelkaart/Newsreader-800.ttf /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app
+
+CompileAssetCatalogVariant thinned /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Assets.xcassets (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    /Applications/Xcode.app/Contents/Developer/usr/bin/actool /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Assets.xcassets --compile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_output/thinned --output-format human-readable-text --notices --warnings --export-dependency-info /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_dependencies_thinned --output-partial-info-plist /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_generated_info.plist_thinned --app-icon AppIcon --accent-color AccentColor --compress-pngs --enable-on-demand-resources YES --filter-for-thinning-device-configuration iPhone18,1 --filter-for-device-os-version 26.0 --development-region nl --target-device iphone --target-device ipad --minimum-deployment-target 26.0 --platform iphonesimulator
+/* com.apple.actool.compilation-results */
+/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_generated_info.plist_thinned
+/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_output/thinned/AppIcon60x60@2x.png
+/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_output/thinned/AppIcon76x76@2x~ipad.png
+/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_output/thinned/Assets.car
+
+
+SwiftDriver Hoot normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name Hoot -Onone @/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.SwiftFileList -DDEBUG -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk -target arm64-apple-ios26.0-simulator -g -module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -F /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64 -c -j8 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.2-24B8118-cc78df9d8a9de6526dea716b1c70fd8e.sdkstatcache -output-file-map /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot_const_extract_protocols.json -Xcc -iquote -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-generated-files.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-own-target-headers.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-all-target-headers.hmap -Xcc -iquote -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-project-headers.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources-normal/arm64 -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources/arm64 -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot-Swift.h -working-directory /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios -experimental-emit-module-separately -disable-cmo
+
+SwiftCompile normal arm64 Compiling\ API.swift,\ Bluesky.swift,\ DebugLaunch.swift,\ DeelKaart.swift,\ EditionAlerts.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/API.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Bluesky.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/DebugLaunch.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/DeelKaart.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/EditionAlerts.swift (in target 'Hoot' from project 'Hoot')
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/API.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile API.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Bluesky.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile Bluesky.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/DebugLaunch.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile DebugLaunch.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/DeelKaart.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile DeelKaart.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/EditionAlerts.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile EditionAlerts.swift
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ Hoot (in target 'Hoot' from project 'Hoot')
+
+SwiftCompile normal arm64 (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    
+
+SwiftCompile normal arm64 Compiling\ StreamView.swift,\ Text+Sentences.swift,\ Text+Typeset.swift,\ WelcomeView.swift,\ Account.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/StreamView.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/Text+Sentences.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/Text+Typeset.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/WelcomeView.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Account.swift (in target 'Hoot' from project 'Hoot')
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/StreamView.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile StreamView.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/Text+Sentences.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile Text+Sentences.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/Text+Typeset.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile Text+Typeset.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/WelcomeView.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile WelcomeView.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Account.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile Account.swift
+
+SwiftCompile normal arm64 Compiling\ BlueskyView.swift,\ Brand.swift,\ Choice.swift,\ Components.swift,\ DigestView.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/BlueskyView.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/Brand.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/Choice.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/Components.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/DigestView.swift (in target 'Hoot' from project 'Hoot')
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/BlueskyView.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile BlueskyView.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/Brand.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile Brand.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/Choice.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile Choice.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/Components.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile Components.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/DigestView.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile DigestView.swift
+
+SwiftCompile normal arm64 Compiling\ QuietMotion.swift,\ SettingsView.swift,\ SourceFeedView.swift,\ SplashView.swift,\ StreamLine.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/QuietMotion.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/SettingsView.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/SourceFeedView.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/SplashView.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/StreamLine.swift (in target 'Hoot' from project 'Hoot')
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/QuietMotion.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile QuietMotion.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/SettingsView.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile SettingsView.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/SourceFeedView.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile SourceFeedView.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/SplashView.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile SplashView.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/StreamLine.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile StreamLine.swift
+
+SwiftCompile normal arm64 Compiling\ EditionEngine.swift,\ HootApp.swift,\ HootStore.swift,\ ImageMeasure.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/EditionEngine.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/HootApp.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/HootStore.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/ImageMeasure.swift (in target 'Hoot' from project 'Hoot')
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/EditionEngine.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile EditionEngine.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/HootApp.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile HootApp.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/HootStore.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile HootStore.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/ImageMeasure.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile ImageMeasure.swift
+
+SwiftCompile normal arm64 Compiling\ ImageURL.swift,\ Label.swift,\ Models.swift,\ GeneratedAssetSymbols.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/ImageURL.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Label.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Models.swift /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'Hoot' from project 'Hoot')
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/ImageURL.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile ImageURL.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Label.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile Label.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Models.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile Models.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile GeneratedAssetSymbols.swift
+
+SwiftCompile normal arm64 Compiling\ ArticleLoader.swift,\ ArticleReaderView.swift,\ ReaderLoginPanel.swift,\ Subscriptions.swift,\ AccountView.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Reader/ArticleLoader.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Reader/ArticleReaderView.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Reader/ReaderLoginPanel.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Reader/Subscriptions.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/AccountView.swift (in target 'Hoot' from project 'Hoot')
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Reader/ArticleLoader.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile ArticleLoader.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Reader/ArticleReaderView.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile ArticleReaderView.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Reader/ReaderLoginPanel.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile ReaderLoginPanel.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Reader/Subscriptions.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile Subscriptions.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/AccountView.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile AccountView.swift
+
+LinkAssetCatalog /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Assets.xcassets (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-linkAssetCatalog --thinned /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_output/thinned --thinned-dependencies /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_dependencies_thinned --thinned-info-plist-content /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_generated_info.plist_thinned --unthinned /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_output/unthinned --unthinned-dependencies /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_dependencies_unthinned --unthinned-info-plist-content /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_generated_info.plist_unthinned --output /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app --plist-output /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_generated_info.plist
+note: Emplaced /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/AppIcon60x60@2x.png (in target 'Hoot' from project 'Hoot')
+note: Emplaced /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Assets.car (in target 'Hoot' from project 'Hoot')
+note: Emplaced /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/AppIcon76x76@2x~ipad.png (in target 'Hoot' from project 'Hoot')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ImageURL.swift, Label.swift, Models.swift, GeneratedAssetSymbols.swift (in target 'Hoot' from project 'Hoot')
+
+SwiftCompile normal arm64 Compiling\ EditionView.swift,\ InlineVideo.swift,\ IntroMark.swift,\ Layout.swift,\ OnboardingArt.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/EditionView.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/InlineVideo.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/IntroMark.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/Layout.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/OnboardingArt.swift (in target 'Hoot' from project 'Hoot')
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/EditionView.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile EditionView.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/InlineVideo.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile InlineVideo.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/IntroMark.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile IntroMark.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/Layout.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile Layout.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Hoot/Views/OnboardingArt.swift (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile OnboardingArt.swift
+
+ProcessInfoPlistFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Info.plist /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Info.plist (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-infoPlistUtility /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_generated_info.plist -o /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Info.plist
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for Hoot (in target 'Hoot' from project 'Hoot')
+
+SwiftDriver\ Compilation\ Requirements Hoot normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name Hoot -Onone @/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.SwiftFileList -DDEBUG -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk -target arm64-apple-ios26.0-simulator -g -module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -F /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64 -c -j8 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.2-24B8118-cc78df9d8a9de6526dea716b1c70fd8e.sdkstatcache -output-file-map /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot_const_extract_protocols.json -Xcc -iquote -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-generated-files.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-own-target-headers.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-all-target-headers.hmap -Xcc -iquote -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-project-headers.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources-normal/arm64 -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources/arm64 -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot-Swift.h -working-directory /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios -experimental-emit-module-separately -disable-cmo
+
+SwiftMergeGeneratedHeaders /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources/Hoot-Swift.h /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot-Swift.h (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-swiftHeaderTool -arch arm64 /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot-Swift.h -o /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources/Hoot-Swift.h
+
+Copy /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.swiftmodule/arm64-apple-ios-simulator.swiftmodule /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.swiftmodule (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.swiftmodule /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+Copy /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.swiftmodule/arm64-apple-ios-simulator.swiftdoc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.swiftdoc (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.swiftdoc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.swiftmodule/arm64-apple-ios-simulator.swiftdoc
+
+Copy /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.abi.json (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.abi.json /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.swiftsourceinfo (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.swiftsourceinfo /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+SwiftDriver HootTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name HootTests -Onone @/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk -target arm64-apple-ios26.0-simulator -g -module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/Developer/Library/Frameworks -c -j8 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.2-24B8118-cc78df9d8a9de6526dea716b1c70fd8e.sdkstatcache -output-file-map /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-generated-files.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-own-target-headers.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-all-target-headers.hmap -Xcc -iquote -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-project-headers.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources-normal/arm64 -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources/arm64 -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-Swift.h -working-directory /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Compiling API.swift, Bluesky.swift, DebugLaunch.swift, DeelKaart.swift, EditionAlerts.swift (in target 'Hoot' from project 'Hoot')
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/XCUIAutomation-1YNY0KB5RFPL1BG8C232CG80Z.pcm
+
+SwiftExplicitDependencyGeneratePcm arm64 /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/XCTest-6OZLZVM92JYWCTQ1L9B8DP6FM.pcm
+
+SwiftExplicitDependencyCompileModuleFromInterface arm64 /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/XCUIAutomation-3HA9W4725BV9U.swiftmodule
+
+SwiftExplicitDependencyCompileModuleFromInterface arm64 /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules/XCTest-3QC1VDGSKPLMF.swiftmodule
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ HootTests (in target 'HootTests' from project 'Hoot')
+
+SwiftCompile normal arm64 (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    
+
+SwiftCompile normal arm64 Compiling\ SlotsTests.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/SlotsTests.swift (in target 'HootTests' from project 'Hoot')
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/SlotsTests.swift (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile SlotsTests.swift
+
+SwiftCompile normal arm64 Compiling\ ReaderWaitingTests.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/ReaderWaitingTests.swift (in target 'HootTests' from project 'Hoot')
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/ReaderWaitingTests.swift (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile ReaderWaitingTests.swift
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for HootTests (in target 'HootTests' from project 'Hoot')
+
+SwiftDriver\ Compilation\ Requirements HootTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name HootTests -Onone @/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk -target arm64-apple-ios26.0-simulator -g -module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/Developer/Library/Frameworks -c -j8 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.2-24B8118-cc78df9d8a9de6526dea716b1c70fd8e.sdkstatcache -output-file-map /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-generated-files.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-own-target-headers.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-all-target-headers.hmap -Xcc -iquote -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-project-headers.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources-normal/arm64 -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources/arm64 -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-Swift.h -working-directory /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Compiling BlueskyView.swift, Brand.swift, Choice.swift, Components.swift, DigestView.swift (in target 'Hoot' from project 'Hoot')
+
+SwiftCompile normal arm64 Compiling\ OnboardingTests.swift,\ ReaderLoginPanelTests.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/OnboardingTests.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/ReaderLoginPanelTests.swift (in target 'HootTests' from project 'Hoot')
+/Users/alexvrees/Baldadig Dropbox/Alex Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/OnboardingTests.swift:158:35: warning: call to main actor-isolated static method 'tabs(interests:bubble:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+156 |     // Alleen Alles en de hoofdrubrieken die je koos, in vaste volgorde, Buiten je bubbel als laatste.
+157 |     func testStreamTabsAreOnlyChosenRubriekenInFixedOrder() {
+158 |         XCTAssertEqual(StreamView.tabs(interests: ["sport", "politiek", "wereld"], bubble: true).map(\.id), ["", "politiek", "wereld", "sport", "bubbel"])
+    |                                   `- warning: call to main actor-isolated static method 'tabs(interests:bubble:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+159 |         XCTAssertEqual(StreamView.tabs(interests: ["cultuur", "binnenland"], bubble: false).map(\.label), ["Alles", "Binnenland", "Cultuur"])
+160 |         XCTAssertEqual(StreamView.tabs(interests: [], bubble: true).map(\.label), ["Alles", "Politiek", "Binnenland", "Wereld", "Economie", "Tech", "Wetenschap", "Cultuur", "Sport", "Buiten je bubbel"])
+
+Hoot.StreamView.tabs:2:33: note: calls to static method 'tabs(interests:bubble:)' from outside of its actor context are implicitly asynchronous
+1 | struct StreamView {
+2 | @MainActor internal static func tabs(interests: [String], bubble: Bool) -> [(id: String, label: String)]}
+  |                                 `- note: calls to static method 'tabs(interests:bubble:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+/Users/alexvrees/Baldadig Dropbox/Alex Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/OnboardingTests.swift:159:35: warning: call to main actor-isolated static method 'tabs(interests:bubble:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+157 |     func testStreamTabsAreOnlyChosenRubriekenInFixedOrder() {
+158 |         XCTAssertEqual(StreamView.tabs(interests: ["sport", "politiek", "wereld"], bubble: true).map(\.id), ["", "politiek", "wereld", "sport", "bubbel"])
+159 |         XCTAssertEqual(StreamView.tabs(interests: ["cultuur", "binnenland"], bubble: false).map(\.label), ["Alles", "Binnenland", "Cultuur"])
+    |                                   `- warning: call to main actor-isolated static method 'tabs(interests:bubble:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+160 |         XCTAssertEqual(StreamView.tabs(interests: [], bubble: true).map(\.label), ["Alles", "Politiek", "Binnenland", "Wereld", "Economie", "Tech", "Wetenschap", "Cultuur", "Sport", "Buiten je bubbel"])
+161 |         let all = StreamView.tabs(interests: Rubriek.alle.map(\.id).reversed(), bubble: true).map(\.label)
+
+Hoot.StreamView.tabs:2:33: note: calls to static method 'tabs(interests:bubble:)' from outside of its actor context are implicitly asynchronous
+1 | struct StreamView {
+2 | @MainActor internal static func tabs(interests: [String], bubble: Bool) -> [(id: String, label: String)]}
+  |                                 `- note: calls to static method 'tabs(interests:bubble:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+/Users/alexvrees/Baldadig Dropbox/Alex Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/OnboardingTests.swift:160:35: warning: call to main actor-isolated static method 'tabs(interests:bubble:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+158 |         XCTAssertEqual(StreamView.tabs(interests: ["sport", "politiek", "wereld"], bubble: true).map(\.id), ["", "politiek", "wereld", "sport", "bubbel"])
+159 |         XCTAssertEqual(StreamView.tabs(interests: ["cultuur", "binnenland"], bubble: false).map(\.label), ["Alles", "Binnenland", "Cultuur"])
+160 |         XCTAssertEqual(StreamView.tabs(interests: [], bubble: true).map(\.label), ["Alles", "Politiek", "Binnenland", "Wereld", "Economie", "Tech", "Wetenschap", "Cultuur", "Sport", "Buiten je bubbel"])
+    |                                   `- warning: call to main actor-isolated static method 'tabs(interests:bubble:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+161 |         let all = StreamView.tabs(interests: Rubriek.alle.map(\.id).reversed(), bubble: true).map(\.label)
+162 |         XCTAssertEqual(all, ["Alles", "Politiek", "Binnenland", "Wereld", "Economie", "Tech", "Wetenschap", "Cultuur", "Sport", "Buiten je bubbel"])
+
+Hoot.StreamView.tabs:2:33: note: calls to static method 'tabs(interests:bubble:)' from outside of its actor context are implicitly asynchronous
+1 | struct StreamView {
+2 | @MainActor internal static func tabs(interests: [String], bubble: Bool) -> [(id: String, label: String)]}
+  |                                 `- note: calls to static method 'tabs(interests:bubble:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+/Users/alexvrees/Baldadig Dropbox/Alex Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/OnboardingTests.swift:161:30: warning: call to main actor-isolated static method 'tabs(interests:bubble:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+155 | 
+156 |     // Alleen Alles en de hoofdrubrieken die je koos, in vaste volgorde, Buiten je bubbel als laatste.
+157 |     func testStreamTabsAreOnlyChosenRubriekenInFixedOrder() {
+    |          `- note: add '@MainActor' to make instance method 'testStreamTabsAreOnlyChosenRubriekenInFixedOrder()' part of global actor 'MainActor'
+158 |         XCTAssertEqual(StreamView.tabs(interests: ["sport", "politiek", "wereld"], bubble: true).map(\.id), ["", "politiek", "wereld", "sport", "bubbel"])
+159 |         XCTAssertEqual(StreamView.tabs(interests: ["cultuur", "binnenland"], bubble: false).map(\.label), ["Alles", "Binnenland", "Cultuur"])
+160 |         XCTAssertEqual(StreamView.tabs(interests: [], bubble: true).map(\.label), ["Alles", "Politiek", "Binnenland", "Wereld", "Economie", "Tech", "Wetenschap", "Cultuur", "Sport", "Buiten je bubbel"])
+161 |         let all = StreamView.tabs(interests: Rubriek.alle.map(\.id).reversed(), bubble: true).map(\.label)
+    |                              `- warning: call to main actor-isolated static method 'tabs(interests:bubble:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+162 |         XCTAssertEqual(all, ["Alles", "Politiek", "Binnenland", "Wereld", "Economie", "Tech", "Wetenschap", "Cultuur", "Sport", "Buiten je bubbel"])
+163 |     }
+
+Hoot.StreamView.tabs:2:33: note: calls to static method 'tabs(interests:bubble:)' from outside of its actor context are implicitly asynchronous
+1 | struct StreamView {
+2 | @MainActor internal static func tabs(interests: [String], bubble: Bool) -> [(id: String, label: String)]}
+  |                                 `- note: calls to static method 'tabs(interests:bubble:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+[#ActorIsolatedCall]: <https://docs.swift.org/compiler/documentation/diagnostics/actor-isolated-call>
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/OnboardingTests.swift (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile OnboardingTests.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/ReaderLoginPanelTests.swift (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile ReaderLoginPanelTests.swift
+
+SwiftMergeGeneratedHeaders /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources/HootTests-Swift.h /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-Swift.h (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-swiftHeaderTool -arch arm64 /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-Swift.h -o /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources/HootTests-Swift.h
+
+SwiftDriverJobDiscovery normal arm64 Compiling SlotsTests.swift (in target 'HootTests' from project 'Hoot')
+
+Copy /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/HootTests.swiftmodule/arm64-apple-ios-simulator.swiftmodule /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.swiftmodule (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.swiftmodule /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/HootTests.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+Copy /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/HootTests.swiftmodule/arm64-apple-ios-simulator.swiftdoc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.swiftdoc (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.swiftdoc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/HootTests.swiftmodule/arm64-apple-ios-simulator.swiftdoc
+
+Copy /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/HootTests.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.abi.json (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.abi.json /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/HootTests.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/HootTests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.swiftsourceinfo (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.swiftsourceinfo /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/HootTests.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+SwiftCompile normal arm64 Compiling\ ImageMeasureTests.swift,\ LabelTests.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/ImageMeasureTests.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/LabelTests.swift (in target 'HootTests' from project 'Hoot')
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/ImageMeasureTests.swift (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile ImageMeasureTests.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/LabelTests.swift (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile LabelTests.swift
+
+SwiftDriverJobDiscovery normal arm64 Compiling ReaderWaitingTests.swift (in target 'HootTests' from project 'Hoot')
+
+SwiftCompile normal arm64 Compiling\ TypesetTests.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/TypesetTests.swift (in target 'HootTests' from project 'Hoot')
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/TypesetTests.swift (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile TypesetTests.swift
+
+SwiftCompile normal arm64 Compiling\ EditionMotionTests.swift,\ EditionParityTests.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/EditionMotionTests.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/EditionParityTests.swift (in target 'HootTests' from project 'Hoot')
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/EditionMotionTests.swift (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile EditionMotionTests.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/EditionParityTests.swift (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile EditionParityTests.swift
+
+SwiftDriverJobDiscovery normal arm64 Compiling TypesetTests.swift (in target 'HootTests' from project 'Hoot')
+
+SwiftCompile normal arm64 Compiling\ SentencesTests.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/SentencesTests.swift (in target 'HootTests' from project 'Hoot')
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/SentencesTests.swift (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile SentencesTests.swift
+
+SwiftDriverJobDiscovery normal arm64 Compiling OnboardingTests.swift, ReaderLoginPanelTests.swift (in target 'HootTests' from project 'Hoot')
+
+SwiftCompile normal arm64 Compiling\ DeelKaartTests.swift,\ EditionClaimTests.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/DeelKaartTests.swift /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/EditionClaimTests.swift (in target 'HootTests' from project 'Hoot')
+/Users/alexvrees/Baldadig Dropbox/Alex Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/DeelKaartTests.swift:77:34: warning: 'init(frame:)' was deprecated in iOS 26.0: Use init(windowScene:) instead. [#DeprecatedDeclaration]
+ 75 |                     let size = host.sizeThatFits(in: CGSize(width: width, height: 1600))
+ 76 |                     host.view.frame = CGRect(origin: .zero, size: size)
+ 77 |                     let window = UIWindow(frame: CGRect(origin: .zero, size: size))
+    |                                  `- warning: 'init(frame:)' was deprecated in iOS 26.0: Use init(windowScene:) instead. [#DeprecatedDeclaration]
+ 78 |                     window.rootViewController = host; window.isHidden = false
+ 79 |                     host.view.layoutIfNeeded()
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/DeelKaartTests.swift (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile DeelKaartTests.swift
+
+SwiftCompile normal arm64 /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios/HootTests/EditionClaimTests.swift (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-SwiftPerFileCompile EditionClaimTests.swift
+
+SwiftDriverJobDiscovery normal arm64 Compiling ImageMeasureTests.swift, LabelTests.swift (in target 'HootTests' from project 'Hoot')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ArticleLoader.swift, ArticleReaderView.swift, ReaderLoginPanel.swift, Subscriptions.swift, AccountView.swift (in target 'Hoot' from project 'Hoot')
+
+SwiftDriverJobDiscovery normal arm64 Compiling SentencesTests.swift (in target 'HootTests' from project 'Hoot')
+
+SwiftDriverJobDiscovery normal arm64 Compiling QuietMotion.swift, SettingsView.swift, SourceFeedView.swift, SplashView.swift, StreamLine.swift (in target 'Hoot' from project 'Hoot')
+
+SwiftDriverJobDiscovery normal arm64 Compiling DeelKaartTests.swift, EditionClaimTests.swift (in target 'HootTests' from project 'Hoot')
+
+SwiftDriverJobDiscovery normal arm64 Compiling EditionEngine.swift, HootApp.swift, HootStore.swift, ImageMeasure.swift (in target 'Hoot' from project 'Hoot')
+
+SwiftDriverJobDiscovery normal arm64 Compiling EditionMotionTests.swift, EditionParityTests.swift (in target 'HootTests' from project 'Hoot')
+
+SwiftDriver\ Compilation HootTests normal arm64 com.apple.xcode.tools.swift.compiler (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name HootTests -Onone @/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.SwiftFileList -DDEBUG -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk -target arm64-apple-ios26.0-simulator -g -module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/Developer/Library/Frameworks -c -j8 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.2-24B8118-cc78df9d8a9de6526dea716b1c70fd8e.sdkstatcache -output-file-map /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests_const_extract_protocols.json -Xcc -iquote -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-generated-files.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-own-target-headers.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-all-target-headers.hmap -Xcc -iquote -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests-project-headers.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources-normal/arm64 -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources/arm64 -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests-Swift.h -working-directory /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Compiling EditionView.swift, InlineVideo.swift, IntroMark.swift, Layout.swift, OnboardingArt.swift (in target 'Hoot' from project 'Hoot')
+
+SwiftDriverJobDiscovery normal arm64 Compiling StreamView.swift, Text+Sentences.swift, Text+Typeset.swift, WelcomeView.swift, Account.swift (in target 'Hoot' from project 'Hoot')
+
+SwiftDriver\ Compilation Hoot normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name Hoot -Onone @/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.SwiftFileList -DDEBUG -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk -target arm64-apple-ios26.0-simulator -g -module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 6 -I /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -F /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -emit-localized-strings -emit-localized-strings-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64 -c -j8 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator27.2-24B8118-cc78df9d8a9de6526dea716b1c70fd8e.sdkstatcache -output-file-map /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot-OutputFileMap.json -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules -emit-dependencies -emit-module -emit-module-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.swiftmodule -serialize-diagnostics -dependency-scan-serialize-diagnostics-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot-dependency-scan.dia -validate-clang-modules-once -clang-build-session-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -emit-const-values -const-gather-protocols-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot_const_extract_protocols.json -Xcc -iquote -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-generated-files.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-own-target-headers.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-all-target-headers.hmap -Xcc -iquote -Xcc /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-project-headers.hmap -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources-normal/arm64 -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources/arm64 -Xcc -I/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot-Swift.h -working-directory /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios -experimental-emit-module-separately -disable-cmo
+
+Ld /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot.debug.dylib normal (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios26.0-simulator -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk -O0 -Xlinker -no_warn_duplicate_libraries -L/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -F/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -filelist /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.LinkFileList -install_name @rpath/Hoot.debug.dylib -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -Xlinker -object_path_lto -Xlinker /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.swiftmodule -Xlinker -alias -Xlinker _main -Xlinker ___debug_main_executable_dylib_entry_point -Xlinker -no_adhoc_codesign -o /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot.debug.dylib
+
+ConstructStubExecutorLinkFileList /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-ExecutorLinkFileList-normal-arm64.txt (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    construct-stub-executor-link-file-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot.debug.dylib /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-ExecutorLinkFileList-normal-arm64.txt
+note: Using stub executor library with Swift entry point. (in target 'Hoot' from project 'Hoot')
+
+Ld /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot normal (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios26.0-simulator -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk -O0 -Xlinker -no_warn_duplicate_libraries -L/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -F/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker @executable_path/Frameworks -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot-ExecutorLinkFileList-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __entitlements -Xlinker /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app-Simulated.xcent -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __ents_der -Xlinker /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app-Simulated.xcent.der /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot.debug.dylib -Xlinker -no_adhoc_codesign -o /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot
+
+CopySwiftLibs /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot.debug.dylib --scan-folder /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Frameworks --scan-folder /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns --scan-folder /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/SystemExtensions --scan-folder /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ExtractAppIntentsMetadata (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name Hoot --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk --xcode-version 27B52 --platform-family iOS --deployment-target 26.0 --bundle-identifier nl.hootnews.Hoot --output /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app --target-triple arm64-apple-ios26.0-simulator --binary-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot --dependency-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot_dependency_info.dat --stringsdata-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.SwiftFileList --metadata-file-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.DependencyMetadataFileList --static-metadata-file-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.DependencyStaticMetadataFileList --swift-const-vals-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-11-02 09:33:02.494 appintentsmetadataprocessor[31278:1969565] Starting App Intents metadata extraction
+2026-11-02 09:33:02.502 appintentsmetadataprocessor[31278:1969565] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+
+AppIntentsSSUTraining (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Info.plist --temp-dir-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/ssu --bundle-id nl.hootnews.Hoot --product-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app --extracted-metadata-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Metadata.appintents --metadata-file-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.DependencyMetadataFileList --source-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Info.plist --archive-ssu-assets
+2026-11-02 09:33:02.529 appintentsnltrainingprocessor[31280:1969576] Parsing options for appintentsnltrainingprocessor
+2026-11-02 09:33:02.529 appintentsnltrainingprocessor[31280:1969576] Starting AppIntents SSU YAML Generation
+2026-11-02 09:33:02.530 appintentsnltrainingprocessor[31280:1969576] No AppShortcuts found - Skipping.
+
+ProcessInfoPlistFile /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/Info.plist /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/empty-HootTests.plist (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-infoPlistUtility /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/empty-HootTests.plist -producttype com.apple.product-type.bundle.unit-test -expandbuildsettings -format binary -platform iphonesimulator -o /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/Info.plist
+
+Ld /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/HootTests normal (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios26.0-simulator -bundle -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk -O0 -Xlinker -no_warn_duplicate_libraries -L/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -L/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -L/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib -F/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator -F/Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/Developer/Library/Frameworks -filelist /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.LinkFileList -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -dead_strip -bundle_loader /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot -Xlinker -object_path_lto -Xlinker /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.swiftmodule -Xlinker -needed_framework -Xlinker XCTest -framework XCTest -Xlinker -needed-lXCTestSwiftSupport -lXCTestSwiftSupport /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot.debug.dylib -Xlinker -no_adhoc_codesign -o /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/HootTests
+
+CopySwiftLibs /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/HootTests --scan-folder /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/Frameworks --scan-folder /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/PlugIns --scan-folder /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/SystemExtensions --scan-folder /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/Frameworks --strip-bitcode --scan-executable /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/lib/libXCTestSwiftSupport.dylib --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ExtractAppIntentsMetadata (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name HootTests --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk --xcode-version 27B52 --platform-family iOS --deployment-target 26.0 --bundle-identifier nl.hootnews.HootTests --output /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest --target-triple arm64-apple-ios26.0-simulator --binary-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/HootTests --dependency-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests_dependency_info.dat --stringsdata-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.SwiftFileList --metadata-file-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests.DependencyMetadataFileList --static-metadata-file-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests.DependencyStaticMetadataFileList --swift-const-vals-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/Objects-normal/arm64/HootTests.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-11-02 09:33:02.770 appintentsmetadataprocessor[31290:1969631] Starting App Intents metadata extraction
+2026-11-02 09:33:02.772 appintentsmetadataprocessor[31290:1969631] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+
+AppIntentsSSUTraining (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsnltrainingprocessor --infoplist-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/Info.plist --temp-dir-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/ssu --bundle-id nl.hootnews.HootTests --product-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest --extracted-metadata-path /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/Metadata.appintents --metadata-file-list /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/HootTests.build/HootTests.DependencyMetadataFileList --source-file /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest/Info.plist --archive-ssu-assets
+2026-11-02 09:33:02.793 appintentsnltrainingprocessor[31292:1969635] Parsing options for appintentsnltrainingprocessor
+2026-11-02 09:33:02.793 appintentsnltrainingprocessor[31292:1969635] Starting AppIntents SSU YAML Generation
+2026-11-02 09:33:02.793 appintentsnltrainingprocessor[31292:1969635] No AppShortcuts found - Skipping.
+
+CodeSign /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der --strip-disallowed-xattrs /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest
+
+RegisterExecutionPolicyException /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-RegisterExecutionPolicyException /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest
+
+Touch /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    /usr/bin/touch -c /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest
+
+CodeSign /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot.debug.dylib (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der --strip-disallowed-xattrs /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot.debug.dylib
+
+CodeSign /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/__preview.dylib (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der --strip-disallowed-xattrs /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app/__preview.dylib
+
+CodeSign /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --entitlements /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app.xcent --timestamp\=none --generate-entitlement-der --strip-disallowed-xattrs /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app
+
+RegisterExecutionPolicyException /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-RegisterExecutionPolicyException /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app
+
+Validate /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    builtin-validationUtility /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app -shallow-bundle -infoplist-subpath Info.plist
+
+Touch /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-lezer-inlog-paneel/ios
+    /usr/bin/touch -c /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Products/Debug-iphonesimulator/Hoot.app
+
+PruneExplicitPrecompiledModules /Users/alexvrees/Library/Developer/Xcode/DerivedData/SDKExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /Users/alexvrees/Library/Developer/Xcode/DerivedData/Hoot-eackfzbkpzeoodhjuqjqqeyimyko/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+Test Suite 'Selected tests' started at 2026-11-02 09:33:10.701.
+Test Suite 'HootTests.xctest' started at 2026-11-02 09:33:10.702.
+Test Suite 'ReaderLoginPanelTests' started at 2026-11-02 09:33:10.702.
+Test Case '-[HootTests.ReaderLoginPanelTests testOneLineMeasurements]' started.
+INLOGMAAT UICTContentSizeCategoryL The Atlantic: 179.77352699637413 beschikbaar 310
+INLOGMAAT UICTContentSizeCategoryL The New York Times: 248.0637630224228 beschikbaar 310
+INLOGMAAT UICTContentSizeCategoryL De Groene Amsterdammer: 301.7443256378174 beschikbaar 310
+INLOGMAAT UICTContentSizeCategoryXXXL The Atlantic: 237.14592621592965 beschikbaar 310
+INLOGMAAT UICTContentSizeCategoryXXXL The New York Times: 326.6780853303535 beschikbaar 310
+INLOGMAAT UICTContentSizeCategoryXXXL De Groene Amsterdammer: 398.641698580941 beschikbaar 310
+Test Case '-[HootTests.ReaderLoginPanelTests testOneLineMeasurements]' passed (0.005 seconds).
+Test Case '-[HootTests.ReaderLoginPanelTests testPanelLayoutsKeepFullSourceName]' started.
+IOSurfaceClientSetSurfaceNotify failed e00002c7
+2026-11-02 09:33:11.576408+0100 Hoot[31342:1970543] [error] building pipeline primitive_color-fica5ca7ge2ba4 took 0.793051 seconds
+Test Case '-[HootTests.ReaderLoginPanelTests testPanelLayoutsKeepFullSourceName]' passed (0.924 seconds).
+Test Suite 'ReaderLoginPanelTests' passed at 2026-11-02 09:33:11.633.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.928 (0.931) seconds
+Test Suite 'HootTests.xctest' passed at 2026-11-02 09:33:11.634.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.928 (0.932) seconds
+Test Suite 'Selected tests' passed at 2026-11-02 09:33:11.634.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.928 (0.932) seconds
+2026-11-02 09:33:12.192 xcodebuild[31139:1968468] [MT] IDETestOperationsObserverDebug: 9.241 elapsed -- Testing started completed.
+2026-11-02 09:33:12.192 xcodebuild[31139:1968468] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-11-02 09:33:12.192 xcodebuild[31139:1968468] [MT] IDETestOperationsObserverDebug: 9.241 sec, +9.241 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/hoot-reader-panel-proef.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

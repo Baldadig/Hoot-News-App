@@ -14,12 +14,19 @@ struct ArticleReaderView: View {
     @AppStorage("hoot.readerSize") private var size = 1
     @State private var login: LoginTarget?
     @State private var signedIn = false // ingelogd bij deze uitgever: dan geen balk "Zie je maar een deel?"
+    @State private var loginReminders = ReaderLoginReminderStore()
+    @State private var loginPanelVisible = false
     @State private var welcome = false // even de bevestiging na het inloggen
 
     private var source: Source? { store.source(item.source) }
     private var loginURL: URL? { source.flatMap { PublisherLogin.url(for: $0, store: store) } ?? item.link.flatMap(LoginTarget.home) }
     private var domain: String? { loginURL.flatMap(PublisherLogin.domain(of:)) }
     private var sourceName: String { item.sourceName ?? source?.name ?? "" }
+
+    private var shouldOfferLogin: Bool {
+        guard case let .ready(article) = loader.state else { return false }
+        return source?.paid == true && article.length < 2500 && !signedIn && loginURL != nil
+    }
 
     var body: some View {
         NavigationStack {
@@ -31,7 +38,11 @@ struct ArticleReaderView: View {
                     ArticleWebView(html: ReaderHTML.page(article, item: item, sourceName: sourceName, size: size, lang: source?.lang), baseURL: item.link)
                         .ignoresSafeArea(edges: .bottom)
                         .safeAreaInset(edge: .bottom) {
-                            if source?.paid == true && article.length < 2500 && !signedIn { paywallNote }
+                            if loginPanelVisible && shouldOfferLogin {
+                                ReaderLoginPanel(sourceName: sourceName, login: {
+                                    login = LoginTarget(name: sourceName, url: loginURL)
+                                }, close: closeLoginPanel)
+                            }
                         }
                 case .visit:
                     VStack(spacing: 0) {
@@ -111,6 +122,10 @@ struct ArticleReaderView: View {
             waiting.reset()
             if loader.state == .loading { await waiting.wait() }
         }
+        .onChange(of: shouldOfferLogin, initial: true) { _, eligible in
+            guard eligible else { loginPanelVisible = false; return }
+            loginPanelVisible = loginReminders.claim(for: item.source)
+        }
         .onDisappear { waiting.reset(); loader.stop() }
     }
 
@@ -134,24 +149,11 @@ struct ArticleReaderView: View {
         }
     }
 
-    // Een betaalde bron met weinig tekst: waarschijnlijk zie je maar het begin. Weg zodra je bij
-    // deze uitgever bent ingelogd: dan is een kort stuk gewoon kort.
-    private var paywallNote: some View {
-        VStack(alignment: .leading, spacing: Space.s2) {
-            Text("Zie je maar een deel? Ben je abonnee van \(sourceName), log dan één keer in; daarna lees je de hele stukken hier.")
-                .font(.footnote)
-                .foregroundStyle(Theme.ink3)
-            HStack {
-                Button("Inloggen bij \(sourceName)") { login = LoginTarget(name: sourceName, url: loginURL) }
-                    .buttonStyle(.ink)
-                Button("Bij de uitgever") { if let url = item.link { openURL(url) } }
-                    .buttonStyle(.glass)
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.bar)
+    private func closeLoginPanel() {
+        loginReminders.dismiss(for: item.source)
+        loginPanelVisible = false
     }
+
 }
 
 // De opmaak van een artikel: HTML met de kleuren en letters van Hoot. JavaScript staat uit.

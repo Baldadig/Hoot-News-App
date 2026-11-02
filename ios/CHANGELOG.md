@@ -1,3 +1,6 @@
+## Nog uit te brengen · blok 13
+- Rustig inlogpaneel bij korte betaalde artikelen, weg te vegen/sluiten; na zeven dagen per bron maximaal één herinnering. Lange knopnamen lopen alleen door als de echte tekst niet past, zonder verkleinen of afkappen.
+
 # Changelog — Hoot voor iOS
 
 - Lezer: pas na 400 ms “Artikel laden”, geen bronnentekst of flits bij snel laden; oude wachttaak wordt geannuleerd.
