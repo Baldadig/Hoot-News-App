@@ -915,6 +915,66 @@
         "why": null,
         "outside": false
       }
+    },
+    {
+      "name": "Michigan: concrete VS-plek gaat vóór oude Midden-Oostentag",
+      "input": {
+        "topics": [
+          "middenoosten"
+        ],
+        "mainTopics": [],
+        "follows": [
+          "middenoosten"
+        ],
+        "desk": "vs",
+        "deskLabel": "VS"
+      },
+      "expect": {
+        "kicker": "VS",
+        "why": null,
+        "outside": false
+      }
+    },
+    {
+      "name": "VS-plek slaat conflicterende tag over en vindt passende VS-politiek",
+      "input": {
+        "topics": [
+          "middenoosten",
+          "vs-politiek"
+        ],
+        "follows": [
+          "middenoosten",
+          "vs-politiek"
+        ],
+        "desk": "vs",
+        "deskLabel": "VS"
+      },
+      "expect": {
+        "kicker": "Politiek · VS-politiek",
+        "why": null,
+        "outside": false
+      }
+    },
+    {
+      "name": "VS-plek blijft ruimte geven aan inhoudelijk vakonderwerp",
+      "input": {
+        "topics": [
+          "ai"
+        ],
+        "mainTopics": [
+          "ai"
+        ],
+        "follows": [
+          "ai"
+        ],
+        "desk": "vs",
+        "deskLabel": "VS"
+      },
+      "expect": {
+        "kicker": "Tech · AI",
+        "why": null,
+        "outside": false
+      }
     }
   ]
 }

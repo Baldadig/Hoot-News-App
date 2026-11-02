@@ -1,0 +1,12 @@
+{
+  "case": "Michigan",
+  "before": "Wereld · Midden-Oosten",
+  "after": "VS",
+  "javascriptRegressionFailedBeforeFix": true,
+  "sharedFixtureCasesAdded": 3,
+  "webLabelSuite": "geslaagd",
+  "nativeLabelTests": 3,
+  "nativeFailures": 0,
+  "coreRebuilt": true,
+  "logs": "/tmp/hoot-server/labels/michigan-*.log"
+}

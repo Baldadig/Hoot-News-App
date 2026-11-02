@@ -31,8 +31,16 @@ export const DESK_INTERESTS = {
   economie: ['economie'],
 }
 
+// Een gevolgde geografische tag mag een concreet vastgestelde andere plek niet vervangen.
+const GEOGRAPHIC_TOPICS = new Set(['nederland', 'europa', 'vs-politiek', 'trump', 'oekraine', 'middenoosten', 'azie', 'afrika', 'latam'])
+const PLACE_TOPICS = {
+  binnenland: ['nederland'], regio: ['nederland'], vs: ['vs-politiek', 'trump'],
+  middenoosten: ['middenoosten'], oekraine: ['oekraine'],
+}
+
 // Draagt dit onderwerp het verhaal? Het past bij de rubriek van de plek, of het staat in de kop.
 export function strongTopic(t, { desk = null, mainTopics = [] } = {}) {
+  if (GEOGRAPHIC_TOPICS.has(t) && PLACE_TOPICS[desk] && !PLACE_TOPICS[desk].includes(t)) return false
   return (DESK_INTERESTS[desk] || []).includes(INTEREST_OF[t]) || mainTopics.includes(t)
 }
 

@@ -2,6 +2,8 @@
 
 ## Onuitgebracht
 
+- Een concrete geografische plek in de Editie gaat vóór een conflicterende gevolgde landtag: Michigan blijft VS, ook bij een oude Midden-Oostentag. Web en iOS delen de regressiegevallen.
+
 - Beta-afwerking: Stroom-laadtekst onder de titel, minimaal 44 pt voor dichte onderwerpkeuzes, consequente 3:2-miniaturen en één duidelijk bubbelblok na de genummerde Editie.
 
 - Lokale beta: hooguit tien genummerde verhalen, bubbel apart; leesbare selectiereden, eerlijk begin en positief einde. Via lang drukken op een artikel ook lokale foutmelding; melden verandert de smaak niet.
