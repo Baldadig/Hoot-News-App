@@ -1,0 +1,44 @@
+[
+  {
+    "headlineWithinScene": true,
+    "overflow": false,
+    "part": "band papier selectie",
+    "theme": "dark",
+    "width": 390
+  },
+  {
+    "headlineWithinScene": true,
+    "overflow": false,
+    "part": "band papier selectie",
+    "theme": "dark",
+    "width": 320
+  },
+  {
+    "headlineWithinScene": true,
+    "overflow": false,
+    "part": "band papier selectie",
+    "theme": "light",
+    "width": 1440
+  },
+  {
+    "headlineWithinScene": null,
+    "overflow": false,
+    "part": "band rood einde stuit",
+    "theme": "light",
+    "width": 768
+  },
+  {
+    "headlineWithinScene": null,
+    "overflow": false,
+    "part": "band rood einde stuit",
+    "theme": "light",
+    "width": 320
+  },
+  {
+    "headlineWithinScene": null,
+    "overflow": false,
+    "part": "band papier voordelen",
+    "theme": null,
+    "width": 768
+  }
+]
