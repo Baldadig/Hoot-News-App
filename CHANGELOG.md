@@ -4,6 +4,8 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- Landingspagina: bronvergelijking voorop in de voordelenrij, met drie koppen op twee regels, gelijke scheidingslijnen en uitsluitend begeleidende tekst.
+
 - Landingspagina: meer witruimte tussen slotkop, uitleg, webknop en kleine tekst; ruimere footerlinks en een rustige opmaak op mobiel en tablet.
 
 - De optionele beeldmeting laadt Sharp pas bij gebruik; een ontbrekende native binary maakt de feedmodule niet meer onlaadbaar. Bij een meetfout blijft de bestaande beeldweergave beschikbaar.

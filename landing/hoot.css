@@ -387,12 +387,20 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .podium .sc-vgl{flex:none;width:10.6em;text-align:right}
 
 /* Goedgekeurde landingsreview: drie voordelen als leesbare tekst onder de hero. */
-.voordelen h2{font-size:clamp(2rem,5vw,3.5rem);max-width:20ch}
-.voordeel-lijst{display:grid;gap:var(--s6);margin-top:var(--s6)}
-.voordeel-lijst h3{font:800 1.25rem/1.2 var(--tekst);margin-bottom:var(--s2)}
-.voordeel-lijst p{max-width:48ch;color:var(--inkt2)}
+.voordelen .kol{padding-bottom:var(--s7)}
+.voordelen h2{font-size:clamp(1.875rem,3.3vw,2.5rem);line-height:1.12;max-width:32ch}
+.voordeel-lijst{display:grid;gap:var(--s5);margin-top:var(--s5)}
+.voordeel-lijst li{min-width:0;border-top:1px solid var(--lijn);padding-top:var(--s4);display:grid;grid-template-rows:auto 1fr;row-gap:var(--s2);align-content:start}
+.voordeel-lijst h3{font:800 clamp(1.5rem,2.2vw,1.75rem)/1.12 var(--kop);letter-spacing:-.015em;text-wrap:balance}
+.voordeel-lijst h3 span{display:block}
+.voordeel-lijst p{max-width:34ch;color:var(--inkt2)}
+@media(min-width:960px){
+  .voordelen .kol{padding-bottom:var(--s8)}
+  .voordeel-lijst{grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s6);margin-top:calc(var(--s5) + var(--s4))}
+  .voordeel-lijst li{padding-top:var(--s5);row-gap:var(--s5)}
+  .voordeel-lijst h3{min-height:2.24em;max-width:19ch}
+}
 .actie .knop{order:-1}
-@media(min-width:720px){.voordeel-lijst{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:719px){
   .podium{display:flex;flex-direction:column;gap:var(--s5)}
   .podium .uitleg{position:static;order:2;display:grid;gap:var(--s4);padding:0}
