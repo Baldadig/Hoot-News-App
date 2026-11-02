@@ -1,0 +1,434 @@
+{
+  "ok": false,
+  "criticalFailure": false,
+  "sites": [
+    {
+      "origin": "https://gethoot.app",
+      "checks": [
+        {
+          "check": "Feed HTTP",
+          "status": "goed",
+          "detail": {
+            "status": 200
+          },
+          "critical": true
+        },
+        {
+          "check": "Hoofdverhaal",
+          "status": "goed",
+          "detail": {
+            "title": "Belgische premier De Wever biedt ontslag aan, koning accepteert dat nog niet",
+            "desk": "buitenland",
+            "sources": 13,
+            "label": "Buitenland"
+          },
+          "critical": true
+        },
+        {
+          "check": "Veilig kopstuk",
+          "status": "goed",
+          "detail": {
+            "gallery": false,
+            "sport": false,
+            "exceptionalDutchSport": false
+          },
+          "critical": true
+        },
+        {
+          "check": "Nummering",
+          "status": "goed",
+          "detail": {
+            "numbered": 10,
+            "optionalBubble": 1,
+            "bubbleLast": true
+          },
+          "critical": true
+        },
+        {
+          "check": "Michigan",
+          "status": "goed",
+          "detail": [
+            {
+              "id": "5euo5v",
+              "desk": "vs",
+              "label": "VS"
+            },
+            {
+              "id": "1r0eq47",
+              "desk": "vs",
+              "label": "Politiek · VS-politiek"
+            },
+            {
+              "id": "114lhrs",
+              "desk": "vs",
+              "label": "Politiek · VS-politiek"
+            },
+            {
+              "id": "vqjksb",
+              "desk": "vs",
+              "label": "Politiek · VS-politiek"
+            },
+            {
+              "id": "8rzpb1",
+              "desk": "vs",
+              "label": "Politiek · VS-politiek"
+            },
+            {
+              "id": "1a8ybtv",
+              "desk": "vs",
+              "label": "Politiek · VS-politiek"
+            }
+          ],
+          "critical": false
+        },
+        {
+          "check": "Britse wandelaar: label",
+          "status": "goed",
+          "detail": [
+            {
+              "id": "1r0epyy",
+              "desk": "buitenland",
+              "label": "Buitenland"
+            }
+          ],
+          "critical": false
+        },
+        {
+          "check": "Britse wandelaar: verse tags",
+          "status": "fout",
+          "detail": "Verse Stroom-items zonder route-tag Oekraïne; oude Editie-items mogen bevroren metadata houden",
+          "critical": false
+        },
+        {
+          "check": "Marathon/F1-bundels",
+          "status": "goed",
+          "detail": {
+            "runningArticles": 7,
+            "bundles": 1,
+            "mixedDisciplineBundles": []
+          },
+          "critical": false
+        },
+        {
+          "check": "Voorpagina",
+          "status": "goed",
+          "detail": {
+            "status": 200,
+            "contract": "drie echte koppen of 503"
+          },
+          "critical": false
+        },
+        {
+          "check": "Deelkaart PNG",
+          "status": "goed",
+          "detail": {
+            "status": 200,
+            "size": [
+              1200,
+              630
+            ]
+          },
+          "critical": false
+        },
+        {
+          "check": "Afbeeldingsproxy",
+          "status": "goed",
+          "detail": [
+            {
+              "source": "atlantic",
+              "status": 200,
+              "size": [
+                160,
+                90
+              ]
+            }
+          ],
+          "critical": false
+        }
+      ],
+      "snapshot": {
+        "id": "2026-11-02-avond",
+        "builtAt": "2026-11-02T17:20:23.039Z",
+        "entries": [
+          [
+            "story",
+            "s1q53iqo",
+            "1u0bhe2"
+          ],
+          [
+            "story",
+            "swbb6wv",
+            "1r0epxv"
+          ],
+          [
+            "story",
+            "swm5zgm",
+            "dtdenw"
+          ],
+          [
+            "story",
+            "s1hws9py",
+            "1558kmy"
+          ],
+          [
+            "story",
+            "s1gzqnji",
+            "1r0epw9"
+          ],
+          [
+            "story",
+            "sn01fgn",
+            "1lrgoer"
+          ],
+          [
+            "story",
+            "s1hle4yo",
+            "1r0epyy"
+          ],
+          [
+            "story",
+            "s1nrjgvi",
+            "c0cq7s"
+          ],
+          [
+            "story",
+            "s1q4idnq",
+            "1stcgnc"
+          ],
+          [
+            "story",
+            "snqh0pv",
+            "b4x7op"
+          ],
+          [
+            "item",
+            "85aoly",
+            null
+          ]
+        ]
+      }
+    },
+    {
+      "origin": "https://hootnews.nl",
+      "checks": [
+        {
+          "check": "Feed HTTP",
+          "status": "goed",
+          "detail": {
+            "status": 200
+          },
+          "critical": true
+        },
+        {
+          "check": "Hoofdverhaal",
+          "status": "goed",
+          "detail": {
+            "title": "Belgische premier De Wever biedt ontslag aan, koning accepteert dat nog niet",
+            "desk": "buitenland",
+            "sources": 13,
+            "label": "Buitenland"
+          },
+          "critical": true
+        },
+        {
+          "check": "Veilig kopstuk",
+          "status": "goed",
+          "detail": {
+            "gallery": false,
+            "sport": false,
+            "exceptionalDutchSport": false
+          },
+          "critical": true
+        },
+        {
+          "check": "Nummering",
+          "status": "goed",
+          "detail": {
+            "numbered": 10,
+            "optionalBubble": 1,
+            "bubbleLast": true
+          },
+          "critical": true
+        },
+        {
+          "check": "Michigan",
+          "status": "goed",
+          "detail": [
+            {
+              "id": "5euo5v",
+              "desk": "vs",
+              "label": "VS"
+            },
+            {
+              "id": "1r0eq47",
+              "desk": "vs",
+              "label": "Politiek · VS-politiek"
+            },
+            {
+              "id": "114lhrs",
+              "desk": "vs",
+              "label": "Politiek · VS-politiek"
+            },
+            {
+              "id": "vqjksb",
+              "desk": "vs",
+              "label": "Politiek · VS-politiek"
+            },
+            {
+              "id": "8rzpb1",
+              "desk": "vs",
+              "label": "Politiek · VS-politiek"
+            },
+            {
+              "id": "1a8ybtv",
+              "desk": "vs",
+              "label": "Politiek · VS-politiek"
+            }
+          ],
+          "critical": false
+        },
+        {
+          "check": "Britse wandelaar: label",
+          "status": "goed",
+          "detail": [
+            {
+              "id": "1r0epyy",
+              "desk": "buitenland",
+              "label": "Buitenland"
+            }
+          ],
+          "critical": false
+        },
+        {
+          "check": "Britse wandelaar: verse tags",
+          "status": "fout",
+          "detail": "Verse Stroom-items zonder route-tag Oekraïne; oude Editie-items mogen bevroren metadata houden",
+          "critical": false
+        },
+        {
+          "check": "Marathon/F1-bundels",
+          "status": "goed",
+          "detail": {
+            "runningArticles": 7,
+            "bundles": 1,
+            "mixedDisciplineBundles": []
+          },
+          "critical": false
+        },
+        {
+          "check": "Voorpagina",
+          "status": "goed",
+          "detail": {
+            "status": 200,
+            "contract": "drie echte koppen of 503"
+          },
+          "critical": false
+        },
+        {
+          "check": "Deelkaart PNG",
+          "status": "goed",
+          "detail": {
+            "status": 200,
+            "size": [
+              1200,
+              630
+            ]
+          },
+          "critical": false
+        },
+        {
+          "check": "Afbeeldingsproxy",
+          "status": "goed",
+          "detail": [
+            {
+              "source": "atlantic",
+              "status": 200,
+              "size": [
+                160,
+                90
+              ]
+            }
+          ],
+          "critical": false
+        }
+      ],
+      "snapshot": {
+        "id": "2026-11-02-avond",
+        "builtAt": "2026-11-02T17:20:23.039Z",
+        "entries": [
+          [
+            "story",
+            "s1q53iqo",
+            "1u0bhe2"
+          ],
+          [
+            "story",
+            "swbb6wv",
+            "1r0epxv"
+          ],
+          [
+            "story",
+            "swm5zgm",
+            "dtdenw"
+          ],
+          [
+            "story",
+            "s1hws9py",
+            "1558kmy"
+          ],
+          [
+            "story",
+            "s1gzqnji",
+            "1r0epw9"
+          ],
+          [
+            "story",
+            "sn01fgn",
+            "1lrgoer"
+          ],
+          [
+            "story",
+            "s1hle4yo",
+            "1r0epyy"
+          ],
+          [
+            "story",
+            "s1nrjgvi",
+            "c0cq7s"
+          ],
+          [
+            "story",
+            "s1q4idnq",
+            "1stcgnc"
+          ],
+          [
+            "story",
+            "snqh0pv",
+            "b4x7op"
+          ],
+          [
+            "item",
+            "85aoly",
+            null
+          ]
+        ]
+      }
+    }
+  ],
+  "parity": {
+    "check": "Zelfde Editie op beide domeinen",
+    "status": "goed",
+    "detail": [
+      {
+        "origin": "https://gethoot.app",
+        "id": "2026-11-02-avond"
+      },
+      {
+        "origin": "https://hootnews.nl",
+        "id": "2026-11-02-avond"
+      }
+    ],
+    "critical": false
+  },
+  "checkedAt": "2026-11-02T17:50:46.899Z"
+}

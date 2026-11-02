@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "22.19.0",
+  "sharp": "0.35.5",
+  "sharpPNG": true,
+  "resvgPNG": true,
+  "checkedLinux": false,
+  "scope": "Lokale native controle; geen bewijs van een Linux-run"
+}
