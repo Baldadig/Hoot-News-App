@@ -4,6 +4,10 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+## 1.58.0 · 3 november 2026
+
+- Hoot staat in de App Store. De landingspagina linkt nu naar de App Store (knop in de opening, link in de afsluiting, smart app banner in Safari op iPhone) in plaats van "Binnenkort in de App Store".
+
 - Landingspagina: Selectie-preview over Werk & organisatie, met een rustige werkplekillustratie en de kop ‘Hoe duidelijke afspraken teams sterker maken’.
 
 - Landingspagina: bronvergelijking voorop in de voordelenrij, met drie koppen op twee regels, gelijke scheidingslijnen en uitsluitend begeleidende tekst.
