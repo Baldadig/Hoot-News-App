@@ -1,3 +1,5 @@
+import FollowWelcome from './FollowWelcome.jsx'
+import { NEW_ONBOARDING } from '../lib/follow-welcome.js'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { SourceMark } from '../components/Items.jsx'
 import { BackButton } from '../components/Shell.jsx'
@@ -44,7 +46,7 @@ const SWIPE_PX = 48
 
 const toggleIn = (list, id) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id])
 
-export default function Welcome({ sources, prefs, muted = new Set(), onDone, onClose = null, onSignIn = null, leaving = false, onLeft = () => {} }) {
+function LegacyWelcome({ sources, prefs, muted = new Set(), onDone, onClose = null, onSignIn = null, leaving = false, onLeft = () => {} }) {
   const reopen = !!onClose
   const [view, setView] = useState(reopen ? 'kies' : 'intro') // intro | pager | kies | precies | hoot | bronnen | selectie
   const [pg, setPg] = useState(0) // de veegpagina (0 = Editie)
@@ -671,3 +673,5 @@ function PagedSourceGrid({ ids, byId, on, onPick, page, onPages }) {
     <ul className="ob__sourcegrid ob__measure" ref={meas} aria-hidden="true" inert="">{ids.map(card)}</ul>
   </div>
 }
+
+export default function Welcome(props) { return NEW_ONBOARDING ? <FollowWelcome {...props}/> : <LegacyWelcome {...props}/> }

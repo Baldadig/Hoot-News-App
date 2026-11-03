@@ -5457,6 +5457,7 @@ html[data-images='hoofd'] .media--social {
 .rubriek-stage__old { position:absolute;inset:0;pointer-events:none;overflow:hidden; }
 .rub__bar { transition-duration: var(--dur-2); }
 @media (prefers-reduced-motion: reduce) { .rub__bar { transition-duration: 0s; } }
+
 /* Nacht Zacht papier: lokale uitvoering van Alex' keuze; normtokens bij Claude. */
 :root[data-theme='night'] {
   --ink: #d8d0c2;

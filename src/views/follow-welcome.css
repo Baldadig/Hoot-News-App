@@ -1,0 +1,9 @@
+.follow42{position:fixed;inset:0;z-index:100;background:var(--paper);color:var(--ink);display:flex;flex-direction:column}
+.follow42 header,.follow42 footer{padding:var(--s4);display:flex;gap:var(--s3);flex-wrap:wrap;align-items:center;justify-content:space-between;background:var(--paper)}
+.follow42-brand{font-family:Newsreader,serif;font-size:var(--s6);font-weight:800}.follow42-brand span{color:var(--accent)}
+.follow42 main{flex:1;overflow:auto;padding:var(--s4);scroll-behavior:auto}.follow42 main>*{max-width:100%}
+.follow42 nav{display:flex;flex-wrap:wrap;gap:var(--s2)}.follow42 button,.follow42 input{min-height:var(--tap);max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.follow42 input{display:block;width:100%;margin-block:var(--s3)}.follow42 h1{outline:none}.follow42 h2{font-size:1em;margin:0}.follow42 p{margin-block:var(--s3)}
+.follow42 ul{list-style:none;padding:0}.follow42 li{display:flex;align-items:flex-start;gap:var(--s3);padding-block:var(--s4);border-bottom:1px solid var(--rule)}
+.follow42-copy{flex:1;min-width:0;overflow-wrap:anywhere}.follow42 li>button{flex-shrink:0}.follow42-choice{text-align:left;margin-block:var(--s1)}
+@media(max-width:400px){.follow42 li{flex-wrap:wrap}.follow42 li>button{margin-left:auto}}
