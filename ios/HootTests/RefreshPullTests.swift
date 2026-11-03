@@ -65,6 +65,28 @@ final class RefreshPullTests: XCTestCase {
     }
 
     @MainActor
+    func testLoadingMarkFitsReservedSpaceWithLargeTextAndReducedMotion() throws {
+        for size in [DynamicTypeSize.large, .accessibility5] {
+            for still in [false, true] {
+                let content = VStack(spacing: 0) {
+                    Text("Stroom").font(Theme.headline(.largeTitle))
+                    RefreshLoadingMark().frame(maxWidth: .infinity, minHeight: 56)
+                    StrongRule()
+                    Text("Het eerste verhaal").font(.body)
+                }.frame(width: 320).background(Theme.paper)
+                    .environment(\.dynamicTypeSize, size)
+                    .environment(\.accessibilityReduceMotion, still)
+                let renderer = ImageRenderer(content: content); renderer.scale = 2
+                let image = try XCTUnwrap(renderer.uiImage)
+                XCTAssertEqual(image.size.width, 320)
+                let attachment = XCTAttachment(image: image)
+                attachment.name = "refresh-laden-\(size)-stil-\(still)"
+                attachment.lifetime = .keepAlways; add(attachment)
+            }
+        }
+    }
+
+    @MainActor
     func testBrandMarkRendersAtPullDistancesAndWithReducedMotion() throws {
         for (name, amount, dark, reduce) in [
             ("licht-24", 24.0, false, false), ("licht-48", 48.0, false, false),

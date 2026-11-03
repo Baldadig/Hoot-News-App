@@ -54,10 +54,8 @@ struct StreamView: View {
                     // De schermtitel in de scroll (C7), op de kolomlijn boven de rubriekenlijn.
                     VStack(alignment: .leading, spacing: 0) {
                         ScreenTitle("Stroom")
-                        if refreshWaiting {
-                            WaitingMark().frame(maxWidth: .infinity, alignment: .leading)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .padding(.vertical, Space.s3)
+                        if refreshWaiting && !store.stream.isEmpty {
+                            RefreshLoadingMark().frame(maxWidth: .infinity, minHeight: 56)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -103,7 +101,10 @@ struct StreamView: View {
                         // (die blijven bewaard): offline of zonder bronnen zie je het altijd.
                         let niets = items.isEmpty && store.stream.isEmpty
                         if store.status == .loading && niets {
-                            WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
+                            Group {
+                                if refreshWaiting { RefreshLoadingMark() }
+                                else { WaitingMark() }
+                            }.frame(maxWidth: .infinity, minHeight: 240)
                         } else if niets {
                             if store.status == .failed {
                                 EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnen hier de berichten van je bronnen.", retry: store.load)

@@ -17,6 +17,28 @@ struct WaitingMark: View {
     }
 }
 
+// Goedgekeurde refreshlader: de h blijft staan, alleen de punt maakt een kleine rustige sprong.
+// Geen zichtbare laadzin, wel een passende naam voor VoiceOver. De gereserveerde strook voorkomt overlap.
+struct RefreshLoadingMark: View {
+    @Environment(\.accessibilityReduceMotion) private var still
+    var size: CGFloat = 28
+    var body: some View {
+        ZStack {
+            GlyphShape(glyphs: Brand.mark).fill(Theme.ink3)
+            GlyphShape(glyphs: Brand.mark, part: .dot).fill(Theme.accent)
+                .phaseAnimator(still ? [0] : [0, 1, 2]) { dot, phase in
+                    dot.offset(y: phase == 1 ? -2 : 0)
+                        .scaleEffect(phase == 1 ? 0.96 : phase == 2 ? 1.04 : 1, anchor: .bottom)
+                } animation: { phase in
+                    .easeInOut(duration: phase == 1 ? 0.675 : phase == 2 ? 0.375 : 0.45)
+                }
+        }
+        .frame(width: size * Brand.mark.size.width / Brand.mark.size.height, height: size)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Bezig met verversen")
+    }
+}
+
 struct StrongRule: View {
     var drawn = true
     @Environment(\.accessibilityReduceMotion) private var still
@@ -111,14 +133,14 @@ private struct HootRefresh: ViewModifier {
                     PullRefreshMark(amount: pull.amount, reduceMotion: still)
                 }
             }
-            // Editie/Stroom tonen de laadregel onder hun titel. Selectie reserveert
+            // Schermen kunnen de stille lader onder hun titel plaatsen. Anders reserveert de modifier
             // hier een eigen strook: ook bij laden nooit over de inhoud tekenen.
             .safeAreaInset(edge: .top, spacing: 0) {
                 if indicator && pull.busy && onWaiting == nil {
-                    WaitingMark(text: false).frame(maxWidth: .infinity, minHeight: 56)
+                    RefreshLoadingMark().frame(maxWidth: .infinity, minHeight: 56)
                 }
             }
-            // De bronnentekst verschijnt pas als er echt geladen wordt, niet al bij trekken.
+            // De stille lader verschijnt pas tijdens het verzoek, niet al bij trekken.
             .onChange(of: pull.busy) { _, value in onWaiting?(value) }
             .onDisappear { onWaiting?(false) }
             .accessibilityAction(named: "Verversen") { refresh() }
