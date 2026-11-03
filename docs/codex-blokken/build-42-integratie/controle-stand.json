@@ -1,0 +1,29 @@
+{
+  "codeCommit": "ca4e2a7643448d81e9a56bb63f62e517bd316d73",
+  "main": "e09202c",
+  "web": {
+    "passed": 1020,
+    "todo": 1,
+    "failed": 0,
+    "log": "/tmp/hoot42-tests-final.log"
+  },
+  "native": {
+    "executed": 122,
+    "skipped": 1,
+    "failed": 0,
+    "log": "/tmp/hoot42-native-final.log"
+  },
+  "build": "/tmp/hoot42-build-final2.log",
+  "releaseSimulatorBuild": "/tmp/hoot42-release.log",
+  "core": "/tmp/hoot42-core-final.log",
+  "hardAcceptance": {
+    "passed": true,
+    "uniqueness": 0.32,
+    "limit": 0.38,
+    "log": "/tmp/hoot42-acceptatie.log"
+  },
+  "protectedDiff": [],
+  "manualUI": "open; bediening geeft ScreenCaptureKit -3812 en CDP-timeout",
+  "uploaded": false,
+  "buildNumberVerified": false
+}
