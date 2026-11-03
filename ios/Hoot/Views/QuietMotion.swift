@@ -22,11 +22,12 @@ struct WaitingMark: View {
 struct RefreshLoadingMark: View {
     @Environment(\.accessibilityReduceMotion) private var still
     var size: CGFloat = 28
+    var reduceMotion: Bool? = nil
     var body: some View {
         ZStack {
             GlyphShape(glyphs: Brand.mark).fill(Theme.ink3)
             GlyphShape(glyphs: Brand.mark, part: .dot).fill(Theme.accent)
-                .phaseAnimator(still ? [0] : [0, 1, 2]) { dot, phase in
+                .phaseAnimator((reduceMotion ?? still) ? [0] : [0, 1, 2]) { dot, phase in
                     dot.offset(y: phase == 1 ? -2 : 0)
                         .scaleEffect(phase == 1 ? 0.96 : phase == 2 ? 1.04 : 1, anchor: .bottom)
                 } animation: { phase in

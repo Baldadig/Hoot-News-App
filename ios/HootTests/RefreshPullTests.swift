@@ -70,12 +70,11 @@ final class RefreshPullTests: XCTestCase {
             for still in [false, true] {
                 let content = VStack(spacing: 0) {
                     Text("Stroom").font(Theme.headline(.largeTitle))
-                    RefreshLoadingMark().frame(maxWidth: .infinity, minHeight: 56)
+                    RefreshLoadingMark(reduceMotion: still).frame(maxWidth: .infinity, minHeight: 56)
                     StrongRule()
                     Text("Het eerste verhaal").font(.body)
                 }.frame(width: 320).background(Theme.paper)
                     .environment(\.dynamicTypeSize, size)
-                    .environment(\.accessibilityReduceMotion, still)
                 let renderer = ImageRenderer(content: content); renderer.scale = 2
                 let image = try XCTUnwrap(renderer.uiImage)
                 XCTAssertEqual(image.size.width, 320)
