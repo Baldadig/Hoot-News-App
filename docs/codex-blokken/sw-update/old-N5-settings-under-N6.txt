@@ -1,0 +1,141 @@
+- heading "Lokale updateproef" [level=1]
+- paragraph: Uitsluitend synthetische gegevens op localhost. Geen echte sessie of account.
+- button "Bewaar proefgegevens"
+- button "Open app"
+- button "Controleer workerupdate"
+- button "Volgende laadbeurt"
+- button "Lees proefuitkomst"
+- generic: "{ \"release\": \"N5\", \"storage\": { \"hoot:prefs\": { \"schema\": 4, \"onboarded\": true, \"theme\": \"dark\", \"themeDark\": \"night\", \"interests\": [ \"tech\" ], \"muted\": [], \"pinned\": [], \"bskyInStream\": [], \"social\": [] }, \"hoot:saved-v2\": { \"proef-sw\": { \"id\": \"proef-sw\", \"title\": \"Mijn bewaarde proefstuk\", \"source\": \"nos\", \"url\": \"https://example.test/proef\" } }, \"hoot:read\": [ \"proef-sw-gelezen\" ] }, \"worker\": { \"active\": \"activated\", \"waiting\": null, \"installing\": null }, \"appScripts\": [ \"/lees/assets/index-DxO0DzXP.js\" ], \"numbers\": 10, \"localDataPresent\": true }"
+- iframe [active]:
+  - link "Naar de inhoud":
+    - /url: "#inhoud"
+  - navigation "Hoofdnavigatie":
+    - link "Hoot — naar de Editie":
+      - /url: "#/editie"
+      - img "Hoot"
+    - list:
+      - link "Editie":
+        - /url: "#/editie"
+        - generic: Editie
+      - link "Stroom":
+        - /url: "#/stroom"
+        - generic: Stroom
+      - link "Bewaard":
+        - /url: "#/bewaard"
+        - generic: Bewaard
+      - link "Bronnen":
+        - /url: "#/bronnen"
+        - generic: Bronnen
+      - link "Zoeken":
+        - /url: "#/zoek"
+        - generic: Zoeken
+    - list:
+      - link "Instellingen" [active]:
+        - /url: "#/instellingen"
+        - generic: Instellingen
+  - main:
+    - text: · · N N d T d N T d N N N
+    - region "Instellingen":
+      - heading "Instellingen" [level=1]
+      - heading "Account" [level=2]
+      - generic: Inloggen
+      - generic: Op al je toestellen
+      - button "Inloggen met Google":
+        - generic: Inloggen met Google
+      - heading "Weergave" [level=2]
+      - generic: Thema
+      - group "Thema":
+        - button "Systeem"
+        - button "Licht"
+        - button "Donker" [pressed]
+        - button "Nacht, echt zwart": Nacht
+      - generic: Kleur
+      - group "Kleur":
+        - 'button "Papier: warm papier" [pressed]': Papier
+        - 'button "Blad: wit blad op papier"': Blad
+        - 'button "Inkt: donkere kop"': Inkt
+      - generic: Lees de Stroom als
+      - group "Lees de Stroom als":
+        - 'button "Tijdlijn: groot beeld" [pressed]': Tijdlijn
+        - 'button "Krant: klein beeld ernaast"': Krant
+      - generic: Tekstgrootte
+      - group "Tekstgrootte":
+        - button "Klein": A
+        - button "Normaal" [pressed]: A
+        - button "Groot": A
+      - generic: Intro
+      - group "Intro":
+        - button "Eén regel": "1"
+        - button "Twee regels" [pressed]: "2"
+        - button "Drie regels": "3"
+        - button "Alles"
+      - generic: Beeld
+      - group "Beeld":
+        - button "Aan" [pressed]
+        - button "Alleen hoofdverhaal"
+        - button "Uit"
+      - heading "Editie" [level=2]
+      - generic: De Editie in één minuut
+      - generic: Samenvatting door AI. Voor leden.
+      - switch "De Editie in één minuut" [checked]
+      - generic: Buiten je bubbel
+      - generic: Veelgelezen, niet in je Editie.
+      - switch "Buiten je bubbel" [checked]
+      - generic: Weer
+      - combobox "Weer":
+        - option "De Bilt" [selected]
+        - option "Haarlem"
+        - option "Amsterdam"
+        - option "Rotterdam"
+        - option "Den Haag"
+        - option "Utrecht"
+        - option "Leiden"
+        - option "Almere"
+        - option "Eindhoven"
+        - option "Tilburg"
+        - option "Breda"
+        - option "Nijmegen"
+        - option "Arnhem"
+        - option "Zwolle"
+        - option "Enschede"
+        - option "Groningen"
+        - option "Leeuwarden"
+        - option "Maastricht"
+        - option "Middelburg"
+        - option "Antwerpen"
+        - option "Gent"
+        - option "Brussel"
+        - option "Geen weer"
+      - link "Interesses Tech":
+        - /url: "#/welkom"
+        - generic: Interesses
+        - generic: Tech
+      - heading "Menu" [level=2]
+      - generic: Selectie
+      - generic: Elke maandag het beste per onderwerp.
+      - switch "Selectie"
+      - generic: Bluesky
+      - switch "Bluesky"
+      - heading "Wat Hoot van je leerde" [level=2]
+      - paragraph: Telt vanaf je volgende Editie.
+      - generic: Gekozen
+      - generic: AI, Big Tech, Gadgets, Privacy & veiligheid, Elektrisch rijden, Games
+      - generic: Nog niets.
+      - heading "Over" [level=2]
+      - paragraph:
+        - text: Hoot vsw-N5 · gemaakt door
+        - link "Baldadig.nl":
+          - /url: https://baldadig.nl
+        - text: ·
+        - link "Over en contact":
+          - /url: "#/over"
+        - text: ·
+        - link "Privacy":
+          - /url: "#/privacy"
+        - text: ·
+        - link "Designsysteem":
+          - /url: "#/stijl"
+        - text: Intro’s komen van de bron, niet van AI.
+  - generic: Nieuwe versie beschikbaar
+  - button "Vernieuwen"
+  - button "Melding sluiten":

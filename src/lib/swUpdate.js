@@ -5,6 +5,7 @@ import { shouldPrompt, onControllerChange } from './update.js'
 const listeners = new Set()
 const state = { waiting: null, changedElsewhere: false, dismissed: false, requested: false, reloading: false }
 let hadController = false
+const reportCurrentBundle = () => navigator.serviceWorker.controller?.postMessage({ type: 'HOOT_CURRENT_BUNDLE', url: import.meta.url })
 
 const ready = () => shouldPrompt({ waiting: !!state.waiting, hasController: hadController, changedElsewhere: state.changedElsewhere, dismissed: state.dismissed })
 const emit = () => listeners.forEach((fn) => fn(ready()))
@@ -54,9 +55,17 @@ export function registerUpdates() {
   const sw = navigator.serviceWorker
   hadController = !!sw.controller
 
+  sw.addEventListener('message', event => {
+    if (event.source !== sw.controller || event.data?.type !== 'HOOT_BUNDLE_STATUS' || typeof event.data.current !== 'boolean') return
+    state.changedElsewhere = !event.data.current
+    if (event.data.current) state.waiting = null
+    emit()
+  })
+
   sw.addEventListener('controllerchange', () => {
     const action = onControllerChange({ hadController, requested: state.requested, reloading: state.reloading })
     hadController = true
+    reportCurrentBundle()
     if (action === 'reload') reload()
     else if (action === 'prompt') {
       state.waiting = null
@@ -68,9 +77,11 @@ export function registerUpdates() {
 
   const start = () =>
     sw
-      .register(`${import.meta.env.BASE_URL}sw.js`, { scope: import.meta.env.BASE_URL })
+      .register(`${import.meta.env.BASE_URL}sw.js`, { scope: import.meta.env.BASE_URL, updateViaCache: 'none' })
       .then((reg) => {
         track(reg)
+        reportCurrentBundle()
+        reg.update().catch(() => {})
         // Bij terugkomen in de app en elk uur kijken of er iets nieuws is.
         const check = () => reg.update().catch(() => {})
         document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && check())
