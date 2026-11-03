@@ -22,3 +22,13 @@ test('seconden en milliseconden leveren dezelfde echte overgangsduur op', () => 
   assert.equal(timeMs('.2s'),200);assert.equal(timeMs('200ms'),200)
   assert.equal(timeMs('0s'),0);assert.equal(timeMs('ongeldig'),200)
 })
+
+test('beeldvoorladen probeert ook een genormaliseerde fallback-URL maar één keer', async () => {
+  const requested=[]
+  class NormalizingFailure {
+    set src(value) {this.value=encodeURI(value);requested.push(value);queueMicrotask(()=>this.onerror?.())}
+    get src() {return this.value}
+  }
+  await warmImages(['cdn'],()=>({src:'https://example.test/cdn',fallback:'https://example.test/beeld met é.png'}),{ImageType:NormalizingFailure,timeout:100})
+  assert.deepEqual(requested,['https://example.test/cdn','https://example.test/beeld met é.png'])
+})

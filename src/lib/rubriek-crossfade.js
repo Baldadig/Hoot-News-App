@@ -23,10 +23,11 @@ export async function warmImages(urls, props, { timeout = 600, ImageType = globa
       const p = props(url)
       if (!p?.src) return resolve()
       const image = new ImageType()
+      let triedFallback = false
       image.referrerPolicy = 'no-referrer'
       image.onload = () => image.decode?.().catch(() => {}).then(resolve) ?? resolve()
       image.onerror = () => {
-        if (p.fallback && image.src !== p.fallback) { image.srcset = ''; image.src = p.fallback }
+        if (p.fallback && !triedFallback) { triedFallback = true; image.srcset = ''; image.src = p.fallback }
         else resolve()
       }
       if (p.sizes) image.sizes = p.sizes

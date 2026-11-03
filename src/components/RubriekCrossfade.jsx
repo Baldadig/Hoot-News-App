@@ -6,6 +6,9 @@ export function RubriekCrossfade({ category, children }) {
   const stage = useRef(null), live = useRef(null), previous = useRef(null), active = useRef(null)
   useLayoutEffect(() => {
     const parent = stage.current, current = live.current
+    const viewport = parent.closest('.view')
+    if (viewport?.hidden) { active.current?.(); previous.current = null; return }
+    const visible = viewport?.getBoundingClientRect() || { top: 0, bottom: innerHeight }
     const prior = previous.current
     const remember = () => {
       const node = current.cloneNode(true), videos = [...current.querySelectorAll('video')]
@@ -13,17 +16,21 @@ export function RubriekCrossfade({ category, children }) {
       node.querySelectorAll('img').forEach((image, index) => {
         const source = images[index]
         if (!source.complete || !source.naturalWidth) return
-        const rect = source.getBoundingClientRect(), still = document.createElement('canvas')
+        const rect = source.getBoundingClientRect()
+        if (rect.bottom <= visible.top || rect.top >= visible.bottom) return
+        const still = document.createElement('canvas')
         still.width = source.naturalWidth;still.height = source.naturalHeight
         still.className = source.className
         still.style.cssText = `display:block;width:${rect.width}px;height:${rect.height}px;object-fit:${getComputedStyle(source).objectFit};max-width:100%`
         try { still.getContext('2d').drawImage(source,0,0);image.replaceWith(still) } catch {}
       })
       node.querySelectorAll('video').forEach((video, index) => {
-        const source = videos[index], still = document.createElement('canvas')
-        still.width = source.videoWidth || 1;still.height = source.videoHeight || 1
+        const source = videos[index], still = document.createElement('canvas'), rect = source.getBoundingClientRect()
+        const inView = rect.bottom > visible.top && rect.top < visible.bottom
+        still.width = inView ? source.videoWidth || 1 : 1;still.height = inView ? source.videoHeight || 1 : 1
         still.style.cssText = `display:block;width:100%;height:${source.getBoundingClientRect().height}px;object-fit:cover;background:var(--paper)`
-        if (source.readyState >= 2) { try { still.getContext('2d').drawImage(source,0,0,still.width,still.height) } catch {} }
+        if (inView && source.readyState >= 2) { try { still.getContext('2d').drawImage(source,0,0,still.width,still.height) } catch {} }
+        else if (inView && source.poster) { still.style.backgroundImage = `url(${JSON.stringify(source.poster)})`;still.style.backgroundSize = getComputedStyle(source).objectFit === 'contain' ? 'contain' : 'cover';still.style.backgroundPosition = 'center';still.style.backgroundRepeat = 'no-repeat' }
         video.replaceWith(still)
       })
       previous.current = { category, node }
@@ -42,7 +49,6 @@ export function RubriekCrossfade({ category, children }) {
       if (video.poster) { const image = document.createElement('img');image.src = video.poster;image.alt = '';still.append(image) }
       video.replaceWith(still)
     }
-    const viewport = parent.closest('.view')
     parent.style.minHeight = Math.max(0, (viewport?.getBoundingClientRect().bottom || innerHeight) - parent.getBoundingClientRect().top) + 'px'
     parent.append(ghost)
     const css = getComputedStyle(document.documentElement)

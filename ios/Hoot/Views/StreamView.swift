@@ -68,9 +68,9 @@ struct StreamView: View {
                         rubriek: Binding(get: { rub }, set: { next in
                             categoryTask?.cancel()
                             guard next != rub else { return }
-                            let incoming = next == "bubbel" ? bubble : store.stream.filter { item in
+                            let incoming = next == "bubbel" ? bubble : store.withoutCopies(store.stream.filter { item in
                                 (picks.isEmpty || picks.contains(item.source)) && (next.isEmpty || Rubriek.past(item, next, cat: cats[item.source] ?? nil))
-                            }
+                            })
                             categoryTask = Task {
                                 if !still { await RubriekWissel.preload(RubriekWissel.images(incoming, enabled: store.images == "aan", kind: store.layout == "krant" ? .thumb : .large)) }
                                 guard !Task.isCancelled else { return }

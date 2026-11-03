@@ -12,7 +12,7 @@ De eerste maximaal drie zichtbare artikelbeelden worden waar nodig voorgeladen, 
 
 ## Uitvoering
 
-Web bewaart tijdelijk één stil oud paneel. Geladen beelden en videoframes krijgen daarin een canvas-weergave van hun echte inhoud, zodat het oude beeld niet opnieuw moet decoderen of een gekloonde video kan gaan afspelen. Dit leest geen afbeeldingspixels terug en verstuurt niets. Het oude paneel is inert, buiten de toegankelijkheidsboom en zonder dubbele DOM-id’s. Een nieuwe keuze ruimt de vorige animatie op; na afloop blijft één levende lijst over. Het papier en de scroll-viewport blijven staan. De inhoud heeft tijdens de overgang minimaal de resterende viewporthoogte.
+Web bewaart tijdelijk één stil oud paneel. Zichtbare geladen beelden en videoframes krijgen daarin een canvas-weergave van hun echte inhoud, zodat het oude beeld niet opnieuw moet decoderen of een gekloonde video kan gaan afspelen. Dit leest geen afbeeldingspixels terug en verstuurt niets. Het oude paneel is inert, buiten de toegankelijkheidsboom en zonder dubbele DOM-id’s. Een nieuwe keuze ruimt de vorige animatie op; na afloop blijft één levende lijst over. Het papier en de scroll-viewport blijven staan. De inhoud heeft tijdens de overgang minimaal de resterende viewporthoogte.
 
 Native gebruikt hetzelfde `RubriekVlak` in Stroom en de componentproef, met opacity-transitie en een minimumhoogte uit de gemeten viewport minus de gemeten titel/rubriekenkop. Een kortere of lege lijst maakt daardoor geen extra lege pagina onder de kop. Een vertrekkend vlak is niet aanraakbaar of hoorbaar. De indicator gebruikt dezelfde 200 ms-curve.
 
@@ -28,10 +28,16 @@ De echte gebouwde web-app is met vaste openbare/synthetische invoer op een 390 p
 
 Werkelijke native componentrenders op 390 pt: vóór, tijdens en na de wissel in drie thema’s, plus directe wissel met de Reduce Motion-parameter. De geometriecontrole vond geen verschuiving van bovenkant/hoogte van het overgangsvlak. Dit is **geen** handmatig aangeklikte native Stroom-acceptatie. De testparameter dekt de componentkeuze voor Verminder beweging; de systeemschakelaar en VoiceOver moeten nog op een echt toestel worden bediend.
 
-**1012 webtests geslaagd**, nul fouten, één bestaande TODO; build, core-generatie en harde acceptatie groen (uniekheid ≤0,38). **106 native tests geslaagd**, nul fouten, op de eindstand inclusief de kophoogtemeting. Bestaande SceneStorage-waarschuwingen in los gehoste rendertests zijn geen bewijs van echte SceneStorage-terugkeer; die handmatige proef blijft open.
+**1013 webtests geslaagd**, nul fouten, één bestaande TODO; build, core-generatie en harde acceptatie groen (uniekheid ≤0,38). **106 native tests geslaagd**, nul fouten, op de eindstand inclusief de kophoogtemeting. Bestaande SceneStorage-waarschuwingen in los gehoste rendertests zijn geen bewijs van echte SceneStorage-terugkeer; die handmatige proef blijft open.
 
 ## Tokengaten en overdracht
 
 Geen nieuwe visuele tokenwaarden: 200 ms / ease-glide zijn bestaande waarden. De native constante spiegelt dezelfde duur. De technische voorlaadlimiet van drie beelden en deadline van 600 ms zijn lokaal benoemd; Claude kan die later centraliseren als technische policy, zonder de beweging te veranderen.
 
 H is de basis; neem alleen deze productcommit na H over. J raakt eveneens styles.css maar voegt uitsluitend een apart Nacht-blok toe. Bij combineren moet J’s hele-CSS-baseline de expliciet goedgekeurde crossfaderegels meenemen; kleurwijzigingen blijven verboden buiten Nacht. Het pullpakket raakt StreamView alleen bij `hootRefresh(indicator: true)`; behoud beide veranderingen. Native handmatige tik-/scroll-/VoiceOverproef blijft als keuring voor Claude open. Geen productonboarding gebouwd.
+
+### Laatste onafhankelijke codecontrole
+
+Voorladen probeert een originele fallback-URL maximaal één keer, ook als de browser spaties of accenten normaliseert. Daar is een extra regressieproef voor toegevoegd. Native kiest de eerste drie beelden uit dezelfde reeds ontdubbelde lijst die daadwerkelijk wordt getoond. Web bewaart alleen zichtbare beelden als bitmap; bij een verborgen Stroom wordt geen oude paneelkopie bijgehouden. Dat voorkomt onnodige bitmapgeheugenbelasting door de rest van de zestig rijen. Een nog niet gestarte video behoudt zijn poster in het stille oude paneel.
+
+Na deze controle: volledige websuite 1013 geslaagd + bestaande TODO, volledige native suite 106 geslaagd, eindbouw groen. De laatste viewportbeperking is daarnaast met de vijf gerichte proeven en een nieuwe echte browserframemeting getoetst: 200 ms, maximaal één oud paneel, nul na afloop, bovenkant 129 px, foto en logo geladen. De Redacteur-kern is niet aangepast; de harde acceptatie blijft groen. Codecontrole vond geen verdere blokkerende wijziging binnen dit pakket.
