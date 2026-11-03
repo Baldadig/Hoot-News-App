@@ -1,0 +1,16 @@
+{
+  "version": "1.0.1",
+  "build": "42",
+  "bundleID": "nl.hootnews.Hoot",
+  "encryption": false,
+  "alternates": [
+    "AppIconPapier",
+    "AppIconRuim",
+    "AppIconZwart"
+  ],
+  "privacyManifest": true,
+  "APIHost": "hootnews.nl",
+  "noLocalBetaOrDiagnostics": true,
+  "signatureVerified": true,
+  "importJSON": false
+}

@@ -1,0 +1,16 @@
+{
+  "version": "1.0.1",
+  "build": "42",
+  "archiveSourceCommit": "133ace4",
+  "uploadStartedAmsterdam": "2026-11-03T14:29:36+01:00",
+  "uploadSucceededAmsterdam": "2026-11-03T14:30:34+01:00",
+  "uploadExitCode": 0,
+  "internalOnly": true,
+  "status": "ge\u00fcpload; Apple meldt Uploaded package is processing",
+  "processingCompletedVerified": false,
+  "appStoreReviewSubmitted": false,
+  "externalGroupAdded": false,
+  "localExportIPA": "/Users/alexvrees/Baldadig Dropbox/Alex Vrees/Alex/Claude/Hoot-build-42-integratie/build/ios-build-42/export/Hoot.ipa",
+  "localExportIPASHA256": "e25fc3fc71da381b9b7cafe416a76f893715dfb5d83d81256a59bfe878b0207a",
+  "uploadRoute": "Xcode exportArchive destination=upload vanuit hetzelfde gecontroleerde archief; upload-IPA niet apart door Xcode bewaard"
+}

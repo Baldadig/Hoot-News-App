@@ -1,6 +1,6 @@
 # Build 42 · integratie en nieuwe onboarding · tussenstand
 
-3 november 2026. Branch `build-42-integratie` vanaf H `3a201bf`. Alleen lokaal. **Nog niet klaar voor upload**: de verplichte schermbediening en bevestiging van het vrije buildnummer staan open. De term ‘build 42’ is vooralsnog het beoogde nummer.
+3 november 2026. Branch `build-42-integratie` vanaf H `3a201bf`. Alleen lokaal. **Actuele uitkomst: 1.0.1 (42) is intern geüpload nadat Alex het resterende handmatige testwerk zelf overnam. Zie build-42.md.** De onderstaande tussenstanden blijven als geschiedenis staan.
 
 ## Opgenomen
 
@@ -63,3 +63,15 @@ Daarna Donker gekozen en vastgelegd; Systeem gekozen, waarbij ‘Als het donker 
 De lange bronlijst bevat in de AX-boom 279 onderdelen en wordt door de bediening tot 100 afgekapt. Filteren op Volgend maakt alle knoppen weer zichtbaar. Dit is een beperking van de bedieningsweergave, geen bewezen verlies van productbronnen. Een time-out tijdens een grotere actiecombinatie is opgevangen door de werkelijke schermstatus opnieuw uit te lezen; acties zijn niet blind herhaald.
 
 Nieuw bewijs: onboarding/iphone-bronnen-overzicht-release.png, iphone-selectie-preview-release.png, iphone-annuleren-behoud-release.png, iphone-opgeslagen-selectie-release.png; en iphone-instellingen-nacht-release.png, iphone-instellingen-donker-release.png, iphone-iconen-rood-hersteld-release.png. Alleen bestanden die werkelijk zijn opgeslagen worden meegeleverd. Geen volledige iPad-, XXXL-, AX5-, Verminder-beweging-, VoiceOver-, workerupdate- of videoacceptatie geclaimd. Apple-buildlijst nog niet bevestigd en fase 2 niet gestart.
+
+
+## Alex neemt resterende handmatige tests over · upload geautoriseerd
+
+Alex heeft daarna expliciet gezegd: **‘Je mag van mij de build uploaden. Ik ga zelf testen.’** Daarmee vervalt voor deze uitsluitend interne testupload de eerdere blokkade op de resterende handmatige schermmatrix. De open controles zijn niet als geslaagd aangemerkt: ze gaan mee naar Alex. De automatische controles en pakketcontrole blijven vereist.
+
+De bestaande Brave-sessie opnieuw gebruikt; TestFlight-buildlijst ververst. Voor 1.0.1 staat 41 bovenaan, daarna 40 Internal, 39 en 38. Bewijs: apple-hoogste-build-41.png. Daarom uitsluitend CURRENT_PROJECT_VERSION van 39 naar 42 verhoogd; marketingversie blijft 1.0.1. Distributiearchief en interne export/upload volgen via bestaande automatische Xcode-ondertekening, zonder nieuwe credentials. Definitieve uitkomst komt in build-42.md. Geen wijziging van de bestaande App Review-inzending.
+
+
+## Definitieve interne upload
+
+Alex nam de resterende handmatige tests expliciet over. Vrij nummer 42 geverifieerd, Release-archive en distributie-export/pakketcontrole geslaagd, uitsluitend intern geüpload om 14:30:34 Europe/Amsterdam met exitcode 0. Apple verwerkt de build nog; beschikbaarheid niet geverifieerd. Zie build-42.md voor het volledige resultaat, IPA-hash en wat Alex nog in TestFlight moet controleren. Geen mainmerge, push of websitepublicatie.

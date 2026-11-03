@@ -24,7 +24,10 @@
   },
   "protectedDiff": [],
   "manualUI": "iPhone Release: volledige onboarding, annuleren en opslaan bewezen; 4 iconen met systeembevestiging, rood hersteld; Nacht/Donker/Systeem bediend. Overige verplichte matrix nog open; opnieuw -3812 na herstelpoging.",
-  "uploaded": false,
-  "buildNumberVerified": false,
-  "releaseInstalledBinaryMatches": true
+  "uploaded": true,
+  "buildNumberVerified": true,
+  "releaseInstalledBinaryMatches": true,
+  "distributionBuild": "1.0.1 (42)",
+  "processing": "processing, voltooiing niet bevestigd",
+  "manualTestsAcceptedByAlex": true
 }

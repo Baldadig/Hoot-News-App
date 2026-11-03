@@ -1,0 +1,13 @@
+{
+  "file": "/Users/alexvrees/Baldadig Dropbox/Alex Vrees/Alex/Claude/Hoot-build-42-integratie/build/ios-build-42/export/Hoot.ipa",
+  "sha256": "e25fc3fc71da381b9b7cafe416a76f893715dfb5d83d81256a59bfe878b0207a",
+  "bytes": 3836201,
+  "version": "1.0.1",
+  "build": "42",
+  "bundleID": "nl.hootnews.Hoot",
+  "signatureVerified": true,
+  "privacyManifest": true,
+  "noImportJSON": true,
+  "noLocalhostOrDebugHost": true,
+  "internalOnlyExport": true
+}

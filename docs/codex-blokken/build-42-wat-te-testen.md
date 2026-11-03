@@ -13,4 +13,4 @@ Uitsluitend Team Hoot. Geen externe Vrienden-test of App Review-indiening.
 
 De nieuwe onboarding wijzigt geen accountopslag of Redacteur. Bron- en onderwerpteksten gebruiken de bestaande catalogus. Voorbeelden zijn herkenbaar als voorbeeld benoemd. Zonder bronkeuze wordt bij afronden het bestaande gratis begin gebruikt, zoals de preview uitlegt. Geen nieuw profielveld voor ‘werk’ of ‘persoonlijk’: dit helpt alleen onderwerpen kiezen.
 
-Status: nog niet geüpload; verplichte schermcontroles en bevestiging van het vrije buildnummer staan open door uitval van de bediening. Deze tekst wordt pas bij de daadwerkelijke interne upload gebruikt.
+Alex neemt de resterende handmatige controles zelf over en heeft de interne upload expliciet geautoriseerd. Buildnummer 42 is na verversen van de Apple-lijst vrij bevonden. De definitieve upload- en verwerkingsstatus staat in build-42.md. De nog open iPad-, toegankelijkheids- en gecombineerde bedieningstests staan hierboven bewust als testwerk, niet als geslaagde controles.
