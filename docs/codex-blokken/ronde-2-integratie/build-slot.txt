@@ -1,0 +1,18 @@
+transforming...
+✓ 78 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/lees/sw.mjs  25.83 kB │ gzip: 8.45 kB
+✓ built in 158ms
+
+PWA v0.21.2
+mode      injectManifest
+format:   es
+precache  43 entries (1018.42 KiB)
+files generated
+  dist/lees/sw.js
+gebouwd {
+  CSSFILE: 'hoot.99876168.css',
+  JSFILE: 'hoot.f0318c13.js',
+  HASH: 'sha256-DIm985shD6ITEyyiMNOlhL0marC71wYU5uUZbZWr7fk='
+}

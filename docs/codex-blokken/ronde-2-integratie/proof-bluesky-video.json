@@ -1,0 +1,10 @@
+{
+  "noBlueskyMenu": true,
+  "postInStream": true,
+  "video": {
+    "autoplay": false,
+    "controls": true,
+    "duration": 3,
+    "paused": true
+  }
+}
