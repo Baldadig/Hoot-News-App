@@ -16,7 +16,15 @@ Op de actuele A/B/C-integratie: **1008 webtests geslaagd**, nul fouten, één be
 
 De browserklikproef van het concept is eerder echt uitgevoerd: onder de grens loslaten annuleert; boven de grens loslaten ververst één keer; de tekst staat niet tijdens trekken boven de inhoud; 390 px zonder horizontale overloop; Verminder beweging houdt de punt stil. Alex heeft deze vorm daarna goedgekeurd.
 
-## Native handmatige proef: beperkt
+## Actuele acceptatie · persoonlijke simulatorcontrole door Alex
+
+Op 3 november heeft Alex de native pull-to-refresh persoonlijk in de simulator bekeken en gemeld: **‘Hij ziet er goed uit. Ik heb hem persoonlijk gecheckt in de simulator.’** Dit geldt als visueel akkoord op de native uitvoering. Het eerdere akkoord op het browserconcept blijft daarnaast staan.
+
+Device Hub gaf inmiddels weer het volledige venster en kon de Stroom werkelijk scrollen. De door Codex uitgevoerde trekopnamen toonden het merkteken niet aantoonbaar; die zijn daarom geen positief animatiebewijs. Er is geen geslaagde automatische gebarenproef geclaimd. Een tijdelijke lokale loggingdiagnose is vóór installatie gestopt en uit de bron verwijderd; geen productcode gewijzigd. De simulator-app is in deze vervolgcontrole niet opnieuw geïnstalleerd en de persoonlijke visuele keuring is niet door een diagnosebuild vervangen.
+
+De eerdere 109 native tests, inclusief zes trek-/merkproeven, blijven de automatische onderbouwing. De persoonlijke bevestiging bewijst niet afzonderlijk dat Alex ook terugtrekken, dubbel trekken tijdens laden, VoiceOver en de echte systeemstand Verminder beweging heeft uitgevoerd. Die handmatige randgevallen blijven open; de fase-/drempelproeven zijn wel groen. Geen push, mainmerge, fysieke installatie, nieuwe TestFlight-build of upload.
+
+## Historisch: eerdere geblokkeerde handmatige proef
 
 Device Hub kon de geïnstalleerde simulator-app openen en het scherm tonen. De opname werd gestart, maar de daadwerkelijke dragopdracht verloor het venster (‘noWindowsAvailable’). Device Hub is opnieuw geselecteerd en de opname is gestopt; er loopt geen opname door. Een stilstaand appscherm of opname zonder trekbeweging is **geen** geslaagde gebarenproef en wordt niet als bewijs geleverd.
 
