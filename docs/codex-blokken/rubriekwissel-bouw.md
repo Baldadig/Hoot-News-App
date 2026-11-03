@@ -34,7 +34,7 @@ Werkelijke native componentrenders op 390 pt: vóór, tijdens en na de wissel in
 
 Geen nieuwe visuele tokenwaarden: 200 ms / ease-glide zijn bestaande waarden. De native constante spiegelt dezelfde duur. De technische voorlaadlimiet van drie beelden en deadline van 600 ms zijn lokaal benoemd; Claude kan die later centraliseren als technische policy, zonder de beweging te veranderen.
 
-H is de basis; neem alleen deze productcommit na H over. J raakt eveneens styles.css maar voegt uitsluitend een apart Nacht-blok toe. Bij combineren moet J’s hele-CSS-baseline de expliciet goedgekeurde crossfaderegels meenemen; kleurwijzigingen blijven verboden buiten Nacht. Het pullpakket raakt StreamView alleen bij `hootRefresh(indicator: true)`; behoud beide veranderingen. Native handmatige tik-/scroll-/VoiceOverproef blijft als keuring voor Claude open. Geen productonboarding gebouwd.
+H is de basis; neem alleen deze productcommit na H over. J raakt eveneens styles.css maar voegt uitsluitend een apart Nacht-blok toe. J’s eindcontrole herkent het exacte goedgekeurde crossfade-appendix; de gecombineerde CSS is afzonderlijk getoetst. Kleurwijzigingen blijven verboden buiten Nacht. Het pullpakket raakt StreamView alleen bij `hootRefresh(indicator: true)`; behoud beide veranderingen. Native handmatige tik-/scroll-/VoiceOverproef blijft als keuring voor Claude open. Geen productonboarding gebouwd.
 
 ### Laatste onafhankelijke codecontrole
 
