@@ -23,7 +23,8 @@
     "log": "/tmp/hoot42-acceptatie.log"
   },
   "protectedDiff": [],
-  "manualUI": "open; bediening geeft ScreenCaptureKit -3812 en CDP-timeout",
+  "manualUI": "gedeeltelijk: Release-iPhone/Licht, Editie/Instellingen/interesses/bronlijst/lege zoekuitkomst; opnieuw -3812 na \u00e9\u00e9n herstelpoging",
   "uploaded": false,
-  "buildNumberVerified": false
+  "buildNumberVerified": false,
+  "releaseInstalledBinaryMatches": true
 }

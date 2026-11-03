@@ -37,3 +37,14 @@ App Store Connect: bestaande Brave-sessie is ingelogd; App Store-versie 1.0.1 is
 Na herstel bediening: resterende controles uitvoeren, screenshotbewijzen toevoegen en pas dan ‘build-42-integratie klaar’ melden. Daarna vrij nummer verifiëren, bestaande signing gebruiken, alleen intern exporteren met testFlightInternalTestingOnly=true en uploaden naar Team Hoot. Geen Vrienden, geen App Review-indiening. Checklist voor echte iPhone staat in build-42-wat-te-testen.md.
 
 Beschermde bestanden bytegelijk aan e09202c. Main niet gewijzigd. Geen push, tag, merge, websitepublicatie, Apple-upload of fysieke installatie. Redacteur en Apple-tokenintrekking zijn niet gewijzigd.
+
+
+## Vervolg na ‘Probeer opnieuw’ · 3 november
+
+De Release-simulator-app is op de bestaande iPhone 17 Pro geïnstalleerd zonder de app of container te verwijderen. De geïnstalleerde Mach-O is via SHA-256 bytegelijk aan de gebouwde Release-versie. Het huidige zichtbare nummer is nog 1.0.1 (39), afkomstig van de integratiebasis: het distributienummer wordt pas na de Apple-controle verhoogd. Dit is dus geen bewijs dat 42 al bestaat of is geüpload.
+
+Echt bediend: openen van Editie, Instellingen, scrollen naar ‘Stel Hoot opnieuw in’, openen van de nieuwe onboarding met ‘Sluiten zonder opslaan’, bestaande Binnenland-keuze zichtbaar, Tech gekozen, Verder naar de bronlijst. De lijst toont Ars Technica, MIT Technology Review, TechCrunch, The Verge, Tweakers en Wired bovenaan; logo’s en beschrijvingen zijn zichtbaar. Volgen bij Ars Technica aangetikt, vervolgens een onbekende zoekterm ingevoerd; de correcte lege uitleg verschijnt. De volgende klik op Volgend viel uit voordat de resulterende toestand kon worden geverifieerd. Geen bewezen gefilterde lijst of opslaan/annuleren geclaimd.
+
+Daarna opnieuw -3812; één herverbinding naar Device Hub geeft dezelfde fout. Daarom deze native sessie afgebroken volgens de opdracht, niet eindeloos opnieuw geprobeerd. Het simulatorvenster staat mogelijk nog in een onopgeslagen proefroute; bij de volgende geslaagde bediening eerst ‘Sluiten zonder opslaan’. Bron-/interessekeuzes zijn in deze proef niet definitief opgeslagen. Geen fysiek toestel gewijzigd.
+
+Bewijs: iphone-editie-release.png, iphone-instellingen-release.png en onboarding/iphone-interesses-release.png, onboarding/iphone-bronnen-release.png. Dit bewijst uitsluitend deze iPhone/Licht-route op normale tekstgrootte; niet de volledige route, iPad, grote tekst of de overige thema’s. De open uploadvoorwaarden blijven ongewijzigd.
