@@ -358,6 +358,7 @@ struct SavedView: View {
                     .scrollContentBackground(.hidden)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .safeAreaInset(edge: .bottom) {
                 if let r = removed {
                     HStack {
