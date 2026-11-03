@@ -1,0 +1,27 @@
+{
+  "productionBuild": true,
+  "publicSyntheticFixture": true,
+  "interest": "Tech",
+  "actualActions": [
+    "vierde introductie geopend",
+    "Stel je Hoot samen",
+    "Tech gekozen",
+    "onderwerpen overgeslagen",
+    "13 bronnen gevolgd tot 17",
+    "lege zoekuitkomst gecontroleerd",
+    "naar aparte Selectie-stap",
+    "terug met 17 behouden",
+    "Volgend-filter geopend"
+  ],
+  "measurement": {
+    "buttonsInsideViewport": true,
+    "chosen": "17 gekozen",
+    "followedRows": 17,
+    "minButtonHeight": 44,
+    "scrollWidth": 390,
+    "viewport": {
+      "height": 844,
+      "width": 390
+    }
+  }
+}
