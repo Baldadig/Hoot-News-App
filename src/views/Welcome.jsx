@@ -1,5 +1,4 @@
-import FollowWelcome from './FollowWelcome.jsx'
-import { NEW_ONBOARDING } from '../lib/follow-welcome.js'
+import SourceFollowList from './SourceFollowList.jsx'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { SourceMark } from '../components/Items.jsx'
 import { BackButton } from '../components/Shell.jsx'
@@ -46,7 +45,7 @@ const SWIPE_PX = 48
 
 const toggleIn = (list, id) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id])
 
-function LegacyWelcome({ sources, prefs, muted = new Set(), onDone, onClose = null, onSignIn = null, leaving = false, onLeft = () => {} }) {
+export default function Welcome({ sources, prefs, muted = new Set(), onDone, onClose = null, onSignIn = null, leaving = false, onLeft = () => {} }) {
   const reopen = !!onClose
   const [view, setView] = useState(reopen ? 'kies' : 'intro') // intro | pager | kies | precies | hoot | bronnen | selectie
   const [pg, setPg] = useState(0) // de veegpagina (0 = Editie)
@@ -458,9 +457,9 @@ function LegacyWelcome({ sources, prefs, muted = new Set(), onDone, onClose = nu
                 <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
                   Je bronnen
                 </h1>
-                <p className="ob__sub">Voorgesteld bij je interesses. Tik om te wijzigen.</p>
+                <p className="ob__sub">Volg je vaste bronnen. Ontdek ook iets nieuws.</p>
                 <p className="ob__sourcecount" role="status">{mine.length} gekozen</p>
-                <PagedSourceGrid ids={rows} byId={byId} on={mine} onPick={pickSource} page={sub} onPages={setPages} />
+                <SourceFollowList sources={pickable} interests={interests} on={mine} onPick={pickSource} onPages={setPages} />
               </>
             ) : view === 'selectie' ? (
               <>
@@ -475,9 +474,9 @@ function LegacyWelcome({ sources, prefs, muted = new Set(), onDone, onClose = nu
                 <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
                   Je bronnen
                 </h1>
-                <p className="ob__sub">Voorgesteld bij je interesses. Tik om te wijzigen.</p>
+                <p className="ob__sub">Volg je vaste bronnen. Ontdek ook iets nieuws.</p>
                 <p className="ob__sourcecount" role="status">{mine.length} gekozen</p>
-                {pickable.length ? <PagedSourceGrid ids={rows} byId={byId} on={mine} onPick={pickSource} page={sub} onPages={setPages} /> : <p role="status">Bronnen laden…</p>}
+                {pickable.length ? <SourceFollowList sources={pickable} interests={interests} on={mine} onPick={pickSource} onPages={setPages} /> : <p role="status">Bronnen laden…</p>}
               </>
             )}
           </div>
@@ -673,5 +672,3 @@ function PagedSourceGrid({ ids, byId, on, onPick, page, onPages }) {
     <ul className="ob__sourcegrid ob__measure" ref={meas} aria-hidden="true" inert="">{ids.map(card)}</ul>
   </div>
 }
-
-export default function Welcome(props) { return NEW_ONBOARDING ? <FollowWelcome {...props}/> : <LegacyWelcome {...props}/> }

@@ -14,7 +14,7 @@ import SwiftUI
 // blijft), en bij het eerste papier sluit het rood zich als een iris tot de punt van "hoot." op papier.
 // Ook vanuit Instellingen (`reopen`: alles begint bij wat je nu hebt, sluiten slaat niets op) en na
 // even rondkijken (`start: .interesses`, in een blad met Annuleer).
-struct LegacyWelcomeView: View {
+struct WelcomeView: View {
     enum Step: String { case intro, uitleg, interesses, precies, hoot, bronnen, selectie, seintje }
 
     var reopen = false
@@ -32,6 +32,8 @@ struct LegacyWelcomeView: View {
     @State private var step: Step
     @State private var page = 0 // de uitleg: 0 Editie, 1 Stroom, 2 Selectie (de rode intro is pagina 1 van 4)
     @State private var subpage = 0 // de subpagina van Wat precies?, Je bronnen en Je Selectie
+    @State private var sourceQuery = ""
+    @State private var sourceFilter = "Ontdekken"
     @State private var offered: [String] = [] // Je bronnen: het voorstel eerst, dan wat verder past; de volgorde ligt vast
     @State private var interests: [String] = []
     @State private var picked: [String] = [] // Wat precies?: wat je aantikte; niets = alles binnen die interesse
@@ -603,8 +605,8 @@ struct LegacyWelcomeView: View {
         switch step {
         case .interesses: "Kies er een paar. Daarmee maken we je Editie en kiezen we je bronnen."
         case .precies: "Kies wat je boeit. Niets kiezen is alles."
-        case .hoot: "Voorgesteld bij je interesses. Tik om te wijzigen."
-        case .bronnen: "Voorgesteld bij je interesses. Tik om te wijzigen."
+        case .hoot: "Volg je vaste bronnen. Ontdek ook iets nieuws."
+        case .bronnen: "Volg je vaste bronnen. Ontdek ook iets nieuws."
         case .selectie: "Elke maandag de drie beste stukken van de week, per onderwerp. Kies wat bij je werk of hobby past."
         case .seintje: "Een stil seintje als je Editie klaarligt."
         case .intro, .uitleg: ""
@@ -692,8 +694,8 @@ struct LegacyWelcomeView: View {
     private func subCountOf(_ s: Step) -> Int {
         switch s {
         case .precies, .selectie: chipPages(for: s).count
-        case .bronnen: sourcePreviewPages.count
-        case .hoot: sourcePreviewPages.count
+        case .bronnen: 1
+        case .hoot: 1
         default: 1
         }
     }
@@ -745,20 +747,52 @@ struct LegacyWelcomeView: View {
     private func pickSource(_ id: String) {
         chosen = toggled(chosen ?? [], id)
     }
+    private var followSources: [Source] {
+        store.newsSources.filter { source in
+            (source.cat != "sport" || interests.contains("sport")) && (sourceFilter != "Volgend" || chosen?.contains(source.id) == true) && (sourceQuery.isEmpty || (source.name + " " + (source.about ?? "")).localizedCaseInsensitiveContains(sourceQuery))
+        }.sorted { a,b in
+            if sourceFilter == "Ontdekken" {
+                let aa = interests.contains { (a.forInterests ?? []).contains($0) || a.cat == $0 }
+                let bb = interests.contains { (b.forInterests ?? []).contains($0) || b.cat == $0 }
+                if aa != bb { return aa }
+            }
+            return a.name.localizedStandardCompare(b.name) == .orderedAscending
+        }
+    }
     @ViewBuilder private var sourcePreview: some View {
-        let pages = sourcePreviewPages
-        let ids = pages.indices.contains(subpage) ? pages[subpage] : pages.last ?? []
-        if chosen == nil {
-            ProgressView("Bronnen laden…")
-        } else {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: Space.s2), count: sourceColumns), spacing: Space.s2) {
-                ForEach(ids, id: \.self) { id in
-                    if let source = store.source(id) {
-                        SourceTile(source: source, on: chosen?.contains(id) == true, height: sourceCardHeight) { pickSource(id) }
+        if chosen == nil { ProgressView("Bronnen laden…") }
+        else {
+            TextField("Zoek op naam of onderwerp", text: $sourceQuery).textFieldStyle(.roundedBorder).accessibilityLabel("Zoek bronnen")
+            Flow {
+                ForEach(["Ontdekken", "Alle bronnen", "Volgend"], id: \.self) { name in
+                    Button(name) { sourceFilter = name; sourceQuery = "" }.frame(minHeight: Space.tap)
+                        .accessibilityAddTraits(sourceFilter == name ? .isSelected : [])
+                }
+            }.padding(.vertical, Space.s2)
+            if followSources.isEmpty { Text("Geen bron gevonden. Kies een andere zoekterm of bekijk Alle bronnen.").foregroundStyle(Theme.ink2) }
+            LazyVStack(spacing: Space.s3) {
+                ForEach(followSources) { source in
+                    HStack(alignment: .top, spacing: Space.s3) {
+                        SourceAvatar(source: source, size: Space.tap)
+                        VStack(alignment: .leading, spacing: Space.s2) {
+                            Text(source.name).font(.headline)
+                            if let about = source.about { Text(about).font(.subheadline).foregroundStyle(Theme.ink2) }
+                            if source.paid == true { Text("Deels achter abonnement").font(.caption).foregroundStyle(Theme.ink3) }
+                            if typeSize >= .xxxLarge { followButton(source) }
+                        }.frame(maxWidth: .infinity, alignment: .leading)
+                        if typeSize < .xxxLarge { followButton(source) }
                     }
+                    Divider()
                 }
             }
         }
+    }
+    private func followButton(_ source: Source) -> some View {
+        let on = chosen?.contains(source.id) == true
+        return Button(on ? "Volgend" : "Volgen") { pickSource(source.id) }
+            .buttonStyle(.bordered).frame(minHeight: Space.tap)
+            .accessibilityLabel("\(on ? "Volgend" : "Volgen"), \(source.name)")
+            .accessibilityAddTraits(on ? .isSelected : [])
     }
 
     // Het seintje: een nagemaakte melding die zacht binnenvalt, zoals een echte.
@@ -1076,153 +1110,5 @@ private struct AppMark: View {
             .frame(width: Self.side, height: Self.side, alignment: .topLeading)
             .background(Theme.paper, in: RoundedRectangle(cornerRadius: 42 * Self.k, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 42 * Self.k, style: .continuous).strokeBorder(Theme.rule, lineWidth: 1))
-    }
-}
-
-// Eén terugvalschakelaar voor Claudes review; bestaande onboarding blijft volledig bewaard.
-enum Onboarding42 { static let enabled = true }
-struct WelcomeView: View {
-    typealias Step = LegacyWelcomeView.Step
-    var reopen = false
-    var start: Step = .intro
-    var onCancel: (() -> Void)? = nil
-    var onDone: () -> Void
-    var body: some View {
-        if Onboarding42.enabled {
-            FollowWelcome42(reopen: reopen, onCancel: onCancel, onDone: onDone)
-        } else {
-            LegacyWelcomeView(reopen: reopen, start: start, onCancel: onCancel, onDone: onDone)
-        }
-    }
-}
-private struct FollowWelcome42: View {
-    var reopen: Bool
-    var onCancel: (() -> Void)?
-    var onDone: () -> Void
-    @Environment(HootStore.self) private var store
-    @Environment(\.dynamicTypeSize) private var typeSize
-    @State private var step = 0
-    @State private var interests: [String] = []
-    @State private var chosen: [String] = []
-    @State private var fields: [String] = []
-    @State private var sourceReady = false
-    @State private var draftTopics: [String] = []
-    @State private var domains: [String] = []
-    @State private var intents: [String] = []
-    @State private var query = ""
-    @State private var filter = "Ontdekken"
-    @State private var prepared = false
-    @AccessibilityFocusState private var headingFocused: Bool
-    private let titles = ["Wat houdt je bezig?", "Kies wat je volgt.", "Zo begint je Hoot.", "Je Hoot, om te beginnen.", "Waar wil je in groeien?", "Kies je vakgebied of interesse.", "Wat wil je volgen?", "Ruimte voor je Selectie."]
-    private func toggle(_ list: inout [String], _ id: String) { if list.contains(id) { list.removeAll { $0 == id } } else { list.append(id) } }
-    private var offered: [Source] { store.newsSources.filter { $0.cat != "sport" || interests.contains("sport") } }
-    private var sources: [Source] {
-        offered.filter { source in
-            (filter != "Volgend" || chosen.contains(source.id)) && (query.isEmpty || (source.name + " " + (source.about ?? "")).localizedCaseInsensitiveContains(query))
-        }.sorted { a,b in
-            if filter == "Ontdekken" {
-                let aa = interests.contains { (a.forInterests ?? []).contains($0) || a.cat == $0 }
-                let bb = interests.contains { (b.forInterests ?? []).contains($0) || b.cat == $0 }
-                if aa != bb { return aa }
-            }
-            return a.name.localizedStandardCompare(b.name) == .orderedAscending
-        }
-    }
-    private var recommendation: Source? { offered.first { $0.paid != true && !chosen.contains($0.id) } }
-    private func advance() { query = ""; step = min(7, step + 1); headingFocused = true }
-    private func save() {
-        guard !store.newsSources.isEmpty else { return }
-        store.applyWelcome(interests: interests, topics: Rubriek.resolve(interests, picked: draftTopics), sources: chosen.isEmpty ? store.suggested(interests: interests) : chosen, shown: store.newsSources, vak: fields)
-        onDone()
-    }
-    var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Wordmark()
-                Spacer()
-                if step > 0 { Button("Terug") { step -= 1; query = ""; headingFocused = true }.frame(minHeight: Space.tap) }
-                if let onCancel { Button("Sluiten zonder opslaan", action: onCancel).frame(minHeight: Space.tap) }
-            }.padding(Space.s4)
-            ScrollViewReader { proxy in
-                ScrollView {
-                    VStack(alignment: .leading, spacing: Space.s4) {
-                        Text(titles[step]).font(.system(.largeTitle, design: .serif).weight(.bold)).accessibilityAddTraits(.isHeader).accessibilityFocused($headingFocused).id("heading42")
-                        content
-                    }.padding(Space.s4).frame(maxWidth: .infinity, alignment: .leading).frame(maxWidth: .infinity)
-                }.onChange(of: step) { proxy.scrollTo("heading42", anchor: .top) }
-            }
-            VStack(spacing: Space.s2) {
-                Button(step == 7 ? "Naar je Editie" : "Verder") { if step == 7 { save() } else { advance() } }
-                    .buttonStyle(.borderedProminent).tint(Theme.ink).foregroundStyle(Theme.paper).frame(minHeight: Space.tap)
-                if step < 7 { Button("Later kiezen", action: advance).frame(minHeight: Space.tap) }
-            }.padding(Space.s4)
-        }.background(Theme.paper).foregroundStyle(Theme.ink).tint(Theme.ink)
-        .onChange(of: store.newsSources.count) { if !sourceReady && !store.newsSources.isEmpty { sourceReady = true; if reopen { chosen = store.followed.map(\.id) } } }
-        .onAppear {
-            guard !prepared else { return }; prepared = true
-            if reopen { interests = store.interests; draftTopics = Rubriek.picked(from: store.topics, interests: store.interests); chosen = store.followed.map(\.id); fields = store.digestFields }; sourceReady = !store.newsSources.isEmpty
-        }
-    }
-    @ViewBuilder private var content: some View {
-        switch step {
-        case 0:
-            Text("Kies je hoofdrubrieken voor de Stroom. Je kunt dit later veranderen.")
-            ForEach(Rubriek.alle, id: \.id) { item in choice(item.label, on: interests.contains(item.id)) { toggle(&interests, item.id) } }
-        case 1:
-            Text("Volg je vaste bronnen. Ontdek ook iets nieuws.")
-            TextField("Zoek op naam of onderwerp", text: $query).textFieldStyle(.roundedBorder).accessibilityLabel("Zoek bronnen")
-            ViewThatFits(in: .horizontal) { filters.horizontal; filters.vertical }
-            if sources.isEmpty { Text(query.isEmpty ? "Je volgt nog geen bronnen. Kies Ontdekken om bronnen te vinden." : "Geen bron gevonden. Probeer een andere naam of onderwerp.") }
-            ForEach(sources) { source in
-                HStack(alignment: .top, spacing: Space.s3) {
-                    SourceAvatar(source: source, size: 44)
-                    VStack(alignment: .leading, spacing: Space.s2) {
-                        Text(source.name).font(.headline)
-                        if let about = source.about { Text(about).font(.subheadline).foregroundStyle(Theme.ink2) }
-                        if source.paid == true { Text("Deels achter abonnement").font(.caption).foregroundStyle(Theme.ink3) }
-                        if typeSize >= .xxxLarge { follow(source) }
-                    }
-                    Spacer(minLength: 0)
-                    if typeSize < .xxxLarge { follow(source) }
-                }
-                Divider()
-            }
-        case 2,3:
-            Text("Je bronnen komen samen in de Stroom. De Redacteur maakt je Editie uit het beschikbare nieuws.")
-            Text(chosen.isEmpty ? "Zonder bronkeuze begin je met gratis nieuwsbronnen. Je kunt ze later aanpassen." : chosen.compactMap { store.source($0)?.name }.joined(separator: " · "))
-            if let source = recommendation { Text("Buiten je bronnen · gratis").font(.headline); Text(source.name); Text(source.about ?? "Ontdek een andere blik.") }
-            else { Text("Een gratis aanbeveling buiten je bronnen verschijnt zodra er passend aanbod is.") }
-            if step == 3 { Text("Je Selectie kies je hierna apart. Dan ben je bij.") }
-        case 4:
-            Text("Voor je werk, voor jezelf, of allebei. Je volgt pas iets als je een onderwerp kiest.")
-            ForEach(["Voor mijn werk", "Voor mezelf"], id: \.self) { item in choice(item, on: intents.contains(item)) { toggle(&intents, item) } }
-        case 5:
-            ForEach(DigestFieldsList.domains, id: \.label) { domain in choice(domain.label, on: domains.contains(domain.label)) { toggle(&domains, domain.label) } }
-        case 6:
-            TextField("Zoek een onderwerp", text: $query).textFieldStyle(.roundedBorder)
-            let available = DigestFieldsList.domains.filter { domains.isEmpty || domains.contains($0.label) }.flatMap(\.fields).filter { query.isEmpty || $0.label.localizedCaseInsensitiveContains(query) }
-            if available.isEmpty { Text("Geen onderwerp gevonden. Probeer een andere zoekterm.") }
-            ForEach(available, id: \.id) { item in choice(item.label, on: fields.contains(item.id)) { toggle(&fields, item.id) } }
-        default:
-            Text("Elke maandag verdieping bij wat je volgt. Naast Editie en Stroom.")
-            ForEach(DigestFieldsList.fields.filter { fields.contains($0.id) }, id: \.id) { field in
-                Text(field.label).font(.headline)
-                Text("Voorbeeld: nieuwe inzichten voor de dagelijkse praktijk.").font(.subheadline)
-            }
-            if fields.isEmpty { Text("Je kunt onderwerpen later kiezen in Instellingen.") }
-        }
-    }
-    private func choice(_ title: String, on: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) { HStack { Text(title); Spacer(); if on { Image(systemName: "checkmark").accessibilityHidden(true) } }.frame(minHeight: Space.tap) }
-            .buttonStyle(.plain).accessibilityAddTraits(on ? .isSelected : [])
-    }
-    private func follow(_ source: Source) -> some View {
-        let on = chosen.contains(source.id)
-        return Button(on ? "Volgend" : "Volgen") { toggle(&chosen, source.id) }.buttonStyle(.bordered).frame(minHeight: Space.tap)
-            .accessibilityLabel("\(on ? "Volgend" : "Volgen"), \(source.name)").accessibilityAddTraits(on ? .isSelected : [])
-    }
-    private var filters: (horizontal: AnyView, vertical: AnyView) {
-        let names = ["Ontdekken", "Alle bronnen", "Volgend"]
-        return (AnyView(HStack { ForEach(names, id: \.self) { name in choice(name, on: filter == name) { filter = name; query = "" } } }), AnyView(VStack { ForEach(names, id: \.self) { name in choice(name, on: filter == name) { filter = name; query = "" } } }))
     }
 }

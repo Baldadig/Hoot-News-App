@@ -1,4 +1,3 @@
-export const NEW_ONBOARDING = true
 export const toggleFollow = (ids, id) => ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id]
 export function discoverSources(sources, interests, followed, filter = 'Ontdekken', query = '') {
   const q = query.trim().toLocaleLowerCase('nl')
