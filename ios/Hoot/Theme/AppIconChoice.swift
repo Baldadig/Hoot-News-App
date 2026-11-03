@@ -6,7 +6,7 @@ import Observation
 enum AppIconChoice: String, CaseIterable, Identifiable {
     case red, roomy, paper, black
     var id: String { rawValue }
-    var name: String { switch self { case .red: "Papier op rood"; case .roomy: "Ruim rood"; case .paper: "Rood op papier"; case .black: "Papier op inkt" } }
+    var name: String { switch self { case .red: "Papier op rood"; case .roomy: "Ruim rood"; case .paper: "Origineel"; case .black: "Papier op inkt" } }
     var asset: String { switch self { case .red: "IcoonRood"; case .roomy: "IcoonRuim"; case .paper: "IcoonPapier"; case .black: "IcoonZwart" } }
     var iconName: String? { switch self { case .red: nil; case .roomy: "AppIconRuim"; case .paper: "AppIconPapier"; case .black: "AppIconZwart" } }
 }
