@@ -15,5 +15,6 @@
     "ios/Hoot/Assets.xcassets/Rule.colorset/Contents.json": "f3cadf26cea71b68a8adfa8cf384af1ac337e5ab9f4e21bc0b5b7f44a9236848",
     "ios/Hoot/Assets.xcassets/OnAccent.colorset/Contents.json": "6aeb7f4d9104d2d6b9c6493cc0467442908ad1529ca40379b00637482d9865ed"
   },
-  "readerNonNightSha256": "583e38e2d89589e5fad0505c661484807051459d4e0e6dce052a1840133b497d"
+  "readerNonNightSha256": "583e38e2d89589e5fad0505c661484807051459d4e0e6dce052a1840133b497d",
+  "approvedCrossfadeAppendix": "\n/* Rubriekwissel: alleen opacity; het papier en de scroll-viewport blijven staan. */\n.rubriek-stage { position: relative; }\n.rubriek-stage__old { position:absolute;inset:0;pointer-events:none;overflow:hidden; }\n.rub__bar { transition-duration: var(--dur-2); }\n@media (prefers-reduced-motion: reduce) { .rub__bar { transition-duration: 0s; } }\n"
 }

@@ -30,7 +30,7 @@ Web 390 px: echte gebouwde Stroom, dezelfde vaste proefinput, drie thema’s, v�
 
 1011 webtests geslaagd, 0 fouten, 1 bestaande TODO; build, core-generatie en harde acceptatie groen (uniekheid ≤0,38). **107 native tests geslaagd**, 0 fouten, inclusief de herstelde lange lezerproef. Bewijs en logs in `nacht-zacht-papier/`.
 
-De branch bevat de huidige baseline-kleurregressies. Bij integratie met de onafhankelijke crossfadebranch mag Claude de CSS-baseline voor uitsluitend de goedgekeurde animatieregels bijwerken; verander daarmee geen kleuren. De native asset- en ReaderHTML-controles blijven gelden.
+De baselinecontrole kent uitsluitend het exacte goedgekeurde crossfade-appendix uit I als toegestane zusteraanpassing. De originele CSS-hash blijft verder verplicht; de nieuwe themaregel moet uitsluitend Nacht selecteren. De drie kleurproeven zijn ook met de werkelijk gecombineerde I+J-CSS geslaagd, buiten de werkboom nagebootst. Claude hoeft deze baseline niet te versoepelen bij integratie. Dit is een gecombineerde CSS-controle, geen volledige I/J/K/M-appintegratie. De native asset- en ReaderHTML-controles blijven gelden.
 
 ## Voor Claudes design-system-update
 
