@@ -5,4 +5,4 @@
 - Het Hoot-logo staat ook boven Stroom, Selectie en Bewaard.
 - Bij het openen beweegt de iris naar de punt linksboven. Met Verminder beweging blijft de overgang rustig.
 
-De nieuwe laadanimatie na pull-to-refresh wordt eerst als los voorstel beoordeeld.
+- Vernieuwen toont nu de h met een subtiel bewegende punt, zonder laadtekst.

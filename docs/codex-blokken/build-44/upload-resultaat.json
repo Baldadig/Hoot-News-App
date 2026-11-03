@@ -1,0 +1,17 @@
+{
+  "version": "1.0.1",
+  "build": "44",
+  "sourceCommit": "8dffcaebad05a45ddcc2570ee546cb45adac63a4",
+  "uploadedAt": "2026-11-03T15:19:33+01:00",
+  "timeZone": "Europe/Amsterdam",
+  "exitCode": 0,
+  "status": "uploaded_processing",
+  "appleMessage": "Uploaded package is processing. Upload succeeded.",
+  "internalTestingOnly": true,
+  "processingCompletedVerified": false,
+  "availableToInternalGroupVerified": false,
+  "externalDistributionPerformed": false,
+  "appReviewSubmitted": false,
+  "newCredentialsRequested": false,
+  "browserVerification": "Schermopnamefout -3811, ook na eenmaal opnieuw verbinden; upload bevestigd door bestaande Xcode-sessie."
+}

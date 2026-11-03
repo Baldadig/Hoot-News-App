@@ -1,0 +1,44 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "AB388E9A-E6EF-4302-820B-A643C19C9F40",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "4759BDD7-B423-4EC3-A1D0-C0E7C35A56F1.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "refresh-laden-accessibility5-stil-true_0_66703655-9F57-49CD-9444-8CE97C74FBF2.png",
+        "timestamp" : 1793715396.133
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "AB388E9A-E6EF-4302-820B-A643C19C9F40",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "4AA23571-E7AC-460B-8D30-CBEDA7738FDB.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "refresh-laden-accessibility5-stil-false_0_5818F095-24D5-477A-B30D-A3D215D1677A.png",
+        "timestamp" : 1793715396.121
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "AB388E9A-E6EF-4302-820B-A643C19C9F40",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "97F65B2E-BB60-4137-AD3C-C2C9B6C13EB5.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "refresh-laden-large-stil-true_0_D151BAF8-423F-4123-A5E0-3B354A9AE3AE.png",
+        "timestamp" : 1793715396.11
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "AB388E9A-E6EF-4302-820B-A643C19C9F40",
+        "deviceName" : "iPhone 17 Pro",
+        "exportedFileName" : "E3C0D514-6389-456C-A225-3A8CF995AB4E.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "refresh-laden-large-stil-false_0_8BFCA176-D245-43B6-A088-A19EB34416E9.png",
+        "timestamp" : 1793715396.104
+      }
+    ],
+    "testIdentifier" : "RefreshPullTests/testLoadingMarkFitsReservedSpaceWithLargeTextAndReducedMotion()",
+    "testIdentifierURL" : "test://com.apple.xcode/Hoot/HootTests/RefreshPullTests/testLoadingMarkFitsReservedSpaceWithLargeTextAndReducedMotion"
+  }
+]
