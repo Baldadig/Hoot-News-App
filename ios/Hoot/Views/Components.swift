@@ -172,8 +172,7 @@ struct Rule: View {
 // "hoot." met de rode punt, als tekening (`BrandWord`), zoals op de website: in de Editie op de
 // kleinste maat van het merk (64 breed, 20 hoog), dezelfde als in het welkom. Groeit begrensd mee
 // met de tekst (tot xxLarge). Met `handoff` meldt dit woordmerk waar het staat (`BrandHandoff`), zodat
-// het opstartscherm er precies op kan landen; alleen dat in de Editie, anders overschrijft het welkom
-// de plek van `IntroMark`.
+// het opstartscherm er precies op kan landen. Alleen het actieve tabblad meldt zijn positie.
 struct Wordmark: View {
     var handoff = false
     var body: some View {
@@ -189,11 +188,22 @@ private struct WordmarkBody: View {
     let handoff: Bool
     @Environment(\.brandHandoff) private var brand
     @ScaledMetric(relativeTo: .title3) private var scale = WelcomeMark.scale
+    @State private var targetID = UUID()
 
     var body: some View {
-        BrandWord(scale: scale, handoff: handoff ? brand : nil)
+        BrandWord(scale: scale, handoff: handoff ? brand : nil, handoffOwner: targetID)
             // Niet meer in beeld (ander tabblad, scherm weg): dan valt er niets te landen.
-            .onDisappear { if handoff { brand?.word = nil; brand?.dot = nil } }
+            .onDisappear { if handoff { brand?.clearTarget(owner: targetID) } }
+    }
+}
+
+// Dezelfde merkkop op alle hoofdschermen: boven de schermtitel, zonder glazen achtergrond.
+extension View {
+    func hootBrandHeader() -> some View {
+        toolbar {
+            ToolbarItem(placement: .topBarLeading) { Wordmark(handoff: true) }
+                .sharedBackgroundVisibility(.hidden)
+        }
     }
 }
 

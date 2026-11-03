@@ -358,12 +358,7 @@ struct EditionView: View {
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .hootRefresh(onWaiting: { refreshWaiting = $0 }) { await store.load() }
-            .toolbar {
-                // Het woordmerk, klein linksboven: je ziet waar je bent, zonder dat het de krant overneemt.
-                // Hier landt het opstartscherm op.
-                ToolbarItem(placement: .topBarLeading) { Wordmark(handoff: true) }
-                    .sharedBackgroundVisibility(.hidden)
-            }
+            .hootBrandHeader()
             .settingsButton()
             .task(id: store.shownEdition?.id) {
                 guard let id = store.shownEdition?.id, EditionPrint.shouldPlay(id: id, lastSeen: seenEdition, ready: !store.editionRows.isEmpty), !printedIDs.contains(id) else { return }

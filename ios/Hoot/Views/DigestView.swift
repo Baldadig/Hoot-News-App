@@ -80,6 +80,7 @@ struct DigestView: View {
             }
             .background(Theme.paper)
             .navigationTitle("Selectie")
+            .hootBrandHeader()
             .hootScreenTitle()
             .settingsButton()
             .hootRefresh { await store.loadDigest(force: true) }

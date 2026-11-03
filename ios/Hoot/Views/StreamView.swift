@@ -144,6 +144,7 @@ struct StreamView: View {
             // Scrollen klapt de stapel dicht (ernaast tikken doet de lijn zelf).
             .onScrollPhaseChange { _, now in if now == .interacting, lijn.open { lijn.open = false } }
             .navigationTitle("Stroom") // de rode streep zegt al welke rubriek
+            .hootBrandHeader()
             .hootScreenTitle()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
@@ -384,6 +385,7 @@ struct SavedView: View {
             .animation(.easeOut(duration: 0.2), value: removed?.item.id)
             .background(Theme.paper)
             .navigationTitle("Bewaard")
+            .hootBrandHeader()
             .hootScreenTitle()
             .settingsButton()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
@@ -418,6 +420,7 @@ struct SearchView: View {
                 }
             }
             .navigationTitle("Zoeken")
+            .hootBrandHeader()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .searchable(text: $query, prompt: "Zoek in koppen en intro’s")

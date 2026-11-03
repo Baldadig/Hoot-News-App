@@ -26,7 +26,7 @@ struct HootApp: App {
 
     // Alleen bij een koude start: het opstartscherm met de stuiterende punt, tot er iets te lezen is.
     @State private var splash = true
-    @State private var handoff = BrandHandoff() // waar "hoot." staat: in het welkom of linksboven in de Editie
+    @State private var handoff = BrandHandoff() // waar "hoot." staat: in het welkom of linksboven op het actieve scherm
     private func leaveWelcome() {
         store.welcomeAgain = false
         store.onboarded = true
@@ -131,11 +131,15 @@ struct HootApp: App {
             handoff.landed = true
             return
         }
-        // Het woordmerk landt op "hoot." (klein linksboven in de Editie) en het rood
-        // sluit zich als een iris tot de rode punt; de rand veegt de witte letters weg en de inkt staat
-        // er al. Is er geen "hoot." in beeld (de app opent op de Stroom of de Selectie), dan sluit het
-        // rood tot de eigen punt van het opstartscherm, die daarna kort vervaagt. Met "Verminder
-        // beweging": gewoon vervagen.
+        // Op elk hoofdscherm landt de iris op de punt linksboven. Wacht bij een trage eerste
+        // layout kort op de echte gemeten positie; geen geschatte coördinaten bij andere tekstmaten.
+        // Met Verminder beweging blijft de overgang een rustige vervaging.
+        if store.onboarded && !UIAccessibility.isReduceMotionEnabled {
+            let layoutStart = Date.now
+            while (handoff.word == nil || handoff.dot == nil) && Date.now.timeIntervalSince(layoutStart) < 1 {
+                try? await Task.sleep(for: .milliseconds(40))
+            }
+        }
         // Een vaste curve in plaats van een veer: die heeft een staart, en als het opstartscherm dan op tijd
         // weggaat, is het rood nog net niet op maat en verspringt de punt.
         if !UIAccessibility.isReduceMotionEnabled {
@@ -180,6 +184,7 @@ struct RootView: View {
     @Environment(\.scenePhase) private var phase
     @SceneStorage("tab") private var tab: Destination = .editie
     @Environment(EditionAlerts.self) private var alerts
+    @Environment(\.brandHandoff) private var handoff
 
     enum Destination: String, Sendable { case editie, stroom, digest, bewaard, zoek }
 
@@ -200,11 +205,11 @@ struct RootView: View {
 
     var body: some View {
         TabView(selection: $tab) {
-            Tab("Editie", systemImage: "newspaper", value: Destination.editie) { EditionView().tint(Theme.ink) }
-            Tab("Stroom", systemImage: "water.waves", value: Destination.stroom) { StreamView().tint(Theme.ink) }
-            Tab("Selectie", systemImage: "books.vertical", value: Destination.digest) { DigestView().tint(Theme.ink) }
-            Tab("Bewaard", systemImage: "bookmark", value: Destination.bewaard) { SavedView().tint(Theme.ink) }
-            Tab(value: Destination.zoek, role: .search) { SearchView().tint(Theme.ink) }
+            Tab("Editie", systemImage: "newspaper", value: Destination.editie) { EditionView().tint(Theme.ink).environment(\.brandHandoff, tab == .editie ? handoff : nil) }
+            Tab("Stroom", systemImage: "water.waves", value: Destination.stroom) { StreamView().tint(Theme.ink).environment(\.brandHandoff, tab == .stroom ? handoff : nil) }
+            Tab("Selectie", systemImage: "books.vertical", value: Destination.digest) { DigestView().tint(Theme.ink).environment(\.brandHandoff, tab == .digest ? handoff : nil) }
+            Tab("Bewaard", systemImage: "bookmark", value: Destination.bewaard) { SavedView().tint(Theme.ink).environment(\.brandHandoff, tab == .bewaard ? handoff : nil) }
+            Tab(value: Destination.zoek, role: .search) { SearchView().tint(Theme.ink).environment(\.brandHandoff, tab == .zoek ? handoff : nil) }
         }
         // De actieve tab is rood, zoals op het web: dat is waar je bent. De inhoud houdt de inkt.
         .tint(Theme.accent)
