@@ -6,7 +6,6 @@ import SwiftUI
 final class Playback {
     static let shared = Playback()
     private weak var playing: AVPlayer?
-    var started = false // voor `-HootScreen video`: alleen de eerste video start vanzelf
 
     func play(_ player: AVPlayer) {
         if playing !== player { playing?.pause() }
@@ -38,7 +37,7 @@ struct InlineVideo: View {
     var body: some View {
         ZStack {
             if let player {
-                VideoPlayer(player: player)
+                SystemVideoPlayer(player: player, label: "Video van \(item.sourceName ?? "Bluesky")").background(Color.black)
             } else {
                 Button(action: start) {
                     ZStack {
@@ -61,7 +60,6 @@ struct InlineVideo: View {
         .frame(maxWidth: .infinity)
         .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
         .onDisappear { Playback.shared.stop(player) }
-        .onAppear { if DebugLaunch.screen("video"), !Playback.shared.started { Playback.shared.started = true; start() } }
     }
 
     private func start() {
@@ -69,5 +67,40 @@ struct InlineVideo: View {
         let p = AVPlayer(url: url)
         player = p
         Playback.shared.play(p)
+    }
+}
+
+// AVKit levert de standaard fullscreen-/terugbediening en de systeemrotatie.
+// Dezelfde AVPlayer blijft behouden bij SwiftUI-updates; nooit automatisch afspelen.
+struct SystemVideoPlayer: UIViewControllerRepresentable {
+    let player: AVPlayer
+    let label: String
+    func makeUIViewController(context: Context) -> AVPlayerViewController {
+        Self.controller(player: player, label: label)
+    }
+    func updateUIViewController(_ controller: AVPlayerViewController, context: Context) {
+        if controller.player !== player { controller.player = player }
+        controller.view.accessibilityLabel = label
+    }
+    static func controller(player: AVPlayer, label: String) -> AVPlayerViewController {
+        let controller = HootPlayerController()
+        controller.player = player
+        controller.showsPlaybackControls = true
+        controller.entersFullScreenWhenPlaybackBegins = false
+        controller.canStartPictureInPictureAutomaticallyFromInline = false
+        controller.videoGravity = .resizeAspect
+        controller.overrideUserInterfaceStyle = .dark
+        controller.view.layer.backgroundColor = UIColor.black.cgColor
+        controller.view.accessibilityLabel = label
+        return controller
+    }
+}
+
+// AVKit kan zijn UIView-achtergrond terugzetten op transparant. De videolaag en de
+// omringende SwiftUI-view blijven zwart, ook tijdens layout/fullscreen-overgangen.
+final class HootPlayerController: AVPlayerViewController {
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        view.layer.backgroundColor = UIColor.black.cgColor
     }
 }

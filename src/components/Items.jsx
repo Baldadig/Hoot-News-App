@@ -10,6 +10,7 @@ import { savedKey, withLead } from '../lib/saved.js'
 import { avatarUrl, fitsLarge, fitsHero } from '../lib/img.js'
 import { TermHelp } from './Terms.jsx'
 import { Img } from './Img.jsx'
+import { isPlayableVideo } from '../lib/video-fullscreen.js'
 import { Video } from './Video.jsx'
 import { Why } from './Why.js'
 import { directVideo } from '../../shared/bluesky.mjs'
@@ -282,7 +283,7 @@ export function SocialItem({ item }) {
   const isLink = !item.video && !item.imageRatio && !!item.domain && item.domain !== 'bsky.app'
   // Hoogte begrenzen zonder bij te snijden: de breedte volgt uit de verhouding.
   const bounded = (r) => ({ aspectRatio: r, maxWidth: `calc(min(420px, 56vh) * ${r})` })
-  const playable = item.video && CAN_HLS
+  const playable = isPlayableVideo(item.video, CAN_HLS)
   return (
     <article className={`entry social${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <div className="social__head">

@@ -5444,3 +5444,10 @@ html[data-images='hoofd'] .media--social {
 
 /* Verhaalopties blijven binnen de metaregel op smalle schermen. */
 .taste { flex-wrap: wrap; }
+
+/* Systeemvideo: zwart tijdens laden en volledig scherm; bediening blijft buiten het masker. */
+.media--video { background: #000000; position: relative; }
+.media--video video { object-fit: contain; background: #000000; }
+.media--video video:fullscreen { width: 100%; height: 100%; background: #000000; }
+.media--video video::-webkit-media-controls-panel { color-scheme: dark; }
+.video-fullscreen { min-height: var(--tap); margin-top: var(--s1); }
