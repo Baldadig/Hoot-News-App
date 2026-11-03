@@ -1,6 +1,6 @@
 // Route en leescontext — pure functies (getest in tests/context.test.mjs).
 
-export const MAIN = ['editie', 'stroom', 'digest', 'bluesky', 'bewaard', 'bronnen']
+export const MAIN = ['editie', 'stroom', 'digest', 'bewaard', 'bronnen']
 const FILTER_KEYS = ['bron', 'onderwerp', 'soort', 'rubriek']
 
 // Alleen "#/pad?…" is een route. Een gewoon anker (#inhoud) laat de route ongemoeid.
@@ -8,7 +8,10 @@ export function parseHash(hash, previous = { path: 'editie', params: {} }) {
   if (!hash || hash === '#' || hash === '#/') return { path: 'editie', params: {} }
   if (!hash.startsWith('#/')) return previous
   const [path, query = ''] = hash.slice(2).split('?')
-  return { path: path || 'editie', params: Object.fromEntries(new URLSearchParams(query)) }
+  const params = Object.fromEntries(new URLSearchParams(query))
+  // Bewaarde oude links krijgen de bestaande Stroom; er is geen tweede bestemming meer.
+  if (path === 'bluesky') return { path: 'stroom', params: params.wie ? { bron: params.wie } : params.groep === 'oekraine' ? { rubriek: 'wereld' } : {} }
+  return { path: path || 'editie', params }
 }
 
 export function toHash(path, params = {}) {

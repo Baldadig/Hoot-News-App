@@ -1,0 +1,146 @@
+[
+  {
+    "screen": "stroom",
+    "width": 390,
+    "mode": "Licht",
+    "broken": 0,
+    "heading": "Stroom",
+    "scrollWidth": 390,
+    "theme": "light"
+  },
+  {
+    "screen": "bronnen",
+    "width": 390,
+    "mode": "Licht",
+    "heading": "Bronnen",
+    "scrollWidth": 390
+  },
+  {
+    "screen": "stroom",
+    "width": 390,
+    "mode": "Donker",
+    "broken": 0,
+    "heading": "Stroom",
+    "scrollWidth": 390,
+    "theme": "dark"
+  },
+  {
+    "screen": "bronnen",
+    "width": 390,
+    "mode": "Donker",
+    "heading": "Bronnen",
+    "scrollWidth": 390
+  },
+  {
+    "screen": "stroom",
+    "width": 390,
+    "mode": "Nacht",
+    "broken": 0,
+    "heading": "Stroom",
+    "scrollWidth": 390,
+    "theme": "night"
+  },
+  {
+    "screen": "bronnen",
+    "width": 390,
+    "mode": "Nacht",
+    "heading": "Bronnen",
+    "scrollWidth": 390
+  },
+  {
+    "screen": "stroom",
+    "width": 768,
+    "mode": "Licht",
+    "broken": 0,
+    "heading": "Stroom",
+    "scrollWidth": 768,
+    "theme": "light"
+  },
+  {
+    "screen": "bronnen",
+    "width": 768,
+    "mode": "Licht",
+    "heading": "Bronnen",
+    "scrollWidth": 768
+  },
+  {
+    "screen": "stroom",
+    "width": 768,
+    "mode": "Donker",
+    "broken": 0,
+    "heading": "Stroom",
+    "scrollWidth": 768,
+    "theme": "dark"
+  },
+  {
+    "screen": "bronnen",
+    "width": 768,
+    "mode": "Donker",
+    "heading": "Bronnen",
+    "scrollWidth": 768
+  },
+  {
+    "screen": "stroom",
+    "width": 768,
+    "mode": "Nacht",
+    "broken": 0,
+    "heading": "Stroom",
+    "scrollWidth": 768,
+    "theme": "night"
+  },
+  {
+    "screen": "bronnen",
+    "width": 768,
+    "mode": "Nacht",
+    "heading": "Bronnen",
+    "scrollWidth": 768
+  },
+  {
+    "screen": "stroom",
+    "width": 1280,
+    "mode": "Licht",
+    "broken": 0,
+    "heading": "Stroom",
+    "scrollWidth": 1280,
+    "theme": "light"
+  },
+  {
+    "screen": "bronnen",
+    "width": 1280,
+    "mode": "Licht",
+    "heading": "Bronnen",
+    "scrollWidth": 1280
+  },
+  {
+    "screen": "stroom",
+    "width": 1280,
+    "mode": "Donker",
+    "broken": 0,
+    "heading": "Stroom",
+    "scrollWidth": 1280,
+    "theme": "dark"
+  },
+  {
+    "screen": "bronnen",
+    "width": 1280,
+    "mode": "Donker",
+    "heading": "Bronnen",
+    "scrollWidth": 1280
+  },
+  {
+    "screen": "stroom",
+    "width": 1280,
+    "mode": "Nacht",
+    "broken": 0,
+    "heading": "Stroom",
+    "scrollWidth": 1280,
+    "theme": "night"
+  },
+  {
+    "screen": "bronnen",
+    "width": 1280,
+    "mode": "Nacht",
+    "heading": "Bronnen",
+    "scrollWidth": 1280
+  }
+]

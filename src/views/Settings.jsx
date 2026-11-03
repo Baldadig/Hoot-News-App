@@ -76,8 +76,8 @@ export default function Settings({ meta, account, syncStatus, affinity = null, o
           <Row label="Selectie" hint="Elke maandag het beste per onderwerp.">
             <Switch checked={prefs.vak.length > 0} onChange={(v) => setPref('vak', v ? VAK_FIELD_IDS : [])} label="Selectie" />
           </Row>
-          <Row label="Bluesky">
-            <Switch checked={prefs.bluesky} onChange={(v) => setPref('bluesky', v)} label="Bluesky" />
+          <Row label="Bluesky in de Stroom" hint="Kies je accounts bij Bronnen.">
+            <Switch checked={prefs.bluesky} onChange={(v) => setPref('bluesky', v)} label="Bluesky in de Stroom" />
           </Row>
         </div>
 

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ViewHeader } from '../components/Shell.jsx'
-import { SourceMark } from '../components/Items.jsx'
+import { SourceMark, useHoot } from '../components/Items.jsx'
 import { Disclosure } from '../components/Disclosure.jsx'
 import { resolveProfile } from '../lib/bluesky.js'
 import { statusLabel } from '../lib/sourceStatus.js'
@@ -132,7 +132,7 @@ export function AddBluesky({ onAdd }) {
   )
 }
 
-export default function Sources({ active, sources, muted, onToggle, meta, status, recovered, latestBySource, onRetry, refreshing, online, bluesky = false, favorites = [], onFavorite = null }) {
+export default function Sources({ active, sources, muted, onToggle, meta, status, recovered, latestBySource, onRetry, refreshing, online, ownHandles = new Set(), onSocialAdd, onSocialRemove, favorites = [], onFavorite = null }) {
   const catalog = sources.filter((s) => s.followed && s.kind !== 'sociaal')
   const mine = catalog.filter((s) => !muted.has(s.id))
   const more = catalog.filter((s) => muted.has(s.id))
@@ -176,19 +176,7 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
           })}
         </div>
 
-        {bluesky ? (
-          <>
-            <h2 className="label label--section sect">Bluesky</h2>
-            <a className="setrow setrow--link" href="#/bluesky">
-              <span className="setrow__text">
-                <span className="setrow__label">Mensen op Bluesky</span>
-              </span>
-              <span className="caret" aria-hidden="true">
-                <CaretIcon size={ICON_SM} />
-              </span>
-            </a>
-          </>
-        ) : null}
+        <SocialSources sources={sources.filter(s => s.kind === 'sociaal')} muted={muted} onToggle={onToggle} ownHandles={ownHandles} onAdd={onSocialAdd} onRemove={onSocialRemove} />
 
         <h2 className="label label--section sect">Instellingen</h2>
         <div className="rows">
@@ -213,4 +201,31 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
       </div>
     </section>
   )
+}
+
+// Beheer bij je bronnen; de posts zelf hebben alleen de Stroom als bestemming.
+function SocialSources({ sources, muted, onToggle, ownHandles, onAdd, onRemove }) {
+  const {prefs, setPref} = useHoot()
+  const setInStream = (id, on) => {
+    setPref('bskyInStream', on ? [...new Set([...(prefs.bskyInStream || []), id])] : (prefs.bskyInStream || []).filter(x => x !== id))
+    if (on && muted.has(id)) onToggle(id, true)
+  }
+  const remove = source => {
+    if (ownHandles.has(source.id)) onRemove?.(source.id.replace(/^bsky:/,''))
+    else { setInStream(source.id, false); onToggle(source.id, false) }
+  }
+  return <>
+    <h2 className="label label--section sect">Bluesky</h2>
+    <div className="rows">
+      <div className="setrow"><span className="setrow__text"><span className="setrow__label">Bluesky in de Stroom</span></span><Switch checked={prefs.bluesky} onChange={on=>setPref('bluesky',on)} label="Bluesky in de Stroom" /></div>
+      {sources.filter(s => !muted.has(s.id)).map(s => <div className="setrow" key={s.id}>
+        <SourceMark source={s} size={32} />
+        <span className="setrow__text"><span className="setrow__label">{s.name}</span><span className="setrow__hint">{s.handle || s.id.replace(/^bsky:/,'@')}</span></span>
+        <Switch checked={(prefs.bskyInStream||[]).includes(s.id)} onChange={on=>setInStream(s.id,on)} label={`${s.name} ook in de Stroom`} />
+        <button type="button" className="linkbtn hit" onClick={()=>remove(s)} aria-label={`${s.name} ontvolgen`}>Ontvolgen</button>
+      </div>)}
+    </div>
+    <p className="hint">Posts van de afgelopen 36 uur, bij je nieuws in de Stroom.</p>
+    {onAdd ? <AddBluesky onAdd={onAdd} /> : null}
+  </>
 }
