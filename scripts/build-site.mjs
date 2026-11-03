@@ -12,6 +12,6 @@ writeFileSync('dist/_headers', mergeHeaders(readFileSync('dist/_headers', 'utf8'
 rmSync('dist/lees/_headers', { force: true })
 // De oude root-worker stopt met het onderscheppen van de nieuwe voordeur. De nieuwe worker
 // staat uitsluitend onder /lees/. Instellingen en opgeslagen berichten worden niet gewist.
-writeFileSync('dist/sw.js', `self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(self.registration.unregister().then(()=>self.clients.matchAll({type:'window'})).then(cs=>Promise.all(cs.map(c=>c.navigate(c.url))))));\n`)
+writeFileSync('dist/sw.js', readFileSync('scripts/retire-root-worker.js', 'utf8'))
 
 await build({ entryPoints: ['scripts/move-out.js'], outfile: 'dist/lees/move-out.js', bundle: true, minify: true, platform: 'browser', target: 'es2022' })

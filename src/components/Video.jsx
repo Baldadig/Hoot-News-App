@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { PlayIcon } from './icons.jsx'
 import { watch } from '../lib/inview.js'
 import { saveData } from '../lib/media.js'
+import { enterVideoFullscreen, supportsVideoFullscreen } from '../lib/video-fullscreen.js'
 import { directVideo } from '../../shared/bluesky.mjs'
 
 const fullscreen = (v) => !!(document.fullscreenElement || v?.webkitDisplayingFullscreen)
@@ -20,6 +21,7 @@ export function Video({ src: url, poster: posterUrl, label, style }) {
   const [near, setNear] = useState(false)
   const [inView, setInView] = useState(false)
   const [started, setStarted] = useState(false)
+  const [fullscreenError, setFullscreenError] = useState(false)
 
   useEffect(() => watch(box.current, { rootMargin: '150% 0px' }, (e) => setNear(e.isIntersecting)), [])
   useEffect(
@@ -38,9 +40,9 @@ export function Video({ src: url, poster: posterUrl, label, style }) {
   }
 
   return (
-    <div ref={box} className="media media--social media--video" style={style}>
+    <div className="video-block"><div ref={box} className="media media--social media--video" style={style}>
       {near || started ? (
-        <video ref={video} src={src} poster={poster || undefined} preload={inView && !saveData() ? 'auto' : 'metadata'} playsInline controls={started} onPlay={() => setStarted(true)} />
+        <video ref={video} src={src} poster={poster || undefined} preload={inView && !saveData() ? 'auto' : 'metadata'} playsInline controls aria-label={label} onPlay={() => setStarted(true)} />
       ) : poster ? (
         <img src={poster} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" />
       ) : null}
@@ -51,6 +53,9 @@ export function Video({ src: url, poster: posterUrl, label, style }) {
           </span>
         </button>
       )}
+    </div>
+      {started && supportsVideoFullscreen(video.current) ? <button type="button" className="linkbtn hit video-fullscreen" onClick={async () => setFullscreenError(!await enterVideoFullscreen(video.current))} aria-label={`${label.replace(/ afspelen$/, '')} volledig scherm`}>Volledig scherm</button> : null}
+      {fullscreenError ? <p className="hint" role="status">Volledig scherm is hier niet beschikbaar.</p> : null}
     </div>
   )
 }

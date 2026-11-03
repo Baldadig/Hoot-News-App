@@ -10,6 +10,9 @@ import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { positionKey } from '../lib/context.js'
 import { readJSON } from '../lib/store.js'
 import { watch } from '../lib/inview.js'
+import { RubriekCrossfade } from '../components/RubriekCrossfade.jsx'
+import { firstImages, latestChoice, warmImages } from '../lib/rubriek-crossfade.js'
+import { imgProps } from '../lib/img.js'
 import { withoutCopies } from '../../shared/dedupe.mjs'
 
 const PAGE = 60 // zoveel berichten tegelijk; de rest komt erbij terwijl je scrolt
@@ -61,20 +64,21 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
   const pickList = useMemo(() => filters.bron.split(',').filter(Boolean), [filters.bron])
   const picks = useMemo(() => new Set(pickList), [pickList])
 
+  const choices = useRef(latestChoice())
+  useEffect(() => () => choices.current.cancel(), [])
+  const select = (selection) => {
+    const picked = new Set(selection.bron.split(',').filter(Boolean))
+    return selection.onderwerp === 'bubbel' ? bubble.map(b => b.item) : withoutCopies(stream.filter(i => {
+      if (picked.size && !picked.has(i.source)) return false
+      if (selection.onderwerp && !(i.topics || []).includes(selection.onderwerp)) return false
+      if (selection.rubriek && !inInterest(i, selection.rubriek, sourcesById.get(i.source))) return false
+      if (selection.soort === 'opinie' && i.type !== 'opinie') return false
+      if (selection.soort === 'artikelen' && (i.kind === 'post' || i.type === 'opinie')) return false
+      return true
+    }))
+  }
   const list = useMemo(
-    () =>
-      // "Buiten je bubbel" is geen onderwerp maar een aparte lijst: de drie signalen van de editie.
-      // Brengen twee van je bronnen hetzelfde stuk (zusterkranten), dan staat het er één keer; kies
-      // je één bron, dan zie je al zijn eigen berichten.
-      filters.onderwerp === 'bubbel' ? bubble.map((b) => b.item) :
-      withoutCopies(stream.filter((i) => {
-        if (picks.size && !picks.has(i.source)) return false
-        if (filters.onderwerp && !(i.topics || []).includes(filters.onderwerp)) return false
-        if (filters.rubriek && !inInterest(i, filters.rubriek, sourcesById.get(i.source))) return false
-        if (filters.soort === 'opinie' && i.type !== 'opinie') return false
-        if (filters.soort === 'artikelen' && (i.kind === 'post' || i.type === 'opinie')) return false
-        return true
-      })),
+    () => select(filters),
     [stream, bubble, picks, filters.onderwerp, filters.rubriek, filters.soort, sourcesById]
   )
 
@@ -82,12 +86,22 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
   // Elke filtercombinatie is een eigen lijst met een eigen leespositie. Kies je zelf een
   // filter, dan begin je bovenaan; kom je terug (terugknop, navigatie), dan sta je waar je was.
   const apply = (next) => {
+    choices.current.cancel()
     try {
       localStorage.removeItem(positionKey('stroom', next))
     } catch {
       /* niet erg */
     }
     go('stroom', next)
+  }
+  const chooseCategory = async (r) => {
+    if (r.sig === actieveRubriek(filters)) { choices.current.cancel(); return }
+    const latest = choices.current.begin()
+    const next = kiesRubriek(filters, r)
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
+    await warmImages(firstImages(select(next), !reduced && prefs?.images === 'aan'), url => imgProps(url, prefs?.layout === 'krant' ? 'thumb' : 'lead'))
+    if (latest()) { apply(next); return true }
+    return false
   }
   const setFilter = (key, value) => apply({ ...filters, [key]: value })
   const clear = () => apply({})
@@ -97,6 +111,8 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
   // Niet alles tegelijk tekenen: eerst één portie, de volgende zodra je het eind nadert. Kom je
   // terug op een plek verderop, dan tekenen we in één keer tot daar (de leespositie blijft kloppen).
   const posKey = positionKey('stroom', filters)
+  // Ook browser-terug of vertrek maakt een voorladende oude keuze ongeldig.
+  useEffect(() => { choices.current.cancel() }, [posKey, active])
   useEffect(() => setFreshShown(0), [posKey])
   const [limit, setLimit] = useState(PAGE)
   useEffect(() => {
@@ -158,7 +174,7 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
           <StreamLine
             rubrieken={rubrieken}
             active={actief}
-            onRubriek={(r) => apply(kiesRubriek(filters, r))}
+            onRubriek={chooseCategory}
             bronnen={rij}
             picks={picks}
             onToggle={togglePick}
@@ -174,6 +190,7 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
           </button>
         ) : null}
 
+        <RubriekCrossfade category={actief}>
         {loading ? (
           <Skeleton />
         ) : failedLoad ? (
@@ -225,6 +242,7 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
             )}
           </>
         )}
+        </RubriekCrossfade>
       </div>
 
       {atDepth ? (
