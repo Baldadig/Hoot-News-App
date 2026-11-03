@@ -5457,3 +5457,15 @@ html[data-images='hoofd'] .media--social {
 .rubriek-stage__old { position:absolute;inset:0;pointer-events:none;overflow:hidden; }
 .rub__bar { transition-duration: var(--dur-2); }
 @media (prefers-reduced-motion: reduce) { .rub__bar { transition-duration: 0s; } }
+/* Nacht Zacht papier: lokale uitvoering van Alex' keuze; normtokens bij Claude. */
+:root[data-theme='night'] {
+  --ink: #d8d0c2;
+  --ink-2: #bdb3a2;
+  --ink-3: #a79b87;
+  --accent: #df8276;
+  --brand: var(--ink);
+  --mark-bg: var(--ink);
+  --band-accent: var(--accent);
+  --select-caret: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath fill='none' stroke='%23a79b87' stroke-linecap='round' stroke-linejoin='round' stroke-width='20' d='m48 96l80 80l80-80'/%3E%3C/svg%3E");
+}
+/* Einde Nacht Zacht papier. */

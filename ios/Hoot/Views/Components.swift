@@ -8,11 +8,11 @@ enum Theme {
     // De kleuren van het design system (zelfde namen en waarden als src/styles.css).
     static let paper = Color(uiColor: NachtKleur.paper) // pagina
     static let surface = Color("Surface") // kaart, blad, melding
-    static let ink = Color("Ink") // koppen en tekst
-    static let ink2 = Color("Ink2") // intro's en samenvattingen
+    static let ink = Color(uiColor: NachtKleur.ink) // koppen en tekst
+    static let ink2 = Color(uiColor: NachtKleur.ink2) // intro's en samenvattingen
     // Metadata: tijd, bron-uitleg, toelichting. De ondergrens voor kleine tekst (5,2:1 licht, 6,7:1
     // donker); nooit het lichtere grijs van het systeem (3,3:1 op papier).
-    static let ink3 = Color("Ink3")
+    static let ink3 = Color(uiColor: NachtKleur.ink3)
     static let rule = Color("Rule") // haarlijn, decoratief
     static let edge = Color("Edge") // rand van velden en knoppen die iets betekenen (3:1)
     static let accentSoft = Color("AccentSoft") // achtergrond van iets dat aan staat
@@ -22,7 +22,7 @@ enum Theme {
     // merkmomenten (opstarten, welkom, einde van de editie); verder is het accent een detail.
     static let brandRed = Color("BrandRed")
     static let onBrandRed = Color("OnBrandRed") // alles op merkrood: papier #F5F1E8 (6,9:1), zoals het opstartscherm
-    static let accent = Color("AccentColor") // de kleur zelf: "accentColor" volgt de tint, en die valt soms terug op systeemblauw
+    static let accent = Color(uiColor: NachtKleur.accent) // de kleur zelf: "accentColor" volgt de tint, en die valt soms terug op systeemblauw
     static func headline(_ style: Font.TextStyle) -> Font { .system(style, design: .serif, weight: .bold) }
 }
 

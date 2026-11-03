@@ -1,0 +1,42 @@
+[
+  {
+    "label": "licht",
+    "accent": "#a3201b",
+    "ink": "#1a1814",
+    "ink3": "#6b6457",
+    "overflow": false,
+    "paper": "#f5f1e8",
+    "theme": "light",
+    "width": 390
+  },
+  {
+    "label": "donker",
+    "accent": "#ec7a70",
+    "ink": "#f1ece2",
+    "ink3": "#a39b8d",
+    "overflow": false,
+    "paper": "#151310",
+    "theme": "dark",
+    "width": 390
+  },
+  {
+    "label": "nacht-voor",
+    "accent": "#ec7a70",
+    "ink": "#f1ece2",
+    "ink3": "#a39b8d",
+    "overflow": false,
+    "paper": "#000000",
+    "theme": "night",
+    "width": 390
+  },
+  {
+    "label": "nacht",
+    "accent": "#df8276",
+    "ink": "#d8d0c2",
+    "ink3": "#a79b87",
+    "overflow": false,
+    "paper": "#000000",
+    "theme": "night",
+    "width": 390
+  }
+]

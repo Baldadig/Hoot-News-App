@@ -192,7 +192,7 @@ enum ReaderHTML {
         table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; font-size: .85em; } /* een brede tabel scrolt zelf, niet de hele pagina */
         main { overflow-wrap: break-word; } /* lange links breken af in plaats van de pagina te verbreden */ td, th { border-bottom: 1px solid var(--rule); padding: .4em; text-align: left; }
         pre, code { font-family: ui-monospace, Menlo, monospace; font-size: .85em; white-space: pre-wrap; }
-        \(night ? ":root { --paper:#000000; --ink:#f1ece2; --ink-3:#a39b8d; --accent:#ec7a70; color-scheme:dark; }" : "")
+        \(night ? NachtLeesinkt.readerCSS : "")
         </style></head><body><main\(scale > 1.3 ? " class=\"hyphenate\"" : "")>
         <p class="kicker">\(escape(sourceName))</p>
         <h1 class="title">\(title)</h1>

@@ -1,0 +1,118 @@
+HootTests.ReaderLoginReminderTests testPersistenceSourcesAndClockReversal]' passed (0.000 seconds).
+Test Case '-[HootTests.ReaderLoginReminderTests testSevenDayBoundaryAndSingleReminder]' started.
+Test Case '-[HootTests.ReaderLoginReminderTests testSevenDayBoundaryAndSingleReminder]' passed (0.000 seconds).
+Test Suite 'ReaderLoginReminderTests' passed at 2026-11-03 11:18:00.474.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'ReaderWaitingTests' started at 2026-11-03 11:18:00.474.
+Test Case '-[HootTests.ReaderWaitingTests testCancelledOldWaitCannotRevealNewLoadingRound]' started.
+Test Case '-[HootTests.ReaderWaitingTests testCancelledOldWaitCannotRevealNewLoadingRound]' passed (0.008 seconds).
+Test Case '-[HootTests.ReaderWaitingTests testFastLoadCancelsWithoutShowingMark]' started.
+Test Case '-[HootTests.ReaderWaitingTests testFastLoadCancelsWithoutShowingMark]' passed (0.051 seconds).
+Test Case '-[HootTests.ReaderWaitingTests testSlowLoadShowsArticleLabelAfterDelayAndResets]' started.
+Test Case '-[HootTests.ReaderWaitingTests testSlowLoadShowsArticleLabelAfterDelayAndResets]' passed (0.446 seconds).
+Test Suite 'ReaderWaitingTests' passed at 2026-11-03 11:18:00.980.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.505 (0.506) seconds
+Test Suite 'RemoteImageFallbackTests' started at 2026-11-03 11:18:00.981.
+Test Case '-[HootTests.RemoteImageFallbackTests testCancelledRequestDoesNotStartFallback]' started.
+Test Case '-[HootTests.RemoteImageFallbackTests testCancelledRequestDoesNotStartFallback]' passed (0.003 seconds).
+Test Case '-[HootTests.RemoteImageFallbackTests testCdnFailureAndBrokenImageTryOriginalExactlyOnce]' started.
+Test Case '-[HootTests.RemoteImageFallbackTests testCdnFailureAndBrokenImageTryOriginalExactlyOnce]' passed (0.011 seconds).
+Test Case '-[HootTests.RemoteImageFallbackTests testFailedDirectImageDoesNotLoopOrSearchOtherHosts]' started.
+Test Case '-[HootTests.RemoteImageFallbackTests testFailedDirectImageDoesNotLoopOrSearchOtherHosts]' passed (0.001 seconds).
+Test Case '-[HootTests.RemoteImageFallbackTests testOnlyOwnCdnCanFallBackToKnownOriginal]' started.
+Test Case '-[HootTests.RemoteImageFallbackTests testOnlyOwnCdnCanFallBackToKnownOriginal]' passed (0.000 seconds).
+Test Suite 'RemoteImageFallbackTests' passed at 2026-11-03 11:18:00.996.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.015 (0.016) seconds
+Test Suite 'SelectionLayoutTests' started at 2026-11-03 11:18:00.997.
+Test Case '-[HootTests.SelectionLayoutTests testActualClosedHeadersAtLargeXXXLAndAX5]' started.
+2026-11-03 11:18:01.207781+0100 Hoot[35124:7240126] Unbalanced calls to begin/end appearance transitions for <_TtGC7SwiftUI19UIHostingControllerGVS_15ModifiedContentGS1_GS1_GS1_GS1_GS1_V9HootTestsP10$1080fac3418ClosedSectionProbeGVS_30_EnvironmentKeyWritingModifierOS_15DynamicTypeSize__GS4_OS_11ColorScheme__VS_16_FixedSizeLayout_VS_14_PaddingLayout_GVS_24_BackgroundStyleModifierVS_5Color__VS_30_SafeAreaRegionsIgnoringLayout__: 0x106314400>.
+Test Case '-[HootTests.SelectionLayoutTests testActualClosedHeadersAtLargeXXXLAndAX5]' passed (0.213 seconds).
+Test Suite 'SelectionLayoutTests' passed at 2026-11-03 11:18:01.210.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.213 (0.213) seconds
+Test Suite 'SentencesTests' started at 2026-11-03 11:18:01.210.
+Test Case '-[HootTests.SentencesTests testFixture]' started.
+Test Case '-[HootTests.SentencesTests testFixture]' passed (0.004 seconds).
+Test Case '-[HootTests.SentencesTests testIntroMax]' started.
+Test Case '-[HootTests.SentencesTests testIntroMax]' passed (0.001 seconds).
+Test Case '-[HootTests.SentencesTests testIntroMaxFixture]' started.
+Test Case '-[HootTests.SentencesTests testIntroMaxFixture]' passed (0.001 seconds).
+Test Case '-[HootTests.SentencesTests testRules]' started.
+Test Case '-[HootTests.SentencesTests testRules]' passed (0.001 seconds).
+Test Suite 'SentencesTests' passed at 2026-11-03 11:18:01.218.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.007 (0.008) seconds
+Test Suite 'SlotsTests' started at 2026-11-03 11:18:01.218.
+Test Case '-[HootTests.SlotsTests testAlertsUseTheTable]' started.
+Test Case '-[HootTests.SlotsTests testAlertsUseTheTable]' passed (0.001 seconds).
+Test Case '-[HootTests.SlotsTests testSameSlotsAsWeb]' started.
+Test Case '-[HootTests.SlotsTests testSameSlotsAsWeb]' passed (0.001 seconds).
+Test Case '-[HootTests.SlotsTests testSameWordsAsWeb]' started.
+Test Case '-[HootTests.SlotsTests testSameWordsAsWeb]' passed (0.000 seconds).
+Test Suite 'SlotsTests' passed at 2026-11-03 11:18:01.221.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'StreamSelectionTests' started at 2026-11-03 11:18:01.221.
+Test Case '-[HootTests.StreamSelectionTests testFoldPersistsAcrossWeeksAndSeparatesOwners]' started.
+Test Case '-[HootTests.StreamSelectionTests testFoldPersistsAcrossWeeksAndSeparatesOwners]' passed (0.004 seconds).
+Test Case '-[HootTests.StreamSelectionTests testSharedSocialStreamCases]' started.
+Test Case '-[HootTests.StreamSelectionTests testSharedSocialStreamCases]' passed (0.013 seconds).
+Test Suite 'StreamSelectionTests' passed at 2026-11-03 11:18:01.239.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.017 (0.017) seconds
+Test Suite 'ThemeProfileTests' started at 2026-11-03 11:18:01.239.
+Test Case '-[HootTests.ThemeProfileTests testLocalChangeTicksOnlyOnceAndExportsPlainValidatedStrings]' started.
+Test Case '-[HootTests.ThemeProfileTests testLocalChangeTicksOnlyOnceAndExportsPlainValidatedStrings]' passed (0.019 seconds).
+Test Case '-[HootTests.ThemeProfileTests testOldProfileKeepsLocalChoiceAndInvalidStringsFallBack]' started.
+Test Case '-[HootTests.ThemeProfileTests testOldProfileKeepsLocalChoiceAndInvalidStringsFallBack]' passed (0.025 seconds).
+Test Case '-[HootTests.ThemeProfileTests testProfileRoundTripToFreshLocalClientWithoutAccountOrNetwork]' started.
+Test Case '-[HootTests.ThemeProfileTests testProfileRoundTripToFreshLocalClientWithoutAccountOrNetwork]' passed (0.028 seconds).
+Test Case '-[HootTests.ThemeProfileTests testRemoteChangeDoesNotEchoIncludingDelayedNotification]' started.
+Test Case '-[HootTests.ThemeProfileTests testRemoteChangeDoesNotEchoIncludingDelayedNotification]' passed (0.024 seconds).
+Test Suite 'ThemeProfileTests' passed at 2026-11-03 11:18:01.336.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.095 (0.097) seconds
+Test Suite 'TypesetTests' started at 2026-11-03 11:18:01.336.
+Test Case '-[HootTests.TypesetTests testFixture]' started.
+Test Case '-[HootTests.TypesetTests testFixture]' passed (0.018 seconds).
+Test Case '-[HootTests.TypesetTests testRules]' started.
+Test Case '-[HootTests.TypesetTests testRules]' passed (0.012 seconds).
+Test Suite 'TypesetTests' passed at 2026-11-03 11:18:01.367.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.030 (0.031) seconds
+Test Suite 'VideoControllerTests' started at 2026-11-03 11:18:01.367.
+Test Case '-[HootTests.VideoControllerTests testSystemControlsWithoutAutoplayOrWhiteBackground]' started.
+Test Case '-[HootTests.VideoControllerTests testSystemControlsWithoutAutoplayOrWhiteBackground]' passed (0.091 seconds).
+Test Suite 'VideoControllerTests' passed at 2026-11-03 11:18:01.459.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.091 (0.091) seconds
+Test Suite 'ZachtPapierRenderTests' started at 2026-11-03 11:18:01.459.
+Test Case '-[HootTests.ZachtPapierRenderTests testSceneAttachedReaderAndImageSurfaces]' started.
+2026-11-03 11:18:02.015356+0100 Hoot[35124:7246178] [AXRuntimeCommon] WebContent[35811] Could not register system wide server: -25204
+2026-11-03 11:18:02.015457+0100 Hoot[35124:7246178] [AXRuntimeCommon] WebContent[35811] _AXAddToElementCache was called even though the element was in the cache: <WKAccessibilityWebPageObject: 0x600002109d10>
+2026-11-03 11:18:03.096215+0100 Hoot[35124:7246178] [ProcessSuspension] WebContent[35811] 0x10f050100 - [sessionID=9223372036854775816] WebProcess::updateFreezerStatus: isFreezable=1, error=-1
+2026-11-03 11:18:03.645667+0100 Hoot[35124:7246178] [AXRuntimeCommon] WebContent[35820] Could not register system wide server: -25204
+2026-11-03 11:18:03.645882+0100 Hoot[35124:7246178] [AXRuntimeCommon] WebContent[35820] _AXAddToElementCache was called even though the element was in the cache: <WKAccessibilityWebPageObject: 0x6000021087d0>
+2026-11-03 11:18:04.702802+0100 Hoot[35124:7246178] [ProcessSuspension] WebContent[35820] 0x10c050100 - [sessionID=9223372036854775817] WebProcess::updateFreezerStatus: isFreezable=1, error=-1
+2026-11-03 11:18:05.202164+0100 Hoot[35124:7246178] [AXRuntimeCommon] WebContent[35831] Could not register system wide server: -25204
+2026-11-03 11:18:05.202278+0100 Hoot[35124:7246178] [AXRuntimeCommon] WebContent[35831] _AXAddToElementCache was called even though the element was in the cache: <WKAccessibilityWebPageObject: 0x60000210c550>
+2026-11-03 11:18:06.201987+0100 Hoot[35124:7246178] [ProcessSuspension] WebContent[35831] 0x10b050100 - [sessionID=9223372036854775818] WebProcess::updateFreezerStatus: isFreezable=1, error=-1
+Test Case '-[HootTests.ZachtPapierRenderTests testSceneAttachedReaderAndImageSurfaces]' passed (4.743 seconds).
+Test Suite 'ZachtPapierRenderTests' passed at 2026-11-03 11:18:06.203.
+	 Executed 1 test, with 0 failures (0 unexpected) in 4.743 (4.744) seconds
+Test Suite 'ZachtPapierTests' started at 2026-11-03 11:18:06.203.
+Test Case '-[HootTests.ZachtPapierTests testOnlyNightUsesChosenInk]' started.
+Test Case '-[HootTests.ZachtPapierTests testOnlyNightUsesChosenInk]' passed (0.001 seconds).
+Test Case '-[HootTests.ZachtPapierTests testReaderNightAndBrandAreIndependent]' started.
+Test Case '-[HootTests.ZachtPapierTests testReaderNightAndBrandAreIndependent]' passed (0.001 seconds).
+Test Case '-[HootTests.ZachtPapierTests testReaderOutsideNightIsByteIdenticalToBaseline]' started.
+Test Case '-[HootTests.ZachtPapierTests testReaderOutsideNightIsByteIdenticalToBaseline]' passed (0.001 seconds).
+Test Suite 'ZachtPapierTests' passed at 2026-11-03 11:18:06.206.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds
+Test Suite 'HootTests.xctest' passed at 2026-11-03 11:18:06.207.
+	 Executed 107 tests, with 0 failures (0 unexpected) in 188.197 (188.273) seconds
+Test Suite 'All tests' passed at 2026-11-03 11:18:06.207.
+	 Executed 107 tests, with 0 failures (0 unexpected) in 188.197 (188.287) seconds
+2026-11-03 11:18:39.514 xcodebuild[35017:7238711] [MT] IDETestOperationsObserverDebug: 234.577 elapsed -- Testing started completed.
+2026-11-03 11:18:39.514 xcodebuild[35017:7238711] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-11-03 11:18:39.514 xcodebuild[35017:7238711] [MT] IDETestOperationsObserverDebug: 234.578 sec, +234.578 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/hoot-ronde3-J-native/Logs/Test/Test-Hoot-2026.11.03_11-14-35-+0100.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started
