@@ -63,10 +63,10 @@ export default defineConfig({
     securityHeaders(),
     react(),
     VitePWA({
-      // Een nieuwe versie wordt klaargezet en wácht: de app toont dan "Nieuwe versie
-      // beschikbaar" en activeert hem pas als je op Vernieuwen tikt (of alle tabbladen sluit).
-      // Registreren doet de app zelf, na het laden (src/lib/swUpdate.js).
-      registerType: 'prompt',
+      // Online de nieuwe shell bij de volgende lading, zonder een open pagina te herladen.
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       injectRegister: null,
       includeAssets: ['icon.svg', 'favicon.svg', 'apple-touch-icon.png', 'icons/favicon-32.png', 'icons/favicon-48.png'],
       manifest: {
@@ -85,30 +85,9 @@ export default defineConfig({
           { src: '/lees/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: {
-        navigateFallback: '/lees/index.html',
-        navigateFallbackAllowlist: [/^\/lees(?:\/|$)/],
-        globPatterns: ['**/*.{js,css,html,woff2,svg,png}'], // ook de lettertypes, zodat de app offline gelijk blijft
-        globIgnores: ['og.png'], // deelafbeelding: alleen voor links in andere apps
-        runtimeCaching: [
-          {
-            urlPattern: ({ url }) => url.pathname.startsWith('/api/feed'),
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'hoot-feed',
-              networkTimeoutSeconds: 8,
-              expiration: { maxEntries: 8, maxAgeSeconds: 60 * 60 * 24 },
-            },
-          },
-          {
-            urlPattern: ({ request }) => request.destination === 'image',
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'hoot-images',
-              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 7 },
-            },
-          },
-        ],
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,woff2,svg,png}'],
+        globIgnores: ['og.png'],
       },
     }),
   ],

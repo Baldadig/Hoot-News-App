@@ -21,8 +21,7 @@ export function toggleSource(prefs, source, on) {
   return { ...prefs, muted: [...muted] }
 }
 
-// Bluesky-posts staan in de eigen Bluesky-lijst; in de Stroom alleen van accounts die je
-// daar ook wilt (`bskyInStream`). Wat alleen voor De Redacteur is (`editionOnly`: ouder dan 36 uur),
+// Bluesky-posts staan uitsluitend in de Stroom, van de gekozen accounts (`bskyInStream`). Wat alleen voor De Redacteur is (`editionOnly`: ouder dan 36 uur),
 // nooit (shared/stroom.mjs).
 export const isPost = (it) => it.kind === 'post'
 export function inStream(it, prefs, now = Date.now()) {

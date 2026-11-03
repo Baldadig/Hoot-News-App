@@ -26,10 +26,10 @@ import { useStored } from './lib/store.js'
 import { MAIN, rememberLocation, hrefFor } from './lib/context.js'
 import { learn, forgetTopic, READ, SAVE, vote } from './lib/affinity.js'
 import { sourceStatus, statusLabel } from './lib/sourceStatus.js'
-import Bluesky from './views/Bluesky.jsx'
+import { webStream, addSocialProfile, removeSocialProfile } from './lib/social-stream.js'
 import Vak from './views/Vak.jsx'
 import { useVak } from './hooks/useVak.js'
-import { mutedSet, toggleSource, inStream, isPost } from './lib/sourcesel.js'
+import { mutedSet, toggleSource } from './lib/sourcesel.js'
 import { DisplaySheet } from './components/Display.jsx'
 import { JoinSheet } from './components/Account.jsx'
 import { normalizePrefs } from './lib/prefs.js'
@@ -59,7 +59,6 @@ const splashShown = () => {
 }
 
 const PAGES = ['zoek', 'stijl', 'welkom', 'instellingen', 'privacy', 'over']
-const byRecency = (a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || '')
 
 const safe = (fn, fallback) => {
   try {
@@ -172,28 +171,9 @@ export default function App() {
   const { edition: myEdition, member } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount, affinity, readIds: read, sync: { status: syncStatus, pulled: syncPulled } })
   const socialIds = useMemo(() => new Set(social.sources.map((s) => 'bsky:' + s.handle)), [social.sources])
 
-  const stream = useMemo(() => {
-    const seen = new Set()
-    const out = []
-    for (const it of [...(data?.items || []), ...social.items]) {
-      if (!it.url || seen.has(it.id) || muted.has(it.source) || (isPost(it) && !sourcesById.has(it.source)) || !inStream(it, prefs)) continue
-      seen.add(it.id)
-      out.push(it)
-    }
-    return social.items.length ? out.sort(byRecency) : out
-  }, [data, social.items, muted, prefs, sourcesById])
-
-  // Bluesky: alle posts van de accounts die je volgt (eigen bestemming).
-  const posts = useMemo(() => {
-    const seen = new Set()
-    const out = []
-    for (const it of [...(data?.items || []), ...social.items]) {
-      if (!isPost(it) || seen.has(it.id) || muted.has(it.source)) continue
-      seen.add(it.id)
-      out.push(it)
-    }
-    return out.sort(byRecency)
-  }, [data, social.items, muted])
+  const stream = useMemo(() => webStream([...(data?.items || []), ...social.items], {
+    prefs, muted, sources,
+  }), [data, social.items, muted, prefs, sources])
 
   const itemsById = useMemo(() => new Map([...(data?.related || []), ...(data?.items || []), ...social.items].map((i) => [i.id, i])), [data, social.items])
   // Ook vindbaar op een eerdere id (als twee bundels zijn samengegaan): bladwijzers en links blijven werken.
@@ -374,7 +354,7 @@ export default function App() {
   // Instellingen of Zoeken, ook als je er via een gewone link kwam.
   const cameFrom = useRef('editie')
   if (MAIN.includes(path) && path !== 'welkom') cameFrom.current = path
-  const FROM_LABEL = { editie: 'Editie', stroom: 'Stroom', digest: 'Selectie', bewaard: 'Bewaard', bronnen: 'Bronnen', bluesky: 'Bluesky' }
+  const FROM_LABEL = { editie: 'Editie', stroom: 'Stroom', digest: 'Selectie', bewaard: 'Bewaard', bronnen: 'Bronnen' }
   const backTo = { onBack: () => route.back(cameFrom.current), backLabel: FROM_LABEL[cameFrom.current] || 'Terug' }
   // Opnieuw kiezen (vanuit Bronnen of Instellingen): sluiten brengt je terug waar je was, zonder op te slaan.
   const beforeWelcome = useRef('editie')
@@ -449,7 +429,7 @@ export default function App() {
         bronnen: 'Bronnen',
         zoek: 'Zoeken',
         stijl: 'Designsysteem',
-        welkom: 'Welkom', instellingen: 'Instellingen', privacy: 'Privacy', over: 'Over', bluesky: 'Bluesky', digest: 'Selectie' }[path] + ' · Hoot'
+        welkom: 'Welkom', instellingen: 'Instellingen', privacy: 'Privacy', over: 'Over', digest: 'Selectie' }[path] + ' · Hoot'
   }, [path])
 
   // Bronstatus: één uitgevallen bron is een stil puntje bij Bronnen; alleen als álles
@@ -604,7 +584,7 @@ export default function App() {
           Naar de inhoud
         </a>
         <div className="app__nav" inert={hideMain ? '' : undefined}>
-          <Nav path={path} hrefs={hrefs} sourceNote={statusLabel(srcStatus.failed.length)} bluesky={prefs.bluesky || path === 'bluesky'} digest={prefs.vak.length > 0 || path === 'digest'} />
+          <Nav path={path} hrefs={hrefs} sourceNote={statusLabel(srcStatus.failed.length)} digest={prefs.vak.length > 0 || path === 'digest'} />
         </div>
         <main id="inhoud" className="main" inert={hideMain ? '' : undefined}>
           {was('editie') ? (
@@ -642,25 +622,6 @@ export default function App() {
               onShowNew={showNew}
             />
           ) : null}
-          {was('bluesky') ? (
-            <Bluesky
-              active={shown === 'bluesky'}
-              posts={posts}
-              sources={sources.filter((s) => s.kind === 'sociaal')}
-              muted={muted}
-              onToggle={setMuted}
-              ownHandles={socialIds}
-              onAdd={social.addSource}
-              onRemove={(handle) => {
-                setPref('bskyInStream', (prefs.bskyInStream || []).filter(id => id !== 'bsky:' + handle))
-                social.removeSource(handle)
-              }}
-              params={path === 'bluesky' ? route.params : navMem.bluesky || {}}
-              go={route.go}
-              onRefresh={reloadAll}
-              refreshing={refreshing}
-            />
-          ) : null}
           {was('digest') ? <Vak active={shown === 'digest'} digest={vak.digest} status={vak.status} onRefresh={vak.reload} /> : null}
           {was('bewaard') ? <Saved active={shown === 'bewaard'} /> : null}
           {was('bronnen') ? (
@@ -676,7 +637,9 @@ export default function App() {
               onRetry={reloadAll}
               refreshing={refreshing}
               online={online}
-              bluesky={prefs.bluesky}
+              ownHandles={socialIds}
+              onSocialAdd={(profile) => setPrefs(p => addSocialProfile(p, profile))}
+              onSocialRemove={(handle) => setPrefs(p => removeSocialProfile(p, handle))}
               favorites={prefs.favorites}
               onFavorite={(id, on) => setPref('favorites', on ? [...new Set([...prefs.favorites, id])] : prefs.favorites.filter((f) => f !== id))}
             />

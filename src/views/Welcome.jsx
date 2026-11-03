@@ -1,3 +1,4 @@
+import SourceFollowList from './SourceFollowList.jsx'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { SourceMark } from '../components/Items.jsx'
 import { BackButton } from '../components/Shell.jsx'
@@ -456,9 +457,9 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
                 <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
                   Je bronnen
                 </h1>
-                <p className="ob__sub">Voorgesteld bij je interesses. Tik om te wijzigen.</p>
+                <p className="ob__sub">Volg je vaste bronnen. Ontdek ook iets nieuws.</p>
                 <p className="ob__sourcecount" role="status">{mine.length} gekozen</p>
-                <PagedSourceGrid ids={rows} byId={byId} on={mine} onPick={pickSource} page={sub} onPages={setPages} />
+                <SourceFollowList sources={pickable} interests={interests} on={mine} onPick={pickSource} onPages={setPages} />
               </>
             ) : view === 'selectie' ? (
               <>
@@ -473,9 +474,9 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
                 <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
                   Je bronnen
                 </h1>
-                <p className="ob__sub">Voorgesteld bij je interesses. Tik om te wijzigen.</p>
+                <p className="ob__sub">Volg je vaste bronnen. Ontdek ook iets nieuws.</p>
                 <p className="ob__sourcecount" role="status">{mine.length} gekozen</p>
-                {pickable.length ? <PagedSourceGrid ids={rows} byId={byId} on={mine} onPick={pickSource} page={sub} onPages={setPages} /> : <p role="status">Bronnen laden…</p>}
+                {pickable.length ? <SourceFollowList sources={pickable} interests={interests} on={mine} onPick={pickSource} onPages={setPages} /> : <p role="status">Bronnen laden…</p>}
               </>
             )}
           </div>

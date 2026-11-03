@@ -3,28 +3,27 @@ import { useEmptyDraw } from '../hooks/useEmptyDraw.js'
 import { timeAgo } from '../lib/time.js'
 import { BrandLogo } from './Brand.jsx'
 import { useHoot } from './Items.jsx'
-import { BooksIcon, ButterflyIcon, EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, BackIcon, AccountIcon, SettingsIcon } from './icons.jsx'
+import { BooksIcon, EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, BackIcon, AccountIcon, SettingsIcon } from './icons.jsx'
 
 export const DESTINATIONS = [
   { id: 'editie', label: 'Editie', Icon: EditionIcon },
   { id: 'stroom', label: 'Stroom', Icon: StreamIcon },
   { id: 'digest', label: 'Selectie', Icon: BooksIcon },
-  { id: 'bluesky', label: 'Bluesky', Icon: ButterflyIcon },
   { id: 'bewaard', label: 'Bewaard', Icon: BookmarkIcon },
   { id: 'bronnen', label: 'Bronnen', Icon: SourcesIcon },
 ]
 
-// Vaste hoofdnavigatie: onderin op telefoon, links op desktop. Selectie en Bluesky alleen als je die aanzet.
+// Vaste hoofdnavigatie: onderin op telefoon, links op desktop. Selectie alleen als je die aanzet.
 // `hrefs` brengt je terug naar waar je in die bestemming was (met je filters);
 // `sourceNote` is de korte tekst bij het stille statuspuntje op Bronnen.
-export function Nav({ path, hrefs = {}, sourceNote = '', bluesky = false, digest = false }) {
+export function Nav({ path, hrefs = {}, sourceNote = '', digest = false }) {
   return (
     <nav className="nav" aria-label="Hoofdnavigatie">
       <a className="nav__brand" href={hrefs.editie || '#/editie'} aria-label="Hoot — naar de Editie">
         <BrandLogo height={28} />
       </a>
       <ul className="nav__list">
-        {DESTINATIONS.filter((d) => (bluesky || d.id !== 'bluesky') && (digest || d.id !== 'digest')).map(({ id, label, Icon }) => (
+        {DESTINATIONS.filter((d) => (digest || d.id !== 'digest')).map(({ id, label, Icon }) => (
           <li key={id}>
             <a className="nav__link" href={hrefs[id] || `#/${id}`} aria-current={path === id ? 'page' : undefined}>
               <span className="nav__icon">

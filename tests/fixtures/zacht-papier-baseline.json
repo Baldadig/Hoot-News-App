@@ -1,0 +1,20 @@
+{
+  "cssBeforeNightOverrideSha256": "39b643aa8e2aef8c3539e078ec16f0e9d7a59aa2ca5ef4f4a3aba63476798b49",
+  "nativeAssets": {
+    "ios/Hoot/Assets.xcassets/AccentSoft.colorset/Contents.json": "a7023580c5ea2ee7b88b10e0207d7048e44ce173163633652e321cc24f7c841f",
+    "ios/Hoot/Assets.xcassets/BrandRed.colorset/Contents.json": "e44bbebc43bd7b91dbe0a79bd10ce342b66bb51e03e5551f5da9ffa20ac53886",
+    "ios/Hoot/Assets.xcassets/Edge.colorset/Contents.json": "b3e4c754affaffcc24aa29b8bf605a39d60c99cd7867766de1e4ca1ab28a5e5e",
+    "ios/Hoot/Assets.xcassets/Surface.colorset/Contents.json": "8a6802307e5be8a1f35cb2f640cf103a28109cf4384566945375f8f4136c93d7",
+    "ios/Hoot/Assets.xcassets/AccentColor.colorset/Contents.json": "293c63d9d1ac35fce94be6b9b96c36cc1cfbf662ddfc54fe0b27df7a25906610",
+    "ios/Hoot/Assets.xcassets/Ink.colorset/Contents.json": "6f346b318919a396c9114f244b2d814021278d8d096c95c82de61283fcb8f493",
+    "ios/Hoot/Assets.xcassets/Ink3.colorset/Contents.json": "453293393ffa1cb71767686730946754e2e2f8a8c964991a8c3b356760ef1fa1",
+    "ios/Hoot/Assets.xcassets/Ink2.colorset/Contents.json": "c0b18b01e32b61c738ea4976b2e93985e934ac91347861c621f5bb2cd8d38618",
+    "ios/Hoot/Assets.xcassets/Paper.colorset/Contents.json": "4d98a9f0bdd01537a4660282322b06621b08bd24496bed92d0c3a084282d1c44",
+    "ios/Hoot/Assets.xcassets/Warn.colorset/Contents.json": "a936e95d5995677016e6b15dc2e9648b1b436b321d33968554fb15c289f0abc7",
+    "ios/Hoot/Assets.xcassets/OnBrandRed.colorset/Contents.json": "d90f69e53e1b960ec7e0599de6e49f228c1597bd134e4b7502be14e1b273ad9d",
+    "ios/Hoot/Assets.xcassets/Rule.colorset/Contents.json": "f3cadf26cea71b68a8adfa8cf384af1ac337e5ab9f4e21bc0b5b7f44a9236848",
+    "ios/Hoot/Assets.xcassets/OnAccent.colorset/Contents.json": "6aeb7f4d9104d2d6b9c6493cc0467442908ad1529ca40379b00637482d9865ed"
+  },
+  "readerNonNightSha256": "583e38e2d89589e5fad0505c661484807051459d4e0e6dce052a1840133b497d",
+  "approvedCrossfadeAppendix": "\n/* Rubriekwissel: alleen opacity; het papier en de scroll-viewport blijven staan. */\n.rubriek-stage { position: relative; }\n.rubriek-stage__old { position:absolute;inset:0;pointer-events:none;overflow:hidden; }\n.rub__bar { transition-duration: var(--dur-2); }\n@media (prefers-reduced-motion: reduce) { .rub__bar { transition-duration: 0s; } }\n"
+}
