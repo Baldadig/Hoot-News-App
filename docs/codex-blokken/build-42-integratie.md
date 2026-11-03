@@ -48,3 +48,18 @@ Echt bediend: openen van Editie, Instellingen, scrollen naar ‘Stel Hoot opnieu
 Daarna opnieuw -3812; één herverbinding naar Device Hub geeft dezelfde fout. Daarom deze native sessie afgebroken volgens de opdracht, niet eindeloos opnieuw geprobeerd. Het simulatorvenster staat mogelijk nog in een onopgeslagen proefroute; bij de volgende geslaagde bediening eerst ‘Sluiten zonder opslaan’. Bron-/interessekeuzes zijn in deze proef niet definitief opgeslagen. Geen fysiek toestel gewijzigd.
 
 Bewijs: iphone-editie-release.png, iphone-instellingen-release.png en onboarding/iphone-interesses-release.png, onboarding/iphone-bronnen-release.png. Dit bewijst uitsluitend deze iPhone/Licht-route op normale tekstgrootte; niet de volledige route, iPad, grote tekst of de overige thema’s. De open uploadvoorwaarden blijven ongewijzigd.
+
+
+## Vervolg na tweede ‘Probeer opnieuw’ · 3 november
+
+Native iPhone Release/Licht: de Volgend-lijst toont daadwerkelijk Ars Technica naast de drie bestaande bronnen. Daarna de hele route doorlopen: bronnenoverzicht met gratis VRT NWS buiten de eigen bronnen, afzonderlijke Selectie-intentie, Design & creatie, UI/UX en de voorbeeldpagina. ‘Sluiten zonder opslaan’ aangeklikt; terug in Instellingen zijn nog steeds 3 bronnen en 3 onderwerpen aanwezig. Hiermee is annuleren na een volledig doorlopen route echt bewezen.
+
+Vervolgens opnieuw geopend: Binnenland blijft gekozen en Tech staat weer uit; Ars Technica staat niet meer in de eigen lijst. Dit bevestigt ook inhoudelijk dat de proefwijzigingen niet zijn opgeslagen. De tweede route doorlopen met de drie oorspronkelijke bronnen, UI/UX toegevoegd en ‘Naar je Editie’ aangeklikt. In Instellingen staan nu 3 bronnen en 4 gekozen Selectie-onderwerpen. Opslaan is daarmee eveneens werkelijk bediend en gecontroleerd. Alleen dit simulatorprofiel is gewijzigd.
+
+Nacht ingesteld in de gecombineerde Release-app en de instellingen vastgelegd. Alle vier systeemiconen via de echte knoppen gekozen: Ruim rood → Rood op papier → Papier op inkt → Papier op rood. Elke wijziging toont de iOS-bevestiging; de geselecteerde staat is daarna gecontroleerd. Uiteindelijk rood hersteld en vastgelegd. Dit is de handmatige aanvulling op de nog overgeslagen automatische systeemproef. Het bewijst geen apart beginschermbeeld in donker/getint.
+
+Daarna Donker gekozen en vastgelegd; Systeem gekozen, waarbij ‘Als het donker is: Nacht, echt zwart’ verschijnt. Bij het vastleggen/herstellen van die laatste weergave valt ScreenCaptureKit opnieuw uit met -3812. Eén herverbinding geeft dezelfde fout; de sessie is daarom gestopt. De simulator kan nog op Systeem staan; volgende bediening begint met herstel naar Licht. Geen opname loopt.
+
+De lange bronlijst bevat in de AX-boom 279 onderdelen en wordt door de bediening tot 100 afgekapt. Filteren op Volgend maakt alle knoppen weer zichtbaar. Dit is een beperking van de bedieningsweergave, geen bewezen verlies van productbronnen. Een time-out tijdens een grotere actiecombinatie is opgevangen door de werkelijke schermstatus opnieuw uit te lezen; acties zijn niet blind herhaald.
+
+Nieuw bewijs: onboarding/iphone-bronnen-overzicht-release.png, iphone-selectie-preview-release.png, iphone-annuleren-behoud-release.png, iphone-opgeslagen-selectie-release.png; en iphone-instellingen-nacht-release.png, iphone-instellingen-donker-release.png, iphone-iconen-rood-hersteld-release.png. Alleen bestanden die werkelijk zijn opgeslagen worden meegeleverd. Geen volledige iPad-, XXXL-, AX5-, Verminder-beweging-, VoiceOver-, workerupdate- of videoacceptatie geclaimd. Apple-buildlijst nog niet bevestigd en fase 2 niet gestart.
