@@ -1,0 +1,16 @@
+{
+  "integratie": {
+    "bytesZonderTestbundels": 18256122,
+    "files": 22,
+    "architectuur": "arm64",
+    "configuratie": "Debug iOS Simulator, iPhone 17 Pro iOS 26.0"
+  },
+  "icoonkeuze": {
+    "bytesZonderTestbundels": 18558063,
+    "files": 22,
+    "architectuur": "arm64",
+    "configuratie": "Debug iOS Simulator, iPhone 17 Pro iOS 26.0"
+  },
+  "deltaBytes": 301941,
+  "deltaPercentage": 1.6539164232140868
+}

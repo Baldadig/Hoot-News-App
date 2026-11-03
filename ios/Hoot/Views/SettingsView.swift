@@ -150,7 +150,10 @@ struct SettingsView: View {
                 }
                 .hootRows()
 
-                Section { WeergaveKeuze() } header: { FormHeader("Weergave") }.hootRows()
+                Section {
+                    WeergaveKeuze()
+                    NavigationLink(value: "appicoon") { FormLabel("App-icoon", systemImage: "app") }
+                } header: { FormHeader("Weergave") }.hootRows()
 
                 alertsSection
 
@@ -261,7 +264,9 @@ struct SettingsView: View {
             .navigationTitle("Instellingen")
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: String.self) { page in
-                if page == "account" {
+                if page == "appicoon" {
+                    AppIconPicker()
+                } else if page == "account" {
                     AccountView()
                 } else if page == "bronnen" {
                     SourcesList().navigationTitle("Bronnen").navigationBarTitleDisplayMode(.inline)

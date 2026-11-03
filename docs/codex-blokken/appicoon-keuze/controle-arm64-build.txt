@@ -1,0 +1,48 @@
+oPlistUtility /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-appicoon-keuze/ios/Info.plist -producttype com.apple.product-type.application -genpkginfo /tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /tmp/hoot-ronde3-K-native/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/assetcatalog_generated_info.plist -o /tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app/Info.plist
+
+CopySwiftLibs /tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-appicoon-keuze/ios
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot.debug.dylib --scan-folder /tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app/Frameworks --scan-folder /tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns --scan-folder /tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app/SystemExtensions --scan-folder /tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /tmp/hoot-ronde3-K-native/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ExtractAppIntentsMetadata (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-appicoon-keuze/ios
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name Hoot --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk --xcode-version 27B52 --platform-family iOS --deployment-target 26.0 --bundle-identifier nl.hootnews.Hoot --output /tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app --target-triple arm64-apple-ios26.0-simulator --binary-file /tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot --dependency-file /tmp/hoot-ronde3-K-native/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot_dependency_info.dat --stringsdata-file /tmp/hoot-ronde3-K-native/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /tmp/hoot-ronde3-K-native/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.SwiftFileList --metadata-file-list /tmp/hoot-ronde3-K-native/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.DependencyMetadataFileList --static-metadata-file-list /tmp/hoot-ronde3-K-native/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.DependencyStaticMetadataFileList --swift-const-vals-list /tmp/hoot-ronde3-K-native/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Objects-normal/arm64/Hoot.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --no-app-shortcuts-localization
+2026-11-03 11:54:14.065 appintentsmetadataprocessor[45688:7392457] Starting App Intents metadata extraction
+2026-11-03 11:54:14.075 appintentsmetadataprocessor[45688:7392457] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+
+CodeSign /tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot.debug.dylib (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-appicoon-keuze/ios
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der --strip-disallowed-xattrs /tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot.debug.dylib
+
+CodeSign /tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app/__preview.dylib (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-appicoon-keuze/ios
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der --strip-disallowed-xattrs /tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app/__preview.dylib
+/tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app/__preview.dylib: replacing existing signature
+
+CodeSign /tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-appicoon-keuze/ios
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --entitlements /tmp/hoot-ronde3-K-native/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app.xcent --timestamp\=none --generate-entitlement-der --strip-disallowed-xattrs /tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app
+
+Validate /tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-appicoon-keuze/ios
+    builtin-validationUtility /tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app -shallow-bundle -infoplist-subpath Info.plist
+
+PruneExplicitPrecompiledModules /tmp/hoot-ronde3-K-native/SDKExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/hoot-ronde3-K-native/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/hoot-ronde3-K-native/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+note: Removed stale file '/tmp/hoot-ronde3-K-native/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns'
+
+** BUILD SUCCEEDED **
+
