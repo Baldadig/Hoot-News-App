@@ -11,6 +11,7 @@ import SwiftUI
 // de gekozen logo's bovenop, hun naam in rood ervoor ("NOS", "3 bronnen") en één klein vinkje.
 // De lijn is in elke staat even hoog: er springt niets.
 struct StreamLine: View {
+    var announcesRubriek = true
     @Binding var rubriek: String // "" is Alles
     @Binding var picks: Set<String> // gekozen bronnen (leeg = alle)
     @Binding var open: Bool
@@ -130,7 +131,7 @@ struct StreamLine: View {
                             .fill(Theme.accent)
                             .frame(width: r.width, height: 3)
                             .offset(x: r.minX, y: g.size.height - 3)
-                            .animation(move(), value: rubriek)
+                            .animation(move(0.2), value: rubriek)
                     }
                 }
                 .accessibilityHidden(true)
@@ -175,10 +176,10 @@ struct StreamLine: View {
     }
 
     private func kies(_ r: (id: String, label: String)) {
-        guard r.id != rubriek else { return } // een tik op de actieve rubriek doet niets
+        guard r.id != rubriek else { rubriek = r.id; return } // annuleer ook een voorladende keuze
         rubriek = r.id
         tikken += 1
-        zeg("Rubriek \(r.label).")
+        if announcesRubriek { zeg("Rubriek \(r.label).") }
     }
 
     // Een rubriek helemaal in beeld: buiten de vervaagde rand.
@@ -190,7 +191,7 @@ struct StreamLine: View {
         else if f.maxX > rub.x + rub.w - rand { naar = f.maxX - rub.w + rand }
         naar = min(max(0, naar), max(0, rub.inhoud - rub.w))
         guard abs(naar - rub.x) > 0.5 else { return }
-        if glijd, let a = move() { withAnimation(a) { rubPos.scrollTo(x: naar) } } else { rubPos.scrollTo(x: naar) }
+        if glijd, let a = move(0.2) { withAnimation(a) { rubPos.scrollTo(x: naar) } } else { rubPos.scrollTo(x: naar) }
     }
 
     // ---- Bronnen ----

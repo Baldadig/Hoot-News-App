@@ -5451,3 +5451,9 @@ html[data-images='hoofd'] .media--social {
 .media--video video:fullscreen { width: 100%; height: 100%; background: #000000; }
 .media--video video::-webkit-media-controls-panel { color-scheme: dark; }
 .video-fullscreen { min-height: var(--tap); margin-top: var(--s1); }
+
+/* Rubriekwissel: alleen opacity; het papier en de scroll-viewport blijven staan. */
+.rubriek-stage { position: relative; }
+.rubriek-stage__old { position:absolute;inset:0;pointer-events:none;overflow:hidden; }
+.rub__bar { transition-duration: var(--dur-2); }
+@media (prefers-reduced-motion: reduce) { .rub__bar { transition-duration: 0s; } }

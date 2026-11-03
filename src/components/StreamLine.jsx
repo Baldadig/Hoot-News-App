@@ -1,3 +1,4 @@
+import { timeMs } from '../lib/rubriek-crossfade.js'
 import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { SourceMark } from './Items.jsx'
 import { StackIcon, CheckIcon, CaretIcon, ICON_SM } from './icons.jsx'
@@ -60,7 +61,7 @@ function stopGlide(el) {
 function glide(el, to) {
   stopGlide(el)
   const from = el.scrollLeft
-  const d = dur()
+  const d = reduced() ? 0 : timeMs(getComputedStyle(document.documentElement).getPropertyValue('--dur-2'))
   if (!d || Math.abs(to - from) < 1) {
     el.scrollLeft = to
     return
@@ -488,10 +489,9 @@ export function StreamLine({ rubrieken, active, onRubriek, bronnen = [], picks, 
   }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---- Bediening ----
-  const pickRub = (r) => {
-    if (r.sig === active) return // aan blijft aan; Alles staat altijd vooraan
-    onRubriek(r)
-    say(zeg.rubriek(r.label))
+  const pickRub = async (r) => {
+    if (r.sig === active) { onRubriek(r); return } // ook een nog voorladende keuze annuleren
+    if (await onRubriek(r)) say(zeg.rubriek(r.label))
   }
   const rubKeyDown = (e) => {
     const btns = rubrieken.items.map((r) => rubEls.current.get(r.sig)).filter(Boolean)
