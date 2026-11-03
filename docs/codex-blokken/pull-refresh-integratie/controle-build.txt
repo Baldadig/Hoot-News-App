@@ -1,0 +1,58 @@
+
+> hoot@1.57.0 build
+> node scripts/controle-native-runtime.mjs && node scripts/build-site.mjs
+
+Native runtimecontrole: {"ok":true,"platform":"darwin","arch":"arm64","node":"22.19.0","sharp":"0.35.5","sharpPNG":true,"resvgPNG":true,"checkedLinux":false,"scope":"Lokale native controle; geen bewijs van een Linux-run"}
+vite v5.4.21 building for production...
+transforming...
+✓ 198 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/lees/manifest.webmanifest                                    0.53 kB
+dist/lees/index.html                                             11.75 kB │ gzip:   4.54 kB
+dist/lees/assets/source-sans-3-latin-800-normal-5BN8XjkS.woff2   15.54 kB
+dist/lees/assets/source-sans-3-latin-700-normal-CkzU-mV9.woff2   15.60 kB
+dist/lees/assets/source-sans-3-latin-600-normal-DeckBYAU.woff2   15.67 kB
+dist/lees/assets/source-sans-3-latin-400-normal-DQi5PRDE.woff2   15.70 kB
+dist/lees/assets/roboto-latin-500-normal-rpP1_v3s.woff           17.32 kB
+dist/lees/assets/roboto-latin-500-normal-C6iW8rdg.woff2          18.59 kB
+dist/lees/assets/source-sans-3-latin-800-normal-hEWlT0gE.woff    19.85 kB
+dist/lees/assets/source-sans-3-latin-700-normal-B-h9tW5h.woff    19.91 kB
+dist/lees/assets/source-sans-3-latin-600-normal-Ck0n4g8U.woff    19.99 kB
+dist/lees/assets/source-sans-3-latin-400-normal-RR2C27NP.woff    19.99 kB
+dist/lees/assets/newsreader-latin-400-normal-BFBkh4jY.woff2      22.48 kB
+dist/lees/assets/newsreader-latin-800-normal-CeohZmjp.woff2      23.50 kB
+dist/lees/assets/newsreader-latin-400-normal-gRTjlS2D.woff       28.29 kB
+dist/lees/assets/newsreader-latin-800-normal-COT4ygp8.woff       29.20 kB
+dist/lees/assets/index-DgcN9Sz7.css                              86.70 kB │ gzip:  17.56 kB
+dist/lees/assets/Over-V6zcq0Ps.js                                 2.34 kB │ gzip:   1.09 kB
+dist/lees/assets/Search-CeBbjgYW.js                               3.14 kB │ gzip:   1.46 kB
+dist/lees/assets/Settings-CpQyDQrG.js                             5.19 kB │ gzip:   1.87 kB
+dist/lees/assets/Privacy-C1ycGr_8.js                              6.09 kB │ gzip:   2.21 kB
+dist/lees/assets/Welcome-D6tM623z.js                             17.02 kB │ gzip:   5.72 kB
+dist/lees/assets/StyleGuide-4dhlmc4C.js                          24.81 kB │ gzip:   8.01 kB
+dist/lees/assets/index-Cvs1FVwy.js                              228.19 kB │ gzip:  59.40 kB
+dist/lees/assets/index-nUydwHn9.js                              479.14 kB │ gzip: 167.65 kB
+✓ built in 1.66s
+
+PWA v0.21.2
+Building src/sw.js service worker ("es" format)...
+vite v5.4.21 building for production...
+transforming...
+✓ 78 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/lees/sw.mjs  25.83 kB │ gzip: 8.45 kB
+✓ built in 256ms
+
+PWA v0.21.2
+mode      injectManifest
+format:   es
+precache  43 entries (1018.42 KiB)
+files generated
+  dist/lees/sw.js
+gebouwd {
+  CSSFILE: 'hoot.99876168.css',
+  JSFILE: 'hoot.f0318c13.js',
+  HASH: 'sha256-DIm985shD6ITEyyiMNOlhL0marC71wYU5uUZbZWr7fk='
+}
