@@ -22,7 +22,7 @@ De oude schermen blijven bewaard: web `NEW_ONBOARDING` in src/lib/follow-welcome
 
 1020 webtests geslaagd, één bestaande TODO, nul fouten. Productbuild en core-generatie geslaagd; edition-core is ongewijzigd. Harde acceptatie groen, Jaccard 0,32 ≤ 0,38; golden ongewijzigd. Nieuwe tests toetsen volgen/ontvolgen, 20 bronnen, interesserangschikking, Sport, zoeken en opslaan/annuleren zonder het oorspronkelijke voorkeurenobject te muteren.
 
-Definitieve iOS-run: 122 uitgevoerd, één bestaande opt-in systeemproef overgeslagen, nul fouten. Release-build voor generieke iOS-simulator (iPhone/iPad-architecturen) geslaagd. Dit zijn **geen** uitgevoerde handmatige Release-schermproeven op beide apparaten. De afzonderlijke opt-in systeemiconenproef loopt apart; resultaat wordt nog aangevuld. Logs en commitbinding: build-42-integratie/controle-stand.json.
+Definitieve iOS-run: 122 uitgevoerd, één bestaande opt-in systeemproef overgeslagen, nul fouten. Release-build voor generieke iOS-simulator (iPhone/iPad-architecturen) geslaagd. Dit zijn **geen** uitgevoerde handmatige Release-schermproeven op beide apparaten. Een afzonderlijke poging met SIMCTL_CHILD_HOOT_ICON_SYSTEM_PROOF=1 heeft de opt-in niet aan de testhost doorgegeven: ook daar is de systeemproef overgeslagen (één renderproef slaagt). Dit bewijst dus geen nieuwe cyclus door alle vier systeemiconen. Die controle blijft open. Logs en commitbinding: build-42-integratie/controle-stand.json.
 
 ## Niet bewezen / blokkades
 
