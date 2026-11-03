@@ -1,0 +1,22 @@
+{
+  "version": "1.0.1",
+  "build": "44",
+  "sourceCommit": "dd6fa0be4f3aab03f348a967b30976de5fd46c71",
+  "archiveSucceeded": true,
+  "releaseSimulatorSucceeded": true,
+  "exportSucceeded": true,
+  "archiveSignatureVerified": true,
+  "ipaSignatureVerified": true,
+  "internalTestingOnly": true,
+  "appleUploadPerformed": false,
+  "alternateIcons": [
+    "AppIconPapier",
+    "AppIconRuim",
+    "AppIconZwart"
+  ],
+  "privacyManifestPresent": true,
+  "localIPABytes": 3810115,
+  "localIPASHA256": "3734269d8fefbfbab14a7c3d0ce101733529c3426c33ca2da57c506731f06c30",
+  "ipa": "/Users/alexvrees/Baldadig Dropbox/Alex Vrees/Alex/Claude/Hoot-build-42-integratie/build/ios-build-44/export/Hoot.ipa",
+  "manualAnimationMatrixComplete": false
+}
