@@ -6,7 +6,7 @@ import Security
 import UIKit
 import os
 
-// Je Hoot-account: hetzelfde als op hootnews.nl (Supabase), zodat je editie, je bronnen en Bewaard
+// Je Hoot-account: hetzelfde als op gethoot.app/lees (Supabase), zodat je editie, je bronnen en Bewaard
 // overal gelijk zijn. Inloggen met Google of Apple; een account is er voor iedereen, net als op de website.
 //
 // Synchroniseren in het kort (de website doet hetzelfde, zie src/lib/syncEngine.js):

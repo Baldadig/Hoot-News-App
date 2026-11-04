@@ -11,17 +11,22 @@ enum HootAPI {
         #if DEBUG
         if let value = UserDefaults.standard.string(forKey: "HootAPIBase"), let url = URL(string: value), url.scheme == "https" { return url }
         #endif
-        // 1.0.1 (build 38) blijft op hootnews.nl: die API werkt nu al en blijft na de verhuizing
-        // naar gethoot.app/lees bestaan (geen redirect op /api/*). Pas een latere build stapt over.
-        return URL(string: "https://hootnews.nl")!
+        // Sinds build 46 draait de app volledig op gethoot.app (zelfde Netlify-site, /api/* zonder
+        // redirect). Builds 38 t/m 45 praten nog met hootnews.nl; dat blijft zolang die in omloop zijn.
+        return URL(string: "https://gethoot.app")!
     }()
+
+    // De echte appversie (Bundle short version) en het adres, zodat de serverlogs oude en nieuwe builds scheiden.
+    static func userAgent(version: String? = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) -> String {
+        "Hoot-iOS/\(version ?? "onbekend") (+https://gethoot.app)"
+    }
 
     static let session: URLSession = {
         let config = URLSessionConfiguration.default
         config.urlCache = URLCache(memoryCapacity: 16 << 20, diskCapacity: 200 << 20)
         config.requestCachePolicy = .useProtocolCachePolicy
         config.timeoutIntervalForRequest = 20
-        config.httpAdditionalHeaders = ["Accept": "application/json", "User-Agent": "Hoot-iOS/1.0.1"]
+        config.httpAdditionalHeaders = ["Accept": "application/json", "User-Agent": userAgent()]
         return URLSession(configuration: config)
     }()
 
