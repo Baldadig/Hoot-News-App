@@ -195,8 +195,10 @@ export function aboutOf(items) {
 // De intro in hele zinnen die in de gekozen regels passen (shared/zinnen.mjs, src/lib/intro.js).
 // Hoot eindigt nooit met een beletselteken: een te lange eerste zin mag één regel doorlopen, en de
 // line-clamp in de CSS staat precies die regel ruimer. `fit`: { max, rek }.
+// Een geleende intro krijgt " — via X" erachter: die tekens gaan van de maat af (Item.viaLength in de app).
+export const viaLength = (item) => (item.borrowedFrom ? item.borrowedFrom.length + 8 : 0)
 const Summary = ({ item, className, fit = { max: Infinity, rek: Infinity } }) => {
-  const text = wholeSentences(cleanIntro(item.summary, item.author), fit.max, fit.rek)
+  const text = wholeSentences(cleanIntro(item.summary, item.author), fit.max - viaLength(item), fit.rek - viaLength(item))
   return text ? (
     <p className={className}>
       {text}

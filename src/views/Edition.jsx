@@ -4,7 +4,7 @@ import { EditionNumber } from '../components/EditionNumber.jsx'
 import { useEffect, useRef, useState } from 'react'
 import { usePairs } from '../hooks/usePairs.js'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
-import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf } from '../components/Items.jsx'
+import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf, viaLength } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
 import { Beeld } from '../components/Beeld.jsx'
 import { EditionArt, SparkleIcon, CaretIcon, CloseIcon, ICON_SM } from '../components/icons.jsx'
@@ -48,7 +48,7 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
   const opinie = item.type === 'opinie'
   const title = item.title
   const fit = useIntroMax()(INTRO_LINES, item.image ? 'voorpagina' : 'rij')
-  const summary = wholeSentences(cleanIntro(item.summary, item.author), fit.max, fit.rek) // hele zinnen, nooit "…"
+  const summary = wholeSentences(cleanIntro(item.summary, item.author), fit.max - viaLength(item), fit.rek - viaLength(item)) // hele zinnen, nooit "…"
   return (
     <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}${boven ? ' fitem--boven' : ''}`} data-id={item.id} style={boven ? { '--boven-h': `${boven}px` } : undefined}>
       {boven && item.image ? (
