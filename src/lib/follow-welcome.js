@@ -26,14 +26,17 @@ export function startIds(sources = []) {
   return STARTER.flatMap((g) => g.ids).filter((id) => ok.has(id))
 }
 
-// De Basis: het Nederlandse nieuws (rubriek Nederland) in het kort: het gratis begin voorop, dan de
-// kranten die de catalogus aanraadt (`pick`), op naam. De andere Nederlandse titels staan onder Meer
-// bronnen, zodat de blokken van je interesses niet ver weg zakken.
+// De Basis: het Nederlandse nieuws in het kort: het gratis begin voorop (NOS, NU.nl, RTL Nieuws), dan
+// de kranten als losse rijen in vaste volgorde. Die volgorde is gekozen, niet alfabetisch. De andere
+// Nederlandse titels staan onder Meer bronnen, zodat de blokken van je interesses niet ver weg zakken.
 export const BASIS_CAT = 'nl'
+export const BASIS_KRANTEN = ['volkskrant', 'nrc', 'trouw', 'parool', 'ad', 'telegraaf']
 export function basisSources(sources = []) {
   const start = freeStart(sources)
-  const ids = new Set(start.map((s) => s.id))
-  return [...start, ...sources.filter((s) => s.cat === BASIS_CAT && s.pick && !ids.has(s.id)).sort(byName)]
+  const byId = new Map(sources.map((s) => [s.id, s]))
+  const taken = new Set(start.map((s) => s.id))
+  const kranten = BASIS_KRANTEN.map((id) => byId.get(id)).filter((s) => s && !taken.has(s.id))
+  return [...start, ...kranten]
 }
 
 // Bij een interesse horen de bronnen uit zijn rubrieken (INTERESTS.cats; Wereld krijgt er

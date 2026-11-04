@@ -596,6 +596,7 @@ struct WelcomeView: View {
                 trailing()
             }
             .frame(minHeight: Space.tap)
+            .dynamicTypeSize(...DynamicTypeSize.accessibility1) // de kop en "Volg alle drie" breken niet af
             Rectangle().fill(Theme.ink).frame(height: 2)
         }
         .padding(.top, Space.s5)
@@ -620,7 +621,7 @@ struct WelcomeView: View {
             SourceAvatar(source: s, size: 40)
             VStack(alignment: .leading, spacing: Space.s0) {
                 Text(s.name).font(.headline)
-                if let about = s.about { Text(about).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(stacked ? 2 : nil).fixedSize(horizontal: false, vertical: true) } // bij grote tekst twee regels: de Volg-knop blijft boven de voet
+                if let about = s.about, !typeSize.isAccessibilitySize { Text(about).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(stacked ? 2 : nil).fixedSize(horizontal: false, vertical: true) } // bij grote tekst twee regels: de Volg-knop blijft boven de voet
                 Text((s.paid == true ? "Abonnement" : pick ? "Gratis aanrader" : "Gratis") + (s.lang == "en" ? " · Engels" : ""))
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Theme.ink3)
@@ -630,6 +631,7 @@ struct WelcomeView: View {
             if !stacked { followButton(s) }
         }
         .padding(.vertical, Space.s3)
+        .dynamicTypeSize(...DynamicTypeSize.accessibility2) // bij AX5 staat de eerste Volg-knop nog boven de voet
     }
 
     // Volg (inkt) of Volgend (stil, met vinkje): één vorm, gelijk aan .ob__follow op het web.
@@ -862,13 +864,14 @@ enum FollowList {
         return HootStore.starter.filter(free.contains)
     }
 
-    // De Basis: het Nederlandse nieuws in het kort: het gratis begin voorop, dan de kranten die de
-    // catalogus aanraadt (`pick`). De andere Nederlandse titels staan onder Meer bronnen.
+    // De Basis: het Nederlandse nieuws in het kort: het gratis begin voorop, dan de kranten als losse
+    // rijen in vaste volgorde (gekozen, niet alfabetisch). De andere Nederlandse titels staan onder Meer bronnen.
     static let basisCat = "nl"
+    static let basisKranten = ["volkskrant", "nrc", "trouw", "parool", "ad", "telegraaf"]
     static func basis(_ sources: [Source]) -> [Source] {
         let start = freeStart(sources)
-        let ids = Set(start.map(\.id))
-        return start + sources.filter { $0.cat == basisCat && $0.pick == true && !ids.contains($0.id) }.sorted(by: byName)
+        let taken = Set(start.map(\.id))
+        return start + basisKranten.compactMap { id in sources.first { $0.id == id && !taken.contains($0.id) } }
     }
 
     // Bij een interesse horen de bronnen uit zijn rubrieken (Wereld krijgt er Internationaal bij), die
