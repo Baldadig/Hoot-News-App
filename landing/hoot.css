@@ -55,7 +55,7 @@ body,.band,.top,.voet,.scherm,.scherm *,.label,.lead,.zon,.rg,.dag span,.dag::be
 
 /* ---------- banden ---------- */
 .band,.top,.voet{background:var(--bg);color:var(--fg)}
-.rood{--bg:var(--rood);--fg:var(--op-rood);--focus:var(--op-rood);--zon:var(--op-rood);--hor:var(--op-rood);--label:var(--op-rood);--ring:#1A1814;--wm-dot:#1A1814;--dim:var(--op-rood)}
+.rood{--bg:var(--rood);--fg:var(--op-rood);--focus:var(--op-rood);--zon:var(--op-rood);--hor:var(--op-rood);--label:var(--op-rood);--ring:#1A1814;--wm-dot:var(--op-rood);--dim:var(--op-rood)}
 :root.donker .rood{--ring:#0E0C0A}
 .wit,.papier{--zon:var(--accent);--hor:var(--inkt);--label:var(--accent);--wm-dot:var(--accent);--dim:var(--inkt2)}
 .wit{--bg:var(--wit);--fg:var(--inkt)}
@@ -73,8 +73,8 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .rood .lead{color:var(--op-rood)}
 @media (min-width:720px){.lead{font-size:1.3125rem;margin-top:var(--s5);max-width:30ch}.label{margin-bottom:var(--s4)}}
 .punt{color:var(--accent)}
-.rood .punt{color:#1A1814}
-.rood .punt{--p:#1A1814}
+.rood .punt{color:var(--op-rood)}
+.rood .punt{--p:var(--op-rood)}
 
 /* ---------- knoppen ---------- */
 .actie{display:grid;gap:var(--s3);justify-items:start;margin-top:var(--s5)}
@@ -293,7 +293,7 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .einde h2{font-size:clamp(2.5rem,12vw,9rem);line-height:.95;white-space:nowrap}
 .held h1 .rgl{display:block}
 .einde .lead{margin:var(--s5) auto 0;text-align:center;max-width:26ch}
-.bal{display:inline-block;color:#1A1814}
+.bal{display:inline-block}
 .bal-i{display:inline-block;transform-origin:50% 76%}
 @media (prefers-reduced-motion:no-preference){
   .stuit .bal{animation:hop 1.6s linear 1 both}
