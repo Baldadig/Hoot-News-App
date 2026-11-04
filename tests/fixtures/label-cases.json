@@ -936,7 +936,7 @@
       }
     },
     {
-      "name": "VS-plek slaat conflicterende tag over en vindt passende VS-politiek",
+      "name": "VS-plek slaat conflicterende tag over en vindt passende Verenigde Staten",
       "input": {
         "topics": [
           "middenoosten",
@@ -950,7 +950,7 @@
         "deskLabel": "VS"
       },
       "expect": {
-        "kicker": "Politiek · VS-politiek",
+        "kicker": "Politiek · Verenigde Staten",
         "why": null,
         "outside": false
       }

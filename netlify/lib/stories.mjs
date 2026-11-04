@@ -1,12 +1,14 @@
 import { cleanIntro, headlineFit } from '../../shared/edition-display.mjs'
-import { EDITION_TARGET, coverageOf, majorNews, newsRejection, lightVideoFiller, allowedNews, cappedInternational, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery, lightNews, lightStory, majorGeneralNews } from '../../shared/edition-policy.mjs'
-import { eventScope, conflictingEvents } from '../../shared/article-signals.mjs'
+import { EDITION_TARGET, coverageOf, majorNews, newsRejection, lightVideoFiller, allowedNews, cappedInternational, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery, lightNews, lightStory, majorGeneralNews, publisherOf } from '../../shared/edition-policy.mjs'
+import { eventScope, conflictingEvents, countriesIn, usPoliticsIn } from '../../shared/article-signals.mjs'
 // Verhalen (bundels), hoofdbericht en editie — pure functies, los van het ophalen,
 // zodat ze te testen zijn (zie tests/).
 
-import { DESKS, desksOf, primaryDesk, storyDesks, deskOfStory, storyForeignOf, weight } from './desks.mjs'
+import { DESKS, desksOf, primaryDesk, storyDesks, deskOfStory, storyForeignOf, weight, VL_HOME } from './desks.mjs'
+import { detectLang } from '../../shared/lang.mjs'
 
 import { hash } from '../../shared/util.mjs'
+import { SOURCES } from './sources.mjs'
 import { SLOT_START, hhmm, amsterdamClock } from '../../shared/slot-times.mjs'
 import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, KERN, KERN_MIN, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX, FOREIGN_DESKS, NL_OTHER_W, INT_MAX } from '../../shared/editor.mjs'
 export { hash }
@@ -109,7 +111,12 @@ const EU = {
 // Uitgebreide stand, naast de landen: één partij in twee talen ("Chinese Communistische Partij" /
 // "Communist party"). Sterk, want de partij wijst wél een gebeurtenis aan (de zuiveringen van vandaag).
 const PARTY = { communistische: 'communist', communistisch: 'communist', communist: 'communist', communists: 'communist' }
-const ALIAS_EXT = { ...ALIAS, ...EU, ...PARTY }
+// Uitgebreide stand (H7, verkiezingsnacht 4 november 2026): een kamer in twee talen als één zwakke naam
+// ("de Senaat" en "the Senate"). Partijnamen niet: als zwakke of sterke naam vergrootten ze elke
+// verkiezingsbundel tot hij bij het terugsnoeien naar de kern uiteenviel (regressiewacht H6: een
+// tweetalig midterms-verhaal van 30 oktober verdween). De uitslagen komen samen via mergeVoteResults.
+const CHAMBER = { senaat: 'senate', senaats: 'senate', congres: 'congress' }
+const ALIAS_EXT = { ...ALIAS, ...EU, ...PARTY, ...CHAMBER }
 // Uitgebreide stand: Nederlandse en Engelse spelling van dezelfde naam uit het Cyrillisch verschillen
 // systematisch in "sj" tegenover "sh" ("Olesjky"/"Oleshky", "Poesjkin"/"Pushkin"). Eén spelling voor
 // de sleutel; na de alias, zodat "Tsjechië" eerst gewoon Tsjechië wordt.
@@ -473,7 +480,42 @@ export function sameSubject(a, b) {
 // aan vroeger.
 export function signatures(articles, extra = [], { extended = false } = {}) {
   const vocab = nameVocabulary(articles, extended)
-  return new Map([...articles, ...extra].map((a) => [a.id, signature(a, vocab, extended)]))
+  const out = new Map([...articles, ...extra].map((a) => [a.id, signature(a, vocab, extended)]))
+  sigVocab.set(out, { vocab, extended, heads: new Map() })
+  return out
+}
+// Het kenmerk van alleen de kop van een bericht, met de woordenschat van `sig` (zie subjectTaken). Pas
+// uitgerekend als het nodig is, één keer per bericht.
+const sigVocab = new WeakMap()
+function headSignature(sig, item) {
+  const v = sigVocab.get(sig)
+  if (!v || !item) return null
+  let h = v.heads.get(item.id)
+  if (!h) v.heads.set(item.id, (h = signature({ ...item, text: '', summary: '' }, v.vocab, v.extended)))
+  return h
+}
+// Eén plek per onderwerp: gaat een kandidaat over iets wat al een plek heeft (`placed`: kenmerken)?
+// Een ander hoofdonderwerp is een ander verhaal (toets 4 november 2026): een verhaal van minstens OWN_STORY
+// uitgevers is een eigen gebeurtenis en wordt alleen afgewezen als een van zijn koppen over hetzelfde
+// onderwerp gaat, niet op de intro's. Gemeten: "Trump stopt de militaire steun aan Israël" (6 uitgevers, zes
+// koppen zonder stembus) viel weg naast de uitslagbundel omdat drie intro's de verkiezingen noemden en beide
+// Trump en de VS: twee brede namen plus één begrip (regel "twee gedeelde namen" in sameSubject). Kleinere
+// verhalen en losse stukken blijven op kop én tekst vergeleken (een zijstuk met een andere kop).
+export const OWN_STORY = 5
+// Rekentijd: `placed` groeit alleen, dus per kandidaat onthouden tot waar er vergeleken is (`c.subj`); een
+// afwijzing blijft een afwijzing, en daarna alleen de nieuwe plekken vergelijken.
+function subjectTaken(sig, c, placed, items) {
+  let m = c.subj
+  if (!m || m.placed !== placed) m = c.subj = { placed, n: 0, hit: false }
+  if (m.hit || m.n >= placed.length) return m.hit
+  const fresh = placed.slice(m.n)
+  m.n = placed.length
+  const hit = (x) => !!x && fresh.some((s) => sameSubject(x, s))
+  const pubs = c.st ? c.st.publisherCount ?? c.st.sourceCount ?? 0 : 0
+  if (c.kind === 'story' && pubs >= OWN_STORY && items?.length) {
+    return (m.hit = items.some((i) => hit(headSignature(sig, i))))
+  }
+  return (m.hit = c.ids.some((id) => sig.has(id) && hit(sig.get(id))))
 }
 
 // Een bericht van meer dan een dag oud (een portret, een analyse van gisteren) is achtergrond:
@@ -503,7 +545,12 @@ export function leadCandidates(items, mainIds, preferred = null, now = null, { r
 const DIGEST = /^(wekdienst|liveblog|live:|podcast|nieuwsoverzicht|het nieuws van|the morning|morning briefing|evening briefing|what to know|five takeaways)/i
 // Liveblogs ("LIVE | …", "▶ Live - …", "… latest", …/liveblog/…) volgen een heel onderwerp, niet
 // één gebeurtenis: ze staan los in de Stroom en tellen niet mee in een verhaal.
-const LIVE_TITLE = /^\W*live\b|\blive ?blog\b|\b(war|oorlog) (latest|live)\b|\blatest:|\blatest updates\b/i
+// Resultatenpagina's, meepraatpagina's en draaiboeken van een verkiezingsnacht horen daar ook bij
+// (4 november 2026: "Bekijk hier alle resultaten", "Praat mee en stel jouw vragen", "Spoorboekje
+// midterms", "results live", "Live Results Map" trokken aan de midterms-bundel). Alleen aan het begin
+// van de kop of na een dubbele punt: "Senaat in handen van de Democraten: bekijk hier de resultaten" is
+// ook zo'n pagina, een gewone zin met "bekijk" niet.
+const LIVE_TITLE = /^\W*live\b|\blive ?blog\b|\b(war|oorlog) (latest|live)\b|\blatest:|\blatest updates\b|(^|:\s*)(bekijk|vind|volg|lees) hier\b|^\W*praat mee\b|^\W*spoorboekje\b|\bresults live\b|\blive results\b|\blive briefing\b|:\s*all the news\s*$/i
 export const isLive = (a) => LIVE_TITLE.test(a.title || '') || /\/live(blog)?[-/]|[-/]liveblog/i.test(a.url || '')
 // Een grote bundel is pas één gebeurtenis als elk bericht met meerdere andere is verbonden (twee
 // vanaf zes berichten, drie vanaf tien): wat er via één of twee schakels aan hangt (een analyse,
@@ -678,6 +725,8 @@ export function buildStories(articles, registry = {}, { mainIds = new Set(), key
 
   // 4. (H6 ii, uitgebreide stand) Een los stuk dat de kern van een groot verhaal noemt, hoort erbij.
   if (extended) attachLoose(groups, list, sig)
+  // 5. (H7, uitgebreide stand) De deeluitslagen van één stembusgang horen bij de uitslag.
+  if (extended) mergeVoteResults(groups)
 
   const stories = []
   const used = new Set()
@@ -787,6 +836,105 @@ function attachLoose(groups, list, sig) {
     best.b.items.push(a)
     best.b.items.sort(byRecency)
     inGroup.add(a.id)
+  }
+}
+
+// ---------- Stembus (H7) ----------
+// Verkiezingsnacht 4 november 2026: de server verdeelde de midterms over twaalf verhalen (de uitslag in
+// het Nederlands, de uitslag in het Engels, Senaatsraces per staat, gouverneurs, Trump die Fox keek). Het
+// gewicht van elk stuk was te klein om de Editie te openen, en wat een eindredacteur als één verhaal
+// ziet, stond in tien bundels. Geen namen of landen hier: een stembusstuk noemt een verkiezing (of
+// kiezers, of iemand die gekozen wordt), een uitslagstuk ook wie er won, verloor of de meerderheid kreeg.
+const VOTE_RE = /(verkiezing|\belection|\bmidterm|\bstembus|\b(elects?|elected|re-?elected|reelection|verkozen|herkozen|kiezers|voters|ballot|stembiljet)\b)/
+const RESULT_RE = /\b(wint|winnen|wins?|won|gewonnen|verover\w*|herover\w*|flips?|flipped|verslaat|verslagen|beats?|defeats?|defeating|ousts?|ousting|unseats?|verliest|verliezen|verloren|loses|lost|verkozen|herkozen|elected|re-?elected|elects|clinch\w*|meerderheid|majority|uitslag\w*|results?|zege|monsterzege|overwinning\w*|victory|afstraffing|landslide|blue-?nami|tsunami|blauwe golf|blue wave|erkent verlies|concedes?|crushed|trounces?|rebuke)\b/
+// Een zetel of ambt met een uitslag erbij is ook een stembusstuk ("Democrat Josh Turek flips Iowa Senate seat").
+const OFFICE_RE = /\b(senate|senaat\w*|senator\w*|huiszetel\w*|congress\w*|congres\w*|governor\w*|gouverneur\w*|seats?|zetels?|mayor\w*|burgemeester\w*|parliament\w*|parlement\w*)\b/
+const PARTY_RE = /\b(democrat\w*|republican\w*|republikein\w*)\b/
+const voteText = (i) => norm(`${i.title || ''} ${i.summary || i.text || ''}`)
+// 0: niets met een stembus; 1: een stembusstuk (voorbeschouwing, reportage, reactie); 2: een uitslagstuk.
+// Een sportbron telt nooit. Niet op onderwerp: de onderwerpen zijn hier onbetrouwbaar ("race" gaf een
+// Senaatsrace het onderwerp f1, en een Feyenoord-stuk had het onderwerp verkiezingen).
+const voteMemo = new WeakMap()
+export function voteKind(i) {
+  if (!i || typeof i !== 'object') return 0
+  if (voteMemo.has(i)) return voteMemo.get(i)
+  const t = voteText(i)
+  const sporty = SPORT_SOURCES.has(i.source)
+  const result = RESULT_RE.test(t)
+  const k = sporty || !(VOTE_RE.test(t) || (result && OFFICE_RE.test(t))) ? 0 : result ? 2 : 1
+  voteMemo.set(i, k)
+  return k
+}
+const SPORT_SOURCES = new Set(SOURCES.filter((x) => x.cat === 'sport').map((x) => x.id))
+// Waar de stembus stond: de VS-rubriek of VS-politiek in de tekst, Nederland (Binnenland), anders het eerste
+// land in de kop. Zonder plaats doet een stuk niet mee.
+export function votePlace(i) {
+  const ds = desksOf(i)
+  const t = `${i.title || ''} ${i.summary || ''}`
+  // Een Amerikaanse partij bij een zetel of ambt is de Amerikaanse stembus, ook als de staat ook een land
+  // is (Georgia) of de kop geen land noemt ("Kansas elects first Democratic senator").
+  if (ds.has('vs') || usPoliticsIn(t) || (PARTY_RE.test(norm(t)) && OFFICE_RE.test(norm(t)))) return 'us'
+  if (ds.has('binnenland')) return 'nl'
+  return countriesIn(i.title || '')[0] || null
+}
+// De plaats van een groep stukken: die van minstens de helft, anders geen.
+function placeOfGroup(items) {
+  const count = new Map()
+  for (const i of items) {
+    const p = votePlace(i)
+    if (p) count.set(p, (count.get(p) || 0) + 1)
+  }
+  const best = [...count].sort((a, b) => b[1] - a[1] || textOrder(a[0], b[0]))[0]
+  return best && best[1] * 2 >= items.length ? best[0] : null
+}
+// Een uitslag: een groot verhaal (minstens CORE_FROM uitgevers) waarvan minstens de helft van de stukken
+// uitslagstukken zijn, met één plaats. Het uitslagmoment: het eerste kwart van de uitslagstukken met een
+// uitslagwoord in de kop, min VOTE_LEAD. Niet het allereerste: "How We Model Election Results" en "voorlopige
+// uitslagen mogelijk" verschijnen al als de stembussen dichtgaan. Wat daarvóór verscheen, is een
+// voorbeschouwing.
+export const VOTE_LEAD = 3 * 60 * 60 * 1000
+export function voteResultOf(items = []) {
+  const n = items.length
+  if (!n || coverageOf(items).publisherCount < CORE_FROM) return null
+  const results = items.filter((i) => voteKind(i) === 2)
+  if (results.length * 2 < n) return null
+  const place = placeOfGroup(items)
+  if (!place) return null
+  const heads = results.filter((i) => RESULT_RE.test(norm(i.title || ''))).map(timeOf).filter(Boolean).sort((a, b) => a - b)
+  const from = heads.length ? heads[Math.floor(heads.length / 4)] - VOTE_LEAD : Math.min(...items.map(timeOf).filter(Boolean))
+  return { place, from, to: Math.max(...items.map(timeOf)) }
+}
+// Een stembusgroep: een echte meerderheid van de stukken noemt de stembus ("US strikes Iranian island ahead
+// of midterm elections" naast een Guardian-stuk over dezelfde aanval is geen stembusverhaal).
+const voteGroup = (items) => items.filter((i) => voteKind(i) >= 1).length * 2 > items.length
+// De deeluitslagen bij de uitslag: van elke stembusgroep (ook een los stuk) met dezelfde plaats gaan de
+// stembusstukken van ná het uitslagmoment (tot EVENT_WINDOW na het laatste stuk) naar de grootste uitslag.
+// Wat ouder is (de essays van twee dagen eerder) of niet over de stembus gaat, blijft waar het was. Twee
+// uitslagen met dezelfde plaats (de Nederlandse en de Engelse) gaan samen in de grootste. Totale volgorde:
+// uitgevers, dan id.
+function mergeVoteResults(groups) {
+  const anchors = []
+  for (const [gid, items] of groups) {
+    const r = voteResultOf(items)
+    if (r) anchors.push({ gid, r, pubs: coverageOf(items).publisherCount })
+  }
+  if (!anchors.length) return
+  anchors.sort((a, b) => b.pubs - a.pubs || textOrder(a.gid, b.gid))
+  const absorbed = new Set()
+  for (const a of anchors) {
+    if (absorbed.has(a.gid) || !groups.has(a.gid)) continue
+    const target = groups.get(a.gid)
+    for (const [gid, items] of [...groups]) {
+      if (gid === a.gid || !voteGroup(items) || placeOfGroup(items) !== a.r.place) continue
+      const move = items.filter((i) => voteKind(i) >= 1 && timeOf(i) >= a.r.from && timeOf(i) <= a.r.to + EVENT_WINDOW && !target.some((x) => conflictingEvents(eventScope(x), eventScope(i))))
+      if (!move.length) continue
+      target.push(...move)
+      const rest = items.filter((i) => !move.includes(i))
+      if (rest.length) groups.set(gid, rest)
+      else groups.delete(gid)
+      absorbed.add(gid)
+    }
+    target.sort(byRecency)
   }
 }
 
@@ -1020,6 +1168,146 @@ export function developedSince(st, items, previous, sig, { mainIds = new Set(), 
   return newSig >= DEVELOPED_SIG ? { fresh, lead, newSig } : null
 }
 
+// ---------- De kop van een plek (H7) ----------
+// Verkiezingsnacht 4 november 2026: de midterms-bundel had 64 stukken, en de nieuwste kop met een eigen bron
+// was "Feestende Texanen gaan de straat op" (een reportage), de tweede midterms-plek kreeg een Engelse
+// NYT-kop terwijl AD en ND het in het Nederlands brachten. Twee regels, na vers-boven-achtergrond:
+// 1. Kern (alleen vanaf LEAD_CORE stukken): de kop komt uit de stukken die het verhaal samenvatten, de koppen
+//    die bestaan uit de namen en begrippen die de andere koppen ook noemen (in de uitgebreide stand, zodat
+//    "Senaat" en "Senate" één naam zijn). Hooguit 40 procent onder de beste. Een vraag als kop alleen als er niets
+//    anders is, en een stuk dat meer dan BACKGROUND_GAP ouder is dan het nieuwste ook (freshest).
+// 2. Taal: Hoot is Nederlandstalig. Een Nederlands stuk gaat voor, dan een Vlaams, dan de rest; pas daarbinnen
+//    eigen bronnen eerst. Taal van het stuk zelf (shared/lang.mjs): een Engelstalig Parool-stuk is Engels.
+const LANG_OF = new Map(SOURCES.map((x) => [x.id, x.lang]))
+const dutchTier = (i) => (LANG_OF.get(i.source) !== 'nl' || detectLang(i) === 'en' ? 2 : VL_HOME.has(i.source) ? 1 : 0)
+export const LEAD_CORE = 10
+// `total`: hoeveel stukken het hele verhaal heeft (een toestel kent alleen die van de eigen bronnen).
+export function centralItems(items, total = items.length) {
+  if (total < LEAD_CORE || items.length < 3) return items
+  // Alleen de koppen: een rijke intro noemt alles (een reportage over feestende Texanen noemt ook de
+  // verkiezingen en de Democraten), de kop zegt waar het stuk over gaat. De woordenschat van namen komt wel
+  // uit kop en intro van alle stukken.
+  const sig = signatures(items, items.map((i) => ({ id: `kop:${i.id}`, title: i.title, publishedAt: i.publishedAt })), { extended: true })
+  const keys = items.map((i) => {
+    const x = sig.get(`kop:${i.id}`)
+    // `known`: de algemene namen (landen, kamers, partijen) ook aan het begin van een kop; die hebben geen
+    // woordenschat nodig, en een toestel met negen stukken heeft er weinig.
+    return new Set([...x.strong, ...x.weak, ...x.known, ...x.concepts])
+  })
+  // Hoe gewoon zijn de namen en begrippen van een kop in deze bundel? Per sleutel het aantal andere koppen
+  // waarin hij staat, gemiddeld over de kop. Een samenvattende kop bestaat uit wat iedereen noemt ("Senaat",
+  // "Trump", de verkiezing); een deelstuk heeft eigen namen (een kandidaat, een staat) en zakt. Minstens twee
+  // sleutels: één gewone naam is nog geen samenvatting.
+  const freq = new Map()
+  for (const ks of keys) for (const x of ks) freq.set(x, (freq.get(x) || 0) + 1)
+  const score = keys.map((ks) => (ks.size >= 2 ? [...ks].reduce((n, x) => n + freq.get(x) - 1, 0) / ks.size : 0))
+  const best = Math.max(...score)
+  const out = items.filter((_, k) => score[k] > 0 && score[k] * 5 >= best * 3)
+  return out.length ? out : items
+}
+// De volgorde binnen de kandidaten die vers genoeg zijn: Nederlands, Vlaams, rest; binnen elke laag de
+// bestaande volgorde (leadCandidates). Uitvoer: de eerste niet-lege laag.
+export function dutchFirst(items) {
+  for (const tier of [0, 1]) {
+    const out = items.filter((i) => dutchTier(i) === tier)
+    if (out.length) return out
+  }
+  return items
+}
+
+// Vers binnen de bundel: een stuk dat meer dan BACKGROUND_GAP ouder is dan het nieuwste verse stuk, is
+// achtergrond van vóór het nieuws (4 november 2026: het Wired-interview met Mamdani van de dag ervoor,
+// "Ahead of the midterms", was de kop boven NPR over zijn verkiezingsnacht). Alleen als er nieuwer is.
+export const BACKGROUND_GAP = 12 * 60 * 60 * 1000
+export function freshest(items) {
+  const newest = Math.max(...items.map(timeOf))
+  const out = items.filter((i) => newest - timeOf(i) <= BACKGROUND_GAP)
+  return out.length ? out : items
+}
+
+// ---------- Onderwerpfamilies (H7) ----------
+// Eén onderwerp, één gewicht, alleen voor de stembus na een uitslag. Een stembusverhaal naast een ander
+// stembusverhaal met dezelfde plaats (zie voteKind) kreeg
+// alleen het gewicht van zijn eigen bundel, en het andere verhaal werd afgewezen zonder dat zijn bronnen
+// ergens meetelden. Op de verkiezingsnacht opende daardoor een Spaans ministersontslag (15 uitgevers) boven
+// de midterms (11 in het grootste verhaal, 23 over alle verhalen).
+// De familie: het grootste verhaal (uitgevers, dan gewicht, dan id) neemt zijn directe verwanten mee die nog
+// in geen familie zitten; geen ketting (familyRelated). Het hoofd van de familie telt alle uitgevers van de
+// familie, als dat groot nieuws is (FRONT_BIG); de rest houdt zijn eigen gewicht.
+// Plafond: van een stembusfamilie hooguit FAMILY_MAX plekken; na de eerste geen tweede uitslagverhaal (een
+// losse race) en geen voorbeschouwing van vóór het uitslagmoment.
+export const FAMILY_MAX = 2
+// Verwant is alleen een stembusverhaal met dezelfde plaats, op een dag mét uitslag (c.vote, zie families).
+// Niet via een gedeelde naam (sameSubject): toets 4 november 2026, op 30 oktober opende "Paus Leo brengt als
+// eerste paus zijn stem uit" (7 uitgevers) de Editie, omdat alles met Trump of de verkiezingen bij hem optelde
+// (Venezuela, Wall Street, een reportage uit Michigan). Vóór een uitslag zijn het losse verhalen.
+const familyRelated = (a, b) => !!a.vote && a.vote === b.vote
+// Zet op elke verhaalkandidaat `fam` (de familie-id, het id van het hoofd) en `vote` (stembusplaats of null);
+// het hoofd krijgt `famPubs` (alle uitgevers). Ook `voteFrom`: per stembusplaats het uitslagmoment van de
+// grootste uitslag. Uitvoer: { extra(c) } met de extra uitgevers voor het gewicht.
+function families(cands) {
+  const stories = cands.filter((c) => c.kind === 'story')
+  const voteFrom = new Map()
+  for (const c of stories) {
+    const items = [...c.items].sort(byRecency)
+    c.items = items
+    const r = voteResultOf(items)
+    if (r && (!voteFrom.has(r.place) || coverageOf(items).publisherCount > voteFrom.get(r.place).pubs)) voteFrom.set(r.place, { from: r.from, pubs: coverageOf(items).publisherCount })
+  }
+  // Een stembusfamilie bestaat alleen als er een uitslag is: vóór de uitslag zijn het losse
+  // voorbeschouwingen (de paus die stemt, een campagnetoespraak), geen één gebeurtenis.
+  for (const c of stories) {
+    const place = voteGroup(c.items) ? placeOfGroup(c.items) : null
+    c.vote = place && voteFrom.has(place) ? place : null
+    c.voteResult = !!c.vote && c.items.filter((i) => voteKind(i) === 2).length * 2 >= c.items.length
+  }
+  const pubsOf = (c) => c.st.publisherCount ?? c.st.sourceCount ?? coverageOf(c.items).publisherCount
+  const order = [...stories].sort((a, b) => pubsOf(b) - pubsOf(a) || b.w - a.w || textOrder(a.st.id, b.st.id))
+  const extra = new Map()
+  for (const head of order) {
+    if (head.fam) continue
+    head.fam = head.st.id
+    const own = new Set(head.items.map((i) => publisherOf(i.source)))
+    const all = new Set(own)
+    for (const c of order) {
+      if (c.fam || !familyRelated(head, c)) continue
+      c.fam = head.st.id
+      for (const i of c.items) all.add(publisherOf(i.source))
+    }
+    const total = pubsOf(head) + (all.size - own.size)
+    if (all.size > own.size && total >= FRONT_BIG) extra.set(head, all.size - own.size)
+  }
+  for (const c of stories) c.voteFrom = c.vote ? voteFrom.get(c.vote).from : null
+  return extra
+}
+// Mag deze kandidaat nog bij de plekken van zijn familie? `placedC`: de kandidaten die al een plek hebben.
+function familyRoom(c, placedC) {
+  if (c.kind !== 'story' || !c.vote) return true
+  const mates = placedC.filter((x) => x.kind === 'story' && x.vote === c.vote)
+  if (!mates.length) return true
+  if (mates.length >= FAMILY_MAX) return false
+  if (c.voteResult && mates.some((x) => x.voteResult)) return false // geen losse race naast de uitslag
+  return !(c.voteFrom && timeOf({ publishedAt: c.st.latestAt }) < c.voteFrom) // geen voorbeschouwing na de uitslag
+}
+
+// De kandidaten voor de kop van een plek, na de vaste volgorde van leadCandidates: elke voorkeur alleen als
+// er iets overblijft. `own` (optioneel): eigen bronnen eerst, vóór de kern (de persoonlijke Editie).
+const prefer = (xs, f) => {
+  const ys = xs.filter(f)
+  return ys.length ? ys : xs
+}
+// Een sportbron is nooit de kop van een verhaal dat geen sport is (toets 4 november 2026: "ESPN: NYC Marathon
+// runner dies" werd de kop van een bundel over mazelen en een marathon, in een Editie zonder sportkeuze).
+export function leadPool(cands, items, now, own = null, total = items.length) {
+  let xs = prefer(cands, (i) => !isStale(i, now))
+  if (!sportStory({}, items)) xs = prefer(xs, (i) => !SPORT_SOURCES.has(i.source))
+  if (own) xs = prefer(xs, own)
+  const core = new Set(centralItems(items, total))
+  xs = prefer(xs, (i) => core.has(i))
+  xs = prefer(xs, (i) => !/\?/.test(i.title || ''))
+  return dutchFirst(freshest(xs))
+}
+
 // Een verhaal of bericht uit een voorkeursbron weegt zwaarder (zo'n twee bronnen dekking).
 export const FAVORITE_BONUS = 8
 export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, bonus = null, strict = false, previous = null, preferred = null } = {}) {
@@ -1030,7 +1318,7 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
   const placed = [] // kenmerken van alles wat al een plek heeft
   const leadCount = {}
   let prevLead = null
-  const clashes = (ids) => ids.some((id) => sig.has(id) && placed.some((s) => sameSubject(sig.get(id), s)))
+  const clashes = (c) => subjectTaken(sig, c, placed, c.items)
   const place = (ids) => {
     for (const id of ids) if (sig.has(id)) placed.push(sig.get(id))
   }
@@ -1039,8 +1327,9 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     const cands = all.some((i) => !isGallery(i)) ? all.filter((i) => !isGallery(i)) : all // geen galerij als kop, ook niet als enige eigen bron
     // Vers nieuws eerst: een achtergrondstuk van gisteren wordt alleen de kop als er niets recents
     // is. Ook niet om de bronnen te spreiden of omdat de verse bron al vaak de kop is.
-    const current = cands.filter((i) => !isStale(i, now))
-    const recent = current.length ? current : cands
+    // Uit een grote bundel een kop die het verhaal samenvat, geen vraag, de verste stukken, in het
+    // Nederlands als het kan (H7: leadPool).
+    const recent = leadPool(cands, items, now)
     // Daarbinnen eigen bronnen eerst.
     const ownOnly = recent.filter((i) => mainIds.has(i.source))
     const from = ownOnly.length ? ownOnly : recent
@@ -1072,12 +1361,16 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     cands.push({ kind: 'item', it, ids: [it.id], desks, primary: primaryDesk([desks]), w: weight({ sourceCount: 1, latestAt: it.publishedAt }, now) - 2 + (preferred?.has(it.source) ? FAVORITE_BONUS : 0) })
   }
   if (bonus) for (const c of cands) c.w += bonus(c.kind === 'story' ? c.items : [c.it])
+  // Eén onderwerp, één gewicht (H7): het hoofd van een familie telt alle uitgevers van de familie.
+  for (const [c, n] of families(cands)) c.w += 4 * n
   cands.sort((a, b) => b.w - a.w)
 
   const used = new Set()
+  const placedC = []
   const take = (c, desk) => {
-    if (used.has(c) || clashes(c.ids)) return false
+    if (used.has(c) || clashes(c) || !familyRoom(c, placedC)) return false
     used.add(c)
+    placedC.push(c)
     place(c.ids)
     if (c.kind === 'story') {
       const lead = pickLead(c.items)
@@ -1142,17 +1435,16 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   const same = (ids, sigs) => ids.some((id) => sig.has(id) && sigs.some((s) => sameSubject(sig.get(id), s)))
   // Eén plek per onderwerp, ook tegenover de koppen van de vorige Editie; een ontwikkeld verhaal
   // gaat vanzelf over zijn eigen vorige kop en wordt daar niet op afgewezen.
-  const clashes = (c) => same(c.ids, placed) || (!c.vervolg && same(c.ids, vorige))
+  const clashes = (c) => subjectTaken(sig, c, placed, c.items) || (!c.vervolg && same(c.ids, vorige))
   const place = (ids) => {
     for (const id of ids) if (sig.has(id)) placed.push(sig.get(id))
   }
-  const pickLead = (items) => {
+  const pickLead = (items, total = items.length) => {
     const all = leadCandidates(items, mainIds, preferred, now, { role: entries.length < 3 ? 'front' : 'neutral' })
     const cands = all.some((i) => !isGallery(i)) ? all.filter((i) => !isGallery(i)) : all // geen galerij als kop, ook niet als enige eigen bron
-    const current = cands.filter((i) => !isStale(i, now))
-    const recent = current.length ? current : cands
-    const ownOnly = recent.filter((i) => mainIds.has(i.source))
-    const from = ownOnly.length ? ownOnly : recent
+    // Eigen bronnen eerst; daarbinnen een samenvattende kop, geen vraag, de verste stukken, in het
+    // Nederlands als het kan (H7: leadPool).
+    const from = leadPool(cands, items, now, (i) => mainIds.has(i.source), total)
     return from.find((i) => i.source !== prevLead && (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from.find((i) => (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from[0]
   }
   // De rubriek van een verhaal is voor iedereen gelijk: st.desk uit buildStories (of `ctx.storyDesk`),
@@ -1210,20 +1502,28 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     cands.push({ kind: 'item', id: it.id, it, items: [it], ids: [it.id], primary, desk: primary, home: homeDesk([it], primary, prof), belang, parts, sc: 1, nl: 1, eff: 1, vervolg: 0, w: belang + sumParts(parts) + jitter(seed, it.id) })
   }
   const heaviest = (a, b) => b.w - a.w || textOrder(a.id, b.id) || textOrder(a.kind, b.kind)
+  // Eén onderwerp, één gewicht (H7): het hoofd van een familie telt alle uitgevers van de familie, ook voor
+  // de voorpagina (belang).
+  for (const [c, n] of families(cands)) {
+    c.w += 4 * n
+    c.belang += 4 * n
+  }
   cands.sort(heaviest)
 
   const used = new Set()
+  const placedC = []
   const foreign = c => c.intl ?? internationalNews(c.items, c.desk, c.st)
   const cappedWorld = c => cappedInternational(prof,c.whole || c.items,c.desk,c.st)
   const take = (c, desk, extra = {}) => {
-    if (used.has(c) || clashes(c) || !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight })) return false
+    if (used.has(c) || clashes(c) || !familyRoom(c, placedC) || !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight })) return false
     if (plan && !worldChosen(prof) && cappedWorld(c) && entries.filter(e => { const x = cands.find(c => c.id === e.id); return x && cappedWorld(x) }).length >= INT_MAX) return false
     used.add(c)
+    placedC.push(c)
     place(c.ids)
     const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, big: majorNews(c.st || {sourceCount:1}, c.items), ...(c.vervolg ? { vervolg: c.vervolg } : {}), ...extra }
     if (c.kind === 'story') {
       // De kop van een ontwikkeld verhaal is het zwaarste nieuwe stuk, niet een oud stuk uit een andere bron.
-      const lead = pickLead(c.dev ? c.dev.fresh : c.items)
+      const lead = pickLead(c.dev ? c.dev.fresh : c.items, c.dev ? c.dev.fresh.length : c.st.itemIds.length)
       leadCount[lead.source] = (leadCount[lead.source] || 0) + 1
       prevLead = lead.source
       entries.push({ kind: 'story', id: c.st.id, leadId: lead.id, itemIds: c.st.itemIds, title: lead.title || null, ...(c.st.keys ? { keys: c.st.keys } : {}), ...base })

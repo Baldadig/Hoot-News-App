@@ -61,6 +61,7 @@ struct ChoiceChip: View {
     let on: Bool
     var dense = false // in het welkom, waar niets mag scrollen: minstens 44 hoog en smaller
     let action: () -> Void
+    static let tint = 0.08 // het zachte inktvlak van gekozen (web: --tint, 6 % licht en 10 % donker)
     @Environment(\.accessibilityReduceMotion) private var still
 
     var body: some View {
@@ -77,12 +78,14 @@ struct ChoiceChip: View {
                 Text(label).multilineTextAlignment(.leading)
             }
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(on ? Theme.accent : Theme.ink)
+            .foregroundStyle(Theme.ink)
             .padding(.horizontal, dense ? Space.s3 : Space.s4)
             .padding(.vertical, Space.s2)
             .frame(minHeight: Space.tap)
-            .background(on ? Theme.accentSoft : Color.clear, in: Capsule()) // in rust geen vlak: alleen de haarlijn
-            .overlay(Capsule().strokeBorder(on ? Theme.accent : Theme.rule, lineWidth: 1))
+            // Gekozen: een zacht inktvlak met het vinkje (--tint op het web), geen rood. In rust geen
+            // vlak: alleen de haarlijn.
+            .background(on ? Theme.ink.opacity(Self.tint) : Color.clear, in: Capsule())
+            .overlay(Capsule().strokeBorder(on ? Theme.edge : Theme.rule, lineWidth: 1))
             .contentShape(Capsule())
         }
         .buttonStyle(ChoicePress())

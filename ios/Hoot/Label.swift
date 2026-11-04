@@ -43,9 +43,9 @@ enum StoryLabel {
     private static let rubriekOf: [String: Rubriek] = Dictionary(Rubriek.alle.flatMap { r in r.topics.map { ($0, r) } }, uniquingKeysWith: { a, _ in a })
 
     // Spiegel van de geografische voorrang in label.js; gedeelde fixtures bewaken de uitkomst.
-    private static let geographicTopics: Set<String> = ["nederland", "europa", "vs-politiek", "trump", "oekraine", "middenoosten", "azie", "afrika", "latam"]
+    private static let geographicTopics: Set<String> = ["nederland", "europa", "vs-politiek", "oekraine", "middenoosten", "azie", "afrika", "latam"]
     private static let placeTopics: [String: Set<String>] = [
-        "binnenland": ["nederland"], "regio": ["nederland"], "vs": ["vs-politiek", "trump"],
+        "binnenland": ["nederland"], "regio": ["nederland"], "vs": ["vs-politiek"],
         "middenoosten": ["middenoosten"], "oekraine": ["oekraine"],
     ]
 
