@@ -55,3 +55,19 @@ test('landing: de voorbeelden houden zich aan de huisregels', () => {
   assert.deepEqual(tabs, ['Alles', 'Binnenland', 'Wereld', 'Cultuur'])
   assert.match(readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8'), /var RUB = \['alles', 'binnenland', 'wereld', 'cultuur'\]/)
 })
+
+test('landing: de voorbeelden zijn van 1.1.0 (nummers, bubbel apart, Bluesky, Selectie met inhoud)', () => {
+  const editie = SRC.slice(SRC.indexOf('id="demo-editie"'), SRC.indexOf('<!-- 02 Stroom'))
+  const nrs = [...editie.matchAll(/<span class="sc-nr">(\d\d)<\/span>/g)].map((m) => m[1])
+  assert.deepEqual(nrs, ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10'])
+  // De bubbel komt na 10, zonder nummer, vóór het eindblok.
+  const bubbel = editie.match(/<div class="sc-bubbel">([\s\S]*?)<div class="sc-blok">/)[1]
+  assert.match(bubbel, /Buiten je bubbel/)
+  assert.doesNotMatch(bubbel, /sc-nr/)
+  assert.ok(editie.indexOf('sc-bubbel') > editie.lastIndexOf('sc-nr'))
+  assert.match(code(BUILD), /bsky\.social/)
+  assert.match(tekst(SRC), /van Bluesky/)
+  const sel = SRC.slice(SRC.indexOf('id="demo-selectie"'), SRC.indexOf('<!-- 04 De Redacteur'))
+  assert.ok(sel.indexOf('sc-inhoud') > 0 && sel.indexOf('sc-inhoud') < sel.indexOf('sc-kaart'), 'de inhoud staat boven het eerste stuk')
+  assert.doesNotMatch(sel, /sc-chip/)
+})

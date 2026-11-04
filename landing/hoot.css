@@ -184,8 +184,25 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .sc-lijst .sc-item:first-child{padding-top:.7em}
 .sc-hier{display:flex;align-items:center;gap:.6em;margin:.4em 0 .3em;font:700 .74em/1 var(--tekst);letter-spacing:.09em;text-transform:uppercase;color:var(--s-red)}
 .sc-hier::before,.sc-hier::after{content:"";flex:1;height:1px;background:var(--s-red);opacity:.5}
-.sc-chip{display:inline-flex;align-items:center;gap:.4em;margin-top:1em;padding:.4em .75em;border-radius:2em;background:color-mix(in srgb,var(--s-red) 10%,transparent);color:var(--s-red);font:700 .8em/1 var(--tekst)}
-.sc-chip svg{width:1.2em;height:1.2em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+/* zoals 1.1.0: de plek in de Editie als nummer in inkt (Newsreader, gelijke cijfers) vóór de rubriek; 04–10 als korte rijen; de bubbel apart erna, zonder nummer */
+.sc-nr{font:800 1.28em/1 var(--kop);letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--s-ink);text-transform:none}
+.sc-rub .sc-nr{margin-right:.35em}
+.sc-rub .sc-nr::after{content:"\00a0·";font:700 .78em/1 var(--tekst);color:var(--s-ink3)}
+.sc-rest{margin:1.1em 0 0;padding:0;list-style:none;border-top:1px solid var(--s-line)}
+.sc-rest li{display:flex;align-items:baseline;gap:.6em;padding:.6em 0;border-bottom:1px solid var(--s-line);font:800 .98em/1.2 var(--kop);letter-spacing:-.006em;white-space:nowrap;overflow:hidden}
+.sc-rest .sc-nr{font-size:1em}
+.sc-bubbel{margin-top:1.2em;padding:.2em .9em .9em;border-radius:.7em;background:var(--s-card);box-shadow:0 0 0 1px var(--s-line)}
+/* een bericht van Bluesky in de Stroom: wie boven, dan de tekst */
+.sc-bsky .sc-bron{margin-top:0}
+.sc-post{margin:.5em 0 0;font-size:.96em;line-height:1.35;color:var(--s-ink)}
+/* Selectie zoals 1.1.0 (index B): de week, wat je te lezen krijgt, dan de inhoud als lijst */
+.sc-week{margin-top:.9em;font:700 .74em/1 var(--tekst);letter-spacing:.09em;text-transform:uppercase;color:var(--s-ink3)}
+.sc-lede{margin-top:.35em;font:800 1.3em/1.12 var(--kop);letter-spacing:-.012em}
+.sc-inhoud{margin-top:.9em;border-top:1px solid var(--s-ink)}
+.sc-irij{display:flex;align-items:center;justify-content:space-between;gap:.6em;padding:.55em 0;border-bottom:1px solid var(--s-line)}
+.sc-irij b{display:block;font:800 1.02em/1.15 var(--kop)}
+.sc-irij small{display:block;font-size:.78em;color:var(--s-ink3);margin-top:.1em}
+.sc-irij svg{width:1.15em;height:1.15em;flex:none;fill:none;stroke:var(--s-red);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .sc-onderwerp{display:flex;align-items:center;gap:.6em;margin-top:1.1em;padding-top:.8em;border-top:1px solid var(--s-ink)}
 .sc-onderwerp i{width:1.9em;height:1.9em;border-radius:50%;flex:none;background:color-mix(in srgb,var(--s-red) 12%,transparent);display:grid;place-items:center}
 .sc-onderwerp i svg{width:1.05em;height:1.05em;fill:none;stroke:var(--s-red);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}

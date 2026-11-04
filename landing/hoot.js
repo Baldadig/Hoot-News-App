@@ -395,7 +395,7 @@
             var ns = lijst.map(function (x) { return Number(x.sourceCount) || 0; }), rd = redenen(ns);
             if (!rd) throw 0; /* geen drie verschillende redenen te geven: dan blijft het voorbeeld staan */
             $$('.toestel', pod).forEach(function (fig) { /* iPad (vanaf 720) en telefoon (mobiel) krijgen dezelfde verhalen */
-            var items = $$('.rd-item', fig);
+            var items = $$('.rd-item', fig).filter(function (it) { return $('mark', it); }); /* alleen de drie plekken met een waarom-markering */
             lijst.forEach(function (x, i) {
               var it = items[i]; if (!it) return;
               var desk = String(x.deskLabel || x.desk || 'Nieuws'); desk = desk.charAt(0).toUpperCase() + desk.slice(1);

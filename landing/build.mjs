@@ -35,9 +35,12 @@ const HASH = 'sha256-' + crypto.createHash('sha256').update(INLINE).digest('base
 // Een waarom-regel alleen waar hij iets zegt (Buiten je bubbel, Groot nieuws); nooit "Omdat je X volgt".
 const BR = { LD: ['c1', 'Landelijk Dagblad'], SK: ['c2', 'Stadskrant'], WW: ['c4', 'Weekblad Wereld'], CK: ['c3', 'Cultuurkrant'], ON: ['c5', 'Omroep Nieuws'] };
 const item = ([rub, waarom, kop, b, tijd]) => `<div class="sc-item"><div class="sc-rub">${rub}</div>${waarom ? `<div class="sc-waarom">${waarom}</div>` : ''}<div class="sc-k">${kop}</div><div class="sc-bron"><i class="${BR[b][0]}">${b}</i><span>${BR[b][1]}<small>${tijd}</small></span><svg class="sc-bm" viewBox="0 0 14 18"><use href="#i-bm"/></svg></div></div>`;
+// Een bericht van Bluesky, zoals in de Stroom van 1.1.0: wie, handle en tijd boven, dan de tekst.
+const BSKY = (naam, ini, handle, tijd, tekst) => `<div class="sc-item sc-bsky"><div class="sc-bron"><i class="c5">${ini}</i><span>${naam}<small>${handle} · ${tijd}</small></span><svg class="sc-bm" viewBox="0 0 14 18"><use href="#i-bm"/></svg></div><p class="sc-post">${tekst}</p></div>`;
 const L = {
   alles: [
     ['Binnenland', '', 'Netbeheerders mogen eerder beginnen met bouwen, ook als de inspraak nog loopt', 'ON', '4 min geleden'],
+    BSKY('Marit Veenstra', 'MV', '@maritveenstra.bsky.social', '7 min', 'Vanochtend de eerste ijsvogel van het seizoen langs de Vecht. Rustig begin van de dag.'),
     ['Cultuur', '', 'Oude bioscoop in de binnenstad wordt weer filmhuis', 'SK', '11 min geleden'],
     'HIER',
     ['Wereld', 'Buiten je bubbel', 'Zuid-Europese steden zoeken verkoeling met nieuwe stadsbossen', 'WW', '1 uur geleden'],
@@ -63,7 +66,7 @@ const L = {
   ],
 };
 const PANELEN = Object.entries(L).map(([k, arr]) =>
-  `<div class="sc-lijst" data-pan="${k}"${k === 'alles' ? '' : ' hidden'}>${arr.map(i => i === 'HIER' ? '<div class="sc-hier">Hier was je gebleven</div>' : item(i)).join('')}</div>`).join('');
+  `<div class="sc-lijst" data-pan="${k}"${k === 'alles' ? '' : ' hidden'}>${arr.map(i => i === 'HIER' ? '<div class="sc-hier">Hier was je gebleven</div>' : typeof i === 'string' ? i : item(i)).join('')}</div>`).join('');
 
 const fill = (t) => t.replace(/\{\{(\w+)\}\}/g, (_, k) => ({ CSSFILE, JSFILE, INLINE, WM_D, MARK_D, PANELEN })[k]).replace(/<!--[\s\S]*?-->\n?/g, '');
 fs.writeFileSync(path.join(OUT, 'index.html'), fill(rd('index.src.html')));
