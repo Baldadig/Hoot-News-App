@@ -60,6 +60,23 @@ enum Slots {
     static func naam(_ slot: String) -> String { all[slot]?.naam ?? "Editie" }
 }
 
+// De eindzin van de Editie: "Je weet genoeg." of "Je bent bij." Per Editie vast (datum + dagdeel),
+// van Editie tot Editie wisselend. Spiegel van shared/eindzin.mjs, getoetst in EditionEndTests met
+// dezelfde gevallen (tests/fixtures/eindzin.json): FNV-1a met een murmur-slot, 32 bits.
+enum EditionEnd {
+    static let lines = ["Je weet genoeg.", "Je bent bij."]
+    static func hash(_ s: String) -> UInt32 {
+        var h: UInt32 = 0x811c9dc5
+        for b in s.utf8 { h ^= UInt32(b); h = h &* 0x01000193 }
+        h = (h ^ (h >> 16)) &* 0x85ebca6b
+        h = (h ^ (h >> 13)) &* 0xc2b2ae35
+        return h ^ (h >> 16)
+    }
+    static func line(date: String?, slot: String?) -> String {
+        lines[Int(hash("\(date ?? "")|\(slot ?? "")") % UInt32(lines.count))]
+    }
+}
+
 enum Desk {
     // Zelfde namen als DESK_NAMES in shared/editor.mjs; 'regio' vult De Redacteur uit je regionale bronnen.
     static let labels = ["binnenland": "Binnenland", "buitenland": "Buitenland", "vs": "VS", "middenoosten": "Midden-Oosten", "oekraine": "Oekraïne", "wetenschap": "Wetenschap", "tech": "Tech", "economie": "Economie", "regio": "Regio", "bubbel": "Buiten je bubbel", "extern": "Buiten je bronnen"]
@@ -295,7 +312,7 @@ struct EditionView: View {
                                     endVisible = visible
                                     if visible && risenAt == nil { risenAt = .now }
                                 }
-                            Text("Dan ben je bij.").font(Theme.headline(.title))
+                            Text(EditionEnd.line(date: store.edition?.date, slot: store.edition?.slot)).font(Theme.headline(.title))
                             Text("Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(endDate)").\(upNext)")
                                 .font(.subheadline)
                                 .multilineTextAlignment(.center)

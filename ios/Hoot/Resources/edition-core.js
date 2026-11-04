@@ -2462,6 +2462,7 @@ var HootCore = (() => {
 
   // shared/stroom.mjs
   var forEdition = (it) => !it?.streamOnly;
+  var INTRO_WINDOW_MS = 6 * 3600 * 1e3;
 
   // src/lib/personal.js
   var EXTERN = "extern";

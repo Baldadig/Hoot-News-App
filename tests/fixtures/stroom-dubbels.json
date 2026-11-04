@@ -1,0 +1,396 @@
+{
+ "bron": "live-feed-2026-11-04 (gethoot.app/api/feed), alleen de velden die ontdubbelen nodig hebben; plus zes stukken van De Limburger en Leeuwarder Courant (zelfde intro, verschillend uitgevers-nummer)",
+ "items": [
+  {
+   "id": "1r0eegt",
+   "kind": "article",
+   "source": "nos",
+   "sourceName": "NOS",
+   "title": "Universiteit Maastricht schrapt Joodse bijeenkomst vanwege veiligheid",
+   "summary": "De Universiteit Maastricht heeft gisteravond een bijeenkomst van een Joodse studentenvereniging afgelast.",
+   "url": "https://nos.nl/l/2637948",
+   "publishedAt": "2026-11-04T01:28:28.000Z",
+   "firstSeenAt": "2026-11-04T01:50:16.002Z"
+  },
+  {
+   "id": "p9c88s",
+   "kind": "article",
+   "source": "theverge",
+   "sourceName": "The Verge",
+   "title": "AMD rides data center riches to ‘largest and most profitable’ quarter in history",
+   "summary": "AMD CEO Lisa Su said in the company’s quarterly earnings call on Tuesday that Q3 2026 was ‘was the largest and most profitable in our history.’",
+   "url": "https://www.theverge.com/tech/1026148/amd-earnings-q3-2026-data-center-pc",
+   "publishedAt": "2026-11-04T01:15:34.000Z",
+   "firstSeenAt": "2026-11-04T01:20:17.319Z"
+  },
+  {
+   "id": "19mkz03",
+   "kind": "article",
+   "source": "theverge",
+   "sourceName": "The Verge",
+   "title": "All the news about The Legend of Zelda: Ocarina of Time remake",
+   "summary": "Ahead of the release of Rockstar Games’ Grand Theft Auto VI, Nintendo is launching its own fall juggernaut: a Switch 2 remake of The Legend of Zelda: Ocarina of Time.",
+   "url": "https://www.theverge.com/games/1026112/the-legend-of-zelda-ocarina-of-time-remake-nintendo-switch-2-news",
+   "publishedAt": "2026-11-04T01:02:53.000Z",
+   "firstSeenAt": "2026-11-04T01:20:17.319Z"
+  },
+  {
+   "id": "1cj7afv",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "Eerste stembussen gaan dicht in Kentucky en Indiana, voorlopige uitslagen mogelijk teken aan de wand voor rest van het land",
+   "summary": "Welkom in het blog over de midtermverkiezingen in de Verenigde Staten.",
+   "url": "https://www.volkskrant.nl/buitenland/eerste-stembussen-gaan-dicht-in-kentucky-en-indiana-voorlopige-uitslagen-mogelijk-teken-aan-de-wand-voor-rest-van-het-land~b782895d/",
+   "publishedAt": "2026-11-03T22:58:00.000Z",
+   "firstSeenAt": "2026-11-03T22:30:21.431Z"
+  },
+  {
+   "id": "acil0a",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "In Alaska nu al meer gestemd dan bij de meeste andere midterms",
+   "summary": "Welkom in het blog over de midtermverkiezingen in de Verenigde Staten.",
+   "url": "https://www.volkskrant.nl/buitenland/in-alaska-nu-al-meer-gestemd-dan-bij-de-meeste-andere-midterms~b782895d/",
+   "publishedAt": "2026-11-03T21:19:00.000Z",
+   "firstSeenAt": "2026-11-03T21:20:18.968Z"
+  },
+  {
+   "id": "o4tkoo",
+   "kind": "article",
+   "source": "limburger",
+   "sourceName": "De Limburger",
+   "title": "Piet Rongen blijft altijd aan de bal voor Oostrum: ‘We hebben bij de voetbalclub een klusploeg van veertien personen, allen tussen 65 en 90 jaar’",
+   "summary": "Een sportvereniging kan niet zonder vrijwilligers, omgekeerd geldt vaak hetzelfde.",
+   "url": "https://www.limburger.nl/regio/venray/oostrum/piet-rongen-blijft-altijd-aan-de-bal-voor-oostrum-we-hebben-bij-de-voetbalclub-een-klusploeg-van-veertien-personen-allen-tussen-65-en-90-jaar/163699375.html",
+   "publishedAt": "2026-11-03T19:45:00.000Z",
+   "firstSeenAt": "2026-11-03T20:00:21.480Z"
+  },
+  {
+   "id": "1rthd7f",
+   "kind": "article",
+   "source": "limburger",
+   "sourceName": "De Limburger",
+   "title": "Ton Janssen, de smaakmaker van Venlosche Boys: ‘Als ze alleen willen voetballen en verder niks willen doen, dan kunnen ze geen lid worden’",
+   "summary": "Een sportvereniging kan niet zonder vrijwilligers, omgekeerd geldt vaak hetzelfde.",
+   "url": "https://www.limburger.nl/regio/venlo/ton-janssen-de-smaakmaker-van-venlosche-boys-als-ze-alleen-willen-voetballen-en-verder-niks-willen-doen-dan-kunnen-ze-geen-lid-worden/163698796.html",
+   "publishedAt": "2026-11-03T19:30:00.000Z",
+   "firstSeenAt": "2026-11-03T19:50:23.324Z"
+  },
+  {
+   "id": "1vj2tgs",
+   "kind": "article",
+   "source": "limburger",
+   "sourceName": "De Limburger",
+   "title": "Johan Hendrikx staat bij Brevendia achter de bar, maar vlagt ook bij het eerste elftal: ‘Ik ben soms te eerlijk, dan krijg je af en toe wel verwijten’",
+   "summary": "Een sportvereniging kan niet zonder vrijwilligers, omgekeerd geldt vaak hetzelfde.",
+   "url": "https://www.limburger.nl/regio/weert/stramproy/johan-hendrikx-staat-bij-brevendia-achter-de-bar-maar-vlagt-ook-bij-het-eerste-elftal-ik-ben-soms-te-eerlijk-dan-krijg-je-af-en-toe-wel-verwijten/163698383.html",
+   "publishedAt": "2026-11-03T19:15:00.000Z",
+   "firstSeenAt": "2026-11-03T19:30:22.151Z"
+  },
+  {
+   "id": "17zzbkt",
+   "kind": "article",
+   "source": "limburger",
+   "sourceName": "De Limburger",
+   "title": "Hubert Beek is al 45 jaar de drijvende kracht achter SV Heythuysen: ‘Ik geniet van organiseren, hou ervan om te verbinden’",
+   "summary": "Een sportvereniging kan niet zonder vrijwilligers, omgekeerd geldt vaak hetzelfde.",
+   "url": "https://www.limburger.nl/sport/voetbal/amateurvoetbal/hubert-beek-is-al-45-jaar-de-drijvende-kracht-achter-sv-heythuysen-ik-geniet-van-organiseren-hou-ervan-om-te-verbinden/163121520.html",
+   "publishedAt": "2026-11-03T19:15:00.000Z",
+   "firstSeenAt": "2026-11-03T19:30:22.151Z"
+  },
+  {
+   "id": "1o3ajbm",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "Voor het eerst stemt een paus tijdens Amerikaanse verkiezingen",
+   "summary": "Welkom in het blog over de midtermverkiezingen in de Verenigde Staten.",
+   "url": "https://www.volkskrant.nl/buitenland/voor-het-eerst-stemt-een-paus-tijdens-amerikaanse-verkiezingen~b782895d/",
+   "publishedAt": "2026-11-03T18:41:00.000Z",
+   "firstSeenAt": "2026-11-03T18:50:19.882Z"
+  },
+  {
+   "id": "opoz8u",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "Van Essen heeft stikstofplannen rond en denkt steun van Pro te behouden: ‘Dit zijn geen afzwakkingen’",
+   "summary": "Landbouwminister Jaimi van Essen (D66) houdt vast aan de doelen die het kabinet heeft opgesteld om de stikstofuitstoot drastisch in te perken.",
+   "url": "https://www.volkskrant.nl/politiek/van-essen-heeft-stikstofplannen-rond-en-denkt-steun-van-pro-te-behouden-dit-zijn-geen-afzwakkingen~b17f5f39/",
+   "publishedAt": "2026-11-03T17:43:06.000Z",
+   "firstSeenAt": "2026-11-03T17:50:22.264Z"
+  },
+  {
+   "id": "1x09ljm",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "Van Essen heeft stikstofplannen rond en kan op steun van Pro rekenen: ‘Dit zijn geen afzwakkingen’",
+   "summary": "Landbouwminister Jaimi van Essen (D66) houdt vast aan de doelen die het kabinet heeft opgesteld om de stikstofuitstoot drastisch in te perken.",
+   "url": "https://www.volkskrant.nl/politiek/van-essen-heeft-stikstofplannen-rond-en-kan-op-steun-van-pro-rekenen-dit-zijn-geen-afzwakkingen~b17f5f39/",
+   "publishedAt": "2026-11-03T17:43:00.000Z",
+   "firstSeenAt": "2026-11-03T18:30:17.506Z"
+  },
+  {
+   "id": "cv071w",
+   "kind": "article",
+   "source": "atlantic",
+   "sourceName": "The Atlantic",
+   "title": "Three Tips for Watching the Results Roll In",
+   "summary": "This is an edition of The Atlantic Daily, a newsletter that guides you through the biggest stories of the day, helps you discover new ideas, and recommends the best in culture.",
+   "url": "https://www.theatlantic.com/newsletters/2026/11/how-track-midterms-results/689261/",
+   "publishedAt": "2026-11-03T17:01:00.000Z",
+   "firstSeenAt": "2026-11-03T17:30:21.497Z"
+  },
+  {
+   "id": "15b43ex",
+   "kind": "article",
+   "source": "lc",
+   "sourceName": "Leeuwarder Courant",
+   "title": "Volgens SC Cambuur waren alle Go Ahead Eagles-aanhangers gefouilleerd & Fryslân veel te coulant voor Qbuzz vindt linkse oppositie in Friese Staten",
+   "summary": "Iedere supporter van Go Ahead Eagles die zaterdag bij de wedstrijd was, is een-op-een gecontroleerd. Dat zegt Ruben Sijtsma, persvoorlichter van SC Cambuur.",
+   "url": "https://www.lc.nl/regio/friesland/volgens-sc-cambuur-waren-alle-go-ahead-eagles-aanhangers-gefouilleerd-fryslan-veel-te-coulant-voor-qbuzz-vindt-linkse-oppositie-in-friese-staten/163997133.html",
+   "publishedAt": "2026-11-03T16:56:00.000Z",
+   "firstSeenAt": "2026-11-03T17:10:18.947Z"
+  },
+  {
+   "id": "107h2sb",
+   "kind": "article",
+   "source": "lc",
+   "sourceName": "Leeuwarder Courant",
+   "title": "SC Cambuur: alle aanhangers van Go Ahead Eagles waren gefouilleerd",
+   "summary": "Iedere supporter van Go Ahead Eagles die zaterdag bij de wedstrijd was, is een-op-een gecontroleerd. Dat zegt Ruben Sijtsma, persvoorlichter van SC Cambuur.",
+   "url": "https://www.lc.nl/sport/sc-cambuur/sc-cambuur-alle-aanhangers-van-go-ahead-eagles-waren-gefouilleerd/164008665.html",
+   "publishedAt": "2026-11-03T15:24:00.000Z",
+   "firstSeenAt": "2026-11-03T15:50:20.546Z"
+  },
+  {
+   "id": "e6pe08",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "TikTok-gebruikers smeken oud-president om terug te komen en noemen Trump een enge oppas: Obama-video’s verzamelen miljoenen likes",
+   "summary": "In een van de TikTok-filmpjes loopt Obama het podium op en zwaait wat rond, terwijl Hey Daddy van r&b-zanger Usher op de achtergrond klinkt.",
+   "url": "https://www.volkskrant.nl/buitenland/tiktok-gebruikers-smeken-oud-president-om-terug-te-komen-en-noemen-trump-een-enge-oppas-obama-video-s-verzamelen-miljoenen-likes~bbbd8a24/",
+   "publishedAt": "2026-11-03T14:22:00.000Z",
+   "firstSeenAt": "2026-11-03T15:50:20.546Z"
+  },
+  {
+   "id": "hm2s62",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "‘Papa, kom terug, de oppas is eng’: Obama-video’s verzamelen miljoenen likes op TikTok",
+   "summary": "In een van de TikTok-filmpjes loopt Obama het podium op en zwaait wat rond, terwijl Hey Daddy van r&b-zanger Usher op de achtergrond klinkt.",
+   "url": "https://www.volkskrant.nl/buitenland/papa-kom-terug-de-oppas-is-eng-obama-video-s-verzamelen-miljoenen-likes-op-tiktok~bbbd8a24/",
+   "publishedAt": "2026-11-03T14:22:00.000Z",
+   "firstSeenAt": "2026-11-03T15:10:51.220Z"
+  },
+  {
+   "id": "m5jmq",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "‘Aura’ van Obama doet het goed op TikTok: ‘Mag ik zeggen dat hij de knapste president ooit is?’",
+   "summary": "In een van de TikTok-filmpjes loopt Obama het podium op en zwaait wat rond, terwijl Hey Daddy van r&b-zanger Usher op de achtergrond klinkt.",
+   "url": "https://www.volkskrant.nl/buitenland/aura-van-obama-doet-het-goed-op-tiktok-mag-ik-zeggen-dat-hij-de-knapste-president-ooit-is~bbbd8a24/",
+   "publishedAt": "2026-11-03T14:22:00.000Z",
+   "firstSeenAt": "2026-11-03T14:30:23.248Z"
+  },
+  {
+   "id": "xmzde",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "Ambassadeur VS in Canada sorteert met beschuldigingen van inmenging voor op Republikeinse verkiezingsnederlaag",
+   "summary": "Welkom in het blog over de midtermverkiezingen in de Verenigde Staten.",
+   "url": "https://www.volkskrant.nl/buitenland/ambassadeur-vs-in-canada-sorteert-met-beschuldigingen-van-inmenging-voor-op-republikeinse-verkiezingsnederlaag~b782895d/",
+   "publishedAt": "2026-11-03T13:21:00.000Z",
+   "firstSeenAt": "2026-11-03T13:30:18.575Z"
+  },
+  {
+   "id": "1pvrczg",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "Hij werd ‘een paar keer’ onder schot genomen en stak de bevroren zeestraat tussen Alaska en Rusland over: na 28 jaar wandelen is Karl Bushby weer thuis",
+   "summary": "Zo’n dertig jaar geleden tekende de Britse Karl Bushby een lijn op een wereldkaart, van het uiterste zuiden van Zuid-Amerika in Chili naar zijn thuisstad Hull.",
+   "url": "https://www.volkskrant.nl/buitenland/hij-werd-een-paar-keer-onder-schot-genomen-en-stak-de-bevroren-zeestraat-tussen-alaska-en-rusland-over-na-28-jaar-wandelen-is-karl-bushby-weer-thuis~bba0bdef/",
+   "publishedAt": "2026-11-03T10:40:00.000Z",
+   "firstSeenAt": "2026-11-03T13:20:17.564Z"
+  },
+  {
+   "id": "66p2fk",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "Na een wandeltocht van 28 jaar, van Chili naar Engeland, is avonturier Karl Bushby weer thuis",
+   "summary": "Zo’n dertig jaar geleden tekende de Britse Karl Bushby een lijn op een wereldkaart, van het uiterste zuiden van Zuid-Amerika in Chili naar zijn thuisstad Hull.",
+   "url": "https://www.volkskrant.nl/buitenland/na-een-wandeltocht-van-28-jaar-van-chili-naar-engeland-is-avonturier-karl-bushby-weer-thuis~bba0bdef/",
+   "publishedAt": "2026-11-03T10:40:00.000Z",
+   "firstSeenAt": "2026-11-03T12:40:18.501Z"
+  },
+  {
+   "id": "p2eoju",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "Spaans voetballer De Miguel (30) overleden na harde botsing met doelman",
+   "summary": "De voetballer van de Spaanse club CD Tenerife die maandag hard in botsing kwam met de doelman van de tegenstander, is overleden.",
+   "url": "https://www.volkskrant.nl/sport/spaans-voetballer-de-miguel-30-overleden-na-harde-botsing-met-doelman~bf2ff83e/",
+   "publishedAt": "2026-11-03T10:13:40.000Z",
+   "firstSeenAt": "2026-11-03T10:20:15.665Z"
+  },
+  {
+   "id": "kuy74j",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "Spaanse voetballer Jesús de Miguel (30) overleden na harde botsing met doelman tegenstander",
+   "summary": "De voetballer van de Spaanse club CD Tenerife die maandag hard in botsing kwam met de doelman van de tegenstander, is overleden.",
+   "url": "https://www.volkskrant.nl/sport/spaanse-voetballer-jesus-de-miguel-30-overleden-na-harde-botsing-met-doelman-tegenstander~bf2ff83e/",
+   "publishedAt": "2026-11-03T10:13:00.000Z",
+   "firstSeenAt": "2026-11-03T14:40:22.339Z"
+  },
+  {
+   "id": "1coyulv",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "Minuut stilte voor alle duels in Europese competities na dodelijk ongeluk op veld van Spaanse voetballer Jesús de Miguel (30)",
+   "summary": "De voetballer van de Spaanse club CD Tenerife die maandag hard in botsing kwam met de doelman van de tegenstander, is overleden.",
+   "url": "https://www.volkskrant.nl/sport/minuut-stilte-voor-alle-duels-in-europese-competities-na-dodelijk-ongeluk-op-veld-van-spaanse-voetballer-jesus-de-miguel-30~bf2ff83e/",
+   "publishedAt": "2026-11-03T10:13:00.000Z",
+   "firstSeenAt": "2026-11-03T14:00:23.465Z"
+  },
+  {
+   "id": "19t2yxw",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "Minuut stilte voor alle duels in Europese competities na dodelijk ongeluk op veld van Spaanse voetballer De Miguel (30)",
+   "summary": "De voetballer van de Spaanse club CD Tenerife die maandag hard in botsing kwam met de doelman van de tegenstander, is overleden.",
+   "url": "https://www.volkskrant.nl/sport/minuut-stilte-voor-alle-duels-in-europese-competities-na-dodelijk-ongeluk-op-veld-van-spaanse-voetballer-de-miguel-30~bf2ff83e/",
+   "publishedAt": "2026-11-03T10:13:00.000Z",
+   "firstSeenAt": "2026-11-03T12:40:18.501Z"
+  },
+  {
+   "id": "17mxcpl",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "Spaanse voetbalwereld geschokt door dood van De Miguel (30) na harde botsing met doelman",
+   "summary": "De voetballer van de Spaanse club CD Tenerife die maandag hard in botsing kwam met de doelman van de tegenstander, is overleden.",
+   "url": "https://www.volkskrant.nl/sport/spaanse-voetbalwereld-geschokt-door-dood-van-de-miguel-30-na-harde-botsing-met-doelman~bf2ff83e/",
+   "publishedAt": "2026-11-03T10:13:00.000Z",
+   "firstSeenAt": "2026-11-03T11:30:21.108Z"
+  },
+  {
+   "id": "2nq19w",
+   "kind": "article",
+   "source": "volkskrant",
+   "sourceName": "de Volkskrant",
+   "title": "Republikeinse kandidaat in spannende Senaatsrace Kansas negeert campagneteam met advertentie over medische schulden",
+   "summary": "Welkom in het blog over de midtermverkiezingen in de Verenigde Staten.",
+   "url": "https://www.volkskrant.nl/buitenland/republikeinse-kandidaat-in-spannende-senaatsrace-kansas-negeert-campagneteam-met-advertentie-over-medische-schulden~b782895d/",
+   "publishedAt": "2026-11-03T09:43:00.000Z",
+   "firstSeenAt": "2026-11-03T09:50:19.799Z"
+  },
+  {
+   "id": "13nggrq",
+   "kind": "article",
+   "source": "atlantic",
+   "sourceName": "The Atlantic",
+   "title": "Who Thought This Ad Was a Good Idea?",
+   "summary": "This is an edition of The Atlantic Daily, a newsletter that guides you through the biggest stories of the day, helps you discover new ideas, and recommends the best in culture.",
+   "url": "https://www.theatlantic.com/newsletters/2026/11/who-thought-this-ad-was-a-good-idea/689258/",
+   "publishedAt": "2026-11-02T23:07:00.000Z",
+   "firstSeenAt": "2026-11-02T23:20:19.566Z"
+  }
+ ],
+ "verwacht": [
+  {
+   "id": "1r0eegt",
+   "formerIds": []
+  },
+  {
+   "id": "p9c88s",
+   "formerIds": []
+  },
+  {
+   "id": "19mkz03",
+   "formerIds": []
+  },
+  {
+   "id": "1cj7afv",
+   "formerIds": [
+    "1o3ajbm",
+    "2nq19w",
+    "acil0a",
+    "xmzde"
+   ]
+  },
+  {
+   "id": "o4tkoo",
+   "formerIds": []
+  },
+  {
+   "id": "1rthd7f",
+   "formerIds": []
+  },
+  {
+   "id": "1vj2tgs",
+   "formerIds": []
+  },
+  {
+   "id": "17zzbkt",
+   "formerIds": []
+  },
+  {
+   "id": "1x09ljm",
+   "formerIds": [
+    "opoz8u"
+   ]
+  },
+  {
+   "id": "cv071w",
+   "formerIds": []
+  },
+  {
+   "id": "15b43ex",
+   "formerIds": []
+  },
+  {
+   "id": "107h2sb",
+   "formerIds": []
+  },
+  {
+   "id": "e6pe08",
+   "formerIds": [
+    "hm2s62",
+    "m5jmq"
+   ]
+  },
+  {
+   "id": "1pvrczg",
+   "formerIds": [
+    "66p2fk"
+   ]
+  },
+  {
+   "id": "kuy74j",
+   "formerIds": [
+    "17mxcpl",
+    "19t2yxw",
+    "1coyulv",
+    "p2eoju"
+   ]
+  },
+  {
+   "id": "13nggrq",
+   "formerIds": []
+  }
+ ]
+}

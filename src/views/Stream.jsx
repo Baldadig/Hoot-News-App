@@ -13,7 +13,7 @@ import { watch } from '../lib/inview.js'
 import { RubriekCrossfade } from '../components/RubriekCrossfade.jsx'
 import { firstImages, latestChoice, warmImages } from '../lib/rubriek-crossfade.js'
 import { imgProps } from '../lib/img.js'
-import { withoutCopies } from '../../shared/dedupe.mjs'
+import { withoutRepeats } from '../../shared/stroom.mjs'
 
 const PAGE = 60 // zoveel berichten tegelijk; de rest komt erbij terwijl je scrolt
 
@@ -68,7 +68,7 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
   useEffect(() => () => choices.current.cancel(), [])
   const select = (selection) => {
     const picked = new Set(selection.bron.split(',').filter(Boolean))
-    return selection.onderwerp === 'bubbel' ? bubble.map(b => b.item) : withoutCopies(stream.filter(i => {
+    return selection.onderwerp === 'bubbel' ? bubble.map(b => b.item) : withoutRepeats(stream.filter(i => {
       if (picked.size && !picked.has(i.source)) return false
       if (selection.onderwerp && !(i.topics || []).includes(selection.onderwerp)) return false
       if (selection.rubriek && !inInterest(i, selection.rubriek, sourcesById.get(i.source))) return false
