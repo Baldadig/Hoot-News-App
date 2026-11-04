@@ -161,8 +161,7 @@ struct ScreenTitle: View {
     var gap: CGFloat = Space.s2
     init(_ text: String, gap: CGFloat = Space.s2) { self.text = text; self.gap = gap }
     var body: some View {
-        Text(text)
-            .font(Theme.headline(.title))
+        Kop(text, .title)
             .foregroundStyle(Theme.ink)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.bottom, gap)
@@ -712,8 +711,7 @@ struct LeadCard: View {
                     WhyLine(text: why)
                 }
             }
-            Text(item.title)
-                .font(Theme.headline(EditionDisplay.headlineStyle(item.title))) // bestaande rollen, passend bij de koplengte
+            Kop(item.title, EditionDisplay.headlineStyle(item.title)) // bestaande rollen, passend bij de koplengte; breekt nooit midden in een woord zonder streepje
                 .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                 .fixedSize(horizontal: false, vertical: true)
             if let intro = item.summary.map({ wholeSentences($0, max: 240) }), !intro.isEmpty {
@@ -852,8 +850,7 @@ struct ItemRow: View {
                 // Een Bluesky-post (in Bewaard): de tekst zelf, geen kop.
                 Text(item.summary ?? "").leestekst(.body).fixedSize(horizontal: false, vertical: true)
             } else {
-                Text(item.title)
-                    .font(Theme.headline(.title3))
+                Kop(item.title, .title3)
                     .lineSpacing(2)
                     .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                     .fixedSize(horizontal: false, vertical: true)
@@ -941,7 +938,7 @@ struct EmptyState: View {
             VStack(spacing: Space.s3) {
                 EmptyPageArt(kind: EmptyPageKind(symbol: systemImage))
                 Group {
-                Text(title).font(Theme.headline(.title2)).foregroundStyle(Theme.ink)
+                Kop(title, .title2).foregroundStyle(Theme.ink)
                 if !text.isEmpty { Text(text).foregroundStyle(Theme.ink2).multilineTextAlignment(.center).frame(maxWidth: Layout.emptyText) }
                 if let action {
                     Button(action: action.run) { Text(action.label) }.buttonStyle(.ink)
@@ -957,7 +954,7 @@ struct EmptyState: View {
         } else {
         ContentUnavailableView {
             Label {
-                Text(title).font(Theme.headline(.title2)).foregroundStyle(Theme.ink)
+                Kop(title, .title2).foregroundStyle(Theme.ink)
                     .padding(.bottom, Space.s2) // lucht tussen titel en uitleg, zoals .empty__title
             } icon: {
                 // Op maat via een frame: een lettergrootte zet ContentUnavailableView zelf terug.

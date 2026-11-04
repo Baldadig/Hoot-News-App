@@ -356,7 +356,7 @@ struct EditionView: View {
                         if !outsideRows.isEmpty {
                             VStack(alignment: .leading, spacing: 0) {
                                 StrongRule().padding(.top, Space.s5)
-                                Text("Buiten je bubbel").font(Theme.headline(.title2)).accessibilityAddTraits(.isHeader).padding(.vertical,Space.s3)
+                                Kop("Buiten je bubbel", .title2).accessibilityAddTraits(.isHeader).padding(.vertical,Space.s3)
                                 ForEach(outsideRows) { row in
                                     slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,form:.krant) }
                                 }
@@ -380,7 +380,7 @@ struct EditionView: View {
                                     endVisible = visible
                                     if visible && risenAt == nil { risenAt = .now }
                                 }
-                            Text(EditionEnd.line(date: store.edition?.date, slot: store.edition?.slot)).font(Theme.headline(.title))
+                            Kop(EditionEnd.line(date: store.edition?.date, slot: store.edition?.slot), .title)
                             Text("Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(endDate)").\(upNext)")
                                 .font(.ui(.subheadline))
                                 .multilineTextAlignment(.center)
@@ -500,7 +500,7 @@ struct StoryView: View {
                         FramedImage(url: pick.pictureURL(.large), ratio: 16 / 9, measure: pick.measure).padding(.bottom, Space.s1)
                     }
                     if let lead {
-                        Text(lead.title).font(Theme.headline(.title2)).fixedSize(horizontal: false, vertical: true)
+                        Kop(lead.title, .title2).fixedSize(horizontal: false, vertical: true)
                     }
                     if !items.isEmpty {
                         Text(sources == items.count ? "\(sources == 1 ? "1 bron" : "\(sources) bronnen"), nieuwste eerst" : "\(sources == 1 ? "1 bron" : "\(sources) bronnen"), \(items.count) artikelen, nieuwste eerst")
@@ -556,7 +556,7 @@ struct MakeItYours: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Space.s2) {
-            Text("Maak Hoot van jou").font(Theme.headline(.title3))
+            Kop("Maak Hoot van jou", .title3)
             Text("Je leest nu een keuze uit gratis Nederlandse bronnen. Kies je eigen bronnen en interesses, dan wordt dit echt jouw Editie.")
                 .font(.ui(.subheadline))
                 .foregroundStyle(Theme.ink2)
@@ -598,7 +598,7 @@ struct AlertOffer: View {
                     .font(.ui(.subheadline))
                     .frame(minHeight: Space.tap, alignment: .leading)
             } else {
-                Text("Een seintje als de volgende klaarligt?").font(Theme.headline(.title3)).fixedSize(horizontal: false, vertical: true)
+                Kop("Een seintje als de volgende klaarligt?", .title3).fixedSize(horizontal: false, vertical: true)
                 HStack(spacing: Space.s4) {
                     Button("Ja, graag", action: yes).buttonStyle(.ink)
                     Button("Nu niet", action: no)

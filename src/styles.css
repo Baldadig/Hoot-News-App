@@ -398,6 +398,16 @@ p {
 .head-4 {
   font-size: var(--t4);
   line-height: var(--lh-4);
+  /* Een kop knapt nooit midden in een woord zonder streepje (keuring tekstfont, AX5). Newsreader 800
+     is breed: een lange samenstelling ("verkiezingsuitslag") past bij Groot of op 320 niet altijd op
+     een regel, en overflow-wrap: anywhere breekt dan op een teken. Afbreken op lettergrepen in de taal
+     van de pagina (lang="nl"), alleen in lange woorden (14 tekens of meer, drie letters per kant),
+     zodat gewone woorden heel blijven. Zoals de app (ios/Hoot/Views/Kop.swift). */
+  -webkit-hyphens: auto;
+  hyphens: auto;
+  hyphenate-limit-chars: 14 3 3;
+  -webkit-hyphenate-limit-before: 3;
+  -webkit-hyphenate-limit-after: 3;
   letter-spacing: var(--ls-head-4);
 }
 /* Itemkop groot: een bericht in een brede lijst, het eerste stuk van een vak, een bladtitel. */

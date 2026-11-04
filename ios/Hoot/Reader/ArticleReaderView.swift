@@ -406,7 +406,7 @@ struct ReaderLoadingView: View {
         VStack(alignment: .leading, spacing: Space.s4) {
             // Zoals de lezer zelf: de kop, met de bron in de regel eronder (L3).
             VStack(alignment: .leading, spacing: Space.s2) {
-                Text(title).font(Theme.headline(.title)).fixedSize(horizontal: false, vertical: true)
+                Kop(title, .title).fixedSize(horizontal: false, vertical: true)
                 Text(sourceName).font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
             }
             if waiting.visible {

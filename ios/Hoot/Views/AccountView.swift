@@ -79,7 +79,7 @@ struct AccountView: View {
         Group {
             if Account.localBeta {
                 VStack(alignment: .leading, spacing: Space.s3) {
-                    Text("Lokale beta").font(Theme.headline(.title2))
+                    Kop("Lokale beta", .title2)
                     Text("Je leest met de keuzes op dit toestel. Accountsynchronisatie is in deze beta uitgeschakeld.").foregroundStyle(Theme.ink2)
                 }
                 .padding(Space.s5)

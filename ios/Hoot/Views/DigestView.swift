@@ -143,7 +143,7 @@ struct DigestView: View {
     // geen telling ("0 stukken in 0 onderwerpen" komt niet meer voor).
     private func empty(title: String, text: String, row: String, sub: String) -> some View {
         VStack(alignment: .leading, spacing: Space.s2) {
-            Text(title).font(Theme.headline(.title2)).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
+            Kop(title, .title2).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
             Text(text).foregroundStyle(Theme.ink2).fixedSize(horizontal: false, vertical: true)
             VStack(spacing: 0) { Rule(); pickRow(name: row, sub: sub); Rule() }
@@ -176,8 +176,7 @@ struct DigestView: View {
                 .font(typeSize.isAccessibilitySize ? .ui(.caption, .semibold) : .ui(.caption, .heavy)).tracking(typeSize.isAccessibilitySize ? 0 : 0.6)
                 .foregroundStyle(Theme.ink3)
                 .fixedSize(horizontal: false, vertical: true)
-            Text(o.summary)
-                .font(Theme.headline(.title2))
+            Kop(o.summary, .title2)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
             if d.preview == true, let next = d.next.flatMap(HootDate.parse) {
@@ -312,7 +311,7 @@ struct FieldSection: View {
                     Text("OOK DEZE WEEK").font(.ui(.caption, .heavy)).tracking(0.6).foregroundStyle(Theme.ink3).padding(.top, Space.s2)
                     ForEach(field.more) { item in
                         VStack(alignment: .leading, spacing: Space.s0) {
-                            Text(item.title).font(Theme.headline(.headline)).foregroundStyle(Theme.ink)
+                            Kop(item.title, .headline).foregroundStyle(Theme.ink)
                             Text("\(item.sourceName ?? "") · \(HootDate.ago(item.publishedAt.flatMap(HootDate.parse)))").font(.ui(.caption)).foregroundStyle(Theme.ink3)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -355,8 +354,7 @@ private struct DigestCard: View {
                 }
                 VStack(alignment: .leading, spacing: Space.s2) {
                     Text(String(format: "%02d", rank)).font(Theme.headline(.headline)).monospacedDigit().foregroundStyle(Theme.ink) // tabelcijfers: 01, 02, 03 even breed; in inkt, zoals het cijfer in de Editie
-                    Text(item.title)
-                        .font(Theme.headline(feature ? .title2 : .title3))
+                    Kop(item.title, feature ? .title2 : .title3)
                         .foregroundStyle(store.isRead(item.asItem) ? Theme.ink3 : Theme.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     // Waarom dit stuk: rustige metadata onder de kop, zodat de kop voorgaat.
