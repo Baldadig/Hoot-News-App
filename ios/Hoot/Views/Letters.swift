@@ -54,8 +54,9 @@ enum Letters {
 
 extension Font {
     // Bediening en metadata in Inter, met de maat en het meegroeien van een tekststijl.
-    static func ui(_ style: Font.TextStyle, _ weight: Font.Weight = .regular) -> Font {
-        .custom(Letters.ui(weight), size: Letters.size(style), relativeTo: style)
+    // Zonder gewicht het gewicht van de tekststijl zelf: .headline is halfvet, zoals bij iOS.
+    static func ui(_ style: Font.TextStyle, _ weight: Font.Weight? = nil) -> Font {
+        .custom(Letters.ui(weight ?? (style == .headline ? .semibold : .regular)), size: Letters.size(style), relativeTo: style)
     }
     // Vaste maat (voor wat nu al .system(size:) was: groeit niet mee).
     static func ui(size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
