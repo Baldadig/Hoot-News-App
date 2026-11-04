@@ -28,7 +28,10 @@ struct Flow: SwiftUI.Layout {
         for view in subviews {
             var size = view.sizeThatFits(.unspecified)
             if size.width > width { size = view.sizeThatFits(ProposedViewSize(width: width, height: nil)) }
-            if x > 0 && x + size.width > width {
+            // Een halve punt speling: de plaatsing krijgt de breedte terug die we bij het meten gaven,
+            // afgerond op pixels. Zonder speling viel de laatste knop dan net op een nieuwe regel die
+            // de hoogte niet meetelde, over de lijst eronder heen ("Volgend" achter 3voor12).
+            if x > 0 && x + size.width > width + 0.5 {
                 x = 0
                 y += line + spacing
                 line = 0
