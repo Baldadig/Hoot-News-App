@@ -11,17 +11,16 @@ struct HootApp: App {
     init() {
         // Beelden bewaren tussen scrollen en starten (AsyncImage cachet zelf pas vanaf iOS 27).
         URLCache.shared = URLCache(memoryCapacity: 64 << 20, diskCapacity: 300 << 20)
-        // Schermtitels (Middageditie, Stroom, Selectie …) in de krantenletter, zoals op de website: groot
-        // op 800, klein in de balk op 700. Groeit mee met de tekstgrootte, de grote titel tot 40 pt:
-        // daarboven werd "Ochtendeditie" op een mini "Ochtended…".
-        func serif(_ style: UIFont.TextStyle, _ weight: UIFont.Weight, max: CGFloat = .infinity) -> UIFont {
-            let d = UIFontDescriptor.preferredFontDescriptor(withTextStyle: style)
-            let serif = (d.withDesign(.serif) ?? d).addingAttributes([.traits: [UIFontDescriptor.TraitKey.weight: weight]])
-            return UIFont(descriptor: serif, size: min(d.pointSize, max))
-        }
+        // Schermtitels (Middageditie, Stroom, Selectie …) in Newsreader 800, zoals op de website. Groeit
+        // mee met de tekstgrootte, de grote titel tot 40 pt: daarboven werd "Ochtendeditie" op een mini
+        // "Ochtended…".
         let bar = UINavigationBar.appearance()
-        bar.largeTitleTextAttributes = [.font: serif(.largeTitle, .heavy, max: 40), .foregroundColor: NachtKleur.label]
-        bar.titleTextAttributes = [.font: serif(.headline, .bold), .foregroundColor: NachtKleur.label]
+        bar.largeTitleTextAttributes = [.font: UIFont.hoot(Letters.kop, .largeTitle, size: 34, max: 40), .foregroundColor: NachtKleur.label]
+        bar.titleTextAttributes = [.font: UIFont.hoot(Letters.kop, .headline, size: 17), .foregroundColor: NachtKleur.label]
+        // Het segment van het systeem in Inter, zoals de bediening van het web.
+        let segment = UISegmentedControl.appearance()
+        segment.setTitleTextAttributes([.font: UIFont.hoot(Letters.ui(.regular), .footnote, size: 13)], for: .normal)
+        segment.setTitleTextAttributes([.font: UIFont.hoot(Letters.ui(.semibold), .footnote, size: 13)], for: .selected)
     }
 
     // Alleen bij een koude start: het opstartscherm met de stuiterende punt, tot er iets te lezen is.
@@ -39,6 +38,7 @@ struct HootApp: App {
             Group {
                 if store.onboarded {
                     WidthReader { RootView() }
+                        .font(.ui(.body)) // tekst zonder eigen rol: Inter, zoals het web (Letters.swift)
                 } else {
                     // Opnieuw kiezen (Instellingen): alles begint bij wat je nu hebt; sluiten slaat niets op.
                     WelcomeView(reopen: store.welcomeAgain, onCancel: store.welcomeAgain ? { leaveWelcome() } : nil) { leaveWelcome() }

@@ -6,14 +6,15 @@ variabele woff2's uit src/fonts/ (zie src/fonts/README.md); de app kan geen vari
 lettermaat zetten met Dynamische tekst, dus die krijgt vaste standen uit dezelfde bron:
 
   Newsreader Kop    800, opsz 16  (= de statische Newsreader 800 van het web en de deelkaart)
-  Newsreader Tekst  400 en 430 (Nacht), opsz 17 (de intro van 17)
+  Newsreader Tekst  400 en 430 (Nacht), opsz 17 (de intro van 17); voor de lezer ook 700 en cursief
   Inter             400, 600, 700, 800, opsz 14
 
 Bron: de officiële variabele TTF's uit github.com/google/fonts (eenmalig ophalen):
 
   curl -LO 'https://github.com/google/fonts/raw/main/ofl/newsreader/Newsreader%5Bopsz,wght%5D.ttf'
   curl -LO 'https://github.com/google/fonts/raw/main/ofl/inter/Inter%5Bopsz,wght%5D.ttf'
-  python3 scripts/build-fonts.py 'Newsreader[opsz,wght].ttf' 'Inter[opsz,wght].ttf'
+  curl -LO 'https://github.com/google/fonts/raw/main/ofl/newsreader/Newsreader-Italic%5Bopsz,wght%5D.ttf'
+  python3 scripts/build-fonts.py 'Newsreader[opsz,wght].ttf' 'Inter[opsz,wght].ttf' 'Newsreader-Italic[opsz,wght].ttf'
 
 Alleen voor dit script: Python met fonttools (pip install fonttools). Normale web- en
 Xcode-builds lezen de ingecheckte bestanden.
@@ -62,8 +63,9 @@ def rename(font, family, style, ps, weight):
         name.setName(value, nid, 1, 0, 0)
     os2 = font['OS/2']
     os2.usWeightClass = weight
-    os2.fsSelection = (os2.fsSelection & ~0b1100001) | (0b100000 if style == 'Bold' else 0b1000000)
-    font['head'].macStyle = 1 if style == 'Bold' else 0
+    bits = {'Bold': 0b100000, 'Italic': 0b1}.get(style, 0b1000000)
+    os2.fsSelection = (os2.fsSelection & ~0b1100001) | bits
+    font['head'].macStyle = {'Bold': 1, 'Italic': 2}.get(style, 0)
 
 
 def vertical(font, ascent_em):
@@ -100,12 +102,15 @@ def instance(source, loc, family, style, ps, weight, out, line_em=None):
     print('  ', out.relative_to(ROOT))
 
 
-def main(newsreader, inter):
+def main(newsreader, inter, italic):
     IOS.mkdir(parents=True, exist_ok=True)
     ny = 1.193  # lijnhoogte van New York: (1950 + 494) / 2048
     instance(newsreader, {'wght': 800, 'opsz': 16}, 'Newsreader Kop', 'ExtraBold', 'NewsreaderKop-ExtraBold', 800, IOS / 'NewsreaderKop-800.ttf', ny)
     instance(newsreader, {'wght': 400, 'opsz': 17}, 'Newsreader Tekst', 'Regular', 'NewsreaderTekst-Regular', 400, IOS / 'NewsreaderTekst-400.ttf', ny)
     instance(newsreader, {'wght': 430, 'opsz': 17}, 'Newsreader Tekst Nacht', 'Regular', 'NewsreaderTekst-Nacht', 430, IOS / 'NewsreaderTekst-430.ttf', ny)
+    # Vet en cursief van dezelfde tekstletter, voor de lezer (strong, em en tussenkoppen in een artikel).
+    instance(newsreader, {'wght': 700, 'opsz': 17}, 'Newsreader Tekst', 'Bold', 'NewsreaderTekst-Bold', 700, IOS / 'NewsreaderTekst-700.ttf', ny)
+    instance(italic, {'wght': 400, 'opsz': 17}, 'Newsreader Tekst', 'Italic', 'NewsreaderTekst-Italic', 400, IOS / 'NewsreaderTekst-400-cursief.ttf', ny)
     for weight, style in [(400, 'Regular'), (600, 'SemiBold'), (700, 'Bold'), (800, 'ExtraBold')]:
         instance(inter, {'wght': weight, 'opsz': 14}, 'Inter' if weight in (400, 700) else f'Inter {style}', 'Regular' if weight not in (400, 700) else style, f'Inter-{style}', weight, IOS / f'Inter-{weight}.ttf')
     # De deelkaart: dezelfde Inter 600 als de app (server en app gelijk, tests/deelkaart.test.mjs).
@@ -114,6 +119,6 @@ def main(newsreader, inter):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 4:
         sys.exit(__doc__)
-    main(Path(sys.argv[1]), Path(sys.argv[2]))
+    main(Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3]))

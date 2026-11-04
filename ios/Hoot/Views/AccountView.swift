@@ -11,18 +11,18 @@ struct AccountRow: View {
                 AccountBadge(size: 40)
                 VStack(alignment: .leading, spacing: Space.s0) {
                     if Account.localBeta {
-                        Text("Lokale beta").font(.headline)
-                        Text("Accountsynchronisatie uit").font(.subheadline).foregroundStyle(Theme.ink3)
+                        Text("Lokale beta").font(.ui(.headline))
+                        Text("Accountsynchronisatie uit").font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
                     } else { switch account.status {
                     case .member, .pending:
-                        Text(account.session?.name ?? account.session?.email ?? "Je account").font(.headline)
-                        Text(account.status == .pending ? Account.pendingText : account.syncLine).font(.subheadline).foregroundStyle(Theme.ink3)
+                        Text(account.session?.name ?? account.session?.email ?? "Je account").font(.ui(.headline))
+                        Text(account.status == .pending ? Account.pendingText : account.syncLine).font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
                     case .loading:
-                        Text("Je account").font(.headline)
-                        Text("Even geduld …").font(.subheadline).foregroundStyle(Theme.ink3)
+                        Text("Je account").font(.ui(.headline))
+                        Text("Even geduld …").font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
                     case .out:
-                        Text("Inloggen").font(.headline)
-                        Text("Op al je toestellen").font(.subheadline).foregroundStyle(Theme.ink3)
+                        Text("Inloggen").font(.ui(.headline))
+                        Text("Op al je toestellen").font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
                     }}
                 }
             }
@@ -41,7 +41,7 @@ struct AccountBadge: View {
         ZStack {
             Circle().fill(letter == nil ? Theme.ink3.opacity(0.15) : Theme.accent)
             if let letter {
-                Text(letter).font(.system(size: size * 0.45, weight: .bold, design: .serif)).foregroundStyle(nacht ? Theme.paper : .white)
+                Text(letter).font(.kop(size: size * 0.45)).foregroundStyle(nacht ? Theme.paper : .white)
             } else {
                 Image(systemName: "person.fill").font(.system(size: size * 0.45)).foregroundStyle(Theme.ink3)
             }
@@ -129,12 +129,12 @@ struct AccountView: View {
                 .font(Theme.headline(.title))
                 .padding(.top, Space.s5) // het getekende merk heeft geen lucht onder de letters, zoals tekst
             Text("Hoot op al je toestellen.")
-                .font(.body)
+                .font(.ui(.body))
                 .foregroundStyle(Theme.ink2)
                 .multilineTextAlignment(.center)
                 .padding(.top, Space.s2)
             Text("Lezen kan zonder account. Met een account reist je Hoot mee naar je andere toestellen.")
-                .font(.subheadline)
+                .font(.ui(.subheadline))
                 .foregroundStyle(Theme.ink3)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -170,7 +170,7 @@ struct AccountView: View {
             .overlay { if account.status == .loading { WaitingMark(size: 16, text: false) } }
             if let message = account.message {
                 Text(message)
-                    .font(.footnote)
+                    .font(.ui(.footnote))
                     .foregroundStyle(Theme.accent)
                     .multilineTextAlignment(.center)
                     .padding(.top, Space.s3)
@@ -203,8 +203,8 @@ struct AccountView: View {
                 HStack(spacing: Space.s3) {
                     AccountBadge(size: 48)
                     VStack(alignment: .leading, spacing: Space.s0) {
-                        Text(account.session?.name ?? "Je account").font(.headline)
-                        if let email = account.session?.email { Text(email).font(.subheadline).foregroundStyle(Theme.ink3) }
+                        Text(account.session?.name ?? "Je account").font(.ui(.headline))
+                        if let email = account.session?.email { Text(email).font(.ui(.subheadline)).foregroundStyle(Theme.ink3) }
                     }
                 }
                 .padding(.vertical, Space.s1)

@@ -77,13 +77,13 @@ final class SentencesTests: XCTestCase {
     }
 
     func testIntroMax() {
-        XCTAssertEqual(introMax(lines: 1, thumb: false), 60)
-        XCTAssertEqual(introMax(lines: 2, thumb: false), 130)
-        XCTAssertEqual(introMax(lines: 3, thumb: false), 200)
+        XCTAssertEqual(introMax(lines: 1, thumb: false), 53)
+        XCTAssertEqual(introMax(lines: 2, thumb: false), 115)
+        XCTAssertEqual(introMax(lines: 3, thumb: false), 176)
         XCTAssertEqual(introMax(lines: 0, thumb: false), Int.max)
         XCTAssertEqual(introMax(lines: 0, thumb: true), Int.max)
-        XCTAssertEqual(introMax(lines: 1, thumb: true), 48)
-        XCTAssertEqual(introMax(lines: 2, thumb: true), 104)
-        XCTAssertEqual(introMax(lines: 3, thumb: true), 160)
+        XCTAssertEqual(introMax(lines: 1, thumb: true), 42)
+        XCTAssertEqual(introMax(lines: 2, thumb: true), 92)
+        XCTAssertEqual(introMax(lines: 3, thumb: true), 140)
     }
 }

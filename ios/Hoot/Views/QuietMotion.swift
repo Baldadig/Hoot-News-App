@@ -12,7 +12,7 @@ struct WaitingMark: View {
                 GlyphShape(glyphs: Brand.mark, part: .dot).fill(Theme.accent)
                     .phaseAnimator(still ? [1.0] : [1.0, 1.06, 0.92]) { view, scale in view.scaleEffect(scale, anchor: .bottomTrailing) } animation: { _ in .easeInOut(duration: 2.75) }
             }.frame(width: size * Brand.mark.size.width / Brand.mark.size.height, height: size).accessibilityHidden(true)
-            if text { Text(label).font(.subheadline).foregroundStyle(Theme.ink3) }
+            if text { Text(label).font(.ui(.subheadline)).foregroundStyle(Theme.ink3) }
         }.accessibilityElement(children: .ignore).accessibilityLabel(label)
     }
 }

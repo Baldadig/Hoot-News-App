@@ -157,7 +157,7 @@ struct StreamLine: View {
         let aan = r.id == rubriek
         return Button { kies(r) } label: {
             Text(r.label)
-                .font(.system(.body, design: .serif))
+                .font(.lees(.body))
                 .foregroundStyle(aan ? Theme.ink : Theme.ink2)
                 .animation(move(0.2), value: aan)
                 .fixedSize()
@@ -310,7 +310,7 @@ struct StreamLine: View {
         let toon = !picks.isEmpty && !open
         let opzij = peek && !open ? -CGFloat(n - 1) * (Self.peekStep - Self.step) : 0
         return Text(label)
-            .font(.subheadline.weight(.bold))
+            .font(.ui(.subheadline, .bold))
             .foregroundStyle(Theme.accent)
             .lineLimit(1)
             .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { labelW = $0 }

@@ -157,12 +157,12 @@ struct DigestView: View {
             VStack(alignment: .leading, spacing: Space.s2) {
                 ForEach(Self.howHootChooses(seen), id: \.self) { Text($0) }
             }
-            .font(.subheadline)
+            .font(.ui(.subheadline))
             .foregroundStyle(Theme.ink3)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.top, Space.s2)
         }
-        .font(.subheadline.weight(.semibold))
+        .font(.ui(.subheadline, .semibold))
         .tint(Theme.ink)
         .padding(.vertical, Space.s6)
         .id("einde")
@@ -173,7 +173,7 @@ struct DigestView: View {
             // De week is een datum: ink3, geen rood (SE6). Bij heel grote tekst geen kapitalen.
             let week = d.preview == true ? "Voorproefje · de afgelopen zeven dagen" : "Week \(d.week ?? 0) · \(Self.span(d.from, d.to))"
             Text(typeSize.isAccessibilitySize ? week : week.uppercased())
-                .font(typeSize.isAccessibilitySize ? .caption.weight(.semibold) : .caption.weight(.heavy)).tracking(typeSize.isAccessibilitySize ? 0 : 0.6)
+                .font(typeSize.isAccessibilitySize ? .ui(.caption, .semibold) : .ui(.caption, .heavy)).tracking(typeSize.isAccessibilitySize ? 0 : 0.6)
                 .foregroundStyle(Theme.ink3)
                 .fixedSize(horizontal: false, vertical: true)
             Text(o.summary)
@@ -182,9 +182,9 @@ struct DigestView: View {
                 .accessibilityAddTraits(.isHeader)
             if d.preview == true, let next = d.next.flatMap(HootDate.parse) {
                 Text("De eerste volle Selectie komt \(next.formatted(HootDate.style(.dateTime.weekday(.wide).day().month(.wide)))) in de ochtend.")
-                    .font(.subheadline).foregroundStyle(Theme.ink3)
+                    .font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
             } else {
-                Text("Elke maandagochtend een nieuwe.").font(.subheadline).foregroundStyle(Theme.ink3)
+                Text("Elke maandagochtend een nieuwe.").font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
             }
         }
         .padding(.top, Space.s2)
@@ -249,10 +249,10 @@ struct SelectionRow: View {
         HStack(alignment: big ? .firstTextBaseline : .center, spacing: Space.s3) {
             VStack(alignment: .leading, spacing: big ? Space.s1 : 0) {
                 Text(name)
-                    .font(big ? Theme.headline(.title2) : .body.weight(.semibold))
+                    .font(big ? Theme.headline(.title2) : .ui(.body, .semibold))
                     .foregroundStyle(Theme.ink)
                     .fixedSize(horizontal: false, vertical: true)
-                if let sub { Text(sub).font(.caption).monospacedDigit().foregroundStyle(Theme.ink3).fixedSize(horizontal: false, vertical: true) }
+                if let sub { Text(sub).font(.ui(.caption)).monospacedDigit().foregroundStyle(Theme.ink3).fixedSize(horizontal: false, vertical: true) }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             Text(Image(systemName: symbol))
@@ -292,7 +292,7 @@ struct FieldSection: View {
             .focused(keyboardFocus, equals: field.id)
             .overlay(alignment: .top) { Rectangle().fill(Theme.ink).frame(height: 2).accessibilityHidden(true) }
             if expanded, !field.top.isEmpty, let about = field.about {
-                Text(about).font(.subheadline).foregroundStyle(Theme.ink3).fixedSize(horizontal: false, vertical: true)
+                Text(about).font(.ui(.subheadline)).foregroundStyle(Theme.ink3).fixedSize(horizontal: false, vertical: true)
             }
             if expanded {
                 if let first = field.top.first {
@@ -306,14 +306,14 @@ struct FieldSection: View {
                         ForEach(rest, id: \.element.id) { i, item in DigestCard(item: item, rank: i + 2, feature: false) }
                     }
                 } else {
-                    Text(SelectionOverview.emptyField).font(.subheadline).foregroundStyle(Theme.ink3)
+                    Text(SelectionOverview.emptyField).font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
                 }
                 if !field.more.isEmpty {
-                    Text("OOK DEZE WEEK").font(.caption.weight(.heavy)).tracking(0.6).foregroundStyle(Theme.ink3).padding(.top, Space.s2)
+                    Text("OOK DEZE WEEK").font(.ui(.caption, .heavy)).tracking(0.6).foregroundStyle(Theme.ink3).padding(.top, Space.s2)
                     ForEach(field.more) { item in
                         VStack(alignment: .leading, spacing: Space.s0) {
                             Text(item.title).font(Theme.headline(.headline)).foregroundStyle(Theme.ink)
-                            Text("\(item.sourceName ?? "") · \(HootDate.ago(item.publishedAt.flatMap(HootDate.parse)))").font(.caption).foregroundStyle(Theme.ink3)
+                            Text("\(item.sourceName ?? "") · \(HootDate.ago(item.publishedAt.flatMap(HootDate.parse)))").font(.ui(.caption)).foregroundStyle(Theme.ink3)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.vertical, Space.s2)
@@ -360,8 +360,8 @@ private struct DigestCard: View {
                         .foregroundStyle(store.isRead(item.asItem) ? Theme.ink3 : Theme.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     // Waarom dit stuk: rustige metadata onder de kop, zodat de kop voorgaat.
-                    if let why = item.why, !why.isEmpty { Text(why.joined(separator: " · ")).font(.caption).foregroundStyle(Theme.ink3) }
-                    if let intro = item.summary.map({ wholeSentences($0, max: feature ? 260 : 200) }), !intro.isEmpty { Text(intro).font(feature ? .body : .subheadline).foregroundStyle(Theme.ink2).lineLimit(feature ? 5 : 4) } // hele zinnen; de regelgrens is een vangnet
+                    if let why = item.why, !why.isEmpty { Text(why.joined(separator: " · ")).font(.ui(.caption)).foregroundStyle(Theme.ink3) }
+                    if let intro = item.summary.map({ wholeSentences($0, max: feature ? 260 : 200) }), !intro.isEmpty { Text(intro).leestekst(.body).foregroundStyle(Theme.ink2).lineLimit(feature ? 5 : 4) } // hele zinnen; de regelgrens is een vangnet
                 }
                 .padding(.horizontal, Space.s4)
                 .padding(.top, showImage ? 4 : 16)
@@ -371,10 +371,10 @@ private struct DigestCard: View {
             VStack(alignment: .leading, spacing: Space.s1) {
                 if let also = item.also, !also.isEmpty {
                     // Eén tekst met links, zodat hij bij grote tekst gewoon terugloopt.
-                    Text(Self.alsoLine(also)).font(.caption).foregroundStyle(Theme.ink3)
+                    Text(Self.alsoLine(also)).font(.ui(.caption)).foregroundStyle(Theme.ink3)
                 }
                 SourceLine(item: item.asItem, linkSource: false) // de Digest heeft geen bronpagina's
-                if let via = item.via { Text("via \(via)").font(.caption2).foregroundStyle(Theme.ink3) }
+                if let via = item.via { Text("via \(via)").font(.ui(.caption2)).foregroundStyle(Theme.ink3) }
             }
             .padding(.horizontal, Space.s4)
             .padding(.bottom, Space.s2)

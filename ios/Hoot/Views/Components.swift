@@ -2,8 +2,9 @@ import SafariServices
 import SwiftUI
 import UniformTypeIdentifiers
 
-// Huisstijl: warm papier, inkt, krantenrood. Koppen in New York (de serif van het systeem: past
-// bij Newsreader op het web en schaalt mee met Dynamische tekst), de rest in San Francisco.
+// Huisstijl: warm papier, inkt, krantenrood. Koppen in Newsreader 800, lopende tekst in Newsreader op
+// tekstmaat, bediening in Inter: dezelfde letters als het web, meegeleverd en meegroeiend met
+// Dynamische tekst (Letters.swift).
 enum Theme {
     // De kleuren van het design system (zelfde namen en waarden als src/styles.css).
     static let paper = Color(uiColor: NachtKleur.paper) // pagina
@@ -30,7 +31,7 @@ enum Theme {
     // maar licht in het donker niet op.
     static let markBg = Color(uiColor: NachtKleur.markBg)
     static let accent = Color(uiColor: NachtKleur.accent) // de kleur zelf: "accentColor" volgt de tint, en die valt soms terug op systeemblauw
-    static func headline(_ style: Font.TextStyle) -> Font { .system(style, design: .serif, weight: .bold) }
+    static func headline(_ style: Font.TextStyle) -> Font { .kop(style) }
 }
 
 // Een artikel openen: in de Hoot-lezer, of in de Safari-app (Instellingen › Lezen). In Safari ben je
@@ -97,7 +98,7 @@ struct InkButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var enabled
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.headline.weight(.heavy))
+            .font(.ui(.headline, .heavy))
             .foregroundStyle(Theme.paper)
             .padding(.horizontal, Space.s5)
             .frame(minHeight: Space.tap)
@@ -143,7 +144,7 @@ struct FormHeader: View {
     let text: String
     init(_ text: String) { self.text = text }
     var body: some View {
-        Text(text).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink).textCase(nil)
+        Text(text).font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink).textCase(nil)
             .accessibilityAddTraits(.isHeader)
     }
 }
@@ -301,7 +302,7 @@ extension View {
     }
 }
 
-// Systeemserif is de native tegenhanger van Newsreader. Cijfers blijven tabelcijfers.
+// Newsreader 800, zoals het nummer op het web. Cijfers blijven tabelcijfers.
 struct EditionNumber: View {
     @Environment(\.isWide) private var wide
     let number: Int?
@@ -309,7 +310,7 @@ struct EditionNumber: View {
     var body: some View {
         if let number {
             Text(String(format: "%02d", number))
-                .font(.system(.callout, design: .serif, weight: .heavy)).monospacedDigit()
+                .font(.kop(.callout)).monospacedDigit()
                 .frame(minWidth: wide ? 24 : nil, alignment: .leading)
                 .foregroundStyle(read ? Theme.ink3 : Theme.ink) // minder rood (B): het cijfer in inkt
         }
@@ -327,7 +328,7 @@ struct Kicker: View {
         let parts = text.map { $0.isEmpty ? [] : $0.components(separatedBy: " · ") } ?? []
         HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
             EditionNumber(number: number, read: read)
-            if number != nil && !parts.isEmpty { Text("·").font(.caption).foregroundStyle(Theme.ink3).accessibilityHidden(true) }
+            if number != nil && !parts.isEmpty { Text("·").font(.ui(.caption)).foregroundStyle(Theme.ink3).accessibilityHidden(true) }
             if !parts.isEmpty {
             // Bij heel grote tekst geen kapitalen: die worden dan breder en zwaarder dan de kop.
             // Meerdere labels ("Binnenland · Buiten je bronnen"): de punt ertussen in `ink3`.
@@ -335,9 +336,9 @@ struct Kicker: View {
             let labels = parts.map { Text(label($0)).foregroundStyle(Theme.ink3) }
             let rubric = labels.dropFirst().reduce(labels.first ?? Text("")) { acc, p in Text("\(acc)\(dot)\(p)") }
             if typeSize.isAccessibilitySize {
-                rubric.font(.caption.weight(.semibold))
+                rubric.font(.ui(.caption, .semibold))
             } else {
-                rubric.font(.caption.weight(.heavy)).tracking(0.6)
+                rubric.font(.ui(.caption, .heavy)).tracking(0.6)
             }
         }
         }
@@ -355,7 +356,7 @@ struct WhyLine: View {
     var body: some View {
         if let text = text.map(Self.plain), !text.isEmpty {
             Text(text)
-                .font(.subheadline)
+                .font(.ui(.subheadline))
                 .foregroundStyle(Theme.ink2)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityLabel("Waarom: \(text)")
@@ -411,7 +412,7 @@ struct Monogram: View {
     }
     var body: some View {
         Text(String(name.trimmingCharacters(in: .whitespaces).prefix(1)))
-            .font(.system(size: size * 0.5, weight: .heavy, design: .serif))
+            .font(.kop(size: size * 0.5))
             .foregroundStyle(scheme == .dark || nacht ? Theme.ink : brand)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background { ZStack { Theme.surface; brand.opacity(0.16) } }
@@ -473,8 +474,8 @@ struct SourceLine: View {
         HStack(alignment: .top, spacing: Space.s2) {
             SourceMark(item: item)
             VStack(alignment: .leading, spacing: 0) {
-                Text(item.sourceName ?? item.source).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
-                Text(meta).font(.caption).monospacedDigit().foregroundStyle(Theme.ink3) // tabelcijfers: de tijden staan in een kolom
+                Text(item.sourceName ?? item.source).font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink)
+                Text(meta).font(.ui(.caption)).monospacedDigit().foregroundStyle(Theme.ink3) // tabelcijfers: de tijden staan in een kolom
             }
             .lineLimit(oneLine ? 1 : nil)
             .fixedSize(horizontal: false, vertical: true)
@@ -508,7 +509,7 @@ struct SourceLine: View {
             Text(text).monospacedDigit()
             Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).accessibilityHidden(true)
         }
-            .font(.footnote.weight(.semibold))
+            .font(.ui(.footnote, .semibold))
             .foregroundStyle(Theme.ink2)
             .lineLimit(1)
             .fixedSize() // nooit afgekapt: dan liever twee regels
@@ -703,7 +704,7 @@ struct LeadCard: View {
                 .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                 .fixedSize(horizontal: false, vertical: true)
             if let intro = item.summary.map({ wholeSentences($0, max: 240) }), !intro.isEmpty {
-                Text(intro).font(wide ? .title3 : .body).foregroundStyle(Theme.ink2).lineLimit(wide ? 6 : 5).fixedSize(horizontal: false, vertical: true)
+                Text(intro).leestekst(wide ? .title3 : .body).foregroundStyle(Theme.ink2).lineLimit(wide ? 6 : 5).fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -834,7 +835,7 @@ struct ItemRow: View {
             }
             if item.isPost {
                 // Een Bluesky-post (in Bewaard): de tekst zelf, geen kop.
-                Text(item.summary ?? "").font(.body).fixedSize(horizontal: false, vertical: true)
+                Text(item.summary ?? "").leestekst(.body).fixedSize(horizontal: false, vertical: true)
             } else {
                 Text(item.title)
                     .font(Theme.headline(.title3))
@@ -845,7 +846,7 @@ struct ItemRow: View {
                 // regel extra, bij grotere tekst het dubbele (dezelfde tekens nemen dan meer regels, en een
                 // afgeknipte zin zou alsnog op een beletselteken eindigen).
                 if let intro = item.summary.map({ wholeSentences($0, max: introMax(lines: store.preview, thumb: hasPicture && !timeline)) }), !intro.isEmpty {
-                    Text(intro).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1)
+                    Text(intro).leestekst(.body).foregroundStyle(Theme.ink2).lineLimit(store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1)
                 }
             }
         }
@@ -896,11 +897,11 @@ struct StaleNotice: View {
         }
     }
     private var message: some View {
-        Text("Verversen lukt nu niet. Je ziet de laatste versie.").font(.subheadline).foregroundStyle(Theme.ink3).frame(maxWidth: .infinity, alignment: .leading)
+        Text("Verversen lukt nu niet. Je ziet de laatste versie.").font(.ui(.subheadline)).foregroundStyle(Theme.ink3).frame(maxWidth: .infinity, alignment: .leading)
     }
     private var retry: some View {
         Button("Opnieuw") { Task { await store.load() } }
-            .font(.subheadline.weight(.semibold))
+            .font(.ui(.subheadline, .semibold))
             .foregroundStyle(Theme.ink)
             .fixedSize()
             .frame(minHeight: Space.tap)

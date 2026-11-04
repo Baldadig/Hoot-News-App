@@ -236,11 +236,11 @@ struct EditionView: View {
             HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
                 EditionNumber(number: row.number, read: store.isRead(row.item))
                 Text("Je ziet minder over \(Taste.about(items)).")
-                    .font(.subheadline)
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Theme.ink3)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Button("Ongedaan maken") { withAnimation(.snappy) { store.undoLess(row.id, items: items) } }
-                    .font(.subheadline.weight(.semibold))
+                    .font(.ui(.subheadline, .semibold))
                     .tint(Theme.ink) // bediening: inkt, geen rood
                     .frame(minHeight: Space.tap)
             }
@@ -284,7 +284,7 @@ struct EditionView: View {
                         // Eén metaregel, zoals op het web. De vaste spatie vóór de punt houdt die bij de
                         // datum als de regel bij grote tekst breekt ("oktober ·", niet "· Jouw Editie").
                         Text([dateLine, store.isPersonal ? "Jouw Editie" : store.shownEdition?.personal == true ? "Om te beginnen" : "De Editie voor iedereen"].filter { !$0.isEmpty }.joined(separator: "\u{00A0}· "))
-                            .font(.subheadline)
+                            .font(.ui(.subheadline))
                             .foregroundStyle(Theme.ink3)
                             .padding(.bottom, Space.s4)
                         // Kon er niet ververst worden, dan zegt dat het onder de datum: titel en datum blijven bij elkaar.
@@ -340,7 +340,7 @@ struct EditionView: View {
                         VStack(spacing: Space.s3) {
                             let count = EditionNumbering.count(rows)
                             if count > 0 {
-                                Text("\(count) van \(count)").font(.system(.body, design: .serif)).monospacedDigit().opacity(0.85)
+                                Text("\(count) van \(count)").font(.lees(.body)).monospacedDigit().opacity(0.85)
                             }
                             // De zon komt hier één keer op (6 s), zodra het vlak in beeld komt, en ademt
                             // dan; in papier op merkrood. Het enige merkmoment tijdens het lezen. Met
@@ -352,7 +352,7 @@ struct EditionView: View {
                                 }
                             Text(EditionEnd.line(date: store.edition?.date, slot: store.edition?.slot)).font(Theme.headline(.title))
                             Text("Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(endDate)").\(upNext)")
-                                .font(.subheadline)
+                                .font(.ui(.subheadline))
                                 .multilineTextAlignment(.center)
                                 .frame(maxWidth: Layout.endcap) // ± 30 tekens per regel, zoals --measure-end
                             // Eén rustige link: het einde is leidend, verder lezen mag (E8). Het seintje
@@ -360,7 +360,7 @@ struct EditionView: View {
                             Button { openTab(.stroom) } label: {
                                 Text("Lees verder in de Stroom").underline()
                             }
-                            .font(.subheadline.weight(.semibold))
+                            .font(.ui(.subheadline, .semibold))
                             .opacity(0.85)
                             .frame(minHeight: Space.tap)
                         }
@@ -463,7 +463,7 @@ struct StoryView: View {
                     }
                     if !items.isEmpty {
                         Text(sources == items.count ? "\(sources == 1 ? "1 bron" : "\(sources) bronnen"), nieuwste eerst" : "\(sources == 1 ? "1 bron" : "\(sources) bronnen"), \(items.count) artikelen, nieuwste eerst")
-                            .font(.subheadline)
+                            .font(.ui(.subheadline))
                             .foregroundStyle(Theme.ink3)
                     }
                 }
@@ -517,14 +517,14 @@ struct MakeItYours: View {
         VStack(alignment: .leading, spacing: Space.s2) {
             Text("Maak Hoot van jou").font(Theme.headline(.title3))
             Text("Je leest nu een keuze uit gratis Nederlandse bronnen. Kies je eigen bronnen en interesses, dan wordt dit echt jouw Editie.")
-                .font(.subheadline)
+                .font(.ui(.subheadline))
                 .foregroundStyle(Theme.ink2)
                 .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: Space.s4) {
                 // Een knop op papier is inkt, zoals in het welkom (rood is voor het merk).
                 Button("Kies je bronnen", action: choose).buttonStyle(.ink)
                 Button("Later", action: later)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.ui(.subheadline, .semibold))
                     .foregroundStyle(Theme.ink2)
                     .frame(minHeight: Space.tap)
             }

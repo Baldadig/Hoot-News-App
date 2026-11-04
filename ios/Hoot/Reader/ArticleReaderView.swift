@@ -51,7 +51,7 @@ struct ArticleReaderView: View {
                         WebPage(webView: loader.webView)
                         VStack(spacing: Space.s2) {
                             Text(loader.visitByChoice ? "Dit is de pagina van \(sourceName). Probeer de lezer opnieuw, of lees hier verder." : "\(sourceName) vraagt eerst om toestemming of om in te loggen. Kies wat je wilt; daarna gaat de lezer verder.")
-                                .font(.footnote)
+                                .font(.ui(.footnote))
                                 .foregroundStyle(Theme.ink3)
                                 .multilineTextAlignment(.center)
                             Button("Verder naar de lezer") { loader.retry() }.buttonStyle(.ink)
@@ -102,7 +102,7 @@ struct ArticleReaderView: View {
             .overlay(alignment: .top) {
                 if welcome {
                     Label("Ingelogd bij \(sourceName)", systemImage: "checkmark.circle.fill")
-                        .font(.subheadline.weight(.semibold))
+                        .font(.ui(.subheadline, .semibold))
                         .foregroundStyle(Theme.paper)
                         .padding(.horizontal, Space.s4)
                         .padding(.vertical, Space.s2)
@@ -178,10 +178,10 @@ enum ReaderHTML {
         @media (prefers-color-scheme: dark) { :root { --paper:#151310; --ink:#F1ECE2; --ink-3:#A39B8D; --rule:#34302A; --accent:#EC7A70; } }
         html { font: -apple-system-body; -webkit-text-size-adjust: 100%; }
         body { margin:0; background:var(--paper); color:var(--ink); }
-        main { max-width: 680px; margin: 0 auto; padding: 16px 16px 48px; /* s4, s7 */ font-family: ui-serif, "New York", Georgia, serif; font-size: calc(1.06rem * \(scale)); line-height: 1.6; }
-        .kicker { font-family: -apple-system, system-ui, sans-serif; font-size: .72em; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 .6em; }
-        h1.title { font-size: min(1.75em, 48px); line-height: 1.15; font-weight: 800; margin: 0 0 .4em; } /* bij heel grote tekst niet een heel scherm kop */
-        .meta { font-family: -apple-system, system-ui, sans-serif; font-size: .8em; color: var(--ink-3); margin: 0 0 1.6em; padding-bottom: 1em; border-bottom: 1px solid var(--rule); }
+        main { max-width: 680px; margin: 0 auto; padding: 16px 16px 48px; /* s4, s7 */ font-family: \(night ? "\"Newsreader Tekst Nacht\", " : "")"Newsreader Tekst", ui-serif, Georgia, serif; font-size: calc(1.06rem * \(scale)); line-height: 1.6; } /* lopende tekst: Newsreader op tekstmaat, in Nacht 430 (Letters.swift) */
+        .kicker { font-family: "Inter ExtraBold", Inter, -apple-system, system-ui, sans-serif; font-size: .72em; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 .6em; }
+        h1.title { font-family: "Newsreader Kop", ui-serif, Georgia, serif; font-size: min(1.75em, 48px); line-height: 1.15; font-weight: 800; margin: 0 0 .4em; } /* bij heel grote tekst niet een heel scherm kop */
+        .meta { font-family: Inter, -apple-system, system-ui, sans-serif; font-size: .8em; color: var(--ink-3); margin: 0 0 1.6em; padding-bottom: 1em; border-bottom: 1px solid var(--rule); }
         h1, h2, h3, h4 { line-height: 1.25; -webkit-hyphens: manual; hyphens: manual; } /* eigennamen in de kop breken nooit af */
         h1 { overflow-wrap: anywhere; text-wrap: balance; } /* een woord breder dan de kolom breekt zonder streepje, regels even lang */
         main.hyphenate :is(h2, h3, h4) { -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 10 4 4; } /* alleen bij Heel groot: lange woorden in tussenkoppen afbreken, in de taal van de bron */
@@ -189,7 +189,7 @@ enum ReaderHTML {
         p { margin: 0 0 1em; }
         a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
         img, video, picture { max-width: 100%; height: auto; border-radius: 12px; /* radius */ display: block; margin: 1.2em auto; }
-        figure { margin: 1.4em 0; } figcaption, .caption { font-family: -apple-system, system-ui, sans-serif; font-size: .75em; color: var(--ink-3); margin-top: .4em; }
+        figure { margin: 1.4em 0; } figcaption, .caption { font-family: Inter, -apple-system, system-ui, sans-serif; font-size: .75em; color: var(--ink-3); margin-top: .4em; }
         blockquote { margin: 1.4em 0; padding: 0 0 0 1em; border-left: 3px solid var(--accent); font-style: italic; }
         hr { border: 0; border-top: 1px solid var(--rule); margin: 2em 0; }
         ul, ol { padding-left: 1.3em; } li { margin: .3em 0; }
@@ -294,7 +294,7 @@ struct LoginWebView: View {
                     // "Klaar" als tekst in inkt; pas als je echt bent ingelogd is het de volgende stap: een inktknop.
                     ToolbarItem(placement: .topBarTrailing) {
                         if done {
-                            Button { dismiss() } label: { Text("Klaar").fontWeight(.semibold).foregroundStyle(Theme.paper) }
+                            Button { dismiss() } label: { Text("Klaar").font(.ui(.body, .semibold)).foregroundStyle(Theme.paper) }
                                 .buttonStyle(.borderedProminent).tint(Theme.ink)
                         } else {
                             Button("Klaar") { dismiss() }
@@ -308,13 +308,13 @@ struct LoginWebView: View {
                         if done {
                             Label { Text("Je bent ingelogd bij \(target.name).") } icon: { Image(systemName: "checkmark") }
                                 .foregroundStyle(Theme.ink)
-                                .fontWeight(.semibold)
+                                .font(.ui(.footnote, .semibold))
                         } else {
                             Text("Log in zoals altijd. Hoot ziet je wachtwoord niet.")
                                 .foregroundStyle(Theme.ink3)
                         }
                     }
-                    .font(.footnote)
+                    .font(.ui(.footnote))
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal)
@@ -387,7 +387,7 @@ struct ReaderLoadingView: View {
             // Zoals de lezer zelf: de kop, met de bron in de regel eronder (L3).
             VStack(alignment: .leading, spacing: Space.s2) {
                 Text(title).font(Theme.headline(.title)).fixedSize(horizontal: false, vertical: true)
-                Text(sourceName).font(.subheadline).foregroundStyle(Theme.ink3)
+                Text(sourceName).font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
             }
             if waiting.visible {
                 WaitingMark(label: "Artikel laden").frame(maxWidth: .infinity).padding(.top, Space.s5)
