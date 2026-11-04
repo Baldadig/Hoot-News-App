@@ -109,7 +109,7 @@ struct AccountView: View {
             Text("Je account en Bewaard verdwijnen, ook op de website. Wat op deze iPhone staat, blijft. Dit kun je niet ongedaan maken.")
         }
         // Hoot uit je Apple ID halen lukte niet: er is nog niets gewist. Jij kiest.
-        .alert("Apple reageerde niet", isPresented: Binding(get: { account.appleFailed }, set: { if !$0 { account.dismissAppleFailure() } })) {
+        .alert("Hoot uit je Apple ID halen lukte niet", isPresented: Binding(get: { account.appleFailed }, set: { if !$0 { account.dismissAppleFailure() } })) {
             Button("Opnieuw") { Task { _ = await account.deleteAccount() } }
             Button("Annuleer", role: .cancel) { account.cancelAppleFailure() }
             Button("Toch verwijderen", role: .destructive) { Task { _ = await account.deleteAccount(skipApple: true) } }

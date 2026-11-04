@@ -1,91 +1,77 @@
 import SwiftUI
 
-// Instellingen: een blad achter de knop rechtsboven, volgens de Human Interface Guidelines:
-// - alleen wat je in de app vaak wilt aanpassen; wat bij het systeem hoort (achtergrond,
-//   tekstgrootte, hoe meldingen eruitzien) via de pagina van Hoot in de Instellingen-app. Het
-//   seintje bij een nieuwe Editie staat wél hier: welke edities, dat is een keuze in Hoot;
-// - Systeem volgt de iPhone; Licht, Donker en Nacht zijn een bewuste eigen keuze;
-// - geen opties die (nog) niet werken of nu niet van toepassing zijn;
-// - wissen alleen na bevestiging, met Annuleer.
+// Instellingen A (concepten-2/6-instellingen.html): één blad, geordend op wat je als lezer wilt doen,
+// volgens de Human Interface Guidelines:
+// - bovenaan je account, met de samenvatting van je Hoot (uit variant B);
+// - Jouw Hoot, Lezen, Stroom en Over Hoot; wat je zelden doet ligt één tik dieper (Op dit toestel);
+// - keuzes zijn een menu met een vinkje, nooit een rood segment; Automatisch volgt de iPhone, en
+//   alleen dan staat "Als het donker is" eronder;
+// - wissen alleen na bevestiging, met Annuleer. Web en iOS hebben dezelfde groepen en labels.
 struct SettingsView: View {
-    @Environment(\.nachtActief) private var nacht
-    @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(HootStore.self) private var store
-    @Environment(Account.self) private var account
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @Environment(EditionAlerts.self) private var alerts
-    @State private var confirmClear: String? = DebugLaunch.screen("instellingen-wissen") ? "gelezen" : nil
-    @State private var path: [String] = DebugLaunch.screen("instellingen-bronnen") ? ["bronnen"] : DebugLaunch.screen("instellingen-interesses") ? ["interesses"] : DebugLaunch.screen("instellingen-vakken") ? ["vakken"] : DebugLaunch.screen("instellingen-abonnementen") ? ["abonnementen"] : []
+    @AppStorage("hoot.weergave") private var weergave = "system"
+    @State private var icon = AppIconSelection()
+    @State private var path: [String] = DebugLaunch.screen("instellingen-bronnen") ? ["bronnen"] : DebugLaunch.screen("instellingen-interesses") ? ["interesses"] : DebugLaunch.screen("instellingen-vakken") ? ["vakken"] : DebugLaunch.screen("instellingen-abonnementen") ? ["abonnementen"] : DebugLaunch.screen("instellingen-wissen") ? ["toestel"] : []
 
-    private var version: String {
+    static var version: String {
         let v = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
         let b = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? ""
         return "\(v) (\(b))"
     }
 
-    // Ingelogd (of je account laadt nog): Bewaard gaat mee met je account, dus wissen wist ook daar.
-    private var savedSyncs: Bool { account.session != nil && account.status != .pending }
-
-    // Seintje bij een nieuwe Editie. De schakelaar is zelf de uitleg: pas bij aanzetten vraagt iOS om
-    // toestemming. Zei je eerder nee, dan springt hij terug en wijzen we de weg naar de Instellingen-app.
-    @ViewBuilder private var alertsSection: some View {
+    // Seintje bij een nieuwe Editie, als rijen in Jouw Hoot. De schakelaar is zelf de uitleg: pas bij
+    // aanzetten vraagt iOS om toestemming. Zei je eerder nee, dan wijst een rij de weg naar de Instellingen-app.
+    @ViewBuilder private var alertRows: some View {
         let denied = alerts.permission == .denied
-        Section {
-            Toggle(isOn: Binding(get: { store.notify && !denied }, set: { on in
-                guard on else { store.notify = false; return }
-                guard !denied else { return }
-                store.notify = true
-                guard !alerts.allowed else { return }
-                Task { if await !alerts.ask() { withAnimation { store.notify = false } } }
-            })) {
-                FormLabel("Seintje bij een nieuwe Editie", systemImage: "bell")
-            }
-            .disabled(denied) // de knop en de voettekst eronder zeggen waarom
-            if store.notify && alerts.allowed {
-                ForEach(EditionAlerts.slots) { slot in
-                    Toggle(isOn: Binding(get: { store.notifySlots.contains(slot.id) }, set: { on in
-                        let next = EditionAlerts.slots.map(\.id).filter { $0 == slot.id ? on : store.notifySlots.contains($0) }
-                        // De laatste uit: dan het seintje helemaal uit (en de volgende keer weer alle drie).
-                        if next.isEmpty {
-                            withAnimation { store.notify = false }
-                            store.notifySlots = EditionAlerts.slots.map(\.id)
-                        } else {
-                            store.notifySlots = next
-                        }
-                    })) {
-                        // De naam, zonder tijd. Past "Middageditie" niet meer (heel grote tekst: hij brak midden
-                        // in het woord), dan gesplitst op de woordgrens: "Middag" met een rustig "Editie" eronder.
-                        Label {
-                            ViewThatFits(in: .horizontal) {
-                                Text(slot.name).fixedSize()
-                                VStack(alignment: .leading, spacing: Space.s0) {
-                                    Text(slot.short)
-                                    Text("Editie").font(.subheadline).foregroundStyle(Theme.ink3)
-                                }
-                            }
-                            .accessibilityElement(children: .ignore)
-                            .accessibilityLabel(slot.name)
-                        } icon: { Image(systemName: slot.icon).foregroundStyle(Theme.ink3) }
-                    }
-                }
-            }
-            if denied {
-                Button {
-                    if let url = URL(string: UIApplication.openNotificationSettingsURLString) { openURL(url) }
-                } label: {
-                    OutboundRow(title: "Open Instellingen", systemImage: "gearshape")
-                }
-                .accessibilityHint("Opent de meldingen van Hoot in de Instellingen-app")
-            }
-        } header: {
-            FormHeader("Seintjes")
-        } footer: {
-            Text(denied ? "Meldingen staan uit in de Instellingen-app." : "Een stil seintje als je Editie klaarligt.").foregroundStyle(Theme.ink3)
+        Toggle(isOn: Binding(get: { store.notify && !denied }, set: { on in
+            guard on else { store.notify = false; return }
+            guard !denied else { return }
+            store.notify = true
+            guard !alerts.allowed else { return }
+            Task { if await !alerts.ask() { withAnimation { store.notify = false } } }
+        })) {
+            FormLabel("Seintje bij een nieuwe Editie", systemImage: "bell")
         }
-        .hootRows()
-        .animation(.default, value: store.notify && alerts.allowed)
-        .task { await alerts.refresh() }
+        .disabled(denied)
+        if store.notify && alerts.allowed {
+            ForEach(EditionAlerts.slots) { slot in
+                Toggle(isOn: Binding(get: { store.notifySlots.contains(slot.id) }, set: { on in
+                    let next = EditionAlerts.slots.map(\.id).filter { $0 == slot.id ? on : store.notifySlots.contains($0) }
+                    // De laatste uit: dan het seintje helemaal uit (en de volgende keer weer alle drie).
+                    if next.isEmpty {
+                        withAnimation { store.notify = false }
+                        store.notifySlots = EditionAlerts.slots.map(\.id)
+                    } else {
+                        store.notifySlots = next
+                    }
+                })) {
+                    // De naam, zonder tijd. Past "Middageditie" niet meer (heel grote tekst), dan gesplitst
+                    // op de woordgrens: "Middag" met een rustig "Editie" eronder.
+                    Label {
+                        ViewThatFits(in: .horizontal) {
+                            Text(slot.name).fixedSize()
+                            VStack(alignment: .leading, spacing: Space.s0) {
+                                Text(slot.short)
+                                Text("Editie").font(.subheadline).foregroundStyle(Theme.ink3)
+                            }
+                        }
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(slot.name)
+                    } icon: { Image(systemName: slot.icon).foregroundStyle(Theme.ink3) }
+                }
+            }
+        }
+        if denied {
+            Button {
+                if let url = URL(string: UIApplication.openNotificationSettingsURLString) { openURL(url) }
+            } label: {
+                SettingsValueRow(title: "Seintjes staan uit", value: "Zet ze aan in de Instellingen-app", systemImage: "bell.slash", outbound: true)
+            }
+            .accessibilityHint("Opent de meldingen van Hoot in de Instellingen-app")
+        }
     }
 
     var body: some View {
@@ -93,37 +79,43 @@ struct SettingsView: View {
         NavigationStack(path: $path) {
             ScrollViewReader { proxy in
             Form {
-                Section { AccountRow() }.hootRows()
+                Section { SettingsAccountCard() } footer: { SettingsAccountCard.Footer() }.hootRows()
+
                 Section {
+                    NavigationLink(value: "interesses") {
+                        // De waarde links onder het label (I1): een lange lijst kapt nooit af ("Econom…").
+                        SettingsValueRow(title: "Interesses", value: InterestsList.summary(store.interests), systemImage: "heart.text.square")
+                    }
+                    NavigationLink(value: "bronnen") {
+                        LabeledContent { Text("\(store.followed.count)") } label: { FormLabel("Bronnen", systemImage: "dot.radiowaves.up.forward") }
+                    }
+                    NavigationLink(value: "vakken") {
+                        let n = store.digestFields.filter(store.offersField).count
+                        LabeledContent { Text(n == 1 ? "1 onderwerp" : "\(n) onderwerpen") } label: { FormLabel("Selectie", systemImage: "books.vertical") }
+                    }
+                    Toggle(isOn: $store.bubble) {
+                        FormLabel("Buiten je bubbel", systemImage: "sparkle.magnifyingglass")
+                    }
+                    alertRows
+                } header: {
+                    FormHeader("Jouw Hoot")
+                } footer: {
+                    Text("Meer of minder van iets? Druk lang op een verhaal.").foregroundStyle(Theme.ink3)
+                }
+                .hootRows()
+                .animation(.default, value: store.notify && alerts.allowed)
+                .task { await alerts.refresh() }
+
+                LearnedSection().id("geleerd")
+
+                Section {
+                    WeergaveKeuze()
                     Picker(selection: $store.images) {
                         Text("Aan").tag("aan")
                         Text("Alleen hoofdverhaal").tag("hoofd")
                         Text("Uit").tag("uit")
                     } label: {
                         FormLabel("Beeld", systemImage: "photo")
-                    }
-                    // Als een segment, direct te zien in de Stroom erachter: tijdlijn (het beeld groot onder de
-                    // kop, zoals een tijdlijn) of krant (klein ernaast, zoals een krantensite).
-                    // Het systeemsegment volgt de tekstgrootte niet (I5): bij de toegankelijkheidsmaten
-                    // dezelfde keuzerij als Beeld en Intro, die wel meegroeit.
-                    if typeSize.isAccessibilitySize {
-                        Picker(selection: $store.layout) {
-                            Text("Tijdlijn").tag("tijdlijn")
-                            Text("Krant").tag("krant")
-                        } label: {
-                            FormLabel("Lees de Stroom als", systemImage: "rectangle.grid.1x2")
-                        }
-                    } else {
-                        VStack(alignment: .leading, spacing: Space.s2) {
-                            FormLabel("Lees de Stroom als", systemImage: "rectangle.grid.1x2")
-                            Picker("Lees de Stroom als", selection: $store.layout) {
-                                Text("Tijdlijn").tag("tijdlijn")
-                                Text("Krant").tag("krant")
-                            }
-                            .pickerStyle(.segmented)
-                            .colorMultiply(nacht ? Theme.ink : .white)
-                            .labelsHidden()
-                        }
                     }
                     Picker(selection: $store.preview) {
                         Text("1 regel").tag(1)
@@ -133,19 +125,6 @@ struct SettingsView: View {
                     } label: {
                         FormLabel("Intro", systemImage: "text.alignleft")
                     }
-                    Toggle(isOn: $store.bubble) {
-                        FormLabel("Buiten je bubbel", systemImage: "sparkle.magnifyingglass")
-                    }
-                } header: {
-                    FormHeader("Editie en Stroom")
-                } footer: {
-                    Text("Een extra verhaal naast je Editie.")
-                        .foregroundStyle(Theme.ink3)
-                }
-                .hootRows()
-
-                // Eén keuze (waar openen artikelen), met de uitzonderingen alleen als die gelden.
-                Section {
                     Picker(selection: $store.openWith.animation()) {
                         Text("In de lezer").tag("lezer")
                         Text("In Safari").tag("safari")
@@ -155,123 +134,53 @@ struct SettingsView: View {
                     if store.openWith == "lezer" {
                         NavigationLink(value: "abonnementen") { SubscriptionsRow() }
                     }
+                    NavigationLink(value: "appicoon") { AppIconRow(selected: icon.selected) }
                 } header: {
                     FormHeader("Lezen")
                 } footer: {
-                    Text(store.openWith == "lezer" ? "Log in bij je abonnementen voor hele artikelen." : "Daar ben je al ingelogd bij je abonnementen.").foregroundStyle(Theme.ink3)
+                    if Weergave(stored: weergave) == .system {
+                        Text("Automatisch volgt je toestel. De tekstgrootte ook.").foregroundStyle(Theme.ink3)
+                    } else {
+                        Text("De tekstgrootte volgt je toestel.").foregroundStyle(Theme.ink3)
+                    }
                 }
                 .hootRows()
 
                 Section {
-                    WeergaveKeuze()
-                    NavigationLink(value: "appicoon") { FormLabel("App-icoon", systemImage: "app") }
-                } header: { FormHeader("Weergave") }.hootRows()
-
-                alertsSection
-
-                Section {
-                    // Niet meer in de rij van de Stroom (daar staan alleen je rubrieken): hier, op een eigen pagina.
+                    // Een menu, net als de rest: het groeit mee met de tekst (I5).
+                    Picker(selection: $store.layout) {
+                        Text("Tijdlijn").tag("tijdlijn")
+                        Text("Krant").tag("krant")
+                    } label: {
+                        FormLabel("Lees de Stroom als", systemImage: store.layout == "krant" ? "newspaper" : "rectangle.grid.1x2")
+                    }
                     Toggle(isOn: $store.bluesky.animation()) {
-                        FormLabel("Bluesky volgen", systemImage: "bubble.left.and.bubble.right")
+                        FormLabel("Bluesky in de Stroom", systemImage: "bubble.left.and.bubble.right")
                     }
                     if store.bluesky {
-                        NavigationLink(value: "bluesky") { FormLabel("Posts", systemImage: "text.bubble") }
+                        NavigationLink(value: "bluesky") { FormLabel("Bluesky-accounts", systemImage: "text.bubble") }
                     }
                 } header: {
-                    FormHeader("Bluesky")
+                    FormHeader("Stroom")
                 }
                 .hootRows()
 
                 Section {
-                    NavigationLink(value: "interesses") {
-                        LabeledContent {
-                            Text(InterestsList.summary(store.interests)).lineLimit(1)
-                        } label: { FormLabel("Interesses", systemImage: "heart.text.square") }
-                    }
+                    NavigationLink(value: "toestel") { FormLabel("Op dit toestel", systemImage: "iphone") }
+                    Link(destination: URL(string: "mailto:info@gethoot.app")!) { OutboundRow(title: "Hulp en contact", systemImage: "questionmark.circle") }.foregroundStyle(Theme.ink)
+                    Link(destination: URL(string: "https://gethoot.app/privacy")!) { OutboundRow(title: "Privacy", systemImage: "hand.raised") }.foregroundStyle(Theme.ink)
+                    Link(destination: URL(string: "https://gethoot.app")!) { OutboundRow(title: "gethoot.app", systemImage: "globe") }.foregroundStyle(Theme.ink)
                 } header: {
-                    FormHeader("Jouw Editie")
+                    FormHeader("Over Hoot")
                 } footer: {
-                    Text("Meer of minder van iets? Druk lang op een verhaal.").foregroundStyle(Theme.ink3)
-                }
-                .hootRows()
-
-                LearnedSection().id("geleerd")
-
-                Section {
-                    NavigationLink(value: "bronnen") {
-                        LabeledContent { Text("\(store.followed.count) aan") } label: { FormLabel("Bronnen", systemImage: "dot.radiowaves.up.forward") }
-                    }
-                    NavigationLink(value: "vakken") {
-                        LabeledContent { Text("\(store.digestFields.filter(store.offersField).count) gekozen") } label: { FormLabel("Selectie", systemImage: "books.vertical") }
-                    }
-                } header: {
-                    FormHeader("Bronnen en Selectie")
-                }
-                .hootRows()
-
-                Section {
-                    Button {
-                        if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
-                    } label: {
-                        OutboundRow(title: "Meldingen en achtergrond", systemImage: "gearshape")
-                    }
-                    .foregroundStyle(Theme.ink)
-                    .accessibilityHint("Opent Hoot in de Instellingen-app")
-                } footer: {
-                    Text("De tekstgrootte volgt je toestel.").foregroundStyle(Theme.ink3)
-                }
-                .hootRows()
-
-                Section {
-                    // In inkt, zoals alle bediening: de melding erna zegt wat er verdwijnt, met Verwijder in rood.
-                    Button(role: .destructive) { confirmClear = "gelezen" } label: {
-                        FormLabel("Alles als ongelezen markeren", systemImage: "eye.slash")
-                    }
-                    .foregroundStyle(Theme.ink)
-                    Button(role: .destructive) { confirmClear = "bewaard" } label: {
-                        FormLabel("Bewaarde artikelen verwijderen", systemImage: "bookmark.slash")
-                    }
-                    .foregroundStyle(Theme.ink)
-                    .disabled(store.saved.isEmpty)
-                    .opacity(store.saved.isEmpty ? 0.45 : 1) // uit: zichtbaar stil, zoals een inktknop
-                } header: {
-                    FormHeader(savedSyncs ? "Gelezen en Bewaard" : "Op dit toestel")
-                }
-                .hootRows()
-
-                // Terug naar het welkom: opnieuw kiezen, of opnieuw inloggen. Wat je bewaarde en las blijft.
-                Section {
-                    Button {
-                        dismiss()
-                        Task {
-                            try? await Task.sleep(for: .milliseconds(450)) // eerst dit blad dicht, dan het welkom
-                            store.welcomeAgain = true // het welkom begint bij wat je nu hebt
-                            store.onboarded = false
-                        }
-                    } label: {
-                        FormLabel("Stel Hoot opnieuw in", systemImage: "arrow.counterclockwise")
-                    }
-                    .foregroundStyle(Theme.ink)
-                } footer: {
-                    Text("Bewaard en gelezen blijven.").foregroundStyle(Theme.ink3)
-                }
-                .hootRows()
-
-                Section {
-                    LabeledContent("Versie", value: version)
-                    LabeledContent("Gemaakt door") { Link("Baldadig.nl", destination: URL(string: "https://baldadig.nl")!) }
-                    Link(destination: URL(string: "https://gethoot.app/privacy")!) { OutboundRow(title: "Privacybeleid", systemImage: "hand.raised") }.foregroundStyle(Theme.ink)
-                    Link(destination: URL(string: "https://gethoot.app")!) { OutboundRow(title: "Website", systemImage: "globe") }.foregroundStyle(Theme.ink)
-                    Link(destination: URL(string: "mailto:info@gethoot.app")!) { OutboundRow(title: "Contact", systemImage: "envelope") }.foregroundStyle(Theme.ink)
-                } header: {
-                    FormHeader("Over")
+                    Text("Hoot \(Self.version) · gemaakt door Baldadig").foregroundStyle(Theme.ink3)
                 }
                 .hootRows()
                 .id("over")
             }
             .hootForm()
             .debugJump(proxy, to: DebugLaunch.screen("instellingen-geleerd") ? "geleerd" : "over", when: 0)
-            .task { await store.loadDigest() } // voor het aantal vakgebieden dat de server levert
+            .task { await store.loadDigest() } // voor het aantal onderwerpen dat de server levert
             }
             .navigationTitle("Instellingen")
             .navigationBarTitleDisplayMode(.inline)
@@ -283,11 +192,13 @@ struct SettingsView: View {
                 } else if page == "bronnen" {
                     SourcesList().navigationTitle("Bronnen").navigationBarTitleDisplayMode(.inline)
                 } else if page == "abonnementen" {
-                    SubscriptionsView().navigationTitle("Je abonnementen").navigationBarTitleDisplayMode(.inline)
+                    SubscriptionsView().navigationTitle("Abonnementen").navigationBarTitleDisplayMode(.inline)
                 } else if page == "bluesky" {
                     BlueskyPage()
                 } else if page == "interesses" {
                     InterestsList().navigationTitle("Interesses").navigationBarTitleDisplayMode(.inline)
+                } else if page == "toestel" {
+                    DeviceDataView(onReset: reset)
                 } else {
                     DigestFieldsList().navigationTitle("Selectie").navigationBarTitleDisplayMode(.inline)
                 }
@@ -296,18 +207,167 @@ struct SettingsView: View {
                 // Klaar als tekst in inkt (een bevestigingsknop kleurt iOS vanzelf als een gevulde cirkel).
                 ToolbarItem(placement: .topBarTrailing) { Button("Klaar") { dismiss() } }
             }
-            // Een melding met een zichtbare Annuleer (een actieblad zonder die knop laat de veilige
-            // uitweg aan een tik ernaast over), en precies wat er verandert.
-            .alert(confirmClear == "bewaard" ? "Alle bewaarde artikelen verwijderen?" : "Alles als ongelezen markeren?", isPresented: Binding(get: { confirmClear != nil }, set: { if !$0 { confirmClear = nil } })) {
-                Button("Annuleer", role: .cancel) {}
-                if confirmClear == "bewaard" {
-                    Button("Verwijder", role: .destructive) { store.clearSaved() }
-                } else {
-                    Button("Markeer als ongelezen", role: .destructive) { store.clearRead() }
+        }
+        .onChange(of: path) { _, _ in icon.refresh() }
+    }
+
+    // Terug naar het welkom: opnieuw kiezen, of opnieuw inloggen. Wat je bewaarde en las blijft.
+    private func reset() {
+        dismiss()
+        Task {
+            try? await Task.sleep(for: .milliseconds(450)) // eerst dit blad dicht, dan het welkom
+            store.welcomeAgain = true // het welkom begint bij wat je nu hebt
+            store.onboarded = false
+        }
+    }
+}
+
+// De accountkaart bovenaan (Instellingen A met de samenvatting uit B): wie je bent, wat jouw Hoot is
+// ("4 interesses · 8 bronnen", gelijk aan hootSummary op het web) en hoe het met je account staat.
+struct SettingsAccountCard: View {
+    @Environment(Account.self) private var account
+    @Environment(HootStore.self) private var store
+
+    static func summary(interests: Int, sources: Int) -> String {
+        let i = interests == 0 ? "Alle interesses" : interests == 1 ? "1 interesse" : "\(interests) interesses"
+        return "\(i) · \(sources == 1 ? "1 bron" : "\(sources) bronnen")"
+    }
+
+    var body: some View {
+        NavigationLink(value: "account") {
+            HStack(spacing: Space.s3) {
+                AccountBadge(size: 44)
+                VStack(alignment: .leading, spacing: Space.s0) {
+                    Text(title).font(.headline).foregroundStyle(Theme.ink)
+                    Text(Self.summary(interests: store.interests.count, sources: store.followed.count)).font(.subheadline).foregroundStyle(Theme.ink3)
+                    Text(status).font(.subheadline).foregroundStyle(Theme.ink3)
                 }
-            } message: {
-                Text(confirmClear == "bewaard" ? "\(store.saved.count == 1 ? "1 artikel verdwijnt" : "\(store.saved.count) artikelen verdwijnen") uit Bewaard\(savedSyncs ? ", ook op je andere toestellen" : ""). Dit kun je niet ongedaan maken." : "Bewaard blijft staan.")
+                .fixedSize(horizontal: false, vertical: true)
             }
+            .padding(.vertical, Space.s1)
+            .accessibilityElement(children: .combine)
+        }
+    }
+    private var title: String {
+        if Account.localBeta { return "Lokale beta" }
+        switch account.status {
+        case .member, .pending: return account.session?.name ?? account.session?.email ?? "Je account"
+        case .loading: return "Je account"
+        case .out: return "Inloggen"
+        }
+    }
+    private var status: String {
+        if Account.localBeta { return "Accountsynchronisatie uit" }
+        switch account.status {
+        case .member: return account.syncLine
+        case .pending: return Account.pendingText
+        case .loading: return "Even geduld …"
+        case .out: return "Bewaar je Hoot op al je toestellen"
+        }
+    }
+
+    struct Footer: View {
+        @Environment(Account.self) private var account
+        var body: some View {
+            if account.status == .out && !Account.localBeta {
+                Text("Lezen kan zonder account.").foregroundStyle(Theme.ink3)
+            }
+        }
+    }
+}
+
+// Een rij met het label en de waarde links eronder in ink3 (I1): nooit afgekapt, ook niet bij grote tekst.
+struct SettingsValueRow: View {
+    let title: String
+    let value: String
+    let systemImage: String
+    var outbound = false
+    var body: some View {
+        HStack(spacing: Space.s3) {
+            Label {
+                VStack(alignment: .leading, spacing: Space.s0) {
+                    Text(title).foregroundStyle(Theme.ink)
+                    Text(value).font(.subheadline).foregroundStyle(Theme.ink3).fixedSize(horizontal: false, vertical: true)
+                }
+            } icon: { Image(systemName: systemImage).foregroundStyle(Theme.ink3) }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            if outbound {
+                Image(systemName: "arrow.up.forward").font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink3).accessibilityHidden(true)
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
+
+// De rij App-icoon toont het gekozen icoon zelf (I2): rood is de standaard.
+struct AppIconRow: View {
+    let selected: AppIconChoice?
+    var body: some View {
+        let choice = selected ?? .red
+        LabeledContent {
+            Text(choice.name)
+        } label: {
+            Label {
+                Text("App-icoon")
+            } icon: {
+                Image(choice.asset).resizable().scaledToFit()
+                    .frame(width: 28, height: 28)
+                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 7, style: .continuous).strokeBorder(Theme.ink.opacity(0.22), lineWidth: 1))
+                    .accessibilityHidden(true)
+            }
+        }
+    }
+}
+
+// Op dit toestel: wat je zelden doet, één tik dieper. Wissen alleen na bevestiging.
+struct DeviceDataView: View {
+    @Environment(HootStore.self) private var store
+    @Environment(Account.self) private var account
+    let onReset: () -> Void
+    @State private var confirmClear: String? = DebugLaunch.screen("instellingen-wissen") ? "gelezen" : nil
+    // Ingelogd (of je account laadt nog): Bewaard gaat mee met je account, dus wissen wist ook daar.
+    private var savedSyncs: Bool { account.session != nil && account.status != .pending }
+
+    var body: some View {
+        Form {
+            Section {
+                // In inkt, zoals alle bediening: de melding erna zegt wat er verdwijnt, met Verwijder in rood.
+                Button(role: .destructive) { confirmClear = "gelezen" } label: {
+                    FormLabel("Alles als ongelezen markeren", systemImage: "eye.slash")
+                }
+                .foregroundStyle(Theme.ink)
+                Button(role: .destructive) { confirmClear = "bewaard" } label: {
+                    FormLabel("Bewaarde artikelen verwijderen", systemImage: "bookmark.slash")
+                }
+                .foregroundStyle(Theme.ink)
+                .disabled(store.saved.isEmpty)
+                .opacity(store.saved.isEmpty ? 0.45 : 1)
+            } footer: {
+                if savedSyncs { Text("Bewaard gaat mee met je account.").foregroundStyle(Theme.ink3) }
+            }
+            .hootRows()
+            Section {
+                Button(action: onReset) { FormLabel("Stel Hoot opnieuw in", systemImage: "arrow.counterclockwise") }
+                    .foregroundStyle(Theme.ink)
+            } footer: {
+                Text("Bewaard en gelezen blijven.").foregroundStyle(Theme.ink3)
+            }
+            .hootRows()
+        }
+        .hootForm()
+        .navigationTitle("Op dit toestel")
+        .navigationBarTitleDisplayMode(.inline)
+        // Een melding met een zichtbare Annuleer, en precies wat er verandert.
+        .alert(confirmClear == "bewaard" ? "Alle bewaarde artikelen verwijderen?" : "Alles als ongelezen markeren?", isPresented: Binding(get: { confirmClear != nil }, set: { if !$0 { confirmClear = nil } })) {
+            Button("Annuleer", role: .cancel) {}
+            if confirmClear == "bewaard" {
+                Button("Verwijder", role: .destructive) { store.clearSaved() }
+            } else {
+                Button("Markeer als ongelezen", role: .destructive) { store.clearRead() }
+            }
+        } message: {
+            Text(confirmClear == "bewaard" ? "\(store.saved.count == 1 ? "1 artikel verdwijnt" : "\(store.saved.count) artikelen verdwijnen") uit Bewaard\(savedSyncs ? ", ook op je andere toestellen" : ""). Dit kun je niet ongedaan maken." : "Bewaard blijft staan.")
         }
     }
 }

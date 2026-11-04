@@ -4123,6 +4123,104 @@ html[data-images='hoofd'] .media--social {
 .setrow--link {
   cursor: pointer;
 }
+/* Instellingen A: een sectiekop in gewone zinsvorm, 15/600 in inkt (I7: kapitalen alleen in de kicker). */
+.sect--plain {
+  color: var(--ink);
+  font-size: var(--t2);
+  font-weight: 600;
+  line-height: var(--lh-2);
+}
+/* Een rij met een menu (I4/I5): het label links, de keuze rechts met het menuteken, de keuzelijst
+   van het systeem onzichtbaar over de hele rij. Past het niet naast elkaar (grote tekst), dan gaat
+   de keuze onder het label. */
+.setrow--menu {
+  position: relative;
+  flex-wrap: wrap;
+  column-gap: var(--s3);
+  row-gap: 0;
+  cursor: pointer;
+}
+.setrow__value {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+  margin-inline-start: auto;
+  color: var(--ink-2);
+  font-size: var(--t2);
+  line-height: var(--lh-2);
+}
+.setrow__value svg {
+  flex: none;
+  color: var(--ink-3);
+}
+.setrow__select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  font-size: 16px; /* geen inzoomen op iOS */
+  cursor: pointer;
+  appearance: none;
+}
+.setrow--menu:has(.setrow__select:focus-visible) {
+  outline: var(--focus-ring);
+  outline-offset: var(--s1);
+}
+/* De voetregel onder een groep: één zin in ink-3. */
+.setfoot {
+  margin: var(--s2) 0 0;
+}
+.setfoot a {
+  color: inherit; /* geen rood in Instellingen, behalve bij Verwijderen */
+  text-decoration-thickness: 1px;
+  text-underline-offset: var(--underline-offset);
+}
+/* De accountkaart bovenaan Instellingen: wie je bent, de samenvatting van je Hoot, en inloggen. */
+.acard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  margin-top: var(--s4);
+  padding: var(--s4);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.acard__row {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+.acard__row > .setrow__text {
+  flex: 1;
+}
+.acard__av {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  border-radius: var(--radius-round);
+  background: var(--tint);
+  color: var(--ink-3);
+  font-family: var(--serif);
+  font-size: var(--t4);
+  font-weight: var(--fw-head);
+}
+.acard__av--in {
+  background: var(--ink);
+  color: var(--paper);
+}
+.acard__name {
+  font-size: var(--t3);
+  line-height: var(--lh-3);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.acard__note {
+  margin: 0;
+}
 /* Wat Hoot van je leerde: de uitleg hangt aan de sectiekop (--s3 erboven en eronder, zoals de kop
    zelf tot de rijen), daarna de rijen met per onderwerp een stille knop. */
 .learned__intro {
@@ -4131,6 +4229,10 @@ html[data-images='hoofd'] .media--social {
 /* Tussenkop boven Vaak gelezen / Minder: een stille kop, lucht erboven op de schaal. */
 .learned__sub {
   margin: var(--s4) 0 var(--s1);
+  color: var(--ink-3);
+  font-size: var(--t1);
+  font-weight: 600;
+  line-height: var(--lh-1);
 }
 /* Een rij die naar een ander scherm gaat: de caret (16, --ink-3) aan het eind, zoals bij een
    uitklapper (.srcgroup), dus op dezelfde plek tegen de rechterlijn. */
@@ -4633,13 +4735,13 @@ html[data-images='hoofd'] .media--social {
    krantenrood, de koppen in de krantenletter. Elke sectie begint op een inktlijn (--rule-strong),
    zonder vlak eronder. */
 .dmast {
-  margin: 0 0 var(--s5); /* eerste inhoud van de Selectie: de afstand komt van de kop */
+  margin: var(--s4) 0 0; /* de week staat --s4 onder de schermtitel, zoals in concept B */
 }
 .dmast__lede {
-  margin-top: var(--s2);
+  margin-top: var(--s1);
 }
 .dmast__note {
-  margin-top: var(--s2);
+  margin-top: var(--s1);
   color: var(--ink-3);
   font-size: var(--t2);
 }
@@ -4753,24 +4855,8 @@ html[data-images='hoofd'] .media--social {
 
 /* Een vak */
 .dfield {
-  margin-top: var(--s7);
-}
-.dfield__head {
-  display: flex;
-  align-items: center;
-  gap: var(--s3);
-  margin-bottom: var(--s4);
-  padding-top: var(--s4);
+  margin-top: var(--s6);
   border-top: var(--rule-strong);
-}
-.dfield__icon {
-  width: var(--disc-lg);
-  height: var(--disc-lg);
-}
-.dfield__about {
-  color: var(--ink-3);
-  font-size: var(--t2);
-  line-height: var(--lh-2);
 }
 .dfield,
 .dfield__anchor {
@@ -4798,7 +4884,7 @@ html[data-images='hoofd'] .media--social {
 .dcard__rank {
   display: block;
   margin-bottom: var(--s1);
-  color: var(--accent);
+  color: var(--ink); /* in inkt, zoals het cijfer in de Editie: de punt van hoot. blijft het enige rood */
   font-family: var(--serif);
   font-size: var(--t3);
   font-weight: 800;
@@ -5421,29 +5507,36 @@ html[data-images='hoofd'] .media--social {
 .ob__sourcecard[aria-pressed='true'] .ob__check { background:var(--accent); border-color:var(--accent) }
 .ob__sourcecard[aria-pressed='true'] .ob__check::after { width:12px; height:12px; background:var(--paper) }
 @media(min-width:560px) { .ob__sourcecard { height:max(104px,calc(58px + 3.6 * var(--t1))); padding:var(--s2) } .ob__sourcecard-name { font-size:var(--t1) } }
-/* Selectie: navigeren staat los van onderwerpen volgen. Geen vaste of zwevende index. */
-.dnav { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s3) var(--s4); margin: var(--s4) 0; }
-.dnav__dialog { max-width: 32rem; }
-.dnav__group + .dnav__group { margin-top: var(--s5); }
-.dnav__group > h2 { margin-bottom: var(--s2); }
-.dnav__item { min-height: var(--tap); background: transparent; border: 0; color: var(--ink); font: inherit; width: 100%; display: flex; justify-content: space-between; align-items: baseline; gap: var(--s3); text-align: left; padding: var(--s2) 0; border-bottom: 1px solid var(--rule); }
-.dnav__item > span:first-child { min-width: 0; overflow-wrap: anywhere; }
-.dnav__count { color: var(--ink-3); font-size: var(--t1); flex-shrink: 0; }
-.dfield > .dfield__head { display: block; }
-.dfield__toggle { background: transparent; border: 0; padding: 0; display: flex; align-items: center; gap: var(--s3); min-height: var(--tap); width: 100%; text-align: left; color: inherit; font: inherit; }
-.dfield__heading { min-width: 0; flex: 1; }
-.dfield__title, .dfield__about { display: block; }
-.dfield__title { overflow-wrap: anywhere; }
-.dfield__about { font-family: var(--sans); font-weight: 400; }
-.dfield__count { display: grid; justify-items: end; gap: var(--s1); font-family: var(--sans); font-size: var(--t1); font-weight: 400; color: var(--ink-3); }
-.dfield__chevron { display: block; width: 8px; height: 8px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); margin: var(--s1); }
-.dfield__toggle[aria-expanded="true"] .dfield__chevron { transform: rotate(225deg); }
-.dfield__icon { flex-shrink: 0; }
-.dfield__toggle:focus-visible { outline-offset: var(--s1); }
-@media (max-width: 359px) { .dfield__icon { display: none; } }
-
-.dfield--closed { margin-top: var(--s3); }
-.dfield--closed > .dfield__head { margin-bottom: 0; padding-top: var(--s3); }
+/* Selectie-index B (concepten-2/4-selectie-index.html): de inhoud bovenaan, één rijvorm voor
+   springen, kiezen en in- of uitklappen. De naam met het aantal eronder, het teken rechts op de
+   eerste regel van de naam (SE2, SE3). De kop van een onderwerp is dezelfde rij in de serif op 22. */
+.dindex { margin: var(--s5) 0 var(--s6); border-top: 1px solid var(--rule); }
+.dirow { display: grid; grid-template-columns: minmax(0, 1fr) var(--tap); column-gap: var(--s3); align-items: center; width: 100%; min-height: 56px; padding: var(--s2) 0; border: 0; border-bottom: 1px solid var(--rule); background: none; color: var(--ink); font: inherit; font-weight: 400; text-align: left; cursor: pointer; }
+.dirow:disabled { cursor: default; opacity: .45; }
+.dirow:not(:disabled):active { background: var(--tint); }
+@media (hover: hover) { .dirow:not(:disabled):hover .dirow__name { text-decoration: underline; text-underline-offset: var(--underline-offset); text-decoration-thickness: 1px; } }
+.dirow__text { min-width: 0; }
+.dirow__name { display: block; font-size: var(--t3); line-height: var(--lh-3); font-weight: 600; overflow-wrap: anywhere; }
+.dirow__sub { display: block; color: var(--ink-3); font-size: var(--t1); line-height: var(--lh-1); font-variant-numeric: tabular-nums; }
+.dirow__icon { display: grid; place-items: center; width: var(--tap); height: var(--tap); margin-right: calc((var(--icon-sm) - var(--tap)) / 2); color: var(--ink-3); }
+.dirow--big { align-items: start; padding: var(--s3) 0; border-bottom: 0; }
+.dirow--big .dirow__name { font-family: var(--serif); font-size: var(--t-head-lg); line-height: var(--lh-head-lg); font-weight: var(--fw-head); letter-spacing: var(--ls-head-5); }
+.dirow--big .dirow__sub { margin-top: var(--s1); }
+.dirow--big .dirow__icon { margin-top: calc((var(--lh-head-lg) - var(--tap)) / 2); }
+.dirow:focus-visible { outline-offset: var(--s1); }
+/* Na het springen licht het onderwerp even op (niet bij Verminder beweging: dan zet Vak.jsx hem niet). */
+.dirow--flash { animation: dirow-flash 1.2s var(--ease) 1; }
+@keyframes dirow-flash { 0%, 40% { background: var(--tint); } 100% { background: transparent; } }
+.dfield__head { margin: 0; }
+.dfield__head .dirow { scroll-margin-top: calc(var(--safe-t) + var(--s4)); }
+.dfield__about { margin: 0 0 var(--s3); color: var(--ink-3); font-size: var(--t2); line-height: var(--lh-2-read); }
+.dfield__none { margin: 0; color: var(--ink-3); }
+/* Lege toestanden: links in de kolom, één zin, één rij om te kiezen. Geen datum, geen telling. */
+.dempty { padding-top: var(--s5); }
+.dempty__text { margin: var(--s2) 0 0; max-width: 32em; color: var(--ink-2); font-size: var(--t3); line-height: var(--lh-3); }
+.dempty .dindex { margin: var(--s4) 0 0; }
+.dpick { max-width: 32rem; }
+.dpick .chipgroup + .chipgroup { margin-top: var(--s5); }
 /* Editie: vaste cijfervakken in Newsreader, ook zonder tnum in het letterbestand. */
 .kicker__n { display: inline-flex; font-variant-numeric: tabular-nums; }
 .kicker__digit { display: inline-block; inline-size: 1ch; text-align: center; }

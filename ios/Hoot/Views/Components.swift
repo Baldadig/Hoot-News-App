@@ -138,11 +138,14 @@ extension View {
     }
 }
 
-// De kop boven een sectie: een kicker in inkt, zoals `GroupTitle` (die in ink3 staat).
+// De kop boven een sectie: gewone zinsvorm, 15/600 in inkt (Instellingen A, I7: kapitalen alleen in de kicker).
 struct FormHeader: View {
     let text: String
     init(_ text: String) { self.text = text }
-    var body: some View { GroupTitle(text: text, tone: Theme.ink).textCase(nil) }
+    var body: some View {
+        Text(text).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink).textCase(nil)
+            .accessibilityAddTraits(.isHeader)
+    }
 }
 
 // De schermtitel als eerste regel in de scroll (C7): bewust stil tegenover het hoofdverhaal, zoals

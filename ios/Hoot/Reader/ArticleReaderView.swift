@@ -9,6 +9,7 @@ struct ArticleReaderView: View {
     @Environment(\.nachtActief) private var nacht
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @Environment(\.accessibilityReduceMotion) private var still
     let item: Item
     @State private var loader = ArticleLoader()
     @State private var waiting = ReaderWaitingState()
@@ -107,7 +108,7 @@ struct ArticleReaderView: View {
                         .padding(.vertical, Space.s2)
                         .background(Theme.ink, in: Capsule()) // een melding is inkt, geen rood
                         .padding(.top, Space.s2)
-                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .transition(still ? .opacity : .move(edge: .top).combined(with: .opacity)) // Verminder beweging: niet schuiven
                         .accessibilityAddTraits(.isStaticText)
                 }
             }
@@ -266,14 +267,22 @@ struct LoginTarget: Identifiable {
 
 struct LoginWebView: View {
     @Environment(\.nachtActief) private var nacht
+    @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     let target: LoginTarget
     @State private var webView: WKWebView = {
         let config = WKWebViewConfiguration()
         config.websiteDataStore = ArticleLoader.dataStore
-        return WKWebView(frame: .zero, configuration: config)
+        let view = WKWebView(frame: .zero, configuration: config)
+        // Tot de site zelf tekent: papier, geen wit vlak.
+        view.isOpaque = false
+        view.backgroundColor = NachtKleur.paper
+        view.underPageBackgroundColor = NachtKleur.paper
+        view.scrollView.backgroundColor = .clear
+        return view
     }()
-    @State private var done = false // we zien dat je bent ingelogd
+    @State private var watcher: LoginWatcher?
+    private var done: Bool { watcher?.confirmed == true } // we zien echt dat je bent ingelogd
 
     var body: some View {
         NavigationStack {
@@ -282,62 +291,75 @@ struct LoginWebView: View {
                 .navigationTitle("Inloggen bij \(target.name)")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    // "Klaar" als tekst in inkt; pas na het inloggen is het de volgende stap, en dan halfvet.
+                    // "Klaar" als tekst in inkt; pas als je echt bent ingelogd is het de volgende stap: een inktknop.
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button("Klaar") { dismiss() }.fontWeight(done ? .semibold : .regular)
+                        if done {
+                            Button { dismiss() } label: { Text("Klaar").fontWeight(.semibold).foregroundStyle(Theme.paper) }
+                                .buttonStyle(.borderedProminent).tint(Theme.ink)
+                        } else {
+                            Button("Klaar") { dismiss() }
+                        }
                     }
                 }
                 .safeAreaInset(edge: .top) {
+                    // De status onder de gecentreerde titel, ook gecentreerd. Eerlijk: pas na een echte inlog
+                    // het vinkje, in inkt (een succes in rood leest als een fout).
                     Group {
                         if done {
-                            // De bevestiging: je bent binnen, en wat je nu kunt.
-                            Label("Ingelogd bij \(target.name). Tik op Klaar.", systemImage: "checkmark.circle.fill")
-                                .foregroundStyle(Theme.accent)
+                            Label { Text("Je bent ingelogd bij \(target.name).") } icon: { Image(systemName: "checkmark") }
+                                .foregroundStyle(Theme.ink)
+                                .fontWeight(.semibold)
                         } else {
                             Text("Log in zoals altijd. Hoot ziet je wachtwoord niet.")
                                 .foregroundStyle(Theme.ink3)
                         }
                     }
                     .font(.footnote)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal)
                     .padding(.vertical, Space.s2)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(maxWidth: .infinity)
                     .background(nacht ? AnyShapeStyle(Theme.paper) : AnyShapeStyle(.bar))
+                    .overlay(alignment: .bottom) { Rule() }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityAddTraits(.updatesFrequently)
                     .animation(.easeInOut(duration: 0.3), value: done)
                 }
                 .sensoryFeedback(.success, trigger: done) { _, now in now }
+                .onChange(of: done) { _, now in
+                    if now { UIAccessibility.post(notification: .announcement, argument: "Je bent ingelogd bij \(target.name).") }
+                }
         }
-        .task { if let url = target.url { webView.load(URLRequest(url: url)) } }
-        .task { await watch() }
+        .task { await start() }
     }
 
-    // Kijk mee of er een inlog bijkomt: een bekende inlogcookie, of een nieuwe accountcookie die er bij
-    // het openen nog niet was. Dan onthouden we de uitgever (alleen op dit toestel) en bevestigen we.
-    private func watch() async {
-        guard let domain = target.url.flatMap(PublisherLogin.domain(of:)) else { return }
-        let before = await PublisherLogin.accountCookies(domain)
+    // Eerst het script, het dimmen (Donker en Nacht) en de berichten, dan de pagina; daarna meekijken.
+    private func start() async {
+        guard let url = target.url else { return }
+        let content = webView.configuration.userContentController
+        if scheme == .dark {
+            content.addUserScript(WKUserScript(source: LoginPageScript.dimScript(night: nacht), injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        }
+        guard let domain = PublisherLogin.domain(of: url) else { webView.load(URLRequest(url: url)); return }
+        let watcher = LoginWatcher(domain: domain)
+        watcher.attach(to: webView)
+        self.watcher = watcher
         #if DEBUG
-        // `-HootFakeLogin 4`: na 4 s een accountcookie, alsof je inlogde (om deze stap te testen).
+        // `-HootFakeLogin 4`: na 4 s een inlogcookie, alsof je inlogde (om deze stap te testen).
         let fake = UserDefaults.standard.double(forKey: "HootFakeLogin")
         if fake > 0 {
             Task {
                 try? await Task.sleep(for: .seconds(fake))
-                let cookie = HTTPCookie(properties: [.domain: "." + domain, .path: "/", .name: "hoot_test_account", .value: "1", .expires: Date.now.addingTimeInterval(86400 * 30)])
+                let cookie = HTTPCookie(properties: [.domain: "." + domain, .path: "/", .name: "hoot_test_auth_token", .value: "1", .expires: Date.now.addingTimeInterval(86400 * 30)])
                 if let cookie { await ArticleLoader.dataStore.httpCookieStore.setCookie(cookie) }
             }
         }
         #endif
-        if await !PublisherLogin.loggedIn([domain]).isEmpty { done = true; return } // al ingelogd
-        while !Task.isCancelled {
-            try? await Task.sleep(for: .seconds(1))
-            let known = await !PublisherLogin.loggedIn([domain]).isEmpty
-            let added = await PublisherLogin.accountCookies(domain).subtracting(before)
-            if known || !added.isEmpty {
-                PublisherLogin.remember(domain)
-                done = true
-                return
-            }
-        }
+        // Al ingelogd (herkende cookie, of eerder hier ingelogd en de accountcookie staat er nog)?
+        if await !PublisherLogin.loggedIn([domain]).isEmpty { watcher.alreadyLoggedIn() }
+        webView.load(URLRequest(url: url))
+        if await watcher.watch() { PublisherLogin.remember(domain) }
     }
 }
 

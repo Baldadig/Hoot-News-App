@@ -1,82 +1,67 @@
 import { useHoot } from './Items.jsx'
 import { Dialog, DialogHeader } from './Dialog.jsx'
 import { AccountSettings } from './Account.jsx'
+import { UpDownIcon } from './icons.jsx'
 
-// Weergave: wat je al lezend wisselt. Dezelfde rijen in het paneel (Aa) en op Instellingen.
-// `size` geeft een knop een eigen lettermaat: de A's van Tekstgrootte tonen zo zelf de stap.
-function Seg({ label, value, options, onChange }) {
+// Weergave: wat je al lezend wisselt. Dezelfde rijen in het blad Jij en op Instellingen.
+// Instellingen A (concepten-2/6-instellingen.html, I4/I5): geen rode segmenten meer, maar een rij
+// met de keuze rechts en een menu, zoals op iOS. Het menu is de keuzelijst van het systeem (op iOS
+// en macOS met een vinkje): bereikbaar met toetsenbord en schermlezer, en het groeit mee met de tekst.
+export function MenuRow({ label, value, options, onChange }) {
+  const current = options.find((o) => o.value === value) || options[0]
   return (
-    <div className="drow">
-      <span className="drow__label">{label}</span>
-      <div className="seg" role="group" aria-label={label}>
+    <label className="setrow setrow--menu">
+      <span className="setrow__label">{label}</span>
+      <span className="setrow__value" aria-hidden="true">
+        {current.label}
+        <UpDownIcon />
+      </span>
+      <select className="setrow__select" value={String(current.value)} aria-label={label} onChange={(e) => onChange(options.find((o) => String(o.value) === e.target.value).value)}>
         {options.map((o) => (
-          <button key={String(o.value)} type="button" className={o.size ? `seg__btn seg__btn--${o.size}` : 'seg__btn'} aria-pressed={value === o.value} onClick={() => onChange(o.value)} aria-label={o.aria || undefined}>
-            {o.label}
-          </button>
+          <option key={String(o.value)} value={String(o.value)}>
+            {o.aria || o.label}
+          </option>
         ))}
-      </div>
-    </div>
+      </select>
+    </label>
   )
 }
 
-export function DisplayControls() {
+// Weergave · Thema: dezelfde labels en volgorde als iOS. "Als het donker is" alleen bij Automatisch.
+export const THEME_OPTIONS = [
+  { value: 'system', label: 'Automatisch' },
+  { value: 'light', label: 'Licht' },
+  { value: 'dark', label: 'Donker' },
+  { value: 'night', label: 'Nacht', aria: 'Nacht, echt zwart' },
+]
+
+export function DisplayControls({ stream = true }) {
   const { prefs, setPref, theme, setTheme, themeDark, setThemeDark } = useHoot()
   return (
-    <div className="drows">
-      <Seg
-        label="Thema"
-        value={theme}
-        onChange={setTheme}
-        options={[
-          { value: 'system', label: 'Systeem' },
-          { value: 'light', label: 'Licht' },
-          { value: 'dark', label: 'Donker' },
-          { value: 'night', label: 'Nacht', aria: 'Nacht, echt zwart' },
-        ]}
-      />
-      {theme === 'system' ? <Seg label="Als het donker is" value={themeDark} onChange={setThemeDark} options={[{value:'dark',label:'Donker'},{value:'night',label:'Nacht',aria:'Nacht, echt zwart'}]} /> : null}
-      <Seg
+    <div className="rows">
+      <MenuRow label="Weergave" value={theme} onChange={setTheme} options={THEME_OPTIONS} />
+      {theme === 'system' ? <MenuRow label="Als het donker is" value={themeDark} onChange={setThemeDark} options={[{ value: 'dark', label: 'Donker' }, { value: 'night', label: 'Nacht', aria: 'Nacht, echt zwart' }]} /> : null}
+      <MenuRow
         label="Kleur"
         value={prefs.palette}
         onChange={(v) => setPref('palette', v)}
         options={[
-          { value: 'papier', label: 'Papier', aria: 'Papier: warm papier' },
-          { value: 'blad', label: 'Blad', aria: 'Blad: wit blad op papier' },
-          { value: 'inkt', label: 'Inkt', aria: 'Inkt: donkere kop' },
+          { value: 'papier', label: 'Papier' },
+          { value: 'blad', label: 'Blad' },
+          { value: 'inkt', label: 'Inkt' },
         ]}
       />
-      {/* Zelfde naam en twee vormen als in de app (SettingsView); de pref blijft 'layout'. */}
-      <Seg
-        label="Lees de Stroom als"
-        value={prefs.layout}
-        onChange={(v) => setPref('layout', v)}
-        options={[
-          { value: 'tijdlijn', label: 'Tijdlijn', aria: 'Tijdlijn: groot beeld' },
-          { value: 'krant', label: 'Krant', aria: 'Krant: klein beeld ernaast' },
-        ]}
-      />
-      <Seg
+      <MenuRow
         label="Tekstgrootte"
         value={prefs.textSize}
         onChange={(v) => setPref('textSize', v)}
         options={[
-          { value: 'klein', label: 'A', aria: 'Klein', size: 'klein' },
-          { value: 'normaal', label: 'A', aria: 'Normaal' },
-          { value: 'groot', label: 'A', aria: 'Groot', size: 'groot' },
+          { value: 'klein', label: 'Klein' },
+          { value: 'normaal', label: 'Normaal' },
+          { value: 'groot', label: 'Groot' },
         ]}
       />
-      <Seg
-        label="Intro"
-        value={prefs.preview}
-        onChange={(v) => setPref('preview', v)}
-        options={[
-          { value: 1, label: '1', aria: 'Eén regel' },
-          { value: 2, label: '2', aria: 'Twee regels' },
-          { value: 3, label: '3', aria: 'Drie regels' },
-          { value: 'alles', label: 'Alles' },
-        ]}
-      />
-      <Seg
+      <MenuRow
         label="Beeld"
         value={prefs.images}
         onChange={(v) => setPref('images', v)}
@@ -86,7 +71,35 @@ export function DisplayControls() {
           { value: 'uit', label: 'Uit' },
         ]}
       />
+      <MenuRow
+        label="Intro"
+        value={prefs.preview}
+        onChange={(v) => setPref('preview', v)}
+        options={[
+          { value: 1, label: '1 regel' },
+          { value: 2, label: '2 regels' },
+          { value: 3, label: '3 regels' },
+          { value: 'alles', label: 'Hele intro' },
+        ]}
+      />
+      {/* Zelfde naam en twee vormen als in de app (SettingsView); de pref blijft 'layout'. */}
+      {stream ? <StreamLayoutRow /> : null}
     </div>
+  )
+}
+
+export function StreamLayoutRow() {
+  const { prefs, setPref } = useHoot()
+  return (
+    <MenuRow
+      label="Lees de Stroom als"
+      value={prefs.layout}
+      onChange={(v) => setPref('layout', v)}
+      options={[
+        { value: 'tijdlijn', label: 'Tijdlijn', aria: 'Tijdlijn: groot beeld' },
+        { value: 'krant', label: 'Krant', aria: 'Krant: klein beeld ernaast' },
+      ]}
+    />
   )
 }
 
@@ -97,7 +110,7 @@ export function DisplaySheet({ open, onClose, account, syncStatus }) {
     <Dialog open={open} onClose={onClose} className="sheet--display" labelledBy="display-title">
       <DialogHeader id="display-title" title="Jij" onClose={onClose} />
       {account ? <AccountSettings account={account} syncStatus={syncStatus} /> : null}
-      <h3 className="label label--section sheet__label">Weergave</h3>
+      <h3 className="sect sect--plain sheet__label">Lezen</h3>
       <DisplayControls />
       <p className="sheet__note">
         <a className="linkbtn" href="#/instellingen" onClick={onClose}>

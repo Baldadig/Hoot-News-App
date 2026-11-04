@@ -5,7 +5,7 @@ import UIKit
 enum Weergave: String, CaseIterable {
     case system, light, dark, night
     init(stored: String) { self = Self(rawValue: stored) ?? .system }
-    var label: String { switch self { case .system: "Systeem"; case .light: "Licht"; case .dark: "Donker"; case .night: "Nacht" } }
+    var label: String { switch self { case .system: "Automatisch"; case .light: "Licht"; case .dark: "Donker"; case .night: "Nacht" } }
     var scheme: ColorScheme? { switch self { case .system: nil; case .light: .light; case .dark, .night: .dark } }
     func nightActive(systemDark: Bool, evening: String) -> Bool { self == .night || (self == .system && systemDark && evening == "night") }
 }
@@ -92,16 +92,19 @@ struct WeergaveKeuze: View {
     @AppStorage("hoot.weergave") private var value = "system"
     @AppStorage("hoot.weergave.donker") private var evening = "dark"
     var body: some View {
-        Picker("Thema", selection: Binding(get: { Weergave(stored: value).rawValue }, set: { value = $0 })) {
+        // Een menu met een vinkje (Instellingen A); "Als het donker is" alleen bij Automatisch.
+        Picker(selection: Binding(get: { Weergave(stored: value).rawValue }, set: { value = $0 })) {
             ForEach(Weergave.allCases, id: \.rawValue) { option in
                 Text(option.label).tag(option.rawValue).accessibilityLabel(option == .night ? "Nacht, echt zwart" : option.label)
             }
-        }.frame(minHeight: Space.tap)
+        } label: { FormLabel("Weergave", systemImage: "circle.lefthalf.filled") }
+        .frame(minHeight: Space.tap)
         if Weergave(stored: value) == .system {
-            Picker("Als het donker is", selection: Binding(get: { evening == "night" ? "night" : "dark" }, set: { evening = $0 })) {
+            Picker(selection: Binding(get: { evening == "night" ? "night" : "dark" }, set: { evening = $0 })) {
                 Text("Donker").tag("dark")
                 Text("Nacht").tag("night").accessibilityLabel("Nacht, echt zwart")
-            }.frame(minHeight: Space.tap)
+            } label: { FormLabel("Als het donker is", systemImage: "moon") }
+            .frame(minHeight: Space.tap)
         }
     }
 }

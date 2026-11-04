@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { ViewHeader } from '../components/Shell.jsx'
-import { DisplayControls } from '../components/Display.jsx'
+import { DisplayControls, MenuRow, StreamLayoutRow } from '../components/Display.jsx'
 import { useHoot } from '../components/Items.jsx'
 import { Switch } from './Sources.jsx'
 import { AccountSettings } from '../components/Account.jsx'
@@ -9,9 +9,11 @@ import { VAK_FIELD_IDS } from '../../shared/vak.mjs'
 import { INTERESTS, topicById } from '../lib/topics.js'
 import { CaretIcon, ICON_SM } from '../components/icons.jsx'
 import { supplyOf, profileOf, profileSummary } from '../../shared/editor.mjs'
+import { hootSummary } from '../lib/settings-summary.js'
 
-// Alle instellingen op één plek. Wat je al lezend wisselt staat bovenaan (zelfde rijen als
-// het Weergave-paneel); daaronder wat je één keer instelt.
+// Instellingen A (concepten-2/6-instellingen.html): één blad, geordend op wat je als lezer wilt
+// doen. Bovenaan je account met de samenvatting van je Hoot, dan Jouw Hoot, Lezen, Stroom en Over
+// Hoot. Koppen in gewone zinsvorm (I7), keuzes als menu met een vinkje (I4), geen rode segmenten.
 function Row({ label, hint, children }) {
   return (
     <div className="setrow">
@@ -24,70 +26,73 @@ function Row({ label, hint, children }) {
   )
 }
 
+// Een rij naar een ander scherm: de waarde links onder het label (I1), nooit afgekapt, en de caret rechts.
+function LinkRow({ href, label, hint }) {
+  return (
+    <a className="setrow setrow--link" href={href}>
+      <span className="setrow__text">
+        <span className="setrow__label">{label}</span>
+        {hint ? <span className="setrow__hint">{hint}</span> : null}
+      </span>
+      <span className="caret" aria-hidden="true">
+        <CaretIcon size={ICON_SM} />
+      </span>
+    </a>
+  )
+}
+
 export default function Settings({ meta, account, syncStatus, affinity = null, onForgetTopic, onBack, backLabel }) {
-  const { prefs, setPref } = useHoot()
+  const { prefs, setPref, theme, sourcesById, muted } = useHoot()
   const ai = !!meta?.aiEnabled
   const interestNames = (prefs.interests || []).map((id) => INTERESTS.find((i) => i.id === id)?.label).filter(Boolean).join(', ')
+  const followed = [...(sourcesById?.values() || [])].filter((s) => s.kind !== 'sociaal' && !muted?.has(s.id)).length
+  const summary = hootSummary({ interests: (prefs.interests || []).length, sources: followed })
+  const vak = prefs.vak.length
   return (
     <section className="view view--page" aria-label="Instellingen">
       <div className="col col--form">
         <ViewHeader title="Instellingen" showSearch={false} account={false} onBack={onBack} backLabel={backLabel} backInNav />
 
-        <h2 className="label label--section sect">Account</h2>
-        <AccountSettings account={account} syncStatus={syncStatus} />
+        <AccountSettings account={account} syncStatus={syncStatus} summary={summary} />
 
-        <h2 className="label label--section sect">Weergave</h2>
-        <DisplayControls />
-
-        <h2 className="label label--section sect">Editie</h2>
+        <h2 className="sect sect--plain">Jouw Hoot</h2>
         <div className="rows">
-          <Row label="De Editie in één minuut" hint={ai ? 'Samenvatting door AI. Met een account.' : 'Nog niet beschikbaar.'}>
-            <Switch checked={prefs.brief} onChange={(v) => setPref('brief', v)} label="De Editie in één minuut" />
+          <LinkRow href="#/welkom" label="Interesses" hint={interestNames || 'Alles'} />
+          <LinkRow href="#/bronnen" label="Bronnen" hint={followed === 1 ? '1 bron' : `${followed} bronnen`} />
+          <Row label="Selectie" hint={vak ? (vak === 1 ? '1 onderwerp' : `${vak} onderwerpen`) : 'Elke maandag het beste per onderwerp.'}>
+            <Switch checked={vak > 0} onChange={(v) => setPref('vak', v ? VAK_FIELD_IDS : [])} label="Selectie" />
           </Row>
           <Row label="Buiten je bubbel" hint="Een extra verhaal naast je Editie.">
             <Switch checked={prefs.bubble} onChange={(v) => setPref('bubble', v)} label="Buiten je bubbel" />
           </Row>
-          <div className="setrow setrow--stack">
-            <label className="setrow__text" htmlFor="weather-place">
-              <span className="setrow__label">Weer</span>
-            </label>
-            <select id="weather-place" className="input" value={prefs.weatherPlace} onChange={(e) => setPref('weatherPlace', e.target.value)}>
-              {PLACES.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-              <option value={NO_WEATHER}>Geen weer</option>
-            </select>
-          </div>
-          <a className="setrow setrow--link" href="#/welkom">
-            <span className="setrow__text">
-              <span className="setrow__label">Interesses</span>
-              {interestNames ? <span className="setrow__hint">{interestNames}</span> : null}
-            </span>
-            <span className="caret" aria-hidden="true">
-              <CaretIcon size={ICON_SM} />
-            </span>
-          </a>
+          <Row label="De Editie in één minuut" hint={ai ? 'Samenvatting door AI. Met een account.' : 'Nog niet beschikbaar.'}>
+            <Switch checked={prefs.brief} onChange={(v) => setPref('brief', v)} label="De Editie in één minuut" />
+          </Row>
+          <MenuRow label="Weer" value={prefs.weatherPlace} onChange={(v) => setPref('weatherPlace', v)} options={[...PLACES.map((p) => ({ value: p.id, label: p.name })), { value: NO_WEATHER, label: 'Geen weer' }]} />
         </div>
 
-        <h2 className="label label--section sect">Menu</h2>
+        <Learned affinity={affinity} onForget={onForgetTopic} />
+
+        <h2 className="sect sect--plain">Lezen</h2>
+        <DisplayControls stream={false} />
+        {theme === 'system' ? <p className="hint setfoot">Automatisch volgt je toestel.</p> : null}
+
+        <h2 className="sect sect--plain">Stroom</h2>
         <div className="rows">
-          <Row label="Selectie" hint="Elke maandag het beste per onderwerp.">
-            <Switch checked={prefs.vak.length > 0} onChange={(v) => setPref('vak', v ? VAK_FIELD_IDS : [])} label="Selectie" />
-          </Row>
+          <StreamLayoutRow />
           <Row label="Bluesky in de Stroom" hint="Kies je accounts bij Bronnen.">
             <Switch checked={prefs.bluesky} onChange={(v) => setPref('bluesky', v)} label="Bluesky in de Stroom" />
           </Row>
         </div>
 
-        <Learned affinity={affinity} onForget={onForgetTopic} />
-
-        <h2 className="label label--section sect">Over</h2>
-        <p className="about">
-          Hoot v{__APP_VERSION__} · gemaakt door <a href="https://baldadig.nl" target="_blank" rel="noopener">Baldadig.nl</a> · <a href="#/over">Over en contact</a> · <a href="#/privacy">Privacy</a> · <a href="#/stijl">Designsysteem</a>
-          <br />
-          Intro’s komen van de bron, niet van AI.
+        <h2 className="sect sect--plain">Over Hoot</h2>
+        <div className="rows">
+          <LinkRow href="#/over" label="Over en contact" />
+          <LinkRow href="#/privacy" label="Privacy" />
+          <LinkRow href="#/stijl" label="Designsysteem" />
+        </div>
+        <p className="hint setfoot">
+          Hoot {__APP_VERSION__} · gemaakt door <a href="https://baldadig.nl" target="_blank" rel="noopener">Baldadig</a>. Intro’s komen van de bron, niet van AI.
           {meta?.storage === 'blobs' ? null : ' De Editie kan nu nog wisselen.'}
         </p>
       </div>
@@ -119,7 +124,7 @@ function Learned({ affinity, onForget }) {
   const nothingLearned = !summary.learned.length && !summary.less.length
   return (
     <>
-      <h2 className="label label--section sect">Wat Hoot van je leerde</h2>
+      <h2 className="sect sect--plain">Wat Hoot van je leerde</h2>
       <p className="hint learned__intro">Telt vanaf je volgende Editie.</p>
       <div className="rows">
         {summary.chosen.length ? <Row label="Gekozen" hint={summary.chosen.map(name).join(', ')} /> : null}
@@ -127,7 +132,7 @@ function Learned({ affinity, onForget }) {
       </div>
       {summary.learned.length ? (
         <>
-          <p className="label label--meta learned__sub">Vaak gelezen</p>
+          <p className="learned__sub">Vaak gelezen</p>
           <div className="rows">
             {summary.learned.map((t) => (
               <Row key={t} label={name(t)}>
@@ -141,7 +146,7 @@ function Learned({ affinity, onForget }) {
       ) : null}
       {less.length ? (
         <>
-          <p className="label label--meta learned__sub">Minder</p>
+          <p className="learned__sub">Minder</p>
           <div className="rows">
             {less.map((t) => (
               <Row key={t} label={name(t)}>
