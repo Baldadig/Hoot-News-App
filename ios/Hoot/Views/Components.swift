@@ -14,6 +14,9 @@ enum Theme {
     // donker); nooit het lichtere grijs van het systeem (3,3:1 op papier).
     static let ink3 = Color(uiColor: NachtKleur.ink3)
     static let rule = Color("Rule") // haarlijn, decoratief
+    // De dunne ring om een logo of monogram (--hairline): inkt op 14 %, dus in elk thema net zichtbaar,
+    // ook over een wit logo op wit papier.
+    static var hairline: Color { ink.opacity(0.14) }
     static let edge = Color("Edge") // rand van velden en knoppen die iets betekenen (3:1)
     static let accentSoft = Color("AccentSoft") // achtergrond van iets dat aan staat
     static let onAccent = Color("OnAccent") // tekst op een accent-vlak
@@ -335,7 +338,7 @@ struct SourceMark: View {
         }
         .frame(width: size, height: size)
         .clipShape(Circle())
-        .overlay(Circle().strokeBorder(Theme.rule, lineWidth: 1))
+        .overlay(Circle().strokeBorder(Theme.hairline, lineWidth: 1))
         .accessibilityHidden(true)
     }
 }

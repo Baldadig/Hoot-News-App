@@ -291,7 +291,7 @@ struct StreamLine: View {
     @ViewBuilder private func logo(_ b: Bol) -> some View {
         if let s = b.bron {
             SourceAvatar(source: s, size: Self.logo)
-                .overlay(Circle().strokeBorder(Theme.ink.opacity(0.14), lineWidth: 1))
+                .overlay(Circle().strokeBorder(Theme.hairline, lineWidth: 1))
                 .background(Circle().fill(Theme.paper).padding(-Self.ring))
         } else {
             Circle()

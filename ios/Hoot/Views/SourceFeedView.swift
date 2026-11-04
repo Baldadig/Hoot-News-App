@@ -20,7 +20,7 @@ struct SourceAvatar: View {
         }
         .frame(width: size, height: size)
         .clipShape(Circle())
-        .overlay(Circle().strokeBorder(Theme.rule, lineWidth: 1))
+        .overlay(Circle().strokeBorder(Theme.hairline, lineWidth: 1)) // de dunne ring van .mark::after
         .accessibilityHidden(true)
     }
 }

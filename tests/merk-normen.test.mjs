@@ -28,3 +28,12 @@ test('ds-toets 7, 8 en 15: iOS gebruikt Theme.markBg achter een logo en het comm
   assert.match(swift('Views/Layout.swift'), /lijntekening 96 \(--art\)/)
   assert.doesNotMatch(swift('Views/Layout.swift'), /lijnicoon 64/)
 })
+test('iOS-monogram en -logo krijgen de dunne ring van het web (--hairline: inkt 14 %)', () => {
+  assert.match(css, /--hairline: color-mix\(in srgb, var\(--ink\) 14%, transparent\)/)
+  assert.match(css, /\.mark::after \{[^}]*inset 0 0 0 1px var\(--hairline\)/)
+  assert.match(swift('Views/Components.swift'), /static var hairline: Color \{ ink\.opacity\(0\.14\) \}/)
+  for (const file of ['Views/Components.swift', 'Views/SourceFeedView.swift']) {
+    assert.match(swift(file), /\.overlay\(Circle\(\)\.strokeBorder\(Theme\.hairline, lineWidth: 1\)\)/, file)
+    assert.doesNotMatch(swift(file), /Circle\(\)\.strokeBorder\(Theme\.rule/, file)
+  }
+})
