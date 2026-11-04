@@ -1,0 +1,65 @@
+import XCTest
+import SwiftUI
+@testable import Hoot
+
+// Placeholderbeeld (build 46): dezelfde keuze als het web voor dezelfde id. Leest de gedeelde fixture
+// (tests/fixtures/placeholder.json), die tests/placeholder.test.mjs op het web ook draait.
+final class PlaceholderTests: XCTestCase {
+    static let fixtureURL = URL(fileURLWithPath: #filePath)
+        .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        .appending(path: "tests/fixtures/placeholder.json")
+
+    func fixture() throws -> [String: Any] {
+        guard FileManager.default.fileExists(atPath: Self.fixtureURL.path) else { throw XCTSkip("tests/fixtures/placeholder.json ontbreekt") }
+        return try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: Self.fixtureURL)) as? [String: Any])
+    }
+
+    func testZelfdeBeeldAlsHetWeb() throws {
+        let base = try XCTUnwrap(fixture()["base"] as? [[String: Any]])
+        XCTAssertGreaterThan(base.count, 40)
+        for b in base {
+            let id = try XCTUnwrap(b["id"] as? String)
+            XCTAssertEqual(Placeholder.fnv1a(id), UInt32(try XCTUnwrap(b["fnv1a"] as? NSNumber).uint32Value), id)
+            XCTAssertEqual(Placeholder.base(id) + 1, try XCTUnwrap(b["beeld"] as? Int), id)
+        }
+    }
+
+    func testBuurRegelZoalsHetWeb() throws {
+        let lijsten = try XCTUnwrap(fixture()["lijsten"] as? [[String: Any]])
+        for l in lijsten {
+            let rows = try XCTUnwrap(l["rows"] as? [[String: Any]]).map { (id: $0["id"] as! String, bare: $0["bare"] as! Bool) }
+            let verwacht = try XCTUnwrap(l["beelden"] as? [String: Int])
+            XCTAssertEqual(Placeholder.plan(ids: rows).mapValues { $0 + 1 }, verwacht, l["naam"] as? String ?? "")
+        }
+    }
+
+    func testZesBeeldenMetKleineTekeningVoorDeZon() {
+        XCTAssertEqual(PlaceholderBeelden.beelden.count, 6)
+        XCTAssertEqual(PlaceholderBeelden.beelden.prefix(3).filter { $0.klein != nil }.count, 3)
+        // Beeld 2: de zon klein (r 16), zodat het rood een accent blijft.
+        XCTAssertEqual(PlaceholderBeelden.beelden[1].groot.vormen.first?.c, 16)
+        for fam in ["zon", "iris"] { XCTAssertEqual(PlaceholderBeelden.palettes[fam]?.keys.sorted(), ["donker", "licht", "nacht"]) }
+    }
+
+    func testBeeldloosAlleenWaarGeenPassendBeeldIs() {
+        let leeg = Item(id: "a", source: "nos", title: "Kop", url: "https://nos.nl/a")
+        var klein = leeg
+        klein.image = "https://www.bing.com/th?id=ONUT.k&pid=News&w=300&h=200"
+        var groot = leeg
+        groot.image = "https://www.bing.com/th?id=ONUT.g&pid=News&w=700&h=393"
+        XCTAssertTrue(Placeholder.isBare(leeg, .krant))
+        XCTAssertFalse(Placeholder.isBare(klein, .krant))
+        XCTAssertTrue(Placeholder.isBare(klein, .tijdlijn))
+        XCTAssertFalse(Placeholder.isBare(groot, .tijdlijn))
+        XCTAssertFalse(Placeholder.isBare(groot, .lead))
+    }
+
+    @MainActor
+    func testTekentOpDeMaatVanHetVak() throws {
+        for (i, size) in [(0, CGSize(width: 344, height: 172)), (4, CGSize(width: 96, height: 64)), (2, CGSize(width: 96, height: 64))] {
+            let renderer = ImageRenderer(content: PlaceholderBeeld(index: i, klein: size.width < 100).frame(width: size.width, height: size.height))
+            let image = try XCTUnwrap(renderer.uiImage)
+            XCTAssertEqual(image.size, size)
+        }
+    }
+}

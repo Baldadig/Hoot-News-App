@@ -6,7 +6,7 @@ import { usePairs } from '../hooks/usePairs.js'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf, viaLength } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
-import { Beeld } from '../components/Beeld.jsx'
+import { Beeld, PlaceholderList } from '../components/Beeld.jsx'
 import { EditionArt, SparkleIcon, CaretIcon, CloseIcon, ICON_SM } from '../components/icons.jsx'
 import { BriefReader } from '../components/BriefReader.jsx'
 import { BrandLogo } from '../components/Brand.jsx'
@@ -47,7 +47,7 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
   const { markRead, read } = useHoot()
   const opinie = item.type === 'opinie'
   const title = item.title
-  const fit = useIntroMax()(INTRO_LINES, item.image ? 'voorpagina' : 'rij')
+  const fit = useIntroMax()(INTRO_LINES, 'voorpagina') // de miniatuur staat er altijd: het beeld of het placeholderbeeld
   const summary = wholeSentences(cleanIntro(item.summary, item.author), fit.max - viaLength(item), fit.rek - viaLength(item)) // hele zinnen, nooit "…"
   return (
     <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}${boven ? ' fitem--boven' : ''}`} data-id={item.id} style={boven ? { '--boven-h': `${boven}px` } : undefined}>
@@ -312,6 +312,8 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 Tablet staand (B): één leeskolom met de nummers in de kantlijn. Breed (A): het
                 hoofdverhaal met 02 en 03 ernaast (het beeld rekt mee tot de zijkolom even hoog is),
                 daarna paren in twee kolommen, elk paar even hoog (usePairs). Koppen breken nooit af. */}
+            {/* Welk placeholderbeeld een beeldloze rij krijgt, hangt af van de rij erboven (Beeld.jsx). */}
+            <PlaceholderList rows={rows.map((r, i) => ({ item: r.item, kind: i === 0 ? 'lead' : boven[r.key] ? 'boven' : 'krant' }))}>
             <div className="front" ref={frontRef}>
               <Slot less={less} row={rows[0]}>
                 <LeadStory n={rows[0].n} item={rows[0].item} story={rows[0].story} note={rows[0].note} why={rows[0].why} outside={rows[0].outside} followed={onFront.get(rows[0].key)} priority={active} taste={rows[0].key} />
@@ -340,11 +342,14 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 ])}
               </div>
             ) : null}
+            </PlaceholderList>
             {editionBubble.length ? (
               <section className="bubble" aria-label="Buiten je bubbel">
                 <h2 className="label label--section front__more">Buiten je bubbel</h2>
                 <p className="hint bubble__hint">Een verhaal naast je Editie.</p>
+                <PlaceholderList rows={editionBubble.map((r) => ({ item: r.item, kind: 'krant' }))}>
                 {editionBubble.map(r=><Slot key={r.key} less={less} row={r}><CompactItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} plain /></Slot>)}
+                </PlaceholderList>
               </section>
             ) : null}
             {hasMinimum ? (<div className="endcap">

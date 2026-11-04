@@ -12,6 +12,7 @@ import '@fontsource/source-sans-3/latin-800.css'
 // Roboto Medium alleen voor de Google-knop (hun richtlijn); wordt pas geladen als die er staat.
 import '@fontsource/roboto/latin-500.css'
 import './styles.css'
+import './placeholder.css'
 import { registerUpdates } from './lib/swUpdate.js'
 import { dropInvite, captureGoogleReturn } from './lib/account.js'
 import { loadFeedCache } from './lib/feedCache.js'

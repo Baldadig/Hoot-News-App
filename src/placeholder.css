@@ -1,0 +1,35 @@
+/* Gegenereerd door scripts/placeholders.mjs uit shared/placeholder.mjs. Niet met de hand aanpassen. */
+/* Placeholderbeeld: vult het beeldvak van een stuk zonder (passend) beeld (Beeld.jsx, Beeldloos). */
+.ph {
+  background-color: var(--paper);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+.ph--1 { background-image: url('./assets/placeholder/beeld-1.svg'); }
+.ph--1.ph--klein { background-image: url('./assets/placeholder/beeld-1-klein.svg'); }
+.ph--2 { background-image: url('./assets/placeholder/beeld-2.svg'); }
+.ph--2.ph--klein { background-image: url('./assets/placeholder/beeld-2-klein.svg'); }
+.ph--3 { background-image: url('./assets/placeholder/beeld-3.svg'); }
+.ph--3.ph--klein { background-image: url('./assets/placeholder/beeld-3-klein.svg'); }
+.ph--4 { background-image: url('./assets/placeholder/beeld-4.svg'); }
+.ph--5 { background-image: url('./assets/placeholder/beeld-5.svg'); }
+.ph--6 { background-image: url('./assets/placeholder/beeld-6.svg'); }
+:root[data-theme='dark'] .ph--1 { background-image: url('./assets/placeholder/beeld-1-donker.svg'); }
+:root[data-theme='dark'] .ph--1.ph--klein { background-image: url('./assets/placeholder/beeld-1-donker-klein.svg'); }
+:root[data-theme='dark'] .ph--2 { background-image: url('./assets/placeholder/beeld-2-donker.svg'); }
+:root[data-theme='dark'] .ph--2.ph--klein { background-image: url('./assets/placeholder/beeld-2-donker-klein.svg'); }
+:root[data-theme='dark'] .ph--3 { background-image: url('./assets/placeholder/beeld-3-donker.svg'); }
+:root[data-theme='dark'] .ph--3.ph--klein { background-image: url('./assets/placeholder/beeld-3-donker-klein.svg'); }
+:root[data-theme='dark'] .ph--4 { background-image: url('./assets/placeholder/beeld-4-donker.svg'); }
+:root[data-theme='dark'] .ph--5 { background-image: url('./assets/placeholder/beeld-5-donker.svg'); }
+:root[data-theme='dark'] .ph--6 { background-image: url('./assets/placeholder/beeld-6-donker.svg'); }
+:root[data-theme='night'] .ph--1 { background-image: url('./assets/placeholder/beeld-1-nacht.svg'); }
+:root[data-theme='night'] .ph--1.ph--klein { background-image: url('./assets/placeholder/beeld-1-nacht-klein.svg'); }
+:root[data-theme='night'] .ph--2 { background-image: url('./assets/placeholder/beeld-2-nacht.svg'); }
+:root[data-theme='night'] .ph--2.ph--klein { background-image: url('./assets/placeholder/beeld-2-nacht-klein.svg'); }
+:root[data-theme='night'] .ph--3 { background-image: url('./assets/placeholder/beeld-3-nacht.svg'); }
+:root[data-theme='night'] .ph--3.ph--klein { background-image: url('./assets/placeholder/beeld-3-nacht-klein.svg'); }
+:root[data-theme='night'] .ph--4 { background-image: url('./assets/placeholder/beeld-4-nacht.svg'); }
+:root[data-theme='night'] .ph--5 { background-image: url('./assets/placeholder/beeld-5-nacht.svg'); }
+:root[data-theme='night'] .ph--6 { background-image: url('./assets/placeholder/beeld-6-nacht.svg'); }

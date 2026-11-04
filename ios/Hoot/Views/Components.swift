@@ -723,7 +723,7 @@ struct LeadCard: View {
         if hang {
             // B: het beeld over de hele kolom, tekst en bronregel ingesprongen met het nummer ervoor.
             VStack(alignment: .leading, spacing: Space.s3) {
-                if hasImage { image.contentShape(Rectangle()).opensArticle(item) } else { BeeldloosView(item: item, kind: .lead) }
+                if hasImage { image.contentShape(Rectangle()).opensArticle(item) } else { BeeldloosView(item: item, kind: .lead, height: imageHeight) }
                 HangRow(number: number, read: store.isRead(item)) {
                     VStack(alignment: .leading, spacing: Space.s3) {
                         text.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle()).opensArticle(item)
@@ -746,7 +746,7 @@ struct LeadCard: View {
                     }
                 } else {
                     VStack(alignment: .leading, spacing: Space.s3) {
-                        if hasImage { image } else { BeeldloosView(item: item, kind: .lead) }
+                        if hasImage { image } else { BeeldloosView(item: item, kind: .lead, height: imageHeight) }
                         text
                     }
                 }
@@ -821,12 +821,14 @@ struct ItemRow: View {
                         text.frame(maxWidth: .infinity, alignment: .leading)
                         // Een vaste breedte (96; bij grotere tekst 108), zodat de tekstkolom op één lijn blijft,
                         // wat de verhouding van het beeld ook is. Bij heel grote tekst krijgt de kop de hele breedte.
+                        let width = thumb >= Layout.thumbLarge ? Layout.thumbLarge : Layout.thumb
                         if hasPicture, !typeSize.isAccessibilitySize {
-                            let width = thumb >= Layout.thumbLarge ? Layout.thumbLarge : Layout.thumb
                             RemoteImage(url: picture(.thumb), onFail: mislukt)
                                 .frame(width: width, height: width * 2 / 3)
                                 .clipShape(RoundedRectangle(cornerRadius: Radius.sm, style: .continuous))
                                 .overlay { if item.video != nil { PlayBadge(size: Space.s6) } }
+                        } else if !typeSize.isAccessibilitySize {
+                            BeeldloosView(item: item, kind: .krant, width: width)
                         }
                     }
                 }
@@ -860,7 +862,8 @@ struct ItemRow: View {
                 // regel extra, bij grotere tekst het dubbele (dezelfde tekens nemen dan meer regels, en een
                 // afgeknipte zin zou alsnog op een beletselteken eindigen).
                 // Een geleende intro krijgt " — via X" erachter: die tekens gaan van de maat af (Item.viaLength).
-                if let intro = item.summary.map({ wholeSentences($0, max: introMax(lines: store.preview, thumb: hasPicture && !timeline) - item.viaLength) }), !intro.isEmpty {
+                // In de krant-vorm staat er altijd een miniatuur: het beeld of het placeholderbeeld.
+                if let intro = item.summary.map({ wholeSentences($0, max: introMax(lines: store.preview, thumb: !timeline && store.showsImage(lead: false)) - item.viaLength) }), !intro.isEmpty {
                     Text(item.introWithSource(intro)).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1)
                 }
             }

@@ -288,6 +288,16 @@ struct EditionView: View {
     // --endcap-bg en --endcap-on op het web. Het grootste vlak van het scherm is nooit het felste (E9).
     static let nachtEndRed = Color(red: 0x44 / 255, green: 0x0d / 255, blue: 0x0b / 255)
 
+    // Welk placeholderbeeld een beeldloze rij krijgt, hangt af van de rij erboven (Beeldloos.swift): het
+    // hoofdverhaal en de rijen eronder, en apart Buiten je bubbel.
+    private var placeholderPlan: [String: Int] {
+        let numbered = EditionNumbering.rows(store.editionRows)
+        let rows = numbered.filter { $0.desk != "bubbel" }
+        var plan = Placeholder.plan(rows.enumerated().map { ($0.element.item, $0.offset == 0 ? BeeldloosView.Kind.lead : .krant) })
+        plan.merge(Placeholder.plan(numbered.filter { $0.desk == "bubbel" }.map { ($0.item, BeeldloosView.Kind.krant) })) { a, _ in a }
+        return plan
+    }
+
     var body: some View {
         NavigationStack(path: $path) {
             ScrollViewReader { proxy in
@@ -410,6 +420,7 @@ struct EditionView: View {
                 .padding(.horizontal)
                 .column(grid == .paren ? Layout.wide : grid == .kolom ? Layout.readable + Layout.hang : Layout.readable)
                 .offset(y: rising ? 8 : 0)
+                .environment(\.placeholderPlan, placeholderPlan)
             }
             .debugJump(proxy, to: Self.slotTarget(store.editionRows), when: store.editionRows.count)
             .onGeometryChange(for: CGSize.self) { $0.size } action: { screen = $0 }

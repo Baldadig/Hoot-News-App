@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { Entry, useHoot } from '../components/Items.jsx'
+import { PlaceholderList } from '../components/Beeld.jsx'
 import { StreamLine } from '../components/StreamLine.jsx'
 import { StreamArt, FilterIcon, ArrowUpIcon } from '../components/icons.jsx'
 import { Dialog, DialogHeader } from '../components/Dialog.jsx'
@@ -52,7 +53,7 @@ function FilterSheet({ open, onClose, params, clear, setFilter, count }) {
 }
 
 export default function Stream({ active, stream, params, go, bubble = [], preview = 2, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
-  const { storiesById, sourcesById, muted, setMuted, prefs } = useHoot()
+  const { storiesById, sourcesById, muted, setMuted, prefs, layout } = useHoot()
   const ref = useRef(null)
   const [sheet, setSheet] = useState(false)
   const [atDepth, setAtDepth] = useState(false)
@@ -230,6 +231,7 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
               >
               </Empty>
             ) : (
+              <PlaceholderList rows={shown.map((item) => ({ item, kind: layout === 'tijdlijn' ? 'tijdlijn' : 'krant' }))}>
               <div className={`list rows${preview === 'alles' ? '' : ` list--lines-${preview}`}`}>
                 {shown.map((item, index) => (
                   <div key={item.id} className={index < Math.min(freshShown, 6) ? 'stream-new' : undefined} style={index < 6 ? { '--rise-delay': `${index * 40}ms` } : undefined}>
@@ -239,6 +241,7 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
                 ))}
                 {shown.length < list.length ? <div ref={more} className="listmore" aria-hidden="true" /> : <p className="listend">Je bent bij.</p>}
               </div>
+              </PlaceholderList>
             )}
           </>
         )}

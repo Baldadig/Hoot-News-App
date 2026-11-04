@@ -8,8 +8,10 @@ import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { wholeSentences, introMax, INTRO_LINES } from '../shared/zinnen.mjs'
 import { fitsLarge, fitsHero } from '../src/lib/img.js'
+import { placeholderBase } from '../shared/placeholder.mjs'
 
 const src = (p) => readFileSync(new URL('../' + p, import.meta.url), 'utf8')
+const fixture = JSON.parse(src('tests/fixtures/placeholder.json'))
 
 test('intro: standaard 3 regels; een eerste zin die in 2 regels wegviel, staat er nu heel', () => {
   assert.equal(INTRO_LINES, 3)
@@ -47,25 +49,40 @@ const mod = { exports: {} }
 new Function('require', 'module', 'exports', bundled.outputFiles[0].text)(createRequire(import.meta.url), mod, mod.exports)
 const render = (props) => renderToStaticMarkup(React.createElement(mod.exports.Beeld, props))
 
-test('beeldloos: zonder beeld, of te klein voor de plek, geen vak (geen grijs vlak) maar de beeldloze vorm', () => {
+test('beeldloos: zonder beeld, of te klein voor de plek, het placeholderbeeld in hetzelfde vak (geen grijs vlak)', () => {
   const item = { id: 'a', title: 'Kop' }
-  assert.equal(render({ item, kind: 'tijdlijn', className: 'media' }), '')
+  const n = placeholderBase('a') + 1
+  assert.equal(render({ item, kind: 'tijdlijn', className: 'media' }), `<div class="media media--tl ph ph--${n}" data-ph="${n}" aria-hidden="true"></div>`)
   const klein = { ...item, image: 'https://www.bing.com/th?id=ONUT.k&pid=News&w=1200&h=675&c=7' }
-  assert.equal(render({ item: klein, kind: 'tijdlijn', fits: fitsLarge, className: 'media', imgKind: 'lead' }), '')
-  assert.equal(render({ item: klein, kind: 'lead', fits: fitsHero, className: 'media' }), '')
+  assert.match(render({ item: klein, kind: 'tijdlijn', fits: fitsLarge, className: 'media', imgKind: 'lead' }), /^<div class="media media--tl ph ph--\d" data-ph="\d" aria-hidden="true"><\/div>$/)
+  assert.match(render({ item: klein, kind: 'lead', fits: fitsHero, className: 'media' }), /^<div class="media media--lead ph ph--\d"/)
+  // De miniatuur: hetzelfde element als het beeld (een span in de Editie), met de kleine tekening.
+  assert.equal(render({ item, kind: 'krant', as: 'span', className: 'thumb' }), `<span class="thumb ph ph--${n} ph--klein" data-ph="${n}" aria-hidden="true"></span>`)
   const groot = { ...item, image: 'https://www.bing.com/th?id=ONUT.g&pid=News&w=700&h=393' }
   assert.match(render({ item: groot, kind: 'tijdlijn', fits: fitsLarge, className: 'media media--tl', imgKind: 'lead' }), /^<div class="media media--tl"><img /)
   assert.match(render({ item: groot, kind: 'krant', as: 'span', className: 'thumb' }), /^<span class="thumb"><img /)
 })
 
-test('beeldloos: een beeld dat niet laadt wordt de beeldloze vorm (Img meldt het via onFail)', () => {
+test('beeldloos: twee beeldloze rijen direct na elkaar krijgen nooit hetzelfde beeld (PlaceholderList)', () => {
+  const { PlaceholderList, Beeld } = mod.exports
+  const ids = Object.keys(fixture.lijsten[0].beelden)
+  const html = renderToStaticMarkup(
+    React.createElement(PlaceholderList, { rows: ids.map((id) => ({ item: { id }, kind: 'tijdlijn' })) }, ids.map((id) => React.createElement(Beeld, { key: id, item: { id }, kind: 'tijdlijn' }))),
+  )
+  assert.deepEqual([...html.matchAll(/data-ph="(\d)"/g)].map((m) => +m[1]), ids.map((id) => fixture.lijsten[0].beelden[id]))
+})
+
+test('beeldloos: een beeld dat niet laadt wordt het placeholderbeeld (Img meldt het via onFail)', () => {
   const img = src('src/components/Img.jsx')
   assert.match(img, /if \(onFail\) return onFail\(\)/)
   const beeld = src('src/components/Beeld.jsx')
-  assert.match(beeld, /failed\) return <Beeldloos item=\{item\} kind=\{kind\} \/>/)
+  assert.match(beeld, /failed\) return <Beeldloos item=\{item\} kind=\{kind\} as=\{Tag\} \/>/)
   // Hoofdverhaal, tijdlijn en krant (Stroom en Editie) gaan allemaal door Beeld.
   const items = src('src/components/Items.jsx')
   assert.equal((items.match(/<Beeld item=\{item\} kind="(lead|tijdlijn|krant)"/g) || []).length, 3)
   assert.match(items, /onError=\{onFail\}/) // ook het gemeten hoofdbeeld
   assert.match(src('src/views/Edition.jsx'), /<Beeld item=\{item\} kind="krant"/)
+  // Stroom en Editie kennen de buren.
+  assert.match(src('src/views/Stream.jsx'), /<PlaceholderList rows=/)
+  assert.match(src('src/views/Edition.jsx'), /<PlaceholderList rows=/)
 })
