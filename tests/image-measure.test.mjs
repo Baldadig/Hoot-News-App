@@ -52,7 +52,7 @@ test('A1: ontbrekende en ongeldige metadata houden de oude weergave', () => {
 test('B11: de Stroom-rijen (tijdlijn en krant) en de Editie gebruiken dezelfde meting als de lead', async () => {
   const items = await readFile(new URL('../src/components/Items.jsx', import.meta.url), 'utf8')
   const img = await readFile(new URL('../src/components/Img.jsx', import.meta.url), 'utf8')
-  assert.match(items, /media media--tl\$\{imageMeta\(item\) \? ' media--measured' : ''\}`\} style=\{cropStyle\(item\)\}>\s*<MeasuredImg item=\{item\} kind="lead"/)
+  assert.match(items, /media media--tl\$\{imageMeta\(item\) \? ' media--measured' : ''\}`\} style=\{cropStyle\(item\)\}>\s*\{\(onFail\) => <MeasuredImg item=\{item\} kind="lead"/)
   assert.match(items, /thumb\$\{imageMeta\(item\) \? ' media--measured' : ''\}`\} style=\{cropStyle\(item\)\}>[\s\S]*?<MeasuredImg item=\{item\} width="96"/)
   assert.match(items, /media--lead[\s\S]*?<MeasuredImg item=\{item\} kind="lead"/)
   assert.match(img, /if \(!imageMeta\(item\)\) return <Img/)

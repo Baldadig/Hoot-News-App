@@ -88,7 +88,8 @@ test('beeldloos: een beeld dat niet laadt wordt het placeholderbeeld (Img meldt 
   // Hoofdverhaal, tijdlijn en krant (Stroom en Editie) gaan allemaal door Beeld.
   const items = src('src/components/Items.jsx')
   assert.equal((items.match(/<Beeld item=\{item\} kind="(lead|tijdlijn|krant)"/g) || []).length, 3)
-  assert.match(items, /onError=\{onFail\}/) // ook het gemeten hoofdbeeld
+  assert.match(items, /kind="lead" priority=\{priority\} onLoad=\{priority \? rememberLead : undefined\} onFail=\{onFail\}/) // ook het gemeten hoofdbeeld (MeasuredImg meldt het via onFail)
+  assert.match(src('src/components/Img.jsx'), /onError=\{e => \{ if \(onFail\) return onFail\(\)/)
   assert.match(src('src/views/Edition.jsx'), /<Beeld item=\{item\} kind="krant"/)
   // Stroom en Editie kennen de buren.
   assert.match(src('src/views/Stream.jsx'), /<PlaceholderList rows=/)
