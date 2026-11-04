@@ -86,3 +86,40 @@ test('migratie: trigger en vangnet zijn veilig voor elke inlog', () => {
   assert.match(code, /^begin;$/m)
   assert.match(code, /^commit;$/m)
 })
+
+// Na review 4 november (ACCOUNTS-VERIFICATIE 2f en 3d).
+test('offline: geen "Je account is er bijna", maar de bestaande offline-toestand', async () => {
+  const { pendingShown } = await import('../src/lib/membership.js')
+  const half = { status: 'in', user: { id: 'u' }, profile: null }
+  assert.equal(pendingShown(half, true), true)
+  assert.equal(pendingShown(half, false), false)
+  assert.equal(pendingShown({ status: 'in', user: { id: 'u' }, profile: {} }, true), false)
+  const acc = readFileSync(new URL('../src/components/Account.jsx', import.meta.url), 'utf8')
+  assert.match(acc, /pendingShown\(account, useOnline\(\)\)/)
+  assert.match(acc, /SYNC\.pending/)
+  const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8')
+  assert.match(app, /pendingShown\(rawAccount, online\)/)
+})
+
+test('plafond bereikt: het web toont de zin van de server bij de Editie in plaats van stil weg te blijven', async () => {
+  const { BRIEF_FULL_TEXT } = await import('../src/lib/membership.js')
+  const { FULL_TODAY } = await import('../netlify/functions/brief.mjs')
+  assert.equal(FULL_TODAY, BRIEF_FULL_TEXT)
+  assert.equal(BRIEF_FULL_TEXT, 'Vandaag zijn de samenvattingen op. Morgen maakt Hoot er weer een.')
+  const hook = readFileSync(new URL('../src/hooks/usePersonalEdition.js', import.meta.url), 'utf8')
+  assert.match(hook, /res\?\.status === 429/)
+  const ed = readFileSync(new URL('../src/views/Edition.jsx', import.meta.url), 'utf8')
+  assert.match(ed, /briefcta--rust[\s\S]*\{briefNote\}/)
+})
+
+test('SQL-proef: het middenstuk is letterlijk de migratie, en het blok eindigt altijd met een fout (terugdraaien)', () => {
+  const mig = readFileSync(new URL('../supabase/migrations/20261104_open_accounts.sql', import.meta.url), 'utf8')
+  const proef = readFileSync(new URL('../supabase/proef/20261104_open_accounts_proef.sql', import.meta.url), 'utf8')
+  const body = mig.split('\nbegin;\n')[1].split('\ncommit;')[0].trim()
+  const mid = proef.split('-- ======== begin migratie (letterlijk) ========\n')[1].split('\n-- ======== einde migratie ========')[0].trim()
+  assert.equal(mid, body)
+  assert.match(proef, /^do \$proef\$/m)
+  assert.match(proef, /raise exception 'HOOT-PROEF \(alles teruggedraaid\) te_groot=%/)
+  assert.doesNotMatch(proef, /^\s*(begin|commit|rollback);/im)
+  assert.match(proef, /pg_column_size\(edition\) > 1048576/)
+})

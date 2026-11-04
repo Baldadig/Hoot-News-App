@@ -20,19 +20,17 @@
 -- Let op: een fout in de trigger op auth.users laat élke nieuwe inlog falen ("Database error saving
 -- new user"). Daarom: security definer, lege search_path, on conflict do nothing. Eerst testen.
 --
--- HOE TESTEN (eerst): kopieer dit bestand in de SQL Editor en vervang de laatste regel `commit;`
--- door het blok hieronder. Je ziet de uitkomst, en de rollback draait daarna alles terug.
---   insert into auth.users (id, aud, role, email)
---     values ('00000000-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'test@hoot.invalid');
---   select (select count(*) from public.profiles   where id      = '00000000-0000-4000-8000-000000000001') as profiel,     -- 1
---          (select count(*) from public.user_state where user_id = '00000000-0000-4000-8000-000000000001') as staat,       -- 1
---          (select count(*) from auth.users u where not exists (select 1 from public.profiles p where p.id = u.id)) as zonder_profiel; -- 0
---   rollback;
--- Echt uitvoeren: het bestand ongewijzigd draaien. Controle daarna: de telling "zonder_profiel"
--- hierboven geeft 0, en een nieuw (test)account dat inlogt op hootnews.nl of in de app is meteen
--- lid (geen codeveld, geen "Nog geen lid").
+-- HOE TESTEN (eerst): draai supabase/proef/20261104_open_accounts_proef.sql als geheel in de SQL Editor.
+-- Dat is deze migratie in één do-blok met een nep-gebruiker en de grootte-telling vooraf; het eindigt
+-- met een (bedoelde) foutmelding waarin de tellingen staan, en draait daardoor alles terug. Verwacht:
+--   HOOT-PROEF (alles teruggedraaid) te_groot=0 profiel=1 staat=1 zonder_profiel=0 join=true join_profiel=1
+-- Echt uitvoeren: dit bestand ongewijzigd draaien. Controle daarna:
+--   select count(*) from auth.users u where not exists (select 1 from public.profiles p where p.id = u.id); -- 0
+-- en een nieuw (test)account dat inlogt op hootnews.nl of in de app is meteen lid.
 --
--- HOE TERUGDRAAIEN (accounts weer op uitnodiging; wie al lid werd, blijft lid):
+-- HOE TERUGDRAAIEN (accounts weer op uitnodiging in de app; wie al lid werd, blijft lid).
+-- Let op het web: daar is het codeveld weg. Zonder join() blijft een nieuwe web-gebruiker op "Je account
+-- is er bijna"; alleen de trigger weghalen (noodrem) laat het web via join() nog wel accounts maken.
 --   drop trigger if exists on_auth_user_created on auth.users;
 --   drop function if exists public.handle_new_user();
 --   drop function if exists public."join"();
