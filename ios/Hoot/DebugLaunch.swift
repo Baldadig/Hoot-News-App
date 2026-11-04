@@ -3,7 +3,7 @@ import SwiftUI
 // Alleen in Debug, voor schermafbeeldingen en audits: de app opent meteen op een bepaald scherm,
 // zonder te tikken (zie ios/AppStore/tools/device-screens.sh). Startargumenten:
 //   -HootStartTab editie|stroom|digest|bewaard|zoek
-//   -HootScreen verhaal|lezer|bronnen|stroom-bronnen|video|instellingen|instellingen-bronnen|instellingen-interesses|instellingen-vakken|instellingen-abonnementen|instellingen-wissen|seintje
+//   -HootScreen verhaal|lezer|bronnen|stroom-bronnen|video|instellingen|instellingen-bronnen|instellingen-interesses|instellingen-vakken|instellingen-abonnementen|instellingen-wissen
 //   -HootRubriek wereld|bubbel|…   -HootPicks nos,nrc   (de Stroom op een rubriek, met gekozen bronnen;
 //                                             met -HootScreen stroom-bronnen staat de stapel open)
 //   -HootScroll midden|onder|slot   -HootQuery <tekst>   -HootDark YES   -HootLargeText YES   -HootOffline YES
@@ -12,9 +12,8 @@ import SwiftUI
 //   -HootOnboarded YES   (zonder welkom, mét opstartscherm; met -HootStartTab stroom: de opstart naar de Stroom)
 //   -HootSlowSplash <n>   (de overgang van het opstartscherm n keer zo langzaam, en de iris in het welkom)
 //   -HootFresh YES   (het welkom als nieuwe gebruiker, met opstartscherm)
-//   -HootWelcomeStep uitleg1|uitleg2|uitleg3|interesses|precies|hoot|bronnen|selectie|seintje   (het welkom op die
-//                                             pagina, bronnen en selectie met het blad open; zonder
-//                                             -HootFresh ook als nieuwe gebruiker)
+//   -HootWelcomeStep uitleg|bronnen|interesses   (het welkom op die
+//                                             pagina; zonder -HootFresh ook als nieuwe gebruiker)
 //   -HootInterests politiek,tech,cultuur   (in het welkom al gekozen)
 //   -HootNotifyIn <s>   (één echt seintje "Editie ligt klaar" over s seconden; toestemming eerst geven)
 //   -HootFeature verhaal-id:Rubriek,…   (App Store-opnamen: deze echte verhalen bovenaan Editie en Stroom)
@@ -36,7 +35,7 @@ enum DebugLaunch {
     static var layout: String? { defaults.string(forKey: "HootLayout").flatMap { ["tijdlijn", "krant"].contains($0) ? $0 : nil } }
     static var picks: [String] { (defaults.string(forKey: "HootPicks") ?? "").split(separator: ",").map(String.init) }
     static var seenMinutes: Double? { defaults.object(forKey: "HootSeenMinutes") != nil ? defaults.double(forKey: "HootSeenMinutes") : nil }
-    static var welcomeStep: String? { defaults.string(forKey: "HootWelcomeStep") ?? (screen("seintje") ? "seintje" : nil) }
+    static var welcomeStep: String? { defaults.string(forKey: "HootWelcomeStep") }
     static var fresh: Bool { defaults.bool(forKey: "HootFresh") || defaults.string(forKey: "HootWelcomeStep") != nil }
     static var interests: [String]? { defaults.string(forKey: "HootInterests").map { $0.split(separator: ",").map(String.init) } }
     static var slow: Double { max(1, defaults.double(forKey: "HootSlowSplash")) }
