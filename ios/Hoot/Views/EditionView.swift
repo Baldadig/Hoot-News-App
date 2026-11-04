@@ -314,8 +314,9 @@ struct EditionView: View {
                         // Eén metaregel, zoals op het web. De vaste spatie vóór de punt houdt die bij de
                         // datum als de regel bij grote tekst breekt ("oktober ·", niet "· Jouw Editie").
                         Text([dateLine, store.isPersonal ? "Jouw Editie" : store.shownEdition?.personal == true ? "Om te beginnen" : "De Editie voor iedereen"].filter { !$0.isEmpty }.joined(separator: "\u{00A0}· "))
-                            .font(.ui(.subheadline))
+                            .font(.ui(.footnote)) // Inter 13, gelijk aan .vh__sub op het web (t1)
                             .foregroundStyle(Theme.ink3)
+                            .frame(minHeight: 20, alignment: .leading) // de regel blijft 20 hoog (lh-2), zoals op het web: de kop houdt zijn ritme
                             .padding(.bottom, Space.s4)
                         // Kon er niet ververst worden, dan zegt dat het onder de datum: titel en datum blijven bij elkaar.
                         StaleNotice(gap: Space.s4)
@@ -558,7 +559,7 @@ struct MakeItYours: View {
         VStack(alignment: .leading, spacing: Space.s2) {
             Kop("Maak Hoot van jou", .title3)
             Text("Je leest nu een keuze uit gratis Nederlandse bronnen. Kies je eigen bronnen en interesses, dan wordt dit echt jouw Editie.")
-                .font(.ui(.subheadline))
+                .uitleg()
                 .foregroundStyle(Theme.ink2)
                 .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: Space.s4) {

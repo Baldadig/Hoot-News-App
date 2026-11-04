@@ -145,7 +145,7 @@ struct DigestView: View {
         VStack(alignment: .leading, spacing: Space.s2) {
             Kop(title, .title2).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
-            Text(text).foregroundStyle(Theme.ink2).fixedSize(horizontal: false, vertical: true)
+            Text(text).uitleg().foregroundStyle(Theme.ink2).fixedSize(horizontal: false, vertical: true)
             VStack(spacing: 0) { Rule(); pickRow(name: row, sub: sub); Rule() }
                 .padding(.top, Space.s2)
         }

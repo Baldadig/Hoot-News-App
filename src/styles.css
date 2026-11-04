@@ -71,6 +71,11 @@
   --serif: 'Newsreader', ui-serif, Georgia, 'Times New Roman', serif;
   --lees: 'Newsreader', ui-serif, Georgia, 'Times New Roman', serif;
   --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  /* Uitleg: een uitlegzin onder een kop (het welkom, een lege bladzijde, de Selectie) is lezen, geen
+     bediening: Newsreader op tekstmaat, 17/24, zoals de landing en .uitleg() in de app (Letters.swift). */
+  --uitleg: var(--lees);
+  --t-uitleg: var(--t3);
+  --lh-uitleg: var(--lh-2-read);
 
   /* Maat */
   --gutter: 16px;
@@ -406,6 +411,11 @@ p {
   hyphenate-limit-chars: 6 3 3;
   -webkit-hyphenate-limit-before: 3;
   -webkit-hyphenate-limit-after: 3;
+}
+/* Itemkop klein: een bericht, een regel in een keuzelijst, een tussenkop in de Lezer. */
+.head-4 {
+  font-size: var(--t4);
+  line-height: var(--lh-4);
   letter-spacing: var(--ls-head-4);
 }
 /* Itemkop groot: een bericht in een brede lijst, het eerste stuk van een vak, een bladtitel. */
@@ -454,6 +464,14 @@ p {
   font-family: var(--lees);
   font-weight: var(--fw-lees);
   font-optical-sizing: auto;
+}
+/* Uitlegzinnen: de zin onder een kop in het welkom, de tekst van een lege bladzijde en de Selectie. */
+:is(.ob__sub, .ob__lede, .ob__ttext, .ob__empty, .empty__text, .dempty__text) {
+  font-family: var(--uitleg);
+  font-weight: var(--fw-lees);
+  font-optical-sizing: auto;
+  font-size: var(--t-uitleg);
+  line-height: var(--lh-uitleg);
 }
 
 a {
@@ -1825,7 +1843,7 @@ select.input {
 }
 .srcmeta__name {
   color: var(--ink);
-  font-size: var(--t-ui-sm); /* 14: Inter 14 is even groot als Source Sans 15, en "The Economist" past weer naast "N bronnen" op 390 */
+  font-size: var(--t-ui-sm); /* 14: Inter 14 is even groot als Source Sans 15. Gemeten op 390: "The Economist" is 100,8 px en het vak naast "35 bronnen" 88,2; de naam breekt dan netjes in twee regels ("The / Economist"), nooit afgekapt. Kortere namen ("de Volkskrant", 93) passen op één regel. */
   font-weight: var(--fw-ui);
   line-height: var(--lh-2);
 }
@@ -2228,8 +2246,6 @@ select.input {
   max-inline-size: var(--measure-prose);
   margin-bottom: var(--s4);
   color: var(--ink-2);
-  font-size: var(--t2);
-  line-height: var(--lh-2-read);
 }
 
 /* De lege bladzijde (Empty met art): een compositie in plaats van een regel bovenaan. Tekening,
@@ -3069,8 +3085,6 @@ select.input {
   max-inline-size: var(--measure-prose);
   margin-top: var(--s2);
   color: var(--ink-2);
-  font-size: var(--t3);
-  line-height: var(--lh-3-read);
 }
 
 /* De intro: merkrood, met alles erop papier (--paper-brand, niet wit, zoals de app): het
@@ -3124,8 +3138,6 @@ select.input {
   max-inline-size: 15.5em;
   margin-top: var(--s3);
   color: var(--ink-2);
-  font-size: var(--t4);
-  line-height: var(--lh-3-read);
   text-wrap: pretty;
 }
 .ob--open .ob__lede {
@@ -3214,8 +3226,6 @@ select.input {
 .ob__ttext {
   margin-top: var(--s1);
   color: var(--ink-2);
-  font-size: var(--t3);
-  line-height: var(--lh-3-read);
 }
 
 /* Volg je bronnen: zoekveld, twee pillen (Aanbevolen, Gevolgd) en de lijst per rubriek. Breed
@@ -3378,8 +3388,6 @@ select.input {
 .ob__empty {
   margin-top: var(--s5);
   color: var(--ink-2);
-  font-size: var(--t3);
-  line-height: var(--lh-3-read);
 }
 /* Het voorbeeld: genummerde koppen in de krantenletter, de bron eronder. */
 .ob__peektitle {
@@ -5506,7 +5514,7 @@ html[data-images='hoofd'] .media--social {
 .dfield__none { margin: 0; color: var(--ink-3); }
 /* Lege toestanden: links in de kolom, één zin, één rij om te kiezen. Geen datum, geen telling. */
 .dempty { padding-top: var(--s5); }
-.dempty__text { margin: var(--s2) 0 0; max-width: 32em; color: var(--ink-2); font-size: var(--t3); line-height: var(--lh-3); }
+.dempty__text { margin: var(--s2) 0 0; max-width: 32em; color: var(--ink-2); }
 .dempty .dindex { margin: var(--s4) 0 0; }
 .dpick { max-width: 32rem; }
 .dpick .chipgroup + .chipgroup { margin-top: var(--s5); }

@@ -939,7 +939,7 @@ struct EmptyState: View {
                 EmptyPageArt(kind: EmptyPageKind(symbol: systemImage))
                 Group {
                 Kop(title, .title2).foregroundStyle(Theme.ink)
-                if !text.isEmpty { Text(text).foregroundStyle(Theme.ink2).multilineTextAlignment(.center).frame(maxWidth: Layout.emptyText) }
+                if !text.isEmpty { Text(text).uitleg().foregroundStyle(Theme.ink2).multilineTextAlignment(.center).frame(maxWidth: Layout.emptyText) }
                 if let action {
                     Button(action: action.run) { Text(action.label) }.buttonStyle(.ink)
                 }
@@ -967,6 +967,7 @@ struct EmptyState: View {
             }
         } description: {
             Text(text)
+                .uitleg()
                 .foregroundStyle(Theme.ink2) // zoals .empty__text, niet het lichtere grijs van het systeem
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: Layout.emptyText)
