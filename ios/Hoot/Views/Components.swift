@@ -256,15 +256,25 @@ extension View {
     }
 }
 
-// De strook achter de statusbalk: de scroll loopt tot de bovenrand van het scherm door, dus het vlak
-// is precies zo hoog als het stuk dat buiten de veilige zone valt (de statusbalk).
+// De strook achter de statusbalk: precies zo hoog als de statusbalk van het venster (op iPad niet de
+// zwevende tabbalk eronder), vanaf de bovenrand van het scherm. Gemeten aan het venster zelf, zodat
+// het niet uitmaakt waar de scroll zijn veilige zone laat beginnen; opnieuw bij draaien.
 struct StatusStrip: View {
+    @State private var top: CGFloat = StatusStrip.windowTop()
     var body: some View {
-        GeometryReader { g in
-            Theme.paper.frame(height: g.safeAreaInsets.top)
-        }
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
+        Theme.paper
+            .frame(height: top)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { _ in top = Self.windowTop() }
+    }
+
+    static func windowTop() -> CGFloat {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let window = scenes.flatMap(\.windows).first { $0.isKeyWindow } ?? scenes.first?.windows.first
+        return window?.safeAreaInsets.top ?? 0
     }
 }
 
