@@ -17,29 +17,6 @@ struct WaitingMark: View {
     }
 }
 
-// Goedgekeurde refreshlader: de h blijft staan, alleen de punt maakt een kleine rustige sprong.
-// Geen zichtbare laadzin, wel een passende naam voor VoiceOver. De gereserveerde strook voorkomt overlap.
-struct RefreshLoadingMark: View {
-    @Environment(\.accessibilityReduceMotion) private var still
-    var size: CGFloat = 28
-    var reduceMotion: Bool? = nil
-    var body: some View {
-        ZStack {
-            GlyphShape(glyphs: Brand.mark).fill(Theme.ink3)
-            GlyphShape(glyphs: Brand.mark, part: .dot).fill(Theme.accent)
-                .phaseAnimator((reduceMotion ?? still) ? [0] : [0, 1, 2]) { dot, phase in
-                    dot.offset(y: phase == 1 ? -2 : 0)
-                        .scaleEffect(phase == 1 ? 0.96 : phase == 2 ? 1.04 : 1, anchor: .bottom)
-                } animation: { phase in
-                    .easeInOut(duration: phase == 1 ? 0.675 : phase == 2 ? 0.375 : 0.45)
-                }
-        }
-        .frame(width: size * Brand.mark.size.width / Brand.mark.size.height, height: size)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Bezig met verversen")
-    }
-}
-
 struct StrongRule: View {
     var drawn = true
     @Environment(\.accessibilityReduceMotion) private var still
@@ -85,13 +62,13 @@ struct RefreshPull {
     mutating func finish() { busy = false }
 }
 
-// Eén indicator, één plek. De trekstrook boven de titel is ook de laadstrook: de h. blijft staan,
-// de punt zakt tijdens het trekken op zijn plek en maakt daarna (laden) zijn rustige sprong.
-// De scroll zelf houdt de strook open (contentMargins), dus er verschuift niets bij loslaten of klaar.
+// Eén indicator, één plek: de horizon (Horizon v2, PullHorizon.swift). De trekstrook boven de titel is
+// ook de laadstrook. De scroll zelf houdt de strook open (contentMargins), dus er verschuift niets bij
+// loslaten of klaar.
 enum RefreshStrip {
-    static let loading: CGFloat = 56
-    // Op de bewegingsschaal (140 · 200 · 400): de h. vervaagt in dur-1, daarna glijdt de strook dicht
-    // in dur-3 met ease-glide ("iets wisselt van plek"). Was 150 ms en 0,3 s.
+    static let loading: CGFloat = Horizon.strip
+    // Op de bewegingsschaal (140 · 200 · 400): lijn en boog vervagen in dur-1 (vanaf 440 ms in de
+    // ondergang), de strook glijdt dicht in dur-3 met ease-glide ("iets wisselt van plek").
     static let fadeOut: Double = 0.14
     static let close: Double = 0.4
     static var glide: Animation { .timingCurve(0.2, 0.8, 0.2, 1, duration: close) }
@@ -100,37 +77,27 @@ enum RefreshStrip {
         let pulled = amount.isFinite ? max(0, amount) : 0
         return busy ? loading + pulled : pulled
     }
-    // Dezelfde h. in dezelfde maat voor trekken en laden; de punt komt bij de drempel op zijn eindplek.
-    static func dotTravel(amount: CGFloat) -> CGFloat {
-        -10 * (1 - min(1, max(0, amount) / RefreshPull.threshold))
-    }
 }
 
-struct PullRefreshMark: View {
+// De strook met het teken, tussen de bovenrand van de scroll en de inhoud. Trekken: de zichtbare
+// afstand stuurt de tekening rechtstreeks (geen tijdlijn tussen vinger en teken). Daarna: `mark`.
+struct PullHorizonStrip: View {
     let amount: CGFloat
     var busy = false
+    var mark = HorizonState()
     var reduceMotion = false
-    private let height: CGFloat = 28
+    var armed = false
+    var armedSince: Double? = nil
+    var height: CGFloat? = nil // tijdens dichtglijden
+    var frozen: Double? = nil
     var body: some View {
-        let distance = RefreshStrip.gap(amount: amount, busy: busy)
-        ZStack {
-            if busy {
-                RefreshLoadingMark(size: height, reduceMotion: reduceMotion)
-            } else {
-                GlyphShape(glyphs: Brand.mark).fill(Theme.ink3)
-                GlyphShape(glyphs: Brand.mark, part: .dot).fill(Theme.accent)
-                    .offset(y: reduceMotion ? 0 : RefreshStrip.dotTravel(amount: amount))
-            }
-        }
-        .frame(width: height * Brand.mark.size.width / Brand.mark.size.height, height: height)
-        .opacity(busy ? 1 : min(1, max(0, (distance - 12) / 24)))
-        .frame(maxWidth: .infinity)
-        .frame(height: distance)
-        .clipped()
-        .allowsHitTesting(false)
-        // Geen tijdlijn tussen vinger en teken: alleen verschijnen en verdwijnen krijgen een zachte fade.
-        .transaction { $0.animation = nil }
-        .accessibilityHidden(!busy)
+        let distance = height ?? RefreshStrip.gap(amount: amount, busy: busy)
+        let state = busy ? mark : HorizonState(phase: .pull, pull: Double(amount), reduce: reduceMotion)
+        HorizonPullMark(state: state, armed: armed, armedSince: armedSince, frozen: frozen)
+            .frame(maxWidth: .infinity)
+            .frame(height: max(0, distance))
+            .clipped()
+            .allowsHitTesting(false)
     }
 }
 
@@ -138,27 +105,47 @@ private struct HootRefresh: ViewModifier {
     @Environment(\.accessibilityReduceMotion) private var still
     let action: @MainActor () async -> Void
     var indicator = true
+    var failed: (@MainActor () -> Bool)? = nil
+    var label = "Editie"
     @State private var pull = RefreshPull()
-    @State private var closing = false
+    @State private var mark = HorizonState()
+    @State private var armedSince: Double? = nil
+    @State private var closing: CGFloat? = nil // hoogte van de strook terwijl hij dichtglijdt
+    @State private var failCount = 0
+    private func announce(_ text: String) { if indicator { AccessibilityNotification.Announcement(text).post() } }
+    private func wait(until ms: Double) async {
+        let d = ms - Horizon.now()
+        if d > 0 { try? await Task.sleep(for: .milliseconds(Int(d.rounded(.up)))) }
+    }
     private func refresh() {
         guard withAnimation(settle, { pull.begin() }) else { return }
-        if indicator { AccessibilityNotification.Announcement("Bezig met verversen").post() }
+        mark = HorizonState(phase: .load, reduce: still, loadT0: Horizon.now())
+        announce("Bezig met verversen")
         Task {
             await action()
             if DebugLaunch.refreshDelay > 0 { try? await Task.sleep(for: .seconds(DebugLaunch.refreshDelay)) }
-            // Eerst vervaagt de h. (die staat dan nog in de strook), daarna klapt de strook dicht:
-            // het teken ligt nooit over de inhoud.
-            if still { pull.finish(); return }
-            withAnimation(.easeOut(duration: RefreshStrip.fadeOut)) { closing = true }
-            try? await Task.sleep(for: .seconds(RefreshStrip.fadeOut))
-            withAnimation(settle) { pull.finish() }
-            try? await Task.sleep(for: .seconds(RefreshStrip.close + 0.05))
-            closing = false
+            guard indicator else { withAnimation(settle) { pull.finish() }; return }
+            // Het antwoord wacht zolang je opnieuw trekt; daarna loopt de dag af: doorlopen, ondergang, dicht.
+            while pull.dragging { try? await Task.sleep(for: .milliseconds(50)) }
+            let ok = !(failed?() ?? false)
+            mark = Horizon.answer(mark, now: Horizon.now(), ok: ok)
+            if ok { announce("\(label) ververst") } else { failCount += 1; announce("Verversen lukte niet") }
+            if mark.phase == .go {
+                await wait(until: Horizon.setAt(mark))
+                mark.setT0 = Horizon.setAt(mark); mark.phase = .set
+            }
+            await wait(until: Horizon.closeAt(mark))
+            // Eerst is het teken onder (of vervaagd), dan glijdt de strook dicht: het ligt nooit over de inhoud.
+            closing = RefreshStrip.gap(amount: pull.amount, busy: true)
+            withAnimation(settle) { closing = 0; pull.finish() }
+            if !still { try? await Task.sleep(for: .seconds(RefreshStrip.close + 0.05)) }
+            closing = nil
+            mark = HorizonState()
         }
     }
     // Strook en teken openen en sluiten in één rustige beweging; bij Verminder beweging direct.
     private var settle: Animation? { still ? nil : RefreshStrip.glide }
-    private var reserved: CGFloat { indicator && pull.busy ? RefreshStrip.loading : 0 }  // blijft open tot het teken weg is
+    private var reserved: CGFloat { indicator && pull.busy ? RefreshStrip.loading : 0 } // blijft open tot het teken weg is
     func body(content: Content) -> some View {
         content
             // De strook wordt door de scroll zelf opengehouden en klapt rustig dicht; bij Verminder beweging direct.
@@ -169,19 +156,28 @@ private struct HootRefresh: ViewModifier {
             .onScrollPhaseChange { old, new in
                 if pull.phase(from: old, to: new) { refresh() }
             }
+            .onChange(of: pull.armed) { _, _ in armedSince = Horizon.now() }
             .overlay(alignment: .top) {
-                if indicator && !closing && (pull.busy || pull.amount > 12) {
-                    PullRefreshMark(amount: pull.amount, busy: pull.busy, reduceMotion: still)
-                        .transition(.opacity)
+                if indicator && (pull.busy || pull.amount > 0 || closing != nil) {
+                    PullHorizonStrip(amount: pull.amount, busy: pull.busy || closing != nil, mark: mark, reduceMotion: still,
+                                     armed: pull.armed, armedSince: armedSince, height: closing)
+                        // Geen tijdlijn tussen vinger en teken; alleen het dichtglijden loopt met de strook mee.
+                        .transaction { if closing == nil { $0.animation = nil } }
                 }
             }
+            // Eén zachte tik op de drempel (alleen van onder naar boven), een zachtere bij een fout.
+            .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.6), trigger: pull.armed) { old, new in !old && new }
+            .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.4), trigger: failCount)
             .accessibilityAction(named: "Verversen") { refresh() }
     }
 }
 extension View {
     // `indicator: false` voor een scherm dat zelf al een wachtteken toont (leeg, eerste keer laden).
-    func hootRefresh(indicator: Bool = true, _ action: @escaping @MainActor () async -> Void) -> some View {
-        modifier(HootRefresh(action: action, indicator: indicator))
+    // `failed`: na het laden, is het verversen mislukt? Dan gaat de zon terug onder en staat de zin 2 s.
+    // `label`: wat er ververst is, voor VoiceOver ("Editie ververst").
+    func hootRefresh(indicator: Bool = true, label: String = "Editie", failed: (@MainActor () -> Bool)? = nil,
+                     _ action: @escaping @MainActor () async -> Void) -> some View {
+        modifier(HootRefresh(action: action, indicator: indicator, failed: failed, label: label))
     }
 }
 

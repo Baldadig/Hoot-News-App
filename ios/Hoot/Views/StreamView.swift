@@ -147,7 +147,7 @@ struct StreamView: View {
             .hootKopScreen()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .hootRefresh(indicator: !store.stream.isEmpty) { await store.load() }
+            .hootRefresh(indicator: !store.stream.isEmpty, label: "Stroom", failed: { store.stale }) { await store.load() }
             .sheet(isPresented: $showSources) { SourcesView().debugAppearance() }
             .settingsButton()
             }
