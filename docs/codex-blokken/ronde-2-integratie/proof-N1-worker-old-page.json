@@ -1,0 +1,47 @@
+{
+  "release": "N1",
+  "storage": {
+    "hoot:prefs": {
+      "schema": 4,
+      "onboarded": true,
+      "theme": "dark",
+      "themeDark": "night",
+      "interests": [
+        "tech"
+      ],
+      "muted": [],
+      "pinned": [],
+      "bluesky": true,
+      "bskyInStream": [
+        "bsky:hoot-proef.invalid"
+      ],
+      "social": [
+        {
+          "handle": "hoot-proef.invalid",
+          "name": "Hoot-proefprofiel"
+        }
+      ]
+    },
+    "hoot:saved-v2": {
+      "proef-sw": {
+        "id": "proef-sw",
+        "title": "Mijn bewaarde proefstuk",
+        "source": "nos",
+        "url": "https://example.test/proef"
+      }
+    },
+    "hoot:read": [
+      "proef-sw-gelezen"
+    ]
+  },
+  "worker": {
+    "active": "activated",
+    "waiting": null,
+    "installing": null
+  },
+  "appScripts": [
+    "/lees/assets/index-BJHvCR5j.js"
+  ],
+  "numbers": 10,
+  "localDataPresent": true
+}

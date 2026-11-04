@@ -21,9 +21,31 @@ private struct NachtKey: UITraitBridgedEnvironmentKey {
 extension EnvironmentValues {
     var nachtActief: Bool { get { self[NachtKey.self] } set { self[NachtKey.self] = newValue } }
 }
+// Alleen de Nacht-trait gebruikt deze leesinkt. Bestaande assetkleuren blijven intact.
+enum NachtLeesinkt {
+    static let ink: UInt32 = 0xd8d0c2
+    static let ink2: UInt32 = 0xbdb3a2
+    static let ink3: UInt32 = 0xa79b87
+    static let accent: UInt32 = 0xdf8276
+    static let readerCSS = ":root { --paper:#000000; --ink:#d8d0c2; --ink-3:#a79b87; --accent:#df8276; color-scheme:dark; }"
+}
 enum NachtKleur {
+    private static func role(_ name: String, night: UInt32) -> UIColor {
+        UIColor { traits in
+            guard traits[NachtTrait.self] && traits.userInterfaceStyle == .dark else {
+                return UIColor(named: name)!.resolvedColor(with: traits)
+            }
+            return UIColor(red: CGFloat((night >> 16) & 255) / 255,
+                           green: CGFloat((night >> 8) & 255) / 255,
+                           blue: CGFloat(night & 255) / 255, alpha: 1)
+        }
+    }
+    static let ink = role("Ink", night: NachtLeesinkt.ink)
+    static let ink2 = role("Ink2", night: NachtLeesinkt.ink2)
+    static let ink3 = role("Ink3", night: NachtLeesinkt.ink3)
+    static let accent = role("AccentColor", night: NachtLeesinkt.accent)
     static let label = UIColor { traits in
-        traits[NachtTrait.self] ? UIColor(named: "Ink")!.resolvedColor(with: traits) : .label
+        traits[NachtTrait.self] && traits.userInterfaceStyle == .dark ? ink.resolvedColor(with: traits) : .label
     }
     static let paper = UIColor { traits in
         traits[NachtTrait.self] && traits.userInterfaceStyle == .dark ? .black : UIColor(named: "Paper")!.resolvedColor(with: traits)

@@ -1,0 +1,351 @@
+Subtest: HEAD heeft ook bij 503 geen body, met dezelfde veilige CORS- en cacheheaders
+ok 957 - HEAD heeft ook bij 503 geen body, met dezelfde veilige CORS- en cacheheaders
+  ---
+  duration_ms: 1.557083
+  type: 'test'
+  ...
+# Subtest: endpoint: echte productievorm (KEYS.start + KEYS.voorpagina) geeft 200 met drie koppen
+ok 958 - endpoint: echte productievorm (KEYS.start + KEYS.voorpagina) geeft 200 met drie koppen
+  ---
+  duration_ms: 197.775792
+  type: 'test'
+  ...
+# Subtest: WaitingMark: standaard blijft bij bronnen, aangepaste tekst verschijnt zichtbaar en toegankelijk
+ok 959 - WaitingMark: standaard blijft bij bronnen, aangepaste tekst verschijnt zichtbaar en toegankelijk
+  ---
+  duration_ms: 8.841125
+  type: 'test'
+  ...
+# Subtest: WaitingMark: stille markering draagt dezelfde passende schermlezertekst
+ok 960 - WaitingMark: stille markering draagt dezelfde passende schermlezertekst
+  ---
+  duration_ms: 0.682958
+  type: 'test'
+  ...
+# Subtest: weercodes worden een soort en een Nederlandse omschrijving
+ok 961 - weercodes worden een soort en een Nederlandse omschrijving
+  ---
+  duration_ms: 1.140625
+  type: 'test'
+  ...
+# Subtest: weerplaats: standaard De Bilt (neutraal), "geen" betekent geen weer, onbekend wordt De Bilt
+ok 962 - weerplaats: standaard De Bilt (neutraal), "geen" betekent geen weer, onbekend wordt De Bilt
+  ---
+  duration_ms: 0.266083
+  type: 'test'
+  ...
+# Subtest: opnieuw kiezen begint met de bronnen die nu aan staan
+ok 963 - opnieuw kiezen begint met de bronnen die nu aan staan
+  ---
+  duration_ms: 3.053375
+  type: 'test'
+  ...
+# Subtest: niets veranderd in het welkom = niets veranderd aan je bronnen
+ok 964 - niets veranderd in het welkom = niets veranderd aan je bronnen
+  ---
+  duration_ms: 0.719541
+  type: 'test'
+  ...
+# Subtest: opnieuw kiezen houdt je vaste onderwerpen, voor zover je ze nog volgt
+ok 965 - opnieuw kiezen houdt je vaste onderwerpen, voor zover je ze nog volgt
+  ---
+  duration_ms: 0.143458
+  type: 'test'
+  ...
+# Subtest: eerste start: de eerste drie onderwerpen worden vast, en de keuze wordt je bronnen
+ok 966 - eerste start: de eerste drie onderwerpen worden vast, en de keuze wordt je bronnen
+  ---
+  duration_ms: 0.25975
+  type: 'test'
+  ...
+# Subtest: de uitleg bij "Jouw Editie" komt één keer, alleen na het eerste welkom
+ok 967 - de uitleg bij "Jouw Editie" komt één keer, alleen na het eerste welkom
+  ---
+  duration_ms: 0.222167
+  type: 'test'
+  ...
+# Subtest: voorstel zonder interesses: NOS, NU.nl en RTL Nieuws
+ok 968 - voorstel zonder interesses: NOS, NU.nl en RTL Nieuws
+  ---
+  duration_ms: 1.105333
+  type: 'test'
+  ...
+# Subtest: voorstel per interesse: één of twee gratis bronnen erbij, in vaste volgorde
+ok 969 - voorstel per interesse: één of twee gratis bronnen erbij, in vaste volgorde
+  ---
+  duration_ms: 0.362667
+  type: 'test'
+  ...
+# Subtest: een bron met abonnement staat nooit vooraf aan, en alles in de lijsten bestaat
+ok 970 - een bron met abonnement staat nooit vooraf aan, en alles in de lijsten bestaat
+  ---
+  duration_ms: 0.360792
+  type: 'test'
+  ...
+# Subtest: Ook bij je interesses: niet wat aan staat, gratis vóór abonnement
+ok 971 - Ook bij je interesses: niet wat aan staat, gratis vóór abonnement
+  ---
+  duration_ms: 0.813042
+  type: 'test'
+  ...
+# Subtest: je bronnen in één regel
+ok 972 - je bronnen in één regel
+  ---
+  duration_ms: 0.598
+  type: 'test'
+  ...
+# Subtest: pillen over pagina's: zo veel als past, een te hoge groep staat alleen
+ok 973 - pillen over pagina's: zo veel als past, een te hoge groep staat alleen
+  ---
+  duration_ms: 0.808459
+  type: 'test'
+  ...
+# Subtest: Wat precies?: alle onderwerpen volgen is geen keuze maar Alles
+ok 974 - Wat precies?: alle onderwerpen volgen is geen keuze maar Alles
+  ---
+  duration_ms: 0.542709
+  type: 'test'
+  ...
+# Subtest: why-label: één stille zin, zonder kapitalen-klasse en zonder rood
+ok 975 - why-label: één stille zin, zonder kapitalen-klasse en zonder rood
+  ---
+  duration_ms: 30.868667
+  type: 'test'
+  ...
+# Subtest: why-label: niets zonder why (algemene of oudere Editie) en niets als het label het al zegt
+ok 976 - why-label: niets zonder why (algemene of oudere Editie) en niets als het label het al zegt
+  ---
+  duration_ms: 1.580958
+  type: 'test'
+  ...
+# Subtest: why-label: geen getallen behalve de bronnen- of stukkentelling
+ok 977 - why-label: geen getallen behalve de bronnen- of stukkentelling
+  ---
+  duration_ms: 5192.107209
+  type: 'test'
+  ...
+# Subtest: vastgelegde Editie: het why gaat mee, en een plek zonder why rendert gewoon
+ok 978 - vastgelegde Editie: het why gaat mee, en een plek zonder why rendert gewoon
+  ---
+  duration_ms: 257.599625
+  type: 'test'
+  ...
+# Subtest: forgetTopic: alleen dat onderwerp weg, teller en bronnen blijven
+ok 979 - forgetTopic: alleen dat onderwerp weg, teller en bronnen blijven
+  ---
+  duration_ms: 0.301917
+  type: 'test'
+  ...
+# Subtest: forgetTopic: daarna leert het profiel dat onderwerp niet meer
+ok 980 - forgetTopic: daarna leert het profiel dat onderwerp niet meer
+  ---
+  duration_ms: 0.147583
+  type: 'test'
+  ...
+# Subtest: profileSummary: gekozen, geleerd (≥ 0,4) en minder, in vaste volgorde
+ok 981 - profileSummary: gekozen, geleerd (≥ 0,4) en minder, in vaste volgorde
+  ---
+  duration_ms: 0.34875
+  type: 'test'
+  ...
+# Subtest: profileSummary: 'meer hiervan' telt als gekozen, 'minder' op nul valt weg
+ok 982 - profileSummary: 'meer hiervan' telt als gekozen, 'minder' op nul valt weg
+  ---
+  duration_ms: 0.099
+  type: 'test'
+  ...
+# Subtest: wholeSentences: afgekapte bron: Politkovska… gaat eraf met het halve stuk
+ok 983 - wholeSentences: afgekapte bron: Politkovska… gaat eraf met het halve stuk
+  ---
+  duration_ms: 27.238375
+  type: 'test'
+  ...
+# Subtest: wholeSentences: afgekapte bron met drie punten
+ok 984 - wholeSentences: afgekapte bron met drie punten
+  ---
+  duration_ms: 3.855084
+  type: 'test'
+  ...
+# Subtest: wholeSentences: afgekapte bron met [...] na een hele zin
+ok 985 - wholeSentences: afgekapte bron met [...] na een hele zin
+  ---
+  duration_ms: 0.18125
+  type: 'test'
+  ...
+# Subtest: wholeSentences: afkortingen dr. en o.a. zijn geen zinseinde
+ok 986 - wholeSentences: afkortingen dr. en o.a. zijn geen zinseinde
+  ---
+  duration_ms: 0.12625
+  type: 'test'
+  ...
+# Subtest: wholeSentences: zin die eindigt met een sluitende aanhaling
+ok 987 - wholeSentences: zin die eindigt met een sluitende aanhaling
+  ---
+  duration_ms: 1.721125
+  type: 'test'
+  ...
+# Subtest: wholeSentences: komma: een stuk dat alleen een onderwerp is (korter dan twee derde van max) is geen intro
+ok 988 - wholeSentences: komma: een stuk dat alleen een onderwerp is (korter dan twee derde van max) is geen intro
+  ---
+  duration_ms: 0.255959
+  type: 'test'
+  ...
+# Subtest: wholeSentences: geen zinseinde en geen komma: niets
+ok 989 - wholeSentences: geen zinseinde en geen komma: niets
+  ---
+  duration_ms: 0.081792
+  type: 'test'
+  ...
+# Subtest: wholeSentences: eind op … zonder hele zin: tot de laatste komma
+ok 990 - wholeSentences: eind op … zonder hele zin: tot de laatste komma
+  ---
+  duration_ms: 0.518625
+  type: 'test'
+  ...
+# Subtest: wholeSentences: eind op … zonder zin en zonder komma: niets
+ok 991 - wholeSentences: eind op … zonder zin en zonder komma: niets
+  ---
+  duration_ms: 0.402959
+  type: 'test'
+  ...
+# Subtest: wholeSentences: komma: een hoofdzin van minstens twee derde van max mag
+ok 992 - wholeSentences: komma: een hoofdzin van minstens twee derde van max mag
+  ---
+  duration_ms: 0.710875
+  type: 'test'
+  ...
+# Subtest: wholeSentences: komma: een bijzin die op zijn hoofdzin wacht is geen intro
+ok 993 - wholeSentences: komma: een bijzin die op zijn hoofdzin wacht is geen intro
+  ---
+  duration_ms: 0.14375
+  type: 'test'
+  ...
+# Subtest: wholeSentences: komma in een getal is geen knip
+ok 994 - wholeSentences: komma in een getal is geen knip
+  ---
+  duration_ms: 0.056
+  type: 'test'
+  ...
+# Subtest: wholeSentences: komma: kort stuk zoals 'In Armenia' is geen intro
+ok 995 - wholeSentences: komma: kort stuk zoals 'In Armenia' is geen intro
+  ---
+  duration_ms: 0.043458
+  type: 'test'
+  ...
+# Subtest: wholeSentences: letterwoord aan het eind van een zin is een zinseinde
+ok 996 - wholeSentences: letterwoord aan het eind van een zin is een zinseinde
+  ---
+  duration_ms: 0.040625
+  type: 'test'
+  ...
+# Subtest: wholeSentences: letterwoord: aan de NOS. en tegen NEC.
+ok 997 - wholeSentences: letterwoord: aan de NOS. en tegen NEC.
+  ---
+  duration_ms: 0.036709
+  type: 'test'
+  ...
+# Subtest: wholeSentences: een initiaal is geen zinseinde
+ok 998 - wholeSentences: een initiaal is geen zinseinde
+  ---
+  duration_ms: 0.165
+  type: 'test'
+  ...
+# Subtest: wholeSentences: rek: past er geen hele zin, dan de eerste zin als die binnen rek blijft
+ok 999 - wholeSentences: rek: past er geen hele zin, dan de eerste zin als die binnen rek blijft
+  ---
+  duration_ms: 0.059
+  type: 'test'
+  ...
+# Subtest: wholeSentences: rek: ook de eerste zin is langer dan rek, dan niets
+ok 1000 - wholeSentences: rek: ook de eerste zin is langer dan rek, dan niets
+  ---
+  duration_ms: 0.4035
+  type: 'test'
+  ...
+# Subtest: wholeSentences: rek geldt alleen voor de eerste zin, niet voor meer zinnen
+ok 1001 - wholeSentences: rek geldt alleen voor de eerste zin, niet voor meer zinnen
+  ---
+  duration_ms: 0.145166
+  type: 'test'
+  ...
+# Subtest: wholeSentences: lege tekst
+ok 1002 - wholeSentences: lege tekst
+  ---
+  duration_ms: 0.070791
+  type: 'test'
+  ...
+# Subtest: wholeSentences: alleen witruimte
+ok 1003 - wholeSentences: alleen witruimte
+  ---
+  duration_ms: 0.043792
+  type: 'test'
+  ...
+# Subtest: wholeSentences: past helemaal: ongewijzigd, ook zonder slotpunt
+ok 1004 - wholeSentences: past helemaal: ongewijzigd, ook zonder slotpunt
+  ---
+  duration_ms: 0.0515
+  type: 'test'
+  ...
+# Subtest: wholeSentences: meer hele zinnen zolang ze passen
+ok 1005 - wholeSentences: meer hele zinnen zolang ze passen
+  ---
+  duration_ms: 0.054625
+  type: 'test'
+  ...
+# Subtest: wholeSentences: witruimte wordt één spatie
+ok 1006 - wholeSentences: witruimte wordt één spatie
+  ---
+  duration_ms: 0.047583
+  type: 'test'
+  ...
+# Subtest: wholeSentences: drie punten midden in de tekst zijn geen zinseinde
+ok 1007 - wholeSentences: drie punten midden in de tekst zijn geen zinseinde
+  ---
+  duration_ms: 0.048125
+  type: 'test'
+  ...
+# Subtest: wholeSentences: vraag- en uitroepteken
+ok 1008 - wholeSentences: vraag- en uitroepteken
+  ---
+  duration_ms: 0.063917
+  type: 'test'
+  ...
+# Subtest: wholeSentences: alles: hele tekst, ook boven 200
+ok 1009 - wholeSentences: alles: hele tekst, ook boven 200
+  ---
+  duration_ms: 0.053958
+  type: 'test'
+  ...
+# Subtest: introMax: max op lines regels, rek op lines + 1, in de gemeten kolom
+ok 1010 - introMax: max op lines regels, rek op lines + 1, in de gemeten kolom
+  ---
+  duration_ms: 1.069542
+  type: 'test'
+  ...
+# Subtest: lineFit: grotere letter of smallere kolom, minder tekens
+ok 1011 - lineFit: grotere letter of smallere kolom, minder tekens
+  ---
+  duration_ms: 0.107833
+  type: 'test'
+  ...
+# Subtest: wholeSentences: null en undefined zijn leeg
+ok 1012 - wholeSentences: null en undefined zijn leeg
+  ---
+  duration_ms: 0.153916
+  type: 'test'
+  ...
+# Subtest: server preview: letterwoord is een zinseinde, initiaal niet
+ok 1013 - server preview: letterwoord is een zinseinde, initiaal niet
+  ---
+  duration_ms: 2.740666
+  type: 'test'
+  ...
+1..1013
+# tests 1013
+# suites 0
+# pass 1012
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 1
+# duration_ms 112982.619833

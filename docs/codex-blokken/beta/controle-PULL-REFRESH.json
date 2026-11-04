@@ -1,0 +1,44 @@
+{
+  "step": "PULL-REFRESH",
+  "head": "06d53137beeccc19d6204d504fd0bc36f684825d",
+  "checks": [
+    {
+      "check": "core",
+      "exit": 0,
+      "seconds": 0.52,
+      "log": "/tmp/hoot-beta/PULL-REFRESH/core.log"
+    },
+    {
+      "check": "web",
+      "exit": 0,
+      "seconds": 176.81,
+      "log": "/tmp/hoot-beta/PULL-REFRESH/web.log",
+      "counts": {
+        "tests": 1000,
+        "pass": 999,
+        "fail": 0,
+        "skipped": 0,
+        "todo": 1
+      }
+    },
+    {
+      "check": "build",
+      "exit": 0,
+      "seconds": 46.84,
+      "log": "/tmp/hoot-beta/PULL-REFRESH/build.log"
+    },
+    {
+      "check": "acceptatie",
+      "exit": 0,
+      "seconds": 161.94,
+      "log": "/tmp/hoot-beta/PULL-REFRESH/acceptatie.log"
+    },
+    {
+      "check": "native",
+      "exit": 0,
+      "seconds": 229.11,
+      "log": "/tmp/hoot-beta/PULL-REFRESH/native.log",
+      "tests": 108
+    }
+  ]
+}

@@ -32,6 +32,8 @@ struct WelcomeView: View {
     @State private var step: Step
     @State private var page = 0 // de uitleg: 0 Editie, 1 Stroom, 2 Selectie (de rode intro is pagina 1 van 4)
     @State private var subpage = 0 // de subpagina van Wat precies?, Je bronnen en Je Selectie
+    @State private var sourceQuery = ""
+    @State private var sourceFilter = "Ontdekken"
     @State private var offered: [String] = [] // Je bronnen: het voorstel eerst, dan wat verder past; de volgorde ligt vast
     @State private var interests: [String] = []
     @State private var picked: [String] = [] // Wat precies?: wat je aantikte; niets = alles binnen die interesse
@@ -603,8 +605,8 @@ struct WelcomeView: View {
         switch step {
         case .interesses: "Kies er een paar. Daarmee maken we je Editie en kiezen we je bronnen."
         case .precies: "Kies wat je boeit. Niets kiezen is alles."
-        case .hoot: "Voorgesteld bij je interesses. Tik om te wijzigen."
-        case .bronnen: "Voorgesteld bij je interesses. Tik om te wijzigen."
+        case .hoot: "Volg je vaste bronnen. Ontdek ook iets nieuws."
+        case .bronnen: "Volg je vaste bronnen. Ontdek ook iets nieuws."
         case .selectie: "Elke maandag de drie beste stukken van de week, per onderwerp. Kies wat bij je werk of hobby past."
         case .seintje: "Een stil seintje als je Editie klaarligt."
         case .intro, .uitleg: ""
@@ -692,8 +694,8 @@ struct WelcomeView: View {
     private func subCountOf(_ s: Step) -> Int {
         switch s {
         case .precies, .selectie: chipPages(for: s).count
-        case .bronnen: sourcePreviewPages.count
-        case .hoot: sourcePreviewPages.count
+        case .bronnen: 1
+        case .hoot: 1
         default: 1
         }
     }
@@ -745,20 +747,52 @@ struct WelcomeView: View {
     private func pickSource(_ id: String) {
         chosen = toggled(chosen ?? [], id)
     }
+    private var followSources: [Source] {
+        store.newsSources.filter { source in
+            (source.cat != "sport" || interests.contains("sport")) && (sourceFilter != "Volgend" || chosen?.contains(source.id) == true) && (sourceQuery.isEmpty || (source.name + " " + (source.about ?? "")).localizedCaseInsensitiveContains(sourceQuery))
+        }.sorted { a,b in
+            if sourceFilter == "Ontdekken" {
+                let aa = interests.contains { (a.forInterests ?? []).contains($0) || a.cat == $0 }
+                let bb = interests.contains { (b.forInterests ?? []).contains($0) || b.cat == $0 }
+                if aa != bb { return aa }
+            }
+            return a.name.localizedStandardCompare(b.name) == .orderedAscending
+        }
+    }
     @ViewBuilder private var sourcePreview: some View {
-        let pages = sourcePreviewPages
-        let ids = pages.indices.contains(subpage) ? pages[subpage] : pages.last ?? []
-        if chosen == nil {
-            ProgressView("Bronnen laden…")
-        } else {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: Space.s2), count: sourceColumns), spacing: Space.s2) {
-                ForEach(ids, id: \.self) { id in
-                    if let source = store.source(id) {
-                        SourceTile(source: source, on: chosen?.contains(id) == true, height: sourceCardHeight) { pickSource(id) }
+        if chosen == nil { ProgressView("Bronnen laden…") }
+        else {
+            TextField("Zoek op naam of onderwerp", text: $sourceQuery).textFieldStyle(.roundedBorder).accessibilityLabel("Zoek bronnen")
+            Flow {
+                ForEach(["Ontdekken", "Alle bronnen", "Volgend"], id: \.self) { name in
+                    Button(name) { sourceFilter = name; sourceQuery = "" }.frame(minHeight: Space.tap)
+                        .accessibilityAddTraits(sourceFilter == name ? .isSelected : [])
+                }
+            }.padding(.vertical, Space.s2)
+            if followSources.isEmpty { Text("Geen bron gevonden. Kies een andere zoekterm of bekijk Alle bronnen.").foregroundStyle(Theme.ink2) }
+            LazyVStack(spacing: Space.s3) {
+                ForEach(followSources) { source in
+                    HStack(alignment: .top, spacing: Space.s3) {
+                        SourceAvatar(source: source, size: Space.tap)
+                        VStack(alignment: .leading, spacing: Space.s2) {
+                            Text(source.name).font(.headline)
+                            if let about = source.about { Text(about).font(.subheadline).foregroundStyle(Theme.ink2) }
+                            if source.paid == true { Text("Deels achter abonnement").font(.caption).foregroundStyle(Theme.ink3) }
+                            if typeSize >= .xxxLarge { followButton(source) }
+                        }.frame(maxWidth: .infinity, alignment: .leading)
+                        if typeSize < .xxxLarge { followButton(source) }
                     }
+                    Divider()
                 }
             }
         }
+    }
+    private func followButton(_ source: Source) -> some View {
+        let on = chosen?.contains(source.id) == true
+        return Button(on ? "Volgend" : "Volgen") { pickSource(source.id) }
+            .buttonStyle(.bordered).frame(minHeight: Space.tap)
+            .accessibilityLabel("\(on ? "Volgend" : "Volgen"), \(source.name)")
+            .accessibilityAddTraits(on ? .isSelected : [])
     }
 
     // Het seintje: een nagemaakte melding die zacht binnenvalt, zoals een echte.

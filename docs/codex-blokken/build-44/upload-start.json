@@ -1,0 +1,9 @@
+{
+  "startedAt": "2026-11-03T15:18:01.487982+01:00",
+  "version": "1.0.1",
+  "build": "44",
+  "sourceCommit": "8dffcaebad05a45ddcc2570ee546cb45adac63a4",
+  "destination": "Apple TestFlight internal only",
+  "userAuthorized": true,
+  "newCredentialsRequested": false
+}

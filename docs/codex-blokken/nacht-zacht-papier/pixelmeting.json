@@ -1,0 +1,83 @@
+[
+  {
+    "file" : "ios-lezer-lang-nacht.png",
+    "fractionAbovePoint7" : 0,
+    "meanLinearLuminance" : 0.041185152147134342,
+    "pixels" : [
+      1170,
+      2334
+    ]
+  },
+  {
+    "file" : "ios-lezer-lang-licht.png",
+    "fractionAbovePoint7" : 0.91445740777360318,
+    "meanLinearLuminance" : 0.81432628891749526,
+    "pixels" : [
+      1170,
+      2334
+    ]
+  },
+  {
+    "file" : "ios-lezer-licht.png",
+    "fractionAbovePoint7" : 0.91324822944360218,
+    "meanLinearLuminance" : 0.8126708346693331,
+    "pixels" : [
+      1170,
+      2334
+    ]
+  },
+  {
+    "file" : "ios-lezer-nacht.png",
+    "fractionAbovePoint7" : 0,
+    "meanLinearLuminance" : 0.042972008160859269,
+    "pixels" : [
+      1170,
+      2334
+    ]
+  },
+  {
+    "file" : "ios-foto-logo-licht.png",
+    "fractionAbovePoint7" : 0.79638642470396026,
+    "meanLinearLuminance" : 0.75245167829228332,
+    "pixels" : [
+      1170,
+      2532
+    ]
+  },
+  {
+    "file" : "ios-foto-logo-nacht.png",
+    "fractionAbovePoint7" : 0.035705364496833689,
+    "meanLinearLuminance" : 0.090091732230675695,
+    "pixels" : [
+      1170,
+      2532
+    ]
+  },
+  {
+    "file" : "ios-lezer-donker.png",
+    "fractionAbovePoint7" : 0.060131537509429539,
+    "meanLinearLuminance" : 0.063519593666548954,
+    "pixels" : [
+      1170,
+      2334
+    ]
+  },
+  {
+    "file" : "ios-lezer-lang-donker.png",
+    "fractionAbovePoint7" : 0.056825888573960551,
+    "meanLinearLuminance" : 0.061271503180726453,
+    "pixels" : [
+      1170,
+      2334
+    ]
+  },
+  {
+    "file" : "ios-foto-logo-donker.png",
+    "fractionAbovePoint7" : 0.046607526228379312,
+    "meanLinearLuminance" : 0.09813793953624704,
+    "pixels" : [
+      1170,
+      2532
+    ]
+  }
+]

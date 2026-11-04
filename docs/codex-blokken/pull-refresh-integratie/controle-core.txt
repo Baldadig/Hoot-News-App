@@ -1,0 +1,5 @@
+
+> hoot@1.57.0 build:core
+> node scripts/build-edition-core.mjs
+
+ios/Hoot/Resources/edition-core.js: 165 kB, sha256 dd0ab54a058c

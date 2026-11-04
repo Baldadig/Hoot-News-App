@@ -1,0 +1,9 @@
+{
+  "started": "2026-11-03T14:29:34.104785+01:00",
+  "target": "Apple App Store Connect, interne TestFlight",
+  "version": "1.0.1",
+  "build": "42",
+  "internalOnly": true,
+  "route": "xcodebuild -exportArchive, bestaande Xcode-accountsessie",
+  "log": "/tmp/hoot42-upload.log"
+}

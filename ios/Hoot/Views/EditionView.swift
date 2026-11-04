@@ -45,9 +45,7 @@ struct EditionHeader: View {
                 ScreenTitle(title, gap: 0).frame(maxWidth: .infinity, alignment: .leading)
             }
             if waiting {
-                WaitingMark().frame(maxWidth: .infinity, alignment: .leading)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.vertical, Space.s3)
+                RefreshLoadingMark().frame(maxWidth: .infinity, minHeight: 56)
             }
         }
     }
@@ -241,7 +239,10 @@ struct EditionView: View {
                     // Past de naam er bij grote tekst niet meer naast, dan alleen de naam (nooit afgebroken).
                     EditionHeader(title: title, slot: store.edition?.slot, waiting: refreshWaiting && !rows.isEmpty)
                     if rows.isEmpty && (store.status == .loading || (store.status != .failed && store.edition != nil && store.shownEdition == nil)) {
-                        WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
+                        Group {
+                            if refreshWaiting { RefreshLoadingMark() }
+                            else { WaitingMark() }
+                        }.frame(maxWidth: .infinity, minHeight: 240)
                     } else if rows.isEmpty {
                         if store.status == .failed {
                             EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Hoot heeft nog geen Editie op dit toestel. Zodra je verbinding hebt, verschijnt hij hier.", retry: store.load)
@@ -357,13 +358,8 @@ struct EditionView: View {
             .hootScreenTitle() // het verhaal wint van de schermtitel (C7)
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .hootRefresh(indicator: false, onWaiting: { refreshWaiting = $0 }) { await store.load() }
-            .toolbar {
-                // Het woordmerk, klein linksboven: je ziet waar je bent, zonder dat het de krant overneemt.
-                // Hier landt het opstartscherm op.
-                ToolbarItem(placement: .topBarLeading) { Wordmark(handoff: true) }
-                    .sharedBackgroundVisibility(.hidden)
-            }
+            .hootRefresh(onWaiting: { refreshWaiting = $0 }) { await store.load() }
+            .hootBrandHeader()
             .settingsButton()
             .task(id: store.shownEdition?.id) {
                 guard let id = store.shownEdition?.id, EditionPrint.shouldPlay(id: id, lastSeen: seenEdition, ready: !store.editionRows.isEmpty), !printedIDs.contains(id) else { return }

@@ -10,6 +10,9 @@ struct StreamView: View {
     @State private var behindReader = false // de lezer ligt eroverheen: dat is geen vertrek uit de Stroom
     @State private var showSources = DebugLaunch.screen("bronnen")
     @State private var refreshWaiting = false
+    @State private var categoryTask: Task<Void, Never>?
+    @State private var viewportHeight: CGFloat = 0
+    @State private var headerHeight: CGFloat = 0
     @State private var limit = 60
     @State private var picks: Set<String> = Set(DebugLaunch.picks) // de bronnen uit de stapel (leeg = alle)
     @State private var lijn = LijnStand()
@@ -43,22 +46,39 @@ struct StreamView: View {
             let items = rub == "bubbel" ? bubble : store.withoutCopies(store.stream.filter { item in
                 (picks.isEmpty || picks.contains(item.source)) && (rub.isEmpty || Rubriek.past(item, rub, cat: cats[item.source] ?? nil))
             })
+            ScrollViewReader { scroll in
             ScrollView {
                 VStack(spacing: 0) {
+                    Color.clear.frame(height: 0).id("stroom-boven")
+                    VStack(spacing: 0) {
                     // De schermtitel in de scroll (C7), op de kolomlijn boven de rubriekenlijn.
                     VStack(alignment: .leading, spacing: 0) {
                         ScreenTitle("Stroom")
-                        if refreshWaiting {
-                            WaitingMark().frame(maxWidth: .infinity, alignment: .leading)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .padding(.vertical, Space.s3)
+                        if refreshWaiting && !store.stream.isEmpty {
+                            RefreshLoadingMark().frame(maxWidth: .infinity, minHeight: 56)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
                     .column()
                     StreamLine(
-                        rubriek: Binding(get: { rub }, set: { rubriek = $0 }),
+                        announcesRubriek: false,
+                        rubriek: Binding(get: { rub }, set: { next in
+                            categoryTask?.cancel()
+                            guard next != rub else { return }
+                            let incoming = next == "bubbel" ? bubble : store.withoutCopies(store.stream.filter { item in
+                                (picks.isEmpty || picks.contains(item.source)) && (next.isEmpty || Rubriek.past(item, next, cat: cats[item.source] ?? nil))
+                            })
+                            categoryTask = Task {
+                                if !still { await RubriekWissel.preload(RubriekWissel.images(incoming, enabled: store.images == "aan", kind: store.layout == "krant" ? .thumb : .large)) }
+                                guard !Task.isCancelled else { return }
+                                // Zelf een rubriek kiezen begint bovenaan, zoals concept A.
+                                var transaction = Transaction(); transaction.disablesAnimations = true
+                                withTransaction(transaction) { scroll.scrollTo("stroom-boven", anchor: .top) }
+                                rubriek = next
+                                AccessibilityNotification.Announcement("Rubriek \(tabs.first(where: { $0.id == next })?.label ?? "Alles").").post()
+                            }
+                        }),
                         picks: $picks,
                         open: $lijn.open,
                         lezen: lezen,
@@ -73,12 +93,18 @@ struct StreamView: View {
                     .padding(.bottom, Space.s2) // samen met de ruimte boven het eerste bericht 16
                     .padding(.horizontal)
                     .column()
+                    }
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { headerHeight = $0 }
+                    RubriekVlak(id: rub, minimumHeight: max(0, viewportHeight - headerHeight)) {
                     LazyVStack(alignment: .leading, spacing: 0) {
                         // Het grote lege scherm gaat over de hele Stroom, los van rubriek en bronkeuze
                         // (die blijven bewaard): offline of zonder bronnen zie je het altijd.
                         let niets = items.isEmpty && store.stream.isEmpty
                         if store.status == .loading && niets {
-                            WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
+                            Group {
+                                if refreshWaiting { RefreshLoadingMark() }
+                                else { WaitingMark() }
+                            }.frame(maxWidth: .infinity, minHeight: 240)
                         } else if niets {
                             if store.status == .failed {
                                 EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnen hier de berichten van je bronnen.", retry: store.load)
@@ -97,7 +123,7 @@ struct StreamView: View {
                                     if item.isPost { PostRow(item: item) }
                                     else { ItemRow(item: item, story: store.story(of: item)) }
                                 }
-                                    .transition(still ? .opacity : .move(edge: .top).combined(with: .opacity))
+                                    .transition(.identity)
                                 if !(fresh > 0 && i == fresh - 1) { Rule() }
                             }
                             if items.count > limit {
@@ -110,18 +136,20 @@ struct StreamView: View {
                     }
                     .padding(.horizontal)
                     .column()
-                    .animation(still ? nil : .easeOut(duration: 0.2), value: items.first?.id)
+                    }
                 }
             }
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportHeight = $0 }
             .debugScroll()
             .background(Theme.paper)
             // Scrollen klapt de stapel dicht (ernaast tikken doet de lijn zelf).
             .onScrollPhaseChange { _, now in if now == .interacting, lijn.open { lijn.open = false } }
             .navigationTitle("Stroom") // de rode streep zegt al welke rubriek
+            .hootBrandHeader()
             .hootScreenTitle()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .hootRefresh(indicator: false, onWaiting: { refreshWaiting = $0 }) { await store.load() }
+            .hootRefresh(onWaiting: { refreshWaiting = $0 }) { await store.load() }
             .toolbar {
                 // Bediening is stil (design system): grijs en zonder glazen rondje, zoals het tandwiel.
                 ToolbarItem(placement: .topBarTrailing) {
@@ -141,6 +169,7 @@ struct StreamView: View {
             }
             .sheet(isPresented: $showSources) { SourcesView().debugAppearance() }
             .settingsButton()
+            }
         }
         .onAppear {
             if behindReader { behindReader = false } else { store.openStream() }
@@ -148,14 +177,14 @@ struct StreamView: View {
             if debugStart, let r = DebugLaunch.startRubriek { rubriek = r }
             debugStart = false
         }
-        .onDisappear { if reader.item != nil { behindReader = true } else { store.leaveStream() } }
+        .onDisappear { categoryTask?.cancel(); if reader.item != nil { behindReader = true } else { store.leaveStream() } }
         // Een bron die je uitzet, kan geen filter blijven (anders een lege lijst zonder uitweg).
         .onChange(of: store.followed.map(\.id)) { _, ids in
             let kept = picks.intersection(ids)
             if kept != picks { picks = kept }
         }
         .onChange(of: rubriek) { limit = 60 }
-        .onChange(of: picks) { limit = 60 }
+        .onChange(of: picks) { categoryTask?.cancel(); limit = 60 }
         .onChange(of: phase) { _, now in if now == .background { store.leaveStream() } }
     }
 
@@ -330,6 +359,7 @@ struct SavedView: View {
                     .scrollContentBackground(.hidden)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .safeAreaInset(edge: .bottom) {
                 if let r = removed {
                     HStack {
@@ -357,6 +387,7 @@ struct SavedView: View {
             .animation(.easeOut(duration: 0.2), value: removed?.item.id)
             .background(Theme.paper)
             .navigationTitle("Bewaard")
+            .hootBrandHeader()
             .hootScreenTitle()
             .settingsButton()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
@@ -391,6 +422,7 @@ struct SearchView: View {
                 }
             }
             .navigationTitle("Zoeken")
+            .hootBrandHeader()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .searchable(text: $query, prompt: "Zoek in koppen en intro’s")

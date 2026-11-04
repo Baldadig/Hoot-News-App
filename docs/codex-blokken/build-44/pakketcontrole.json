@@ -1,0 +1,28 @@
+{
+  "version": "1.0.1",
+  "build": "44",
+  "sourceCommit": "8dffcaebad05a45ddcc2570ee546cb45adac63a4",
+  "approvedRefreshIncluded": true,
+  "archiveSucceeded": true,
+  "exportSucceeded": true,
+  "nativeTestsExecuted": 126,
+  "nativeTestsSkipped": 1,
+  "nativeTestFailures": 0,
+  "archiveSignatureVerified": true,
+  "ipaSignatureVerified": true,
+  "internalTestingOnly": true,
+  "appleUploadPerformed": true,
+  "alternateIcons": [
+    "AppIconRuim",
+    "AppIconZwart",
+    "AppIconPapier"
+  ],
+  "privacyManifestPresent": true,
+  "localIPABytes": 3821608,
+  "localIPASHA256": "6b004139a935209a2bab0ea16f65e840d5aa295913d4b16860726bfd9f90e6cb",
+  "ipa": "/Users/alexvrees/Baldadig Dropbox/Alex Vrees/Alex/Claude/Hoot-build-42-integratie/build/ios-build-44/export-final/Hoot.ipa",
+  "manualAnimationMatrixComplete": false,
+  "uploadStatus": "uploaded_processing",
+  "uploadedAt": "2026-11-03T15:19:33+01:00",
+  "processingCompletedVerified": false
+}

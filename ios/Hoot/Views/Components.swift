@@ -8,11 +8,11 @@ enum Theme {
     // De kleuren van het design system (zelfde namen en waarden als src/styles.css).
     static let paper = Color(uiColor: NachtKleur.paper) // pagina
     static let surface = Color("Surface") // kaart, blad, melding
-    static let ink = Color("Ink") // koppen en tekst
-    static let ink2 = Color("Ink2") // intro's en samenvattingen
+    static let ink = Color(uiColor: NachtKleur.ink) // koppen en tekst
+    static let ink2 = Color(uiColor: NachtKleur.ink2) // intro's en samenvattingen
     // Metadata: tijd, bron-uitleg, toelichting. De ondergrens voor kleine tekst (5,2:1 licht, 6,7:1
     // donker); nooit het lichtere grijs van het systeem (3,3:1 op papier).
-    static let ink3 = Color("Ink3")
+    static let ink3 = Color(uiColor: NachtKleur.ink3)
     static let rule = Color("Rule") // haarlijn, decoratief
     static let edge = Color("Edge") // rand van velden en knoppen die iets betekenen (3:1)
     static let accentSoft = Color("AccentSoft") // achtergrond van iets dat aan staat
@@ -22,7 +22,7 @@ enum Theme {
     // merkmomenten (opstarten, welkom, einde van de editie); verder is het accent een detail.
     static let brandRed = Color("BrandRed")
     static let onBrandRed = Color("OnBrandRed") // alles op merkrood: papier #F5F1E8 (6,9:1), zoals het opstartscherm
-    static let accent = Color("AccentColor") // de kleur zelf: "accentColor" volgt de tint, en die valt soms terug op systeemblauw
+    static let accent = Color(uiColor: NachtKleur.accent) // de kleur zelf: "accentColor" volgt de tint, en die valt soms terug op systeemblauw
     static func headline(_ style: Font.TextStyle) -> Font { .system(style, design: .serif, weight: .bold) }
 }
 
@@ -172,8 +172,7 @@ struct Rule: View {
 // "hoot." met de rode punt, als tekening (`BrandWord`), zoals op de website: in de Editie op de
 // kleinste maat van het merk (64 breed, 20 hoog), dezelfde als in het welkom. Groeit begrensd mee
 // met de tekst (tot xxLarge). Met `handoff` meldt dit woordmerk waar het staat (`BrandHandoff`), zodat
-// het opstartscherm er precies op kan landen; alleen dat in de Editie, anders overschrijft het welkom
-// de plek van `IntroMark`.
+// het opstartscherm er precies op kan landen. Alleen het actieve tabblad meldt zijn positie.
 struct Wordmark: View {
     var handoff = false
     var body: some View {
@@ -189,11 +188,22 @@ private struct WordmarkBody: View {
     let handoff: Bool
     @Environment(\.brandHandoff) private var brand
     @ScaledMetric(relativeTo: .title3) private var scale = WelcomeMark.scale
+    @State private var targetID = UUID()
 
     var body: some View {
-        BrandWord(scale: scale, handoff: handoff ? brand : nil)
+        BrandWord(scale: scale, handoff: handoff ? brand : nil, handoffOwner: targetID)
             // Niet meer in beeld (ander tabblad, scherm weg): dan valt er niets te landen.
-            .onDisappear { if handoff { brand?.word = nil; brand?.dot = nil } }
+            .onDisappear { if handoff { brand?.clearTarget(owner: targetID) } }
+    }
+}
+
+// Dezelfde merkkop op alle hoofdschermen: boven de schermtitel, zonder glazen achtergrond.
+extension View {
+    func hootBrandHeader() -> some View {
+        toolbar {
+            ToolbarItem(placement: .topBarLeading) { Wordmark(handoff: true) }
+                .sharedBackgroundVisibility(.hidden)
+        }
     }
 }
 

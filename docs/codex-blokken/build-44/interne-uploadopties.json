@@ -1,0 +1,10 @@
+{
+  "destination": "upload",
+  "manageAppVersionAndBuildNumber": false,
+  "method": "app-store-connect",
+  "signingStyle": "automatic",
+  "stripSwiftSymbols": true,
+  "teamID": "HSBZ66VRTZ",
+  "testFlightInternalTestingOnly": true,
+  "uploadSymbols": true
+}

@@ -79,6 +79,7 @@ struct BrandWord: View {
     var ink = Theme.ink
     var dot = Theme.accent
     var handoff: BrandHandoff? = nil
+    var handoffOwner: UUID? = nil
     var hideDot = false
     var breathes = false // pas als het opstartscherm weg is: anders verspringt de punt
 
@@ -89,7 +90,7 @@ struct BrandWord: View {
             Circle()
                 .fill(dot)
                 .frame(width: r * 2, height: r * 2)
-                .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { handoff?.dot = $0 }
+                .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { handoff?.registerDot($0, owner: handoffOwner) }
                 .phaseAnimator(breathes ? [1.0, 1.06, 0.92] : [1.0]) { d, k in d.scaleEffect(k) } animation: { _ in .easeInOut(duration: 2.75) }
                 .id(breathes) // begint op ware grootte, precies waar het rood eindigde
                 .opacity(hideDot ? 0 : 1)
@@ -97,7 +98,7 @@ struct BrandWord: View {
                 .padding(.top, SplashView.dotCenter.y * scale - r)
         }
         .frame(width: SplashView.size.width * scale, height: SplashView.size.height * scale)
-        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { handoff?.word = CGRect(origin: $0.origin, size: CGSize(width: SplashView.wordWidth * scale, height: $0.height)) }
+        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { handoff?.registerWord(CGRect(origin: $0.origin, size: CGSize(width: SplashView.wordWidth * scale, height: $0.height)), owner: handoffOwner) }
     }
 }
 

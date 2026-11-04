@@ -1,0 +1,18 @@
+Test Case '-[HootTests.VideoControllerTests testSystemControlsWithoutAutoplayOrWhiteBackground]' started.
+Test Case '-[HootTests.VideoControllerTests testSystemControlsWithoutAutoplayOrWhiteBackground]' passed (0.091 seconds).
+Test Suite 'VideoControllerTests' passed at 2026-11-03 10:19:15.024.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.091 (0.092) seconds
+Test Suite 'HootTests.xctest' passed at 2026-11-03 10:19:15.024.
+	 Executed 103 tests, with 0 failures (0 unexpected) in 153.994 (154.049) seconds
+Test Suite 'All tests' passed at 2026-11-03 10:19:15.025.
+	 Executed 103 tests, with 0 failures (0 unexpected) in 153.994 (154.051) seconds
+2026-11-03 10:19:41.600 xcodebuild[18146:7011353] [MT] IDETestOperationsObserverDebug: 188.783 elapsed -- Testing started completed.
+2026-11-03 10:19:41.601 xcodebuild[18146:7011353] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-11-03 10:19:41.601 xcodebuild[18146:7011353] [MT] IDETestOperationsObserverDebug: 188.784 sec, +188.784 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/hoot-ronde3-H-native/Logs/Test/Test-Hoot-2026.11.03_10-15-30-+0100.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

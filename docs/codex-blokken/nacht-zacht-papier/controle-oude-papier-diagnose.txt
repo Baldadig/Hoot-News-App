@@ -1,0 +1,76 @@
+or/HootTests.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+CodeSign /tmp/hoot-ronde3-J-native/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest (in target 'HootTests' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-nacht-zacht-papier/ios
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der --strip-disallowed-xattrs /tmp/hoot-ronde3-J-native/Build/Products/Debug-iphonesimulator/Hoot.app/PlugIns/HootTests.xctest
+
+CodeSign /tmp/hoot-ronde3-J-native/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot.debug.dylib (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-nacht-zacht-papier/ios
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der --strip-disallowed-xattrs /tmp/hoot-ronde3-J-native/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot.debug.dylib
+/tmp/hoot-ronde3-J-native/Build/Products/Debug-iphonesimulator/Hoot.app/Hoot.debug.dylib: replacing existing signature
+
+CodeSign /tmp/hoot-ronde3-J-native/Build/Products/Debug-iphonesimulator/Hoot.app/__preview.dylib (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-nacht-zacht-papier/ios
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der --strip-disallowed-xattrs /tmp/hoot-ronde3-J-native/Build/Products/Debug-iphonesimulator/Hoot.app/__preview.dylib
+/tmp/hoot-ronde3-J-native/Build/Products/Debug-iphonesimulator/Hoot.app/__preview.dylib: replacing existing signature
+
+CodeSign /tmp/hoot-ronde3-J-native/Build/Products/Debug-iphonesimulator/Hoot.app (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-nacht-zacht-papier/ios
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --entitlements /tmp/hoot-ronde3-J-native/Build/Intermediates.noindex/Hoot.build/Debug-iphonesimulator/Hoot.build/Hoot.app.xcent --timestamp\=none --generate-entitlement-der --strip-disallowed-xattrs /tmp/hoot-ronde3-J-native/Build/Products/Debug-iphonesimulator/Hoot.app
+/tmp/hoot-ronde3-J-native/Build/Products/Debug-iphonesimulator/Hoot.app: replacing existing signature
+
+Validate /tmp/hoot-ronde3-J-native/Build/Products/Debug-iphonesimulator/Hoot.app (in target 'Hoot' from project 'Hoot')
+    cd /Users/alexvrees/Baldadig\ Dropbox/Alex\ Vrees/Alex/Claude/Hoot-nacht-zacht-papier/ios
+    builtin-validationUtility /tmp/hoot-ronde3-J-native/Build/Products/Debug-iphonesimulator/Hoot.app -shallow-bundle -infoplist-subpath Info.plist
+
+PruneExplicitPrecompiledModules /tmp/hoot-ronde3-J-native/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/hoot-ronde3-J-native/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/hoot-ronde3-J-native/SDKExplicitPrecompiledModules
+
+Test Suite 'Selected tests' started at 2026-11-03 12:15:47.334.
+Test Suite 'HootTests.xctest' started at 2026-11-03 12:15:47.335.
+Test Suite 'PapierCaptureDiagnostic' started at 2026-11-03 12:15:47.335.
+Test Case '-[HootTests.PapierCaptureDiagnostic testExactOriginalPaperHTMLInSceneAttachedWebKit]' started.
+2026-11-03 12:15:47.909683+0100 Hoot[51674:7475863] [default] Failed to resolve host network app id to config: bundleID: com.apple.WebKit.Networking instance ID: Optional([_EXExtensionInstanceIdentifier: A50E571E-D219-4EF3-A43A-07C3A7092C99])
+IOSurfaceClientSetSurfaceNotify failed e00002c7
+2026-11-03 12:15:48.650441+0100 Hoot[51674:7475948] [connection] nw_connection_copy_connected_local_endpoint_block_invoke [C2] Connection has no local endpoint
+2026-11-03 12:15:48.650866+0100 Hoot[51674:7475948] [connection] nw_connection_copy_connected_local_endpoint_block_invoke [C2] Connection has no local endpoint
+2026-11-03 12:15:48.849100+0100 Hoot[51674:7476054] [ResourceLoadStatistics] WebContent[51690] Unable to hide query parameters from script (missing data)
+2026-11-03 12:15:48.855329+0100 Hoot[51674:7475957] [edition-core] rekenkern geladen in 70 ms (versie 1)
+2026-11-03 12:15:48.900955+0100 Hoot[51674:7476054] [AXRuntimeCommon] WebContent[51690] Could not register system wide server: -25204
+2026-11-03 12:15:48.901036+0100 Hoot[51674:7476054] [AXRuntimeCommon] WebContent[51690] _AXAddToElementCache was called even though the element was in the cache: <WKAccessibilityWebPageObject: 0x6000021040a0>
+ORIGINAL_PAPIER_VISIBLE_SAMPLES=710/8192
+Test Case '-[HootTests.PapierCaptureDiagnostic testExactOriginalPaperHTMLInSceneAttachedWebKit]' passed (1.749 seconds).
+Test Suite 'PapierCaptureDiagnostic' passed at 2026-11-03 12:15:49.087.
+	 Executed 1 test, with 0 failures (0 unexpected) in 1.749 (1.751) seconds
+Test Suite 'HootTests.xctest' passed at 2026-11-03 12:15:49.087.
+	 Executed 1 test, with 0 failures (0 unexpected) in 1.749 (1.752) seconds
+2026-11-03 12:15:49.086883+0100 Hoot[51674:7476054] [ProcessSuspension] WebContent[51690] 0x10d050100 - [sessionID=9223372036854775810] WebProcess::updateFreezerStatus: isFreezable=1, error=-1
+Test Suite 'Selected tests' passed at 2026-11-03 12:15:49.087.
+	 Executed 1 test, with 0 failures (0 unexpected) in 1.749 (1.753) seconds
+2026-11-03 12:15:49.106202+0100 Hoot[51674:7475885] [assertion] Error acquiring assertion: <Error Domain=RBSAssertionErrorDomain Code=2 "Specified target process 51692 does not exist" UserInfo={NSLocalizedFailureReason=Specified target process 51692 does not exist}>
+2026-11-03 12:15:49.106484+0100 Hoot[51674:7475885] [ProcessSuspension] 0x12113c6c0 - ProcessAssertion::acquireSync Failed to acquire RBS assertion 'XPCConnectionTerminationWatchdog' for process with PID=51692, error: (null)
+2026-11-03 12:15:49.464 xcodebuild[51612:7474821] [MT] IDETestOperationsObserverDebug: 8.606 elapsed -- Testing started completed.
+2026-11-03 12:15:49.465 xcodebuild[51612:7474821] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-11-03 12:15:49.465 xcodebuild[51612:7474821] [MT] IDETestOperationsObserverDebug: 8.606 sec, +8.606 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/hoot-ronde3-J-native/Logs/Test/Test-Hoot-2026.11.03_12-15-35-+0100.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

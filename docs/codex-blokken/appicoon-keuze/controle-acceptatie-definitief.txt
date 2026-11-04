@@ -1,0 +1,160 @@
+ 0  vervolg-fout 0  zelfde onderwerp, ander id 0
+previous=account, opeenvolgend plekken  95  herhaald  0  zelfde kop  0  ontwikkeld  0  zonder ontwikkeling  0  vervolg zonder sig 0  vervolg-fout 0  zelfde onderwerp, ander id 0
+previous=account, O→A    plekken  50  herhaald  0  zelfde kop  0  ontwikkeld  0  zonder ontwikkeling  0  vervolg zonder sig 0  vervolg-fout 0  zelfde onderwerp, ander id 0
+previous=sprong, O→A     plekken  50  herhaald  0  zelfde kop  0  ontwikkeld  0  zonder ontwikkeling  0  vervolg zonder sig 0  vervolg-fout 0  zelfde onderwerp, ander id 0
+
+| maat | gemeten | drempel | uitslag |
+|---|---|---|---|
+| dagreeks: kleinste Editie (zes doel, vier vloer) | 4 | ≥ 4 | ok |
+| dagreeks: minder dan zes zonder volledig kandidatenbewijs | 0 | ≤ 0 | ok |
+| herhaald zonder ontwikkeling, O→M→A, previous=code (van 100) | 0 | ≤ 0 | ok |
+| herhaald zonder ontwikkeling, O→M→A, previous=drie | 0 | ≤ 0 | ok |
+| herhaald zonder ontwikkeling, O→M→A, previous=account | 0 | ≤ 0 | ok |
+| herhaald zonder ontwikkeling, O→A, previous=code (van 50) | 0 | ≤ 0 | ok |
+| herhaald zonder ontwikkeling, O→A, previous=drie | 0 | ≤ 0 | ok |
+| herhaald zonder ontwikkeling, O→A, previous=account | 0 | ≤ 0 | ok |
+| herhaald zonder ontwikkeling, O→A, Middag overgeslagen (previous=sprong) | 0 | ≤ 0 | ok |
+| herhaald mét ontwikkeling per Editie (hoogste) | 0 | ≤ 1 | ok |
+| Vervolg zonder nieuwe kop of zonder why "Vervolg" | 0 | ≤ 0 | ok |
+| zelfde kop als een vorige Editie | 0 | ≤ 0 | ok |
+| zelfde onderwerp, ander verhaal-id (opeenvolgend) | 0 | ≤ 0 | ok |
+| als Vervolg getoond zonder ≥ 2 nieuwe namen in de kop | 0 | ≤ 0 | ok |
+| groot nieuws aanwezig óf vandaag al getoond | 1 | ≥ 1 | ok |
+| tweetalige verhalen (NL én EN) in de dagpool | 32 | ≥ 35 (doel; hard bij beslissing van Alex of de orkestratie: §3 aanpassen of meer regels (H6 gebouwd, 31 van 143)) | nog niet |
+| regressiewacht H6: tweetalige verhalen in de dagpool, stand na H6 (geen §3-drempel) | 32 | ≥ 31 | ok |
+| woordenschat-kloof: toestelkenmerken buiten de server-keys van hun verhaal (stukken) | 0 | ≤ 0 | ok |
+
+§3 noemt hard, hier nog doel: tweetalige verhalen (NL én EN) in de dagpool (hard bij beslissing van Alex of de orkestratie: §3 aanpassen of meer regels (H6 gebouwd, 31 van 143)).
+
+== scenario pariteit · momentopname 2026-10-30T19:00:17.373Z, 12 lezers, now = builtAt 2026-10-30T16:00:20.397Z ==
+| maat | gemeten | drempel | uitslag |
+|---|---|---|---|
+| pariteit web-route vs server-route, zelfde persona (plekken anders van 10) | 0 | ≤ 0 | ok |
+| web-route en server-route byte-gelijk (aandeel lezers) | 1 | ≥ 1 | ok |
+| twee toestellen, zelfde account, na sync (plekken anders van 10) | 0 | ≤ 0 | ok |
+| twee toestellen tonen byte-gelijk dezelfde Editie (aandeel lezers) | 1 | ≥ 1 | ok |
+| schrijfacties naar user_state per wedloop (eerste schrijver wint) | 1 | ≤ 1 | ok |
+| informatie: web mét leesprofiel vs terugval zonder (§8, geen drempel) | 1,50 | ≤ 10 (informatie) | ok |
+| informatie: twee toestellen zonder account, plekken anders (wat de sync oplost) | 1,33 | ≤ 10 (informatie) | ok |
+
+== scenario eerste Editie · 2026-10-30T19:00:17.373Z ==
+| lezer | Binnenland-plekken | buitenland zonder reden | voorpagina NL | voorpagina buitenland | vals Binnenland | NL | buitenland | passend |
+|---|---|---|---|---|---|---|---|---|
+| vriendin | 7 | 0 | 1 | 1 | 0 | 7 | 2 | 8 |
+| bi-cu | 7 | 0 | 1 | 1 | 0 | 7 | 2 | 8 |
+| bi-sp | 6 | 0 | 1 | 1 | 0 | 6 | 2 | 7 |
+| bi | 7 | 1 | 1 | 1 | 0 | 7 | 2 | 7 |
+| we-te | – | 0 | null | null | 0 | 1 | 8 | 6 |
+| bi-po-ec | 7 | 0 | 1 | 1 | 0 | 7 | 2 | 8 |
+| cu-wt | – | 0 | null | 2 | 0 | 5 | 2 | 6 |
+
+| maat | gemeten | drempel | uitslag |
+|---|---|---|---|
+| eerste Editie, lezer met Binnenland: Nederlandse plekken (kleinste) | 6 | ≥ 3 | ok |
+| eerste Editie: buitenland zonder gekozen reden, buiten voorpagina en vaste plekken (grootste) | 1 | ≤ 2 | ok |
+| eerste Editie, lezer met Binnenland: Nederlandse verhalen op de voorpagina (kleinste) | 1 | ≥ 1 | ok |
+| eerste Editie, lezer met Binnenland: opent met Nederlands nieuws (kleinste, 1 = ja) | 1 | ≥ 1 | ok |
+| eerste Editie, lezer zonder Wereld: buitenlandse verhalen op de voorpagina (grootste) | 2 | ≤ 2 | ok |
+| eerste Editie, lezer zonder Wereld: algemeen internationaal nieuws (grootste) | 2 | ≤ 2 | ok |
+| eerste Editie: "Groot nieuws" zonder acht uitgevers of vijf uit twee landen (totaal) | 0 | ≤ 0 | ok |
+| eerste Editie: buitenlandse plek met Binnenland als reden (totaal) | 0 | ≤ 0 | ok |
+| eerste Editie: plekken die bij de keuze passen (kleinste) | 6 | ≥ 4 | ok |
+| eerste Editie: plekken die bij de keuze passen (streven) | 6 | ≥ 5 (doel) | ok |
+| eerste Editie, lezer met Binnenland: Nederlandse plekken (gem., streven) | 6,80 | ≥ 5 (doel) | ok |
+
+Binnenland: 289 berichten, waarvan zonder Nederlands bezit 0; algemene Editie 1 Binnenland-plekken, zonder Nederlands bezit 0
+| maat | gemeten | drempel | uitslag |
+|---|---|---|---|
+| Binnenland-berichten zonder Nederlands bezit (aandeel) | 0 | ≤ 0 | ok |
+| algemene Editie: Binnenland-plekken zonder Nederlands bezit | 0 | ≤ 0 | ok |
+
+== scenario eerste Editie · 2026-10-30T21:30:33.933Z ==
+| lezer | Binnenland-plekken | buitenland zonder reden | voorpagina NL | voorpagina buitenland | vals Binnenland | NL | buitenland | passend |
+|---|---|---|---|---|---|---|---|---|
+| vriendin | 7 | 0 | 1 | 1 | 0 | 7 | 2 | 7 |
+| bi-cu | 7 | 0 | 1 | 1 | 0 | 7 | 2 | 7 |
+| bi-sp | 5 | 0 | 1 | 1 | 0 | 5 | 2 | 7 |
+| bi | 7 | 1 | 1 | 1 | 0 | 7 | 2 | 7 |
+| we-te | – | 1 | null | null | 0 | 1 | 8 | 6 |
+| bi-po-ec | 6 | 1 | 1 | 1 | 0 | 6 | 3 | 6 |
+| cu-wt | – | 0 | null | 2 | 0 | 5 | 2 | 5 |
+
+| maat | gemeten | drempel | uitslag |
+|---|---|---|---|
+| eerste Editie, lezer met Binnenland: Nederlandse plekken (kleinste) | 5 | ≥ 3 | ok |
+| eerste Editie: buitenland zonder gekozen reden, buiten voorpagina en vaste plekken (grootste) | 1 | ≤ 2 | ok |
+| eerste Editie, lezer met Binnenland: Nederlandse verhalen op de voorpagina (kleinste) | 1 | ≥ 1 | ok |
+| eerste Editie, lezer met Binnenland: opent met Nederlands nieuws (kleinste, 1 = ja) | 1 | ≥ 1 | ok |
+| eerste Editie, lezer zonder Wereld: buitenlandse verhalen op de voorpagina (grootste) | 2 | ≤ 2 | ok |
+| eerste Editie, lezer zonder Wereld: algemeen internationaal nieuws (grootste) | 2 | ≤ 2 | ok |
+| eerste Editie: "Groot nieuws" zonder acht uitgevers of vijf uit twee landen (totaal) | 0 | ≤ 0 | ok |
+| eerste Editie: buitenlandse plek met Binnenland als reden (totaal) | 0 | ≤ 0 | ok |
+| eerste Editie: plekken die bij de keuze passen (kleinste) | 5 | ≥ 4 | ok |
+| eerste Editie: plekken die bij de keuze passen (streven) | 5 | ≥ 5 (doel) | ok |
+| eerste Editie, lezer met Binnenland: Nederlandse plekken (gem., streven) | 6,40 | ≥ 5 (doel) | ok |
+
+Binnenland: 282 berichten, waarvan zonder Nederlands bezit 0; algemene Editie 1 Binnenland-plekken, zonder Nederlands bezit 0
+| maat | gemeten | drempel | uitslag |
+|---|---|---|---|
+| Binnenland-berichten zonder Nederlands bezit (aandeel) | 0 | ≤ 0 | ok |
+| algemene Editie: Binnenland-plekken zonder Nederlands bezit | 0 | ≤ 0 | ok |
+
+== scenario eerste Editie · 2026-10-31T07:00:34.842Z ==
+| lezer | Binnenland-plekken | buitenland zonder reden | voorpagina NL | voorpagina buitenland | vals Binnenland | NL | buitenland | passend |
+|---|---|---|---|---|---|---|---|---|
+| vriendin | 5 | 0 | 1 | 2 | 0 | 5 | 3 | 8 |
+| bi-cu | 6 | 0 | 1 | 2 | 0 | 7 | 2 | 8 |
+| bi-sp | 5 | 0 | 1 | 2 | 0 | 5 | 2 | 7 |
+| bi | 7 | 0 | 1 | 2 | 0 | 7 | 2 | 7 |
+| we-te | – | 2 | null | null | 0 | 1 | 8 | 7 |
+| bi-po-ec | 5 | 0 | 1 | 2 | 0 | 5 | 4 | 7 |
+| cu-wt | – | 0 | null | 2 | 0 | 3 | 5 | 5 |
+
+| maat | gemeten | drempel | uitslag |
+|---|---|---|---|
+| eerste Editie, lezer met Binnenland: Nederlandse plekken (kleinste) | 5 | ≥ 3 | ok |
+| eerste Editie: buitenland zonder gekozen reden, buiten voorpagina en vaste plekken (grootste) | 2 | ≤ 2 | ok |
+| eerste Editie, lezer met Binnenland: Nederlandse verhalen op de voorpagina (kleinste) | 1 | ≥ 1 | ok |
+| eerste Editie, lezer met Binnenland: opent met Nederlands nieuws (kleinste, 1 = ja) | 1 | ≥ 1 | ok |
+| eerste Editie, lezer zonder Wereld: buitenlandse verhalen op de voorpagina (grootste) | 2 | ≤ 2 | ok |
+| eerste Editie, lezer zonder Wereld: algemeen internationaal nieuws (grootste) | 2 | ≤ 2 | ok |
+| eerste Editie: "Groot nieuws" zonder acht uitgevers of vijf uit twee landen (totaal) | 0 | ≤ 0 | ok |
+| eerste Editie: buitenlandse plek met Binnenland als reden (totaal) | 0 | ≤ 0 | ok |
+| eerste Editie: plekken die bij de keuze passen (kleinste) | 5 | ≥ 4 | ok |
+| eerste Editie: plekken die bij de keuze passen (streven) | 5 | ≥ 5 (doel) | ok |
+| eerste Editie, lezer met Binnenland: Nederlandse plekken (gem., streven) | 5,80 | ≥ 5 (doel) | ok |
+
+Binnenland: 229 berichten, waarvan zonder Nederlands bezit 0; algemene Editie 1 Binnenland-plekken, zonder Nederlands bezit 0
+| maat | gemeten | drempel | uitslag |
+|---|---|---|---|
+| Binnenland-berichten zonder Nederlands bezit (aandeel) | 0 | ≤ 0 | ok |
+| algemene Editie: Binnenland-plekken zonder Nederlands bezit | 0 | ≤ 0 | ok |
+
+Steekproef: 25 nieuwe Binnenland-stukken (met de hand nakijken)
+  lc              Jaar na faillissement zonne-imperium Soly: dit is het verhaal van oprichters Patrick en Milan van der Meulen
+  bndestem        Deel van vrouwen met borstkanker krijgt onnodig chemo: onderzoek naar hoe het zo mis kan gaan
+  haarlemsdagblad Moeder Maria ziet haar psychotische zoon René met bijl neergeschoten worden door politie. Hoe kon het zo misgaan?
+  nu              Geschrokken koning ziet man op zich af rennen: 'Niks aan de hand, geeft niet'
+  volkskrant      Kabinet stelt stikstofwetten uit: minister Van Essen wil na overleg met boeren meer tijd
+  nd              Eigen rituelen, een huiskamer op het kerkhof, veraarden. Dit en meer zijn trends rondom de dood
+  ad              Geen regenjas nodig voor trick-or-treat: weekend in teken van rustig herfstweer
+  limburger       Heemkundevereniging presenteert tiende Hoensbroekse Monografie
+  nu              Gemeente Boxtel schrikt van verdenking verkiezingsfraude: 'Raakt kern democratie'
+  lc              Restaurant in Oostmahorn sluit plotseling de deuren. Wat is hier aan de hand? ’Niemand snapt er iets van’
+  tubantia        Deze brasserie is in rep en roer na een doodgewone bestelling: ‘Chef, kom eens kijken!’
+  nhd             Oud-werknemer cokesfabriek drie uur lang gehoord door rechercheurs in strafonderzoek naar Tata Steel. ’Wolken zijn niet zo wit als ze eruitzien’
+  leidschdagblad  Harde kern ADO belooft Den Haag bescherming tegen Gen Z-betogers
+  nhd             Kluswinkel van Remy en Robin na zeventig jaar nog steeds een begrip in Schoorl. ’Van de 20.000 artikelen ken ik ze op drie na allemaal’
+  tweakers        BYD opent eerste Flash Charger in Nederland met 1500kW-laadvermogen
+  trouw           De schedel is ons mooiste bot, het is de tempel van de ziel
+  trouw           Katie Henly zag de immigratie-agenten van Ice in haar buurtje en besloot in actie te komen. ‘Ik woon hier, zíj zijn de outsiders’
+  parool          Stadsdeelvoorzitter Lotte Terwel kreeg ‘Ad Melkertvibes’ van de ledenvergadering van PRO Amsterdam
+  parool          Journalist Sarah Haaij (41) sees an Amsterdam full of exploitation: ‘Even my leftist friends don’t know if their cleaner actually has a passport’
+  nrc             Fijne plek, betaalbaar, meer moet da nie zijn
+  fd              Kabinet stelt wetsvoorstel stikstof uit om wensen boerenorganisaties
+  ed              Explosie bij woning in Helmond: politie denkt aan zelfgemaakt explosief van illegaal vuurwerk
+  nd              Stopshow geeft scholieren les in stoppen met roken: ‘Vul jij ‘ja’ in bij vapen?’
+  parool          At Amsterdam Central Station, the message of the pro-Palestine sit-in is impossible to miss: ‘I’m here to show that I exist’
+  limburger       Waarom wil Nederland asielzoekers dumpen in Afrika? Kerken, ook in Limburg, houden kabinet spiegel voor
+
+Alle harde drempels gehaald.

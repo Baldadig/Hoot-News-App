@@ -1,0 +1,12 @@
+[
+  {
+    "file": "ongeldig-ios-lezer-papier.png",
+    "valid": false,
+    "reason": "Volledig zwart; WKWebView-inhoud nog niet zichtbaar. Niet vergelijken als leesbeeld."
+  },
+  {
+    "palette": "zand",
+    "native": false,
+    "reason": "Twee runnerpogingen kwamen niet tot een bruikbaar resultaat; afgebroken, niet groen verklaard."
+  }
+]

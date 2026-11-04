@@ -17,6 +17,29 @@ struct WaitingMark: View {
     }
 }
 
+// Goedgekeurde refreshlader: de h blijft staan, alleen de punt maakt een kleine rustige sprong.
+// Geen zichtbare laadzin, wel een passende naam voor VoiceOver. De gereserveerde strook voorkomt overlap.
+struct RefreshLoadingMark: View {
+    @Environment(\.accessibilityReduceMotion) private var still
+    var size: CGFloat = 28
+    var reduceMotion: Bool? = nil
+    var body: some View {
+        ZStack {
+            GlyphShape(glyphs: Brand.mark).fill(Theme.ink3)
+            GlyphShape(glyphs: Brand.mark, part: .dot).fill(Theme.accent)
+                .phaseAnimator((reduceMotion ?? still) ? [0] : [0, 1, 2]) { dot, phase in
+                    dot.offset(y: phase == 1 ? -2 : 0)
+                        .scaleEffect(phase == 1 ? 0.96 : phase == 2 ? 1.04 : 1, anchor: .bottom)
+                } animation: { phase in
+                    .easeInOut(duration: phase == 1 ? 0.675 : phase == 2 ? 0.375 : 0.45)
+                }
+        }
+        .frame(width: size * Brand.mark.size.width / Brand.mark.size.height, height: size)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Bezig met verversen")
+    }
+}
+
 struct StrongRule: View {
     var drawn = true
     @Environment(\.accessibilityReduceMotion) private var still
@@ -28,33 +51,98 @@ struct StrongRule: View {
     }
 }
 
-// Eén trek per losgelaten gebaar; de leespositie blijft bij een gewone scroll ongemoeid.
+// De trekafstand komt rechtstreeks van de scroll: geen tijdlijn tussen vinger en teken.
+// Alleen loslaten boven de drempel ververst; terugtrekken onder de drempel annuleert.
+struct RefreshPull {
+    static let threshold: CGFloat = 72
+    private(set) var amount: CGFloat = 0
+    private(set) var dragging = false
+    private(set) var armed = false
+    private(set) var busy = false
+
+    mutating func move(to value: CGFloat) {
+        amount = value.isFinite ? max(0, value) : 0
+        if dragging && !busy { armed = amount >= Self.threshold }
+    }
+
+    mutating func phase(from old: ScrollPhase, to new: ScrollPhase) -> Bool {
+        if new == .tracking || new == .interacting {
+            dragging = true
+            armed = !busy && amount >= Self.threshold
+            return false
+        }
+        let released = old == .interacting && (new == .decelerating || new == .idle) && armed && !busy
+        dragging = false
+        armed = false
+        return released
+    }
+
+    mutating func begin() -> Bool {
+        guard !busy else { return false }
+        busy = true; armed = false
+        return true
+    }
+    mutating func finish() { busy = false }
+}
+
+// Het echte h.-pad. De punt zakt met de trek in zijn eigen plek; verder trekken geeft
+// nog een kleine beweging. Alles blijft binnen de lege trekruimte boven de titel.
+struct PullRefreshMark: View {
+    let amount: CGFloat
+    var reduceMotion = false
+    private let height: CGFloat = 28
+    var body: some View {
+        let distance = max(0, amount)
+        let progress = min(1, distance / RefreshPull.threshold)
+        let dotTravel = -10 * (1 - progress) + min(6, max(0, distance - RefreshPull.threshold) / 12)
+        ZStack {
+            GlyphShape(glyphs: Brand.mark).fill(Theme.ink3)
+            GlyphShape(glyphs: Brand.mark, part: .dot).fill(Theme.accent)
+                .offset(y: reduceMotion ? 0 : dotTravel)
+        }
+        .frame(width: height * Brand.mark.size.width / Brand.mark.size.height, height: height)
+        .opacity(min(1, max(0, (distance - 12) / 24)))
+        .frame(maxWidth: .infinity)
+        .frame(height: distance)
+        .clipped()
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+        .transaction { $0.animation = nil }
+    }
+}
+
 private struct HootRefresh: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var still
     let action: @MainActor () async -> Void
     var indicator = true
     var onWaiting: ((Bool) -> Void)? = nil
-    @State private var pulled = false
-    @State private var amount: CGFloat = 0
-    @State private var busy = false
+    @State private var pull = RefreshPull()
     private func refresh() {
-        guard !busy else { return }
-        pulled = false; busy = true
-        Task { await action(); busy = false }
+        guard pull.begin() else { return }
+        Task { await action(); pull.finish() }
     }
     func body(content: Content) -> some View {
         content
             .onScrollGeometryChange(for: CGFloat.self) { max(0, -$0.contentOffset.y - $0.contentInsets.top) } action: { _, value in
-                amount = value
-                if value >= 72 && !busy { pulled = true }
+                pull.move(to: value)
             }
             .onScrollPhaseChange { old, new in
-                if old == .interacting && new != .tracking && pulled { refresh() }
-                if new == .idle { pulled = false }
+                if pull.phase(from: old, to: new) { refresh() }
             }
             .overlay(alignment: .top) {
-                if indicator && (busy || amount > 12) { WaitingMark().padding(.vertical, Space.s3).padding(.horizontal, Space.s4).background(Theme.paper, in: Capsule()).allowsHitTesting(false) }
+                if indicator && !pull.busy && pull.amount > 12 {
+                    PullRefreshMark(amount: pull.amount, reduceMotion: still)
+                }
             }
-            .onChange(of: busy || amount > 12) { _, value in onWaiting?(value) }
+            // Schermen kunnen de stille lader onder hun titel plaatsen. Anders reserveert de modifier
+            // hier een eigen strook: ook bij laden nooit over de inhoud tekenen.
+            .safeAreaInset(edge: .top, spacing: 0) {
+                if indicator && pull.busy && onWaiting == nil {
+                    RefreshLoadingMark().frame(maxWidth: .infinity, minHeight: 56)
+                }
+            }
+            // De stille lader verschijnt pas tijdens het verzoek, niet al bij trekken.
+            .onChange(of: pull.busy) { _, value in onWaiting?(value) }
             .onDisappear { onWaiting?(false) }
             .accessibilityAction(named: "Verversen") { refresh() }
     }

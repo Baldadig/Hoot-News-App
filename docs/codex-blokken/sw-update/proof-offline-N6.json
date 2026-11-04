@@ -1,0 +1,39 @@
+{
+  "release": "N6",
+  "storage": {
+    "hoot:prefs": {
+      "schema": 4,
+      "onboarded": true,
+      "theme": "dark",
+      "themeDark": "night",
+      "interests": [
+        "tech"
+      ],
+      "muted": [],
+      "pinned": [],
+      "bskyInStream": [],
+      "social": []
+    },
+    "hoot:saved-v2": {
+      "proef-sw": {
+        "id": "proef-sw",
+        "title": "Mijn bewaarde proefstuk",
+        "source": "nos",
+        "url": "https://example.test/proef"
+      }
+    },
+    "hoot:read": [
+      "proef-sw-gelezen"
+    ]
+  },
+  "worker": {
+    "active": "activated",
+    "waiting": null,
+    "installing": null
+  },
+  "appScripts": [
+    "/lees/assets/index-DZLVofGD.js"
+  ],
+  "numbers": 10,
+  "localDataPresent": true
+}
