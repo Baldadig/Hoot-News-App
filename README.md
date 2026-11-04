@@ -74,17 +74,26 @@ Zonder sleutel werkt alles door: titels en teasers van de bron zelf, onderwerpen
 zonder teaser (de Volkskrant) krijgen hun eigen inleiding uit de zoekindex, of lenen er een van een andere
 Nederlandse bron over hetzelfde verhaal ("via NOS").
 
-## Accounts en uitnodigingen
+## Accounts
 
-Hoot is op uitnodiging. Inloggen gaat rechtstreeks met Google (`src/lib/account.js`: Google stuurt een
-id-token terug naar Hoot, Supabase in de EU maakt daar een sessie van); als lid gaan je instellingen,
-Bewaard, wat je las en welke verhalen je zag mee naar je andere toestellen. Zonder account werkt
-alles ook, alleen op dit toestel.
+Een account is er voor iedereen. Inloggen gaat rechtstreeks met Google (`src/lib/account.js`: Google
+stuurt een id-token terug naar Hoot, Supabase in de EU maakt daar een sessie van); in de app ook met
+Apple. Met een account gaan je instellingen, Bewaard, wat je las en welke verhalen je zag mee naar je
+andere toestellen. Zonder account werkt alles ook, alleen op dit toestel.
 
 - **Database:** `supabase/migrations/` — één keer uitvoeren in Supabase → SQL Editor. Elke gebruiker
-  ziet alleen zijn eigen rijen (row level security); lid worden kan alleen met een geldige uitnodiging.
-- **Uitnodigen:** als beheerder in Instellingen → Account → *Iemand uitnodigen*. De link
-  (`/?uitnodiging=…`) is één keer te gebruiken en 30 dagen geldig.
+  ziet alleen zijn eigen rijen (row level security).
+- **Lid bij de eerste inlog:** een trigger op `auth.users` maakt meteen een profiel en `user_state`
+  aan (`20261104_open_accounts.sql`). Ontbreekt het profiel toch, dan roept het web één keer het
+  vangnet `rpc('join')` aan (`src/lib/membership.js`); lukt ook dat niet, dan synchroniseert er niets
+  en zegt Instellingen "Je account is er bijna. Probeer het zo nog eens."
+- **Groottegrenzen** (zelfde migratie): ruime maxima op de jsonb-kolommen van `user_state`, hooguit
+  64 kB per bewaard stuk en 5000 bewaarde stukken per gebruiker.
+- **Oude uitnodigingslinks** (`/?uitnodiging=…`) blijven werken: de code gaat stil uit de adresbalk en
+  wordt niet bewaard. De oude functies `redeem_invite`/`create_invite` blijven in de database staan
+  voor iOS-build 38, maar het web gebruikt ze niet meer.
+- **Vanzelf vragen om in te loggen** (`src/lib/join.js`) staat uit (`JOIN_AUTO = false`). Aan = alleen
+  na een eind lezen in Editie of Stroom, hooguit twee keer, met dagen ertussen.
 - **De app** bevat alleen de publieke sleutel (`src/lib/config.js`); de Supabase-code laadt pas bij
   inloggen.
 
@@ -96,9 +105,9 @@ alles ook, alleen op dit toestel.
   - Sport, cultuur en games krijgen hooguit twee plekken, onderaan en alleen als je die interesse hebt. Een sportbericht uit een gewone nieuwsbron telt daarbij als sport.
   - Te weinig eigen verhalen? Dan vult de algemene editie aan ("Buiten je bronnen").
 - **Vast:** de editie wordt vastgelegd op het toestel en, voor leden, in `user_state.edition`, zodat al je toestellen dezelfde tonen. Daarvoor is migratie `20261023_personal_edition.sql` nodig.
-- **Samenvatting:** leden krijgen een eigen "editie in één minuut" via `POST /api/brief`.
-  - Alleen voor leden (token en profiel worden in Supabase gecontroleerd).
-  - Hooguit 8 per dag per persoon.
+- **Samenvatting:** met een account krijg je een eigen "editie in één minuut" via `POST /api/brief`.
+  - Alleen met een account (token en profiel worden in Supabase gecontroleerd).
+  - Hooguit 8 per dag per persoon, en hooguit 300 nieuwe per dag voor iedereen samen (daarna een 429: "Vandaag zijn de samenvattingen op. Morgen maakt Hoot er weer een.").
   - Identieke edities delen hun samenvatting.
 
 ### Synchroniseren
