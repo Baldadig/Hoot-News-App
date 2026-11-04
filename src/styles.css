@@ -2935,12 +2935,12 @@ select.input {
 }
 
 /* ---------- Welkom ----------
-   Vier schermen (Welcome.jsx, gelijk aan WelcomeView.swift): de rode intro, Zo werkt Hoot, Volg je
-   bronnen en Wat interesseert je?. Welkom ligt over de app heen. Bovenaan op elk scherm het kleine
+   Vier schermen (Welcome.jsx, gelijk aan WelcomeView.swift): de rode intro, Zo werkt Hoot, Wat
+   interesseert je? en Volg je bronnen. Welkom ligt over de app heen. Bovenaan op elk scherm het kleine
    woordmerk linksboven (rechts Terug, Sluiten of Inloggen), daaronder een kolom die scrolt en
    onderaan een vaste voet met één hoofdknop (.btn--lg) en een stille link. Eén merkmoment: de intro
    in merkrood, met alles erop papier. Eén kolom van --measure, ook op desktop: één linkerlijn.
-   Lijnen en witruimte, geen omlijnde kaarten. Gekozen is overal --sel-* met het vinkje (.pill).
+   Lijnen en witruimte, geen omlijnde kaarten. Gekozen is een zacht inktvlak met het vinkje (.pill).
    .welcome staat er nog alleen als haakje (de skiplink in App.jsx zoekt het); de vorm is .ob. */
 .ob {
   position: fixed;
@@ -3273,8 +3273,12 @@ select.input {
   line-height: var(--lh-1);
   font-weight: var(--fw-ui);
 }
-.ob__free {
-  color: var(--accent);
+/* Gekozen in het welkom (rubrieken, Selectie, Aanbevolen/Gevolgd): een zacht inktvlak met het
+   vinkje, zoals de segmenten (.seg__btn). Geen rood: het enige accent is de punt van het woordmerk. */
+.ob .pill[aria-pressed='true'] {
+  border-color: var(--edge);
+  background: var(--tint);
+  color: var(--ink);
 }
 .ob__follow {
   min-width: 6.5rem;

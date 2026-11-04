@@ -1,9 +1,12 @@
-// Welkom, Volg je bronnen (src/lib/follow-welcome.js): niets vooraf aan, het gratis begin bovenaan,
-// sport ingeklapt maar wel te vinden, Later kiezen zonder sport, en een voorbeeld met echte koppen.
+// Welkom, Volg je bronnen (src/lib/follow-welcome.js): eerst de interesses, dan de bronnen. Niets
+// vooraf aan, de Basis bovenaan, per gekozen interesse een blok met een gratis aanrader, sport alleen
+// bij Sport maar wel te vinden, Later kiezen zonder sport, en een voorbeeld met echte koppen.
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { toggleFollow, freeStart, startIds, followGroups, findSources, followedSources, followedLine, previewLines, FREE_START } from '../src/lib/follow-welcome.js'
+import { toggleFollow, freeStart, startIds, followGroups, basisSources, interestBlocks, moreGroups, freePick, findSources, followedSources, followedLine, previewLines, FREE_START } from '../src/lib/follow-welcome.js'
+import { INTERESTS } from '../src/lib/topics.js'
+import { rubriekRij } from '../src/lib/streamline.js'
 import { applyWelcome } from '../src/lib/welcome.js'
 import { SOURCES } from '../netlify/lib/sources.mjs'
 
@@ -37,6 +40,57 @@ test('per rubriek, zonder het gratis begin; alles komt één keer voor; sport al
   assert.ok(sport && sport.sources.every((s) => s.cat === 'sport'))
   // Onbekende rubriek: achteraan bij Overig, niet kwijt.
   assert.deepEqual(followGroups([{ id: 'x', name: 'X', cat: 'raar' }]).map((g) => g.cat), ['overig'])
+})
+
+test('de Basis: Nederlands nieuws, het gratis begin voorop', () => {
+  const basis = basisSources(catalog)
+  assert.deepEqual(basis.slice(0, 3).map((s) => s.id), FREE_START)
+  assert.ok(basis.every((s) => s.cat === 'nl'))
+  assert.ok(basis.some((s) => s.id === 'nrc'))
+  assert.ok(basis.length <= 6, 'kort, zodat de blokken van je interesses in zicht blijven')
+  assert.ok(!basis.some((s) => s.id === 'telegraaf'))
+})
+
+test('per gekozen interesse een blok, in vaste volgorde, met de nichebronnen en een gratis aanrader voorop', () => {
+  const blocks = interestBlocks(catalog, ['wetenschap', 'tech', 'cultuur'])
+  assert.deepEqual(blocks.map((b) => b.id), ['tech', 'wetenschap', 'cultuur'])
+  const of = (id) => blocks.find((b) => b.id === id).sources.map((s) => s.id)
+  // De kleine en vakbronnen staan bij hun interesse, niet verstopt.
+  for (const id of ['quanta', 'carbonbrief', 'nature']) assert.ok(of('wetenschap').includes(id), id)
+  for (const id of ['tweakers', 'ars', 'ign', 'polygon']) assert.ok(of('tech').includes(id), id)
+  for (const id of ['3voor12', 'quietus', 'variety']) assert.ok(of('cultuur').includes(id), id)
+  // De gratis aanrader staat voorop en is gratis; Nederlands gaat voor.
+  for (const b of blocks) {
+    assert.equal(b.sources[0].id, b.pick)
+    assert.ok(!byId.get(b.pick).paid, b.id)
+  }
+  assert.equal(blocks.find((b) => b.id === 'tech').pick, 'tweakers')
+  assert.equal(blocks.find((b) => b.id === 'cultuur').pick, 'nos-cultuur')
+  // Wereld krijgt de internationale bronnen, Politiek die de catalogus aanraadt.
+  const wp = interestBlocks(catalog, ['politiek', 'wereld'])
+  assert.ok(wp[0].sources.some((s) => s.id === 'politico-eu'))
+  assert.ok(wp[1].sources.some((s) => s.id === 'aljazeera'))
+  // Geen blok zonder bronnen; de Basis staat nergens nog eens in.
+  assert.ok(interestBlocks(catalog, INTERESTS.map((i) => i.id)).every((b) => b.sources.length && b.sources.every((s) => s.cat !== 'nl')))
+  assert.equal(freePick([{ id: 'a', name: 'A', paid: true }]), null)
+})
+
+test('sport alleen als je Sport kiest; de rest ingeklapt onder Meer bronnen, zonder sport', () => {
+  assert.ok(!interestBlocks(catalog, ['tech']).some((b) => b.id === 'sport'))
+  assert.ok(interestBlocks(catalog, ['sport'])[0].sources.some((s) => s.id === 'vi'))
+  const more = moreGroups(catalog, ['tech']).flatMap((g) => g.sources)
+  assert.ok(more.every((s) => s.cat !== 'sport'))
+  assert.ok(!more.some((s) => s.cat === 'tech' || s.id === 'nos' || s.id === 'nrc'))
+  assert.ok(more.some((s) => s.id === 'vrt') && more.some((s) => s.id === 'telegraaf'))
+  // Niets gekozen: de Basis en de rest ingeklapt; elke niet-sportbron is ergens te vinden.
+  const shown = new Set([...basisSources(catalog), ...moreGroups(catalog, []).flatMap((g) => g.sources)].map((s) => s.id))
+  assert.ok(catalog.filter((s) => s.cat !== 'sport').every((s) => shown.has(s.id)))
+})
+
+test('Later kiezen bij de interesses: de Stroom toont alle hoofdrubrieken (niets gekozen = alles)', () => {
+  const p = applyWelcome({}, { interests: [], topics: [], sources: startIds(catalog), all: catalog })
+  assert.deepEqual(p.interests, [])
+  assert.deepEqual(rubriekRij({ interests: p.interests }).items.map((r) => r.label), ['Alles', ...INTERESTS.map((i) => i.label)])
 })
 
 test('zoeken vindt alles, ook sport (zoeken is een keuze)', () => {
@@ -87,14 +141,29 @@ test('opslaan gebruikt bestaande voorkeuren; een geannuleerd concept wijzigt ze 
 test('web en app: hetzelfde gratis begin en dezelfde schermen', () => {
   const swift = readFileSync(new URL('../ios/Hoot/Views/WelcomeView.swift', import.meta.url), 'utf8')
   const web = readFileSync(new URL('../src/views/Welcome.jsx', import.meta.url), 'utf8')
-  for (const text of ['Zo werkt Hoot', 'Volg je bronnen', 'Wat interesseert je?', 'Om te beginnen · gratis', 'Later kiezen', 'Liever meteen lezen', 'Kies je bronnen', 'Naar je Editie', 'Zo ziet je Editie eruit', 'Kies onderwerpen voor je Selectie']) {
+  for (const text of ['Zo werkt Hoot', 'Volg je bronnen', 'Wat interesseert je?', 'Basis', 'Volg alle drie', 'Meer bronnen', 'Gratis aanrader', 'Later kiezen', 'Liever meteen lezen', 'Kies je interesses', 'Naar je Editie', 'Zo ziet je Editie eruit', 'Kies onderwerpen voor je Selectie']) {
     assert.ok(web.includes(text), `web: ${text}`)
     assert.ok(swift.includes(text), `app: ${text}`)
   }
   assert.match(swift, /freeStart = \["nos", "nu", "rtl"\]/)
   // De oude route is weg: geen Wat precies?, geen seintje-stap, geen veegpagina's.
-  for (const old of ['Wat precies?', 'Stel je Hoot samen', 'Veeg verder', 'Een seintje?', 'Kies minstens één']) {
+  for (const old of ['Wat precies?', 'Stel je Hoot samen', 'Veeg verder', 'Een seintje?', 'Kies minstens één', 'Om te beginnen · gratis', 'sportbronnen']) {
     assert.ok(!web.includes(old), `web: ${old}`)
     assert.ok(!swift.includes(old), `app: ${old}`)
   }
+})
+
+test('volgorde: eerst de interesses, dan de bronnen (web en app)', () => {
+  const swift = readFileSync(new URL('../ios/Hoot/Views/WelcomeView.swift', import.meta.url), 'utf8')
+  const web = readFileSync(new URL('../src/views/Welcome.jsx', import.meta.url), 'utf8')
+  // Uitleg → interesses → bronnen → Editie; opnieuw kiezen begint bij de interesses.
+  assert.match(web, /onClick=\{\(\) => show\('interesses'\)\}>\s*Kies je interesses/)
+  assert.match(web, /onClick=\{\(\) => show\('bronnen'\)\}>\s*Verder/)
+  assert.match(web, /useState\(reopen \? 'interesses' : 'intro'\)/)
+  assert.match(swift, /ctaButton\("Kies je interesses"[^\n]*go\(\.interesses\)/)
+  assert.match(swift, /ctaButton\("Verder"[^\n]*go\(\.bronnen\)/)
+  assert.match(swift, /reopen \? \.interesses : start/)
+  // Geen rood in de bronnenlijst: Gratis staat in inkt.
+  assert.doesNotMatch(web, /ob__free/)
+  assert.doesNotMatch(swift, /Theme\.accent : Theme\.ink\)/)
 })
