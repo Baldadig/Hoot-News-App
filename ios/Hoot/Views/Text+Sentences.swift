@@ -45,17 +45,17 @@ func introMax(lines: Int, width: Double, font: Double) -> (max: Int, rek: Int) {
     return (lineFit(lines: n, width: width, font: font), lineFit(lines: n + 1, width: width, font: font))
 }
 
-// Hoeveel tekens een intro mag hebben bij de regelinstelling (Instellingen › Intro): 1 regel ≈ 53,
-// 2 ≈ 115, 3 ≈ 176, 0 = de hele intro. Naast een miniatuur is de kolom smaller: 20 procent minder.
-// De intro staat in Newsreader 17 (was SF 15 met 60/130/200): 15/17 daarvan, zoals het web zijn
-// lettermaat in lineFit van 15 naar 17 zette (src/lib/intro.js).
+// Hoeveel tekens een intro mag hebben bij de regelinstelling (Instellingen › Intro): 1 regel ≈ 60,
+// 2 ≈ 130, 3 ≈ 200, 0 = de hele intro. Naast een miniatuur is de kolom smaller: 20 procent minder.
+// De intro staat sinds de letterwissel in Newsreader 17 (was SF 15); het budget blijft, net als op
+// het web (src/lib/intro.js): Newsreader 17 is per teken ongeveer even breed als SF 15 en het past.
 func introMax(lines: Int, thumb: Bool) -> Int {
     let base: Int
     switch lines {
     case 0: return Int.max
-    case 1: base = 53
-    case 2: base = 115
-    default: base = 176
+    case 1: base = 60
+    case 2: base = 130
+    default: base = 200
     }
     return thumb ? base * 8 / 10 : base
 }

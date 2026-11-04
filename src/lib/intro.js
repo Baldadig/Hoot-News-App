@@ -16,10 +16,14 @@ const KOLOM = {
   kaart: VIEW - 2 * 16 - 2, // Selectie: kaart met binnenruimte (--s4) en rand: 309
   paneel: 325, // vergelijkpaneel op een breed scherm: smaller dan een rij op 375 (gemeten op 1280)
 }
-// Lettermaat van de intro: overal --t3 (17), in Newsreader op tekstmaat. Newsreader op 17 is
-// gemiddeld even breed als Source Sans 3 op 17 (0,421 tegen 0,422 em, gemeten over de intro's van
-// de snapshot van 31 oktober), dus de breedte per teken in lineFit (0,58) blijft gelden.
-const INTRO = 17
+// Rekenmaat van de intro: 15 in een lijst, 17 in de eerste kaart van een vak. De intro staat sinds
+// de letterwissel overal in Newsreader op 17, maar de lijst rekent bewust door op 15: zo houdt een
+// intro hetzelfde aantal tekens als met Source Sans 15. Gemeten (4 november, 1200 intro's uit de
+// snapshot van 31 oktober, kolommen 331 en 247): Newsreader 17 is per em even breed als Source
+// Sans, en met deze maat past 100 % van de intro's in de gekozen regels (lineFit is 0,58 × 15 =
+// 0,51 × 17; pas onder 0,44 × 17 gaat het mis). Op 17 rekenen liet intro's wegvallen die passen.
+const T2 = 15
+const T3 = 17
 
 // Tekstgrootte: de lettermaat van <html> (de instelling klein/normaal/groot én die van de browser)
 // ten opzichte van 16. Bij grote tekst passen er minder tekens op een regel. Eén waarneming voor
@@ -61,8 +65,8 @@ export function useIntroMax() {
   const [scale, text] = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot).split('|')
   const s = Number(scale) || 1
   return (lines, kind = 'rij', image = false) => {
-    if (kind === 'kaartEerste') return introMax(lines, { width: KOLOM.kaart, font: INTRO * s })
+    if (kind === 'kaartEerste') return introMax(lines, { width: KOLOM.kaart, font: T3 * s })
     const width = kind === 'rij' && image ? KOLOM.rijBeeld(text === 'groot' ? 108 : 84) : KOLOM[kind] ?? KOLOM.rij
-    return introMax(lines, { width, font: INTRO * s })
+    return introMax(lines, { width, font: T2 * s })
   }
 }
