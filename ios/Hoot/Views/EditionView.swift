@@ -183,6 +183,48 @@ struct EditionView: View {
     }
 
     @State private var path = NavigationPath()
+    @State private var screen: CGSize = .zero // het scherm: staand of liggend
+    @State private var contentWidth: CGFloat = 0 // de kolom binnen de marges
+    @State private var leadImage: CGFloat = EditionPairs.leadMin // A: het beeld van het hoofdverhaal
+    @State private var leadHeight: CGFloat = 0
+    @State private var sideHeight: CGFloat = 0
+
+    enum Grid { case lijst, kolom, paren }
+    private var grid: Grid {
+        guard wide, !typeSize.isAccessibilitySize else { return .lijst }
+        if let forced = DebugLaunch.grid { return forced == "paren" ? .paren : .kolom }
+        return EditionPairs.paired(screen) ? .paren : .kolom
+    }
+
+    // A: het hoofdverhaal links (1,9 deel), 02 en 03 in de zijkolom rechts met een lijn ervoor. Het beeld
+    // van het hoofdverhaal rekt mee tot beide even hoog zijn (EditionPairs.leadImage).
+    @ViewBuilder private func front(_ rows: [EditionRowModel]) -> some View {
+        let sideWidth = max(256, (contentWidth - Space.s5) / 2.9)
+        HStack(alignment: .top, spacing: Space.s5) {
+            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, imageHeight: leadImage) }
+                .environment(\.isSpacious, false)
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { leadHeight = $0; fitLead() }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            if rows.count > 1 {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(Array(rows.dropFirst().prefix(2).enumerated()), id: \.element.id) { i, row in
+                        if i > 0 { Rule().padding(.vertical, Space.s2) }
+                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
+                    }
+                }
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { sideHeight = $0; fitLead() }
+                .padding(.leading, Space.s5)
+                .overlay(alignment: .leading) { Rectangle().fill(Theme.rule).frame(width: 1).accessibilityHidden(true) }
+                .frame(width: sideWidth, alignment: .leading)
+            }
+        }
+    }
+
+    private func fitLead() {
+        guard leadHeight > 0, sideHeight > 0 else { return }
+        let next = EditionPairs.leadImage(side: sideHeight, text: leadHeight - leadImage)
+        if abs(next - leadImage) > 1 { leadImage = next }
+    }
     @State private var nudge = false // "Maak Hoot van jou", na even rondkijken
     @State private var setup = false
 
@@ -251,30 +293,46 @@ struct EditionView: View {
                         if !EditionLimits.hasMinimum(EditionNumbering.count(rows)) {
                             EmptyState(title:"Nog geen Editie",systemImage:"newspaper",text:"Er is nog te weinig passend nieuws voor een Editie. In de Stroom kun je verder lezen.")
                         }
-                        slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
-                            .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
-                        if wide && !typeSize.isAccessibilitySize {
-                            // Breed: de rest in twee kolommen, elk verhaal met een lijn erboven.
-                            LazyVGrid(columns: [GridItem(.flexible(), spacing: Space.s6, alignment: .top), GridItem(.flexible(), spacing: Space.s6, alignment: .top)], alignment: .leading, spacing: Space.s2) {
-                                ForEach(rows.dropFirst()) { row in
-                                    VStack(alignment: .leading, spacing: 0) {
-                                        Rule().padding(.vertical, Space.s2)
-                                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
-                                    }
+                        // Het raster (keuze 1.1.0, EditionGrid.swift). iPhone en heel grote tekst: alles onder
+                        // elkaar. iPad staand (B): één leeskolom met de nummers in de kantlijn. iPad liggend
+                        // (A): het hoofdverhaal met 02 en 03 ernaast, daarna paren die even hoog zijn.
+                        switch grid {
+                        case .paren:
+                            front(rows)
+                                .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
+                            if rows.count > 3 {
+                                EditionPairsGrid(rows: Array(rows.dropFirst(3)), width: contentWidth) { row, boven, pin in
+                                    slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, boven: boven, pinSource: pin) }
+                                }
+                                .padding(.top, Space.s4)
+                            }
+                        case .kolom:
+                            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, hang: true) }
+                                .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
+                            ForEach(rows.dropFirst()) { row in
+                                Rule().padding(.vertical, Space.s2)
+                                HangRow(number: store.less.contains(row.id) ? nil : row.number, read: store.isRead(row.item)) {
+                                    slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
                                 }
                             }
-                        } else {
+                        case .lijst:
+                            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
+                                .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
                             ForEach(rows.dropFirst()) { row in
                                 Rule().padding(.vertical, Space.s2)
                                 slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
                             }
                         }
                         if !outsideRows.isEmpty {
-                            StrongRule().padding(.top, Space.s5)
-                            Text("Buiten je bubbel").font(Theme.headline(.title2)).accessibilityAddTraits(.isHeader).padding(.vertical,Space.s3)
-                            ForEach(outsideRows) { row in
-                                slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,form:.krant) }
+                            VStack(alignment: .leading, spacing: 0) {
+                                StrongRule().padding(.top, Space.s5)
+                                Text("Buiten je bubbel").font(Theme.headline(.title2)).accessibilityAddTraits(.isHeader).padding(.vertical,Space.s3)
+                                ForEach(outsideRows) { row in
+                                    slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,form:.krant) }
+                                }
                             }
+                            .padding(.leading, grid == .kolom ? Layout.hang : 0) // op de lijn van de tekst, niet van de nummers
+                            .frame(maxWidth: grid == .paren ? Layout.readable : nil, alignment: .leading)
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,
                         // en wanneer de volgende er is.
@@ -312,16 +370,19 @@ struct EditionView: View {
                         .padding(.vertical, Space.s7)
                         .background(nacht ? Self.nachtEndRed : Theme.brandRed, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
                         .frame(maxWidth: Layout.readable) // op de leesbreedte, niet over de hele iPad (E9)
+                        .padding(.leading, grid == .kolom ? Layout.hang : 0)
                         .padding(.top, Space.s6)
                         .padding(.bottom, Space.s4)
                         }
                     }
                 }
+                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { contentWidth = $0 }
                 .padding(.horizontal)
-                .column(wide ? Layout.wide : Layout.readable)
+                .column(grid == .paren ? Layout.wide : grid == .kolom ? Layout.readable + Layout.hang : Layout.readable)
                 .offset(y: rising ? 8 : 0)
             }
             .debugJump(proxy, to: Self.slotTarget(store.editionRows), when: store.editionRows.count)
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { screen = $0 }
             // Wie eerst even rondkijkt: na ongeveer een derde van de editie één keer de vraag.
             .onScrollGeometryChange(for: Bool.self) { g in
                 let room = g.contentSize.height - g.containerSize.height

@@ -646,12 +646,21 @@ struct LeadCard: View {
     var why: String? // het waarom van de plek (jouw Editie)
     var outside = false // buiten je bronnen: de bronregel zegt het
     var story: Story?
+    var hang = false // iPad staand (B): het nummer in de kantlijn, het beeld over de hele kolom
+    var imageHeight: CGFloat? = nil // iPad liggend (A): het beeld zo hoog als de zijkolom ernaast
 
     private var hasImage: Bool { store.showsImage(lead: true) && ImageURL.fitsHero(item.image) }
 
-    private var image: some View {
-        MeasuredLeadImage(item: item, spacious: spacious)
-            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+    @ViewBuilder private var image: some View {
+        if let imageHeight {
+            RemoteImage(url: ImageURL.url(item.image, .large))
+                .frame(maxWidth: .infinity)
+                .frame(height: imageHeight)
+                .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+        } else {
+            MeasuredLeadImage(item: item, spacious: spacious)
+                .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+        }
     }
 
     private var text: some View {
@@ -659,7 +668,7 @@ struct LeadCard: View {
             // Rubriek en waarom dicht op elkaar (één blokje boven de kop), zoals op de website.
             if number != nil || label != nil || why != nil {
                 VStack(alignment: .leading, spacing: Space.s1) {
-                    Kicker(text: label, number: number, read: store.isRead(item))
+                    Kicker(text: label, number: hang ? nil : number, read: store.isRead(item))
                     WhyLine(text: why)
                 }
             }
@@ -674,9 +683,26 @@ struct LeadCard: View {
     }
 
     var body: some View {
+        if hang {
+            // B: het beeld over de hele kolom, tekst en bronregel ingesprongen met het nummer ervoor.
+            VStack(alignment: .leading, spacing: Space.s3) {
+                if hasImage { image.contentShape(Rectangle()).opensArticle(item) }
+                HangRow(number: number, read: store.isRead(item)) {
+                    VStack(alignment: .leading, spacing: Space.s3) {
+                        text.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle()).opensArticle(item)
+                        SourceLine(item: item, story: story, outside: outside)
+                    }
+                }
+            }
+        } else {
+            standard
+        }
+    }
+
+    private var standard: some View {
         VStack(alignment: .leading, spacing: Space.s3) {
             Group {
-                if spacious && hasImage && item.imageMeta?.portrait == true {
+                if spacious && imageHeight == nil && hasImage && item.imageMeta?.portrait == true {
                     HStack(alignment: .top, spacing: Space.s6) {
                         image.frame(width: 300)
                         text.frame(maxWidth: .infinity, alignment: .leading)
@@ -716,6 +742,8 @@ struct ItemRow: View {
     var story: Story?
     var linkSource = true
     var form: Form?
+    var boven: CGFloat? = nil // in een paar (A): het beeld groot boven het verhaal, zo hoog
+    var pinSource = false // in een paar (A): de bronregel onderaan de rij
 
     private var chosen: Form { form ?? (store.layout == "krant" ? .krant : .tijdlijn) }
     private var timeline: Bool { !item.isPost && (chosen == .tijdlijn || typeSize.isAccessibilitySize) }
@@ -729,7 +757,15 @@ struct ItemRow: View {
         // Onder een groot beeld iets meer lucht tot de bron (12), zoals op het web; naast een miniatuur 8.
         VStack(alignment: .leading, spacing: timeline ? Space.s3 : Space.s2) {
             Group {
-                if timeline {
+                if let boven, hasPicture {
+                    VStack(alignment: .leading, spacing: Space.s3) {
+                        RemoteImage(url: picture(.large))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: boven)
+                            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                        text
+                    }
+                } else if timeline {
                     VStack(alignment: .leading, spacing: Space.s3) {
                         text
                         if hasPicture, fitsLarge {
@@ -755,6 +791,7 @@ struct ItemRow: View {
             }
             .contentShape(Rectangle())
             .opensArticle(item)
+            if pinSource { Spacer(minLength: 0) }
             SourceLine(item: item, story: story, linkSource: linkSource, outside: outside)
         }
         .padding(.vertical, Space.s2)

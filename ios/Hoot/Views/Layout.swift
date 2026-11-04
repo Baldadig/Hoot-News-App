@@ -11,6 +11,7 @@ enum Layout {
     static let thumb: CGFloat = 96
     static let thumbLarge: CGFloat = 108
     static let endcap: CGFloat = 300 // einde van de Editie, ± 30ch zoals --measure-end
+    static let hang: CGFloat = 36 // het nummer in de kantlijn: 24 (twee cijfers) + s3, zoals 2ch + s3 op het web
     // Lege staat (K6): het lijnicoon 64 en de uitleg op ± 34ch, zoals .empty op het web.
     static let emptyIcon: CGFloat = 96 // de lijntekening van de lege bladzijde (K6, signatuurmoment 7)
     static let emptyText: CGFloat = 320

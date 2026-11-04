@@ -21,12 +21,15 @@ import SwiftUI
 //   -HootRefreshDelay <s>   (trek-om-te-verversen: houd het laden s seconden vast, om de lader te zien)
 //   -HootEngine YES   (jouw Editie altijd opnieuw samenstellen met de rekenkern, ook als er al een
 //                     vastgelegde staat op het toestel of in je account; niets gaat naar je account)
+//   -HootGrid paren|kolom   (de brede Editie in dat raster, los van staand of liggend: opnamen van A op een
+//                           staande simulator)
 // In Release doet dit allemaal niets.
 enum DebugLaunch {
     #if DEBUG
     private static var defaults: UserDefaults { .standard }
     static var screen: String? { defaults.string(forKey: "HootScreen") }
     static var engine: Bool { defaults.bool(forKey: "HootEngine") }
+    static var grid: String? { defaults.string(forKey: "HootGrid") }
     static var refreshDelay: Double { max(0, min(30, defaults.double(forKey: "HootRefreshDelay"))) }
     static var query: String? { defaults.string(forKey: "HootQuery") }
     static var dark: Bool { defaults.bool(forKey: "HootDark") }
@@ -57,6 +60,7 @@ enum DebugLaunch {
     #else
     static let screen: String? = nil
     static let engine = false
+    static let grid: String? = nil
     static let refreshDelay = 0.0
     static let query: String? = nil
     static let dark = false
