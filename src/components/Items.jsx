@@ -78,12 +78,14 @@ export function SaveButton({ id, kind = 'item', payload, label = 'bericht' }) {
 // Delen (src/lib/share.js): de link van de uitgever met de kop, via het deelblad van het toestel
 // of anders het klembord — App.jsx meldt dan "Link gekopieerd". Zonder geldige link geen knop,
 // zoals in de app (`if let link = item.link`). Staat naast bewaren, overal waar bewaren staat.
-export function ShareButton({ item, label = 'bericht' }) {
+// `inMenu`: op de telefoon staat delen in het menu "…" (TasteButton), zoals in de app; hier blijft de knop
+// dan alleen op breed scherm.
+export function ShareButton({ item, label = 'bericht', inMenu = false }) {
   const { share } = useHoot()
   if (!share || !shareLink(item)) return null
   const text = `Deel dit ${label}`
   return (
-    <button type="button" className="iconbtn share" onClick={() => share(item)} aria-label={text} title={text}>
+    <button type="button" className={`iconbtn share${inMenu ? ' desk-only' : ''}`} onClick={() => share(item)} aria-label={text} title={text}>
       <ShareIcon />
     </button>
   )
@@ -135,6 +137,9 @@ export function Meta({ item, story, showSave = true, taste = null, outside = fal
   const fresh = story ? newInStory(story) : 0
   const others = story ? story.sourceCount - 1 : 0
   const metaRef = useStackWhenCramped(`${item.id}|${others}|${outside}`)
+  // Op de telefoon zoals de app: Bewaar zichtbaar, de rest (delen, meer of minder, fout melden) onder "…".
+  // Breed scherm houdt de knoppen naast elkaar.
+  const hasMenu = !!(taste || voteOn || reportMistake) && item.kind !== 'post'
   return (
     <div className="meta" ref={metaRef}>
       <SourceMeta item={item} outside={outside} />
@@ -147,8 +152,8 @@ export function Meta({ item, story, showSave = true, taste = null, outside = fal
           <CaretIcon size={ICON_SM} />
         </button>
       ) : null}
-      {(taste || voteOn || reportMistake) && item.kind !== 'post' ? <TasteButton entryKey={taste || story?.id || item.id} item={item} story={story} /> : null}
-      <ShareButton item={item} />
+      {hasMenu ? <TasteButton entryKey={taste || story?.id || item.id} item={item} story={story} /> : null}
+      <ShareButton item={item} inMenu={hasMenu} />
       {showSave ? story ? <SaveButton id={story.id} kind="story" payload={withLead(story, item.id)} label="verhaal" /> : <SaveButton id={item.id} payload={item} /> : null}
     </div>
   )
@@ -159,7 +164,7 @@ export const itemsOfEntry = (item, story, itemsById) => (story ? [item, ...(stor
 
 // Verhaalopties: smaak en foutmelding zijn aparte acties. Eén rustige ingang in de metaregel.
 export function TasteButton({ entryKey, item, story }) {
-  const { voteOn, itemsById, reportMistake } = useHoot()
+  const { voteOn, itemsById, reportMistake, share } = useHoot()
   const [open, setOpen] = useState(false)
   const [said, setSaid] = useState(null)
   const [reporting, setReporting] = useState(false)
@@ -173,6 +178,7 @@ export function TasteButton({ entryKey, item, story }) {
   if (reporting) return <span className="taste" role="group" aria-label="Klopt dit niet?">{Object.entries(CORRECTION_REASONS).map(([reason,label])=><button type="button" className="pill pill--sm hit" key={reason} onClick={() => {const ok=reportMistake?.(item,story?.id || null,reason);setReporting(false);setOpen(false);setSaid(ok?'Melding bewaard op dit toestel. Nog niet verstuurd.':'De melding kon niet worden bewaard.')}}>{label}</button>)}<button type="button" className="linkbtn hit" onClick={()=>setReporting(false)}>Annuleer</button></span>
   return open ? (
     <span className="taste" role="group" aria-label="Meer of minder hiervan">
+      {share && shareLink(item) ? <button type="button" className="pill pill--sm hit phone-only" onClick={() => (share(item), setOpen(false))}>Delen</button> : null}
       {voteOn ? <><button type="button" className="pill pill--sm hit" onClick={() => pick(1)}>
         Meer hiervan
       </button>

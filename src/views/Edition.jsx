@@ -214,17 +214,17 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 title
               )
             }
-            sub={edition ? null : sub} onRefresh={onRefresh} refreshing={refreshing} compare />
+            sub={edition ? null : sub} onRefresh={onRefresh} refreshing={refreshing} refreshDesktop compare />
           {ready ? (
             <>
               <StatusLine {...statusProps} quiet />
-              {/* Eén metaregel, net als onder elke schermkop en zoals in de app: datum, het weer en
+              {/* De extra's van de Editiekop (weer, De Editie in één minuut, verversknop) staan alleen op breed scherm: de telefoon heeft dezelfde kop als de app. Eén metaregel, net als onder elke schermkop en zoals in de app: datum, het weer en
                   wiens Editie het is. Geen weer, dan valt het tussenstuk weg (en zijn punt). Waar
                   jouw Editie uit bestaat, staat bij Instellingen → Edities (en één keer als hint
                   onder de lijn, na het eerste Welkom). */}
               <p className="vh__sub edmeta">
                 <span>{sub}</span>
-                <span className="edmeta__wx">
+                <span className="edmeta__wx desk-only">
                   <Weather />
                 </span>
                 <span>{hasPersonalLabel ? 'Jouw Editie' : edition.personal ? 'Om te beginnen' : 'De Editie voor iedereen'}</span>
@@ -252,7 +252,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
         ) : loading ? (
           <LoadLinesBox />
         ) : failedLoad ? (
-          <LoadError onRetry={onRefresh} />
+          <LoadError what="editie" onRetry={onRefresh} />
         ) : rows.length === 0 ? (
           <Empty art={EditionArt}
             title="Er is nog geen Editie"
@@ -330,7 +330,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             ) : null}
             {/* "De Editie in één minuut" staat onder het nieuws, vóór het einde (op iOS staat de rij er niet boven): het nieuws begint direct onder de lijn. */}
             {hasBrief ? (
-              <button type="button" className="briefcta briefcta--end" onClick={() => setReading(true)} aria-haspopup="dialog">
+              <button type="button" className="briefcta briefcta--end desk-only" onClick={() => setReading(true)} aria-haspopup="dialog">
                 <span className="briefcta__icon" aria-hidden="true">
                   <SparkleIcon />
                 </span>
@@ -346,7 +346,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             {!hasBrief && !briefForMembers && briefNote ? (
               // Het plafond voor vandaag is bereikt: dezelfde rij, zonder knop, met een rustige zin. Geen
               // hover of druk: de stijl staat hier, want styles.css is vastgelegd (tests/zacht-papier).
-              <div className="briefcta briefcta--rust briefcta--end" role="status" style={{ background: 'none', cursor: 'default' }}>
+              <div className="briefcta briefcta--rust briefcta--end desk-only" role="status" style={{ background: 'none', cursor: 'default' }}>
                 <span className="briefcta__icon" aria-hidden="true">
                   <SparkleIcon />
                 </span>
@@ -359,7 +359,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             {!hasBrief && briefForMembers ? (
               // Zonder account: de knop opent het inlogblad. Ingelogd maar het account is er nog niet
               // helemaal (zeldzaam)? Dan brengt hij je naar Instellingen, waar je het opnieuw probeert.
-              <button type="button" className="briefcta briefcta--end" onClick={onJoin} aria-haspopup={account?.status === 'out' ? 'dialog' : undefined}>
+              <button type="button" className="briefcta briefcta--end desk-only" onClick={onJoin} aria-haspopup={account?.status === 'out' ? 'dialog' : undefined}>
                 <span className="briefcta__icon" aria-hidden="true">
                   <SparkleIcon />
                 </span>

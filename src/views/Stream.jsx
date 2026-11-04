@@ -204,7 +204,7 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
         {loading ? (
           <LoadLinesBox />
         ) : failedLoad ? (
-          <LoadError onRetry={onRefresh} />
+          <LoadError what="stroom" onRetry={onRefresh} />
         ) : (
           <>
             {/* Alleen als er iets mis is (offline, verversen mislukt, alle bronnen onbereikbaar);

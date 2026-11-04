@@ -11,6 +11,10 @@ import { prunePositions } from '../lib/context.js'
 // - `stamp` verandert als de inhoud verandert; zolang je zelf nog niet hebt gescrold zetten
 //   we de positie dan opnieuw (de verse feed komt vaak net ná de eerste weergave binnen).
 // - `active`: komt het scherm weer in beeld, dan controleren we de positie opnieuw.
+// `hoot:totop`: nog eens tikken op de tab waar je al bent (Nav in Shell.jsx) scrolt het scherm naar boven.
+// Dat telt als zelf scrollen, zodat de plek bovenaan wordt onthouden en niet de oude, diepere.
+export const TOP_EVENT = 'hoot:totop'
+const USER_EVENTS = ['wheel', 'touchstart', 'pointerdown', 'keydown', TOP_EVENT]
 const MAX_AGE = 12 * 60 * 60 * 1000
 const SETTLE = 6000
 let pruned = false
@@ -53,10 +57,10 @@ export function useScrollMemory(ref, key, ready, stamp, active = true) {
       st.current.armed = true
     }
     el.addEventListener('scroll', onScroll, { passive: true })
-    for (const ev of ['wheel', 'touchstart', 'pointerdown', 'keydown']) el.addEventListener(ev, onUser, { passive: true })
+    for (const ev of USER_EVENTS) el.addEventListener(ev, onUser, { passive: true })
     return () => {
       el.removeEventListener('scroll', onScroll)
-      for (const ev of ['wheel', 'touchstart', 'pointerdown', 'keydown']) el.removeEventListener(ev, onUser)
+      for (const ev of USER_EVENTS) el.removeEventListener(ev, onUser)
       if (timer) clearTimeout(timer)
     }
   }, [ref, key])

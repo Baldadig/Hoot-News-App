@@ -1,0 +1,83 @@
+/* Staten (web gelijk aan de app, pakket 2): nieuwe regels, na styles.css geladen (zie main.jsx), zoals
+   placeholder.css. styles.css zelf blijft vastgelegd (tests/zacht-papier) en is van de tokens (pakket 1).
+   Telefoon is alles onder 960 (daarboven staat de zijbalk). Geen eigen maten of lettertypen: alleen tokens. */
+
+/* Wat alleen op breed scherm of alleen op de telefoon hoort. !important: een component zet zelf
+   zijn display (grid, flex) en moet hier niet van winnen. */
+@media (max-width: 959.98px) {
+  .desk-only {
+    display: none !important;
+  }
+}
+@media (min-width: 960px) {
+  .phone-only {
+    display: none !important;
+  }
+}
+
+/* Tabbalk (telefoon), zoals de app: Editie, Stroom, Selectie, Bewaard, Zoeken. Zoeken is een tab,
+   Bronnen staat onder Instellingen. De zijbalk (breed) toont alles. */
+.nav__list > .nav__search {
+  display: block;
+}
+@media (max-width: 959.98px) {
+  .nav__list > .nav__bronnen {
+    display: none;
+  }
+  /* Zoeken is een tab: het zoekicoon in de schermkop is dan overbodig. */
+  .vh__row > .vh__search {
+    display: none;
+  }
+}
+
+/* Actieregel op de telefoon: delen staat onder "…", dus de plek van delen valt weg en Bewaar sluit aan. */
+@media (max-width: 959.98px) {
+  .meta:has(> .share.desk-only) {
+    grid-template-columns: minmax(0, 1fr) auto minmax(var(--tap), auto) 0 var(--tap);
+  }
+  .meta:has(> .share.desk-only) > .save {
+    margin-inline-start: calc(-1 * var(--s1));
+  }
+}
+
+/* Verversen lukt niet (offline of mislukt): zoals StaleNotice in de app, een haarlijn op papier met het
+   teken, de zin in ink-3 en Opnieuw in inkt. Geen vlak en geen kloktijd. */
+.status--stale {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  margin-top: var(--s2);
+  padding: var(--s1) var(--s3);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-card);
+  color: var(--ink-3);
+}
+.status--stale > svg {
+  flex: none;
+}
+.status--stale .status__text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.status--stale .status__retry {
+  flex: none;
+  color: var(--ink);
+  font-weight: var(--fw-ui);
+  min-height: var(--tap);
+}
+
+/* De tekening van Geen verbinding: de streep is dun, het rood één punt (zoals elke lege bladzijde). */
+.empty__art--offline .empty__thin {
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+/* Tikvlakken van minstens 44 (--tap): de rubrieken-tab "Alles" was 43 breed, de voetlink bij Bronnen
+   was een regel hoog. */
+.rub__btn {
+  min-inline-size: var(--tap);
+}
+.srcstatus__foot .linkbtn {
+  min-block-size: var(--tap);
+  align-items: center;
+}

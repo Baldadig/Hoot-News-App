@@ -9,6 +9,23 @@ import { withLead } from '../lib/saved.js'
 import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { useIntroMax } from '../lib/intro.js'
 
+// Esc sluit het vaste zijpaneel (breed scherm), zoals het de dialoog sluit op een smal scherm. Alleen als
+// de toets niet al iets anders deed (een dialoog, het wissen van een zoekveld) en niet in een invoerveld.
+function useEscapeClose(onClose, enabled) {
+  useEffect(() => {
+    if (!enabled) return
+    const onKey = (e) => {
+      if (e.key !== 'Escape' || e.defaultPrevented) return
+      if (document.querySelector('.panel')?.hidden) return // het overzicht staat ook gemount als het paneel dicht is
+      const t = e.target
+      if (t instanceof Element && t.closest('input, textarea, select, [contenteditable="true"], dialog[open], [role="dialog"]')) return
+      onClose()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [enabled, onClose])
+}
+
 // Eén publicatie in het smalle paneel (breed scherm): de kop over de volle breedte en hooguit
 // twee regels samenvatting in hele zinnen, dan bron en tijd op hun vaste plek eronder. Geen beeld — dat perst
 // de kop samen.
@@ -47,6 +64,8 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
     onSeen(story.id, story.itemIds)
     if (overlay) headRef.current?.focus()
   }, [story.id, story.itemIds.length]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEscapeClose(onClose, !overlay)
 
   // Als dialoog: Esc sluit, en Tab blijft binnen het paneel (ook in browsers zonder `inert`).
   useEffect(() => {
@@ -171,6 +190,7 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
 // opent de bronvergelijking van dat verhaal.
 export function StoryIndex({ stories = [], onClose, lastId }) {
   const { itemsById, openStory, muted } = useHoot()
+  useEscapeClose(onClose, true)
   const rows = stories
     .filter((s) => s.sourceCount > 1)
     .map((s) => ({ s, lead: [s.leadId, ...s.itemIds].map((id) => itemsById.get(id)).find((i) => i && !muted.has(i.source)) }))
