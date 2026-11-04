@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import {
   T, MAX, STRIP, MS, NOON, MSG, R, HALF, RINGS, resist, arcPt, breathe, glowAt, geom, answer, closeAt, doneAt,
-  journey, stripHeight, svg, drag, release, answered, sunT, E, gesture, inHorizontalScroller,
+  journey, stripHeight, svg, drag, release, answered, sunT, E, gesture, inHorizontalScroller, shutAt, setAt,
 } from '../src/lib/pull-horizon.js'
 
 const near = (a, b, eps = 0.01, msg) => assert.ok(Math.abs(a - b) <= eps, `${msg || ''} ${a} ≠ ${b}`)
@@ -112,6 +112,56 @@ test('Snel: van antwoord tot dicht 1840 ms; ondergang 600 ms bij de vroege avond
   near(stripHeight({ ...st, from: 90, loadT0: 0 }, 2440), 56); near(stripHeight({ ...st, from: 90, loadT0: 0 }, 2840), 0)
 })
 
+// Build 45: "de closing animatie kapt abrupt af". Oorzaak: dicht ging met ease-glide, een curve die
+// in volle vaart begint (22 pt in de eerste 40 ms). Nu het spiegelbeeld van openen: dezelfde 400 ms,
+// eerst is de zon onder, dan vertrekt de strook uit stilstand en komt zacht aan (ease-iris).
+test('sluiten: spiegelbeeld van openen, zelfde duur, uit stilstand, zacht aan, inhoud zonder sprong', () => {
+  const st = { phase: 'set', setT0: 2000, loadT0: 0, from: 90, reduce: false }
+  const shut = closeAt(st)
+  // Zelfde duur: openen 90 → 56 in 400 ms, dicht 56 → 0 in 400 ms.
+  near(stripHeight({ phase: 'load', loadT0: 0, from: 90 }, MS.close), 56)
+  assert.equal(doneAt(st) - shut, MS.close)
+  near(shutAt(0), 1); near(shutAt(MS.close), 0); near(shutAt(MS.close / 2), 1 - E.iris(0.5))
+  // Uit stilstand en zacht aan: op 120 Hz de eerste en de laatste stap onder 0,5 pt, nergens boven 5 pt.
+  const frame = 1000 / 120
+  const steps = []
+  for (let t = shut; t < shut + MS.close; t += frame) steps.push(stripHeight(st, t) - stripHeight(st, t + frame))
+  assert.ok(steps[0] < 0.5, `eerste stap ${steps[0]}`)
+  assert.ok(steps.at(-1) < 0.5, `laatste stap ${steps.at(-1)}`)
+  assert.ok(Math.max(...steps) < 5, `grootste stap ${Math.max(...steps)}`)
+  assert.ok(steps.every((d) => d >= -1e-9), 'de strook gaat alleen dicht, nooit even open')
+  // Eerst de zon onder: zolang er nog meer dan 0,5 pt zon boven de lijn staat, is de strook niet bewogen.
+  for (let t = 0; t <= 600; t += 5) {
+    const g = geom(st, 2000 + t, CW)
+    if (g.sy + R > 0.5) assert.ok(stripHeight(st, 2000 + t) > 55.5, `zon nog op bij ${t}, strook ${stripHeight(st, 2000 + t)}`)
+  }
+  // Fout en Snel delen dezelfde dichte beweging.
+  const f = { phase: 'fail', failT0: 0, tf: 0.5, loadT0: 0, from: 90, reduce: false }
+  near(stripHeight(f, closeAt(f) + 200), 56 * shutAt(200))
+})
+
+test('sluiten: de inhoud volgt de strook over de hele reis, ook bij heel snel laden', () => {
+  // De inhoud schuift precies de hoogte van de strook mee (web: transform; iOS: de scroll). Loop één
+  // verversing per ms af, van loslaten tot rust, met de overgangen zoals PullHorizon.jsx ze maakt.
+  for (const responseMs of [0, 30, 120, 1000, 7000]) {
+    let st = { phase: 'load', loadT0: 0, from: 96, reduce: false }
+    let prev = 96, max = 0
+    for (let now = 0; now <= responseMs + 6000; now++) {
+      if (st.phase === 'load' && now >= responseMs) st = answer(st, now, true)
+      if (st.phase === 'go' && now >= setAt(st)) st = { ...st, phase: 'set', setT0: setAt(st) }
+      if (st.phase === 'set' && now >= doneAt(st)) st = { phase: 'rest' }
+      const h = stripHeight(st, now)
+      max = Math.max(max, Math.abs(h - prev)); prev = h
+      // Heel snel klaar: de opening loopt eerst helemaal af en de zon haalt de middag.
+      if (now === MS.close) near(h, 56, 0.01, `open bij ${responseMs}`)
+      if (now === NOON) assert.notEqual(st.phase, 'set', `nog niet onder bij ${responseMs}`)
+    }
+    assert.equal(st.phase, 'rest')
+    assert.equal(prev, 0)
+    assert.ok(max < 0.6, `antwoord na ${responseMs} ms: grootste sprong ${max.toFixed(2)} pt per ms`)
+  }
+})
+
 test('Traag: de zon wacht op de middag, het doorlopen begint bij het antwoord en vertrekt uit de adem', () => {
   const j = journey({ responseMs: 7000 })
   assert.deepEqual(j, { set: 7800, close: 8240, done: 8640 })
@@ -205,7 +255,8 @@ test('fixture voor iOS: web en app rekenen hetzelfde', () => {
   for (const t of [0, 2000, 2175]) add(`fout-stil-${t}`, { ...fail, reduce: true }, t)
   const journeys = [[1000, true, false], [7000, true, false], [2000, false, false], [1000, true, true], [1000, false, true]]
     .map(([responseMs, ok, reduce]) => ({ responseMs, ok, reduce, ...journey({ responseMs, ok, reduce }) }))
-  const data = { width: CW, cases, journeys, resist: [0, 50, 72, 100, 140, 400].map((d) => [d, Math.round(resist(d) * 1000) / 1000]) }
+  const shut = [0, 50, 100, 200, 300, 350, 400].map((t) => [t, Math.round(shutAt(t) * 100000) / 100000])
+  const data = { width: CW, cases, journeys, shut, resist: [0, 50, 72, 100, 140, 400].map((d) => [d, Math.round(resist(d) * 1000) / 1000]) }
   const file = new URL('./fixtures/pull-horizon.json', import.meta.url)
   const text = JSON.stringify(data, null, 1) + '\n'
   if (process.env.PULL_FIXTURE_WRITE || !existsSync(file)) writeFileSync(file, text)

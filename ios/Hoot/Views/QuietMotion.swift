@@ -64,14 +64,21 @@ struct RefreshPull {
 
 // Eén indicator, één plek: de horizon (Horizon v2, PullHorizon.swift). De trekstrook boven de titel is
 // ook de laadstrook. De scroll zelf houdt de strook open (contentMargins), dus er verschuift niets bij
-// loslaten of klaar.
+// loslaten of klaar. Dichtgaan loopt per frame op de klok (Horizon.shut): een contentMargins-wissel
+// animeert SwiftUI niet, de inhoud sprong in build 45 in één frame 56 pt omhoog.
 enum RefreshStrip {
     static let loading: CGFloat = Horizon.strip
     // Op de bewegingsschaal (140 · 200 · 400): lijn en boog vervagen in dur-1 (vanaf 440 ms in de
-    // ondergang), de strook glijdt dicht in dur-3 met ease-glide ("iets wisselt van plek").
+    // ondergang), de strook gaat open (ease-glide) en dicht (ease-iris, Horizon.shut) in dur-3.
     static let fadeOut: Double = 0.14
     static let close: Double = 0.4
     static var glide: Animation { .timingCurve(0.2, 0.8, 0.2, 1, duration: close) }
+    // Hoe ver de strook nog open is (1 → 0), `shutT0` het begin van het dichtgaan (ms; nil: open).
+    // Verminder beweging: na de vervaging meteen dicht, zonder glijden.
+    static func open(shutT0: Double?, now: Double, reduce: Bool) -> CGFloat {
+        guard let shutT0 else { return 1 }
+        return reduce ? 0 : CGFloat(Horizon.shut(now - shutT0))
+    }
     // Hoogte van de lege strook boven de inhoud: tijdens laden de vaste ruimte plus een eventuele extra trek.
     static func gap(amount: CGFloat, busy: Bool) -> CGFloat {
         let pulled = amount.isFinite ? max(0, amount) : 0
@@ -110,7 +117,7 @@ private struct HootRefresh: ViewModifier {
     @State private var pull = RefreshPull()
     @State private var mark = HorizonState()
     @State private var armedSince: Double? = nil
-    @State private var closing: CGFloat? = nil // hoogte van de strook terwijl hij dichtglijdt
+    @State private var shutT0: Double? = nil // begin van het dichtgaan (ms), zolang de strook dichtgaat
     @State private var failCount = 0
     private func announce(_ text: String) { if indicator { AccessibilityNotification.Announcement(text).post() } }
     private func wait(until ms: Double) async {
@@ -124,7 +131,7 @@ private struct HootRefresh: ViewModifier {
         Task {
             await action()
             if DebugLaunch.refreshDelay > 0 { try? await Task.sleep(for: .seconds(DebugLaunch.refreshDelay)) }
-            guard indicator else { withAnimation(settle) { pull.finish() }; return }
+            guard indicator else { pull.finish(); return }
             // Het antwoord wacht zolang je opnieuw trekt; daarna loopt de dag af: doorlopen, ondergang, dicht.
             while pull.dragging { try? await Task.sleep(for: .milliseconds(50)) }
             let ok = !(failed?() ?? false)
@@ -135,20 +142,31 @@ private struct HootRefresh: ViewModifier {
                 mark.setT0 = Horizon.setAt(mark); mark.phase = .set
             }
             await wait(until: Horizon.closeAt(mark))
-            // Eerst is het teken onder (of vervaagd), dan glijdt de strook dicht: het ligt nooit over de inhoud.
-            closing = RefreshStrip.gap(amount: pull.amount, busy: true)
-            withAnimation(settle) { closing = 0; pull.finish() }
-            if !still { try? await Task.sleep(for: .seconds(RefreshStrip.close + 0.05)) }
-            closing = nil
+            // Eerst is de zon onder (of vervaagd), dan gaat de strook dicht: dezelfde 400 ms als openen,
+            // uit stilstand en zacht aan (Horizon.shut), en de inhoud gaat per frame mee omhoog.
+            let t0 = Horizon.closeAt(mark)
+            shutT0 = t0
+            if !still { await wait(until: t0 + Horizon.Ms.close) }
+            pull.finish()
+            shutT0 = nil
             mark = HorizonState()
         }
     }
-    // Strook en teken openen en sluiten in één rustige beweging; bij Verminder beweging direct.
+    // De strook opent in één rustige beweging; bij Verminder beweging direct.
     private var settle: Animation? { still ? nil : RefreshStrip.glide }
-    private var reserved: CGFloat { indicator && pull.busy ? RefreshStrip.loading : 0 } // blijft open tot het teken weg is
     func body(content: Content) -> some View {
-        content
-            // De strook wordt door de scroll zelf opengehouden en klapt rustig dicht; bij Verminder beweging direct.
+        // De klok loopt alleen tijdens het dichtgaan (400 ms); anders staat hij stil.
+        TimelineView(.animation(minimumInterval: nil, paused: shutT0 == nil)) { tl in
+            let open = RefreshStrip.open(shutT0: shutT0, now: Horizon.now(tl.date), reduce: still)
+            strip(content, open: open)
+        }
+    }
+    private func strip(_ content: Content, open: CGFloat) -> some View {
+        // Blijft open tot het teken weg is; daarna gaan strook en inhoud samen dicht (zie Horizon.shut).
+        let reserved = indicator && pull.busy ? RefreshStrip.loading * open : 0
+        let closing = shutT0 == nil ? nil : RefreshStrip.gap(amount: pull.amount, busy: true) * open
+        return content
+            // De strook wordt door de scroll zelf opengehouden; zijn marge gaat per frame mee dicht.
             .contentMargins(.top, reserved, for: .scrollContent)
             .onScrollGeometryChange(for: CGFloat.self) { max(0, -$0.contentOffset.y - $0.contentInsets.top) } action: { _, value in
                 pull.move(to: value)
@@ -161,8 +179,8 @@ private struct HootRefresh: ViewModifier {
                 if indicator && (pull.busy || pull.amount >= 1 || closing != nil) {
                     PullHorizonStrip(amount: pull.amount, busy: pull.busy || closing != nil, mark: mark, reduceMotion: still,
                                      armed: pull.armed, armedSince: armedSince, height: closing)
-                        // Geen tijdlijn tussen vinger en teken; alleen het dichtglijden loopt met de strook mee.
-                        .transaction { if closing == nil { $0.animation = nil } }
+                        // Geen tijdlijn tussen vinger en teken: de hoogte komt van de scroll of van de klok.
+                        .transaction { $0.animation = nil }
                 }
             }
             // Eén zachte tik op de drempel (alleen van onder naar boven), een zachtere bij een fout.

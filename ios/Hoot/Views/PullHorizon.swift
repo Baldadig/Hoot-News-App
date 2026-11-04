@@ -54,6 +54,11 @@ enum Horizon {
     static func io(_ p: Double) -> Double { p < 0.5 ? 4 * p * p * p : 1 - pow(-2 * p + 2, 3) / 2 } // landing
     static func sine(_ t: Double) -> Double { 0.5 - 0.5 * cos(.pi * t) }
     static func c01(_ v: Double) -> Double { min(1, max(0, v)) }
+    // Openen en sluiten zijn elkaars spiegelbeeld, in dezelfde 400 ms. Openen begint in beweging (de
+    // vinger laat los) en komt zacht aan op 56 (ease-glide); sluiten begint uit stilstand, na de
+    // ondergang, met de curve van de ondergang zelf (ease-iris): zacht weg, zacht aan. Geeft het deel
+    // van de strook dat nog open is (1 → 0) na `ms` sluiten. Zelfde som als shutAt op het web.
+    static func shut(_ ms: Double) -> Double { 1 - iris(c01(ms / Ms.close)) }
 
     // Vinger → afstand op het web: 1 : 1 tot 72, dan een zachte rem tot hooguit 120. In de app doet de
     // ScrollView zijn eigen rem; de tekening volgt de zichtbare afstand.
