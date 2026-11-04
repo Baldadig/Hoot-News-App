@@ -9,7 +9,6 @@ struct StreamView: View {
     @Environment(Reader.self) private var reader
     @State private var behindReader = false // de lezer ligt eroverheen: dat is geen vertrek uit de Stroom
     @State private var showSources = DebugLaunch.screen("bronnen")
-    @State private var refreshWaiting = false
     @State private var categoryTask: Task<Void, Never>?
     @State private var viewportHeight: CGFloat = 0
     @State private var headerHeight: CGFloat = 0
@@ -54,9 +53,6 @@ struct StreamView: View {
                     // De schermtitel in de scroll (C7), op de kolomlijn boven de rubriekenlijn.
                     VStack(alignment: .leading, spacing: 0) {
                         ScreenTitle("Stroom")
-                        if refreshWaiting && !store.stream.isEmpty {
-                            RefreshLoadingMark().frame(maxWidth: .infinity, minHeight: 56)
-                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
@@ -101,10 +97,7 @@ struct StreamView: View {
                         // (die blijven bewaard): offline of zonder bronnen zie je het altijd.
                         let niets = items.isEmpty && store.stream.isEmpty
                         if store.status == .loading && niets {
-                            Group {
-                                if refreshWaiting { RefreshLoadingMark() }
-                                else { WaitingMark() }
-                            }.frame(maxWidth: .infinity, minHeight: 240)
+                            WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
                         } else if niets {
                             if store.status == .failed {
                                 EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnen hier de berichten van je bronnen.", retry: store.load)
@@ -149,7 +142,7 @@ struct StreamView: View {
             .hootScreenTitle()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .hootRefresh(onWaiting: { refreshWaiting = $0 }) { await store.load() }
+            .hootRefresh(indicator: !store.stream.isEmpty) { await store.load() }
             .toolbar {
                 // Bediening is stil (design system): grijs en zonder glazen rondje, zoals het tandwiel.
                 ToolbarItem(placement: .topBarTrailing) {

@@ -85,29 +85,47 @@ struct RefreshPull {
     mutating func finish() { busy = false }
 }
 
-// Het echte h.-pad. De punt zakt met de trek in zijn eigen plek; verder trekken geeft
-// nog een kleine beweging. Alles blijft binnen de lege trekruimte boven de titel.
+// Eén indicator, één plek. De trekstrook boven de titel is ook de laadstrook: de h. blijft staan,
+// de punt zakt tijdens het trekken op zijn plek en maakt daarna (laden) zijn rustige sprong.
+// De scroll zelf houdt de strook open (contentMargins), dus er verschuift niets bij loslaten of klaar.
+enum RefreshStrip {
+    static let loading: CGFloat = 56
+    // Hoogte van de lege strook boven de inhoud: tijdens laden de vaste ruimte plus een eventuele extra trek.
+    static func gap(amount: CGFloat, busy: Bool) -> CGFloat {
+        let pulled = amount.isFinite ? max(0, amount) : 0
+        return busy ? loading + pulled : pulled
+    }
+    // Dezelfde h. in dezelfde maat voor trekken en laden; de punt komt bij de drempel op zijn eindplek.
+    static func dotTravel(amount: CGFloat) -> CGFloat {
+        -10 * (1 - min(1, max(0, amount) / RefreshPull.threshold))
+    }
+}
+
 struct PullRefreshMark: View {
     let amount: CGFloat
+    var busy = false
     var reduceMotion = false
     private let height: CGFloat = 28
     var body: some View {
-        let distance = max(0, amount)
-        let progress = min(1, distance / RefreshPull.threshold)
-        let dotTravel = -10 * (1 - progress) + min(6, max(0, distance - RefreshPull.threshold) / 12)
+        let distance = RefreshStrip.gap(amount: amount, busy: busy)
         ZStack {
-            GlyphShape(glyphs: Brand.mark).fill(Theme.ink3)
-            GlyphShape(glyphs: Brand.mark, part: .dot).fill(Theme.accent)
-                .offset(y: reduceMotion ? 0 : dotTravel)
+            if busy {
+                RefreshLoadingMark(size: height, reduceMotion: reduceMotion)
+            } else {
+                GlyphShape(glyphs: Brand.mark).fill(Theme.ink3)
+                GlyphShape(glyphs: Brand.mark, part: .dot).fill(Theme.accent)
+                    .offset(y: reduceMotion ? 0 : RefreshStrip.dotTravel(amount: amount))
+            }
         }
         .frame(width: height * Brand.mark.size.width / Brand.mark.size.height, height: height)
-        .opacity(min(1, max(0, (distance - 12) / 24)))
+        .opacity(busy ? 1 : min(1, max(0, (distance - 12) / 24)))
         .frame(maxWidth: .infinity)
         .frame(height: distance)
         .clipped()
         .allowsHitTesting(false)
-        .accessibilityHidden(true)
+        // Geen tijdlijn tussen vinger en teken: alleen verschijnen en verdwijnen krijgen een zachte fade.
         .transaction { $0.animation = nil }
+        .accessibilityHidden(!busy)
     }
 }
 
@@ -115,14 +133,31 @@ private struct HootRefresh: ViewModifier {
     @Environment(\.accessibilityReduceMotion) private var still
     let action: @MainActor () async -> Void
     var indicator = true
-    var onWaiting: ((Bool) -> Void)? = nil
     @State private var pull = RefreshPull()
+    @State private var closing = false
     private func refresh() {
-        guard pull.begin() else { return }
-        Task { await action(); pull.finish() }
+        guard withAnimation(settle, { pull.begin() }) else { return }
+        if indicator { AccessibilityNotification.Announcement("Bezig met verversen").post() }
+        Task {
+            await action()
+            if DebugLaunch.refreshDelay > 0 { try? await Task.sleep(for: .seconds(DebugLaunch.refreshDelay)) }
+            // Eerst vervaagt de h. (die staat dan nog in de strook), daarna klapt de strook dicht:
+            // het teken ligt nooit over de inhoud.
+            if still { pull.finish(); return }
+            withAnimation(.easeOut(duration: 0.15)) { closing = true }
+            try? await Task.sleep(for: .milliseconds(150))
+            withAnimation(settle) { pull.finish() }
+            try? await Task.sleep(for: .milliseconds(350))
+            closing = false
+        }
     }
+    // Strook en teken openen en sluiten in één rustige beweging; bij Verminder beweging direct.
+    private var settle: Animation? { still ? nil : .easeOut(duration: 0.3) }
+    private var reserved: CGFloat { indicator && pull.busy ? RefreshStrip.loading : 0 }  // blijft open tot het teken weg is
     func body(content: Content) -> some View {
         content
+            // De strook wordt door de scroll zelf opengehouden en klapt rustig dicht; bij Verminder beweging direct.
+            .contentMargins(.top, reserved, for: .scrollContent)
             .onScrollGeometryChange(for: CGFloat.self) { max(0, -$0.contentOffset.y - $0.contentInsets.top) } action: { _, value in
                 pull.move(to: value)
             }
@@ -130,26 +165,18 @@ private struct HootRefresh: ViewModifier {
                 if pull.phase(from: old, to: new) { refresh() }
             }
             .overlay(alignment: .top) {
-                if indicator && !pull.busy && pull.amount > 12 {
-                    PullRefreshMark(amount: pull.amount, reduceMotion: still)
+                if indicator && !closing && (pull.busy || pull.amount > 12) {
+                    PullRefreshMark(amount: pull.amount, busy: pull.busy, reduceMotion: still)
+                        .transition(.opacity)
                 }
             }
-            // Schermen kunnen de stille lader onder hun titel plaatsen. Anders reserveert de modifier
-            // hier een eigen strook: ook bij laden nooit over de inhoud tekenen.
-            .safeAreaInset(edge: .top, spacing: 0) {
-                if indicator && pull.busy && onWaiting == nil {
-                    RefreshLoadingMark().frame(maxWidth: .infinity, minHeight: 56)
-                }
-            }
-            // De stille lader verschijnt pas tijdens het verzoek, niet al bij trekken.
-            .onChange(of: pull.busy) { _, value in onWaiting?(value) }
-            .onDisappear { onWaiting?(false) }
             .accessibilityAction(named: "Verversen") { refresh() }
     }
 }
 extension View {
-    func hootRefresh(indicator: Bool = true, onWaiting: ((Bool) -> Void)? = nil, _ action: @escaping @MainActor () async -> Void) -> some View {
-        modifier(HootRefresh(action: action, indicator: indicator, onWaiting: onWaiting))
+    // `indicator: false` voor een scherm dat zelf al een wachtteken toont (leeg, eerste keer laden).
+    func hootRefresh(indicator: Bool = true, _ action: @escaping @MainActor () async -> Void) -> some View {
+        modifier(HootRefresh(action: action, indicator: indicator))
     }
 }
 

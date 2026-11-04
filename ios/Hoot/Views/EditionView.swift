@@ -27,11 +27,10 @@ enum EditionNumbering {
     static func count(_ rows: [EditionRowModel]) -> Int { rows.compactMap(\.number).max() ?? 0 }
 }
 
-// Titel en wachtmarkering delen één normale verticale opmaak; geen overlay op de kop.
+// De kop van de Editie; de verversmarkering staat niet in de kop maar in de trekstrook erboven (QuietMotion).
 struct EditionHeader: View {
     let title: String
     let slot: String?
-    var waiting = false
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             ViewThatFits(in: .horizontal) {
@@ -43,9 +42,6 @@ struct EditionHeader: View {
                     }
                 }
                 ScreenTitle(title, gap: 0).frame(maxWidth: .infinity, alignment: .leading)
-            }
-            if waiting {
-                RefreshLoadingMark().frame(maxWidth: .infinity, minHeight: 56)
             }
         }
     }
@@ -169,7 +165,6 @@ struct EditionView: View {
         return " De volgende staat \(volgende) klaar."
     }
 
-    @State private var refreshWaiting = false
     @State private var path = NavigationPath()
     @State private var nudge = false // "Maak Hoot van jou", na even rondkijken
     @State private var setup = false
@@ -237,12 +232,9 @@ struct EditionView: View {
                     // Met een kleine, stille zon ernaast: zijn hoogte toont het dagdeel (onboarding-plan, ‘De zon
                     // in de Editie’). Laag bij de Ochtend- en Avondeditie, hoog bij de Middageditie.
                     // Past de naam er bij grote tekst niet meer naast, dan alleen de naam (nooit afgebroken).
-                    EditionHeader(title: title, slot: store.edition?.slot, waiting: refreshWaiting && !rows.isEmpty)
+                    EditionHeader(title: title, slot: store.edition?.slot)
                     if rows.isEmpty && (store.status == .loading || (store.status != .failed && store.edition != nil && store.shownEdition == nil)) {
-                        Group {
-                            if refreshWaiting { RefreshLoadingMark() }
-                            else { WaitingMark() }
-                        }.frame(maxWidth: .infinity, minHeight: 240)
+                        WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
                     } else if rows.isEmpty {
                         if store.status == .failed {
                             EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Hoot heeft nog geen Editie op dit toestel. Zodra je verbinding hebt, verschijnt hij hier.", retry: store.load)
@@ -358,7 +350,7 @@ struct EditionView: View {
             .hootScreenTitle() // het verhaal wint van de schermtitel (C7)
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .hootRefresh(onWaiting: { refreshWaiting = $0 }) { await store.load() }
+            .hootRefresh(indicator: !store.editionRows.isEmpty) { await store.load() }
             .hootBrandHeader()
             .settingsButton()
             .task(id: store.shownEdition?.id) {
