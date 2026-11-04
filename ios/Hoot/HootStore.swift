@@ -18,6 +18,9 @@ final class HootStore {
     private(set) var updatedAt: Date?
     private(set) var digest: Digest?
     private(set) var digestStatus: Status = .idle
+    // De laatste verversing van de Selectie mislukte, ook als de bewaarde Selectie bleef staan
+    // (digestStatus blijft dan .ready). Dat houdt het trekgebaar eerlijk; het web heeft dezelfde vlag.
+    private(set) var digestRefreshFailed = false
     private var relatedVersion: String?
     private var related: [String: [Item]] = [:]
     private var relatedLoaded: String? // de versie waarmee `related` geladen is
@@ -86,6 +89,10 @@ final class HootStore {
 
     // Laatste verversing mislukt: je ziet de versie van `updatedAt`.
     private(set) var stale = false
+    // Alleen de kern (api/feed?deel=start) lukte niet: het antwoord kwam uit de bewaarde kopie of er was
+    // niets. Een mislukt deel van één bron zet `stale` aan maar is geen fout voor het trekgebaar; dat
+    // volgt het web (refreshError).
+    private(set) var coreFailed = false
     // De Stroom, gesorteerd: één keer per laadactie of bronwijziging, niet bij elke weergave.
     private(set) var stream: [Item] = []
     // Tot waar je de Stroom zag (het nieuwste bericht toen je hem verliet), en de grens voor dit
@@ -535,6 +542,7 @@ final class HootStore {
             relatedVersion = start.meta.related
             parts = start.meta.parts ?? [:]
             stale = false // een mislukt deel zet hem hieronder weer aan
+            coreFailed = fromCache
             reloadParts()
             // Eigen Bluesky-accounts los ophalen: een trage Bluesky houdt de editie niet op.
             Task { await loadOwnPosts() }
@@ -547,6 +555,7 @@ final class HootStore {
             await loadPersonal()
         } catch {
             stale = !itemsById.isEmpty
+            coreFailed = true
             status = itemsById.isEmpty ? .failed : .ready
         }
     }
@@ -972,11 +981,16 @@ final class HootStore {
         if digestStatus == .loading || (!force && digest != nil && !due && !old) { return }
         digestStatus = .loading
         do {
-            digest = try await HootAPI.digest()
-            digestLoadedAt = .now
+            // Kwam het antwoord uit de bewaarde kopie, dan faalde het netwerk: de Selectie blijft staan,
+            // maar de verversing is mislukt (en een nieuwe poging mag meteen weer).
+            let (fresh, fromCache): (Digest, Bool) = try await HootAPI.fetch("api/vak")
+            digest = fresh
+            if !fromCache { digestLoadedAt = .now }
             digestStatus = .ready
+            digestRefreshFailed = fromCache
         } catch {
             digestStatus = digest == nil ? .failed : .ready
+            digestRefreshFailed = true
         }
     }
 

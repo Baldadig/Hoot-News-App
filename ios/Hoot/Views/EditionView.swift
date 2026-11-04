@@ -443,7 +443,7 @@ struct EditionView: View {
             .navigationTitle(title) // voor VoiceOver en de terugknop; je ziet de titel in de scroll
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .hootRefresh(indicator: !store.editionRows.isEmpty, label: "Editie", failed: { store.stale }) { await store.load() }
+            .hootRefresh(indicator: !store.editionRows.isEmpty, label: "Editie", failed: { store.coreFailed }) { await store.load() }
             .hootKopScreen()
             .settingsButton()
             .task(id: store.shownEdition?.id) {

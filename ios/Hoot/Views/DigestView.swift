@@ -81,7 +81,7 @@ struct DigestView: View {
             .navigationTitle("Selectie")
             .hootKopScreen()
             .settingsButton()
-            .hootRefresh(indicator: store.digest != nil, label: "Selectie", failed: { store.digestStatus == .failed }) { await store.loadDigest(force: true) }
+            .hootRefresh(indicator: store.digest != nil, label: "Selectie", failed: { store.digestRefreshFailed || store.digestStatus == .failed }) { await store.loadDigest(force: true) }
             .sheet(isPresented: $choosing) {
                 NavigationStack {
                     DigestFieldsList()
