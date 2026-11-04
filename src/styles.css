@@ -2228,10 +2228,14 @@ select.input {
   text-align: center;
 }
 
-/* Het einde van de Editie: een merkmoment, in merkrood. Het merk en de knop in papier (--on-brand-red).
-   Even breed als de lijst erboven (--measure) en links verankerd: kop, lijst en kaart eindigen op
-   één rechterlijn, ook op breed scherm waar de voorpagina het hele raam gebruikt. */
+/* Het einde van de Editie: een merkmoment, in merkrood. Het merk en de link in papier (--on-brand-red).
+   Op de leesbreedte (--measure) en links verankerd: kop, lijst en kaart eindigen op één
+   rechterlijn, ook op breed scherm waar de voorpagina het hele raam gebruikt. Eén rustige link.
+   In Nacht is het rood gedempt en de tekst de zachte leesinkt (--endcap-bg/--endcap-on in het
+   Nacht-blok): het grootste vlak van het scherm is nooit het felste (E9). */
 .endcap {
+  --on-brand-red: var(--endcap-on, var(--paper-brand));
+  --on-brand-red-2: color-mix(in srgb, var(--on-brand-red) 85%, transparent);
   --brand: var(--on-brand-red);
   --accent: var(--on-brand-red);
   display: grid;
@@ -2241,7 +2245,7 @@ select.input {
   margin: var(--s6) 0 var(--s4);
   padding: var(--s7) var(--s5) var(--s6);
   border-radius: var(--radius-card);
-  background: var(--brand-red);
+  background: var(--endcap-bg, var(--brand-red));
   color: var(--on-brand-red);
   text-align: center;
 }
@@ -5477,3 +5481,5 @@ html[data-images='hoofd'] .media--social {
   --select-caret: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath fill='none' stroke='%23a79b87' stroke-linecap='round' stroke-linejoin='round' stroke-width='20' d='m48 96l80 80l80-80'/%3E%3C/svg%3E");
 }
 /* Einde Nacht Zacht papier. */
+  --endcap-bg: color-mix(in srgb, var(--brand-red) 42%, #000000);
+  --endcap-on: var(--ink);

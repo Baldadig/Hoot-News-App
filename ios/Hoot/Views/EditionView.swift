@@ -149,14 +149,13 @@ struct EditionView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.brandHandoff) private var handoff
     @Environment(\.accessibilityReduceMotion) private var still
-    @Environment(EditionAlerts.self) private var alerts
+    @Environment(\.nachtActief) private var nacht
     @AppStorage("seenEdition") private var seenEdition = ""
     @State private var printedIDs: Set<String> = []
     @State private var ruleDrawn = true
     @State private var storyShown = true
     @State private var endVisible = false // de zon onderaan is in beeld
     @State private var risenAt: Date? // sinds wanneer die zon opkomt (één keer)
-    @State private var alertsOn = false // net "ja" gezegd op het seintje onderaan
     // Bij een koude start ligt de krant 8 pt lager en schuift op zijn plek terwijl het rood van het
     // opstartscherm zich sluit, met dezelfde curve: het merk landt, de krant gaat open.
     private var rising: Bool { !still && handoff?.landed == false && handoff?.leaving == false }
@@ -212,30 +211,9 @@ struct EditionView: View {
         }
     }
 
-    // Een rustig tweede instappunt voor het seintje (het eerste staat in Instellingen): alleen zolang
-    // iOS nog niet weet of je meldingen wilt. Na ja of nee verdwijnt het vanzelf; na een ja zegt het
-    // nog even wanneer.
-    @ViewBuilder private var alertOffer: some View {
-        if alertsOn {
-            Label("Je krijgt een seintje als de volgende klaarligt.", systemImage: "bell")
-                .font(.subheadline)
-                .frame(minHeight: Space.tap)
-                .transition(.opacity)
-        } else if alerts.permission == .notDetermined && !store.notify {
-            Button {
-                Task {
-                    guard await alerts.ask() else { return }
-                    store.notifySlots = EditionAlerts.slots.map(\.id)
-                    withAnimation(.easeInOut(duration: 0.3)) { store.notify = true; alertsOn = true }
-                }
-            } label: {
-                Label { Text("Seintje als hij klaarligt?").underline() } icon: { Image(systemName: "bell") }
-            }
-            .font(.subheadline.weight(.semibold))
-            .frame(minHeight: Space.tap)
-            .transition(.opacity)
-        }
-    }
+    // De eindkaart in Nacht: het merkrood gedempt (42 % over zwart) met de zachte leesinkt, zoals
+    // --endcap-bg en --endcap-on op het web. Het grootste vlak van het scherm is nooit het felste (E9).
+    static let nachtEndRed = Color(red: 0x44 / 255, green: 0x0d / 255, blue: 0x0b / 255)
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -317,25 +295,21 @@ struct EditionView: View {
                                 .font(.subheadline)
                                 .multilineTextAlignment(.center)
                                 .frame(maxWidth: Layout.endcap) // ± 30 tekens per regel, zoals --measure-end
-                            // De links direct onder elkaar: hun aanraakvlak (44 pt) is de ruimte ertussen,
-                            // zodat tekst, seintje en Stroom op gelijke afstand staan.
-                            VStack(spacing: 0) {
-                                alertOffer
-                                // Het einde is leidend; verder lezen mag, als rustige link in plaats van een knop.
-                                Button { openTab(.stroom) } label: {
-                                    Text("Of lees verder in de Stroom").underline()
-                                }
-                                .font(.subheadline.weight(.semibold))
-                                .opacity(0.85)
-                                .frame(minHeight: Space.tap)
+                            // Eén rustige link: het einde is leidend, verder lezen mag (E8). Het seintje
+                            // staat niet meer in de kaart.
+                            Button { openTab(.stroom) } label: {
+                                Text("Lees verder in de Stroom").underline()
                             }
-                            .animation(still ? nil : .easeInOut(duration: 0.3), value: alerts.permission) // na een nee: rustig weg
+                            .font(.subheadline.weight(.semibold))
+                            .opacity(0.85)
+                            .frame(minHeight: Space.tap)
                         }
-                        .foregroundStyle(Theme.onBrandRed)
+                        .foregroundStyle(nacht ? Theme.ink : Theme.onBrandRed)
                         .frame(maxWidth: .infinity)
                         .padding(.horizontal, Space.s5)
                         .padding(.vertical, Space.s7)
-                        .background(Theme.brandRed, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                        .background(nacht ? Self.nachtEndRed : Theme.brandRed, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                        .frame(maxWidth: Layout.readable) // op de leesbreedte, niet over de hele iPad (E9)
                         .padding(.top, Space.s6)
                         .padding(.bottom, Space.s4)
                         }
