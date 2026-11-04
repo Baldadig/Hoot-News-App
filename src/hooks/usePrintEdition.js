@@ -2,6 +2,12 @@ import { useEffect } from 'react'
 import { shouldPrintEdition, PRINT_TIMING } from '../../shared/edition-motion.mjs'
 import { reduced } from '../lib/motion.js'
 const seen = new Set()
+// De laadstrepen landen al op de kopstreep en de kop: deze Editie geldt als gedrukt.
+export function markPrinted(id) {
+  if (!id || seen.has(id)) return
+  seen.add(id)
+  try { localStorage.setItem('hoot:editie-gezien', id) } catch {}
+}
 export function usePrintEdition(ref, id, active, ready) {
   useEffect(() => {
     if (!active || !ready || !id || !ref.current) return

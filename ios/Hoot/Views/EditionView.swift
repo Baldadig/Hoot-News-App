@@ -159,11 +159,17 @@ struct EditionView: View {
     @State private var printedIDs: Set<String> = []
     @State private var ruleDrawn = true
     @State private var storyShown = true
+    @State private var lines = LoadLinesModel() // de laadstrepen bij het eerste laden (LoadLines.swift)
     @State private var endVisible = false // de zon onderaan is in beeld
     @State private var risenAt: Date? // sinds wanneer die zon opkomt (één keer)
     // Bij een koude start ligt de krant 8 pt lager en schuift op zijn plek terwijl het rood van het
     // opstartscherm zich sluit, met dezelfde curve: het merk landt, de krant gaat open.
     private var rising: Bool { !still && handoff?.landed == false && handoff?.leaving == false }
+    // Eerste laden: nog geen verhalen, en de Editie komt eraan. Dan de laadstrepen.
+    private var loaderShown: Bool {
+        let empty = !EditionNumbering.rows(store.editionRows).contains { $0.desk != "bubbel" }
+        return empty && (store.status == .loading || (store.status != .failed && store.edition != nil && store.shownEdition == nil))
+    }
     private var title: String { store.edition?.slot.flatMap { Slots.all[$0]?.naam } ?? "Editie" }
     private var dateLine: String {
         guard let d = store.edition?.date, let date = HootDate.day(d) else { return "" }
@@ -302,14 +308,17 @@ struct EditionView: View {
                     // Past de naam er bij grote tekst niet meer naast, dan alleen de naam (nooit afgebroken).
                     HootKop()
                     EditionHeader(title: title, slot: store.edition?.slot)
-                    if rows.isEmpty && (store.status == .loading || (store.status != .failed && store.edition != nil && store.shownEdition == nil)) {
-                        WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
+                    if rows.isEmpty && loaderShown {
+                        LoadLinesBox()
                     } else if rows.isEmpty {
-                        if store.status == .failed {
-                            EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Hoot heeft nog geen Editie op dit toestel. Zodra je verbinding hebt, verschijnt hij hier.", retry: store.load)
-                        } else {
-                            EmptyState(title: "Er is nog geen Editie", systemImage: "newspaper", text: "In de Stroom staat alles wat er wél is.")
+                        Group {
+                            if store.status == .failed {
+                                EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Hoot heeft nog geen Editie op dit toestel. Zodra je verbinding hebt, verschijnt hij hier.", retry: store.load)
+                            } else {
+                                EmptyState(title: "Er is nog geen Editie", systemImage: "newspaper", text: "In de Stroom staat alles wat er wél is.")
+                            }
                         }
+                        .loadLinesError(lines)
                     } else {
                         // Eén metaregel, zoals op het web. De vaste spatie vóór de punt houdt die bij de
                         // datum als de regel bij grote tekst breekt ("oktober ·", niet "· Jouw Editie").
@@ -317,9 +326,12 @@ struct EditionView: View {
                             .font(.subheadline)
                             .foregroundStyle(Theme.ink3)
                             .padding(.bottom, Space.s4)
+                            .loadLinesText(lines)
                         // Kon er niet ververst worden, dan zegt dat het onder de datum: titel en datum blijven bij elkaar.
-                        StaleNotice(gap: Space.s4)
-                        StrongRule(drawn: ruleDrawn).padding(.bottom, Space.s4)
+                        StaleNotice(gap: Space.s4).loadLinesText(lines)
+                        // Na het eerste laden landt hier het bovenste vel van de laadstrepen (LoadLines.swift).
+                        StrongRule(drawn: ruleDrawn).loadLinesRule(lines).padding(.bottom, Space.s4)
+                        Group {
                         if !EditionLimits.hasMinimum(EditionNumbering.count(rows)) {
                             EmptyState(title:"Nog geen Editie",systemImage:"newspaper",text:"Er is nog te weinig passend nieuws voor een Editie. In de Stroom kun je verder lezen.")
                         }
@@ -335,22 +347,25 @@ struct EditionView: View {
                                     slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, boven: boven, pinSource: pin) }
                                 }
                                 .padding(.top, Space.s4)
+                                .loadLinesRise(lines)
                             }
                         case .kolom:
                             slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, hang: true) }
                                 .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
                             ForEach(rows.dropFirst()) { row in
-                                Rule().padding(.vertical, Space.s2)
+                                Rule().padding(.vertical, Space.s2).loadLinesRise(lines)
                                 HangRow(number: store.less.contains(row.id) ? nil : row.number, read: store.isRead(row.item)) {
                                     slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
                                 }
+                                .loadLinesRise(lines)
                             }
                         case .lijst:
                             slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
                                 .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
                             ForEach(rows.dropFirst()) { row in
-                                Rule().padding(.vertical, Space.s2)
+                                Rule().padding(.vertical, Space.s2).loadLinesRise(lines)
                                 slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
+                                    .loadLinesRise(lines)
                             }
                         }
                         if !outsideRows.isEmpty {
@@ -404,8 +419,11 @@ struct EditionView: View {
                         .padding(.top, Space.s6)
                         .padding(.bottom, Space.s4)
                         }
+                        }
+                        .loadLinesText(lines)
                     }
                 }
+                .loadLines(lines, loading: loaderShown, ok: !store.editionRows.isEmpty, landing: true)
                 .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { contentWidth = $0 }
                 .padding(.horizontal)
                 .column(grid == .paren ? Layout.wide : grid == .kolom ? Layout.readable + Layout.hang : Layout.readable)
@@ -448,6 +466,8 @@ struct EditionView: View {
             .settingsButton()
             .task(id: store.shownEdition?.id) {
                 guard let id = store.shownEdition?.id, EditionPrint.shouldPlay(id: id, lastSeen: seenEdition, ready: !store.editionRows.isEmpty), !printedIDs.contains(id) else { return }
+                // Kwam de Editie na de laadstrepen, dan zijn die al op de kopstreep en de kop geland.
+                if lines.active { printedIDs.insert(id); seenEdition = id; return }
                 while handoff?.landed == false || handoff?.leaving == true {
                     try? await Task.sleep(for: .milliseconds(50))
                     if Task.isCancelled { return }

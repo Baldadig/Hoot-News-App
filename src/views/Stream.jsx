@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
+import { ViewHeader, StatusLine, LoadError, Empty } from '../components/Shell.jsx'
+import { LoadLinesBox, LoadLinesLayer, useLoadLines } from '../components/LoadLines.jsx'
 import { Entry, useHoot } from '../components/Items.jsx'
 import { StreamLine } from '../components/StreamLine.jsx'
 import { StreamArt, FilterIcon, ArrowUpIcon } from '../components/icons.jsx'
@@ -54,6 +55,9 @@ function FilterSheet({ open, onClose, params, clear, setFilter, count }) {
 export default function Stream({ active, stream, params, go, bubble = [], preview = 2, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
   const { storiesById, sourcesById, muted, setMuted, prefs } = useHoot()
   const ref = useRef(null)
+  // Eerste laden: de laadstrepen; klaar maakt de beweging af en vervaagt naar de berichten.
+  const hostRef = useRef(null)
+  const lines = useLoadLines(loading, !failedLoad)
   const [sheet, setSheet] = useState(false)
   const [atDepth, setAtDepth] = useState(false)
   const [freshShown, setFreshShown] = useState(0)
@@ -167,7 +171,8 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Stroom" onScroll={(e) => setAtDepth(e.currentTarget.scrollTop > 900)}>
-      <div className="col col--read">
+      <div className={`col col--read${lines.hostClass}`} ref={hostRef}>
+        <LoadLinesLayer lines={lines} host={hostRef} />
         <ViewHeader title="Stroom" onRefresh={onRefresh} refreshing={refreshing} updatedAt={statusProps.meta?.updatedAt} tools={filterButton} compare>
           {/* De lijn: rubrieken links, je bronnen als stapel rechts. Wat je kiest staat in de URL
               (zoals altijd: een stap in de geschiedenis, met een eigen leespositie). */}
@@ -192,7 +197,7 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
 
         <RubriekCrossfade category={actief}>
         {loading ? (
-          <Skeleton />
+          <LoadLinesBox />
         ) : failedLoad ? (
           <LoadError onRetry={onRefresh} />
         ) : (

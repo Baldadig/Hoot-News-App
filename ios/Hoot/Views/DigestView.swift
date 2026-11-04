@@ -7,6 +7,7 @@ import SwiftUI
 struct DigestView: View {
     @Environment(HootStore.self) private var store
     private static var fields: [DigestFieldsList.Field] { DigestFieldsList.fields }
+    @State private var lines = LoadLinesModel() // de laadstrepen bij het eerste laden (LoadLines.swift)
     @State private var choosing = false
     @State private var folding = SelectionFoldState()
     @State private var flash: String?
@@ -42,6 +43,7 @@ struct DigestView: View {
                     if store.digestFields.isEmpty {
                         empty(title: "Kies je onderwerpen", text: SelectionOverview.choose, row: "Kies onderwerpen", sub: "Nog niets gekozen")
                     } else if let d = store.digest {
+                        Group {
                         if o.state == .empty {
                             empty(title: "Nog niets voor \(o.names)", text: o.unoffered ? SelectionOverview.noSources : SelectionOverview.emptyField, row: "Kies onderwerpen", sub: "\(store.digestFields.count) gekozen")
                         } else {
@@ -58,12 +60,16 @@ struct DigestView: View {
                         }
                         let seen = o.fields.reduce(0) { $0 + ($1.count ?? 0) }
                         if seen > 0 { how(seen) }
+                        }
+                        .loadLinesText(lines)
                     } else if store.digestStatus == .failed {
                         EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnt de Selectie hier.", retry: { await store.loadDigest(force: true) })
+                            .loadLinesError(lines)
                     } else {
-                        WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
+                        LoadLinesBox()
                     }
                 }
+                .loadLines(lines, loading: !store.digestFields.isEmpty && store.digest == nil && store.digestStatus != .failed, ok: store.digest != nil)
                 .padding(.horizontal)
                 .column(Layout.wide * 0.85)
             }

@@ -525,6 +525,7 @@ final class HootStore {
 
     private func fetchAll() async {
         status = itemsById.isEmpty ? .loading : status
+        if status == .loading && DebugLaunch.loadDelay > 0 { try? await Task.sleep(for: .seconds(DebugLaunch.loadDelay)) }
         do {
             let (start, fromCache) = try await HootAPI.start()
             sources = start.sources

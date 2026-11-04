@@ -7,6 +7,7 @@ struct StreamView: View {
     @Environment(HootStore.self) private var store
     @Environment(\.scenePhase) private var phase
     @Environment(Reader.self) private var reader
+    @State private var lines = LoadLinesModel() // de laadstrepen bij het eerste laden (LoadLines.swift)
     @State private var behindReader = false // de lezer ligt eroverheen: dat is geen vertrek uit de Stroom
     @State private var showSources = DebugLaunch.screen("bronnen")
     @State private var categoryTask: Task<Void, Never>?
@@ -103,14 +104,18 @@ struct StreamView: View {
                         // (die blijven bewaard): offline of zonder bronnen zie je het altijd.
                         let niets = items.isEmpty && store.stream.isEmpty
                         if store.status == .loading && niets {
-                            WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
+                            LoadLinesBox()
                         } else if niets {
-                            if store.status == .failed {
-                                EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnen hier de berichten van je bronnen.", retry: store.load)
-                            } else {
-                                EmptyState(title: "Al je bronnen staan uit.", systemImage: "water.waves", action: (label: "Naar Bronnen", systemImage: nil, run: { showSources = true }))
+                            Group {
+                                if store.status == .failed {
+                                    EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnen hier de berichten van je bronnen.", retry: store.load)
+                                } else {
+                                    EmptyState(title: "Al je bronnen staan uit.", systemImage: "water.waves", action: (label: "Naar Bronnen", systemImage: nil, run: { showSources = true }))
+                                }
                             }
+                            .loadLinesError(lines)
                         } else {
+                            Group {
                             StaleNotice().padding(.top, Space.s2) // 16 onder de lijn, net als een bericht
                             if items.isEmpty { quiet(rub, sources: sources) }
                             // Waar je de vorige keer was: alleen in de hele Stroom (die telt `newInStream`).
@@ -131,8 +136,11 @@ struct StreamView: View {
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, Space.s5)
                             }
+                            }
+                            .loadLinesText(lines)
                         }
                     }
+                    .loadLines(lines, loading: store.status == .loading && items.isEmpty && store.stream.isEmpty, ok: !store.stream.isEmpty)
                     .padding(.horizontal)
                     .column()
                     }

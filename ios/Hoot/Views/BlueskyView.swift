@@ -5,6 +5,7 @@ import SwiftUI
 struct BlueskyFeed: View {
     @Environment(HootStore.self) private var store
     @State private var who: String?
+    @State private var lines = LoadLinesModel() // de laadstrepen bij het eerste laden (LoadLines.swift)
     // Opent het toevoegen (het blad met accounts), voor de knop in het lege scherm.
     var onAdd: (() -> Void)? = nil
 
@@ -16,21 +17,28 @@ struct BlueskyFeed: View {
         LazyVStack(alignment: .leading, spacing: 0) {
             if people.count > 1 { chips(people, who: who) }
             if store.status == .loading && posts.isEmpty {
-                WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
+                LoadLinesBox()
             } else if posts.isEmpty {
-                if people.isEmpty {
-                    EmptyState(title: "Je volgt nog niemand", systemImage: "bubble.left.and.bubble.right", text: "Voeg mensen toe met hun @-naam, bijvoorbeeld @naam.bsky.social.", action: onAdd.map { (label: "Iemand toevoegen", systemImage: "plus", run: $0) })
-                } else {
-                    EmptyState(title: "Nog geen posts", systemImage: "bubble.left.and.bubble.right", text: "Zodra de mensen die je volgt iets plaatsen, staat het hier.")
+                Group {
+                    if people.isEmpty {
+                        EmptyState(title: "Je volgt nog niemand", systemImage: "bubble.left.and.bubble.right", text: "Voeg mensen toe met hun @-naam, bijvoorbeeld @naam.bsky.social.", action: onAdd.map { (label: "Iemand toevoegen", systemImage: "plus", run: $0) })
+                    } else {
+                        EmptyState(title: "Nog geen posts", systemImage: "bubble.left.and.bubble.right", text: "Zodra de mensen die je volgt iets plaatsen, staat het hier.")
+                    }
                 }
+                .loadLinesError(lines)
             } else {
-                StaleNotice()
-                ForEach(posts) { post in
-                    PostRow(item: post)
-                    Rule()
+                Group {
+                    StaleNotice()
+                    ForEach(posts) { post in
+                        PostRow(item: post)
+                        Rule()
+                    }
                 }
+                .loadLinesText(lines)
             }
         }
+        .loadLines(lines, loading: store.status == .loading && posts.isEmpty, ok: !posts.isEmpty)
     }
 
     private func chips(_ people: [Source], who: String?) -> some View {

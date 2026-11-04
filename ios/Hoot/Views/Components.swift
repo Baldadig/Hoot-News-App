@@ -702,6 +702,7 @@ struct LeadCard: View {
                 .font(Theme.headline(EditionDisplay.headlineStyle(item.title))) // bestaande rollen, passend bij de koplengte
                 .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                 .fixedSize(horizontal: false, vertical: true)
+                .loadLinesHead(item.title, style: EditionDisplay.headlineStyle(item.title)) // hier landen de laadstrepen
             if let intro = item.summary.map({ wholeSentences($0, max: 240) }), !intro.isEmpty {
                 Text(intro).font(wide ? .title3 : .body).foregroundStyle(Theme.ink2).lineLimit(wide ? 6 : 5).fixedSize(horizontal: false, vertical: true)
             }

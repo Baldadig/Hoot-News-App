@@ -5403,6 +5403,20 @@ html[data-images='hoofd'] .media--social {
 .stream-new { animation: rise 200ms var(--ease) backwards; animation-delay: var(--rise-delay, 0ms); }
 @media (prefers-reduced-motion: reduce) { .waiting svg .brand__dot, .waiting__dot, .stream-new { animation: none; } }
 
+/* De laadstrepen (src/lib/load-lines.js, iOS LoadLines.swift; concept "A · De stapel"): het
+   wachtteken bij het eerste laden van Editie, Stroom en Selectie. Haarlijnen van 1 pt in inkt 3; de
+   lus, het landen en het vervagen tekent JS per frame (ook bij Minder beweging: dan staan ze stil).
+   Na het laden staat de inhoud er al, onder de strepen: --ll-text, --ll-rise en --ll-rule zetten hoe
+   ver hij is. De Editie-kop (titel, woordmerk) blijft staan; het hoofdverhaal stijgt niet mee. */
+.ll-host { position: relative; }
+.ll-box { min-height: 240px; }
+.ll-layer { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.ll-line { position: absolute; left: 0; top: 0; height: 1px; background: var(--ink-3); will-change: transform, opacity; }
+.ll-ending > :not(.vh):not(.edtop):not(.ll-layer) { opacity: var(--ll-text, 0); }
+.ll-ending > :not(.vh):not(.edtop):not(.ll-layer):not(.front) { transform: translateY(calc(var(--ll-rise, 8) * 1px)); }
+.ll-ending .edtop > :not(.vh):not(.edbrand):not(.edrule) { opacity: var(--ll-text, 0); }
+.ll-ending .edrule { opacity: var(--ll-rule, 0); }
+
 /* Selectie-index B (concepten-2/4-selectie-index.html): de inhoud bovenaan, één rijvorm voor
    springen, kiezen en in- of uitklappen. De naam met het aantal eronder, het teken rechts op de
    eerste regel van de naam (SE2, SE3). De kop van een onderwerp is dezelfde rij in de serif op 22. */
