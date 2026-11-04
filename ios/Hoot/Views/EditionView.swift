@@ -153,7 +153,7 @@ struct EditionView: View {
     @Environment(\.nachtActief) private var nacht
     @Environment(EditionAlerts.self) private var alerts
     @AppStorage("seenEdition") private var seenEdition = ""
-    @AppStorage("hoot.alertOffered") private var alertOffered = false // de seintje-vraag is één keer gesteld
+    @AppStorage("hoot.alertOffered") private var alertOffered = false // de seintje-vraag is één keer gesteld (zodra de kaart één keer in beeld is geweest)
     @State private var alertAsk = false // de vraag staat onder de Editie
     @State private var alertYes = false // net ja gezegd: even zeggen wat er komt
     @State private var printedIDs: Set<String> = []
@@ -423,6 +423,7 @@ struct EditionView: View {
             // Het einde van de eerste Editie in beeld: één keer de vraag om een seintje, los van de eindkaart.
             .onChange(of: endVisible) { _, visible in
                 guard visible, !alertAsk, EditionAlerts.offerAfterEdition(permission: alerts.permission, notify: store.notify, offered: alertOffered, browsing: store.browsing) else { return }
+                alertOffered = true // gesteld zodra de kaart in beeld komt: wie niet antwoordt, ziet hem niet weer
                 withAnimation(still ? nil : .easeOut(duration: 0.3)) { alertAsk = true }
             }
             .task { await alerts.refresh() }
