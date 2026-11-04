@@ -2,7 +2,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ogImageFrom, loadOgImage, isGate } from '../netlify/lib/og.mjs'
-import { imagesFromArticles, sizeBingImages, gapTitleQueries, borrowFromStories, strongOverlap, wantsArticleImage } from '../netlify/lib/build.mjs'
+import { imagesFromArticles, sizeBingImages, gapTitleQueries, borrowFromStories, borrowPreviews, strongOverlap, wantsArticleImage } from '../netlify/lib/build.mjs'
 import { articleKey, bingUnmeasured, bingId } from '../netlify/lib/snippets.mjs'
 
 const art = (id, extra = {}) => ({ id, kind: 'article', source: 'nature', title: 'Titel ' + id, url: `https://www.nature.com/articles/${id}`, publishedAt: '2026-11-04T10:00:00Z', ...extra })
@@ -132,4 +132,21 @@ test('intro lenen binnen een verhaal: dezelfde strenge drempel als lenen op de k
   assert.equal(strongOverlap(3, 6, 6), false)
   assert.equal(strongOverlap(2, 2, 2), false)
   assert.equal(strongOverlap(4, 9, 9), true)
+})
+
+test('intro lenen: zwakke werkwoorden tellen niet, op de kop en binnen een verhaal (Trouw/Klaver, keuring b46)', () => {
+  // "doet" was het derde gedeelde woord; zonder blijven alleen Klaver en kabinet over: niet genoeg.
+  const trouw = () => ({ id: 'tr', kind: 'article', source: 'trouw', sourceName: 'Trouw', title: 'Wat doet Klaver als het kabinet er een puinhoop van maakt?', url: 'https://www.trouw.nl/a~b1111111/' })
+  const vk = { id: 'vk', kind: 'article', source: 'volkskrant', sourceName: 'de Volkskrant', title: 'Klaver doet het kabinet een handreiking', summary: 'GroenLinks-PvdA-leider Frans Klaver wil met het kabinet praten.', url: 'https://www.volkskrant.nl/a~b2222222/' }
+  const t1 = trouw()
+  assert.equal(borrowFromStories([{ id: 's', itemIds: ['tr', 'vk'] }], new Map([[t1.id, t1], [vk.id, vk]])), 0)
+  assert.equal(t1.summary, undefined)
+  const t2 = trouw()
+  borrowPreviews([t2], [vk])
+  assert.equal(t2.summary, undefined)
+  assert.equal(t2.borrowedFrom, undefined)
+  // Echt hetzelfde onderwerp leent nog wel, ook met een werkwoord erin.
+  const t3 = { ...trouw(), title: 'Klaver maakt handreiking aan kabinet over puinhoop' }
+  borrowPreviews([t3], [vk])
+  assert.equal(t3.borrowedFrom, 'de Volkskrant')
 })

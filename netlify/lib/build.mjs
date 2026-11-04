@@ -373,12 +373,18 @@ export function strongOverlap(n, sizeA, sizeB) {
 // Kernwoorden om te lenen: zonder bezittelijke en persoonlijke voornaamwoorden. "Help, mijn kind ..."
 // boven twee verschillende stukken is geen gedeeld onderwerp.
 const PRONOUNS = new Set(['mijn', 'jouw', 'haar', 'jullie', 'zich', 'zelf', 'your', 'mine', 'ours', 'hers', 'yours'])
+// Ook zwakke werkwoorden zeggen niets over het onderwerp: "Wat doet Klaver ..." en "Klaver doet ..."
+// delen alleen Klaver (keuring b46). Korter dan 4 letters (is, kan, wil) telt sigWords al niet.
+const WEAK_VERBS = new Set(
+  'doet doen deed deden gedaan maakt maken maakte maakten gemaakt gaat gaan ging gingen gegaan komt komen kwam kwamen gekomen wilt wilde wilden willen kunt kunnen konden moet moeten moest moesten heeft hebben hadden gehad wordt worden werd werden geworden staat staan stond stonden laat laten liet lieten zegt zeggen zei zeiden krijgt krijgen kreeg kregen blijft blijven bleef bleven lijkt lijken zitten does make makes made goes going gets have wants'.split(' ')
+)
 const borrowWords = (title) => {
   const w = sigWords(title)
   for (const p of PRONOUNS) w.delete(p)
+  for (const v of WEAK_VERBS) w.delete(v)
   return w
 }
-function borrowPreviews(items, mainItems) {
+export function borrowPreviews(items, mainItems) {
   const donors = mainItems.filter((it) => it.kind === 'article' && it.summary && !it.borrowedFrom && dutchItem(it) && visibleFor(it)).map((d) => ({ d, w: borrowWords(d.title) }))
   for (const it of items) {
     if (it.kind !== 'article' || it.summary || !dutchItem(it)) continue
