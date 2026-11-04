@@ -95,13 +95,16 @@ export function useFeed(prefs) {
       if (had) setRefreshing(true)
       else setStatus('loading')
       try {
-        const core = normalize(await fetchCore({ signal: controller.signal }))
+        const got = await fetchCore({ signal: controller.signal })
+        const fromCache = got.fromCache
+        const core = normalize(got.data)
         if (!core) throw new Error('Onverwacht antwoord')
         // De vergelijkingsdata zit niet in de kern: houd wat we hadden (zie loadRelated).
         const fetched = { ...core, items: await gather(core, controller.signal), related: dataRef.current?.related || [], relatedTag: dataRef.current?.relatedTag || null }
         // Valt een bron uit, dan blijven de berichten staan die we er al van hadden.
         const next = carryOver(dataRef.current, fetched)
-        setRefreshError(false)
+        // Data uit de cache van de service worker: tonen, maar de verversing is mislukt.
+        setRefreshError(fromCache && had)
         const off = mutedSet(prefsRef.current, next.sources)
         // Hetzelfde stuk bij twee zusterkranten is één nieuw bericht (de Stroom toont het één keer).
         const fresh = defer && had ? freshCount(dataRef.current.items, withoutRepeats(next.items), off) : 0

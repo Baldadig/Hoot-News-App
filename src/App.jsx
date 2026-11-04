@@ -623,7 +623,7 @@ export default function App() {
               onShowNew={showNew}
             />
           ) : null}
-          {was('digest') ? <Vak active={shown === 'digest'} digest={vak.digest} status={vak.status} onRefresh={vak.reload} /> : null}
+          {was('digest') ? <Vak active={shown === 'digest'} digest={vak.digest} status={vak.status} refreshFailed={vak.refreshFailed} onRefresh={vak.reload} /> : null}
           {was('bewaard') ? <Saved active={shown === 'bewaard'} /> : null}
           {was('bronnen') ? (
             <Sources
