@@ -21,6 +21,14 @@ struct ImageMeasure: Codable, Hashable {
     }
 }
 
+extension Item {
+    var measure: ImageMeasure? { imageMeta.flatMap { $0.valid ? $0 : nil } }
+    /// Met een meting het originele beeld, anders de CDN-variant van die maat.
+    func pictureURL(_ kind: ImageURL.Kind) -> URL? {
+        measure != nil ? image.flatMap(URL.init(string:)) : ImageURL.url(image, kind)
+    }
+}
+
 struct MeasuredLeadImage: View {
     let item: Item
     let spacious: Bool

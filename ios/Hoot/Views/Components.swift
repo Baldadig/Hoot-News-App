@@ -365,11 +365,20 @@ struct WhyLine: View {
 
 struct RemoteImage: View {
     let url: URL?
+    // Gemeten egale randen in het bronbeeld (imageMeta): ze vallen buiten het vak en de inhoud vult het (cover).
+    var measure: ImageMeasure? = nil
     @State private var loader = RemoteImageLoader()
     var body: some View {
         Group {
             if let image = loader.image {
-                Image(uiImage: image).resizable().scaledToFill()
+                if let measure, measure.valid {
+                    GeometryReader { geometry in
+                        let rect = measure.frame(in: geometry.size)
+                        Image(uiImage: image).resizable().frame(width: rect.width, height: rect.height).offset(x: rect.minX, y: rect.minY)
+                    }
+                } else {
+                    Image(uiImage: image).resizable().scaledToFill()
+                }
             } else {
                 Rectangle().fill(.quaternary)
             }
@@ -385,11 +394,12 @@ struct RemoteImage: View {
 struct FramedImage: View {
     let url: URL?
     var ratio: CGFloat = 16 / 9
+    var measure: ImageMeasure? = nil
     var body: some View {
         Color.clear
             .aspectRatio(ratio, contentMode: .fit)
             .frame(maxWidth: .infinity)
-            .overlay { RemoteImage(url: url) }
+            .overlay { RemoteImage(url: url, measure: measure) }
             .clipped()
     }
 }
@@ -681,7 +691,7 @@ struct LeadCard: View {
             Color.clear
                 .frame(maxWidth: .infinity)
                 .frame(height: imageHeight)
-                .overlay { RemoteImage(url: ImageURL.url(item.image, .large)) }
+                .overlay { RemoteImage(url: item.pictureURL(.large), measure: item.measure) }
                 .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
         } else {
             MeasuredLeadImage(item: item, spacious: spacious)
@@ -774,7 +784,9 @@ struct ItemRow: View {
     private var chosen: Form { form ?? (store.layout == "krant" ? .krant : .tijdlijn) }
     private var timeline: Bool { !item.isPost && (chosen == .tijdlijn || typeSize.isAccessibilitySize) }
     // Het beeld bij het stuk, of anders het stilstaande beeld van zijn video.
-    private func picture(_ kind: ImageURL.Kind) -> URL? { ImageURL.url(item.image, kind) ?? item.videoPosterURL }
+    // Met een meting het originele beeld (dezelfde pixels als de meting; een CDN-variant kan al bijgesneden zijn).
+    private func picture(_ kind: ImageURL.Kind) -> URL? { item.pictureURL(kind) ?? item.videoPosterURL }
+    private var pictureMeasure: ImageMeasure? { item.measure }
     private var hasPicture: Bool { store.showsImage(lead: false) && (item.image != nil || item.videoPoster != nil) }
     // Groot genoeg voor de volle breedte (vanaf 400 px, zoals op het web); een videobeeld is dat altijd.
     private var fitsLarge: Bool { item.image == nil || ImageURL.fitsLarge(item.image) }
@@ -788,7 +800,7 @@ struct ItemRow: View {
                         Color.clear
                             .frame(maxWidth: .infinity)
                             .frame(height: boven)
-                            .overlay { RemoteImage(url: picture(.large)) }
+                            .overlay { RemoteImage(url: picture(.large), measure: pictureMeasure) }
                             .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
                         text
                     }
@@ -796,7 +808,7 @@ struct ItemRow: View {
                     VStack(alignment: .leading, spacing: Space.s3) {
                         text
                         if hasPicture, fitsLarge {
-                            FramedImage(url: picture(.large), ratio: 2)
+                            FramedImage(url: picture(.large), ratio: 2, measure: pictureMeasure)
                                 .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
                                 .overlay { if item.video != nil { PlayBadge(size: Space.tap) } }
                         }
@@ -808,7 +820,7 @@ struct ItemRow: View {
                         // wat de verhouding van het beeld ook is. Bij heel grote tekst krijgt de kop de hele breedte.
                         if hasPicture, !typeSize.isAccessibilitySize {
                             let width = thumb >= Layout.thumbLarge ? Layout.thumbLarge : Layout.thumb
-                            RemoteImage(url: picture(.thumb))
+                            RemoteImage(url: picture(.thumb), measure: pictureMeasure)
                                 .frame(width: width, height: width * 2 / 3)
                                 .clipShape(RoundedRectangle(cornerRadius: Radius.sm, style: .continuous))
                                 .overlay { if item.video != nil { PlayBadge(size: Space.s6) } }

@@ -10,7 +10,7 @@ import { savedKey, withLead } from '../lib/saved.js'
 import { isReadItem } from '../../shared/stroom.mjs'
 import { avatarUrl, fitsLarge, fitsHero } from '../lib/img.js'
 import { TermHelp } from './Terms.jsx'
-import { Img } from './Img.jsx'
+import { Img, MeasuredImg } from './Img.jsx'
 import { isPlayableVideo } from '../lib/video-fullscreen.js'
 import { Video } from './Video.jsx'
 import { Why } from './Why.js'
@@ -217,7 +217,7 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
             tekst blijft. Het waarom van de plek (jouw Editie) staat stil onder de rubriek, zie Why.js. */}
         {item.image && fitsHero(item.image) ? (
           <div className={`media media--lead${portraitImage(item) ? ' media--portrait' : ''}${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
-            {imageMeta(item) ? <img src={item.image} alt="" loading={priority ? 'eager' : 'lazy'} fetchpriority={priority ? 'high' : undefined} referrerPolicy="no-referrer" onLoad={priority ? rememberLead : undefined} /> : <Img url={item.image} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} />}
+            <MeasuredImg item={item} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} />
           </div>
         ) : null}
         <Kicker item={item} extra={note} followed={followed} n={n} />
@@ -255,8 +255,8 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
           <h3 className="head-4 compact__title">{item.title}</h3>
           <Summary item={item} className="compact__sum" fit={introMax(lineCount)} />
           {item.image && fitsLarge(item.image) ? (
-            <div className="media media--tl">
-              <Img url={item.image} kind="lead" />
+            <div className={`media media--tl${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+              <MeasuredImg item={item} kind="lead" />
             </div>
           ) : null}
         </a>
@@ -274,9 +274,9 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
           <Summary item={item} className="compact__sum" fit={introMax(lineCount, 'rij', !!item.image)} />
         </div>
         {item.image ? (
-          <div className="thumb">
+          <div className={`thumb${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
             {/* Intrinsieke maat 3:2; de echte maat komt uit CSS (--thumb-w/--thumb-h). */}
-            <Img url={item.image} width="96" height="64" />
+            <MeasuredImg item={item} width="96" height="64" />
           </div>
         ) : null}
       </a>
