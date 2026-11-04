@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { orphanBlueskyIds, adoptLegacySocial, webStream } from '../src/lib/social-stream.js'
+import { orphanBlueskyIds, adoptLegacySocial, removeSocialProfile, webStream } from '../src/lib/social-stream.js'
 import { resolveLegacy } from '../src/lib/bluesky.js'
 import { canonHandle, fetchAuthorPosts } from '../shared/bluesky.mjs'
 
@@ -28,6 +28,17 @@ test('oude id\'s worden eigen accounts; een verwijderd account valt uit je keuze
   assert.deepEqual(next.enabled, [])
   const post = { id: 'p', source: 'bsky:atrupar.com', kind: 'post', url: 'https://x.test/1', publishedAt: new Date().toISOString() }
   assert.equal(webStream([post], { prefs: next, sources: [{ id: 'bsky:atrupar.com' }] }).length, 1)
+})
+
+test('overnemen, weghalen, opnieuw zoeken: het oude id komt niet terug', () => {
+  let p = { enabled: ['nos', 'bsky:atrupar.com'], bskyInStream: [], social: [], muted: [] }
+  assert.deepEqual(orphanBlueskyIds(p, ['nos']), ['bsky:atrupar.com'])
+  p = adoptLegacySocial(p, { found: { 'bsky:atrupar.com': { handle: 'atrupar.com', name: 'Aaron Rupar' } } })
+  assert.deepEqual(p.enabled, ['nos'])
+  assert.deepEqual(p.bskyInStream, ['bsky:atrupar.com'])
+  p = removeSocialProfile(p, 'atrupar.com')
+  assert.deepEqual(orphanBlueskyIds(p, ['nos']), [])
+  assert.deepEqual(p.enabled, ['nos'])
 })
 
 test('handles zijn hoofdletterloos en de oude naam van Aaron Rupar wijst naar de huidige', () => {

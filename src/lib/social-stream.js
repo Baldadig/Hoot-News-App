@@ -28,7 +28,8 @@ export function addSocialProfile(prefs, profile) {
 }
 export function removeSocialProfile(prefs, handle) {
   const id='bsky:'+handle
-  return {...prefs,social:(prefs.social||[]).filter(p=>p.handle!==handle),bskyInStream:(prefs.bskyInStream||[]).filter(s=>s!==id)}
+  return {...prefs,social:(prefs.social||[]).filter(p=>p.handle!==handle),bskyInStream:(prefs.bskyInStream||[]).filter(s=>s!==id),
+    enabled:(prefs.enabled||[]).filter(s=>s!==id)}
 }
 
 // Oude server-accounts (tot oktober 2026 volgde Hoot zelf Aaron Rupar en de groep Oekraïne): wie ze
@@ -50,10 +51,9 @@ export function adoptLegacySocial(prefs, { found = {}, gone = [] } = {}) {
     if (!profile?.handle) continue
     next = addSocialProfile(next, { ...profile, handle: canonHandle(profile.handle) })
     const id = 'bsky:' + canonHandle(profile.handle)
-    if (id !== oldId) {
-      next.bskyInStream = (next.bskyInStream || []).filter(x => x !== oldId)
-      next.enabled = (next.enabled || []).filter(x => x !== oldId)
-    }
+    // Het oude id gaat altijd uit `enabled` (anders komt het bij de volgende start weer terug als weeskind).
+    next.enabled = (next.enabled || []).filter(x => x !== oldId)
+    if (id !== oldId) next.bskyInStream = (next.bskyInStream || []).filter(x => x !== oldId)
   }
   if (gone.length) {
     const dead = new Set(gone)

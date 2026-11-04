@@ -86,6 +86,27 @@ final class BlueskyLegacyTests: XCTestCase {
         XCTAssertEqual(store.ownBluesky.map(\.handle), ["traag.example"])
     }
 
+    // Overnemen -> weghalen -> opnieuw starten: het oude id komt niet terug (het stond ook in `enabled`).
+    func testRemovedAdoptedAccountDoesNotComeBack() async throws {
+        let store = legacyStore(["bsky:atrupar.com"])
+        let calls = Box(0)
+        store.socialProfileLoader = { _ in calls.value += 1; return BlueskyAccount(handle: "atrupar.com", name: "Aaron Rupar", avatar: nil) }
+        store.socialPostsLoader = { _ in [] }
+        await store.loadOwnPosts()
+        XCTAssertEqual(store.ownBluesky.map(\.handle), ["atrupar.com"])
+        XCTAssertFalse(store.enabled.contains("bsky:atrupar.com"))
+        store.removeBluesky("bsky:atrupar.com")
+        XCTAssertFalse(store.enabled.contains("bsky:atrupar.com"))
+        XCTAssertFalse(store.bskyInStream.contains("bsky:atrupar.com"))
+        let again = HootStore(defaults: defaults) // volgende start
+        again.socialProfileLoader = { _ in calls.value += 1; return BlueskyAccount(handle: "atrupar.com", name: "Aaron Rupar", avatar: nil) }
+        again.socialPostsLoader = { _ in [] }
+        let before = calls.value
+        await again.loadOwnPosts()
+        XCTAssertEqual(calls.value, before, "er is niets meer om over te nemen")
+        XCTAssertTrue(again.ownBluesky.isEmpty)
+    }
+
     func testMutedOldAccountIsNotFollowedAgain() async throws {
         let store = legacyStore(["bsky:atrupar.com"], muted: ["bsky:atrupar.com"])
         store.socialProfileLoader = { _ in XCTFail("een uitgezet account haal je niet op"); throw Bluesky.Failure.notFound }

@@ -253,7 +253,9 @@ final class HootStore {
         for (id, account, gone) in results {
             if let account {
                 if !ownBluesky.contains(where: { $0.handle == account.handle }) { ownBluesky.append(account) }
-                if account.id != id { bskyInStream.remove(id); enabled.remove(id) }
+                // Het oude id gaat altijd uit `enabled` (anders neemt de volgende start het opnieuw over);
+                // het account zelf staat via bskyInStream in de Stroom.
+                bskyInStream.remove(id); enabled.remove(id)
                 bskyInStream.insert(account.id)
             } else if gone {
                 bskyInStream.remove(id); enabled.remove(id)
@@ -613,6 +615,7 @@ final class HootStore {
     }
     func removeBluesky(_ id: String) {
         bskyInStream.remove(id)
+        enabled.remove(id) // een overgenomen oud id mag niet terugkomen via adoptLegacyBluesky
         ownBluesky.removeAll { $0.id == id }
         ownPosts.removeAll { $0.source == id }
         ownState[id] = nil
