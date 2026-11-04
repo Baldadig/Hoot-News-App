@@ -400,9 +400,15 @@ struct SearchView: View {
             let q = fold(query.trimmingCharacters(in: .whitespaces))
             let hits = q.count < 2 ? [] : store.withoutCopies(store.stream.filter { fold("\($0.title) \($0.summary ?? "")").contains(q) })
             List {
-                ForEach(hits.prefix(80)) { item in
-                    // Zonder "+N bronnen": een link in een lijstrij maakt de hele rij tot die link.
-                    ItemRow(item: item, story: nil, linkSource: false).listRowBackground(Theme.surface)
+                Section {
+                    ForEach(hits.prefix(80)) { item in
+                        // Zonder "+N bronnen": een link in een lijstrij maakt de hele rij tot die link.
+                        ItemRow(item: item, story: nil, linkSource: false).listRowBackground(Theme.surface)
+                    }
+                } header: {
+                    // Dezelfde schermtitel als Bewaard, Stroom en Selectie (t5-screen), niet de grote
+                    // systeemtitel: die stond groter en lager (B2).
+                    ScreenTitle("Zoeken").textCase(nil).listRowInsets(EdgeInsets())
                 }
             }
             .scrollContentBackground(.hidden)
@@ -416,6 +422,7 @@ struct SearchView: View {
             }
             .navigationTitle("Zoeken")
             .hootBrandHeader()
+            .hootScreenTitle()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .searchable(text: $query, prompt: "Zoek in koppen en intro’s")
