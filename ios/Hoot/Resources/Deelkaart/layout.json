@@ -2,6 +2,12 @@
   "red": "#a3201b",
   "paper": "#f5f1e8",
   "domain": "gethoot.app",
+  "mark": {
+    "size": 28,
+    "pad": 0.14,
+    "disc": "#f5f1e8",
+    "ink": "#a3201b"
+  },
   "formats": {
     "link": {
       "width": 1200,

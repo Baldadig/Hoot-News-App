@@ -7,7 +7,8 @@ import { layout } from '../shared/deelkaart.mjs'
 
 const feed = JSON.parse(await readFile(process.argv[2], 'utf8'))
 const known = new Set(SOURCES.map(s => s.id))
-const paper = layout.paper.slice(1).match(/../g).map(h => parseInt(h, 16))
+// Het logo als silhouet in merkrood: het staat op de papieren schijf van de deelkaart (layout.mark).
+const paper = layout.mark.ink.slice(1).match(/../g).map(h => parseInt(h, 16))
 const marks = {}, failed = [], fetched = new Map()
 async function mono(url) {
   const response = await fetch(url, { signal: AbortSignal.timeout(8000) })

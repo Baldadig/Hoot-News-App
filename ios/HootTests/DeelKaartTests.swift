@@ -124,4 +124,29 @@ private final class LeadFixtureProtocol: URLProtocol, @unchecked Sendable {
         } catch { client?.urlProtocol(self, didFailWithError: error) }
     }
     override func stopLoading() {}
+
+    // Brand Guide v2.2 › Deelkaart: het uitgeverslogo op een papieren schijf, gelijk aan het web.
+    func testPapierenSchijfAchterUitgeverslogo() throws {
+        let m = DeelKaartStyle.layout.mark
+        XCTAssertEqual(m.size, 28); XCTAssertEqual(m.pad, 0.14); XCTAssertEqual(m.disc, "#f5f1e8"); XCTAssertEqual(m.ink, "#a3201b")
+        func pixel(_ data: Data, _ x: Int, _ y: Int) throws -> [Int] {
+            let image = try XCTUnwrap(UIImage(data: data)?.cgImage)
+            var rgba = [UInt8](repeating: 0, count: 4)
+            let context = try XCTUnwrap(CGContext(data: &rgba, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4, space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+            context.draw(image, in: CGRect(x: -x, y: y - image.height + 1, width: image.width, height: image.height))
+            return rgba.prefix(3).map(Int.init)
+        }
+        func close(_ a: [Int], _ b: [Int]) -> Bool { zip(a, b).allSatisfy { abs($0 - $1) <= 2 } }
+        for format in DeelKaartFormat.allCases {
+            let f = DeelKaartStyle.layout.formats[format.rawValue]!
+            let top = Int(f.sourceY - (m.size - f.sourceSize) / 2), x = Int(f.margin) + 3
+            var logo = Item(id: "schijf", source: "nos", title: "De stad krijgt meer groen", url: "https://nos.nl/a")
+            logo.sourceName = "NOS"; logo.section = "Binnenland"
+            var zonder = Item(id: "schijf-zonder", source: "onbekende-bron", title: logo.title, url: "https://nos.nl/a"); zonder.sourceName = "Onbekend"
+            let met = try XCTUnwrap(DeelKaart(item: logo, format: format).png())
+            let kaal = try XCTUnwrap(DeelKaart(item: zonder, format: format).png())
+            XCTAssertTrue(close(try pixel(met, x, top + 14), [245, 241, 232]), "\(format): schijf in papier")
+            XCTAssertTrue(close(try pixel(kaal, x, top + 14), [163, 32, 27]), "\(format): monogram zonder schijf")
+        }
+    }
 }

@@ -19,9 +19,14 @@ export async function renderCard(item, format = 'link', { marks = publisherMarks
   const rule = y => el('div', { position: 'absolute', top: y, left: f.margin, width: f.width - 2 * f.margin, height: 1, backgroundColor: layout.paper })
   const mark = /^data:image\/png;base64,iVBOR/.test(marks[item.source] || '') ? marks[item.source] : null
   const sourceName = cardText(item.sourceName || item.source || 'Hoot')
-  const publisher = el('div', { display: 'flex', alignItems: 'center', position: 'absolute', top: f.sourceY - (28 - f.sourceSize) / 2, left: f.margin, width: f.width - 2 * f.margin, height: 28, gap: 12 }, [
-    mark ? el('img', { width: 28, height: 28, flexShrink: 0 }, undefined, { src: mark }) :
-      el('div', { display: 'flex', width: 28, height: 28, flexShrink: 0, alignItems: 'center', justifyContent: 'center', border: `1px solid ${layout.paper}`, borderRadius: 14, fontSize: 16, lineHeight: 1 }, Array.from(sourceName)[0] || 'H'),
+  // Uitgeverslogo: een papieren schijf met het logo in merkrood, zodat geen logokleur met het rood
+  // vecht (Brand Guide v2.2 › Deelkaart). Zonder logo het monogram: een lijncirkel in papier.
+  const m = layout.mark, inset = Math.round(m.size * m.pad)
+  const publisher = el('div', { display: 'flex', alignItems: 'center', position: 'absolute', top: f.sourceY - (m.size - f.sourceSize) / 2, left: f.margin, width: f.width - 2 * f.margin, height: m.size, gap: 12 }, [
+    mark ? el('div', { display: 'flex', width: m.size, height: m.size, flexShrink: 0, alignItems: 'center', justifyContent: 'center', borderRadius: m.size / 2, backgroundColor: m.disc }, [
+      el('img', { width: m.size - 2 * inset, height: m.size - 2 * inset }, undefined, { src: mark }),
+    ]) :
+      el('div', { display: 'flex', width: m.size, height: m.size, flexShrink: 0, alignItems: 'center', justifyContent: 'center', border: `1px solid ${layout.paper}`, borderRadius: m.size / 2, fontSize: 16, lineHeight: 1 }, Array.from(sourceName)[0] || 'H'),
     el('div', { fontSize: f.sourceSize, lineHeight: 1, whiteSpace: 'pre', overflow: 'hidden', flexShrink: 1 }, sourceName),
   ])
   const tree = el('div', { display: 'flex', position: 'relative', width: f.width, height: f.height, color: layout.paper, backgroundColor: layout.red, fontFamily: 'Source Sans 3', fontWeight: 600 }, [

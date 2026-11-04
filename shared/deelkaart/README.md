@@ -18,3 +18,9 @@ node --test tests/deelkaart.test.mjs
 Normale builds gebruiken de ingecheckte bestanden. De test bewaakt bytegelijkheid
 met `ios/Hoot/Resources/Deelkaart/`. De Swift-regelval wordt tegen dezelfde
 `tests/fixtures/deelkaart-cases.json` getoetst als het web.
+
+`layout.mark` legt het uitgeverslogo vast (Brand Guide v2.2 › Deelkaart): een
+papieren schijf van 28 (`disc`) met het logo als silhouet in merkrood (`ink`) en
+14 % lucht (`pad`, afgerond 4 px). `publisher-marks.json` bevat die silhouetten al
+in merkrood (`scripts/build-publisher-marks.mjs`). Zonder logo blijft het monogram
+een lijncirkel in papier.

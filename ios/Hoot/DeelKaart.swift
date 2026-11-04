@@ -11,7 +11,10 @@ struct DeelKaartLayout: Decodable {
         let kickerY, kickerSize, titleY, titleSize, minTitleSize, lineHeight: Double
         let hairlineY, sourceY, sourceSize, siteY, siteSize: Double
     }
+    // Uitgeverslogo: papieren schijf (`disc`) met het logo in merkrood (`ink`), `pad` lucht rondom.
+    struct Mark: Decodable { let size, pad: Double; let disc, ink: String }
     let red, paper, domain: String
+    let mark: Mark
     let formats: [String: Format]
 }
 
@@ -103,6 +106,8 @@ struct DeelKaart: View {
         return Color(red: Double(value >> 16 & 255) / 255, green: Double(value >> 8 & 255) / 255, blue: Double(value & 255) / 255)
     }
     private var paper: Color { color(DeelKaartStyle.layout.paper) }
+    private var m: DeelKaartLayout.Mark { DeelKaartStyle.layout.mark }
+    private var inset: Double { (m.size * m.pad).rounded() }
 
     private func text(_ value: String, y: Double, size: Double, serif: Bool = false, tracking: Double = 0) -> some View {
         Text(value).font(DeelKaartStyle.font(size, serif: serif)).tracking(tracking)
@@ -134,21 +139,25 @@ struct DeelKaart: View {
             }
             rule(f.hairlineY)
             HStack(spacing: 12) {
+                // Een papieren schijf met het logo in merkrood (zoals het web); zonder logo het
+                // monogram, een lijncirkel in papier.
                 ZStack {
                     if let mark = DeelKaartStyle.publisherMark(item.source) {
+                        Circle().fill(color(m.disc))
                         Image(uiImage: mark).resizable().scaledToFit()
+                            .frame(width: m.size - 2 * inset, height: m.size - 2 * inset)
                     } else {
                         Circle().strokeBorder(paper, lineWidth: 1)
                         Text(String(DeelKaartStyle.clean(item.sourceName ?? item.source).prefix(1)))
                             .font(DeelKaartStyle.font(16))
                     }
-                }.frame(width: 28, height: 28)
+                }.frame(width: m.size, height: m.size)
                 Text(String(DeelKaartStyle.clean(item.sourceName ?? item.source).prefix(140)))
                     .font(DeelKaartStyle.font(f.sourceSize)).lineLimit(1)
                     .fixedSize(horizontal: true, vertical: true)
             }
-            .frame(width: f.width - 2 * f.margin, height: 28, alignment: .leading).clipped()
-            .offset(x: f.margin, y: f.sourceY - (28 - f.sourceSize) / 2)
+            .frame(width: f.width - 2 * f.margin, height: m.size, alignment: .leading).clipped()
+            .offset(x: f.margin, y: f.sourceY - (m.size - f.sourceSize) / 2)
             text(DeelKaartStyle.layout.domain, y: f.siteY, size: f.siteSize)
         }
         .foregroundStyle(paper)
