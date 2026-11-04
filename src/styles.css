@@ -5388,24 +5388,24 @@ html[data-images='hoofd'] .media--social {
    springen, kiezen en in- of uitklappen. De naam met het aantal eronder, het teken rechts op de
    eerste regel van de naam (SE2, SE3). De kop van een onderwerp is dezelfde rij in de serif op 22. */
 .dindex { margin: var(--s5) 0 var(--s6); border-top: 1px solid var(--rule); }
-.drow { display: grid; grid-template-columns: minmax(0, 1fr) var(--tap); column-gap: var(--s3); align-items: center; width: 100%; min-height: 56px; padding: var(--s2) 0; border: 0; border-bottom: 1px solid var(--rule); background: none; color: var(--ink); font: inherit; font-weight: 400; text-align: left; cursor: pointer; }
-.drow:disabled { cursor: default; opacity: .45; }
-.drow:not(:disabled):active { background: var(--tint); }
-@media (hover: hover) { .drow:not(:disabled):hover .drow__name { text-decoration: underline; text-underline-offset: var(--underline-offset); text-decoration-thickness: 1px; } }
-.drow__text { min-width: 0; }
-.drow__name { display: block; font-size: var(--t3); line-height: var(--lh-3); font-weight: 600; overflow-wrap: anywhere; }
-.drow__sub { display: block; color: var(--ink-3); font-size: var(--t1); line-height: var(--lh-1); font-variant-numeric: tabular-nums; }
-.drow__icon { display: grid; place-items: center; width: var(--tap); height: var(--tap); margin-right: calc((var(--icon-sm) - var(--tap)) / 2); color: var(--ink-3); }
-.drow--big { align-items: start; padding: var(--s3) 0; border-bottom: 0; }
-.drow--big .drow__name { font-family: var(--serif); font-size: var(--t-head-lg); line-height: var(--lh-head-lg); font-weight: var(--fw-head); letter-spacing: var(--ls-head-5); }
-.drow--big .drow__sub { margin-top: var(--s1); }
-.drow--big .drow__icon { margin-top: calc((var(--lh-head-lg) - var(--tap)) / 2); }
-.drow:focus-visible { outline-offset: var(--s1); }
+.dirow { display: grid; grid-template-columns: minmax(0, 1fr) var(--tap); column-gap: var(--s3); align-items: center; width: 100%; min-height: 56px; padding: var(--s2) 0; border: 0; border-bottom: 1px solid var(--rule); background: none; color: var(--ink); font: inherit; font-weight: 400; text-align: left; cursor: pointer; }
+.dirow:disabled { cursor: default; opacity: .45; }
+.dirow:not(:disabled):active { background: var(--tint); }
+@media (hover: hover) { .dirow:not(:disabled):hover .dirow__name { text-decoration: underline; text-underline-offset: var(--underline-offset); text-decoration-thickness: 1px; } }
+.dirow__text { min-width: 0; }
+.dirow__name { display: block; font-size: var(--t3); line-height: var(--lh-3); font-weight: 600; overflow-wrap: anywhere; }
+.dirow__sub { display: block; color: var(--ink-3); font-size: var(--t1); line-height: var(--lh-1); font-variant-numeric: tabular-nums; }
+.dirow__icon { display: grid; place-items: center; width: var(--tap); height: var(--tap); margin-right: calc((var(--icon-sm) - var(--tap)) / 2); color: var(--ink-3); }
+.dirow--big { align-items: start; padding: var(--s3) 0; border-bottom: 0; }
+.dirow--big .dirow__name { font-family: var(--serif); font-size: var(--t-head-lg); line-height: var(--lh-head-lg); font-weight: var(--fw-head); letter-spacing: var(--ls-head-5); }
+.dirow--big .dirow__sub { margin-top: var(--s1); }
+.dirow--big .dirow__icon { margin-top: calc((var(--lh-head-lg) - var(--tap)) / 2); }
+.dirow:focus-visible { outline-offset: var(--s1); }
 /* Na het springen licht het onderwerp even op (niet bij Verminder beweging: dan zet Vak.jsx hem niet). */
-.drow--flash { animation: drow-flash 1.2s var(--ease) 1; }
-@keyframes drow-flash { 0%, 40% { background: var(--tint); } 100% { background: transparent; } }
+.dirow--flash { animation: dirow-flash 1.2s var(--ease) 1; }
+@keyframes dirow-flash { 0%, 40% { background: var(--tint); } 100% { background: transparent; } }
 .dfield__head { margin: 0; }
-.dfield__head .drow { scroll-margin-top: calc(var(--safe-t) + var(--s4)); }
+.dfield__head .dirow { scroll-margin-top: calc(var(--safe-t) + var(--s4)); }
 .dfield__about { margin: 0 0 var(--s3); color: var(--ink-3); font-size: var(--t2); line-height: var(--lh-2-read); }
 .dfield__none { margin: 0; color: var(--ink-3); }
 /* Lege toestanden: links in de kolom, één zin, één rij om te kiezen. Geen datum, geen telling. */

@@ -115,12 +115,12 @@ function Card({ item, rank, feature = false }) {
 function IndexRow({ kind, name, sub, big = false, expanded, flash = false, ...rest }) {
   const icon = kind === 'jump' ? <JumpIcon size={ICON_SM} /> : kind === 'pick' ? <CaretIcon size={ICON_SM} /> : <CaretIcon dir={expanded ? 'up' : 'down'} size={ICON_SM} />
   return (
-    <button type="button" className={`drow${big ? ' drow--big' : ''}${flash ? ' drow--flash' : ''}`} aria-expanded={kind === 'toggle' ? expanded : undefined} {...rest}>
-      <span className="drow__text">
-        <span className="drow__name">{name}</span>
-        {sub ? <span className="drow__sub">{sub}</span> : null}
+    <button type="button" className={`dirow${big ? ' dirow--big' : ''}${flash ? ' dirow--flash' : ''}`} aria-expanded={kind === 'toggle' ? expanded : undefined} {...rest}>
+      <span className="dirow__text">
+        <span className="dirow__name">{name}</span>
+        {sub ? <span className="dirow__sub">{sub}</span> : null}
       </span>
-      <span className="drow__icon" aria-hidden="true">
+      <span className="dirow__icon" aria-hidden="true">
         {icon}
       </span>
     </button>
