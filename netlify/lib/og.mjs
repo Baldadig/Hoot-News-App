@@ -1,12 +1,35 @@
 // De deelafbeelding (og:image) van een artikel: het beeld dat de redactie zelf koos voor als het
 // artikel wordt gedeeld. Voor feeds die geen beeld meesturen (Rolling Stone, DW, Al Jazeera …) en
 // voor de Digest. Alleen de <head> lezen; automatisch gemaakte titelkaartjes ("/api/og?title=…")
-// slaan we over: daar staat alleen de kop op. Nooit voor betaalde bronnen.
+// slaan we over: daar staat alleen de kop op. Ook voor betaalde bronnen (build 46): het deelbeeld staat
+// openbaar in de <head>, net als bij het delen op sociale media. Geen cookiemuur of loginpagina omzeilen:
+// stuurt de site ons door naar een ander domein (DPG: myprivacy), dan is er geen beeld.
 import { UA } from './sources.mjs'
 
 // Het eigen deelbeeld hoort bij een servermatig leesbare Hoot-deelpagina.
 export function hootOgImage(origin, id, format = 'link') {
   return `${origin}/api/deelkaart?id=${encodeURIComponent(id)}&f=${format === 'staand' ? 'staand' : 'link'}`
+}
+
+// FD schrijft "?w&#x3D;640", WordPress "&#038;": entiteiten in een attribuut terug naar tekens.
+const decodeEntities = (s) =>
+  s
+    .replace(/&amp;/g, '&')
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+
+// Hetzelfde domein (zonder subdomein): een doorverwijzing naar een toestemmings- of loginpagina
+// elders telt niet als het artikel.
+const site = (host) => {
+  const parts = host.replace(/^www\./, '').split('.')
+  return parts.slice(/^(co|com|org|net|ac|gov)$/.test(parts.at(-2)) ? -3 : -2).join('.')
+}
+export function sameSite(a, b) {
+  try {
+    return site(new URL(a).hostname) === site(new URL(b).hostname)
+  } catch {
+    return false
+  }
 }
 
 const GENERATED = /\/api\/og\b|\/og\?|\/og\/v\d|opengraph\.githubassets/i
@@ -16,15 +39,21 @@ export function ogImageFrom(html) {
     if (!/(property|name)=["'](og:image|twitter:image)(:url)?["']/i.test(tag)) continue
     const m = tag.match(/content=["']([^"']+)["']/i)
     if (!m) continue
-    const url = m[1].replace(/&amp;|&#0?38;/g, '&').trim()
+    const url = decodeEntities(m[1]).trim()
     if (/^https?:\/\//i.test(url) && !GENERATED.test(url)) return url
   }
   return null
 }
-export async function loadOgImage(url) {
+// `signal`: de ronde kan alles tegelijk afbreken (build.mjs); per pagina hooguit `timeout` ms.
+export async function loadOgImage(url, { signal, timeout = 6000, fetcher = fetch } = {}) {
   try {
-    const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'text/html' }, redirect: 'follow', signal: AbortSignal.timeout(6000) })
+    const stop = signal ? AbortSignal.any([signal, AbortSignal.timeout(timeout)]) : AbortSignal.timeout(timeout)
+    const res = await fetcher(url, { headers: { 'User-Agent': UA, Accept: 'text/html' }, redirect: 'follow', signal: stop })
     if (!res.ok || !/text\/html/i.test(res.headers.get('content-type') || '')) return null
+    if (res.url && !sameSite(url, res.url)) {
+      res.body?.cancel?.().catch(() => {})
+      return null
+    }
     // Alleen het begin: de <head> zit in de eerste paar honderd kilobyte.
     const reader = res.body.getReader()
     let html = ''

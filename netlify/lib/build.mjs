@@ -7,13 +7,13 @@ import Anthropic from '@anthropic-ai/sdk'
 import { byRecency, sigWords, sharedCount, buildStories, editionSlot, previousSlotId, previousOf, selectEdition, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
 import { matchTrending, insertBubble, bubbleCandidates, areasOf, nearStories } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
-import { articleKey, mergeSnippets, isLiveblog } from './snippets.mjs'
+import { articleKey, mergeSnippets, isLiveblog, bingId, bingUnmeasured, bingOriginal, bingSized } from './snippets.mjs'
 import { SOURCES, BLUESKY_AUTHORS, BLUESKY_HOURS, BSKY_BRAND, MAIN_IDS, MUSIC_IDS, EDITION_CATS, UA } from './sources.mjs'
 import { loadSourceWithRetry } from './rss.mjs'
 import { STORE_KEY, splitFeed, storeOf, withLatest } from './stream.mjs'
 import { loadSnippets, loadTrends, loadSourceAvatars, loadBlueskyProfiles, loadBskyCards } from './lookups.mjs'
 import { loadOgImage } from './og.mjs'
-import { measureFeedImages } from './image-measure.mjs'
+import { measureFeedImages, loadImageSize } from './image-measure.mjs'
 import { rememberShareRecords } from './share-records.mjs'
 import { keywordTopics, articleTopics } from './topics.mjs'
 import { normTitle, preview } from './text.mjs'
@@ -60,10 +60,10 @@ export async function buildFeed({ now = Date.now() } = {}) {
   const inPool = (it) => it.kind === 'post' || editionIds.has(it.id)
 
   // 2. De berichten, 3. gaten vullen, 4. voorvertoningen lenen.
+  // De drie aanvullingen raken elk andere bronnen (zoekindex, Bluesky, de artikelpagina) en lopen
+  // dus tegelijk: zo duurt de ronde niet langer nu ook betaalde bronnen hun deelbeeld krijgen.
   const items = streamItems([...mainGroups.flatMap((g) => g.items), ...editionExtra, ...bskyGroups.flatMap((g) => g.items)])
-  const gaps = await fillGaps(items, now)
-  await imagesFromBluesky(items, now)
-  await imagesFromArticles(items, now)
+  const [gaps] = await Promise.all([fillGaps(items, now).then(async (r) => (await sizeBingImages(items, now), r)), imagesFromBluesky(items, now), imagesFromArticles(items, now)])
   borrowPreviews(items, [...mainGroups.flatMap((g) => g.items), ...editionExtra])
   // Bewaren zoals ze nu zijn (met beeld en inleiding), vóór de verhalen er hun id aan hangen. Met
   // wat een gelijktijdige ronde in een andere instantie intussen schreef (withLatest).
@@ -80,6 +80,9 @@ export async function buildFeed({ now = Date.now() } = {}) {
   const stories = buildStories(articlePool, registry, { mainIds: MAIN_IDS, keys: true, extended: true })
   const poolById = new Map(articlePool.map((i) => [i.id, i]))
   for (const st of stories) for (const id of st.itemIds) poolById.get(id).storyId = st.id
+  // Nog zonder intro (de Volkskrant als de zoekindex achterloopt): die van een ander stuk uit
+  // hetzelfde verhaal, met "via X". Nooit een samenvatting die we zelf schrijven.
+  borrowFromStories(stories, poolById)
 
   // 6. Eerst-gezien-tijd per bericht, en bij welk verhaal het hoort (houdt id's stabiel).
   await updateRegistry(registry, items, now)
@@ -173,26 +176,54 @@ export function editionPool(out, articlePool) {
 // we alleen als er iets nieuws te zoeken is, of na een half uur opnieuw.
 // Bronnen waarvan de feed alleen koppen (of geen beeld) levert: de inleiding en het beeld komen
 // dan uit de zoekindex van Bing Nieuws. DPG-kranten: één vraag per rubriek die nu in de feed staat.
-const GAPS = { volkskrant: 'volkskrant.nl', trouw: 'trouw.nl', parool: 'parool.nl', demorgen: 'demorgen.be', nyt: 'nytimes.com', economist: 'economist.com' }
+// Bloomberg en De Tijd weigeren ons hun artikelpagina (403): hun beeld komt ook uit de zoekindex.
+const GAPS = { volkskrant: 'volkskrant.nl', trouw: 'trouw.nl', parool: 'parool.nl', demorgen: 'demorgen.be', nyt: 'nytimes.com', economist: 'economist.com', bloomberg: 'bloomberg.com', tijd: 'tijd.be' }
 const PER_SECTION = new Set(['volkskrant', 'trouw', 'parool', 'demorgen'])
 // Veel rubrieken tegelijk in de feed. (De Engelstalige van het Parool, guide en amsterdam-news,
 // vallen al in de Stroom af: daar zoeken we niets meer voor.)
 const WIDE_SECTIONS = new Set(['volkskrant', 'parool'])
+// Een stuk zonder intro zoeken we vaker opnieuw (elke 10 minuten in plaats van 30): de zoekindex
+// loopt uren achter, en juist de verse stukken staan in de Editie. Wat de algemene vragen niet meer
+// vinden (ouder dan hun 50 nieuwste), zoeken we gericht op de kop: hooguit 8 per ronde, elk stuk
+// hooguit 6 keer en niet vaker dan eens per 20 minuten (gapTitleQueries).
+const GAP_RETRY = 10 * MIN
+const GAP_QUIET = 30 * MIN
+export function gapTitleQueries(open, tries = {}, now, { max = 8, every = 20 * MIN, most = 6 } = {}) {
+  return open
+    .filter((it) => !it.summary && it.title && (tries[articleKey(it.url)]?.n || 0) < most && now - (tries[articleKey(it.url)]?.at || 0) >= every)
+    .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1))
+    .slice(0, max)
+}
 async function fillGaps(items, now) {
   const result = { vkSnippets: 0, filled: 0 }
   const needs = items.filter((it) => GAPS[it.source] && it.kind === 'article' && !isLiveblog(it.url) && (!it.summary || !it.image))
   if (!needs.length) return result
-  const [stored, checkedAt] = await Promise.all([kvGet('gap-fill-v1'), kvGet('gap-fill-at')])
+  const [stored, checkedAt, triedRaw] = await Promise.all([kvGet('gap-fill-v1'), kvGet('gap-fill-at'), kvGet('gap-tries-v1')])
   let store = stored && typeof stored === 'object' ? stored : {}
-  const open = needs.filter((it) => !store[articleKey(it.url)])
+  const tries = triedRaw && typeof triedRaw === 'object' ? triedRaw : {}
+  // Open: nog niets gevonden, of wel een beeld maar nog geen intro terwijl het stuk er een mist.
+  const open = needs.filter((it) => {
+    const hit = store[articleKey(it.url)]
+    return !hit || (!it.summary && !hit.s)
+  })
   const fresh = open.some((it) => Date.parse(it.publishedAt || 0) > (checkedAt || 0))
-  if (open.length && (fresh || now - (checkedAt || 0) > 30 * MIN)) {
+  const wait = open.some((it) => !it.summary) ? GAP_RETRY : GAP_QUIET
+  if (open.length && (fresh || now - (checkedAt || 0) > wait)) {
     const wanted = [...new Set(open.map((it) => it.source))]
     const sections = (src) => [...new Set(open.filter((it) => it.source === src).map((it) => it.url.split('/')[3] || '').filter((x) => /^[a-z-]+$/.test(x)))]
     const queries = (src) => (PER_SECTION.has(src) ? [`site:${GAPS[src]}`, ...sections(src).slice(0, WIDE_SECTIONS.has(src) ? 10 : 6).map((sec) => `site:${GAPS[src]}/${sec}`)] : [`site:${GAPS[src]}`])
-    const found = (await Promise.all(wanted.map((src) => loadSnippets(queries(src), GAPS[src]).catch(() => [])))).flat()
+    const aimed = gapTitleQueries(open, tries, now)
+    for (const it of aimed) tries[articleKey(it.url)] = { n: (tries[articleKey(it.url)]?.n || 0) + 1, at: now }
+    const bySource = (src) => aimed.filter((it) => it.source === src).map((it) => `site:${GAPS[src]} ${it.title.replace(/["“”„]/g, '')}`)
+    const found = (
+      await Promise.all([
+        ...wanted.map((src) => loadSnippets(queries(src), GAPS[src]).catch(() => [])),
+        ...wanted.filter((src) => bySource(src).length).map((src) => loadSnippets(bySource(src), GAPS[src], { deep: false }).catch(() => [])),
+      ])
+    ).flat()
     store = mergeSnippets(store, found, now)
-    await Promise.all([found.length ? kvSet('gap-fill-v1', store) : null, kvSet('gap-fill-at', now)])
+    for (const [k, v] of Object.entries(tries)) if (now - (v?.at || 0) > 2 * DAY) delete tries[k]
+    await Promise.all([found.length ? kvSet('gap-fill-v1', store) : null, kvSet('gap-fill-at', now), aimed.length ? kvSet('gap-tries-v1', tries) : null])
   }
   for (const it of needs) {
     const hit = store[articleKey(it.url)]
@@ -208,6 +239,43 @@ async function fillGaps(items, now) {
     }
   }
   return result
+}
+
+// ---------- 3a. De maat van een beeld uit de zoekindex ----------
+// Bing levert zijn beeld op elke gevraagde maat, ook als het bronbeeld klein is (dan met witte
+// randen). We meten het bronbeeld één keer (en onthouden het een week) en vragen het daarna op zijn
+// eigen maat op. Groot genoeg (The Economist: 700 breed), dan tonen web en app het ook groot.
+// Hooguit 40 nieuwe per ronde, 8 tegelijk, en na 5 seconden houden we op: wat dan nog open is,
+// blijft voorlopig een miniatuur.
+export async function sizeBingImages(items, now, { load = loadImageSize, get = kvGet, set = kvSet, max = 40, budget = 5000 } = {}) {
+  try {
+    const want = items.filter((it) => it.kind === 'article' && bingUnmeasured(it.image))
+    if (!want.length) return
+    const stored = await get('bing-size-v1')
+    const cache = stored && typeof stored === 'object' ? stored : {}
+    const ids = [...new Set(want.map((it) => bingId(it.image)))]
+    const missing = ids.filter((id) => !cache[id] || (!cache[id].w && now - cache[id].at > 60 * MIN)).slice(0, max)
+    if (missing.length) {
+      const round = AbortSignal.timeout(budget)
+      await Promise.all(
+        Array.from({ length: 8 }, async () => {
+          while (missing.length && !round.aborted) {
+            const id = missing.shift()
+            const size = await load(bingOriginal(id), { signal: AbortSignal.any([round, AbortSignal.timeout(3000)]) }).catch(() => null)
+            if (size || !round.aborted) cache[id] = { at: now, ...(size ? { w: size.w, h: size.h } : {}) }
+          }
+        }),
+      )
+      for (const [k, v] of Object.entries(cache)) if (now - (v?.at || 0) > 7 * DAY) delete cache[k]
+      await set('bing-size-v1', cache)
+    }
+    for (const it of want) {
+      const hit = cache[bingId(it.image)]
+      if (hit?.w) it.image = bingSized(bingId(it.image), hit.w, hit.h)
+    }
+  } catch {
+    /* zonder maat blijft het een miniatuur, zoals voorheen */
+  }
 }
 
 // ---------- 3b. Beeld via Bluesky ----------
@@ -239,29 +307,41 @@ async function imagesFromBluesky(items, now) {
 }
 
 // ---------- 3c. Beeld van het artikel zelf ----------
-// Gratis bronnen waarvan de feed geen beeld meestuurt (Rolling Stone, DW, Al Jazeera, VRT,
-// Sporza …): de deelafbeelding van het artikel. Elk artikel één keer proberen en onthouden
-// (ook "geen beeld"), per ronde hooguit 36 nieuwe, de nieuwste eerst. Betaalde bronnen nooit.
+// Bronnen waarvan de feed geen beeld meestuurt (Rolling Stone, DW, Al Jazeera, VRT, Sporza, en
+// sinds build 46 ook de betaalde: Nature, Scientific American, FD, MIT Technology Review …): de
+// deelafbeelding van het artikel (og.mjs; nooit achter een cookiemuur of login om). Elk artikel één
+// keer proberen en onthouden (ook "geen beeld"), per ronde hooguit 48 nieuwe, de nieuwste eerst,
+// 8 tegelijk, elke pagina hooguit 4 seconden en de hele stap hooguit 7: wat dan nog open is, komt de
+// volgende ronde. Nooit een beeld van een ander artikel (fotorechten); een kopie van hetzelfde stuk
+// bij een zusterkrant (zelfde kop) is wel hetzelfde artikel.
 const OG_KEEP = 4 * 24 * 60 * MIN
 export function wantsArticleImage(it, src) {
-  return !!src && !src.paid && !GAPS[src.id] && !src.bskyImages && it.kind === 'article' && !it.image && !isLiveblog(it.url)
+  return !!src && !GAPS[src.id] && !src.bskyImages && it.kind === 'article' && !it.image && !isLiveblog(it.url)
 }
-async function imagesFromArticles(items, now, { max = 36 } = {}) {
-  const needs = items.filter((it) => wantsArticleImage(it, SOURCE.get(it.source)))
+export async function imagesFromArticles(items, now, { max = 48, parallel = 8, budget = 7000, timeout = 4000, load = loadOgImage, get = kvGet, set = kvSet, sourceOf = (id) => SOURCE.get(id) } = {}) {
+  const needs = items.filter((it) => wantsArticleImage(it, sourceOf(it.source)))
   if (!needs.length) return
-  const stored = await kvGet('og-images-v1')
+  const stored = await get('og-images-v1')
   const store = stored && typeof stored === 'object' ? stored : {}
   // Zusterkranten brengen vaak hetzelfde stuk onder een andere link: één exemplaar per kop
   // ophalen, de kopieën krijgen dat beeld (zie hieronder). Zo gaat het budget naar echte stukken.
   const known = new Set(needs.filter((it) => store[articleKey(it.url)]?.img).map((it) => titleKey(it.title)).filter(Boolean))
   const open = withoutCopies(needs.filter((it) => !(articleKey(it.url) in store) && !known.has(titleKey(it.title))).sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1))).slice(0, max)
-  for (let i = 0; i < open.length; i += 6) {
-    await Promise.all(
-      open.slice(i, i + 6).map(async (it) => {
-        store[articleKey(it.url)] = { img: safeHttpUrl(await loadOgImage(it.url)), at: now }
-      }),
-    )
-  }
+  const round = AbortSignal.timeout(budget)
+  let tried = 0
+  await Promise.all(
+    Array.from({ length: parallel }, async () => {
+      while (open.length && !round.aborted) {
+        const it = open.shift()
+        const img = safeHttpUrl(await load(it.url, { signal: round, timeout }))
+        // Afgebroken door de rondegrens: niet onthouden als "geen beeld", de volgende ronde opnieuw.
+        if (img || !round.aborted) {
+          store[articleKey(it.url)] = { img, at: now }
+          tried++
+        }
+      }
+    }),
+  )
   const byTitle = new Map()
   for (const it of needs) {
     const hit = store[articleKey(it.url)]
@@ -270,9 +350,9 @@ async function imagesFromArticles(items, now, { max = 36 } = {}) {
     if (titleKey(it.title)) byTitle.set(titleKey(it.title), hit.img)
   }
   for (const it of needs) if (!it.image && byTitle.has(titleKey(it.title))) it.image = byTitle.get(titleKey(it.title))
-  if (open.length) {
+  if (tried) {
     for (const [k, v] of Object.entries(store)) if (now - (v?.at || 0) > OG_KEEP) delete store[k]
-    await kvSet('og-images-v1', store)
+    await set('og-images-v1', store)
   }
 }
 
@@ -305,6 +385,33 @@ function borrowPreviews(items, mainItems) {
       it.borrowedFrom = best.sourceName
     }
   }
+}
+
+// ---------- 5b. Intro lenen binnen een verhaal ----------
+// Een stuk dat na de zoekindex en het lenen op de kop nog geen intro heeft, krijgt die van een ander
+// stuk uit hetzelfde verhaal: zelfde taal, een andere bron, een eigen intro (geen geleende, en
+// liever geen afgekapte), en minstens twee kernwoorden in de kop gemeen als extra zekerheid. Met
+// bronvermelding (`borrowedFrom`: "via X"). Geen liveblogs.
+const TRAIL = /(?:…|\.{3})\s*$/
+const langOf = (it) => it.lang || SOURCE.get(it.source)?.lang
+export function borrowFromStories(stories, byId) {
+  let n = 0
+  for (const st of stories) {
+    const members = st.itemIds.map((id) => byId.get(id)).filter((i) => i?.kind === 'article')
+    for (const it of members) {
+      if (it.summary || isLiveblog(it.url)) continue
+      const w = sigWords(it.title)
+      const donor = members
+        .filter((d) => d !== it && d.summary && !d.borrowedFrom && d.source !== it.source && langOf(d) === langOf(it) && visibleFor(d) && sharedCount(w, sigWords(d.title)) >= 2)
+        .sort((a, b) => TRAIL.test(a.summary) - TRAIL.test(b.summary))[0]
+      if (!donor) continue
+      it.summary = donor.summary
+      if (!it.text) it.text = donor.summary
+      it.borrowedFrom = donor.sourceName
+      n++
+    }
+  }
+  return n
 }
 
 // ---------- 6. Register ----------

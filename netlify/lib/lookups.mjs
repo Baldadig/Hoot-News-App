@@ -7,7 +7,8 @@ import { BSKY_API } from '../../shared/bluesky.mjs'
 // ---------- Voorvertoning voor de Volkskrant (feed levert alleen koppen) ----------
 // De eigen inleiding van het artikel uit de zoekindex van Bing Nieuws: een algemene vraag
 // plus één per rubriek die nu in de feed staat. Mislukt het, dan blijft het zoals het was.
-export async function loadSnippets(queries, domain) {
+// `deep: false`: elke vraag alleen de eerste pagina (de gerichte vragen op een kop, build.mjs).
+export async function loadSnippets(queries, domain, { deep = true } = {}) {
   const one = async (q, first) => {
     const c = new AbortController()
     const t = setTimeout(() => c.abort(), 5000)
@@ -20,7 +21,7 @@ export async function loadSnippets(queries, domain) {
     }
   }
   // De algemene vraag (eerste in de lijst) ook de tweede pagina; rubrieken alleen de eerste.
-  const res = await Promise.allSettled([one(queries[0]), one(queries[0], 15), ...queries.slice(1, 12).map((q) => one(q))])
+  const res = await Promise.allSettled(deep ? [one(queries[0]), one(queries[0], 15), ...queries.slice(1, 12).map((q) => one(q))] : queries.slice(0, 12).map((q) => one(q)))
   return res.flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
 }
 
