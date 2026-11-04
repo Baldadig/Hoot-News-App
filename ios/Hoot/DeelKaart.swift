@@ -185,12 +185,12 @@ struct DeelKaartExport: Transferable {
         ProxyRepresentation { export in export.link }
     }
 
-    // Deellink op hootnews.nl (werkt nu al en verwijst na de verhuizing door naar gethoot.app/deel/),
+    // Deellink op gethoot.app/deel/ (oude hootnews.nl/deel/-links van builds 38 t/m 45 verwijzen hierheen door),
     // met de uitgeverslink erbij: is het verhaal niet meer bewaard, dan stuurt /deel/ daarheen.
     var link: URL {
         var parts = URLComponents()
         parts.scheme = "https"
-        parts.host = "hootnews.nl"
+        parts.host = "gethoot.app"
         parts.path = "/deel/" + item.id
         // Zelf coderen: URLQueryItem laat & en = in de waarde staan (zoals encodeURIComponent op het web).
         let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
@@ -198,6 +198,6 @@ struct DeelKaartExport: Transferable {
            let value = source.absoluteString.addingPercentEncoding(withAllowedCharacters: allowed) {
             parts.percentEncodedQuery = "bron=" + value
         }
-        return parts.url ?? item.link ?? URL(string: "https://hootnews.nl")!
+        return parts.url ?? item.link ?? URL(string: "https://gethoot.app")!
     }
 }

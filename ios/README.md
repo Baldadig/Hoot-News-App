@@ -1,6 +1,6 @@
 # Hoot voor iOS
 
-Een native SwiftUI-app (iOS 26, Liquid Glass) op dezelfde server als de web-app (hootnews.nl).
+Een native SwiftUI-app (iOS 26, Liquid Glass) op dezelfde server als de web-app (gethoot.app).
 
 ## Op je eigen iPhone zetten
 

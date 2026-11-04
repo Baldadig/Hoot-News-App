@@ -1,6 +1,6 @@
 import Foundation
 
-// De vormen van de Hoot-API (hootnews.nl/api/feed en /api/vak). Alles optioneel wat de server
+// De vormen van de Hoot-API (gethoot.app/api/feed en /api/vak). Alles optioneel wat de server
 // soms weglaat, zodat een nieuw of ontbrekend veld de app nooit laat vastlopen.
 
 struct Source: Codable, Identifiable, Hashable {

@@ -147,4 +147,4 @@ export const EDITION_CATS = new Set(['nl', 'int', 'economie', 'tech', 'wetenscha
 export const PER_SOURCE_LIMIT = 30
 export const LIMIT_BY_CAT = { regio: 20, vl: 25, sport: 20, games: 15, cultuur: 15 }
 export const editionWindowOf = (src) => (src?.music ? 12 : LIMIT_BY_CAT[src?.cat] || PER_SOURCE_LIMIT)
-export const UA = 'HootReader/0.4 (+https://hootnews.nl) news aggregator'
+export const UA = 'HootReader/0.4 (+https://gethoot.app) news aggregator'

@@ -213,7 +213,7 @@ final class HootStore {
         if !own.isEmpty, !own.isSubset(of: bskyInStream) { bskyInStream.formUnion(own) }
     }
 
-    // Eenmalig instellingen overnemen (van je account op hootnews.nl), uit een bestand dat
+    // Eenmalig instellingen overnemen (van je account op gethoot.app), uit een bestand dat
     // `import.json` heet in de map van de app (Application Support/Hoot). Daarna weg.
     private struct Import: Decodable {
         struct Prefs: Decodable {
