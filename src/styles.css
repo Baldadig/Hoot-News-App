@@ -65,16 +65,17 @@
   /* Type */
   /* Lezen in serif, bedienen in sans. Drie rollen, alle letters meegeleverd (main.jsx, src/fonts):
      --serif  koppen, displays en de nummers 01–10: Newsreader 800, statisch (optische maat uit)
-     --lees   lopende tekst (leads, intro's, de Editie in één minuut, proza): Newsreader op
+     --lees   intro's en artikeltekst (leads, de Editie in één minuut, posts): Newsreader op
               tekstmaat (variabel, optische maat aan), 400; Nacht 430
-     --sans   bediening, labels, metadata, knoppen en de onboardingzinnen: Schibsted Grotesk (variabel,
-              400–900), meegeleverd; vervangt Inter (keuze Alex, 4 november) */
+     --sans   bediening, labels, metadata, knoppen en alle uitleg- en hulpzinnen: Schibsted Grotesk
+              (variabel, 400–900), meegeleverd; vervangt Inter (keuze Alex, 4 november) */
   --serif: 'Newsreader', ui-serif, Georgia, 'Times New Roman', serif;
   --lees: 'Newsreader', ui-serif, Georgia, 'Times New Roman', serif;
   --sans: 'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  /* Uitleg: een uitlegzin onder een kop (het welkom, een lege bladzijde, de Selectie) is lezen, geen
-     bediening: Newsreader op tekstmaat, 17/24, zoals de landing en .uitleg() in de app (Letters.swift). */
-  --uitleg: var(--lees);
+  /* Uitleg: een uitleg- of hulpzin in de bediening (het welkom, een lege bladzijde, de Selectie, een
+     paneel, een melding, Over en Privacy) staat schreefloos: Schibsted Grotesk op tekstmaat, 17/24.
+     Newsreader is alleen voor koppen, intro's en artikeltekst (besluit Alex, 4 november). */
+  --uitleg: var(--sans);
   --t-uitleg: var(--t3);
   --lh-uitleg: var(--lh-2-read);
 
@@ -152,9 +153,11 @@
   --thumb-h: 64px;
   --thumb-sm: 64px; /* klein beeld op de voorpagina en in een linkkaart (vierkant) */
   /* Beeldverhoudingen. Tijdlijn 2:1 is een besluit (iOS FramedImage ratio 2): het beeld over de
-     volle kolom. Het hoofdverhaal op een telefoon en de grote kaart van de Selectie vanaf 720 zijn
-     ook 2:1, maar een eigen keuze; daarom een eigen naam, zodat de een niet met de ander meeschuift. */
+     volle kolom. De grote kaart van de Selectie (vanaf 720) is ook 2:1, maar een eigen keuze; het
+     hoofdverhaal op een telefoon is 16:9, zoals de app. Elk een eigen naam, zodat de een niet met
+     de ander meeschuift. */
   --media-tl: 2 / 1;
+  --media-feature: 2 / 1; /* grote kaart van de Selectie (.dcard--feature), vanaf 720 */
   --media-lead: 16 / 9; /* zoals de app (EditionView: ratio 16 / 9) */
   --media-lead-portrait: 4 / 5;
   --media-lead-portrait-wide: 3 / 4;
@@ -199,6 +202,7 @@
   --t4: min(1.25rem, 40px); /* 20: de rijkop, zoals de app (.title3) */
   --t-head-lg: min(1.375rem, 44px); /* 22 */
   --t5: min(1.75rem, 56px); /* 28: schermtitel en verhaaltitel, zoals de app (.title) */
+  --t-screen: min(var(--t5), 13vw); /* schermtitel: bij 310 % op een telefoon blijft "Middageditie" (6,6 em) op één regel; op 390 is 13vw = 50,7 */
   --t6: min(2.125rem, 68px); /* 34: hoofdverhaal, zoals de app (.largeTitle) */
   --t-display: min(2rem, 64px); /* 32 */
   /* Bovengrens op koppen: ze groeien mee met Tekstgrootte (rem) tot twee keer hun maat. Bij 310 %
@@ -468,26 +472,21 @@ p {
 }
 
 /* Lopende tekst: Newsreader op tekstmaat (--lees). Alles wat je leest en niet bedient: de intro van
-   een verhaal (hoofdverhaal, lijst, voorpagina, Selectie, vergelijkpaneel), de tekst van een post,
-   De Editie in één minuut en proza. De maat blijft bij de klasse zelf; een intro is 17/24 (1,42). */
-:is(.lead__sum, .compact__sum, .fitem__sum, .srcitem__sum, .dcard__sum, .social__text, .reader__p, .prose p, .prose ul) {
+   een verhaal (hoofdverhaal, lijst, voorpagina, Selectie, vergelijkpaneel), de tekst van een post en
+   De Editie in één minuut. Uitleg en hulp (--uitleg) is schreefloos, zie hieronder. De maat blijft bij de klasse zelf; een intro is 17/24 (1,42). */
+:is(.lead__sum, .compact__sum, .fitem__sum, .srcitem__sum, .dcard__sum, .social__text, .reader__p) {
   font-family: var(--lees);
   font-weight: var(--fw-lees);
   font-optical-sizing: auto;
 }
-/* Uitlegzinnen: de zin onder een kop in het welkom, de tekst van een lege bladzijde en de Selectie. */
-:is(.ob__sub, .ob__lede, .ob__ttext, .ob__empty, .empty__text, .dempty__text) {
+/* Uitlegzinnen: de zin onder een kop in het welkom, de tekst van een lege bladzijde, de Selectie en de
+   pagina's Over en Privacy. Schreefloos (--uitleg), op de maat van een intro: 17/24. */
+:is(.ob__sub, .ob__lede, .ob__ttext, .ob__empty, .empty__text, .dempty__text, .prose p, .prose ul) {
   font-family: var(--uitleg);
   font-weight: var(--fw-lees);
   font-optical-sizing: auto;
   font-size: var(--t-uitleg);
   line-height: var(--lh-uitleg);
-}
-
-/* Onboardingzinnen schreefloos (keuze Alex, 4 november): de zinnen in het Welkom staan in Schibsted
-   Grotesk, op dezelfde maat 17/24. Lege bladzijden en de Selectie houden Newsreader. */
-:is(.ob__sub, .ob__lede, .ob__ttext, .ob__empty) {
-  font-family: var(--sans);
 }
 
 a {
@@ -1147,13 +1146,22 @@ select {
   flex: 1 1 auto;
   min-width: 0;
   max-inline-size: 100%;
-  overflow-wrap: anywhere; /* een lang woord in een grote titel breekt in plaats van te overlopen */
+  /* Geen overflow-wrap: anywhere: dat breekt een titel op een teken, zonder streepje ("Avondedi / tie").
+     Een woord dat breder is dan de kolom krijgt zijn streepje van lib/kop-afbreken.js (.kop-woord). */
 }
 
 .vh__title {
   display: flex;
+  flex-wrap: wrap; /* de zon van de Editie valt onder de naam als die de hele regel nodig heeft (grote tekst) */
   align-items: center;
+  column-gap: 0;
   min-height: var(--tap); /* even hoog als de knoppen ernaast: de rij lijnt op het midden */
+  font-size: var(--t-screen);
+}
+.vh__title > .edtitle__text {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-inline-size: 100%;
 }
 
 .acct.is-in > span,
@@ -1977,7 +1985,7 @@ select.input {
 }
 
 /* Hoofdverhaal: overal beeld eerst, zoals de app; dan rubriek, kop, kern en de bronregel, die zo
-   bij zijn tekst blijft. Op een telefoon 2:1; vanaf 720 een liggende strook (21:9, ± 300 px hoog),
+   bij zijn tekst blijft. Op een telefoon 16:9 (zoals de app); vanaf 720 een liggende strook (21:9, ± 300 px hoog),
    zodat kop en kern van het eerste verhaal zonder scrollen in beeld staan. */
 .lead__link {
   display: flex;
@@ -2471,7 +2479,7 @@ select.input {
   width: 60%;
   height: var(--s2);
 }
-/* Het hoofdverhaal van de Editie: beeld eerst (2:1, vanaf 720 de strook van 21:9, zoals
+/* Het hoofdverhaal van de Editie: beeld eerst (16:9, vanaf 720 de strook van 21:9, zoals
    .media--lead), dan rubriek, kop op de maat van .head-6 en twee regels kern. */
 /* In .front: de lijn tussen verhaal en rijen is van .front__side (boven, of breed links). */
 .sk--lead {
@@ -3216,6 +3224,11 @@ select.input {
   height: 0.75em;
   margin-left: 0.3em;
   align-self: center;
+}
+/* Bij toegankelijkheidsmaten valt de zon onder de naam (de naam krijgt de hele regel), links op de kolomlijn. */
+html[data-systeem='ax'] .vh__title > .sun--kop {
+  margin-left: 0;
+  margin-top: var(--s1);
 }
 .endcap .sun {
   --sun-disc: var(--on-brand-red);
@@ -4620,6 +4633,11 @@ html[data-images='hoofd'] .fitem__link {
 .edmeta > span {
   white-space: nowrap;
 }
+/* Bij grote tekst kan één deel breder zijn dan de kolom ("Dinsdag 3 november" op 390 bij 310 %): dan
+   breekt het tussen woorden in plaats van afgekapt te worden. */
+html[data-systeem='ax'] .edmeta > span {
+  white-space: normal;
+}
 .edmeta > :not(:last-child)::after {
   content: '·\200B';
   margin-inline: var(--s2);
@@ -4966,7 +4984,7 @@ html[data-images='hoofd'] .fitem__link {
 }
 @media (min-width: 720px) {
   .dcard--feature .dcard__media {
-    aspect-ratio: var(--media-lead);
+    aspect-ratio: var(--media-feature);
   }
   .dcard--feature .dcard__body,
   .dcard--feature .dcard__foot {

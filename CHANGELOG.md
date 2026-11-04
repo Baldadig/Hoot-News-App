@@ -4,6 +4,9 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- Web, grote tekst op touch: de schermtitel breekt niet meer midden in een woord zonder streepje ("Middageditie" blijft op één regel, een te breed woord krijgt zijn streepje), de zon valt onder de naam en de datumregel breekt tussen woorden in plaats van afgekapt te worden.
+- Web: uitleg- en hulpzinnen (lege staten, Welkom, Selectie, Over en Privacy) staan schreefloos in Schibsted Grotesk; Newsreader blijft voor koppen, intro's en artikeltekst. De grote kaart van de Selectie houdt zijn eigen beeldverhouding (2:1).
+
 ## 1.58.0 · 3 november 2026
 
 - Hoot staat in de App Store. De landingspagina linkt nu naar de App Store (knop in de opening, link in de afsluiting, smart app banner in Safari op iPhone) in plaats van "Binnenkort in de App Store".
