@@ -6,6 +6,7 @@ import UIKit
 //   Lees    Newsreader op tekstmaat (17) voor lopende tekst: intro's, de tekst van een post, de lezer;
 //           in Nacht op gewicht 430, zodat de dunne halen op zwart niet breken
 //   UI      Inter 400 · 600 · 700 · 800 voor bediening, labels, metadata en knoppen
+//   Uitleg  een uitlegzin is lezen: Newsreader 17/24 (.uitleg()), zoals de landing en --uitleg op het web
 // De letters staan in Resources/Fonts (scripts/build-fonts.py) en worden via UIAppFonts geladen.
 // Alles met `relativeTo:`, zodat Dynamische tekst blijft werken; maten zijn die van de tekststijl
 // bij de standaardgrootte (Large).
@@ -13,6 +14,7 @@ enum Letters {
     static let kop = "NewsreaderKop-ExtraBold"
     static let lees = "NewsreaderTekst-Regular"
     static let leesNacht = "NewsreaderTekst-Nacht"
+    static let leesVet = "NewsreaderTekst-Bold"
 
     // Inter kent vier standen. Medium valt op regular (Inter 500 bestaat niet in de bundel, en het
     // web gebruikt 500 niet voor bediening); heavy en black worden 800.
@@ -67,6 +69,10 @@ extension Font {
         .custom(Letters.kop, size: Letters.size(style), relativeTo: style)
     }
     static func kop(size: CGFloat) -> Font { .custom(Letters.kop, fixedSize: size) }
+    // Een kop op leesmaat in Newsreader Tekst vet (700), zoals .ob__lt op het web (welkom: het voorbeeld).
+    static func leesVet(_ style: Font.TextStyle = .body) -> Font {
+        .custom(Letters.leesVet, size: Letters.size(style), relativeTo: style)
+    }
     // Lopende tekst in Newsreader op tekstmaat. Liever .leestekst(), dat ook de regelafstand en Nacht zet.
     static func lees(_ style: Font.TextStyle = .body, nacht: Bool = false) -> Font {
         .custom(nacht ? Letters.leesNacht : Letters.lees, size: Letters.size(style), relativeTo: style)
@@ -87,6 +93,9 @@ struct Leestekst: ViewModifier {
 
 extension View {
     func leestekst(_ style: Font.TextStyle = .body) -> some View { modifier(Leestekst(style: style)) }
+    // Een uitlegzin (de zin onder een kop in het welkom, de tekst van een lege bladzijde, de kaart
+    // "Maak Hoot van jou"): lezen, dus Newsreader 17/24, zoals de landing en --uitleg op het web.
+    func uitleg() -> some View { leestekst(.body) }
 }
 
 extension Font.TextStyle {

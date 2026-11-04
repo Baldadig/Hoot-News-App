@@ -3121,7 +3121,9 @@ select.input {
   text-wrap: balance;
 }
 .ob__lede {
-  max-inline-size: 28ch;
+  /* In em, niet in ch (zie --measure-prose): 15.5em is in Newsreader 17 zo'n 264 px, en zo breekt de
+     zin na "bronnen," in twee regels, zoals de app ("…bronnen,\nrustig op een rij."). Nagemeten op 320, 390 en 1280. */
+  max-inline-size: 15.5em;
   margin-top: var(--s3);
   color: var(--ink-2);
   font-size: var(--t4);
