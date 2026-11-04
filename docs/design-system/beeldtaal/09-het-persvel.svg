@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="Merkrood vlak met twee papieren lijnen en een papieren halve zon ertussen">
+  <rect width="240" height="240" fill="#A3201B"/>
+  <rect x="24" y="55" width="192" height="2" fill="#F5F1E8"/>
+  <path d="M72 168A48 48 0 0 1 168 168Z" fill="#F5F1E8"/>
+  <rect x="24" y="167" width="192" height="2" fill="#F5F1E8"/>
+  <rect x="24" y="188" width="192" height="1" fill="#F5F1E8"/>
+  <rect x="24" y="196" width="192" height="1" fill="#F5F1E8"/>
+  <rect x="24" y="204" width="120" height="1" fill="#F5F1E8"/>
+</svg>

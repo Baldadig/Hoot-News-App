@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="Een papieren maansikkel op inkt, met een kleine rode punt bij de horizon">
+  <defs><mask id="m10"><rect width="240" height="240" fill="#fff"/><circle cx="138" cy="92" r="52" fill="#000"/></mask></defs>
+  <rect width="240" height="240" fill="#1A1814"/>
+  <circle cx="112" cy="112" r="56" fill="#F5F1E8" mask="url(#m10)"/>
+  <rect x="24" y="200" width="192" height="1" fill="#F5F1E8"/>
+  <circle cx="204" cy="188" r="6" fill="#A3201B"/>
+</svg>

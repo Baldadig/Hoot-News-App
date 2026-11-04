@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="Vijf overlappende cirkels op een lijn, de voorste rood, met een korte rode streep op de lijn">
+  <rect width="240" height="240" fill="#F5F1E8"/>
+  <g fill="#F5F1E8" stroke="#1A1814" stroke-width="2">
+    <circle cx="64" cy="116" r="28"/>
+    <circle cx="92" cy="116" r="28"/>
+    <circle cx="120" cy="116" r="28"/>
+    <circle cx="148" cy="116" r="28"/>
+  </g>
+  <circle cx="176" cy="116" r="29" fill="#A3201B"/>
+  <rect x="24" y="176" width="192" height="2" fill="#1A1814"/>
+  <rect x="24" y="175" width="48" height="4" fill="#A3201B"/>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="Een diagonaal deelt het vlak in papier en inkt; een cirkel is rood op het papier en papier op de inkt">
+  <defs>
+    <clipPath id="c5a"><path d="M0 0H240L0 240Z"/></clipPath>
+    <clipPath id="c5b"><path d="M240 0V240H0Z"/></clipPath>
+  </defs>
+  <rect width="240" height="240" fill="#F5F1E8"/>
+  <path d="M240 0V240H0Z" fill="#1A1814"/>
+  <circle cx="120" cy="120" r="64" fill="#A3201B" clip-path="url(#c5a)"/>
+  <circle cx="120" cy="120" r="64" fill="#F5F1E8" clip-path="url(#c5b)"/>
+</svg>
