@@ -2,10 +2,9 @@
 // functies (tests/streamline.test.mjs). Het tekenen en bewegen staat in components/StreamLine.jsx.
 import { INTERESTS } from './topics.js'
 
-// Maten van de stapel, gelijk aan de tokens in styles.css (--tap, --s1, --s2, --s4).
+// Maten van de stapel, gelijk aan de tokens in styles.css (--tap, --s2, --s3, --s4).
 export const TAP = 44 // aanraakvlak van elk bolletje
-export const GAP = 4 // tussen de open bolletjes
-export const STEP_OPEN = TAP + GAP // 48
+export const STEP_OPEN = TAP // 44: open naast elkaar, 8 tussen de logo's van 36
 export const LOGO = 36 // logo in de open rij
 export const SMALL = 28 // dicht: 36 − 8
 export const STEP = 16 // dicht: half over elkaar
@@ -14,6 +13,9 @@ export const EDGE = (TAP - SMALL) / 2 // 8: kolomrand tot het voorste logo, dat 
 export const PAD = 8 // binnenrand van de stapelknop, en tussen naam en logo's
 export const DECK_MAX = 3
 export const STRIP_FADE = 24 // vervaagde rand van de open rij
+// Uitloop (--uit, 12): zoveel mag de rij buiten de lijn tekenen, zodat de rode ring en het vinkje
+// van Alle bronnen niet door de rand worden afgesneden. Een vervaging begint op de lijn zelf.
+export const UITLOOP = 12
 
 export const joinNL = (a) => (a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' en ' + a[a.length - 1])
 

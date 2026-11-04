@@ -57,12 +57,16 @@ struct StreamLine: View {
     private static let scale = small / logo
     private static let step = Space.s4 // dicht: half over elkaar
     private static let peekStep = Space.s4 + Space.s1 // met de aanwijzer erover
-    private static let stepOpen = Space.tap + Space.s1 // open: knoppen van 44, 4 ertussen
+    private static let stepOpen = Space.tap // open: knoppen van 44 naast elkaar, 8 tussen de logo's
     private static let pad = Space.s2 // binnenrand van de stapelknop, en tussen naam en logo's
     private static let edgeBasis = (Space.tap - small) / 2 // 8: het voorste logo in een vak van 44 aan de rand
     // Drie logo's in de stapel; bij grote tekst één, zodat de rubrieken ruimte houden ("Buiten je bubbel" heel).
     private var deckMax: Int { typeSize.isAccessibilitySize ? 1 : 3 }
     private static let ring: CGFloat = 3.2 // papierring om het logo; dicht 3,2 × 28/36 = 2,5
+    // Uitloop van de rij: de rode ring vult het vak van 44 en het vinkje steekt er 2 buiten, en
+    // het vak van Alle bronnen schuift tot 8 voorbij de kolomlijn (onder de knop rechtsboven).
+    // Zoveel mag de rij buiten zijn rand tekenen, aan de kant zonder zachte rand: 8 + 2 ≤ 12.
+    private static let uitloop = Space.s3
     private nonisolated static let ruimte = "rubrieken" // coördinaten van de rubriekenrij
 
     var body: some View {
@@ -200,13 +204,13 @@ struct StreamLine: View {
 
     // ---- Bronnen ----
 
-    // Open staat elk bolletje op zijn eigen plek in de rij (van rechts naar links, stap 48). Dicht
+    // Open staat elk bolletje op zijn eigen plek in de rij (van rechts naar links, stap 44). Dicht
     // schuift het terug naar zijn plek in de stapel (stap 16, 28 groot) of verdwijnt erachter; Alle
     // bronnen ligt dan onzichtbaar op het voorste logo, en verschijnt daar bij openen.
     private func bronnenRij(deck: [String]) -> some View {
         let bollen = [Bol(id: Bol.alle, bron: nil)] + bronnen.map { Bol(id: $0.id, bron: $0) }
         return ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: Space.s1) {
+            HStack(spacing: 0) {
                 ForEach(Array(bollen.enumerated().reversed()), id: \.element.id) { i, b in
                     bolletje(b, i: i, deck: deck)
                         // Voorlezen zoals je kijkt: eerst Alle bronnen (rechts), dan naar links.
@@ -222,7 +226,13 @@ struct StreamLine: View {
         .scrollDisabled(!open)
         .scrollBounceBehavior(.basedOnSize)
         .onScrollGeometryChange(for: Schuif.self) { Schuif($0) } action: { _, s in rij = s }
-        .mask(rand(links: open && rij.links ? Space.s5 : 0, rechts: open && rij.vanRechts > 1 ? Space.s5 : 0))
+        // Niet op de rand van de rij knippen (dan valt de ring van Alle bronnen half weg), maar met
+        // het masker: de zachte rand van 24 waar nog bolletjes liggen, verder `uitloop` ruimte.
+        // Links alleen als daar niets meer ligt, ook dicht: wat wegglijdt, komt niet in de kantlijn.
+        .scrollClipDisabled()
+        .mask(rand(links: open && rij.links ? Self.zacht : 0, rechts: open && rij.vanRechts > 1 ? Self.zacht : 0,
+                   uitLinks: rij.links ? 0 : Self.uitloop, uitRechts: open && rij.vanRechts > 1 ? 0 : Self.uitloop,
+                   uitHoog: Self.uitloop))
         .frame(height: band)
         .allowsHitTesting(open)
         .accessibilityElement(children: .contain)
@@ -418,13 +428,18 @@ struct StreamLine: View {
     }
     private var snel: Animation? { reduceMotion ? nil : .timingCurve(0.2, 0.7, 0.2, 1, duration: 0.14) } // gewone bediening
 
-    // Vervaagde randen van een rij: alleen aan de kant waar nog iets ligt.
-    private func rand(links: CGFloat, rechts: CGFloat) -> some View {
+    // Vervaagde randen van een rij: alleen aan de kant waar nog iets ligt. Met `uit…` reikt het
+    // masker zover buiten de rij, zodat wat daar uitsteekt (ring, vinkje) heel blijft; een
+    // vervaging begint altijd op de rand van de rij.
+    private func rand(links: CGFloat, rechts: CGFloat, uitLinks: CGFloat = 0, uitRechts: CGFloat = 0, uitHoog: CGFloat = 0) -> some View {
         HStack(spacing: 0) {
             LinearGradient(colors: [.clear, .black], startPoint: .leading, endPoint: .trailing).frame(width: links)
             Rectangle()
             LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing).frame(width: rechts)
         }
+        .padding(.leading, -uitLinks)
+        .padding(.trailing, -uitRechts)
+        .padding(.vertical, -uitHoog)
     }
 
     private func zeg(_ tekst: String) { AccessibilityNotification.Announcement(tekst).post() }
