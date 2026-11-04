@@ -1,6 +1,7 @@
 import { CORRECTION_REASONS } from '../lib/corrections.mjs'
 import { cleanIntro, headlineTier } from '../../shared/edition-display.mjs'
 import { createContext, useContext, useState } from 'react'
+import { useStackWhenCramped } from '../hooks/useStackWhenCramped.js'
 import { timeAgo, readTime } from '../lib/time.js'
 import { BookmarkIcon, PlayIcon, MoreIcon, ShareIcon, CaretIcon, ICON_SM } from './icons.jsx'
 import { imageMeta, portraitImage, cropStyle } from '../lib/image-meta.js'
@@ -133,8 +134,9 @@ export function Meta({ item, story, showSave = true, taste = null, outside = fal
   const { openStory, newInStory, voteOn, reportMistake } = useHoot()
   const fresh = story ? newInStory(story) : 0
   const others = story ? story.sourceCount - 1 : 0
+  const metaRef = useStackWhenCramped(`${item.id}|${others}|${outside}`)
   return (
-    <div className="meta">
+    <div className="meta" ref={metaRef}>
       <SourceMeta item={item} outside={outside} />
       {story && others > 0 ? (
         // Eén bronlabel, overal hetzelfde: het totaal, "6 bronnen ›", in --ink-2 (minder rood, keuze B).
@@ -285,6 +287,7 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
 // bewaren rechts. Geen kale link in de tekst: die staat in de linkkaart.
 export function SocialItem({ item }) {
   const { markRead, read, openSource } = useHoot()
+  const metaRef = useStackWhenCramped(item.id)
   // Een staand beeld wordt hooguit 4:5, een liggend hooguit 2,4:1; de breedte is altijd de kolom.
   const ratio = item.imageRatio ? Math.min(2.4, Math.max(0.8, item.imageRatio)) : null
   // Drie soorten beeld: een gedeelde link (linkkaart), een eigen foto en video (16:9 met afspeelknop).
@@ -321,7 +324,7 @@ export function SocialItem({ item }) {
         ) : null}
       </a>
       {playable ? <Video src={item.video} poster={item.videoPoster} label={`Video van ${item.sourceName} afspelen`} style={{ aspectRatio: 16 / 9 }} /> : null}
-      <div className="meta">
+      <div className="meta" ref={metaRef}>
         <button type="button" className="srcbtn srcmeta" onClick={() => openSource(item.source)} aria-label={`Alles van ${item.sourceName} bekijken`}>
           <SourceMark source={srcOf(item)} size={24} />
           <span className="srcmeta__text">

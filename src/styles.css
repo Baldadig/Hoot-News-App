@@ -1744,17 +1744,37 @@ select.input {
   }
 }
 
+/* Past de bronnaam niet naast de knoppen (useStackWhenCramped zet data-stack), dan dezelfde vorm als de
+   smalle kolom: de bron op een eigen regel, eronder "N bronnen" en de knoppen op hun plek. */
+.meta[data-stack] {
+  grid-template-areas:
+    'src src src src src'
+    'more more taste share save';
+}
+.meta[data-stack] > .morebtn {
+  justify-self: start;
+}
+.meta[data-stack]:has(> :is(.taste, .taste__said)) {
+  grid-template-areas:
+    'src src src src src'
+    'more . . . .'
+    'taste taste taste share save';
+}
+
 /* Bronregel: logo (--slot-sm) en --s2, dan naam en tijd onder elkaar; tekst dus op 32. */
 .srcmeta__text {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
+/* Een bronnaam wordt nooit afgekapt met een beletselteken (huisregel): past hij niet naast de knoppen, dan
+   breekt hij netjes op een spatie, of anders op een lettergreepgrens van de browser. */
 .srcmeta__name,
-.srcmeta__time {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.srcmeta__time,
+.srcbtn__name,
+.srcbtn__time {
+  overflow-wrap: break-word;
+  text-wrap: balance;
 }
 .srcmeta__name {
   color: var(--ink);
@@ -1789,12 +1809,6 @@ select.input {
   flex-direction: column;
   min-width: 0;
   line-height: var(--lh-2);
-}
-.srcbtn__name,
-.srcbtn__time {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .srcbtn__time {
   color: var(--ink-3);
