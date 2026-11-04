@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Dialog, DialogHeader } from './Dialog.jsx'
 import { pendingShown, PENDING_TEXT } from '../lib/membership.js'
 import { useOnline } from '../hooks/useOnline.js'
+import { AccountIcon } from './icons.jsx'
 
 // "Inloggen met Google" volgens Googles richtlijnen voor de knop (donker thema): hun eigen
 // G in kleur, Roboto Medium, bijna zwart met een grijze rand. Kleuren en letter liggen vast.
@@ -23,29 +24,41 @@ export function GoogleButton({ onClick, wide = false }) {
   )
 }
 
-// Account in Instellingen: inloggen, wie je bent en synchroniseren.
+// Account in Instellingen: inloggen, wie je bent en synchroniseren. Bovenaan Instellingen als
+// accountkaart met de samenvatting van je Hoot (`summary`, Instellingen A met de samenvatting uit B).
 const SYNC = { idle: 'Gesynchroniseerd', pending: 'Wacht op verbinding', syncing: 'Synchroniseren…', ok: 'Gesynchroniseerd', error: 'Synchroniseren lukte niet; straks opnieuw' }
 
-export function AccountSettings({ account, syncStatus }) {
+export function AccountSettings({ account, syncStatus, summary = null }) {
   const { status, user, signIn, signOut } = account
   const pending = pendingShown(account, useOnline())
   if (status === 'loading') return <p className="hint">Even geduld…</p>
   if (status === 'out')
     return (
-      <div className="setrow setrow--stack">
-        <div className="setrow__text">
-          <span className="setrow__label">Inloggen</span>
-          <span className="setrow__hint">Op al je toestellen</span>
+      <div className="acard">
+        <div className="acard__row">
+          <span className="acard__av" aria-hidden="true">
+            <AccountIcon />
+          </span>
+          <div className="setrow__text">
+            <span className="acard__name">Inloggen</span>
+            <span className="setrow__hint">Bewaar je Hoot op al je toestellen</span>
+            {summary ? <span className="setrow__hint acard__sum">{summary}</span> : null}
+          </div>
         </div>
         <GoogleButton onClick={signIn} />
+        <p className="sheet__note acard__note">Lezen kan zonder account.</p>
       </div>
     )
   const email = user?.email || 'je account'
   return (
-    <div className="rows">
-      <div className="setrow">
+    <div className="acard">
+      <div className="acard__row">
+        <span className="acard__av acard__av--in" aria-hidden="true">
+          {email.slice(0, 1).toUpperCase()}
+        </span>
         <div className="setrow__text">
-          <span className="setrow__label">{email}</span>
+          <span className="acard__name">{email}</span>
+          {summary ? <span className="setrow__hint acard__sum">{summary}</span> : null}
           <span className="setrow__hint">{pending ? PENDING_TEXT : account.status === 'in' && !account.profile ? SYNC.pending : SYNC[syncStatus] || SYNC.ok}</span>
         </div>
         <button type="button" className="btn btn--quiet" onClick={signOut}>

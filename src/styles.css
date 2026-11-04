@@ -4103,6 +4103,104 @@ html[data-images='hoofd'] .media--social {
 .setrow--link {
   cursor: pointer;
 }
+/* Instellingen A: een sectiekop in gewone zinsvorm, 15/600 in inkt (I7: kapitalen alleen in de kicker). */
+.sect--plain {
+  color: var(--ink);
+  font-size: var(--t2);
+  font-weight: 600;
+  line-height: var(--lh-2);
+}
+/* Een rij met een menu (I4/I5): het label links, de keuze rechts met het menuteken, de keuzelijst
+   van het systeem onzichtbaar over de hele rij. Past het niet naast elkaar (grote tekst), dan gaat
+   de keuze onder het label. */
+.setrow--menu {
+  position: relative;
+  flex-wrap: wrap;
+  column-gap: var(--s3);
+  row-gap: 0;
+  cursor: pointer;
+}
+.setrow__value {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+  margin-inline-start: auto;
+  color: var(--ink-2);
+  font-size: var(--t2);
+  line-height: var(--lh-2);
+}
+.setrow__value svg {
+  flex: none;
+  color: var(--ink-3);
+}
+.setrow__select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  font-size: 16px; /* geen inzoomen op iOS */
+  cursor: pointer;
+  appearance: none;
+}
+.setrow--menu:has(.setrow__select:focus-visible) {
+  outline: var(--focus-ring);
+  outline-offset: var(--s1);
+}
+/* De voetregel onder een groep: één zin in ink-3. */
+.setfoot {
+  margin: var(--s2) 0 0;
+}
+.setfoot a {
+  color: inherit; /* geen rood in Instellingen, behalve bij Verwijderen */
+  text-decoration-thickness: 1px;
+  text-underline-offset: var(--underline-offset);
+}
+/* De accountkaart bovenaan Instellingen: wie je bent, de samenvatting van je Hoot, en inloggen. */
+.acard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  margin-top: var(--s4);
+  padding: var(--s4);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.acard__row {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+.acard__row > .setrow__text {
+  flex: 1;
+}
+.acard__av {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  border-radius: var(--radius-round);
+  background: var(--tint);
+  color: var(--ink-3);
+  font-family: var(--serif);
+  font-size: var(--t4);
+  font-weight: var(--fw-head);
+}
+.acard__av--in {
+  background: var(--ink);
+  color: var(--paper);
+}
+.acard__name {
+  font-size: var(--t3);
+  line-height: var(--lh-3);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.acard__note {
+  margin: 0;
+}
 /* Wat Hoot van je leerde: de uitleg hangt aan de sectiekop (--s3 erboven en eronder, zoals de kop
    zelf tot de rijen), daarna de rijen met per onderwerp een stille knop. */
 .learned__intro {
@@ -4111,6 +4209,10 @@ html[data-images='hoofd'] .media--social {
 /* Tussenkop boven Vaak gelezen / Minder: een stille kop, lucht erboven op de schaal. */
 .learned__sub {
   margin: var(--s4) 0 var(--s1);
+  color: var(--ink-3);
+  font-size: var(--t1);
+  font-weight: 600;
+  line-height: var(--lh-1);
 }
 /* Een rij die naar een ander scherm gaat: de caret (16, --ink-3) aan het eind, zoals bij een
    uitklapper (.srcgroup), dus op dezelfde plek tegen de rechterlijn. */

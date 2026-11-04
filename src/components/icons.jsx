@@ -62,6 +62,14 @@ export function CaretIcon({ dir = 'right', size = ICON }) {
     </svg>
   )
 }
+// Een keuzemenu (Instellingen): twee kleine carets boven elkaar, zoals de menuknop van iOS.
+export function UpDownIcon({ size = ICON_SM }) {
+  return (
+    <svg viewBox="0 0 256 256" width={size} height={size} aria-hidden="true">
+      <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={20} d="m80 96l48-48l48 48m-96 64l48 48l48-48" />
+    </svg>
+  )
+}
 // Springen (de inhoud van de Selectie): een pijl omlaag in dezelfde lijn als de caret.
 export function JumpIcon({ size = ICON }) {
   return (

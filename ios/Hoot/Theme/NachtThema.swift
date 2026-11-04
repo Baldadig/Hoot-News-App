@@ -90,16 +90,19 @@ struct WeergaveKeuze: View {
     @AppStorage("hoot.weergave") private var value = "system"
     @AppStorage("hoot.weergave.donker") private var evening = "dark"
     var body: some View {
-        Picker("Thema", selection: Binding(get: { Weergave(stored: value).rawValue }, set: { value = $0 })) {
+        // Een menu met een vinkje (Instellingen A); "Als het donker is" alleen bij Automatisch.
+        Picker(selection: Binding(get: { Weergave(stored: value).rawValue }, set: { value = $0 })) {
             ForEach(Weergave.allCases, id: \.rawValue) { option in
                 Text(option.label).tag(option.rawValue).accessibilityLabel(option == .night ? "Nacht, echt zwart" : option.label)
             }
-        }.frame(minHeight: Space.tap)
+        } label: { FormLabel("Weergave", systemImage: "circle.lefthalf.filled") }
+        .frame(minHeight: Space.tap)
         if Weergave(stored: value) == .system {
-            Picker("Als het donker is", selection: Binding(get: { evening == "night" ? "night" : "dark" }, set: { evening = $0 })) {
+            Picker(selection: Binding(get: { evening == "night" ? "night" : "dark" }, set: { evening = $0 })) {
                 Text("Donker").tag("dark")
                 Text("Nacht").tag("night").accessibilityLabel("Nacht, echt zwart")
-            }.frame(minHeight: Space.tap)
+            } label: { FormLabel("Als het donker is", systemImage: "moon") }
+            .frame(minHeight: Space.tap)
         }
     }
 }
