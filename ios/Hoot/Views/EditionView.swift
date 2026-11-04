@@ -153,7 +153,7 @@ struct EditionView: View {
     @Environment(\.nachtActief) private var nacht
     @Environment(EditionAlerts.self) private var alerts
     @AppStorage("seenEdition") private var seenEdition = ""
-    @AppStorage("hoot.alertOffered") private var alertOffered = false // de seintje-vraag is één keer gesteld
+    @AppStorage("hoot.alertOffered") private var alertOffered = false // de seintje-vraag is één keer gesteld (zodra de kaart één keer in beeld is geweest)
     @State private var alertAsk = false // de vraag staat onder de Editie
     @State private var alertYes = false // net ja gezegd: even zeggen wat er komt
     @State private var printedIDs: Set<String> = []
@@ -461,6 +461,7 @@ struct EditionView: View {
             // Het einde van de eerste Editie in beeld: één keer de vraag om een seintje, los van de eindkaart.
             .onChange(of: endVisible) { _, visible in
                 guard visible, !alertAsk, EditionAlerts.offerAfterEdition(permission: alerts.permission, notify: store.notify, offered: alertOffered, browsing: store.browsing) else { return }
+                alertOffered = true // gesteld zodra de kaart in beeld komt: wie niet antwoordt, ziet hem niet weer
                 withAnimation(still ? nil : .easeOut(duration: 0.3)) { alertAsk = true }
             }
             .task { await alerts.refresh() }
@@ -481,7 +482,7 @@ struct EditionView: View {
             .navigationTitle(title) // voor VoiceOver en de terugknop; je ziet de titel in de scroll
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .hootRefresh(indicator: !store.editionRows.isEmpty) { await store.load() }
+            .hootRefresh(indicator: !store.editionRows.isEmpty, label: "Editie", failed: { store.coreFailed }) { await store.load() }
             .hootKopScreen()
             .settingsButton()
             .task(id: store.shownEdition?.id) {
@@ -544,8 +545,8 @@ struct StoryView: View {
             Section {
                 VStack(alignment: .leading, spacing: Space.s2) {
                     // Een beeld bij het verhaal: dat van het hoofdbericht, of anders het eerste scherpe.
-                    if store.showsImage(lead: true), let image = ([lead].compactMap { $0 } + items).lazy.compactMap(\.image).first(where: { ImageURL.fitsHero($0) }) {
-                        FramedImage(url: ImageURL.url(image, .large), ratio: 16 / 9).padding(.bottom, Space.s1)
+                    if store.showsImage(lead: true), let pick = ([lead].compactMap { $0 } + items).lazy.first(where: { ImageURL.fitsHero($0.image) && $0.image != nil }) {
+                        FramedImage(url: pick.pictureURL(.large), ratio: 16 / 9, measure: pick.measure).padding(.bottom, Space.s1)
                     }
                     if let lead {
                         Text(lead.title).font(Theme.headline(.title2)).fixedSize(horizontal: false, vertical: true)

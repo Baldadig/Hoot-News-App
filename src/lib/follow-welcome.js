@@ -55,11 +55,14 @@ export function freePick(list = [], interestId = null) {
 }
 
 // Per gekozen interesse (vaste volgorde) een blok: de gratis aanrader voorop, dan de rest op naam.
-// Een bron mag in meer blokken staan (NYT bij Politiek, Wereld en Economie); volgen is overal één knop.
+// Elke bron staat één keer: in het eerste blok waar hij hoort (NYT bij Politiek, niet nog eens bij
+// Wereld en Economie). Zo heeft elk blok ook precies één aanrader.
 export function interestBlocks(sources = [], interests = []) {
+  const seen = new Set()
   return INTERESTS.filter((i) => interests.includes(i.id))
     .map((i) => {
-      const list = sources.filter((s) => fitsInterest(s, i)).sort(byName)
+      const list = sources.filter((s) => !seen.has(s.id) && fitsInterest(s, i)).sort(byName)
+      list.forEach((s) => seen.add(s.id))
       const pick = freePick(list, i.id)
       return { id: i.id, label: i.label, pick: pick?.id || null, sources: pick ? [pick, ...list.filter((s) => s !== pick)] : list }
     })

@@ -80,6 +80,10 @@ enum StoryLabel {
         let text = whyText?.trimmingCharacters(in: .whitespacesAndNewlines)
         let explicitFollowReason = text?.hasPrefix("Omdat je ") == true && (text?.hasSuffix(" volgt") == true || text?.hasSuffix(" volgt.") == true)
         let keep = text?.isEmpty == false && (!inLabel.contains(whyCode ?? "") || whyDetail) && whyCode != "interest" && !explicitFollowReason
-        return Result(kicker: kicker, why: keep ? whyText : nil, outside: outside)
+        // "Groot nieuws" staat er één keer: de kicker van een brede plek zegt het al, en zegt de kicker
+        // hetzelfde als de waarom-regel, dan valt de waarom-regel weg (gelijk aan label.js).
+        func plain(_ t: String?) -> String { (t ?? "").replacingOccurrences(of: #"\s*·\s*\d+\s+bron(?:nen)?$"#, with: "", options: .regularExpression).trimmingCharacters(in: .whitespaces).lowercased() }
+        let twice = keep && (((desk == "breed" || desk == "bubbel") && whyCode == "groot") || (kicker != nil && plain(kicker) == plain(text)))
+        return Result(kicker: kicker, why: keep && !twice ? whyText : nil, outside: outside)
     }
 }

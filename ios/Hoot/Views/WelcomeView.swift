@@ -28,6 +28,7 @@ struct WelcomeView: View {
     @Environment(\.brandHandoff) private var brand // van het opstartscherm (HootApp)
     @Environment(\.accessibilityReduceMotion) private var still
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.nachtActief) private var nacht
     @ScaledMetric(relativeTo: .largeTitle) private var hero: CGFloat = 38
     @ScaledMetric(relativeTo: .body) private var trioArt: CGFloat = 72
 
@@ -536,7 +537,6 @@ struct WelcomeView: View {
             let blocks = FollowList.blocks(all, interests)
             let rest = FollowList.more(all, interests)
             let restCount = rest.reduce(0) { $0 + $1.sources.count }
-            let picks = Set(start.map(\.id) + blocks.compactMap(\.pick))
             let basis = FollowList.basis(all)
             if !basis.isEmpty {
                 section("Basis") {
@@ -546,19 +546,21 @@ struct WelcomeView: View {
                             chosen = startOn ? mine.filter { !ids.contains($0) } : mine + ids.filter { !mine.contains($0) }
                         }
                         .buttonStyle(.plain)
-                        .font(.subheadline.weight(.bold))
+                        .font(typeSize.isAccessibilitySize ? .caption.weight(.bold) : .subheadline.weight(.bold)) // bij grote tekst niet groter dan de kop
                         .underline()
+                        .lineLimit(1)
+                        .fixedSize()
                         .frame(minHeight: Space.tap)
                         .accessibilityAddTraits(startOn ? .isSelected : [])
                     }
                 }
-                rows(basis, picks: picks)
+                rows(basis, picks: Set(start.map(\.id)))
             }
             ForEach(blocks, id: \.id) { b in
                 section(b.label) {
                     Text("\(b.sources.count)").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink3).monospacedDigit()
                 }
-                rows(b.sources, picks: picks)
+                rows(b.sources, picks: Set([b.pick].compactMap { $0 }))
             }
             if restCount > 0 {
                 if more {
@@ -566,7 +568,7 @@ struct WelcomeView: View {
                         section(g.label) {
                             Text("\(g.sources.count)").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink3).monospacedDigit()
                         }
-                        rows(g.sources, picks: picks)
+                        rows(g.sources)
                     }
                 } else {
                     Button { more = true } label: {
@@ -618,7 +620,7 @@ struct WelcomeView: View {
             SourceAvatar(source: s, size: 40)
             VStack(alignment: .leading, spacing: Space.s0) {
                 Text(s.name).font(.headline)
-                if let about = s.about { Text(about).font(.subheadline).foregroundStyle(Theme.ink2).fixedSize(horizontal: false, vertical: true) }
+                if let about = s.about { Text(about).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(stacked ? 2 : nil).fixedSize(horizontal: false, vertical: true) } // bij grote tekst twee regels: de Volg-knop blijft boven de voet
                 Text((s.paid == true ? "Abonnement" : pick ? "Gratis aanrader" : "Gratis") + (s.lang == "en" ? " · Engels" : ""))
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Theme.ink3)
@@ -641,11 +643,11 @@ struct WelcomeView: View {
                 Text(on ? "Volgend" : "Volg")
             }
             .font(.subheadline.weight(.heavy))
-            .foregroundStyle(on ? Theme.ink : Theme.paper)
+            .foregroundStyle(FollowPill.label(on: on, nacht: nacht))
             .padding(.horizontal, Space.s4)
             .frame(minWidth: 104, minHeight: Space.tap)
-            .background(on ? Color.clear : Theme.ink, in: Capsule())
-            .overlay(Capsule().strokeBorder(on ? Theme.edge : Theme.ink, lineWidth: 1))
+            .background(FollowPill.fill(on: on, nacht: nacht), in: Capsule())
+            .overlay(Capsule().strokeBorder(FollowPill.edge(on: on, nacht: nacht), lineWidth: 1))
             .contentShape(Capsule())
         }
         .buttonStyle(ChoicePress())
@@ -888,10 +890,13 @@ enum FollowList {
     struct Block { let id: String; let label: String; let pick: String?; let sources: [Source] }
 
     // Per gekozen interesse (vaste volgorde) een blok: de gratis aanrader voorop, dan de rest op naam.
+    // Elke bron staat één keer: in het eerste blok waar hij hoort. Zo heeft elk blok ook één aanrader.
     static func blocks(_ sources: [Source], _ interests: [String]) -> [Block] {
-        Rubriek.alle.filter { interests.contains($0.id) }.compactMap { r in
-            let list = sources.filter { fits($0, r) }.sorted(by: byName)
+        var seen = Set<String>()
+        return Rubriek.alle.filter { interests.contains($0.id) }.compactMap { r in
+            let list = sources.filter { !seen.contains($0.id) && fits($0, r) }.sorted(by: byName)
             guard !list.isEmpty else { return nil }
+            seen.formUnion(list.map(\.id))
             let pick = freePick(list, r.id)
             return Block(id: r.id, label: r.label, pick: pick?.id, sources: pick.map { p in [p] + list.filter { $0.id != p.id } } ?? list)
         }
@@ -980,3 +985,12 @@ struct WelcomeMark: View {
     }
 }
 
+
+// Kleuren van de Volg-pil. In Nacht is inkt een licht vlak, te fel op zwart: daar, net als de hoofdknop
+// (InkButtonStyle) en .btn in de Nacht-regels van src/styles.css, een gedempt vlak (inkt op 20 %) met de
+// leesinkt als tekst. Volgend blijft stil: geen vlak, een haarlijn.
+enum FollowPill {
+    static func fill(on: Bool, nacht: Bool) -> Color { on ? .clear : (nacht ? Theme.ink.opacity(0.2) : Theme.ink) }
+    static func label(on: Bool, nacht: Bool) -> Color { on || nacht ? Theme.ink : Theme.paper }
+    static func edge(on: Bool, nacht: Bool) -> Color { on ? Theme.edge : fill(on: false, nacht: nacht) }
+}

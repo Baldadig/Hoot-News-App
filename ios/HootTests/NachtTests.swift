@@ -22,6 +22,23 @@ import SwiftUI
         let black=Theme.paper.resolve(in:environment)
         XCTAssertEqual(black.red,0);XCTAssertEqual(black.green,0);XCTAssertEqual(black.blue,0)
     }
+    // KEURING-3 klein punt 2: de Volg-pillen op de bronnenstap zijn in Nacht geen licht vlak meer,
+    // gelijk aan de hoofdknop en aan .ob__follow op het web (gedempt vlak rgb(43,42,39), leesinkt als tekst).
+    func testFollowPillIsDimmedInNacht() {
+        var night=EnvironmentValues();night.colorScheme = .dark;night.nachtActief = true
+        let fill=FollowPill.fill(on:false,nacht:true).resolve(in:night)
+        XCTAssertEqual(fill.opacity,0.2,accuracy:0.001,"Volg in Nacht: inkt op 20 %, geen licht vlak")
+        let onBlack=UIColor(Color(fill)).cgColor.converted(to:CGColorSpace(name:CGColorSpace.sRGB)!,intent:.defaultIntent,options:nil)!.components!
+        XCTAssertEqual(onBlack[0]*onBlack[3]*255,43,accuracy:1.5,"Samengesteld op zwart gelijk aan het web")
+        XCTAssertEqual(FollowPill.edge(on:false,nacht:true).resolve(in:night),fill)
+        let label=FollowPill.label(on:false,nacht:true).resolve(in:night),ink=Theme.ink.resolve(in:night)
+        XCTAssertEqual(label,ink,"Tekst in de leesinkt")
+        XCTAssertGreaterThan(label.red,0.5)
+        var light=EnvironmentValues();light.colorScheme = .light
+        XCTAssertEqual(FollowPill.fill(on:false,nacht:false).resolve(in:light).opacity,1,"Licht: een vol inktvlak, zoals het was")
+        XCTAssertEqual(FollowPill.label(on:false,nacht:false).resolve(in:light),Theme.paper.resolve(in:light))
+        XCTAssertEqual(FollowPill.fill(on:true,nacht:true).resolve(in:night).opacity,0,"Volgend blijft stil")
+    }
     func testLocalStorageAndReader() {
         let name="hoot-night-test-"+UUID().uuidString
         let defaults=UserDefaults(suiteName:name)!

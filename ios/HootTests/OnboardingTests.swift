@@ -98,6 +98,12 @@ final class OnboardingTests: XCTestCase {
         XCTAssertEqual(wp.map(\.id), ["politiek", "wereld"])
         XCTAssertTrue(wp[1].sources.contains { $0.id == "aljazeera" })
         XCTAssertNil(FollowList.freePick([Source(id: "x", name: "X", paid: true)]))
+        // Elke bron één keer, in het eerste blok waar hij hoort, en elk blok één aanrader.
+        let all = FollowList.blocks(Self.niche, Rubriek.alle.map(\.id))
+        let ids = all.flatMap { $0.sources.map(\.id) }
+        XCTAssertEqual(Set(ids).count, ids.count)
+        let picks = all.compactMap(\.pick)
+        XCTAssertEqual(Set(picks).count, picks.count)
     }
 
     func testSportOnlyWithSportAndTheRestUnderMore() {
@@ -175,6 +181,40 @@ final class OnboardingTests: XCTestCase {
         XCTAssertFalse(HootStore.starter.contains("vi"))
         XCTAssertFalse(HootStore.starterGroups.contains { $0.label == "Sport" })
         XCTAssertEqual(Array(HootStore.starter.prefix(3)), ["nos", "nu", "rtl"])
+    }
+
+    // Elke eindknop van het welkom start de Tien, ook "Liever meteen lezen" (die zet zelf onboarded).
+    @MainActor func testQuickStartStartsTienTheFirstTime() {
+        let store = HootStore()
+        store.onboarded = false
+        store.welcomeAgain = false
+        store.tienStart = nil
+        store.quickStart()
+        XCTAssertNotNil(store.tienStart)
+        XCTAssertTrue(store.onboarded)
+    }
+
+    @MainActor func testQuickStartDoesNotStartTienWhenChoosingAgain() {
+        let store = HootStore()
+        store.onboarded = false
+        store.welcomeAgain = true
+        store.tienStart = nil
+        store.quickStart()
+        XCTAssertNil(store.tienStart)
+        store.onboarded = true
+        store.welcomeAgain = false
+        store.quickStart()
+        XCTAssertNil(store.tienStart)
+    }
+
+    @MainActor func testFinishingWelcomeStartsTienOnlyTheFirstTime() {
+        let store = HootStore()
+        store.onboarded = false; store.welcomeAgain = false; store.tienStart = nil
+        store.beginFirstEdition()
+        XCTAssertNotNil(store.tienStart)
+        store.onboarded = true; store.tienStart = nil
+        store.beginFirstEdition()
+        XCTAssertNil(store.tienStart)
     }
 
     @MainActor func testNoStartingProfession() {

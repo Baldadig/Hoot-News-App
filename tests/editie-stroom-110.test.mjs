@@ -27,6 +27,7 @@ test('eindkaart: op de leesbreedte, één rustige link, gedempt in Nacht (E8, E9
   // Wel na de eerste Editie, als los moment onder de Editie (keuze van Alex), één keer.
   assert.ok(swift.includes('struct AlertOffer'), 'het seintje na de eerste Editie bestaat')
   assert.match(swift, /onChange\(of: endVisible\)[\s\S]{0,200}offerAfterEdition/)
+  assert.match(swift, /offerAfterEdition[\s\S]{0,300}alertOffered = true[\s\S]{0,250}alertAsk = true/, 'gesteld zodra de kaart in beeld komt')
   assert.match(swift, /Text\("Lees verder in de Stroom"\)/)
   assert.match(swift, /\.frame\(maxWidth: Layout\.readable\)/)
 })

@@ -2,7 +2,7 @@ import { PrecacheController, PrecacheRoute } from 'workbox-precaching'
 import { registerRoute } from 'workbox-routing'
 import { NetworkFirst, CacheFirst } from 'workbox-strategies'
 import { ExpirationPlugin } from 'workbox-expiration'
-import { canCleanShell } from './lib/sw-policy.js'
+import { canCleanShell, markCached } from './lib/sw-policy.js'
 
 const shell = new PrecacheController()
 shell.addToCacheList(self.__WB_MANIFEST)
@@ -49,7 +49,8 @@ registerRoute(({request, url}) => url.origin === root.origin && url.pathname.sta
   && ['script', 'style', 'font'].includes(request.destination), new CacheFirst({ cacheName: shell.strategy.cacheName, matchOptions: { ignoreSearch: true } }))
 registerRoute(({url}) => url.origin === root.origin && url.pathname.startsWith('/api/feed'), new NetworkFirst({
   cacheName: 'hoot-feed', networkTimeoutSeconds: 8,
-  plugins: [new ExpirationPlugin({ maxEntries: 8, maxAgeSeconds: 24 * 3600 })],
+  plugins: [new ExpirationPlugin({ maxEntries: 8, maxAgeSeconds: 24 * 3600 }),
+    { cachedResponseWillBeUsed: async ({ cachedResponse }) => markCached(cachedResponse) }],
 }))
 registerRoute(({request}) => request.destination === 'image', new CacheFirst({
   cacheName: 'hoot-images',

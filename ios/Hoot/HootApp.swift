@@ -29,7 +29,7 @@ struct HootApp: App {
     @State private var handoff = BrandHandoff() // waar "hoot." staat: in het welkom of linksboven op het actieve scherm
     private func leaveWelcome() {
         // De eerste keer: Hoot stelt je eerste Editie samen, vanaf de tik (FirstEditionMark.swift).
-        if !store.welcomeAgain && !store.onboarded { store.tienStart = TienModel.clock() }
+        store.beginFirstEdition()
         store.welcomeAgain = false
         store.onboarded = true
     }

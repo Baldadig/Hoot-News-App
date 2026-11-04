@@ -644,6 +644,44 @@ select {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Trekken om te verversen: Horizon v2 (components/PullHorizon.jsx, lib/pull-horizon.js). De strook
+   staat boven de kolom en groeit met je trek; de kolom schuift mee omlaag (alleen transform). De
+   tekening hangt aan de onderkant: horizon 8 boven de rand, zon en ringen in de lucht erboven.
+   Sterke lijn op de drempel: inkt, in Nacht inkt 2 (een lijn van 358 licht 's avonds niet op). */
+.view { --pull-strong: var(--ink); }
+:root[data-theme='night'] .view { --pull-strong: var(--ink-2); }
+/* De strook begint 8 boven de eerste rij van de kop (--head-y): zo staat de horizon, net als in de
+   proef, 16 boven het titelvak, in de bovenmarge die er al is. */
+.pull {
+  position: absolute;
+  top: calc(var(--safe-t) + var(--head-y) - 8px);
+  left: 0;
+  right: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.pull__art {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 128px;
+}
+.pull__art svg { position: absolute; left: 0; bottom: 0; display: block; overflow: hidden; }
+/* Foutzin: 15/20 in inkt 3, gecentreerd in de kolom, onderkant 16 boven de horizon. */
+.pull__msg {
+  position: absolute;
+  bottom: 24px;
+  height: 20px;
+  font-size: 15px;
+  line-height: 20px;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--ink-3);
+  opacity: 0;
+}
+
 .col {
   max-width: var(--readable);
   margin: 0 auto;
@@ -1750,11 +1788,10 @@ select.input {
   flex-direction: column;
   min-width: 0;
 }
+/* Bronnaam en tijd breken om als de regel krap is, zoals op iOS; nooit "…" (geen afgekapte bron). */
 .srcmeta__name,
 .srcmeta__time {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 .srcmeta__name {
   color: var(--ink);
@@ -1792,9 +1829,7 @@ select.input {
 }
 .srcbtn__name,
 .srcbtn__time {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 .srcbtn__time {
   color: var(--ink-3);
@@ -4597,6 +4632,10 @@ html[data-images='hoofd'] .media--social {
   text-align: left;
   cursor: pointer;
 }
+/* Onder het nieuws, vóór het einde: lucht erboven, de lijn eronder blijft de scheiding met het einde. */
+.briefcta--end {
+  margin-top: var(--s6);
+}
 .briefcta__icon {
   display: inline-grid;
   flex: none;
@@ -5119,7 +5158,7 @@ html[data-images='hoofd'] .media--social {
 }
 
 /* De bronnen: één laag over de hele lijn. Open een rij van rechts naar links (Alle bronnen
-   rechts, op de plek van de stapel), knoppen van 44 met 4 ertussen. */
+   rechts, op de plek van de stapel), knoppen van 44 naast elkaar (8 tussen de logo's). */
 .src {
   position: absolute;
   top: 0;
@@ -5130,26 +5169,37 @@ html[data-images='hoofd'] .media--social {
   pointer-events: none;
 }
 .src__scroll {
+  /* Uitloop (UITLOOP): de rij reikt 12 buiten de lijn, met evenveel binnenruimte, zodat de rode
+     ring en het vinkje nooit door de rand worden afgesneden. Het masker knipt op de lijn waar
+     hij vervaagt (--ul, --ur, zie stripEdges), en dicht links. */
+  --uit: var(--s3);
   --fl: 0px;
   --fr: 0px;
+  --ul: var(--uit);
+  --ur: 0px;
   position: absolute;
-  inset: 0;
+  inset: calc(-1 * var(--uit));
   display: flex;
   flex-direction: row-reverse;
   align-items: center;
-  gap: var(--s1);
+  padding: var(--uit);
+  gap: 2px; /* STEP_OPEN − TAP: de rode ringen van twee gekozen bolletjes raken elkaar niet */
   overflow: hidden;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
+  /* alleen de bolletjes vangen tikken, niet de uitloop eromheen */
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to right, transparent var(--ul), #000 calc(var(--ul) + var(--fl)), #000 calc(100% - var(--ur) - var(--fr)), transparent calc(100% - var(--ur)));
+  mask-image: linear-gradient(to right, transparent var(--ul), #000 calc(var(--ul) + var(--fl)), #000 calc(100% - var(--ur) - var(--fr)), transparent calc(100% - var(--ur)));
 }
 .src__scroll::-webkit-scrollbar {
   display: none;
 }
 .line.is-open .src__scroll {
-  pointer-events: auto;
   overflow-x: auto;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fl), #000 calc(100% - var(--fr)), transparent);
-  mask-image: linear-gradient(to right, transparent, #000 var(--fl), #000 calc(100% - var(--fr)), transparent);
+}
+.line.is-open .sb {
+  pointer-events: auto;
 }
 
 .sb {
@@ -5206,8 +5256,8 @@ html[data-images='hoofd'] .media--social {
 }
 .sb__check {
   position: absolute;
-  right: 0;
-  bottom: 0;
+  right: 2px; /* schijf plus papierrand (2) vallen binnen het vak, zoals op iOS */
+  bottom: 2px;
   display: grid;
   place-items: center;
   width: var(--s4);
@@ -5500,6 +5550,13 @@ html[data-images='hoofd'] .media--social {
 .rubriek-stage__old { position:absolute;inset:0;pointer-events:none;overflow:hidden; }
 .rub__bar { transition-duration: var(--dur-2); }
 @media (prefers-reduced-motion: reduce) { .rub__bar { transition-duration: 0s; } }
+
+/* Hoofdknop in Nacht: inkt is hier een licht vlak, te fel op zwart. Een gedempt vlak met de leesinkt
+   als tekst; de rood gevulde .btn--accent en de stille .btn--quiet blijven zoals ze zijn. */
+:root[data-theme='night'] .btn:not(.btn--accent, .btn--quiet) {
+  --btn-fill: color-mix(in srgb, var(--ink) 20%, #000000);
+  --btn-ink: var(--ink);
+}
 
 /* Nacht Zacht papier: lokale uitvoering van Alex' keuze; normtokens bij Claude. */
 :root[data-theme='night'] {

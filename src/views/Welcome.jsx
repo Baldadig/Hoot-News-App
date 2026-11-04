@@ -364,8 +364,9 @@ function Bronnen({ head, sources, items, mine, interests, onPick, onAll, query, 
   const blocks = useMemo(() => interestBlocks(sources, interests), [sources, interests])
   const rest = useMemo(() => moreGroups(sources, interests), [sources, interests])
   const startOn = start.length > 0 && start.every((s) => mine.includes(s.id))
-  const freeIds = new Set([...start.map((s) => s.id), ...blocks.map((b) => b.pick)])
-  const row = (s) => <SourceRow key={s.id} s={s} on={mine.includes(s.id)} pick={freeIds.has(s.id)} onPick={onPick} />
+  // Eén aanrader per blok: in de Basis het gratis begin, in een blok alleen zijn eigen aanrader.
+  const row = (s, picks = new Set()) => <SourceRow key={s.id} s={s} on={mine.includes(s.id)} pick={picks.has(s.id)} onPick={onPick} />
+  const startIds = new Set(start.map((s) => s.id))
   const restCount = rest.reduce((n, g) => n + g.sources.length, 0)
   const q = query.trim()
   let body
@@ -373,7 +374,7 @@ function Bronnen({ head, sources, items, mine, interests, onPick, onAll, query, 
   else if (q) {
     const hits = findSources(sources, q)
     body = hits.length ? (
-      <ul className="ob__list">{hits.map(row)}</ul>
+      <ul className="ob__list">{hits.map((s) => row(s))}</ul>
     ) : (
       <p className="ob__empty" role="status">
         Niets gevonden voor ‘{q}’. Probeer een andere naam.
@@ -381,7 +382,7 @@ function Bronnen({ head, sources, items, mine, interests, onPick, onAll, query, 
     )
   } else if (filter === 'gevolgd') {
     const list = followedSources(sources, mine)
-    body = list.length ? <ul className="ob__list">{list.map(row)}</ul> : <p className="ob__empty">Je volgt nog niets. Begin bij de Basis.</p>
+    body = list.length ? <ul className="ob__list">{list.map((s) => row(s))}</ul> : <p className="ob__empty">Je volgt nog niets. Begin bij de Basis.</p>
   } else {
     body = (
       <>
@@ -397,7 +398,7 @@ function Bronnen({ head, sources, items, mine, interests, onPick, onAll, query, 
                 </button>
               ) : null}
             </div>
-            <ul className="ob__list">{basis.map(row)}</ul>
+            <ul className="ob__list">{basis.map((s) => row(s, startIds))}</ul>
           </section>
         ) : null}
         {blocks.map((b) => (
@@ -408,7 +409,7 @@ function Bronnen({ head, sources, items, mine, interests, onPick, onAll, query, 
               </h2>
               <span className="ob__gcount">{b.sources.length}</span>
             </div>
-            <ul className="ob__list">{b.sources.map(row)}</ul>
+            <ul className="ob__list">{b.sources.map((s) => row(s, new Set([b.pick])))}</ul>
           </section>
         ))}
         {restCount ? (
@@ -421,7 +422,7 @@ function Bronnen({ head, sources, items, mine, interests, onPick, onAll, query, 
                   </h2>
                   <span className="ob__gcount">{g.sources.length}</span>
                 </div>
-                <ul className="ob__list">{g.sources.map(row)}</ul>
+                <ul className="ob__list">{g.sources.map((s) => row(s, new Set()))}</ul>
               </section>
             ))
           ) : (

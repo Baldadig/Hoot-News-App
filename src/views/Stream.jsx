@@ -15,6 +15,7 @@ import { RubriekCrossfade } from '../components/RubriekCrossfade.jsx'
 import { firstImages, latestChoice, warmImages } from '../lib/rubriek-crossfade.js'
 import { imgProps } from '../lib/img.js'
 import { withoutRepeats } from '../../shared/stroom.mjs'
+import { usePullHorizon } from '../components/PullHorizon.jsx'
 
 const PAGE = 60 // zoveel berichten tegelijk; de rest komt erbij terwijl je scrolt
 
@@ -169,8 +170,11 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
     </button>
   )
 
+  const pull = usePullHorizon(ref, { onRefresh, busy: refreshing, failed: statusProps.refreshError, label: 'Stroom', enabled: !loading && !failedLoad && stream.length > 0 })
+
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Stroom" onScroll={(e) => setAtDepth(e.currentTarget.scrollTop > 900)}>
+      {pull}
       <div className={`col col--read${lines.hostClass}`} ref={hostRef}>
         <LoadLinesLayer lines={lines} host={hostRef} />
         <ViewHeader title="Stroom" onRefresh={onRefresh} refreshing={refreshing} updatedAt={statusProps.meta?.updatedAt} tools={filterButton} compare>
