@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { ViewHeader, Skeleton, LoadError } from '../components/Shell.jsx'
-import { SaveButton, ShareButton, SourceMark, useHoot } from '../components/Items.jsx'
+import { SaveButton, ShareButton, SourceMark, useHoot, viaLength } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
 import { ChipGroup } from '../components/ChipGroup.jsx'
 import { Disclosure } from '../components/Disclosure.jsx'
@@ -82,7 +82,8 @@ function Card({ item, rank, feature = false }) {
   // Hele zinnen, nooit "…", gemeten in de kaart (binnenruimte en rand eraf): 3 regels, het eerste
   // stuk 4 regels in de grotere letter (.dcard__sum --lines). De clamp staat een regel ruimer.
   const fit = useIntroMax()(feature ? 4 : 3, feature ? 'kaartEerste' : 'kaart')
-  const summary = wholeSentences(item.summary, fit.max, fit.rek)
+  // Komt hier ooit een geleende intro, dan met zijn bron ("via X"); die tekens gaan van de maat af.
+  const summary = wholeSentences(item.summary, fit.max - viaLength(item), fit.rek - viaLength(item))
   return (
     <article className={`card dcard${feature ? ' dcard--feature' : ''}${showImage ? '' : ' dcard--text'}${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <a className="dcard__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
@@ -98,7 +99,12 @@ function Card({ item, rank, feature = false }) {
           <h3 className={`${feature ? 'head-lg' : 'head-4'} dcard__title`}>{item.title}</h3>
           {/* Waarom dit stuk: rustige metadata onder de kop, zodat de kop voorgaat. */}
           {item.why?.length ? <p className="dcard__why">{item.why.join(' · ')}</p> : null}
-          {summary ? <p className="clamp clamp--vangnet dcard__sum">{summary}</p> : null}
+          {summary ? (
+            <p className="clamp clamp--vangnet dcard__sum">
+              {summary}
+              {item.borrowedFrom ? <span className="via"> — via {item.borrowedFrom}</span> : null}
+            </p>
+          ) : null}
         </div>
       </a>
       <div className="dcard__foot">

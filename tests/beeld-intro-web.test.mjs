@@ -34,6 +34,12 @@ test('intro: Stroom, Editie en vergelijkpaneel gebruiken INTRO_LINES; de clamp v
   assert.match(css, /\.srcitem__sum \{\n  --lines: 3;/)
   // Geleende intro's dragen hun bron, ook in de Editie.
   assert.match(src('src/views/Edition.jsx'), /via \{item\.borrowedFrom\}/)
+  // Ook in het vergelijkpaneel en de Selectie-kaart, met de maat-aftrek; en in de app (DigestView).
+  for (const f of ['src/views/Story.jsx', 'src/views/Vak.jsx']) {
+    assert.match(src(f), /via \{item\.borrowedFrom\}/, f)
+    assert.match(src(f), /fit\.max - viaLength\(item\), fit\.rek - viaLength\(item\)/, f)
+  }
+  assert.match(src('ios/Hoot/Views/DigestView.swift'), /viaLength\) \}\), !intro\.isEmpty \{ Text\(item\.asItem\.introWithSource\(intro\)\)/)
 })
 
 const bundled = await build({ entryPoints: ['src/components/Beeld.jsx'], bundle: true, write: false, platform: 'node', format: 'cjs', jsx: 'automatic', packages: 'external' })

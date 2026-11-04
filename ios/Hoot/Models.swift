@@ -298,9 +298,10 @@ struct DigestItem: Codable, Identifiable, Hashable {
     var why: [String]?
     var via: String?
     var also: [DigestAlso]?
+    var borrowedFrom: String? // komt hier ooit een geleende intro, dan met "via X" (zoals Item)
 
     var asItem: Item {
-        Item(id: id, source: source, kind: "article", sourceName: sourceName, avatar: avatar, title: title, summary: summary, url: url, image: image, publishedAt: publishedAt, author: author)
+        Item(id: id, source: source, kind: "article", sourceName: sourceName, avatar: avatar, title: title, summary: summary, borrowedFrom: borrowedFrom, url: url, image: image, publishedAt: publishedAt, author: author)
     }
 }
 
