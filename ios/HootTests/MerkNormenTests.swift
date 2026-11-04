@@ -29,4 +29,11 @@ import SwiftUI
         XCTAssertEqual(RefreshStrip.close, 0.4)
         XCTAssertTrue([0.14, 0.2, 0.4].contains(RefreshStrip.close))
     }
+    // Lege schermen: zon op de horizon (01) overal, het raster met één punt (04) bij Zoeken.
+    func testLegeSchermenKrijgenDeBeeldtaal() {
+        XCTAssertEqual(EmptyPageKind(symbol: "magnifyingglass").composition, .raster)
+        for symbol in ["bookmark", "newspaper", "water.waves", "bubble.left.and.bubble.right", "tray", "books.vertical"] {
+            XCTAssertEqual(EmptyPageKind(symbol: symbol).composition, .horizon, symbol)
+        }
+    }
 }

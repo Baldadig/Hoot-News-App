@@ -185,7 +185,9 @@ extension View {
     }
 }
 
-// De lege bladzijde: dezelfde paden en het rode detail als de SVG's op het web.
+// De lege bladzijde: dezelfde composities als de SVG's op het web (icons.jsx), uit de beeldtaal van
+// Brand Guide v2.2 (06b), op een raster van 96. Zon op de horizon (01) overal, behalve Zoeken: daar
+// het raster met één punt (04). Eén rode punt per tekening; nooit in de leeslaag.
 enum EmptyPageKind { case saved, search, bluesky, stream, edition
     init(symbol: String) {
         if symbol.contains("bookmark") { self = .saved }
@@ -194,32 +196,31 @@ enum EmptyPageKind { case saved, search, bluesky, stream, edition
         else if symbol.contains("wave") { self = .stream }
         else { self = .edition }
     }
+    enum Composition { case horizon, raster }
+    var composition: Composition { self == .search ? .raster : .horizon }
 }
+enum EmptyPageLayer { case line, thin, dots, dot }
 private struct EmptyPageShape: Shape {
     let kind: EmptyPageKind
-    var accent = false
+    let layer: EmptyPageLayer
     func path(in rect: CGRect) -> Path {
         var p = Path()
-        func line(_ points: [CGPoint]) { guard let first = points.first else { return }; p.move(to: first); for point in points.dropFirst() { p.addLine(to: point) } }
-        if !accent {
-            p.addRoundedRect(in: CGRect(x: 22, y: 14, width: 52, height: 68), cornerSize: CGSize(width: 2, height: 2))
-            line([.init(x: 30,y: 30),.init(x: 46,y: 30)]); line([.init(x: 30,y: 38),.init(x: 52,y: 38)])
-            if kind == .saved || kind == .edition { for (y, length) in [(46.0,18.0),(54.0,22.0),(62.0,14.0)] { line([.init(x: 30,y: y),.init(x: 30 + length,y: y)]) } }
-        } else {
-            switch kind {
-            case .saved:
-                line([.init(x: 58,y: 10),.init(x: 58,y: 34),.init(x: 62,y: 29),.init(x: 66,y: 34),.init(x: 66,y: 10)])
-            case .search:
-                p.addEllipse(in: CGRect(x: 44,y: 48,width: 20,height: 20)); line([.init(x: 61,y: 65),.init(x: 69,y: 73)])
-            case .bluesky:
-                p.addEllipse(in: CGRect(x: 43.5,y: 55.5,width: 9,height: 9))
-                p.addArc(center: .init(x: 48,y: 60), radius: 11.5, startAngle: .degrees(0), endAngle: .degrees(310), clockwise: false)
-                line([.init(x: 52.5,y: 56),.init(x: 52.5,y: 64),.init(x: 59.5,y: 64),.init(x: 59.5,y: 60)])
-            case .stream:
-                for y in [50.0,60.0,70.0] { p.move(to: .init(x: 30,y: y)); p.addCurve(to: .init(x: 66,y: y), control1: .init(x: 42,y: y-8), control2: .init(x: 54,y: y+8)) }
-            case .edition:
-                line([.init(x: 58,y: 14),.init(x: 58,y: 24),.init(x: 74,y: 24)])
-            }
+        func line(_ a: CGPoint, _ b: CGPoint) { p.move(to: a); p.addLine(to: b) }
+        switch (kind.composition, layer) {
+        case (.horizon, .line):
+            p.addArc(center: .init(x: 48, y: 64), radius: 24, startAngle: .degrees(180), endAngle: .degrees(0), clockwise: false)
+            line(.init(x: 8, y: 64), .init(x: 80, y: 64))
+        case (.horizon, .thin):
+            line(.init(x: 20, y: 76.5), .init(x: 64, y: 76.5)); line(.init(x: 20, y: 84.5), .init(x: 44, y: 84.5))
+        case (.horizon, .dot):
+            p.addEllipse(in: CGRect(x: 82, y: 59, width: 8, height: 8))
+        case (.raster, .dots):
+            for y in stride(from: 16.0, through: 80, by: 16) { for x in stride(from: 16.0, through: 80, by: 16) where !(x == 64 && y == 64) {
+                p.addEllipse(in: CGRect(x: x - 1.5, y: y - 1.5, width: 3, height: 3))
+            } }
+        case (.raster, .dot):
+            p.addEllipse(in: CGRect(x: 60, y: 60, width: 8, height: 8))
+        default: break
         }
         return p.applying(CGAffineTransform(scaleX: rect.width / 96, y: rect.height / 96))
     }
@@ -227,13 +228,18 @@ private struct EmptyPageShape: Shape {
 struct EmptyPageArt: View {
     let kind: EmptyPageKind
     @Environment(\.accessibilityReduceMotion) private var still
+    @Environment(\.nachtActief) private var nacht
     @State private var drawn: CGFloat = 0
     @State private var detail = false
+    // --art-thin: dunne regels en rasterpunten in inkt; in Nacht ink3, niets fel.
+    private var thin: Color { nacht ? Theme.ink3 : Theme.ink }
     var body: some View {
         ZStack {
-            EmptyPageShape(kind: kind).trim(from: 0, to: still ? 1 : drawn).stroke(Theme.edge, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
-            EmptyPageShape(kind: kind, accent: true).stroke(Theme.accent, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round)).opacity(still || detail ? 1 : 0)
-        }.frame(width: 96, height: 96).accessibilityHidden(true)
+            EmptyPageShape(kind: kind, layer: .line).trim(from: 0, to: still ? 1 : drawn).stroke(Theme.ink, lineWidth: 2)
+            EmptyPageShape(kind: kind, layer: .thin).trim(from: 0, to: still ? 1 : drawn).stroke(thin, lineWidth: 1)
+            EmptyPageShape(kind: kind, layer: .dots).fill(thin)
+            EmptyPageShape(kind: kind, layer: .dot).fill(Theme.accent).opacity(still || detail ? 1 : 0)
+        }.frame(width: Layout.emptyIcon, height: Layout.emptyIcon).accessibilityHidden(true)
             .task {
                 guard !still else { drawn = 1; detail = true; return }
                 withAnimation(.timingCurve(0.2,0.8,0.2,1,duration: 0.4)) { drawn = 1 }

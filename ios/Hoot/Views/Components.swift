@@ -780,7 +780,7 @@ struct StaleNotice: View {
     }
 }
 
-// Een lege plek (K6), gelijk aan .empty op het web: een stil lijnicoon in `rule`, de titel als
+// Een lege plek (K6), gelijk aan .empty op het web: de lijntekening uit de beeldtaal (EmptyPageArt), de titel als
 // serifkop in inkt, s2 lucht, de uitleg in ink2 (.empty__text) op een smalle maat en een inktknop als vervolgstap. Het blijft
 // een eigen compositie; foutstaten behouden de systeemweergave.
 struct EmptyState: View {
