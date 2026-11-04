@@ -63,9 +63,14 @@
   --opacity-disabled: 0.45;
 
   /* Type */
-  /* Newsreader (koppen, 800) en Source Sans 3 (tekst): beide open source, meegeleverd in main.jsx. */
+  /* Lezen in serif, bedienen in sans. Drie rollen, alle letters meegeleverd (main.jsx, src/fonts):
+     --serif  koppen, displays en de nummers 01–10: Newsreader 800, statisch (optische maat uit)
+     --lees   lopende tekst (leads, intro's, de Editie in één minuut, proza): Newsreader op
+              tekstmaat (variabel, optische maat aan), 400; Nacht 430
+     --sans   bediening, labels, metadata en knoppen: Inter (variabel, optische maat aan) */
   --serif: 'Newsreader', ui-serif, Georgia, 'Times New Roman', serif;
-  --sans: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --lees: 'Newsreader', ui-serif, Georgia, 'Times New Roman', serif;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 
   /* Maat */
   --gutter: 16px;
@@ -74,10 +79,13 @@
   --wide: 1000px; /* het paginaraam (--page) */
   --page: var(--wide);
   --measure: 720px; /* leesblok van het web (norm v2.2: web 720, iOS 680; de regellengte zelf is --measure-prose) */
-  --measure-prose: 58ch; /* lopende tekst, samenvattingen en hints: ten hoogste ± 75 tekens per regel (een ch is de breedte van een 0, breder dan een gemiddelde letter; 65ch gaf tot 83) */
+  /* Regellengtes in em, niet in ch: een ch is de breedte van een 0, en die verschilt sterk per letter
+     (Source Sans 0,50 · Newsreader 0,56 · Inter 0,63 em). In em blijven de kolommen even breed als
+     met 58ch, 30ch en 34ch in Source Sans 3. */
+  --measure-prose: 28.8em; /* lopende tekst, samenvattingen en hints: ten hoogste ± 70 tekens per regel (17 px Newsreader: 68) */
   --measure-form: 560px; /* Bronnen en Instellingen */
-  --measure-end: 30ch; /* einde van de Editie: kort, gebalanceerd */
-  --measure-empty: 34ch; /* tekst van een lege bladzijde: drie korte, gecentreerde regels */
+  --measure-end: 14.9em; /* einde van de Editie: kort, gebalanceerd (was 30ch) */
+  --measure-empty: 16.9em; /* tekst van een lege bladzijde: drie korte, gecentreerde regels (was 34ch) */
   --art: 96px; /* lijntekening van een lege bladzijde */
   --art-thin: var(--ink); /* dunne lijn en rasterpunt in die tekening; Nacht: --ink-3 */
   --front-side: 16rem; /* zijkolom van de voorpagina, minstens: "Vergelijk N bronnen" past naast ⋯ en bewaren */
@@ -197,13 +205,14 @@
   --lh-6: 2.25rem; /* 36, vanaf 720 40 */
   --lh-display: 2.25rem; /* 36 */
   --lh-1-read: 1.25rem; /* 20: uitleg */
-  --lh-2-read: 1.5rem; /* 24: samenvatting */
+  --lh-2-read: 1.5rem; /* 24: samenvatting, en de intro in Newsreader (17/24 = 1,42) */
   --lh-3-read: 1.75rem; /* 28: leestekst */
   --lh-tight: 1; /* alleen losse cijfers, iconen en de hero */
   /* Oude verhouding: alleen nog de Stroom-rubriekenlijn (rubrieken en bronlabel), die zijn eigen
      maten in StreamLine meet. */
   --lh-ui: 1.3;
   --fw-regular: 400;
+  --fw-lees: 400; /* lopende tekst in Newsreader; Nacht 430, zodat de dunne halen op zwart niet breken */
   --fw-ui: 600; /* bediening, bronnaam */
   --fw-action: 700; /* tekstacties */
   --fw-head: 800; /* koppen, labels, hoofdknop */
@@ -327,7 +336,7 @@ html[data-text='groot'] {
   --band-rule: #2e2a25;
 }
 /* Nacht: dezelfde donkere rollen, alleen de paginagrond echt zwart. */
-:root[data-theme='night'] { --paper: #000000; --thumb: var(--ink); color-scheme: dark; }
+:root[data-theme='night'] { --paper: #000000; --thumb: var(--ink); --fw-lees: 430; color-scheme: dark; }
 :root[data-palette][data-theme='night'] { --sheet: #000000; --sheet-surface: #1e1b17; --band: #000000; --top: #000000; }
 :root .sg__colors { grid-template-columns: minmax(0,1.5fr) repeat(3,minmax(0,1fr)); }
 
@@ -427,6 +436,15 @@ p {
 }
 .label--meta {
   color: var(--ink-3);
+}
+
+/* Lopende tekst: Newsreader op tekstmaat (--lees). Alles wat je leest en niet bedient: de intro van
+   een verhaal (hoofdverhaal, lijst, voorpagina, Selectie, vergelijkpaneel), de tekst van een post,
+   De Editie in één minuut en proza. De maat blijft bij de klasse zelf; een intro is 17/24 (1,42). */
+:is(.lead__sum, .compact__sum, .fitem__sum, .srcitem__sum, .dcard__sum, .social__text, .reader__p, .prose p, .prose ul) {
+  font-family: var(--lees);
+  font-weight: var(--fw-lees);
+  font-optical-sizing: auto;
 }
 
 a {
@@ -1554,10 +1572,10 @@ select.input {
 }
 
 /* ---------- Gedeelde onderdelen van een bericht ---------- */
-/* Cijfers in een kolom: de tijd onder de bronnaam (Source Sans 3). Even breed, zodat "4 uur" en
+/* Cijfers in een kolom: de tijd onder de bronnaam (Inter). Even breed, zodat "4 uur" en
    "41 min" niet verspringen; koppen en lopende tekst blijven proportioneel. Alleen de schreefloze:
-   Newsreader zoals Fontsource hem levert (latin 400/800) heeft geen tabelcijfers, dus de
-   serif-nummers (de stapteller .ob__n, de inhoud .dtoc__n, de rang .dcard__rank) blijven proportioneel. */
+   Newsreader 800 zoals Fontsource hem levert heeft geen tabelcijfers, dus de serif-nummers (de
+   stapteller .ob__n, de inhoud .dtoc__n, de rang .dcard__rank) blijven proportioneel. */
 :is(.srcmeta__time, .srcbtn__time) {
   font-variant-numeric: tabular-nums;
 }
@@ -1909,14 +1927,11 @@ select.input {
   max-inline-size: var(--measure-prose);
   color: var(--ink-2);
 }
-/* Samenvatting van het hoofdverhaal: leestekst. */
-.lead__sum {
-  font-size: var(--t3);
-  line-height: var(--lh-3-read);
-}
-/* Intro in een lijst: een stap kleiner dan leestekst, zoals in de app (.subheadline) */
+/* De intro, ook van het hoofdverhaal: Newsreader 17/24, zoals in de app (Theme.intro). Newsreader
+   oogt op dezelfde maat kleiner dan een schreefloze letter; vandaar t3 en niet meer t2. */
+.lead__sum,
 .compact__sum {
-  font-size: var(--t2);
+  font-size: var(--t3);
   line-height: var(--lh-2-read);
 }
 
@@ -3825,7 +3840,7 @@ select.input {
   --lines: 2;
   max-inline-size: var(--measure-prose);
   color: var(--ink-2);
-  font-size: var(--t2);
+  font-size: var(--t3);
   line-height: var(--lh-2-read);
 }
 .fitem .thumb {
@@ -3900,7 +3915,7 @@ select.input {
   max-inline-size: var(--measure-prose);
   margin-top: var(--s2);
   color: var(--ink-2);
-  font-size: var(--t2);
+  font-size: var(--t3);
   line-height: var(--lh-2-read);
 }
 /* Terug naar het overzicht: boven de kop van het verhaal, in het vaste paneel. */
@@ -4811,7 +4826,7 @@ html[data-images='hoofd'] .media--social {
   max-inline-size: var(--measure-prose);
   margin-top: var(--s2);
   color: var(--ink-2);
-  font-size: var(--t2);
+  font-size: var(--t3);
   line-height: var(--lh-2-read);
 }
 .dcard__foot {
@@ -4835,8 +4850,6 @@ html[data-images='hoofd'] .media--social {
 /* Het eerste stuk van een vak: groter (kop .head-lg), met een brede strook beeld */
 .dcard--feature .dcard__sum {
   --lines: 4;
-  font-size: var(--t3);
-  line-height: var(--lh-3-read);
 }
 /* Zonder beeld: een rubrieklijn in krantenrood bovenaan (in plaats van de rand van .card), zodat
    de kaart toch een begin heeft. */

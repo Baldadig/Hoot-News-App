@@ -2,13 +2,11 @@ import { receiveMove, dropMoveFragment } from './lib/domain-migration.js'
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
-// Lettertypes van de Zaterdagkrant (alleen Latijns schrift): Newsreader voor koppen, Source Sans 3 voor tekst.
-import '@fontsource/newsreader/latin-400.css'
+// Lettertypes (latin en latin-ext): koppen in Newsreader 800 (statisch, zoals altijd), lopende tekst
+// in Newsreader op tekstmaat en bediening in Inter, beide variabel (src/fonts/).
 import '@fontsource/newsreader/latin-800.css'
-import '@fontsource/source-sans-3/latin-400.css'
-import '@fontsource/source-sans-3/latin-600.css'
-import '@fontsource/source-sans-3/latin-700.css'
-import '@fontsource/source-sans-3/latin-800.css'
+import '@fontsource/newsreader/latin-ext-800.css'
+import './fonts/fonts.css'
 // Roboto Medium alleen voor de Google-knop (hun richtlijn); wordt pas geladen als die er staat.
 import '@fontsource/roboto/latin-500.css'
 import './styles.css'

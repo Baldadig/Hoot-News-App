@@ -16,9 +16,10 @@ const KOLOM = {
   kaart: VIEW - 2 * 16 - 2, // Selectie: kaart met binnenruimte (--s4) en rand: 309
   paneel: 325, // vergelijkpaneel op een breed scherm: smaller dan een rij op 375 (gemeten op 1280)
 }
-// Lettermaat van de intro: --t2 (15) in een lijst, --t3 (17) in de eerste kaart van een vak.
-const T2 = 15
-const T3 = 17
+// Lettermaat van de intro: overal --t3 (17), in Newsreader op tekstmaat. Newsreader op 17 is
+// gemiddeld even breed als Source Sans 3 op 17 (0,421 tegen 0,422 em, gemeten over de intro's van
+// de snapshot van 31 oktober), dus de breedte per teken in lineFit (0,58) blijft gelden.
+const INTRO = 17
 
 // Tekstgrootte: de lettermaat van <html> (de instelling klein/normaal/groot én die van de browser)
 // ten opzichte van 16. Bij grote tekst passen er minder tekens op een regel. Eén waarneming voor
@@ -60,8 +61,8 @@ export function useIntroMax() {
   const [scale, text] = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot).split('|')
   const s = Number(scale) || 1
   return (lines, kind = 'rij', image = false) => {
-    if (kind === 'kaartEerste') return introMax(lines, { width: KOLOM.kaart, font: T3 * s })
+    if (kind === 'kaartEerste') return introMax(lines, { width: KOLOM.kaart, font: INTRO * s })
     const width = kind === 'rij' && image ? KOLOM.rijBeeld(text === 'groot' ? 108 : 84) : KOLOM[kind] ?? KOLOM.rij
-    return introMax(lines, { width, font: T2 * s })
+    return introMax(lines, { width, font: INTRO * s })
   }
 }
