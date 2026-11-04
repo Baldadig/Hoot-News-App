@@ -2,7 +2,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ogImageFrom, loadOgImage, isGate } from '../netlify/lib/og.mjs'
-import { imagesFromArticles, sizeBingImages, gapTitleQueries, borrowFromStories, borrowPreviews, lendableIntro, strongOverlap, wantsArticleImage, conflictingNames } from '../netlify/lib/build.mjs'
+import { imagesFromArticles, sizeBingImages, gapTitleQueries, borrowFromStories, borrowPreviews, lendableIntro, strongOverlap, wantsArticleImage, conflictingNames, stripPromoIntros, withoutPromo } from '../netlify/lib/build.mjs'
 import { articleKey, bingUnmeasured, bingId } from '../netlify/lib/snippets.mjs'
 
 const art = (id, extra = {}) => ({ id, kind: 'article', source: 'nature', title: 'Titel ' + id, url: `https://www.nature.com/articles/${id}`, publishedAt: '2026-11-04T10:00:00Z', ...extra })
@@ -191,4 +191,21 @@ test('intro lenen: elke kop met een eigen plaatsnaam leent niet (Meeuwen/Leiden,
   // Zin-beginhoofdletters na een dubbele punt tellen niet als naam.
   assert.equal(conflictingNames('Trouw: Wat doet Klaver', 'Klaver doet iets'), false)
   assert.equal(conflictingNames('Brand in Utrecht', 'Brand in Zwolle'), true)
+})
+
+test('reclame uit een eigen intro: "Download de app" valt weg, blijft er niets over dan geen intro (keuring b46 ronde 3)', () => {
+  const ds = { id: 'ds', kind: 'article', source: 'standaard', title: 'Dodental loopt op tot 37', summary: 'Het dodental is opgelopen tot 37. Download de app DS Nieuws en mis niets.', text: 'Het dodental is opgelopen tot 37. Download de app DS Nieuws en mis niets.' }
+  const leeg = { id: 'x', kind: 'article', source: 'standaard', title: 'Iets', summary: 'Download de app DS Nieuws.', text: 'Download de app DS Nieuws.' }
+  const post = { id: 'p', kind: 'post', source: 'bsky', title: 'p', summary: 'Download de app' }
+  stripPromoIntros([ds, leeg, post])
+  assert.equal(ds.summary, 'Het dodental is opgelopen tot 37.')
+  assert.equal(ds.text, 'Het dodental is opgelopen tot 37.')
+  assert.equal(leeg.summary, '')
+  assert.equal(post.summary, 'Download de app')
+  assert.equal(withoutPromo('Een gewone zin. Nog een.'), 'Een gewone zin. Nog een.')
+  // Na het filter mag een lege plek nog lenen.
+  const donor = { id: 'd', kind: 'article', source: 'volkskrant', sourceName: 'de Volkskrant', title: 'Dodental loopt op tot 37 na schoolbrand', summary: 'Het dodental is opgelopen tot 37.', url: 'https://www.volkskrant.nl/a~b2222222/' }
+  const l2 = { ...leeg, title: 'Dodental loopt op tot 37 na schoolbrand', url: 'https://www.standaard.be/cnt/x' }
+  borrowPreviews([l2], [donor])
+  assert.equal(l2.borrowedFrom, 'de Volkskrant')
 })

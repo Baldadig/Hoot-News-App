@@ -64,6 +64,7 @@ export async function buildFeed({ now = Date.now() } = {}) {
   // dus tegelijk: zo duurt de ronde niet langer nu ook betaalde bronnen hun deelbeeld krijgen.
   const items = streamItems([...mainGroups.flatMap((g) => g.items), ...editionExtra, ...bskyGroups.flatMap((g) => g.items)])
   const [gaps] = await Promise.all([fillGaps(items, now).then(async (r) => (await sizeBingImages(items, now), r)), imagesFromBluesky(items, now), imagesFromArticles(items, now)])
+  stripPromoIntros(items)
   borrowPreviews(items, [...mainGroups.flatMap((g) => g.items), ...editionExtra])
   // Bewaren zoals ze nu zijn (met beeld en inleiding), vóór de verhalen er hun id aan hangen. Met
   // wat een gelijktijdige ronde in een andere instantie intussen schreef (withLatest).
@@ -414,10 +415,24 @@ const borrowWords = (title) => {
 // meldingen aan te zetten gaan eruit ("Download de app DS Nieuws ..." onder een kop van De Morgen). Blijft
 // er niets over, dan wordt er niet geleend. De vaste tekst van een liveblog leent nooit.
 const PROMO = /\b(?:download|installeer|app store|google play|in de app|onze app|nieuwsapp|abonneer|schrijf je in|meld je aan|nieuwsbrief|pushmelding|pushbericht|notificaties|volg ons|lees ook|bekijk ook|kijk ook|subscribe|sign up|newsletter)/i
+// Ook de eigen intro van een bron krijgt dit filter ("Download de app" onder een kop van De Standaard):
+// valt er niets over, dan is er geen intro.
+export function withoutPromo(text) {
+  const sentences = String(text || '').match(/[^.!?]+(?:[.!?]+["'’”)]?|$)\s*/g) || []
+  return sentences.filter((z) => !PROMO.test(z)).join('').trim()
+}
 export function lendableIntro(d) {
   if (!d?.summary || isLiveblog(d.url, d.title)) return ''
-  const sentences = String(d.summary).match(/[^.!?]+(?:[.!?]+["'’”)]?|$)\s*/g) || []
-  return sentences.filter((z) => !PROMO.test(z)).join('').trim()
+  return withoutPromo(d.summary)
+}
+// Eigen intro's van alle berichten (geen posts), vóór het lenen: een intro die alleen reclame was, laat de
+// plek leeg en mag dan lenen.
+export function stripPromoIntros(items) {
+  for (const it of items) {
+    if (it.kind === 'post') continue
+    if (typeof it.summary === 'string' && PROMO.test(it.summary)) it.summary = withoutPromo(it.summary)
+    if (typeof it.text === 'string' && PROMO.test(it.text)) it.text = withoutPromo(it.text)
+  }
 }
 export function borrowPreviews(items, mainItems) {
   const donors = mainItems
@@ -525,7 +540,7 @@ function toClient(it, { editionOnly = false, streamOnly = false } = {}) {
     storyId: it.storyId,
     firstSeenAt: it.firstSeenAt,
     title: it.title,
-    summary: it.kind === 'post' ? it.summary : cleanIntro(it.summary, it.author),
+    summary: it.kind === 'post' ? it.summary : withoutPromo(cleanIntro(it.summary, it.author)),
     borrowedFrom: it.borrowedFrom,
     readMin: it.readMin,
     topics,
