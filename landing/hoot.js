@@ -232,7 +232,7 @@
     /* ---- 02 Stroom: de voorbeeldrubrieken wisselen rustig en herhalen vanaf Alles. ---- */
     var scS = $('.sc-stroom'), rij = scS && $('.sc-tabrij', scS), ind = rij && $('.sc-ind', rij);
     if (scS) {
-      var RUB = ['alles', 'binnenland', 'buitenland', 'cultuur'], ri = 0, STAP = 6500;
+      var RUB = ['alles', 'binnenland', 'wereld', 'cultuur'], ri = 0, STAP = 6500;
       var toon = function (k, anim) {
         $$('[data-m]', rij).forEach(function (m) {
           var aan = m.getAttribute('data-m') === k; m.className = aan ? 'on' : '';

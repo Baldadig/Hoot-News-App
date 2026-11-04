@@ -41,3 +41,17 @@ test('landing: de drie delen gelijkwaardig in de voordelen en in de meta-omschri
   const meta = SRC.match(/<meta name="description" content="([^"]+)"/)[1]
   for (const deel of ['Editie', 'Stroom', 'Selectie']) assert.match(meta, new RegExp(deel), deel)
 })
+
+const BUILD = readFileSync(new URL('../landing/build.mjs', import.meta.url), 'utf8')
+const code = (js) => js.replace(/^\s*\/\/.*$/gm, '')
+
+test('landing: de voorbeelden houden zich aan de huisregels', () => {
+  for (const [naam, s] of [['index', tekst(SRC)], ['build', code(BUILD)]]) {
+    assert.doesNotMatch(s, /Omdat je \S+ volgt/, naam)
+    assert.doesNotMatch(s, /Buitenland|Uit je eigen bronnen/, naam)
+  }
+  // De Stroom-tabs in de vaste volgorde van de app: Alles, dan de hoofdrubrieken.
+  const tabs = [...SRC.match(/<div class="sc-tabrij">([\s\S]*?)<\/div>/)[1].matchAll(/data-m="\w+"[^>]*>([^<]+)</g)].map((m) => m[1])
+  assert.deepEqual(tabs, ['Alles', 'Binnenland', 'Wereld', 'Cultuur'])
+  assert.match(readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8'), /var RUB = \['alles', 'binnenland', 'wereld', 'cultuur'\]/)
+})
