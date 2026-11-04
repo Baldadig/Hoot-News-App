@@ -295,9 +295,9 @@ struct SourcesList: View {
                                 VStack(alignment: .leading, spacing: Space.s0) {
                                     HStack(spacing: Space.s2) {
                                         Text(s.name)
-                                        if s.paid == true { Text("abonnement").font(.ui(.caption)).foregroundStyle(Theme.ink3) } else { Text("gratis").font(.ui(.caption, .semibold)).foregroundStyle(Theme.accent) }
+                                        if s.paid == true { Text("abonnement").font(.ui(.caption)).foregroundStyle(Theme.hint) } else { Text("gratis").font(.ui(.caption, .semibold)).foregroundStyle(Theme.accent) }
                                     }
-                                    if let about = s.about { Text(about).font(.ui(.caption)).foregroundStyle(Theme.ink3) }
+                                    if let about = s.about { Text(about).font(.ui(.caption)).foregroundStyle(Theme.hint) }
                                 }
                             }
                             }
@@ -387,19 +387,18 @@ struct SavedView: View {
     }
 }
 
-// Zoeken: in alles wat Hoot nu van je bronnen heeft.
+// Zoeken: in alles wat Hoot nu van je bronnen heeft, en in Bewaard.
 struct SearchView: View {
     @Environment(HootStore.self) private var store
     @State private var query = DebugLaunch.query ?? ""
     var body: some View {
         NavigationStack {
-            // Zonder hoofdletters en accenten: "Oekraine" vindt ook "Oekraïne", "Israel" ook "Israël".
-            let fold = { (s: String) in s.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil) }
-            let q = fold(query.trimmingCharacters(in: .whitespaces))
-            let hits = q.count < 2 ? [] : store.withoutCopies(store.stream.filter { fold("\($0.title) \($0.summary ?? "")").contains(q) })
+            // Breed zoeken, zoals het web: woord, bron en auteur, ook in Bewaard (SearchHits).
+            let q = SearchHits.words(query)
+            let hits = q.isEmpty ? [] : Array(store.withoutCopies(SearchHits.hits(query: query, stream: store.stream, saved: store.saved, muted: store.muted)).prefix(SearchHits.limit))
             List {
                 Section {
-                    ForEach(hits.prefix(80)) { item in
+                    ForEach(hits) { item in
                         // Zonder "+N bronnen": een link in een lijstrij maakt de hele rij tot die link.
                         ItemRow(item: item, story: nil, linkSource: false).listRowBackground(Theme.surface)
                     }
@@ -412,10 +411,10 @@ struct SearchView: View {
             .scrollContentBackground(.hidden)
             .background(Theme.paper)
             .overlay {
-                if q.count < 2 {
-                    EmptyState(title: "Zoek in je nieuws", systemImage: "magnifyingglass", text: "In koppen en intro’s van je Stroom.")
+                if q.isEmpty {
+                    EmptyState(title: "Zoek in je nieuws", systemImage: "magnifyingglass", text: "Op woord, bron of auteur, ook in wat je bewaarde.")
                 } else if hits.isEmpty {
-                    EmptyState(title: "Niets gevonden voor ‘\(query.trimmingCharacters(in: .whitespaces))’", systemImage: "magnifyingglass", text: "Hoot zoekt in koppen en intro’s van je Stroom.")
+                    EmptyState(title: "Niets gevonden voor ‘\(query.trimmingCharacters(in: .whitespaces))’", systemImage: "magnifyingglass", text: "Hoot zoekt op woord, bron en auteur, in je Stroom en in Bewaard.")
                 }
             }
             .navigationTitle("Zoeken")
@@ -423,7 +422,7 @@ struct SearchView: View {
             .hootScreenTitle()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .searchable(text: $query, prompt: "Zoek in koppen en intro’s")
+            .searchable(text: $query, prompt: "Zoek op woord, bron of auteur")
         }
     }
 }

@@ -304,7 +304,7 @@ struct WelcomeView: View {
                     .accessibilityAddTraits(.isHeader)
                     .accessibilityFocused($headFocus)
                 Text("Het nieuws van jouw bronnen,\nrustig op een rij.")
-                    .uitleg() // zoals .ob__lede op het web
+                    .zin() // zoals .ob__lede op het web
                     .opacity(0.85)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
@@ -408,7 +408,7 @@ struct WelcomeView: View {
                 .accessibilityFocused($headFocus)
             if !(compact && typeSize.isAccessibilitySize) {
                 Text(sub)
-                    .uitleg() // zoals .ob__sub
+                    .zin() // zoals .ob__sub
                     .foregroundStyle(Theme.ink2)
                     .fixedSize(horizontal: false, vertical: true)
                     .dynamicTypeSize(...DynamicTypeSize.accessibility1)
@@ -435,7 +435,7 @@ struct WelcomeView: View {
                         .font(.kop(.title2))
                         .accessibilityAddTraits(.isHeader)
                     Text(t.text)
-                        .uitleg() // zoals .ob__ttext
+                        .zin() // zoals .ob__ttext
                         .foregroundStyle(Theme.ink2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -522,7 +522,7 @@ struct WelcomeView: View {
             let hits = FollowList.find(all, query)
             if hits.isEmpty {
                 Text("Niets gevonden voor ‘\(query.trimmingCharacters(in: .whitespaces))’. Probeer een andere naam.")
-                    .uitleg().foregroundStyle(Theme.ink2).padding(.top, Space.s5)
+                    .zin().foregroundStyle(Theme.ink2).padding(.top, Space.s5)
             } else {
                 rows(hits).padding(.top, Space.s3)
             }
@@ -530,7 +530,7 @@ struct WelcomeView: View {
             let list = FollowList.followed(all, mine)
             if list.isEmpty {
                 Text("Je volgt nog niets. Begin bij de Basis.")
-                    .uitleg().foregroundStyle(Theme.ink2).padding(.top, Space.s5)
+                    .zin().foregroundStyle(Theme.ink2).padding(.top, Space.s5)
             } else {
                 rows(list).padding(.top, Space.s3)
             }
@@ -672,14 +672,14 @@ struct WelcomeView: View {
             }
             if lines.isEmpty {
                 Text("Uit \(FollowList.sourceLine((mine.isEmpty ? FollowList.freeStart(store.newsSources) : FollowList.followed(store.newsSources, mine)).map(\.name))).")
-                    .font(.ui(.footnote)).foregroundStyle(Theme.ink3).padding(.top, Space.s2)
+                    .font(.ui(.footnote)).foregroundStyle(Theme.hint).padding(.top, Space.s2)
             } else {
                 ForEach(Array(lines.enumerated()), id: \.element.id) { i, l in
                     HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
                         Text("\(i + 1)").font(.kop(.body)).foregroundStyle(Theme.ink3).frame(width: 20, alignment: .leading)
                         VStack(alignment: .leading, spacing: Space.s0) {
                             Text(l.title).font(.leesVet(.body)).fixedSize(horizontal: false, vertical: true)
-                            Text(l.source).font(.ui(.footnote)).foregroundStyle(Theme.ink3)
+                            Text(l.source).font(.ui(.footnote)).foregroundStyle(Theme.hint)
                         }
                     }
                     .padding(.vertical, Space.s2)
@@ -688,7 +688,7 @@ struct WelcomeView: View {
                 }
             }
             if mine.isEmpty {
-                Text("Je volgt nog niets; dit is het gratis begin.").font(.ui(.footnote)).foregroundStyle(Theme.ink3).padding(.top, Space.s2)
+                Text("Je volgt nog niets; dit is het gratis begin.").font(.ui(.footnote)).foregroundStyle(Theme.hint).padding(.top, Space.s2)
             }
         }
     }
@@ -704,7 +704,7 @@ struct WelcomeView: View {
                     VStack(alignment: .leading, spacing: Space.s0) {
                         Text("Zo ziet je Editie eruit").font(.kop(.body))
                         Text(mine.isEmpty ? "Gratis begin" : "Uit \(FollowList.sourceLine(FollowList.followed(store.newsSources, mine).map(\.name)))")
-                            .font(.ui(.footnote)).foregroundStyle(Theme.ink3).lineLimit(2)
+                            .font(.ui(.footnote)).foregroundStyle(Theme.hint).lineLimit(2)
                     }
                     Spacer(minLength: Space.s2)
                     Image(systemName: peekOpen ? "chevron.up" : "chevron.down").font(.footnote.weight(.semibold)).accessibilityHidden(true)
@@ -798,7 +798,7 @@ struct WelcomeView: View {
             default:
                 if !typeSize.isAccessibilitySize { // bij heel grote tekst staat het aantal al in "Gevolgd · n"
                     Text(store.newsSources.isEmpty ? "Bronnen laden…" : FollowList.line(mine.count))
-                        .font(.ui(.footnote)).foregroundStyle(Theme.ink3)
+                        .font(.ui(.footnote)).foregroundStyle(Theme.hint)
                         .accessibilityAddTraits(.updatesFrequently)
                 }
                 ctaButton("Naar je Editie", onRed: false, off: mine.isEmpty) { finish(interests: interests, vak: vak) }

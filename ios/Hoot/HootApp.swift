@@ -17,7 +17,7 @@ struct HootApp: App {
         let bar = UINavigationBar.appearance()
         bar.largeTitleTextAttributes = [.font: UIFont.hoot(Letters.kop, .largeTitle, size: 34, max: 40), .foregroundColor: NachtKleur.label]
         bar.titleTextAttributes = [.font: UIFont.hoot(Letters.kop, .headline, size: 17), .foregroundColor: NachtKleur.label]
-        // Het segment van het systeem in Inter, zoals de bediening van het web.
+        // Het segment van het systeem in Schibsted Grotesk, zoals de bediening van het web.
         let segment = UISegmentedControl.appearance()
         segment.setTitleTextAttributes([.font: UIFont.hoot(Letters.ui(.regular), .footnote, size: 13)], for: .normal)
         segment.setTitleTextAttributes([.font: UIFont.hoot(Letters.ui(.semibold), .footnote, size: 13)], for: .selected)
@@ -45,7 +45,7 @@ struct HootApp: App {
             Group {
                 if store.onboarded {
                     WidthReader { RootView() }
-                        .font(.ui(.body)) // tekst zonder eigen rol: Inter, zoals het web (Letters.swift)
+                        .font(.ui(.body)) // tekst zonder eigen rol: Schibsted Grotesk, zoals het web (Letters.swift)
                 } else {
                     // Opnieuw kiezen (Instellingen): alles begint bij wat je nu hebt; sluiten slaat niets op.
                     WelcomeView(reopen: store.welcomeAgain, onCancel: store.welcomeAgain ? { leaveWelcome() } : nil) { leaveWelcome() }

@@ -42,7 +42,7 @@ enum DeelKaartStyle {
         return UIImage(data: data)
     }
     private static let fonts: Void = {
-        for name in ["Newsreader-800"] { // Inter 600 is een letter van de app zelf (Resources/Fonts, UIAppFonts)
+        for name in ["Newsreader-800", "Inter-600"] { // de deelkaart houdt Inter 600 (zelfde als de server); Inter-600.ttf staat in Resources/Fonts, niet meer in UIAppFonts
             if let url = resource(name, "ttf") { CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil) }
         }
     }()

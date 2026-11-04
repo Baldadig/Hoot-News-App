@@ -44,6 +44,10 @@ enum NachtKleur {
     static let ink2 = role("Ink2", night: NachtLeesinkt.ink2)
     static let ink3 = role("Ink3", night: NachtLeesinkt.ink3)
     static let accent = role("AccentColor", night: NachtLeesinkt.accent)
+    // Hints en kleine metadata (12 tot 13 pt): ink-3, in Nacht ink-2. Schibsted Grotesk is op kleine maat zachter dan Inter.
+    static let hint = UIColor { traits in
+        (traits[NachtTrait.self] && traits.userInterfaceStyle == .dark ? ink2 : ink3).resolvedColor(with: traits)
+    }
     // Vlak achter een uitgeverslogo (--mark-bg): wit in Licht, gedempt wit in Donker, inkt in Nacht.
     static let markBg = role("MarkBg", night: NachtLeesinkt.ink)
     static let label = UIColor { traits in

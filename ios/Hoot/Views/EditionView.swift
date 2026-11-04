@@ -343,7 +343,7 @@ struct EditionView: View {
                         // Eén metaregel, zoals op het web. De vaste spatie vóór de punt houdt die bij de
                         // datum als de regel bij grote tekst breekt ("oktober ·", niet "· Jouw Editie").
                         Text([dateLine, store.isPersonal ? "Jouw Editie" : store.shownEdition?.personal == true ? "Om te beginnen" : "De Editie voor iedereen"].filter { !$0.isEmpty }.joined(separator: "\u{00A0}· "))
-                            .font(.ui(.footnote)) // Inter 13, gelijk aan .vh__sub op het web (t1)
+                            .font(.ui(.footnote)) // Schibsted 13, gelijk aan .vh__sub op het web (t1)
                             .foregroundStyle(Theme.ink3)
                             .frame(minHeight: 20, alignment: .leading) // de regel blijft 20 hoog (lh-2), zoals op het web: de kop houdt zijn ritme
                             .padding(.bottom, Space.s4)

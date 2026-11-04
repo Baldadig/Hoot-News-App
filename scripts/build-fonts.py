@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
 """Herbouw de lettertypes van de iPhone-app en de schreefloze letter van de deelkaart.
 
-Lezen in Newsreader, bedienen in Inter (tekstfont-advies 4 november 2026). Het web laadt de
+Lezen in Newsreader, bedienen in Schibsted Grotesk (keuze 4 november 2026, build 47; eerder Inter). Het web laadt de
 variabele woff2's uit src/fonts/ (zie src/fonts/README.md); de app kan geen variabele as op
 lettermaat zetten met Dynamische tekst, dus die krijgt vaste standen uit dezelfde bron:
 
   Newsreader Kop    800, opsz 16  (= de statische Newsreader 800 van het web en de deelkaart)
   Newsreader Tekst  400 en 430 (Nacht), opsz 17 (de intro van 17); voor de lezer ook 700 en cursief
-  Inter             400, 600, 700, 800, opsz 14
+  Schibsted Grotesk 400, 600, 700, 800
+
+Inter blijft alleen als Inter-600.ttf: de letter van de deelkaart (server en app gelijk, shared/deelkaart).
+Die wordt niet meer herbouwd door dit script.
 
 Bron: de officiële variabele TTF's uit github.com/google/fonts (eenmalig ophalen):
 
   curl -LO 'https://github.com/google/fonts/raw/main/ofl/newsreader/Newsreader%5Bopsz,wght%5D.ttf'
-  curl -LO 'https://github.com/google/fonts/raw/main/ofl/inter/Inter%5Bopsz,wght%5D.ttf'
+  curl -LO 'https://github.com/google/fonts/raw/main/ofl/schibstedgrotesk/SchibstedGrotesk%5Bwght%5D.ttf'
   curl -LO 'https://github.com/google/fonts/raw/main/ofl/newsreader/Newsreader-Italic%5Bopsz,wght%5D.ttf'
-  python3 scripts/build-fonts.py 'Newsreader[opsz,wght].ttf' 'Inter[opsz,wght].ttf' 'Newsreader-Italic[opsz,wght].ttf'
+  python3 scripts/build-fonts.py 'Newsreader[opsz,wght].ttf' 'SchibstedGrotesk[wght].ttf' 'Newsreader-Italic[opsz,wght].ttf'
 
 Alleen voor dit script: Python met fonttools (pip install fonttools). Normale web- en
 Xcode-builds lezen de ingecheckte bestanden.
@@ -22,7 +25,7 @@ Xcode-builds lezen de ingecheckte bestanden.
 Regelval: Newsreader heeft een lijnhoogte van precies 1 em (stijgen 0,735 + dalen 0,265). Op het
 web zet CSS de regelhoogte zelf; SwiftUI rekent met de letter. Daarom krijgen de app-standen van
 Newsreader de lijnhoogte van New York (1,193 em), met de daling van Newsreader zelf, zodat de
-bestaande regelafstanden van de app blijven kloppen. Inter houdt zijn eigen maten (1,21 em, SF 1,18).
+bestaande regelafstanden van de app blijven kloppen. Schibsted houdt zijn eigen maten (1,234 em).
 """
 import sys
 from datetime import datetime, timezone
@@ -102,7 +105,7 @@ def instance(source, loc, family, style, ps, weight, out, line_em=None):
     print('  ', out.relative_to(ROOT))
 
 
-def main(newsreader, inter, italic):
+def main(newsreader, schibsted, italic):
     IOS.mkdir(parents=True, exist_ok=True)
     ny = 1.193  # lijnhoogte van New York: (1950 + 494) / 2048
     instance(newsreader, {'wght': 800, 'opsz': 16}, 'Newsreader Kop', 'ExtraBold', 'NewsreaderKop-ExtraBold', 800, IOS / 'NewsreaderKop-800.ttf', ny)
@@ -112,9 +115,7 @@ def main(newsreader, inter, italic):
     instance(newsreader, {'wght': 700, 'opsz': 17}, 'Newsreader Tekst', 'Bold', 'NewsreaderTekst-Bold', 700, IOS / 'NewsreaderTekst-700.ttf', ny)
     instance(italic, {'wght': 400, 'opsz': 17}, 'Newsreader Tekst', 'Italic', 'NewsreaderTekst-Italic', 400, IOS / 'NewsreaderTekst-400-cursief.ttf', ny)
     for weight, style in [(400, 'Regular'), (600, 'SemiBold'), (700, 'Bold'), (800, 'ExtraBold')]:
-        instance(inter, {'wght': weight, 'opsz': 14}, 'Inter' if weight in (400, 700) else f'Inter {style}', 'Regular' if weight not in (400, 700) else style, f'Inter-{style}', weight, IOS / f'Inter-{weight}.ttf')
-    # De deelkaart: dezelfde Inter 600 als de app (server en app gelijk, tests/deelkaart.test.mjs).
-    (DEELKAART / 'Inter-600.ttf').write_bytes((IOS / 'Inter-600.ttf').read_bytes())
+        instance(schibsted, {'wght': weight}, 'Schibsted Grotesk' if weight in (400, 700) else f'Schibsted Grotesk {style}', 'Regular' if weight not in (400, 700) else style, f'SchibstedGrotesk-{style}', weight, IOS / f'SchibstedGrotesk-{weight}.ttf')
     print('Lettertypes van de app en de deelkaart herbouwd.')
 
 

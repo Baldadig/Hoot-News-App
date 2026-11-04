@@ -258,7 +258,7 @@ struct SelectionRow: View {
                 }
                 .foregroundStyle(Theme.ink)
                 .fixedSize(horizontal: false, vertical: true)
-                if let sub { Text(sub).font(.ui(.caption)).monospacedDigit().foregroundStyle(Theme.ink3).fixedSize(horizontal: false, vertical: true) }
+                if let sub { Text(sub).font(.ui(.caption)).monospacedDigit().foregroundStyle(Theme.hint).fixedSize(horizontal: false, vertical: true) }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             Text(Image(systemName: symbol))
@@ -319,7 +319,7 @@ struct FieldSection: View {
                     ForEach(field.more) { item in
                         VStack(alignment: .leading, spacing: Space.s0) {
                             Kop(item.title, .headline).foregroundStyle(Theme.ink)
-                            Text("\(item.sourceName ?? "") · \(HootDate.ago(item.publishedAt.flatMap(HootDate.parse)))").font(.ui(.caption)).foregroundStyle(Theme.ink3)
+                            Text("\(item.sourceName ?? "") · \(HootDate.ago(item.publishedAt.flatMap(HootDate.parse)))").font(.ui(.caption)).foregroundStyle(Theme.hint)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.vertical, Space.s2)
@@ -365,7 +365,7 @@ private struct DigestCard: View {
                         .foregroundStyle(store.isRead(item.asItem) ? Theme.ink3 : Theme.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     // Waarom dit stuk: rustige metadata onder de kop, zodat de kop voorgaat.
-                    if let why = item.why, !why.isEmpty { Text(why.joined(separator: " · ")).font(.ui(.caption)).foregroundStyle(Theme.ink3) }
+                    if let why = item.why, !why.isEmpty { Text(why.joined(separator: " · ")).font(.ui(.caption)).foregroundStyle(Theme.hint) }
                     if let intro = item.summary.map({ wholeSentences($0, max: (feature ? 260 : 200) - item.asItem.viaLength) }), !intro.isEmpty { IntroText(text: intro, style: .body, lines: feature ? 5 : 4, suffix: item.asItem.introWithSource) } // hele zinnen, gemeten: past het niet, dan een zin minder
                 }
                 .padding(.horizontal, Space.s4)
@@ -376,10 +376,10 @@ private struct DigestCard: View {
             VStack(alignment: .leading, spacing: Space.s1) {
                 if let also = item.also, !also.isEmpty {
                     // Eén tekst met links, zodat hij bij grote tekst gewoon terugloopt.
-                    Text(Self.alsoLine(also)).font(.ui(.caption)).foregroundStyle(Theme.ink3)
+                    Text(Self.alsoLine(also)).font(.ui(.caption)).foregroundStyle(Theme.hint)
                 }
                 SourceLine(item: item.asItem, linkSource: false) // de Digest heeft geen bronpagina's
-                if let via = item.via { Text("via \(via)").font(.ui(.caption2)).foregroundStyle(Theme.ink3) }
+                if let via = item.via { Text("via \(via)").font(.ui(.caption2)).foregroundStyle(Theme.hint) }
             }
             .padding(.horizontal, Space.s4)
             .padding(.bottom, Space.s2)

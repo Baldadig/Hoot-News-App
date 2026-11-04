@@ -5,7 +5,7 @@ import UIKit
 //   Kop     Newsreader 800 (optische maat 16, zoals de statische Newsreader 800 van het web)
 //   Lees    Newsreader op tekstmaat (17) voor lopende tekst: intro's, de tekst van een post, de lezer;
 //           in Nacht op gewicht 430, zodat de dunne halen op zwart niet breken
-//   UI      Inter 400 · 600 · 700 · 800 voor bediening, labels, metadata en knoppen
+//   UI      Schibsted Grotesk 400 · 600 · 700 · 800 voor bediening, labels, metadata en knoppen
 //   Uitleg  een uitlegzin is lezen: Newsreader 17/24 (.uitleg()), zoals de landing en --uitleg op het web
 // De letters staan in Resources/Fonts (scripts/build-fonts.py) en worden via UIAppFonts geladen.
 // Alles met `relativeTo:`, zodat Dynamische tekst blijft werken; maten zijn die van de tekststijl
@@ -16,14 +16,14 @@ enum Letters {
     static let leesNacht = "NewsreaderTekst-Nacht"
     static let leesVet = "NewsreaderTekst-Bold"
 
-    // Inter kent vier standen. Medium valt op regular (Inter 500 bestaat niet in de bundel, en het
-    // web gebruikt 500 niet voor bediening); heavy en black worden 800.
+    // Schibsted Grotesk kent in de bundel vier standen. Medium valt op regular (500 zit niet in de bundel,
+    // en het web gebruikt 500 niet voor bediening); heavy en black worden 800.
     static func ui(_ weight: Font.Weight) -> String {
         switch weight {
-        case .semibold: "Inter-SemiBold"
-        case .bold: "Inter-Bold"
-        case .heavy, .black: "Inter-ExtraBold"
-        default: "Inter-Regular"
+        case .semibold: "SchibstedGrotesk-SemiBold"
+        case .bold: "SchibstedGrotesk-Bold"
+        case .heavy, .black: "SchibstedGrotesk-ExtraBold"
+        default: "SchibstedGrotesk-Regular"
         }
     }
 
@@ -55,7 +55,7 @@ enum Letters {
 }
 
 extension Font {
-    // Bediening en metadata in Inter, met de maat en het meegroeien van een tekststijl.
+    // Bediening en metadata in Schibsted Grotesk, met de maat en het meegroeien van een tekststijl.
     // Zonder gewicht het gewicht van de tekststijl zelf: .headline is halfvet, zoals bij iOS.
     static func ui(_ style: Font.TextStyle, _ weight: Font.Weight? = nil) -> Font {
         .custom(Letters.ui(weight ?? (style == .headline ? .semibold : .regular)), size: Letters.size(style), relativeTo: style)
@@ -96,6 +96,9 @@ extension View {
     // Een uitlegzin (de zin onder een kop in het welkom, de tekst van een lege bladzijde, de kaart
     // "Maak Hoot van jou"): lezen, dus Newsreader 17/24, zoals de landing en --uitleg op het web.
     func uitleg() -> some View { leestekst(.body) }
+    // Een onboardingzin (Welkom: de zin onder het merk, de uitleg onder een kop, de lege staat van het zoeken):
+    // schreefloos, Schibsted Grotesk 17/24. Geen lopende tekst om te lezen, maar de stem van de bediening.
+    func zin() -> some View { font(.ui(.body)).lineSpacing(3) }
 }
 
 extension Font.TextStyle {
