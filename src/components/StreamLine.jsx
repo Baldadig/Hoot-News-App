@@ -417,16 +417,23 @@ export function StreamLine({ rubrieken, active, onRubriek, bronnen = [], picks, 
     const line = lineRef.current
     let w = -1
     let fs = ''
+    let rw = ''
     const ro = new ResizeObserver(() => {
       const nw = line.clientWidth
       const nfs = getComputedStyle(document.documentElement).fontSize
-      if (nw === w && nfs === fs) return
+      // Ook als de rij zelf verandert (Buiten je bubbel komt erbij als de Editie er is) of het vak van
+      // de rubrieken smaller wordt (de stapel komt binnen): dan moet de actieve rubriek opnieuw
+      // helemaal in beeld.
+      const nrw = (rowRef.current?.offsetWidth ?? 0) + ':' + (scrollRef.current?.clientWidth ?? 0)
+      if (nw === w && nfs === fs && nrw === rw) return
       w = nw
       fs = nfs
+      rw = nrw
       relayout()
     })
     ro.observe(line)
     if (rowRef.current) ro.observe(rowRef.current)
+    if (scrollRef.current) ro.observe(scrollRef.current)
     let live = true
     document.fonts?.ready.then(() => live && relayout())
     return () => {

@@ -140,7 +140,7 @@ struct StreamLine: View {
         .scrollPosition($rubPos)
         .scrollBounceBehavior(.basedOnSize)
         .onScrollGeometryChange(for: Schuif.self) { Schuif($0) } action: { _, s in rub = s }
-        .mask(rand(links: rub.links ? Space.s4 : 0, rechts: rub.rechts ? Space.s4 : 0))
+        .mask(rand(links: rub.links ? Self.zacht : 0, rechts: rub.rechts ? Self.zacht : 0))
         // Open: de rubrieken wijken zacht naar links en vervagen; terug na 80 ms, als de stapel plaats maakt.
         .offset(x: open ? -Space.s5 : 0)
         .animation(open ? move() : move(delay: 0.08), value: open)
@@ -182,10 +182,14 @@ struct StreamLine: View {
         if announcesRubriek { zeg("Rubriek \(r.label).") }
     }
 
-    // Een rubriek helemaal in beeld: buiten de vervaagde rand.
+    // De zachte rand (Stroom-tabs A, keuze 1.1.0): 24 breed, alleen aan de kant waar nog rubrieken
+    // liggen; staat alles erop, dan is er geen rand. Gelijk aan STRIP_FADE en --fade op het web.
+    static let zacht = Space.s5
+
+    // Een rubriek helemaal in beeld: buiten de zachte rand, met 24 lucht.
     private func toon(_ id: String, glijd: Bool) {
         guard let f = rubFrames[id], rub.w > 0 else { return }
-        let rand = Space.s4
+        let rand = Self.zacht
         var naar = rub.x
         if rub.x > 0 && f.minX < rub.x + rand { naar = f.minX - rand }
         else if f.maxX > rub.x + rub.w - rand { naar = f.maxX - rub.w + rand }
@@ -400,10 +404,12 @@ struct StreamLine: View {
     // Kolomrand tot het voorste logo, zodat het op de as van de knop rechtsboven ligt: 8 als de
     // werkbalk dezelfde marge heeft als de kolom (16). Die marge meten we, want hij verschilt per
     // toestel (20 op de grote iPhones: dan 12). Valt de knop buiten de kolom (iPad), dan gewoon 8.
+    // De dichte stapel eindigt op de kolomlijn, onder het tandwiel in de kopregel (Stroom-tabs A): het
+    // voorste logo staat onder het midden van die knop, maar nooit voorbij de lijn.
     private var edge: CGFloat {
         guard let knopAs, knopAs > 0, lineMaxX > 0 else { return Self.edgeBasis }
         let e = lineMaxX - knopAs - Self.small / 2
-        return (Space.s1...Space.s4).contains(e) ? e : Self.edgeBasis
+        return (-Space.s1...Space.s4).contains(e) ? max(0, e) : Self.edgeBasis
     }
 
     // Beweging: 400 ms met een zachte uitloop, cubic-bezier(.2,.8,.2,1); met Verminder beweging direct.

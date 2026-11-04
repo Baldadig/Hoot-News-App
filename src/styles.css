@@ -4940,11 +4940,12 @@ html[data-images='hoofd'] .media--social {
   transition: none !important;
 }
 
-/* Rubrieken. Telefoon: alleen een vervaagde rand (16). Breed scherm: een eindkap van 32 in
-   papierkleur met het pijltje, en de vervaging (16) daarvóór. Onder de kap is de tekst weg. */
+/* Rubrieken (Stroom-tabs A, keuze 1.1.0). Telefoon: alleen een zachte rand van 24 (STRIP_FADE),
+   en alleen aan de kant waar nog rubrieken liggen. Breed scherm: een eindkap van 32 in papierkleur
+   met het pijltje, en de rand daarvóór. Onder de kap is de tekst weg. */
 .rub {
   --cap: 0px;
-  --fade: var(--s4);
+  --fade: var(--s5);
   position: absolute;
   top: 0;
   bottom: 0;

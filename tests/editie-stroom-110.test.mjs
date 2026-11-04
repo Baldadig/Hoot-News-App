@@ -82,3 +82,18 @@ test('Stroom-kaart B: een post op het raster van het artikel, bron onder, geen k
   assert.ok(!row.includes('size: 40'), 'geen avatar van 40')
   assert.ok(row.indexOf('LinkCard(item:') < row.indexOf('SourceMark(item: item)'), 'bron onder het beeld')
 })
+
+test('Stroom-tabs A: schuiven met een zachte rand van 24 aan de kant waar meer staat, de actieve tab altijd in beeld (S2)', async () => {
+  const { STRIP_FADE } = await import('../src/lib/streamline.js')
+  assert.equal(STRIP_FADE, 24)
+  assert.match(block('.rub'), /--fade: var\(--s5\);/, 'de rand is 24, gelijk aan STRIP_FADE')
+  const line = read('src/components/StreamLine.jsx')
+  assert.match(line, /ro\.observe\(scrollRef\.current\)/, 'een vak dat smaller wordt (de stapel komt binnen), zet de actieve rubriek opnieuw in beeld')
+  assert.match(line, /const pad = cssPx\(rubRef\.current, '--cap'\) \+ cssPx\(rubRef\.current, '--fade'\)/)
+  // iOS: dezelfde rand, en de stapel eindigt op de kolomlijn onder het tandwiel.
+  const swift = read('ios/Hoot/Views/StreamLine.swift')
+  assert.match(swift, /static let zacht = Space\.s5/)
+  assert.match(swift, /let rand = Self\.zacht/)
+  assert.match(swift, /max\(0, e\)/)
+  assert.match(read('ios/Hoot/Views/StreamView.swift'), /HootKop\(gearX: \{ knopAs = \$0 \}\)/)
+})
