@@ -1750,11 +1750,10 @@ select.input {
   flex-direction: column;
   min-width: 0;
 }
+/* Bronnaam en tijd breken om als de regel krap is, zoals op iOS; nooit "…" (geen afgekapte bron). */
 .srcmeta__name,
 .srcmeta__time {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 .srcmeta__name {
   color: var(--ink);
@@ -1792,9 +1791,7 @@ select.input {
 }
 .srcbtn__name,
 .srcbtn__time {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 .srcbtn__time {
   color: var(--ink-3);
@@ -4597,6 +4594,10 @@ html[data-images='hoofd'] .media--social {
   text-align: left;
   cursor: pointer;
 }
+/* Onder het nieuws, vóór het einde: lucht erboven, de lijn eronder blijft de scheiding met het einde. */
+.briefcta--end {
+  margin-top: var(--s6);
+}
 .briefcta__icon {
   display: inline-grid;
   flex: none;
@@ -5471,6 +5472,13 @@ html[data-images='hoofd'] .media--social {
 .rubriek-stage__old { position:absolute;inset:0;pointer-events:none;overflow:hidden; }
 .rub__bar { transition-duration: var(--dur-2); }
 @media (prefers-reduced-motion: reduce) { .rub__bar { transition-duration: 0s; } }
+
+/* Hoofdknop in Nacht: inkt is hier een licht vlak, te fel op zwart. Een gedempt vlak met de leesinkt
+   als tekst; de rood gevulde .btn--accent en de stille .btn--quiet blijven zoals ze zijn. */
+:root[data-theme='night'] .btn:not(.btn--accent, .btn--quiet) {
+  --btn-fill: color-mix(in srgb, var(--ink) 20%, #000000);
+  --btn-ink: var(--ink);
+}
 
 /* Nacht Zacht papier: lokale uitvoering van Alex' keuze; normtokens bij Claude. */
 :root[data-theme='night'] {

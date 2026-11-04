@@ -95,13 +95,16 @@ struct InkSwitch: ToggleStyle {
 // en voor wat gekozen is, niet voor wat je doet; een tweede knop is stil (`.glass` of een link).
 struct InkButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var enabled
+    @Environment(\.nachtActief) private var nacht
     func makeBody(configuration: Configuration) -> some View {
+        // In Nacht is inkt een licht vlak, te fel op zwart: daar een gedempt vlak met de leesinkt als tekst
+        // (gelijk aan .btn in de Nacht-regels van src/styles.css).
         configuration.label
             .font(.headline.weight(.heavy))
-            .foregroundStyle(Theme.paper)
+            .foregroundStyle(nacht ? Theme.ink : Theme.paper)
             .padding(.horizontal, Space.s5)
             .frame(minHeight: Space.tap)
-            .background(Theme.ink.opacity(configuration.isPressed ? 0.78 : 1), in: Capsule())
+            .background(Theme.ink.opacity(nacht ? (configuration.isPressed ? 0.26 : 0.2) : (configuration.isPressed ? 0.78 : 1)), in: Capsule())
             .contentShape(Capsule())
             .opacity(enabled ? 1 : 0.45)
     }
