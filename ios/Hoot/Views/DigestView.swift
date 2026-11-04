@@ -51,10 +51,13 @@ struct DigestView: View {
                                 .id(field.id)
                         }
                         DisclosureGroup("Hoe kiest Hoot deze stukken?") {
-                            Text("Gekozen uit \(shown.reduce(0) { $0 + ($1.count ?? 0) }) stukken van kenners en vakbladen in de onderwerpen die je volgt, op drie gronden: hoeveel bronnen over hetzelfde schreven, of een redactie het uitkoos (zoals Sidebar), en wie het schreef (een kenner telt zwaarder dan een vakblad). Alleen stukken van mensen: geen gesponsorde stukken, webinars, podcasts of lijstjes. De tekst bij elk stuk is de intro van de schrijver zelf, niet van AI.")
-                                .font(.subheadline)
-                                .foregroundStyle(Theme.ink3)
-                                .padding(.top, Space.s2)
+                            VStack(alignment: .leading, spacing: Space.s2) {
+                                ForEach(Self.howHootChooses(shown.reduce(0) { $0 + ($1.count ?? 0) }), id: \.self) { Text($0) }
+                            }
+                            .font(.subheadline)
+                            .foregroundStyle(Theme.ink3)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.top, Space.s2)
                         }
                         .font(.subheadline.weight(.semibold))
                         .padding(.vertical, Space.s6)
@@ -180,6 +183,12 @@ struct DigestView: View {
             }
         }
         .padding(.vertical, Space.s4)
+    }
+
+    // Hoe kiest Hoot deze stukken? Tekst 1 · Kort, woord voor woord gelijk aan Vak.jsx (tests/selectie-index.test.mjs).
+    static func howHootChooses(_ n: Int) -> [String] {
+        ["Deze week las Hoot \(n) stukken van kenners en vakbladen over je onderwerpen. Per onderwerp blijven er drie over: waar anderen ook over schrijven, wat een redactie uitkoos, of wat een kenner schreef.",
+         "Niets gesponsord. De intro is van de schrijver zelf."]
     }
 
     // "2 t/m 8 november", en over een maandgrens "26 oktober t/m 1 november" (zoals op de website).

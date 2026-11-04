@@ -31,6 +31,13 @@ function span(from, to) {
 }
 const two = (n) => String(n).padStart(2, '0')
 
+// Hoe kiest Hoot deze stukken? Tekst 1 · Kort (concepten/4-hoe-kiest.html), woord voor woord gelijk
+// aan DigestView.swift (tests/selectie-index.test.mjs).
+export const howHootChooses = (n) => [
+  `Deze week las Hoot ${n} stukken van kenners en vakbladen over je onderwerpen. Per onderwerp blijven er drie over: waar anderen ook over schrijven, wat een redactie uitkoos, of wat een kenner schreef.`,
+  'Niets gesponsord. De intro is van de schrijver zelf.',
+]
+
 
 // Wie, waar en wanneer — met delen en bewaren rechts. Geen knop naar de bron: vakbronnen staan niet in de Stroom.
 function Source({ item }) {
@@ -245,7 +252,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
             })}
 
             <Disclosure className="dhow" summaryClassName="linkbtn linkbtn--plain" summary="Hoe kiest Hoot deze stukken?">
-              <p>Uit {seen} stukken van kenners en vakbladen: wat veel bronnen oppikken, wat een redactie uitkoos en wie het schreef. Niets gesponsord; de intro is van de schrijver.</p>
+              {howHootChooses(seen).map((line) => <p key={line}>{line}</p>)}
             </Disclosure>
           </>
         ) : null}
