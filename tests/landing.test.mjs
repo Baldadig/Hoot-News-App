@@ -114,3 +114,9 @@ test('landing: de kleine tekstronde uit de review', () => {
   assert.ok(labels.some((l) => l.includes('‘Hier was je gebleven’')))
   for (const l of labels) assert.ok((l.match(/:/g) || []).length <= 1, l)
 })
+
+test('landing: het deelbeeld is 1200 × 630', () => {
+  const png = readFileSync(new URL('../landing/og.png', import.meta.url))
+  assert.equal(png.readUInt32BE(16), 1200)
+  assert.equal(png.readUInt32BE(20), 630)
+})
