@@ -119,7 +119,11 @@ private struct HootRefresh: ViewModifier {
     @State private var pull = RefreshPull()
     private func refresh() {
         guard pull.begin() else { return }
-        Task { await action(); pull.finish() }
+        Task {
+            await action()
+            if DebugLaunch.refreshDelay > 0 { try? await Task.sleep(for: .seconds(DebugLaunch.refreshDelay)) }
+            pull.finish()
+        }
     }
     func body(content: Content) -> some View {
         content

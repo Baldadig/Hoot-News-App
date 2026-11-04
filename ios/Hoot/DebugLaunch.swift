@@ -18,6 +18,7 @@ import SwiftUI
 //   -HootInterests politiek,tech,cultuur   (in het welkom al gekozen)
 //   -HootNotifyIn <s>   (één echt seintje "Editie ligt klaar" over s seconden; toestemming eerst geven)
 //   -HootFeature verhaal-id:Rubriek,…   (App Store-opnamen: deze echte verhalen bovenaan Editie en Stroom)
+//   -HootRefreshDelay <s>   (trek-om-te-verversen: houd het laden s seconden vast, om de lader te zien)
 //   -HootEngine YES   (jouw Editie altijd opnieuw samenstellen met de rekenkern, ook als er al een
 //                     vastgelegde staat op het toestel of in je account; niets gaat naar je account)
 // In Release doet dit allemaal niets.
@@ -26,6 +27,7 @@ enum DebugLaunch {
     private static var defaults: UserDefaults { .standard }
     static var screen: String? { defaults.string(forKey: "HootScreen") }
     static var engine: Bool { defaults.bool(forKey: "HootEngine") }
+    static var refreshDelay: Double { max(0, min(30, defaults.double(forKey: "HootRefreshDelay"))) }
     static var query: String? { defaults.string(forKey: "HootQuery") }
     static var dark: Bool { defaults.bool(forKey: "HootDark") }
     static var largeText: Bool { defaults.bool(forKey: "HootLargeText") }
@@ -55,6 +57,7 @@ enum DebugLaunch {
     #else
     static let screen: String? = nil
     static let engine = false
+    static let refreshDelay = 0.0
     static let query: String? = nil
     static let dark = false
     static let largeText = false
