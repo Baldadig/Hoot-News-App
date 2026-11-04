@@ -4243,7 +4243,10 @@ html[data-images='hoofd'] .media--social {
 }
 
 /* Buiten je bubbel: een lijst in het leesblok, net als Verder in deze Editie. */
+/* Buiten je bubbel: op de leesbreedte, net als de eindkaart eronder; lijn, kopje en verhaal
+   eindigen op één rechterlijn, ook naast de brede paren. */
 .bubble {
+  max-inline-size: var(--measure);
   margin-top: var(--s2);
 }
 .bubble__hint {
