@@ -108,23 +108,6 @@ final class DeelKaartTests: XCTestCase {
             }
         }
     }
-}
-
-private final class LeadFixtureProtocol: URLProtocol, @unchecked Sendable {
-    override class func canInit(with request: URLRequest) -> Bool { request.url?.host == "hoot-fixture.invalid" }
-    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
-    override func startLoading() {
-        do {
-            let name = request.url!.lastPathComponent
-            let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-            let data = try Data(contentsOf: root.appending(path: "tests/fixtures/images/\(name)"))
-            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: ["Content-Type": "image/png"])!
-            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-            client?.urlProtocol(self, didLoad: data); client?.urlProtocolDidFinishLoading(self)
-        } catch { client?.urlProtocol(self, didFailWithError: error) }
-    }
-    override func stopLoading() {}
-
     // Brand Guide v2.2 › Deelkaart: het uitgeverslogo op een papieren schijf, gelijk aan het web.
     func testPapierenSchijfAchterUitgeverslogo() throws {
         let m = DeelKaartStyle.layout.mark
@@ -149,4 +132,20 @@ private final class LeadFixtureProtocol: URLProtocol, @unchecked Sendable {
             XCTAssertTrue(close(try pixel(kaal, x, top + 14), [163, 32, 27]), "\(format): monogram zonder schijf")
         }
     }
+}
+
+private final class LeadFixtureProtocol: URLProtocol, @unchecked Sendable {
+    override class func canInit(with request: URLRequest) -> Bool { request.url?.host == "hoot-fixture.invalid" }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override func startLoading() {
+        do {
+            let name = request.url!.lastPathComponent
+            let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            let data = try Data(contentsOf: root.appending(path: "tests/fixtures/images/\(name)"))
+            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: ["Content-Type": "image/png"])!
+            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            client?.urlProtocol(self, didLoad: data); client?.urlProtocolDidFinishLoading(self)
+        } catch { client?.urlProtocol(self, didFailWithError: error) }
+    }
+    override func stopLoading() {}
 }
