@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { composePersonal, personalRows, editionBasis } from '../lib/personal.js'
 import { editionReady, fitsEdition, settleEdition, writeBrief } from '../lib/editionSync.js'
 import { readJSON, writeJSON } from '../lib/store.js'
+import { syncedUid } from '../lib/membership.js'
 
 const KEY = 'hoot:my-edition'
 
@@ -29,7 +30,7 @@ const KEY = 'hoot:my-edition'
 // samenvatting: die van de algemene editie hoort niet bij jouw verhalen.
 export function usePersonalEdition({ data, status, prefs, muted, account, affinity = null, readIds = null, sync = null }) {
   const global = data?.edition || null
-  const uid = account.status === 'in' ? account.user.id : null
+  const uid = syncedUid(account)
   const owner = uid || 'anon'
   const pulled = !!sync?.pulled
   const ready = editionReady({ status, global, items: data?.items?.length || 0, uid, pulled, sync: sync?.status })

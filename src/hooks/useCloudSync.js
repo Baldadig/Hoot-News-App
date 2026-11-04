@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { pickSynced } from '../lib/sync.js'
 import { SyncEngine, forgetAccount, ownerOf } from '../lib/syncEngine.js'
+import { accountPending, syncedUid } from '../lib/membership.js'
 
 // Houdt instellingen, gelezen, geziene verhalen en Bewaard gelijk met je account (zie
 // src/lib/syncEngine.js voor de regels: van wie de gegevens zijn, wat nog openstaat, opnieuw
@@ -11,7 +12,7 @@ export function useCloudSync(account, { prefs, setPrefs, saved, setSaved, readId
   // Eén geslaagde ophaalronde gehad (SyncEngine.onPulled): dan pas rekent de Editie als lid
   // (usePersonalEdition, bouwspec P8-2). Terug op false bij een ander account of uitloggen.
   const [pulled, setPulled] = useState(false)
-  const uid = account.status === 'in' ? account.user.id : null
+  const uid = syncedUid(account)
   const client = account.client
   const engine = useRef(null)
   const latest = useRef({})
@@ -70,9 +71,9 @@ export function useCloudSync(account, { prefs, setPrefs, saved, setSaved, readId
     }
   }, [uid, client, getLocal, setLocal])
 
-  // Ingelogd met een account dat (nog) geen lid is, terwijl hier gegevens van een ánder account
-  // staan: die horen niet bij deze gebruiker.
-  const otherUser = account.status === 'noInvite' ? account.user?.id : null
+  // Ingelogd met een account dat (nog) geen profiel heeft, terwijl hier gegevens van een ánder
+  // account staan: die horen niet bij deze gebruiker.
+  const otherUser = accountPending(account) ? account.user?.id : null
   useEffect(() => {
     if (!otherUser) return
     const owner = ownerOf(localStorage)

@@ -41,7 +41,7 @@ export default function Settings({ meta, account, syncStatus, affinity = null, o
 
         <h2 className="label label--section sect">Editie</h2>
         <div className="rows">
-          <Row label="De Editie in één minuut" hint={ai ? 'Samenvatting door AI. Voor leden.' : 'Nog niet beschikbaar.'}>
+          <Row label="De Editie in één minuut" hint={ai ? 'Samenvatting door AI. Met een account.' : 'Nog niet beschikbaar.'}>
             <Switch checked={prefs.brief} onChange={(v) => setPref('brief', v)} label="De Editie in één minuut" />
           </Row>
           <Row label="Buiten je bubbel" hint="Een extra verhaal naast je Editie.">

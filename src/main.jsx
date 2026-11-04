@@ -13,7 +13,7 @@ import '@fontsource/source-sans-3/latin-800.css'
 import '@fontsource/roboto/latin-500.css'
 import './styles.css'
 import { registerUpdates } from './lib/swUpdate.js'
-import { captureInvite, captureGoogleReturn } from './lib/account.js'
+import { dropInvite, captureGoogleReturn } from './lib/account.js'
 import { loadFeedCache } from './lib/feedCache.js'
 import { migrate } from './lib/migrate.js'
 
@@ -26,9 +26,9 @@ async function start() {
     console.warn('Verhuizing overgeslagen', error)
     try { dropMoveFragment() } catch { /* geen geschiedenis: niets weg te halen */ }
   }
-// Uitnodigingslink (?uitnodiging=…) en terugkomst van Google (#id_token=…): onthouden en uit de
-// adresbalk halen, vóór de app die als route leest.
-captureInvite()
+// Oude uitnodigingslink (?uitnodiging=…): stil uit de adresbalk. Terugkomst van Google
+// (#id_token=…): onthouden en uit de adresbalk halen, vóór de app die als route leest.
+dropInvite()
 captureGoogleReturn()
 
 // Opslag van oudere versies omzetten (één keer, zie src/lib/migrate.js).

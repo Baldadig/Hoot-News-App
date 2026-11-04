@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Dialog, DialogHeader } from './Dialog.jsx'
+import { accountPending, PENDING_TEXT } from '../lib/membership.js'
 
 // "Inloggen met Google" volgens Googles richtlijnen voor de knop (donker thema): hun eigen
 // G in kleur, Roboto Medium, bijna zwart met een grijze rand. Kleuren en letter liggen vast.
@@ -21,18 +22,18 @@ export function GoogleButton({ onClick, wide = false }) {
   )
 }
 
-// Account in Instellingen: inloggen, wie je bent, synchroniseren en (voor beheerders) uitnodigen.
+// Account in Instellingen: inloggen, wie je bent en synchroniseren.
 const SYNC = { idle: 'Gesynchroniseerd', pending: 'Wacht op verbinding', syncing: 'Synchroniseren…', ok: 'Gesynchroniseerd', error: 'Synchroniseren lukte niet; straks opnieuw' }
 
 export function AccountSettings({ account, syncStatus }) {
-  const { status, user, profile, signIn, signOut, invite } = account
+  const { status, user, signIn, signOut } = account
   if (status === 'loading') return <p className="hint">Even geduld…</p>
   if (status === 'out')
     return (
       <div className="setrow setrow--stack">
         <div className="setrow__text">
-          <span className="setrow__label">{invite ? 'Je bent uitgenodigd' : 'Inloggen'}</span>
-          <span className="setrow__hint">{invite ? 'Maak je account' : 'Op al je toestellen'}</span>
+          <span className="setrow__label">Inloggen</span>
+          <span className="setrow__hint">Op al je toestellen</span>
         </div>
         <GoogleButton onClick={signIn} />
       </div>
@@ -43,132 +44,51 @@ export function AccountSettings({ account, syncStatus }) {
       <div className="setrow">
         <div className="setrow__text">
           <span className="setrow__label">{email}</span>
-          <span className="setrow__hint">{status === 'noInvite' ? 'Nog geen lid' : SYNC[syncStatus] || SYNC.ok}</span>
+          <span className="setrow__hint">{accountPending(account) ? PENDING_TEXT : SYNC[syncStatus] || SYNC.ok}</span>
         </div>
         <button type="button" className="btn btn--quiet" onClick={signOut}>
           Uitloggen
         </button>
       </div>
-      {status === 'noInvite' ? <RedeemRow account={account} /> : null}
-      {profile?.is_admin ? <InviteRow account={account} /> : null}
+      {accountPending(account) ? <RetryRow account={account} /> : null}
     </div>
   )
 }
 
-// Ingelogd, nog geen lid: de uitnodiging alsnog verzilveren (zoals in de app).
-const REDEEM = { ongeldig: 'Deze code werkt niet. Vraag een nieuwe uitnodiging.', fout: 'Dat lukte niet. Probeer het opnieuw.' }
-
-function RedeemRow({ account }) {
-  const [code, setCode] = useState('')
+// Ingelogd, maar het profiel ontbreekt nog (zeldzaam): nog eens proberen.
+function RetryRow({ account }) {
   const [busy, setBusy] = useState(false)
-  const [msg, setMsg] = useState('')
-  const submit = async (e) => {
-    e.preventDefault()
+  const again = async () => {
     setBusy(true)
-    setMsg('')
-    let result
     try {
-      result = await account.redeem(code)
-    } catch {
-      result = 'fout'
-    }
-    setBusy(false)
-    if (result !== 'ok') setMsg(REDEEM[result] || REDEEM.fout)
-  }
-  return (
-    <form className="invite" onSubmit={submit}>
-      <span className="setrow__label">Lid worden</span>
-      <span className="setrow__hint">Plak je uitnodigingslink of code.</span>
-      <div className="invite__acts">
-        <input className="input" value={code} onChange={(e) => setCode(e.target.value)} placeholder="Uitnodigingslink of code" aria-label="Uitnodigingslink of code" autoCapitalize="off" autoCorrect="off" spellCheck={false} />
-        <button type="submit" className="btn" disabled={busy || !code.trim()}>
-          {busy ? 'Even…' : 'Word lid'}
-        </button>
-      </div>
-      {msg ? (
-        <p className="hint" role="status">
-          {msg}
-        </p>
-      ) : null}
-    </form>
-  )
-}
-
-function InviteRow({ account }) {
-  const [link, setLink] = useState('')
-  const [note, setNote] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [msg, setMsg] = useState('')
-  const make = async () => {
-    setBusy(true)
-    setMsg('')
-    try {
-      setLink(await account.createInvite(note.trim()))
-    } catch {
-      setMsg('Dat lukte niet. Probeer het zo nog eens.')
+      await account.retry()
     } finally {
       setBusy(false)
     }
   }
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(link)
-      setMsg('Gekopieerd.')
-    } catch {
-      setMsg('Kopiëren lukte niet; selecteer de link hierboven.')
-    }
-  }
-  const share = () => navigator.share?.({ title: 'Uitnodiging voor Hoot', text: 'Je bent uitgenodigd voor Hoot, mijn nieuwslezer.', url: link }).catch(() => {})
   return (
-    <div className="invite">
-      <span className="setrow__label">Iemand uitnodigen</span>
-      <span className="setrow__hint">Werkt één keer, 30 dagen lang.</span>
-      {link ? (
-        <>
-          <input className="input invite__link" readOnly value={link} onFocus={(e) => e.currentTarget.select()} aria-label="Uitnodigingslink" />
-          <div className="invite__acts">
-            {navigator.share ? (
-              <button type="button" className="btn" onClick={share}>
-                Delen
-              </button>
-            ) : null}
-            <button type="button" className="btn btn--quiet" onClick={copy}>
-              Kopieer link
-            </button>
-            <button type="button" className="linkbtn" onClick={() => (setLink(''), setNote(''), setMsg(''))}>
-              Nog een
-            </button>
-          </div>
-        </>
-      ) : (
-        <div className="invite__acts">
-          <input className="input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Voor wie?" aria-label="Voor wie is deze uitnodiging" />
-          <button type="button" className="btn" onClick={make} disabled={busy}>
-            {busy ? 'Even…' : 'Maak link'}
-          </button>
-        </div>
-      )}
-      {msg ? (
-        <p className="hint" role="status">
-          {msg}
-        </p>
-      ) : null}
+    <div className="setrow">
+      <button type="button" className="btn" onClick={again} disabled={busy}>
+        {busy ? 'Even…' : 'Opnieuw'}
+      </button>
     </div>
   )
 }
 
-// Inloggen, in een blad. Twee ingangen met elk een eigen kop: vanuit "Jouw Editie in één minuut"
-// (`reason` 'brief': gaat over de samenvatting), of vanzelf na een eind lezen (alleen als je via een
-// uitnodigingslink binnenkwam, zie src/lib/join.js). Hoot is op uitnodiging; dat staat er vóór je inlogt.
+// Inloggen, in een blad. Drie ingangen met elk een eigen kop: vanuit "De Editie in één minuut"
+// (`reason` 'brief': gaat over de samenvatting), Inloggen op Welkom ('welkom'), of vanzelf na een
+// eind lezen ('sync', zie src/lib/join.js). Een account is er voor iedereen.
+export const JOIN_TEXT = 'Lezen kan zonder account. Met een account reist je Hoot mee naar je andere toestellen.'
+
 const JOIN = {
   brief: {
-    kicker: 'Voor leden',
+    kicker: 'Met een account',
     title: 'De Editie in één minuut',
     text: 'Een korte samenvatting door AI, met de bronnen erbij.',
   },
   // Inloggen rechtsboven op de rode intro van Welkom (zoals in de app): je hebt nog niets ingesteld.
   welkom: {
-    kicker: 'Al lid?',
+    kicker: 'Al een account?',
     title: 'Log in met Google.',
     text: null,
   },
@@ -179,17 +99,13 @@ const JOIN = {
   },
 }
 
-export function JoinSheet({ open, reason = 'sync', invited = false, onClose, onSignIn }) {
+export function JoinSheet({ open, reason = 'sync', onClose, onSignIn }) {
   const copy = JOIN[reason] || JOIN.sync
   return (
     <Dialog open={open} onClose={onClose} className="sheet--join" labelledBy="join-title">
       <DialogHeader id="join-title" label={copy.kicker} title={copy.title} onClose={onClose} />
       {copy.text ? <p className="join__text">{copy.text}</p> : null}
-      <p className="join__text">
-        {invited
-          ? 'Je bent uitgenodigd. Log in, dan ben je meteen lid.'
-          : 'Een account is op uitnodiging. Lezen kan zonder account. Heb je een code? Log in en vul hem in.'}
-      </p>
+      <p className="join__text">{JOIN_TEXT}</p>
       <div className="join__actions">
         <GoogleButton onClick={onSignIn} wide />
         <button type="button" className="linkbtn linkbtn--plain" onClick={onClose}>

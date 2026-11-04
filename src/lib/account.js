@@ -1,4 +1,4 @@
-// Inloggen (Google) en uitnodigingen. De Supabase-code laadt pas als je inlogt of al ingelogd
+// Inloggen (Google). De Supabase-code laadt pas als je inlogt of al ingelogd
 // bent: wie geen account gebruikt, downloadt er niets extra voor.
 import { SUPABASE_URL, SUPABASE_KEY, GOOGLE_CLIENT_ID } from './config.js'
 
@@ -18,18 +18,16 @@ const safe = (fn, fallback) => {
 export const hasSession = () => safe(() => Object.keys(localStorage).some((k) => k.startsWith('sb-') && k.endsWith('-auth-token')), false)
 export const isAuthReturn = () => Boolean(safe(() => localStorage.getItem(TOKEN), null))
 
-// ---- Uitnodiging: ?uitnodiging=CODE in de link onthouden tot je inlogt ----
-const INVITE = 'hoot:invite'
-export function captureInvite() {
-  const url = new URL(location.href)
-  const code = url.searchParams.get('uitnodiging')
-  if (!code) return
-  safe(() => localStorage.setItem(INVITE, code.trim()))
+// ---- Oude uitnodigingslinks (?uitnodiging=CODE) ----
+// Een account is er nu voor iedereen. Een oude link blijft werken: de code gaat stil uit de
+// adresbalk en wordt nergens bewaard. Een code die een oudere versie nog onthield, ruimen we op.
+export function dropInvite(loc = location, hist = history, storage = null) {
+  safe(() => (storage || localStorage).removeItem('hoot:invite'))
+  const url = new URL(loc.href)
+  if (!url.searchParams.has('uitnodiging')) return
   url.searchParams.delete('uitnodiging')
-  history.replaceState(history.state, '', url.pathname + url.search + url.hash)
+  hist.replaceState(hist.state, '', url.pathname + url.search + url.hash)
 }
-export const pendingInvite = () => safe(() => localStorage.getItem(INVITE), null)
-export const clearInvite = () => safe(() => localStorage.removeItem(INVITE))
 
 // ---- Inloggen met Google, rechtstreeks ----
 // Google stuurt je terug naar Hoot zelf (niet via het adres van Supabase), met een id-token in de
@@ -78,5 +76,3 @@ export async function finishGoogleLogin(client) {
   const { data, error } = await client.auth.signInWithIdToken({ provider: 'google', token: pending.token, nonce: pending.nonce })
   return error ? null : data.session
 }
-
-export const inviteLink = (code) => `${location.origin}/lees/?uitnodiging=${code}`

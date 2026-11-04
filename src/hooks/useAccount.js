@@ -1,23 +1,20 @@
 import { useCallback, useEffect, useState } from 'react'
-import { supabase, hasSession, isAuthReturn, finishGoogleLogin, pendingInvite, clearInvite, signInWithGoogle, inviteLink } from '../lib/account.js'
-import { inviteCode } from '../lib/join.js'
+import { supabase, hasSession, isAuthReturn, finishGoogleLogin, signInWithGoogle } from '../lib/account.js'
+import { resolveProfile } from '../lib/membership.js'
 
-// Wie er is ingelogd, en of die lid is.
-// status: 'out' (niet ingelogd) | 'loading' | 'in' (lid) | 'noInvite' (ingelogd, maar nog geen lid)
+// Wie er is ingelogd. Een account is er voor iedereen: wie inlogt, krijgt in de database meteen
+// een profiel (supabase/migrations/20261104_open_accounts.sql).
+// status: 'out' (niet ingelogd) | 'loading' | 'in' (ingelogd)
+// `profile` is er normaal meteen. Ontbreekt het tóch (de database is nog niet bijgewerkt), dan
+// vraagt Hoot het één keer aan via rpc('join'); lukt dat niet, dan blijft profile null en
+// synchroniseert er niets tot het wel lukt (`retry` in Instellingen).
 export function useAccount() {
   const [state, setState] = useState(() => ({ status: hasSession() || isAuthReturn() ? 'loading' : 'out', user: null, profile: null, client: null }))
 
-  // Lid? Zo niet en er ligt een uitnodiging klaar, dan die nu verzilveren.
   const resolve = useCallback(async (client, user) => {
-    const profileOf = () => client.from('profiles').select('is_admin, created_at').eq('id', user.id).maybeSingle()
-    let { data: profile } = await profileOf()
-    const code = pendingInvite()
-    if (!profile && code) {
-      const { data: ok } = await client.rpc('redeem_invite', { p_code: code })
-      if (ok) ({ data: profile } = await profileOf())
-    }
-    if (profile) clearInvite()
-    setState({ status: profile ? 'in' : 'noInvite', user, profile, client })
+    const profile = await resolveProfile(client, user)
+    setState({ status: 'in', user, profile, client })
+    return profile
   }, [])
 
   useEffect(() => {
@@ -44,30 +41,11 @@ export function useAccount() {
     setState((s) => ({ ...s, status: 'out', user: null, profile: null }))
   }, [state.client])
 
-  // Ingelogd maar nog geen lid: alsnog een uitnodiging verzilveren, met de code of de hele link
-  // (zelfde functie als de app). Geeft 'ok', 'ongeldig' (code werkt niet of niet meer) of 'fout'.
-  const redeem = useCallback(
-    async (input) => {
-      const code = inviteCode(input)
-      if (!code || !state.client || !state.user) return 'ongeldig'
-      const { data: ok, error } = await state.client.rpc('redeem_invite', { p_code: code })
-      if (error) return 'fout'
-      if (!ok) return 'ongeldig'
-      await resolve(state.client, state.user)
-      return 'ok'
-    },
-    [state.client, state.user, resolve]
-  )
+  // Ingelogd zonder profiel: nog eens proberen. Geeft true als het nu gelukt is.
+  const retry = useCallback(async () => {
+    if (!state.client || !state.user) return false
+    return Boolean(await resolve(state.client, state.user))
+  }, [state.client, state.user, resolve])
 
-  // Beheerders: een uitnodigingslink maken (30 dagen geldig).
-  const createInvite = useCallback(
-    async (note, maxUses = 1) => {
-      const { data, error } = await state.client.rpc('create_invite', { p_note: note || null, p_max_uses: maxUses })
-      if (error) throw error
-      return inviteLink(data)
-    },
-    [state.client]
-  )
-
-  return { ...state, signIn: signInWithGoogle, signOut, redeem, createInvite, invite: pendingInvite() }
+  return { ...state, signIn: signInWithGoogle, signOut, retry }
 }

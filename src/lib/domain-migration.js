@@ -106,7 +106,7 @@ export async function receiveMove() {
   try { origin = new URL(document.referrer).origin } catch {}
   applyMove(localStorage, payload, origin)
   const route = movePayload({ getItem: () => null }, payload.route).route
-  // Zoekdeel (bijv. ?uitnodiging=…) laten staan: captureInvite leest het daarna.
+  // Zoekdeel (bijv. een oude ?uitnodiging=…) laten staan: dropInvite haalt het daarna weg.
   history.replaceState(null, '', location.pathname + location.search + route)
 }
 // Mislukte verhuizing: het fragment weghalen (geen lus, geen data in de adresbalk) en de app gewoon

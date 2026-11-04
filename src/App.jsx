@@ -34,7 +34,8 @@ import { DisplaySheet } from './components/Display.jsx'
 import { JoinSheet } from './components/Account.jsx'
 import { normalizePrefs } from './lib/prefs.js'
 import { shouldShowInstallTip } from './lib/install.js'
-import { shouldAskToJoin } from './lib/join.js'
+import { shouldAskToJoin, JOIN_AUTO } from './lib/join.js'
+import { accountPending } from './lib/membership.js'
 import { applyWelcome } from './lib/welcome.js'
 import { usePersonalEdition } from './hooks/usePersonalEdition.js'
 import { toggleFollow } from './lib/follow.js'
@@ -370,13 +371,12 @@ export default function App() {
   const reopenHeld = useRef(false)
   if (showWelcome) reopenHeld.current = reopenWelcome
 
-  // Nog geen account, maar wel via een uitnodigingslink gekomen? Als je een eind in je Editie of
-  // Stroom hebt gelezen, één keer vragen of je wilt inloggen (zie src/lib/join.js).
+  // Nog geen account? Als je een eind in je Editie of Stroom hebt gelezen, terughoudend vragen of
+  // je wilt inloggen (zie src/lib/join.js; staat uit zolang JOIN_AUTO uit staat).
   // joinOpen: false, of waarom het blad open is ('sync' vanzelf, 'brief' via de samenvatting).
   const [joinOpen, setJoinOpen] = useState(false)
   const joinAsked = rawPrefs.joinAsked
-  const invited = !!account.invite
-  const mayAsk = account.status === 'out' && invited && prefs.onboarded && !showWelcome
+  const mayAsk = JOIN_AUTO && account.status === 'out' && prefs.onboarded && !showWelcome
   useEffect(() => {
     if (!mayAsk || joinOpen) return
     // Alleen echt lezen telt: scrollen na vinger, muis of toets (niet het terugzetten van je
@@ -386,7 +386,7 @@ export default function App() {
     const onScroll = (e) => {
       const el = e.target
       if (!byUser || !(el instanceof Element) || !el.matches('section.view')) return
-      if (!shouldAskToJoin({ status: 'out', invited: true, onboarded: true, path, scrolled: el.scrollTop, asked: joinAsked })) return
+      if (!shouldAskToJoin({ status: 'out', onboarded: true, path, scrolled: el.scrollTop, asked: joinAsked })) return
       setJoinOpen('sync')
       setPref('joinAsked', { n: (joinAsked?.n || 0) + 1, at: Date.now() })
     }
@@ -592,8 +592,8 @@ export default function App() {
               active={shown === 'editie'}
               bubble={bubble}
               brief={prefs.brief ? myEdition?.brief || null : null}
-              briefForMembers={prefs.brief && !member && ['out', 'noInvite'].includes(rawAccount.status)}
-              onJoin={() => (rawAccount.status === 'noInvite' ? route.go('instellingen') : setJoinOpen('brief'))}
+              briefForMembers={prefs.brief && !member && (rawAccount.status === 'out' || accountPending(rawAccount))}
+              onJoin={() => (accountPending(rawAccount) ? route.go('instellingen') : setJoinOpen('brief'))}
               hint={!!rawPrefs.editieHint}
               onHintDone={endEditieHint}
               edition={myEdition}
@@ -660,7 +660,7 @@ export default function App() {
           )}
         </aside>
         <DisplaySheet open={display} onClose={() => setDisplay(false)} account={account} syncStatus={syncStatus} />
-        <JoinSheet open={!!joinOpen && account.status === 'out'} reason={joinOpen || undefined} invited={invited} onClose={() => setJoinOpen(false)} onSignIn={account.signIn} />
+        <JoinSheet open={!!joinOpen && account.status === 'out'} reason={joinOpen || undefined} onClose={() => setJoinOpen(false)} onSignIn={account.signIn} />
         <div className="toasts" aria-live="polite" inert={overlay ? '' : undefined}>
           {notice ? (
             <div className="toast" key={notice}>

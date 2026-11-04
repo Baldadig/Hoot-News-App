@@ -212,15 +212,15 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
           </button>
         ) : null}
         {ready && !hasBrief && briefForMembers ? (
-          // Hoot is op uitnodiging: dat staat er al vóór je inlogt. Ingelogd zonder lidmaatschap?
-          // Dan brengt de knop je naar het veld voor je uitnodigingscode (Instellingen).
-          <button type="button" className="briefcta" onClick={onJoin} aria-haspopup={account?.status === 'noInvite' ? undefined : 'dialog'}>
+          // Zonder account: de knop opent het inlogblad. Ingelogd maar het account is er nog niet
+          // helemaal (zeldzaam)? Dan brengt hij je naar Instellingen, waar je het opnieuw probeert.
+          <button type="button" className="briefcta" onClick={onJoin} aria-haspopup={account?.status === 'out' ? 'dialog' : undefined}>
             <span className="briefcta__icon" aria-hidden="true">
               <SparkleIcon />
             </span>
             <span className="briefcta__text">
               <span className="briefcta__title">De Editie in één minuut</span>
-              <span className="briefcta__sub">{account?.status === 'noInvite' ? 'Voor leden: vul je uitnodigingscode in' : 'Voor leden'}</span>
+              <span className="briefcta__sub">Met een account</span>
             </span>
             <span className="briefcta__go" aria-hidden="true">
               <CaretIcon size={ICON_SM} />

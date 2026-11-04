@@ -365,7 +365,7 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
             </span>
             {view === 'pager' ? (
               onSignIn ? (
-                <button type="button" className="linkbtn linkbtn--plain ob__login" onClick={onSignIn} title="Een account is op uitnodiging. Lezen kan zonder account.">
+                <button type="button" className="linkbtn linkbtn--plain ob__login" onClick={onSignIn} title="Lezen kan ook zonder account.">
                   Inloggen
                 </button>
               ) : null
@@ -512,11 +512,11 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
               </span>
               {onSignIn ? (
                 <>
-                  <button type="button" className="linkbtn linkbtn--plain ob__login" onClick={onSignIn} title="Een account is op uitnodiging. Lezen kan zonder account." aria-describedby="ob-login-hint">
+                  <button type="button" className="linkbtn linkbtn--plain ob__login" onClick={onSignIn} title="Lezen kan ook zonder account." aria-describedby="ob-login-hint">
                     Inloggen
                   </button>
                   <span id="ob-login-hint" className="visually-hidden">
-                    Een account is op uitnodiging. Lezen kan zonder account.
+                    Lezen kan ook zonder account.
                   </span>
                 </>
               ) : null}
