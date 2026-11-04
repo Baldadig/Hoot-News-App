@@ -92,4 +92,21 @@ import XCTest
         XCTAssertEqual(c.center, CGPoint(x: 78, y: 83))
         XCTAssertEqual(c.path(in: .zero).boundingRect, CGRect(x: 76, y: 81, width: 4, height: 4))
     }
+
+    // De onboarding-iris (WelcomeView) heeft hetzelfde vaste middelpunt als het web en het opstartscherm:
+    // open en dicht liggen op dezelfde plek (de punt), alleen de straal verschilt.
+    func testWelcomeIrisKeepsItsCenterOnTheDot() {
+        let size = CGSize(width: 375, height: 667)
+        let origin = CGPoint(x: 0, y: 20)
+        let dot = CGRect(x: 60, y: 100, width: 9, height: 9) // in schermcoördinaten
+        let open = WelcomeView.irisShape(size: size, dot: dot, origin: origin, closed: false)
+        let closed = WelcomeView.irisShape(size: size, dot: dot, origin: origin, closed: true)
+        XCTAssertEqual(open.center, CGPoint(x: 64.5, y: 84.5))
+        XCTAssertEqual(open.center, closed.center)
+        XCTAssertEqual(closed.radius, 4.5)
+        XCTAssertGreaterThanOrEqual(open.radius, hypot(size.width, size.height))
+        // Een nog onbekende punt: schermvullend vanuit het midden (nooit gesloten zonder punt).
+        let none = WelcomeView.irisShape(size: size, dot: nil, origin: origin, closed: false)
+        XCTAssertEqual(none.center, CGPoint(x: 187.5, y: 333.5))
+    }
 }

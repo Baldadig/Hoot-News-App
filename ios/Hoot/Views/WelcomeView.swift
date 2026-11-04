@@ -270,17 +270,21 @@ struct WelcomeView: View {
     }
 
     // De schijf van de iris, in schermcoördinaten: schermvullend, of zo groot als de punt op papier.
+    // Als op het web (irisKeyframes) en bij het opstarten (SplashView.iris): het middelpunt staat vast op
+    // de punt en alleen de straal beweegt (IrisCircle). De schijf schuift dus nooit naar de punt toe.
     private func disc(_ color: Color) -> some View {
         GeometryReader { geo in
             let frame = geo.frame(in: .global)
-            let full = hypot(geo.size.width, geo.size.height) * 1.1
-            let target = closed ? iris.dot : nil
-            Circle()
-                .fill(color)
-                .frame(width: target?.width ?? full, height: target?.height ?? full)
-                .position(target.map { CGPoint(x: $0.midX - frame.minX, y: $0.midY - frame.minY) } ?? CGPoint(x: geo.size.width / 2, y: geo.size.height / 2))
+            let shape = Self.irisShape(size: geo.size, dot: iris.dot, origin: frame.origin, closed: closed)
+            IrisCircle(center: shape.center, radius: shape.radius).fill(color)
         }
         .ignoresSafeArea()
+    }
+
+    // Middelpunt en straal van de iris (lokale coördinaten). Met een punt ligt het middelpunt er vanaf
+    // het eerste beeld op en is open de straal de diagonaal van het scherm, dicht de straal van de punt.
+    static func irisShape(size: CGSize, dot: CGRect?, origin: CGPoint, closed: Bool) -> (center: CGPoint, radius: CGFloat) {
+        SplashView.iris(size: size, target: dot?.offsetBy(dx: -origin.x, dy: -origin.y), closed: closed)
     }
 
     // ---- 1. De rode intro ----
