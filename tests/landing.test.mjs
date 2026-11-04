@@ -72,7 +72,7 @@ test('landing: de voorbeelden zijn van 1.1.0 (nummers, bubbel apart, Bluesky, Se
   assert.match(bubbel, /Buiten je bubbel/)
   assert.doesNotMatch(bubbel, /sc-nr/)
   assert.ok(editie.indexOf('sc-bubbel') > editie.lastIndexOf('sc-nr'))
-  assert.match(code(BUILD), /bsky\.social/)
+  assert.match(code(BUILD), /sc-bsky/)
   assert.match(tekst(SRC), /van Bluesky/)
   const sel = SRC.slice(SRC.indexOf('id="demo-selectie"'), SRC.indexOf('<!-- 04 De Redacteur'))
   assert.ok(sel.indexOf('sc-inhoud') > 0 && sel.indexOf('sc-inhoud') < sel.indexOf('sc-kaart'), 'de inhoud staat boven het eerste stuk')
@@ -104,7 +104,7 @@ test('landing: de kleine tekstronde uit de review', () => {
     'Elke maandag de mooiste stukken van de week, over je vak en wat je verder boeit. Met een inhoud bovenaan.',
     'De Redacteur kiest je verhalen en zegt erbij waarom. Klopt het niet? Zeg het met ‘Klopt dit niet?’.',
     'Lees verder in de Stroom',
-    'Lees mee in je browser. De app komt eraan.',
+    'Lees mee in je browser.',
     'Lees je laat? Nacht is echt zwart, met zachte letters.',
   ]) assert.ok(t.includes(zin), zin)
   assert.doesNotMatch(t, /Of lees verder|Ontdek Hoot/)
