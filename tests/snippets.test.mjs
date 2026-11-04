@@ -48,3 +48,9 @@ test('NYT en Economist: sleutel is de URL zonder query, met of zonder www', () =
   assert.equal(articleKey('https://economist.com/europe/2026/10/19/x/'), 'economist.com/europe/2026/10/19/x')
   assert.equal(bingImage('geen'), null)
 })
+
+test('liveblog in de kop: alleen een losse markering vooraan (keuring b46 ronde 3)', () => {
+  const u = 'https://www.demorgen.be/x/iets~b1234567/'
+  for (const t of ['Live – Zelensky', 'Live: de uitslagen', 'LIVE | Midterms', 'Live - Rousseau', 'LIVE Zelensky', 'Live']) assert.equal(isLiveblog(u, t), true, t)
+  for (const t of ['Live-muziek keert terug in Paradiso', 'Livestream van de rechtszaak', 'Live music is back', 'Wij leven live', 'Ik woon in Lively']) assert.equal(isLiveblog(u, t), false, t)
+})
