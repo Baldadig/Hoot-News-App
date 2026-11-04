@@ -94,7 +94,7 @@ export const PERSONAS = [
   },
   {
     id: 'vs', name: 'VS-politiek-junkie',
-    interests: ['politiek'], topics: ['vs-politiek', 'europa'],
+    interests: ['politiek'], topics: ['vs-politiek'],
     enable: ['npr'], mute: [], favorites: ['atlantic'],
     latent: { topics: ['vs-politiek', 'verkiezingen', 'ai'], cats: [] }, // AI alleen uit gedrag
     reads: 70, noise: 0.15, more: ['vs-politiek'], less: ['wielrennen'],
