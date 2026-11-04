@@ -14,7 +14,7 @@ import { MAIN_IDS, SOURCES } from '../netlify/lib/sources.mjs'
 import { sportStory } from '../shared/edition-policy.mjs'
 import { composePersonal } from '../src/lib/personal.js'
 import { FRONT_BIG } from '../shared/editor.mjs'
-import { proposeSources } from '../src/lib/welcome.js'
+import { proposeSources } from './helpers/meetlezer.mjs'
 
 const SPORT = new Set(SOURCES.filter((s) => s.cat === 'sport').map((s) => s.id))
 // Een feed zoals de server hem had (`server`) en opnieuw gebundeld in de uitgebreide stand (`re`), met `now`

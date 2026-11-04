@@ -11,7 +11,7 @@ import { gunzipSync } from 'node:zlib'
 import { buildStories, selectEdition, isLive, voteKind, votePlace, voteResultOf, centralItems, freshest, dutchFirst, leadPool, BACKGROUND_GAP, FAMILY_MAX } from '../netlify/lib/stories.mjs'
 import { MAIN_IDS, SOURCES } from '../netlify/lib/sources.mjs'
 import { composePersonal } from '../src/lib/personal.js'
-import { proposeSources } from '../src/lib/welcome.js'
+import { proposeSources } from './helpers/meetlezer.mjs'
 import { newsRejection, lightKind, lightStory } from '../shared/edition-policy.mjs'
 import { profileOf } from '../shared/editor.mjs'
 
@@ -92,7 +92,7 @@ const general = selectEdition(stories, articles, { mainIds: MAIN_IDS, now })
 const globalEd = { ...feed.edition, entries: [...general, ...feed.edition.entries.filter((e) => e.desk === 'bubbel')], items: [...new Set([...general.flatMap((e) => (e.kind === 'story' ? storyById.get(e.id).itemIds : [e.id])), ...feed.edition.items.map((i) => i.id)])].map((id) => all.get(id)).filter(Boolean) }
 const storyOfItem = new Map(stories.flatMap((s) => s.itemIds.map((id) => [id, s.id])))
 const items = feed.items.map(({ storyId, ...i }) => (storyOfItem.has(i.id) ? { ...i, storyId: storyOfItem.get(i.id) } : i))
-const READERS = { beginner: [[], []], binnenpol: [['binnenland', 'politiek'], []], wereldvs: [['wereld', 'politiek'], ['vs-politiek', 'trump']], techeco: [['tech', 'economie'], []] }
+const READERS = { beginner: [[], []], binnenpol: [['binnenland', 'politiek'], []], wereldvs: [['wereld', 'politiek'], ['vs-politiek']], techeco: [['tech', 'economie'], []] }
 
 test('verkiezingsnacht, persoonlijke Edities: de uitslag één keer, bovenaan (Binnenland opent Nederlands), Nederlandse kop', () => {
   for (const [name, [interests, topics]] of Object.entries(READERS)) {
