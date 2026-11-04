@@ -21,6 +21,7 @@ final class PullHorizonTests: XCTestCase {
         let width: Double
         let cases: [Case]
         let journeys: [Journey]
+        let shut: [[Double]]
         let resist: [[Double]]
     }
 
@@ -63,6 +64,32 @@ final class PullHorizonTests: XCTestCase {
             XCTAssertEqual(mine.set, j.set, "set \(j)")
             XCTAssertEqual(mine.close, j.close, "close \(j)")
             XCTAssertEqual(mine.done, j.done, "done \(j)")
+        }
+    }
+
+    // Build 45: "de closing animatie kapt abrupt af". Dicht is nu het spiegelbeeld van open: dezelfde
+    // 400 ms, eerst de zon onder, dan uit stilstand en zacht aan (ease-iris); zelfde curve als het web.
+    func testDichtGaatAlsHetWebEnZonderSprong() throws {
+        let f = try fixture()
+        XCTAssertFalse(f.shut.isEmpty)
+        for pair in f.shut { XCTAssertEqual(Horizon.shut(pair[0]), pair[1], accuracy: 0.0001, "dicht na \(pair[0]) ms") }
+        XCTAssertEqual(Horizon.Ms.close, 400); XCTAssertEqual(RefreshStrip.close * 1000, Horizon.Ms.close, "open en dicht even lang")
+        // Op 120 Hz: de eerste en laatste stap van de inhoud onder 0,5 pt, nergens een sprong.
+        let frame = 1000.0 / 120
+        var steps: [Double] = []
+        var t = 0.0
+        while t < Horizon.Ms.close { steps.append(56 * (Horizon.shut(t) - Horizon.shut(t + frame))); t += frame }
+        XCTAssertLessThan(steps.first!, 0.5); XCTAssertLessThan(steps.last!, 0.5); XCTAssertLessThan(steps.max()!, 5)
+        // De strook (en daarmee de marge van de scroll) volgt de klok; Verminder beweging valt meteen dicht.
+        XCTAssertEqual(RefreshStrip.open(shutT0: nil, now: 9, reduce: false), 1)
+        XCTAssertEqual(RefreshStrip.open(shutT0: 0, now: 0, reduce: false), 1, accuracy: 0.0001)
+        XCTAssertEqual(RefreshStrip.open(shutT0: 0, now: 200, reduce: false), CGFloat(1 - Horizon.iris(0.5)), accuracy: 0.0001)
+        XCTAssertEqual(RefreshStrip.open(shutT0: 0, now: 400, reduce: false), 0, accuracy: 0.0001)
+        XCTAssertEqual(RefreshStrip.open(shutT0: 0, now: 0, reduce: true), 0)
+        // Eerst de zon onder: zolang er meer dan 0,5 pt zon boven de lijn staat, is de strook niet bewogen.
+        let set = HorizonState(phase: .set, setT0: 0)
+        for ms in stride(from: 0.0, through: 600, by: 5) where Horizon.geom(set, now: ms, width: 390).sy + Horizon.r > 0.5 {
+            XCTAssertGreaterThan(56 * Horizon.shut(ms - Horizon.closeAt(set)), 55.5, "zon nog op bij \(ms)")
         }
     }
 

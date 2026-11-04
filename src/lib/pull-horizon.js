@@ -48,7 +48,7 @@ export function inHorizontalScroller(node, boundary, style = (n) => getComputedS
 }
 
 export const MS = {
-  close: 400, // strook open en dicht, ease-glide (dur-pull-close)
+  close: 400, // strook open (ease-glide) en dicht (ease-iris), dur-pull-close
   ringOut: 200, // ringen wijken bij loslaten
   arcIn: 200, // daarna komt de boog
   leg: 800, // per dagdeel
@@ -90,6 +90,15 @@ export const E = {
   sine: (t) => 0.5 - 0.5 * Math.cos(Math.PI * t),
 }
 export const c01 = (v) => Math.min(1, Math.max(0, v))
+
+// Openen en sluiten zijn elkaars spiegelbeeld, in dezelfde 400 ms. Openen begint in beweging (de vinger
+// laat los) en komt zacht aan op 56: ease-glide. Sluiten begint uit stilstand, na de ondergang; met
+// ease-glide sprong de inhoud dan in 40 ms 22 pt omhoog (de strook 'kapte af'). Dicht gaat daarom met
+// de curve van de ondergang zelf, ease-iris: zacht weg, zacht aan, en zon en strook zijn één beweging.
+// Geeft het deel van de strook dat nog open is (1 → 0) na `ms` sluiten.
+export function shutAt(ms) {
+  return 1 - E.iris(c01(ms / MS.close))
+}
 
 // Vinger → afstand: 1 : 1 tot de drempel, daarna een zachte rem die nooit voorbij 120 komt.
 export function resist(d) {
@@ -243,7 +252,7 @@ export function stripHeight(st, now) {
   const shut = closeAt(st)
   if (now < shut) return h
   if (st.reduce) return 0
-  return h * (1 - E.glide(c01((now - shut) / MS.close)))
+  return h * shutAt(now - shut)
 }
 
 // --- de tekening als svg ---
