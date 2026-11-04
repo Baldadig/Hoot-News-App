@@ -54,6 +54,22 @@ test('startset "Liever meteen lezen": bestaande, gratis bronnen, Nederlands voor
   assert.equal(starterGroups([{ id: 'nos', paid: true }]).length, 0) // een betaalde bron komt er nooit in
 })
 
+// Bekende fout (onboarding-rapport 4 november): "Liever meteen lezen" zette NOS Sport en Voetbal
+// International aan zonder dat je Sport koos. Sport komt alleen bij een expliciete keuze.
+test('startset "Liever meteen lezen": geen sportbronnen', async () => {
+  const { SOURCES } = await import('../netlify/lib/sources.mjs')
+  const { STARTER } = await import('../src/lib/topics.js')
+  const cat = new Map(SOURCES.map((s) => [s.id, s.cat]))
+  const ids = STARTER.flatMap((g) => g.ids)
+  assert.ok(ids.length > 0)
+  assert.deepEqual(ids.filter((id) => cat.get(id) === 'sport'), [])
+  assert.ok(!STARTER.some((g) => g.label === 'Sport'))
+  // De app gebruikt dezelfde set (HootStore.starterGroups).
+  const swift = (await import('node:fs')).readFileSync(new URL('../ios/Hoot/HootStore.swift', import.meta.url), 'utf8')
+  const groups = swift.slice(swift.indexOf('static let starterGroups'), swift.indexOf('static let starter ='))
+  assert.deepEqual([...groups.matchAll(/"([a-z0-9-]+)"/g)].map((m) => m[1]).filter((x) => !/^[A-Z]/.test(x)), ids)
+})
+
 // Keurpunt 31 oktober: "uit angst voor rellen" is geen Psychologie & brein, en "election" is geen VS-politiek.
 test('trefwoorden: angst en verkiezing alleen in hun eigen betekenis', () => {
   assert.ok(!keywordTopics('Den Haag zet zich schrap: winkeliers timmeren hun zaken dicht uit angst voor rellen').includes('brein'))

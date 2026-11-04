@@ -78,10 +78,10 @@ export const SOURCE_CATS = [
 
 // "Liever meteen lezen": een zachte landing. Alleen Nederlandse bronnen, allemaal gratis, dus elk
 // stuk is helemaal te lezen; over een paar interesses verdeeld. Alles is later aan te passen.
+// Geen sport: sport komt alleen als je het zelf kiest (een interesse of een bron die je volgt).
 // Zelfde set als de app (HootStore.starter).
 export const STARTER = [
   { label: 'Nieuws', ids: ['nos', 'nu', 'rtl'] },
-  { label: 'Sport', ids: ['nos-sport', 'vi'] },
   { label: 'Tech', ids: ['tweakers'] },
   { label: 'Cultuur', ids: ['nos-cultuur', '3voor12'] },
 ]

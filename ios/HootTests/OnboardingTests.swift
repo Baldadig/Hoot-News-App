@@ -127,6 +127,14 @@ final class OnboardingTests: XCTestCase {
         XCTAssertTrue(Set(HootStore.alsoFor.values.flatMap { $0 }).intersection(paid).isEmpty == false)
     }
 
+    // "Liever meteen lezen" zette sportbronnen aan zonder dat je Sport koos (onboarding-rapport 4-11).
+    func testQuickStartHasNoSport() {
+        XCTAssertFalse(HootStore.starter.contains("nos-sport"))
+        XCTAssertFalse(HootStore.starter.contains("vi"))
+        XCTAssertFalse(HootStore.starterGroups.contains { $0.label == "Sport" })
+        XCTAssertEqual(Array(HootStore.starter.prefix(3)), ["nos", "nu", "rtl"])
+    }
+
     @MainActor func testNoStartingProfession() {
         // De standaard is leeg: een nieuwe lezer kiest zijn vak zelf (of later), nooit dat van een ander.
         UserDefaults.standard.removeObject(forKey: "hoot.digestFields")
