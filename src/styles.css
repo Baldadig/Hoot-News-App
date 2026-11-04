@@ -5490,6 +5490,35 @@ html[data-images='hoofd'] .media--social {
 .stream-new { animation: rise 200ms var(--ease) backwards; animation-delay: var(--rise-delay, 0ms); }
 @media (prefers-reduced-motion: reduce) { .waiting svg .brand__dot, .waiting__dot, .stream-new { animation: none; } }
 
+/* De laadstrepen (src/lib/load-lines.js, iOS LoadLines.swift; concept "A · De stapel"): het
+   wachtteken bij het eerste laden van Editie, Stroom en Selectie. Haarlijnen van 1 pt in inkt 3; de
+   lus, het landen en het vervagen tekent JS per frame (ook bij Minder beweging: dan staan ze stil).
+   Na het laden staat de inhoud er al, onder de strepen: --ll-text, --ll-rise en --ll-rule zetten hoe
+   ver hij is. De Editie-kop (titel, woordmerk) blijft staan; het hoofdverhaal stijgt niet mee. */
+.ll-host { position: relative; }
+.ll-box { min-height: 240px; }
+.ll-layer { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.ll-line { position: absolute; left: 0; top: 0; height: 1px; background: var(--ink-3); will-change: transform, opacity; }
+.ll-ending > :not(.vh):not(.edtop):not(.ll-layer) { opacity: var(--ll-text, 0); }
+.ll-ending > :not(.vh):not(.edtop):not(.ll-layer):not(.front) { transform: translateY(calc(var(--ll-rise, 8) * 1px)); }
+.ll-ending .edtop > :not(.vh):not(.edbrand):not(.edrule) { opacity: var(--ll-text, 0); }
+.ll-ending .edrule { opacity: var(--ll-rule, 0); }
+
+/* "Tien en de bubbel" (src/lib/tien.js, iOS FirstEditionMark.swift): één keer, je eerste Editie na
+   het welkom. Tien punten en een haarlijnkring onder de titel, gecentreerd in een vlak van 400; de
+   zin 16 onder het vlak. JS tekent per frame; de Editie blijft verborgen tot de bubbel opengaat en
+   komt dan per blok binnen (WAAPI). Het foutblok volgt --tien-err. De titel en het woordmerk staan er al. */
+.tien-host { position: relative; }
+.tien-space { min-height: 408px; }
+.tien-layer { position: absolute; left: 0; right: 0; top: 64px; height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; z-index: 2; }
+.tien-mark { display: block; overflow: visible; flex: none; }
+.tien-line1, .tien-line2 { margin: 0; line-height: 24px; text-align: center; opacity: 0; }
+.tien-line1 { margin-top: 16px; font-size: 17px; font-weight: 600; color: var(--ink); }
+.tien-line2 { font-size: 15px; color: var(--ink-3); }
+.tien-hold > :not(.edtop):not(.tien-layer):not(.ll-layer):not(.tien-space):not(.empty--error) { opacity: 0; }
+.tien-hold .edtop > .status, .tien-hold .edtop > .edmeta, .tien-hold .edtop > .edrule { opacity: 0; }
+.tien-hold > .empty--error { opacity: var(--tien-err, 0); }
+
 /* Selectie-index B (concepten-2/4-selectie-index.html): de inhoud bovenaan, één rijvorm voor
    springen, kiezen en in- of uitklappen. De naam met het aantal eronder, het teken rechts op de
    eerste regel van de naam (SE2, SE3). De kop van een onderwerp is dezelfde rij in de serif op 22. */

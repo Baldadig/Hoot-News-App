@@ -3,7 +3,9 @@ import { cleanIntro } from '../../shared/edition-display.mjs'
 import { EditionNumber } from '../components/EditionNumber.jsx'
 import { useEffect, useRef, useState } from 'react'
 import { usePairs } from '../hooks/usePairs.js'
-import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
+import { ViewHeader, StatusLine, LoadError, Empty } from '../components/Shell.jsx'
+import { LoadLinesBox, LoadLinesLayer, useLoadLines } from '../components/LoadLines.jsx'
+import { TienLayer, TienSpace, useTien } from '../components/FirstEdition.jsx'
 import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
 import { EditionArt, SparkleIcon, CaretIcon, CloseIcon, ICON_SM } from '../components/icons.jsx'
@@ -22,7 +24,7 @@ import { TermHelp } from '../components/Terms.jsx'
 import { Why } from '../components/Why.js'
 import { labelFor } from '../lib/label.js'
 import { wholeSentences } from '../../shared/zinnen.mjs'
-import { usePrintEdition } from '../hooks/usePrintEdition.js'
+import { usePrintEdition, markPrinted } from '../hooks/usePrintEdition.js'
 import { useIntroMax } from '../lib/intro.js'
 import { usePullHorizon } from '../components/PullHorizon.jsx'
 
@@ -101,7 +103,7 @@ function LessNote({ entryKey, item, story, n }) {
 // Elke plek: het verhaal zelf, of ingeklapt als je er minder van wilde.
 const Slot = ({ less, row, children }) => (less.includes(row.key) ? <LessNote n={row.n} entryKey={row.key} item={row.item} story={row.story} /> : children)
 
-export default function Edition({ active, edition, bubble = [], brief = null, briefNote = null, briefForMembers = false, onJoin, hint = false, onHintDone, loading, failedLoad, statusProps, onRefresh, refreshing }) {
+export default function Edition({ active, edition, bubble = [], brief = null, briefNote = null, briefForMembers = false, onJoin, hint = false, onHintDone, tien: tienStart = null, onTienDone, loading, failedLoad, statusProps, onRefresh, refreshing }) {
   const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account, prefs, sourcesById } = useHoot()
   const following = followedNow(followStories, storiesById, newInStory)
   const ref = useRef(null)
@@ -152,6 +154,12 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
 
   const title = SLOTS[edition?.slot]?.naam || 'Editie' // de naam van het dagdeel (shared/slots.mjs)
   const ready = !loading && !failedLoad && rows.length > 0
+  // Eerste laden: de laadstrepen. Klaar: het bovenste vel wordt de kopstreep, de andere drie de
+  // onderlijnen van de kop van het hoofdverhaal (src/lib/load-lines.js); dan geen tweede "druk".
+  const hostRef = useRef(null)
+  // Je eerste Editie, na het welkom: "Tien en de bubbel" (src/lib/tien.js) in plaats van de laadstrepen.
+  const tien = useTien(tienStart, { loading, failed: !!failedLoad })
+  const lines = useLoadLines(loading && !tien.active, ready)
   const pull = usePullHorizon(ref, { onRefresh, busy: refreshing, failed: statusProps?.refreshError, label: 'Editie', enabled: ready })
   const sub = edition ? longDate(edition.date).replace(/^./, (c) => c.toUpperCase()) : null
 
@@ -164,7 +172,11 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
     if (!active && hintSeen.current) onHintDone?.()
   }, [active, onHintDone])
 
-  usePrintEdition(ref, edition?.id, active, ready && rows.length > 0)
+  usePrintEdition(ref, edition?.id, active, ready && rows.length > 0 && !lines.ending && !tien.active)
+  // De bubbel ging al open: deze Editie geldt als gedrukt.
+  useEffect(() => {
+    if (tien.active && ready) markPrinted(edition?.id)
+  }, [tien.active, ready, edition?.id])
 
   // Breed (A): elk paar even hoog en het hoofdverhaal even hoog als zijn zijkolom.
   const frontRef = useRef(null)
@@ -174,7 +186,9 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
       {pull}
-      <div className="col col--wide col--front">
+      <div className={`col col--wide col--front${tien.active ? tien.hostClass : lines.hostClass}`} ref={hostRef}>
+        <TienLayer tien={tien} host={hostRef} onDone={onTienDone} />
+        <LoadLinesLayer lines={lines} host={hostRef} land=".front .lead__title" rule=".edrule" onLand={() => markPrinted(edition?.id)} />
         {/* De kop van de Editie: titel en één metaregel (datum · weer · wiens Editie); de inktlijn
             eronder is het begin van het nieuws. Eén blok, zodat de kleur "Inkt" er een band van kan
             maken. De ingang naar het overzicht staat ónder de lijn, als stille bedieningsrij. */}
@@ -230,9 +244,10 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             {rows.length} {rows.length === 1 ? 'verhaal' : 'verhalen'}: er was niet meer passend nieuws beschikbaar
           </p>
         ) : null}
-        {loading ? (
-          // Eerst het hoofdverhaal, dan rijen: de Editie is altijd krant, wat de Stroom ook doet.
-          <Skeleton rows={4} layout="krant" lead />
+        {loading && tien.active ? (
+          <TienSpace />
+        ) : loading ? (
+          <LoadLinesBox />
         ) : failedLoad ? (
           <LoadError onRetry={onRefresh} />
         ) : rows.length === 0 ? (

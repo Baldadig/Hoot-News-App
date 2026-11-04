@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
-import { ViewHeader, Skeleton, LoadError } from '../components/Shell.jsx'
+import { ViewHeader, LoadError } from '../components/Shell.jsx'
+import { LoadLinesBox, LoadLinesLayer, useLoadLines } from '../components/LoadLines.jsx'
 import { SaveButton, ShareButton, SourceMark, useHoot } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
 import { ChipGroup } from '../components/ChipGroup.jsx'
@@ -135,6 +136,9 @@ function IndexRow({ kind, name, sub, big = false, expanded, flash = false, ...re
 export default function Vak({ active, digest, status, refreshFailed = false, onRefresh }) {
   const { prefs, setPref, account, selectionReady = true } = useHoot()
   const ref = useRef(null)
+  // Eerste laden: de laadstrepen; klaar maakt de beweging af en vervaagt naar de Selectie.
+  const hostRef = useRef(null)
+  const lines = useLoadLines(status === 'loading' && !digest, !!digest)
   const chosen = prefs.vak || []
   const owner = account?.status === 'in' ? account.user.id : 'anon'
   const byId = new Map((digest?.fields || []).map(f => [f.id, f]))
@@ -189,7 +193,8 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Selectie">
       {pull}
-      <div className="col col--wide">
+      <div className={`col col--wide${lines.hostClass}`} ref={hostRef}>
+        <LoadLinesLayer lines={lines} host={hostRef} />
         <ViewHeader title="Selectie" onRefresh={onRefresh} refreshing={status === 'refreshing' || status === 'loading'} />
 
         {/* Kiezen: dezelfde onderwerpen als altijd, per domein, in een blad achter de laatste rij. */}
@@ -214,7 +219,7 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
             {pickRow('Kies onderwerpen', 'Nog niets gekozen')}
           </div>
         ) : status === 'loading' && !digest ? (
-          <Skeleton rows={4} layout="krant" />
+          <LoadLinesBox />
         ) : status === 'error' && !digest ? (
           <LoadError onRetry={onRefresh} />
         ) : !digest ? null : overview.state === 'leeg' ? (

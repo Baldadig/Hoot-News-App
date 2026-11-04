@@ -27,8 +27,15 @@ struct HootApp: App {
     @State private var splash = true
     @State private var handoff = BrandHandoff() // waar "hoot." staat: in het welkom of linksboven op het actieve scherm
     private func leaveWelcome() {
+        // De eerste keer: Hoot stelt je eerste Editie samen, vanaf de tik (FirstEditionMark.swift).
+        store.beginFirstEdition()
         store.welcomeAgain = false
         store.onboarded = true
+    }
+    // Het welkom vervaagt over de Editie: 0,45 s, en de eerste keer 200 ms (dur-2; Verminder beweging 350).
+    private var welcomeFade: Double {
+        guard store.tienStart != nil else { return 0.45 }
+        return UIAccessibility.isReduceMotionEnabled ? Tien.reduceFade / 1000 : Tien.welcomeFade / 1000
     }
 
     var body: some Scene {
@@ -47,7 +54,7 @@ struct HootApp: App {
             .modifier(HootWeergave())
             .accessibilityHidden(splash) // VoiceOver niet achter het opstartscherm
             .environment(\.brandHandoff, handoff)
-            .animation(.easeInOut(duration: 0.45), value: store.onboarded)
+            .animation(.easeInOut(duration: welcomeFade), value: store.onboarded)
             .environment(store)
             .environment(account)
             .environment(alerts)

@@ -321,13 +321,18 @@ export default function App() {
   // "Liever meteen lezen" (alleen bij de eerste start) geeft lege interesses en onderwerpen en de
   // startset als bronnen. Sluit je het welkom bij opnieuw kiezen, dan komt het hier niet langs en
   // blijft alles zoals het was (zie closeWelcome).
+  // De eerste keer: je eerste Editie wordt samengesteld ("Tien en de bubbel", src/lib/tien.js),
+  // vanaf de tik. Eén keer; bij opnieuw kiezen niet.
+  const [tienStart, setTienStart] = useState(null)
+  const endTien = useCallback(() => setTienStart(null), [])
   const finishOnboarding = useCallback(
     (choice) => {
+      if (!prefs.onboarded) setTienStart(typeof performance !== 'undefined' ? performance.now() : Date.now())
       setPrefs((p) => applyWelcome(p, choice))
       route.go('editie', {}, { replace: true })
       setLeavingWelcome(true)
     },
-    [setPrefs, route.go],
+    [setPrefs, route.go, prefs.onboarded],
   )
 
   // De eenmalige uitleg bij "Jouw Editie" (na het eerste Welkom, src/lib/welcome.js) is gezien.
@@ -597,6 +602,8 @@ export default function App() {
               onJoin={() => (pendingShown(rawAccount, online) ? route.go('instellingen') : setJoinOpen('brief'))}
               hint={!!rawPrefs.editieHint}
               onHintDone={endEditieHint}
+              tien={tienStart}
+              onTienDone={endTien}
               edition={myEdition}
               loading={loading || (!!data?.edition && !myEdition)}
               failedLoad={failedLoad}
@@ -701,7 +708,7 @@ export default function App() {
         </div>
         {welcomeDrawn ? (
           <Suspense fallback={null}>
-            <Welcome sources={sources} items={data?.items} prefs={prefs} muted={muted} onDone={finishOnboarding} onClose={reopenHeld.current ? closeWelcome : null} onSignIn={account.status === 'out' ? () => setJoinOpen('welkom') : null} leaving={leavingWelcome} onLeft={welcomeLeft} />
+            <Welcome sources={sources} items={data?.items} prefs={prefs} muted={muted} onDone={finishOnboarding} onClose={reopenHeld.current ? closeWelcome : null} onSignIn={account.status === 'out' ? () => setJoinOpen('welkom') : null} leaving={leavingWelcome} onLeft={welcomeLeft} first={tienStart != null} />
           </Suspense>
         ) : null}
       </div>

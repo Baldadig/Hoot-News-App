@@ -15,6 +15,7 @@ struct ArticleReaderView: View {
     let item: Item
     @State private var loader = ArticleLoader()
     @State private var waiting = ReaderWaitingState()
+    @State private var holding = false // het artikel is er, de laadstrepen maken hun beweging nog af
     @AppStorage("hoot.readerSize") private var size = 1
     @State private var login: LoginTarget?
     @State private var signedIn = false // ingelogd bij deze uitgever: dan geen balk "Zie je maar een deel?"
@@ -35,7 +36,7 @@ struct ArticleReaderView: View {
     var body: some View {
         NavigationStack {
             Group {
-                switch loader.state {
+                switch holding ? ArticleLoader.State.loading : loader.state {
                 case .loading:
                     ReaderLoadingView(title: item.title.isEmpty ? (item.summary ?? "") : typeset(item.title, lang: source?.lang), sourceName: sourceName, waiting: waiting)
                 case let .ready(article):
@@ -124,6 +125,15 @@ struct ArticleReaderView: View {
             #endif
         }
         .task(id: loader.state == .loading) {
+            // Klaar terwijl de laadstrepen in beeld zijn: eerst de lopende beweging afmaken, dan
+            // vervaagt de stapel naar het artikel (LoadLines: 320 ms, Verminder beweging 240).
+            if loader.state != .loading, let started = waiting.startedAt {
+                let elapsed = LoadLinesModel.clock() - started
+                let rest = still ? 0 : max(0, LoadLines.settleAt(elapsed) - elapsed)
+                holding = true
+                if rest > 0 { try? await Task.sleep(for: .milliseconds(Int(rest.rounded()))) }
+                withAnimation(LoadLines.easeAnimation(still ? LoadLines.reduceFade : LoadLines.out)) { holding = false }
+            }
             waiting.reset()
             if loader.state == .loading { await waiting.wait() }
         }
@@ -408,14 +418,16 @@ struct LoginWebView: View {
 @MainActor @Observable
 final class ReaderWaitingState {
     private(set) var visible = false
+    private(set) var startedAt: Double? // wanneer de laadstrepen begonnen (LoadLinesModel.clock)
     func wait() async {
         do {
-            try await Task.sleep(for: .milliseconds(400))
+            try await Task.sleep(for: .milliseconds(Int(LoadLines.early)))
             guard !Task.isCancelled else { return }
             visible = true
-        } catch { /* snelle laadactie of vertrek: geen indicatie */ }
+            startedAt = LoadLinesModel.clock()
+        } catch { /* snelle laadactie of vertrek: geen indicatie (onder 400 ms geen strepen) */ }
     }
-    func reset() { visible = false }
+    func reset() { visible = false; startedAt = nil }
 }
 
 struct ReaderLoadingView: View {
@@ -429,13 +441,31 @@ struct ReaderLoadingView: View {
                 Kop(title, .title).fixedSize(horizontal: false, vertical: true)
                 Text(sourceName).font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
             }
-            if waiting.visible {
-                WaitingMark(label: "Artikel laden").frame(maxWidth: .infinity).padding(.top, Space.s5)
+            if waiting.visible, let started = waiting.startedAt {
+                ReaderLoadLines(started: started)
             }
             Spacer()
         }
         .padding()
         .frame(maxWidth: Layout.readable)
         .frame(maxWidth: .infinity)
+    }
+}
+
+// De laadstrepen in de lezer: dezelfde stapel als bij het eerste laden, zonder landen. Is het artikel
+// er, dan maakt de stapel zijn beweging af en vervaagt hij met de wissel naar het artikel.
+struct ReaderLoadLines: View {
+    let started: Double
+    var label = "Artikel laden"
+    @Environment(\.accessibilityReduceMotion) private var still
+    var body: some View {
+        GeometryReader { proxy in
+            TimelineView(.animation(minimumInterval: nil, paused: still)) { timeline in
+                LoadLinesArt(frame: LoadLines.frame(LoadLines.State(t0: started, reduce: still, box: LoadLines.Box(x: 0, y: 0, w: proxy.size.width)), now: LoadLines.clockMs(timeline.date)))
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: LoadLines.box, maxHeight: LoadLines.box)
+        .accessibilityElement()
+        .accessibilityLabel(label)
     }
 }

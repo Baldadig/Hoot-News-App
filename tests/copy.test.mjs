@@ -63,7 +63,7 @@ test('Welkom → Editie: de Editie staat al achter Welkom en Welkom vervaagt (W5
   assert.match(app, /const shown = showWelcome \? \(reopenWelcome \? beforeWelcome\.current : 'editie'\) : path/)
   assert.match(app, /leaving=\{leavingWelcome\} onLeft=\{welcomeLeft\}/)
   const welcome = read('views/Welcome.jsx')
-  assert.match(welcome, /crossPlan\(\)/)
+  assert.match(welcome, /crossPlan\((first)?\)/) // de eerste keer 200 ms: je eerste Editie (tien.js)
   assert.match(welcome, /inert=\{leaving \? '' : undefined\}/)
 })
 

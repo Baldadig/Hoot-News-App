@@ -183,6 +183,40 @@ final class OnboardingTests: XCTestCase {
         XCTAssertEqual(Array(HootStore.starter.prefix(3)), ["nos", "nu", "rtl"])
     }
 
+    // Elke eindknop van het welkom start de Tien, ook "Liever meteen lezen" (die zet zelf onboarded).
+    @MainActor func testQuickStartStartsTienTheFirstTime() {
+        let store = HootStore()
+        store.onboarded = false
+        store.welcomeAgain = false
+        store.tienStart = nil
+        store.quickStart()
+        XCTAssertNotNil(store.tienStart)
+        XCTAssertTrue(store.onboarded)
+    }
+
+    @MainActor func testQuickStartDoesNotStartTienWhenChoosingAgain() {
+        let store = HootStore()
+        store.onboarded = false
+        store.welcomeAgain = true
+        store.tienStart = nil
+        store.quickStart()
+        XCTAssertNil(store.tienStart)
+        store.onboarded = true
+        store.welcomeAgain = false
+        store.quickStart()
+        XCTAssertNil(store.tienStart)
+    }
+
+    @MainActor func testFinishingWelcomeStartsTienOnlyTheFirstTime() {
+        let store = HootStore()
+        store.onboarded = false; store.welcomeAgain = false; store.tienStart = nil
+        store.beginFirstEdition()
+        XCTAssertNotNil(store.tienStart)
+        store.onboarded = true; store.tienStart = nil
+        store.beginFirstEdition()
+        XCTAssertNil(store.tienStart)
+    }
+
     @MainActor func testNoStartingProfession() {
         // De standaard is leeg: een nieuwe lezer kiest zijn vak zelf (of later), nooit dat van een ander.
         UserDefaults.standard.removeObject(forKey: "hoot.digestFields")

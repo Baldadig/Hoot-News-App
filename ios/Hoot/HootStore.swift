@@ -47,6 +47,9 @@ final class HootStore {
     var onboarded: Bool { didSet { save("hoot.onboarded", onboarded) } } // het welkom is gezien
     // Het welkom opnieuw, vanuit Instellingen: het begint bij je huidige keuzes. Niet bewaard.
     var welcomeAgain = false
+    // Je eerste Editie na het welkom ("Tien en de bubbel", FirstEditionMark.swift): het moment van de
+    // tik, op de klok van TienModel. Eén keer; niet bewaard.
+    var tienStart: Double?
     // Een seintje bij een nieuwe Editie (EditionAlerts), per dagdeel aan of uit. Alleen op dit
     // toestel: niet `synced()`, want toestemming geldt per toestel.
     var notify: Bool { didSet { save("hoot.notify", notify) } }
@@ -375,7 +378,13 @@ final class HootStore {
             refreshPersonal()
         }
         browsing = true
+        beginFirstEdition() // vóór onboarded: "eerste keer" is dan nog te zien
         onboarded = true
+    }
+    // De eerste keer dat het welkom sluit: "Tien en de bubbel" start. Elke eindknop van het welkom
+    // (ook "Liever meteen lezen", dat zelf onboarded zet) legt dit vast vóórdat onboarded waar wordt.
+    func beginFirstEdition() {
+        if !welcomeAgain && !onboarded { tienStart = TienModel.clock() }
     }
     private var quickPending: Bool { didSet { save("hoot.quickPending", quickPending) } }
     // Eerst even rondgekeken (zachte start): na een stukje editie één keer de vraag of je zelf
@@ -532,6 +541,7 @@ final class HootStore {
 
     private func fetchAll() async {
         status = itemsById.isEmpty ? .loading : status
+        if status == .loading && DebugLaunch.loadDelay > 0 { try? await Task.sleep(for: .seconds(DebugLaunch.loadDelay)) }
         do {
             let (start, fromCache) = try await HootAPI.start()
             sources = start.sources
