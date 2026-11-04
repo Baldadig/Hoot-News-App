@@ -3826,7 +3826,7 @@ select.input {
   color: var(--ink-3);
 }
 .fitem__sum {
-  --lines: 2;
+  --lines: 3; /* INTRO_LINES (shared/zinnen.mjs) */
   max-inline-size: var(--measure-prose);
   color: var(--ink-2);
   font-size: var(--t2);
@@ -3900,7 +3900,7 @@ select.input {
   color: var(--ink-3);
 }
 .srcitem__sum {
-  --lines: 2;
+  --lines: 3; /* INTRO_LINES (shared/zinnen.mjs) */
   max-inline-size: var(--measure-prose);
   margin-top: var(--s2);
   color: var(--ink-2);

@@ -17,6 +17,9 @@ const SIZES = {
 }
 
 const isBingThumb = (u) => u.hostname === 'www.bing.com' && u.pathname === '/th'
+// Gemeten door de server (build.mjs, sizeBingImages): het bronbeeld op zijn eigen maat, zonder
+// bijsnijden (c). Dan staat de echte breedte in w; ongemeten (met c=7) rekenen we klein (320).
+const bingWidth = (u) => (u.searchParams.has('c') ? 320 : Number(u.searchParams.get('w')) || 320)
 
 // Hoe breed een beeld hooguit is, als het adres dat verraadt (en we het niet groter kunnen
 // opvragen); anders null. The Guardian tekent zijn adressen: de breedte staat vast.
@@ -27,7 +30,7 @@ export function knownWidth(url) {
   } catch {
     return null
   }
-  if (isBingThumb(u)) return 320
+  if (isBingThumb(u)) return bingWidth(u)
   if (u.hostname === 'i.guim.co.uk') return Number(u.searchParams.get('width')) || null
   return null
 }
@@ -93,11 +96,16 @@ function candidates(url, kind) {
     return kind === 'thumb' ? [[url, 256]] : [640, 854, 1280].map((w) => [`${m[1]}_wd${w}/0/0/0/0/${m[2]}`, w])
   }
   if (isBingThumb(u)) {
-    // Beeld uit de zoekindex: Bing snijdt zelf bij op de gevraagde maat, maar het bronbeeld is
-    // klein (groot gevraagd komt het met witte randen). Alleen als thumbnail.
-    const id = u.searchParams.get('id')
+    // Beeld uit de zoekindex: Bing snijdt zelf bij op de gevraagde maat (c=7). Groter dan het
+    // bronbeeld vragen we nooit (dan komen er witte randen); groot alleen als de server het bronbeeld
+    // heeft gemeten en het groot genoeg is (fitsLarge), op zijn eigen verhouding.
+    const id = encodeURIComponent(u.searchParams.get('id'))
     const sized = (w, h) => `https://www.bing.com/th?id=${id}&pid=News&w=${w}&h=${h}&c=7`
-    return [[sized(176, 176), 176], [sized(320, 320), 320]]
+    if (kind === 'thumb') return [[sized(176, 176), 176], [sized(320, 320), 320]]
+    const max = bingWidth(u)
+    const h = Number(u.searchParams.get('h')) || Math.round((max * 9) / 16)
+    const list = widths.filter((w) => w < max).map((w) => [`https://www.bing.com/th?id=${id}&pid=News&w=${w}&h=${Math.round((w * h) / max)}`, w])
+    return [...list, [`https://www.bing.com/th?id=${id}&pid=News&w=${max}&h=${h}`, max]]
   }
   if (host === 'i.ytimg.com' && kind === 'thumb') {
     return [[url.replace('/hqdefault.', '/mqdefault.'), 320]]

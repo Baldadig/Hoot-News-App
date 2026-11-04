@@ -2,8 +2,8 @@ import { imgProps } from '../lib/img.js'
 
 // Eén beeld in een vak (.thumb of .media): op maat (lib/img.js), pas geladen als het in zicht
 // komt, zonder verwijzer. Lukt de beeld-CDN niet, dan het origineel; lukt dat ook niet, dan
-// verdwijnt het vak (geen kapot plaatje).
-export function Img({ url, kind = 'thumb', priority = false, onLoad, ...rest }) {
+// `onFail` (Beeld.jsx: dan de beeldloze vorm), of zonder onFail verdwijnt het vak (geen kapot plaatje).
+export function Img({ url, kind = 'thumb', priority = false, onLoad, onFail, ...rest }) {
   const sized = imgProps(url, kind)
   if (!sized) return null
   const { fallback, ...props } = sized
@@ -14,6 +14,7 @@ export function Img({ url, kind = 'thumb', priority = false, onLoad, ...rest }) 
       img.src = fallback
       return
     }
+    if (onFail) return onFail()
     const box = img.closest('.thumb, .media')
     if (box) box.hidden = true
   }

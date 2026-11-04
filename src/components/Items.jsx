@@ -9,6 +9,7 @@ import { topicById } from '../lib/topics.js'
 import { savedKey, withLead } from '../lib/saved.js'
 import { isReadItem } from '../../shared/stroom.mjs'
 import { avatarUrl, fitsLarge, fitsHero } from '../lib/img.js'
+import { Beeld } from './Beeld.jsx'
 import { TermHelp } from './Terms.jsx'
 import { Img } from './Img.jsx'
 import { isPlayableVideo } from '../lib/video-fullscreen.js'
@@ -16,7 +17,7 @@ import { Video } from './Video.jsx'
 import { Why } from './Why.js'
 import { directVideo, withoutBareLinks } from '../../shared/bluesky.mjs'
 import { safeHttpUrl } from '../../shared/util.mjs'
-import { wholeSentences } from '../../shared/zinnen.mjs'
+import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { useIntroMax } from '../lib/intro.js'
 import { EditionNumber } from './EditionNumber.jsx'
 
@@ -215,11 +216,9 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
       <a className={`lead__link${portraitImage(item) ? ' lead__link--portrait' : ''}`} href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         {/* Overal beeld eerst, zoals de app: dan rubriek, kop en kern, zodat de bronregel bij zijn
             tekst blijft. Het waarom van de plek (jouw Editie) staat stil onder de rubriek, zie Why.js. */}
-        {item.image && fitsHero(item.image) ? (
-          <div className={`media media--lead${portraitImage(item) ? ' media--portrait' : ''}${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
-            {imageMeta(item) ? <img src={item.image} alt="" loading={priority ? 'eager' : 'lazy'} fetchpriority={priority ? 'high' : undefined} referrerPolicy="no-referrer" onLoad={priority ? rememberLead : undefined} /> : <Img url={item.image} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} />}
-          </div>
-        ) : null}
+        <Beeld item={item} kind="lead" fits={fitsHero} className={`media media--lead${portraitImage(item) ? ' media--portrait' : ''}${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+          {(onFail) => (imageMeta(item) ? <img src={item.image} alt="" loading={priority ? 'eager' : 'lazy'} fetchpriority={priority ? 'high' : undefined} referrerPolicy="no-referrer" onLoad={priority ? rememberLead : undefined} onError={onFail} /> : <Img url={item.image} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} onFail={onFail} />)}
+        </Beeld>
         <Kicker item={item} extra={note} followed={followed} n={n} />
         <Why why={why} />
         <h2 className={`${titleRole} lead__title`}>{item.title}</h2>
@@ -239,11 +238,11 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
 // breedtes dezelfde twee vormen. `plain` houdt de krant-vorm aan: in de Editie (die is een krant, op
 // web en in de app) en op smalle plekken zoals het vergelijkpaneel.
 // `lines`: hoeveel regels intro (1, 2, 3 of 'alles'); standaard de instelling van de Stroom, en in
-// de krant-vorm van de Editie en het vergelijkpaneel (`plain`) 2, zoals de app.
+// de krant-vorm van de Editie en het vergelijkpaneel (`plain`) INTRO_LINES (3), zoals de app.
 export function CompactItem({ item, story, note, n = null, why = null, showSave = true, plain = false, taste = null, lines, outside = false }) {
   const { markRead, read, layout, prefs } = useHoot()
   const introMax = useIntroMax()
-  const lineCount = lines ?? (plain ? 2 : prefs?.preview ?? 2)
+  const lineCount = lines ?? (plain ? INTRO_LINES : prefs?.preview ?? INTRO_LINES)
   const cls = `entry compact${isReadItem(read, item) ? ' is-read' : ''}`
   if (layout === 'tijdlijn' && !plain) {
     return (
@@ -254,11 +253,7 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
           <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
           <Summary item={item} className="compact__sum" fit={introMax(lineCount)} />
-          {item.image && fitsLarge(item.image) ? (
-            <div className="media media--tl">
-              <Img url={item.image} kind="lead" />
-            </div>
-          ) : null}
+          <Beeld item={item} kind="tijdlijn" fits={fitsLarge} className="media media--tl" imgKind="lead" />
         </a>
         <Meta item={item} story={story} showSave={showSave} taste={taste} outside={outside} />
       </article>
@@ -273,12 +268,8 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
           <h3 className="head-4 compact__title">{item.title}</h3>
           <Summary item={item} className="compact__sum" fit={introMax(lineCount, 'rij', !!item.image)} />
         </div>
-        {item.image ? (
-          <div className="thumb">
-            {/* Intrinsieke maat 3:2; de echte maat komt uit CSS (--thumb-w/--thumb-h). */}
-            <Img url={item.image} width="96" height="64" />
-          </div>
-        ) : null}
+        {/* Intrinsieke maat 3:2; de echte maat komt uit CSS (--thumb-w/--thumb-h). */}
+        <Beeld item={item} kind="krant" className="thumb" width="96" height="64" />
       </a>
       <Meta item={item} story={story} showSave={showSave} taste={taste} outside={outside} />
     </article>

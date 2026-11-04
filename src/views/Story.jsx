@@ -6,7 +6,7 @@ import { BackButton } from '../components/Shell.jsx'
 import { Disclosure } from '../components/Disclosure.jsx'
 import { timeAgo } from '../lib/time.js'
 import { withLead } from '../lib/saved.js'
-import { wholeSentences } from '../../shared/zinnen.mjs'
+import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { useIntroMax } from '../lib/intro.js'
 
 // Eén publicatie in het smalle paneel (breed scherm): de kop over de volle breedte en hooguit
@@ -14,7 +14,7 @@ import { useIntroMax } from '../lib/intro.js'
 // de kop samen.
 function SourceItem({ item, note }) {
   const { markRead, read } = useHoot()
-  const fit = useIntroMax()(2, 'paneel')
+  const fit = useIntroMax()(INTRO_LINES, 'paneel')
   const summary = wholeSentences(item.summary, fit.max, fit.rek) // hele zinnen, nooit "…"
   return (
     <article className={`entry srcitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>

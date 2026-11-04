@@ -74,7 +74,10 @@ export function DisplayControls({ stream = true }) {
       <MenuRow
         label="Intro"
         value={prefs.preview}
-        onChange={(v) => setPref('preview', v)}
+        onChange={(v) => {
+          setPref('regels', v) // de keuze (build 46); `preview` voor oudere versies van de app
+          setPref('preview', v)
+        }}
         options={[
           { value: 1, label: '1 regel' },
           { value: 2, label: '2 regels' },

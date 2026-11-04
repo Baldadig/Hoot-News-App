@@ -6,6 +6,7 @@ import { usePairs } from '../hooks/usePairs.js'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
+import { Beeld } from '../components/Beeld.jsx'
 import { EditionArt, SparkleIcon, CaretIcon, CloseIcon, ICON_SM } from '../components/icons.jsx'
 import { BriefReader } from '../components/BriefReader.jsx'
 import { BrandLogo } from '../components/Brand.jsx'
@@ -21,7 +22,7 @@ import { followedNow } from '../lib/follow.js'
 import { TermHelp } from '../components/Terms.jsx'
 import { Why } from '../components/Why.js'
 import { labelFor } from '../lib/label.js'
-import { wholeSentences } from '../../shared/zinnen.mjs'
+import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { usePrintEdition } from '../hooks/usePrintEdition.js'
 import { useIntroMax } from '../lib/intro.js'
 
@@ -46,7 +47,7 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
   const { markRead, read } = useHoot()
   const opinie = item.type === 'opinie'
   const title = item.title
-  const fit = useIntroMax()(2, item.image ? 'voorpagina' : 'rij')
+  const fit = useIntroMax()(INTRO_LINES, item.image ? 'voorpagina' : 'rij')
   const summary = wholeSentences(cleanIntro(item.summary, item.author), fit.max, fit.rek) // hele zinnen, nooit "…"
   return (
     <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}${boven ? ' fitem--boven' : ''}`} data-id={item.id} style={boven ? { '--boven-h': `${boven}px` } : undefined}>
@@ -69,13 +70,14 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
           <span className="head-4 fitem__title" role="heading" aria-level="3">
             {title}
           </span>
-          {summary ? <span className="clamp clamp--vangnet fitem__sum">{summary}</span> : null}
+          {summary ? (
+            <span className="clamp clamp--vangnet fitem__sum">
+              {summary}
+              {item.borrowedFrom ? <span className="via"> — via {item.borrowedFrom}</span> : null}
+            </span>
+          ) : null}
         </span>
-        {item.image && !boven ? (
-          <span className="thumb">
-            <Img url={item.image} width="96" height="64" />
-          </span>
-        ) : null}
+        {!boven ? <Beeld item={item} kind="krant" as="span" className="thumb" width="96" height="64" /> : null}
       </a>
       <TermHelp text={`${title} ${summary || ''}`} max={1} />
       <Meta item={item} story={story} taste={taste} outside={outside} />
