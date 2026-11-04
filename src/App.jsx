@@ -372,7 +372,7 @@ export default function App() {
   if (showWelcome) reopenHeld.current = reopenWelcome
 
   // Nog geen account? Als je een eind in je Editie of Stroom hebt gelezen, terughoudend vragen of
-  // je wilt inloggen (zie src/lib/join.js; staat uit zolang JOIN_AUTO uit staat).
+  // je wilt inloggen (zie src/lib/join.js; JOIN_AUTO staat aan sinds 1.1.0, hooguit twee keer).
   // joinOpen: false, of waarom het blad open is ('sync' vanzelf, 'brief' via de samenvatting).
   const [joinOpen, setJoinOpen] = useState(false)
   const joinAsked = rawPrefs.joinAsked
