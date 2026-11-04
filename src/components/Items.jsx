@@ -43,11 +43,16 @@ const rememberLead = (e) => {
   }
 }
 
+// Zolang het logo niet binnen is (lazy, traag of kapot), staat het monogram: de eerste letter op de
+// tint van de bron (BRAND-UPDATE §9). Het lichte vlak achter een logo komt pas als het logo er is,
+// anders is het een lege schijf.
+const markLoaded = (img) => { if (img?.complete && img.naturalWidth > 0) img.classList.add('is-loaded') }
+
 export function SourceMark({ source, size = 24 }) {
   const letter = (source?.name || '?').trim().charAt(0)
   return (
     <span className={`mark${source?.avatarContain ? ' mark--logo' : ''}`} style={{ '--brand': source?.brandColor || 'var(--accent)', width: size, height: size, fontSize: size * 0.5 }} data-letter={letter} aria-hidden="true">
-      {source?.avatar ? <img src={avatarUrl(source.avatar)} alt="" width={size} height={size} loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.hidden = true)} /> : null}
+      {source?.avatar ? <img src={avatarUrl(source.avatar)} alt="" width={size} height={size} loading="lazy" decoding="async" referrerPolicy="no-referrer" ref={markLoaded} onLoad={(e) => markLoaded(e.currentTarget)} onError={(e) => (e.currentTarget.hidden = true)} /> : null}
     </span>
   )
 }

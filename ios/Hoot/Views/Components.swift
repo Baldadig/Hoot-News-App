@@ -296,6 +296,30 @@ struct FramedImage: View {
     }
 }
 
+// Geen logo (nog niet binnen, of kapot): het monogram, zoals op het web (.mark) en op de deelkaart
+// (BRAND-UPDATE §9). De eerste letter in de serif op de tint van de bron (16 % over `surface`); in
+// Licht de letter in de bronkleur, in Donker en Nacht in inkt. Geen bronkleur: het accent; in Nacht
+// is de tint inkt (zoals --brand daar op het web).
+struct Monogram: View {
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.nachtActief) private var nacht
+    let name: String
+    var brandColor: String?
+    var size: CGFloat
+    private var brand: Color {
+        if nacht { return Theme.ink }
+        guard let hex = brandColor.map({ $0.trimmingCharacters(in: CharacterSet(charactersIn: "#")) }), hex.count == 6, let v = UInt32(hex, radix: 16) else { return Theme.accent }
+        return Color(red: Double(v >> 16 & 0xFF) / 255, green: Double(v >> 8 & 0xFF) / 255, blue: Double(v & 0xFF) / 255)
+    }
+    var body: some View {
+        Text(String(name.trimmingCharacters(in: .whitespaces).prefix(1)))
+            .font(.system(size: size * 0.5, weight: .heavy, design: .serif))
+            .foregroundStyle(scheme == .dark || nacht ? Theme.ink : brand)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background { ZStack { Theme.surface; brand.opacity(0.16) } }
+    }
+}
+
 struct SourceMark: View {
     let item: Item
     var size: CGFloat = 24
@@ -303,7 +327,7 @@ struct SourceMark: View {
         AsyncImage(url: item.avatar.flatMap(URL.init(string:))) { phase in
             // Op wit, net als SourceAvatar: een doorzichtig logo (de zwarte P van Het Parool)
             // verdwijnt anders in donker.
-            if let image = phase.image { image.resizable().scaledToFill().background(Color.white) } else { Circle().fill(.quaternary) }
+            if let image = phase.image { image.resizable().scaledToFill().background(Color.white) } else { Monogram(name: item.sourceName ?? item.source, brandColor: item.brandColor, size: size) }
         }
         .frame(width: size, height: size)
         .clipShape(Circle())

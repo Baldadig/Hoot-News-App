@@ -1602,7 +1602,10 @@ select.input {
   height: 100%;
   object-fit: cover;
   /* altijd op licht: uitgevers maken hun logo voor een lichte achtergrond, en een doorzichtig logo
-     (zoals de zwarte P van Het Parool) verdwijnt anders in de donkere stand */
+     (zoals de zwarte P van Het Parool) verdwijnt anders in de donkere stand. Pas als het logo er
+     is: daarvoor blijft het monogram eronder zichtbaar (Items.jsx › SourceMark). */
+}
+.mark img.is-loaded {
   background: var(--mark-bg);
 }
 .mark--logo img {

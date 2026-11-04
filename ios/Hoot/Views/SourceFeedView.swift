@@ -14,7 +14,7 @@ struct SourceAvatar: View {
                 // doorzichtig logo (zoals de zwarte P van Het Parool) verdwijnt anders in donker.
                 image.resizable().scaledToFill().background(Color.white)
             } else {
-                Text(String(source.name.prefix(1))).font(.headline).foregroundStyle(Theme.ink3).frame(maxWidth: .infinity, maxHeight: .infinity).background(.quaternary)
+                Monogram(name: source.name, brandColor: source.brandColor, size: size)
             }
         }
         .frame(width: size, height: size)
