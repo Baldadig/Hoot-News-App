@@ -41,7 +41,15 @@ test('intro: Stroom, Editie en vergelijkpaneel gebruiken INTRO_LINES; de clamp v
     assert.match(src(f), /via \{item\.borrowedFrom\}/, f)
     assert.match(src(f), /fit\.max - viaLength\(item\), fit\.rek - viaLength\(item\)/, f)
   }
-  assert.match(src('ios/Hoot/Views/DigestView.swift'), /viaLength\) \}\), !intro\.isEmpty \{ Text\(item\.asItem\.introWithSource\(intro\)\)/)
+  assert.match(src('ios/Hoot/Views/DigestView.swift'), /viaLength\) \}\), !intro\.isEmpty \{ IntroText\(text: intro, .*suffix: item\.asItem\.introWithSource\)/)
+})
+
+test('iOS: een intro wordt gemeten en nooit afgekapt (geen lineLimit op een intro, IntroText overal)', () => {
+  const components = src('ios/Hoot/Views/Components.swift')
+  assert.equal((components.match(/IntroText\(text: intro,/g) || []).length, 2) // LeadCard en ItemRow
+  assert.doesNotMatch(components, /introWithSource\(intro\)\)\.font/)
+  assert.doesNotMatch(src('ios/Hoot/Views/DigestView.swift'), /introWithSource\(intro\)\)\.font/)
+  assert.match(src('ios/Hoot/Views/IntroText.swift'), /ViewThatFits\(in: \.vertical\)/)
 })
 
 const bundled = await build({ entryPoints: ['src/components/Beeld.jsx'], bundle: true, write: false, platform: 'node', format: 'cjs', jsx: 'automatic', packages: 'external' })

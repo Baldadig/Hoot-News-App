@@ -714,7 +714,8 @@ struct LeadCard: View {
                 .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                 .fixedSize(horizontal: false, vertical: true)
             if let intro = item.summary.map({ wholeSentences($0, max: 240 - item.viaLength) }), !intro.isEmpty {
-                Text(item.introWithSource(intro)).font(wide ? .title3 : .body).foregroundStyle(Theme.ink2).lineLimit(wide ? 6 : 5).fixedSize(horizontal: false, vertical: true)
+                // Gemeten, niet afgekapt: past de intro niet in 5 (breed 6) regels, dan een zin minder (IntroText).
+                IntroText(text: intro, style: wide ? .title3 : .body, lines: wide ? 6 : 5, suffix: item.introWithSource)
             }
         }
     }
@@ -858,13 +859,13 @@ struct ItemRow: View {
                     .lineSpacing(2)
                     .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                     .fixedSize(horizontal: false, vertical: true)
-                // Hele zinnen tot de maat van de regelinstelling (T2); de regelgrens is alleen een vangnet: één
-                // regel extra, bij grotere tekst het dubbele (dezelfde tekens nemen dan meer regels, en een
-                // afgeknipte zin zou alsnog op een beletselteken eindigen).
+                // Hele zinnen tot de maat van de regelinstelling (T2), daarna gemeten (IntroText): één regel
+                // extra, bij grotere tekst het dubbele. Past het dan nog niet, dan een zin minder of geen intro;
+                // nooit afgekapt op een beletselteken.
                 // Een geleende intro krijgt " — via X" erachter: die tekens gaan van de maat af (Item.viaLength).
                 // In de krant-vorm staat er altijd een miniatuur: het beeld of het placeholderbeeld.
                 if let intro = item.summary.map({ wholeSentences($0, max: introMax(lines: store.preview, thumb: !timeline && store.showsImage(lead: false)) - item.viaLength) }), !intro.isEmpty {
-                    Text(item.introWithSource(intro)).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1)
+                    IntroText(text: intro, style: .subheadline, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, suffix: item.introWithSource)
                 }
             }
         }
