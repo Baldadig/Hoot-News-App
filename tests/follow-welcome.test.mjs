@@ -73,6 +73,13 @@ test('per gekozen interesse een blok, in vaste volgorde, met de nichebronnen en 
   // Geen blok zonder bronnen; de Basis staat nergens nog eens in.
   assert.ok(interestBlocks(catalog, INTERESTS.map((i) => i.id)).every((b) => b.sources.length && b.sources.every((s) => s.cat !== 'nl')))
   assert.equal(freePick([{ id: 'a', name: 'A', paid: true }]), null)
+  // Elke bron één keer, in het eerste blok waar hij hoort; en elk blok heeft één aanrader die erin staat.
+  const all = interestBlocks(catalog, INTERESTS.map((i) => i.id))
+  const ids = all.flatMap((b) => b.sources.map((s) => s.id))
+  assert.equal(new Set(ids).size, ids.length, 'geen bron in twee blokken')
+  for (const b of all) assert.ok(!b.pick || b.sources.some((s) => s.id === b.pick))
+  const picks = all.map((b) => b.pick).filter(Boolean)
+  assert.equal(new Set(picks).size, picks.length, 'elke aanrader hoort bij één blok')
 })
 
 test('sport alleen als je Sport kiest; de rest ingeklapt onder Meer bronnen, zonder sport', () => {

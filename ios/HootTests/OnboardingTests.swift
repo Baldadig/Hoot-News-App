@@ -98,6 +98,12 @@ final class OnboardingTests: XCTestCase {
         XCTAssertEqual(wp.map(\.id), ["politiek", "wereld"])
         XCTAssertTrue(wp[1].sources.contains { $0.id == "aljazeera" })
         XCTAssertNil(FollowList.freePick([Source(id: "x", name: "X", paid: true)]))
+        // Elke bron één keer, in het eerste blok waar hij hoort, en elk blok één aanrader.
+        let all = FollowList.blocks(Self.niche, Rubriek.alle.map(\.id))
+        let ids = all.flatMap { $0.sources.map(\.id) }
+        XCTAssertEqual(Set(ids).count, ids.count)
+        let picks = all.compactMap(\.pick)
+        XCTAssertEqual(Set(picks).count, picks.count)
     }
 
     func testSportOnlyWithSportAndTheRestUnderMore() {

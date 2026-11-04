@@ -536,7 +536,6 @@ struct WelcomeView: View {
             let blocks = FollowList.blocks(all, interests)
             let rest = FollowList.more(all, interests)
             let restCount = rest.reduce(0) { $0 + $1.sources.count }
-            let picks = Set(start.map(\.id) + blocks.compactMap(\.pick))
             let basis = FollowList.basis(all)
             if !basis.isEmpty {
                 section("Basis") {
@@ -552,13 +551,13 @@ struct WelcomeView: View {
                         .accessibilityAddTraits(startOn ? .isSelected : [])
                     }
                 }
-                rows(basis, picks: picks)
+                rows(basis, picks: Set(start.map(\.id)))
             }
             ForEach(blocks, id: \.id) { b in
                 section(b.label) {
                     Text("\(b.sources.count)").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink3).monospacedDigit()
                 }
-                rows(b.sources, picks: picks)
+                rows(b.sources, picks: Set([b.pick].compactMap { $0 }))
             }
             if restCount > 0 {
                 if more {
@@ -566,7 +565,7 @@ struct WelcomeView: View {
                         section(g.label) {
                             Text("\(g.sources.count)").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink3).monospacedDigit()
                         }
-                        rows(g.sources, picks: picks)
+                        rows(g.sources)
                     }
                 } else {
                     Button { more = true } label: {
@@ -888,10 +887,13 @@ enum FollowList {
     struct Block { let id: String; let label: String; let pick: String?; let sources: [Source] }
 
     // Per gekozen interesse (vaste volgorde) een blok: de gratis aanrader voorop, dan de rest op naam.
+    // Elke bron staat één keer: in het eerste blok waar hij hoort. Zo heeft elk blok ook één aanrader.
     static func blocks(_ sources: [Source], _ interests: [String]) -> [Block] {
-        Rubriek.alle.filter { interests.contains($0.id) }.compactMap { r in
-            let list = sources.filter { fits($0, r) }.sorted(by: byName)
+        var seen = Set<String>()
+        return Rubriek.alle.filter { interests.contains($0.id) }.compactMap { r in
+            let list = sources.filter { !seen.contains($0.id) && fits($0, r) }.sorted(by: byName)
             guard !list.isEmpty else { return nil }
+            seen.formUnion(list.map(\.id))
             let pick = freePick(list, r.id)
             return Block(id: r.id, label: r.label, pick: pick?.id, sources: pick.map { p in [p] + list.filter { $0.id != p.id } } ?? list)
         }
