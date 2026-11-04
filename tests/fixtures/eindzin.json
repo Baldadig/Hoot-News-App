@@ -1,0 +1,463 @@
+{
+ "eindzinnen": [
+  "Je weet genoeg.",
+  "Je bent bij."
+ ],
+ "gevallen": [
+  {
+   "date": "2026-11-01",
+   "slot": "ochtend",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-01",
+   "slot": "middag",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-01",
+   "slot": "avond",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-02",
+   "slot": "ochtend",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-02",
+   "slot": "middag",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-02",
+   "slot": "avond",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-03",
+   "slot": "ochtend",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-03",
+   "slot": "middag",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-03",
+   "slot": "avond",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-04",
+   "slot": "ochtend",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-04",
+   "slot": "middag",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-04",
+   "slot": "avond",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-05",
+   "slot": "ochtend",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-05",
+   "slot": "middag",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-05",
+   "slot": "avond",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-06",
+   "slot": "ochtend",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-06",
+   "slot": "middag",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-06",
+   "slot": "avond",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-07",
+   "slot": "ochtend",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-07",
+   "slot": "middag",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-07",
+   "slot": "avond",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-08",
+   "slot": "ochtend",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-08",
+   "slot": "middag",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-08",
+   "slot": "avond",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-09",
+   "slot": "ochtend",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-09",
+   "slot": "middag",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-09",
+   "slot": "avond",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-10",
+   "slot": "ochtend",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-10",
+   "slot": "middag",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-10",
+   "slot": "avond",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-11",
+   "slot": "ochtend",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-11",
+   "slot": "middag",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-11",
+   "slot": "avond",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-12",
+   "slot": "ochtend",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-12",
+   "slot": "middag",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-12",
+   "slot": "avond",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-13",
+   "slot": "ochtend",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-13",
+   "slot": "middag",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-13",
+   "slot": "avond",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-14",
+   "slot": "ochtend",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-14",
+   "slot": "middag",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-14",
+   "slot": "avond",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-15",
+   "slot": "ochtend",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-15",
+   "slot": "middag",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-15",
+   "slot": "avond",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-16",
+   "slot": "ochtend",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-16",
+   "slot": "middag",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-16",
+   "slot": "avond",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-17",
+   "slot": "ochtend",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-17",
+   "slot": "middag",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-17",
+   "slot": "avond",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-18",
+   "slot": "ochtend",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-18",
+   "slot": "middag",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-18",
+   "slot": "avond",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-19",
+   "slot": "ochtend",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-19",
+   "slot": "middag",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-19",
+   "slot": "avond",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-20",
+   "slot": "ochtend",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-20",
+   "slot": "middag",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-20",
+   "slot": "avond",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-21",
+   "slot": "ochtend",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-21",
+   "slot": "middag",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-21",
+   "slot": "avond",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-22",
+   "slot": "ochtend",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-22",
+   "slot": "middag",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-22",
+   "slot": "avond",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-23",
+   "slot": "ochtend",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-23",
+   "slot": "middag",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-23",
+   "slot": "avond",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-24",
+   "slot": "ochtend",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-24",
+   "slot": "middag",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-24",
+   "slot": "avond",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-25",
+   "slot": "ochtend",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-25",
+   "slot": "middag",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-25",
+   "slot": "avond",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-26",
+   "slot": "ochtend",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-26",
+   "slot": "middag",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-26",
+   "slot": "avond",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-27",
+   "slot": "ochtend",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-27",
+   "slot": "middag",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-27",
+   "slot": "avond",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-28",
+   "slot": "ochtend",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-28",
+   "slot": "middag",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-28",
+   "slot": "avond",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-29",
+   "slot": "ochtend",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-29",
+   "slot": "middag",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-29",
+   "slot": "avond",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-30",
+   "slot": "ochtend",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "2026-11-30",
+   "slot": "middag",
+   "verwacht": "Je bent bij."
+  },
+  {
+   "date": "2026-11-30",
+   "slot": "avond",
+   "verwacht": "Je weet genoeg."
+  },
+  {
+   "date": "",
+   "slot": "",
+   "verwacht": "Je bent bij."
+  }
+ ]
+}

@@ -5,7 +5,7 @@ import { carryOver } from '../lib/sourceStatus.js'
 import { freshCount, refreshPlan } from '../lib/fresh.js'
 import { mutedSet } from '../lib/sourcesel.js'
 import { eachLimited } from '../lib/pool.js'
-import { withoutCopies } from '../../shared/dedupe.mjs'
+import { withoutRepeats } from '../../shared/stroom.mjs'
 
 const byRecency = (a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || '')
 
@@ -104,7 +104,7 @@ export function useFeed(prefs) {
         setRefreshError(false)
         const off = mutedSet(prefsRef.current, next.sources)
         // Hetzelfde stuk bij twee zusterkranten is één nieuw bericht (de Stroom toont het één keer).
-        const fresh = defer && had ? freshCount(dataRef.current.items, withoutCopies(next.items), off) : 0
+        const fresh = defer && had ? freshCount(dataRef.current.items, withoutRepeats(next.items), off) : 0
         // Een nieuw dagdeel gaat in zijn geheel door (zie refreshPlan): de Stroom verspringt dan één
         // keer, maar Jouw Editie komt uit de berichten van nu.
         const plan = refreshPlan({ defer, prev: had ? dataRef.current : null, next, fresh })

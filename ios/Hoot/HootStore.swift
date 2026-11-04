@@ -586,7 +586,7 @@ final class HootStore {
             return a.date > b.date
         }
         stream = dated.map { $0.item }
-        copyKeys = Dictionary(stream.map { ($0.id, Self.keys(of: $0)) }, uniquingKeysWith: { a, _ in a })
+        repeatKeys = Dictionary(stream.map { ($0.id, RepeatKeys($0)) }, uniquingKeysWith: { a, _ in a })
         #if DEBUG
         // App Store-opnamen: de gekozen verhalen bovenaan.
         let picked = DebugLaunch.feature.map(\.id)
@@ -597,23 +597,70 @@ final class HootStore {
         #endif
     }
 
-    // Zusterkranten (AD, Tubantia, De Stentor …) brengen vaak hetzelfde stuk. De server laat elke
-    // bron al zijn eigen berichten houden; wat je samen ziet ontdubbelen we hier: dezelfde link of
-    // dezelfde kop staat er één keer (het nieuwste exemplaar). Zoals shared/dedupe.mjs op de
-    // website. `stream` zelf houdt alles, zodat één bron apart al zijn eigen berichten toont.
-    @ObservationIgnored private var copyKeys: [String: [String]] = [:] // per bericht, één keer per rebuildStream (verandert met `stream`)
-    func withoutCopies(_ items: [Item]) -> [Item] {
-        var seen = Set<String>()
-        return items.filter { item in
-            let keys = copyKeys[item.id] ?? Self.keys(of: item)
-            if keys.contains(where: seen.contains) { return false }
-            seen.formUnion(keys)
-            return true
+    // Eén stuk, één plek in de Stroom. Zusterkranten (AD, Tubantia, De Stentor …) brengen vaak hetzelfde
+    // stuk, en een uitgever die een kop aanpast levert het als nieuw bericht (andere kop en link, zelfde
+    // stuk). Gelijk: dezelfde link of kop, dezelfde bron met dezelfde artikel-id in de link (de
+    // Volkskrant eindigt op "~b782895d"), of dezelfde bron met een identieke intro binnen 6 uur. Het
+    // nieuwste exemplaar blijft (minuut van publishedAt, dan firstSeenAt); `formerIds` onthoudt de rest,
+    // zodat gelezen en Bewaard op het blijvende bericht staan. Spiegel van withoutRepeats in
+    // shared/stroom.mjs, getoetst in StroomDubbelsTests met tests/fixtures/stroom-dubbels.json.
+    // `stream` zelf houdt alles, zodat één bron apart al zijn eigen berichten toont.
+    @MainActor struct RepeatKeys {
+        let keys: [String]
+        let intro: String
+        let at: Date?
+        let seen: Date?
+        init(_ item: Item) {
+            let title = HootStore.titleKey(item.title)
+            let id = HootStore.articleId(item.url)
+            keys = ["u|" + item.url] + (title.isEmpty ? [] : ["t|" + title]) + (id.map { ["a|" + item.source + "|" + $0] } ?? [])
+            let text = item.kind == "post" ? "" : HootStore.titleKey(item.summary ?? "")
+            intro = text.count >= 60 ? item.source + "|" + text : ""
+            at = item.date
+            seen = item.firstSeenAt.flatMap(HootDate.parse)
         }
     }
-    private static func keys(of item: Item) -> [String] {
-        let title = titleKey(item.title)
-        return ["u|" + item.url] + (title.isEmpty ? [] : ["t|" + title])
+    static let introWindow: TimeInterval = 6 * 3600
+    @ObservationIgnored private var repeatKeys: [String: RepeatKeys] = [:] // per bericht, één keer per rebuildStream (verandert met `stream`)
+    func withoutCopies(_ items: [Item]) -> [Item] { Self.withoutRepeats(items, cache: repeatKeys) }
+
+    static func articleId(_ url: String) -> String? {
+        let bare = url.split(whereSeparator: { $0 == "?" || $0 == "#" }).first.map(String.init) ?? url
+        return bare.firstMatch(of: /~([0-9a-fA-F]{6,})\/?$/).map { String($0.1).lowercased() }
+    }
+
+    static func withoutRepeats(_ items: [Item], cache: [String: RepeatKeys] = [:]) -> [Item] {
+        var parent = Array(items.indices)
+        func find(_ i: Int) -> Int { var r = i; while parent[r] != r { r = parent[r] }; parent[i] = r; return r }
+        func join(_ a: Int, _ b: Int) { let (x, y) = (find(a), find(b)); parent[max(x, y)] = min(x, y) }
+        let info = items.map { cache[$0.id] ?? RepeatKeys($0) }
+        var first: [String: Int] = [:]
+        var intros: [String: [Int]] = [:]
+        for (i, k) in info.enumerated() {
+            for key in k.keys { if let j = first[key] { join(i, j) } else { first[key] = i } }
+            if !k.intro.isEmpty, let at = k.at {
+                for j in intros[k.intro] ?? [] where abs(info[j].at!.timeIntervalSince(at)) <= introWindow { join(i, j) }
+                intros[k.intro, default: []].append(i)
+            }
+        }
+        var groups: [Int: [Int]] = [:]
+        for i in items.indices { groups[find(i), default: []].append(i) }
+        func minute(_ d: Date?) -> Int { Int(((d ?? .distantPast).timeIntervalSince1970 / 60).rounded(.down)) }
+        func newer(_ a: Int, _ b: Int) -> Bool {
+            let (ma, mb) = (minute(info[a].at), minute(info[b].at))
+            if ma != mb { return ma > mb }
+            return (info[a].seen ?? .distantPast) > (info[b].seen ?? .distantPast)
+        }
+        var out: [Item] = []
+        for i in items.indices {
+            guard let members = groups[find(i)], members[0] == i else { continue }
+            if members.count == 1 { out.append(items[i]); continue }
+            let win = members.dropFirst().reduce(members[0]) { newer($1, $0) ? $1 : $0 }
+            var item = items[win]
+            item.formerIds = members.filter { $0 != win }.map { items[$0].id }
+            out.append(item)
+        }
+        return out
     }
     // De kop zonder hoofdletters en leestekens (zoals normTitle op de server).
     static func titleKey(_ title: String) -> String {
@@ -901,9 +948,14 @@ final class HootStore {
     }
 
     // ---- Bewaard en gelezen ----
-    func isSaved(_ item: Item) -> Bool { saved.contains { $0.id == item.id } }
+    func isSaved(_ item: Item) -> Bool { savedKey(item) != nil }
+    // Onder welke id staat dit bericht Bewaard? De eigen, of die van een eerdere kop van hetzelfde stuk.
+    private func savedKey(_ item: Item) -> String? {
+        if saved.contains(where: { $0.id == item.id }) { return item.id }
+        return (item.formerIds ?? []).first { old in saved.contains { $0.id == old } }
+    }
     func toggleSave(_ item: Item) {
-        if let i = saved.firstIndex(where: { $0.id == item.id }) { saved.remove(at: i) } else {
+        if let key = savedKey(item), let i = saved.firstIndex(where: { $0.id == key }) { saved.remove(at: i) } else {
             saved.insert(item, at: 0)
             affinity.learn(item, weight: 3) // bewaren zegt meer over je smaak dan openen
         }
@@ -922,7 +974,7 @@ final class HootStore {
             readOrder.removeFirst(drop.count)
         }
     }
-    func isRead(_ item: Item) -> Bool { readSet.contains(item.id) }
+    func isRead(_ item: Item) -> Bool { readSet.contains(item.id) || (item.formerIds ?? []).contains { readSet.contains($0) } }
 
     // ---- Opslag ----
     private func save<T: Encodable>(_ key: String, _ value: T) {

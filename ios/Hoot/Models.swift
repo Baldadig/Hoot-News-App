@@ -59,6 +59,8 @@ struct Item: Codable, Identifiable, Hashable {
     // dan 36 uur) komt niet in de Stroom, `streamOnly` telt niet mee voor de Editie.
     var editionOnly: Bool?
     var streamOnly: Bool?
+    var firstSeenAt: String? // wanneer de feed dit bericht (deze kop) voor het eerst bracht; kiest de nieuwste kop bij dubbelen
+    var formerIds: [String]? // niet uit de feed: de id's van eerdere koppen van hetzelfde stuk (HootStore.withoutRepeats)
 
     var date: Date? { publishedAt.flatMap(HootDate.parse) }
     var link: URL? { URL(string: url) }
@@ -74,7 +76,7 @@ struct Item: Codable, Identifiable, Hashable {
 }
 
 extension Item {
-    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, url, image, publishedAt, author, readMin, type, section, handle, linkTitle, imageMeta, imageRatio, video, videoPoster, topics, mainTopics, editionOnly, streamOnly }
+    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, url, image, publishedAt, author, readMin, type, section, handle, linkTitle, imageMeta, imageRatio, video, videoPoster, topics, mainTopics, editionOnly, streamOnly, firstSeenAt }
     // Een post heeft geen kop; die mag dus ontbreken.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -107,6 +109,7 @@ extension Item {
         mainTopics = try? c.decodeIfPresent([String].self, forKey: .mainTopics)
         editionOnly = try? c.decodeIfPresent(Bool.self, forKey: .editionOnly)
         streamOnly = try? c.decodeIfPresent(Bool.self, forKey: .streamOnly)
+        firstSeenAt = try? c.decodeIfPresent(String.self, forKey: .firstSeenAt)
     }
 }
 

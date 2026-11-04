@@ -12,6 +12,7 @@ import { KopSun, EindeSun } from '../components/SunArt.jsx'
 import Weather from '../components/Weather.jsx'
 import { longDate } from '../lib/time.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
+import { eindzin } from '../../shared/eindzin.mjs'
 import { resolveEditionEntry, heroFirst, numberRows, countOf, EDITION_SIZE, upNext } from '../lib/edition.js'
 import { SLOTS } from '../../shared/slots.mjs'
 import { fitsHero } from '../lib/img.js'
@@ -331,7 +332,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               ) : null}
               {/* Het enige merkmoment tijdens het lezen: de zon komt één keer op (plan 01/05). */}
               <EindeSun className="endcap__sun" />
-              <h2 className="head-5 endcap__title">Dan ben je bij.</h2>
+              <h2 className="head-5 endcap__title">{eindzin(edition.date, edition.slot)}</h2>
               <p className="endcap__text">
                 Dit was de {title} van {longDate(edition.date)}.{upNext(edition.slot)}
               </p>

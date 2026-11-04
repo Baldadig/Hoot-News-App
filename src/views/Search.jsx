@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Empty, BackButton } from '../components/Shell.jsx'
 import { Entry, useHoot } from '../components/Items.jsx'
 import { CloseIcon, SearchArt } from '../components/icons.jsx'
-import { withoutCopies } from '../../shared/dedupe.mjs'
+import { withoutRepeats } from '../../shared/stroom.mjs'
 
 export default function Search({ onBack, backLabel = 'Terug' }) {
   const { itemsById, saved, storiesById, sourcesById, muted } = useHoot()
@@ -29,8 +29,8 @@ export default function Search({ onBack, backLabel = 'Terug' }) {
         return words.every((w) => hay.includes(w))
       })
       .sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''))
-    // Hetzelfde stuk bij twee zusterkranten één keer, zoals in de Stroom.
-    return withoutCopies(hits).slice(0, 60)
+    // Hetzelfde stuk (ook met een aangepaste kop) één keer, zoals in de Stroom.
+    return withoutRepeats(hits).slice(0, 60)
   }, [q, scope, itemsById, sourcesById, saved, muted])
 
   return (

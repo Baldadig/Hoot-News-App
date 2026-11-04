@@ -7,6 +7,7 @@ import { imageMeta, portraitImage, cropStyle } from '../lib/image-meta.js'
 import { shareLink } from '../lib/share.js'
 import { topicById } from '../lib/topics.js'
 import { savedKey, withLead } from '../lib/saved.js'
+import { isReadItem } from '../../shared/stroom.mjs'
 import { avatarUrl, fitsLarge, fitsHero } from '../lib/img.js'
 import { TermHelp } from './Terms.jsx'
 import { Img } from './Img.jsx'
@@ -57,7 +58,7 @@ const srcOf = (item) => ({ name: item.sourceName, avatar: item.avatar, avatarCon
 export function SaveButton({ id, kind = 'item', payload, label = 'bericht' }) {
   const { saved, toggleSave } = useHoot()
   // Een verhaal dat intussen is samengegaan met een ander blijft bewaard onder zijn oude id.
-  const key = savedKey(saved, id, kind === 'story' ? payload : null)
+  const key = savedKey(saved, id, payload)
   const on = !!key
   const text = on ? `Bewaard — tik om dit ${label} te verwijderen` : `Bewaar dit ${label}`
   return (
@@ -200,7 +201,7 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
   const tier = headlineTier(item.title)
   const titleRole = tier === 'compact' ? 'head-lg' : tier === 'medium' ? 'head-5' : 'head-6'
   return (
-    <article className={`entry lead${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
+    <article className={`entry lead${isReadItem(read, item) ? ' is-read' : ''}`} data-id={item.id}>
       <a className={`lead__link${portraitImage(item) ? ' lead__link--portrait' : ''}`} href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         {/* Overal beeld eerst, zoals de app: dan rubriek, kop en kern, zodat de bronregel bij zijn
             tekst blijft. Het waarom van de plek (jouw Editie) staat stil onder de rubriek, zie Why.js. */}
@@ -233,7 +234,7 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
   const { markRead, read, layout, prefs } = useHoot()
   const introMax = useIntroMax()
   const lineCount = lines ?? (plain ? 2 : prefs?.preview ?? 2)
-  const cls = `entry compact${read.has(item.id) ? ' is-read' : ''}`
+  const cls = `entry compact${isReadItem(read, item) ? ' is-read' : ''}`
   if (layout === 'tijdlijn' && !plain) {
     return (
       <article className={`${cls} compact--tl`} data-id={item.id}>
@@ -285,7 +286,7 @@ export function SocialItem({ item }) {
   const bounded = (r) => ({ aspectRatio: r, maxWidth: `calc(min(420px, 56vh) * ${r})` })
   const playable = isPlayableVideo(item.video, CAN_HLS)
   return (
-    <article className={`entry social${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
+    <article className={`entry social${isReadItem(read, item) ? ' is-read' : ''}`} data-id={item.id}>
       <div className="social__head">
         <button type="button" className="srcbtn srcbtn--social" onClick={() => openSource(item.source)} aria-label={`Alles van ${item.sourceName} bekijken`}>
           <SourceMark source={srcOf(item)} size={36} />
