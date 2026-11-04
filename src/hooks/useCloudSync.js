@@ -95,5 +95,8 @@ export function useCloudSync(account, { prefs, setPrefs, saved, setSaved, readId
     setPulled(false)
   }, [setLocal])
 
-  return { status, pulled, forget }
+  // Nu synchroniseren (Instellingen): ophalen, en wat openstaat wegschrijven.
+  const syncNow = useCallback(() => engine.current?.pull(), [])
+
+  return { status, pulled, forget, syncNow }
 }

@@ -53,7 +53,7 @@ export default function Settings({ meta, account, syncStatus, affinity = null, o
       <div className="col col--form">
         <ViewHeader title="Instellingen" showSearch={false} account={false} onBack={onBack} backLabel={backLabel} backInNav />
 
-        <AccountSettings account={account} syncStatus={syncStatus} summary={summary} />
+        <AccountSettings account={account} syncStatus={syncStatus} summary={summary} manage />
 
         <h2 className="sect sect--plain">Jouw Hoot</h2>
         <div className="rows">
@@ -87,13 +87,12 @@ export default function Settings({ meta, account, syncStatus, affinity = null, o
 
         <h2 className="sect sect--plain">Over Hoot</h2>
         <div className="rows">
+          <LinkRow href="#/toestel" label="Op dit toestel" />
           <LinkRow href="#/over" label="Over en contact" />
           <LinkRow href="#/privacy" label="Privacy" />
-          <LinkRow href="#/stijl" label="Designsysteem" />
         </div>
         <p className="hint setfoot">
           Hoot {__APP_VERSION__} · gemaakt door <a href="https://baldadig.nl" target="_blank" rel="noopener">Baldadig</a>. Intro’s komen van de bron, niet van AI.
-          {meta?.storage === 'blobs' ? null : ' De Editie kan nu nog wisselen.'}
         </p>
       </div>
     </section>

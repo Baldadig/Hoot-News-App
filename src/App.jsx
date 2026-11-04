@@ -47,6 +47,7 @@ import Splash from './components/Splash.jsx'
 // Schermen die je zelden opent laden pas als je ze opent (de service worker heeft ze al klaarstaan).
 const Search = lazy(() => import('./views/Search.jsx'))
 const Settings = lazy(() => import('./views/Settings.jsx'))
+const Device = lazy(() => import('./views/Device.jsx'))
 const Privacy = lazy(() => import('./views/Privacy.jsx'))
 const Over = lazy(() => import('./views/Over.jsx'))
 const StyleGuide = lazy(() => import('./views/StyleGuide.jsx'))
@@ -59,7 +60,7 @@ const splashShown = () => {
   return !!s && !s.hidden
 }
 
-const PAGES = ['zoek', 'stijl', 'welkom', 'instellingen', 'privacy', 'over']
+const PAGES = ['zoek', 'stijl', 'welkom', 'instellingen', 'toestel', 'privacy', 'over']
 
 const safe = (fn, fallback) => {
   try {
@@ -119,10 +120,10 @@ export default function App() {
 
   // Account: inloggen met Google; als lid gaan instellingen, Bewaard en gelezen mee.
   const rawAccount = useAccount()
-  const { status: syncStatus, pulled: syncPulled, forget: forgetAccount } = useCloudSync(rawAccount, { prefs: rawPrefs, setPrefs, saved, setSaved, readIds, setReadIds, seen: seenStories, setSeen: setSeenStories })
+  const { status: syncStatus, pulled: syncPulled, forget: forgetAccount, syncNow } = useCloudSync(rawAccount, { prefs: rawPrefs, setPrefs, saved, setSaved, readIds, setReadIds, seen: seenStories, setSeen: setSeenStories })
   // Uitloggen haalt ook de gegevens van dat account van dit toestel (zie syncEngine.js).
   const signOut = rawAccount.signOut
-  const account = useMemo(() => ({ ...rawAccount, signOut: async () => (await signOut(), forgetAccount()) }), [rawAccount, signOut, forgetAccount])
+  const account = useMemo(() => ({ ...rawAccount, pulled: syncPulled, syncNow, signOut: async () => (await signOut(), forgetAccount()) }), [rawAccount, signOut, forgetAccount, syncPulled, syncNow])
 
   // ---- Context per bestemming: de navigatie brengt je terug naar dezelfde lijst ----
   const [navMem, setNavMem] = useState(readNav)
@@ -434,7 +435,7 @@ export default function App() {
         bronnen: 'Bronnen',
         zoek: 'Zoeken',
         stijl: 'Designsysteem',
-        welkom: 'Welkom', instellingen: 'Instellingen', privacy: 'Privacy', over: 'Over', digest: 'Selectie' }[path] + ' · Hoot'
+        welkom: 'Welkom', instellingen: 'Instellingen', toestel: 'Op dit toestel', privacy: 'Privacy', over: 'Over', digest: 'Selectie' }[path] + ' · Hoot'
   }, [path])
 
   // Bronstatus: één uitgevallen bron is een stil puntje bij Bronnen; alleen als álles
@@ -655,6 +656,7 @@ export default function App() {
           <Suspense fallback={null}>
             {page === 'zoek' ? <Search {...backTo} /> : null}
             {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} affinity={affinity} onForgetTopic={(t) => setAffinity((a) => forgetTopic(a, t))} {...backTo} /> : null}
+            {page === 'toestel' ? <Device account={account} saved={saved} onClearSaved={() => setSaved({})} onClearRead={() => setReadIds([])} onReset={() => route.go('welkom')} onBack={() => route.back('instellingen')} backLabel="Instellingen" /> : null}
             {page === 'privacy' ? <Privacy {...backTo} /> : null}
             {page === 'over' ? <Over {...backTo} /> : null}
             {page === 'stijl' ? <StyleGuide stream={stream} /> : null}

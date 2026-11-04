@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { Dialog, DialogHeader } from './Dialog.jsx'
 import { pendingShown, PENDING_TEXT } from '../lib/membership.js'
 import { useOnline } from '../hooks/useOnline.js'
 import { AccountIcon } from './icons.jsx'
+import { DELETE_TEXT, deleteAccount, appleCode } from '../lib/accountDelete.js'
 
 // "Inloggen met Google" volgens Googles richtlijnen voor de knop (donker thema): hun eigen
 // G in kleur, Roboto Medium, bijna zwart met een grijze rand. Kleuren en letter liggen vast.
@@ -24,13 +25,73 @@ export function GoogleButton({ onClick, wide = false }) {
   )
 }
 
+// Een melding met een zichtbare Annuleer en precies wat er verandert (zoals de .alert van de app).
+// `actions`: { label, kind: 'cancel' | 'danger' | 'plain', onClick }, in de volgorde van de app.
+export function ConfirmDialog({ open, title, message, actions, onClose, busy = false }) {
+  const id = useId()
+  return (
+    <Dialog open={open} onClose={onClose} className="sheet--confirm" labelledBy={id}>
+      <h2 id={id} className="head-lg confirm__title">
+        {title}
+      </h2>
+      <p className="confirm__text">{message}</p>
+      <div className="confirm__actions">
+        {actions.map((a) => (
+          <button key={a.label} type="button" className={`btn${a.kind === 'cancel' ? ' btn--quiet' : a.kind === 'danger' ? ' btn--accent' : ''}`} onClick={a.onClick} disabled={busy} aria-busy={busy && a.kind === 'danger' ? 'true' : undefined}>
+            {a.label}
+          </button>
+        ))}
+      </div>
+    </Dialog>
+  )
+}
+
 // Account in Instellingen: inloggen, wie je bent en synchroniseren. Bovenaan Instellingen als
 // accountkaart met de samenvatting van je Hoot (`summary`, Instellingen A met de samenvatting uit B).
-const SYNC = { idle: 'Gesynchroniseerd', pending: 'Wacht op verbinding', syncing: 'Synchroniseren…', ok: 'Gesynchroniseerd', error: 'Synchroniseren lukte niet; straks opnieuw' }
+// Met `manage` (Instellingen) ook Nu synchroniseren en Account verwijderen, zoals de accountpagina van de app.
+// Status zoals de app: "Ingelogd" tot de eerste keer synchroniseren gelukt is, daarna "Gesynchroniseerd".
+const SYNC = { pending: 'Wacht op verbinding', syncing: 'Synchroniseren…', error: 'Synchroniseren lukte niet; straks opnieuw' }
+const syncLine = (syncStatus, pulled) => SYNC[syncStatus] || (pulled ? 'Gesynchroniseerd' : 'Ingelogd')
 
-export function AccountSettings({ account, syncStatus, summary = null }) {
+export function AccountSettings({ account, syncStatus, summary = null, manage = false }) {
   const { status, user, signIn, signOut } = account
   const pending = pendingShown(account, useOnline())
+  // 'delete': de vraag; 'apple': intrekken bij Apple lukte niet, niets gewist.
+  const [ask, setAsk] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const [note, setNote] = useState(null)
+
+  const remove = async (skipApple = false) => {
+    setBusy(true)
+    setNote(null)
+    const res = await deleteAccount({ client: account.client, skipApple, reauth: account.reauth || appleCode })
+    if (res.ok) {
+      // Netjes uitgelogd: eerst lokaal (de gebruiker bestaat op de server niet meer), dan zoals
+      // Uitloggen, dat ook de gegevens van dit account van het toestel haalt.
+      try {
+        await account.client?.auth.signOut({ scope: 'local' })
+      } catch {
+        /* de sessie is al weg */
+      }
+      try {
+        await signOut()
+      } catch {
+        /* idem */
+      }
+      setNote(res.note || null)
+    } else if (res.appleFailed) {
+      setAsk('apple')
+      setBusy(false)
+      return
+    } else setNote(res.message)
+    setAsk(null)
+    setBusy(false)
+  }
+  const keep = () => {
+    setAsk(null)
+    setNote(DELETE_TEXT.stays)
+  }
+
   if (status === 'loading') return <p className="hint">Even geduld…</p>
   if (status === 'out')
     return (
@@ -47,9 +108,15 @@ export function AccountSettings({ account, syncStatus, summary = null }) {
         </div>
         <GoogleButton onClick={signIn} />
         <p className="sheet__note acard__note">Lezen kan zonder account.</p>
+        {note ? (
+          <p className="acard__msg" role="status">
+            {note}
+          </p>
+        ) : null}
       </div>
     )
   const email = user?.email || 'je account'
+  const waiting = account.status === 'in' && !account.profile
   return (
     <div className="acard">
       <div className="acard__row">
@@ -59,13 +126,56 @@ export function AccountSettings({ account, syncStatus, summary = null }) {
         <div className="setrow__text">
           <span className="acard__name">{email}</span>
           {summary ? <span className="setrow__hint acard__sum">{summary}</span> : null}
-          <span className="setrow__hint">{pending ? PENDING_TEXT : account.status === 'in' && !account.profile ? SYNC.pending : SYNC[syncStatus] || SYNC.ok}</span>
+          <span className="setrow__hint">{pending ? PENDING_TEXT : waiting ? SYNC.pending : syncLine(syncStatus, account.pulled)}</span>
         </div>
         <button type="button" className="btn btn--quiet" onClick={signOut}>
           Uitloggen
         </button>
       </div>
       {pending ? <RetryRow account={account} /> : null}
+      {manage ? (
+        <div className="acard__manage">
+          {!waiting ? (
+            <>
+              <button type="button" className="btn btn--quiet" onClick={() => account.syncNow?.()} disabled={syncStatus === 'syncing'}>
+                Nu synchroniseren
+              </button>
+              <p className="sheet__note acard__note">Weergave en lezen blijven per toestel.</p>
+            </>
+          ) : null}
+          <button type="button" className="btn btn--quiet" onClick={() => setAsk('delete')} disabled={busy}>
+            Account verwijderen
+          </button>
+        </div>
+      ) : null}
+      {note ? (
+        <p className="acard__msg" role="status">
+          {note}
+        </p>
+      ) : null}
+      <ConfirmDialog
+        open={ask === 'delete'}
+        title={DELETE_TEXT.title}
+        message={DELETE_TEXT.message}
+        busy={busy}
+        onClose={() => setAsk((a) => (a === 'delete' ? null : a))}
+        actions={[
+          { label: DELETE_TEXT.cancel, kind: 'cancel', onClick: () => setAsk(null) },
+          { label: DELETE_TEXT.confirm, kind: 'danger', onClick: () => remove(false) },
+        ]}
+      />
+      <ConfirmDialog
+        open={ask === 'apple'}
+        title={DELETE_TEXT.appleTitle}
+        message={DELETE_TEXT.appleMessage}
+        busy={busy}
+        onClose={() => setAsk((a) => (a === 'apple' ? null : a))}
+        actions={[
+          { label: DELETE_TEXT.appleRetry, kind: 'plain', onClick: () => remove(false) },
+          { label: DELETE_TEXT.cancel, kind: 'cancel', onClick: keep },
+          { label: DELETE_TEXT.appleSkip, kind: 'danger', onClick: () => remove(true) },
+        ]}
+      />
     </div>
   )
 }
