@@ -29,7 +29,7 @@ final class EditionNumberingTests: XCTestCase {
     func testNativeNumberAndWaitingLayouts() {
         for size in [DynamicTypeSize.large, .xxxLarge] {
             let content = VStack(alignment: .leading, spacing: 16) {
-                EditionHeader(title: "Ochtendeditie", slot: "ochtend", waiting: true)
+                EditionHeader(title: "Ochtendeditie", slot: "ochtend")
                 StrongRule()
                 Kicker(text: "Binnenland", number: 1)
                 Text("Een verhaal dat je rustig kunt lezen").font(Theme.headline(.largeTitle))

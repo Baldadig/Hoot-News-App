@@ -6,7 +6,6 @@ import SwiftUI
 struct DigestView: View {
     @Environment(HootStore.self) private var store
     private static var fields: [DigestFieldsList.Field] { DigestFieldsList.fields }
-    @State private var refreshWaiting = false
     @State private var choosing = false
     @State private var navigating = false
     @State private var folding = SelectionFoldState()
@@ -36,9 +35,6 @@ struct DigestView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     ScreenTitle("Selectie") // de schermtitel in de scroll (C7), boven de onderwerpenknop
-                    if refreshWaiting && store.digest != nil {
-                        RefreshLoadingMark().frame(maxWidth: .infinity, minHeight: 56)
-                    }
                     picker
                     if let d = store.digest {
                         header(d)
@@ -66,10 +62,7 @@ struct DigestView: View {
                     } else if store.digestStatus == .failed {
                         EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnt de Selectie hier.", retry: { await store.loadDigest(force: true) })
                     } else {
-                        Group {
-                            if refreshWaiting { RefreshLoadingMark() }
-                            else { WaitingMark() }
-                        }.frame(maxWidth: .infinity, minHeight: 240)
+                        WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
                     }
                 }
                 .padding(.horizontal)
@@ -90,7 +83,7 @@ struct DigestView: View {
             .hootBrandHeader()
             .hootScreenTitle()
             .settingsButton()
-            .hootRefresh(onWaiting: { refreshWaiting = $0 }) { await store.loadDigest(force: true) }
+            .hootRefresh(indicator: store.digest != nil) { await store.loadDigest(force: true) }
             .sheet(isPresented: $choosing) {
                 NavigationStack {
                     DigestFieldsList()
