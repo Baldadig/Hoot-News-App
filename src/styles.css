@@ -650,9 +650,11 @@ select {
    Sterke lijn op de drempel: inkt, in Nacht inkt 2 (een lijn van 358 licht 's avonds niet op). */
 .view { --pull-strong: var(--ink); }
 :root[data-theme='night'] .view { --pull-strong: var(--ink-2); }
+/* De strook begint 8 boven de eerste rij van de kop (--head-y): zo staat de horizon, net als in de
+   proef, 16 boven het titelvak, in de bovenmarge die er al is. */
 .pull {
   position: absolute;
-  top: var(--safe-t);
+  top: calc(var(--safe-t) + var(--head-y) - 8px);
   left: 0;
   right: 0;
   height: 0;
