@@ -32,9 +32,9 @@ export const DESK_INTERESTS = {
 }
 
 // Een gevolgde geografische tag mag een concreet vastgestelde andere plek niet vervangen.
-const GEOGRAPHIC_TOPICS = new Set(['nederland', 'europa', 'vs-politiek', 'trump', 'oekraine', 'middenoosten', 'azie', 'afrika', 'latam'])
+const GEOGRAPHIC_TOPICS = new Set(['nederland', 'europa', 'vs-politiek', 'oekraine', 'middenoosten', 'azie', 'afrika', 'latam'])
 const PLACE_TOPICS = {
-  binnenland: ['nederland'], regio: ['nederland'], vs: ['vs-politiek', 'trump'],
+  binnenland: ['nederland'], regio: ['nederland'], vs: ['vs-politiek'],
   middenoosten: ['middenoosten'], oekraine: ['oekraine'],
 }
 

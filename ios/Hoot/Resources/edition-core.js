@@ -118,8 +118,7 @@ var HootCore = (() => {
   var TOPICS = [
     T("nederland", "Den Haag"),
     T("europa", "Europa"),
-    T("vs-politiek", "VS-politiek"),
-    T("trump", "Trump"),
+    T("vs-politiek", "Verenigde Staten"),
     T("verkiezingen", "Verkiezingen"),
     T("wonen", "Wonen"),
     T("zorg", "Zorg"),
@@ -162,7 +161,7 @@ var HootCore = (() => {
     T("olympisch", "Olympische sporten")
   ];
   var INTERESTS = [
-    { id: "politiek", label: "Politiek", topics: ["nederland", "europa", "vs-politiek", "trump", "verkiezingen"], cats: [] },
+    { id: "politiek", label: "Politiek", topics: ["nederland", "europa", "vs-politiek", "verkiezingen"], cats: [] },
     { id: "binnenland", label: "Binnenland", topics: ["wonen", "zorg", "onderwijs", "misdaad", "migratie", "verkeer"], cats: ["regio"] },
     { id: "wereld", label: "Wereld", topics: ["oekraine", "middenoosten", "azie", "afrika", "latam", "geopolitiek"], cats: [] },
     { id: "economie", label: "Economie", topics: ["economie", "werk", "bedrijven", "energie", "geld"], cats: ["economie"] },
@@ -173,6 +172,18 @@ var HootCore = (() => {
   ];
   var INTEREST_OF = Object.fromEntries(INTERESTS.flatMap((i) => i.topics.map((t) => [t, i.id])));
   var topicById = (id) => TOPICS.find((t) => t.id === id);
+  var RETIRED_TOPICS = { trump: "vs-politiek" };
+  var currentTopic = (id) => RETIRED_TOPICS[id] || id;
+  var currentTopics = (ids) => Array.isArray(ids) ? [...new Set(ids.map((t) => typeof t === "string" ? currentTopic(t) : t))] : ids;
+  function currentTopicMap(map, cap = Infinity) {
+    if (!map || typeof map !== "object") return map;
+    const out = {};
+    for (const [k, v] of Object.entries(map)) {
+      const key = currentTopic(k);
+      out[key] = key in out && Number.isFinite(out[key]) && Number.isFinite(v) ? Math.max(-cap, Math.min(cap, out[key] + v)) : v;
+    }
+    return out;
+  }
 
   // src/lib/affinity.js
   var MIN_EVENTS = 8;
@@ -249,7 +260,6 @@ var HootCore = (() => {
     // Niet "den haag": dat is ook de stad (feedback 31 oktober: rellen in Den Haag waren "Den Haag", de politiek).
     ["nederland", /\b(kabinet|tweede kamer|eerste kamer|binnenhof|catshuis|prinsjesdag|miljoenennota|rijksoverheid|coalitie|formatie|minister van|staatssecretaris|kamerlid|kamerleden|\bpvv\b|\bvvd\b|\bd66\b|groenlinks|\bpvda\b|\bcda\b|\bsgp\b|\bbbb\b|\bja21\b|wilders|schoof|timmermans|yesilgoz|omtzigt|jetten|bontenbal)\b/i],
     ["europa", /\b(europese unie|europese commissie|europees parlement|europese leiders|eu-landen|\beu\b|brussel|von der leyen|european union|european commission|european parliament|eurozone|schengen)\b/i],
-    ["trump", /\btrump\b/i],
     ["verkiezingen", /\b(verkiezing|verkiezingen|election|elections|stembus|peiling|peilingen|\bpoll(s)?\b|campagne|campaign|kandidaat|candidate|referendum|stemmen geteld)\b/i],
     // Binnenland
     ["wonen", /\b(woningmarkt|huizenprijs|huurwoning|huurders|huurprijs|sociale huur|woningnood|woningbouw|hypotheek|koopwoning|dakloos|starters op de woningmarkt|corporatie)\b/i],
@@ -301,6 +311,8 @@ var HootCore = (() => {
   var OTHER_SPORT = /\b(darts\w*|darter\w*|snooker|rugby|honkbal|baseball|basketbal|basketball|ijshockey|motogp|handbal\w*|handball|uitwedstrijd\w*|vrouwentak|veldrijd\w*|veldrit\w*|koppenberg\w*|eredivisie\w*|voetbal\w*)\b/i;
   var RETIRED = {
     "vs-politiek": /./s,
+    trump: /./s,
+    // sinds 1.1.0 geen eigen onderwerp meer: Verenigde Staten (vs-politiek)
     brein: /\bangst\b/i,
     film: /\b(netflix|hbo)\b/i,
     media: /\b(omroep|npo)\b/i,
@@ -326,7 +338,6 @@ var HootCore = (() => {
     for (const [id, re] of KW) if (re.test(text)) out.push(id);
     if (usPoliticsIn(text)) out.push("vs-politiek");
     if (/\bPangram\b/.test(text) && /\b(internet|ai|detector|detectie|kunstmatige intelligentie)\b/i.test(text) && !out.includes("ai")) out.push("ai");
-    if (out.includes("trump") && !out.includes("vs-politiek")) out.push("vs-politiek");
     return out;
   }
 
@@ -946,6 +957,9 @@ var HootCore = (() => {
     return out;
   }
   function profileOf({ interests = [], topics = [], affinity = null, taste = null, favorites = [], followed = /* @__PURE__ */ new Set(), sources = [], supply = null } = {}) {
+    topics = currentTopics(topics);
+    if (affinity?.topics) affinity = { ...affinity, topics: currentTopicMap(affinity.topics) };
+    if (taste?.topics) taste = { ...taste, topics: currentTopicMap(taste.topics, TASTE_SCALE) };
     const expl = {};
     const inherited = /* @__PURE__ */ new Set();
     for (const f of INTERESTS) {
@@ -1027,7 +1041,7 @@ var HootCore = (() => {
     if (catOf?.get(item.source) === "sport") return true;
     return SPORT_URL.test(item.url || "") || /\b(eredivisie\w*|voetbalwedstrijd\w*)\b/i.test(`${item.title || ""} ${item.summary || ""}`) || OTHER_SPORT.test(`${item.title || ""} ${item.summary || ""}`);
   }
-  var US_TOPICS = /* @__PURE__ */ new Set(["vs-politiek", "trump"]);
+  var US_TOPICS = /* @__PURE__ */ new Set(["vs-politiek"]);
   var POLITICS_DESKS = /* @__PURE__ */ new Set(["vs", "middenoosten", "oekraine"]);
   var POLITICS_FAMILIES = /* @__PURE__ */ new Set(["politiek", "wereld", "economie", "binnenland"]);
   var politicsItem = (i, deskOfStory2 = null) => POLITICS_DESKS.has(deskOfStory2) || [...desksOf(i)].some((d) => POLITICS_DESKS.has(d) || FOREIGN_DESKS.has(d) && /\b(vn-top|summit|regering|government|minister|verkiezingen|elections|onderhandelingen)\b/i.test(i.title || "")) || (i.topics || []).some((t) => US_TOPICS.has(t));
@@ -1205,7 +1219,6 @@ var HootCore = (() => {
     nederland: ["binnenland"],
     verkiezingen: ["binnenland", "vs"],
     "vs-politiek": ["vs"],
-    trump: ["vs"],
     europa: ["buitenland"],
     wonen: ["binnenland", "regio"],
     zorg: ["binnenland"],

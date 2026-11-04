@@ -149,11 +149,27 @@ final class HootStore {
         notify = Self.load("hoot.notify") ?? false
         notifySlots = Self.load("hoot.notifySlots") ?? EditionAlerts.slots.map(\.id)
         interests = Self.load("hoot.interests") ?? []
-        topics = Self.load("hoot.topics") ?? []
+        // Trump is sinds 1.1.0 Verenigde Staten: opgeslagen voorkeuren met de oude sleutel gaan mee (RetiredTopics).
+        func rewrite<T: Codable & Equatable>(_ key: String, _ old: T, _ new: T) {
+            if new != old { UserDefaults.standard.set(try? JSONEncoder().encode(new), forKey: key) }
+        }
+        let storedTopics: [String] = Self.load("hoot.topics") ?? []
+        let migratedTopics = RetiredTopics.list(storedTopics)
+        topics = migratedTopics
         favorites = Self.load("hoot.favorites") ?? []
-        affinity = Self.load("hoot.affinity") ?? Affinity()
-        taste = Self.load("hoot.taste") ?? Taste()
-        less = Self.load("hoot.less") ?? []
+        let storedAffinity: Affinity = Self.load("hoot.affinity") ?? Affinity()
+        let migratedAffinity = storedAffinity.migrated
+        affinity = migratedAffinity
+        let storedTaste: Taste = Self.load("hoot.taste") ?? Taste()
+        let migratedTaste = storedTaste.migrated
+        taste = migratedTaste
+        let storedLess: [String] = Self.load("hoot.less") ?? []
+        let migratedLess = RetiredTopics.list(storedLess)
+        less = migratedLess
+        rewrite("hoot.topics", storedTopics, migratedTopics)
+        rewrite("hoot.affinity", storedAffinity, migratedAffinity)
+        rewrite("hoot.taste", storedTaste, migratedTaste)
+        rewrite("hoot.less", storedLess, migratedLess)
         personal = Self.read("edition.json")
         personalRaw = Self.readRaw("edition.json")
         bluesky = Self.load("hoot.bluesky") ?? false
@@ -241,9 +257,9 @@ final class HootStore {
         }
         if let v = p?.preview, v != preview, (0 ... 3).contains(v) { preview = v; save("hoot.preview", v) }
         if let v = p?.interests, v != interests { interests = v; save("hoot.interests", v) }
-        if let v = p?.topics, v != topics { topics = v; save("hoot.topics", v) }
+        if let v = p?.topics.map(RetiredTopics.list), v != topics { topics = v; save("hoot.topics", v) }
         if let v = p?.favorites, v != favorites { favorites = v; save("hoot.favorites", v) }
-        if let v = p?.taste, v != taste { taste = v; save("hoot.taste", v) }
+        if let v = p?.taste?.migrated, v != taste { taste = v; save("hoot.taste", v) }
         if let v = p?.social {
             // De eerste keer met een account (`unite`): wat hier al stond blijft erbij. Daarna gaat je
             // account voor, zodat ook weghalen op een ander toestel meekomt.
