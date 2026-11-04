@@ -188,6 +188,7 @@
   --t0: 0.75rem; /* 12 */
   --t1: 0.8125rem; /* 13 */
   --t2: 0.9375rem; /* 15 */
+  --t-ui-sm: 0.875rem; /* 14: bediening in Inter waar een regel krap is (bronregel); Inter 14 ≈ Source Sans 15 */
   --t3: 1.0625rem; /* 17 */
   --t4: 1.125rem; /* 18 */
   --t-head-lg: 1.375rem; /* 22 */
@@ -336,7 +337,7 @@ html[data-text='groot'] {
   --band-rule: #2e2a25;
 }
 /* Nacht: dezelfde donkere rollen, alleen de paginagrond echt zwart. */
-:root[data-theme='night'] { --paper: #000000; --thumb: var(--ink); --fw-lees: 430; color-scheme: dark; }
+:root[data-theme='night'] { --paper: #000000; --thumb: var(--ink); color-scheme: dark; }
 :root[data-palette][data-theme='night'] { --sheet: #000000; --sheet-surface: #1e1b17; --band: #000000; --top: #000000; }
 :root .sg__colors { grid-template-columns: minmax(0,1.5fr) repeat(3,minmax(0,1fr)); }
 
@@ -1089,7 +1090,10 @@ select {
 .vh__sub {
   margin-top: 0;
   color: var(--ink-3);
-  font-size: var(--t2);
+  /* Metadata in Inter op 13: Inter is breder en heeft een grotere x-hoogte dan Source Sans (13 Inter
+     ≈ 15 Source Sans), en zo past "Donderdag 30 september · 10° · Om te beginnen" op 375 op één regel.
+     De regel blijft 20 hoog, dus de kop houdt zijn ritme. */
+  font-size: var(--t1);
   line-height: var(--lh-2);
 }
 .vh__sub::first-letter {
@@ -1669,7 +1673,7 @@ select.input {
 }
 .kicker__n {
   flex: none;
-  --kicker-n-lift: -1px;
+  --kicker-n-lift: 0px; /* met Inter staan de kapitalen 1 px lager dan met Source Sans: het nummer hoeft niet meer omhoog (gemeten) */
   translate: 0 var(--kicker-n-lift);
   font-family: var(--serif);
   font-size: var(--t3);
@@ -1776,7 +1780,7 @@ select.input {
 }
 .srcmeta__name {
   color: var(--ink);
-  font-size: var(--t2);
+  font-size: var(--t-ui-sm); /* 14: Inter 14 is even groot als Source Sans 15, en "The Economist" past weer naast "N bronnen" op 390 */
   font-weight: var(--fw-ui);
   line-height: var(--lh-2);
 }
@@ -5295,15 +5299,15 @@ html[data-images='hoofd'] .media--social {
   pointer-events: none;
 }
 .src__label {
-  /* padding-bottom 2,6: dezelfde basislijn als de rubrieken (Source Sans 15 zou gecentreerd 1,3
-     lager staan dan Newsreader 17) */
+  /* padding-bottom 4,6: dezelfde basislijn als de rubrieken (Inter 15 zou gecentreerd 2,3 lager
+     staan dan Newsreader 17; met Source Sans was dat 1,3, dus 2,6) */
   position: absolute;
   top: 0;
   bottom: 0;
   display: flex;
   align-items: center;
   max-width: 10em;
-  padding-bottom: 2.6px;
+  padding-bottom: 4.6px;
   color: var(--accent);
   font-family: var(--sans);
   font-size: var(--t2);
@@ -5487,6 +5491,7 @@ html[data-images='hoofd'] .media--social {
   --ink-2: #bdb3a2;
   --ink-3: #a79b87;
   --accent: #df8276;
+  --fw-lees: 430; /* lopende tekst in Newsreader: de dunne halen breken niet op zwart */
   --brand: var(--ink);
   --mark-bg: var(--ink);
   --band-accent: var(--accent);

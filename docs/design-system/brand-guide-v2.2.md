@@ -84,7 +84,7 @@ In uitingen (landing, App Store, deelkaart, campagne): **60 papier, 30 inkt, 10 
 
 - **Leesbreedte: web 720, iOS 680.** Web `measure` (720) voor elk leesblok: Stroom, Bewaard, Zoeken, het verhaal, de eindkaart. iOS `readable` (680, `Layout.readable`): kolom, lezer, inlogpaneel. Eén kolomstap verschil, bewust. De regellengte is op beide gelijk: lopende tekst stopt op `measure-prose` (28,8em: even breed als 58ch in Source Sans 3, maar los van de breedte van de 0).
 - Welkom behoudt op het web zijn eigen breedte (680); dat is geen leesblok.
-- **Optische correcties** mogen buiten de schaal, **alleen als token met reden**: `baseline-nudge-sans` 2,6 px (Source Sans 15 naast Newsreader 17), `ring-cut` 2 px (stip, vinkje), `ring-cut-stack` 3,2 px (logo's in de stapel).
+- **Optische correcties** mogen buiten de schaal, **alleen als token met reden**: `baseline-nudge-sans` 4,6 px (Inter 15 naast Newsreader 17; was 2,6 met Source Sans), `ring-cut` 2 px (stip, vinkje), `ring-cut-stack` 3,2 px (logo's in de stapel).
 - Alles verder op de schaal van 4: `s0` 2 (alleen binnen één label) en `s1`…`s7` = 4 · 8 · 12 · 16 · 24 · 32 · 48. De bronkaart in Welkom en zijn vinkje staan nu op `s1` (was 6 · 3 en 3).
 
 ---

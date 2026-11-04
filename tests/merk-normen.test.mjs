@@ -85,7 +85,7 @@ test('design system v2.2: register, gids en beeldtaal bestaan en kloppen met de 
   assert.deepEqual(color('mark-bg'), { light: '#ffffff', dark: '#f1ece2', night: '#d8d0c2' })
   const all = Object.values(tokens).flatMap(g => g?.tokens || [])
   const v = name => all.find(t => t.name === name)?.value
-  assert.equal(v('measure'), '720px'); assert.equal(v('readable'), '680px'); assert.equal(v('measure-prose'), '58ch')
+  assert.equal(v('measure'), '720px'); assert.equal(v('readable'), '680px'); assert.equal(v('measure-prose'), '28.8em')
   assert.equal(v('dur-pull-close'), '400ms'); assert.equal(v('dur-2'), '200ms'); assert.equal(v('dur-iris'), '600ms')
   assert.equal(v('mark-share'), '28px')
   assert.equal(v('shadow-float').light, '0 6px 18px rgba(26, 24, 20, 0.20)')
