@@ -10,9 +10,10 @@ struct SourceAvatar: View {
     var body: some View {
         AsyncImage(url: source.avatar.flatMap(URL.init(string:))) { phase in
             if let image = phase.image {
-                // Altijd op wit: uitgevers maken hun logo voor een lichte achtergrond, en een
-                // doorzichtig logo (zoals de zwarte P van Het Parool) verdwijnt anders in donker.
-                image.resizable().scaledToFill().background(Color.white)
+                // Op `markBg` (wit, in Donker gedempt, in Nacht inkt): uitgevers maken hun logo voor
+                // een lichte achtergrond, en een doorzichtig logo (zoals de zwarte P van Het Parool)
+                // verdwijnt anders in donker. Gelijk aan --mark-bg op het web.
+                image.resizable().scaledToFill().background(Theme.markBg)
             } else {
                 Monogram(name: source.name, brandColor: source.brandColor, size: size)
             }

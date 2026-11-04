@@ -44,6 +44,8 @@ enum NachtKleur {
     static let ink2 = role("Ink2", night: NachtLeesinkt.ink2)
     static let ink3 = role("Ink3", night: NachtLeesinkt.ink3)
     static let accent = role("AccentColor", night: NachtLeesinkt.accent)
+    // Vlak achter een uitgeverslogo (--mark-bg): wit in Licht, gedempt wit in Donker, inkt in Nacht.
+    static let markBg = role("MarkBg", night: NachtLeesinkt.ink)
     static let label = UIColor { traits in
         traits[NachtTrait.self] && traits.userInterfaceStyle == .dark ? ink.resolvedColor(with: traits) : .label
     }

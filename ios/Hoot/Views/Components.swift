@@ -22,6 +22,10 @@ enum Theme {
     // merkmomenten (opstarten, welkom, einde van de editie); verder is het accent een detail.
     static let brandRed = Color("BrandRed")
     static let onBrandRed = Color("OnBrandRed") // alles op merkrood: papier #F5F1E8 (6,9:1), zoals het opstartscherm
+    // Vlak achter een uitgeverslogo, zoals --mark-bg op het web: licht #ffffff, donker #f1ece2, Nacht
+    // de zachte inkt #d8d0c2. Een doorzichtig logo (de zwarte P van Het Parool) blijft zichtbaar,
+    // maar licht in het donker niet op.
+    static let markBg = Color(uiColor: NachtKleur.markBg)
     static let accent = Color(uiColor: NachtKleur.accent) // de kleur zelf: "accentColor" volgt de tint, en die valt soms terug op systeemblauw
     static func headline(_ style: Font.TextStyle) -> Font { .system(style, design: .serif, weight: .bold) }
 }
@@ -325,9 +329,9 @@ struct SourceMark: View {
     var size: CGFloat = 24
     var body: some View {
         AsyncImage(url: item.avatar.flatMap(URL.init(string:))) { phase in
-            // Op wit, net als SourceAvatar: een doorzichtig logo (de zwarte P van Het Parool)
+            // Op `markBg`, net als SourceAvatar: een doorzichtig logo (de zwarte P van Het Parool)
             // verdwijnt anders in donker.
-            if let image = phase.image { image.resizable().scaledToFill().background(Color.white) } else { Monogram(name: item.sourceName ?? item.source, brandColor: item.brandColor, size: size) }
+            if let image = phase.image { image.resizable().scaledToFill().background(Theme.markBg) } else { Monogram(name: item.sourceName ?? item.source, brandColor: item.brandColor, size: size) }
         }
         .frame(width: size, height: size)
         .clipShape(Circle())
