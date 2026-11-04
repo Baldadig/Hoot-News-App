@@ -102,7 +102,7 @@ test('Geen kloktijden in webteksten: dagdelen in de Editie, de Selectie, Instell
   assert.equal(JSON.parse(readFileSync(new URL('../shared/slots.json', import.meta.url), 'utf8')).avond.volgende, 'morgenochtend')
   const vak = read('views/Vak.jsx')
   assert.match(vak, /De eerste Selectie komt/)
-  assert.match(vak, /Elke maandagochtend nieuw\./)
+  assert.match(vak, /Elke maandagochtend een nieuwe\./) // gelijk aan iOS (DigestView)
   // Dezelfde drie dagdelen in dezelfde woorden als iOS (WelcomeView `.seintje`).
   // Settings zegt het niet meer (KISS): het ritme staat alleen op Over.
   assert.match(read('views/Over.jsx'), /in de ochtend, middag en vroege avond\./)
@@ -155,9 +155,11 @@ test('Beeldverhoudingen zijn tokens: Tijdlijn 2:1 als --media-tl, ook in tokens.
 
 test('Selectie zegt overal onderwerpen: "Onderwerpen · 3" en "1 stuk" (C5, zoals iOS)', () => {
   const vak = read('views/Vak.jsx')
-  assert.match(vak, /`Onderwerpen · \$\{chosen\.length\}`/)
+  // Selectie-index B: de laatste rij van de inhoud heet "Onderwerpen" met "3 gekozen" eronder.
+  assert.match(vak, /name="Onderwerpen" sub=\{gekozen\}/)
+  assert.match(vak, /`\$\{chosen\.length\} gekozen`/)
   assert.ok(!vak.includes('Onderwerpen ('), 'geen telling tussen haakjes meer')
-  assert.match(vak, /picked === 1 \? '1 stuk' : `\$\{picked\} stukken`/)
+  assert.match(read('lib/selection-index.js'), /n === 1 \? '1 stuk' : `\$\{n\} stukken`/)
   // 'vakgebied' alleen nog in code en commentaar, nooit in een zichtbare tekst.
   const strings = vak.replace(/\/\/.*$|\/\*[\s\S]*?\*\/|\{\/\*[\s\S]*?\*\/\}/gm, '').match(/'[^']*'|"[^"]*"|`[^`]*`|>[^<{]+</g) || []
   assert.ok(strings.every((s) => !/vakgebied/i.test(s)), 'vakgebied niet in de tekst')

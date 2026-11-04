@@ -54,11 +54,19 @@ export const CheckIcon = icon("<path fill=\"currentColor\" d=\"m232.49 80.49l-12
 // Caret (Phosphor "CaretRight" regular, als lijn): één pijltje dat draait voor de richting.
 // Terug (links), een rij of uitklapper (rechts, open: omlaag) en de eindkap van de Stroom.
 // Lijn 16 bij 22 px; bij 16 px 20, zodat hij optisch even zwaar blijft (1,25 px in plaats van 1).
-const TURN = { right: 0, down: 90, left: 180 }
+const TURN = { right: 0, down: 90, left: 180, up: 270 }
 export function CaretIcon({ dir = 'right', size = ICON }) {
   return (
     <svg viewBox="0 0 256 256" width={size} height={size} aria-hidden="true">
       <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={size < ICON ? 20 : 16} transform={`rotate(${TURN[dir]} 128 128)`} d="m96 48l80 80l-80 80" />
+    </svg>
+  )
+}
+// Springen (de inhoud van de Selectie): een pijl omlaag in dezelfde lijn als de caret.
+export function JumpIcon({ size = ICON }) {
+  return (
+    <svg viewBox="0 0 256 256" width={size} height={size} aria-hidden="true">
+      <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={size < ICON ? 20 : 16} d="M128 40v176m-64-64l64 64l64-64" />
     </svg>
   )
 }

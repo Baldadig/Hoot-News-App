@@ -4613,13 +4613,13 @@ html[data-images='hoofd'] .media--social {
    krantenrood, de koppen in de krantenletter. Elke sectie begint op een inktlijn (--rule-strong),
    zonder vlak eronder. */
 .dmast {
-  margin: 0 0 var(--s5); /* eerste inhoud van de Selectie: de afstand komt van de kop */
+  margin: var(--s4) 0 0; /* de week staat --s4 onder de schermtitel, zoals in concept B */
 }
 .dmast__lede {
-  margin-top: var(--s2);
+  margin-top: var(--s1);
 }
 .dmast__note {
-  margin-top: var(--s2);
+  margin-top: var(--s1);
   color: var(--ink-3);
   font-size: var(--t2);
 }
@@ -4733,24 +4733,8 @@ html[data-images='hoofd'] .media--social {
 
 /* Een vak */
 .dfield {
-  margin-top: var(--s7);
-}
-.dfield__head {
-  display: flex;
-  align-items: center;
-  gap: var(--s3);
-  margin-bottom: var(--s4);
-  padding-top: var(--s4);
+  margin-top: var(--s6);
   border-top: var(--rule-strong);
-}
-.dfield__icon {
-  width: var(--disc-lg);
-  height: var(--disc-lg);
-}
-.dfield__about {
-  color: var(--ink-3);
-  font-size: var(--t2);
-  line-height: var(--lh-2);
 }
 .dfield,
 .dfield__anchor {
@@ -4778,7 +4762,7 @@ html[data-images='hoofd'] .media--social {
 .dcard__rank {
   display: block;
   margin-bottom: var(--s1);
-  color: var(--accent);
+  color: var(--ink); /* in inkt, zoals het cijfer in de Editie: de punt van hoot. blijft het enige rood */
   font-family: var(--serif);
   font-size: var(--t3);
   font-weight: 800;
@@ -5400,29 +5384,36 @@ html[data-images='hoofd'] .media--social {
 .ob__sourcecard[aria-pressed='true'] .ob__check { background:var(--accent); border-color:var(--accent) }
 .ob__sourcecard[aria-pressed='true'] .ob__check::after { width:12px; height:12px; background:var(--paper) }
 @media(min-width:560px) { .ob__sourcecard { height:max(104px,calc(58px + 3.6 * var(--t1))); padding:var(--s2) } .ob__sourcecard-name { font-size:var(--t1) } }
-/* Selectie: navigeren staat los van onderwerpen volgen. Geen vaste of zwevende index. */
-.dnav { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s3) var(--s4); margin: var(--s4) 0; }
-.dnav__dialog { max-width: 32rem; }
-.dnav__group + .dnav__group { margin-top: var(--s5); }
-.dnav__group > h2 { margin-bottom: var(--s2); }
-.dnav__item { min-height: var(--tap); background: transparent; border: 0; color: var(--ink); font: inherit; width: 100%; display: flex; justify-content: space-between; align-items: baseline; gap: var(--s3); text-align: left; padding: var(--s2) 0; border-bottom: 1px solid var(--rule); }
-.dnav__item > span:first-child { min-width: 0; overflow-wrap: anywhere; }
-.dnav__count { color: var(--ink-3); font-size: var(--t1); flex-shrink: 0; }
-.dfield > .dfield__head { display: block; }
-.dfield__toggle { background: transparent; border: 0; padding: 0; display: flex; align-items: center; gap: var(--s3); min-height: var(--tap); width: 100%; text-align: left; color: inherit; font: inherit; }
-.dfield__heading { min-width: 0; flex: 1; }
-.dfield__title, .dfield__about { display: block; }
-.dfield__title { overflow-wrap: anywhere; }
-.dfield__about { font-family: var(--sans); font-weight: 400; }
-.dfield__count { display: grid; justify-items: end; gap: var(--s1); font-family: var(--sans); font-size: var(--t1); font-weight: 400; color: var(--ink-3); }
-.dfield__chevron { display: block; width: 8px; height: 8px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); margin: var(--s1); }
-.dfield__toggle[aria-expanded="true"] .dfield__chevron { transform: rotate(225deg); }
-.dfield__icon { flex-shrink: 0; }
-.dfield__toggle:focus-visible { outline-offset: var(--s1); }
-@media (max-width: 359px) { .dfield__icon { display: none; } }
-
-.dfield--closed { margin-top: var(--s3); }
-.dfield--closed > .dfield__head { margin-bottom: 0; padding-top: var(--s3); }
+/* Selectie-index B (concepten-2/4-selectie-index.html): de inhoud bovenaan, één rijvorm voor
+   springen, kiezen en in- of uitklappen. De naam met het aantal eronder, het teken rechts op de
+   eerste regel van de naam (SE2, SE3). De kop van een onderwerp is dezelfde rij in de serif op 22. */
+.dindex { margin: var(--s5) 0 var(--s6); border-top: 1px solid var(--rule); }
+.drow { display: grid; grid-template-columns: minmax(0, 1fr) var(--tap); column-gap: var(--s3); align-items: center; width: 100%; min-height: 56px; padding: var(--s2) 0; border: 0; border-bottom: 1px solid var(--rule); background: none; color: var(--ink); font: inherit; font-weight: 400; text-align: left; cursor: pointer; }
+.drow:disabled { cursor: default; opacity: .45; }
+.drow:not(:disabled):active { background: var(--tint); }
+@media (hover: hover) { .drow:not(:disabled):hover .drow__name { text-decoration: underline; text-underline-offset: var(--underline-offset); text-decoration-thickness: 1px; } }
+.drow__text { min-width: 0; }
+.drow__name { display: block; font-size: var(--t3); line-height: var(--lh-3); font-weight: 600; overflow-wrap: anywhere; }
+.drow__sub { display: block; color: var(--ink-3); font-size: var(--t1); line-height: var(--lh-1); font-variant-numeric: tabular-nums; }
+.drow__icon { display: grid; place-items: center; width: var(--tap); height: var(--tap); margin-right: calc((var(--icon-sm) - var(--tap)) / 2); color: var(--ink-3); }
+.drow--big { align-items: start; padding: var(--s3) 0; border-bottom: 0; }
+.drow--big .drow__name { font-family: var(--serif); font-size: var(--t-head-lg); line-height: var(--lh-head-lg); font-weight: var(--fw-head); letter-spacing: var(--ls-head-5); }
+.drow--big .drow__sub { margin-top: var(--s1); }
+.drow--big .drow__icon { margin-top: calc((var(--lh-head-lg) - var(--tap)) / 2); }
+.drow:focus-visible { outline-offset: var(--s1); }
+/* Na het springen licht het onderwerp even op (niet bij Verminder beweging: dan zet Vak.jsx hem niet). */
+.drow--flash { animation: drow-flash 1.2s var(--ease) 1; }
+@keyframes drow-flash { 0%, 40% { background: var(--tint); } 100% { background: transparent; } }
+.dfield__head { margin: 0; }
+.dfield__head .drow { scroll-margin-top: calc(var(--safe-t) + var(--s4)); }
+.dfield__about { margin: 0 0 var(--s3); color: var(--ink-3); font-size: var(--t2); line-height: var(--lh-2-read); }
+.dfield__none { margin: 0; color: var(--ink-3); }
+/* Lege toestanden: links in de kolom, één zin, één rij om te kiezen. Geen datum, geen telling. */
+.dempty { padding-top: var(--s5); }
+.dempty__text { margin: var(--s2) 0 0; max-width: 32em; color: var(--ink-2); font-size: var(--t3); line-height: var(--lh-3); }
+.dempty .dindex { margin: var(--s4) 0 0; }
+.dpick { max-width: 32rem; }
+.dpick .chipgroup + .chipgroup { margin-top: var(--s5); }
 /* Editie: vaste cijfervakken in Newsreader, ook zonder tnum in het letterbestand. */
 .kicker__n { display: inline-flex; font-variant-numeric: tabular-nums; }
 .kicker__digit { display: inline-block; inline-size: 1ch; text-align: center; }
