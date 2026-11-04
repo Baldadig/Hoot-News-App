@@ -545,8 +545,10 @@ struct WelcomeView: View {
                             chosen = startOn ? mine.filter { !ids.contains($0) } : mine + ids.filter { !mine.contains($0) }
                         }
                         .buttonStyle(.plain)
-                        .font(.subheadline.weight(.bold))
+                        .font(typeSize.isAccessibilitySize ? .caption.weight(.bold) : .subheadline.weight(.bold)) // bij grote tekst niet groter dan de kop
                         .underline()
+                        .lineLimit(1)
+                        .fixedSize()
                         .frame(minHeight: Space.tap)
                         .accessibilityAddTraits(startOn ? .isSelected : [])
                     }
@@ -617,7 +619,7 @@ struct WelcomeView: View {
             SourceAvatar(source: s, size: 40)
             VStack(alignment: .leading, spacing: Space.s0) {
                 Text(s.name).font(.headline)
-                if let about = s.about { Text(about).font(.subheadline).foregroundStyle(Theme.ink2).fixedSize(horizontal: false, vertical: true) }
+                if let about = s.about { Text(about).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(stacked ? 2 : nil).fixedSize(horizontal: false, vertical: true) } // bij grote tekst twee regels: de Volg-knop blijft boven de voet
                 Text((s.paid == true ? "Abonnement" : pick ? "Gratis aanrader" : "Gratis") + (s.lang == "en" ? " · Engels" : ""))
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Theme.ink3)
