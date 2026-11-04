@@ -1,3 +1,0 @@
-.ob-follow{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;width:100%;padding-bottom:var(--s4)}
-.ob-follow input{display:block;width:100%;min-height:var(--tap);margin-block:var(--s2)}.ob-follow nav{display:flex;flex-wrap:wrap;gap:var(--s2);margin-block:var(--s3)}
-.ob-follow ul{list-style:none;padding:0;margin:0}.ob-follow li{display:flex;gap:var(--s3);align-items:flex-start;padding-block:var(--s4);border-bottom:1px solid var(--rule)}.ob-follow li>div{flex:1;min-width:0;overflow-wrap:anywhere}.ob-follow p{margin:var(--s1) 0}.ob-follow button{min-height:var(--tap);white-space:normal}.ob-follow li>button{flex-shrink:0}

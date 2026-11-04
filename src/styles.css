@@ -1265,8 +1265,8 @@ select {
 /* Gekozen: één regel. Zelfde gewicht als in rust (de breedte verspringt niet), en een vinkje van
    16 vooraan, zodat aan niet alleen een kleur is. ::after met order −1, want ::before is het
    raakvlak van .hit. Dat geldt voor elke pil, ook bij enkele keuze (Mijn/Alle bronnen, Soort,
-   Iedereen): gekozen is dan niet alleen een kleur. Dezelfde regel geldt voor de tegels in Welkom
-   (.ob__tile) en het ronde vinkje (.ob__check). Uitzonderingen: icoonknoppen (alleen het icoon,
+   Iedereen): gekozen is dan niet alleen een kleur. Dezelfde regel geldt in Welkom (rubrieken,
+   Selectie, Gevolgd). Uitzonderingen: icoonknoppen (alleen het icoon,
    zie boven) en, bewust, de segmenten (.seg: de compacte schakelaar, één keuze uit een paar,
    zonder vinkje: de knop ernaast zegt al wat uit is). */
 .pill[aria-pressed='true'],
@@ -2947,13 +2947,12 @@ select.input {
 }
 
 /* ---------- Welkom ----------
-   Eén rode intro en daarna papier: drie veegpagina's (Editie, Stroom, Selectie), de interesses,
-   Wat precies?, Je Hoot en optioneel Je Selectie. Niets scrolt: elke pagina past in één scherm,
-   ook op 375 × 667. Wat niet past (pillen) verdeelt Welcome.jsx over meer pagina's (packPages).
-   Welkom ligt over de app heen. Zelfde opbouw als de app (WelcomeView.swift): het kleine woordmerk
-   linksboven, rechts Inloggen of Terug; pillen en tegels met --sel-* voor gekozen; de hoofdknop
-   (.btn--lg) inkt op papier. Eén merkmoment: de intro in merkrood, met alles erop papier.
-   Eén kolom van --measure, ook op desktop: Welkom valt buiten het paginaraam.
+   Vier schermen (Welcome.jsx, gelijk aan WelcomeView.swift): de rode intro, Zo werkt Hoot, Volg je
+   bronnen en Wat interesseert je?. Welkom ligt over de app heen. Bovenaan op elk scherm het kleine
+   woordmerk linksboven (rechts Terug, Sluiten of Inloggen), daaronder een kolom die scrolt en
+   onderaan een vaste voet met één hoofdknop (.btn--lg) en een stille link. Eén merkmoment: de intro
+   in merkrood, met alles erop papier. Eén kolom van --measure, ook op desktop: één linkerlijn.
+   Lijnen en witruimte, geen omlijnde kaarten. Gekozen is overal --sel-* met het vinkje (.pill).
    .welcome staat er nog alleen als haakje (de skiplink in App.jsx zoekt het); de vorm is .ob. */
 .ob {
   position: fixed;
@@ -2961,9 +2960,7 @@ select.input {
   z-index: var(--z-overlay);
   display: flex;
   flex-direction: column;
-  overflow-y: auto; /* vangnet bij enorme tekst; de pagina's zelf passen */
   background: var(--paper);
-  touch-action: pan-y;
 }
 .ob__head,
 .ob__col,
@@ -2978,13 +2975,16 @@ select.input {
   padding-top: calc(var(--safe-t) + var(--head-y));
   padding-bottom: 0;
 }
-.ob__col {
-  display: flex;
+/* De inhoud scrolt tussen bovenregel en voet; de voet staat altijd in beeld. */
+.ob__scroll {
   flex: 1;
-  flex-direction: column;
   min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.ob__col {
   padding-top: 0;
-  padding-bottom: var(--s3);
+  padding-bottom: var(--s6);
 }
 .ob__top {
   display: flex;
@@ -2997,8 +2997,7 @@ select.input {
 .ob__brand {
   display: block;
 }
-/* Rechts in de bovenregel staat Terug (pagina's) of Inloggen (veegpagina's); het label eindigt op
-   de kolomlijn. Inloggen in de tekstkleur van het scherm (op rood dus papier). */
+/* Rechts in de bovenregel: Terug, Sluiten of Inloggen; het label eindigt op de kolomlijn. */
 .ob__back,
 .ob__login {
   margin-inline-end: calc(var(--s2) * -1);
@@ -3025,10 +3024,10 @@ select.input {
 }
 
 /* De intro: merkrood, met alles erop papier (--paper-brand, niet wit, zoals de app): het
-   woordmerk met zijn punt, de zon, de bolletjes, het knopvlak en de focusring (ze volgen
-   --on-brand-red). Het vlak is --brand-red, ook in donker (niet het lichtere koraal). Stille
-   tekst: --on-brand-red-2. Beide staan op :root al op papier; hier opnieuw gezet zodat dit blok
-   op zichzelf staat (tests/copy.test.mjs). */
+   woordmerk met zijn punt, de zon, het knopvlak en de focusring (ze volgen --on-brand-red). Het
+   vlak is --brand-red, ook in donker (niet het lichtere koraal). Stille tekst: --on-brand-red-2.
+   Beide staan op :root al op papier; hier opnieuw gezet zodat dit blok op zichzelf staat
+   (tests/copy.test.mjs). */
 .ob--open {
   --on-brand-red: var(--paper-brand);
   --on-brand-red-2: color-mix(in srgb, var(--paper-brand) 85%, transparent);
@@ -3038,9 +3037,8 @@ select.input {
   color: var(--on-brand-red);
 }
 /* De rode intro is een eigen laag over de papieren pagina heen: de schijf van de iris. Dezelfde
-   opbouw (kop, midden, voet) en dezelfde plek voor bolletjes en veeglink als het papier. De
-   clip-path en de tint komen uit lib/motion.js (Web Animations API, ook bij Minder beweging een
-   fade): hier geen transition. */
+   opbouw (kop, midden, voet) als het papier. De clip-path en de tint komen uit lib/motion.js (Web
+   Animations API, ook bij Minder beweging een fade): hier geen transition. */
 .ob__red {
   position: fixed;
   inset: 0;
@@ -3049,12 +3047,16 @@ select.input {
   flex-direction: column;
   overflow-y: auto;
   will-change: clip-path;
-  touch-action: pan-y;
   user-select: none;
 }
 .ob__mid {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding-top: 0;
+  padding-bottom: var(--s5);
   text-align: center;
 }
 .ob__hero {
@@ -3129,441 +3131,354 @@ select.input {
   max-width: 100%;
 }
 
-/* De veegpagina's: een spoor van drie pagina's naast elkaar, dat per pagina opzij schuift. Wat
-   buiten het beeld staat is inert, dus niet te bedienen en niet voor te lezen. */
-.ob__pager {
-  position: relative;
-  overflow: hidden;
-  user-select: none;
+/* Zo werkt Hoot: Editie, Stroom en Selectie als gelijken, in een lijst met lijnen (een dikke
+   bovenlijn, dunne ertussen). Links de zon van elk onderdeel, op één maat (4,5rem breed); hij
+   groeit met de tekst mee, zodat de kop ernaast op dezelfde hoogte blijft. */
+.ob__trio {
+  margin: var(--s5) 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 2px solid var(--ink);
 }
-.ob__track {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  transform: translateX(calc(var(--pg) * -100%));
-  transition: transform 320ms var(--ease);
-}
-.ob__page {
-  display: flex;
-  flex: 0 0 100%;
-  flex-direction: column;
+.ob__trow {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  gap: var(--s4);
   align-items: center;
-  justify-content: center;
-  min-width: 0;
-  text-align: center;
+  padding: var(--s4) 0;
+  border-bottom: 1px solid var(--rule);
 }
-.ob__pagetitle {
-  margin-top: var(--s5);
+.ob__tart {
+  width: 100%;
+  height: auto;
+}
+.ob__tname {
   font-family: var(--serif);
-  font-size: var(--t-display);
+  font-size: var(--t5);
   line-height: var(--lh-display);
   font-weight: var(--fw-head);
   letter-spacing: var(--ls-display);
 }
-.ob__page .ob__lede {
-  margin-top: var(--s2);
+.ob__ttext {
+  margin-top: var(--s1);
+  color: var(--ink-2);
+  font-size: var(--t3);
+  line-height: var(--lh-3-read);
 }
-/* Pijlen opzij: alleen waar een muis of trackpad is; op de telefoon veeg je. */
-.ob__nav {
+
+/* Volg je bronnen: zoekveld, twee pillen (Aanbevolen, Gevolgd) en de lijst per rubriek. Breed
+   (vanaf 834) staat het meegroeiende voorbeeld rechts; smaller in een uitklapbalk boven de knop. */
+.ob__split {
+  display: block;
+}
+.ob__peek {
   display: none;
 }
-@media (min-width: 720px) and (hover: hover) {
-  .ob__nav {
-    position: absolute;
-    top: 50%;
-    z-index: 1;
+@media (min-width: 834px) {
+  .ob__split {
     display: grid;
-    place-items: center;
-    width: var(--control-lg);
-    height: var(--control-lg);
-    margin-top: calc(var(--control-lg) / -2);
-    border: 1px solid var(--edge);
-    border-radius: var(--radius-round);
-    background: none;
-    color: inherit;
-    cursor: pointer;
+    grid-template-columns: minmax(0, 1fr) 16rem;
+    gap: var(--s6);
+    align-items: start;
   }
-  .ob__nav--l {
-    left: 0;
+  .ob__peek {
+    position: sticky;
+    top: 0;
+    display: block;
+    margin-top: var(--s4);
+    padding-top: var(--s3);
+    border-top: 2px solid var(--ink);
   }
-  .ob__nav--r {
-    right: 0;
+  .ob__peekbar {
+    display: none;
   }
 }
-
-/* De voet van de veegpagina's: bolletjes, en daaronder een vak van vaste hoogte met de veeglink of
-   (op de laatste pagina) de twee knoppen. Niets verspringt. */
-.ob__foot {
-  flex: none;
-  padding: var(--s3) 0 calc(var(--s3) + var(--safe-b));
-}
-.ob__foot--pager {
-  padding-top: 0;
-  padding-bottom: calc(var(--s5) + var(--safe-b));
-}
-.ob__foot .col {
-  padding-top: 0;
-  padding-bottom: 0;
-}
-.ob__dots {
-  display: flex;
-  justify-content: center;
-}
-.ob__dot {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  cursor: pointer;
-}
-.ob__dot::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: var(--radius-round);
-  background: currentColor;
-  opacity: 0.25;
-  transition:
-    opacity var(--dur-2) var(--ease),
-    width var(--dur-2) var(--ease);
-}
-.ob__dot[aria-current='true']::before {
-  width: 20px;
-  border-radius: var(--radius-pill);
-  opacity: 1;
-}
-.ob__slot {
+.ob__search {
   position: relative;
-  height: 100px;
+  display: flex;
+  align-items: center;
+  margin-top: var(--s5);
+}
+.ob__search svg {
+  position: absolute;
+  left: var(--s4);
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  color: var(--ink-3);
+  pointer-events: none;
+}
+.ob__search .input {
+  padding-inline-start: calc(var(--s4) + var(--icon-sm) + var(--s2));
+  padding-inline-end: var(--s4);
+  border-radius: var(--radius-pill);
+}
+.ob__filter {
   margin-top: var(--s3);
 }
-.ob__slot > * {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  align-content: start;
-  gap: var(--s1);
-  transition:
-    opacity var(--dur-2) var(--ease),
-    visibility 0s linear var(--dur-2);
-}
-.ob__slot > [data-shown='false'] {
-  visibility: hidden;
-  opacity: 0;
-  pointer-events: none;
-}
-.ob__slot > [data-shown='true'] {
-  visibility: visible;
-  opacity: 1;
-  transition: opacity var(--dur-2) var(--ease);
-}
-.ob__next {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--s2);
-  min-height: var(--tap);
-  border: 0;
-  background: none;
-  color: var(--ink-2);
-  font-size: var(--t2);
-  font-weight: var(--fw-ui);
-  cursor: pointer;
-}
-.ob__next u {
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1px;
-}
-.ob--open .ob__next {
-  color: var(--on-brand-red-2);
-}
-.ob__slot .ob__cta {
-  width: 100%;
-}
-
-/* Interesses: tegels, zoals ChoiceTile in de app, in dezelfde grammatica als een pil: in rust een
-   kaart op --surface met 1 px --rule, gekozen --sel-* (rood zacht, 1 px rode rand, rode naam) met
-   het vinkje van 16 rechts. Het label houdt in beide standen zijn gewicht (800), dus niets
-   verspringt; het icoon blijft in beide standen staan, in --accent; het vinkje staat rechts. Indrukken schaalt naar .97. Compact
-   (icoon links van het label), zodat vier rijen op elk scherm passen. */
-.ob__grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--s2);
-  margin-top: var(--s4);
-}
-@media (min-width: 560px) {
-  .ob__grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-.ob__tile {
-  display: flex;
-  align-items: center;
-  gap: var(--s3);
-  min-height: calc(var(--control-lg) + var(--s2));
-  padding: 0 var(--s3);
-  border: 1px solid var(--rule); /* decoratief, zoals bij .pill: het label maakt hem herkenbaar */
-  border-radius: var(--radius-card);
-  background: var(--surface);
-  color: var(--ink);
-  text-align: left;
-  cursor: pointer;
-  transition:
-    background-color var(--dur-1) var(--ease),
-    border-color var(--dur-1) var(--ease),
-    color var(--dur-1) var(--ease),
-    transform var(--dur-1) var(--ease);
-}
-.ob__tile:active {
-  transform: scale(0.97);
-}
-.ob__ticon {
-  flex: none;
-  color: var(--accent);
-}
-.ob__ticon svg {
-  display: block;
-  width: var(--icon);
-  height: var(--icon);
-}
-/* Elk label blijft op één regel (Binnenland, Wetenschap), ook met het icoon links en het vinkje
-   rechts. Pas op een heel smal scherm (320) mag een lang woord nog afbreken. */
-.ob__tile {
-  gap: var(--s2);
-  padding: 0 var(--s2);
-  position: relative;
-}
-.ob__tlabel {
-  min-width: 0;
-  white-space: nowrap;
-  font-size: var(--t3);
-  line-height: var(--lh-4);
-  font-weight: var(--fw-head);
-}
-@media (max-width: 340px) {
-  .ob__tlabel {
-    white-space: normal;
-    hyphens: auto;
-    overflow-wrap: anywhere;
-  }
-}
-.ob__tile[aria-pressed='true'] {
-  border-color: var(--sel-edge);
-  background: var(--sel-bg);
-  color: var(--sel-fg);
-}
-/* Het vinkje van gekozen, zoals bij .pill: 16, in de kleur van het label, rechts in de tegel (het plan:
-   .tile::after). Het icoon blijft staan. */
-.ob__tile[aria-pressed='true']::after {
-  content: '';
-  flex: none;
-  margin-left: auto;
-  width: var(--icon-sm);
-  height: var(--icon-sm);
-  background: currentColor;
-  -webkit-mask: var(--icon-check) center / contain no-repeat;
-  mask: var(--icon-check) center / contain no-repeat;
-}
-
-/* Wat precies? en Je Selectie: ChipGroups met pillen (.pill, md), gekozen zoals overal: --sel-* met
-   vinkje. .ob__chip is alleen een haakje. Wat op de pagina past staat in .ob__fit; de verborgen
-   .ob__measure heeft dezelfde groepen, met de keuze zoals die nu is, en meet welke groepen samen
-   op een pagina passen. */
-.ob__fit {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  margin-top: var(--s4);
-}
-.ob__groups {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s5);
-}
-.ob__groups > .ob__group.chipgroup {
-  margin-top: 0;
-}
-.ob__measure {
-  position: absolute;
-  inset: 0 0 auto;
-  height: 0; /* geen eigen hoogte: de groepen erin worden gemeten, maar rekken de pagina niet op */
-  overflow: hidden;
-  visibility: hidden;
-  pointer-events: none;
-}
-.ob__chip {
-  min-height: var(--control-sm); /* compacter dan een gewone pil: meer groepen per pagina */
-  padding: 0 var(--s3);
-}
-.ob__gtitle {
-  display: flex;
-  align-items: center;
-  gap: var(--s2);
-  margin-bottom: var(--s3);
-}
-.ob__gtitle svg {
-  width: var(--icon-sm);
-  height: var(--icon-sm);
-  color: var(--accent);
-}
-/* 'Pagina 1 van 3' boven de knop; de regel houdt zijn hoogte, ook bij één pagina. */
-.ob__pages {
-  min-height: var(--lh-2);
-  margin-bottom: var(--s2);
-  color: var(--ink-3);
-  font-size: var(--t1);
-  line-height: var(--lh-2);
-  text-align: center;
-}
-
-/* Je Hoot: twee rijen, zoals een rij in Instellingen: naam, waarde eronder, rechts de actie. */
-.ob__rows {
+.ob__group {
   margin-top: var(--s5);
-  border-top: 2px solid var(--ink);
 }
-.ob__row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+.ob__ghead {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--s3);
-  width: 100%;
   min-height: var(--tap);
-  padding: var(--s2) 0;
-  border: 0;
-  border-bottom: 1px solid var(--rule);
-  background: none;
-  color: var(--ink);
-  text-align: left;
-  cursor: pointer;
+  border-bottom: 2px solid var(--ink);
 }
-.ob__rk {
-  display: block;
-  font-size: var(--t3);
-  line-height: var(--lh-4);
-  font-weight: var(--fw-ui);
-}
-.ob__rv {
-  display: block;
-  overflow: hidden;
+.ob__gcount {
   color: var(--ink-3);
   font-size: var(--t2);
-  line-height: var(--lh-2);
-  font-weight: var(--fw-regular);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.ob__ra {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s1);
-  font-size: var(--t2);
   font-weight: var(--fw-ui);
 }
-
-/* Bronnen als keuzerijen (het blad Aanpassen), met logo (--slot-lg) en een rond vinkje */
-.ob__sources {
+.ob__all {
+  margin-inline-end: calc(-1 * var(--s2));
+}
+.ob__list {
   margin: 0;
   padding: 0;
   list-style: none;
+  container-type: inline-size;
 }
+/* Een bron: logo 40 (--slot-lg), naam, omschrijving, meta; rechts Volg (inkt) of Volgend (stil,
+   met vinkje). Is de kolom te smal (grote tekst), dan komt de knop onder de tekst. */
 .ob__src {
-  display: flex;
+  display: grid;
+  grid-template-columns: var(--slot-lg) minmax(0, 1fr) auto;
+  gap: var(--s3) var(--s4);
   align-items: center;
-  gap: var(--s3);
-  width: 100%;
-  min-height: var(--tap);
-  padding: var(--s2) 0;
-  border: 0;
+  padding: var(--s3) 0;
   border-bottom: 1px solid var(--rule);
-  background: none;
-  color: var(--ink);
-  text-align: left;
-  cursor: pointer;
 }
-.ob__src[aria-pressed='false'] .mark {
-  opacity: var(--opacity-disabled);
+.ob__src > .mark {
+  align-self: start;
+}
+@container (max-width: 22rem) {
+  .ob__src {
+    grid-template-columns: var(--slot-lg) minmax(0, 1fr);
+  }
+  .ob__follow {
+    grid-column: 2;
+    justify-self: start;
+  }
 }
 .ob__stext {
   display: flex;
-  flex: 1;
   flex-direction: column;
+  gap: 2px;
   min-width: 0;
+  overflow-wrap: anywhere;
 }
-/* Naam en labels op één regel, ook op 375: zo is elke rij even hoog. De labels zijn compact en
-   krimpen niet; is het echt te krap, dan krijgt de naam een beletselteken. */
 .ob__sname {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: baseline;
-  gap: 0 var(--s1);
-  min-width: 0;
-  white-space: nowrap;
   font-size: var(--t3);
   line-height: var(--lh-3);
   font-weight: var(--fw-head);
 }
 .ob__sabout {
-  overflow: hidden;
+  color: var(--ink-2);
+  font-size: var(--t2);
+  line-height: var(--lh-2);
+}
+.ob__smeta {
+  color: var(--ink-3);
+  font-size: var(--t1);
+  line-height: var(--lh-1);
+  font-weight: var(--fw-ui);
+}
+.ob__free {
+  color: var(--accent);
+}
+.ob__follow {
+  min-width: 6.5rem;
+  padding: 0 var(--s4);
+}
+.ob__follow.btn--quiet {
+  --btn-ink: var(--ink);
+  border-color: var(--edge);
+}
+.ob__more {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  width: 100%;
+  min-height: var(--tap);
+  margin-top: var(--s5);
+  padding: 0;
+  border: 0;
+  border-bottom: 2px solid var(--ink);
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.ob__morehint {
+  color: var(--action);
+  font-size: var(--t2);
+  font-weight: var(--fw-action);
+  text-decoration: underline;
+  text-underline-offset: var(--underline-offset);
+}
+.ob__empty {
+  margin-top: var(--s5);
+  color: var(--ink-2);
+  font-size: var(--t3);
+  line-height: var(--lh-3-read);
+}
+/* Het voorbeeld: genummerde koppen in de krantenletter, de bron eronder. */
+.ob__peektitle {
+  margin-top: var(--s1);
+  font-family: var(--serif);
+  font-size: var(--t4);
+  line-height: var(--lh-3);
+  font-weight: var(--fw-head);
+}
+.ob__lines {
+  margin: var(--s2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ob__line {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr);
+  gap: var(--s2);
+  padding: var(--s2) 0;
+  border-bottom: 1px solid var(--rule);
+}
+.ob__line:last-child {
+  border-bottom: 0;
+}
+.ob__ln {
+  color: var(--ink-3);
+  font-family: var(--serif);
+  font-size: var(--t3);
+  line-height: var(--lh-3);
+  font-weight: var(--fw-head);
+}
+.ob__lt {
+  display: block;
+  font-family: var(--serif);
+  font-size: var(--t3);
+  line-height: var(--lh-3);
+  font-weight: var(--fw-action);
+}
+.ob__ls,
+.ob__peeknote {
+  display: block;
+  color: var(--ink-3);
+  font-size: var(--t1);
+  line-height: var(--lh-1-read);
+}
+.ob__peeknote {
+  margin-top: var(--s2);
+}
+.ob__peekbar {
+  border-bottom: 1px solid var(--rule);
+}
+.ob__peekbar > .col {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.ob__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--s2) 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.ob__bartitle {
+  display: block;
+  font-family: var(--serif);
+  font-size: var(--t3);
+  line-height: var(--lh-3);
+  font-weight: var(--fw-head);
+}
+.ob__barsub {
+  display: block;
+  color: var(--ink-3);
+  font-size: var(--t1);
+  line-height: var(--lh-1);
+}
+.ob__barbody {
+  max-height: 38dvh;
+  overflow-y: auto;
+  padding-bottom: var(--s3);
+}
+
+/* Wat interesseert je?: de acht rubrieken als pillen, daaronder één uitklapper voor de Selectie
+   (een rij met lijnen, zoals een rij in Instellingen) met per domein een groep pillen. */
+.ob__rubrieken {
+  margin-top: var(--s5);
+}
+.ob__disclose {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  width: 100%;
+  min-height: var(--row-md);
+  margin-top: var(--s6);
+  padding: var(--s2) 0;
+  border: 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.ob__dtitle {
+  display: block;
+  font-size: var(--t3);
+  line-height: var(--lh-3);
+  font-weight: var(--fw-ui);
+}
+.ob__dsub {
+  display: block;
   color: var(--ink-3);
   font-size: var(--t2);
   line-height: var(--lh-2);
-  text-overflow: ellipsis;
-  white-space: nowrap; /* één regel: zo passen er meer bronnen op een pagina */
 }
-.ob__snm {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.ob__tag {
-  flex: none;
-  padding: 0 var(--s1);
-  border-radius: var(--radius-pill);
-  background: var(--rule);
+.ob__selnote {
+  margin-top: var(--s4);
   color: var(--ink-2);
-  font-size: var(--t1);
-  line-height: var(--lh-2);
-  font-weight: var(--fw-action);
-  white-space: nowrap;
+  font-size: var(--t2);
+  line-height: var(--lh-2-read);
 }
-.ob__tag--free {
-  background: var(--tint);
-  color: var(--ink);
-}
-/* Rond vinkje: gekozen zoals een pil (--sel-*), met hetzelfde vinkje (--icon-check, 16). In
-   rust een lege cirkel in --edge: een lijn die iets betekent. */
-.ob__check {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: var(--check);
-  height: var(--check);
-  border: 1px solid var(--edge);
-  border-radius: var(--radius-round);
-  transition:
-    background-color var(--dur-1) var(--ease),
-    border-color var(--dur-1) var(--ease);
-}
-[aria-pressed='true'] > .ob__check {
-  border-color: var(--sel-edge);
-  background: var(--sel-bg);
-  color: var(--sel-fg);
-}
-[aria-pressed='true'] > .ob__check::after {
-  content: '';
-  width: var(--icon-sm);
-  height: var(--icon-sm);
-  background: currentColor;
-  -webkit-mask: var(--icon-check) center / contain no-repeat;
-  mask: var(--icon-check) center / contain no-repeat;
+.ob__sel .chipgroup {
+  margin-top: var(--s5);
 }
 
-/* Onderaan de pagina's met een keuze: één knop (.btn.btn--lg) en eronder een stille link. */
+/* De voet: een lijn erboven, de regel met het aantal, één knop en eronder een stille link. */
+.ob__foot {
+  flex: none;
+  border-top: 1px solid var(--rule);
+  background: var(--paper);
+}
+.ob__foot > .col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  padding-top: var(--s3);
+  padding-bottom: calc(var(--s3) + var(--safe-b));
+}
+.ob--open .ob__foot {
+  border-top-color: transparent;
+  background: none;
+}
+.ob__status {
+  color: var(--ink-3);
+  font-size: var(--t1);
+  line-height: var(--lh-1);
+  text-align: center;
+}
 .ob__cta {
   width: 100%;
 }
@@ -3572,10 +3487,10 @@ select.input {
   --btn-fill: var(--on-brand-red);
   --btn-ink: var(--brand-red);
 }
-/* Overslaan: een .linkbtn--plain onder de hoofdknop, in de tekstkleur van het scherm. */
+/* Later kiezen, Liever meteen lezen: een .linkbtn--plain onder de hoofdknop. */
 .ob__skip {
   display: flex;
-  margin: var(--s1) auto 0;
+  margin: 0 auto;
   color: inherit;
 }
 
@@ -3585,28 +3500,23 @@ select.input {
   outline: none;
 }
 
-/* Vanaf 720: de voet van de keuzepagina's is een balk met een lijn erboven, de knop links met de
-   link ernaast. */
+/* Vanaf 720: de knop links met de link ernaast. */
 @media (min-width: 720px) {
-  .ob__foot:not(.ob__foot--pager) {
-    border-top: 1px solid var(--rule);
-  }
-  .ob__foot:not(.ob__foot--pager) .col {
-    display: flex;
+  .ob__foot > .col {
+    flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--s2) var(--s5);
   }
-  .ob__foot:not(.ob__foot--pager) .ob__pages {
+  .ob__status {
     flex: 0 0 100%;
-    margin: 0;
     text-align: left;
   }
-  .ob__foot:not(.ob__foot--pager) .ob__cta {
+  .ob__cta {
     width: auto;
     min-inline-size: calc(var(--measure) / 3);
   }
-  .ob__foot:not(.ob__foot--pager) .ob__skip {
+  .ob__skip {
     margin: 0 calc(-1 * var(--s2));
   }
 }
@@ -5382,24 +5292,6 @@ html[data-images='hoofd'] .media--social {
 .stream-new { animation: rise 200ms var(--ease) backwards; animation-delay: var(--rise-delay, 0ms); }
 @media (prefers-reduced-motion: reduce) { .waiting svg .brand__dot, .waiting__dot, .stream-new { animation: none; } }
 
-/* Welkom: je voorgestelde bronnen direct herkennen en kiezen. */
-/* Bronkeuze: 4 × 4 op normale telefoons; minder kolommen bij weinig breedte/grote tekst. */
-.ob--sources .ob__title { margin-top:var(--s3) }
-.ob--sources .ob__sub { font-size:var(--t2); line-height:1.35 }
-.ob__sourcecount { margin-top:var(--s2); color:var(--ink-3); font-size:var(--t1) }
-.ob__sourcefit { margin-top:var(--s3) }
-.ob__sourcegrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,max(4.6rem,calc((100% - 3 * var(--s2)) / 4))),1fr)); gap:var(--s2); margin:0; padding:0; list-style:none }
-.ob__sourcegrid > li { min-width:0 }
-.ob__sourcecard { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; width:100%; height:max(96px,calc(54px + 3.6 * var(--t0))); padding:6px 3px; border:1px solid var(--rule); border-radius:var(--radius-card); background:var(--surface); color:var(--ink); text-align:center; cursor:pointer; transition:background-color var(--dur-1) var(--ease),border-color var(--dur-1) var(--ease) }
-.ob__sourcecard[aria-pressed='true'] { border-color:var(--accent); background:var(--sel-bg) }
-.ob__sourcecard .mark { flex:none }
-.ob__sourcecard-name { display:flex; align-items:center; justify-content:center; flex:none; height:2.4em; width:100%; font-size:var(--t0); line-height:1.2; font-weight:var(--fw-ui); overflow-wrap:anywhere }
-.ob__sourcecard-name > span { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
-.ob__sourcecard-meta { flex:none; max-width:100%; font-size:var(--t0); line-height:1.2; color:var(--ink-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
-.ob__sourcecard .ob__check { position:absolute; top:3px; right:3px; width:16px; height:16px }
-.ob__sourcecard[aria-pressed='true'] .ob__check { background:var(--accent); border-color:var(--accent) }
-.ob__sourcecard[aria-pressed='true'] .ob__check::after { width:12px; height:12px; background:var(--paper) }
-@media(min-width:560px) { .ob__sourcecard { height:max(104px,calc(58px + 3.6 * var(--t1))); padding:var(--s2) } .ob__sourcecard-name { font-size:var(--t1) } }
 /* Selectie: navigeren staat los van onderwerpen volgen. Geen vaste of zwevende index. */
 .dnav { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s3) var(--s4); margin: var(--s4) 0; }
 .dnav__dialog { max-width: 32rem; }

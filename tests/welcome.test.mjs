@@ -47,37 +47,9 @@ test('de uitleg bij "Jouw Editie" komt één keer, alleen na het eerste welkom',
   assert.equal(applyWelcome({ onboarded: true }, { interests: [], topics: [], sources: [], all }).editieHint, undefined)
 })
 
-// ---- Het voorstel: neutraal, gratis, Nederlands eerst ----
-import { proposeSources, moreSources, sourceLine, packPages, pickedFrom, ALWAYS, PICK, ALSO } from '../src/lib/welcome.js'
+// ---- Hulpjes ----
+import { sourceLine, pickedFrom } from '../src/lib/welcome.js'
 import { INTERESTS } from '../src/lib/topics.js'
-import { SOURCES } from '../netlify/lib/sources.mjs'
-
-test('voorstel zonder interesses: NOS, NU.nl en RTL Nieuws', () => {
-  assert.deepEqual(proposeSources(SOURCES, []), ['nos', 'nu', 'rtl'])
-})
-
-test('voorstel per interesse: één of twee gratis bronnen erbij, in vaste volgorde', () => {
-  assert.deepEqual(proposeSources(SOURCES, ['sport', 'cultuur']), ['nos', 'nu', 'rtl', 'nos-cultuur', '3voor12', 'nos-sport', 'vi'])
-  assert.deepEqual(proposeSources(SOURCES, ['politiek']), ['nos', 'nu', 'rtl'])
-  assert.deepEqual(proposeSources(SOURCES, ['tech', 'wereld']), ['nos', 'nu', 'rtl', 'bbc', 'tweakers'])
-})
-
-test('een bron met abonnement staat nooit vooraf aan, en alles in de lijsten bestaat', () => {
-  const all = Object.keys(PICK)
-  const on = proposeSources(SOURCES, all)
-  const byId = new Map(SOURCES.map((s) => [s.id, s]))
-  assert.ok(on.every((id) => !byId.get(id).paid))
-  for (const id of [...ALWAYS, ...Object.values(PICK).flat(), ...Object.values(ALSO).flat()]) assert.ok(byId.has(id), id)
-  // Ook met een betaalde bron in PICK of een catalogus waarin hij betaald is: eruit.
-  assert.deepEqual(proposeSources([{ id: 'nos', paid: true }, { id: 'nu' }], []), ['nu'])
-})
-
-test('Ook bij je interesses: niet wat aan staat, gratis vóór abonnement', () => {
-  const on = proposeSources(SOURCES, ['politiek'])
-  const more = moreSources(SOURCES, ['politiek'], on)
-  assert.deepEqual(more, ['politico-eu', 'nrc', 'volkskrant', 'ftm'])
-  assert.deepEqual(moreSources(SOURCES, [], ['nu', 'rtl']), ['nos'], 'een vaste bron die je uitzette, komt terug in de lijst')
-})
 
 test('je bronnen in één regel', () => {
   assert.equal(sourceLine([]), 'Geen bronnen')
@@ -87,19 +59,7 @@ test('je bronnen in één regel', () => {
   assert.equal(sourceLine(['NOS', 'NU.nl', 'RTL Nieuws', 'BBC', 'Tweakers']), 'NOS, NU.nl en 3 meer')
 })
 
-test('pillen over pagina\'s: zo veel als past, een te hoge groep staat alleen', () => {
-  assert.deepEqual(packPages([100, 100, 100], 320, 10), [[0, 1, 2]])
-  assert.deepEqual(packPages([100, 100, 100], 319, 10), [[0, 1], [2]])
-  assert.deepEqual(packPages([100, 500, 100], 300, 10), [[0], [1], [2]])
-  assert.deepEqual(packPages([], 300, 10), [[]])
-  // zo weinig pagina's als kan, en gelijk gevuld: geen halflege laatste pagina
-  assert.deepEqual(packPages(Array(11).fill(61), 315, 0).map((p) => p.length), [4, 4, 3])
-  assert.deepEqual(packPages(Array(10).fill(61), 315, 0).map((p) => p.length), [5, 5])
-  assert.deepEqual(packPages([200, 60, 60, 60], 300, 10).map((p) => p.length), [1, 3]) // 200 en 200 hoog
-  assert.deepEqual(packPages([40, 40], 0, 10), [[0], [1]])
-})
-
-test('Wat precies?: alle onderwerpen volgen is geen keuze maar Alles', () => {
+test('opnieuw kiezen houdt je fijne onderwerpen: alle onderwerpen volgen is geen keuze maar Alles', () => {
   const pol = INTERESTS.find((i) => i.id === 'politiek')
   assert.deepEqual(pickedFrom(pol.topics, ['politiek'], INTERESTS), [])
   assert.deepEqual(pickedFrom(['nederland', 'trump'], ['politiek'], INTERESTS), ['nederland', 'trump'])

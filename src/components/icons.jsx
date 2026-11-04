@@ -54,7 +54,7 @@ export const CheckIcon = icon("<path fill=\"currentColor\" d=\"m232.49 80.49l-12
 // Caret (Phosphor "CaretRight" regular, als lijn): één pijltje dat draait voor de richting.
 // Terug (links), een rij of uitklapper (rechts, open: omlaag) en de eindkap van de Stroom.
 // Lijn 16 bij 22 px; bij 16 px 20, zodat hij optisch even zwaar blijft (1,25 px in plaats van 1).
-const TURN = { right: 0, down: 90, left: 180 }
+const TURN = { right: 0, down: 90, left: 180, up: -90 }
 export function CaretIcon({ dir = 'right', size = ICON }) {
   return (
     <svg viewBox="0 0 256 256" width={size} height={size} aria-hidden="true">
