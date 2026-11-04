@@ -59,5 +59,5 @@ test('Instellingen A: de rij Interesses kapt niet af en het app-icoon blijft te 
   assert.doesNotMatch(ios, /summary\(store\.interests\)\)\.lineLimit\(1\)/)
   assert.match(ios, /NavigationLink\(value: "appicoon"\) \{ AppIconRow\(selected: icon\.selected\) \}/)
   assert.match(ios, /let choice = selected \?\? \.red/)
-  assert.match(read('src/views/Settings.jsx'), /<LinkRow href="#\/welkom" label="Interesses" hint=\{interestNames \|\| 'Alles'\} \/>/)
+  assert.match(read('src/views/Settings.jsx'), /<LinkRow href="#\/welkom" label="Interesses" hint=\{interestNames \|\| 'Alle interesses'\} \/>/)
 })
