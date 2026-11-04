@@ -121,10 +121,34 @@ struct Story: Codable, Identifiable, Hashable {
     var publisherCountries: [String]?
     var desk: String?
     var latestAt: String?
+    // Van de server, voor de rekenkern (lightStory, sportStory): zo rekent de terugval zonder gecachte
+    // feed met hetzelfde oordeel als het web. Ontbreekt het veld, dan blijft het weg.
+    var sport: Bool?
+    var light: StoryLight?
 
     // `tappedId` hoort niet in de opslag: het geldt alleen voor één keer openen.
     private enum CodingKeys: String, CodingKey {
-        case id, leadId, itemIds, sourceCount, sourceNames, publisherCount, publisherCountries, desk, latestAt
+        case id, leadId, itemIds, sourceCount, sourceNames, publisherCount, publisherCountries, desk, latestAt, sport, light
+    }
+}
+
+// `story.light` van de server: `false` of de soort ('games', 'cultuur', 'consument'). Leest nooit fout:
+// een onverwachte waarde wordt `false`, zodat een verhaal er nooit door wegvalt.
+enum StoryLight: Codable, Hashable {
+    case no
+    case kind(String)
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.singleValueContainer()
+        if let s = try? c.decode(String.self) { self = .kind(s) } else { self = .no }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.singleValueContainer()
+        switch self {
+        case .no: try c.encode(false)
+        case .kind(let s): try c.encode(s)
+        }
     }
 }
 
