@@ -22,7 +22,18 @@ Resultaat op de productpagina: **"Geen gegevens verzameld"**.
 | Gegevenstype | Gekoppeld aan jou | Voor tracking | Doel |
 |---|---|---|---|
 | Contactgegevens → E-mailadres | Ja | Nee | App-functionaliteit (account) |
+| Contactgegevens → **Naam** (aangekondigd 4-11, nog niet in ASC gepubliceerd) | Ja | Nee | App-functionaliteit (account) |
 | Identificatoren → Gebruikers-ID | Ja | Nee | App-functionaliteit |
 | Gebruiksgegevens → Productinteractie (bewaard, gelezen, gevolgde verhalen) | Ja | Nee | App-functionaliteit (synchroniseren) |
 
 `PrivacyInfo.xcprivacy` en het privacybeleid op gethoot.app zijn hierop bijgewerkt (28 oktober). Let op: met De Redacteur stelt de app de Editie op het toestel samen; het privacybeleid moet dat vóór de indiening van 1.0.1 zeggen.
+
+## Aanvulling na de keuring van 4 november (voorbereid, nog niet doorgevoerd)
+
+Het privacybeleid zegt: "Hoot krijgt daarbij je naam en e-mailadres (bij Google ook je profielfoto)". De app leest `full_name` (`Account.swift`, regel ~597) en Supabase bewaart die in de metadata van `auth.users`. De labels in ASC staan nu op E-mailadres, Gebruikers-ID en Productinteractie. Dus:
+
+1. **ASC (Alex publiceert; de labels gaan direct live):** App Privacy → Gegevens bewerken → Contactgegevens → **Naam** aanvinken: gekoppeld aan de gebruiker, niet voor tracking, doel **App-functionaliteit** (account). Daarna publiceren.
+2. **Profielfoto van Google (Alex beslist):** Supabase bewaart bij Google-inlog ook `avatar_url`/`picture` in de metadata. Twee keuzes:
+   - Het blijft zo: dan bij ASC ook Gebruikersinhoud → **Foto's of video's** opgeven (gekoppeld, geen tracking, App-functionaliteit), en het manifest uitbreiden met `NSPrivacyCollectedDataTypePhotosorVideos`.
+   - Aanbevolen, want Hoot toont de foto nergens: de foto niet meer bewaren (bij het aanmaken van het account `avatar_url` en `picture` uit de metadata halen, of de Google-scope beperken tot e-mail en naam) en het beleid aanpassen ("naam en e-mailadres"). Dan is "Foto's" niet nodig.
+3. **Manifest:** `ios/AppStore/privacy-build47/PrivacyInfo.xcprivacy.concept` (en de patch ernaast) voegt `NSPrivacyCollectedDataTypeName` toe. Bewust niet in build 46 (de build is al geüpload); mee in build 47. Het ASC-label hoeft niet op die build te wachten.

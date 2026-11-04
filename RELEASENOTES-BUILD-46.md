@@ -2,9 +2,9 @@
 
 Een nieuwe ochtend voor Hoot.
 • Begin bij je interesses: daar stelt Hoot je bronnen en je Editie op af.
-• Tien verhalen met beeld en intro, in een nieuw lettertype, met je bubbelverhaal apart erna.
-• Trek om te verversen. Nacht is echt zwart en Verenigde Staten heeft een eigen plek.
+• Tien verhalen met beeld en intro, in een nieuwe letter.
+• Nacht is nu echt zwart, zacht voor je ogen in de avond.
 • Voeg je eigen Bluesky-accounts toe aan je Stroom.
 Rustig bijblijven.
 
-Toetsing aan de stijlgids (Hoot-design/RELEASENOTES-STIJLGIDS.md): 354 tekens (max 500); positief; geen kloktijden; Editie, Stroom en Selectie met hoofdletter; geen uitroeptekens. Let op: App Store Connect weigert emoji in "Wat is nieuw" ("invalid characters"), daarom staat de uil 🦉 uit de opening weg. Bluesky is persoonlijk (eigen accounts, uit tot je ze toevoegt).
+Toetsing aan de stijlgids (Hoot-design/RELEASENOTES-STIJLGIDS.md): ruim onder de 500 tekens; één idee per regel; positief; geen kloktijden; Editie, Stroom en Selectie met hoofdletter; geen uitroeptekens; geen emoji (App Store Connect weigert die, "invalid characters"). Herschreven na de keuring van 4 november: geen "bubbelverhaal" en geen "Verenigde Staten heeft een eigen plek" meer. Bluesky is persoonlijk (eigen accounts, uit tot je ze toevoegt).

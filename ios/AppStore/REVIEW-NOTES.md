@@ -1,10 +1,10 @@
 # Notities voor App Review
 
-Plak de Engelse tekst hieronder in App Store Connect → je versie → **App Review-informatie → Notities**. Beoordelaars lezen meestal Engels. Inloggen is niet nodig, dus "Inloggen vereist" blijft uit. De uitnodigingscode voor de beoordelaar staat alleen in App Store Connect › App Review-informatie, nooit in deze repo: vul hem daar in op de plek van [CODE].
+Plak de Engelse tekst hieronder in App Store Connect → je versie → **App Review-informatie → Notities**. Beoordelaars lezen meestal Engels. Inloggen is optioneel (de app werkt zonder account), dus "Inloggen vereist" blijft uit. Accounts zijn open voor iedereen: er is geen uitnodigingscode nodig. Plak precies deze tekst ook in ASC, zodat repo en ASC gelijk blijven.
 
 ---
 
-Hoot ("Hoot: Nieuws met een einde.") is a calm news reader for Dutch-speaking readers, made by Baldadig.nl. No account is needed: the welcome flow starts with interests (then sources and the optional weekly selection topics); "Liever meteen lezen" skips it and starts with free Dutch sources. Both give the full app. Signing in is optional and only syncs settings and saved items with the Hoot website (gethoot.app, also reachable as hootnews.nl).
+Hoot ("Hoot: Nieuws met een einde.") is a calm news reader for Dutch-speaking readers, made by Baldadig.nl. No account is needed: the welcome flow starts with interests (then sources and the optional weekly selection topics); "Liever meteen lezen" skips it and starts with free Dutch sources. Both give the full app. Signing in is optional and only syncs settings and saved items with the Hoot website (gethoot.app).
 
 What the app does
 - Edition: three times a day (morning, midday and evening) an edition of ten numbered stories plus an optional "outside your bubble" story, composed on the device from the reader's own sources and interests (the app falls back to our server if that fails; the chosen sources and interests are then sent to compose it, and nothing is stored). Pull to refresh shows the Hoot "h." mark.
@@ -19,13 +19,11 @@ Where the content comes from
 
 Privacy
 - No analytics, no advertising, no tracking. Without an account, preferences, saved items, read state and reading preferences stay on the device.
-- Optional account (Settings → Account, or "Log in met je account" on the welcome screen): Sign in with Apple or Google. It syncs sources, interests, read state and saved items with the same account on the Hoot website, gethoot.app (Supabase, EU). Hoot accounts are invite-only for now: after signing in, a new user is asked for an invitation code. Invitation code for review: [CODE]. Accounts can be deleted in the app: Settings → Account → "Account verwijderen" removes the account and all synced data from the server.
+- Optional account (Settings → Account, or "Log in met je account" on the welcome screen): Sign in with Apple or Google. It syncs sources, interests, read state and saved items with the same account on the Hoot website, gethoot.app (Supabase, EU). Accounts are open to everyone; no invitation code is needed. Accounts can be deleted in the app: Settings → Account → "Account verwijderen" removes the account and all synced data from the server, and also revokes Sign in with Apple.
 
 Navigating the app
 - Tabs: Editie (Edition), Stroom (Stream), Selectie (weekly selection), Bewaard (Saved), Search. Settings: the gear button at the top right.
 - Bluesky: Settings → "Bluesky in de Stroom", then add an account by @handle (for example @theverge.com); it appears in the Stream. Settings also has Weergave (System, Light, Dark, Night).
 - On iPad and on wide windows the layout switches to two columns and the tab bar can become a sidebar.
 
-Contact: see the App Review contact details.
-
-Contact for App Review: info@gethoot.app
+Contact: info@gethoot.app
