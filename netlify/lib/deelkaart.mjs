@@ -6,7 +6,7 @@ import publisherMarks from '../../shared/deelkaart/publisher-marks.json' with { 
 
 const assets = Promise.all([
   readFile(new URL('../../shared/deelkaart/Newsreader-800.ttf', import.meta.url)),
-  readFile(new URL('../../shared/deelkaart/SourceSans3-600.ttf', import.meta.url)),
+  readFile(new URL('../../shared/deelkaart/Inter-600.ttf', import.meta.url)),
   readFile(new URL('../../public/brand/hoot-logo-mono.svg', import.meta.url), 'utf8'),
 ])
 const el = (type, style, children, props = {}) => ({ type, props: { style, children, ...props } })
@@ -29,7 +29,7 @@ export async function renderCard(item, format = 'link', { marks = publisherMarks
       el('div', { display: 'flex', width: m.size, height: m.size, flexShrink: 0, alignItems: 'center', justifyContent: 'center', border: `1px solid ${layout.paper}`, borderRadius: m.size / 2, fontSize: 16, lineHeight: 1 }, Array.from(sourceName)[0] || 'H'),
     el('div', { fontSize: f.sourceSize, lineHeight: 1, whiteSpace: 'pre', overflow: 'hidden', flexShrink: 1 }, sourceName),
   ])
-  const tree = el('div', { display: 'flex', position: 'relative', width: f.width, height: f.height, color: layout.paper, backgroundColor: layout.red, fontFamily: 'Source Sans 3', fontWeight: 600 }, [
+  const tree = el('div', { display: 'flex', position: 'relative', width: f.width, height: f.height, color: layout.paper, backgroundColor: layout.red, fontFamily: 'Inter', fontWeight: 600 }, [
     rule(f.ruleTop),
     el('img', { position: 'absolute', top: f.logoY, left: f.margin, width: f.logoWidth, height: f.logoWidth * 73.5 / 239.45 }, undefined, { src: `data:image/svg+xml;base64,${Buffer.from(logo.replaceAll('#000000', layout.paper)).toString('base64')}` }),
     rule(f.ruleBottom),
@@ -39,7 +39,7 @@ export async function renderCard(item, format = 'link', { marks = publisherMarks
     text(layout.domain, f.siteY, f.siteSize),
   ])
   try {
-    const svg = await satori(tree, { width: f.width, height: f.height, fonts: [{ name: 'Newsreader', data: serif, weight: 800 }, { name: 'Source Sans 3', data: sans, weight: 600 }] })
+    const svg = await satori(tree, { width: f.width, height: f.height, fonts: [{ name: 'Newsreader', data: serif, weight: 800 }, { name: 'Inter', data: sans, weight: 600 }] })
     return new Resvg(svg).render().asPng()
   } catch (error) {
     if (mark) return renderCard(item, format, { marks: {} })

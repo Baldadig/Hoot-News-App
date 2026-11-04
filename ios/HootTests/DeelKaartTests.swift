@@ -30,7 +30,7 @@ final class DeelKaartTests: XCTestCase {
         }
         // Newsreader is echt geladen; geen stilzwijgende systeemletter als vervanging.
         XCTAssertNotNil(UIFont(name: "Newsreader-ExtraBold", size: 48))
-        XCTAssertNotNil(UIFont(name: "SourceSans3-SemiBold", size: 20))
+        XCTAssertNotNil(UIFont(name: "Inter-SemiBold", size: 20))
     }
     // Build 38: deellink op hootnews.nl met de uitgeverslink erbij (zie netlify/functions/deel.mjs).
     func testDeellinkOpHootnewsMetUitgeverslink() {
