@@ -3133,9 +3133,10 @@ select.input {
   text-wrap: balance;
 }
 .ob__lede {
-  /* In em, niet in ch (zie --measure-prose): 15.5em is in Newsreader 17 zo'n 264 px, en zo breekt de
-     zin na "bronnen," in twee regels, zoals de app ("…bronnen,\nrustig op een rij."). Nagemeten op 320, 390 en 1280. */
-  max-inline-size: 15.5em;
+  /* In em, niet in ch (zie --measure-prose): 14.5em is in Newsreader 17 zo'n 247 px, en zo breekt de
+     zin na "bronnen," in twee regels, zoals de app ("…bronnen,\nrustig op een rij."). Nagemeten op 390
+     in Chrome: 13.5 tot 15em geven die breuk, 15.5em niet ("…rustig / op een rij."); 14.5 zit in het midden. */
+  max-inline-size: 14.5em;
   margin-top: var(--s3);
   color: var(--ink-2);
   text-wrap: pretty;
