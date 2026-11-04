@@ -622,7 +622,6 @@ struct ItemRow: View {
     var story: Story?
     var linkSource = true
     var form: Form?
-    var headlineLines: Int? = nil
 
     private var chosen: Form { form ?? (store.layout == "krant" ? .krant : .tijdlijn) }
     private var timeline: Bool { !item.isPost && (chosen == .tijdlijn || typeSize.isAccessibilitySize) }
@@ -681,9 +680,6 @@ struct ItemRow: View {
             } else {
                 Text(item.title)
                     .font(Theme.headline(.title3))
-                    .lineLimit(headlineLines)
-                    .truncationMode(.tail)
-                    .accessibilityLabel(item.title)
                     .lineSpacing(2)
                     .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                     .fixedSize(horizontal: false, vertical: true)

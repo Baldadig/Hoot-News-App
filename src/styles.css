@@ -5433,15 +5433,6 @@ html[data-images='hoofd'] .media--social {
   .front .kicker > .kicker__n + span::before, .front__rest .kicker > .kicker__n + span::before { content: none; }
 }
 
-/* Gedeeld kopbudget: smalle halve kolommen krijgen hooguit vier regels; de volledige
-   kop blijft in de linktekst en bij openen beschikbaar. Grote tekst schakelt eerder naar één kolom. */
-@container front (min-width: 48rem) {
-  .front__side .fitem__title, .front__under .fitem__title {
-    display: -webkit-box; -webkit-box-orient: vertical;
-    -webkit-line-clamp: var(--headline-lines, 4); overflow: hidden;
-  }
-}
-
 /* Verhaalopties blijven binnen de metaregel op smalle schermen. */
 .taste { flex-wrap: wrap; }
 

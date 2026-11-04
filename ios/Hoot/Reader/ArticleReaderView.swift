@@ -360,7 +360,7 @@ struct ReaderLoadingView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Space.s4) {
             Kicker(text: sourceName)
-            Text(title).font(Theme.headline(.title)).lineLimit(4).fixedSize(horizontal: false, vertical: true)
+            Text(title).font(Theme.headline(.title)).fixedSize(horizontal: false, vertical: true)
             if waiting.visible {
                 WaitingMark(label: "Artikel laden").frame(maxWidth: .infinity).padding(.top, Space.s5)
             }

@@ -47,5 +47,4 @@ enum EditionDisplay {
     static func headlineStyle(_ title: String) -> Font.TextStyle {
         switch headlineTier(title) { case "medium": .title; case "compact": .title2; default: .largeTitle }
     }
-    static var halfHeadlineLines: Int { policy?.headline.halfLines ?? 4 }
 }

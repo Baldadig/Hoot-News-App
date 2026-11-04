@@ -1,5 +1,5 @@
 import { hasEditionMinimum } from '../../shared/edition-limits.mjs'
-import { cleanIntro, HALF_HEADLINE_LINES } from '../../shared/edition-display.mjs'
+import { cleanIntro } from '../../shared/edition-display.mjs'
 import { EditionNumber } from '../components/EditionNumber.jsx'
 import { useEffect, useRef, useState } from 'react'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
@@ -45,7 +45,7 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
   const fit = useIntroMax()(2, item.image ? 'voorpagina' : 'rij')
   const summary = wholeSentences(cleanIntro(item.summary, item.author), fit.max, fit.rek) // hele zinnen, nooit "…"
   return (
-    <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id} style={{ '--headline-lines': HALF_HEADLINE_LINES }}>
+    <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       {n || note || opinie || followed ? (
         <p className="label label--kicker kicker">
           {n ? <EditionNumber n={n} /> : null}
