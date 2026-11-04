@@ -268,7 +268,7 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
           <Kicker item={item} extra={note} n={n} />
           <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
-          <Summary item={item} className="compact__sum" fit={introMax(lineCount, 'rij', true)} />
+          <Summary item={item} className="compact__sum" fit={introMax(lineCount, 'rij', (prefs?.images ?? 'aan') === 'aan')} />
         </div>
         {/* Intrinsieke maat 3:2; de echte maat komt uit CSS (--thumb-w/--thumb-h). */}
         <Beeld item={item} kind="krant" className="thumb" width="96" height="64" />

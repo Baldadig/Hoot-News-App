@@ -10,7 +10,7 @@ import { introMax } from '../../shared/zinnen.mjs'
 const VIEW = 375 - 2 * 16
 const GAP = 12
 const KOLOM = {
-  rij: VIEW - GAP, // krant zonder beeld (de kolom houdt zijn tussenruimte): 331; tijdlijn is 343
+  rij: VIEW, // tijdlijn, en krant met beelden uit (geen miniatuur en geen tussenruimte): 343
   rijBeeld: (thumb) => VIEW - thumb - GAP, // krant met miniatuur: 247, bij grote tekst 223
   voorpagina: VIEW - 64 - GAP, // klein verhaal op de voorpagina, vierkant beeld (--thumb-sm 64): 267
   kaart: VIEW - 2 * 16 - 2, // Selectie: kaart met binnenruimte (--s4) en rand: 309

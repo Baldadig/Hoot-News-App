@@ -3948,6 +3948,13 @@ html[data-images='hoofd'] .media--tl,
 html[data-images='hoofd'] .media--social {
   display: none;
 }
+/* Zonder miniatuur geen lege kolom en geen tussenruimte rechts: de tekst krijgt de hele breedte. */
+html[data-images='uit'] .compact__link,
+html[data-images='uit'] .fitem__link,
+html[data-images='hoofd'] .compact__link,
+html[data-images='hoofd'] .fitem__link {
+  grid-template-columns: minmax(0, 1fr);
+}
 
 /* Weergave-rijen: label links, het segment rechts in een vaste kolom, zodat alle segmenten
    dezelfde linkerrand en breedte hebben. Een container query, want dezelfde rijen staan op

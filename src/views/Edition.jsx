@@ -44,10 +44,11 @@ const SIDE = 3 // breed: het hoofdverhaal met 02 en 03 ernaast, daarna de paren
 // `boven`: breed, in een paar dat anders een gat laat (Edition: usePairs). Het beeld staat dan groot
 // boven het verhaal, precies zo hoog als het paar nodig heeft, in plaats van klein naast de kop.
 function FrontItem({ item, story, note, n = null, why = null, followed, taste, outside = false, boven = null }) {
-  const { markRead, read } = useHoot()
+  const { markRead, read, prefs } = useHoot()
   const opinie = item.type === 'opinie'
   const title = item.title
-  const fit = useIntroMax()(INTRO_LINES, 'voorpagina') // de miniatuur staat er altijd: het beeld of het placeholderbeeld
+  // De miniatuur staat er altijd (het beeld of het placeholderbeeld), behalve met beelden uit: dan de hele breedte.
+  const fit = useIntroMax()(INTRO_LINES, (prefs?.images ?? 'aan') === 'aan' ? 'voorpagina' : 'rij')
   const summary = wholeSentences(cleanIntro(item.summary, item.author), fit.max - viaLength(item), fit.rek - viaLength(item)) // hele zinnen, nooit "…"
   return (
     <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}${boven ? ' fitem--boven' : ''}`} data-id={item.id} style={boven ? { '--boven-h': `${boven}px` } : undefined}>

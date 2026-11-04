@@ -94,3 +94,13 @@ test('beeldloos: een beeld dat niet laadt wordt het placeholderbeeld (Img meldt 
   assert.match(src('src/views/Stream.jsx'), /<PlaceholderList rows=/)
   assert.match(src('src/views/Edition.jsx'), /<PlaceholderList rows=/)
 })
+
+test('web met beelden uit: in de krant-vorm geen ruimte voor de miniatuur', () => {
+  const css = src('src/styles.css')
+  for (const v of ['uit', 'hoofd']) {
+    for (const c of ['compact__link', 'fitem__link']) assert.match(css, new RegExp(`html\\[data-images='${v}'\\] \\.${c}[,\\s][^{]*\\{\\n  grid-template-columns: minmax\\(0, 1fr\\);`, 's'))
+  }
+  // De maat van de intro rekent dan met de hele kolom.
+  assert.match(src('src/components/Items.jsx'), /introMax\(lineCount, 'rij', \(prefs\?\.images \?\? 'aan'\) === 'aan'\)/)
+  assert.match(src('src/views/Edition.jsx'), /useIntroMax\(\)\(INTRO_LINES, \(prefs\?\.images \?\? 'aan'\) === 'aan' \? 'voorpagina' : 'rij'\)/)
+})
