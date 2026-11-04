@@ -4,6 +4,8 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- **Landing naar 1.1.0:** de slotband is een persvel met een papieren halve zon onder de knop, en de Stroom staat op papier (minder rood). Overal "Gratis, met of zonder account.", een eigen voordeel voor de Selectie en nieuwe vragen over het account en de App Store. De voorbeelden zijn van 1.1.0: genummerd 01–10 met de bubbel apart, Bluesky in de Stroom, de Selectie met de inhoud bovenaan, zonder "Omdat je X volgt" en met Wereld in plaats van Buitenland. Nieuw deelbeeld. De App Store-link staat klaar achter één regel in `landing/build.mjs` (`APP_STORE`).
+
 ## 1.58.0 · 3 november 2026
 
 - Hoot staat in de App Store. De landingspagina linkt nu naar de App Store (knop in de opening, link in de afsluiting, smart app banner in Safari op iPhone) in plaats van "Binnenkort in de App Store".
