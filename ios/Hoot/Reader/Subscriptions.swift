@@ -80,32 +80,34 @@ enum PublisherLogin {
     }
 
     // Bij welke van deze domeinen staat een inlog in de opslag van de lezer? Een herkende inlogcookie,
-    // of een inlog die we zagen ontstaan toen je in Hoot inlogde (zolang de site nog cookies heeft).
-    static func loggedIn(_ domains: [String]) async -> Set<String> {
-        let cookies = await allCookies()
+    // of een inlog die we zagen ontstaan toen je in Hoot inlogde, zolang de site nog een accountcookie
+    // heeft (een losse meet- of toestemmingscookie is geen inlog).
+    static func loggedIn(_ domains: [String], in store: WKWebsiteDataStore = ArticleLoader.dataStore) async -> Set<String> {
+        let cookies = await self.cookies(in: store)
         let seen = remembered
         return Set(domains.filter { d in
-            cookies.contains { matches($0.domain, d) && isLogin($0, domain: d) }
-                || (seen.contains(d) && cookies.contains { matches($0.domain, d) })
+            hasLogin(d, in: cookies) || (seen.contains(d) && !accountCookies(d, in: cookies).isEmpty)
         })
     }
 
-    private static func allCookies() async -> [HTTPCookie] {
-        // Na het opstarten geeft de cookie-opslag niets terug zolang WebKit de bewaarde cookies nog
-        // niet inlas; de lijst met websitegegevens opvragen laat hem dat eerst doen.
-        _ = await ArticleLoader.dataStore.dataRecords(ofTypes: [WKWebsiteDataTypeCookies])
-        return await ArticleLoader.dataStore.httpCookieStore.allCookies()
+    static func hasLogin(_ domain: String, in cookies: [HTTPCookie]) -> Bool {
+        cookies.contains { matches($0.domain, domain) && isLogin($0, domain: domain) }
     }
 
-    // Niet elke uitgever heeft een inlogcookie die we kennen (NRC, DPG …). Daarom kijken we tijdens het
-    // inloggen wat er bijkomt: een blijvende cookie met een naam die naar een account of inlog wijst,
-    // die er bij het openen van de inlogpagina nog niet was. Alleen het verschil telt, zodat wat een
-    // site iedereen meegeeft (meten, toestemming) niet als inlog geldt.
+    static func cookies(in store: WKWebsiteDataStore = ArticleLoader.dataStore) async -> [HTTPCookie] {
+        // Na het opstarten geeft de cookie-opslag niets terug zolang WebKit de bewaarde cookies nog
+        // niet inlas; de lijst met websitegegevens opvragen laat hem dat eerst doen.
+        _ = await store.dataRecords(ofTypes: [WKWebsiteDataTypeCookies])
+        return await store.httpCookieStore.allCookies()
+    }
+
+    // Niet elke uitgever heeft een inlogcookie die we kennen (NRC, DPG …). Daarom kijkt het inlogvel
+    // wat er na een echte inlogpoging bijkomt (LoginEvidence): een blijvende cookie met een naam die
+    // naar een account of inlog wijst. Wat een site iedereen meegeeft (meten, toestemming) telt niet.
     private static let accountWords = ["auth", "token", "sso", "login", "logged", "member", "subscri", "account", "abonne", "user", "session", "sid", "jwt"]
 
-    static func accountCookies(_ domain: String) async -> Set<String> {
-        let cookies = await allCookies()
-        return Set(cookies.filter { c in
+    static func accountCookies(_ domain: String, in cookies: [HTTPCookie]) -> Set<String> {
+        Set(cookies.filter { c in
             guard matches(c.domain, domain), let expires = c.expiresDate, expires > .now.addingTimeInterval(3600) else { return false }
             let name = c.name.lowercased()
             return !noise.contains(where: name.contains) && accountWords.contains(where: name.contains)
