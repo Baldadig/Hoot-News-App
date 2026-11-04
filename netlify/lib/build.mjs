@@ -184,14 +184,15 @@ const PER_SECTION = new Set(['volkskrant', 'trouw', 'parool', 'demorgen'])
 const WIDE_SECTIONS = new Set(['volkskrant', 'parool'])
 // Een stuk zonder intro zoeken we vaker opnieuw (elke 10 minuten in plaats van 30): de zoekindex
 // loopt uren achter, en juist de verse stukken staan in de Editie. Wat de algemene vragen niet meer
-// vinden (ouder dan hun 50 nieuwste), zoeken we gericht op de kop: hooguit 8 per ronde, elk stuk
-// hooguit 6 keer en niet vaker dan eens per 20 minuten (gapTitleQueries).
+// vinden (ouder dan hun 50 nieuwste), zoeken we gericht op de kop: hooguit 10 per ronde, eerst wie
+// een intro mist, dan wie een beeld mist (Bloomberg, De Tijd), elk stuk hooguit 6 keer en niet vaker
+// dan eens per 20 minuten (gapTitleQueries).
 const GAP_RETRY = 10 * MIN
 const GAP_QUIET = 30 * MIN
-export function gapTitleQueries(open, tries = {}, now, { max = 8, every = 20 * MIN, most = 6 } = {}) {
+export function gapTitleQueries(open, tries = {}, now, { max = 10, every = 20 * MIN, most = 6 } = {}) {
   return open
-    .filter((it) => !it.summary && it.title && (tries[articleKey(it.url)]?.n || 0) < most && now - (tries[articleKey(it.url)]?.at || 0) >= every)
-    .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1))
+    .filter((it) => (!it.summary || !it.image) && it.title && (tries[articleKey(it.url)]?.n || 0) < most && now - (tries[articleKey(it.url)]?.at || 0) >= every)
+    .sort((a, b) => !!a.summary - !!b.summary || (a.publishedAt < b.publishedAt ? 1 : -1))
     .slice(0, max)
 }
 async function fillGaps(items, now) {
@@ -310,15 +311,15 @@ async function imagesFromBluesky(items, now) {
 // Bronnen waarvan de feed geen beeld meestuurt (Rolling Stone, DW, Al Jazeera, VRT, Sporza, en
 // sinds build 46 ook de betaalde: Nature, Scientific American, FD, MIT Technology Review …): de
 // deelafbeelding van het artikel (og.mjs; nooit achter een cookiemuur of login om). Elk artikel één
-// keer proberen en onthouden (ook "geen beeld"), per ronde hooguit 48 nieuwe, de nieuwste eerst,
-// 8 tegelijk, elke pagina hooguit 4 seconden en de hele stap hooguit 7: wat dan nog open is, komt de
-// volgende ronde. Nooit een beeld van een ander artikel (fotorechten); een kopie van hetzelfde stuk
+// keer proberen en onthouden (ook "geen beeld"), per ronde hooguit 60 nieuwe, de nieuwste eerst,
+// 10 tegelijk, elke pagina hooguit 4 seconden en de hele stap hooguit 8: wat dan nog open is, komt
+// de volgende ronde. Nooit een beeld van een ander artikel (fotorechten); een kopie van hetzelfde stuk
 // bij een zusterkrant (zelfde kop) is wel hetzelfde artikel.
 const OG_KEEP = 4 * 24 * 60 * MIN
 export function wantsArticleImage(it, src) {
   return !!src && !GAPS[src.id] && !src.bskyImages && it.kind === 'article' && !it.image && !isLiveblog(it.url)
 }
-export async function imagesFromArticles(items, now, { max = 48, parallel = 8, budget = 7000, timeout = 4000, load = loadOgImage, get = kvGet, set = kvSet, sourceOf = (id) => SOURCE.get(id) } = {}) {
+export async function imagesFromArticles(items, now, { max = 60, parallel = 10, budget = 8000, timeout = 4000, load = loadOgImage, get = kvGet, set = kvSet, sourceOf = (id) => SOURCE.get(id) } = {}) {
   const needs = items.filter((it) => wantsArticleImage(it, sourceOf(it.source)))
   if (!needs.length) return
   const stored = await get('og-images-v1')

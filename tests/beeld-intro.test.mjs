@@ -1,7 +1,7 @@
 // Build 46: beeld en intro aanvullen op de server (BEELD-EN-INTRO.md, besluiten van Alex).
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { ogImageFrom, loadOgImage, sameSite } from '../netlify/lib/og.mjs'
+import { ogImageFrom, loadOgImage, isGate } from '../netlify/lib/og.mjs'
 import { imagesFromArticles, sizeBingImages, gapTitleQueries, borrowFromStories, wantsArticleImage } from '../netlify/lib/build.mjs'
 import { articleKey, bingUnmeasured, bingId } from '../netlify/lib/snippets.mjs'
 
@@ -15,10 +15,13 @@ test('deelbeeld: entiteiten in het adres (FD: &#x3D;) worden tekens', () => {
   assert.equal(ogImageFrom('<head><meta property="og:image" content="https://images.fd.nl/a.jpg?w&#x3D;640&amp;fm&#x3D;jpg"></head>'), 'https://images.fd.nl/a.jpg?w=640&fm=jpg')
 })
 
-test('deelbeeld: een doorverwijzing naar een ander domein (cookiemuur, login) geeft geen beeld', async () => {
-  assert.equal(sameSite('https://www.ad.nl/a', 'https://myprivacy.dpgmedia.nl/consent'), false)
-  assert.equal(sameSite('https://www.tijd.be/r/t/1/id/1', 'https://www.tijd.be/x/1.html'), true)
-  assert.equal(sameSite('https://www.telegraph.co.uk/a', 'https://www.bbc.co.uk/b'), false)
+test('deelbeeld: een doorverwijzing naar een cookiemuur of login geeft geen beeld; een gewone wel', async () => {
+  assert.equal(isGate('https://myprivacy.dpgmedia.nl/consent?siteKey=x'), true)
+  assert.equal(isGate('https://www.example.com/login?next=/a'), true)
+  assert.equal(isGate('https://www.vrt.be/vrtnws/nl/2026/11/04/titel/'), false) // vrtnws.be/p.… stuurt hierheen
+  assert.equal(isGate('https://www.tijd.be/politiek/titel/10698532.html'), false)
+  const ok = async () => ({ ok: true, url: 'https://www.vrt.be/vrtnws/nl/a/', headers: new Headers({ 'content-type': 'text/html' }), body: new Response('<head><meta property="og:image" content="https://images.vrt.be/a.jpg"></head>').body })
+  assert.equal(await loadOgImage('https://vrtnws.be/p.abc', { fetcher: ok }), 'https://images.vrt.be/a.jpg')
   const html = '<head><meta property="og:image" content="https://consent.example/banner.png"></head>'
   const fake = (finalUrl) => async () => ({ ok: true, url: finalUrl, headers: new Headers({ 'content-type': 'text/html' }), body: new Response(html).body })
   assert.equal(await loadOgImage('https://www.ad.nl/a', { fetcher: fake('https://myprivacy.dpgmedia.nl/consent') }), null)
@@ -91,9 +94,12 @@ test('De Tijd: feedlink en zoekindex vinden elkaar op het artikelnummer', () => 
 test('Volkskrant: gericht zoeken op de kop, nieuwste eerst, niet te vaak en niet eindeloos', () => {
   const now = Date.parse('2026-11-04T14:00:00Z')
   const vk = (id, at, extra = {}) => ({ id, kind: 'article', source: 'volkskrant', title: 'Kop ' + id, url: `https://www.volkskrant.nl/x/kop~b${id}aaaa/`, publishedAt: at, ...extra })
-  const open = [vk('1', '2026-11-03T08:00:00Z'), vk('2', '2026-11-04T13:00:00Z'), vk('3', '2026-11-04T12:00:00Z', { summary: 'Heeft er al een.' }), vk('4', '2026-11-04T11:00:00Z'), vk('5', '2026-11-04T10:00:00Z')]
+  const img = 'https://image.volkskrant.nl/a.jpg'
+  const open = [vk('1', '2026-11-03T08:00:00Z', { image: img }), vk('2', '2026-11-04T13:00:00Z', { image: img }), vk('3', '2026-11-04T12:00:00Z', { summary: 'Heeft er al een.', image: img }), vk('4', '2026-11-04T11:00:00Z'), vk('5', '2026-11-04T10:00:00Z'), vk('6', '2026-11-04T13:30:00Z', { summary: 'Wel intro, geen beeld.' })]
   const tries = { [articleKey(open[3].url)]: { n: 1, at: now - 5 * 6e4 }, [articleKey(open[4].url)]: { n: 6, at: now - 864e5 } }
-  assert.deepEqual(gapTitleQueries(open, tries, now).map((i) => i.id), ['2', '1']) // 4: net geprobeerd; 5: zes keer
+  // Eerst wie een intro mist (nieuwste eerst), dan wie alleen een beeld mist; 3 mist niets;
+  // 4: net geprobeerd; 5: al zes keer.
+  assert.deepEqual(gapTitleQueries(open, tries, now).map((i) => i.id), ['2', '1', '6'])
   assert.deepEqual(gapTitleQueries(open, {}, now, { max: 1 }).map((i) => i.id), ['2'])
 })
 

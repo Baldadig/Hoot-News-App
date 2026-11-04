@@ -3,7 +3,7 @@
 // voor de Digest. Alleen de <head> lezen; automatisch gemaakte titelkaartjes ("/api/og?title=…")
 // slaan we over: daar staat alleen de kop op. Ook voor betaalde bronnen (build 46): het deelbeeld staat
 // openbaar in de <head>, net als bij het delen op sociale media. Geen cookiemuur of loginpagina omzeilen:
-// stuurt de site ons door naar een ander domein (DPG: myprivacy), dan is er geen beeld.
+// stuurt de site ons door naar een toestemmings- of loginpagina (DPG: myprivacy), dan is er geen beeld.
 import { UA } from './sources.mjs'
 
 // Het eigen deelbeeld hoort bij een servermatig leesbare Hoot-deelpagina.
@@ -18,17 +18,17 @@ const decodeEntities = (s) =>
     .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
     .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
 
-// Hetzelfde domein (zonder subdomein): een doorverwijzing naar een toestemmings- of loginpagina
-// elders telt niet als het artikel.
-const site = (host) => {
-  const parts = host.replace(/^www\./, '').split('.')
-  return parts.slice(/^(co|com|org|net|ac|gov)$/.test(parts.at(-2)) ? -3 : -2).join('.')
-}
-export function sameSite(a, b) {
+// Een doorverwijzing naar een toestemmings-, cookie- of loginpagina is niet het artikel: dan geen
+// beeld (het beeld van zo'n pagina hoort er niet bij). Een gewone doorverwijzing (vrtnws.be/p.… →
+// www.vrt.be/vrtnws/…, tijd.be/r/… → het artikel) volgen we wel.
+const GATE_HOST = /(^|\.)(myprivacy|privacy|consent|cmp|login|auth|accounts?|signin|subscribe|paywall)\./i
+const GATE_PATH = /\/(login|log-in|inloggen|signin|sign-in|auth|consent|cookie\w*|privacy-?gate|privacywall|toestemming|subscribe)(\/|\b)/i
+export function isGate(url) {
   try {
-    return site(new URL(a).hostname) === site(new URL(b).hostname)
+    const u = new URL(url)
+    return GATE_HOST.test(u.hostname) || GATE_PATH.test(u.pathname)
   } catch {
-    return false
+    return true
   }
 }
 
@@ -50,7 +50,7 @@ export async function loadOgImage(url, { signal, timeout = 6000, fetcher = fetch
     const stop = signal ? AbortSignal.any([signal, AbortSignal.timeout(timeout)]) : AbortSignal.timeout(timeout)
     const res = await fetcher(url, { headers: { 'User-Agent': UA, Accept: 'text/html' }, redirect: 'follow', signal: stop })
     if (!res.ok || !/text\/html/i.test(res.headers.get('content-type') || '')) return null
-    if (res.url && !sameSite(url, res.url)) {
+    if (res.url && res.url !== url && isGate(res.url)) {
       res.body?.cancel?.().catch(() => {})
       return null
     }
