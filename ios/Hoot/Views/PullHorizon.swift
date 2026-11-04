@@ -207,7 +207,9 @@ struct HorizonPullMark: View {
     @Environment(\.nachtActief) private var nacht
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: nil, paused: frozen != nil)) { tl in
+        // De klok loopt alleen als de tekening van de tijd afhangt: laden, doorlopen, ondergang, fout en
+        // de 140 ms gloed op de drempel. Tijdens trekken volgt hij de vinger (de scroll tekent opnieuw).
+        TimelineView(.animation(minimumInterval: nil, paused: !ticking)) { tl in
             let now = frozen ?? Horizon.now(tl.date)
             let s = at(now)
             let g = Horizon.geom(s, now: now, width: 0) // alleen voor de zin: die hangt niet van de breedte af
@@ -225,6 +227,13 @@ struct HorizonPullMark: View {
             }
         }
         .accessibilityHidden(true)
+    }
+
+    private var ticking: Bool {
+        if frozen != nil { return false }
+        if state.phase != .pull { return true }
+        guard let armedSince, !state.reduce else { return false }
+        return Horizon.now() - armedSince < Horizon.Ms.out + 40
     }
 
     private func at(_ now: Double) -> HorizonState {

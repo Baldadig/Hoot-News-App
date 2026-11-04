@@ -158,7 +158,7 @@ private struct HootRefresh: ViewModifier {
             }
             .onChange(of: pull.armed) { _, _ in armedSince = Horizon.now() }
             .overlay(alignment: .top) {
-                if indicator && (pull.busy || pull.amount > 0 || closing != nil) {
+                if indicator && (pull.busy || pull.amount >= 1 || closing != nil) {
                     PullHorizonStrip(amount: pull.amount, busy: pull.busy || closing != nil, mark: mark, reduceMotion: still,
                                      armed: pull.armed, armedSince: armedSince, height: closing)
                         // Geen tijdlijn tussen vinger en teken; alleen het dichtglijden loopt met de strook mee.
