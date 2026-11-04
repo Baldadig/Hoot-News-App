@@ -32,3 +32,12 @@ test('landing: overal dezelfde accountzin, en een eigen vraag over het account',
   assert.ok((SRC.match(/Gratis, met of zonder account\./g) || []).length >= 3)
   assert.match(SRC, /<summary>Heb ik een account nodig\?<\/summary>\s*<p>Nee\. Je kunt meteen lezen\. Met een gratis account heb je je bronnen en Bewaard op al je toestellen\.<\/p>/)
 })
+
+test('landing: de drie delen gelijkwaardig in de voordelen en in de meta-omschrijving', () => {
+  const lijst = SRC.match(/<ul class="voordeel-lijst">([\s\S]*?)<\/ul>/)[1]
+  const koppen = tekst((lijst.match(/<h3>[\s\S]*?<\/h3>/g) || []).join(' '))
+  for (const deel of ['Editie', 'Stroom', 'Selectie']) assert.match(koppen, new RegExp(`\\b${deel}\\b`), deel)
+  assert.equal((lijst.match(/<li>/g) || []).length, 4)
+  const meta = SRC.match(/<meta name="description" content="([^"]+)"/)[1]
+  for (const deel of ['Editie', 'Stroom', 'Selectie']) assert.match(meta, new RegExp(deel), deel)
+})
