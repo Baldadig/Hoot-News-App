@@ -365,11 +365,24 @@ export async function imagesFromArticles(items, now, { max = 60, parallel = 10, 
 const dutch = (id) => SOURCE.get(id)?.lang === 'nl'
 // Per bericht: een Engelstalig Parool-stuk geeft geen teaser aan een Nederlands bericht.
 const dutchItem = (it) => (it.lang || SOURCE.get(it.source)?.lang) === 'nl'
+// Sterke overlap in de kop: minstens 4 gedeelde kernwoorden, of 3 als dat 60% of meer is van de
+// kortste kop. Dezelfde drempel voor lenen op de kop en lenen binnen een verhaal.
+export function strongOverlap(n, sizeA, sizeB) {
+  return n >= 4 || (n >= 3 && n / Math.max(1, Math.min(sizeA, sizeB)) >= 0.6)
+}
+// Kernwoorden om te lenen: zonder bezittelijke en persoonlijke voornaamwoorden. "Help, mijn kind ..."
+// boven twee verschillende stukken is geen gedeeld onderwerp.
+const PRONOUNS = new Set(['mijn', 'jouw', 'haar', 'jullie', 'zich', 'zelf', 'your', 'mine', 'ours', 'hers', 'yours'])
+const borrowWords = (title) => {
+  const w = sigWords(title)
+  for (const p of PRONOUNS) w.delete(p)
+  return w
+}
 function borrowPreviews(items, mainItems) {
-  const donors = mainItems.filter((it) => it.kind === 'article' && it.summary && !it.borrowedFrom && dutchItem(it) && visibleFor(it)).map((d) => ({ d, w: sigWords(d.title) }))
+  const donors = mainItems.filter((it) => it.kind === 'article' && it.summary && !it.borrowedFrom && dutchItem(it) && visibleFor(it)).map((d) => ({ d, w: borrowWords(d.title) }))
   for (const it of items) {
     if (it.kind !== 'article' || it.summary || !dutchItem(it)) continue
-    const w = sigWords(it.title)
+    const w = borrowWords(it.title)
     if (w.size < 3) continue
     let best = null
     let bestN = 0
@@ -379,8 +392,7 @@ function borrowPreviews(items, mainItems) {
       const n = sharedCount(w, dw)
       if (n > bestN) [best, bestN, bestSize] = [d, n, dw.size]
     }
-    const ratio = bestN / Math.max(1, Math.min(w.size, bestSize))
-    if (best && (bestN >= 4 || (bestN >= 3 && ratio >= 0.6))) {
+    if (best && strongOverlap(bestN, w.size, bestSize)) {
       it.summary = best.summary
       it.text = best.summary
       it.borrowedFrom = best.sourceName
@@ -391,7 +403,8 @@ function borrowPreviews(items, mainItems) {
 // ---------- 5b. Intro lenen binnen een verhaal ----------
 // Een stuk dat na de zoekindex en het lenen op de kop nog geen intro heeft, krijgt die van een ander
 // stuk uit hetzelfde verhaal: zelfde taal, een andere bron, een eigen intro (geen geleende, en
-// liever geen afgekapte), en minstens twee kernwoorden in de kop gemeen als extra zekerheid. Met
+// liever geen afgekapte), en dezelfde sterke overlap in de kop als bij lenen op de kop (strongOverlap):
+// het bundelen van verhalen voegt soms twee stukken ten onrechte samen. Met
 // bronvermelding (`borrowedFrom`: "via X"). Geen liveblogs.
 const TRAIL = /(?:…|\.{3})\s*$/
 const langOf = (it) => it.lang || SOURCE.get(it.source)?.lang
@@ -401,9 +414,13 @@ export function borrowFromStories(stories, byId) {
     const members = st.itemIds.map((id) => byId.get(id)).filter((i) => i?.kind === 'article')
     for (const it of members) {
       if (it.summary || isLiveblog(it.url)) continue
-      const w = sigWords(it.title)
+      const w = borrowWords(it.title)
+      const matches = (d) => {
+        const dw = borrowWords(d.title)
+        return strongOverlap(sharedCount(w, dw), w.size, dw.size)
+      }
       const donor = members
-        .filter((d) => d !== it && d.summary && !d.borrowedFrom && d.source !== it.source && langOf(d) === langOf(it) && visibleFor(d) && sharedCount(w, sigWords(d.title)) >= 2)
+        .filter((d) => d !== it && d.summary && !d.borrowedFrom && d.source !== it.source && langOf(d) === langOf(it) && visibleFor(d) && matches(d))
         .sort((a, b) => TRAIL.test(a.summary) - TRAIL.test(b.summary))[0]
       if (!donor) continue
       it.summary = donor.summary

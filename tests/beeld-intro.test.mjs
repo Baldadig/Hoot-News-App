@@ -2,7 +2,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ogImageFrom, loadOgImage, isGate } from '../netlify/lib/og.mjs'
-import { imagesFromArticles, sizeBingImages, gapTitleQueries, borrowFromStories, wantsArticleImage } from '../netlify/lib/build.mjs'
+import { imagesFromArticles, sizeBingImages, gapTitleQueries, borrowFromStories, strongOverlap, wantsArticleImage } from '../netlify/lib/build.mjs'
 import { articleKey, bingUnmeasured, bingId } from '../netlify/lib/snippets.mjs'
 
 const art = (id, extra = {}) => ({ id, kind: 'article', source: 'nature', title: 'Titel ' + id, url: `https://www.nature.com/articles/${id}`, publishedAt: '2026-11-04T10:00:00Z', ...extra })
@@ -116,4 +116,20 @@ test('intro lenen binnen een verhaal: zelfde taal, andere bron, eigen intro, met
   const vk2 = { ...vk, id: 'vk2', summary: undefined, borrowedFrom: undefined }
   assert.equal(borrowFromStories([{ id: 's2', itemIds: ['vk2', 'nyt'] }], new Map([[vk2.id, vk2], [nyt.id, nyt]])), 0)
   assert.equal(vk2.summary, undefined)
+})
+
+test('intro lenen binnen een verhaal: dezelfde strenge drempel als lenen op de kop (keuring b46)', () => {
+  // Het bundelen had deze twee stukken ten onrechte samengevoegd. Alleen "help" en "kind" gemeen:
+  // de Volkskrant krijgt geen intro over besparen op je kinderen.
+  const vk = { id: 'vk', kind: 'article', source: 'volkskrant', sourceName: 'de Volkskrant', title: 'Help, mijn kind maakt huiswerk met behulp van AI. Hoe erg is dat?', url: 'https://www.volkskrant.nl/a~b7654321/' }
+  const gva = { id: 'gva', kind: 'article', source: 'gva', sourceName: 'Gazet van Antwerpen', lang: 'nl', title: 'Help, mijn kind is duur!', summary: 'Besparen op je kinderen, het klinkt zo gevoelloos en hard.', url: 'https://www.gva.be/a' }
+  const byId = new Map([vk, gva].map((i) => [i.id, i]))
+  assert.equal(borrowFromStories([{ id: 's', itemIds: ['vk', 'gva'] }], byId), 0)
+  assert.equal(vk.summary, undefined)
+  assert.equal(vk.borrowedFrom, undefined)
+  // Drie gedeelde kernwoorden bij 60% of meer overlap: wel.
+  assert.equal(strongOverlap(3, 5, 3), true)
+  assert.equal(strongOverlap(3, 6, 6), false)
+  assert.equal(strongOverlap(2, 2, 2), false)
+  assert.equal(strongOverlap(4, 9, 9), true)
 })
