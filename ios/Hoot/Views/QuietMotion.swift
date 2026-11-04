@@ -90,6 +90,11 @@ struct RefreshPull {
 // De scroll zelf houdt de strook open (contentMargins), dus er verschuift niets bij loslaten of klaar.
 enum RefreshStrip {
     static let loading: CGFloat = 56
+    // Op de bewegingsschaal (140 · 200 · 400): de h. vervaagt in dur-1, daarna glijdt de strook dicht
+    // in dur-3 met ease-glide ("iets wisselt van plek"). Was 150 ms en 0,3 s.
+    static let fadeOut: Double = 0.14
+    static let close: Double = 0.4
+    static var glide: Animation { .timingCurve(0.2, 0.8, 0.2, 1, duration: close) }
     // Hoogte van de lege strook boven de inhoud: tijdens laden de vaste ruimte plus een eventuele extra trek.
     static func gap(amount: CGFloat, busy: Bool) -> CGFloat {
         let pulled = amount.isFinite ? max(0, amount) : 0
@@ -144,15 +149,15 @@ private struct HootRefresh: ViewModifier {
             // Eerst vervaagt de h. (die staat dan nog in de strook), daarna klapt de strook dicht:
             // het teken ligt nooit over de inhoud.
             if still { pull.finish(); return }
-            withAnimation(.easeOut(duration: 0.15)) { closing = true }
-            try? await Task.sleep(for: .milliseconds(150))
+            withAnimation(.easeOut(duration: RefreshStrip.fadeOut)) { closing = true }
+            try? await Task.sleep(for: .seconds(RefreshStrip.fadeOut))
             withAnimation(settle) { pull.finish() }
-            try? await Task.sleep(for: .milliseconds(350))
+            try? await Task.sleep(for: .seconds(RefreshStrip.close + 0.05))
             closing = false
         }
     }
     // Strook en teken openen en sluiten in één rustige beweging; bij Verminder beweging direct.
-    private var settle: Animation? { still ? nil : .easeOut(duration: 0.3) }
+    private var settle: Animation? { still ? nil : RefreshStrip.glide }
     private var reserved: CGFloat { indicator && pull.busy ? RefreshStrip.loading : 0 }  // blijft open tot het teken weg is
     func body(content: Content) -> some View {
         content

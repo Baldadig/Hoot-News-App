@@ -37,3 +37,11 @@ test('iOS-monogram en -logo krijgen de dunne ring van het web (--hairline: inkt 
     assert.doesNotMatch(swift(file), /Circle\(\)\.strokeBorder\(Theme\.rule/, file)
   }
 })
+test('pull-strook sluit in 400 ms met ease-glide, de h. vervaagt in 140 ms (bewegingsschaal)', () => {
+  const motion = swift('Views/QuietMotion.swift')
+  assert.match(motion, /static let fadeOut: Double = 0\.14/)
+  assert.match(motion, /static let close: Double = 0\.4/)
+  assert.match(motion, /timingCurve\(0\.2, 0\.8, 0\.2, 1, duration: close\)/) // = --ease-glide
+  assert.match(css, /--ease-glide: cubic-bezier\(0\.2, 0\.8, 0\.2, 1\)/)
+  assert.doesNotMatch(motion, /easeOut\(duration: 0\.3\)|milliseconds\(150\)/)
+})

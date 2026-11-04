@@ -23,4 +23,10 @@ import SwiftUI
         XCTAssertEqual(Layout.readable, 680)
         XCTAssertEqual(Layout.emptyIcon, 96)
     }
+    // De strook sluit op de bewegingsschaal: de h. vervaagt in 140 ms, de strook glijdt dicht in 400 ms.
+    func testPullStrookSluitOpDeSchaal() {
+        XCTAssertEqual(RefreshStrip.fadeOut, 0.14)
+        XCTAssertEqual(RefreshStrip.close, 0.4)
+        XCTAssertTrue([0.14, 0.2, 0.4].contains(RefreshStrip.close))
+    }
 }
