@@ -315,9 +315,14 @@ struct LearnedSection: View {
     var body: some View {
         Section {
             if !summary.chosen.isEmpty {
-                LabeledContent("Gekozen") {
-                    Text(summary.chosen.map(Taste.label).joined(separator: ", ")).multilineTextAlignment(.trailing)
+                // Het label met de waarde links eronder, zoals op het web (I1): een lange lijst
+                // rechts uitgelijnd gaf een rafelige linkerkant.
+                VStack(alignment: .leading, spacing: Space.s0) {
+                    Text("Gekozen")
+                    Text(summary.chosen.map(Taste.label).joined(separator: ", ")).font(.subheadline).foregroundStyle(Theme.ink3)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityElement(children: .combine)
             }
             if !summary.learned.isEmpty { Text("Vaak gelezen").font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink3) }
             ForEach(summary.learned, id: \.self) { t in
