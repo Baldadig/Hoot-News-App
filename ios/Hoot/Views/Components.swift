@@ -221,6 +221,9 @@ struct HootKop<Extra: View>: View {
             .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midX } action: { gearX?($0) }
             .padding(.trailing, -HootKop.inset)
         }
+        // Even begrensd als het woordmerk: bij heel grote tekst blijven tandwiel en bronnen 24 in hun
+        // raakvlak van 44, en wordt de kopregel geen tweede titel.
+        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
         .frame(minHeight: Space.tap)
     }
 
