@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import {
   T, MAX, STRIP, MS, NOON, MSG, R, HALF, RINGS, resist, arcPt, breathe, glowAt, geom, answer, closeAt, doneAt,
-  journey, stripHeight, svg, drag, release, answered, sunT, E,
+  journey, stripHeight, svg, drag, release, answered, sunT, E, gesture, inHorizontalScroller,
 } from '../src/lib/pull-horizon.js'
 
 const near = (a, b, eps = 0.01, msg) => assert.ok(Math.abs(a - b) <= eps, `${msg || ''} ${a} ≠ ${b}`)
@@ -211,4 +211,27 @@ test('fixture voor iOS: web en app rekenen hetzelfde', () => {
   if (process.env.PULL_FIXTURE_WRITE || !existsSync(file)) writeFileSync(file, text)
   assert.equal(readFileSync(file, 'utf8'), text, 'tests/fixtures/pull-horizon.json is bij (PULL_FIXTURE_WRITE=1 npm test)')
   assert.ok(sunT)
+})
+
+test('gebaar: pas overnemen na 9 pt en als omlaag meer is dan opzij; een rij die opzij scrolt blijft van zichzelf', () => {
+  assert.equal(gesture(0, 5), 'wacht')
+  assert.equal(gesture(6, 6), 'wacht') // hypot 8,5
+  assert.equal(gesture(0, 9), 'neem-over')
+  assert.equal(gesture(3, 10), 'neem-over')
+  // De veeg uit de keuring: 80 pt opzij en 3 omlaag is geen trek.
+  assert.equal(gesture(-80, 3), 'laat-los')
+  assert.equal(gesture(10, 10), 'laat-los') // gelijk is niet "meer omlaag"
+  assert.equal(gesture(0, -12), 'laat-los') // omhoog is scrollen
+  const root = { nodeType: 1, scrollWidth: 390, clientWidth: 390 }
+  const col = { nodeType: 1, parentElement: root, scrollWidth: 390, clientWidth: 390 }
+  const scroll = { nodeType: 1, parentElement: col, scrollWidth: 814, clientWidth: 200 }
+  const chip = { nodeType: 1, parentElement: scroll, scrollWidth: 60, clientWidth: 60 }
+  col.parentElement = root
+  const css = (map) => (n) => ({ overflowX: map.get(n) || 'visible' })
+  assert.equal(inHorizontalScroller(chip, root, css(new Map([[scroll, 'auto']]))), true)
+  assert.equal(inHorizontalScroller(col, root, css(new Map([[scroll, 'auto']]))), false)
+  // Breder dan zijn raam maar niet scrollend (overflow visible): geen scroller.
+  assert.equal(inHorizontalScroller(chip, root, css(new Map())), false)
+  // Het scrollgebied zelf (boundary) telt niet mee.
+  assert.equal(inHorizontalScroller(root, root, css(new Map([[root, 'auto']]))), false)
 })

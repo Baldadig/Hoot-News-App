@@ -25,6 +25,27 @@ export const SUN_FROM = 40 // de zon komt op vanaf 40 pt trek
 export const RINGS = [[1.3, 0.45], [1.6, 0.28], [1.9, 0.15]] // straal × r, dekking (landing .rg1–.rg3)
 export const MARK_R = 4 // merkteken ⌀ 8
 export const MSG = 'Niet ververst. Trek opnieuw.'
+export const SLOP = 9 // de vinger moet 8 tot 10 pt bewogen hebben voor het gebaar wordt overgenomen
+
+// Gebaar: pas overnemen na SLOP beweging en als die meer omlaag dan opzij gaat (|dy| > |dx|). Tot dan
+// beslist de browser; veegt de vinger omhoog of opzij, dan is het geen trek (null) en laten we het los.
+// dx, dy: afstand sinds de aanraking. Geeft 'wacht', 'neem-over' of 'laat-los'.
+export function gesture(dx, dy) {
+  if (Math.hypot(dx, dy) < SLOP) return 'wacht'
+  return dy > 0 && Math.abs(dy) > Math.abs(dx) ? 'neem-over' : 'laat-los'
+}
+
+// Staat de aanraking in een element dat zelf opzij scrolt (zoals .rub__scroll, de bronnenrij)? Dan is
+// het gebaar daarvan; wij blijven er af. node loopt omhoog tot boundary (het scrollgebied zelf).
+export function inHorizontalScroller(node, boundary, style = (n) => getComputedStyle(n)) {
+  for (let n = node; n && n !== boundary; n = n.parentElement) {
+    if (n.nodeType !== undefined && n.nodeType !== 1) continue
+    if (!(n.scrollWidth > n.clientWidth)) continue
+    const ox = style(n)?.overflowX
+    if (ox === 'auto' || ox === 'scroll' || ox === 'overlay') return true
+  }
+  return false
+}
 
 export const MS = {
   close: 400, // strook open en dicht, ease-glide (dur-pull-close)

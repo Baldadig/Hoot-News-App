@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { reduced } from '../lib/motion.js'
-import { T, MS, MSG, GUT, answer, answered, cancelOp, doneAt, drag, extraAt, geom, glowAt, release, resist, setAt, stripHeight, svg } from '../lib/pull-horizon.js'
+import { T, MS, MSG, GUT, answer, answered, cancelOp, doneAt, drag, extraAt, geom, gesture, glowAt, inHorizontalScroller, release, resist, setAt, stripHeight, svg } from '../lib/pull-horizon.js'
 
 // Trekken om te verversen op het web, zoals in de app (HootRefresh in ios/Hoot/Views/QuietMotion.swift):
 // Horizon v2. Alleen met een vinger (touch), alleen bovenaan de lijst. De rekensom staat in
@@ -86,13 +86,16 @@ export function usePullHorizon(ref, { onRefresh, busy = false, failed = false, l
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    let startY = 0
+    let startY = 0, x0 = 0, y0 = 0
     let tracking = false
     const st = S.current
     const locked = () => st.phase === 'go' || st.phase === 'set' || st.phase === 'fail'
     const onStart = (e) => {
       if (!enabled || e.touches.length !== 1 || el.scrollTop > 0 || locked()) return
+      // Een rij die zelf opzij scrolt (rubrieklijn, bronnenrij) houdt zijn eigen veeg.
+      if (inHorizontalScroller(e.target, el)) return
       tracking = true
+      x0 = e.touches[0].clientX; y0 = e.touches[0].clientY
       st.reduce = reduced()
       const now = performance.now()
       const loading = st.phase === 'load'
@@ -103,8 +106,11 @@ export function usePullHorizon(ref, { onRefresh, busy = false, failed = false, l
       if (!tracking) return
       const dy = e.touches[0].clientY - startY
       if (!st.dragging) {
-        // Pas trekken als de vinger omlaag gaat terwijl de lijst bovenaan staat; omhoog is gewoon scrollen.
-        if (dy <= 0 || el.scrollTop > 0) { if (dy < 0) tracking = false; return }
+        // Pas trekken na een paar pt en als de vinger meer omlaag dan opzij gaat, terwijl de lijst
+        // bovenaan staat; omhoog of opzij is gewoon scrollen.
+        const g = gesture(e.touches[0].clientX - x0, e.touches[0].clientY - y0)
+        if (g === 'wacht') return
+        if (g === 'laat-los' || el.scrollTop > 0) { tracking = false; return }
         st.dragging = true
         if (st.phase === 'rest' || st.phase === 'cancel') Object.assign(st, { phase: 'pull', pull: 0, artOp: 1 })
       }
