@@ -2,6 +2,8 @@
 
 ## Onuitgebracht
 
+- Bluesky: een account dat je toevoegt staat meteen in de Stroom (en zet Bluesky aan), net als op de website. Accounts die build 44/45 toevoegde zonder Stroom-keuze komen één keer terug in de Stroom, ook in je account. Een account zonder naam in je profiel laat de andere niet meer wegvallen.
+
 - Trek om te verversen: het h.-merkteken verschijnt in de trekruimte en de punt volgt de vinger. Terugtrekken annuleert; de laadregel verschijnt pas na loslaten. Verminder beweging houdt de punt stil.
 
 - Een wereldtocht krijgt geen Oekraïne-label door Rusland als routepunt in de intro. Bestaande algemene buitenlandplekken vragen voor een geografisch onderwerp bewijs uit de kop; werkelijk oorlogsnieuws behoudt zijn onderwerp.

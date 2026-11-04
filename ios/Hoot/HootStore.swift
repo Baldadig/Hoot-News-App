@@ -95,6 +95,7 @@ final class HootStore {
     private var ownPosts: [Item] = [] { didSet { rebuildStream() } }
     private var ownPostsGeneration = 0
     @ObservationIgnored var socialPostsLoader: @Sendable (BlueskyAccount) async throws -> [Item] = { try await Bluesky.posts(of: $0) }
+    @ObservationIgnored var socialProfileLoader: @Sendable (String) async throws -> BlueskyAccount = { try await Bluesky.profile($0) }
 
     // Laatste verversing mislukt: je ziet de versie van `updatedAt`.
     private(set) var stale = false
@@ -195,6 +196,21 @@ final class HootStore {
         // Een opgeslagen lege lijst is wel een bewuste keuze en blijft leeg.
         bskyInStream = Set(Self.load("hoot.bskyInStream") ?? keptSocial.map(\.id))
         importSettings()
+        repairStreamChoice(stage: "local")
+    }
+
+    // Herstel (build 46): tot en met build 45 zette de app een nieuw toegevoegd Bluesky-account niet
+    // in de Stroom (addBluesky vergat bskyInStream), en de profielsync schreef die lege keuze weg naar
+    // je account, waarna ook de website ze verborg. Eén keer per toestel (`local`) en één keer na de
+    // eerste pull van je account (`remote`) gaan je eigen accounts er weer bij; wat je account daarna
+    // krijgt, gaat in dezelfde pull mee (Account.pull schrijft syncedPrefs weg).
+    static let streamRepairKey = "hoot.bskyStreamRepair"
+    private func repairStreamChoice(stage: String) {
+        let done = UserDefaults.standard.string(forKey: Self.streamRepairKey)
+        if done == "remote" || done == stage { return }
+        UserDefaults.standard.set(stage, forKey: Self.streamRepairKey)
+        let own = Set(ownBluesky.map(\.id))
+        if !own.isEmpty, !own.isSubset(of: bskyInStream) { bskyInStream.formUnion(own) }
     }
 
     // Eenmalig instellingen overnemen (van je account op hootnews.nl), uit een bestand dat
@@ -216,7 +232,7 @@ final class HootStore {
             var interests: [String]?
             var topics: [String]?
             var favorites: [String]?
-            var social: [BlueskyAccount]? // eigen Bluesky-accounts, zoals op de website
+            var social: [BlueskyAccount]? // eigen Bluesky-accounts, zoals op de website (een kapotte rij valt weg, niet de hele lijst)
             var taste: Taste?
             enum CodingKeys: String, CodingKey { case muted, enabled, vak, images, layout, theme, themeDark, bubble, bluesky, bskyInStream, preview, regels, interests, topics, favorites, social, taste }
             init(from decoder: Decoder) throws {
@@ -234,7 +250,7 @@ final class HootStore {
                 interests = try? c.decodeIfPresent([String].self, forKey: .interests)
                 topics = try? c.decodeIfPresent([String].self, forKey: .topics)
                 favorites = try? c.decodeIfPresent([String].self, forKey: .favorites)
-                social = try? c.decodeIfPresent([BlueskyAccount].self, forKey: .social)
+                social = (try? c.decodeIfPresent([Lossy<BlueskyAccount>].self, forKey: .social))?.compactMap(\.value)
                 taste = try? c.decodeIfPresent(Taste.self, forKey: .taste)
                 // Op de website is het 1, 2, 3 of "alles".
                 preview = (try? c.decodeIfPresent(Int.self, forKey: .preview)) ?? ((try? c.decodeIfPresent(String.self, forKey: .preview)) == "alles" ? 0 : nil)
@@ -243,6 +259,16 @@ final class HootStore {
         }
         var prefs: Prefs?
         var social: [BlueskyAccount]?
+        enum CodingKeys: String, CodingKey { case prefs, social }
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            prefs = try? c.decodeIfPresent(Prefs.self, forKey: .prefs)
+            social = (try? c.decodeIfPresent([Lossy<BlueskyAccount>].self, forKey: .social))?.compactMap(\.value)
+        }
+    }
+    private struct Lossy<T: Decodable>: Decodable {
+        let value: T?
+        init(from decoder: Decoder) throws { value = try? T(from: decoder) }
     }
     private func importSettings() {
         guard let file = Self.folder?.appendingPathComponent("import.json"), let data = try? Data(contentsOf: file) else { return }
@@ -284,6 +310,9 @@ final class HootStore {
             let next = unite ? v + ownBluesky.filter { a in !v.contains { $0.handle == a.handle } } : v
             if next != ownBluesky { ownBluesky = next; Task { await loadOwnPosts() } }
         }
+        // Gelijk aan normalizePrefs op het web: een profiel met eigen accounts maar zonder de schakelaar
+        // (van vóór de schakelaar) heeft Bluesky aan.
+        if p?.bluesky == nil, !(p?.social ?? []).isEmpty, !bluesky { bluesky = true; save("hoot.bluesky", true) }
         if legacySocial { bskyInStream.formUnion(followedSocial.map(\.id)) }
     }
 
@@ -329,6 +358,7 @@ final class HootStore {
         }
         if let prefs, let p = try? JSONDecoder().decode(Import.Prefs.self, from: prefs) {
             apply(p, unite: unite)
+            repairStreamChoice(stage: "remote")
             onboarded = true
             browsing = false // je eigen keuzes staan er al
         }
@@ -505,10 +535,13 @@ final class HootStore {
             .sorted { $0.1 > $1.1 }
             .map(\.0)
     }
+    // Gelijk aan addSocialProfile op het web: wie je toevoegt, staat meteen in de Stroom (en Bluesky aan).
     func addBluesky(_ input: String) async throws {
-        let account = try await Bluesky.profile(input)
+        let account = try await socialProfileLoader(input)
         if !ownBluesky.contains(where: { $0.handle == account.handle }) && !sources.contains(where: { $0.id == account.id }) { ownBluesky.append(account) }
         muted.remove(account.id)
+        bskyInStream.insert(account.id)
+        if !bluesky { bluesky = true }
         reloadParts()
         await loadOwnPosts()
     }

@@ -8,6 +8,16 @@ struct BlueskyAccount: Codable, Hashable, Identifiable {
     var name: String
     var avatar: String?
     var id: String { "bsky:" + handle }
+    init(handle: String, name: String, avatar: String?) { self.handle = handle; self.name = name; self.avatar = avatar }
+    // Ruim lezen wat een account of import.json levert: zonder naam (of met null) telt de handle.
+    enum CodingKeys: String, CodingKey { case handle, name, avatar }
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        handle = try c.decode(String.self, forKey: .handle)
+        let n = (try? c.decodeIfPresent(String.self, forKey: .name))?.trimmingCharacters(in: .whitespaces) ?? ""
+        name = n.isEmpty ? handle : n
+        avatar = try? c.decodeIfPresent(String.self, forKey: .avatar)
+    }
 }
 
 enum Bluesky {
