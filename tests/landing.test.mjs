@@ -82,7 +82,7 @@ test('landing: de voorbeelden zijn van 1.1.0 (nummers, bubbel apart, Bluesky, Se
 test('landing: de App Store staat klaar achter één regel in build.mjs', () => {
   // Nu uit: de App Store-pagina geeft nog 404.
   assert.match(BUILD, /^const APP_STORE = false;$/m)
-  for (const k of ['APPSTORE_META', 'APPSTORE_HELD', 'APPSTORE_EINDE', 'APPSTORE_VRAAG']) assert.ok(SRC.includes(`{{${k}}}`), k)
+  for (const k of ['APPSTORE_META', 'APPSTORE_HELD', 'APPSTORE_LEAD', 'APPSTORE_EINDE', 'APPSTORE_VRAAG']) assert.ok(SRC.includes(`{{${k}}}`), k)
   const uit = vul(false), aan = vul(true)
   assert.doesNotMatch(uit, /apps\.apple\.com|apple-itunes-app/)
   assert.match(uit, /<p class="wacht">[\s\S]*?Binnenkort[\s\S]*?<\/p>/)
@@ -96,4 +96,21 @@ test('landing: de App Store staat klaar achter één regel in build.mjs', () => 
   const css = readFileSync(new URL('../landing/hoot.css', import.meta.url), 'utf8')
   assert.doesNotMatch(css, /(^|[^a])\.wacht:hover/)
   assert.match(css, /a\.wacht:hover\{box-shadow/)
+})
+
+test('landing: de kleine tekstronde uit de review', () => {
+  const t = tekst(vul(false))
+  for (const zin of [
+    'Elke maandag de mooiste stukken van de week, over je vak en wat je verder boeit. Met een inhoud bovenaan.',
+    'De Redacteur kiest je verhalen en zegt erbij waarom. Klopt het niet? Zeg het met ‘Klopt dit niet?’.',
+    'Lees verder in de Stroom',
+    'Lees mee in je browser. De app komt eraan.',
+    'Lees je laat? Nacht is echt zwart, met zachte letters.',
+  ]) assert.ok(t.includes(zin), zin)
+  assert.doesNotMatch(t, /Of lees verder|Ontdek Hoot/)
+  // Citaten in de aria-labels tussen ‘…’, en geen dubbele dubbele punt.
+  const labels = [...SRC.matchAll(/aria-label="([^"]+)"/g)].map((m) => m[1])
+  assert.ok(labels.some((l) => l.includes('‘Je bent bij.’')))
+  assert.ok(labels.some((l) => l.includes('‘Hier was je gebleven’')))
+  for (const l of labels) assert.ok((l.match(/:/g) || []).length <= 1, l)
 })

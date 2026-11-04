@@ -249,6 +249,7 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 
 /* ---------- 04 De Redacteur: dezelfde Editie op een staande iPad (3:4, dunne rand, ronde hoeken, geen notch), de waarom-regels ernaast; op mobiel een telefoon ---------- */
 .rd-kop{padding-bottom:0}
+.rd-kop .lead{max-width:min(100%,38ch)}
 .redacteur{padding-bottom:var(--s6)}
 .podium{--w:min(58cqw,250px);position:relative;height:calc(var(--w) * 4 / 3);margin:var(--s6) var(--gutc) 0}
 .ipad{position:absolute;left:0;top:0;width:var(--w);height:calc(var(--w) * 4 / 3);border:max(2px,calc(var(--w) * .013)) solid var(--ring);border-radius:calc(var(--w) * .06)}
@@ -423,6 +424,9 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .voordeel-lijst h3{font:800 clamp(1.5rem,2.2vw,1.75rem)/1.12 var(--kop);letter-spacing:-.015em;text-wrap:balance}
 .voordeel-lijst h3 span{display:block}
 .voordeel-lijst p{max-width:34ch;color:var(--inkt2)}
+/* Nacht in één regel, stil onder de voordelen */
+.voordeel-noot{margin-top:var(--s6);padding-top:var(--s4);border-top:1px solid var(--lijn);color:var(--inkt2);font-size:1rem}
+@media(min-width:960px){.voordeel-noot{margin-top:var(--s7)}}
 @media(min-width:720px){
   .voordeel-lijst{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s6) var(--s6)}
   .voordeel-lijst h3{min-height:2.24em;max-width:19ch}
