@@ -101,10 +101,9 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .wm{display:block;width:88px;height:auto;fill:currentColor}
 .wm .wm-d,.sc-logo .wm-d,.sc-blok .wm-d{fill:var(--wm-dot,#1A1814)}
 @media (min-width:720px){.wm{width:104px}}
-.top nav,.voet nav{display:flex;gap:var(--s4);font:600 .9375rem/1 var(--tekst)}
-@media (min-width:720px){.top nav{gap:var(--s6);font-size:1rem}}
-.top nav a,.voet nav a{text-decoration:none;padding:var(--s3) 0}
-.top nav a:hover,.voet nav a:hover{text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:2px}
+.voet nav{display:flex;gap:var(--s4);font:600 .9375rem/1 var(--tekst)}
+.voet nav a{text-decoration:none;padding:var(--s3) 0}
+.voet nav a:hover{text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:2px}
 
 /* ---------- de scène: het toestel komt uit de onderrand op; de zon staat ernaast op een eigen korte horizon en zit voor een derde achter het toestel ----------
    --w breedte toestel, --vis zichtbare hoogte, --tp ruimte boven het toestel, --avail de breedte van de kolom.
@@ -377,7 +376,6 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 @media (min-width:1280px){.scene,.sc-editie{--w:340px}}
 @media (min-width:1440px){.scene,.sc-editie{--w:360px}}
 @media (min-width:1280px){h1{font-size:5.75rem}h2{font-size:5.25rem}}
-@media (max-width:389px){.top nav{gap:var(--s3);font-size:.875rem}}
 
 /* held op desktop: toestel en zon prominenter, iets van de rand af (Alex 31-10) */
 @media (min-width:1100px){
@@ -392,7 +390,6 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 /* held op mobiel (Alex 31-10): één knop, App Store als kleine regel, geen menu, kleinere kop, telefoon in het eerste scherm */
 .wacht-gratis{display:none}
 @media (max-width:719px){
-  .top nav{display:none}
   .held h1{font-size:clamp(2.75rem,12vw,3.5rem)}
   .held .lead{margin-top:var(--s3)}
   .held .actie{margin-top:var(--s4);gap:var(--s3)}
@@ -425,8 +422,6 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .voordeel-lijst h3 span{display:block}
 .voordeel-lijst p{max-width:34ch;color:var(--inkt2)}
 /* Nacht in één regel, stil onder de voordelen */
-.voordeel-noot{margin-top:var(--s6);padding-top:var(--s4);border-top:1px solid var(--lijn);color:var(--inkt2);font-size:1rem}
-@media(min-width:960px){.voordeel-noot{margin-top:var(--s7)}}
 @media(min-width:720px){
   .voordeel-lijst{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s6) var(--s6)}
   .voordeel-lijst h3{min-height:2.24em;max-width:19ch}

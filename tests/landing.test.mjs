@@ -101,13 +101,14 @@ test('landing: de App Store staat klaar achter één regel in build.mjs', () => 
 test('landing: de kleine tekstronde uit de review', () => {
   const t = tekst(vul(false))
   for (const zin of [
-    'Elke maandag de mooiste stukken van de week, over je vak en wat je verder boeit. Met een inhoud bovenaan.',
+    'Elke maandag de mooiste stukken van de week, over je vak en wat je verder boeit.',
     'De Redacteur kiest je verhalen en zegt erbij waarom. Klopt het niet? Zeg het met ‘Klopt dit niet?’.',
     'Lees verder in de Stroom',
     'Lees mee in je browser.',
-    'Lees je laat? Nacht is echt zwart, met zachte letters.',
   ]) assert.ok(t.includes(zin), zin)
-  assert.doesNotMatch(t, /Of lees verder|Ontdek Hoot/)
+  assert.doesNotMatch(t, /Of lees verder|Ontdek Hoot|Lees je laat|Met een inhoud bovenaan|Hoot onthoudt waar je was|Tien verhalen, en één/)
+  // Meer kanten van één verhaal staat als vierde voordeel.
+  assert.match(SRC, /de Selectie\.<\/span><\/h3>.*\n.*Meer kanten/)
   // Citaten in de aria-labels tussen ‘…’, en geen dubbele dubbele punt.
   const labels = [...SRC.matchAll(/aria-label="([^"]+)"/g)].map((m) => m[1])
   assert.ok(labels.some((l) => l.includes('‘Je bent bij.’')))
