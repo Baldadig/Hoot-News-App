@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { usePairs } from '../hooks/usePairs.js'
 import { ViewHeader, StatusLine, LoadError, Empty } from '../components/Shell.jsx'
 import { LoadLinesBox, LoadLinesLayer, useLoadLines } from '../components/LoadLines.jsx'
+import { TienLayer, TienSpace, useTien } from '../components/FirstEdition.jsx'
 import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
 import { EditionArt, SparkleIcon, CaretIcon, CloseIcon, ICON_SM } from '../components/icons.jsx'
@@ -101,7 +102,7 @@ function LessNote({ entryKey, item, story, n }) {
 // Elke plek: het verhaal zelf, of ingeklapt als je er minder van wilde.
 const Slot = ({ less, row, children }) => (less.includes(row.key) ? <LessNote n={row.n} entryKey={row.key} item={row.item} story={row.story} /> : children)
 
-export default function Edition({ active, edition, bubble = [], brief = null, briefNote = null, briefForMembers = false, onJoin, hint = false, onHintDone, loading, failedLoad, statusProps, onRefresh, refreshing }) {
+export default function Edition({ active, edition, bubble = [], brief = null, briefNote = null, briefForMembers = false, onJoin, hint = false, onHintDone, tien: tienStart = null, onTienDone, loading, failedLoad, statusProps, onRefresh, refreshing }) {
   const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account, prefs, sourcesById } = useHoot()
   const following = followedNow(followStories, storiesById, newInStory)
   const ref = useRef(null)
@@ -155,7 +156,9 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
   // Eerste laden: de laadstrepen. Klaar: het bovenste vel wordt de kopstreep, de andere drie de
   // onderlijnen van de kop van het hoofdverhaal (src/lib/load-lines.js); dan geen tweede "druk".
   const hostRef = useRef(null)
-  const lines = useLoadLines(loading, ready)
+  // Je eerste Editie, na het welkom: "Tien en de bubbel" (src/lib/tien.js) in plaats van de laadstrepen.
+  const tien = useTien(tienStart, { loading, failed: !!failedLoad })
+  const lines = useLoadLines(loading && !tien.active, ready)
   const sub = edition ? longDate(edition.date).replace(/^./, (c) => c.toUpperCase()) : null
 
   // Eén keer na het eerste Welkom: wat "Jouw Editie" in de metaregel betekent (src/lib/welcome.js).
@@ -167,7 +170,11 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
     if (!active && hintSeen.current) onHintDone?.()
   }, [active, onHintDone])
 
-  usePrintEdition(ref, edition?.id, active, ready && rows.length > 0 && !lines.ending)
+  usePrintEdition(ref, edition?.id, active, ready && rows.length > 0 && !lines.ending && !tien.active)
+  // De bubbel ging al open: deze Editie geldt als gedrukt.
+  useEffect(() => {
+    if (tien.active && ready) markPrinted(edition?.id)
+  }, [tien.active, ready, edition?.id])
 
   // Breed (A): elk paar even hoog en het hoofdverhaal even hoog als zijn zijkolom.
   const frontRef = useRef(null)
@@ -176,7 +183,8 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
-      <div className={`col col--wide col--front${lines.hostClass}`} ref={hostRef}>
+      <div className={`col col--wide col--front${tien.active ? tien.hostClass : lines.hostClass}`} ref={hostRef}>
+        <TienLayer tien={tien} host={hostRef} onDone={onTienDone} />
         <LoadLinesLayer lines={lines} host={hostRef} land=".front .lead__title" rule=".edrule" onLand={() => markPrinted(edition?.id)} />
         {/* De kop van de Editie: titel en één metaregel (datum · weer · wiens Editie); de inktlijn
             eronder is het begin van het nieuws. Eén blok, zodat de kleur "Inkt" er een band van kan
@@ -276,7 +284,9 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             {rows.length} {rows.length === 1 ? 'verhaal' : 'verhalen'}: er was niet meer passend nieuws beschikbaar
           </p>
         ) : null}
-        {loading ? (
+        {loading && tien.active ? (
+          <TienSpace />
+        ) : loading ? (
           <LoadLinesBox />
         ) : failedLoad ? (
           <LoadError onRetry={onRefresh} />

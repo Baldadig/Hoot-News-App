@@ -160,6 +160,8 @@ struct EditionView: View {
     @State private var ruleDrawn = true
     @State private var storyShown = true
     @State private var lines = LoadLinesModel() // de laadstrepen bij het eerste laden (LoadLines.swift)
+    @State private var tien = TienModel() // je eerste Editie na het welkom (FirstEditionMark.swift)
+    @MainActor private static var debugTien = false // `-HootTien YES`: één keer per start
     @State private var endVisible = false // de zon onderaan is in beeld
     @State private var risenAt: Date? // sinds wanneer die zon opkomt (één keer)
     // Bij een koude start ligt de krant 8 pt lager en schuift op zijn plek terwijl het rood van het
@@ -308,14 +310,21 @@ struct EditionView: View {
                     // Past de naam er bij grote tekst niet meer naast, dan alleen de naam (nooit afgebroken).
                     HootKop()
                     EditionHeader(title: title, slot: store.edition?.slot)
+                        .tienAnchor() // je eerste Editie: het teken staat hieronder
                     if rows.isEmpty && loaderShown {
-                        LoadLinesBox()
+                        if tien.active {
+                            Color.clear.frame(maxWidth: .infinity, minHeight: Tien.area + Space.s2)
+                        } else {
+                            LoadLinesBox()
+                        }
                     } else if rows.isEmpty {
                         Group {
                             if store.status == .failed {
                                 EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Hoot heeft nog geen Editie op dit toestel. Zodra je verbinding hebt, verschijnt hij hier.", retry: store.load)
+                                    .tienError(tien)
                             } else {
                                 EmptyState(title: "Er is nog geen Editie", systemImage: "newspaper", text: "In de Stroom staat alles wat er wél is.")
+                                    .tienBlock(tien, 0)
                             }
                         }
                         .loadLinesError(lines)
@@ -327,13 +336,15 @@ struct EditionView: View {
                             .foregroundStyle(Theme.ink3)
                             .padding(.bottom, Space.s4)
                             .loadLinesText(lines)
+                            .tienBlock(tien, 0)
                         // Kon er niet ververst worden, dan zegt dat het onder de datum: titel en datum blijven bij elkaar.
-                        StaleNotice(gap: Space.s4).loadLinesText(lines)
+                        StaleNotice(gap: Space.s4).loadLinesText(lines).tienBlock(tien, 0)
                         // Na het eerste laden landt hier het bovenste vel van de laadstrepen (LoadLines.swift).
-                        StrongRule(drawn: ruleDrawn).loadLinesRule(lines).padding(.bottom, Space.s4)
+                        StrongRule(drawn: ruleDrawn).loadLinesRule(lines).tienBlock(tien, 1).padding(.bottom, Space.s4)
                         Group {
                         if !EditionLimits.hasMinimum(EditionNumbering.count(rows)) {
                             EmptyState(title:"Nog geen Editie",systemImage:"newspaper",text:"Er is nog te weinig passend nieuws voor een Editie. In de Stroom kun je verder lezen.")
+                                .tienBlock(tien, 2)
                         }
                         // Het raster (keuze 1.1.0, EditionGrid.swift). iPhone en heel grote tekst: alles onder
                         // elkaar. iPad staand (B): één leeskolom met de nummers in de kantlijn. iPad liggend
@@ -342,30 +353,36 @@ struct EditionView: View {
                         case .paren:
                             front(rows)
                                 .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
+                                .tienBlock(tien, 2)
                             if rows.count > 3 {
                                 EditionPairsGrid(rows: Array(rows.dropFirst(3)), width: contentWidth) { row, boven, pin in
                                     slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, boven: boven, pinSource: pin) }
                                 }
                                 .padding(.top, Space.s4)
                                 .loadLinesRise(lines)
+                                .tienBlock(tien, 3)
                             }
                         case .kolom:
                             slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, hang: true) }
                                 .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
+                                .tienBlock(tien, 2)
                             ForEach(rows.dropFirst()) { row in
-                                Rule().padding(.vertical, Space.s2).loadLinesRise(lines)
+                                Rule().padding(.vertical, Space.s2).loadLinesRise(lines).tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0))
                                 HangRow(number: store.less.contains(row.id) ? nil : row.number, read: store.isRead(row.item)) {
                                     slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
                                 }
                                 .loadLinesRise(lines)
+                                .tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0))
                             }
                         case .lijst:
                             slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
                                 .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
+                                .tienBlock(tien, 2)
                             ForEach(rows.dropFirst()) { row in
-                                Rule().padding(.vertical, Space.s2).loadLinesRise(lines)
+                                Rule().padding(.vertical, Space.s2).loadLinesRise(lines).tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0))
                                 slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
                                     .loadLinesRise(lines)
+                                    .tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0))
                             }
                         }
                         if !outsideRows.isEmpty {
@@ -378,6 +395,7 @@ struct EditionView: View {
                             }
                             .padding(.leading, grid == .kolom ? Layout.hang : 0) // op de lijn van de tekst, niet van de nummers
                             .frame(maxWidth: grid == .paren ? Layout.readable : nil, alignment: .leading)
+                            .tienBlock(tien, 8)
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,
                         // en wanneer de volgende er is.
@@ -418,12 +436,14 @@ struct EditionView: View {
                         .padding(.leading, grid == .kolom ? Layout.hang : 0)
                         .padding(.top, Space.s6)
                         .padding(.bottom, Space.s4)
+                        .tienBlock(tien, 8)
                         }
                         }
                         .loadLinesText(lines)
                     }
                 }
-                .loadLines(lines, loading: loaderShown, ok: !store.editionRows.isEmpty, landing: true)
+                .loadLines(lines, loading: loaderShown && !tien.active, ok: !store.editionRows.isEmpty, landing: true)
+                .firstEdition(tien, loading: loaderShown, failed: store.status == .failed && store.editionRows.isEmpty)
                 .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { contentWidth = $0 }
                 .padding(.horizontal)
                 .column(grid == .paren ? Layout.wide : grid == .kolom ? Layout.readable + Layout.hang : Layout.readable)
@@ -467,7 +487,7 @@ struct EditionView: View {
             .task(id: store.shownEdition?.id) {
                 guard let id = store.shownEdition?.id, EditionPrint.shouldPlay(id: id, lastSeen: seenEdition, ready: !store.editionRows.isEmpty), !printedIDs.contains(id) else { return }
                 // Kwam de Editie na de laadstrepen, dan zijn die al op de kopstreep en de kop geland.
-                if lines.active { printedIDs.insert(id); seenEdition = id; return }
+                if lines.active || tien.active { printedIDs.insert(id); seenEdition = id; return }
                 while handoff?.landed == false || handoff?.leaving == true {
                     try? await Task.sleep(for: .milliseconds(50))
                     if Task.isCancelled { return }
@@ -487,6 +507,15 @@ struct EditionView: View {
                 }
                 try? await Task.sleep(for: .milliseconds(200))
                 if !Task.isCancelled { seenEdition = id }
+            }
+            // Je eerste Editie na het welkom: vanaf de tik (HootApp.leaveWelcome). Klaar: één keer gedaan.
+            .onChange(of: store.tienStart, initial: true) { _, tap in
+                guard let tap else { return }
+                tien.onDone = { store.tienStart = nil }
+                tien.start(at: tap, reduce: still)
+            }
+            .onAppear {
+                if DebugLaunch.tien && !Self.debugTien { Self.debugTien = true; store.tienStart = TienModel.clock() }
             }
             .task(id: store.editionRows.count) {
                 // `-HootScreen verhaal`: het eerste verhaal met de meeste bronnen, om te vergelijken.

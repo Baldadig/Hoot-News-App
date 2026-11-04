@@ -38,7 +38,7 @@ const TRIO = [
 
 const toggleIn = (list, id) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id])
 
-export default function Welcome({ sources, items = [], prefs, muted = new Set(), onDone, onClose = null, onSignIn = null, leaving = false, onLeft = () => {} }) {
+export default function Welcome({ sources, items = [], prefs, muted = new Set(), onDone, onClose = null, onSignIn = null, leaving = false, first = false, onLeft = () => {} }) {
   const reopen = !!onClose
   const [view, setView] = useState(reopen ? 'interesses' : 'intro') // intro | uitleg | interesses | bronnen
   const [interests, setInterests] = useState(() => prefs.interests || [])
@@ -75,7 +75,7 @@ export default function Welcome({ sources, items = [], prefs, muted = new Set(),
       return
     }
     let alive = true
-    const { fade: ms, easing } = crossPlan()
+    const { fade: ms, easing } = crossPlan(first)
     fade(el, ms, 1, 0, easing)
       .finished.then(() => alive && left.current())
       .catch(() => {})

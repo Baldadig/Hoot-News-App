@@ -61,7 +61,9 @@ export const reducedPlan = () => ({ fade: FADE_MS })
 // de app houdt hem dan ook.
 export const CROSS_MS = 450
 export const CROSS = 'ease-in-out'
-export const crossPlan = () => ({ fade: CROSS_MS, easing: CROSS })
+// De eerste keer (je eerste Editie, "Tien en de bubbel", src/lib/tien.js): het welkom vervaagt in
+// 200 ms (dur-2), bij Minder beweging in 350; dan begint het samenstellen.
+export const crossPlan = (first = false) => (first ? { fade: reduced() ? FADE_MS : 200, easing: CROSS } : { fade: CROSS_MS, easing: CROSS })
 
 // ---- Opstartscherm ----
 

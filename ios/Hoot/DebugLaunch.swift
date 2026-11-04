@@ -19,6 +19,8 @@ import SwiftUI
 //   -HootFeature verhaal-id:Rubriek,…   (App Store-opnamen: deze echte verhalen bovenaan Editie en Stroom)
 //   -HootRefreshDelay <s>   (trek-om-te-verversen: houd het laden s seconden vast, om de lader te zien)
 //   -HootLoadDelay <s>   (eerste laden: houd de laadstrepen s seconden in beeld, voor opnamen)
+//   -HootTien YES   (speel "Tien en de bubbel" bij de start, alsof je net het welkom afrondde; met
+//                   -HootLoadDelay zie je Traag)
 //   -HootEngine YES   (jouw Editie altijd opnieuw samenstellen met de rekenkern, ook als er al een
 //                     vastgelegde staat op het toestel of in je account; niets gaat naar je account)
 //   -HootGrid paren|kolom   (de brede Editie in dat raster, los van staand of liggend: opnamen van A op een
@@ -32,6 +34,7 @@ enum DebugLaunch {
     static var grid: String? { defaults.string(forKey: "HootGrid") }
     static var refreshDelay: Double { max(0, min(30, defaults.double(forKey: "HootRefreshDelay"))) }
     static var loadDelay: Double { max(0, min(60, defaults.double(forKey: "HootLoadDelay"))) }
+    static var tien: Bool { defaults.bool(forKey: "HootTien") }
     static var query: String? { defaults.string(forKey: "HootQuery") }
     static var dark: Bool { defaults.bool(forKey: "HootDark") }
     static var largeText: Bool { defaults.bool(forKey: "HootLargeText") }
@@ -64,6 +67,7 @@ enum DebugLaunch {
     static let grid: String? = nil
     static let refreshDelay = 0.0
     static let loadDelay = 0.0
+    static let tien = false
     static let query: String? = nil
     static let dark = false
     static let largeText = false
