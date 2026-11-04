@@ -1,7 +1,7 @@
 import AuthenticationServices
 import SwiftUI
 
-// Bovenaan de instellingen: wie je bent, of een uitnodiging om in te loggen.
+// Bovenaan de instellingen: wie je bent, of de weg naar inloggen.
 struct AccountRow: View {
     @Environment(Account.self) private var account
 
@@ -14,9 +14,9 @@ struct AccountRow: View {
                         Text("Lokale beta").font(.headline)
                         Text("Accountsynchronisatie uit").font(.subheadline).foregroundStyle(Theme.ink3)
                     } else { switch account.status {
-                    case .member, .noInvite:
+                    case .member, .pending:
                         Text(account.session?.name ?? account.session?.email ?? "Je account").font(.headline)
-                        Text(account.status == .noInvite ? "Nog geen lid" : account.syncLine).font(.subheadline).foregroundStyle(Theme.ink3)
+                        Text(account.status == .pending ? Account.pendingText : account.syncLine).font(.subheadline).foregroundStyle(Theme.ink3)
                     case .loading:
                         Text("Je account").font(.headline)
                         Text("Even geduld …").font(.subheadline).foregroundStyle(Theme.ink3)
@@ -52,6 +52,9 @@ struct AccountBadge: View {
 }
 
 extension Account {
+    // Ingelogd, maar het profiel ontbreekt nog. Zelfde zin als de website (src/lib/membership.js).
+    static let pendingText = "Je account is er bijna. Probeer het zo nog eens."
+
     var syncLine: String {
         switch sync {
         case .syncing: "Synchroniseren …"
@@ -61,13 +64,12 @@ extension Account {
     }
 }
 
-// De pagina zelf: inloggen, lid worden met een uitnodiging, of je account beheren.
+// De pagina zelf: inloggen, of je account beheren.
 struct AccountView: View {
     @Environment(Account.self) private var account
     @Environment(\.webAuthenticationSession) private var webAuth
     @Environment(\.nachtActief) private var nacht
     @Environment(\.colorScheme) private var scheme
-    @State private var code = ""
     @State private var confirmDelete = false
     var onMember: (() -> Void)? = nil // in het welkom: verder zodra je lid bent
     private static let buttonHeight: CGFloat = 50
@@ -87,7 +89,7 @@ struct AccountView: View {
             } else {
                 Form {
                     Group {
-                        if account.status == .noInvite { invite } else { member }
+                        if account.status == .pending { pending } else { member }
                         if let message = account.message {
                             Section { Label(message, systemImage: "exclamationmark.circle").foregroundStyle(Theme.accent) }
                         }
@@ -106,10 +108,18 @@ struct AccountView: View {
         } message: {
             Text("Je account en Bewaard verdwijnen, ook op de website. Wat op deze iPhone staat, blijft. Dit kun je niet ongedaan maken.")
         }
+        // Hoot uit je Apple ID halen lukte niet: er is nog niets gewist. Jij kiest.
+        .alert("Apple reageerde niet", isPresented: Binding(get: { account.appleFailed }, set: { if !$0 { account.dismissAppleFailure() } })) {
+            Button("Opnieuw") { Task { _ = await account.deleteAccount() } }
+            Button("Annuleer", role: .cancel) { account.cancelAppleFailure() }
+            Button("Toch verwijderen", role: .destructive) { Task { _ = await account.deleteAccount(skipApple: true) } }
+        } message: {
+            Text("Je account bestaat nog. Probeer het opnieuw, of verwijder het toch.")
+        }
     }
 
-    // Inloggen zoals je het kent: het merk, één korte kop en twee knoppen. Vóór de knoppen staat
-    // eerlijk dat Hoot op uitnodiging is: wie geen uitnodiging heeft, weet dat vóór het inloggen.
+    // Inloggen zoals je het kent: het merk, één korte kop en twee knoppen. Daaronder dezelfde zin als
+    // op de website: lezen kan zonder account; met een account gaat je Hoot mee.
     private var signIn: some View {
         VStack(spacing: 0) {
             Spacer()
@@ -123,7 +133,7 @@ struct AccountView: View {
                 .foregroundStyle(Theme.ink2)
                 .multilineTextAlignment(.center)
                 .padding(.top, Space.s2)
-            Text("Een account is op uitnodiging. Lezen kan zonder account. Heb je een code? Log in en vul hem in.")
+            Text("Lezen kan zonder account. Met een account reist je Hoot mee naar je andere toestellen.")
                 .font(.subheadline)
                 .foregroundStyle(Theme.ink3)
                 .multilineTextAlignment(.center)
@@ -174,19 +184,14 @@ struct AccountView: View {
         .navigationTitle("")
     }
 
-    private var invite: some View {
+    // Ingelogd, maar je profiel ontbreekt nog (zeldzaam): zeggen hoe het zit, en opnieuw proberen.
+    private var pending: some View {
         Group {
             Section {
                 LabeledContent("Ingelogd als", value: account.session?.email ?? "–")
+                Button("Opnieuw") { Task { await account.retry() } }
             } footer: {
-                Text("Plak je uitnodigingslink of code.").foregroundStyle(Theme.ink3)
-            }
-            Section {
-                TextField("Uitnodigingslink of code", text: $code)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                Button("Word lid") { Task { await account.redeem(code) } }
-                    .disabled(code.trimmingCharacters(in: .whitespaces).isEmpty)
+                Text(Account.pendingText).foregroundStyle(Theme.ink3)
             }
             manage
         }

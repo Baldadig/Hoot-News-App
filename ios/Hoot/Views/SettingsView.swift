@@ -23,8 +23,8 @@ struct SettingsView: View {
         return "\(v) (\(b))"
     }
 
-    // Lid (of je account laadt nog): Bewaard gaat mee met je account, dus wissen wist ook daar.
-    private var savedSyncs: Bool { account.session != nil && account.status != .noInvite }
+    // Ingelogd (of je account laadt nog): Bewaard gaat mee met je account, dus wissen wist ook daar.
+    private var savedSyncs: Bool { account.session != nil && account.status != .pending }
 
     // Seintje bij een nieuwe Editie. De schakelaar is zelf de uitleg: pas bij aanzetten vraagt iOS om
     // toestemming. Zei je eerder nee, dan springt hij terug en wijzen we de weg naar de Instellingen-app.

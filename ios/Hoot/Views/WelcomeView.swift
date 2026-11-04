@@ -562,7 +562,7 @@ struct WelcomeView: View {
             if onRed || step == .uitleg {
                 Button("Inloggen") { login = true }
                     .font(.body.weight(.semibold))
-                    .accessibilityHint("Een account is op uitnodiging. Lezen kan zonder account.")
+                    .accessibilityHint("Lezen kan ook zonder account.")
                     .frame(minHeight: Space.tap)
                     .contentShape(Rectangle())
             } else if inSheet && step == start {
