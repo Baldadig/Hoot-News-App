@@ -1,6 +1,7 @@
 // POST /api/brief — "De editie in één minuut" voor een persoonlijke editie.
-// Alleen voor leden (ingelogd én met een profiel in Supabase), hooguit een paar keer per dag per
-// persoon. Zelfde schrijver en dezelfde controle per zin als de algemene editie (lib/brief.mjs).
+// Alleen met een account (ingelogd én met een profiel in Supabase), hooguit een paar keer per dag
+// per persoon, en hooguit ALL_PER_DAY nieuwe samenvattingen per dag voor alle gebruikers samen
+// (accounts zijn open voor iedereen; dit houdt de kosten begrensd). Zelfde schrijver en dezelfde controle per zin als de algemene editie (lib/brief.mjs).
 // Identieke edities delen hun overzicht (cache op de inhoud).
 import Anthropic from '@anthropic-ai/sdk'
 import { createBrief } from '../lib/brief.mjs'
@@ -9,6 +10,8 @@ import { hash } from '../../shared/util.mjs'
 import { SUPABASE_URL, SUPABASE_KEY } from '../../src/lib/config.js'
 
 export const PER_DAY = 8 // drie edities per dag, met ruimte voor een nieuwe poging
+export const ALL_PER_DAY = 300 // alle gebruikers samen (besluit Alex, 4 november 2026)
+export const FULL_TODAY = 'Vandaag zijn de samenvattingen op. Morgen maakt Hoot er weer een.'
 const fail = (status, error) => Response.json({ error }, { status, headers: { 'Cache-Control': 'no-store' } })
 const str = (v, max) => typeof v === 'string' && v.length <= max
 
@@ -45,7 +48,7 @@ export async function handle(req, { anthropic, member = memberOf, now = Date.now
   if (!anthropic) return fail(503, 'Nog niet beschikbaar.')
   const token = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '')
   const uid = await member(token).catch(() => null)
-  if (!uid) return fail(401, 'Alleen voor leden.')
+  if (!uid) return fail(401, 'Alleen met een account.')
   let body
   try {
     body = await req.json()
@@ -63,7 +66,13 @@ export async function handle(req, { anthropic, member = memberOf, now = Date.now
   const quotaKey = `brief-quota-${uid}-${day}`
   const used = (await kvGet(quotaKey)) || 0
   if (used >= PER_DAY) return fail(429, 'Vandaag geen nieuwe samenvattingen meer.')
+  // Het plafond voor iedereen samen: zelfde opslag als het quotum per persoon. Een samenvatting uit
+  // de cache (hierboven) telt niet mee; alleen een nieuwe aanroep van Claude.
+  const allKey = `brief-quota-all-${day}`
+  const usedAll = (await kvGet(allKey)) || 0
+  if (usedAll >= ALL_PER_DAY) return fail(429, FULL_TODAY)
   await kvSet(quotaKey, used + 1)
+  await kvSet(allKey, usedAll + 1)
 
   const brief = await createBrief(anthropic, rows, { now }).catch(() => null)
   if (!brief) return fail(502, 'De samenvatting lukte niet.')

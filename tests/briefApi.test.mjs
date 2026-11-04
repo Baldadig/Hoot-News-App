@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { handle, validRows, memberOf, PER_DAY } from '../netlify/functions/brief.mjs'
+import { handle, validRows, memberOf, PER_DAY, ALL_PER_DAY, FULL_TODAY } from '../netlify/functions/brief.mjs'
+import { kvGet, kvSet } from '../netlify/lib/kv.mjs'
 
 const rows = [{ entry: 0, sourceName: 'NOS', title: 'Kop', summary: 'Intro.' }]
 const req = (body, { token = 'tok', method = 'POST' } = {}) => new Request('http://x/api/brief', { method, headers: { 'content-type': 'application/json', authorization: token ? `Bearer ${token}` : '' }, body: method === 'POST' ? JSON.stringify(body) : undefined })
@@ -49,4 +50,41 @@ test('lidmaatschap: token bij Supabase, en precies één eigen profiel', async (
   assert.equal(await memberOf('t', fake({ id: 'u1' }, [{ id: 'u1' }])), 'u1')
   assert.equal(await memberOf('t', fake({ id: 'u1' }, [])), null) // ingelogd maar geen lid
   assert.equal(await memberOf('', fake({ id: 'u1' }, [{ id: 'u1' }])), null)
+})
+
+test('plafond voor iedereen samen: 300 nieuwe samenvattingen per dag', () => {
+  assert.equal(ALL_PER_DAY, 300)
+  assert.equal(PER_DAY, 8) // per persoon blijft het 8
+})
+
+test('plafond voor iedereen samen: daarna een nette 429, ook voor wie zelf nog ruimte heeft', async () => {
+  const now = Date.parse('2026-11-04T09:00:00Z')
+  const c = claude()
+  // Tot vlak onder het plafond: nog één nieuwe samenvatting mag.
+  await kvSet('brief-quota-all-2026-11-04', ALL_PER_DAY - 1)
+  const last = await handle(req({ rows: [{ ...rows[0], title: 'Kop plafond laatste' }] }), { anthropic: c, member: async () => 'plafond-a', now })
+  assert.equal(last.status, 200)
+  assert.equal(await kvGet('brief-quota-all-2026-11-04'), ALL_PER_DAY)
+  // Vol: een ander lid, eigen quotum nog leeg, krijgt de melding in Hoots stem.
+  const full = await handle(req({ rows: [{ ...rows[0], title: 'Kop plafond vol' }] }), { anthropic: c, member: async () => 'plafond-b', now })
+  assert.equal(full.status, 429)
+  assert.equal(full.headers.get('cache-control'), 'no-store')
+  const { error } = await full.json()
+  assert.equal(error, FULL_TODAY)
+  assert.doesNotMatch(error, /\d{1,2}[:.]\d{2}|\buur\b|houdt op/) // geen kloktijd, nooit "houdt op"
+  assert.equal(c.calls, 2) // geen nieuwe aanroep van Claude na het plafond
+  // Een geweigerde vraag kost je eigen quotum niets.
+  assert.equal(await kvGet('brief-quota-plafond-b-2026-11-04'), null)
+})
+
+test('plafond voor iedereen samen: een samenvatting uit de cache kan nog wel, en morgen weer nieuw', async () => {
+  const now = Date.parse('2026-11-05T09:00:00Z')
+  const c = claude()
+  const mine = [{ ...rows[0], title: 'Kop gedeeld' }]
+  assert.equal((await handle(req({ rows: mine }), { anthropic: c, member: async () => 'cache-a', now })).status, 200)
+  await kvSet('brief-quota-all-2026-11-05', ALL_PER_DAY)
+  assert.equal((await handle(req({ rows: mine }), { anthropic: c, member: async () => 'cache-b', now })).status, 200) // uit de cache
+  assert.equal((await handle(req({ rows: [{ ...rows[0], title: 'Kop nieuw' }] }), { anthropic: c, member: async () => 'cache-b', now })).status, 429)
+  const tomorrow = Date.parse('2026-11-06T09:00:00Z')
+  assert.equal((await handle(req({ rows: [{ ...rows[0], title: 'Kop nieuw' }] }), { anthropic: c, member: async () => 'cache-b', now: tomorrow })).status, 200)
 })
