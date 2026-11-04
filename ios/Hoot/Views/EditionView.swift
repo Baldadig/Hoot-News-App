@@ -151,7 +151,11 @@ struct EditionView: View {
     @Environment(\.brandHandoff) private var handoff
     @Environment(\.accessibilityReduceMotion) private var still
     @Environment(\.nachtActief) private var nacht
+    @Environment(EditionAlerts.self) private var alerts
     @AppStorage("seenEdition") private var seenEdition = ""
+    @AppStorage("hoot.alertOffered") private var alertOffered = false // de seintje-vraag is één keer gesteld
+    @State private var alertAsk = false // de vraag staat onder de Editie
+    @State private var alertYes = false // net ja gezegd: even zeggen wat er komt
     @State private var printedIDs: Set<String> = []
     @State private var ruleDrawn = true
     @State private var storyShown = true
@@ -251,6 +255,32 @@ struct EditionView: View {
                     withAnimation(.snappy) { store.vote(row.id, items: items, up: up) }
                     UIAccessibility.post(notification: .announcement, argument: up ? "Je ziet meer over \(Taste.about(items))" : "Je ziet minder over \(Taste.about(items))")
                 }
+        }
+    }
+
+    // Ja op de seintje-vraag: de systeemvraag, en bij ja alle drie de dagdelen aan (in Instellingen
+    // per dagdeel aan te passen). Daarna even zeggen wat er komt, en weg.
+    private func askAlerts() {
+        Task {
+            let yes = await alerts.ask()
+            if yes {
+                store.notifySlots = EditionAlerts.slots.map(\.id)
+                store.notify = true
+            }
+            answerAlerts(yes)
+        }
+    }
+
+    private func answerAlerts(_ yes: Bool) {
+        alertOffered = true
+        withAnimation(still ? nil : .easeInOut(duration: 0.3)) {
+            alertAsk = false
+            alertYes = yes
+        }
+        guard yes else { return }
+        Task {
+            try? await Task.sleep(for: .seconds(3))
+            withAnimation(still ? nil : .easeInOut(duration: 0.3)) { alertYes = false }
         }
     }
 
@@ -390,13 +420,23 @@ struct EditionView: View {
             } action: { _, past in
                 if past, store.browsing, !nudge { withAnimation(.easeOut(duration: 0.3)) { nudge = true } }
             }
+            // Het einde van de eerste Editie in beeld: één keer de vraag om een seintje, los van de eindkaart.
+            .onChange(of: endVisible) { _, visible in
+                guard visible, !alertAsk, EditionAlerts.offerAfterEdition(permission: alerts.permission, notify: store.notify, offered: alertOffered, browsing: store.browsing) else { return }
+                withAnimation(still ? nil : .easeOut(duration: 0.3)) { alertAsk = true }
+            }
+            .task { await alerts.refresh() }
             }
             .safeAreaInset(edge: .bottom) {
-                if nudge && store.browsing { MakeItYours(choose: { setup = true }, later: { withAnimation { store.browsing = false } }) }
+                if nudge && store.browsing {
+                    MakeItYours(choose: { setup = true }, later: { withAnimation { store.browsing = false } })
+                } else if alertAsk || alertYes {
+                    AlertOffer(done: alertYes, yes: askAlerts, no: { answerAlerts(false) })
+                }
             }
             // De stappen van het welkom vanaf de interesses, met Annuleer op de eerste.
             .sheet(isPresented: $setup) {
-                WelcomeView(start: .bronnen, onCancel: { setup = false }) { store.browsing = false; setup = false }
+                WelcomeView(start: .interesses, onCancel: { setup = false }) { store.browsing = false; setup = false }
             }
             .debugScroll()
             .background(Theme.paper)
@@ -534,6 +574,44 @@ struct MakeItYours: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
         .shadow(color: .black.opacity(0.12), radius: 8, y: 2) // zweeft, zoals de melding in Bewaard
+        .padding(.horizontal)
+        .padding(.bottom, Space.s2)
+        .column()
+        .transition(.move(edge: .bottom).combined(with: .opacity))
+        .accessibilityElement(children: .contain)
+    }
+}
+
+// Na de eerste Editie, één keer: een seintje als de volgende klaarligt? Een los moment onder de
+// Editie, in de vorm van MakeItYours; de eindkaart houdt zijn ene link. Ja vraagt iOS om toestemming.
+// Op het web is er geen seintje (web-push ligt stil).
+struct AlertOffer: View {
+    var done: Bool
+    var yes: () -> Void
+    var no: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Space.s2) {
+            if done {
+                Label("Je krijgt een seintje als de volgende klaarligt.", systemImage: "bell")
+                    .font(.subheadline)
+                    .frame(minHeight: Space.tap, alignment: .leading)
+            } else {
+                Text("Een seintje als de volgende klaarligt?").font(Theme.headline(.title3)).fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: Space.s4) {
+                    Button("Ja, graag", action: yes).buttonStyle(.ink)
+                    Button("Nu niet", action: no)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Theme.ink2)
+                        .frame(minHeight: Space.tap)
+                }
+                .padding(.top, Space.s1)
+            }
+        }
+        .padding(Space.s4)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+        .shadow(color: .black.opacity(0.12), radius: 8, y: 2)
         .padding(.horizontal)
         .padding(.bottom, Space.s2)
         .column()
