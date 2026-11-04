@@ -20,7 +20,7 @@ export function appStore(aan) {
     APPSTORE_META: '',
     APPSTORE_HELD: `<p class="wacht">${MARK}<span><small>Binnenkort</small> <b>in de App Store</b><em class="wacht-gratis">${ACCOUNT}<br>Binnenkort ook in de App Store.</em></span></p>`,
     APPSTORE_EINDE: `${ACCOUNT}<br>Binnenkort ook in de App Store.`,
-    APPSTORE_LEAD: 'Lees mee in je browser. De app komt eraan.',
+    APPSTORE_LEAD: 'Lees mee in je browser.',
     APPSTORE_VRAAG: '<summary>Wanneer staat Hoot in de App Store?</summary>\n        <p>Binnenkort, in Nederland en België. Tot die tijd lees je Hoot gewoon op het web.</p>',
   }
 }

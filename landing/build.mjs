@@ -45,7 +45,7 @@ const BSKY = (naam, ini, handle, tijd, tekst) => `<div class="sc-item sc-bsky"><
 const L = {
   alles: [
     ['Binnenland', '', 'Netbeheerders mogen eerder beginnen met bouwen, ook als de inspraak nog loopt', 'ON', '4 min geleden'],
-    BSKY('Marit Veenstra', 'MV', '@maritveenstra.bsky.social', '7 min', 'Vanochtend de eerste ijsvogel van het seizoen langs de Vecht. Rustig begin van de dag.'),
+    BSKY('Natuurdagboek', 'ND', '@natuurdagboek.example', '7 min', 'Vanochtend de eerste ijsvogel van het seizoen langs de Vecht. Rustig begin van de dag.'),
     ['Cultuur', '', 'Oude bioscoop in de binnenstad wordt weer filmhuis', 'SK', '11 min geleden'],
     'HIER',
     ['Wereld', 'Buiten je bubbel', 'Zuid-Europese steden zoeken verkoeling met nieuwe stadsbossen', 'WW', '1 uur geleden'],
