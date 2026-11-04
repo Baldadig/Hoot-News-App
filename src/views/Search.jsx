@@ -61,7 +61,7 @@ export default function Search() {
         </ViewHeader>
         {!q.trim() ? (
           <Empty art={SearchArt} title="Zoek in je nieuws">
-            In koppen en intro’s van je Stroom.
+            In koppen, intro’s, bronnen en auteurs, ook in Bewaard.
           </Empty>
         ) : results.length === 0 ? (
           <Empty
@@ -75,7 +75,7 @@ export default function Search() {
               ) : null
             }
           >
-            Hoot zoekt in koppen en intro’s van je Stroom.
+            Hoot zoekt in koppen, intro’s, bronnen en auteurs, ook in Bewaard.
           </Empty>
         ) : (
           <>

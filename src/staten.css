@@ -2,14 +2,15 @@
    placeholder.css. styles.css zelf blijft vastgelegd (tests/zacht-papier) en is van de tokens (pakket 1).
    Telefoon is alles onder 960 (daarboven staat de zijbalk). Geen eigen maten of lettertypen: alleen tokens. */
 
-/* Wat alleen op breed scherm of alleen op de telefoon hoort. !important: een component zet zelf
-   zijn display (grid, flex) en moet hier niet van winnen. */
-@media (max-width: 959.98px) {
+/* Wat alleen bij een breed scherm of een muis hoort (.desk-only) en wat alleen bij een touch-telefoon (.phone-only).
+   Een muis met een smal venster hoort bij "breed": die kan niet trekken om te verversen. !important: een
+   component zet zelf zijn display (grid, flex) en moet hier niet van winnen. */
+@media (max-width: 959.98px) and (not ((hover: hover) and (pointer: fine))) {
   .desk-only {
     display: none !important;
   }
 }
-@media (min-width: 960px) {
+@media (min-width: 960px), ((hover: hover) and (pointer: fine)) {
   .phone-only {
     display: none !important;
   }
@@ -31,7 +32,7 @@
 }
 
 /* Actieregel op de telefoon: delen staat onder "…", dus de plek van delen valt weg en Bewaar sluit aan. */
-@media (max-width: 959.98px) {
+@media (max-width: 959.98px) and (not ((hover: hover) and (pointer: fine))) {
   .meta:has(> .share.desk-only) {
     grid-template-columns: minmax(0, 1fr) auto minmax(var(--tap), auto) 0 var(--tap);
   }
@@ -47,10 +48,14 @@
   align-items: center;
   gap: var(--s3);
   margin-top: var(--s2);
-  padding: var(--s1) var(--s3);
+  padding: 0 var(--s3);
+  box-sizing: border-box;
+  min-height: var(--control-lg);
   border: 1px solid var(--rule);
   border-radius: var(--radius-card);
   color: var(--ink-3);
+  font-size: var(--t2);
+  line-height: var(--lh-2);
 }
 .status--stale > svg {
   flex: none;

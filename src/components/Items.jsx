@@ -1,6 +1,6 @@
 import { CORRECTION_REASONS } from '../lib/corrections.mjs'
 import { cleanIntro, headlineTier } from '../../shared/edition-display.mjs'
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useStackWhenCramped } from '../hooks/useStackWhenCramped.js'
 import { timeAgo, readTime } from '../lib/time.js'
 import { BookmarkIcon, PlayIcon, MoreIcon, ShareIcon, CaretIcon, ICON_SM } from './icons.jsx'
@@ -162,18 +162,43 @@ export function Meta({ item, story, showSave = true, taste = null, outside = fal
 // De berichten van een plek in de Editie (het verhaal, of het losse bericht).
 export const itemsOfEntry = (item, story, itemsById) => (story ? [item, ...(story.itemIds || []).filter((id) => id !== item.id).map((id) => itemsById?.get(id)).filter(Boolean)] : [item])
 
+const wideOrMouse = () => typeof matchMedia === 'function' && matchMedia('(min-width: 960px), ((hover: hover) and (pointer: fine))').matches
+
 // Verhaalopties: smaak en foutmelding zijn aparte acties. Eén rustige ingang in de metaregel.
 export function TasteButton({ entryKey, item, story }) {
   const { voteOn, itemsById, reportMistake, share } = useHoot()
   const [open, setOpen] = useState(false)
   const [said, setSaid] = useState(null)
   const [reporting, setReporting] = useState(false)
+  const moreRef = useRef(null)
+  const reopened = useRef(false)
   const items = itemsOfEntry(item, story, itemsById)
   const pick = (dir) => {
     voteOn(entryKey, items, dir)
     setOpen(false)
     setSaid(`Je voorkeur voor ${dir > 0 ? 'meer' : 'minder'} over ${aboutOf(items)} is bewaard.`)
   }
+  // Esc sluit het paneel en zet de focus terug op de knop "…" die het opende (die knop bestaat dan weer).
+  useEffect(() => {
+    if (!open && !reporting) return
+    const key = (e) => {
+      if (e.key !== 'Escape' || e.defaultPrevented) return
+      e.preventDefault()
+      reopened.current = true
+      setReporting(false)
+      setOpen(false)
+    }
+    document.addEventListener('keydown', key)
+    return () => document.removeEventListener('keydown', key)
+  }, [open, reporting])
+  useEffect(() => {
+    if (!open && !reporting && reopened.current) {
+      reopened.current = false
+      moreRef.current?.focus()
+    }
+  })
+  // Delen staat alleen in het menu waar de knop ernaast wegvalt (touch-telefoon): zelfde voorwaarde als .phone-only.
+  const canShare = !!(share && shareLink(item)) && !wideOrMouse()
   if (said) return <span className="taste__said" role="status">{said}<button type="button" className="linkbtn linkbtn--plain hit" onClick={() => setSaid(null)}>Oké</button></span>
   if (reporting) return <span className="taste" role="group" aria-label="Klopt dit niet?">{Object.entries(CORRECTION_REASONS).map(([reason,label])=><button type="button" className="pill pill--sm hit" key={reason} onClick={() => {const ok=reportMistake?.(item,story?.id || null,reason);setReporting(false);setOpen(false);setSaid(ok?'Melding bewaard op dit toestel. Nog niet verstuurd.':'De melding kon niet worden bewaard.')}}>{label}</button>)}<button type="button" className="linkbtn hit" onClick={()=>setReporting(false)}>Annuleer</button></span>
   return open ? (
@@ -189,7 +214,7 @@ export function TasteButton({ entryKey, item, story }) {
       <button type="button" className="linkbtn hit" onClick={()=>setOpen(false)}>Sluiten</button>
     </span>
   ) : (
-    <button type="button" className="iconbtn" onClick={() => setOpen(true)} aria-label="Verhaalopties: meer, minder of een fout melden" title="Verhaalopties">
+    <button type="button" ref={moreRef} className="iconbtn" onClick={() => setOpen(true)} aria-haspopup="true" aria-label={canShare ? 'Verhaalopties: delen, meer, minder of een fout melden' : 'Verhaalopties: meer, minder of een fout melden'} title="Verhaalopties">
       <MoreIcon />
     </button>
   )
