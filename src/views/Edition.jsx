@@ -106,7 +106,8 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
       if (e.desk === 'bubbel' && prefs?.bubble === false) return null
       const r = resolveEditionEntry(e, { storiesById, itemsById, published, muted })
       if (!r) return null
-      const label = e.desk === 'breed' ? `Waar iedereen over schrijft · ${e.sourceCount} bronnen` : deskLabel({ ...e, desk: r.desk })
+      // Het aantal bronnen staat in de bronregel ("5 bronnen ›"), niet nog eens in de rubriek (E6).
+      const label = e.desk === 'breed' ? 'Waar iedereen over schrijft' : deskLabel({ ...e, desk: r.desk })
       // Het label (lib/label.js): de interesse van de lezer als het verhaal die echt draagt, anders de rubriek;
       // de waarom-regel alleen als die iets toevoegt; 'Buiten je bronnen' staat bij de bronregel.
       const l = labelFor({ topics: r.item.topics, mainTopics: r.item.mainTopics, follows: prefs?.topics || [], cat: sourcesById?.get(r.item.source)?.cat, desk: r.desk, deskLabel: label, why: e.why, followed: r.followed || ['bubbel', 'breed'].includes(e.desk) })

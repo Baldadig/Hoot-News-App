@@ -408,7 +408,8 @@ p {
   letter-spacing: var(--ls-head-6);
 }
 
-/* Label in kapitalen, in drie rollen: sectiekop (inkt), kicker (rubriek, rood) en meta (stil). */
+/* Label in kapitalen, in drie rollen: sectiekop (inkt), kicker (rubriek, stil grijs: minder rood,
+   keuze B) en meta (stil). Het enige rood per scherm is de zon of de punt van hoot. */
 .label {
   font-family: var(--sans);
   font-size: var(--t1);
@@ -421,7 +422,7 @@ p {
   color: var(--ink);
 }
 .label--kicker {
-  color: var(--accent);
+  color: var(--ink-3);
 }
 .label--meta {
   color: var(--ink-3);
@@ -1630,10 +1631,10 @@ select.input {
   color: var(--ink-3);
 }
 .kicker__type {
-  color: var(--accent);
+  color: var(--ink-3);
 }
 /* De telling van de Editie (numberRows): "01 · BUITENLAND". Het nummer in Newsreader 800 op t3, in
-   rood binnen de rolregel van de rubriek; de punt erna is die van de kicker (--ink-3). Regelhoogte
+   inkt naast de grijze rubriek (minder rood, keuze B: zwart cijfer, grijze rubriek, zwarte kop); de punt erna is die van de kicker (--ink-3). Regelhoogte
    lh-1, dus de kicker blijft 16 hoog en het ritme eronder op 4 px. Op die regel zakt Newsreader op
    t3 1 px onder de basislijn van de kapitalen (gemeten); --kicker-n-lift tilt hem optisch terug,
    zonder de regel te verhogen (align-items: baseline zou de kicker 17 hoog maken). Proportionele
@@ -1657,7 +1658,7 @@ select.input {
   font-weight: var(--fw-head);
   letter-spacing: 0;
   text-transform: none;
-  color: var(--accent);
+  color: var(--ink);
 }
 .is-read .kicker__n {
   color: var(--ink-3);
@@ -1801,25 +1802,20 @@ select.input {
   line-height: var(--lh-1);
 }
 
-/* "Vergelijk N bronnen": een .linkbtn--plain, bewust in krantenrood (zie --accent). Alleen het
-   begin schuift terug naar de kolomlijn; het eind houdt zijn lucht tot de knoppen ernaast. */
+/* "N bronnen ›": één bronlabel, altijd het totaal, in --ink-2 (minder rood, keuze B). Kort genoeg
+   voor elke breedte, dus geen tweede vorm op de telefoon. Alleen het begin schuift terug naar de
+   kolomlijn; het eind houdt zijn lucht tot de knoppen ernaast. */
 .morebtn {
-  gap: var(--s2);
+  gap: var(--s1);
   margin-inline-end: 0;
-  color: var(--accent);
+  color: var(--ink-2);
+  font-size: var(--t1);
+  font-weight: var(--fw-ui);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
-/* Iets anders dan filteren; op een smalle telefoon het korte "+N bronnen",
-   anders wordt de bron- en tijdregel ernaast afgekapt (gemeten: bij 402 px al, bij 430 px niet). */
-.morebtn__short {
-  display: none;
-}
-@media (max-width: 419px) {
-  .morebtn__long {
-    display: none;
-  }
-  .morebtn__short {
-    display: inline;
-  }
+.morebtn > .dot {
+  margin-inline-end: var(--s1);
 }
 /* Nieuw in het verhaal: een stip in de kleur van de knop waar hij in staat. */
 .dot {
@@ -3873,9 +3869,22 @@ select.input {
   position: absolute;
   inset: calc((var(--control-sm) - var(--tap)) / 2) 0;
 }
+/* Gekozen: een zacht inktvlak met het vinkje van .pill (minder rood, de segmenten van A). Nooit
+   alleen een kleur: het vinkje zegt het ook. */
 .seg__btn[aria-pressed='true'] {
-  background: var(--sel-bg);
-  color: var(--sel-fg);
+  gap: var(--s1);
+  background: var(--tint);
+  color: var(--ink);
+}
+.seg__btn[aria-pressed='true']::after {
+  content: '';
+  order: -1;
+  flex: none;
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+  background: currentColor;
+  -webkit-mask: var(--icon-check) center / contain no-repeat;
+  mask: var(--icon-check) center / contain no-repeat;
 }
 /* Tekstgrootte: de drie A's tonen zelf de stap (t1, t2, t4). */
 .seg__btn--klein {

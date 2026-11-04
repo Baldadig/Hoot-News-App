@@ -11,8 +11,13 @@ export const WHY_IN_LABEL = new Set(['rubriek', 'extern', 'bubbel', 'breed'])
 // vóór het waarom, of een reden die het label al zegt).
 export function whyLine(why) {
   if (!why || typeof why.text !== 'string' || !why.text.trim()) return null
-  return why.code === 'interest' || /^Omdat je .+ volgt\.?$/.test(why.text) || (WHY_IN_LABEL.has(why.code) && why.detail !== true) ? null : why.text
+  if (why.code === 'interest' || /^Omdat je .+ volgt\.?$/.test(why.text) || (WHY_IN_LABEL.has(why.code) && why.detail !== true)) return null
+  return plainWhy(why.text)
 }
+
+// Het aantal bronnen staat al in de bronregel ("12 bronnen ›"): de waarom-regel noemt het niet nog
+// eens. "Groot nieuws · 12 bronnen" wordt "Groot nieuws" (minder rood, E6).
+export const plainWhy = (text) => text.replace(/\s*·\s*\d+\s+bronn?en?$/, '')
 
 // Hiërarchie van een plek: rubriek (kicker) > kop > intro > why/bron. Het waarom hoort bij de plek,
 // niet bij het artikel, dus het staat bij de rubriek (direct eronder, zoals in de bouwspec), maar

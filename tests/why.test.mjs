@@ -15,7 +15,7 @@ const render = (why) => renderToStaticMarkup(createElement(Why, { why }))
 
 test('why-label: één stille zin, zonder kapitalen-klasse en zonder rood', () => {
   const html = render({ code: 'groot', text: 'Groot nieuws · 12 bronnen' })
-  assert.equal(html, '<p class="why">Groot nieuws · 12 bronnen</p>')
+  assert.equal(html, '<p class="why">Groot nieuws</p>')
   assert.ok(!/label|kicker|accent/.test(html))
   assert.equal(render({ code: 'learned', text: 'Omdat je vaak over AI leest' }), '<p class="why">Omdat je vaak over AI leest</p>')
   assert.equal(render({ code: 'buur', text: 'Naast je bubbel · grenst aan Sport' }), '<p class="why">Naast je bubbel · grenst aan Sport</p>')
@@ -33,7 +33,7 @@ test('why-label: niets zonder why (algemene of oudere Editie) en niets als het l
   assert.equal(whyLine(whyOf({}, { desk: 'vs', plannedDesk: true })), null)
   // Wat wél iets toevoegt aan het rubrieklabel.
   assert.equal(whyLine(whyOf({ desk: 'bubbel', near: 'sport' })), 'Naast je bubbel · grenst aan Sport')
-  assert.equal(whyLine(whyOf({}, { sourceCount: 8, desk: 'binnenland' })), 'Groot nieuws · 8 bronnen')
+  assert.equal(whyLine(whyOf({}, { sourceCount: 8, desk: 'binnenland' })), 'Groot nieuws') // het aantal staat in de bronregel (E6)
 })
 
 test('why-label: geen getallen behalve de bronnen- of stukkentelling', () => {

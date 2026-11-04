@@ -194,7 +194,11 @@ test('De Editie telt: nummer in de kicker, "N van N" op de rode kaart, de bubbel
   assert.match(ed, /<CompactItem n=\{r\.n\}/)
   assert.match(read('lib/edition.js'), /desk === 'bubbel' \? null/)
   const css = read('styles.css')
-  assert.match(css, /\.kicker__n \{[^}]*font-family: var\(--serif\)[^}]*color: var\(--accent\)/)
+  // Minder rood (keuze B): het cijfer in inkt, de rubriek in --ink-3, één bronlabel "N bronnen ›" in --ink-2.
+  assert.match(css, /\.kicker__n \{[^}]*font-family: var\(--serif\)[^}]*color: var\(--ink\);/)
+  assert.match(css, /\.label--kicker \{\s*color: var\(--ink-3\);/)
+  assert.match(css, /\.morebtn \{[^}]*color: var\(--ink-2\);/)
+  assert.ok(!/morebtn__(long|short)/.test(read('components/Items.jsx')), 'geen tweede vorm van het bronlabel per breedte')
   assert.match(css, /\.is-read \.kicker__n \{\s*color: var\(--ink-3\)/)
 })
 

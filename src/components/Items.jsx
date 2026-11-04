@@ -2,7 +2,7 @@ import { CORRECTION_REASONS } from '../lib/corrections.mjs'
 import { cleanIntro, headlineTier } from '../../shared/edition-display.mjs'
 import { createContext, useContext, useState } from 'react'
 import { timeAgo, readTime } from '../lib/time.js'
-import { BookmarkIcon, PlayIcon, MoreIcon, ShareIcon } from './icons.jsx'
+import { BookmarkIcon, PlayIcon, MoreIcon, ShareIcon, CaretIcon, ICON_SM } from './icons.jsx'
 import { imageMeta, portraitImage, cropStyle } from '../lib/image-meta.js'
 import { shareLink } from '../lib/share.js'
 import { topicById } from '../lib/topics.js'
@@ -121,6 +121,9 @@ export function SourceMeta({ item, outside = false }) {
   )
 }
 
+// Het bronlabel: altijd het totaal, "1 bron" of "N bronnen" (de pijl staat ernaast als icoon).
+export const bronnenLabel = (n) => `${n} ${n === 1 ? 'bron' : 'bronnen'}`
+
 // Actieregel: vaste plekken — bron · vergelijken · meer of minder · delen · bewaren. Ontbreekt er
 // een, dan blijft zijn plek leeg, zodat "Vergelijk", delen en bewaren in elke rij van een scherm
 // op dezelfde x staan (een scherm zonder meer of minder heeft die plek niet, zie .meta). Delen en
@@ -133,10 +136,12 @@ export function Meta({ item, story, showSave = true, taste = null, outside = fal
     <div className="meta">
       <SourceMeta item={item} outside={outside} />
       {story && others > 0 ? (
-        <button type="button" className="linkbtn linkbtn--plain morebtn" onClick={() => openStory(story.id, item.id)} aria-label={`Vergelijk met ${others} andere ${others === 1 ? 'bron' : 'bronnen'}${fresh ? `, ${fresh} nieuw` : ''}`}>
+        // Eén bronlabel, overal hetzelfde: het totaal, "6 bronnen ›", in --ink-2 (minder rood, keuze B).
+        // Geen rood en geen tweede vorm ("Vergelijk", "+N") per breedte.
+        <button type="button" className="linkbtn linkbtn--plain morebtn" onClick={() => openStory(story.id, item.id)} aria-label={`Vergelijk ${others + 1} bronnen${fresh ? `, ${fresh} nieuw` : ''}`}>
           {fresh ? <span className="dot" aria-hidden="true" /> : null}
-          <span className="morebtn__long">Vergelijk {others + 1} bronnen</span>
-          <span className="morebtn__short">+{others} {others === 1 ? 'bron' : 'bronnen'}</span>
+          <span>{bronnenLabel(others + 1)}</span>
+          <CaretIcon size={ICON_SM} />
         </button>
       ) : null}
       {(taste || voteOn || reportMistake) && item.kind !== 'post' ? <TasteButton entryKey={taste || story?.id || item.id} item={item} story={story} /> : null}
