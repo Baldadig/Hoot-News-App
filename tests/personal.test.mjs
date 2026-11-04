@@ -200,7 +200,8 @@ test('een bericht van een vakbron krijgt de rubriek van de bron (buiten de indel
     art('fr1', 'nos', 'Franse president ontbindt parlement in Parijs', { publishedAt: ago(0.5) }),
   ]
   const st = [...stories, { id: 'sBrit', leadId: 'bu1', itemIds: ['bu1', 'bu2'], sourceCount: 3, latestAt: ago(0.4) }, { id: 'sFrans', leadId: 'fr1', itemIds: ['fr1'], sourceCount: 3, latestAt: ago(0.5) }]
-  const e = composePersonal({ global, stories: st, items: [...items, ...abroad, review], sources, followed, interests: ['wereld'], now: NOW, builtAt: 'T' })
+  // Een review is licht (consumententech, 4 november): deze lezer koos naast Wereld ook gadgets.
+  const e = composePersonal({ global, stories: st, items: [...items, ...abroad, review], sources, followed, interests: ['wereld', 'tech'], topics: ['oekraine', 'middenoosten', 'azie', 'afrika', 'latam', 'geopolitiek', 'gadgets'], now: NOW, builtAt: 'T' })
   assert.deepEqual(['sBrit', 'sFrans'].map((id) => e.entries.find((x) => x.id === id).desk), ['buitenland', 'buitenland'])
   assert.equal(e.entries.find((x) => (x.leadId || x.id) === 'rv').desk, 'tech')
 })

@@ -190,7 +190,10 @@ export function composePersonal({ global, stories = [], items = [], sources = []
     const members = [...new Set([id, ...(st?.itemIds || []), ...(entry.itemIds || [])])].map(x => itemAny.get(x)).filter(Boolean)
     const meta = st || entry
     const desk = st?.desk ?? entry.fromDesk ?? entry.desk ?? null
-    return { allowed: allowedNews(prof, meta, members, desk), abroad: internationalNews(members, desk, meta), capped: cappedInternational(prof,members,desk,meta), members, meta, desk }
+    // Buiten je bubbel (de plek zelf of een kandidaat ervoor) mag licht zijn; zie newsRejection.
+    const bubble = entry.desk === 'bubbel' || entry.bubble === true
+    const reason = newsRejection(prof, meta, members, desk, { bubble })
+    return { allowed: reason === null, reason, abroad: internationalNews(members, desk, meta), capped: cappedInternational(prof,members,desk,meta), members, meta, desk }
   }
   const unchosenAbroad = (id, sid) => capAbroad && policyOf(id, sid).capped
   const eligible = (id, sid, entry = {}) => {
@@ -336,7 +339,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   if (bubbleEntry) {
     // Zonder Wereld geen buitenlands bubbelstuk (feedback 31 oktober: Seedorf bij Corinthians, Braziliaans
     // voetbal, ook voor wie alleen Binnenland koos): dan het volgende signaal, of "Naast je bubbel".
-    const okB = (b) => itemAny.has(b.id) && eligible(b.id, b.storyId, b) && !clashes(b.id) && unread(b.id, b.storyId) && outsideProfile(topicsOfStory(b.storyId, b.id), prof) && !(abroad >= INT_MAX && unchosenAbroad(b.id, b.storyId))
+    const okB = (b) => itemAny.has(b.id) && eligible(b.id, b.storyId, { ...b, bubble: true }) && !clashes(b.id) && unread(b.id, b.storyId) && outsideProfile(topicsOfStory(b.storyId, b.id), prof) && !(abroad >= INT_MAX && unchosenAbroad(b.id, b.storyId))
     // Eerst het signaal dat de algemene editie koos, dan de andere kandidaten van de server.
     const first = (global.bubble || []).find((b) => b.id === bubbleEntry.id) || { id: bubbleEntry.id }
     const alt = [first, ...(global.bubble || [])].find(okB)
@@ -350,7 +353,7 @@ export function composePersonal({ global, stories = [], items = [], sources = []
         .filter((st) => st.sourceCount >= NEAR_MIN_SOURCES && now - Date.parse(st.latestAt) < 24 * 36e5)
         .sort((a, b) => b.sourceCount - a.sourceCount || byText(a.id, b.id))
         .map((st) => ({ storyId: st.id, sourceCount: st.sourceCount, topics: topicsOfStory(st.id), item: itemAny.get(st.leadId) || st.itemIds.map((x) => itemAny.get(x)).find(Boolean) }))
-      const fits = (w) => w?.item?.id && eligible(w.item.id, w.storyId, w) && !clashes(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && unread(w.item.id, w.storyId) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t])) && !(abroad >= INT_MAX && unchosenAbroad(w.item.id, w.storyId))
+      const fits = (w) => w?.item?.id && eligible(w.item.id, w.storyId, { ...w, bubble: true }) && !clashes(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && unread(w.item.id, w.storyId) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t])) && !(abroad >= INT_MAX && unchosenAbroad(w.item.id, w.storyId))
       const pick = [...(global.near || []), ...recent].find(fits)
       bubbleEntry = pick ? withHistory({ kind: 'story', id: pick.storyId, leadId: pick.item.id, desk: 'bubbel', near: home }, pick.item.id, pick.storyId) : null
       if (pick) {
@@ -375,13 +378,18 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   let internationalCount = 0
   const accepted = []
   let capacity = EDITION_SIZE
+  // De vloer (EDITION_FLOOR): haalt de Editie die niet met nieuws, dan mag een licht stuk buiten je
+  // interesses (games, cultuur, lifestyle, consumententech) de laatste plekken vullen, en alleen dat: sport,
+  // het internationale plafond en de rest van de normen wijken nooit.
+  let floorLight = false
   const accept = e => {
     if (accepted.length >= capacity) return
     const id = e.leadId || e.id
     const p = policyOf(id, e.kind === 'story' ? e.id : null, e)
     const ids = [...membersOf(e)]
     if (ids.some(x => finalTaken.has(x)) || (sigAll.has(id) && finalLeads.some(x => sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x))))) return
-    if (!p.allowed || (capAbroad && p.capped && internationalCount >= INT_MAX)) return
+    const allowed = p.allowed || (floorLight && p.reason === 'licht-buiten-interesse')
+    if (!allowed || (capAbroad && p.capped && internationalCount >= INT_MAX)) return
     if (p.capped) internationalCount++
     ids.forEach(x => finalTaken.add(x))
     finalLeads.push(id)
@@ -393,6 +401,12 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   for (const { g } of fillCands) {
     if (accepted.length >= EDITION_SIZE) break
     accept(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }, g.leadId || g.id, g.kind === 'story' ? g.id : null))
+  }
+  if (accepted.length < EDITION_FLOOR) {
+    floorLight = true
+    capacity = EDITION_FLOOR
+    selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE, allowLight: true }).forEach(accept)
+    floorLight = false
   }
   // Pas na hooguit tien gewone plekken: één optionele bubbel, met dezelfde inhouds- en dubbelgrenzen.
   if (bubbleEntry) { capacity = accepted.length + 1; accept(bubbleEntry) }

@@ -121,13 +121,103 @@ export function lightVideoFiller(item, prof = null) {
   const video = /\b(youtube|tiktok|videos?|trailers?)\b/i.test(title)
   return curated && video && !((prof?.family?.cultuur || 0) >= 0.5 && (prof?.topicP?.film || 0) >= 0.5)
 }
-export function newsRejection(prof, story, items, desk = null) {
+// ---- Lichte stukken (4 november 2026) ----
+// Gezien: een GTA VI-downloadgrootte en de naam van Elder Scrolls VI op plek 3 en 4 van de algemene
+// Avondeditie (vier games- en techsites tellen als vier uitgevers), en Martha Stewart op 09 in een schone
+// beginnerseditie. Games, cultuur en entertainment, lifestyle en consumententech (reviews, deals) zijn een
+// eigen soort, net als sport: in een Editie alleen voor wie dat gebied koos, of als het groot nieuws is
+// volgens algemene nieuwsuitgevers. Een vakkop met een harde nieuwsreden (rechter, toezichthouder,
+// ontslagen, hack, overheid) blijft nieuws. Geen titels of namen: bron, onderwerp, URL-rubriek en kopvorm.
+const LIGHT_CAT = { games: 'games', cultuur: 'cultuur' }
+const LIGHT_TOPIC = { games: 'games', film: 'cultuur', muziek: 'cultuur', boeken: 'cultuur', kunst: 'cultuur', media: 'cultuur' }
+const LIGHT_PATH_GAMES = /\/(games?|gaming|gameblog)\//i
+const LIGHT_PATH = /\/(entertainment|showbizz|boulevard|celebrit\w*|lifestyle|style|fashion|mode|t-magazine|dining|food|eten|koken-en-eten|recepten|travel|reizen|realestate|arts|books|boeken|movies|theater|television|tv|film|muziek|music|kunst-media|media-en-cultuur|cultuur(?:-media)?|culture)\//i
+const LIGHT_HEAD = /\b(podcast\w*|talkshow\w*|presentat(?:or|rice)\w*|tv-serie\w*|streamingdienst\w*|kookboek\w*|recept\w*|recipe\w*)\b/i
+const CONSUMER_PATH = /\/(reviews?|deals?|gift-guide|buying-guide|best-\w+)\//i
+const CONSUMER_HEAD = /(^|\b)(review|getest|hands-on|deal|deals|korting|aanbieding|buying guide|gift guide|best (?:\w+ ){0,3}(?:to buy|for \w+))\b/i
+// Een harde nieuwsreden in de kop, of een onderwerp van politiek of wereld: dan is het geen licht stuk.
+const HARD_HEAD = /\b(rechter\w*|rechtbank|rechtszaak|court|lawsuit|sued|sues|verbod|verboden|ban|bans|banned|boete\w*|fined?|fines|toezichthouder\w*|regulator\w*|antitrust|mededinging\w*|ontslag\w*|layoffs?|laid off|staking\w*|strike|hack\w*|datalek\w*|breach|lek|minister\w*|kabinet\w*|regering\w*|government|congres\w*|congress|senaat|senate|parlement\w*|kamer\w*|politie|police|arrest\w*|aangehouden|oorlog|war|aanslag\w*|sanctie\w*|sanctions?|tarie\w*|tariffs?|faillis\w*|bankrupt\w*)\b/i
+const HARD_FAMILIES = new Set(['politiek', 'wereld'])
+// De soort van één bericht: 'games', 'cultuur' (ook entertainment en lifestyle), 'consument' of null.
+const hardNews = (item) => HARD_HEAD.test(item?.title || '') || (item?.topics || []).some((t) => HARD_FAMILIES.has(FAMILY_OF[t]))
+export function lightKind(item, catOf = null) {
+  if (!item) return null
+  const title = item.title || ''
+  if (hardNews(item)) return null
+  const url = String(item.url || '').split('?')[0]
+  const cat = catOf?.get(item.source) ?? SPORT_CAT.get(item.source)
+  const byTopic = (item.topics || []).map((t) => LIGHT_TOPIC[t]).find(Boolean)
+  if (LIGHT_CAT[cat]) return LIGHT_CAT[cat]
+  if (LIGHT_PATH_GAMES.test(url) || byTopic === 'games') return 'games'
+  if (byTopic || LIGHT_PATH.test(url) || LIGHT_HEAD.test(title)) return 'cultuur'
+  if (CONSUMER_PATH.test(url) || CONSUMER_HEAD.test(title)) return 'consument'
+  return null
+}
+// Een verhaal is licht als een echte meerderheid van zijn uitgevers het als licht stuk brengt (zoals sportStory):
+// per uitgever telt de helft van zijn stukken. `story.light` van de server (die alle stukken kent) wint.
+// Zonder dat veld (een oudere server) tellen uitgevers die alleen bij naam bekend zijn (story.sourceNames)
+// alleen mee als hun rubriek in de catalogus games of cultuur is; een algemene krant waarvan het toestel
+// het stuk niet heeft, is onbekend en telt niet mee. Uitvoer: de soort die het vaakst voorkomt, of null.
+const CAT_BY_NAME = new Map(SOURCES.map((s) => [s.name, s.cat]))
+const ID_BY_NAME = new Map(SOURCES.map((s) => [s.name, s.id]))
+const LIGHT_ORDER = ['games', 'cultuur', 'consument']
+export function lightStory(story = {}, items = [], catOf = null) {
+  if (story && story.light !== undefined) return story.light || null
+  const bySource = new Map()
+  for (const i of items) if (i?.source) (bySource.get(i.source) || bySource.set(i.source, []).get(i.source)).push(i)
+  const units = new Map()
+  let hard = 0
+  for (const [src, its] of bySource) {
+    const kinds = its.map((i) => lightKind(i, catOf)).filter(Boolean)
+    if (its.some(hardNews)) hard++
+    units.set(its[0].sourceName || src, kinds.length * 2 >= its.length ? kinds[0] : null)
+  }
+  for (const name of story?.sourceNames || []) if (!units.has(name) && LIGHT_CAT[CAT_BY_NAME.get(name)]) units.set(name, LIGHT_CAT[CAT_BY_NAME.get(name)])
+  const kinds = [...units.values()].filter(Boolean)
+  // Een echte meerderheid van de uitgevers, of de helft met minstens twee lichte uitgevers en geen enkele
+  // met een harde nieuwsreden (vier sites over Elder Scrolls VI, waarvan twee gamesites). Eén licht stuk
+  // naast één nieuwsstuk (een verkeerde bundel) blijft nieuws.
+  const enough = kinds.length * 2 > units.size || (kinds.length >= 2 && hard === 0 && kinds.length * 2 >= units.size)
+  if (!units.size || !enough) return null
+  const count = {}
+  for (const k of kinds) count[k] = (count[k] || 0) + 1
+  return [...LIGHT_ORDER].sort((a, b) => (count[b] || 0) - (count[a] || 0) || LIGHT_ORDER.indexOf(a) - LIGHT_ORDER.indexOf(b))[0]
+}
+// Groot nieuws voor een licht verhaal telt alleen algemene nieuwsuitgevers (geen games-, tech- of
+// cultuursites): vier gamesites over een downloadgrootte zijn geen vier redacties die het nieuws vinden.
+const GENERAL_CATS = new Set(['nl', 'vl', 'int', 'regio'])
+export function majorGeneralNews(story = {}, items = [], catOf = null) {
+  if (onlyGalleries(items)) return false
+  const catFor = (id) => catOf?.get(id) ?? SPORT_CAT.get(id)
+  const ids = new Set(items.map((i) => i?.source).filter((id) => id && GENERAL_CATS.has(catFor(id))).map(publisherOf))
+  for (const name of story.sourceNames || []) if (GENERAL_CATS.has(CAT_BY_NAME.get(name))) ids.add(publisherOf(ID_BY_NAME.get(name)))
+  const countries = new Set([...ids].map(publisherCountry).filter(Boolean))
+  return ids.size >= FRONT_BIG || (ids.size >= 5 && countries.size >= 2)
+}
+// Koos de lezer dit gebied? Games: het onderwerp games (scherp of uit lezen); cultuur: het gebied Cultuur;
+// consumententech: het onderwerp gadgets.
+export function lightChosen(prof, kind) {
+  if (kind === 'games') return (prof?.topicP?.games || 0) >= 0.5
+  if (kind === 'cultuur') return (prof?.family?.cultuur || 0) >= 0.5
+  if (kind === 'consument') return (prof?.topicP?.gadgets || 0) >= 0.5
+  return true
+}
+// Het hele verhaal als het bekend is: de stukken van de lezer plus wat de server over de bronnen zegt.
+export const lightNews = (story, items, catOf = null) => (story?.light === undefined && items.length === 1 && !(story?.sourceNames || []).length ? lightKind(items[0], catOf) : lightStory(story, items, catOf))
+
+// `bubble`: de plek Buiten je bubbel. `allowLight`: alleen om de vloer van een Editie te halen (EDITION_FLOOR).
+export function newsRejection(prof, story, items, desk = null, { bubble = false, allowLight = false } = {}) {
   if (onlyGalleries(items)) return 'alleen-galerijen'
   if (items.length && items.every(i=>lightVideoFiller(i,prof))) return 'licht-videorondje-buiten-interesse'
   if ((sportStory(story, items, prof.catOf) || items.some(i => isSport(i, prof.catOf))) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return 'sport-niet-gekozen'
+  // Buiten je bubbel mag juist iets lichts buiten je profiel zijn; alle gewone plekken niet.
+  if (!bubble && !allowLight) {
+    const light = lightNews(story, items, prof.catOf)
+    if (light && !lightChosen(prof, light) && !majorGeneralNews(story, items, prof.catOf)) return 'licht-buiten-interesse'
+  }
   if (!worldChosen(prof) && cappedInternational(prof, items, desk, story) && !majorNews(story, items)) return 'internationaal-niet-groot-genoeg'
   return null
 }
-export const allowedNews = (prof, story, items, desk = null) => newsRejection(prof, story, items, desk) === null
+export const allowedNews = (prof, story, items, desk = null, opts = {}) => newsRejection(prof, story, items, desk, opts) === null
 
 export {EDITION_TARGET,EDITION_AUDIT_BELOW,EDITION_FLOOR,editionStoryCount} from './edition-limits.mjs'
