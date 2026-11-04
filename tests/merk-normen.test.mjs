@@ -45,3 +45,13 @@ test('pull-strook sluit in 400 ms met ease-glide, de h. vervaagt in 140 ms (bewe
   assert.match(css, /--ease-glide: cubic-bezier\(0\.2, 0\.8, 0\.2, 1\)/)
   assert.doesNotMatch(motion, /easeOut\(duration: 0\.3\)|milliseconds\(150\)/)
 })
+test('leesbreedte vastgelegd: web 720 (--measure) voor elk leesblok, iOS 680', () => {
+  assert.match(css, /--measure: 720px;/)
+  assert.match(swift('Views/Layout.swift'), /static let readable: CGFloat = 680/)
+  assert.match(css, /\.story__body \{\s*max-width: var\(--measure\);/)
+  assert.match(css, /--story-edge: calc\(\(100% - var\(--measure\)\)/)
+  // --readable blijft alleen voor Welkom (.col), geen leesblok.
+  const uses = [...css.matchAll(/var\(--readable\)/g)].length
+  assert.equal(uses, 1)
+  assert.match(css, /\.col \{\s*max-width: var\(--readable\);/)
+})

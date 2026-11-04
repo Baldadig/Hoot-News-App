@@ -4,7 +4,7 @@ import SwiftUI
 // iPhone Duo en iPad. Wisselt het venster van breedte (vouwen, Split View, Stage Manager), dan
 // past de opmaak zich live aan zonder dat je je plek kwijtraakt.
 enum Layout {
-    static let readable: CGFloat = 680 // leesbreedte: comfortabele regellengte voor lopende tekst
+    static let readable: CGFloat = 680 // leesbreedte van iOS (norm v2.2: iOS 680, web --measure 720); de regellengte is op beide ± 58ch
     static let wide: CGFloat = 1000 // brede pagina (editie, digest) op iPad en opengevouwen
     // Miniatuur in de krant-indeling: 3:2 op een vaste breedte, 96 × 64; bij grotere tekst 108 × 72
     // (beide op de 4-pt-schaal). Op het web is dat --thumb-size.

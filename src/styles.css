@@ -70,10 +70,10 @@
   /* Maat */
   --gutter: 16px;
   --tap: 44px;
-  --readable: 680px; /* oude leesbreedte: nog van de kolom en het verhaal; gaat op in --measure zodra die hun eigen maat krijgen */
+  --readable: 680px; /* de leesbreedte van iOS (Layout.readable). Op het web alleen nog Welkom (.col): dat is geen leesblok */
   --wide: 1000px; /* het paginaraam (--page) */
   --page: var(--wide);
-  --measure: 720px; /* leesblok */
+  --measure: 720px; /* leesblok van het web (norm v2.2: web 720, iOS 680; de regellengte zelf is --measure-prose) */
   --measure-prose: 58ch; /* lopende tekst, samenvattingen en hints: ten hoogste ± 75 tekens per regel (een ch is de breedte van een 0, breder dan een gemiddelde letter; 65ch gaf tot 83) */
   --measure-form: 560px; /* Bronnen en Instellingen */
   --measure-end: 30ch; /* einde van de Editie: kort, gebalanceerd */
@@ -2820,7 +2820,7 @@ select.input {
    het leesblok (de dialoog op tablet), de randen van dat leesblok. Het eerste en het laatste
    icoon staan optisch op die lijn (--tap-inset), net als in de schermkop. */
 .story__head {
-  --story-edge: calc((100% - var(--readable)) / 2 + var(--gutter));
+  --story-edge: calc((100% - var(--measure)) / 2 + var(--gutter));
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
@@ -2849,7 +2849,7 @@ select.input {
   padding-left: var(--s2);
 }
 .story__body {
-  max-width: var(--readable);
+  max-width: var(--measure);
   margin: 0 auto;
   padding: var(--s4) calc(var(--gutter) + var(--safe-r)) calc(var(--s7) + var(--safe-b)) calc(var(--gutter) + var(--safe-l));
 }
