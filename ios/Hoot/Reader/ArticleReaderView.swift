@@ -158,6 +158,25 @@ struct ArticleReaderView: View {
 
 }
 
+// De letters van de lezer. WKWebView ziet de letters van de app (UIAppFonts) niet, dus ze gaan als
+// @font-face mee in de pagina, uit dezelfde bestanden (Resources/Fonts). Eén keer opgebouwd.
+enum ReaderFonts {
+    private static func face(_ family: String, _ file: String, weight: Int, style: String = "normal") -> String {
+        guard let url = Bundle.main.url(forResource: file, withExtension: "ttf"), let data = try? Data(contentsOf: url) else { return "" }
+        return "@font-face { font-family: \"\(family)\"; src: url(data:font/ttf;base64,\(data.base64EncodedString())) format(\"truetype\"); font-weight: \(weight); font-style: \(style); }"
+    }
+    private static let common = [
+        face("Newsreader Kop", "NewsreaderKop-800", weight: 800),
+        face("Newsreader Tekst", "NewsreaderTekst-700", weight: 700),
+        face("Newsreader Tekst", "NewsreaderTekst-400-cursief", weight: 400, style: "italic"),
+        face("Inter", "Inter-400", weight: 400),
+        face("Inter", "Inter-800", weight: 800),
+    ].joined(separator: "\n")
+    private static let day = face("Newsreader Tekst", "NewsreaderTekst-400", weight: 400)
+    private static let nacht = face("Newsreader Tekst", "NewsreaderTekst-430", weight: 400) // Nacht: 430 op de plek van 400
+    static func css(night: Bool) -> String { common + "\n" + (night ? nacht : day) }
+}
+
 // De opmaak van een artikel: HTML met de kleuren en letters van Hoot. JavaScript staat uit.
 enum ReaderHTML {
     static let scales = [0.9, 1.0, 1.15, 1.32]
@@ -174,12 +193,13 @@ enum ReaderHTML {
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="color-scheme" content="light dark">
         <style>
+        \(ReaderFonts.css(night: night))
         :root { --paper:#F5F1E8; --ink:#1A1814; --ink-3:#6B6457; --rule:#DED5C4; --accent:#A3201B; } /* tokens van het design system */
         @media (prefers-color-scheme: dark) { :root { --paper:#151310; --ink:#F1ECE2; --ink-3:#A39B8D; --rule:#34302A; --accent:#EC7A70; } }
         html { font: -apple-system-body; -webkit-text-size-adjust: 100%; }
         body { margin:0; background:var(--paper); color:var(--ink); }
-        main { max-width: 680px; margin: 0 auto; padding: 16px 16px 48px; /* s4, s7 */ font-family: \(night ? "\"Newsreader Tekst Nacht\", " : "")"Newsreader Tekst", ui-serif, Georgia, serif; font-size: calc(1.06rem * \(scale)); line-height: 1.6; } /* lopende tekst: Newsreader op tekstmaat, in Nacht 430 (Letters.swift) */
-        .kicker { font-family: "Inter ExtraBold", Inter, -apple-system, system-ui, sans-serif; font-size: .72em; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 .6em; }
+        main { max-width: 680px; margin: 0 auto; padding: 16px 16px 48px; /* s4, s7 */ font-family: "Newsreader Tekst", ui-serif, Georgia, serif; font-size: calc(1.06rem * \(scale)); line-height: 1.6; } /* lopende tekst: Newsreader op tekstmaat, in Nacht 430 (ReaderFonts) */
+        .kicker { font-family: Inter, -apple-system, system-ui, sans-serif; font-size: .72em; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 .6em; }
         h1.title { font-family: "Newsreader Kop", ui-serif, Georgia, serif; font-size: min(1.75em, 48px); line-height: 1.15; font-weight: 800; margin: 0 0 .4em; } /* bij heel grote tekst niet een heel scherm kop */
         .meta { font-family: Inter, -apple-system, system-ui, sans-serif; font-size: .8em; color: var(--ink-3); margin: 0 0 1.6em; padding-bottom: 1em; border-bottom: 1px solid var(--rule); }
         h1, h2, h3, h4 { line-height: 1.25; -webkit-hyphens: manual; hyphens: manual; } /* eigennamen in de kop breken nooit af */
