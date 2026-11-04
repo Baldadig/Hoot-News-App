@@ -683,7 +683,7 @@ struct LeadCard: View {
     @State private var beeldMislukt = false // het beeld laadt niet: dan de beeldloze vorm
 
     private var hasImage: Bool { store.showsImage(lead: true) && ImageURL.fitsHero(item.image) && !beeldMislukt }
-    private func mislukt() { beeldMislukt = true }
+    private func mislukt() { beeldMislukt = true; MisluktBeeld.shared.add(item.id) } // ook de buren rekenen opnieuw (Placeholder.plan)
 
     @ViewBuilder private var image: some View {
         if let imageHeight {
@@ -789,7 +789,7 @@ struct ItemRow: View {
     // Het beeld bij het stuk, of anders het stilstaande beeld van zijn video.
     private func picture(_ kind: ImageURL.Kind) -> URL? { ImageURL.url(item.image, kind) ?? item.videoPosterURL }
     private var hasPicture: Bool { store.showsImage(lead: false) && (item.image != nil || item.videoPoster != nil) && !beeldMislukt }
-    private func mislukt() { beeldMislukt = true }
+    private func mislukt() { beeldMislukt = true; MisluktBeeld.shared.add(item.id) } // ook de buren rekenen opnieuw (Placeholder.plan)
     // Groot genoeg voor de volle breedte (vanaf 400 px, zoals op het web); een videobeeld is dat altijd.
     private var fitsLarge: Bool { item.image == nil || ImageURL.fitsLarge(item.image) }
 

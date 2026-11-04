@@ -293,8 +293,9 @@ struct EditionView: View {
     private var placeholderPlan: [String: Int] {
         let numbered = EditionNumbering.rows(store.editionRows)
         let rows = numbered.filter { $0.desk != "bubbel" }
-        var plan = Placeholder.plan(rows.enumerated().map { ($0.element.item, $0.offset == 0 ? BeeldloosView.Kind.lead : .krant) })
-        plan.merge(Placeholder.plan(numbered.filter { $0.desk == "bubbel" }.map { ($0.item, BeeldloosView.Kind.krant) })) { a, _ in a }
+        let failed = MisluktBeeld.shared.ids // een beeld dat pas bij het laden mislukt, telt ook mee
+        var plan = Placeholder.plan(rows.enumerated().map { ($0.element.item, $0.offset == 0 ? BeeldloosView.Kind.lead : .krant) }, failed: failed)
+        plan.merge(Placeholder.plan(numbered.filter { $0.desk == "bubbel" }.map { ($0.item, BeeldloosView.Kind.krant) }, failed: failed)) { a, _ in a }
         return plan
     }
 

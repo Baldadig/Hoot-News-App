@@ -144,9 +144,21 @@ enum Placeholder {
         case .krant: return item.image == nil && item.videoPoster == nil
         }
     }
-    static func plan(_ rows: [(Item, BeeldloosView.Kind)]) -> [String: Int] {
-        plan(ids: rows.map { (id: $0.0.id, bare: isBare($0.0, $0.1)) })
+    // `failed`: stukken waarvan het beeld pas bij het laden mislukte (MisluktBeeld); die tonen ook het
+    // placeholderbeeld, dus ook voor hen geldt de buurregel.
+    static func plan(_ rows: [(Item, BeeldloosView.Kind)], failed: Set<String> = []) -> [String: Int] {
+        plan(ids: rows.map { (id: $0.0.id, bare: isBare($0.0, $0.1) || (!$0.0.isPost && failed.contains($0.0.id))) })
     }
+}
+
+// Beelden die pas bij het laden mislukten (een 404, een cookiemuur): ItemRow en LeadCard melden ze hier,
+// en de lijst (Editie, Stroom) rekent het placeholderplan dan opnieuw uit, zodat twee beeldloze buren
+// nooit hetzelfde beeld krijgen. Zoals failed in PlaceholderList op het web.
+@MainActor @Observable
+final class MisluktBeeld {
+    static let shared = MisluktBeeld()
+    private(set) var ids: Set<String> = []
+    func add(_ id: String) { if !ids.contains(id) { ids.insert(id) } }
 }
 
 private struct PlaceholderPlanKey: EnvironmentKey { static let defaultValue: [String: Int] = [:] }

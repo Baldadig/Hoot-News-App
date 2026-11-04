@@ -54,6 +54,18 @@ final class PlaceholderTests: XCTestCase {
         XCTAssertFalse(Placeholder.isBare(groot, .lead))
     }
 
+    // Een beeld dat pas bij het laden mislukt, toont ook het placeholderbeeld: dan geldt de buurregel ook.
+    func testMisluktBeeldVolgtDeBuurregel() throws {
+        let a = Item(id: "a", source: "nos", title: "Kop", url: "https://nos.nl/a")
+        let id = try XCTUnwrap((0 ..< 200).map { "b\($0)" }.first { Placeholder.base($0) == Placeholder.base("a") })
+        var b = Item(id: id, source: "nos", title: "Kop", url: "https://nos.nl/b")
+        b.image = "https://images.nrc.nl/weg.jpg"
+        XCTAssertNil(Placeholder.plan([(a, .krant), (b, .krant)])[id]) // met beeld: geen placeholder
+        let plan = Placeholder.plan([(a, .krant), (b, .krant)], failed: [id])
+        XCTAssertEqual(plan["a"], Placeholder.base("a"))
+        XCTAssertEqual(plan[id], (Placeholder.base("a") + 1) % Placeholder.count) // niet hetzelfde als de buur
+    }
+
     @MainActor
     func testTekentOpDeMaatVanHetVak() throws {
         for (i, size) in [(0, CGSize(width: 344, height: 172)), (4, CGSize(width: 96, height: 64)), (2, CGSize(width: 96, height: 64))] {

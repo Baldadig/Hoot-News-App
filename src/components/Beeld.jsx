@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { Img } from './Img.jsx'
 import { fitsHero, fitsLarge } from '../lib/img.js'
 import { placeholderBase, placeholderPlan } from '../../shared/placeholder.mjs'
@@ -23,15 +23,22 @@ export function isBare(item, kind) {
 }
 
 // Een lijst van boven naar onder: `rows` is [{ item, kind }]. Zo weet een rij welk beeld zijn buur heeft.
+// Een beeld dat pas bij het laden mislukt (`failed`, gemeld door Beeld) toont ook het placeholderbeeld:
+// het plan rekent dan opnieuw, zodat ook die rij nooit hetzelfde beeld krijgt als zijn buur.
+const bareRows = (rows, failed) => rows.map((r) => ({ id: r.item?.id, bare: isBare(r.item, r.kind) || (r.item?.kind !== 'post' && failed.has(r.item?.id)) }))
+export const planFor = (rows, failed = new Set()) => placeholderPlan(bareRows(rows, failed))
 export function PlaceholderList({ rows, children }) {
-  const key = rows.map((r) => `${r.item?.id}:${isBare(r.item, r.kind) ? 1 : 0}`).join('|')
-  const plan = useMemo(() => placeholderPlan(rows.map((r) => ({ id: r.item?.id, bare: isBare(r.item, r.kind) }))), [key])
-  return <Plan.Provider value={plan}>{children}</Plan.Provider>
+  const [failed, setFailed] = useState(() => new Set())
+  const markFailed = useCallback((id) => setFailed((f) => (id == null || f.has(id) ? f : new Set(f).add(id))), [])
+  const key = bareRows(rows, failed).map((r) => `${r.id}:${r.bare ? 1 : 0}`).join('|')
+  const plan = useMemo(() => planFor(rows, failed), [key])
+  const value = useMemo(() => ({ plan, markFailed }), [plan, markFailed])
+  return <Plan.Provider value={value}>{children}</Plan.Provider>
 }
 
 // Beeld 1 tot 6 voor dit stuk.
 export function usePlaceholder(item) {
-  const plan = useContext(Plan)
+  const plan = useContext(Plan)?.plan
   return (plan?.get(item?.id) ?? placeholderBase(item?.id ?? '')) + 1
 }
 
@@ -45,9 +52,13 @@ export function Beeldloos({ item, kind, as: Tag = 'div' }) {
 // het gewone <Img>. `as`: het element van het vak (een span binnen een link van de Editie). Laadt het niet, dan wordt het Beeldloos (op web en in de app hetzelfde).
 export function Beeld({ item, kind, url = item?.image, fits = () => true, as: Tag = 'div', className, style, imgKind = 'thumb', children, ...img }) {
   const [failed, setFailed] = useState(false)
+  const markFailed = useContext(Plan)?.markFailed
   useEffect(() => setFailed(false), [url])
   if (!url || !fits(url) || failed) return <Beeldloos item={item} kind={kind} as={Tag} />
-  const onFail = () => setFailed(true)
+  const onFail = () => {
+    setFailed(true)
+    markFailed?.(item?.id) // de buren rekenen opnieuw (PlaceholderList)
+  }
   return (
     <Tag className={className} style={style}>
       {children ? children(onFail) : <Img url={url} kind={imgKind} onFail={onFail} {...img} />}

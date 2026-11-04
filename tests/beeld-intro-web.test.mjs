@@ -104,3 +104,15 @@ test('web met beelden uit: in de krant-vorm geen ruimte voor de miniatuur', () =
   assert.match(src('src/components/Items.jsx'), /introMax\(lineCount, 'rij', \(prefs\?\.images \?\? 'aan'\) === 'aan'\)/)
   assert.match(src('src/views/Edition.jsx'), /useIntroMax\(\)\(INTRO_LINES, \(prefs\?\.images \?\? 'aan'\) === 'aan' \? 'voorpagina' : 'rij'\)/)
 })
+
+test('beeldloos: een beeld dat pas bij het laden mislukt, volgt ook de buurregel (PlaceholderList)', () => {
+  const { planFor } = mod.exports
+  const b = Array.from({ length: 200 }, (_, i) => `b${i}`).find((id) => placeholderBase(id) === placeholderBase('a'))
+  const rows = [{ item: { id: 'a' }, kind: 'krant' }, { item: { id: b, image: 'https://images.nrc.nl/weg.jpg' }, kind: 'krant' }]
+  assert.equal(planFor(rows).has(b), false) // met beeld: geen placeholder
+  const plan = planFor(rows, new Set([b]))
+  assert.equal(plan.get('a'), placeholderBase('a'))
+  assert.equal(plan.get(b), (placeholderBase('a') + 1) % 6) // niet hetzelfde als de buur
+  // Beeld meldt het mislukken aan de lijst.
+  assert.match(src('src/components/Beeld.jsx'), /markFailed\?\.\(item\?\.id\)/)
+})
