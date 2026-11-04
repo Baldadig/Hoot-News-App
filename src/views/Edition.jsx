@@ -2,6 +2,7 @@ import { hasEditionMinimum } from '../../shared/edition-limits.mjs'
 import { cleanIntro } from '../../shared/edition-display.mjs'
 import { EditionNumber } from '../components/EditionNumber.jsx'
 import { useEffect, useRef, useState } from 'react'
+import { usePairs } from '../hooks/usePairs.js'
 import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
@@ -31,21 +32,29 @@ const DESK = { binnenland: 'Binnenland', buitenland: 'Buitenland', vs: 'VS', mid
 const VIA = { google: 'Google Trends', bluesky: 'Bluesky', wikipedia: 'Wikipedia' }
 const deskLabel = (e) => (e.desk === 'bubbel' && e.terms?.length ? `Buiten je bubbel · via ${[...new Set(e.terms.map((t) => VIA[t.via] || t.via))].join(' en ')}` : DESK[e.desk] || null)
 
-const FRONT = 6 // voorpagina: hoofdverhaal, drie ernaast en twee eronder
+const FRONT = 6 // op de telefoon: na zes verhalen "Verder in deze Editie"
+const SIDE = 3 // breed: het hoofdverhaal met 02 en 03 ernaast, daarna de paren
 
 // Klein verhaal op de voorpagina: rubriek, kop en hooguit twee regels samenvatting (ook bij een
 // lange kop: die vertelt zelden wat er gebeurde), dan dezelfde actieregel als elk bericht. Is de
 // kolom smal, dan krijgt de bron een eigen regel en staan vergelijken en bewaren eronder.
 // Volg je het verhaal, dan staat dat stil achter de rubriek ('Je volgt'). Het waarom van de plek
 // (jouw Editie) staat als stille regel onder de rubriek, boven de kop (zie Why.js).
-function FrontItem({ item, story, note, n = null, why = null, followed, taste, outside = false }) {
+// `boven`: breed, in een paar dat anders een gat laat (Edition: usePairs). Het beeld staat dan groot
+// boven het verhaal, precies zo hoog als het paar nodig heeft, in plaats van klein naast de kop.
+function FrontItem({ item, story, note, n = null, why = null, followed, taste, outside = false, boven = null }) {
   const { markRead, read } = useHoot()
   const opinie = item.type === 'opinie'
   const title = item.title
   const fit = useIntroMax()(2, item.image ? 'voorpagina' : 'rij')
   const summary = wholeSentences(cleanIntro(item.summary, item.author), fit.max, fit.rek) // hele zinnen, nooit "…"
   return (
-    <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
+    <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}${boven ? ' fitem--boven' : ''}`} data-id={item.id} style={boven ? { '--boven-h': `${boven}px` } : undefined}>
+      {boven && item.image ? (
+        <a className="fitem__boven" href={linkOf(item)} target="_blank" rel="noopener noreferrer" tabIndex={-1} aria-hidden="true" onClick={() => markRead(item.id)}>
+          <Img url={item.image} kind="lead" />
+        </a>
+      ) : null}
       {n || note || opinie || followed ? (
         <p className="label label--kicker kicker">
           {n ? <EditionNumber n={n} /> : null}
@@ -62,7 +71,7 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
           </span>
           {summary ? <span className="clamp clamp--vangnet fitem__sum">{summary}</span> : null}
         </span>
-        {item.image ? (
+        {item.image && !boven ? (
           <span className="thumb">
             <Img url={item.image} width="96" height="64" />
           </span>
@@ -154,6 +163,11 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
   }, [active, onHintDone])
 
   usePrintEdition(ref, edition?.id, active, ready && rows.length > 0)
+
+  // Breed (A): elk paar even hoog en het hoofdverhaal even hoog als zijn zijkolom.
+  const frontRef = useRef(null)
+  const pairsRef = useRef(null)
+  const boven = usePairs(pairsRef, frontRef, active && ready, rows.slice(SIDE).map((r) => r.key).join(','))
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
@@ -292,24 +306,17 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             {/* Voorpagina: het hoofdverhaal groot, daarnaast drie kleinere — altijd in krant-vorm.
                 Is het raam niet breder dan 48rem (telefoon, tablet staand, of met het vergelijkpaneel open), dan staan ze onder elkaar. */}
             {!hasMinimum ? <Empty title="Nog geen Editie" action={<a className="linkbtn" href="#/stroom">Naar de Stroom</a>}>Er is nog te weinig passend nieuws voor een Editie.</Empty> : null}
-            <div className="front">
+            {/* Het raster (keuze 1.1.0). Telefoon: alles onder elkaar, na zes "Verder in deze Editie".
+                Tablet staand (B): één leeskolom met de nummers in de kantlijn. Breed (A): het
+                hoofdverhaal met 02 en 03 ernaast (het beeld rekt mee tot de zijkolom even hoog is),
+                daarna paren in twee kolommen, elk paar even hoog (usePairs). Koppen breken nooit af. */}
+            <div className="front" ref={frontRef}>
               <Slot less={less} row={rows[0]}>
                 <LeadStory n={rows[0].n} item={rows[0].item} story={rows[0].story} note={rows[0].note} why={rows[0].why} outside={rows[0].outside} followed={onFront.get(rows[0].key)} priority={active} taste={rows[0].key} />
               </Slot>
               {rows.length > 1 ? (
                 <div className="front__side rows">
-                  {rows.slice(1, 4).map((r) => (
-                    <Slot key={r.key} less={less} row={r}>
-                      <FrontItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} />
-                    </Slot>
-                  ))}
-                </div>
-              ) : null}
-              {/* Onder het hoofdverhaal twee kleinere naast elkaar: vult de linkerkolom op tot de
-                  hoogte van de kolom ernaast (geen gat onder het hoofdverhaal). */}
-              {rows.length > 4 ? (
-                <div className="front__under rows">
-                  {rows.slice(4, FRONT).map((r) => (
+                  {rows.slice(1, SIDE).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
                       <FrontItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} />
                     </Slot>
@@ -317,17 +324,18 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 </div>
               ) : null}
             </div>
-            {rows.length > FRONT ? (
-              <div className="front__rest">
-                <h2 className="label label--section front__more">Verder in deze Editie</h2>
-                {/* De Editie is een krant, op web en in de app: deze rijen volgen 'Lees de Stroom als' niet. */}
-                <div className="list rows">
-                  {rows.slice(FRONT).map((r) => (
-                    <Slot key={r.key} less={less} row={r}>
-                      <CompactItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} taste={r.key} plain />
-                    </Slot>
-                  ))}
-                </div>
+            {rows.length > SIDE ? (
+              <div className="pairs rows" ref={pairsRef}>
+                {rows.slice(SIDE).map((r, i) => [
+                  SIDE + i === FRONT ? (
+                    <h2 key="verder" className="label label--section front__more pairs__label">
+                      Verder in deze Editie
+                    </h2>
+                  ) : null,
+                  <Slot key={r.key} less={less} row={r}>
+                    <FrontItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} boven={boven[r.key] || null} />
+                  </Slot>,
+                ])}
               </div>
             ) : null}
             {editionBubble.length ? (

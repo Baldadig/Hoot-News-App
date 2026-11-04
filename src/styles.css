@@ -3936,11 +3936,31 @@ select.input {
   height: var(--thumb-h);
   border-radius: var(--radius-sm);
 }
-/* De omhulsels zetten de buitenlijn: tussen het hoofdverhaal en de kleinere eronder (smal scherm)
-   of, breed, alleen boven de twee onder het hoofdverhaal (de zijkolom heeft een lijn links). */
+/* De omhulsels zetten de buitenlijn: tussen het hoofdverhaal en de kleinere eronder (smal scherm).
+   Breed heeft de zijkolom een lijn links en elk verhaal in de paren zijn eigen lijn erboven. */
 .front__side,
-.front__under {
+.pairs {
   border-top: 1px solid var(--rule);
+}
+/* Groot beeld boven een verhaal in een paar (usePairs): over de hele kolom, zo hoog als het paar
+   nodig heeft, met de hoek van een kaart. */
+.fitem__boven {
+  display: block;
+  height: var(--boven-h);
+  margin-bottom: var(--s3);
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--tint);
+}
+.fitem__boven img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Het hoofdverhaal naast zijn zijkolom (breed): het beeld rekt mee tot beide even hoog zijn. */
+.lead--fit .media--lead {
+  aspect-ratio: auto;
+  height: var(--lead-h);
 }
 .front .lead {
   padding-top: var(--s3);
@@ -3951,16 +3971,15 @@ select.input {
   padding-top: var(--s4);
   border-top: var(--rule-strong);
 }
+/* In de lijst: het kopje opent een nieuw blok, het verhaal eronder heeft geen eigen lijn. */
+.pairs__label + * {
+  border-top: 0;
+}
 /* De Editie is een container: de voorpagina kiest haar indeling naar de breedte van het raam,
    niet naar die van het scherm. Zo staat het raster ook op een tablet en met het vergelijkpaneel
    open, zodra er plaats voor is (zie .front). */
 .col--front {
   container: front / inline-size;
-}
-/* Onder de voorpagina: de berichten (en de lijn erboven, .front__more) houden het leesblok en
-   staan op de linkerlijn van het hoofdverhaal. */
-.front__rest .list {
-  max-inline-size: var(--measure);
 }
 
 /* ---------- Vergelijkpaneel (breed scherm): compacte publicatie ---------- */
@@ -4276,28 +4295,20 @@ html[data-images='hoofd'] .media--social {
   margin-top: var(--s2);
 }
 
-/* Voorpagina in een raam breder dan 48rem (768): hoofdverhaal links boven, drie kleinere in de
-   kolom rechts, twee eronder. De zijkolom is minstens --front-side. Tot en met 48rem (tablet
-   staand, de band van 960 tot 1200, en het raam met het vergelijkpaneel open, dat op 1440 precies
-   48rem is) blijft er naast die zijkolom te weinig over: een zijkolom met koppen van drie woorden
-   per regel, en een hoofdverhaal met afgekapte bronregel. Dan één kolom. In rem, zodat het
-   meeschuift met Tekstgrootte. */
+/* Het brede Editie-raster (keuze 1.1.0). Tot en met 48rem (telefoon, tablet staand, en het raam
+   met het vergelijkpaneel open, dat op 1440 precies 48rem is) is de Editie één leeskolom. Breder
+   (A · Paren): het hoofdverhaal met 02 en 03 in de zijkolom, het beeld rekt mee tot beide even hoog
+   zijn; daarna paren in twee kolommen, elk paar even hoog (usePairs: een kort verhaal krijgt zijn
+   beeld groot erboven), met de bronregels per rij op één lijn. Een los laatste verhaal krijgt de
+   hele rij. In rem, zodat het meeschuift met Tekstgrootte. */
 @container front (width > 48rem) {
   .front {
     display: grid;
-    grid-template-areas:
-      'lead side'
-      'under side';
-    grid-template-rows: auto 1fr;
     grid-template-columns: minmax(0, 1.9fr) minmax(var(--front-side), 1fr);
     gap: var(--s5);
     align-items: start;
   }
-  .front > :is(.lead, .sk--lead) {
-    grid-area: lead;
-  }
   .front__side {
-    grid-area: side;
     align-self: stretch;
     padding-left: var(--s5);
     border-top: 0;
@@ -4307,8 +4318,34 @@ html[data-images='hoofd'] .media--social {
   .front__side .fitem:not(:last-child) .thumb {
     display: none;
   }
-  .front__under {
-    grid-area: under;
+  .pairs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--s6);
+    align-items: stretch;
+    margin-top: var(--s4);
+    border-top: 0;
+  }
+  .pairs > * {
+    border-top: 1px solid var(--rule);
+  }
+  .pairs > .pairs__label {
+    display: none;
+  }
+  .pairs > .fitem {
+    display: flex;
+    flex-direction: column;
+  }
+  /* De bronregel onderaan: zo staan de bronregels van een paar op één lijn. */
+  .pairs > .fitem > .fitem__link {
+    flex: 1 0 auto;
+  }
+  .pairs > :last-child:nth-child(odd of :not(.pairs__label)) {
+    grid-column: 1 / -1;
+  }
+  /* Meten: elk verhaal op zijn eigen hoogte. */
+  .pairs--measure {
+    align-items: start;
   }
 }
 /* Net boven de grens (48 tot 52rem) een wat bredere zijkolom, zodat zijn koppen niet op drie
@@ -4316,23 +4353,6 @@ html[data-images='hoofd'] .media--social {
 @container front (48rem < width < 52rem) {
   .front {
     --front-side: 17rem;
-  }
-}
-/* Pas bij een ruim raam (52rem) staan de twee onder het hoofdverhaal naast elkaar, elk minstens
-   zo breed als de zijkolom (--front-side); daaronder blijven ze een lijst, met hun beeld. */
-@container front (min-width: 52rem) {
-  .front__under {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0 var(--s5);
-    align-content: start;
-  }
-  /* Naast elkaar, niet onder elkaar: de lijn erboven loopt over beide. */
-  .front__under > * + * {
-    border-top: 0;
-  }
-  .front__under .thumb {
-    display: none;
   }
 }
 
@@ -5441,16 +5461,22 @@ html[data-images='hoofd'] .media--social {
 .kicker__digit { display: inline-block; inline-size: 1ch; text-align: center; }
 .endcap__count { font-variant-numeric: tabular-nums; }
 
-/* Op breed web hangt de telling naast de tekst, binnen de eigen kaartmarge. */
-@media (min-width: 960px) {
-  .front .entry:has(.kicker__n), .front__rest .entry:has(.kicker__n) { padding-inline-start: calc(2ch + var(--s3)); }
+/* Tablet staand (B · Eén leeskolom, keuze 1.1.0): de telling hangt in de kantlijn (2ch + s3), zodat
+   koppen en tekst op één lijn staan en het nummer op de lijn van het woordmerk. Breder (A) staat het
+   nummer weer in de kicker, smaller (telefoon) ook. */
+@container front (40rem <= width <= 48rem) {
+  .front .entry:has(.kicker__n), .pairs .entry:has(.kicker__n) { padding-inline-start: calc(2ch + var(--s3)); }
   /* De cijfers staan in Newsreader en zijn breder dan 2ch van de lopende letter; ze hangen dus een
-     paar pixels in de kolommarge. content-visibility: auto (.compact) knipt alles buiten de rand af
-     (")7"); hier, bij hooguit tien berichten, tekent het bericht ook buiten zijn rand. */
-  .front__rest .entry:has(.kicker__n) { content-visibility: visible; }
-  .front .kicker:has(> .kicker__n), .front__rest .kicker:has(> .kicker__n) { position: relative; }
-  .front .kicker > .kicker__n, .front__rest .kicker > .kicker__n { position: absolute; inset-inline-end: calc(100% + var(--s3)); }
-  .front .kicker > .kicker__n + span::before, .front__rest .kicker > .kicker__n + span::before { content: none; }
+     paar pixels in de kolommarge. Het bericht tekent ook buiten zijn rand. */
+  .pairs .entry:has(.kicker__n) { content-visibility: visible; }
+  .front .kicker:has(> .kicker__n), .pairs .kicker:has(> .kicker__n) { position: relative; }
+  .front .kicker > .kicker__n, .pairs .kicker > .kicker__n { position: absolute; inset-inline-end: calc(100% + var(--s3)); }
+  .front .kicker > .kicker__n + span::before, .pairs .kicker > .kicker__n + span::before { content: none; }
+  /* Het beeld van het hoofdverhaal blijft over de hele kolom; alleen de tekst springt in. */
+  .front .lead:has(.kicker__n) .media--lead { margin-inline-start: calc(-2ch - var(--s3)); }
+  /* De bubbel en het einde staan op de lijn van de tekst, niet van de nummers. */
+  .col--front .bubble { padding-inline-start: calc(2ch + var(--s3)); }
+  .col--front .endcap { margin-inline-start: calc(2ch + var(--s3)); }
 }
 
 /* Verhaalopties blijven binnen de metaregel op smalle schermen. */
@@ -5478,8 +5504,8 @@ html[data-images='hoofd'] .media--social {
   --brand: var(--ink);
   --mark-bg: var(--ink);
   --band-accent: var(--accent);
+  --endcap-bg: color-mix(in srgb, var(--brand-red) 42%, #000000);
+  --endcap-on: var(--ink);
   --select-caret: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath fill='none' stroke='%23a79b87' stroke-linecap='round' stroke-linejoin='round' stroke-width='20' d='m48 96l80 80l80-80'/%3E%3C/svg%3E");
 }
 /* Einde Nacht Zacht papier. */
-  --endcap-bg: color-mix(in srgb, var(--brand-red) 42%, #000000);
-  --endcap-on: var(--ink);
