@@ -6,7 +6,6 @@ const KW = [
   // Niet "den haag": dat is ook de stad (feedback 31 oktober: rellen in Den Haag waren "Den Haag", de politiek).
   ['nederland', /\b(kabinet|tweede kamer|eerste kamer|binnenhof|catshuis|prinsjesdag|miljoenennota|rijksoverheid|coalitie|formatie|minister van|staatssecretaris|kamerlid|kamerleden|\bpvv\b|\bvvd\b|\bd66\b|groenlinks|\bpvda\b|\bcda\b|\bsgp\b|\bbbb\b|\bja21\b|wilders|schoof|timmermans|yesilgoz|omtzigt|jetten|bontenbal)\b/i],
   ['europa', /\b(europese unie|europese commissie|europees parlement|europese leiders|eu-landen|\beu\b|brussel|von der leyen|european union|european commission|european parliament|eurozone|schengen)\b/i],
-  ['trump', /\btrump\b/i],
   ['verkiezingen', /\b(verkiezing|verkiezingen|election|elections|stembus|peiling|peilingen|\bpoll(s)?\b|campagne|campaign|kandidaat|candidate|referendum|stemmen geteld)\b/i],
   // Binnenland
   ['wonen', /\b(woningmarkt|huizenprijs|huurwoning|huurders|huurprijs|sociale huur|woningnood|woningbouw|hypotheek|koopwoning|dakloos|starters op de woningmarkt|corporatie)\b/i],
@@ -66,6 +65,7 @@ export const OTHER_SPORT = /\b(darts\w*|darter\w*|snooker|rugby|honkbal|baseball
 // Omroep Zeeland" Media, de Netflix-dartsshow Film, "verkiezing" in Brazilië VS-politiek.
 const RETIRED = {
   'vs-politiek': /./s,
+  trump: /./s, // sinds 1.1.0 geen eigen onderwerp meer: Verenigde Staten (vs-politiek)
   brein: /\bangst\b/i,
   film: /\b(netflix|hbo)\b/i,
   media: /\b(omroep|npo)\b/i,
@@ -103,7 +103,6 @@ export function keywordTopics(text) {
   if (usPoliticsIn(text)) out.push('vs-politiek')
   // Merknaam alleen met digitale context; het taalkundige woord pangram is geen AI-onderwerp.
   if (/\bPangram\b/.test(text) && /\b(internet|ai|detector|detectie|kunstmatige intelligentie)\b/i.test(text) && !out.includes('ai')) out.push('ai')
-  if (out.includes('trump') && !out.includes('vs-politiek')) out.push('vs-politiek')
   return out
 }
 

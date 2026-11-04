@@ -50,10 +50,10 @@ test('verhuizen: echt opgeslagen thema en nieuwe accounteigenaar worden gerespec
   assert.equal(target.getItem('hoot:prefs'), null)
 })
 
-// Review 1.0.1, punt 2: één bezoek aan gethoot.app/lees schrijft al { onboarded: false, schema: 4, theme:'system', themeDark:'dark' }.
+// Review 1.0.1, punt 2: één bezoek aan gethoot.app/lees schrijft al { onboarded: false, schema: 5, theme:'system', themeDark:'dark' }.
 test('verhuizen: een standaardprofiel van een eerder bezoek verdringt de meegebrachte instellingen niet', () => {
   const target = storage(); migrate(target)
-  assert.deepEqual(JSON.parse(target.getItem('hoot:prefs')), { onboarded: false, schema: 4, theme:'system', themeDark:'dark' })
+  assert.deepEqual(JSON.parse(target.getItem('hoot:prefs')), { onboarded: false, schema: 5, theme:'system', themeDark:'dark' })
   const old = storage({ 'hoot:prefs': JSON.stringify({ onboarded: true, schema: 3, enabled: ['nrc'], interests: ['cultuur'], layout: 'krant' }), 'hoot:read': '["a"]' })
   applyMove(target, movePayload(old), 'https://hootnews.nl')
   const prefs = JSON.parse(target.getItem('hoot:prefs'))

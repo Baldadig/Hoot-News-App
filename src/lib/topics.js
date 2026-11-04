@@ -2,7 +2,7 @@
 // De id's van de onderwerpen komen overeen met de trefwoorden op de server (netlify/lib/topics.mjs).
 const T = (id, label) => ({ id, label })
 export const TOPICS = [
-  T('nederland', 'Den Haag'), T('europa', 'Europa'), T('vs-politiek', 'VS-politiek'), T('trump', 'Trump'), T('verkiezingen', 'Verkiezingen'),
+  T('nederland', 'Den Haag'), T('europa', 'Europa'), T('vs-politiek', 'Verenigde Staten'), T('verkiezingen', 'Verkiezingen'),
   T('wonen', 'Wonen'), T('zorg', 'Zorg'), T('onderwijs', 'Onderwijs'), T('misdaad', 'Misdaad & recht'), T('migratie', 'Asiel & migratie'), T('verkeer', 'Verkeer & OV'),
   T('oekraine', 'Oekraïne & Rusland'), T('middenoosten', 'Midden-Oosten'), T('azie', 'China & Azië'), T('afrika', 'Afrika'), T('latam', 'Latijns-Amerika'), T('geopolitiek', 'Defensie & NAVO'),
   T('economie', 'Markten & beurs'), T('werk', 'Werk & inkomen'), T('bedrijven', 'Bedrijven'), T('energie', 'Energie'), T('geld', 'Geld & sparen'),
@@ -15,7 +15,7 @@ export const TOPICS = [
 // Breed → smal: wat je in de onboarding eerst kiest, en wat daaronder valt.
 // `cats`: bronnen uit deze rubrieken horen ook bij deze interesse (een sportsite is sport).
 export const INTERESTS = [
-  { id: 'politiek', label: 'Politiek', topics: ['nederland', 'europa', 'vs-politiek', 'trump', 'verkiezingen'], cats: [] },
+  { id: 'politiek', label: 'Politiek', topics: ['nederland', 'europa', 'vs-politiek', 'verkiezingen'], cats: [] },
   { id: 'binnenland', label: 'Binnenland', topics: ['wonen', 'zorg', 'onderwijs', 'misdaad', 'migratie', 'verkeer'], cats: ['regio'] },
   { id: 'wereld', label: 'Wereld', topics: ['oekraine', 'middenoosten', 'azie', 'afrika', 'latam', 'geopolitiek'], cats: [] },
   { id: 'economie', label: 'Economie', topics: ['economie', 'werk', 'bedrijven', 'energie', 'geld'], cats: ['economie'] },
@@ -34,6 +34,24 @@ export function inInterest(item, interestId, source) {
 }
 
 export const topicById = (id) => TOPICS.find((t) => t.id === id)
+
+// Onderwerpen die er niet meer zijn en waar ze nu onder vallen (1.1.0: "Trump" is gewoon Verenigde Staten,
+// id vs-politiek). Opgeslagen voorkeuren, profielsync en oudere builds leveren de oude sleutel nog; elke
+// plek die zulke gegevens inleest zet ze eerst om (prefs.js, profileOf, tests/vs-migratie.test.mjs).
+export const RETIRED_TOPICS = { trump: 'vs-politiek' }
+export const currentTopic = (id) => RETIRED_TOPICS[id] || id
+// Een lijst onderwerpen: oude sleutels vervangen, geen dubbelen, volgorde blijft (de eerste plek wint).
+export const currentTopics = (ids) => (Array.isArray(ids) ? [...new Set(ids.map((t) => (typeof t === 'string' ? currentTopic(t) : t)))] : ids)
+// Een getal per onderwerp (smaak, leesprofiel): de waarden van oud en nieuw tellen op, begrensd door `cap`.
+export function currentTopicMap(map, cap = Infinity) {
+  if (!map || typeof map !== 'object') return map
+  const out = {}
+  for (const [k, v] of Object.entries(map)) {
+    const key = currentTopic(k)
+    out[key] = key in out && Number.isFinite(out[key]) && Number.isFinite(v) ? Math.max(-cap, Math.min(cap, out[key] + v)) : v
+  }
+  return out
+}
 
 // Wat je volgt: per gekozen interesse de onderwerpen die je aantikte, of alle als je er geen koos.
 export function resolveTopics(interests = [], picked = []) {

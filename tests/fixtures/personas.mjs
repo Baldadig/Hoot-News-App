@@ -63,7 +63,7 @@ export const PERSONAS = [
     interests: ['cultuur'], topics: ['muziek', 'film'],
     enable: ['pitchfork', 'guardian-music', 'stereogum'], mute: ['nrc'], favorites: ['3voor12'],
     latent: { topics: ['muziek', 'film', 'boeken'], cats: ['cultuur'] },
-    reads: 50, noise: 0.25, more: ['muziek'], less: ['trump', 'economie'],
+    reads: 50, noise: 0.25, more: ['muziek'], less: ['vs-politiek', 'economie'],
   },
   {
     id: 'koers', name: 'Wieler- en F1-fan',
@@ -94,10 +94,10 @@ export const PERSONAS = [
   },
   {
     id: 'vs', name: 'VS-politiek-junkie',
-    interests: ['politiek'], topics: ['vs-politiek', 'trump'],
+    interests: ['politiek'], topics: ['vs-politiek', 'europa'],
     enable: ['npr'], mute: [], favorites: ['atlantic'],
-    latent: { topics: ['vs-politiek', 'trump', 'verkiezingen', 'ai'], cats: [] }, // AI alleen uit gedrag
-    reads: 70, noise: 0.15, more: ['trump'], less: ['wielrennen'],
+    latent: { topics: ['vs-politiek', 'verkiezingen', 'ai'], cats: [] }, // AI alleen uit gedrag
+    reads: 70, noise: 0.15, more: ['vs-politiek'], less: ['wielrennen'],
   },
 ]
 

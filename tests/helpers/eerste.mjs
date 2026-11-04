@@ -56,7 +56,7 @@ const sporty = (i, s) => s?.cat === 'sport' || /\/(sport|voetbal|premier-league)
 const dutchEvent = (i) => placeSignals(i).home && !placeSignals({ title: i.title || '' }).foreign
 // VS-politiek of Trump uit een niet-Nederlandse bron (zoals een Engelstalige) is buitenland, ook zonder
 // rubriek (feedback 31 oktober: een NYT-stuk over een senaatsverkiezing telde als OV, en bleef buiten intOngekozen).
-const usPolitics = (i, s) => (i.topics || []).some((t) => t === 'vs-politiek' || t === 'trump') && !dutchSource(s) && !VL_HOME.has(i.source)
+const usPolitics = (i, s) => (i.topics || []).some((t) => t === 'vs-politiek') && !dutchSource(s) && !VL_HOME.has(i.source)
 export function geoOfMembers(members, src) {
   let f = 0, n = 0, o = 0
   for (const i of members) {
