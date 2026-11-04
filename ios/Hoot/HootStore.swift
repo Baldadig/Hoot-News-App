@@ -40,7 +40,13 @@ final class HootStore {
     var openInSafari: Bool { didSet { save("hoot.openInSafari", openInSafari) } } // vóór 0.12; nu `openWith`
     // Waar artikelen openen: "lezer" (de Hoot-lezer) of "safari" (de Safari-app, waar je al bent ingelogd).
     var openWith: String { didSet { save("hoot.openWith", openWith) } }
-    var preview: Int { didSet { save("hoot.preview", preview); synced() } } // regels intro bij een bericht; 0 = de hele intro
+    var preview: Int { didSet { save("hoot.regels", preview); synced() } } // regels intro bij een bericht; 0 = de hele intro
+    // Regels intro standaard (build 46): 3 in plaats van 2, zoals INTRO_LINES in shared/zinnen.mjs.
+    static let introLines = 3
+    // De oude sleutel (`hoot.preview`, `preview` in de sync) had 2 als standaard, en die ging ook mee
+    // zonder dat je iets koos: 2 daar is niet van een keuze te onderscheiden en wordt 3. Wat je vanaf nu
+    // kiest staat in `hoot.regels` (`regels` in de sync) en geldt zoals het is, ook 2.
+    static func oldPreview(_ v: Int?) -> Int? { v.map { $0 == 2 ? introLines : $0 } }
     var onboarded: Bool { didSet { save("hoot.onboarded", onboarded) } } // het welkom is gezien
     // Het welkom opnieuw, vanuit Instellingen: het begint bij je huidige keuzes. Niet bewaard.
     var welcomeAgain = false
@@ -130,7 +136,7 @@ final class HootStore {
         let was: String = Self.load("hoot.openWith") ?? (Self.load("hoot.openInSafari") == true ? "safari" : "lezer")
         openWith = was == "web" ? "safari" : was
         streamSeen = Self.load("hoot.streamSeen") ?? nil
-        preview = Self.load("hoot.preview") ?? 2
+        preview = Self.load("hoot.regels") ?? Self.oldPreview(Self.load("hoot.preview")) ?? Self.introLines
         // Het welkom alleen bij een verse installatie: wie al instellingen of gelezen stukken heeft
         // (bijvoorbeeld van vóór het welkom), heeft het niet nodig.
         let knownOnboarded: Bool? = Self.load("hoot.onboarded")
@@ -196,12 +202,13 @@ final class HootStore {
             var bluesky: Bool?
             var bskyInStream: [String]?
             var preview: Int?
+            var regels: Int? // de keuze sinds build 46; zonder: `preview` met de oude standaard 2 als 3
             var interests: [String]?
             var topics: [String]?
             var favorites: [String]?
             var social: [BlueskyAccount]? // eigen Bluesky-accounts, zoals op de website
             var taste: Taste?
-            enum CodingKeys: String, CodingKey { case muted, enabled, vak, images, layout, theme, themeDark, bubble, bluesky, bskyInStream, preview, interests, topics, favorites, social, taste }
+            enum CodingKeys: String, CodingKey { case muted, enabled, vak, images, layout, theme, themeDark, bubble, bluesky, bskyInStream, preview, regels, interests, topics, favorites, social, taste }
             init(from decoder: Decoder) throws {
                 let c = try decoder.container(keyedBy: CodingKeys.self)
                 muted = try? c.decodeIfPresent([String].self, forKey: .muted)
@@ -221,6 +228,7 @@ final class HootStore {
                 taste = try? c.decodeIfPresent(Taste.self, forKey: .taste)
                 // Op de website is het 1, 2, 3 of "alles".
                 preview = (try? c.decodeIfPresent(Int.self, forKey: .preview)) ?? ((try? c.decodeIfPresent(String.self, forKey: .preview)) == "alles" ? 0 : nil)
+                regels = (try? c.decodeIfPresent(Int.self, forKey: .regels)) ?? ((try? c.decodeIfPresent(String.self, forKey: .regels)) == "alles" ? 0 : nil)
             }
         }
         var prefs: Prefs?
@@ -255,7 +263,7 @@ final class HootStore {
             let next = Set(v.filter { $0.hasPrefix("bsky:") }).union(unite ? bskyInStream : [])
             if next != bskyInStream { bskyInStream = next }
         }
-        if let v = p?.preview, v != preview, (0 ... 3).contains(v) { preview = v; save("hoot.preview", v) }
+        if let v = p?.regels ?? Self.oldPreview(p?.preview), v != preview, (0 ... 3).contains(v) { preview = v; save("hoot.regels", v) }
         if let v = p?.interests, v != interests { interests = v; save("hoot.interests", v) }
         if let v = p?.topics.map(RetiredTopics.list), v != topics { topics = v; save("hoot.topics", v) }
         if let v = p?.favorites, v != favorites { favorites = v; save("hoot.favorites", v) }
@@ -289,7 +297,7 @@ final class HootStore {
         return [
             "theme": theme.theme, "themeDark": theme.dark,
             "muted": muted.sorted(), "enabled": enabled.sorted(), "vak": digestFields, "images": images, "layout": layout,
-            "bubble": bubble, "bluesky": bluesky, "bskyInStream": bskyInStream.sorted(), "preview": preview == 0 ? "alles" as Any : preview as Any,
+            "bubble": bubble, "bluesky": bluesky, "bskyInStream": bskyInStream.sorted(), "preview": preview == 0 ? "alles" as Any : preview as Any, "regels": preview == 0 ? "alles" as Any : preview as Any,
             "interests": interests, "topics": topics, "favorites": favorites, "onboarded": true,
             "taste": ["topics": taste.topics, "sources": taste.sources],
             "social": ownBluesky.map { ["handle": $0.handle, "name": $0.name, "avatar": $0.avatar as Any] },

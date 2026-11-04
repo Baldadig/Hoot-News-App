@@ -363,18 +363,26 @@ struct WhyLine: View {
     }
 }
 
+// `onFail`: het beeld laadt niet. Dan blijft er geen grijs vlak staan: de plek die het beeld toont,
+// wordt de beeldloze vorm (BeeldloosView), zoals op het web (Beeld.jsx). Zolang het laadt een stil vlak.
 struct RemoteImage: View {
     let url: URL?
+    var onFail: (() -> Void)? = nil
     @State private var loader = RemoteImageLoader()
     var body: some View {
         Group {
             if let image = loader.image {
                 Image(uiImage: image).resizable().scaledToFill()
+            } else if loader.failed {
+                Color.clear
             } else {
                 Rectangle().fill(.quaternary)
             }
         }
-        .task(id: url) { await loader.load(url) }
+        .task(id: url) {
+            await loader.load(url)
+            if loader.failed { onFail?() }
+        }
         .clipped()
         .accessibilityHidden(true)
     }
@@ -385,11 +393,12 @@ struct RemoteImage: View {
 struct FramedImage: View {
     let url: URL?
     var ratio: CGFloat = 16 / 9
+    var onFail: (() -> Void)? = nil
     var body: some View {
         Color.clear
             .aspectRatio(ratio, contentMode: .fit)
             .frame(maxWidth: .infinity)
-            .overlay { RemoteImage(url: url) }
+            .overlay { RemoteImage(url: url, onFail: onFail) }
             .clipped()
     }
 }
@@ -671,8 +680,10 @@ struct LeadCard: View {
     var story: Story?
     var hang = false // iPad staand (B): het nummer in de kantlijn, het beeld over de hele kolom
     var imageHeight: CGFloat? = nil // iPad liggend (A): het beeld zo hoog als de zijkolom ernaast
+    @State private var beeldMislukt = false // het beeld laadt niet: dan de beeldloze vorm
 
-    private var hasImage: Bool { store.showsImage(lead: true) && ImageURL.fitsHero(item.image) }
+    private var hasImage: Bool { store.showsImage(lead: true) && ImageURL.fitsHero(item.image) && !beeldMislukt }
+    private func mislukt() { beeldMislukt = true }
 
     @ViewBuilder private var image: some View {
         if let imageHeight {
@@ -681,10 +692,10 @@ struct LeadCard: View {
             Color.clear
                 .frame(maxWidth: .infinity)
                 .frame(height: imageHeight)
-                .overlay { RemoteImage(url: ImageURL.url(item.image, .large)) }
+                .overlay { RemoteImage(url: ImageURL.url(item.image, .large), onFail: mislukt) }
                 .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
         } else {
-            MeasuredLeadImage(item: item, spacious: spacious)
+            MeasuredLeadImage(item: item, spacious: spacious, onFail: mislukt)
                 .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
         }
     }
@@ -702,8 +713,8 @@ struct LeadCard: View {
                 .font(Theme.headline(EditionDisplay.headlineStyle(item.title))) // bestaande rollen, passend bij de koplengte
                 .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
                 .fixedSize(horizontal: false, vertical: true)
-            if let intro = item.summary.map({ wholeSentences($0, max: 240) }), !intro.isEmpty {
-                Text(intro).font(wide ? .title3 : .body).foregroundStyle(Theme.ink2).lineLimit(wide ? 6 : 5).fixedSize(horizontal: false, vertical: true)
+            if let intro = item.summary.map({ wholeSentences($0, max: 240 - item.viaLength) }), !intro.isEmpty {
+                Text(item.introWithSource(intro)).font(wide ? .title3 : .body).foregroundStyle(Theme.ink2).lineLimit(wide ? 6 : 5).fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -712,7 +723,7 @@ struct LeadCard: View {
         if hang {
             // B: het beeld over de hele kolom, tekst en bronregel ingesprongen met het nummer ervoor.
             VStack(alignment: .leading, spacing: Space.s3) {
-                if hasImage { image.contentShape(Rectangle()).opensArticle(item) }
+                if hasImage { image.contentShape(Rectangle()).opensArticle(item) } else { BeeldloosView(item: item, kind: .lead) }
                 HangRow(number: number, read: store.isRead(item)) {
                     VStack(alignment: .leading, spacing: Space.s3) {
                         text.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle()).opensArticle(item)
@@ -735,7 +746,7 @@ struct LeadCard: View {
                     }
                 } else {
                     VStack(alignment: .leading, spacing: Space.s3) {
-                        if hasImage { image }
+                        if hasImage { image } else { BeeldloosView(item: item, kind: .lead) }
                         text
                     }
                 }
@@ -770,12 +781,14 @@ struct ItemRow: View {
     var form: Form?
     var boven: CGFloat? = nil // in een paar (A): het beeld groot boven het verhaal, zo hoog
     var pinSource = false // in een paar (A): de bronregel onderaan de rij
+    @State private var beeldMislukt = false // het beeld laadt niet: dan de beeldloze vorm
 
     private var chosen: Form { form ?? (store.layout == "krant" ? .krant : .tijdlijn) }
     private var timeline: Bool { !item.isPost && (chosen == .tijdlijn || typeSize.isAccessibilitySize) }
     // Het beeld bij het stuk, of anders het stilstaande beeld van zijn video.
     private func picture(_ kind: ImageURL.Kind) -> URL? { ImageURL.url(item.image, kind) ?? item.videoPosterURL }
-    private var hasPicture: Bool { store.showsImage(lead: false) && (item.image != nil || item.videoPoster != nil) }
+    private var hasPicture: Bool { store.showsImage(lead: false) && (item.image != nil || item.videoPoster != nil) && !beeldMislukt }
+    private func mislukt() { beeldMislukt = true }
     // Groot genoeg voor de volle breedte (vanaf 400 px, zoals op het web); een videobeeld is dat altijd.
     private var fitsLarge: Bool { item.image == nil || ImageURL.fitsLarge(item.image) }
 
@@ -788,7 +801,7 @@ struct ItemRow: View {
                         Color.clear
                             .frame(maxWidth: .infinity)
                             .frame(height: boven)
-                            .overlay { RemoteImage(url: picture(.large)) }
+                            .overlay { RemoteImage(url: picture(.large), onFail: mislukt) }
                             .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
                         text
                     }
@@ -796,9 +809,11 @@ struct ItemRow: View {
                     VStack(alignment: .leading, spacing: Space.s3) {
                         text
                         if hasPicture, fitsLarge {
-                            FramedImage(url: picture(.large), ratio: 2)
+                            FramedImage(url: picture(.large), ratio: 2, onFail: mislukt)
                                 .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
                                 .overlay { if item.video != nil { PlayBadge(size: Space.tap) } }
+                        } else {
+                            BeeldloosView(item: item, kind: .tijdlijn)
                         }
                     }
                 } else {
@@ -808,7 +823,7 @@ struct ItemRow: View {
                         // wat de verhouding van het beeld ook is. Bij heel grote tekst krijgt de kop de hele breedte.
                         if hasPicture, !typeSize.isAccessibilitySize {
                             let width = thumb >= Layout.thumbLarge ? Layout.thumbLarge : Layout.thumb
-                            RemoteImage(url: picture(.thumb))
+                            RemoteImage(url: picture(.thumb), onFail: mislukt)
                                 .frame(width: width, height: width * 2 / 3)
                                 .clipShape(RoundedRectangle(cornerRadius: Radius.sm, style: .continuous))
                                 .overlay { if item.video != nil { PlayBadge(size: Space.s6) } }
@@ -844,8 +859,9 @@ struct ItemRow: View {
                 // Hele zinnen tot de maat van de regelinstelling (T2); de regelgrens is alleen een vangnet: één
                 // regel extra, bij grotere tekst het dubbele (dezelfde tekens nemen dan meer regels, en een
                 // afgeknipte zin zou alsnog op een beletselteken eindigen).
-                if let intro = item.summary.map({ wholeSentences($0, max: introMax(lines: store.preview, thumb: hasPicture && !timeline)) }), !intro.isEmpty {
-                    Text(intro).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1)
+                // Een geleende intro krijgt " — via X" erachter: die tekens gaan van de maat af (Item.viaLength).
+                if let intro = item.summary.map({ wholeSentences($0, max: introMax(lines: store.preview, thumb: hasPicture && !timeline) - item.viaLength) }), !intro.isEmpty {
+                    Text(item.introWithSource(intro)).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1)
                 }
             }
         }

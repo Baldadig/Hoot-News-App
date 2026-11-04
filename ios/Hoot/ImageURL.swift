@@ -54,7 +54,13 @@ enum ImageURL {
     // Hoe breed een beeld hooguit is, als het adres dat verraadt; anders nil.
     static func knownWidth(_ raw: String?) -> Int? {
         guard let raw, let u = URLComponents(string: raw), let host = u.host else { return nil }
-        if host == "www.bing.com", u.path == "/th" { return 320 }
+        // Bing (zoekindex): ongemeten (met c=7) klein; door de server gemeten (build 46) staat de echte
+        // breedte van het bronbeeld in w (src/lib/img.js, bingWidth).
+        if host == "www.bing.com", u.path == "/th" {
+            let q = u.queryItems ?? []
+            if q.contains(where: { $0.name == "c" }) { return 320 }
+            return q.first { $0.name == "w" }?.value.flatMap(Int.init) ?? 320
+        }
         if host == "i.guim.co.uk" { return u.queryItems?.first { $0.name == "width" }?.value.flatMap(Int.init) }
         return nil
     }

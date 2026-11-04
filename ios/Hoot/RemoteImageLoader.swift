@@ -5,13 +5,16 @@ import SwiftUI
 @MainActor @Observable
 final class RemoteImageLoader {
     private(set) var image: UIImage?
+    // Geen adres, of geen van de kandidaten laadt: dan geen grijs vlak maar de beeldloze vorm (Beeldloos.swift).
+    private(set) var failed = false
     private var generation = 0
 
     func load(_ url: URL?, transport: URLSession = .shared) async {
         generation += 1
         let round = generation
         image = nil
-        guard let url else { return }
+        failed = false
+        guard let url else { failed = true; return }
         let candidates = [url] + (ImageURL.originalFallback(for: url).map { [$0] } ?? [])
         for candidate in candidates {
             guard !Task.isCancelled, round == generation else { return }
@@ -26,5 +29,7 @@ final class RemoteImageLoader {
                 guard !Task.isCancelled, round == generation else { return }
             }
         }
+        guard !Task.isCancelled, round == generation else { return }
+        failed = true
     }
 }
