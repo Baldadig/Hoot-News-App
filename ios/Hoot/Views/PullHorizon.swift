@@ -215,14 +215,7 @@ struct HorizonPullMark: View {
             let g = Horizon.geom(s, now: now, width: 0) // alleen voor de zin: die hangt niet van de breedte af
             ZStack(alignment: .bottom) {
                 Canvas { ctx, size in draw(&ctx, size, s, now) }
-                Text(Horizon.message)
-                    .font(.subheadline)
-                    .foregroundStyle(Theme.ink3)
-                    .lineLimit(1).minimumScaleFactor(0.7)
-                    .dynamicTypeSize(...DynamicTypeSize.xxLarge)
-                    .frame(height: 20)
-                    .padding(.horizontal, Horizon.gutter)
-                    .padding(.bottom, 24) // 16 boven de horizon
+                PullMessage()
                     .opacity(g.msg)
             }
         }
@@ -286,5 +279,20 @@ struct HorizonPullMark: View {
                 l.fill(Path(ellipseIn: CGRect(x: c.x - sr, y: c.y - sr, width: 2 * sr, height: 2 * sr)), with: .color(Theme.accent))
             }
         }
+    }
+}
+
+// De foutzin van de strook: 15/20 (subheadline), één regel, begrensd op xxLarge en mag krimpen tot 70 %,
+// zodat hij ook bij de grootste tekst (AX5) en op 320 breed binnen de kantlijnen past.
+struct PullMessage: View {
+    var body: some View {
+        Text(Horizon.message)
+            .font(.subheadline)
+            .foregroundStyle(Theme.ink3)
+            .lineLimit(1).minimumScaleFactor(0.7)
+            .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+            .frame(height: 20)
+            .padding(.horizontal, Horizon.gutter)
+            .padding(.bottom, 24) // 16 boven de horizon
     }
 }

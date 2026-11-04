@@ -45,6 +45,10 @@ export function usePullHorizon(ref, { onRefresh, busy = false, failed = false, l
     c.style.transform = h > 0.01 ? `translate3d(0,${h.toFixed(2)}px,0)` : ''
     const out = h > 0.01 ? svg(g, { cw: vw, h: 128, mid, id: label }) : ''
     if (out !== lastSvg.current) { artRef.current.innerHTML = out; lastSvg.current = out }
+    // De foutzin staat alleen in de DOM zolang hij zichtbaar is: anders duikt hij op in zoeken op de
+    // pagina, innerText en de leesweergave.
+    const text = g.msg > 0.001 ? MSG : ''
+    if (msgRef.current.textContent !== text) msgRef.current.textContent = text
     msgRef.current.style.opacity = g.msg.toFixed(3)
     msgRef.current.style.left = (mid - inner / 2) + 'px'
     msgRef.current.style.width = inner + 'px'
@@ -158,7 +162,7 @@ export function usePullHorizon(ref, { onRefresh, busy = false, failed = false, l
     <>
       <div className="pull" ref={stripRef} aria-hidden="true">
         <div className="pull__art" ref={artRef} />
-        <div className="pull__msg" ref={msgRef}>{MSG}</div>
+        <div className="pull__msg" ref={msgRef} />
       </div>
       <p className="visually-hidden" role="status" ref={liveRef} />
     </>

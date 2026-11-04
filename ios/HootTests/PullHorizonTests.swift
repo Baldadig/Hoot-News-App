@@ -136,4 +136,33 @@ final class PullHorizonTests: XCTestCase {
             }
         }
     }
+
+    // De foutzin bij de grootste tekst (AX5) en op 320 breed (iPhone SE): één regel, binnen de kantlijnen
+    // van 16 (288 pt), desnoods gekrompen tot 70 %. Vervangt de oude laad-test op AX5.
+    @MainActor
+    func testFoutzinPastOpAX5En320Breed() throws {
+        for size in [DynamicTypeSize.large, .xxLarge, .accessibility3, .accessibility5] {
+            let probe = UIHostingController(rootView: PullMessage().fixedSize(horizontal: true, vertical: false)
+                .environment(\.dynamicTypeSize, size))
+            let ideal = probe.sizeThatFits(in: CGSize(width: 10_000, height: 200))
+            let text = ideal.width - 2 * Horizon.gutter
+            XCTAssertLessThanOrEqual(text * 0.7, 288, "\(size): ook na krimpen tot 70 % past de zin in 320 − 2 × 16")
+            XCTAssertLessThanOrEqual(text, 288 / 0.7, "\(size)")
+            XCTAssertEqual(ideal.height, 20 + 24, accuracy: 0.5, "\(size): één regel, 20 hoog, 24 boven de onderrand")
+        }
+        let n = 100_000.0
+        for theme in ["licht", "nacht"] {
+            let state = HorizonState(phase: .fail, failT0: n - 1200, tf: 0.5)
+            let view = PullHorizonStrip(amount: 56, busy: true, mark: state, reduceMotion: false, armed: false, height: 56, frozen: n)
+                .frame(width: 320, alignment: .top).background(Theme.paper)
+                .environment(\.dynamicTypeSize, .accessibility5)
+                .environment(\.colorScheme, theme == "licht" ? .light : .dark)
+                .environment(\.nachtActief, theme == "nacht")
+            let renderer = ImageRenderer(content: view); renderer.scale = 2
+            let image = try XCTUnwrap(renderer.uiImage, theme)
+            XCTAssertEqual(image.size.width, 320)
+            let attachment = XCTAttachment(image: image); attachment.name = "horizon-fout-ax5-320-\(theme)"
+            attachment.lifetime = .keepAlways; add(attachment)
+        }
+    }
 }
