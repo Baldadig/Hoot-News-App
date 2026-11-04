@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import '../styles/account.css'
 import { ViewHeader } from '../components/Shell.jsx'
 import { ConfirmDialog } from '../components/Account.jsx'
 import { syncedUid } from '../lib/membership.js'

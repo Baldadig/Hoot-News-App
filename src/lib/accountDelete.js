@@ -18,6 +18,8 @@ export const DELETE_TEXT = {
   confirm: 'Verwijder',
   appleTitle: 'Hoot uit je Apple ID halen lukte niet',
   appleMessage: 'Je account bestaat nog. Probeer het opnieuw, of verwijder het toch.',
+  // Op het web is er geen Sign in with Apple, dus Opnieuw heeft daar geen zin: alleen Annuleer of Toch verwijderen.
+  appleMessageWeb: 'Je account bestaat nog. Annuleer, of verwijder het toch.',
   appleRetry: 'Opnieuw',
   appleSkip: 'Toch verwijderen',
   stays: 'Je account blijft bestaan.',

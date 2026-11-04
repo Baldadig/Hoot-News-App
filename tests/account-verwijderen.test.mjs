@@ -153,7 +153,7 @@ test('de Privacy-belofte klopt: Instellingen › Account › Account verwijderen
 
 // ---- de pagina's zelf ----
 const load = async (entry) => {
-  const out = await build({ entryPoints: [entry], bundle: true, write: false, platform: 'node', format: 'cjs', jsx: 'automatic', packages: 'external', define: { __APP_VERSION__: '"1.1.0"' } })
+  const out = await build({ entryPoints: [entry], bundle: true, write: false, platform: 'node', format: 'cjs', jsx: 'automatic', packages: 'external', loader: { '.css': 'empty' }, define: { __APP_VERSION__: '"1.1.0"' } })
   const m = { exports: {} }
   new Function('require', 'module', 'exports', out.outputFiles[0].text)(createRequire(import.meta.url), m, m.exports)
   return m.exports

@@ -3,6 +3,7 @@ import { Dialog, DialogHeader } from './Dialog.jsx'
 import { pendingShown, PENDING_TEXT } from '../lib/membership.js'
 import { useOnline } from '../hooks/useOnline.js'
 import { AccountIcon } from './icons.jsx'
+import '../styles/account.css'
 import { DELETE_TEXT, deleteAccount, appleCode } from '../lib/accountDelete.js'
 
 // "Inloggen met Google" volgens Googles richtlijnen voor de knop (donker thema): hun eigen
@@ -167,11 +168,10 @@ export function AccountSettings({ account, syncStatus, summary = null, manage = 
       <ConfirmDialog
         open={ask === 'apple'}
         title={DELETE_TEXT.appleTitle}
-        message={DELETE_TEXT.appleMessage}
+        message={DELETE_TEXT.appleMessageWeb}
         busy={busy}
         onClose={() => setAsk((a) => (a === 'apple' ? null : a))}
         actions={[
-          { label: DELETE_TEXT.appleRetry, kind: 'plain', onClick: () => remove(false) },
           { label: DELETE_TEXT.cancel, kind: 'cancel', onClick: keep },
           { label: DELETE_TEXT.appleSkip, kind: 'danger', onClick: () => remove(true) },
         ]}
