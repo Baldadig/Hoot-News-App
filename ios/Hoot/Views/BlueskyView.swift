@@ -16,7 +16,7 @@ struct BlueskyFeed: View {
         LazyVStack(alignment: .leading, spacing: 0) {
             if people.count > 1 { chips(people, who: who) }
             if store.status == .loading && posts.isEmpty {
-                WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
+                LoadStackView()
             } else if posts.isEmpty {
                 if people.isEmpty {
                     EmptyState(title: "Je volgt nog niemand", systemImage: "bubble.left.and.bubble.right", text: "Voeg mensen toe met hun @-naam, bijvoorbeeld @naam.bsky.social.", action: onAdd.map { (label: "Iemand toevoegen", systemImage: "plus", run: $0) })

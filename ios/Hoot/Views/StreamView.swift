@@ -103,7 +103,7 @@ struct StreamView: View {
                         // (die blijven bewaard): offline of zonder bronnen zie je het altijd.
                         let niets = items.isEmpty && store.stream.isEmpty
                         if store.status == .loading && niets {
-                            WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
+                            LoadStackView()
                         } else if niets {
                             if store.status == .failed {
                                 EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnen hier de berichten van je bronnen.", retry: store.load)

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
+import { ViewHeader, StatusLine, LoadError, Empty } from '../components/Shell.jsx'
+import { LoadStack, useLoadStack } from '../components/LoadStack.jsx'
 import { Entry, useHoot } from '../components/Items.jsx'
 import { StreamLine } from '../components/StreamLine.jsx'
 import { StreamArt, FilterIcon, ArrowUpIcon } from '../components/icons.jsx'
@@ -54,6 +55,7 @@ function FilterSheet({ open, onClose, params, clear, setFilter, count }) {
 export default function Stream({ active, stream, params, go, bubble = [], preview = 2, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
   const { storiesById, sourcesById, muted, setMuted, prefs } = useHoot()
   const ref = useRef(null)
+  const stack = useLoadStack(loading, !failedLoad)
   const [sheet, setSheet] = useState(false)
   const [atDepth, setAtDepth] = useState(false)
   const [freshShown, setFreshShown] = useState(0)
@@ -191,8 +193,8 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
         ) : null}
 
         <RubriekCrossfade category={actief}>
-        {loading ? (
-          <Skeleton />
+        {stack.show ? (
+          <LoadStack done={stack.done} onDone={stack.finish} />
         ) : failedLoad ? (
           <LoadError onRetry={onRefresh} />
         ) : (
