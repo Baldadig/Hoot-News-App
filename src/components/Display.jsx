@@ -28,7 +28,7 @@ export function DisplayControls() {
         value={theme}
         onChange={setTheme}
         options={[
-          { value: 'system', label: 'Systeem' },
+          { value: 'system', label: 'Automatisch' },
           { value: 'light', label: 'Licht' },
           { value: 'dark', label: 'Donker' },
           { value: 'night', label: 'Nacht', aria: 'Nacht, echt zwart' },

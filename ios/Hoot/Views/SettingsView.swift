@@ -4,7 +4,7 @@ import SwiftUI
 // - alleen wat je in de app vaak wilt aanpassen; wat bij het systeem hoort (achtergrond,
 //   tekstgrootte, hoe meldingen eruitzien) via de pagina van Hoot in de Instellingen-app. Het
 //   seintje bij een nieuwe Editie staat wél hier: welke edities, dat is een keuze in Hoot;
-// - Systeem volgt de iPhone; Licht, Donker en Nacht zijn een bewuste eigen keuze;
+// - Automatisch volgt de iPhone; Licht, Donker en Nacht zijn een bewuste eigen keuze;
 // - geen opties die (nog) niet werken of nu niet van toepassing zijn;
 // - wissen alleen na bevestiging, met Annuleer.
 struct SettingsView: View {

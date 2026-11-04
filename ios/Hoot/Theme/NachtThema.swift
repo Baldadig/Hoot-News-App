@@ -5,7 +5,7 @@ import UIKit
 enum Weergave: String, CaseIterable {
     case system, light, dark, night
     init(stored: String) { self = Self(rawValue: stored) ?? .system }
-    var label: String { switch self { case .system: "Systeem"; case .light: "Licht"; case .dark: "Donker"; case .night: "Nacht" } }
+    var label: String { switch self { case .system: "Automatisch"; case .light: "Licht"; case .dark: "Donker"; case .night: "Nacht" } }
     var scheme: ColorScheme? { switch self { case .system: nil; case .light: .light; case .dark, .night: .dark } }
     func nightActive(systemDark: Bool, evening: String) -> Bool { self == .night || (self == .system && systemDark && evening == "night") }
 }
