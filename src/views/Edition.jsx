@@ -90,7 +90,7 @@ function LessNote({ entryKey, item, story, n }) {
 // Elke plek: het verhaal zelf, of ingeklapt als je er minder van wilde.
 const Slot = ({ less, row, children }) => (less.includes(row.key) ? <LessNote n={row.n} entryKey={row.key} item={row.item} story={row.story} /> : children)
 
-export default function Edition({ active, edition, bubble = [], brief = null, briefForMembers = false, onJoin, hint = false, onHintDone, loading, failedLoad, statusProps, onRefresh, refreshing }) {
+export default function Edition({ active, edition, bubble = [], brief = null, briefNote = null, briefForMembers = false, onJoin, hint = false, onHintDone, loading, failedLoad, statusProps, onRefresh, refreshing }) {
   const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account, prefs, sourcesById } = useHoot()
   const following = followedNow(followStories, storiesById, newInStory)
   const ref = useRef(null)
@@ -210,6 +210,19 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               <CaretIcon size={ICON_SM} />
             </span>
           </button>
+        ) : null}
+        {ready && !hasBrief && !briefForMembers && briefNote ? (
+          // Het plafond voor vandaag is bereikt: dezelfde rij, zonder knop, met een rustige zin. Geen
+          // hover of druk: de stijl staat hier, want styles.css is vastgelegd (tests/zacht-papier).
+          <div className="briefcta briefcta--rust" role="status" style={{ background: 'none', cursor: 'default' }}>
+            <span className="briefcta__icon" aria-hidden="true">
+              <SparkleIcon />
+            </span>
+            <span className="briefcta__text">
+              <span className="briefcta__title">De Editie in één minuut</span>
+              <span className="briefcta__sub">{briefNote}</span>
+            </span>
+          </div>
         ) : null}
         {ready && !hasBrief && briefForMembers ? (
           // Zonder account: de knop opent het inlogblad. Ingelogd maar het account is er nog niet

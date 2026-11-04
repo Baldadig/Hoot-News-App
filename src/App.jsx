@@ -35,7 +35,7 @@ import { JoinSheet } from './components/Account.jsx'
 import { normalizePrefs } from './lib/prefs.js'
 import { shouldShowInstallTip } from './lib/install.js'
 import { shouldAskToJoin, JOIN_AUTO } from './lib/join.js'
-import { accountPending } from './lib/membership.js'
+import { pendingShown } from './lib/membership.js'
 import { applyWelcome } from './lib/welcome.js'
 import { usePersonalEdition } from './hooks/usePersonalEdition.js'
 import { toggleFollow } from './lib/follow.js'
@@ -169,7 +169,7 @@ export default function App() {
   // Digest: pas ophalen als je de tab hebt aangezet (of hem opent).
   const vak = useVak(prefs.vak.length > 0 || route.path === 'digest')
   // Jouw editie: samengesteld uit je eigen bronnen en interesses (zie src/lib/personal.js).
-  const { edition: myEdition, member } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount, affinity, readIds: read, sync: { status: syncStatus, pulled: syncPulled } })
+  const { edition: myEdition, member, briefNote } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount, affinity, readIds: read, sync: { status: syncStatus, pulled: syncPulled } })
   const socialIds = useMemo(() => new Set(social.sources.map((s) => 'bsky:' + s.handle)), [social.sources])
 
   const stream = useMemo(() => webStream([...(data?.items || []), ...social.items], {
@@ -592,8 +592,9 @@ export default function App() {
               active={shown === 'editie'}
               bubble={bubble}
               brief={prefs.brief ? myEdition?.brief || null : null}
-              briefForMembers={prefs.brief && !member && (rawAccount.status === 'out' || accountPending(rawAccount))}
-              onJoin={() => (accountPending(rawAccount) ? route.go('instellingen') : setJoinOpen('brief'))}
+              briefNote={prefs.brief ? briefNote : null}
+              briefForMembers={prefs.brief && !member && (rawAccount.status === 'out' || pendingShown(rawAccount, online))}
+              onJoin={() => (pendingShown(rawAccount, online) ? route.go('instellingen') : setJoinOpen('brief'))}
               hint={!!rawPrefs.editieHint}
               onHintDone={endEditieHint}
               edition={myEdition}

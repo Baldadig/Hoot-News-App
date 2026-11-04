@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Dialog, DialogHeader } from './Dialog.jsx'
-import { accountPending, PENDING_TEXT } from '../lib/membership.js'
+import { pendingShown, PENDING_TEXT } from '../lib/membership.js'
+import { useOnline } from '../hooks/useOnline.js'
 
 // "Inloggen met Google" volgens Googles richtlijnen voor de knop (donker thema): hun eigen
 // G in kleur, Roboto Medium, bijna zwart met een grijze rand. Kleuren en letter liggen vast.
@@ -27,6 +28,7 @@ const SYNC = { idle: 'Gesynchroniseerd', pending: 'Wacht op verbinding', syncing
 
 export function AccountSettings({ account, syncStatus }) {
   const { status, user, signIn, signOut } = account
+  const pending = pendingShown(account, useOnline())
   if (status === 'loading') return <p className="hint">Even geduld…</p>
   if (status === 'out')
     return (
@@ -44,13 +46,13 @@ export function AccountSettings({ account, syncStatus }) {
       <div className="setrow">
         <div className="setrow__text">
           <span className="setrow__label">{email}</span>
-          <span className="setrow__hint">{accountPending(account) ? PENDING_TEXT : SYNC[syncStatus] || SYNC.ok}</span>
+          <span className="setrow__hint">{pending ? PENDING_TEXT : account.status === 'in' && !account.profile ? SYNC.pending : SYNC[syncStatus] || SYNC.ok}</span>
         </div>
         <button type="button" className="btn btn--quiet" onClick={signOut}>
           Uitloggen
         </button>
       </div>
-      {accountPending(account) ? <RetryRow account={account} /> : null}
+      {pending ? <RetryRow account={account} /> : null}
     </div>
   )
 }

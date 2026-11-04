@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { composePersonal, personalRows, editionBasis } from '../lib/personal.js'
 import { editionReady, fitsEdition, settleEdition, writeBrief } from '../lib/editionSync.js'
 import { readJSON, writeJSON } from '../lib/store.js'
-import { syncedUid } from '../lib/membership.js'
+import { syncedUid, BRIEF_FULL_TEXT } from '../lib/membership.js'
 
 const KEY = 'hoot:my-edition'
 
@@ -86,6 +86,8 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
 
   // Leden: een eigen samenvatting, één keer per editie (de server bewaakt het maximum).
   const asked = useRef('')
+  // Op (429): de melding hoort bij deze Editie; een volgende Editie vraagt opnieuw.
+  const [briefFull, setBriefFull] = useState('')
   useEffect(() => {
     if (!edition || edition.brief || !uid || !account.client || !prefs.brief) return
     // De versie volgt het dagdeel; na opnieuw samenstellen (andere bronnen) is alleen de afdruk anders.
@@ -97,6 +99,7 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
       const token = s?.session?.access_token
       if (!token) return
       const res = await fetch('/api/brief', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ rows: personalRows(edition) }) }).catch(() => null)
+      if (res?.status === 429) setBriefFull(key)
       if (!res?.ok) return
       const { brief } = await res.json()
       const current = readJSON(KEY, null)
@@ -110,5 +113,6 @@ export function usePersonalEdition({ data, status, prefs, muted, account, affini
 
   // Uitloggen of een andere lezer: niet de editie van een ander tonen.
   const shown = edition && edition.owner === owner && edition.id === global?.id ? edition : null
-  return { edition: shown, member: !!uid }
+  const briefNote = shown && !shown.brief && briefFull === `${shown.version}|${shown.basis}` ? BRIEF_FULL_TEXT : null
+  return { edition: shown, member: !!uid, briefNote }
 }
