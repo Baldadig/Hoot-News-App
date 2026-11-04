@@ -69,7 +69,7 @@ export async function measureFeedImages(items, now, { load = loadImageMeasure, g
   try {
     const cache = await get('image-measure-v1') || {}
     const urls = [...new Set(items.filter(i => i.kind === 'article' && i.image).map(i => i.image))]
-    const missing = urls.filter(url => !cache[url] || now - cache[url].at > (cache[url].value ? 7 * 864e5 : 36e5)).slice(0, 32)
+    const missing = urls.filter(url => !cache[url] || now - cache[url].at > (cache[url].value ? 7 * 864e5 : 36e5)).slice(0, 48)
     const signal = AbortSignal.timeout(8000)
     await Promise.all(Array.from({ length: 4 }, async () => {
       while (missing.length && !signal.aborted) {

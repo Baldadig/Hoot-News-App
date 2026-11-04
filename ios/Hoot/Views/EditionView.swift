@@ -496,8 +496,8 @@ struct StoryView: View {
             Section {
                 VStack(alignment: .leading, spacing: Space.s2) {
                     // Een beeld bij het verhaal: dat van het hoofdbericht, of anders het eerste scherpe.
-                    if store.showsImage(lead: true), let image = ([lead].compactMap { $0 } + items).lazy.compactMap(\.image).first(where: { ImageURL.fitsHero($0) }) {
-                        FramedImage(url: ImageURL.url(image, .large), ratio: 16 / 9).padding(.bottom, Space.s1)
+                    if store.showsImage(lead: true), let pick = ([lead].compactMap { $0 } + items).lazy.first(where: { ImageURL.fitsHero($0.image) && $0.image != nil }) {
+                        FramedImage(url: pick.pictureURL(.large), ratio: 16 / 9, measure: pick.measure).padding(.bottom, Space.s1)
                     }
                     if let lead {
                         Text(lead.title).font(Theme.headline(.title2)).fixedSize(horizontal: false, vertical: true)
