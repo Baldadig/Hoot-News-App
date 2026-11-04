@@ -102,3 +102,25 @@ export async function fetchAuthorPosts(handle, { name, hours = 36, headers, now 
   }
   return own.map((fi) => mapPost(fi.post, name)).filter((it) => it && (!it.publishedAt || Date.parse(it.publishedAt) >= since))
 }
+
+// De tekst van een post zonder kale links (Stroom-kaart B, keuze 1.1.0): de link staat al in de
+// linkkaart eronder, dus "theverge.com/2026/11/…" of "https://…" in de tekst zelf valt weg. Een
+// los woord met een punt ("3.7", "e.g.") blijft staan: alleen een adres met http(s), een pad of
+// de host van de linkkaart telt als link. Gelijk aan Post.withoutBareLinks in ios/Hoot/Views/BlueskyView.swift.
+export function withoutBareLinks(text = '', domain = '') {
+  const host = String(domain || '').replace(/^www\./, '').toLowerCase()
+  return String(text || '')
+    .split(/(\s+)/)
+    .filter((t) => {
+      if (!t.trim()) return true
+      const w = t.replace(/[)\].,;:!?]+$/, '').toLowerCase()
+      if (/^https?:\/\//.test(w)) return false
+      if (/^(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}\/\S*$/.test(w)) return false
+      if (host && (w === host || w === 'www.' + host || (w.startsWith(host) && w.endsWith('…')))) return false
+      return true
+    })
+    .join('')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+

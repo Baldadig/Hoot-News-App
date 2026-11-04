@@ -63,3 +63,22 @@ test('breed raster: B (één leeskolom, nummers in de kantlijn) tot 48rem, A (pa
   assert.match(view, /HangRow\(number:/)
   assert.match(view, /EditionPairsGrid\(rows:/)
 })
+
+test('Stroom-kaart B: een post op het raster van het artikel, bron onder, geen kale link in de tekst (S1)', async () => {
+  const { withoutBareLinks } = await import('../shared/bluesky.mjs')
+  assert.equal(withoutBareLinks('Valve brengt de Steam Machine uit. theverge.com/2026/11/03/valve…', 'www.theverge.com'), 'Valve brengt de Steam Machine uit.')
+  assert.equal(withoutBareLinks('Lees dit: https://www.nrc.nl/nieuws/2026/11/04/a-b', ''), 'Lees dit:')
+  assert.equal(withoutBareLinks('Nieuw op theverge.com vandaag', 'theverge.com'), 'Nieuw op vandaag')
+  assert.equal(withoutBareLinks('Inflatie 3.7 procent, d.w.z. hoger.', 'nos.nl'), 'Inflatie 3.7 procent, d.w.z. hoger.')
+  const items = read('src/components/Items.jsx')
+  const social = items.slice(items.indexOf('export function SocialItem'), items.indexOf('// Kiest de juiste vorm'))
+  assert.ok(social.indexOf('social__text') < social.indexOf('className="meta"'), 'de bron staat onder de tekst')
+  assert.ok(!social.includes('social__head'), 'geen kop met avatar boven de post')
+  assert.match(css.slice(css.indexOf('/* ---------- Vorm 3: sociale bijdrage')), /\.social__text \{[^}]*font-size: var\(--t3\);\s*line-height: var\(--lh-3\);/)
+  assert.match(block('.linkcard__media'), /aspect-ratio: var\(--media-link\)/)
+  // iOS: geen avatar van 40 met een hangende inspringing meer.
+  const post = read('ios/Hoot/Views/BlueskyView.swift')
+  const row = post.slice(post.indexOf('struct PostRow'), post.indexOf('private struct LinkCard'))
+  assert.ok(!row.includes('size: 40'), 'geen avatar van 40')
+  assert.ok(row.indexOf('LinkCard(item:') < row.indexOf('SourceMark(item: item)'), 'bron onder het beeld')
+})

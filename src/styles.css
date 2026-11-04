@@ -145,6 +145,7 @@
   --media-lead-portrait-wide: 3 / 4;
   --media-lead-wide: 21 / 9; /* hoofdverhaal vanaf 720: een liggende strook */
   --media-card: 16 / 9; /* kaart van de Selectie */
+  --media-link: 1.91 / 1; /* linkkaart in een post (Bluesky), de verhouding van een deelbeeld */
   --mark-logo-pad: 14%; /* lucht rond een uitgeverslogo in zijn schijf */
   --underline-offset: 3px;
   --tabbar-h: 52px;
@@ -2018,43 +2019,28 @@ select.input {
 }
 
 /* ---------- Vorm 3: sociale bijdrage ---------- */
-.social__head {
-  display: flex;
-  align-items: center;
-  gap: var(--s2);
-}
-.srcbtn--social {
-  flex: 1;
-  gap: var(--s3);
-}
-.social__who {
+/* Op het raster van het artikel (Stroom-kaart B): tekst, dan het beeld over de hele kolom, dan de
+   bronregel (.meta) op dezelfde plek als bij een artikel. 12 tussen tekst, beeld en bron. */
+.social__body {
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  line-height: var(--lh-2);
-}
-.social__handle {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--ink-3);
-  font-size: var(--t1);
-  font-weight: var(--fw-regular);
-  line-height: var(--lh-1);
-}
-.social__body {
+  gap: var(--s3);
   min-height: var(--tap); /* ook een post van één regel is een volwaardig aanraakdoel */
 }
 .social__text {
-  margin: var(--s2) 0 var(--s3);
+  margin: 0;
+  color: var(--ink);
   font-size: var(--t3);
-  line-height: var(--lh-3-read);
+  line-height: var(--lh-3);
   overflow-wrap: anywhere;
 }
 .media--social {
   position: relative;
-  margin-bottom: var(--s3);
+  width: 100%;
   border-radius: var(--radius-card);
+}
+.social > .media--video {
+  margin-top: var(--s3);
 }
 .media--natural img {
   object-fit: contain; /* screenshots van tekst: heel tonen */
@@ -2904,26 +2890,21 @@ select.input {
   line-height: var(--lh-1);
 }
 
-/* Gedeelde link in een sociale bijdrage: een compacte .card in plaats van een groot beeld. Het
-   beeld blijft vierkant (--thumb-sm, niet de 3:2-miniatuur van de krant-vorm: een post houdt zijn
-   eigen vorm, zoals in de app) met --s3 rondom. */
+/* Gedeelde link in een post: een .card over de hele kolom, het beeld bovenaan in de verhouding van
+   een deelbeeld (--media-link), daaronder titel en website. */
 .linkcard {
-  display: flex;
-  align-items: center;
-  gap: var(--s3);
-  margin-bottom: var(--s3);
-  padding: var(--s3);
+  display: block;
 }
-.linkcard .thumb {
-  flex: none;
-  width: var(--thumb-sm);
-  height: var(--thumb-sm);
+.linkcard__media {
+  aspect-ratio: var(--media-link);
+  border-radius: 0;
 }
 .linkcard__text {
   display: flex;
   flex-direction: column;
   gap: var(--s1);
   min-width: 0;
+  padding: var(--s3);
 }
 .linkcard__title {
   font-size: var(--t2);
@@ -4373,10 +4354,6 @@ html[data-images='hoofd'] .media--social {
   }
 }
 
-/* Bluesky: naam in de kop van een post op de schaal (bronnaam = t2) */
-.social__who .srcbtn__name {
-  font-size: var(--t2);
-}
 
 /* Begrippen uitgelegd (src/lib/glossary.js): kleine knoppen, de uitleg klapt eronder open */
 .terms {
