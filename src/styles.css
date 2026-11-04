@@ -5213,8 +5213,8 @@ html[data-images='hoofd'] .media--social {
 }
 .sb__check {
   position: absolute;
-  right: 0;
-  bottom: 0;
+  right: 2px; /* schijf plus papierrand (2) vallen binnen het vak, zoals op iOS */
+  bottom: 2px;
   display: grid;
   place-items: center;
   width: var(--s4);

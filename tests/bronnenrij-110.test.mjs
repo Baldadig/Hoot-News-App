@@ -47,3 +47,13 @@ test('iOS en web: open eindigt Alle bronnen binnen de kolomrand, vinkje binnen h
   assert.match(swift, /if open \{\n\s+x = -openRand/)
   assert.doesNotMatch(swift, /\.offset\(x: Space\.s0, y: Space\.s0\)/)
 })
+
+test('stap 46b: vinkje 2 binnen het vak op web en iOS, open rij begint links op de lijn', () => {
+  const css = read('src/styles.css')
+  const blok = css.slice(css.indexOf('.sb__check {'), css.indexOf('.sb__check svg'))
+  assert.match(blok, /right: 2px;/)
+  assert.match(blok, /bottom: 2px;/)
+  const swift = read('ios/Hoot/Views/StreamLine.swift')
+  assert.match(swift, /\.padding\(Space\.s0\)\n\s+\.background\(Theme\.paper, in: Circle\(\)\)/)
+  assert.match(swift, /\.padding\(\.leading, open \? openRand : 0\)/)
+})

@@ -219,6 +219,9 @@ struct StreamLine: View {
             }
             // Alle bronnen (en dicht het voorste logo) recht onder de knop rechtsboven.
             .padding(.trailing, edge - Self.edgeBasis)
+            // Open: de bolletjes staan openRand naar links; links erbij, zodat het meest linkse vak
+            // helemaal links gescrold precies op de kolomlijn begint (web: 16).
+            .padding(.leading, open ? openRand : 0)
             .frame(minWidth: lineW, maxHeight: .infinity, alignment: .trailing)
         }
         .scrollPosition($rijPos)
