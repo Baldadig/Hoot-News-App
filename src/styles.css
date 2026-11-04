@@ -5428,6 +5428,10 @@ html[data-images='hoofd'] .media--social {
 /* Op breed web hangt de telling naast de tekst, binnen de eigen kaartmarge. */
 @media (min-width: 960px) {
   .front .entry:has(.kicker__n), .front__rest .entry:has(.kicker__n) { padding-inline-start: calc(2ch + var(--s3)); }
+  /* De cijfers staan in Newsreader en zijn breder dan 2ch van de lopende letter; ze hangen dus een
+     paar pixels in de kolommarge. content-visibility: auto (.compact) knipt alles buiten de rand af
+     (")7"); hier, bij hooguit tien berichten, tekent het bericht ook buiten zijn rand. */
+  .front__rest .entry:has(.kicker__n) { content-visibility: visible; }
   .front .kicker:has(> .kicker__n), .front__rest .kicker:has(> .kicker__n) { position: relative; }
   .front .kicker > .kicker__n, .front__rest .kicker > .kicker__n { position: absolute; inset-inline-end: calc(100% + var(--s3)); }
   .front .kicker > .kicker__n + span::before, .front__rest .kicker > .kicker__n + span::before { content: none; }
