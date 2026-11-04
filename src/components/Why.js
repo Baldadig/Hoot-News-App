@@ -17,7 +17,7 @@ export function whyLine(why) {
 
 // Het aantal bronnen staat al in de bronregel ("12 bronnen ›"): de waarom-regel noemt het niet nog
 // eens. "Groot nieuws · 12 bronnen" wordt "Groot nieuws" (minder rood, E6).
-export const plainWhy = (text) => text.replace(/\s*·\s*\d+\s+bronn?en?$/, '')
+export const plainWhy = (text) => text.replace(/\s*·\s*\d+\s+bron(?:nen)?$/, '')
 
 // Hiërarchie van een plek: rubriek (kicker) > kop > intro > why/bron. Het waarom hoort bij de plek,
 // niet bij het artikel, dus het staat bij de rubriek (direct eronder, zoals in de bouwspec), maar

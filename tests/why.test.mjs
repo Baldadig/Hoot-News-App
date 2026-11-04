@@ -111,3 +111,10 @@ test("profileSummary: 'meer hiervan' telt als gekozen, 'minder' op nul valt weg"
   assert.deepEqual(s.chosen, ['muziek'])
   assert.deepEqual(s.less, [])
 })
+
+test('waarom-regel: het aantal bronnen staat in de bronregel, niet nog eens hier (E6)', async () => {
+  const { plainWhy } = await import('../src/components/Why.js')
+  assert.equal(plainWhy('Groot nieuws · 12 bronnen'), 'Groot nieuws')
+  assert.equal(plainWhy('Groot nieuws · 1 bron'), 'Groot nieuws')
+  assert.equal(plainWhy('Naast je bubbel · grenst aan Sport'), 'Naast je bubbel · grenst aan Sport')
+})

@@ -328,7 +328,7 @@ struct WhyLine: View {
     let text: String?
     // Het aantal bronnen staat al in de bronregel ("12 bronnen ›"): "Groot nieuws · 12 bronnen" wordt
     // "Groot nieuws" (E6). Gelijk aan plainWhy in src/components/Why.js.
-    static func plain(_ s: String) -> String { s.replacingOccurrences(of: #"\s*·\s*\d+\s+bronn?en?$"#, with: "", options: .regularExpression) }
+    static func plain(_ s: String) -> String { s.replacingOccurrences(of: #"\s*·\s*\d+\s+bron(?:nen)?$"#, with: "", options: .regularExpression) }
     var body: some View {
         if let text = text.map(Self.plain), !text.isEmpty {
             Text(text)
