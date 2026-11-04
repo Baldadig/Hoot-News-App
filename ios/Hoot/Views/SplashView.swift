@@ -4,6 +4,19 @@ import SwiftUI
 // LaunchMark); dit scherm ligt daar precies op, zodat je geen overgang ziet, alleen dat de punt
 // gaat stuiteren. Het blijft staan tot er iets te lezen is: minstens één sprong, hooguit een paar
 // seconden. Met "Verminder beweging" staat de punt stil.
+// De overgang naar de app (BRAND-UPDATE §10, keuze 1.1.0 "eerst vervagen, dan reizen"): het grote
+// "hoot." vervaagt op zijn plek en beweegt niet; alleen de iris, het rode vlak, sluit zich en reist
+// naar de gemeten punt van het kleine "hoot." linksboven. Daar kleurt hij naar de kleur van die punt.
+// De iris vertrekt pas als het woord half weg is. Gelijk aan IRIS_ONLY in src/lib/motion.js.
+enum IrisTimes {
+    static let fade = 0.28 // het woord vervaagt (40 % van de reis)
+    static let delay = 0.14 // de iris vertrekt als het woord half weg is
+    static let travel = 0.7 // de iris sluit en reist, curve 0,6 0 0,2 1
+    static let tint = 0.21 // op de punt: het rood wordt de kleur van de punt
+    static let reduced = 0.35 // Verminder beweging: niets reist, één vervaging
+    static var total: Double { delay + travel + tint }
+}
+
 struct SplashView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var handoff: BrandHandoff? = nil // waar "hoot." staat (welkom of Editie), en of de overgang erheen loopt
@@ -31,10 +44,11 @@ struct SplashView: View {
             let center = CGPoint(x: geo.size.width / 2, y: geo.size.height / 2)
             // Waar het heen gaat: "hoot." in het welkom of de Editie, of anders de eigen punt hier.
             let lands = handoff?.dot != nil
-            let word = leaving && lands ? handoff?.word : nil
-            let target = leaving ? (handoff?.dot ?? Self.ownDot(center)) : nil
             // Naar de rode intro van het welkom: het rood blijft, alleen het woordmerk landt.
             let stays = handoff?.onRed == true
+            // Alleen naar de rode intro reist het woord; naar de app vervaagt het op zijn plek.
+            let word = leaving && lands && stays ? handoff?.word : nil
+            let target = leaving ? (handoff?.dot ?? Self.ownDot(center)) : nil
             // Het rood als cirkel die het hele scherm vult; bij het vertrek sluit hij als een iris tot de
             // rode punt van "hoot.".
             let full = hypot(geo.size.width, geo.size.height) * 1.1
@@ -42,14 +56,20 @@ struct SplashView: View {
             let disc = Circle()
                 .frame(width: iris?.width ?? full, height: iris?.height ?? full)
                 .position(iris.map { CGPoint(x: $0.midX, y: $0.midY) } ?? center)
+                // Eerst vervagen, dan reizen: de iris vertrekt als het woord half weg is.
+                .transaction { if $0.animation != nil, !stays, leaving { $0.animation = .timingCurve(0.6, 0, 0.2, 1, duration: time).delay(IrisTimes.delay * time / IrisTimes.travel) } }
             ZStack {
                 disc.foregroundStyle(handoff?.tinted == true ? Theme.accent : Theme.brandRed)
                 mark(leaving: leaving, stays: stays, time: time)
-                    // Het woordmerk landt eerst precies op "hoot." in het welkom (punt op punt), daarna
-                    // veegt de rand van het rood de witte letters weg en staat de inkt eronder er al.
+                    // Naar de rode intro: het woordmerk landt precies op "hoot." in het welkom (punt op
+                    // punt). Naar de app beweegt het niet en wordt het niet kleiner: het vervaagt.
                     .scaleEffect(Self.fit(word))
                     .position(Self.place(word, dot: target) ?? center)
-                    .transaction { if $0.animation != nil { $0.animation = .timingCurve(0.3, 0, 0.1, 1, duration: time * 0.55) } }
+                    .opacity(leaving && !stays ? 0 : 1)
+                    .transaction {
+                        guard $0.animation != nil else { return }
+                        $0.animation = stays ? .timingCurve(0.3, 0, 0.1, 1, duration: time * 0.55) : .easeOut(duration: IrisTimes.fade * time / IrisTimes.travel)
+                    }
                     .mask { disc }
             }
         }

@@ -34,6 +34,7 @@ struct DigestView: View {
             ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
+                    HootKop()
                     ScreenTitle("Selectie") // de schermtitel in de scroll (C7), boven de onderwerpenknop
                     picker
                     if let d = store.digest {
@@ -80,8 +81,7 @@ struct DigestView: View {
             }
             .background(Theme.paper)
             .navigationTitle("Selectie")
-            .hootBrandHeader()
-            .hootScreenTitle()
+            .hootKopScreen()
             .settingsButton()
             .hootRefresh(indicator: store.digest != nil) { await store.loadDigest(force: true) }
             .sheet(isPresented: $choosing) {

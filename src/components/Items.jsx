@@ -2,7 +2,7 @@ import { CORRECTION_REASONS } from '../lib/corrections.mjs'
 import { cleanIntro, headlineTier } from '../../shared/edition-display.mjs'
 import { createContext, useContext, useState } from 'react'
 import { timeAgo, readTime } from '../lib/time.js'
-import { BookmarkIcon, PlayIcon, MoreIcon, ShareIcon } from './icons.jsx'
+import { BookmarkIcon, PlayIcon, MoreIcon, ShareIcon, CaretIcon, ICON_SM } from './icons.jsx'
 import { imageMeta, portraitImage, cropStyle } from '../lib/image-meta.js'
 import { shareLink } from '../lib/share.js'
 import { topicById } from '../lib/topics.js'
@@ -14,7 +14,7 @@ import { Img } from './Img.jsx'
 import { isPlayableVideo } from '../lib/video-fullscreen.js'
 import { Video } from './Video.jsx'
 import { Why } from './Why.js'
-import { directVideo } from '../../shared/bluesky.mjs'
+import { directVideo, withoutBareLinks } from '../../shared/bluesky.mjs'
 import { safeHttpUrl } from '../../shared/util.mjs'
 import { wholeSentences } from '../../shared/zinnen.mjs'
 import { useIntroMax } from '../lib/intro.js'
@@ -121,6 +121,9 @@ export function SourceMeta({ item, outside = false }) {
   )
 }
 
+// Het bronlabel: altijd het totaal, "1 bron" of "N bronnen" (de pijl staat ernaast als icoon).
+export const bronnenLabel = (n) => `${n} ${n === 1 ? 'bron' : 'bronnen'}`
+
 // Actieregel: vaste plekken — bron · vergelijken · meer of minder · delen · bewaren. Ontbreekt er
 // een, dan blijft zijn plek leeg, zodat "Vergelijk", delen en bewaren in elke rij van een scherm
 // op dezelfde x staan (een scherm zonder meer of minder heeft die plek niet, zie .meta). Delen en
@@ -133,10 +136,12 @@ export function Meta({ item, story, showSave = true, taste = null, outside = fal
     <div className="meta">
       <SourceMeta item={item} outside={outside} />
       {story && others > 0 ? (
-        <button type="button" className="linkbtn linkbtn--plain morebtn" onClick={() => openStory(story.id, item.id)} aria-label={`Vergelijk met ${others} andere ${others === 1 ? 'bron' : 'bronnen'}${fresh ? `, ${fresh} nieuw` : ''}`}>
+        // Eén bronlabel, overal hetzelfde: het totaal, "6 bronnen ›", in --ink-2 (minder rood, keuze B).
+        // Geen rood en geen tweede vorm ("Vergelijk", "+N") per breedte.
+        <button type="button" className="linkbtn linkbtn--plain morebtn" onClick={() => openStory(story.id, item.id)} aria-label={`Vergelijk ${others + 1} bronnen${fresh ? `, ${fresh} nieuw` : ''}`}>
           {fresh ? <span className="dot" aria-hidden="true" /> : null}
-          <span className="morebtn__long">Vergelijk {others + 1} bronnen</span>
-          <span className="morebtn__short">+{others} {others === 1 ? 'bron' : 'bronnen'}</span>
+          <span>{bronnenLabel(others + 1)}</span>
+          <CaretIcon size={ICON_SM} />
         </button>
       ) : null}
       {(taste || voteOn || reportMistake) && item.kind !== 'post' ? <TasteButton entryKey={taste || story?.id || item.id} item={item} story={story} /> : null}
@@ -281,34 +286,24 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
 }
 
 // ---- Vorm 3: sociale bijdrage ----
+// Op het raster van het artikel (Stroom-kaart B, keuze 1.1.0): de tekst zelf in leestekst (geen
+// kop), dan het beeld of de linkkaart over de hele kolom, en de bron onderaan op dezelfde plek als
+// bij een artikel: avatar 24, naam en de @-naam waar bij een artikel de tijd staat, met delen en
+// bewaren rechts. Geen kale link in de tekst: die staat in de linkkaart.
 export function SocialItem({ item }) {
   const { markRead, read, openSource } = useHoot()
-  const ratio = item.imageRatio ? Math.min(2.4, Math.max(0.7, item.imageRatio)) : null
-  // Drie soorten beeld: een gedeelde link (compacte kaart), een eigen foto (ruimer, met
-  // begrensde hoogte en de echte verhouding) en video (16:9 met afspeelknop).
+  // Een staand beeld wordt hooguit 4:5, een liggend hooguit 2,4:1; de breedte is altijd de kolom.
+  const ratio = item.imageRatio ? Math.min(2.4, Math.max(0.8, item.imageRatio)) : null
+  // Drie soorten beeld: een gedeelde link (linkkaart), een eigen foto en video (16:9 met afspeelknop).
   const isLink = !item.video && !item.imageRatio && !!item.domain && item.domain !== 'bsky.app'
-  // Hoogte begrenzen zonder bij te snijden: de breedte volgt uit de verhouding.
-  const bounded = (r) => ({ aspectRatio: r, maxWidth: `calc(min(420px, 56vh) * ${r})` })
   const playable = isPlayableVideo(item.video, CAN_HLS)
+  const text = withoutBareLinks(item.summary, isLink ? item.domain : '')
   return (
     <article className={`entry social${isReadItem(read, item) ? ' is-read' : ''}`} data-id={item.id}>
-      <div className="social__head">
-        <button type="button" className="srcbtn srcbtn--social" onClick={() => openSource(item.source)} aria-label={`Alles van ${item.sourceName} bekijken`}>
-          <SourceMark source={srcOf(item)} size={36} />
-          <span className="social__who">
-            <span className="srcbtn__name">{item.sourceName}</span>
-            <span className="social__handle">
-              {item.handle} · <time dateTime={item.publishedAt || undefined}>{timeAgo(item.publishedAt)}</time>
-            </span>
-          </span>
-        </button>
-        <ShareButton item={item} label="bericht" />
-        <SaveButton id={item.id} payload={item} />
-      </div>
       <a className="social__body" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
-        {item.summary ? <p className="social__text">{item.summary}</p> : null}
+        {text ? <p className="social__text">{text}</p> : null}
         {item.video && !playable ? (
-          <div className="media media--social media--poster" style={bounded(16 / 9)}>
+          <div className="media media--social media--poster" style={{ aspectRatio: 16 / 9 }}>
             {item.videoPoster ? <img src={directVideo(item.videoPoster)} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" /> : null}
             <span className="media__play">
               <PlayIcon />
@@ -317,8 +312,8 @@ export function SocialItem({ item }) {
         ) : isLink ? (
           <div className="card linkcard">
             {item.image ? (
-              <div className="thumb">
-                <Img url={item.image} width="64" height="64" />
+              <div className="media linkcard__media">
+                <Img url={item.image} kind="lead" />
               </div>
             ) : null}
             <div className="linkcard__text">
@@ -327,12 +322,25 @@ export function SocialItem({ item }) {
             </div>
           </div>
         ) : !item.video && item.image ? (
-          <div className={`media media--social${ratio ? ' media--natural' : ''}`} style={bounded(ratio || 16 / 9)}>
+          <div className="media media--social" style={{ aspectRatio: ratio || 16 / 9 }}>
             <Img url={item.image} kind="lead" />
           </div>
         ) : null}
       </a>
-      {playable ? <Video src={item.video} poster={item.videoPoster} label={`Video van ${item.sourceName} afspelen`} style={bounded(16 / 9)} /> : null}
+      {playable ? <Video src={item.video} poster={item.videoPoster} label={`Video van ${item.sourceName} afspelen`} style={{ aspectRatio: 16 / 9 }} /> : null}
+      <div className="meta">
+        <button type="button" className="srcbtn srcmeta" onClick={() => openSource(item.source)} aria-label={`Alles van ${item.sourceName} bekijken`}>
+          <SourceMark source={srcOf(item)} size={24} />
+          <span className="srcmeta__text">
+            <span className="srcmeta__name">{item.sourceName}</span>
+            <span className="srcmeta__time">
+              {item.handle} · <time dateTime={item.publishedAt || undefined}>{timeAgo(item.publishedAt)}</time>
+            </span>
+          </span>
+        </button>
+        <ShareButton item={item} label="bericht" />
+        <SaveButton id={item.id} payload={item} />
+      </div>
     </article>
   )
 }

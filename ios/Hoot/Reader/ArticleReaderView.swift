@@ -164,7 +164,10 @@ enum ReaderHTML {
     static func page(_ a: Article, item: Item, sourceName: String, size: Int, lang: String? = nil, night: Bool = false) -> String {
         let scale = scales[min(max(size, 0), scales.count - 1)]
         let title = escape(typeset(a.title.isEmpty ? item.title : a.title, lang: lang)) // de lezer haalt de kop zelf: zetten zoals de server (T6)
-        let meta = [a.byline, item.date.map { HootDate.ago($0) }].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.map(escape).joined(separator: " · ")
+        // De bron staat in de bronregel onder de kop, niet als rode kicker erboven (L3, minder rood);
+        // de kicker is de rubriek van het stuk, als die er is, stil in ink-3.
+        let meta = [sourceName, a.byline, item.date.map { HootDate.ago($0) }].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.map(escape).joined(separator: " · ")
+        let kicker = item.section?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return """
         <!doctype html><html lang="\(escape(lang ?? "nl"))"><head><meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -175,7 +178,7 @@ enum ReaderHTML {
         html { font: -apple-system-body; -webkit-text-size-adjust: 100%; }
         body { margin:0; background:var(--paper); color:var(--ink); }
         main { max-width: 680px; margin: 0 auto; padding: 16px 16px 48px; /* s4, s7 */ font-family: ui-serif, "New York", Georgia, serif; font-size: calc(1.06rem * \(scale)); line-height: 1.6; }
-        .kicker { font-family: -apple-system, system-ui, sans-serif; font-size: .72em; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin: 0 0 .6em; }
+        .kicker { font-family: -apple-system, system-ui, sans-serif; font-size: .72em; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 .6em; }
         h1.title { font-size: min(1.75em, 48px); line-height: 1.15; font-weight: 800; margin: 0 0 .4em; } /* bij heel grote tekst niet een heel scherm kop */
         .meta { font-family: -apple-system, system-ui, sans-serif; font-size: .8em; color: var(--ink-3); margin: 0 0 1.6em; padding-bottom: 1em; border-bottom: 1px solid var(--rule); }
         h1, h2, h3, h4 { line-height: 1.25; -webkit-hyphens: manual; hyphens: manual; } /* eigennamen in de kop breken nooit af */
@@ -194,7 +197,7 @@ enum ReaderHTML {
         pre, code { font-family: ui-monospace, Menlo, monospace; font-size: .85em; white-space: pre-wrap; }
         \(night ? NachtLeesinkt.readerCSS : "")
         </style></head><body><main\(scale > 1.3 ? " class=\"hyphenate\"" : "")>
-        <p class="kicker">\(escape(sourceName))</p>
+        \(kicker.isEmpty ? "" : "<p class=\"kicker\">\(escape(kicker))</p>")
         <h1 class="title">\(title)</h1>
         \(meta.isEmpty ? "" : "<p class=\"meta\">\(meta)</p>")
         \(a.content)
@@ -359,8 +362,11 @@ struct ReaderLoadingView: View {
     let waiting: ReaderWaitingState
     var body: some View {
         VStack(alignment: .leading, spacing: Space.s4) {
-            Kicker(text: sourceName)
-            Text(title).font(Theme.headline(.title)).fixedSize(horizontal: false, vertical: true)
+            // Zoals de lezer zelf: de kop, met de bron in de regel eronder (L3).
+            VStack(alignment: .leading, spacing: Space.s2) {
+                Text(title).font(Theme.headline(.title)).fixedSize(horizontal: false, vertical: true)
+                Text(sourceName).font(.subheadline).foregroundStyle(Theme.ink3)
+            }
             if waiting.visible {
                 WaitingMark(label: "Artikel laden").frame(maxWidth: .infinity).padding(.top, Space.s5)
             }

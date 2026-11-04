@@ -84,7 +84,8 @@ enum Desk {
     // De naam van de plek, zoals deskLabel op het web: Buiten je bubbel noemt waar het vandaan komt.
     private static let via = ["google": "Google Trends", "bluesky": "Bluesky", "wikipedia": "Wikipedia"]
     static func plek(_ e: EditionEntry) -> String? {
-        if e.desk == "breed" { return e.sourceCount.map { "Waar iedereen over schrijft · \($0) bronnen" } ?? "Waar iedereen over schrijft" }
+        // Het aantal bronnen staat in de bronregel ("5 bronnen ›"), niet nog eens in de rubriek (E6).
+        if e.desk == "breed" { return "Waar iedereen over schrijft" }
         if e.desk == "bubbel", let terms = e.terms, !terms.isEmpty {
             var seen = Set<String>()
             let namen = terms.compactMap { $0.via.map { via[$0] ?? $0 } }.filter { seen.insert($0).inserted }
@@ -149,14 +150,13 @@ struct EditionView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.brandHandoff) private var handoff
     @Environment(\.accessibilityReduceMotion) private var still
-    @Environment(EditionAlerts.self) private var alerts
+    @Environment(\.nachtActief) private var nacht
     @AppStorage("seenEdition") private var seenEdition = ""
     @State private var printedIDs: Set<String> = []
     @State private var ruleDrawn = true
     @State private var storyShown = true
     @State private var endVisible = false // de zon onderaan is in beeld
     @State private var risenAt: Date? // sinds wanneer die zon opkomt (één keer)
-    @State private var alertsOn = false // net "ja" gezegd op het seintje onderaan
     // Bij een koude start ligt de krant 8 pt lager en schuift op zijn plek terwijl het rood van het
     // opstartscherm zich sluit, met dezelfde curve: het merk landt, de krant gaat open.
     private var rising: Bool { !still && handoff?.landed == false && handoff?.leaving == false }
@@ -183,6 +183,48 @@ struct EditionView: View {
     }
 
     @State private var path = NavigationPath()
+    @State private var screen: CGSize = .zero // het scherm: staand of liggend
+    @State private var contentWidth: CGFloat = 0 // de kolom binnen de marges
+    @State private var leadImage: CGFloat = EditionPairs.leadMin // A: het beeld van het hoofdverhaal
+    @State private var leadHeight: CGFloat = 0
+    @State private var sideHeight: CGFloat = 0
+
+    enum Grid { case lijst, kolom, paren }
+    private var grid: Grid {
+        guard wide, !typeSize.isAccessibilitySize else { return .lijst }
+        if let forced = DebugLaunch.grid { return forced == "paren" ? .paren : .kolom }
+        return EditionPairs.paired(screen) ? .paren : .kolom
+    }
+
+    // A: het hoofdverhaal links (1,9 deel), 02 en 03 in de zijkolom rechts met een lijn ervoor. Het beeld
+    // van het hoofdverhaal rekt mee tot beide even hoog zijn (EditionPairs.leadImage).
+    @ViewBuilder private func front(_ rows: [EditionRowModel]) -> some View {
+        let sideWidth = max(256, (contentWidth - Space.s5) / 2.9)
+        HStack(alignment: .top, spacing: Space.s5) {
+            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, imageHeight: leadImage) }
+                .environment(\.isSpacious, false)
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { leadHeight = $0; fitLead() }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            if rows.count > 1 {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(Array(rows.dropFirst().prefix(2).enumerated()), id: \.element.id) { i, row in
+                        if i > 0 { Rule().padding(.vertical, Space.s2) }
+                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
+                    }
+                }
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { sideHeight = $0; fitLead() }
+                .padding(.leading, Space.s5)
+                .overlay(alignment: .leading) { Rectangle().fill(Theme.rule).frame(width: 1).accessibilityHidden(true) }
+                .frame(width: sideWidth, alignment: .leading)
+            }
+        }
+    }
+
+    private func fitLead() {
+        guard leadHeight > 0, sideHeight > 0 else { return }
+        let next = EditionPairs.leadImage(side: sideHeight, text: leadHeight - leadImage)
+        if abs(next - leadImage) > 1 { leadImage = next }
+    }
     @State private var nudge = false // "Maak Hoot van jou", na even rondkijken
     @State private var setup = false
 
@@ -212,30 +254,9 @@ struct EditionView: View {
         }
     }
 
-    // Een rustig tweede instappunt voor het seintje (het eerste staat in Instellingen): alleen zolang
-    // iOS nog niet weet of je meldingen wilt. Na ja of nee verdwijnt het vanzelf; na een ja zegt het
-    // nog even wanneer.
-    @ViewBuilder private var alertOffer: some View {
-        if alertsOn {
-            Label("Je krijgt een seintje als de volgende klaarligt.", systemImage: "bell")
-                .font(.subheadline)
-                .frame(minHeight: Space.tap)
-                .transition(.opacity)
-        } else if alerts.permission == .notDetermined && !store.notify {
-            Button {
-                Task {
-                    guard await alerts.ask() else { return }
-                    store.notifySlots = EditionAlerts.slots.map(\.id)
-                    withAnimation(.easeInOut(duration: 0.3)) { store.notify = true; alertsOn = true }
-                }
-            } label: {
-                Label { Text("Seintje als hij klaarligt?").underline() } icon: { Image(systemName: "bell") }
-            }
-            .font(.subheadline.weight(.semibold))
-            .frame(minHeight: Space.tap)
-            .transition(.opacity)
-        }
-    }
+    // De eindkaart in Nacht: het merkrood gedempt (42 % over zwart) met de zachte leesinkt, zoals
+    // --endcap-bg en --endcap-on op het web. Het grootste vlak van het scherm is nooit het felste (E9).
+    static let nachtEndRed = Color(red: 0x44 / 255, green: 0x0d / 255, blue: 0x0b / 255)
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -249,6 +270,7 @@ struct EditionView: View {
                     // Met een kleine, stille zon ernaast: zijn hoogte toont het dagdeel (onboarding-plan, ‘De zon
                     // in de Editie’). Laag bij de Ochtend- en Avondeditie, hoog bij de Middageditie.
                     // Past de naam er bij grote tekst niet meer naast, dan alleen de naam (nooit afgebroken).
+                    HootKop()
                     EditionHeader(title: title, slot: store.edition?.slot)
                     if rows.isEmpty && (store.status == .loading || (store.status != .failed && store.edition != nil && store.shownEdition == nil)) {
                         WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
@@ -271,30 +293,46 @@ struct EditionView: View {
                         if !EditionLimits.hasMinimum(EditionNumbering.count(rows)) {
                             EmptyState(title:"Nog geen Editie",systemImage:"newspaper",text:"Er is nog te weinig passend nieuws voor een Editie. In de Stroom kun je verder lezen.")
                         }
-                        slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
-                            .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
-                        if wide && !typeSize.isAccessibilitySize {
-                            // Breed: de rest in twee kolommen, elk verhaal met een lijn erboven.
-                            LazyVGrid(columns: [GridItem(.flexible(), spacing: Space.s6, alignment: .top), GridItem(.flexible(), spacing: Space.s6, alignment: .top)], alignment: .leading, spacing: Space.s2) {
-                                ForEach(rows.dropFirst()) { row in
-                                    VStack(alignment: .leading, spacing: 0) {
-                                        Rule().padding(.vertical, Space.s2)
-                                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
-                                    }
+                        // Het raster (keuze 1.1.0, EditionGrid.swift). iPhone en heel grote tekst: alles onder
+                        // elkaar. iPad staand (B): één leeskolom met de nummers in de kantlijn. iPad liggend
+                        // (A): het hoofdverhaal met 02 en 03 ernaast, daarna paren die even hoog zijn.
+                        switch grid {
+                        case .paren:
+                            front(rows)
+                                .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
+                            if rows.count > 3 {
+                                EditionPairsGrid(rows: Array(rows.dropFirst(3)), width: contentWidth) { row, boven, pin in
+                                    slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, boven: boven, pinSource: pin) }
+                                }
+                                .padding(.top, Space.s4)
+                            }
+                        case .kolom:
+                            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, hang: true) }
+                                .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
+                            ForEach(rows.dropFirst()) { row in
+                                Rule().padding(.vertical, Space.s2)
+                                HangRow(number: store.less.contains(row.id) ? nil : row.number, read: store.isRead(row.item)) {
+                                    slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
                                 }
                             }
-                        } else {
+                        case .lijst:
+                            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
+                                .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
                             ForEach(rows.dropFirst()) { row in
                                 Rule().padding(.vertical, Space.s2)
                                 slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
                             }
                         }
                         if !outsideRows.isEmpty {
-                            StrongRule().padding(.top, Space.s5)
-                            Text("Buiten je bubbel").font(Theme.headline(.title2)).accessibilityAddTraits(.isHeader).padding(.vertical,Space.s3)
-                            ForEach(outsideRows) { row in
-                                slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,form:.krant) }
+                            VStack(alignment: .leading, spacing: 0) {
+                                StrongRule().padding(.top, Space.s5)
+                                Text("Buiten je bubbel").font(Theme.headline(.title2)).accessibilityAddTraits(.isHeader).padding(.vertical,Space.s3)
+                                ForEach(outsideRows) { row in
+                                    slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,form:.krant) }
+                                }
                             }
+                            .padding(.leading, grid == .kolom ? Layout.hang : 0) // op de lijn van de tekst, niet van de nummers
+                            .frame(maxWidth: grid == .paren ? Layout.readable : nil, alignment: .leading)
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,
                         // en wanneer de volgende er is.
@@ -317,35 +355,34 @@ struct EditionView: View {
                                 .font(.subheadline)
                                 .multilineTextAlignment(.center)
                                 .frame(maxWidth: Layout.endcap) // ± 30 tekens per regel, zoals --measure-end
-                            // De links direct onder elkaar: hun aanraakvlak (44 pt) is de ruimte ertussen,
-                            // zodat tekst, seintje en Stroom op gelijke afstand staan.
-                            VStack(spacing: 0) {
-                                alertOffer
-                                // Het einde is leidend; verder lezen mag, als rustige link in plaats van een knop.
-                                Button { openTab(.stroom) } label: {
-                                    Text("Of lees verder in de Stroom").underline()
-                                }
-                                .font(.subheadline.weight(.semibold))
-                                .opacity(0.85)
-                                .frame(minHeight: Space.tap)
+                            // Eén rustige link: het einde is leidend, verder lezen mag (E8). Het seintje
+                            // staat niet meer in de kaart.
+                            Button { openTab(.stroom) } label: {
+                                Text("Lees verder in de Stroom").underline()
                             }
-                            .animation(still ? nil : .easeInOut(duration: 0.3), value: alerts.permission) // na een nee: rustig weg
+                            .font(.subheadline.weight(.semibold))
+                            .opacity(0.85)
+                            .frame(minHeight: Space.tap)
                         }
-                        .foregroundStyle(Theme.onBrandRed)
+                        .foregroundStyle(nacht ? Theme.ink : Theme.onBrandRed)
                         .frame(maxWidth: .infinity)
                         .padding(.horizontal, Space.s5)
                         .padding(.vertical, Space.s7)
-                        .background(Theme.brandRed, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                        .background(nacht ? Self.nachtEndRed : Theme.brandRed, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                        .frame(maxWidth: Layout.readable) // op de leesbreedte, niet over de hele iPad (E9)
+                        .padding(.leading, grid == .kolom ? Layout.hang : 0)
                         .padding(.top, Space.s6)
                         .padding(.bottom, Space.s4)
                         }
                     }
                 }
+                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { contentWidth = $0 }
                 .padding(.horizontal)
-                .column(wide ? Layout.wide : Layout.readable)
+                .column(grid == .paren ? Layout.wide : grid == .kolom ? Layout.readable + Layout.hang : Layout.readable)
                 .offset(y: rising ? 8 : 0)
             }
             .debugJump(proxy, to: Self.slotTarget(store.editionRows), when: store.editionRows.count)
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { screen = $0 }
             // Wie eerst even rondkijkt: na ongeveer een derde van de editie één keer de vraag.
             .onScrollGeometryChange(for: Bool.self) { g in
                 let room = g.contentSize.height - g.containerSize.height
@@ -364,11 +401,10 @@ struct EditionView: View {
             .debugScroll()
             .background(Theme.paper)
             .navigationTitle(title) // voor VoiceOver en de terugknop; je ziet de titel in de scroll
-            .hootScreenTitle() // het verhaal wint van de schermtitel (C7)
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .hootRefresh(indicator: !store.editionRows.isEmpty) { await store.load() }
-            .hootBrandHeader()
+            .hootKopScreen()
             .settingsButton()
             .task(id: store.shownEdition?.id) {
                 guard let id = store.shownEdition?.id, EditionPrint.shouldPlay(id: id, lastSeen: seenEdition, ready: !store.editionRows.isEmpty), !printedIDs.contains(id) else { return }

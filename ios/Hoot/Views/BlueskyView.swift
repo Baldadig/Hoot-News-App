@@ -59,37 +59,63 @@ struct PostRow: View {
     @Environment(HootStore.self) private var store
     let item: Item
 
+    // De tekst zonder kale links (Stroom-kaart B): de link staat in de linkkaart. Gelijk aan
+    // withoutBareLinks in shared/bluesky.mjs.
+    static func withoutBareLinks(_ text: String, domain: String?) -> String {
+        let host = (domain ?? "").replacingOccurrences(of: #"^www\."#, with: "", options: .regularExpression).lowercased()
+        let words = text.split(whereSeparator: \.isWhitespace).filter { token in
+            let w = String(token).replacingOccurrences(of: #"[)\].,;:!?]+$"#, with: "", options: .regularExpression).lowercased()
+            if w.hasPrefix("http://") || w.hasPrefix("https://") { return false }
+            if w.range(of: #"^(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}/\S*$"#, options: .regularExpression) != nil { return false }
+            if !host.isEmpty, w == host || w == "www." + host || (w.hasPrefix(host) && w.hasSuffix("…")) { return false }
+            return true
+        }
+        return words.joined(separator: " ")
+    }
+
+    private var text: String {
+        Self.withoutBareLinks(item.summary ?? "", domain: item.linkTitle != nil ? item.link?.host() : nil)
+    }
+
+    // Op het raster van het artikel (Stroom-kaart B, keuze 1.1.0): de tekst zelf in leestekst, dan het
+    // beeld of de linkkaart over de hele kolom, en de bron onderaan op dezelfde plek als bij een
+    // artikel (logo 24, naam, en de @-naam waar bij een artikel de tijd staat), bewaren rechts. Geen
+    // hangende inspringing onder een grote avatar meer. 12 tussen tekst, beeld en bron.
     var body: some View {
-        HStack(alignment: .top, spacing: Space.s3) {
-            SourceMark(item: item, size: 40)
-            VStack(alignment: .leading, spacing: Space.s2) {
-                HStack(alignment: .firstTextBaseline) {
+        VStack(alignment: .leading, spacing: Space.s3) {
+            VStack(alignment: .leading, spacing: Space.s3) {
+                if !text.isEmpty {
+                    Text(text).font(.body).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
+                }
+                if item.videoURL != nil {
+                    // de video staat hieronder, buiten de tik naar de post
+                } else if let title = item.linkTitle {
+                    LinkCard(item: item, title: title)
+                } else if item.image != nil, store.showsImage(lead: false) {
+                    FramedImage(url: item.image.flatMap(URL.init(string:)), ratio: CGFloat(min(max(item.imageRatio ?? 4 / 3, 0.8), 2.4)))
+                        .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .opensArticle(item)
+            if item.videoURL != nil { InlineVideo(item: item) }
+            HStack(spacing: Space.s2) {
+                HStack(alignment: .top, spacing: Space.s2) {
+                    SourceMark(item: item)
                     VStack(alignment: .leading, spacing: 0) {
-                        Text(item.sourceName ?? item.source).font(.subheadline.weight(.semibold))
-                        Text([item.handle, HootDate.ago(item.date)].compactMap { $0 }.joined(separator: " · ")).font(.caption).foregroundStyle(Theme.ink3)
+                        Text(item.sourceName ?? item.source).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
+                        Text([item.handle, HootDate.ago(item.date)].compactMap { $0 }.joined(separator: " · ")).font(.caption).monospacedDigit().foregroundStyle(Theme.ink3)
                     }
-                    Spacer(minLength: 8)
-                    SaveButton(item: item)
+                    .fixedSize(horizontal: false, vertical: true)
                 }
-                Group {
-                    if let text = item.summary, !text.isEmpty {
-                        Text(text).font(.body).fixedSize(horizontal: false, vertical: true)
-                    }
-                    if item.videoURL != nil {
-                        // de video staat hieronder, buiten de tik naar de post
-                    } else if let title = item.linkTitle {
-                        LinkCard(item: item, title: title)
-                    } else if item.image != nil, store.showsImage(lead: false) {
-                        FramedImage(url: item.image.flatMap(URL.init(string:)), ratio: CGFloat(min(max(item.imageRatio ?? 4 / 3, 0.75), 2)))
-                            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-                    }
-                }
-                .contentShape(Rectangle())
-                .opensArticle(item)
-                if item.videoURL != nil { InlineVideo(item: item) }
+                .frame(minHeight: Space.tap)
+                .accessibilityElement(children: .combine)
+                Spacer(minLength: 8)
+                SaveButton(item: item)
             }
         }
-        .padding(.vertical, Space.s3)
+        .padding(.vertical, Space.s2)
     }
 }
 

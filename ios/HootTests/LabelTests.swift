@@ -46,7 +46,7 @@ final class LabelTests: XCTestCase {
         }
         XCTAssertEqual(Desk.plek(entry("bubbel", via: ["google", "bluesky", "google"])), "Buiten je bubbel · via Google Trends en Bluesky")
         XCTAssertEqual(Desk.plek(entry("bubbel")), "Buiten je bubbel")
-        XCTAssertEqual(Desk.plek(entry("breed", count: 9)), "Waar iedereen over schrijft · 9 bronnen")
+        XCTAssertEqual(Desk.plek(entry("breed", count: 9)), "Waar iedereen over schrijft") // het aantal staat in de bronregel (E6)
         XCTAssertEqual(Desk.plek(entry("binnenland")), "Binnenland")
     }
 }

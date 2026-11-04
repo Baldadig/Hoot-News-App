@@ -204,7 +204,91 @@ private struct WordmarkBody: View {
     }
 }
 
-// Dezelfde merkkop op alle hoofdschermen: boven de schermtitel, zonder glazen achtergrond.
+// De kopregel van Editie, Stroom en Selectie (bovenbalk A, 1.1.0): "hoot." links, het tandwiel (en in
+// de Stroom de bronnen) rechts, als gewone regel in de scroll. Hij scrolt mee; er hangt geen balk
+// meer over de koppen en foto's. Het eerste en het laatste teken staan optisch op de kolomlijn: het
+// icoon is 24 in een raakvlak van 44, dus de rij schuift (44 − 24) / 2 de goot in, zoals --tap-inset
+// op het web. Gelijk aan de kop op het web (.edbrand en .vh__row).
+struct HootKop<Extra: View>: View {
+    @Environment(\.openSettings) private var openSettings
+    var gearX: ((CGFloat) -> Void)? = nil // waar het tandwiel staat (de stapel van de Stroom eindigt eronder)
+    @ViewBuilder var extra: () -> Extra
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Wordmark(handoff: true)
+            Spacer(minLength: Space.s3)
+            extra()
+            Button { openSettings() } label: {
+                Image(systemName: "gearshape").font(.title3).frame(width: Space.tap, height: Space.tap).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Theme.ink3) // bediening is stil: grijs, zonder glazen rondje
+            .accessibilityLabel("Instellingen")
+            .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midX } action: { gearX?($0) }
+            .padding(.trailing, -HootKop.inset)
+        }
+        // Even begrensd als het woordmerk: bij heel grote tekst blijven tandwiel en bronnen 24 in hun
+        // raakvlak van 44, en wordt de kopregel geen tweede titel.
+        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+        .frame(minHeight: Space.tap)
+    }
+
+    static var inset: CGFloat { (Space.tap - 24) / 2 }
+}
+
+extension HootKop where Extra == EmptyView {
+    init(gearX: ((CGFloat) -> Void)? = nil) { self.init(gearX: gearX) { EmptyView() } }
+}
+
+// Een knop in de kopregel naast het tandwiel (de bronnen in de Stroom): 24 in een raakvlak van 44.
+struct HootKopButton: View {
+    let label: String
+    let systemImage: String
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: systemImage).font(.title3).frame(width: Space.tap, height: Space.tap).contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(Theme.ink3)
+        .accessibilityLabel(label)
+    }
+}
+
+extension View {
+    // Een hoofdscherm met de kopregel in de scroll: geen navigatiebalk, en achter de statusbalk een
+    // vlakke strook papier precies zo hoog als die balk (geen vervaging, geen verloop), zodat de
+    // statusbalk ook boven een foto leesbaar blijft. In Nacht is het papier zwart.
+    func hootKopScreen() -> some View {
+        toolbar(.hidden, for: .navigationBar)
+            .overlay(alignment: .top) { StatusStrip() }
+    }
+}
+
+// De strook achter de statusbalk: precies zo hoog als de statusbalk van het venster (op iPad niet de
+// zwevende tabbalk eronder), vanaf de bovenrand van het scherm. Gemeten aan het venster zelf, zodat
+// het niet uitmaakt waar de scroll zijn veilige zone laat beginnen; opnieuw bij draaien.
+struct StatusStrip: View {
+    @State private var top: CGFloat = StatusStrip.windowTop()
+    var body: some View {
+        Theme.paper
+            .frame(height: top)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { _ in top = Self.windowTop() }
+    }
+
+    static func windowTop() -> CGFloat {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let window = scenes.flatMap(\.windows).first { $0.isKeyWindow } ?? scenes.first?.windows.first
+        return window?.safeAreaInsets.top ?? 0
+    }
+}
+
+// Dezelfde merkkop op de overige schermen (Bewaard, Zoeken): in de balk, zonder glazen achtergrond.
 extension View {
     func hootBrandHeader() -> some View {
         toolbar {
@@ -224,7 +308,7 @@ struct EditionNumber: View {
             Text(String(format: "%02d", number))
                 .font(.system(.callout, design: .serif, weight: .heavy)).monospacedDigit()
                 .frame(minWidth: wide ? 24 : nil, alignment: .leading)
-                .foregroundStyle(read ? Theme.ink3 : Theme.accent)
+                .foregroundStyle(read ? Theme.ink3 : Theme.ink) // minder rood (B): het cijfer in inkt
         }
     }
 }
@@ -244,7 +328,8 @@ struct Kicker: View {
             if !parts.isEmpty {
             // Bij heel grote tekst geen kapitalen: die worden dan breder en zwaarder dan de kop.
             // Meerdere labels ("Binnenland · Buiten je bronnen"): de punt ertussen in `ink3`.
-            let labels = parts.map { Text(label($0)).foregroundStyle(read ? Theme.ink3 : Theme.accent) }
+            // Minder rood (keuze B): de rubriek stil in ink3, het cijfer ervoor in inkt.
+            let labels = parts.map { Text(label($0)).foregroundStyle(Theme.ink3) }
             let rubric = labels.dropFirst().reduce(labels.first ?? Text("")) { acc, p in Text("\(acc)\(dot)\(p)") }
             if typeSize.isAccessibilitySize {
                 rubric.font(.caption.weight(.semibold))
@@ -261,8 +346,11 @@ struct Kicker: View {
 // De kop blijft het zwaarste element; het waarom blijft ondergeschikt.
 struct WhyLine: View {
     let text: String?
+    // Het aantal bronnen staat al in de bronregel ("12 bronnen ›"): "Groot nieuws · 12 bronnen" wordt
+    // "Groot nieuws" (E6). Gelijk aan plainWhy in src/components/Why.js.
+    static func plain(_ s: String) -> String { s.replacingOccurrences(of: #"\s*·\s*\d+\s+bron(?:nen)?$"#, with: "", options: .regularExpression) }
     var body: some View {
-        if let text, !text.isEmpty {
+        if let text = text.map(Self.plain), !text.isEmpty {
             Text(text)
                 .font(.subheadline)
                 .foregroundStyle(Theme.ink2)
@@ -355,14 +443,13 @@ struct SourceLine: View {
         // Op één regel als het past; anders bron en tijd bovenaan (mogen afbreken) en de knoppen
         // eronder. Nooit een vaste breedte: bij heel grote tekst duwt die anders de hele kolom
         // buiten het scherm.
-        // "Vergelijk N bronnen" zegt dat het iets anders is dan filteren; is de regel te smal
-        // (iPhone mini, grote tekst), dan eerst het korte "+N bronnen", pas daarna twee regels.
+        // Eén bronlabel, overal hetzelfde: "N bronnen ›" (minder rood, keuze B). Is de regel te smal
+        // (iPhone mini, grote tekst), dan bron en tijd bovenaan en label en bewaren eronder.
         ViewThatFits(in: .horizontal) {
-            HStack(spacing: Space.s2) { source(oneLine: true); Spacer(minLength: 8); more(compact: false); SaveButton(item: item) }
-            HStack(spacing: Space.s2) { source(oneLine: true); Spacer(minLength: 8); more(compact: true); SaveButton(item: item) }
+            HStack(spacing: Space.s2) { source(oneLine: true); Spacer(minLength: 8); more; SaveButton(item: item) }
             VStack(alignment: .leading, spacing: Space.s1) {
                 source(oneLine: false)
-                HStack { more(compact: nil); Spacer(); SaveButton(item: item) }
+                HStack { more; Spacer(); SaveButton(item: item) }
             }
         }
     }
@@ -395,22 +482,15 @@ struct SourceLine: View {
         [HootDate.ago(item.date), store.source(item.source)?.paid == true ? "abonnement" : nil, outside ? StoryLabel.outsideText : nil].compactMap { $0 }.joined(separator: " · ")
     }
 
-    // `compact`: true = "+N bronnen", false = "Vergelijk N bronnen", nil = wat past.
-    @ViewBuilder private func more(compact: Bool?) -> some View {
+    // "N bronnen ›": altijd het totaal, in ink2. Gelijk aan bronnenLabel in src/components/Items.jsx.
+    static func label(_ count: Int) -> String { count == 1 ? "1 bron" : "\(count) bronnen" }
+
+    @ViewBuilder private var more: some View {
         if let story, let count = story.sourceCount, count > 1 {
-            let others = count - 1
-            let long = moreLabel("Vergelijk \(count) bronnen")
-            let short = moreLabel(others == 1 ? "+1 bron" : "+\(others) bronnen")
             // Het stuk waarop je tikte is de kop in Vergelijken, niet een ander stuk uit de bundel.
-            NavigationLink(value: tapped(story)) {
-                switch compact {
-                case true?: short
-                case false?: long
-                case nil: ViewThatFits(in: .horizontal) { long; short }
-                }
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(others == 1 ? "Vergelijk met 1 andere bron" : "Vergelijk met \(others) andere bronnen")
+            NavigationLink(value: tapped(story)) { moreLabel(Self.label(count)) }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Vergelijk \(count) bronnen")
         }
     }
 
@@ -421,11 +501,14 @@ struct SourceLine: View {
     }
 
     private func moreLabel(_ text: String) -> some View {
-        Text(text)
-            .font(.subheadline.weight(.bold))
-            .foregroundStyle(Theme.accent)
+        HStack(spacing: Space.s1) {
+            Text(text).monospacedDigit()
+            Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).accessibilityHidden(true)
+        }
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(Theme.ink2)
             .lineLimit(1)
-            .fixedSize() // nooit afgekapt: dan liever de korte vorm
+            .fixedSize() // nooit afgekapt: dan liever twee regels
             .frame(minHeight: 44) // een aanraakvlak van 44 pt, los van het artikel erboven
             .contentShape(Rectangle())
     }
@@ -583,12 +666,24 @@ struct LeadCard: View {
     var why: String? // het waarom van de plek (jouw Editie)
     var outside = false // buiten je bronnen: de bronregel zegt het
     var story: Story?
+    var hang = false // iPad staand (B): het nummer in de kantlijn, het beeld over de hele kolom
+    var imageHeight: CGFloat? = nil // iPad liggend (A): het beeld zo hoog als de zijkolom ernaast
 
     private var hasImage: Bool { store.showsImage(lead: true) && ImageURL.fitsHero(item.image) }
 
-    private var image: some View {
-        MeasuredLeadImage(item: item, spacious: spacious)
-            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+    @ViewBuilder private var image: some View {
+        if let imageHeight {
+            // Een leeg vlak op maat met het beeld erover: een gevuld beeld zou zijn eigen breedte opeisen
+            // (hoogte × verhouding) en de zijkolom ernaast uit het raster duwen.
+            Color.clear
+                .frame(maxWidth: .infinity)
+                .frame(height: imageHeight)
+                .overlay { RemoteImage(url: ImageURL.url(item.image, .large)) }
+                .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+        } else {
+            MeasuredLeadImage(item: item, spacious: spacious)
+                .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+        }
     }
 
     private var text: some View {
@@ -596,7 +691,7 @@ struct LeadCard: View {
             // Rubriek en waarom dicht op elkaar (één blokje boven de kop), zoals op de website.
             if number != nil || label != nil || why != nil {
                 VStack(alignment: .leading, spacing: Space.s1) {
-                    Kicker(text: label, number: number, read: store.isRead(item))
+                    Kicker(text: label, number: hang ? nil : number, read: store.isRead(item))
                     WhyLine(text: why)
                 }
             }
@@ -611,9 +706,26 @@ struct LeadCard: View {
     }
 
     var body: some View {
+        if hang {
+            // B: het beeld over de hele kolom, tekst en bronregel ingesprongen met het nummer ervoor.
+            VStack(alignment: .leading, spacing: Space.s3) {
+                if hasImage { image.contentShape(Rectangle()).opensArticle(item) }
+                HangRow(number: number, read: store.isRead(item)) {
+                    VStack(alignment: .leading, spacing: Space.s3) {
+                        text.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle()).opensArticle(item)
+                        SourceLine(item: item, story: story, outside: outside)
+                    }
+                }
+            }
+        } else {
+            standard
+        }
+    }
+
+    private var standard: some View {
         VStack(alignment: .leading, spacing: Space.s3) {
             Group {
-                if spacious && hasImage && item.imageMeta?.portrait == true {
+                if spacious && imageHeight == nil && hasImage && item.imageMeta?.portrait == true {
                     HStack(alignment: .top, spacing: Space.s6) {
                         image.frame(width: 300)
                         text.frame(maxWidth: .infinity, alignment: .leading)
@@ -653,6 +765,8 @@ struct ItemRow: View {
     var story: Story?
     var linkSource = true
     var form: Form?
+    var boven: CGFloat? = nil // in een paar (A): het beeld groot boven het verhaal, zo hoog
+    var pinSource = false // in een paar (A): de bronregel onderaan de rij
 
     private var chosen: Form { form ?? (store.layout == "krant" ? .krant : .tijdlijn) }
     private var timeline: Bool { !item.isPost && (chosen == .tijdlijn || typeSize.isAccessibilitySize) }
@@ -666,7 +780,16 @@ struct ItemRow: View {
         // Onder een groot beeld iets meer lucht tot de bron (12), zoals op het web; naast een miniatuur 8.
         VStack(alignment: .leading, spacing: timeline ? Space.s3 : Space.s2) {
             Group {
-                if timeline {
+                if let boven, hasPicture {
+                    VStack(alignment: .leading, spacing: Space.s3) {
+                        Color.clear
+                            .frame(maxWidth: .infinity)
+                            .frame(height: boven)
+                            .overlay { RemoteImage(url: picture(.large)) }
+                            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                        text
+                    }
+                } else if timeline {
                     VStack(alignment: .leading, spacing: Space.s3) {
                         text
                         if hasPicture, fitsLarge {
@@ -692,6 +815,7 @@ struct ItemRow: View {
             }
             .contentShape(Rectangle())
             .opensArticle(item)
+            if pinSource { Spacer(minLength: 0) }
             SourceLine(item: item, story: story, linkSource: linkSource, outside: outside)
         }
         .padding(.vertical, Space.s2)

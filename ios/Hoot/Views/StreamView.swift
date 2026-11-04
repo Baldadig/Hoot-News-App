@@ -50,8 +50,14 @@ struct StreamView: View {
                 VStack(spacing: 0) {
                     Color.clear.frame(height: 0).id("stroom-boven")
                     VStack(spacing: 0) {
-                    // De schermtitel in de scroll (C7), op de kolomlijn boven de rubriekenlijn.
+                    // De kopregel en de schermtitel in de scroll (C7), op de kolomlijn boven de rubriekenlijn.
                     VStack(alignment: .leading, spacing: 0) {
+                        HootKop(gearX: { knopAs = $0 }) {
+                            HootKopButton(label: "Bronnen", systemImage: "dot.radiowaves.up.forward") {
+                                lijn.open = false // ook met VoiceOver, waar geen echte tik naast de lijn valt
+                                showSources = true
+                            }
+                        }
                         ScreenTitle("Stroom")
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -138,28 +144,10 @@ struct StreamView: View {
             // Scrollen klapt de stapel dicht (ernaast tikken doet de lijn zelf).
             .onScrollPhaseChange { _, now in if now == .interacting, lijn.open { lijn.open = false } }
             .navigationTitle("Stroom") // de rode streep zegt al welke rubriek
-            .hootBrandHeader()
-            .hootScreenTitle()
+            .hootKopScreen()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .hootRefresh(indicator: !store.stream.isEmpty) { await store.load() }
-            .toolbar {
-                // Bediening is stil (design system): grijs en zonder glazen rondje, zoals het tandwiel.
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        lijn.open = false // ook met VoiceOver, waar geen echte tik naast de lijn valt
-                        showSources = true
-                    } label: {
-                        Image(systemName: "dot.radiowaves.up.forward")
-                            .frame(width: 24, height: 24)
-                    }
-                    .accessibilityLabel("Bronnen")
-                    .tint(Theme.ink3)
-                    // Op de knop zelf meten, niet op het icoon: dat zou de werkbalk anders opmaken.
-                    .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midX } action: { knopAs = $0 }
-                }
-                .sharedBackgroundVisibility(.hidden)
-            }
             .sheet(isPresented: $showSources) { SourcesView().debugAppearance() }
             .settingsButton()
             }
@@ -382,7 +370,7 @@ struct SavedView: View {
             .navigationTitle("Bewaard")
             .hootBrandHeader()
             .hootScreenTitle()
-            .settingsButton()
+            .settingsButton(toolbar: true)
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
         }

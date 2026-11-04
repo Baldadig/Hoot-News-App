@@ -179,7 +179,8 @@ test('Voorpagina: raster pas in een raam breder dan 48rem, met een zijkolom van 
   assert.match(css, /@container front \(width > 48rem\) \{\s*\.front \{\s*display: grid;/)
   assert.ok(!/@container front \(min-width: 42rem\)/.test(css), 'de oude grens van 42rem is weg')
   assert.match(css, /@container front \(48rem < width < 52rem\) \{\s*\.front \{\s*--front-side: 17rem;/)
-  assert.match(css, /@container front \(min-width: 52rem\)/)
+  // Keuze 1.1.0: breed (A) volgen na de zijkolom de paren; de twee onder het hoofdverhaal zijn weg.
+  assert.ok(!/front__under/.test(css), 'geen .front__under meer')
 })
 
 test('De Editie telt: nummer in de kicker, "N van N" op de rode kaart, de bubbel telt niet (T3)', () => {
@@ -191,10 +192,15 @@ test('De Editie telt: nummer in de kicker, "N van N" op de rode kaart, de bubbel
   assert.match(read('components/EditionNumber.jsx'), /aria-label=\{two\(n\)\}/)
   assert.match(ed, /<LeadStory n=\{rows\[0\]\.n\}/)
   assert.match(ed, /<FrontItem n=\{r\.n\}/)
-  assert.match(ed, /<CompactItem n=\{r\.n\}/)
+  // 04 en verder staan in de paren (breed) of de lijst eronder (smal), als FrontItem met hun nummer.
+  assert.equal(ed.match(/<FrontItem n=\{r\.n\}/g)?.length, 2)
   assert.match(read('lib/edition.js'), /desk === 'bubbel' \? null/)
   const css = read('styles.css')
-  assert.match(css, /\.kicker__n \{[^}]*font-family: var\(--serif\)[^}]*color: var\(--accent\)/)
+  // Minder rood (keuze B): het cijfer in inkt, de rubriek in --ink-3, één bronlabel "N bronnen ›" in --ink-2.
+  assert.match(css, /\.kicker__n \{[^}]*font-family: var\(--serif\)[^}]*color: var\(--ink\);/)
+  assert.match(css, /\.label--kicker \{\s*color: var\(--ink-3\);/)
+  assert.match(css, /\.morebtn \{[^}]*color: var\(--ink-2\);/)
+  assert.ok(!/morebtn__(long|short)/.test(read('components/Items.jsx')), 'geen tweede vorm van het bronlabel per breedte')
   assert.match(css, /\.is-read \.kicker__n \{\s*color: var\(--ink-3\)/)
 })
 

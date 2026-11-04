@@ -140,27 +140,28 @@ struct HootApp: App {
                 try? await Task.sleep(for: .milliseconds(40))
             }
         }
-        // Een vaste curve in plaats van een veer: die heeft een staart, en als het opstartscherm dan op tijd
-        // weggaat, is het rood nog net niet op maat en verspringt de punt.
+        // Eerst vervagen, dan reizen (IrisTimes, keuze 1.1.0): het woord vervaagt op zijn plek, de iris
+        // vertrekt als het half weg is en reist in één beweging naar de gemeten punt. Een vaste curve in
+        // plaats van een veer: die heeft een staart, en dan verspringt de punt op het eind.
         if !UIAccessibility.isReduceMotionEnabled {
             let lands = handoff.dot != nil && handoff.word != nil
-            var duration = 0.6
+            var slow = 1.0
             #if DEBUG
-            duration *= max(1, UserDefaults.standard.double(forKey: "HootSlowSplash")) // `-HootSlowSplash 6`: in slow motion
+            slow = max(1, UserDefaults.standard.double(forKey: "HootSlowSplash")) // `-HootSlowSplash 6`: in slow motion
             #endif
+            let duration = IrisTimes.travel * slow
             handoff.duration = duration
             withAnimation(.timingCurve(0.6, 0, 0.2, 1, duration: duration)) { handoff.leaving = true }
-            // In donker is de punt lichter rood dan het opstartscherm: het laatste stuk kleurt het rood mee,
-            // anders verspringt de kleur als het opstartscherm weggaat. In licht zijn ze gelijk.
-            try? await Task.sleep(for: .seconds(duration * 0.6))
-            withAnimation(.easeInOut(duration: duration * 0.4)) { handoff.tinted = true }
-            // Een tiende langer dan de curve: die begint een paar beelden later, en het rood krimpt van
-            // schermgroot tot een paar punt, dus ook het laatste procent is nog zichtbaar. Zonder die
-            // marge springt de punt op het eind van twee keer zo groot naar zijn maat.
-            try? await Task.sleep(for: .seconds(duration * 0.4 + 0.1))
+            // Een paar beelden marge: de curve begint later dan de klok, en het rood krimpt van
+            // schermgroot tot een paar punt, dus ook het laatste procent is nog zichtbaar.
+            try? await Task.sleep(for: .seconds((IrisTimes.delay + IrisTimes.travel) * slow + 0.05))
+            // Op de punt: het rood wordt de kleur van de punt (in Donker en Nacht lichter), dan neemt de
+            // echte punt het over. Nooit twee punten tegelijk: de iris ligt precies op de echte.
+            withAnimation(.easeInOut(duration: IrisTimes.tint * slow)) { handoff.tinted = true }
+            try? await Task.sleep(for: .seconds(IrisTimes.tint * slow + 0.05))
             if !lands { await fadeSplash(0.15) }
         } else {
-            await fadeSplash(0.35)
+            await fadeSplash(IrisTimes.reduced)
         }
         splash = false
         handoff.landed = true
