@@ -935,6 +935,7 @@ final class HootStore {
     // ---- Digest ----
     // Levert de server dit vak? Zolang de Digest niet geladen is: ja.
     private var digestLoadedAt: Date?
+    private var digestTriedAt: Date? // laatste poging die niet vers was: de uurlijkse herpoging blijft zo werken
     // Meer of minder hiervan bij een plek in de Editie (`id`: verhaal of bericht). Minder klapt hem in.
     func vote(_ id: String, items: [Item], up: Bool) {
         taste.vote(items, up: up)
@@ -975,9 +976,15 @@ final class HootStore {
     }
 
     func offersField(_ id: String) -> Bool { digest.map { $0.fields.contains { $0.id == id } } ?? true }
+    // Zonder vers laadmoment (offline gestart, Selectie uit de cache) telt de laatste poging; zonder poging is hij oud.
+    static func digestIsOld(hasDigest: Bool, loadedAt: Date?, triedAt: Date?, now: Date = .now) -> Bool {
+        guard hasDigest else { return false }
+        guard let at = loadedAt ?? triedAt else { return true }
+        return now.timeIntervalSince(at) > 3600
+    }
     func loadDigest(force: Bool = false) async {
         let due = digest?.next.flatMap(HootDate.parse).map { $0 < .now } ?? false
-        let old = digestLoadedAt.map { Date.now.timeIntervalSince($0) > 3600 } ?? false
+        let old = Self.digestIsOld(hasDigest: digest != nil, loadedAt: digestLoadedAt, triedAt: digestTriedAt)
         if digestStatus == .loading || (!force && digest != nil && !due && !old) { return }
         digestStatus = .loading
         do {
@@ -985,12 +992,13 @@ final class HootStore {
             // maar de verversing is mislukt (en een nieuwe poging mag meteen weer).
             let (fresh, fromCache): (Digest, Bool) = try await HootAPI.fetch("api/vak")
             digest = fresh
-            if !fromCache { digestLoadedAt = .now }
+            if !fromCache { digestLoadedAt = .now } else { digestTriedAt = .now }
             digestStatus = .ready
             digestRefreshFailed = fromCache
         } catch {
             digestStatus = digest == nil ? .failed : .ready
             digestRefreshFailed = true
+            digestTriedAt = .now
         }
     }
 

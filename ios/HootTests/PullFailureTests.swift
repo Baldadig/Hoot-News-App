@@ -40,4 +40,12 @@ import XCTest
         XCTAssertTrue(store.coreFailed, "zonder verbinding (of uit de bewaarde kopie) lukte de kern niet")
         UserDefaults.standard.removeObject(forKey: "HootOffline")
     }
+
+    func testSelectieUitCacheBlijftUurlijksOpnieuwProberen() {
+        let now = Date.now
+        XCTAssertTrue(HootStore.digestIsOld(hasDigest: true, loadedAt: nil, triedAt: nil, now: now), "offline gestart, nooit een poging: oud")
+        XCTAssertFalse(HootStore.digestIsOld(hasDigest: true, loadedAt: nil, triedAt: now.addingTimeInterval(-60), now: now))
+        XCTAssertTrue(HootStore.digestIsOld(hasDigest: true, loadedAt: nil, triedAt: now.addingTimeInterval(-3700), now: now), "na een uur weer proberen")
+        XCTAssertFalse(HootStore.digestIsOld(hasDigest: false, loadedAt: nil, triedAt: nil, now: now))
+    }
 }
