@@ -7,6 +7,7 @@ import { eventScope, conflictingEvents } from '../../shared/article-signals.mjs'
 import { DESKS, desksOf, primaryDesk, storyDesks, deskOfStory, storyForeignOf, weight } from './desks.mjs'
 
 import { hash } from '../../shared/util.mjs'
+import { SLOT_START, hhmm, amsterdamClock } from '../../shared/slot-times.mjs'
 import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, KERN, KERN_MIN, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX, FOREIGN_DESKS, NL_OTHER_W, INT_MAX } from '../../shared/editor.mjs'
 export { hash }
 
@@ -936,19 +937,17 @@ export function recentEditions(list = [], n = HISTORY_MAX) {
 }
 
 export function editionSlot(now = new Date()) {
-  const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23' })
-  const parts = (d) => Object.fromEntries(fmt.formatToParts(d).map((p) => [p.type, p.value]))
-  const p = parts(now)
-  const h = Number(p.hour)
-  // Drie edities per dag: ochtend (06:00), middag (12:00), avond (17:00).
-  if (h >= 17) return { id: `${p.year}-${p.month}-${p.day}-avond`, slot: 'avond', date: `${p.year}-${p.month}-${p.day}`, next: '06:00' }
-  if (h >= 12) return { id: `${p.year}-${p.month}-${p.day}-middag`, slot: 'middag', date: `${p.year}-${p.month}-${p.day}`, next: '17:00' }
-  if (h >= 6) return { id: `${p.year}-${p.month}-${p.day}-ochtend`, slot: 'ochtend', date: `${p.year}-${p.month}-${p.day}`, next: '12:00' }
-  // Vóór 06:00 geldt de avondeditie van gisteren. Gisteren op de kalender, niet "nu min zes
-  // uur": op de nacht van de wintertijd is 05:59 min zes uur nog dezelfde datum.
-  const d = new Date(Date.UTC(+p.year, +p.month - 1, +p.day - 1))
+  const { year, month, day, minutes } = amsterdamClock(now)
+  const today = `${year}-${month}-${day}`
+  // Drie edities per dag, op de minuut (shared/slot-times.mjs): ochtend, middag en avond.
+  if (minutes >= SLOT_START.avond) return { id: `${today}-avond`, slot: 'avond', date: today, next: hhmm(SLOT_START.ochtend) }
+  if (minutes >= SLOT_START.middag) return { id: `${today}-middag`, slot: 'middag', date: today, next: hhmm(SLOT_START.avond) }
+  if (minutes >= SLOT_START.ochtend) return { id: `${today}-ochtend`, slot: 'ochtend', date: today, next: hhmm(SLOT_START.middag) }
+  // Vóór de ochtend geldt de avondeditie van gisteren. Gisteren op de kalender, niet "nu min zoveel
+  // uur": op de nacht van de wintertijd valt een vaste aftrek anders op dezelfde datum.
+  const d = new Date(Date.UTC(+year, +month - 1, +day - 1))
   const date = d.toISOString().slice(0, 10)
-  return { id: `${date}-avond`, slot: 'avond', date, next: '06:00' }
+  return { id: `${date}-avond`, slot: 'avond', date, next: hhmm(SLOT_START.ochtend) }
 }
 
 // Selectie op drie zichtbare gronden: dekking (aantal bronnen), versheid, en of je eigen

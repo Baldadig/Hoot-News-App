@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { buildStories, selectEdition, leadCandidates, signatures, sameSubject, editionSlot as slotOf } from '../netlify/lib/stories.mjs'
+import { SLOT_START, beforeOchtend } from '../shared/slot-times.mjs'
 import { art, ice, hasan, lookalikes, MAIN, NOW } from './fixtures.mjs'
 
 const storyOf = (stories, item) => stories.find((s) => s.itemIds.includes(item.id))
@@ -111,34 +112,78 @@ test('hoofdbericht: eigen bron, Nederlands waar het kan, en afwisseling tussen b
   assert.equal(items.length, 4)
 })
 
-test('drie edities per dag: ochtend 06:00, middag 12:00, avond 17:00 (Amsterdamse tijd)', () => {
+test('drie edities per dag: ochtend 05:30, middag 12:00, avond 17:00 (Amsterdamse tijd)', () => {
   const at = (iso) => slotOf(new Date(iso))
   // 10 oktober 2026: zomertijd, UTC+2
-  assert.deepEqual(at('2026-10-10T05:30:00Z'), { id: '2026-10-10-ochtend', slot: 'ochtend', date: '2026-10-10', next: '12:00' })
+  assert.deepEqual(at('2026-10-10T03:30:00Z'), { id: '2026-10-10-ochtend', slot: 'ochtend', date: '2026-10-10', next: '12:00' })
   assert.equal(at('2026-10-10T09:59:00Z').slot, 'ochtend')
   assert.deepEqual(at('2026-10-10T10:00:00Z'), { id: '2026-10-10-middag', slot: 'middag', date: '2026-10-10', next: '17:00' })
   assert.equal(at('2026-10-10T14:59:00Z').slot, 'middag')
-  assert.deepEqual(at('2026-10-10T15:00:00Z'), { id: '2026-10-10-avond', slot: 'avond', date: '2026-10-10', next: '06:00' })
-  assert.equal(at('2026-10-11T02:00:00Z').id, '2026-10-10-avond') // 04:00 's nachts: nog de avondeditie van gisteren
+  assert.deepEqual(at('2026-10-10T15:00:00Z'), { id: '2026-10-10-avond', slot: 'avond', date: '2026-10-10', next: '05:30' })
+  assert.deepEqual(at('2026-10-11T02:00:00Z'), { id: '2026-10-10-avond', slot: 'avond', date: '2026-10-10', next: '05:30' }) // 04:00 's nachts: nog de avondeditie van gisteren
 })
 
-test('edities om 06:00, 12:00 en 17:00 Nederlandse tijd, ook rond zomer- en wintertijd', () => {
+test('de Ochtendeditie begint om 05:30 Nederlandse tijd, ook rond zomer- en wintertijd', () => {
   const at = (iso) => slotOf(new Date(iso)).id
-  // Winter (UTC+1) en zomer (UTC+2).
-  assert.equal(at('2026-12-01T04:59:00Z'), '2026-11-30-avond')
+  // Winter (UTC+1): 05:29 / 05:30 / 05:59 / 06:00.
+  assert.equal(at('2026-12-01T04:29:59Z'), '2026-11-30-avond')
+  assert.equal(at('2026-12-01T04:30:00Z'), '2026-12-01-ochtend')
+  assert.equal(at('2026-12-01T04:59:00Z'), '2026-12-01-ochtend')
   assert.equal(at('2026-12-01T05:00:00Z'), '2026-12-01-ochtend')
-  assert.equal(at('2026-07-01T03:59:00Z'), '2026-06-30-avond')
+  // Het echte geval: 3 november legde de ochtend vast om 05:00:24Z (06:00); nu kan dat om 04:30Z.
+  assert.equal(at('2026-11-03T04:30:05Z'), '2026-11-03-ochtend')
+  // Zomer (UTC+2): 05:29 / 05:30 / 05:59 / 06:00.
+  assert.equal(at('2026-07-01T03:29:59Z'), '2026-06-30-avond')
+  assert.equal(at('2026-07-01T03:30:00Z'), '2026-07-01-ochtend')
+  assert.equal(at('2026-07-01T03:59:00Z'), '2026-07-01-ochtend')
   assert.equal(at('2026-07-01T04:00:00Z'), '2026-07-01-ochtend')
+  assert.equal(at('2026-07-01T09:59:59Z'), '2026-07-01-ochtend')
   assert.equal(at('2026-07-01T10:00:00Z'), '2026-07-01-middag')
   assert.equal(at('2026-07-01T15:00:00Z'), '2026-07-01-avond')
-  // Nacht van de wintertijd (25 okt 2026, 03:00 → 02:00): 05:59 is nog de avond van de 24e.
-  assert.equal(at('2026-10-25T04:59:00Z'), '2026-10-24-avond')
-  assert.equal(at('2026-10-25T05:00:00Z'), '2026-10-25-ochtend')
+  // Nacht van de wintertijd (25 okt 2026, 03:00 → 02:00): 05:29 is nog de avond van de 24e.
+  assert.equal(at('2026-10-25T00:30:00Z'), '2026-10-24-avond') // 02:30 zomertijd
+  assert.equal(at('2026-10-25T01:30:00Z'), '2026-10-24-avond') // 02:30 wintertijd, het uur dubbel
+  assert.equal(at('2026-10-25T04:29:00Z'), '2026-10-24-avond')
+  assert.equal(at('2026-10-25T04:30:00Z'), '2026-10-25-ochtend')
   // Nacht van de zomertijd (29 mrt 2026, 02:00 → 03:00).
-  assert.equal(at('2026-03-29T03:59:00Z'), '2026-03-28-avond')
-  assert.equal(at('2026-03-29T04:00:00Z'), '2026-03-29-ochtend')
+  assert.equal(at('2026-03-29T00:59:00Z'), '2026-03-28-avond') // 01:59 wintertijd
+  assert.equal(at('2026-03-29T01:00:00Z'), '2026-03-28-avond') // meteen 03:00 zomertijd
+  assert.equal(at('2026-03-29T03:29:00Z'), '2026-03-28-avond')
+  assert.equal(at('2026-03-29T03:30:00Z'), '2026-03-29-ochtend')
   // Jaarwisseling.
   assert.equal(at('2027-01-01T02:00:00Z'), '2026-12-31-avond')
+  assert.equal(at('2027-01-01T04:30:00Z'), '2027-01-01-ochtend')
+})
+
+test('nachtrust stopt op de start van de ochtend, het hele jaar', () => {
+  assert.deepEqual(SLOT_START, { ochtend: 330, middag: 720, avond: 1020 })
+  // Winter.
+  assert.equal(beforeOchtend(new Date('2026-12-01T04:29:59Z')), true)
+  assert.equal(beforeOchtend(new Date('2026-12-01T04:30:00Z')), false)
+  // Zomer.
+  assert.equal(beforeOchtend(new Date('2026-07-01T03:29:59Z')), true)
+  assert.equal(beforeOchtend(new Date('2026-07-01T03:30:00Z')), false)
+  // Overgangsnachten.
+  assert.equal(beforeOchtend(new Date('2026-10-25T04:29:00Z')), true)
+  assert.equal(beforeOchtend(new Date('2026-10-25T04:30:00Z')), false)
+  assert.equal(beforeOchtend(new Date('2026-03-29T03:29:00Z')), true)
+  assert.equal(beforeOchtend(new Date('2026-03-29T03:30:00Z')), false)
+  // Overdag en 's avonds geen nachtrust; vlak na middernacht wel.
+  assert.equal(beforeOchtend(new Date('2026-12-01T11:00:00Z')), false)
+  assert.equal(beforeOchtend(new Date('2026-12-01T22:59:00Z')), false)
+  assert.equal(beforeOchtend(new Date('2026-12-01T23:00:00Z')), true)
+})
+
+// Elke geplande ronde (*/10 in UTC) die op of na de start van de ochtend valt, legt de ochtend vast;
+// de eerste is de ronde van precies de start (ook als de nacht-ronden een half uur verschoven liepen).
+test('de eerste ronde om de start van de ochtend legt de Ochtendeditie vast, niet een half uur later', () => {
+  for (const [day, utcStart] of [['2026-12-01', '04:30'], ['2026-07-01', '03:30'], ['2026-10-25', '04:30'], ['2026-03-29', '03:30']]) {
+    const start = Date.parse(`${day}T${utcStart}:00Z`)
+    // Nachtronden die om :20 en :50 ververst hebben: de laatste is 10 minuten oud, toch geen nachtrust.
+    assert.equal(beforeOchtend(new Date(start)), false, day)
+    assert.equal(slotOf(new Date(start + 5000)).id, `${day}-ochtend`, day)
+    assert.equal(slotOf(new Date(start - 10 * 6e4 + 5000)).slot, 'avond', day)
+  }
 })
 
 // Echte berichten van 29-10 (review H7): je tikte op 'Trump and His Aides Helped Bolsonaro Flee

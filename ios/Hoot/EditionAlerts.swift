@@ -5,7 +5,7 @@ import os
 
 // Een seintje als een nieuwe Editie klaarligt: lokaal gepland, zonder server en zonder pushdienst.
 // De tijden liggen vast (drie per dag, Amsterdamse tijd) en de Editie ligt er zo'n 20 seconden na
-// het hele uur; het seintje komt een paar minuten later, zodat hij er ook ligt als de server een
+// de start van het dagdeel; het seintje komt een paar minuten later, zodat hij er ook ligt als de server een
 // tik mist. Stil: geen geluid, geen badge, en Focus gaat voor (geen "tijdgevoelig").
 //
 // Plannen: losse momenten voor de rest van vandaag en zeven dagen erna (hooguit 24 van de 64 die
@@ -20,11 +20,12 @@ import os
 final class EditionAlerts {
     static let shared = EditionAlerts()
 
-    // Gelijk aan editionSlot() in netlify/lib/stories.mjs (06:00, 12:00 en 17:00 in Amsterdam).
-    // `hour` is alleen om te plannen: in teksten staan geen kloktijden, alleen dagdelen.
+    // Gelijk aan SLOT_START in shared/slot-times.mjs (05:30, 12:00 en 17:00 in Amsterdam; getoetst in
+    // SlotTimesTests). `hour` en `minute` zijn alleen om te plannen: in teksten staan geen kloktijden.
     struct Slot: Identifiable {
         let id: String // ochtend | middag | avond, zoals `Edition.slot`
         let hour: Int
+        let minute: Int
         let name: String // de naam van de Editie, zoals overal in de app
         let short: String // "Ochtend": bij heel grote tekst, met "Editie" eronder
         let icon: String
@@ -33,11 +34,11 @@ final class EditionAlerts {
     }
     // De naam komt uit dezelfde tabel als de Editie zelf (Slots, spiegel van shared/slots.mjs).
     static let slots = [
-        Slot(id: "ochtend", hour: 6, name: Slots.naam("ochtend"), short: "Ochtend", icon: "sunrise", title: "Je \(Slots.naam("ochtend")) ligt klaar", body: "Het nieuws van de nacht, rustig op een rij."),
-        Slot(id: "middag", hour: 12, name: Slots.naam("middag"), short: "Middag", icon: "sun.max", title: "Je \(Slots.naam("middag")) ligt klaar", body: "Wat er sinds vanochtend gebeurde, op een rij."),
-        Slot(id: "avond", hour: 17, name: Slots.naam("avond"), short: "Avond", icon: "sunset", title: "Je \(Slots.naam("avond")) ligt klaar", body: "De dag op een rij, voor wanneer het jou uitkomt."),
+        Slot(id: "ochtend", hour: 5, minute: 30, name: Slots.naam("ochtend"), short: "Ochtend", icon: "sunrise", title: "Je \(Slots.naam("ochtend")) ligt klaar", body: "Het nieuws van de nacht, rustig op een rij."),
+        Slot(id: "middag", hour: 12, minute: 0, name: Slots.naam("middag"), short: "Middag", icon: "sun.max", title: "Je \(Slots.naam("middag")) ligt klaar", body: "Wat er sinds vanochtend gebeurde, op een rij."),
+        Slot(id: "avond", hour: 17, minute: 0, name: Slots.naam("avond"), short: "Avond", icon: "sunset", title: "Je \(Slots.naam("avond")) ligt klaar", body: "De dag op een rij, voor wanneer het jou uitkomt."),
     ]
-    private static let delay = 3 // minuten na het hele uur
+    static let delay = 3 // minuten na de start van het dagdeel
     private static let days = 7
     private static var amsterdam: Calendar {
         var c = Calendar(identifier: .gregorian)
@@ -109,7 +110,7 @@ final class EditionAlerts {
         for day in 0...Self.days { // vandaag plus zeven hele dagen
             guard let date = amsterdam.date(byAdding: .day, value: day, to: today) else { continue }
             for slot in Self.slots where chosen.contains(slot.id) {
-                guard let at = amsterdam.date(bySettingHour: slot.hour, minute: Self.delay, second: 0, of: date), at.timeIntervalSince(now) > 30 else { continue }
+                guard let at = Self.moment(slot, on: date), at.timeIntervalSince(now) > 30 else { continue }
                 let d = amsterdam.dateComponents([.year, .month, .day], from: at)
                 let id = String(format: "editie-%04d-%02d-%02d-%@", d.year ?? 0, d.month ?? 0, d.day ?? 0, slot.id) // editie-2026-10-31-ochtend
                 // Ligt deze Editie al in de app, dan geen seintje: niets melden wat je al ziet.
@@ -123,6 +124,12 @@ final class EditionAlerts {
             }
         }
         Self.log.info("\(planned) seintjes gepland")
+    }
+
+    // Het moment van het seintje op een dag (Amsterdamse kalender): de start van het dagdeel plus `delay`.
+    static func moment(_ slot: Slot, on day: Date) -> Date? {
+        let amsterdam = Self.amsterdam
+        return amsterdam.date(bySettingHour: slot.hour, minute: slot.minute + delay, second: 0, of: amsterdam.startOfDay(for: day))
     }
 
     private static func content(_ slot: Slot) -> UNMutableNotificationContent {

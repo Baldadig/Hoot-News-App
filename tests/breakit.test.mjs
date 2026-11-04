@@ -236,9 +236,10 @@ test('editie: herkoppelen met een verhaal zonder itemIds loopt niet vast', () =>
 })
 
 test('editie: dagdeel klopt rond de wisseling van zomer- naar wintertijd', () => {
-  assert.equal(editionSlot(new Date('2026-10-25T04:59:00Z')).id, '2026-10-24-avond') // 05:59 wintertijd: nog gisteravond
-  assert.equal(editionSlot(new Date('2026-10-25T05:00:00Z')).id, '2026-10-25-ochtend')
-  assert.equal(editionSlot(new Date('2026-03-29T03:59:00Z')).id, '2026-03-28-avond') // 05:59 zomertijd
+  assert.equal(editionSlot(new Date('2026-10-25T04:29:00Z')).id, '2026-10-24-avond') // 05:29 wintertijd: nog gisteravond
+  assert.equal(editionSlot(new Date('2026-10-25T04:30:00Z')).id, '2026-10-25-ochtend')
+  assert.equal(editionSlot(new Date('2026-03-29T03:29:00Z')).id, '2026-03-28-avond') // 05:29 zomertijd
+  assert.equal(editionSlot(new Date('2026-03-29T03:30:00Z')).id, '2026-03-29-ochtend')
 })
 
 // ---------- Buiten je bubbel ----------
