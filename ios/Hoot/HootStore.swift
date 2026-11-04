@@ -115,72 +115,78 @@ final class HootStore {
     // de streep 'Daaronder heb je alles al gezien' te laag).
     var newInStream: Int { streamMark.map { mark in withoutCopies(stream).prefix { ($0.date ?? .distantPast) > mark }.count } ?? 0 }
 
-    init() {
-        muted = Set(Self.load("hoot.muted") ?? [String]())
-        enabled = Set(Self.load("hoot.enabled") ?? [String]())
-        quickPending = Self.load("hoot.quickPending") ?? false
-        browsing = Self.load("hoot.browsing") ?? false
-        digestFields = Self.load("hoot.digestFields") ?? [] // een nieuwe lezer kiest zijn vak zelf (of later)
+    // `defaults` is de opslag voor instellingen (standaard die van de app). Tests geven een eigen suite mee,
+    // zodat ze niet afhangen van wat de app op het toestel al bewaarde.
+    let defaults: UserDefaults
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        let d = defaults
+        func load<T: Decodable>(_ key: String) -> T? { Self.load(key, d) }
+        muted = Set(load("hoot.muted") ?? [String]())
+        enabled = Set(load("hoot.enabled") ?? [String]())
+        quickPending = load("hoot.quickPending") ?? false
+        browsing = load("hoot.browsing") ?? false
+        digestFields = load("hoot.digestFields") ?? [] // een nieuwe lezer kiest zijn vak zelf (of later)
         // Eenmalig overzetten uit UserDefaults (versie 0.3 en eerder).
-        let oldSaved: [Item]? = Self.load("hoot.saved")
-        let oldRead: [String]? = Self.load("hoot.read")
+        let oldSaved: [Item]? = load("hoot.saved")
+        let oldRead: [String]? = load("hoot.read")
         let savedNow: [Item] = Self.read("saved.json") ?? oldSaved ?? []
         let readNow: [String] = Self.read("read.json") ?? oldRead ?? []
         saved = savedNow
         readOrder = readNow
         // Bewaard onleesbaar: dan niet doen alsof je alles verwijderde. Zonder basis vult je account
         // het weer aan, in plaats van het daar ook te wissen (Account.pull).
-        if Self.unreadable.contains("saved.json") { UserDefaults.standard.removeObject(forKey: "hoot.savedBase") }
+        if Self.unreadable.contains("saved.json") { d.removeObject(forKey: "hoot.savedBase") }
         readSet = Set(readNow)
         if oldSaved != nil || oldRead != nil {
             // Pas uit UserDefaults weghalen als het bestand er echt staat.
             Self.write(savedNow, to: "saved.json")
             Self.write(readNow, to: "read.json")
-            if Self.read("saved.json") as [Item]? != nil { UserDefaults.standard.removeObject(forKey: "hoot.saved") }
-            if Self.read("read.json") as [String]? != nil { UserDefaults.standard.removeObject(forKey: "hoot.read") }
+            if Self.read("saved.json") as [Item]? != nil { d.removeObject(forKey: "hoot.saved") }
+            if Self.read("read.json") as [String]? != nil { d.removeObject(forKey: "hoot.read") }
         }
-        images = Self.load("hoot.images") ?? "aan"
-        layout = DebugLaunch.layout ?? Self.load("hoot.layout") ?? "tijdlijn"
-        bubble = Self.load("hoot.bubble") ?? true
-        openInSafari = Self.load("hoot.openInSafari") ?? false
+        images = load("hoot.images") ?? "aan"
+        layout = DebugLaunch.layout ?? load("hoot.layout") ?? "tijdlijn"
+        bubble = load("hoot.bubble") ?? true
+        openInSafari = load("hoot.openInSafari") ?? false
         // Twee keuzes: de lezer of Safari. Wie "Op de website" had (tot 1.0.1), gaat naar Safari.
-        let was: String = Self.load("hoot.openWith") ?? (Self.load("hoot.openInSafari") == true ? "safari" : "lezer")
+        let was: String = load("hoot.openWith") ?? (load("hoot.openInSafari") == true ? "safari" : "lezer")
         openWith = was == "web" ? "safari" : was
-        streamSeen = Self.load("hoot.streamSeen") ?? nil
-        preview = Self.load("hoot.regels") ?? Self.oldPreview(Self.load("hoot.preview")) ?? Self.introLines
+        streamSeen = load("hoot.streamSeen") ?? nil
+        preview = load("hoot.regels") ?? Self.oldPreview(load("hoot.preview")) ?? Self.introLines
         // Het welkom alleen bij een verse installatie: wie al instellingen of gelezen stukken heeft
         // (bijvoorbeeld van vóór het welkom), heeft het niet nodig.
-        let knownOnboarded: Bool? = Self.load("hoot.onboarded")
-        let seen = knownOnboarded ?? UserDefaults.standard.dictionaryRepresentation().keys.contains { $0.hasPrefix("hoot.") }
+        let knownOnboarded: Bool? = load("hoot.onboarded")
+        let seen = knownOnboarded ?? d.dictionaryRepresentation().keys.contains { $0.hasPrefix("hoot.") }
         onboarded = seen
         // Meteen vastleggen: sluit iemand de app tijdens het eerste welkom, dan komt het de volgende keer terug.
-        if knownOnboarded == nil { UserDefaults.standard.set(try? JSONEncoder().encode(seen), forKey: "hoot.onboarded") }
+        if knownOnboarded == nil { d.set(try? JSONEncoder().encode(seen), forKey: "hoot.onboarded") }
         #if DEBUG
         // Opnamen met een startargument (screenshots.sh, device-screens.sh) slaan het welkom over.
-        if UserDefaults.standard.string(forKey: "HootStartTab") != nil { onboarded = true }
+        if d.string(forKey: "HootStartTab") != nil { onboarded = true }
         // `-HootOnboarded YES`: het welkom overslaan maar wel het opstartscherm (de overgang naar de Editie).
-        if UserDefaults.standard.bool(forKey: "HootOnboarded") { onboarded = true }
+        if d.bool(forKey: "HootOnboarded") { onboarded = true }
         // `-HootFresh YES` of `-HootWelcomeStep …`: het welkom als nieuwe gebruiker.
         if DebugLaunch.fresh { onboarded = false }
         #endif
-        notify = Self.load("hoot.notify") ?? false
-        notifySlots = Self.load("hoot.notifySlots") ?? EditionAlerts.slots.map(\.id)
-        interests = Self.load("hoot.interests") ?? []
+        notify = load("hoot.notify") ?? false
+        notifySlots = load("hoot.notifySlots") ?? EditionAlerts.slots.map(\.id)
+        interests = load("hoot.interests") ?? []
         // Trump is sinds 1.1.0 Verenigde Staten: opgeslagen voorkeuren met de oude sleutel gaan mee (RetiredTopics).
         func rewrite<T: Codable & Equatable>(_ key: String, _ old: T, _ new: T) {
-            if new != old { UserDefaults.standard.set(try? JSONEncoder().encode(new), forKey: key) }
+            if new != old { d.set(try? JSONEncoder().encode(new), forKey: key) }
         }
-        let storedTopics: [String] = Self.load("hoot.topics") ?? []
+        let storedTopics: [String] = load("hoot.topics") ?? []
         let migratedTopics = RetiredTopics.list(storedTopics)
         topics = migratedTopics
-        favorites = Self.load("hoot.favorites") ?? []
-        let storedAffinity: Affinity = Self.load("hoot.affinity") ?? Affinity()
+        favorites = load("hoot.favorites") ?? []
+        let storedAffinity: Affinity = load("hoot.affinity") ?? Affinity()
         let migratedAffinity = storedAffinity.migrated
         affinity = migratedAffinity
-        let storedTaste: Taste = Self.load("hoot.taste") ?? Taste()
+        let storedTaste: Taste = load("hoot.taste") ?? Taste()
         let migratedTaste = storedTaste.migrated
         taste = migratedTaste
-        let storedLess: [String] = Self.load("hoot.less") ?? []
+        let storedLess: [String] = load("hoot.less") ?? []
         let migratedLess = RetiredTopics.list(storedLess)
         less = migratedLess
         rewrite("hoot.topics", storedTopics, migratedTopics)
@@ -189,12 +195,12 @@ final class HootStore {
         rewrite("hoot.less", storedLess, migratedLess)
         personal = Self.read("edition.json")
         personalRaw = Self.readRaw("edition.json")
-        bluesky = Self.load("hoot.bluesky") ?? false
-        let keptSocial: [BlueskyAccount] = Self.load("hoot.ownBluesky") ?? []
+        bluesky = load("hoot.bluesky") ?? false
+        let keptSocial: [BlueskyAccount] = load("hoot.ownBluesky") ?? []
         ownBluesky = keptSocial
         // Oude native profielen kenden deze schakelaar niet: gevolgde eigen accounts blijven zichtbaar.
         // Een opgeslagen lege lijst is wel een bewuste keuze en blijft leeg.
-        bskyInStream = Set(Self.load("hoot.bskyInStream") ?? keptSocial.map(\.id))
+        bskyInStream = Set(load("hoot.bskyInStream") ?? keptSocial.map(\.id))
         importSettings()
         repairStreamChoice(stage: "local")
     }
@@ -206,9 +212,9 @@ final class HootStore {
     // krijgt, gaat in dezelfde pull mee (Account.pull schrijft syncedPrefs weg).
     static let streamRepairKey = "hoot.bskyStreamRepair"
     private func repairStreamChoice(stage: String) {
-        let done = UserDefaults.standard.string(forKey: Self.streamRepairKey)
+        let done = defaults.string(forKey: Self.streamRepairKey)
         if done == "remote" || done == stage { return }
-        UserDefaults.standard.set(stage, forKey: Self.streamRepairKey)
+        defaults.set(stage, forKey: Self.streamRepairKey)
         let own = Set(ownBluesky.map(\.id))
         if !own.isEmpty, !own.isSubset(of: bskyInStream) { bskyInStream.formUnion(own) }
     }
@@ -280,7 +286,7 @@ final class HootStore {
     // Alleen wat echt anders is: elke toewijzing laadt opnieuw (Bluesky, jouw editie), en dat zou
     // anders na elke synchronisatie gebeuren, ook als er niets veranderde.
     private func apply(_ p: Import.Prefs?, unite: Bool = false) {
-        let legacySocial = p?.bskyInStream == nil && UserDefaults.standard.object(forKey: "hoot.bskyInStream") == nil
+        let legacySocial = p?.bskyInStream == nil && defaults.object(forKey: "hoot.bskyInStream") == nil
         if p?.theme != nil || p?.themeDark != nil {
             let local = ThemePreferences.read()
             let next = ThemePreferences(theme: p?.theme ?? local.theme, dark: p?.themeDark ?? local.dark)
@@ -351,7 +357,7 @@ final class HootStore {
         let following = followingIds
         // Een oud web-/iOS-profiel kan bskyInStream nog missen. Bij dezelfde eigenaar behouden;
         // bij een andere eigenaar nooit diens vorige Bluesky-keuzes of late posts overnemen.
-        if let reader = account?.uid, let previous = UserDefaults.standard.string(forKey: "hoot.owner"), reader != previous {
+        if let reader = account?.uid, let previous = defaults.string(forKey: "hoot.owner"), reader != previous {
             bskyInStream = []
             ownBluesky = []
             ownPosts = []
@@ -1084,10 +1090,10 @@ final class HootStore {
 
     // ---- Opslag ----
     private func save<T: Encodable>(_ key: String, _ value: T) {
-        UserDefaults.standard.set(try? JSONEncoder().encode(value), forKey: key)
+        defaults.set(try? JSONEncoder().encode(value), forKey: key)
     }
-    private static func load<T: Decodable>(_ key: String) -> T? {
-        guard let data = UserDefaults.standard.data(forKey: key) else { return nil }
+    private static func load<T: Decodable>(_ key: String, _ defaults: UserDefaults) -> T? {
+        guard let data = defaults.data(forKey: key) else { return nil }
         return try? JSONDecoder().decode(T.self, from: data)
     }
 
