@@ -1,8 +1,6 @@
 import React from 'react'
 import '@fontsource/newsreader/latin-800.css'
-import '@fontsource/source-sans-3/latin-400.css'
-import '@fontsource/source-sans-3/latin-600.css'
-import '@fontsource/source-sans-3/latin-800.css'
+import '../../src/fonts/fonts.css'
 import { createRoot } from 'react-dom/client'
 import { HootContext, LeadStory } from '../../src/components/Items.jsx'
 import '../../src/styles.css'
@@ -10,7 +8,7 @@ const q = new URLSearchParams(location.search)
 document.documentElement.dataset.theme = q.get('theme') || 'light'
 const portrait = q.get('portrait') === '1'
 const item = { id: 'a1-test', kind: 'article', source: 'nos', sourceName: 'NOS', url: 'https://nos.nl/a', section: 'Cultuur', title: 'Een nieuw perspectief op de stad', summary: 'Een rustige blik op de wereld om ons heen. Het verhaal en de foto krijgen ieder hun eigen ruimte.', publishedAt: new Date().toISOString(), image: `/tests/fixtures/images/${portrait ? 'portrait' : 'white-sides'}.png`, imageMeta: portrait ? { w: 60, h: 100, crop: { l: 0, r: 0, t: 0, b: 0 }, ratio: .6 } : { w: 160, h: 100, crop: { l: 24, r: 16, t: 0, b: 0 }, ratio: 1.2 } }
-await Promise.all([document.fonts.load('800 32px Newsreader'), document.fonts.load('400 17px "Source Sans 3"')])
+await Promise.all([document.fonts.load('800 32px Newsreader'), document.fonts.load('400 17px Inter'), document.fonts.load('400 17px Newsreader')])
 window.cls = 0
 window.shifts = []
 new PerformanceObserver(list => { for (const e of list.getEntries()) if (!e.hadRecentInput) { window.cls += e.value; window.shifts.push({value:e.value,sources:e.sources.map(s=>({node:s.node?.outerHTML.slice(0,100),previous:s.previousRect,current:s.currentRect}))}) } }).observe({ type: 'layout-shift', buffered: true })

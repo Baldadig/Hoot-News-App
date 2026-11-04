@@ -77,7 +77,7 @@ struct ChoiceChip: View {
                 }
                 Text(label).multilineTextAlignment(.leading)
             }
-            .font(.subheadline.weight(.semibold))
+            .font(.ui(.subheadline, .semibold))
             .foregroundStyle(Theme.ink)
             .padding(.horizontal, dense ? Space.s3 : Space.s4)
             .padding(.vertical, Space.s2)
@@ -153,7 +153,7 @@ struct ChoiceTile: View {
             }
             Text(label).multilineTextAlignment(.leading)
         }
-        .font(.headline.weight(.heavy))
+        .font(.ui(.headline, .heavy))
         .lineLimit(3) // labels lopen door in plaats van af te breken (README › Toegankelijkheid): nooit "Binnenla…"
         .fixedSize(horizontal: false, vertical: true)
         .layoutPriority(1) // de naam krijgt de ruimte, niet de Spacer ernaast
@@ -190,9 +190,9 @@ struct GroupTitle: View {
         HStack(spacing: Space.s2) {
             if let icon { Image(systemName: icon).foregroundStyle(Theme.accent).accessibilityHidden(true) }
             if typeSize.isAccessibilitySize {
-                Text(text).font(.caption.weight(.bold))
+                Text(text).font(.ui(.caption, .bold))
             } else {
-                Text(text.uppercased()).font(.caption.weight(.heavy)).tracking(0.6)
+                Text(text.uppercased()).font(.ui(.caption, .heavy)).tracking(0.6)
             }
         }
         .foregroundStyle(tone)

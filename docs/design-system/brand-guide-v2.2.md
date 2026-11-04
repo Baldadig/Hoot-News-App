@@ -73,6 +73,8 @@ In uitingen (landing, App Store, deelkaart, campagne): **60 papier, 30 inkt, 10 
 
 ## 3 · Type
 
+- **Lezen in serif, bedienen in sans** (keuze 4 november 2026, `tekstfont/ADVIES.md`). Koppen, displays en de nummers 01–10 in **Newsreader 800** (optische maat uit). Lopende tekst (leads, intro's in Editie, Stroom en Selectie, uitlegzinnen, de lezer) in **Newsreader op tekstmaat**, 400, in Nacht 430. Tabs, knoppen, bron, metadata, waarom-regel en cijfers in **Inter** 400 · 600 · 700; labels in kapitalen 800. Web en iOS gelijk; Source Sans 3 en New York/San Francisco zijn weg.
+- **Maten:** intro 17/24 (1,42). Held-lead 22 px (vanaf 440) en 19 px (telefoon), 1,42, hooguit 36ch. Inter: letterafstand 0 tot en met 15 px, −0,01em vanaf 20 px, +0,06em voor kapitalen. "Gratis…" onder de knoppen is bediening: Inter 600.
 - Regelhoogtes zoals in code en register: itemkop groot **22/26**, itemkop **18/22** (v2.1 p15 noemde 22/24 en 18/20; de extra lucht hoort tussen staart en stok).
 - **Editie-nummer** (`edition-number`): 01 t/m 10, twee cijfers, in de kicker vóór de rubriek (`01 · BUITENLAND`), tabelcijfers, kleur en gewicht van de kicker. Op breed web (≥ 960) in de kantlijn (`number-hang`, 2ch + s3). De bubbel komt ná 10, zonder nummer. VoiceOver: "Verhaal 1 van 10".
 
@@ -80,9 +82,9 @@ In uitingen (landing, App Store, deelkaart, campagne): **60 papier, 30 inkt, 10 
 
 ## 4 · Ruimte en maten
 
-- **Leesbreedte: web 720, iOS 680.** Web `measure` (720) voor elk leesblok: Stroom, Bewaard, Zoeken, het verhaal, de eindkaart. iOS `readable` (680, `Layout.readable`): kolom, lezer, inlogpaneel. Eén kolomstap verschil, bewust. De regellengte is op beide gelijk: lopende tekst stopt op `measure-prose` (58ch).
+- **Leesbreedte: web 720, iOS 680.** Web `measure` (720) voor elk leesblok: Stroom, Bewaard, Zoeken, het verhaal, de eindkaart. iOS `readable` (680, `Layout.readable`): kolom, lezer, inlogpaneel. Eén kolomstap verschil, bewust. De regellengte is op beide gelijk: lopende tekst stopt op `measure-prose` (28,8em: even breed als 58ch in Source Sans 3, maar los van de breedte van de 0).
 - Welkom behoudt op het web zijn eigen breedte (680); dat is geen leesblok.
-- **Optische correcties** mogen buiten de schaal, **alleen als token met reden**: `baseline-nudge-sans` 2,6 px (Source Sans 15 naast Newsreader 17), `ring-cut` 2 px (stip, vinkje), `ring-cut-stack` 3,2 px (logo's in de stapel).
+- **Optische correcties** mogen buiten de schaal, **alleen als token met reden**: `baseline-nudge-sans` 4,6 px (Inter 15 naast Newsreader 17; was 2,6 met Source Sans), `ring-cut` 2 px (stip, vinkje), `ring-cut-stack` 3,2 px (logo's in de stapel).
 - Alles verder op de schaal van 4: `s0` 2 (alleen binnen één label) en `s1`…`s7` = 4 · 8 · 12 · 16 · 24 · 32 · 48. De bronkaart in Welkom en zijn vinkje staan nu op `s1` (was 6 · 3 en 3).
 
 ---
@@ -211,7 +213,7 @@ Alle 15 oordelen akkoord. **Hersteld in de code** (6): segment zonder Nacht-rege
 | 3 | `shadow-float` | `0 6px 18px rgba(26,24,20,0.20)`; donker en Nacht `0 6px 18px rgba(0,0,0,0.5)`. |
 | 4 | Schakelduim in Nacht | `switch-thumb` night = inkt: geen helder vlak. |
 | 5 | Grote vlakken in Nacht | Niet alleen `paper`: ook `sheet`, `band`, `top` zwart, `sheet-surface` `#1e1b17`. |
-| 9 | Leesbreedte | `measure` 720 (web) naast `readable` 680 (iOS), regellengte `measure-prose` 58ch. |
+| 9 | Leesbreedte | `measure` 720 (web) naast `readable` 680 (iOS), regellengte `measure-prose` 28,8em. |
 | 10 | Regelhoogtes | 22/26 en 18/22 (code en register hadden gelijk). |
 | 13 | Basislijn | `baseline-nudge-sans` 2,6 px: optische correctie met reden. |
 | 14 | Uitsnijring | `ring-cut` 2 px en `ring-cut-stack` 3,2 px. |

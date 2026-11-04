@@ -55,7 +55,7 @@ struct SettingsView: View {
                             Text(slot.name).fixedSize()
                             VStack(alignment: .leading, spacing: Space.s0) {
                                 Text(slot.short)
-                                Text("Editie").font(.subheadline).foregroundStyle(Theme.ink3)
+                                Text("Editie").font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
                             }
                         }
                         .accessibilityElement(children: .ignore)
@@ -238,9 +238,9 @@ struct SettingsAccountCard: View {
             HStack(spacing: Space.s3) {
                 AccountBadge(size: 44)
                 VStack(alignment: .leading, spacing: Space.s0) {
-                    Text(title).font(.headline).foregroundStyle(Theme.ink)
-                    Text(Self.summary(interests: store.interests.count, sources: store.followed.count)).font(.subheadline).foregroundStyle(Theme.ink3)
-                    Text(status).font(.subheadline).foregroundStyle(Theme.ink3)
+                    Text(title).font(.ui(.headline)).foregroundStyle(Theme.ink)
+                    Text(Self.summary(interests: store.interests.count, sources: store.followed.count)).font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
+                    Text(status).font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
                 }
                 .fixedSize(horizontal: false, vertical: true)
             }
@@ -287,7 +287,7 @@ struct SettingsValueRow: View {
             Label {
                 VStack(alignment: .leading, spacing: Space.s0) {
                     Text(title).foregroundStyle(Theme.ink)
-                    Text(value).font(.subheadline).foregroundStyle(Theme.ink3).fixedSize(horizontal: false, vertical: true)
+                    Text(value).font(.ui(.subheadline)).foregroundStyle(Theme.ink3).fixedSize(horizontal: false, vertical: true)
                 }
             } icon: { Image(systemName: systemImage).foregroundStyle(Theme.ink3) }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -391,18 +391,18 @@ struct LearnedSection: View {
                 // rechts uitgelijnd gaf een rafelige linkerkant.
                 VStack(alignment: .leading, spacing: Space.s0) {
                     Text("Gekozen")
-                    Text(summary.chosen.map(Taste.label).joined(separator: ", ")).font(.subheadline).foregroundStyle(Theme.ink3)
+                    Text(summary.chosen.map(Taste.label).joined(separator: ", ")).font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityElement(children: .combine)
             }
-            if !summary.learned.isEmpty { Text("Vaak gelezen").font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink3) }
+            if !summary.learned.isEmpty { Text("Vaak gelezen").font(.ui(.footnote, .semibold)).foregroundStyle(Theme.ink3) }
             ForEach(summary.learned, id: \.self) { t in
                 LearnedRow(title: Taste.label(t), hint: nil, action: "Vergeet dit") {
                     withAnimation { store.forgetTopic(t) }
                 }
             }
-            if !summary.less.isEmpty { Text("Minder").font(.footnote.weight(.semibold)).foregroundStyle(Theme.ink3) }
+            if !summary.less.isEmpty { Text("Minder").font(.ui(.footnote, .semibold)).foregroundStyle(Theme.ink3) }
             ForEach(summary.less, id: \.self) { t in
                 LearnedRow(title: Taste.label(t), hint: nil, action: "Ongedaan maken") {
                     withAnimation { store.restoreLess(t) }
@@ -432,12 +432,12 @@ private struct LearnedRow: View {
         HStack(alignment: .firstTextBaseline, spacing: Space.s3) {
             VStack(alignment: .leading, spacing: Space.s0) {
                 Text(title)
-                if let hint { Text(hint).font(.subheadline).foregroundStyle(Theme.ink3) }
+                if let hint { Text(hint).font(.ui(.subheadline)).foregroundStyle(Theme.ink3) }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             if let action {
                 Button(action, action: run)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.ui(.subheadline, .semibold))
                     .buttonStyle(.borderless)
                     .tint(Theme.ink) // bediening: inkt, geen rood
             }
@@ -472,7 +472,7 @@ struct InterestsList: View {
                             Label {
                                 VStack(alignment: .leading, spacing: Space.s0) {
                                     Text(r.label)
-                                    if !on { Text(Self.about[r.id] ?? "").font(.caption).foregroundStyle(Theme.ink3) }
+                                    if !on { Text(Self.about[r.id] ?? "").font(.ui(.caption)).foregroundStyle(Theme.ink3) }
                                 }
                             } icon: { Image(systemName: r.icon).foregroundStyle(Theme.ink3) }
                         }

@@ -47,7 +47,7 @@ struct BlueskyFeed: View {
 
     private func chip(_ label: String, on: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(label).font(.subheadline.weight(.semibold)).foregroundStyle(on ? Theme.accent : Theme.ink3)
+            Text(label).font(.ui(.subheadline, .semibold)).foregroundStyle(on ? Theme.accent : Theme.ink3)
         }
         .buttonStyle(.glass)
         .accessibilityAddTraits(on ? .isSelected : [])
@@ -85,7 +85,7 @@ struct PostRow: View {
         VStack(alignment: .leading, spacing: Space.s3) {
             VStack(alignment: .leading, spacing: Space.s3) {
                 if !text.isEmpty {
-                    Text(text).font(.body).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
+                    Text(text).leestekst(.body).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
                 }
                 if item.videoURL != nil {
                     // de video staat hieronder, buiten de tik naar de post
@@ -104,8 +104,8 @@ struct PostRow: View {
                 HStack(alignment: .top, spacing: Space.s2) {
                     SourceMark(item: item)
                     VStack(alignment: .leading, spacing: 0) {
-                        Text(item.sourceName ?? item.source).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink)
-                        Text([item.handle, HootDate.ago(item.date)].compactMap { $0 }.joined(separator: " · ")).font(.caption).monospacedDigit().foregroundStyle(Theme.ink3)
+                        Text(item.sourceName ?? item.source).font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink)
+                        Text([item.handle, HootDate.ago(item.date)].compactMap { $0 }.joined(separator: " · ")).font(.ui(.caption)).monospacedDigit().foregroundStyle(Theme.ink3)
                     }
                     .fixedSize(horizontal: false, vertical: true)
                 }
@@ -130,8 +130,8 @@ private struct LinkCard: View {
                 FramedImage(url: item.image.flatMap(URL.init(string:)), ratio: 1.91)
             }
             VStack(alignment: .leading, spacing: Space.s0) {
-                Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
-                if let host = item.link?.host() { Text(host.replacing(/^www\./, with: "")).font(.caption).foregroundStyle(Theme.ink3) }
+                Text(title).font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
+                if let host = item.link?.host() { Text(host.replacing(/^www\./, with: "")).font(.ui(.caption)).foregroundStyle(Theme.ink3) }
             }
             .padding(Space.s3)
         }
@@ -214,7 +214,7 @@ struct BlueskyAccountsView: View {
                     .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 0) {
                         Text(s.name)
-                        Text("@" + s.id.replacing(/^bsky:/, with: "")).font(.caption).foregroundStyle(Theme.ink3)
+                        Text("@" + s.id.replacing(/^bsky:/, with: "")).font(.ui(.caption)).foregroundStyle(Theme.ink3)
                     }
                 }
             }

@@ -26,8 +26,12 @@ for (const format of ['link', 'staand']) {
   }
 }
 test('A3: beide platforms bundelen precies dezelfde maten, glyphmaten en lettertypes', async () => {
-  for (const file of ['layout.json', 'advances.json', 'publisher-marks.json', 'Newsreader-800.ttf', 'SourceSans3-600.ttf', 'newsreader-OFL.txt', 'source-sans-3-OFL.txt']) {
+  for (const file of ['layout.json', 'advances.json', 'publisher-marks.json', 'Newsreader-800.ttf', 'newsreader-OFL.txt']) {
     assert.deepEqual(await readFile(new URL(`../shared/deelkaart/${file}`, import.meta.url)), await readFile(new URL(`../ios/Hoot/Resources/Deelkaart/${file}`, import.meta.url)), file)
+  }
+  // De schreefloze letter van de kaart is de Inter 600 van de app zelf (scripts/build-fonts.py).
+  for (const [shared, app] of [['Inter-600.ttf', 'Inter-600.ttf'], ['inter-OFL.txt', 'OFL-Inter.txt']]) {
+    assert.deepEqual(await readFile(new URL(`../shared/deelkaart/${shared}`, import.meta.url)), await readFile(new URL(`../ios/Hoot/Resources/Fonts/${app}`, import.meta.url)), shared)
   }
 })
 

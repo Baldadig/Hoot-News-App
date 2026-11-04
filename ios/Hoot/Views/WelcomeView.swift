@@ -293,14 +293,14 @@ struct WelcomeView: View {
             VStack(spacing: Space.s4) {
                 OnboardingArt(kind: .intro, onRed: true, active: step == .intro, since: introSince)
                 Text("Minder scrollen.\nMeer lezen.")
-                    .font(.system(size: min(hero, 56), weight: .heavy, design: .serif))
+                    .font(.kop(size: min(hero, 56)))
                     .tracking(-0.8)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
                     .accessibilityFocused($headFocus)
                 Text("Het nieuws van jouw bronnen,\nrustig op een rij.")
-                    .font(.body)
+                    .uitleg() // zoals .ob__lede op het web
                     .opacity(0.85)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
@@ -360,13 +360,13 @@ struct WelcomeView: View {
             Spacer(minLength: Space.s4)
             if onRed {
                 Button("Inloggen") { login = true }
-                    .font(.body.weight(.semibold))
+                    .font(.ui(.body, .semibold))
                     .accessibilityHint("Lezen kan ook zonder account.")
                     .frame(minHeight: Space.tap)
                     .contentShape(Rectangle())
             } else if again && step == .interesses {
                 Button("Sluiten") { onCancel?() }
-                    .font(.body.weight(.semibold))
+                    .font(.ui(.body, .semibold))
                     .accessibilityHint("Er verandert niets.")
                     .frame(minHeight: Space.tap)
                     .contentShape(Rectangle())
@@ -376,7 +376,7 @@ struct WelcomeView: View {
                         Image(systemName: "chevron.left").font(.body.weight(.semibold))
                         Text("Terug")
                     }
-                    .font(.body)
+                    .font(.ui(.body))
                     .frame(minHeight: Space.tap)
                     .contentShape(Rectangle())
                 }
@@ -395,8 +395,7 @@ struct WelcomeView: View {
     // `compact` laat de zin dan weg (de bronnen: de lijst moet boven de knoppen te zien zijn).
     private func heading(_ title: String, _ sub: String, compact: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: Space.s2) {
-            Text(title.replacingOccurrences(of: "?", with: "\u{2060}?")) // het vraagteken blijft bij zijn woord
-                .font(.system(.title, design: .serif, weight: .heavy))
+            Kop(title.replacingOccurrences(of: "?", with: "\u{2060}?"), .title) // het vraagteken blijft bij zijn woord; een te lang woord breekt met een streepje
                 .tracking(-0.4)
                 .fixedSize(horizontal: false, vertical: true)
                 .dynamicTypeSize(...DynamicTypeSize.accessibility2)
@@ -405,7 +404,7 @@ struct WelcomeView: View {
                 .accessibilityFocused($headFocus)
             if !(compact && typeSize.isAccessibilitySize) {
                 Text(sub)
-                    .font(.body)
+                    .uitleg() // zoals .ob__sub
                     .foregroundStyle(Theme.ink2)
                     .fixedSize(horizontal: false, vertical: true)
                     .dynamicTypeSize(...DynamicTypeSize.accessibility1)
@@ -429,10 +428,10 @@ struct WelcomeView: View {
                 let art = OnboardingArt(kind: t.art, active: step == .uitleg, scale: min(trioArt, 120) / OnboardingArt.size.width)
                 let words = VStack(alignment: .leading, spacing: Space.s1) {
                     Text(t.title)
-                        .font(.system(.title2, design: .serif, weight: .heavy))
+                        .font(.kop(.title2))
                         .accessibilityAddTraits(.isHeader)
                     Text(t.text)
-                        .font(.body)
+                        .uitleg() // zoals .ob__ttext
                         .foregroundStyle(Theme.ink2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -503,7 +502,7 @@ struct WelcomeView: View {
                     .accessibilityLabel("Zoekterm wissen")
             }
         }
-        .font(.body)
+        .font(.ui(.body))
         .padding(.leading, Space.s4)
         .padding(.trailing, query.isEmpty ? Space.s4 : 0)
         .frame(minHeight: Space.tap)
@@ -519,7 +518,7 @@ struct WelcomeView: View {
             let hits = FollowList.find(all, query)
             if hits.isEmpty {
                 Text("Niets gevonden voor ‘\(query.trimmingCharacters(in: .whitespaces))’. Probeer een andere naam.")
-                    .font(.body).foregroundStyle(Theme.ink2).padding(.top, Space.s5)
+                    .uitleg().foregroundStyle(Theme.ink2).padding(.top, Space.s5)
             } else {
                 rows(hits).padding(.top, Space.s3)
             }
@@ -527,7 +526,7 @@ struct WelcomeView: View {
             let list = FollowList.followed(all, mine)
             if list.isEmpty {
                 Text("Je volgt nog niets. Begin bij de Basis.")
-                    .font(.body).foregroundStyle(Theme.ink2).padding(.top, Space.s5)
+                    .uitleg().foregroundStyle(Theme.ink2).padding(.top, Space.s5)
             } else {
                 rows(list).padding(.top, Space.s3)
             }
@@ -546,7 +545,7 @@ struct WelcomeView: View {
                             chosen = startOn ? mine.filter { !ids.contains($0) } : mine + ids.filter { !mine.contains($0) }
                         }
                         .buttonStyle(.plain)
-                        .font(typeSize.isAccessibilitySize ? .caption.weight(.bold) : .subheadline.weight(.bold)) // bij grote tekst niet groter dan de kop
+                        .font(typeSize.isAccessibilitySize ? .ui(.caption, .bold) : .ui(.subheadline, .bold)) // bij grote tekst niet groter dan de kop
                         .underline()
                         .lineLimit(1)
                         .fixedSize()
@@ -558,7 +557,7 @@ struct WelcomeView: View {
             }
             ForEach(blocks, id: \.id) { b in
                 section(b.label) {
-                    Text("\(b.sources.count)").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink3).monospacedDigit()
+                    Text("\(b.sources.count)").font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink3).monospacedDigit()
                 }
                 rows(b.sources, picks: Set([b.pick].compactMap { $0 }))
             }
@@ -566,14 +565,14 @@ struct WelcomeView: View {
                 if more {
                     ForEach(rest, id: \.cat) { g in
                         section(g.label) {
-                            Text("\(g.sources.count)").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink3).monospacedDigit()
+                            Text("\(g.sources.count)").font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink3).monospacedDigit()
                         }
                         rows(g.sources)
                     }
                 } else {
                     Button { more = true } label: {
                         sectionHead("Meer bronnen") {
-                            Text("Toon \(restCount)").font(.subheadline.weight(.bold)).underline()
+                            Text("Toon \(restCount)").font(.ui(.subheadline, .bold)).underline()
                         }
                     }
                     .buttonStyle(.plain)
@@ -619,10 +618,10 @@ struct WelcomeView: View {
         return HStack(alignment: stacked ? .top : .center, spacing: Space.s4) {
             SourceAvatar(source: s, size: 40)
             VStack(alignment: .leading, spacing: Space.s0) {
-                Text(s.name).font(.headline)
-                if let about = s.about { Text(about).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(stacked ? 2 : nil).fixedSize(horizontal: false, vertical: true) } // bij grote tekst twee regels: de Volg-knop blijft boven de voet
+                Text(s.name).font(.ui(.headline))
+                if let about = s.about { Text(about).font(.ui(.subheadline)).foregroundStyle(Theme.ink2).lineLimit(stacked ? 2 : nil).fixedSize(horizontal: false, vertical: true) } // bij grote tekst twee regels: de Volg-knop blijft boven de voet
                 Text((s.paid == true ? "Abonnement" : pick ? "Gratis aanrader" : "Gratis") + (s.lang == "en" ? " · Engels" : ""))
-                    .font(.caption.weight(.semibold))
+                    .font(.ui(.caption, .semibold))
                     .foregroundStyle(Theme.ink3)
                 if stacked { followButton(s).padding(.top, Space.s2) }
             }
@@ -642,7 +641,7 @@ struct WelcomeView: View {
                 if on { Image(systemName: "checkmark").font(.caption.weight(.heavy)).accessibilityHidden(true) }
                 Text(on ? "Volgend" : "Volg")
             }
-            .font(.subheadline.weight(.heavy))
+            .font(.ui(.subheadline, .heavy))
             .foregroundStyle(FollowPill.label(on: on, nacht: nacht))
             .padding(.horizontal, Space.s4)
             .frame(minWidth: 104, minHeight: Space.tap)
@@ -662,19 +661,19 @@ struct WelcomeView: View {
             if !bare {
                 GroupTitle(text: "Voorbeeld")
                 Text("Zo ziet je Editie eruit")
-                    .font(.system(.headline, design: .serif, weight: .heavy))
+                    .font(.kop(.headline))
                     .padding(.top, Space.s1)
             }
             if lines.isEmpty {
                 Text("Uit \(FollowList.sourceLine((mine.isEmpty ? FollowList.freeStart(store.newsSources) : FollowList.followed(store.newsSources, mine)).map(\.name))).")
-                    .font(.footnote).foregroundStyle(Theme.ink3).padding(.top, Space.s2)
+                    .font(.ui(.footnote)).foregroundStyle(Theme.ink3).padding(.top, Space.s2)
             } else {
                 ForEach(Array(lines.enumerated()), id: \.element.id) { i, l in
                     HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
-                        Text("\(i + 1)").font(.system(.body, design: .serif, weight: .heavy)).foregroundStyle(Theme.ink3).frame(width: 20, alignment: .leading)
+                        Text("\(i + 1)").font(.kop(.body)).foregroundStyle(Theme.ink3).frame(width: 20, alignment: .leading)
                         VStack(alignment: .leading, spacing: Space.s0) {
-                            Text(l.title).font(.system(.body, design: .serif, weight: .bold)).fixedSize(horizontal: false, vertical: true)
-                            Text(l.source).font(.footnote).foregroundStyle(Theme.ink3)
+                            Text(l.title).font(.leesVet(.body)).fixedSize(horizontal: false, vertical: true)
+                            Text(l.source).font(.ui(.footnote)).foregroundStyle(Theme.ink3)
                         }
                     }
                     .padding(.vertical, Space.s2)
@@ -683,7 +682,7 @@ struct WelcomeView: View {
                 }
             }
             if mine.isEmpty {
-                Text("Je volgt nog niets; dit is het gratis begin.").font(.footnote).foregroundStyle(Theme.ink3).padding(.top, Space.s2)
+                Text("Je volgt nog niets; dit is het gratis begin.").font(.ui(.footnote)).foregroundStyle(Theme.ink3).padding(.top, Space.s2)
             }
         }
     }
@@ -697,9 +696,9 @@ struct WelcomeView: View {
             } label: {
                 HStack(spacing: Space.s3) {
                     VStack(alignment: .leading, spacing: Space.s0) {
-                        Text("Zo ziet je Editie eruit").font(.system(.body, design: .serif, weight: .heavy))
+                        Text("Zo ziet je Editie eruit").font(.kop(.body))
                         Text(mine.isEmpty ? "Gratis begin" : "Uit \(FollowList.sourceLine(FollowList.followed(store.newsSources, mine).map(\.name)))")
-                            .font(.footnote).foregroundStyle(Theme.ink3).lineLimit(2)
+                            .font(.ui(.footnote)).foregroundStyle(Theme.ink3).lineLimit(2)
                     }
                     Spacer(minLength: Space.s2)
                     Image(systemName: peekOpen ? "chevron.up" : "chevron.down").font(.footnote.weight(.semibold)).accessibilityHidden(true)
@@ -740,8 +739,8 @@ struct WelcomeView: View {
                 } label: {
                     HStack(spacing: Space.s3) {
                         VStack(alignment: .leading, spacing: Space.s0) {
-                            Text("Kies onderwerpen voor je Selectie").font(.body.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
-                            Text(vak.isEmpty ? "Mag ook later" : "\(vak.count) gekozen").font(.subheadline).foregroundStyle(Theme.ink3)
+                            Text("Kies onderwerpen voor je Selectie").font(.ui(.body, .semibold)).fixedSize(horizontal: false, vertical: true)
+                            Text(vak.isEmpty ? "Mag ook later" : "\(vak.count) gekozen").font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
                         }
                         Spacer(minLength: Space.s2)
                         Image(systemName: selOpen ? "chevron.up" : "chevron.down").font(.footnote.weight(.semibold)).accessibilityHidden(true)
@@ -757,7 +756,7 @@ struct WelcomeView: View {
             .padding(.top, Space.s6)
             if selOpen {
                 Text("Eén keer per week het beste over je werk of hobby.")
-                    .font(.subheadline).foregroundStyle(Theme.ink2)
+                    .font(.ui(.subheadline)).foregroundStyle(Theme.ink2)
                     .padding(.top, Space.s4)
                 ForEach(DigestFieldsList.domains, id: \.label) { d in
                     let fields = d.fields.filter { store.offersField($0.id) }
@@ -793,7 +792,7 @@ struct WelcomeView: View {
             default:
                 if !typeSize.isAccessibilitySize { // bij heel grote tekst staat het aantal al in "Gevolgd · n"
                     Text(store.newsSources.isEmpty ? "Bronnen laden…" : FollowList.line(mine.count))
-                        .font(.footnote).foregroundStyle(Theme.ink3)
+                        .font(.ui(.footnote)).foregroundStyle(Theme.ink3)
                         .accessibilityAddTraits(.updatesFrequently)
                 }
                 ctaButton("Naar je Editie", onRed: false, off: mine.isEmpty) { finish(interests: interests, vak: vak) }
@@ -811,7 +810,7 @@ struct WelcomeView: View {
             ZStack {
                 Capsule().fill(onRed ? Self.paperWhite : Theme.ink)
                 Text(label)
-                    .font(.headline.weight(.heavy))
+                    .font(.ui(.headline, .heavy))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                     .foregroundStyle(onRed ? Theme.brandRed : Theme.paper)
@@ -829,7 +828,7 @@ struct WelcomeView: View {
     private func linkButton(_ label: String, action: @escaping () -> Void) -> some View {
         Button(label, action: action)
             .buttonStyle(.plain)
-            .font(.subheadline.weight(.bold))
+            .font(.ui(.subheadline, .bold))
             .lineLimit(1)
             .minimumScaleFactor(0.7)
             .frame(maxWidth: .infinity, minHeight: Space.tap)

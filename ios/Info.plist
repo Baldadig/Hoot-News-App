@@ -2,6 +2,19 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Letters van Hoot (Resources/Fonts, scripts/build-fonts.py): Newsreader en Inter, zoals het web. -->
+	<key>UIAppFonts</key>
+	<array>
+		<string>NewsreaderKop-800.ttf</string>
+		<string>NewsreaderTekst-400.ttf</string>
+		<string>NewsreaderTekst-430.ttf</string>
+		<string>NewsreaderTekst-700.ttf</string>
+		<string>NewsreaderTekst-400-cursief.ttf</string>
+		<string>Inter-400.ttf</string>
+		<string>Inter-600.ttf</string>
+		<string>Inter-700.ttf</string>
+		<string>Inter-800.ttf</string>
+	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<!-- Opstartscherm: een merkmoment in merkrood met "hoot." in papierwit (licht en donker gelijk). -->

@@ -55,9 +55,9 @@ struct SourceFeedView: View {
                     HStack(spacing: Space.s3) {
                         SourceAvatar(source: source, size: 52)
                         VStack(alignment: .leading, spacing: Space.s0) {
-                            Text(source.name).font(Theme.headline(.title2))
-                            if let about = source.about { Text(about).font(.subheadline).foregroundStyle(Theme.ink3) }
-                            Text(source.paid == true ? "Abonnement" : "Gratis").font(.caption.weight(.semibold)).foregroundStyle(source.paid == true ? Theme.ink3 : Theme.accent)
+                            Kop(source.name, .title2)
+                            if let about = source.about { Text(about).font(.ui(.subheadline)).foregroundStyle(Theme.ink3) }
+                            Text(source.paid == true ? "Abonnement" : "Gratis").font(.ui(.caption, .semibold)).foregroundStyle(source.paid == true ? Theme.ink3 : Theme.accent)
                         }
                     }
                     .padding(.bottom, Space.s4)

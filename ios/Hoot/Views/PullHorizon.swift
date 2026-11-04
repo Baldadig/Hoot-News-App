@@ -287,7 +287,7 @@ struct HorizonPullMark: View {
 struct PullMessage: View {
     var body: some View {
         Text(Horizon.message)
-            .font(.subheadline)
+            .font(.ui(.subheadline))
             .foregroundStyle(Theme.ink3)
             .lineLimit(1).minimumScaleFactor(0.7)
             .dynamicTypeSize(...DynamicTypeSize.xxLarge)

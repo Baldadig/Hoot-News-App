@@ -183,7 +183,7 @@ struct StreamView: View {
                 } label: {
                     // Het tikvlak is het label: daar hoort de 44, niet om de knop heen.
                     Text("Toon alle bronnen")
-                        .font(.subheadline.weight(.bold))
+                        .font(.ui(.subheadline, .bold))
                         .foregroundStyle(Theme.accent)
                         .frame(minHeight: Space.tap)
                         .contentShape(Rectangle())
@@ -225,7 +225,7 @@ private struct SeenMarker: View {
     var body: some View {
         HStack(spacing: Space.s3) {
             Rectangle().fill(Theme.accent).frame(height: 1)
-            Text("Hier was je gebleven").font(.system(.footnote, design: .serif)).foregroundStyle(Theme.ink2).fixedSize()
+            Text("Hier was je gebleven").font(.lees(.footnote)).foregroundStyle(Theme.ink2).fixedSize()
             Rectangle().fill(Theme.accent).frame(height: 1)
         }
         .padding(.vertical, Space.s3)
@@ -260,7 +260,7 @@ struct SourcesList: View {
         List {
             Section {
                 Text("Abonnement: hele artikelen alleen voor abonnees. Aanzetten kost niets.")
-                    .font(.footnote)
+                    .font(.ui(.footnote))
                     .foregroundStyle(Theme.ink3)
             }
             .listRowBackground(Color.clear)
@@ -285,9 +285,9 @@ struct SourcesList: View {
                                 VStack(alignment: .leading, spacing: Space.s0) {
                                     HStack(spacing: Space.s2) {
                                         Text(s.name)
-                                        if s.paid == true { Text("abonnement").font(.caption).foregroundStyle(Theme.ink3) } else { Text("gratis").font(.caption.weight(.semibold)).foregroundStyle(Theme.accent) }
+                                        if s.paid == true { Text("abonnement").font(.ui(.caption)).foregroundStyle(Theme.ink3) } else { Text("gratis").font(.ui(.caption, .semibold)).foregroundStyle(Theme.accent) }
                                     }
-                                    if let about = s.about { Text(about).font(.caption).foregroundStyle(Theme.ink3) }
+                                    if let about = s.about { Text(about).font(.ui(.caption)).foregroundStyle(Theme.ink3) }
                                 }
                             }
                             }
@@ -347,10 +347,10 @@ struct SavedView: View {
                         Text("Verwijderd uit Bewaard").foregroundStyle(Theme.ink2)
                         Spacer()
                         Button("Ongedaan maken") { store.restoreSaved(r.item, at: r.index); removed = nil }
-                            .fontWeight(.semibold)
+                            .font(.ui(.subheadline, .semibold))
                             .frame(minHeight: Space.tap)
                     }
-                    .font(.subheadline)
+                    .font(.ui(.subheadline))
                     .padding(.horizontal, Space.s4)
                     .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
                     .shadow(color: .black.opacity(0.12), radius: 8, y: 2) // zweeft: de enige plek met schaduw

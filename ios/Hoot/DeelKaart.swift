@@ -42,13 +42,13 @@ enum DeelKaartStyle {
         return UIImage(data: data)
     }
     private static let fonts: Void = {
-        for name in ["Newsreader-800", "SourceSans3-600"] {
+        for name in ["Newsreader-800"] { // Inter 600 is een letter van de app zelf (Resources/Fonts, UIAppFonts)
             if let url = resource(name, "ttf") { CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil) }
         }
     }()
     static func font(_ size: Double, serif: Bool = false) -> Font {
         _ = fonts
-        return .custom(serif ? "Newsreader-ExtraBold" : "SourceSans3-SemiBold", fixedSize: size)
+        return .custom(serif ? "Newsreader-ExtraBold" : "Inter-SemiBold", fixedSize: size)
     }
     static func clean(_ text: String) -> String { text.split(whereSeparator: { $0.isWhitespace }).joined(separator: " ") }
     static func width(_ text: String, size: Double) -> Double {
