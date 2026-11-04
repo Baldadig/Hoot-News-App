@@ -23,7 +23,8 @@ struct BlueskyFeed: View {
                     if people.isEmpty {
                         EmptyState(title: "Je volgt nog niemand", systemImage: "bubble.left.and.bubble.right", text: "Voeg mensen toe met hun @-naam, bijvoorbeeld @naam.bsky.social.", action: onAdd.map { (label: "Iemand toevoegen", systemImage: "plus", run: $0) })
                     } else {
-                        EmptyState(title: "Nog geen posts", systemImage: "bubble.left.and.bubble.right", text: "Zodra de mensen die je volgt iets plaatsen, staat het hier.")
+                        let empty = Self.emptyText(people: people, who: who, state: store.ownState)
+                        EmptyState(title: empty.title, systemImage: "bubble.left.and.bubble.right", text: empty.text)
                     }
                 }
                 .loadLinesError(lines)
@@ -39,6 +40,24 @@ struct BlueskyFeed: View {
             }
         }
         .loadLines(lines, loading: store.status == .loading && posts.isEmpty, ok: !posts.isEmpty)
+    }
+
+    // Waarom het leeg is, zonder klokkijden: wie niets plaatste in de afgelopen 36 uur ("anderhalve dag")
+    // staat er gewoon niet in; een account dat weg is of een Bluesky die niet reageert, zeggen we ook.
+    static func emptyText(people: [Source], who: String?, state: [String: HootStore.OwnState]) -> (title: String, text: String) {
+        let shown = people.filter { who == nil || $0.id == who }
+        let mine = shown.compactMap { state[$0.id] }
+        let name = shown.count == 1 ? shown[0].name : nil
+        if !mine.isEmpty, mine.allSatisfy({ $0 == .gone }) {
+            return (name.map { "\($0) bestaat niet meer" } ?? "Deze accounts bestaan niet meer", "Haal het weg bij je Bluesky-accounts en voeg het opnieuw toe als het van naam veranderde.")
+        }
+        if !mine.isEmpty, mine.allSatisfy({ $0 == .unreachable }) {
+            return ("Bluesky reageert niet", "Probeer het straks nog eens.")
+        }
+        if !mine.isEmpty, mine.allSatisfy({ if case .posts = $0 { true } else { false } }) {
+            return (name.map { "\($0) plaatste niets in de afgelopen anderhalve dag" } ?? "Geen posts in de afgelopen anderhalve dag", "Alleen eigen posts tellen mee: geen reposts en geen antwoorden.")
+        }
+        return ("Nog geen posts", "Zodra de mensen die je volgt iets plaatsen, staat het hier.")
     }
 
     private func chips(_ people: [Source], who: String?) -> some View {
@@ -223,6 +242,7 @@ struct BlueskyAccountsView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         Text(s.name)
                         Text("@" + s.id.replacing(/^bsky:/, with: "")).font(.ui(.caption)).foregroundStyle(Theme.ink3)
+                        if store.ownState[s.id] == .gone { Text("Bestaat niet meer").font(.ui(.caption)).foregroundStyle(Theme.warn) }
                     }
                 }
             }
@@ -254,6 +274,7 @@ struct BlueskyAccountsView: View {
 // Bluesky op een eigen pagina (Instellingen › Bluesky › Posts): de posts van wie je volgt, met een
 // plus om iemand toe te voegen. De rij van de Stroom heeft alleen je rubrieken.
 struct BlueskyPage: View {
+    @Environment(HootStore.self) private var store
     @State private var adding = false
     var body: some View {
         ScrollView {
@@ -262,6 +283,8 @@ struct BlueskyPage: View {
         .background(Theme.paper)
         .navigationTitle("Bluesky")
         .navigationBarTitleDisplayMode(.inline)
+        // Opent de pagina leeg (de ronde bij de start mislukte, of een oud account werd net omgezet), dan nog eens.
+        .task { if store.posts.isEmpty { await store.loadOwnPosts() } }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { adding = true } label: { Image(systemName: "plus") }

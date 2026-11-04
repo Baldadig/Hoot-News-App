@@ -5,6 +5,15 @@ import { hash, hostname, safeHttpUrl, safeIso } from './util.mjs'
 export const BSKY_API = 'https://public.api.bsky.app/xrpc'
 export const BSKY_BRAND = '#0085FF'
 
+// Handles zijn hoofdletterloos; en een paar accounts die Hoot vroeger zelf volgde zijn van naam
+// veranderd (het oude adres bestaat niet meer en geeft AccountTakedown). Gelijk aan Bluesky.canonical in
+// ios/Hoot/Bluesky.swift.
+export const BSKY_RENAMED = { 'aaronrupar.bsky.social': 'atrupar.com' }
+export function canonHandle(handle) {
+  const h = String(handle || '').trim().replace(/^@/, '').toLowerCase()
+  return BSKY_RENAMED[h] || h
+}
+
 // Video's: rechtstreeks van Bluesky's video-CDN. Het gewone adres (video.bsky.app/watch/…) stuurt
 // daar alleen naartoe en reageerde op 21 okt 2026 urenlang niet; de CDN zelf wel.
 export function directVideo(url) {
@@ -95,10 +104,15 @@ export async function fetchAuthorPosts(handle, { name, hours = 36, headers, now 
     }
     const data = await res.json()
     const feed = data.feed || []
-    own.push(...feed.filter((fi) => !fi.reason && fi.post?.author?.handle === handle))
-    const last = feed.at(-1)?.post
+    own.push(...feed.filter((fi) => !fi.reason && String(fi.post?.author?.handle).toLowerCase() === String(handle).toLowerCase()))
     cursor = data.cursor
-    if (!cursor || !last || Date.parse(last.indexedAt || last.record?.createdAt) < since) break
+    // Tot waar de bladzijde reikt: het moment van de laatste regel in de volgorde van de feed. Bij een
+    // repost is dat het moment van de repost, niet de leeftijd van het oorspronkelijke bericht (een
+    // repost van een oude post stopte het bladeren te vroeg: de eigen posts erachter bleven weg).
+    // Een vastgezette post (reasonPin) staat bovenaan en zegt niets over de volgorde.
+    const last = [...feed].reverse().find((fi) => !String(fi.reason?.$type || '').includes('reasonPin'))
+    const lastTime = last && Date.parse(last.reason?.indexedAt || last.post?.indexedAt || last.post?.record?.createdAt)
+    if (!cursor || !last || lastTime < since) break
   }
   return own.map((fi) => mapPost(fi.post, name)).filter((it) => it && (!it.publishedAt || Date.parse(it.publishedAt) >= since))
 }

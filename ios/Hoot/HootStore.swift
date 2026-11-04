@@ -94,6 +94,12 @@ final class HootStore {
     } }
     private var ownPosts: [Item] = [] { didSet { rebuildStream() } }
     private var ownPostsGeneration = 0
+    // Per eigen account wat de laatste ronde opleverde, zodat een leeg scherm kan zeggen waarom: niets
+    // geplaatst in de afgelopen 36 uur, het account bestaat niet meer, of Bluesky was niet bereikbaar.
+    enum OwnState: Equatable { case posts(Int), gone, unreachable }
+    private(set) var ownState: [String: OwnState] = [:]
+    // Oude server-accounts die we deze sessie al probeerden om te zetten (zie adoptLegacyBluesky).
+    @ObservationIgnored private var legacyTried = Set<String>()
     @ObservationIgnored var socialPostsLoader: @Sendable (BlueskyAccount) async throws -> [Item] = { try await Bluesky.posts(of: $0) }
     @ObservationIgnored var socialProfileLoader: @Sendable (String) async throws -> BlueskyAccount = { try await Bluesky.profile($0) }
 
@@ -203,6 +209,58 @@ final class HootStore {
         bskyInStream = Set(load("hoot.bskyInStream") ?? keptSocial.map(\.id))
         importSettings()
         repairStreamChoice(stage: "local")
+        canonicalizeBlueskyIDs()
+    }
+
+    // Een account dat van naam veranderde (Bluesky.renamed) of met hoofdletters is opgeslagen: de id's in je
+    // keuzes volgen de huidige handle, anders hoort de keuze bij een account dat niet meer bestaat.
+    private func canonicalizeBlueskyIDs() {
+        func fix(_ ids: Set<String>) -> Set<String> {
+            Set(ids.map { $0.hasPrefix("bsky:") ? "bsky:" + Bluesky.canonical(String($0.dropFirst(5))) : $0 })
+        }
+        let a = fix(bskyInStream), b = fix(enabled), c = fix(muted)
+        if a != bskyInStream { bskyInStream = a }
+        if b != enabled { enabled = b }
+        if c != muted { muted = c }
+    }
+
+    // Vroeger volgde Hoot zelf Aaron Rupar en de groep Oekraïne (vaste server-accounts); wie ze volgde, heeft ze
+    // nog als `bsky:<handle>` in zijn Stroom-keuze of aangezette bronnen, maar de server levert ze niet meer en
+    // ze staan niet in je eigen accounts, dus er kwam niets binnen. Zet ze om in eigen accounts (met de
+    // huidige handle via getProfile). Wat niet meer bestaat valt uit je keuze; bij een tijdelijke fout proberen
+    // we het de volgende keer weer. Gelijk aan adoptLegacySocial op het web (src/lib/social-stream.js).
+    func adoptLegacyBluesky() async {
+        let own = Set(ownBluesky.map(\.handle))
+        let known = Set(sources.map(\.id))
+        let ids = enabled.union(bskyInStream)
+            .filter { $0.hasPrefix("bsky:") && !muted.contains($0) && !known.contains($0) && !legacyTried.contains($0) && !own.contains(String($0.dropFirst(5))) }
+            .sorted()
+        guard !ids.isEmpty else { return }
+        legacyTried.formUnion(ids)
+        let load = socialProfileLoader
+        let results = await withTaskGroup(of: (String, BlueskyAccount?, Bool).self) { group in
+            for id in ids {
+                group.addTask {
+                    do { return (id, try await load(String(id.dropFirst(5))), false) }
+                    catch let f as Bluesky.Failure { if case .notFound = f { return (id, nil, true) }; return (id, nil, false) }
+                    catch { return (id, nil, false) }
+                }
+            }
+            var all: [(String, BlueskyAccount?, Bool)] = []
+            for await r in group { all.append(r) }
+            return all
+        }
+        for (id, account, gone) in results {
+            if let account {
+                if !ownBluesky.contains(where: { $0.handle == account.handle }) { ownBluesky.append(account) }
+                if account.id != id { bskyInStream.remove(id); enabled.remove(id) }
+                bskyInStream.insert(account.id)
+            } else if gone {
+                bskyInStream.remove(id); enabled.remove(id)
+            } else {
+                legacyTried.remove(id) // tijdelijke fout: een volgende ronde probeert het weer
+            }
+        }
     }
 
     // Herstel (build 46): tot en met build 45 zette de app een nieuw toegevoegd Bluesky-account niet
@@ -320,6 +378,7 @@ final class HootStore {
         // (van vóór de schakelaar) heeft Bluesky aan.
         if p?.bluesky == nil, !(p?.social ?? []).isEmpty, !bluesky { bluesky = true; save("hoot.bluesky", true) }
         if legacySocial { bskyInStream.formUnion(followedSocial.map(\.id)) }
+        canonicalizeBlueskyIDs()
     }
 
     // ---- Synchroniseren met je account (Account.swift) ----
@@ -510,6 +569,7 @@ final class HootStore {
         ownBluesky = []
         bskyInStream = []
         ownPosts = []
+        ownState = [:]
         let start = Set(Self.starter)
         enabled = start
         if sources.isEmpty {
@@ -555,21 +615,37 @@ final class HootStore {
         bskyInStream.remove(id)
         ownBluesky.removeAll { $0.id == id }
         ownPosts.removeAll { $0.source == id }
+        ownState[id] = nil
     }
     func loadOwnPosts() async {
+        await adoptLegacyBluesky()
         ownPostsGeneration += 1
         let round = ownPostsGeneration
         let accounts = ownBluesky.filter { a in !muted.contains(a.id) && !sources.contains { $0.id == a.id } }
         guard bluesky, !accounts.isEmpty else { return }
         let load = socialPostsLoader
-        let lists = await withTaskGroup(of: [Item].self) { group in
-            for a in accounts { group.addTask { (try? await load(a)) ?? [] } }
-            var all: [[Item]] = []
-            for await list in group { all.append(list) }
+        let results = await withTaskGroup(of: (BlueskyAccount, Result<[Item], Error>).self) { group in
+            for a in accounts { group.addTask {
+                do { return (a, .success(try await load(a))) } catch { return (a, .failure(error)) }
+            } }
+            var all: [(BlueskyAccount, Result<[Item], Error>)] = []
+            for await r in group { all.append(r) }
             return all
         }
         guard bluesky, round == ownPostsGeneration, !Task.isCancelled else { return }
-        ownPosts = lists.flatMap { $0 }
+        var state: [String: OwnState] = [:]
+        var fresh: [Item] = []
+        for (a, result) in results {
+            switch result {
+            case let .success(list): state[a.id] = .posts(list.count); fresh += list
+            case let .failure(error):
+                if let f = error as? Bluesky.Failure, case .notFound = f { state[a.id] = .gone } else { state[a.id] = .unreachable }
+                // Een mislukte ronde laat wat we van dit account al hadden staan.
+                fresh += ownPosts.filter { $0.source == a.id }
+            }
+        }
+        ownState = state
+        ownPosts = fresh
     }
     func source(_ id: String) -> Source? { sources.first { $0.id == id } }
 

@@ -26,7 +26,8 @@ import { useStored } from './lib/store.js'
 import { MAIN, rememberLocation, hrefFor } from './lib/context.js'
 import { learn, forgetTopic, READ, SAVE, vote } from './lib/affinity.js'
 import { sourceStatus, statusLabel } from './lib/sourceStatus.js'
-import { webStream, addSocialProfile, removeSocialProfile } from './lib/social-stream.js'
+import { webStream, addSocialProfile, removeSocialProfile, orphanBlueskyIds, adoptLegacySocial } from './lib/social-stream.js'
+import { resolveLegacy } from './lib/bluesky.js'
 import Vak from './views/Vak.jsx'
 import { useVak } from './hooks/useVak.js'
 import { mutedSet, toggleSource } from './lib/sourcesel.js'
@@ -171,6 +172,17 @@ export default function App() {
   // Jouw editie: samengesteld uit je eigen bronnen en interesses (zie src/lib/personal.js).
   const { edition: myEdition, member, briefNote } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount, affinity, readIds: read, sync: { status: syncStatus, pulled: syncPulled } })
   const socialIds = useMemo(() => new Set(social.sources.map((s) => 'bsky:' + s.handle)), [social.sources])
+
+  // Wie vroeger een vast Bluesky-account van Hoot volgde (Aaron Rupar e.a.), volgt dat nu als eigen account:
+  // het id staat nog in je Stroom-keuze, maar de server levert het niet meer. Eenmaal per id per sessie.
+  const legacyTried = useRef(new Set())
+  const legacyIds = useMemo(() => (status === 'ready' && syncStatus !== 'syncing' && syncStatus !== 'pending' ? orphanBlueskyIds(prefs, (data?.sources || []).map((s) => s.id)) : []), [status, syncStatus, prefs, data])
+  useEffect(() => {
+    const todo = legacyIds.filter((id) => !legacyTried.current.has(id))
+    if (!todo.length) return
+    todo.forEach((id) => legacyTried.current.add(id))
+    resolveLegacy(todo).then((r) => setPrefs((p) => adoptLegacySocial(p, r)))
+  }, [legacyIds, setPrefs])
 
   const stream = useMemo(() => webStream([...(data?.items || []), ...social.items], {
     prefs, muted, sources,
