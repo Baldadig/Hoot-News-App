@@ -486,7 +486,8 @@ struct DigestFieldsList: View {
     }
 }
 
-// De knop rechtsboven op elk scherm; opent de instellingen. (Wordt je account-foto zodra je kunt inloggen.)
+// De knop rechtsboven op Bewaard; opent de instellingen. Op Editie, Stroom en Selectie staat het
+// tandwiel in de kopregel (HootKop) en opent het via `openSettings`.
 struct AccountButton: ToolbarContent {
     @Binding var open: Bool
     var body: some ToolbarContent {
@@ -499,16 +500,28 @@ struct AccountButton: ToolbarContent {
     }
 }
 
+// Instellingen openen vanuit de kopregel.
+struct OpenSettingsKey: EnvironmentKey { static let defaultValue: @MainActor () -> Void = {} }
+extension EnvironmentValues {
+    var openSettings: @MainActor () -> Void {
+        get { self[OpenSettingsKey.self] }
+        set { self[OpenSettingsKey.self] = newValue }
+    }
+}
+
 extension View {
-    // Account-knop plus het instellingenblad.
-    func settingsButton() -> some View { modifier(SettingsButton()) }
+    // Het instellingenblad, te openen met `openSettings` (het tandwiel in de kopregel). `toolbar`:
+    // ook een tandwiel in de navigatiebalk (Bewaard, dat geen kopregel heeft).
+    func settingsButton(toolbar: Bool = false) -> some View { modifier(SettingsButton(toolbar: toolbar)) }
 }
 
 private struct SettingsButton: ViewModifier {
+    let toolbar: Bool
     @State private var open = false
     func body(content: Content) -> some View {
         content
-            .toolbar { AccountButton(open: $open) }
+            .environment(\.openSettings) { open = true }
+            .toolbar { if toolbar { AccountButton(open: $open) } }
             .sheet(isPresented: $open) { SettingsView().debugAppearance().modifier(HootWeergave()) }
             .onAppear { if DebugLaunch.screen?.hasPrefix("instellingen") == true { open = true } }
     }

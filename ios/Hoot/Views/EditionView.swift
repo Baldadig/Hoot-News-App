@@ -228,6 +228,7 @@ struct EditionView: View {
                     // Met een kleine, stille zon ernaast: zijn hoogte toont het dagdeel (onboarding-plan, ‘De zon
                     // in de Editie’). Laag bij de Ochtend- en Avondeditie, hoog bij de Middageditie.
                     // Past de naam er bij grote tekst niet meer naast, dan alleen de naam (nooit afgebroken).
+                    HootKop()
                     EditionHeader(title: title, slot: store.edition?.slot)
                     if rows.isEmpty && (store.status == .loading || (store.status != .failed && store.edition != nil && store.shownEdition == nil)) {
                         WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
@@ -339,11 +340,10 @@ struct EditionView: View {
             .debugScroll()
             .background(Theme.paper)
             .navigationTitle(title) // voor VoiceOver en de terugknop; je ziet de titel in de scroll
-            .hootScreenTitle() // het verhaal wint van de schermtitel (C7)
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .hootRefresh(indicator: !store.editionRows.isEmpty) { await store.load() }
-            .hootBrandHeader()
+            .hootKopScreen()
             .settingsButton()
             .task(id: store.shownEdition?.id) {
                 guard let id = store.shownEdition?.id, EditionPrint.shouldPlay(id: id, lastSeen: seenEdition, ready: !store.editionRows.isEmpty), !printedIDs.contains(id) else { return }

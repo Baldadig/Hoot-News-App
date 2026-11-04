@@ -197,7 +197,78 @@ private struct WordmarkBody: View {
     }
 }
 
-// Dezelfde merkkop op alle hoofdschermen: boven de schermtitel, zonder glazen achtergrond.
+// De kopregel van Editie, Stroom en Selectie (bovenbalk A, 1.1.0): "hoot." links, het tandwiel (en in
+// de Stroom de bronnen) rechts, als gewone regel in de scroll. Hij scrolt mee; er hangt geen balk
+// meer over de koppen en foto's. Het eerste en het laatste teken staan optisch op de kolomlijn: het
+// icoon is 24 in een raakvlak van 44, dus de rij schuift (44 − 24) / 2 de goot in, zoals --tap-inset
+// op het web. Gelijk aan de kop op het web (.edbrand en .vh__row).
+struct HootKop<Extra: View>: View {
+    @Environment(\.openSettings) private var openSettings
+    var gearX: ((CGFloat) -> Void)? = nil // waar het tandwiel staat (de stapel van de Stroom eindigt eronder)
+    @ViewBuilder var extra: () -> Extra
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Wordmark(handoff: true)
+            Spacer(minLength: Space.s3)
+            extra()
+            Button { openSettings() } label: {
+                Image(systemName: "gearshape").font(.title3).frame(width: Space.tap, height: Space.tap).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Theme.ink3) // bediening is stil: grijs, zonder glazen rondje
+            .accessibilityLabel("Instellingen")
+            .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midX } action: { gearX?($0) }
+            .padding(.trailing, -HootKop.inset)
+        }
+        .frame(minHeight: Space.tap)
+    }
+
+    static var inset: CGFloat { (Space.tap - 24) / 2 }
+}
+
+extension HootKop where Extra == EmptyView {
+    init(gearX: ((CGFloat) -> Void)? = nil) { self.init(gearX: gearX) { EmptyView() } }
+}
+
+// Een knop in de kopregel naast het tandwiel (de bronnen in de Stroom): 24 in een raakvlak van 44.
+struct HootKopButton: View {
+    let label: String
+    let systemImage: String
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: systemImage).font(.title3).frame(width: Space.tap, height: Space.tap).contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(Theme.ink3)
+        .accessibilityLabel(label)
+    }
+}
+
+extension View {
+    // Een hoofdscherm met de kopregel in de scroll: geen navigatiebalk, en achter de statusbalk een
+    // vlakke strook papier precies zo hoog als die balk (geen vervaging, geen verloop), zodat de
+    // statusbalk ook boven een foto leesbaar blijft. In Nacht is het papier zwart.
+    func hootKopScreen() -> some View {
+        toolbar(.hidden, for: .navigationBar)
+            .overlay(alignment: .top) { StatusStrip() }
+    }
+}
+
+// De strook achter de statusbalk: de scroll loopt tot de bovenrand van het scherm door, dus het vlak
+// is precies zo hoog als het stuk dat buiten de veilige zone valt (de statusbalk).
+struct StatusStrip: View {
+    var body: some View {
+        GeometryReader { g in
+            Theme.paper.frame(height: g.safeAreaInsets.top)
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+}
+
+// Dezelfde merkkop op de overige schermen (Bewaard, Zoeken): in de balk, zonder glazen achtergrond.
 extension View {
     func hootBrandHeader() -> some View {
         toolbar {
