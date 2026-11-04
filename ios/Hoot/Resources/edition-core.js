@@ -1536,7 +1536,7 @@ var HootCore = (() => {
   var LIGHT_CAT = { games: "games", cultuur: "cultuur" };
   var LIGHT_TOPIC = { games: "games", film: "cultuur", muziek: "cultuur", boeken: "cultuur", kunst: "cultuur", media: "cultuur" };
   var LIGHT_PATH_GAMES = /\/(games?|gaming|gameblog)\//i;
-  var LIGHT_PATH = /\/(entertainment|showbizz|boulevard|celebrit\w*|lifestyle|style|fashion|mode|t-magazine|dining|food|eten|koken-en-eten|recepten|travel|reizen|realestate|arts|books|boeken|movies|theater|television|tv|film|muziek|music|kunst-media|media-en-cultuur|cultuur(?:-media)?|culture)\//i;
+  var LIGHT_PATH = /\/(entertainment|showbizz|show|boulevard|celebrit\w*|lifestyle|style|fashion|mode|t-magazine|dining|food|eten|koken-en-eten|recepten|travel|reizen|realestate|arts|books|boeken|movies|theater|television|tv|film|muziek|music|kunst-media|media-en-cultuur|cultuur(?:-media)?|culture)\//i;
   var LIGHT_HEAD = /\b(podcast\w*|talkshow\w*|presentat(?:or|rice)\w*|tv-serie\w*|streamingdienst\w*|kookboek\w*|recept\w*|recipe\w*)\b/i;
   var CONSUMER_PATH = /\/(reviews?|deals?|gift-guide|buying-guide|best-\w+)\//i;
   var CONSUMER_HEAD = /(^|\b)(review|getest|hands-on|korting|aanbieding|buying guide|gift guide|best (?:\w+ ){0,3}(?:to buy|for \w+))\b/i;
@@ -1600,7 +1600,7 @@ var HootCore = (() => {
   function newsRejection(prof, story, items, desk = null, { bubble = false, allowLight = false } = {}) {
     if (onlyGalleries(items)) return "alleen-galerijen";
     if (items.length && items.every((i) => lightVideoFiller(i, prof))) return "licht-videorondje-buiten-interesse";
-    if ((sportStory(story, items, prof.catOf) || items.some((i) => isSport(i, prof.catOf))) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return "sport-niet-gekozen";
+    if ((sportStory(story, items, prof.catOf) || items.filter((i) => isSport(i, prof.catOf)).length * 2 > items.length) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return "sport-niet-gekozen";
     if (!bubble && !allowLight) {
       const light = lightNews(story, items, prof.catOf);
       if (light && !lightChosen(prof, light) && !followedLight(prof, items) && !majorGeneralNews(story, items, prof.catOf)) return "licht-buiten-interesse";
@@ -1612,6 +1612,46 @@ var HootCore = (() => {
 
   // shared/editor-version.mjs
   var EDITOR_REVISION = "redacteur-2026-11-02-beta2";
+
+  // shared/lang.mjs
+  var NL = new Set(
+    "de het een en op met voor niet dat die dit deze zijn wordt worden werd er ook naar bij aan om nog maar uit als dan wel geen meer zo hoe wat wie waar waarom hij zij ze je jij jouw uw haar hun ons onze mijn zich kan kunnen moet moeten wil willen gaat gaan heeft hebben tegen tussen na toch nu tot sinds vanaf onder zonder omdat want daar hier veel alle iets niets nieuwe eerste jaar jaren krijgt komt blijkt zegt vindt weer al ik mensen zou zouden".split(/\s+/)
+  );
+  var EN = new Set(
+    "the a an and to for with on at by from are were be been has have will would could should not this that these those its he she they you your his her their our my who what when where why how which after before about into than but or as says said there here just all more year years while against between without because its it's don't doesn't didn't won't can't isn't aren't i'm you're they're we're what's here's there's people being does did makes made gets got".split(/\s+/)
+  );
+  var KNOWN_PATHS = [{ host: /(^|\.)parool\.nl$/, path: /^\/(amsterdam-news|guide)(\/|$)/, lang: "en" }];
+  var LANG_MIN = 3;
+  var LANG_SHARE = 0.75;
+  var INTRO_CHARS = 300;
+  function langFromUrl(url) {
+    try {
+      const u = new URL(url);
+      const host = u.hostname.replace(/^www\./, "");
+      for (const k of KNOWN_PATHS) if (k.host.test(host) && k.path.test(u.pathname)) return k.lang;
+    } catch {
+    }
+    return null;
+  }
+  function langCounts(text) {
+    const words2 = String(text || "").toLowerCase().replace(/[‘’ʼ]/g, "'").match(/\p{L}+(?:'\p{L}+)*/gu) || [];
+    let nl = 0;
+    let en = 0;
+    for (const w of words2) {
+      if (NL.has(w)) nl++;
+      if (EN.has(w)) en++;
+    }
+    return { nl, en };
+  }
+  function detectLang({ title = "", summary = "", text = "", url = "" } = {}) {
+    const byUrl = langFromUrl(url);
+    if (byUrl) return byUrl;
+    const intro = String(summary || text || "").slice(0, INTRO_CHARS);
+    const { nl, en } = langCounts(`${title} ${intro}`);
+    const top = Math.max(nl, en);
+    if (top < LANG_MIN || top / (nl + en) < LANG_SHARE) return null;
+    return en > nl ? "en" : "nl";
+  }
 
   // shared/slot-times.mjs
   var SLOT_START = { ochtend: 5 * 60 + 30, middag: 12 * 60, avond: 17 * 60 };
@@ -1883,7 +1923,8 @@ var HootCore = (() => {
     dublin: "dublin"
   };
   var PARTY = { communistische: "communist", communistisch: "communist", communist: "communist", communists: "communist" };
-  var ALIAS_EXT = { ...ALIAS2, ...EU, ...PARTY };
+  var CHAMBER = { senaat: "senate", senaats: "senate", congres: "congress" };
+  var ALIAS_EXT = { ...ALIAS2, ...EU, ...PARTY, ...CHAMBER };
   var translit = (k) => k.replace(/sj/g, "sh");
   var WEAK = new Set(
     "us russia ukraine germany france uk china israel iran nederland europe nato un putin zelensky trump biden harris vance netanyahu musk xi macron starmer merz erdogan modi meloni orban schoof pentagon congress senate senaat congres kremlin whitehouse ice fbi cia nasa who gaza taiwan india japan canada mexico brazil turkije turkey syria syrie venezuela korea northkorea southkorea texas california florida georgia carolina virginia ohio michigan arizona nevada pennsylvania wisconsin washington brussel brussels londen london parijs paris moskou moscow kyiv kiev berlijn berlin seoul busan pyongyang tokio tokyo peking beijing jeruzalem jerusalem teheran tehran amsterdam rotterdam".split(
@@ -2152,8 +2193,55 @@ var HootCore = (() => {
     const scores = new Map(items.map((i) => [i, score(i)]));
     return [...items].sort((a, b) => scores.get(b) - scores.get(a) || byRecency(a, b));
   }
-  var LIVE_TITLE = /^\W*live\b|\blive ?blog\b|\b(war|oorlog) (latest|live)\b|\blatest:|\blatest updates\b/i;
+  var LIVE_TITLE = /^\W*live\b|\blive ?blog\b|\b(war|oorlog) (latest|live)\b|\blatest:|\blatest updates\b|(^|:\s*)(bekijk|vind|volg|lees) hier\b|^\W*praat mee\b|^\W*spoorboekje\b|\bresults live\b|\blive results\b|\blive briefing\b|:\s*all the news\s*$/i;
   var isLive = (a) => LIVE_TITLE.test(a.title || "") || /\/live(blog)?[-/]|[-/]liveblog/i.test(a.url || "");
+  var CORE_FROM = 6;
+  var VOTE_RE = /(verkiezing|\belection|\bmidterm|\bstembus|\b(elects?|elected|re-?elected|reelection|verkozen|herkozen|kiezers|voters|ballot|stembiljet)\b)/;
+  var RESULT_RE = /\b(wint|winnen|wins?|won|gewonnen|verover\w*|herover\w*|flips?|flipped|verslaat|verslagen|beats?|defeats?|defeating|ousts?|ousting|unseats?|verliest|verliezen|verloren|loses|lost|verkozen|herkozen|elected|re-?elected|elects|clinch\w*|meerderheid|majority|uitslag\w*|results?|zege|monsterzege|overwinning\w*|victory|afstraffing|landslide|blue-?nami|tsunami|blauwe golf|blue wave|erkent verlies|concedes?|crushed|trounces?|rebuke)\b/;
+  var OFFICE_RE = /\b(senate|senaat\w*|senator\w*|huiszetel\w*|congress\w*|congres\w*|governor\w*|gouverneur\w*|seats?|zetels?|mayor\w*|burgemeester\w*|parliament\w*|parlement\w*)\b/;
+  var PARTY_RE = /\b(democrat\w*|republican\w*|republikein\w*)\b/;
+  var voteText = (i) => norm(`${i.title || ""} ${i.summary || i.text || ""}`);
+  var voteMemo = /* @__PURE__ */ new WeakMap();
+  function voteKind(i) {
+    if (!i || typeof i !== "object") return 0;
+    if (voteMemo.has(i)) return voteMemo.get(i);
+    const t = voteText(i);
+    const sporty = SPORT_SOURCES.has(i.source);
+    const result = RESULT_RE.test(t);
+    const k = sporty || !(VOTE_RE.test(t) || result && OFFICE_RE.test(t)) ? 0 : result ? 2 : 1;
+    voteMemo.set(i, k);
+    return k;
+  }
+  var SPORT_SOURCES = new Set(SOURCES.filter((x) => x.cat === "sport").map((x) => x.id));
+  function votePlace(i) {
+    const ds = desksOf(i);
+    const t = `${i.title || ""} ${i.summary || ""}`;
+    if (ds.has("vs") || usPoliticsIn(t) || PARTY_RE.test(norm(t)) && OFFICE_RE.test(norm(t))) return "us";
+    if (ds.has("binnenland")) return "nl";
+    return countriesIn(i.title || "")[0] || null;
+  }
+  function placeOfGroup(items) {
+    const count = /* @__PURE__ */ new Map();
+    for (const i of items) {
+      const p = votePlace(i);
+      if (p) count.set(p, (count.get(p) || 0) + 1);
+    }
+    const best = [...count].sort((a, b) => b[1] - a[1] || textOrder(a[0], b[0]))[0];
+    return best && best[1] * 2 >= items.length ? best[0] : null;
+  }
+  var VOTE_LEAD = 3 * 60 * 60 * 1e3;
+  function voteResultOf(items = []) {
+    const n = items.length;
+    if (!n || coverageOf(items).publisherCount < CORE_FROM) return null;
+    const results = items.filter((i) => voteKind(i) === 2);
+    if (results.length * 2 < n) return null;
+    const place = placeOfGroup(items);
+    if (!place) return null;
+    const heads = results.filter((i) => RESULT_RE.test(norm(i.title || ""))).map(timeOf).filter(Boolean).sort((a, b) => a - b);
+    const from = heads.length ? heads[Math.floor(heads.length / 4)] - VOTE_LEAD : Math.min(...items.map(timeOf).filter(Boolean));
+    return { place, from, to: Math.max(...items.map(timeOf)) };
+  }
+  var voteGroup = (items) => items.filter((i) => voteKind(i) >= 1).length * 2 > items.length;
   var EDITION_SIZE = EDITION_TARGET;
   var MAX_LEADS_PER_SOURCE = 3;
   var isHistoryRow = (x) => Array.isArray(x?.storyIds);
@@ -2276,6 +2364,110 @@ var HootCore = (() => {
     const newSig = keysOf(lead).filter((k) => !then.has(k) && others.some((ks) => ks.includes(k))).length;
     return newSig >= DEVELOPED_SIG ? { fresh, lead, newSig } : null;
   }
+  var LANG_OF = new Map(SOURCES.map((x) => [x.id, x.lang]));
+  var dutchTier = (i) => LANG_OF.get(i.source) !== "nl" || detectLang(i) === "en" ? 2 : VL_HOME.has(i.source) ? 1 : 0;
+  var LEAD_CORE = 10;
+  function centralItems(items, total = items.length) {
+    if (total < LEAD_CORE || items.length < 3) return items;
+    const sig = signatures(items, items.map((i) => ({ id: `kop:${i.id}`, title: i.title, publishedAt: i.publishedAt })), { extended: true });
+    const keys = items.map((i) => {
+      const x = sig.get(`kop:${i.id}`);
+      return /* @__PURE__ */ new Set([...x.strong, ...x.weak, ...x.known, ...x.concepts]);
+    });
+    const freq = /* @__PURE__ */ new Map();
+    for (const ks of keys) for (const x of ks) freq.set(x, (freq.get(x) || 0) + 1);
+    const score = keys.map((ks) => ks.size >= 2 ? [...ks].reduce((n, x) => n + freq.get(x) - 1, 0) / ks.size : 0);
+    const best = Math.max(...score);
+    const out = items.filter((_, k) => score[k] > 0 && score[k] * 5 >= best * 3);
+    return out.length ? out : items;
+  }
+  function dutchFirst(items) {
+    for (const tier of [0, 1]) {
+      const out = items.filter((i) => dutchTier(i) === tier);
+      if (out.length) return out;
+    }
+    return items;
+  }
+  var BACKGROUND_GAP = 12 * 60 * 60 * 1e3;
+  function freshest(items) {
+    const newest = Math.max(...items.map(timeOf));
+    const out = items.filter((i) => newest - timeOf(i) <= BACKGROUND_GAP);
+    return out.length ? out : items;
+  }
+  var FAMILY_MAX = 2;
+  var keyUnion = (items, sig) => {
+    const out = { strong: /* @__PURE__ */ new Set(), known: /* @__PURE__ */ new Set(), concepts: /* @__PURE__ */ new Set(), words: /* @__PURE__ */ new Set() };
+    for (const i of items) {
+      const x = sig.get(i.id);
+      if (!x) continue;
+      for (const f of ["strong", "known", "concepts", "words"]) for (const k of x[f]) out[f].add(k);
+    }
+    return out;
+  };
+  var FAMILY_ITEMS = 12;
+  function familyRelated(a, b, sig) {
+    if (a.vote && a.vote === b.vote) return true;
+    const ka = a.keyU, kb = b.keyU;
+    const maybe = sharedCount(ka.strong, kb.strong) >= 1 || sharedCount(ka.concepts, kb.concepts) >= 1 && sharedCount(ka.known, kb.known) >= 1 || sharedCount(ka.words, kb.words) >= 3;
+    if (!maybe) return false;
+    const xs = a.items.slice(0, FAMILY_ITEMS).map((i) => sig.get(i.id)).filter(Boolean);
+    const ys = b.items.slice(0, FAMILY_ITEMS).map((i) => sig.get(i.id)).filter(Boolean);
+    return xs.some((x) => ys.some((y) => sameSubject(x, y)));
+  }
+  function families(cands, sig) {
+    const stories = cands.filter((c) => c.kind === "story");
+    const voteFrom = /* @__PURE__ */ new Map();
+    for (const c of stories) {
+      const items = [...c.items].sort(byRecency);
+      c.items = items;
+      c.keyU = keyUnion(items, sig);
+      const r = voteResultOf(items);
+      if (r && (!voteFrom.has(r.place) || coverageOf(items).publisherCount > voteFrom.get(r.place).pubs)) voteFrom.set(r.place, { from: r.from, pubs: coverageOf(items).publisherCount });
+    }
+    for (const c of stories) {
+      const place = voteGroup(c.items) ? placeOfGroup(c.items) : null;
+      c.vote = place && voteFrom.has(place) ? place : null;
+      c.voteResult = !!c.vote && c.items.filter((i) => voteKind(i) === 2).length * 2 >= c.items.length;
+    }
+    const pubsOf = (c) => c.st.publisherCount ?? c.st.sourceCount ?? coverageOf(c.items).publisherCount;
+    const order = [...stories].sort((a, b) => pubsOf(b) - pubsOf(a) || b.w - a.w || textOrder(a.st.id, b.st.id));
+    const extra = /* @__PURE__ */ new Map();
+    for (const head of order) {
+      if (head.fam) continue;
+      head.fam = head.st.id;
+      const own = new Set(head.items.map((i) => publisherOf(i.source)));
+      const all = new Set(own);
+      for (const c of order) {
+        if (c.fam || !familyRelated(head, c, sig)) continue;
+        c.fam = head.st.id;
+        for (const i of c.items) all.add(publisherOf(i.source));
+      }
+      const total = pubsOf(head) + (all.size - own.size);
+      if (all.size > own.size && total >= FRONT_BIG) extra.set(head, all.size - own.size);
+    }
+    for (const c of stories) c.voteFrom = c.vote ? voteFrom.get(c.vote).from : null;
+    return extra;
+  }
+  function familyRoom(c, placedC) {
+    if (c.kind !== "story" || !c.vote) return true;
+    const mates = placedC.filter((x) => x.kind === "story" && x.vote === c.vote);
+    if (!mates.length) return true;
+    if (mates.length >= FAMILY_MAX) return false;
+    if (c.voteResult && mates.some((x) => x.voteResult)) return false;
+    return !(c.voteFrom && timeOf({ publishedAt: c.st.latestAt }) < c.voteFrom);
+  }
+  var prefer = (xs, f) => {
+    const ys = xs.filter(f);
+    return ys.length ? ys : xs;
+  };
+  function leadPool(cands, items, now, own = null, total = items.length) {
+    let xs = prefer(cands, (i) => !isStale(i, now));
+    if (own) xs = prefer(xs, own);
+    const core = new Set(centralItems(items, total));
+    xs = prefer(xs, (i) => core.has(i));
+    xs = prefer(xs, (i) => !/\?/.test(i.title || ""));
+    return dutchFirst(freshest(xs));
+  }
   var textOrder = (a, b) => a < b ? -1 : a > b ? 1 : 0;
   function selectForReader(stories, pool, { mainIds = /* @__PURE__ */ new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = "", audit = null, allowLight = false } = {}) {
     const byId2 = new Map(pool.map((i) => [i.id, i]));
@@ -2294,13 +2486,10 @@ var HootCore = (() => {
     const place = (ids) => {
       for (const id of ids) if (sig.has(id)) placed.push(sig.get(id));
     };
-    const pickLead = (items) => {
+    const pickLead = (items, total = items.length) => {
       const all = leadCandidates(items, mainIds, preferred, now, { role: entries.length < 3 ? "front" : "neutral" });
       const cands2 = all.some((i) => !isGallery(i)) ? all.filter((i) => !isGallery(i)) : all;
-      const current = cands2.filter((i) => !isStale(i, now));
-      const recent = current.length ? current : cands2;
-      const ownOnly = recent.filter((i) => mainIds.has(i.source));
-      const from = ownOnly.length ? ownOnly : recent;
+      const from = leadPool(cands2, items, now, (i) => mainIds.has(i.source), total);
       return from.find((i) => i.source !== prevLead && (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from.find((i) => (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from[0];
     };
     const storyDesk = (st, primary) => ctx.storyDesk?.has(st.id) ? ctx.storyDesk.get(st.id) : st.desk !== void 0 ? st.desk : primary;
@@ -2368,21 +2557,27 @@ var HootCore = (() => {
       cands.push({ kind: "item", id: it.id, it, items: [it], ids: [it.id], primary, desk: primary, home: homeDesk([it], primary, prof), belang, parts, sc: 1, nl: 1, eff: 1, vervolg: 0, w: belang + sumParts(parts) + jitter(seed, it.id) });
     }
     const heaviest = (a, b) => b.w - a.w || textOrder(a.id, b.id) || textOrder(a.kind, b.kind);
+    for (const [c, n] of families(cands, sig)) {
+      c.w += 4 * n;
+      c.belang += 4 * n;
+    }
     cands.sort(heaviest);
     const used = /* @__PURE__ */ new Set();
+    const placedC = [];
     const foreign = (c) => c.intl ?? internationalNews(c.items, c.desk, c.st);
     const cappedWorld = (c) => cappedInternational(prof, c.whole || c.items, c.desk, c.st);
     const take = (c, desk, extra = {}) => {
-      if (used.has(c) || clashes(c) || !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight })) return false;
+      if (used.has(c) || clashes(c) || !familyRoom(c, placedC) || !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight })) return false;
       if (plan && !worldChosen(prof) && cappedWorld(c) && entries.filter((e) => {
         const x = cands.find((c2) => c2.id === e.id);
         return x && cappedWorld(x);
       }).length >= INT_MAX) return false;
       used.add(c);
+      placedC.push(c);
       place(c.ids);
       const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, big: majorNews(c.st || { sourceCount: 1 }, c.items), ...c.vervolg ? { vervolg: c.vervolg } : {}, ...extra };
       if (c.kind === "story") {
-        const lead = pickLead(c.dev ? c.dev.fresh : c.items);
+        const lead = pickLead(c.dev ? c.dev.fresh : c.items, c.dev ? c.dev.fresh.length : c.st.itemIds.length);
         leadCount[lead.source] = (leadCount[lead.source] || 0) + 1;
         prevLead = lead.source;
         entries.push({ kind: "story", id: c.st.id, leadId: lead.id, itemIds: c.st.itemIds, title: lead.title || null, ...c.st.keys ? { keys: c.st.keys } : {}, ...base });
