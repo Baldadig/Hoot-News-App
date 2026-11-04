@@ -1,0 +1,193 @@
+/* ==========================================================================
+   Kaart A+ (telefoon, keuze van Alex 4 november): dezelfde kaart in de Editie en de Stroom.
+   Eigen bestand, zodat styles.css (vastgelegd) en de letterwissel naar Schibsted Grotesk (branches
+   ios-47 en web-typografie) er niet in botsen. Letters komen van de tokens: --serif voor de kop,
+   --lees voor de intro, --sans voor labels en bediening; wordt dat Schibsted, dan volgt de kaart.
+   Alle maten in rem, dus Tekstgrootte schaalt kop, intro, label en bronregel mee.
+   Raster: 8 tussen tekstlagen, 16 tot het beeld, 16 boven een kaart, regelhoogtes op 4.
+   iOS spiegelt dit in ItemRow.kaart en LeadCard.kaart (Components.swift).
+   ========================================================================== */
+
+.entry.kaart {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 480px;
+  padding: 1rem 0 0.75rem; /* 16 boven, 12 onder (de bronregel brengt de rest) */
+}
+.kaart__link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Rubriek 12 (nummer en rubriek op één regel van 16), het waarom daaronder in 13/16 ink-3. */
+.kaart__head {
+  margin-bottom: 0.5rem;
+}
+.kaart .kicker {
+  margin-bottom: 0;
+  font-size: var(--t0);
+  line-height: var(--lh-1);
+}
+.kaart .why {
+  margin: 0;
+  max-inline-size: none;
+  color: var(--ink-3);
+  font-size: var(--t1);
+  line-height: var(--lh-1);
+}
+
+/* Kop 22/28 Newsreader 800; nooit afgekapt. */
+.kaart__title {
+  margin: 0 0 0.5rem;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-weight: var(--fw-head);
+  font-size: var(--t-head-lg);
+  line-height: 1.75rem;
+  letter-spacing: var(--ls-head-5);
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+.is-read .kaart__title {
+  color: var(--ink-3);
+}
+/* Intro 18/28 Newsreader, ink-2. In de Stroom beperkt de regelinstelling het aantal regels (+ 1 vangnet). */
+.kaart__sum {
+  margin: 0;
+  color: var(--ink-2);
+  font-family: var(--lees);
+  font-weight: var(--fw-lees);
+  font-optical-sizing: auto;
+  font-size: var(--t4);
+  line-height: 1.75rem;
+}
+:is(.list--lines-1, .list--lines-2, .list--lines-3) .kaart__sum {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: calc(var(--lines) + 1);
+  line-clamp: calc(var(--lines) + 1);
+  overflow: hidden;
+}
+
+/* Beeld 2:1 onder de tekst: hoek 12, haarlijn binnenin (een wit beeld valt anders weg in het papier),
+   16 lucht erboven. Het placeholderbeeld (.ph, zes beelden) vult hetzelfde vak. */
+.kaart .media {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  margin: 1rem 0 0;
+  border: 0;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+.kaart .media:not(.ph) {
+  background-color: var(--tint);
+}
+.kaart .media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--hairline);
+  pointer-events: none;
+}
+
+/* ---------- Bronregel ---------- */
+.kmeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--s1);
+  min-height: var(--tap);
+  margin: 0.75rem var(--tap-inset) 0 0;
+  color: var(--ink-3);
+}
+.kmeta__src {
+  flex: 1 1 0;
+  max-width: none;
+}
+.kmeta .srcmeta__name {
+  font-size: var(--t2); /* 15/20 */
+  line-height: var(--lh-2);
+}
+.kmeta__abo {
+  color: var(--ink-2);
+  font-weight: var(--fw-ui);
+}
+.kmeta__bronnen {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+  min-height: var(--tap);
+  padding: 0 var(--s1);
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  font-family: var(--sans);
+  font-size: var(--t-ui-sm); /* 14/20 */
+  font-weight: var(--fw-ui);
+  line-height: var(--lh-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: pointer;
+}
+/* Past de bronnaam niet naast de knoppen (useStackWhenCramped), dan een eigen regel. */
+.kmeta[data-stack] > .kmeta__src {
+  flex-basis: 100%;
+}
+.kmeta > :is(.taste, .taste__said) {
+  order: 9;
+  flex: 0 0 100%;
+  justify-content: flex-start;
+}
+
+/* ---------- Hoofdverhaal (01): beeld tot de rand 3:2, kop 30/36, intro 20/30, het nummer in het
+   enige rood, en een sterke inktlijn eronder als begin van de lijst. ---------- */
+.kaarten > .kaart--lead + * {
+  border-top: 0;
+}
+.kaarten__label + * {
+  border-top: 0;
+}
+.entry.kaart--lead {
+  content-visibility: visible;
+  margin-inline: calc(-1 * var(--gutter));
+  padding: 0 0 1.25rem;
+  border-bottom: var(--rule-strong);
+}
+.kaart--lead .media {
+  aspect-ratio: 3 / 2;
+  margin: 0;
+  border-radius: 0;
+}
+.kaart--lead .media::after {
+  box-shadow: none;
+}
+.kaart--lead .kaart__in {
+  padding: 1rem var(--gutter) 0;
+}
+.kaart--lead .kicker__n {
+  color: var(--accent);
+  font-size: 1.25rem;
+}
+.kaart--lead.is-read .kicker__n {
+  color: var(--ink-3);
+}
+.kaart__title--lead {
+  font-size: var(--t6);
+  line-height: 2.25rem;
+  letter-spacing: var(--ls-head-6);
+}
+.kaart--lead .kaart__sum {
+  font-size: 1.25rem;
+  line-height: 1.875rem;
+}
+.kaart--lead .kmeta {
+  margin-inline: var(--gutter) var(--tap-inset);
+}
+/* Gestapeld: "N bronnen" vooraan, de knoppen rechts. */
+.kmeta[data-stack] > .kmeta__bronnen {
+  margin-inline-end: auto;
+}

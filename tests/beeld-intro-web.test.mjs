@@ -46,7 +46,7 @@ test('intro: Stroom, Editie en vergelijkpaneel gebruiken INTRO_LINES; de clamp v
 
 test('iOS: een intro wordt gemeten en nooit afgekapt (geen lineLimit op een intro, IntroText overal)', () => {
   const components = src('ios/Hoot/Views/Components.swift')
-  assert.equal((components.match(/IntroText\(text: intro,/g) || []).length, 2) // LeadCard en ItemRow
+  assert.equal((components.match(/IntroText\(text: intro,/g) || []).length, 4) // LeadCard en ItemRow, elk met de gewone en de kaart-A+-vorm
   assert.doesNotMatch(components, /introWithSource\(intro\)\)\.font/)
   assert.doesNotMatch(src('ios/Hoot/Views/DigestView.swift'), /introWithSource\(intro\)\)\.font/)
   assert.match(src('ios/Hoot/Views/IntroText.swift'), /ViewThatFits\(in: \.vertical\)/)
@@ -87,7 +87,7 @@ test('beeldloos: een beeld dat niet laadt wordt het placeholderbeeld (Img meldt 
   assert.match(beeld, /failed\) return <Beeldloos item=\{item\} kind=\{kind\} as=\{Tag\} \/>/)
   // Hoofdverhaal, tijdlijn en krant (Stroom en Editie) gaan allemaal door Beeld.
   const items = src('src/components/Items.jsx')
-  assert.equal((items.match(/<Beeld item=\{item\} kind="(lead|tijdlijn|krant)"/g) || []).length, 3)
+  assert.equal((items.match(/<Beeld item=\{item\} kind="(lead|tijdlijn|krant)"/g) || []).length, 5) // hoofdverhaal, tijdlijn en krant, plus de twee van kaart A+ (KaartItem)
   assert.match(items, /kind="lead" priority=\{priority\} onLoad=\{priority \? rememberLead : undefined\} onFail=\{onFail\}/) // ook het gemeten hoofdbeeld (MeasuredImg meldt het via onFail)
   assert.match(src('src/components/Img.jsx'), /onError=\{e => \{ if \(onFail\) return onFail\(\)/)
   assert.match(src('src/views/Edition.jsx'), /<Beeld item=\{item\} kind="krant"/)

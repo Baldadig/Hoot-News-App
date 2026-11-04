@@ -47,9 +47,12 @@ enum Letters {
     // Regelafstand van lopende tekst: 1,42 (17/24 op het web); bij de toegankelijkheidsmaten 1,3,
     // zodat het geen lappen tekst worden. De letter zelf staat op 1,193 (de lijnhoogte van New York,
     // ingebakken in de app-standen van Newsreader); de rest is lineSpacing.
-    static func leesSpacing(_ style: Font.TextStyle, typeSize: DynamicTypeSize) -> CGFloat {
+    // Met `size` en `line` (een eigen maat en regelhoogte bij Large): de regelafstand is het verschil, geschaald.
+    static func leesSpacing(_ style: Font.TextStyle, typeSize: DynamicTypeSize, size own: CGFloat? = nil, line: CGFloat? = nil) -> CGFloat {
         let traits = UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(typeSize))
-        let size = UIFontMetrics(forTextStyle: style.uiKit).scaledValue(for: Letters.size(style), compatibleWith: traits)
+        let metrics = UIFontMetrics(forTextStyle: style.uiKit)
+        if let own, let line { return metrics.scaledValue(for: max(0, line - own * 1.193), compatibleWith: traits).rounded() }
+        let size = metrics.scaledValue(for: Letters.size(style), compatibleWith: traits)
         return (size * ((typeSize.isAccessibilitySize ? 1.3 : 1.42) - 1.193)).rounded()
     }
 }
@@ -80,19 +83,23 @@ extension Font {
 }
 
 // Lopende tekst: Newsreader, regelafstand 1,42 (toegankelijkheidsmaten 1,3), in Nacht gewicht 430.
+// `size` en `line`: een eigen maat en regelhoogte in punten bij de standaardgrootte (kaart A+: intro 18/28,
+// hoofdverhaal 20/30). Ze groeien mee met Dynamische tekst, relatief aan `style`.
 struct Leestekst: ViewModifier {
     @Environment(\.nachtActief) private var nacht
     @Environment(\.dynamicTypeSize) private var typeSize
     let style: Font.TextStyle
+    var size: CGFloat? = nil
+    var line: CGFloat? = nil
     func body(content: Content) -> some View {
         content
-            .font(.lees(style, nacht: nacht))
-            .lineSpacing(Letters.leesSpacing(style, typeSize: typeSize))
+            .font(size.map { .custom(nacht ? Letters.leesNacht : Letters.lees, size: $0, relativeTo: style) } ?? .lees(style, nacht: nacht))
+            .lineSpacing(Letters.leesSpacing(style, typeSize: typeSize, size: size, line: line))
     }
 }
 
 extension View {
-    func leestekst(_ style: Font.TextStyle = .body) -> some View { modifier(Leestekst(style: style)) }
+    func leestekst(_ style: Font.TextStyle = .body, size: CGFloat? = nil, line: CGFloat? = nil) -> some View { modifier(Leestekst(style: style, size: size, line: line)) }
     // Een uitlegzin (de zin onder een kop in het welkom, de tekst van een lege bladzijde, de kaart
     // "Maak Hoot van jou"): lezen, dus Newsreader 17/24, zoals de landing en --uitleg op het web.
     func uitleg() -> some View { leestekst(.body) }

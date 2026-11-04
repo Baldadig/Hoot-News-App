@@ -2,6 +2,7 @@ import { CORRECTION_REASONS } from '../lib/corrections.mjs'
 import { cleanIntro, headlineTier } from '../../shared/edition-display.mjs'
 import { createContext, useContext, useState } from 'react'
 import { useStackWhenCramped } from '../hooks/useStackWhenCramped.js'
+import { usePhone } from '../hooks/usePhone.js'
 import { timeAgo, readTime } from '../lib/time.js'
 import { BookmarkIcon, PlayIcon, MoreIcon, ShareIcon, CaretIcon, ICON_SM } from './icons.jsx'
 import { imageMeta, portraitImage, cropStyle } from '../lib/image-meta.js'
@@ -158,8 +159,10 @@ export function Meta({ item, story, showSave = true, taste = null, outside = fal
 export const itemsOfEntry = (item, story, itemsById) => (story ? [item, ...(story.itemIds || []).filter((id) => id !== item.id).map((id) => itemsById?.get(id)).filter(Boolean)] : [item])
 
 // Verhaalopties: smaak en foutmelding zijn aparte acties. Eén rustige ingang in de metaregel.
-export function TasteButton({ entryKey, item, story }) {
-  const { voteOn, itemsById, reportMistake } = useHoot()
+// `withShare` (kaart A+): delen zit in dit menu, niet als eigen knop in de bronregel.
+export function TasteButton({ entryKey, item, story, withShare = false }) {
+  const { voteOn, itemsById, reportMistake, share } = useHoot()
+  const canShare = withShare && !!share && !!shareLink(item)
   const [open, setOpen] = useState(false)
   const [said, setSaid] = useState(null)
   const [reporting, setReporting] = useState(false)
@@ -173,6 +176,7 @@ export function TasteButton({ entryKey, item, story }) {
   if (reporting) return <span className="taste" role="group" aria-label="Klopt dit niet?">{Object.entries(CORRECTION_REASONS).map(([reason,label])=><button type="button" className="pill pill--sm hit" key={reason} onClick={() => {const ok=reportMistake?.(item,story?.id || null,reason);setReporting(false);setOpen(false);setSaid(ok?'Melding bewaard op dit toestel. Nog niet verstuurd.':'De melding kon niet worden bewaard.')}}>{label}</button>)}<button type="button" className="linkbtn hit" onClick={()=>setReporting(false)}>Annuleer</button></span>
   return open ? (
     <span className="taste" role="group" aria-label="Meer of minder hiervan">
+      {canShare ? <button type="button" className="pill pill--sm hit" onClick={() => { share(item); setOpen(false) }}>Deel</button> : null}
       {voteOn ? <><button type="button" className="pill pill--sm hit" onClick={() => pick(1)}>
         Meer hiervan
       </button>
@@ -183,7 +187,7 @@ export function TasteButton({ entryKey, item, story }) {
       <button type="button" className="linkbtn hit" onClick={()=>setOpen(false)}>Sluiten</button>
     </span>
   ) : (
-    <button type="button" className="iconbtn" onClick={() => setOpen(true)} aria-label="Verhaalopties: meer, minder of een fout melden" title="Verhaalopties">
+    <button type="button" className="iconbtn" onClick={() => setOpen(true)} aria-label={canShare ? 'Verhaalopties: delen, meer, minder of een fout melden' : 'Verhaalopties: meer, minder of een fout melden'} title="Verhaalopties">
       <MoreIcon />
     </button>
   )
@@ -247,7 +251,10 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
   const { markRead, read, layout, prefs } = useHoot()
   const introMax = useIntroMax()
   const lineCount = lines ?? (plain ? INTRO_LINES : prefs?.preview ?? INTRO_LINES)
+  const phone = usePhone()
   const cls = `entry compact${isReadItem(read, item) ? ' is-read' : ''}`
+  // Telefoon, Stroom in de tijdlijn: kaart A+ zonder nummer en waarom (zelfde kaart als in de Editie).
+  if (phone && layout === 'tijdlijn' && !plain) return <KaartItem item={item} story={story} note={note} showSave={showSave} taste={taste} outside={outside} lines={lines} />
   if (layout === 'tijdlijn' && !plain) {
     return (
       <article className={`${cls} compact--tl`} data-id={item.id}>
@@ -280,6 +287,88 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
         </Beeld>
       </a>
       <Meta item={item} story={story} showSave={showSave} taste={taste} outside={outside} />
+    </article>
+  )
+}
+
+// ---- Kaart A+ (telefoon; keuze van Alex, 4 november) ----
+// Eén kaart voor de Editie en de Stroom op een telefoon: rubriek (met in de Editie het nummer en het
+// waarom), kop, intro, dan het beeld 2:1 over de volle breedte en de bronregel. De Stroom laat nummer
+// en waarom weg; verder verschuift er niets. iPad en desktop houden hun bredere vormen (CompactItem,
+// FrontItem, LeadStory). De maten staan in src/styles/kaart.css; iOS spiegelt ze in ItemRow en LeadCard.
+// `lead`: het hoofdverhaal (01): beeld tot de rand in 3:2, grotere kop en intro, het nummer in het rood.
+
+// Bronregel van de kaart: bron (tijd in woorden, "Abonnement" als stille tekst), "N bronnen" als
+// tekstknop, bewaren en het ⋯-menu waar delen in zit. Een bron buiten je bronnen zegt dat in de tijdregel.
+export function KaartSource({ item, outside = false }) {
+  const { openSource, sourcesById } = useHoot()
+  const paid = sourcesById?.get(item.source)?.paid
+  return (
+    <button type="button" className="srcbtn srcmeta kmeta__src" onClick={() => openSource(item.source)} aria-label={`Alles van ${item.sourceName} bekijken`}>
+      <SourceMark source={srcOf(item)} size={24} />
+      <span className="srcmeta__text">
+        <span className="srcmeta__name">{item.sourceName}</span>
+        <span className="srcmeta__time">
+          <time dateTime={item.publishedAt || undefined}>{timeAgo(item.publishedAt)}</time>
+          {paid ? <span className="kmeta__abo"> · Abonnement</span> : null}
+          {outside ? <span className="srcbtn__read"> · Buiten je bronnen</span> : null}
+        </span>
+      </span>
+    </button>
+  )
+}
+
+export function KaartMeta({ item, story, showSave = true, taste = null, outside = false }) {
+  const { openStory, newInStory, voteOn, reportMistake, share } = useHoot()
+  const fresh = story ? newInStory(story) : 0
+  const others = story ? story.sourceCount - 1 : 0
+  const metaRef = useStackWhenCramped(`${item.id}|${others}|${outside}`)
+  const more = item.kind !== 'post' && (taste || voteOn || reportMistake || (share && shareLink(item)))
+  return (
+    <div className="kmeta" ref={metaRef}>
+      <KaartSource item={item} outside={outside} />
+      {story && others > 0 ? (
+        <button type="button" className="kmeta__bronnen" onClick={() => openStory(story.id, item.id)} aria-label={`Vergelijk ${others + 1} bronnen${fresh ? `, ${fresh} nieuw` : ''}`}>
+          {fresh ? <span className="dot" aria-hidden="true" /> : null}
+          {bronnenLabel(others + 1)}
+        </button>
+      ) : null}
+      {showSave ? story ? <SaveButton id={story.id} kind="story" payload={withLead(story, item.id)} label="verhaal" /> : <SaveButton id={item.id} payload={item} /> : null}
+      {more ? <TasteButton entryKey={taste || story?.id || item.id} item={item} story={story} withShare /> : null}
+    </div>
+  )
+}
+
+export function KaartItem({ item, story, note, n = null, why = null, followed = null, showSave = true, taste = null, outside = false, lead = false, priority = false, lines }) {
+  const { markRead, read, prefs } = useHoot()
+  const introMax = useIntroMax()
+  const lineCount = lines ?? (n ? INTRO_LINES : prefs?.preview ?? INTRO_LINES)
+  const fit = lead ? { max: 240, rek: 240 } : introMax(lineCount, 'kaartA')
+  const beeld = lead ? (
+    <Beeld item={item} kind="lead" fits={fitsHero} className={`media kaart__beeld${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+      {(onFail) => <MeasuredImg item={item} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} onFail={onFail} />}
+    </Beeld>
+  ) : (
+    <Beeld item={item} kind="tijdlijn" fits={fitsLarge} className={`media kaart__beeld${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+      {(onFail) => <MeasuredImg item={item} kind="lead" onFail={onFail} />}
+    </Beeld>
+  )
+  return (
+    <article className={`entry kaart${lead ? ' kaart--lead' : ''}${isReadItem(read, item) ? ' is-read' : ''}`} data-id={item.id}>
+      <a className="kaart__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+        {lead ? beeld : null}
+        <div className="kaart__in">
+          <div className="kaart__head">
+            <Kicker item={item} extra={note} followed={followed} n={n} />
+            <Why why={why} />
+          </div>
+          {lead ? <h2 className="kaart__title kaart__title--lead">{item.title}</h2> : <h3 className="kaart__title">{item.title}</h3>}
+          <Summary item={item} className="kaart__sum" fit={fit} />
+          {lead ? null : beeld}
+        </div>
+      </a>
+      <TermHelp text={`${item.title} ${item.summary || ''}`} max={1} />
+      <KaartMeta item={item} story={story} showSave={showSave} taste={taste} outside={outside} />
     </article>
   )
 }
