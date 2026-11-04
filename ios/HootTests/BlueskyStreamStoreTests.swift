@@ -5,16 +5,19 @@ import XCTest
 final class BlueskyStreamStoreTests: XCTestCase {
     nonisolated(unsafe) private var savedDefaults:[String:Any] = [:]
     nonisolated(unsafe) private var savedFiles:[String:Data] = [:]
+    nonisolated private static let files=["saved.json","read.json","import.json","edition.json"]
     nonisolated private var folder:URL { FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("Hoot") }
     override func setUp() {
         savedDefaults=UserDefaults.standard.dictionaryRepresentation().filter{$0.key.hasPrefix("hoot.")}
         for k in savedDefaults.keys { UserDefaults.standard.removeObject(forKey:k) }
-        for name in ["saved.json","read.json"] { if let d=try? Data(contentsOf:folder.appendingPathComponent(name)){savedFiles[name]=d} }
+        // Ook import.json en edition.json: een eerdere keuring kan ze op het toestel hebben laten staan, en een
+        // nieuwe HootStore() leest ze (import.json zet er eigen Bluesky-accounts van de keurder in). Eerst bewaren, dan weg.
+        for name in Self.files { if let d=try? Data(contentsOf:folder.appendingPathComponent(name)){savedFiles[name]=d}; try? FileManager.default.removeItem(at:folder.appendingPathComponent(name)) }
     }
     override func tearDown() {
         for k in UserDefaults.standard.dictionaryRepresentation().keys where k.hasPrefix("hoot.") { UserDefaults.standard.removeObject(forKey:k) }
         for (k,v) in savedDefaults { UserDefaults.standard.set(v,forKey:k) }
-        for name in ["saved.json","read.json"] {
+        for name in Self.files {
             let url=folder.appendingPathComponent(name)
             if let data=savedFiles[name] {try? data.write(to:url,options:.atomic)} else {try? FileManager.default.removeItem(at:url)}
         }
