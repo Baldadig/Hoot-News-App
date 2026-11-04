@@ -1,5 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { irisKeyframes, tintTimes, openTimes, reducedPlan, reduced, IRIS, IRIS_BACK, IRIS_MS, FADE_MS, LAND, BOUNCE_MS, SPLASH_MAX_MS, SPLASH_IRIS_MS, SPLASH_LAND_MS, SPLASH_MARK, splashWanted, restDelay, splashTimes, landTimes, splashDot, fitWord, CROSS_MS, CROSS, crossPlan } from '../src/lib/motion.js'
 
 // De iris (Welkom, W3): de getallen staan in de lib, niet in de component.
@@ -41,10 +42,10 @@ test('curves uit het brandboard en Minder beweging als fade van 0,35 s', () => {
 
 // Het opstartscherm (W4): de maten uit SplashView/HootApp.swift en het brandboard §03.
 
-test('opstart: één sprong van 1,6 s, hooguit 5 s, iris 0,6 s naar de Editie, landing 0,7 s op de intro', () => {
+test('opstart: één sprong van 1,6 s, hooguit 5 s, iris 0,7 s naar de Editie, landing 0,7 s op de intro', () => {
   assert.equal(BOUNCE_MS, 1600)
   assert.equal(SPLASH_MAX_MS, 5000)
-  assert.equal(SPLASH_IRIS_MS, 600)
+  assert.equal(SPLASH_IRIS_MS, 700)
   assert.equal(SPLASH_LAND_MS, 700)
   assert.equal(LAND, 'cubic-bezier(0.3, 0, 0.1, 1)')
   assert.deepEqual(SPLASH_MARK, { w: 160, h: 49 })
@@ -66,8 +67,14 @@ test('opstart: vertrekken in de rust van de sprong (1,08–1,5 s), anders wachte
   assert.equal(restDelay(1600 * 3 + 1200), 0, 'fase telt rond')
 })
 
-test('opstart → Editie: woord landt op 55 %, punt weg op 35 %, tint 60–100 %, een tiende langer; eigen punt vervaagt 150 ms', () => {
-  assert.deepEqual(splashTimes(600), { word: 330, dotEnd: 210, tintStart: 360, tintDur: 240, end: 700, fadeOwn: 150 })
+test('opstart → Editie: eerst vervagen (0,28 s), dan reist alleen de iris (vanaf 0,14 s, 0,7 s), tint 0,21 s op de punt', () => {
+  assert.deepEqual(splashTimes(700), { fade: 280, delay: 140, travel: 700, tintStart: 840, tintDur: 210, end: 1100, fadeOwn: 150 })
+  // Gelijk aan IrisTimes in SplashView.swift.
+  const swift = readFileSync(new URL('../ios/Hoot/Views/SplashView.swift', import.meta.url), 'utf8')
+  for (const [k, v] of Object.entries({ fade: 0.28, delay: 0.14, travel: 0.7, tint: 0.21, reduced: 0.35 })) assert.match(swift, new RegExp(`static let ${k} = ${v} `), k)
+  // Het woord glijdt niet meer mee naar de app: alleen naar de rode intro van Welkom.
+  const splash = readFileSync(new URL('../src/components/Splash.jsx', import.meta.url), 'utf8')
+  assert.equal(splash.match(/glide\(/g)?.length, 1, 'één glide: alleen naar Welkom')
   assert.deepEqual(splashTimes(), splashTimes(SPLASH_IRIS_MS))
 })
 

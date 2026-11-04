@@ -6,11 +6,11 @@ import { reduced, reducedPlan, fade, irisClose, tint, glide, wordAt, splashDot, 
 // woordmerk in papier, de punt stuitert in CSS) zodat het er is vóór de app laadt; dit onderdeel
 // neemt dat element over en haalt het weg zodra er iets te lezen is:
 // - minstens één sprong (1,6 s), dan tot de Editie er is (`ready`), hooguit 5 s;
-// - naar de app: het woordmerk glijdt naar het kleine "hoot." (de kop van de Editie, of het
-//   woordmerk in de zijbalk) en het rood sluit als iris tot zijn punt in 0,6 s; de papieren punt
-//   gaat op in het rood en het laatste stuk kleurt het rood naar de punt (in donker koraal). Staat
-//   er geen "hoot." in beeld (de Stroom op de telefoon), dan sluit het rood tot de eigen punt en
-//   vervaagt het kort;
+// - naar de app: eerst vervagen, dan reizen. Het grote woordmerk vervaagt op zijn plek en beweegt
+//   niet; alleen de iris (het rode vlak) sluit en reist in 0,7 s naar de gemeten punt van het kleine
+//   "hoot." (de kop van de Editie, of het woordmerk in de zijbalk), en kleurt daar naar de punt (in
+//   donker koraal). Staat er geen "hoot." in beeld, dan sluit het rood tot de eigen punt en vervaagt
+//   het kort;
 // - naar Welkom (`toWelcome`): het rood blijft; alleen het woordmerk glijdt, in de rust van de
 //   sprong, naar linksboven op de rode intro en het opstartscherm vervaagt (de tekst komt op). De
 //   iris komt dan pas bij de eerste papieren stap (Welcome.jsx);
@@ -88,9 +88,10 @@ export default function Splash({ ready, toWelcome, onDone }) {
       const to = wordAt([...document.querySelectorAll('.edbrand svg, .nav__brand svg')].find((el) => el.getBoundingClientRect().width > 0))
       const t = splashTimes(SPLASH_IRIS_MS)
       const target = to ? to.dot : own.dot
-      if (to) glide(mark, own, to, { duration: t.word, easing: LAND })
-      irisClose(node, { ...target, w: innerWidth, h: innerHeight, duration: SPLASH_IRIS_MS, easing: IRIS })
-      if (dot) fade(dot, t.dotEnd, 1, 0, 'ease-out')
+      // Het woord (met zijn papieren punt) vervaagt op zijn plek; de iris vertrekt als het half weg is.
+      if (hop) hop.style.animation = 'none'
+      fade(mark, t.fade, 1, 0, 'ease-out')
+      irisClose(node, { ...target, w: innerWidth, h: innerHeight, duration: t.travel, delay: t.delay, easing: IRIS })
       tint(node, rootColor('--brand-red'), rootColor('--accent'), { delay: t.tintStart, duration: t.tintDur })
       await sleep(t.end)
       if (!alive) return
