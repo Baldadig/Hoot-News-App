@@ -13,7 +13,7 @@ import SwiftUI
     func testReaderOutsideNightIsByteIdenticalToBaseline() {
         let html=Self.reader(night:false)
         let hash=SHA256.hash(data:Data(html.utf8)).map{String(format:"%02x",$0)}.joined()
-        XCTAssertEqual(hash,"72aca34859bceffc4fa4b97e8011070e29b8243c004e22902355b15041b0fa2b")
+        XCTAssertEqual(hash,"ebf1380ceb10afed219a10a2bfc4c3f95f21aeb2c3be9a40b02bde2268f4db46") // bijgewerkt: de lezer sluit kleine latin-WOFF's in (build-reader-fonts.mjs), geen volle TTF's
         XCTAssertFalse(html.contains("--paper:#000000"))
     }
     func testOnlyNightUsesChosenInk() {

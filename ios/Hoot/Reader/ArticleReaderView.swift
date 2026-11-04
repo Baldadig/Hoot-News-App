@@ -159,21 +159,26 @@ struct ArticleReaderView: View {
 }
 
 // De letters van de lezer. WKWebView ziet de letters van de app (UIAppFonts) niet, dus ze gaan als
-// @font-face mee in de pagina, uit dezelfde bestanden (Resources/Fonts). Eén keer opgebouwd.
+// @font-face mee in de pagina. Niet de volle TTF's van de app (± 1 MB per artikel), maar kleine
+// WOFF's: alleen latin, zonder hinting, alleen de standen die de lezer gebruikt (scripts/
+// build-reader-fonts.mjs, uit dezelfde app-standen): samen ± 220 kB in de pagina. Een teken buiten
+// latin (ł, ő) valt per teken terug op de systeemletter. Eén keer opgebouwd.
 enum ReaderFonts {
     private static func face(_ family: String, _ file: String, weight: Int, style: String = "normal") -> String {
-        guard let url = Bundle.main.url(forResource: file, withExtension: "ttf"), let data = try? Data(contentsOf: url) else { return "" }
-        return "@font-face { font-family: \"\(family)\"; src: url(data:font/ttf;base64,\(data.base64EncodedString())) format(\"truetype\"); font-weight: \(weight); font-style: \(style); }"
+        guard let url = Bundle.main.url(forResource: "Lezer-" + file, withExtension: "woff"), let data = try? Data(contentsOf: url) else { return "" }
+        return "@font-face { font-family: \"\(family)\"; src: url(data:font/woff;base64,\(data.base64EncodedString())) format(\"woff\"); font-weight: \(weight); font-style: \(style); }"
     }
     private static let common = [
-        face("Newsreader Kop", "NewsreaderKop-800", weight: 800),
-        face("Newsreader Tekst", "NewsreaderTekst-700", weight: 700),
-        face("Newsreader Tekst", "NewsreaderTekst-400-cursief", weight: 400, style: "italic"),
-        face("Inter", "Inter-400", weight: 400),
-        face("Inter", "Inter-800", weight: 800),
+        face("Newsreader Kop", "NewsreaderKop-800", weight: 800), // de kop
+        face("Newsreader Tekst", "NewsreaderTekst-700", weight: 700), // vet in de tekst
+        face("Newsreader Tekst", "NewsreaderTekst-400-cursief", weight: 400, style: "italic"), // cursief, citaten
+        face("Inter", "Inter-400", weight: 400), // bronregel, bijschriften
+        face("Inter", "Inter-800", weight: 800), // rubriek
     ].joined(separator: "\n")
     private static let day = face("Newsreader Tekst", "NewsreaderTekst-400", weight: 400)
     private static let nacht = face("Newsreader Tekst", "NewsreaderTekst-430", weight: 400) // Nacht: 430 op de plek van 400
+    // Voor de toets: hoeveel letter er per pagina meegaat.
+    static func bytes(night: Bool) -> Int { css(night: night).utf8.count }
     static func css(night: Bool) -> String { common + "\n" + (night ? nacht : day) }
 }
 
@@ -188,6 +193,8 @@ enum ReaderHTML {
         // de kicker is de rubriek van het stuk, als die er is, stil in ink-3.
         let meta = [sourceName, a.byline, item.date.map { HootDate.ago($0) }].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.map(escape).joined(separator: " · ")
         let kicker = item.section?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        // Bij een AX-maat is de kop zo groot dat een lange samenstelling niet op een regel past (Newsreader 800 is breed).
+        let accessibilitySize = UITraitCollection.current.preferredContentSizeCategory.isAccessibilityCategory
         return """
         <!doctype html><html lang="\(escape(lang ?? "nl"))"><head><meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -204,7 +211,7 @@ enum ReaderHTML {
         .meta { font-family: Inter, -apple-system, system-ui, sans-serif; font-size: .8em; color: var(--ink-3); margin: 0 0 1.6em; padding-bottom: 1em; border-bottom: 1px solid var(--rule); }
         h1, h2, h3, h4 { line-height: 1.25; -webkit-hyphens: manual; hyphens: manual; } /* eigennamen in de kop breken nooit af */
         h1 { overflow-wrap: anywhere; text-wrap: balance; } /* een woord breder dan de kolom breekt zonder streepje, regels even lang */
-        main.hyphenate :is(h2, h3, h4) { -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 10 4 4; } /* alleen bij Heel groot: lange woorden in tussenkoppen afbreken, in de taal van de bron */
+        main.hyphenate :is(h1.title, h2, h3, h4) { -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 10 4 4; -webkit-hyphenate-limit-before: 3; -webkit-hyphenate-limit-after: 3; } /* alleen bij Heel groot of een AX-maat: lange woorden in kop en tussenkoppen afbreken met een streepje (nooit midden in een woord zonder), in de taal van de bron */
         h2 { font-size: 1.3em; margin: 1.6em 0 .5em; } h3 { font-size: 1.12em; margin: 1.4em 0 .4em; }
         p { margin: 0 0 1em; }
         a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
@@ -217,7 +224,7 @@ enum ReaderHTML {
         main { overflow-wrap: break-word; } /* lange links breken af in plaats van de pagina te verbreden */ td, th { border-bottom: 1px solid var(--rule); padding: .4em; text-align: left; }
         pre, code { font-family: ui-monospace, Menlo, monospace; font-size: .85em; white-space: pre-wrap; }
         \(night ? NachtLeesinkt.readerCSS : "")
-        </style></head><body><main\(scale > 1.3 ? " class=\"hyphenate\"" : "")>
+        </style></head><body><main\(scale > 1.3 || accessibilitySize ? " class=\"hyphenate\"" : "")>
         \(kicker.isEmpty ? "" : "<p class=\"kicker\">\(escape(kicker))</p>")
         <h1 class="title">\(title)</h1>
         \(meta.isEmpty ? "" : "<p class=\"meta\">\(meta)</p>")
