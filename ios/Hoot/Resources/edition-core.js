@@ -2184,7 +2184,31 @@ var HootCore = (() => {
   }
   function signatures(articles, extra = [], { extended = false } = {}) {
     const vocab = nameVocabulary(articles, extended);
-    return new Map([...articles, ...extra].map((a) => [a.id, signature(a, vocab, extended)]));
+    const out = new Map([...articles, ...extra].map((a) => [a.id, signature(a, vocab, extended)]));
+    sigVocab.set(out, { vocab, extended, heads: /* @__PURE__ */ new Map() });
+    return out;
+  }
+  var sigVocab = /* @__PURE__ */ new WeakMap();
+  function headSignature(sig, item) {
+    const v = sigVocab.get(sig);
+    if (!v || !item) return null;
+    let h = v.heads.get(item.id);
+    if (!h) v.heads.set(item.id, h = signature({ ...item, text: "", summary: "" }, v.vocab, v.extended));
+    return h;
+  }
+  var OWN_STORY = 5;
+  function subjectTaken(sig, c, placed, items) {
+    let m = c.subj;
+    if (!m || m.placed !== placed) m = c.subj = { placed, n: 0, hit: false };
+    if (m.hit || m.n >= placed.length) return m.hit;
+    const fresh = placed.slice(m.n);
+    m.n = placed.length;
+    const hit = (x) => !!x && fresh.some((s) => sameSubject(x, s));
+    const pubs = c.st ? c.st.publisherCount ?? c.st.sourceCount ?? 0 : 0;
+    if (c.kind === "story" && pubs >= OWN_STORY && items?.length) {
+      return m.hit = items.some((i) => hit(headSignature(sig, i)));
+    }
+    return m.hit = c.ids.some((id) => sig.has(id) && hit(sig.get(id)));
   }
   var STALE_AFTER = 24 * 60 * 60 * 1e3;
   var isStale = (item, now) => !!now && now - timeOf(item) > STALE_AFTER;
@@ -2395,32 +2419,13 @@ var HootCore = (() => {
     return out.length ? out : items;
   }
   var FAMILY_MAX = 2;
-  var keyUnion = (items, sig) => {
-    const out = { strong: /* @__PURE__ */ new Set(), known: /* @__PURE__ */ new Set(), concepts: /* @__PURE__ */ new Set(), words: /* @__PURE__ */ new Set() };
-    for (const i of items) {
-      const x = sig.get(i.id);
-      if (!x) continue;
-      for (const f of ["strong", "known", "concepts", "words"]) for (const k of x[f]) out[f].add(k);
-    }
-    return out;
-  };
-  var FAMILY_ITEMS = 12;
-  function familyRelated(a, b, sig) {
-    if (a.vote && a.vote === b.vote) return true;
-    const ka = a.keyU, kb = b.keyU;
-    const maybe = sharedCount(ka.strong, kb.strong) >= 1 || sharedCount(ka.concepts, kb.concepts) >= 1 && sharedCount(ka.known, kb.known) >= 1 || sharedCount(ka.words, kb.words) >= 3;
-    if (!maybe) return false;
-    const xs = a.items.slice(0, FAMILY_ITEMS).map((i) => sig.get(i.id)).filter(Boolean);
-    const ys = b.items.slice(0, FAMILY_ITEMS).map((i) => sig.get(i.id)).filter(Boolean);
-    return xs.some((x) => ys.some((y) => sameSubject(x, y)));
-  }
-  function families(cands, sig) {
+  var familyRelated = (a, b) => !!a.vote && a.vote === b.vote;
+  function families(cands) {
     const stories = cands.filter((c) => c.kind === "story");
     const voteFrom = /* @__PURE__ */ new Map();
     for (const c of stories) {
       const items = [...c.items].sort(byRecency);
       c.items = items;
-      c.keyU = keyUnion(items, sig);
       const r = voteResultOf(items);
       if (r && (!voteFrom.has(r.place) || coverageOf(items).publisherCount > voteFrom.get(r.place).pubs)) voteFrom.set(r.place, { from: r.from, pubs: coverageOf(items).publisherCount });
     }
@@ -2438,7 +2443,7 @@ var HootCore = (() => {
       const own = new Set(head.items.map((i) => publisherOf(i.source)));
       const all = new Set(own);
       for (const c of order) {
-        if (c.fam || !familyRelated(head, c, sig)) continue;
+        if (c.fam || !familyRelated(head, c)) continue;
         c.fam = head.st.id;
         for (const i of c.items) all.add(publisherOf(i.source));
       }
@@ -2462,6 +2467,7 @@ var HootCore = (() => {
   };
   function leadPool(cands, items, now, own = null, total = items.length) {
     let xs = prefer(cands, (i) => !isStale(i, now));
+    if (!sportStory({}, items)) xs = prefer(xs, (i) => !SPORT_SOURCES.has(i.source));
     if (own) xs = prefer(xs, own);
     const core = new Set(centralItems(items, total));
     xs = prefer(xs, (i) => core.has(i));
@@ -2482,7 +2488,7 @@ var HootCore = (() => {
     const leadCount = {};
     let prevLead = null;
     const same = (ids, sigs) => ids.some((id) => sig.has(id) && sigs.some((s) => sameSubject(sig.get(id), s)));
-    const clashes = (c) => same(c.ids, placed) || !c.vervolg && same(c.ids, vorige);
+    const clashes = (c) => subjectTaken(sig, c, placed, c.items) || !c.vervolg && same(c.ids, vorige);
     const place = (ids) => {
       for (const id of ids) if (sig.has(id)) placed.push(sig.get(id));
     };
@@ -2557,7 +2563,7 @@ var HootCore = (() => {
       cands.push({ kind: "item", id: it.id, it, items: [it], ids: [it.id], primary, desk: primary, home: homeDesk([it], primary, prof), belang, parts, sc: 1, nl: 1, eff: 1, vervolg: 0, w: belang + sumParts(parts) + jitter(seed, it.id) });
     }
     const heaviest = (a, b) => b.w - a.w || textOrder(a.id, b.id) || textOrder(a.kind, b.kind);
-    for (const [c, n] of families(cands, sig)) {
+    for (const [c, n] of families(cands)) {
       c.w += 4 * n;
       c.belang += 4 * n;
     }

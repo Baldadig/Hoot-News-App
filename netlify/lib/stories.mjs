@@ -480,7 +480,42 @@ export function sameSubject(a, b) {
 // aan vroeger.
 export function signatures(articles, extra = [], { extended = false } = {}) {
   const vocab = nameVocabulary(articles, extended)
-  return new Map([...articles, ...extra].map((a) => [a.id, signature(a, vocab, extended)]))
+  const out = new Map([...articles, ...extra].map((a) => [a.id, signature(a, vocab, extended)]))
+  sigVocab.set(out, { vocab, extended, heads: new Map() })
+  return out
+}
+// Het kenmerk van alleen de kop van een bericht, met de woordenschat van `sig` (zie subjectTaken). Pas
+// uitgerekend als het nodig is, één keer per bericht.
+const sigVocab = new WeakMap()
+function headSignature(sig, item) {
+  const v = sigVocab.get(sig)
+  if (!v || !item) return null
+  let h = v.heads.get(item.id)
+  if (!h) v.heads.set(item.id, (h = signature({ ...item, text: '', summary: '' }, v.vocab, v.extended)))
+  return h
+}
+// Eén plek per onderwerp: gaat een kandidaat over iets wat al een plek heeft (`placed`: kenmerken)?
+// Een ander hoofdonderwerp is een ander verhaal (toets 4 november 2026): een verhaal van minstens OWN_STORY
+// uitgevers is een eigen gebeurtenis en wordt alleen afgewezen als een van zijn koppen over hetzelfde
+// onderwerp gaat, niet op de intro's. Gemeten: "Trump stopt de militaire steun aan Israël" (6 uitgevers, zes
+// koppen zonder stembus) viel weg naast de uitslagbundel omdat drie intro's de verkiezingen noemden en beide
+// Trump en de VS: twee brede namen plus één begrip (regel "twee gedeelde namen" in sameSubject). Kleinere
+// verhalen en losse stukken blijven op kop én tekst vergeleken (een zijstuk met een andere kop).
+export const OWN_STORY = 5
+// Rekentijd: `placed` groeit alleen, dus per kandidaat onthouden tot waar er vergeleken is (`c.subj`); een
+// afwijzing blijft een afwijzing, en daarna alleen de nieuwe plekken vergelijken.
+function subjectTaken(sig, c, placed, items) {
+  let m = c.subj
+  if (!m || m.placed !== placed) m = c.subj = { placed, n: 0, hit: false }
+  if (m.hit || m.n >= placed.length) return m.hit
+  const fresh = placed.slice(m.n)
+  m.n = placed.length
+  const hit = (x) => !!x && fresh.some((s) => sameSubject(x, s))
+  const pubs = c.st ? c.st.publisherCount ?? c.st.sourceCount ?? 0 : 0
+  if (c.kind === 'story' && pubs >= OWN_STORY && items?.length) {
+    return (m.hit = items.some((i) => hit(headSignature(sig, i))))
+  }
+  return (m.hit = c.ids.some((id) => sig.has(id) && hit(sig.get(id))))
 }
 
 // Een bericht van meer dan een dag oud (een portret, een analyse van gisteren) is achtergrond:
@@ -1191,46 +1226,31 @@ export function freshest(items) {
 }
 
 // ---------- Onderwerpfamilies (H7) ----------
-// Eén onderwerp, één gewicht. Een verhaal dat met een ander verhaal over hetzelfde onderwerp gaat
-// (sameSubject tussen hun stukken, of allebei stembusverhalen met dezelfde plaats: zie voteKind) kreeg
+// Eén onderwerp, één gewicht, alleen voor de stembus na een uitslag. Een stembusverhaal naast een ander
+// stembusverhaal met dezelfde plaats (zie voteKind) kreeg
 // alleen het gewicht van zijn eigen bundel, en het andere verhaal werd afgewezen zonder dat zijn bronnen
 // ergens meetelden. Op de verkiezingsnacht opende daardoor een Spaans ministersontslag (15 uitgevers) boven
 // de midterms (11 in het grootste verhaal, 23 over alle verhalen).
 // De familie: het grootste verhaal (uitgevers, dan gewicht, dan id) neemt zijn directe verwanten mee die nog
-// in geen familie zitten; geen ketting (Trump → Israël-steun → …). Het hoofd van de familie telt alle
-// uitgevers van de familie, als dat groot nieuws is (FRONT_BIG); de rest houdt zijn eigen gewicht.
+// in geen familie zitten; geen ketting (familyRelated). Het hoofd van de familie telt alle uitgevers van de
+// familie, als dat groot nieuws is (FRONT_BIG); de rest houdt zijn eigen gewicht.
 // Plafond: van een stembusfamilie hooguit FAMILY_MAX plekken; na de eerste geen tweede uitslagverhaal (een
 // losse race) en geen voorbeschouwing van vóór het uitslagmoment.
 export const FAMILY_MAX = 2
-const keyUnion = (items, sig) => {
-  const out = { strong: new Set(), known: new Set(), concepts: new Set(), words: new Set() }
-  for (const i of items) {
-    const x = sig.get(i.id)
-    if (!x) continue
-    for (const f of ['strong', 'known', 'concepts', 'words']) for (const k of x[f]) out[f].add(k)
-  }
-  return out
-}
-const FAMILY_ITEMS = 12 // zoveel nieuwste stukken per verhaal vergelijken (rekentijd op het toestel)
-function familyRelated(a, b, sig) {
-  if (a.vote && a.vote === b.vote) return true
-  const ka = a.keyU, kb = b.keyU
-  const maybe = sharedCount(ka.strong, kb.strong) >= 1 || (sharedCount(ka.concepts, kb.concepts) >= 1 && sharedCount(ka.known, kb.known) >= 1) || sharedCount(ka.words, kb.words) >= 3
-  if (!maybe) return false
-  const xs = a.items.slice(0, FAMILY_ITEMS).map((i) => sig.get(i.id)).filter(Boolean)
-  const ys = b.items.slice(0, FAMILY_ITEMS).map((i) => sig.get(i.id)).filter(Boolean)
-  return xs.some((x) => ys.some((y) => sameSubject(x, y)))
-}
+// Verwant is alleen een stembusverhaal met dezelfde plaats, op een dag mét uitslag (c.vote, zie families).
+// Niet via een gedeelde naam (sameSubject): toets 4 november 2026, op 30 oktober opende "Paus Leo brengt als
+// eerste paus zijn stem uit" (7 uitgevers) de Editie, omdat alles met Trump of de verkiezingen bij hem optelde
+// (Venezuela, Wall Street, een reportage uit Michigan). Vóór een uitslag zijn het losse verhalen.
+const familyRelated = (a, b) => !!a.vote && a.vote === b.vote
 // Zet op elke verhaalkandidaat `fam` (de familie-id, het id van het hoofd) en `vote` (stembusplaats of null);
 // het hoofd krijgt `famPubs` (alle uitgevers). Ook `voteFrom`: per stembusplaats het uitslagmoment van de
 // grootste uitslag. Uitvoer: { extra(c) } met de extra uitgevers voor het gewicht.
-function families(cands, sig) {
+function families(cands) {
   const stories = cands.filter((c) => c.kind === 'story')
   const voteFrom = new Map()
   for (const c of stories) {
     const items = [...c.items].sort(byRecency)
     c.items = items
-    c.keyU = keyUnion(items, sig)
     const r = voteResultOf(items)
     if (r && (!voteFrom.has(r.place) || coverageOf(items).publisherCount > voteFrom.get(r.place).pubs)) voteFrom.set(r.place, { from: r.from, pubs: coverageOf(items).publisherCount })
   }
@@ -1250,7 +1270,7 @@ function families(cands, sig) {
     const own = new Set(head.items.map((i) => publisherOf(i.source)))
     const all = new Set(own)
     for (const c of order) {
-      if (c.fam || !familyRelated(head, c, sig)) continue
+      if (c.fam || !familyRelated(head, c)) continue
       c.fam = head.st.id
       for (const i of c.items) all.add(publisherOf(i.source))
     }
@@ -1276,8 +1296,11 @@ const prefer = (xs, f) => {
   const ys = xs.filter(f)
   return ys.length ? ys : xs
 }
+// Een sportbron is nooit de kop van een verhaal dat geen sport is (toets 4 november 2026: "ESPN: NYC Marathon
+// runner dies" werd de kop van een bundel over mazelen en een marathon, in een Editie zonder sportkeuze).
 export function leadPool(cands, items, now, own = null, total = items.length) {
   let xs = prefer(cands, (i) => !isStale(i, now))
+  if (!sportStory({}, items)) xs = prefer(xs, (i) => !SPORT_SOURCES.has(i.source))
   if (own) xs = prefer(xs, own)
   const core = new Set(centralItems(items, total))
   xs = prefer(xs, (i) => core.has(i))
@@ -1295,7 +1318,7 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
   const placed = [] // kenmerken van alles wat al een plek heeft
   const leadCount = {}
   let prevLead = null
-  const clashes = (ids) => ids.some((id) => sig.has(id) && placed.some((s) => sameSubject(sig.get(id), s)))
+  const clashes = (c) => subjectTaken(sig, c, placed, c.items)
   const place = (ids) => {
     for (const id of ids) if (sig.has(id)) placed.push(sig.get(id))
   }
@@ -1339,13 +1362,13 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
   }
   if (bonus) for (const c of cands) c.w += bonus(c.kind === 'story' ? c.items : [c.it])
   // Eén onderwerp, één gewicht (H7): het hoofd van een familie telt alle uitgevers van de familie.
-  for (const [c, n] of families(cands, sig)) c.w += 4 * n
+  for (const [c, n] of families(cands)) c.w += 4 * n
   cands.sort((a, b) => b.w - a.w)
 
   const used = new Set()
   const placedC = []
   const take = (c, desk) => {
-    if (used.has(c) || clashes(c.ids) || !familyRoom(c, placedC)) return false
+    if (used.has(c) || clashes(c) || !familyRoom(c, placedC)) return false
     used.add(c)
     placedC.push(c)
     place(c.ids)
@@ -1412,7 +1435,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   const same = (ids, sigs) => ids.some((id) => sig.has(id) && sigs.some((s) => sameSubject(sig.get(id), s)))
   // Eén plek per onderwerp, ook tegenover de koppen van de vorige Editie; een ontwikkeld verhaal
   // gaat vanzelf over zijn eigen vorige kop en wordt daar niet op afgewezen.
-  const clashes = (c) => same(c.ids, placed) || (!c.vervolg && same(c.ids, vorige))
+  const clashes = (c) => subjectTaken(sig, c, placed, c.items) || (!c.vervolg && same(c.ids, vorige))
   const place = (ids) => {
     for (const id of ids) if (sig.has(id)) placed.push(sig.get(id))
   }
@@ -1481,7 +1504,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   const heaviest = (a, b) => b.w - a.w || textOrder(a.id, b.id) || textOrder(a.kind, b.kind)
   // Eén onderwerp, één gewicht (H7): het hoofd van een familie telt alle uitgevers van de familie, ook voor
   // de voorpagina (belang).
-  for (const [c, n] of families(cands, sig)) {
+  for (const [c, n] of families(cands)) {
     c.w += 4 * n
     c.belang += 4 * n
   }
