@@ -24,6 +24,7 @@ import { labelFor } from '../lib/label.js'
 import { wholeSentences } from '../../shared/zinnen.mjs'
 import { usePrintEdition } from '../hooks/usePrintEdition.js'
 import { useIntroMax } from '../lib/intro.js'
+import { usePullHorizon } from '../components/PullHorizon.jsx'
 
 // Rubriek van elke plek in de editie (komt van de server), als label boven het verhaal. Zelfde
 // namen als DESK_NAMES in shared/editor.mjs; 'regio' is de plek die De Redacteur uit je regionale
@@ -151,6 +152,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
 
   const title = SLOTS[edition?.slot]?.naam || 'Editie' // de naam van het dagdeel (shared/slots.mjs)
   const ready = !loading && !failedLoad && rows.length > 0
+  const pull = usePullHorizon(ref, { onRefresh, busy: refreshing, failed: statusProps?.refreshError, label: 'Editie', enabled: ready })
   const sub = edition ? longDate(edition.date).replace(/^./, (c) => c.toUpperCase()) : null
 
   // Eén keer na het eerste Welkom: wat "Jouw Editie" in de metaregel betekent (src/lib/welcome.js).
@@ -171,6 +173,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
+      {pull}
       <div className="col col--wide col--front">
         {/* De kop van de Editie: titel en één metaregel (datum · weer · wiens Editie); de inktlijn
             eronder is het begin van het nieuws. Eén blok, zodat de kleur "Inkt" er een band van kan
@@ -213,49 +216,6 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
           ) : null}
           {ready ? <hr className="edrule" /> : null}
         </div>
-        {ready && hasBrief ? (
-          <button type="button" className="briefcta" onClick={() => setReading(true)} aria-haspopup="dialog">
-            <span className="briefcta__icon" aria-hidden="true">
-              <SparkleIcon />
-            </span>
-            <span className="briefcta__text">
-              <span className="briefcta__title">De Editie in één minuut</span>
-              <span className="briefcta__sub">Samenvatting door AI, met de bronnen erbij</span>
-            </span>
-            <span className="briefcta__go" aria-hidden="true">
-              <CaretIcon size={ICON_SM} />
-            </span>
-          </button>
-        ) : null}
-        {ready && !hasBrief && !briefForMembers && briefNote ? (
-          // Het plafond voor vandaag is bereikt: dezelfde rij, zonder knop, met een rustige zin. Geen
-          // hover of druk: de stijl staat hier, want styles.css is vastgelegd (tests/zacht-papier).
-          <div className="briefcta briefcta--rust" role="status" style={{ background: 'none', cursor: 'default' }}>
-            <span className="briefcta__icon" aria-hidden="true">
-              <SparkleIcon />
-            </span>
-            <span className="briefcta__text">
-              <span className="briefcta__title">De Editie in één minuut</span>
-              <span className="briefcta__sub">{briefNote}</span>
-            </span>
-          </div>
-        ) : null}
-        {ready && !hasBrief && briefForMembers ? (
-          // Zonder account: de knop opent het inlogblad. Ingelogd maar het account is er nog niet
-          // helemaal (zeldzaam)? Dan brengt hij je naar Instellingen, waar je het opnieuw probeert.
-          <button type="button" className="briefcta" onClick={onJoin} aria-haspopup={account?.status === 'out' ? 'dialog' : undefined}>
-            <span className="briefcta__icon" aria-hidden="true">
-              <SparkleIcon />
-            </span>
-            <span className="briefcta__text">
-              <span className="briefcta__title">De Editie in één minuut</span>
-              <span className="briefcta__sub">Met een account</span>
-            </span>
-            <span className="briefcta__go" aria-hidden="true">
-              <CaretIcon size={ICON_SM} />
-            </span>
-          </button>
-        ) : null}
         {showHint ? (
           <div className="edhint">
             <p className="hint">Jouw Editie: gekozen uit jouw bronnen en interesses.</p>
@@ -344,6 +304,50 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 <p className="hint bubble__hint">Een verhaal naast je Editie.</p>
                 {editionBubble.map(r=><Slot key={r.key} less={less} row={r}><CompactItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} plain /></Slot>)}
               </section>
+            ) : null}
+            {/* "De Editie in één minuut" staat onder het nieuws, vóór het einde (op iOS staat de rij er niet boven): het nieuws begint direct onder de lijn. */}
+            {hasBrief ? (
+              <button type="button" className="briefcta briefcta--end" onClick={() => setReading(true)} aria-haspopup="dialog">
+                <span className="briefcta__icon" aria-hidden="true">
+                  <SparkleIcon />
+                </span>
+                <span className="briefcta__text">
+                  <span className="briefcta__title">De Editie in één minuut</span>
+                  <span className="briefcta__sub">Samenvatting door AI, met de bronnen erbij</span>
+                </span>
+                <span className="briefcta__go" aria-hidden="true">
+                  <CaretIcon size={ICON_SM} />
+                </span>
+              </button>
+            ) : null}
+            {!hasBrief && !briefForMembers && briefNote ? (
+              // Het plafond voor vandaag is bereikt: dezelfde rij, zonder knop, met een rustige zin. Geen
+              // hover of druk: de stijl staat hier, want styles.css is vastgelegd (tests/zacht-papier).
+              <div className="briefcta briefcta--rust briefcta--end" role="status" style={{ background: 'none', cursor: 'default' }}>
+                <span className="briefcta__icon" aria-hidden="true">
+                  <SparkleIcon />
+                </span>
+                <span className="briefcta__text">
+                  <span className="briefcta__title">De Editie in één minuut</span>
+                  <span className="briefcta__sub">{briefNote}</span>
+                </span>
+              </div>
+            ) : null}
+            {!hasBrief && briefForMembers ? (
+              // Zonder account: de knop opent het inlogblad. Ingelogd maar het account is er nog niet
+              // helemaal (zeldzaam)? Dan brengt hij je naar Instellingen, waar je het opnieuw probeert.
+              <button type="button" className="briefcta briefcta--end" onClick={onJoin} aria-haspopup={account?.status === 'out' ? 'dialog' : undefined}>
+                <span className="briefcta__icon" aria-hidden="true">
+                  <SparkleIcon />
+                </span>
+                <span className="briefcta__text">
+                  <span className="briefcta__title">De Editie in één minuut</span>
+                  <span className="briefcta__sub">Met een account</span>
+                </span>
+                <span className="briefcta__go" aria-hidden="true">
+                  <CaretIcon size={ICON_SM} />
+                </span>
+              </button>
             ) : null}
             {hasMinimum ? (<div className="endcap">
               {/* De telling rond: "10 van 10" boven het merk, stil op rood (bij een korte Editie "7 van 7"). */}

@@ -3,7 +3,8 @@
 // gebeurt er niets. Pure functie over een opslag met getItem/setItem/removeItem
 // (tests/migrate.test.mjs).
 import { themePref, darkPref } from './theme.js'
-export const SCHEMA = 4
+import { currentTopics, currentTopicMap } from './topics.js'
+export const SCHEMA = 5
 
 const read = (ls, key) => {
   try {
@@ -33,6 +34,13 @@ export function migrate(ls) {
 
   next.theme = themePref(next.theme ?? ls.getItem('hoot:theme'))
   next.themeDark = darkPref(next.themeDark ?? ls.getItem('hoot:theme-dark'))
+  // 1.1.0: Trump is geen eigen onderwerp meer maar Verenigde Staten (vs-politiek). Wat je volgde, vastzette,
+  // meer/minder koos en las, gaat mee naar de nieuwe sleutel (zie topics.js RETIRED_TOPICS).
+  if (Array.isArray(next.topics)) next.topics = currentTopics(next.topics)
+  if (Array.isArray(next.pinned)) next.pinned = currentTopics(next.pinned)
+  if (next.taste?.topics) next.taste = { ...next.taste, topics: currentTopicMap(next.taste.topics, 12) }
+  const aff = read(ls, 'hoot:affinity')
+  if (aff?.topics) ls.setItem('hoot:affinity', JSON.stringify({ ...aff, topics: currentTopicMap(aff.topics) }))
   next.schema = SCHEMA
   ls.setItem('hoot:prefs', JSON.stringify(next))
   return true

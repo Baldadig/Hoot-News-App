@@ -452,10 +452,10 @@ struct InterestsList: View {
     // Wat je aantikte, vast zolang je hier bent: tik je alle onderwerpen van een interesse aan, dan
     // blijven ze zo staan (bewaard betekent dat hetzelfde als niets kiezen: alles).
     @State private var picked: [String]?
-    static let about = ["politiek": "Nederland, Europa, VS-politiek, verkiezingen", "binnenland": "Wonen, zorg, onderwijs, misdaad, migratie", "wereld": "Oekraïne, Midden-Oosten, Azië, geopolitiek", "economie": "Werk, bedrijven, energie, geld", "tech": "AI, tech, gadgets, privacy", "wetenschap": "Klimaat, gezondheid, ruimte, natuur", "cultuur": "Muziek, film, boeken, kunst, media", "sport": "Voetbal, F1, wielrennen, tennis"]
+    static let about = ["politiek": "Nederland, Europa, Verenigde Staten, verkiezingen", "binnenland": "Wonen, zorg, onderwijs, misdaad, migratie", "wereld": "Oekraïne, Midden-Oosten, Azië, geopolitiek", "economie": "Werk, bedrijven, energie, geld", "tech": "AI, tech, gadgets, privacy", "wetenschap": "Klimaat, gezondheid, ruimte, natuur", "cultuur": "Muziek, film, boeken, kunst, media", "sport": "Voetbal, F1, wielrennen, tennis"]
     static func summary(_ ids: [String]) -> String {
         let names = Rubriek.alle.filter { ids.contains($0.id) }.map(\.label)
-        return names.isEmpty ? "Geen" : names.joined(separator: ", ")
+        return names.isEmpty ? "Alle interesses" : names.joined(separator: ", ")
     }
     private var mine: [String] { Rubriek.picked(from: store.topics, interests: store.interests) }
 

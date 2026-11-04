@@ -366,12 +366,37 @@ extension Edition {
 }
 
 // ---- Jouw editie ----
+// Onderwerpen die er niet meer zijn (src/lib/topics.js → RETIRED_TOPICS): sinds 1.1.0 is "Trump" gewoon
+// Verenigde Staten (vs-politiek). Opgeslagen voorkeuren, de import en de profielsync leveren de oude sleutel
+// nog; alles wat zulke gegevens inleest zet ze om (HootStore, tests/RetiredTopicsTests).
+enum RetiredTopics {
+    static let replaced = ["trump": "vs-politiek"]
+    static func current(_ id: String) -> String { replaced[id] ?? id }
+    // Oude sleutels vervangen, geen dubbelen, volgorde blijft.
+    static func list(_ ids: [String]) -> [String] {
+        var seen = Set<String>()
+        return ids.map(current).filter { seen.insert($0).inserted }
+    }
+    // Waarden van oud en nieuw tellen op, begrensd door `cap` (smaak: ±12).
+    static func map(_ d: [String: Double], cap: Double? = nil) -> [String: Double] {
+        var out: [String: Double] = [:]
+        for (k, v) in d {
+            let key = current(k)
+            let sum = (out[key] ?? 0) + v
+            out[key] = cap.map { min($0, max(-$0, sum)) } ?? sum
+        }
+        return out
+    }
+}
+
 // Wat je leest en bewaart, per onderwerp en per bron (zoals src/lib/affinity.js op de website):
 // openen telt 1, bewaren 3, en bij elke handeling wordt alles een beetje ouder (×0,98).
 struct Affinity: Codable, Hashable {
     var n = 0
     var topics: [String: Double] = [:]
     var sources: [String: Double] = [:]
+    // Oude onderwerpsleutels omgezet (RetiredTopics).
+    var migrated: Affinity { var a = self; a.topics = RetiredTopics.map(topics); return a }
 
     mutating func learn(_ item: Item, weight: Double) {
         guard !item.isPost else { return }
@@ -398,6 +423,8 @@ struct Taste: Codable, Hashable {
     static let vote = 4.0, voteSource = 1.0, cap = 12.0
 
     var isEmpty: Bool { topics.isEmpty && sources.isEmpty }
+    // Oude onderwerpsleutels omgezet (RetiredTopics); smaak blijft binnen ±cap.
+    var migrated: Taste { var t = self; t.topics = RetiredTopics.map(topics, cap: Self.cap); return t }
     mutating func vote(_ items: [Item], up: Bool) {
         let its = items.filter { !$0.isPost }
         let d = up ? 1.0 : -1.0
@@ -414,7 +441,7 @@ struct Taste: Codable, Hashable {
     var less: [String] { topics.filter { $0.value < 0 }.sorted { $0.value < $1.value }.map(\.key) }
 
     // De namen van de onderwerpen (src/lib/topics.js).
-    static let labels: [String: String] = ["nederland": "Den Haag", "europa": "Europa", "vs-politiek": "VS-politiek", "trump": "Trump", "verkiezingen": "Verkiezingen", "wonen": "Wonen", "zorg": "Zorg", "onderwijs": "Onderwijs", "misdaad": "Misdaad & recht", "migratie": "Asiel & migratie", "verkeer": "Verkeer & OV", "oekraine": "Oekraïne & Rusland", "middenoosten": "Midden-Oosten", "azie": "China & Azië", "afrika": "Afrika", "latam": "Latijns-Amerika", "geopolitiek": "Defensie & NAVO", "economie": "Markten & beurs", "werk": "Werk & inkomen", "bedrijven": "Bedrijven", "energie": "Energie", "geld": "Geld & sparen", "ai": "AI", "tech": "Big Tech", "gadgets": "Gadgets", "privacy": "Privacy & veiligheid", "ev": "Elektrisch rijden", "games": "Games", "klimaat": "Klimaat", "gezondheid": "Gezondheid", "ruimte": "Ruimte", "natuur": "Natuur & dieren", "brein": "Psychologie & brein", "muziek": "Muziek", "film": "Film & series", "boeken": "Boeken", "kunst": "Kunst & musea", "media": "Media", "voetbal": "Voetbal", "f1": "Formule 1", "wielrennen": "Wielrennen", "tennis": "Tennis", "wintersport": "Schaatsen & wintersport", "olympisch": "Olympische sporten"]
+    static let labels: [String: String] = ["nederland": "Den Haag", "europa": "Europa", "vs-politiek": "Verenigde Staten", "verkiezingen": "Verkiezingen", "wonen": "Wonen", "zorg": "Zorg", "onderwijs": "Onderwijs", "misdaad": "Misdaad & recht", "migratie": "Asiel & migratie", "verkeer": "Verkeer & OV", "oekraine": "Oekraïne & Rusland", "middenoosten": "Midden-Oosten", "azie": "China & Azië", "afrika": "Afrika", "latam": "Latijns-Amerika", "geopolitiek": "Defensie & NAVO", "economie": "Markten & beurs", "werk": "Werk & inkomen", "bedrijven": "Bedrijven", "energie": "Energie", "geld": "Geld & sparen", "ai": "AI", "tech": "Big Tech", "gadgets": "Gadgets", "privacy": "Privacy & veiligheid", "ev": "Elektrisch rijden", "games": "Games", "klimaat": "Klimaat", "gezondheid": "Gezondheid", "ruimte": "Ruimte", "natuur": "Natuur & dieren", "brein": "Psychologie & brein", "muziek": "Muziek", "film": "Film & series", "boeken": "Boeken", "kunst": "Kunst & musea", "media": "Media", "voetbal": "Voetbal", "f1": "Formule 1", "wielrennen": "Wielrennen", "tennis": "Tennis", "wintersport": "Schaatsen & wintersport", "olympisch": "Olympische sporten"]
     static func label(_ id: String) -> String { labels[id] ?? id }
     // "voetbal en Ajax", voor de bevestiging.
     static func about(_ items: [Item]) -> String {
@@ -435,7 +462,7 @@ struct Rubriek: Identifiable {
     let cats: Set<String>
 
     static let alle: [Rubriek] = [
-        Rubriek(id: "politiek", label: "Politiek", icon: "building.columns", topics: ["nederland", "europa", "vs-politiek", "trump", "verkiezingen"], cats: []),
+        Rubriek(id: "politiek", label: "Politiek", icon: "building.columns", topics: ["nederland", "europa", "vs-politiek", "verkiezingen"], cats: []),
         Rubriek(id: "binnenland", label: "Binnenland", icon: "house", topics: ["wonen", "zorg", "onderwijs", "misdaad", "migratie", "verkeer"], cats: ["regio"]),
         Rubriek(id: "wereld", label: "Wereld", icon: "globe.europe.africa", topics: ["oekraine", "middenoosten", "azie", "afrika", "latam", "geopolitiek"], cats: []),
         Rubriek(id: "economie", label: "Economie", icon: "chart.line.uptrend.xyaxis", topics: ["economie", "werk", "bedrijven", "energie", "geld"], cats: ["economie"]),

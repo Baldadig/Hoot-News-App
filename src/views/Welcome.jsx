@@ -8,25 +8,27 @@ import { CaretIcon, CheckIcon, ICON_SM, SearchIcon } from '../components/icons.j
 import { vakByDomain } from '../../shared/vak.mjs'
 import { INTERESTS, resolveTopics } from '../lib/topics.js'
 import { sourcesOn, pickedFrom, sourceLine } from '../lib/welcome.js'
-import { toggleFollow, freeStart, startIds, followGroups, findSources, followedSources, followedLine, previewLines, SPORT } from '../lib/follow-welcome.js'
+import { toggleFollow, freeStart, startIds, basisSources, interestBlocks, moreGroups, findSources, followedSources, followedLine, previewLines } from '../lib/follow-welcome.js'
 import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, waitFor, sleep, tintTimes, openTimes, reducedPlan, crossPlan, rootColor, IRIS, IRIS_BACK, IRIS_MS, STEP_OUT_MS, STEP_IN_MS } from '../lib/motion.js'
 
 // Welkom (1.1.0), gelijk aan de app (ios/Hoot/Views/WelcomeView.swift). Vier schermen:
 //   1. welkom (rood)   de zon komt op achter de horizon; Begin. Inloggen klein rechtsboven.
 //   2. Zo werkt Hoot   Editie, Stroom en Selectie als gelijken op één scherm, elk met zijn eigen zon
 //                      (components/SunArt.jsx: de zon achter de horizon, rustig; Minder beweging stil).
-//                      Kies je bronnen, of Liever meteen lezen (de gratis startset, zonder sport).
-//   3. Volg je bronnen zoals accounts volgen: niets staat vooraf aan. Bovenaan het gratis begin,
-//                      dan per rubriek; sport ingeklapt; zoeken vindt alles. Een voorbeeld-Editie
+//                      Kies je interesses, of Liever meteen lezen (de gratis startset, zonder sport).
+//   3. Wat interesseert je?  de hoofdrubrieken (je Stroom-tabs) en, uitklapbaar, je Selectie.
+//   4. Volg je bronnen zoals accounts volgen: niets staat vooraf aan. Bovenaan de Basis (Nederlands
+//                      nieuws, het gratis begin voorop), dan per gekozen interesse een blok met een
+//                      gratis aanrader; de rest ingeklapt; zoeken vindt alles. Een voorbeeld-Editie
 //                      groeit mee (breed rechts, smal in een uitklapbalk boven de knop).
-//   4. Wat interesseert je?  de hoofdrubrieken (je Stroom-tabs) en, uitklapbaar, je Selectie.
-// "Later kiezen" kan altijd. Daarna de Editie: het welkom vervaagt erover (crossPlan). Het seintje
+// Eerst de interesses, dan de bronnen: zo staan de vak- en nichebronnen bij wat je koos, en niet
+// verstopt in één lange lijst. "Later kiezen" kan altijd. Daarna de Editie: het welkom vervaagt erover (crossPlan). Het seintje
 // komt pas onder de eerste Editie (alleen in de app; web-push bestaat niet).
 // Van rood naar papier krimpt het rood als iris tot de punt van het kleine woordmerk (lib/motion.js);
 // terug speelt het omgekeerd. Bij Minder beweging één fade van 0,35 s. Tussen papieren schermen even
 // uit en weer in.
 // Opnieuw kiezen (Bronnen of Instellingen, `onClose` is er dan): geen intro en geen uitleg; je begint
-// bij je bronnen met wat nu aan staat, en Sluiten (ook Escape) slaat niets op.
+// bij je interesses met wat nu aan staat, en Sluiten (ook Escape) slaat niets op.
 
 const TRIO = [
   { kind: 'editie', title: 'Editie', text: 'Drie keer per dag hooguit tien verhalen. Dan ben je bij.' },
@@ -38,14 +40,14 @@ const toggleIn = (list, id) => (list.includes(id) ? list.filter((x) => x !== id)
 
 export default function Welcome({ sources, items = [], prefs, muted = new Set(), onDone, onClose = null, onSignIn = null, leaving = false, onLeft = () => {} }) {
   const reopen = !!onClose
-  const [view, setView] = useState(reopen ? 'bronnen' : 'intro') // intro | uitleg | bronnen | interesses
+  const [view, setView] = useState(reopen ? 'interesses' : 'intro') // intro | uitleg | interesses | bronnen
   const [interests, setInterests] = useState(() => prefs.interests || [])
   const picked = useMemo(() => pickedFrom(prefs.topics || [], prefs.interests || [], INTERESTS), [prefs.topics, prefs.interests])
   const [edited, setEdited] = useState(null) // je eigen bronnenkeuze; zolang null geldt het begin
   const [vak, setVak] = useState(() => prefs.vak || [])
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('aanbevolen') // aanbevolen | gevolgd
-  const [sport, setSport] = useState(false) // de sportbronnen uitgeklapt
+  const [more, setMore] = useState(false) // Meer bronnen uitgeklapt
   const [peekOpen, setPeekOpen] = useState(false)
   const [selOpen, setSelOpen] = useState(() => (prefs.vak || []).length > 0)
   const [red, setRed] = useState(!reopen) // de rode intro-laag staat er (ook nog tijdens het sluiten)
@@ -201,20 +203,24 @@ export default function Welcome({ sources, items = [], prefs, muted = new Set(),
   const finish = (choice = {}) => onDone({ interests, topics, sources: mine, all: pickable, vak, ...choice })
   // "Liever meteen lezen": de startset met gratis bronnen, zonder interesses, onderwerpen of vak.
   const startQuick = () => onDone({ interests: [], topics: [], sources: startIds(pickable), all: pickable })
+  // Later kiezen bij de interesses: zoals het was (de eerste keer dus leeg), door naar de bronnen.
+  const laterInterests = () =>
+    go(() => {
+      setInterests(prefs.interests || [])
+      setVak(prefs.vak || [])
+      setView('bronnen')
+      setQuery('')
+      setPeekOpen(false)
+    })
   // Later kiezen bij de bronnen: zoals het was, en de eerste keer zonder iets gevolgd het gratis begin.
-  const laterSources = () => {
-    if (!mine.length) setEdited(reopen ? initial : startIds(pickable))
-    show('interesses')
-  }
-  // Later kiezen bij de interesses: deze stap verandert niets (de eerste keer dus leeg).
-  const laterInterests = () => finish({ interests: prefs.interests || [], topics: resolveTopics(prefs.interests || [], picked), vak: prefs.vak || [] })
+  const laterSources = () => finish({ sources: mine.length ? mine : reopen ? initial : startIds(pickable) })
 
   const previous = () => {
     if (view === 'uitleg') backToIntro(() => setView('intro'))
-    else if (view === 'bronnen') reopen ? onClose() : show('uitleg')
-    else if (view === 'interesses') show('bronnen')
+    else if (view === 'interesses') reopen ? onClose() : show('uitleg')
+    else if (view === 'bronnen') show('interesses')
   }
-  const topLink = reopen && view === 'bronnen' ? (
+  const topLink = reopen && view === 'interesses' ? (
     <button type="button" className="linkbtn linkbtn--plain ob__back" onClick={onClose}>
       Sluiten
     </button>
@@ -242,7 +248,7 @@ export default function Welcome({ sources, items = [], prefs, muted = new Set(),
               {view === 'uitleg' ? (
                 <Uitleg head={head} />
               ) : view === 'bronnen' ? (
-                <Bronnen head={head} sources={pickable} items={items} mine={mine} onPick={pickSource} onAll={(ids, on) => setEdited(on ? [...new Set([...mine, ...ids])] : mine.filter((x) => !ids.includes(x)))} query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} sport={sport} setSport={setSport} />
+                <Bronnen head={head} sources={pickable} items={items} mine={mine} interests={interests} onPick={pickSource} onAll={(ids, on) => setEdited(on ? [...new Set([...mine, ...ids])] : mine.filter((x) => !ids.includes(x)))} query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} more={more} setMore={setMore} />
               ) : (
                 <Interesses head={head} interests={interests} onInterest={(id) => setInterests((l) => toggleIn(l, id))} vak={vak} onVak={(id) => setVak((l) => toggleIn(l, id))} open={selOpen} setOpen={setSelOpen} />
               )}
@@ -253,8 +259,8 @@ export default function Welcome({ sources, items = [], prefs, muted = new Set(),
             <div className="col">
               {view === 'uitleg' ? (
                 <>
-                  <button type="button" className="btn btn--lg ob__cta" onClick={() => show('bronnen')}>
-                    Kies je bronnen
+                  <button type="button" className="btn btn--lg ob__cta" onClick={() => show('interesses')}>
+                    Kies je interesses
                   </button>
                   <button type="button" className="linkbtn linkbtn--plain ob__skip" onClick={startQuick} disabled={!pickable.length}>
                     Liever meteen lezen
@@ -265,8 +271,8 @@ export default function Welcome({ sources, items = [], prefs, muted = new Set(),
                   <p className="ob__status" role="status">
                     {pickable.length ? followedLine(mine.length) : 'Bronnen laden…'}
                   </p>
-                  <button type="button" className="btn btn--lg ob__cta" onClick={() => show('interesses')} disabled={!mine.length}>
-                    Verder
+                  <button type="button" className="btn btn--lg ob__cta" onClick={() => finish()} disabled={!mine.length}>
+                    Naar je Editie
                   </button>
                   <button type="button" className="linkbtn linkbtn--plain ob__skip" onClick={laterSources} disabled={!pickable.length}>
                     Later kiezen
@@ -274,8 +280,8 @@ export default function Welcome({ sources, items = [], prefs, muted = new Set(),
                 </>
               ) : (
                 <>
-                  <button type="button" className="btn btn--lg ob__cta" onClick={() => finish()}>
-                    Naar je Editie
+                  <button type="button" className="btn btn--lg ob__cta" onClick={() => show('bronnen')}>
+                    Verder
                   </button>
                   <button type="button" className="linkbtn linkbtn--plain ob__skip" onClick={laterInterests}>
                     Later kiezen
@@ -351,19 +357,24 @@ function Uitleg({ head }) {
   )
 }
 
-// ---- 3. Volg je bronnen ----
-function Bronnen({ head, sources, items, mine, onPick, onAll, query, setQuery, filter, setFilter, sport, setSport }) {
+// ---- 4. Volg je bronnen: de Basis, dan een blok per gekozen interesse ----
+function Bronnen({ head, sources, items, mine, interests, onPick, onAll, query, setQuery, filter, setFilter, more, setMore }) {
   const start = useMemo(() => freeStart(sources), [sources])
-  const groups = useMemo(() => followGroups(sources), [sources])
+  const basis = useMemo(() => basisSources(sources), [sources])
+  const blocks = useMemo(() => interestBlocks(sources, interests), [sources, interests])
+  const rest = useMemo(() => moreGroups(sources, interests), [sources, interests])
   const startOn = start.length > 0 && start.every((s) => mine.includes(s.id))
-  const row = (s) => <SourceRow key={s.id} s={s} on={mine.includes(s.id)} onPick={onPick} />
+  // Eén aanrader per blok: in de Basis het gratis begin, in een blok alleen zijn eigen aanrader.
+  const row = (s, picks = new Set()) => <SourceRow key={s.id} s={s} on={mine.includes(s.id)} pick={picks.has(s.id)} onPick={onPick} />
+  const startIds = new Set(start.map((s) => s.id))
+  const restCount = rest.reduce((n, g) => n + g.sources.length, 0)
   const q = query.trim()
   let body
   if (!sources.length) body = null
   else if (q) {
     const hits = findSources(sources, q)
     body = hits.length ? (
-      <ul className="ob__list">{hits.map(row)}</ul>
+      <ul className="ob__list">{hits.map((s) => row(s))}</ul>
     ) : (
       <p className="ob__empty" role="status">
         Niets gevonden voor ‘{q}’. Probeer een andere naam.
@@ -371,41 +382,56 @@ function Bronnen({ head, sources, items, mine, onPick, onAll, query, setQuery, f
     )
   } else if (filter === 'gevolgd') {
     const list = followedSources(sources, mine)
-    body = list.length ? <ul className="ob__list">{list.map(row)}</ul> : <p className="ob__empty">Je volgt nog niets. Begin met het gratis begin bij Aanbevolen.</p>
+    body = list.length ? <ul className="ob__list">{list.map((s) => row(s))}</ul> : <p className="ob__empty">Je volgt nog niets. Begin bij de Basis.</p>
   } else {
     body = (
       <>
-        {start.length ? (
-          <section className="ob__group" aria-labelledby="ob-start">
+        {basis.length ? (
+          <section className="ob__group" aria-labelledby="ob-basis">
             <div className="ob__ghead">
-              <h2 id="ob-start" className="label label--section">
-                Om te beginnen · gratis
+              <h2 id="ob-basis" className="label label--section">
+                Basis
               </h2>
-              <button type="button" className="linkbtn ob__all" aria-pressed={startOn} onClick={() => onAll(start.map((s) => s.id), !startOn)}>
-                {startOn ? 'Alle drie gevolgd' : 'Volg alle drie'}
-              </button>
+              {start.length ? (
+                <button type="button" className="linkbtn ob__all" aria-pressed={startOn} onClick={() => onAll(start.map((s) => s.id), !startOn)}>
+                  {startOn ? 'Alle drie gevolgd' : 'Volg alle drie'}
+                </button>
+              ) : null}
             </div>
-            <ul className="ob__list">{start.map(row)}</ul>
+            <ul className="ob__list">{basis.map((s) => row(s, startIds))}</ul>
           </section>
         ) : null}
-        {groups.map((g) =>
-          g.cat === SPORT && !sport ? (
-            <button key={g.cat} type="button" className="ob__more" aria-expanded="false" onClick={() => setSport(true)}>
-              <span className="label label--section">Sport</span>
-              <span className="ob__morehint">Toon {g.sources.length} sportbronnen</span>
-            </button>
+        {blocks.map((b) => (
+          <section key={b.id} className="ob__group" aria-labelledby={`ob-b-${b.id}`}>
+            <div className="ob__ghead">
+              <h2 id={`ob-b-${b.id}`} className="label label--section">
+                {b.label}
+              </h2>
+              <span className="ob__gcount">{b.sources.length}</span>
+            </div>
+            <ul className="ob__list">{b.sources.map((s) => row(s, new Set([b.pick])))}</ul>
+          </section>
+        ))}
+        {restCount ? (
+          more ? (
+            rest.map((g) => (
+              <section key={g.cat} className="ob__group" aria-labelledby={`ob-g-${g.cat}`}>
+                <div className="ob__ghead">
+                  <h2 id={`ob-g-${g.cat}`} className="label label--section">
+                    {g.label}
+                  </h2>
+                  <span className="ob__gcount">{g.sources.length}</span>
+                </div>
+                <ul className="ob__list">{g.sources.map((s) => row(s, new Set()))}</ul>
+              </section>
+            ))
           ) : (
-            <section key={g.cat} className="ob__group" aria-labelledby={`ob-g-${g.cat}`}>
-              <div className="ob__ghead">
-                <h2 id={`ob-g-${g.cat}`} className="label label--section">
-                  {g.label}
-                </h2>
-                <span className="ob__gcount">{g.sources.length}</span>
-              </div>
-              <ul className="ob__list">{g.sources.map(row)}</ul>
-            </section>
-          ),
-        )}
+            <button type="button" className="ob__more" aria-expanded="false" onClick={() => setMore(true)}>
+              <span className="label label--section">Meer bronnen</span>
+              <span className="ob__morehint">Toon {restCount}</span>
+            </button>
+          )
+        ) : null}
       </>
     )
   }
@@ -442,8 +468,9 @@ function Bronnen({ head, sources, items, mine, onPick, onAll, query, setQuery, f
   )
 }
 
-// Eén bron: logo, naam, omschrijving, gratis of abonnement, en Volg / Volgend.
-function SourceRow({ s, on, onPick }) {
+// Eén bron: logo, naam, omschrijving, gratis (of de gratis aanrader van zijn blok) of abonnement, en
+// Volg / Volgend. Alles in inkt: het enige accent op dit scherm is de punt van het woordmerk.
+function SourceRow({ s, on, pick = false, onPick }) {
   return (
     <li className="ob__src">
       <SourceMark source={s} size={40} />
@@ -451,7 +478,7 @@ function SourceRow({ s, on, onPick }) {
         <span className="ob__sname">{s.name}</span>
         {s.about ? <span className="ob__sabout">{s.about}</span> : null}
         <span className="ob__smeta">
-          {s.paid ? 'Abonnement' : <span className="ob__free">Gratis</span>}
+          {s.paid ? 'Abonnement' : pick ? 'Gratis aanrader' : 'Gratis'}
           {s.lang === 'en' ? ' · Engels' : ''}
         </span>
       </div>
@@ -521,7 +548,7 @@ function PeekBar({ open, setOpen, sources, items, mine }) {
   )
 }
 
-// ---- 4. Wat interesseert je? Rubrieken en, uitklapbaar, je Selectie ----
+// ---- 3. Wat interesseert je? Rubrieken en, uitklapbaar, je Selectie ----
 function Interesses({ head, interests, onInterest, vak, onVak, open, setOpen }) {
   const domains = useMemo(() => vakByDomain(), [])
   return (
@@ -529,7 +556,7 @@ function Interesses({ head, interests, onInterest, vak, onVak, open, setOpen }) 
       <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
         Wat interesseert je?
       </h1>
-      <p className="ob__sub">Dit worden je tabs in de Stroom. Je Editie weegt ze mee.</p>
+      <p className="ob__sub">Dit worden je tabs in de Stroom. Daarna kies je je bronnen.</p>
       <div className="chips ob__rubrieken" role="group" aria-label="Rubrieken">
         {INTERESTS.map((i) => (
           <button key={i.id} type="button" className="pill" aria-pressed={interests.includes(i.id)} onClick={() => onInterest(i.id)}>

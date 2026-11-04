@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto'
 import { buildStories, selectEdition } from '../../netlify/lib/stories.mjs'
 import { MAIN_IDS } from '../../netlify/lib/sources.mjs'
 import { composePersonal } from '../../src/lib/personal.js'
+import { currentTopic } from '../../src/lib/topics.js'
 import { PERSONAS, setupFor, rng } from '../fixtures/personas.mjs'
 
 export { PERSONAS, setupFor }
@@ -46,7 +47,8 @@ export function readIdsOf(snap, p, followed) {
   const lat = new Set(p.latent.topics)
   const age = (i) => (now - Date.parse(i.publishedAt)) / 36e5
   const pool = snap.items.filter((i) => i.kind === 'article' && followed.has(i.source) && age(i) >= 5 && age(i) <= 72)
-  const fits = pool.filter((i) => (i.topics || []).some((t) => lat.has(t)))
+  // De momentopname is van vóór 1.1.0 en kent nog het onderwerp trump: dat is nu Verenigde Staten (currentTopic).
+  const fits = pool.filter((i) => (i.topics || []).some((t) => lat.has(currentTopic(t))))
   const out = new Set()
   for (let k = 0; k < Math.min(25, Math.round(p.reads / 3)); k++) {
     const from = r() >= p.noise && fits.length ? fits : pool

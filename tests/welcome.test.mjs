@@ -62,7 +62,7 @@ test('je bronnen in één regel', () => {
 test('opnieuw kiezen houdt je fijne onderwerpen: alle onderwerpen volgen is geen keuze maar Alles', () => {
   const pol = INTERESTS.find((i) => i.id === 'politiek')
   assert.deepEqual(pickedFrom(pol.topics, ['politiek'], INTERESTS), [])
-  assert.deepEqual(pickedFrom(['nederland', 'trump'], ['politiek'], INTERESTS), ['nederland', 'trump'])
+  assert.deepEqual(pickedFrom(['nederland', 'verkiezingen'], ['politiek'], INTERESTS), ['nederland', 'verkiezingen'])
   assert.deepEqual(pickedFrom(['nederland', 'ai'], ['politiek'], INTERESTS), ['nederland'], 'alleen interesses die je koos')
   assert.deepEqual(pickedFrom([], [], INTERESTS), [])
 })

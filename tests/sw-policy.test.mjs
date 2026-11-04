@@ -24,3 +24,19 @@ test('oude rootworker schrijft geen opslag en navigeert geen open leessessie',as
  assert.equal((await response).cached,true);assert.deepEqual(requests,['activate','unregister']);assert.equal(JSON.stringify(marker),before)
  let claimed=false;listeners.fetch({request:{url:'https://example.test/api/feed',destination:''},respondWith:()=>claimed=true});assert.equal(claimed,false)
 })
+
+import {markCached,isFromCache} from '../src/lib/sw-policy.js'
+test('een antwoord uit de cache van de service worker wordt gemerkt',async()=>{
+ const res=markCached(new Response('{"a":1}',{status:200,headers:{'content-type':'application/json'}}))
+ assert.equal(res.status,200);assert.equal(res.headers.get('X-Hoot-Cache'),'1');assert.equal(isFromCache(res),true)
+ assert.deepEqual(await res.json(),{a:1});assert.equal(isFromCache(new Response('x')),false);assert.equal(markCached(undefined),undefined)
+})
+test('sw.js merkt /api/feed uit de cache en fetchCore telt dat als mislukte kern',async()=>{
+ const {readFileSync}=await import('node:fs')
+ assert.match(readFileSync(new URL('../src/sw.js',import.meta.url),'utf8'),/hoot-feed[\s\S]*cachedResponseWillBeUsed[\s\S]*markCached/)
+ const {fetchCore}=await import('../src/lib/api.js'),real=globalThis.fetch
+ try{
+  globalThis.fetch=async()=>markCached(new Response('{"x":1}'));assert.deepEqual(await fetchCore(),{data:{x:1},fromCache:true})
+  globalThis.fetch=async()=>new Response('{"x":2}');assert.deepEqual(await fetchCore(),{data:{x:2},fromCache:false})
+ }finally{globalThis.fetch=real}
+})

@@ -1,3 +1,4 @@
+import UserNotifications
 import XCTest
 @testable import Hoot
 
@@ -63,6 +64,65 @@ final class OnboardingTests: XCTestCase {
         XCTAssertEqual(groups.map(\.cat), ["nl", "tech", "sport", "overig"])
         XCTAssertEqual(groups[0].sources.map(\.id), ["nrc"])
         XCTAssertEqual(groups.flatMap(\.sources).count + 3, Self.catalog.count)
+    }
+
+    // Eerst de interesses, dan de bronnen: de Basis, een blok per gekozen interesse met een gratis
+    // aanrader voorop, sport alleen bij Sport, de rest ingeklapt (gelijk aan het web).
+    private static let niche: [Source] = catalog + [
+        Source(id: "ars", name: "Ars Technica", cat: "tech", paid: false, lang: "en", pick: true, forInterests: ["tech"]),
+        Source(id: "wired", name: "Wired", cat: "tech", paid: true, lang: "en", pick: true, forInterests: ["tech"]),
+        Source(id: "ign", name: "IGN", cat: "games", paid: false, lang: "en", pick: true, forTopic: "games"),
+        Source(id: "quanta", name: "Quanta Magazine", cat: "wetenschap", paid: false, lang: "en", pick: true, forInterests: ["wetenschap"]),
+        Source(id: "carbonbrief", name: "Carbon Brief", cat: "wetenschap", paid: false, lang: "en", pick: true, forTopic: "klimaat"),
+        Source(id: "aljazeera", name: "Al Jazeera", cat: "int", paid: false, lang: "en"),
+        Source(id: "politico", name: "Politico", cat: "int", paid: false, lang: "en", pick: true, forInterests: ["politiek"]),
+        Source(id: "vrt", name: "VRT NWS", cat: "vl", paid: false, lang: "nl"),
+        Source(id: "telegraaf", name: "De Telegraaf", cat: "nl", paid: true, lang: "nl"),
+    ]
+
+    func testBasisIsDutchNewsWithFreeStartFirst() {
+        let catalog = Self.niche.map { s -> Source in var s = s; if s.id == "nrc" { s.pick = true }; return s }
+        XCTAssertEqual(FollowList.basis(catalog).map(\.id), ["nos", "nu", "rtl", "nrc"]) // de Telegraaf: Meer bronnen
+        XCTAssertTrue(FollowList.more(catalog, []).flatMap(\.sources).contains { $0.id == "telegraaf" })
+    }
+
+    func testBlocksPerChosenInterestWithFreePickFirst() {
+        let blocks = FollowList.blocks(Self.niche, ["wetenschap", "tech"])
+        XCTAssertEqual(blocks.map(\.id), ["tech", "wetenschap"]) // vaste volgorde
+        XCTAssertEqual(blocks[0].pick, "tweakers") // Nederlands en gratis gaat voor
+        XCTAssertEqual(blocks[0].sources.first?.id, "tweakers")
+        XCTAssertEqual(Set(blocks[0].sources.map(\.id)), ["tweakers", "ars", "wired", "ign"])
+        XCTAssertEqual(blocks[1].pick, "quanta") // aangeraden voor de interesse zelf
+        XCTAssertTrue(blocks[1].sources.contains { $0.id == "carbonbrief" })
+        let wp = FollowList.blocks(Self.niche, ["politiek", "wereld"])
+        XCTAssertEqual(wp.map(\.id), ["politiek", "wereld"])
+        XCTAssertTrue(wp[1].sources.contains { $0.id == "aljazeera" })
+        XCTAssertNil(FollowList.freePick([Source(id: "x", name: "X", paid: true)]))
+        // Elke bron één keer, in het eerste blok waar hij hoort, en elk blok één aanrader.
+        let all = FollowList.blocks(Self.niche, Rubriek.alle.map(\.id))
+        let ids = all.flatMap { $0.sources.map(\.id) }
+        XCTAssertEqual(Set(ids).count, ids.count)
+        let picks = all.compactMap(\.pick)
+        XCTAssertEqual(Set(picks).count, picks.count)
+    }
+
+    func testSportOnlyWithSportAndTheRestUnderMore() {
+        XCTAssertFalse(FollowList.blocks(Self.niche, ["tech"]).contains { $0.id == "sport" })
+        XCTAssertEqual(FollowList.blocks(Self.niche, ["sport"]).first?.pick, "nos-sport")
+        let more = FollowList.more(Self.niche, ["tech"]).flatMap(\.sources)
+        XCTAssertTrue(more.allSatisfy { $0.cat != "sport" && $0.cat != "tech" && !["nos", "nu", "rtl"].contains($0.id) })
+        XCTAssertTrue(more.contains { $0.id == "vrt" })
+        XCTAssertTrue(more.contains { $0.id == "quanta" })
+    }
+
+    // Het seintje na de eerste Editie: één keer, alleen zolang iOS nog niets weet en het uit staat.
+    @MainActor func testAlertOfferOnceAfterFirstEdition() {
+        XCTAssertTrue(EditionAlerts.offerAfterEdition(permission: .notDetermined, notify: false, offered: false, browsing: false))
+        XCTAssertFalse(EditionAlerts.offerAfterEdition(permission: .notDetermined, notify: false, offered: true, browsing: false))
+        XCTAssertFalse(EditionAlerts.offerAfterEdition(permission: .denied, notify: false, offered: false, browsing: false))
+        XCTAssertFalse(EditionAlerts.offerAfterEdition(permission: .authorized, notify: false, offered: false, browsing: false))
+        XCTAssertFalse(EditionAlerts.offerAfterEdition(permission: .notDetermined, notify: true, offered: false, browsing: false))
+        XCTAssertFalse(EditionAlerts.offerAfterEdition(permission: .notDetermined, notify: false, offered: false, browsing: true))
     }
 
     @MainActor func testSearchFindsSportToo() {
@@ -153,6 +213,7 @@ final class OnboardingTests: XCTestCase {
     func testStreamTabsAreOnlyChosenRubriekenInFixedOrder() {
         XCTAssertEqual(StreamView.tabs(interests: ["sport", "politiek", "wereld"], bubble: true).map(\.id), ["", "politiek", "wereld", "sport", "bubbel"])
         XCTAssertEqual(StreamView.tabs(interests: ["cultuur", "binnenland"], bubble: false).map(\.label), ["Alles", "Binnenland", "Cultuur"])
+        // Later kiezen zonder interesses: alle hoofdrubrieken (niets gekozen = alles).
         XCTAssertEqual(StreamView.tabs(interests: [], bubble: true).map(\.label), ["Alles", "Politiek", "Binnenland", "Wereld", "Economie", "Tech", "Wetenschap", "Cultuur", "Sport", "Buiten je bubbel"])
         let all = StreamView.tabs(interests: Rubriek.alle.map(\.id).reversed(), bubble: true).map(\.label)
         XCTAssertEqual(all, ["Alles", "Politiek", "Binnenland", "Wereld", "Economie", "Tech", "Wetenschap", "Cultuur", "Sport", "Buiten je bubbel"])

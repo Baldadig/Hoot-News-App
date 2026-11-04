@@ -18,6 +18,9 @@ final class HootStore {
     private(set) var updatedAt: Date?
     private(set) var digest: Digest?
     private(set) var digestStatus: Status = .idle
+    // De laatste verversing van de Selectie mislukte, ook als de bewaarde Selectie bleef staan
+    // (digestStatus blijft dan .ready). Dat houdt het trekgebaar eerlijk; het web heeft dezelfde vlag.
+    private(set) var digestRefreshFailed = false
     private var relatedVersion: String?
     private var related: [String: [Item]] = [:]
     private var relatedLoaded: String? // de versie waarmee `related` geladen is
@@ -86,6 +89,10 @@ final class HootStore {
 
     // Laatste verversing mislukt: je ziet de versie van `updatedAt`.
     private(set) var stale = false
+    // Alleen de kern (api/feed?deel=start) lukte niet: het antwoord kwam uit de bewaarde kopie of er was
+    // niets. Een mislukt deel van één bron zet `stale` aan maar is geen fout voor het trekgebaar; dat
+    // volgt het web (refreshError).
+    private(set) var coreFailed = false
     // De Stroom, gesorteerd: één keer per laadactie of bronwijziging, niet bij elke weergave.
     private(set) var stream: [Item] = []
     // Tot waar je de Stroom zag (het nieuwste bericht toen je hem verliet), en de grens voor dit
@@ -149,11 +156,27 @@ final class HootStore {
         notify = Self.load("hoot.notify") ?? false
         notifySlots = Self.load("hoot.notifySlots") ?? EditionAlerts.slots.map(\.id)
         interests = Self.load("hoot.interests") ?? []
-        topics = Self.load("hoot.topics") ?? []
+        // Trump is sinds 1.1.0 Verenigde Staten: opgeslagen voorkeuren met de oude sleutel gaan mee (RetiredTopics).
+        func rewrite<T: Codable & Equatable>(_ key: String, _ old: T, _ new: T) {
+            if new != old { UserDefaults.standard.set(try? JSONEncoder().encode(new), forKey: key) }
+        }
+        let storedTopics: [String] = Self.load("hoot.topics") ?? []
+        let migratedTopics = RetiredTopics.list(storedTopics)
+        topics = migratedTopics
         favorites = Self.load("hoot.favorites") ?? []
-        affinity = Self.load("hoot.affinity") ?? Affinity()
-        taste = Self.load("hoot.taste") ?? Taste()
-        less = Self.load("hoot.less") ?? []
+        let storedAffinity: Affinity = Self.load("hoot.affinity") ?? Affinity()
+        let migratedAffinity = storedAffinity.migrated
+        affinity = migratedAffinity
+        let storedTaste: Taste = Self.load("hoot.taste") ?? Taste()
+        let migratedTaste = storedTaste.migrated
+        taste = migratedTaste
+        let storedLess: [String] = Self.load("hoot.less") ?? []
+        let migratedLess = RetiredTopics.list(storedLess)
+        less = migratedLess
+        rewrite("hoot.topics", storedTopics, migratedTopics)
+        rewrite("hoot.affinity", storedAffinity, migratedAffinity)
+        rewrite("hoot.taste", storedTaste, migratedTaste)
+        rewrite("hoot.less", storedLess, migratedLess)
         personal = Self.read("edition.json")
         personalRaw = Self.readRaw("edition.json")
         bluesky = Self.load("hoot.bluesky") ?? false
@@ -241,9 +264,9 @@ final class HootStore {
         }
         if let v = p?.preview, v != preview, (0 ... 3).contains(v) { preview = v; save("hoot.preview", v) }
         if let v = p?.interests, v != interests { interests = v; save("hoot.interests", v) }
-        if let v = p?.topics, v != topics { topics = v; save("hoot.topics", v) }
+        if let v = p?.topics.map(RetiredTopics.list), v != topics { topics = v; save("hoot.topics", v) }
         if let v = p?.favorites, v != favorites { favorites = v; save("hoot.favorites", v) }
-        if let v = p?.taste, v != taste { taste = v; save("hoot.taste", v) }
+        if let v = p?.taste?.migrated, v != taste { taste = v; save("hoot.taste", v) }
         if let v = p?.social {
             // De eerste keer met een account (`unite`): wat hier al stond blijft erbij. Daarna gaat je
             // account voor, zodat ook weghalen op een ander toestel meekomt.
@@ -519,6 +542,7 @@ final class HootStore {
             relatedVersion = start.meta.related
             parts = start.meta.parts ?? [:]
             stale = false // een mislukt deel zet hem hieronder weer aan
+            coreFailed = fromCache
             reloadParts()
             // Eigen Bluesky-accounts los ophalen: een trage Bluesky houdt de editie niet op.
             Task { await loadOwnPosts() }
@@ -531,6 +555,7 @@ final class HootStore {
             await loadPersonal()
         } catch {
             stale = !itemsById.isEmpty
+            coreFailed = true
             status = itemsById.isEmpty ? .failed : .ready
         }
     }
@@ -910,6 +935,7 @@ final class HootStore {
     // ---- Digest ----
     // Levert de server dit vak? Zolang de Digest niet geladen is: ja.
     private var digestLoadedAt: Date?
+    private var digestTriedAt: Date? // laatste poging die niet vers was: de uurlijkse herpoging blijft zo werken
     // Meer of minder hiervan bij een plek in de Editie (`id`: verhaal of bericht). Minder klapt hem in.
     func vote(_ id: String, items: [Item], up: Bool) {
         taste.vote(items, up: up)
@@ -950,17 +976,29 @@ final class HootStore {
     }
 
     func offersField(_ id: String) -> Bool { digest.map { $0.fields.contains { $0.id == id } } ?? true }
+    // Zonder vers laadmoment (offline gestart, Selectie uit de cache) telt de laatste poging; zonder poging is hij oud.
+    static func digestIsOld(hasDigest: Bool, loadedAt: Date?, triedAt: Date?, now: Date = .now) -> Bool {
+        guard hasDigest else { return false }
+        guard let at = loadedAt ?? triedAt else { return true }
+        return now.timeIntervalSince(at) > 3600
+    }
     func loadDigest(force: Bool = false) async {
         let due = digest?.next.flatMap(HootDate.parse).map { $0 < .now } ?? false
-        let old = digestLoadedAt.map { Date.now.timeIntervalSince($0) > 3600 } ?? false
+        let old = Self.digestIsOld(hasDigest: digest != nil, loadedAt: digestLoadedAt, triedAt: digestTriedAt)
         if digestStatus == .loading || (!force && digest != nil && !due && !old) { return }
         digestStatus = .loading
         do {
-            digest = try await HootAPI.digest()
-            digestLoadedAt = .now
+            // Kwam het antwoord uit de bewaarde kopie, dan faalde het netwerk: de Selectie blijft staan,
+            // maar de verversing is mislukt (en een nieuwe poging mag meteen weer).
+            let (fresh, fromCache): (Digest, Bool) = try await HootAPI.fetch("api/vak")
+            digest = fresh
+            if !fromCache { digestLoadedAt = .now } else { digestTriedAt = .now }
             digestStatus = .ready
+            digestRefreshFailed = fromCache
         } catch {
             digestStatus = digest == nil ? .failed : .ready
+            digestRefreshFailed = true
+            digestTriedAt = .now
         }
     }
 

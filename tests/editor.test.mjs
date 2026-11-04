@@ -296,7 +296,7 @@ test('voorkeursbron weegt zoveel als FAVORITE_BONUS op de server', async () => {
 // ---------- §11.3 Indeling ----------
 
 test('indeling: een VS-lezer krijgt als eerste zetel VS, en minstens twee', () => {
-  const vs = G.deskPlan(prof({ interests: ['politiek'], topics: ['vs-politiek', 'trump'] }), 7)
+  const vs = G.deskPlan(prof({ interests: ['politiek'], topics: ['vs-politiek'] }), 7)
   assert.equal(vs.order[0], 'vs')
   assert.ok(vs.order.filter((d) => d === 'vs').length >= 2, vs.order.join(','))
   // Normen 1 november: zonder Wereld geen eigen zetel voor een buitenlandse kernrubriek (KERN_INT_W = 0);

@@ -2,6 +2,8 @@
 // (getest in tests/prefs.test.mjs).
 import { themePref, darkPref } from './theme.js'
 import { VAK_FIELD_IDS } from '../../shared/vak.mjs'
+import { currentTopics, currentTopicMap } from './topics.js'
+import { TASTE_CAP } from './affinity.js'
 export const DEFAULT_PREFS = {
   theme: 'system',
   themeDark: 'dark',
@@ -51,7 +53,10 @@ export function normalizePrefs(raw) {
   if (!Array.isArray(out.followStories)) out.followStories = []
   // Meer of minder hiervan: per onderwerp en bron een getal, ook negatief.
   const signed = (o) => Object.fromEntries(Object.entries(o && typeof o === 'object' ? o : {}).filter(([, v]) => Number.isFinite(v)))
-  out.taste = { topics: signed(out.taste?.topics), sources: signed(out.taste?.sources) }
+  out.taste = { topics: currentTopicMap(signed(out.taste?.topics), TASTE_CAP), sources: signed(out.taste?.sources) }
+  // Oude onderwerpen (Trump → Verenigde Staten): ook in wat je volgt en vastzette; zie topics.js RETIRED_TOPICS.
+  out.topics = currentTopics(out.topics)
+  out.pinned = currentTopics(out.pinned)
   out.vak = Array.isArray(out.vak) ? out.vak.filter((f) => VAK_FIELD_IDS.includes(f)) : []
   // Bluesky-accounts die je zelf toevoegde ({ handle, name, avatar }); gaan mee met je account.
   out.social = Array.isArray(out.social) ? out.social.filter((a) => a && typeof a.handle === 'string') : []

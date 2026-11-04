@@ -57,7 +57,7 @@ export default function Settings({ meta, account, syncStatus, affinity = null, o
 
         <h2 className="sect sect--plain">Jouw Hoot</h2>
         <div className="rows">
-          <LinkRow href="#/welkom" label="Interesses" hint={interestNames || 'Alles'} />
+          <LinkRow href="#/welkom" label="Interesses" hint={interestNames || 'Alle interesses'} />
           <LinkRow href="#/bronnen" label="Bronnen" hint={followed === 1 ? '1 bron' : `${followed} bronnen`} />
           <Row label="Selectie" hint={vak ? (vak === 1 ? '1 onderwerp' : `${vak} onderwerpen`) : 'Elke maandag het beste per onderwerp.'}>
             <Switch checked={vak > 0} onChange={(v) => setPref('vak', v ? VAK_FIELD_IDS : [])} label="Selectie" />

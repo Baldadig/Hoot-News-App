@@ -27,7 +27,7 @@ Door Alex gemaakt op 4 november. Ze zijn norm vanaf v2.2.
 | Beeldtaal | Composities 01, 02, 04, 05, 06, 07, 09, 10 en 11. Lijntekening in lege schermen: ja. |
 | Kleurverhouding | 60 · 30 · 10. |
 | App-icoon | "Icoon moet te kiezen zijn. Rood behouden." Rood standaard, de keuze blijft. |
-| Pull-strook | Sluit in 400 ms (op de schaal). |
+| Pull-strook | Sluit in 400 ms (op de schaal). Trekteken: Horizon v2 ("akkoord, zo bouwen"). |
 | Leesbreedte | Web 720, iOS 680. |
 | Deelkaart | Papieren schijf achter het uitgeverslogo: ja. |
 | Ds-toets | De 15 oordelen: akkoord (6 herstellen, 9 norm aanpassen; zie §8). |
@@ -97,10 +97,18 @@ Eén schaal: **140 · 200 · 400** (`dur-1`, `dur-2`, `dur-3`). Drie lagen, éé
 |---|---|---|---|
 | **Bediening** | reageren: bewaren, chip, schakelaar, streep | 140 · 200 · 400 | direct |
 | **Overgang** | inhoud wisselt op dezelfde plek: rubriekwissel, Welkom → Editie | 200 · 450, alleen dekking | direct (Welkom → Editie houdt de vervaging) |
-| **Merk** | de punt: sprong, adem, iris, pull-h. | 600 · 700 · 1600 | stil eindbeeld, hooguit één vervaging van 350 |
+| **Merk** | de punt: sprong, adem, iris, de zon (ook in de trekstrook) | 600 · 700 · 1600 | stil eindbeeld, hooguit één vervaging van 350 |
 
 - **Rubriekwissel: 200 ms crossfade** (`motion-swap`). Oude lijst vervaagt, nieuwe komt op, tekst en beeld samen, alleen dekking. Geen verticale beweging, geen hoogtesprong. De rubriekstreep glijdt zoals altijd (400, `ease-glide`).
-- **Pull-to-refresh.** De h. met punt is het enige trek- en laadteken (Editie, Stroom, Selectie). Trekken: de punt zakt mee tot de drempel (72). Laden: de h. staat in een strook van 56, de punt beweegt subtiel. Klaar: de h. vervaagt in **140** (`dur-pull-out`), daarna **sluit de strook in 400 met `ease-glide`** (`dur-pull-close`, was 0,3 s). Niets over de inhoud, geen layoutsprong. VoiceOver: "Bezig met verversen". Verminder beweging: stil, zonder animatie. De enige merkbeweging tijdens het lezen, en alleen op verzoek.
+- **Pull-to-refresh: Horizon v2.** Trekken is zonsopgang, laden is de dag, klaar is de ondergang (Editie, Stroom, Selectie; web en iOS gelijk). De h. is geen trek- of laadteken meer.
+  - Trekken: een haarlijn van 1 pt in inkt 3 verschijnt vanaf 16 pt en groeit tot de kantlijnen (358 op 390). Vanaf 40 pt komt de rode zon (⌀ 16) achter de lijn op bij de ochtend (−68), met de drie ringen van de landing. Drempel **72** (1 : 1, daarna zachte rem tot 120): de zon rust op de lijn, de lijn kleurt naar inkt (Nacht: inkt 2) maar blijft 1 pt, de ringen lichten op in 140, één zachte tik.
+  - Laden: strook van **56** in 400 met `ease-glide`. Ringen wijken (200), de gestippelde boog met merktekens voor ochtend, middag en vroege avond verschijnt (200), de zon loopt in 800 naar de middag. Duurt het, dan ademt hij daar (1 → 1,06 → 0,92 → 1, elke stap 2750). Dit is de enige uitzondering op "nooit vanzelf bewegen tijdens het lezen", en alleen op verzoek.
+  - Klaar: zodra er een antwoord is en de zon op de middag staat, loopt hij door naar de vroege avond (800) en gaat daar onder (600, `ease-iris`). Lijn en boog vervagen vanaf 440 in **140** (`dur-pull-out`), dan **sluit de strook in 400 met `ease-glide`** (`dur-pull-close`). Van antwoord tot dicht 1840 ms.
+  - Fout: boog weg (200), zon terug naar de ochtend (600) en onder (400), dan 2 s "Niet ververst. Trek opnieuw." in inkt 3, zachtere tik. De bestaande foutregel blijft.
+  - Eén verzoek tegelijk: opnieuw trekken tijdens laden geeft alleen ruimte. Niets over de inhoud, geen layoutsprong. Eén rood ding: de zon. VoiceOver: "Bezig met verversen", "Editie ververst", "Verversen lukte niet".
+  - Verminder beweging: lijn meteen heel, zon komt op met de afstand, bij laden één wissel naar de middag zonder adem, klaar is één vervaging van 350.
+  - Rek op iOS: de app gebruikt de eigen rek van de scroll (de rubberband van UIKit), niet de formule "1 : 1 tot 72, daarna zachte rem tot 120" van het web. Een harde grens van 120 is er dus niet; drempel 72 en de strook van 56 zijn gelijk. De rekensom in `lib/pull-horizon.js` en `ios/Hoot/Views/PullHorizon.swift` tekent wat de scroll aanreikt.
+  - Gebaar op het web: het trekgebaar wordt pas overgenomen na 9 pt beweging en als die meer omlaag dan opzij gaat; een aanraking in een element dat zelf opzij scrolt (rubrieklijn, bronnenrij) blijft van dat element. Een mislukte verversing is een fout (fout-afloop, "Verversen lukte niet") in elke tab, ook als de bewaarde Selectie blijft staan; een antwoord uit de cache van de service worker (web) of de bewaarde kopie (iOS) telt ook als mislukt; op iOS telt in Editie en Stroom een mislukte kern of een antwoord uit de cache.
 - **Iris.** Opstarten → Editie: het grote woordmerk vervaagt op zijn plek; alleen de iris reist naar de punt van het kleine "hoot." (eerst vervagen, dan reizen). Eindpunt gemeten, nooit hardgecodeerd. Eerste start (Welkom) houdt de rode intro. Verminder beweging: één vervaging van 350. Nacht: geen witte flits.
 
 | Token | Waarde | Rol |

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { readJSON, writeJSON } from '../lib/store.js'
+import { settleVak } from '../lib/vak-refresh.js'
 
 const KEY = 'hoot:vak'
 
@@ -9,6 +10,7 @@ const KEY = 'hoot:vak'
 export function useVak(enabled) {
   const [digest, setDigest] = useState(() => readJSON(KEY, null))
   const [status, setStatus] = useState(digest ? 'ready' : 'idle')
+  const [refreshFailed, setRefreshFailed] = useState(false) // de laatste verversing mislukte (ook als de Selectie bleef staan)
   const busy = useRef(false)
 
   const load = useCallback(async () => {
@@ -22,8 +24,11 @@ export function useVak(enabled) {
       setDigest(d)
       writeJSON(KEY, d)
       setStatus('ready')
+      setRefreshFailed(false)
     } catch {
-      setStatus((s) => (s === 'refreshing' || readJSON(KEY, null) ? 'ready' : 'error'))
+      const stored = !!readJSON(KEY, null)
+      setStatus((s) => settleVak(s, false, stored).status)
+      setRefreshFailed(true)
     } finally {
       busy.current = false
     }
@@ -35,5 +40,5 @@ export function useVak(enabled) {
     if (stale) load()
   }, [enabled]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { digest, status, reload: load }
+  return { digest, status, refreshFailed, reload: load }
 }

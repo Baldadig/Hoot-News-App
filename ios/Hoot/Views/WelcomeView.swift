@@ -4,18 +4,20 @@ import SwiftUI
 //   1. de rode intro: de zon komt op achter de horizon, "Begin". Inloggen klein rechtsboven.
 //   2. Zo werkt Hoot: Editie, Stroom en Selectie als gelijken op één scherm, elk met zijn eigen zon
 //      (OnboardingArt: de zon achter de horizon, rustig; bij Verminder beweging stil). Kies je
-//      bronnen, of Liever meteen lezen (de gratis startset, zonder sport).
-//   3. Volg je bronnen, zoals accounts volgen: niets staat vooraf aan. Bovenaan het gratis begin, dan
-//      per rubriek; sport ingeklapt; zoeken vindt alles. Een voorbeeld-Editie met echte koppen groeit
-//      mee (breed rechts, smal in een uitklapbalk boven de knop).
-//   4. Wat interesseert je?: de hoofdrubrieken (je Stroom-tabs) en, uitklapbaar, je Selectie.
-// "Later kiezen" kan altijd. Het seintje komt pas onder de eerste Editie (EditionView), niet hier.
+//      interesses, of Liever meteen lezen (de gratis startset, zonder sport).
+//   3. Wat interesseert je?: de hoofdrubrieken (je Stroom-tabs) en, uitklapbaar, je Selectie.
+//   4. Volg je bronnen, zoals accounts volgen: niets staat vooraf aan. Bovenaan de Basis (Nederlands
+//      nieuws, het gratis begin voorop), dan per gekozen interesse een blok met een gratis aanrader;
+//      de rest ingeklapt; zoeken vindt alles. Een voorbeeld-Editie met echte koppen groeit mee
+//      (breed rechts, smal in een uitklapbalk boven de knop).
+// Eerst de interesses, dan de bronnen: zo staan de vak- en nichebronnen bij wat je koos. "Later
+// kiezen" kan altijd. Het seintje komt pas na de eerste Editie (EditionView, AlertOffer), niet hier.
 // Het merk loopt erdoorheen: het opstartscherm landt op "hoot." linksboven op de rode intro, en bij
 // het eerste papier sluit het rood zich als een iris tot de punt van "hoot." op papier.
 // Opnieuw kiezen (Instellingen, `reopen`) en na even rondkijken (een blad met `onCancel`): geen intro
-// en geen uitleg; je begint bij je bronnen met wat nu aan staat, en Sluiten slaat niets op.
+// en geen uitleg; je begint bij je interesses met wat nu aan staat, en Sluiten slaat niets op.
 struct WelcomeView: View {
-    enum Step: String { case intro, uitleg, bronnen, interesses }
+    enum Step: String { case intro, uitleg, interesses, bronnen }
 
     var reopen = false
     var start: Step = .intro
@@ -26,13 +28,14 @@ struct WelcomeView: View {
     @Environment(\.brandHandoff) private var brand // van het opstartscherm (HootApp)
     @Environment(\.accessibilityReduceMotion) private var still
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.nachtActief) private var nacht
     @ScaledMetric(relativeTo: .largeTitle) private var hero: CGFloat = 38
     @ScaledMetric(relativeTo: .body) private var trioArt: CGFloat = 72
 
     @State private var step: Step
     @State private var query = ""
     @State private var showFollowed = false // de pil Gevolgd (anders Aanbevolen)
-    @State private var sport = false // de sportbronnen uitgeklapt
+    @State private var more = false // Meer bronnen uitgeklapt
     @State private var peekOpen = false
     @State private var selOpen = false
     @State private var chosen: [String]? // je bronnen; pas ingevuld als ze er zijn
@@ -56,7 +59,7 @@ struct WelcomeView: View {
     @State private var dotGone = false // de papieren punt op het rood is opgegaan in het rood
 
     init(reopen: Bool = false, start: Step = .intro, onCancel: (() -> Void)? = nil, onDone: @escaping () -> Void) {
-        var first = reopen ? .bronnen : start
+        var first = reopen ? .interesses : start
         #if DEBUG
         // `-HootWelcomeStep uitleg|bronnen|interesses`
         if first == .intro, let name = DebugLaunch.welcomeStep, let s = Step(rawValue: name) { first = s }
@@ -153,17 +156,24 @@ struct WelcomeView: View {
         onDone()
     }
 
+    // Later kiezen bij de interesses: zoals het was (de eerste keer dus leeg), door naar de bronnen.
+    private func laterInterests() {
+        interests = again ? store.interests : []
+        vak = again ? store.digestFields : []
+        go(.bronnen)
+    }
+
     // Later kiezen bij de bronnen: zoals het was, en de eerste keer zonder iets gevolgd de startset.
     private func laterSources() {
         if mine.isEmpty { chosen = again ? original : FollowList.startIds(store.newsSources) }
-        go(.interesses)
+        finish(interests: interests, vak: vak)
     }
 
     private func back() {
         switch step {
         case .uitleg: go(.intro)
-        case .bronnen: if again { onCancel?() } else { go(.uitleg) }
-        case .interesses: go(.bronnen)
+        case .interesses: if again { onCancel?() } else { go(.uitleg) }
+        case .bronnen: go(.interesses)
         case .intro: break
         }
     }
@@ -354,7 +364,7 @@ struct WelcomeView: View {
                     .accessibilityHint("Lezen kan ook zonder account.")
                     .frame(minHeight: Space.tap)
                     .contentShape(Rectangle())
-            } else if again && step == .bronnen {
+            } else if again && step == .interesses {
                 Button("Sluiten") { onCancel?() }
                     .font(.body.weight(.semibold))
                     .accessibilityHint("Er verandert niets.")
@@ -380,20 +390,26 @@ struct WelcomeView: View {
         .padding(.top, onCancel != nil ? Space.s2 : 0) // in een blad: even lucht onder de rand
     }
 
-    // De kop en de zin eronder, op elk papieren scherm gelijk.
-    private func heading(_ title: String, _ sub: String) -> some View {
+    // De kop en de zin eronder, op elk papieren scherm gelijk. Bij heel grote tekst begrensd (AX2 en
+    // AX1), zodat een lang woord als "interesseert" heel blijft en de inhoud eronder in beeld komt;
+    // `compact` laat de zin dan weg (de bronnen: de lijst moet boven de knoppen te zien zijn).
+    private func heading(_ title: String, _ sub: String, compact: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: Space.s2) {
             Text(title.replacingOccurrences(of: "?", with: "\u{2060}?")) // het vraagteken blijft bij zijn woord
                 .font(.system(.title, design: .serif, weight: .heavy))
                 .tracking(-0.4)
                 .fixedSize(horizontal: false, vertical: true)
+                .dynamicTypeSize(...DynamicTypeSize.accessibility2)
                 .accessibilityLabel(title)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityFocused($headFocus)
-            Text(sub)
-                .font(.body)
-                .foregroundStyle(Theme.ink2)
-                .fixedSize(horizontal: false, vertical: true)
+            if !(compact && typeSize.isAccessibilitySize) {
+                Text(sub)
+                    .font(.body)
+                    .foregroundStyle(Theme.ink2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+            }
         }
     }
 
@@ -440,13 +456,15 @@ struct WelcomeView: View {
     private var bronnen: some View {
         HStack(alignment: .top, spacing: Space.s6) {
             VStack(alignment: .leading, spacing: 0) {
-                heading("Volg je bronnen", "Kies wie je wilt lezen. Je Editie komt uit wat je volgt.")
+                heading("Volg je bronnen", "Kies wie je wilt lezen. Je Editie komt uit wat je volgt.", compact: true)
                 searchField.padding(.top, Space.s5)
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility2)
                 Flow {
                     ChoiceChip(label: "Aanbevolen", on: !showFollowed && query.isEmpty) { showFollowed = false; query = "" }
                     ChoiceChip(label: mine.isEmpty ? "Gevolgd" : "Gevolgd · \(mine.count)", on: showFollowed && query.isEmpty) { showFollowed = true; query = "" }
                 }
                 .padding(.top, Space.s3)
+                .dynamicTypeSize(...DynamicTypeSize.accessibility2)
                 sourceList
                 if !wide && typeSize.isAccessibilitySize {
                     VStack(alignment: .leading, spacing: 0) {
@@ -508,7 +526,7 @@ struct WelcomeView: View {
         } else if showFollowed {
             let list = FollowList.followed(all, mine)
             if list.isEmpty {
-                Text("Je volgt nog niets. Begin met het gratis begin bij Aanbevolen.")
+                Text("Je volgt nog niets. Begin bij de Basis.")
                     .font(.body).foregroundStyle(Theme.ink2).padding(.top, Space.s5)
             } else {
                 rows(list).padding(.top, Space.s3)
@@ -516,34 +534,50 @@ struct WelcomeView: View {
         } else {
             let start = FollowList.freeStart(all)
             let startOn = !start.isEmpty && start.allSatisfy { mine.contains($0.id) }
-            if !start.isEmpty {
-                section("Om te beginnen · gratis") {
-                    Button(startOn ? "Alle drie gevolgd" : "Volg alle drie") {
-                        let ids = start.map(\.id)
-                        chosen = startOn ? mine.filter { !ids.contains($0) } : mine + ids.filter { !mine.contains($0) }
+            let blocks = FollowList.blocks(all, interests)
+            let rest = FollowList.more(all, interests)
+            let restCount = rest.reduce(0) { $0 + $1.sources.count }
+            let basis = FollowList.basis(all)
+            if !basis.isEmpty {
+                section("Basis") {
+                    if !start.isEmpty {
+                        Button(startOn ? "Alle drie gevolgd" : "Volg alle drie") {
+                            let ids = start.map(\.id)
+                            chosen = startOn ? mine.filter { !ids.contains($0) } : mine + ids.filter { !mine.contains($0) }
+                        }
+                        .buttonStyle(.plain)
+                        .font(typeSize.isAccessibilitySize ? .caption.weight(.bold) : .subheadline.weight(.bold)) // bij grote tekst niet groter dan de kop
+                        .underline()
+                        .lineLimit(1)
+                        .fixedSize()
+                        .frame(minHeight: Space.tap)
+                        .accessibilityAddTraits(startOn ? .isSelected : [])
                     }
-                    .buttonStyle(.plain)
-                    .font(.subheadline.weight(.bold))
-                    .underline()
-                    .frame(minHeight: Space.tap)
-                    .accessibilityAddTraits(startOn ? .isSelected : [])
                 }
-                rows(start)
+                rows(basis, picks: Set(start.map(\.id)))
             }
-            ForEach(FollowList.groups(all), id: \.cat) { g in
-                if g.cat == FollowList.sport && !sport {
-                    Button { sport = true } label: {
-                        sectionHead("Sport") {
-                            Text("Toon \(g.sources.count) sportbronnen").font(.subheadline.weight(.bold)).underline()
+            ForEach(blocks, id: \.id) { b in
+                section(b.label) {
+                    Text("\(b.sources.count)").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink3).monospacedDigit()
+                }
+                rows(b.sources, picks: Set([b.pick].compactMap { $0 }))
+            }
+            if restCount > 0 {
+                if more {
+                    ForEach(rest, id: \.cat) { g in
+                        section(g.label) {
+                            Text("\(g.sources.count)").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink3).monospacedDigit()
+                        }
+                        rows(g.sources)
+                    }
+                } else {
+                    Button { more = true } label: {
+                        sectionHead("Meer bronnen") {
+                            Text("Toon \(restCount)").font(.subheadline.weight(.bold)).underline()
                         }
                     }
                     .buttonStyle(.plain)
-                    .accessibilityHint("Sport staat pas aan als je een bron volgt.")
-                } else {
-                    section(g.label) {
-                        Text("\(g.sources.count)").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink3).monospacedDigit()
-                    }
-                    rows(g.sources)
+                    .accessibilityValue("Dicht")
                 }
             }
         }
@@ -568,26 +602,28 @@ struct WelcomeView: View {
         .contentShape(Rectangle())
     }
 
-    private func rows(_ list: [Source]) -> some View {
+    private func rows(_ list: [Source], picks: Set<String> = []) -> some View {
         LazyVStack(spacing: 0) {
             ForEach(list) { s in
-                sourceRow(s)
+                sourceRow(s, pick: picks.contains(s.id))
                 Rectangle().fill(Theme.rule).frame(height: 1)
             }
         }
     }
 
-    // Eén bron: logo 40, naam, omschrijving, gratis of abonnement; rechts Volg of Volgend. Bij grote
-    // tekst staat de knop onder de tekst.
-    private func sourceRow(_ s: Source) -> some View {
+    // Eén bron: logo 40, naam, omschrijving, gratis (of de gratis aanrader van zijn blok) of
+    // abonnement; rechts Volg of Volgend. Alles in inkt: geen rood in de lijst. Bij grote tekst staat
+    // de knop onder de tekst.
+    private func sourceRow(_ s: Source, pick: Bool = false) -> some View {
         let stacked = typeSize >= .xxxLarge
         return HStack(alignment: stacked ? .top : .center, spacing: Space.s4) {
             SourceAvatar(source: s, size: 40)
             VStack(alignment: .leading, spacing: Space.s0) {
                 Text(s.name).font(.headline)
-                if let about = s.about { Text(about).font(.subheadline).foregroundStyle(Theme.ink2).fixedSize(horizontal: false, vertical: true) }
-                (Text(s.paid == true ? "Abonnement" : "Gratis").foregroundStyle(s.paid == true ? Theme.ink3 : Theme.accent) + Text(s.lang == "en" ? " · Engels" : "").foregroundStyle(Theme.ink3))
+                if let about = s.about { Text(about).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(stacked ? 2 : nil).fixedSize(horizontal: false, vertical: true) } // bij grote tekst twee regels: de Volg-knop blijft boven de voet
+                Text((s.paid == true ? "Abonnement" : pick ? "Gratis aanrader" : "Gratis") + (s.lang == "en" ? " · Engels" : ""))
                     .font(.caption.weight(.semibold))
+                    .foregroundStyle(Theme.ink3)
                 if stacked { followButton(s).padding(.top, Space.s2) }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -607,11 +643,11 @@ struct WelcomeView: View {
                 Text(on ? "Volgend" : "Volg")
             }
             .font(.subheadline.weight(.heavy))
-            .foregroundStyle(on ? Theme.ink : Theme.paper)
+            .foregroundStyle(FollowPill.label(on: on, nacht: nacht))
             .padding(.horizontal, Space.s4)
             .frame(minWidth: 104, minHeight: Space.tap)
-            .background(on ? Color.clear : Theme.ink, in: Capsule())
-            .overlay(Capsule().strokeBorder(on ? Theme.edge : Theme.ink, lineWidth: 1))
+            .background(FollowPill.fill(on: on, nacht: nacht), in: Capsule())
+            .overlay(Capsule().strokeBorder(FollowPill.edge(on: on, nacht: nacht), lineWidth: 1))
             .contentShape(Capsule())
         }
         .buttonStyle(ChoicePress())
@@ -688,7 +724,7 @@ struct WelcomeView: View {
 
     private var interessesView: some View {
         VStack(alignment: .leading, spacing: 0) {
-            heading("Wat interesseert je?", "Dit worden je tabs in de Stroom. Je Editie weegt ze mee.")
+            heading("Wat interesseert je?", "Dit worden je tabs in de Stroom. Daarna kies je je bronnen.")
             Flow {
                 ForEach(Rubriek.alle) { r in
                     ChoiceChip(label: r.label, on: interests.contains(r.id)) { interests = toggled(interests, r.id) }
@@ -749,17 +785,19 @@ struct WelcomeView: View {
         VStack(spacing: Space.s1) {
             switch step {
             case .uitleg:
-                ctaButton("Kies je bronnen", onRed: false, off: false) { go(.bronnen) }
+                ctaButton("Kies je interesses", onRed: false, off: false) { go(.interesses) }
                 linkButton("Liever meteen lezen", action: quickStart).disabled(store.newsSources.isEmpty)
-            case .bronnen:
-                Text(store.newsSources.isEmpty ? "Bronnen laden…" : FollowList.line(mine.count))
-                    .font(.footnote).foregroundStyle(Theme.ink3)
-                    .accessibilityAddTraits(.updatesFrequently)
-                ctaButton("Verder", onRed: false, off: mine.isEmpty) { go(.interesses) }
-                linkButton("Later kiezen", action: laterSources).disabled(store.newsSources.isEmpty)
+            case .interesses:
+                ctaButton("Verder", onRed: false, off: false) { go(.bronnen) }
+                linkButton("Later kiezen", action: laterInterests)
             default:
-                ctaButton("Naar je Editie", onRed: false, off: false) { finish(interests: interests, vak: vak) }
-                linkButton("Later kiezen") { finish(interests: again ? store.interests : [], vak: again ? store.digestFields : []) }
+                if !typeSize.isAccessibilitySize { // bij heel grote tekst staat het aantal al in "Gevolgd · n"
+                    Text(store.newsSources.isEmpty ? "Bronnen laden…" : FollowList.line(mine.count))
+                        .font(.footnote).foregroundStyle(Theme.ink3)
+                        .accessibilityAddTraits(.updatesFrequently)
+                }
+                ctaButton("Naar je Editie", onRed: false, off: mine.isEmpty) { finish(interests: interests, vak: vak) }
+                linkButton("Later kiezen", action: laterSources).disabled(store.newsSources.isEmpty)
             }
         }
         .dynamicTypeSize(...DynamicTypeSize.accessibility1)
@@ -800,7 +838,8 @@ struct WelcomeView: View {
 }
 
 // Volg je bronnen, als zuiver rekenwerk (getoetst in OnboardingTests), gelijk aan
-// src/lib/follow-welcome.js: het gratis begin, de rubrieken, zoeken, de startset en het voorbeeld.
+// src/lib/follow-welcome.js: de Basis, de blokken per interesse, Meer bronnen, zoeken, de startset en
+// het voorbeeld.
 enum FollowList {
     static let freeStart = ["nos", "nu", "rtl"]
     static let sport = "sport"
@@ -821,6 +860,53 @@ enum FollowList {
     @MainActor static func startIds(_ sources: [Source]) -> [String] {
         let free = Set(sources.filter { $0.paid != true }.map(\.id))
         return HootStore.starter.filter(free.contains)
+    }
+
+    // De Basis: het Nederlandse nieuws in het kort: het gratis begin voorop, dan de kranten die de
+    // catalogus aanraadt (`pick`). De andere Nederlandse titels staan onder Meer bronnen.
+    static let basisCat = "nl"
+    static func basis(_ sources: [Source]) -> [Source] {
+        let start = freeStart(sources)
+        let ids = Set(start.map(\.id))
+        return start + sources.filter { $0.cat == basisCat && $0.pick == true && !ids.contains($0.id) }.sorted(by: byName)
+    }
+
+    // Bij een interesse horen de bronnen uit zijn rubrieken (Wereld krijgt er Internationaal bij), die
+    // de catalogus ervoor aanraadt (`for`) en die van een van zijn onderwerpen (`forTopic`). Niet de Basis.
+    private static let extraCats: [String: Set<String>] = ["wereld": ["int"]]
+    static func fits(_ s: Source, _ r: Rubriek) -> Bool {
+        guard s.cat != basisCat else { return false }
+        let cats = r.cats.union(extraCats[r.id] ?? [])
+        return cats.contains(s.cat ?? "") || (s.forInterests ?? []).contains(r.id) || s.forTopic.map(r.topics.contains) == true
+    }
+
+    // De gratis aanrader: gratis, liefst Nederlands en door de catalogus aangeraden (voor de interesse
+    // zelf telt zwaarder dan voor een onderwerp). Gelijk aan freePick op het web.
+    static func freePick(_ list: [Source], _ interest: String? = nil) -> Source? {
+        func score(_ s: Source) -> Int { (s.lang == "nl" ? 4 : 0) + ((s.forInterests ?? []).contains(interest ?? "") ? 2 : 0) + (s.pick == true ? 1 : 0) }
+        return list.filter { $0.paid != true }.sorted { score($0) != score($1) ? score($0) > score($1) : byName($0, $1) }.first
+    }
+
+    struct Block { let id: String; let label: String; let pick: String?; let sources: [Source] }
+
+    // Per gekozen interesse (vaste volgorde) een blok: de gratis aanrader voorop, dan de rest op naam.
+    // Elke bron staat één keer: in het eerste blok waar hij hoort. Zo heeft elk blok ook één aanrader.
+    static func blocks(_ sources: [Source], _ interests: [String]) -> [Block] {
+        var seen = Set<String>()
+        return Rubriek.alle.filter { interests.contains($0.id) }.compactMap { r in
+            let list = sources.filter { !seen.contains($0.id) && fits($0, r) }.sorted(by: byName)
+            guard !list.isEmpty else { return nil }
+            seen.formUnion(list.map(\.id))
+            let pick = freePick(list, r.id)
+            return Block(id: r.id, label: r.label, pick: pick?.id, sources: pick.map { p in [p] + list.filter { $0.id != p.id } } ?? list)
+        }
+    }
+
+    // Meer bronnen (ingeklapt): wat niet in de Basis of een blok staat, per rubriek (ook de andere
+    // Nederlandse titels); geen sport.
+    static func more(_ sources: [Source], _ interests: [String]) -> [(cat: String, label: String, sources: [Source])] {
+        let shown = Set(basis(sources).map(\.id) + blocks(sources, interests).flatMap { $0.sources.map(\.id) })
+        return groups(sources.filter { !shown.contains($0.id) && $0.cat != sport })
     }
 
     // Alle bronnen per rubriek, zonder het gratis begin; wat in geen rubriek valt als Overig achteraan.
@@ -899,3 +985,12 @@ struct WelcomeMark: View {
     }
 }
 
+
+// Kleuren van de Volg-pil. In Nacht is inkt een licht vlak, te fel op zwart: daar, net als de hoofdknop
+// (InkButtonStyle) en .btn in de Nacht-regels van src/styles.css, een gedempt vlak (inkt op 20 %) met de
+// leesinkt als tekst. Volgend blijft stil: geen vlak, een haarlijn.
+enum FollowPill {
+    static func fill(on: Bool, nacht: Bool) -> Color { on ? .clear : (nacht ? Theme.ink.opacity(0.2) : Theme.ink) }
+    static func label(on: Bool, nacht: Bool) -> Color { on || nacht ? Theme.ink : Theme.paper }
+    static func edge(on: Bool, nacht: Bool) -> Color { on ? Theme.edge : fill(on: false, nacht: nacht) }
+}

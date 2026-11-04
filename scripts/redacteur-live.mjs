@@ -6,7 +6,9 @@
 //   node scripts/redacteur-live.mjs --json     ruwe uitvoer
 //
 // Algemene Editie: zoals build.mjs (selectEdition op alle berichten met de basisbronnen als eigen
-// bronnen), op de berichten die er bij het samenstellen al waren (publishedAt ≤ builtAt). De feed
+// bronnen), op de berichten die er bij het samenstellen al waren (publishedAt ≤ builtAt). Ook het
+// bundelen gaat zoals op de server (uitgebreide stand, met `keys`): de gewone stand liet op de
+// verkiezingsnacht van 4 november de Nederlandse uitslagbundel uit elkaar vallen, wat de server niet doet. De feed
 // bevat alleen de basisbronnen plus de stukken van verhalen (`related`): losse stukken van andere
 // bronnen ontbreken, maar die doen in selectEdition niet mee. Beginnerseditie: zoals het web nu
 // rekent (usePersonalEdition): de huidige feed, now = builtAt, de negen basisbronnen, geen keuzes.
@@ -23,7 +25,7 @@ export function liveGeneral(feed = loadLive()) {
   const now = Date.parse(feed.edition.builtAt)
   const all = new Map([...feed.related, ...feed.items, ...feed.edition.items].map((i) => [i.id, i]))
   const articles = [...all.values()].filter((i) => i.kind === 'article' && Date.parse(i.publishedAt) <= now)
-  const stories = buildStories(articles, {}, { mainIds: MAIN_IDS })
+  const stories = buildStories(articles, {}, { mainIds: MAIN_IDS, keys: true, extended: true })
   const entries = selectEdition(stories, articles, { mainIds: MAIN_IDS, now })
   return { now, articles, stories, entries, byId: new Map(articles.map((i) => [i.id, i])) }
 }

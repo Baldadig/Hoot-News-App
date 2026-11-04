@@ -105,7 +105,8 @@ const UID = 'u1'
 const otherDevice = (a) => {
   if (!a) return { n: 12, topics: { voetbal: 6, economie: 4 }, sources: { nos: 8, nu: 4 } }
   const half = (o) => Object.fromEntries(Object.entries(o || {}).map(([k, v]) => [k, Math.round(v * 50) / 100]))
-  return { n: Math.max(8, Math.round((a.n || 0) / 2)), topics: half(a.topics), sources: half(a.sources) }
+  // Het andere toestel las ook iets anders (voetbal, economie): zonder dat is een lezer die één onderwerp volgt op beide gelijk.
+  return { n: Math.max(8, Math.round((a.n || 0) / 2)), topics: { ...half(a.topics), voetbal: 6, economie: 4 }, sources: half(a.sources) }
 }
 // Een toestel: zijn samensteller met zijn eigen invoer, en wat er lokaal ligt.
 const device = ({ setup, affinity, readIds, local = null }) => ({
