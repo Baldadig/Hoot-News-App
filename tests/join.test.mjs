@@ -70,5 +70,6 @@ test('geen uitnodigingspaden of -teksten meer op het web', () => {
 test('landing: de FAQ zegt dat een account voor iedereen is', () => {
   const html = readFileSync(new URL('../landing/index.src.html', import.meta.url), 'utf8')
   assert.doesNotMatch(html, /op uitnodiging/)
-  assert.match(html, /Wil je je Editie en Bewaard op meer toestellen\? Maak gratis een account\./)
+  assert.match(html, /Wil je je bronnen en Bewaard op al je toestellen\? Maak dan gratis een account\./)
+  assert.match(html, /<summary>Heb ik een account nodig\?<\/summary>/)
 })

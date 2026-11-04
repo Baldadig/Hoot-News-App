@@ -1,5 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { INLINE } from '../landing/inline.mjs'
 
 // Voert het inline script van de landing uit met een nagebootste adresbalk; geeft het doel of null.
@@ -20,4 +21,14 @@ test('landing: oude app-links en uitnodigingen gaan mee; gewone ankers blijven o
   assert.equal(run('?uitnodiging=abc', ''), '/lees/?uitnodiging=abc')
   assert.equal(run('', '#stroom'), null)
   assert.equal(run('', ''), null)
+})
+
+const SRC = readFileSync(new URL('../landing/index.src.html', import.meta.url), 'utf8')
+// Alleen de zichtbare tekst en de attributen die voorgelezen of gedeeld worden; geen opmaak.
+const tekst = (html) => html.replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')
+
+test('landing: overal dezelfde accountzin, en een eigen vraag over het account', () => {
+  assert.doesNotMatch(SRC, /Gratis, zonder account|Geen account nodig|Gratis lezen\./)
+  assert.ok((SRC.match(/Gratis, met of zonder account\./g) || []).length >= 3)
+  assert.match(SRC, /<summary>Heb ik een account nodig\?<\/summary>\s*<p>Nee\. Je kunt meteen lezen\. Met een gratis account heb je je bronnen en Bewaard op al je toestellen\.<\/p>/)
 })
