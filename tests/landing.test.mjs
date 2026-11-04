@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { INLINE } from '../landing/inline.mjs'
+import { appStore, APP_URL } from '../landing/appstore.mjs'
 
 // Voert het inline script van de landing uit met een nagebootste adresbalk; geeft het doel of null.
 const run = (search, hash) => {
@@ -25,11 +26,17 @@ test('landing: oude app-links en uitnodigingen gaan mee; gewone ankers blijven o
 
 const SRC = readFileSync(new URL('../landing/index.src.html', import.meta.url), 'utf8')
 // Alleen de zichtbare tekst en de attributen die voorgelezen of gedeeld worden; geen opmaak.
+// De pagina zoals build.mjs hem vult, met de App Store-plekken uit of aan.
+const vul = (aan) => SRC.replace(/\{\{(APPSTORE_\w+)\}\}/g, (_, k) => appStore(aan)[k])
 const tekst = (html) => html.replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')
 
 test('landing: overal dezelfde accountzin, en een eigen vraag over het account', () => {
-  assert.doesNotMatch(SRC, /Gratis, zonder account|Geen account nodig|Gratis lezen\./)
-  assert.ok((SRC.match(/Gratis, met of zonder account\./g) || []).length >= 3)
+  for (const aan of [false, true]) {
+    const html = vul(aan)
+    assert.doesNotMatch(html, /Gratis, zonder account|Geen account nodig|Gratis lezen\./)
+    // meta, held (desktop en mobiel) en slot
+    assert.ok((html.match(/Gratis, met of zonder account\./g) || []).length >= 4)
+  }
   assert.match(SRC, /<summary>Heb ik een account nodig\?<\/summary>\s*<p>Nee\. Je kunt meteen lezen\. Met een gratis account heb je je bronnen en Bewaard op al je toestellen\.<\/p>/)
 })
 
@@ -70,4 +77,23 @@ test('landing: de voorbeelden zijn van 1.1.0 (nummers, bubbel apart, Bluesky, Se
   const sel = SRC.slice(SRC.indexOf('id="demo-selectie"'), SRC.indexOf('<!-- 04 De Redacteur'))
   assert.ok(sel.indexOf('sc-inhoud') > 0 && sel.indexOf('sc-inhoud') < sel.indexOf('sc-kaart'), 'de inhoud staat boven het eerste stuk')
   assert.doesNotMatch(sel, /sc-chip/)
+})
+
+test('landing: de App Store staat klaar achter één regel in build.mjs', () => {
+  // Nu uit: de App Store-pagina geeft nog 404.
+  assert.match(BUILD, /^const APP_STORE = false;$/m)
+  for (const k of ['APPSTORE_META', 'APPSTORE_HELD', 'APPSTORE_EINDE', 'APPSTORE_VRAAG']) assert.ok(SRC.includes(`{{${k}}}`), k)
+  const uit = vul(false), aan = vul(true)
+  assert.doesNotMatch(uit, /apps\.apple\.com|apple-itunes-app/)
+  assert.match(uit, /<p class="wacht">[\s\S]*?Binnenkort[\s\S]*?<\/p>/)
+  assert.match(uit, /<summary>Wanneer staat Hoot in de App Store\?<\/summary>\s*<p>Binnenkort, in Nederland en België\./)
+  assert.equal(APP_URL, 'https://apps.apple.com/nl/app/id6828037269')
+  assert.match(aan, /<meta name="apple-itunes-app" content="app-id=6828037269">/)
+  assert.match(aan, new RegExp(`<a class="wacht" href="${APP_URL}">`))
+  assert.match(aan, new RegExp(`Ook in de <a href="${APP_URL}">App Store</a>\\.`))
+  assert.doesNotMatch(aan, /Binnenkort/)
+  // De hover-ring alleen op de link, niet op de pil die (nog) tekst is.
+  const css = readFileSync(new URL('../landing/hoot.css', import.meta.url), 'utf8')
+  assert.doesNotMatch(css, /(^|[^a])\.wacht:hover/)
+  assert.match(css, /a\.wacht:hover\{box-shadow/)
 })

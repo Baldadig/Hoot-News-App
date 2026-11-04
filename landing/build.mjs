@@ -27,6 +27,11 @@ for (const [n, p] of Object.entries(fonts)) fs.copyFileSync(p, path.join(OUT, 'f
 const dOf = f => fs.readFileSync(APP + '/public/brand/' + f, 'utf8').match(/<path[^>]* d="([^"]+)"/)[1];
 const WM_D = dOf('hoot-logo-ink.svg'), MARK_D = dOf('hoot-mark-ink.svg');
 
+// App Store: op true zodra https://apps.apple.com/nl/app/id6828037269 bereikbaar is (na Apples akkoord op de handelaarsstatus).
+const APP_STORE = false;
+const { appStore } = await import('./appstore.mjs');
+const AS = appStore(APP_STORE);
+
 // het kleine inline script: oude #/-links doorsturen, en de js-klasse
 const { INLINE } = await import('./inline.mjs');
 const HASH = 'sha256-' + crypto.createHash('sha256').update(INLINE).digest('base64');
@@ -68,7 +73,7 @@ const L = {
 const PANELEN = Object.entries(L).map(([k, arr]) =>
   `<div class="sc-lijst" data-pan="${k}"${k === 'alles' ? '' : ' hidden'}>${arr.map(i => i === 'HIER' ? '<div class="sc-hier">Hier was je gebleven</div>' : typeof i === 'string' ? i : item(i)).join('')}</div>`).join('');
 
-const fill = (t) => t.replace(/\{\{(\w+)\}\}/g, (_, k) => ({ CSSFILE, JSFILE, INLINE, WM_D, MARK_D, PANELEN })[k]).replace(/<!--[\s\S]*?-->\n?/g, '');
+const fill = (t) => t.replace(/\{\{(\w+)\}\}/g, (_, k) => ({ CSSFILE, JSFILE, INLINE, WM_D, MARK_D, PANELEN, ...AS })[k]).replace(/<!--[\s\S]*?-->\n?/g, '');
 fs.writeFileSync(path.join(OUT, 'index.html'), fill(rd('index.src.html')));
 fs.writeFileSync(path.join(OUT, '404.html'), fill(rd('404.src.html')));
 
