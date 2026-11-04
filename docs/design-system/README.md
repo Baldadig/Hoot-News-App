@@ -84,7 +84,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 - **Het verhaal wint van de schermtitel** (C7). De schermtitel (`head-5`, 27/32) zegt waar je bent; het oog landt op het nieuws: de kop van het hoofdverhaal (`head-6`, 30/36, vanaf 720 px 34/40) is altijd groter. Op het web staat dit zo; iOS volgt (I5): schermtitel `Theme.headline(.title)`, hoofdverhaal `.largeTitle` serif.
 - **Koppen** krijgen `text-wrap: balance` (hoofdverhaal) of `pretty` (berichten) en breken nooit af met "…".
 - **Intro's:** bij het hoofdverhaal hele zinnen (4–6 regels). In een lijst kies je zelf 1–3 regels of de hele intro; een ingekorte intro eindigt met "…", zodat je ziet dat er meer is.
-- **De lezer** zet lopende tekst in Newsreader Tekst (met echt vet en cursief): 1,06rem × je tekstgrootte, regelafstand 1.6, hooguit `readable` breed; de kop in Newsreader 800, kicker, bronregel en bijschriften in Inter.
+- **De lezer** zet lopende tekst in Newsreader Tekst (met echt vet en cursief): 1,12rem × je tekstgrootte (was 1,06 in New York; Newsreader oogt op dezelfde maat kleiner), regelafstand 1.6, hooguit `readable` breed; de kop in Newsreader 800, kicker, bronregel en bijschriften in Inter.
 
 ## Ruimte en vorm
 

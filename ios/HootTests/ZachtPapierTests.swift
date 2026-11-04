@@ -13,7 +13,7 @@ import SwiftUI
     func testReaderOutsideNightIsByteIdenticalToBaseline() {
         let html=Self.reader(night:false)
         let hash=SHA256.hash(data:Data(html.utf8)).map{String(format:"%02x",$0)}.joined()
-        XCTAssertEqual(hash,"fe45d027276acbe96abe20023dda241bb10d0bdb9b8a49b6a63fdfaa1accba58")
+        XCTAssertEqual(hash,"72aca34859bceffc4fa4b97e8011070e29b8243c004e22902355b15041b0fa2b")
         XCTAssertFalse(html.contains("--paper:#000000"))
     }
     func testOnlyNightUsesChosenInk() {
