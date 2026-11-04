@@ -666,9 +666,12 @@ struct LeadCard: View {
 
     @ViewBuilder private var image: some View {
         if let imageHeight {
-            RemoteImage(url: ImageURL.url(item.image, .large))
+            // Een leeg vlak op maat met het beeld erover: een gevuld beeld zou zijn eigen breedte opeisen
+            // (hoogte × verhouding) en de zijkolom ernaast uit het raster duwen.
+            Color.clear
                 .frame(maxWidth: .infinity)
                 .frame(height: imageHeight)
+                .overlay { RemoteImage(url: ImageURL.url(item.image, .large)) }
                 .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
         } else {
             MeasuredLeadImage(item: item, spacious: spacious)
@@ -772,9 +775,10 @@ struct ItemRow: View {
             Group {
                 if let boven, hasPicture {
                     VStack(alignment: .leading, spacing: Space.s3) {
-                        RemoteImage(url: picture(.large))
+                        Color.clear
                             .frame(maxWidth: .infinity)
                             .frame(height: boven)
+                            .overlay { RemoteImage(url: picture(.large)) }
                             .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
                         text
                     }
