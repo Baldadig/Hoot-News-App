@@ -24,6 +24,7 @@ import { labelFor } from '../lib/label.js'
 import { wholeSentences } from '../../shared/zinnen.mjs'
 import { usePrintEdition } from '../hooks/usePrintEdition.js'
 import { useIntroMax } from '../lib/intro.js'
+import { usePullHorizon } from '../components/PullHorizon.jsx'
 
 // Rubriek van elke plek in de editie (komt van de server), als label boven het verhaal. Zelfde
 // namen als DESK_NAMES in shared/editor.mjs; 'regio' is de plek die De Redacteur uit je regionale
@@ -151,6 +152,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
 
   const title = SLOTS[edition?.slot]?.naam || 'Editie' // de naam van het dagdeel (shared/slots.mjs)
   const ready = !loading && !failedLoad && rows.length > 0
+  const pull = usePullHorizon(ref, { onRefresh, busy: refreshing, failed: statusProps?.refreshError, label: 'Editie', enabled: ready })
   const sub = edition ? longDate(edition.date).replace(/^./, (c) => c.toUpperCase()) : null
 
   // Eén keer na het eerste Welkom: wat "Jouw Editie" in de metaregel betekent (src/lib/welcome.js).
@@ -171,6 +173,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
+      {pull}
       <div className="col col--wide col--front">
         {/* De kop van de Editie: titel en één metaregel (datum · weer · wiens Editie); de inktlijn
             eronder is het begin van het nieuws. Eén blok, zodat de kleur "Inkt" er een band van kan

@@ -15,6 +15,7 @@ import { useSelectionFold } from '../hooks/useSelectionFold.js'
 import { vakByDomain, VAK_FIELDS } from '../../shared/vak.mjs'
 import { wholeSentences } from '../../shared/zinnen.mjs'
 import { useIntroMax } from '../lib/intro.js'
+import { usePullHorizon } from '../components/PullHorizon.jsx'
 
 const DAY = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long', timeZone: 'Europe/Amsterdam' })
 const WEEKDAY = new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Amsterdam' })
@@ -183,8 +184,11 @@ export default function Vak({ active, digest, status, onRefresh }) {
     </Disclosure>
   ) : null
 
+  const pull = usePullHorizon(ref, { onRefresh, busy: status === 'refreshing' || status === 'loading', failed: status === 'error', label: 'Selectie', enabled: !!digest && chosen.length > 0 })
+
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Selectie">
+      {pull}
       <div className="col col--wide">
         <ViewHeader title="Selectie" onRefresh={onRefresh} refreshing={status === 'refreshing' || status === 'loading'} />
 

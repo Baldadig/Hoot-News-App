@@ -644,6 +644,42 @@ select {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Trekken om te verversen: Horizon v2 (components/PullHorizon.jsx, lib/pull-horizon.js). De strook
+   staat boven de kolom en groeit met je trek; de kolom schuift mee omlaag (alleen transform). De
+   tekening hangt aan de onderkant: horizon 8 boven de rand, zon en ringen in de lucht erboven.
+   Sterke lijn op de drempel: inkt, in Nacht inkt 2 (een lijn van 358 licht 's avonds niet op). */
+.view { --pull-strong: var(--ink); }
+:root[data-theme='night'] .view { --pull-strong: var(--ink-2); }
+.pull {
+  position: absolute;
+  top: var(--safe-t);
+  left: 0;
+  right: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.pull__art {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 128px;
+}
+.pull__art svg { position: absolute; left: 0; bottom: 0; display: block; overflow: hidden; }
+/* Foutzin: 15/20 in inkt 3, gecentreerd in de kolom, onderkant 16 boven de horizon. */
+.pull__msg {
+  position: absolute;
+  bottom: 24px;
+  height: 20px;
+  font-size: 15px;
+  line-height: 20px;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--ink-3);
+  opacity: 0;
+}
+
 .col {
   max-width: var(--readable);
   margin: 0 auto;
