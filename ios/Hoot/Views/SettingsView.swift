@@ -9,6 +9,7 @@ import SwiftUI
 // - wissen alleen na bevestiging, met Annuleer.
 struct SettingsView: View {
     @Environment(\.nachtActief) private var nacht
+    @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(HootStore.self) private var store
     @Environment(Account.self) private var account
     @Environment(\.dismiss) private var dismiss
@@ -103,15 +104,26 @@ struct SettingsView: View {
                     }
                     // Als een segment, direct te zien in de Stroom erachter: tijdlijn (het beeld groot onder de
                     // kop, zoals een tijdlijn) of krant (klein ernaast, zoals een krantensite).
-                    VStack(alignment: .leading, spacing: Space.s2) {
-                        FormLabel("Lees de Stroom als", systemImage: "rectangle.grid.1x2")
-                        Picker("Lees de Stroom als", selection: $store.layout) {
+                    // Het systeemsegment volgt de tekstgrootte niet (I5): bij de toegankelijkheidsmaten
+                    // dezelfde keuzerij als Beeld en Intro, die wel meegroeit.
+                    if typeSize.isAccessibilitySize {
+                        Picker(selection: $store.layout) {
                             Text("Tijdlijn").tag("tijdlijn")
                             Text("Krant").tag("krant")
+                        } label: {
+                            FormLabel("Lees de Stroom als", systemImage: "rectangle.grid.1x2")
                         }
-                        .pickerStyle(.segmented)
-                        .colorMultiply(nacht ? Theme.ink : .white)
-                        .labelsHidden()
+                    } else {
+                        VStack(alignment: .leading, spacing: Space.s2) {
+                            FormLabel("Lees de Stroom als", systemImage: "rectangle.grid.1x2")
+                            Picker("Lees de Stroom als", selection: $store.layout) {
+                                Text("Tijdlijn").tag("tijdlijn")
+                                Text("Krant").tag("krant")
+                            }
+                            .pickerStyle(.segmented)
+                            .colorMultiply(nacht ? Theme.ink : .white)
+                            .labelsHidden()
+                        }
                     }
                     Picker(selection: $store.preview) {
                         Text("1 regel").tag(1)
