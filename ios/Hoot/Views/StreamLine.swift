@@ -57,15 +57,15 @@ struct StreamLine: View {
     private static let scale = small / logo
     private static let step = Space.s4 // dicht: half over elkaar
     private static let peekStep = Space.s4 + Space.s1 // met de aanwijzer erover
-    private static let stepOpen = Space.tap // open: knoppen van 44 naast elkaar, 8 tussen de logo's
+    private static let stepOpen = Space.tap + Space.s0 // open: knoppen van 44 met 2 ertussen: 10 tussen de logo's, 2 tussen de ringen
     private static let pad = Space.s2 // binnenrand van de stapelknop, en tussen naam en logo's
     private static let edgeBasis = (Space.tap - small) / 2 // 8: het voorste logo in een vak van 44 aan de rand
     // Drie logo's in de stapel; bij grote tekst één, zodat de rubrieken ruimte houden ("Buiten je bubbel" heel).
     private var deckMax: Int { typeSize.isAccessibilitySize ? 1 : 3 }
     private static let ring: CGFloat = 3.2 // papierring om het logo; dicht 3,2 × 28/36 = 2,5
-    // Uitloop van de rij: de rode ring vult het vak van 44 en het vinkje steekt er 2 buiten, en
-    // het vak van Alle bronnen schuift tot 8 voorbij de kolomlijn (onder de knop rechtsboven).
-    // Zoveel mag de rij buiten zijn rand tekenen, aan de kant zonder zachte rand: 8 + 2 ≤ 12.
+    // Uitloop van de rij: ring en vinkje blijven binnen het vak van 44, en open eindigt Alle bronnen
+    // binnen de kolomlijn (zie `openRand`). Toch mag de rij tot 12 buiten zijn rand tekenen, aan de
+    // kant zonder zachte rand, zodat niets ooit wordt afgesneden (focusring, Dynamische tekst).
     private static let uitloop = Space.s3
     private nonisolated static let ruimte = "rubrieken" // coördinaten van de rubriekenrij
 
@@ -204,13 +204,13 @@ struct StreamLine: View {
 
     // ---- Bronnen ----
 
-    // Open staat elk bolletje op zijn eigen plek in de rij (van rechts naar links, stap 44). Dicht
+    // Open staat elk bolletje op zijn eigen plek in de rij (van rechts naar links, stap 46). Dicht
     // schuift het terug naar zijn plek in de stapel (stap 16, 28 groot) of verdwijnt erachter; Alle
     // bronnen ligt dan onzichtbaar op het voorste logo, en verschijnt daar bij openen.
     private func bronnenRij(deck: [String]) -> some View {
         let bollen = [Bol(id: Bol.alle, bron: nil)] + bronnen.map { Bol(id: $0.id, bron: $0) }
         return ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 0) {
+            HStack(spacing: Space.s0) {
                 ForEach(Array(bollen.enumerated().reversed()), id: \.element.id) { i, b in
                     bolletje(b, i: i, deck: deck)
                         // Voorlezen zoals je kijkt: eerst Alle bronnen (rechts), dan naar links.
@@ -247,7 +247,9 @@ struct StreamLine: View {
         let k = deck.firstIndex(of: b.id)
         let stap = peek ? Self.peekStep : Self.step
         var x: CGFloat = 0, schaal: CGFloat = 1, zicht: Double = 1
-        if !open {
+        if open {
+            x = -openRand // Alle bronnen eindigt binnen de kolomrand, ring en vinkje heel
+        } else {
             schaal = Self.scale
             if alle { zicht = 0 }
             else if let k { x = CGFloat(i) * Self.stepOpen - CGFloat(k) * stap }
@@ -279,7 +281,6 @@ struct StreamLine: View {
                     .background(Theme.accent, in: Circle())
                     .padding(Space.s0)
                     .background(Theme.paper, in: Circle())
-                    .offset(x: Space.s0, y: Space.s0)
                     .scaleEffect(vinkje ? 1 : 0.6)
                     .opacity(vinkje ? 1 : 0)
                     .animation(vinkje && !open ? snel?.delay(0.22) : snel, value: vinkje)
@@ -410,6 +411,10 @@ struct StreamLine: View {
     private var deck: [String] { (picks.isEmpty ? bronnen : chosen).prefix(deckMax).map(\.id) }
     private var namen: String { Self.opsomming(chosen.map(\.name)) }
     private var keuze: String { picks.count == 1 ? chosen.first?.name ?? "1 bron" : "\(picks.count) bronnen" }
+
+    // Open: hoeveel de rij naar links schuift zodat het vak van Alle bronnen niet voorbij de kolomrand
+    // (de inktlijn) komt. Dicht ligt het voorste logo onder het tandwiel, en daar blijft het.
+    private var openRand: CGFloat { max(0, Self.edgeBasis - edge) }
 
     // Kolomrand tot het voorste logo, zodat het op de as van de knop rechtsboven ligt: 8 als de
     // werkbalk dezelfde marge heeft als de kolom (16). Die marge meten we, want hij verschilt per

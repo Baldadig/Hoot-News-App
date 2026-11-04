@@ -5140,6 +5140,7 @@ html[data-images='hoofd'] .media--social {
   flex-direction: row-reverse;
   align-items: center;
   padding: var(--uit);
+  gap: 2px; /* STEP_OPEN − TAP: de rode ringen van twee gekozen bolletjes raken elkaar niet */
   overflow: hidden;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
