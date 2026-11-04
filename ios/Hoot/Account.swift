@@ -7,7 +7,7 @@ import UIKit
 import os
 
 // Je Hoot-account: hetzelfde als op hootnews.nl (Supabase), zodat je editie, je bronnen en Bewaard
-// overal gelijk zijn. Inloggen met Google of Apple; Hoot is (nog) op uitnodiging, net als de website.
+// overal gelijk zijn. Inloggen met Google of Apple; een account is er voor iedereen, net als op de website.
 //
 // Synchroniseren in het kort (de website doet hetzelfde, zie src/lib/syncEngine.js):
 // - Van wie is wat hier staat? `hoot.owner`: niemand (anoniem) of een gebruikers-id. Anonieme
@@ -27,7 +27,8 @@ final class Account {
         #endif
     }
 
-    enum Status: Equatable { case out, loading, member, noInvite }
+    // pending: ingelogd, maar je profiel ontbreekt nog (zie resolve). Dan synchroniseert er niets.
+    enum Status: Equatable { case out, loading, member, pending }
     enum SyncState: Equatable { case idle, syncing, ok, failed }
 
     private(set) var status: Status
@@ -35,6 +36,9 @@ final class Account {
     private(set) var syncedAt: Date?
     private(set) var session: Session?
     var message: String? // wat er misging, in gewone woorden
+    // Hoot uit je Apple ID halen lukte niet bij het verwijderen: je account bestaat nog en de
+    // pagina vraagt Opnieuw of Toch verwijderen. Nooit stil wissen.
+    private(set) var appleFailed = false
 
     private weak var store: HootStore?
     // Ook opnieuw inloggen als dezelfde gebruiker is een nieuwe sessie. Oude antwoorden,
@@ -195,15 +199,29 @@ final class Account {
         if session == nil { status = .out } else if status == .loading { status = .out }
     }
 
-    // ---- Lid of niet ----
+    // ---- Je profiel ----
+    // Wie inlogt, krijgt in de database meteen een profiel (supabase/migrations/20261104_open_accounts.sql).
+    // Ontbreekt het toch, dan één keer het vangnet rpc/join en opnieuw lezen, net als de website
+    // (src/lib/membership.js). Lukt ook dat niet: `pending`, en Opnieuw op de accountpagina.
     private func resolve() async {
         guard let s = session else { status = .out; return }
         let version = generation
         do {
-            let data = try await call("rest/v1/profiles?select=id&id=eq.\(s.uid)")
+            var found = try await hasProfile(s.uid)
             guard current(version, s.uid) else { return }
-            let rows = (try JSONSerialization.jsonObject(with: data) as? [Any]) ?? []
-            status = rows.isEmpty ? .noInvite : .member
+            if !found {
+                do {
+                    _ = try await call("rest/v1/rpc/join", method: "POST", body: [String: String]())
+                    guard current(version, s.uid) else { return }
+                    found = try await hasProfile(s.uid)
+                    guard current(version, s.uid) else { return }
+                } catch Failure.signedOut {
+                    throw Failure.signedOut
+                } catch {
+                    guard current(version, s.uid) else { return } // geen verbinding of geen vangnet: pending
+                }
+            }
+            status = found ? .member : .pending
             if status == .member { await pull() }
         } catch Failure.signedOut {
             guard current(version, s.uid) else { return }
@@ -216,25 +234,15 @@ final class Account {
         }
     }
 
-    // Een uitnodigingscode (de code achter ?uitnodiging= in je link, of de hele link).
-    func redeem(_ input: String) async {
-        let version = generation, identity = session?.uid
-        let code = input.split(separator: "uitnodiging=").last.map { String($0.prefix { $0 != "&" }) }?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        guard !code.isEmpty else { return }
-        do {
-            let data = try await call("rest/v1/rpc/redeem_invite", method: "POST", body: ["p_code": code])
-            guard current(version, identity) else { return }
-            if String(data: data, encoding: .utf8)?.contains("true") == true {
-                message = nil
-                status = .member
-                await pull()
-            } else {
-                message = "Deze code werkt niet. Vraag een nieuwe uitnodiging."
-            }
-        } catch {
-            guard current(version, identity) else { return }
-            message = "Dat lukte niet. Probeer het opnieuw."
-        }
+    private func hasProfile(_ uid: String) async throws -> Bool {
+        let data = try await call("rest/v1/profiles?select=id&id=eq.\(uid)")
+        return !((try JSONSerialization.jsonObject(with: data) as? [Any]) ?? []).isEmpty
+    }
+
+    // Je account is er bijna: nog eens proberen (de knop Opnieuw).
+    func retry() async {
+        guard status == .pending else { return }
+        await resolve()
     }
 
     func signOut() async {
@@ -267,24 +275,45 @@ final class Account {
     // Account verwijderen: alles op de server weg (profiel, instellingen, Bewaard). Wat op dit
     // toestel staat, blijft. Ingelogd met Apple? Dan eerst Hoot uit je Apple ID halen (Apple eist
     // dit, richtlijn 5.1.1(v)): Apple vraagt even om een bevestiging, en met die verse code trekt
-    // de server de toegang in. Annuleer je dat, dan blijft je account bestaan.
-    func deleteAccount() async -> Bool {
+    // de server de toegang in. Daarna pas wissen.
+    // - Zelf geannuleerd: niets gewist, een korte melding.
+    // - Apple of de server faalt: niets gewist; `appleFailed` en de pagina vraagt Opnieuw of Toch
+    //   verwijderen. Na het wissen weet niemand meer welk Apple-account het was, dus niet stil.
+    // - `skipApple` (Toch verwijderen): wissen zonder intrekken, en zeggen wat je zelf nog doet.
+    func deleteAccount(skipApple: Bool = false) async -> Bool {
         guard !Self.localBeta else { return false }
         let version = generation, identity = session?.uid
+        appleFailed = false
+        message = nil
         do {
-            let apple = try await signedInWithApple()
+            let apple = skipApple ? false : try await signedInWithApple()
             guard current(version, identity) else { return false }
             if apple {
                 let code: String?
-                do { code = try await AppleReauth().code() } catch { return false } // zelf geannuleerd: niets verwijderd
+                do { code = try await reauth() }
+                catch let error as ASAuthorizationError where error.code == .canceled {
+                    guard current(version, identity) else { return false }
+                    message = "Je account blijft bestaan."
+                    return false
+                } catch {
+                    code = nil
+                }
                 guard current(version, identity) else { return false }
-                if let code { await revokeApple(code) } else { Self.log.error("Apple gaf geen code; account wordt toch verwijderd") }
+                var revoked = false
+                if let code { revoked = await revokeApple(code) }
+                guard current(version, identity) else { return false }
+                if !revoked {
+                    Self.log.error("Intrekken bij Apple mislukt; niets verwijderd")
+                    appleFailed = true
+                    return false
+                }
             }
             guard current(version, identity) else { return false }
             _ = try await call("rest/v1/rpc/delete_my_account", method: "POST", body: [String: String]())
             guard current(version, identity) else { return false }
             forget()
             UserDefaults.standard.removeObject(forKey: "hoot.owner")
+            if skipApple { message = "Je account is verwijderd. Haal Hoot nog weg in Instellingen › je naam › Inloggen met Apple." }
             return true
         } catch {
             guard current(version, identity) else { return false }
@@ -292,6 +321,12 @@ final class Account {
             return false
         }
     }
+
+    // De melding over Apple sluiten zonder te kiezen: je account blijft bestaan.
+    func dismissAppleFailure() { appleFailed = false }
+
+    // Apple om een verse code vragen. De tests zetten hier een nep (zonder Apple-blad).
+    var reauth: @MainActor () async throws -> String? = { try await AppleReauth().code() }
 
     // Hangt er een Apple-account aan dit account? Supabase weet het (ook als je Apple later koppelde).
     private func signedInWithApple() async throws -> Bool {
@@ -302,25 +337,28 @@ final class Account {
     }
 
     // Het geheim staat niet in de app: de server (api/apple-revoke) wisselt de code in en trekt het
-    // token in. Lukt dat niet, dan toch verwijderen: je gegevens weg is belangrijker. Wel vastleggen.
-    private func revokeApple(_ code: String) async {
-        guard !Self.localBeta else { return }
+    // token in. Geeft true als Apple het bevestigde; elke fout (ook 503: niet ingesteld) is false.
+    private func revokeApple(_ code: String) async -> Bool {
+        guard !Self.localBeta else { return false }
         let version = generation, identity = session?.uid
         do {
             try await refreshIfNeeded()
-            guard current(version, identity) else { return }
-            guard let s = session else { return }
+            guard current(version, identity) else { return false }
+            guard let s = session else { return false }
             var r = URLRequest(url: HootAPI.base.appendingPathComponent("api/apple-revoke"))
             r.httpMethod = "POST"
             r.setValue("application/json", forHTTPHeaderField: "Content-Type")
             r.setValue("Bearer \(s.access)", forHTTPHeaderField: "Authorization")
             r.httpBody = try JSONSerialization.data(withJSONObject: ["code": code])
             r.timeoutInterval = 20
-            let (_, response) = try await URLSession.shared.data(for: r)
+            let (_, response) = try await transport.data(for: r)
             let status = (response as? HTTPURLResponse)?.statusCode ?? 0
-            if !(200 ..< 300).contains(status) { Self.log.error("Intrekken bij Apple mislukt: \(status)") }
+            if (200 ..< 300).contains(status) { return true }
+            Self.log.error("Intrekken bij Apple mislukt: \(status)")
+            return false
         } catch {
             Self.log.error("Intrekken bij Apple mislukt: \(error.localizedDescription)")
+            return false
         }
     }
 
@@ -568,8 +606,8 @@ final class Account {
 }
 
 // Even opnieuw bevestigen bij Apple, voor een verse code (die is kort geldig en maar één keer te
-// gebruiken; daarom niet bij het inloggen bewaard). Zelf annuleren gooit een fout; geeft Apple
-// om een andere reden geen code, dan nil.
+// gebruiken; daarom niet bij het inloggen bewaard). Zelf annuleren gooit .canceled; een andere
+// fout gooit die fout; geen code in het antwoord geeft nil.
 @MainActor
 private final class AppleReauth: NSObject, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
     private var continuation: CheckedContinuation<ASAuthorization, Error>?
@@ -581,15 +619,9 @@ private final class AppleReauth: NSObject, ASAuthorizationControllerDelegate, AS
         controller.presentationContextProvider = self
         self.controller = controller
         defer { self.controller = nil }
-        do {
-            let auth = try await withCheckedThrowingContinuation { continuation = $0; controller.performRequests() }
-            guard let credential = auth.credential as? ASAuthorizationAppleIDCredential, let data = credential.authorizationCode else { return nil }
-            return String(data: data, encoding: .utf8)
-        } catch let error as ASAuthorizationError where error.code == .canceled {
-            throw error
-        } catch {
-            return nil
-        }
+        let auth = try await withCheckedThrowingContinuation { continuation = $0; controller.performRequests() }
+        guard let credential = auth.credential as? ASAuthorizationAppleIDCredential, let data = credential.authorizationCode else { return nil }
+        return String(data: data, encoding: .utf8)
     }
 
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
