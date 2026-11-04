@@ -99,7 +99,6 @@ struct ChoiceTile: View {
     let on: Bool
     var compact = false
     let action: () -> Void
-    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         Button(action: action) {
@@ -152,8 +151,9 @@ struct ChoiceTile: View {
             Text(label).multilineTextAlignment(.leading)
         }
         .font(.headline.weight(.heavy))
-        .lineLimit(compact && typeSize < .xxLarge ? 1 : 3) // liggend: één regel; bij grotere tekst staat de tegel op een eigen rij en mag de naam omslaan
-        .minimumScaleFactor(0.8)
+        .lineLimit(3) // labels lopen door in plaats van af te breken (README › Toegankelijkheid): nooit "Binnenla…"
+        .fixedSize(horizontal: false, vertical: true)
+        .layoutPriority(1) // de naam krijgt de ruimte, niet de Spacer ernaast
         .foregroundStyle(on ? Theme.accent : Theme.ink)
     }
 }

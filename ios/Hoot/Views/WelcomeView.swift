@@ -626,9 +626,11 @@ struct WelcomeView: View {
     }
 
     // Interesses als tegels, liggend en 64 hoog (acht tegels in vier rijen): twee naast elkaar, vier op
-    // een brede pagina, één vanaf xxLarge (dan krijgt de naam ruimte en blijven icoon, vinkje en naam onder elkaar).
+    // een brede pagina (Layout.wide), één vanaf xxLarge (dan krijgt de naam ruimte en blijven icoon, vinkje
+    // en naam onder elkaar). Vier kolommen op een iPad staand (≈ 650) gaven tegels van 152 met ±85 voor
+    // de naam: "Binnenla…" (O4). Twee kolommen, zoals op de iPhone, en de naam loopt heel door.
     private var tiles: some View {
-        let count = typeSize >= .xxLarge ? 1 : width >= 560 ? 4 : 2
+        let count = typeSize >= .xxLarge ? 1 : width >= Layout.wide ? 4 : 2
         return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: Space.s3, alignment: .top), count: count), spacing: Space.s3) {
             ForEach(Rubriek.alle) { r in
                 ChoiceTile(label: r.label, icon: r.icon, on: interests.contains(r.id), compact: true) { interests = toggled(interests, r.id) }
