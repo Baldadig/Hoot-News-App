@@ -88,3 +88,27 @@ test('plafond voor iedereen samen: een samenvatting uit de cache kan nog wel, en
   const tomorrow = Date.parse('2026-11-06T09:00:00Z')
   assert.equal((await handle(req({ rows: [{ ...rows[0], title: 'Kop nieuw' }] }), { anthropic: c, member: async () => 'cache-b', now: tomorrow })).status, 200)
 })
+
+test('een mislukte samenvatting (5xx) telt niet mee voor het quotum of het plafond', async () => {
+  const now = Date.parse('2026-11-06T12:00:00Z')
+  const broken = { messages: { create: async () => { throw new Error('overloaded') } } }
+  await kvSet('brief-quota-all-2026-11-06', 10)
+  const r = await handle(req({ rows: [{ ...rows[0], title: 'Kop storing' }] }), { anthropic: broken, member: async () => 'storing-user', now })
+  assert.equal(r.status, 502)
+  assert.equal(await kvGet('brief-quota-storing-user-2026-11-06'), 0)
+  assert.equal(await kvGet('brief-quota-all-2026-11-06'), 10)
+  // Daarna gewoon een geslaagde: die telt wel.
+  const ok = await handle(req({ rows: [{ ...rows[0], title: 'Kop na storing' }] }), { anthropic: claude(), member: async () => 'storing-user', now })
+  assert.equal(ok.status, 200)
+  assert.equal(await kvGet('brief-quota-storing-user-2026-11-06'), 1)
+  assert.equal(await kvGet('brief-quota-all-2026-11-06'), 11)
+})
+
+test('de quotumtellers lezen en schrijven met sterke consistentie', async () => {
+  const { readFileSync } = await import('node:fs')
+  const kv = readFileSync(new URL('../netlify/lib/kv.mjs', import.meta.url), 'utf8')
+  const brief = readFileSync(new URL('../netlify/functions/brief.mjs', import.meta.url), 'utf8')
+  assert.match(kv, /consistency: 'strong'/)
+  for (const call of brief.match(/kv(Get|Set)\((quotaKey|allKey|key)[^)]*\)/g) || []) assert.match(call, /strong/, call)
+  assert.ok((brief.match(/kv(Get|Set)\((quotaKey|allKey|key)/g) || []).length >= 6)
+})

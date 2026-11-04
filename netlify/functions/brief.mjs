@@ -8,10 +8,11 @@ import { createBrief } from '../lib/brief.mjs'
 import { kvGet, kvSet } from '../lib/kv.mjs'
 import { hash } from '../../shared/util.mjs'
 import { SUPABASE_URL, SUPABASE_KEY } from '../../src/lib/config.js'
+import { BRIEF_FULL_TEXT } from '../../src/lib/membership.js'
 
 export const PER_DAY = 8 // drie edities per dag, met ruimte voor een nieuwe poging
 export const ALL_PER_DAY = 300 // alle gebruikers samen (besluit Alex, 4 november 2026)
-export const FULL_TODAY = 'Vandaag zijn de samenvattingen op. Morgen maakt Hoot er weer een.'
+export const FULL_TODAY = BRIEF_FULL_TEXT // het web toont dezelfde zin (src/views/Edition.jsx)
 const fail = (status, error) => Response.json({ error }, { status, headers: { 'Cache-Control': 'no-store' } })
 const str = (v, max) => typeof v === 'string' && v.length <= max
 
@@ -62,20 +63,26 @@ export async function handle(req, { anthropic, member = memberOf, now = Date.now
   const cached = await kvGet(cacheKey)
   if (cached) return Response.json({ brief: cached }, { headers: { 'Cache-Control': 'no-store' } })
 
+  // De tellers met sterke consistentie: een andere regio mag geen oude stand lezen (review 4 november).
+  const strong = { strong: true }
   const day = new Date(now).toISOString().slice(0, 10)
   const quotaKey = `brief-quota-${uid}-${day}`
-  const used = (await kvGet(quotaKey)) || 0
+  const used = (await kvGet(quotaKey, strong)) || 0
   if (used >= PER_DAY) return fail(429, 'Vandaag geen nieuwe samenvattingen meer.')
   // Het plafond voor iedereen samen: zelfde opslag als het quotum per persoon. Een samenvatting uit
   // de cache (hierboven) telt niet mee; alleen een nieuwe aanroep van Claude.
   const allKey = `brief-quota-all-${day}`
-  const usedAll = (await kvGet(allKey)) || 0
+  const usedAll = (await kvGet(allKey, strong)) || 0
   if (usedAll >= ALL_PER_DAY) return fail(429, FULL_TODAY)
-  await kvSet(quotaKey, used + 1)
-  await kvSet(allKey, usedAll + 1)
+  await kvSet(quotaKey, used + 1, strong)
+  await kvSet(allKey, usedAll + 1, strong)
 
   const brief = await createBrief(anthropic, rows, { now }).catch(() => null)
-  if (!brief) return fail(502, 'De samenvatting lukte niet.')
+  if (!brief) {
+    // Een mislukte samenvatting (storing, time-out) telt niet mee: beide tellers weer één omlaag.
+    for (const key of [quotaKey, allKey]) await kvSet(key, Math.max(0, ((await kvGet(key, strong)) || 1) - 1), strong)
+    return fail(502, 'De samenvatting lukte niet.')
+  }
   await kvSet(cacheKey, brief)
   return Response.json({ brief }, { headers: { 'Cache-Control': 'no-store' } })
 }

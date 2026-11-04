@@ -4,12 +4,15 @@ import { getStore } from '@netlify/blobs'
 const mem = new Map()
 let mode = 'memory'
 const store = () => getStore('hoot')
+// Sterke consistentie (Netlify Blobs): elke regio leest meteen de laatste stand. Trager, dus alleen voor
+// tellers waar een oude stand het plafond zou omzeilen (het quotum van /api/brief).
+const strongStore = () => getStore({ name: 'hoot', consistency: 'strong' })
 
 export const storageMode = () => mode // 'blobs' = blijvend; 'memory' = alleen deze functie-instantie
 
-export async function kvGet(key) {
+export async function kvGet(key, { strong = false } = {}) {
   try {
-    const v = await store().get(key, { type: 'json' })
+    const v = await (strong ? strongStore() : store()).get(key, { type: 'json' })
     mode = 'blobs'
     return v
   } catch {
@@ -17,9 +20,9 @@ export async function kvGet(key) {
   }
 }
 
-export async function kvSet(key, value) {
+export async function kvSet(key, value, { strong = false } = {}) {
   try {
-    await store().setJSON(key, value)
+    await (strong ? strongStore() : store()).setJSON(key, value)
     mode = 'blobs'
   } catch {
     mem.set(key, value)

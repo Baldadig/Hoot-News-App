@@ -25,3 +25,10 @@ export const accountPending = (account) => account?.status === 'in' && !account.
 export const syncedUid = (account) => (account?.status === 'in' && account.profile ? account.user?.id || null : null)
 
 export const PENDING_TEXT = 'Je account is er bijna. Probeer het zo nog eens.'
+
+// Het plafond van /api/brief is bereikt (429): rustig zeggen in plaats van de samenvatting stil weg te laten.
+export const BRIEF_FULL_TEXT = 'Vandaag zijn de samenvattingen op. Morgen maakt Hoot er weer een.'
+
+// Instellingen: ingelogd zonder profiel én offline is meestal gewoon geen verbinding, geen half account.
+// Dan de bestaande offline-toestand ("Wacht op verbinding") en geen knop Opnieuw.
+export const pendingShown = (account, online = true) => accountPending(account) && online
