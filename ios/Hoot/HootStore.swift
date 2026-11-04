@@ -600,7 +600,8 @@ final class HootStore {
     // Eén stuk, één plek in de Stroom. Zusterkranten (AD, Tubantia, De Stentor …) brengen vaak hetzelfde
     // stuk, en een uitgever die een kop aanpast levert het als nieuw bericht (andere kop en link, zelfde
     // stuk). Gelijk: dezelfde link of kop, dezelfde bron met dezelfde artikel-id in de link (de
-    // Volkskrant eindigt op "~b782895d"), of dezelfde bron met een identieke intro binnen 6 uur. Het
+    // Volkskrant eindigt op "~b782895d"), of dezelfde bron met een identieke intro binnen 6 uur, tenzij
+    // beide links een verschillend uitgevers-id dragen. Het
     // nieuwste exemplaar blijft (minuut van publishedAt, dan firstSeenAt); `formerIds` onthoudt de rest,
     // zodat gelezen en Bewaard op het blijvende bericht staan. Spiegel van withoutRepeats in
     // shared/stroom.mjs, getoetst in StroomDubbelsTests met tests/fixtures/stroom-dubbels.json.
@@ -608,11 +609,13 @@ final class HootStore {
     @MainActor struct RepeatKeys {
         let keys: [String]
         let intro: String
+        let publisherId: String?
         let at: Date?
         let seen: Date?
         init(_ item: Item) {
             let title = HootStore.titleKey(item.title)
-            let id = HootStore.articleId(item.url)
+            let id = HootStore.publisherId(item.url)
+            publisherId = id
             keys = ["u|" + item.url] + (title.isEmpty ? [] : ["t|" + title]) + (id.map { ["a|" + item.source + "|" + $0] } ?? [])
             let text = item.kind == "post" ? "" : HootStore.titleKey(item.summary ?? "")
             intro = text.count >= 60 ? item.source + "|" + text : ""
@@ -629,6 +632,16 @@ final class HootStore {
         return bare.firstMatch(of: /~([0-9a-fA-F]{6,})\/?$/).map { String($0.1).lowercased() }
     }
 
+    // Het eigen artikelnummer van de uitgever: "~b782895d" (DPG), "/164008665.html" (Mediahuis) of
+    // "/6372345/slug.html" (nu.nl). Spiegel van publisherId in shared/stroom.mjs.
+    static func publisherId(_ url: String) -> String? {
+        let bare = url.split(whereSeparator: { $0 == "?" || $0 == "#" }).first.map(String.init) ?? url
+        if let m = bare.firstMatch(of: /~([0-9a-fA-F]{6,})\/?$/) { return String(m.1).lowercased() }
+        if let m = bare.firstMatch(of: /\/([0-9]{6,})\.html$/) { return String(m.1) }
+        if let m = bare.firstMatch(of: /\/([0-9]{6,})\/[^\/]+\.html$/) { return String(m.1) }
+        return nil
+    }
+
     static func withoutRepeats(_ items: [Item], cache: [String: RepeatKeys] = [:]) -> [Item] {
         var parent = Array(items.indices)
         func find(_ i: Int) -> Int { var r = i; while parent[r] != r { r = parent[r] }; parent[i] = r; return r }
@@ -639,7 +652,11 @@ final class HootStore {
         for (i, k) in info.enumerated() {
             for key in k.keys { if let j = first[key] { join(i, j) } else { first[key] = i } }
             if !k.intro.isEmpty, let at = k.at {
-                for j in intros[k.intro] ?? [] where abs(info[j].at!.timeIntervalSince(at)) <= introWindow { join(i, j) }
+                for j in intros[k.intro] ?? [] where abs(info[j].at!.timeIntervalSince(at)) <= introWindow {
+                    // Verschillend uitgevers-nummer: twee stukken, ook bij gelijke intro (zoals shared/stroom.mjs).
+                    if let a = k.publisherId, let b = info[j].publisherId, a != b { continue }
+                    join(i, j)
+                }
                 intros[k.intro, default: []].append(i)
             }
         }

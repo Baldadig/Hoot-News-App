@@ -1,5 +1,5 @@
 {
- "bron": "live-feed-2026-11-04 (gethoot.app/api/feed), alleen de velden die ontdubbelen nodig hebben",
+ "bron": "live-feed-2026-11-04 (gethoot.app/api/feed), alleen de velden die ontdubbelen nodig hebben; plus zes stukken van De Limburger en Leeuwarder Courant (zelfde intro, verschillend uitgevers-nummer)",
  "items": [
   {
    "id": "1r0eegt",
@@ -57,6 +57,50 @@
    "firstSeenAt": "2026-11-03T21:20:18.968Z"
   },
   {
+   "id": "o4tkoo",
+   "kind": "article",
+   "source": "limburger",
+   "sourceName": "De Limburger",
+   "title": "Piet Rongen blijft altijd aan de bal voor Oostrum: ‘We hebben bij de voetbalclub een klusploeg van veertien personen, allen tussen 65 en 90 jaar’",
+   "summary": "Een sportvereniging kan niet zonder vrijwilligers, omgekeerd geldt vaak hetzelfde.",
+   "url": "https://www.limburger.nl/regio/venray/oostrum/piet-rongen-blijft-altijd-aan-de-bal-voor-oostrum-we-hebben-bij-de-voetbalclub-een-klusploeg-van-veertien-personen-allen-tussen-65-en-90-jaar/163699375.html",
+   "publishedAt": "2026-11-03T19:45:00.000Z",
+   "firstSeenAt": "2026-11-03T20:00:21.480Z"
+  },
+  {
+   "id": "1rthd7f",
+   "kind": "article",
+   "source": "limburger",
+   "sourceName": "De Limburger",
+   "title": "Ton Janssen, de smaakmaker van Venlosche Boys: ‘Als ze alleen willen voetballen en verder niks willen doen, dan kunnen ze geen lid worden’",
+   "summary": "Een sportvereniging kan niet zonder vrijwilligers, omgekeerd geldt vaak hetzelfde.",
+   "url": "https://www.limburger.nl/regio/venlo/ton-janssen-de-smaakmaker-van-venlosche-boys-als-ze-alleen-willen-voetballen-en-verder-niks-willen-doen-dan-kunnen-ze-geen-lid-worden/163698796.html",
+   "publishedAt": "2026-11-03T19:30:00.000Z",
+   "firstSeenAt": "2026-11-03T19:50:23.324Z"
+  },
+  {
+   "id": "1vj2tgs",
+   "kind": "article",
+   "source": "limburger",
+   "sourceName": "De Limburger",
+   "title": "Johan Hendrikx staat bij Brevendia achter de bar, maar vlagt ook bij het eerste elftal: ‘Ik ben soms te eerlijk, dan krijg je af en toe wel verwijten’",
+   "summary": "Een sportvereniging kan niet zonder vrijwilligers, omgekeerd geldt vaak hetzelfde.",
+   "url": "https://www.limburger.nl/regio/weert/stramproy/johan-hendrikx-staat-bij-brevendia-achter-de-bar-maar-vlagt-ook-bij-het-eerste-elftal-ik-ben-soms-te-eerlijk-dan-krijg-je-af-en-toe-wel-verwijten/163698383.html",
+   "publishedAt": "2026-11-03T19:15:00.000Z",
+   "firstSeenAt": "2026-11-03T19:30:22.151Z"
+  },
+  {
+   "id": "17zzbkt",
+   "kind": "article",
+   "source": "limburger",
+   "sourceName": "De Limburger",
+   "title": "Hubert Beek is al 45 jaar de drijvende kracht achter SV Heythuysen: ‘Ik geniet van organiseren, hou ervan om te verbinden’",
+   "summary": "Een sportvereniging kan niet zonder vrijwilligers, omgekeerd geldt vaak hetzelfde.",
+   "url": "https://www.limburger.nl/sport/voetbal/amateurvoetbal/hubert-beek-is-al-45-jaar-de-drijvende-kracht-achter-sv-heythuysen-ik-geniet-van-organiseren-hou-ervan-om-te-verbinden/163121520.html",
+   "publishedAt": "2026-11-03T19:15:00.000Z",
+   "firstSeenAt": "2026-11-03T19:30:22.151Z"
+  },
+  {
    "id": "1o3ajbm",
    "kind": "article",
    "source": "volkskrant",
@@ -99,6 +143,28 @@
    "url": "https://www.theatlantic.com/newsletters/2026/11/how-track-midterms-results/689261/",
    "publishedAt": "2026-11-03T17:01:00.000Z",
    "firstSeenAt": "2026-11-03T17:30:21.497Z"
+  },
+  {
+   "id": "15b43ex",
+   "kind": "article",
+   "source": "lc",
+   "sourceName": "Leeuwarder Courant",
+   "title": "Volgens SC Cambuur waren alle Go Ahead Eagles-aanhangers gefouilleerd & Fryslân veel te coulant voor Qbuzz vindt linkse oppositie in Friese Staten",
+   "summary": "Iedere supporter van Go Ahead Eagles die zaterdag bij de wedstrijd was, is een-op-een gecontroleerd. Dat zegt Ruben Sijtsma, persvoorlichter van SC Cambuur.",
+   "url": "https://www.lc.nl/regio/friesland/volgens-sc-cambuur-waren-alle-go-ahead-eagles-aanhangers-gefouilleerd-fryslan-veel-te-coulant-voor-qbuzz-vindt-linkse-oppositie-in-friese-staten/163997133.html",
+   "publishedAt": "2026-11-03T16:56:00.000Z",
+   "firstSeenAt": "2026-11-03T17:10:18.947Z"
+  },
+  {
+   "id": "107h2sb",
+   "kind": "article",
+   "source": "lc",
+   "sourceName": "Leeuwarder Courant",
+   "title": "SC Cambuur: alle aanhangers van Go Ahead Eagles waren gefouilleerd",
+   "summary": "Iedere supporter van Go Ahead Eagles die zaterdag bij de wedstrijd was, is een-op-een gecontroleerd. Dat zegt Ruben Sijtsma, persvoorlichter van SC Cambuur.",
+   "url": "https://www.lc.nl/sport/sc-cambuur/sc-cambuur-alle-aanhangers-van-go-ahead-eagles-waren-gefouilleerd/164008665.html",
+   "publishedAt": "2026-11-03T15:24:00.000Z",
+   "firstSeenAt": "2026-11-03T15:50:20.546Z"
   },
   {
    "id": "e6pe08",
@@ -267,6 +333,22 @@
    ]
   },
   {
+   "id": "o4tkoo",
+   "formerIds": []
+  },
+  {
+   "id": "1rthd7f",
+   "formerIds": []
+  },
+  {
+   "id": "1vj2tgs",
+   "formerIds": []
+  },
+  {
+   "id": "17zzbkt",
+   "formerIds": []
+  },
+  {
    "id": "1x09ljm",
    "formerIds": [
     "opoz8u"
@@ -274,6 +356,14 @@
   },
   {
    "id": "cv071w",
+   "formerIds": []
+  },
+  {
+   "id": "15b43ex",
+   "formerIds": []
+  },
+  {
+   "id": "107h2sb",
    "formerIds": []
   },
   {

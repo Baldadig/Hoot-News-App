@@ -15,8 +15,8 @@ export const forEdition = (it) => !it?.streamOnly
 // ---- Eén stuk, één plek in de Stroom ----
 // Een uitgever past een kop aan (of zet een stuk opnieuw online) en de feed levert dan een nieuw
 // bericht: andere kop en link, zelfde stuk. Dezelfde bron met dezelfde artikel-id in de link
-// (de Volkskrant eindigt op "~b782895d"), of dezelfde bron met een identieke intro binnen een paar
-// uur, is één stuk. Het nieuwste exemplaar blijft (de laatste kop, dan het laatst gezien);
+// (de Volkskrant eindigt op "~b782895d", Mediahuis op "/164008665.html"), of dezelfde bron met een
+// identieke intro binnen een paar uur, is één stuk; tenzij beide links een verschillend id dragen. Het nieuwste exemplaar blijft (de laatste kop, dan het laatst gezien);
 // `formerIds` bewaart de id's van de rest, zodat gelezen en Bewaard op het blijvende bericht staan.
 // Daarbovenop dezelfde link of kop over de bronnen heen (zusterkranten), zoals shared/dedupe.mjs.
 // Gedeeld door de website; iOS doet hetzelfde in HootStore.swift (tests/fixtures/stroom-dubbels.json).
@@ -26,6 +26,16 @@ export const MIN_INTRO = 60
 
 export function articleId(url) {
   const m = /~([0-9a-f]{6,})\/?$/i.exec(String(url || '').replace(/[?#].*$/, ''))
+  return m ? m[1].toLowerCase() : null
+}
+
+// Het eigen artikelnummer van de uitgever in de link: de DPG-kranten eindigen op "~b782895d", de
+// Mediahuis-kranten (De Limburger, Leeuwarder Courant, DvhN, Telegraaf) op "/164008665.html" en nu.nl
+// heeft "/6372345/slug.html". Twee links met een verschillend nummer zijn aantoonbaar twee stukken,
+// ook als de intro (een reeks, een rondje) gelijk is. Zonder herkenbaar nummer is er niets te vergelijken.
+export function publisherId(url) {
+  const bare = String(url || '').replace(/[?#].*$/, '')
+  const m = /~([0-9a-f]{6,})\/?$/i.exec(bare) || /\/(\d{6,})\.html$/i.exec(bare) || /\/(\d{6,})\/[^/]+\.html$/i.exec(bare)
   return m ? m[1].toLowerCase() : null
 }
 
@@ -44,15 +54,19 @@ export function withoutRepeats(list = []) {
   const intros = new Map()
   list.forEach((it, i) => {
     const title = titleKey(it.title)
-    const id = articleId(it.url)
-    const keys = [it.url ? 'u|' + it.url : null, title ? 't|' + title : null, id ? 'a|' + it.source + '|' + id : null].filter(Boolean)
+    const pid = publisherId(it.url)
+    const keys = [it.url ? 'u|' + it.url : null, title ? 't|' + title : null, pid ? 'a|' + it.source + '|' + pid : null].filter(Boolean)
     for (const k of keys) first.has(k) ? join(i, first.get(k)) : first.set(k, i)
     const intro = it.kind === 'post' ? '' : titleKey(it.summary)
     const at = time(it.publishedAt)
     if (intro.length >= MIN_INTRO && at != null) {
       const k = it.source + '|' + intro
       const seen = intros.get(k) || []
-      for (const j of seen) if (Math.abs(time(list[j].publishedAt) - at) <= INTRO_WINDOW_MS) join(i, j)
+      for (const j of seen) {
+        const other = publisherId(list[j].url)
+        if (pid && other && pid !== other) continue // verschillend uitgevers-nummer: twee stukken, ook bij gelijke intro
+        if (Math.abs(time(list[j].publishedAt) - at) <= INTRO_WINDOW_MS) join(i, j)
+      }
       seen.push(i)
       intros.set(k, seen)
     }

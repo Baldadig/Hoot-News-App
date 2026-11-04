@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { withoutRepeats, articleId, isReadItem } from '../shared/stroom.mjs'
+import { withoutRepeats, articleId, publisherId, isReadItem } from '../shared/stroom.mjs'
 import { freshCount } from '../src/lib/fresh.js'
 
 // Echte dubbelen uit de live feed van 4 november: het Volkskrant-stuk over De Miguel stond vijf keer
@@ -64,4 +64,33 @@ test('een stuk dat je al had, met een nieuwe kop, telt niet als nieuw', () => {
   const had = fx.items.filter((i) => i.id === 'p2eoju')
   assert.equal(freshCount(had, withoutRepeats(fx.items.filter((i) => /bf2ff83e/.test(i.url)))), 0)
   assert.equal(freshCount([], withoutRepeats(fx.items.filter((i) => /bf2ff83e/.test(i.url)))), 1)
+})
+
+test('zelfde intro maar verschillend uitgevers-nummer: De Limburger en Leeuwarder Courant houden elk stuk apart', () => {
+  const ids = withoutRepeats(fx.items).map((i) => i.id)
+  for (const id of ['o4tkoo', '1rthd7f', '1vj2tgs', '17zzbkt']) assert.ok(ids.includes(id), 'Limburger-portret ' + id) // vier vrijwilligersportretten
+  for (const id of ['15b43ex', '107h2sb']) assert.ok(ids.includes(id), 'Cambuur-stuk ' + id)
+  const out = withoutRepeats(fx.items.filter((i) => /limburger\.nl|lc\.nl/.test(i.url)))
+  assert.equal(out.length, 6)
+  assert.ok(out.every((i) => !(i.formerIds || []).length))
+})
+
+test('zelfde uitgevers-nummer blijft één stuk, ook bij Mediahuis en nu.nl', () => {
+  const intro = 'Een lange, identieke inleiding die ruim boven de zestig tekens uitkomt en dus telt.'
+  const a = { id: 'a', source: 'lc', kind: 'article', title: 'Eerste kop', summary: 'Eerste. ' + intro, url: 'https://www.lc.nl/sport/eerste/164008665.html', publishedAt: '2026-11-04T10:00:00Z' }
+  const b = { ...a, id: 'b', title: 'Tweede kop', summary: 'Tweede. ' + intro, url: 'https://www.lc.nl/sport/tweede/164008665.html', publishedAt: '2026-11-04T11:00:00Z' }
+  assert.deepEqual(withoutRepeats([b, a]).map((i) => [i.id, i.formerIds]), [['b', ['a']]])
+  const nu = { ...a, source: 'nu', url: 'https://www.nu.nl/binnenland/6372345/eerste.html' }
+  assert.equal(withoutRepeats([{ ...nu, id: 'n2', title: 'Nieuwe kop', url: 'https://www.nu.nl/binnenland/6372345/nieuw.html' }, nu]).length, 1)
+  // verschillend nummer, gelijke intro: twee stukken; zonder herkenbaar nummer blijft de intro-regel gelden
+  const same = { ...b, summary: a.summary }
+  assert.equal(withoutRepeats([{ ...same, url: 'https://www.lc.nl/sport/tweede/164008666.html' }, a]).length, 2)
+  assert.equal(withoutRepeats([{ ...same, url: 'https://www.lc.nl/sport/tweede' }, a]).length, 1)
+})
+
+test('publisherId: ~hex, Mediahuis en nu.nl; anders niets', () => {
+  assert.equal(publisherId('https://www.volkskrant.nl/sport/slug~bf2ff83e/?utm=x'), 'bf2ff83e')
+  assert.equal(publisherId('https://www.limburger.nl/regio/venray/slug/163699375.html'), '163699375')
+  assert.equal(publisherId('https://www.nu.nl/binnenland/6372345/slug.html'), '6372345')
+  assert.equal(publisherId('https://nos.nl/l/2637948'), null)
 })

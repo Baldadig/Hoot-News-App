@@ -40,4 +40,19 @@ import XCTest
         XCTAssertEqual(HootStore.articleId("https://www.volkskrant.nl/sport/slug~bf2ff83e"), "bf2ff83e")
         XCTAssertNil(HootStore.articleId("https://nos.nl/l/2637948"))
     }
+
+    func testSameIntroDifferentPublisherIdStaysApart() throws {
+        let out = HootStore.withoutRepeats(try Self.fixture().items)
+        let ids = out.map(\.id)
+        for id in ["o4tkoo", "1rthd7f", "1vj2tgs", "17zzbkt", "15b43ex", "107h2sb"] { XCTAssertTrue(ids.contains(id), id) }
+        let regional = out.filter { $0.url.contains("limburger.nl") || $0.url.contains("lc.nl") }
+        XCTAssertTrue(regional.allSatisfy { ($0.formerIds ?? []).isEmpty })
+    }
+
+    func testPublisherId() {
+        XCTAssertEqual(HootStore.publisherId("https://www.volkskrant.nl/sport/slug~bf2ff83e/?utm=x"), "bf2ff83e")
+        XCTAssertEqual(HootStore.publisherId("https://www.limburger.nl/regio/venray/slug/163699375.html"), "163699375")
+        XCTAssertEqual(HootStore.publisherId("https://www.nu.nl/binnenland/6372345/slug.html"), "6372345")
+        XCTAssertNil(HootStore.publisherId("https://nos.nl/l/2637948"))
+    }
 }
