@@ -87,7 +87,10 @@ export function parseSnippets(xml, domain = 'volkskrant.nl') {
 
 // Een liveblog houdt zijn URL terwijl de kop en de inhoud blijven wisselen: de inleiding uit
 // de zoekindex hoort dan bij een eerder moment. Daar tonen we liever niets.
-export const isLiveblog = (url) => /\/liveblog[-/]|[-/]liveblog-/i.test(String(url || ''))
+// De Morgen (en andere DPG-titels) noemen een liveblog niet "liveblog": hun slug begint met "live-"
+// (demorgen.be/snelnieuws/live-rousseau-...~bf7e76f4/), en de kop met "Live –". Met `title` telt die ook.
+export const isLiveblog = (url, title) =>
+  /\/liveblog[-/]|[-/]liveblog-|\/live-[^/]*~b[0-9a-f]{6,}/i.test(String(url || '')) || /^\s*live\s*[–—|:-]/i.test(String(title || ''))
 
 // Nieuwe vondsten bij de bewaarde zetten; wat ouder is dan `maxAge` vervalt.
 export function mergeSnippets(store = {}, found = [], now = Date.now(), maxAge = 5 * 864e5) {

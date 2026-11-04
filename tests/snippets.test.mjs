@@ -35,6 +35,12 @@ test('bewaarde snippets blijven, nieuwe komen erbij, oude vervallen', () => {
 test('een liveblog krijgt geen inleiding uit de zoekindex (kop en inhoud wisselen)', () => {
   assert.equal(isLiveblog('https://www.volkskrant.nl/buitenland/liveblog-oekraine-zelensky-nieuws~b12345678/'), true)
   assert.equal(isLiveblog('https://www.volkskrant.nl/buitenland/britse-premier~b3767a6a/'), false)
+  // De Morgen zegt geen "liveblog": de slug begint met "live-", de kop met "Live –" (keuring b46).
+  assert.equal(isLiveblog('https://www.demorgen.be/oorlog-in-oekraine/live-zelensky-dodental-na-russische-aanval-op-school-loopt-op-tot-40~b38bed0a/'), true)
+  assert.equal(isLiveblog('https://www.demorgen.be/snelnieuws/live-rousseau-na-gesprek-met-koning~bf7e76f4/'), true)
+  assert.equal(isLiveblog('https://www.demorgen.be/x/iets~b1234567/', 'Live – Zelensky'), true)
+  assert.equal(isLiveblog('https://www.demorgen.be/nieuws/uitslagen-midterms-2026-resultaten~b8b1eea5/', 'Uitslagen midterms'), false)
+  assert.equal(isLiveblog('https://www.demorgen.be/nieuws/lively-debat~b1234567/', 'Liveshow van het jaar'), false)
 })
 
 test('NYT en Economist: sleutel is de URL zonder query, met of zonder www', () => {

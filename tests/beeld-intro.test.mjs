@@ -2,7 +2,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ogImageFrom, loadOgImage, isGate } from '../netlify/lib/og.mjs'
-import { imagesFromArticles, sizeBingImages, gapTitleQueries, borrowFromStories, borrowPreviews, strongOverlap, wantsArticleImage } from '../netlify/lib/build.mjs'
+import { imagesFromArticles, sizeBingImages, gapTitleQueries, borrowFromStories, borrowPreviews, lendableIntro, strongOverlap, wantsArticleImage } from '../netlify/lib/build.mjs'
 import { articleKey, bingUnmeasured, bingId } from '../netlify/lib/snippets.mjs'
 
 const art = (id, extra = {}) => ({ id, kind: 'article', source: 'nature', title: 'Titel ' + id, url: `https://www.nature.com/articles/${id}`, publishedAt: '2026-11-04T10:00:00Z', ...extra })
@@ -149,4 +149,25 @@ test('intro lenen: zwakke werkwoorden tellen niet, op de kop en binnen een verha
   const t3 = { ...trouw(), title: 'Klaver maakt handreiking aan kabinet over puinhoop' }
   borrowPreviews([t3], [vk])
   assert.equal(t3.borrowedFrom, 'de Volkskrant')
+})
+
+test('intro lenen: De Morgen-liveblog leent niet, en geen reclame zoals "download de app" (Zelensky/DS Nieuws, keuring b46)', () => {
+  const ds = { id: 'ds', kind: 'article', source: 'standaard', sourceName: 'De Standaard', title: 'Zelensky: dodental na Russische aanval op school loopt op tot 40', summary: 'Het dodental na de Russische aanval op een school in Oekraïne is opgelopen tot 40. Download de app DS Nieuws en mis niets van de oorlog in Oekraïne.', url: 'https://www.standaard.be/cnt/dmf20261104_1' }
+  const dm = () => ({ id: 'dm', kind: 'article', source: 'demorgen', sourceName: 'De Morgen', title: 'Live – Zelensky: dodental na Russische aanval op school loopt op tot 40', url: 'https://www.demorgen.be/oorlog-in-oekraine/live-zelensky-dodental-na-russische-aanval-op-school-loopt-op-tot-40~b38bed0a/' })
+  const a = dm()
+  assert.equal(borrowFromStories([{ id: 's', itemIds: ['dm', 'ds'] }], new Map([[a.id, a], [ds.id, ds]])), 0)
+  assert.equal(a.summary, undefined)
+  const b = dm()
+  borrowPreviews([b], [ds])
+  assert.equal(b.summary, undefined)
+  // Een gewoon stuk mag lenen, maar zonder de oproep om de app te downloaden.
+  const c = { ...dm(), id: 'dm2', title: 'Zelensky: dodental na Russische aanval op school loopt op tot 40', url: 'https://www.demorgen.be/nieuws/zelensky-dodental~b11111111/' }
+  borrowPreviews([c], [ds])
+  assert.equal(c.summary, 'Het dodental na de Russische aanval op een school in Oekraïne is opgelopen tot 40.')
+  assert.equal(c.borrowedFrom, 'De Standaard')
+  assert.doesNotMatch(c.summary, /app|DS Nieuws/)
+  // Alleen reclame, of de vaste tekst van een liveblog: niets te lenen.
+  assert.equal(lendableIntro({ summary: 'Download de app DS Nieuws. Schrijf je in voor onze nieuwsbrief.' }), '')
+  assert.equal(lendableIntro({ summary: 'Volg hier alle ontwikkelingen.', url: 'https://www.standaard.be/live-oekraine~b1234567/', title: 'Live – Oekraïne' }), '')
+  assert.equal(lendableIntro({ summary: 'Een gewone zin over de appel van de buren.' }), 'Een gewone zin over de appel van de buren.')
 })

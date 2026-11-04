@@ -197,7 +197,7 @@ export function gapTitleQueries(open, tries = {}, now, { max = 10, every = 20 * 
 }
 async function fillGaps(items, now) {
   const result = { vkSnippets: 0, filled: 0 }
-  const needs = items.filter((it) => GAPS[it.source] && it.kind === 'article' && !isLiveblog(it.url) && (!it.summary || !it.image))
+  const needs = items.filter((it) => GAPS[it.source] && it.kind === 'article' && !isLiveblog(it.url, it.title) && (!it.summary || !it.image))
   if (!needs.length) return result
   const [stored, checkedAt, triedRaw] = await Promise.all([kvGet('gap-fill-v1'), kvGet('gap-fill-at'), kvGet('gap-tries-v1')])
   let store = stored && typeof stored === 'object' ? stored : {}
@@ -317,7 +317,7 @@ async function imagesFromBluesky(items, now) {
 // bij een zusterkrant (zelfde kop) is wel hetzelfde artikel.
 const OG_KEEP = 4 * 24 * 60 * MIN
 export function wantsArticleImage(it, src) {
-  return !!src && !GAPS[src.id] && !src.bskyImages && it.kind === 'article' && !it.image && !isLiveblog(it.url)
+  return !!src && !GAPS[src.id] && !src.bskyImages && it.kind === 'article' && !it.image && !isLiveblog(it.url, it.title)
 }
 export async function imagesFromArticles(items, now, { max = 60, parallel = 10, budget = 8000, timeout = 4000, load = loadOgImage, get = kvGet, set = kvSet, sourceOf = (id) => SOURCE.get(id) } = {}) {
   const needs = items.filter((it) => wantsArticleImage(it, sourceOf(it.source)))
@@ -384,10 +384,21 @@ const borrowWords = (title) => {
   for (const v of WEAK_VERBS) w.delete(v)
   return w
 }
+// Een intro om te lenen, zonder reclame: zinnen die oproepen een app te downloaden, je te abonneren of
+// meldingen aan te zetten gaan eruit ("Download de app DS Nieuws ..." onder een kop van De Morgen). Blijft
+// er niets over, dan wordt er niet geleend. De vaste tekst van een liveblog leent nooit.
+const PROMO = /\b(?:download|installeer|app store|google play|in de app|onze app|nieuwsapp|abonneer|schrijf je in|meld je aan|nieuwsbrief|pushmelding|pushbericht|notificaties|volg ons|lees ook|bekijk ook|kijk ook|subscribe|sign up|newsletter)/i
+export function lendableIntro(d) {
+  if (!d?.summary || isLiveblog(d.url, d.title)) return ''
+  const sentences = String(d.summary).match(/[^.!?]+(?:[.!?]+["'’”)]?|$)\s*/g) || []
+  return sentences.filter((z) => !PROMO.test(z)).join('').trim()
+}
 export function borrowPreviews(items, mainItems) {
-  const donors = mainItems.filter((it) => it.kind === 'article' && it.summary && !it.borrowedFrom && dutchItem(it) && visibleFor(it)).map((d) => ({ d, w: borrowWords(d.title) }))
+  const donors = mainItems
+    .filter((it) => it.kind === 'article' && it.summary && !it.borrowedFrom && dutchItem(it) && visibleFor(it) && lendableIntro(it))
+    .map((d) => ({ d, w: borrowWords(d.title) }))
   for (const it of items) {
-    if (it.kind !== 'article' || it.summary || !dutchItem(it)) continue
+    if (it.kind !== 'article' || it.summary || !dutchItem(it) || isLiveblog(it.url, it.title)) continue
     const w = borrowWords(it.title)
     if (w.size < 3) continue
     let best = null
@@ -399,8 +410,8 @@ export function borrowPreviews(items, mainItems) {
       if (n > bestN) [best, bestN, bestSize] = [d, n, dw.size]
     }
     if (best && strongOverlap(bestN, w.size, bestSize)) {
-      it.summary = best.summary
-      it.text = best.summary
+      it.summary = lendableIntro(best)
+      it.text = it.summary
       it.borrowedFrom = best.sourceName
     }
   }
@@ -419,18 +430,18 @@ export function borrowFromStories(stories, byId) {
   for (const st of stories) {
     const members = st.itemIds.map((id) => byId.get(id)).filter((i) => i?.kind === 'article')
     for (const it of members) {
-      if (it.summary || isLiveblog(it.url)) continue
+      if (it.summary || isLiveblog(it.url, it.title)) continue
       const w = borrowWords(it.title)
       const matches = (d) => {
         const dw = borrowWords(d.title)
         return strongOverlap(sharedCount(w, dw), w.size, dw.size)
       }
       const donor = members
-        .filter((d) => d !== it && d.summary && !d.borrowedFrom && d.source !== it.source && langOf(d) === langOf(it) && visibleFor(d) && matches(d))
+        .filter((d) => d !== it && d.summary && !d.borrowedFrom && d.source !== it.source && langOf(d) === langOf(it) && visibleFor(d) && lendableIntro(d) && matches(d))
         .sort((a, b) => TRAIL.test(a.summary) - TRAIL.test(b.summary))[0]
       if (!donor) continue
-      it.summary = donor.summary
-      if (!it.text) it.text = donor.summary
+      it.summary = lendableIntro(donor)
+      if (!it.text) it.text = it.summary
       it.borrowedFrom = donor.sourceName
       n++
     }
