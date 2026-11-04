@@ -45,7 +45,9 @@ test('selectie: precies het gevraagde aantal plekken, deterministisch, gesorteer
   assert.equal(JSON.stringify(sel), JSON.stringify(run({ prof: WERELD })))
   // Zonder Wereld liever korter dan ongeoorloofd aanvullen: alleen wat de norm toelaat.
   const plain = run()
-  assert.deepEqual(plain.map((e) => e.id), ['s-kab', 's-ai', 's-brand', 'i10'])
+  // Normen 4 november: de review (consumententech) is licht en komt alleen bij wie gadgets koos.
+  assert.deepEqual(plain.map((e) => e.id), ['s-kab', 's-ai', 's-brand'])
+  assert.deepEqual(run({ prof: { interests: ['tech'], topics: ['gadgets'] } }).map((e) => e.id).includes('i10'), true)
   for (let i = 1; i < sel.length; i++) assert.ok(sel[i - 1].w >= sel[i].w)
   for (const e of sel) assert.ok(e.parts && typeof e.w === 'number' && e.desk !== undefined, JSON.stringify(e))
 })
@@ -90,12 +92,15 @@ test('selectie: al gelezen zonder nieuws doet nergens mee, ook niet op de voorpa
   const kab = w.stories.find((s) => s.id === 's-kab')
   const sel = run({ prof: WERELD, ctx: { readIds: new Set([kab.itemIds[0]]) } }, w)
   assert.ok(!sel.some((e) => e.id === 's-kab'))
-  assert.equal(sel.length, 6)
+  // Vijf: de review die vroeger de zesde plek vulde, is licht en deze lezer koos geen gadgets (4 november).
+  assert.equal(sel.length, 5)
   assert.ok(!run({ ctx: { readIds: new Set([kab.itemIds[0]]) } }, w).some((e) => e.id === 's-kab'))
   // Een los bericht dat je las, ook niet.
   const loose = w.loose[0].id
-  assert.ok(!run({ ctx: { readIds: new Set([loose]) }, opts: { size: 9 } }, w).some((e) => e.id === loose))
-  assert.ok(run({ opts: { size: 9 } }, w).some((e) => e.id === loose))
+  // De review is licht (4 november): de lezer koos gadgets.
+  const gadgets = { interests: ['tech'], topics: ['gadgets'] }
+  assert.ok(!run({ prof: gadgets, ctx: { readIds: new Set([loose]) }, opts: { size: 9 } }, w).some((e) => e.id === loose))
+  assert.ok(run({ prof: gadgets, opts: { size: 9 } }, w).some((e) => e.id === loose))
 })
 
 test('selectie: een los bericht blijft zo lang staan als het tempo van zijn bron', () => {

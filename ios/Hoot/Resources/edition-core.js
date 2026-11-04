@@ -1532,14 +1532,79 @@ var HootCore = (() => {
     const video = /\b(youtube|tiktok|videos?|trailers?)\b/i.test(title);
     return curated && video && !((prof?.family?.cultuur || 0) >= 0.5 && (prof?.topicP?.film || 0) >= 0.5);
   }
-  function newsRejection(prof, story, items, desk = null) {
+  var LIGHT_CAT = { games: "games", cultuur: "cultuur" };
+  var LIGHT_TOPIC = { games: "games", film: "cultuur", muziek: "cultuur", boeken: "cultuur", kunst: "cultuur", media: "cultuur" };
+  var LIGHT_PATH_GAMES = /\/(games?|gaming|gameblog)\//i;
+  var LIGHT_PATH = /\/(entertainment|showbizz|boulevard|celebrit\w*|lifestyle|style|fashion|mode|t-magazine|dining|food|eten|koken-en-eten|recepten|travel|reizen|realestate|arts|books|boeken|movies|theater|television|tv|film|muziek|music|kunst-media|media-en-cultuur|cultuur(?:-media)?|culture)\//i;
+  var LIGHT_HEAD = /\b(podcast\w*|talkshow\w*|presentat(?:or|rice)\w*|tv-serie\w*|streamingdienst\w*|kookboek\w*|recept\w*|recipe\w*)\b/i;
+  var CONSUMER_PATH = /\/(reviews?|deals?|gift-guide|buying-guide|best-\w+)\//i;
+  var CONSUMER_HEAD = /(^|\b)(review|getest|hands-on|deal|deals|korting|aanbieding|buying guide|gift guide|best (?:\w+ ){0,3}(?:to buy|for \w+))\b/i;
+  var HARD_HEAD = /\b(rechter\w*|rechtbank|rechtszaak|court|lawsuit|sued|sues|verbod|verboden|ban|bans|banned|boete\w*|fined?|fines|toezichthouder\w*|regulator\w*|antitrust|mededinging\w*|ontslag\w*|layoffs?|laid off|staking\w*|strike|hack\w*|datalek\w*|breach|lek|minister\w*|kabinet\w*|regering\w*|government|congres\w*|congress|senaat|senate|parlement\w*|kamer\w*|politie|police|arrest\w*|aangehouden|oorlog|war|aanslag\w*|sanctie\w*|sanctions?|tarie\w*|tariffs?|faillis\w*|bankrupt\w*)\b/i;
+  var HARD_FAMILIES = /* @__PURE__ */ new Set(["politiek", "wereld"]);
+  var hardNews = (item) => HARD_HEAD.test(item?.title || "") || (item?.topics || []).some((t) => HARD_FAMILIES.has(FAMILY_OF[t]));
+  function lightKind(item, catOf = null) {
+    if (!item) return null;
+    const title = item.title || "";
+    if (hardNews(item)) return null;
+    const url = String(item.url || "").split("?")[0];
+    const cat = catOf?.get(item.source) ?? SPORT_CAT.get(item.source);
+    const byTopic = (item.topics || []).map((t) => LIGHT_TOPIC[t]).find(Boolean);
+    if (LIGHT_CAT[cat]) return LIGHT_CAT[cat];
+    if (LIGHT_PATH_GAMES.test(url) || byTopic === "games") return "games";
+    if (byTopic || LIGHT_PATH.test(url) || LIGHT_HEAD.test(title)) return "cultuur";
+    if (CONSUMER_PATH.test(url) || CONSUMER_HEAD.test(title)) return "consument";
+    return null;
+  }
+  var CAT_BY_NAME = new Map(SOURCES.map((s) => [s.name, s.cat]));
+  var ID_BY_NAME = new Map(SOURCES.map((s) => [s.name, s.id]));
+  var LIGHT_ORDER = ["games", "cultuur", "consument"];
+  function lightStory(story = {}, items = [], catOf = null) {
+    if (story && story.light !== void 0) return story.light || null;
+    const bySource = /* @__PURE__ */ new Map();
+    for (const i of items) if (i?.source) (bySource.get(i.source) || bySource.set(i.source, []).get(i.source)).push(i);
+    const units = /* @__PURE__ */ new Map();
+    let hard = 0;
+    for (const [src, its] of bySource) {
+      const kinds2 = its.map((i) => lightKind(i, catOf)).filter(Boolean);
+      if (its.some(hardNews)) hard++;
+      units.set(its[0].sourceName || src, kinds2.length * 2 >= its.length ? kinds2[0] : null);
+    }
+    for (const name of story?.sourceNames || []) if (!units.has(name) && LIGHT_CAT[CAT_BY_NAME.get(name)]) units.set(name, LIGHT_CAT[CAT_BY_NAME.get(name)]);
+    const kinds = [...units.values()].filter(Boolean);
+    const enough = kinds.length * 2 > units.size || kinds.length >= 2 && hard === 0 && kinds.length * 2 >= units.size;
+    if (!units.size || !enough) return null;
+    const count = {};
+    for (const k of kinds) count[k] = (count[k] || 0) + 1;
+    return [...LIGHT_ORDER].sort((a, b) => (count[b] || 0) - (count[a] || 0) || LIGHT_ORDER.indexOf(a) - LIGHT_ORDER.indexOf(b))[0];
+  }
+  var GENERAL_CATS = /* @__PURE__ */ new Set(["nl", "vl", "int", "regio"]);
+  function majorGeneralNews(story = {}, items = [], catOf = null) {
+    if (onlyGalleries(items)) return false;
+    const catFor = (id) => catOf?.get(id) ?? SPORT_CAT.get(id);
+    const ids = new Set(items.map((i) => i?.source).filter((id) => id && GENERAL_CATS.has(catFor(id))).map(publisherOf));
+    for (const name of story.sourceNames || []) if (GENERAL_CATS.has(CAT_BY_NAME.get(name))) ids.add(publisherOf(ID_BY_NAME.get(name)));
+    const countries = new Set([...ids].map(publisherCountry).filter(Boolean));
+    return ids.size >= FRONT_BIG || ids.size >= 5 && countries.size >= 2;
+  }
+  function lightChosen(prof, kind) {
+    if (kind === "games") return (prof?.topicP?.games || 0) >= 0.5;
+    if (kind === "cultuur") return (prof?.family?.cultuur || 0) >= 0.5;
+    if (kind === "consument") return (prof?.topicP?.gadgets || 0) >= 0.5;
+    return true;
+  }
+  var lightNews = (story, items, catOf = null) => story?.light === void 0 && items.length === 1 && !(story?.sourceNames || []).length ? lightKind(items[0], catOf) : lightStory(story, items, catOf);
+  function newsRejection(prof, story, items, desk = null, { bubble = false, allowLight = false } = {}) {
     if (onlyGalleries(items)) return "alleen-galerijen";
     if (items.length && items.every((i) => lightVideoFiller(i, prof))) return "licht-videorondje-buiten-interesse";
     if ((sportStory(story, items, prof.catOf) || items.some((i) => isSport(i, prof.catOf))) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return "sport-niet-gekozen";
+    if (!bubble && !allowLight) {
+      const light = lightNews(story, items, prof.catOf);
+      if (light && !lightChosen(prof, light) && !majorGeneralNews(story, items, prof.catOf)) return "licht-buiten-interesse";
+    }
     if (!worldChosen(prof) && cappedInternational(prof, items, desk, story) && !majorNews(story, items)) return "internationaal-niet-groot-genoeg";
     return null;
   }
-  var allowedNews = (prof, story, items, desk = null) => newsRejection(prof, story, items, desk) === null;
+  var allowedNews = (prof, story, items, desk = null, opts = {}) => newsRejection(prof, story, items, desk, opts) === null;
 
   // shared/editor-version.mjs
   var EDITOR_REVISION = "redacteur-2026-11-02-beta2";
@@ -2205,7 +2270,7 @@ var HootCore = (() => {
     return newSig >= DEVELOPED_SIG ? { fresh, lead, newSig } : null;
   }
   var textOrder = (a, b) => a < b ? -1 : a > b ? 1 : 0;
-  function selectForReader(stories, pool, { mainIds = /* @__PURE__ */ new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = "", audit = null } = {}) {
+  function selectForReader(stories, pool, { mainIds = /* @__PURE__ */ new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = "", audit = null, allowLight = false } = {}) {
     const byId2 = new Map(pool.map((i) => [i.id, i]));
     const prevShown = previous?.shown?.length ? previous.shown : [...previous?.titles || []].map((title) => ({ title, publishedAt: new Date(previous.at || now).toISOString() }));
     const prevArts = prevShown.map((a, k) => ({ ...a, id: `vorige:${k}` }));
@@ -2301,7 +2366,7 @@ var HootCore = (() => {
     const foreign = (c) => c.intl ?? internationalNews(c.items, c.desk, c.st);
     const cappedWorld = (c) => cappedInternational(prof, c.whole || c.items, c.desk, c.st);
     const take = (c, desk, extra = {}) => {
-      if (used.has(c) || clashes(c) || !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk)) return false;
+      if (used.has(c) || clashes(c) || !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight })) return false;
       if (plan && !worldChosen(prof) && cappedWorld(c) && entries.filter((e) => {
         const x = cands.find((c2) => c2.id === e.id);
         return x && cappedWorld(x);
@@ -2503,7 +2568,9 @@ var HootCore = (() => {
       const members = [.../* @__PURE__ */ new Set([id, ...st?.itemIds || [], ...entry.itemIds || []])].map((x) => itemAny.get(x)).filter(Boolean);
       const meta = st || entry;
       const desk = st?.desk ?? entry.fromDesk ?? entry.desk ?? null;
-      return { allowed: allowedNews(prof, meta, members, desk), abroad: internationalNews(members, desk, meta), capped: cappedInternational(prof, members, desk, meta), members, meta, desk };
+      const bubble = entry.desk === "bubbel" || entry.bubble === true;
+      const reason = newsRejection(prof, meta, members, desk, { bubble });
+      return { allowed: reason === null, reason, abroad: internationalNews(members, desk, meta), capped: cappedInternational(prof, members, desk, meta), members, meta, desk };
     };
     const unchosenAbroad = (id, sid) => capAbroad && policyOf(id, sid).capped;
     const eligible = (id, sid, entry = {}) => {
@@ -2603,7 +2670,7 @@ var HootCore = (() => {
     const topicsOfStory = (sid, id) => [...new Set((storyById.get(sid)?.itemIds || [id]).flatMap((x) => itemAny.get(x)?.topics || []))];
     let nearItem = null;
     if (bubbleEntry) {
-      const okB = (b) => itemAny.has(b.id) && eligible(b.id, b.storyId, b) && !clashes(b.id) && unread(b.id, b.storyId) && outsideProfile(topicsOfStory(b.storyId, b.id), prof) && !(abroad >= INT_MAX && unchosenAbroad(b.id, b.storyId));
+      const okB = (b) => itemAny.has(b.id) && eligible(b.id, b.storyId, { ...b, bubble: true }) && !clashes(b.id) && unread(b.id, b.storyId) && outsideProfile(topicsOfStory(b.storyId, b.id), prof) && !(abroad >= INT_MAX && unchosenAbroad(b.id, b.storyId));
       const first = (global.bubble || []).find((b) => b.id === bubbleEntry.id) || { id: bubbleEntry.id };
       const alt = [first, ...global.bubble || []].find(okB);
       if (alt) {
@@ -2613,7 +2680,7 @@ var HootCore = (() => {
         const home = strongestFamily(prof);
         const next = new Set(NEIGHBOURS[home] || []);
         const recent = stories.filter((st) => st.sourceCount >= NEAR_MIN_SOURCES && now - Date.parse(st.latestAt) < 24 * 36e5).sort((a, b) => b.sourceCount - a.sourceCount || byText(a.id, b.id)).map((st) => ({ storyId: st.id, sourceCount: st.sourceCount, topics: topicsOfStory(st.id), item: itemAny.get(st.leadId) || st.itemIds.map((x) => itemAny.get(x)).find(Boolean) }));
-        const fits = (w) => w?.item?.id && eligible(w.item.id, w.storyId, w) && !clashes(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && unread(w.item.id, w.storyId) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t])) && !(abroad >= INT_MAX && unchosenAbroad(w.item.id, w.storyId));
+        const fits = (w) => w?.item?.id && eligible(w.item.id, w.storyId, { ...w, bubble: true }) && !clashes(w.item.id) && !(storyById.get(w.storyId)?.itemIds || []).some((x) => taken.has(x)) && unread(w.item.id, w.storyId) && outsideProfile(w.topics || [], prof) && (w.topics || []).some((t) => next.has(FAMILY_OF[t])) && !(abroad >= INT_MAX && unchosenAbroad(w.item.id, w.storyId));
         const pick = [...global.near || [], ...recent].find(fits);
         bubbleEntry = pick ? withHistory({ kind: "story", id: pick.storyId, leadId: pick.item.id, desk: "bubbel", near: home }, pick.item.id, pick.storyId) : null;
         if (pick) {
@@ -2630,13 +2697,15 @@ var HootCore = (() => {
     let internationalCount = 0;
     const accepted = [];
     let capacity = EDITION_SIZE;
+    let floorLight = false;
     const accept = (e) => {
       if (accepted.length >= capacity) return;
       const id = e.leadId || e.id;
       const p = policyOf(id, e.kind === "story" ? e.id : null, e);
       const ids = [...membersOf(e)];
       if (ids.some((x) => finalTaken.has(x)) || sigAll.has(id) && finalLeads.some((x) => sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x)))) return;
-      if (!p.allowed || capAbroad && p.capped && internationalCount >= INT_MAX) return;
+      const allowed = p.allowed || floorLight && p.reason === "licht-buiten-interesse";
+      if (!allowed || capAbroad && p.capped && internationalCount >= INT_MAX) return;
       if (p.capped) internationalCount++;
       ids.forEach((x) => finalTaken.add(x));
       finalLeads.push(id);
@@ -2647,6 +2716,12 @@ var HootCore = (() => {
     for (const { g } of fillCands) {
       if (accepted.length >= EDITION_SIZE) break;
       accept(withHistory({ ...g, desk: EXTERN, fromDesk: g.desk || null, supplement: supplementReason(g) }, g.leadId || g.id, g.kind === "story" ? g.id : null));
+    }
+    if (accepted.length < EDITION_FLOOR) {
+      floorLight = true;
+      capacity = EDITION_FLOOR;
+      selectForReader(mineStories, newsPool, { ...opts, size: EDITION_SIZE, allowLight: true }).forEach(accept);
+      floorLight = false;
     }
     if (bubbleEntry) {
       capacity = accepted.length + 1;

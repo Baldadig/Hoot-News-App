@@ -1,5 +1,5 @@
 import { cleanIntro, headlineFit } from '../../shared/edition-display.mjs'
-import { EDITION_TARGET, coverageOf, majorNews, newsRejection, lightVideoFiller, allowedNews, cappedInternational, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery } from '../../shared/edition-policy.mjs'
+import { EDITION_TARGET, coverageOf, majorNews, newsRejection, lightVideoFiller, allowedNews, cappedInternational, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery, lightNews, lightStory, majorGeneralNews } from '../../shared/edition-policy.mjs'
 import { eventScope, conflictingEvents } from '../../shared/article-signals.mjs'
 // Verhalen (bundels), hoofdbericht en editie — pure functies, los van het ophalen,
 // zodat ze te testen zijn (zie tests/).
@@ -715,6 +715,10 @@ export function buildStories(articles, registry = {}, { mainIds = new Set(), key
     // verhalen byte-gelijk blijven. De lead hoeft geen sporttag te hebben (een NYT-fotogalerij).
     const last = stories[stories.length - 1]
     if (sportStory({ sourceNames: names, keys: last.keys }, items)) last.sport = true
+    // Licht (games, cultuur, lifestyle, consumententech) uit álle stukken: het toestel kent alleen die van
+    // je eigen bronnen. Altijd gezet (de soort, of false), zodat het toestel het niet uit een deel opnieuw
+    // raadt; een oudere server zonder dit veld valt terug op wat het toestel heeft (lightStory).
+    last.light = (!last.sport && lightStory({}, items)) || false
   }
   return stories
 }
@@ -1053,6 +1057,9 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     // De algemene Editie is nieuws: een sportverhaal (ook met een kop zonder sporttag) en een verhaal van
     // alleen galerijen doen niet mee, behalve groot Oranje-sportnieuws (exceptionalDutchSport).
     if (items.every(isGallery) || (sportStory(st, items) && !exceptionalDutchSport(st, items))) continue
+    // Games, cultuur, lifestyle en consumententech zijn ook een eigen soort (4 november 2026: GTA VI en
+    // Elder Scrolls VI op plek 3 en 4): alleen als algemene nieuwsuitgevers het groot nieuws vinden.
+    if (lightNews(st, items) && !majorGeneralNews(st, items)) continue
     const per = storyDesks(items)
     const fav = preferred?.size && items.some((i) => preferred.has(i.source)) ? FAVORITE_BONUS : 0
     cands.push({ kind: 'story', st, items, ids: st.itemIds, desks: new Set(per.flatMap((x) => [...x])), primary: primaryDesk(per), w: weight({ sourceCount: st.publisherCount ?? st.sourceCount, latestAt: st.latestAt }, now) - repeatPenalty(st, items, previous) + fav })
@@ -1061,7 +1068,7 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     if (!mainIds.has(it.source) || it.kind !== 'article' || it.type === 'opinie' || it.storyId || isLive(it)) continue // een liveblog is geen editieplek
     if (!fresh(it.publishedAt, 14) || !(it.summary || it.image)) continue
     if (previous?.itemIds?.has(it.id)) continue // stond er al
-    if (isGallery(it) || lightVideoFiller(it)) continue // een galerij is geen eigen plek
+    if (isGallery(it) || lightVideoFiller(it) || lightNews({}, [it])) continue // een galerij of een licht stuk is geen eigen plek
     const desks = desksOf(it)
     cands.push({ kind: 'item', it, ids: [it.id], desks, primary: primaryDesk([desks]), w: weight({ sourceCount: 1, latestAt: it.publishedAt }, now) - 2 + (preferred?.has(it.source) ? FAVORITE_BONUS : 0) })
   }
@@ -1087,10 +1094,11 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     if (entries.length >= size) break
     if (!cands.some((c) => c.primary === desk && take(c, desk)) && !strict) cands.some((c) => c.desks.has(desk) && take(c, desk))
   }
-  // 2. Aanvullen met het belangrijkste wat er verder is.
+  // 2. Aanvullen met het belangrijkste wat er verder is, onder zijn eigen rubriek (4 november 2026: een
+  //    VS-verhaal dat hier binnenkwam, stond zonder rubriek in de Editie).
   for (const c of cands) {
     if (entries.length >= size) break
-    take(c, null)
+    take(c, c.primary ?? null)
   }
   // Volgorde: belangrijkste eerst (het hoofdverhaal is het zwaarste nieuws van het moment).
   entries.sort((a, b) => b.w - a.w)
@@ -1118,7 +1126,7 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
 // Uitvoer: de plekken met `w` en `parts` (het waarom wordt daarna gezet), `itemIds`, `title` en de
 // `keys` van het verhaal (zodat previousOf de hele Editie van toen kent), plus `deskOrder`.
 const textOrder = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
-export function selectForReader(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = '', audit = null } = {}) {
+export function selectForReader(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = '', audit = null, allowLight = false } = {}) {
   const byId = new Map(pool.map((i) => [i.id, i]))
   // De getoonde berichten van de vorige Editie (of, van een oudere Editie, alleen de koppen) krijgen
   // een kenmerk met de woordenschat van de pool van nu.
@@ -1209,7 +1217,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   const foreign = c => c.intl ?? internationalNews(c.items, c.desk, c.st)
   const cappedWorld = c => cappedInternational(prof,c.whole || c.items,c.desk,c.st)
   const take = (c, desk, extra = {}) => {
-    if (used.has(c) || clashes(c) || !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk)) return false
+    if (used.has(c) || clashes(c) || !allowedNews(prof, c.st || { sourceCount: 1 }, c.items, c.desk, { allowLight })) return false
     if (plan && !worldChosen(prof) && cappedWorld(c) && entries.filter(e => { const x = cands.find(c => c.id === e.id); return x && cappedWorld(x) }).length >= INT_MAX) return false
     used.add(c)
     place(c.ids)
@@ -1355,8 +1363,10 @@ export function relinkEdition(entries = [], { stories = [], snapshot = [], byId 
       taken.add(now.id)
       return { ...out, id: now.id, formerId: e.id, desk: deskOf(now.itemIds) || out.leadDesk || e.desk }
     }
-    // Los bericht: de rubriek van de selectie gaat voor (die keek naar het hele verhaal).
-    return { kind: 'item', id: e.leadId, formerId: e.id, desk: e.desk || out.leadDesk, w: e.w }
+    // Los bericht: het verhaal van toen bestaat niet meer, dus de rubriek van het bericht zelf gaat voor
+    // (4 november 2026: een NRC-stuk over mensensmokkel naar het VK bleef "Oekraïne" omdat het eerst in
+    // een Oekraïneverhaal gebundeld zat); zonder eigen rubriek die van de selectie.
+    return { kind: 'item', id: e.leadId, formerId: e.id, desk: out.leadDesk || e.desk, w: e.w }
   })
 }
 
