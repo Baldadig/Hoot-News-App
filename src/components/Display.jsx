@@ -2,6 +2,7 @@ import { useHoot } from './Items.jsx'
 import { Dialog, DialogHeader } from './Dialog.jsx'
 import { AccountSettings } from './Account.jsx'
 import { UpDownIcon } from './icons.jsx'
+import { useTouch } from '../lib/systeemtekst.js'
 
 // Weergave: wat je al lezend wisselt. Dezelfde rijen in het blad Jij en op Instellingen.
 // Instellingen A (concepten-2/6-instellingen.html, I4/I5): geen rode segmenten meer, maar een rij
@@ -37,6 +38,7 @@ export const THEME_OPTIONS = [
 
 export function DisplayControls({ stream = true }) {
   const { prefs, setPref, theme, setTheme, themeDark, setThemeDark } = useHoot()
+  const touch = useTouch() // op een aanraakscherm volgt de tekstgrootte het systeem: geen eigen keuze
   return (
     <div className="rows">
       <MenuRow label="Weergave" value={theme} onChange={setTheme} options={THEME_OPTIONS} />
@@ -51,16 +53,18 @@ export function DisplayControls({ stream = true }) {
           { value: 'inkt', label: 'Inkt' },
         ]}
       />
-      <MenuRow
-        label="Tekstgrootte"
-        value={prefs.textSize}
-        onChange={(v) => setPref('textSize', v)}
-        options={[
-          { value: 'klein', label: 'Klein' },
-          { value: 'normaal', label: 'Normaal' },
-          { value: 'groot', label: 'Groot' },
-        ]}
-      />
+      {touch ? null : (
+        <MenuRow
+          label="Tekstgrootte"
+          value={prefs.textSize}
+          onChange={(v) => setPref('textSize', v)}
+          options={[
+            { value: 'klein', label: 'Klein' },
+            { value: 'normaal', label: 'Normaal' },
+            { value: 'groot', label: 'Groot' },
+          ]}
+        />
+      )}
       <MenuRow
         label="Beeld"
         value={prefs.images}

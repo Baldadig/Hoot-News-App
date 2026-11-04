@@ -65,7 +65,7 @@ export function startKopAfbreken(root = document) {
   const mo = new MutationObserver(later)
   mo.observe(root.body || root, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class'] }) // ook class: React kan de klasse van een kop opnieuw zetten
   const html = new MutationObserver(later)
-  html.observe(document.documentElement, { attributes: true, attributeFilter: ['data-text', 'style'] })
+  html.observe(document.documentElement, { attributes: true, attributeFilter: ['data-text', 'data-systeem', 'style'] })
   window.addEventListener('resize', later)
   document.fonts?.addEventListener?.('loadingdone', later)
   document.fonts?.ready?.then(later)

@@ -25,10 +25,11 @@ const fonts = {
   'newsreader-800-ext.woff2': FD + '/newsreader/files/newsreader-latin-ext-800-normal.woff2',
   'newsreader-tekst.woff2': SF + '/newsreader-latin-opsz-normal.woff2',
   'newsreader-tekst-ext.woff2': SF + '/newsreader-latin-ext-opsz-normal.woff2',
-  'inter.woff2': SF + '/inter-latin-opsz-normal.woff2',
-  'inter-ext.woff2': SF + '/inter-latin-ext-opsz-normal.woff2',
+  'schibsted.woff2': SF + '/schibsted-latin-wght-normal.woff2',
+  'schibsted-ext.woff2': SF + '/schibsted-latin-ext-wght-normal.woff2',
 };
 for (const [n, p] of Object.entries(fonts)) fs.copyFileSync(p, path.join(OUT, 'fonts', n));
+fs.copyFileSync(SF + '/schibsted-OFL.txt', path.join(OUT, 'fonts', 'OFL-Schibsted-Grotesk.txt')); // de licentie gaat mee met de letter
 
 // merk
 const dOf = f => fs.readFileSync(APP + '/public/brand/' + f, 'utf8').match(/<path[^>]* d="([^"]+)"/)[1];

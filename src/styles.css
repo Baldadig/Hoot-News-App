@@ -67,10 +67,11 @@
      --serif  koppen, displays en de nummers 01–10: Newsreader 800, statisch (optische maat uit)
      --lees   lopende tekst (leads, intro's, de Editie in één minuut, proza): Newsreader op
               tekstmaat (variabel, optische maat aan), 400; Nacht 430
-     --sans   bediening, labels, metadata en knoppen: Inter (variabel, optische maat aan) */
+     --sans   bediening, labels, metadata, knoppen en de onboardingzinnen: Schibsted Grotesk (variabel,
+              400–900), meegeleverd; vervangt Inter (keuze Alex, 4 november) */
   --serif: 'Newsreader', ui-serif, Georgia, 'Times New Roman', serif;
   --lees: 'Newsreader', ui-serif, Georgia, 'Times New Roman', serif;
-  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --sans: 'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   /* Uitleg: een uitlegzin onder een kop (het welkom, een lege bladzijde, de Selectie) is lezen, geen
      bediening: Newsreader op tekstmaat, 17/24, zoals de landing en .uitleg() in de app (Letters.swift). */
   --uitleg: var(--lees);
@@ -85,7 +86,7 @@
   --page: var(--wide);
   --measure: 720px; /* leesblok van het web (norm v2.2: web 720, iOS 680; de regellengte zelf is --measure-prose) */
   /* Regellengtes in em, niet in ch: een ch is de breedte van een 0, en die verschilt sterk per letter
-     (Source Sans 0,50 · Newsreader 0,56 · Inter 0,63 em). In em blijven de kolommen even breed als
+     (Source Sans 0,50 · Newsreader 0,56 · Schibsted ± 0,56 em). In em blijven de kolommen even breed als
      met 58ch, 30ch en 34ch in Source Sans 3. */
   --measure-prose: 28.8em; /* lopende tekst, samenvattingen en hints: ten hoogste ± 70 tekens per regel (17 px Newsreader: 68) */
   --measure-form: 560px; /* Bronnen en Instellingen */
@@ -146,7 +147,7 @@
   --meta-inset: calc((var(--tap) - var(--lh-2) - var(--lh-1)) / 2);
   --media-focus: 50% 28%; /* gezichten zitten meestal in het bovenste deel van een persfoto */
   /* Klein beeld naast een kop (krant-vorm): 3:2 met een vaste breedte, zoals Layout.thumb in de
-     app (96; bij grote tekst 108). Op een smalle telefoon een stap smaller, zie onder. */
+     app (96; bij grote tekst 108). Alleen onder 360 breed een stap smaller, zie onder. */
   --thumb-w: 96px;
   --thumb-h: 64px;
   --thumb-sm: 64px; /* klein beeld op de voorpagina en in een linkkaart (vierkant) */
@@ -154,7 +155,7 @@
      volle kolom. Het hoofdverhaal op een telefoon en de grote kaart van de Selectie vanaf 720 zijn
      ook 2:1, maar een eigen keuze; daarom een eigen naam, zodat de een niet met de ander meeschuift. */
   --media-tl: 2 / 1;
-  --media-lead: 2 / 1;
+  --media-lead: 16 / 9; /* zoals de app (EditionView: ratio 16 / 9) */
   --media-lead-portrait: 4 / 5;
   --media-lead-portrait-wide: 3 / 4;
   --media-lead-wide: 21 / 9; /* hoofdverhaal vanaf 720: een liggende strook */
@@ -193,23 +194,27 @@
   --t0: 0.75rem; /* 12 */
   --t1: 0.8125rem; /* 13 */
   --t2: 0.9375rem; /* 15 */
-  --t-ui-sm: 0.875rem; /* 14: bediening in Inter waar een regel krap is (bronregel); Inter 14 ≈ Source Sans 15 */
+  --t-ui-sm: 0.875rem; /* 14: bediening waar een regel krap is */
   --t3: 1.0625rem; /* 17 */
-  --t4: 1.125rem; /* 18 */
-  --t-head-lg: 1.375rem; /* 22 */
-  --t5: 1.6875rem; /* 27 */
-  --t6: 1.875rem; /* 30, vanaf 720 34 */
-  --t-display: 2rem; /* 32 */
+  --t4: min(1.25rem, 40px); /* 20: de rijkop, zoals de app (.title3) */
+  --t-head-lg: min(1.375rem, 44px); /* 22 */
+  --t5: min(1.75rem, 56px); /* 28: schermtitel en verhaaltitel, zoals de app (.title) */
+  --t6: min(2.125rem, 68px); /* 34: hoofdverhaal, zoals de app (.largeTitle) */
+  --t-display: min(2rem, 64px); /* 32 */
+  /* Bovengrens op koppen: ze groeien mee met Tekstgrootte (rem) tot twee keer hun maat. Bij 310 %
+     (de grootste Dynamic Type op de iPhone) blijft een kop zo heel en breekt hij op woordgrenzen. */
+  --t-kicker: 0.75rem; /* 12 heavy, zoals de app (.caption) */
+  --t-kicker-n: 1rem; /* 16: het nummer in de kicker (app: 16) */
   --t-hero: clamp(2.75rem, 2.2rem + 2.4vw, 3.5rem); /* 44–56 */
   --lh-0: 1rem; /* 16 */
   --lh-1: 1rem; /* 16 */
   --lh-2: 1.25rem; /* 20 */
   --lh-3: 1.5rem; /* 24 */
-  --lh-4: 1.375rem; /* 22: lijstkoppen van vier, vijf regels houden lucht tussen staart en stok */
-  --lh-head-lg: 1.625rem; /* 26 */
-  --lh-5: 2rem; /* 32 */
-  --lh-6: 2.25rem; /* 36, vanaf 720 40 */
-  --lh-display: 2.25rem; /* 36 */
+  --lh-4: min(1.5rem, 48px); /* 24: lijstkoppen van vier, vijf regels houden lucht tussen staart en stok */
+  --lh-head-lg: min(1.625rem, 52px); /* 26 */
+  --lh-5: min(2rem, 64px); /* 32 */
+  --lh-6: min(2.5rem, 80px); /* 40 */
+  --lh-display: min(2.25rem, 72px); /* 36 */
   --lh-1-read: 1.25rem; /* 20: uitleg */
   --lh-2-read: 1.5rem; /* 24: samenvatting, en de intro in Newsreader (17/24 = 1,42) */
   --lh-3-read: 1.75rem; /* 28: leestekst */
@@ -254,29 +259,33 @@
 /* Tablet en breder: het hoofdverhaal een stap groter, dialogen ruimer. */
 @media (min-width: 720px) {
   :root {
-    --t6: 2.125rem; /* 34 */
-    --lh-6: 2.5rem; /* 40 */
     --dialog-pad: var(--s5);
   }
 }
-/* Smalle telefoon: het kleine beeld naast een kop wijkt (op de 4-schaal, steeds exact 3:2),
-   zodat lange koppen niet te smal worden (getoetst met NRC-koppen van 150+ tekens). */
-@media (max-width: 479px) {
+/* Het kleine beeld naast een kop is op elke telefoon 96 × 64, zoals de app (Layout.thumb). Alleen onder
+   360 breed (smaller dan elke iPhone) wijkt het een stap (op de 4-schaal, steeds exact 3:2), zodat
+   lange koppen niet te smal worden (getoetst met NRC-koppen van 150+ tekens). */
+@media (max-width: 359px) {
   :root {
     --thumb-w: 84px;
     --thumb-h: 56px;
   }
 }
-@media (max-width: 359px) {
-  :root {
-    --thumb-w: 72px;
-    --thumb-h: 48px;
-  }
-}
 /* Grote tekst: het kleine beeld groeit één stap mee (iOS thumbLarge 108). */
-html[data-text='groot'] {
+html[data-text='groot'],
+html[data-systeem='groot'],
+html[data-systeem='ax'] {
   --thumb-w: 108px;
   --thumb-h: 72px;
+}
+/* Toegankelijkheidsmaten van het systeem (vanaf 28 pt): zoals de app geen miniatuur, de kop krijgt de
+   hele breedte. */
+html[data-systeem='ax'] .thumb {
+  display: none;
+}
+html[data-systeem='ax'] .compact__link,
+html[data-systeem='ax'] .fitem__link {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 /* Kleur — donker (JS zet data-theme; 'systeem' volgt het toestel) */
@@ -442,7 +451,7 @@ p {
    keuze B) en meta (stil). Het enige rood per scherm is de zon of de punt van hoot. */
 .label {
   font-family: var(--sans);
-  font-size: var(--t1);
+  font-size: var(--t-kicker);
   font-weight: var(--fw-head);
   line-height: var(--lh-1);
   letter-spacing: var(--ls-caps);
@@ -473,6 +482,12 @@ p {
   font-optical-sizing: auto;
   font-size: var(--t-uitleg);
   line-height: var(--lh-uitleg);
+}
+
+/* Onboardingzinnen schreefloos (keuze Alex, 4 november): de zinnen in het Welkom staan in Schibsted
+   Grotesk, op dezelfde maat 17/24. Lege bladzijden en de Selectie houden Newsreader. */
+:is(.ob__sub, .ob__lede, .ob__ttext, .ob__empty) {
+  font-family: var(--sans);
 }
 
 a {
@@ -1090,6 +1105,7 @@ select {
 
 .vh__row {
   display: flex;
+  flex-wrap: wrap; /* bij 310 % schuiven de knoppen onder de titel in plaats van erover */
   align-items: center;
   gap: var(--s1);
   min-height: var(--tap);
@@ -1128,8 +1144,10 @@ select {
 }
 
 .vh__titles {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
+  max-inline-size: 100%;
+  overflow-wrap: anywhere; /* een lang woord in een grote titel breekt in plaats van te overlopen */
 }
 
 .vh__title {
@@ -1155,8 +1173,7 @@ select {
 .vh__sub {
   margin-top: 0;
   color: var(--ink-3);
-  /* Metadata in Inter op 13: Inter is breder en heeft een grotere x-hoogte dan Source Sans (13 Inter
-     ≈ 15 Source Sans), en zo past "Donderdag 30 september · 10° · Om te beginnen" op 375 op één regel.
+  /* Metadata op 13, zodat "Donderdag 30 september · 10° · Om te beginnen" op 375 op één regel past.
      De regel blijft 20 hoog, dus de kop houdt zijn ritme. */
   font-size: var(--t1);
   line-height: var(--lh-2);
@@ -1641,7 +1658,7 @@ select.input {
 }
 
 /* ---------- Gedeelde onderdelen van een bericht ---------- */
-/* Cijfers in een kolom: de tijd onder de bronnaam (Inter). Even breed, zodat "4 uur" en
+/* Cijfers in een kolom: de tijd onder de bronnaam. Even breed, zodat "4 uur" en
    "41 min" niet verspringen; koppen en lopende tekst blijven proportioneel. Alleen de schreefloze:
    Newsreader 800 zoals Fontsource hem levert heeft geen tabelcijfers, dus de serif-nummers (de
    stapteller .ob__n, de inhoud .dtoc__n, de rang .dcard__rank) blijven proportioneel. */
@@ -1738,10 +1755,10 @@ select.input {
 }
 .kicker__n {
   flex: none;
-  --kicker-n-lift: 0px; /* met Inter staan de kapitalen 1 px lager dan met Source Sans: het nummer hoeft niet meer omhoog (gemeten) */
+  --kicker-n-lift: 0px; /* gemeten tegen de kapitalen van Schibsted Grotesk */
   translate: 0 var(--kicker-n-lift);
   font-family: var(--serif);
-  font-size: var(--t3);
+  font-size: var(--t-kicker-n);
   line-height: var(--lh-1);
   font-weight: var(--fw-head);
   letter-spacing: 0;
@@ -1865,13 +1882,13 @@ select.input {
 }
 .srcmeta__name {
   color: var(--ink);
-  font-size: var(--t-ui-sm); /* 14: Inter 14 is even groot als Source Sans 15. Gemeten op 390: "The Economist" is 100,8 px en het vak naast "35 bronnen" 88,2; de naam breekt dan netjes in twee regels ("The / Economist"), nooit afgekapt. Kortere namen ("de Volkskrant", 93) passen op één regel. */
+  font-size: var(--t2); /* 15, zoals de app (.subheadline). Een lange naam breekt netjes in twee regels, nooit afgekapt. */
   font-weight: var(--fw-ui);
   line-height: var(--lh-2);
 }
 .srcmeta__time {
   color: var(--ink-3);
-  font-size: var(--t1);
+  font-size: var(--t0); /* 12, zoals de app (.caption) */
   font-weight: var(--fw-regular);
   line-height: var(--lh-1);
 }
@@ -3205,8 +3222,8 @@ select.input {
   --sun-line: var(--on-brand-red);
 }
 .endcap__sun {
-  width: auto;
-  height: 4.5rem;
+  width: 120px; /* zoals de app (EditionView: 120 breed); de hoogte volgt het kader van 168 × 140 */
+  height: auto;
 }
 .ob__art {
   width: auto;
@@ -5617,6 +5634,13 @@ html[data-images='hoofd'] .fitem__link {
 :root[data-theme='night'] .btn:not(.btn--accent, .btn--quiet) {
   --btn-fill: color-mix(in srgb, var(--ink) 20%, #000000);
   --btn-ink: var(--ink);
+}
+
+/* Hints op --ink-2 in Donker en Nacht (keuze Alex, 4 november): Schibsted is op 12 en 13 zachter dan Inter, en
+   --ink-3 is op zwart te stil voor uitleg die je moet kunnen lezen. Kickers en tijden blijven --ink-3. */
+:root[data-theme='dark'] :is(.hint, .setrow__hint, .sheet__note, .ob__peeknote, .ob__barsub, .ob__dsub, .learned__sub, .briefcta__sub, .dmast__note, .lessnote, .vh__sub, .dirow__sub),
+:root[data-theme='night'] :is(.hint, .setrow__hint, .sheet__note, .ob__peeknote, .ob__barsub, .ob__dsub, .learned__sub, .briefcta__sub, .dmast__note, .lessnote, .vh__sub, .dirow__sub) {
+  color: var(--ink-2);
 }
 
 /* Nacht Zacht papier: lokale uitvoering van Alex' keuze; normtokens bij Claude. */

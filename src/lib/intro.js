@@ -6,12 +6,12 @@ import { useSyncExternalStore } from 'react'
 import { introMax } from '../../shared/zinnen.mjs'
 
 // Kolombreedte in px op 375 (normale tekst). Met een miniatuur gaat het beeld (--thumb-w, onder
-// 480 breed 84; bij grote tekst 108) en de tussenruimte (--s3, 12) af.
+// 360 breed 96, zoals de app; bij grote tekst 108) en de tussenruimte (--s3, 12) af.
 const VIEW = 375 - 2 * 16
 const GAP = 12
 const KOLOM = {
   rij: VIEW, // tijdlijn, en krant met beelden uit (geen miniatuur en geen tussenruimte): 343
-  rijBeeld: (thumb) => VIEW - thumb - GAP, // krant met miniatuur: 247, bij grote tekst 223
+  rijBeeld: (thumb) => VIEW - thumb - GAP, // krant met miniatuur: 235, bij grote tekst 223
   voorpagina: VIEW - 64 - GAP, // klein verhaal op de voorpagina, vierkant beeld (--thumb-sm 64): 267
   kaart: VIEW - 2 * 16 - 2, // Selectie: kaart met binnenruimte (--s4) en rand: 309
   paneel: 325, // vergelijkpaneel op een breed scherm: smaller dan een rij op 375 (gemeten op 1280)
@@ -33,7 +33,8 @@ const listeners = new Set()
 let observer = null
 const read = () => {
   const el = document.documentElement
-  return `${parseFloat(getComputedStyle(el).fontSize) / 16 || 1}|${el.dataset.text || 'normaal'}`
+  const big = el.dataset.text === 'groot' || el.dataset.systeem === 'groot' || el.dataset.systeem === 'ax'
+  return `${parseFloat(getComputedStyle(el).fontSize) / 16 || 1}|${big ? 'groot' : 'normaal'}`
 }
 const subscribe = (cb) => {
   listeners.add(cb)
@@ -44,7 +45,7 @@ const subscribe = (cb) => {
       snap = next
       for (const l of listeners) l()
     })
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-text', 'style'] })
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-text', 'data-systeem', 'style'] })
   }
   return () => {
     listeners.delete(cb)
@@ -66,7 +67,7 @@ export function useIntroMax() {
   const s = Number(scale) || 1
   return (lines, kind = 'rij', image = false) => {
     if (kind === 'kaartEerste') return introMax(lines, { width: KOLOM.kaart, font: T3 * s })
-    const width = kind === 'rij' && image ? KOLOM.rijBeeld(text === 'groot' ? 108 : 84) : KOLOM[kind] ?? KOLOM.rij
+    const width = kind === 'rij' && image ? KOLOM.rijBeeld(text === 'groot' ? 108 : 96) : KOLOM[kind] ?? KOLOM.rij
     return introMax(lines, { width, font: T2 * s })
   }
 }

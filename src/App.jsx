@@ -43,6 +43,7 @@ import { subscribe as onUpdate, isReady as updateReady, applyUpdate, dismissUpda
 import { indexStories, resolveStory, toggleSaved, restoreSaved } from './lib/saved.js'
 import { shareItem, shareNotice } from './lib/share.js'
 import Splash from './components/Splash.jsx'
+import { startSysteemTekst, useTouch } from './lib/systeemtekst.js'
 
 // Schermen die je zelden opent laden pas als je ze opent (de service worker heeft ze al klaarstaan).
 const Search = lazy(() => import('./views/Search.jsx'))
@@ -93,12 +94,15 @@ export default function App() {
   const route = useRoute()
   const [rawPrefs, setPrefs] = useStored('hoot:prefs', { muted: [], pinned: [], onboarded: true }) // zonder opslag (migrate.js kon niets schrijven): geen welkom
   const prefs = useMemo(() => normalizePrefs(rawPrefs), [rawPrefs])
+  const touch = useTouch()
   const setPref = useCallback((key, value) => setPrefs((p) => ({ ...p, [key]: value })), [setPrefs])
   // Tekstgrootte en beeld werken via attributen op <html> (zie styles.css).
   useEffect(() => {
-    document.documentElement.dataset.text = prefs.textSize
+    // Op een aanraakscherm volgt de tekstgrootte het systeem (lib/systeemtekst.js); de keuze telt daar niet.
+    document.documentElement.dataset.text = touch ? 'normaal' : prefs.textSize
     document.documentElement.dataset.images = prefs.images
-  }, [prefs.textSize, prefs.images])
+  }, [prefs.textSize, prefs.images, touch])
+  useEffect(() => startSysteemTekst(), [])
   const [display, setDisplay] = useState(false)
   const openDisplay = useCallback(() => setDisplay(true), [])
   const [splash, setSplash] = useState(splashShown)
