@@ -78,6 +78,20 @@ test('opstart → Editie: eerst vervagen (0,28 s), dan reist alleen de iris (van
   assert.deepEqual(splashTimes(), splashTimes(SPLASH_IRIS_MS))
 })
 
+test('opstart → Editie (build 46): alleen de iris, vast middelpunt op de punt, het logo blijft staan (web en iOS)', () => {
+  // Web: open en dicht hetzelfde middelpunt (de punt), open = de diagonaal.
+  const [open, closed] = irisKeyframes({ x: 78, y: 83, r: 2.05, w: 440, h: 956 })
+  assert.equal(open, `circle(${Math.round(Math.hypot(440, 956) * 100) / 100}px at 78px 83px)`)
+  assert.equal(closed, 'circle(2.05px at 78px 83px)')
+  const splash = readFileSync(new URL('../src/components/Splash.jsx', import.meta.url), 'utf8')
+  assert.match(splash, /irisClose\(node, \{ \.\.\.target, w: innerWidth, h: innerHeight/, 'de iris sluit om de doelpunt')
+  // iOS: dezelfde iris, alleen de straal animeert; het woordmerk krijgt zonder woord geen plek.
+  const swift = readFileSync(new URL('../ios/Hoot/Views/SplashView.swift', import.meta.url), 'utf8')
+  assert.match(swift, /let open = hypot\(size\.width, size\.height\)/)
+  assert.match(swift, /var animatableData: CGFloat \{\s*get \{ radius \}/)
+  assert.match(swift, /guard let word, let dot else \{ return nil \}/)
+})
+
 test('opstart → rode intro: woord landt op 55 %, dan 0,1 s rust en 0,3 s vervagen', () => {
   assert.deepEqual(landTimes(700), { word: 385, fadeAt: 485, fade: 300 })
   assert.deepEqual(landTimes(), landTimes(SPLASH_LAND_MS))

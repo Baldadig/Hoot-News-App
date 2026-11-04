@@ -4,10 +4,11 @@ import SwiftUI
 // LaunchMark); dit scherm ligt daar precies op, zodat je geen overgang ziet, alleen dat de punt
 // gaat stuiteren. Het blijft staan tot er iets te lezen is: minstens één sprong, hooguit een paar
 // seconden. Met "Verminder beweging" staat de punt stil.
-// De overgang naar de app (BRAND-UPDATE §10, keuze 1.1.0 "eerst vervagen, dan reizen"): het grote
-// "hoot." vervaagt op zijn plek en beweegt niet; alleen de iris, het rode vlak, sluit zich en reist
-// naar de gemeten punt van het kleine "hoot." linksboven. Daar kleurt hij naar de kleur van die punt.
-// De iris vertrekt pas als het woord half weg is. Gelijk aan IRIS_ONLY in src/lib/motion.js.
+// De overgang naar de app (BRAND-UPDATE §10, build 46 "alleen de iris"): het grote "hoot." vervaagt
+// op zijn plek en beweegt niet, ook niet een beetje. Alleen het rode vlak sluit als een iris, met zijn
+// middelpunt vanaf het begin op de gemeten punt van het kleine "hoot." linksboven: het middelpunt
+// reist niet, alleen de straal krimpt. Daar kleurt het rood naar de kleur van die punt. De iris
+// vertrekt als het woord half weg is. Gelijk aan splashTimes en irisKeyframes in src/lib/motion.js.
 enum IrisTimes {
     static let fade = 0.28 // het woord vervaagt (40 % van de reis)
     static let delay = 0.14 // de iris vertrekt als het woord half weg is
@@ -50,16 +51,15 @@ struct SplashView: View {
             let word = leaving && lands && stays ? handoff?.word : nil
             let target = leaving ? (handoff?.dot ?? Self.ownDot(center)) : nil
             // Het rood als cirkel die het hele scherm vult; bij het vertrek sluit hij als een iris tot de
-            // rode punt van "hoot.".
-            let full = hypot(geo.size.width, geo.size.height) * 1.1
-            let iris = stays ? nil : target
-            let disc = Circle()
-                .frame(width: iris?.width ?? full, height: iris?.height ?? full)
-                .position(iris.map { CGPoint(x: $0.midX, y: $0.midY) } ?? center)
-                // Eerst vervagen, dan reizen: de iris vertrekt als het woord half weg is.
-                .transaction { if $0.animation != nil, !stays, leaving { $0.animation = .timingCurve(0.6, 0, 0.2, 1, duration: time).delay(IrisTimes.delay * time / IrisTimes.travel) } }
+            // rode punt van "hoot.". Het middelpunt ligt al op die punt; alleen de straal beweegt.
+            let shape = Self.iris(size: geo.size, target: stays ? nil : target ?? handoff?.dot ?? Self.ownDot(center), closed: leaving && !stays)
+            let disc = IrisCircle(center: shape.center, radius: shape.radius)
+            // Het kleuren op de punt houdt zijn eigen animatie (niet de vertraagde iriscurve).
+            let tinting = handoff?.tinted == true
             ZStack {
-                disc.foregroundStyle(handoff?.tinted == true ? Theme.accent : Theme.brandRed)
+                disc.fill(handoff?.tinted == true ? Theme.accent : Theme.brandRed)
+                    // Eerst vervagen, dan sluiten: de iris vertrekt als het woord half weg is.
+                    .transaction { if $0.animation != nil, !stays, leaving, !tinting { $0.animation = .timingCurve(0.6, 0, 0.2, 1, duration: time).delay(IrisTimes.delay * time / IrisTimes.travel) } }
                 mark(leaving: leaving, stays: stays, time: time)
                     // Naar de rode intro: het woordmerk landt precies op "hoot." in het welkom (punt op
                     // punt). Naar de app beweegt het niet en wordt het niet kleiner: het vervaagt.
@@ -70,7 +70,9 @@ struct SplashView: View {
                         guard $0.animation != nil else { return }
                         $0.animation = stays ? .timingCurve(0.3, 0, 0.1, 1, duration: time * 0.55) : .easeOut(duration: IrisTimes.fade * time / IrisTimes.travel)
                     }
-                    .mask { disc }
+                    .mask {
+                        disc.transaction { if $0.animation != nil, !stays, leaving, !tinting { $0.animation = .timingCurve(0.6, 0, 0.2, 1, duration: time).delay(IrisTimes.delay * time / IrisTimes.travel) } }
+                    }
             }
         }
         // Als één beeld vervagen: anders schemert het rood door de witte letters en worden ze even roze
@@ -84,8 +86,17 @@ struct SplashView: View {
         .accessibilityLabel("Hoot laadt")
     }
 
+    // De iris: middelpunt en straal in schermcoördinaten. Met een doel staat het middelpunt vanaf het
+    // eerste beeld op dat doel en verandert alleen de straal: open is hij de diagonaal van het scherm
+    // (dekt alles vanuit elk middelpunt, als irisKeyframes op het web), dicht precies de punt.
+    static func iris(size: CGSize, target: CGRect?, closed: Bool) -> (center: CGPoint, radius: CGFloat) {
+        let open = hypot(size.width, size.height)
+        guard let target else { return (CGPoint(x: size.width / 2, y: size.height / 2), open) }
+        return (CGPoint(x: target.midX, y: target.midY), closed ? target.width / 2 : open)
+    }
+
     // De punt van het opstartscherm zelf, in rust (het woordmerk staat midden op het scherm).
-    private static func ownDot(_ center: CGPoint) -> CGRect {
+    static func ownDot(_ center: CGPoint) -> CGRect {
         CGRect(x: center.x - 80 + dotCenter.x - dotSize / 2, y: center.y - 24.5 + dotCenter.y - dotSize / 2, width: dotSize, height: dotSize)
     }
 
@@ -93,9 +104,11 @@ struct SplashView: View {
     static let wordWidth = 222 * scale
     private static func fit(_ word: CGRect?) -> CGFloat { word.map { $0.width / wordWidth } ?? 1 }
     // Het midden van het woordmerk zo dat zijn punt precies op de punt in het welkom valt.
-    private static func place(_ word: CGRect?, dot: CGRect?) -> CGPoint? {
-        guard let dot else { return nil }
-        let s = fit(word)
+    // Zonder woord (naar de app) geen plek: dan blijft het woordmerk midden op het scherm staan. In
+    // build 45 schoof het hier toch naar linksboven terwijl het vervaagde; dat was het rare.
+    static func place(_ word: CGRect?, dot: CGRect?) -> CGPoint? {
+        guard let word, let dot else { return nil }
+        let s = word.width / wordWidth
         return CGPoint(x: dot.midX - (dotCenter.x - 80) * s, y: dot.midY - (dotCenter.y - 24.5) * s)
     }
 
@@ -160,3 +173,16 @@ struct SplashView: View {
     }
 }
 
+// Een cirkel met een vast middelpunt waarvan alleen de straal animeert: een iris. Het middelpunt
+// verspringt (onzichtbaar, zolang de cirkel het scherm dekt) maar reist nooit.
+struct IrisCircle: Shape {
+    var center: CGPoint
+    var radius: CGFloat
+    var animatableData: CGFloat {
+        get { radius }
+        set { radius = newValue }
+    }
+    func path(in rect: CGRect) -> Path {
+        Path(ellipseIn: CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2))
+    }
+}
