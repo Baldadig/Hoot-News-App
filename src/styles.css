@@ -401,11 +401,12 @@ p {
 }
 /* Een kop knapt nooit midden in een woord zonder streepje (keuring tekstfont, AX5). Newsreader 800 is
    breed: een lange samenstelling ("verkiezingsuitslag") past bij Groot of op 320 niet altijd op een
-   regel, en overflow-wrap: anywhere breekt dan op een teken. Alleen een kop met een woord dat breder
-   is dan de kolom krijgt .kop--breek (lib/kop-afbreken.js): afbreken op lettergrepen in de taal van de
-   pagina (lang="nl"), drie letters per kant. Andere koppen breken alleen tussen woorden. Zoals de app
-   (ios/Hoot/Views/Kop.swift). */
-:is(.head-4, .head-lg, .head-5, .head-6).kop--breek {
+   regel, en overflow-wrap: anywhere breekt dan op een teken. Alleen het woord dat breder is dan de kolom
+   komt in een span.kop-woord (lib/kop-afbreken.js): afbreken op lettergrepen in de taal van de pagina
+   (lang="nl"), drie letters per kant. De rest van de kop breekt alleen tussen woorden. Zoals de app
+   (ios/Hoot/Views/Kop.swift). .kop--breek (de hele kop) is alleen de uitwijk voor een kop met elementen. */
+:is(.head-4, .head-lg, .head-5, .head-6).kop--breek,
+.kop-woord {
   -webkit-hyphens: auto;
   hyphens: auto;
   hyphenate-limit-chars: 6 3 3;

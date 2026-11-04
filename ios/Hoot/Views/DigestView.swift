@@ -247,10 +247,11 @@ struct SelectionRow: View {
     var body: some View {
         HStack(alignment: big ? .firstTextBaseline : .center, spacing: Space.s3) {
             VStack(alignment: .leading, spacing: big ? Space.s1 : 0) {
-                Text(name)
-                    .font(big ? Theme.headline(.title2) : .ui(.body, .semibold))
-                    .foregroundStyle(Theme.ink)
-                    .fixedSize(horizontal: false, vertical: true)
+                Group {
+                    if big { Kop(name, .title2) } else { Text(name).font(.ui(.body, .semibold)) } // de grote naam via Kop: bij AX5 breekt hij met een streepje
+                }
+                .foregroundStyle(Theme.ink)
+                .fixedSize(horizontal: false, vertical: true)
                 if let sub { Text(sub).font(.ui(.caption)).monospacedDigit().foregroundStyle(Theme.ink3).fixedSize(horizontal: false, vertical: true) }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

@@ -19,10 +19,7 @@ import WebKit
                 let item = Item(id: "tekstfont-lezer", source: "nos", title: Self.longTitle, url: "https://nos.nl/")
                 let text = "De Nationale ombudsman vindt dat de overheid boeren jarenlang <em>onbetrouwbaar</em> heeft behandeld. Verkiezingsuitslagen en arbeidsongeschiktheidsverzekeringen kwamen ook <strong>ter sprake</strong>."
                 let article = Article(title: item.title, content: (0..<6).map { _ in "<p>\(text)</p>" }.joined(), length: 1200)
-                var html = ""
-                UITraitCollection(preferredContentSizeCategory: category).performAsCurrent {
-                    html = ReaderHTML.page(article, item: item, sourceName: "NOS", size: 1, night: value == "night")
-                }
+                let html = ReaderHTML.page(article, item: item, sourceName: "NOS", size: 1, night: value == "night", typeSize: size, width: 440)
                 let views: [(String, AnyView)] = [
                     ("editie", AnyView(EditionView())),
                     ("stroom", AnyView(StreamView())),

@@ -10,6 +10,8 @@ struct ArticleReaderView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @Environment(\.accessibilityReduceMotion) private var still
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @State private var width: CGFloat = 0 // breedte van de lezer, om te zien welk woord in de kop niet past
     let item: Item
     @State private var loader = ArticleLoader()
     @State private var waiting = ReaderWaitingState()
@@ -37,8 +39,9 @@ struct ArticleReaderView: View {
                 case .loading:
                     ReaderLoadingView(title: item.title.isEmpty ? (item.summary ?? "") : typeset(item.title, lang: source?.lang), sourceName: sourceName, waiting: waiting)
                 case let .ready(article):
-                    ArticleWebView(html: ReaderHTML.page(article, item: item, sourceName: sourceName, size: size, lang: source?.lang, night: nacht), baseURL: item.link)
+                    ArticleWebView(html: ReaderHTML.page(article, item: item, sourceName: sourceName, size: size, lang: source?.lang, night: nacht, typeSize: typeSize, width: width), baseURL: item.link)
                         .ignoresSafeArea(edges: .bottom)
+                        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
                         .safeAreaInset(edge: .bottom) {
                             if loginPanelVisible && shouldOfferLogin {
                                 ReaderLoginPanel(sourceName: sourceName, login: {
@@ -186,15 +189,25 @@ enum ReaderFonts {
 enum ReaderHTML {
     static let scales = [0.9, 1.0, 1.15, 1.32]
 
-    static func page(_ a: Article, item: Item, sourceName: String, size: Int, lang: String? = nil, night: Bool = false) -> String {
+    static func page(_ a: Article, item: Item, sourceName: String, size: Int, lang: String? = nil, night: Bool = false, typeSize: DynamicTypeSize? = nil, width: CGFloat = 0) -> String {
         let scale = scales[min(max(size, 0), scales.count - 1)]
-        let title = escape(typeset(a.title.isEmpty ? item.title : a.title, lang: lang)) // de lezer haalt de kop zelf: zetten zoals de server (T6)
+        // De tekstmaat komt uit de omgeving van de view (niet uit UITraitCollection.current, onbetrouwbaar in een body) en gaat als px in de pagina.
+        let bodyPx = typeSize.map { KopZet.pointSize(.body, typeSize: $0) }
+        let accessibilitySize = typeSize?.isAccessibilitySize ?? false
+        var title = typeset(a.title.isEmpty ? item.title : a.title, lang: lang) // de lezer haalt de kop zelf: zetten zoals de server (T6)
+        // Newsreader 800 is breed: een woord breder dan de kolom ("Rijksvoorlichtingsdienst" op een SE) krijgt zachte
+        // afbreekstreepjes op de lettergrepen, zoals Kop. Woorden die passen blijven heel. Kopmaat en kolom als in de css hieronder.
+        if width > 0 {
+            let body = bodyPx ?? UIFont.preferredFont(forTextStyle: .body).pointSize
+            let headPx = min(1.75 * 1.12 * scale * body, 48)
+            let column = min(width, 680) - 32
+            title = KopZet.fit(title, font: UIFont(name: Letters.kop, size: headPx) ?? .systemFont(ofSize: headPx, weight: .heavy), width: column).text
+        }
+        title = escape(title)
         // De bron staat in de bronregel onder de kop, niet als rode kicker erboven (L3, minder rood);
         // de kicker is de rubriek van het stuk, als die er is, stil in ink-3.
         let meta = [sourceName, a.byline, item.date.map { HootDate.ago($0) }].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.map(escape).joined(separator: " · ")
         let kicker = item.section?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        // Bij een AX-maat is de kop zo groot dat een lange samenstelling niet op een regel past (Newsreader 800 is breed).
-        let accessibilitySize = UITraitCollection.current.preferredContentSizeCategory.isAccessibilityCategory
         return """
         <!doctype html><html lang="\(escape(lang ?? "nl"))"><head><meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -203,15 +216,15 @@ enum ReaderHTML {
         \(ReaderFonts.css(night: night))
         :root { --paper:#F5F1E8; --ink:#1A1814; --ink-3:#6B6457; --rule:#DED5C4; --accent:#A3201B; } /* tokens van het design system */
         @media (prefers-color-scheme: dark) { :root { --paper:#151310; --ink:#F1ECE2; --ink-3:#A39B8D; --rule:#34302A; --accent:#EC7A70; } }
-        html { font: -apple-system-body; -webkit-text-size-adjust: 100%; }
+        html { font: -apple-system-body;\(bodyPx.map { " font-size: \($0)px;" } ?? "") -webkit-text-size-adjust: 100%; }
         body { margin:0; background:var(--paper); color:var(--ink); }
         main { max-width: 680px; margin: 0 auto; padding: 16px 16px 48px; /* s4, s7 */ font-family: "Newsreader Tekst", ui-serif, Georgia, serif; font-size: calc(1.12rem * \(scale)); line-height: 1.6; } /* lopende tekst: Newsreader op tekstmaat, in Nacht 430 (ReaderFonts); een stap groter dan New York (1.06), want Newsreader oogt op dezelfde maat kleiner */
         .kicker { font-family: Inter, -apple-system, system-ui, sans-serif; font-size: .72em; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 .6em; }
         h1.title { font-family: "Newsreader Kop", ui-serif, Georgia, serif; font-size: min(1.75em, 48px); line-height: 1.15; font-weight: 800; margin: 0 0 .4em; } /* bij heel grote tekst niet een heel scherm kop */
         .meta { font-family: Inter, -apple-system, system-ui, sans-serif; font-size: .8em; color: var(--ink-3); margin: 0 0 1.6em; padding-bottom: 1em; border-bottom: 1px solid var(--rule); }
         h1, h2, h3, h4 { line-height: 1.25; -webkit-hyphens: manual; hyphens: manual; } /* eigennamen in de kop breken nooit af */
-        h1 { overflow-wrap: anywhere; text-wrap: balance; } /* een woord breder dan de kolom breekt zonder streepje, regels even lang */
-        main.hyphenate :is(h1.title, h2, h3, h4) { -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 10 4 4; -webkit-hyphenate-limit-before: 3; -webkit-hyphenate-limit-after: 3; } /* alleen bij Heel groot of een AX-maat: lange woorden in kop en tussenkoppen afbreken met een streepje (nooit midden in een woord zonder), in de taal van de bron */
+        h1 { overflow-wrap: anywhere; text-wrap: balance; } /* laatste redmiddel; de kop heeft zijn zachte streepjes al (ReaderHTML.page), regels even lang */
+        main.hyphenate :is(h2, h3, h4) { -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 10 4 4; -webkit-hyphenate-limit-before: 3; -webkit-hyphenate-limit-after: 3; } /* alleen bij Heel groot of een AX-maat: lange woorden in tussenkoppen afbreken met een streepje (nooit midden in een woord zonder), in de taal van de bron */
         h2 { font-size: 1.3em; margin: 1.6em 0 .5em; } h3 { font-size: 1.12em; margin: 1.4em 0 .4em; }
         p { margin: 0 0 1em; }
         a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }

@@ -88,7 +88,13 @@ enum KopZet {
     // Zet de kop voor een kolom van `width` punten. Zonder breedte (eerste opbouw) ongewijzigd.
     static func fit(_ text: String, style: Font.TextStyle, typeSize: DynamicTypeSize, width: CGFloat) -> Fit {
         guard width > 0 else { return Fit(text: text, scale: 1) }
-        let font = font(style, typeSize: typeSize)
+        return fit(text, font: font(style, typeSize: typeSize), width: width)
+    }
+
+    // Idem voor een gegeven letter (de lezer zet zijn kop zelf in een webpagina, op eigen maat).
+    // Alleen een woord dat breder is dan de kolom krijgt zachte afbreekstreepjes.
+    static func fit(_ text: String, font: UIFont, width: CGFloat) -> Fit {
+        guard width > 0 else { return Fit(text: text, scale: 1) }
         let room = width - 1 // een halve punt speling, zoals de regelval van Core Text
         let words = text.split(separator: " ", omittingEmptySubsequences: false).map(String.init)
         guard words.contains(where: { measure($0, font: font) > room }) else { return Fit(text: text, scale: 1) }
