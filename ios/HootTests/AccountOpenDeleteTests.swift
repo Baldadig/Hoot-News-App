@@ -86,6 +86,19 @@ final class AccountOpenDeleteTests: XCTestCase {
         XCTAssertFalse(FakeAccountServer.called("apple-revoke"))
     }
 
+    func testCancelInAppleFailureKeepsAccountAndSaysSo() async throws {
+        let a = try account()
+        FakeAccountServer.apple = true
+        a.reauth = { throw ASAuthorizationError(.failed) }
+        _ = await a.deleteAccount()
+        XCTAssertTrue(a.appleFailed)
+        a.cancelAppleFailure()
+        XCTAssertFalse(a.appleFailed)
+        XCTAssertEqual(a.message, "Je account blijft bestaan.")
+        XCTAssertNotNil(a.session)
+        XCTAssertFalse(FakeAccountServer.called("delete_my_account"))
+    }
+
     func testAppleErrorAsksInsteadOfDeleting() async throws {
         for failure in [ASAuthorizationError(.failed), ASAuthorizationError(.unknown), URLError(.notConnectedToInternet)] as [Error] {
             FakeAccountServer.reset()
@@ -167,7 +180,7 @@ final class AccountOpenDeleteTests: XCTestCase {
         XCTAssertFalse(a.appleFailed)
         XCTAssertNil(a.session)
         XCTAssertTrue(FakeAccountServer.called("delete_my_account"))
-        XCTAssertEqual(a.message, "Je account is verwijderd. Haal Hoot nog weg in Instellingen › je naam › Inloggen met Apple.")
+        XCTAssertEqual(a.message, "Je account is verwijderd. Haal Hoot nog weg in Instellingen › je naam › Inloggen en beveiliging › Inloggen met Apple.")
     }
 
     func testGoogleAccountDeletesWithoutApple() async throws {

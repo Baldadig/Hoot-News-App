@@ -313,7 +313,7 @@ final class Account {
             guard current(version, identity) else { return false }
             forget()
             UserDefaults.standard.removeObject(forKey: "hoot.owner")
-            if skipApple { message = "Je account is verwijderd. Haal Hoot nog weg in Instellingen › je naam › Inloggen met Apple." }
+            if skipApple { message = "Je account is verwijderd. Haal Hoot nog weg in Instellingen › je naam › Inloggen en beveiliging › Inloggen met Apple." }
             return true
         } catch {
             guard current(version, identity) else { return false }
@@ -324,6 +324,12 @@ final class Account {
 
     // De melding over Apple sluiten zonder te kiezen: je account blijft bestaan.
     func dismissAppleFailure() { appleFailed = false }
+
+    // Annuleer in die melding: niets gewist, en je hoort dat je account blijft bestaan.
+    func cancelAppleFailure() {
+        appleFailed = false
+        message = "Je account blijft bestaan."
+    }
 
     // Apple om een verse code vragen. De tests zetten hier een nep (zonder Apple-blad).
     var reauth: @MainActor () async throws -> String? = { try await AppleReauth().code() }
