@@ -28,6 +28,7 @@ struct WelcomeView: View {
     @Environment(\.brandHandoff) private var brand // van het opstartscherm (HootApp)
     @Environment(\.accessibilityReduceMotion) private var still
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.nachtActief) private var nacht
     @ScaledMetric(relativeTo: .largeTitle) private var hero: CGFloat = 38
     @ScaledMetric(relativeTo: .body) private var trioArt: CGFloat = 72
 
@@ -642,11 +643,11 @@ struct WelcomeView: View {
                 Text(on ? "Volgend" : "Volg")
             }
             .font(.subheadline.weight(.heavy))
-            .foregroundStyle(on ? Theme.ink : Theme.paper)
+            .foregroundStyle(FollowPill.label(on: on, nacht: nacht))
             .padding(.horizontal, Space.s4)
             .frame(minWidth: 104, minHeight: Space.tap)
-            .background(on ? Color.clear : Theme.ink, in: Capsule())
-            .overlay(Capsule().strokeBorder(on ? Theme.edge : Theme.ink, lineWidth: 1))
+            .background(FollowPill.fill(on: on, nacht: nacht), in: Capsule())
+            .overlay(Capsule().strokeBorder(FollowPill.edge(on: on, nacht: nacht), lineWidth: 1))
             .contentShape(Capsule())
         }
         .buttonStyle(ChoicePress())
@@ -984,3 +985,12 @@ struct WelcomeMark: View {
     }
 }
 
+
+// Kleuren van de Volg-pil. In Nacht is inkt een licht vlak, te fel op zwart: daar, net als de hoofdknop
+// (InkButtonStyle) en .btn in de Nacht-regels van src/styles.css, een gedempt vlak (inkt op 20 %) met de
+// leesinkt als tekst. Volgend blijft stil: geen vlak, een haarlijn.
+enum FollowPill {
+    static func fill(on: Bool, nacht: Bool) -> Color { on ? .clear : (nacht ? Theme.ink.opacity(0.2) : Theme.ink) }
+    static func label(on: Bool, nacht: Bool) -> Color { on || nacht ? Theme.ink : Theme.paper }
+    static func edge(on: Bool, nacht: Bool) -> Color { on ? Theme.edge : fill(on: false, nacht: nacht) }
+}
