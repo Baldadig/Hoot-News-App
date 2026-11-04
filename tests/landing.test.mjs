@@ -73,7 +73,8 @@ test('landing: de voorbeelden zijn van 1.1.0 (nummers, bubbel apart, Bluesky, Se
   assert.doesNotMatch(bubbel, /sc-nr/)
   assert.ok(editie.indexOf('sc-bubbel') > editie.lastIndexOf('sc-nr'))
   assert.match(code(BUILD), /sc-bsky/)
-  assert.match(tekst(SRC), /van Bluesky/)
+  // Bluesky staat wel in het voorbeeld (sc-bsky), maar niet meer in de tekst (Alex 4-11).
+  assert.doesNotMatch(tekst(SRC), /Bluesky/)
   const sel = SRC.slice(SRC.indexOf('id="demo-selectie"'), SRC.indexOf('<!-- 04 De Redacteur'))
   assert.ok(sel.indexOf('sc-inhoud') > 0 && sel.indexOf('sc-inhoud') < sel.indexOf('sc-kaart'), 'de inhoud staat boven het eerste stuk')
   assert.doesNotMatch(sel, /sc-chip/)
