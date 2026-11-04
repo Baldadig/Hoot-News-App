@@ -1,6 +1,7 @@
 import { CORRECTION_REASONS } from '../lib/corrections.mjs'
 import { cleanIntro, headlineTier } from '../../shared/edition-display.mjs'
 import { createContext, useContext, useState } from 'react'
+import { useStackWhenCramped } from '../hooks/useStackWhenCramped.js'
 import { timeAgo, readTime } from '../lib/time.js'
 import { BookmarkIcon, PlayIcon, MoreIcon, ShareIcon, CaretIcon, ICON_SM } from './icons.jsx'
 import { imageMeta, portraitImage, cropStyle } from '../lib/image-meta.js'
@@ -9,6 +10,7 @@ import { topicById } from '../lib/topics.js'
 import { savedKey, withLead } from '../lib/saved.js'
 import { isReadItem } from '../../shared/stroom.mjs'
 import { avatarUrl, fitsLarge, fitsHero } from '../lib/img.js'
+import { Beeld } from './Beeld.jsx'
 import { TermHelp } from './Terms.jsx'
 import { Img, MeasuredImg } from './Img.jsx'
 import { isPlayableVideo } from '../lib/video-fullscreen.js'
@@ -16,7 +18,7 @@ import { Video } from './Video.jsx'
 import { Why } from './Why.js'
 import { directVideo, withoutBareLinks } from '../../shared/bluesky.mjs'
 import { safeHttpUrl } from '../../shared/util.mjs'
-import { wholeSentences } from '../../shared/zinnen.mjs'
+import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { useIntroMax } from '../lib/intro.js'
 import { EditionNumber } from './EditionNumber.jsx'
 
@@ -132,8 +134,9 @@ export function Meta({ item, story, showSave = true, taste = null, outside = fal
   const { openStory, newInStory, voteOn, reportMistake } = useHoot()
   const fresh = story ? newInStory(story) : 0
   const others = story ? story.sourceCount - 1 : 0
+  const metaRef = useStackWhenCramped(`${item.id}|${others}|${outside}`)
   return (
-    <div className="meta">
+    <div className="meta" ref={metaRef}>
       <SourceMeta item={item} outside={outside} />
       {story && others > 0 ? (
         // Eén bronlabel, overal hetzelfde: het totaal, "6 bronnen ›", in --ink-2 (minder rood, keuze B).
@@ -194,8 +197,10 @@ export function aboutOf(items) {
 // De intro in hele zinnen die in de gekozen regels passen (shared/zinnen.mjs, src/lib/intro.js).
 // Hoot eindigt nooit met een beletselteken: een te lange eerste zin mag één regel doorlopen, en de
 // line-clamp in de CSS staat precies die regel ruimer. `fit`: { max, rek }.
+// Een geleende intro krijgt " — via X" erachter: die tekens gaan van de maat af (Item.viaLength in de app).
+export const viaLength = (item) => (item.borrowedFrom ? item.borrowedFrom.length + 8 : 0)
 const Summary = ({ item, className, fit = { max: Infinity, rek: Infinity } }) => {
-  const text = wholeSentences(cleanIntro(item.summary, item.author), fit.max, fit.rek)
+  const text = wholeSentences(cleanIntro(item.summary, item.author), fit.max - viaLength(item), fit.rek - viaLength(item))
   return text ? (
     <p className={className}>
       {text}
@@ -215,11 +220,9 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
       <a className={`lead__link${portraitImage(item) ? ' lead__link--portrait' : ''}`} href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         {/* Overal beeld eerst, zoals de app: dan rubriek, kop en kern, zodat de bronregel bij zijn
             tekst blijft. Het waarom van de plek (jouw Editie) staat stil onder de rubriek, zie Why.js. */}
-        {item.image && fitsHero(item.image) ? (
-          <div className={`media media--lead${portraitImage(item) ? ' media--portrait' : ''}${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
-            <MeasuredImg item={item} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} />
-          </div>
-        ) : null}
+        <Beeld item={item} kind="lead" fits={fitsHero} className={`media media--lead${portraitImage(item) ? ' media--portrait' : ''}${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+          {(onFail) => <MeasuredImg item={item} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} onFail={onFail} />}
+        </Beeld>
         <Kicker item={item} extra={note} followed={followed} n={n} />
         <Why why={why} />
         <h2 className={`${titleRole} lead__title`}>{item.title}</h2>
@@ -239,11 +242,11 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
 // breedtes dezelfde twee vormen. `plain` houdt de krant-vorm aan: in de Editie (die is een krant, op
 // web en in de app) en op smalle plekken zoals het vergelijkpaneel.
 // `lines`: hoeveel regels intro (1, 2, 3 of 'alles'); standaard de instelling van de Stroom, en in
-// de krant-vorm van de Editie en het vergelijkpaneel (`plain`) 2, zoals de app.
+// de krant-vorm van de Editie en het vergelijkpaneel (`plain`) INTRO_LINES (3), zoals de app.
 export function CompactItem({ item, story, note, n = null, why = null, showSave = true, plain = false, taste = null, lines, outside = false }) {
   const { markRead, read, layout, prefs } = useHoot()
   const introMax = useIntroMax()
-  const lineCount = lines ?? (plain ? 2 : prefs?.preview ?? 2)
+  const lineCount = lines ?? (plain ? INTRO_LINES : prefs?.preview ?? INTRO_LINES)
   const cls = `entry compact${isReadItem(read, item) ? ' is-read' : ''}`
   if (layout === 'tijdlijn' && !plain) {
     return (
@@ -254,11 +257,9 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
           <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
           <Summary item={item} className="compact__sum" fit={introMax(lineCount)} />
-          {item.image && fitsLarge(item.image) ? (
-            <div className={`media media--tl${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
-              <MeasuredImg item={item} kind="lead" />
-            </div>
-          ) : null}
+          <Beeld item={item} kind="tijdlijn" fits={fitsLarge} className={`media media--tl${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+            {(onFail) => <MeasuredImg item={item} kind="lead" onFail={onFail} />}
+          </Beeld>
         </a>
         <Meta item={item} story={story} showSave={showSave} taste={taste} outside={outside} />
       </article>
@@ -271,14 +272,12 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
           <Kicker item={item} extra={note} n={n} />
           <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
-          <Summary item={item} className="compact__sum" fit={introMax(lineCount, 'rij', !!item.image)} />
+          <Summary item={item} className="compact__sum" fit={introMax(lineCount, 'rij', (prefs?.images ?? 'aan') === 'aan')} />
         </div>
-        {item.image ? (
-          <div className={`thumb${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
-            {/* Intrinsieke maat 3:2; de echte maat komt uit CSS (--thumb-w/--thumb-h). */}
-            <MeasuredImg item={item} width="96" height="64" />
-          </div>
-        ) : null}
+        {/* Intrinsieke maat 3:2; de echte maat komt uit CSS (--thumb-w/--thumb-h). */}
+        <Beeld item={item} kind="krant" className={`thumb${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+          {(onFail) => <MeasuredImg item={item} width="96" height="64" onFail={onFail} />}
+        </Beeld>
       </a>
       <Meta item={item} story={story} showSave={showSave} taste={taste} outside={outside} />
     </article>
@@ -292,6 +291,7 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
 // bewaren rechts. Geen kale link in de tekst: die staat in de linkkaart.
 export function SocialItem({ item }) {
   const { markRead, read, openSource } = useHoot()
+  const metaRef = useStackWhenCramped(item.id)
   // Een staand beeld wordt hooguit 4:5, een liggend hooguit 2,4:1; de breedte is altijd de kolom.
   const ratio = item.imageRatio ? Math.min(2.4, Math.max(0.8, item.imageRatio)) : null
   // Drie soorten beeld: een gedeelde link (linkkaart), een eigen foto en video (16:9 met afspeelknop).
@@ -328,7 +328,7 @@ export function SocialItem({ item }) {
         ) : null}
       </a>
       {playable ? <Video src={item.video} poster={item.videoPoster} label={`Video van ${item.sourceName} afspelen`} style={{ aspectRatio: 16 / 9 }} /> : null}
-      <div className="meta">
+      <div className="meta" ref={metaRef}>
         <button type="button" className="srcbtn srcmeta" onClick={() => openSource(item.source)} aria-label={`Alles van ${item.sourceName} bekijken`}>
           <SourceMark source={srcOf(item)} size={24} />
           <span className="srcmeta__text">

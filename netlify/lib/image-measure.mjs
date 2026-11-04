@@ -83,3 +83,19 @@ export async function measureFeedImages(items, now, { load = loadImageMeasure, g
     await set('image-measure-v1', Object.fromEntries(Object.entries(cache).filter(([, v]) => now - v.at < 7 * 864e5)))
   } catch { /* De oude weergave blijft bij elke meet- of opslagfout beschikbaar. */ }
 }
+
+// Alleen de maat van een beeld (breedte en hoogte), voor het bronbeeld uit de zoekindex van Bing
+// (build.mjs, sizeBingImages). Klein: hooguit 2 MB.
+export async function loadImageSize(url, { fetcher = fetch, signal = AbortSignal.timeout(3000) } = {}) {
+  try {
+    const res = await fetcher(url, { signal, headers: { Accept: 'image/*' } })
+    if (!res.ok || !/^image\//i.test(res.headers.get('content-type') || '')) return null
+    const bytes = Buffer.from(await res.arrayBuffer())
+    if (!bytes.length || bytes.length > 2 * 1024 * 1024) return null
+    const sharp = await loadSharp()
+    const meta = await sharp(bytes, { limitInputPixels: MAX_PIXELS }).metadata()
+    return meta.width > 0 && meta.height > 0 ? { w: meta.width, h: meta.height } : null
+  } catch {
+    return null
+  }
+}

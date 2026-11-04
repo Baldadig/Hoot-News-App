@@ -6,8 +6,9 @@ import { usePairs } from '../hooks/usePairs.js'
 import { ViewHeader, StatusLine, LoadError, Empty } from '../components/Shell.jsx'
 import { LoadLinesBox, LoadLinesLayer, useLoadLines } from '../components/LoadLines.jsx'
 import { TienLayer, TienSpace, useTien } from '../components/FirstEdition.jsx'
-import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf } from '../components/Items.jsx'
+import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf, viaLength } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
+import { Beeld, PlaceholderList } from '../components/Beeld.jsx'
 import { EditionArt, SparkleIcon, CaretIcon, CloseIcon, ICON_SM } from '../components/icons.jsx'
 import { BriefReader } from '../components/BriefReader.jsx'
 import { BrandLogo } from '../components/Brand.jsx'
@@ -23,7 +24,7 @@ import { followedNow } from '../lib/follow.js'
 import { TermHelp } from '../components/Terms.jsx'
 import { Why } from '../components/Why.js'
 import { labelFor } from '../lib/label.js'
-import { wholeSentences } from '../../shared/zinnen.mjs'
+import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { usePrintEdition, markPrinted } from '../hooks/usePrintEdition.js'
 import { useIntroMax } from '../lib/intro.js'
 import { usePullHorizon } from '../components/PullHorizon.jsx'
@@ -46,11 +47,12 @@ const SIDE = 3 // breed: het hoofdverhaal met 02 en 03 ernaast, daarna de paren
 // `boven`: breed, in een paar dat anders een gat laat (Edition: usePairs). Het beeld staat dan groot
 // boven het verhaal, precies zo hoog als het paar nodig heeft, in plaats van klein naast de kop.
 function FrontItem({ item, story, note, n = null, why = null, followed, taste, outside = false, boven = null }) {
-  const { markRead, read } = useHoot()
+  const { markRead, read, prefs } = useHoot()
   const opinie = item.type === 'opinie'
   const title = item.title
-  const fit = useIntroMax()(2, item.image ? 'voorpagina' : 'rij')
-  const summary = wholeSentences(cleanIntro(item.summary, item.author), fit.max, fit.rek) // hele zinnen, nooit "…"
+  // De miniatuur staat er altijd (het beeld of het placeholderbeeld), behalve met beelden uit: dan de hele breedte.
+  const fit = useIntroMax()(INTRO_LINES, (prefs?.images ?? 'aan') === 'aan' ? 'voorpagina' : 'rij')
+  const summary = wholeSentences(cleanIntro(item.summary, item.author), fit.max - viaLength(item), fit.rek - viaLength(item)) // hele zinnen, nooit "…"
   return (
     <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}${boven ? ' fitem--boven' : ''}`} data-id={item.id} style={boven ? { '--boven-h': `${boven}px` } : undefined}>
       {boven && item.image ? (
@@ -72,13 +74,14 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
           <span className="head-4 fitem__title" role="heading" aria-level="3">
             {title}
           </span>
-          {summary ? <span className="clamp clamp--vangnet fitem__sum">{summary}</span> : null}
+          {summary ? (
+            <span className="clamp clamp--vangnet fitem__sum">
+              {summary}
+              {item.borrowedFrom ? <span className="via"> — via {item.borrowedFrom}</span> : null}
+            </span>
+          ) : null}
         </span>
-        {item.image && !boven ? (
-          <span className="thumb">
-            <Img url={item.image} width="96" height="64" />
-          </span>
-        ) : null}
+        {!boven ? <Beeld item={item} kind="krant" as="span" className="thumb" width="96" height="64" /> : null}
       </a>
       <TermHelp text={`${title} ${summary || ''}`} max={1} />
       <Meta item={item} story={story} taste={taste} outside={outside} />
@@ -285,6 +288,8 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 Tablet staand (B): één leeskolom met de nummers in de kantlijn. Breed (A): het
                 hoofdverhaal met 02 en 03 ernaast (het beeld rekt mee tot de zijkolom even hoog is),
                 daarna paren in twee kolommen, elk paar even hoog (usePairs). Koppen breken nooit af. */}
+            {/* Welk placeholderbeeld een beeldloze rij krijgt, hangt af van de rij erboven (Beeld.jsx). */}
+            <PlaceholderList rows={rows.map((r, i) => ({ item: r.item, kind: i === 0 ? 'lead' : boven[r.key] ? 'boven' : 'krant' }))}>
             <div className="front" ref={frontRef}>
               <Slot less={less} row={rows[0]}>
                 <LeadStory n={rows[0].n} item={rows[0].item} story={rows[0].story} note={rows[0].note} why={rows[0].why} outside={rows[0].outside} followed={onFront.get(rows[0].key)} priority={active} taste={rows[0].key} />
@@ -313,11 +318,14 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 ])}
               </div>
             ) : null}
+            </PlaceholderList>
             {editionBubble.length ? (
               <section className="bubble" aria-label="Buiten je bubbel">
                 <h2 className="label label--section front__more">Buiten je bubbel</h2>
                 <p className="hint bubble__hint">Een verhaal naast je Editie.</p>
+                <PlaceholderList rows={editionBubble.map((r) => ({ item: r.item, kind: 'krant' }))}>
                 {editionBubble.map(r=><Slot key={r.key} less={less} row={r}><CompactItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} plain /></Slot>)}
+                </PlaceholderList>
               </section>
             ) : null}
             {/* "De Editie in één minuut" staat onder het nieuws, vóór het einde (op iOS staat de rij er niet boven): het nieuws begint direct onder de lijn. */}

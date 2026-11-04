@@ -32,6 +32,7 @@ extension Item {
 struct MeasuredLeadImage: View {
     let item: Item
     let spacious: Bool
+    var onFail: (() -> Void)? = nil // laadt niet: de beeldloze vorm (LeadCard), geen grijs vlak
     private var measure: ImageMeasure? { item.imageMeta.flatMap { $0.valid ? $0 : nil } }
     private var ratio: CGFloat { measure?.portrait == true ? (spacious ? 3 / 4 : 4 / 5) : 2 }
     var body: some View {
@@ -44,10 +45,12 @@ struct MeasuredLeadImage: View {
                         AsyncImage(url: item.image.flatMap(URL.init(string:))) { phase in
                             if let image = phase.image {
                                 image.resizable().frame(width: rect.width, height: rect.height).offset(x: rect.minX, y: rect.minY)
+                            } else if case .failure = phase {
+                                Color.clear.onAppear { onFail?() }
                             } else { Rectangle().fill(.quaternary) }
                         }
                     }
-                } else { RemoteImage(url: ImageURL.url(item.image, .large)) }
+                } else { RemoteImage(url: ImageURL.url(item.image, .large), onFail: onFail) }
             }.clipped().accessibilityHidden(true)
     }
 }

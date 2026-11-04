@@ -143,6 +143,8 @@ struct StreamView: View {
                     .loadLines(lines, loading: store.status == .loading && items.isEmpty && store.stream.isEmpty, ok: !store.stream.isEmpty)
                     .padding(.horizontal)
                     .column()
+                    // Welk placeholderbeeld een beeldloze rij krijgt, hangt af van de rij erboven (Beeldloos.swift).
+                    .environment(\.placeholderPlan, Placeholder.plan(items.prefix(limit).map { ($0, store.layout == "krant" ? BeeldloosView.Kind.krant : .tijdlijn) }, failed: MisluktBeeld.shared.ids))
                     }
                 }
             }

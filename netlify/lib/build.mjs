@@ -7,13 +7,13 @@ import Anthropic from '@anthropic-ai/sdk'
 import { byRecency, sigWords, sharedCount, buildStories, editionSlot, previousSlotId, previousOf, selectEdition, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
 import { matchTrending, insertBubble, bubbleCandidates, areasOf, nearStories } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
-import { articleKey, mergeSnippets, isLiveblog } from './snippets.mjs'
+import { articleKey, mergeSnippets, isLiveblog, bingId, bingUnmeasured, bingOriginal, bingSized } from './snippets.mjs'
 import { SOURCES, BLUESKY_AUTHORS, BLUESKY_HOURS, BSKY_BRAND, MAIN_IDS, MUSIC_IDS, EDITION_CATS, UA } from './sources.mjs'
 import { loadSourceWithRetry } from './rss.mjs'
 import { STORE_KEY, splitFeed, storeOf, withLatest } from './stream.mjs'
 import { loadSnippets, loadTrends, loadSourceAvatars, loadBlueskyProfiles, loadBskyCards } from './lookups.mjs'
 import { loadOgImage } from './og.mjs'
-import { measureFeedImages } from './image-measure.mjs'
+import { measureFeedImages, loadImageSize } from './image-measure.mjs'
 import { rememberShareRecords } from './share-records.mjs'
 import { keywordTopics, articleTopics } from './topics.mjs'
 import { normTitle, preview } from './text.mjs'
@@ -60,10 +60,11 @@ export async function buildFeed({ now = Date.now() } = {}) {
   const inPool = (it) => it.kind === 'post' || editionIds.has(it.id)
 
   // 2. De berichten, 3. gaten vullen, 4. voorvertoningen lenen.
+  // De drie aanvullingen raken elk andere bronnen (zoekindex, Bluesky, de artikelpagina) en lopen
+  // dus tegelijk: zo duurt de ronde niet langer nu ook betaalde bronnen hun deelbeeld krijgen.
   const items = streamItems([...mainGroups.flatMap((g) => g.items), ...editionExtra, ...bskyGroups.flatMap((g) => g.items)])
-  const gaps = await fillGaps(items, now)
-  await imagesFromBluesky(items, now)
-  await imagesFromArticles(items, now)
+  const [gaps] = await Promise.all([fillGaps(items, now).then(async (r) => (await sizeBingImages(items, now), r)), imagesFromBluesky(items, now), imagesFromArticles(items, now)])
+  stripPromoIntros(items)
   borrowPreviews(items, [...mainGroups.flatMap((g) => g.items), ...editionExtra])
   // Bewaren zoals ze nu zijn (met beeld en inleiding), vóór de verhalen er hun id aan hangen. Met
   // wat een gelijktijdige ronde in een andere instantie intussen schreef (withLatest).
@@ -80,6 +81,9 @@ export async function buildFeed({ now = Date.now() } = {}) {
   const stories = buildStories(articlePool, registry, { mainIds: MAIN_IDS, keys: true, extended: true })
   const poolById = new Map(articlePool.map((i) => [i.id, i]))
   for (const st of stories) for (const id of st.itemIds) poolById.get(id).storyId = st.id
+  // Nog zonder intro (de Volkskrant als de zoekindex achterloopt): die van een ander stuk uit
+  // hetzelfde verhaal, met "via X". Nooit een samenvatting die we zelf schrijven.
+  borrowFromStories(stories, poolById)
 
   // 6. Eerst-gezien-tijd per bericht, en bij welk verhaal het hoort (houdt id's stabiel).
   await updateRegistry(registry, items, now)
@@ -173,26 +177,55 @@ export function editionPool(out, articlePool) {
 // we alleen als er iets nieuws te zoeken is, of na een half uur opnieuw.
 // Bronnen waarvan de feed alleen koppen (of geen beeld) levert: de inleiding en het beeld komen
 // dan uit de zoekindex van Bing Nieuws. DPG-kranten: één vraag per rubriek die nu in de feed staat.
-const GAPS = { volkskrant: 'volkskrant.nl', trouw: 'trouw.nl', parool: 'parool.nl', demorgen: 'demorgen.be', nyt: 'nytimes.com', economist: 'economist.com' }
+// Bloomberg en De Tijd weigeren ons hun artikelpagina (403): hun beeld komt ook uit de zoekindex.
+const GAPS = { volkskrant: 'volkskrant.nl', trouw: 'trouw.nl', parool: 'parool.nl', demorgen: 'demorgen.be', nyt: 'nytimes.com', economist: 'economist.com', bloomberg: 'bloomberg.com', tijd: 'tijd.be' }
 const PER_SECTION = new Set(['volkskrant', 'trouw', 'parool', 'demorgen'])
 // Veel rubrieken tegelijk in de feed. (De Engelstalige van het Parool, guide en amsterdam-news,
 // vallen al in de Stroom af: daar zoeken we niets meer voor.)
 const WIDE_SECTIONS = new Set(['volkskrant', 'parool'])
+// Een stuk zonder intro zoeken we vaker opnieuw (elke 10 minuten in plaats van 30): de zoekindex
+// loopt uren achter, en juist de verse stukken staan in de Editie. Wat de algemene vragen niet meer
+// vinden (ouder dan hun 50 nieuwste), zoeken we gericht op de kop: hooguit 10 per ronde, eerst wie
+// een intro mist, dan wie een beeld mist (Bloomberg, De Tijd), elk stuk hooguit 6 keer en niet vaker
+// dan eens per 20 minuten (gapTitleQueries).
+const GAP_RETRY = 10 * MIN
+const GAP_QUIET = 30 * MIN
+export function gapTitleQueries(open, tries = {}, now, { max = 10, every = 20 * MIN, most = 6 } = {}) {
+  return open
+    .filter((it) => (!it.summary || !it.image) && it.title && (tries[articleKey(it.url)]?.n || 0) < most && now - (tries[articleKey(it.url)]?.at || 0) >= every)
+    .sort((a, b) => !!a.summary - !!b.summary || (a.publishedAt < b.publishedAt ? 1 : -1))
+    .slice(0, max)
+}
 async function fillGaps(items, now) {
   const result = { vkSnippets: 0, filled: 0 }
-  const needs = items.filter((it) => GAPS[it.source] && it.kind === 'article' && !isLiveblog(it.url) && (!it.summary || !it.image))
+  const needs = items.filter((it) => GAPS[it.source] && it.kind === 'article' && !isLiveblog(it.url, it.title) && (!it.summary || !it.image))
   if (!needs.length) return result
-  const [stored, checkedAt] = await Promise.all([kvGet('gap-fill-v1'), kvGet('gap-fill-at')])
+  const [stored, checkedAt, triedRaw] = await Promise.all([kvGet('gap-fill-v1'), kvGet('gap-fill-at'), kvGet('gap-tries-v1')])
   let store = stored && typeof stored === 'object' ? stored : {}
-  const open = needs.filter((it) => !store[articleKey(it.url)])
+  const tries = triedRaw && typeof triedRaw === 'object' ? triedRaw : {}
+  // Open: nog niets gevonden, of wel een beeld maar nog geen intro terwijl het stuk er een mist.
+  const open = needs.filter((it) => {
+    const hit = store[articleKey(it.url)]
+    return !hit || (!it.summary && !hit.s)
+  })
   const fresh = open.some((it) => Date.parse(it.publishedAt || 0) > (checkedAt || 0))
-  if (open.length && (fresh || now - (checkedAt || 0) > 30 * MIN)) {
+  const wait = open.some((it) => !it.summary) ? GAP_RETRY : GAP_QUIET
+  if (open.length && (fresh || now - (checkedAt || 0) > wait)) {
     const wanted = [...new Set(open.map((it) => it.source))]
     const sections = (src) => [...new Set(open.filter((it) => it.source === src).map((it) => it.url.split('/')[3] || '').filter((x) => /^[a-z-]+$/.test(x)))]
     const queries = (src) => (PER_SECTION.has(src) ? [`site:${GAPS[src]}`, ...sections(src).slice(0, WIDE_SECTIONS.has(src) ? 10 : 6).map((sec) => `site:${GAPS[src]}/${sec}`)] : [`site:${GAPS[src]}`])
-    const found = (await Promise.all(wanted.map((src) => loadSnippets(queries(src), GAPS[src]).catch(() => [])))).flat()
+    const aimed = gapTitleQueries(open, tries, now)
+    for (const it of aimed) tries[articleKey(it.url)] = { n: (tries[articleKey(it.url)]?.n || 0) + 1, at: now }
+    const bySource = (src) => aimed.filter((it) => it.source === src).map((it) => `site:${GAPS[src]} ${it.title.replace(/["“”„]/g, '')}`)
+    const found = (
+      await Promise.all([
+        ...wanted.map((src) => loadSnippets(queries(src), GAPS[src]).catch(() => [])),
+        ...wanted.filter((src) => bySource(src).length).map((src) => loadSnippets(bySource(src), GAPS[src], { deep: false }).catch(() => [])),
+      ])
+    ).flat()
     store = mergeSnippets(store, found, now)
-    await Promise.all([found.length ? kvSet('gap-fill-v1', store) : null, kvSet('gap-fill-at', now)])
+    for (const [k, v] of Object.entries(tries)) if (now - (v?.at || 0) > 2 * DAY) delete tries[k]
+    await Promise.all([found.length ? kvSet('gap-fill-v1', store) : null, kvSet('gap-fill-at', now), aimed.length ? kvSet('gap-tries-v1', tries) : null])
   }
   for (const it of needs) {
     const hit = store[articleKey(it.url)]
@@ -208,6 +241,43 @@ async function fillGaps(items, now) {
     }
   }
   return result
+}
+
+// ---------- 3a. De maat van een beeld uit de zoekindex ----------
+// Bing levert zijn beeld op elke gevraagde maat, ook als het bronbeeld klein is (dan met witte
+// randen). We meten het bronbeeld één keer (en onthouden het een week) en vragen het daarna op zijn
+// eigen maat op. Groot genoeg (The Economist: 700 breed), dan tonen web en app het ook groot.
+// Hooguit 40 nieuwe per ronde, 8 tegelijk, en na 5 seconden houden we op: wat dan nog open is,
+// blijft voorlopig een miniatuur.
+export async function sizeBingImages(items, now, { load = loadImageSize, get = kvGet, set = kvSet, max = 40, budget = 5000 } = {}) {
+  try {
+    const want = items.filter((it) => it.kind === 'article' && bingUnmeasured(it.image))
+    if (!want.length) return
+    const stored = await get('bing-size-v1')
+    const cache = stored && typeof stored === 'object' ? stored : {}
+    const ids = [...new Set(want.map((it) => bingId(it.image)))]
+    const missing = ids.filter((id) => !cache[id] || (!cache[id].w && now - cache[id].at > 60 * MIN)).slice(0, max)
+    if (missing.length) {
+      const round = AbortSignal.timeout(budget)
+      await Promise.all(
+        Array.from({ length: 8 }, async () => {
+          while (missing.length && !round.aborted) {
+            const id = missing.shift()
+            const size = await load(bingOriginal(id), { signal: AbortSignal.any([round, AbortSignal.timeout(3000)]) }).catch(() => null)
+            if (size || !round.aborted) cache[id] = { at: now, ...(size ? { w: size.w, h: size.h } : {}) }
+          }
+        }),
+      )
+      for (const [k, v] of Object.entries(cache)) if (now - (v?.at || 0) > 7 * DAY) delete cache[k]
+      await set('bing-size-v1', cache)
+    }
+    for (const it of want) {
+      const hit = cache[bingId(it.image)]
+      if (hit?.w) it.image = bingSized(bingId(it.image), hit.w, hit.h)
+    }
+  } catch {
+    /* zonder maat blijft het een miniatuur, zoals voorheen */
+  }
 }
 
 // ---------- 3b. Beeld via Bluesky ----------
@@ -239,29 +309,41 @@ async function imagesFromBluesky(items, now) {
 }
 
 // ---------- 3c. Beeld van het artikel zelf ----------
-// Gratis bronnen waarvan de feed geen beeld meestuurt (Rolling Stone, DW, Al Jazeera, VRT,
-// Sporza …): de deelafbeelding van het artikel. Elk artikel één keer proberen en onthouden
-// (ook "geen beeld"), per ronde hooguit 36 nieuwe, de nieuwste eerst. Betaalde bronnen nooit.
+// Bronnen waarvan de feed geen beeld meestuurt (Rolling Stone, DW, Al Jazeera, VRT, Sporza, en
+// sinds build 46 ook de betaalde: Nature, Scientific American, FD, MIT Technology Review …): de
+// deelafbeelding van het artikel (og.mjs; nooit achter een cookiemuur of login om). Elk artikel één
+// keer proberen en onthouden (ook "geen beeld"), per ronde hooguit 60 nieuwe, de nieuwste eerst,
+// 10 tegelijk, elke pagina hooguit 4 seconden en de hele stap hooguit 8: wat dan nog open is, komt
+// de volgende ronde. Nooit een beeld van een ander artikel (fotorechten); een kopie van hetzelfde stuk
+// bij een zusterkrant (zelfde kop) is wel hetzelfde artikel.
 const OG_KEEP = 4 * 24 * 60 * MIN
 export function wantsArticleImage(it, src) {
-  return !!src && !src.paid && !GAPS[src.id] && !src.bskyImages && it.kind === 'article' && !it.image && !isLiveblog(it.url)
+  return !!src && !GAPS[src.id] && !src.bskyImages && it.kind === 'article' && !it.image && !isLiveblog(it.url, it.title)
 }
-async function imagesFromArticles(items, now, { max = 36 } = {}) {
-  const needs = items.filter((it) => wantsArticleImage(it, SOURCE.get(it.source)))
+export async function imagesFromArticles(items, now, { max = 60, parallel = 10, budget = 8000, timeout = 4000, load = loadOgImage, get = kvGet, set = kvSet, sourceOf = (id) => SOURCE.get(id) } = {}) {
+  const needs = items.filter((it) => wantsArticleImage(it, sourceOf(it.source)))
   if (!needs.length) return
-  const stored = await kvGet('og-images-v1')
+  const stored = await get('og-images-v1')
   const store = stored && typeof stored === 'object' ? stored : {}
   // Zusterkranten brengen vaak hetzelfde stuk onder een andere link: één exemplaar per kop
   // ophalen, de kopieën krijgen dat beeld (zie hieronder). Zo gaat het budget naar echte stukken.
   const known = new Set(needs.filter((it) => store[articleKey(it.url)]?.img).map((it) => titleKey(it.title)).filter(Boolean))
   const open = withoutCopies(needs.filter((it) => !(articleKey(it.url) in store) && !known.has(titleKey(it.title))).sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1))).slice(0, max)
-  for (let i = 0; i < open.length; i += 6) {
-    await Promise.all(
-      open.slice(i, i + 6).map(async (it) => {
-        store[articleKey(it.url)] = { img: safeHttpUrl(await loadOgImage(it.url)), at: now }
-      }),
-    )
-  }
+  const round = AbortSignal.timeout(budget)
+  let tried = 0
+  await Promise.all(
+    Array.from({ length: parallel }, async () => {
+      while (open.length && !round.aborted) {
+        const it = open.shift()
+        const img = safeHttpUrl(await load(it.url, { signal: round, timeout }))
+        // Afgebroken door de rondegrens: niet onthouden als "geen beeld", de volgende ronde opnieuw.
+        if (img || !round.aborted) {
+          store[articleKey(it.url)] = { img, at: now }
+          tried++
+        }
+      }
+    }),
+  )
   const byTitle = new Map()
   for (const it of needs) {
     const hit = store[articleKey(it.url)]
@@ -270,9 +352,9 @@ async function imagesFromArticles(items, now, { max = 36 } = {}) {
     if (titleKey(it.title)) byTitle.set(titleKey(it.title), hit.img)
   }
   for (const it of needs) if (!it.image && byTitle.has(titleKey(it.title))) it.image = byTitle.get(titleKey(it.title))
-  if (open.length) {
+  if (tried) {
     for (const [k, v] of Object.entries(store)) if (now - (v?.at || 0) > OG_KEEP) delete store[k]
-    await kvSet('og-images-v1', store)
+    await set('og-images-v1', store)
   }
 }
 
@@ -284,27 +366,131 @@ async function imagesFromArticles(items, now, { max = 36 } = {}) {
 const dutch = (id) => SOURCE.get(id)?.lang === 'nl'
 // Per bericht: een Engelstalig Parool-stuk geeft geen teaser aan een Nederlands bericht.
 const dutchItem = (it) => (it.lang || SOURCE.get(it.source)?.lang) === 'nl'
-function borrowPreviews(items, mainItems) {
-  const donors = mainItems.filter((it) => it.kind === 'article' && it.summary && !it.borrowedFrom && dutchItem(it) && visibleFor(it)).map((d) => ({ d, w: sigWords(d.title) }))
+// Sterke overlap in de kop: minstens 4 gedeelde kernwoorden, of 3 als dat 60% of meer is van de
+// kortste kop. Dezelfde drempel voor lenen op de kop en lenen binnen een verhaal.
+export function strongOverlap(n, sizeA, sizeB) {
+  return n >= 4 || (n >= 3 && n / Math.max(1, Math.min(sizeA, sizeB)) >= 0.6)
+}
+// Kernwoorden om te lenen: zonder bezittelijke en persoonlijke voornaamwoorden. "Help, mijn kind ..."
+// boven twee verschillende stukken is geen gedeeld onderwerp.
+const PRONOUNS = new Set(['mijn', 'jouw', 'haar', 'jullie', 'zich', 'zelf', 'your', 'mine', 'ours', 'hers', 'yours'])
+// Ook zwakke werkwoorden zeggen niets over het onderwerp: "Wat doet Klaver ..." en "Klaver doet ..."
+// delen alleen Klaver (keuring b46). Korter dan 4 letters (is, kan, wil) telt sigWords al niet.
+const WEAK_VERBS = new Set(
+  'doet doen deed deden gedaan maakt maken maakte maakten gemaakt gaat gaan ging gingen gegaan komt komen kwam kwamen gekomen wilt wilde wilden willen kunt kunnen konden moet moeten moest moesten heeft hebben hadden gehad wordt worden werd werden geworden staat staan stond stonden laat laten liet lieten zegt zeggen zei zeiden krijgt krijgen kreeg kregen blijft blijven bleef bleven lijkt lijken zitten does make makes made goes going gets have wants'.split(' ')
+)
+// Eigen namen in een kop (plaatsen, personen): woorden met hoofdletter die niet het begin van een zin of
+// van een stuk na een leesteken zijn. Elke kop met een eigen naam die de ander niet noemt gaat over een ander
+// geval ("... aanrijding in Meeuwen" naast "... aanrijding in Leiden"): dan lenen we niet.
+const namesOf = (title) => {
+  const out = new Set()
+  const tokens = String(title || '').split(/\s+/).filter(Boolean)
+  tokens.forEach((raw, i) => {
+    const prev = tokens[i - 1]
+    if (i === 0 || /[:.!?;–—|"“‘'(]$/.test(prev) || /^["“‘'(]/.test(prev) && i === 1) return
+    const w = raw.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, '')
+    if (w.length >= 3 && /^\p{Lu}\p{Ll}/u.test(w) && !/^\p{Lu}+$/u.test(w)) out.add(w.toLowerCase())
+  })
+  return out
+}
+const wordsOf = (title) => new Set(String(title || '').toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean))
+const named = (name, words) => {
+  for (const w of words) if (w === name || (Math.min(w.length, name.length) >= 5 && (w.startsWith(name) || name.startsWith(w)))) return true
+  return false
+}
+export function conflictingNames(titleA, titleB) {
+  const a = namesOf(titleA)
+  const b = namesOf(titleB)
+  const wa = wordsOf(titleA)
+  const wb = wordsOf(titleB)
+  return [...a].some((n) => !named(n, wb)) && [...b].some((n) => !named(n, wa))
+}
+const borrowWords = (title) => {
+  const w = sigWords(title)
+  for (const p of PRONOUNS) w.delete(p)
+  for (const v of WEAK_VERBS) w.delete(v)
+  return w
+}
+// Een intro om te lenen, zonder reclame: zinnen die oproepen een app te downloaden, je te abonneren of
+// meldingen aan te zetten gaan eruit ("Download de app DS Nieuws ..." onder een kop van De Morgen). Blijft
+// er niets over, dan wordt er niet geleend. De vaste tekst van een liveblog leent nooit.
+const PROMO = /\b(?:download|installeer|app store|google play|in de app|onze app|nieuwsapp|abonneer|schrijf je in|meld je aan|nieuwsbrief|pushmelding|pushbericht|notificaties|volg ons|lees ook|bekijk ook|kijk ook|volg hier|subscribe|sign up|newsletter)/i
+// Eigen intro's: alleen gebiedende reclamezinnen, met woordgrenzen. "Downloading", "a malicious download" of
+// "subscribers" is gewoon nieuws (Wired, IGN, Eurogamer).
+const PROMO_OWN = /\b(?:download\s+(?:de|onze|deze|ons|the|our|this|my|gratis|free|now|today)\b|download\s+hier\b|installeer\b|(?:get|download)\s+the\s+app\b|(?:in|via)\s+onze\s+app\b|abonneer\s+(?:je|u)\b|schrijf\s+je\s+in\b|meld\s+je\s+aan\b|volg\s+ons\b|sign\s+up\b|subscribe\s+(?:to|now|today|for|here)\b|subscribe[.!]|(?:our|this|the)\s+(?:daily\s+|weekly\s+)?newsletter\b|(?:onze|de|deze)\s+nieuwsbrief\b|schakel\s+(?:pushmeldingen|notificaties)\s+in\b|zet\s+(?:pushmeldingen|notificaties)\s+aan\b|turn\s+on\s+notifications\b)/i
+// Ook de eigen intro van een bron krijgt dit filter ("Download de app" onder een kop van De Standaard):
+// valt er niets over, dan is er geen intro.
+export function withoutPromo(text, re = PROMO_OWN) {
+  const sentences = String(text || '').match(/[^.!?]+(?:[.!?]+["'’”)]?|$)\s*/g) || []
+  return sentences.filter((z) => !re.test(z)).join('').trim()
+}
+export function lendableIntro(d) {
+  if (!d?.summary || isLiveblog(d.url, d.title)) return ''
+  return withoutPromo(d.summary, PROMO)
+}
+// Eigen intro's van alle berichten (geen posts), vóór het lenen: een intro die alleen reclame was, laat de
+// plek leeg en mag dan lenen.
+export function stripPromoIntros(items) {
   for (const it of items) {
-    if (it.kind !== 'article' || it.summary || !dutchItem(it)) continue
-    const w = sigWords(it.title)
+    if (it.kind === 'post') continue
+    if (typeof it.summary === 'string' && PROMO_OWN.test(it.summary)) it.summary = withoutPromo(it.summary)
+    if (typeof it.text === 'string' && PROMO_OWN.test(it.text)) it.text = withoutPromo(it.text)
+  }
+}
+export function borrowPreviews(items, mainItems) {
+  const donors = mainItems
+    .filter((it) => it.kind === 'article' && it.summary && !it.borrowedFrom && dutchItem(it) && visibleFor(it) && lendableIntro(it))
+    .map((d) => ({ d, w: borrowWords(d.title) }))
+  for (const it of items) {
+    if (it.kind !== 'article' || it.summary || !dutchItem(it) || isLiveblog(it.url, it.title)) continue
+    const w = borrowWords(it.title)
     if (w.size < 3) continue
     let best = null
     let bestN = 0
     let bestSize = 0
     for (const { d, w: dw } of donors) {
-      if (d.source === it.source) continue
+      if (d.source === it.source || conflictingNames(it.title, d.title)) continue
       const n = sharedCount(w, dw)
       if (n > bestN) [best, bestN, bestSize] = [d, n, dw.size]
     }
-    const ratio = bestN / Math.max(1, Math.min(w.size, bestSize))
-    if (best && (bestN >= 4 || (bestN >= 3 && ratio >= 0.6))) {
-      it.summary = best.summary
-      it.text = best.summary
+    if (best && strongOverlap(bestN, w.size, bestSize)) {
+      it.summary = lendableIntro(best)
+      it.text = it.summary
       it.borrowedFrom = best.sourceName
     }
   }
+}
+
+// ---------- 5b. Intro lenen binnen een verhaal ----------
+// Een stuk dat na de zoekindex en het lenen op de kop nog geen intro heeft, krijgt die van een ander
+// stuk uit hetzelfde verhaal: zelfde taal, een andere bron, een eigen intro (geen geleende, en
+// liever geen afgekapte), en dezelfde sterke overlap in de kop als bij lenen op de kop (strongOverlap):
+// het bundelen van verhalen voegt soms twee stukken ten onrechte samen. Met
+// bronvermelding (`borrowedFrom`: "via X"). Geen liveblogs.
+const TRAIL = /(?:…|\.{3})\s*$/
+const langOf = (it) => it.lang || SOURCE.get(it.source)?.lang
+export function borrowFromStories(stories, byId) {
+  let n = 0
+  for (const st of stories) {
+    const members = st.itemIds.map((id) => byId.get(id)).filter((i) => i?.kind === 'article')
+    for (const it of members) {
+      if (it.summary || isLiveblog(it.url, it.title)) continue
+      const w = borrowWords(it.title)
+      const matches = (d) => {
+        const dw = borrowWords(d.title)
+        return strongOverlap(sharedCount(w, dw), w.size, dw.size) && !conflictingNames(it.title, d.title)
+      }
+      const donor = members
+        .filter((d) => d !== it && d.summary && !d.borrowedFrom && d.source !== it.source && langOf(d) === langOf(it) && visibleFor(d) && lendableIntro(d) && matches(d))
+        .sort((a, b) => TRAIL.test(a.summary) - TRAIL.test(b.summary))[0]
+      if (!donor) continue
+      it.summary = lendableIntro(donor)
+      if (!it.text) it.text = it.summary
+      it.borrowedFrom = donor.sourceName
+      n++
+    }
+  }
+  return n
 }
 
 // ---------- 6. Register ----------
@@ -357,7 +543,7 @@ function toClient(it, { editionOnly = false, streamOnly = false } = {}) {
     storyId: it.storyId,
     firstSeenAt: it.firstSeenAt,
     title: it.title,
-    summary: it.kind === 'post' ? it.summary : cleanIntro(it.summary, it.author),
+    summary: it.kind === 'post' ? it.summary : withoutPromo(cleanIntro(it.summary, it.author)),
     borrowedFrom: it.borrowedFrom,
     readMin: it.readMin,
     topics,

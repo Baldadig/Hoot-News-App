@@ -4,6 +4,7 @@ import { themePref, darkPref } from './theme.js'
 import { VAK_FIELD_IDS } from '../../shared/vak.mjs'
 import { currentTopics, currentTopicMap } from './topics.js'
 import { TASTE_CAP } from './affinity.js'
+import { INTRO_LINES } from '../../shared/zinnen.mjs'
 export const DEFAULT_PREFS = {
   theme: 'system',
   themeDark: 'dark',
@@ -13,7 +14,7 @@ export const DEFAULT_PREFS = {
   layout: 'tijdlijn', // tijdlijn | krant
   palette: 'papier', // papier | blad | inkt — kleurverdeling van de pagina (styles.css)
   textSize: 'normaal', // klein | normaal | groot
-  preview: 2, // 1 | 2 | 3 | 'alles' — regels voorvertoning in de Stroom
+  preview: INTRO_LINES, // 1 | 2 | 3 | 'alles' — regels voorvertoning in de Stroom (afgeleid van `regels`, zie normalizePrefs)
   images: 'aan', // aan | hoofd | uit
   bubble: true, // "Buiten je bubbel" in Editie en Stroom
   brief: true, // AI-overzicht van de Editie (als de sleutel er is)
@@ -35,9 +36,14 @@ export function normalizePrefs(raw) {
   const out = { ...DEFAULT_PREFS, ...p }
   out.theme = themePref(out.theme)
   out.themeDark = darkPref(out.themeDark)
-  // Oudere opslag: "Kort/Volledig" wordt "2 regels/alles".
-  if (p.preview == null && p.density) out.preview = p.density === 'volledig' ? 'alles' : 2
-  if (![1, 2, 3, 'alles'].includes(out.preview)) out.preview = 2
+  // Regels intro (build 46): standaard 3 in plaats van 2. De oude sleutel `preview` had 2 als
+  // standaard, en de app stuurde die ook mee zonder dat je iets koos: 2 daar is dus niet van een
+  // keuze te onderscheiden en wordt 3. Wat je vanaf nu kiest staat in `regels` (en voor oudere
+  // versies van de app ook in `preview`); dat geldt zoals het is, ook 2.
+  // Oudere opslag: "Kort/Volledig" wordt "standaard/alles".
+  const LINES = [1, 2, 3, 'alles']
+  const old = p.preview == null && p.density ? (p.density === 'volledig' ? 'alles' : 2) : p.preview
+  out.preview = LINES.includes(p.regels) ? p.regels : LINES.includes(old) && old !== 2 ? old : INTRO_LINES
   if (!['klein', 'normaal', 'groot'].includes(out.textSize)) out.textSize = 'normaal'
   if (!['aan', 'hoofd', 'uit'].includes(out.images)) out.images = 'aan'
   if (!['tijdlijn', 'krant'].includes(out.layout)) out.layout = 'tijdlijn'

@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { CompactItem, Meta, SaveButton, ShareButton, SourceMeta, useHoot, linkOf } from '../components/Items.jsx'
+import { CompactItem, Meta, SaveButton, ShareButton, SourceMeta, useHoot, linkOf, viaLength } from '../components/Items.jsx'
 import { isFollowing } from '../lib/follow.js'
 import { CloseIcon, CaretIcon, ICON_SM } from '../components/icons.jsx'
 import { BackButton } from '../components/Shell.jsx'
 import { Disclosure } from '../components/Disclosure.jsx'
 import { timeAgo } from '../lib/time.js'
 import { withLead } from '../lib/saved.js'
-import { wholeSentences } from '../../shared/zinnen.mjs'
+import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { useIntroMax } from '../lib/intro.js'
 
 // Eén publicatie in het smalle paneel (breed scherm): de kop over de volle breedte en hooguit
@@ -14,14 +14,20 @@ import { useIntroMax } from '../lib/intro.js'
 // de kop samen.
 function SourceItem({ item, note }) {
   const { markRead, read } = useHoot()
-  const fit = useIntroMax()(2, 'paneel')
-  const summary = wholeSentences(item.summary, fit.max, fit.rek) // hele zinnen, nooit "…"
+  const fit = useIntroMax()(INTRO_LINES, 'paneel')
+  // Een geleende intro draagt zijn bron ("via X"), ook naast het origineel; die tekens gaan van de maat af.
+  const summary = wholeSentences(item.summary, fit.max - viaLength(item), fit.rek - viaLength(item)) // hele zinnen, nooit "…"
   return (
     <article className={`entry srcitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <a className="srcitem__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         {note || item.type === 'opinie' ? <p className="label label--kicker kicker">{[item.type === 'opinie' ? 'Opinie' : null, note].filter(Boolean).join(' · ')}</p> : null}
         <h3 className="head-4 srcitem__title">{item.title}</h3>
-        {summary ? <p className="clamp clamp--vangnet srcitem__sum">{summary}</p> : null}
+        {summary ? (
+          <p className="clamp clamp--vangnet srcitem__sum">
+            {summary}
+            {item.borrowedFrom ? <span className="via"> — via {item.borrowedFrom}</span> : null}
+          </p>
+        ) : null}
       </a>
       <Meta item={item} />
     </article>

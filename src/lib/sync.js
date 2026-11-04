@@ -3,7 +3,7 @@
 // Instellingen die met je account meegaan, ook hoe je de Stroom leest (`layout`: Tijdlijn of Krant,
 // de app schrijft hem in hetzelfde veld). Wat bij het toestel hoort (tekstgrootte, kleur, het paneel,
 // de installatietip) blijft per toestel. Thema en avondvariant volgen juist het profiel.
-export const SYNCED_PREFS = ['theme', 'themeDark', 'muted', 'pinned', 'enabled', 'interests', 'topics', 'preview', 'images', 'layout', 'bubble', 'brief', 'bluesky', 'bskyInStream', 'onboarded', 'weatherPlace', 'followStories', 'vak', 'favorites', 'social', 'taste']
+export const SYNCED_PREFS = ['theme', 'themeDark', 'muted', 'pinned', 'enabled', 'interests', 'topics', 'preview', 'regels', 'images', 'layout', 'bubble', 'brief', 'bluesky', 'bskyInStream', 'onboarded', 'weatherPlace', 'followStories', 'vak', 'favorites', 'social', 'taste']
 
 export const pickSynced = (prefs = {}) => Object.fromEntries(SYNCED_PREFS.filter((k) => k in prefs).map((k) => [k, prefs[k]]))
 

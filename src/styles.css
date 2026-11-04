@@ -1831,16 +1831,37 @@ select.input {
   }
 }
 
+/* Past de bronnaam niet naast de knoppen (useStackWhenCramped zet data-stack), dan dezelfde vorm als de
+   smalle kolom: de bron op een eigen regel, eronder "N bronnen" en de knoppen op hun plek. */
+.meta[data-stack] {
+  grid-template-areas:
+    'src src src src src'
+    'more more taste share save';
+}
+.meta[data-stack] > .morebtn {
+  justify-self: start;
+}
+.meta[data-stack]:has(> :is(.taste, .taste__said)) {
+  grid-template-areas:
+    'src src src src src'
+    'more . . . .'
+    'taste taste taste share save';
+}
+
 /* Bronregel: logo (--slot-sm) en --s2, dan naam en tijd onder elkaar; tekst dus op 32. */
 .srcmeta__text {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
-/* Bronnaam en tijd breken om als de regel krap is, zoals op iOS; nooit "…" (geen afgekapte bron). */
+/* Een bronnaam wordt nooit afgekapt met een beletselteken (huisregel): past hij niet naast de knoppen, dan
+   breekt hij netjes op een spatie, of anders op een lettergreepgrens van de browser. */
 .srcmeta__name,
-.srcmeta__time {
-  overflow-wrap: anywhere;
+.srcmeta__time,
+.srcbtn__name,
+.srcbtn__time {
+  overflow-wrap: break-word;
+  text-wrap: balance;
 }
 .srcmeta__name {
   color: var(--ink);
@@ -1875,10 +1896,6 @@ select.input {
   flex-direction: column;
   min-width: 0;
   line-height: var(--lh-2);
-}
-.srcbtn__name,
-.srcbtn__time {
-  overflow-wrap: anywhere;
 }
 .srcbtn__time {
   color: var(--ink-3);
@@ -3900,7 +3917,7 @@ select.input {
   color: var(--ink-3);
 }
 .fitem__sum {
-  --lines: 2;
+  --lines: 3; /* INTRO_LINES (shared/zinnen.mjs) */
   max-inline-size: var(--measure-prose);
   color: var(--ink-2);
   font-size: var(--t3);
@@ -3974,7 +3991,7 @@ select.input {
   color: var(--ink-3);
 }
 .srcitem__sum {
-  --lines: 2;
+  --lines: 3; /* INTRO_LINES (shared/zinnen.mjs) */
   max-inline-size: var(--measure-prose);
   margin-top: var(--s2);
   color: var(--ink-2);
@@ -4021,6 +4038,13 @@ html[data-images='hoofd'] .thumb,
 html[data-images='hoofd'] .media--tl,
 html[data-images='hoofd'] .media--social {
   display: none;
+}
+/* Zonder miniatuur geen lege kolom en geen tussenruimte rechts: de tekst krijgt de hele breedte. */
+html[data-images='uit'] .compact__link,
+html[data-images='uit'] .fitem__link,
+html[data-images='hoofd'] .compact__link,
+html[data-images='hoofd'] .fitem__link {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 /* Weergave-rijen: label links, het segment rechts in een vaste kolom, zodat alle segmenten

@@ -32,10 +32,11 @@ test('Tweakers-beeld via Bluesky: op de kop gekoppeld, ook met "Review - " ervoo
   assert.equal(matchCard('Spotify heeft 306 miljoen betalende Premium-abonnees', cards), null)
 })
 
-test('beeld van het artikel: alleen voor gratis bronnen zonder beeld, nooit een liveblog', () => {
+test('beeld van het artikel: voor elke bron zonder beeld (ook betaald, build 46), nooit een liveblog', () => {
   const art = (extra = {}) => ({ kind: 'article', image: null, url: 'https://www.rollingstone.com/music/x/', ...extra })
   assert.equal(wantsArticleImage(art(), { id: 'rollingstone' }), true)
-  assert.equal(wantsArticleImage(art(), { id: 'bloomberg', paid: true }), false)
+  assert.equal(wantsArticleImage(art(), { id: 'nature', paid: true }), true)
+  assert.equal(wantsArticleImage(art(), { id: 'bloomberg', paid: true }), false) // weigert ons: via de zoekindex
   assert.equal(wantsArticleImage(art({ image: 'https://a/b.jpg' }), { id: 'rollingstone' }), false)
   assert.equal(wantsArticleImage(art(), { id: 'tweakers', bskyImages: true }), false) // die komt via Bluesky
   assert.equal(wantsArticleImage(art(), { id: 'volkskrant' }), false) // die komt via de zoekindex

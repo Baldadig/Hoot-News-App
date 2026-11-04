@@ -39,6 +39,7 @@ struct Item: Codable, Identifiable, Hashable {
     var storyId: String?
     var title: String // leeg bij een Bluesky-post: de tekst staat in `summary`
     var summary: String?
+    var borrowedFrom: String? // de intro is van een ander stuk over hetzelfde (server): "via X"
     let url: String
     var image: String?
     var publishedAt: String?
@@ -64,6 +65,10 @@ struct Item: Codable, Identifiable, Hashable {
 
     var date: Date? { publishedAt.flatMap(HootDate.parse) }
     var link: URL? { URL(string: url) }
+    // Een geleende intro draagt zijn bron, zoals op het web (Items.jsx, Summary): "… — via NOS".
+    func introWithSource(_ intro: String) -> String { borrowedFrom.map { "\(intro) — via \($0)" } ?? intro }
+    // Zoveel tekens kost " — via X" (VIA_LENGTH in src/components/Items.jsx); de maat van de intro wordt zoveel kleiner.
+    var viaLength: Int { borrowedFrom.map { $0.count + 8 } ?? 0 }
     var isPost: Bool { kind == "post" }
     // Rechtstreeks van Bluesky's video-CDN (het gewone adres stuurt daar alleen naartoe, en dat
     // reageerde eind oktober urenlang niet), ook voor berichten van vóór die omzetting.
@@ -76,7 +81,7 @@ struct Item: Codable, Identifiable, Hashable {
 }
 
 extension Item {
-    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, url, image, publishedAt, author, readMin, type, section, handle, linkTitle, imageMeta, imageRatio, video, videoPoster, topics, mainTopics, editionOnly, streamOnly, firstSeenAt }
+    enum CodingKeys: String, CodingKey { case id, source, kind, sourceName, avatar, brandColor, storyId, title, summary, borrowedFrom, url, image, publishedAt, author, readMin, type, section, handle, linkTitle, imageMeta, imageRatio, video, videoPoster, topics, mainTopics, editionOnly, streamOnly, firstSeenAt }
     // Een post heeft geen kop; die mag dus ontbreken.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -91,6 +96,7 @@ extension Item {
         storyId = try? c.decodeIfPresent(String.self, forKey: .storyId)
         let rawSummary = try? c.decodeIfPresent(String.self, forKey: .summary)
         summary = rawSummary
+        borrowedFrom = try? c.decodeIfPresent(String.self, forKey: .borrowedFrom)
         image = try? c.decodeIfPresent(String.self, forKey: .image)
         publishedAt = try? c.decodeIfPresent(String.self, forKey: .publishedAt)
         let rawAuthor = try? c.decodeIfPresent(String.self, forKey: .author)
@@ -292,9 +298,10 @@ struct DigestItem: Codable, Identifiable, Hashable {
     var why: [String]?
     var via: String?
     var also: [DigestAlso]?
+    var borrowedFrom: String? // komt hier ooit een geleende intro, dan met "via X" (zoals Item)
 
     var asItem: Item {
-        Item(id: id, source: source, kind: "article", sourceName: sourceName, avatar: avatar, title: title, summary: summary, url: url, image: image, publishedAt: publishedAt, author: author)
+        Item(id: id, source: source, kind: "article", sourceName: sourceName, avatar: avatar, title: title, summary: summary, borrowedFrom: borrowedFrom, url: url, image: image, publishedAt: publishedAt, author: author)
     }
 }
 
