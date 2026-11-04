@@ -64,5 +64,9 @@ export function labelFor({ topics = [], mainTopics = [], follows = [], cat = nul
   // 'Omdat je X volgt': zegt de kicker het al (sterke treffer), of rust het op een zwakke treffer
   // ('Omdat je Media volgt' bij migranten op zee). In beide gevallen voegt het niets toe.
   const keep = text && (!IN_LABEL.has(why.code) || why.detail === true) && why.code !== 'interest' && !/^Omdat je .+ volgt\.?$/.test(text)
-  return { kicker, why: keep ? { ...why } : null, outside }
+  // "Groot nieuws" staat er één keer: de kicker van een brede plek ("Waar iedereen over schrijft") zegt het
+  // al, en zegt de kicker hetzelfde als de waarom-regel, dan valt de waarom-regel weg.
+  const plain = (t) => String(t || '').replace(/\s*·\s*\d+\s+bron(?:nen)?$/, '').trim().toLowerCase()
+  const twice = keep && (((desk === 'breed' || desk === 'bubbel') && why.code === 'groot') || (kicker && plain(kicker) === plain(text)))
+  return { kicker, why: keep && !twice ? { ...why } : null, outside }
 }
