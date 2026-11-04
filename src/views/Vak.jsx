@@ -132,7 +132,7 @@ function IndexRow({ kind, name, sub, big = false, expanded, flash = false, ...re
 // door mensen geschreven (zie netlify/lib/vak.mjs). Opbouw als de inhoudsopgave van een krant
 // (Selectie-index B): de week, wat je te lezen krijgt, de inhoud als lijst, en per onderwerp één
 // groot stuk, twee kaarten en een korte lijst. Lege onderwerpen staan onderaan.
-export default function Vak({ active, digest, status, onRefresh }) {
+export default function Vak({ active, digest, status, refreshFailed = false, onRefresh }) {
   const { prefs, setPref, account, selectionReady = true } = useHoot()
   const ref = useRef(null)
   const chosen = prefs.vak || []
@@ -184,7 +184,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
     </Disclosure>
   ) : null
 
-  const pull = usePullHorizon(ref, { onRefresh, busy: status === 'refreshing' || status === 'loading', failed: status === 'error', label: 'Selectie', enabled: !!digest && chosen.length > 0 })
+  const pull = usePullHorizon(ref, { onRefresh, busy: status === 'refreshing' || status === 'loading', failed: refreshFailed || status === 'error', label: 'Selectie', enabled: !!digest && chosen.length > 0 })
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Selectie">

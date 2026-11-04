@@ -262,3 +262,12 @@ test('taal: ook een Archiprix-stuk dat al in de voorraad stond (zonder offLang) 
   const ids = [...arch.top, ...arch.more].map((e) => e.id)
   assert.deepEqual(ids, ['nl'])
 })
+
+import { settleVak } from '../src/lib/vak-refresh.js'
+test('Selectie: een mislukte verversing blijft mislukt, ook als de opgeslagen Selectie blijft staan', () => {
+  assert.deepEqual(settleVak('refreshing', false, true), { status: 'ready', refreshFailed: true })
+  assert.deepEqual(settleVak('refreshing', false, false), { status: 'ready', refreshFailed: true })
+  assert.deepEqual(settleVak('loading', false, true), { status: 'ready', refreshFailed: true })
+  assert.deepEqual(settleVak('loading', false, false), { status: 'error', refreshFailed: true }) // niets om te tonen
+  assert.deepEqual(settleVak('refreshing', true, true), { status: 'ready', refreshFailed: false })
+})
