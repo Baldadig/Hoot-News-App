@@ -1,5 +1,5 @@
 import { withCleanIntro } from '../../shared/edition-display.mjs'
-import { EDITION_AUDIT_BELOW, EDITION_FLOOR, editionStoryCount, majorNews, internationalNews, newsRejection, allowedNews, cappedInternational, worldChosen, sportChosen, exceptionalDutchSport, coverageOf } from '../../shared/edition-policy.mjs'
+import { EDITION_AUDIT_BELOW, EDITION_FLOOR, editionStoryCount, majorNews, internationalNews, newsRejection, allowedNews, cappedInternational, worldChosen, sportChosen, exceptionalDutchSport, coverageOf, majorGeneralNews } from '../../shared/edition-policy.mjs'
 import { EDITOR_REVISION } from '../../shared/editor-version.mjs'
 // De persoonlijke editie — pure functies (tests/personal.test.mjs, tests/compose.test.mjs).
 //
@@ -135,7 +135,12 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   const extraKinds = new Set([...(sportChosen(prof) ? ['sport'] : []), ...((prof.family.cultuur || 0) >= EXTRA_MIN ? ['cultuur'] : []), ...(gamesOk ? ['games'] : [])])
   const storyById = new Map(stories.map(s => [s.id, s]))
   const storyByItem = new Map(stories.flatMap(s => s.itemIds.map(id => [id, s])))
-  const newsPool = pool.filter(i => kindOf(i) === 'nieuws' || (!sportChosen(prof) && exceptionalDutchSport(storyByItem.get(i.id) || {}, [i])))
+  // Groot cultuurnieuws (zie majorGeneralNews) is nieuws, ook met onderwerp muziek of film.
+  const bigLight = (i) => ['cultuur', 'games'].includes(kindOf(i)) && !!storyByItem.get(i.id) && majorGeneralNews(storyByItem.get(i.id), [i], catOf)
+  const newsPool = pool.filter(i => kindOf(i) === 'nieuws' || (!sportChosen(prof) && exceptionalDutchSport(storyByItem.get(i.id) || {}, [i])) || bigLight(i))
+  // Niet gedaan (review 4 november, B3): stukken van een zelf aangezette games- of cultuurbron ook zonder
+  // de interesse in dit blok. Dat gaf iedereen met dezelfde bronnen dezelfde twee stukken (harde
+  // acceptatie, uniekheid alleen algoritme 0,38 → 0,48). Ter beslissing; zie REDACTEUR-RAPPORT.md.
   const extraPool = pool.filter((i) => extraKinds.has(kindOf(i)))
 
   // "Buiten je bubbel" uit de algemene editie houdt een plek; "Waar iedereen over schrijft" krijgt

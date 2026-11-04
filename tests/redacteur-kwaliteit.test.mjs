@@ -8,7 +8,8 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { lightKind, lightStory, lightChosen, majorGeneralNews, newsRejection, editionStoryCount } from '../shared/edition-policy.mjs'
 import { profileOf } from '../shared/editor.mjs'
-import { relinkEdition } from '../netlify/lib/stories.mjs'
+import { relinkEdition, buildStories, selectEdition } from '../netlify/lib/stories.mjs'
+import { MAIN_IDS } from '../netlify/lib/sources.mjs'
 import { composePersonal } from '../src/lib/personal.js'
 import { loadLive, liveGeneral, liveBeginner, beginnerFollowed } from '../scripts/redacteur-live.mjs'
 
@@ -125,3 +126,84 @@ test('relink: een los gebleven hoofdbericht krijgt zijn eigen rubriek, niet die 
   assert.equal(out[0].kind, 'item')
   assert.equal(out[0].desk, 'buitenland')
 })
+
+// ---- Na review 4 november 2026 (RELEASE-REVIEW.md B1, B2, B3) ----
+const deathNl = () => {
+  const t = live.edition.builtAt
+  const mk = (id, source, sourceName, url) => ({ id, kind: 'article', source, sourceName, title: 'Zanger Jan Voorbeeld (71) overleden', summary: 'De zanger was decennialang een van de bekendste artiesten van het land.', image: 'x', url, publishedAt: t, topics: ['muziek'] })
+  const items = [
+    mk('d1', 'nos', 'NOS', 'https://nos.nl/artikel/1-zanger-overleden'),
+    mk('d2', 'rtl', 'RTL Nieuws', 'https://www.rtl.nl/boulevard/artikel/2/zanger-overleden'),
+    mk('d3', 'telegraaf', 'De Telegraaf', 'https://www.telegraaf.nl/entertainment/3/zanger-overleden'),
+    mk('d4', 'volkskrant', 'de Volkskrant', 'https://www.volkskrant.nl/cultuur-media/zanger-overleden~b4/'),
+    mk('d5', 'ad', 'AD', 'https://www.ad.nl/show/zanger-overleden~a5/'),
+    mk('d6', 'nu', 'NU.nl', 'https://www.nu.nl/muziek/6/zanger-overleden.html'),
+    mk('d7', 'parool', 'Het Parool', 'https://www.parool.nl/kunst-media/zanger-overleden~b7/'),
+  ]
+  const st = { id: 'sdood', leadId: 'd1', itemIds: items.map((i) => i.id), sourceCount: 7, publisherCount: 7, publisherCountries: ['NL'], sourceNames: items.map((i) => i.sourceName), latestAt: t, desk: 'binnenland' }
+  return { t, items, st }
+}
+
+test('B1: groot Nederlands cultuurnieuws (zeven NL-redacties) is groot genoeg voor een licht verhaal', () => {
+  const { items, st } = deathNl()
+  assert.equal(lightStory({}, items), 'cultuur')
+  assert.equal(majorGeneralNews(st, items), true)
+  // Vier algemene uitgevers is niet genoeg, en games- of cultuursites tellen niet mee.
+  assert.equal(majorGeneralNews({ sourceNames: ['NOS', 'NRC', 'de Volkskrant', 'AD', 'IGN', 'Pitchfork', '3voor12'] }, []), false)
+  // Een lezer met Politiek en Binnenland krijgt het verhaal gewoon toegelaten.
+  const prof = profileOf({ sources: live.sources, interests: ['politiek', 'binnenland'] })
+  assert.equal(newsRejection(prof, st, items), null)
+})
+
+test('B1: het verhaal komt in de algemene Editie en in de beginnerseditie', () => {
+  const { t, items, st } = deathNl()
+  const now = Date.parse(t)
+  const all = new Map([...live.related, ...live.items, ...live.edition.items].map((i) => [i.id, i]))
+  const articles = [...[...all.values()].filter((i) => i.kind === 'article' && Date.parse(i.publishedAt) <= now), ...items]
+  const stories = buildStories(articles, {}, { mainIds: MAIN_IDS })
+  const entries = selectEdition(stories, articles, { mainIds: MAIN_IDS, now })
+  const ids = entries.flatMap((e) => [e.leadId || e.id, ...(e.itemIds || [])])
+  assert.ok(items.some((i) => ids.includes(i.id)), 'algemene Editie')
+  // Persoonlijk: zoals het toestel rekent, met deze algemene Editie als basis.
+  const byId = new Map(articles.map((i) => [i.id, i]))
+  const global = { ...live.edition, entries: [...entries, ...live.edition.entries.filter((e) => e.desk === 'bubbel')], items: [...new Set(ids)].map((id) => byId.get(id)).filter(Boolean).concat(live.edition.items) }
+  const ed = composePersonal({ global, stories: [...live.stories, st], items: [...live.items, ...items], sources: live.sources, followed: beginnerFollowed(live), interests: [], topics: [], now, builtAt: t })
+  assert.ok(ed.entries.some((e) => e.id === 'sdood' || items.some((i) => i.id === (e.leadId || e.id) || (e.itemIds || []).includes(i.id))), 'beginnerseditie')
+})
+
+test('B2: geen valse licht-herkenning bij deals, mediapolitiek en harde nieuwswoorden', () => {
+  const a = (o) => ({ id: 'x', kind: 'article', source: 'nos', title: 'Een kop', topics: [], ...o })
+  assert.equal(lightKind(a({ source: 'volkskrant', title: 'Nvidia-deal met Saudi-Arabië', topics: ['bedrijven', 'ai'] })), null)
+  assert.equal(lightKind(a({ source: 'nyt', title: 'EU and US reach trade deal' })), null)
+  // Live in de fixture: NOS over Tsjechische protesten tegen de omroephervorming (onderwerp media, kale URL).
+  const tsjechen = [...live.related, ...live.items].find((i) => /Tsjechen de straat op/.test(i.title))
+  assert.ok(tsjechen)
+  assert.equal(lightKind(tsjechen), null)
+  // Media met een licht URL-pad blijft licht; een echte aanbieding via de URL ook.
+  assert.equal(lightKind(a({ url: 'https://nos.nl/cultuur-media/1/nieuwe-talkshow', topics: ['media'] })), 'cultuur')
+  assert.equal(lightKind(a({ source: 'theverge', url: 'https://www.theverge.com/deals/1/x', title: 'The best deals on headphones' })), 'consument')
+  for (const title of ['Protest tegen nieuwe muziekwet', 'Overname van uitgeverij afgerond', 'Fusie van twee filmstudio’s', 'Honderden ontslagen bij streamingdienst', 'Rechter verbiedt concert', 'Staking bij omroep', 'Regering grijpt in bij publieke omroep'])
+    assert.equal(lightKind(a({ url: 'https://www.ad.nl/show/x~a1/', title })), null, title)
+})
+
+test('B3: een gevolgde lichte bron telt in de persoonlijke Editie als gekozen voor haar eigen stukken', () => {
+  const pitch = [{ id: 'p', kind: 'article', source: 'pitchfork', sourceName: 'Pitchfork', title: 'A new album review', url: 'https://pitchfork.com/reviews/albums/x/', topics: ['muziek'] }]
+  const ign = [{ id: 'g', kind: 'article', source: 'ign', sourceName: 'IGN', title: 'A new trailer', url: 'https://www.ign.com/articles/x', topics: ['games'] }]
+  const base = beginnerFollowed(live)
+  const volgt = profileOf({ sources: live.sources, followed: new Set([...base, 'pitchfork', 'ign']) })
+  const niet = profileOf({ sources: live.sources, followed: base })
+  assert.equal(newsRejection(volgt, {}, pitch), null)
+  assert.equal(newsRejection(volgt, {}, ign), null)
+  assert.equal(newsRejection(niet, {}, pitch), 'licht-buiten-interesse')
+  // Een basisbron (3voor12 volgt iedereen vanaf het begin) is geen eigen keuze.
+  const drie = [{ id: 'd', kind: 'article', source: '3voor12', sourceName: '3voor12', title: 'Kijk terug: een band live', url: 'https://3voor12.vpro.nl/x', topics: ['muziek'] }]
+  assert.equal(newsRejection(niet, {}, drie), 'licht-buiten-interesse')
+  // Alleen voor stukken van díe bron: een lifestylestuk van een basisbron blijft buiten.
+  const vk = [{ id: 'v', kind: 'article', source: 'volkskrant', sourceName: 'de Volkskrant', title: 'Op bezoek bij een lifestyle-icoon', url: 'https://www.volkskrant.nl/lifestyle/x~b1/', topics: ['wonen'] }]
+  assert.equal(newsRejection(volgt, {}, vk), 'licht-buiten-interesse')
+})
+
+test('B3: de algemene Editie blijft streng voor licht nieuws van vakbronnen', () => {
+  for (const t of general.entries.map((e) => titleOf(e.leadId || e.id))) assert.ok(!/GTA|Elder Scrolls|Juan Atkins/i.test(t), t)
+})
+

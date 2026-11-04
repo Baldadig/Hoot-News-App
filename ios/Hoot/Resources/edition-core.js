@@ -993,7 +993,8 @@ var HootCore = (() => {
     const sourceP = {};
     for (const [s, a] of Object.entries(as)) sourceP[s] = Math.min(1, SOURCE_FULL * a / sSum);
     const catOf = new Map(sources.map((s) => [s.id, s.cat]));
-    return { topicP, origin, family, sourceP, shareOf, favorites: new Set(favorites), followed, catOf, interests: new Set(interests) };
+    const chosenLight = new Set(sources.filter((s) => s.optional && (s.cat === "games" || s.cat === "cultuur") && followed.has?.(s.id)).map((s) => s.id));
+    return { topicP, origin, family, sourceP, shareOf, favorites: new Set(favorites), followed, catOf, chosenLight, interests: new Set(interests) };
   }
   var P = {
     INTEREST: 18,
@@ -1538,8 +1539,8 @@ var HootCore = (() => {
   var LIGHT_PATH = /\/(entertainment|showbizz|boulevard|celebrit\w*|lifestyle|style|fashion|mode|t-magazine|dining|food|eten|koken-en-eten|recepten|travel|reizen|realestate|arts|books|boeken|movies|theater|television|tv|film|muziek|music|kunst-media|media-en-cultuur|cultuur(?:-media)?|culture)\//i;
   var LIGHT_HEAD = /\b(podcast\w*|talkshow\w*|presentat(?:or|rice)\w*|tv-serie\w*|streamingdienst\w*|kookboek\w*|recept\w*|recipe\w*)\b/i;
   var CONSUMER_PATH = /\/(reviews?|deals?|gift-guide|buying-guide|best-\w+)\//i;
-  var CONSUMER_HEAD = /(^|\b)(review|getest|hands-on|deal|deals|korting|aanbieding|buying guide|gift guide|best (?:\w+ ){0,3}(?:to buy|for \w+))\b/i;
-  var HARD_HEAD = /\b(rechter\w*|rechtbank|rechtszaak|court|lawsuit|sued|sues|verbod|verboden|ban|bans|banned|boete\w*|fined?|fines|toezichthouder\w*|regulator\w*|antitrust|mededinging\w*|ontslag\w*|layoffs?|laid off|staking\w*|strike|hack\w*|datalek\w*|breach|lek|minister\w*|kabinet\w*|regering\w*|government|congres\w*|congress|senaat|senate|parlement\w*|kamer\w*|politie|police|arrest\w*|aangehouden|oorlog|war|aanslag\w*|sanctie\w*|sanctions?|tarie\w*|tariffs?|faillis\w*|bankrupt\w*)\b/i;
+  var CONSUMER_HEAD = /(^|\b)(review|getest|hands-on|korting|aanbieding|buying guide|gift guide|best (?:\w+ ){0,3}(?:to buy|for \w+))\b/i;
+  var HARD_HEAD = /\b(rechter\w*|rechtbank|rechtszaak|court|lawsuit|sued|sues|verbod|verboden|ban|bans|banned|boete\w*|fined?|fines|toezichthouder\w*|regulator\w*|antitrust|mededinging\w*|ontslag\w*|layoffs?|laid off|staking\w*|strike|protest\w*|betoging\w*|demonstr\w*|overname\w*|takeover|fusie\w*|merger|hack\w*|datalek\w*|breach|lek|minister\w*|kabinet\w*|regering\w*|government|congres\w*|congress|senaat|senate|parlement\w*|kamer\w*|politie|police|arrest\w*|aangehouden|oorlog|war|aanslag\w*|sanctie\w*|sanctions?|tarie\w*|tariffs?|faillis\w*|bankrupt\w*)\b/i;
   var HARD_FAMILIES = /* @__PURE__ */ new Set(["politiek", "wereld"]);
   var hardNews = (item) => HARD_HEAD.test(item?.title || "") || (item?.topics || []).some((t) => HARD_FAMILIES.has(FAMILY_OF[t]));
   function lightKind(item, catOf = null) {
@@ -1548,7 +1549,7 @@ var HootCore = (() => {
     if (hardNews(item)) return null;
     const url = String(item.url || "").split("?")[0];
     const cat = catOf?.get(item.source) ?? SPORT_CAT.get(item.source);
-    const byTopic = (item.topics || []).map((t) => LIGHT_TOPIC[t]).find(Boolean);
+    const byTopic = (item.topics || []).map((t) => t === "media" && !LIGHT_PATH.test(url) ? null : LIGHT_TOPIC[t]).find(Boolean);
     if (LIGHT_CAT[cat]) return LIGHT_CAT[cat];
     if (LIGHT_PATH_GAMES.test(url) || byTopic === "games") return "games";
     if (byTopic || LIGHT_PATH.test(url) || LIGHT_HEAD.test(title)) return "cultuur";
@@ -1578,13 +1579,15 @@ var HootCore = (() => {
     return [...LIGHT_ORDER].sort((a, b) => (count[b] || 0) - (count[a] || 0) || LIGHT_ORDER.indexOf(a) - LIGHT_ORDER.indexOf(b))[0];
   }
   var GENERAL_CATS = /* @__PURE__ */ new Set(["nl", "vl", "int", "regio"]);
+  var LIGHT_MAJOR = 6;
   function majorGeneralNews(story = {}, items = [], catOf = null) {
     if (onlyGalleries(items)) return false;
     const catFor = (id) => catOf?.get(id) ?? SPORT_CAT.get(id);
-    const ids = new Set(items.map((i) => i?.source).filter((id) => id && GENERAL_CATS.has(catFor(id))).map(publisherOf));
-    for (const name of story.sourceNames || []) if (GENERAL_CATS.has(CAT_BY_NAME.get(name))) ids.add(publisherOf(ID_BY_NAME.get(name)));
+    const voice = (id, cat) => cat === "regio" ? "regio" : publisherOf(id);
+    const ids = new Set(items.map((i) => i?.source).filter((id) => id && GENERAL_CATS.has(catFor(id))).map((id) => voice(id, catFor(id))));
+    for (const name of story.sourceNames || []) if (GENERAL_CATS.has(CAT_BY_NAME.get(name))) ids.add(voice(ID_BY_NAME.get(name), CAT_BY_NAME.get(name)));
     const countries = new Set([...ids].map(publisherCountry).filter(Boolean));
-    return ids.size >= FRONT_BIG || ids.size >= 5 && countries.size >= 2;
+    return ids.size >= LIGHT_MAJOR || ids.size >= 5 && countries.size >= 2;
   }
   function lightChosen(prof, kind) {
     if (kind === "games") return (prof?.topicP?.games || 0) >= 0.5;
@@ -1592,6 +1595,7 @@ var HootCore = (() => {
     if (kind === "consument") return (prof?.topicP?.gadgets || 0) >= 0.5;
     return true;
   }
+  var followedLight = (prof, items) => items.some((i) => prof?.chosenLight?.has?.(i?.source));
   var lightNews = (story, items, catOf = null) => story?.light === void 0 && items.length === 1 && !(story?.sourceNames || []).length ? lightKind(items[0], catOf) : lightStory(story, items, catOf);
   function newsRejection(prof, story, items, desk = null, { bubble = false, allowLight = false } = {}) {
     if (onlyGalleries(items)) return "alleen-galerijen";
@@ -1599,7 +1603,7 @@ var HootCore = (() => {
     if ((sportStory(story, items, prof.catOf) || items.some((i) => isSport(i, prof.catOf))) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return "sport-niet-gekozen";
     if (!bubble && !allowLight) {
       const light = lightNews(story, items, prof.catOf);
-      if (light && !lightChosen(prof, light) && !majorGeneralNews(story, items, prof.catOf)) return "licht-buiten-interesse";
+      if (light && !lightChosen(prof, light) && !followedLight(prof, items) && !majorGeneralNews(story, items, prof.catOf)) return "licht-buiten-interesse";
     }
     if (!worldChosen(prof) && cappedInternational(prof, items, desk, story) && !majorNews(story, items)) return "internationaal-niet-groot-genoeg";
     return null;
@@ -2529,7 +2533,8 @@ var HootCore = (() => {
     const extraKinds = /* @__PURE__ */ new Set([...sportChosen(prof) ? ["sport"] : [], ...(prof.family.cultuur || 0) >= EXTRA_MIN ? ["cultuur"] : [], ...gamesOk ? ["games"] : []]);
     const storyById = new Map(stories.map((s) => [s.id, s]));
     const storyByItem = new Map(stories.flatMap((s) => s.itemIds.map((id) => [id, s])));
-    const newsPool = pool.filter((i) => kindOf(i) === "nieuws" || !sportChosen(prof) && exceptionalDutchSport(storyByItem.get(i.id) || {}, [i]));
+    const bigLight = (i) => ["cultuur", "games"].includes(kindOf(i)) && !!storyByItem.get(i.id) && majorGeneralNews(storyByItem.get(i.id), [i], catOf);
+    const newsPool = pool.filter((i) => kindOf(i) === "nieuws" || !sportChosen(prof) && exceptionalDutchSport(storyByItem.get(i.id) || {}, [i]) || bigLight(i));
     const extraPool = pool.filter((i) => extraKinds.has(kindOf(i)));
     let bubbleEntry = global.entries.find((e) => e.desk === "bubbel") || null;
     const ownIds = new Set(items.filter((i) => followed.has(i.source)).map((i) => i.id));

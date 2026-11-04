@@ -116,7 +116,10 @@ export function profileOf({ interests = [], topics = [], affinity = null, taste 
   const sourceP = {}
   for (const [s, a] of Object.entries(as)) sourceP[s] = Math.min(1, (SOURCE_FULL * a) / sSum)
   const catOf = new Map(sources.map((s) => [s.id, s.cat]))
-  return { topicP, origin, family, sourceP, shareOf, favorites: new Set(favorites), followed, catOf, interests: new Set(interests) }
+  // Games- en cultuurbronnen die de lezer zelf aanzette (niet de basisbronnen zoals 3voor12): telt als keuze
+  // voor de stukken van díe bron (na review 4 november, B3).
+  const chosenLight = new Set(sources.filter((s) => s.optional && (s.cat === 'games' || s.cat === 'cultuur') && followed.has?.(s.id)).map((s) => s.id))
+  return { topicP, origin, family, sourceP, shareOf, favorites: new Set(favorites), followed, catOf, chosenLight, interests: new Set(interests) }
 }
 
 // ---------- 2. De punten: bovenop het gewone gewicht van een verhaal ----------

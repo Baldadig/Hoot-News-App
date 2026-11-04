@@ -134,9 +134,10 @@ const LIGHT_PATH_GAMES = /\/(games?|gaming|gameblog)\//i
 const LIGHT_PATH = /\/(entertainment|showbizz|boulevard|celebrit\w*|lifestyle|style|fashion|mode|t-magazine|dining|food|eten|koken-en-eten|recepten|travel|reizen|realestate|arts|books|boeken|movies|theater|television|tv|film|muziek|music|kunst-media|media-en-cultuur|cultuur(?:-media)?|culture)\//i
 const LIGHT_HEAD = /\b(podcast\w*|talkshow\w*|presentat(?:or|rice)\w*|tv-serie\w*|streamingdienst\w*|kookboek\w*|recept\w*|recipe\w*)\b/i
 const CONSUMER_PATH = /\/(reviews?|deals?|gift-guide|buying-guide|best-\w+)\//i
-const CONSUMER_HEAD = /(^|\b)(review|getest|hands-on|deal|deals|korting|aanbieding|buying guide|gift guide|best (?:\w+ ){0,3}(?:to buy|for \w+))\b/i
+// Geen 'deal': dat is vaker een overname of een akkoord (Nvidia-deal met Saudi-Arabië) dan een aanbieding.
+const CONSUMER_HEAD = /(^|\b)(review|getest|hands-on|korting|aanbieding|buying guide|gift guide|best (?:\w+ ){0,3}(?:to buy|for \w+))\b/i
 // Een harde nieuwsreden in de kop, of een onderwerp van politiek of wereld: dan is het geen licht stuk.
-const HARD_HEAD = /\b(rechter\w*|rechtbank|rechtszaak|court|lawsuit|sued|sues|verbod|verboden|ban|bans|banned|boete\w*|fined?|fines|toezichthouder\w*|regulator\w*|antitrust|mededinging\w*|ontslag\w*|layoffs?|laid off|staking\w*|strike|hack\w*|datalek\w*|breach|lek|minister\w*|kabinet\w*|regering\w*|government|congres\w*|congress|senaat|senate|parlement\w*|kamer\w*|politie|police|arrest\w*|aangehouden|oorlog|war|aanslag\w*|sanctie\w*|sanctions?|tarie\w*|tariffs?|faillis\w*|bankrupt\w*)\b/i
+const HARD_HEAD = /\b(rechter\w*|rechtbank|rechtszaak|court|lawsuit|sued|sues|verbod|verboden|ban|bans|banned|boete\w*|fined?|fines|toezichthouder\w*|regulator\w*|antitrust|mededinging\w*|ontslag\w*|layoffs?|laid off|staking\w*|strike|protest\w*|betoging\w*|demonstr\w*|overname\w*|takeover|fusie\w*|merger|hack\w*|datalek\w*|breach|lek|minister\w*|kabinet\w*|regering\w*|government|congres\w*|congress|senaat|senate|parlement\w*|kamer\w*|politie|police|arrest\w*|aangehouden|oorlog|war|aanslag\w*|sanctie\w*|sanctions?|tarie\w*|tariffs?|faillis\w*|bankrupt\w*)\b/i
 const HARD_FAMILIES = new Set(['politiek', 'wereld'])
 // De soort van één bericht: 'games', 'cultuur' (ook entertainment en lifestyle), 'consument' of null.
 const hardNews = (item) => HARD_HEAD.test(item?.title || '') || (item?.topics || []).some((t) => HARD_FAMILIES.has(FAMILY_OF[t]))
@@ -146,7 +147,8 @@ export function lightKind(item, catOf = null) {
   if (hardNews(item)) return null
   const url = String(item.url || '').split('?')[0]
   const cat = catOf?.get(item.source) ?? SPORT_CAT.get(item.source)
-  const byTopic = (item.topics || []).map((t) => LIGHT_TOPIC[t]).find(Boolean)
+  // Het onderwerp media is vaak mediapolitiek (protest tegen een omroephervorming): alleen licht met een licht URL-pad.
+  const byTopic = (item.topics || []).map((t) => (t === 'media' && !LIGHT_PATH.test(url) ? null : LIGHT_TOPIC[t])).find(Boolean)
   if (LIGHT_CAT[cat]) return LIGHT_CAT[cat]
   if (LIGHT_PATH_GAMES.test(url) || byTopic === 'games') return 'games'
   if (byTopic || LIGHT_PATH.test(url) || LIGHT_HEAD.test(title)) return 'cultuur'
@@ -185,14 +187,20 @@ export function lightStory(story = {}, items = [], catOf = null) {
 }
 // Groot nieuws voor een licht verhaal telt alleen algemene nieuwsuitgevers (geen games-, tech- of
 // cultuursites): vier gamesites over een downloadgrootte zijn geen vier redacties die het nieuws vinden.
+// Vijf uit minstens twee landen, of zes uit welk land ook (na review 4 november: de dood van een bekende
+// Nederlander bij zeven Nederlandse redacties haalde de oude drempel van acht nooit). Zes en niet vijf
+// voor één land: de Dutch Podcast Awards stonden in de live feed bij precies vijf Nederlandse uitgevers
+// (NOS, RTL, Telegraaf, Parool, AD). Regionale kranten tellen samen als één stem: vaak kopieën van één stuk.
 const GENERAL_CATS = new Set(['nl', 'vl', 'int', 'regio'])
+export const LIGHT_MAJOR = 6
 export function majorGeneralNews(story = {}, items = [], catOf = null) {
   if (onlyGalleries(items)) return false
   const catFor = (id) => catOf?.get(id) ?? SPORT_CAT.get(id)
-  const ids = new Set(items.map((i) => i?.source).filter((id) => id && GENERAL_CATS.has(catFor(id))).map(publisherOf))
-  for (const name of story.sourceNames || []) if (GENERAL_CATS.has(CAT_BY_NAME.get(name))) ids.add(publisherOf(ID_BY_NAME.get(name)))
+  const voice = (id, cat) => (cat === 'regio' ? 'regio' : publisherOf(id))
+  const ids = new Set(items.map((i) => i?.source).filter((id) => id && GENERAL_CATS.has(catFor(id))).map((id) => voice(id, catFor(id))))
+  for (const name of story.sourceNames || []) if (GENERAL_CATS.has(CAT_BY_NAME.get(name))) ids.add(voice(ID_BY_NAME.get(name), CAT_BY_NAME.get(name)))
   const countries = new Set([...ids].map(publisherCountry).filter(Boolean))
-  return ids.size >= FRONT_BIG || (ids.size >= 5 && countries.size >= 2)
+  return ids.size >= LIGHT_MAJOR || (ids.size >= 5 && countries.size >= 2)
 }
 // Koos de lezer dit gebied? Games: het onderwerp games (scherp of uit lezen); cultuur: het gebied Cultuur;
 // consumententech: het onderwerp gadgets.
@@ -202,6 +210,10 @@ export function lightChosen(prof, kind) {
   if (kind === 'consument') return (prof?.topicP?.gadgets || 0) >= 0.5
   return true
 }
+// Alleen voor de persoonlijke Editie: wie zelf een games- of cultuurbron aanzette (IGN, Pitchfork; zie
+// profileOf `chosenLight`), koos dat gebied voor de stukken van díe bron. Een basisbron telt niet.
+// De algemene Editie (selectEdition) kent geen lezer en blijft streng.
+const followedLight = (prof, items) => items.some((i) => prof?.chosenLight?.has?.(i?.source))
 // Het hele verhaal als het bekend is: de stukken van de lezer plus wat de server over de bronnen zegt.
 export const lightNews = (story, items, catOf = null) => (story?.light === undefined && items.length === 1 && !(story?.sourceNames || []).length ? lightKind(items[0], catOf) : lightStory(story, items, catOf))
 
@@ -213,7 +225,7 @@ export function newsRejection(prof, story, items, desk = null, { bubble = false,
   // Buiten je bubbel mag juist iets lichts buiten je profiel zijn; alle gewone plekken niet.
   if (!bubble && !allowLight) {
     const light = lightNews(story, items, prof.catOf)
-    if (light && !lightChosen(prof, light) && !majorGeneralNews(story, items, prof.catOf)) return 'licht-buiten-interesse'
+    if (light && !lightChosen(prof, light) && !followedLight(prof, items) && !majorGeneralNews(story, items, prof.catOf)) return 'licht-buiten-interesse'
   }
   if (!worldChosen(prof) && cappedInternational(prof, items, desk, story) && !majorNews(story, items)) return 'internationaal-niet-groot-genoeg'
   return null
