@@ -414,24 +414,27 @@ const borrowWords = (title) => {
 // Een intro om te lenen, zonder reclame: zinnen die oproepen een app te downloaden, je te abonneren of
 // meldingen aan te zetten gaan eruit ("Download de app DS Nieuws ..." onder een kop van De Morgen). Blijft
 // er niets over, dan wordt er niet geleend. De vaste tekst van een liveblog leent nooit.
-const PROMO = /\b(?:download|installeer|app store|google play|in de app|onze app|nieuwsapp|abonneer|schrijf je in|meld je aan|nieuwsbrief|pushmelding|pushbericht|notificaties|volg ons|lees ook|bekijk ook|kijk ook|subscribe|sign up|newsletter)/i
+const PROMO = /\b(?:download|installeer|app store|google play|in de app|onze app|nieuwsapp|abonneer|schrijf je in|meld je aan|nieuwsbrief|pushmelding|pushbericht|notificaties|volg ons|lees ook|bekijk ook|kijk ook|volg hier|subscribe|sign up|newsletter)/i
+// Eigen intro's: alleen gebiedende reclamezinnen, met woordgrenzen. "Downloading", "a malicious download" of
+// "subscribers" is gewoon nieuws (Wired, IGN, Eurogamer).
+const PROMO_OWN = /\b(?:download\s+(?:de|onze|deze|ons|the|our|this|my|gratis|free|now|today)\b|download\s+hier\b|installeer\b|(?:get|download)\s+the\s+app\b|(?:in|via)\s+onze\s+app\b|abonneer\s+(?:je|u)\b|schrijf\s+je\s+in\b|meld\s+je\s+aan\b|volg\s+ons\b|sign\s+up\b|subscribe\s+(?:to|now|today|for|here)\b|subscribe[.!]|(?:our|this|the)\s+(?:daily\s+|weekly\s+)?newsletter\b|(?:onze|de|deze)\s+nieuwsbrief\b|schakel\s+(?:pushmeldingen|notificaties)\s+in\b|zet\s+(?:pushmeldingen|notificaties)\s+aan\b|turn\s+on\s+notifications\b)/i
 // Ook de eigen intro van een bron krijgt dit filter ("Download de app" onder een kop van De Standaard):
 // valt er niets over, dan is er geen intro.
-export function withoutPromo(text) {
+export function withoutPromo(text, re = PROMO_OWN) {
   const sentences = String(text || '').match(/[^.!?]+(?:[.!?]+["'’”)]?|$)\s*/g) || []
-  return sentences.filter((z) => !PROMO.test(z)).join('').trim()
+  return sentences.filter((z) => !re.test(z)).join('').trim()
 }
 export function lendableIntro(d) {
   if (!d?.summary || isLiveblog(d.url, d.title)) return ''
-  return withoutPromo(d.summary)
+  return withoutPromo(d.summary, PROMO)
 }
 // Eigen intro's van alle berichten (geen posts), vóór het lenen: een intro die alleen reclame was, laat de
 // plek leeg en mag dan lenen.
 export function stripPromoIntros(items) {
   for (const it of items) {
     if (it.kind === 'post') continue
-    if (typeof it.summary === 'string' && PROMO.test(it.summary)) it.summary = withoutPromo(it.summary)
-    if (typeof it.text === 'string' && PROMO.test(it.text)) it.text = withoutPromo(it.text)
+    if (typeof it.summary === 'string' && PROMO_OWN.test(it.summary)) it.summary = withoutPromo(it.summary)
+    if (typeof it.text === 'string' && PROMO_OWN.test(it.text)) it.text = withoutPromo(it.text)
   }
 }
 export function borrowPreviews(items, mainItems) {

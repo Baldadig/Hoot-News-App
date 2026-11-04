@@ -209,3 +209,27 @@ test('reclame uit een eigen intro: "Download de app" valt weg, blijft er niets o
   borrowPreviews([l2], [donor])
   assert.equal(l2.borrowedFrom, 'de Volkskrant')
 })
+
+test('reclamefilter op eigen intro: gewoon nieuws blijft, gebiedende reclame gaat (keuring b46 ronde 4)', () => {
+  const wired = 'Hackers duped an engineer with a fake job interview and a malicious download.'
+  const ign = 'Select PlayStation Plus subscribers can try 007 First Light early.'
+  const euro = 'Nexus Mods, the largest website for finding and downloading PC mods, has changed hands.'
+  for (const z of [wired, ign, euro]) assert.equal(withoutPromo(z), z)
+  assert.equal(withoutPromo('Het dodental is 37. Download de app DS Nieuws en mis niets.'), 'Het dodental is 37.')
+  assert.equal(withoutPromo('Nieuws. Sign up for our newsletter. Meer.'), 'Nieuws. Meer.')
+  assert.equal(withoutPromo('Nieuws. Subscribe to our newsletter today! Meer.'), 'Nieuws. Meer.')
+  assert.equal(withoutPromo('Nieuws. Abonneer je nu. Meer.'), 'Nieuws. Meer.')
+  assert.equal(withoutPromo('Nieuws. Meld je aan voor de nieuwsbrief. Meer.'), 'Nieuws. Meer.')
+  assert.equal(withoutPromo('Nieuws. Volg ons op Instagram. Meer.'), 'Nieuws. Meer.')
+  const items = [wired, ign, euro].map((z, i) => ({ id: 'w' + i, kind: 'article', source: 's', title: 't', summary: z, text: z }))
+  stripPromoIntros(items)
+  items.forEach((it, i) => assert.equal(it.summary, [wired, ign, euro][i]))
+})
+
+test('"Volg hier al het politieke nieuws." wordt niet geleend (VRT NWS van HLN)', () => {
+  const donor = { id: 'd', kind: 'article', source: 'hln', sourceName: 'HLN', title: 'Jongerenafdelingen eisen stemrecht partijcongres', summary: 'Volg hier al het politieke nieuws.', url: 'https://www.hln.be/binnenland/x~a1/' }
+  const it = { id: 'v', kind: 'article', source: 'vrtnws', title: 'Jongerenafdelingen eisen stemrecht partijcongres', summary: '', text: '', url: 'https://www.vrt.be/vrtnws/nl/x' }
+  assert.equal(lendableIntro(donor), '')
+  borrowPreviews([it], [donor])
+  assert.equal(it.borrowedFrom, undefined)
+})
