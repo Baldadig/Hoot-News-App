@@ -1,6 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
-import { ViewHeader, LoadError } from '../components/Shell.jsx'
-import { LoadStack, useLoadStack } from '../components/LoadStack.jsx'
+import { ViewHeader, Skeleton, LoadError } from '../components/Shell.jsx'
 import { SaveButton, ShareButton, SourceMark, useHoot } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
 import { ChipGroup } from '../components/ChipGroup.jsx'
@@ -135,7 +134,6 @@ function IndexRow({ kind, name, sub, big = false, expanded, flash = false, ...re
 export default function Vak({ active, digest, status, onRefresh }) {
   const { prefs, setPref, account, selectionReady = true } = useHoot()
   const ref = useRef(null)
-  const stack = useLoadStack(status === 'loading' && !digest, !!digest) // de laadstapel, zoals in de app
   const chosen = prefs.vak || []
   const owner = account?.status === 'in' ? account.user.id : 'anon'
   const byId = new Map((digest?.fields || []).map(f => [f.id, f]))
@@ -211,8 +209,8 @@ export default function Vak({ active, digest, status, onRefresh }) {
             <p className="dempty__text">{CHOOSE}</p>
             {pickRow('Kies onderwerpen', 'Nog niets gekozen')}
           </div>
-        ) : stack.show ? (
-          <LoadStack done={stack.done} onDone={stack.finish} />
+        ) : status === 'loading' && !digest ? (
+          <Skeleton rows={4} layout="krant" />
         ) : status === 'error' && !digest ? (
           <LoadError onRetry={onRefresh} />
         ) : !digest ? null : overview.state === 'leeg' ? (

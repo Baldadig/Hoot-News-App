@@ -303,7 +303,7 @@ struct EditionView: View {
                     HootKop()
                     EditionHeader(title: title, slot: store.edition?.slot)
                     if rows.isEmpty && (store.status == .loading || (store.status != .failed && store.edition != nil && store.shownEdition == nil)) {
-                        LoadStackView()
+                        WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
                     } else if rows.isEmpty {
                         if store.status == .failed {
                             EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Hoot heeft nog geen Editie op dit toestel. Zodra je verbinding hebt, verschijnt hij hier.", retry: store.load)

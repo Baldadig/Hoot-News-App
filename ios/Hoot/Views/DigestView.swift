@@ -61,7 +61,7 @@ struct DigestView: View {
                     } else if store.digestStatus == .failed {
                         EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnt de Selectie hier.", retry: { await store.loadDigest(force: true) })
                     } else {
-                        LoadStackView()
+                        WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
                     }
                 }
                 .padding(.horizontal)

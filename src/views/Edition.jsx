@@ -3,8 +3,7 @@ import { cleanIntro } from '../../shared/edition-display.mjs'
 import { EditionNumber } from '../components/EditionNumber.jsx'
 import { useEffect, useRef, useState } from 'react'
 import { usePairs } from '../hooks/usePairs.js'
-import { ViewHeader, StatusLine, LoadError, Empty } from '../components/Shell.jsx'
-import { LoadStack, useLoadStack } from '../components/LoadStack.jsx'
+import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
 import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
 import { EditionArt, SparkleIcon, CaretIcon, CloseIcon, ICON_SM } from '../components/icons.jsx'
@@ -152,8 +151,6 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
 
   const title = SLOTS[edition?.slot]?.naam || 'Editie' // de naam van het dagdeel (shared/slots.mjs)
   const ready = !loading && !failedLoad && rows.length > 0
-  // Eerste laden: de laadstapel, zoals in de app; klaar staat hij even en vervaagt naar de Editie.
-  const stack = useLoadStack(loading, !failedLoad && rows.length > 0)
   const sub = edition ? longDate(edition.date).replace(/^./, (c) => c.toUpperCase()) : null
 
   // Eén keer na het eerste Welkom: wat "Jouw Editie" in de metaregel betekent (src/lib/welcome.js).
@@ -230,8 +227,9 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             {rows.length} {rows.length === 1 ? 'verhaal' : 'verhalen'}: er was niet meer passend nieuws beschikbaar
           </p>
         ) : null}
-        {stack.show ? (
-          <LoadStack done={stack.done} onDone={stack.finish} />
+        {loading ? (
+          // Eerst het hoofdverhaal, dan rijen: de Editie is altijd krant, wat de Stroom ook doet.
+          <Skeleton rows={4} layout="krant" lead />
         ) : failedLoad ? (
           <LoadError onRetry={onRefresh} />
         ) : rows.length === 0 ? (
