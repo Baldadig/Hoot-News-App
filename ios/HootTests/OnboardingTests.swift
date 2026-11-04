@@ -80,10 +80,16 @@ final class OnboardingTests: XCTestCase {
         Source(id: "telegraaf", name: "De Telegraaf", cat: "nl", paid: true, lang: "nl"),
     ]
 
-    func testBasisIsDutchNewsWithFreeStartFirst() {
-        let catalog = Self.niche.map { s -> Source in var s = s; if s.id == "nrc" { s.pick = true }; return s }
-        XCTAssertEqual(FollowList.basis(catalog).map(\.id), ["nos", "nu", "rtl", "nrc"]) // de Telegraaf: Meer bronnen
-        XCTAssertTrue(FollowList.more(catalog, []).flatMap(\.sources).contains { $0.id == "telegraaf" })
+    func testBasisIsFreeStartThenPapersInChosenOrder() {
+        let papers = ["volkskrant", "trouw", "parool", "ad"].map { Source(id: $0, name: $0, cat: "nl", paid: true, lang: "nl") }
+        let catalog = Self.niche + papers + [Source(id: "nd", name: "Nederlands Dagblad", cat: "nl", paid: true, lang: "nl")]
+        XCTAssertEqual(FollowList.basis(catalog).map(\.id), ["nos", "nu", "rtl", "volkskrant", "nrc", "trouw", "parool", "ad", "telegraaf"])
+        // Elke bron één keer op de stap: de kranten staan niet ook onder Meer bronnen; de andere titels wel.
+        let more = FollowList.more(catalog, []).flatMap(\.sources).map(\.id)
+        for id in ["volkskrant", "nrc", "trouw", "parool", "ad", "telegraaf"] { XCTAssertFalse(more.contains(id), id) }
+        XCTAssertTrue(more.contains("nd"))
+        // Een ontbrekende krant valt weg; de rest blijft in volgorde.
+        XCTAssertEqual(FollowList.basis(catalog.filter { $0.id != "trouw" }).map(\.id).suffix(5), ["volkskrant", "nrc", "parool", "ad", "telegraaf"])
     }
 
     func testBlocksPerChosenInterestWithFreePickFirst() {

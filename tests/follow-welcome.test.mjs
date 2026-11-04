@@ -4,7 +4,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { toggleFollow, freeStart, startIds, followGroups, basisSources, interestBlocks, moreGroups, freePick, findSources, followedSources, followedLine, previewLines, FREE_START } from '../src/lib/follow-welcome.js'
+import { toggleFollow, freeStart, startIds, followGroups, basisSources, interestBlocks, moreGroups, freePick, findSources, followedSources, followedLine, previewLines, FREE_START, BASIS_KRANTEN } from '../src/lib/follow-welcome.js'
 import { INTERESTS } from '../src/lib/topics.js'
 import { rubriekRij } from '../src/lib/streamline.js'
 import { applyWelcome } from '../src/lib/welcome.js'
@@ -42,13 +42,37 @@ test('per rubriek, zonder het gratis begin; alles komt één keer voor; sport al
   assert.deepEqual(followGroups([{ id: 'x', name: 'X', cat: 'raar' }]).map((g) => g.cat), ['overig'])
 })
 
-test('de Basis: Nederlands nieuws, het gratis begin voorop', () => {
+test('de Basis: het gratis begin, dan de kranten als losse rijen in vaste volgorde', () => {
   const basis = basisSources(catalog)
+  assert.deepEqual(basis.map((s) => s.id), ['nos', 'nu', 'rtl', 'volkskrant', 'nrc', 'trouw', 'parool', 'ad', 'telegraaf'])
   assert.deepEqual(basis.slice(0, 3).map((s) => s.id), FREE_START)
   assert.ok(basis.every((s) => s.cat === 'nl'))
-  assert.ok(basis.some((s) => s.id === 'nrc'))
-  assert.ok(basis.length <= 6, 'kort, zodat de blokken van je interesses in zicht blijven')
-  assert.ok(!basis.some((s) => s.id === 'telegraaf'))
+  // Het gratis begin is gratis; de kranten staan er los onder (betaald, dus geen onderdeel van "Volg alle drie").
+  assert.ok(basis.slice(0, 3).every((s) => !s.paid))
+  assert.ok(basis.slice(3).every((s) => s.paid))
+  assert.equal(new Set(basis.map((s) => s.id)).size, basis.length, 'elke bron één keer')
+  // Een krant die er niet is (of al in het gratis begin zit) valt weg, de rest blijft in volgorde.
+  assert.deepEqual(basisSources(catalog.filter((s) => s.id !== 'trouw')).map((s) => s.id).slice(3), ['volkskrant', 'nrc', 'parool', 'ad', 'telegraaf'])
+  // De andere Nederlandse titels blijven onder Meer bronnen.
+  assert.ok(!basis.some((s) => ['nd', 'ftm'].includes(s.id)))
+})
+
+test('elke bron één keer op de stap: de vier nieuwe kranten staan in de Basis, niet ook onder Meer bronnen of in een blok', () => {
+  const vier = ['trouw', 'parool', 'ad', 'telegraaf']
+  const interests = INTERESTS.map((i) => i.id)
+  for (const chosen of [[], ['tech'], interests]) {
+    const ids = [
+      ...basisSources(catalog).map((s) => s.id),
+      ...interestBlocks(catalog, chosen).flatMap((b) => b.sources.map((s) => s.id)),
+      ...moreGroups(catalog, chosen).flatMap((g) => g.sources.map((s) => s.id)),
+    ]
+    for (const id of vier) assert.equal(ids.filter((x) => x === id).length, 1, `${id} (${chosen.length} interesses)`)
+    assert.equal(ids.filter((x) => x === 'volkskrant').length, 1)
+    assert.equal(ids.filter((x) => x === 'nrc').length, 1)
+  }
+  const more = moreGroups(catalog, []).flatMap((g) => g.sources.map((s) => s.id))
+  assert.ok(vier.every((id) => !more.includes(id)))
+  assert.ok(more.includes('nd') && more.includes('ftm'))
 })
 
 test('per gekozen interesse een blok, in vaste volgorde, met de nichebronnen en een gratis aanrader voorop', () => {
@@ -88,7 +112,7 @@ test('sport alleen als je Sport kiest; de rest ingeklapt onder Meer bronnen, zon
   const more = moreGroups(catalog, ['tech']).flatMap((g) => g.sources)
   assert.ok(more.every((s) => s.cat !== 'sport'))
   assert.ok(!more.some((s) => s.cat === 'tech' || s.id === 'nos' || s.id === 'nrc'))
-  assert.ok(more.some((s) => s.id === 'vrt') && more.some((s) => s.id === 'telegraaf'))
+  assert.ok(more.some((s) => s.id === 'vrt') && more.some((s) => s.id === 'nd'))
   // Niets gekozen: de Basis en de rest ingeklapt; elke niet-sportbron is ergens te vinden.
   const shown = new Set([...basisSources(catalog), ...moreGroups(catalog, []).flatMap((g) => g.sources)].map((s) => s.id))
   assert.ok(catalog.filter((s) => s.cat !== 'sport').every((s) => shown.has(s.id)))
@@ -153,6 +177,8 @@ test('web en app: hetzelfde gratis begin en dezelfde schermen', () => {
     assert.ok(swift.includes(text), `app: ${text}`)
   }
   assert.match(swift, /freeStart = \["nos", "nu", "rtl"\]/)
+  assert.match(swift, /basisKranten = \["volkskrant", "nrc", "trouw", "parool", "ad", "telegraaf"\]/)
+  assert.deepEqual(BASIS_KRANTEN, ['volkskrant', 'nrc', 'trouw', 'parool', 'ad', 'telegraaf'])
   // De oude route is weg: geen Wat precies?, geen seintje-stap, geen veegpagina's.
   for (const old of ['Wat precies?', 'Stel je Hoot samen', 'Veeg verder', 'Een seintje?', 'Kies minstens één', 'Om te beginnen · gratis', 'sportbronnen']) {
     assert.ok(!web.includes(old), `web: ${old}`)
