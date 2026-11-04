@@ -5120,7 +5120,7 @@ html[data-images='hoofd'] .media--social {
 }
 
 /* De bronnen: één laag over de hele lijn. Open een rij van rechts naar links (Alle bronnen
-   rechts, op de plek van de stapel), knoppen van 44 met 4 ertussen. */
+   rechts, op de plek van de stapel), knoppen van 44 naast elkaar (8 tussen de logo's). */
 .src {
   position: absolute;
   top: 0;
@@ -5131,26 +5131,37 @@ html[data-images='hoofd'] .media--social {
   pointer-events: none;
 }
 .src__scroll {
+  /* Uitloop (UITLOOP): de rij reikt 12 buiten de lijn, met evenveel binnenruimte, zodat de rode
+     ring en het vinkje nooit door de rand worden afgesneden. Het masker knipt op de lijn waar
+     hij vervaagt (--ul, --ur, zie stripEdges), en dicht links. */
+  --uit: var(--s3);
   --fl: 0px;
   --fr: 0px;
+  --ul: var(--uit);
+  --ur: 0px;
   position: absolute;
-  inset: 0;
+  inset: calc(-1 * var(--uit));
   display: flex;
   flex-direction: row-reverse;
   align-items: center;
-  gap: var(--s1);
+  padding: var(--uit);
+  gap: 2px; /* STEP_OPEN − TAP: de rode ringen van twee gekozen bolletjes raken elkaar niet */
   overflow: hidden;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
+  /* alleen de bolletjes vangen tikken, niet de uitloop eromheen */
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to right, transparent var(--ul), #000 calc(var(--ul) + var(--fl)), #000 calc(100% - var(--ur) - var(--fr)), transparent calc(100% - var(--ur)));
+  mask-image: linear-gradient(to right, transparent var(--ul), #000 calc(var(--ul) + var(--fl)), #000 calc(100% - var(--ur) - var(--fr)), transparent calc(100% - var(--ur)));
 }
 .src__scroll::-webkit-scrollbar {
   display: none;
 }
 .line.is-open .src__scroll {
-  pointer-events: auto;
   overflow-x: auto;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fl), #000 calc(100% - var(--fr)), transparent);
-  mask-image: linear-gradient(to right, transparent, #000 var(--fl), #000 calc(100% - var(--fr)), transparent);
+}
+.line.is-open .sb {
+  pointer-events: auto;
 }
 
 .sb {
@@ -5207,8 +5218,8 @@ html[data-images='hoofd'] .media--social {
 }
 .sb__check {
   position: absolute;
-  right: 0;
-  bottom: 0;
+  right: 2px; /* schijf plus papierrand (2) vallen binnen het vak, zoals op iOS */
+  bottom: 2px;
   display: grid;
   place-items: center;
   width: var(--s4);

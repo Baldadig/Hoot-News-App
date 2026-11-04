@@ -2,10 +2,10 @@
 // functies (tests/streamline.test.mjs). Het tekenen en bewegen staat in components/StreamLine.jsx.
 import { INTERESTS } from './topics.js'
 
-// Maten van de stapel, gelijk aan de tokens in styles.css (--tap, --s1, --s2, --s4).
+// Maten van de stapel, gelijk aan de tokens in styles.css (--tap, --s2, --s3, --s4).
 export const TAP = 44 // aanraakvlak van elk bolletje
-export const GAP = 4 // tussen de open bolletjes
-export const STEP_OPEN = TAP + GAP // 48
+export const GAP_OPEN = 2 // lucht tussen twee vakken van 44 in de open rij (iOS: Space.s0)
+export const STEP_OPEN = TAP + GAP_OPEN // 46: open naast elkaar, 10 tussen de logo's van 36 en 2 tussen de rode ringen
 export const LOGO = 36 // logo in de open rij
 export const SMALL = 28 // dicht: 36 − 8
 export const STEP = 16 // dicht: half over elkaar
@@ -14,6 +14,9 @@ export const EDGE = (TAP - SMALL) / 2 // 8: kolomrand tot het voorste logo, dat 
 export const PAD = 8 // binnenrand van de stapelknop, en tussen naam en logo's
 export const DECK_MAX = 3
 export const STRIP_FADE = 24 // vervaagde rand van de open rij
+// Uitloop (--uit, 12): zoveel mag de rij buiten de lijn tekenen, zodat de rode ring en het vinkje
+// van Alle bronnen niet door de rand worden afgesneden. Een vervaging begint op de lijn zelf.
+export const UITLOOP = 12
 
 export const joinNL = (a) => (a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' en ' + a[a.length - 1])
 
@@ -85,7 +88,7 @@ export function stapel(pickList = [], rij = [], max = DECK_MAX) {
 export const keuzeLabel = (namen = []) => (namen.length === 1 ? namen[0] : namen.length ? `${namen.length} bronnen` : '')
 
 // Waar een bolletje in de dichte stapel staat (open staat elk op zijn eigen plek in de rij, stap
-// 48 van rechts, zonder verschuiving). `i` = plek in de open rij (0 = Alle bronnen, rechts), `k` =
+// 46 van rechts, zonder verschuiving). `i` = plek in de open rij (0 = Alle bronnen, rechts), `k` =
 // plek in de stapel (−1 = niet in de stapel), `n` = grootte van de stapel. Dicht schuift het naar
 // zijn plek in de stapel (stap 16, 28 groot), of verdwijnt erachter. Alle bronnen ligt dicht
 // onzichtbaar op de plek van het voorste logo: daar verschijnt het bij openen.
