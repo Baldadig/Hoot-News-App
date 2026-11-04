@@ -11,3 +11,9 @@ test('Weergave: het label is "Automatisch" (niet "Systeem"), op web en iOS', () 
   assert.match(nacht, /case \.system: "Automatisch"/)
   assert.doesNotMatch(display + nacht, /'Systeem'|"Systeem"/)
 })
+
+test('Account: de melding bij mislukt afmelden bij Apple heet "Hoot uit je Apple ID halen lukte niet"', () => {
+  const account = read('ios/Hoot/Views/AccountView.swift')
+  assert.match(account, /\.alert\("Hoot uit je Apple ID halen lukte niet", isPresented:/)
+  assert.doesNotMatch(account, /Apple reageerde niet/)
+})
