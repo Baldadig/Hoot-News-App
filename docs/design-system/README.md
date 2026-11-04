@@ -6,7 +6,7 @@ Hoot is een rustige nieuwslezer: drie keer per dag een Editie van tien verhalen 
 
 - **Het verhaal is de eenheid.** De bron blijft altijd zichtbaar en aanklikbaar; openen, de bron bekijken en bewaren zijn drie aparte doelen van minstens `tap` (44 px).
 - **Lijnen en witruimte, geen omlijnde kaarten.** Berichten scheid je met een `rule`-haarlijn en `s5`; een kaart (`surface`, `radius`) alleen voor iets dat echt los staat: een stuk uit de Selectie, een melding, een blad.
-- **Drie rollen voor letters.** Koppen en schermtitels in `serif`; bediening, lijsten, intro's en metadata in `sans`; lange leestekst in de lezer weer in `serif`.
+- **Lezen in serif, bedienen in sans.** Koppen en schermtitels in `serif` (Newsreader 800); alles wat je leest (de intro van een verhaal, de tekst van een post, de lezer, proza) in `lees` (Newsreader op tekstmaat); bediening, labels, metadata en knoppen in `sans` (Inter).
 - **Eén accent.** `accent` markeert rubriek, actief, "+N bronnen", het label "gratis" en het punt van het woordmerk. Nooit als vlakvulling van een heel scherm, en nooit voor gewone bediening: iconen in de kop (instellingen, zoeken, verversen) zijn `ink-3`.
 - **Merkmomenten in merkrood.** Op een handvol vaste momenten wordt het krantenrood een vol vlak (`brand-red` met `on-brand-red`): het opstartscherm (app en web), het welkom, het einde van de editie ("Je bent bij.") en de deel- en App Store-beelden. Juist omdat de rest papier en inkt is, voelt dat fris; daarom nergens anders, en nooit op een scherm waar je leest.
 - **Niets beweegt terwijl je leest.** Nieuwe berichten wachten achter een knop; de leespositie verschuift nooit vanzelf.
@@ -63,25 +63,28 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 
 ## Type
 
-- **Website:** Newsreader 800 voor koppen, Source Sans 3 (400–800) voor tekst en bediening, beide meegeleverd (geen Google Fonts-verzoek). De tijd onder de bronnaam staat in tabelcijfers (Source Sans 3), zodat "4 uur" en "41 min" niet verspringen; Newsreader zoals we hem meeleveren heeft die niet, dus een serif-nummer (de stapteller, de nummers in de inhoud van de Selectie, de rang op een kaart) blijft proportioneel.
-- **iOS:** de serif van het systeem (New York, `.serif` design, bold) en San Francisco, zodat alles meeschaalt met Dynamische tekst. Dezelfde rollen, met de tekststijlen van iOS als maat.
+- **Drie letters, overal gelijk (tekstfont-keuze, 4 november 2026).** Koppen: Newsreader 800, statisch, optische maat uit (`--serif`). Lopende tekst: Newsreader op tekstmaat, variabel met de optische maat aan, 400 en in Nacht 430 (`--lees`, `--fw-lees`). Bediening: Inter 400 · 600 · 700, labels in kapitalen 800 (`--sans`). Alles meegeleverd in latin en latin-ext (geen Google Fonts-verzoek): web `src/fonts/` en de statische 800 van `@fontsource/newsreader`, iOS `ios/Hoot/Resources/Fonts/` (vaste standen uit dezelfde bron, `scripts/build-fonts.py`). Licenties: SIL OFL 1.1.
+- **Maten van lopende tekst:** intro 17/24 (1,42) overal, ook in lijsten (was 15). Held-lead op de landing 22 px vanaf 440 breed, 19 px op de telefoon, regelafstand 1,42. Newsreader oogt op dezelfde maat kleiner dan een schreefloze letter; vandaar de stap omhoog.
+- **Regellengte in em, niet in ch:** een ch is de breedte van een 0 en die verschilt per letter (Source Sans 0,50 · Newsreader 0,56 · Inter 0,63 em). `measure-prose` is 28,8em (± 68 tekens Newsreader op 17).
+- **Cijfers:** de tijd onder de bronnaam staat in tabelcijfers (Inter), zodat "4 uur" en "41 min" niet verspringen; de statische Newsreader 800 heeft die niet, dus een serif-nummer (de stapteller, de nummers in de inhoud van de Selectie, de rang op een kaart) blijft proportioneel.
+- **iOS:** dezelfde letters als het web, met `Font.custom(…, relativeTo:)`, zodat alles meeschaalt met Dynamische tekst (`Letters.swift`: `.kop`, `.ui`, `.leestekst()`). Dezelfde rollen, met de tekststijlen van iOS als maat. Lopende tekst krijgt regelafstand 1,42, bij de toegankelijkheidsmaten 1,3. De lezer laadt Newsreader Tekst (met vet en cursief) en Inter via de app.
 
 | Stijl | Web | iOS | Waar |
 |---|---|---|---|
-| `t6-lead` (`head-6`) | serif 800, 30/36 px, vanaf 720 px 34/40 | `.largeTitle`, serif bold (breed doet dat al) | Kop van het hoofdverhaal |
-| `t5-screen` (`head-5`) | serif 800, 27/32 px | `Theme.headline(.title)`, serif bold (I5; nu nog `.largeTitle` heavy); klein in de balk serif bold (`.headline`) | Schermtitel (Middageditie, Stroom, Selectie …) |
-| `head-lg-item` | serif 800, 22/26 px (`lh-head-lg`) | `.title2`, serif bold | Grote itemkop: een bericht in een brede lijst, het eerste stuk van een vak, een bladtitel |
-| `t4-item` | serif 800, 18/22 px (`lh-4`) | `.title3`, serif bold | Kop van een bericht |
-| `t3-body` | sans 400, 17 px, 1.5 | `.body` | Lopende tekst, intro van het hoofdverhaal |
-| `t2-sum` | sans 400, 15 px, 1.5 | `.subheadline` | Intro van een bericht in een lijst, in `ink-2` |
-| `t2-ui` | sans 600, 15 px, 1.3 | `.subheadline` semibold | Bronnaam (600), knoppen, chips |
-| `t1-meta` | sans 400, 13 px | `.caption` | Tijd, labels, toelichting |
-| `kicker` | sans 800, 13 px, kapitalen, +0.06em, 1.3 | `.caption` heavy, kapitalen | Rubriek; de punt tussen twee labels in `ink-3`; bij heel grote tekst zonder kapitalen |
+| `t6-lead` (`head-6`) | serif 800, 30/36 px, vanaf 720 px 34/40 | `.kop(.largeTitle)` (breed doet dat al) | Kop van het hoofdverhaal |
+| `t5-screen` (`head-5`) | serif 800, 27/32 px | `Theme.headline(.title)` = `.kop(.title)`; in de balk Newsreader 800 op `.headline`/`.largeTitle` (UIKit) | Schermtitel (Middageditie, Stroom, Selectie …) |
+| `head-lg-item` | serif 800, 22/26 px (`lh-head-lg`) | `.kop(.title2)` | Grote itemkop: een bericht in een brede lijst, het eerste stuk van een vak, een bladtitel |
+| `t4-item` | serif 800, 18/22 px (`lh-4`) | `.kop(.title3)` | Kop van een bericht |
+| `intro` | lees 400, 17/24 (1,42), Nacht 430 | `.leestekst(.body)` | De intro van elk verhaal (ook in een lijst), de tekst van een post, in `ink-2` |
+| `lees-proza` | lees 400, 17/28 | lezer: Newsreader Tekst, 1.6 | Proza, De Editie in één minuut, de lezer |
+| `t2-ui` | sans 600, 15 px, 1.3 | `.ui(.subheadline, .semibold)` | Bronnaam (600), knoppen, chips |
+| `t1-meta` | sans 400, 13 px | `.ui(.caption)` | Tijd, labels, toelichting |
+| `kicker` | sans 800, 13 px, kapitalen, +0.06em, 1.3 | `.ui(.caption, .heavy)`, kapitalen | Rubriek; de punt tussen twee labels in `ink-3`; bij heel grote tekst zonder kapitalen |
 
 - **Het verhaal wint van de schermtitel** (C7). De schermtitel (`head-5`, 27/32) zegt waar je bent; het oog landt op het nieuws: de kop van het hoofdverhaal (`head-6`, 30/36, vanaf 720 px 34/40) is altijd groter. Op het web staat dit zo; iOS volgt (I5): schermtitel `Theme.headline(.title)`, hoofdverhaal `.largeTitle` serif.
 - **Koppen** krijgen `text-wrap: balance` (hoofdverhaal) of `pretty` (berichten) en breken nooit af met "…".
 - **Intro's:** bij het hoofdverhaal hele zinnen (4–6 regels). In een lijst kies je zelf 1–3 regels of de hele intro; een ingekorte intro eindigt met "…", zodat je ziet dat er meer is.
-- **De lezer** zet lopende tekst in de serif: 1,06rem × je tekstgrootte, regelafstand 1.6, hooguit `readable` breed.
+- **De lezer** zet lopende tekst in Newsreader Tekst (met echt vet en cursief): 1,06rem × je tekstgrootte, regelafstand 1.6, hooguit `readable` breed; de kop in Newsreader 800, kicker, bronregel en bijschriften in Inter.
 
 ## Ruimte en vorm
 
@@ -147,7 +150,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 
 Bewuste verschillen, omdat elk platform zijn eigen conventies heeft:
 
-- **Letters:** web Newsreader en Source Sans 3; iOS New York en San Francisco, zodat Dynamische tekst werkt.
+- **Letters:** gelijk: Newsreader en Inter op beide (sinds 1.1.0). Het web gebruikt de variabele letters met de optische maat op de lettermaat; iOS vaste standen (Kop 800 op opsz 16, Tekst op opsz 17, Inter op opsz 14), omdat Dynamische tekst geen as kan meenemen.
 - **Hoofdverhaal op een smalle website:** het beeld staat boven rubriek, kop en intro (liggend 2:1, op het brede web 21:9). Staand beeld is 4:5 en op een ruim scherm 3:4 naast de tekst. De app volgt dezelfde plaatsing; liggend blijft daar 2:1.
 - **Lege toestand:** web en iOS gebruiken een getekende bladzijde, een serif-titel en uitleg in `ink-2`. Foutmeldingen op iOS houden de systeemweergave met een knop om opnieuw te proberen.
 - **Bronnaam:** op de website kapt een lange naam af op één regel; in de app loopt hij door.
