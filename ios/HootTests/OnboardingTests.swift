@@ -34,73 +34,61 @@ final class OnboardingTests: XCTestCase {
         super.tearDown()
     }
 
-    // ---- Wat precies? over pagina's ----
+    // ---- Volg je bronnen (FollowList, gelijk aan src/lib/follow-welcome.js) ----
 
-    func testRowsWrapAtTheLineWidth() {
-        XCTAssertEqual(WelcomePages.rows(chips: [], width: 300), 0)
-        XCTAssertEqual(WelcomePages.rows(chips: [100, 100], width: 300), 1)
-        // 100 + 8 + 100 + 8 + 100 = 316 > 300: de derde valt naar de volgende regel
-        XCTAssertEqual(WelcomePages.rows(chips: [100, 100, 100], width: 300), 2)
-        // een onderwerp breder dan de regel krijgt een regel voor zichzelf (en wordt niet breder geteld)
-        XCTAssertEqual(WelcomePages.rows(chips: [500, 50], width: 300), 2)
+    private static let catalog: [Source] = [
+        Source(id: "nos", name: "NOS", cat: "nl", paid: false, lang: "nl", about: "Het publieke nieuws"),
+        Source(id: "nu", name: "NU.nl", cat: "nl", paid: false, lang: "nl"),
+        Source(id: "rtl", name: "RTL Nieuws", cat: "nl", paid: false, lang: "nl"),
+        Source(id: "nrc", name: "NRC", cat: "nl", paid: true, lang: "nl"),
+        Source(id: "tweakers", name: "Tweakers", cat: "tech", paid: false, lang: "nl", about: "Technieuws en reviews"),
+        Source(id: "vi", name: "Voetbal International", cat: "sport", paid: false, lang: "nl"),
+        Source(id: "nos-sport", name: "NOS Sport", cat: "sport", paid: false, lang: "nl"),
+        Source(id: "raar", name: "Raar", cat: "iets", paid: false),
+    ]
+
+    @MainActor func testFreeStartIsNosNuRtlAndNeverPaid() {
+        XCTAssertEqual(FollowList.freeStart(Self.catalog).map(\.id), ["nos", "nu", "rtl"])
+        XCTAssertEqual(FollowList.freeStart([Source(id: "nos", name: "NOS", paid: true), Source(id: "nu", name: "NU.nl")]).map(\.id), ["nu"])
     }
 
-    func testGroupHeightGrowsByOneChipPerRow() {
-        let one = WelcomePages.groupHeight(rows: 1)
-        let two = WelcomePages.groupHeight(rows: 2)
-        XCTAssertEqual(two - one, WelcomePages.chip + WelcomePages.gap)
+    @MainActor func testLaterAndQuickStartHaveNoSport() {
+        let ids = FollowList.startIds(Self.catalog)
+        XCTAssertEqual(Array(ids.prefix(3)), ["nos", "nu", "rtl"])
+        XCTAssertTrue(ids.allSatisfy { id in Self.catalog.first { $0.id == id }?.cat != "sport" })
     }
 
-    func testSplitKeepsOrderAndFitsTheRoom() {
-        // drie groepen van 100 met 24 ertussen op een pagina van 250: twee passen (224), de derde niet
-        XCTAssertEqual(WelcomePages.split([100, 100, 100], room: 250, gap: 24), [[0, 1], [2]])
-        XCTAssertEqual(WelcomePages.split([100, 100, 100], room: 1000, gap: 24), [[0, 1, 2]])
-        // een groep die alleen al te hoog is, staat op een eigen pagina
-        XCTAssertEqual(WelcomePages.split([400, 50], room: 300, gap: 24), [[0], [1]])
-        XCTAssertEqual(WelcomePages.split([], room: 300, gap: 24), [[]])
+    @MainActor func testGroupsInCatalogOrderWithoutFreeStartAndSportApart() {
+        let groups = FollowList.groups(Self.catalog)
+        XCTAssertEqual(groups.map(\.cat), ["nl", "tech", "sport", "overig"])
+        XCTAssertEqual(groups[0].sources.map(\.id), ["nrc"])
+        XCTAssertEqual(groups.flatMap(\.sources).count + 3, Self.catalog.count)
     }
 
-    func testEveryPageFitsWhenItCan() {
-        let heights: [CGFloat] = [128, 178, 128, 178, 128]
-        let room: CGFloat = 340
-        for page in WelcomePages.split(heights, room: room, gap: 24) where page.count > 1 {
-            let used = page.map { heights[$0] }.reduce(0, +) + 24 * CGFloat(page.count - 1)
-            XCTAssertLessThanOrEqual(used, room)
-        }
+    @MainActor func testSearchFindsSportToo() {
+        XCTAssertEqual(FollowList.find(Self.catalog, "voetbal").map(\.id), ["vi"])
+        XCTAssertEqual(FollowList.find(Self.catalog, "reviews").map(\.id), ["tweakers"])
+        XCTAssertEqual(FollowList.find(Self.catalog, "  "), [])
     }
 
-    func testMetricsGrowWithTheTextSize() {
-        let normal = WelcomePages.Metrics(.large)
-        let big = WelcomePages.Metrics(.accessibility3)
-        XCTAssertEqual(normal.chip, WelcomePages.chip) // bij normale tekst blijft 44
-        XCTAssertGreaterThan(big.chip, normal.chip)
-        XCTAssertGreaterThan(big.header, normal.header)
-        XCTAssertGreaterThan(WelcomePages.groupHeight(rows: 2, metrics: big), WelcomePages.groupHeight(rows: 2, metrics: normal))
+    @MainActor func testLinesAreLikeTheWeb() {
+        XCTAssertEqual(FollowList.line(0), "Nog niets gevolgd")
+        XCTAssertEqual(FollowList.line(1), "1 bron gevolgd")
+        XCTAssertEqual(FollowList.line(3), "3 bronnen gevolgd")
+        XCTAssertEqual(FollowList.sourceLine(["NOS", "NU.nl", "RTL Nieuws", "BBC"]), "NOS, NU.nl en 2 meer")
+        XCTAssertEqual(FollowList.followed(Self.catalog, ["tweakers", "nos", "weg"]).map(\.id), ["tweakers", "nos"])
     }
 
-    func testOversizedChipCountsItsExtraLine() {
-        let m = WelcomePages.Metrics(.large)
-        let plain = WelcomePages.groupHeight(chips: [100, 100], width: 300, metrics: m)
-        XCTAssertEqual(plain, WelcomePages.groupHeight(rows: 1, metrics: m))
-        XCTAssertGreaterThan(WelcomePages.groupHeight(chips: [500], width: 300, metrics: m), WelcomePages.groupHeight(rows: 1, metrics: m))
-    }
-
-    func testChunksSplitATallGroupIntoPagesOfMaxRows() {
-        // drie onderwerpen per regel van 300 (3 x 90 + 2 x 8 = 286); twee regels per stuk
-        let chips = [CGFloat](repeating: 90, count: 8)
-        XCTAssertEqual(WelcomePages.chunks(chips: chips, width: 300, maxRows: 2), [[0, 1, 2, 3, 4, 5], [6, 7]])
-        XCTAssertEqual(WelcomePages.chunks(chips: chips, width: 300, maxRows: 9), [[0, 1, 2, 3, 4, 5, 6, 7]])
-        XCTAssertEqual(WelcomePages.chunks(chips: chips, width: 300, maxRows: 1), [[0, 1, 2], [3, 4, 5], [6, 7]])
-        XCTAssertEqual(WelcomePages.chunks(chips: [], width: 300, maxRows: 2), [[]])
-    }
-
-    func testEveryChunkFitsItsRows() {
-        let chips: [CGFloat] = [120, 80, 150, 60, 200, 90, 110, 70, 130]
-        for maxRows in 1 ... 4 {
-            for part in WelcomePages.chunks(chips: chips, width: 300, maxRows: maxRows) where !part.isEmpty {
-                XCTAssertLessThanOrEqual(WelcomePages.rows(chips: part.map { chips[$0] }, width: 300), maxRows)
-            }
-        }
+    @MainActor func testPreviewShowsNewestHeadlinePerFollowedSource() {
+        let items = [
+            Item(id: "a", source: "nos", kind: "article", title: "Oud", url: "https://example.org", publishedAt: "2026-11-04T06:00:00Z"),
+            Item(id: "b", source: "nos", kind: "article", title: "Nieuw", url: "https://example.org", publishedAt: "2026-11-04T08:00:00Z"),
+            Item(id: "c", source: "tweakers", kind: "article", title: "Tech", url: "https://example.org", publishedAt: "2026-11-04T07:00:00Z"),
+            Item(id: "d", source: "vi", kind: "article", title: "Sport", url: "https://example.org", publishedAt: "2026-11-04T09:00:00Z"),
+        ]
+        XCTAssertEqual(FollowList.preview(items, Self.catalog, ["nos", "tweakers"]).map(\.title), ["Nieuw", "Tech"])
+        XCTAssertEqual(FollowList.preview(items, Self.catalog, []).map(\.id), ["b"]) // nog niets: het gratis begin
+        XCTAssertEqual(FollowList.preview(items, Self.catalog, ["nos"]).first?.source, "NOS")
     }
 
     // ---- Het voorstel ----
@@ -125,6 +113,14 @@ final class OnboardingTests: XCTestCase {
         XCTAssertTrue(Set(store.suggested(interests: all)).isDisjoint(with: paid))
         // ... maar bij Aanpassen staan ze wel als aanbod (aan te zetten, niet vooraf aan)
         XCTAssertTrue(Set(HootStore.alsoFor.values.flatMap { $0 }).intersection(paid).isEmpty == false)
+    }
+
+    // "Liever meteen lezen" zette sportbronnen aan zonder dat je Sport koos (onboarding-rapport 4-11).
+    @MainActor func testQuickStartHasNoSport() {
+        XCTAssertFalse(HootStore.starter.contains("nos-sport"))
+        XCTAssertFalse(HootStore.starter.contains("vi"))
+        XCTAssertFalse(HootStore.starterGroups.contains { $0.label == "Sport" })
+        XCTAssertEqual(Array(HootStore.starter.prefix(3)), ["nos", "nu", "rtl"])
     }
 
     @MainActor func testNoStartingProfession() {

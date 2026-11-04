@@ -1,67 +1,60 @@
-import SourceFollowList from './SourceFollowList.jsx'
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { SourceMark } from '../components/Items.jsx'
 import { BackButton } from '../components/Shell.jsx'
 import { ChipGroup } from '../components/ChipGroup.jsx'
 import { BrandLogo, useBrandBar } from '../components/Brand.jsx'
 import SunArt from '../components/SunArt.jsx'
-import { CaretIcon, INTEREST_ICONS } from '../components/icons.jsx'
+import { CaretIcon, CheckIcon, ICON_SM, SearchIcon } from '../components/icons.jsx'
 import { vakByDomain } from '../../shared/vak.mjs'
-import { INTERESTS, STARTER, topicById, resolveTopics, starterGroups } from '../lib/topics.js'
-import { sourcesOn, proposeSources, moreSources, packPages, pickedFrom } from '../lib/welcome.js'
+import { INTERESTS, resolveTopics } from '../lib/topics.js'
+import { sourcesOn, pickedFrom, sourceLine } from '../lib/welcome.js'
+import { toggleFollow, freeStart, startIds, followGroups, findSources, followedSources, followedLine, previewLines, SPORT } from '../lib/follow-welcome.js'
 import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, waitFor, sleep, tintTimes, openTimes, reducedPlan, crossPlan, rootColor, IRIS, IRIS_BACK, IRIS_MS, STEP_OUT_MS, STEP_IN_MS } from '../lib/motion.js'
 
-// Onboarding, gelijk aan de app (ios/Hoot/Views/WelcomeView.swift) en zonder scrollen: elke pagina
-// past in één scherm, ook op 375 × 667. Wat niet past (pillen) verdeelt `Paged` over meer pagina's.
-//   intro (rood)  → drie veegpagina's (Editie, Stroom, Selectie), elk met zijn zon
-//   → interesses (tegels) → Wat precies? (eigen pagina, alle pillen open, Overslaan)
-//   → Je bronnen (compact raster met echte logo’s, direct aan/uit; Meer bronnen bladert)
-//   → Je Selectie (eigen stap, optioneel) → de Editie.
-// Niets staat vooraf aan: het voorstel voor de bronnen is voor iedereen gelijk (alleen gratis,
-// Nederlands eerst, zie lib/welcome.js) en de interesses, onderwerpen en Selectie beginnen leeg.
-// Knoppen staan pas op de laatste veegpagina; eerder veeg je (muis slepen, trackpad, pijltjes) of
-// tik je op 'Veeg verder →' (de enige hint, zoals het plan).
-// Bovenaan op elke pagina het kleine woordmerk linksboven, rechts Inloggen of Terug.
-// De rode intro is een eigen laag (.ob__red) over de papieren pagina heen: de schijf van de iris.
-// Van rood naar papier krimpt het rood als cirkel tot de punt van het kleine woordmerk op papier
-// (0,7 s, zie lib/motion.js); de rand veegt de papieren letters weg en de inkt staat eronder. Terug
-// speelt het omgekeerd. Bij Minder beweging één fade van 0,35 s. Tussen papieren pagina's even uit
-// en weer in, zoals de app.
-// Weg uit Welkom (`leaving`, App.jsx zet het bij Naar je Editie en bij sluiten): het hele scherm
-// vervaagt in 0,45 s over de Editie die eronder al staat (zie crossPlan in lib/motion.js), dan meldt
-// `onLeft` dat het weg kan. Intussen is het niet meer te bedienen.
-// Opnieuw kiezen (vanuit Bronnen of Instellingen, `onClose` is er dan): geen intro, je begint bij de
-// interesses met je huidige keuze, sluiten (ook met Escape) slaat niets op, en "Liever meteen
-// lezen" is er niet.
+// Welkom (1.1.0), gelijk aan de app (ios/Hoot/Views/WelcomeView.swift). Vier schermen:
+//   1. welkom (rood)   de zon komt op achter de horizon; Begin. Inloggen klein rechtsboven.
+//   2. Zo werkt Hoot   Editie, Stroom en Selectie als gelijken op één scherm, elk met zijn eigen zon
+//                      (components/SunArt.jsx: de zon achter de horizon, rustig; Minder beweging stil).
+//                      Kies je bronnen, of Liever meteen lezen (de gratis startset, zonder sport).
+//   3. Volg je bronnen zoals accounts volgen: niets staat vooraf aan. Bovenaan het gratis begin,
+//                      dan per rubriek; sport ingeklapt; zoeken vindt alles. Een voorbeeld-Editie
+//                      groeit mee (breed rechts, smal in een uitklapbalk boven de knop).
+//   4. Wat interesseert je?  de hoofdrubrieken (je Stroom-tabs) en, uitklapbaar, je Selectie.
+// "Later kiezen" kan altijd. Daarna de Editie: het welkom vervaagt erover (crossPlan). Het seintje
+// komt pas onder de eerste Editie (alleen in de app; web-push bestaat niet).
+// Van rood naar papier krimpt het rood als iris tot de punt van het kleine woordmerk (lib/motion.js);
+// terug speelt het omgekeerd. Bij Minder beweging één fade van 0,35 s. Tussen papieren schermen even
+// uit en weer in.
+// Opnieuw kiezen (Bronnen of Instellingen, `onClose` is er dan): geen intro en geen uitleg; je begint
+// bij je bronnen met wat nu aan staat, en Sluiten (ook Escape) slaat niets op.
 
-// De veegpagina's: elk met zijn zon (components/SunArt.jsx).
-const PAGES = [
-  { kind: 'editie', title: 'Je Editie', text: 'Drie keer per dag hooguit tien verhalen. Dan ben je bij.' },
-  { kind: 'stroom', title: 'De Stroom', text: 'Alles van je bronnen, nieuwste eerst.' },
-  { kind: 'selectie', title: 'Je Selectie', text: 'Eén keer per week bijgepraat over wat jou bezighoudt.' },
+const TRIO = [
+  { kind: 'editie', title: 'Editie', text: 'Drie keer per dag hooguit tien verhalen. Dan ben je bij.' },
+  { kind: 'stroom', title: 'Stroom', text: 'Alles van je bronnen, nieuwste eerst.' },
+  { kind: 'selectie', title: 'Selectie', text: 'Eén keer per week het beste over wat jou bezighoudt.' },
 ]
-const DOTS = PAGES.length + 1 // de intro telt mee
-const SWIPE_PX = 48
 
 const toggleIn = (list, id) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id])
 
-export default function Welcome({ sources, prefs, muted = new Set(), onDone, onClose = null, onSignIn = null, leaving = false, onLeft = () => {} }) {
+export default function Welcome({ sources, items = [], prefs, muted = new Set(), onDone, onClose = null, onSignIn = null, leaving = false, onLeft = () => {} }) {
   const reopen = !!onClose
-  const [view, setView] = useState(reopen ? 'kies' : 'intro') // intro | pager | kies | precies | hoot | bronnen | selectie
-  const [pg, setPg] = useState(0) // de veegpagina (0 = Editie)
-  const [sub, setSub] = useState(0) // de subpagina van Wat precies?, Je bronnen en Je Selectie
-  const [pages, setPages] = useState(1) // hoeveel subpagina's er nu zijn
-  const sourceReturn = useRef({ view: 'hoot', sub: 0, pages: 1 })
+  const [view, setView] = useState(reopen ? 'bronnen' : 'intro') // intro | uitleg | bronnen | interesses
   const [interests, setInterests] = useState(() => prefs.interests || [])
-  const [picked, setPicked] = useState(() => pickedFrom(prefs.topics || [], prefs.interests || [], INTERESTS))
-  const [edited, setEdited] = useState(null) // je eigen bronnenkeuze; zolang null geldt het voorstel
+  const picked = useMemo(() => pickedFrom(prefs.topics || [], prefs.interests || [], INTERESTS), [prefs.topics, prefs.interests])
+  const [edited, setEdited] = useState(null) // je eigen bronnenkeuze; zolang null geldt het begin
   const [vak, setVak] = useState(() => prefs.vak || [])
+  const [query, setQuery] = useState('')
+  const [filter, setFilter] = useState('aanbevolen') // aanbevolen | gevolgd
+  const [sport, setSport] = useState(false) // de sportbronnen uitgeklapt
+  const [peekOpen, setPeekOpen] = useState(false)
+  const [selOpen, setSelOpen] = useState(() => (prefs.vak || []).length > 0)
   const [red, setRed] = useState(!reopen) // de rode intro-laag staat er (ook nog tijdens het sluiten)
   const [phase, setPhase] = useState('open') // 'open' | 'closing' (rood → papier) | 'opening' (terug)
   const head = useRef(null) // de kop van de papieren pagina
   const redHead = useRef(null) // de kop op het rood
   const root = useRef(null) // .ob
   const paperCol = useRef(null) // de papieren kolom: vervaagt even tussen pagina's
+  const scroller = useRef(null)
   const paperBrand = useRef(null) // het papieren woordmerk: het doel van de iris
   const redRef = useRef(null) // de rode laag
   const afterOpen = useRef(null) // wat er gebeurt zodra het rood weer open is (Terug)
@@ -92,17 +85,16 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
 
   const topics = useMemo(() => resolveTopics(interests, picked), [interests, picked])
   const pickable = useMemo(() => sources.filter((s) => s.followed && s.kind !== 'sociaal'), [sources])
-  const byId = useMemo(() => new Map(pickable.map((s) => [s.id, s])), [pickable])
-  // Je bronnen: je eigen keuze, anders het voorstel bij je interesses (voor iedereen gelijk: alleen
-  // gratis, Nederlands eerst). Opnieuw kiezen begint bij wat nu aan staat.
-  const proposal = useMemo(() => (reopen ? sourcesOn(pickable, muted) : proposeSources(pickable, interests)), [reopen, pickable, muted, interests])
-  const mine = edited ?? proposal
+  // Je bronnen: je eigen keuze; opnieuw kiezen begint bij wat nu aan staat, de eerste keer bij niets.
+  const initial = useMemo(() => (reopen ? sourcesOn(pickable, muted) : []), [reopen, pickable, muted])
+  const mine = edited ?? initial
 
-  // Nieuwe pagina: de kop voorlezen (schermlezer), pas als de overgang klaar is.
+  // Nieuwe pagina: de kop voorlezen (schermlezer) en bovenaan beginnen, pas als de overgang klaar is.
   useEffect(() => {
     if (phase !== 'open') return
+    if (scroller.current) scroller.current.scrollTop = 0
     ;(red ? redHead : head).current?.focus({ preventScroll: true })
-  }, [view, pg, sub, red, phase])
+  }, [view, red, phase])
 
   // Terug naar de intro: de laag staat er net; eerst één beeld gesloten in beeld (clip op de punt,
   // de kleur van de punt, de papieren punt weg), dan opent het rood weer uit de punt.
@@ -162,8 +154,7 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
   // ---- Overgangen ----
 
   // Van de rode intro naar papier: `apply` tekent de papieren pagina onder het rood; zodra het
-  // papieren woordmerk zijn plek heeft (een beeld of twee), sluit de iris tot zijn punt. De papieren
-  // punt op het rood gaat op in het rood, en het laatste stuk kleurt het rood mee naar de punt. Zonder
+  // papieren woordmerk zijn plek heeft (een beeld of twee), sluit de iris tot zijn punt. Zonder
   // plek, of bij Minder beweging: een fade.
   const leaveIntro = async (apply) => {
     apply()
@@ -198,306 +189,99 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
     apply()
     if (moves) fade(col, STEP_IN_MS, 0, 1, 'ease-in').finished.then(() => clear(col)).catch(() => {})
   }
-  const show = (v, n = 0) =>
+  const show = (v) =>
     go(() => {
       setView(v)
-      setSub(n)
+      setQuery('')
+      setPeekOpen(false)
     })
-
-  // ---- Vegen ----
-  // Op de intro en de veegpagina's: naar links is verder, naar rechts terug. Muis slepen, trackpad
-  // (zijwaarts), swipe en de pijltjestoetsen doen hetzelfde als de link en de bolletjes.
-  const live = (view === 'intro' || view === 'pager') && phase === 'open' && !leaving
-  const forward = () => {
-    if (view === 'intro') leaveIntro(() => (setView('pager'), setPg(0)))
-    else if (view === 'pager' && pg < PAGES.length - 1) setPg(pg + 1)
-  }
-  const backward = () => {
-    if (view === 'pager') {
-      if (pg > 0) setPg(pg - 1)
-      else backToIntro(() => setView('intro'))
-    }
-  }
-  const jump = (i) => {
-    if (i === (view === 'intro' ? 0 : pg + 1)) return
-    if (i === 0) backToIntro(() => setView('intro'))
-    else if (view === 'intro') leaveIntro(() => (setView('pager'), setPg(i - 1)))
-    else setPg(i - 1)
-  }
-  const swipe = useRef(null)
-  const fwd = useRef(forward)
-  const bwd = useRef(backward)
-  fwd.current = forward
-  bwd.current = backward
-  const onDown = (e) => {
-    if (live) swipe.current = { x: e.clientX, y: e.clientY }
-  }
-  const onUp = (e) => {
-    const s = swipe.current
-    swipe.current = null
-    if (!s || !live) return
-    const dx = e.clientX - s.x
-    const dy = e.clientY - s.y
-    if (Math.abs(dx) < SWIPE_PX || Math.abs(dx) < Math.abs(dy) * 1.5) return
-    dx < 0 ? forward() : backward()
-  }
-  const wheelAt = useRef(0)
-  const onWheel = (e) => {
-    if (!live || Math.abs(e.deltaX) < 30 || Math.abs(e.deltaX) < Math.abs(e.deltaY)) return
-    if (e.timeStamp - wheelAt.current < 700) return
-    wheelAt.current = e.timeStamp
-    e.deltaX > 0 ? forward() : backward()
-  }
-  useEffect(() => {
-    if (!live) return
-    const onKey = (e) => {
-      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return
-      if (e.key === 'ArrowRight') fwd.current()
-      else if (e.key === 'ArrowLeft') bwd.current()
-    }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [live])
 
   // ---- Keuzes ----
-  const pickInterest = (id) => setInterests((l) => toggleIn(l, id))
-  const pickTopic = (id) => setPicked((l) => toggleIn(l, id))
-  const allOf = (i) => setPicked((l) => l.filter((t) => !i.topics.includes(t)))
-  const pickSource = (id) => setEdited(mine.includes(id) ? mine.filter((x) => x !== id) : [...mine, id])
-  const finish = () => onDone({ interests, topics, sources: mine, all: pickable, vak })
+  const pickSource = (id) => setEdited(toggleFollow(mine, id))
+  const finish = (choice = {}) => onDone({ interests, topics, sources: mine, all: pickable, vak, ...choice })
   // "Liever meteen lezen": de startset met gratis bronnen, zonder interesses, onderwerpen of vak.
-  const startIds = () => {
-    const ids = starterGroups(pickable).flatMap((g) => g.sources.map((x) => x.id))
-    return ids.length ? ids : STARTER.flatMap((g) => g.ids)
+  const startQuick = () => onDone({ interests: [], topics: [], sources: startIds(pickable), all: pickable })
+  // Later kiezen bij de bronnen: zoals het was, en de eerste keer zonder iets gevolgd het gratis begin.
+  const laterSources = () => {
+    if (!mine.length) setEdited(reopen ? initial : startIds(pickable))
+    show('interesses')
   }
-  const startQuick = () => onDone({ interests: [], topics: [], sources: startIds(), all: pickable })
+  // Later kiezen bij de interesses: deze stap verandert niets (de eerste keer dus leeg).
+  const laterInterests = () => finish({ interests: prefs.interests || [], topics: resolveTopics(prefs.interests || [], picked), vak: prefs.vak || [] })
 
-  // Wat precies?: per gekozen interesse een groep, met 'Alles' vooraan. Je Selectie: per domein.
-  const fineGroups = INTERESTS.filter((i) => interests.includes(i.id)).map((i) => {
-    const Icon = INTEREST_ICONS[i.id]
-    const mineTopics = picked.filter((t) => i.topics.includes(t))
-    return {
-      key: i.id,
-      label: i.label,
-      icon: <Icon />,
-      all: { on: !mineTopics.length, click: () => allOf(i) },
-      items: i.topics.map(topicById).map((t) => ({ id: t.id, label: t.label, on: picked.includes(t.id) })),
-      toggle: pickTopic,
-    }
-  })
-  const vakGroups = vakByDomain().map((d) => ({
-    key: d.id,
-    label: d.label,
-    items: d.fields.map((f) => ({ id: f.id, label: f.label, on: vak.includes(f.id) })),
-    toggle: (id) => setVak((l) => toggleIn(l, id)),
-  }))
-  const last = sub >= pages - 1 // de laatste subpagina
-  useEffect(() => {
-    if (sub > pages - 1) setSub(Math.max(0, pages - 1))
-  }, [sub, pages])
-
-  // Je bronnen: het voorstel eerst, dan wat verder bij je interesses past. De volgorde ligt vast, ook
-  // als je iets aan- of uitzet: een rij blijft op zijn plek.
-  const rows = useMemo(() => [...new Set([...proposal, ...moreSources(pickable, interests, []), ...pickable.map(s => s.id)])].filter((id) => byId.has(id)), [proposal, pickable, interests, byId])
-
-  // ---- Wat er onder de kop staat, per pagina ----
-  const next = () => {
-    if (view === 'kies') show('precies')
-    else if (view === 'precies') (last ? show('hoot') : show('precies', sub + 1))
-    else if (view === 'selectie') (last ? finish() : show('selectie', sub + 1))
-    else if (view === 'bronnen' || view === 'hoot') {
-      sourceReturn.current = { view, sub, pages }
-      show('selectie')
-    }
-  }
   const previous = () => {
-    if (view === 'kies') backToPager()
-    else if (view === 'precies') (sub > 0 ? show('precies', sub - 1) : show('kies'))
-    else if (view === 'hoot') (sub > 0 ? show('hoot', sub - 1) : show('precies'))
-    else if (view === 'bronnen') (sub > 0 ? show('bronnen', sub - 1) : show('hoot'))
-    else if (view === 'selectie') (sub > 0 ? show('selectie', sub - 1) : go(() => {
-      setView(sourceReturn.current.view)
-      setSub(sourceReturn.current.sub)
-      setPages(sourceReturn.current.pages)
-    }))
+    if (view === 'uitleg') backToIntro(() => setView('intro'))
+    else if (view === 'bronnen') reopen ? onClose() : show('uitleg')
+    else if (view === 'interesses') show('bronnen')
   }
-  const backToPager = () =>
-    go(() => {
-      setView('pager')
-      setPg(PAGES.length - 1)
-    })
-  const cta =
-    view === 'kies'
-      ? { label: interests.length ? 'Verder' : 'Kies minstens één', disabled: !interests.length }
-      : view === 'hoot'
-        ? { label: mine.length ? 'Naar Selectie' : 'Kies één bron', disabled: !mine.length || !pickable.length }
-        : view === 'bronnen'
-          ? { label: 'Naar Selectie', disabled: !mine.length || !pickable.length }
-          : view === 'selectie'
-            ? { label: last ? (vak.length ? 'Klaar' : 'Later kiezen') : 'Verder' }
-          : { label: 'Verder' }
-  const skip =
-    view === 'precies'
-      ? { label: 'Overslaan', onClick: () => go(() => (setPicked([]), setView('hoot'), setSub(0))) } // overslaan = alles: wat je aantikte vervalt
-      : view === 'selectie' && !last
-        ? { label: vak.length ? 'Klaar' : 'Later kiezen', onClick: finish }
-        : view === 'selectie'
-          ? null
-        : view === 'hoot' || view === 'bronnen'
-          ? { label: last ? 'Eerste bronnen' : 'Meer bronnen', onClick: () => show(view, last ? 0 : sub + 1), hidden: pages <= 1 }
-          : reopen
-          ? { label: 'Sluiten zonder opslaan', onClick: onClose }
-          : null
-  const counter = view === 'hoot' || view === 'precies' || view === 'selectie' || view === 'bronnen'
-  const topLink = reopen && view === 'kies' ? null : <BackButton label="Terug" onClick={previous} className="ob__back" />
+  const topLink = reopen && view === 'bronnen' ? (
+    <button type="button" className="linkbtn linkbtn--plain ob__back" onClick={onClose}>
+      Sluiten
+    </button>
+  ) : (
+    <BackButton label="Terug" onClick={previous} className="ob__back" />
+  )
 
   // Het papier staat onder het rood: niet te bedienen zolang de rode laag er is (ook tijdens de
-  // iris); de rode laag zelf niet zodra ze sluit of nog opent. Tijdens het sluiten is het rood ook
-  // voor schermlezers al weg. Vervaagt het hele scherm (`leaving`), dan is niets erin te bedienen
-  // en is het voor schermlezers al weg.
+  // iris); de rode laag zelf niet zodra ze sluit of nog opent. Vervaagt het hele scherm
+  // (`leaving`), dan is niets erin te bedienen en is het voor schermlezers al weg.
   return (
-    <div className={`welcome ob${view === 'hoot' || view === 'bronnen' ? ' ob--sources' : ''}`} role="dialog" aria-modal={leaving ? undefined : 'true'} aria-labelledby="ob-title" aria-hidden={leaving ? 'true' : undefined} inert={leaving ? '' : undefined} ref={root} onPointerDown={onDown} onPointerUp={onUp} onWheel={onWheel}>
+    <div className="welcome ob" role="dialog" aria-modal={leaving ? undefined : 'true'} aria-labelledby="ob-title" aria-hidden={leaving ? 'true' : undefined} inert={leaving ? '' : undefined} ref={root}>
       {paper ? (
-        <div className="col ob__head" inert={red ? '' : undefined}>
-          <div className="ob__top">
-            <span className="ob__brand" ref={paperBrand}>
-              <BrandLogo height={20} />
-            </span>
-            {view === 'pager' ? (
-              onSignIn ? (
-                <button type="button" className="linkbtn linkbtn--plain ob__login" onClick={onSignIn} title="Lezen kan ook zonder account.">
-                  Inloggen
-                </button>
-              ) : null
-            ) : (
-              topLink
-            )}
-          </div>
-        </div>
-      ) : null}
-
-      {view === 'pager' ? (
         <>
-          <div className="col ob__col ob__pager" ref={paperCol} style={{ '--pg': pg }} inert={red ? '' : undefined}>
-            <div className="ob__track">
-              {PAGES.map((p, i) => (
-                <section key={p.kind} className="ob__page" aria-hidden={i === pg ? undefined : 'true'} inert={i === pg ? undefined : ''}>
-                  <SunArt kind={p.kind} className="ob__art" />
-                  <h1 id={i === pg ? 'ob-title' : undefined} ref={i === pg ? head : null} tabIndex={-1} className="ob__pagetitle">
-                    {p.title}
-                  </h1>
-                  <p className="ob__lede">{p.text}</p>
-                </section>
-              ))}
+          <div className="col ob__head" inert={red ? '' : undefined}>
+            <div className="ob__top">
+              <span className="ob__brand" ref={paperBrand}>
+                <BrandLogo height={20} />
+              </span>
+              {topLink}
             </div>
-            <button type="button" className="ob__nav ob__nav--l" aria-label="Vorige" onClick={backward}>
-              <CaretIcon dir="left" />
-            </button>
-            {pg < PAGES.length - 1 ? (
-              <button type="button" className="ob__nav ob__nav--r" aria-label="Volgende" onClick={forward}>
-                <CaretIcon />
-              </button>
-            ) : null}
           </div>
-          <div className="ob__foot ob__foot--pager" inert={red ? '' : undefined}>
+          <div className="ob__scroll" ref={scroller} inert={red ? '' : undefined}>
+            <div className={`col ob__col${view === 'bronnen' ? ' ob__col--split' : ''}`} ref={paperCol}>
+              {view === 'uitleg' ? (
+                <Uitleg head={head} />
+              ) : view === 'bronnen' ? (
+                <Bronnen head={head} sources={pickable} items={items} mine={mine} onPick={pickSource} onAll={(ids, on) => setEdited(on ? [...new Set([...mine, ...ids])] : mine.filter((x) => !ids.includes(x)))} query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} sport={sport} setSport={setSport} />
+              ) : (
+                <Interesses head={head} interests={interests} onInterest={(id) => setInterests((l) => toggleIn(l, id))} vak={vak} onVak={(id) => setVak((l) => toggleIn(l, id))} open={selOpen} setOpen={setSelOpen} />
+              )}
+            </div>
+          </div>
+          <div className="ob__foot" inert={red ? '' : undefined}>
+            {view === 'bronnen' ? <PeekBar open={peekOpen} setOpen={setPeekOpen} sources={pickable} items={items} mine={mine} /> : null}
             <div className="col">
-              <Dots cur={pg + 1} onPick={jump} />
-              <div className="ob__slot">
-                <div data-shown={pg < PAGES.length - 1} inert={pg < PAGES.length - 1 ? undefined : ''}>
-                  <button type="button" className="ob__next" onClick={forward}>
-                    <u>Veeg verder</u>
-                    <span aria-hidden="true">→</span>
-                  </button>
-                </div>
-                <div data-shown={pg === PAGES.length - 1} inert={pg === PAGES.length - 1 ? undefined : ''}>
-                  <button type="button" className="btn btn--lg ob__cta" onClick={() => show('kies')}>
-                    Stel je Hoot samen
+              {view === 'uitleg' ? (
+                <>
+                  <button type="button" className="btn btn--lg ob__cta" onClick={() => show('bronnen')}>
+                    Kies je bronnen
                   </button>
                   <button type="button" className="linkbtn linkbtn--plain ob__skip" onClick={startQuick} disabled={!pickable.length}>
                     Liever meteen lezen
                   </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      ) : paper ? (
-        <>
-          <div className="col ob__col" ref={paperCol} inert={red ? '' : undefined}>
-            {view === 'kies' ? (
-              <>
-                <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
-                  Wat interesseert je?
-                </h1>
-                <p className="ob__sub">Kies er een paar. Daarmee maken we je Editie en kiezen we je bronnen.</p>
-                <div className="ob__grid">
-                  {INTERESTS.map((i) => {
-                    const Icon = INTEREST_ICONS[i.id]
-                    return (
-                      <button key={i.id} type="button" className="ob__tile" aria-pressed={interests.includes(i.id)} onClick={() => pickInterest(i.id)}>
-                        <span className="ob__ticon">
-                          <Icon />
-                        </span>
-                        <span className="ob__tlabel">{i.label}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </>
-            ) : view === 'precies' ? (
-              <>
-                <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
-                  Wat precies?
-                </h1>
-                <p className="ob__sub">Kies wat je wilt volgen, of sla over voor alles.</p>
-                <Paged groups={fineGroups} page={sub} onPages={setPages} />
-              </>
-            ) : view === 'bronnen' ? (
-              <>
-                <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
-                  Je bronnen
-                </h1>
-                <p className="ob__sub">Volg je vaste bronnen. Ontdek ook iets nieuws.</p>
-                <p className="ob__sourcecount" role="status">{mine.length} gekozen</p>
-                <SourceFollowList sources={pickable} interests={interests} on={mine} onPick={pickSource} onPages={setPages} />
-              </>
-            ) : view === 'selectie' ? (
-              <>
-                <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
-                  Je Selectie
-                </h1>
-                <p className="ob__sub">Elke maandag de drie beste stukken van de week, per onderwerp. Kies wat bij je werk of hobby past.</p>
-                <Paged groups={vakGroups} page={sub} onPages={setPages} />
-              </>
-            ) : (
-              <>
-                <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
-                  Je bronnen
-                </h1>
-                <p className="ob__sub">Volg je vaste bronnen. Ontdek ook iets nieuws.</p>
-                <p className="ob__sourcecount" role="status">{mine.length} gekozen</p>
-                {pickable.length ? <SourceFollowList sources={pickable} interests={interests} on={mine} onPick={pickSource} onPages={setPages} /> : <p role="status">Bronnen laden…</p>}
-              </>
-            )}
-          </div>
-          <div className="ob__foot" inert={red ? '' : undefined}>
-            <div className="col">
-              {counter ? (
-                <p className="ob__pages" aria-live="polite">
-                  {pages > 1 ? `Pagina ${Math.min(sub, pages - 1) + 1} van ${pages}` : ''}
-                </p>
-              ) : null}
-              <button type="button" className="btn btn--lg ob__cta" onClick={next} disabled={cta.disabled}>
-                {cta.label}
-              </button>
-              {skip ? (
-                <button type="button" className="linkbtn linkbtn--plain ob__skip" onClick={skip.onClick} style={skip.hidden ? { visibility: 'hidden' } : undefined} aria-hidden={skip.hidden ? 'true' : undefined} tabIndex={skip.hidden ? -1 : undefined}>
-                  {skip.label}
-                </button>
-              ) : null}
-              {reopen && (view === 'hoot' || view === 'bronnen') ? (
-                <button type="button" className="linkbtn linkbtn--plain ob__skip" onClick={onClose}>Sluiten zonder opslaan</button>
-              ) : null}
+                </>
+              ) : view === 'bronnen' ? (
+                <>
+                  <p className="ob__status" role="status">
+                    {pickable.length ? followedLine(mine.length) : 'Bronnen laden…'}
+                  </p>
+                  <button type="button" className="btn btn--lg ob__cta" onClick={() => show('interesses')} disabled={!mine.length}>
+                    Verder
+                  </button>
+                  <button type="button" className="linkbtn linkbtn--plain ob__skip" onClick={laterSources} disabled={!pickable.length}>
+                    Later kiezen
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button type="button" className="btn btn--lg ob__cta" onClick={() => finish()}>
+                    Naar je Editie
+                  </button>
+                  <button type="button" className="linkbtn linkbtn--plain ob__skip" onClick={laterInterests}>
+                    Later kiezen
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </>
@@ -522,7 +306,7 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
               ) : null}
             </div>
           </div>
-          <div className="col ob__col ob__mid">
+          <div className="col ob__mid">
             <SunArt kind="intro" className="ob__art" />
             <h1 id={paper ? undefined : 'ob-title'} ref={redHead} tabIndex={-1} className="ob__hero">
               Minder scrollen.
@@ -531,17 +315,11 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
             </h1>
             <p className="ob__lede">Het nieuws van jouw bronnen, rustig op een rij.</p>
           </div>
-          <div className="ob__foot ob__foot--pager">
+          <div className="ob__foot">
             <div className="col">
-              <Dots cur={0} onPick={jump} />
-              <div className="ob__slot">
-                <div data-shown="true">
-                  <button type="button" className="ob__next" onClick={forward}>
-                    <u>Veeg verder</u>
-                    <span aria-hidden="true">→</span>
-                  </button>
-                </div>
-              </div>
+              <button type="button" className="btn btn--lg ob__cta" onClick={() => leaveIntro(() => setView('uitleg'))}>
+                Begin
+              </button>
             </div>
           </div>
         </div>
@@ -550,125 +328,238 @@ export default function Welcome({ sources, prefs, muted = new Set(), onDone, onC
   )
 }
 
-// De bolletjes onder de veegpagina's; de intro is het eerste. Elk is een knop (toetsenbord, schermlezer).
-function Dots({ cur, onPick }) {
+// ---- 2. Zo werkt Hoot: drie gelijken, elk met zijn eigen zon ----
+function Uitleg({ head }) {
   return (
-    <div className="ob__dots" role="group" aria-label="Pagina's">
-      {Array.from({ length: DOTS }, (_, i) => (
-        <button key={i} type="button" className="ob__dot" aria-label={`Pagina ${i + 1} van ${DOTS}`} aria-current={i === cur} onClick={() => onPick(i)} />
-      ))}
+    <>
+      <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
+        Zo werkt Hoot
+      </h1>
+      <p className="ob__sub">Drie manieren om bij te blijven. Jij kiest de bronnen.</p>
+      <ul className="ob__trio">
+        {TRIO.map((t) => (
+          <li key={t.kind} className="ob__trow">
+            <SunArt kind={t.kind} className="ob__tart" />
+            <div>
+              <h2 className="ob__tname">{t.title}</h2>
+              <p className="ob__ttext">{t.text}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </>
+  )
+}
+
+// ---- 3. Volg je bronnen ----
+function Bronnen({ head, sources, items, mine, onPick, onAll, query, setQuery, filter, setFilter, sport, setSport }) {
+  const start = useMemo(() => freeStart(sources), [sources])
+  const groups = useMemo(() => followGroups(sources), [sources])
+  const startOn = start.length > 0 && start.every((s) => mine.includes(s.id))
+  const row = (s) => <SourceRow key={s.id} s={s} on={mine.includes(s.id)} onPick={onPick} />
+  const q = query.trim()
+  let body
+  if (!sources.length) body = null
+  else if (q) {
+    const hits = findSources(sources, q)
+    body = hits.length ? (
+      <ul className="ob__list">{hits.map(row)}</ul>
+    ) : (
+      <p className="ob__empty" role="status">
+        Niets gevonden voor ‘{q}’. Probeer een andere naam.
+      </p>
+    )
+  } else if (filter === 'gevolgd') {
+    const list = followedSources(sources, mine)
+    body = list.length ? <ul className="ob__list">{list.map(row)}</ul> : <p className="ob__empty">Je volgt nog niets. Begin met het gratis begin bij Aanbevolen.</p>
+  } else {
+    body = (
+      <>
+        {start.length ? (
+          <section className="ob__group" aria-labelledby="ob-start">
+            <div className="ob__ghead">
+              <h2 id="ob-start" className="label label--section">
+                Om te beginnen · gratis
+              </h2>
+              <button type="button" className="linkbtn ob__all" aria-pressed={startOn} onClick={() => onAll(start.map((s) => s.id), !startOn)}>
+                {startOn ? 'Alle drie gevolgd' : 'Volg alle drie'}
+              </button>
+            </div>
+            <ul className="ob__list">{start.map(row)}</ul>
+          </section>
+        ) : null}
+        {groups.map((g) =>
+          g.cat === SPORT && !sport ? (
+            <button key={g.cat} type="button" className="ob__more" aria-expanded="false" onClick={() => setSport(true)}>
+              <span className="label label--section">Sport</span>
+              <span className="ob__morehint">Toon {g.sources.length} sportbronnen</span>
+            </button>
+          ) : (
+            <section key={g.cat} className="ob__group" aria-labelledby={`ob-g-${g.cat}`}>
+              <div className="ob__ghead">
+                <h2 id={`ob-g-${g.cat}`} className="label label--section">
+                  {g.label}
+                </h2>
+                <span className="ob__gcount">{g.sources.length}</span>
+              </div>
+              <ul className="ob__list">{g.sources.map(row)}</ul>
+            </section>
+          ),
+        )}
+      </>
+    )
+  }
+  return (
+    <div className="ob__split">
+      <div className="ob__main">
+        <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
+          Volg je bronnen
+        </h1>
+        <p className="ob__sub">Kies wie je wilt lezen. Je Editie komt uit wat je volgt.</p>
+        <div className="ob__search">
+          <SearchIcon />
+          <label className="visually-hidden" htmlFor="ob-q">
+            Zoek een bron
+          </label>
+          <input id="ob-q" className="input" type="search" placeholder="Zoek een bron" autoComplete="off" value={query} onChange={(e) => setQuery(e.target.value)} />
+        </div>
+        <div className="chips ob__filter" role="group" aria-label="Toon">
+          {[
+            ['aanbevolen', 'Aanbevolen'],
+            ['gevolgd', mine.length ? `Gevolgd · ${mine.length}` : 'Gevolgd'],
+          ].map(([v, l]) => (
+            <button key={v} type="button" className="pill" aria-pressed={filter === v && !q} onClick={() => (setFilter(v), setQuery(''))}>
+              {l}
+            </button>
+          ))}
+        </div>
+        {body}
+      </div>
+      <aside className="ob__peek" aria-label="Voorbeeld van je Editie">
+        <Peek sources={sources} items={items} mine={mine} />
+      </aside>
     </div>
   )
 }
 
-// Eén groep pillen: een label, 'Alles' vooraan (Wat precies?) en de pillen.
-function Group({ g }) {
+// Eén bron: logo, naam, omschrijving, gratis of abonnement, en Volg / Volgend.
+function SourceRow({ s, on, onPick }) {
   return (
-    <ChipGroup label={g.label} icon={g.icon} level={2} className="ob__group" labelClassName="ob__gtitle">
-      {g.all ? (
-        <button type="button" className="pill ob__chip" aria-pressed={g.all.on} onClick={g.all.click}>
-          Alles
-        </button>
-      ) : null}
-      {g.items.map((it) => (
-        <button key={it.id} type="button" className="pill ob__chip" aria-pressed={it.on} onClick={() => g.toggle(it.id)}>
-          {it.label}
-        </button>
-      ))}
-    </ChipGroup>
+    <li className="ob__src">
+      <SourceMark source={s} size={40} />
+      <div className="ob__stext">
+        <span className="ob__sname">{s.name}</span>
+        {s.about ? <span className="ob__sabout">{s.about}</span> : null}
+        <span className="ob__smeta">
+          {s.paid ? 'Abonnement' : <span className="ob__free">Gratis</span>}
+          {s.lang === 'en' ? ' · Engels' : ''}
+        </span>
+      </div>
+      <button type="button" className={`btn ob__follow${on ? ' btn--quiet' : ''}`} aria-pressed={on} aria-label={`${s.name} ${on ? 'volgend' : 'volgen'}`} onClick={() => onPick(s.id)}>
+        {on ? <CheckIcon /> : null}
+        {on ? 'Volgend' : 'Volg'}
+      </button>
+    </li>
   )
 }
 
-// Groepen pillen zonder scrollen: wat op de pagina past staat erop, de rest op de volgende. Een
-// verborgen kopie van alle groepen, met de keuze zoals die nu is, wordt gemeten tegen de hoogte die
-// de pagina heeft (packPages in lib/welcome.js); bij elke maatwijziging en elke tik opnieuw. Zo
-// telt een pagina niet met het slechtste geval en staan er geen halflege pagina's.
-function Paged({ groups, page, onPages }) {
-  const fit = useRef(null)
-  const meas = useRef(null)
-  const [pages, setPages] = useState(() => [groups.map((_, i) => i)])
-  const measure = useCallback(() => {
-    const f = fit.current
-    const m = meas.current
-    if (!f || !m) return
-    const gap = parseFloat(getComputedStyle(m).rowGap) || 0
-    const next = packPages([...m.children].map((k) => k.offsetHeight), f.clientHeight, gap)
-    setPages((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next))
-  }, [])
-  useLayoutEffect(measure) // na elke tekening: een tik kan een pil breder maken (het vinkje)
-  useEffect(() => {
-    const f = fit.current
-    if (!f) return
-    const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null
-    ro?.observe(f)
-    document.fonts?.ready?.then(measure)
-    addEventListener('resize', measure)
-    return () => {
-      ro?.disconnect()
-      removeEventListener('resize', measure)
-    }
-  }, [measure])
-  useEffect(() => onPages(pages.length), [pages.length, onPages])
-  const cur = pages[Math.min(page, pages.length - 1)] || []
+// Het meegroeiende voorbeeld: de nieuwste kop van elke bron die je volgt (echte koppen).
+function Peek({ sources, items, mine, bare = false }) {
+  const lines = useMemo(() => previewLines(items, sources, mine, 4), [items, sources, mine])
+  const names = (mine.length ? followedSources(sources, mine) : freeStart(sources)).map((s) => s.name)
   return (
-    <div className="ob__fit" ref={fit}>
-      <div className="ob__groups">
-        {cur.map((i) => groups[i] && <Group key={groups[i].key} g={groups[i]} />)}
+    <>
+      {bare ? null : (
+        <>
+          <p className="label label--meta">Voorbeeld</p>
+          <h2 className="ob__peektitle">Zo ziet je Editie eruit</h2>
+        </>
+      )}
+      {lines.length ? (
+        <ol className="ob__lines">
+          {lines.map((l, i) => (
+            <li key={l.id} className="ob__line">
+              <span className="ob__ln" aria-hidden="true">
+                {i + 1}
+              </span>
+              <span>
+                <span className="ob__lt">{l.title}</span>
+                <span className="ob__ls">{l.source.name}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="ob__peeknote">Uit {sourceLine(names)}.</p>
+      )}
+      {mine.length ? null : <p className="ob__peeknote">Je volgt nog niets; dit is het gratis begin.</p>}
+    </>
+  )
+}
+
+// Op een smal scherm: het voorbeeld in een uitklapbalk boven de knop.
+function PeekBar({ open, setOpen, sources, items, mine }) {
+  return (
+    <div className="ob__peekbar">
+      <div className="col">
+        <button type="button" className="ob__bar" aria-expanded={open} aria-controls="ob-peekbody" onClick={() => setOpen(!open)}>
+          <span>
+            <span className="ob__bartitle">Zo ziet je Editie eruit</span>
+            <span className="ob__barsub">{mine.length ? `Uit ${sourceLine(followedSources(sources, mine).map((s) => s.name))}` : 'Gratis begin'}</span>
+          </span>
+          <span className="caret" aria-hidden="true">
+            <CaretIcon dir={open ? 'up' : 'down'} size={ICON_SM} />
+          </span>
+        </button>
+        {open ? (
+          <div className="ob__barbody" id="ob-peekbody">
+            <Peek sources={sources} items={items} mine={mine} bare />
+          </div>
+        ) : null}
       </div>
-      <div className="ob__groups ob__measure" ref={meas} aria-hidden="true" inert="">
-        {groups.map((g) => (
-          <Group key={g.key} g={g} />
+    </div>
+  )
+}
+
+// ---- 4. Wat interesseert je? Rubrieken en, uitklapbaar, je Selectie ----
+function Interesses({ head, interests, onInterest, vak, onVak, open, setOpen }) {
+  const domains = useMemo(() => vakByDomain(), [])
+  return (
+    <>
+      <h1 id="ob-title" ref={head} tabIndex={-1} className="ob__title">
+        Wat interesseert je?
+      </h1>
+      <p className="ob__sub">Dit worden je tabs in de Stroom. Je Editie weegt ze mee.</p>
+      <div className="chips ob__rubrieken" role="group" aria-label="Rubrieken">
+        {INTERESTS.map((i) => (
+          <button key={i.id} type="button" className="pill" aria-pressed={interests.includes(i.id)} onClick={() => onInterest(i.id)}>
+            {i.label}
+          </button>
         ))}
       </div>
-    </div>
+      <button type="button" className="ob__disclose" aria-expanded={open} aria-controls="ob-sel" onClick={() => setOpen(!open)}>
+        <span>
+          <span className="ob__dtitle">Kies onderwerpen voor je Selectie</span>
+          <span className="ob__dsub">{vak.length ? `${vak.length} gekozen` : 'Mag ook later'}</span>
+        </span>
+        <span className="caret" aria-hidden="true">
+          <CaretIcon dir={open ? 'up' : 'down'} size={ICON_SM} />
+        </span>
+      </button>
+      {open ? (
+        <div id="ob-sel" className="ob__sel">
+          <p className="ob__selnote">Eén keer per week het beste over je werk of hobby.</p>
+          {domains.map((d) => (
+            <ChipGroup key={d.id} label={d.label} level={2} className="ob__domain">
+              {d.fields.map((f) => (
+                <button key={f.id} type="button" className="pill" aria-pressed={vak.includes(f.id)} onClick={() => onVak(f.id)}>
+                  {f.label}
+                </button>
+              ))}
+            </ChipGroup>
+          ))}
+        </div>
+      ) : null}
+    </>
   )
-}
-
-// Herkenbare bronkaarten. Meet hele gridrijen, zodat logo's en namen op één scherm passen.
-function PagedSourceGrid({ ids, byId, on, onPick, page, onPages }) {
-  const fit = useRef(null)
-  const meas = useRef(null)
-  const [pages, setPages] = useState(() => [ids.map((_, i) => i)])
-  const measure = useCallback(() => {
-    const f = fit.current, m = meas.current
-    if (!f || !m) return
-    const style = getComputedStyle(m)
-    const columns = style.gridTemplateColumns.split(' ').filter(Boolean).length || 2
-    const gap = parseFloat(style.rowGap) || 0
-    const cards = [...m.children]
-    const heights = []
-    for (let i = 0; i < cards.length; i += columns) heights.push(Math.max(...cards.slice(i, i + columns).map(c => c.offsetHeight)))
-    // Hooguit 16 herkenbare bronnen tegelijk; bij weinig hoogte/grote letters minder.
-    const maxRows = Math.max(1, Math.floor(16 / columns))
-    const rowHeight = Math.max(0, ...heights)
-    const room = Math.min(f.clientHeight, maxRows * rowHeight + Math.max(0, maxRows - 1) * gap)
-    const rowPages = packPages(heights, room, gap)
-    const next = rowPages.map(rows => rows.flatMap(row => Array.from({ length: Math.min(columns, ids.length - row * columns) }, (_, col) => row * columns + col)))
-    setPages(prev => JSON.stringify(prev) === JSON.stringify(next) ? prev : next)
-  }, [ids.length])
-  useLayoutEffect(measure)
-  useEffect(() => {
-    const f = fit.current
-    const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null
-    if (f) ro?.observe(f)
-    document.fonts?.ready?.then(measure)
-    addEventListener('resize', measure)
-    return () => { ro?.disconnect(); removeEventListener('resize', measure) }
-  }, [measure])
-  useEffect(() => onPages(pages.length), [pages.length, onPages])
-  const cur = pages[Math.min(page, pages.length - 1)] || []
-  const card = id => {
-    const s = byId.get(id)
-    if (!s) return null
-    return <li key={id}><button type="button" className="ob__sourcecard" aria-label={`${s.name}, ${s.paid ? 'abonnement' : 'gratis'}${s.lang === 'en' ? ', Engels' : ''}`} aria-pressed={on.includes(id)} onClick={() => onPick(id)}>
-      <SourceMark source={s} size={32} />
-      <span className="ob__sourcecard-name"><span>{s.name}</span></span>
-      <span className="ob__sourcecard-meta">{s.paid ? 'Abonnement' : 'Gratis'}{s.lang === 'en' ? ' · EN' : ''}</span>
-      <span className="ob__check" aria-hidden="true" />
-    </button></li>
-  }
-  return <div className="ob__fit ob__sourcefit" ref={fit}>
-    <ul className="ob__sourcegrid">{cur.map(i => card(ids[i]))}</ul>
-    <ul className="ob__sourcegrid ob__measure" ref={meas} aria-hidden="true" inert="">{ids.map(card)}</ul>
-  </div>
 }

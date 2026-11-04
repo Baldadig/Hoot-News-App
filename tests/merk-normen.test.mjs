@@ -9,11 +9,12 @@ const swift = path => readFileSync(new URL(`../ios/Hoot/${path}`, import.meta.ur
 test('ds-toets 6: het segment heeft in elk thema dezelfde opmaak, geen Nacht-regel', () => {
   assert.doesNotMatch(css, /data-theme='night'\]\s*\.seg\b/)
 })
-test('ds-toets 11 en 12: de bronkaart en zijn vinkje staan op de afstandsschaal', () => {
-  const card = css.match(/\.ob__sourcecard \{[^}]*\}/)[0]
-  assert.match(card, /padding:var\(--s1\)/)
-  assert.match(card, /gap:var\(--s1\)/)
-  assert.match(css, /\.ob__sourcecard \.ob__check \{[^}]*top:var\(--s1\); right:var\(--s1\)/)
+test('ds-toets 11 en 12: de bronrij in Welkom staat op de afstandsschaal', () => {
+  // Sinds de nieuwe onboarding (1.1.0) is de bronkaart een rij; de oude kaart met vinkje is weg.
+  const row = css.match(/\.ob__src \{[^}]*\}/)[0]
+  assert.match(row, /gap: var\(--s3\) var\(--s4\)/)
+  assert.match(row, /padding: var\(--s3\) 0/)
+  assert.doesNotMatch(css, /\.ob__sourcecard\b/)
   assert.doesNotMatch(css, /padding:6px 3px|top:3px; right:3px/)
 })
 test('ds-toets 7, 8 en 15: iOS gebruikt Theme.markBg achter een logo en het commentaar noemt 96', () => {

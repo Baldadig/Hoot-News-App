@@ -16,32 +16,28 @@ test('Stroom-instelling heet "Lees de Stroom als" (W1)', () => {
   assert.ok(allSrc().every((s) => !s.includes('Indeling van lijsten')))
 })
 
-test('Welkom: veegpagina\'s in de volgorde van de app (Editie, Stroom, Selectie), zonder oude stappen (W2)', () => {
+test('Welkom 1.1.0: vier schermen, Editie, Stroom en Selectie als gelijken, zonder oude stappen (W2)', () => {
   const s = read('views/Welcome.jsx')
-  const i = ["title: 'Je Editie'", "title: 'De Stroom'", "title: 'Je Selectie'"].map((t) => s.indexOf(t))
-  assert.ok(i.every((x) => x >= 0), 'alle drie de pagina\'s staan erin')
+  const i = ["title: 'Editie'", "title: 'Stroom'", "title: 'Selectie'"].map((t) => s.indexOf(t))
+  assert.ok(i.every((x) => x >= 0), 'alle drie staan erin')
   assert.ok(i[0] < i[1] && i[1] < i[2], 'Editie, Stroom, Selectie')
-  assert.ok(!s.includes('In één minuut bij'))
-  assert.ok(!/STEPS/.test(s), 'geen stapteller meer')
+  // Elk met zijn eigen zon (de zon achter de horizon), op één scherm.
+  assert.match(s, /<SunArt kind=\{t\.kind\} className="ob__tart" \/>/)
+  assert.ok(!/STEPS|Pagina \$\{/.test(s), 'geen stapteller of paginateller')
   assert.match(s, /Inloggen/)
-  // Wat precies? is een eigen pagina met Overslaan; Je Selectie staat achter Je Hoot.
-  assert.match(s, /Wat precies\?/)
-  assert.match(s, /label: 'Overslaan'/)
+  // Later kiezen kan altijd: bij de bronnen en bij de interesses.
+  assert.equal(s.match(/>\s*Later kiezen\s*</g)?.length, 2)
+  for (const old of ['Wat precies?', 'Overslaan', 'Veeg verder', 'PagedSourceGrid', 'Kies minstens één', 'Kies één bron']) assert.ok(!s.includes(old), old)
 })
 
-test('Welkom: papier op merkrood; tegel in rust 1 px --rule, gekozen --sel-* met vinkje (W2, C1)', () => {
+test('Welkom: papier op merkrood; gekozen is de pil met --sel-* en vinkje, geen eigen tegel (W2, C1)', () => {
   const css = read('styles.css')
   assert.match(css, /--paper-brand: #f5f1e8/)
   assert.match(css, /\.ob--open \{\s*--on-brand-red: var\(--paper-brand\)/)
-  const rest = css.slice(css.indexOf('.ob__tile {'))
-  assert.match(rest.slice(0, rest.indexOf('}')), /border: 1px solid var\(--rule\)/, 'in rust 1 px --rule, geen 2 px inkt')
-  const tile = css.slice(css.indexOf(".ob__tile[aria-pressed='true'] {"))
-  assert.match(tile.slice(0, 140), /--sel-edge[\s\S]*--sel-bg[\s\S]*--sel-fg/)
-  const check = css.slice(css.indexOf(".ob__tile[aria-pressed='true']::after {"))
-  assert.ok(check.length < css.length, 'gekozen tegel heeft een vinkje vóór het label')
-  assert.match(check.slice(0, check.indexOf('}')), /--icon-sm[\s\S]*--icon-check/)
-  // Het label houdt zijn gewicht in beide standen: geen font-weight in de gekozen stand.
-  assert.ok(!/font-weight/.test(tile.slice(0, tile.indexOf('}'))))
+  assert.ok(!css.includes('.ob__tile'), 'geen rubriektegels meer: pillen, zoals de app')
+  assert.ok(!/\.ob__[a-z]+[^{]*\{[^}]*border-radius: var\(--radius-card\)/.test(css), 'geen omlijnde kaarten in Welkom')
+  const s = read('views/Welcome.jsx')
+  assert.match(s, /className="pill" aria-pressed=\{interests\.includes\(i\.id\)\}/)
 })
 
 test('Opstartscherm: in index.html vóór de app, één sprong van 1,6 s, sessievlag, en Splash.jsx neemt het over (W4)', () => {
@@ -165,12 +161,10 @@ test('Selectie zegt overal onderwerpen: "Onderwerpen · 3" en "1 stuk" (C5, zoal
   assert.ok(strings.every((s) => !/vakgebied/i.test(s)), 'vakgebied niet in de tekst')
 })
 
-test('Welkom scrolt niet: kolom van vaste hoogte, pillen verdeeld over pagina\'s, vangnet alleen op de buitenste laag (K4)', () => {
+test('Welkom: kop en voet staan vast, de kolom ertussen scrolt; één linkerlijn (K4)', () => {
   const css = read('styles.css')
-  assert.match(css, /\.ob__col \{\s*display: flex;\s*flex: 1;\s*flex-direction: column;\s*min-height: 0;/)
-  assert.match(css, /\.ob__fit \{\s*position: relative;\s*flex: 1;\s*min-height: 0;/)
-  assert.match(css, /\.ob__measure \{[^}]*visibility: hidden;/)
-  assert.match(read('views/Welcome.jsx'), /packPages\(/)
+  assert.match(css, /\.ob__scroll \{\s*flex: 1;\s*min-height: 0;\s*overflow-y: auto;/)
+  assert.match(css, /\.ob__head,\s*\.ob__col,\s*\.ob__foot \.col \{\s*width: 100%;[^}]*max-inline-size: var\(--measure\);/)
   // De zon: een tekening met de kleuren uit de CSS, niet uit de component.
   assert.match(css, /\.ob--open \.sun \{\s*--sun-disc: var\(--on-brand-red\);/)
 })

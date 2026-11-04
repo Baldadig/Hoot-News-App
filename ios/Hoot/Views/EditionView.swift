@@ -396,7 +396,7 @@ struct EditionView: View {
             }
             // De stappen van het welkom vanaf de interesses, met Annuleer op de eerste.
             .sheet(isPresented: $setup) {
-                WelcomeView(start: .interesses, onCancel: { setup = false }) { store.browsing = false; setup = false }
+                WelcomeView(start: .bronnen, onCancel: { setup = false }) { store.browsing = false; setup = false }
             }
             .debugScroll()
             .background(Theme.paper)

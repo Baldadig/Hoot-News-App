@@ -336,7 +336,7 @@ final class HootStore {
     // stuk is helemaal te lezen: nieuws, sport, tech en cultuur. Zelfde set als de website
     // (STARTER in src/lib/topics.js); later aan te passen bij Bronnen.
     static let starterGroups: [(label: String, ids: [String])] = [
-        ("Nieuws", ["nos", "nu", "rtl"]), ("Sport", ["nos-sport", "vi"]), ("Tech", ["tweakers"]), ("Cultuur", ["nos-cultuur", "3voor12"]),
+        ("Nieuws", ["nos", "nu", "rtl"]), ("Tech", ["tweakers"]), ("Cultuur", ["nos-cultuur", "3voor12"]),
     ]
     static let starter = starterGroups.flatMap(\.ids)
     func quickStart(ids: [String] = HootStore.starter) {
