@@ -217,7 +217,7 @@ struct EditionNumber: View {
             Text(String(format: "%02d", number))
                 .font(.system(.callout, design: .serif, weight: .heavy)).monospacedDigit()
                 .frame(minWidth: wide ? 24 : nil, alignment: .leading)
-                .foregroundStyle(read ? Theme.ink3 : Theme.accent)
+                .foregroundStyle(read ? Theme.ink3 : Theme.ink) // minder rood (B): het cijfer in inkt
         }
     }
 }
@@ -237,7 +237,8 @@ struct Kicker: View {
             if !parts.isEmpty {
             // Bij heel grote tekst geen kapitalen: die worden dan breder en zwaarder dan de kop.
             // Meerdere labels ("Binnenland · Buiten je bronnen"): de punt ertussen in `ink3`.
-            let labels = parts.map { Text(label($0)).foregroundStyle(read ? Theme.ink3 : Theme.accent) }
+            // Minder rood (keuze B): de rubriek stil in ink3, het cijfer ervoor in inkt.
+            let labels = parts.map { Text(label($0)).foregroundStyle(Theme.ink3) }
             let rubric = labels.dropFirst().reduce(labels.first ?? Text("")) { acc, p in Text("\(acc)\(dot)\(p)") }
             if typeSize.isAccessibilitySize {
                 rubric.font(.caption.weight(.semibold))
@@ -254,8 +255,11 @@ struct Kicker: View {
 // De kop blijft het zwaarste element; het waarom blijft ondergeschikt.
 struct WhyLine: View {
     let text: String?
+    // Het aantal bronnen staat al in de bronregel ("12 bronnen ›"): "Groot nieuws · 12 bronnen" wordt
+    // "Groot nieuws" (E6). Gelijk aan plainWhy in src/components/Why.js.
+    static func plain(_ s: String) -> String { s.replacingOccurrences(of: #"\s*·\s*\d+\s+bronn?en?$"#, with: "", options: .regularExpression) }
     var body: some View {
-        if let text, !text.isEmpty {
+        if let text = text.map(Self.plain), !text.isEmpty {
             Text(text)
                 .font(.subheadline)
                 .foregroundStyle(Theme.ink2)
@@ -348,14 +352,13 @@ struct SourceLine: View {
         // Op één regel als het past; anders bron en tijd bovenaan (mogen afbreken) en de knoppen
         // eronder. Nooit een vaste breedte: bij heel grote tekst duwt die anders de hele kolom
         // buiten het scherm.
-        // "Vergelijk N bronnen" zegt dat het iets anders is dan filteren; is de regel te smal
-        // (iPhone mini, grote tekst), dan eerst het korte "+N bronnen", pas daarna twee regels.
+        // Eén bronlabel, overal hetzelfde: "N bronnen ›" (minder rood, keuze B). Is de regel te smal
+        // (iPhone mini, grote tekst), dan bron en tijd bovenaan en label en bewaren eronder.
         ViewThatFits(in: .horizontal) {
-            HStack(spacing: Space.s2) { source(oneLine: true); Spacer(minLength: 8); more(compact: false); SaveButton(item: item) }
-            HStack(spacing: Space.s2) { source(oneLine: true); Spacer(minLength: 8); more(compact: true); SaveButton(item: item) }
+            HStack(spacing: Space.s2) { source(oneLine: true); Spacer(minLength: 8); more; SaveButton(item: item) }
             VStack(alignment: .leading, spacing: Space.s1) {
                 source(oneLine: false)
-                HStack { more(compact: nil); Spacer(); SaveButton(item: item) }
+                HStack { more; Spacer(); SaveButton(item: item) }
             }
         }
     }
@@ -388,22 +391,15 @@ struct SourceLine: View {
         [HootDate.ago(item.date), store.source(item.source)?.paid == true ? "abonnement" : nil, outside ? StoryLabel.outsideText : nil].compactMap { $0 }.joined(separator: " · ")
     }
 
-    // `compact`: true = "+N bronnen", false = "Vergelijk N bronnen", nil = wat past.
-    @ViewBuilder private func more(compact: Bool?) -> some View {
+    // "N bronnen ›": altijd het totaal, in ink2. Gelijk aan bronnenLabel in src/components/Items.jsx.
+    static func label(_ count: Int) -> String { count == 1 ? "1 bron" : "\(count) bronnen" }
+
+    @ViewBuilder private var more: some View {
         if let story, let count = story.sourceCount, count > 1 {
-            let others = count - 1
-            let long = moreLabel("Vergelijk \(count) bronnen")
-            let short = moreLabel(others == 1 ? "+1 bron" : "+\(others) bronnen")
             // Het stuk waarop je tikte is de kop in Vergelijken, niet een ander stuk uit de bundel.
-            NavigationLink(value: tapped(story)) {
-                switch compact {
-                case true?: short
-                case false?: long
-                case nil: ViewThatFits(in: .horizontal) { long; short }
-                }
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(others == 1 ? "Vergelijk met 1 andere bron" : "Vergelijk met \(others) andere bronnen")
+            NavigationLink(value: tapped(story)) { moreLabel(Self.label(count)) }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Vergelijk \(count) bronnen")
         }
     }
 
@@ -414,11 +410,14 @@ struct SourceLine: View {
     }
 
     private func moreLabel(_ text: String) -> some View {
-        Text(text)
-            .font(.subheadline.weight(.bold))
-            .foregroundStyle(Theme.accent)
+        HStack(spacing: Space.s1) {
+            Text(text).monospacedDigit()
+            Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).accessibilityHidden(true)
+        }
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(Theme.ink2)
             .lineLimit(1)
-            .fixedSize() // nooit afgekapt: dan liever de korte vorm
+            .fixedSize() // nooit afgekapt: dan liever twee regels
             .frame(minHeight: 44) // een aanraakvlak van 44 pt, los van het artikel erboven
             .contentShape(Rectangle())
     }

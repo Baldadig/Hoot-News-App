@@ -84,7 +84,8 @@ enum Desk {
     // De naam van de plek, zoals deskLabel op het web: Buiten je bubbel noemt waar het vandaan komt.
     private static let via = ["google": "Google Trends", "bluesky": "Bluesky", "wikipedia": "Wikipedia"]
     static func plek(_ e: EditionEntry) -> String? {
-        if e.desk == "breed" { return e.sourceCount.map { "Waar iedereen over schrijft · \($0) bronnen" } ?? "Waar iedereen over schrijft" }
+        // Het aantal bronnen staat in de bronregel ("5 bronnen ›"), niet nog eens in de rubriek (E6).
+        if e.desk == "breed" { return "Waar iedereen over schrijft" }
         if e.desk == "bubbel", let terms = e.terms, !terms.isEmpty {
             var seen = Set<String>()
             let namen = terms.compactMap { $0.via.map { via[$0] ?? $0 } }.filter { seen.insert($0).inserted }
