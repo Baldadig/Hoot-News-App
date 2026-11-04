@@ -4,12 +4,12 @@ Plak de Engelse tekst hieronder in App Store Connect → je versie → **App Rev
 
 ---
 
-Hoot News is a calm news reader for Dutch-speaking readers, made by Baldadig.nl. No account is needed: on the welcome screen, "Stel je Hoot samen" (choose interests and sources) or "Of kijk eerst even rond" (start with free Dutch sources) both give the full app. Signing in is optional and only syncs settings and saved items with the Hoot website (gethoot.app, also reachable as hootnews.nl).
+Hoot ("Hoot: Nieuws met een einde.") is a calm news reader for Dutch-speaking readers, made by Baldadig.nl. No account is needed: the welcome flow starts with interests (then sources and the optional weekly selection topics); "Liever meteen lezen" skips it and starts with free Dutch sources. Both give the full app. Signing in is optional and only syncs settings and saved items with the Hoot website (gethoot.app, also reachable as hootnews.nl).
 
 What the app does
-- Edition: three times a day (06:00, 12:00, 17:00 Amsterdam time) an edition of ten stories, composed on our server from the reader's own sources and interests. The reader's chosen sources, interests and favourite sources are sent to our server to compose it; nothing is stored.
+- Edition: three times a day (morning, midday and evening) an edition of ten numbered stories plus an optional "outside your bubble" story, composed on the device from the reader's own sources and interests (the app falls back to our server if that fails; the chosen sources and interests are then sent to compose it, and nothing is stored). Pull to refresh shows the Hoot "h." mark.
 - Compare: when several outlets cover the same story, "Vergelijk N bronnen" shows how each of them reports it.
-- Stream: all items from the reader's chosen sources, newest first. Optionally, posts from Bluesky accounts the reader adds themselves (public Bluesky API, read-only; off by default).
+- Stream: all items from the reader's chosen sources, newest first. Optionally, posts from Bluesky accounts the reader adds themselves (public Bluesky API, read-only; none are added by default).
 - Selectie (weekly selection): every Monday the three most important professional articles of the week per field (for example paid social, UI/UX, AI, e-commerce), chosen by how many trade publications covered them and by human curation.
 - Saved and Search work on the device.
 
@@ -23,7 +23,7 @@ Privacy
 
 Navigating the app
 - Tabs: Editie (Edition), Stroom (Stream), Selectie (weekly selection), Bewaard (Saved), Search. Settings: the gear button at the top right.
-- Bluesky: Settings → "Bluesky in de Stroom", then in the Stream switch to Bluesky and tap "Accounts" to add someone by @handle (for example @theverge.com).
+- Bluesky: Settings → "Bluesky in de Stroom", then add an account by @handle (for example @theverge.com); it appears in the Stream. Settings also has Weergave (System, Light, Dark, Night).
 - On iPad and on wide windows the layout switches to two columns and the tab bar can become a sidebar.
 
 Contact: see the App Review contact details.

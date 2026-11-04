@@ -126,3 +126,10 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
    - Nieuwe schermafbeeldingen (nieuw Welkom, Editie met waarom-regels, Stroom Tijdlijn/Krant, Selectie)
 6. Versie 1.0 (build 27) uit review halen, 1.0.1 (build 36) koppelen en indienen. De verklaringen en de laatste klik zijn van Alex.
 7. Daarna stilstand tot Apple accepteert.
+
+## 1.1.0 (build 46) — klaargezet in App Store Connect (4 november 2026), NIET ingediend
+
+- Versie 1.1.0 aangemaakt, build 46 gekoppeld; teksten uit `metadata/nl-NL/` (naam *Hoot: Nieuws met een einde.*, ondertitel *Jouw nieuws, rustig bij elkaar*).
+- Schermafbeeldingen: opnamen met `tools/capture-110.sh` (simulators "Hoot Pro Max" en "iPad Pro 13-inch (M5)"), kop en toestel met `tools/store.mjs`. iPhone 6,9" in `screenshots/iphone-6.9/` (kaal) en `screenshots/marketing/iphone-6.9/`; de 6,3"-slot van App Store Connect (1206 × 2622) in `screenshots/marketing/iphone-6.3/`; iPad 13" in `screenshots/ipad-13/` en `screenshots/marketing/ipad-13/`. Zes beelden: Editie, Vergelijken, Stroom, Selectie, lezer, Nacht.
+- Releasenotes: zie `../../RELEASENOTES-BUILD-46.md` (geen emoji: App Store Connect weigert die).
+- Nog te doen door Alex: zie de overdracht in het gesprek (indienen, uitnodigingscode in de reviewnotities, Selectie-week bij vers beeld).
