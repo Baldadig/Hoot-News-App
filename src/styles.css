@@ -394,18 +394,16 @@ p {
   font-family: var(--serif);
   font-weight: var(--fw-head);
 }
-/* Itemkop klein: een bericht, een regel in een keuzelijst, een tussenkop in de Lezer. */
-.head-4 {
-  font-size: var(--t4);
-  line-height: var(--lh-4);
-  /* Een kop knapt nooit midden in een woord zonder streepje (keuring tekstfont, AX5). Newsreader 800
-     is breed: een lange samenstelling ("verkiezingsuitslag") past bij Groot of op 320 niet altijd op
-     een regel, en overflow-wrap: anywhere breekt dan op een teken. Afbreken op lettergrepen in de taal
-     van de pagina (lang="nl"), alleen in lange woorden (14 tekens of meer, drie letters per kant),
-     zodat gewone woorden heel blijven. Zoals de app (ios/Hoot/Views/Kop.swift). */
+/* Een kop knapt nooit midden in een woord zonder streepje (keuring tekstfont, AX5). Newsreader 800 is
+   breed: een lange samenstelling ("verkiezingsuitslag") past bij Groot of op 320 niet altijd op een
+   regel, en overflow-wrap: anywhere breekt dan op een teken. Alleen een kop met een woord dat breder
+   is dan de kolom krijgt .kop--breek (lib/kop-afbreken.js): afbreken op lettergrepen in de taal van de
+   pagina (lang="nl"), drie letters per kant. Andere koppen breken alleen tussen woorden. Zoals de app
+   (ios/Hoot/Views/Kop.swift). */
+:is(.head-4, .head-lg, .head-5, .head-6).kop--breek {
   -webkit-hyphens: auto;
   hyphens: auto;
-  hyphenate-limit-chars: 14 3 3;
+  hyphenate-limit-chars: 6 3 3;
   -webkit-hyphenate-limit-before: 3;
   -webkit-hyphenate-limit-after: 3;
   letter-spacing: var(--ls-head-4);

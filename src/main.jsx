@@ -14,6 +14,7 @@ import { registerUpdates } from './lib/swUpdate.js'
 import { dropInvite, captureGoogleReturn } from './lib/account.js'
 import { loadFeedCache } from './lib/feedCache.js'
 import { migrate } from './lib/migrate.js'
+import { startKopAfbreken } from './lib/kop-afbreken.js'
 
 async function start() {
   // Verhuizing van hootnews.nl: lukt dat niet (geen verwijzer, oude browser zonder
@@ -28,6 +29,9 @@ async function start() {
 // (#id_token=…): onthouden en uit de adresbalk halen, vóór de app die als route leest.
 dropInvite()
 captureGoogleReturn()
+
+// Koppen: alleen afbreken (met streepje) als een woord niet op een regel past (lib/kop-afbreken.js).
+startKopAfbreken()
 
 // Opslag van oudere versies omzetten (één keer, zie src/lib/migrate.js).
 try {

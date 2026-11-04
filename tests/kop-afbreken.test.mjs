@@ -1,0 +1,15 @@
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { tooWide, longWords } from '../src/lib/kop-afbreken.js'
+
+// Een kop wordt alleen afgebroken als een woord niet op een regel past (keuring tekstfont, AX5).
+test('alleen een woord breder dan de kolom zet afbreken aan', () => {
+  assert.equal(tooWide([120, 200], 358), false)
+  assert.equal(tooWide([358.4], 358), true) // halve pixel speling
+  assert.equal(tooWide([357.4], 358), false)
+  assert.equal(tooWide([400], 0), false) // nog geen breedte: niets doen
+})
+test('korte woorden worden niet gemeten', () => {
+  assert.deepEqual(longWords('De Amerikaanse verkiezingsnacht van de NOS'), ['Amerikaanse', 'verkiezingsnacht'])
+  assert.deepEqual(longWords(''), [])
+})
