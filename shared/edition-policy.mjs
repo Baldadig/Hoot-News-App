@@ -131,7 +131,7 @@ export function lightVideoFiller(item, prof = null) {
 const LIGHT_CAT = { games: 'games', cultuur: 'cultuur' }
 const LIGHT_TOPIC = { games: 'games', film: 'cultuur', muziek: 'cultuur', boeken: 'cultuur', kunst: 'cultuur', media: 'cultuur' }
 const LIGHT_PATH_GAMES = /\/(games?|gaming|gameblog)\//i
-const LIGHT_PATH = /\/(entertainment|showbizz|boulevard|celebrit\w*|lifestyle|style|fashion|mode|t-magazine|dining|food|eten|koken-en-eten|recepten|travel|reizen|realestate|arts|books|boeken|movies|theater|television|tv|film|muziek|music|kunst-media|media-en-cultuur|cultuur(?:-media)?|culture)\//i
+const LIGHT_PATH = /\/(entertainment|showbizz|show|boulevard|celebrit\w*|lifestyle|style|fashion|mode|t-magazine|dining|food|eten|koken-en-eten|recepten|travel|reizen|realestate|arts|books|boeken|movies|theater|television|tv|film|muziek|music|kunst-media|media-en-cultuur|cultuur(?:-media)?|culture)\//i
 const LIGHT_HEAD = /\b(podcast\w*|talkshow\w*|presentat(?:or|rice)\w*|tv-serie\w*|streamingdienst\w*|kookboek\w*|recept\w*|recipe\w*)\b/i
 const CONSUMER_PATH = /\/(reviews?|deals?|gift-guide|buying-guide|best-\w+)\//i
 // Geen 'deal': dat is vaker een overname of een akkoord (Nvidia-deal met Saudi-Arabië) dan een aanbieding.
@@ -221,7 +221,10 @@ export const lightNews = (story, items, catOf = null) => (story?.light === undef
 export function newsRejection(prof, story, items, desk = null, { bubble = false, allowLight = false } = {}) {
   if (onlyGalleries(items)) return 'alleen-galerijen'
   if (items.length && items.every(i=>lightVideoFiller(i,prof))) return 'licht-videorondje-buiten-interesse'
-  if ((sportStory(story, items, prof.catOf) || items.some(i => isSport(i, prof.catOf))) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return 'sport-niet-gekozen'
+  // Per stuk telt sport pas bij een meerderheid van de stukken (H7, 4 november 2026): in de midterms-bundel
+  // van 69 stukken had één Senaatsrace het onderwerp f1 ("race"), en dat hield de uitslag uit elke
+  // persoonlijke Editie. Eén los stuk blijft streng; het hele verhaal beslist via sportStory.
+  if ((sportStory(story, items, prof.catOf) || items.filter(i => isSport(i, prof.catOf)).length * 2 > items.length) && !sportChosen(prof) && !exceptionalDutchSport(story, items)) return 'sport-niet-gekozen'
   // Buiten je bubbel mag juist iets lichts buiten je profiel zijn; alle gewone plekken niet.
   if (!bubble && !allowLight) {
     const light = lightNews(story, items, prof.catOf)
