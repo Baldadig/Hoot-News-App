@@ -378,6 +378,32 @@ const PRONOUNS = new Set(['mijn', 'jouw', 'haar', 'jullie', 'zich', 'zelf', 'you
 const WEAK_VERBS = new Set(
   'doet doen deed deden gedaan maakt maken maakte maakten gemaakt gaat gaan ging gingen gegaan komt komen kwam kwamen gekomen wilt wilde wilden willen kunt kunnen konden moet moeten moest moesten heeft hebben hadden gehad wordt worden werd werden geworden staat staan stond stonden laat laten liet lieten zegt zeggen zei zeiden krijgt krijgen kreeg kregen blijft blijven bleef bleven lijkt lijken zitten does make makes made goes going gets have wants'.split(' ')
 )
+// Eigen namen in een kop (plaatsen, personen): woorden met hoofdletter die niet het begin van een zin of
+// van een stuk na een leesteken zijn. Elke kop met een eigen naam die de ander niet noemt gaat over een ander
+// geval ("... aanrijding in Meeuwen" naast "... aanrijding in Leiden"): dan lenen we niet.
+const namesOf = (title) => {
+  const out = new Set()
+  const tokens = String(title || '').split(/\s+/).filter(Boolean)
+  tokens.forEach((raw, i) => {
+    const prev = tokens[i - 1]
+    if (i === 0 || /[:.!?;–—|"“‘'(]$/.test(prev) || /^["“‘'(]/.test(prev) && i === 1) return
+    const w = raw.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, '')
+    if (w.length >= 3 && /^\p{Lu}\p{Ll}/u.test(w) && !/^\p{Lu}+$/u.test(w)) out.add(w.toLowerCase())
+  })
+  return out
+}
+const wordsOf = (title) => new Set(String(title || '').toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean))
+const named = (name, words) => {
+  for (const w of words) if (w === name || (Math.min(w.length, name.length) >= 5 && (w.startsWith(name) || name.startsWith(w)))) return true
+  return false
+}
+export function conflictingNames(titleA, titleB) {
+  const a = namesOf(titleA)
+  const b = namesOf(titleB)
+  const wa = wordsOf(titleA)
+  const wb = wordsOf(titleB)
+  return [...a].some((n) => !named(n, wb)) && [...b].some((n) => !named(n, wa))
+}
 const borrowWords = (title) => {
   const w = sigWords(title)
   for (const p of PRONOUNS) w.delete(p)
@@ -405,7 +431,7 @@ export function borrowPreviews(items, mainItems) {
     let bestN = 0
     let bestSize = 0
     for (const { d, w: dw } of donors) {
-      if (d.source === it.source) continue
+      if (d.source === it.source || conflictingNames(it.title, d.title)) continue
       const n = sharedCount(w, dw)
       if (n > bestN) [best, bestN, bestSize] = [d, n, dw.size]
     }
@@ -434,7 +460,7 @@ export function borrowFromStories(stories, byId) {
       const w = borrowWords(it.title)
       const matches = (d) => {
         const dw = borrowWords(d.title)
-        return strongOverlap(sharedCount(w, dw), w.size, dw.size)
+        return strongOverlap(sharedCount(w, dw), w.size, dw.size) && !conflictingNames(it.title, d.title)
       }
       const donor = members
         .filter((d) => d !== it && d.summary && !d.borrowedFrom && d.source !== it.source && langOf(d) === langOf(it) && visibleFor(d) && lendableIntro(d) && matches(d))

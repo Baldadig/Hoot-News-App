@@ -2,7 +2,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ogImageFrom, loadOgImage, isGate } from '../netlify/lib/og.mjs'
-import { imagesFromArticles, sizeBingImages, gapTitleQueries, borrowFromStories, borrowPreviews, lendableIntro, strongOverlap, wantsArticleImage } from '../netlify/lib/build.mjs'
+import { imagesFromArticles, sizeBingImages, gapTitleQueries, borrowFromStories, borrowPreviews, lendableIntro, strongOverlap, wantsArticleImage, conflictingNames } from '../netlify/lib/build.mjs'
 import { articleKey, bingUnmeasured, bingId } from '../netlify/lib/snippets.mjs'
 
 const art = (id, extra = {}) => ({ id, kind: 'article', source: 'nature', title: 'Titel ' + id, url: `https://www.nature.com/articles/${id}`, publishedAt: '2026-11-04T10:00:00Z', ...extra })
@@ -170,4 +170,25 @@ test('intro lenen: De Morgen-liveblog leent niet, en geen reclame zoals "downloa
   assert.equal(lendableIntro({ summary: 'Download de app DS Nieuws. Schrijf je in voor onze nieuwsbrief.' }), '')
   assert.equal(lendableIntro({ summary: 'Volg hier alle ontwikkelingen.', url: 'https://www.standaard.be/live-oekraine~b1234567/', title: 'Live – Oekraïne' }), '')
   assert.equal(lendableIntro({ summary: 'Een gewone zin over de appel van de buren.' }), 'Een gewone zin over de appel van de buren.')
+})
+
+test('intro lenen: elke kop met een eigen plaatsnaam leent niet (Meeuwen/Leiden, keuring b46 ronde 3)', () => {
+  const leiden = { id: 'ld', kind: 'article', source: 'leidschdagblad', sourceName: 'Leidsch Dagblad', title: 'Voetganger (33) raakt gewond bij aanrijding in Leiden', summary: 'Een voetganger is gewond geraakt bij een aanrijding aan de Rijnsburgerweg in Leiden.', url: 'https://www.leidschdagblad.nl/a~b1111111/' }
+  const meeuwen = () => ({ id: 'nb', kind: 'article', source: 'nieuwsblad', sourceName: 'Het Nieuwsblad', title: 'Voetganger (33) raakt gewond bij aanrijding in Meeuwen', url: 'https://www.nieuwsblad.be/cnt/a1' })
+  const a = meeuwen()
+  borrowPreviews([a], [leiden])
+  assert.equal(a.summary, undefined)
+  const b = meeuwen()
+  assert.equal(borrowFromStories([{ id: 's', itemIds: ['nb', 'ld'] }], new Map([[b.id, b], [leiden.id, leiden]])), 0)
+  assert.equal(b.summary, undefined)
+  // Dezelfde plaats of een kop zonder eigen naam: gewoon lenen.
+  const c = { ...meeuwen(), title: 'Voetganger (33) raakt gewond bij aanrijding in Leiden' }
+  borrowPreviews([c], [leiden])
+  assert.equal(c.borrowedFrom, 'Leidsch Dagblad')
+  const d = { ...meeuwen(), title: 'Voetganger (33) raakt gewond bij aanrijding' }
+  borrowPreviews([d], [leiden])
+  assert.equal(d.borrowedFrom, 'Leidsch Dagblad')
+  // Zin-beginhoofdletters na een dubbele punt tellen niet als naam.
+  assert.equal(conflictingNames('Trouw: Wat doet Klaver', 'Klaver doet iets'), false)
+  assert.equal(conflictingNames('Brand in Utrecht', 'Brand in Zwolle'), true)
 })
