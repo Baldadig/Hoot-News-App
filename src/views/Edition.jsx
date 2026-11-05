@@ -232,7 +232,8 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 <span className="edmeta__wx desk-only">
                   <Weather />
                 </span>
-                <span>{hasPersonalLabel ? 'Jouw Editie' : edition.personal ? 'Om te beginnen' : 'De Editie voor iedereen'}</span>
+                {/* Geen "Jouw Editie" meer (Alex, 5 november: dat is het altijd). Alleen wat afwijkt, staat er. */}
+                {hasPersonalLabel ? null : <span>{edition.personal ? 'Om te beginnen' : 'De Editie voor iedereen'}</span>}
               </p>
             </>
           ) : null}
