@@ -13,7 +13,9 @@ struct StreamView: View {
     @State private var categoryTask: Task<Void, Never>?
     @State private var viewportHeight: CGFloat = 0
     @State private var headerHeight: CGFloat = 0
-    @State private var limit = 60
+    // Het einde van de Stroom (StroomEinde.swift): de grens van dit bezoek, en hoeveel ouder nieuws je opende.
+    @State private var grens: StroomEinde.Grens?
+    @State private var older = 0
     @State private var picks: Set<String> = Set(DebugLaunch.picks) // de bronnen uit de stapel (leeg = alle)
     @State private var lijn = LijnStand()
     @State private var knopAs: CGFloat? // de knop rechtsboven: het voorste logo van de stapel ligt eronder
@@ -46,6 +48,11 @@ struct StreamView: View {
             let items = rub == "bubbel" ? bubble : store.withoutCopies(store.stream.filter { item in
                 (picks.isEmpty || picks.contains(item.source)) && (rub.isEmpty || Rubriek.past(item, rub, cat: cats[item.source] ?? nil))
             })
+            // De lijst houdt op bij je vorige bezoek (of na een dag); ouder nieuws alleen met de knop.
+            let eindGrens = rub == "bubbel" ? nil : grens
+            let bIdx = eindGrens.map { StroomEinde.index(items, at: $0.at) } ?? items.count
+            let cap = StroomEinde.cap(count: items.count, grensIndex: bIdx, older: older)
+            let eerder = eindGrens?.eerder == true
             ScrollViewReader { scroll in
             ScrollView {
                 VStack(spacing: 0) {
@@ -118,29 +125,35 @@ struct StreamView: View {
                             Group {
                             StaleNotice().padding(.top, Space.s2) // 16 onder de lijn, net als een bericht
                             if items.isEmpty { quiet(rub, sources: sources) }
-                            // Waar je de vorige keer was: alleen in de hele Stroom (die telt `newInStream`).
-                            let fresh = picks.isEmpty && rub.isEmpty ? store.newInStream : 0
-                            ForEach(Array(items.prefix(limit).enumerated()), id: \.element.id) { i, item in
-                                // Daaronder heb je alles al gezien.
-                                if fresh > 0 && i == fresh { SeenMarker() }
+                            // Waar je de vorige keer was (de grens): daaronder heb je alles al gezien. In de lijst
+                            // staat de streep pas als je ouder nieuws opende; anders staat hij bij het einde.
+                            let marker = older > 0 && eerder && bIdx < cap
+                            ForEach(Array(items.prefix(cap).enumerated()), id: \.element.id) { i, item in
+                                if marker && i == bIdx { SeenMarker() }
                                 Group {
                                     if item.isPost { PostRow(item: item) }
                                     else { ItemRow(item: item, story: store.story(of: item)) }
                                 }
                                     .transition(.identity)
-                                if !(fresh > 0 && i == fresh - 1) { Rule() }
+                                if !(marker && i == bIdx - 1) { Rule() }
                             }
-                            if items.count > limit {
-                                Button("Meer berichten") { limit += 60 }
-                                    .buttonStyle(.glass)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, Space.s5)
-                            } else if !items.isEmpty {
-                                // Het einde van de Stroom, zoals .listend op het web (review G6): 13/16 in ink-3, midden.
-                                Text("Je bent bij.")
-                                    .font(.ui(.footnote)).foregroundStyle(Theme.ink3)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.top, Space.s6).padding(.bottom, Space.s2)
+                            if cap >= items.count {
+                                if !items.isEmpty { StroomEindRegel() }
+                            } else {
+                                // Het einde bij je vorige bezoek (keuze r5-stroom-einde, gelijk aan .stroomeinde op het web).
+                                VStack(spacing: 0) {
+                                    if older == 0 {
+                                        if eerder && cap > 0 { SeenMarker().padding(.top, Space.s2) }
+                                        StroomEindRegel(top: Space.s4, bottom: 0)
+                                    }
+                                    Button("Ouder nieuws tonen") { older += StroomEinde.page }
+                                        .buttonStyle(.plain)
+                                        .font(.ui(.footnote, .semibold)).foregroundStyle(Theme.ink2)
+                                        .frame(minHeight: Space.tap)
+                                        .padding(.top, Space.s2)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.bottom, Space.s6)
                             }
                             }
                             .loadLinesText(lines)
@@ -150,7 +163,7 @@ struct StreamView: View {
                     .padding(.horizontal)
                     .column()
                     // Welk placeholderbeeld een beeldloze rij krijgt, hangt af van de rij erboven (Beeldloos.swift).
-                    .environment(\.placeholderPlan, Placeholder.plan(items.prefix(limit).map { ($0, store.layout == "krant" ? BeeldloosView.Kind.krant : .tijdlijn) }, failed: MisluktBeeld.shared.ids))
+                    .environment(\.placeholderPlan, Placeholder.plan(items.prefix(cap).map { ($0, store.layout == "krant" ? BeeldloosView.Kind.krant : .tijdlijn) }, failed: MisluktBeeld.shared.ids))
                     }
                 }
             }
@@ -169,7 +182,11 @@ struct StreamView: View {
             }
         }
         .onAppear {
-            if behindReader { behindReader = false } else { store.openStream() }
+            if behindReader { behindReader = false } else {
+                store.openStream()
+                grens = StroomEinde.grens(mark: store.streamMark)
+                older = 0
+            }
             // Debug: het startargument gaat vóór de rubriek die iOS uit de vorige sessie terugzet.
             if debugStart, let r = DebugLaunch.startRubriek { rubriek = r }
             debugStart = false
@@ -180,8 +197,8 @@ struct StreamView: View {
             let kept = picks.intersection(ids)
             if kept != picks { picks = kept }
         }
-        .onChange(of: rubriek) { limit = 60 }
-        .onChange(of: picks) { categoryTask?.cancel(); limit = 60 }
+        .onChange(of: rubriek) { older = 0 }
+        .onChange(of: picks) { categoryTask?.cancel(); older = 0 }
         .onChange(of: phase) { _, now in if now == .background { store.leaveStream() } }
     }
 
@@ -237,6 +254,18 @@ extension HootStore {
 }
 
 // De grens tussen nieuw en al gezien.
+// "Je bent bij.", zoals .listend op het web (review G6): 13/16 in ink-3, midden.
+private struct StroomEindRegel: View {
+    var top: CGFloat = Space.s6
+    var bottom: CGFloat = Space.s2
+    var body: some View {
+        Text("Je bent bij.")
+            .font(.ui(.footnote)).foregroundStyle(Theme.ink3)
+            .frame(maxWidth: .infinity)
+            .padding(.top, top).padding(.bottom, bottom)
+    }
+}
+
 private struct SeenMarker: View {
     var body: some View {
         HStack(spacing: Space.s3) {
