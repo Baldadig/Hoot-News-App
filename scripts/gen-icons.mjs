@@ -8,9 +8,10 @@ import { dirname, resolve } from 'node:path'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const pub = resolve(here, '..', 'public')
-const rounded = await readFile(resolve(pub, 'brand/hoot-app-icon.svg')) // afgeronde hoeken
-const full = await readFile(resolve(pub, 'brand/hoot-app-icon-full.svg')) // vlak tot de rand; iOS rondt zelf af
-const maskable = await readFile(resolve(pub, 'brand/hoot-app-icon-maskable.svg')) // kleiner merk: Android snijdt er een cirkel of druppel uit
+// Sinds 1.1.1 papier op merkrood, zoals het iOS-appicoon: de bronnen maakt scripts/webiconen.mjs.
+const rounded = await readFile(resolve(pub, 'brand/hoot-app-icon-rood.svg')) // afgeronde hoeken
+const full = await readFile(resolve(pub, 'brand/hoot-app-icon-rood-full.svg')) // vlak tot de rand; iOS rondt zelf af
+const maskable = await readFile(resolve(pub, 'brand/hoot-app-icon-rood-maskable.svg')) // kleiner merk: Android snijdt er een cirkel of druppel uit
 const dark = await readFile(resolve(pub, 'brand/hoot-app-icon-dark.svg'))
 // Favicon: de h. zonder vlak eromheen, tot de rand, zodat hij past naast de favicons van kranten.
 // De PNG's (voor browsers zonder SVG-favicon) in de lichte kleuren.
