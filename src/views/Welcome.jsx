@@ -202,7 +202,7 @@ export default function Welcome({ sources, items = [], prefs, muted = new Set(),
   const pickSource = (id) => setEdited(toggleFollow(mine, id))
   const finish = (choice = {}) => onDone({ interests, topics, sources: mine, all: pickable, vak, ...choice })
   // "Liever meteen lezen": de startset met gratis bronnen, zonder interesses, onderwerpen of vak.
-  const startQuick = () => onDone({ interests: [], topics: [], sources: startIds(pickable), all: pickable })
+  const startQuick = () => onDone({ interests: [], topics: [], sources: startIds(pickable), all: pickable, quick: true })
   // Later kiezen bij de interesses: zoals het was (de eerste keer dus leeg), door naar de bronnen.
   const laterInterests = () =>
     go(() => {

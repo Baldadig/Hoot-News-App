@@ -633,6 +633,9 @@ export default function App() {
           {was('editie') ? (
             <Edition
               active={shown === 'editie'}
+              browsing={!!prefs.browsing}
+              onMakeYours={() => route.go('welkom')}
+              onLater={() => setPref('browsing', false)}
               bubble={bubble}
               brief={prefs.brief ? myEdition?.brief || null : null}
               briefNote={prefs.brief ? briefNote : null}

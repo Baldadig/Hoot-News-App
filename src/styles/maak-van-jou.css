@@ -1,0 +1,68 @@
+/* "Maak Hoot van jou" (components/MaakVanJou.jsx), gelijk aan MakeItYours in de app: een kaart op
+   papier (surface), zwevend onderaan de Editie, binnen de leeskolom. Sticky in de scroller van de
+   Editie en als laatste in de kolom: hij houdt zijn eigen plek, dus aan het einde staat hij ónder
+   de rode eindkaart en nooit eroverheen (zoals safeAreaInset in de app). */
+.maakjou {
+  position: sticky;
+  bottom: calc(var(--safe-b) + var(--tabbar-h) + var(--s3));
+  z-index: 2;
+  max-inline-size: var(--measure); /* op de leesbreedte en links verankerd, zoals de eindkaart */
+  margin-block-start: var(--s5);
+  padding: var(--s4);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--elev-edge), var(--shadow-float);
+  animation: rise var(--dur-2) var(--ease);
+}
+@media (min-width: 960px) {
+  .maakjou {
+    bottom: calc(var(--safe-b) + var(--s5));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .maakjou {
+    animation: none;
+  }
+}
+.maakjou__kop {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: var(--t4);
+  font-weight: var(--fw-head);
+  line-height: var(--lh-4);
+  color: var(--ink);
+}
+.maakjou__tekst {
+  margin: var(--s2) 0 0;
+  color: var(--ink-2);
+  font-size: var(--t2);
+  line-height: var(--lh-2-read);
+}
+.maakjou__acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s4);
+  margin-block-start: var(--s3);
+}
+.maakjou__later {
+  color: var(--ink-2);
+}
+
+/* Zolang de kaart er staat, wacht de tip "Zet Hoot op je beginscherm": nooit twee zwevers tegelijk. */
+.app:has(.maakjou) .toast--tip {
+  display: none;
+}
+
+/* Breed: op dezelfde kolommaat en linkerlijn als de eindkaart erboven (rust.css §3). */
+@container front (width > 48rem) {
+  .col--front > .maakjou {
+    max-inline-size: calc((100cqi - var(--s6)) / 2);
+  }
+}
+/* Tablet staand: op de lijn van de tekst, zoals de eindkaart (styles.css, "Tablet staand"). */
+@container front (40rem <= width <= 48rem) {
+  .col--front > .maakjou {
+    margin-inline-start: calc(2ch + var(--s3));
+  }
+}

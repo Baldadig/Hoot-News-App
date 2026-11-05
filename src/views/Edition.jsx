@@ -1,4 +1,6 @@
 import { hasEditionMinimum } from '../../shared/edition-limits.mjs'
+import MaakVanJou from '../components/MaakVanJou.jsx'
+import { pastThird } from '../lib/maak-van-jou.js'
 import { cleanIntro } from '../../shared/edition-display.mjs'
 import { EditionNumber } from '../components/EditionNumber.jsx'
 import { useEffect, useRef, useState } from 'react'
@@ -108,7 +110,7 @@ function LessNote({ entryKey, item, story, n }) {
 // Elke plek: het verhaal zelf, of ingeklapt als je er minder van wilde.
 const Slot = ({ less, row, children }) => (less.includes(row.key) ? <LessNote n={row.n} entryKey={row.key} item={row.item} story={row.story} /> : children)
 
-export default function Edition({ active, edition, bubble = [], brief = null, briefNote = null, briefForMembers = false, onJoin, hint = false, onHintDone, tien: tienStart = null, onTienDone, loading, failedLoad, statusProps, onRefresh, refreshing }) {
+export default function Edition({ active, edition, bubble = [], brief = null, briefNote = null, briefForMembers = false, onJoin, hint = false, onHintDone, tien: tienStart = null, onTienDone, loading, failedLoad, statusProps, onRefresh, refreshing, browsing = false, onMakeYours, onLater }) {
   const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account, prefs, sourcesById } = useHoot()
   const following = followedNow(followStories, storiesById, newInStory)
   const ref = useRef(null)
@@ -157,6 +159,16 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
   const hasBrief = !!(brief?.sections?.length || brief?.text)
 
   useScrollMemory(ref, 'hoot:pos-editie:' + (edition?.id || ''), rows.length > 0, rows.length, active)
+
+  // Wie snel begon ("Liever meteen lezen"): na ongeveer een derde van de Editie één keer "Maak Hoot van jou".
+  const [nudge, setNudge] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || !browsing || !active || nudge) return
+    const onScroll = () => pastThird(el) && setNudge(true)
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
+  }, [browsing, active, nudge])
 
   const title = SLOTS[edition?.slot]?.naam || 'Editie' // de naam van het dagdeel (shared/slots.mjs)
   const ready = !loading && !failedLoad && rows.length > 0
@@ -415,6 +427,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 Lees verder in de Stroom
               </a>
             </div>) : null}
+            {nudge && browsing ? <MaakVanJou onChoose={onMakeYours} onLater={onLater} /> : null}
             {/* Het overzicht in één minuut: een dialoog, dus achteraan; hij neemt geen plek in de kolom. */}
             {hasBrief ? <BriefReader open={reading} onClose={() => setReading(false)} brief={brief} rows={rows} kicker={`${title} · ${longDate(edition.date)}`} /> : null}
           </>
