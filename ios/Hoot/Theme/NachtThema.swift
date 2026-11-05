@@ -5,7 +5,7 @@ import UIKit
 enum Weergave: String, CaseIterable {
     case system, light, dark, night
     init(stored: String) { self = Self(rawValue: stored) ?? .system }
-    var label: String { switch self { case .system: "Systeem"; case .light: "Licht"; case .dark: "Donker"; case .night: "Nacht" } }
+    var label: String { switch self { case .system: "Zoals je toestel"; case .light: "Licht"; case .dark: "Donker"; case .night: "Nacht" } }
     var scheme: ColorScheme? { switch self { case .system: nil; case .light: .light; case .dark, .night: .dark } }
     func nightActive(systemDark: Bool, evening: String) -> Bool { self == .night || (self == .system && systemDark && evening == "night") }
 }
@@ -44,6 +44,12 @@ enum NachtKleur {
     static let ink2 = role("Ink2", night: NachtLeesinkt.ink2)
     static let ink3 = role("Ink3", night: NachtLeesinkt.ink3)
     static let accent = role("AccentColor", night: NachtLeesinkt.accent)
+    // Hints en kleine metadata (12 tot 13 pt): ink-3, in Nacht ink-2. Schibsted Grotesk is op kleine maat zachter dan Inter.
+    static let hint = UIColor { traits in
+        (traits[NachtTrait.self] && traits.userInterfaceStyle == .dark ? ink2 : ink3).resolvedColor(with: traits)
+    }
+    // Vlak achter een uitgeverslogo (--mark-bg): wit in Licht, gedempt wit in Donker, inkt in Nacht.
+    static let markBg = role("MarkBg", night: NachtLeesinkt.ink)
     static let label = UIColor { traits in
         traits[NachtTrait.self] && traits.userInterfaceStyle == .dark ? ink.resolvedColor(with: traits) : .label
     }
@@ -90,16 +96,19 @@ struct WeergaveKeuze: View {
     @AppStorage("hoot.weergave") private var value = "system"
     @AppStorage("hoot.weergave.donker") private var evening = "dark"
     var body: some View {
-        Picker("Thema", selection: Binding(get: { Weergave(stored: value).rawValue }, set: { value = $0 })) {
+        // Een menu met een vinkje (Instellingen D); "Als het donker is" alleen bij Zoals je toestel.
+        Picker(selection: Binding(get: { Weergave(stored: value).rawValue }, set: { value = $0 })) {
             ForEach(Weergave.allCases, id: \.rawValue) { option in
                 Text(option.label).tag(option.rawValue).accessibilityLabel(option == .night ? "Nacht, echt zwart" : option.label)
             }
-        }.frame(minHeight: Space.tap)
+        } label: { Text("Weergave") }
+        .frame(minHeight: Space.tap)
         if Weergave(stored: value) == .system {
-            Picker("Als het donker is", selection: Binding(get: { evening == "night" ? "night" : "dark" }, set: { evening = $0 })) {
+            Picker(selection: Binding(get: { evening == "night" ? "night" : "dark" }, set: { evening = $0 })) {
                 Text("Donker").tag("dark")
                 Text("Nacht").tag("night").accessibilityLabel("Nacht, echt zwart")
-            }.frame(minHeight: Space.tap)
+            } label: { Text("Als het donker is") }
+            .frame(minHeight: Space.tap)
         }
     }
 }

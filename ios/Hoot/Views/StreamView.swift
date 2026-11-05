@@ -7,6 +7,7 @@ struct StreamView: View {
     @Environment(HootStore.self) private var store
     @Environment(\.scenePhase) private var phase
     @Environment(Reader.self) private var reader
+    @State private var lines = LoadLinesModel() // de laadstrepen bij het eerste laden (LoadLines.swift)
     @State private var behindReader = false // de lezer ligt eroverheen: dat is geen vertrek uit de Stroom
     @State private var showSources = DebugLaunch.screen("bronnen")
     @State private var categoryTask: Task<Void, Never>?
@@ -50,8 +51,14 @@ struct StreamView: View {
                 VStack(spacing: 0) {
                     Color.clear.frame(height: 0).id("stroom-boven")
                     VStack(spacing: 0) {
-                    // De schermtitel in de scroll (C7), op de kolomlijn boven de rubriekenlijn.
+                    // De kopregel en de schermtitel in de scroll (C7), op de kolomlijn boven de rubriekenlijn.
                     VStack(alignment: .leading, spacing: 0) {
+                        HootKop(gearX: { knopAs = $0 }) {
+                            HootKopButton(label: "Bronnen", systemImage: "dot.radiowaves.up.forward") {
+                                lijn.open = false // ook met VoiceOver, waar geen echte tik naast de lijn valt
+                                showSources = true
+                            }
+                        }
                         ScreenTitle("Stroom")
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -97,14 +104,18 @@ struct StreamView: View {
                         // (die blijven bewaard): offline of zonder bronnen zie je het altijd.
                         let niets = items.isEmpty && store.stream.isEmpty
                         if store.status == .loading && niets {
-                            WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
+                            LoadLinesBox()
                         } else if niets {
-                            if store.status == .failed {
-                                EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnen hier de berichten van je bronnen.", retry: store.load)
-                            } else {
-                                EmptyState(title: "Al je bronnen staan uit.", systemImage: "water.waves", action: (label: "Naar Bronnen", systemImage: nil, run: { showSources = true }))
+                            Group {
+                                if store.status == .failed {
+                                    EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnen hier de berichten van je bronnen.", retry: store.load)
+                                } else {
+                                    EmptyState(title: "Al je bronnen staan uit.", systemImage: "water.waves", action: (label: "Naar Bronnen", systemImage: nil, run: { showSources = true }))
+                                }
                             }
+                            .loadLinesError(lines)
                         } else {
+                            Group {
                             StaleNotice().padding(.top, Space.s2) // 16 onder de lijn, net als een bericht
                             if items.isEmpty { quiet(rub, sources: sources) }
                             // Waar je de vorige keer was: alleen in de hele Stroom (die telt `newInStream`).
@@ -125,10 +136,15 @@ struct StreamView: View {
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, Space.s5)
                             }
+                            }
+                            .loadLinesText(lines)
                         }
                     }
+                    .loadLines(lines, loading: store.status == .loading && items.isEmpty && store.stream.isEmpty, ok: !store.stream.isEmpty)
                     .padding(.horizontal)
                     .column()
+                    // Welk placeholderbeeld een beeldloze rij krijgt, hangt af van de rij erboven (Beeldloos.swift).
+                    .environment(\.placeholderPlan, Placeholder.plan(items.prefix(limit).map { ($0, store.layout == "krant" ? BeeldloosView.Kind.krant : .tijdlijn) }, failed: MisluktBeeld.shared.ids))
                     }
                 }
             }
@@ -138,28 +154,10 @@ struct StreamView: View {
             // Scrollen klapt de stapel dicht (ernaast tikken doet de lijn zelf).
             .onScrollPhaseChange { _, now in if now == .interacting, lijn.open { lijn.open = false } }
             .navigationTitle("Stroom") // de rode streep zegt al welke rubriek
-            .hootBrandHeader()
-            .hootScreenTitle()
+            .hootKopScreen()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .hootRefresh(indicator: !store.stream.isEmpty) { await store.load() }
-            .toolbar {
-                // Bediening is stil (design system): grijs en zonder glazen rondje, zoals het tandwiel.
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        lijn.open = false // ook met VoiceOver, waar geen echte tik naast de lijn valt
-                        showSources = true
-                    } label: {
-                        Image(systemName: "dot.radiowaves.up.forward")
-                            .frame(width: 24, height: 24)
-                    }
-                    .accessibilityLabel("Bronnen")
-                    .tint(Theme.ink3)
-                    // Op de knop zelf meten, niet op het icoon: dat zou de werkbalk anders opmaken.
-                    .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midX } action: { knopAs = $0 }
-                }
-                .sharedBackgroundVisibility(.hidden)
-            }
+            .hootRefresh(indicator: !store.stream.isEmpty, label: "Stroom", failed: { store.coreFailed }) { await store.load() }
             .sheet(isPresented: $showSources) { SourcesView().debugAppearance() }
             .settingsButton()
             }
@@ -195,7 +193,7 @@ struct StreamView: View {
                 } label: {
                     // Het tikvlak is het label: daar hoort de 44, niet om de knop heen.
                     Text("Toon alle bronnen")
-                        .font(.subheadline.weight(.bold))
+                        .font(.ui(.subheadline, .bold))
                         .foregroundStyle(Theme.accent)
                         .frame(minHeight: Space.tap)
                         .contentShape(Rectangle())
@@ -237,7 +235,7 @@ private struct SeenMarker: View {
     var body: some View {
         HStack(spacing: Space.s3) {
             Rectangle().fill(Theme.accent).frame(height: 1)
-            Text("Hier was je gebleven").font(.system(.footnote, design: .serif)).foregroundStyle(Theme.ink2).fixedSize()
+            Text("Hier was je gebleven").font(.lees(.footnote)).foregroundStyle(Theme.ink2).fixedSize()
             Rectangle().fill(Theme.accent).frame(height: 1)
         }
         .padding(.vertical, Space.s3)
@@ -272,7 +270,7 @@ struct SourcesList: View {
         List {
             Section {
                 Text("Abonnement: hele artikelen alleen voor abonnees. Aanzetten kost niets.")
-                    .font(.footnote)
+                    .font(.ui(.footnote))
                     .foregroundStyle(Theme.ink3)
             }
             .listRowBackground(Color.clear)
@@ -297,9 +295,9 @@ struct SourcesList: View {
                                 VStack(alignment: .leading, spacing: Space.s0) {
                                     HStack(spacing: Space.s2) {
                                         Text(s.name)
-                                        if s.paid == true { Text("abonnement").font(.caption).foregroundStyle(Theme.ink3) } else { Text("gratis").font(.caption.weight(.semibold)).foregroundStyle(Theme.accent) }
+                                        if s.paid == true { Text("abonnement").font(.ui(.caption)).foregroundStyle(Theme.hint) } else { Text("gratis").font(.ui(.caption, .semibold)).foregroundStyle(Theme.accent) }
                                     }
-                                    if let about = s.about { Text(about).font(.caption).foregroundStyle(Theme.ink3) }
+                                    if let about = s.about { Text(about).font(.ui(.caption)).foregroundStyle(Theme.hint) }
                                 }
                             }
                             }
@@ -359,10 +357,10 @@ struct SavedView: View {
                         Text("Verwijderd uit Bewaard").foregroundStyle(Theme.ink2)
                         Spacer()
                         Button("Ongedaan maken") { store.restoreSaved(r.item, at: r.index); removed = nil }
-                            .fontWeight(.semibold)
+                            .font(.ui(.subheadline, .semibold))
                             .frame(minHeight: Space.tap)
                     }
-                    .font(.subheadline)
+                    .font(.ui(.subheadline))
                     .padding(.horizontal, Space.s4)
                     .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
                     .shadow(color: .black.opacity(0.12), radius: 8, y: 2) // zweeft: de enige plek met schaduw
@@ -382,42 +380,52 @@ struct SavedView: View {
             .navigationTitle("Bewaard")
             .hootBrandHeader()
             .hootScreenTitle()
-            .settingsButton()
+            .settingsButton(toolbar: true)
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
         }
     }
 }
 
-// Zoeken: in alles wat Hoot nu van je bronnen heeft.
+// Zoeken: in alles wat Hoot nu van je bronnen heeft, en in Bewaard.
 struct SearchView: View {
     @Environment(HootStore.self) private var store
     @State private var query = DebugLaunch.query ?? ""
+    @State private var scope: SearchHits.Scope = .mijn // standaard Mijn bronnen, zoals op het web
+    @State private var extra: [Item] = [] // Alle bronnen: ook wat alleen binnen een verhaal staat
     var body: some View {
         NavigationStack {
-            // Zonder hoofdletters en accenten: "Oekraine" vindt ook "Oekraïne", "Israel" ook "Israël".
-            let fold = { (s: String) in s.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil) }
-            let q = fold(query.trimmingCharacters(in: .whitespaces))
-            let hits = q.count < 2 ? [] : store.withoutCopies(store.stream.filter { fold("\($0.title) \($0.summary ?? "")").contains(q) })
+            // Breed zoeken, zoals het web: woord, bron en auteur, ook in Bewaard (SearchHits).
+            let q = SearchHits.words(query)
+            let hits = q.isEmpty ? [] : Array(store.withoutCopies(SearchHits.hits(query: query, stream: store.stream, saved: store.saved, extra: scope == .alle ? extra : [], muted: store.muted)).prefix(SearchHits.limit))
             List {
                 Section {
-                    ForEach(hits.prefix(80)) { item in
+                    if !hits.isEmpty {
+                        Text(SearchHits.status(count: hits.count, scope: scope)).uitleg().foregroundStyle(Theme.ink2).listRowBackground(Color.clear)
+                    }
+                    ForEach(hits) { item in
                         // Zonder "+N bronnen": een link in een lijstrij maakt de hele rij tot die link.
-                        ItemRow(item: item, story: nil, linkSource: false).listRowBackground(Theme.surface)
+                        ItemRow(item: item, outside: store.isOutside(item), story: nil, linkSource: false).listRowBackground(Theme.surface)
                     }
                 } header: {
                     // Dezelfde schermtitel als Bewaard, Stroom en Selectie (t5-screen), niet de grote
                     // systeemtitel: die stond groter en lager (B2).
-                    ScreenTitle("Zoeken").textCase(nil).listRowInsets(EdgeInsets())
+                    VStack(alignment: .leading, spacing: Space.s3) {
+                        ScreenTitle("Zoeken")
+                        Picker("Waar zoeken", selection: $scope) {
+                            ForEach(SearchHits.Scope.allCases) { Text($0.rawValue).tag($0) }
+                        }.pickerStyle(.segmented).padding(.horizontal, Space.s4)
+                    }.textCase(nil).listRowInsets(EdgeInsets())
                 }
             }
+            .task(id: scope) { extra = scope == .alle ? await store.searchPoolAll() : [] }
             .scrollContentBackground(.hidden)
             .background(Theme.paper)
             .overlay {
-                if q.count < 2 {
-                    EmptyState(title: "Zoek in je nieuws", systemImage: "magnifyingglass", text: "In koppen en intro’s van je Stroom.")
+                if q.isEmpty {
+                    EmptyState(title: "Zoek in je nieuws", systemImage: "magnifyingglass", text: SearchHits.emptyText)
                 } else if hits.isEmpty {
-                    EmptyState(title: "Niets gevonden voor ‘\(query.trimmingCharacters(in: .whitespaces))’", systemImage: "magnifyingglass", text: "Hoot zoekt in koppen en intro’s van je Stroom.")
+                    EmptyState(title: "Niets gevonden voor ‘\(query.trimmingCharacters(in: .whitespaces))’", systemImage: "magnifyingglass", text: SearchHits.noHitsText, action: scope == .mijn ? (label: "Zoek in alle bronnen", systemImage: nil, run: { scope = .alle }) : nil)
                 }
             }
             .navigationTitle("Zoeken")
@@ -425,7 +433,7 @@ struct SearchView: View {
             .hootScreenTitle()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .searchable(text: $query, prompt: "Zoek in koppen en intro’s")
+            .searchable(text: $query, prompt: "Zoek op woord of bron") // past ook op de SE; auteurs noemt de lege staat
         }
     }
 }

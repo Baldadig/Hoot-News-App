@@ -17,11 +17,20 @@ const js = esbuild.transformSync(rd('hoot.js'), { loader: 'js', minify: true, ta
 const CSSFILE = `hoot.${sha(css, 8)}.css`, JSFILE = `hoot.${sha(js, 8)}.js`;
 fs.writeFileSync(path.join(OUT, 'assets', CSSFILE), css); fs.writeFileSync(path.join(OUT, 'assets', JSFILE), js);
 
-// fonts (alleen wat gebruikt wordt, alleen latin)
-const FD = APP + '/node_modules/@fontsource';
-const fonts = { 'newsreader-800.woff2': FD + '/newsreader/files/newsreader-latin-800-normal.woff2' };
-for (const w of [400, 600, 700, 800]) fonts[`source-sans-3-${w}.woff2`] = FD + `/source-sans-3/files/source-sans-3-latin-${w}-normal.woff2`;
+// fonts (alleen wat gebruikt wordt; latin en latin-ext, de tweede laadt alleen bij zulke tekens).
+// Koppen: de statische Newsreader 800. Lopende tekst en bediening: de variabele letters uit src/fonts.
+const FD = APP + '/node_modules/@fontsource', SF = APP + '/src/fonts';
+const fonts = {
+  'newsreader-800.woff2': FD + '/newsreader/files/newsreader-latin-800-normal.woff2',
+  'newsreader-800-ext.woff2': FD + '/newsreader/files/newsreader-latin-ext-800-normal.woff2',
+  'newsreader-tekst.woff2': SF + '/newsreader-latin-opsz-normal.woff2',
+  'newsreader-tekst-ext.woff2': SF + '/newsreader-latin-ext-opsz-normal.woff2',
+  'schibsted.woff2': SF + '/schibsted-latin-wght-normal.woff2',
+  'schibsted-ext.woff2': SF + '/schibsted-latin-ext-wght-normal.woff2',
+};
 for (const [n, p] of Object.entries(fonts)) fs.copyFileSync(p, path.join(OUT, 'fonts', n));
+fs.copyFileSync(SF + '/schibsted-OFL.txt', path.join(OUT, 'fonts', 'OFL-Schibsted-Grotesk.txt')); // de licentie gaat mee met de letter
+fs.copyFileSync(SF + '/newsreader-OFL.txt', path.join(OUT, 'fonts', 'OFL-Newsreader.txt'));
 
 // merk
 const dOf = f => fs.readFileSync(APP + '/public/brand/' + f, 'utf8').match(/<path[^>]* d="([^"]+)"/)[1];

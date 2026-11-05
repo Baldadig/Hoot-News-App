@@ -9,9 +9,13 @@ struct ArticleReaderView: View {
     @Environment(\.nachtActief) private var nacht
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @Environment(\.accessibilityReduceMotion) private var still
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @State private var width: CGFloat = 0 // breedte van de lezer, om te zien welk woord in de kop niet past
     let item: Item
     @State private var loader = ArticleLoader()
     @State private var waiting = ReaderWaitingState()
+    @State private var holding = false // het artikel is er, de laadstrepen maken hun beweging nog af
     @AppStorage("hoot.readerSize") private var size = 1
     @State private var login: LoginTarget?
     @State private var signedIn = false // ingelogd bij deze uitgever: dan geen balk "Zie je maar een deel?"
@@ -29,15 +33,19 @@ struct ArticleReaderView: View {
         return source?.paid == true && article.length < 2500 && !signedIn && loginURL != nil
     }
 
+    static let failedTitle = "Dit artikel lukt even niet in de lezer"
+    static let failedText = "Soms laadt de pagina niet goed. Probeer het opnieuw, of lees het op de website."
+
     var body: some View {
         NavigationStack {
             Group {
-                switch loader.state {
+                switch holding ? ArticleLoader.State.loading : loader.state {
                 case .loading:
                     ReaderLoadingView(title: item.title.isEmpty ? (item.summary ?? "") : typeset(item.title, lang: source?.lang), sourceName: sourceName, waiting: waiting)
                 case let .ready(article):
-                    ArticleWebView(html: ReaderHTML.page(article, item: item, sourceName: sourceName, size: size, lang: source?.lang, night: nacht), baseURL: item.link)
+                    ArticleWebView(html: ReaderHTML.page(article, item: item, sourceName: sourceName, size: size, lang: source?.lang, night: nacht, typeSize: typeSize, width: width), baseURL: item.link)
                         .ignoresSafeArea(edges: .bottom)
+                        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
                         .safeAreaInset(edge: .bottom) {
                             if loginPanelVisible && shouldOfferLogin {
                                 ReaderLoginPanel(sourceName: sourceName, login: {
@@ -50,7 +58,7 @@ struct ArticleReaderView: View {
                         WebPage(webView: loader.webView)
                         VStack(spacing: Space.s2) {
                             Text(loader.visitByChoice ? "Dit is de pagina van \(sourceName). Probeer de lezer opnieuw, of lees hier verder." : "\(sourceName) vraagt eerst om toestemming of om in te loggen. Kies wat je wilt; daarna gaat de lezer verder.")
-                                .font(.footnote)
+                                .font(.ui(.footnote))
                                 .foregroundStyle(Theme.ink3)
                                 .multilineTextAlignment(.center)
                             Button("Verder naar de lezer") { loader.retry() }.buttonStyle(.ink)
@@ -60,12 +68,14 @@ struct ArticleReaderView: View {
                         .background(nacht ? AnyShapeStyle(Theme.paper) : AnyShapeStyle(.bar))
                     }
                 case .failed:
+                    // Na één stille nieuwe poging (ArticleLoader.temporaryFailure): vaak is het tijdelijk.
                     ContentUnavailableView {
-                        Label("Dit artikel lukt niet in de lezer", systemImage: "doc.text.magnifyingglass")
+                        Label(Self.failedTitle, systemImage: "doc.text.magnifyingglass")
                     } description: {
-                        Text("Sommige pagina's (video, liveblogs, puzzels) hebben geen leesbare tekst, of de uitgever laat de pagina niet zo openen.")
+                        Text(Self.failedText).zin()
                     } actions: {
-                        Button("Open op de website") { if let url = item.link { openURL(url) } }.buttonStyle(.ink)
+                        Button("Probeer opnieuw") { loader.reload() }.buttonStyle(.ink)
+                        Button("Open op de website") { if let url = item.link { openURL(url) } }.buttonStyle(.glass)
                         Button("Toon de pagina hier") { loader.showPage() }.buttonStyle(.glass)
                     }
                 }
@@ -101,13 +111,13 @@ struct ArticleReaderView: View {
             .overlay(alignment: .top) {
                 if welcome {
                     Label("Ingelogd bij \(sourceName)", systemImage: "checkmark.circle.fill")
-                        .font(.subheadline.weight(.semibold))
+                        .font(.ui(.subheadline, .semibold))
                         .foregroundStyle(Theme.paper)
                         .padding(.horizontal, Space.s4)
                         .padding(.vertical, Space.s2)
                         .background(Theme.ink, in: Capsule()) // een melding is inkt, geen rood
                         .padding(.top, Space.s2)
-                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .transition(still ? .opacity : .move(edge: .top).combined(with: .opacity)) // Verminder beweging: niet schuiven
                         .accessibilityAddTraits(.isStaticText)
                 }
             }
@@ -120,6 +130,15 @@ struct ArticleReaderView: View {
             #endif
         }
         .task(id: loader.state == .loading) {
+            // Klaar terwijl de laadstrepen in beeld zijn: eerst de lopende beweging afmaken, dan
+            // vervaagt de stapel naar het artikel (LoadLines: 320 ms, Verminder beweging 240).
+            if loader.state != .loading, let started = waiting.startedAt {
+                let elapsed = LoadLinesModel.clock() - started
+                let rest = still ? 0 : max(0, LoadLines.settleAt(elapsed) - elapsed)
+                holding = true
+                if rest > 0 { try? await Task.sleep(for: .milliseconds(Int(rest.rounded()))) }
+                withAnimation(LoadLines.easeAnimation(still ? LoadLines.reduceFade : LoadLines.out)) { holding = false }
+            }
             waiting.reset()
             if loader.state == .loading { await waiting.wait() }
         }
@@ -157,35 +176,75 @@ struct ArticleReaderView: View {
 
 }
 
+// De letters van de lezer. WKWebView ziet de letters van de app (UIAppFonts) niet, dus ze gaan als
+// @font-face mee in de pagina. Niet de volle TTF's van de app (± 1 MB per artikel), maar kleine
+// WOFF's: alleen latin, zonder hinting, alleen de standen die de lezer gebruikt (scripts/
+// build-reader-fonts.mjs, uit dezelfde app-standen): samen ± 220 kB in de pagina. Een teken buiten
+// latin (ł, ő) valt per teken terug op de systeemletter. Eén keer opgebouwd.
+enum ReaderFonts {
+    private static func face(_ family: String, _ file: String, weight: Int, style: String = "normal") -> String {
+        guard let url = Bundle.main.url(forResource: "Lezer-" + file, withExtension: "woff"), let data = try? Data(contentsOf: url) else { return "" }
+        return "@font-face { font-family: \"\(family)\"; src: url(data:font/woff;base64,\(data.base64EncodedString())) format(\"woff\"); font-weight: \(weight); font-style: \(style); }"
+    }
+    private static let common = [
+        face("Newsreader Kop", "NewsreaderKop-800", weight: 800), // de kop
+        face("Newsreader Tekst", "NewsreaderTekst-700", weight: 700), // vet in de tekst
+        face("Newsreader Tekst", "NewsreaderTekst-400-cursief", weight: 400, style: "italic"), // cursief, citaten
+        face("Schibsted Grotesk", "SchibstedGrotesk-400", weight: 400), // bronregel, bijschriften
+        face("Schibsted Grotesk", "SchibstedGrotesk-800", weight: 800), // rubriek
+    ].joined(separator: "\n")
+    private static let day = face("Newsreader Tekst", "NewsreaderTekst-450", weight: 400) // lees-stand, variant 4: opsz 12, wght 450 (als --lees-wght op het web)
+    private static let nacht = face("Newsreader Tekst", "NewsreaderTekst-480", weight: 400) // Nacht: 480 op de plek van 400 (variant 3: 430)
+    // Voor de toets: hoeveel letter er per pagina meegaat.
+    static func bytes(night: Bool) -> Int { css(night: night).utf8.count }
+    static func css(night: Bool) -> String { common + "\n" + (night ? nacht : day) }
+}
+
 // De opmaak van een artikel: HTML met de kleuren en letters van Hoot. JavaScript staat uit.
 enum ReaderHTML {
     static let scales = [0.9, 1.0, 1.15, 1.32]
 
-    static func page(_ a: Article, item: Item, sourceName: String, size: Int, lang: String? = nil, night: Bool = false) -> String {
+    static func page(_ a: Article, item: Item, sourceName: String, size: Int, lang: String? = nil, night: Bool = false, typeSize: DynamicTypeSize? = nil, width: CGFloat = 0) -> String {
         let scale = scales[min(max(size, 0), scales.count - 1)]
-        let title = escape(typeset(a.title.isEmpty ? item.title : a.title, lang: lang)) // de lezer haalt de kop zelf: zetten zoals de server (T6)
-        let meta = [a.byline, item.date.map { HootDate.ago($0) }].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.map(escape).joined(separator: " · ")
+        // De tekstmaat komt uit de omgeving van de view (niet uit UITraitCollection.current, onbetrouwbaar in een body) en gaat als px in de pagina.
+        let bodyPx = typeSize.map { KopZet.pointSize(.body, typeSize: $0) }
+        let accessibilitySize = typeSize?.isAccessibilitySize ?? false
+        var title = typeset(a.title.isEmpty ? item.title : a.title, lang: lang) // de lezer haalt de kop zelf: zetten zoals de server (T6)
+        // Newsreader 800 is breed: een woord breder dan de kolom ("Rijksvoorlichtingsdienst" op een SE) krijgt zachte
+        // afbreekstreepjes op de lettergrepen, zoals Kop. Woorden die passen blijven heel. Kopmaat en kolom als in de css hieronder.
+        if width > 0 {
+            let body = bodyPx ?? UIFont.preferredFont(forTextStyle: .body).pointSize
+            let headPx = min(1.75 * 1.12 * scale * body, 48)
+            let column = min(width, 680) - 32
+            title = KopZet.fit(title, font: UIFont(name: Letters.kop, size: headPx) ?? .systemFont(ofSize: headPx, weight: .heavy), width: column).text
+        }
+        title = escape(title)
+        // De bron staat in de bronregel onder de kop, niet als rode kicker erboven (L3, minder rood);
+        // de kicker is de rubriek van het stuk, als die er is, stil in ink-3.
+        let meta = [sourceName, a.byline, item.date.map { HootDate.ago($0) }].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.map(escape).joined(separator: " · ")
+        let kicker = item.section?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return """
         <!doctype html><html lang="\(escape(lang ?? "nl"))"><head><meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="color-scheme" content="light dark">
         <style>
-        :root { --paper:#F5F1E8; --ink:#1A1814; --ink-3:#6B6457; --rule:#DED5C4; --accent:#A3201B; } /* tokens van het design system */
+        \(ReaderFonts.css(night: night))
+        :root { --paper:#F5F1E8; --ink:#1A1814; --ink-3:#6B6457; --rule:#DED5C4; --accent:#9A3324; } /* tokens van het design system */
         @media (prefers-color-scheme: dark) { :root { --paper:#151310; --ink:#F1ECE2; --ink-3:#A39B8D; --rule:#34302A; --accent:#EC7A70; } }
-        html { font: -apple-system-body; -webkit-text-size-adjust: 100%; }
+        html { font: -apple-system-body;\(bodyPx.map { " font-size: \($0)px;" } ?? "") -webkit-text-size-adjust: 100%; }
         body { margin:0; background:var(--paper); color:var(--ink); }
-        main { max-width: 680px; margin: 0 auto; padding: 16px 16px 48px; /* s4, s7 */ font-family: ui-serif, "New York", Georgia, serif; font-size: calc(1.06rem * \(scale)); line-height: 1.6; }
-        .kicker { font-family: -apple-system, system-ui, sans-serif; font-size: .72em; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin: 0 0 .6em; }
-        h1.title { font-size: min(1.75em, 48px); line-height: 1.15; font-weight: 800; margin: 0 0 .4em; } /* bij heel grote tekst niet een heel scherm kop */
-        .meta { font-family: -apple-system, system-ui, sans-serif; font-size: .8em; color: var(--ink-3); margin: 0 0 1.6em; padding-bottom: 1em; border-bottom: 1px solid var(--rule); }
+        main { max-width: 680px; margin: 0 auto; padding: 16px 16px 48px; /* s4, s7 */ font-family: "Newsreader Tekst", ui-serif, Georgia, serif; font-size: calc(1.12rem * \(scale)); line-height: 1.6; } /* lopende tekst: Newsreader op tekstmaat, in Nacht 430 (ReaderFonts); een stap groter dan New York (1.06), want Newsreader oogt op dezelfde maat kleiner */
+        .kicker { font-family: "Schibsted Grotesk", -apple-system, system-ui, sans-serif; font-size: .72em; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 .6em; }
+        h1.title { font-family: "Newsreader Kop", ui-serif, Georgia, serif; font-size: min(1.75em, 48px); line-height: 1.15; font-weight: 800; margin: 0 0 .4em; } /* bij heel grote tekst niet een heel scherm kop */
+        .meta { font-family: "Schibsted Grotesk", -apple-system, system-ui, sans-serif; font-size: .8em; color: var(--ink-3); margin: 0 0 1.6em; padding-bottom: 1em; border-bottom: 1px solid var(--rule); }
         h1, h2, h3, h4 { line-height: 1.25; -webkit-hyphens: manual; hyphens: manual; } /* eigennamen in de kop breken nooit af */
-        h1 { overflow-wrap: anywhere; text-wrap: balance; } /* een woord breder dan de kolom breekt zonder streepje, regels even lang */
-        main.hyphenate :is(h2, h3, h4) { -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 10 4 4; } /* alleen bij Heel groot: lange woorden in tussenkoppen afbreken, in de taal van de bron */
+        h1 { overflow-wrap: anywhere; text-wrap: balance; } /* laatste redmiddel; de kop heeft zijn zachte streepjes al (ReaderHTML.page), regels even lang */
+        main.hyphenate :is(h2, h3, h4) { -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 10 4 4; -webkit-hyphenate-limit-before: 3; -webkit-hyphenate-limit-after: 3; } /* alleen bij Heel groot of een AX-maat: lange woorden in tussenkoppen afbreken met een streepje (nooit midden in een woord zonder), in de taal van de bron */
         h2 { font-size: 1.3em; margin: 1.6em 0 .5em; } h3 { font-size: 1.12em; margin: 1.4em 0 .4em; }
         p { margin: 0 0 1em; }
         a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
         img, video, picture { max-width: 100%; height: auto; border-radius: 12px; /* radius */ display: block; margin: 1.2em auto; }
-        figure { margin: 1.4em 0; } figcaption, .caption { font-family: -apple-system, system-ui, sans-serif; font-size: .75em; color: var(--ink-3); margin-top: .4em; }
+        figure { margin: 1.4em 0; } figcaption, .caption { font-family: "Schibsted Grotesk", -apple-system, system-ui, sans-serif; font-size: .75em; color: var(--ink-3); margin-top: .4em; }
         blockquote { margin: 1.4em 0; padding: 0 0 0 1em; border-left: 3px solid var(--accent); font-style: italic; }
         hr { border: 0; border-top: 1px solid var(--rule); margin: 2em 0; }
         ul, ol { padding-left: 1.3em; } li { margin: .3em 0; }
@@ -193,8 +252,8 @@ enum ReaderHTML {
         main { overflow-wrap: break-word; } /* lange links breken af in plaats van de pagina te verbreden */ td, th { border-bottom: 1px solid var(--rule); padding: .4em; text-align: left; }
         pre, code { font-family: ui-monospace, Menlo, monospace; font-size: .85em; white-space: pre-wrap; }
         \(night ? NachtLeesinkt.readerCSS : "")
-        </style></head><body><main\(scale > 1.3 ? " class=\"hyphenate\"" : "")>
-        <p class="kicker">\(escape(sourceName))</p>
+        </style></head><body><main\(scale > 1.3 || accessibilitySize ? " class=\"hyphenate\"" : "")>
+        \(kicker.isEmpty ? "" : "<p class=\"kicker\">\(escape(kicker))</p>")
         <h1 class="title">\(title)</h1>
         \(meta.isEmpty ? "" : "<p class=\"meta\">\(meta)</p>")
         \(a.content)
@@ -263,14 +322,22 @@ struct LoginTarget: Identifiable {
 
 struct LoginWebView: View {
     @Environment(\.nachtActief) private var nacht
+    @Environment(\.colorScheme) private var scheme
     @Environment(\.dismiss) private var dismiss
     let target: LoginTarget
     @State private var webView: WKWebView = {
         let config = WKWebViewConfiguration()
         config.websiteDataStore = ArticleLoader.dataStore
-        return WKWebView(frame: .zero, configuration: config)
+        let view = WKWebView(frame: .zero, configuration: config)
+        // Tot de site zelf tekent: papier, geen wit vlak.
+        view.isOpaque = false
+        view.backgroundColor = NachtKleur.paper
+        view.underPageBackgroundColor = NachtKleur.paper
+        view.scrollView.backgroundColor = .clear
+        return view
     }()
-    @State private var done = false // we zien dat je bent ingelogd
+    @State private var watcher: LoginWatcher?
+    private var done: Bool { watcher?.confirmed == true } // we zien echt dat je bent ingelogd
 
     var body: some View {
         NavigationStack {
@@ -279,62 +346,75 @@ struct LoginWebView: View {
                 .navigationTitle("Inloggen bij \(target.name)")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    // "Klaar" als tekst in inkt; pas na het inloggen is het de volgende stap, en dan halfvet.
+                    // "Klaar" als tekst in inkt; pas als je echt bent ingelogd is het de volgende stap: een inktknop.
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button("Klaar") { dismiss() }.fontWeight(done ? .semibold : .regular)
+                        if done {
+                            Button { dismiss() } label: { Text("Klaar").font(.ui(.body, .semibold)).foregroundStyle(Theme.paper) }
+                                .buttonStyle(.borderedProminent).tint(Theme.ink)
+                        } else {
+                            Button("Klaar") { dismiss() }
+                        }
                     }
                 }
                 .safeAreaInset(edge: .top) {
+                    // De status onder de gecentreerde titel, ook gecentreerd. Eerlijk: pas na een echte inlog
+                    // het vinkje, in inkt (een succes in rood leest als een fout).
                     Group {
                         if done {
-                            // De bevestiging: je bent binnen, en wat je nu kunt.
-                            Label("Ingelogd bij \(target.name). Tik op Klaar.", systemImage: "checkmark.circle.fill")
-                                .foregroundStyle(Theme.accent)
+                            Label { Text("Je bent ingelogd bij \(target.name).") } icon: { Image(systemName: "checkmark") }
+                                .foregroundStyle(Theme.ink)
+                                .font(.ui(.footnote, .semibold))
                         } else {
                             Text("Log in zoals altijd. Hoot ziet je wachtwoord niet.")
                                 .foregroundStyle(Theme.ink3)
                         }
                     }
-                    .font(.footnote)
+                    .font(.ui(.footnote))
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal)
                     .padding(.vertical, Space.s2)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(maxWidth: .infinity)
                     .background(nacht ? AnyShapeStyle(Theme.paper) : AnyShapeStyle(.bar))
+                    .overlay(alignment: .bottom) { Rule() }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityAddTraits(.updatesFrequently)
                     .animation(.easeInOut(duration: 0.3), value: done)
                 }
                 .sensoryFeedback(.success, trigger: done) { _, now in now }
+                .onChange(of: done) { _, now in
+                    if now { UIAccessibility.post(notification: .announcement, argument: "Je bent ingelogd bij \(target.name).") }
+                }
         }
-        .task { if let url = target.url { webView.load(URLRequest(url: url)) } }
-        .task { await watch() }
+        .task { await start() }
     }
 
-    // Kijk mee of er een inlog bijkomt: een bekende inlogcookie, of een nieuwe accountcookie die er bij
-    // het openen nog niet was. Dan onthouden we de uitgever (alleen op dit toestel) en bevestigen we.
-    private func watch() async {
-        guard let domain = target.url.flatMap(PublisherLogin.domain(of:)) else { return }
-        let before = await PublisherLogin.accountCookies(domain)
+    // Eerst het script, het dimmen (Donker en Nacht) en de berichten, dan de pagina; daarna meekijken.
+    private func start() async {
+        guard let url = target.url else { return }
+        let content = webView.configuration.userContentController
+        if scheme == .dark {
+            content.addUserScript(WKUserScript(source: LoginPageScript.dimScript(night: nacht), injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        }
+        guard let domain = PublisherLogin.domain(of: url) else { webView.load(URLRequest(url: url)); return }
+        let watcher = LoginWatcher(domain: domain)
+        watcher.attach(to: webView)
+        self.watcher = watcher
         #if DEBUG
-        // `-HootFakeLogin 4`: na 4 s een accountcookie, alsof je inlogde (om deze stap te testen).
+        // `-HootFakeLogin 4`: na 4 s een inlogcookie, alsof je inlogde (om deze stap te testen).
         let fake = UserDefaults.standard.double(forKey: "HootFakeLogin")
         if fake > 0 {
             Task {
                 try? await Task.sleep(for: .seconds(fake))
-                let cookie = HTTPCookie(properties: [.domain: "." + domain, .path: "/", .name: "hoot_test_account", .value: "1", .expires: Date.now.addingTimeInterval(86400 * 30)])
+                let cookie = HTTPCookie(properties: [.domain: "." + domain, .path: "/", .name: "hoot_test_auth_token", .value: "1", .expires: Date.now.addingTimeInterval(86400 * 30)])
                 if let cookie { await ArticleLoader.dataStore.httpCookieStore.setCookie(cookie) }
             }
         }
         #endif
-        if await !PublisherLogin.loggedIn([domain]).isEmpty { done = true; return } // al ingelogd
-        while !Task.isCancelled {
-            try? await Task.sleep(for: .seconds(1))
-            let known = await !PublisherLogin.loggedIn([domain]).isEmpty
-            let added = await PublisherLogin.accountCookies(domain).subtracting(before)
-            if known || !added.isEmpty {
-                PublisherLogin.remember(domain)
-                done = true
-                return
-            }
-        }
+        // Al ingelogd (herkende cookie, of eerder hier ingelogd en de accountcookie staat er nog)?
+        if await !PublisherLogin.loggedIn([domain]).isEmpty { watcher.alreadyLoggedIn() }
+        webView.load(URLRequest(url: url))
+        if await watcher.watch() { PublisherLogin.remember(domain) }
     }
 }
 
@@ -343,14 +423,16 @@ struct LoginWebView: View {
 @MainActor @Observable
 final class ReaderWaitingState {
     private(set) var visible = false
+    private(set) var startedAt: Double? // wanneer de laadstrepen begonnen (LoadLinesModel.clock)
     func wait() async {
         do {
-            try await Task.sleep(for: .milliseconds(400))
+            try await Task.sleep(for: .milliseconds(Int(LoadLines.early)))
             guard !Task.isCancelled else { return }
             visible = true
-        } catch { /* snelle laadactie of vertrek: geen indicatie */ }
+            startedAt = LoadLinesModel.clock()
+        } catch { /* snelle laadactie of vertrek: geen indicatie (onder 400 ms geen strepen) */ }
     }
-    func reset() { visible = false }
+    func reset() { visible = false; startedAt = nil }
 }
 
 struct ReaderLoadingView: View {
@@ -359,15 +441,36 @@ struct ReaderLoadingView: View {
     let waiting: ReaderWaitingState
     var body: some View {
         VStack(alignment: .leading, spacing: Space.s4) {
-            Kicker(text: sourceName)
-            Text(title).font(Theme.headline(.title)).fixedSize(horizontal: false, vertical: true)
-            if waiting.visible {
-                WaitingMark(label: "Artikel laden").frame(maxWidth: .infinity).padding(.top, Space.s5)
+            // Zoals de lezer zelf: de kop, met de bron in de regel eronder (L3).
+            VStack(alignment: .leading, spacing: Space.s2) {
+                Kop(title, .title).fixedSize(horizontal: false, vertical: true)
+                Text(sourceName).font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
+            }
+            if waiting.visible, let started = waiting.startedAt {
+                ReaderLoadLines(started: started)
             }
             Spacer()
         }
         .padding()
         .frame(maxWidth: Layout.readable)
         .frame(maxWidth: .infinity)
+    }
+}
+
+// De laadstrepen in de lezer: dezelfde stapel als bij het eerste laden, zonder landen. Is het artikel
+// er, dan maakt de stapel zijn beweging af en vervaagt hij met de wissel naar het artikel.
+struct ReaderLoadLines: View {
+    let started: Double
+    var label = "Artikel laden"
+    @Environment(\.accessibilityReduceMotion) private var still
+    var body: some View {
+        GeometryReader { proxy in
+            TimelineView(.animation(minimumInterval: nil, paused: still)) { timeline in
+                LoadLinesArt(frame: LoadLines.frame(LoadLines.State(t0: started, reduce: still, box: LoadLines.Box(x: 0, y: 0, w: proxy.size.width)), now: LoadLines.clockMs(timeline.date)))
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: LoadLines.box, maxHeight: LoadLines.box)
+        .accessibilityElement()
+        .accessibilityLabel(label)
     }
 }

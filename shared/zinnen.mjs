@@ -65,6 +65,11 @@ export function wholeSentences(text, max = Infinity, rek = max) {
   return commaPiece(s, max)
 }
 
+// Hoeveel regels intro standaard (build 46: 3 in plaats van 2, zodat een intro minder vaak wegvalt):
+// in de Stroom (de instelling, src/lib/prefs.js), in de krant van de Editie en in het vergelijkpaneel.
+// De app gebruikt hetzelfde getal (HootStore.introLines).
+export const INTRO_LINES = 3
+
 // Hoeveel tekens er op `lines` regels passen, in een kolom van `width` px met een intro van
 // `font` px. Gemeten met de 1679 intro's uit de snapshot op 375 breed (normaal, groot en 130 %):
 // een teken is gemiddeld hooguit 0,58 × de lettermaat breed, en de eerste regel verliest ± 6

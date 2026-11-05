@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="Een rode halve zon op een zwarte horizonlijn, daaronder vier korter wordende lijnen">
+  <rect width="240" height="240" fill="#F5F1E8"/>
+  <path d="M64 152A56 56 0 0 1 176 152Z" fill="#9A3324"/>
+  <rect x="24" y="151" width="192" height="2" fill="#1A1814"/>
+  <rect x="24" y="172" width="192" height="1" fill="#1A1814"/>
+  <rect x="24" y="184" width="144" height="1" fill="#1A1814"/>
+  <rect x="24" y="196" width="96" height="1" fill="#1A1814"/>
+  <rect x="24" y="208" width="48" height="1" fill="#1A1814"/>
+</svg>

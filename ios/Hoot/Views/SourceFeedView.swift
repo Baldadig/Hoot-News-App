@@ -10,16 +10,17 @@ struct SourceAvatar: View {
     var body: some View {
         AsyncImage(url: source.avatar.flatMap(URL.init(string:))) { phase in
             if let image = phase.image {
-                // Altijd op wit: uitgevers maken hun logo voor een lichte achtergrond, en een
-                // doorzichtig logo (zoals de zwarte P van Het Parool) verdwijnt anders in donker.
-                image.resizable().scaledToFill().background(Color.white)
+                // Op `markBg` (wit, in Donker gedempt, in Nacht inkt): uitgevers maken hun logo voor
+                // een lichte achtergrond, en een doorzichtig logo (zoals de zwarte P van Het Parool)
+                // verdwijnt anders in donker. Gelijk aan --mark-bg op het web.
+                image.resizable().scaledToFill().background(Theme.markBg)
             } else {
                 Monogram(name: source.name, brandColor: source.brandColor, size: size)
             }
         }
         .frame(width: size, height: size)
         .clipShape(Circle())
-        .overlay(Circle().strokeBorder(Theme.rule, lineWidth: 1))
+        .overlay(Circle().strokeBorder(Theme.hairline, lineWidth: 1)) // de dunne ring van .mark::after
         .accessibilityHidden(true)
     }
 }
@@ -54,9 +55,9 @@ struct SourceFeedView: View {
                     HStack(spacing: Space.s3) {
                         SourceAvatar(source: source, size: 52)
                         VStack(alignment: .leading, spacing: Space.s0) {
-                            Text(source.name).font(Theme.headline(.title2))
-                            if let about = source.about { Text(about).font(.subheadline).foregroundStyle(Theme.ink3) }
-                            Text(source.paid == true ? "Abonnement" : "Gratis").font(.caption.weight(.semibold)).foregroundStyle(source.paid == true ? Theme.ink3 : Theme.accent)
+                            Kop(source.name, .title2)
+                            if let about = source.about { Text(about).font(.ui(.subheadline)).foregroundStyle(Theme.ink3) }
+                            Text(source.paid == true ? "Abonnement" : "Gratis").font(.ui(.caption, .semibold)).foregroundStyle(source.paid == true ? Theme.hint : Theme.accent)
                         }
                     }
                     .padding(.bottom, Space.s4)

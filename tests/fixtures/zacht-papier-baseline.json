@@ -1,11 +1,11 @@
 {
-  "cssBeforeNightOverrideSha256": "3a1bf0a305cd311b1de1ae23afb25ca651c54284530413210a99118f9b5ece62",
+  "cssBeforeNightOverrideSha256": "e99fdb97e83e708dfd44b453b6d2823ca66bc5eb9a0692da76f0084034db2580",
   "nativeAssets": {
-    "ios/Hoot/Assets.xcassets/AccentSoft.colorset/Contents.json": "a7023580c5ea2ee7b88b10e0207d7048e44ce173163633652e321cc24f7c841f",
-    "ios/Hoot/Assets.xcassets/BrandRed.colorset/Contents.json": "e44bbebc43bd7b91dbe0a79bd10ce342b66bb51e03e5551f5da9ffa20ac53886",
+    "ios/Hoot/Assets.xcassets/AccentSoft.colorset/Contents.json": "a6dd53ea95e1f6e6b94294edaefa3d9815151cdac982fd26b8703112753aa8e8",
+    "ios/Hoot/Assets.xcassets/BrandRed.colorset/Contents.json": "eba93c7ee424f0ef64a58823969b5fee30ff8150e48dd3d797b0e9c77c50288c",
     "ios/Hoot/Assets.xcassets/Edge.colorset/Contents.json": "b3e4c754affaffcc24aa29b8bf605a39d60c99cd7867766de1e4ca1ab28a5e5e",
     "ios/Hoot/Assets.xcassets/Surface.colorset/Contents.json": "8a6802307e5be8a1f35cb2f640cf103a28109cf4384566945375f8f4136c93d7",
-    "ios/Hoot/Assets.xcassets/AccentColor.colorset/Contents.json": "293c63d9d1ac35fce94be6b9b96c36cc1cfbf662ddfc54fe0b27df7a25906610",
+    "ios/Hoot/Assets.xcassets/AccentColor.colorset/Contents.json": "e723ad4f2a4e6706c9574bdbd58bd627dfd0e910e7206f219091b0cdf53d79ca",
     "ios/Hoot/Assets.xcassets/Ink.colorset/Contents.json": "6f346b318919a396c9114f244b2d814021278d8d096c95c82de61283fcb8f493",
     "ios/Hoot/Assets.xcassets/Ink3.colorset/Contents.json": "453293393ffa1cb71767686730946754e2e2f8a8c964991a8c3b356760ef1fa1",
     "ios/Hoot/Assets.xcassets/Ink2.colorset/Contents.json": "c0b18b01e32b61c738ea4976b2e93985e934ac91347861c621f5bb2cd8d38618",

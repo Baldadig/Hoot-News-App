@@ -1,7 +1,13 @@
 {
-  "red": "#a3201b",
+  "red": "#9a3324",
   "paper": "#f5f1e8",
   "domain": "gethoot.app",
+  "mark": {
+    "size": 28,
+    "pad": 0.14,
+    "disc": "#f5f1e8",
+    "ink": "#9a3324"
+  },
   "formats": {
     "link": {
       "width": 1200,

@@ -4,9 +4,7 @@ import {recordCorrection} from '../../src/lib/corrections.mjs'
 import Edition from '../../src/views/Edition.jsx'
 import {HootContext} from '../../src/components/Items.jsx'
 import '@fontsource/newsreader/latin-800.css'
-import '@fontsource/source-sans-3/latin-400.css'
-import '@fontsource/source-sans-3/latin-600.css'
-import '@fontsource/source-sans-3/latin-800.css'
+import '../../src/fonts/fonts.css'
 import '../../src/styles.css'
 const q=new URLSearchParams(location.search),n=q.get('n')==='3'?3:10
 const noop=()=>{}

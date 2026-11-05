@@ -2,7 +2,7 @@ import { timeMs } from '../lib/rubriek-crossfade.js'
 import { Fragment, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { SourceMark } from './Items.jsx'
 import { StackIcon, CheckIcon, CaretIcon, ICON_SM } from './icons.jsx'
-import { LOGO, SMALL, STEP, PEEK, STEP_OPEN, TAP, GAP, EDGE, PAD, STRIP_FADE, plek, stapel, keuzeLabel, inRijVolgorde, stapelTeksten, zeg, bezier } from '../lib/streamline.js'
+import { LOGO, SMALL, STEP, PEEK, STEP_OPEN, TAP, EDGE, PAD, STRIP_FADE, UITLOOP, plek, stapel, keuzeLabel, inRijVolgorde, stapelTeksten, zeg, bezier } from '../lib/streamline.js'
 
 // De lijn bovenaan de Stroom (voorstel 4, "Krantenrubrieken"): de rubrieken in de krantenletter op
 // één lijn met een inktlijn eronder, één rode streep onder wat aan staat. Rechts op dezelfde lijn
@@ -211,13 +211,26 @@ export function StreamLine({ rubrieken, active, onRubriek, bronnen = [], picks, 
     nextRef.current?.classList.toggle('is-on', r && cap > 0)
   }
   // Open rij (van rechts naar links, scrollLeft ≤ 0): vervaging aan de kant waar nog bronnen liggen.
+  // De rij reikt UITLOOP buiten de lijn (ring en vinkje heel); waar hij vervaagt, begint dat op de
+  // lijn (--ul, --ur). Dicht knipt hij links op de lijn: wat wegglijdt, komt niet in de kantlijn.
   const stripEdges = () => {
     const s = stripRef.current
-    if (!s || !st.current.open) return
+    if (!s) return
+    if (!st.current.open) return edgesShut(s)
     const max = s.scrollWidth - s.clientWidth
     const x = Math.abs(s.scrollLeft)
-    s.style.setProperty('--fr', x > 1 ? STRIP_FADE + 'px' : '0px')
-    s.style.setProperty('--fl', x < max - 1 ? STRIP_FADE + 'px' : '0px')
+    const r = x > 1
+    const l = x < max - 1
+    s.style.setProperty('--fr', r ? STRIP_FADE + 'px' : '0px')
+    s.style.setProperty('--ur', r ? UITLOOP + 'px' : '0px')
+    s.style.setProperty('--fl', l ? STRIP_FADE + 'px' : '0px')
+    s.style.setProperty('--ul', l ? UITLOOP + 'px' : '0px')
+  }
+  const edgesShut = (s) => {
+    s.style.setProperty('--fl', '0px')
+    s.style.setProperty('--fr', '0px')
+    s.style.setProperty('--ul', UITLOOP + 'px')
+    s.style.setProperty('--ur', '0px')
   }
   // Een rubriek helemaal in beeld: buiten de kap en de vervaging.
   const reveal = (b, smooth) => {
@@ -254,8 +267,8 @@ export function StreamLine({ rubrieken, active, onRubriek, bronnen = [], picks, 
     if (!s) return
     const W = s.clientWidth
     const x = s.scrollLeft
-    const pad = STRIP_FADE + GAP
-    const lo = W - k * STEP_OPEN - TAP - pad // scrollLeft moet hieronder (linkerrand in beeld)
+    const pad = STRIP_FADE
+    const lo = W - 2 * UITLOOP - k * STEP_OPEN - TAP - pad // scrollLeft moet hieronder (linkerrand in beeld)
     const hi = pad - k * STEP_OPEN // en hierboven (rechterrand in beeld)
     let to = x
     if (x > lo) to = lo
@@ -358,10 +371,7 @@ export function StreamLine({ rubrieken, active, onRubriek, bronnen = [], picks, 
     chrome()
     rubEdges()
     if (open) stripEdges()
-    else if (stripRef.current) {
-      stripRef.current.style.setProperty('--fl', '0px')
-      stripRef.current.style.setProperty('--fr', '0px')
-    }
+    else if (stripRef.current) edgesShut(stripRef.current)
     const f = focusNext.current
     focusNext.current = null
     if (f === 'all' && open) bubbles()[0]?.focus({ preventScroll: true })
@@ -417,16 +427,23 @@ export function StreamLine({ rubrieken, active, onRubriek, bronnen = [], picks, 
     const line = lineRef.current
     let w = -1
     let fs = ''
+    let rw = ''
     const ro = new ResizeObserver(() => {
       const nw = line.clientWidth
       const nfs = getComputedStyle(document.documentElement).fontSize
-      if (nw === w && nfs === fs) return
+      // Ook als de rij zelf verandert (Buiten je bubbel komt erbij als de Editie er is) of het vak van
+      // de rubrieken smaller wordt (de stapel komt binnen): dan moet de actieve rubriek opnieuw
+      // helemaal in beeld.
+      const nrw = (rowRef.current?.offsetWidth ?? 0) + ':' + (scrollRef.current?.clientWidth ?? 0)
+      if (nw === w && nfs === fs && nrw === rw) return
       w = nw
       fs = nfs
+      rw = nrw
       relayout()
     })
     ro.observe(line)
     if (rowRef.current) ro.observe(rowRef.current)
+    if (scrollRef.current) ro.observe(scrollRef.current)
     let live = true
     document.fonts?.ready.then(() => live && relayout())
     return () => {

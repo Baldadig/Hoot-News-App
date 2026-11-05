@@ -1,1 +1,1 @@
-krant,kranten,editie,actueel,rustig,lezer,bronnen,politiek,economie,sport,wetenschap,tech,ai,cultuur
+krant,kranten,editie,actueel,rss,nieuwslezer,bronnen,politiek,economie,sport,wetenschap,tech,cultuur

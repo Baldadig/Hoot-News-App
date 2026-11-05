@@ -2,9 +2,14 @@ import { hasEditionMinimum } from '../../shared/edition-limits.mjs'
 import { cleanIntro } from '../../shared/edition-display.mjs'
 import { EditionNumber } from '../components/EditionNumber.jsx'
 import { useEffect, useRef, useState } from 'react'
-import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
-import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf } from '../components/Items.jsx'
+import { usePairs } from '../hooks/usePairs.js'
+import { usePhone } from '../hooks/usePhone.js'
+import { ViewHeader, StatusLine, LoadError, Empty } from '../components/Shell.jsx'
+import { LoadLinesBox, LoadLinesLayer, useLoadLines } from '../components/LoadLines.jsx'
+import { TienLayer, TienSpace, useTien } from '../components/FirstEdition.jsx'
+import { LeadStory, CompactItem, KaartItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf, viaLength } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
+import { Beeld, PlaceholderList } from '../components/Beeld.jsx'
 import { EditionArt, SparkleIcon, CaretIcon, CloseIcon, ICON_SM } from '../components/icons.jsx'
 import { BriefReader } from '../components/BriefReader.jsx'
 import { BrandLogo } from '../components/Brand.jsx'
@@ -20,9 +25,10 @@ import { followedNow } from '../lib/follow.js'
 import { TermHelp } from '../components/Terms.jsx'
 import { Why } from '../components/Why.js'
 import { labelFor } from '../lib/label.js'
-import { wholeSentences } from '../../shared/zinnen.mjs'
-import { usePrintEdition } from '../hooks/usePrintEdition.js'
+import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
+import { usePrintEdition, markPrinted } from '../hooks/usePrintEdition.js'
 import { useIntroMax } from '../lib/intro.js'
+import { usePullHorizon } from '../components/PullHorizon.jsx'
 
 // Rubriek van elke plek in de editie (komt van de server), als label boven het verhaal. Zelfde
 // namen als DESK_NAMES in shared/editor.mjs; 'regio' is de plek die De Redacteur uit je regionale
@@ -31,21 +37,30 @@ const DESK = { binnenland: 'Binnenland', buitenland: 'Buitenland', vs: 'VS', mid
 const VIA = { google: 'Google Trends', bluesky: 'Bluesky', wikipedia: 'Wikipedia' }
 const deskLabel = (e) => (e.desk === 'bubbel' && e.terms?.length ? `Buiten je bubbel · via ${[...new Set(e.terms.map((t) => VIA[t.via] || t.via))].join(' en ')}` : DESK[e.desk] || null)
 
-const FRONT = 6 // voorpagina: hoofdverhaal, drie ernaast en twee eronder
+const FRONT = 6 // op de telefoon: na zes verhalen "Verder in deze Editie"
+const SIDE = 3 // breed: het hoofdverhaal met 02 en 03 ernaast, daarna de paren
 
 // Klein verhaal op de voorpagina: rubriek, kop en hooguit twee regels samenvatting (ook bij een
 // lange kop: die vertelt zelden wat er gebeurde), dan dezelfde actieregel als elk bericht. Is de
 // kolom smal, dan krijgt de bron een eigen regel en staan vergelijken en bewaren eronder.
 // Volg je het verhaal, dan staat dat stil achter de rubriek ('Je volgt'). Het waarom van de plek
 // (jouw Editie) staat als stille regel onder de rubriek, boven de kop (zie Why.js).
-function FrontItem({ item, story, note, n = null, why = null, followed, taste, outside = false }) {
-  const { markRead, read } = useHoot()
+// `boven`: breed, in een paar dat anders een gat laat (Edition: usePairs). Het beeld staat dan groot
+// boven het verhaal, precies zo hoog als het paar nodig heeft, in plaats van klein naast de kop.
+function FrontItem({ item, story, note, n = null, why = null, followed, taste, outside = false, boven = null }) {
+  const { markRead, read, prefs } = useHoot()
   const opinie = item.type === 'opinie'
   const title = item.title
-  const fit = useIntroMax()(2, item.image ? 'voorpagina' : 'rij')
-  const summary = wholeSentences(cleanIntro(item.summary, item.author), fit.max, fit.rek) // hele zinnen, nooit "…"
+  // De miniatuur staat er altijd (het beeld of het placeholderbeeld), behalve met beelden uit: dan de hele breedte.
+  const fit = useIntroMax()(INTRO_LINES, (prefs?.images ?? 'aan') === 'aan' ? 'voorpagina' : 'rij')
+  const summary = wholeSentences(cleanIntro(item.summary, item.author), fit.max - viaLength(item), fit.rek - viaLength(item)) // hele zinnen, nooit "…"
   return (
-    <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
+    <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}${boven ? ' fitem--boven' : ''}`} data-id={item.id} style={boven ? { '--boven-h': `${boven}px` } : undefined}>
+      {boven && item.image ? (
+        <a className="fitem__boven" href={linkOf(item)} target="_blank" rel="noopener noreferrer" tabIndex={-1} aria-hidden="true" onClick={() => markRead(item.id)}>
+          <Img url={item.image} kind="lead" />
+        </a>
+      ) : null}
       {n || note || opinie || followed ? (
         <p className="label label--kicker kicker">
           {n ? <EditionNumber n={n} /> : null}
@@ -60,13 +75,14 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
           <span className="head-4 fitem__title" role="heading" aria-level="3">
             {title}
           </span>
-          {summary ? <span className="clamp clamp--vangnet fitem__sum">{summary}</span> : null}
+          {summary ? (
+            <span className="clamp clamp--vangnet fitem__sum">
+              {summary}
+              {item.borrowedFrom ? <span className="via"> — via {item.borrowedFrom}</span> : null}
+            </span>
+          ) : null}
         </span>
-        {item.image ? (
-          <span className="thumb">
-            <Img url={item.image} width="96" height="64" />
-          </span>
-        ) : null}
+        {!boven ? <Beeld item={item} kind="krant" as="span" className="thumb" width="96" height="64" /> : null}
       </a>
       <TermHelp text={`${title} ${summary || ''}`} max={1} />
       <Meta item={item} story={story} taste={taste} outside={outside} />
@@ -91,10 +107,11 @@ function LessNote({ entryKey, item, story, n }) {
 // Elke plek: het verhaal zelf, of ingeklapt als je er minder van wilde.
 const Slot = ({ less, row, children }) => (less.includes(row.key) ? <LessNote n={row.n} entryKey={row.key} item={row.item} story={row.story} /> : children)
 
-export default function Edition({ active, edition, bubble = [], brief = null, briefNote = null, briefForMembers = false, onJoin, hint = false, onHintDone, loading, failedLoad, statusProps, onRefresh, refreshing }) {
+export default function Edition({ active, edition, bubble = [], brief = null, briefNote = null, briefForMembers = false, onJoin, hint = false, onHintDone, tien: tienStart = null, onTienDone, loading, failedLoad, statusProps, onRefresh, refreshing }) {
   const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account, prefs, sourcesById } = useHoot()
   const following = followedNow(followStories, storiesById, newInStory)
   const ref = useRef(null)
+  const phone = usePhone() // telefoon: de Stroom-vorm met kaart A+ (src/styles/kaart.css); breder houdt de krant-vormen
 
   // Elke plek van de editie: het gepubliceerde bericht (vast) met de bundel erachter. Alle plekken
   // blijven staan; een bron die je niet volgt krijgt een label (behalve "Buiten je bubbel", dat
@@ -106,7 +123,8 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
       if (e.desk === 'bubbel' && prefs?.bubble === false) return null
       const r = resolveEditionEntry(e, { storiesById, itemsById, published, muted })
       if (!r) return null
-      const label = e.desk === 'breed' ? `Waar iedereen over schrijft · ${e.sourceCount} bronnen` : deskLabel({ ...e, desk: r.desk })
+      // Het aantal bronnen staat in de bronregel ("5 bronnen ›"), niet nog eens in de rubriek (E6).
+      const label = e.desk === 'breed' ? 'Waar iedereen over schrijft' : deskLabel({ ...e, desk: r.desk })
       // Het label (lib/label.js): de interesse van de lezer als het verhaal die echt draagt, anders de rubriek;
       // de waarom-regel alleen als die iets toevoegt; 'Buiten je bronnen' staat bij de bronregel.
       const l = labelFor({ topics: r.item.topics, mainTopics: r.item.mainTopics, follows: prefs?.topics || [], cat: sourcesById?.get(r.item.source)?.cat, desk: r.desk, deskLabel: label, why: e.why, followed: r.followed || ['bubbel', 'breed'].includes(e.desk) })
@@ -141,6 +159,13 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
 
   const title = SLOTS[edition?.slot]?.naam || 'Editie' // de naam van het dagdeel (shared/slots.mjs)
   const ready = !loading && !failedLoad && rows.length > 0
+  // Eerste laden: de laadstrepen. Klaar: het bovenste vel wordt de kopstreep, de andere drie de
+  // onderlijnen van de kop van het hoofdverhaal (src/lib/load-lines.js); dan geen tweede "druk".
+  const hostRef = useRef(null)
+  // Je eerste Editie, na het welkom: "Tien en de bubbel" (src/lib/tien.js) in plaats van de laadstrepen.
+  const tien = useTien(tienStart, { loading, failed: !!failedLoad })
+  const lines = useLoadLines(loading && !tien.active, ready)
+  const pull = usePullHorizon(ref, { onRefresh, busy: refreshing, failed: statusProps?.refreshError, label: 'Editie', enabled: ready })
   const sub = edition ? longDate(edition.date).replace(/^./, (c) => c.toUpperCase()) : null
 
   // Eén keer na het eerste Welkom: wat "Jouw Editie" in de metaregel betekent (src/lib/welcome.js).
@@ -152,11 +177,23 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
     if (!active && hintSeen.current) onHintDone?.()
   }, [active, onHintDone])
 
-  usePrintEdition(ref, edition?.id, active, ready && rows.length > 0)
+  usePrintEdition(ref, edition?.id, active, ready && rows.length > 0 && !lines.ending && !tien.active)
+  // De bubbel ging al open: deze Editie geldt als gedrukt.
+  useEffect(() => {
+    if (tien.active && ready) markPrinted(edition?.id)
+  }, [tien.active, ready, edition?.id])
+
+  // Breed (A): elk paar even hoog en het hoofdverhaal even hoog als zijn zijkolom.
+  const frontRef = useRef(null)
+  const pairsRef = useRef(null)
+  const boven = usePairs(pairsRef, frontRef, active && ready && !phone, rows.slice(SIDE).map((r) => r.key).join(','))
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
-      <div className="col col--wide col--front">
+      {pull}
+      <div className={`col col--wide col--front${tien.active ? tien.hostClass : lines.hostClass}`} ref={hostRef}>
+        <TienLayer tien={tien} host={hostRef} onDone={onTienDone} />
+        <LoadLinesLayer lines={lines} host={hostRef}  land={phone ? '.kaarten .kaart__title--lead' : '.front .lead__title'} rule=".edrule" onLand={() => markPrinted(edition?.id)} />
         {/* De kop van de Editie: titel en één metaregel (datum · weer · wiens Editie); de inktlijn
             eronder is het begin van het nieuws. Eén blok, zodat de kleur "Inkt" er een band van kan
             maken. De ingang naar het overzicht staat ónder de lijn, als stille bedieningsrij. */}
@@ -179,17 +216,17 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 title
               )
             }
-            sub={edition ? null : sub} onRefresh={onRefresh} refreshing={refreshing} compare />
+            sub={edition ? null : sub} onRefresh={onRefresh} refreshing={refreshing} refreshDesktop compare />
           {ready ? (
             <>
               <StatusLine {...statusProps} quiet />
-              {/* Eén metaregel, net als onder elke schermkop en zoals in de app: datum, het weer en
+              {/* De extra's van de Editiekop (weer, De Editie in één minuut, verversknop) staan alleen op breed scherm: de telefoon heeft dezelfde kop als de app. Eén metaregel, net als onder elke schermkop en zoals in de app: datum, het weer en
                   wiens Editie het is. Geen weer, dan valt het tussenstuk weg (en zijn punt). Waar
                   jouw Editie uit bestaat, staat bij Instellingen → Edities (en één keer als hint
                   onder de lijn, na het eerste Welkom). */}
               <p className="vh__sub edmeta">
                 <span>{sub}</span>
-                <span className="edmeta__wx">
+                <span className="edmeta__wx desk-only">
                   <Weather />
                 </span>
                 <span>{hasPersonalLabel ? 'Jouw Editie' : edition.personal ? 'Om te beginnen' : 'De Editie voor iedereen'}</span>
@@ -198,49 +235,6 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
           ) : null}
           {ready ? <hr className="edrule" /> : null}
         </div>
-        {ready && hasBrief ? (
-          <button type="button" className="briefcta" onClick={() => setReading(true)} aria-haspopup="dialog">
-            <span className="briefcta__icon" aria-hidden="true">
-              <SparkleIcon />
-            </span>
-            <span className="briefcta__text">
-              <span className="briefcta__title">De Editie in één minuut</span>
-              <span className="briefcta__sub">Samenvatting door AI, met de bronnen erbij</span>
-            </span>
-            <span className="briefcta__go" aria-hidden="true">
-              <CaretIcon size={ICON_SM} />
-            </span>
-          </button>
-        ) : null}
-        {ready && !hasBrief && !briefForMembers && briefNote ? (
-          // Het plafond voor vandaag is bereikt: dezelfde rij, zonder knop, met een rustige zin. Geen
-          // hover of druk: de stijl staat hier, want styles.css is vastgelegd (tests/zacht-papier).
-          <div className="briefcta briefcta--rust" role="status" style={{ background: 'none', cursor: 'default' }}>
-            <span className="briefcta__icon" aria-hidden="true">
-              <SparkleIcon />
-            </span>
-            <span className="briefcta__text">
-              <span className="briefcta__title">De Editie in één minuut</span>
-              <span className="briefcta__sub">{briefNote}</span>
-            </span>
-          </div>
-        ) : null}
-        {ready && !hasBrief && briefForMembers ? (
-          // Zonder account: de knop opent het inlogblad. Ingelogd maar het account is er nog niet
-          // helemaal (zeldzaam)? Dan brengt hij je naar Instellingen, waar je het opnieuw probeert.
-          <button type="button" className="briefcta" onClick={onJoin} aria-haspopup={account?.status === 'out' ? 'dialog' : undefined}>
-            <span className="briefcta__icon" aria-hidden="true">
-              <SparkleIcon />
-            </span>
-            <span className="briefcta__text">
-              <span className="briefcta__title">De Editie in één minuut</span>
-              <span className="briefcta__sub">Met een account</span>
-            </span>
-            <span className="briefcta__go" aria-hidden="true">
-              <CaretIcon size={ICON_SM} />
-            </span>
-          </button>
-        ) : null}
         {showHint ? (
           <div className="edhint">
             <p className="hint">Jouw Editie: gekozen uit jouw bronnen en interesses.</p>
@@ -255,11 +249,12 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             {rows.length} {rows.length === 1 ? 'verhaal' : 'verhalen'}: er was niet meer passend nieuws beschikbaar
           </p>
         ) : null}
-        {loading ? (
-          // Eerst het hoofdverhaal, dan rijen: de Editie is altijd krant, wat de Stroom ook doet.
-          <Skeleton rows={4} layout="krant" lead />
+        {loading && tien.active ? (
+          <TienSpace />
+        ) : loading ? (
+          <LoadLinesBox />
         ) : failedLoad ? (
-          <LoadError onRetry={onRefresh} />
+          <LoadError what="editie" onRetry={onRefresh} />
         ) : rows.length === 0 ? (
           <Empty art={EditionArt}
             title="Er is nog geen Editie"
@@ -291,24 +286,37 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             {/* Voorpagina: het hoofdverhaal groot, daarnaast drie kleinere — altijd in krant-vorm.
                 Is het raam niet breder dan 48rem (telefoon, tablet staand, of met het vergelijkpaneel open), dan staan ze onder elkaar. */}
             {!hasMinimum ? <Empty title="Nog geen Editie" action={<a className="linkbtn" href="#/stroom">Naar de Stroom</a>}>Er is nog te weinig passend nieuws voor een Editie.</Empty> : null}
-            <div className="front">
+            {/* Het raster (keuze 1.1.0). Telefoon: alles onder elkaar, na zes "Verder in deze Editie".
+                Tablet staand (B): één leeskolom met de nummers in de kantlijn. Breed (A): het
+                hoofdverhaal met 02 en 03 ernaast (het beeld rekt mee tot de zijkolom even hoog is),
+                daarna paren in twee kolommen, elk paar even hoog (usePairs). Koppen breken nooit af. */}
+            {/* Welk placeholderbeeld een beeldloze rij krijgt, hangt af van de rij erboven (Beeld.jsx). */}
+            {phone ? (
+              // Telefoon (kaart A+): alles onder elkaar in de Stroom-vorm; het hoofdverhaal met beeld tot de rand.
+              // Na zes "Verder in deze Editie". Nummer en waarom staan in de kaart (KaartItem).
+              <PlaceholderList rows={rows.map((r, i) => ({ item: r.item, kind: i === 0 ? 'lead' : 'tijdlijn' }))}>
+                <div className="kaarten rows">
+                  {rows.map((r, i) => [
+                    i === FRONT ? (
+                      <h2 key="verder" className="label label--section front__more kaarten__label">
+                        Verder in deze Editie
+                      </h2>
+                    ) : null,
+                    <Slot key={r.key} less={less} row={r}>
+                      <KaartItem lead={i === 0} priority={i === 0 && active} n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} lines={INTRO_LINES} />
+                    </Slot>,
+                  ])}
+                </div>
+              </PlaceholderList>
+            ) : (
+            <PlaceholderList rows={rows.map((r, i) => ({ item: r.item, kind: i === 0 ? 'lead' : boven[r.key] ? 'boven' : 'krant' }))}>
+            <div className="front" ref={frontRef}>
               <Slot less={less} row={rows[0]}>
                 <LeadStory n={rows[0].n} item={rows[0].item} story={rows[0].story} note={rows[0].note} why={rows[0].why} outside={rows[0].outside} followed={onFront.get(rows[0].key)} priority={active} taste={rows[0].key} />
               </Slot>
               {rows.length > 1 ? (
                 <div className="front__side rows">
-                  {rows.slice(1, 4).map((r) => (
-                    <Slot key={r.key} less={less} row={r}>
-                      <FrontItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} />
-                    </Slot>
-                  ))}
-                </div>
-              ) : null}
-              {/* Onder het hoofdverhaal twee kleinere naast elkaar: vult de linkerkolom op tot de
-                  hoogte van de kolom ernaast (geen gat onder het hoofdverhaal). */}
-              {rows.length > 4 ? (
-                <div className="front__under rows">
-                  {rows.slice(4, FRONT).map((r) => (
+                  {rows.slice(1, SIDE).map((r) => (
                     <Slot key={r.key} less={less} row={r}>
                       <FrontItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} />
                     </Slot>
@@ -316,25 +324,74 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 </div>
               ) : null}
             </div>
-            {rows.length > FRONT ? (
-              <div className="front__rest">
-                <h2 className="label label--section front__more">Verder in deze Editie</h2>
-                {/* De Editie is een krant, op web en in de app: deze rijen volgen 'Lees de Stroom als' niet. */}
-                <div className="list rows">
-                  {rows.slice(FRONT).map((r) => (
-                    <Slot key={r.key} less={less} row={r}>
-                      <CompactItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} taste={r.key} plain />
-                    </Slot>
-                  ))}
-                </div>
+            {rows.length > SIDE ? (
+              <div className="pairs rows" ref={pairsRef}>
+                {rows.slice(SIDE).map((r, i) => [
+                  SIDE + i === FRONT ? (
+                    <h2 key="verder" className="label label--section front__more pairs__label">
+                      Verder in deze Editie
+                    </h2>
+                  ) : null,
+                  <Slot key={r.key} less={less} row={r}>
+                    <FrontItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} boven={boven[r.key] || null} />
+                  </Slot>,
+                ])}
               </div>
             ) : null}
+            </PlaceholderList>
+            )}
             {editionBubble.length ? (
               <section className="bubble" aria-label="Buiten je bubbel">
                 <h2 className="label label--section front__more">Buiten je bubbel</h2>
                 <p className="hint bubble__hint">Een verhaal naast je Editie.</p>
-                {editionBubble.map(r=><Slot key={r.key} less={less} row={r}><CompactItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} plain /></Slot>)}
+                <PlaceholderList rows={editionBubble.map((r) => ({ item: r.item, kind: phone ? 'tijdlijn' : 'krant' }))}>
+                {editionBubble.map(r=><Slot key={r.key} less={less} row={r}>{phone ? <KaartItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} lines={INTRO_LINES} /> : <CompactItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} plain />}</Slot>)}
+                </PlaceholderList>
               </section>
+            ) : null}
+            {/* "De Editie in één minuut" staat onder het nieuws, vóór het einde (op iOS staat de rij er niet boven): het nieuws begint direct onder de lijn. */}
+            {hasBrief ? (
+              <button type="button" className="briefcta briefcta--end desk-only" onClick={() => setReading(true)} aria-haspopup="dialog">
+                <span className="briefcta__icon" aria-hidden="true">
+                  <SparkleIcon />
+                </span>
+                <span className="briefcta__text">
+                  <span className="briefcta__title">De Editie in één minuut</span>
+                  <span className="briefcta__sub">Samenvatting door AI, met de bronnen erbij</span>
+                </span>
+                <span className="briefcta__go" aria-hidden="true">
+                  <CaretIcon size={ICON_SM} />
+                </span>
+              </button>
+            ) : null}
+            {!hasBrief && !briefForMembers && briefNote ? (
+              // Het plafond voor vandaag is bereikt: dezelfde rij, zonder knop, met een rustige zin. Geen
+              // hover of druk: de stijl staat hier, want styles.css is vastgelegd (tests/zacht-papier).
+              <div className="briefcta briefcta--rust briefcta--end desk-only" role="status" style={{ background: 'none', cursor: 'default' }}>
+                <span className="briefcta__icon" aria-hidden="true">
+                  <SparkleIcon />
+                </span>
+                <span className="briefcta__text">
+                  <span className="briefcta__title">De Editie in één minuut</span>
+                  <span className="briefcta__sub">{briefNote}</span>
+                </span>
+              </div>
+            ) : null}
+            {!hasBrief && briefForMembers ? (
+              // Zonder account: de knop opent het inlogblad. Ingelogd maar het account is er nog niet
+              // helemaal (zeldzaam)? Dan brengt hij je naar Instellingen, waar je het opnieuw probeert.
+              <button type="button" className="briefcta briefcta--end desk-only" onClick={onJoin} aria-haspopup={account?.status === 'out' ? 'dialog' : undefined}>
+                <span className="briefcta__icon" aria-hidden="true">
+                  <SparkleIcon />
+                </span>
+                <span className="briefcta__text">
+                  <span className="briefcta__title">De Editie in één minuut</span>
+                  <span className="briefcta__sub">Met een account</span>
+                </span>
+                <span className="briefcta__go" aria-hidden="true">
+                  <CaretIcon size={ICON_SM} />
+                </span>
+              </button>
             ) : null}
             {hasMinimum ? (<div className="endcap">
               {/* De telling rond: "10 van 10" boven het merk, stil op rood (bij een korte Editie "7 van 7"). */}
@@ -349,9 +406,9 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               <p className="endcap__text">
                 Dit was de {title} van {longDate(edition.date)}.{upNext(edition.slot)}
               </p>
-              {/* Het einde is leidend; verder lezen mag, maar als rustige link (geen knop die je doortrekt). */}
+              {/* Het einde is leidend; verder lezen mag, als één rustige link (geen knop die je doortrekt). */}
               <a className="linkbtn endcap__more" href="#/stroom">
-                Of lees verder in de Stroom
+                Lees verder in de Stroom
               </a>
             </div>) : null}
             {/* Het overzicht in één minuut: een dialoog, dus achteraan; hij neemt geen plek in de kolom. */}

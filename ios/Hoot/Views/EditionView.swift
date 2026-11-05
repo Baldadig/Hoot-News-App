@@ -84,7 +84,8 @@ enum Desk {
     // De naam van de plek, zoals deskLabel op het web: Buiten je bubbel noemt waar het vandaan komt.
     private static let via = ["google": "Google Trends", "bluesky": "Bluesky", "wikipedia": "Wikipedia"]
     static func plek(_ e: EditionEntry) -> String? {
-        if e.desk == "breed" { return e.sourceCount.map { "Waar iedereen over schrijft · \($0) bronnen" } ?? "Waar iedereen over schrijft" }
+        // Het aantal bronnen staat in de bronregel ("5 bronnen ›"), niet nog eens in de rubriek (E6).
+        if e.desk == "breed" { return "Waar iedereen over schrijft" }
         if e.desk == "bubbel", let terms = e.terms, !terms.isEmpty {
             var seen = Set<String>()
             let namen = terms.compactMap { $0.via.map { via[$0] ?? $0 } }.filter { seen.insert($0).inserted }
@@ -149,17 +150,28 @@ struct EditionView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.brandHandoff) private var handoff
     @Environment(\.accessibilityReduceMotion) private var still
+    @Environment(\.nachtActief) private var nacht
     @Environment(EditionAlerts.self) private var alerts
     @AppStorage("seenEdition") private var seenEdition = ""
+    @AppStorage("hoot.alertOffered") private var alertOffered = false // de seintje-vraag is één keer gesteld (zodra de kaart één keer in beeld is geweest)
+    @State private var alertAsk = false // de vraag staat onder de Editie
+    @State private var alertYes = false // net ja gezegd: even zeggen wat er komt
     @State private var printedIDs: Set<String> = []
     @State private var ruleDrawn = true
     @State private var storyShown = true
+    @State private var lines = LoadLinesModel() // de laadstrepen bij het eerste laden (LoadLines.swift)
+    @State private var tien = TienModel() // je eerste Editie na het welkom (FirstEditionMark.swift)
+    @MainActor private static var debugTien = false // `-HootTien YES`: één keer per start
     @State private var endVisible = false // de zon onderaan is in beeld
     @State private var risenAt: Date? // sinds wanneer die zon opkomt (één keer)
-    @State private var alertsOn = false // net "ja" gezegd op het seintje onderaan
     // Bij een koude start ligt de krant 8 pt lager en schuift op zijn plek terwijl het rood van het
     // opstartscherm zich sluit, met dezelfde curve: het merk landt, de krant gaat open.
     private var rising: Bool { !still && handoff?.landed == false && handoff?.leaving == false }
+    // Eerste laden: nog geen verhalen, en de Editie komt eraan. Dan de laadstrepen.
+    private var loaderShown: Bool {
+        let empty = !EditionNumbering.rows(store.editionRows).contains { $0.desk != "bubbel" }
+        return empty && (store.status == .loading || (store.status != .failed && store.edition != nil && store.shownEdition == nil))
+    }
     private var title: String { store.edition?.slot.flatMap { Slots.all[$0]?.naam } ?? "Editie" }
     private var dateLine: String {
         guard let d = store.edition?.date, let date = HootDate.day(d) else { return "" }
@@ -183,6 +195,48 @@ struct EditionView: View {
     }
 
     @State private var path = NavigationPath()
+    @State private var screen: CGSize = .zero // het scherm: staand of liggend
+    @State private var contentWidth: CGFloat = 0 // de kolom binnen de marges
+    @State private var leadImage: CGFloat = EditionPairs.leadMin // A: het beeld van het hoofdverhaal
+    @State private var leadHeight: CGFloat = 0
+    @State private var sideHeight: CGFloat = 0
+
+    enum Grid { case lijst, kolom, paren }
+    private var grid: Grid {
+        guard wide, !typeSize.isAccessibilitySize else { return .lijst }
+        if let forced = DebugLaunch.grid { return forced == "paren" ? .paren : .kolom }
+        return EditionPairs.paired(screen) ? .paren : .kolom
+    }
+
+    // A: het hoofdverhaal links (1,9 deel), 02 en 03 in de zijkolom rechts met een lijn ervoor. Het beeld
+    // van het hoofdverhaal rekt mee tot beide even hoog zijn (EditionPairs.leadImage).
+    @ViewBuilder private func front(_ rows: [EditionRowModel]) -> some View {
+        let sideWidth = max(256, (contentWidth - Space.s5) / 2.9)
+        HStack(alignment: .top, spacing: Space.s5) {
+            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, imageHeight: leadImage) }
+                .environment(\.isSpacious, false)
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { leadHeight = $0; fitLead() }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            if rows.count > 1 {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(Array(rows.dropFirst().prefix(2).enumerated()), id: \.element.id) { i, row in
+                        if i > 0 { Rule().padding(.vertical, Space.s2) }
+                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
+                    }
+                }
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { sideHeight = $0; fitLead() }
+                .padding(.leading, Space.s5)
+                .overlay(alignment: .leading) { Rectangle().fill(Theme.rule).frame(width: 1).accessibilityHidden(true) }
+                .frame(width: sideWidth, alignment: .leading)
+            }
+        }
+    }
+
+    private func fitLead() {
+        guard leadHeight > 0, sideHeight > 0 else { return }
+        let next = EditionPairs.leadImage(side: sideHeight, text: leadHeight - leadImage)
+        if abs(next - leadImage) > 1 { leadImage = next }
+    }
     @State private var nudge = false // "Maak Hoot van jou", na even rondkijken
     @State private var setup = false
 
@@ -194,11 +248,11 @@ struct EditionView: View {
             HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
                 EditionNumber(number: row.number, read: store.isRead(row.item))
                 Text("Je ziet minder over \(Taste.about(items)).")
-                    .font(.subheadline)
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Theme.ink3)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Button("Ongedaan maken") { withAnimation(.snappy) { store.undoLess(row.id, items: items) } }
-                    .font(.subheadline.weight(.semibold))
+                    .font(.ui(.subheadline, .semibold))
                     .tint(Theme.ink) // bediening: inkt, geen rood
                     .frame(minHeight: Space.tap)
             }
@@ -212,29 +266,45 @@ struct EditionView: View {
         }
     }
 
-    // Een rustig tweede instappunt voor het seintje (het eerste staat in Instellingen): alleen zolang
-    // iOS nog niet weet of je meldingen wilt. Na ja of nee verdwijnt het vanzelf; na een ja zegt het
-    // nog even wanneer.
-    @ViewBuilder private var alertOffer: some View {
-        if alertsOn {
-            Label("Je krijgt een seintje als de volgende klaarligt.", systemImage: "bell")
-                .font(.subheadline)
-                .frame(minHeight: Space.tap)
-                .transition(.opacity)
-        } else if alerts.permission == .notDetermined && !store.notify {
-            Button {
-                Task {
-                    guard await alerts.ask() else { return }
-                    store.notifySlots = EditionAlerts.slots.map(\.id)
-                    withAnimation(.easeInOut(duration: 0.3)) { store.notify = true; alertsOn = true }
-                }
-            } label: {
-                Label { Text("Seintje als hij klaarligt?").underline() } icon: { Image(systemName: "bell") }
+    // Ja op de seintje-vraag: de systeemvraag, en bij ja alle drie de dagdelen aan (in Instellingen
+    // per dagdeel aan te passen). Daarna even zeggen wat er komt, en weg.
+    private func askAlerts() {
+        Task {
+            let yes = await alerts.ask()
+            if yes {
+                store.notifySlots = EditionAlerts.slots.map(\.id)
+                store.notify = true
             }
-            .font(.subheadline.weight(.semibold))
-            .frame(minHeight: Space.tap)
-            .transition(.opacity)
+            answerAlerts(yes)
         }
+    }
+
+    private func answerAlerts(_ yes: Bool) {
+        alertOffered = true
+        withAnimation(still ? nil : .easeInOut(duration: 0.3)) {
+            alertAsk = false
+            alertYes = yes
+        }
+        guard yes else { return }
+        Task {
+            try? await Task.sleep(for: .seconds(3))
+            withAnimation(still ? nil : .easeInOut(duration: 0.3)) { alertYes = false }
+        }
+    }
+
+    // De eindkaart in Nacht: het merkrood gedempt (42 % over zwart) met de zachte leesinkt, zoals
+    // --endcap-bg en --endcap-on op het web. Het grootste vlak van het scherm is nooit het felste (E9).
+    static let nachtEndRed = Color(red: 0x41 / 255, green: 0x15 / 255, blue: 0x0f / 255)
+
+    // Welk placeholderbeeld een beeldloze rij krijgt, hangt af van de rij erboven (Beeldloos.swift): het
+    // hoofdverhaal en de rijen eronder, en apart Buiten je bubbel.
+    private var placeholderPlan: [String: Int] {
+        let numbered = EditionNumbering.rows(store.editionRows)
+        let rows = numbered.filter { $0.desk != "bubbel" }
+        let failed = MisluktBeeld.shared.ids // een beeld dat pas bij het laden mislukt, telt ook mee
+        var plan = Placeholder.plan(rows.enumerated().map { ($0.element.item, $0.offset == 0 ? BeeldloosView.Kind.lead : (wide ? .krant : .tijdlijn)) }, failed: failed)
+        plan.merge(Placeholder.plan(numbered.filter { $0.desk == "bubbel" }.map { ($0.item, wide ? BeeldloosView.Kind.krant : .tijdlijn) }, failed: failed)) { a, _ in a }
+        return plan
     }
 
     var body: some View {
@@ -249,52 +319,97 @@ struct EditionView: View {
                     // Met een kleine, stille zon ernaast: zijn hoogte toont het dagdeel (onboarding-plan, ‘De zon
                     // in de Editie’). Laag bij de Ochtend- en Avondeditie, hoog bij de Middageditie.
                     // Past de naam er bij grote tekst niet meer naast, dan alleen de naam (nooit afgebroken).
+                    HootKop()
                     EditionHeader(title: title, slot: store.edition?.slot)
-                    if rows.isEmpty && (store.status == .loading || (store.status != .failed && store.edition != nil && store.shownEdition == nil)) {
-                        WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
-                    } else if rows.isEmpty {
-                        if store.status == .failed {
-                            EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Hoot heeft nog geen Editie op dit toestel. Zodra je verbinding hebt, verschijnt hij hier.", retry: store.load)
+                        .tienAnchor() // je eerste Editie: het teken staat hieronder
+                    if rows.isEmpty && loaderShown {
+                        if tien.active {
+                            Color.clear.frame(maxWidth: .infinity, minHeight: Tien.area + Space.s2)
                         } else {
-                            EmptyState(title: "Er is nog geen Editie", systemImage: "newspaper", text: "In de Stroom staat alles wat er wél is.")
+                            LoadLinesBox()
                         }
+                    } else if rows.isEmpty {
+                        Group {
+                            if store.status == .failed {
+                                EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Hoot heeft nog geen Editie op dit toestel. Zodra je verbinding hebt, verschijnt hij hier.", retry: store.load)
+                                    .tienError(tien)
+                            } else {
+                                EmptyState(title: "Er is nog geen Editie", systemImage: "newspaper", text: "In de Stroom staat alles wat er wél is.")
+                                    .tienBlock(tien, 0)
+                            }
+                        }
+                        .loadLinesError(lines)
                     } else {
                         // Eén metaregel, zoals op het web. De vaste spatie vóór de punt houdt die bij de
                         // datum als de regel bij grote tekst breekt ("oktober ·", niet "· Jouw Editie").
                         Text([dateLine, store.isPersonal ? "Jouw Editie" : store.shownEdition?.personal == true ? "Om te beginnen" : "De Editie voor iedereen"].filter { !$0.isEmpty }.joined(separator: "\u{00A0}· "))
-                            .font(.subheadline)
+                            .font(.ui(.footnote)) // Schibsted 13, gelijk aan .vh__sub op het web (t1)
                             .foregroundStyle(Theme.ink3)
+                            .frame(minHeight: 20, alignment: .leading) // de regel blijft 20 hoog (lh-2), zoals op het web: de kop houdt zijn ritme
                             .padding(.bottom, Space.s4)
+                            .loadLinesText(lines)
+                            .tienBlock(tien, 0)
                         // Kon er niet ververst worden, dan zegt dat het onder de datum: titel en datum blijven bij elkaar.
-                        StaleNotice(gap: Space.s4)
-                        StrongRule(drawn: ruleDrawn).padding(.bottom, Space.s4)
+                        StaleNotice(gap: Space.s4).loadLinesText(lines).tienBlock(tien, 0)
+                        // Na het eerste laden landt hier het bovenste vel van de laadstrepen (LoadLines.swift).
+                        StrongRule(drawn: ruleDrawn).loadLinesRule(lines).tienBlock(tien, 1).padding(.bottom, Space.s4)
+                        Group {
                         if !EditionLimits.hasMinimum(EditionNumbering.count(rows)) {
                             EmptyState(title:"Nog geen Editie",systemImage:"newspaper",text:"Er is nog te weinig passend nieuws voor een Editie. In de Stroom kun je verder lezen.")
+                                .tienBlock(tien, 2)
                         }
-                        slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
-                            .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
-                        if wide && !typeSize.isAccessibilitySize {
-                            // Breed: de rest in twee kolommen, elk verhaal met een lijn erboven.
-                            LazyVGrid(columns: [GridItem(.flexible(), spacing: Space.s6, alignment: .top), GridItem(.flexible(), spacing: Space.s6, alignment: .top)], alignment: .leading, spacing: Space.s2) {
-                                ForEach(rows.dropFirst()) { row in
-                                    VStack(alignment: .leading, spacing: 0) {
-                                        Rule().padding(.vertical, Space.s2)
-                                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
-                                    }
+                        // Het raster (keuze 1.1.0, EditionGrid.swift). iPhone en heel grote tekst: alles onder
+                        // elkaar. iPad staand (B): één leeskolom met de nummers in de kantlijn. iPad liggend
+                        // (A): het hoofdverhaal met 02 en 03 ernaast, daarna paren die even hoog zijn.
+                        switch grid {
+                        case .paren:
+                            front(rows)
+                                .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
+                                .tienBlock(tien, 2)
+                            if rows.count > 3 {
+                                EditionPairsGrid(rows: Array(rows.dropFirst(3)), width: contentWidth) { row, boven, pin in
+                                    slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, boven: boven, pinSource: pin) }
                                 }
+                                .padding(.top, Space.s4)
+                                .loadLinesRise(lines)
+                                .tienBlock(tien, 3)
                             }
-                        } else {
+                        case .kolom:
+                            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, hang: true) }
+                                .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
+                                .tienBlock(tien, 2)
                             ForEach(rows.dropFirst()) { row in
-                                Rule().padding(.vertical, Space.s2)
-                                slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
+                                Rule().padding(.vertical, Space.s2).loadLinesRise(lines).tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0))
+                                HangRow(number: store.less.contains(row.id) ? nil : row.number, read: store.isRead(row.item)) {
+                                    slot(row) { ItemRow(item: row.item, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
+                                }
+                                .loadLinesRise(lines)
+                                .tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0))
+                            }
+                        case .lijst:
+                            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
+                                .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
+                                .tienBlock(tien, 2)
+                            ForEach(rows.dropFirst()) { row in
+                                // Kaart A+ (iPhone): na het hoofdverhaal komt de sterke lijn uit LeadCard; tussen de kaarten 16 boven en onder.
+                                if wide || row.id != rows[1].id { Rule().padding(.vertical, Space.s2).loadLinesRise(lines).tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0)) }
+                                slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: wide ? .krant : .tijdlijn) }
+                                    .padding(.top, !wide && row.id == rows[1].id ? Space.s2 : 0)
+                                    .loadLinesRise(lines)
+                                    .tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0))
                             }
                         }
                         if !outsideRows.isEmpty {
-                            StrongRule().padding(.top, Space.s5)
-                            Text("Buiten je bubbel").font(Theme.headline(.title2)).accessibilityAddTraits(.isHeader).padding(.vertical,Space.s3)
-                            ForEach(outsideRows) { row in
-                                slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,form:.krant) }
+                            VStack(alignment: .leading, spacing: 0) {
+                                StrongRule().padding(.top, Space.s5)
+                                Kop("Buiten je bubbel", .title2).accessibilityAddTraits(.isHeader).padding(.vertical,Space.s3)
+                                ForEach(outsideRows) { row in
+                                    slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,form:wide ? .krant : .tijdlijn) }
+                                }
                             }
+                            .padding(.leading, grid == .kolom ? Layout.hang : 0) // op de lijn van de tekst, niet van de nummers
+                            .frame(maxWidth: grid == .paren ? Layout.readable : nil, alignment: .leading)
+                            .tienBlock(tien, 8)
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,
                         // en wanneer de volgende er is.
@@ -302,7 +417,7 @@ struct EditionView: View {
                         VStack(spacing: Space.s3) {
                             let count = EditionNumbering.count(rows)
                             if count > 0 {
-                                Text("\(count) van \(count)").font(.system(.body, design: .serif)).monospacedDigit().opacity(0.85)
+                                Text("\(count) van \(count)").font(.lees(.body)).monospacedDigit().opacity(0.85)
                             }
                             // De zon komt hier één keer op (6 s), zodra het vlak in beeld komt, en ademt
                             // dan; in papier op merkrood. Het enige merkmoment tijdens het lezen. Met
@@ -312,40 +427,45 @@ struct EditionView: View {
                                     endVisible = visible
                                     if visible && risenAt == nil { risenAt = .now }
                                 }
-                            Text(EditionEnd.line(date: store.edition?.date, slot: store.edition?.slot)).font(Theme.headline(.title))
+                            Kop(EditionEnd.line(date: store.edition?.date, slot: store.edition?.slot), .title)
                             Text("Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(endDate)").\(upNext)")
-                                .font(.subheadline)
+                                .font(.ui(.subheadline))
                                 .multilineTextAlignment(.center)
                                 .frame(maxWidth: Layout.endcap) // ± 30 tekens per regel, zoals --measure-end
-                            // De links direct onder elkaar: hun aanraakvlak (44 pt) is de ruimte ertussen,
-                            // zodat tekst, seintje en Stroom op gelijke afstand staan.
-                            VStack(spacing: 0) {
-                                alertOffer
-                                // Het einde is leidend; verder lezen mag, als rustige link in plaats van een knop.
-                                Button { openTab(.stroom) } label: {
-                                    Text("Of lees verder in de Stroom").underline()
-                                }
-                                .font(.subheadline.weight(.semibold))
-                                .opacity(0.85)
-                                .frame(minHeight: Space.tap)
+                            // Eén rustige link: het einde is leidend, verder lezen mag (E8). Het seintje
+                            // staat niet meer in de kaart.
+                            Button { openTab(.stroom) } label: {
+                                Text("Lees verder in de Stroom").underline()
                             }
-                            .animation(still ? nil : .easeInOut(duration: 0.3), value: alerts.permission) // na een nee: rustig weg
+                            .font(.ui(.subheadline, .semibold))
+                            .opacity(0.85)
+                            .frame(minHeight: Space.tap)
                         }
-                        .foregroundStyle(Theme.onBrandRed)
+                        .foregroundStyle(nacht ? Theme.ink : Theme.onBrandRed)
                         .frame(maxWidth: .infinity)
                         .padding(.horizontal, Space.s5)
                         .padding(.vertical, Space.s7)
-                        .background(Theme.brandRed, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                        .background(nacht ? Self.nachtEndRed : Theme.brandRed, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                        .frame(maxWidth: Layout.readable) // op de leesbreedte, niet over de hele iPad (E9)
+                        .padding(.leading, grid == .kolom ? Layout.hang : 0)
                         .padding(.top, Space.s6)
                         .padding(.bottom, Space.s4)
+                        .tienBlock(tien, 8)
                         }
+                        }
+                        .loadLinesText(lines)
                     }
                 }
+                .loadLines(lines, loading: loaderShown && !tien.active, ok: !store.editionRows.isEmpty, landing: true)
+                .firstEdition(tien, loading: loaderShown, failed: store.status == .failed && store.editionRows.isEmpty)
+                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { contentWidth = $0 }
                 .padding(.horizontal)
-                .column(wide ? Layout.wide : Layout.readable)
+                .column(grid == .paren ? Layout.wide : grid == .kolom ? Layout.readable + Layout.hang : Layout.readable)
                 .offset(y: rising ? 8 : 0)
+                .environment(\.placeholderPlan, placeholderPlan)
             }
             .debugJump(proxy, to: Self.slotTarget(store.editionRows), when: store.editionRows.count)
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { screen = $0 }
             // Wie eerst even rondkijkt: na ongeveer een derde van de editie één keer de vraag.
             .onScrollGeometryChange(for: Bool.self) { g in
                 let room = g.contentSize.height - g.containerSize.height
@@ -353,9 +473,20 @@ struct EditionView: View {
             } action: { _, past in
                 if past, store.browsing, !nudge { withAnimation(.easeOut(duration: 0.3)) { nudge = true } }
             }
+            // Het einde van de eerste Editie in beeld: één keer de vraag om een seintje, los van de eindkaart.
+            .onChange(of: endVisible) { _, visible in
+                guard visible, !alertAsk, EditionAlerts.offerAfterEdition(permission: alerts.permission, notify: store.notify, offered: alertOffered, browsing: store.browsing) else { return }
+                alertOffered = true // gesteld zodra de kaart in beeld komt: wie niet antwoordt, ziet hem niet weer
+                withAnimation(still ? nil : .easeOut(duration: 0.3)) { alertAsk = true }
+            }
+            .task { await alerts.refresh() }
             }
             .safeAreaInset(edge: .bottom) {
-                if nudge && store.browsing { MakeItYours(choose: { setup = true }, later: { withAnimation { store.browsing = false } }) }
+                if nudge && store.browsing {
+                    MakeItYours(choose: { setup = true }, later: { withAnimation { store.browsing = false } })
+                } else if alertAsk || alertYes {
+                    AlertOffer(done: alertYes, yes: askAlerts, no: { answerAlerts(false) })
+                }
             }
             // De stappen van het welkom vanaf de interesses, met Annuleer op de eerste.
             .sheet(isPresented: $setup) {
@@ -364,14 +495,15 @@ struct EditionView: View {
             .debugScroll()
             .background(Theme.paper)
             .navigationTitle(title) // voor VoiceOver en de terugknop; je ziet de titel in de scroll
-            .hootScreenTitle() // het verhaal wint van de schermtitel (C7)
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .hootRefresh(indicator: !store.editionRows.isEmpty) { await store.load() }
-            .hootBrandHeader()
+            .hootRefresh(indicator: !store.editionRows.isEmpty, label: "Editie", failed: { store.coreFailed }) { await store.load() }
+            .hootKopScreen()
             .settingsButton()
             .task(id: store.shownEdition?.id) {
                 guard let id = store.shownEdition?.id, EditionPrint.shouldPlay(id: id, lastSeen: seenEdition, ready: !store.editionRows.isEmpty), !printedIDs.contains(id) else { return }
+                // Kwam de Editie na de laadstrepen, dan zijn die al op de kopstreep en de kop geland.
+                if lines.active || tien.active { printedIDs.insert(id); seenEdition = id; return }
                 while handoff?.landed == false || handoff?.leaving == true {
                     try? await Task.sleep(for: .milliseconds(50))
                     if Task.isCancelled { return }
@@ -391,6 +523,15 @@ struct EditionView: View {
                 }
                 try? await Task.sleep(for: .milliseconds(200))
                 if !Task.isCancelled { seenEdition = id }
+            }
+            // Je eerste Editie na het welkom: vanaf de tik (HootApp.leaveWelcome). Klaar: één keer gedaan.
+            .onChange(of: store.tienStart, initial: true) { _, tap in
+                guard let tap else { return }
+                tien.onDone = { store.tienStart = nil }
+                tien.start(at: tap, reduce: still)
+            }
+            .onAppear {
+                if DebugLaunch.tien && !Self.debugTien { Self.debugTien = true; store.tienStart = TienModel.clock() }
             }
             .task(id: store.editionRows.count) {
                 // `-HootScreen verhaal`: het eerste verhaal met de meeste bronnen, om te vergelijken.
@@ -419,15 +560,15 @@ struct StoryView: View {
             Section {
                 VStack(alignment: .leading, spacing: Space.s2) {
                     // Een beeld bij het verhaal: dat van het hoofdbericht, of anders het eerste scherpe.
-                    if store.showsImage(lead: true), let image = ([lead].compactMap { $0 } + items).lazy.compactMap(\.image).first(where: { ImageURL.fitsHero($0) }) {
-                        FramedImage(url: ImageURL.url(image, .large), ratio: 16 / 9).padding(.bottom, Space.s1)
+                    if store.showsImage(lead: true), let pick = ([lead].compactMap { $0 } + items).lazy.first(where: { ImageURL.fitsHero($0.image) && $0.image != nil }) {
+                        FramedImage(url: pick.pictureURL(.large), ratio: 16 / 9, measure: pick.measure).padding(.bottom, Space.s1)
                     }
                     if let lead {
-                        Text(lead.title).font(Theme.headline(.title2)).fixedSize(horizontal: false, vertical: true)
+                        Kop(lead.title, .title2).fixedSize(horizontal: false, vertical: true)
                     }
                     if !items.isEmpty {
                         Text(sources == items.count ? "\(sources == 1 ? "1 bron" : "\(sources) bronnen"), nieuwste eerst" : "\(sources == 1 ? "1 bron" : "\(sources) bronnen"), \(items.count) artikelen, nieuwste eerst")
-                            .font(.subheadline)
+                            .font(.ui(.subheadline))
                             .foregroundStyle(Theme.ink3)
                     }
                 }
@@ -479,16 +620,16 @@ struct MakeItYours: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Space.s2) {
-            Text("Maak Hoot van jou").font(Theme.headline(.title3))
+            Kop("Maak Hoot van jou", .title3)
             Text("Je leest nu een keuze uit gratis Nederlandse bronnen. Kies je eigen bronnen en interesses, dan wordt dit echt jouw Editie.")
-                .font(.subheadline)
+                .uitleg()
                 .foregroundStyle(Theme.ink2)
                 .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: Space.s4) {
                 // Een knop op papier is inkt, zoals in het welkom (rood is voor het merk).
                 Button("Kies je bronnen", action: choose).buttonStyle(.ink)
                 Button("Later", action: later)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.ui(.subheadline, .semibold))
                     .foregroundStyle(Theme.ink2)
                     .frame(minHeight: Space.tap)
             }
@@ -498,6 +639,44 @@ struct MakeItYours: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
         .shadow(color: .black.opacity(0.12), radius: 8, y: 2) // zweeft, zoals de melding in Bewaard
+        .padding(.horizontal)
+        .padding(.bottom, Space.s2)
+        .column()
+        .transition(.move(edge: .bottom).combined(with: .opacity))
+        .accessibilityElement(children: .contain)
+    }
+}
+
+// Na de eerste Editie, één keer: een seintje als de volgende klaarligt? Een los moment onder de
+// Editie, in de vorm van MakeItYours; de eindkaart houdt zijn ene link. Ja vraagt iOS om toestemming.
+// Op het web is er geen seintje (web-push ligt stil).
+struct AlertOffer: View {
+    var done: Bool
+    var yes: () -> Void
+    var no: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Space.s2) {
+            if done {
+                Label("Je krijgt een seintje als de volgende klaarligt.", systemImage: "bell")
+                    .font(.ui(.subheadline))
+                    .frame(minHeight: Space.tap, alignment: .leading)
+            } else {
+                Kop("Een seintje als de volgende klaarligt?", .title3).fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: Space.s4) {
+                    Button("Ja, graag", action: yes).buttonStyle(.ink)
+                    Button("Nu niet", action: no)
+                        .font(.ui(.subheadline, .semibold))
+                        .foregroundStyle(Theme.ink2)
+                        .frame(minHeight: Space.tap)
+                }
+                .padding(.top, Space.s1)
+            }
+        }
+        .padding(Space.s4)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+        .shadow(color: .black.opacity(0.12), radius: 8, y: 2)
         .padding(.horizontal)
         .padding(.bottom, Space.s2)
         .column()

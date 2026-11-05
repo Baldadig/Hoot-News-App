@@ -64,6 +64,14 @@ final class EditionAlerts {
         permission = await center.notificationSettings().authorizationStatus
     }
 
+    // Na de eerste Editie één keer de vraag of je een seintje wilt (keuze van Alex): als los moment
+    // onder de Editie (AlertOffer), niet in de eindkaart en niet in het welkom. Alleen zolang iOS nog
+    // niet weet of je meldingen wilt, het seintje nog uit staat en de vraag nog niet gesteld is; niet
+    // tegelijk met "Maak Hoot van jou" (wie rondkijkt, krijgt eerst die).
+    static func offerAfterEdition(permission: UNAuthorizationStatus, notify: Bool, offered: Bool, browsing: Bool) -> Bool {
+        permission == .notDetermined && !notify && !offered && !browsing
+    }
+
     // De systeemvraag, pas als iemand zelf "ja" zegt. Alleen meldingen: geen geluid, geen badge.
     func ask() async -> Bool {
         let yes = (try? await center.requestAuthorization(options: [.alert])) ?? false

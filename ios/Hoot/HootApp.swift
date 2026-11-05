@@ -11,25 +11,31 @@ struct HootApp: App {
     init() {
         // Beelden bewaren tussen scrollen en starten (AsyncImage cachet zelf pas vanaf iOS 27).
         URLCache.shared = URLCache(memoryCapacity: 64 << 20, diskCapacity: 300 << 20)
-        // Schermtitels (Middageditie, Stroom, Selectie …) in de krantenletter, zoals op de website: groot
-        // op 800, klein in de balk op 700. Groeit mee met de tekstgrootte, de grote titel tot 40 pt:
-        // daarboven werd "Ochtendeditie" op een mini "Ochtended…".
-        func serif(_ style: UIFont.TextStyle, _ weight: UIFont.Weight, max: CGFloat = .infinity) -> UIFont {
-            let d = UIFontDescriptor.preferredFontDescriptor(withTextStyle: style)
-            let serif = (d.withDesign(.serif) ?? d).addingAttributes([.traits: [UIFontDescriptor.TraitKey.weight: weight]])
-            return UIFont(descriptor: serif, size: min(d.pointSize, max))
-        }
+        // Schermtitels (Middageditie, Stroom, Selectie …) in Newsreader 800, zoals op de website. Groeit
+        // mee met de tekstgrootte, de grote titel tot 40 pt: daarboven werd "Ochtendeditie" op een mini
+        // "Ochtended…".
         let bar = UINavigationBar.appearance()
-        bar.largeTitleTextAttributes = [.font: serif(.largeTitle, .heavy, max: 40), .foregroundColor: NachtKleur.label]
-        bar.titleTextAttributes = [.font: serif(.headline, .bold), .foregroundColor: NachtKleur.label]
+        bar.largeTitleTextAttributes = [.font: UIFont.hoot(Letters.kop, .largeTitle, size: 34, max: 40), .foregroundColor: NachtKleur.label]
+        bar.titleTextAttributes = [.font: UIFont.hoot(Letters.kop, .headline, size: 17), .foregroundColor: NachtKleur.label]
+        // Het segment van het systeem in Schibsted Grotesk, zoals de bediening van het web.
+        let segment = UISegmentedControl.appearance()
+        segment.setTitleTextAttributes([.font: UIFont.hoot(Letters.ui(.regular), .footnote, size: 13)], for: .normal)
+        segment.setTitleTextAttributes([.font: UIFont.hoot(Letters.ui(.semibold), .footnote, size: 13)], for: .selected)
     }
 
     // Alleen bij een koude start: het opstartscherm met de stuiterende punt, tot er iets te lezen is.
     @State private var splash = true
     @State private var handoff = BrandHandoff() // waar "hoot." staat: in het welkom of linksboven op het actieve scherm
     private func leaveWelcome() {
+        // De eerste keer: Hoot stelt je eerste Editie samen, vanaf de tik (FirstEditionMark.swift).
+        store.beginFirstEdition()
         store.welcomeAgain = false
         store.onboarded = true
+    }
+    // Het welkom vervaagt over de Editie: 0,45 s, en de eerste keer 200 ms (dur-2; Verminder beweging 350).
+    private var welcomeFade: Double {
+        guard store.tienStart != nil else { return 0.45 }
+        return UIAccessibility.isReduceMotionEnabled ? Tien.reduceFade / 1000 : Tien.welcomeFade / 1000
     }
 
     var body: some Scene {
@@ -39,6 +45,7 @@ struct HootApp: App {
             Group {
                 if store.onboarded {
                     WidthReader { RootView() }
+                        .modifier(HootLetterMaat()) // tekst zonder eigen rol: Schibsted Grotesk, zoals het web (Letters.swift)
                 } else {
                     // Opnieuw kiezen (Instellingen): alles begint bij wat je nu hebt; sluiten slaat niets op.
                     WelcomeView(reopen: store.welcomeAgain, onCancel: store.welcomeAgain ? { leaveWelcome() } : nil) { leaveWelcome() }
@@ -47,7 +54,7 @@ struct HootApp: App {
             .modifier(HootWeergave())
             .accessibilityHidden(splash) // VoiceOver niet achter het opstartscherm
             .environment(\.brandHandoff, handoff)
-            .animation(.easeInOut(duration: 0.45), value: store.onboarded)
+            .animation(.easeInOut(duration: welcomeFade), value: store.onboarded)
             .environment(store)
             .environment(account)
             .environment(alerts)
@@ -140,27 +147,28 @@ struct HootApp: App {
                 try? await Task.sleep(for: .milliseconds(40))
             }
         }
-        // Een vaste curve in plaats van een veer: die heeft een staart, en als het opstartscherm dan op tijd
-        // weggaat, is het rood nog net niet op maat en verspringt de punt.
+        // Eerst vervagen, dan reizen (IrisTimes, keuze 1.1.0): het woord vervaagt op zijn plek, de iris
+        // vertrekt als het half weg is en reist in één beweging naar de gemeten punt. Een vaste curve in
+        // plaats van een veer: die heeft een staart, en dan verspringt de punt op het eind.
         if !UIAccessibility.isReduceMotionEnabled {
             let lands = handoff.dot != nil && handoff.word != nil
-            var duration = 0.6
+            var slow = 1.0
             #if DEBUG
-            duration *= max(1, UserDefaults.standard.double(forKey: "HootSlowSplash")) // `-HootSlowSplash 6`: in slow motion
+            slow = max(1, UserDefaults.standard.double(forKey: "HootSlowSplash")) // `-HootSlowSplash 6`: in slow motion
             #endif
+            let duration = IrisTimes.travel * slow
             handoff.duration = duration
             withAnimation(.timingCurve(0.6, 0, 0.2, 1, duration: duration)) { handoff.leaving = true }
-            // In donker is de punt lichter rood dan het opstartscherm: het laatste stuk kleurt het rood mee,
-            // anders verspringt de kleur als het opstartscherm weggaat. In licht zijn ze gelijk.
-            try? await Task.sleep(for: .seconds(duration * 0.6))
-            withAnimation(.easeInOut(duration: duration * 0.4)) { handoff.tinted = true }
-            // Een tiende langer dan de curve: die begint een paar beelden later, en het rood krimpt van
-            // schermgroot tot een paar punt, dus ook het laatste procent is nog zichtbaar. Zonder die
-            // marge springt de punt op het eind van twee keer zo groot naar zijn maat.
-            try? await Task.sleep(for: .seconds(duration * 0.4 + 0.1))
+            // Een paar beelden marge: de curve begint later dan de klok, en het rood krimpt van
+            // schermgroot tot een paar punt, dus ook het laatste procent is nog zichtbaar.
+            try? await Task.sleep(for: .seconds((IrisTimes.delay + IrisTimes.travel) * slow + 0.05))
+            // Op de punt: het rood wordt de kleur van de punt (in Donker en Nacht lichter), dan neemt de
+            // echte punt het over. Nooit twee punten tegelijk: de iris ligt precies op de echte.
+            withAnimation(.easeInOut(duration: IrisTimes.tint * slow)) { handoff.tinted = true }
+            try? await Task.sleep(for: .seconds(IrisTimes.tint * slow + 0.05))
             if !lands { await fadeSplash(0.15) }
         } else {
-            await fadeSplash(0.35)
+            await fadeSplash(IrisTimes.reduced)
         }
         splash = false
         handoff.landed = true

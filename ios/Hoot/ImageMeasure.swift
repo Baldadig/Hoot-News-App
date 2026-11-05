@@ -21,11 +21,21 @@ struct ImageMeasure: Codable, Hashable {
     }
 }
 
+extension Item {
+    var measure: ImageMeasure? { imageMeta.flatMap { $0.valid ? $0 : nil } }
+    /// Met een meting het originele beeld, anders de CDN-variant van die maat.
+    func pictureURL(_ kind: ImageURL.Kind) -> URL? {
+        measure != nil ? image.flatMap(URL.init(string:)) : ImageURL.url(image, kind)
+    }
+}
+
 struct MeasuredLeadImage: View {
     let item: Item
     let spacious: Bool
+    var onFail: (() -> Void)? = nil // laadt niet: de beeldloze vorm (LeadCard), geen grijs vlak
+    var landscape: CGFloat? = nil // een vaste verhouding voor een liggend beeld (kaart A+: 3:2); een staand beeld houdt zijn eigen
     private var measure: ImageMeasure? { item.imageMeta.flatMap { $0.valid ? $0 : nil } }
-    private var ratio: CGFloat { measure?.portrait == true ? (spacious ? 3 / 4 : 4 / 5) : 2 }
+    private var ratio: CGFloat { measure?.portrait == true ? (spacious ? 3 / 4 : 4 / 5) : landscape ?? 2 }
     var body: some View {
         Color.clear.aspectRatio(ratio, contentMode: .fit)
             .overlay {
@@ -36,10 +46,12 @@ struct MeasuredLeadImage: View {
                         AsyncImage(url: item.image.flatMap(URL.init(string:))) { phase in
                             if let image = phase.image {
                                 image.resizable().frame(width: rect.width, height: rect.height).offset(x: rect.minX, y: rect.minY)
+                            } else if case .failure = phase {
+                                Color.clear.onAppear { onFail?() }
                             } else { Rectangle().fill(.quaternary) }
                         }
                     }
-                } else { RemoteImage(url: ImageURL.url(item.image, .large)) }
+                } else { RemoteImage(url: ImageURL.url(item.image, .large), onFail: onFail) }
             }.clipped().accessibilityHidden(true)
     }
 }

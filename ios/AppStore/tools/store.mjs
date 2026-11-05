@@ -2,22 +2,24 @@
 // een grote kop in papierwit en de echte app in een toestel. Het scherm is altijd een echte opname
 // (richtlijn 2.3.3); alleen wat eromheen staat, is vormgeving.
 // Gebruik (vanuit Hoot-News-App): node ios/AppStore/tools/store.mjs
-// Leest ios/AppStore/screenshots/raw/ (zie capture.sh) en schrijft ios/AppStore/screenshots/store/.
+// 1.1.0: leest ios/AppStore/screenshots/raw-110/ (zie capture-110.sh: iPhone 1320 x 2868, iPad 2064 x 2752)
+// en schrijft de kale beelden naar iphone-6.9/ en ipad-13/ en de beelden met kop naar marketing/.
 import sharp from 'sharp'
 import fs from 'node:fs'
 
-const RAW = 'ios/AppStore/screenshots/raw'
-const OUT = 'ios/AppStore/screenshots/store'
-const RED = '#A3201B'
+const RAW = 'ios/AppStore/screenshots/raw-110'
+const OUT = 'ios/AppStore/screenshots'
+const RED = '#9A3324'
 const PAPER = '#F5F1E8'
 
 // Volgorde en koppen: twee korte zinnen, elk op een eigen regel.
 const SHOTS = [
-  ['editie', 'Minder scrollen.', 'Meer lezen.'],
+  ['editie', 'Tien verhalen.', 'Dan ben je bij.'],
   ['verhaal', 'Eén verhaal.', 'Alle kranten erbij.'],
-  ['einde', 'Tien verhalen.', 'Dan ben je bij.'],
-  ['digest', 'Elke maandag', 'het beste uit je vak.'],
+  ['stroom', 'Al je bronnen,', 'nieuwste eerst.'],
+  ['selectie', 'Elke maandag', 'het beste uit je vak.'],
   ['lezer', 'Lezen zonder', 'afleiding.'],
+  ['nacht', 'Nacht valt', 'rustig over Hoot.'],
 ]
 
 // Eigen tekst voor de krantentextuur (geen tekst van uitgevers).
@@ -100,16 +102,18 @@ async function frame({ raw, out, W, H, phoneW, top, island, l1, l2 }) {
   await sharp(bg).composite(layers).png().toFile(out)
 }
 
-fs.rmSync(OUT, { recursive: true, force: true }) // geen oude beelden laten staan
-fs.mkdirSync(`${OUT}/iphone`, { recursive: true })
-fs.mkdirSync(`${OUT}/ipad-13`, { recursive: true })
+for (const d of ['iphone-6.9', 'ipad-13', 'marketing/iphone-6.9', 'marketing/ipad-13']) {
+  fs.rmSync(`${OUT}/${d}`, { recursive: true, force: true }) // geen oude beelden laten staan
+  fs.mkdirSync(`${OUT}/${d}`, { recursive: true })
+}
 let n = 1
 for (const [id, l1, l2] of SHOTS) {
   const nn = String(n).padStart(2, '0')
-  // iPhone 6,3" (1206 × 2622): de maat die App Store Connect voor iPhone vraagt.
-  await frame({ raw: `${RAW}/Hoot-Pro-Max-${id}.png`, out: `${OUT}/iphone/${nn}-${id}.png`, W: 1206, H: 2622, phoneW: 914, top: 603, island: true, l1, l2 })
-  // iPad: de opname van een 11-inch, in het 13-inch-formaat (2064 × 2752) dat App Store Connect vraagt.
-  await frame({ raw: `${RAW}/Hoot-iPad-11-${id}.png`, out: `${OUT}/ipad-13/${nn}-${id}.png`, W: 2064, H: 2752, phoneW: 1420, top: 620, island: false, l1, l2 })
+  // Kaal: de echte opname, in het formaat dat App Store Connect vraagt (iPhone 6,9": 1320 x 2868; iPad 13": 2064 x 2752).
+  fs.copyFileSync(`${RAW}/iphone-${id}.png`, `${OUT}/iphone-6.9/${nn}-${id}.png`)
+  fs.copyFileSync(`${RAW}/ipad-${id}.png`, `${OUT}/ipad-13/${nn}-${id}.png`)
+  await frame({ raw: `${RAW}/iphone-${id}.png`, out: `${OUT}/marketing/iphone-6.9/${nn}-${id}.png`, W: 1320, H: 2868, phoneW: 1000, top: 660, island: true, l1, l2 })
+  await frame({ raw: `${RAW}/ipad-${id}.png`, out: `${OUT}/marketing/ipad-13/${nn}-${id}.png`, W: 2064, H: 2752, phoneW: 1420, top: 600, island: false, l1, l2 })
   n++
 }
 console.log('Klaar:', OUT)

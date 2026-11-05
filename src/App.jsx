@@ -26,7 +26,8 @@ import { useStored } from './lib/store.js'
 import { MAIN, rememberLocation, hrefFor } from './lib/context.js'
 import { learn, forgetTopic, READ, SAVE, vote } from './lib/affinity.js'
 import { sourceStatus, statusLabel } from './lib/sourceStatus.js'
-import { webStream, addSocialProfile, removeSocialProfile } from './lib/social-stream.js'
+import { webStream, addSocialProfile, removeSocialProfile, orphanBlueskyIds, adoptLegacySocial } from './lib/social-stream.js'
+import { resolveLegacy } from './lib/bluesky.js'
 import Vak from './views/Vak.jsx'
 import { useVak } from './hooks/useVak.js'
 import { mutedSet, toggleSource } from './lib/sourcesel.js'
@@ -43,10 +44,13 @@ import { subscribe as onUpdate, isReady as updateReady, applyUpdate, dismissUpda
 import { indexStories, resolveStory, toggleSaved, restoreSaved } from './lib/saved.js'
 import { shareItem, shareNotice } from './lib/share.js'
 import Splash from './components/Splash.jsx'
+import { startSysteemTekst, setSchaal } from './lib/systeemtekst.js'
+import { textSizeOf } from './lib/tekstgrootte.js'
 
 // Schermen die je zelden opent laden pas als je ze opent (de service worker heeft ze al klaarstaan).
 const Search = lazy(() => import('./views/Search.jsx'))
 const Settings = lazy(() => import('./views/Settings.jsx'))
+const Device = lazy(() => import('./views/Device.jsx'))
 const Privacy = lazy(() => import('./views/Privacy.jsx'))
 const Over = lazy(() => import('./views/Over.jsx'))
 const StyleGuide = lazy(() => import('./views/StyleGuide.jsx'))
@@ -59,7 +63,7 @@ const splashShown = () => {
   return !!s && !s.hidden
 }
 
-const PAGES = ['zoek', 'stijl', 'welkom', 'instellingen', 'privacy', 'over']
+const PAGES = ['zoek', 'stijl', 'welkom', 'instellingen', 'toestel', 'privacy', 'over']
 
 const safe = (fn, fallback) => {
   try {
@@ -96,9 +100,12 @@ export default function App() {
   const setPref = useCallback((key, value) => setPrefs((p) => ({ ...p, [key]: value })), [setPrefs])
   // Tekstgrootte en beeld werken via attributen op <html> (zie styles.css).
   useEffect(() => {
+    // Tekstgrootte (Instellingen D): een factor bovenop de systeemmaat, ook op een aanraakscherm (lib/systeemtekst.js).
     document.documentElement.dataset.text = prefs.textSize
+    setSchaal(textSizeOf(prefs.textSize).factor)
     document.documentElement.dataset.images = prefs.images
   }, [prefs.textSize, prefs.images])
+  useEffect(() => startSysteemTekst(), [])
   const [display, setDisplay] = useState(false)
   const openDisplay = useCallback(() => setDisplay(true), [])
   const [splash, setSplash] = useState(splashShown)
@@ -119,10 +126,10 @@ export default function App() {
 
   // Account: inloggen met Google; als lid gaan instellingen, Bewaard en gelezen mee.
   const rawAccount = useAccount()
-  const { status: syncStatus, pulled: syncPulled, forget: forgetAccount } = useCloudSync(rawAccount, { prefs: rawPrefs, setPrefs, saved, setSaved, readIds, setReadIds, seen: seenStories, setSeen: setSeenStories })
+  const { status: syncStatus, pulled: syncPulled, forget: forgetAccount, syncNow } = useCloudSync(rawAccount, { prefs: rawPrefs, setPrefs, saved, setSaved, readIds, setReadIds, seen: seenStories, setSeen: setSeenStories })
   // Uitloggen haalt ook de gegevens van dat account van dit toestel (zie syncEngine.js).
   const signOut = rawAccount.signOut
-  const account = useMemo(() => ({ ...rawAccount, signOut: async () => (await signOut(), forgetAccount()) }), [rawAccount, signOut, forgetAccount])
+  const account = useMemo(() => ({ ...rawAccount, pulled: syncPulled, syncNow, signOut: async () => (await signOut(), forgetAccount()) }), [rawAccount, signOut, forgetAccount, syncPulled, syncNow])
 
   // ---- Context per bestemming: de navigatie brengt je terug naar dezelfde lijst ----
   const [navMem, setNavMem] = useState(readNav)
@@ -171,6 +178,17 @@ export default function App() {
   // Jouw editie: samengesteld uit je eigen bronnen en interesses (zie src/lib/personal.js).
   const { edition: myEdition, member, briefNote } = usePersonalEdition({ data, status, prefs, muted, account: rawAccount, affinity, readIds: read, sync: { status: syncStatus, pulled: syncPulled } })
   const socialIds = useMemo(() => new Set(social.sources.map((s) => 'bsky:' + s.handle)), [social.sources])
+
+  // Wie vroeger een vast Bluesky-account van Hoot volgde (Aaron Rupar e.a.), volgt dat nu als eigen account:
+  // het id staat nog in je Stroom-keuze, maar de server levert het niet meer. Eenmaal per id per sessie.
+  const legacyTried = useRef(new Set())
+  const legacyIds = useMemo(() => (status === 'ready' && syncStatus !== 'syncing' && syncStatus !== 'pending' ? orphanBlueskyIds(prefs, (data?.sources || []).map((s) => s.id)) : []), [status, syncStatus, prefs, data])
+  useEffect(() => {
+    const todo = legacyIds.filter((id) => !legacyTried.current.has(id))
+    if (!todo.length) return
+    todo.forEach((id) => legacyTried.current.add(id))
+    resolveLegacy(todo).then((r) => setPrefs((p) => adoptLegacySocial(p, r)))
+  }, [legacyIds, setPrefs])
 
   const stream = useMemo(() => webStream([...(data?.items || []), ...social.items], {
     prefs, muted, sources,
@@ -321,13 +339,18 @@ export default function App() {
   // "Liever meteen lezen" (alleen bij de eerste start) geeft lege interesses en onderwerpen en de
   // startset als bronnen. Sluit je het welkom bij opnieuw kiezen, dan komt het hier niet langs en
   // blijft alles zoals het was (zie closeWelcome).
+  // De eerste keer: je eerste Editie wordt samengesteld ("Tien en de bubbel", src/lib/tien.js),
+  // vanaf de tik. Eén keer; bij opnieuw kiezen niet.
+  const [tienStart, setTienStart] = useState(null)
+  const endTien = useCallback(() => setTienStart(null), [])
   const finishOnboarding = useCallback(
     (choice) => {
+      if (!prefs.onboarded) setTienStart(typeof performance !== 'undefined' ? performance.now() : Date.now())
       setPrefs((p) => applyWelcome(p, choice))
       route.go('editie', {}, { replace: true })
       setLeavingWelcome(true)
     },
-    [setPrefs, route.go],
+    [setPrefs, route.go, prefs.onboarded],
   )
 
   // De eenmalige uitleg bij "Jouw Editie" (na het eerste Welkom, src/lib/welcome.js) is gezien.
@@ -357,6 +380,15 @@ export default function App() {
   if (MAIN.includes(path) && path !== 'welkom') cameFrom.current = path
   const FROM_LABEL = { editie: 'Editie', stroom: 'Stroom', digest: 'Selectie', bewaard: 'Bewaard', bronnen: 'Bronnen' }
   const backTo = { onBack: () => route.back(cameFrom.current), backLabel: FROM_LABEL[cameFrom.current] || 'Terug' }
+  // Het blad Selectie van Instellingen, geopend vanuit de lege Selectie ("Kies onderwerpen"): terug brengt je
+  // naar de Selectie, niet naar het hoofdblad van Instellingen.
+  const bladFromSelectie = useRef(false)
+  const chooseTopics = () => {
+    bladFromSelectie.current = true
+    route.go('instellingen', { blad: 'selectie' })
+  }
+  if (path !== 'instellingen' || route.params.blad !== 'selectie') bladFromSelectie.current = false
+  const bladBack = bladFromSelectie.current ? { onBack: () => route.back('digest'), backLabel: 'Selectie' } : { onBack: () => route.back('instellingen'), backLabel: 'Instellingen' }
   // Opnieuw kiezen (vanuit Bronnen of Instellingen): sluiten brengt je terug waar je was, zonder op te slaan.
   const beforeWelcome = useRef('editie')
   if (path !== 'welkom') beforeWelcome.current = path
@@ -372,7 +404,7 @@ export default function App() {
   if (showWelcome) reopenHeld.current = reopenWelcome
 
   // Nog geen account? Als je een eind in je Editie of Stroom hebt gelezen, terughoudend vragen of
-  // je wilt inloggen (zie src/lib/join.js; staat uit zolang JOIN_AUTO uit staat).
+  // je wilt inloggen (zie src/lib/join.js; JOIN_AUTO staat aan sinds 1.1.0, hooguit twee keer).
   // joinOpen: false, of waarom het blad open is ('sync' vanzelf, 'brief' via de samenvatting).
   const [joinOpen, setJoinOpen] = useState(false)
   const joinAsked = rawPrefs.joinAsked
@@ -429,7 +461,7 @@ export default function App() {
         bronnen: 'Bronnen',
         zoek: 'Zoeken',
         stijl: 'Designsysteem',
-        welkom: 'Welkom', instellingen: 'Instellingen', privacy: 'Privacy', over: 'Over', digest: 'Selectie' }[path] + ' · Hoot'
+        welkom: 'Welkom', instellingen: 'Instellingen', toestel: 'Op dit toestel', privacy: 'Privacy', over: 'Over', digest: 'Selectie' }[path] + ' · Hoot'
   }, [path])
 
   // Bronstatus: één uitgevallen bron is een stil puntje bij Bronnen; alleen als álles
@@ -584,7 +616,7 @@ export default function App() {
           Naar de inhoud
         </a>
         <div className="app__nav" inert={hideMain ? '' : undefined}>
-          <Nav path={path} hrefs={hrefs} sourceNote={statusLabel(srcStatus.failed.length)} digest={prefs.vak.length > 0 || path === 'digest'} />
+          <Nav path={path} hrefs={hrefs} sourceNote={statusLabel(srcStatus.failed.length)} />
         </div>
         <main id="inhoud" className="main" inert={hideMain ? '' : undefined}>
           {was('editie') ? (
@@ -597,6 +629,8 @@ export default function App() {
               onJoin={() => (pendingShown(rawAccount, online) ? route.go('instellingen') : setJoinOpen('brief'))}
               hint={!!rawPrefs.editieHint}
               onHintDone={endEditieHint}
+              tien={tienStart}
+              onTienDone={endTien}
               edition={myEdition}
               loading={loading || (!!data?.edition && !myEdition)}
               failedLoad={failedLoad}
@@ -623,7 +657,7 @@ export default function App() {
               onShowNew={showNew}
             />
           ) : null}
-          {was('digest') ? <Vak active={shown === 'digest'} digest={vak.digest} status={vak.status} onRefresh={vak.reload} /> : null}
+          {was('digest') ? <Vak active={shown === 'digest'} digest={vak.digest} status={vak.status} refreshFailed={vak.refreshFailed} onRefresh={vak.reload} onChooseTopics={chooseTopics} /> : null}
           {was('bewaard') ? <Saved active={shown === 'bewaard'} /> : null}
           {was('bronnen') ? (
             <Sources
@@ -647,7 +681,8 @@ export default function App() {
           ) : null}
           <Suspense fallback={null}>
             {page === 'zoek' ? <Search {...backTo} /> : null}
-            {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} affinity={affinity} onForgetTopic={(t) => setAffinity((a) => forgetTopic(a, t))} {...backTo} /> : null}
+            {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} affinity={affinity} onForgetTopic={(t) => setAffinity((a) => forgetTopic(a, t))} blad={route.params.blad || null} onOpen={(b) => route.go('instellingen', { blad: b })} {...(route.params.blad ? bladBack : backTo)} /> : null}
+            {page === 'toestel' ? <Device account={account} saved={saved} onClearSaved={() => setSaved({})} onClearRead={() => setReadIds([])} onReset={() => route.go('welkom')} onBack={() => route.back('instellingen')} backLabel="Instellingen" /> : null}
             {page === 'privacy' ? <Privacy {...backTo} /> : null}
             {page === 'over' ? <Over {...backTo} /> : null}
             {page === 'stijl' ? <StyleGuide stream={stream} /> : null}
@@ -701,7 +736,7 @@ export default function App() {
         </div>
         {welcomeDrawn ? (
           <Suspense fallback={null}>
-            <Welcome sources={sources} prefs={prefs} muted={muted} onDone={finishOnboarding} onClose={reopenHeld.current ? closeWelcome : null} onSignIn={account.status === 'out' ? () => setJoinOpen('welkom') : null} leaving={leavingWelcome} onLeft={welcomeLeft} />
+            <Welcome sources={sources} items={data?.items} prefs={prefs} muted={muted} onDone={finishOnboarding} onClose={reopenHeld.current ? closeWelcome : null} onSignIn={account.status === 'out' ? () => setJoinOpen('welkom') : null} leaving={leavingWelcome} onLeft={welcomeLeft} first={tienStart != null} />
           </Suspense>
         ) : null}
       </div>

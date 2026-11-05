@@ -1,0 +1,403 @@
+{
+ "base": [
+  {
+   "id": "a",
+   "fnv1a": 3826002220,
+   "beeld": 5
+  },
+  {
+   "id": "nos-123",
+   "fnv1a": 982714374,
+   "beeld": 1
+  },
+  {
+   "id": "volkskrant:https://www.volkskrant.nl/x~b1/",
+   "fnv1a": 2564096498,
+   "beeld": 3
+  },
+  {
+   "id": "économie-été",
+   "fnv1a": 855132940,
+   "beeld": 5
+  },
+  {
+   "id": "Oekraïne 🦉",
+   "fnv1a": 2528557552,
+   "beeld": 5
+  },
+  {
+   "id": "",
+   "fnv1a": 2166136261,
+   "beeld": 2
+  },
+  {
+   "id": "art-0",
+   "fnv1a": 1410925135,
+   "beeld": 2
+  },
+  {
+   "id": "art-1",
+   "fnv1a": 1394147516,
+   "beeld": 3
+  },
+  {
+   "id": "art-2",
+   "fnv1a": 1444480373,
+   "beeld": 6
+  },
+  {
+   "id": "art-3",
+   "fnv1a": 1427702754,
+   "beeld": 1
+  },
+  {
+   "id": "art-4",
+   "fnv1a": 1343814659,
+   "beeld": 6
+  },
+  {
+   "id": "art-5",
+   "fnv1a": 1327037040,
+   "beeld": 1
+  },
+  {
+   "id": "art-6",
+   "fnv1a": 1377369897,
+   "beeld": 4
+  },
+  {
+   "id": "art-7",
+   "fnv1a": 1360592278,
+   "beeld": 5
+  },
+  {
+   "id": "art-8",
+   "fnv1a": 1545146087,
+   "beeld": 6
+  },
+  {
+   "id": "art-9",
+   "fnv1a": 1528368468,
+   "beeld": 1
+  },
+  {
+   "id": "art-10",
+   "fnv1a": 1549524068,
+   "beeld": 3
+  },
+  {
+   "id": "art-11",
+   "fnv1a": 1566301687,
+   "beeld": 2
+  },
+  {
+   "id": "art-12",
+   "fnv1a": 1583079306,
+   "beeld": 1
+  },
+  {
+   "id": "art-13",
+   "fnv1a": 1599856925,
+   "beeld": 6
+  },
+  {
+   "id": "art-14",
+   "fnv1a": 1482413592,
+   "beeld": 1
+  },
+  {
+   "id": "art-15",
+   "fnv1a": 1499191211,
+   "beeld": 6
+  },
+  {
+   "id": "art-16",
+   "fnv1a": 1515968830,
+   "beeld": 5
+  },
+  {
+   "id": "art-17",
+   "fnv1a": 1532746449,
+   "beeld": 4
+  },
+  {
+   "id": "art-18",
+   "fnv1a": 1415303116,
+   "beeld": 5
+  },
+  {
+   "id": "art-19",
+   "fnv1a": 1432080735,
+   "beeld": 4
+  },
+  {
+   "id": "art-20",
+   "fnv1a": 3462613919,
+   "beeld": 6
+  },
+  {
+   "id": "art-21",
+   "fnv1a": 3445836300,
+   "beeld": 1
+  },
+  {
+   "id": "art-22",
+   "fnv1a": 3496169157,
+   "beeld": 4
+  },
+  {
+   "id": "art-23",
+   "fnv1a": 3479391538,
+   "beeld": 5
+  },
+  {
+   "id": "art-24",
+   "fnv1a": 3395503443,
+   "beeld": 4
+  },
+  {
+   "id": "art-25",
+   "fnv1a": 3378725824,
+   "beeld": 5
+  },
+  {
+   "id": "art-26",
+   "fnv1a": 3429058681,
+   "beeld": 2
+  },
+  {
+   "id": "art-27",
+   "fnv1a": 3412281062,
+   "beeld": 3
+  },
+  {
+   "id": "art-28",
+   "fnv1a": 3596834871,
+   "beeld": 4
+  },
+  {
+   "id": "art-29",
+   "fnv1a": 3580057252,
+   "beeld": 5
+  },
+  {
+   "id": "art-30",
+   "fnv1a": 3361801110,
+   "beeld": 1
+  },
+  {
+   "id": "art-31",
+   "fnv1a": 3378578729,
+   "beeld": 6
+  },
+  {
+   "id": "art-32",
+   "fnv1a": 3328245872,
+   "beeld": 3
+  },
+  {
+   "id": "art-33",
+   "fnv1a": 3345023491,
+   "beeld": 2
+  },
+  {
+   "id": "art-34",
+   "fnv1a": 3428911586,
+   "beeld": 3
+  },
+  {
+   "id": "art-35",
+   "fnv1a": 3445689205,
+   "beeld": 2
+  },
+  {
+   "id": "art-36",
+   "fnv1a": 3395356348,
+   "beeld": 5
+  },
+  {
+   "id": "art-37",
+   "fnv1a": 3412133967,
+   "beeld": 4
+  },
+  {
+   "id": "art-38",
+   "fnv1a": 3496022062,
+   "beeld": 5
+  },
+  {
+   "id": "art-39",
+   "fnv1a": 3512799681,
+   "beeld": 4
+  }
+ ],
+ "lijsten": [
+  {
+   "naam": "drie dezelfde na elkaar schuiven door",
+   "rows": [
+    {
+     "id": "stuk-1",
+     "bare": true
+    },
+    {
+     "id": "stuk-10",
+     "bare": true
+    },
+    {
+     "id": "stuk-21",
+     "bare": true
+    }
+   ],
+   "beelden": {
+    "stuk-1": 1,
+    "stuk-10": 2,
+    "stuk-21": 1
+   }
+  },
+  {
+   "naam": "schuiven naar een beeld dat de volgende al heeft",
+   "rows": [
+    {
+     "id": "stuk-1",
+     "bare": true
+    },
+    {
+     "id": "stuk-10",
+     "bare": true
+    },
+    {
+     "id": "stuk-6",
+     "bare": true
+    }
+   ],
+   "beelden": {
+    "stuk-1": 1,
+    "stuk-10": 2,
+    "stuk-6": 3
+   }
+  },
+  {
+   "naam": "een rij met beeld ertussen: geen buren",
+   "rows": [
+    {
+     "id": "stuk-1",
+     "bare": true
+    },
+    {
+     "id": "met-beeld",
+     "bare": false
+    },
+    {
+     "id": "stuk-10",
+     "bare": true
+    }
+   ],
+   "beelden": {
+    "stuk-1": 1,
+    "stuk-10": 1
+   }
+  },
+  {
+   "naam": "gemengd",
+   "rows": [
+    {
+     "id": "art-0",
+     "bare": true
+    },
+    {
+     "id": "art-1",
+     "bare": true
+    },
+    {
+     "id": "art-2",
+     "bare": true
+    },
+    {
+     "id": "art-3",
+     "bare": false
+    },
+    {
+     "id": "art-4",
+     "bare": true
+    },
+    {
+     "id": "art-5",
+     "bare": true
+    },
+    {
+     "id": "art-6",
+     "bare": true
+    },
+    {
+     "id": "art-7",
+     "bare": false
+    },
+    {
+     "id": "art-8",
+     "bare": true
+    },
+    {
+     "id": "art-9",
+     "bare": true
+    },
+    {
+     "id": "art-10",
+     "bare": true
+    },
+    {
+     "id": "art-11",
+     "bare": false
+    },
+    {
+     "id": "art-12",
+     "bare": true
+    },
+    {
+     "id": "art-13",
+     "bare": true
+    },
+    {
+     "id": "art-14",
+     "bare": true
+    },
+    {
+     "id": "art-15",
+     "bare": false
+    },
+    {
+     "id": "art-16",
+     "bare": true
+    },
+    {
+     "id": "art-17",
+     "bare": true
+    },
+    {
+     "id": "art-18",
+     "bare": true
+    },
+    {
+     "id": "art-19",
+     "bare": false
+    }
+   ],
+   "beelden": {
+    "art-0": 2,
+    "art-1": 3,
+    "art-2": 6,
+    "art-4": 6,
+    "art-5": 1,
+    "art-6": 4,
+    "art-8": 6,
+    "art-9": 1,
+    "art-10": 3,
+    "art-12": 1,
+    "art-13": 6,
+    "art-14": 1,
+    "art-16": 5,
+    "art-17": 4,
+    "art-18": 5
+   }
+  }
+ ]
+}

@@ -8,6 +8,16 @@ struct BlueskyAccount: Codable, Hashable, Identifiable {
     var name: String
     var avatar: String?
     var id: String { "bsky:" + handle }
+    init(handle: String, name: String, avatar: String?) { self.handle = Bluesky.canonical(handle); self.name = name; self.avatar = avatar }
+    // Ruim lezen wat een account of import.json levert: zonder naam (of met null) telt de handle.
+    enum CodingKeys: String, CodingKey { case handle, name, avatar }
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        handle = Bluesky.canonical(try c.decode(String.self, forKey: .handle))
+        let n = (try? c.decodeIfPresent(String.self, forKey: .name))?.trimmingCharacters(in: .whitespaces) ?? ""
+        name = n.isEmpty ? handle : n
+        avatar = try? c.decodeIfPresent(String.self, forKey: .avatar)
+    }
 }
 
 enum Bluesky {
@@ -25,6 +35,14 @@ enum Bluesky {
         }
     }
 
+    // Handles zijn hoofdletterloos, en een paar accounts die Hoot vroeger zelf volgde zijn van naam veranderd
+    // (het oude adres geeft AccountTakedown). Gelijk aan canonHandle in shared/bluesky.mjs.
+    static let renamed = ["aaronrupar.bsky.social": "atrupar.com"]
+    static func canonical(_ handle: String) -> String {
+        let h = handle.trimmingCharacters(in: .whitespacesAndNewlines).replacing(/^@/, with: "").lowercased()
+        return renamed[h] ?? h
+    }
+
     // "https://bsky.app/profile/xxx", "@xxx" of "xxx" → handle
     static func handle(from input: String) -> String {
         let s = input.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -33,7 +51,7 @@ enum Bluesky {
     }
 
     static func profile(_ input: String) async throws -> BlueskyAccount {
-        let handle = handle(from: input)
+        let handle = canonical(handle(from: input))
         guard !handle.isEmpty else { throw Failure.empty }
         let json = try await get("app.bsky.actor.getProfile", ["actor": handle])
         guard let found = json["handle"] as? String else { throw Failure.notFound }
@@ -53,10 +71,16 @@ enum Bluesky {
             do { json = try await get("app.bsky.feed.getAuthorFeed", query) } catch { if page == 0 { throw error } else { break } }
             let feed = json["feed"] as? [[String: Any]] ?? []
             for entry in feed where entry["reason"] == nil {
-                if let post = entry["post"] as? [String: Any], (post["author"] as? [String: Any])?["handle"] as? String == account.handle { own.append(post) }
+                if let post = entry["post"] as? [String: Any], ((post["author"] as? [String: Any])?["handle"] as? String)?.lowercased() == account.handle.lowercased() { own.append(post) }
             }
             cursor = json["cursor"] as? String
-            let last = (feed.last?["post"] as? [String: Any]).flatMap { ($0["indexedAt"] as? String).flatMap(HootDate.parse) }
+            // Tot waar de bladzijde reikt: het moment van de laatste regel in de volgorde van de feed. Bij een
+            // repost is dat het moment van de repost, niet de leeftijd van het oorspronkelijke bericht (een repost
+            // van een oud bericht stopte het bladeren te vroeg). Een vastgezette post staat bovenaan en telt niet.
+            let timed = feed.last { (($0["reason"] as? [String: Any])?["$type"] as? String)?.contains("reasonPin") != true }
+            let last = timed.flatMap { entry in
+                ((entry["reason"] as? [String: Any])?["indexedAt"] as? String) ?? ((entry["post"] as? [String: Any])?["indexedAt"] as? String)
+            }.flatMap(HootDate.parse)
             if cursor == nil || last == nil || last! < since { break }
         }
         return own.compactMap { item($0, fallback: account.name) }.filter { ($0.date ?? .now) >= since }
@@ -95,7 +119,10 @@ enum Bluesky {
         return Item(id: "bsky|" + uri, source: "bsky:" + handle, kind: "post", sourceName: (author["displayName"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? fallback, avatar: author["avatar"] as? String, brandColor: brand, title: "", summary: text, url: url, image: image, publishedAt: record["createdAt"] as? String ?? post["indexedAt"] as? String, type: "sociaal", handle: "@" + handle, linkTitle: linkTitle, imageRatio: ratio, video: video, videoPoster: poster)
     }
 
-    private static func get(_ method: String, _ query: [String: String]) async throws -> [String: Any] {
+    // De verbinding, vervangbaar voor de tests.
+    nonisolated(unsafe) static var transport: (String, [String: String]) async throws -> [String: Any] = { try await network($0, $1) }
+    private static func get(_ method: String, _ query: [String: String]) async throws -> [String: Any] { try await transport(method, query) }
+    private static func network(_ method: String, _ query: [String: String]) async throws -> [String: Any] {
         var comps = URLComponents(string: "\(api)/\(method)")!
         comps.queryItems = query.map { URLQueryItem(name: $0.key, value: $0.value) }
         var request = URLRequest(url: comps.url!)

@@ -936,7 +936,7 @@
       }
     },
     {
-      "name": "VS-plek slaat conflicterende tag over en vindt passende VS-politiek",
+      "name": "VS-plek slaat conflicterende tag over en vindt passende Verenigde Staten",
       "input": {
         "topics": [
           "middenoosten",
@@ -950,7 +950,7 @@
         "deskLabel": "VS"
       },
       "expect": {
-        "kicker": "Politiek · VS-politiek",
+        "kicker": "Politiek · Verenigde Staten",
         "why": null,
         "outside": false
       }
@@ -1012,6 +1012,45 @@
       "expect": {
         "kicker": "Wereld · Oekraïne & Rusland",
         "why": null,
+        "outside": false
+      }
+    },
+    {
+      "name": "Groot nieuws op een brede plek: één keer, in de kicker",
+      "input": {
+        "topics": [],
+        "follows": [],
+        "desk": "breed",
+        "deskLabel": "Waar iedereen over schrijft · 9 bronnen",
+        "why": {
+          "code": "groot",
+          "text": "Groot nieuws · 9 bronnen"
+        }
+      },
+      "expect": {
+        "kicker": "Waar iedereen over schrijft · 9 bronnen",
+        "why": null,
+        "outside": false
+      }
+    },
+    {
+      "name": "Groot nieuws op een gewone plek blijft één keer staan",
+      "input": {
+        "topics": [],
+        "follows": [],
+        "desk": "binnenland",
+        "deskLabel": "Binnenland",
+        "why": {
+          "code": "groot",
+          "text": "Groot nieuws · 9 bronnen"
+        }
+      },
+      "expect": {
+        "kicker": "Binnenland",
+        "why": {
+          "code": "groot",
+          "text": "Groot nieuws · 9 bronnen"
+        },
         "outside": false
       }
     }

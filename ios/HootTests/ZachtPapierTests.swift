@@ -13,7 +13,7 @@ import SwiftUI
     func testReaderOutsideNightIsByteIdenticalToBaseline() {
         let html=Self.reader(night:false)
         let hash=SHA256.hash(data:Data(html.utf8)).map{String(format:"%02x",$0)}.joined()
-        XCTAssertEqual(hash,"583e38e2d89589e5fad0505c661484807051459d4e0e6dce052a1840133b497d")
+        XCTAssertEqual(hash,"5986767db0ebcd78cb0a10f8b9e97a759774cdc107c587e612fbbbcd573de575") // bijgewerkt (merkrood Rubrica: --accent #9A3324 in de lezer; intro variant 4: lees-stand NewsreaderTekst-450, opsz 12; b47: Schibsted Grotesk in plaats van Inter in de lezer; b46 B1: kop-css zonder AX-voorwaarde; eerder: de lezer sluit kleine latin-WOFF's in (build-reader-fonts.mjs), geen volle TTF's)
         XCTAssertFalse(html.contains("--paper:#000000"))
     }
     func testOnlyNightUsesChosenInk() {

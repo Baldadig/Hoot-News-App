@@ -3,7 +3,8 @@
 <plist version="1.0">
 <dict>
 	<!-- Hoot volgt niemand: geen analytics, geen advertenties. Alleen wie inlogt (vrijwillig) heeft een
-	     account: e-mailadres, gebruikers-id en wat er synchroniseert, alleen voor de app zelf. -->
+	     account: naam, e-mailadres, profielfoto (bij Google), gebruikers-id en wat er synchroniseert,
+	     alleen voor de app zelf. -->
 	<key>NSPrivacyTracking</key>
 	<false/>
 	<key>NSPrivacyTrackingDomains</key>
@@ -13,6 +14,32 @@
 		<dict>
 			<key>NSPrivacyCollectedDataType</key>
 			<string>NSPrivacyCollectedDataTypeEmailAddress</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeName</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+		<!-- De profielfoto van Google (avatar_url/picture): Supabase bewaart de link, Hoot toont de foto
+		     in Instellingen › Account (besluit 5 november: "Naam én Foto's"). -->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypePhotosorVideos</string>
 			<key>NSPrivacyCollectedDataTypeLinked</key>
 			<true/>
 			<key>NSPrivacyCollectedDataTypeTracking</key>

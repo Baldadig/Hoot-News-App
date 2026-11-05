@@ -1,3 +1,4 @@
+import UserNotifications
 import XCTest
 @testable import Hoot
 
@@ -34,73 +35,126 @@ final class OnboardingTests: XCTestCase {
         super.tearDown()
     }
 
-    // ---- Wat precies? over pagina's ----
+    // ---- Volg je bronnen (FollowList, gelijk aan src/lib/follow-welcome.js) ----
 
-    func testRowsWrapAtTheLineWidth() {
-        XCTAssertEqual(WelcomePages.rows(chips: [], width: 300), 0)
-        XCTAssertEqual(WelcomePages.rows(chips: [100, 100], width: 300), 1)
-        // 100 + 8 + 100 + 8 + 100 = 316 > 300: de derde valt naar de volgende regel
-        XCTAssertEqual(WelcomePages.rows(chips: [100, 100, 100], width: 300), 2)
-        // een onderwerp breder dan de regel krijgt een regel voor zichzelf (en wordt niet breder geteld)
-        XCTAssertEqual(WelcomePages.rows(chips: [500, 50], width: 300), 2)
+    private static let catalog: [Source] = [
+        Source(id: "nos", name: "NOS", cat: "nl", paid: false, lang: "nl", about: "Het publieke nieuws"),
+        Source(id: "nu", name: "NU.nl", cat: "nl", paid: false, lang: "nl"),
+        Source(id: "rtl", name: "RTL Nieuws", cat: "nl", paid: false, lang: "nl"),
+        Source(id: "nrc", name: "NRC", cat: "nl", paid: true, lang: "nl"),
+        Source(id: "tweakers", name: "Tweakers", cat: "tech", paid: false, lang: "nl", about: "Technieuws en reviews"),
+        Source(id: "vi", name: "Voetbal International", cat: "sport", paid: false, lang: "nl"),
+        Source(id: "nos-sport", name: "NOS Sport", cat: "sport", paid: false, lang: "nl"),
+        Source(id: "raar", name: "Raar", cat: "iets", paid: false),
+    ]
+
+    @MainActor func testFreeStartIsNosNuRtlAndNeverPaid() {
+        XCTAssertEqual(FollowList.freeStart(Self.catalog).map(\.id), ["nos", "nu", "rtl"])
+        XCTAssertEqual(FollowList.freeStart([Source(id: "nos", name: "NOS", paid: true), Source(id: "nu", name: "NU.nl")]).map(\.id), ["nu"])
     }
 
-    func testGroupHeightGrowsByOneChipPerRow() {
-        let one = WelcomePages.groupHeight(rows: 1)
-        let two = WelcomePages.groupHeight(rows: 2)
-        XCTAssertEqual(two - one, WelcomePages.chip + WelcomePages.gap)
+    @MainActor func testLaterAndQuickStartHaveNoSport() {
+        let ids = FollowList.startIds(Self.catalog)
+        XCTAssertEqual(Array(ids.prefix(3)), ["nos", "nu", "rtl"])
+        XCTAssertTrue(ids.allSatisfy { id in Self.catalog.first { $0.id == id }?.cat != "sport" })
     }
 
-    func testSplitKeepsOrderAndFitsTheRoom() {
-        // drie groepen van 100 met 24 ertussen op een pagina van 250: twee passen (224), de derde niet
-        XCTAssertEqual(WelcomePages.split([100, 100, 100], room: 250, gap: 24), [[0, 1], [2]])
-        XCTAssertEqual(WelcomePages.split([100, 100, 100], room: 1000, gap: 24), [[0, 1, 2]])
-        // een groep die alleen al te hoog is, staat op een eigen pagina
-        XCTAssertEqual(WelcomePages.split([400, 50], room: 300, gap: 24), [[0], [1]])
-        XCTAssertEqual(WelcomePages.split([], room: 300, gap: 24), [[]])
+    @MainActor func testGroupsInCatalogOrderWithoutFreeStartAndSportApart() {
+        let groups = FollowList.groups(Self.catalog)
+        XCTAssertEqual(groups.map(\.cat), ["nl", "tech", "sport", "overig"])
+        XCTAssertEqual(groups[0].sources.map(\.id), ["nrc"])
+        XCTAssertEqual(groups.flatMap(\.sources).count + 3, Self.catalog.count)
     }
 
-    func testEveryPageFitsWhenItCan() {
-        let heights: [CGFloat] = [128, 178, 128, 178, 128]
-        let room: CGFloat = 340
-        for page in WelcomePages.split(heights, room: room, gap: 24) where page.count > 1 {
-            let used = page.map { heights[$0] }.reduce(0, +) + 24 * CGFloat(page.count - 1)
-            XCTAssertLessThanOrEqual(used, room)
-        }
+    // Eerst de interesses, dan de bronnen: de Basis, een blok per gekozen interesse met een gratis
+    // aanrader voorop, sport alleen bij Sport, de rest ingeklapt (gelijk aan het web).
+    private static let niche: [Source] = catalog + [
+        Source(id: "ars", name: "Ars Technica", cat: "tech", paid: false, lang: "en", pick: true, forInterests: ["tech"]),
+        Source(id: "wired", name: "Wired", cat: "tech", paid: true, lang: "en", pick: true, forInterests: ["tech"]),
+        Source(id: "ign", name: "IGN", cat: "games", paid: false, lang: "en", pick: true, forTopic: "games"),
+        Source(id: "quanta", name: "Quanta Magazine", cat: "wetenschap", paid: false, lang: "en", pick: true, forInterests: ["wetenschap"]),
+        Source(id: "carbonbrief", name: "Carbon Brief", cat: "wetenschap", paid: false, lang: "en", pick: true, forTopic: "klimaat"),
+        Source(id: "aljazeera", name: "Al Jazeera", cat: "int", paid: false, lang: "en"),
+        Source(id: "politico", name: "Politico", cat: "int", paid: false, lang: "en", pick: true, forInterests: ["politiek"]),
+        Source(id: "vrt", name: "VRT NWS", cat: "vl", paid: false, lang: "nl"),
+        Source(id: "telegraaf", name: "De Telegraaf", cat: "nl", paid: true, lang: "nl"),
+    ]
+
+    func testBasisIsFreeStartThenPapersInChosenOrder() {
+        let papers = ["volkskrant", "trouw", "parool", "ad"].map { Source(id: $0, name: $0, cat: "nl", paid: true, lang: "nl") }
+        let catalog = Self.niche + papers + [Source(id: "nd", name: "Nederlands Dagblad", cat: "nl", paid: true, lang: "nl")]
+        XCTAssertEqual(FollowList.basis(catalog).map(\.id), ["nos", "nu", "rtl", "volkskrant", "nrc", "trouw", "parool", "ad", "telegraaf"])
+        // Elke bron één keer op de stap: de kranten staan niet ook onder Meer bronnen; de andere titels wel.
+        let more = FollowList.more(catalog, []).flatMap(\.sources).map(\.id)
+        for id in ["volkskrant", "nrc", "trouw", "parool", "ad", "telegraaf"] { XCTAssertFalse(more.contains(id), id) }
+        XCTAssertTrue(more.contains("nd"))
+        // Een ontbrekende krant valt weg; de rest blijft in volgorde.
+        XCTAssertEqual(FollowList.basis(catalog.filter { $0.id != "trouw" }).map(\.id).suffix(5), ["volkskrant", "nrc", "parool", "ad", "telegraaf"])
     }
 
-    func testMetricsGrowWithTheTextSize() {
-        let normal = WelcomePages.Metrics(.large)
-        let big = WelcomePages.Metrics(.accessibility3)
-        XCTAssertEqual(normal.chip, WelcomePages.chip) // bij normale tekst blijft 44
-        XCTAssertGreaterThan(big.chip, normal.chip)
-        XCTAssertGreaterThan(big.header, normal.header)
-        XCTAssertGreaterThan(WelcomePages.groupHeight(rows: 2, metrics: big), WelcomePages.groupHeight(rows: 2, metrics: normal))
+    func testBlocksPerChosenInterestWithFreePickFirst() {
+        let blocks = FollowList.blocks(Self.niche, ["wetenschap", "tech"])
+        XCTAssertEqual(blocks.map(\.id), ["tech", "wetenschap"]) // vaste volgorde
+        XCTAssertEqual(blocks[0].pick, "tweakers") // Nederlands en gratis gaat voor
+        XCTAssertEqual(blocks[0].sources.first?.id, "tweakers")
+        XCTAssertEqual(Set(blocks[0].sources.map(\.id)), ["tweakers", "ars", "wired", "ign"])
+        XCTAssertEqual(blocks[1].pick, "quanta") // aangeraden voor de interesse zelf
+        XCTAssertTrue(blocks[1].sources.contains { $0.id == "carbonbrief" })
+        let wp = FollowList.blocks(Self.niche, ["politiek", "wereld"])
+        XCTAssertEqual(wp.map(\.id), ["politiek", "wereld"])
+        XCTAssertTrue(wp[1].sources.contains { $0.id == "aljazeera" })
+        XCTAssertNil(FollowList.freePick([Source(id: "x", name: "X", paid: true)]))
+        // Elke bron één keer, in het eerste blok waar hij hoort, en elk blok één aanrader.
+        let all = FollowList.blocks(Self.niche, Rubriek.alle.map(\.id))
+        let ids = all.flatMap { $0.sources.map(\.id) }
+        XCTAssertEqual(Set(ids).count, ids.count)
+        let picks = all.compactMap(\.pick)
+        XCTAssertEqual(Set(picks).count, picks.count)
     }
 
-    func testOversizedChipCountsItsExtraLine() {
-        let m = WelcomePages.Metrics(.large)
-        let plain = WelcomePages.groupHeight(chips: [100, 100], width: 300, metrics: m)
-        XCTAssertEqual(plain, WelcomePages.groupHeight(rows: 1, metrics: m))
-        XCTAssertGreaterThan(WelcomePages.groupHeight(chips: [500], width: 300, metrics: m), WelcomePages.groupHeight(rows: 1, metrics: m))
+    func testSportOnlyWithSportAndTheRestUnderMore() {
+        XCTAssertFalse(FollowList.blocks(Self.niche, ["tech"]).contains { $0.id == "sport" })
+        XCTAssertEqual(FollowList.blocks(Self.niche, ["sport"]).first?.pick, "nos-sport")
+        let more = FollowList.more(Self.niche, ["tech"]).flatMap(\.sources)
+        XCTAssertTrue(more.allSatisfy { $0.cat != "sport" && $0.cat != "tech" && !["nos", "nu", "rtl"].contains($0.id) })
+        XCTAssertTrue(more.contains { $0.id == "vrt" })
+        XCTAssertTrue(more.contains { $0.id == "quanta" })
     }
 
-    func testChunksSplitATallGroupIntoPagesOfMaxRows() {
-        // drie onderwerpen per regel van 300 (3 x 90 + 2 x 8 = 286); twee regels per stuk
-        let chips = [CGFloat](repeating: 90, count: 8)
-        XCTAssertEqual(WelcomePages.chunks(chips: chips, width: 300, maxRows: 2), [[0, 1, 2, 3, 4, 5], [6, 7]])
-        XCTAssertEqual(WelcomePages.chunks(chips: chips, width: 300, maxRows: 9), [[0, 1, 2, 3, 4, 5, 6, 7]])
-        XCTAssertEqual(WelcomePages.chunks(chips: chips, width: 300, maxRows: 1), [[0, 1, 2], [3, 4, 5], [6, 7]])
-        XCTAssertEqual(WelcomePages.chunks(chips: [], width: 300, maxRows: 2), [[]])
+    // Het seintje na de eerste Editie: één keer, alleen zolang iOS nog niets weet en het uit staat.
+    @MainActor func testAlertOfferOnceAfterFirstEdition() {
+        XCTAssertTrue(EditionAlerts.offerAfterEdition(permission: .notDetermined, notify: false, offered: false, browsing: false))
+        XCTAssertFalse(EditionAlerts.offerAfterEdition(permission: .notDetermined, notify: false, offered: true, browsing: false))
+        XCTAssertFalse(EditionAlerts.offerAfterEdition(permission: .denied, notify: false, offered: false, browsing: false))
+        XCTAssertFalse(EditionAlerts.offerAfterEdition(permission: .authorized, notify: false, offered: false, browsing: false))
+        XCTAssertFalse(EditionAlerts.offerAfterEdition(permission: .notDetermined, notify: true, offered: false, browsing: false))
+        XCTAssertFalse(EditionAlerts.offerAfterEdition(permission: .notDetermined, notify: false, offered: false, browsing: true))
     }
 
-    func testEveryChunkFitsItsRows() {
-        let chips: [CGFloat] = [120, 80, 150, 60, 200, 90, 110, 70, 130]
-        for maxRows in 1 ... 4 {
-            for part in WelcomePages.chunks(chips: chips, width: 300, maxRows: maxRows) where !part.isEmpty {
-                XCTAssertLessThanOrEqual(WelcomePages.rows(chips: part.map { chips[$0] }, width: 300), maxRows)
-            }
-        }
+    @MainActor func testSearchFindsSportToo() {
+        XCTAssertEqual(FollowList.find(Self.catalog, "voetbal").map(\.id), ["vi"])
+        XCTAssertEqual(FollowList.find(Self.catalog, "reviews").map(\.id), ["tweakers"])
+        XCTAssertEqual(FollowList.find(Self.catalog, "  "), [])
+    }
+
+    @MainActor func testLinesAreLikeTheWeb() {
+        XCTAssertEqual(FollowList.line(0), "Nog niets gevolgd")
+        XCTAssertEqual(FollowList.line(1), "1 bron gevolgd")
+        XCTAssertEqual(FollowList.line(3), "3 bronnen gevolgd")
+        XCTAssertEqual(FollowList.sourceLine(["NOS", "NU.nl", "RTL Nieuws", "BBC"]), "NOS, NU.nl en 2 meer")
+        XCTAssertEqual(FollowList.followed(Self.catalog, ["tweakers", "nos", "weg"]).map(\.id), ["tweakers", "nos"])
+    }
+
+    @MainActor func testPreviewShowsNewestHeadlinePerFollowedSource() {
+        let items = [
+            Item(id: "a", source: "nos", kind: "article", title: "Oud", url: "https://example.org", publishedAt: "2026-11-04T06:00:00Z"),
+            Item(id: "b", source: "nos", kind: "article", title: "Nieuw", url: "https://example.org", publishedAt: "2026-11-04T08:00:00Z"),
+            Item(id: "c", source: "tweakers", kind: "article", title: "Tech", url: "https://example.org", publishedAt: "2026-11-04T07:00:00Z"),
+            Item(id: "d", source: "vi", kind: "article", title: "Sport", url: "https://example.org", publishedAt: "2026-11-04T09:00:00Z"),
+        ]
+        XCTAssertEqual(FollowList.preview(items, Self.catalog, ["nos", "tweakers"]).map(\.title), ["Nieuw", "Tech"])
+        XCTAssertEqual(FollowList.preview(items, Self.catalog, []).map(\.id), ["b"]) // nog niets: het gratis begin
+        XCTAssertEqual(FollowList.preview(items, Self.catalog, ["nos"]).first?.source, "NOS")
     }
 
     // ---- Het voorstel ----
@@ -127,10 +181,63 @@ final class OnboardingTests: XCTestCase {
         XCTAssertTrue(Set(HootStore.alsoFor.values.flatMap { $0 }).intersection(paid).isEmpty == false)
     }
 
+    // "Liever meteen lezen" zette sportbronnen aan zonder dat je Sport koos (onboarding-rapport 4-11).
+    @MainActor func testQuickStartHasNoSport() {
+        XCTAssertFalse(HootStore.starter.contains("nos-sport"))
+        XCTAssertFalse(HootStore.starter.contains("vi"))
+        XCTAssertFalse(HootStore.starterGroups.contains { $0.label == "Sport" })
+        XCTAssertEqual(Array(HootStore.starter.prefix(3)), ["nos", "nu", "rtl"])
+    }
+
+    // Elke eindknop van het welkom start de Tien, ook "Liever meteen lezen" (die zet zelf onboarded).
+    @MainActor func testQuickStartStartsTienTheFirstTime() {
+        let store = HootStore()
+        store.onboarded = false
+        store.welcomeAgain = false
+        store.tienStart = nil
+        store.quickStart()
+        XCTAssertNotNil(store.tienStart)
+        XCTAssertTrue(store.onboarded)
+    }
+
+    @MainActor func testQuickStartDoesNotStartTienWhenChoosingAgain() {
+        let store = HootStore()
+        store.onboarded = false
+        store.welcomeAgain = true
+        store.tienStart = nil
+        store.quickStart()
+        XCTAssertNil(store.tienStart)
+        store.onboarded = true
+        store.welcomeAgain = false
+        store.quickStart()
+        XCTAssertNil(store.tienStart)
+    }
+
+    @MainActor func testFinishingWelcomeStartsTienOnlyTheFirstTime() {
+        let store = HootStore()
+        store.onboarded = false; store.welcomeAgain = false; store.tienStart = nil
+        store.beginFirstEdition()
+        XCTAssertNotNil(store.tienStart)
+        store.onboarded = true; store.tienStart = nil
+        store.beginFirstEdition()
+        XCTAssertNil(store.tienStart)
+    }
+
     @MainActor func testNoStartingProfession() {
         // De standaard is leeg: een nieuwe lezer kiest zijn vak zelf (of later), nooit dat van een ander.
-        UserDefaults.standard.removeObject(forKey: "hoot.digestFields")
-        XCTAssertEqual(HootStore().digestFields, [])
+        // Los van het toestel: een eigen, lege UserDefaults-suite (de host-app of een andere test kan in
+        // .standard al een vak hebben gezet), en een import.json van het toestel even opzij (een nieuwe
+        // winkel leest en wist die).
+        let suite = "hoot-onboarding-" + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!
+        let importFile = Self.folder.appendingPathComponent("import.json")
+        let importData = try? Data(contentsOf: importFile)
+        try? FileManager.default.removeItem(at: importFile)
+        defer {
+            defaults.removePersistentDomain(forName: suite)
+            if let importData { try? importData.write(to: importFile, options: .atomic) }
+        }
+        XCTAssertEqual(HootStore(defaults: defaults).digestFields, [])
     }
 
     // ---- Uitloggen ----
@@ -157,6 +264,7 @@ final class OnboardingTests: XCTestCase {
     func testStreamTabsAreOnlyChosenRubriekenInFixedOrder() {
         XCTAssertEqual(StreamView.tabs(interests: ["sport", "politiek", "wereld"], bubble: true).map(\.id), ["", "politiek", "wereld", "sport", "bubbel"])
         XCTAssertEqual(StreamView.tabs(interests: ["cultuur", "binnenland"], bubble: false).map(\.label), ["Alles", "Binnenland", "Cultuur"])
+        // Later kiezen zonder interesses: alle hoofdrubrieken (niets gekozen = alles).
         XCTAssertEqual(StreamView.tabs(interests: [], bubble: true).map(\.label), ["Alles", "Politiek", "Binnenland", "Wereld", "Economie", "Tech", "Wetenschap", "Cultuur", "Sport", "Buiten je bubbel"])
         let all = StreamView.tabs(interests: Rubriek.alle.map(\.id).reversed(), bubble: true).map(\.label)
         XCTAssertEqual(all, ["Alles", "Politiek", "Binnenland", "Wereld", "Economie", "Tech", "Wetenschap", "Cultuur", "Sport", "Buiten je bubbel"])

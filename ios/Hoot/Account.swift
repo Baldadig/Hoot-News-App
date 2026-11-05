@@ -6,7 +6,7 @@ import Security
 import UIKit
 import os
 
-// Je Hoot-account: hetzelfde als op hootnews.nl (Supabase), zodat je editie, je bronnen en Bewaard
+// Je Hoot-account: hetzelfde als op gethoot.app/lees (Supabase), zodat je editie, je bronnen en Bewaard
 // overal gelijk zijn. Inloggen met Google of Apple; een account is er voor iedereen, net als op de website.
 //
 // Synchroniseren in het kort (de website doet hetzelfde, zie src/lib/syncEngine.js):
@@ -66,6 +66,14 @@ final class Account {
         var uid: String
         var email: String?
         var name: String?
+        var avatar: String? = nil // de profielfoto van Google (user_metadata avatar_url/picture); alleen https
+    }
+
+    // De profielfoto uit user_metadata: avatar_url (Supabase) of picture (Google), alleen een https-adres.
+    nonisolated static func avatar(from meta: [String: Any]?) -> String? {
+        guard let raw = (meta?["avatar_url"] ?? meta?["picture"]) as? String,
+              let url = URL(string: raw.trimmingCharacters(in: .whitespaces)), url.scheme == "https", url.host != nil else { return nil }
+        return url.absoluteString
     }
 
     init() {
@@ -594,7 +602,7 @@ final class Account {
         else if uid != session?.uid { throw Failure.login }
         let meta = user["user_metadata"] as? [String: Any]
         let s = Session(access: access, refresh: refresh, expires: .now.addingTimeInterval(o["expires_in"] as? Double ?? 3600), uid: uid,
-                        email: user["email"] as? String, name: (meta?["full_name"] ?? meta?["name"]) as? String)
+                        email: user["email"] as? String, name: (meta?["full_name"] ?? meta?["name"]) as? String, avatar: Self.avatar(from: meta))
         session = s
         Keychain.write(s)
     }

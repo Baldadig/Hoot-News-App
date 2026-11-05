@@ -1,18 +1,20 @@
 import SwiftUI
 
 // Selectie: elke maandagochtend per onderwerp de drie belangrijkste stukken van de week ervoor,
-// door mensen geschreven. Opbouw als een tijdschrift: kop met de week, per onderwerp een opening, het eerste
-// stuk groot, twee kaarten, en "Ook deze week".
+// door mensen geschreven. Opbouw als de inhoudsopgave van een krant (Selectie-index B, gelijk aan
+// Vak.jsx): de week, wat je te lezen krijgt, de inhoud als lijst met één rijvorm, en per onderwerp
+// het eerste stuk groot, twee kaarten en "Ook deze week". Lege onderwerpen staan onderaan.
 struct DigestView: View {
     @Environment(HootStore.self) private var store
     private static var fields: [DigestFieldsList.Field] { DigestFieldsList.fields }
+    @State private var lines = LoadLinesModel() // de laadstrepen bij het eerste laden (LoadLines.swift)
     @State private var choosing = false
-    @State private var navigating = false
     @State private var folding = SelectionFoldState()
-    @State private var pendingJump: (id: String, owner: String)?
+    @State private var flash: String?
     @AccessibilityFocusState private var focusedField: String?
     @FocusState private var keyboardField: String?
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.accessibilityReduceMotion) private var still
     private var owner: String { store.account?.uid ?? "anon" }
     private var preferencesReady: Bool {
         guard let account = store.account else { return UserDefaults.standard.string(forKey: "hoot.owner") == nil }
@@ -21,12 +23,13 @@ struct DigestView: View {
         _ = account.sync
         return UserDefaults.standard.string(forKey: "hoot.owner") == uid
     }
-    private var shown: [DigestField] {
+    private var chosen: [DigestField] {
         let offered = Dictionary((store.digest?.fields ?? []).map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
         return Self.fields.filter { store.digestFields.contains($0.id) }.map { f in
             offered[f.id] ?? DigestField(id: f.id, label: f.label, top: [], more: [])
         }
     }
+    private var overview: SelectionOverview { SelectionOverview(chosen, offered: Set((store.digest?.fields ?? []).map(\.id))) }
     private var closed: Set<String> { folding.closed(for: owner, selected: store.digestFields) }
 
     var body: some View {
@@ -34,44 +37,46 @@ struct DigestView: View {
             ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    ScreenTitle("Selectie") // de schermtitel in de scroll (C7), boven de onderwerpenknop
-                    picker
-                    if let d = store.digest {
-                        header(d)
-                        if shown.isEmpty {
-                            EmptyState(title: "Kies je onderwerpen", systemImage: "books.vertical", text: "Voor je werk of uit interesse: elke maandag per onderwerp de drie beste stukken van de week.")
-                        }
-                        if !shown.isEmpty { navigation(proxy) }
-                        ForEach(shown) { field in
-                            FieldSection(field: field, icon: Self.fields.first { $0.id == field.id }?.icon ?? "briefcase", expanded: !closed.contains(field.id), focus: $focusedField, keyboardFocus: $keyboardField, enabled: preferencesReady) {
-                                var next = closed
-                                if !next.insert(field.id).inserted { next.remove(field.id) }
-                                folding.set(next, for: owner, selected: store.digestFields)
-                            }
+                    HootKop()
+                    ScreenTitle("Selectie") // de schermtitel in de scroll (C7)
+                    let o = overview
+                    if store.digestFields.isEmpty {
+                        empty(title: "Kies je onderwerpen", text: SelectionOverview.choose, row: "Kies onderwerpen", sub: "Nog niets gekozen")
+                    } else if let d = store.digest {
+                        Group {
+                        if o.state == .empty {
+                            empty(title: "Nog niets voor \(o.names)", text: o.unoffered ? SelectionOverview.noSources : SelectionOverview.emptyField, row: "Kies onderwerpen", sub: "\(store.digestFields.count) gekozen")
+                        } else {
+                            header(d, o)
+                            index(proxy, o)
+                            ForEach(o.fields) { field in
+                                FieldSection(field: field, expanded: !closed.contains(field.id), flash: flash == field.id, focus: $focusedField, keyboardFocus: $keyboardField, enabled: preferencesReady) {
+                                    var next = closed
+                                    if !next.insert(field.id).inserted { next.remove(field.id) }
+                                    folding.set(next, for: owner, selected: store.digestFields)
+                                }
                                 .id(field.id)
+                            }
                         }
-                        DisclosureGroup("Hoe kiest Hoot deze stukken?") {
-                            Text("Gekozen uit \(shown.reduce(0) { $0 + ($1.count ?? 0) }) stukken van kenners en vakbladen in de onderwerpen die je volgt, op drie gronden: hoeveel bronnen over hetzelfde schreven, of een redactie het uitkoos (zoals Sidebar), en wie het schreef (een kenner telt zwaarder dan een vakblad). Alleen stukken van mensen: geen gesponsorde stukken, webinars, podcasts of lijstjes. De tekst bij elk stuk is de intro van de schrijver zelf, niet van AI.")
-                                .font(.subheadline)
-                                .foregroundStyle(Theme.ink3)
-                                .padding(.top, Space.s2)
+                        let seen = o.fields.reduce(0) { $0 + ($1.count ?? 0) }
+                        if seen > 0 { how(seen) }
                         }
-                        .font(.subheadline.weight(.semibold))
-                        .padding(.vertical, Space.s6)
-                        .id("einde")
+                        .loadLinesText(lines)
                     } else if store.digestStatus == .failed {
                         EmptyState(title: "Geen verbinding", systemImage: "wifi.slash", text: "Zodra je verbinding hebt, verschijnt de Selectie hier.", retry: { await store.loadDigest(force: true) })
+                            .loadLinesError(lines)
                     } else {
-                        WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
+                        LoadLinesBox()
                     }
                 }
+                .loadLines(lines, loading: !store.digestFields.isEmpty && store.digest == nil && store.digestStatus != .failed, ok: store.digest != nil)
                 .padding(.horizontal)
                 .column(Layout.wide * 0.85)
             }
-            .debugJump(proxy, to: DebugLaunch.anchor == .bottom ? "einde" : shown.isEmpty ? nil : shown[shown.count / 2].id, when: shown.count)
+            .debugJump(proxy, to: DebugLaunch.anchor == .bottom ? "einde" : overview.fields.isEmpty ? nil : overview.fields[overview.fields.count / 2].id, when: overview.fields.count)
             }
             .onChange(of: owner, initial: true) { _, reader in
-                navigating = false; pendingJump = nil; focusedField = nil; keyboardField = nil
+                focusedField = nil; keyboardField = nil
                 folding.activate(reader, selected: store.digestFields, persist: preferencesReady)
             }
             .onChange(of: store.digestFields) { _, selected in folding.activate(owner, selected: selected, persist: preferencesReady) }
@@ -80,10 +85,9 @@ struct DigestView: View {
             }
             .background(Theme.paper)
             .navigationTitle("Selectie")
-            .hootBrandHeader()
-            .hootScreenTitle()
+            .hootKopScreen()
             .settingsButton()
-            .hootRefresh(indicator: store.digest != nil) { await store.loadDigest(force: true) }
+            .hootRefresh(indicator: store.digest != nil, label: "Selectie", failed: { store.digestRefreshFailed || store.digestStatus == .failed }) { await store.loadDigest(force: true) }
             .sheet(isPresented: $choosing) {
                 NavigationStack {
                     DigestFieldsList()
@@ -97,89 +101,104 @@ struct DigestView: View {
         }
     }
 
-    private func navigation(_ proxy: ScrollViewProxy) -> some View {
-        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: Space.s2)) : AnyLayout(HStackLayout(spacing: Space.s4))
-        return layout { indexButton(proxy); allButton }
-        .padding(.vertical, Space.s3)
-    }
-
-    private var allButton: some View {
-        Group {
-            if shown.count > 1 {
-                let allClosed = shown.allSatisfy { closed.contains($0.id) }
-                Button(allClosed ? "Alles uitklappen" : "Alles inklappen") {
-                    folding.set(allClosed ? [] : Set(shown.map(\.id)), for: owner, selected: store.digestFields)
+    // De inhoud: elk onderwerp een rij (tik en je springt ernaartoe), de laatste rij om te kiezen.
+    private func index(_ proxy: ScrollViewProxy, _ o: SelectionOverview) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Rule()
+            ForEach(o.fields) { field in
+                Button { jump(field.id, proxy) } label: {
+                    SelectionRow(name: field.label, sub: SelectionOverview.pieces(field.top.count), kind: .jump)
                 }
-                .font(.subheadline.weight(.semibold)).frame(minHeight: Space.tap)
+                .buttonStyle(.plain)
                 .disabled(!preferencesReady)
-                .tint(Theme.ink)
+                .accessibilityHint("Spring naar dit onderwerp")
+                .accessibilityIdentifier("selectie-jump-" + field.id)
+                Rule()
             }
+            pickRow(name: "Onderwerpen", sub: "\(store.digestFields.count) gekozen")
+            Rule()
         }
-    }
-
-    @ViewBuilder private func indexButton(_ proxy: ScrollViewProxy) -> some View {
-        let button = Button { navigating = true } label: {
-            Label("Ga naar onderwerp", systemImage: "list.bullet").font(.subheadline.weight(.semibold))
-        }.buttonStyle(.glass).disabled(!preferencesReady).accessibilityIdentifier("selectie-index")
-        if typeSize.isAccessibilitySize {
-            button.sheet(isPresented: $navigating, onDismiss: { finishJump(proxy) }) { index }
-        } else {
-            button.popover(isPresented: $navigating) {
-                index.frame(idealWidth: 380, idealHeight: 520)
-                    .presentationCompactAdaptation(.sheet)
-                    .onDisappear { finishJump(proxy) }
-            }
-        }
-    }
-    private var index: some View {
-        SelectionIndex(fields: shown, onClose: { navigating = false }) { id in
-            folding.set(closed.subtracting([id]), for: owner, selected: store.digestFields)
-            pendingJump = (id, owner)
-            navigating = false
-        }
-    }
-    private func finishJump(_ proxy: ScrollViewProxy) {
-        guard let target = pendingJump else { return }
-        pendingJump = nil
-        Task { @MainActor in
-            await Task.yield()
-            guard target.owner == owner, store.digestFields.contains(target.id) else { return }
-            proxy.scrollTo(target.id, anchor: .top)
-            focusedField = target.id
-            keyboardField = target.id
-        }
-    }
-
-    // Eén knop om je onderwerpen te kiezen, uit alle acht domeinen (de gekozen staan hieronder als
-    // hoofdstukken, dus geen rij met knoppen ervan).
-    private var picker: some View {
-        let count = Self.fields.filter { store.digestFields.contains($0.id) && store.offersField($0.id) }.count
-        return Button { choosing = true } label: {
-            Label(count == 0 ? "Kies onderwerpen" : "Onderwerpen · \(count)", systemImage: "slider.horizontal.3")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Theme.ink) // een tekstactie: inkt, zoals --action op het web
-        }
-        .buttonStyle(.glass)
-        .padding(.vertical, Space.s1)
+        .padding(.top, Space.s5)
         .padding(.bottom, Space.s2)
     }
 
-    private func header(_ d: Digest) -> some View {
-        let fields = shown
-        let picked = fields.reduce(0) { $0 + $1.top.count }
-        return VStack(alignment: .leading, spacing: Space.s2) {
-            Kicker(text: d.preview == true ? "Voorproefje · de afgelopen zeven dagen" : "Week \(d.week ?? 0) · \(Self.span(d.from, d.to))")
-            Text("\(picked == 1 ? "1 stuk" : "\(picked) stukken") in \(fields.count == 1 ? "1 onderwerp" : "\(fields.count) onderwerpen")")
-                .font(Theme.headline(.title2))
+    private func pickRow(name: String, sub: String) -> some View {
+        Button { choosing = true } label: { SelectionRow(name: name, sub: sub, kind: .pick) }
+            .buttonStyle(.plain)
+            .disabled(!preferencesReady)
+            .accessibilityIdentifier("selectie-kies")
+    }
+
+    private func jump(_ id: String, _ proxy: ScrollViewProxy) {
+        folding.set(closed.subtracting([id]), for: owner, selected: store.digestFields)
+        Task { @MainActor in
+            await Task.yield()
+            guard store.digestFields.contains(id) else { return }
+            if still { proxy.scrollTo(id, anchor: .top) } else { withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(id, anchor: .top) } }
+            focusedField = id
+            keyboardField = id
+            // Na het springen licht het onderwerp even op, behalve bij Verminder beweging.
+            guard !still else { return }
+            flash = id
+            try? await Task.sleep(for: .milliseconds(1200))
+            if flash == id { withAnimation(.easeOut(duration: 0.4)) { flash = nil } }
+        }
+    }
+
+    // Een lege Selectie: links in de kolom een kop, één zin en één rij om te kiezen. Geen datum,
+    // geen telling ("0 stukken in 0 onderwerpen" komt niet meer voor).
+    private func empty(title: String, text: String, row: String, sub: String) -> some View {
+        VStack(alignment: .leading, spacing: Space.s2) {
+            Kop(title, .title2).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+            Text(text).uitleg().foregroundStyle(Theme.ink2).fixedSize(horizontal: false, vertical: true)
+            VStack(spacing: 0) { Rule(); pickRow(name: row, sub: sub); Rule() }
+                .padding(.top, Space.s2)
+        }
+        .padding(.top, Space.s5)
+    }
+
+    private func how(_ seen: Int) -> some View {
+        DisclosureGroup("Hoe kiest Hoot deze stukken?") {
+            VStack(alignment: .leading, spacing: Space.s2) {
+                ForEach(Self.howHootChooses(seen), id: \.self) { Text($0) }
+            }
+            .font(.ui(.subheadline))
+            .foregroundStyle(Theme.ink3)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.top, Space.s2)
+        }
+        .font(.ui(.subheadline, .semibold))
+        .tint(Theme.ink)
+        .padding(.vertical, Space.s6)
+        .id("einde")
+    }
+
+    private func header(_ d: Digest, _ o: SelectionOverview) -> some View {
+        VStack(alignment: .leading, spacing: Space.s1) {
+            // De week is een datum: ink3, geen rood (SE6). Bij heel grote tekst geen kapitalen.
+            let week = d.preview == true ? "Voorproefje · de afgelopen zeven dagen" : "Week \(d.week ?? 0) · \(Self.span(d.from, d.to))"
+            Text(typeSize.isAccessibilitySize ? week : week.uppercased())
+                .font(typeSize.isAccessibilitySize ? .ui(.caption, .semibold) : .ui(.caption, .heavy)).tracking(typeSize.isAccessibilitySize ? 0 : 0.6)
+                .foregroundStyle(Theme.ink3)
                 .fixedSize(horizontal: false, vertical: true)
+            Kop(o.summary, .title2)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
             if d.preview == true, let next = d.next.flatMap(HootDate.parse) {
                 Text("De eerste volle Selectie komt \(next.formatted(HootDate.style(.dateTime.weekday(.wide).day().month(.wide)))) in de ochtend.")
-                    .font(.subheadline).foregroundStyle(Theme.ink3)
+                    .font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
             } else {
-                Text("Elke maandagochtend een nieuwe.").font(.subheadline).foregroundStyle(Theme.ink3)
+                Text("Elke maandagochtend een nieuwe.").font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
             }
         }
-        .padding(.vertical, Space.s4)
+        .padding(.top, Space.s2)
+    }
+
+    // Hoe kiest Hoot deze stukken? Tekst 1 · Kort, woord voor woord gelijk aan Vak.jsx (tests/selectie-index.test.mjs).
+    static func howHootChooses(_ n: Int) -> [String] {
+        ["Deze week las Hoot \(n) stukken van kenners en vakbladen over je onderwerpen. Per onderwerp blijven er drie over: waar anderen ook over schrijven, wat een redactie uitkoos, of wat een kenner schreef.",
+         "Niets gesponsord. De intro is van de schrijver zelf."]
     }
 
     // "2 t/m 8 november", en over een maandgrens "26 oktober t/m 1 november" (zoals op de website).
@@ -191,54 +210,96 @@ struct DigestView: View {
     }
 }
 
+// Wat de Selectie toont; gelijk aan selectionOverview in src/lib/selection-index.js.
+struct SelectionOverview {
+    enum State { case empty, full }
+    let state: State
+    let fields: [DigestField] // eerst de onderwerpen met stukken, de lege onderaan
+    let live: [DigestField]
+    let names: String
+    let unoffered: Bool
+    init(_ chosen: [DigestField], offered: Set<String>) {
+        live = chosen.filter { !$0.top.isEmpty }
+        fields = live + chosen.filter { $0.top.isEmpty }
+        state = live.isEmpty ? .empty : .full
+        names = Self.join(chosen.map(\.label))
+        unoffered = chosen.allSatisfy { !offered.contains($0.id) }
+    }
+    var picked: Int { live.reduce(0) { $0 + $1.top.count } }
+    var summary: String { "\(Self.pieces(picked)) in \(live.count == 1 ? "1 onderwerp" : "\(live.count) onderwerpen")" }
+    static func pieces(_ n: Int) -> String { n == 0 ? "Nog geen stukken" : n == 1 ? "1 stuk" : "\(n) stukken" }
+    static func join(_ names: [String]) -> String { names.count < 2 ? names.joined() : names.dropLast().joined(separator: ", ") + " en " + names.last! }
+    static let emptyField = "Deze week sprong er niets uit. Maandag kijkt Hoot opnieuw."
+    static let noSources = "Hoot heeft hier nog te weinig goede bronnen voor. Kies er een onderwerp bij, dan lees je maandag meer."
+    static let choose = "Voor je werk of uit interesse: elke maandag per onderwerp de drie beste stukken van de week."
+}
+
+// Eén rijvorm voor springen, kiezen en in- of uitklappen (SE2): de naam, het aantal eronder, en rechts
+// een stil teken op de eerste regel van de naam (SE3), ook bij grote tekst. `big`: de kop van een
+// onderwerp, in de krantenletter, dezelfde rij.
+struct SelectionRow: View {
+    enum Kind { case jump, pick, toggle(expanded: Bool) }
+    let name: String
+    let sub: String?
+    let kind: Kind
+    var big = false
+    private var symbol: String {
+        switch kind {
+        case .jump: "arrow.down"
+        case .pick: "chevron.right"
+        case let .toggle(expanded): expanded ? "chevron.up" : "chevron.down"
+        }
+    }
+    var body: some View {
+        HStack(alignment: big ? .firstTextBaseline : .center, spacing: Space.s3) {
+            VStack(alignment: .leading, spacing: big ? Space.s1 : 0) {
+                Group {
+                    if big { Kop(name, .title2) } else { Text(name).font(.ui(.body, .semibold)) } // de grote naam via Kop: bij AX5 breekt hij met een streepje
+                }
+                .foregroundStyle(Theme.ink)
+                .fixedSize(horizontal: false, vertical: true)
+                if let sub { Text(sub).font(.ui(.caption)).monospacedDigit().foregroundStyle(Theme.hint).fixedSize(horizontal: false, vertical: true) }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Text(Image(systemName: symbol))
+                .font(big ? Theme.headline(.title2) : .body)
+                .imageScale(.small)
+                .foregroundStyle(Theme.ink3)
+                .accessibilityHidden(true)
+        }
+        .padding(.vertical, big ? Space.s3 : Space.s2)
+        .frame(minHeight: 56)
+        .contentShape(Rectangle())
+    }
+}
+
 struct FieldSection: View {
     @Environment(\.isWide) private var wide
-    @Environment(\.dynamicTypeSize) private var typeSize
     let field: DigestField
-    let icon: String
     let expanded: Bool
+    var flash = false
     var focus: AccessibilityFocusState<String?>.Binding
     var keyboardFocus: FocusState<String?>.Binding
     var enabled = true
     let toggle: () -> Void
     var body: some View {
         VStack(alignment: .leading, spacing: Space.s3) {
-            Rectangle().fill(.primary).frame(height: 2)
             Button(action: toggle) {
-                let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: Space.s2)) : AnyLayout(HStackLayout(spacing: Space.s3))
-                layout {
-                    if !typeSize.isAccessibilitySize {
-                        Image(systemName: icon).resizable().scaledToFit().frame(width: Space.s5, height: Space.s5)
-                            .foregroundStyle(Theme.ink3).frame(width: 44, height: 44)
-                            .glassEffect(.regular.tint(Theme.ink.opacity(0.06)), in: .circle)
-                            .accessibilityHidden(true)
-                    }
-                    VStack(alignment: .leading, spacing: Space.s0) {
-                        Text(field.label).font(Theme.headline(.title2)).fixedSize(horizontal: false, vertical: true)
-                        if expanded, let about = field.about { Text(about).font(.subheadline).foregroundStyle(Theme.ink3) }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    if typeSize.isAccessibilitySize {
-                        HStack {
-                            pieceCount
-                            Spacer(minLength: Space.s2)
-                            chevron
-                        }
-                    } else {
-                        VStack(alignment: .trailing, spacing: Space.s1) { pieceCount; chevron }
-                    }
-                }
-                .foregroundStyle(Theme.ink).frame(minHeight: Space.tap)
-                .contentShape(Rectangle())
+                SelectionRow(name: field.label, sub: SelectionOverview.pieces(field.top.count), kind: .toggle(expanded: expanded), big: true)
+                    .background(flash ? Theme.ink.opacity(0.06) : .clear)
             }
             .buttonStyle(.plain)
             .disabled(!enabled)
-            .accessibilityLabel("\(field.label), \(field.top.count == 1 ? "1 stuk" : "\(field.top.count) stukken")")
+            .accessibilityLabel("\(field.label), \(SelectionOverview.pieces(field.top.count))")
             .accessibilityValue(expanded ? "Uitgeklapt" : "Ingeklapt")
             .accessibilityAddTraits(.isHeader)
             .accessibilityIdentifier("selectie-heading-" + field.id)
             .accessibilityFocused(focus, equals: field.id)
             .focused(keyboardFocus, equals: field.id)
+            .overlay(alignment: .top) { Rectangle().fill(Theme.ink).frame(height: 2).accessibilityHidden(true) }
+            if expanded, !field.top.isEmpty, let about = field.about {
+                Text(about).font(.ui(.subheadline)).foregroundStyle(Theme.ink3).fixedSize(horizontal: false, vertical: true)
+            }
             if expanded {
                 if let first = field.top.first {
                     DigestCard(item: first, rank: 1, feature: true)
@@ -251,14 +312,14 @@ struct FieldSection: View {
                         ForEach(rest, id: \.element.id) { i, item in DigestCard(item: item, rank: i + 2, feature: false) }
                     }
                 } else {
-                    Text("Deze week geen stukken die eruit sprongen.").font(.subheadline).foregroundStyle(Theme.ink3)
+                    Text(SelectionOverview.emptyField).font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
                 }
                 if !field.more.isEmpty {
-                    Text("OOK DEZE WEEK").font(.caption.weight(.heavy)).tracking(0.6).foregroundStyle(Theme.ink3).padding(.top, Space.s2)
+                    Text("OOK DEZE WEEK").font(.ui(.caption, .heavy)).tracking(0.6).foregroundStyle(Theme.ink3).padding(.top, Space.s2)
                     ForEach(field.more) { item in
                         VStack(alignment: .leading, spacing: Space.s0) {
-                            Text(item.title).font(Theme.headline(.headline)).foregroundStyle(Theme.ink)
-                            Text("\(item.sourceName ?? "") · \(HootDate.ago(item.publishedAt.flatMap(HootDate.parse)))").font(.caption).foregroundStyle(Theme.ink3)
+                            Kop(item.title, .headline).foregroundStyle(Theme.ink)
+                            Text("\(item.sourceName ?? "") · \(HootDate.ago(item.publishedAt.flatMap(HootDate.parse)))").font(.ui(.caption)).foregroundStyle(Theme.hint)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.vertical, Space.s2)
@@ -269,13 +330,7 @@ struct FieldSection: View {
                 }
             }
         }
-        .padding(.top, expanded ? Space.s6 : Space.s3)
-    }
-    private var pieceCount: some View {
-        Text(field.top.count == 1 ? "1 stuk" : "\(field.top.count) stukken").font(.caption).foregroundStyle(Theme.ink3)
-    }
-    private var chevron: some View {
-        Image(systemName: expanded ? "chevron.up" : "chevron.down").font(.caption).foregroundStyle(Theme.ink3)
+        .padding(.top, Space.s6)
     }
 
 }
@@ -305,14 +360,13 @@ private struct DigestCard: View {
                     FramedImage(url: ImageURL.url(item.image, .large), ratio: feature ? 16 / 9 : 2)
                 }
                 VStack(alignment: .leading, spacing: Space.s2) {
-                    Text(String(format: "%02d", rank)).font(Theme.headline(.headline)).monospacedDigit().foregroundStyle(Theme.accent) // tabelcijfers: 01, 02, 03 even breed
-                    Text(item.title)
-                        .font(Theme.headline(feature ? .title2 : .title3))
+                    Text(String(format: "%02d", rank)).font(Theme.headline(.headline)).monospacedDigit().foregroundStyle(Theme.ink) // tabelcijfers: 01, 02, 03 even breed; in inkt, zoals het cijfer in de Editie
+                    Kop(item.title, feature ? .title2 : .title3)
                         .foregroundStyle(store.isRead(item.asItem) ? Theme.ink3 : Theme.ink)
                         .fixedSize(horizontal: false, vertical: true)
                     // Waarom dit stuk: rustige metadata onder de kop, zodat de kop voorgaat.
-                    if let why = item.why, !why.isEmpty { Text(why.joined(separator: " · ")).font(.caption).foregroundStyle(Theme.ink3) }
-                    if let intro = item.summary.map({ wholeSentences($0, max: feature ? 260 : 200) }), !intro.isEmpty { Text(intro).font(feature ? .body : .subheadline).foregroundStyle(Theme.ink2).lineLimit(feature ? 5 : 4) } // hele zinnen; de regelgrens is een vangnet
+                    if let why = item.why, !why.isEmpty { Text(why.joined(separator: " · ")).font(.ui(.caption)).foregroundStyle(Theme.hint) }
+                    if let intro = item.summary.map({ wholeSentences($0, max: (feature ? 260 : 200) - item.asItem.viaLength) }), !intro.isEmpty { IntroText(text: intro, style: .body, lines: feature ? 5 : 4, suffix: item.asItem.introWithSource) } // hele zinnen, gemeten: past het niet, dan een zin minder
                 }
                 .padding(.horizontal, Space.s4)
                 .padding(.top, showImage ? 4 : 16)
@@ -322,10 +376,10 @@ private struct DigestCard: View {
             VStack(alignment: .leading, spacing: Space.s1) {
                 if let also = item.also, !also.isEmpty {
                     // Eén tekst met links, zodat hij bij grote tekst gewoon terugloopt.
-                    Text(Self.alsoLine(also)).font(.caption).foregroundStyle(Theme.ink3)
+                    Text(Self.alsoLine(also)).font(.ui(.caption)).foregroundStyle(Theme.hint)
                 }
                 SourceLine(item: item.asItem, linkSource: false) // de Digest heeft geen bronpagina's
-                if let via = item.via { Text("via \(via)").font(.caption2).foregroundStyle(Theme.ink3) }
+                if let via = item.via { Text("via \(via)").font(.ui(.caption2)).foregroundStyle(Theme.hint) }
             }
             .padding(.horizontal, Space.s4)
             .padding(.bottom, Space.s2)
@@ -335,46 +389,6 @@ private struct DigestCard: View {
         .overlay(RoundedRectangle(cornerRadius: Radius.md, style: .continuous).strokeBorder(Theme.rule, lineWidth: 1))
         .overlay(alignment: .top) {
             if !showImage { Rectangle().fill(Theme.accent).frame(height: 3) }
-        }
-    }
-}
-
-
-struct SelectionIndex: View {
-    @Environment(\.dynamicTypeSize) private var typeSize
-    let fields: [DigestField]
-    let onClose: () -> Void
-    let onPick: (String) -> Void
-    var body: some View {
-        NavigationStack {
-            List {
-                ForEach(DigestFieldsList.domains, id: \.label) { domain in
-                    let rows = domain.fields.compactMap { f in fields.first { $0.id == f.id } }
-                    if !rows.isEmpty {
-                        Section {
-                            ForEach(rows) { field in
-                                Button { onPick(field.id) } label: {
-                                    let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: Space.s2)) : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: Space.s3))
-                                    layout {
-                                        Text(field.label).fixedSize(horizontal: false, vertical: true)
-                                        if !typeSize.isAccessibilitySize { Spacer(minLength: Space.s2) }
-                                        Text(field.top.count == 1 ? "1 stuk" : "\(field.top.count) stukken")
-                                            .font(.caption).foregroundStyle(Theme.ink3)
-                                            .fixedSize(horizontal: false, vertical: true)
-                                    }
-                                    .foregroundStyle(Theme.ink)
-                                    .frame(maxWidth: .infinity, minHeight: Space.tap, alignment: .leading)
-                                }
-                                .accessibilityIdentifier("selectie-jump-" + field.id)
-                            }
-                        } header: { FormHeader(domain.label) }
-                        .hootRows()
-                    }
-                }
-            }
-            .hootForm()
-            .navigationTitle("Ga naar onderwerp").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Sluiten", action: onClose) } }
         }
     }
 }

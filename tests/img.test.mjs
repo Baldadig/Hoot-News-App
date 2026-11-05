@@ -52,12 +52,28 @@ test('Bluesky-profielfoto: kleine variant; andere avatars ongemoeid', () => {
   assert.equal(avatarUrl(null), null)
 })
 
-test('Bing-beeld uit de zoekindex: alleen als thumbnail, nooit groot', () => {
+test('Bing-beeld uit de zoekindex, ongemeten: alleen als thumbnail, nooit groot', () => {
   const url = 'https://www.bing.com/th?id=ONUT.abc&pid=News&w=1360&h=765&c=7'
   assert.equal(imgProps(url, 'thumb').src, 'https://www.bing.com/th?id=ONUT.abc&pid=News&w=176&h=176&c=7')
   assert.equal(imgProps(url, 'lead'), null)
   assert.equal(fitsLarge(url), false)
   assert.equal(fitsLarge('https://i.guim.co.uk/a.jpg'), true)
+})
+
+test('Bing-beeld gemeten door de server (build 46): groot als het bronbeeld groot genoeg is, nooit groter opgevraagd', async () => {
+  const { fitsHero, knownWidth } = await import('../src/lib/img.js')
+  const big = 'https://www.bing.com/th?id=ONUT.abc&pid=News&w=700&h=393'
+  assert.equal(knownWidth(big), 700)
+  assert.equal(fitsLarge(big), true)
+  assert.equal(fitsHero(big), true) // The Economist: 700 breed, scherp genoeg voor het hoofdverhaal
+  const p = imgProps(big, 'lead')
+  assert.equal(p.src, 'https://www.bing.com/th?id=ONUT.abc&pid=News&w=480&h=269')
+  assert.match(p.srcSet, /w=700&h=393 700w$/)
+  assert.doesNotMatch(p.srcSet, /w=(720|1080|1360)/)
+  assert.equal(imgProps(big, 'thumb').src, 'https://www.bing.com/th?id=ONUT.abc&pid=News&w=176&h=176&c=7')
+  const small = 'https://www.bing.com/th?id=ONUT.k&pid=News&w=300&h=200'
+  assert.equal(fitsLarge(small), false)
+  assert.equal(imgProps(small, 'lead'), null)
 })
 
 test('bronnen zonder eigen formaten gaan via de beeld-CDN, met het origineel als terugval', () => {

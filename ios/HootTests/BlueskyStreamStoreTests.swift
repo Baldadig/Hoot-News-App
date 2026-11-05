@@ -3,18 +3,23 @@ import XCTest
 
 @MainActor
 final class BlueskyStreamStoreTests: XCTestCase {
-    nonisolated(unsafe) private var savedDefaults:[String:Any] = [:]
+    // Eigen UserDefaults-suite per test: wat de app op het toestel al bewaarde (of tijdens de test zelf wegschrijft,
+    // bijvoorbeeld een profielsync van een ingelogde keurder) bepaalt de uitkomst niet.
+    nonisolated(unsafe) private var suite = ""
+    nonisolated(unsafe) private var defaults: UserDefaults! = nil
     nonisolated(unsafe) private var savedFiles:[String:Data] = [:]
+    nonisolated private static let files=["saved.json","read.json","import.json","edition.json"]
     nonisolated private var folder:URL { FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("Hoot") }
     override func setUp() {
-        savedDefaults=UserDefaults.standard.dictionaryRepresentation().filter{$0.key.hasPrefix("hoot.")}
-        for k in savedDefaults.keys { UserDefaults.standard.removeObject(forKey:k) }
-        for name in ["saved.json","read.json"] { if let d=try? Data(contentsOf:folder.appendingPathComponent(name)){savedFiles[name]=d} }
+        suite="hoot-bsky-store-"+UUID().uuidString
+        defaults=UserDefaults(suiteName:suite)!
+        // Ook import.json en edition.json: een eerdere keuring kan ze op het toestel hebben laten staan, en een
+        // nieuwe HootStore leest ze (import.json zet er eigen Bluesky-accounts van de keurder in). Eerst bewaren, dan weg.
+        for name in Self.files { if let d=try? Data(contentsOf:folder.appendingPathComponent(name)){savedFiles[name]=d}; try? FileManager.default.removeItem(at:folder.appendingPathComponent(name)) }
     }
     override func tearDown() {
-        for k in UserDefaults.standard.dictionaryRepresentation().keys where k.hasPrefix("hoot.") { UserDefaults.standard.removeObject(forKey:k) }
-        for (k,v) in savedDefaults { UserDefaults.standard.set(v,forKey:k) }
-        for name in ["saved.json","read.json"] {
+        defaults.removePersistentDomain(forName:suite)
+        for name in Self.files {
             let url=folder.appendingPathComponent(name)
             if let data=savedFiles[name] {try? data.write(to:url,options:.atomic)} else {try? FileManager.default.removeItem(at:url)}
         }
@@ -23,7 +28,8 @@ final class BlueskyStreamStoreTests: XCTestCase {
     private func post(_ source:String)->Item { Item(id:"p-"+source,source:source,kind:"post",title:"",summary:"Eigen post",url:"https://bsky.app/profile/"+source+"/post/test",publishedAt:ISO8601DateFormatter().string(from:.now)) }
     private func apply(_ store:HootStore,_ object:[String:Any],unite:Bool=false)throws {store.applyRemote(prefs:try JSONSerialization.data(withJSONObject:object),read:[],saved:nil,unite:unite)}
     func testChoiceSyncAndImmediateDisableWithoutChangingOwnDestination() async throws {
-        let store=HootStore(), a=post("bsky:a.example"), b=post("bsky:b.example")
+        defaults.set("remote", forKey: HootStore.streamRepairKey) // dit gaat over de keuze zelf, niet over het herstel
+        let store=HootStore(defaults:defaults), a=post("bsky:a.example"), b=post("bsky:b.example")
         store.socialPostsLoader = {account in account.handle=="a.example" ? [a]:[b]}
         try apply(store,["bluesky":false,"social":[["handle":"a.example","name":"A"],["handle":"b.example","name":"B"]],"bskyInStream":[a.source]])
         store.bluesky=true
@@ -42,19 +48,19 @@ final class BlueskyStreamStoreTests: XCTestCase {
     }
     func testLegacyFollowedAccountsDefaultOnButExplicitEmptySurvivesRestart() throws {
         let accounts = [BlueskyAccount(handle: "legacy.example", name: "Legacy", avatar: nil)]
-        UserDefaults.standard.set(try JSONEncoder().encode(accounts), forKey: "hoot.ownBluesky")
-        let store = HootStore()
+        defaults.set(try JSONEncoder().encode(accounts), forKey: "hoot.ownBluesky")
+        let store = HootStore(defaults:defaults)
         XCTAssertEqual(store.bskyInStream, ["bsky:legacy.example"])
         store.bskyInStream = []
-        XCTAssertTrue(HootStore().bskyInStream.isEmpty)
+        XCTAssertTrue(HootStore(defaults:defaults).bskyInStream.isEmpty)
     }
     func testLegacyImportedAccountsDefaultOn() throws {
-        let store = HootStore()
+        let store = HootStore(defaults:defaults)
         try apply(store, ["social": [["handle": "legacy.example", "name": "Legacy"]]])
         XCTAssertEqual(store.bskyInStream, ["bsky:legacy.example"])
     }
     func testMissingOldClientPreferenceIsPreservedButExplicitEmptyClears() throws {
-        let store=HootStore();store.bskyInStream=["bsky:a.example"]
+        let store=HootStore(defaults:defaults);store.bskyInStream=["bsky:a.example"]
         try apply(store,["layout":"krant"])
         XCTAssertEqual(store.bskyInStream,["bsky:a.example"])
         try apply(store,["bskyInStream":["bsky:b.example"]],unite:true)
@@ -63,17 +69,17 @@ final class BlueskyStreamStoreTests: XCTestCase {
         XCTAssertTrue(store.bskyInStream.isEmpty)
     }
     func testDifferentOwnerDoesNotInheritMissingOldClientChoice() throws {
-        let store=HootStore(), account=Account()
+        let store=HootStore(defaults:defaults), account=Account()
         account.stub(uid:"B",transport:URLSession(configuration:.ephemeral))
         store.account=account
-        UserDefaults.standard.set("A",forKey:"hoot.owner")
+        defaults.set("A",forKey:"hoot.owner")
         store.bskyInStream=["bsky:a.example"]
         try apply(store,["layout":"krant"])
         XCTAssertTrue(store.bskyInStream.isEmpty)
         XCTAssertTrue(store.ownBluesky.isEmpty)
     }
     func testLateOwnPostResponseCannotRestoreRemovedAccount() async throws {
-        let store=HootStore(), a=post("bsky:a.example")
+        let store=HootStore(defaults:defaults), a=post("bsky:a.example")
         let started=expectation(description:"publieke postrequest wacht")
         let gate=PostGate(started:started)
         store.socialPostsLoader={_ in await gate.wait();return [a]}
@@ -84,6 +90,59 @@ final class BlueskyStreamStoreTests: XCTestCase {
         store.removeBluesky(a.source)
         await gate.release();await task.value
         XCTAssertTrue(store.stream.isEmpty);XCTAssertTrue(store.posts.isEmpty);XCTAssertTrue(store.bskyInStream.isEmpty)
+    }
+    // Build 45: een account toevoegen zette het niet in de Stroom (bskyInStream bleef leeg).
+    func testAddedAccountAppearsInStreamAndSyncs() async throws {
+        defaults.set("remote", forKey: HootStore.streamRepairKey)
+        let store=HootStore(defaults:defaults), a=post("bsky:a.example")
+        store.socialProfileLoader={_ in BlueskyAccount(handle:"a.example",name:"A",avatar:nil)}
+        store.socialPostsLoader={_ in [a]}
+        store.bluesky=true
+        try await store.addBluesky("@a.example")
+        XCTAssertEqual(store.bskyInStream,[a.source])
+        XCTAssertEqual(store.stream.map(\.id),[a.id])
+        XCTAssertEqual(store.syncedPrefs["bskyInStream"] as? [String],[a.source])
+        XCTAssertEqual(HootStore(defaults:defaults).bskyInStream,[a.source]) // ook na opnieuw starten
+    }
+    func testAddingTurnsBlueskyOnLikeTheWeb() async throws {
+        defaults.set("remote", forKey: HootStore.streamRepairKey)
+        let store=HootStore(defaults:defaults)
+        store.socialProfileLoader={_ in BlueskyAccount(handle:"a.example",name:"A",avatar:nil)}
+        store.socialPostsLoader={_ in []}
+        try await store.addBluesky("a.example")
+        XCTAssertTrue(store.bluesky)
+    }
+    // Wat build 44/45 naar je account schreef (accounts, lege Stroom-keuze) komt na een (her)installatie
+    // terug mét de accounts in de Stroom, en dat gaat in dezelfde pull terug naar je account.
+    func testReinstallRestoresAccountsFromProfileAndRepairsEmptyChoice() async throws {
+        let store=HootStore(defaults:defaults), a=post("bsky:a.example")
+        store.socialPostsLoader={_ in [a]}
+        try apply(store,["bluesky":true,"social":[["handle":"a.example","name":"A","avatar":NSNull()]],"bskyInStream":[]],unite:true)
+        XCTAssertEqual(store.ownBluesky.map(\.handle),["a.example"])
+        XCTAssertEqual(store.bskyInStream,[a.source])
+        XCTAssertEqual(store.syncedPrefs["bskyInStream"] as? [String],[a.source])
+        await store.loadOwnPosts()
+        for _ in 0..<50 where store.stream.isEmpty { try await Task.sleep(for:.milliseconds(20)) } // de laadtaken van apply lopen ook
+        XCTAssertEqual(store.stream.map(\.id),[a.id])
+        // Daarna is een lege keuze weer een bewuste keuze.
+        try apply(store,["bskyInStream":[]])
+        XCTAssertTrue(store.bskyInStream.isEmpty)
+    }
+    func testUpdateFromBuild45RepairsLocalChoiceOnce() throws {
+        defaults.set(try JSONEncoder().encode([BlueskyAccount(handle:"a.example",name:"A",avatar:nil)]),forKey:"hoot.ownBluesky")
+        defaults.set(try JSONEncoder().encode([String]()),forKey:"hoot.bskyInStream")
+        defaults.set(try JSONEncoder().encode(true),forKey:"hoot.bluesky")
+        let store=HootStore(defaults:defaults)
+        XCTAssertEqual(store.bskyInStream,["bsky:a.example"])
+        store.bskyInStream=[]
+        XCTAssertTrue(HootStore(defaults:defaults).bskyInStream.isEmpty)
+    }
+    func testProfileWithoutSwitchOrNamesStillRestores() throws {
+        let store=HootStore(defaults:defaults)
+        try apply(store,["social":[["handle":"a.example"],["name":"kapot"],["handle":"b.example","name":"B"]]],unite:true)
+        XCTAssertEqual(store.ownBluesky.map(\.handle),["a.example","b.example"])
+        XCTAssertEqual(store.ownBluesky.first?.name,"a.example")
+        XCTAssertTrue(store.bluesky)
     }
 }
 private actor PostGate {

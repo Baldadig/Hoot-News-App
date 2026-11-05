@@ -467,7 +467,7 @@ export default function StyleGuide({ stream }) {
           <li>Lijnen tussen rijen en witruimte, geen omlijnde blokken. Er is één tweede vlak: de kaart, voor wat echt los staat.</li>
           <li>Serif is voor koppen en de Lezer; schreefloos voor al het andere.</li>
           <li>Een kop is minstens één stap groter dan wat eronder staat, of hij heeft een andere rol: een label tegenover een kop.</li>
-          <li>Rood is voor de rubriek, wat actief is, wat gekozen is, een link in lopende tekst en het merk; en bewust voor ‘Vergelijk N bronnen’. Acties zijn inkt.</li>
+          <li>Rood is voor het merk: de punt van hoot., de zon van de Editie, de streep onder wat actief is. Hooguit één rood accent per scherm. Cijfer en kop zijn inkt, de rubriek en ‘N bronnen ›’ grijs, acties inkt.</li>
           <li>Focus is altijd inkt: een ring van 2 px, 2 px buiten de vorm van het element zelf.</li>
           <li>Elk aanraakdoel is minimaal 44 × 44 px; openen, bron bekijken en bewaren zijn aparte doelen.</li>
           <li>Niets beweegt terwijl je leest. Nieuwe berichten wachten achter een knop.</li>

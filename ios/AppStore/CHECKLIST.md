@@ -19,7 +19,7 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
 | ✅ | Contentrechten | Ingevuld door Alex (28 okt): bevat inhoud van derden, rechten aanwezig. |
 | ✅ | Contactgegevens App Review | Alex Vrees, alex@baldadig.nl. Uitbrengen: handmatig na goedkeuring. |
 | ✅ | Digital Services Act | Handelaar, ingevuld door Alex (28 okt). |
-| 🟡 | Schermafbeeldingen | iPhone 6,3" (1206×2622) en iPad (11"-opname in 13"-formaat) staan erin; Selectie-beeld na 2 nov opnieuw (volle week). |
+| 🟡 | Schermafbeeldingen | Opnieuw gemaakt 4-11 (avond): neutraal hoofdbeeld (ruimtetelescoop), Vergelijken met een sportverhaal, Nacht = de Stroom. Selectie-beeld toont nog week 44; opnieuw bij week 45. |
 | ✅ | Versie 1.0 | Build 27 ingediend op 28 oktober om 21:54 ("Waiting for Review"). Build 26 (20:11) teruggetrokken: onzichtbare "Verder" en sync-fouten, gevonden in de slooptest. Handmatig uitbrengen na goedkeuring. |
 | ✅ | Inloggen (Google en Apple) | Google Cloud: iOS-client "Hoot iOS" en inlogscherm "In production". Supabase: iOS-client-id bij Google, Apple aan (nl.hootnews.Hoot), functie `delete_my_account`. |
 | ✅ | Privacylabels | E-mailadres, gebruikers-ID, productinteractie: gekoppeld aan je account, alleen voor de werking van de app, geen tracking. |
@@ -126,3 +126,10 @@ Legenda: ✅ klaar · 🟡 klaar, maar moet jij nakijken of beslissen · ⏳ moe
    - Nieuwe schermafbeeldingen (nieuw Welkom, Editie met waarom-regels, Stroom Tijdlijn/Krant, Selectie)
 6. Versie 1.0 (build 27) uit review halen, 1.0.1 (build 36) koppelen en indienen. De verklaringen en de laatste klik zijn van Alex.
 7. Daarna stilstand tot Apple accepteert.
+
+## 1.1.0 (build 46) — klaargezet in App Store Connect (4 november 2026), NIET ingediend
+
+- Versie 1.1.0 aangemaakt, build 46 gekoppeld; teksten uit `metadata/nl-NL/` (naam *Hoot: Nieuws met een einde.*, ondertitel *Jouw nieuws, rustig bij elkaar*).
+- Schermafbeeldingen: opnamen met `tools/capture-110.sh` (simulators "Hoot Pro Max" en "iPad Pro 13-inch (M5)"), kop en toestel met `tools/store.mjs`. iPhone 6,9" in `screenshots/iphone-6.9/` (kaal) en `screenshots/marketing/iphone-6.9/`; de 6,3"-slot van App Store Connect (1206 × 2622) in `screenshots/marketing/iphone-6.3/`; iPad 13" in `screenshots/ipad-13/` en `screenshots/marketing/ipad-13/`. Zes beelden: Editie, Vergelijken, Stroom, Selectie, lezer, Nacht.
+- Releasenotes: zie `../../RELEASENOTES-BUILD-46.md` (geen emoji: App Store Connect weigert die).
+- Nog te doen door Alex: zie de overdracht in het gesprek (indienen, uitnodigingscode in de reviewnotities, Selectie-week bij vers beeld).

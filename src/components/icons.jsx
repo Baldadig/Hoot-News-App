@@ -54,11 +54,27 @@ export const CheckIcon = icon("<path fill=\"currentColor\" d=\"m232.49 80.49l-12
 // Caret (Phosphor "CaretRight" regular, als lijn): één pijltje dat draait voor de richting.
 // Terug (links), een rij of uitklapper (rechts, open: omlaag) en de eindkap van de Stroom.
 // Lijn 16 bij 22 px; bij 16 px 20, zodat hij optisch even zwaar blijft (1,25 px in plaats van 1).
-const TURN = { right: 0, down: 90, left: 180 }
+const TURN = { right: 0, down: 90, left: 180, up: 270 }
 export function CaretIcon({ dir = 'right', size = ICON }) {
   return (
     <svg viewBox="0 0 256 256" width={size} height={size} aria-hidden="true">
       <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={size < ICON ? 20 : 16} transform={`rotate(${TURN[dir]} 128 128)`} d="m96 48l80 80l-80 80" />
+    </svg>
+  )
+}
+// Een keuzemenu (Instellingen): twee kleine carets boven elkaar, zoals de menuknop van iOS.
+export function UpDownIcon({ size = ICON_SM }) {
+  return (
+    <svg viewBox="0 0 256 256" width={size} height={size} aria-hidden="true">
+      <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={20} d="m80 96l48-48l48 48m-96 64l48 48l48-48" />
+    </svg>
+  )
+}
+// Springen (de inhoud van de Selectie): een pijl omlaag in dezelfde lijn als de caret.
+export function JumpIcon({ size = ICON }) {
+  return (
+    <svg viewBox="0 0 256 256" width={size} height={size} aria-hidden="true">
+      <path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={size < ICON ? 20 : 16} d="M128 40v176m-64-64l64 64l64-64" />
     </svg>
   )
 }
@@ -87,17 +103,13 @@ export const INTEREST_ICONS = {
   sport: icon("<g fill=\"currentColor\"><path d=\"m65.17 108.08l-33 25.34c-.1-1.8-.15-3.6-.15-5.42a95.6 95.6 0 0 1 21.21-60.22Zm-18.25 71.34a96.12 96.12 0 0 0 57 41.52l-14.7-41.52Zm105.21 41.52a96.12 96.12 0 0 0 57-41.52h-42.3Zm50.64-153.16l-11.94 40.3l33 25.34c.1-1.8.15-3.6.15-5.42a95.6 95.6 0 0 0-21.21-60.22m-38.52-28.7a96.34 96.34 0 0 0-72.5 0L128 64ZM152.72 160L168 115.5L128 88l-40 27.5l15.28 44.5Z\" opacity=\".2\"/><path d=\"M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24m76.52 147.42H170.9l-9.26-12.76l12.63-36.78l15-4.89l26.24 20.13a87.4 87.4 0 0 1-10.99 34.3m-164-34.3L66.71 117l15 4.89l12.63 36.78l-9.24 12.75H51.48a87.4 87.4 0 0 1-11.01-34.3Zm10-50.64l5.51 18.6l-15.32 11.69a87.3 87.3 0 0 1 9.72-30.29ZM109 152l-11.46-33.35L128 97.71l30.46 20.94L147 152Zm91.07-46.92l5.51-18.6a87.3 87.3 0 0 1 9.72 30.29Zm-6.2-35.38l-9.51 32.08l-15.07 4.89L136 83.79V68.21l29.09-20a88.6 88.6 0 0 1 28.77 21.49Zm-47.8-27.83L128 54.29l-18.07-12.42a88.2 88.2 0 0 1 36.14 0m-55.16 6.34l29.09 20v15.58l-33.28 22.88l-15.07-4.89l-9.51-32.08a88.6 88.6 0 0 1 28.77-21.49M63.15 187.42h20.37l7.17 20.27a88.4 88.4 0 0 1-27.54-20.27M110 214.13l-11.88-33.42l9.23-12.71h41.3l9.23 12.71l-11.83 33.42a88 88 0 0 1-36.1 0Zm55.36-6.44l7.17-20.27h20.37a88.4 88.4 0 0 1-27.59 20.27Z\"/></g>"),
 }
 
-// Lijntekeningen voor een lege bladzijde (Empty art): geen Phosphor, maar met de hand getekend op
-// een raster van 96 (--art). Alleen lijn, geen vlak: het blad en zijn regels stil, en het ding
-// van de plek (bladwijzer, loep, @) als enige rode lijn, in --accent; even veel rood per tekening.
-// Het blad staat in --edge (de lijn van de schets), zie .empty__art.
-// Kleur en dikte komen uit CSS (.empty__art), zodat licht en donker vanzelf meegaan.
-const sheet = (
-  <>
-    <rect x="22" y="14" width="52" height="68" rx="2" />
-    <path d="M30 30h16M30 38h22" />
-  </>
-)
+// Lijntekeningen voor een lege bladzijde (Empty art), uit de beeldtaal van Brand Guide v2.2 (06b),
+// op een raster van 96 (--art). Twee composities, rustig en altijd buiten de leeslaag:
+// - 01 Zon op de horizon: de boog en de horizon in inkt (2), twee korter wordende regels (1) en
+//   de rode punt van "hoot." aan het eind van de horizon. Bewaard, Editie, Stroom, Bluesky.
+// - 04 Raster met één punt: alles van je bronnen op een rij, één ding valt op. Zoeken.
+// Eén rood moment per tekening (.empty__lint). Kleur en dikte komen uit CSS (.empty__art), zodat
+// Licht, Donker en Nacht vanzelf meegaan.
 const art = (place, body) =>
   function Art() {
     return (
@@ -106,38 +118,23 @@ const art = (place, body) =>
       </svg>
     )
   }
-// Bewaard: een blad met de bladwijzer die er bovenuit steekt.
-export const SavedArt = art(
-  'saved',
+const horizon = (
   <>
-    {sheet}
-    <path d="M30 46h18M30 54h22M30 62h14" />
-    <path className="empty__lint" d="M58 10v24l4-5l4 5V10" />
+    <path className="empty__line" d="M24 64a24 24 0 0 1 48 0M8 64h72" />
+    <path className="empty__thin" d="M20 76.5h44M20 84.5h24" />
+    <circle className="empty__lint" cx="86" cy="63" r="4" />
   </>
 )
-// Zoeken: een blad met een loep op de onderste helft.
-export const SearchArt = art(
-  'search',
+const raster = (
   <>
-    {sheet}
-    <path d="M30 46h10" />
-    <g className="empty__lint">
-      <circle cx="54" cy="58" r="10" />
-      <path d="M61 65l8 8" />
+    <g className="empty__dot">
+      {[16, 32, 48, 64, 80].flatMap((y) => [16, 32, 48, 64, 80].filter((x) => !(x === 64 && y === 64)).map((x) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.5" />))}
     </g>
+    <circle className="empty__lint" cx="64" cy="64" r="4" />
   </>
 )
-// Bluesky: een blad met de @ van een naam.
-export const BlueskyArt = art(
-  'bluesky',
-  <>
-    {sheet}
-    <g className="empty__lint">
-      <circle cx="48" cy="60" r="4.5" />
-      <path d="M52.5 56v6a3.5 3.5 0 0 0 7 0v-2a11.5 11.5 0 1 0-4.5 9.1" />
-    </g>
-  </>
-)
-
-export const StreamArt = art('stream', <>{sheet}<g className="empty__lint"><path d="M30 50c12-8 24 8 36 0M30 60c12-8 24 8 36 0M30 70c12-8 24 8 36 0" /></g></>)
-export const EditionArt = art('edition', <>{sheet}<path d="M30 46h18M30 54h22M30 62h14" /><path className="empty__lint" d="M58 14v10h16" /></>)
+export const SavedArt = art('saved', horizon)
+export const SearchArt = art('search', raster)
+export const BlueskyArt = art('bluesky', horizon)
+export const StreamArt = art('stream', horizon)
+export const EditionArt = art('edition', horizon)

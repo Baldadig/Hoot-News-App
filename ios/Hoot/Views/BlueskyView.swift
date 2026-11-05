@@ -5,6 +5,7 @@ import SwiftUI
 struct BlueskyFeed: View {
     @Environment(HootStore.self) private var store
     @State private var who: String?
+    @State private var lines = LoadLinesModel() // de laadstrepen bij het eerste laden (LoadLines.swift)
     // Opent het toevoegen (het blad met accounts), voor de knop in het lege scherm.
     var onAdd: (() -> Void)? = nil
 
@@ -16,21 +17,47 @@ struct BlueskyFeed: View {
         LazyVStack(alignment: .leading, spacing: 0) {
             if people.count > 1 { chips(people, who: who) }
             if store.status == .loading && posts.isEmpty {
-                WaitingMark().frame(maxWidth: .infinity, minHeight: 240)
+                LoadLinesBox()
             } else if posts.isEmpty {
-                if people.isEmpty {
-                    EmptyState(title: "Je volgt nog niemand", systemImage: "bubble.left.and.bubble.right", text: "Voeg mensen toe met hun @-naam, bijvoorbeeld @naam.bsky.social.", action: onAdd.map { (label: "Iemand toevoegen", systemImage: "plus", run: $0) })
-                } else {
-                    EmptyState(title: "Nog geen posts", systemImage: "bubble.left.and.bubble.right", text: "Zodra de mensen die je volgt iets plaatsen, staat het hier.")
+                Group {
+                    if people.isEmpty {
+                        EmptyState(title: "Je volgt nog niemand", systemImage: "bubble.left.and.bubble.right", text: "Voeg mensen toe met hun @-naam, bijvoorbeeld @naam.bsky.social.", action: onAdd.map { (label: "Iemand toevoegen", systemImage: "plus", run: $0) })
+                    } else {
+                        let empty = Self.emptyText(people: people, who: who, state: store.ownState)
+                        EmptyState(title: empty.title, systemImage: "bubble.left.and.bubble.right", text: empty.text)
+                    }
                 }
+                .loadLinesError(lines)
             } else {
-                StaleNotice()
-                ForEach(posts) { post in
-                    PostRow(item: post)
-                    Rule()
+                Group {
+                    StaleNotice()
+                    ForEach(posts) { post in
+                        PostRow(item: post)
+                        Rule()
+                    }
                 }
+                .loadLinesText(lines)
             }
         }
+        .loadLines(lines, loading: store.status == .loading && posts.isEmpty, ok: !posts.isEmpty)
+    }
+
+    // Waarom het leeg is, zonder klokkijden: wie niets plaatste in de afgelopen 36 uur ("anderhalve dag")
+    // staat er gewoon niet in; een account dat weg is of een Bluesky die niet reageert, zeggen we ook.
+    static func emptyText(people: [Source], who: String?, state: [String: HootStore.OwnState]) -> (title: String, text: String) {
+        let shown = people.filter { who == nil || $0.id == who }
+        let mine = shown.compactMap { state[$0.id] }
+        let name = shown.count == 1 ? shown[0].name : nil
+        if !mine.isEmpty, mine.allSatisfy({ $0 == .gone }) {
+            return (name.map { "\($0) bestaat niet meer" } ?? "Deze accounts bestaan niet meer", "Haal het weg bij je Bluesky-accounts en voeg het opnieuw toe als het van naam veranderde.")
+        }
+        if !mine.isEmpty, mine.allSatisfy({ $0 == .unreachable }) {
+            return ("Bluesky reageert niet", "Probeer het straks nog eens.")
+        }
+        if !mine.isEmpty, mine.allSatisfy({ if case .posts = $0 { true } else { false } }) {
+            return (name.map { "\($0) plaatste niets in de afgelopen anderhalve dag" } ?? "Geen posts in de afgelopen anderhalve dag", "Alleen eigen posts tellen mee: geen reposts en geen antwoorden.")
+        }
+        return ("Nog geen posts", "Zodra de mensen die je volgt iets plaatsen, staat het hier.")
     }
 
     private func chips(_ people: [Source], who: String?) -> some View {
@@ -47,7 +74,7 @@ struct BlueskyFeed: View {
 
     private func chip(_ label: String, on: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(label).font(.subheadline.weight(.semibold)).foregroundStyle(on ? Theme.accent : Theme.ink3)
+            Text(label).font(.ui(.subheadline, .semibold)).foregroundStyle(on ? Theme.accent : Theme.ink3)
         }
         .buttonStyle(.glass)
         .accessibilityAddTraits(on ? .isSelected : [])
@@ -59,37 +86,63 @@ struct PostRow: View {
     @Environment(HootStore.self) private var store
     let item: Item
 
+    // De tekst zonder kale links (Stroom-kaart B): de link staat in de linkkaart. Gelijk aan
+    // withoutBareLinks in shared/bluesky.mjs.
+    static func withoutBareLinks(_ text: String, domain: String?) -> String {
+        let host = (domain ?? "").replacingOccurrences(of: #"^www\."#, with: "", options: .regularExpression).lowercased()
+        let words = text.split(whereSeparator: \.isWhitespace).filter { token in
+            let w = String(token).replacingOccurrences(of: #"[)\].,;:!?]+$"#, with: "", options: .regularExpression).lowercased()
+            if w.hasPrefix("http://") || w.hasPrefix("https://") { return false }
+            if w.range(of: #"^(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}/\S*$"#, options: .regularExpression) != nil { return false }
+            if !host.isEmpty, w == host || w == "www." + host || (w.hasPrefix(host) && w.hasSuffix("…")) { return false }
+            return true
+        }
+        return words.joined(separator: " ")
+    }
+
+    private var text: String {
+        Self.withoutBareLinks(item.summary ?? "", domain: item.linkTitle != nil ? item.link?.host() : nil)
+    }
+
+    // Op het raster van het artikel (Stroom-kaart B, keuze 1.1.0): de tekst zelf in leestekst, dan het
+    // beeld of de linkkaart over de hele kolom, en de bron onderaan op dezelfde plek als bij een
+    // artikel (logo 24, naam, en de @-naam waar bij een artikel de tijd staat), bewaren rechts. Geen
+    // hangende inspringing onder een grote avatar meer. 12 tussen tekst, beeld en bron.
     var body: some View {
-        HStack(alignment: .top, spacing: Space.s3) {
-            SourceMark(item: item, size: 40)
-            VStack(alignment: .leading, spacing: Space.s2) {
-                HStack(alignment: .firstTextBaseline) {
+        VStack(alignment: .leading, spacing: Space.s3) {
+            VStack(alignment: .leading, spacing: Space.s3) {
+                if !text.isEmpty {
+                    Text(text).leestekst(.body).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
+                }
+                if item.videoURL != nil {
+                    // de video staat hieronder, buiten de tik naar de post
+                } else if let title = item.linkTitle {
+                    LinkCard(item: item, title: title)
+                } else if item.image != nil, store.showsImage(lead: false) {
+                    FramedImage(url: item.image.flatMap(URL.init(string:)), ratio: CGFloat(min(max(item.imageRatio ?? 4 / 3, 0.8), 2.4)))
+                        .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .opensArticle(item)
+            if item.videoURL != nil { InlineVideo(item: item) }
+            HStack(spacing: Space.s2) {
+                HStack(alignment: .top, spacing: Space.s2) {
+                    SourceMark(item: item)
                     VStack(alignment: .leading, spacing: 0) {
-                        Text(item.sourceName ?? item.source).font(.subheadline.weight(.semibold))
-                        Text([item.handle, HootDate.ago(item.date)].compactMap { $0 }.joined(separator: " · ")).font(.caption).foregroundStyle(Theme.ink3)
+                        Text(item.sourceName ?? item.source).font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink)
+                        Text([item.handle, HootDate.ago(item.date)].compactMap { $0 }.joined(separator: " · ")).font(.ui(.caption)).monospacedDigit().foregroundStyle(Theme.hint)
                     }
-                    Spacer(minLength: 8)
-                    SaveButton(item: item)
+                    .fixedSize(horizontal: false, vertical: true)
                 }
-                Group {
-                    if let text = item.summary, !text.isEmpty {
-                        Text(text).font(.body).fixedSize(horizontal: false, vertical: true)
-                    }
-                    if item.videoURL != nil {
-                        // de video staat hieronder, buiten de tik naar de post
-                    } else if let title = item.linkTitle {
-                        LinkCard(item: item, title: title)
-                    } else if item.image != nil, store.showsImage(lead: false) {
-                        FramedImage(url: item.image.flatMap(URL.init(string:)), ratio: CGFloat(min(max(item.imageRatio ?? 4 / 3, 0.75), 2)))
-                            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-                    }
-                }
-                .contentShape(Rectangle())
-                .opensArticle(item)
-                if item.videoURL != nil { InlineVideo(item: item) }
+                .frame(minHeight: Space.tap)
+                .accessibilityElement(children: .combine)
+                Spacer(minLength: 8)
+                SaveButton(item: item)
             }
         }
-        .padding(.vertical, Space.s3)
+        .padding(.vertical, Space.s2)
     }
 }
 
@@ -104,8 +157,8 @@ private struct LinkCard: View {
                 FramedImage(url: item.image.flatMap(URL.init(string:)), ratio: 1.91)
             }
             VStack(alignment: .leading, spacing: Space.s0) {
-                Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
-                if let host = item.link?.host() { Text(host.replacing(/^www\./, with: "")).font(.caption).foregroundStyle(Theme.ink3) }
+                Text(title).font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
+                if let host = item.link?.host() { Text(host.replacing(/^www\./, with: "")).font(.ui(.caption)).foregroundStyle(Theme.hint) }
             }
             .padding(Space.s3)
         }
@@ -118,7 +171,9 @@ private struct LinkCard: View {
 
 // Wie je volgt, vanuit de Stroom: iemand toevoegen met de @-naam (of een link van bsky.app), en
 // accounts aan- en uitzetten of weghalen.
+// `pushed`: als pagina in Instellingen (geen eigen navigatiestapel en geen Klaar); anders als blad.
 struct BlueskyAccountsView: View {
+    var pushed = false
     @Environment(HootStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var input = ""
@@ -126,7 +181,14 @@ struct BlueskyAccountsView: View {
     @State private var error: String?
 
     var body: some View {
-        NavigationStack {
+        if pushed {
+            list
+        } else {
+            NavigationStack { list }
+        }
+    }
+
+    private var list: some View {
             List {
                 Section {
                     HStack {
@@ -168,9 +230,8 @@ struct BlueskyAccountsView: View {
             .navigationTitle("Bluesky-accounts")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) { Button("Klaar") { dismiss() } } // tekst in inkt, zoals Instellingen
+                if !pushed { ToolbarItem(placement: .topBarTrailing) { Button("Klaar") { dismiss() } } } // tekst in inkt, zoals Instellingen
             }
-        }
     }
 
     private func row(_ s: Source) -> some View {
@@ -188,7 +249,8 @@ struct BlueskyAccountsView: View {
                     .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 0) {
                         Text(s.name)
-                        Text("@" + s.id.replacing(/^bsky:/, with: "")).font(.caption).foregroundStyle(Theme.ink3)
+                        Text("@" + s.id.replacing(/^bsky:/, with: "")).font(.ui(.caption)).foregroundStyle(Theme.hint)
+                        if store.ownState[s.id] == .gone { Text("Bestaat niet meer").font(.ui(.caption)).foregroundStyle(Theme.warn) }
                     }
                 }
             }
@@ -220,6 +282,7 @@ struct BlueskyAccountsView: View {
 // Bluesky op een eigen pagina (Instellingen › Bluesky › Posts): de posts van wie je volgt, met een
 // plus om iemand toe te voegen. De rij van de Stroom heeft alleen je rubrieken.
 struct BlueskyPage: View {
+    @Environment(HootStore.self) private var store
     @State private var adding = false
     var body: some View {
         ScrollView {
@@ -228,6 +291,8 @@ struct BlueskyPage: View {
         .background(Theme.paper)
         .navigationTitle("Bluesky")
         .navigationBarTitleDisplayMode(.inline)
+        // Opent de pagina leeg (de ronde bij de start mislukte, of een oud account werd net omgezet), dan nog eens.
+        .task { if store.posts.isEmpty { await store.loadOwnPosts() } }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { adding = true } label: { Image(systemName: "plus") }

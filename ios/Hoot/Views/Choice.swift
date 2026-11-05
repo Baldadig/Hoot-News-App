@@ -61,6 +61,7 @@ struct ChoiceChip: View {
     let on: Bool
     var dense = false // in het welkom, waar niets mag scrollen: minstens 44 hoog en smaller
     let action: () -> Void
+    static let tint = 0.08 // het zachte inktvlak van gekozen (web: --tint, 6 % licht en 10 % donker)
     @Environment(\.accessibilityReduceMotion) private var still
 
     var body: some View {
@@ -76,13 +77,15 @@ struct ChoiceChip: View {
                 }
                 Text(label).multilineTextAlignment(.leading)
             }
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(on ? Theme.accent : Theme.ink)
+            .font(.ui(.subheadline, .semibold))
+            .foregroundStyle(Theme.ink)
             .padding(.horizontal, dense ? Space.s3 : Space.s4)
             .padding(.vertical, Space.s2)
             .frame(minHeight: Space.tap)
-            .background(on ? Theme.accentSoft : Color.clear, in: Capsule()) // in rust geen vlak: alleen de haarlijn
-            .overlay(Capsule().strokeBorder(on ? Theme.accent : Theme.rule, lineWidth: 1))
+            // Gekozen: een zacht inktvlak met het vinkje (--tint op het web), geen rood. In rust geen
+            // vlak: alleen de haarlijn.
+            .background(on ? Theme.ink.opacity(Self.tint) : Color.clear, in: Capsule())
+            .overlay(Capsule().strokeBorder(on ? Theme.edge : Theme.rule, lineWidth: 1))
             .contentShape(Capsule())
         }
         .buttonStyle(ChoicePress())
@@ -150,7 +153,7 @@ struct ChoiceTile: View {
             }
             Text(label).multilineTextAlignment(.leading)
         }
-        .font(.headline.weight(.heavy))
+        .font(.ui(.headline, .heavy))
         .lineLimit(3) // labels lopen door in plaats van af te breken (README › Toegankelijkheid): nooit "Binnenla…"
         .fixedSize(horizontal: false, vertical: true)
         .layoutPriority(1) // de naam krijgt de ruimte, niet de Spacer ernaast
@@ -187,9 +190,9 @@ struct GroupTitle: View {
         HStack(spacing: Space.s2) {
             if let icon { Image(systemName: icon).foregroundStyle(Theme.accent).accessibilityHidden(true) }
             if typeSize.isAccessibilitySize {
-                Text(text).font(.caption.weight(.bold))
+                Text(text).font(.ui(.caption, .bold))
             } else {
-                Text(text.uppercased()).font(.caption.weight(.heavy)).tracking(0.6)
+                Text(text.uppercased()).font(.ui(.caption, .heavy)).tracking(0.6)
             }
         }
         .foregroundStyle(tone)

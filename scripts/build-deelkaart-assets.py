@@ -15,7 +15,8 @@ OUT = ROOT / 'shared/deelkaart'
 IOS = ROOT / 'ios/Hoot/Resources/Deelkaart'
 OUT.mkdir(parents=True, exist_ok=True)
 IOS.mkdir(parents=True, exist_ok=True)
-for family, weight, name in [('newsreader', 800, 'Newsreader-800'), ('source-sans-3', 600, 'SourceSans3-600')]:
+# De schreefloze letter (Schibsted Grotesk 600) komt uit scripts/build-fonts.py: dezelfde als die van de app.
+for family, weight, name in [('newsreader', 800, 'Newsreader-800')]:
     base = ROOT / f'node_modules/@fontsource/{family}'
     files = [base / 'files' / f'{family}-{subset}-{weight}-normal.woff' for subset in ['latin', 'latin-ext']]
     for source in files:
@@ -35,6 +36,6 @@ for family, weight, name in [('newsreader', 800, 'Newsreader-800'), ('source-san
         advances = {chr(c): font['hmtx'][glyph][0] / units for c, glyph in font.getBestCmap().items()}
         (OUT / 'advances.json').write_text(json.dumps(advances, ensure_ascii=False, separators=(',', ':')) + '\n')
     shutil.copy(base / 'LICENSE', OUT / f'{family}-OFL.txt')
-for name in ['layout.json', 'advances.json', 'Newsreader-800.ttf', 'SourceSans3-600.ttf', 'newsreader-OFL.txt', 'source-sans-3-OFL.txt']:
+for name in ['layout.json', 'advances.json', 'Newsreader-800.ttf', 'newsreader-OFL.txt']:
     shutil.copy(OUT / name, IOS / name)
 print('Deelkaart-assets en iOS-bundel gelijkgetrokken.')

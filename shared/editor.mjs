@@ -10,7 +10,7 @@
 // Rekenregels (web en iOS draaien deze code allebei, en moeten bit-gelijk uitkomen): alleen
 // + − × ÷, Math.round/min/max/floor en Date.parse op ISO-tekst. Geen Math.log/pow/exp/abs en geen
 // localeCompare; elke sortering heeft een totale vergelijker die eindigt op id.
-import { INTERESTS, topicById } from '../src/lib/topics.js'
+import { INTERESTS, topicById, currentTopics, currentTopicMap } from '../src/lib/topics.js'
 import { MIN_EVENTS } from '../src/lib/affinity.js'
 import { DESKS, DESK_LABEL, desksOf, storyForeignOf, isNonEuropean, VL_HOME, NL_HOME } from '../netlify/lib/desks.mjs'
 import { shownTopics, keywordTopics, OTHER_SPORT } from '../netlify/lib/topics.mjs'
@@ -56,6 +56,10 @@ export function supplyOf(items = [], followed = null) {
 // komt (`origin`), per gebied de sterkste waarde (`family`), per bron hoe vaak je die leest
 // (`sourceP`) en het aandeel van je lezen per onderwerp (`shareOf`, alleen voor §5).
 export function profileOf({ interests = [], topics = [], affinity = null, taste = null, favorites = [], followed = new Set(), sources = [], supply = null } = {}) {
+  // Oude sleutels (Trump is sinds 1.1.0 Verenigde Staten): profielen uit opslag, sync en oudere builds.
+  topics = currentTopics(topics)
+  if (affinity?.topics) affinity = { ...affinity, topics: currentTopicMap(affinity.topics) }
+  if (taste?.topics) taste = { ...taste, topics: currentTopicMap(taste.topics, TASTE_SCALE) }
   // Expliciet. Scherp is een deel van de onderwerpen van een gebied; niets gekozen of de volledige
   // lijst (zoals Welkom die bewaart) telt als geërfd: alles, maar minder sterk. Zo lekt Games niet
   // mee met wie Tech kiest.
@@ -163,9 +167,9 @@ export function isSport(item, catOf = null) {
 }
 // Politiek zonder Wereld is Nederlandse en Europese politiek (feedback 31 oktober: wie Binnenland,
 // Politiek en Economie koos, opende met de paus die in Amerika stemt, Lula en Wall Street "omdat je
-// Trump volgt"): VS-politiek en Trump tellen dan alleen als je dat onderwerp zelf koos, en bij een
+// Trump volgt"): Verenigde Staten telt dan alleen als je dat onderwerp zelf koos, en bij een
 // buitenlands bericht telt een geërfd onderwerp van Politiek alleen als het Europa is.
-const US_TOPICS = new Set(['vs-politiek', 'trump'])
+const US_TOPICS = new Set(['vs-politiek'])
 // Een Europese bron maakt niet-Europese politiek geen Europese (feedback 31 oktober: een interview met de
 // Canadese premier Carney van Politico Europe was "Omdat je Politiek volgt" voor wie Binnenland en Politiek
 // koos): `europa` telt bij een buitenlands bericht alleen als de kop geen niet-Europees land of werelddeel
@@ -227,7 +231,7 @@ export function geoOf(item, desk = null, foreign = false) {
   const ds = desksOf(item, { storyForeign: foreign })
   for (const d of ds) if (FOREIGN_DESKS.has(d)) return 'int' // zoals primaryDesk: het land gaat voor
   if (ds.has('binnenland')) return 'nl'
-  // VS-politiek of Trump uit een bron van buiten Nederland is buitenland, ook zonder rubriek (feedback
+  // Verenigde Staten (vs-politiek) uit een bron van buiten Nederland is buitenland, ook zonder rubriek (feedback
   // 31 oktober: een NYT-stuk over een senaatsverkiezing zonder VS-rubriek kwam als "Het nieuws van nu" binnen).
   if (!NL_HOME.has(item.source) && (item.topics || []).some((t) => US_TOPICS.has(t))) return 'int'
   return foreign ? 'int' : null
@@ -455,7 +459,7 @@ export const OWN_DESKS = ['tech', 'economie', 'regio']
 // tweede Binnenland. De tabel is letterlijk die van het referentieprototype.
 export const DESK_GAIN = 3
 export const TOPIC_DESK = {
-  nederland: ['binnenland'], verkiezingen: ['binnenland', 'vs'], 'vs-politiek': ['vs'], trump: ['vs'], europa: ['buitenland'],
+  nederland: ['binnenland'], verkiezingen: ['binnenland', 'vs'], 'vs-politiek': ['vs'], europa: ['buitenland'],
   wonen: ['binnenland', 'regio'], zorg: ['binnenland'], onderwijs: ['binnenland'], misdaad: ['binnenland', 'regio'], migratie: ['binnenland'], verkeer: ['regio'],
   oekraine: ['oekraine'], middenoosten: ['middenoosten'], azie: ['buitenland'], afrika: ['buitenland'], latam: ['buitenland'], geopolitiek: ['buitenland', 'oekraine'],
   economie: ['economie'], werk: ['economie'], bedrijven: ['economie'], energie: ['economie'], geld: ['economie'],

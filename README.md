@@ -2,7 +2,7 @@
 
 Een rustige, reclamevrije nieuwslezer: een editie met een einde, een Stroom van jouw bronnen en een
 overzicht in één minuut — als installeerbare webapp op je iPhone. Ontwerp: "Zaterdagkrant" (Newsreader
-voor koppen, Source Sans 3 voor tekst, warm papier, krantenrood), iconen van Phosphor (Duotone).
+voor koppen en lopende tekst, Inter voor bediening, warm papier, krantenrood), iconen van Phosphor (Duotone).
 
 **Bronnen:** een gecontroleerde catalogus van zo'n 90 titels — alle Nederlandse kranten (ook regionaal),
 de Vlaamse kranten, NU.nl, Engelstalige bronnen met een blik op de wereld (NYT, Guardian, BBC, The

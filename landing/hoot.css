@@ -1,19 +1,26 @@
 /* gethoot.app · v4 · mobiel eerst. Vlakken in rood, wit en papier; zon en toestel zijn één beeld op dezelfde horizon.
-   Schaal: ruimte 4 8 12 16 24 32 48 64 96, letter 13 15 17 20 en daarboven vloeiend. Geen externe verzoeken. */
-@font-face{font-family:Newsreader;font-style:normal;font-weight:800;font-display:swap;src:url(/fonts/newsreader-800.woff2) format("woff2")}
-@font-face{font-family:"Source Sans 3";font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/source-sans-3-400.woff2) format("woff2")}
-@font-face{font-family:"Source Sans 3";font-style:normal;font-weight:600;font-display:swap;src:url(/fonts/source-sans-3-600.woff2) format("woff2")}
-@font-face{font-family:"Source Sans 3";font-style:normal;font-weight:700;font-display:swap;src:url(/fonts/source-sans-3-700.woff2) format("woff2")}
-@font-face{font-family:"Source Sans 3";font-style:normal;font-weight:800;font-display:swap;src:url(/fonts/source-sans-3-800.woff2) format("woff2")}
+   Schaal: ruimte 4 8 12 16 24 32 48 64 96, letter 13 15 17 20 en daarboven vloeiend. Geen externe verzoeken.
+   Letters: --kop Newsreader 800 · --lees Newsreader, lopende leestekst in intro variant 4 (optische maat 12, gewicht 450, ink-2; zie --lees-wght) · --tekst Schibsted Grotesk (bediening, labels, uitleg). Geen Inter, geen Source Sans, geen Google Fonts. */
+/* Lezen in Newsreader, bedienen in Schibsted Grotesk (tekstfont 4-11). Koppen: de statische Newsreader 800 (optische maat uit).
+   Lopende tekst: Newsreader variabel (200-700), optische maat vast 12 via font-variation-settings. Bediening: Schibsted Grotesk variabel (400-900). Alles latin + latin-ext, uit src/fonts. */
+@font-face{font-family:Newsreader;font-style:normal;font-weight:800;font-display:swap;src:url(/fonts/newsreader-800.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:Newsreader;font-style:normal;font-weight:800;font-display:swap;src:url(/fonts/newsreader-800-ext.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:Newsreader;font-style:normal;font-weight:200 700;font-display:swap;src:url(/fonts/newsreader-tekst.woff2) format("woff2-variations");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:Newsreader;font-style:normal;font-weight:200 700;font-display:swap;src:url(/fonts/newsreader-tekst-ext.woff2) format("woff2-variations");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Schibsted Grotesk";font-style:normal;font-weight:400 900;font-display:swap;src:url(/fonts/schibsted.woff2) format("woff2-variations");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Schibsted Grotesk";font-style:normal;font-weight:400 900;font-display:swap;src:url(/fonts/schibsted-ext.woff2) format("woff2-variations");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
 @font-face{font-family:"Hoot Kop Terug";src:local(Georgia),local("Times New Roman");size-adjust:93%;ascent-override:96%;descent-override:26%;line-gap-override:0%}
-@font-face{font-family:"Hoot Tekst Terug";src:local(Arial),local("Helvetica Neue");size-adjust:96%;ascent-override:100%;descent-override:27%;line-gap-override:0%}
+@font-face{font-family:"Hoot Lees Terug";src:local(Georgia),local("Times New Roman");size-adjust:92%;ascent-override:80%;descent-override:29%;line-gap-override:0%}
+@font-face{font-family:"Hoot Tekst Terug";src:local(Arial),local("Helvetica Neue");size-adjust:106%;ascent-override:92.1%;descent-override:24.3%;line-gap-override:0%} /* Schibsted Grotesk 400 (gemiddelde letterbreedte 0,5145 em, Arial 0,4847: 106%; stijgen 0,9766 en dalen 0,2578 em, gedeeld door 1,06) */
 
 :root{
-  --papier:#F5F1E8;--wit:#FBF8F1;--rood:#A3201B;--op-rood:#F5F1E8;--inkt:#1A1814;--inkt2:#4B453B;--inkt3:#6B6457;--lijn:#DED5C4;--chip:#EFE9DD;
-  --s-bg:#F5F1E8;--s-ink:#1A1814;--s-ink2:#4B453B;--s-ink3:#6B6457;--s-red:#A3201B;--s-line:#DED5C4;--s-card:#FCFAF5;--s-blok:#A3201B;
-  --ring:#1A1814;--accent:#A3201B;
+  --papier:#F5F1E8;--wit:#FBF8F1;--rood:#9A3324;--op-rood:#F5F1E8;--inkt:#1A1814;--inkt2:#4B453B;--inkt3:#6B6457;--lijn:#DED5C4;--chip:#EFE9DD;
+  --s-bg:#F5F1E8;--s-ink:#1A1814;--s-ink2:#4B453B;--s-ink3:#6B6457;--s-red:#9A3324;--s-line:#DED5C4;--s-card:#FCFAF5;--s-blok:#9A3324;
+  --ring:#1A1814;--accent:#9A3324;
   --kop:Newsreader,"Hoot Kop Terug",Georgia,serif;
-  --tekst:"Source Sans 3","Hoot Tekst Terug",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --tekst:"Schibsted Grotesk","Hoot Tekst Terug",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --lees:Newsreader,"Hoot Lees Terug",Georgia,serif;
+  --lees-wght:450;--lees-vs:"opsz" 12; /* intro variant 4 (keuze Alex, 5 nov); terugval variant 3: 400 en "opsz" 11 */
   --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;--s8:64px;--s9:96px;
   --rand:20px;--max:1240px;--ga:1.4s;
   color-scheme:light;
@@ -21,13 +28,13 @@
 @media (prefers-color-scheme:dark){
   :root:not([data-theme=light]){
     --papier:#151310;--wit:#1E1B17;--inkt:#F1ECE2;--inkt2:#CBC3B5;--inkt3:#A39B8D;--lijn:#34302A;--chip:#2A2621;
-    --s-bg:#151310;--s-ink:#F1ECE2;--s-ink2:#CBC3B5;--s-ink3:#A39B8D;--s-red:#EC7A70;--s-line:#34302A;--s-card:#1E1B17;--s-blok:#93201B;
+    --s-bg:#151310;--s-ink:#F1ECE2;--s-ink2:#CBC3B5;--s-ink3:#A39B8D;--s-red:#EC7A70;--s-line:#34302A;--s-card:#1E1B17;--s-blok:#8B3023;
     --ring:#4A443B;--accent:#EC7A70;color-scheme:dark;
   }
 }
 :root[data-theme=dark]{
   --papier:#151310;--wit:#1E1B17;--inkt:#F1ECE2;--inkt2:#CBC3B5;--inkt3:#A39B8D;--lijn:#34302A;--chip:#2A2621;
-  --s-bg:#151310;--s-ink:#F1ECE2;--s-ink2:#CBC3B5;--s-ink3:#A39B8D;--s-red:#EC7A70;--s-line:#34302A;--s-card:#1E1B17;--s-blok:#93201B;
+  --s-bg:#151310;--s-ink:#F1ECE2;--s-ink2:#CBC3B5;--s-ink3:#A39B8D;--s-red:#EC7A70;--s-line:#34302A;--s-card:#1E1B17;--s-blok:#8B3023;
   --ring:#4A443B;--accent:#EC7A70;color-scheme:dark;
 }
 :root.donker{--ring:#4A443B;--accent:#EC7A70}
@@ -69,9 +76,10 @@ body,.band,.top,.voet,.scherm,.scherm *,.label,.lead,.zon,.rg,.dag span,.dag::be
 .kicker{margin-bottom:var(--s4);font:800 .8125rem/1.2 var(--tekst);letter-spacing:.06em;text-transform:uppercase}
 h1{font-size:clamp(3.25rem,14vw,6rem)}
 h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
-.lead{margin-top:var(--s3);max-width:min(100%,36ch);font-size:1.125rem;line-height:1.4;color:var(--dim);text-wrap:pretty}
+.lead{margin-top:var(--s3);max-width:min(100%,36ch);font-family:var(--lees);font-weight:var(--lees-wght);font-variation-settings:var(--lees-vs);font-size:1.1875rem;line-height:1.42;color:var(--dim);text-wrap:pretty}
+@media (min-width:440px){.lead{font-size:1.375rem}}
 .rood .lead{color:var(--op-rood)}
-@media (min-width:720px){.lead{font-size:1.3125rem;margin-top:var(--s5);max-width:30ch}.label{margin-bottom:var(--s4)}}
+@media (min-width:720px){.lead{margin-top:var(--s5);max-width:30ch}.label{margin-bottom:var(--s4)}}
 .punt{color:var(--accent)}
 .rood .punt{color:var(--op-rood)}
 .rood .punt{--p:var(--op-rood)}
@@ -94,7 +102,7 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 @media (hover:hover) and (prefers-reduced-motion:no-preference){.knop:hover{transform:translateY(-2px)}.knop:hover svg{transform:translateX(3px)}}
 .knop:active{transform:translateY(0)}
 @media (min-width:640px){.actie{grid-auto-flow:column;justify-content:start;align-items:center;gap:var(--s4)}.actie.mid{justify-content:center}}
-.gratis{margin-top:var(--s4);font-weight:700;font-size:1rem}
+.gratis{margin-top:var(--s4);font-weight:600;font-size:1rem}
 
 .top-in,.voet-in{display:flex;justify-content:space-between;align-items:center;gap:var(--s4);max-width:none;padding:var(--s4) max(var(--rand),calc((100% - var(--max)) / 2))}
 .merk{display:block;color:inherit}
@@ -158,7 +166,7 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .sc-waarom{font-size:.8em;color:var(--s-ink3);margin-top:.3em}
 .sc-k{font:800 1.12em/1.18 var(--kop);letter-spacing:-.008em;margin-top:.3em}
 .sc-kg{font:800 2.02em/1.06 var(--kop);letter-spacing:-.018em;margin-top:.3em}
-.sc-dek{font-size:.96em;color:var(--s-ink2);margin-top:.4em;line-height:1.32}
+.sc-dek{font-family:var(--lees);font-weight:var(--lees-wght);font-variation-settings:var(--lees-vs);font-size:.96em;color:var(--s-ink2);margin-top:.4em;line-height:1.32}
 .sc-bron{display:flex;align-items:center;gap:.5em;margin-top:.75em;font-size:.92em}
 .sc-bron i{flex:none;width:1.6em;height:1.6em;border-radius:50%;display:grid;place-items:center;font:700 .62em/1 var(--tekst);font-style:normal;color:#fff;background:var(--c,#1A1814)}
 .sc-bron span{display:grid;line-height:1.15}
@@ -420,7 +428,7 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .voordeel-lijst li{min-width:0;border-top:1px solid var(--lijn);padding-top:var(--s4);display:grid;grid-template-rows:auto 1fr;row-gap:var(--s2);align-content:start}
 .voordeel-lijst h3{font:800 clamp(1.5rem,2.2vw,1.75rem)/1.12 var(--kop);letter-spacing:-.015em;text-wrap:balance}
 .voordeel-lijst h3 span{display:block}
-.voordeel-lijst p{max-width:34ch;color:var(--inkt2)}
+.voordeel-lijst p{max-width:34ch;font-family:var(--lees);font-weight:var(--lees-wght);font-variation-settings:var(--lees-vs);color:var(--inkt2)}
 /* Nacht in één regel, stil onder de voordelen */
 @media(min-width:720px){
   .voordeel-lijst{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s6) var(--s6)}
@@ -455,11 +463,12 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .faq details:first-child{border-top:1px solid var(--lijn)}
 .faq summary{cursor:pointer;min-height:56px;padding:var(--s4) 0;font:800 1.125rem/1.4 var(--tekst)}
 .faq summary::marker{color:var(--accent)}
-.faq details p{max-width:65ch;padding-bottom:var(--s5);color:var(--inkt2)}
+.faq details p{max-width:65ch;padding-bottom:var(--s5);font-family:var(--lees);font-weight:var(--lees-wght);font-variation-settings:var(--lees-vs);color:var(--inkt2)}
 
 /* Meer lucht rond leeswerk, acties en de drie signature-demo's. */
 .actie{margin-top:var(--s7)}
 .held .lead{margin-top:var(--s6)}
+@media (min-width:720px){.held .lead{max-width:min(100%,36ch)}}
 .dagen{margin-top:var(--s7)}
 @media(max-width:719px){
   .held .actie{margin-top:var(--s6);gap:var(--s4)}
@@ -471,8 +480,9 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
   .editie .binnen,.stroom .binnen,.selectie .binnen{gap:var(--s8)}
   .editie .scene,.stroom .scene,.selectie .scene{--avail:calc((100cqw - 2 * var(--gutc) - 64px) / 2)}
   .held .lead,.held .actie{margin-top:var(--s5)}
-  /* de langere lead blijft drie regels en de App Store-regel één, zodat de band (en dus het toestel) even hoog blijft */
-  .held .lead{max-width:38ch}
+  /* de langere lead blijft drie regels en de App Store-regel één, zodat de band (en dus het toestel) even hoog blijft:
+     in Newsreader 22 is dat 32ch (393 px, was 38ch Source Sans 21 = 397 px) */
+  .held .lead{max-width:32ch}
   .held .wacht b{white-space:nowrap}
 }
 

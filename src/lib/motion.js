@@ -16,12 +16,12 @@ export const STEP_IN_MS = 120 // en weer in
 
 // Het opstartscherm (index.html + components/Splash.jsx, naar SplashView/HootApp.swift): de punt
 // stuitert in sprongen van 1,6 s (CSS @keyframes in index.html; bij Minder beweging staat hij stil);
-// het scherm staat minstens één sprong en hooguit 5 s, tot de Editie er is. Dan sluit het rood als
-// iris in 0,6 s tot de punt van het kleine "hoot." (Editie of zijbalk), of landt het woordmerk in
-// 0,7 s op de rode intro van Welkom (het rood blijft).
+// het scherm staat minstens één sprong en hooguit 5 s, tot de Editie er is. Dan vervaagt het grote
+// woord op zijn plek en reist alleen de iris in 0,7 s naar de punt van het kleine "hoot." (Editie of
+// zijbalk), of landt het woordmerk in 0,7 s op de rode intro van Welkom (het rood blijft).
 export const BOUNCE_MS = 1600
 export const SPLASH_MAX_MS = 5000
-export const SPLASH_IRIS_MS = 600
+export const SPLASH_IRIS_MS = 700
 export const SPLASH_LAND_MS = 700
 // Het woordmerk op het opstartscherm: de tekening (viewBox 239,45 × 73,5, punt op (231,75; 65,8)
 // r 7,7, zie components/Brand.jsx) passend in 160 × 49, zoals LaunchMark in de app.
@@ -61,7 +61,9 @@ export const reducedPlan = () => ({ fade: FADE_MS })
 // de app houdt hem dan ook.
 export const CROSS_MS = 450
 export const CROSS = 'ease-in-out'
-export const crossPlan = () => ({ fade: CROSS_MS, easing: CROSS })
+// De eerste keer (je eerste Editie, "Tien en de bubbel", src/lib/tien.js): het welkom vervaagt in
+// 200 ms (dur-2), bij Minder beweging in 350; dan begint het samenstellen.
+export const crossPlan = (first = false) => (first ? { fade: reduced() ? FADE_MS : 200, easing: CROSS } : { fade: CROSS_MS, easing: CROSS })
 
 // ---- Opstartscherm ----
 
@@ -79,10 +81,12 @@ export function restDelay(phase, d = BOUNCE_MS) {
   return Math.round(((lo - p + d) % d) * 100) / 100
 }
 
-// De iris naar de Editie: het woord landt in 55 % van de tijd, de papieren punt gaat op in het
-// rood (35 %), het laatste stuk (vanaf 60 %) kleurt het rood naar de punt, en een tiende langer
-// dan de curve. Zonder "hoot." in beeld sluit het rood tot de eigen punt en vervaagt dan kort.
-export const splashTimes = (d = SPLASH_IRIS_MS) => ({ word: Math.round(d * 0.55), dotEnd: Math.round(d * 0.35), tintStart: Math.round(d * 0.6), tintDur: Math.round(d * 0.4), end: d + 100, fadeOwn: 150 })
+// De iris naar de Editie (keuze 1.1.0: eerst vervagen, dan reizen; BRAND-UPDATE §10). Het grote
+// woord vervaagt op zijn plek in 40 % van de reis (0,28 s) en beweegt niet; de iris vertrekt als het
+// half weg is (20 %, 0,14 s) en reist in 0,7 s naar de gemeten punt. Daar kleurt het rood in 30 %
+// (0,21 s) naar de kleur van de punt en neemt de echte punt het over. Zonder "hoot." in beeld sluit
+// het rood tot de eigen punt en vervaagt dan kort. Gelijk aan IrisTimes in SplashView.swift.
+export const splashTimes = (d = SPLASH_IRIS_MS) => ({ fade: Math.round(d * 0.4), delay: Math.round(d * 0.2), travel: d, tintStart: Math.round(d * 1.2), tintDur: Math.round(d * 0.3), end: Math.round(d * 1.5) + 50, fadeOwn: 150 })
 
 // De landing op de rode intro: het woord glijdt in 55 % van de tijd naar linksboven, daarna
 // vervaagt het opstartscherm in 0,3 s (woordmerk en rood blijven gelijk; de tekst komt op).
@@ -145,9 +149,9 @@ export function fade(el, ms, from, to, easing = 'ease-out') {
 }
 
 // De iris sluit: van schermvullend tot de punt.
-export function irisClose(el, { x, y, r, w, h, duration = IRIS_MS, easing = IRIS }) {
+export function irisClose(el, { x, y, r, w, h, duration = IRIS_MS, delay = 0, easing = IRIS }) {
   const [open, closed] = irisKeyframes({ x, y, r, w, h })
-  return el.animate([{ clipPath: open }, { clipPath: closed }], { duration, easing, fill: 'forwards' })
+  return el.animate([{ clipPath: open }, { clipPath: closed }], { duration, delay, easing, fill: 'both' })
 }
 
 // De iris opent: van de punt tot schermvullend.

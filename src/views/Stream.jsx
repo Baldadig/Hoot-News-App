@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ViewHeader, StatusLine, Skeleton, LoadError, Empty } from '../components/Shell.jsx'
+import { ViewHeader, StatusLine, LoadError, Empty } from '../components/Shell.jsx'
+import { LoadLinesBox, LoadLinesLayer, useLoadLines } from '../components/LoadLines.jsx'
 import { Entry, useHoot } from '../components/Items.jsx'
+import { PlaceholderList } from '../components/Beeld.jsx'
 import { StreamLine } from '../components/StreamLine.jsx'
 import { StreamArt, FilterIcon, ArrowUpIcon } from '../components/icons.jsx'
 import { Dialog, DialogHeader } from '../components/Dialog.jsx'
@@ -14,6 +16,7 @@ import { RubriekCrossfade } from '../components/RubriekCrossfade.jsx'
 import { firstImages, latestChoice, warmImages } from '../lib/rubriek-crossfade.js'
 import { imgProps } from '../lib/img.js'
 import { withoutRepeats } from '../../shared/stroom.mjs'
+import { usePullHorizon } from '../components/PullHorizon.jsx'
 
 const PAGE = 60 // zoveel berichten tegelijk; de rest komt erbij terwijl je scrolt
 
@@ -52,8 +55,11 @@ function FilterSheet({ open, onClose, params, clear, setFilter, count }) {
 }
 
 export default function Stream({ active, stream, params, go, bubble = [], preview = 2, sources, loading, failedLoad, statusProps, onRefresh, refreshing, pendingCount, onShowNew }) {
-  const { storiesById, sourcesById, muted, setMuted, prefs } = useHoot()
+  const { storiesById, sourcesById, muted, setMuted, prefs, layout } = useHoot()
   const ref = useRef(null)
+  // Eerste laden: de laadstrepen; klaar maakt de beweging af en vervaagt naar de berichten.
+  const hostRef = useRef(null)
+  const lines = useLoadLines(loading, !failedLoad)
   const [sheet, setSheet] = useState(false)
   const [atDepth, setAtDepth] = useState(false)
   const [freshShown, setFreshShown] = useState(0)
@@ -165,9 +171,13 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
     </button>
   )
 
+  const pull = usePullHorizon(ref, { onRefresh, busy: refreshing, failed: statusProps.refreshError, label: 'Stroom', enabled: !loading && !failedLoad && stream.length > 0 })
+
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Stroom" onScroll={(e) => setAtDepth(e.currentTarget.scrollTop > 900)}>
-      <div className="col col--read">
+      {pull}
+      <div className={`col col--read${lines.hostClass}`} ref={hostRef}>
+        <LoadLinesLayer lines={lines} host={hostRef} />
         <ViewHeader title="Stroom" onRefresh={onRefresh} refreshing={refreshing} updatedAt={statusProps.meta?.updatedAt} tools={filterButton} compare>
           {/* De lijn: rubrieken links, je bronnen als stapel rechts. Wat je kiest staat in de URL
               (zoals altijd: een stap in de geschiedenis, met een eigen leespositie). */}
@@ -192,9 +202,9 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
 
         <RubriekCrossfade category={actief}>
         {loading ? (
-          <Skeleton />
+          <LoadLinesBox />
         ) : failedLoad ? (
-          <LoadError onRetry={onRefresh} />
+          <LoadError what="stroom" onRetry={onRefresh} />
         ) : (
           <>
             {/* Alleen als er iets mis is (offline, verversen mislukt, alle bronnen onbereikbaar);
@@ -230,6 +240,7 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
               >
               </Empty>
             ) : (
+              <PlaceholderList rows={shown.map((item) => ({ item, kind: layout === 'tijdlijn' ? 'tijdlijn' : 'krant' }))}>
               <div className={`list rows${preview === 'alles' ? '' : ` list--lines-${preview}`}`}>
                 {shown.map((item, index) => (
                   <div key={item.id} className={index < Math.min(freshShown, 6) ? 'stream-new' : undefined} style={index < 6 ? { '--rise-delay': `${index * 40}ms` } : undefined}>
@@ -239,6 +250,7 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
                 ))}
                 {shown.length < list.length ? <div ref={more} className="listmore" aria-hidden="true" /> : <p className="listend">Je bent bij.</p>}
               </div>
+              </PlaceholderList>
             )}
           </>
         )}

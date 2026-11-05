@@ -72,8 +72,11 @@ test('live, algemene Avondeditie 3 november: geen games- of cultuurverhaal in de
   const gta = general.stories.find((s) => s.itemIds.some((id) => /GTA VI/.test(titleOf(id))))
   assert.equal(gta.light, 'games')
   // Plekken uit de aanvulling hebben hun eigen rubriek: geen VS-verhaal zonder rubriek.
-  const accepteert = general.entries.find((e) => /Accepteert president Trump/.test(titleOf(e.leadId || e.id)))
+  // Op het verhaal, niet op de kop: sinds H7 (4 november) is een vraag alleen de kop als er niets anders is.
+  const nrc = general.stories.find((s) => s.itemIds.some((id) => /Accepteert president Trump/.test(titleOf(id))))
+  const accepteert = general.entries.find((e) => e.id === nrc?.id)
   assert.equal(accepteert?.desk, 'vs')
+  assert.ok(!/\?/.test(titleOf(accepteert.leadId)), titleOf(accepteert.leadId))
 })
 
 test('live, schone beginnerseditie: geen licht stuk, tien plekken, bubbel apart', () => {

@@ -57,12 +57,16 @@ struct StreamLine: View {
     private static let scale = small / logo
     private static let step = Space.s4 // dicht: half over elkaar
     private static let peekStep = Space.s4 + Space.s1 // met de aanwijzer erover
-    private static let stepOpen = Space.tap + Space.s1 // open: knoppen van 44, 4 ertussen
+    private static let stepOpen = Space.tap + Space.s0 // open: knoppen van 44 met 2 ertussen: 10 tussen de logo's, 2 tussen de ringen
     private static let pad = Space.s2 // binnenrand van de stapelknop, en tussen naam en logo's
     private static let edgeBasis = (Space.tap - small) / 2 // 8: het voorste logo in een vak van 44 aan de rand
     // Drie logo's in de stapel; bij grote tekst één, zodat de rubrieken ruimte houden ("Buiten je bubbel" heel).
     private var deckMax: Int { typeSize.isAccessibilitySize ? 1 : 3 }
     private static let ring: CGFloat = 3.2 // papierring om het logo; dicht 3,2 × 28/36 = 2,5
+    // Uitloop van de rij: ring en vinkje blijven binnen het vak van 44, en open eindigt Alle bronnen
+    // binnen de kolomlijn (zie `openRand`). Toch mag de rij tot 12 buiten zijn rand tekenen, aan de
+    // kant zonder zachte rand, zodat niets ooit wordt afgesneden (focusring, Dynamische tekst).
+    private static let uitloop = Space.s3
     private nonisolated static let ruimte = "rubrieken" // coördinaten van de rubriekenrij
 
     var body: some View {
@@ -140,7 +144,7 @@ struct StreamLine: View {
         .scrollPosition($rubPos)
         .scrollBounceBehavior(.basedOnSize)
         .onScrollGeometryChange(for: Schuif.self) { Schuif($0) } action: { _, s in rub = s }
-        .mask(rand(links: rub.links ? Space.s4 : 0, rechts: rub.rechts ? Space.s4 : 0))
+        .mask(rand(links: rub.links ? Self.zacht : 0, rechts: rub.rechts ? Self.zacht : 0))
         // Open: de rubrieken wijken zacht naar links en vervagen; terug na 80 ms, als de stapel plaats maakt.
         .offset(x: open ? -Space.s5 : 0)
         .animation(open ? move() : move(delay: 0.08), value: open)
@@ -157,7 +161,7 @@ struct StreamLine: View {
         let aan = r.id == rubriek
         return Button { kies(r) } label: {
             Text(r.label)
-                .font(.system(.body, design: .serif))
+                .font(.lees(.body))
                 .foregroundStyle(aan ? Theme.ink : Theme.ink2)
                 .animation(move(0.2), value: aan)
                 .fixedSize()
@@ -182,10 +186,14 @@ struct StreamLine: View {
         if announcesRubriek { zeg("Rubriek \(r.label).") }
     }
 
-    // Een rubriek helemaal in beeld: buiten de vervaagde rand.
+    // De zachte rand (Stroom-tabs A, keuze 1.1.0): 24 breed, alleen aan de kant waar nog rubrieken
+    // liggen; staat alles erop, dan is er geen rand. Gelijk aan STRIP_FADE en --fade op het web.
+    static let zacht = Space.s5
+
+    // Een rubriek helemaal in beeld: buiten de zachte rand, met 24 lucht.
     private func toon(_ id: String, glijd: Bool) {
         guard let f = rubFrames[id], rub.w > 0 else { return }
-        let rand = Space.s4
+        let rand = Self.zacht
         var naar = rub.x
         if rub.x > 0 && f.minX < rub.x + rand { naar = f.minX - rand }
         else if f.maxX > rub.x + rub.w - rand { naar = f.maxX - rub.w + rand }
@@ -196,13 +204,13 @@ struct StreamLine: View {
 
     // ---- Bronnen ----
 
-    // Open staat elk bolletje op zijn eigen plek in de rij (van rechts naar links, stap 48). Dicht
+    // Open staat elk bolletje op zijn eigen plek in de rij (van rechts naar links, stap 46). Dicht
     // schuift het terug naar zijn plek in de stapel (stap 16, 28 groot) of verdwijnt erachter; Alle
     // bronnen ligt dan onzichtbaar op het voorste logo, en verschijnt daar bij openen.
     private func bronnenRij(deck: [String]) -> some View {
         let bollen = [Bol(id: Bol.alle, bron: nil)] + bronnen.map { Bol(id: $0.id, bron: $0) }
         return ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: Space.s1) {
+            HStack(spacing: Space.s0) {
                 ForEach(Array(bollen.enumerated().reversed()), id: \.element.id) { i, b in
                     bolletje(b, i: i, deck: deck)
                         // Voorlezen zoals je kijkt: eerst Alle bronnen (rechts), dan naar links.
@@ -211,6 +219,9 @@ struct StreamLine: View {
             }
             // Alle bronnen (en dicht het voorste logo) recht onder de knop rechtsboven.
             .padding(.trailing, edge - Self.edgeBasis)
+            // Open: de bolletjes staan openRand naar links; links erbij, zodat het meest linkse vak
+            // helemaal links gescrold precies op de kolomlijn begint (web: 16).
+            .padding(.leading, open ? openRand : 0)
             .frame(minWidth: lineW, maxHeight: .infinity, alignment: .trailing)
         }
         .scrollPosition($rijPos)
@@ -218,7 +229,13 @@ struct StreamLine: View {
         .scrollDisabled(!open)
         .scrollBounceBehavior(.basedOnSize)
         .onScrollGeometryChange(for: Schuif.self) { Schuif($0) } action: { _, s in rij = s }
-        .mask(rand(links: open && rij.links ? Space.s5 : 0, rechts: open && rij.vanRechts > 1 ? Space.s5 : 0))
+        // Niet op de rand van de rij knippen (dan valt de ring van Alle bronnen half weg), maar met
+        // het masker: de zachte rand van 24 waar nog bolletjes liggen, verder `uitloop` ruimte.
+        // Links alleen als daar niets meer ligt, ook dicht: wat wegglijdt, komt niet in de kantlijn.
+        .scrollClipDisabled()
+        .mask(rand(links: open && rij.links ? Self.zacht : 0, rechts: open && rij.vanRechts > 1 ? Self.zacht : 0,
+                   uitLinks: rij.links ? 0 : Self.uitloop, uitRechts: open && rij.vanRechts > 1 ? 0 : Self.uitloop,
+                   uitHoog: Self.uitloop))
         .frame(height: band)
         .allowsHitTesting(open)
         .accessibilityElement(children: .contain)
@@ -233,7 +250,9 @@ struct StreamLine: View {
         let k = deck.firstIndex(of: b.id)
         let stap = peek ? Self.peekStep : Self.step
         var x: CGFloat = 0, schaal: CGFloat = 1, zicht: Double = 1
-        if !open {
+        if open {
+            x = -openRand // Alle bronnen eindigt binnen de kolomrand, ring en vinkje heel
+        } else {
             schaal = Self.scale
             if alle { zicht = 0 }
             else if let k { x = CGFloat(i) * Self.stepOpen - CGFloat(k) * stap }
@@ -265,7 +284,6 @@ struct StreamLine: View {
                     .background(Theme.accent, in: Circle())
                     .padding(Space.s0)
                     .background(Theme.paper, in: Circle())
-                    .offset(x: Space.s0, y: Space.s0)
                     .scaleEffect(vinkje ? 1 : 0.6)
                     .opacity(vinkje ? 1 : 0)
                     .animation(vinkje && !open ? snel?.delay(0.22) : snel, value: vinkje)
@@ -291,7 +309,7 @@ struct StreamLine: View {
     @ViewBuilder private func logo(_ b: Bol) -> some View {
         if let s = b.bron {
             SourceAvatar(source: s, size: Self.logo)
-                .overlay(Circle().strokeBorder(Theme.ink.opacity(0.14), lineWidth: 1))
+                .overlay(Circle().strokeBorder(Theme.hairline, lineWidth: 1))
                 .background(Circle().fill(Theme.paper).padding(-Self.ring))
         } else {
             Circle()
@@ -306,7 +324,7 @@ struct StreamLine: View {
         let toon = !picks.isEmpty && !open
         let opzij = peek && !open ? -CGFloat(n - 1) * (Self.peekStep - Self.step) : 0
         return Text(label)
-            .font(.subheadline.weight(.bold))
+            .font(.ui(.subheadline, .bold))
             .foregroundStyle(Theme.accent)
             .lineLimit(1)
             .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { labelW = $0 }
@@ -397,13 +415,19 @@ struct StreamLine: View {
     private var namen: String { Self.opsomming(chosen.map(\.name)) }
     private var keuze: String { picks.count == 1 ? chosen.first?.name ?? "1 bron" : "\(picks.count) bronnen" }
 
+    // Open: hoeveel de rij naar links schuift zodat het vak van Alle bronnen niet voorbij de kolomrand
+    // (de inktlijn) komt. Dicht ligt het voorste logo onder het tandwiel, en daar blijft het.
+    private var openRand: CGFloat { max(0, Self.edgeBasis - edge) }
+
     // Kolomrand tot het voorste logo, zodat het op de as van de knop rechtsboven ligt: 8 als de
     // werkbalk dezelfde marge heeft als de kolom (16). Die marge meten we, want hij verschilt per
     // toestel (20 op de grote iPhones: dan 12). Valt de knop buiten de kolom (iPad), dan gewoon 8.
+    // De dichte stapel eindigt op de kolomlijn, onder het tandwiel in de kopregel (Stroom-tabs A): het
+    // voorste logo staat onder het midden van die knop, maar nooit voorbij de lijn.
     private var edge: CGFloat {
         guard let knopAs, knopAs > 0, lineMaxX > 0 else { return Self.edgeBasis }
         let e = lineMaxX - knopAs - Self.small / 2
-        return (Space.s1...Space.s4).contains(e) ? e : Self.edgeBasis
+        return (-Space.s1...Space.s4).contains(e) ? max(0, e) : Self.edgeBasis
     }
 
     // Beweging: 400 ms met een zachte uitloop, cubic-bezier(.2,.8,.2,1); met Verminder beweging direct.
@@ -412,13 +436,18 @@ struct StreamLine: View {
     }
     private var snel: Animation? { reduceMotion ? nil : .timingCurve(0.2, 0.7, 0.2, 1, duration: 0.14) } // gewone bediening
 
-    // Vervaagde randen van een rij: alleen aan de kant waar nog iets ligt.
-    private func rand(links: CGFloat, rechts: CGFloat) -> some View {
+    // Vervaagde randen van een rij: alleen aan de kant waar nog iets ligt. Met `uit…` reikt het
+    // masker zover buiten de rij, zodat wat daar uitsteekt (ring, vinkje) heel blijft; een
+    // vervaging begint altijd op de rand van de rij.
+    private func rand(links: CGFloat, rechts: CGFloat, uitLinks: CGFloat = 0, uitRechts: CGFloat = 0, uitHoog: CGFloat = 0) -> some View {
         HStack(spacing: 0) {
             LinearGradient(colors: [.clear, .black], startPoint: .leading, endPoint: .trailing).frame(width: links)
             Rectangle()
             LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing).frame(width: rechts)
         }
+        .padding(.leading, -uitLinks)
+        .padding(.trailing, -uitRechts)
+        .padding(.vertical, -uitHoog)
     }
 
     private func zeg(_ tekst: String) { AccessibilityNotification.Announcement(tekst).post() }

@@ -1,27 +1,50 @@
 import { useEffect, useRef, useState } from 'react'
-import { CompactItem, Meta, SaveButton, ShareButton, SourceMeta, useHoot, linkOf } from '../components/Items.jsx'
+import { CompactItem, Meta, SaveButton, ShareButton, SourceMeta, useHoot, linkOf, viaLength } from '../components/Items.jsx'
 import { isFollowing } from '../lib/follow.js'
 import { CloseIcon, CaretIcon, ICON_SM } from '../components/icons.jsx'
 import { BackButton } from '../components/Shell.jsx'
 import { Disclosure } from '../components/Disclosure.jsx'
 import { timeAgo } from '../lib/time.js'
 import { withLead } from '../lib/saved.js'
-import { wholeSentences } from '../../shared/zinnen.mjs'
+import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { useIntroMax } from '../lib/intro.js'
+
+// Esc sluit het vaste zijpaneel (breed scherm), zoals het de dialoog sluit op een smal scherm. Alleen als
+// de toets niet al iets anders deed (een dialoog, het wissen van een zoekveld) en niet in een invoerveld.
+function useEscapeClose(onClose, enabled) {
+  useEffect(() => {
+    if (!enabled) return
+    const onKey = (e) => {
+      if (e.key !== 'Escape' || e.defaultPrevented) return
+      if (document.querySelector('.panel')?.hidden) return // het overzicht staat ook gemount als het paneel dicht is
+      const t = e.target
+      if (t instanceof Element && t.closest('input, textarea, select, [contenteditable="true"], dialog[open], [role="dialog"]')) return
+      onClose()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [enabled, onClose])
+}
 
 // Eén publicatie in het smalle paneel (breed scherm): de kop over de volle breedte en hooguit
 // twee regels samenvatting in hele zinnen, dan bron en tijd op hun vaste plek eronder. Geen beeld — dat perst
 // de kop samen.
 function SourceItem({ item, note }) {
   const { markRead, read } = useHoot()
-  const fit = useIntroMax()(2, 'paneel')
-  const summary = wholeSentences(item.summary, fit.max, fit.rek) // hele zinnen, nooit "…"
+  const fit = useIntroMax()(INTRO_LINES, 'paneel')
+  // Een geleende intro draagt zijn bron ("via X"), ook naast het origineel; die tekens gaan van de maat af.
+  const summary = wholeSentences(item.summary, fit.max - viaLength(item), fit.rek - viaLength(item)) // hele zinnen, nooit "…"
   return (
     <article className={`entry srcitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <a className="srcitem__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         {note || item.type === 'opinie' ? <p className="label label--kicker kicker">{[item.type === 'opinie' ? 'Opinie' : null, note].filter(Boolean).join(' · ')}</p> : null}
         <h3 className="head-4 srcitem__title">{item.title}</h3>
-        {summary ? <p className="clamp clamp--vangnet srcitem__sum">{summary}</p> : null}
+        {summary ? (
+          <p className="clamp clamp--vangnet srcitem__sum">
+            {summary}
+            {item.borrowedFrom ? <span className="via"> — via {item.borrowedFrom}</span> : null}
+          </p>
+        ) : null}
       </a>
       <Meta item={item} />
     </article>
@@ -41,6 +64,8 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
     onSeen(story.id, story.itemIds)
     if (overlay) headRef.current?.focus()
   }, [story.id, story.itemIds.length]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEscapeClose(onClose, !overlay)
 
   // Als dialoog: Esc sluit, en Tab blijft binnen het paneel (ook in browsers zonder `inert`).
   useEffect(() => {
@@ -165,6 +190,7 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
 // opent de bronvergelijking van dat verhaal.
 export function StoryIndex({ stories = [], onClose, lastId }) {
   const { itemsById, openStory, muted } = useHoot()
+  useEscapeClose(onClose, true)
   const rows = stories
     .filter((s) => s.sourceCount > 1)
     .map((s) => ({ s, lead: [s.leadId, ...s.itemIds].map((id) => itemsById.get(id)).find((i) => i && !muted.has(i.source)) }))

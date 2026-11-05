@@ -22,9 +22,9 @@ async function make(out, W, H, layout) {
     <rect x="${layout.tx}" y="${layout.ty}" width="${layout.logo * 2.2}" height="${layout.logo * 0.16}" fill="#F5F1E8"/>
     <text x="${layout.tx}" y="${layout.ty + layout.logo * 1.2}" font-family="${serif}" font-weight="800" font-size="${layout.logo}" fill="#F5F1E8">hoot.</text>
     ${layout.lines.map((l, i) => `<text x="${layout.tx}" y="${layout.hy + i * layout.hs * 1.1}" font-family="${serif}" font-weight="800" font-size="${layout.hs}" fill="#F5F1E8">${l}</text>`).join('')}
-    <text x="${layout.tx}" y="${layout.sy}" font-family="${sans}" font-size="${layout.ss}" fill="#F4E3DE">Nu voor iPhone en iPad · gratis</text>
+    <text x="${layout.tx}" y="${layout.sy}" font-family="${sans}" font-size="${layout.ss}" fill="#F2E4DF">Nu voor iPhone en iPad · gratis</text>
   </svg>`
-  await sharp({ create: { width: W, height: H, channels: 3, background: '#A3201B' } })
+  await sharp({ create: { width: W, height: H, channels: 3, background: '#9A3324' } })
     // De telefoon loopt onderaan uit beeld: bijsnijden tot de rand.
     .composite([{ input: Buffer.from(svg) }, { input: await sharp(p.buf).extract({ left: 0, top: 0, width: layout.phoneW, height: Math.min(p.h, H - layout.py) }).toBuffer(), left: layout.px, top: layout.py }])
     .png().toFile(out)

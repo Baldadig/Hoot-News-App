@@ -2,6 +2,7 @@
 // Per onderwerp en per bron een gewicht: openen telt 1, bewaren 3. Bij elke handeling wordt
 // alles een beetje ouder (×0,98), zodat wat je deze week las zwaarder weegt dan wat je in de
 // zomer las. Het blijft op je toestel; het gaat niet mee met je account.
+import { currentTopic } from './topics.js'
 export const READ = 1
 export const SAVE = 3
 const DECAY = 0.98
@@ -35,8 +36,9 @@ export function learn(affinity, item, weight = READ) {
 // rest blijft staan, ook de teller — anders zou het profiel even niets meer leren (MIN_EVENTS).
 export function forgetTopic(affinity, topic) {
   const a = affinity && typeof affinity === 'object' ? affinity : emptyAffinity()
-  if (!topic || !(topic in (a.topics || {}))) return a
-  const { [topic]: _gone, ...topics } = a.topics
+  const gone = (k) => k === topic || currentTopic(k) === currentTopic(topic) // ook de oude sleutel (Trump → Verenigde Staten)
+  if (!topic || !Object.keys(a.topics || {}).some(gone)) return a
+  const topics = Object.fromEntries(Object.entries(a.topics).filter(([k]) => !gone(k)))
   return { ...a, topics }
 }
 

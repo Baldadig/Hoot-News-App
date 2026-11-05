@@ -1,17 +1,20 @@
 import SwiftUI
 
-// Eén rustige uitnodiging; de artikellezer bepaalt of hij voor deze bron zichtbaar mag zijn.
+// Eén rustige uitnodiging (inlogpaneel A, BRAND-UPDATE §8): één inktknop van 52 hoog, een lange
+// bronnaam loopt om; sluiten met de x of omlaag vegen. De artikellezer bepaalt of hij voor deze
+// bron zichtbaar mag zijn (zeven dagen weg na sluiten).
 struct ReaderLoginPanel: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     let sourceName: String
     let login: () -> Void
     let close: () -> Void
+    static let buttonHeight: CGFloat = 52
 
     var body: some View {
         VStack(alignment: .leading, spacing: Space.s3) {
             HStack(alignment: .top, spacing: Space.s2) {
                 Text("Abonnee? Log één keer in en lees het hele stuk hier.")
-                    .font(.system(.subheadline, design: .serif))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Theme.ink2)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -43,6 +46,7 @@ struct ReaderLoginPanel: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Space.s3)
+                .frame(minHeight: Self.buttonHeight) // een hoofdknop (control-lg), zoals Welkom
             }
             .buttonStyle(.ink)
         }

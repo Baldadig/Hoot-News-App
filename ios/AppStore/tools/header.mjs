@@ -7,7 +7,7 @@ import sharp from 'sharp'
 import fs from 'node:fs'
 
 const W = 3840, H = 1646
-const RED = '#A3201B', PAPER = '#F5F1E8', INK = '#1c1a17'
+const RED = '#9A3324', PAPER = '#F5F1E8', INK = '#1c1a17'
 const OUT = 'ios/AppStore/screenshots/header'
 const serif = 'New York, Georgia, serif'
 

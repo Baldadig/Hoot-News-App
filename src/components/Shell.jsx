@@ -1,9 +1,12 @@
 import { WaitingMark } from './WaitingMark.jsx'
 import { useEmptyDraw } from '../hooks/useEmptyDraw.js'
+import { useOnline } from '../hooks/useOnline.js'
+import { reduced } from '../lib/motion.js'
+import { TOP_EVENT } from '../hooks/useScrollMemory.js'
 import { timeAgo } from '../lib/time.js'
 import { BrandLogo } from './Brand.jsx'
 import { useHoot } from './Items.jsx'
-import { BooksIcon, EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, BackIcon, AccountIcon, SettingsIcon } from './icons.jsx'
+import { BooksIcon, EditionIcon, StreamIcon, BookmarkIcon, SourcesIcon, SearchIcon, RefreshIcon, PanelIcon, BackIcon, AccountIcon, SettingsIcon, EditionArt } from './icons.jsx'
 
 export const DESTINATIONS = [
   { id: 'editie', label: 'Editie', Icon: EditionIcon },
@@ -13,19 +16,31 @@ export const DESTINATIONS = [
   { id: 'bronnen', label: 'Bronnen', Icon: SourcesIcon },
 ]
 
-// Vaste hoofdnavigatie: onderin op telefoon, links op desktop. Selectie alleen als je die aanzet.
+// Vaste hoofdnavigatie: onderin op telefoon, links op desktop. Selectie altijd, zoals in de app (zonder onderwerpen met een lege staat die naar Kies onderwerpen leidt).
+// Telefoon, zoals de app: Editie, Stroom, Selectie, Bewaard, Zoeken. Bronnen staat dan onder
+// Instellingen (.nav__bronnen is er verborgen); in de zijbalk staat alles.
 // `hrefs` brengt je terug naar waar je in die bestemming was (met je filters);
 // `sourceNote` is de korte tekst bij het stille statuspuntje op Bronnen.
-export function Nav({ path, hrefs = {}, sourceNote = '', digest = false }) {
+// Nog eens tikken op de tab waar je al bent scrolt dat scherm naar boven (zoals de tabbalk van iOS).
+function toTopOnRetap(e, active) {
+  if (!active || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+  const view = document.querySelector('.main .view:not([hidden])')
+  if (!view) return
+  e.preventDefault()
+  view.dispatchEvent(new Event(TOP_EVENT))
+  view.scrollTo({ top: 0, behavior: reduced() ? 'auto' : 'smooth' })
+}
+
+export function Nav({ path, hrefs = {}, sourceNote = '' }) {
   return (
     <nav className="nav" aria-label="Hoofdnavigatie">
       <a className="nav__brand" href={hrefs.editie || '#/editie'} aria-label="Hoot — naar de Editie">
         <BrandLogo height={28} />
       </a>
       <ul className="nav__list">
-        {DESTINATIONS.filter((d) => (digest || d.id !== 'digest')).map(({ id, label, Icon }) => (
-          <li key={id}>
-            <a className="nav__link" href={hrefs[id] || `#/${id}`} aria-current={path === id ? 'page' : undefined}>
+        {DESTINATIONS.map(({ id, label, Icon }) => (
+          <li key={id} className={id === 'bronnen' ? 'nav__bronnen' : undefined}>
+            <a className="nav__link" href={hrefs[id] || `#/${id}`} aria-current={path === id ? 'page' : undefined} onClick={(e) => toTopOnRetap(e, path === id)}>
               <span className="nav__icon">
                 <Icon />
                 {id === 'bronnen' && sourceNote ? <span className="nav__dot" aria-hidden="true" /> : null}
@@ -36,14 +51,16 @@ export function Nav({ path, hrefs = {}, sourceNote = '', digest = false }) {
           </li>
         ))}
         <li className="nav__search">
-          <a className="nav__link" href="#/zoek" aria-current={path === 'zoek' ? 'page' : undefined}>
-            <SearchIcon />
+          <a className="nav__link" href="#/zoek" aria-current={path === 'zoek' ? 'page' : undefined} onClick={(e) => toTopOnRetap(e, path === 'zoek')}>
+            <span className="nav__icon">
+              <SearchIcon />
+            </span>
             <span>Zoeken</span>
           </a>
         </li>
       </ul>
-      {/* Breed scherm: Instellingen onderaan de zijbalk. Op de telefoon blijft de tabbalk zoals hij
-          is; daar kom je via Account en weergave bij Instellingen. */}
+      {/* Breed scherm: Instellingen onderaan de zijbalk. Op de telefoon kom je er via Account en
+          weergave, en daar staat Bronnen als rij. */}
       <ul className="nav__foot">
         <li>
           <a className="nav__link" href="#/instellingen" aria-current={path === 'instellingen' ? 'page' : undefined}>
@@ -78,10 +95,11 @@ export function BackButton({ label, onClick, ariaLabel, nav = false, className =
 // `account`: de knop Account en weergave (rechtsboven). `onBack` + `backLabel`: terug, vóór de titel
 // in dezelfde rij; `backInNav`: dit scherm staat ook in de zijbalk, dus daar geen terugknop.
 // `tools`: eigen knoppen van het scherm, vóór verversen (de Stroom: de filterknop).
+// `refreshDesktop`: de verversknop alleen op breed scherm (de Editie: op de telefoon trek je, zoals in de app).
 // `updatedAt`: hoe vers het is, in de knop Verversen ("bijgewerkt 20 min geleden", nooit een kloktijd) in plaats van een regel.
 // Onder de rij staat hooguit één metaregel (.vh__sub), over de volle breedte, zodat hij nooit tussen
 // titel en knoppen wordt samengeperst. Daarna volgt de inhoud op --after-header.
-export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing, updatedAt, showSearch = true, compare = false, account = true, tools = null, onBack, backLabel = 'Terug', backInNav = false, children }) {
+export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing, updatedAt, showSearch = true, compare = false, account = true, tools = null, refreshDesktop = false, onBack, backLabel = 'Terug', backInNav = false, children }) {
   const hoot = useHoot()
   const panel = hoot?.panel
   const at = timeAgo(updatedAt)
@@ -101,7 +119,7 @@ export function ViewHeader({ title, sub, subWide = false, onRefresh, refreshing,
         ) : null}
         {tools}
         {onRefresh ? (
-          <button type="button" className="iconbtn" onClick={onRefresh} disabled={refreshing} aria-label={at ? `Verversen, bijgewerkt ${at}` : 'Verversen'} title={at ? `Verversen · bijgewerkt ${at}` : undefined}>
+          <button type="button" className={`iconbtn${refreshDesktop ? ' desk-only' : ''}`} onClick={onRefresh} disabled={refreshing} aria-label={at ? `Verversen, bijgewerkt ${at}` : 'Verversen'} title={at ? `Verversen · bijgewerkt ${at}` : undefined}>
             {refreshing ? <WaitingMark size={8} text={false} /> : <RefreshIcon />}
           </button>
         ) : null}
@@ -132,17 +150,30 @@ function AccountButton({ account, onClick }) {
   )
 }
 
+// Het wifi-teken met streep: geen verbinding. Zelfde lijn als de iconen (Phosphor-maat, 256).
+function WifiSlashIcon({ size = 20 }) {
+  return (
+    <svg viewBox="0 0 256 256" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M92 157a56 56 0 0 1 72 0M61 120a104 104 0 0 1 134 0M30 84a152 152 0 0 1 196 0" />
+      <path d="M48 48l160 176" />
+      <circle cx="128" cy="200" r="8" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
 // Eén regel die eerlijk zegt hoe vers dit is — en waarom niet, als dat zo is.
-// Onderscheidt: offline · verversen mislukt · álle bronnen onbereikbaar · gewoon bijgewerkt.
+// Onderscheidt: verversen lukt niet (offline of mislukt) · álle bronnen onbereikbaar · gewoon bijgewerkt.
+// Offline en mislukt zeggen hetzelfde als de app (StaleNotice): je ziet de laatste versie, met Opnieuw,
+// in een haarlijn op papier en zonder kloktijd.
 // Eén of enkele uitgevallen bronnen horen hier niet: die staan stil onder Bronnen → Bronstatus.
 export function StatusLine({ online, refreshing, refreshError, meta, allDown = false, onRetry, quiet = false }) {
   const at = timeAgo(meta?.updatedAt)
-  if (!online) return <p className="status status--warn" role="status">Je bent offline. Dit is het nieuws van {at || 'eerder'}.</p>
-  if (refreshError)
+  if (!online || refreshError)
     return (
-      <p className="status status--warn" role="status">
-        Verversen lukt nu niet.{' '}
-        <button type="button" className="linkbtn" onClick={onRetry}>
+      <p className="status status--stale" role="status">
+        <WifiSlashIcon />
+        <span className="status__text">Verversen lukt nu niet. Je ziet de laatste versie.</span>
+        <button type="button" className="linkbtn linkbtn--plain status__retry" onClick={onRetry}>
           Opnieuw
         </button>
       </p>
@@ -233,19 +264,36 @@ export function Empty({ title, children, action, tone = 'neutral', label, art: A
   )
 }
 
-export function LoadError({ onRetry }) {
+// Geen verbinding: het wifi-teken met streep, in de lijn van de andere lege bladzijden (96, raster van de beeldtaal).
+function OfflineArt() {
   return (
-    <Empty
-      tone="error"
-      label="Kon niet laden"
-      title="De berichten zijn nu niet op te halen"
-      action={
-        <button type="button" className="btn" onClick={onRetry}>
-          Opnieuw proberen
-        </button>
-      }
-    >
-      Controleer je verbinding. Zodra het weer lukt, staat alles hier.
+    <svg className="empty__art empty__art--offline" viewBox="0 0 96 96" width="96" height="96" fill="none" aria-hidden="true">
+      <path className="empty__line" d="M14 40a48 48 0 0 1 68 0M26 52a32 32 0 0 1 44 0M38 64a16 16 0 0 1 20 0" />
+      <path className="empty__thin" d="M18 18l60 60" />
+      <circle className="empty__lint" cx="48" cy="76" r="4" />
+    </svg>
+  )
+}
+
+// Wat de Editie, de Stroom en de Selectie zeggen als er niets op het toestel staat (zoals de app).
+const OFFLINE_TEXT = {
+  editie: 'Hoot heeft nog geen Editie op dit toestel. Zodra je verbinding hebt, verschijnt hij hier.',
+  stroom: 'Zodra je verbinding hebt, verschijnen hier de berichten van je bronnen.',
+  selectie: 'Zodra je verbinding hebt, verschijnt de Selectie hier.',
+}
+
+// Laden mislukte en er is niets om te tonen. Twee verschillende dingen, zegt de browser:
+// offline (geen verbinding; zodra die er is, komt het vanzelf) en online maar de server geeft niets
+// (dan ligt het niet aan jou). Gecentreerd met tekening, titel, uitleg en één knop, zoals de app.
+export function LoadError({ onRetry, what = null }) {
+  const online = useOnline()
+  return online ? (
+    <Empty art={EditionArt} title="Hoot is even niet bereikbaar" action={<button type="button" className="btn" onClick={onRetry}>Probeer opnieuw</button>}>
+      Het ligt niet aan je verbinding. Probeer het zo nog eens.
+    </Empty>
+  ) : (
+    <Empty art={OfflineArt} title="Geen verbinding" action={<button type="button" className="btn" onClick={onRetry}>Probeer opnieuw</button>}>
+      {OFFLINE_TEXT[what] || 'Zodra je verbinding hebt, staat alles hier.'}
     </Empty>
   )
 }

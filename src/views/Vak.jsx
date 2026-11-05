@@ -1,23 +1,23 @@
 import { useRef, useState, useEffect } from 'react'
-import { ViewHeader, Empty, Skeleton, LoadError } from '../components/Shell.jsx'
-import { SaveButton, ShareButton, SourceMark, useHoot } from '../components/Items.jsx'
+import { ViewHeader, LoadError } from '../components/Shell.jsx'
+import { LoadLinesBox, LoadLinesLayer, useLoadLines } from '../components/LoadLines.jsx'
+import { SaveButton, ShareButton, SourceMark, useHoot, viaLength } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
 import { ChipGroup } from '../components/ChipGroup.jsx'
 import { Disclosure } from '../components/Disclosure.jsx'
-import { MegaphoneIcon, CursorIcon, PaletteIcon, SparkleIcon, CartIcon, MagnifierIcon, TagIcon, CodeIcon, KanbanIcon, RocketIcon, BriefcaseIcon, INTEREST_ICONS } from '../components/icons.jsx'
 import { timeAgo } from '../lib/time.js'
 import { fitsHero, fitsLarge } from '../lib/img.js'
 import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { Dialog, DialogHeader } from '../components/Dialog.jsx'
+import { CaretIcon, JumpIcon, ICON_SM } from '../components/icons.jsx'
+import { reduced } from '../lib/motion.js'
+import { selectionOverview, summaryLine, pieces, EMPTY_FIELD, NO_SOURCES, CHOOSE } from '../lib/selection-index.js'
 import { useSelectionFold } from '../hooks/useSelectionFold.js'
 import { vakByDomain, VAK_FIELDS } from '../../shared/vak.mjs'
 import { wholeSentences } from '../../shared/zinnen.mjs'
 import { useIntroMax } from '../lib/intro.js'
+import { usePullHorizon } from '../components/PullHorizon.jsx'
 
-const ICON = { 'paid-social': MegaphoneIcon, ux: CursorIcon, design: PaletteIcon, ai: SparkleIcon, ecommerce: CartIcon, seo: MagnifierIcon, merk: TagIcon, dev: CodeIcon, product: KanbanIcon, ondernemen: RocketIcon, sport: INTEREST_ICONS.sport, politiek: INTEREST_ICONS.politiek, wetenschap: INTEREST_ICONS.wetenschap, economie: INTEREST_ICONS.economie, gadgets: INTEREST_ICONS.tech }
-// Een onderwerp zonder eigen icoon krijgt dat van zijn domein.
-const DOMAIN_ICON = { marketing: MegaphoneIcon, creatie: PaletteIcon, tech: CodeIcon, werk: BriefcaseIcon, geld: INTEREST_ICONS.economie, wetenschap: INTEREST_ICONS.wetenschap, maatschappij: INTEREST_ICONS.politiek, cultuur: INTEREST_ICONS.cultuur }
-const iconOf = (f) => ICON[f.id] || DOMAIN_ICON[f.domain] || SparkleIcon
 const DAY = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long', timeZone: 'Europe/Amsterdam' })
 const WEEKDAY = new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Amsterdam' })
 // "12 t/m 18 oktober": de week loopt tot de maandagochtend waarop de Selectie verschijnt (`to`),
@@ -30,6 +30,13 @@ function span(from, to) {
   return ma === mb ? `${da} t/m ${db} ${mb}` : `${a} t/m ${b}`
 }
 const two = (n) => String(n).padStart(2, '0')
+
+// Hoe kiest Hoot deze stukken? Tekst 1 · Kort (concepten/4-hoe-kiest.html), woord voor woord gelijk
+// aan DigestView.swift (tests/selectie-index.test.mjs).
+export const howHootChooses = (n) => [
+  `Deze week las Hoot ${n} stukken van kenners en vakbladen over je onderwerpen. Per onderwerp blijven er drie over: waar anderen ook over schrijven, wat een redactie uitkoos, of wat een kenner schreef.`,
+  'Niets gesponsord. De intro is van de schrijver zelf.',
+]
 
 
 // Wie, waar en wanneer — met delen en bewaren rechts. Geen knop naar de bron: vakbronnen staan niet in de Stroom.
@@ -77,7 +84,8 @@ function Card({ item, rank, feature = false }) {
   // Hele zinnen, nooit "…", gemeten in de kaart (binnenruimte en rand eraf): 3 regels, het eerste
   // stuk 4 regels in de grotere letter (.dcard__sum --lines). De clamp staat een regel ruimer.
   const fit = useIntroMax()(feature ? 4 : 3, feature ? 'kaartEerste' : 'kaart')
-  const summary = wholeSentences(item.summary, fit.max, fit.rek)
+  // Komt hier ooit een geleende intro, dan met zijn bron ("via X"); die tekens gaan van de maat af.
+  const summary = wholeSentences(item.summary, fit.max - viaLength(item), fit.rek - viaLength(item))
   return (
     <article className={`card dcard${feature ? ' dcard--feature' : ''}${showImage ? '' : ' dcard--text'}${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
       <a className="dcard__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
@@ -93,7 +101,12 @@ function Card({ item, rank, feature = false }) {
           <h3 className={`${feature ? 'head-lg' : 'head-4'} dcard__title`}>{item.title}</h3>
           {/* Waarom dit stuk: rustige metadata onder de kop, zodat de kop voorgaat. */}
           {item.why?.length ? <p className="dcard__why">{item.why.join(' · ')}</p> : null}
-          {summary ? <p className="clamp clamp--vangnet dcard__sum">{summary}</p> : null}
+          {summary ? (
+            <p className="clamp clamp--vangnet dcard__sum">
+              {summary}
+              {item.borrowedFrom ? <span className="via"> — via {item.borrowedFrom}</span> : null}
+            </p>
+          ) : null}
         </div>
       </a>
       <div className="dcard__foot">
@@ -104,108 +117,162 @@ function Card({ item, rank, feature = false }) {
   )
 }
 
+// Eén rijvorm voor springen, kiezen en in- of uitklappen (Selectie-index B, SE2): de naam, het
+// aantal eronder, en rechts een stil teken op de eerste regel van de naam (SE3). `big`: de kop van
+// een onderwerp, in de serif op 22, dezelfde rij.
+function IndexRow({ kind, name, sub, big = false, expanded, flash = false, ...rest }) {
+  const icon = kind === 'jump' ? <JumpIcon size={ICON_SM} /> : kind === 'pick' ? <CaretIcon size={ICON_SM} /> : <CaretIcon dir={expanded ? 'up' : 'down'} size={ICON_SM} />
+  return (
+    <button type="button" className={`dirow${big ? ' dirow--big' : ''}${flash ? ' dirow--flash' : ''}`} aria-expanded={kind === 'toggle' ? expanded : undefined} {...rest}>
+      <span className="dirow__text">
+        <span className="dirow__name">{name}</span>
+        {sub ? <span className="dirow__sub">{sub}</span> : null}
+      </span>
+      <span className="dirow__icon" aria-hidden="true">
+        {icon}
+      </span>
+    </button>
+  )
+}
+
 // Selectie: elke maandagochtend per onderwerp de drie belangrijkste stukken van de week ervoor,
-// door mensen geschreven (zie netlify/lib/vak.mjs). Opbouw als een tijdschrift: een kop met de
-// week, een inhoudsopgave, en per vak één groot stuk, twee kaarten en een korte lijst.
-export default function Vak({ active, digest, status, onRefresh }) {
+// door mensen geschreven (zie netlify/lib/vak.mjs). Opbouw als de inhoudsopgave van een krant
+// (Selectie-index B): de week, wat je te lezen krijgt, de inhoud als lijst, en per onderwerp één
+// groot stuk, twee kaarten en een korte lijst. Lege onderwerpen staan onderaan.
+// `onChooseTopics`: het blad Selectie uit Instellingen (Instellingen D, #/instellingen?blad=selectie). Is dat er,
+// dan opent de rij "Kies onderwerpen" in de lege Selectie dat blad; anders het eigen blad hieronder.
+export default function Vak({ active, digest, status, refreshFailed = false, onRefresh, onChooseTopics = null }) {
   const { prefs, setPref, account, selectionReady = true } = useHoot()
   const ref = useRef(null)
+  // Eerste laden: de laadstrepen; klaar maakt de beweging af en vervaagt naar de Selectie.
+  const hostRef = useRef(null)
+  const lines = useLoadLines(status === 'loading' && !digest, !!digest)
   const chosen = prefs.vak || []
   const owner = account?.status === 'in' ? account.user.id : 'anon'
   const byId = new Map((digest?.fields || []).map(f => [f.id, f]))
-  const fields = VAK_FIELDS.filter(f => chosen.includes(f.id)).map(f => ({ ...f, ...byId.get(f.id), top: byId.get(f.id)?.top || [], more: byId.get(f.id)?.more || [] }))
+  const offered = new Set(byId.keys())
+  const overview = selectionOverview(VAK_FIELDS.filter(f => chosen.includes(f.id)).map(f => ({ ...f, ...byId.get(f.id), top: byId.get(f.id)?.top || [], more: byId.get(f.id)?.more || [] })), offered)
+  const fields = overview.fields
   const [closed, setClosed] = useSelectionFold(owner, chosen, selectionReady)
-  const [navigating, setNavigating] = useState(false)
+  const [choosing, setChoosing] = useState(false)
   const [jump, setJump] = useState(null)
-  const allClosed = fields.length > 0 && fields.every(f => closed.includes(f.id))
+  const [flash, setFlash] = useState(null)
   useScrollMemory(ref, 'hoot:pos-vak:' + owner + ':' + (digest?.id || ''), fields.length > 0, (digest?.id || '') + chosen.join() + closed.join(), active)
   useEffect(() => {
-    if (!jump || navigating || !active) return
+    if (!jump || !active) return
     const token = requestAnimationFrame(() => {
       const heading = document.getElementById(`dh-${jump.id}`)
       if (jump.owner === owner && heading) {
         heading.focus({ preventScroll: true })
-        heading.scrollIntoView({ behavior: 'instant', block: 'start' })
+        heading.scrollIntoView({ behavior: reduced() ? 'instant' : 'smooth', block: 'start' })
+        // Na het springen licht het onderwerp even op, behalve bij Verminder beweging.
+        if (!reduced()) setFlash(jump.id)
       }
       setJump(null)
     })
     return () => cancelAnimationFrame(token)
-  }, [jump, navigating, active, owner])
-  useEffect(() => { setNavigating(false); setJump(null) }, [owner, active])
-  const jumpTo = id => { setClosed(closed.filter(x => x !== id)); setJump({ id, owner }); setNavigating(false) }
+  }, [jump, active, owner])
+  useEffect(() => {
+    if (!flash) return
+    const t = setTimeout(() => setFlash(null), 1200)
+    return () => clearTimeout(t)
+  }, [flash])
+  useEffect(() => { setChoosing(false); setJump(null) }, [owner, active])
+  const jumpTo = id => { setClosed(closed.filter(x => x !== id)); setJump({ id, owner }) }
   const toggleField = id => setClosed(closed.includes(id) ? closed.filter(x => x !== id) : [...closed, id])
 
   const order = vakByDomain().flatMap((d) => d.fields.map((f) => f.id))
   const toggle = (id) => setPref('vak', chosen.includes(id) ? chosen.filter((f) => f !== id) : order.filter((f) => f === id || chosen.includes(f)))
-  const picked = fields.reduce((n, f) => n + f.top.length, 0)
   const seen = fields.reduce((n, f) => n + (f.count || 0), 0)
+  // De lege Selectie: "Kies onderwerpen" gaat naar het Selectie-blad van Instellingen als dat er is.
+  const pickRow = (name, sub) => (
+    <nav className="dindex" aria-label="Onderwerpen">
+      {onChooseTopics ? (
+        <IndexRow kind="pick" name={name} sub={sub} disabled={!selectionReady} onClick={onChooseTopics} />
+      ) : (
+        <IndexRow kind="pick" name={name} sub={sub} aria-haspopup="dialog" disabled={!selectionReady} onClick={() => setChoosing(true)} />
+      )}
+    </nav>
+  )
+  const gekozen = `${chosen.length} gekozen`
+  const how = seen > 0 ? (
+    <Disclosure className="dhow" summaryClassName="linkbtn linkbtn--plain" summary="Hoe kiest Hoot deze stukken?">
+      {howHootChooses(seen).map((line) => <p key={line}>{line}</p>)}
+    </Disclosure>
+  ) : null
+
+  const pull = usePullHorizon(ref, { onRefresh, busy: status === 'refreshing' || status === 'loading', failed: refreshFailed || status === 'error', label: 'Selectie', enabled: !!digest && chosen.length > 0 })
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Selectie">
-      <div className="col col--wide">
-        <ViewHeader title="Selectie" onRefresh={onRefresh} refreshing={status === 'refreshing' || status === 'loading'}>
-          <Disclosure className="vakpick" open={!chosen.length} summaryClassName="linkbtn linkbtn--plain vakpick__sum" summary={chosen.length ? `Onderwerpen · ${chosen.length}` : 'Kies onderwerpen'}>
-            {vakByDomain().map((d) => (
-              <ChipGroup key={d.id} label={d.label} listClassName="vakpick__chips">
-                {d.fields.map((f) => (
-                  <button key={f.id} type="button" className="pill pill--sm hit" aria-pressed={chosen.includes(f.id)} onClick={() => toggle(f.id)}>
-                    {f.label}
-                  </button>
-                ))}
-              </ChipGroup>
-            ))}
-          </Disclosure>
-        </ViewHeader>
+      {pull}
+      <div className={`col col--wide${lines.hostClass}`} ref={hostRef}>
+        <LoadLinesLayer lines={lines} host={hostRef} />
+        <ViewHeader title="Selectie" onRefresh={onRefresh} refreshing={status === 'refreshing' || status === 'loading'} />
 
-        {status === 'loading' && !digest ? (
-          <Skeleton rows={4} layout="krant" />
+        {/* Kiezen: dezelfde onderwerpen als altijd, per domein, in een blad achter de laatste rij. */}
+        <Dialog open={choosing} onClose={() => setChoosing(false)} labelledBy="selectie-kies-title" className="dpick">
+          <DialogHeader id="selectie-kies-title" title="Onderwerpen" onClose={() => setChoosing(false)} />
+          {vakByDomain().map((d) => (
+            <ChipGroup key={d.id} label={d.label} listClassName="vakpick__chips">
+              {d.fields.map((f) => (
+                <button key={f.id} type="button" className="pill pill--sm hit" aria-pressed={chosen.includes(f.id)} onClick={() => toggle(f.id)}>
+                  {f.label}
+                </button>
+              ))}
+            </ChipGroup>
+          ))}
+          <p className="sheet__note">Elke maandag het beste per onderwerp.</p>
+        </Dialog>
+
+        {!chosen.length ? (
+          <div className="dempty">
+            <h2 className="head-lg">Kies je onderwerpen</h2>
+            <p className="dempty__text">{CHOOSE}</p>
+            {pickRow('Kies onderwerpen', 'Nog niets gekozen')}
+          </div>
+        ) : status === 'loading' && !digest ? (
+          <LoadLinesBox />
         ) : status === 'error' && !digest ? (
           <LoadError onRetry={onRefresh} />
-        ) : !chosen.length ? (
-          <Empty title="Kies je onderwerpen">Elke maandag staan hier per onderwerp de drie beste stukken.</Empty>
-        ) : digest ? (
+        ) : !digest ? null : overview.state === 'leeg' ? (
           <>
-            {/* Kop: welke week, en wat je te lezen krijgt */}
+            <div className="dempty">
+              <h2 className="head-lg">Nog niets voor {overview.names}</h2>
+              <p className="dempty__text">{overview.unoffered ? NO_SOURCES : EMPTY_FIELD}</p>
+              {pickRow('Kies onderwerpen', gekozen)}
+            </div>
+            {how}
+          </>
+        ) : (
+          <>
+            {/* Kop: welke week, en wat je te lezen krijgt. De week is een datum: ink-3, geen rood (SE6). */}
             <header className="dmast">
-              <p className="label label--kicker dmast__week">{digest.preview ? 'Voorproefje van deze week' : `Week ${digest.week} · ${span(digest.from, digest.to)}`}</p>
-              <p className="head-lg dmast__lede">
-                {picked === 1 ? '1 stuk' : `${picked} stukken`} in {fields.length === 1 ? '1 onderwerp' : `${fields.length} onderwerpen`}
-              </p>
-              {digest.preview ? <p className="dmast__note">De eerste Selectie komt {WEEKDAY.format(new Date(digest.next))}.</p> : <p className="dmast__note">Elke maandagochtend nieuw.</p>}
+              <p className="label label--meta dmast__week">{digest.preview ? 'Voorproefje · de afgelopen zeven dagen' : `Week ${digest.week} · ${span(digest.from, digest.to)}`}</p>
+              <h2 className="head-lg dmast__lede">{summaryLine(overview)}</h2>
+              {digest.preview ? <p className="dmast__note">De eerste volle Selectie komt {WEEKDAY.format(new Date(digest.next))} in de ochtend.</p> : <p className="dmast__note">Elke maandagochtend een nieuwe.</p>}
             </header>
 
-            {fields.length ? <nav className="dnav" aria-label="Navigeren in de Selectie">
-              <button type="button" className="btn btn--quiet" disabled={!selectionReady} aria-haspopup="dialog" onClick={() => setNavigating(true)}>Ga naar onderwerp</button>
-              {fields.length > 1 ? <button type="button" className="linkbtn hit" disabled={!selectionReady} onClick={() => setClosed(allClosed ? [] : fields.map(f => f.id))}>{allClosed ? 'Alles uitklappen' : 'Alles inklappen'}</button> : null}
-            </nav> : null}
-            <Dialog open={navigating} onClose={() => setNavigating(false)} labelledBy="selectie-index-title" className="dnav__dialog">
-              <DialogHeader id="selectie-index-title" title="Ga naar onderwerp" onClose={() => setNavigating(false)}/>
-              {vakByDomain().map(domain => {
-                const rows = fields.filter(f => f.domain === domain.id)
-                return rows.length ? <section className="dnav__group" key={domain.id} aria-label={domain.label}>
-                  <h2 className="label">{domain.label}</h2>
-                  {rows.map(f => <button className="dnav__item hit" type="button" key={f.id} onClick={() => jumpTo(f.id)} aria-label={`${f.label}, ${f.top.length === 1 ? '1 stuk' : `${f.top.length} stukken`}`}>
-                    <span>{f.label}</span><span className="dnav__count">{f.top.length === 1 ? '1 stuk' : `${f.top.length} stukken`}</span>
-                  </button>)}
-                </section> : null
-              })}
-            </Dialog>
+            {/* De inhoud: tik op een onderwerp en je springt ernaartoe. De laatste rij: kiezen. */}
+            <nav className="dindex" aria-label="Inhoud">
+              {fields.map((f) => (
+                <IndexRow key={f.id} kind="jump" name={f.label} sub={pieces(f.top.length)} disabled={!selectionReady} onClick={() => jumpTo(f.id)} />
+              ))}
+              <IndexRow kind="pick" name="Onderwerpen" sub={gekozen} aria-haspopup="dialog" disabled={!selectionReady} onClick={() => setChoosing(true)} />
+            </nav>
 
             {fields.map((f) => {
-              const Icon = iconOf(f)
+              const open = !closed.includes(f.id)
               const [first, ...rest] = f.top
               return (
-                <section key={f.id} className={`dfield${closed.includes(f.id) ? ' dfield--closed' : ''}`} id={`d-${f.id}`} data-id={`field:${f.id}`} aria-labelledby={`dh-${f.id}`}>
-                  <h2 className="head-lg dfield__head">
-                    <button type="button" id={`dh-${f.id}`} className="dfield__toggle" disabled={!selectionReady} aria-label={`${f.label}, ${f.top.length === 1 ? '1 stuk' : `${f.top.length} stukken`}`} aria-expanded={!closed.includes(f.id)} aria-controls={`dc-${f.id}`} onClick={() => toggleField(f.id)}>
-                      <span className="dfield__icon"><Icon /></span>
-                      <span className="dfield__heading"><span className="dfield__title">{f.label}</span>{!closed.includes(f.id) ? <span className="dfield__about">{f.about}</span> : null}</span>
-                      <span className="dfield__count">{f.top.length === 1 ? '1 stuk' : `${f.top.length} stukken`}<span className="dfield__chevron" aria-hidden="true"></span></span>
-                    </button>
+                <section key={f.id} className="dfield" id={`d-${f.id}`} data-id={`field:${f.id}`} aria-labelledby={`dh-${f.id}`}>
+                  <h2 className="dfield__head">
+                    <IndexRow kind="toggle" big id={`dh-${f.id}`} name={f.label} sub={pieces(f.top.length)} expanded={open} flash={flash === f.id} aria-controls={`dc-${f.id}`} disabled={!selectionReady} onClick={() => toggleField(f.id)} />
                   </h2>
-                  <div id={`dc-${f.id}`} hidden={closed.includes(f.id)}>
+                  <div id={`dc-${f.id}`} hidden={!open}>
                   {first ? (
                     <>
+                      {f.about ? <p className="dfield__about">{f.about}</p> : null}
                       <div id={`d-${first.id}`} className="dfield__anchor">
                         <Card item={first} rank={1} feature />
                       </div>
@@ -220,7 +287,7 @@ export default function Vak({ active, digest, status, onRefresh }) {
                       ) : null}
                     </>
                   ) : (
-                    <p className="hint">Deze week geen stukken die eruit sprongen.</p>
+                    <p className="hint dfield__none">{EMPTY_FIELD}</p>
                   )}
                   {f.more.length ? (
                     <div className="dmore">
@@ -244,11 +311,9 @@ export default function Vak({ active, digest, status, onRefresh }) {
               )
             })}
 
-            <Disclosure className="dhow" summaryClassName="linkbtn linkbtn--plain" summary="Hoe kiest Hoot deze stukken?">
-              <p>Uit {seen} stukken van kenners en vakbladen: wat veel bronnen oppikken, wat een redactie uitkoos en wie het schreef. Niets gesponsord; de intro is van de schrijver.</p>
-            </Disclosure>
+            {how}
           </>
-        ) : null}
+        )}
       </div>
     </section>
   )

@@ -7,10 +7,13 @@ import { dropInvite } from '../src/lib/account.js'
 // `auto: true` = de schakelaar aan; zo testen we de terughoudendheid zelf.
 const base = { status: 'out', auto: true, onboarded: true, path: 'editie', scrolled: 1500, now: 10 * JOIN_PAUSE }
 
-test('vanzelf vragen staat uit tot Alex beslist: dan vraagt Hoot nooit vanzelf', () => {
-  assert.equal(JOIN_AUTO, false)
+test('vanzelf vragen staat aan (1.1.0): terughoudend, na het lezen, hooguit twee keer', () => {
+  assert.equal(JOIN_AUTO, true)
   const { auto, ...standaard } = base
-  assert.equal(shouldAskToJoin(standaard), false)
+  assert.equal(shouldAskToJoin(standaard), true)
+  assert.equal(shouldAskToJoin({ ...standaard, scrolled: 300 }), false)
+  assert.equal(shouldAskToJoin({ ...standaard, asked: { n: 2, at: 0 } }), false)
+  // Met de schakelaar uit vraagt Hoot nooit vanzelf.
   assert.equal(shouldAskToJoin({ ...base, auto: false }), false)
 })
 

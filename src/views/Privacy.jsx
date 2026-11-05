@@ -27,7 +27,7 @@ export default function Privacy({ onBack, backLabel }) {
           wat je bewaarde, wat je las en welke verhalen je zag. Zo gaan ze mee naar je andere toestellen.
         </p>
         <p>
-          Log je uit, dan gaan die gegevens van dit toestel af; ze blijven in je account. Een ander account op hetzelfde toestel krijgt ze nooit te zien. Je account verwijder je zelf in de app
+          Log je uit, dan gaan die gegevens van dit toestel af; ze blijven in je account. Een ander account op hetzelfde toestel krijgt ze nooit te zien. Je account verwijder je zelf, in de app of op de website
           (Instellingen › Account › Account verwijderen), of je mailt naar <a href="mailto:info@gethoot.app">info@gethoot.app</a>. Dan verdwijnen je account, je instellingen en je
           bewaarde stukken van de server. Heb je ingelogd met Apple, dan trekt Hoot ook de koppeling bij Apple in.
         </p>
@@ -59,7 +59,7 @@ export default function Privacy({ onBack, backLabel }) {
           log je in, dan gaan ze mee met je account (zie hierboven). Ook wat Hoot leert van
           wat je leest (welke onderwerpen en bronnen je vaak opent) blijft op je toestel. Wat je zelf aangeeft met ‘meer
           hiervan’ of ‘minder hiervan’ bij een verhaal is een instelling: met een account gaat die mee, en je wist hem
-          in Instellingen bij Wat Hoot van je leerde.
+          in Instellingen › Editie › Wat Hoot leerde.
         </p>
         <ul>
           <li>

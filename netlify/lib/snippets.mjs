@@ -26,11 +26,17 @@ const decode = (s) =>
     .trim()
 
 // Sleutel om een artikel terug te vinden: het artikel-id (Volkskrant) of de URL zonder query.
+// De Tijd linkt in de feed via "/r/t/1/id/10698532", de zoekindex via "/rubriek/titel/10698532.html":
+// daar telt het nummer.
 export function articleKey(url) {
   const id = articleId(url)
   if (id) return id
   try {
     const u = new URL(url)
+    if (/(^|\.)tijd\.be$/.test(u.hostname)) {
+      const n = u.pathname.match(/\/id\/(\d{6,})\/?$|\/(\d{6,})\.html$/)
+      if (n) return 'tijd.be/' + (n[1] || n[2])
+    }
     return (u.hostname.replace(/^www\./, '') + u.pathname).replace(/\/$/, '').toLowerCase()
   } catch {
     return null
@@ -42,6 +48,21 @@ export function bingImage(src) {
   const m = String(src || '').match(/[?&]id=([^&]+)/)
   return m ? `https://www.bing.com/th?id=${m[1]}&pid=News&w=1200&h=675&c=7` : null
 }
+
+// Een beeld uit de zoekindex, nog niet gemeten: Bing snijdt bij (c=7) en vult een te klein bronbeeld
+// aan met witte randen. Gemeten (build.mjs, sizeBingImages) wordt het het bronbeeld op zijn eigen maat,
+// zonder c: dan weten web en app hoe breed het is (src/lib/img.js, ImageURL.swift).
+export function bingId(url) {
+  try {
+    const u = new URL(url)
+    return u.hostname === 'www.bing.com' && u.pathname === '/th' ? u.searchParams.get('id') : null
+  } catch {
+    return null
+  }
+}
+export const bingUnmeasured = (url) => !!bingId(url) && /[?&]c=/.test(url)
+export const bingOriginal = (id) => `https://www.bing.com/th?id=${encodeURIComponent(id)}&pid=News`
+export const bingSized = (id, w, h) => `${bingOriginal(id)}&w=${w}&h=${h}`
 
 // Bing-RSS → [{ id, text, image }] voor artikelen van het gevraagde domein.
 export function parseSnippets(xml, domain = 'volkskrant.nl') {
@@ -66,7 +87,14 @@ export function parseSnippets(xml, domain = 'volkskrant.nl') {
 
 // Een liveblog houdt zijn URL terwijl de kop en de inhoud blijven wisselen: de inleiding uit
 // de zoekindex hoort dan bij een eerder moment. Daar tonen we liever niets.
-export const isLiveblog = (url) => /\/liveblog[-/]|[-/]liveblog-/i.test(String(url || ''))
+// De Morgen (en andere DPG-titels) noemen een liveblog niet "liveblog": hun slug begint met "live-"
+// (demorgen.be/snelnieuws/live-rousseau-...~bf7e76f4/), en de kop met "Live –". Met `title` telt die ook.
+// Een losse markering vooraan: "Live –", "Live:", "Live |", "Live - " of "LIVE" apart. "Live-muziek keert terug
+// in Paradiso" (streepje direct aan het woord) of "Livestream" is geen liveblog.
+const LIVE_MARK = /^\s*live\s*(?:[–—|:]|$)|^\s*live\s+-(?:\s|$)/i
+const LIVE_TITLE = { test: (t) => LIVE_MARK.test(t) || /^\s*LIVE(?:\s|$)/.test(t) }
+export const isLiveblog = (url, title) =>
+  /\/liveblog[-/]|[-/]liveblog-|\/live-[^/]*~b[0-9a-f]{6,}/i.test(String(url || '')) || LIVE_TITLE.test(String(title || ''))
 
 // Nieuwe vondsten bij de bewaarde zetten; wat ouder is dan `maxAge` vervalt.
 export function mergeSnippets(store = {}, found = [], now = Date.now(), maxAge = 5 * 864e5) {

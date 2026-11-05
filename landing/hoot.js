@@ -8,10 +8,10 @@
   /* ---------- 1 · het ritueel ---------- */
   var K = ['papier','wit','rood','op-rood','inkt','inkt2','inkt3','lijn','chip','s-bg','s-ink','s-ink2','s-ink3','s-red','s-line','s-card','s-blok'];
   var P = {
-    ochtend: ['#F5F1E8','#FBF8F1','#A3201B','#F5F1E8','#1A1814','#4B453B','#6B6457','#DED5C4','#EFE9DD','#F5F1E8','#1A1814','#4B453B','#6B6457','#A3201B','#DED5C4','#FCFAF5','#A3201B'],
-    middag:  ['#F3F1EC','#FFFFFF','#A3201B','#F7F5F0','#15130F','#45403A','#67615A','#E2DDD3','#EFECE6','#F7F5F0','#15130F','#45403A','#67615A','#A3201B','#E2DDD3','#FFFFFF','#A3201B'],
-    vroeg:   ['#EEE4D3','#F5ECDD','#9C2419','#F4EBDC','#2A231B','#5A4D3D','#6F6250','#DCCDB5','#E9DDC9','#EFE5D4','#2A231B','#584B3C','#6F6250','#9C2419','#DCCDB5','#F8F0E3','#9C2419'],
-    nacht:   ['#151310','#1E1B17','#A3201B','#F5F1E8','#F1ECE2','#CBC3B5','#A39B8D','#34302A','#2A2621','#151310','#F1ECE2','#CBC3B5','#A39B8D','#EC7A70','#34302A','#1E1B17','#93201B']
+    ochtend: ['#F5F1E8','#FBF8F1','#9A3324','#F5F1E8','#1A1814','#4B453B','#6B6457','#DED5C4','#EFE9DD','#F5F1E8','#1A1814','#4B453B','#6B6457','#9A3324','#DED5C4','#FCFAF5','#9A3324'],
+    middag:  ['#F3F1EC','#FFFFFF','#9A3324','#F7F5F0','#15130F','#45403A','#67615A','#E2DDD3','#EFECE6','#F7F5F0','#15130F','#45403A','#67615A','#9A3324','#E2DDD3','#FFFFFF','#9A3324'],
+    vroeg:   ['#EEE4D3','#F5ECDD','#933422','#F4EBDC','#2A231B','#5A4D3D','#6F6250','#DCCDB5','#E9DDC9','#EFE5D4','#2A231B','#584B3C','#6F6250','#933422','#DCCDB5','#F8F0E3','#933422'],
+    nacht:   ['#151310','#1E1B17','#9A3324','#F5F1E8','#F1ECE2','#CBC3B5','#A39B8D','#34302A','#2A2621','#151310','#F1ECE2','#CBC3B5','#A39B8D','#EC7A70','#34302A','#1E1B17','#8B3023']
   };
   var A = [[0,'nacht'],[5.5,'nacht'],[7.5,'ochtend'],[11,'ochtend'],[13,'middag'],[16.5,'middag'],[18.5,'vroeg'],[20,'vroeg'],[21.5,'nacht'],[24,'nacht']];
   function hex(h) { return [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)]; }

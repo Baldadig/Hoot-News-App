@@ -26,12 +26,16 @@ for (const format of ['link', 'staand']) {
   }
 }
 test('A3: beide platforms bundelen precies dezelfde maten, glyphmaten en lettertypes', async () => {
-  for (const file of ['layout.json', 'advances.json', 'publisher-marks.json', 'Newsreader-800.ttf', 'SourceSans3-600.ttf', 'newsreader-OFL.txt', 'source-sans-3-OFL.txt']) {
+  for (const file of ['layout.json', 'advances.json', 'publisher-marks.json', 'Newsreader-800.ttf', 'newsreader-OFL.txt']) {
     assert.deepEqual(await readFile(new URL(`../shared/deelkaart/${file}`, import.meta.url)), await readFile(new URL(`../ios/Hoot/Resources/Deelkaart/${file}`, import.meta.url)), file)
+  }
+  // De schreefloze letter van de kaart is de Schibsted Grotesk 600 van de app zelf (scripts/build-fonts.py).
+  for (const [shared, app] of [['SchibstedGrotesk-600.ttf', 'SchibstedGrotesk-600.ttf'], ['schibsted-OFL.txt', 'OFL-SchibstedGrotesk.txt']]) {
+    assert.deepEqual(await readFile(new URL(`../shared/deelkaart/${shared}`, import.meta.url)), await readFile(new URL(`../ios/Hoot/Resources/Fonts/${app}`, import.meta.url)), shared)
   }
 })
 
-test('uitgeverslogo’s zijn lokaal ingebedde PNG’s in uitsluitend papiertint', async () => {
+test('uitgeverslogo’s zijn lokaal ingebedde PNG’s in uitsluitend merkrood (voor de papieren schijf)', async () => {
   const marks = JSON.parse(await readFile(new URL('../shared/deelkaart/publisher-marks.json', import.meta.url)))
   for (const source of ['nos', 'nrc', 'nyt']) assert.ok(marks[source], source)
   for (const [source, uri] of Object.entries(marks)) {
@@ -40,7 +44,7 @@ test('uitgeverslogo’s zijn lokaal ingebedde PNG’s in uitsluitend papiertint'
     assert.equal(info.width, 84); assert.equal(info.height, 84)
     let ink = 0
     for (let i = 0; i < data.length; i += 4) if (data[i + 3]) {
-      assert.deepEqual([...data.subarray(i, i + 3)], [245, 241, 232], source)
+      assert.deepEqual([...data.subarray(i, i + 3)], [154, 51, 36], source)
       ink++
     }
     assert.ok(ink > 10, source)
@@ -105,4 +109,24 @@ test('deellink: onbekend verhaal met uitgeverslink gaat naar de uitgever, nooit 
   // Bekend verhaal: gewoon de deelpagina, de meegegeven link telt niet.
   const known = await handleSharePage(new Request('https://gethoot.app/deel/kort?bron=' + encodeURIComponent('https://nos.nl/b')), { find: async () => ({ id: 'kort', title: 'Kop', url: 'https://nos.nl/a', section: 'Nieuws', source: 'nos' }) })
   assert.equal(known.status, 200)
+})
+
+// Brand Guide v2.2 › Deelkaart: het uitgeverslogo staat op een papieren schijf; het monogram blijft een lijncirkel.
+test('deelkaart: papieren schijf achter het uitgeverslogo, monogram zonder schijf', async () => {
+  assert.deepEqual(layout.mark, { size: 28, pad: 0.14, disc: '#f5f1e8', ink: '#9a3324' })
+  const item = { ...cases[0], source: 'nos', sourceName: 'NOS' }
+  for (const format of ['link', 'staand']) {
+    const f = layout.formats[format]
+    const top = f.sourceY - (layout.mark.size - f.sourceSize) / 2
+    const pixel = async png => {
+      const { data, info } = await sharp(png).raw().toBuffer({ resolveWithObject: true })
+      const at = (x, y) => [...data.subarray((y * info.width + x) * info.channels, (y * info.width + x) * info.channels + 3)]
+      // Binnen de schijf, buiten het logo (in de 4 px lucht), en midden in de schijf.
+      return { rand: at(f.margin + 3, top + 14), midden: at(f.margin + 14, top + 14) }
+    }
+    const disc = await pixel(await renderCard(item, format))
+    assert.deepEqual(disc.rand, [245, 241, 232], format + ': schijf in papier')
+    const monogram = await pixel(await renderCard(item, format, { marks: {} }))
+    assert.deepEqual(monogram.rand, [154, 51, 36], format + ': monogram is een lijncirkel op rood')
+  }
 })

@@ -1,0 +1,1090 @@
+{
+ "width": 390,
+ "cases": [
+  {
+   "name": "trek-0",
+   "st": {
+    "phase": "pull",
+    "pull": 0,
+    "glow": 0.5,
+    "artOp": 1,
+    "reduce": false
+   },
+   "now": 0,
+   "g": {
+    "w": 16,
+    "strong": false,
+    "lineOp": 0,
+    "arcOp": 0,
+    "sx": -68,
+    "sy": -8,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 0,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "trek-20",
+   "st": {
+    "phase": "pull",
+    "pull": 20,
+    "glow": 0.5,
+    "artOp": 1,
+    "reduce": false
+   },
+   "now": 0,
+   "g": {
+    "w": 40.429,
+    "strong": false,
+    "lineOp": 0.25,
+    "arcOp": 0,
+    "sx": -68,
+    "sy": -8,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 0,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "trek-30",
+   "st": {
+    "phase": "pull",
+    "pull": 30,
+    "glow": 0.5,
+    "artOp": 1,
+    "reduce": false
+   },
+   "now": 0,
+   "g": {
+    "w": 101.5,
+    "strong": false,
+    "lineOp": 0.875,
+    "arcOp": 0,
+    "sx": -68,
+    "sy": -8,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 0,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "trek-44",
+   "st": {
+    "phase": "pull",
+    "pull": 44,
+    "glow": 0.5,
+    "artOp": 1,
+    "reduce": false
+   },
+   "now": 0,
+   "g": {
+    "w": 187,
+    "strong": false,
+    "lineOp": 1,
+    "arcOp": 0,
+    "sx": -68,
+    "sy": -6,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 0.125,
+    "ringOp": 0.1,
+    "msg": 0
+   }
+  },
+  {
+   "name": "trek-56",
+   "st": {
+    "phase": "pull",
+    "pull": 56,
+    "glow": 0.5,
+    "artOp": 1,
+    "reduce": false
+   },
+   "now": 0,
+   "g": {
+    "w": 260.286,
+    "strong": false,
+    "lineOp": 1,
+    "arcOp": 0,
+    "sx": -68,
+    "sy": 0,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 0.5,
+    "ringOp": 0.4,
+    "msg": 0
+   }
+  },
+  {
+   "name": "trek-64",
+   "st": {
+    "phase": "pull",
+    "pull": 64,
+    "glow": 0.5,
+    "artOp": 1,
+    "reduce": false
+   },
+   "now": 0,
+   "g": {
+    "w": 309.143,
+    "strong": false,
+    "lineOp": 1,
+    "arcOp": 0,
+    "sx": -68,
+    "sy": 4,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 0.75,
+    "ringOp": 0.6,
+    "msg": 0
+   }
+  },
+  {
+   "name": "trek-71",
+   "st": {
+    "phase": "pull",
+    "pull": 71,
+    "glow": 0.5,
+    "artOp": 1,
+    "reduce": false
+   },
+   "now": 0,
+   "g": {
+    "w": 351.893,
+    "strong": false,
+    "lineOp": 1,
+    "arcOp": 0,
+    "sx": -68,
+    "sy": 7.5,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 0.969,
+    "ringOp": 0.775,
+    "msg": 0
+   }
+  },
+  {
+   "name": "trek-72",
+   "st": {
+    "phase": "pull",
+    "pull": 72,
+    "glow": 1,
+    "artOp": 1,
+    "reduce": false
+   },
+   "now": 0,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 0,
+    "sx": -68,
+    "sy": 8,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 1,
+    "msg": 0
+   }
+  },
+  {
+   "name": "trek-100",
+   "st": {
+    "phase": "pull",
+    "pull": 100,
+    "glow": 1,
+    "artOp": 1,
+    "reduce": false
+   },
+   "now": 0,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 0,
+    "sx": -68,
+    "sy": 8,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 1,
+    "msg": 0
+   }
+  },
+  {
+   "name": "trek-stil-20",
+   "st": {
+    "phase": "pull",
+    "pull": 20,
+    "glow": 0,
+    "artOp": 1,
+    "reduce": true
+   },
+   "now": 0,
+   "g": {
+    "w": 358,
+    "strong": false,
+    "lineOp": 0.25,
+    "arcOp": 0,
+    "sx": -68,
+    "sy": 8,
+    "sunOp": 0,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0.6,
+    "msg": 0
+   }
+  },
+  {
+   "name": "trek-stil-30",
+   "st": {
+    "phase": "pull",
+    "pull": 30,
+    "glow": 0,
+    "artOp": 1,
+    "reduce": true
+   },
+   "now": 0,
+   "g": {
+    "w": 358,
+    "strong": false,
+    "lineOp": 0.875,
+    "arcOp": 0,
+    "sx": -68,
+    "sy": 8,
+    "sunOp": 0.375,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0.6,
+    "msg": 0
+   }
+  },
+  {
+   "name": "trek-stil-40",
+   "st": {
+    "phase": "pull",
+    "pull": 40,
+    "glow": 0,
+    "artOp": 1,
+    "reduce": true
+   },
+   "now": 0,
+   "g": {
+    "w": 358,
+    "strong": false,
+    "lineOp": 1,
+    "arcOp": 0,
+    "sx": -68,
+    "sy": 8,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0.6,
+    "msg": 0
+   }
+  },
+  {
+   "name": "laden-0",
+   "st": {
+    "phase": "load",
+    "loadT0": 0,
+    "reduce": false
+   },
+   "now": 0,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 0,
+    "sx": -68,
+    "sy": 8,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 1,
+    "msg": 0
+   }
+  },
+  {
+   "name": "laden-100",
+   "st": {
+    "phase": "load",
+    "loadT0": 0,
+    "reduce": false
+   },
+   "now": 100,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 0,
+    "sx": -68,
+    "sy": 8,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0.07,
+    "msg": 0
+   }
+  },
+  {
+   "name": "laden-300",
+   "st": {
+    "phase": "load",
+    "loadT0": 0,
+    "reduce": false
+   },
+   "now": 300,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 0.93,
+    "sx": -68,
+    "sy": 8,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "laden-800",
+   "st": {
+    "phase": "load",
+    "loadT0": 0,
+    "reduce": false
+   },
+   "now": 800,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 1,
+    "sx": -34,
+    "sy": 26,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "laden-1200",
+   "st": {
+    "phase": "load",
+    "loadT0": 0,
+    "reduce": false
+   },
+   "now": 1200,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 1,
+    "sx": 0,
+    "sy": 32,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "laden-3950",
+   "st": {
+    "phase": "load",
+    "loadT0": 0,
+    "reduce": false
+   },
+   "now": 3950,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 1,
+    "sx": 0,
+    "sy": 32,
+    "sunOp": 1,
+    "scale": 1.06,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "laden-6700",
+   "st": {
+    "phase": "load",
+    "loadT0": 0,
+    "reduce": false
+   },
+   "now": 6700,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 1,
+    "sx": 0,
+    "sy": 32,
+    "sunOp": 1,
+    "scale": 0.92,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "laden-stil-0",
+   "st": {
+    "phase": "load",
+    "loadT0": 0,
+    "reduce": true
+   },
+   "now": 0,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 1,
+    "sx": -68,
+    "sy": 8,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "laden-stil-175",
+   "st": {
+    "phase": "load",
+    "loadT0": 0,
+    "reduce": true
+   },
+   "now": 175,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 1,
+    "sx": 0,
+    "sy": 32,
+    "sunOp": 0,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "laden-stil-300",
+   "st": {
+    "phase": "load",
+    "loadT0": 0,
+    "reduce": true
+   },
+   "now": 300,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 1,
+    "sx": 0,
+    "sy": 32,
+    "sunOp": 0.714,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "door-4000",
+   "st": {
+    "phase": "go",
+    "loadT0": 0,
+    "reduce": false,
+    "leg2T0": 4000,
+    "s0": 1.0598858372748297
+   },
+   "now": 4000,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 1,
+    "sx": 0,
+    "sy": 32,
+    "sunOp": 1,
+    "scale": 1.06,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "door-4200",
+   "st": {
+    "phase": "go",
+    "loadT0": 0,
+    "reduce": false,
+    "leg2T0": 4000,
+    "s0": 1.0598858372748297
+   },
+   "now": 4200,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 1,
+    "sx": 4.25,
+    "sy": 31.906,
+    "sunOp": 1,
+    "scale": 1.003,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "door-4600",
+   "st": {
+    "phase": "go",
+    "loadT0": 0,
+    "reduce": false,
+    "leg2T0": 4000,
+    "s0": 1.0598858372748297
+   },
+   "now": 4600,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 1,
+    "sx": 63.75,
+    "sy": 10.906,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "onder-0",
+   "st": {
+    "phase": "set",
+    "setT0": 0,
+    "reduce": false
+   },
+   "now": 0,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 1,
+    "sx": 68,
+    "sy": 8,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "onder-300",
+   "st": {
+    "phase": "set",
+    "setT0": 0,
+    "reduce": false
+   },
+   "now": 300,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 1,
+    "sx": 68,
+    "sy": -3.275,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "onder-440",
+   "st": {
+    "phase": "set",
+    "setT0": 0,
+    "reduce": false
+   },
+   "now": 440,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 1,
+    "sx": 68,
+    "sy": -7.183,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "onder-510",
+   "st": {
+    "phase": "set",
+    "setT0": 0,
+    "reduce": false
+   },
+   "now": 510,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 0.5,
+    "arcOp": 0.5,
+    "sx": 68,
+    "sy": -7.779,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "onder-600",
+   "st": {
+    "phase": "set",
+    "setT0": 0,
+    "reduce": false
+   },
+   "now": 600,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 0,
+    "arcOp": 0,
+    "sx": 68,
+    "sy": -8,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "onder-stil-0",
+   "st": {
+    "phase": "set",
+    "setT0": 0,
+    "reduce": true
+   },
+   "now": 0,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 1,
+    "sx": 0,
+    "sy": 32,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "onder-stil-175",
+   "st": {
+    "phase": "set",
+    "setT0": 0,
+    "reduce": true
+   },
+   "now": 175,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 0.5,
+    "arcOp": 0.5,
+    "sx": 0,
+    "sy": 32,
+    "sunOp": 0.5,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "fout-0",
+   "st": {
+    "phase": "fail",
+    "failT0": 0,
+    "tf": 0.5,
+    "reduce": false
+   },
+   "now": 0,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 1,
+    "sx": 0,
+    "sy": 32,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "fout-100",
+   "st": {
+    "phase": "fail",
+    "failT0": 0,
+    "tf": 0.5,
+    "reduce": false
+   },
+   "now": 100,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 0.07,
+    "sx": -41.17,
+    "sy": 23.203,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "fout-300",
+   "st": {
+    "phase": "fail",
+    "failT0": 0,
+    "tf": 0.5,
+    "reduce": false
+   },
+   "now": 300,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 0,
+    "sx": -64.333,
+    "sy": 10.518,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "fout-600",
+   "st": {
+    "phase": "fail",
+    "failT0": 0,
+    "tf": 0.5,
+    "reduce": false
+   },
+   "now": 600,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 0,
+    "sx": -68,
+    "sy": 8,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "fout-800",
+   "st": {
+    "phase": "fail",
+    "failT0": 0,
+    "tf": 0.5,
+    "reduce": false
+   },
+   "now": 800,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 0,
+    "sx": -68,
+    "sy": -7.137,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 1
+   }
+  },
+  {
+   "name": "fout-1000",
+   "st": {
+    "phase": "fail",
+    "failT0": 0,
+    "tf": 0.5,
+    "reduce": false
+   },
+   "now": 1000,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 0,
+    "sx": -68,
+    "sy": -8,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 1
+   }
+  },
+  {
+   "name": "fout-2700",
+   "st": {
+    "phase": "fail",
+    "failT0": 0,
+    "tf": 0.5,
+    "reduce": false
+   },
+   "now": 2700,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 0.286,
+    "arcOp": 0,
+    "sx": -68,
+    "sy": -8,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0.07
+   }
+  },
+  {
+   "name": "fout-2800",
+   "st": {
+    "phase": "fail",
+    "failT0": 0,
+    "tf": 0.5,
+    "reduce": false
+   },
+   "now": 2800,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 0,
+    "arcOp": 0,
+    "sx": -68,
+    "sy": -8,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0
+   }
+  },
+  {
+   "name": "fout-stil-0",
+   "st": {
+    "phase": "fail",
+    "failT0": 0,
+    "tf": 0.5,
+    "reduce": true
+   },
+   "now": 0,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 1,
+    "sx": 0,
+    "sy": 32,
+    "sunOp": 1,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 1
+   }
+  },
+  {
+   "name": "fout-stil-2000",
+   "st": {
+    "phase": "fail",
+    "failT0": 0,
+    "tf": 0.5,
+    "reduce": true
+   },
+   "now": 2000,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 1,
+    "arcOp": 0,
+    "sx": 0,
+    "sy": 32,
+    "sunOp": 0,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 1
+   }
+  },
+  {
+   "name": "fout-stil-2175",
+   "st": {
+    "phase": "fail",
+    "failT0": 0,
+    "tf": 0.5,
+    "reduce": true
+   },
+   "now": 2175,
+   "g": {
+    "w": 358,
+    "strong": true,
+    "lineOp": 0.5,
+    "arcOp": 0,
+    "sx": 0,
+    "sy": 32,
+    "sunOp": 0,
+    "scale": 1,
+    "grow": 1,
+    "ringOp": 0,
+    "msg": 0.5
+   }
+  }
+ ],
+ "journeys": [
+  {
+   "responseMs": 1000,
+   "ok": true,
+   "reduce": false,
+   "set": 2000,
+   "close": 2440,
+   "done": 2840
+  },
+  {
+   "responseMs": 7000,
+   "ok": true,
+   "reduce": false,
+   "set": 7800,
+   "close": 8240,
+   "done": 8640
+  },
+  {
+   "responseMs": 2000,
+   "ok": false,
+   "reduce": false,
+   "set": null,
+   "close": 4600,
+   "done": 5000
+  },
+  {
+   "responseMs": 1000,
+   "ok": true,
+   "reduce": true,
+   "set": 1000,
+   "close": 1350,
+   "done": 1350
+  },
+  {
+   "responseMs": 1000,
+   "ok": false,
+   "reduce": true,
+   "set": null,
+   "close": 3350,
+   "done": 3350
+  }
+ ],
+ "shut": [
+  [
+   0,
+   1
+  ],
+  [
+   50,
+   0.98212
+  ],
+  [
+   100,
+   0.90417
+  ],
+  [
+   200,
+   0.29531
+  ],
+  [
+   300,
+   0.04377
+  ],
+  [
+   350,
+   0.00929
+  ],
+  [
+   400,
+   0
+  ]
+ ],
+ "resist": [
+  [
+   0,
+   0
+  ],
+  [
+   50,
+   50
+  ],
+  [
+   72,
+   72
+  ],
+  [
+   100,
+   81.989
+  ],
+  [
+   140,
+   92.764
+  ],
+  [
+   400,
+   116.88
+  ]
+ ]
+}

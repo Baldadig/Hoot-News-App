@@ -49,3 +49,35 @@ test('A1: ontbrekende en ongeldige metadata houden de oude weergave', () => {
     assert.equal(cropStyle({ imageMeta }), undefined)
   }
 })
+test('B11: de Stroom-rijen (tijdlijn en krant) en de Editie gebruiken dezelfde meting als de lead', async () => {
+  const items = await readFile(new URL('../src/components/Items.jsx', import.meta.url), 'utf8')
+  const img = await readFile(new URL('../src/components/Img.jsx', import.meta.url), 'utf8')
+  assert.match(items, /media media--tl\$\{imageMeta\(item\) \? ' media--measured' : ''\}`\} style=\{cropStyle\(item\)\}>\s*\{\(onFail\) => <MeasuredImg item=\{item\} kind="lead"/)
+  assert.match(items, /thumb\$\{imageMeta\(item\) \? ' media--measured' : ''\}`\} style=\{cropStyle\(item\)\}>[\s\S]*?<MeasuredImg item=\{item\} width="96"/)
+  assert.match(items, /media--lead[\s\S]*?<MeasuredImg item=\{item\} kind="lead"/)
+  assert.match(img, /if \(!imageMeta\(item\)\) return <Img/)
+})
+test('B11: NOS-beeld met witte zijbalken in een 2:1-vak: balken vallen eruit, beeld vult het vak', () => {
+  // Echte meting uit de live feed: 1024x576 met 223 px wit links en rechts.
+  const item = { imageMeta: { w: 1024, h: 576, crop: { l: 223, r: 223, t: 0, b: 0 }, ratio: 578 / 576 } }
+  const s = cropStyle(item)
+  assert.equal(s['--crop-inset'], `0% ${223 / 1024 * 100}% 0% ${223 / 1024 * 100}%`)
+  // In een 2:1-vak (400x200) bepaalt de breedte de schaal: de inhoud (578 breed) wordt 400 breed,
+  // het hele beeld dus 400*1024/578 breed; beide balken liggen buiten het vak.
+  const box = { w: 400, h: 200 }, { w, h, crop: c } = item.imageMeta
+  const scale = Math.max(box.w / (w - c.l - c.r), box.h / (h - c.t - c.b))
+  const x = (box.w - w * scale) / 2 + (c.r - c.l) * scale / 2
+  assert.ok(Math.abs(x + c.l * scale) < 1e-9 && Math.abs(x + (w - c.r) * scale - box.w) < 1e-9, 'inhoud valt precies op de vakranden')
+  assert.ok(h * scale >= box.h, 'hoogte vult het vak (cover)')
+})
+test('B11: elke Stroom-afbeelding wordt gemeten (tot 48 nieuwe per bouw), met de bestaande cache', async () => {
+  let cache, calls = 0
+  const items = Array.from({ length: 40 }, (_, i) => ({ id: i, kind: 'article', image: `https://example.com/${i}.png` }))
+  const value = { w: 100, h: 50, crop: { l: 10, r: 10, t: 0, b: 0 }, ratio: 2 }
+  const options = { load: async () => { calls++; return value }, get: async () => cache, set: async (_, v) => { cache = v } }
+  await measureFeedImages(items, 1000, options)
+  assert.equal(calls, 40)
+  assert.ok(items.every(i => i.imageMeta))
+  await measureFeedImages(items, 2000, options)
+  assert.equal(calls, 40)
+})

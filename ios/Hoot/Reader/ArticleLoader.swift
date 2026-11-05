@@ -31,6 +31,10 @@ final class ArticleLoader: NSObject, WKNavigationDelegate, WKUIDelegate {
     private var article: URL?
     private var round = 0 // elke nieuwe laadronde; een oudere mag de staat niet meer zetten
     private var askedVisit = false // jij koos "Toon de pagina hier" (niet de uitgever)
+    // Tijdelijke fouten (netwerk, een trage pagina, een challenge van de uitgever) gaan vaak vanzelf over:
+    // één keer stil opnieuw laden voordat de lezer zegt dat het even niet lukt. Per artikel en per tik op
+    // "Probeer opnieuw" één nieuwe poging.
+    private(set) var autoRetries = 0
     var visitByChoice: Bool { askedVisit }
 
     // De inlog en toestemming bij uitgevers: in de vaste opslag van WebKit, alleen voor de lezer.
@@ -53,12 +57,35 @@ final class ArticleLoader: NSObject, WKNavigationDelegate, WKUIDelegate {
 
     func load(_ url: URL) {
         article = url
+        autoRetries = 0
+        start(url)
+    }
+
+    private func start(_ url: URL) {
         state = .loading
         attempts = 0
         askedVisit = false
         round += 1
         webView.load(URLRequest(url: url))
         watchdog()
+    }
+
+    // "Probeer opnieuw" na een melding: het artikel opnieuw laden, weer met één stille nieuwe poging.
+    func reload() {
+        guard let article else { return }
+        load(article)
+    }
+
+    // Laden of de tekst eruit halen lukte niet (didFail, didFailProvisionalNavigation, de watchdog,
+    // de extractie). De eerste keer stil opnieuw vanaf het artikel; daarna de melding.
+    func temporaryFailure() {
+        guard state == .loading else { return }
+        if autoRetries == 0, let article {
+            autoRetries = 1
+            start(article)
+        } else {
+            state = .failed
+        }
     }
 
     // Na toestemming of inloggen: verder. Staat de uitgever je nu op een andere pagina (de voorpagina,
@@ -73,14 +100,14 @@ final class ArticleLoader: NSObject, WKNavigationDelegate, WKUIDelegate {
         watchdog()
     }
 
-    // Komt er na 20 seconden nog niets (een pagina die nooit klaar is), dan zeggen we dat het niet lukt.
+    // Komt er na 20 seconden nog niets (een pagina die nooit klaar is), dan een nieuwe poging of de melding.
     // Zwak vastgehouden: een gesloten lezer hoeft niet 20 seconden te blijven bestaan.
     private func watchdog() {
         let mine = round
         Task { [weak self] in
             try? await Task.sleep(for: .seconds(20))
             guard let self, self.round == mine, self.state == .loading else { return }
-            self.state = .failed
+            self.temporaryFailure()
         }
     }
 
@@ -109,17 +136,17 @@ final class ArticleLoader: NSObject, WKNavigationDelegate, WKUIDelegate {
     }
 
     nonisolated func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        Task { @MainActor in if state == .loading && !Self.interrupted(error) { state = .failed } }
+        Task { @MainActor in if state == .loading && !Self.interrupted(error) { temporaryFailure() } }
     }
 
     nonisolated func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-        Task { @MainActor in if state == .loading && !Self.interrupted(error) { state = .failed } }
+        Task { @MainActor in if state == .loading && !Self.interrupted(error) { temporaryFailure() } }
     }
 
     // Het webproces stopte (vaak geheugen bij zware sites): opnieuw laden, en anders zeggen dat het niet lukt.
     nonisolated func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
         Task { @MainActor in
-            if state == .loading, attempts == 0, let article { attempts = 1; webView.load(URLRequest(url: article)) } else if state == .loading { state = .failed }
+            if state == .loading, attempts == 0, let article { attempts = 1; webView.load(URLRequest(url: article)) } else if state == .loading { temporaryFailure() }
         }
     }
 
@@ -234,7 +261,7 @@ final class ArticleLoader: NSObject, WKNavigationDelegate, WKUIDelegate {
             try? await Task.sleep(for: .seconds(1.2))
             await extract(round: mine)
         } else {
-            state = .failed
+            temporaryFailure()
         }
     }
 

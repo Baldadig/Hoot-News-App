@@ -1,7 +1,10 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { Dialog, DialogHeader } from './Dialog.jsx'
 import { pendingShown, PENDING_TEXT } from '../lib/membership.js'
 import { useOnline } from '../hooks/useOnline.js'
+import { AccountIcon } from './icons.jsx'
+import '../styles/account.css'
+import { DELETE_TEXT, deleteAccount, appleCode } from '../lib/accountDelete.js'
 
 // "Inloggen met Google" volgens Googles richtlijnen voor de knop (donker thema): hun eigen
 // G in kleur, Roboto Medium, bijna zwart met een grijze rand. Kleuren en letter liggen vast.
@@ -23,36 +26,260 @@ export function GoogleButton({ onClick, wide = false }) {
   )
 }
 
-// Account in Instellingen: inloggen, wie je bent en synchroniseren.
-const SYNC = { idle: 'Gesynchroniseerd', pending: 'Wacht op verbinding', syncing: 'Synchroniseren…', ok: 'Gesynchroniseerd', error: 'Synchroniseren lukte niet; straks opnieuw' }
+// De profielfoto uit user_metadata (avatar_url van Supabase, of picture van Google), alleen https.
+export function avatarUrl(user) {
+  const raw = user?.user_metadata?.avatar_url || user?.user_metadata?.picture
+  if (typeof raw !== 'string') return null
+  try {
+    const u = new URL(raw.trim())
+    return u.protocol === 'https:' ? u.href : null
+  } catch {
+    return null
+  }
+}
+export const accountName = (user) => (user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || '').trim()
 
-export function AccountSettings({ account, syncStatus }) {
+// Rond: je profielfoto (Google), anders een monogram met de eerste letter van je naam of e-mail in de
+// stijl van .mark (zoals een bron), of het silhouet als je niet bent ingelogd. De foto zonder Referer;
+// de browser cachet hem. Gelijk aan AccountBadge in de app (AccountView.swift).
+export function Avatar({ user, size = 48 }) {
+  const [failed, setFailed] = useState(false)
+  const name = accountName(user)
+  const photo = failed ? null : avatarUrl(user)
+  if (!user) {
+    return (
+      <span className="acard__av" aria-hidden="true">
+        <AccountIcon />
+      </span>
+    )
+  }
+  return (
+    <span className="mark acard__mark" data-letter={(name || '?').charAt(0).toUpperCase()} style={{ width: size, height: size, fontSize: size * 0.5 }} role="img" aria-label={name || 'Je account'}>
+      {photo ? <img className="is-loaded" src={photo} alt="" width={size} height={size} referrerPolicy="no-referrer" decoding="async" onError={() => setFailed(true)} /> : null}
+    </span>
+  )
+}
+
+// Een melding met een zichtbare Annuleer en precies wat er verandert (zoals de .alert van de app).
+// `actions`: { label, kind: 'cancel' | 'danger' | 'plain', onClick }, in de volgorde van de app.
+export function ConfirmDialog({ open, title, message, actions, onClose, busy = false }) {
+  const id = useId()
+  return (
+    <Dialog open={open} onClose={onClose} className="sheet--confirm" labelledBy={id}>
+      <h2 id={id} className="head-lg confirm__title">
+        {title}
+      </h2>
+      <p className="confirm__text">{message}</p>
+      <div className="confirm__actions">
+        {actions.map((a) => (
+          <button key={a.label} type="button" className={`btn${a.kind === 'cancel' ? ' btn--quiet' : a.kind === 'danger' ? ' btn--accent' : ''}`} onClick={a.onClick} disabled={busy} aria-busy={busy && a.kind === 'danger' ? 'true' : undefined}>
+            {a.label}
+          </button>
+        ))}
+      </div>
+    </Dialog>
+  )
+}
+
+// Account in Instellingen: inloggen, wie je bent en synchroniseren. Bovenaan Instellingen als
+// accountkaart met de samenvatting van je Hoot (`summary`, Instellingen A met de samenvatting uit B).
+// Met `manage` (Instellingen) ook Nu synchroniseren en Account verwijderen, zoals de accountpagina van de app.
+// Status zoals de app: "Ingelogd" tot de eerste keer synchroniseren gelukt is, daarna "Gesynchroniseerd".
+const SYNC = { pending: 'Wacht op verbinding', syncing: 'Synchroniseren…', error: 'Synchroniseren lukte niet; straks opnieuw' }
+const syncLine = (syncStatus, pulled) => SYNC[syncStatus] || (pulled ? 'Gesynchroniseerd' : 'Ingelogd')
+
+export function AccountSettings({ account, syncStatus, summary = null, manage = false }) {
   const { status, user, signIn, signOut } = account
   const pending = pendingShown(account, useOnline())
+  // 'delete': de vraag; 'apple': intrekken bij Apple lukte niet, niets gewist.
+  const [ask, setAsk] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const [note, setNote] = useState(null)
+
+  const remove = async (skipApple = false) => {
+    setBusy(true)
+    setNote(null)
+    const res = await deleteAccount({ client: account.client, skipApple, reauth: account.reauth || appleCode })
+    if (res.ok) {
+      // Netjes uitgelogd: eerst lokaal (de gebruiker bestaat op de server niet meer), dan zoals
+      // Uitloggen, dat ook de gegevens van dit account van het toestel haalt.
+      try {
+        await account.client?.auth.signOut({ scope: 'local' })
+      } catch {
+        /* de sessie is al weg */
+      }
+      try {
+        await signOut()
+      } catch {
+        /* idem */
+      }
+      setNote(res.note || null)
+    } else if (res.appleFailed) {
+      setAsk('apple')
+      setBusy(false)
+      return
+    } else setNote(res.message)
+    setAsk(null)
+    setBusy(false)
+  }
+  const keep = () => {
+    setAsk(null)
+    setNote(DELETE_TEXT.stays)
+  }
+
+  const dialogs = (
+    <>
+      <ConfirmDialog
+        open={ask === 'delete'}
+        title={DELETE_TEXT.title}
+        message={DELETE_TEXT.message}
+        busy={busy}
+        onClose={() => setAsk((a) => (a === 'delete' ? null : a))}
+        actions={[
+          { label: DELETE_TEXT.cancel, kind: 'cancel', onClick: () => setAsk(null) },
+          { label: DELETE_TEXT.confirm, kind: 'danger', onClick: () => remove(false) },
+        ]}
+      />
+      <ConfirmDialog
+        open={ask === 'apple'}
+        title={DELETE_TEXT.appleTitle}
+        message={DELETE_TEXT.appleMessageWeb}
+        busy={busy}
+        onClose={() => setAsk((a) => (a === 'apple' ? null : a))}
+        actions={[
+          { label: DELETE_TEXT.cancel, kind: 'cancel', onClick: keep },
+          { label: DELETE_TEXT.appleSkip, kind: 'danger', onClick: () => remove(true) },
+        ]}
+      />
+    </>
+  )
   if (status === 'loading') return <p className="hint">Even geduld…</p>
+  // Instellingen D › Account: de kaart, Synchroniseren, Uitloggen, en als laatste, apart en rood,
+  // Account verwijderen met een bevestiging. Gelijk aan AccountView in de app.
+  if (manage && status === 'out')
+    return (
+      <>
+        <div className="rows dset__card">
+          <div className="setrow">
+            <Avatar user={null} />
+            <span className="setrow__text dset__grow">
+              <span className="acard__name">Inloggen</span>
+              <span className="setrow__hint">Hoot op al je toestellen.</span>
+            </span>
+          </div>
+        </div>
+        <div className="dset__signin">
+          <GoogleButton onClick={signIn} wide />
+        </div>
+        <p className="hint setfoot">Lezen kan zonder account.</p>
+        {note ? (
+          <p className="acard__msg" role="status">
+            {note}
+          </p>
+        ) : null}
+      </>
+    )
+  if (manage) {
+    const waitingD = account.status === 'in' && !account.profile
+    return (
+      <>
+        <div className="rows dset__card">
+          <div className="setrow">
+            <Avatar user={user} size={56} />
+            <span className="setrow__text dset__grow">
+              <span className="acard__name">{accountName(user) || user?.email || 'Je account'}</span>
+              {user?.email && accountName(user) !== user.email ? <span className="setrow__hint">{user.email}</span> : null}
+              {summary ? <span className="setrow__hint acard__sum">{summary}</span> : null}
+            </span>
+          </div>
+        </div>
+        {pending ? <RetryRow account={account} /> : null}
+        {!waitingD ? (
+          <>
+            <div className="rows dset__group">
+              <div className="setrow">
+                <span className="setrow__label">Synchroniseren</span>
+                <span className="setrow__value">{pending ? PENDING_TEXT : syncLine(syncStatus, account.pulled)}</span>
+              </div>
+              <button type="button" className="setrow setrow--action" onClick={() => account.syncNow?.()} disabled={syncStatus === 'syncing'}>Nu synchroniseren</button>
+            </div>
+            <p className="hint setfoot">Weergave en lezen blijven per toestel.</p>
+          </>
+        ) : null}
+        <div className="rows dset__group">
+          <button type="button" className="setrow setrow--action" onClick={signOut}>Uitloggen</button>
+        </div>
+        <div className="rows dset__group">
+          <button type="button" className="setrow setrow--action setrow--danger" onClick={() => setAsk('delete')} disabled={busy}>Account verwijderen</button>
+        </div>
+        {note ? (
+          <p className="acard__msg" role="status">
+            {note}
+          </p>
+        ) : null}
+        {dialogs}
+      </>
+    )
+  }
   if (status === 'out')
     return (
-      <div className="setrow setrow--stack">
-        <div className="setrow__text">
-          <span className="setrow__label">Inloggen</span>
-          <span className="setrow__hint">Op al je toestellen</span>
+      <div className="acard">
+        <div className="acard__row">
+          <span className="acard__av" aria-hidden="true">
+            <AccountIcon />
+          </span>
+          <div className="setrow__text">
+            <span className="acard__name">Inloggen</span>
+            <span className="setrow__hint">Bewaar je Hoot op al je toestellen</span>
+            {summary ? <span className="setrow__hint acard__sum">{summary}</span> : null}
+          </div>
         </div>
         <GoogleButton onClick={signIn} />
+        <p className="sheet__note acard__note">Lezen kan zonder account.</p>
+        {note ? (
+          <p className="acard__msg" role="status">
+            {note}
+          </p>
+        ) : null}
       </div>
     )
   const email = user?.email || 'je account'
+  const waiting = account.status === 'in' && !account.profile
   return (
-    <div className="rows">
-      <div className="setrow">
+    <div className="acard">
+      <div className="acard__row">
+        <Avatar user={user} size={44} />
         <div className="setrow__text">
-          <span className="setrow__label">{email}</span>
-          <span className="setrow__hint">{pending ? PENDING_TEXT : account.status === 'in' && !account.profile ? SYNC.pending : SYNC[syncStatus] || SYNC.ok}</span>
+          <span className="acard__name">{email}</span>
+          {summary ? <span className="setrow__hint acard__sum">{summary}</span> : null}
+          <span className="setrow__hint">{pending ? PENDING_TEXT : waiting ? SYNC.pending : syncLine(syncStatus, account.pulled)}</span>
         </div>
         <button type="button" className="btn btn--quiet" onClick={signOut}>
           Uitloggen
         </button>
       </div>
       {pending ? <RetryRow account={account} /> : null}
+      {manage ? (
+        <div className="acard__manage">
+          {!waiting ? (
+            <>
+              <button type="button" className="btn btn--quiet" onClick={() => account.syncNow?.()} disabled={syncStatus === 'syncing'}>
+                Nu synchroniseren
+              </button>
+              <p className="sheet__note acard__note">Weergave en lezen blijven per toestel.</p>
+            </>
+          ) : null}
+          <button type="button" className="btn btn--quiet" onClick={() => setAsk('delete')} disabled={busy}>
+            Account verwijderen
+          </button>
+        </div>
+      ) : null}
+      {note ? (
+        <p className="acard__msg" role="status">
+          {note}
+        </p>
+      ) : null}
+      {dialogs}
     </div>
   )
 }

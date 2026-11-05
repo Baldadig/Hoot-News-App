@@ -12,31 +12,8 @@ struct WaitingMark: View {
                 GlyphShape(glyphs: Brand.mark, part: .dot).fill(Theme.accent)
                     .phaseAnimator(still ? [1.0] : [1.0, 1.06, 0.92]) { view, scale in view.scaleEffect(scale, anchor: .bottomTrailing) } animation: { _ in .easeInOut(duration: 2.75) }
             }.frame(width: size * Brand.mark.size.width / Brand.mark.size.height, height: size).accessibilityHidden(true)
-            if text { Text(label).font(.subheadline).foregroundStyle(Theme.ink3) }
+            if text { Text(label).font(.ui(.subheadline)).foregroundStyle(Theme.ink3) }
         }.accessibilityElement(children: .ignore).accessibilityLabel(label)
-    }
-}
-
-// Goedgekeurde refreshlader: de h blijft staan, alleen de punt maakt een kleine rustige sprong.
-// Geen zichtbare laadzin, wel een passende naam voor VoiceOver. De gereserveerde strook voorkomt overlap.
-struct RefreshLoadingMark: View {
-    @Environment(\.accessibilityReduceMotion) private var still
-    var size: CGFloat = 28
-    var reduceMotion: Bool? = nil
-    var body: some View {
-        ZStack {
-            GlyphShape(glyphs: Brand.mark).fill(Theme.ink3)
-            GlyphShape(glyphs: Brand.mark, part: .dot).fill(Theme.accent)
-                .phaseAnimator((reduceMotion ?? still) ? [0] : [0, 1, 2]) { dot, phase in
-                    dot.offset(y: phase == 1 ? -2 : 0)
-                        .scaleEffect(phase == 1 ? 0.96 : phase == 2 ? 1.04 : 1, anchor: .bottom)
-                } animation: { phase in
-                    .easeInOut(duration: phase == 1 ? 0.675 : phase == 2 ? 0.375 : 0.45)
-                }
-        }
-        .frame(width: size * Brand.mark.size.width / Brand.mark.size.height, height: size)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Bezig met verversen")
     }
 }
 
@@ -85,47 +62,49 @@ struct RefreshPull {
     mutating func finish() { busy = false }
 }
 
-// Eén indicator, één plek. De trekstrook boven de titel is ook de laadstrook: de h. blijft staan,
-// de punt zakt tijdens het trekken op zijn plek en maakt daarna (laden) zijn rustige sprong.
-// De scroll zelf houdt de strook open (contentMargins), dus er verschuift niets bij loslaten of klaar.
+// Eén indicator, één plek: de horizon (Horizon v2, PullHorizon.swift). De trekstrook boven de titel is
+// ook de laadstrook. De scroll zelf houdt de strook open (contentMargins), dus er verschuift niets bij
+// loslaten of klaar. Dichtgaan loopt per frame op de klok (Horizon.shut): een contentMargins-wissel
+// animeert SwiftUI niet, de inhoud sprong in build 45 in één frame 56 pt omhoog.
 enum RefreshStrip {
-    static let loading: CGFloat = 56
+    static let loading: CGFloat = Horizon.strip
+    // Op de bewegingsschaal (140 · 200 · 400): lijn en boog vervagen in dur-1 (vanaf 440 ms in de
+    // ondergang), de strook gaat open (ease-glide) en dicht (ease-iris, Horizon.shut) in dur-3.
+    static let fadeOut: Double = 0.14
+    static let close: Double = 0.4
+    static var glide: Animation { .timingCurve(0.2, 0.8, 0.2, 1, duration: close) }
+    // Hoe ver de strook nog open is (1 → 0), `shutT0` het begin van het dichtgaan (ms; nil: open).
+    // Verminder beweging: na de vervaging meteen dicht, zonder glijden.
+    static func open(shutT0: Double?, now: Double, reduce: Bool) -> CGFloat {
+        guard let shutT0 else { return 1 }
+        return reduce ? 0 : CGFloat(Horizon.shut(now - shutT0))
+    }
     // Hoogte van de lege strook boven de inhoud: tijdens laden de vaste ruimte plus een eventuele extra trek.
     static func gap(amount: CGFloat, busy: Bool) -> CGFloat {
         let pulled = amount.isFinite ? max(0, amount) : 0
         return busy ? loading + pulled : pulled
     }
-    // Dezelfde h. in dezelfde maat voor trekken en laden; de punt komt bij de drempel op zijn eindplek.
-    static func dotTravel(amount: CGFloat) -> CGFloat {
-        -10 * (1 - min(1, max(0, amount) / RefreshPull.threshold))
-    }
 }
 
-struct PullRefreshMark: View {
+// De strook met het teken, tussen de bovenrand van de scroll en de inhoud. Trekken: de zichtbare
+// afstand stuurt de tekening rechtstreeks (geen tijdlijn tussen vinger en teken). Daarna: `mark`.
+struct PullHorizonStrip: View {
     let amount: CGFloat
     var busy = false
+    var mark = HorizonState()
     var reduceMotion = false
-    private let height: CGFloat = 28
+    var armed = false
+    var armedSince: Double? = nil
+    var height: CGFloat? = nil // tijdens dichtglijden
+    var frozen: Double? = nil
     var body: some View {
-        let distance = RefreshStrip.gap(amount: amount, busy: busy)
-        ZStack {
-            if busy {
-                RefreshLoadingMark(size: height, reduceMotion: reduceMotion)
-            } else {
-                GlyphShape(glyphs: Brand.mark).fill(Theme.ink3)
-                GlyphShape(glyphs: Brand.mark, part: .dot).fill(Theme.accent)
-                    .offset(y: reduceMotion ? 0 : RefreshStrip.dotTravel(amount: amount))
-            }
-        }
-        .frame(width: height * Brand.mark.size.width / Brand.mark.size.height, height: height)
-        .opacity(busy ? 1 : min(1, max(0, (distance - 12) / 24)))
-        .frame(maxWidth: .infinity)
-        .frame(height: distance)
-        .clipped()
-        .allowsHitTesting(false)
-        // Geen tijdlijn tussen vinger en teken: alleen verschijnen en verdwijnen krijgen een zachte fade.
-        .transaction { $0.animation = nil }
-        .accessibilityHidden(!busy)
+        let distance = height ?? RefreshStrip.gap(amount: amount, busy: busy)
+        let state = busy ? mark : HorizonState(phase: .pull, pull: Double(amount), reduce: reduceMotion)
+        HorizonPullMark(state: state, armed: armed, armedSince: armedSince, frozen: frozen)
+            .frame(maxWidth: .infinity)
+            .frame(height: max(0, distance))
+            .clipped()
+            .allowsHitTesting(false)
     }
 }
 
@@ -133,30 +112,61 @@ private struct HootRefresh: ViewModifier {
     @Environment(\.accessibilityReduceMotion) private var still
     let action: @MainActor () async -> Void
     var indicator = true
+    var failed: (@MainActor () -> Bool)? = nil
+    var label = "Editie"
     @State private var pull = RefreshPull()
-    @State private var closing = false
+    @State private var mark = HorizonState()
+    @State private var armedSince: Double? = nil
+    @State private var shutT0: Double? = nil // begin van het dichtgaan (ms), zolang de strook dichtgaat
+    @State private var failCount = 0
+    private func announce(_ text: String) { if indicator { AccessibilityNotification.Announcement(text).post() } }
+    private func wait(until ms: Double) async {
+        let d = ms - Horizon.now()
+        if d > 0 { try? await Task.sleep(for: .milliseconds(Int(d.rounded(.up)))) }
+    }
     private func refresh() {
         guard withAnimation(settle, { pull.begin() }) else { return }
-        if indicator { AccessibilityNotification.Announcement("Bezig met verversen").post() }
+        mark = HorizonState(phase: .load, reduce: still, loadT0: Horizon.now())
+        announce("Bezig met verversen")
         Task {
             await action()
             if DebugLaunch.refreshDelay > 0 { try? await Task.sleep(for: .seconds(DebugLaunch.refreshDelay)) }
-            // Eerst vervaagt de h. (die staat dan nog in de strook), daarna klapt de strook dicht:
-            // het teken ligt nooit over de inhoud.
-            if still { pull.finish(); return }
-            withAnimation(.easeOut(duration: 0.15)) { closing = true }
-            try? await Task.sleep(for: .milliseconds(150))
-            withAnimation(settle) { pull.finish() }
-            try? await Task.sleep(for: .milliseconds(350))
-            closing = false
+            guard indicator else { pull.finish(); return }
+            // Het antwoord wacht zolang je opnieuw trekt; daarna loopt de dag af: doorlopen, ondergang, dicht.
+            while pull.dragging { try? await Task.sleep(for: .milliseconds(50)) }
+            let ok = !(failed?() ?? false)
+            mark = Horizon.answer(mark, now: Horizon.now(), ok: ok)
+            if ok { announce("\(label) ververst") } else { failCount += 1; announce("Verversen lukte niet") }
+            if mark.phase == .go {
+                await wait(until: Horizon.setAt(mark))
+                mark.setT0 = Horizon.setAt(mark); mark.phase = .set
+            }
+            await wait(until: Horizon.closeAt(mark))
+            // Eerst is de zon onder (of vervaagd), dan gaat de strook dicht: dezelfde 400 ms als openen,
+            // uit stilstand en zacht aan (Horizon.shut), en de inhoud gaat per frame mee omhoog.
+            let t0 = Horizon.closeAt(mark)
+            shutT0 = t0
+            if !still { await wait(until: t0 + Horizon.Ms.close) }
+            pull.finish()
+            shutT0 = nil
+            mark = HorizonState()
         }
     }
-    // Strook en teken openen en sluiten in één rustige beweging; bij Verminder beweging direct.
-    private var settle: Animation? { still ? nil : .easeOut(duration: 0.3) }
-    private var reserved: CGFloat { indicator && pull.busy ? RefreshStrip.loading : 0 }  // blijft open tot het teken weg is
+    // De strook opent in één rustige beweging; bij Verminder beweging direct.
+    private var settle: Animation? { still ? nil : RefreshStrip.glide }
     func body(content: Content) -> some View {
-        content
-            // De strook wordt door de scroll zelf opengehouden en klapt rustig dicht; bij Verminder beweging direct.
+        // De klok loopt alleen tijdens het dichtgaan (400 ms); anders staat hij stil.
+        TimelineView(.animation(minimumInterval: nil, paused: shutT0 == nil)) { tl in
+            let open = RefreshStrip.open(shutT0: shutT0, now: Horizon.now(tl.date), reduce: still)
+            strip(content, open: open)
+        }
+    }
+    private func strip(_ content: Content, open: CGFloat) -> some View {
+        // Blijft open tot het teken weg is; daarna gaan strook en inhoud samen dicht (zie Horizon.shut).
+        let reserved = indicator && pull.busy ? RefreshStrip.loading * open : 0
+        let closing = shutT0 == nil ? nil : RefreshStrip.gap(amount: pull.amount, busy: true) * open
+        return content
+            // De strook wordt door de scroll zelf opengehouden; zijn marge gaat per frame mee dicht.
             .contentMargins(.top, reserved, for: .scrollContent)
             .onScrollGeometryChange(for: CGFloat.self) { max(0, -$0.contentOffset.y - $0.contentInsets.top) } action: { _, value in
                 pull.move(to: value)
@@ -164,23 +174,34 @@ private struct HootRefresh: ViewModifier {
             .onScrollPhaseChange { old, new in
                 if pull.phase(from: old, to: new) { refresh() }
             }
+            .onChange(of: pull.armed) { _, _ in armedSince = Horizon.now() }
             .overlay(alignment: .top) {
-                if indicator && !closing && (pull.busy || pull.amount > 12) {
-                    PullRefreshMark(amount: pull.amount, busy: pull.busy, reduceMotion: still)
-                        .transition(.opacity)
+                if indicator && (pull.busy || pull.amount >= 1 || closing != nil) {
+                    PullHorizonStrip(amount: pull.amount, busy: pull.busy || closing != nil, mark: mark, reduceMotion: still,
+                                     armed: pull.armed, armedSince: armedSince, height: closing)
+                        // Geen tijdlijn tussen vinger en teken: de hoogte komt van de scroll of van de klok.
+                        .transaction { $0.animation = nil }
                 }
             }
+            // Eén zachte tik op de drempel (alleen van onder naar boven), een zachtere bij een fout.
+            .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.6), trigger: pull.armed) { old, new in !old && new }
+            .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.4), trigger: failCount)
             .accessibilityAction(named: "Verversen") { refresh() }
     }
 }
 extension View {
     // `indicator: false` voor een scherm dat zelf al een wachtteken toont (leeg, eerste keer laden).
-    func hootRefresh(indicator: Bool = true, _ action: @escaping @MainActor () async -> Void) -> some View {
-        modifier(HootRefresh(action: action, indicator: indicator))
+    // `failed`: na het laden, is het verversen mislukt? Dan gaat de zon terug onder en staat de zin 2 s.
+    // `label`: wat er ververst is, voor VoiceOver ("Editie ververst").
+    func hootRefresh(indicator: Bool = true, label: String = "Editie", failed: (@MainActor () -> Bool)? = nil,
+                     _ action: @escaping @MainActor () async -> Void) -> some View {
+        modifier(HootRefresh(action: action, indicator: indicator, failed: failed, label: label))
     }
 }
 
-// De lege bladzijde: dezelfde paden en het rode detail als de SVG's op het web.
+// De lege bladzijde: dezelfde composities als de SVG's op het web (icons.jsx), uit de beeldtaal van
+// Brand Guide v2.2 (06b), op een raster van 96. Zon op de horizon (01) overal, behalve Zoeken: daar
+// het raster met één punt (04). Eén rode punt per tekening; nooit in de leeslaag.
 enum EmptyPageKind { case saved, search, bluesky, stream, edition
     init(symbol: String) {
         if symbol.contains("bookmark") { self = .saved }
@@ -189,32 +210,31 @@ enum EmptyPageKind { case saved, search, bluesky, stream, edition
         else if symbol.contains("wave") { self = .stream }
         else { self = .edition }
     }
+    enum Composition { case horizon, raster }
+    var composition: Composition { self == .search ? .raster : .horizon }
 }
+enum EmptyPageLayer { case line, thin, dots, dot }
 private struct EmptyPageShape: Shape {
     let kind: EmptyPageKind
-    var accent = false
+    let layer: EmptyPageLayer
     func path(in rect: CGRect) -> Path {
         var p = Path()
-        func line(_ points: [CGPoint]) { guard let first = points.first else { return }; p.move(to: first); for point in points.dropFirst() { p.addLine(to: point) } }
-        if !accent {
-            p.addRoundedRect(in: CGRect(x: 22, y: 14, width: 52, height: 68), cornerSize: CGSize(width: 2, height: 2))
-            line([.init(x: 30,y: 30),.init(x: 46,y: 30)]); line([.init(x: 30,y: 38),.init(x: 52,y: 38)])
-            if kind == .saved || kind == .edition { for (y, length) in [(46.0,18.0),(54.0,22.0),(62.0,14.0)] { line([.init(x: 30,y: y),.init(x: 30 + length,y: y)]) } }
-        } else {
-            switch kind {
-            case .saved:
-                line([.init(x: 58,y: 10),.init(x: 58,y: 34),.init(x: 62,y: 29),.init(x: 66,y: 34),.init(x: 66,y: 10)])
-            case .search:
-                p.addEllipse(in: CGRect(x: 44,y: 48,width: 20,height: 20)); line([.init(x: 61,y: 65),.init(x: 69,y: 73)])
-            case .bluesky:
-                p.addEllipse(in: CGRect(x: 43.5,y: 55.5,width: 9,height: 9))
-                p.addArc(center: .init(x: 48,y: 60), radius: 11.5, startAngle: .degrees(0), endAngle: .degrees(310), clockwise: false)
-                line([.init(x: 52.5,y: 56),.init(x: 52.5,y: 64),.init(x: 59.5,y: 64),.init(x: 59.5,y: 60)])
-            case .stream:
-                for y in [50.0,60.0,70.0] { p.move(to: .init(x: 30,y: y)); p.addCurve(to: .init(x: 66,y: y), control1: .init(x: 42,y: y-8), control2: .init(x: 54,y: y+8)) }
-            case .edition:
-                line([.init(x: 58,y: 14),.init(x: 58,y: 24),.init(x: 74,y: 24)])
-            }
+        func line(_ a: CGPoint, _ b: CGPoint) { p.move(to: a); p.addLine(to: b) }
+        switch (kind.composition, layer) {
+        case (.horizon, .line):
+            p.addArc(center: .init(x: 48, y: 64), radius: 24, startAngle: .degrees(180), endAngle: .degrees(0), clockwise: false)
+            line(.init(x: 8, y: 64), .init(x: 80, y: 64))
+        case (.horizon, .thin):
+            line(.init(x: 20, y: 76.5), .init(x: 64, y: 76.5)); line(.init(x: 20, y: 84.5), .init(x: 44, y: 84.5))
+        case (.horizon, .dot):
+            p.addEllipse(in: CGRect(x: 82, y: 59, width: 8, height: 8))
+        case (.raster, .dots):
+            for y in stride(from: 16.0, through: 80, by: 16) { for x in stride(from: 16.0, through: 80, by: 16) where !(x == 64 && y == 64) {
+                p.addEllipse(in: CGRect(x: x - 1.5, y: y - 1.5, width: 3, height: 3))
+            } }
+        case (.raster, .dot):
+            p.addEllipse(in: CGRect(x: 60, y: 60, width: 8, height: 8))
+        default: break
         }
         return p.applying(CGAffineTransform(scaleX: rect.width / 96, y: rect.height / 96))
     }
@@ -222,13 +242,18 @@ private struct EmptyPageShape: Shape {
 struct EmptyPageArt: View {
     let kind: EmptyPageKind
     @Environment(\.accessibilityReduceMotion) private var still
+    @Environment(\.nachtActief) private var nacht
     @State private var drawn: CGFloat = 0
     @State private var detail = false
+    // --art-thin: dunne regels en rasterpunten in inkt; in Nacht ink3, niets fel.
+    private var thin: Color { nacht ? Theme.ink3 : Theme.ink }
     var body: some View {
         ZStack {
-            EmptyPageShape(kind: kind).trim(from: 0, to: still ? 1 : drawn).stroke(Theme.edge, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
-            EmptyPageShape(kind: kind, accent: true).stroke(Theme.accent, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round)).opacity(still || detail ? 1 : 0)
-        }.frame(width: 96, height: 96).accessibilityHidden(true)
+            EmptyPageShape(kind: kind, layer: .line).trim(from: 0, to: still ? 1 : drawn).stroke(Theme.ink, lineWidth: 2)
+            EmptyPageShape(kind: kind, layer: .thin).trim(from: 0, to: still ? 1 : drawn).stroke(thin, lineWidth: 1)
+            EmptyPageShape(kind: kind, layer: .dots).fill(thin)
+            EmptyPageShape(kind: kind, layer: .dot).fill(Theme.accent).opacity(still || detail ? 1 : 0)
+        }.frame(width: Layout.emptyIcon, height: Layout.emptyIcon).accessibilityHidden(true)
             .task {
                 guard !still else { drawn = 1; detail = true; return }
                 withAnimation(.timingCurve(0.2,0.8,0.2,1,duration: 0.4)) { drawn = 1 }

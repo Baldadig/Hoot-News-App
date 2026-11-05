@@ -1,21 +1,23 @@
 import SwiftUI
 
-// Het welkom, zoals op de website (src/views/Welcome.jsx) en in het onboarding-plan: eerst vegen, dan
-// één keer kiezen. Een rode intro met de zon in papier, dan de iris naar papier met drie pagina's
-// (Editie, Stroom, Selectie, elk met een eigen zon), en pas op de laatste de knoppen. Daarna je
-// interesses, Wat precies? op een eigen pagina (over te slaan), een compact raster van echte
-// bronlogo’s (aan/uit, Meer bronnen om te bladeren), daarna een aparte Je Selectie-pagina, en
-// tot slot Een seintje?. Niets in het welkom scrolt: elke pagina past op één scherm, ook op de kleinste
-// iPhone en bij grote tekst. Past iets niet, dan verdelen Wat precies?, Je bronnen en Je Selectie zich
-// over meer pagina's (de maten volgen de tekstgrootte; Je bronnen heeft Naar Selectie op elke pagina en Meer bronnen
-// om door te bladeren). Alleen bij de toegankelijkheidsgroottes (AX1+) staat alles op één pagina die scrolt.
-// "Liever meteen lezen" begint zonder vragen met gratis Nederlandse bronnen en zet geen vak.
-// Het merk loopt erdoorheen: het opstartscherm landt op "hoot." linksboven op de rode intro (het rood
-// blijft), en bij het eerste papier sluit het rood zich als een iris tot de punt van "hoot." op papier.
-// Ook vanuit Instellingen (`reopen`: alles begint bij wat je nu hebt, sluiten slaat niets op) en na
-// even rondkijken (`start: .interesses`, in een blad met Annuleer).
+// Het welkom (1.1.0), gelijk aan de website (src/views/Welcome.jsx). Vier schermen:
+//   1. de rode intro: de zon komt op achter de horizon, "Begin". Inloggen klein rechtsboven.
+//   2. Zo werkt Hoot: Editie, Stroom en Selectie als gelijken op één scherm, elk met zijn eigen zon
+//      (OnboardingArt: de zon achter de horizon, rustig; bij Verminder beweging stil). Kies je
+//      interesses, of Liever meteen lezen (de gratis startset, zonder sport).
+//   3. Wat interesseert je?: de hoofdrubrieken (je Stroom-tabs) en, uitklapbaar, je Selectie.
+//   4. Volg je bronnen, zoals accounts volgen: niets staat vooraf aan. Bovenaan de Basis (Nederlands
+//      nieuws, het gratis begin voorop), dan per gekozen interesse een blok met een gratis aanrader;
+//      de rest ingeklapt; zoeken vindt alles. Een voorbeeld-Editie met echte koppen groeit mee
+//      (breed rechts, smal in een uitklapbalk boven de knop).
+// Eerst de interesses, dan de bronnen: zo staan de vak- en nichebronnen bij wat je koos. "Later
+// kiezen" kan altijd. Het seintje komt pas na de eerste Editie (EditionView, AlertOffer), niet hier.
+// Het merk loopt erdoorheen: het opstartscherm landt op "hoot." linksboven op de rode intro, en bij
+// het eerste papier sluit het rood zich als een iris tot de punt van "hoot." op papier.
+// Opnieuw kiezen (Instellingen, `reopen`) en na even rondkijken (een blad met `onCancel`): geen intro
+// en geen uitleg; je begint bij je interesses met wat nu aan staat, en Sluiten slaat niets op.
 struct WelcomeView: View {
-    enum Step: String { case intro, uitleg, interesses, precies, hoot, bronnen, selectie, seintje }
+    enum Step: String { case intro, uitleg, interesses, bronnen }
 
     var reopen = false
     var start: Step = .intro
@@ -23,35 +25,29 @@ struct WelcomeView: View {
     var onDone: () -> Void
 
     @Environment(HootStore.self) private var store
-    @Environment(EditionAlerts.self) private var alerts
     @Environment(\.brandHandoff) private var brand // van het opstartscherm (HootApp)
     @Environment(\.accessibilityReduceMotion) private var still
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.nachtActief) private var nacht
     @ScaledMetric(relativeTo: .largeTitle) private var hero: CGFloat = 38
+    @ScaledMetric(relativeTo: .body) private var trioArt: CGFloat = 72
 
     @State private var step: Step
-    @State private var page = 0 // de uitleg: 0 Editie, 1 Stroom, 2 Selectie (de rode intro is pagina 1 van 4)
-    @State private var subpage = 0 // de subpagina van Wat precies?, Je bronnen en Je Selectie
-    @State private var sourceQuery = ""
-    @State private var sourceFilter = "Ontdekken"
-    @State private var offered: [String] = [] // Je bronnen: het voorstel eerst, dan wat verder past; de volgorde ligt vast
+    @State private var query = ""
+    @State private var showFollowed = false // de pil Gevolgd (anders Aanbevolen)
+    @State private var more = false // Meer bronnen uitgeklapt
+    @State private var peekOpen = false
+    @State private var selOpen = false
+    @State private var chosen: [String]? // je bronnen; pas ingevuld als ze er zijn
+    @State private var original: [String] = [] // wat er aan stond (opnieuw kiezen)
     @State private var interests: [String] = []
-    @State private var picked: [String] = [] // Wat precies?: wat je aantikte; niets = alles binnen die interesse
-    @State private var chosen: [String]? // bronnen: het voorstel, pas ingevuld als je bij die pagina komt en ze er zijn
-    @State private var sourceReturnStep: Step = .hoot
-    @State private var sourceReturnPage = 0
+    @State private var picked: [String] = [] // je fijne onderwerpen van vroeger (blijven als je de interesse houdt)
     @State private var vak: [String] = [] // de eerste keer leeg: een nieuwe lezer kiest zijn vak zelf, of later
     @State private var prepared = false
-    @State private var asksAlert: Bool? // vast bij binnenkomst: dan verspringt er niets
-    @State private var asking = false
-    @State private var alertShown = false
     @State private var login = false
     @State private var width: CGFloat = 0
-    @State private var roomH: CGFloat = 0 // de ruimte voor de pagina zelf (zonder knoppen)
-    @State private var headH: CGFloat = 0 // kop en uitleg van de pagina
-    @State private var contentH: CGFloat = 0
     @State private var fade = 1.0 // wisselen tussen papieren pagina's
-    @State private var turning = false // midden in zo'n wissel: een tweede tik telt niet (anders sla je een pagina over)
+    @State private var turning = false // midden in zo'n wissel: een tweede tik telt niet
     @State private var introSince: Date? // sinds wanneer de zon op de rode intro opkomt
     @AccessibilityFocusState private var headFocus: Bool
 
@@ -63,33 +59,23 @@ struct WelcomeView: View {
     @State private var dotGone = false // de papieren punt op het rood is opgegaan in het rood
 
     init(reopen: Bool = false, start: Step = .intro, onCancel: (() -> Void)? = nil, onDone: @escaping () -> Void) {
-        var first = start
-        var firstPage = 0
+        var first = reopen ? .interesses : start
         #if DEBUG
-        // `-HootWelcomeStep uitleg2|interesses|precies|hoot|bronnen|selectie|seintje`
-        if first == .intro, let name = DebugLaunch.welcomeStep {
-            switch name {
-            case "uitleg", "uitleg1": first = .uitleg
-            case "uitleg2": first = .uitleg; firstPage = 1
-            case "uitleg3": first = .uitleg; firstPage = 2
-            default: if let s = Step(rawValue: name) { first = s }
-            }
-        }
+        // `-HootWelcomeStep uitleg|bronnen|interesses`
+        if first == .intro, let name = DebugLaunch.welcomeStep, let s = Step(rawValue: name) { first = s }
         #endif
         self.reopen = reopen
         self.start = first
         self.onCancel = onCancel
         self.onDone = onDone
         _step = State(initialValue: first)
-        _page = State(initialValue: firstPage)
         _red = State(initialValue: first == .intro)
     }
 
-    // Na even rondkijken, in een blad: zonder intro, en Annuleer op de eerste pagina.
-    private var inSheet: Bool { onCancel != nil && !reopen }
-    private var asks: Bool { asksAlert ?? (start == .seintje || (alerts.permission == .notDetermined && !store.notify)) }
-    private var topics: [String] { Rubriek.resolve(interests, picked: picked) }
+    // Opnieuw kiezen of na even rondkijken: je begint bij wat je nu hebt.
+    private var again: Bool { reopen || onCancel != nil }
     private var slow: Double { DebugLaunch.slow } // `-HootSlowSplash 6`: ook de iris in slow motion
+    private var wide: Bool { width >= 834 } // het voorbeeld naast de lijst (iPad), zoals het web
     private static let paperWhite = SplashView.paperWhite // op merkrood is alles papier (ook in donker)
 
     var body: some View {
@@ -112,22 +98,15 @@ struct WelcomeView: View {
         .interactiveDismissDisabled(onCancel == nil)
         .debugAppearance()
         .onAppear(perform: prepare)
-        .task {
-            await alerts.refresh()
-            if asksAlert == nil { asksAlert = start == .seintje || (alerts.permission == .notDetermined && !store.notify) }
-        }
         .task { await store.loadDigest() } // welke onderwerpen de Selectie heeft
         .onChange(of: store.newsSources.count) { fill() }
         .onChange(of: step) {
-            fill()
-            offerSources()
             // De kop van de nieuwe pagina voorlezen (VoiceOver), zoals de focus op de kop op het web.
             Task {
                 try? await Task.sleep(for: .milliseconds(400))
                 headFocus = true
             }
         }
-        .onChange(of: subCount) { if subpage >= subCount { subpage = max(0, subCount - 1) } }
         .onChange(of: brand?.landed ?? true) { startSun() }
     }
 
@@ -136,10 +115,11 @@ struct WelcomeView: View {
     private func prepare() {
         guard !prepared else { return }
         prepared = true
-        if reopen {
+        if again {
             interests = store.interests
             picked = Rubriek.picked(from: store.topics, interests: store.interests)
             vak = store.digestFields
+            selOpen = !vak.isEmpty
         }
         #if DEBUG
         if let list = DebugLaunch.interests { interests = list } // `-HootInterests politiek,tech,cultuur`
@@ -154,78 +134,47 @@ struct WelcomeView: View {
         introSince = .now
     }
 
-    // Het voorstel voor je bronnen, zodra ze er zijn: opnieuw kiezen begint bij wat je volgt, de eerste
-    // keer bij wat bij je interesses past (alleen gratis, Nederlands eerst).
+    // Je bronnen, zodra ze er zijn: opnieuw kiezen begint bij wat je volgt, de eerste keer bij niets.
     private func fill() {
-        guard !store.newsSources.isEmpty, [.hoot, .bronnen, .selectie, .seintje].contains(step), chosen == nil else { return }
-        chosen = reopen ? store.followed.map(\.id) : store.suggested(interests: interests)
-        offerSources()
-    }
-
-    // Je bronnen: wat nu aan staat eerst, dan wat verder bij je interesses past. Eén keer, zodat een bron die je
-    // uitzet op zijn plek blijft staan.
-    private func offerSources() {
-        guard offered.isEmpty, let chosen, !store.newsSources.isEmpty, [.hoot, .bronnen].contains(step) else { return }
-        var ids = chosen
-        let extra = (HootStore.always + store.alsoSuggested(interests: interests)).sorted { (store.source($0)?.paid == true ? 1 : 0) < (store.source($1)?.paid == true ? 1 : 0) }
-        for id in extra + store.newsSources.map(\.id) where !ids.contains(id) && store.source(id) != nil { ids.append(id) }
-        offered = ids
+        guard !store.newsSources.isEmpty, chosen == nil else { return }
+        original = again ? store.followed.map(\.id) : []
+        chosen = original
     }
 
     private func toggled(_ list: [String], _ id: String) -> [String] { list.contains(id) ? list.filter { $0 != id } : list + [id] }
+    private var mine: [String] { chosen ?? [] }
 
-    // Klaar met kiezen: je interesses, onderwerpen, bronnen en vak worden je instellingen.
-    private func apply() {
-        store.applyWelcome(interests: interests, topics: topics, sources: chosen ?? store.suggested(interests: interests), shown: store.newsSources, vak: vak)
+    // Klaar: je interesses, onderwerpen, bronnen en vak worden je instellingen.
+    private func finish(interests ids: [String], vak fields: [String]) {
+        store.applyWelcome(interests: ids, topics: Rubriek.resolve(ids, picked: picked), sources: mine, shown: store.newsSources, vak: fields)
+        onDone()
     }
 
-    private func primary() {
-        switch step {
-        case .intro: enterPaper(0)
-        case .uitleg: go(.interesses)
-        case .interesses:
-            // Opnieuw kiezen: wat je volgt (en wat je hier al aan- of uitzette). Eerste keer: opnieuw
-            // voorstellen, want je interesses kunnen veranderd zijn.
-            if !reopen { chosen = nil }
-            offered = []
-            subpage = 0
-            go(.precies)
-        case .precies:
-            if subpage + 1 < subCount { turn { subpage += 1 } } else { subpage = 0; go(.hoot) }
-        case .bronnen: sourceReturnStep = step; sourceReturnPage = subpage; subpage = 0; go(.selectie)
-        case .selectie:
-            if subpage + 1 < subCount { turn { subpage += 1 } } else { complete() }
-        case .hoot: sourceReturnStep = step; sourceReturnPage = subpage; subpage = 0; go(.selectie)
-        case .seintje:
-            asking = true
-            Task {
-                if await alerts.ask() {
-                    store.notifySlots = EditionAlerts.slots.map(\.id)
-                    store.notify = true
-                }
-                onDone()
-            }
-        }
+    // "Liever meteen lezen": zonder vragen een goed begin met gratis Nederlandse bronnen, geen sport en geen vak.
+    private func quickStart() {
+        store.quickStart()
+        onDone()
     }
 
-    private func complete() {
-        apply()
-        if asks { subpage = 0; go(.seintje) } else { onDone() }
+    // Later kiezen bij de interesses: zoals het was (de eerste keer dus leeg), door naar de bronnen.
+    private func laterInterests() {
+        interests = again ? store.interests : []
+        vak = again ? store.digestFields : []
+        go(.bronnen)
+    }
+
+    // Later kiezen bij de bronnen: zoals het was, en de eerste keer zonder iets gevolgd de startset.
+    private func laterSources() {
+        if mine.isEmpty { chosen = again ? original : FollowList.startIds(store.newsSources) }
+        finish(interests: interests, vak: vak)
     }
 
     private func back() {
         switch step {
-        case .interesses: page = 2; go(.uitleg)
-        case .precies:
-            if subpage > 0 { turn { subpage -= 1 } } else { go(.interesses) }
-        case .bronnen:
-            if subpage > 0 { turn { subpage -= 1 } } else { subpage = 0; go(.hoot) }
-        case .selectie:
-            if subpage > 0 { turn { subpage -= 1 } } else { subpage = sourceReturnPage; go(sourceReturnStep) }
-        case .hoot:
-            if subpage > 0 { turn { subpage -= 1 } } else { subpage = max(0, subCountOf(.precies) - 1); go(.precies) }
-        case .seintje: subpage = 0; go(.selectie)
-        case .intro, .uitleg: break
+        case .uitleg: go(.intro)
+        case .interesses: if again { onCancel?() } else { go(.uitleg) }
+        case .bronnen: go(.interesses)
+        case .intro: break
         }
     }
 
@@ -235,7 +184,11 @@ struct WelcomeView: View {
         if step == .intro { leaveIntro(to: next); return }
         if next == .intro { backToIntro(); return }
         // Tussen papieren pagina's: even uit en weer in (0,2 s).
-        turn { step = next }
+        turn {
+            step = next
+            query = ""
+            peekOpen = false
+        }
     }
 
     private func turn(_ change: @escaping () -> Void) {
@@ -248,12 +201,6 @@ struct WelcomeView: View {
             withAnimation(.easeIn(duration: 0.12)) { fade = 1 }
             turning = false
         }
-    }
-
-    // Van de rode intro naar uitleg-pagina `pg` (de iris).
-    private func enterPaper(_ pg: Int) {
-        page = pg
-        leaveIntro(to: .uitleg)
     }
 
     // De iris: dezelfde curve en duur als bij het opstarten. Het rood krimpt tot de punt van "hoot."
@@ -323,29 +270,26 @@ struct WelcomeView: View {
     }
 
     // De schijf van de iris, in schermcoördinaten: schermvullend, of zo groot als de punt op papier.
+    // Als op het web (irisKeyframes) en bij het opstarten (SplashView.iris): het middelpunt staat vast op
+    // de punt en alleen de straal beweegt (IrisCircle). De schijf schuift dus nooit naar de punt toe.
     private func disc(_ color: Color) -> some View {
         GeometryReader { geo in
             let frame = geo.frame(in: .global)
-            let full = hypot(geo.size.width, geo.size.height) * 1.1
-            let target = closed ? iris.dot : nil
-            Circle()
-                .fill(color)
-                .frame(width: target?.width ?? full, height: target?.height ?? full)
-                .position(target.map { CGPoint(x: $0.midX - frame.minX, y: $0.midY - frame.minY) } ?? CGPoint(x: geo.size.width / 2, y: geo.size.height / 2))
+            let shape = Self.irisShape(size: geo.size, dot: iris.dot, origin: frame.origin, closed: closed)
+            IrisCircle(center: shape.center, radius: shape.radius).fill(color)
         }
         .ignoresSafeArea()
     }
 
-    // ---- De rode intro en de uitleg ----
+    // Middelpunt en straal van de iris (lokale coördinaten). Met een punt ligt het middelpunt er vanaf
+    // het eerste beeld op en is open de straal de diagonaal van het scherm, dicht de straal van de punt.
+    static func irisShape(size: CGSize, dot: CGRect?, origin: CGPoint, closed: Bool) -> (center: CGPoint, radius: CGFloat) {
+        SplashView.iris(size: size, target: dot?.offsetBy(dx: -origin.x, dy: -origin.y), closed: closed)
+    }
 
-    private static let pages: [(art: OnboardingArt.Kind, head: String, text: String)] = [
-        (.editie, "Je Editie", "Drie keer per dag hooguit tien verhalen.\nDan ben je bij."),
-        (.stroom, "De Stroom", "Alles van je bronnen, nieuwste eerst."),
-        (.selectie, "Je Selectie", "Eén keer per week bijgepraat\nover wat jou bezighoudt."),
-    ]
+    // ---- 1. De rode intro ----
 
-    // De rode intro, pagina 1 van 4: merkrood, alles erop papier (ook in donker). Het rood is de schijf
-    // van de iris. Geen knoppen: veeg naar links (of tik op Veeg verder).
+    // Merkrood, alles erop papier (ook in donker). Het rood is de schijf van de iris. Eén knop: Begin.
     private var introStep: some View {
         VStack(spacing: 0) {
             topRow(onRed: true)
@@ -353,21 +297,25 @@ struct WelcomeView: View {
             VStack(spacing: Space.s4) {
                 OnboardingArt(kind: .intro, onRed: true, active: step == .intro, since: introSince)
                 Text("Minder scrollen.\nMeer lezen.")
-                    .font(.system(size: min(hero, 56), weight: .heavy, design: .serif))
+                    .font(.kop(size: min(hero, 56)))
                     .tracking(-0.8)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
                     .accessibilityFocused($headFocus)
                 Text("Het nieuws van jouw bronnen,\nrustig op een rij.")
-                    .font(.body)
+                    .zin() // zoals .ob__lede op het web
                     .opacity(0.85)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.horizontal, Space.s5)
             Spacer(minLength: 0)
-            pagerFoot(current: 0, onRed: true)
+            ctaButton("Begin", onRed: true, off: false) { go(.uitleg) }
+                .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                .padding(.horizontal, Space.s4)
+                .padding(.top, Space.s3)
+                .padding(.bottom, Space.s3 + Space.tap + Space.s1) // de knop op dezelfde hoogte als op papier
         }
         .column()
         .foregroundStyle(Self.paperWhite)
@@ -375,126 +323,33 @@ struct WelcomeView: View {
         .background { disc(tinted ? Theme.accent : Theme.brandRed) }
         .mask { disc(.black) }
         .compositingGroup() // vervagen als één vlak (Verminder beweging), zonder rood door de letters
-        .contentShape(Rectangle())
-        .gesture(DragGesture(minimumDistance: 24).onEnded { v in
-            if v.translation.width < -60, abs(v.translation.height) < 80 { enterPaper(0) }
-        })
         .allowsHitTesting(step == .intro)
     }
 
-    // De drie papieren pagina's van de uitleg: veeg door, links terug naar het rood.
-    private var pager: some View {
-        TabView(selection: $page) {
-            ForEach(0 ..< 3, id: \.self) { i in
-                VStack(spacing: Space.s4) {
-                    Spacer(minLength: 0)
-                    OnboardingArt(kind: Self.pages[i].art, active: step == .uitleg && page == i)
-                    Text(Self.pages[i].head)
-                        .font(.system(size: min(hero, 56), weight: .heavy, design: .serif))
-                        .tracking(-0.8)
-                        .multilineTextAlignment(.center)
-                        .accessibilityAddTraits(.isHeader)
-                    Text(Self.pages[i].text)
-                        .font(.body)
-                        .foregroundStyle(Theme.ink2)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Spacer(minLength: 0)
-                }
-                .padding(.horizontal, Space.s5)
-                .tag(i)
-            }
-        }
-        .tabViewStyle(.page(indexDisplayMode: .never))
-        .simultaneousGesture(DragGesture(minimumDistance: 30).onEnded { v in
-            if page == 0, v.translation.width > 70, abs(v.translation.height) < 80 { go(.intro) }
-        })
-    }
-
-    // Onder de uitleg: de bolletjes en een vast vak. Veeg verder, en op de laatste pagina de twee
-    // knoppen (dekking, 0,2 s): het vak heeft een vaste hoogte, dus niets verspringt.
-    private func pagerFoot(current: Int, onRed: Bool) -> some View {
-        let last = !onRed && current == 2
-        let ink = onRed ? Self.paperWhite : Theme.ink
-        return VStack(spacing: Space.s2) {
-            HStack(spacing: 0) {
-                ForEach(0 ..< 4, id: \.self) { i in
-                    let here = i == (onRed ? 0 : min(current, 2) + 1)
-                    Button { dotTapped(i) } label: {
-                        Circle().fill(ink.opacity(here ? 1 : 0.28)).frame(width: 8, height: 8)
-                            .frame(width: 28, height: Space.tap)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Pagina \(i + 1) van 4")
-                    .accessibilityAddTraits(here ? .isSelected : [])
-                }
-            }
-            ZStack(alignment: .top) {
-                Button {
-                    if onRed { enterPaper(0) } else { turn { page = min(page + 1, 2) } }
-                } label: {
-                    HStack(spacing: Space.s1) {
-                        Text("Veeg verder").underline()
-                        Image(systemName: "arrow.right").font(.footnote.weight(.semibold)).accessibilityHidden(true)
-                    }
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(ink.opacity(0.85))
-                    .frame(minHeight: Space.tap)
-                    .padding(.horizontal, Space.s4)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .opacity(last ? 0 : 1)
-                .allowsHitTesting(!last)
-                .accessibilityHidden(last)
-                VStack(spacing: Space.s1) {
-                    ctaButton("Stel je Hoot samen", onRed: false, off: false, action: { go(.interesses) })
-                    linkButton(reopen ? "Sluiten zonder opslaan" : "Liever meteen lezen", action: reopen ? { onCancel?() } : quickStart)
-                }
-                .opacity(last ? 1 : 0)
-                .allowsHitTesting(last)
-                .accessibilityHidden(!last)
-            }
-            .frame(height: Self.footH)
-            .animation(still ? nil : .easeOut(duration: 0.2), value: last)
-        }
-        .padding(.horizontal, Space.s4)
-        .padding(.bottom, Space.s2)
-        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
-    }
-
-    private func dotTapped(_ i: Int) {
-        if step == .intro {
-            if i > 0 { enterPaper(i - 1) }
-        } else if i == 0 {
-            go(.intro)
-        } else {
-            turn { page = i - 1 }
-        }
-    }
-
-    // "Liever meteen lezen": zonder vragen een goed begin met gratis Nederlandse bronnen, en geen vak.
-    private func quickStart() {
-        store.quickStart()
-        onDone()
-    }
-
-    // De knoppen onderaan: een vaste hoogte (knop 52, lucht, link 44), zodat niets verspringt.
-    private static let footH: CGFloat = 52 + Space.s1 + Space.tap
-
-    // ---- De papieren pagina's ----
+    // ---- De papieren schermen ----
 
     private var paperStep: some View {
         VStack(spacing: 0) {
             topRow(onRed: false)
-            if step == .uitleg {
-                pager.opacity(fade)
-                pagerFoot(current: page, onRed: false).opacity(fade)
-            } else {
-                choicePage
-                choiceFoot.opacity(fade)
+            ScrollView {
+                Group {
+                    switch step {
+                    case .uitleg: uitleg
+                    case .bronnen: bronnen
+                    default: interessesView
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, Space.s4)
+                .padding(.top, Space.s2)
+                .padding(.bottom, Space.s6)
+                .opacity(fade)
             }
+            .id(step) // elk scherm bovenaan
+            .scrollDismissesKeyboard(.interactively)
+            if step == .bronnen && !wide && !typeSize.isAccessibilitySize { peekBar } // bij heel grote tekst onder de lijst
+            Rectangle().fill(Theme.rule).frame(height: 1)
+            foot.opacity(fade)
         }
         .column()
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
@@ -502,80 +357,30 @@ struct WelcomeView: View {
         .background(Theme.paper.ignoresSafeArea())
     }
 
-    // Een keuzepagina: kop, uitleg en de keuzes. Past op één scherm; bij de toegankelijkheidsgroottes
-    // (AX1 en groter) is er geen andere optie: dan staat alles op één pagina die scrolt.
-    private var choicePage: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                VStack(alignment: .leading, spacing: Space.s2) {
-                    // De kop heeft de hele breedte (het vraagteken blijft bij zijn woord); de teller staat eronder.
-                    Text(title.replacingOccurrences(of: "?", with: "\u{2060}?"))
-                        .font(.system(.title, design: .serif, weight: .heavy))
-                        .tracking(-0.4)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityLabel(title)
-                        .accessibilityAddTraits(.isHeader)
-                        .accessibilityFocused($headFocus)
-                    if subCount > 1 && step != .hoot && step != .bronnen {
-                        Text("\(subpage + 1) van \(subCount)")
-                            .font(.subheadline)
-                            .foregroundStyle(Theme.ink3)
-                            .monospacedDigit()
-                    }
-                    if step == .hoot || step == .bronnen {
-                        Text(sub).font(.subheadline).foregroundStyle(Theme.ink2)
-                            .fixedSize(horizontal: false, vertical: true)
-                        HStack {
-                            Text("\(chosen?.count ?? 0) gekozen")
-                            Spacer()
-                            if subCount > 1 { Text("\(subpage + 1) van \(subCount)").monospacedDigit() }
-                        }
-                        .font(.caption).foregroundStyle(Theme.ink3)
-                        .accessibilityElement(children: .combine)
-                    } else {
-                        Text(sub)
-                            .font(.body)
-                            .foregroundStyle(Theme.ink2)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { headH = $0 }
-                choices.padding(.top, step == .hoot || step == .bronnen ? Space.s3 : Space.s5)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, Space.s4)
-            .padding(.top, Space.s2)
-            .padding(.bottom, Space.s4)
-            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentH = $0 }
-            .opacity(fade)
-        }
-        .id("\(step.rawValue)-\(subpage)") // elke pagina bovenaan
-        .scrollBounceBehavior(.basedOnSize)
-        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { roomH = $0 }
-    }
-
-    // Bovenaan: het woordmerk links, op elke pagina op dezelfde plek; rechts terug (of inloggen).
+    // Bovenaan: het woordmerk links, op elke pagina op dezelfde plek; rechts Inloggen, Terug of Sluiten.
     private func topRow(onRed: Bool) -> some View {
         HStack {
             WelcomeMark(onRed: onRed, handoff: onRed ? brand : iris, hideDot: onRed && dotGone, breathes: onRed && !still && brand?.landed != false)
             Spacer(minLength: Space.s4)
-            if onRed || step == .uitleg {
+            if onRed {
                 Button("Inloggen") { login = true }
-                    .font(.body.weight(.semibold))
+                    .font(.ui(.body, .semibold))
                     .accessibilityHint("Lezen kan ook zonder account.")
                     .frame(minHeight: Space.tap)
                     .contentShape(Rectangle())
-            } else if inSheet && step == start {
-                Button("Annuleer") { onCancel?() }
-                    .font(.body)
+            } else if again && step == .interesses {
+                Button("Sluiten") { onCancel?() }
+                    .font(.ui(.body, .semibold))
+                    .accessibilityHint("Er verandert niets.")
                     .frame(minHeight: Space.tap)
+                    .contentShape(Rectangle())
             } else {
                 Button(action: back) {
                     HStack(spacing: Space.s1) {
                         Image(systemName: "chevron.left").font(.body.weight(.semibold))
                         Text("Terug")
                     }
-                    .font(.body)
+                    .font(.ui(.body))
                     .frame(minHeight: Space.tap)
                     .contentShape(Rectangle())
                 }
@@ -586,239 +391,432 @@ struct WelcomeView: View {
         .frame(height: Space.tap)
         .dynamicTypeSize(...DynamicTypeSize.accessibility1) // de bovenregel blijft één regel
         .padding(.horizontal, Space.s4)
-        .padding(.top, inSheet ? Space.s2 : 0) // in een blad: even lucht onder de rand
+        .padding(.top, onCancel != nil ? Space.s2 : 0) // in een blad: even lucht onder de rand
     }
 
-    private var title: String {
-        switch step {
-        case .interesses: "Wat interesseert je?"
-        case .precies: "Wat precies?"
-        case .hoot: "Je bronnen"
-        case .bronnen: "Je bronnen"
-        case .selectie: "Je Selectie"
-        case .seintje: "Een seintje?"
-        case .intro, .uitleg: ""
-        }
-    }
-
-    private var sub: String {
-        switch step {
-        case .interesses: "Kies er een paar. Daarmee maken we je Editie en kiezen we je bronnen."
-        case .precies: "Kies wat je boeit. Niets kiezen is alles."
-        case .hoot: "Volg je vaste bronnen. Ontdek ook iets nieuws."
-        case .bronnen: "Volg je vaste bronnen. Ontdek ook iets nieuws."
-        case .selectie: "Elke maandag de drie beste stukken van de week, per onderwerp. Kies wat bij je werk of hobby past."
-        case .seintje: "Een stil seintje als je Editie klaarligt."
-        case .intro, .uitleg: ""
-        }
-    }
-
-    @ViewBuilder private var choices: some View {
-        switch step {
-        case .interesses: tiles
-        case .precies: precies
-        case .hoot: sourcePreview
-        case .bronnen: sourcePreview
-        case .selectie: selectie
-        case .seintje: preview
-        case .intro, .uitleg: EmptyView()
-        }
-    }
-
-    // Interesses als tegels, liggend en 64 hoog (acht tegels in vier rijen): twee naast elkaar, vier op
-    // een brede pagina (Layout.wide), één vanaf xxLarge (dan krijgt de naam ruimte en blijven icoon, vinkje
-    // en naam onder elkaar). Vier kolommen op een iPad staand (≈ 650) gaven tegels van 152 met ±85 voor
-    // de naam: "Binnenla…" (O4). Twee kolommen, zoals op de iPhone, en de naam loopt heel door.
-    private var tiles: some View {
-        let count = typeSize >= .xxLarge ? 1 : width >= Layout.wide ? 4 : 2
-        return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: Space.s3, alignment: .top), count: count), spacing: Space.s3) {
-            ForEach(Rubriek.alle) { r in
-                ChoiceTile(label: r.label, icon: r.icon, on: interests.contains(r.id), compact: true) { interests = toggled(interests, r.id) }
+    // De kop en de zin eronder, op elk papieren scherm gelijk. Bij heel grote tekst begrensd (AX2 en
+    // AX1), zodat een lang woord als "interesseert" heel blijft en de inhoud eronder in beeld komt;
+    // `compact` laat de zin dan weg (de bronnen: de lijst moet boven de knoppen te zien zijn).
+    private func heading(_ title: String, _ sub: String, compact: Bool = false) -> some View {
+        VStack(alignment: .leading, spacing: Space.s2) {
+            Kop(title.replacingOccurrences(of: "?", with: "\u{2060}?"), .title) // het vraagteken blijft bij zijn woord; een te lang woord breekt met een streepje
+                .tracking(-0.4)
+                .fixedSize(horizontal: false, vertical: true)
+                .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+                .accessibilityLabel(title)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityFocused($headFocus)
+            if !(compact && typeSize.isAccessibilitySize) {
+                Text(sub)
+                    .zin() // zoals .ob__sub
+                    .foregroundStyle(Theme.ink2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility1)
             }
         }
     }
 
-    // ---- Pagina's zonder scrollen: Wat precies?, Je bronnen, Je Selectie ----
+    // ---- 2. Zo werkt Hoot ----
 
-    // Een groep keuzes (een interesse, een domein) of een stuk ervan als de groep alleen al te hoog is.
-    private struct ChipGroup: Identifiable {
-        let id: String
-        let title: String
-        let icon: String?
-        let chips: [(id: String, label: String)]
-    }
+    private static let trio: [(art: OnboardingArt.Kind, title: String, text: String)] = [
+        (.editie, "Editie", "Drie keer per dag hooguit tien verhalen. Dan ben je bij."),
+        (.stroom, "Stroom", "Alles van je bronnen, nieuwste eerst."),
+        (.selectie, "Selectie", "Eén keer per week het beste over wat jou bezighoudt."),
+    ]
 
-    // Hoeveel ruimte een pagina heeft voor de keuzes zelf (onder kop en uitleg, boven de knoppen).
-    private var room: CGFloat { roomH - headH - Space.s2 - Space.s4 - (step == .hoot || step == .bronnen ? Space.s3 : Space.s5) - Space.s4 }
-    private var metrics: WelcomePages.Metrics { WelcomePages.Metrics(typeSize) }
-    // Bij de toegankelijkheidsgroottes geen pagina's van één onderwerp of één bron: één pagina die scrolt.
-    private var scrolls: Bool { typeSize.isAccessibilitySize }
-
-    // De groepen van deze stap: je gekozen interesses met hun onderwerpen, of de domeinen van de Selectie.
-    private func groups(for step: Step) -> [ChipGroup] {
-        switch step {
-        case .selectie:
-            return DigestFieldsList.domains.enumerated().compactMap { i, d in
-                let chips = d.fields.filter { store.offersField($0.id) }.map { (id: $0.id, label: $0.label) }
-                return chips.isEmpty ? nil : ChipGroup(id: "d\(i)", title: d.label, icon: nil, chips: chips)
-            }
-        default:
-            return Rubriek.alle.filter { interests.contains($0.id) }.map { r in
-                ChipGroup(id: r.id, title: r.label, icon: r.icon, chips: r.topics.map { (id: $0, label: Taste.label($0)) })
+    private var uitleg: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            heading("Zo werkt Hoot", "Drie manieren om bij te blijven. Jij kiest de bronnen.")
+            Rectangle().fill(Theme.ink).frame(height: 2).padding(.top, Space.s5)
+            ForEach(Self.trio, id: \.title) { t in
+                let art = OnboardingArt(kind: t.art, active: step == .uitleg, scale: min(trioArt, 120) / OnboardingArt.size.width)
+                let words = VStack(alignment: .leading, spacing: Space.s1) {
+                    Text(t.title)
+                        .font(.kop(.title2))
+                        .accessibilityAddTraits(.isHeader)
+                    Text(t.text)
+                        .zin() // zoals .ob__ttext
+                        .foregroundStyle(Theme.ink2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Group {
+                    if typeSize.isAccessibilitySize {
+                        VStack(alignment: .leading, spacing: Space.s2) { art; words }
+                    } else {
+                        HStack(alignment: .center, spacing: Space.s4) { art; words }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, Space.s4)
+                .accessibilityElement(children: .combine)
+                Rectangle().fill(Theme.rule).frame(height: 1)
             }
         }
     }
 
-    // Groepen verdeeld over pagina's die op een scherm passen (WelcomePages). Past een groep alleen al niet,
-    // dan wordt hij zelf in stukken gedeeld, elk met de kop erboven.
-    private func chipPages(for step: Step) -> [[ChipGroup]] {
-        let all = groups(for: step)
-        guard roomH > 0, !scrolls else { return [all] }
-        let m = metrics
-        let line = max(120, width - Space.s4 * 2)
-        let maxRows = max(1, Int((room - m.header - WelcomePages.headerGap + WelcomePages.gap) / (m.chip + WelcomePages.gap)))
-        var parts: [ChipGroup] = []
-        for g in all {
-            let widths = g.chips.map { chipWidth($0.label) }
-            let whole = WelcomePages.groupHeight(chips: widths, width: line, metrics: m)
-            if whole <= room {
-                parts.append(g)
-            } else {
-                for (n, idx) in WelcomePages.chunks(chips: widths, width: line, maxRows: maxRows).enumerated() {
-                    parts.append(ChipGroup(id: "\(g.id)-\(n)", title: g.title, icon: g.icon, chips: idx.map { g.chips[$0] }))
+    // ---- 3. Volg je bronnen ----
+
+    private var bronnen: some View {
+        HStack(alignment: .top, spacing: Space.s6) {
+            VStack(alignment: .leading, spacing: 0) {
+                heading("Volg je bronnen", "Kies wie je wilt lezen. Je Editie komt uit wat je volgt.", compact: true)
+                searchField.padding(.top, Space.s5)
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+                Flow {
+                    ChoiceChip(label: "Aanbevolen", on: !showFollowed && query.isEmpty) { showFollowed = false; query = "" }
+                    ChoiceChip(label: mine.isEmpty ? "Gevolgd" : "Gevolgd · \(mine.count)", on: showFollowed && query.isEmpty) { showFollowed = true; query = "" }
+                }
+                .padding(.top, Space.s3)
+                .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+                sourceList
+                if !wide && typeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Rectangle().fill(Theme.ink).frame(height: 2).padding(.bottom, Space.s3)
+                        peek(bare: false)
+                    }
+                    .padding(.top, Space.s6)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            if wide {
+                VStack(alignment: .leading, spacing: 0) {
+                    Rectangle().fill(Theme.ink).frame(height: 2).padding(.bottom, Space.s3)
+                    peek(bare: false)
+                }
+                .frame(width: 256)
+                .padding(.top, Space.s4)
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel("Voorbeeld van je Editie")
+            }
         }
-        let heights = parts.map { WelcomePages.groupHeight(chips: $0.chips.map { chipWidth($0.label) }, width: line, metrics: m) }
-        return WelcomePages.split(heights, room: room, gap: Space.s5).map { $0.map { parts[$0] } }
     }
 
-    private func subCountOf(_ s: Step) -> Int {
-        switch s {
-        case .precies, .selectie: chipPages(for: s).count
-        case .bronnen: 1
-        case .hoot: 1
-        default: 1
+    private var searchField: some View {
+        HStack(spacing: Space.s2) {
+            Image(systemName: "magnifyingglass").foregroundStyle(Theme.ink3).accessibilityHidden(true)
+            TextField("Zoek een bron", text: $query)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .submitLabel(.search)
+                .accessibilityLabel("Zoek een bron")
+            if !query.isEmpty {
+                Button { query = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(Theme.ink3) }
+                    .buttonStyle(.plain)
+                    .frame(minWidth: Space.tap, minHeight: Space.tap)
+                    .accessibilityLabel("Zoekterm wissen")
+            }
         }
+        .font(.ui(.body))
+        .padding(.leading, Space.s4)
+        .padding(.trailing, query.isEmpty ? Space.s4 : 0)
+        .frame(minHeight: Space.tap)
+        .background(Theme.surface, in: Capsule())
+        .overlay(Capsule().strokeBorder(Theme.edge, lineWidth: 1))
     }
-    private var subCount: Int { subCountOf(step) }
 
-    // Hoe breed een onderwerp ongeveer wordt (met de ruimte voor het vinkje, dat erbij komt als hij gekozen is).
-    private func chipWidth(_ text: String) -> CGFloat {
-        let font = UIFont.systemFont(ofSize: metrics.subheadline.pointSize, weight: .semibold)
-        return ceil((text as NSString).size(withAttributes: [.font: font]).width) + Space.s3 * 2 + 18
-    }
-
-    private func chipPage(_ pages: [[ChipGroup]], isOn: @escaping (String) -> Bool, toggle: @escaping (String) -> Void) -> some View {
-        let mine = pages.indices.contains(subpage) ? pages[subpage] : pages.last ?? []
-        return VStack(alignment: .leading, spacing: Space.s5) {
-            ForEach(mine) { g in
-                VStack(alignment: .leading, spacing: Space.s3) {
-                    GroupTitle(text: g.title, icon: g.icon)
-                    Flow {
-                        ForEach(g.chips, id: \.id) { c in
-                            ChoiceChip(label: c.label, on: isOn(c.id), dense: true) { toggle(c.id) }
+    @ViewBuilder private var sourceList: some View {
+        let all = store.newsSources
+        if chosen == nil || all.isEmpty {
+            ProgressView("Bronnen laden…").padding(.top, Space.s5).frame(maxWidth: .infinity)
+        } else if !query.trimmingCharacters(in: .whitespaces).isEmpty {
+            let hits = FollowList.find(all, query)
+            if hits.isEmpty {
+                Text("Niets gevonden voor ‘\(query.trimmingCharacters(in: .whitespaces))’. Probeer een andere naam.")
+                    .zin().foregroundStyle(Theme.ink2).padding(.top, Space.s5)
+            } else {
+                rows(hits).padding(.top, Space.s3)
+            }
+        } else if showFollowed {
+            let list = FollowList.followed(all, mine)
+            if list.isEmpty {
+                Text("Je volgt nog niets. Begin bij de Basis.")
+                    .zin().foregroundStyle(Theme.ink2).padding(.top, Space.s5)
+            } else {
+                rows(list).padding(.top, Space.s3)
+            }
+        } else {
+            let start = FollowList.freeStart(all)
+            let startOn = !start.isEmpty && start.allSatisfy { mine.contains($0.id) }
+            let blocks = FollowList.blocks(all, interests)
+            let rest = FollowList.more(all, interests)
+            let restCount = rest.reduce(0) { $0 + $1.sources.count }
+            let basis = FollowList.basis(all)
+            if !basis.isEmpty {
+                section("Basis") {
+                    if !start.isEmpty {
+                        Button(startOn ? "Alle drie gevolgd" : "Volg alle drie") {
+                            let ids = start.map(\.id)
+                            chosen = startOn ? mine.filter { !ids.contains($0) } : mine + ids.filter { !mine.contains($0) }
+                        }
+                        .buttonStyle(.plain)
+                        .font(typeSize.isAccessibilitySize ? .ui(.caption, .bold) : .ui(.subheadline, .bold)) // bij grote tekst niet groter dan de kop
+                        .underline()
+                        .lineLimit(1)
+                        .fixedSize()
+                        .frame(minHeight: Space.tap)
+                        .accessibilityAddTraits(startOn ? .isSelected : [])
+                    }
+                }
+                rows(basis, picks: Set(start.map(\.id)))
+            }
+            ForEach(blocks, id: \.id) { b in
+                section(b.label) {
+                    Text("\(b.sources.count)").font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink3).monospacedDigit()
+                }
+                rows(b.sources, picks: Set([b.pick].compactMap { $0 }))
+            }
+            if restCount > 0 {
+                if more {
+                    ForEach(rest, id: \.cat) { g in
+                        section(g.label) {
+                            Text("\(g.sources.count)").font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink3).monospacedDigit()
+                        }
+                        rows(g.sources)
+                    }
+                } else {
+                    Button { more = true } label: {
+                        sectionHead("Meer bronnen") {
+                            Text("Toon \(restCount)").font(.ui(.subheadline, .bold)).underline()
                         }
                     }
+                    .buttonStyle(.plain)
+                    .accessibilityValue("Dicht")
                 }
             }
         }
-        .opacity(roomH > 0 ? 1 : 0) // pas tonen als we weten hoeveel er past
     }
 
-    private var precies: some View {
-        chipPage(chipPages(for: .precies), isOn: { picked.contains($0) }) { picked = toggled(picked, $0) }
+    private func section<Trailing: View>(_ title: String, @ViewBuilder trailing: () -> Trailing) -> some View {
+        sectionHead(title, trailing: trailing)
     }
 
-    private var selectie: some View {
-        chipPage(chipPages(for: .selectie), isOn: { vak.contains($0) }) { id in
-            let on = vak.contains(id)
-            vak = DigestFieldsList.fields.map(\.id).filter { $0 == id ? !on : vak.contains($0) }
-        }
-    }
-
-    // Je voorgestelde bronnen zijn de keuze zelf, met herkenbare logo’s.
-    private var sourceColumns: Int { scrolls ? 1 : typeSize >= .xxLarge ? 2 : width < 352 ? 3 : 4 }
-    private var sourceCardHeight: CGFloat { WelcomePages.sourceCardHeight(typeSize) }
-    private var sourcePreviewPages: [[String]] {
-        let ids = offered.filter { store.source($0) != nil }
-        guard roomH > 0, !scrolls else { return [ids] }
-        let perPage = min(16, max(1, Int((room + Space.s2) / (sourceCardHeight + Space.s2))) * sourceColumns)
-        return stride(from: 0, to: max(1, ids.count), by: perPage).map { Array(ids.dropFirst($0).prefix(perPage)) }
-    }
-    private func pickSource(_ id: String) {
-        chosen = toggled(chosen ?? [], id)
-    }
-    private var followSources: [Source] {
-        store.newsSources.filter { source in
-            (source.cat != "sport" || interests.contains("sport")) && (sourceFilter != "Volgend" || chosen?.contains(source.id) == true) && (sourceQuery.isEmpty || (source.name + " " + (source.about ?? "")).localizedCaseInsensitiveContains(sourceQuery))
-        }.sorted { a,b in
-            if sourceFilter == "Ontdekken" {
-                let aa = interests.contains { (a.forInterests ?? []).contains($0) || a.cat == $0 }
-                let bb = interests.contains { (b.forInterests ?? []).contains($0) || b.cat == $0 }
-                if aa != bb { return aa }
+    // Een rubriekkop zoals op het web: kapitalen links, rechts een aantal of een actie, een dikke lijn eronder.
+    private func sectionHead<Trailing: View>(_ title: String, @ViewBuilder trailing: () -> Trailing) -> some View {
+        VStack(spacing: 0) {
+            HStack(alignment: .center, spacing: Space.s3) {
+                GroupTitle(text: title, tone: Theme.ink)
+                Spacer(minLength: Space.s2)
+                trailing()
             }
-            return a.name.localizedStandardCompare(b.name) == .orderedAscending
+            .frame(minHeight: Space.tap)
+            .dynamicTypeSize(...DynamicTypeSize.accessibility1) // de kop en "Volg alle drie" breken niet af
+            Rectangle().fill(Theme.ink).frame(height: 2)
+        }
+        .padding(.top, Space.s5)
+        .contentShape(Rectangle())
+    }
+
+    private func rows(_ list: [Source], picks: Set<String> = []) -> some View {
+        LazyVStack(spacing: 0) {
+            ForEach(list) { s in
+                sourceRow(s, pick: picks.contains(s.id))
+                Rectangle().fill(Theme.rule).frame(height: 1)
+            }
         }
     }
-    @ViewBuilder private var sourcePreview: some View {
-        if chosen == nil { ProgressView("Bronnen laden…") }
-        else {
-            TextField("Zoek op naam of onderwerp", text: $sourceQuery).textFieldStyle(.roundedBorder).accessibilityLabel("Zoek bronnen")
-            Flow {
-                ForEach(["Ontdekken", "Alle bronnen", "Volgend"], id: \.self) { name in
-                    Button(name) { sourceFilter = name; sourceQuery = "" }.frame(minHeight: Space.tap)
-                        .accessibilityAddTraits(sourceFilter == name ? .isSelected : [])
-                }
-            }.padding(.vertical, Space.s2)
-            if followSources.isEmpty { Text("Geen bron gevonden. Kies een andere zoekterm of bekijk Alle bronnen.").foregroundStyle(Theme.ink2) }
-            LazyVStack(spacing: Space.s3) {
-                ForEach(followSources) { source in
-                    HStack(alignment: .top, spacing: Space.s3) {
-                        SourceAvatar(source: source, size: Space.tap)
-                        VStack(alignment: .leading, spacing: Space.s2) {
-                            Text(source.name).font(.headline)
-                            if let about = source.about { Text(about).font(.subheadline).foregroundStyle(Theme.ink2) }
-                            if source.paid == true { Text("Deels achter abonnement").font(.caption).foregroundStyle(Theme.ink3) }
-                            if typeSize >= .xxxLarge { followButton(source) }
-                        }.frame(maxWidth: .infinity, alignment: .leading)
-                        if typeSize < .xxxLarge { followButton(source) }
+
+    // Eén bron: logo 40, naam, omschrijving, gratis (of de gratis aanrader van zijn blok) of
+    // abonnement; rechts Volg of Volgend. Alles in inkt: geen rood in de lijst. Bij grote tekst staat
+    // de knop onder de tekst.
+    private func sourceRow(_ s: Source, pick: Bool = false) -> some View {
+        let stacked = typeSize >= .xxxLarge
+        return HStack(alignment: stacked ? .top : .center, spacing: Space.s4) {
+            SourceAvatar(source: s, size: 40)
+            VStack(alignment: .leading, spacing: Space.s0) {
+                Text(s.name).font(.ui(.headline))
+                if let about = s.about, !typeSize.isAccessibilitySize { Text(about).font(.ui(.subheadline)).foregroundStyle(Theme.ink2).lineLimit(stacked ? 2 : nil).fixedSize(horizontal: false, vertical: true) } // bij grote tekst twee regels: de Volg-knop blijft boven de voet
+                Text((s.paid == true ? "Abonnement" : pick ? "Gratis aanrader" : "Gratis") + (s.lang == "en" ? " · Engels" : ""))
+                    .font(.ui(.caption, .semibold))
+                    .foregroundStyle(Theme.ink3)
+                if stacked { followButton(s).padding(.top, Space.s2) }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            if !stacked { followButton(s) }
+        }
+        .padding(.vertical, Space.s3)
+        .dynamicTypeSize(...DynamicTypeSize.accessibility2) // bij AX5 staat de eerste Volg-knop nog boven de voet
+    }
+
+    // Volg (inkt) of Volgend (stil, met vinkje): één vorm, gelijk aan .ob__follow op het web.
+    private func followButton(_ s: Source) -> some View {
+        let on = mine.contains(s.id)
+        return Button {
+            withAnimation(still ? nil : .easeOut(duration: 0.14)) { chosen = toggled(mine, s.id) }
+        } label: {
+            HStack(spacing: Space.s1) {
+                if on { Image(systemName: "checkmark").font(.caption.weight(.heavy)).accessibilityHidden(true) }
+                Text(on ? "Volgend" : "Volg")
+            }
+            .font(.ui(.subheadline, .heavy))
+            .foregroundStyle(FollowPill.label(on: on, nacht: nacht))
+            .padding(.horizontal, Space.s4)
+            .frame(minWidth: 104, minHeight: Space.tap)
+            .background(FollowPill.fill(on: on, nacht: nacht), in: Capsule())
+            .overlay(Capsule().strokeBorder(FollowPill.edge(on: on, nacht: nacht), lineWidth: 1))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(ChoicePress())
+        .accessibilityLabel("\(s.name) \(on ? "volgend" : "volgen")")
+        .accessibilityAddTraits(on ? .isSelected : [])
+    }
+
+    // Het meegroeiende voorbeeld: de nieuwste kop van elke bron die je volgt (echte koppen).
+    @ViewBuilder private func peek(bare: Bool) -> some View {
+        let lines = FollowList.preview(Array(store.itemsById.values), store.newsSources, mine)
+        VStack(alignment: .leading, spacing: 0) {
+            if !bare {
+                GroupTitle(text: "Voorbeeld")
+                Text("Zo ziet je Editie eruit")
+                    .font(.kop(.headline))
+                    .padding(.top, Space.s1)
+            }
+            if lines.isEmpty {
+                Text("Uit \(FollowList.sourceLine((mine.isEmpty ? FollowList.freeStart(store.newsSources) : FollowList.followed(store.newsSources, mine)).map(\.name))).")
+                    .font(.ui(.footnote)).foregroundStyle(Theme.hint).padding(.top, Space.s2)
+            } else {
+                ForEach(Array(lines.enumerated()), id: \.element.id) { i, l in
+                    HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
+                        Text("\(i + 1)").font(.kop(.body)).foregroundStyle(Theme.ink3).frame(width: 20, alignment: .leading)
+                        VStack(alignment: .leading, spacing: Space.s0) {
+                            Text(l.title).font(.leesVet(.body)).fixedSize(horizontal: false, vertical: true)
+                            Text(l.source).font(.ui(.footnote)).foregroundStyle(Theme.hint)
+                        }
                     }
-                    Divider()
+                    .padding(.vertical, Space.s2)
+                    .accessibilityElement(children: .combine)
+                    if i < lines.count - 1 { Rectangle().fill(Theme.rule).frame(height: 1) }
                 }
+            }
+            if mine.isEmpty {
+                Text("Je volgt nog niets; dit is het gratis begin.").font(.ui(.footnote)).foregroundStyle(Theme.hint).padding(.top, Space.s2)
             }
         }
     }
-    private func followButton(_ source: Source) -> some View {
-        let on = chosen?.contains(source.id) == true
-        return Button(on ? "Volgend" : "Volgen") { pickSource(source.id) }
-            .buttonStyle(.bordered).frame(minHeight: Space.tap)
-            .accessibilityLabel("\(on ? "Volgend" : "Volgen"), \(source.name)")
-            .accessibilityAddTraits(on ? .isSelected : [])
+
+    // Op een smal scherm: het voorbeeld in een uitklapbalk boven de knop.
+    private var peekBar: some View {
+        VStack(spacing: 0) {
+            Rectangle().fill(Theme.rule).frame(height: 1)
+            Button {
+                peekOpen.toggle() // zonder beweging: de lijst erboven krimpt, er schuift niets over elkaar
+            } label: {
+                HStack(spacing: Space.s3) {
+                    VStack(alignment: .leading, spacing: Space.s0) {
+                        Text("Zo ziet je Editie eruit").font(.kop(.body))
+                        Text(mine.isEmpty ? "Gratis begin" : "Uit \(FollowList.sourceLine(FollowList.followed(store.newsSources, mine).map(\.name)))")
+                            .font(.ui(.footnote)).foregroundStyle(Theme.hint).lineLimit(2)
+                    }
+                    Spacer(minLength: Space.s2)
+                    Image(systemName: peekOpen ? "chevron.up" : "chevron.down").font(.footnote.weight(.semibold)).accessibilityHidden(true)
+                }
+                .frame(maxWidth: .infinity, minHeight: Space.tap, alignment: .leading)
+                .padding(.vertical, Space.s2)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityValue(peekOpen ? "Open" : "Dicht")
+            if peekOpen {
+                ScrollView { peek(bare: true).frame(maxWidth: .infinity, alignment: .leading).padding(.bottom, Space.s3) }
+                    .frame(maxHeight: 260)
+                    .fixedSize(horizontal: false, vertical: true) // zo hoog als het voorbeeld, hooguit 260
+            }
+        }
+        .padding(.horizontal, Space.s4)
+        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
     }
 
-    // Het seintje: een nagemaakte melding die zacht binnenvalt, zoals een echte.
-    private var preview: some View {
-        AlertPreview()
-            .opacity(alertShown || still ? 1 : 0)
-            .offset(y: alertShown || still ? 0 : -Space.s5)
-            .frame(maxWidth: .infinity)
-            .padding(.top, Space.s2)
-            .task {
-                guard !still, !alertShown else { return }
-                try? await Task.sleep(for: .seconds(0.35))
-                withAnimation(.easeOut(duration: 0.7)) { alertShown = true }
+    // ---- 4. Wat interesseert je? ----
+
+    private var interessesView: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            heading("Wat interesseert je?", "Dit worden je tabs in de Stroom. Daarna kies je je bronnen.")
+            Flow {
+                ForEach(Rubriek.alle) { r in
+                    ChoiceChip(label: r.label, on: interests.contains(r.id)) { interests = toggled(interests, r.id) }
+                }
             }
+            .padding(.top, Space.s5)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Rubrieken")
+            VStack(spacing: 0) {
+                Rectangle().fill(Theme.rule).frame(height: 1)
+                Button {
+                    selOpen.toggle()
+                } label: {
+                    HStack(spacing: Space.s3) {
+                        VStack(alignment: .leading, spacing: Space.s0) {
+                            Text("Kies onderwerpen voor je Selectie").font(.ui(.body, .semibold)).fixedSize(horizontal: false, vertical: true)
+                            Text(vak.isEmpty ? "Mag ook later" : "\(vak.count) gekozen").font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
+                        }
+                        Spacer(minLength: Space.s2)
+                        Image(systemName: selOpen ? "chevron.up" : "chevron.down").font(.footnote.weight(.semibold)).accessibilityHidden(true)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
+                    .padding(.vertical, Space.s2)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityValue(selOpen ? "Open" : "Dicht")
+                Rectangle().fill(Theme.rule).frame(height: 1)
+            }
+            .padding(.top, Space.s6)
+            if selOpen {
+                Text("Eén keer per week het beste over je werk of hobby.")
+                    .font(.ui(.subheadline)).foregroundStyle(Theme.ink2)
+                    .padding(.top, Space.s4)
+                ForEach(DigestFieldsList.domains, id: \.label) { d in
+                    let fields = d.fields.filter { store.offersField($0.id) }
+                    if !fields.isEmpty {
+                        VStack(alignment: .leading, spacing: Space.s3) {
+                            GroupTitle(text: d.label)
+                            Flow {
+                                ForEach(fields, id: \.id) { f in
+                                    ChoiceChip(label: f.label, on: vak.contains(f.id)) { vak = toggled(vak, f.id) }
+                                }
+                            }
+                        }
+                        .padding(.top, Space.s5)
+                    }
+                }
+            }
+        }
     }
 
     // ---- De knoppen ----
+
+    // Onderaan elk papieren scherm: (bij de bronnen) het aantal, één knop en eronder een stille link.
+    // Altijd in beeld, en dus begrensd: bij de grootste tekst blijven ze op één regel.
+    private var foot: some View {
+        VStack(spacing: Space.s1) {
+            switch step {
+            case .uitleg:
+                ctaButton("Kies je interesses", onRed: false, off: false) { go(.interesses) }
+                linkButton("Liever meteen lezen", action: quickStart).disabled(store.newsSources.isEmpty)
+            case .interesses:
+                ctaButton("Verder", onRed: false, off: false) { go(.bronnen) }
+                linkButton("Later kiezen", action: laterInterests)
+            default:
+                if !typeSize.isAccessibilitySize { // bij heel grote tekst staat het aantal al in "Gevolgd · n"
+                    Text(store.newsSources.isEmpty ? "Bronnen laden…" : FollowList.line(mine.count))
+                        .font(.ui(.footnote)).foregroundStyle(Theme.hint)
+                        .accessibilityAddTraits(.updatesFrequently)
+                }
+                ctaButton("Naar je Editie", onRed: false, off: mine.isEmpty) { finish(interests: interests, vak: vak) }
+                linkButton("Later kiezen", action: laterSources).disabled(store.newsSources.isEmpty)
+            }
+        }
+        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+        .padding(.horizontal, Space.s4)
+        .padding(.top, Space.s3)
+        .padding(.bottom, Space.s3)
+    }
 
     private func ctaButton(_ label: String, onRed: Bool, off: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             ZStack {
                 Capsule().fill(onRed ? Self.paperWhite : Theme.ink)
                 Text(label)
-                    .font(.headline.weight(.heavy))
+                    .font(.ui(.headline, .heavy))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                     .foregroundStyle(onRed ? Theme.brandRed : Theme.paper)
@@ -829,179 +827,142 @@ struct WelcomeView: View {
             .contentShape(Capsule())
         }
         .buttonStyle(ChoicePress())
-        .disabled(off || asking)
+        .disabled(off)
         .opacity(off ? 0.4 : 1)
     }
 
     private func linkButton(_ label: String, action: @escaping () -> Void) -> some View {
         Button(label, action: action)
             .buttonStyle(.plain)
-            .font(.subheadline.weight(.bold))
+            .font(.ui(.subheadline, .bold))
             .lineLimit(1)
             .minimumScaleFactor(0.7)
             .frame(maxWidth: .infinity, minHeight: Space.tap)
             .contentShape(Rectangle())
-            .disabled(asking)
-    }
-
-    // Onder elke keuzepagina één knop en een vast vak voor een stille link (Overslaan, Nu niet): de
-    // knop staat op elke pagina op dezelfde plek. Altijd in beeld, en dus begrensd: bij de grootste
-    // tekst blijven ze op één regel (de letter krimpt iets mee). VoiceOver leest de volle tekst.
-    private var choiceFoot: some View {
-        let cta = cta
-        return VStack(spacing: Space.s1) {
-            ctaButton(cta.label, onRed: false, off: cta.off, action: primary)
-            Group {
-                if let link { linkButton(link.label, action: link.action) } else { Color.clear }
-            }
-            .frame(height: Space.tap)
-            if reopen && (step == .hoot || step == .bronnen) {
-                linkButton("Sluiten zonder opslaan") { onCancel?() }
-            }
-        }
-        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
-        .padding(.horizontal, Space.s4)
-        .padding(.top, Space.s2)
-        .padding(.bottom, Space.s2)
-    }
-
-    private var cta: (label: String, off: Bool) {
-        switch step {
-        case .interesses: (interests.isEmpty ? "Kies minstens één" : "Verder", interests.isEmpty)
-        case .precies: ("Verder", false)
-        case .bronnen: (chosen?.isEmpty != false ? "Kies één bron" : "Naar Selectie", chosen == nil || chosen?.isEmpty == true) // op elke pagina; verder bladeren met Meer bronnen
-        case .selectie: (subpage + 1 < subCount ? "Verder" : (vak.isEmpty ? "Later kiezen" : "Klaar"), false)
-        case .hoot: (chosen?.isEmpty != false ? "Kies één bron" : "Naar Selectie", chosen == nil || chosen?.isEmpty == true)
-        case .seintje: ("Ja, graag", false)
-        case .intro, .uitleg: ("", false)
-        }
-    }
-
-    private var link: (label: String, action: () -> Void)? {
-        switch step {
-        case .precies: ("Overslaan", { picked = []; subpage = 0; go(.hoot) }) // overslaan = alles binnen je interesses
-        case .hoot where subCount > 1, .bronnen where subCount > 1: (subpage + 1 < subCount ? "Meer bronnen" : "Eerste bronnen", { turn { subpage = subpage + 1 < subCount ? subpage + 1 : 0 } })
-        case .selectie where subpage + 1 < subCount: (vak.isEmpty ? "Later kiezen" : "Klaar", complete)
-        case .seintje: ("Nu niet", { onDone() }) // onder het einde van de Editie kan het later nog
-        case .interesses where reopen: ("Sluiten zonder opslaan", { onCancel?() })
-        default: nil
-        }
     }
 }
 
-// Wat precies?, Je bronnen en Je Selectie verdeeld over pagina's die op een scherm passen: nooit scrollen.
-// De onderwerpen van een interesse staan bij elkaar; past een heel groepje niet meer op de pagina, dan
-// begint er een nieuwe, en past een groepje alleen al niet, dan wordt het zelf gedeeld (chunks).
-// De maten volgen de tekstgrootte (Metrics). Zuiver rekenwerk, getoetst in OnboardingTests.
-enum WelcomePages {
-    static let chip: CGFloat = Space.tap // hoogte van één onderwerp bij normale tekst
-    static let gap: CGFloat = Space.s2 // tussen onderwerpen
-    static let header: CGFloat = 20 // de kop van een groep (icoon en naam) bij normale tekst
-    static let headerGap: CGFloat = Space.s3
+// Volg je bronnen, als zuiver rekenwerk (getoetst in OnboardingTests), gelijk aan
+// src/lib/follow-welcome.js: de Basis, de blokken per interesse, Meer bronnen, zoeken, de startset en
+// het voorbeeld.
+enum FollowList {
+    static let freeStart = ["nos", "nu", "rtl"]
+    static let sport = "sport"
+    // Gelijk aan SOURCE_CATS in src/lib/topics.js.
+    static let cats: [(id: String, label: String)] = [
+        ("nl", "Nederland"), ("int", "Internationaal"), ("regio", "Regionaal"), ("vl", "Vlaanderen"), ("economie", "Economie"),
+        ("tech", "Tech"), ("games", "Games"), ("wetenschap", "Wetenschap"), ("sport", "Sport"), ("cultuur", "Cultuur en muziek"),
+    ]
 
-    // De hoogtes bij een tekstgrootte: een onderwerp is minstens 44 hoog en groeit mee met de regel; de kop
-    // van een groep met zijn icoon ook.
-    struct Metrics {
-        var chip = WelcomePages.chip
-        var header = WelcomePages.header
-        var subheadline = UIFont.preferredFont(forTextStyle: .subheadline)
-        var caption = UIFont.preferredFont(forTextStyle: .caption1)
-        var caption2 = UIFont.preferredFont(forTextStyle: .caption2)
+    private static func byName(_ a: Source, _ b: Source) -> Bool { a.name.compare(b.name, locale: Locale(identifier: "nl")) == .orderedAscending }
 
-        init() {}
-        init(_ size: DynamicTypeSize) {
-            let category: UIContentSizeCategory = switch size {
-            case .xSmall: .extraSmall
-            case .small: .small
-            case .medium: .medium
-            case .large: .large
-            case .xLarge: .extraLarge
-            case .xxLarge: .extraExtraLarge
-            case .xxxLarge: .extraExtraExtraLarge
-            case .accessibility1: .accessibilityMedium
-            case .accessibility2: .accessibilityLarge
-            case .accessibility3: .accessibilityExtraLarge
-            case .accessibility4: .accessibilityExtraExtraLarge
-            case .accessibility5: .accessibilityExtraExtraExtraLarge
-            @unknown default: .large
-            }
-            let traits = UITraitCollection(preferredContentSizeCategory: category)
-            subheadline = UIFont.preferredFont(forTextStyle: .subheadline, compatibleWith: traits)
-            caption = UIFont.preferredFont(forTextStyle: .caption1, compatibleWith: traits)
-            caption2 = UIFont.preferredFont(forTextStyle: .caption2, compatibleWith: traits)
-            let body = UIFont.preferredFont(forTextStyle: .body, compatibleWith: traits)
-            chip = max(WelcomePages.chip, ceil(subheadline.lineHeight) + Space.s2 * 2)
-            header = max(WelcomePages.header, ceil(body.lineHeight))
+    // Het gratis begin: de drie die bestaan en gratis zijn, in vaste volgorde.
+    static func freeStart(_ sources: [Source]) -> [Source] {
+        freeStart.compactMap { id in sources.first { $0.id == id && $0.paid != true } }
+    }
+
+    // Later kiezen en Liever meteen lezen: de startset (gratis, Nederlands, geen sport).
+    @MainActor static func startIds(_ sources: [Source]) -> [String] {
+        let free = Set(sources.filter { $0.paid != true }.map(\.id))
+        return HootStore.starter.filter(free.contains)
+    }
+
+    // De Basis: het Nederlandse nieuws in het kort: het gratis begin voorop, dan de kranten als losse
+    // rijen in vaste volgorde (gekozen, niet alfabetisch). De andere Nederlandse titels staan onder Meer bronnen.
+    static let basisCat = "nl"
+    static let basisKranten = ["volkskrant", "nrc", "trouw", "parool", "ad", "telegraaf"]
+    static func basis(_ sources: [Source]) -> [Source] {
+        let start = freeStart(sources)
+        let taken = Set(start.map(\.id))
+        return start + basisKranten.compactMap { id in sources.first { $0.id == id && !taken.contains($0.id) } }
+    }
+
+    // Bij een interesse horen de bronnen uit zijn rubrieken (Wereld krijgt er Internationaal bij), die
+    // de catalogus ervoor aanraadt (`for`) en die van een van zijn onderwerpen (`forTopic`). Niet de Basis.
+    private static let extraCats: [String: Set<String>] = ["wereld": ["int"]]
+    static func fits(_ s: Source, _ r: Rubriek) -> Bool {
+        guard s.cat != basisCat else { return false }
+        let cats = r.cats.union(extraCats[r.id] ?? [])
+        return cats.contains(s.cat ?? "") || (s.forInterests ?? []).contains(r.id) || s.forTopic.map(r.topics.contains) == true
+    }
+
+    // De gratis aanrader: gratis, liefst Nederlands en door de catalogus aangeraden (voor de interesse
+    // zelf telt zwaarder dan voor een onderwerp). Gelijk aan freePick op het web.
+    static func freePick(_ list: [Source], _ interest: String? = nil) -> Source? {
+        func score(_ s: Source) -> Int { (s.lang == "nl" ? 4 : 0) + ((s.forInterests ?? []).contains(interest ?? "") ? 2 : 0) + (s.pick == true ? 1 : 0) }
+        return list.filter { $0.paid != true }.sorted { score($0) != score($1) ? score($0) > score($1) : byName($0, $1) }.first
+    }
+
+    struct Block { let id: String; let label: String; let pick: String?; let sources: [Source] }
+
+    // Per gekozen interesse (vaste volgorde) een blok: de gratis aanrader voorop, dan de rest op naam.
+    // Elke bron staat één keer: in het eerste blok waar hij hoort. Zo heeft elk blok ook één aanrader.
+    static func blocks(_ sources: [Source], _ interests: [String]) -> [Block] {
+        var seen = Set<String>()
+        return Rubriek.alle.filter { interests.contains($0.id) }.compactMap { r in
+            let list = sources.filter { !seen.contains($0.id) && fits($0, r) }.sorted(by: byName)
+            guard !list.isEmpty else { return nil }
+            seen.formUnion(list.map(\.id))
+            let pick = freePick(list, r.id)
+            return Block(id: r.id, label: r.label, pick: pick?.id, sources: pick.map { p in [p] + list.filter { $0.id != p.id } } ?? list)
         }
     }
 
-    static func sourceCardHeight(_ size: DynamicTypeSize) -> CGFloat {
-        let metrics = Metrics(size)
-        return max(96, 32 + ceil(metrics.caption.lineHeight * 2) + ceil(metrics.caption2.lineHeight) + 8 + 12)
+    // Meer bronnen (ingeklapt): wat niet in de Basis of een blok staat, per rubriek (ook de andere
+    // Nederlandse titels); geen sport.
+    static func more(_ sources: [Source], _ interests: [String]) -> [(cat: String, label: String, sources: [Source])] {
+        let shown = Set(basis(sources).map(\.id) + blocks(sources, interests).flatMap { $0.sources.map(\.id) })
+        return groups(sources.filter { !shown.contains($0.id) && $0.cat != sport })
     }
 
-    // Hoeveel regels de onderwerpen vullen als ze met `gap` ertussen op regels van `width` komen.
-    static func rows(chips: [CGFloat], width: CGFloat) -> Int {
-        var rows = 1
-        var x: CGFloat = 0
-        for w in chips {
-            let w = min(w, width)
-            if x > 0, x + w > width {
-                rows += 1
-                x = 0
-            }
-            x += w + gap
+    // Alle bronnen per rubriek, zonder het gratis begin; wat in geen rubriek valt als Overig achteraan.
+    static func groups(_ sources: [Source]) -> [(cat: String, label: String, sources: [Source])] {
+        let rest = sources.filter { !freeStart.contains($0.id) }
+        let known = Set(cats.map(\.id))
+        var out = cats.map { c in (cat: c.id, label: c.label, sources: rest.filter { $0.cat == c.id }.sorted(by: byName)) }
+        out.append((cat: "overig", label: "Overig", sources: rest.filter { !known.contains($0.cat ?? "") }.sorted(by: byName)))
+        return out.filter { !$0.sources.isEmpty }
+    }
+
+    // Zoeken op naam en omschrijving, in alle bronnen (ook sport: zoeken is een keuze).
+    static func find(_ sources: [Source], _ query: String) -> [Source] {
+        let q = query.trimmingCharacters(in: .whitespaces)
+        guard !q.isEmpty else { return [] }
+        return sources.filter { ($0.name + " " + ($0.about ?? "")).localizedCaseInsensitiveContains(q) }.sorted(by: byName)
+    }
+
+    // Wat je volgt, op volgorde van volgen.
+    static func followed(_ sources: [Source], _ ids: [String]) -> [Source] {
+        ids.compactMap { id in sources.first { $0.id == id } }
+    }
+
+    static func line(_ n: Int) -> String { n == 0 ? "Nog niets gevolgd" : "\(n) \(n == 1 ? "bron" : "bronnen") gevolgd" }
+
+    // 'NOS', 'NOS en NU.nl', 'NOS, NU.nl en RTL Nieuws' of 'NOS, NU.nl en 3 meer' (sourceLine op het web).
+    static func sourceLine(_ names: [String]) -> String {
+        switch names.count {
+        case 0: "Geen bronnen"
+        case 1, 2: names.joined(separator: " en ")
+        case 3: "\(names[0]), \(names[1]) en \(names[2])"
+        default: "\(names[0]), \(names[1]) en \(names.count - 2) meer"
         }
-        return chips.isEmpty ? 0 : rows
     }
 
-    static func groupHeight(rows: Int, metrics m: Metrics = Metrics()) -> CGFloat {
-        m.header + headerGap + CGFloat(rows) * m.chip + CGFloat(max(0, rows - 1)) * gap
-    }
+    struct Line: Identifiable, Equatable { let id: String; let title: String; let source: String }
 
-    // Een onderwerp breder dan de regel breekt zijn naam af op een tweede regel: die regel telt mee.
-    static func groupHeight(chips: [CGFloat], width: CGFloat, metrics m: Metrics) -> CGFloat {
-        let wrapped = chips.reduce(0) { $0 + ($1 > width ? Int(ceil($1 / width)) - 1 : 0) }
-        return groupHeight(rows: rows(chips: chips, width: width), metrics: m) + CGFloat(wrapped) * ceil(m.subheadline.lineHeight)
-    }
-
-    // Een groep die alleen al te hoog is, in stukken van hooguit `maxRows` regels (de indices van de onderwerpen).
-    static func chunks(chips: [CGFloat], width: CGFloat, maxRows: Int) -> [[Int]] {
-        var out: [[Int]] = [[]]
-        var rows = 1
-        var x: CGFloat = 0
-        for (i, w) in chips.enumerated() {
-            let w = min(w, width)
-            if x > 0, x + w > width {
-                rows += 1
-                x = 0
-            }
-            if rows > maxRows {
-                out.append([])
-                rows = 1
-                x = 0
-            }
-            out[out.count - 1].append(i)
-            x += w + gap
+    // Het voorbeeld: per gevolgde bron het nieuwste artikel, de nieuwste eerst; nog niets gevolgd: het gratis begin.
+    static func preview(_ items: [Item], _ sources: [Source], _ followed: [String], max: Int = 4) -> [Line] {
+        let ids = Set(followed.isEmpty ? freeStart : followed)
+        var newest: [String: Item] = [:]
+        for it in items where (it.kind ?? "article") == "article" && ids.contains(it.source) && !it.title.isEmpty {
+            if let prev = newest[it.source], (prev.publishedAt ?? "") >= (it.publishedAt ?? "") { continue }
+            newest[it.source] = it
         }
-        return out
-    }
-
-    // Welke groepen (op volgorde) op welke pagina komen; een groep die alleen al te hoog is, staat op
-    // een eigen pagina.
-    static func split(_ heights: [CGFloat], room: CGFloat, gap between: CGFloat) -> [[Int]] {
-        var pages: [[Int]] = []
-        var used: CGFloat = 0
-        for (i, h) in heights.enumerated() {
-            if let last = pages.indices.last, used + between + h <= room {
-                pages[last].append(i)
-                used += between + h
-            } else {
-                pages.append([i])
-                used = h
-            }
-        }
-        return pages.isEmpty ? [[]] : pages
+        let names = Dictionary(sources.map { ($0.id, $0.name) }, uniquingKeysWith: { a, _ in a })
+        return newest.values
+            .sorted { ($0.publishedAt ?? "") > ($1.publishedAt ?? "") }
+            .prefix(max)
+            .map { Line(id: $0.id, title: $0.title, source: names[$0.source] ?? $0.sourceName ?? $0.source) }
     }
 }
 
@@ -1030,87 +991,12 @@ struct WelcomeMark: View {
     }
 }
 
-// Een herkenbare bronkaart: het logo blijft ook uitgeschakeld zichtbaar.
-struct SourceTile: View {
-    let source: Source
-    let on: Bool
-    let height: CGFloat
-    let action: () -> Void
-    @Environment(\.dynamicTypeSize) private var typeSize
-    private var nameHeight: CGFloat { ceil(WelcomePages.Metrics(typeSize).caption.lineHeight * 2) }
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                SourceAvatar(source: source, size: 32)
-                Text(source.name).font(.caption.weight(.semibold))
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2).minimumScaleFactor(0.75)
-                    .frame(height: nameHeight)
-                Text((source.paid == true ? "Abonnement" : "Gratis") + (source.lang == "en" ? " · EN" : ""))
-                    .font(.caption2).foregroundStyle(Theme.ink3)
-                    .lineLimit(1).minimumScaleFactor(0.75)
-            }
-            .padding(.vertical, 6)
-            .padding(.horizontal, 3)
-            .frame(maxWidth: .infinity)
-            .frame(height: height)
-            .foregroundStyle(Theme.ink)
-            .background(on ? Theme.accentSoft : Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md))
-            .overlay(RoundedRectangle(cornerRadius: Radius.md).strokeBorder(on ? Theme.accent : Theme.rule, lineWidth: 1))
-            .overlay(alignment: .topTrailing) {
-                Image(systemName: on ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 16)).foregroundStyle(on ? Theme.accent : Theme.ink3)
-                    .padding(3).accessibilityHidden(true)
-            }
-            .contentShape(RoundedRectangle(cornerRadius: Radius.md))
-        }
-        .buttonStyle(ChoicePress())
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel([source.name, source.paid == true ? "abonnement" : "gratis", source.lang == "en" ? "Engels" : nil].compactMap { $0 }.joined(separator: ", "))
-        .accessibilityAddTraits(on ? [.isButton, .isSelected] : .isButton)
-    }
-}
 
-// Een melding zoals iOS hem toont, met het icoon van Hoot ("h." op papier): wat je straks krijgt.
-// Een plaatje, dus voor VoiceOver verborgen; de tekst erboven zegt het al.
-struct AlertPreview: View {
-    static let body = "Je \(Slots.naam("ochtend")) ligt klaar. Tien verhalen, dan ben je bij."
-    var body: some View {
-        // Letterlijk uit het onboarding-plan (seintjeHTML), gelijk aan het web.
-        HStack(alignment: .center, spacing: Space.s3) {
-            AppMark()
-            VStack(alignment: .leading, spacing: Space.s0) {
-                HStack(alignment: .firstTextBaseline) {
-                    Text("Hoot").font(.subheadline.weight(.semibold)).lineLimit(1)
-                    Spacer(minLength: Space.s2)
-                    Text("nu").font(.footnote).foregroundStyle(Theme.ink3)
-                }
-                Text(Self.body).font(.subheadline).foregroundStyle(Theme.ink2).lineLimit(2) // zoals iOS: liever een tweede regel dan "…"
-            }
-        }
-        .padding(.horizontal, Space.s4)
-        .padding(.vertical, Space.s3)
-        .frame(maxWidth: 360)
-        .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.lg + Space.s2, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: Radius.lg + Space.s2, style: .continuous).strokeBorder(Theme.rule, lineWidth: 1))
-        .shadow(color: .black.opacity(0.06), radius: 16, y: 6)
-        .dynamicTypeSize(...DynamicTypeSize.xLarge) // een plaatje: groeit beperkt mee
-        .accessibilityHidden(true)
-    }
-}
-
-// Het app-icoon in het klein: het teken "h." op papier, met de rode punt. Op de plek en maat van
-// public/brand/hoot-app-icon.svg (vlak 192, hoek 42; de h van x 30,2 en y 40,6, 115 hoog).
-private struct AppMark: View {
-    private static let side: CGFloat = 38
-    private static let k = side / 192
-
-    var body: some View {
-        BrandMark(height: 114.95 * Self.k)
-            .padding(.leading, 30.17 * Self.k)
-            .padding(.top, 40.55 * Self.k)
-            .frame(width: Self.side, height: Self.side, alignment: .topLeading)
-            .background(Theme.paper, in: RoundedRectangle(cornerRadius: 42 * Self.k, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 42 * Self.k, style: .continuous).strokeBorder(Theme.rule, lineWidth: 1))
-    }
+// Kleuren van de Volg-pil. In Nacht is inkt een licht vlak, te fel op zwart: daar, net als de hoofdknop
+// (InkButtonStyle) en .btn in de Nacht-regels van src/styles.css, een gedempt vlak (inkt op 20 %) met de
+// leesinkt als tekst. Volgend blijft stil: geen vlak, een haarlijn.
+enum FollowPill {
+    static func fill(on: Bool, nacht: Bool) -> Color { on ? .clear : (nacht ? Theme.ink.opacity(0.2) : Theme.ink) }
+    static func label(on: Bool, nacht: Bool) -> Color { on || nacht ? Theme.ink : Theme.paper }
+    static func edge(on: Bool, nacht: Bool) -> Color { on ? Theme.edge : fill(on: false, nacht: nacht) }
 }

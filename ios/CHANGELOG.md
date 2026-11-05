@@ -2,6 +2,18 @@
 
 ## Onuitgebracht
 
+- Nieuw merkrood Rubrica (PMS 484 C), na build 48: BrandRed en AccentColor `#9A3324`, AccentSoft `#F2E4DF` (Donker en Nacht ongewijzigd). Daarmee ook het rode opstartscherm, de iris, de zon in de placeholders, het nummer 01, de punt van "hoot.", de eindkaart in Nacht (`#41150F`, 42 procent over zwart), de lezer en de deelkaart. De vier app-iconen en hun voorbeelden in Instellingen zijn opnieuw gemaakt met `scripts/appiconen.mjs` (zelfde bron, nieuw rood; Donker blijft gelijk). Een nieuw icoon vraagt een nieuwe build voor de App Store.
+
+- Build 48 (1.1.0): Instellingen D, intro variant 4, Zoeken in Mijn bronnen / Alle bronnen. De ongebruikte Inter-bestanden (Inter-400 t/m -800, Lezer-Inter-400/-800, OFL-Inter) gaan niet meer mee in de app (uitzondering in het Xcode-project; de bestanden blijven in de repo).
+
+- Intro variant 4: lopende leestekst (intro's, posts, de lezer) staat in Newsreader op optische maat 12, gewicht 450, in Nacht 480 (nieuwe vaste standen NewsreaderTekst-450 en -480, gemaakt met scripts/build-fonts.py; de lezer laadt dezelfde stand als WOFF). Terugvaloptie variant 3 (optische maat 11, 400/430) staat gedocumenteerd in Letters.swift en build-fonts.py.
+
+- Zoeken: net als op het web de keuze Mijn bronnen (standaard) en Alle bronnen. Alle bronnen zoekt ook in stukken van bronnen die je niet volgt (dezelfde verhalenlijst als het web); die staan met "Buiten je bronnen" in de bronregel. Dezelfde uitlegzinnen en aantalregel als het web, en bij niets gevonden de knop "Zoek in alle bronnen".
+
+- Build 47: Schibsted Grotesk vervangt Inter voor alle bediening (tabbalk, knoppen, kickers, bronregel, instellingen, de lezer rond het artikel); Newsreader blijft om te lezen. Kickers blijven 800; kleine hints en metadata staan in Nacht op ink-2. De deelkaart houdt Inter 600, gelijk aan de server. De zinnen van het Welkom zijn schreefloos. Zoeken is breed, zoals het web: woord, bron en auteur, ook in Bewaard. De rij "Bluesky-accounts" in Instellingen opent het beheer in plaats van de postfeed. De rubriek boven het hoofdverhaal loopt bij AX5 op een smal scherm door op een tweede regel in plaats van af te kappen.
+
+- Bluesky: een account dat je toevoegt staat meteen in de Stroom (en zet Bluesky aan), net als op de website. Accounts die build 44/45 toevoegde zonder Stroom-keuze komen één keer terug in de Stroom, ook in je account. Een account zonder naam in je profiel laat de andere niet meer wegvallen.
+
 - Trek om te verversen: het h.-merkteken verschijnt in de trekruimte en de punt volgt de vinger. Terugtrekken annuleert; de laadregel verschijnt pas na loslaten. Verminder beweging houdt de punt stil.
 
 - Een wereldtocht krijgt geen Oekraïne-label door Rusland als routepunt in de intro. Bestaande algemene buitenlandplekken vragen voor een geografisch onderwerp bewijs uit de kop; werkelijk oorlogsnieuws behoudt zijn onderwerp.

@@ -1,22 +1,25 @@
 import { CORRECTION_REASONS } from '../lib/corrections.mjs'
 import { cleanIntro, headlineTier } from '../../shared/edition-display.mjs'
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { useStackWhenCramped } from '../hooks/useStackWhenCramped.js'
+import { usePhone } from '../hooks/usePhone.js'
 import { timeAgo, readTime } from '../lib/time.js'
-import { BookmarkIcon, PlayIcon, MoreIcon, ShareIcon } from './icons.jsx'
+import { BookmarkIcon, PlayIcon, MoreIcon, ShareIcon, CaretIcon, ICON_SM } from './icons.jsx'
 import { imageMeta, portraitImage, cropStyle } from '../lib/image-meta.js'
 import { shareLink } from '../lib/share.js'
 import { topicById } from '../lib/topics.js'
 import { savedKey, withLead } from '../lib/saved.js'
 import { isReadItem } from '../../shared/stroom.mjs'
 import { avatarUrl, fitsLarge, fitsHero } from '../lib/img.js'
+import { Beeld } from './Beeld.jsx'
 import { TermHelp } from './Terms.jsx'
-import { Img } from './Img.jsx'
+import { Img, MeasuredImg } from './Img.jsx'
 import { isPlayableVideo } from '../lib/video-fullscreen.js'
 import { Video } from './Video.jsx'
 import { Why } from './Why.js'
-import { directVideo } from '../../shared/bluesky.mjs'
+import { directVideo, withoutBareLinks } from '../../shared/bluesky.mjs'
 import { safeHttpUrl } from '../../shared/util.mjs'
-import { wholeSentences } from '../../shared/zinnen.mjs'
+import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { useIntroMax } from '../lib/intro.js'
 import { EditionNumber } from './EditionNumber.jsx'
 
@@ -76,12 +79,14 @@ export function SaveButton({ id, kind = 'item', payload, label = 'bericht' }) {
 // Delen (src/lib/share.js): de link van de uitgever met de kop, via het deelblad van het toestel
 // of anders het klembord — App.jsx meldt dan "Link gekopieerd". Zonder geldige link geen knop,
 // zoals in de app (`if let link = item.link`). Staat naast bewaren, overal waar bewaren staat.
-export function ShareButton({ item, label = 'bericht' }) {
+// `inMenu`: op de telefoon staat delen in het menu "…" (TasteButton), zoals in de app; hier blijft de knop
+// dan alleen op breed scherm.
+export function ShareButton({ item, label = 'bericht', inMenu = false }) {
   const { share } = useHoot()
   if (!share || !shareLink(item)) return null
   const text = `Deel dit ${label}`
   return (
-    <button type="button" className="iconbtn share" onClick={() => share(item)} aria-label={text} title={text}>
+    <button type="button" className={`iconbtn share${inMenu ? ' desk-only' : ''}`} onClick={() => share(item)} aria-label={text} title={text}>
       <ShareIcon />
     </button>
   )
@@ -121,6 +126,9 @@ export function SourceMeta({ item, outside = false }) {
   )
 }
 
+// Het bronlabel: altijd het totaal, "1 bron" of "N bronnen" (de pijl staat ernaast als icoon).
+export const bronnenLabel = (n) => `${n} ${n === 1 ? 'bron' : 'bronnen'}`
+
 // Actieregel: vaste plekken — bron · vergelijken · meer of minder · delen · bewaren. Ontbreekt er
 // een, dan blijft zijn plek leeg, zodat "Vergelijk", delen en bewaren in elke rij van een scherm
 // op dezelfde x staan (een scherm zonder meer of minder heeft die plek niet, zie .meta). Delen en
@@ -129,18 +137,24 @@ export function Meta({ item, story, showSave = true, taste = null, outside = fal
   const { openStory, newInStory, voteOn, reportMistake } = useHoot()
   const fresh = story ? newInStory(story) : 0
   const others = story ? story.sourceCount - 1 : 0
+  const metaRef = useStackWhenCramped(`${item.id}|${others}|${outside}`)
+  // Op de telefoon zoals de app: Bewaar zichtbaar, de rest (delen, meer of minder, fout melden) onder "…".
+  // Breed scherm houdt de knoppen naast elkaar.
+  const hasMenu = !!(taste || voteOn || reportMistake) && item.kind !== 'post'
   return (
-    <div className="meta">
+    <div className="meta" ref={metaRef}>
       <SourceMeta item={item} outside={outside} />
       {story && others > 0 ? (
-        <button type="button" className="linkbtn linkbtn--plain morebtn" onClick={() => openStory(story.id, item.id)} aria-label={`Vergelijk met ${others} andere ${others === 1 ? 'bron' : 'bronnen'}${fresh ? `, ${fresh} nieuw` : ''}`}>
+        // Eén bronlabel, overal hetzelfde: het totaal, "6 bronnen ›", in --ink-2 (minder rood, keuze B).
+        // Geen rood en geen tweede vorm ("Vergelijk", "+N") per breedte.
+        <button type="button" className="linkbtn linkbtn--plain morebtn" onClick={() => openStory(story.id, item.id)} aria-label={`Vergelijk ${others + 1} bronnen${fresh ? `, ${fresh} nieuw` : ''}`}>
           {fresh ? <span className="dot" aria-hidden="true" /> : null}
-          <span className="morebtn__long">Vergelijk {others + 1} bronnen</span>
-          <span className="morebtn__short">+{others} {others === 1 ? 'bron' : 'bronnen'}</span>
+          <span>{bronnenLabel(others + 1)}</span>
+          <CaretIcon size={ICON_SM} />
         </button>
       ) : null}
-      {(taste || voteOn || reportMistake) && item.kind !== 'post' ? <TasteButton entryKey={taste || story?.id || item.id} item={item} story={story} /> : null}
-      <ShareButton item={item} />
+      {hasMenu ? <TasteButton entryKey={taste || story?.id || item.id} item={item} story={story} /> : null}
+      <ShareButton item={item} inMenu={hasMenu} />
       {showSave ? story ? <SaveButton id={story.id} kind="story" payload={withLead(story, item.id)} label="verhaal" /> : <SaveButton id={item.id} payload={item} /> : null}
     </div>
   )
@@ -149,22 +163,51 @@ export function Meta({ item, story, showSave = true, taste = null, outside = fal
 // De berichten van een plek in de Editie (het verhaal, of het losse bericht).
 export const itemsOfEntry = (item, story, itemsById) => (story ? [item, ...(story.itemIds || []).filter((id) => id !== item.id).map((id) => itemsById?.get(id)).filter(Boolean)] : [item])
 
+const wideOrMouse = () => typeof matchMedia === 'function' && matchMedia('(min-width: 960px), ((hover: hover) and (pointer: fine))').matches
+
 // Verhaalopties: smaak en foutmelding zijn aparte acties. Eén rustige ingang in de metaregel.
-export function TasteButton({ entryKey, item, story }) {
-  const { voteOn, itemsById, reportMistake } = useHoot()
+// `withShare` (kaart A+): delen zit altijd in dit menu, niet als eigen knop in de bronregel.
+// Zonder: alleen op een touch-telefoon (web-staten), waar de deelknop ernaast wegvalt.
+export function TasteButton({ entryKey, item, story, withShare = false }) {
+  const { voteOn, itemsById, reportMistake, share } = useHoot()
   const [open, setOpen] = useState(false)
   const [said, setSaid] = useState(null)
   const [reporting, setReporting] = useState(false)
+  const moreRef = useRef(null)
+  const reopened = useRef(false)
   const items = itemsOfEntry(item, story, itemsById)
   const pick = (dir) => {
     voteOn(entryKey, items, dir)
     setOpen(false)
     setSaid(`Je voorkeur voor ${dir > 0 ? 'meer' : 'minder'} over ${aboutOf(items)} is bewaard.`)
   }
+  // Esc sluit het paneel en zet de focus terug op de knop "…" die het opende (die knop bestaat dan weer).
+  useEffect(() => {
+    if (!open && !reporting) return
+    const key = (e) => {
+      if (e.key !== 'Escape' || e.defaultPrevented) return
+      e.preventDefault()
+      reopened.current = true
+      setReporting(false)
+      setOpen(false)
+    }
+    document.addEventListener('keydown', key)
+    return () => document.removeEventListener('keydown', key)
+  }, [open, reporting])
+  useEffect(() => {
+    if (!open && !reporting && reopened.current) {
+      reopened.current = false
+      moreRef.current?.focus()
+    }
+  })
+  // Delen staat in het menu bij kaart A+ (withShare), en anders alleen waar de knop ernaast wegvalt
+  // (touch-telefoon): zelfde voorwaarde als .phone-only.
+  const canShare = !!(share && shareLink(item)) && (withShare || !wideOrMouse())
   if (said) return <span className="taste__said" role="status">{said}<button type="button" className="linkbtn linkbtn--plain hit" onClick={() => setSaid(null)}>Oké</button></span>
   if (reporting) return <span className="taste" role="group" aria-label="Klopt dit niet?">{Object.entries(CORRECTION_REASONS).map(([reason,label])=><button type="button" className="pill pill--sm hit" key={reason} onClick={() => {const ok=reportMistake?.(item,story?.id || null,reason);setReporting(false);setOpen(false);setSaid(ok?'Melding bewaard op dit toestel. Nog niet verstuurd.':'De melding kon niet worden bewaard.')}}>{label}</button>)}<button type="button" className="linkbtn hit" onClick={()=>setReporting(false)}>Annuleer</button></span>
   return open ? (
     <span className="taste" role="group" aria-label="Meer of minder hiervan">
+      {canShare ? <button type="button" className="pill pill--sm hit" onClick={() => { share(item); setOpen(false) }}>Deel</button> : null}
       {voteOn ? <><button type="button" className="pill pill--sm hit" onClick={() => pick(1)}>
         Meer hiervan
       </button>
@@ -175,7 +218,7 @@ export function TasteButton({ entryKey, item, story }) {
       <button type="button" className="linkbtn hit" onClick={()=>setOpen(false)}>Sluiten</button>
     </span>
   ) : (
-    <button type="button" className="iconbtn" onClick={() => setOpen(true)} aria-label="Verhaalopties: meer, minder of een fout melden" title="Verhaalopties">
+    <button type="button" ref={moreRef} className="iconbtn" onClick={() => setOpen(true)} aria-haspopup="true" aria-label={canShare ? 'Verhaalopties: delen, meer, minder of een fout melden' : 'Verhaalopties: meer, minder of een fout melden'} title="Verhaalopties">
       <MoreIcon />
     </button>
   )
@@ -189,8 +232,10 @@ export function aboutOf(items) {
 // De intro in hele zinnen die in de gekozen regels passen (shared/zinnen.mjs, src/lib/intro.js).
 // Hoot eindigt nooit met een beletselteken: een te lange eerste zin mag één regel doorlopen, en de
 // line-clamp in de CSS staat precies die regel ruimer. `fit`: { max, rek }.
+// Een geleende intro krijgt " — via X" erachter: die tekens gaan van de maat af (Item.viaLength in de app).
+export const viaLength = (item) => (item.borrowedFrom ? item.borrowedFrom.length + 8 : 0)
 const Summary = ({ item, className, fit = { max: Infinity, rek: Infinity } }) => {
-  const text = wholeSentences(cleanIntro(item.summary, item.author), fit.max, fit.rek)
+  const text = wholeSentences(cleanIntro(item.summary, item.author), fit.max - viaLength(item), fit.rek - viaLength(item))
   return text ? (
     <p className={className}>
       {text}
@@ -210,11 +255,9 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
       <a className={`lead__link${portraitImage(item) ? ' lead__link--portrait' : ''}`} href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         {/* Overal beeld eerst, zoals de app: dan rubriek, kop en kern, zodat de bronregel bij zijn
             tekst blijft. Het waarom van de plek (jouw Editie) staat stil onder de rubriek, zie Why.js. */}
-        {item.image && fitsHero(item.image) ? (
-          <div className={`media media--lead${portraitImage(item) ? ' media--portrait' : ''}${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
-            {imageMeta(item) ? <img src={item.image} alt="" loading={priority ? 'eager' : 'lazy'} fetchpriority={priority ? 'high' : undefined} referrerPolicy="no-referrer" onLoad={priority ? rememberLead : undefined} /> : <Img url={item.image} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} />}
-          </div>
-        ) : null}
+        <Beeld item={item} kind="lead" fits={fitsHero} className={`media media--lead${portraitImage(item) ? ' media--portrait' : ''}${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+          {(onFail) => <MeasuredImg item={item} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} onFail={onFail} />}
+        </Beeld>
         <Kicker item={item} extra={note} followed={followed} n={n} />
         <Why why={why} />
         <h2 className={`${titleRole} lead__title`}>{item.title}</h2>
@@ -234,12 +277,15 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
 // breedtes dezelfde twee vormen. `plain` houdt de krant-vorm aan: in de Editie (die is een krant, op
 // web en in de app) en op smalle plekken zoals het vergelijkpaneel.
 // `lines`: hoeveel regels intro (1, 2, 3 of 'alles'); standaard de instelling van de Stroom, en in
-// de krant-vorm van de Editie en het vergelijkpaneel (`plain`) 2, zoals de app.
+// de krant-vorm van de Editie en het vergelijkpaneel (`plain`) INTRO_LINES (3), zoals de app.
 export function CompactItem({ item, story, note, n = null, why = null, showSave = true, plain = false, taste = null, lines, outside = false }) {
   const { markRead, read, layout, prefs } = useHoot()
   const introMax = useIntroMax()
-  const lineCount = lines ?? (plain ? 2 : prefs?.preview ?? 2)
+  const lineCount = lines ?? (plain ? INTRO_LINES : prefs?.preview ?? INTRO_LINES)
+  const phone = usePhone()
   const cls = `entry compact${isReadItem(read, item) ? ' is-read' : ''}`
+  // Telefoon, Stroom in de tijdlijn: kaart A+ zonder nummer en waarom (zelfde kaart als in de Editie).
+  if (phone && layout === 'tijdlijn' && !plain) return <KaartItem item={item} story={story} note={note} showSave={showSave} taste={taste} outside={outside} lines={lines} />
   if (layout === 'tijdlijn' && !plain) {
     return (
       <article className={`${cls} compact--tl`} data-id={item.id}>
@@ -249,11 +295,9 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
           <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
           <Summary item={item} className="compact__sum" fit={introMax(lineCount)} />
-          {item.image && fitsLarge(item.image) ? (
-            <div className="media media--tl">
-              <Img url={item.image} kind="lead" />
-            </div>
-          ) : null}
+          <Beeld item={item} kind="tijdlijn" fits={fitsLarge} className={`media media--tl${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+            {(onFail) => <MeasuredImg item={item} kind="lead" onFail={onFail} />}
+          </Beeld>
         </a>
         <Meta item={item} story={story} showSave={showSave} taste={taste} outside={outside} />
       </article>
@@ -266,49 +310,120 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
           <Kicker item={item} extra={note} n={n} />
           <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
-          <Summary item={item} className="compact__sum" fit={introMax(lineCount, 'rij', !!item.image)} />
+          <Summary item={item} className="compact__sum" fit={introMax(lineCount, 'rij', (prefs?.images ?? 'aan') === 'aan')} />
         </div>
-        {item.image ? (
-          <div className="thumb">
-            {/* Intrinsieke maat 3:2; de echte maat komt uit CSS (--thumb-w/--thumb-h). */}
-            <Img url={item.image} width="96" height="64" />
-          </div>
-        ) : null}
+        {/* Intrinsieke maat 3:2; de echte maat komt uit CSS (--thumb-w/--thumb-h). */}
+        <Beeld item={item} kind="krant" className={`thumb${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+          {(onFail) => <MeasuredImg item={item} width="96" height="64" onFail={onFail} />}
+        </Beeld>
       </a>
       <Meta item={item} story={story} showSave={showSave} taste={taste} outside={outside} />
     </article>
   )
 }
 
+// ---- Kaart A+ (telefoon; keuze van Alex, 4 november) ----
+// Eén kaart voor de Editie en de Stroom op een telefoon: rubriek (met in de Editie het nummer en het
+// waarom), kop, intro, dan het beeld 2:1 over de volle breedte en de bronregel. De Stroom laat nummer
+// en waarom weg; verder verschuift er niets. iPad en desktop houden hun bredere vormen (CompactItem,
+// FrontItem, LeadStory). De maten staan in src/styles/kaart.css; iOS spiegelt ze in ItemRow en LeadCard.
+// `lead`: het hoofdverhaal (01): beeld tot de rand in 3:2, grotere kop en intro, het nummer in het rood.
+
+// Bronregel van de kaart: bron (tijd in woorden, "Abonnement" als stille tekst), "N bronnen" als
+// tekstknop, bewaren en het ⋯-menu waar delen in zit. Een bron buiten je bronnen zegt dat in de tijdregel.
+export function KaartSource({ item, outside = false }) {
+  const { openSource, sourcesById } = useHoot()
+  const paid = sourcesById?.get(item.source)?.paid
+  return (
+    <button type="button" className="srcbtn srcmeta kmeta__src" onClick={() => openSource(item.source)} aria-label={`Alles van ${item.sourceName} bekijken`}>
+      <SourceMark source={srcOf(item)} size={24} />
+      <span className="srcmeta__text">
+        <span className="srcmeta__name">{item.sourceName}</span>
+        <span className="srcmeta__time">
+          <time dateTime={item.publishedAt || undefined}>{timeAgo(item.publishedAt)}</time>
+          {paid ? <span className="kmeta__abo"> · Abonnement</span> : null}
+          {outside ? <span className="srcbtn__read"> · Buiten je bronnen</span> : null}
+        </span>
+      </span>
+    </button>
+  )
+}
+
+export function KaartMeta({ item, story, showSave = true, taste = null, outside = false }) {
+  const { openStory, newInStory, voteOn, reportMistake, share } = useHoot()
+  const fresh = story ? newInStory(story) : 0
+  const others = story ? story.sourceCount - 1 : 0
+  const metaRef = useStackWhenCramped(`${item.id}|${others}|${outside}`)
+  const more = item.kind !== 'post' && (taste || voteOn || reportMistake || (share && shareLink(item)))
+  return (
+    <div className="kmeta" ref={metaRef}>
+      <KaartSource item={item} outside={outside} />
+      {story && others > 0 ? (
+        <button type="button" className="kmeta__bronnen" onClick={() => openStory(story.id, item.id)} aria-label={`Vergelijk ${others + 1} bronnen${fresh ? `, ${fresh} nieuw` : ''}`}>
+          {fresh ? <span className="dot" aria-hidden="true" /> : null}
+          {bronnenLabel(others + 1)}
+        </button>
+      ) : null}
+      {showSave ? story ? <SaveButton id={story.id} kind="story" payload={withLead(story, item.id)} label="verhaal" /> : <SaveButton id={item.id} payload={item} /> : null}
+      {more ? <TasteButton entryKey={taste || story?.id || item.id} item={item} story={story} withShare /> : null}
+    </div>
+  )
+}
+
+export function KaartItem({ item, story, note, n = null, why = null, followed = null, showSave = true, taste = null, outside = false, lead = false, priority = false, lines }) {
+  const { markRead, read, prefs } = useHoot()
+  const introMax = useIntroMax()
+  const lineCount = lines ?? (n ? INTRO_LINES : prefs?.preview ?? INTRO_LINES)
+  const fit = lead ? { max: 240, rek: 240 } : introMax(lineCount, 'kaartA')
+  const beeld = lead ? (
+    <Beeld item={item} kind="lead" fits={fitsHero} className={`media kaart__beeld${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+      {(onFail) => <MeasuredImg item={item} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} onFail={onFail} />}
+    </Beeld>
+  ) : (
+    <Beeld item={item} kind="tijdlijn" fits={fitsLarge} className={`media kaart__beeld${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+      {(onFail) => <MeasuredImg item={item} kind="lead" onFail={onFail} />}
+    </Beeld>
+  )
+  return (
+    <article className={`entry kaart${lead ? ' kaart--lead' : ''}${isReadItem(read, item) ? ' is-read' : ''}`} data-id={item.id}>
+      <a className="kaart__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+        {lead ? beeld : null}
+        <div className="kaart__in">
+          <div className="kaart__head">
+            <Kicker item={item} extra={note} followed={followed} n={n} />
+            <Why why={why} />
+          </div>
+          {lead ? <h2 className="kaart__title kaart__title--lead">{item.title}</h2> : <h3 className="kaart__title">{item.title}</h3>}
+          <Summary item={item} className="kaart__sum" fit={fit} />
+          {lead ? null : beeld}
+        </div>
+      </a>
+      <TermHelp text={`${item.title} ${item.summary || ''}`} max={1} />
+      <KaartMeta item={item} story={story} showSave={showSave} taste={taste} outside={outside} />
+    </article>
+  )
+}
+
 // ---- Vorm 3: sociale bijdrage ----
+// Op het raster van het artikel (Stroom-kaart B, keuze 1.1.0): de tekst zelf in leestekst (geen
+// kop), dan het beeld of de linkkaart over de hele kolom, en de bron onderaan op dezelfde plek als
+// bij een artikel: avatar 24, naam en de @-naam waar bij een artikel de tijd staat, met delen en
+// bewaren rechts. Geen kale link in de tekst: die staat in de linkkaart.
 export function SocialItem({ item }) {
   const { markRead, read, openSource } = useHoot()
-  const ratio = item.imageRatio ? Math.min(2.4, Math.max(0.7, item.imageRatio)) : null
-  // Drie soorten beeld: een gedeelde link (compacte kaart), een eigen foto (ruimer, met
-  // begrensde hoogte en de echte verhouding) en video (16:9 met afspeelknop).
+  const metaRef = useStackWhenCramped(item.id)
+  // Een staand beeld wordt hooguit 4:5, een liggend hooguit 2,4:1; de breedte is altijd de kolom.
+  const ratio = item.imageRatio ? Math.min(2.4, Math.max(0.8, item.imageRatio)) : null
+  // Drie soorten beeld: een gedeelde link (linkkaart), een eigen foto en video (16:9 met afspeelknop).
   const isLink = !item.video && !item.imageRatio && !!item.domain && item.domain !== 'bsky.app'
-  // Hoogte begrenzen zonder bij te snijden: de breedte volgt uit de verhouding.
-  const bounded = (r) => ({ aspectRatio: r, maxWidth: `calc(min(420px, 56vh) * ${r})` })
   const playable = isPlayableVideo(item.video, CAN_HLS)
+  const text = withoutBareLinks(item.summary, isLink ? item.domain : '')
   return (
     <article className={`entry social${isReadItem(read, item) ? ' is-read' : ''}`} data-id={item.id}>
-      <div className="social__head">
-        <button type="button" className="srcbtn srcbtn--social" onClick={() => openSource(item.source)} aria-label={`Alles van ${item.sourceName} bekijken`}>
-          <SourceMark source={srcOf(item)} size={36} />
-          <span className="social__who">
-            <span className="srcbtn__name">{item.sourceName}</span>
-            <span className="social__handle">
-              {item.handle} · <time dateTime={item.publishedAt || undefined}>{timeAgo(item.publishedAt)}</time>
-            </span>
-          </span>
-        </button>
-        <ShareButton item={item} label="bericht" />
-        <SaveButton id={item.id} payload={item} />
-      </div>
       <a className="social__body" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
-        {item.summary ? <p className="social__text">{item.summary}</p> : null}
+        {text ? <p className="social__text">{text}</p> : null}
         {item.video && !playable ? (
-          <div className="media media--social media--poster" style={bounded(16 / 9)}>
+          <div className="media media--social media--poster" style={{ aspectRatio: 16 / 9 }}>
             {item.videoPoster ? <img src={directVideo(item.videoPoster)} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" /> : null}
             <span className="media__play">
               <PlayIcon />
@@ -317,8 +432,8 @@ export function SocialItem({ item }) {
         ) : isLink ? (
           <div className="card linkcard">
             {item.image ? (
-              <div className="thumb">
-                <Img url={item.image} width="64" height="64" />
+              <div className="media linkcard__media">
+                <Img url={item.image} kind="lead" />
               </div>
             ) : null}
             <div className="linkcard__text">
@@ -327,12 +442,25 @@ export function SocialItem({ item }) {
             </div>
           </div>
         ) : !item.video && item.image ? (
-          <div className={`media media--social${ratio ? ' media--natural' : ''}`} style={bounded(ratio || 16 / 9)}>
+          <div className="media media--social" style={{ aspectRatio: ratio || 16 / 9 }}>
             <Img url={item.image} kind="lead" />
           </div>
         ) : null}
       </a>
-      {playable ? <Video src={item.video} poster={item.videoPoster} label={`Video van ${item.sourceName} afspelen`} style={bounded(16 / 9)} /> : null}
+      {playable ? <Video src={item.video} poster={item.videoPoster} label={`Video van ${item.sourceName} afspelen`} style={{ aspectRatio: 16 / 9 }} /> : null}
+      <div className="meta" ref={metaRef}>
+        <button type="button" className="srcbtn srcmeta" onClick={() => openSource(item.source)} aria-label={`Alles van ${item.sourceName} bekijken`}>
+          <SourceMark source={srcOf(item)} size={24} />
+          <span className="srcmeta__text">
+            <span className="srcmeta__name">{item.sourceName}</span>
+            <span className="srcmeta__time">
+              {item.handle} · <time dateTime={item.publishedAt || undefined}>{timeAgo(item.publishedAt)}</time>
+            </span>
+          </span>
+        </button>
+        <ShareButton item={item} label="bericht" />
+        <SaveButton id={item.id} payload={item} />
+      </div>
     </article>
   )
 }
