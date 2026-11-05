@@ -515,3 +515,5 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 
 /* geen weeswoord onder aan een voordeel (keuring 4-11) */
 .voordeel-lijst p{text-wrap:pretty}
+/* Held: het beeld in de telefoon lager (2:1), zodat de kop van het hoofdverhaal in beeld blijft */
+.held .k-beeld{aspect-ratio:2/1}
