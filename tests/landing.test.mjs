@@ -52,56 +52,30 @@ test('landing: de drie delen gelijkwaardig in de voordelen en in de meta-omschri
 const BUILD = readFileSync(new URL('../landing/build.mjs', import.meta.url), 'utf8')
 const code = (js) => js.replace(/^\s*\/\/.*$/gm, '')
 
-test('landing: de teksten houden zich aan de huisregels', () => {
+test('landing: de voorbeelden houden zich aan de huisregels', () => {
   for (const [naam, s] of [['index', tekst(SRC)], ['build', code(BUILD)]]) {
     assert.doesNotMatch(s, /Omdat je \S+ volgt/, naam)
-    assert.doesNotMatch(s, /Buitenland|Uit je eigen bronnen|houdt op/, naam)
-    assert.doesNotMatch(s, /\b\d{1,2}(:\d\d)? ?uur\b/, naam) // geen kloktijden
+    assert.doesNotMatch(s, /Buitenland|Uit je eigen bronnen/, naam)
   }
+  // De Stroom-tabs in de vaste volgorde van de app: Alles, dan de hoofdrubrieken.
+  const tabs = [...SRC.match(/<div class="sc-tabrij">([\s\S]*?)<\/div>/)[1].matchAll(/data-m="\w+"[^>]*>([^<]+)</g)].map((m) => m[1])
+  assert.deepEqual(tabs, ['Alles', 'Binnenland', 'Wereld', 'Cultuur'])
+  assert.match(readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8'), /var RUB = \['alles', 'binnenland', 'wereld', 'cultuur'\]/)
 })
 
-// Rustig (Alex 5-11): geen toestellen met schermtekst, beelden zonder tekst en zonder lijnen, de punt achter koppen op rood in inkt.
-const CSS = readFileSync(new URL('../landing/hoot.css', import.meta.url), 'utf8')
-const JS = readFileSync(new URL('../landing/hoot.js', import.meta.url), 'utf8')
-test('landing: geen schermbeelden, de beelden zijn vlakken zonder tekst of lijnen', () => {
-  assert.doesNotMatch(SRC, /class="(toestel|scherm|ipad)\b|sc-[a-z]/)
-  assert.doesNotMatch(CSS, /\.toestel|\.sc-[a-z]|\.rg[123]|\.dagen|\.podium/)
-  const svgs = SRC.match(/<svg class="il"[\s\S]*?<\/svg>/g) || []
-  assert.equal(svgs.length, 5) // held, Editie, Stroom, Selectie, De Redacteur
-  for (const s of svgs) {
-    assert.doesNotMatch(s, /<(text|line|polyline|path)\b/, 'geen tekst of lijnen in een beeld')
-    assert.doesNotMatch(s, /stroke=/)
-  }
-  // De punten van Selectie en De Redacteur komen uit build.mjs: alleen cirkels, één rode per beeld.
-  for (const naam of ['RASTER', 'TIEN']) {
-    const blok = BUILD.slice(BUILD.indexOf(`const ${naam} =`), BUILD.indexOf('}).join', BUILD.indexOf(`const ${naam} =`)))
-    assert.match(blok, /<circle class="\$\{|il-rood/)
-    assert.doesNotMatch(blok, /<(text|line|path)\b/)
-  }
-  // geen sierlijnen: geen horizon- of persvel-regels, geen randen tussen voordelen, vragen of boven de voet
-  assert.doesNotMatch(CSS, /vel-hor|vel-r1|vel-r2|border-(top|bottom):1px/)
-  // geen herhalende demo's meer; wel de ene keer opkomende zon en de stuiterende punt
-  assert.doesNotMatch(JS, /requestAnimationFrame\(tik\)|\/api\/voorpagina/)
-  assert.match(JS, /beeld-held/)
-})
-
-test('landing: grote koppen op rood eindigen met een punt in inkt; het logo blijft papier op rood', () => {
-  assert.match(CSS, /\.rood \.punt\{color:#1A1814\}/)
-  assert.match(CSS, /\.rood\{[^}]*--wm-dot:var\(--op-rood\)/)
-  for (const kop of ['h-held', 'h-einde']) {
-    const h = SRC.slice(SRC.indexOf(`id="${kop}"`), SRC.indexOf('</h', SRC.indexOf(`id="${kop}"`)))
-    assert.match(h, /class="punt[ "]/, kop)
-  }
-})
-
-test('landing: lopende tekst in de leesletter van intro 4, alleen in de landing ingesteld', () => {
-  assert.match(CSS, /--lees-wght:450;--lees-vs:"opsz" 12/)
-  assert.equal((CSS.match(/--lees-wght:480/g) || []).length, 3) // Nacht: media, data-theme en .donker
-  for (const sel of ['.lead{', '.voordeel-lijst p{', '.faq details p{', '.redenen p{']) {
-    const r = CSS.slice(CSS.indexOf(sel), CSS.indexOf('}', CSS.indexOf(sel)))
-    assert.match(r, /font-family:var\(--lees\);font-weight:var\(--lees-wght\);font-variation-settings:var\(--lees-vs\)/, sel)
-  }
-  assert.match(CSS, /font-size:1\.0625rem;line-height:1\.5rem/) // 17/24 zoals de intro in de app
+test('landing: de voorbeelden zijn van 1.1.0 (nummers, bubbel apart, Selectie met inhoud)', () => {
+  const editie = SRC.slice(SRC.indexOf('id="demo-editie"'), SRC.indexOf('<!-- 02 Stroom'))
+  const nrs = [...editie.matchAll(/<span class="(?:k|sc)-nr">(\d\d)<\/span>/g)].map((m) => m[1])
+  assert.deepEqual(nrs, ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10'])
+  // De bubbel komt na 10, zonder nummer, vóór het eindblok.
+  const bubbel = editie.match(/<div class="sc-bubbel">([\s\S]*?)<div class="sc-blok">/)[1]
+  assert.match(bubbel, /Buiten je bubbel/)
+  assert.doesNotMatch(bubbel, /-nr"/)
+  assert.ok(editie.indexOf('sc-bubbel') > editie.lastIndexOf('sc-nr'))
+  assert.doesNotMatch(tekst(SRC), /Bluesky/)
+  const sel = SRC.slice(SRC.indexOf('id="demo-selectie"'), SRC.indexOf('<!-- 04 De Redacteur'))
+  assert.ok(sel.indexOf('sc-inhoud') > 0 && sel.indexOf('sc-inhoud') < sel.indexOf('sc-kaart'), 'de inhoud staat boven het eerste stuk')
+  assert.doesNotMatch(sel, /sc-chip/)
 })
 
 test('landing: de App Store staat klaar achter één regel in build.mjs', () => {
@@ -128,13 +102,16 @@ test('landing: de kleine tekstronde uit de review', () => {
   for (const zin of [
     'Elke maandag de mooiste stukken van de week, over je vak en wat je verder boeit.',
     'De Redacteur kiest je verhalen en zegt erbij waarom. Klopt het niet? Zeg het met ‘Klopt dit niet?’.',
+    'Lees verder in de Stroom',
     'Lees mee in je browser.',
   ]) assert.ok(t.includes(zin), zin)
   assert.doesNotMatch(t, /Of lees verder|Ontdek Hoot|Lees je laat|Met een inhoud bovenaan|Hoot onthoudt waar je was|Tien verhalen, en één/)
   // Meer kanten van één verhaal staat als vierde voordeel.
   assert.match(SRC, /de Selectie\.<\/span><\/h3>.*\n.*Meer kanten/)
-  // Geen dubbele dubbele punt in de aria-labels.
+  // Citaten in de aria-labels tussen ‘…’, en geen dubbele dubbele punt.
   const labels = [...SRC.matchAll(/aria-label="([^"]+)"/g)].map((m) => m[1])
+  assert.ok(labels.some((l) => l.includes('‘Je bent bij.’')))
+  assert.ok(labels.some((l) => l.includes('‘Hier was je gebleven’')))
   for (const l of labels) assert.ok((l.match(/:/g) || []).length <= 1, l)
 })
 
@@ -142,4 +119,55 @@ test('landing: het deelbeeld is 1200 × 630', () => {
   const png = readFileSync(new URL('../landing/og.png', import.meta.url))
   assert.equal(png.readUInt32BE(16), 1200)
   assert.equal(png.readUInt32BE(20), 630)
+})
+
+// Ronde 2 (Alex 5-11): toestellen met bijgewerkte schermen (kaart A+), de lijnen terug, zwarte punt op rood, brood schreefloos.
+const CSS = readFileSync(new URL('../landing/hoot.css', import.meta.url), 'utf8')
+test('landing: de schermen zijn kaart A+ van 1.1.0, met weinig tekst', () => {
+  for (const id of ['demo-editie', 'demo-stroom', 'demo-selectie']) assert.ok(SRC.includes(`id="${id}"`), id)
+  // hoofdverhaal 3:2 tot de rand met het nummer in rood, kaarten met beeld 2:1, de intro in Newsreader Text
+  assert.match(CSS, /\.k-beeld\{[^}]*aspect-ratio:3\/2/)
+  assert.match(CSS, /\.k-beeld2\{[^}]*aspect-ratio:2\/1/)
+  assert.match(CSS, /\.k-lead \.k-nr\{[^}]*color:var\(--s-red\)/)
+  assert.match(CSS, /\.k-intro\{[^}]*font-family:var\(--lees\);font-weight:var\(--lees-wght\);font-variation-settings:var\(--lees-vs\)/)
+  assert.match(CSS, /--lees-wght:450;--lees-vs:"opsz" 12/)
+  // korte intro's: hooguit twaalf woorden, en per scherm hooguit één intro (behalve de Stroom: één per rubriek)
+  const intros = [...SRC.matchAll(/<p class="k-intro">([^<]+)<\/p>/g), ...BUILD.matchAll(/'([^']+)', 'il-/g)].map((m) => m[1])
+  assert.ok(intros.length >= 4)
+  for (const t of intros) assert.ok(t.split(/\s+/).length <= 12, t)
+  // geen losse illustraties meer op de pagina (ronde 1 staat in _archief)
+  assert.doesNotMatch(SRC, /<svg class="il"/)
+})
+
+test('landing: de lijnen zijn terug (ringen, dagen-boog, stroomlijnen, persvel)', () => {
+  assert.match(SRC, /class="rg rg1"/)
+  assert.match(SRC, /<svg class="boog"/)
+  assert.match(SRC, /class="water"/)
+  assert.match(SRC, /vel-r1/)
+})
+
+test('landing: grote koppen op rood eindigen met een punt in inkt; het logo blijft papier op rood', () => {
+  assert.match(CSS, /\.rood \.punt\{color:#1A1814\}/)
+  assert.match(CSS, /\.rood\{[^}]*--wm-dot:var\(--op-rood\)/)
+  for (const kop of ['h-held', 'h-einde']) {
+    const h = SRC.slice(SRC.indexOf(`id="${kop}"`), SRC.indexOf('</h', SRC.indexOf(`id="${kop}"`)))
+    assert.match(h, /class="punt[ "]/, kop)
+  }
+  assert.match(SRC, /<p class="kicker">Voor iPhone, iPad en Web<\/p>/)
+  assert.match(CSS, /\.held \.kicker\{[^}]*text-transform:none/)
+})
+
+test('landing: lopende tekst in Schibsted Grotesk, de lead op desktop 20/30', () => {
+  for (const sel of ['.lead{', '.voordeel-lijst p{', '.faq details p{']) {
+    const r = CSS.slice(CSS.indexOf(sel), CSS.indexOf('}', CSS.indexOf(sel)))
+    assert.match(r, /font:var\(--fw-brood\) 1\.0625rem\/1\.5 var\(--tekst\)/, sel)
+    assert.doesNotMatch(r, /--lees/, sel)
+  }
+  assert.match(CSS, /\.lead\{font-size:1\.25rem;line-height:1\.875rem\}/)
+  assert.equal((CSS.match(/--fw-brood:430/g) || []).length, 3) // Nacht: media, data-theme en .donker
+})
+
+test('landing: huisregels in de FAQ (vroege avond, geen kloktijden)', () => {
+  assert.match(SRC, /in de ochtend, de middag en de vroege avond/)
+  assert.doesNotMatch(tekst(SRC), /middag en avond|\b\d{1,2}(:\d\d)? ?uur\b(?! geleden)/)
 })
