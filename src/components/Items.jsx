@@ -479,6 +479,10 @@ export function SocialItem({ item }) {
   return (
     <article className={`entry social${isReadItem(read, item) ? ' is-read' : ''}`} data-id={item.id}>
       <a className="social__body" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+        {/* Bluesky-kaart A+ (1.1.1): een stille rubriek, dan de tekst schreefloos (src/styles/bluesky.css). */}
+        <p className="label label--kicker social__kicker" aria-hidden="true">
+          Bluesky
+        </p>
         {text ? <p className="social__text">{text}</p> : null}
         {item.video && !playable ? (
           <div className="media media--social media--poster" style={{ aspectRatio: 16 / 9 }}>

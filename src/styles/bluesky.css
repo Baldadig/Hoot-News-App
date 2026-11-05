@@ -1,0 +1,43 @@
+/* ==========================================================================
+   Bluesky-kaart A+ (1.1.1, wens van Alex): een Bluesky-bericht in de Stroom op het ritme van kaart A+.
+   Eigen bestand, want styles.css is vastgelegd tot het Nacht-blok. Gelijk aan PostRow (BlueskyView.swift).
+   - Boven een stille rubriek "Bluesky" (12/16, ink-3, zoals de rubriek van een artikel), 8 eronder.
+   - De tekst zelf in Schibsted Grotesk (--sans) 17/24 in inkt: een bericht is geen artikel, dus geen
+     Newsreader en geen kop. Gelezen wordt hij ink-3, zoals een kop.
+   - Het beeld of de linkkaart 16 onder de tekst, over de hele kolom, met de haarlijn binnenin van kaart A+.
+   - De bronregel blijft die van een artikel (logo, naam, @-naam en tijd), delen en bewaren rechts.
+   ========================================================================== */
+.social__body {
+  gap: 0;
+}
+.social__kicker {
+  margin: 0 0 var(--s2);
+  font-size: var(--t0);
+  line-height: var(--lh-1);
+}
+.social__text {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-variation-settings: normal;
+  font-size: var(--t3);
+  line-height: var(--lh-3);
+  color: var(--ink);
+}
+.is-read .social__text {
+  color: var(--ink-3);
+}
+.social__body > :is(.media, .linkcard) {
+  margin-top: var(--s4);
+}
+.social__body > .media--social {
+  overflow: hidden;
+}
+.social__body > .media--social::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--hairline);
+  pointer-events: none;
+}
