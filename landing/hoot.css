@@ -521,3 +521,11 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .sc-editie .scherm{-webkit-mask:linear-gradient(transparent 0,#000 2.6em);mask:linear-gradient(transparent 0,#000 2.6em)}
 /* Held: de inhoud van de telefoon staat meteen op zijn plek (geen parallax-verschuiving), op elk scherm zoals op het grote scherm (Alex 5-11) */
 .held .sc-in{transform:none}
+/* De zon in de kaartbeelden loopt mee met het dagdeel: ochtend laag links, middag hoog, vroege avond laag rechts (achter de heuvels).
+   Via variabelen op html, want regels met html[...] bereiken de inhoud van <use> niet. */
+html{--zon-a:-66px,-36px;--zon-c:-76px,-18px}
+html[data-dagdeel=ochtend]{--zon-a:-156px,26px;--zon-c:-166px,30px}
+html[data-dagdeel=avond]{--zon-a:28px,24px;--zon-c:14px,28px}
+.il-zon-a{transform:translate(var(--zon-a));transition:transform 1.2s ease}
+.il-zon-c{transform:translate(var(--zon-c));transition:transform 1.2s ease}
+@media (prefers-reduced-motion:reduce){.il-zon-a,.il-zon-c{transition:none}}
