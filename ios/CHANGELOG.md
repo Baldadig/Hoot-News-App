@@ -2,6 +2,8 @@
 
 ## Onuitgebracht
 
+- Build 48 (1.1.0): Instellingen D, intro variant 4, Zoeken in Mijn bronnen / Alle bronnen. De ongebruikte Inter-bestanden (Inter-400 t/m -800, Lezer-Inter-400/-800, OFL-Inter) gaan niet meer mee in de app (uitzondering in het Xcode-project; de bestanden blijven in de repo).
+
 - Intro variant 4: lopende leestekst (intro's, posts, de lezer) staat in Newsreader op optische maat 12, gewicht 450, in Nacht 480 (nieuwe vaste standen NewsreaderTekst-450 en -480, gemaakt met scripts/build-fonts.py; de lezer laadt dezelfde stand als WOFF). Terugvaloptie variant 3 (optische maat 11, 400/430) staat gedocumenteerd in Letters.swift en build-fonts.py.
 
 - Zoeken: net als op het web de keuze Mijn bronnen (standaard) en Alle bronnen. Alle bronnen zoekt ook in stukken van bronnen die je niet volgt (dezelfde verhalenlijst als het web); die staan met "Buiten je bronnen" in de bronregel. Dezelfde uitlegzinnen en aantalregel als het web, en bij niets gevonden de knop "Zoek in alle bronnen".

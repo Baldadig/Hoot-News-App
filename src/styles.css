@@ -282,8 +282,8 @@
     --thumb-h: 56px;
   }
 }
-/* Grote tekst: het kleine beeld groeit één stap mee (iOS thumbLarge 108). */
-html[data-text='groot'],
+/* Grote tekst: het kleine beeld groeit één stap mee (iOS thumbLarge 108). data-systeem rekent de eigen
+   Tekstgrootte mee (lib/systeemtekst.js). */
 html[data-systeem='groot'],
 html[data-systeem='ax'] {
   --thumb-w: 108px;
@@ -4066,9 +4066,8 @@ html[data-systeem='ax'] .vh__title > .sun--kop {
 }
 
 /* ---------- Instellingen ---------- */
-/* Tekstgrootte: alles schaalt mee (rem), zoals Dynamic Type op iOS */
-html[data-text='klein'] { font-size: 94%; }
-html[data-text='groot'] { font-size: 120%; } /* duidelijk groter: koppen, tekst en ruimte schalen mee (rem) */
+/* Tekstgrootte (Instellingen D): een factor op de lettermaat van <html> via setSchaal (lib/systeemtekst.js);
+   alles op de rem-schaal groeit mee, zoals Dynamic Type op iOS. */
 /* Beeld uit (onderweg): geen thumbnails en geen grote beelden; 'hoofd' houdt alleen het hoofdverhaal */
 html[data-images='uit'] .thumb,
 html[data-images='uit'] .media--tl,
