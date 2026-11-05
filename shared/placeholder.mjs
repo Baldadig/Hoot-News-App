@@ -1,7 +1,9 @@
 // Placeholderbeeld (build 46, keuze van Alex): heeft een stuk geen beeld, is het te klein voor de plek
-// of laadt het niet, dan vult een Hoot-beeld het vak. Zes losse beelden: 1 tot 3 uit Zonnestand (de zon
-// op de horizon in drie standen), 4 tot 6 uit Iris (uitsneden van de iris, steeds dichterbij). Ze dragen
-// geen betekenis: geen dagdeel, geen rubriek. Intern heten ze beeld 1 tot 6.
+// of laadt het niet, dan vult een Hoot-beeld het vak. Twaalf losse beelden in vijf sets: 1 tot 3
+// Zonnestand (de zon op de horizon in drie standen), 4 tot 6 Iris (uitsneden van de iris, steeds
+// dichterbij), 7 en 8 Horizonlijnen (alleen lijnen), 9 en 10 Raster (met één rode punt), 11 en 12 De
+// stapel (vellen uit het laadteken). Ze dragen geen betekenis: geen dagdeel, geen rubriek, geen tekst.
+// Intern heten ze beeld 1 tot 12. Elk beeld heeft een kleine tekening voor het kleine vak rechts.
 //
 // Eén bron voor web en app: scripts/placeholders.mjs maakt hieruit de SVG's (src/assets/placeholder/),
 // de CSS (src/placeholder.css) en de tabel voor SwiftUI (ios/Hoot/Views/PlaceholderBeelden.swift).
@@ -55,6 +57,26 @@ export const PALETTES = {
     donker: { bg: '#1E1B17', sun: '#EC7A70', line: '#4A443A', disc: '#2A2620' },
     nacht: { bg: '#0E0D0B', sun: '#DF8276', line: '#2F2B25', disc: '#181612' },
   },
+  // Horizonlijnen: alleen lijnen. De horizon in de lijnkleur van Zonnestand, de rest steeds zachter
+  // (de lijnkleur gemengd met het vlak: 50, 32 en 18 procent). Geen rood.
+  lijn: {
+    licht: { bg: '#EFE9DD', line: '#6B6457', soft: '#ADA69A', faint: '#C5BEB2', fainter: '#D7D1C5' },
+    donker: { bg: '#1E1B17', line: '#766E61', soft: '#605B52', faint: '#49443D', fainter: '#36322C' },
+    nacht: { bg: '#12100E', line: '#5E574D', soft: '#4F493E', faint: '#39342D', fainter: '#28251F' },
+  },
+  // Raster: punten (60 procent) of haarlijnen (20 procent), en één rode punt.
+  raster: {
+    licht: { bg: '#EFE9DD', sun: '#9A3324', dot: '#A0998D', grid: '#D5CEC2' },
+    donker: { bg: '#1E1B17', sun: '#EC7A70', dot: '#6E685E', grid: '#39352F' },
+    nacht: { bg: '#12100E', sun: '#DF8276', dot: '#5B5448', grid: '#2A2721' },
+  },
+  // De stapel: vellen als haarlijnen (zoals het laadteken) of als vlakken, achter donker, voor licht.
+  // Het bovenste vel draagt de rode kopstreep, zoals bij het landen van het laadteken.
+  stapel: {
+    licht: { bg: '#EFE9DD', sun: '#9A3324', line: '#857F72', vel3: '#DFD7C7', vel2: '#E4DDCF', vel1: '#E9E3D7', vel0: '#F3EFE6' },
+    donker: { bg: '#1E1B17', sun: '#EC7A70', line: '#888175', vel3: '#221F1B', vel2: '#26231E', vel1: '#2A2722', vel0: '#2F2B25' },
+    nacht: { bg: '#12100E', sun: '#DF8276', line: '#746B5C', vel3: '#151310', vel2: '#181613', vel1: '#1C1916', vel0: '#201D19' },
+  },
 }
 
 // Een tekening: een vlak van w × h in de achtergrondkleur, dan de vormen. Het beeld vult het vak zoals
@@ -69,6 +91,66 @@ const iris = (line, discs, sun) => ({
   shapes: [{ t: 'line', x1: line[0], y1: line[1], x2: line[2], y2: line[3], stroke: 'line', fixed: true }, ...discs.map(([cx, cy, r]) => ({ t: 'circle', cx, cy, r, fill: 'disc' })), { t: 'circle', cx: sun[0], cy: sun[1], r: sun[2], fill: 'sun' }],
 })
 
+// Iris klein (96 × 64): dezelfde uitsnede als groot in 3:2 (schaal 0,32, 16 naar links), de rode punt
+// minstens r 3 zodat hij op de miniatuur nog leest.
+const irisKlein = (g) => {
+  const k = 0.32, dx = -16, r1 = (v) => Math.round(v * 10) / 10
+  const pt = (x, y) => [r1(x * k + dx), r1(y * k)]
+  return {
+    w: 96,
+    h: 64,
+    shapes: g.shapes.map((s) => {
+      if (s.t === 'line') { const [x1, y1] = pt(s.x1, s.y1), [x2, y2] = pt(s.x2, s.y2); return { ...s, x1, y1, x2, y2 } }
+      const [cx, cy] = pt(s.cx, s.cy)
+      return { ...s, cx, cy, r: s.fill === 'sun' ? Math.max(3, r1(s.r * k)) : r1(s.r * k) }
+    }),
+  }
+}
+// Een haarlijn van 1 punt, hoe groot het beeld ook wordt (fixed), in kleur `stroke`; y (of x) is de
+// bovenkant (linkerkant) van de lijn.
+const h1 = (x, y, w, stroke) => ({ t: 'line', x1: x, y1: y + 0.5, x2: x + w, y2: y + 0.5, stroke, fixed: true })
+const v1 = (x, y, h, stroke) => ({ t: 'line', x1: x + 0.5, y1: y, x2: x + 0.5, y2: y + h, stroke, fixed: true })
+// Horizonlijnen 7: de horizon, eronder drie lijnen gecentreerd en steeds korter en zachter.
+const lijnen7 = (W, H, y, len, step, minus, x0) => ({
+  w: W, h: H,
+  shapes: [h1(x0, y, W - 2 * x0, 'line'), ...['soft', 'faint', 'fainter'].map((c, i) => { const l = len - i * minus; return h1((W - l) / 2, y + (i + 1) * step, l, c) })],
+})
+// Horizonlijnen 8: de horizon hoog, eronder lijnen over de volle breedte, de afstand groeit, de kleur zakt weg.
+const lijnen8 = (W, H, x0, ys) => ({
+  w: W, h: H,
+  shapes: ys.map((y, i) => h1(x0, y, W - 2 * x0, ['line', 'soft', 'soft', 'faint', 'fainter'][i])),
+})
+// Raster 9: punten op een vaste steek, één punt is rood (en iets groter).
+const punten = (W, H, xs, ys, r, red, R) => ({
+  w: W, h: H,
+  shapes: [...ys.flatMap((y) => xs.filter((x) => !(x === red[0] && y === red[1])).map((x) => ({ t: 'circle', cx: x, cy: y, r, fill: 'dot' }))), { t: 'circle', cx: red[0], cy: red[1], r: R, fill: 'sun' }],
+})
+// Raster 10: haarlijnen van rand tot rand, de rode punt op een kruising.
+const lijnraster = (W, H, xs, ys, red, R) => ({
+  w: W, h: H,
+  shapes: [...xs.map((x) => v1(x, 0, H, 'grid')), ...ys.map((y) => h1(0, y, W, 'grid')), { t: 'circle', cx: red[0], cy: red[1], r: R, fill: 'sun' }],
+})
+// De stapel 11: vier vellen als haarlijnen (opzij −4 · 0 · +4 · −2, geschaald), het bovenste is de rode kopstreep.
+const stapelLijnen = (W, H, len, step, offs, top, kop) => ({
+  w: W, h: H,
+  shapes: offs.map((o, i) => (i === 0 ? { t: 'rect', x: (W - len) / 2 + o, y: top - kop / 2, w: len, h: kop, fill: 'sun' } : h1((W - len) / 2 + o, top + i * step, len, 'line'))),
+})
+// De stapel 12: vier vellen als vlakken, van achter naar voor; de rode kopstreep op de bovenrand van het voorste.
+const stapelVlakken = (W, H, vw, vh, step, offs, top, kop) => ({
+  w: W, h: H,
+  shapes: [
+    ...offs.map((o, i) => ({ t: 'rect', x: (W - vw) / 2 + o, y: top + i * step, w: vw, h: vh, fill: ['vel3', 'vel2', 'vel1', 'vel0'][i] })),
+    { t: 'rect', x: (W - vw) / 2 + offs[3], y: top + 3 * step, w: vw, h: kop, fill: 'sun' },
+  ],
+})
+const steek = (from, n, step) => Array.from({ length: n }, (_, i) => from + i * step)
+
+const IRIS = [
+  iris([115.4, 15.4, 288.2, 188.2], [[165.8, 65.8, 50.4], [228.8, 128.8, 25.2], [261.2, 161.2, 12.6]], [279.2, 179.2, 7]),
+  iris([-25.6, -125.6, 281.6, 181.6], [[64, -36, 89.6], [176, 76, 44.8], [233.6, 133.6, 22.4]], [265.6, 165.6, 9.6]),
+  iris([686, -390, 110, 186], [[308, -12, 84], [200, 96, 42]], [140, 156, 12]),
+]
+
 export const PLACEHOLDERS = [
   // 1: de zon links, een derde boven de horizon.
   { family: 'zon', groot: zonGroot({ t: 'circle', cx: 88, cy: 120, r: 28, fill: 'sun', clip: true }), klein: zonKlein({ t: 'circle', cx: 24, cy: 44, r: 12, fill: 'sun', clip: true }) },
@@ -76,10 +158,17 @@ export const PLACEHOLDERS = [
   { family: 'zon', groot: zonGroot({ t: 'circle', cx: 179, cy: 56, r: 16, fill: 'sun', clip: true }), klein: zonKlein({ t: 'circle', cx: 48, cy: 20, r: 7, fill: 'sun', clip: true }) },
   // 3: de zon rechts, half onder de horizon, als omtrek.
   { family: 'zon', groot: zonGroot({ t: 'circle', cx: 270, cy: 111, r: 27, stroke: 'outline', sw: 2, clip: true }), klein: zonKlein({ t: 'circle', cx: 72, cy: 40, r: 11.5, stroke: 'outline', sw: 1, clip: true }) },
-  // 4 tot 6: de iris, wijd, halverwege en dichtbij. In 3:2 valt x 50 tot 350 in beeld.
-  { family: 'iris', groot: iris([115.4, 15.4, 288.2, 188.2], [[165.8, 65.8, 50.4], [228.8, 128.8, 25.2], [261.2, 161.2, 12.6]], [279.2, 179.2, 7]) },
-  { family: 'iris', groot: iris([-25.6, -125.6, 281.6, 181.6], [[64, -36, 89.6], [176, 76, 44.8], [233.6, 133.6, 22.4]], [265.6, 165.6, 9.6]) },
-  { family: 'iris', groot: iris([686, -390, 110, 186], [[308, -12, 84], [200, 96, 42]], [140, 156, 12]) },
+  // 4 tot 6: de iris, wijd, halverwege en dichtbij. In 3:2 valt x 50 tot 350 in beeld; klein is die uitsnede.
+  ...IRIS.map((groot) => ({ family: 'iris', groot, klein: irisKlein(groot) })),
+  // 7 en 8: Horizonlijnen. Alleen lijnen, heel stil.
+  { family: 'lijn', groot: lijnen7(358, 179, 96, 232, 16, 76, 24), klein: lijnen7(96, 64, 32, 54, 8, 18, 12) },
+  { family: 'lijn', groot: lijnen8(358, 179, 24, [72, 90, 110, 134, 162]), klein: lijnen8(96, 64, 12, [22, 30, 38, 47, 57]) },
+  // 9 en 10: Raster met één rode punt. Punten op steek 24 (klein 12), of haarlijnen op steek 32 (klein 16).
+  { family: 'raster', groot: punten(358, 179, steek(23, 14, 24), steek(17, 7, 24), 1.25, [215, 113], 4), klein: punten(96, 64, steek(12, 7, 12), steek(8, 5, 12), 0.9, [60, 44], 3) },
+  { family: 'raster', groot: lijnraster(358, 179, steek(19, 11, 32), steek(9, 6, 32), [243.5, 73.5], 4), klein: lijnraster(96, 64, steek(8, 6, 16), steek(8, 4, 16), [56.5, 24.5], 3) },
+  // 11 en 12: De stapel, uit het laadteken. Vellen als haarlijnen, of als vlakken.
+  { family: 'stapel', groot: stapelLijnen(358, 179, 128, 12, [-8, 0, 8, -4], 72, 2), klein: stapelLijnen(96, 64, 44, 7, [-3, 0, 3, -2], 22, 2) },
+  { family: 'stapel', groot: stapelVlakken(358, 179, 136, 64, 9, [-8, 0, 8, -4], 44, 2), klein: stapelVlakken(96, 64, 52, 28, 5, [-3, 0, 3, -2], 11, 2) },
 ]
 
 export const THEMES = ['licht', 'donker', 'nacht']

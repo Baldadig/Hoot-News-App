@@ -33,12 +33,17 @@ final class PlaceholderTests: XCTestCase {
         }
     }
 
-    func testZesBeeldenMetKleineTekeningVoorDeZon() {
-        XCTAssertEqual(PlaceholderBeelden.beelden.count, 6)
-        XCTAssertEqual(PlaceholderBeelden.beelden.prefix(3).filter { $0.klein != nil }.count, 3)
+    func testTwaalfBeeldenElkMetKleineTekening() {
+        XCTAssertEqual(PlaceholderBeelden.beelden.count, 12)
+        XCTAssertEqual(PlaceholderBeelden.beelden.map(\.familie), ["zon", "zon", "zon", "iris", "iris", "iris", "lijn", "lijn", "raster", "raster", "stapel", "stapel"])
+        for b in PlaceholderBeelden.beelden {
+            XCTAssertNotNil(b.klein, b.familie)
+            XCTAssertEqual(b.klein?.w, 96)
+            XCTAssertEqual(b.klein?.h, 64)
+        }
         // Beeld 2: de zon klein (r 16), zodat het rood een accent blijft.
         XCTAssertEqual(PlaceholderBeelden.beelden[1].groot.vormen.first?.c, 16)
-        for fam in ["zon", "iris"] { XCTAssertEqual(PlaceholderBeelden.palettes[fam]?.keys.sorted(), ["donker", "licht", "nacht"]) }
+        for fam in ["zon", "iris", "lijn", "raster", "stapel"] { XCTAssertEqual(PlaceholderBeelden.palettes[fam]?.keys.sorted(), ["donker", "licht", "nacht"]) }
     }
 
     func testBeeldloosAlleenWaarGeenPassendBeeldIs() {
@@ -68,7 +73,7 @@ final class PlaceholderTests: XCTestCase {
 
     @MainActor
     func testTekentOpDeMaatVanHetVak() throws {
-        for (i, size) in [(0, CGSize(width: 344, height: 172)), (4, CGSize(width: 96, height: 64)), (2, CGSize(width: 96, height: 64))] {
+        for (i, size) in [(0, CGSize(width: 344, height: 172)), (4, CGSize(width: 96, height: 64)), (2, CGSize(width: 96, height: 64)), (6, CGSize(width: 344, height: 172)), (9, CGSize(width: 96, height: 64)), (11, CGSize(width: 344, height: 229))] {
             let renderer = ImageRenderer(content: PlaceholderBeeld(index: i, klein: size.width < 100).frame(width: size.width, height: size.height))
             let image = try XCTUnwrap(renderer.uiImage)
             XCTAssertEqual(image.size, size)

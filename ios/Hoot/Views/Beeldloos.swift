@@ -71,7 +71,7 @@ struct PlaceholderBeeld: View {
                     switch v.soort {
                     case .rect:
                         let o = p(v.a, v.b)
-                        layer.fill(Path(CGRect(x: o.x, y: o.y, width: v.c * s, height: max(1, v.d * s))), with: .color(kleur(v.fill)))
+                        layer.fill(Path(CGRect(x: o.x, y: o.y, width: max(1, v.c * s), height: max(1, v.d * s))), with: .color(kleur(v.fill)))
                     case .line:
                         var path = Path()
                         path.move(to: p(v.a, v.b))
