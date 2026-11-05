@@ -119,8 +119,16 @@ struct AccountView: View {
     @Environment(\.webAuthenticationSession) private var webAuth
     @Environment(\.nachtActief) private var nacht
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var confirmDelete = false
     var onMember: (() -> Void)? = nil // in het welkom: verder zodra je lid bent
+
+    // Een e-mailadres met een breekpunt (zonder breedte) na de @ en voor elke punt in het domein.
+    static func breekbaar(_ email: String) -> String {
+        guard let at = email.firstIndex(of: "@") else { return email }
+        let domain = email[email.index(after: at)...].replacingOccurrences(of: ".", with: "\u{200B}.")
+        return String(email[...at]) + "\u{200B}" + domain
+    }
     private static let buttonHeight: CGFloat = 50
     private static let buttonRadius: CGFloat = 10
 
@@ -250,11 +258,14 @@ struct AccountView: View {
     private var member: some View {
         Group {
             Section {
-                HStack(spacing: Space.s3) {
+                // Bij de toegankelijkheidsmaten de foto boven de tekst, zoals op het hoofdblad (SettingsAccountCard).
+                let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: Space.s2)) : AnyLayout(HStackLayout(spacing: Space.s3))
+                layout {
                     AccountBadge(size: 48)
                     VStack(alignment: .leading, spacing: Space.s0) {
                         Text(account.session?.name ?? "Je account").font(.ui(.headline))
-                        if let email = account.session?.email { Text(email).font(.ui(.subheadline)).foregroundStyle(Theme.ink3) }
+                        // Breekt het adres, dan na de @ en niet midden in een woord ("alex@voorbee / ld.nl").
+                        if let email = account.session?.email { Text(Self.breekbaar(email)).font(.ui(.subheadline)).foregroundStyle(Theme.ink3).accessibilityLabel(email) }
                         // De samenvatting van je Hoot, gelijk aan hootSummary op het web.
                         Text(SettingsAccountCard.summary(interests: store.interests.count, sources: store.followed.count)).font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
                     }
