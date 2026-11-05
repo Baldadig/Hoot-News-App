@@ -22,6 +22,7 @@ final class AccountFotoTests: XCTestCase {
         }
         .frame(width: side, height: side)
         let host = UIHostingController(rootView: view)
+        host.safeAreaRegions = [] // de Pro Max geeft anders een safe area mee aan dit kleine venster
         host.view.frame = CGRect(x: 0, y: 0, width: side, height: side)
         let window = UIWindow(frame: host.view.frame); window.rootViewController = host; window.isHidden = false
         defer { window.isHidden = true }
