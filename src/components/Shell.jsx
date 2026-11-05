@@ -16,7 +16,7 @@ export const DESTINATIONS = [
   { id: 'bronnen', label: 'Bronnen', Icon: SourcesIcon },
 ]
 
-// Vaste hoofdnavigatie: onderin op telefoon, links op desktop. Selectie alleen als je die aanzet.
+// Vaste hoofdnavigatie: onderin op telefoon, links op desktop. Selectie altijd, zoals in de app (zonder onderwerpen met een lege staat die naar Kies onderwerpen leidt).
 // Telefoon, zoals de app: Editie, Stroom, Selectie, Bewaard, Zoeken. Bronnen staat dan onder
 // Instellingen (.nav__bronnen is er verborgen); in de zijbalk staat alles.
 // `hrefs` brengt je terug naar waar je in die bestemming was (met je filters);
@@ -31,14 +31,14 @@ function toTopOnRetap(e, active) {
   view.scrollTo({ top: 0, behavior: reduced() ? 'auto' : 'smooth' })
 }
 
-export function Nav({ path, hrefs = {}, sourceNote = '', digest = false }) {
+export function Nav({ path, hrefs = {}, sourceNote = '' }) {
   return (
     <nav className="nav" aria-label="Hoofdnavigatie">
       <a className="nav__brand" href={hrefs.editie || '#/editie'} aria-label="Hoot — naar de Editie">
         <BrandLogo height={28} />
       </a>
       <ul className="nav__list">
-        {DESTINATIONS.filter((d) => (digest || d.id !== 'digest')).map(({ id, label, Icon }) => (
+        {DESTINATIONS.map(({ id, label, Icon }) => (
           <li key={id} className={id === 'bronnen' ? 'nav__bronnen' : undefined}>
             <a className="nav__link" href={hrefs[id] || `#/${id}`} aria-current={path === id ? 'page' : undefined} onClick={(e) => toTopOnRetap(e, path === id)}>
               <span className="nav__icon">

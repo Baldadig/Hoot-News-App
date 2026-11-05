@@ -28,7 +28,11 @@ export function SourceRow({ s, muted, onToggle, onRemove, favorite = false, onFa
       <Main className="srow__main" {...(muted ? {} : { href: `#/stroom?bron=${encodeURIComponent(s.id)}`, 'aria-label': `Alles van ${s.name} in de Stroom` })}>
         <SourceMark source={s} size={40} />
         <span className="srow__text">
-          <span className="srow__name">{s.name}</span>
+          <span className="srow__name">
+            {s.name}
+            {/* Zoals in de app: "gratis" in accent, "abonnement" stil. */}
+            {s.paid ? <span className="srow__tag srow__tag--paid"> abonnement</span> : <span className="srow__tag srow__tag--free"> gratis</span>}
+          </span>
           <span className={`srow__meta${s.ok || muted ? '' : ' is-down'}`}>
             {s.handle && s.ok ? `${s.handle} · ` : ''}
             {status}
@@ -148,6 +152,7 @@ export default function Sources({ active, sources, muted, onToggle, meta, status
           ))}
         </ul>
         <p className="hint">Met de ster gaat een bron voor in je Editie en Stroom.</p>
+        <p className="hint">Abonnement: hele artikelen alleen voor abonnees. Aanzetten kost niets.</p>
         <SourceStatus status={status} recovered={recovered} latestBySource={latestBySource} meta={meta} onRetry={onRetry} refreshing={refreshing} online={online} />
 
         <h2 className="label label--section sect">Meer bronnen</h2>
