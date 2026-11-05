@@ -216,7 +216,7 @@ test('Schermtitel blijft head-5; korte hoofdkoppen head-6, lange koppen schalen 
   assert.match(read('components/Items.jsx'), /headlineTier\(item.title\)/)
   assert.match(read('components/Items.jsx'), /head-lg.*head-5.*head-6/)
   const css = read('styles.css')
-  const rem = (name) => Number(new RegExp(`--${name}: ([\\d.]+)rem`).exec(css)[1])
+  const rem = (name) => Number(new RegExp(`--${name}: (?:min\\()?([\\d.]+)rem`).exec(css)[1])
   assert.ok(rem('t6') > rem('t5') && rem('lh-6') > rem('lh-5'), 'de kop van het verhaal is groter dan de schermtitel')
 })
 
@@ -233,4 +233,13 @@ test('KISS-teksten (kiss-teksten.json): geen rij zonder bediening, geen oude uit
   }
   assert.match(read('views/Privacy.jsx'), /De Redacteur[\s\S]*op je toestel/)
   assert.match(read('views/Stream.jsx'), /Je bent bij\./)
+})
+
+test('systeemmaat: Dynamic Type naar rem, miniatuur en toegankelijkheidsstand', async () => {
+  const { systeemMaat } = await import('../src/lib/systeemtekst.js')
+  assert.deepEqual(systeemMaat(17), { rem: 16, groot: false, ax: false }) // Large: 1 rem blijft 16 px
+  assert.equal(systeemMaat(21).groot, true) // xxLarge: miniatuur 108
+  assert.equal(systeemMaat(53).ax, true) // AX5
+  assert.equal(systeemMaat(53).rem, 49.88)
+  assert.equal(systeemMaat(NaN).rem, 16)
 })

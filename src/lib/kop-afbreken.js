@@ -8,7 +8,10 @@
 // Meten zonder opmaak: canvas.measureText met de letter van de kop, plus de letterafstand per teken.
 // Opnieuw bij nieuwe koppen, een andere breedte (draaien, Tekstgrootte) en als de letters geladen zijn.
 
-export const KOP = '.head-4, .head-lg, .head-5, .head-6'
+export const KOP = '.head-4, .head-lg, .head-5, .head-6, .edtitle__text'
+// De Editie zet zijn naam in een span naast de zon (de zon valt bij grote tekst onder de naam). Dan telt
+// de span, niet de h1 eromheen: de h1 heeft ook de zon in zich en zou anders als geheel afbreken.
+const NAAM = '.edtitle__text'
 export const BREEK = 'kop--breek'
 export const WOORD = 'kop-woord'
 
@@ -36,6 +39,7 @@ export function startKopAfbreken(root = document) {
   const ctx = document.createElement('canvas').getContext('2d')
   if (!ctx) return () => {}
   const check = (el) => {
+    if (el.querySelector(NAAM)) { el.classList.remove(BREEK); return }
     const words = longWords(el.textContent)
     const plain = [...el.childNodes].every(n => n.nodeType === 3 || (n.nodeType === 1 && n.classList.contains(WOORD)))
     let wide = []
@@ -43,7 +47,9 @@ export function startKopAfbreken(root = document) {
       const cs = getComputedStyle(el)
       ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
       const ls = parseFloat(cs.letterSpacing) || 0
-      const column = el.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0)
+      // De naam van de Editie staat in een flexvak dat kan krimpen naast de zon: de kolom is dan de hele titel.
+      const host = el.matches(NAAM) ? el.closest('.vh__title') || el : el
+      const column = host.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0)
       wide = words.filter(w => tooWide([ctx.measureText(w).width + ls * w.length], column))
     }
     if (!plain) { // andere elementen in de kop: de hele kop, zoals voorheen
@@ -65,7 +71,7 @@ export function startKopAfbreken(root = document) {
   const mo = new MutationObserver(later)
   mo.observe(root.body || root, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class'] }) // ook class: React kan de klasse van een kop opnieuw zetten
   const html = new MutationObserver(later)
-  html.observe(document.documentElement, { attributes: true, attributeFilter: ['data-text', 'style'] })
+  html.observe(document.documentElement, { attributes: true, attributeFilter: ['data-text', 'data-systeem', 'style'] })
   window.addEventListener('resize', later)
   document.fonts?.addEventListener?.('loadingdone', later)
   document.fonts?.ready?.then(later)

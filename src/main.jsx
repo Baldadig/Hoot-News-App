@@ -3,7 +3,7 @@ import React from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 // Lettertypes (latin en latin-ext): koppen in Newsreader 800 (statisch, zoals altijd), lopende tekst
-// in Newsreader op tekstmaat en bediening in Inter, beide variabel (src/fonts/).
+// in Newsreader op tekstmaat en bediening in Schibsted Grotesk, beide variabel (src/fonts/).
 import '@fontsource/newsreader/latin-800.css'
 import '@fontsource/newsreader/latin-ext-800.css'
 import './fonts/fonts.css'
