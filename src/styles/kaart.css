@@ -4,14 +4,14 @@
    ios-47 en web-typografie) er niet in botsen. Letters komen van de tokens: --serif voor de kop,
    --lees voor de intro, --sans voor labels en bediening; wordt dat Schibsted, dan volgt de kaart.
    Alle maten in rem, dus Tekstgrootte schaalt kop, intro, label en bronregel mee.
-   Raster: 8 tussen tekstlagen, 16 tot het beeld, 16 boven een kaart, regelhoogtes op 4.
+   Raster: 8 tussen tekstlagen, 16 tot het beeld, 16 boven en onder een kaart, 20 onder 01, regelhoogtes op 4.
    iOS spiegelt dit in ItemRow.kaart en LeadCard.kaart (Components.swift).
    ========================================================================== */
 
 .entry.kaart {
   content-visibility: auto;
   contain-intrinsic-size: auto 480px;
-  padding: 1rem 0 0.75rem; /* 16 boven, 12 onder (de bronregel brengt de rest) */
+  padding: 1rem 0; /* 16 boven, 16 onder, gelijk aan iOS */
 }
 .kaart__link {
   display: block;
@@ -126,7 +126,7 @@
   background: none;
   color: var(--ink-2);
   font-family: var(--sans);
-  font-size: var(--t-ui-sm); /* 14/20 */
+  font-size: var(--t2); /* 15/20, gelijk aan iOS (subheadline) */
   font-weight: var(--fw-ui);
   line-height: var(--lh-2);
   font-variant-numeric: tabular-nums;
@@ -154,7 +154,7 @@
 .entry.kaart--lead {
   content-visibility: visible;
   margin-inline: calc(-1 * var(--gutter));
-  padding: 0 0 1.25rem;
+  padding: 0 0 1.25rem; /* 20 onder 01 tot de sterke lijn, gelijk aan iOS */
   border-bottom: var(--rule-strong);
 }
 .kaart--lead .media {

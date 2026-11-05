@@ -45,7 +45,9 @@ test('waarom-regel 13/16 ink-3, rubriek 12, beeld 2:1 met hoek 12 en haarlijn bi
 })
 
 test('ritme: 16 boven en onder een kaart, 8 tussen tekstlagen', () => {
-  assert.match(block('.entry.kaart'), /padding: 1rem 0 0\.75rem/)
+  assert.match(block('.entry.kaart'), /padding: 1rem 0;/)
+  assert.match(block('.entry.kaart--lead'), /padding: 0 0 1\.25rem/) // 20 onder 01
+  assert.match(block('.kmeta__bronnen'), /font-size: var\(--t2\)/) // "N bronnen" 15, gelijk aan iOS
   assert.match(block('.kaart__head'), /margin-bottom: 0\.5rem/)
   assert.match(block('.kaart__title'), /margin: 0 0 0\.5rem/)
 })

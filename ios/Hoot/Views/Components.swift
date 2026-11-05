@@ -861,7 +861,7 @@ struct LeadCard: View {
             .contentShape(Rectangle())
             .opensArticle(item)
             SourceLine(item: item, story: story, outside: outside, kaart: true).padding(.top, Space.s3)
-            StrongRule().padding(.horizontal, -Space.s4).padding(.top, Space.s4) // de sterke inktlijn: het begin van de lijst
+            StrongRule().padding(.horizontal, -Space.s4).padding(.top, Space.s4 + Space.s1) // de sterke inktlijn: het begin van de lijst, 20 onder 01 (gelijk aan het web)
         }
     }
 
