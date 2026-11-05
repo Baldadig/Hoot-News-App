@@ -46,4 +46,14 @@ import SwiftUI
         XCTAssertEqual(SearchHits.hits(query: "zeilen", stream: stream, saved: saved, muted: ["vk"]).map(\.id), ["n"])
         XCTAssertEqual(SearchHits.hits(query: "zeilen", stream: stream, saved: stream, muted: []).count, 1, "geen dubbelen als iets in Stroom én Bewaard staat")
     }
+
+    func testZoekenAlleBronnenNeemtExtraStukkenMeeEnWeetDeTeksten() {
+        let stream = [item("n", title: "Zeilen op het IJsselmeer")]
+        let extra = [item("x", source: "gdn", title: "Zeilen in Engeland"), item("m", source: "vk", title: "Zeilen gedempt")]
+        XCTAssertEqual(SearchHits.hits(query: "zeilen", stream: stream, saved: [], muted: []).map(\.id), ["n"])
+        XCTAssertEqual(Set(SearchHits.hits(query: "zeilen", stream: stream, saved: [], extra: extra, muted: ["vk"]).map(\.id)), ["n", "x"], "uitgezette bronnen blijven weg")
+        XCTAssertEqual(SearchHits.Scope.allCases.map(\.rawValue), ["Mijn bronnen", "Alle bronnen"])
+        XCTAssertEqual(SearchHits.status(count: 1, scope: .mijn), "1 resultaat in je eigen bronnen en bewaard")
+        XCTAssertEqual(SearchHits.status(count: 60, scope: .alle), "60 resultaten (eerste 60) in alle bronnen")
+    }
 }

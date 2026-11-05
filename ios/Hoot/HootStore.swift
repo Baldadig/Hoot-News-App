@@ -863,11 +863,22 @@ final class HootStore {
 
     // ---- Verhalen ----
     func story(of item: Item) -> Story? { item.storyId.flatMap { storiesById[$0] } }
-    func storyItems(_ story: Story) async -> [Item] {
+    private func ensureRelated() async {
         if let v = relatedVersion, v != relatedLoaded, let r = try? await HootAPI.related(version: v) {
             related = Dictionary(grouping: r.related.filter { $0.storyId != nil }, by: { $0.storyId! })
             relatedLoaded = v
         }
+    }
+    // Zoeken, "Alle bronnen": zoals op het web (itemsById = related + items) ook de stukken van bronnen die je
+    // niet volgt en die alleen binnen een verhaal staan. Zelfde bron als het web: api/feed?deel=verhalen.
+    func searchPoolAll() async -> [Item] {
+        await ensureRelated()
+        return Array(itemsById.values) + related.values.flatMap { $0 }
+    }
+    // Buiten je bronnen: de bron staat niet bij wat je volgt (zelfde regel als de Editie).
+    func isOutside(_ item: Item) -> Bool { !isOn(source(item.source) ?? Source(id: item.source, name: "")) }
+    func storyItems(_ story: Story) async -> [Item] {
+        await ensureRelated()
         let list = related[story.id] ?? story.itemIds.compactMap { itemsById[$0] }
         return list.sorted { ($0.publishedAt ?? "") > ($1.publishedAt ?? "") }
     }
