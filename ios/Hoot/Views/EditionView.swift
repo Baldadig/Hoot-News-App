@@ -162,6 +162,7 @@ struct EditionView: View {
     @AppStorage("hoot.alertOffered") private var alertOffered = false // de seintje-vraag is één keer gesteld (zodra de kaart één keer in beeld is geweest)
     @State private var alertAsk = false // de vraag staat onder de Editie
     @State private var alertYes = false // net ja gezegd: even zeggen wat er komt
+    @State private var alertSlot = AlertOffer.standaard // het dagdeel in de kaart (keuze r5-seintje: de ochtend voorgekozen)
     @State private var printedIDs: Set<String> = []
     @State private var ruleDrawn = true
     @State private var storyShown = true
@@ -276,13 +277,13 @@ struct EditionView: View {
         }
     }
 
-    // Ja op de seintje-vraag: de systeemvraag, en bij ja alle drie de dagdelen aan (in Instellingen
-    // per dagdeel aan te passen). Daarna even zeggen wat er komt, en weg.
+    // Ja op de seintje-vraag: de systeemvraag, en bij ja alleen het dagdeel dat je in de kaart koos
+    // (keuze r5-seintje; de andere twee zet je zelf aan in Instellingen). Daarna even zeggen wat er komt, en weg.
     private func askAlerts() {
         Task {
             let yes = await alerts.ask()
             if yes {
-                store.notifySlots = EditionAlerts.slots.map(\.id)
+                store.notifySlots = AlertOffer.slots(for: alertSlot)
                 store.notify = true
             }
             answerAlerts(yes)
@@ -462,6 +463,15 @@ struct EditionView: View {
                         .padding(.top, Space.s6)
                         .padding(.bottom, Space.s4)
                         .tienBlock(tien, 8)
+                        // De seintje-vraag komt ná het einde, als eigen kaart eronder: nooit over de rode
+                        // kaart heen (keuze r5-einde-rust).
+                        if alertAsk || alertYes {
+                            AlertOffer(done: alertYes, slot: $alertSlot, yes: askAlerts, no: { answerAlerts(false) })
+                                .frame(maxWidth: grid == .paren ? pairColumn : Layout.readable)
+                                .padding(.leading, grid == .kolom ? Layout.hang : 0)
+                                .padding(.bottom, Space.s6)
+                                .transition(.opacity)
+                        }
                         }
                         }
                         .loadLinesText(lines)
@@ -495,8 +505,6 @@ struct EditionView: View {
             .safeAreaInset(edge: .bottom) {
                 if nudge && store.browsing {
                     MakeItYours(choose: { setup = true }, later: { withAnimation { store.browsing = false } })
-                } else if alertAsk || alertYes {
-                    AlertOffer(done: alertYes, yes: askAlerts, no: { answerAlerts(false) })
                 }
             }
             // De stappen van het welkom vanaf de interesses, met Annuleer op de eerste.
@@ -661,19 +669,36 @@ struct MakeItYours: View {
 // Na de eerste Editie, één keer: een seintje als de volgende klaarligt? Een los moment onder de
 // Editie, in de vorm van MakeItYours; de eindkaart houdt zijn ene link. Ja vraagt iOS om toestemming.
 // Op het web is er geen seintje (web-push ligt stil).
+// De seintje-vraag onder de eindkaart (1.1.1, keuzes r5-seintje en r5-einde-rust): één dagdeel kiezen, de
+// ochtend voorgekozen. Geen kloktijden, alleen de dagdelen. Een kaart in de lijst, geen zwevend blad.
 struct AlertOffer: View {
     var done: Bool
+    @Binding var slot: String
     var yes: () -> Void
     var no: () -> Void
+
+    static let standaard = "ochtend"
+    static let keuzes: [(id: String, label: String)] = [("ochtend", "Ochtend"), ("middag", "Middag"), ("avond", "Vroege avond")]
+    // Wat "Ja, graag" aanzet: alleen het gekozen dagdeel.
+    static func slots(for slot: String) -> [String] { keuzes.contains { $0.id == slot } ? [slot] : [standaard] }
+    static func doneLine(_ slot: String) -> String { "Je krijgt een seintje als de \(Slots.naam(slot)) klaarligt." }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Space.s2) {
             if done {
-                Label("Je krijgt een seintje als de volgende klaarligt.", systemImage: "bell")
+                Label(Self.doneLine(slot), systemImage: "bell")
                     .font(.ui(.subheadline))
                     .frame(minHeight: Space.tap, alignment: .leading)
             } else {
                 Kop("Een seintje als de volgende klaarligt?", .title3).fixedSize(horizontal: false, vertical: true)
+                Flow {
+                    ForEach(Self.keuzes, id: \.id) { k in
+                        ChoiceChip(label: k.label, on: slot == k.id) { slot = k.id }
+                    }
+                }
+                .padding(.top, Space.s1)
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel("Wanneer")
                 HStack(spacing: Space.s4) {
                     Button("Ja, graag", action: yes).buttonStyle(.ink)
                     Button("Nu niet", action: no)
@@ -687,11 +712,6 @@ struct AlertOffer: View {
         .padding(Space.s4)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-        .shadow(color: .black.opacity(0.12), radius: 8, y: 2)
-        .padding(.horizontal)
-        .padding(.bottom, Space.s2)
-        .column()
-        .transition(.move(edge: .bottom).combined(with: .opacity))
         .accessibilityElement(children: .contain)
     }
 }

@@ -21,3 +21,15 @@ test('r5-stroom-einde: web en app eindigen bij je vorige bezoek, met dezelfde wo
   assert.match(swift, /page = 60/)
   assert.match(read('src/lib/stroom-einde.js'), /DAG = 24 \* 60 \* 60 \* 1000/)
 })
+
+test('r5-einde-rust en r5-seintje: de seintje-kaart staat onder het einde, met een dagdeel en de ochtend voorgekozen', () => {
+  const app = read('ios/Hoot/Views/EditionView.swift')
+  // Niet meer zwevend over de eindkaart (safeAreaInset), maar als kaart in de lijst ná het einde.
+  const inset = app.slice(app.indexOf('.safeAreaInset(edge: .bottom)'), app.indexOf('// De stappen van het welkom vanaf de interesses'))
+  assert.doesNotMatch(inset, /AlertOffer\(/)
+  assert.match(app, /AlertOffer\(done: alertYes, slot: \$alertSlot/)
+  assert.match(app, /static let standaard = "ochtend"/)
+  assert.match(app, /\("avond", "Vroege avond"\)/)
+  assert.match(app, /store\.notifySlots = AlertOffer\.slots\(for: alertSlot\)/)
+  assert.doesNotMatch(app, /store\.notifySlots = EditionAlerts\.slots\.map/)
+})

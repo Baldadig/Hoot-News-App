@@ -36,4 +36,14 @@ import SwiftUI
         XCTAssertEqual(StroomEinde.index(items, at: now.addingTimeInterval(-86_400)), 5, "alles van de laatste dag")
         XCTAssertEqual(StroomEinde.page, 60)
     }
+
+    // r5-seintje: kiezen in de kaart, de ochtend voorgekozen; "Ja, graag" zet alleen dat dagdeel aan. Geen kloktijden.
+    func testSeintjeKiezenInDeKaart() {
+        XCTAssertEqual(AlertOffer.standaard, "ochtend")
+        XCTAssertEqual(AlertOffer.keuzes.map(\.label), ["Ochtend", "Middag", "Vroege avond"])
+        XCTAssertEqual(AlertOffer.slots(for: "middag"), ["middag"])
+        XCTAssertEqual(AlertOffer.slots(for: "nacht"), ["ochtend"], "iets onbekends: de ochtend")
+        XCTAssertEqual(AlertOffer.doneLine("ochtend"), "Je krijgt een seintje als de Ochtendeditie klaarligt.")
+        for k in AlertOffer.keuzes { XCTAssertNil(k.label.range(of: #"\d"#, options: .regularExpression), "geen kloktijd in \(k.label)") }
+    }
 }
