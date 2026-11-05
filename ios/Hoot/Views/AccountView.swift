@@ -60,17 +60,21 @@ struct AccountBadge: View {
 
 // De profielfoto: één keer laden, daarna uit het geheugen of de URLCache. Zonder cookies en zonder
 // Referer (URLSession stuurt die niet; de sessie deelt ook geen cookies).
+// De laadtaak hangt aan een vlak dat er altijd is (Color.clear). Aan een lege Group had .task geen view
+// om aan te hangen, dus begon hij nooit en bleef het monogram staan (eindkeuring 48, B2).
 struct AccountPhoto: View {
     let url: URL
     @State private var image: UIImage?
     var body: some View {
-        Group {
-            if let image { Image(uiImage: image).resizable().scaledToFill().transition(.opacity) }
-        }
-        .task(id: url) { image = await Self.load(url) }
+        Color.clear
+            .overlay {
+                if let image { Image(uiImage: image).resizable().scaledToFill().transition(.opacity) }
+            }
+            .clipped()
+            .task(id: url) { image = await Self.load(url) }
     }
 
-    nonisolated(unsafe) private static let memory = NSCache<NSURL, UIImage>()
+    nonisolated(unsafe) static let memory = NSCache<NSURL, UIImage>() // intern: de rendertest zet er een beeld in
     private static let session: URLSession = {
         let c = URLSessionConfiguration.default
         c.httpCookieAcceptPolicy = .never
