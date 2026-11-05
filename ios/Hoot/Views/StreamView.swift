@@ -462,6 +462,7 @@ struct SavedView: View {
 // Zoeken: in alles wat Hoot nu van je bronnen heeft, en in Bewaard.
 struct SearchView: View {
     @Environment(HootStore.self) private var store
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var query = DebugLaunch.query ?? ""
     @State private var scope: SearchHits.Scope = .mijn // standaard Mijn bronnen, zoals op het web
     @State private var extra: [Item] = [] // Alle bronnen: ook wat alleen binnen een verhaal staat
@@ -482,11 +483,18 @@ struct SearchView: View {
                 } header: {
                     // Dezelfde schermtitel als Bewaard, Stroom en Selectie (t5-screen), niet de grote
                     // systeemtitel: die stond groter en lager (B2).
+                    // Titel en keuze op één linkerlijn (review A2). Bij heel grote tekst een menu in plaats van
+                    // het segment: dat groeit niet mee en kapte "Mijn br…" af (review A18).
                     VStack(alignment: .leading, spacing: Space.s3) {
                         ScreenTitle("Zoeken")
-                        Picker("Waar zoeken", selection: $scope) {
+                        let picker = Picker("Waar zoeken", selection: $scope) {
                             ForEach(SearchHits.Scope.allCases) { Text($0.rawValue).tag($0) }
-                        }.pickerStyle(.segmented).padding(.horizontal, Space.s4)
+                        }
+                        if typeSize.isAccessibilitySize {
+                            picker.pickerStyle(.menu).tint(Theme.ink).font(.ui(.body, .semibold))
+                        } else {
+                            picker.pickerStyle(.segmented)
+                        }
                     }.textCase(nil).listRowInsets(EdgeInsets())
                 }
             }
