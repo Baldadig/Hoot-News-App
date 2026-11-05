@@ -243,3 +243,10 @@ test('systeemmaat: Dynamic Type naar rem, miniatuur en toegankelijkheidsstand', 
   assert.equal(systeemMaat(53).rem, 49.88)
   assert.equal(systeemMaat(NaN).rem, 16)
 })
+
+// Keuze r5-bewaard (5 november): Bewaard is een archief. Geen offline- en geen opruimbelofte.
+test('Bewaard belooft alleen wat het doet: het blijft hier staan', () => {
+  const s = read('views/Saved.jsx')
+  assert.match(s, /Tik op de bladwijzer bij een verhaal\. Het blijft hier staan\./)
+  assert.doesNotMatch(s, /zonder verbinding|tot je het hebt gelezen|leeslijst/i)
+})

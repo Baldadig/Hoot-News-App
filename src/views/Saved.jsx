@@ -42,7 +42,7 @@ export default function Saved({ active }) {
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Bewaard">
       <div className="col col--read">
-        <ViewHeader title="Bewaard" sub={total ? `${total} ${total === 1 ? 'bericht' : 'berichten'} op dit toestel` : 'Je leeslijst'} />
+        <ViewHeader title="Bewaard" sub={total ? `${total} ${total === 1 ? 'bericht' : 'berichten'} op dit toestel` : 'Je archief'} />
         {total === 0 ? (
           <Empty
             art={SavedArt}
@@ -53,7 +53,7 @@ export default function Saved({ active }) {
               </a>
             }
           >
-            Tik op de bladwijzer bij een verhaal. Het staat hier tot je het hebt gelezen, ook zonder verbinding.
+            Tik op de bladwijzer bij een verhaal. Het blijft hier staan.
           </Empty>
         ) : (
           <>
