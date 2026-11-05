@@ -393,7 +393,7 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 
 /* held op desktop: toestel en zon prominenter, iets van de rand af (Alex 31-10) */
 @media (min-width:1100px){
-  .held .sc-held{--w:min(520px,calc(var(--avail) * .84));--tp:var(--s5);--vis:min(640px,calc(var(--w) * 1.42));--inz:calc((var(--avail) - var(--w)) * .3)}
+  .held .sc-held{--w:min(520px,calc(var(--avail) * .84));--tp:var(--s5);--vis:min(740px,calc(var(--w) * 1.42));--inz:calc((var(--avail) - var(--w)) * .3)}
   .held .sc-held{overflow:visible;clip-path:inset(-400px 0 0 -600px)}
   .held .sc-held .toestel{right:calc(var(--gutc) + var(--inz))}
   .held .sc-held .zonplek{right:calc(var(--gutc) + var(--inz) + var(--w) - var(--R))}
@@ -519,3 +519,5 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .held .k-beeld{aspect-ratio:2/1}
 /* Editie-telefoon: wat omhoog schuift verdwijnt zacht onder de bovenrand, zodat een kaart nooit afgekapt in de hoek begint */
 .sc-editie .scherm{-webkit-mask:linear-gradient(transparent 0,#000 2.6em);mask:linear-gradient(transparent 0,#000 2.6em)}
+/* Held: de inhoud van de telefoon staat meteen op zijn plek (geen parallax-verschuiving), op elk scherm zoals op het grote scherm (Alex 5-11) */
+.held .sc-in{transform:none}
