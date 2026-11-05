@@ -10,12 +10,26 @@ const strongStore = () => getStore({ name: 'hoot', consistency: 'strong' })
 
 export const storageMode = () => mode // 'blobs' = blijvend; 'memory' = alleen deze functie-instantie
 
+// Een terugval op geheugen is lokaal normaal (geen Blobs-omgeving: MissingBlobsEnvironmentError). Op
+// Netlify is het een storing: dan loggen we hem zichtbaar (review B3), één keer per handeling en sleutel
+// per functie-instantie, zodat een storing opvalt zonder de logs te overspoelen.
+const logged = new Set()
+export function fellBack(op, key, e) {
+  if (e?.name === 'MissingBlobsEnvironmentError') return false
+  const k = op + ':' + key
+  if (logged.has(k)) return true
+  logged.add(k)
+  console.error(`[kv] Netlify Blobs ${op} mislukte voor "${key}"; terugval op het geheugen van deze functie-instantie: ${e?.message || e}`)
+  return true
+}
+
 export async function kvGet(key, { strong = false } = {}) {
   try {
     const v = await (strong ? strongStore() : store()).get(key, { type: 'json' })
     mode = 'blobs'
     return v
-  } catch {
+  } catch (e) {
+    fellBack('lezen', key, e)
     return mem.get(key) ?? null
   }
 }
@@ -24,9 +38,72 @@ export async function kvSet(key, value, { strong = false } = {}) {
   try {
     await (strong ? strongStore() : store()).setJSON(key, value)
     mode = 'blobs'
-  } catch {
+  } catch (e) {
+    fellBack('schrijven', key, e)
     mem.set(key, value)
   }
+}
+
+// Een teller atomair één omhoog, alleen als hij onder `limit` blijft (het quotum van /api/brief, review
+// B1). Op Netlify met een voorwaardelijke schrijfactie (onlyIfNew / onlyIfMatch op de ETag) en een paar
+// nieuwe pogingen: twee gelijktijdige verzoeken kunnen nooit allebei dezelfde stand ophogen. Geeft de
+// nieuwe stand, of null als het plafond bereikt is (of het bij drukte niet lukt: dan liever nee dan te veel).
+// Zonder Blobs (lokaal, of bij een storing) in het geheugen, zonder await tussen lezen en schrijven.
+export async function kvTake(key, limit, { tries = 8 } = {}) {
+  let s
+  try {
+    s = strongStore()
+  } catch (e) {
+    fellBack('tellen', key, e)
+    return memStep(key, 1, limit)
+  }
+  for (let i = 0; i < tries; i++) {
+    try {
+      const cur = await s.getWithMetadata(key, { type: 'json' })
+      const n = Number(cur?.data) || 0
+      if (n >= limit) return null
+      const r = await s.setJSON(key, n + 1, cur ? { onlyIfMatch: cur.etag } : { onlyIfNew: true })
+      mode = 'blobs'
+      if (r?.modified !== false) return n + 1
+    } catch (e) {
+      fellBack('tellen', key, e)
+      return memStep(key, 1, limit)
+    }
+  }
+  return null
+}
+
+// Het omgekeerde (een mislukte samenvatting telt niet mee): atomair één omlaag, nooit onder nul.
+export async function kvGive(key, { tries = 8 } = {}) {
+  let s
+  try {
+    s = strongStore()
+  } catch (e) {
+    fellBack('tellen', key, e)
+    return memStep(key, -1)
+  }
+  for (let i = 0; i < tries; i++) {
+    try {
+      const cur = await s.getWithMetadata(key, { type: 'json' })
+      const n = Number(cur?.data) || 0
+      if (!cur || n <= 0) return 0
+      const r = await s.setJSON(key, n - 1, { onlyIfMatch: cur.etag })
+      if (r?.modified !== false) return n - 1
+    } catch (e) {
+      fellBack('tellen', key, e)
+      return memStep(key, -1)
+    }
+  }
+  return null
+}
+
+// Geheugen: lezen en schrijven in één synchrone stap, dus ook gelijktijdig in één instantie atomair.
+function memStep(key, d, limit = Infinity) {
+  const n = Number(mem.get(key)) || 0
+  if (d > 0 && n >= limit) return null
+  const next = Math.max(0, n + d)
+  mem.set(key, next)
+  return next
 }
 
 // Onthoudt een duur antwoord `maxAge` ms. Een leeg antwoord (alles mislukt) bewaren we niet.
@@ -43,7 +120,8 @@ export async function readDoc(key) {
   try {
     const r = await store().getWithMetadata(key, { type: 'text' })
     return r?.data ? { body: r.data, ...r.metadata } : null
-  } catch {
+  } catch (e) {
+    fellBack('lezen', key, e)
     return mem.get(key) ?? null
   }
 }
@@ -52,7 +130,8 @@ export async function writeDoc(key, doc) {
   const { body, ...metadata } = doc
   try {
     await store().set(key, body, { metadata })
-  } catch {
+  } catch (e) {
+    fellBack('schrijven', key, e)
     mem.set(key, doc)
   }
 }
