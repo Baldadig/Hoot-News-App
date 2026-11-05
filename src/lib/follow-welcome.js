@@ -60,8 +60,9 @@ export function freePick(list = [], interestId = null) {
 // Per gekozen interesse (vaste volgorde) een blok: de gratis aanrader voorop, dan de rest op naam.
 // Elke bron staat één keer: in het eerste blok waar hij hoort (NYT bij Politiek, niet nog eens bij
 // Wereld en Economie). Zo heeft elk blok ook precies één aanrader.
-export function interestBlocks(sources = [], interests = []) {
-  const seen = new Set()
+// `exclude`: bronnen die al in het voorstel staan (shared/voorstel.mjs) komen niet nog eens in een blok.
+export function interestBlocks(sources = [], interests = [], exclude = []) {
+  const seen = new Set(exclude)
   return INTERESTS.filter((i) => interests.includes(i.id))
     .map((i) => {
       const list = sources.filter((s) => !seen.has(s.id) && fitsInterest(s, i)).sort(byName)
@@ -74,8 +75,8 @@ export function interestBlocks(sources = [], interests = []) {
 
 // Meer bronnen (ingeklapt): wat niet in de Basis of in een blok staat, per rubriek (ook de andere
 // Nederlandse titels). Sport alleen via de interesse Sport of zoeken.
-export function moreGroups(sources = [], interests = []) {
-  const shown = new Set([...basisSources(sources), ...interestBlocks(sources, interests).flatMap((b) => b.sources)].map((s) => s.id))
+export function moreGroups(sources = [], interests = [], exclude = []) {
+  const shown = new Set([...exclude, ...[...basisSources(sources), ...interestBlocks(sources, interests, exclude).flatMap((b) => b.sources)].map((s) => s.id)])
   return followGroups(sources.filter((s) => !shown.has(s.id) && s.cat !== SPORT))
 }
 

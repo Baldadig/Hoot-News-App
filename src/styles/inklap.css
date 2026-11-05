@@ -48,3 +48,11 @@
 .ob__ghead > .ob__gtitle + .ob__all {
   margin-inline-start: var(--s3);
 }
+
+/* Het voorstel staat de eerste keer alvast aan (1.1.1 ronde 2, review G2): één stille regel onder de lijst. */
+.ob__alvast {
+  margin: var(--s2) 0 0;
+  color: var(--ink-3);
+  font-size: var(--t1);
+  line-height: var(--lh-1);
+}

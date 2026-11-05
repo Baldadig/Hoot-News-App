@@ -42,7 +42,8 @@ var HootCore = (() => {
     profileSummary: () => profileSummary,
     profileSummaryJSON: () => profileSummaryJSON,
     profileSummaryOf: () => profileSummaryOf,
-    recentEditions: () => recentEditions
+    recentEditions: () => recentEditions,
+    voorstelJSON: () => voorstelJSON
   });
 
   // shared/edition-display.json
@@ -114,7 +115,7 @@ var HootCore = (() => {
   var headlineFit = (title) => ({ large: 0.25, medium: 0.125, compact: 0 })[headlineTier(title)];
 
   // src/lib/topics.js
-  var T = (id, label) => ({ id, label });
+  var T = (id, label2) => ({ id, label: label2 });
   var TOPICS = [
     T("nederland", "Den Haag"),
     T("europa", "Europa"),
@@ -1092,8 +1093,8 @@ var HootCore = (() => {
       const vak = (h) => h.t.startsWith("bron:");
       const coverOf = (l) => hits.filter((hs) => hs.some((h) => h.t === l.t || vak(h) && !vak(l) && h.f === l.f)).length / items.length;
       const seenPos = pos.filter((h) => h.seen);
-      const label = [...new Map((seenPos.length ? seenPos : pos).map((h) => [h.t, h])).values()].map((h) => ({ ...h, c: coverOf(h) * h.v })).sort((a, b) => b.c - a.c || (a.t === GEO_NL) - (b.t === GEO_NL) || strongestFirst(a, b))[0];
-      parts.interest = { pts: Math.round(P.INTEREST * best.v * (0.5 + 0.5 * cover)), t: label.t, f: label.f, origin: prof.origin?.[label.t] || "gekozen", cov: coverOf(label), ...seenPos.length ? {} : { shown: false } };
+      const label2 = [...new Map((seenPos.length ? seenPos : pos).map((h) => [h.t, h])).values()].map((h) => ({ ...h, c: coverOf(h) * h.v })).sort((a, b) => b.c - a.c || (a.t === GEO_NL) - (b.t === GEO_NL) || strongestFirst(a, b))[0];
+      parts.interest = { pts: Math.round(P.INTEREST * best.v * (0.5 + 0.5 * cover)), t: label2.t, f: label2.f, origin: prof.origin?.[label2.t] || "gekozen", cov: coverOf(label2), ...seenPos.length ? {} : { shown: false } };
       const famCat = (h) => FAMILY_OF_CAT[prof.catOf?.get(h.s)];
       const crossHits = hits.map((hs) => hs.filter((h) => h.v >= CROSS_MIN && h.seen && (!famCat(h) || famCat(h) === h.f)));
       const famCover = (f) => crossHits.filter((hs) => hs.some((h) => h.f === f)).length * 2 > items.length;
@@ -2620,8 +2621,8 @@ var HootCore = (() => {
       const worldReader = worldChosen(prof);
       const domesticReader = (prof?.family?.binnenland || 0) > 0 || !worldReader && Object.keys(prof?.family || {}).length === 0;
       const front = cands.filter((c) => c.kind === "story" && (c.sc >= FRONT_MIN || majorNews(c.st, c.items)) && !c.parts.seen).sort(byFront);
-      const dutch = (c) => homeNews(c);
-      const home = !domesticReader ? [] : cands.filter((c) => !c.parts.seen && !c.parts.less && dutch(c)).sort(byFront);
+      const dutch2 = (c) => homeNews(c);
+      const home = !domesticReader ? [] : cands.filter((c) => !c.parts.seen && !c.parts.less && dutch2(c)).sort(byFront);
       let hasHome = false;
       const room = () => Math.min(FRONT_MAX, size) - (hasHome || !home.length ? 0 : 1);
       for (const c of front) {
@@ -2629,7 +2630,7 @@ var HootCore = (() => {
         if (strictInt && capped(c)) continue;
         if (!take(c, c.desk, { front: true })) continue;
         if (cappedWorld(c)) counted.add(c.id);
-        if (dutch(c)) hasHome = true;
+        if (dutch2(c)) hasHome = true;
       }
       if (!hasHome) home.some((c) => take(c, c.desk, { front: true }));
       for (const c of front) {
@@ -2713,12 +2714,12 @@ var HootCore = (() => {
       byId2 ||= new Map(all.map((i) => [i.id, i]));
       return coverageOf(st.itemIds.map((id) => byId2.get(id)).filter(Boolean)).publisherCountries.some((c) => c === "NL" || c === "BE");
     };
-    const dutch = new Set(sources.filter((s) => s.lang === "nl" && !VL_HOME.has(s.id)).map((s) => s.name));
+    const dutch2 = new Set(sources.filter((s) => s.lang === "nl" && !VL_HOME.has(s.id)).map((s) => s.name));
     return stories.map((st) => ({
       ...st,
       ownCount: new Set(st.itemIds.map((id) => ownSource.get(id)).filter(Boolean)).size,
       desk: st.desk !== void 0 ? st.desk : deskOf(st),
-      ...st.nlCount === void 0 && dutch.size && st.sourceNames ? { nlCount: st.sourceNames.filter((n) => dutch.has(n)).length } : {},
+      ...st.nlCount === void 0 && dutch2.size && st.sourceNames ? { nlCount: st.sourceNames.filter((n) => dutch2.has(n)).length } : {},
       // Brengt een Nederlandse of Vlaamse uitgever dit verhaal (internationalNews)? Een oudere server levert
       // `publisherCountries` niet; dan uit alles wat we van het verhaal hebben, niet alleen je eigen bronnen.
       ...st.publisherCountries === void 0 ? { homeCovered: homeOf(st) } : {}
@@ -2829,8 +2830,8 @@ var HootCore = (() => {
     const leads = own.map((e) => e.leadId || e.id);
     const sameAsPlaced = (id) => sigAll.has(id) && leads.some((x) => x !== id && sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x)));
     const fitOf = (w) => Math.max(0, ...(w.topics || []).map((t) => Math.max(prof.topicP[t] || 0, prof.shareOf[t] || 0)));
-    const free = (w) => w?.item?.id && eligible(w.item.id, w.storyId, w) && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId);
-    const wide0 = (global.wide || []).find((w) => free(w) && bigWide(w) && outsideProfile(w.topics, prof)) || (global.wide || []).find((w) => free(w) && bigWide(w)) || (global.wide || []).find((w) => free(w) && outsideProfile(w.topics, prof)) || (global.wide || []).filter(free).sort((a, b) => fitOf(a) - fitOf(b) || b.sourceCount - a.sourceCount || byText(a.storyId, b.storyId))[0];
+    const free2 = (w) => w?.item?.id && eligible(w.item.id, w.storyId, w) && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId);
+    const wide0 = (global.wide || []).find((w) => free2(w) && bigWide(w) && outsideProfile(w.topics, prof)) || (global.wide || []).find((w) => free2(w) && bigWide(w)) || (global.wide || []).find((w) => free2(w) && outsideProfile(w.topics, prof)) || (global.wide || []).filter(free2).sort((a, b) => fitOf(a) - fitOf(b) || b.sourceCount - a.sourceCount || byText(a.storyId, b.storyId))[0];
     let wide = wide0 ? { ...wide0, item: wideLead(wide0) } : null;
     let swapped = 0;
     if (wide && !wideAny) {
@@ -3055,6 +3056,68 @@ var HootCore = (() => {
     let h = 5381;
     for (let i = 0; i < text.length; i++) h = (h * 33 ^ text.charCodeAt(i)) >>> 0;
     return h.toString(36);
+  }
+
+  // shared/voorstel.mjs
+  var VOORSTEL_MAX = 5;
+  var ALGEMEEN = ["nos", "nu", "rtl"];
+  var NL_NIEUWS = /* @__PURE__ */ new Set(["politiek", "binnenland"]);
+  var EXTRA_CATS = { wereld: ["int"] };
+  var free = (s) => !s.paid;
+  var dutch = (s) => s.lang === "nl";
+  function fit(s, i, topics = []) {
+    if (!s || !i) return 0;
+    if (NL_NIEUWS.has(i.id) && ALGEMEEN.includes(s.id)) return 2;
+    if (s.cat === "nl" || s.cat === "vl") return 0;
+    let n = 0;
+    if ((s.for || []).includes(i.id)) n += 4;
+    if (s.forTopic && topics.includes(s.forTopic) && i.topics.includes(s.forTopic)) n += 3;
+    if ([...i.cats, ...EXTRA_CATS[i.id] || []].includes(s.cat)) n += 2;
+    if (s.forTopic && !topics.length && i.topics.includes(s.forTopic)) n += 1;
+    return n;
+  }
+  var label = (ids) => {
+    const names = INTERESTS.filter((i) => ids.includes(i.id)).map((i) => i.label);
+    return names.length > 1 ? `${names.slice(0, -1).join(", ")} en ${names[names.length - 1]}` : names[0] || "";
+  };
+  function voorstel(sources = [], interests = [], topics = []) {
+    const chosen = INTERESTS.filter((i) => interests.includes(i.id) || i.topics.some((t) => topics.includes(t)));
+    if (!chosen.length) return null;
+    const news = sources.filter((s) => s.kind !== "sociaal");
+    const out = [];
+    const has = (id) => out.some((o) => o.id === id);
+    const add = (s, why2) => s && !has(s.id) && out.length < VOORSTEL_MAX && out.push({ id: s.id, why: why2 });
+    const start = ALGEMEEN.map((id) => news.find((s) => s.id === id)).find((s) => s && free(s));
+    add(start, "Het nieuws van de dag");
+    const covers = (s) => chosen.filter((i) => (s.for || []).includes(i.id)).map((i) => i.id);
+    const dominant = news.filter((s) => !has(s.id) && covers(s).length >= 2).sort((a, b) => covers(b).length - covers(a).length)[0] || null;
+    const picks = [];
+    for (const i of chosen) {
+      const fits = news.filter((s) => fit(s, i, topics) > 0 && !has(s.id) && !picks.some((p) => p.s.id === s.id));
+      const best = (list) => list.sort((a, b) => fit(b, i, topics) - fit(a, i, topics) || (b.pick ? 1 : 0) - (a.pick ? 1 : 0))[0] || null;
+      const pick = best(fits.filter((s) => free(s) && dutch(s))) || best(fits.filter(free));
+      if (pick) {
+        picks.push({ s: pick, i });
+        continue;
+      }
+      if (dominant && covers(dominant).includes(i.id)) continue;
+      const paid = best(fits);
+      if (paid) picks.push({ s: paid, i });
+    }
+    if (dominant) add(dominant, `Past bij ${label(covers(dominant))}`);
+    const why = (s, i) => ALGEMEEN.includes(s.id) ? `Snel het ${i.id === "politiek" ? "politieke" : "binnenlandse"} nieuws` : `Past bij ${i.label}`;
+    for (const { s, i } of picks) add(s, why(s, i));
+    for (const i of chosen) {
+      if (out.length >= 3) break;
+      const fits = news.filter((s) => fit(s, i, topics) > 0 && free(s) && !has(s.id));
+      const next = fits.sort((a, b) => (dutch(b) ? 1 : 0) - (dutch(a) ? 1 : 0) || fit(b, i, topics) - fit(a, i, topics) || (b.pick ? 1 : 0) - (a.pick ? 1 : 0))[0];
+      if (next) add(next, why(next, i));
+    }
+    return out;
+  }
+  function voorstelJSON(jsonIn) {
+    const { sources = [], interests = [], topics = [] } = JSON.parse(jsonIn || "{}");
+    return JSON.stringify(voorstel(sources, interests, topics));
   }
 
   // src/lib/editionCore.js

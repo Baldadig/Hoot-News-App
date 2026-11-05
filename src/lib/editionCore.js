@@ -155,3 +155,6 @@ export function profileSummaryJSON(jsonIn) {
 }
 
 export { editionBasis, profileSummary }
+
+// Het voorstel bovenaan de bronnenstap van het welkom (1.1.1): dezelfde regels op web en app (shared/voorstel.mjs).
+export { voorstelJSON } from '../../shared/voorstel.mjs'
