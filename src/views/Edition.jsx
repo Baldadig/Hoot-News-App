@@ -23,7 +23,7 @@ import { SLOTS } from '../../shared/slots.mjs'
 import { fitsHero } from '../lib/img.js'
 import { followedNow } from '../lib/follow.js'
 import { TermHelp } from '../components/Terms.jsx'
-import { Why } from '../components/Why.js'
+import { Why, whyLine } from '../components/Why.js'
 import { labelFor } from '../lib/label.js'
 import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { usePrintEdition, markPrinted } from '../hooks/usePrintEdition.js'
@@ -47,7 +47,7 @@ const SIDE = 3 // breed: het hoofdverhaal met 02 en 03 ernaast, daarna de paren
 // (jouw Editie) staat als stille regel onder de rubriek, boven de kop (zie Why.js).
 // `boven`: breed, in een paar dat anders een gat laat (Edition: usePairs). Het beeld staat dan groot
 // boven het verhaal, precies zo hoog als het paar nodig heeft, in plaats van klein naast de kop.
-function FrontItem({ item, story, note, n = null, why = null, followed, taste, outside = false, boven = null }) {
+function FrontItem({ item, story, note, n = null, why = null, followed, taste, outside = false, boven = null, whySpace = false }) {
   const { markRead, read, prefs } = useHoot()
   const opinie = item.type === 'opinie'
   const title = item.title
@@ -70,6 +70,7 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
         </p>
       ) : null}
       <Why why={why} />
+      {whySpace && !whyLine(why) ? <p className="why why--leeg" aria-hidden="true">&nbsp;</p> : null}
       <a className="fitem__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         <span className="fitem__text">
           <span className="head-4 fitem__title" role="heading" aria-level="3">
@@ -183,10 +184,12 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
     if (tien.active && ready) markPrinted(edition?.id)
   }, [tien.active, ready, edition?.id])
 
-  // Breed (A): elk paar even hoog en het hoofdverhaal even hoog als zijn zijkolom.
+  // Breed (A): het hoofdverhaal even hoog als zijn zijkolom. De paren krijgen geen groot beeld meer
+  // boven het kortere verhaal (poetsbeurt 5 november: elke rij dezelfde opbouw, kop links en een
+  // klein beeld rechts op één hoogte, zie src/styles/rust.css); usePairs meet nog wel de voorpagina.
   const frontRef = useRef(null)
   const pairsRef = useRef(null)
-  const boven = usePairs(pairsRef, frontRef, active && ready && !phone, rows.slice(SIDE).map((r) => r.key).join(','))
+  usePairs(pairsRef, frontRef, active && ready && !phone, rows.slice(SIDE).map((r) => r.key).join(','))
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
@@ -309,7 +312,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 </div>
               </PlaceholderList>
             ) : (
-            <PlaceholderList rows={rows.map((r, i) => ({ item: r.item, kind: i === 0 ? 'lead' : boven[r.key] ? 'boven' : 'krant' }))}>
+            <PlaceholderList rows={rows.map((r, i) => ({ item: r.item, kind: i === 0 ? 'lead' : 'krant' }))}>
             <div className="front" ref={frontRef}>
               <Slot less={less} row={rows[0]}>
                 <LeadStory n={rows[0].n} item={rows[0].item} story={rows[0].story} note={rows[0].note} why={rows[0].why} outside={rows[0].outside} followed={onFront.get(rows[0].key)} priority={active} taste={rows[0].key} />
@@ -326,14 +329,14 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
             </div>
             {rows.length > SIDE ? (
               <div className="pairs rows" ref={pairsRef}>
-                {rows.slice(SIDE).map((r, i) => [
+                {rows.slice(SIDE).map((r, i, paired) => [
                   SIDE + i === FRONT ? (
                     <h2 key="verder" className="label label--section front__more pairs__label">
                       Verder in deze Editie
                     </h2>
                   ) : null,
                   <Slot key={r.key} less={less} row={r}>
-                    <FrontItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} boven={boven[r.key] || null} />
+                    <FrontItem n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} whySpace={!!whyLine(paired[i % 2 ? i - 1 : i + 1]?.why)} />
                   </Slot>,
                 ])}
               </div>

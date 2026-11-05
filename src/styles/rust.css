@@ -1,0 +1,25 @@
+/* ==========================================================================
+   Rust en balans (web, poetsbeurt 5 november, op feedback van Alex). Eigen bestand, want
+   styles.css is vastgelegd tot het Nacht-blok (tests/fixtures/zacht-papier-baseline.json).
+   Komt na styles.css en kaart.css, dus bij gelijk gewicht wint wat hier staat.
+   Alle maten op de bestaande tokens (--s1 … --s7, --dur-*, --ease).
+   ========================================================================== */
+
+/* ---------- 1. Editie, breed: elke rij van het raster heeft dezelfde opbouw ----------
+   Een rij in de paren is: rubriek · waarom · kop met intro en klein beeld · bronregel. Heeft het ene
+   verhaal van een rij een waarom-regel ("Groot nieuws", "Uit je voorkeursbron NYT") en het andere
+   niet, dan houdt het andere die regel leeg vrij (.why--leeg, Edition.jsx). Zo beginnen beide koppen
+   op één lijn en staan de kleine beelden even hoog en even groot; de bronregels staan al onderaan op
+   één lijn. Geen groot beeld meer boven het kortere verhaal van een paar: een rij is altijd kop
+   links, klein beeld rechts. (Een subgrid kan hier niet: elk verhaal is een container voor zijn
+   bronregel, en een container wordt nooit een subgrid.) */
+.why--leeg {
+  display: none;
+}
+@container front (width > 48rem) {
+  .pairs > .fitem > .why--leeg {
+    display: block;
+    visibility: hidden;
+  }
+}
+
