@@ -237,7 +237,7 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 @media (prefers-reduced-motion:reduce){.pan-in{animation:none}}
 
 /* zichtbare hoogte per band, in verhouding tot de breedte van het toestel (de tekst in het scherm schaalt mee) */
-.sc-held{--vis:calc(var(--w) * 1.5)}
+.sc-held{--vis:calc(var(--w) * 1.36)}
 .sc-stroom{--vis:calc(var(--w) * 1.12)}
 .sc-selectie{--vis:calc(var(--w) * 1.32)}
 /* 01 Editie: geen zon naast het toestel (die loopt boven zijn baan); het toestel staat midden in de kolom en leest zelf de Editie uit */
