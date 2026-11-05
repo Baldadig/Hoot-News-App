@@ -409,6 +409,7 @@ export default function App() {
   // je wilt inloggen (zie src/lib/join.js; JOIN_AUTO staat aan sinds 1.1.0, hooguit twee keer).
   // joinOpen: false, of waarom het blad open is ('sync' vanzelf, 'brief' via de samenvatting).
   const [joinOpen, setJoinOpen] = useState(false)
+  const endSeen = useRef(false)
   const joinAsked = rawPrefs.joinAsked
   const mayAsk = JOIN_AUTO && account.status === 'out' && prefs.onboarded && !showWelcome
   useEffect(() => {
@@ -417,10 +418,18 @@ export default function App() {
     // leespositie), en alleen in de lijst zelf (niet in een geopend verhaal of paneel).
     let byUser = false
     const onInput = () => (byUser = true)
+    // De rode eindkaart van de Editie: de vraag komt pas als je hem hebt gezien, en nooit eroverheen.
+    const endOf = (el) => {
+      const card = el.querySelector('.endcap')
+      if (!card) return 'none'
+      const r = card.getBoundingClientRect()
+      if (r.top < window.innerHeight && r.bottom > 0) return (endSeen.current = true), 'inview'
+      return endSeen.current ? 'after' : 'before'
+    }
     const onScroll = (e) => {
       const el = e.target
       if (!byUser || !(el instanceof Element) || !el.matches('section.view')) return
-      if (!shouldAskToJoin({ status: 'out', onboarded: true, path, scrolled: el.scrollTop, asked: joinAsked })) return
+      if (!shouldAskToJoin({ status: 'out', onboarded: true, path, scrolled: el.scrollTop, asked: joinAsked, end: path === 'editie' ? endOf(el) : 'none' })) return
       setJoinOpen('sync')
       setPref('joinAsked', { n: (joinAsked?.n || 0) + 1, at: Date.now() })
     }

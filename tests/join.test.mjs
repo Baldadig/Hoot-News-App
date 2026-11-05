@@ -76,3 +76,15 @@ test('landing: de FAQ zegt dat een account voor iedereen is', () => {
   assert.match(html, /Wil je je bronnen en Bewaard op al je toestellen\? Maak dan gratis een account\./)
   assert.match(html, /<summary>Heb ik een account nodig\?<\/summary>/)
 })
+
+// Keuze r5-einde-rust (5 november): de vraag komt pas ná het einde van de Editie en schuift nooit over
+// de rode eindkaart. In de Stroom blijft het zoals het was.
+test('Editie: niet vóór en niet over de eindkaart, wel als je hem gezien hebt', () => {
+  assert.equal(shouldAskToJoin({ ...base, end: 'before' }), false)
+  assert.equal(shouldAskToJoin({ ...base, end: 'inview' }), false)
+  assert.equal(shouldAskToJoin({ ...base, end: 'after' }), true)
+  assert.equal(shouldAskToJoin({ ...base, end: 'none' }), true) // een Editie zonder eindkaart
+  assert.equal(shouldAskToJoin({ ...base, path: 'stroom', end: 'before' }), true)
+  const app = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8')
+  assert.match(app, /end: path === 'editie' \? endOf\(el\) : 'none'/)
+})
