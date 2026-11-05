@@ -93,6 +93,71 @@ final class KopTests: XCTestCase {
         }
     }
 
+    // Eindkeuring 48, B1: de lege Selectie ("Kies je onderwerpen") bij AX5 op de SE (375, kolom 343)
+    // bevroor de app. Kop mat zijn eigen, gezette breedte en zette zich daarop opnieuw: een lus. Nu meet
+    // hij de kolom. De kop moet binnen een paar updates tot rust komen, en gezet zijn voor de kolom
+    // (343): "onderwerpen" past daar heel, dus zonder streepjes.
+    @MainActor func testKopKomtTotRustInDeKolom() async throws {
+        final class Probe { var sizes: [CGSize] = [] }
+        let probe = Probe()
+        let title = "Kies je onderwerpen", width: CGFloat = 375, column: CGFloat = 343
+        let view = VStack(alignment: .leading, spacing: Space.s2) {
+            Kop(title, .title2).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
+                .onGeometryChange(for: CGSize.self) { $0.size } action: { probe.sizes.append($0) }
+            Text("Elke maandag het beste per onderwerp.").fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, (width - column) / 2)
+        .frame(width: width, alignment: .topLeading)
+        .environment(\.dynamicTypeSize, .accessibility5)
+        let host = UIHostingController(rootView: view)
+        host.view.frame = CGRect(x: 0, y: 0, width: width, height: 1200)
+        let window = UIWindow(frame: host.view.frame); window.rootViewController = host; window.isHidden = false
+        defer { window.isHidden = true }
+        host.view.layoutIfNeeded()
+        try await Task.sleep(for: .milliseconds(400))
+        let settled = probe.sizes.count, meldingen = KolomBreedte.meldingen
+        try await Task.sleep(for: .milliseconds(600))
+        XCTAssertEqual(probe.sizes.count, settled, "de kop blijft zich opnieuw zetten: \(probe.sizes.suffix(6))")
+        XCTAssertEqual(KolomBreedte.meldingen, meldingen, "de kolombreedte blijft veranderen")
+        XCTAssertLessThanOrEqual(settled, 4, "te veel updates voor rust: \(probe.sizes)")
+
+        // Gezet voor de kolom: dezelfde hoogte als de kop die KopZet voor 343 punten zet.
+        let fit = KopZet.fit(title, style: .title2, typeSize: .accessibility5, width: column)
+        // De lus ontstond als een regel alleen nog het breedste woord droeg: de eigen breedte was dan precies
+        // dat woord, en met de speling van een punt paste het "niet" meer. Hier breekt de kop dus echt.
+        XCTAssertGreaterThan(KopZet.measure(title, font: KopZet.font(.title2, typeSize: .accessibility5)), column, "de kop moet bij AX5 over meer regels lopen")
+        let font: Font = fit.scale < 1 ? .custom(Letters.kop, fixedSize: KopZet.pointSize(.title2, typeSize: .accessibility5) * fit.scale) : .kop(.title2)
+        let reference = UIHostingController(rootView: Text(fit.text).font(font).fixedSize(horizontal: false, vertical: true).environment(\.dynamicTypeSize, .accessibility5))
+        let expected = reference.sizeThatFits(in: CGSize(width: column, height: .greatestFiniteMagnitude))
+        let last = try XCTUnwrap(probe.sizes.last)
+        XCTAssertEqual(last.height, expected.height, accuracy: 1, "de kop is niet voor de kolom gezet")
+    }
+
+    // Hetzelfde op het echte scherm: de lege Selectie (DigestView zonder onderwerpen) op een SE bij AX5.
+    // Met de oude Kop draaide de app hier vast (110 % CPU); nu komen de koppen na een paar meldingen tot rust.
+    @MainActor func testLegeSelectieBijAX5KomtTotRust() async throws {
+        let keep = UserDefaults.standard.object(forKey: "hoot.digestFields")
+        defer { if let keep { UserDefaults.standard.set(keep, forKey: "hoot.digestFields") } else { UserDefaults.standard.removeObject(forKey: "hoot.digestFields") } }
+        let store = HootStore(), account = Account()
+        store.digestFields = []
+        let suite = "hoot-kop-rust-" + UUID().uuidString, defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let content = DigestView().modifier(HootLetterMaat()).environment(store).environment(account).environment(EditionAlerts.shared)
+            .tint(Theme.ink).toggleStyle(InkSwitch()).modifier(HootWeergave()).defaultAppStorage(defaults)
+        let host = UIHostingController(rootView: content)
+        host.traitOverrides.preferredContentSizeCategory = .accessibilityExtraExtraExtraLarge
+        host.view.frame = CGRect(x: 0, y: 0, width: 375, height: 667)
+        let window = UIWindow(frame: host.view.frame); window.rootViewController = host; window.isHidden = false
+        defer { window.isHidden = true }
+        host.view.layoutIfNeeded()
+        try await Task.sleep(for: .milliseconds(800))
+        let settled = KolomBreedte.meldingen
+        try await Task.sleep(for: .milliseconds(800))
+        XCTAssertEqual(KolomBreedte.meldingen, settled, "de koppen op de lege Selectie blijven zich opnieuw zetten")
+        let image = UIGraphicsImageRenderer(size: host.view.bounds.size).image { _ in host.view.drawHierarchy(in: host.view.bounds, afterScreenUpdates: true) }
+        let a = XCTAttachment(image: image); a.name = "ios-se-ax5-lege-selectie"; a.lifetime = .keepAlways; add(a)
+    }
+
     // Renderbewijs: de lange koppen bij AX5 op SE en Pro Max, als bijlage van de toets.
     @MainActor func testRenderAX5() async throws {
         for (name, width) in [("se", 375.0), ("promax", 440.0)] {

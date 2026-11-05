@@ -30,10 +30,48 @@ struct Kop: View {
 
     var body: some View {
         let fit = KopZet.fit(text, style: style, typeSize: typeSize, width: width, size: size)
-        Text(fit.text)
-            .font(fit.scale < 1 ? .custom(Letters.kop, fixedSize: KopZet.pointSize(style, typeSize: typeSize, size: size) * fit.scale) : size.map { .custom(Letters.kop, size: Letters.maat($0), relativeTo: style) } ?? .kop(style))
-            .accessibilityLabel(text)
-            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+        // De breedte is die van de kolom (wat de ouder de kop aanbiedt), niet die van de gezette kop. Een
+        // kop die door afbreken of verkleinen smaller wordt, meet zichzelf ook smaller; met die maat
+        // opnieuw zetten gaf een eindeloze lus (eindkeuring 48, B1: lege Selectie bij AX5 op de SE).
+        KolomBreedte(width: $width) {
+            Text(fit.text)
+                .font(fit.scale < 1 ? .custom(Letters.kop, fixedSize: KopZet.pointSize(style, typeSize: typeSize, size: size) * fit.scale) : size.map { .custom(Letters.kop, size: Letters.maat($0), relativeTo: style) } ?? .kop(style))
+                .accessibilityLabel(text)
+        }
+    }
+}
+
+// Legt het kind precies zo neer als zonder deze laag (zelfde maat, zelfde basislijnen), en meldt de
+// breedte die de ouder aanbiedt: de kolom. Die hangt niet af van hoe de kop gezet is, dus na één
+// melding staat hij stil. Zonder aangeboden breedte (een horizontale scroll) blijft de kop ongezet.
+struct KolomBreedte: SwiftUI.Layout { // SwiftUI.Layout: Hoot heeft zelf een enum Layout
+    let width: Binding<CGFloat>
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        subviews.first?.sizeThatFits(proposal) ?? .zero
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin, proposal: proposal)
+        guard let offered = proposal.width, offered.isFinite, offered > 0 else { return }
+        let column = (offered * 2).rounded(.down) / 2 // op een halve punt: geen nieuwe zet om een haar
+        guard abs(column - width.wrappedValue) >= 0.5 else { return }
+        let binding = width
+        #if DEBUG
+        Self.meldingen += 1 // KopTests: na rust komen er geen meldingen meer bij
+        #endif
+        Task { @MainActor in binding.wrappedValue = column } // niet tijdens de opmaak zelf
+    }
+    #if DEBUG
+    nonisolated(unsafe) static var meldingen = 0
+    #endif
+
+    func explicitAlignment(of guide: VerticalAlignment, in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGFloat? {
+        subviews.first.map { bounds.minY + $0.dimensions(in: proposal)[guide] }
+    }
+
+    func explicitAlignment(of guide: HorizontalAlignment, in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGFloat? {
+        subviews.first.map { bounds.minX + $0.dimensions(in: proposal)[guide] }
     }
 }
 
@@ -75,7 +113,17 @@ enum KopZet {
         return ns as String
     }
 
+    // De taal per kop maar één keer bepalen: een taalmodel laden bij elke opbouw kost te veel.
+    nonisolated(unsafe) private static let locales = NSCache<NSString, NSLocale>()
+
     static func locale(for text: String) -> Locale {
+        if let hit = locales.object(forKey: text as NSString) { return hit as Locale }
+        let found = recognize(text)
+        locales.setObject(found as NSLocale, forKey: text as NSString)
+        return found
+    }
+
+    private static func recognize(_ text: String) -> Locale {
         let r = NLLanguageRecognizer()
         r.languageConstraints = [.dutch, .english] // de koppen van Hoot: Nederlands, of Engels (NYT, The Verge, The Atlantic)
         r.languageHints = [.dutch: 0.7, .english: 0.3]
