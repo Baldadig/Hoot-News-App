@@ -36,6 +36,7 @@ struct WelcomeView: View {
     @State private var query = ""
     @State private var showFollowed = false // de pil Gevolgd (anders Aanbevolen)
     @State private var more = false // Meer bronnen uitgeklapt
+    @State private var fold: [String: Bool] = [:] // inklapbare categorieën: wat jij open- of dichtklapte (anders FollowList.startsOpen)
     @State private var peekOpen = false
     @State private var selOpen = false
     @State private var chosen: [String]? // je bronnen; pas ingevuld als ze er zijn
@@ -469,6 +470,7 @@ struct WelcomeView: View {
                 .padding(.top, Space.s3)
                 .dynamicTypeSize(...DynamicTypeSize.accessibility2)
                 sourceList
+                    .onChange(of: mine) { before, _ in freezeFolds(before: before) }
                 if !wide && typeSize.isAccessibilitySize {
                     VStack(alignment: .leading, spacing: 0) {
                         Rectangle().fill(Theme.ink).frame(height: 2).padding(.bottom, Space.s3)
@@ -514,6 +516,16 @@ struct WelcomeView: View {
         .overlay(Capsule().strokeBorder(Theme.edge, lineWidth: 1))
     }
 
+    // Ontvolg je alles in een open categorie, dan blijft hij open: bij elke wijziging leggen we de stand vast
+    // zoals hij vóór die wijziging was.
+    private func freezeFolds(before: [String]) {
+        let all = store.newsSources
+        var groups: [(String, [Source])] = [("basis", FollowList.basis(all))]
+        groups += FollowList.blocks(all, interests).map { ("b-\($0.id)", $0.sources) }
+        groups += FollowList.more(all, interests).map { ("g-\($0.cat)", $0.sources) }
+        for (id, list) in groups where fold[id] == nil { fold[id] = isOpen(id, list, in: before) }
+    }
+
     @ViewBuilder private var sourceList: some View {
         let all = store.newsSources
         if chosen == nil || all.isEmpty {
@@ -542,7 +554,7 @@ struct WelcomeView: View {
             let restCount = rest.reduce(0) { $0 + $1.sources.count }
             let basis = FollowList.basis(all)
             if !basis.isEmpty {
-                section("Basis") {
+                foldGroup(id: "basis", title: "Basis", list: basis, picks: Set(start.map(\.id))) {
                     if !start.isEmpty {
                         Button(startOn ? "Alle drie gevolgd" : "Volg alle drie") {
                             let ids = start.map(\.id)
@@ -554,24 +566,18 @@ struct WelcomeView: View {
                         .lineLimit(1)
                         .fixedSize()
                         .frame(minHeight: Space.tap)
+                        .padding(.leading, Space.s3)
                         .accessibilityAddTraits(startOn ? .isSelected : [])
                     }
                 }
-                rows(basis, picks: Set(start.map(\.id)))
             }
             ForEach(blocks, id: \.id) { b in
-                section(b.label) {
-                    Text("\(b.sources.count)").font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink3).monospacedDigit()
-                }
-                rows(b.sources, picks: Set([b.pick].compactMap { $0 }))
+                foldGroup(id: "b-\(b.id)", title: b.label, list: b.sources, picks: Set([b.pick].compactMap { $0 })) { EmptyView() }
             }
             if restCount > 0 {
                 if more {
                     ForEach(rest, id: \.cat) { g in
-                        section(g.label) {
-                            Text("\(g.sources.count)").font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink3).monospacedDigit()
-                        }
-                        rows(g.sources)
+                        foldGroup(id: "g-\(g.cat)", title: g.label, list: g.sources) { EmptyView() }
                     }
                 } else {
                     Button { more = true } label: {
@@ -584,6 +590,48 @@ struct WelcomeView: View {
                 }
             }
         }
+    }
+
+    // Is deze categorie open? Wat jij koos, anders de beginstand (de Basis, of er staat al iets gevolgd in).
+    private func isOpen(_ id: String, _ list: [Source], in followed: [String]) -> Bool {
+        fold[id] ?? FollowList.startsOpen(id, chosen: FollowList.chosenIn(list, followed))
+    }
+
+    // Een inklapbare categorie (1.1.1, gelijk aan Fold in src/views/Welcome.jsx): de kop is een knop met de
+    // naam, het aantal gekozen bronnen en een pijl (dicht naar rechts, open omlaag); ingeklapt alleen de kop.
+    // `action`: een knop naast de kop (Volg alle drie in de Basis).
+    @ViewBuilder private func foldGroup<Action: View>(id: String, title: String, list: [Source], picks: Set<String> = [], @ViewBuilder action: () -> Action) -> some View {
+        let open = isOpen(id, list, in: mine)
+        VStack(spacing: 0) {
+            HStack(alignment: .center, spacing: 0) {
+                Button {
+                    withAnimation(still ? nil : .easeOut(duration: 0.2)) { fold[id] = !open }
+                } label: {
+                    HStack(alignment: .center, spacing: Space.s2) {
+                        GroupTitle(text: title, tone: Theme.ink)
+                        Spacer(minLength: Space.s2)
+                        Text(FollowList.foldCount(FollowList.chosenIn(list, mine), list.count))
+                            .font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink3).monospacedDigit()
+                            .lineLimit(1)
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Theme.ink3)
+                            .rotationEffect(.degrees(open ? 90 : 0))
+                            .accessibilityHidden(true)
+                    }
+                    .frame(minHeight: Space.tap)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityValue(open ? "Open" : "Dicht")
+                .accessibilityHint(open ? "Klapt \(title) in" : "Toont de bronnen van \(title)")
+                action()
+            }
+            .dynamicTypeSize(...DynamicTypeSize.accessibility1) // de kop en "Volg alle drie" breken niet af
+            Rectangle().fill(Theme.ink).frame(height: 2)
+        }
+        .padding(.top, Space.s5)
+        if open { rows(list, picks: picks) }
     }
 
     private func section<Trailing: View>(_ title: String, @ViewBuilder trailing: () -> Trailing) -> some View {
@@ -923,6 +971,13 @@ enum FollowList {
         out.append((cat: "overig", label: "Overig", sources: rest.filter { !known.contains($0.cat ?? "") }.sorted(by: byName)))
         return out.filter { !$0.sources.isEmpty }
     }
+
+    // Inklapbare categorieën (1.1.1, gelijk aan src/lib/follow-welcome.js): hoeveel je in een categorie volgt,
+    // of hij bij het openen van de stap open staat (de Basis altijd, anders als je er iets in volgt) en wat de
+    // kop rechts zegt ("2 van 8 gevolgd", of zonder keuze "8 bronnen").
+    static func chosenIn(_ list: [Source], _ followed: [String]) -> Int { list.filter { followed.contains($0.id) }.count }
+    static func startsOpen(_ id: String, chosen: Int) -> Bool { id == "basis" || chosen > 0 }
+    static func foldCount(_ chosen: Int, _ total: Int) -> String { chosen > 0 ? "\(chosen) van \(total) gevolgd" : "\(total) \(total == 1 ? "bron" : "bronnen")" }
 
     // Zoeken op naam en omschrijving, in alle bronnen (ook sport: zoeken is een keuze).
     static func find(_ sources: [Source], _ query: String) -> [Source] {

@@ -8,7 +8,7 @@ import { CaretIcon, CheckIcon, ICON_SM, SearchIcon } from '../components/icons.j
 import { vakByDomain } from '../../shared/vak.mjs'
 import { INTERESTS, resolveTopics } from '../lib/topics.js'
 import { sourcesOn, pickedFrom, sourceLine } from '../lib/welcome.js'
-import { toggleFollow, freeStart, startIds, basisSources, interestBlocks, moreGroups, findSources, followedSources, followedLine, previewLines } from '../lib/follow-welcome.js'
+import { toggleFollow, freeStart, startIds, basisSources, interestBlocks, moreGroups, findSources, followedSources, followedLine, previewLines, chosenIn, startsOpen, foldCount } from '../lib/follow-welcome.js'
 import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, waitFor, sleep, tintTimes, openTimes, reducedPlan, crossPlan, rootColor, IRIS, IRIS_BACK, IRIS_MS, STEP_OUT_MS, STEP_IN_MS } from '../lib/motion.js'
 
 // Welkom (1.1.0), gelijk aan de app (ios/Hoot/Views/WelcomeView.swift). Vier schermen:
@@ -369,6 +369,14 @@ function Bronnen({ head, sources, items, mine, interests, onPick, onAll, query, 
   const startIds = new Set(start.map((s) => s.id))
   const restCount = rest.reduce((n, g) => n + g.sources.length, 0)
   const q = query.trim()
+  // Inklapbare categorieën: open of dicht per categorie, de eerste keer bepaald door startsOpen (de Basis, of
+  // er staat al iets gevolgd in), daarna door jou. Een ref, zodat ontvolgen een open categorie niet sluit.
+  const fold = useRef({})
+  const [, redraw] = useState(0)
+  const toggle = (id, open) => {
+    fold.current[id] = !open
+    redraw((n) => n + 1)
+  }
   let body
   if (!sources.length) body = null
   else if (q) {
@@ -387,44 +395,20 @@ function Bronnen({ head, sources, items, mine, interests, onPick, onAll, query, 
     body = (
       <>
         {basis.length ? (
-          <section className="ob__group" aria-labelledby="ob-basis">
-            <div className="ob__ghead">
-              <h2 id="ob-basis" className="label label--section">
-                Basis
-              </h2>
-              {start.length ? (
-                <button type="button" className="linkbtn ob__all" aria-pressed={startOn} onClick={() => onAll(start.map((s) => s.id), !startOn)}>
-                  {startOn ? 'Alle drie gevolgd' : 'Volg alle drie'}
-                </button>
-              ) : null}
-            </div>
-            <ul className="ob__list">{basis.map((s) => row(s, startIds))}</ul>
-          </section>
+          <Fold id="basis" label="Basis" list={basis} mine={mine} fold={fold} onToggle={toggle} row={(s) => row(s, startIds)}>
+            {start.length ? (
+              <button type="button" className="linkbtn ob__all" aria-pressed={startOn} onClick={() => onAll(start.map((s) => s.id), !startOn)}>
+                {startOn ? 'Alle drie gevolgd' : 'Volg alle drie'}
+              </button>
+            ) : null}
+          </Fold>
         ) : null}
         {blocks.map((b) => (
-          <section key={b.id} className="ob__group" aria-labelledby={`ob-b-${b.id}`}>
-            <div className="ob__ghead">
-              <h2 id={`ob-b-${b.id}`} className="label label--section">
-                {b.label}
-              </h2>
-              <span className="ob__gcount">{b.sources.length}</span>
-            </div>
-            <ul className="ob__list">{b.sources.map((s) => row(s, new Set([b.pick])))}</ul>
-          </section>
+          <Fold key={b.id} id={`b-${b.id}`} label={b.label} list={b.sources} mine={mine} fold={fold} onToggle={toggle} row={(s) => row(s, new Set([b.pick]))} />
         ))}
         {restCount ? (
           more ? (
-            rest.map((g) => (
-              <section key={g.cat} className="ob__group" aria-labelledby={`ob-g-${g.cat}`}>
-                <div className="ob__ghead">
-                  <h2 id={`ob-g-${g.cat}`} className="label label--section">
-                    {g.label}
-                  </h2>
-                  <span className="ob__gcount">{g.sources.length}</span>
-                </div>
-                <ul className="ob__list">{g.sources.map((s) => row(s, new Set()))}</ul>
-              </section>
-            ))
+            rest.map((g) => <Fold key={g.cat} id={`g-${g.cat}`} label={g.label} list={g.sources} mine={mine} fold={fold} onToggle={toggle} row={(s) => row(s, new Set())} />)
           ) : (
             <button type="button" className="ob__more" aria-expanded="false" onClick={() => setMore(true)}>
               <span className="label label--section">Meer bronnen</span>
@@ -465,6 +449,31 @@ function Bronnen({ head, sources, items, mine, interests, onPick, onAll, query, 
         <Peek sources={sources} items={items} mine={mine} />
       </aside>
     </div>
+  )
+}
+
+// Eén categorie van de bronnenstap, inklapbaar. De kop is een knop (naam, aantal gekozen bronnen, pijl);
+// ingeklapt staat alleen die kop. `children`: een actie naast de kop (Volg alle drie in de Basis).
+function Fold({ id, label, list, mine, fold, onToggle, row, children = null }) {
+  const chosen = chosenIn(list, mine)
+  if (!(id in fold.current)) fold.current[id] = startsOpen(id, chosen)
+  const open = fold.current[id]
+  return (
+    <section className={`ob__group${open ? '' : ' ob__group--dicht'}`} aria-labelledby={`ob-${id}`}>
+      <div className="ob__ghead">
+        <h2 className="label label--section ob__gtitle">
+          <button type="button" id={`ob-${id}`} className="ob__gtoggle" aria-expanded={open} aria-controls={`ob-l-${id}`} onClick={() => onToggle(id, open)}>
+            <span className="ob__gname">{label}</span>
+            <span className="ob__gcount">{foldCount(chosen, list.length)}</span>
+            <span className="ob__gcaret" aria-hidden="true">
+              <CaretIcon dir={open ? 'down' : 'right'} size={ICON_SM} />
+            </span>
+          </button>
+        </h2>
+        {children}
+      </div>
+      {open ? <ul className="ob__list" id={`ob-l-${id}`}>{list.map((s) => row(s))}</ul> : null}
+    </section>
   )
 }
 

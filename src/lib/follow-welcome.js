@@ -124,3 +124,13 @@ export function previewLines(items = [], sources = [], followed = [], max = 4) {
     .slice(0, max)
     .map((it) => ({ id: it.id, title: it.title, source: byId.get(it.source) || { id: it.source, name: it.sourceName || it.source } }))
 }
+
+// ---- Inklapbare categorieën (1.1.1, wens van Alex) ----
+// Elke categorie van de bronnenstap (de Basis, een blok per interesse, een groep onder Meer bronnen) klapt in
+// en uit. Ingeklapt staan alleen de naam en het aantal gekozen bronnen. Bij het openen van de stap staat een
+// categorie open als je er al iets in volgt; de Basis staat altijd open, want daar begin je ("Begin bij de
+// Basis"). Daarna beslis jij: een categorie klapt niet vanzelf dicht als je er alles ontvolgt.
+export const chosenIn = (list = [], followed = []) => list.filter((s) => followed.includes(s.id)).length
+export const startsOpen = (id, chosen) => id === 'basis' || chosen > 0
+// Wat de kop rechts zegt: "2 van 8 gevolgd", of zonder keuze het aantal bronnen ("8 bronnen").
+export const foldCount = (chosen, total) => (chosen ? `${chosen} van ${total} gevolgd` : `${total} ${total === 1 ? 'bron' : 'bronnen'}`)

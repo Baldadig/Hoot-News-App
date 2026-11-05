@@ -1,0 +1,50 @@
+/* ==========================================================================
+   Inklapbare categorieën in de bronnenstap van het welkom (1.1.1, wens van Alex). Eigen bestand, want
+   styles.css is vastgelegd tot het Nacht-blok. Gelijk aan WelcomeView.swift (FoldHead) op iOS.
+   De kop blijft de rubriekkop van .ob__ghead (kapitalen, dikke inktlijn eronder); de naam zelf is nu een
+   knop over de hele breedte: naam links, rechts het aantal gekozen bronnen en een pijl (dicht: naar rechts,
+   open: omlaag), zoals de andere uitklappers.
+   ========================================================================== */
+.ob__gtitle {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+.ob__gtoggle {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.ob__gname {
+  flex: 1;
+  min-width: 0;
+}
+.ob__gtoggle .ob__gcount {
+  font-family: var(--sans);
+  letter-spacing: normal;
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ob__gcaret {
+  display: inline-flex;
+  color: var(--ink-3);
+}
+.ob__gtoggle:hover .ob__gcaret {
+  color: var(--ink);
+}
+/* Naast "Volg alle drie" (de Basis) wat lucht tussen de pijl en de actie. */
+.ob__ghead > .ob__gtitle + .ob__all {
+  margin-inline-start: var(--s3);
+}
