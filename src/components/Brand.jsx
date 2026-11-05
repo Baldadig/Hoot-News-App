@@ -39,7 +39,7 @@ export function BrandLogo({ height = 30 }) {
 // (--top, zoals hooks/useTheme.js die zet).
 let reds = 0
 function paintBar() {
-  const color = reds ? rootColor('--brand-red') || '#a3201b' : rootColor('--top') || rootColor('--paper')
+  const color = reds ? rootColor('--brand-red') || '#9a3324' : rootColor('--top') || rootColor('--paper')
   for (const m of document.querySelectorAll('meta[name="theme-color"]')) {
     m.setAttribute('content', color)
     m.removeAttribute('media')

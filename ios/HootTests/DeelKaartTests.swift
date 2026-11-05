@@ -114,7 +114,7 @@ final class DeelKaartTests: XCTestCase {
     // Brand Guide v2.2 › Deelkaart: het uitgeverslogo op een papieren schijf, gelijk aan het web.
     func testPapierenSchijfAchterUitgeverslogo() throws {
         let m = DeelKaartStyle.layout.mark
-        XCTAssertEqual(m.size, 28); XCTAssertEqual(m.pad, 0.14); XCTAssertEqual(m.disc, "#f5f1e8"); XCTAssertEqual(m.ink, "#a3201b")
+        XCTAssertEqual(m.size, 28); XCTAssertEqual(m.pad, 0.14); XCTAssertEqual(m.disc, "#f5f1e8"); XCTAssertEqual(m.ink, "#9a3324")
         func pixel(_ data: Data, _ x: Int, _ y: Int) throws -> [Int] {
             let image = try XCTUnwrap(UIImage(data: data)?.cgImage)
             var rgba = [UInt8](repeating: 0, count: 4)
@@ -132,7 +132,7 @@ final class DeelKaartTests: XCTestCase {
             let met = try XCTUnwrap(DeelKaart(item: logo, format: format).png())
             let kaal = try XCTUnwrap(DeelKaart(item: zonder, format: format).png())
             XCTAssertTrue(close(try pixel(met, x, top + 14), [245, 241, 232]), "\(format): schijf in papier")
-            XCTAssertTrue(close(try pixel(kaal, x, top + 14), [163, 32, 27]), "\(format): monogram zonder schijf")
+            XCTAssertTrue(close(try pixel(kaal, x, top + 14), [154, 51, 36]), "\(format): monogram zonder schijf")
         }
     }
 }

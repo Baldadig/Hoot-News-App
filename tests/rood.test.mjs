@@ -15,18 +15,18 @@ test('soort per naam: merkmoment vrij, bediening ≤ 1,5, de rest leesscherm ≤
   for (const n of ['editie-boven', 'stroom-bron-gekozen', 'welkom-10', 'lezer', 'selectie-onderwerpen', 'b1-einde-licht']) assert.deepEqual(k(n), ['leesscherm', 1.0], n)
 })
 
-test('rood telt binnen een RGB-afstand van 48 tot #a3201b en #ec7a70', async () => {
+test('rood telt binnen een RGB-afstand van 48 tot #9a3324 en #ec7a70', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'rood-'))
   try {
     // 10 × 10 papier, met 3 pixels merkrood, 2 bijna-rood (afstand 40) en 1 te ver weg (afstand 60).
     const px = Buffer.alloc(10 * 10 * 3, 0xf5)
     const put = (i, [r, g, b]) => px.set([r, g, b], i * 3)
-    put(0, [0xa3, 0x20, 0x1b])
-    put(1, [0xa3, 0x20, 0x1b])
+    put(0, [0x9a, 0x33, 0x24])
+    put(1, [0x9a, 0x33, 0x24])
     put(2, [0xec, 0x7a, 0x70])
-    put(3, [0xa3 + 40, 0x20, 0x1b])
+    put(3, [0x9a + 40, 0x33, 0x24])
     put(4, [0xec, 0x7a - 24, 0x70 + 32])
-    put(5, [0xa3, 0x20 + 60, 0x1b])
+    put(5, [0x9a, 0x33 + 60, 0x24])
     const file = join(dir, 'proef.png')
     writeFileSync(file, await sharp(px, { raw: { width: 10, height: 10, channels: 3 } }).png().toBuffer())
     const { pct, width } = await redShare(file)
@@ -47,11 +47,11 @@ async function screen(file, { photo = true, block = false } = {}) {
   const rnd = () => (seed = (Math.imul(seed, 1103515245) + 12345) >>> 0) >>> 24
   if (photo) {
     for (let y = 32; y < 192; y++) for (let x = 32; x < 192; x++) put(x, y, [rnd(), rnd(), rnd()])
-    for (let y = 64; y < 128; y++) for (let x = 64; x < 128; x++) put(x, y, [0xa3, 0x20, 0x1b])
+    for (let y = 64; y < 128; y++) for (let x = 64; x < 128; x++) put(x, y, [0x9a, 0x33, 0x24])
   }
-  for (let y = 240; y < 242; y++) for (let x = 32; x < 96; x++) put(x, y, [0xa3, 0x20, 0x1b])
+  for (let y = 240; y < 242; y++) for (let x = 32; x < 96; x++) put(x, y, [0x9a, 0x33, 0x24])
   // Desgewenst een rood vlak van 48 × 48 buiten de foto (2,25 procent): echt ontwerprood.
-  if (block) for (let y = 256; y < 304; y++) for (let x = 224; x < 272; x++) put(x, y, [0xa3, 0x20, 0x1b])
+  if (block) for (let y = 256; y < 304; y++) for (let x = 224; x < 272; x++) put(x, y, [0x9a, 0x33, 0x24])
   writeFileSync(file, await sharp(px, { raw: { width: W, height: W, channels: 3 } }).png().toBuffer())
 }
 

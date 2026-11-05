@@ -46,12 +46,12 @@ export function placeholderPlan(rows) {
 // Kleuren per familie en weergave (Licht, Donker, Nacht). Rood is alleen een accent.
 export const PALETTES = {
   zon: {
-    licht: { bg: '#EFE9DD', sun: '#A3201B', line: '#6B6457', outline: '#4B453B' },
+    licht: { bg: '#EFE9DD', sun: '#9A3324', line: '#6B6457', outline: '#4B453B' },
     donker: { bg: '#1E1B17', sun: '#EC7A70', line: '#766E61', outline: '#A39B8D' },
     nacht: { bg: '#12100E', sun: '#DF8276', line: '#5E574D', outline: '#8C826F' },
   },
   iris: {
-    licht: { bg: '#ECE5D7', sun: '#A3201B', line: '#B0A48F', disc: '#E0D6C3' },
+    licht: { bg: '#ECE5D7', sun: '#9A3324', line: '#B0A48F', disc: '#E0D6C3' },
     donker: { bg: '#1E1B17', sun: '#EC7A70', line: '#4A443A', disc: '#2A2620' },
     nacht: { bg: '#0E0D0B', sun: '#DF8276', line: '#2F2B25', disc: '#181612' },
   },

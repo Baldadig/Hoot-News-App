@@ -5,12 +5,12 @@ import CoreGraphics
 enum PlaceholderBeelden {
     static let palettes: [String: [String: [String: UInt32]]] = [
         "zon": [
-            "licht": ["bg": 0xEFE9DD, "sun": 0xA3201B, "line": 0x6B6457, "outline": 0x4B453B],
+            "licht": ["bg": 0xEFE9DD, "sun": 0x9A3324, "line": 0x6B6457, "outline": 0x4B453B],
             "donker": ["bg": 0x1E1B17, "sun": 0xEC7A70, "line": 0x766E61, "outline": 0xA39B8D],
             "nacht": ["bg": 0x12100E, "sun": 0xDF8276, "line": 0x5E574D, "outline": 0x8C826F],
         ],
         "iris": [
-            "licht": ["bg": 0xECE5D7, "sun": 0xA3201B, "line": 0xB0A48F, "disc": 0xE0D6C3],
+            "licht": ["bg": 0xECE5D7, "sun": 0x9A3324, "line": 0xB0A48F, "disc": 0xE0D6C3],
             "donker": ["bg": 0x1E1B17, "sun": 0xEC7A70, "line": 0x4A443A, "disc": 0x2A2620],
             "nacht": ["bg": 0x0E0D0B, "sun": 0xDF8276, "line": 0x2F2B25, "disc": 0x181612],
         ],

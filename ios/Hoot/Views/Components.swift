@@ -23,10 +23,10 @@ enum Theme {
     static let accentSoft = Color("AccentSoft") // achtergrond van iets dat aan staat
     static let onAccent = Color("OnAccent") // tekst op een accent-vlak
     static let warn = Color("Warn") // waarschuwing, altijd met woorden
-    // Merkrood: het diepe krantenrood als vol vlak, in licht en donker gelijk. Alleen voor
+    // Merkrood Rubrica (PMS 484 C) als vol vlak, in licht en donker gelijk. Alleen voor
     // merkmomenten (opstarten, welkom, einde van de editie); verder is het accent een detail.
     static let brandRed = Color("BrandRed")
-    static let onBrandRed = Color("OnBrandRed") // alles op merkrood: papier #F5F1E8 (6,9:1), zoals het opstartscherm
+    static let onBrandRed = Color("OnBrandRed") // alles op merkrood: papier #F5F1E8 (6,5:1), zoals het opstartscherm
     // Vlak achter een uitgeverslogo, zoals --mark-bg op het web: licht #ffffff, donker #f1ece2, Nacht
     // de zachte inkt #d8d0c2. Een doorzichtig logo (de zwarte P van Het Parool) blijft zichtbaar,
     // maar licht in het donker niet op.

@@ -17,15 +17,15 @@
      links in lopende tekst · merkmomenten (woordmerk, einde van de editie, Welkom) · en
      bewust "Vergelijk N bronnen" / "+ bronnen". Acties zijn --action, focus is --focus. Een
      schakelaar aan is inkt, geen rood: op Bronnen blijven de ster en 'gratis' het enige rood. */
-  --accent: #a3201b;
-  --accent-soft: #f4e3de; /* alleen 'gekozen'; decoratie is --tint */
+  --accent: #9a3324; /* Rubrica, PMS 484 C: 6,5:1 op papier, 7,0:1 op surface */
+  --accent-soft: #f2e4df; /* alleen 'gekozen'; decoratie is --tint */
   --on-accent: #ffffff;
   --warn: #8f4300;
   --brand: #1a1814; /* merk: inkt, met de punt in krantenrood */
-  /* Merkrood: het diepe krantenrood als vol vlak, in beide thema's gelijk (niet het lichtere
+  /* Merkrood Rubrica (PMS 484 C, de rode oker van de rubricator) als vol vlak, in beide thema's gelijk (niet het lichtere
      accent van donker). Alleen voor merkmomenten: welkom, einde van de editie, deelbeelden. */
-  --brand-red: #a3201b;
-  --paper-brand: #f5f1e8; /* papier op merkrood: vast, in beide thema's (iOS OnBrandRed en SplashView.paperWhite, 6,9:1) */
+  --brand-red: #9a3324;
+  --paper-brand: #f5f1e8; /* papier op merkrood: vast, in beide thema's (iOS OnBrandRed en SplashView.paperWhite, 6,5:1) */
   --on-brand-red: var(--paper-brand); /* alles op merkrood is papier, niet wit: het einde van de Editie, Welkom, het opstartscherm */
   --on-brand-red-2: color-mix(in srgb, var(--on-brand-red) 85%, transparent); /* stillere tekst op merkrood */
   --quiet-amber: #b0802f; /* stil statuspuntje, geen alarm */

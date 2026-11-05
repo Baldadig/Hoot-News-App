@@ -55,6 +55,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 | Waarschuwing en fouttekst (met woorden) | `warn` | `paper` |
 | Rand van een veld of filterknop | `edge` | `paper`, `surface` |
 
+- **Het rood is Rubrica** (PMS 484 C, de rode oker van de rubricator, waar het woord *rubriek* vandaan komt): `accent` en `brand-red` `#9A3324` in licht, `accent-soft` `#F2E4DF`. Rood op papier en papier op rood 6,5:1, op `surface` 7,0:1, wit op rood 7,3:1. Donker (`#EC7A70`) en Nacht (`#DF8276`) houden hun lichte rood. Tot en met build 48 was het rood `#A3201B` (Brand Guide v2.3).
 - **`ink-3` is de ondergrens voor kleine tekst** (5,2:1 licht, 6,7:1 donker). Gebruik nooit een lichter grijs, ook niet het secundaire grijs van het systeem: dat haalt op papier maar 3,3:1.
 - **De kleurverdelingen Blad en Inkt** (alleen op de website) gebruiken `sheet`, `sheet-surface` en `sheet-edge`, en voor de editiekop `band` met `band-ink` tot en met `band-accent`. Binnen het blad zijn `paper` en `surface` de bladkleuren, dus componenten hoeven niets te weten.
 - **Puntjes:** een bron die tijdelijk niet bereikbaar is krijgt een `quiet-amber`-punt van 6 px naast een tekst die hetzelfde zegt; een verhaal met nieuwe berichten een `accent`-punt van 8 px voor "+N bronnen".

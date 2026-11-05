@@ -5,7 +5,7 @@
 //
 // <map> is een uitvoermap van het opnameharnas (Hoot-design/harnas/capture.mjs, met
 // <map>/<breedte>-<thema>/<job>/viewport.png) of een map met losse PNG's (iOS-opnamen). Per beeld
-// telt het script de pixels binnen een RGB-afstand van 48 tot het rood: #a3201b (accent en
+// telt het script de pixels binnen een RGB-afstand van 48 tot het rood: #9a3324 (accent en
 // merkrood licht, en het merkrode vlak in donker) en #ec7a70 (accent donker).
 //
 // De soort komt uit de jobnaam, en bij losse PNG's uit de bestandsnaam (zet de jobnaam erin, zoals
@@ -36,7 +36,7 @@ import { join, resolve, basename } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const RED = [
-  [0xa3, 0x20, 0x1b], // --accent en --brand-red (licht), het merkrode vlak ook in donker
+  [0x9a, 0x33, 0x24], // Rubrica: --accent en --brand-red (licht), het merkrode vlak ook in donker
   [0xec, 0x7a, 0x70], // --accent (donker)
 ]
 const NEAR = 48 * 48 // RGB-afstand ≤ 48, in het kwadraat
@@ -236,7 +236,7 @@ async function main() {
   const md = [
     '# Rood-meting',
     '',
-    `${rows.length} schermen uit \`${dir}\`. Rood is elke pixel binnen een RGB-afstand van 48 tot #a3201b of #ec7a70, als aandeel van het hele scherm. Grenzen: leesscherm ≤ 1,0 procent, bediening ≤ 1,5 procent, merkmoment vrij.`,
+    `${rows.length} schermen uit \`${dir}\`. Rood is elke pixel binnen een RGB-afstand van 48 tot #9a3324 of #ec7a70, als aandeel van het hele scherm. Grenzen: leesscherm ≤ 1,0 procent, bediening ≤ 1,5 procent, merkmoment vrij.`,
     '',
     raw
       ? "Gemeten **met beeld** (--met-beeld): het rood in foto's telt mee, dus een overschrijding op een leesscherm kan van het nieuws komen in plaats van van het ontwerp."

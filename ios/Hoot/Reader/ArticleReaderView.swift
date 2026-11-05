@@ -229,7 +229,7 @@ enum ReaderHTML {
         <meta name="color-scheme" content="light dark">
         <style>
         \(ReaderFonts.css(night: night))
-        :root { --paper:#F5F1E8; --ink:#1A1814; --ink-3:#6B6457; --rule:#DED5C4; --accent:#A3201B; } /* tokens van het design system */
+        :root { --paper:#F5F1E8; --ink:#1A1814; --ink-3:#6B6457; --rule:#DED5C4; --accent:#9A3324; } /* tokens van het design system */
         @media (prefers-color-scheme: dark) { :root { --paper:#151310; --ink:#F1ECE2; --ink-3:#A39B8D; --rule:#34302A; --accent:#EC7A70; } }
         html { font: -apple-system-body;\(bodyPx.map { " font-size: \($0)px;" } ?? "") -webkit-text-size-adjust: 100%; }
         body { margin:0; background:var(--paper); color:var(--ink); }

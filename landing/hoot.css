@@ -14,9 +14,9 @@
 @font-face{font-family:"Hoot Tekst Terug";src:local(Arial),local("Helvetica Neue");size-adjust:106%;ascent-override:92.1%;descent-override:24.3%;line-gap-override:0%} /* Schibsted Grotesk 400 (gemiddelde letterbreedte 0,5145 em, Arial 0,4847: 106%; stijgen 0,9766 en dalen 0,2578 em, gedeeld door 1,06) */
 
 :root{
-  --papier:#F5F1E8;--wit:#FBF8F1;--rood:#A3201B;--op-rood:#F5F1E8;--inkt:#1A1814;--inkt2:#4B453B;--inkt3:#6B6457;--lijn:#DED5C4;--chip:#EFE9DD;
-  --s-bg:#F5F1E8;--s-ink:#1A1814;--s-ink2:#4B453B;--s-ink3:#6B6457;--s-red:#A3201B;--s-line:#DED5C4;--s-card:#FCFAF5;--s-blok:#A3201B;
-  --ring:#1A1814;--accent:#A3201B;
+  --papier:#F5F1E8;--wit:#FBF8F1;--rood:#9A3324;--op-rood:#F5F1E8;--inkt:#1A1814;--inkt2:#4B453B;--inkt3:#6B6457;--lijn:#DED5C4;--chip:#EFE9DD;
+  --s-bg:#F5F1E8;--s-ink:#1A1814;--s-ink2:#4B453B;--s-ink3:#6B6457;--s-red:#9A3324;--s-line:#DED5C4;--s-card:#FCFAF5;--s-blok:#9A3324;
+  --ring:#1A1814;--accent:#9A3324;
   --kop:Newsreader,"Hoot Kop Terug",Georgia,serif;
   --tekst:"Schibsted Grotesk","Hoot Tekst Terug",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
   --lees:Newsreader,"Hoot Lees Terug",Georgia,serif;
@@ -28,13 +28,13 @@
 @media (prefers-color-scheme:dark){
   :root:not([data-theme=light]){
     --papier:#151310;--wit:#1E1B17;--inkt:#F1ECE2;--inkt2:#CBC3B5;--inkt3:#A39B8D;--lijn:#34302A;--chip:#2A2621;
-    --s-bg:#151310;--s-ink:#F1ECE2;--s-ink2:#CBC3B5;--s-ink3:#A39B8D;--s-red:#EC7A70;--s-line:#34302A;--s-card:#1E1B17;--s-blok:#93201B;
+    --s-bg:#151310;--s-ink:#F1ECE2;--s-ink2:#CBC3B5;--s-ink3:#A39B8D;--s-red:#EC7A70;--s-line:#34302A;--s-card:#1E1B17;--s-blok:#8B3023;
     --ring:#4A443B;--accent:#EC7A70;color-scheme:dark;
   }
 }
 :root[data-theme=dark]{
   --papier:#151310;--wit:#1E1B17;--inkt:#F1ECE2;--inkt2:#CBC3B5;--inkt3:#A39B8D;--lijn:#34302A;--chip:#2A2621;
-  --s-bg:#151310;--s-ink:#F1ECE2;--s-ink2:#CBC3B5;--s-ink3:#A39B8D;--s-red:#EC7A70;--s-line:#34302A;--s-card:#1E1B17;--s-blok:#93201B;
+  --s-bg:#151310;--s-ink:#F1ECE2;--s-ink2:#CBC3B5;--s-ink3:#A39B8D;--s-red:#EC7A70;--s-line:#34302A;--s-card:#1E1B17;--s-blok:#8B3023;
   --ring:#4A443B;--accent:#EC7A70;color-scheme:dark;
 }
 :root.donker{--ring:#4A443B;--accent:#EC7A70}

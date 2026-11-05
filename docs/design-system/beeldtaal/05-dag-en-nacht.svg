@@ -5,6 +5,6 @@
   </defs>
   <rect width="240" height="240" fill="#F5F1E8"/>
   <path d="M240 0V240H0Z" fill="#1A1814"/>
-  <circle cx="120" cy="120" r="64" fill="#A3201B" clip-path="url(#c5a)"/>
+  <circle cx="120" cy="120" r="64" fill="#9A3324" clip-path="url(#c5a)"/>
   <circle cx="120" cy="120" r="64" fill="#F5F1E8" clip-path="url(#c5b)"/>
 </svg>

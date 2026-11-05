@@ -294,7 +294,7 @@ struct EditionView: View {
 
     // De eindkaart in Nacht: het merkrood gedempt (42 % over zwart) met de zachte leesinkt, zoals
     // --endcap-bg en --endcap-on op het web. Het grootste vlak van het scherm is nooit het felste (E9).
-    static let nachtEndRed = Color(red: 0x44 / 255, green: 0x0d / 255, blue: 0x0b / 255)
+    static let nachtEndRed = Color(red: 0x41 / 255, green: 0x15 / 255, blue: 0x0f / 255)
 
     // Welk placeholderbeeld een beeldloze rij krijgt, hangt af van de rij erboven (Beeldloos.swift): het
     // hoofdverhaal en de rijen eronder, en apart Buiten je bubbel.

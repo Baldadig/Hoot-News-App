@@ -2,5 +2,5 @@
   <defs><pattern id="dots4" x="22" y="22" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="14" cy="14" r="2.5" fill="#1A1814"/></pattern></defs>
   <rect width="240" height="240" fill="#F5F1E8"/>
   <rect x="22" y="22" width="196" height="196" fill="url(#dots4)"/>
-  <circle cx="176" cy="148" r="8" fill="#A3201B"/>
+  <circle cx="176" cy="148" r="8" fill="#9A3324"/>
 </svg>

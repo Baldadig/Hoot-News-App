@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="Vier rode cirkels op een diagonale lijn, van groot naar een kleine punt">
   <rect width="240" height="240" fill="#F5F1E8"/>
   <line x1="24" y1="24" x2="216" y2="216" stroke="#1A1814" stroke-width="1"/>
-  <circle cx="80" cy="80" r="56" fill="#A3201B"/>
-  <circle cx="150" cy="150" r="28" fill="#A3201B"/>
-  <circle cx="186" cy="186" r="14" fill="#A3201B"/>
-  <circle cx="206" cy="206" r="6" fill="#A3201B"/>
+  <circle cx="80" cy="80" r="56" fill="#9A3324"/>
+  <circle cx="150" cy="150" r="28" fill="#9A3324"/>
+  <circle cx="186" cy="186" r="14" fill="#9A3324"/>
+  <circle cx="206" cy="206" r="6" fill="#9A3324"/>
 </svg>

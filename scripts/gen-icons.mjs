@@ -1,5 +1,6 @@
 // Rastert de merk-iconen (de h van Hoot in Newsreader 800, met een rode punt) (public/brand/*.svg) naar alle PNG-formaten die de
 // PWA en iOS-homescreen nodig hebben. Draaien met: npm run gen-icons
+// Alleen een deel: npm run gen-icons -- og favicon (namen die in het uitvoerpad voorkomen; og = og.png).
 import sharp from 'sharp'
 import { readFile, mkdir } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
@@ -27,16 +28,19 @@ const targets = [
   { out: 'icons/favicon-32.png', size: 32, svg: Buffer.from(favicon) },
 ]
 
-for (const t of targets) {
+const only = process.argv.slice(2)
+const wanted = (out) => !only.length || only.some((w) => out.includes(w))
+
+for (const t of targets.filter((t) => wanted(t.out))) {
   await sharp(t.svg, { density: 384 }).resize(t.size, t.size).png().toFile(resolve(pub, t.out))
   console.log('✓', t.out)
 }
 // Deelafbeelding (Open Graph, 1200×630): een merkmoment in merkrood, met "hoot." in papierwit,
 // een papieren balk erboven en een dunne lijn eronder.
-{
-  const RED = '#A3201B'
+if (wanted('og.png')) {
+  const RED = '#9A3324' // Rubrica, PMS 484 C
   const PAPER = '#F5F1E8'
-  const logo = (await readFile(resolve(pub, 'brand/hoot-logo-ink.svg'), 'utf8')).replace(/#1A1814/gi, PAPER).replace(/#A3201B/gi, PAPER)
+  const logo = (await readFile(resolve(pub, 'brand/hoot-logo-ink.svg'), 'utf8')).replace(/#1A1814/gi, PAPER).replace(/#9A3324/gi, PAPER)
   const [, vw, vh] = logo.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/)
   const inner = logo.replace(/^<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '')
   const h = 200

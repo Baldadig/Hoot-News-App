@@ -6,7 +6,7 @@
     <circle cx="120" cy="116" r="28"/>
     <circle cx="148" cy="116" r="28"/>
   </g>
-  <circle cx="176" cy="116" r="29" fill="#A3201B"/>
+  <circle cx="176" cy="116" r="29" fill="#9A3324"/>
   <rect x="24" y="176" width="192" height="2" fill="#1A1814"/>
-  <rect x="24" y="175" width="48" height="4" fill="#A3201B"/>
+  <rect x="24" y="175" width="48" height="4" fill="#9A3324"/>
 </svg>

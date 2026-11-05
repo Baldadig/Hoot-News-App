@@ -22,7 +22,7 @@ async function frame(src, out, W, H, shotW, fontSize, tab) {
   const shadow = await sharp({ create: { width: shotW + pad, height: shotH + pad, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } }).composite([{ input: Buffer.from(`<svg width="${shotW + pad}" height="${shotH + pad}"><rect x="40" y="52" width="${shotW}" height="${shotH}" rx="${r}" fill="#1A1814" fill-opacity="0.35"/></svg>`) }]).blur(22).png().toBuffer()
   const y = top + Math.round(H * 0.035)
   const x = Math.round((W - shotW) / 2)
-  await sharp({ create: { width: W, height: H, channels: 3, background: '#A3201B' } }).composite([{ input: text, top: 0, left: 0 }, { input: shadow, top: y - 40, left: x - 40 }, { input: shot, top: y, left: x }]).png().toFile(out)
+  await sharp({ create: { width: W, height: H, channels: 3, background: '#9A3324' } }).composite([{ input: text, top: 0, left: 0 }, { input: shadow, top: y - 40, left: x - 40 }, { input: shot, top: y, left: x }]).png().toFile(out)
 }
 const order = { editie: 1, stroom: 2, digest: 3 }
 for (const tab of Object.keys(order)) {

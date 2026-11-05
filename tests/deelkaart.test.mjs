@@ -44,7 +44,7 @@ test('uitgeverslogo’s zijn lokaal ingebedde PNG’s in uitsluitend merkrood (v
     assert.equal(info.width, 84); assert.equal(info.height, 84)
     let ink = 0
     for (let i = 0; i < data.length; i += 4) if (data[i + 3]) {
-      assert.deepEqual([...data.subarray(i, i + 3)], [163, 32, 27], source)
+      assert.deepEqual([...data.subarray(i, i + 3)], [154, 51, 36], source)
       ink++
     }
     assert.ok(ink > 10, source)
@@ -113,7 +113,7 @@ test('deellink: onbekend verhaal met uitgeverslink gaat naar de uitgever, nooit 
 
 // Brand Guide v2.2 › Deelkaart: het uitgeverslogo staat op een papieren schijf; het monogram blijft een lijncirkel.
 test('deelkaart: papieren schijf achter het uitgeverslogo, monogram zonder schijf', async () => {
-  assert.deepEqual(layout.mark, { size: 28, pad: 0.14, disc: '#f5f1e8', ink: '#a3201b' })
+  assert.deepEqual(layout.mark, { size: 28, pad: 0.14, disc: '#f5f1e8', ink: '#9a3324' })
   const item = { ...cases[0], source: 'nos', sourceName: 'NOS' }
   for (const format of ['link', 'staand']) {
     const f = layout.formats[format]
@@ -127,6 +127,6 @@ test('deelkaart: papieren schijf achter het uitgeverslogo, monogram zonder schij
     const disc = await pixel(await renderCard(item, format))
     assert.deepEqual(disc.rand, [245, 241, 232], format + ': schijf in papier')
     const monogram = await pixel(await renderCard(item, format, { marks: {} }))
-    assert.deepEqual(monogram.rand, [163, 32, 27], format + ': monogram is een lijncirkel op rood')
+    assert.deepEqual(monogram.rand, [154, 51, 36], format + ': monogram is een lijncirkel op rood')
   }
 })

@@ -9,7 +9,7 @@ import fs from 'node:fs'
 
 const RAW = 'ios/AppStore/screenshots/raw-110'
 const OUT = 'ios/AppStore/screenshots'
-const RED = '#A3201B'
+const RED = '#9A3324'
 const PAPER = '#F5F1E8'
 
 // Volgorde en koppen: twee korte zinnen, elk op een eigen regel.
