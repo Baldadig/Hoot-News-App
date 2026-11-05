@@ -224,7 +224,7 @@ test('KISS-teksten (kiss-teksten.json): geen rij zonder bediening, geen oude uit
   const settings = read('views/Settings.jsx')
   assert.doesNotMatch(settings, /label="Edities"/, 'de uitlegrij Edities is weg')
   assert.doesNotMatch(settings, />Extra<|in het menu/, 'Extra heet Menu')
-  assert.match(settings, /Telt vanaf je volgende Editie\./)
+  assert.match(settings, /Meer of minder van iets\? Kies ⋯ bij een verhaal\./)
   assert.match(read('views/Edition.jsx'), /Jouw Editie: gekozen uit jouw bronnen en interesses\./, 'de Editie-hint is de korte KISS-tekst')
   for (const f of ['views/Over.jsx', 'views/Privacy.jsx']) {
     const s = read(f)

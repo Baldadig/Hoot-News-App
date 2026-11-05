@@ -409,7 +409,7 @@ function Learned({ affinity, onForget }) {
           </div>
         </>
       ) : null}
-      <p className="hint setfoot">Telt vanaf je volgende Editie.</p>
+      <p className="hint setfoot">Meer of minder van iets? Kies ⋯ bij een verhaal.</p>
     </>
   )
 }
