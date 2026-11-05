@@ -1,7 +1,7 @@
 import SwiftUI
 
 // Het welkom (1.1.0), gelijk aan de website (src/views/Welcome.jsx). Vier schermen:
-//   1. de rode intro: de zon komt op achter de horizon, "Begin". Inloggen klein rechtsboven.
+//   1. de rode intro: de zon komt op achter de horizon, "Begin". Account klein rechtsboven.
 //   2. Zo werkt Hoot: Editie, Stroom en Selectie als gelijken op één scherm, elk met zijn eigen zon
 //      (OnboardingArt: de zon achter de horizon, rustig; bij Verminder beweging stil). Kies je
 //      interesses, of Liever meteen lezen (de gratis startset, zonder sport).
@@ -353,7 +353,7 @@ struct WelcomeView: View {
             WelcomeMark(onRed: onRed, handoff: onRed ? brand : iris, hideDot: onRed && dotGone, breathes: onRed && !still && brand?.landed != false)
             Spacer(minLength: Space.s4)
             if onRed {
-                Button("Inloggen") { login = true }
+                Button("Account") { login = true } // r5-namen: het Hoot-account heet Account, zoals op het web
                     .font(.ui(.body, .semibold))
                     .accessibilityHint("Lezen kan ook zonder account.")
                     .frame(minHeight: Space.tap)
@@ -409,9 +409,9 @@ struct WelcomeView: View {
     // ---- 2. Zo werkt Hoot ----
 
     private static let trio: [(art: OnboardingArt.Kind, title: String, text: String)] = [
-        (.editie, "Editie", "Drie keer per dag hooguit tien verhalen. Dan ben je bij."),
+        (.editie, "Editie", "Drie keer per dag tien verhalen. Dan ben je bij."),
         (.stroom, "Stroom", "Alles van je bronnen, nieuwste eerst."),
-        (.selectie, "Selectie", "Eén keer per week het beste over wat jou bezighoudt."),
+        (.selectie, "Selectie", "Elke maandag het beste over wat jou bezighoudt."),
     ]
 
     private var uitleg: some View {
@@ -832,7 +832,7 @@ struct WelcomeView: View {
             }
             .padding(.top, Space.s6)
             if selOpen {
-                Text("Eén keer per week het beste over je werk of hobby.")
+                Text("Elke maandag het beste over je werk of hobby.")
                     .font(.ui(.subheadline)).foregroundStyle(Theme.ink2)
                     .padding(.top, Space.s4)
                 ForEach(DigestFieldsList.domains, id: \.label) { d in

@@ -21,7 +21,7 @@ struct AccountRow: View {
                         Text("Je account").font(.ui(.headline))
                         Text("Even geduld …").font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
                     case .out:
-                        Text("Inloggen").font(.ui(.headline))
+                        Text("Account").font(.ui(.headline)) // r5-namen: gelijk aan de accountkaart op het web
                         Text("Op al je toestellen").font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
                     }}
                 }

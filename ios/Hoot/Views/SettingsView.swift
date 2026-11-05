@@ -146,7 +146,7 @@ struct SettingsAccountCard: View {
         switch account.status {
         case .member, .pending: return account.session?.name ?? account.session?.email ?? "Je account"
         case .loading: return "Je account"
-        case .out: return "Inloggen"
+        case .out: return "Account"
         }
     }
     private var status: String {

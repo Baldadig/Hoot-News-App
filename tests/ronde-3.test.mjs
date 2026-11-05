@@ -51,3 +51,20 @@ test('r5-kanten-welkom: dezelfde eenmalige tip in de app, met Vergelijk en sluit
   assert.match(app, /accessibilityLabel\("Tip sluiten"\)/)
   assert.match(app, /UserDefaults\.standard\.set\(true, forKey: KantenTip\.key\)/, 'wie vergelijkt, ziet de tip niet meer')
 })
+
+test('r5-namen: de app gebruikt dezelfde woordenlijst als web en landing', () => {
+  const welkom = read('ios/Hoot/Views/WelcomeView.swift')
+  assert.match(welkom, /Button\("Account"\) \{ login = true \}/)
+  assert.match(welkom, /"Drie keer per dag tien verhalen\. Dan ben je bij\."/)
+  assert.match(welkom, /"Elke maandag het beste over wat jou bezighoudt\."/)
+  assert.match(welkom, /"Elke maandag het beste over je werk of hobby\."/)
+  assert.doesNotMatch(welkom, /hooguit tien|[Ee]én keer per week|Button\("Inloggen"\)/)
+  // De accountkaart zonder account heet Account (de inlogpagina zelf blijft "Inloggen": daar doe je het).
+  assert.match(read('ios/Hoot/Views/AccountView.swift'), /case \.out:\n\s*Text\("Account"\)/)
+  assert.match(read('ios/Hoot/Views/SettingsView.swift'), /case \.out: return "Account"/)
+  assert.match(read('ios/Hoot/Views/EditionView.swift'), /\.navigationTitle\("Vergelijken"\)/)
+  assert.match(read('ios/Hoot/Views/Components.swift'), /accessibilityLabel\("Instellingen"\)/)
+  // Gelijk aan het web.
+  const web = read('src/views/Welcome.jsx')
+  for (const zin of ['Drie keer per dag tien verhalen. Dan ben je bij.', 'Elke maandag het beste over wat jou bezighoudt.', 'Elke maandag het beste over je werk of hobby.']) assert.ok(web.includes(zin), zin)
+})

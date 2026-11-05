@@ -1,6 +1,6 @@
 import SwiftUI
 
-// Editie: drie keer per dag hooguit tien genummerde verhalen. De redactionele volgorde blijft leidend;
+// Editie: drie keer per dag tien genummerde verhalen. De redactionele volgorde blijft leidend;
 // een optioneel bubbelverhaal staat los en ongenummerd na de gewone reeks.
 struct EditionRowModel: Identifiable {
     let id: String
