@@ -1,0 +1,32 @@
+/* De lege Selectie met een voorproefje (Vak.jsx, .dproef): onder "Kies onderwerpen" een paar echte
+   stukken van deze week, op dezelfde kaart als in de Selectie zelf. Rustig: een sectielabel, één
+   regel uitleg, per onderwerp een stil label. Breed naast elkaar (zoals .dpair), smal onder elkaar.
+   Geen telling op de kaart: het zijn voorbeelden, geen ranglijst. */
+.dproef {
+  margin-block-start: var(--s6);
+}
+.dproef__tekst {
+  margin: var(--s2) 0 0;
+  max-width: 32em;
+  color: var(--ink-2);
+}
+.dproef__rij {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+  gap: var(--s5) var(--s4);
+  margin-block-start: var(--s5);
+}
+.dproef__veld {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.dproef__veld > .dcard {
+  flex: 1;
+}
+.dproef__onderwerp {
+  margin: 0 0 var(--s2);
+}
+.dproef .dcard__rank {
+  display: none;
+}

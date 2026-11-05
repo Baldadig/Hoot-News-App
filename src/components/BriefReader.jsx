@@ -48,7 +48,7 @@ export function BriefReader({ open, onClose, brief, kicker, rows = [] }) {
                     const same = refs.filter((x) => x.item.sourceName === r.item.sourceName)
                     const name = same.length > 1 ? `${r.item.sourceName} (${same.indexOf(r) + 1})` : r.item.sourceName
                     return (
-                      <a key={r.key} href={r.item.url} target="_blank" rel="noopener noreferrer" title={r.item.title}>
+                      <a key={r.key} href={r.item.url} rel="noreferrer" title={r.item.title}>
                         {name}
                         {k < refs.length - 1 ? <span aria-hidden="true"> · </span> : null}
                       </a>
@@ -65,7 +65,7 @@ export function BriefReader({ open, onClose, brief, kicker, rows = [] }) {
             <ul>
               {rest.map((r) => (
                 <li key={r.key}>
-                  <a href={r.item.url} target="_blank" rel="noopener noreferrer">
+                  <a href={r.item.url} rel="noreferrer">
                     {r.item.title}
                   </a>{' '}
                   <span className="reader__src">{r.item.sourceName}</span>

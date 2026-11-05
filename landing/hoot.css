@@ -413,7 +413,7 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
   .held .wacht span{display:block;line-height:1.35}
   .held .wacht small,.held .wacht b{display:none}
   .held .wacht-gratis{display:block;font:500 .9375rem/1.45 var(--tekst);letter-spacing:0;text-transform:none;font-style:normal}
-  .held .gratis{display:none}
+  .held:has(.wacht-gratis) .gratis{display:none}
   .held .scene{margin-top:var(--s5)}
 }
 

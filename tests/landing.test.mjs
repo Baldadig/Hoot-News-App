@@ -34,8 +34,8 @@ test('landing: overal dezelfde accountzin, en een eigen vraag over het account',
   for (const aan of [false, true]) {
     const html = vul(aan)
     assert.doesNotMatch(html, /Gratis, zonder account|Geen account nodig|Gratis lezen\./)
-    // meta, held (desktop en mobiel) en slot
-    assert.ok((html.match(/Gratis, met of zonder account\./g) || []).length >= 4)
+    // meta, held (desktop en, met de App Store-pil, ook mobiel) en slot
+    assert.ok((html.match(/Gratis, met of zonder account\./g) || []).length >= (aan ? 4 : 3))
   }
   assert.match(SRC, /<summary>Heb ik een account nodig\?<\/summary>\s*<p>Nee\. Je kunt meteen lezen\. Met een gratis account heb je je bronnen en Bewaard op al je toestellen\.<\/p>/)
 })
@@ -73,7 +73,7 @@ test('landing: de voorbeelden zijn van 1.1.0 (nummers, bubbel apart, Selectie me
   assert.doesNotMatch(bubbel, /-nr"/)
   assert.ok(editie.indexOf('sc-bubbel') > editie.lastIndexOf('sc-nr'))
   assert.doesNotMatch(tekst(SRC), /Bluesky/)
-  const sel = SRC.slice(SRC.indexOf('id="demo-selectie"'), SRC.indexOf('<!-- 04 De Redacteur'))
+  const sel = SRC.slice(SRC.indexOf('id="demo-selectie"'), SRC.indexOf('<!-- 04 Hoot kiest'))
   assert.ok(sel.indexOf('sc-inhoud') > 0 && sel.indexOf('sc-inhoud') < sel.indexOf('sc-kaart'), 'de inhoud staat boven het eerste stuk')
   assert.doesNotMatch(sel, /sc-chip/)
 })
@@ -84,8 +84,16 @@ test('landing: de App Store staat klaar achter één regel in build.mjs', () => 
   for (const k of ['APPSTORE_META', 'APPSTORE_HELD', 'APPSTORE_LEAD', 'APPSTORE_EINDE', 'APPSTORE_VRAAG']) assert.ok(SRC.includes(`{{${k}}}`), k)
   const uit = vul(false), aan = vul(true)
   assert.doesNotMatch(uit, /apps\.apple\.com|apple-itunes-app/)
-  assert.match(uit, /<p class="wacht">[\s\S]*?Binnenkort[\s\S]*?<\/p>/)
-  assert.match(uit, /<summary>Wanneer staat Hoot in de App Store\?<\/summary>\s*<p>Binnenkort, in Nederland en België\./)
+  // Keuze r5-landing (5 november): tot de vrijgave geen pil, geen App Store-vraag en nergens "binnenkort".
+  assert.doesNotMatch(uit, /binnenkort/i)
+  assert.doesNotMatch(uit, /class="wacht/)
+  assert.doesNotMatch(uit, /App Store/)
+  assert.match(uit, /<p class="kicker">Voor iPhone, iPad en Web<\/p>/)
+  assert.match(uit, /href="\/lees\/">Probeer Hoot op het web/)
+  assert.match(uit, /<p class="gratis">Gratis, met of zonder account\.<\/p>/)
+  assert.doesNotMatch(uit, /<details>\s*<\/details>/)
+  assert.match(aan, /<details>\s*<summary>Staat Hoot in de App Store\?<\/summary>/)
+  assert.match(aan, /<p class="wacht-gratis|<em class="wacht-gratis">/)
   assert.equal(APP_URL, 'https://apps.apple.com/nl/app/id6828037269')
   assert.match(aan, /<meta name="apple-itunes-app" content="app-id=6828037269">/)
   assert.match(aan, new RegExp(`<a class="wacht" href="${APP_URL}">`))
@@ -101,7 +109,7 @@ test('landing: de kleine tekstronde uit de review', () => {
   const t = tekst(vul(false))
   for (const zin of [
     'Elke maandag de mooiste stukken van de week, over je vak en wat je verder boeit.',
-    'De Redacteur kiest elke Editie',
+    'Hoot kiest elke Editie',
     'Bij elk verhaal zie je waarom.',
     'Lees verder in de Stroom',
     'Lees mee in je browser.',

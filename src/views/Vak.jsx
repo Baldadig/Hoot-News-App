@@ -11,7 +11,7 @@ import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { Dialog, DialogHeader } from '../components/Dialog.jsx'
 import { CaretIcon, JumpIcon, ICON_SM } from '../components/icons.jsx'
 import { reduced } from '../lib/motion.js'
-import { selectionOverview, summaryLine, pieces, EMPTY_FIELD, NO_SOURCES, CHOOSE } from '../lib/selection-index.js'
+import { selectionOverview, summaryLine, pieces, EMPTY_FIELD, NO_SOURCES, CHOOSE, voorproefje, VOORPROEF } from '../lib/selection-index.js'
 import { useSelectionFold } from '../hooks/useSelectionFold.js'
 import { vakByDomain, VAK_FIELDS } from '../../shared/vak.mjs'
 import { wholeSentences } from '../../shared/zinnen.mjs'
@@ -68,7 +68,7 @@ function Also({ item }) {
       {item.also.map((a, i) => (
         <span key={a.url}>
           {i ? ', ' : ''}
-          <a href={a.url} target="_blank" rel="noopener noreferrer">
+          <a href={a.url} rel="noreferrer">
             {a.sourceName}
           </a>
         </span>
@@ -88,7 +88,7 @@ function Card({ item, rank, feature = false }) {
   const summary = wholeSentences(item.summary, fit.max - viaLength(item), fit.rek - viaLength(item))
   return (
     <article className={`card dcard${feature ? ' dcard--feature' : ''}${showImage ? '' : ' dcard--text'}${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
-      <a className="dcard__link" href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+      <a className="dcard__link" href={item.url} rel="noreferrer" onClick={() => markRead(item.id)}>
         {showImage ? (
           <div className="media dcard__media">
             <Img url={item.image} kind="lead" />
@@ -195,6 +195,7 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
     </nav>
   )
   const gekozen = `${chosen.length} gekozen`
+  const proef = chosen.length ? [] : voorproefje(vakByDomain(), digest?.fields || [])
   const how = seen > 0 ? (
     <Disclosure className="dhow" summaryClassName="linkbtn linkbtn--plain" summary="Hoe kiest Hoot deze stukken?">
       {howHootChooses(seen).map((line) => <p key={line}>{line}</p>)}
@@ -230,6 +231,23 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
             <h2 className="head-lg">Kies je onderwerpen</h2>
             <p className="dempty__text">{CHOOSE}</p>
             {pickRow('Kies onderwerpen', 'Nog niets gekozen')}
+            {/* Een voorproefje: wat je krijgt, uit de Selectie van deze week (echte stukken, gewoon te lezen). */}
+            {proef.length ? (
+              <section className="dproef" aria-labelledby="dproef-kop">
+                <h2 id="dproef-kop" className="label label--section dproef__kop">
+                  Voorproefje
+                </h2>
+                <p className="dproef__tekst">{VOORPROEF}</p>
+                <div className="dproef__rij">
+                  {proef.map((p) => (
+                    <div key={p.id} className="dproef__veld">
+                      <p className="label label--meta dproef__onderwerp">{p.label}</p>
+                      <Card item={p.item} rank={1} />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
           </div>
         ) : status === 'loading' && !digest ? (
           <LoadLinesBox />
@@ -295,7 +313,7 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
                       <ol className="dmore__list">
                         {f.more.map((it) => (
                           <li key={it.id}>
-                            <a href={it.url} target="_blank" rel="noopener noreferrer">
+                            <a href={it.url} rel="noreferrer">
                               <span className="head-4 dmore__title">{it.title}</span>
                               <span className="dmore__src">
                                 {it.sourceName} · {timeAgo(it.publishedAt)}

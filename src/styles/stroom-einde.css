@@ -1,0 +1,21 @@
+/* Het einde van de Stroom (keuze r5-stroom-einde, 5 november): "Hier was je gebleven", "Je bent bij."
+   en een stille tekstknop "Ouder nieuws tonen". Midden, in ink-3/ink-2, geen rood behalve de lijn van
+   .seen. Zelfde maat als .listend, zodat het einde van de Editie en de Stroom hetzelfde klinken. */
+.stroomeinde {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding-block-end: var(--s6);
+}
+.stroomeinde > .seen {
+  margin-block-start: var(--s2);
+}
+.stroomeinde__zin {
+  padding-block: var(--s4) 0;
+}
+.stroomeinde__knop {
+  align-self: center;
+  margin-block-start: var(--s2);
+  color: var(--ink-2);
+  font-weight: var(--fw-ui);
+}

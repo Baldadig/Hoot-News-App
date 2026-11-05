@@ -22,7 +22,7 @@ import { useTheme } from './hooks/useTheme.js'
 import { useSocialSources } from './hooks/useSocialSources.js'
 import { useAccount } from './hooks/useAccount.js'
 import { useCloudSync } from './hooks/useCloudSync.js'
-import { useStored } from './lib/store.js'
+import { useStored, writeJSON } from './lib/store.js'
 import { MAIN, rememberLocation, hrefFor } from './lib/context.js'
 import { learn, forgetTopic, READ, SAVE, vote } from './lib/affinity.js'
 import { sourceStatus, statusLabel } from './lib/sourceStatus.js'
@@ -209,6 +209,8 @@ export default function App() {
   // ---- Handelingen ----
   const markRead = useCallback(
     (id) => {
+      // Het artikel opent in hetzelfde tabblad: meteen opslaan, niet pas na de volgende weergave.
+      if (!readIds.includes(id)) writeJSON('hoot:read', [...readIds, id].slice(-1500))
       setReadIds((prev) => (prev.includes(id) ? prev : [...prev, id].slice(-1500)))
       const item = itemsById.get(id)
       if (item && !readIds.includes(id)) setAffinity((a) => learn(a, item, READ))
@@ -302,8 +304,10 @@ export default function App() {
         return next
       })
       route.go(route.path, { ...route.params, verhaal: id })
+      // Wie vergelijkt, kent de meer-kanten-tip (Edition.jsx, kanten-tip.js): die hoeft niet meer.
+      setPrefs((p) => (p.kantenTip ? p : { ...p, kantenTip: true }))
     },
-    [route.go, route.path, route.params],
+    [route.go, route.path, route.params, setPrefs],
   )
   const closeStory = useCallback(() => {
     const { verhaal, ...rest } = route.params
@@ -407,6 +411,7 @@ export default function App() {
   // je wilt inloggen (zie src/lib/join.js; JOIN_AUTO staat aan sinds 1.1.0, hooguit twee keer).
   // joinOpen: false, of waarom het blad open is ('sync' vanzelf, 'brief' via de samenvatting).
   const [joinOpen, setJoinOpen] = useState(false)
+  const endSeen = useRef(false)
   const joinAsked = rawPrefs.joinAsked
   const mayAsk = JOIN_AUTO && account.status === 'out' && prefs.onboarded && !showWelcome
   useEffect(() => {
@@ -415,10 +420,18 @@ export default function App() {
     // leespositie), en alleen in de lijst zelf (niet in een geopend verhaal of paneel).
     let byUser = false
     const onInput = () => (byUser = true)
+    // De rode eindkaart van de Editie: de vraag komt pas als je hem hebt gezien, en nooit eroverheen.
+    const endOf = (el) => {
+      const card = el.querySelector('.endcap')
+      if (!card) return 'none'
+      const r = card.getBoundingClientRect()
+      if (r.top < window.innerHeight && r.bottom > 0) return (endSeen.current = true), 'inview'
+      return endSeen.current ? 'after' : 'before'
+    }
     const onScroll = (e) => {
       const el = e.target
       if (!byUser || !(el instanceof Element) || !el.matches('section.view')) return
-      if (!shouldAskToJoin({ status: 'out', onboarded: true, path, scrolled: el.scrollTop, asked: joinAsked })) return
+      if (!shouldAskToJoin({ status: 'out', onboarded: true, path, scrolled: el.scrollTop, asked: joinAsked, end: path === 'editie' ? endOf(el) : 'none' })) return
       setJoinOpen('sync')
       setPref('joinAsked', { n: (joinAsked?.n || 0) + 1, at: Date.now() })
     }
@@ -622,6 +635,9 @@ export default function App() {
           {was('editie') ? (
             <Edition
               active={shown === 'editie'}
+              browsing={!!prefs.browsing}
+              onMakeYours={() => route.go('welkom')}
+              onLater={() => setPref('browsing', false)}
               bubble={bubble}
               brief={prefs.brief ? myEdition?.brief || null : null}
               briefNote={prefs.brief ? briefNote : null}
@@ -688,7 +704,7 @@ export default function App() {
             {page === 'stijl' ? <StyleGuide stream={stream} /> : null}
           </Suspense>
         </main>
-        <aside className={`panel${story ? ' is-open' : ''}`} hidden={!story && !panelOpen} aria-label="Verhaal" role={overlay ? 'dialog' : undefined} aria-modal={overlay ? 'true' : undefined} inert={showWelcome ? '' : undefined}>
+        <aside className={`panel${story ? ' is-open' : ''}`} hidden={!story && !panelOpen} aria-label="Vergelijken" role={overlay ? 'dialog' : undefined} aria-modal={overlay ? 'true' : undefined} inert={showWelcome ? '' : undefined}>
           {story ? (
             <Story key={story.story.id} story={story.story} items={story.items} tappedId={tapped[storyParam] || null} overlay={overlay} onClose={overlay ? closeStory : closePanel} onBack={backToIndex} onSeen={markStorySeen} seenBefore={seenStories[story.story.id] || null} />
           ) : (

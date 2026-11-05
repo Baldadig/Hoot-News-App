@@ -24,7 +24,7 @@ test('Welkom 1.1.0: vier schermen, Editie, Stroom en Selectie als gelijken, zond
   // Elk met zijn eigen zon (de zon achter de horizon), op één scherm.
   assert.match(s, /<SunArt kind=\{t\.kind\} className="ob__tart" \/>/)
   assert.ok(!/STEPS|Pagina \$\{/.test(s), 'geen stapteller of paginateller')
-  assert.match(s, /Inloggen/)
+  assert.match(s, /ob__login[\s\S]{0,120}>\s*Account\s*</) // r5-namen: het Hoot-account heet Account
   // Later kiezen kan altijd: bij de bronnen en bij de interesses.
   assert.equal(s.match(/>\s*Later kiezen\s*</g)?.length, 2)
   for (const old of ['Wat precies?', 'Overslaan', 'Veeg verder', 'PagedSourceGrid', 'Kies minstens één', 'Kies één bron']) assert.ok(!s.includes(old), old)
@@ -231,7 +231,9 @@ test('KISS-teksten (kiss-teksten.json): geen rij zonder bediening, geen oude uit
     assert.doesNotMatch(s, /hootnews\.nl/, `${f}: domein`)
     assert.match(s, /info@gethoot\.app/, `${f}: contact`)
   }
-  assert.match(read('views/Privacy.jsx'), /De Redacteur[\s\S]*op je toestel/)
+  // Keuze r5-namen (5 november): "Hoot kiest", geen "De Redacteur" in lezerstekst.
+  assert.match(read('views/Privacy.jsx'), /stelt Hoot samen, op je toestel/)
+  assert.doesNotMatch(read('views/Privacy.jsx'), /De Redacteur/)
   assert.match(read('views/Stream.jsx'), /Je bent bij\./)
 })
 
@@ -242,4 +244,33 @@ test('systeemmaat: Dynamic Type naar rem, miniatuur en toegankelijkheidsstand', 
   assert.equal(systeemMaat(53).ax, true) // AX5
   assert.equal(systeemMaat(53).rem, 49.88)
   assert.equal(systeemMaat(NaN).rem, 16)
+})
+
+// Keuze r5-bewaard (5 november): Bewaard is een archief. Geen offline- en geen opruimbelofte.
+test('Bewaard belooft alleen wat het doet: het blijft hier staan', () => {
+  const s = read('views/Saved.jsx')
+  assert.match(s, /Tik op de bladwijzer bij een verhaal\. Het blijft hier staan\./)
+  assert.doesNotMatch(s, /zonder verbinding|tot je het hebt gelezen|leeslijst/i)
+})
+
+// Keuze r5-namen (5 november): één woordenlijst op web en landing.
+test('woordenlijst: Vergelijken, Instellingen, Account, "Hoot kiest" en één ritme', () => {
+  assert.match(read('views/Story.jsx'), />\s*Vergelijken\s*</)
+  assert.match(read('App.jsx'), /aria-label="Vergelijken"/)
+  assert.match(read('components/Display.jsx'), /title="Instellingen"/)
+  assert.doesNotMatch(read('components/Shell.jsx'), /Account en weergave/)
+  for (const f of ['components/Account.jsx', 'views/Settings.jsx', 'views/Welcome.jsx']) assert.doesNotMatch(read(f), />\s*Inloggen\s*<|: 'Inloggen'/, f)
+  const welkom = read('views/Welcome.jsx')
+  assert.match(welkom, /Drie keer per dag tien verhalen\./)
+  assert.doesNotMatch(welkom, /hooguit tien|[Ee]én keer per week/)
+  const landing = readFileSync(join(root, '../landing/index.src.html'), 'utf8')
+  assert.match(landing, /Hoot kiest elke Editie/)
+  assert.doesNotMatch(landing.replace(/<!--[\s\S]*?-->/g, ''), /Redacteur/)
+})
+
+// "Vergelijken" is breder dan "Verhaal": de X van het paneel blijft erin doordat "Volg" eerder kort wordt.
+test('Vergelijken-kop: de korte "Volg" tot 24rem paneelbreedte', () => {
+  const css = read('styles/vergelijken.css')
+  assert.match(css, /@container panel \(max-width: 24rem\)/)
+  assert.match(read('main.jsx'), /import '\.\/styles\/vergelijken\.css'/)
 })

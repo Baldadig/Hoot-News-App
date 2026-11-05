@@ -74,7 +74,7 @@ test('plafond voor iedereen samen: daarna een nette 429, ook voor wie zelf nog r
   assert.doesNotMatch(error, /\d{1,2}[:.]\d{2}|\buur\b|houdt op/) // geen kloktijd, nooit "houdt op"
   assert.equal(c.calls, 2) // geen nieuwe aanroep van Claude na het plafond
   // Een geweigerde vraag kost je eigen quotum niets.
-  assert.equal(await kvGet('brief-quota-plafond-b-2026-11-04'), null)
+  assert.ok(!(await kvGet('brief-quota-plafond-b-2026-11-04'))) // null of 0: teruggegeven
 })
 
 test('plafond voor iedereen samen: een samenvatting uit de cache kan nog wel, en morgen weer nieuw', async () => {
@@ -104,11 +104,31 @@ test('een mislukte samenvatting (5xx) telt niet mee voor het quotum of het plafo
   assert.equal(await kvGet('brief-quota-all-2026-11-06'), 11)
 })
 
-test('de quotumtellers lezen en schrijven met sterke consistentie', async () => {
+test('de quotumtellers: atomair (voorwaardelijk schrijven) en met sterke consistentie', async () => {
   const { readFileSync } = await import('node:fs')
   const kv = readFileSync(new URL('../netlify/lib/kv.mjs', import.meta.url), 'utf8')
   const brief = readFileSync(new URL('../netlify/functions/brief.mjs', import.meta.url), 'utf8')
   assert.match(kv, /consistency: 'strong'/)
-  for (const call of brief.match(/kv(Get|Set)\((quotaKey|allKey|key)[^)]*\)/g) || []) assert.match(call, /strong/, call)
-  assert.ok((brief.match(/kv(Get|Set)\((quotaKey|allKey|key)/g) || []).length >= 6)
+  const take = kv.slice(kv.indexOf('export async function kvTake'), kv.indexOf('export async function kvGive'))
+  assert.match(take, /s = strongStore\(\)/)
+  assert.match(take, /onlyIfMatch: cur\.etag/)
+  assert.match(take, /onlyIfNew: true/)
+  // Geen lezen-vergelijken-schrijven meer op de tellers in brief.mjs (review B1).
+  assert.doesNotMatch(brief, /kv(Get|Set)\((quotaKey|allKey|key)/)
+  assert.match(brief, /kvTake\(quotaKey, PER_DAY\)/)
+  assert.match(brief, /kvTake\(allKey, ALL_PER_DAY\)/)
+})
+
+// Review B1 (5 november): 20 gelijktijdige verzoeken van één lid kwamen allemaal langs een plafond van 8.
+test('gelijktijdig: nooit meer dan het quotum, ook met 20 verzoeken tegelijk', async () => {
+  const now = Date.parse('2026-11-07T08:00:00Z')
+  // Een nep-Claude die ook gelijktijdig klopt: het antwoord hangt af van de vraag (overzicht of controle).
+  const c = { calls: 0 }
+  c.messages = { create: async (p) => (c.calls++, String(p.system).startsWith('Je controleert') ? { stop_reason: 'end_turn', content: [{ type: 'text', text: JSON.stringify({ zinnen: [{ zin: 1, bronnen: [1] }] }) }] } : { stop_reason: 'end_turn', content: [{ type: 'text', text: '## Kop\nIntro.' }] }) }
+  const all = await Promise.all(Array.from({ length: 20 }, (_, i) => handle(req({ rows: [{ ...rows[0], title: `Kop race ${i}` }] }), { anthropic: c, member: async () => 'race-user', now })))
+  const ok = all.filter((r) => r.status === 200).length
+  assert.equal(ok, PER_DAY)
+  assert.equal(all.filter((r) => r.status === 429).length, 20 - PER_DAY)
+  assert.equal(c.calls, PER_DAY * 2) // overzicht + controle per samenvatting
+  assert.equal(await kvGet('brief-quota-race-user-2026-11-07'), PER_DAY)
 })

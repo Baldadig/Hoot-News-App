@@ -59,7 +59,7 @@ export function Nav({ path, hrefs = {}, sourceNote = '' }) {
           </a>
         </li>
       </ul>
-      {/* Breed scherm: Instellingen onderaan de zijbalk. Op de telefoon kom je er via Account en
+      {/* Breed scherm: Instellingen onderaan de zijbalk. Op de telefoon kom je er via de knop rechtsboven (ook Instellingen),
           weergave, en daar staat Bronnen als rij. */}
       <ul className="nav__foot">
         <li>
@@ -92,7 +92,7 @@ export function BackButton({ label, onClick, ariaLabel, nav = false, className =
 // Het eerste en het laatste icoon staan optisch op de kolomlijn (--tap-inset).
 // `compare`: toon op breed scherm de knop die het vergelijkpaneel opent en sluit.
 // `subWide`: de ondertitel alleen op breed scherm (op telefoon kost hij een regel die niets nieuws zegt).
-// `account`: de knop Account en weergave (rechtsboven). `onBack` + `backLabel`: terug, vóór de titel
+// `account`: de knop Instellingen (rechtsboven: account en weergave). `onBack` + `backLabel`: terug, vóór de titel
 // in dezelfde rij; `backInNav`: dit scherm staat ook in de zijbalk, dus daar geen terugknop.
 // `tools`: eigen knoppen van het scherm, vóór verversen (de Stroom: de filterknop).
 // `refreshDesktop`: de verversknop alleen op breed scherm (de Editie: op de telefoon trek je, zoals in de app).
@@ -142,7 +142,7 @@ function AccountButton({ account, onClick }) {
   const user = account?.status === 'in' ? account.user : null
   const photo = user?.user_metadata?.avatar_url
   const initial = (user?.user_metadata?.full_name || user?.email || '?').trim().charAt(0).toUpperCase()
-  const label = user ? `Account en weergave (${user.email})` : 'Account en weergave'
+  const label = user ? `Instellingen (${user.email})` : 'Instellingen'
   return (
     <button type="button" className={`iconbtn acct${user ? ' is-in' : ''}`} onClick={onClick} aria-haspopup="dialog" aria-label={label} title={label}>
       {user ? photo ? <img src={photo} alt="" width="32" height="32" referrerPolicy="no-referrer" /> : <span aria-hidden="true">{initial}</span> : <AccountIcon />}

@@ -37,6 +37,9 @@ export function applyWelcome(p, choice) {
     ...p,
     onboarded: true,
     ...(p.onboarded ? {} : { editieHint: true }),
+    // "Liever meteen lezen": later één keer "Maak Hoot van jou" (components/MaakVanJou.jsx). Elke andere
+    // afronding (ook opnieuw kiezen via die uitnodiging) zet hem uit, zoals de app (HootStore.applyWelcome).
+    browsing: !!choice.quick,
     interests: choice.interests,
     topics: choice.topics,
     pinned: kept.length ? kept : choice.topics.slice(0, 3),

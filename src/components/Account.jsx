@@ -163,7 +163,7 @@ export function AccountSettings({ account, syncStatus, summary = null, manage = 
           <div className="setrow">
             <Avatar user={null} />
             <span className="setrow__text dset__grow">
-              <span className="acard__name">Inloggen</span>
+              <span className="acard__name">Account</span>
               <span className="setrow__hint">Hoot op al je toestellen.</span>
             </span>
           </div>
@@ -229,7 +229,7 @@ export function AccountSettings({ account, syncStatus, summary = null, manage = 
             <AccountIcon />
           </span>
           <div className="setrow__text">
-            <span className="acard__name">Inloggen</span>
+            <span className="acard__name">Account</span>
             <span className="setrow__hint">Bewaar je Hoot op al je toestellen</span>
             {summary ? <span className="setrow__hint acard__sum">{summary}</span> : null}
           </div>

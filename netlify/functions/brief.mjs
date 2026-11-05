@@ -5,7 +5,7 @@
 // Identieke edities delen hun overzicht (cache op de inhoud).
 import Anthropic from '@anthropic-ai/sdk'
 import { createBrief } from '../lib/brief.mjs'
-import { kvGet, kvSet } from '../lib/kv.mjs'
+import { kvGet, kvSet, kvTake, kvGive } from '../lib/kv.mjs'
 import { hash } from '../../shared/util.mjs'
 import { SUPABASE_URL, SUPABASE_KEY } from '../../src/lib/config.js'
 import { BRIEF_FULL_TEXT } from '../../src/lib/membership.js'
@@ -63,24 +63,24 @@ export async function handle(req, { anthropic, member = memberOf, now = Date.now
   const cached = await kvGet(cacheKey)
   if (cached) return Response.json({ brief: cached }, { headers: { 'Cache-Control': 'no-store' } })
 
-  // De tellers met sterke consistentie: een andere regio mag geen oude stand lezen (review 4 november).
-  const strong = { strong: true }
+  // De tellers atomair (review B1, 5 november): ophogen en het plafond toetsen in één voorwaardelijke
+  // schrijfactie (kvTake), zodat gelijktijdige verzoeken er niet samen doorheen kunnen. Sterke
+  // consistentie: een andere regio leest nooit een oude stand.
   const day = new Date(now).toISOString().slice(0, 10)
   const quotaKey = `brief-quota-${uid}-${day}`
-  const used = (await kvGet(quotaKey, strong)) || 0
-  if (used >= PER_DAY) return fail(429, 'Vandaag geen nieuwe samenvattingen meer.')
+  if ((await kvTake(quotaKey, PER_DAY)) == null) return fail(429, 'Vandaag geen nieuwe samenvattingen meer.')
   // Het plafond voor iedereen samen: zelfde opslag als het quotum per persoon. Een samenvatting uit
   // de cache (hierboven) telt niet mee; alleen een nieuwe aanroep van Claude.
   const allKey = `brief-quota-all-${day}`
-  const usedAll = (await kvGet(allKey, strong)) || 0
-  if (usedAll >= ALL_PER_DAY) return fail(429, FULL_TODAY)
-  await kvSet(quotaKey, used + 1, strong)
-  await kvSet(allKey, usedAll + 1, strong)
+  if ((await kvTake(allKey, ALL_PER_DAY)) == null) {
+    await kvGive(quotaKey) // jouw eigen telling niet opmaken aan een vol plafond
+    return fail(429, FULL_TODAY)
+  }
 
   const brief = await createBrief(anthropic, rows, { now }).catch(() => null)
   if (!brief) {
     // Een mislukte samenvatting (storing, time-out) telt niet mee: beide tellers weer één omlaag.
-    for (const key of [quotaKey, allKey]) await kvSet(key, Math.max(0, ((await kvGet(key, strong)) || 1) - 1), strong)
+    for (const key of [quotaKey, allKey]) await kvGive(key)
     return fail(502, 'De samenvatting lukte niet.')
   }
   await kvSet(cacheKey, brief)

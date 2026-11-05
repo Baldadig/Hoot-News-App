@@ -13,14 +13,15 @@ export function appStore(aan) {
     APPSTORE_HELD: `<a class="wacht" href="${APP_URL}">${MARK}<span><small>Download in de</small> <b>App Store</b><em class="wacht-gratis">${ACCOUNT}<br><u>Download Hoot in de App Store</u></em></span></a>`,
     APPSTORE_EINDE: `${ACCOUNT}<br>Ook in de <a href="${APP_URL}">App Store</a>.`,
     APPSTORE_LEAD: 'Lees mee in je browser, of in de app.',
-    APPSTORE_VRAAG: '<summary>Staat Hoot in de App Store?</summary>\n        <p>Ja, in Nederland en België. Op het web lees je Hoot ook gewoon.</p>',
+    APPSTORE_VRAAG: '<details>\n        <summary>Staat Hoot in de App Store?</summary>\n        <p>Ja, in Nederland en België. Op het web lees je Hoot ook gewoon.</p>\n      </details>',
   }
-  // Nog niet: geen link, en de pil is gewone tekst (geen knop, dus ook geen hover-ring).
+  // Nog niet (keuze r5-landing, 5 november): geen pil, geen vraag en geen "binnenkort". Alleen wat nu waar is:
+  // lees Hoot op het web. Op de dag van vrijgave zet APP_STORE = true alles hierboven in één keer aan.
   return {
     APPSTORE_META: '',
-    APPSTORE_HELD: `<p class="wacht">${MARK}<span><small>Binnenkort</small> <b>in de App Store</b><em class="wacht-gratis">${ACCOUNT}<br>Binnenkort ook in de App Store.</em></span></p>`,
-    APPSTORE_EINDE: `${ACCOUNT}<br>Binnenkort ook in de App Store.`,
+    APPSTORE_HELD: '',
+    APPSTORE_EINDE: ACCOUNT,
     APPSTORE_LEAD: 'Lees mee in je browser.',
-    APPSTORE_VRAAG: '<summary>Wanneer staat Hoot in de App Store?</summary>\n        <p>Binnenkort, in Nederland en België. Tot die tijd lees je Hoot gewoon op het web.</p>',
+    APPSTORE_VRAAG: '',
   }
 }

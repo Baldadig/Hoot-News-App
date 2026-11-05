@@ -300,7 +300,7 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
   const titleRole = tier === 'compact' ? 'head-lg' : tier === 'medium' ? 'head-5' : 'head-6'
   return (
     <article className={`entry lead${isReadItem(read, item) ? ' is-read' : ''}`} data-id={item.id}>
-      <a className={`lead__link${portraitImage(item) ? ' lead__link--portrait' : ''}`} href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+      <a className={`lead__link${portraitImage(item) ? ' lead__link--portrait' : ''}`} href={linkOf(item)} rel="noreferrer" onClick={() => markRead(item.id)}>
         {/* Overal beeld eerst, zoals de app: dan rubriek, kop en kern, zodat de bronregel bij zijn
             tekst blijft. Het waarom van de plek (jouw Editie) staat stil onder de rubriek, zie Why.js. */}
         <Beeld item={item} kind="lead" fits={heroFits(item)} className={`media media--lead${portraitImage(item) ? ' media--portrait' : ''}${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
@@ -341,7 +341,7 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
     return (
       <article className={`${cls} compact--tl`} data-id={item.id}>
         {/* Zelfde volgorde als op de voorpagina: rubriek (met het waarom), kop, samenvatting, beeld, dan de bron. */}
-        <a className="compact__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+        <a className="compact__link" href={linkOf(item)} rel="noreferrer" onClick={() => markRead(item.id)}>
           <Kicker item={item} extra={note} n={n} />
           <Why why={why} />
           <h3 className="head-4 compact__title">{item.title}</h3>
@@ -356,7 +356,7 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
   }
   return (
     <article className={`${cls}${layout === 'tijdlijn' && !plain ? ' compact--klein' : ''}`} data-id={item.id}>
-      <a className="compact__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+      <a className="compact__link" href={linkOf(item)} rel="noreferrer" onClick={() => markRead(item.id)}>
         <div className="compact__text">
           <Kicker item={item} extra={note} n={n} />
           <Why why={why} />
@@ -444,7 +444,7 @@ export function KaartItem({ item, story, note, n = null, why = null, followed = 
   )
   return (
     <article className={`entry kaart${lead ? ' kaart--lead' : ''}${isReadItem(read, item) ? ' is-read' : ''}`} data-id={item.id}>
-      <a className="kaart__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+      <a className="kaart__link" href={linkOf(item)} rel="noreferrer" onClick={() => markRead(item.id)}>
         {lead ? beeld : null}
         <div className={`kaart__in${klein ? ' kaart__in--klein' : ''}`}>
           <div className="kaart__head">
@@ -478,7 +478,7 @@ export function SocialItem({ item }) {
   const text = withoutBareLinks(item.summary, isLink ? item.domain : '')
   return (
     <article className={`entry social${isReadItem(read, item) ? ' is-read' : ''}`} data-id={item.id}>
-      <a className="social__body" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+      <a className="social__body" href={linkOf(item)} rel="noreferrer" onClick={() => markRead(item.id)}>
         {/* Bluesky-kaart A+ (1.1.1): een stille rubriek, dan de tekst schreefloos (src/styles/bluesky.css). */}
         <p className="label label--kicker social__kicker" aria-hidden="true">
           Bluesky

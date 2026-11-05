@@ -13,7 +13,7 @@ import { toggleFollow, freeStart, startIds, basisSources, interestBlocks, moreGr
 import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, waitFor, sleep, tintTimes, openTimes, reducedPlan, crossPlan, rootColor, IRIS, IRIS_BACK, IRIS_MS, STEP_OUT_MS, STEP_IN_MS } from '../lib/motion.js'
 
 // Welkom (1.1.0), gelijk aan de app (ios/Hoot/Views/WelcomeView.swift). Vier schermen:
-//   1. welkom (rood)   de zon komt op achter de horizon; Begin. Inloggen klein rechtsboven.
+//   1. welkom (rood)   de zon komt op achter de horizon; Begin. Account klein rechtsboven.
 //   2. Zo werkt Hoot   Editie, Stroom en Selectie als gelijken op één scherm, elk met zijn eigen zon
 //                      (components/SunArt.jsx: de zon achter de horizon, rustig; Minder beweging stil).
 //                      Kies je interesses, of Liever meteen lezen (de gratis startset, zonder sport).
@@ -32,9 +32,9 @@ import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, 
 // bij je interesses met wat nu aan staat, en Sluiten (ook Escape) slaat niets op.
 
 const TRIO = [
-  { kind: 'editie', title: 'Editie', text: 'Drie keer per dag hooguit tien verhalen. Dan ben je bij.' },
+  { kind: 'editie', title: 'Editie', text: 'Drie keer per dag tien verhalen. Dan ben je bij.' },
   { kind: 'stroom', title: 'Stroom', text: 'Alles van je bronnen, nieuwste eerst.' },
-  { kind: 'selectie', title: 'Selectie', text: 'Eén keer per week het beste over wat jou bezighoudt.' },
+  { kind: 'selectie', title: 'Selectie', text: 'Elke maandag het beste over wat jou bezighoudt.' },
 ]
 
 const toggleIn = (list, id) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id])
@@ -206,7 +206,7 @@ export default function Welcome({ sources, items = [], prefs, muted = new Set(),
   const pickSource = (id) => setEdited(toggleFollow(mine, id))
   const finish = (choice = {}) => onDone({ interests, topics, sources: mine, all: pickable, vak, ...choice })
   // "Liever meteen lezen": de startset met gratis bronnen, zonder interesses, onderwerpen of vak.
-  const startQuick = () => onDone({ interests: [], topics: [], sources: startIds(pickable), all: pickable })
+  const startQuick = () => onDone({ interests: [], topics: [], sources: startIds(pickable), all: pickable, quick: true })
   // Later kiezen bij de interesses: zoals het was (de eerste keer dus leeg), door naar de bronnen.
   const laterInterests = () =>
     go(() => {
@@ -308,7 +308,7 @@ export default function Welcome({ sources, items = [], prefs, muted = new Set(),
               {onSignIn ? (
                 <>
                   <button type="button" className="linkbtn linkbtn--plain ob__login" onClick={onSignIn} title="Lezen kan ook zonder account." aria-describedby="ob-login-hint">
-                    Inloggen
+                    Account
                   </button>
                   <span id="ob-login-hint" className="visually-hidden">
                     Lezen kan ook zonder account.
@@ -607,7 +607,7 @@ function Interesses({ head, interests, onInterest, vak, onVak, open, setOpen }) 
       </button>
       {open ? (
         <div id="ob-sel" className="ob__sel">
-          <p className="ob__selnote">Eén keer per week het beste over je werk of hobby.</p>
+          <p className="ob__selnote">Elke maandag het beste over je werk of hobby.</p>
           {domains.map((d) => (
             <ChipGroup key={d.id} label={d.label} level={2} className="ob__domain">
               {d.fields.map((f) => (

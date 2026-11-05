@@ -36,7 +36,7 @@ function SourceItem({ item, note }) {
   const summary = wholeSentences(item.summary, fit.max - viaLength(item), fit.rek - viaLength(item)) // hele zinnen, nooit "…"
   return (
     <article className={`entry srcitem${read.has(item.id) ? ' is-read' : ''}`} data-id={item.id}>
-      <a className="srcitem__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+      <a className="srcitem__link" href={linkOf(item)} rel="noreferrer" onClick={() => markRead(item.id)}>
         {note || item.type === 'opinie' ? <p className="label label--kicker kicker">{[item.type === 'opinie' ? 'Opinie' : null, note].filter(Boolean).join(' · ')}</p> : null}
         <h3 className="head-4 srcitem__title">{item.title}</h3>
         {summary ? (
@@ -112,7 +112,7 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
       <header className="story__head">
         {overlay ? <BackButton onClick={onClose} ariaLabel="Terug" /> : null}
         <p className="label label--meta story__eyebrow" tabIndex={-1} ref={headRef}>
-          Verhaal
+          Vergelijken
         </p>
         <div className="story__acts">
           {/* In een smal paneel (of bij grote tekst) staat er alleen "Volg"; de naam blijft voluit. */}
@@ -141,7 +141,7 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
                 Eerste bericht, Buiten je bronnen) als kicker erboven, waar dat van toepassing is. */}
             {note(lead) || lead.type === 'opinie' ? <p className="label label--kicker kicker story__kicker">{[lead.type === 'opinie' ? 'Opinie' : null, note(lead)].filter(Boolean).join(' · ')}</p> : null}
             <h2 className="head-5 story__title">
-              <a className="story__link" href={linkOf(lead)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(lead.id)}>
+              <a className="story__link" href={linkOf(lead)} rel="noreferrer" onClick={() => markRead(lead.id)}>
                 {lead.title}
               </a>
             </h2>

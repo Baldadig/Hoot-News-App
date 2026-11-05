@@ -141,7 +141,7 @@ function AccountCard({ account, syncStatus, onOpen }) {
       <button type="button" className="setrow setrow--link setrow--action" onClick={onOpen}>
         <Avatar user={user} size={48} />
         <span className="setrow__text dset__grow">
-          <span className="acard__name">{user ? accountName(user) || user.email : 'Inloggen'}</span>
+          <span className="acard__name">{user ? accountName(user) || user.email : 'Account'}</span>
           <span className="setrow__hint">{status}</span>
         </span>
         <span className="caret" aria-hidden="true">

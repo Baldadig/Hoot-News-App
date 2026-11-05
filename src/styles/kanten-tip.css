@@ -1,0 +1,9 @@
+/* De eenmalige tip "Meer kanten van één verhaal" (Edition.jsx, .kantentip): dezelfde stille hint als de
+   uitleg na het eerste Welkom (.edhint), met één onderstreepte tekstlink in de hint-kleur. Geen rood:
+   het rode moment van de Editie blijft 01. Geen pop-up; hij schuift niet over de leestekst. */
+.kantentip .kantentip__go {
+  color: inherit;
+  font-weight: var(--fw-ui);
+  text-decoration: underline;
+  text-underline-offset: var(--underline-offset);
+}

@@ -159,6 +159,9 @@
         try {
           var home = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true
           if (!home && sessionStorage.getItem('hoot:splashed')) return s.remove()
+          // Terug van een artikel (zelfde tabblad): geen opstartscherm, meteen je plek.
+          var nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0]
+          if (nav && nav.type === 'back_forward') return s.remove()
           sessionStorage.setItem('hoot:splashed', '1')
         } catch (e) {
           /* geen sessionStorage: dan één keer tonen */
