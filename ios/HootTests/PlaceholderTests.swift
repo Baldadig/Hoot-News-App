@@ -29,8 +29,31 @@ final class PlaceholderTests: XCTestCase {
         for l in lijsten {
             let rows = try XCTUnwrap(l["rows"] as? [[String: Any]]).map { (id: $0["id"] as! String, bare: $0["bare"] as! Bool) }
             let verwacht = try XCTUnwrap(l["beelden"] as? [String: Int])
-            XCTAssertEqual(Placeholder.plan(ids: rows).mapValues { $0 + 1 }, verwacht, l["naam"] as? String ?? "")
+            let plan = Placeholder.plan(ids: rows)
+            XCTAssertEqual(plan.mapValues { $0 + 1 }, verwacht, l["naam"] as? String ?? "")
+            buren(rows, plan, l["naam"] as? String ?? "")
         }
+        // Drie verder valt altijd in een andere set.
+        for k in 0 ..< Placeholder.count { XCTAssertNotEqual(Placeholder.set((k + Placeholder.shift) % Placeholder.count), Placeholder.set(k), "beeld \(k + 1)") }
+    }
+
+    // Twee beeldloze buren: nooit hetzelfde beeld, nooit dezelfde set.
+    func buren(_ rows: [(id: String, bare: Bool)], _ plan: [String: Int], _ naam: String) {
+        for i in rows.indices.dropFirst() where rows[i].bare && rows[i - 1].bare {
+            let a = plan[rows[i - 1].id]!, b = plan[rows[i].id]!
+            XCTAssertNotEqual(a, b, "\(naam): rij \(i) hetzelfde beeld")
+            XCTAssertNotEqual(Placeholder.set(a), Placeholder.set(b), "\(naam): rij \(i) dezelfde set")
+        }
+    }
+
+    // Een lange reeks: nooit twee gelijke beelden of sets naast elkaar, en alle twaalf komen geregeld voor.
+    func testLangeReeksNooitTweeGelijkeNaastElkaar() {
+        let rows = (0 ..< 5000).map { (id: "https://www.nrc.nl/nieuws/2026/11/05/stuk-\($0)-a\(($0 * 7919) % 1000)", bare: true) }
+        let plan = Placeholder.plan(ids: rows)
+        buren(rows, plan, "lange reeks")
+        var telling = [Int](repeating: 0, count: Placeholder.count)
+        for k in plan.values { telling[k] += 1 }
+        for (k, n) in telling.enumerated() { XCTAssertTrue(n > 200 && n < 650, "beeld \(k + 1): \(n)") }
     }
 
     func testTwaalfBeeldenElkMetKleineTekening() {
@@ -68,7 +91,8 @@ final class PlaceholderTests: XCTestCase {
         XCTAssertNil(Placeholder.plan([(a, .krant), (b, .krant)])[id]) // met beeld: geen placeholder
         let plan = Placeholder.plan([(a, .krant), (b, .krant)], failed: [id])
         XCTAssertEqual(plan["a"], Placeholder.base("a"))
-        XCTAssertEqual(plan[id], (Placeholder.base("a") + 1) % Placeholder.count) // niet hetzelfde als de buur
+        XCTAssertEqual(plan[id], (Placeholder.base("a") + Placeholder.shift) % Placeholder.count) // niet hetzelfde beeld en niet dezelfde set als de buur
+        XCTAssertNotEqual(Placeholder.set(plan[id]!), Placeholder.set(plan["a"]!))
     }
 
     @MainActor

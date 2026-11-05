@@ -1,39 +1,63 @@
-// Placeholderbeeld (build 46): zes beelden, deterministisch per artikel, nooit twee gelijke buren.
+// Placeholderbeeld (build 46, twaalf sinds placeholders-12): deterministisch per artikel, nooit twee
+// gelijke buren en nooit twee keer dezelfde set na elkaar.
 // Dezelfde gevallen draaien in de app (ios/HootTests/PlaceholderTests.swift).
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
-import { fnv1a, placeholderBase, placeholderPlan, placeholderSvg, PLACEHOLDERS, PALETTES, PLACEHOLDER_COUNT } from '../shared/placeholder.mjs'
+import { fnv1a, placeholderBase, placeholderPlan, placeholderSet, placeholderSvg, PLACEHOLDERS, PALETTES, PLACEHOLDER_COUNT, PLACEHOLDER_SHIFT } from '../shared/placeholder.mjs'
 
 const root = new URL('../', import.meta.url)
 const fixture = JSON.parse(readFileSync(new URL('tests/fixtures/placeholder.json', root), 'utf8'))
 
-test('placeholder: fnv1a(id) mod 6, op web en in de app dezelfde som', () => {
+test('placeholder: fnv1a(id) mod 12, op web en in de app dezelfde som', () => {
   assert.equal(fnv1a(''), 0x811c9dc5)
   assert.equal(fnv1a('a'), 0xe40c292c) // bekende FNV-1a-waarde
   for (const { id, fnv1a: h, beeld } of fixture.base) {
     assert.equal(fnv1a(id), h, id)
     assert.equal(placeholderBase(id) + 1, beeld, id)
   }
-  // Alle zes komen voor.
+  // Alle twaalf komen voor.
   assert.equal(new Set(fixture.base.map((b) => b.beeld)).size, PLACEHOLDER_COUNT)
 })
 
-test('placeholder: twee beeldloze rijen direct na elkaar nooit hetzelfde beeld; een rij met beeld breekt de reeks', () => {
+// Twee beeldloze buren: nooit hetzelfde beeld, nooit dezelfde set.
+function buren(rows, plan, naam) {
+  for (let i = 1; i < rows.length; i++) {
+    if (!rows[i].bare || !rows[i - 1].bare) continue
+    const a = plan.get(rows[i - 1].id), b = plan.get(rows[i].id)
+    assert.notEqual(b, a, `${naam}: rij ${i} hetzelfde beeld`)
+    assert.notEqual(placeholderSet(b), placeholderSet(a), `${naam}: rij ${i} dezelfde set`)
+  }
+}
+
+test('placeholder: twee beeldloze rijen direct na elkaar nooit hetzelfde beeld en nooit dezelfde set; een rij met beeld breekt de reeks', () => {
   for (const l of fixture.lijsten) {
     const plan = placeholderPlan(l.rows)
     assert.deepEqual(Object.fromEntries([...plan].map(([k, v]) => [k, v + 1])), l.beelden, l.naam)
-    for (let i = 1; i < l.rows.length; i++) {
-      if (l.rows[i].bare && l.rows[i - 1].bare) assert.notEqual(plan.get(l.rows[i].id), plan.get(l.rows[i - 1].id), l.naam)
-    }
+    buren(l.rows, plan, l.naam)
   }
+  // Drie verder valt altijd in een andere set.
+  for (let k = 0; k < PLACEHOLDER_COUNT; k++) assert.notEqual(placeholderSet((k + PLACEHOLDER_SHIFT) % PLACEHOLDER_COUNT), placeholderSet(k), `beeld ${k + 1}`)
   // Willekeurige lijsten: de regel houdt altijd.
   for (let t = 0; t < 200; t++) {
     const rows = Array.from({ length: 30 }, (_, i) => ({ id: `r${t}-${i}`, bare: (t * 31 + i * 7) % 5 !== 0 }))
     const plan = placeholderPlan(rows)
-    for (let i = 1; i < rows.length; i++) if (rows[i].bare && rows[i - 1].bare) assert.notEqual(plan.get(rows[i].id), plan.get(rows[i - 1].id))
+    buren(rows, plan, `lijst ${t}`)
   }
+})
+
+test('placeholder: een lange reeks beeldloze rijen: nooit twee gelijke beelden of sets naast elkaar, alle twaalf door elkaar', () => {
+  const rows = Array.from({ length: 5000 }, (_, i) => ({ id: `https://www.nrc.nl/nieuws/2026/11/05/stuk-${i}-a${(i * 7919) % 1000}`, bare: true }))
+  const plan = placeholderPlan(rows)
+  buren(rows, plan, 'lange reeks')
+  const telling = Array(PLACEHOLDER_COUNT).fill(0)
+  for (const k of plan.values()) telling[k]++
+  // Elk beeld komt geregeld voor: geen beeld onder de 4 of boven de 13 procent.
+  for (const [k, n] of telling.entries()) assert.ok(n > 0.04 * rows.length && n < 0.13 * rows.length, `beeld ${k + 1}: ${n}`)
+  // En het is geen vast patroon: de reeks herhaalt zich niet met een korte periode.
+  const seq = rows.map((r) => plan.get(r.id))
+  for (let p = 1; p <= 24; p++) assert.ok(seq.some((v, i) => i >= p && v !== seq[i - p]), `periode ${p}`)
 })
 
 test('placeholder: geen dagdeel in tekening of code; decoratie (aria-hidden); de zon van beeld 2 klein', () => {

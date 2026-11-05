@@ -9,7 +9,7 @@
 // de CSS (src/placeholder.css) en de tabel voor SwiftUI (ios/Hoot/Views/PlaceholderBeelden.swift).
 // Dezelfde keuze voor hetzelfde artikel: tests/fixtures/placeholder.json draait op web en iOS.
 
-export const PLACEHOLDER_COUNT = 6
+export const PLACEHOLDER_COUNT = 12
 
 // FNV-1a (32 bit) over de UTF-8-bytes van de id. Dezelfde som in Beeldloos.swift.
 export function fnv1a(s) {
@@ -21,13 +21,21 @@ export function fnv1a(s) {
   return h >>> 0
 }
 
-// Het beeld van een artikel op zich: 0 tot 5 (beeld 1 tot 6).
+// Het beeld van een artikel op zich: 0 tot 11 (beeld 1 tot 12). De hash strooit ze door elkaar.
 export const placeholderBase = (id) => fnv1a(id) % PLACEHOLDER_COUNT
 
+// De set van een beeld (0 tot 11): zon, iris, lijn, raster of stapel.
+export const placeholderSet = (k) => PLACEHOLDERS[k].family
+
+// Doorschuiven: drie verder (mod 12) valt altijd in een andere set. De sets liggen op volgorde
+// (3 · 3 · 2 · 2 · 2), dus 0–2 → 3–5, 3–5 → 6–8, 6–8 → 9–11 en 9–11 → 0–2.
+export const PLACEHOLDER_SHIFT = 3
+
 // Een lijst van boven naar onder: `rows` is [{ id, bare }], `bare` of die rij het placeholderbeeld toont.
-// Twee beeldloze rijen direct na elkaar krijgen nooit hetzelfde beeld: is het beeld gelijk aan dat van
-// de rij erboven, dan schuift het één door. Alleen de directe buur telt, dus een nieuw stuk bovenaan
-// verschuift hooguit de rij eronder. Geeft een Map id → 0 tot 5 voor de beeldloze rijen.
+// Twee beeldloze rijen direct na elkaar krijgen nooit hetzelfde beeld en nooit dezelfde set: zit het
+// beeld in dezelfde set als dat van de rij erboven, dan schuift het drie door, naar een andere set.
+// Alleen de directe buur telt, dus een nieuw stuk bovenaan verschuift hooguit de rij eronder. Geeft een
+// Map id → 0 tot 11 voor de beeldloze rijen.
 export function placeholderPlan(rows) {
   const out = new Map()
   let prev = null
@@ -37,7 +45,7 @@ export function placeholderPlan(rows) {
       continue
     }
     let k = placeholderBase(r.id)
-    if (k === prev) k = (k + 1) % PLACEHOLDER_COUNT
+    if (prev != null && placeholderSet(k) === placeholderSet(prev)) k = (k + PLACEHOLDER_SHIFT) % PLACEHOLDER_COUNT
     out.set(r.id, k)
     prev = k
   }
@@ -173,7 +181,7 @@ export const PLACEHOLDERS = [
 
 export const THEMES = ['licht', 'donker', 'nacht']
 
-// De SVG van beeld n (1 tot 6) in een weergave, groot of klein. Decoratie: aria-hidden.
+// De SVG van beeld n (1 tot 12) in een weergave, groot of klein. Decoratie: aria-hidden.
 export function placeholderSvg(n, theme = 'licht', klein = false) {
   const p = PLACEHOLDERS[n - 1]
   const L = (klein && p.klein) || p.groot
