@@ -13,6 +13,7 @@ Inhoud: [0 Wat is nieuw](#0--wat-is-nieuw-in-v23) · [1 Keuzes](#1--keuzes-voor-
 | Hoofdstuk | Verandering |
 |---|---|
 | Type | **Twee families.** Newsreader voor wat je leest, **Schibsted Grotesk** voor de bediening en elke uitleg- of hulpzin. Schibsted vervangt Inter overal: app, web, landing en deelkaart. Kickers op 800. Afbreken alleen met een streepje. Hints in Nacht op `ink-2`. |
+| Lopende tekst (5 nov) | **Leestekst Newsreader Text op optische maat 12, gewicht 450, in `ink-2`** (Nacht: 480). Terugval als de maat niet beschikbaar is: opsz 11 en gewicht 400. **Over en Privacy staan schreefloos** (Schibsted). De accountkaart in Instellingen toont de profielfoto (Google) of een monogram. |
 | Kaart A+ (nieuw) | Eén kaart voor Editie en Stroom op de telefoon (ook Bewaard, Zoeken en het bronscherm): kop 22/28, intro 18/28, beeld 2:1 onder de tekst; hoofdverhaal 01 met beeld 3:2 tot de rand, kop 30/36, intro 20/30 en het nummer als enige rood. iPad en desktop houden hun brede vormen. |
 | Beelden (nieuw) | Witte randen worden gemeten en weggesneden. Zes placeholders (drie Zonnestand, drie Iris), vast per artikel, buren nooit gelijk. |
 | Beweging | Horizon sluit in 400 met `ease-iris`. Nieuw: **De stapel** (laadteken) en **Tien en de bubbel** (eerste Editie). Opstart: het logo staat stil, het rood sluit als iris naar de punt. Onboarding-iris met een vast middelpunt. |
@@ -46,6 +47,9 @@ Door Alex gemaakt op 4 november; norm vanaf v2.2. Nieuw in v2.3 staat onderaan d
 | **Kaart A+ (v2.3)** | Editie en Stroom delen op de telefoon één kaart (§4b). |
 | **Artikel zonder beeld (v2.3)** | Eerst het beeld van de artikelpagina; lukt dat niet, dan een van zes placeholders (§6c). Intro: drie regels, hele zinnen, geen beletselteken. |
 | **Laadtekens (v2.3)** | De stapel bij laden en bij artikel openen; Tien en de bubbel eenmalig bij de eerste Editie (§5). |
+| **Lopende tekst (v2.3, 5 nov)** | Newsreader Text, optische maat 12, gewicht 450, `ink-2` (Nacht 480). Terugval: optische maat 11, gewicht 400. |
+| **Over en Privacy (v2.3, 5 nov)** | Schreefloos in Schibsted Grotesk: het is uitleg, dus bediening. |
+| **Accountkaart (v2.3, 5 nov)** | De kaart bovenaan Instellingen toont de profielfoto van het account (Google) of, zonder foto, een monogram. |
 | **Tekstgrootte (v2.3)** | Eén schuif in Instellingen › Lezen schaalt alles in verhouding, bovenop Dynamische tekst. De intro groeit duidelijk mee. Geen losse maten per tekstsoort. |
 
 ---
@@ -91,13 +95,19 @@ In uitingen (landing, App Store, deelkaart, campagne): **60 papier, 30 inkt, 10 
 
 | Familie | Voor | Gewichten |
 |---|---|---|
-| **Newsreader** | Wat je leest: koppen, displays en de nummers 01–10 (800, statisch, optische maat uit); intro's en artikeltekst in **Newsreader Text** (variabel, optische maat op de lettermaat) | Koppen 800 · tekst 400, in Nacht 430 · cursief alleen voor "— via …" |
+| **Newsreader** | Wat je leest: koppen, displays en de nummers 01–10 (800, statisch, optische maat uit); intro's en artikeltekst in **Newsreader Text** (variabel, optische maat 12) | Koppen 800 · lopende tekst optische maat 12, gewicht 450, `ink-2` (Nacht 480); terugval optische maat 11, gewicht 400 · cursief alleen voor "— via …" |
 | **Schibsted Grotesk** | Wat je bedient: tabs, knoppen, labels, kickers, de bronregel, metadata, cijfers, en **alle uitleg- en hulpzinnen** (panelen, meldingen, onboarding, lege staten, Over, Privacy) | 400 · 600 · 700 · kickers en labels in kapitalen 800 |
 
 - **Schibsted Grotesk vervangt Inter overal**: app, web, landing en deelkaart (web en server). Web en iOS gelijk. Meegeleverd (web `src/fonts/`, iOS `ios/Hoot/Resources/Fonts/`), latin en latin-ext, SIL OFL 1.1. Geen Google Fonts-verzoek.
 - **De regel:** Newsreader alleen voor wat je leest (kop, intro, artikeltekst). Een zin die iets uitlegt of helpt, is bediening en staat schreefloos: "Abonnee? Log één keer in en lees het hele stuk hier." is Schibsted.
 - **Kickers** in Schibsted 800, kapitalen, +0,06em, 12/16, in `ink-3` (minder rood). Bij de AX-maten van iOS zonder kapitalen.
 - **Hints** op `ink-3`, in Nacht op `ink-2` (§2).
+
+### Lopende tekst en Over/Privacy (5 november)
+
+- **Lopende leestekst** (intro, artikeltekst, de tekst van een post): Newsreader Text op **optische maat 12, gewicht 450**, kleur **`ink-2`**; in Nacht **gewicht 480**. **Terugval** als optische maat 12 niet beschikbaar is: optische maat 11 en gewicht 400.
+- **Over- en Privacy-pagina's zijn schreefloos** (Schibsted Grotesk): proza dat uitlegt is bediening. Dit gaat boven de regel "Proza (Privacy, Over)" in `tokens.json` versie 3, die nog Newsreader Text noemt.
+- **Accountkaart in Instellingen** toont de **profielfoto** van het account (Google) of, zonder foto, een **monogram**.
 
 ### Afbreken
 
@@ -111,9 +121,9 @@ Een lang woord breekt **met een streepje**, op lettergrepen in de taal van de pa
 | `kaart-kop` | 22/28 | Newsreader 800 | Kaart A+, elk bericht |
 | `head-lg-item` | 22/26 | Newsreader 800 | Breed: een bericht in een brede lijst, een bladtitel |
 | `t4-item` | 20/24 | Newsreader 800 | Een rij buiten kaart A+ (iPad, desktop, keuzelijst) |
-| `kaart-intro-lead` | 20/30 | Newsreader Text | Kaart A+, hoofdverhaal 01 |
-| `kaart-intro` | 18/28 | Newsreader Text, `ink-2` | Kaart A+ |
-| `intro` | 17/24 | Newsreader Text, `ink-2` | Buiten kaart A+ |
+| `kaart-intro-lead` | 20/30 | Newsreader Text opsz 12 · 450 | Kaart A+, hoofdverhaal 01 |
+| `kaart-intro` | 18/28 | Newsreader Text opsz 12 · 450, `ink-2` (Nacht 480) | Kaart A+ |
+| `intro` | 17/24 | Newsreader Text opsz 12 · 450, `ink-2` (Nacht 480) | Buiten kaart A+ |
 | `uitleg` | 17/24 | Schibsted 400 | Uitleg- en hulpzinnen |
 | `t2-ui` | 15/20 | Schibsted 600 | Bronnaam, knoppen, "N bronnen" |
 | `t1-meta`, `kaart-why` | 13/16 | Schibsted 400, `ink-3` | Tijd, waarom-regel |
@@ -286,6 +296,8 @@ De schrijfregels staan in **`Hoot-design/SCHRIJFWIJZE-HOOT.md`** (5 november, co
 `tokens.json` versie 3 is op 5 november nagelopen tegen `src/styles.css`, `src/styles/kaart.css`, `src/lib/*.js` en iOS (`Letters.swift`, `NachtThema.swift`, `Layout.swift`, `Assets.xcassets`).
 
 **In het register gelijkgetrokken met de code** (de code was al zo): Schibsted Grotesk als `sans` en voor `uitleg` (was Inter, uitleg was Newsreader) · iOS-letters SchibstedGrotesk · `band-ink`, `band-ink-2`, `band-ink-3` in Nacht = Zacht papier (`#d8d0c2`, `#bdb3a2`, `#a79b87`) · `t4-item` 20/24 en `lh-4` 24 (was 18/22) · `kicker` 12/16 in `ink-3` (was 13, `accent`) · `edition-number` Newsreader 800, 16, inkt · `media-lead` 16:9 (was 2:1) · `dur-iris` 700 (was 600) · strook sluit met `ease-iris` (was `ease-glide`).
+
+**Nog bij te werken in het register (5 november):** `tokens.json` versie 3 noemt voor Newsreader Text nog gewicht 400 (Nacht 430) en optische maat op de lettermaat, en rekent Privacy en Over nog tot de leestekst. De besluiten uit §3 (optische maat 12, gewicht 450, Nacht 480, terugval 11/400; Over en Privacy schreefloos) gaan voor tot het register is bijgewerkt.
 
 **Afwijkingen in de code** (gemeld, niet veranderd):
 
