@@ -606,7 +606,7 @@ export default function App() {
           Naar de inhoud
         </a>
         <div className="app__nav" inert={hideMain ? '' : undefined}>
-          <Nav path={path} hrefs={hrefs} sourceNote={statusLabel(srcStatus.failed.length)} digest={prefs.vak.length > 0 || path === 'digest'} />
+          <Nav path={path} hrefs={hrefs} sourceNote={statusLabel(srcStatus.failed.length)} />
         </div>
         <main id="inhoud" className="main" inert={hideMain ? '' : undefined}>
           {was('editie') ? (

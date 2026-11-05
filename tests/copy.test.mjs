@@ -97,7 +97,7 @@ test('Geen kloktijden in webteksten: dagdelen in de Editie, de Selectie, Instell
   // De dagdelen staan in één tabel (shared/slots.mjs, D1); iOS spiegelt hem.
   assert.equal(JSON.parse(readFileSync(new URL('../shared/slots.json', import.meta.url), 'utf8')).avond.volgende, 'morgenochtend')
   const vak = read('views/Vak.jsx')
-  assert.match(vak, /De eerste Selectie komt/)
+  assert.match(vak, /De eerste volle Selectie komt/)
   assert.match(vak, /Elke maandagochtend een nieuwe\./) // gelijk aan iOS (DigestView)
   // Dezelfde drie dagdelen in dezelfde woorden als iOS (WelcomeView `.seintje`).
   // Settings zegt het niet meer (KISS): het ritme staat alleen op Over.

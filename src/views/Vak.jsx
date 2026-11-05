@@ -241,9 +241,9 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
           <>
             {/* Kop: welke week, en wat je te lezen krijgt. De week is een datum: ink-3, geen rood (SE6). */}
             <header className="dmast">
-              <p className="label label--meta dmast__week">{digest.preview ? 'Voorproefje van deze week' : `Week ${digest.week} · ${span(digest.from, digest.to)}`}</p>
+              <p className="label label--meta dmast__week">{digest.preview ? 'Voorproefje · de afgelopen zeven dagen' : `Week ${digest.week} · ${span(digest.from, digest.to)}`}</p>
               <h2 className="head-lg dmast__lede">{summaryLine(overview)}</h2>
-              {digest.preview ? <p className="dmast__note">De eerste Selectie komt {WEEKDAY.format(new Date(digest.next))}.</p> : <p className="dmast__note">Elke maandagochtend een nieuwe.</p>}
+              {digest.preview ? <p className="dmast__note">De eerste volle Selectie komt {WEEKDAY.format(new Date(digest.next))} in de ochtend.</p> : <p className="dmast__note">Elke maandagochtend een nieuwe.</p>}
             </header>
 
             {/* De inhoud: tik op een onderwerp en je springt ernaartoe. De laatste rij: kiezen. */}
