@@ -1,6 +1,6 @@
 import { CORRECTION_REASONS } from '../lib/corrections.mjs'
 import { cleanIntro, headlineTier } from '../../shared/edition-display.mjs'
-import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useStackWhenCramped } from '../hooks/useStackWhenCramped.js'
 import { usePhone } from '../hooks/usePhone.js'
 import { timeAgo, readTime } from '../lib/time.js'
@@ -141,13 +141,25 @@ export function Meta({ item, story, showSave = true, taste = null, outside = fal
   // Op de telefoon zoals de app: Bewaar zichtbaar, de rest (delen, meer of minder, fout melden) onder "…".
   // Breed scherm houdt de knoppen naast elkaar.
   const hasMenu = !!(taste || voteOn || reportMistake) && item.kind !== 'post'
+  useBronnenAchterTijd(metaRef, `${item.id}|${others}`)
+  const compare = () => openStory(story.id, item.id)
+  const compareLabel = `Vergelijk ${others + 1} bronnen${fresh ? `, ${fresh} nieuw` : ''}`
   return (
     <div className="meta" ref={metaRef}>
-      <SourceMeta item={item} outside={outside} />
+      {/* De bron, en in een smalle kolom het aantal bronnen klein achter de tijd ("1 uur geleden · 7 bronnen",
+          src/styles/rust.css): daar staat het altijd, in plaats van als knop op een eigen regel. */}
+      <span className="meta__src">
+        <SourceMeta item={item} outside={outside} />
+        {story && others > 0 ? (
+          <button type="button" className="meta__bronnen" onClick={compare} aria-label={compareLabel}>
+            {bronnenLabel(others + 1)}
+          </button>
+        ) : null}
+      </span>
       {story && others > 0 ? (
         // Eén bronlabel, overal hetzelfde: het totaal, "6 bronnen ›", in --ink-2 (minder rood, keuze B).
         // Geen rood en geen tweede vorm ("Vergelijk", "+N") per breedte.
-        <button type="button" className="linkbtn linkbtn--plain morebtn" onClick={() => openStory(story.id, item.id)} aria-label={`Vergelijk ${others + 1} bronnen${fresh ? `, ${fresh} nieuw` : ''}`}>
+        <button type="button" className="linkbtn linkbtn--plain morebtn" onClick={compare} aria-label={compareLabel}>
           {fresh ? <span className="dot" aria-hidden="true" /> : null}
           <span>{bronnenLabel(others + 1)}</span>
           <CaretIcon size={ICON_SM} />
@@ -158,6 +170,38 @@ export function Meta({ item, story, showSave = true, taste = null, outside = fal
       {showSave ? story ? <SaveButton id={story.id} kind="story" payload={withLead(story, item.id)} label="verhaal" /> : <SaveButton id={item.id} payload={item} /> : null}
     </div>
   )
+}
+
+// Smalle kolom: "· N bronnen" staat achter de bron (.meta__src), maar hoort direct achter de tijd. Is de
+// bronnaam breder dan de tijd, dan schuift het de ruimte ertussen in (alleen als het er staat, zie rust.css).
+function useBronnenAchterTijd(ref, dep) {
+  useLayoutEffect(() => {
+    const meta = ref.current
+    const count = meta?.querySelector('.meta__bronnen')
+    const time = meta?.querySelector('.meta__src .srcmeta__time')
+    const btn = meta?.querySelector('.meta__src > .srcmeta')
+    if (!count || !time || !btn) return undefined
+    const place = () => {
+      count.style.marginInlineStart = ''
+      if (getComputedStyle(count).display === 'none') return
+      const r = document.createRange()
+      r.selectNodeContents(time)
+      const rects = [...r.getClientRects()]
+      const end = rects.length ? rects[rects.length - 1].right : time.getBoundingClientRect().right
+      const pull = Math.max(0, btn.getBoundingClientRect().right - end)
+      if (pull > 0.5) count.style.marginInlineStart = `${-pull}px`
+    }
+    place()
+    if (typeof ResizeObserver === 'undefined') return undefined
+    const ro = new ResizeObserver(place)
+    ro.observe(meta)
+    let gone = false
+    document.fonts?.ready?.then(() => !gone && place())
+    return () => {
+      gone = true
+      ro.disconnect()
+    }
+  }, [ref, dep])
 }
 
 // De berichten van een plek in de Editie (het verhaal, of het losse bericht).
@@ -381,8 +425,15 @@ export function KaartItem({ item, story, note, n = null, why = null, followed = 
   const { markRead, read, prefs } = useHoot()
   const introMax = useIntroMax()
   const lineCount = lines ?? (n ? INTRO_LINES : prefs?.preview ?? INTRO_LINES)
-  const fit = lead ? { max: 240, rek: 240 } : introMax(lineCount, 'kaartA')
-  const beeld = lead ? (
+  // Te klein voor de volle breedte (onscherp, zie sharpHere): klein rechts naast de tekst, zoals in de
+  // Stroom op desktop. Het hoofdverhaal houdt dan het placeholderbeeld (heroFits).
+  const klein = !lead && !!item.image && (!fitsLarge(item.image) || !sharpHere(item))
+  const fit = lead ? { max: 240, rek: 240 } : introMax(lineCount, klein ? 'rij' : 'kaartA', klein)
+  const beeld = klein ? (
+    <Beeld item={item} kind="krant" className={`thumb kaart__thumb${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+      {(onFail) => <MeasuredImg item={item} width="96" height="64" onFail={onFail} />}
+    </Beeld>
+  ) : lead ? (
     <Beeld item={item} kind="lead" fits={heroFits(item)} className={`media kaart__beeld${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
       {(onFail) => <MeasuredImg item={item} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} onFail={onFail} />}
     </Beeld>
@@ -395,7 +446,7 @@ export function KaartItem({ item, story, note, n = null, why = null, followed = 
     <article className={`entry kaart${lead ? ' kaart--lead' : ''}${isReadItem(read, item) ? ' is-read' : ''}`} data-id={item.id}>
       <a className="kaart__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         {lead ? beeld : null}
-        <div className="kaart__in">
+        <div className={`kaart__in${klein ? ' kaart__in--klein' : ''}`}>
           <div className="kaart__head">
             <Kicker item={item} extra={note} followed={followed} n={n} />
             <Why why={why} />

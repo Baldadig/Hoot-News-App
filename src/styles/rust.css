@@ -97,3 +97,109 @@
   margin-inline: var(--s2);
   white-space: normal;
 }
+
+/* ---------- Ronde 2 (Alex akkoord, 5 november) ---------- */
+
+/* Bronregel: de bron staat in een omhulsel (.meta__src, Items.jsx Meta), met daarachter het aantal
+   bronnen voor de smalle kolom. Breed blijft dat de knop "N bronnen ›" (op hover). */
+.meta > .meta__src {
+  grid-area: src;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: last baseline;
+  column-gap: var(--s1);
+  min-width: 0;
+}
+.meta__bronnen {
+  display: none;
+}
+/* Smalle kolom (de zijkolom van de voorpagina, ≤ 21rem): "N bronnen" klein achter de tijd, altijd
+   zichtbaar, in de maat en kleur van de tijd; tikken vergelijkt, zoals de knop. Eén regel: geen
+   tweede rij meer die zonder hover leeg zou staan. ⋯, delen en bewaren blijven rechts (op hover). */
+@container entry (max-width: 21rem) {
+  .meta > .morebtn {
+    display: none;
+  }
+  .meta__bronnen {
+    display: inline;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink-3);
+    font-family: var(--sans);
+    font-size: var(--t0);
+    line-height: var(--lh-1);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .meta__bronnen::before {
+    content: '·\00a0';
+  }
+  .meta__bronnen:hover {
+    color: var(--ink-2);
+  }
+  .meta.meta:not(:has(> :is(.taste, .taste__said))) {
+    grid-template-areas: 'src src taste share save';
+  }
+  /* Ruimte voor "tijd · N bronnen" op één regel: leestijd en abonnement vallen hier weg. */
+  .meta .srcbtn__read {
+    display: none;
+  }
+}
+/* Met een muis zijn ⋯, delen en bewaren in de smalle kolom 32 breed in plaats van 44 (een raakvlak
+   voor een vinger is hier niet nodig); zo past de bronregel op één regel. */
+@media (hover: hover) and (pointer: fine) {
+  @container entry (max-width: 21rem) {
+    .meta.meta:not(:has(> :is(.taste, .taste__said))) {
+      grid-template-columns: minmax(0, 1fr) 0 2rem 2rem 2rem;
+      margin-inline-end: calc((var(--icon) - 2rem) / 2); /* het icoon blijft optisch op de kolomlijn */
+    }
+    .meta > .iconbtn {
+      width: 2rem;
+    }
+  }
+}
+
+/* Uitleg ("Uitleg: formateur") met een muis ook pas bij hover of focus, met dezelfde fade. Open blijft
+   hij staan. Op touch altijd zichtbaar. */
+@media (hover: hover) and (pointer: fine) {
+  .entry .terms__row {
+    opacity: 0;
+    transition: opacity var(--dur-2) var(--ease);
+  }
+  .entry:is(:hover, :focus-within) .terms__row,
+  .entry .terms:has(.terms__box) .terms__row {
+    opacity: 1;
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: reduce) {
+  .entry .terms__row {
+    transition: none;
+  }
+}
+
+/* Kaart A+ (telefoon) met een te klein beeld: kop en intro links, het beeld klein rechts (--thumb-w),
+   zoals in de krant-vorm; geen opgerekt beeld over de volle breedte. */
+.kaart__in--klein {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--thumb-w);
+  column-gap: var(--s3);
+  align-items: start;
+}
+.kaart__in--klein > .kaart__head {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+.kaart__in--klein > .kaart__head:empty {
+  display: none;
+}
+.kaart__in--klein > .kaart__title { grid-column: 1; grid-row: 2; }
+.kaart__in--klein > .kaart__sum { grid-column: 1; grid-row: 3; }
+/* Het beeld begint op de lijn van de kop, zoals in de krant-vorm. */
+.kaart__in--klein > .kaart__thumb {
+  grid-column: 2;
+  grid-row: 2 / span 2;
+  margin: 0;
+  border-radius: var(--radius-control);
+}
