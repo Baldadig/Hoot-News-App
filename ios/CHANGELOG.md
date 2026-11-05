@@ -2,6 +2,7 @@
 
 ## Onuitgebracht
 
+- Intro variant 4: lopende leestekst (intro's, posts, de lezer) staat in Newsreader op optische maat 12, gewicht 450, in Nacht 480 (nieuwe vaste standen NewsreaderTekst-450 en -480, gemaakt met scripts/build-fonts.py; de lezer laadt dezelfde stand als WOFF). Terugvaloptie variant 3 (optische maat 11, 400/430) staat gedocumenteerd in Letters.swift en build-fonts.py.
 - Build 47: Schibsted Grotesk vervangt Inter voor alle bediening (tabbalk, knoppen, kickers, bronregel, instellingen, de lezer rond het artikel); Newsreader blijft om te lezen. Kickers blijven 800; kleine hints en metadata staan in Nacht op ink-2. De deelkaart houdt Inter 600, gelijk aan de server. De zinnen van het Welkom zijn schreefloos. Zoeken is breed, zoals het web: woord, bron en auteur, ook in Bewaard. De rij "Bluesky-accounts" in Instellingen opent het beheer in plaats van de postfeed. De rubriek boven het hoofdverhaal loopt bij AX5 op een smal scherm door op een tweede regel in plaats van af te kappen.
 
 - Bluesky: een account dat je toevoegt staat meteen in de Stroom (en zet Bluesky aan), net als op de website. Accounts die build 44/45 toevoegde zonder Stroom-keuze komen één keer terug in de Stroom, ook in je account. Een account zonder naam in je profiel laat de andere niet meer wegvallen.

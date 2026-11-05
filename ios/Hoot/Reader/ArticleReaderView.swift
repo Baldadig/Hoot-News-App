@@ -193,8 +193,8 @@ enum ReaderFonts {
         face("Schibsted Grotesk", "SchibstedGrotesk-400", weight: 400), // bronregel, bijschriften
         face("Schibsted Grotesk", "SchibstedGrotesk-800", weight: 800), // rubriek
     ].joined(separator: "\n")
-    private static let day = face("Newsreader Tekst", "NewsreaderTekst-400", weight: 400)
-    private static let nacht = face("Newsreader Tekst", "NewsreaderTekst-430", weight: 400) // Nacht: 430 op de plek van 400
+    private static let day = face("Newsreader Tekst", "NewsreaderTekst-450", weight: 400) // lees-stand, variant 4: opsz 12, wght 450 (als --lees-wght op het web)
+    private static let nacht = face("Newsreader Tekst", "NewsreaderTekst-480", weight: 400) // Nacht: 480 op de plek van 400 (variant 3: 430)
     // Voor de toets: hoeveel letter er per pagina meegaat.
     static func bytes(night: Bool) -> Int { css(night: night).utf8.count }
     static func css(night: Bool) -> String { common + "\n" + (night ? nacht : day) }

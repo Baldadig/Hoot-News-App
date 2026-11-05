@@ -8,7 +8,7 @@
 // Meten zonder opmaak: canvas.measureText met de letter van de kop, plus de letterafstand per teken.
 // Opnieuw bij nieuwe koppen, een andere breedte (draaien, Tekstgrootte) en als de letters geladen zijn.
 
-export const KOP = '.head-4, .head-lg, .head-5, .head-6, .edtitle__text'
+export const KOP = '.head-4, .head-lg, .head-5, .head-6, .kaart__title, .edtitle__text'
 // De Editie zet zijn naam in een span naast de zon (de zon valt bij grote tekst onder de naam). Dan telt
 // de span, niet de h1 eromheen: de h1 heeft ook de zon in zich en zou anders als geheel afbreken.
 const NAAM = '.edtitle__text'

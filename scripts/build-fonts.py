@@ -6,7 +6,10 @@ variabele woff2's uit src/fonts/ (zie src/fonts/README.md); de app kan geen vari
 lettermaat zetten met Dynamische tekst, dus die krijgt vaste standen uit dezelfde bron:
 
   Newsreader Kop    800, opsz 16  (= de statische Newsreader 800 van het web en de deelkaart)
-  Newsreader Tekst  400 en 430 (Nacht), opsz 17 (de intro van 17); voor de lezer ook 700 en cursief
+  Newsreader Tekst  450 en 480 (Nacht), opsz 12: intro variant 4 (keuze Alex, 5 november 2026; zie Hoot-design
+                    intro-letter/ADVIES.md); voor de lezer ook 700 en cursief (nog opsz 17).
+                    Terugvaloptie variant 3: wght 400 / 430 (Nacht), opsz 11. Zet de twee regels met 'variant 3'
+                    in main() aan en draai opnieuw; ook --lees-wght / --lees-opsz in src/styles.css.
   Schibsted Grotesk 400, 600, 700, 800
 
 Inter blijft alleen als Inter-600.ttf: de letter van de deelkaart (server en app gelijk, shared/deelkaart).
@@ -109,8 +112,13 @@ def main(newsreader, schibsted, italic):
     IOS.mkdir(parents=True, exist_ok=True)
     ny = 1.193  # lijnhoogte van New York: (1950 + 494) / 2048
     instance(newsreader, {'wght': 800, 'opsz': 16}, 'Newsreader Kop', 'ExtraBold', 'NewsreaderKop-ExtraBold', 800, IOS / 'NewsreaderKop-800.ttf', ny)
-    instance(newsreader, {'wght': 400, 'opsz': 17}, 'Newsreader Tekst', 'Regular', 'NewsreaderTekst-Regular', 400, IOS / 'NewsreaderTekst-400.ttf', ny)
-    instance(newsreader, {'wght': 430, 'opsz': 17}, 'Newsreader Tekst Nacht', 'Regular', 'NewsreaderTekst-Nacht', 430, IOS / 'NewsreaderTekst-430.ttf', ny)
+    # Variant 4: opsz 12, wght 450 (Nacht 480). Bestandsnaam = het gewicht.
+    instance(newsreader, {'wght': 450, 'opsz': 12}, 'Newsreader Tekst', 'Regular', 'NewsreaderTekst-Regular', 450, IOS / 'NewsreaderTekst-450.ttf', ny)
+    instance(newsreader, {'wght': 480, 'opsz': 12}, 'Newsreader Tekst Nacht', 'Regular', 'NewsreaderTekst-Nacht', 480, IOS / 'NewsreaderTekst-480.ttf', ny)
+    # Variant 3 (terugvaloptie): opsz 11, wght 400 / 430. Gebruik deze twee in plaats van de twee hierboven, en pas
+    # Info.plist, ReaderFonts (ArticleReaderView.swift) en build-reader-fonts.mjs op de bestandsnamen -400 / -430 aan.
+    # instance(newsreader, {'wght': 400, 'opsz': 11}, 'Newsreader Tekst', 'Regular', 'NewsreaderTekst-Regular', 400, IOS / 'NewsreaderTekst-400.ttf', ny)
+    # instance(newsreader, {'wght': 430, 'opsz': 11}, 'Newsreader Tekst Nacht', 'Regular', 'NewsreaderTekst-Nacht', 430, IOS / 'NewsreaderTekst-430.ttf', ny)
     # Vet en cursief van dezelfde tekstletter, voor de lezer (strong, em en tussenkoppen in een artikel).
     instance(newsreader, {'wght': 700, 'opsz': 17}, 'Newsreader Tekst', 'Bold', 'NewsreaderTekst-Bold', 700, IOS / 'NewsreaderTekst-700.ttf', ny)
     instance(italic, {'wght': 400, 'opsz': 17}, 'Newsreader Tekst', 'Italic', 'NewsreaderTekst-Italic', 400, IOS / 'NewsreaderTekst-400-cursief.ttf', ny)

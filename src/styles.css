@@ -65,8 +65,8 @@
   /* Type */
   /* Lezen in serif, bedienen in sans. Drie rollen, alle letters meegeleverd (main.jsx, src/fonts):
      --serif  koppen, displays en de nummers 01–10: Newsreader 800, statisch (optische maat uit)
-     --lees   intro's en artikeltekst (leads, de Editie in één minuut, posts): Newsreader op
-              tekstmaat (variabel, optische maat aan), 400; Nacht 430
+     --lees   intro's en artikeltekst (leads, de Editie in één minuut, posts): Newsreader,
+              variabel, optische maat 12, gewicht 450; Nacht 480 (--lees-wght, --lees-vs)
      --sans   bediening, labels, metadata, knoppen en alle uitleg- en hulpzinnen: Schibsted Grotesk
               (variabel, 400–900), meegeleverd; vervangt Inter (keuze Alex, 4 november) */
   --serif: 'Newsreader', ui-serif, Georgia, 'Times New Roman', serif;
@@ -227,7 +227,14 @@
      maten in StreamLine meet. */
   --lh-ui: 1.3;
   --fw-regular: 400;
-  --fw-lees: 400; /* lopende tekst in Newsreader; Nacht 430, zodat de dunne halen op zwart niet breken */
+  --fw-lees: 400; /* uitleg in Schibsted (400; Nacht 430). De lees-tekst in Newsreader heeft een eigen stand, hieronder */
+  /* Leesstijl, intro variant 4 (keuze Alex, 5 november): Newsreader op optische maat 12, gewicht 450, ink-2; Nacht 480.
+     Dezelfde stand als de iOS-instantie NewsreaderTekst-450 (scripts/build-fonts.py). De optische maat staat vast
+     (font-variation-settings overschrijft font-optical-sizing); het gewicht loopt via font-weight.
+     Terugvaloptie variant 3: --lees-wght 400 (Nacht 430), --lees-opsz 11 (iOS: NewsreaderTekst-400, opsz 11). */
+  --lees-wght: 450;
+  --lees-opsz: 12;
+  --lees-vs: 'opsz' var(--lees-opsz);
   --fw-ui: 600; /* bediening, bronnaam */
   --fw-action: 700; /* tekstacties */
   --fw-head: 800; /* koppen, labels, hoofdknop */
@@ -418,7 +425,7 @@ p {
    komt in een span.kop-woord (lib/kop-afbreken.js): afbreken op lettergrepen in de taal van de pagina
    (lang="nl"), drie letters per kant. De rest van de kop breekt alleen tussen woorden. Zoals de app
    (ios/Hoot/Views/Kop.swift). .kop--breek (de hele kop) is alleen de uitwijk voor een kop met elementen. */
-:is(.head-4, .head-lg, .head-5, .head-6).kop--breek,
+:is(.head-4, .head-lg, .head-5, .head-6, .kaart__title).kop--breek,
 .kop-woord {
   -webkit-hyphens: auto;
   hyphens: auto;
@@ -476,8 +483,8 @@ p {
    De Editie in één minuut. Uitleg en hulp (--uitleg) is schreefloos, zie hieronder. De maat blijft bij de klasse zelf; een intro is 17/24 (1,42). */
 :is(.lead__sum, .compact__sum, .fitem__sum, .srcitem__sum, .dcard__sum, .social__text, .reader__p) {
   font-family: var(--lees);
-  font-weight: var(--fw-lees);
-  font-optical-sizing: auto;
+  font-weight: var(--lees-wght);
+  font-variation-settings: var(--lees-vs);
 }
 /* Uitlegzinnen: de zin onder een kop in het welkom, de tekst van een lege bladzijde, de Selectie en de
    pagina's Over en Privacy. Schreefloos (--uitleg), op de maat van een intro: 17/24. */
@@ -5435,15 +5442,15 @@ html[data-systeem='ax'] .edmeta > span {
   pointer-events: none;
 }
 .src__label {
-  /* padding-bottom 4,6: dezelfde basislijn als de rubrieken (Inter 15 zou gecentreerd 2,3 lager
-     staan dan Newsreader 17; met Source Sans was dat 1,3, dus 2,6) */
+  /* padding-bottom 1: dezelfde basislijn als de rubrieken (Newsreader 17). Opnieuw gemeten voor Schibsted 15/700
+     (5 november): gecentreerd staat die 0,5 lager, dus 1 px (was 4,6 met Inter, 2,6 met Source Sans) */
   position: absolute;
   top: 0;
   bottom: 0;
   display: flex;
   align-items: center;
   max-width: 10em;
-  padding-bottom: 4.6px;
+  padding-bottom: 1px;
   color: var(--accent);
   font-family: var(--sans);
   font-size: var(--t2);
@@ -5657,9 +5664,8 @@ html[data-systeem='ax'] .edmeta > span {
   --btn-ink: var(--ink);
 }
 
-/* Hints op --ink-2 in Donker en Nacht (keuze Alex, 4 november): Schibsted is op 12 en 13 zachter dan Inter, en
-   --ink-3 is op zwart te stil voor uitleg die je moet kunnen lezen. Kickers en tijden blijven --ink-3. */
-:root[data-theme='dark'] :is(.hint, .setrow__hint, .sheet__note, .ob__peeknote, .ob__barsub, .ob__dsub, .learned__sub, .briefcta__sub, .dmast__note, .lessnote, .vh__sub, .dirow__sub),
+/* Hints op --ink-2 alleen in Nacht (brand guide v2.3, gelijk aan iOS Theme.hint): Schibsted is op 12 en 13 zachter dan Inter, en
+   --ink-3 is op zwart te stil voor uitleg die je moet kunnen lezen. In Donker blijven hints --ink-3. Kickers en tijden blijven --ink-3. */
 :root[data-theme='night'] :is(.hint, .setrow__hint, .sheet__note, .ob__peeknote, .ob__barsub, .ob__dsub, .learned__sub, .briefcta__sub, .dmast__note, .lessnote, .vh__sub, .dirow__sub) {
   color: var(--ink-2);
 }
@@ -5670,7 +5676,8 @@ html[data-systeem='ax'] .edmeta > span {
   --ink-2: #bdb3a2;
   --ink-3: #a79b87;
   --accent: #df8276;
-  --fw-lees: 430; /* lopende tekst in Newsreader: de dunne halen breken niet op zwart */
+  --fw-lees: 430; /* uitleg in Schibsted */
+  --lees-wght: 480; /* lees-tekst in Newsreader: de dunne halen breken niet op zwart (variant 3: 430) */
   --brand: var(--ink);
   --mark-bg: var(--ink);
   --band-accent: var(--accent);
