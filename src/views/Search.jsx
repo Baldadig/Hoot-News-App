@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Empty, BackButton } from '../components/Shell.jsx'
+import { Empty, ViewHeader } from '../components/Shell.jsx'
 import { Entry, useHoot } from '../components/Items.jsx'
 import { CloseIcon, SearchArt } from '../components/icons.jsx'
 import { withoutRepeats } from '../../shared/stroom.mjs'
 
-export default function Search({ onBack, backLabel = 'Terug' }) {
+// Zoeken is een tab (telefoon) en staat in de zijbalk (breed): geen terugknop, wel een schermtitel (h1) zoals elk scherm.
+export default function Search() {
   const { itemsById, saved, storiesById, sourcesById, muted } = useHoot()
   const [q, setQ] = useState('')
   const [scope, setScope] = useState('mijn') // mijn | alle
@@ -36,10 +37,8 @@ export default function Search({ onBack, backLabel = 'Terug' }) {
   return (
     <section className="view view--page" aria-label="Zoeken">
       <div className="col col--read">
-        <header className="vh">
+        <ViewHeader title="Zoeken" showSearch={false}>
           <form className="searchbar" role="search" onSubmit={(e) => (e.preventDefault(), inputRef.current?.blur())}>
-            {/* Zoeken staat ook in de zijbalk: vanaf 960 is terug overbodig. */}
-            <BackButton onClick={onBack} ariaLabel={`Terug naar ${backLabel}`} nav />
             <label className="visually-hidden" htmlFor="q">
               Zoek in berichten
             </label>
@@ -59,10 +58,10 @@ export default function Search({ onBack, backLabel = 'Terug' }) {
               Alle bronnen
             </button>
           </div>
-        </header>
+        </ViewHeader>
         {!q.trim() ? (
-          <Empty art={SearchArt} title="Waar zoek je naar?">
-            {scope === 'mijn' ? 'Je zoekt in de berichten van je eigen bronnen die nu geladen zijn, en in alles wat je hebt bewaard.' : 'Je zoekt nu ook in de bronnen die je niet volgt en die alleen ter vergelijking binnen een verhaal staan.'} Er is geen archief van eerdere dagen.
+          <Empty art={SearchArt} title="Zoek in je nieuws">
+            In koppen, intro’s, bronnen en auteurs, ook in Bewaard.
           </Empty>
         ) : results.length === 0 ? (
           <Empty
@@ -76,7 +75,7 @@ export default function Search({ onBack, backLabel = 'Terug' }) {
               ) : null
             }
           >
-            Zoeken kijkt alleen in wat nu geladen of bewaard is. Probeer een korter woord.
+            Hoot zoekt in koppen, intro’s, bronnen en auteurs, ook in Bewaard.
           </Empty>
         ) : (
           <>
