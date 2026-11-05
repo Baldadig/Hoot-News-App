@@ -31,7 +31,7 @@ export default function Over({ onBack, backLabel }) {
         <h3 className="head-4">Waarom zie ik een betaalmuur?</h3>
         <p>
           Sommige bronnen vragen een abonnement. Op de website opent Hoot het artikel bij de uitgever zelf. In de app opent een artikel standaard in de Hoot-lezer: log daar één keer
-          in bij je abonnement, via het tandwiel rechtsboven → Inloggen bij je abonnementen. Liever Safari, waar je al bent ingelogd? Kies bij het tandwiel → Artikelen openen voor In
+          in bij je abonnement, via het tandwiel rechtsboven → Artikelen → Abonnementen. Liever Safari, waar je al bent ingelogd? Kies bij het tandwiel → Artikelen → Artikelen openen voor In
           Safari. Safari kan per site onthouden dat je de Lezer-weergave wilt (aA › Gebruik Lezer automatisch).
         </p>
         <h3 className="head-4">Wanneer verschijnt de Editie?</h3>

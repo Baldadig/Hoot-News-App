@@ -2,7 +2,7 @@ import { useHoot } from './Items.jsx'
 import { Dialog, DialogHeader } from './Dialog.jsx'
 import { AccountSettings } from './Account.jsx'
 import { UpDownIcon } from './icons.jsx'
-import { useTouch } from '../lib/systeemtekst.js'
+import { TEXT_SIZES, textSizePref } from '../lib/tekstgrootte.js'
 
 // Weergave: wat je al lezend wisselt. Dezelfde rijen in het blad Jij en op Instellingen.
 // Instellingen A (concepten-2/6-instellingen.html, I4/I5): geen rode segmenten meer, maar een rij
@@ -28,9 +28,9 @@ export function MenuRow({ label, value, options, onChange }) {
   )
 }
 
-// Weergave · Thema: dezelfde labels en volgorde als iOS. "Als het donker is" alleen bij Automatisch.
+// Weergave · Thema: dezelfde labels en volgorde als iOS. "Als het donker is" alleen bij Zoals je toestel.
 export const THEME_OPTIONS = [
-  { value: 'system', label: 'Automatisch' },
+  { value: 'system', label: 'Zoals je toestel' },
   { value: 'light', label: 'Licht' },
   { value: 'dark', label: 'Donker' },
   { value: 'night', label: 'Nacht', aria: 'Nacht, echt zwart' },
@@ -38,7 +38,6 @@ export const THEME_OPTIONS = [
 
 export function DisplayControls({ stream = true }) {
   const { prefs, setPref, theme, setTheme, themeDark, setThemeDark } = useHoot()
-  const touch = useTouch() // op een aanraakscherm volgt de tekstgrootte het systeem: geen eigen keuze
   return (
     <div className="rows">
       <MenuRow label="Weergave" value={theme} onChange={setTheme} options={THEME_OPTIONS} />
@@ -53,18 +52,8 @@ export function DisplayControls({ stream = true }) {
           { value: 'inkt', label: 'Inkt' },
         ]}
       />
-      {touch ? null : (
-        <MenuRow
-          label="Tekstgrootte"
-          value={prefs.textSize}
-          onChange={(v) => setPref('textSize', v)}
-          options={[
-            { value: 'klein', label: 'Klein' },
-            { value: 'normaal', label: 'Normaal' },
-            { value: 'groot', label: 'Groot' },
-          ]}
-        />
-      )}
+      {/* Tekstgrootte: vijf standen bovenop het systeem, zoals in Instellingen (lib/tekstgrootte.js). */}
+      <MenuRow label="Tekstgrootte" value={textSizePref(prefs.textSize)} onChange={(v) => setPref('textSize', v)} options={TEXT_SIZES.map(({ value, label }) => ({ value, label }))} />
       <MenuRow
         label="Beeld"
         value={prefs.images}

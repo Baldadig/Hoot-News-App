@@ -5,7 +5,7 @@ import UIKit
 enum Weergave: String, CaseIterable {
     case system, light, dark, night
     init(stored: String) { self = Self(rawValue: stored) ?? .system }
-    var label: String { switch self { case .system: "Automatisch"; case .light: "Licht"; case .dark: "Donker"; case .night: "Nacht" } }
+    var label: String { switch self { case .system: "Zoals je toestel"; case .light: "Licht"; case .dark: "Donker"; case .night: "Nacht" } }
     var scheme: ColorScheme? { switch self { case .system: nil; case .light: .light; case .dark, .night: .dark } }
     func nightActive(systemDark: Bool, evening: String) -> Bool { self == .night || (self == .system && systemDark && evening == "night") }
 }
@@ -96,18 +96,18 @@ struct WeergaveKeuze: View {
     @AppStorage("hoot.weergave") private var value = "system"
     @AppStorage("hoot.weergave.donker") private var evening = "dark"
     var body: some View {
-        // Een menu met een vinkje (Instellingen A); "Als het donker is" alleen bij Automatisch.
+        // Een menu met een vinkje (Instellingen D); "Als het donker is" alleen bij Zoals je toestel.
         Picker(selection: Binding(get: { Weergave(stored: value).rawValue }, set: { value = $0 })) {
             ForEach(Weergave.allCases, id: \.rawValue) { option in
                 Text(option.label).tag(option.rawValue).accessibilityLabel(option == .night ? "Nacht, echt zwart" : option.label)
             }
-        } label: { FormLabel("Weergave", systemImage: "circle.lefthalf.filled") }
+        } label: { Text("Weergave") }
         .frame(minHeight: Space.tap)
         if Weergave(stored: value) == .system {
             Picker(selection: Binding(get: { evening == "night" ? "night" : "dark" }, set: { evening = $0 })) {
                 Text("Donker").tag("dark")
                 Text("Nacht").tag("night").accessibilityLabel("Nacht, echt zwart")
-            } label: { FormLabel("Als het donker is", systemImage: "moon") }
+            } label: { Text("Als het donker is") }
             .frame(minHeight: Space.tap)
         }
     }

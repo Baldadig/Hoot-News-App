@@ -258,13 +258,10 @@ struct SubscriptionsView: View {
 struct SubscriptionsRow: View {
     @Environment(HootStore.self) private var store
     @State private var count = 0
+    var title = "Abonnementen" // Instellingen D › Artikelen
 
     var body: some View {
-        LabeledContent {
-            if count > 0 { Text("\(count) ingelogd") }
-        } label: {
-            FormLabel("Inloggen bij je abonnementen", systemImage: "key")
-        }
+        SettingsRow(title, value: count > 0 ? "\(count) ingelogd" : nil)
         .task(id: PublisherLogin.all(store).map(\.domain)) {
             let found = await PublisherLogin.loggedIn(PublisherLogin.all(store).map(\.domain)).count
             if !Task.isCancelled { count = found }

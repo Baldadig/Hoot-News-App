@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import { effectiveFactor } from './tekstgrootte.js'
 
 // Tekstgrootte op een aanraakscherm volgt het systeem, zoals Dynamic Type in de app. Op een computer
 // blijft Tekstgrootte (Klein, Normaal, Groot) een eigen keuze in Weergave, want een browser heeft daar
@@ -40,6 +41,16 @@ export function useTouch() {
   )
 }
 
+// De eigen Tekstgrootte (lib/tekstgrootte.js) als factor op de root: alles op de rem-schaal groeit mee.
+let schaal = 1
+let remeasure = () => {}
+export function setSchaal(factor) {
+  const f = Number.isFinite(factor) && factor > 0 ? factor : 1
+  if (f === schaal) return
+  schaal = f
+  remeasure()
+}
+
 export function startSysteemTekst() {
   if (typeof document === 'undefined' || typeof matchMedia !== 'function') return () => {}
   const root = document.documentElement
@@ -54,15 +65,24 @@ export function startSysteemTekst() {
     delete root.dataset.systeem
   }
   const measure = () => {
-    if (!isTouch()) return root.dataset.systeem === undefined ? undefined : clear()
-    if (!probe.isConnected) document.body.appendChild(probe)
-    // `medium` is de standaardmaat van de browser (16 × de lettermaat die de gebruiker koos): 17 is 16.
-    const px = parseFloat(getComputedStyle(probe).fontSize)
-    const m = systeemMaat(apple ? px : (px * 17) / 16)
-    if (apple) root.style.fontSize = `${m.rem}px`
+    // Op een computer is er geen systeemmaat: de standaardmaat van de browser (17 op de schaal van iOS).
+    let body = 17
+    if (isTouch()) {
+      if (!probe.isConnected) document.body.appendChild(probe)
+      // `medium` is de standaardmaat van de browser (16 × de lettermaat die de gebruiker koos): 17 is 16.
+      const px = parseFloat(getComputedStyle(probe).fontSize)
+      body = apple ? px : (px * 17) / 16
+    }
+    const f = effectiveFactor(schaal, body)
+    const m = systeemMaat(body * f)
+    // iPhone: de maat van Dynamic Type × de Tekstgrootte; elders de maat van de browser × de Tekstgrootte.
+    if (isTouch() && apple) root.style.fontSize = `${m.rem}px`
+    else if (f !== 1) root.style.fontSize = `${Math.round(f * 10000) / 100}%`
     else root.style.removeProperty('font-size')
     const state = m.ax ? 'ax' : m.groot ? 'groot' : 'normaal'
-    if (root.dataset.systeem !== state) root.dataset.systeem = state
+    if (!isTouch() && state === 'normaal') {
+      if (root.dataset.systeem !== undefined) delete root.dataset.systeem
+    } else if (root.dataset.systeem !== state) root.dataset.systeem = state
   }
   const mq = matchMedia(TOUCH)
   window.addEventListener('resize', measure)
@@ -70,7 +90,9 @@ export function startSysteemTekst() {
   document.addEventListener('visibilitychange', measure)
   mq.addEventListener?.('change', measure)
   measure()
+  remeasure = measure
   return () => {
+    remeasure = () => {}
     window.removeEventListener('resize', measure)
     window.removeEventListener('pageshow', measure)
     document.removeEventListener('visibilitychange', measure)

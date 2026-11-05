@@ -44,7 +44,8 @@ import { subscribe as onUpdate, isReady as updateReady, applyUpdate, dismissUpda
 import { indexStories, resolveStory, toggleSaved, restoreSaved } from './lib/saved.js'
 import { shareItem, shareNotice } from './lib/share.js'
 import Splash from './components/Splash.jsx'
-import { startSysteemTekst, useTouch } from './lib/systeemtekst.js'
+import { startSysteemTekst, setSchaal } from './lib/systeemtekst.js'
+import { textSizeOf } from './lib/tekstgrootte.js'
 
 // Schermen die je zelden opent laden pas als je ze opent (de service worker heeft ze al klaarstaan).
 const Search = lazy(() => import('./views/Search.jsx'))
@@ -96,14 +97,14 @@ export default function App() {
   const route = useRoute()
   const [rawPrefs, setPrefs] = useStored('hoot:prefs', { muted: [], pinned: [], onboarded: true }) // zonder opslag (migrate.js kon niets schrijven): geen welkom
   const prefs = useMemo(() => normalizePrefs(rawPrefs), [rawPrefs])
-  const touch = useTouch()
   const setPref = useCallback((key, value) => setPrefs((p) => ({ ...p, [key]: value })), [setPrefs])
   // Tekstgrootte en beeld werken via attributen op <html> (zie styles.css).
   useEffect(() => {
-    // Op een aanraakscherm volgt de tekstgrootte het systeem (lib/systeemtekst.js); de keuze telt daar niet.
-    document.documentElement.dataset.text = touch ? 'normaal' : prefs.textSize
+    // Tekstgrootte (Instellingen D): een factor bovenop de systeemmaat, ook op een aanraakscherm (lib/systeemtekst.js).
+    document.documentElement.dataset.text = prefs.textSize
+    setSchaal(textSizeOf(prefs.textSize).factor)
     document.documentElement.dataset.images = prefs.images
-  }, [prefs.textSize, prefs.images, touch])
+  }, [prefs.textSize, prefs.images])
   useEffect(() => startSysteemTekst(), [])
   const [display, setDisplay] = useState(false)
   const openDisplay = useCallback(() => setDisplay(true), [])
@@ -671,7 +672,7 @@ export default function App() {
           ) : null}
           <Suspense fallback={null}>
             {page === 'zoek' ? <Search {...backTo} /> : null}
-            {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} affinity={affinity} onForgetTopic={(t) => setAffinity((a) => forgetTopic(a, t))} {...backTo} /> : null}
+            {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} affinity={affinity} onForgetTopic={(t) => setAffinity((a) => forgetTopic(a, t))} blad={route.params.blad || null} onOpen={(b) => route.go('instellingen', { blad: b })} {...(route.params.blad ? { onBack: () => route.back('instellingen'), backLabel: 'Instellingen' } : backTo)} /> : null}
             {page === 'toestel' ? <Device account={account} saved={saved} onClearSaved={() => setSaved({})} onClearRead={() => setReadIds([])} onReset={() => route.go('welkom')} onBack={() => route.back('instellingen')} backLabel="Instellingen" /> : null}
             {page === 'privacy' ? <Privacy {...backTo} /> : null}
             {page === 'over' ? <Over {...backTo} /> : null}

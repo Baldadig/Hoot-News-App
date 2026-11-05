@@ -31,7 +31,7 @@ struct Kop: View {
     var body: some View {
         let fit = KopZet.fit(text, style: style, typeSize: typeSize, width: width, size: size)
         Text(fit.text)
-            .font(fit.scale < 1 ? .custom(Letters.kop, fixedSize: KopZet.pointSize(style, typeSize: typeSize, size: size) * fit.scale) : size.map { .custom(Letters.kop, size: $0, relativeTo: style) } ?? .kop(style))
+            .font(fit.scale < 1 ? .custom(Letters.kop, fixedSize: KopZet.pointSize(style, typeSize: typeSize, size: size) * fit.scale) : size.map { .custom(Letters.kop, size: Letters.maat($0), relativeTo: style) } ?? .kop(style))
             .accessibilityLabel(text)
             .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
     }
@@ -44,7 +44,7 @@ enum KopZet {
     // De maat van de kop zoals iOS hem bij deze tekstgrootte zet (Font.custom(relativeTo:) schaalt zo).
     static func pointSize(_ style: Font.TextStyle, typeSize: DynamicTypeSize, size: CGFloat? = nil) -> CGFloat {
         let traits = UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(typeSize))
-        return UIFontMetrics(forTextStyle: style.uiKit).scaledValue(for: size ?? Letters.size(style), compatibleWith: traits)
+        return UIFontMetrics(forTextStyle: style.uiKit).scaledValue(for: size.map(Letters.maat) ?? Letters.size(style), compatibleWith: traits)
     }
 
     static func font(_ style: Font.TextStyle, typeSize: DynamicTypeSize, size own: CGFloat? = nil) -> UIFont {

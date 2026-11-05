@@ -45,7 +45,7 @@ struct HootApp: App {
             Group {
                 if store.onboarded {
                     WidthReader { RootView() }
-                        .font(.ui(.body)) // tekst zonder eigen rol: Schibsted Grotesk, zoals het web (Letters.swift)
+                        .modifier(HootLetterMaat()) // tekst zonder eigen rol: Schibsted Grotesk, zoals het web (Letters.swift)
                 } else {
                     // Opnieuw kiezen (Instellingen): alles begint bij wat je nu hebt; sluiten slaat niets op.
                     WelcomeView(reopen: store.welcomeAgain, onCancel: store.welcomeAgain ? { leaveWelcome() } : nil) { leaveWelcome() }
