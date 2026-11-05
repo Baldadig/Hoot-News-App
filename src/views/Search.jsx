@@ -42,7 +42,7 @@ export default function Search() {
             <label className="visually-hidden" htmlFor="q">
               Zoek in berichten
             </label>
-            <input id="q" data-skip ref={inputRef} type="search" className="input" placeholder="Zoek op woord, bron of auteur" value={q} onChange={(e) => setQ(e.target.value)} enterKeyHint="search" autoComplete="off" />
+            <input id="q" data-skip ref={inputRef} type="search" className="input" placeholder="Zoek op woord of bron" value={q} onChange={(e) => setQ(e.target.value)} enterKeyHint="search" autoComplete="off" />
             {/* Eigen wisknop in plaats van de × van de browser: leegmaken en terug in het veld. */}
             {q ? (
               <button type="button" className="iconbtn input__clear" onClick={() => (setQ(''), inputRef.current?.focus())} aria-label="Zoekterm wissen">

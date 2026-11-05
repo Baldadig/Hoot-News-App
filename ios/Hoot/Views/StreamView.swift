@@ -433,7 +433,7 @@ struct SearchView: View {
             .hootScreenTitle()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
-            .searchable(text: $query, prompt: "Zoek op woord, bron of auteur")
+            .searchable(text: $query, prompt: "Zoek op woord of bron") // past ook op de SE; auteurs noemt de lege staat
         }
     }
 }
