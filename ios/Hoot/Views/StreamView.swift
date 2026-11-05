@@ -135,6 +135,12 @@ struct StreamView: View {
                                     .buttonStyle(.glass)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, Space.s5)
+                            } else if !items.isEmpty {
+                                // Het einde van de Stroom, zoals .listend op het web (review G6): 13/16 in ink-3, midden.
+                                Text("Je bent bij.")
+                                    .font(.ui(.footnote)).foregroundStyle(Theme.ink3)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.top, Space.s6).padding(.bottom, Space.s2)
                             }
                             }
                             .loadLinesText(lines)
