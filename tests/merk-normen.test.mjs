@@ -77,7 +77,14 @@ test('design system v2.3: register, gids en beeldtaal bestaan en kloppen met de 
   const tokens = JSON.parse(readFileSync(new URL('../docs/design-system/tokens.json', import.meta.url), 'utf8'))
   assert.equal(tokens.version, 3)
   assert.deepEqual(tokens.color.themes.map(t => t.name), ['Licht', 'Donker', 'Nacht'])
-  assert.deepEqual(tokens.color.choice.labels, ['Automatisch', 'Licht', 'Donker', 'Nacht'])
+  assert.deepEqual(tokens.color.choice.labels, ['Zoals je toestel', 'Licht', 'Donker', 'Nacht'])
+  // Build 48: leesstijl variant 4 met terugval variant 3, tekstgrootte, baseline-nudge en accountkaart.
+  assert.deepEqual(tokens.type.lees.value, { opsz: 12, wght: 450, night: { wght: 480 } })
+  assert.deepEqual([tokens.type.lees.fallback.opsz, tokens.type.lees.fallback.wght], [11, 400])
+  assert.deepEqual(tokens.type.textScale.steps.map(s => s.factor), [0.9, 1, 1.15, 1.3, 1.45])
+  const { TEXT_SIZES } = await import('../src/lib/tekstgrootte.js')
+  assert.deepEqual(tokens.type.textScale.steps.map(s => [s.label, s.factor]), TEXT_SIZES.map(s => [s.label, s.factor]), 'register = code')
+  assert.ok(tokens.color.tokens.find(t => t.name === 'hint').nightOnly)
   for (const t of tokens.color.tokens) assert.ok(t.value.night, `${t.name} heeft een night-waarde`)
   const color = name => tokens.color.tokens.find(t => t.name === name).value
   assert.equal(color('on-brand-red').light, '#f5f1e8')
@@ -88,6 +95,7 @@ test('design system v2.3: register, gids en beeldtaal bestaan en kloppen met de 
   assert.equal(v('measure'), '720px'); assert.equal(v('readable'), '680px'); assert.equal(v('measure-prose'), '28.8em')
   assert.equal(v('dur-pull-close'), '400ms'); assert.equal(v('dur-2'), '200ms'); assert.equal(v('dur-iris'), '700ms')
   assert.equal(v('mark-share'), '28px')
+  assert.equal(v('baseline-nudge-sans'), '1px'); assert.equal(v('account-mark'), '48px')
   assert.equal(v('shadow-float').light, '0 6px 18px rgba(26, 24, 20, 0.20)')
   assert.equal(tokens.brand.colorRatio.value, '60 · 30 · 10')
   assert.deepEqual(tokens.brand.appIcons.map(i => [i.name, !!i.default]), [['Papier op rood', true], ['Ruim rood', false], ['Origineel', false], ['Papier op inkt', false]])
@@ -98,7 +106,7 @@ test('design system v2.3: register, gids en beeldtaal bestaan en kloppen met de 
   assert.ok(!files.some(f => /^(03|08|12)-/.test(f)), 'alleen gekozen composities')
   const guide = readFileSync(new URL('../docs/design-system/brand-guide-v2.3.md', import.meta.url), 'utf8')
   assert.ok(tokens.type.families.sans.startsWith('"Schibsted Grotesk"'))
-  for (const needle of ['Schibsted Grotesk', 'Kaart A+', 'De stapel', 'Tien en de bubbel', 'Automatisch', '60 · 30 · 10', 'Papier op rood', 'vervangt het oude verbod', 'Web 720, iOS 680', '200 ms crossfade', '400 met `ease-glide`', 'Zacht papier', 'Stem en toon', 'Je weet genoeg.']) assert.ok(guide.includes(needle), needle)
+  for (const needle of ['Schibsted Grotesk', 'Kaart A+', 'De stapel', 'Tien en de bubbel', 'Zoals je toestel', '×0,9 tot ×1,45', '60 · 30 · 10', 'Papier op rood', 'vervangt het oude verbod', 'Web 720, iOS 680', '200 ms crossfade', '400 met `ease-glide`', 'Zacht papier', 'Stem en toon', 'Je weet genoeg.']) assert.ok(guide.includes(needle), needle)
   // "houdt op" staat er alleen als verbod of als voorbeeld van hoe het niet moet.
   for (const line of guide.split('\n').filter(l => l.includes('houdt op'))) assert.match(line, /[Nn]ooit|geen|Voor:|zeg niet|einde, houdt op/, line)
 })
