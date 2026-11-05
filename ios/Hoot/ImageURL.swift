@@ -22,7 +22,14 @@ enum ImageURL {
         if host == "platform.theverge.com" {
             return URL(string: "\(u.scheme ?? "https")://\(host)\(u.path())?quality=80&strip=all&w=\(width)")
         }
-        if host == "image.volkskrant.nl", let m = s.firstMatch(#"^(.*)/feature-crop/\d+/\d+/(.*)$"#) {
+        if host == "images.fd.nl", var c = URLComponents(string: s) {
+            // Het FD (imgix) zet in de feed een vierkant van 140 px of een beeld van 640 breed; elke breedte is te
+            // vragen. De uitsnede van de feed (w, h, fit, crop) gaat eraf, de rest blijft (gelijk aan src/lib/img.js).
+            c.queryItems = (c.queryItems ?? []).filter { !["w", "h", "fit", "crop"].contains($0.name) } + [URLQueryItem(name: "w", value: String(width))]
+            return c.url
+        }
+        // De Morgen gebruikt dezelfde beeldserver (DPG) en dezelfde feature-crop-maten als de Volkskrant.
+        if host == "image.volkskrant.nl" || host == "image.demorgen.be", let m = s.firstMatch(#"^(.*)/feature-crop/\d+/\d+/(.*)$"#) {
             return URL(string: kind == .thumb ? "\(m[1])/feature-crop/320/320/\(m[2])" : "\(m[1])/feature-crop/1280/853/\(m[2])")
         }
         if host == "images.cdn.nos.nl", let m = s.firstMatch(#"^(.*)-1024x576(\.webp)$"#) {
@@ -64,6 +71,31 @@ enum ImageURL {
         if host == "i.guim.co.uk" { return u.queryItems?.first { $0.name == "width" }?.value.flatMap(Int.init) }
         return nil
     }
+
+    // Hoe breed een groot beeld hooguit te krijgen is zonder op te rekken: de grootste variant van de uitgever
+    // of de beeld-CDN (url(_:.large)), anders de gemeten breedte (door de server) of wat het adres verraadt.
+    // Met een meting tonen we het origineel (Item.pictureURL), dus dan telt de meting. Nil: onbekend.
+    // Gelijk aan sourceWidth in src/lib/img.js.
+    static func sourceWidth(_ item: Item) -> Double? {
+        if let m = item.measure { return m.w }
+        guard let raw = item.image, let u = URL(string: raw), let host = u.host() else { return nil }
+        if host == "images.cdn.nos.nl", raw.firstMatch(#"-1024x576\.webp$"#) != nil { return 1024 }
+        if let large = url(raw, .large), large.absoluteString != raw.replacingOccurrences(of: "http://", with: "https://") { return 1024 }
+        return knownWidth(raw).map(Double.init)
+    }
+
+    // Scherp genoeg: minstens `sharp` keer zo breed als het vak, op een scherm met hoge pixeldichtheid (hooguit
+    // 1,4). 1,4 en niet 1,5: de NOS levert hooguit 1024 breed en dat moet op 720 nog groot mogen (SHARP op het web).
+    static let sharp = 1.4
+    static func sharpEnough(_ item: Item, box: Double, scale: Double) -> Bool {
+        guard let w = sourceWidth(item) else { return true }
+        return w >= box * max(1, min(scale, sharp))
+    }
+
+    // Het scherm (WidthReader zet het); het grote beeldvak is de kolom, hooguit 720 (--measure op het web).
+    nonisolated(unsafe) static var screen: (width: Double, scale: Double) = (390, 3)
+    static func largeBox(_ width: Double = screen.width) -> Double { min(720, max(280, width - 32)) }
+    static func sharpHere(_ item: Item) -> Bool { sharpEnough(item, box: largeBox(), scale: screen.scale) }
 
     static func fitsLarge(_ raw: String?) -> Bool { raw != nil && (knownWidth(raw) ?? 1000) >= 400 }
     static func fitsHero(_ raw: String?) -> Bool { raw != nil && (knownWidth(raw) ?? 1000) >= 700 }

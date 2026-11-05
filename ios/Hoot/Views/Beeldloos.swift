@@ -141,8 +141,9 @@ enum Placeholder {
     static func isBare(_ item: Item, _ kind: BeeldloosView.Kind) -> Bool {
         if item.isPost { return false }
         switch kind {
-        case .lead: return !ImageURL.fitsHero(item.image)
-        case .tijdlijn: return (item.image == nil && item.videoPoster == nil) || (item.image != nil && !ImageURL.fitsLarge(item.image))
+        case .lead: return !ImageURL.fitsHero(item.image) || !ImageURL.sharpHere(item)
+        // Een te klein beeld staat sinds 1.1.1 klein rechts (ItemRow.klein): alleen zonder beeld de placeholder.
+        case .tijdlijn: return item.image == nil && item.videoPoster == nil
         case .krant: return item.image == nil && item.videoPoster == nil
         }
     }

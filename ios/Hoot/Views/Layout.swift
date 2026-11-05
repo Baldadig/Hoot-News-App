@@ -68,10 +68,14 @@ extension EnvironmentValues {
 struct WidthReader<Content: View>: View {
     @ViewBuilder var content: () -> Content
     @State private var width: CGFloat = 0
+    @Environment(\.displayScale) private var scale
     var body: some View {
         content()
             .environment(\.isWide, width >= 700)
             .environment(\.isSpacious, width >= 1000)
-            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: {
+                width = $0
+                ImageURL.screen = (width: Double($0), scale: Double(scale)) // voor ImageURL.sharpHere
+            }
     }
 }

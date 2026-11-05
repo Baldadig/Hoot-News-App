@@ -360,6 +360,8 @@ struct WhyLine: View {
     // Het aantal bronnen staat al in de bronregel ("12 bronnen ›"): "Groot nieuws · 12 bronnen" wordt
     // "Groot nieuws" (E6). Gelijk aan plainWhy in src/components/Why.js.
     static func plain(_ s: String) -> String { s.replacingOccurrences(of: #"\s*·\s*\d+\s+bron(?:nen)?$"#, with: "", options: .regularExpression) }
+    // Staat er een waarom-regel? (Gelijk aan whyLine in src/components/Why.js.)
+    static func shows(_ s: String?) -> Bool { !(s.map(plain) ?? "").isEmpty }
     var body: some View {
         if let text = text.map(Self.plain), !text.isEmpty {
             Text(text)
@@ -470,8 +472,51 @@ struct SourceLine: View {
     var linkSource = true // tik op de bron = alles van die bron (niet op het bronscherm zelf)
     var outside = false // het verhaal staat buiten de bronnen die je volgt
     var kaart = false // kaart A+ (iPhone): "Abonnement" stil, "N bronnen" als tekstknop, bewaren en het ⋯-menu met delen
+    var narrow = false // smalle kolom (zijkolom van de voorpagina op de iPad): "N bronnen" klein achter de tijd
     var body: some View {
-        if kaart { kaartBody } else { regular }
+        if kaart { kaartBody } else if narrow { narrowBody } else { regular }
+    }
+
+    // Smalle kolom (gelijk aan .meta__bronnen in src/styles/rust.css): "1 uur geleden · 7 bronnen" op de
+    // regel van de tijd, in de maat en kleur van de tijd; tikken vergelijkt. Geen knop "N bronnen ›" op een
+    // eigen regel, en geen "abonnement": zo blijft het één regel. Bewaren staat rechts, altijd zichtbaar
+    // (op iOS is er geen hover).
+    private var narrowBody: some View {
+        HStack(alignment: .top, spacing: Space.s2) {
+            sourceLink { SourceMark(item: item) }
+            VStack(alignment: .leading, spacing: 0) {
+                sourceLink { Text(item.sourceName ?? item.source).font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink) }
+                HStack(alignment: .firstTextBaseline, spacing: 0) {
+                    sourceLink { Text(narrowMeta) }
+                    if let story, let count = story.sourceCount, count > 1 {
+                        NavigationLink(value: tapped(story)) {
+                            Text("\u{00A0}·\u{00A0}\(Self.label(count))").lineLimit(1).fixedSize().contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Vergelijk \(count) bronnen")
+                    }
+                }
+                .font(.ui(.caption)).monospacedDigit().foregroundStyle(Theme.hint)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: Space.s2)
+            SaveButton(item: item)
+        }
+        .frame(minHeight: Space.tap)
+    }
+
+    private var narrowMeta: String { [HootDate.ago(item.date), outside ? StoryLabel.outsideText : nil].compactMap { $0 }.joined(separator: " · ") }
+
+    // Een deel van de bron dat naar alles van die bron gaat (zoals source(oneLine:)); in de smalle vorm los,
+    // zodat "N bronnen" ertussen een eigen knop kan zijn.
+    @ViewBuilder private func sourceLink<L: View>(@ViewBuilder _ label: () -> L) -> some View {
+        if linkSource, !item.isPost, store.source(item.source) != nil {
+            NavigationLink(value: SourceRoute(id: item.source)) { label().contentShape(Rectangle()) }
+                .buttonStyle(.plain)
+                .accessibilityHint("Toont alles van \(item.sourceName ?? "deze bron")")
+        } else {
+            label()
+        }
     }
 
     // Kaart A+: bron (naam 15/20, tijd 13/16), "N bronnen", bewaren en ⋯. Past het niet op één regel, dan de bron
@@ -775,7 +820,8 @@ struct LeadCard: View {
     // Kaart A+ (iPhone): het beeld tot de rand in 3:2, kop 30/36, intro 20/30, het nummer in het rood en een sterke lijn eronder.
     private var kaart: Bool { !wide && !hang && imageHeight == nil }
 
-    private var hasImage: Bool { store.showsImage(lead: true) && ImageURL.fitsHero(item.image) && !beeldMislukt }
+    // Groot genoeg voor het hoofdverhaal (fitsHero) én scherp op dit scherm (sharpHere), anders het placeholderbeeld (gelijk aan heroFits op het web).
+    private var hasImage: Bool { store.showsImage(lead: true) && ImageURL.fitsHero(item.image) && ImageURL.sharpHere(item) && !beeldMislukt }
     private func mislukt() { beeldMislukt = true; MisluktBeeld.shared.add(item.id) } // ook de buren rekenen opnieuw (Placeholder.plan)
 
     @ViewBuilder private var image: some View {
@@ -911,6 +957,8 @@ struct ItemRow: View {
     var form: Form?
     var boven: CGFloat? = nil // in een paar (A): het beeld groot boven het verhaal, zo hoog
     var pinSource = false // in een paar (A): de bronregel onderaan de rij
+    var whySpace = false // in een paar (A): een lege waarom-regel, omdat de buur er een heeft (koppen en beelden op één lijn)
+    var narrow = false // de smalle zijkolom van de voorpagina (A): "N bronnen" klein achter de tijd
     @State private var beeldMislukt = false // het beeld laadt niet: dan de beeldloze vorm
 
     private var chosen: Form { form ?? (store.layout == "krant" ? .krant : .tijdlijn) }
@@ -926,9 +974,39 @@ struct ItemRow: View {
     private func mislukt() { beeldMislukt = true; MisluktBeeld.shared.add(item.id) } // ook de buren rekenen opnieuw (Placeholder.plan)
     // Groot genoeg voor de volle breedte (vanaf 400 px, zoals op het web); een videobeeld is dat altijd.
     private var fitsLarge: Bool { item.image == nil || ImageURL.fitsLarge(item.image) }
+    // Een beeld dat te klein is voor de volle kolom (onder 400 px, of niet scherp op dit scherm: ImageURL.sharpHere)
+    // staat klein rechts naast kop en intro, zoals in de krant-vorm, in plaats van opgerekt of als placeholder
+    // (poetsbeurt 5 november; gelijk aan .kaart__in--klein en .compact--klein op het web).
+    private var klein: Bool { hasPicture && item.image != nil && (!ImageURL.fitsLarge(item.image) || !ImageURL.sharpHere(item)) }
 
     var body: some View {
-        if kaart { kaartBody } else { regular }
+        if kaart { if klein { kaartKlein } else { kaartBody } } else { regular }
+    }
+
+    // Kaart A+ met een te klein beeld: rubriek over de hele breedte, dan kop en intro links en het beeld klein
+    // rechts, op de lijn van de kop. Bij heel grote tekst geen beeld ernaast (zoals de krant-vorm).
+    private var kaartKlein: some View {
+        VStack(alignment: .leading, spacing: Space.s3) {
+            VStack(alignment: .leading, spacing: Space.s2) {
+                kaartKicker
+                HStack(alignment: .top, spacing: Space.s3) {
+                    VStack(alignment: .leading, spacing: Space.s2) { kaartKop; kaartIntro(thumb: true) }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    if !typeSize.isAccessibilitySize {
+                        let width = thumb >= Layout.thumbLarge ? Layout.thumbLarge : Layout.thumb
+                        RemoteImage(url: picture(.thumb), measure: pictureMeasure, onFail: mislukt)
+                            .frame(width: width, height: width * 2 / 3)
+                            .clipShape(RoundedRectangle(cornerRadius: Radius.sm, style: .continuous))
+                            .overlay { if item.video != nil { PlayBadge(size: Space.s6) } }
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .opensArticle(item)
+            SourceLine(item: item, story: story, linkSource: linkSource, outside: outside, kaart: true)
+        }
+        .padding(.vertical, Space.s2)
     }
 
     // De kaart: rubriek (met het waarom), kop 22/28, intro 18/28, het beeld 2:1 met 16 lucht erboven, dan de bronregel.
@@ -960,25 +1038,37 @@ struct ItemRow: View {
 
     private var kaartText: some View {
         VStack(alignment: .leading, spacing: Space.s2) {
-            if number != nil || label != nil || why != nil {
-                VStack(alignment: .leading, spacing: 0) {
-                    Kicker(text: label, number: number, read: store.isRead(item))
-                    WhyLine(text: why, compact: true)
-                }
+            kaartKicker
+            kaartKop
+            kaartIntro(thumb: false)
+        }
+    }
+
+    @ViewBuilder private var kaartKicker: some View {
+        if number != nil || label != nil || why != nil {
+            VStack(alignment: .leading, spacing: 0) {
+                Kicker(text: label, number: number, read: store.isRead(item))
+                WhyLine(text: why, compact: true)
             }
-            Kop(item.title, .title2)
-                .lineSpacing(2)
-                .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
-                .fixedSize(horizontal: false, vertical: true)
-            if let intro = item.summary.map({ wholeSentences($0, max: introMax(lines: store.preview, thumb: false) - item.viaLength) }), !intro.isEmpty {
-                IntroText(text: intro, style: .body, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, suffix: item.introWithSource, size: 18, line: 28)
-            }
+        }
+    }
+
+    private var kaartKop: some View {
+        Kop(item.title, .title2)
+            .lineSpacing(2)
+            .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    @ViewBuilder private func kaartIntro(thumb: Bool) -> some View {
+        if let intro = item.summary.map({ wholeSentences($0, max: introMax(lines: store.preview, thumb: thumb) - item.viaLength) }), !intro.isEmpty {
+            IntroText(text: intro, style: .body, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, suffix: item.introWithSource, size: 18, line: 28)
         }
     }
 
     private var regular: some View {
         // Onder een groot beeld iets meer lucht tot de bron (12), zoals op het web; naast een miniatuur 8.
-        VStack(alignment: .leading, spacing: timeline ? Space.s3 : Space.s2) {
+        VStack(alignment: .leading, spacing: timeline && !klein ? Space.s3 : Space.s2) {
             Group {
                 if let boven, hasPicture {
                     VStack(alignment: .leading, spacing: Space.s3) {
@@ -989,7 +1079,7 @@ struct ItemRow: View {
                             .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
                         text
                     }
-                } else if timeline {
+                } else if timeline && !klein {
                     VStack(alignment: .leading, spacing: Space.s3) {
                         text
                         if hasPicture, fitsLarge {
@@ -1020,17 +1110,18 @@ struct ItemRow: View {
             .contentShape(Rectangle())
             .opensArticle(item)
             if pinSource { Spacer(minLength: 0) }
-            SourceLine(item: item, story: story, linkSource: linkSource, outside: outside)
+            SourceLine(item: item, story: story, linkSource: linkSource, outside: outside, narrow: narrow)
         }
         .padding(.vertical, Space.s2)
     }
 
     private var text: some View {
         VStack(alignment: .leading, spacing: Space.s2) {
-            if number != nil || label != nil || why != nil {
+            if number != nil || label != nil || why != nil || whySpace {
                 VStack(alignment: .leading, spacing: Space.s1) {
                     Kicker(text: label, number: number, read: store.isRead(item))
                     WhyLine(text: why)
+                    if whySpace && !WhyLine.shows(why) { WhyLine(text: "Groot nieuws").hidden().accessibilityHidden(true) } // .why--leeg op het web
                 }
             }
             if item.isPost {
@@ -1046,7 +1137,7 @@ struct ItemRow: View {
                 // nooit afgekapt op een beletselteken.
                 // Een geleende intro krijgt " — via X" erachter: die tekens gaan van de maat af (Item.viaLength).
                 // In de krant-vorm staat er altijd een miniatuur: het beeld of het placeholderbeeld.
-                if let intro = item.summary.map({ wholeSentences($0, max: introMax(lines: store.preview, thumb: !timeline && store.showsImage(lead: false)) - item.viaLength) }), !intro.isEmpty {
+                if let intro = item.summary.map({ wholeSentences($0, max: introMax(lines: store.preview, thumb: (!timeline || klein) && store.showsImage(lead: false)) - item.viaLength) }), !intro.isEmpty {
                     IntroText(text: intro, style: .body, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, suffix: item.introWithSource)
                 }
             }

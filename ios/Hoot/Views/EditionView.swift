@@ -207,6 +207,10 @@ struct EditionView: View {
     @State private var leadHeight: CGFloat = 0
     @State private var sideHeight: CGFloat = 0
 
+    // A: de breedte van één kolom van de paren. Buiten je bubbel en het einde staan daarop, links, zodat
+    // er onder de voorpagina één leeskolom met één rechterlijn is (gelijk aan src/styles/rust.css §3).
+    private var pairColumn: CGFloat { contentWidth > 0 ? max(0, (contentWidth - Space.s6) / 2) : Layout.readable }
+
     enum Grid { case lijst, kolom, paren }
     private var grid: Grid {
         guard wide, !typeSize.isAccessibilitySize else { return .lijst }
@@ -227,7 +231,7 @@ struct EditionView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(rows.dropFirst().prefix(2).enumerated()), id: \.element.id) { i, row in
                         if i > 0 { Rule().padding(.vertical, Space.s2) }
-                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
+                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, narrow: true) }
                     }
                 }
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { sideHeight = $0; fitLead() }
@@ -374,8 +378,8 @@ struct EditionView: View {
                                 .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
                                 .tienBlock(tien, 2)
                             if rows.count > 3 {
-                                EditionPairsGrid(rows: Array(rows.dropFirst(3)), width: contentWidth) { row, boven, pin in
-                                    slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, boven: boven, pinSource: pin) }
+                                EditionPairsGrid(rows: Array(rows.dropFirst(3)), width: contentWidth) { row, whySpace in
+                                    slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, pinSource: true, whySpace: whySpace) }
                                 }
                                 .padding(.top, Space.s4)
                                 .loadLinesRise(lines)
@@ -415,7 +419,7 @@ struct EditionView: View {
                                 }
                             }
                             .padding(.leading, grid == .kolom ? Layout.hang : 0) // op de lijn van de tekst, niet van de nummers
-                            .frame(maxWidth: grid == .paren ? Layout.readable : nil, alignment: .leading)
+                            .frame(maxWidth: grid == .paren ? pairColumn : nil, alignment: .leading) // A: op de kolommaat van de paren (rust.css §3)
                             .tienBlock(tien, 8)
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,
@@ -453,7 +457,7 @@ struct EditionView: View {
                         .padding(.horizontal, Space.s5)
                         .padding(.vertical, Space.s7)
                         .background(nacht ? Self.nachtEndRed : Theme.brandRed, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-                        .frame(maxWidth: Layout.readable) // op de leesbreedte, niet over de hele iPad (E9)
+                        .frame(maxWidth: grid == .paren ? pairColumn : Layout.readable) // op de leesbreedte, niet over de hele iPad (E9); A: de kolommaat van de paren, links
                         .padding(.leading, grid == .kolom ? Layout.hang : 0)
                         .padding(.top, Space.s6)
                         .padding(.bottom, Space.s4)
