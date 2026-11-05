@@ -113,9 +113,10 @@ test('Tekstgrootte telt op, maar nooit voorbij de grootste maat van het systeem'
   assert.equal(effectiveFactor(1.45, PLAFOND), 1, 'bij AX5 gelijk aan je toestel')
   assert.ok(effectiveFactor(1.45, 40) > 1 && effectiveFactor(1.45, 40) * 40 <= PLAFOND + 0.001)
   assert.equal(effectiveFactor(1.3, NaN), 1.3)
-  // De oude vaste standen (html[data-text='klein'|'groot'] in styles.css) gelden niet meer: data-text is
-  // nu kleiner … grootst, en de maat komt van setSchaal. (styles.css blijft bytegelijk: zacht-papier-baseline.)
+  // De oude vaste standen (html[data-text='klein'|'groot']) zijn uit styles.css: data-text is nu
+  // kleiner … grootst, en de maat komt van setSchaal (build 48; CSS-hash in zacht-papier-baseline opnieuw).
   for (const s of TEXT_SIZES) assert.ok(!['klein', 'groot'].includes(s.value))
+  assert.doesNotMatch(read('src/styles.css'), /data-text=/)
   assert.match(read('src/lib/systeemtekst.js'), /export function setSchaal/)
 })
 
@@ -157,4 +158,18 @@ test('accountkaart in de app: foto uit user_metadata, zonder cookies of Referer,
   assert.match(iosAccount, /setValue\(nil, forHTTPHeaderField: "Referer"\)/)
   assert.match(iosAccount, /returnCacheDataElseLoad/)
   assert.match(iosAccount, /\.accessibilityLabel\(name \?\? "Geen account"\)/)
+})
+
+test('lege Selectie: "Kies onderwerpen" opent het blad Selectie van Instellingen; terug brengt je naar de Selectie', () => {
+  const app = read('src/App.jsx')
+  const vak = read('src/views/Vak.jsx')
+  assert.match(web, /selectie: 'Selectie'/) // het blad bestaat
+  assert.match(app, /onChooseTopics=\{chooseTopics\}/)
+  assert.match(app, /route\.go\('instellingen', \{ blad: 'selectie' \}\)/)
+  assert.match(app, /\{ onBack: \(\) => route\.back\('digest'\), backLabel: 'Selectie' \}/)
+  // Zonder het blad (onChooseTopics leeg) blijft het eigen blad van de Selectie werken.
+  assert.match(vak, /onChooseTopics \? \(\s*<IndexRow kind="pick" name=\{name\} sub=\{sub\} disabled=\{!selectionReady\} onClick=\{onChooseTopics\} \/>/)
+  assert.match(vak, /onClick=\{\(\) => setChoosing\(true\)\} \/>/)
+  // De Selectie-tab staat er altijd (web pakket 4).
+  assert.doesNotMatch(read('src/components/Shell.jsx'), /d\.id !== 'digest'/)
 })

@@ -139,7 +139,9 @@ function IndexRow({ kind, name, sub, big = false, expanded, flash = false, ...re
 // door mensen geschreven (zie netlify/lib/vak.mjs). Opbouw als de inhoudsopgave van een krant
 // (Selectie-index B): de week, wat je te lezen krijgt, de inhoud als lijst, en per onderwerp één
 // groot stuk, twee kaarten en een korte lijst. Lege onderwerpen staan onderaan.
-export default function Vak({ active, digest, status, refreshFailed = false, onRefresh }) {
+// `onChooseTopics`: het blad Selectie uit Instellingen (Instellingen D, #/instellingen?blad=selectie). Is dat er,
+// dan opent de rij "Kies onderwerpen" in de lege Selectie dat blad; anders het eigen blad hieronder.
+export default function Vak({ active, digest, status, refreshFailed = false, onRefresh, onChooseTopics = null }) {
   const { prefs, setPref, account, selectionReady = true } = useHoot()
   const ref = useRef(null)
   // Eerste laden: de laadstrepen; klaar maakt de beweging af en vervaagt naar de Selectie.
@@ -182,9 +184,14 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
   const order = vakByDomain().flatMap((d) => d.fields.map((f) => f.id))
   const toggle = (id) => setPref('vak', chosen.includes(id) ? chosen.filter((f) => f !== id) : order.filter((f) => f === id || chosen.includes(f)))
   const seen = fields.reduce((n, f) => n + (f.count || 0), 0)
+  // De lege Selectie: "Kies onderwerpen" gaat naar het Selectie-blad van Instellingen als dat er is.
   const pickRow = (name, sub) => (
     <nav className="dindex" aria-label="Onderwerpen">
-      <IndexRow kind="pick" name={name} sub={sub} aria-haspopup="dialog" disabled={!selectionReady} onClick={() => setChoosing(true)} />
+      {onChooseTopics ? (
+        <IndexRow kind="pick" name={name} sub={sub} disabled={!selectionReady} onClick={onChooseTopics} />
+      ) : (
+        <IndexRow kind="pick" name={name} sub={sub} aria-haspopup="dialog" disabled={!selectionReady} onClick={() => setChoosing(true)} />
+      )}
     </nav>
   )
   const gekozen = `${chosen.length} gekozen`

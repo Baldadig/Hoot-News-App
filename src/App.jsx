@@ -380,6 +380,15 @@ export default function App() {
   if (MAIN.includes(path) && path !== 'welkom') cameFrom.current = path
   const FROM_LABEL = { editie: 'Editie', stroom: 'Stroom', digest: 'Selectie', bewaard: 'Bewaard', bronnen: 'Bronnen' }
   const backTo = { onBack: () => route.back(cameFrom.current), backLabel: FROM_LABEL[cameFrom.current] || 'Terug' }
+  // Het blad Selectie van Instellingen, geopend vanuit de lege Selectie ("Kies onderwerpen"): terug brengt je
+  // naar de Selectie, niet naar het hoofdblad van Instellingen.
+  const bladFromSelectie = useRef(false)
+  const chooseTopics = () => {
+    bladFromSelectie.current = true
+    route.go('instellingen', { blad: 'selectie' })
+  }
+  if (path !== 'instellingen' || route.params.blad !== 'selectie') bladFromSelectie.current = false
+  const bladBack = bladFromSelectie.current ? { onBack: () => route.back('digest'), backLabel: 'Selectie' } : { onBack: () => route.back('instellingen'), backLabel: 'Instellingen' }
   // Opnieuw kiezen (vanuit Bronnen of Instellingen): sluiten brengt je terug waar je was, zonder op te slaan.
   const beforeWelcome = useRef('editie')
   if (path !== 'welkom') beforeWelcome.current = path
@@ -648,7 +657,7 @@ export default function App() {
               onShowNew={showNew}
             />
           ) : null}
-          {was('digest') ? <Vak active={shown === 'digest'} digest={vak.digest} status={vak.status} refreshFailed={vak.refreshFailed} onRefresh={vak.reload} /> : null}
+          {was('digest') ? <Vak active={shown === 'digest'} digest={vak.digest} status={vak.status} refreshFailed={vak.refreshFailed} onRefresh={vak.reload} onChooseTopics={chooseTopics} /> : null}
           {was('bewaard') ? <Saved active={shown === 'bewaard'} /> : null}
           {was('bronnen') ? (
             <Sources
@@ -672,7 +681,7 @@ export default function App() {
           ) : null}
           <Suspense fallback={null}>
             {page === 'zoek' ? <Search {...backTo} /> : null}
-            {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} affinity={affinity} onForgetTopic={(t) => setAffinity((a) => forgetTopic(a, t))} blad={route.params.blad || null} onOpen={(b) => route.go('instellingen', { blad: b })} {...(route.params.blad ? { onBack: () => route.back('instellingen'), backLabel: 'Instellingen' } : backTo)} /> : null}
+            {page === 'instellingen' ? <Settings meta={data?.meta} account={account} syncStatus={syncStatus} affinity={affinity} onForgetTopic={(t) => setAffinity((a) => forgetTopic(a, t))} blad={route.params.blad || null} onOpen={(b) => route.go('instellingen', { blad: b })} {...(route.params.blad ? bladBack : backTo)} /> : null}
             {page === 'toestel' ? <Device account={account} saved={saved} onClearSaved={() => setSaved({})} onClearRead={() => setReadIds([])} onReset={() => route.go('welkom')} onBack={() => route.back('instellingen')} backLabel="Instellingen" /> : null}
             {page === 'privacy' ? <Privacy {...backTo} /> : null}
             {page === 'over' ? <Over {...backTo} /> : null}
