@@ -33,8 +33,9 @@ struct MeasuredLeadImage: View {
     let item: Item
     let spacious: Bool
     var onFail: (() -> Void)? = nil // laadt niet: de beeldloze vorm (LeadCard), geen grijs vlak
+    var landscape: CGFloat? = nil // een vaste verhouding voor een liggend beeld (kaart A+: 3:2); een staand beeld houdt zijn eigen
     private var measure: ImageMeasure? { item.imageMeta.flatMap { $0.valid ? $0 : nil } }
-    private var ratio: CGFloat { measure?.portrait == true ? (spacious ? 3 / 4 : 4 / 5) : 2 }
+    private var ratio: CGFloat { measure?.portrait == true ? (spacious ? 3 / 4 : 4 / 5) : landscape ?? 2 }
     var body: some View {
         Color.clear.aspectRatio(ratio, contentMode: .fit)
             .overlay {

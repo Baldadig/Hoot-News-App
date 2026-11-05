@@ -310,12 +310,13 @@ struct EditionNumber: View {
     @Environment(\.isWide) private var wide
     let number: Int?
     var read = false
+    var lead = false // hoofdverhaal van kaart A+: 20 pt, in het enige rood van het scherm
     var body: some View {
         if let number {
             Text(String(format: "%02d", number))
-                .font(.kop(.callout)).monospacedDigit()
+                .font(lead ? .custom(Letters.kop, size: 20, relativeTo: .callout) : .kop(.callout)).monospacedDigit()
                 .frame(minWidth: wide ? 24 : nil, alignment: .leading)
-                .foregroundStyle(read ? Theme.ink3 : Theme.ink) // minder rood (B): het cijfer in inkt
+                .foregroundStyle(read ? Theme.ink3 : lead ? Theme.accent : Theme.ink) // minder rood (B): het cijfer in inkt; alleen 01 op de telefoon is rood
         }
     }
 }
@@ -325,12 +326,13 @@ struct Kicker: View {
     let text: String?
     var number: Int? = nil
     var read = false
+    var lead = false
     private func label(_ s: String) -> String { typeSize.isAccessibilitySize ? s : s.uppercased() }
     private var dot: Text { Text(" · ").foregroundStyle(Theme.ink3) }
     var body: some View {
         let parts = text.map { $0.isEmpty ? [] : $0.components(separatedBy: " · ") } ?? []
         HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
-            EditionNumber(number: number, read: read)
+            EditionNumber(number: number, read: read, lead: lead)
             if number != nil && !parts.isEmpty { Text("·").font(.ui(.caption)).foregroundStyle(Theme.hint).accessibilityHidden(true) }
             if !parts.isEmpty {
             // Bij heel grote tekst geen kapitalen: die worden dan breder en zwaarder dan de kop.
@@ -354,14 +356,15 @@ struct Kicker: View {
 // De kop blijft het zwaarste element; het waarom blijft ondergeschikt.
 struct WhyLine: View {
     let text: String?
+    var compact = false // kaart A+: 13/16 in ink-3
     // Het aantal bronnen staat al in de bronregel ("12 bronnen ›"): "Groot nieuws · 12 bronnen" wordt
     // "Groot nieuws" (E6). Gelijk aan plainWhy in src/components/Why.js.
     static func plain(_ s: String) -> String { s.replacingOccurrences(of: #"\s*·\s*\d+\s+bron(?:nen)?$"#, with: "", options: .regularExpression) }
     var body: some View {
         if let text = text.map(Self.plain), !text.isEmpty {
             Text(text)
-                .font(.ui(.subheadline))
-                .foregroundStyle(Theme.ink2)
+                .font(.ui(compact ? .footnote : .subheadline))
+                .foregroundStyle(compact ? Theme.hint : Theme.ink2)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityLabel("Waarom: \(text)")
         }
@@ -466,7 +469,41 @@ struct SourceLine: View {
     var story: Story?
     var linkSource = true // tik op de bron = alles van die bron (niet op het bronscherm zelf)
     var outside = false // het verhaal staat buiten de bronnen die je volgt
+    var kaart = false // kaart A+ (iPhone): "Abonnement" stil, "N bronnen" als tekstknop, bewaren en het ⋯-menu met delen
     var body: some View {
+        if kaart { kaartBody } else { regular }
+    }
+
+    // Kaart A+: bron (naam 15/20, tijd 13/16), "N bronnen", bewaren en ⋯. Past het niet op één regel, dan de bron
+    // bovenaan en de rest eronder, zoals de gewone bronregel.
+    private var kaartBody: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: Space.s1) { source(oneLine: true); Spacer(minLength: 8); kaartCount; SaveButton(item: item); KaartMore(item: item) }
+            VStack(alignment: .leading, spacing: Space.s1) {
+                source(oneLine: false)
+                HStack(spacing: Space.s1) { kaartCount; Spacer(minLength: 0); SaveButton(item: item); KaartMore(item: item) }
+            }
+        }
+        .padding(.trailing, -11) // de iconen op de kolomlijn: 44 aanraakvlak, 22 glyph
+    }
+
+    @ViewBuilder private var kaartCount: some View {
+        if let story, let count = story.sourceCount, count > 1 {
+            NavigationLink(value: tapped(story)) {
+                Text(Self.label(count)).monospacedDigit()
+                    .font(.ui(.subheadline, .semibold))
+                    .foregroundStyle(Theme.ink2)
+                    .lineLimit(1).fixedSize()
+                    .padding(.horizontal, Space.s1)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Vergelijk \(count) bronnen")
+        }
+    }
+
+    @ViewBuilder private var regular: some View {
         // Op één regel als het past; anders bron en tijd bovenaan (mogen afbreken) en de knoppen
         // eronder. Nooit een vaste breedte: bij heel grote tekst duwt die anders de hele kolom
         // buiten het scherm.
@@ -498,11 +535,23 @@ struct SourceLine: View {
             SourceMark(item: item)
             VStack(alignment: .leading, spacing: 0) {
                 Text(item.sourceName ?? item.source).font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink)
-                Text(meta).font(.ui(.caption)).monospacedDigit().foregroundStyle(Theme.hint) // tabelcijfers: de tijden staan in een kolom
+                Group {
+                    if kaart { kaartMeta } else { Text(meta) }
+                }
+                .font(.ui(kaart ? .footnote : .caption)).monospacedDigit().foregroundStyle(Theme.hint) // tabelcijfers: de tijden staan in een kolom
             }
             .lineLimit(oneLine ? 1 : nil)
             .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    // Kaart A+: de tijd in woorden, "Abonnement" als stille tekst (ink-2, halfvet) erachter.
+    private var kaartMeta: Text {
+        let dot = Text(" · ")
+        var t = Text(HootDate.ago(item.date))
+        if store.source(item.source)?.paid == true { t = Text("\(t)\(dot)\(Text("Abonnement").font(.ui(.footnote, .semibold)).foregroundStyle(Theme.ink2))") }
+        if outside { t = Text("\(t)\(dot)\(Text(StoryLabel.outsideText))") }
+        return t
     }
 
     private var meta: String {
@@ -562,11 +611,49 @@ struct SaveButton: View {
     }
 }
 
+// De acties van een artikel: bewaren, delen, in Safari openen, meer of minder hiervan en een fout melden.
+// Eén lijst voor het lang-drukmenu (ArticleActions) en het ⋯-menu van kaart A+ (KaartMore).
+struct ArticleMenuContent: View {
+    @Environment(HootStore.self) private var store
+    @Environment(\.tasteVote) private var tasteVote
+    let item: Item
+    var notice: (_ title: String, _ text: String) -> Void
+    var body: some View {
+        Button(store.isSaved(item) ? "Verwijder uit Bewaard" : "Bewaar", systemImage: store.isSaved(item) ? "bookmark.slash" : "bookmark") { store.toggleSave(item) }
+        if let link = item.link {
+            ShareItemLink(item: item, link: link)
+            Link(destination: link) { Label("Open in Safari", systemImage: "safari") }
+        }
+        if !item.isPost {
+            Section {
+                Button("Meer hiervan", systemImage: "hand.thumbsup") { respond(true) }
+                Button("Minder hiervan", systemImage: "hand.thumbsdown") { respond(false) }
+            }
+            Menu("Klopt dit niet?", systemImage: "flag") {
+                ForEach(CorrectionReason.allCases, id: \.self) { reason in
+                    Button(reason.label) {
+                        let ok = store.reportMistake(item, reason: reason)
+                        notice(ok ? "Melding bewaard" : "Niet bewaard", ok ? "De melding staat op dit toestel en is nog niet verstuurd." : "Probeer het later opnieuw.")
+                    }
+                }
+            }
+        }
+    }
+    private func respond(_ up: Bool) {
+        if let tasteVote { tasteVote(up) }
+        else {
+            let story = store.story(of: item)
+            let members = [item] + (story?.itemIds ?? []).filter { $0 != item.id }.compactMap { store.itemsById[$0] }
+            store.vote(story?.id ?? item.id, items: members, up: up)
+            notice("Voorkeur bewaard", "Telt vanaf je volgende Editie.")
+        }
+    }
+}
+
 // Tik = lezen; lang drukken = bewaren, delen, smaak kiezen of een lokale foutmelding bewaren.
 struct ArticleActions: ViewModifier {
     @Environment(HootStore.self) private var store
     @Environment(Reader.self) private var reader
-    @Environment(\.tasteVote) private var tasteVote
     @State private var noticeTitle = ""
     @State private var noticeText = ""
     @State private var noticeOpen = false
@@ -575,41 +662,30 @@ struct ArticleActions: ViewModifier {
         Button { reader.open(item, store: store) } label: { content }
             .buttonStyle(.plain)
             .hoverEffect(.highlight) // muis of trackpad op iPad
-            .contextMenu {
-                Button(store.isSaved(item) ? "Verwijder uit Bewaard" : "Bewaar", systemImage: store.isSaved(item) ? "bookmark.slash" : "bookmark") { store.toggleSave(item) }
-                if let link = item.link {
-                    ShareItemLink(item: item, link: link)
-                    Link(destination: link) { Label("Open in Safari", systemImage: "safari") }
-                }
-                if !item.isPost {
-                    Section {
-                        Button("Meer hiervan", systemImage: "hand.thumbsup") { respond(true) }
-                        Button("Minder hiervan", systemImage: "hand.thumbsdown") { respond(false) }
-                    }
-                    Menu("Klopt dit niet?", systemImage: "flag") {
-                        ForEach(CorrectionReason.allCases, id: \.self) { reason in
-                            Button(reason.label) {
-                                let ok = store.reportMistake(item,reason:reason)
-                                noticeTitle = ok ? "Melding bewaard" : "Niet bewaard"
-                                noticeText = ok ? "De melding staat op dit toestel en is nog niet verstuurd." : "Probeer het later opnieuw."
-                                noticeOpen = true
-                            }
-                        }
-                    }
-                }
-            }
+            .contextMenu { ArticleMenuContent(item: item) { noticeTitle = $0; noticeText = $1; noticeOpen = true } }
             .alert(noticeTitle,isPresented:$noticeOpen) { Button("Oké",role:.cancel) {} } message: { Text(noticeText) }
     }
-    private func respond(_ up: Bool) {
-        if let tasteVote { tasteVote(up) }
-        else {
-            let story = store.story(of:item)
-            let members = [item] + (story?.itemIds ?? []).filter{$0 != item.id}.compactMap{store.itemsById[$0]}
-            store.vote(story?.id ?? item.id,items:members,up:up)
-            noticeTitle = "Voorkeur bewaard"
-            noticeText = "Telt vanaf je volgende Editie."
-            noticeOpen = true
+}
+
+// Het ⋯-menu van kaart A+: dezelfde acties als lang drukken, nu ook zichtbaar. Delen zit hier, niet als eigen knop.
+struct KaartMore: View {
+    let item: Item
+    @State private var noticeTitle = ""
+    @State private var noticeText = ""
+    @State private var noticeOpen = false
+    var body: some View {
+        Menu {
+            ArticleMenuContent(item: item) { noticeTitle = $0; noticeText = $1; noticeOpen = true }
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.body)
+                .dynamicTypeSize(...DynamicTypeSize.xxxLarge) // het icoon past altijd in zijn aanraakvlak
+                .foregroundStyle(Theme.hint)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
         }
+        .accessibilityLabel("Meer: delen, bewaren, meer of minder hiervan")
+        .alert(noticeTitle, isPresented: $noticeOpen) { Button("Oké", role: .cancel) {} } message: { Text(noticeText) }
     }
 }
 
@@ -696,6 +772,8 @@ struct LeadCard: View {
     var hang = false // iPad staand (B): het nummer in de kantlijn, het beeld over de hele kolom
     var imageHeight: CGFloat? = nil // iPad liggend (A): het beeld zo hoog als de zijkolom ernaast
     @State private var beeldMislukt = false // het beeld laadt niet: dan de beeldloze vorm
+    // Kaart A+ (iPhone): het beeld tot de rand in 3:2, kop 30/36, intro 20/30, het nummer in het rood en een sterke lijn eronder.
+    private var kaart: Bool { !wide && !hang && imageHeight == nil }
 
     private var hasImage: Bool { store.showsImage(lead: true) && ImageURL.fitsHero(item.image) && !beeldMislukt }
     private func mislukt() { beeldMislukt = true; MisluktBeeld.shared.add(item.id) } // ook de buren rekenen opnieuw (Placeholder.plan)
@@ -736,7 +814,9 @@ struct LeadCard: View {
     }
 
     var body: some View {
-        if hang {
+        if kaart {
+            kaartLead
+        } else if hang {
             // B: het beeld over de hele kolom, tekst en bronregel ingesprongen met het nummer ervoor.
             VStack(alignment: .leading, spacing: Space.s3) {
                 if hasImage { image.contentShape(Rectangle()).opensArticle(item) } else { BeeldloosView(item: item, kind: .lead, height: imageHeight) }
@@ -749,6 +829,39 @@ struct LeadCard: View {
             }
         } else {
             standard
+        }
+    }
+
+    private var kaartLead: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
+                Group {
+                    if hasImage { MeasuredLeadImage(item: item, spacious: false, onFail: mislukt, landscape: 3 / 2) }
+                    else { BeeldloosView(item: item, kind: .lead, ratio: 3 / 2, flat: true) }
+                }
+                .padding(.horizontal, -Space.s4) // tot de rand van het scherm
+                VStack(alignment: .leading, spacing: Space.s2) {
+                    if number != nil || label != nil || why != nil {
+                        VStack(alignment: .leading, spacing: 0) {
+                            Kicker(text: label, number: number, read: store.isRead(item), lead: true)
+                            WhyLine(text: why, compact: true)
+                        }
+                    }
+                    Kop(item.title, .title, size: 30)
+                        .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .loadLinesHead(item.title, style: EditionDisplay.headlineStyle(item.title)) // hier landen de laadstrepen
+                    if let intro = item.summary.map({ wholeSentences($0, max: 240 - item.viaLength) }), !intro.isEmpty {
+                        IntroText(text: intro, style: .body, lines: 5, suffix: item.introWithSource, size: 20, line: 30)
+                    }
+                }
+                .padding(.top, Space.s4)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .opensArticle(item)
+            SourceLine(item: item, story: story, outside: outside, kaart: true).padding(.top, Space.s3)
+            StrongRule().padding(.horizontal, -Space.s4).padding(.top, Space.s4) // de sterke inktlijn: het begin van de lijst
         }
     }
 
@@ -786,6 +899,7 @@ struct ItemRow: View {
     enum Form { case tijdlijn, krant }
     @Environment(HootStore.self) private var store
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.isWide) private var wide
     @ScaledMetric(relativeTo: .title3) private var thumb: CGFloat = Layout.thumb
     let item: Item
     var number: Int? = nil
@@ -801,6 +915,9 @@ struct ItemRow: View {
 
     private var chosen: Form { form ?? (store.layout == "krant" ? .krant : .tijdlijn) }
     private var timeline: Bool { !item.isPost && (chosen == .tijdlijn || typeSize.isAccessibilitySize) }
+    // Kaart A+: op de iPhone is de tijdlijn één kaart voor de Editie en de Stroom (zonder nummer en waarom in de
+    // Stroom). iPad en opengevouwen houden hun bredere vormen. Spiegel van .kaart in src/styles/kaart.css.
+    private var kaart: Bool { timeline && !wide && boven == nil }
     // Het beeld bij het stuk, of anders het stilstaande beeld van zijn video.
     // Met een meting het originele beeld (dezelfde pixels als de meting; een CDN-variant kan al bijgesneden zijn).
     private func picture(_ kind: ImageURL.Kind) -> URL? { item.pictureURL(kind) ?? item.videoPosterURL }
@@ -811,6 +928,55 @@ struct ItemRow: View {
     private var fitsLarge: Bool { item.image == nil || ImageURL.fitsLarge(item.image) }
 
     var body: some View {
+        if kaart { kaartBody } else { regular }
+    }
+
+    // De kaart: rubriek (met het waarom), kop 22/28, intro 18/28, het beeld 2:1 met 16 lucht erboven, dan de bronregel.
+    private var kaartBody: some View {
+        VStack(alignment: .leading, spacing: Space.s3) {
+            VStack(alignment: .leading, spacing: 0) {
+                kaartText
+                if store.showsImage(lead: false) {
+                    Group {
+                        if hasPicture, fitsLarge {
+                            FramedImage(url: picture(.large), ratio: 2, measure: pictureMeasure, onFail: mislukt)
+                                .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                                .overlay { if item.video != nil { PlayBadge(size: Space.tap) } }
+                        } else {
+                            BeeldloosView(item: item, kind: .tijdlijn)
+                        }
+                    }
+                    .overlay { RoundedRectangle(cornerRadius: Radius.md, style: .continuous).strokeBorder(Theme.hairline, lineWidth: 1).accessibilityHidden(true) } // de haarlijn binnenin: een licht beeld valt niet weg in het papier
+                    .padding(.top, Space.s4)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .opensArticle(item)
+            SourceLine(item: item, story: story, linkSource: linkSource, outside: outside, kaart: true)
+        }
+        .padding(.vertical, Space.s2)
+    }
+
+    private var kaartText: some View {
+        VStack(alignment: .leading, spacing: Space.s2) {
+            if number != nil || label != nil || why != nil {
+                VStack(alignment: .leading, spacing: 0) {
+                    Kicker(text: label, number: number, read: store.isRead(item))
+                    WhyLine(text: why, compact: true)
+                }
+            }
+            Kop(item.title, .title2)
+                .lineSpacing(2)
+                .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
+                .fixedSize(horizontal: false, vertical: true)
+            if let intro = item.summary.map({ wholeSentences($0, max: introMax(lines: store.preview, thumb: false) - item.viaLength) }), !intro.isEmpty {
+                IntroText(text: intro, style: .body, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, suffix: item.introWithSource, size: 18, line: 28)
+            }
+        }
+    }
+
+    private var regular: some View {
         // Onder een groot beeld iets meer lucht tot de bron (12), zoals op het web; naast een miniatuur 8.
         VStack(alignment: .leading, spacing: timeline ? Space.s3 : Space.s2) {
             Group {

@@ -14,6 +14,7 @@ const KOLOM = {
   rijBeeld: (thumb) => VIEW - thumb - GAP, // krant met miniatuur: 235, bij grote tekst 223
   voorpagina: VIEW - 64 - GAP, // klein verhaal op de voorpagina, vierkant beeld (--thumb-sm 64): 267
   kaart: VIEW - 2 * 16 - 2, // Selectie: kaart met binnenruimte (--s4) en rand: 309
+  kaartA: VIEW, // kaart A+ op een telefoon: de kolom is de hele breedte (343)
   paneel: 325, // vergelijkpaneel op een breed scherm: smaller dan een rij op 375 (gemeten op 1280)
 }
 // Rekenmaat van de intro: 15 in een lijst, 17 in de eerste kaart van een vak. De intro staat sinds
@@ -66,6 +67,10 @@ export function useIntroMax() {
   const [scale, text] = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot).split('|')
   const s = Number(scale) || 1
   return (lines, kind = 'rij', image = false) => {
+    // Kaart A+: de intro is 18 (hoofdverhaal 20) in Newsreader. Gerekend op 16 en 18: een tik ruimer
+    // dan de gemeten 15,9 en 17,6 (0,51 em per teken), zodat de clamp (+1 regel) nooit knipt.
+    if (kind === 'kaartA') return introMax(lines, { width: KOLOM.kaartA, font: 16 * s })
+    if (kind === 'kaartALead') return introMax(lines, { width: KOLOM.kaartA, font: 18 * s })
     if (kind === 'kaartEerste') return introMax(lines, { width: KOLOM.kaart, font: T3 * s })
     const width = kind === 'rij' && image ? KOLOM.rijBeeld(text === 'groot' ? 108 : 96) : KOLOM[kind] ?? KOLOM.rij
     return introMax(lines, { width, font: T2 * s })

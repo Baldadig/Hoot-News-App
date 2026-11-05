@@ -18,18 +18,20 @@ import NaturalLanguage
 struct Kop: View {
     let text: String
     let style: Font.TextStyle
+    let size: CGFloat? // een eigen maat bij de standaardgrootte (hoofdverhaal van kaart A+: 30); groeit mee met `style`
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var width: CGFloat = 0
 
-    init(_ text: String, _ style: Font.TextStyle) {
+    init(_ text: String, _ style: Font.TextStyle, size: CGFloat? = nil) {
         self.text = text
         self.style = style
+        self.size = size
     }
 
     var body: some View {
-        let fit = KopZet.fit(text, style: style, typeSize: typeSize, width: width)
+        let fit = KopZet.fit(text, style: style, typeSize: typeSize, width: width, size: size)
         Text(fit.text)
-            .font(fit.scale < 1 ? .custom(Letters.kop, fixedSize: KopZet.pointSize(style, typeSize: typeSize) * fit.scale) : .kop(style))
+            .font(fit.scale < 1 ? .custom(Letters.kop, fixedSize: KopZet.pointSize(style, typeSize: typeSize, size: size) * fit.scale) : size.map { .custom(Letters.kop, size: $0, relativeTo: style) } ?? .kop(style))
             .accessibilityLabel(text)
             .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
     }
@@ -40,13 +42,13 @@ enum KopZet {
     static let minScale: CGFloat = 0.7
 
     // De maat van de kop zoals iOS hem bij deze tekstgrootte zet (Font.custom(relativeTo:) schaalt zo).
-    static func pointSize(_ style: Font.TextStyle, typeSize: DynamicTypeSize) -> CGFloat {
+    static func pointSize(_ style: Font.TextStyle, typeSize: DynamicTypeSize, size: CGFloat? = nil) -> CGFloat {
         let traits = UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(typeSize))
-        return UIFontMetrics(forTextStyle: style.uiKit).scaledValue(for: Letters.size(style), compatibleWith: traits)
+        return UIFontMetrics(forTextStyle: style.uiKit).scaledValue(for: size ?? Letters.size(style), compatibleWith: traits)
     }
 
-    static func font(_ style: Font.TextStyle, typeSize: DynamicTypeSize) -> UIFont {
-        let size = pointSize(style, typeSize: typeSize)
+    static func font(_ style: Font.TextStyle, typeSize: DynamicTypeSize, size own: CGFloat? = nil) -> UIFont {
+        let size = pointSize(style, typeSize: typeSize, size: own)
         return UIFont(name: Letters.kop, size: size) ?? .systemFont(ofSize: size, weight: .heavy)
     }
 
@@ -86,9 +88,9 @@ enum KopZet {
     struct Fit: Equatable { var text: String; var scale: CGFloat }
 
     // Zet de kop voor een kolom van `width` punten. Zonder breedte (eerste opbouw) ongewijzigd.
-    static func fit(_ text: String, style: Font.TextStyle, typeSize: DynamicTypeSize, width: CGFloat) -> Fit {
+    static func fit(_ text: String, style: Font.TextStyle, typeSize: DynamicTypeSize, width: CGFloat, size: CGFloat? = nil) -> Fit {
         guard width > 0 else { return Fit(text: text, scale: 1) }
-        return fit(text, font: font(style, typeSize: typeSize), width: width)
+        return fit(text, font: font(style, typeSize: typeSize, size: size), width: width)
     }
 
     // Idem voor een gegeven letter (de lezer zet zijn kop zelf in een webpagina, op eigen maat).

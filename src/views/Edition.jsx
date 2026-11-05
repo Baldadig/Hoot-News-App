@@ -3,10 +3,11 @@ import { cleanIntro } from '../../shared/edition-display.mjs'
 import { EditionNumber } from '../components/EditionNumber.jsx'
 import { useEffect, useRef, useState } from 'react'
 import { usePairs } from '../hooks/usePairs.js'
+import { usePhone } from '../hooks/usePhone.js'
 import { ViewHeader, StatusLine, LoadError, Empty } from '../components/Shell.jsx'
 import { LoadLinesBox, LoadLinesLayer, useLoadLines } from '../components/LoadLines.jsx'
 import { TienLayer, TienSpace, useTien } from '../components/FirstEdition.jsx'
-import { LeadStory, CompactItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf, viaLength } from '../components/Items.jsx'
+import { LeadStory, CompactItem, KaartItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf, viaLength } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
 import { Beeld, PlaceholderList } from '../components/Beeld.jsx'
 import { EditionArt, SparkleIcon, CaretIcon, CloseIcon, ICON_SM } from '../components/icons.jsx'
@@ -110,6 +111,7 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
   const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account, prefs, sourcesById } = useHoot()
   const following = followedNow(followStories, storiesById, newInStory)
   const ref = useRef(null)
+  const phone = usePhone() // telefoon: de Stroom-vorm met kaart A+ (src/styles/kaart.css); breder houdt de krant-vormen
 
   // Elke plek van de editie: het gepubliceerde bericht (vast) met de bundel erachter. Alle plekken
   // blijven staan; een bron die je niet volgt krijgt een label (behalve "Buiten je bubbel", dat
@@ -184,14 +186,14 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
   // Breed (A): elk paar even hoog en het hoofdverhaal even hoog als zijn zijkolom.
   const frontRef = useRef(null)
   const pairsRef = useRef(null)
-  const boven = usePairs(pairsRef, frontRef, active && ready, rows.slice(SIDE).map((r) => r.key).join(','))
+  const boven = usePairs(pairsRef, frontRef, active && ready && !phone, rows.slice(SIDE).map((r) => r.key).join(','))
 
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Editie">
       {pull}
       <div className={`col col--wide col--front${tien.active ? tien.hostClass : lines.hostClass}`} ref={hostRef}>
         <TienLayer tien={tien} host={hostRef} onDone={onTienDone} />
-        <LoadLinesLayer lines={lines} host={hostRef} land=".front .lead__title" rule=".edrule" onLand={() => markPrinted(edition?.id)} />
+        <LoadLinesLayer lines={lines} host={hostRef}  land={phone ? '.kaarten .kaart__title--lead' : '.front .lead__title'} rule=".edrule" onLand={() => markPrinted(edition?.id)} />
         {/* De kop van de Editie: titel en één metaregel (datum · weer · wiens Editie); de inktlijn
             eronder is het begin van het nieuws. Eén blok, zodat de kleur "Inkt" er een band van kan
             maken. De ingang naar het overzicht staat ónder de lijn, als stille bedieningsrij. */}
@@ -289,6 +291,24 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
                 hoofdverhaal met 02 en 03 ernaast (het beeld rekt mee tot de zijkolom even hoog is),
                 daarna paren in twee kolommen, elk paar even hoog (usePairs). Koppen breken nooit af. */}
             {/* Welk placeholderbeeld een beeldloze rij krijgt, hangt af van de rij erboven (Beeld.jsx). */}
+            {phone ? (
+              // Telefoon (kaart A+): alles onder elkaar in de Stroom-vorm; het hoofdverhaal met beeld tot de rand.
+              // Na zes "Verder in deze Editie". Nummer en waarom staan in de kaart (KaartItem).
+              <PlaceholderList rows={rows.map((r, i) => ({ item: r.item, kind: i === 0 ? 'lead' : 'tijdlijn' }))}>
+                <div className="kaarten rows">
+                  {rows.map((r, i) => [
+                    i === FRONT ? (
+                      <h2 key="verder" className="label label--section front__more kaarten__label">
+                        Verder in deze Editie
+                      </h2>
+                    ) : null,
+                    <Slot key={r.key} less={less} row={r}>
+                      <KaartItem lead={i === 0} priority={i === 0 && active} n={r.n} item={r.item} story={r.story} note={r.note} why={r.why} outside={r.outside} followed={onFront.get(r.key)} taste={r.key} lines={INTRO_LINES} />
+                    </Slot>,
+                  ])}
+                </div>
+              </PlaceholderList>
+            ) : (
             <PlaceholderList rows={rows.map((r, i) => ({ item: r.item, kind: i === 0 ? 'lead' : boven[r.key] ? 'boven' : 'krant' }))}>
             <div className="front" ref={frontRef}>
               <Slot less={less} row={rows[0]}>
@@ -319,12 +339,13 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
               </div>
             ) : null}
             </PlaceholderList>
+            )}
             {editionBubble.length ? (
               <section className="bubble" aria-label="Buiten je bubbel">
                 <h2 className="label label--section front__more">Buiten je bubbel</h2>
                 <p className="hint bubble__hint">Een verhaal naast je Editie.</p>
-                <PlaceholderList rows={editionBubble.map((r) => ({ item: r.item, kind: 'krant' }))}>
-                {editionBubble.map(r=><Slot key={r.key} less={less} row={r}><CompactItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} plain /></Slot>)}
+                <PlaceholderList rows={editionBubble.map((r) => ({ item: r.item, kind: phone ? 'tijdlijn' : 'krant' }))}>
+                {editionBubble.map(r=><Slot key={r.key} less={less} row={r}>{phone ? <KaartItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} lines={INTRO_LINES} /> : <CompactItem item={r.item} story={r.story} note={r.note?.replace(/^Buiten je bubbel(?: · )?/, '') || null} why={r.why} outside={r.outside} taste={r.key} plain />}</Slot>)}
                 </PlaceholderList>
               </section>
             ) : null}

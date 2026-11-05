@@ -15,6 +15,8 @@ struct BeeldloosView: View {
     let kind: Kind
     var height: CGFloat? = nil // hoofdverhaal op iPad liggend: zo hoog als de zijkolom
     var width: CGFloat = Layout.thumb // miniatuur: de breedte van het beeld dat er anders stond
+    var ratio: CGFloat = 2 // breedte : hoogte van het grote vak (kaart A+: het hoofdverhaal is 3:2)
+    var flat = false // tot de rand: geen hoek
 
     private var index: Int { plan[item.id] ?? Placeholder.base(item.id) }
 
@@ -32,11 +34,11 @@ struct BeeldloosView: View {
                     if let height {
                         Color.clear.frame(maxWidth: .infinity).frame(height: height)
                     } else {
-                        Color.clear.aspectRatio(2, contentMode: .fit).frame(maxWidth: .infinity)
+                        Color.clear.aspectRatio(ratio, contentMode: .fit).frame(maxWidth: .infinity)
                     }
                 }
                 .overlay { PlaceholderBeeld(index: index, klein: false) }
-                .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: flat ? 0 : Radius.md, style: .continuous))
                 .accessibilityHidden(true)
             }
         }

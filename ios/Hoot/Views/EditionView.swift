@@ -302,8 +302,8 @@ struct EditionView: View {
         let numbered = EditionNumbering.rows(store.editionRows)
         let rows = numbered.filter { $0.desk != "bubbel" }
         let failed = MisluktBeeld.shared.ids // een beeld dat pas bij het laden mislukt, telt ook mee
-        var plan = Placeholder.plan(rows.enumerated().map { ($0.element.item, $0.offset == 0 ? BeeldloosView.Kind.lead : .krant) }, failed: failed)
-        plan.merge(Placeholder.plan(numbered.filter { $0.desk == "bubbel" }.map { ($0.item, BeeldloosView.Kind.krant) }, failed: failed)) { a, _ in a }
+        var plan = Placeholder.plan(rows.enumerated().map { ($0.element.item, $0.offset == 0 ? BeeldloosView.Kind.lead : (wide ? .krant : .tijdlijn)) }, failed: failed)
+        plan.merge(Placeholder.plan(numbered.filter { $0.desk == "bubbel" }.map { ($0.item, wide ? BeeldloosView.Kind.krant : .tijdlijn) }, failed: failed)) { a, _ in a }
         return plan
     }
 
@@ -391,8 +391,10 @@ struct EditionView: View {
                                 .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
                                 .tienBlock(tien, 2)
                             ForEach(rows.dropFirst()) { row in
-                                Rule().padding(.vertical, Space.s2).loadLinesRise(lines).tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0))
-                                slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
+                                // Kaart A+ (iPhone): na het hoofdverhaal komt de sterke lijn uit LeadCard; tussen de kaarten 16 boven en onder.
+                                if wide || row.id != rows[1].id { Rule().padding(.vertical, Space.s2).loadLinesRise(lines).tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0)) }
+                                slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: wide ? .krant : .tijdlijn) }
+                                    .padding(.top, !wide && row.id == rows[1].id ? Space.s2 : 0)
                                     .loadLinesRise(lines)
                                     .tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0))
                             }
@@ -402,7 +404,7 @@ struct EditionView: View {
                                 StrongRule().padding(.top, Space.s5)
                                 Kop("Buiten je bubbel", .title2).accessibilityAddTraits(.isHeader).padding(.vertical,Space.s3)
                                 ForEach(outsideRows) { row in
-                                    slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,form:.krant) }
+                                    slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,form:wide ? .krant : .tijdlijn) }
                                 }
                             }
                             .padding(.leading, grid == .kolom ? Layout.hang : 0) // op de lijn van de tekst, niet van de nummers

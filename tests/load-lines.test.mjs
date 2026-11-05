@@ -167,7 +167,7 @@ test('Editie, Stroom en Selectie gebruiken de strepen; alleen de Editie landt op
     assert.match(src, /<LoadLinesLayer lines=\{lines\} host=\{hostRef\}/, view)
     assert.doesNotMatch(src, /<Skeleton/, view)
   }
-  assert.match(readFileSync('src/views/Edition.jsx', 'utf8'), /land="\.front \.lead__title" rule="\.edrule"/)
+  assert.match(readFileSync('src/views/Edition.jsx', 'utf8'), /'\.front \.lead__title'\} rule="\.edrule"/)
   assert.doesNotMatch(readFileSync('src/views/Stream.jsx', 'utf8'), /land=/)
   assert.doesNotMatch(readFileSync('src/views/Vak.jsx', 'utf8'), /land=/)
 })

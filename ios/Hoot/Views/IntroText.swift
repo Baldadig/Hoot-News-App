@@ -12,11 +12,13 @@ struct IntroText: View {
     var lines: Int? // nil: geen grens
     var suffix: (String) -> String = { $0 } // bijvoorbeeld " — via X" achter elke kandidaat
     var color: Color = Theme.ink2
+    var size: CGFloat? = nil // een eigen maat en regelhoogte (kaart A+: 18/28, hoofdverhaal 20/30)
+    var line: CGFloat? = nil
     @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         if let lines {
-            CapHeight(limit: Self.limit(lines: lines, style: style, typeSize: typeSize)) {
+            CapHeight(limit: Self.limit(lines: lines, style: style, typeSize: typeSize, size: size, line: line)) {
                 ViewThatFits(in: .vertical) {
                     ForEach(Array(Self.candidates(text).enumerated()), id: \.offset) { _, candidate in
                         line(candidate)
@@ -30,7 +32,7 @@ struct IntroText: View {
     }
 
     private func line(_ s: String) -> some View {
-        Text(suffix(s)).leestekst(style).foregroundStyle(color).fixedSize(horizontal: false, vertical: true)
+        Text(suffix(s)).leestekst(style, size: size, line: line).foregroundStyle(color).fixedSize(horizontal: false, vertical: true)
     }
 
     // De hele intro, en dan steeds één hele zin minder (de kortste is de eerste zin).
@@ -45,11 +47,11 @@ struct IntroText: View {
     }
 
     // Zoveel punten hoog zijn `lines` regels in deze letter bij deze tekstgrootte, met een halve regel speling.
-    static func limit(lines: Int, style: Font.TextStyle, typeSize: DynamicTypeSize) -> CGFloat {
+    static func limit(lines: Int, style: Font.TextStyle, typeSize: DynamicTypeSize, size own: CGFloat? = nil, line ownLine: CGFloat? = nil) -> CGFloat {
         let traits = UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(typeSize))
         // Newsreader (leestekst): de letter staat op 1,193 van de maat, de rest is lineSpacing (Letters.leesSpacing).
-        let size = UIFontMetrics(forTextStyle: style.uiKit).scaledValue(for: Letters.size(style), compatibleWith: traits)
-        let line = size * 1.193 + Letters.leesSpacing(style, typeSize: typeSize)
+        let size = UIFontMetrics(forTextStyle: style.uiKit).scaledValue(for: own ?? Letters.size(style), compatibleWith: traits)
+        let line = size * 1.193 + Letters.leesSpacing(style, typeSize: typeSize, size: own, line: ownLine)
         return line * (CGFloat(lines) + 0.5)
     }
 }
