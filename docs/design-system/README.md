@@ -1,4 +1,4 @@
-> **Versie 2.2 (4 november 2026):** de keuzes voor 1.1.0, Nacht, de bewegingstaal, het app-icoon, de deelkaart, de beeldtaal en stem en toon staan in [`brand-guide-v2.2.md`](brand-guide-v2.2.md). Waar die gids en dit merkboek verschillen, geldt v2.2.
+> **Versie 2.3 (5 november 2026):** twee families (Newsreader en Schibsted Grotesk), kaart A+, beelden en placeholders, De stapel en Tien staan in [`brand-guide-v2.3.md`](brand-guide-v2.3.md); de keuzes voor 1.1.0, Nacht, het app-icoon, de deelkaart en de beeldtaal in [`brand-guide-v2.2.md`](brand-guide-v2.2.md). Waar die gidsen en dit merkboek verschillen, geldt v2.3.
 
 Hoot is een rustige nieuwslezer: drie keer per dag een Editie van tien verhalen met een einde, een Stroom met de laatste berichten van je eigen bronnen en elke maandag een Selectie: bijgepraat over wat jou bezighoudt. Het beeld is de zaterdagkrant: warm papier, zwarte inkt, krantenrood als enige accent. Bouw elk scherm uit deze tokens en regels. De website (`src/styles.css`) en de iOS-app (`Theme`, `Space`, `Radius` en `Layout` in Swift, plus de kleuren in `Assets.xcassets`) delen dezelfde namen en rollen; maten staan op het web in CSS-pixels en in iOS in punten (1 px = 1 pt). Waar een platform bewust afwijkt, staat dat onder "Per platform". De tokens (`tokens.json`) zijn de bron: bij twijfel geldt de tokenwaarde.
 
@@ -6,7 +6,7 @@ Hoot is een rustige nieuwslezer: drie keer per dag een Editie van tien verhalen 
 
 - **Het verhaal is de eenheid.** De bron blijft altijd zichtbaar en aanklikbaar; openen, de bron bekijken en bewaren zijn drie aparte doelen van minstens `tap` (44 px).
 - **Lijnen en witruimte, geen omlijnde kaarten.** Berichten scheid je met een `rule`-haarlijn en `s5`; een kaart (`surface`, `radius`) alleen voor iets dat echt los staat: een stuk uit de Selectie, een melding, een blad.
-- **Lezen in serif, bedienen in sans.** Koppen en schermtitels in `serif` (Newsreader 800); alles wat je leest (de intro van een verhaal, de tekst van een post, de lezer, proza) in `lees` (Newsreader op tekstmaat); bediening, labels, metadata en knoppen in `sans` (Inter).
+- **Lezen in serif, bedienen in sans.** Koppen en schermtitels in `serif` (Newsreader 800); alles wat je leest (de intro van een verhaal, de tekst van een post, de lezer, proza) in `lees` (Newsreader op tekstmaat); bediening, labels, metadata, knoppen en alle uitleg- en hulpzinnen in `sans` (Schibsted Grotesk, vervangt Inter sinds v2.3).
 - **Eén accent.** `accent` markeert rubriek, actief, "+N bronnen", het label "gratis" en het punt van het woordmerk. Nooit als vlakvulling van een heel scherm, en nooit voor gewone bediening: iconen in de kop (instellingen, zoeken, verversen) zijn `ink-3`.
 - **Merkmomenten in merkrood.** Op een handvol vaste momenten wordt het krantenrood een vol vlak (`brand-red` met `on-brand-red`): het opstartscherm (app en web), het welkom, het einde van de editie ("Je bent bij.") en de deel- en App Store-beelden. Juist omdat de rest papier en inkt is, voelt dat fris; daarom nergens anders, en nooit op een scherm waar je leest.
 - **Niets beweegt terwijl je leest.** Nieuwe berichten wachten achter een knop; de leespositie verschuift nooit vanzelf.
@@ -63,11 +63,11 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 
 ## Type
 
-- **Drie letters, overal gelijk (tekstfont-keuze, 4 november 2026).** Koppen: Newsreader 800, statisch, optische maat uit (`--serif`). Lopende tekst: Newsreader op tekstmaat, variabel met de optische maat aan, 400 en in Nacht 430 (`--lees`, `--fw-lees`). Bediening: Inter 400 · 600 · 700, labels in kapitalen 800 (`--sans`). Alles meegeleverd in latin en latin-ext (geen Google Fonts-verzoek): web `src/fonts/` en de statische 800 van `@fontsource/newsreader`, iOS `ios/Hoot/Resources/Fonts/` (vaste standen uit dezelfde bron, `scripts/build-fonts.py`). Licenties: SIL OFL 1.1.
+- **Twee families, overal gelijk (tekstfont-keuze, 4 november 2026; Schibsted sinds v2.3).** Koppen: Newsreader 800, statisch, optische maat uit (`--serif`). Lopende tekst: Newsreader op tekstmaat, variabel met de optische maat aan, 400 en in Nacht 430 (`--lees`, `--fw-lees`). Bediening en uitleg: Schibsted Grotesk 400 · 600 · 700, kickers en labels in kapitalen 800 (`--sans`; vervangt Inter, v2.3). Alles meegeleverd in latin en latin-ext (geen Google Fonts-verzoek): web `src/fonts/` en de statische 800 van `@fontsource/newsreader`, iOS `ios/Hoot/Resources/Fonts/` (vaste standen uit dezelfde bron, `scripts/build-fonts.py`). Licenties: SIL OFL 1.1.
 - **Maten van lopende tekst:** intro 17/24 (1,42) overal, ook in lijsten (was 15). Held-lead op de landing 22 px vanaf 440 breed, 19 px op de telefoon, regelafstand 1,42. Newsreader oogt op dezelfde maat kleiner dan een schreefloze letter; vandaar de stap omhoog.
-- **Regellengte in em, niet in ch:** een ch is de breedte van een 0 en die verschilt per letter (Source Sans 0,50 · Newsreader 0,56 · Inter 0,63 em). `measure-prose` is 28,8em (± 68 tekens Newsreader op 17).
-- **Cijfers:** de tijd onder de bronnaam staat in tabelcijfers (Inter), zodat "4 uur" en "41 min" niet verspringen; de statische Newsreader 800 heeft die niet, dus een serif-nummer (de stapteller, de nummers in de inhoud van de Selectie, de rang op een kaart) blijft proportioneel.
-- **iOS:** dezelfde letters als het web, met `Font.custom(…, relativeTo:)`, zodat alles meeschaalt met Dynamische tekst (`Letters.swift`: `.kop`, `.ui`, `.leestekst()`). Dezelfde rollen, met de tekststijlen van iOS als maat. Lopende tekst krijgt regelafstand 1,42, bij de toegankelijkheidsmaten 1,3. De lezer laadt Newsreader Tekst (met vet en cursief) en Inter via de app.
+- **Regellengte in em, niet in ch:** een ch is de breedte van een 0 en die verschilt per letter (Source Sans 0,50 · Newsreader 0,56 · Schibsted ± 0,56 · Inter 0,63 em). `measure-prose` is 28,8em (± 68 tekens Newsreader op 17).
+- **Cijfers:** de tijd onder de bronnaam staat in tabelcijfers (Schibsted Grotesk), zodat "4 uur" en "41 min" niet verspringen; de statische Newsreader 800 heeft die niet, dus een serif-nummer (de stapteller, de nummers in de inhoud van de Selectie, de rang op een kaart) blijft proportioneel.
+- **iOS:** dezelfde letters als het web, met `Font.custom(…, relativeTo:)`, zodat alles meeschaalt met Dynamische tekst (`Letters.swift`: `.kop`, `.ui`, `.leestekst()`). Dezelfde rollen, met de tekststijlen van iOS als maat. Lopende tekst krijgt regelafstand 1,42, bij de toegankelijkheidsmaten 1,3. De lezer laadt Newsreader Tekst (met vet en cursief) en Schibsted Grotesk via de app.
 
 | Stijl | Web | iOS | Waar |
 |---|---|---|---|
@@ -84,7 +84,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 - **Het verhaal wint van de schermtitel** (C7). De schermtitel (`head-5`, 27/32) zegt waar je bent; het oog landt op het nieuws: de kop van het hoofdverhaal (`head-6`, 30/36, vanaf 720 px 34/40) is altijd groter. Op het web staat dit zo; iOS volgt (I5): schermtitel `Theme.headline(.title)`, hoofdverhaal `.largeTitle` serif.
 - **Koppen** krijgen `text-wrap: balance` (hoofdverhaal) of `pretty` (berichten) en breken nooit af met "…".
 - **Intro's:** bij het hoofdverhaal hele zinnen (4–6 regels). In een lijst kies je zelf 1–3 regels of de hele intro; een ingekorte intro eindigt met "…", zodat je ziet dat er meer is.
-- **De lezer** zet lopende tekst in Newsreader Tekst (met echt vet en cursief): 1,12rem × je tekstgrootte (was 1,06 in New York; Newsreader oogt op dezelfde maat kleiner), regelafstand 1.6, hooguit `readable` breed; de kop in Newsreader 800, kicker, bronregel en bijschriften in Inter.
+- **De lezer** zet lopende tekst in Newsreader Tekst (met echt vet en cursief): 1,12rem × je tekstgrootte (was 1,06 in New York; Newsreader oogt op dezelfde maat kleiner), regelafstand 1.6, hooguit `readable` breed; de kop in Newsreader 800, kicker, bronregel en bijschriften in Schibsted Grotesk.
 
 ## Ruimte en vorm
 
@@ -150,7 +150,7 @@ Licht en donker delen dezelfde namen; de app volgt het toestel.
 
 Bewuste verschillen, omdat elk platform zijn eigen conventies heeft:
 
-- **Letters:** gelijk: Newsreader en Inter op beide (sinds 1.1.0). Het web gebruikt de variabele letters met de optische maat op de lettermaat; iOS vaste standen (Kop 800 op opsz 16, Tekst op opsz 17, Inter op opsz 14), omdat Dynamische tekst geen as kan meenemen.
+- **Letters:** gelijk: Newsreader en Schibsted Grotesk op beide (sinds 1.1.0, build 47). Het web gebruikt de variabele letters met de optische maat op de lettermaat; iOS vaste standen (Kop 800 op opsz 16, Tekst op opsz 17, Schibsted Grotesk in vier standen), omdat Dynamische tekst geen as kan meenemen.
 - **Hoofdverhaal op een smalle website:** het beeld staat boven rubriek, kop en intro (liggend 2:1, op het brede web 21:9). Staand beeld is 4:5 en op een ruim scherm 3:4 naast de tekst. De app volgt dezelfde plaatsing; liggend blijft daar 2:1.
 - **Lege toestand:** web en iOS gebruiken een getekende bladzijde, een serif-titel en uitleg in `ink-2`. Foutmeldingen op iOS houden de systeemweergave met een knop om opnieuw te proberen.
 - **Bronnaam:** op de website kapt een lange naam af op één regel; in de app loopt hij door.
