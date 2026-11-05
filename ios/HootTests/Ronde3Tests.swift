@@ -82,4 +82,13 @@ import SwiftUI
         XCTAssertNil(KantenTip.pick([(a, nil)], done: false))
         XCTAssertEqual(KantenTip.line(7), "Meer kanten van één verhaal: bij ‘7 bronnen’ zie je hoe elke bron het brengt.")
     }
+
+    // r5-opstart: het opstartscherm stopt zodra de Editie er is (cache of vers), niet pas als alle delen binnen zijn.
+    func testOpstartWachtNietOpAlleDelen() {
+        XCTAssertTrue(HootApp.splashMayEnd(status: .loading, hasEdition: true, waited: 1.7), "de Editie staat er: weg, ook als de delen nog laden")
+        XCTAssertFalse(HootApp.splashMayEnd(status: .loading, hasEdition: false, waited: 2), "nog geen Editie: wachten")
+        XCTAssertTrue(HootApp.splashMayEnd(status: .failed, hasEdition: false, waited: 2))
+        XCTAssertTrue(HootApp.splashMayEnd(status: .ready, hasEdition: false, waited: 2))
+        XCTAssertTrue(HootApp.splashMayEnd(status: .loading, hasEdition: false, waited: 5), "hooguit vijf seconden")
+    }
 }

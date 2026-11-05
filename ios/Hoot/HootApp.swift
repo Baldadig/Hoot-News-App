@@ -86,7 +86,13 @@ struct HootApp: App {
     // De Editie die de app al heeft, als "2026-10-31-ochtend": daarvoor geen seintje meer.
     private var shownEdition: String? { store.edition.flatMap { e in e.date.flatMap { d in e.slot.map { "\(d)-\($0)" } } } }
 
-    // Minstens één hele sprong, dan weg zodra de editie er is (of laden mislukt); hooguit 5 seconden.
+    // Minstens één hele sprong, dan weg zodra de Editie er is, uit de cache of vers (of laden mislukt);
+    // hooguit 5 seconden. Niet meer wachten tot alle delen per bron binnen zijn (keuze r5-opstart, review C2):
+    // die laden onder de Editie verder. De iris blijft.
+    static func splashMayEnd(status: HootStore.Status, hasEdition: Bool, waited: TimeInterval) -> Bool {
+        hasEdition || status == .ready || status == .failed || waited >= 5
+    }
+
     private func endSplash() async {
         guard splash else { return }
         #if DEBUG
@@ -99,7 +105,7 @@ struct HootApp: App {
         #endif
         let start = Date.now
         try? await Task.sleep(for: .seconds(SplashView.bounce))
-        while store.status != .ready && store.status != .failed && Date.now.timeIntervalSince(start) < 5 {
+        while !Self.splashMayEnd(status: store.status, hasEdition: !store.editionRows.isEmpty, waited: Date.now.timeIntervalSince(start)) {
             try? await Task.sleep(for: .milliseconds(100))
         }
         // Dan nog even wachten tot de Editie eronder getekend is: dat houdt de hoofddraad een paar
