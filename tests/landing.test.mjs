@@ -101,7 +101,7 @@ test('landing: de kleine tekstronde uit de review', () => {
   const t = tekst(vul(false))
   for (const zin of [
     'Elke maandag de mooiste stukken van de week, over je vak en wat je verder boeit.',
-    'De Redacteur kiest elke Editie.',
+    'De Redacteur kiest elke Editie',
     'Bij elk verhaal zie je waarom.',
     'Lees verder in de Stroom',
     'Lees mee in je browser.',

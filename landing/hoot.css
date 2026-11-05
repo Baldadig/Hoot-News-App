@@ -517,3 +517,5 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .voordeel-lijst p{text-wrap:pretty}
 /* Held: het beeld in de telefoon lager (2:1), zodat de kop van het hoofdverhaal in beeld blijft */
 .held .k-beeld{aspect-ratio:2/1}
+/* Editie-telefoon: wat omhoog schuift verdwijnt zacht onder de bovenrand, zodat een kaart nooit afgekapt in de hoek begint */
+.sc-editie .scherm{-webkit-mask:linear-gradient(transparent 0,#000 2.6em);mask:linear-gradient(transparent 0,#000 2.6em)}
