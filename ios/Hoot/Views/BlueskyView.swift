@@ -113,7 +113,7 @@ struct PostRow: View {
                     SourceMark(item: item)
                     VStack(alignment: .leading, spacing: 0) {
                         Text(item.sourceName ?? item.source).font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink)
-                        Text([item.handle, HootDate.ago(item.date)].compactMap { $0 }.joined(separator: " · ")).font(.ui(.caption)).monospacedDigit().foregroundStyle(Theme.ink3)
+                        Text([item.handle, HootDate.ago(item.date)].compactMap { $0 }.joined(separator: " · ")).font(.ui(.caption)).monospacedDigit().foregroundStyle(Theme.hint)
                     }
                     .fixedSize(horizontal: false, vertical: true)
                 }
@@ -139,7 +139,7 @@ private struct LinkCard: View {
             }
             VStack(alignment: .leading, spacing: Space.s0) {
                 Text(title).font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
-                if let host = item.link?.host() { Text(host.replacing(/^www\./, with: "")).font(.ui(.caption)).foregroundStyle(Theme.ink3) }
+                if let host = item.link?.host() { Text(host.replacing(/^www\./, with: "")).font(.ui(.caption)).foregroundStyle(Theme.hint) }
             }
             .padding(Space.s3)
         }
@@ -152,7 +152,9 @@ private struct LinkCard: View {
 
 // Wie je volgt, vanuit de Stroom: iemand toevoegen met de @-naam (of een link van bsky.app), en
 // accounts aan- en uitzetten of weghalen.
+// `pushed`: als pagina in Instellingen (geen eigen navigatiestapel en geen Klaar); anders als blad.
 struct BlueskyAccountsView: View {
+    var pushed = false
     @Environment(HootStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var input = ""
@@ -160,7 +162,14 @@ struct BlueskyAccountsView: View {
     @State private var error: String?
 
     var body: some View {
-        NavigationStack {
+        if pushed {
+            list
+        } else {
+            NavigationStack { list }
+        }
+    }
+
+    private var list: some View {
             List {
                 Section {
                     HStack {
@@ -202,9 +211,8 @@ struct BlueskyAccountsView: View {
             .navigationTitle("Bluesky-accounts")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) { Button("Klaar") { dismiss() } } // tekst in inkt, zoals Instellingen
+                if !pushed { ToolbarItem(placement: .topBarTrailing) { Button("Klaar") { dismiss() } } } // tekst in inkt, zoals Instellingen
             }
-        }
     }
 
     private func row(_ s: Source) -> some View {
@@ -222,7 +230,7 @@ struct BlueskyAccountsView: View {
                     .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 0) {
                         Text(s.name)
-                        Text("@" + s.id.replacing(/^bsky:/, with: "")).font(.ui(.caption)).foregroundStyle(Theme.ink3)
+                        Text("@" + s.id.replacing(/^bsky:/, with: "")).font(.ui(.caption)).foregroundStyle(Theme.hint)
                     }
                 }
             }

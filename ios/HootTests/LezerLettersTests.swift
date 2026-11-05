@@ -7,7 +7,7 @@ final class LezerLettersTests: XCTestCase {
     func testAlleStandenAanwezigEnKlein() {
         for night in [false, true] {
             let css = ReaderFonts.css(night: night)
-            XCTAssertEqual(css.components(separatedBy: "@font-face").count - 1, 6, "zes standen: kop, tekst, vet, cursief, Inter 400 en 800")
+            XCTAssertEqual(css.components(separatedBy: "@font-face").count - 1, 6, "zes standen: kop, tekst, vet, cursief, Schibsted Grotesk 400 en 800")
             XCTAssertFalse(css.contains("font/ttf"))
             XCTAssertTrue(css.contains("data:font/woff;base64,"))
             XCTAssertLessThan(ReaderFonts.bytes(night: night), 300_000, "letters per artikel")

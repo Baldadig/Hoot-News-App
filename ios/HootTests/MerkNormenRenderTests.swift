@@ -23,7 +23,7 @@ import SwiftUI
             defaults.set(value, forKey: "hoot.weergave")
             let page = HStack(alignment: .top, spacing: 0) {
                 EmptyState(title: "Nog niets bewaard", systemImage: "bookmark", text: "Tik op de bladwijzer bij een verhaal.").frame(width: 390)
-                EmptyState(title: "Zoek in je nieuws", systemImage: "magnifyingglass", text: "In koppen en intro’s van je Stroom.").frame(width: 390)
+                EmptyState(title: "Zoek in je nieuws", systemImage: "magnifyingglass", text: "Op woord, bron of auteur, ook in wat je bewaarde.").frame(width: 390)
                 EmptyState(title: "Er is nog geen Editie", systemImage: "newspaper", text: "In de Stroom staat alles wat er wél is.").frame(width: 390)
             }
             .overlay(alignment: .bottom) { marks.padding(.bottom, Space.s4) }

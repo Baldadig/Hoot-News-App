@@ -185,8 +185,8 @@ enum ReaderFonts {
         face("Newsreader Kop", "NewsreaderKop-800", weight: 800), // de kop
         face("Newsreader Tekst", "NewsreaderTekst-700", weight: 700), // vet in de tekst
         face("Newsreader Tekst", "NewsreaderTekst-400-cursief", weight: 400, style: "italic"), // cursief, citaten
-        face("Inter", "Inter-400", weight: 400), // bronregel, bijschriften
-        face("Inter", "Inter-800", weight: 800), // rubriek
+        face("Schibsted Grotesk", "SchibstedGrotesk-400", weight: 400), // bronregel, bijschriften
+        face("Schibsted Grotesk", "SchibstedGrotesk-800", weight: 800), // rubriek
     ].joined(separator: "\n")
     private static let day = face("Newsreader Tekst", "NewsreaderTekst-400", weight: 400)
     private static let nacht = face("Newsreader Tekst", "NewsreaderTekst-430", weight: 400) // Nacht: 430 op de plek van 400
@@ -229,9 +229,9 @@ enum ReaderHTML {
         html { font: -apple-system-body;\(bodyPx.map { " font-size: \($0)px;" } ?? "") -webkit-text-size-adjust: 100%; }
         body { margin:0; background:var(--paper); color:var(--ink); }
         main { max-width: 680px; margin: 0 auto; padding: 16px 16px 48px; /* s4, s7 */ font-family: "Newsreader Tekst", ui-serif, Georgia, serif; font-size: calc(1.12rem * \(scale)); line-height: 1.6; } /* lopende tekst: Newsreader op tekstmaat, in Nacht 430 (ReaderFonts); een stap groter dan New York (1.06), want Newsreader oogt op dezelfde maat kleiner */
-        .kicker { font-family: Inter, -apple-system, system-ui, sans-serif; font-size: .72em; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 .6em; }
+        .kicker { font-family: "Schibsted Grotesk", -apple-system, system-ui, sans-serif; font-size: .72em; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 .6em; }
         h1.title { font-family: "Newsreader Kop", ui-serif, Georgia, serif; font-size: min(1.75em, 48px); line-height: 1.15; font-weight: 800; margin: 0 0 .4em; } /* bij heel grote tekst niet een heel scherm kop */
-        .meta { font-family: Inter, -apple-system, system-ui, sans-serif; font-size: .8em; color: var(--ink-3); margin: 0 0 1.6em; padding-bottom: 1em; border-bottom: 1px solid var(--rule); }
+        .meta { font-family: "Schibsted Grotesk", -apple-system, system-ui, sans-serif; font-size: .8em; color: var(--ink-3); margin: 0 0 1.6em; padding-bottom: 1em; border-bottom: 1px solid var(--rule); }
         h1, h2, h3, h4 { line-height: 1.25; -webkit-hyphens: manual; hyphens: manual; } /* eigennamen in de kop breken nooit af */
         h1 { overflow-wrap: anywhere; text-wrap: balance; } /* laatste redmiddel; de kop heeft zijn zachte streepjes al (ReaderHTML.page), regels even lang */
         main.hyphenate :is(h2, h3, h4) { -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 10 4 4; -webkit-hyphenate-limit-before: 3; -webkit-hyphenate-limit-after: 3; } /* alleen bij Heel groot of een AX-maat: lange woorden in tussenkoppen afbreken met een streepje (nooit midden in een woord zonder), in de taal van de bron */
@@ -239,7 +239,7 @@ enum ReaderHTML {
         p { margin: 0 0 1em; }
         a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
         img, video, picture { max-width: 100%; height: auto; border-radius: 12px; /* radius */ display: block; margin: 1.2em auto; }
-        figure { margin: 1.4em 0; } figcaption, .caption { font-family: Inter, -apple-system, system-ui, sans-serif; font-size: .75em; color: var(--ink-3); margin-top: .4em; }
+        figure { margin: 1.4em 0; } figcaption, .caption { font-family: "Schibsted Grotesk", -apple-system, system-ui, sans-serif; font-size: .75em; color: var(--ink-3); margin-top: .4em; }
         blockquote { margin: 1.4em 0; padding: 0 0 0 1em; border-left: 3px solid var(--accent); font-style: italic; }
         hr { border: 0; border-top: 1px solid var(--rule); margin: 2em 0; }
         ul, ol { padding-left: 1.3em; } li { margin: .3em 0; }

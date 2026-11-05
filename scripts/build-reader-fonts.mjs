@@ -25,8 +25,8 @@ export const READER_FONTS = [
   ['NewsreaderTekst-430', 'Lezer-NewsreaderTekst-430'],
   ['NewsreaderTekst-700', 'Lezer-NewsreaderTekst-700'],
   ['NewsreaderTekst-400-cursief', 'Lezer-NewsreaderTekst-400-cursief'],
-  ['Inter-400', 'Lezer-Inter-400'],
-  ['Inter-800', 'Lezer-Inter-800'],
+  ['SchibstedGrotesk-400', 'Lezer-SchibstedGrotesk-400'],
+  ['SchibstedGrotesk-800', 'Lezer-SchibstedGrotesk-800'],
 ]
 
 const codepoints = () => LATIN.split(',').flatMap(part => {

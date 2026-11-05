@@ -57,7 +57,7 @@ struct SourceFeedView: View {
                         VStack(alignment: .leading, spacing: Space.s0) {
                             Kop(source.name, .title2)
                             if let about = source.about { Text(about).font(.ui(.subheadline)).foregroundStyle(Theme.ink3) }
-                            Text(source.paid == true ? "Abonnement" : "Gratis").font(.ui(.caption, .semibold)).foregroundStyle(source.paid == true ? Theme.ink3 : Theme.accent)
+                            Text(source.paid == true ? "Abonnement" : "Gratis").font(.ui(.caption, .semibold)).foregroundStyle(source.paid == true ? Theme.hint : Theme.accent)
                         }
                     }
                     .padding(.bottom, Space.s4)

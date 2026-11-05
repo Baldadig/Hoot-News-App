@@ -14,7 +14,7 @@ struct ReaderLoginPanel: View {
         VStack(alignment: .leading, spacing: Space.s3) {
             HStack(alignment: .top, spacing: Space.s2) {
                 Text("Abonnee? Log één keer in en lees het hele stuk hier.")
-                    .font(.lees(.subheadline))
+                    .font(.ui(.subheadline))
                     .foregroundStyle(Theme.ink2)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)

@@ -15,7 +15,7 @@ OUT = ROOT / 'shared/deelkaart'
 IOS = ROOT / 'ios/Hoot/Resources/Deelkaart'
 OUT.mkdir(parents=True, exist_ok=True)
 IOS.mkdir(parents=True, exist_ok=True)
-# De schreefloze letter (Inter 600) komt uit scripts/build-fonts.py: dezelfde als die van de app.
+# De schreefloze letter (Schibsted Grotesk 600) komt uit scripts/build-fonts.py: dezelfde als die van de app.
 for family, weight, name in [('newsreader', 800, 'Newsreader-800')]:
     base = ROOT / f'node_modules/@fontsource/{family}'
     files = [base / 'files' / f'{family}-{subset}-{weight}-normal.woff' for subset in ['latin', 'latin-ext']]

@@ -2,6 +2,8 @@
 
 ## Onuitgebracht
 
+- Build 47: Schibsted Grotesk vervangt Inter voor alle bediening (tabbalk, knoppen, kickers, bronregel, instellingen, de lezer rond het artikel); Newsreader blijft om te lezen. Kickers blijven 800; kleine hints en metadata staan in Nacht op ink-2. De deelkaart houdt Inter 600, gelijk aan de server. De zinnen van het Welkom zijn schreefloos. Zoeken is breed, zoals het web: woord, bron en auteur, ook in Bewaard. De rij "Bluesky-accounts" in Instellingen opent het beheer in plaats van de postfeed. De rubriek boven het hoofdverhaal loopt bij AX5 op een smal scherm door op een tweede regel in plaats van af te kappen.
+
 - Bluesky: een account dat je toevoegt staat meteen in de Stroom (en zet Bluesky aan), net als op de website. Accounts die build 44/45 toevoegde zonder Stroom-keuze komen één keer terug in de Stroom, ook in je account. Een account zonder naam in je profiel laat de andere niet meer wegvallen.
 
 - Trek om te verversen: het h.-merkteken verschijnt in de trekruimte en de punt volgt de vinger. Terugtrekken annuleert; de laadregel verschijnt pas na loslaten. Verminder beweging houdt de punt stil.

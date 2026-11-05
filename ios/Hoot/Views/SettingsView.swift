@@ -194,7 +194,7 @@ struct SettingsView: View {
                 } else if page == "abonnementen" {
                     SubscriptionsView().navigationTitle("Abonnementen").navigationBarTitleDisplayMode(.inline)
                 } else if page == "bluesky" {
-                    BlueskyPage()
+                    BlueskyAccountsView(pushed: true) // de rij "Bluesky-accounts" opent het beheer, niet de postfeed
                 } else if page == "interesses" {
                     InterestsList().navigationTitle("Interesses").navigationBarTitleDisplayMode(.inline)
                 } else if page == "toestel" {
@@ -396,13 +396,13 @@ struct LearnedSection: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityElement(children: .combine)
             }
-            if !summary.learned.isEmpty { Text("Vaak gelezen").font(.ui(.footnote, .semibold)).foregroundStyle(Theme.ink3) }
+            if !summary.learned.isEmpty { Text("Vaak gelezen").font(.ui(.footnote, .semibold)).foregroundStyle(Theme.hint) }
             ForEach(summary.learned, id: \.self) { t in
                 LearnedRow(title: Taste.label(t), hint: nil, action: "Vergeet dit") {
                     withAnimation { store.forgetTopic(t) }
                 }
             }
-            if !summary.less.isEmpty { Text("Minder").font(.ui(.footnote, .semibold)).foregroundStyle(Theme.ink3) }
+            if !summary.less.isEmpty { Text("Minder").font(.ui(.footnote, .semibold)).foregroundStyle(Theme.hint) }
             ForEach(summary.less, id: \.self) { t in
                 LearnedRow(title: Taste.label(t), hint: nil, action: "Ongedaan maken") {
                     withAnimation { store.restoreLess(t) }
@@ -472,7 +472,7 @@ struct InterestsList: View {
                             Label {
                                 VStack(alignment: .leading, spacing: Space.s0) {
                                     Text(r.label)
-                                    if !on { Text(Self.about[r.id] ?? "").font(.ui(.caption)).foregroundStyle(Theme.ink3) }
+                                    if !on { Text(Self.about[r.id] ?? "").font(.ui(.caption)).foregroundStyle(Theme.hint) }
                                 }
                             } icon: { Image(systemName: r.icon).foregroundStyle(Theme.ink3) }
                         }

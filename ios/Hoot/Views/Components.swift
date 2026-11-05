@@ -3,7 +3,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 // Huisstijl: warm papier, inkt, krantenrood. Koppen in Newsreader 800, lopende tekst in Newsreader op
-// tekstmaat, bediening in Inter: dezelfde letters als het web, meegeleverd en meegroeiend met
+// tekstmaat, bediening in Schibsted Grotesk: dezelfde letters als het web, meegeleverd en meegroeiend met
 // Dynamische tekst (Letters.swift).
 enum Theme {
     // De kleuren van het design system (zelfde namen en waarden als src/styles.css).
@@ -14,6 +14,7 @@ enum Theme {
     // Metadata: tijd, bron-uitleg, toelichting. De ondergrens voor kleine tekst (5,2:1 licht, 6,7:1
     // donker); nooit het lichtere grijs van het systeem (3,3:1 op papier).
     static let ink3 = Color(uiColor: NachtKleur.ink3)
+    static let hint = Color(uiColor: NachtKleur.hint) // kleine tekst en hints: ink3, in Nacht ink2
     static let rule = Color("Rule") // haarlijn, decoratief
     // De dunne ring om een logo of monogram (--hairline): inkt op 14 %, dus in elk thema net zichtbaar,
     // ook over een wit logo op wit papier.
@@ -330,17 +331,18 @@ struct Kicker: View {
         let parts = text.map { $0.isEmpty ? [] : $0.components(separatedBy: " · ") } ?? []
         HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
             EditionNumber(number: number, read: read)
-            if number != nil && !parts.isEmpty { Text("·").font(.ui(.caption)).foregroundStyle(Theme.ink3).accessibilityHidden(true) }
+            if number != nil && !parts.isEmpty { Text("·").font(.ui(.caption)).foregroundStyle(Theme.hint).accessibilityHidden(true) }
             if !parts.isEmpty {
             // Bij heel grote tekst geen kapitalen: die worden dan breder en zwaarder dan de kop.
             // Meerdere labels ("Binnenland · Buiten je bronnen"): de punt ertussen in `ink3`.
             // Minder rood (keuze B): de rubriek stil in ink3, het cijfer ervoor in inkt.
             let labels = parts.map { Text(label($0)).foregroundStyle(Theme.ink3) }
             let rubric = labels.dropFirst().reduce(labels.first ?? Text("")) { acc, p in Text("\(acc)\(dot)\(p)") }
+            // fixedSize: bij AX5 op een smal scherm loopt de rubriek door op een tweede regel, nooit "Politiek · De…".
             if typeSize.isAccessibilitySize {
-                rubric.font(.ui(.caption, .semibold))
+                rubric.font(.ui(.caption, .semibold)).fixedSize(horizontal: false, vertical: true)
             } else {
-                rubric.font(.ui(.caption, .heavy)).tracking(0.6)
+                rubric.font(.ui(.caption, .heavy)).tracking(0.6).fixedSize(horizontal: false, vertical: true)
             }
         }
         }
@@ -496,7 +498,7 @@ struct SourceLine: View {
             SourceMark(item: item)
             VStack(alignment: .leading, spacing: 0) {
                 Text(item.sourceName ?? item.source).font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink)
-                Text(meta).font(.ui(.caption)).monospacedDigit().foregroundStyle(Theme.ink3) // tabelcijfers: de tijden staan in een kolom
+                Text(meta).font(.ui(.caption)).monospacedDigit().foregroundStyle(Theme.hint) // tabelcijfers: de tijden staan in een kolom
             }
             .lineLimit(oneLine ? 1 : nil)
             .fixedSize(horizontal: false, vertical: true)
