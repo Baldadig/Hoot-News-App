@@ -73,13 +73,15 @@
 .col--read.col--stroom > .vh > :where(:not(.vh__row)) {
   max-inline-size: var(--measure-stroom);
 }
-.col--stroom .compact--tl .compact__title {
+.col--stroom :is(.compact--tl, .compact--klein) .compact__title {
   font-size: var(--t-head-lg);
   line-height: 1.75rem;
   letter-spacing: var(--ls-head-5);
 }
-.col--stroom .compact--tl .compact__sum {
+.col--stroom :is(.compact--tl, .compact--klein) .compact__sum {
   max-inline-size: none;
   font-size: 1.125rem;
   line-height: 1.75rem;
 }
+/* 5. Een beeld dat te klein is voor de volle kolom staat in de Stroom klein rechts (.compact--klein,
+   Items.jsx, sharpHere in src/lib/img.js), met dezelfde kop en intro als de rijen eromheen. */

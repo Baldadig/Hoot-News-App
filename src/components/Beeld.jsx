@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { Img } from './Img.jsx'
-import { fitsHero, fitsLarge } from '../lib/img.js'
+import { fitsHero, fitsLarge, sharpHere } from '../lib/img.js'
 import { placeholderBase, placeholderPlan } from '../../shared/placeholder.mjs'
 
 // Beeldloos (build 46): een bericht zonder beeld krijgt een Hoot-placeholderbeeld dat het beeldvak
@@ -17,7 +17,7 @@ const Plan = createContext(null)
 export function isBare(item, kind) {
   if (!item || item.kind === 'post' || kind === 'boven') return false // boven: het grote beeld in een paar (Edition)
   if (!item.image) return true
-  if (kind === 'lead') return !fitsHero(item.image)
+  if (kind === 'lead') return !fitsHero(item.image) || !sharpHere(item)
   if (kind === 'tijdlijn') return !fitsLarge(item.image)
   return false
 }

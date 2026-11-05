@@ -110,3 +110,30 @@ test('NU.nl: het vierkantje van 256 px wordt als hoofdbeeld een scherpe 16:9-ver
   assert.match(lead.srcSet, /_wd1280\/0\/0\/0\/0\/zeven-doden\.jpg 1280w$/)
   assert.deepEqual(imgProps(url, 'thumb'), { src: url })
 })
+
+test('FD (imgix): het vierkant van 140 uit de feed wordt een beeld op maat; De Morgen zoals de Volkskrant', () => {
+  const url = 'https://images.fd.nl/905854-906089.jpeg?fit=crop&crop=faces&auto=format%2Ccompress&q=45&w=140&h=140&fm=jpg&cs=tinysrgb'
+  const lead = imgProps(url, 'lead')
+  assert.match(lead.srcSet, /images\.fd\.nl\/905854-906089\.jpeg\?auto=format%2Ccompress&q=45&fm=jpg&cs=tinysrgb&w=1360 1360w$/)
+  assert.ok(!/[?&](h|fit|crop)=/.test(lead.src), 'geen vierkante uitsnede meer')
+  assert.match(imgProps('https://image.demorgen.be/279974483/feature-crop/320/320/afbeelding', 'lead').srcSet, /feature-crop\/1080\/720\/afbeelding 1080w/)
+})
+
+test('scherp genoeg voor een groot beeld: bronbreedte ≥ 1,4 × het vak op een retinascherm', async () => {
+  const { sourceWidth, sharpEnough } = await import('../src/lib/img.js')
+  const meta = (w, h, crop = { l: 0, r: 0, t: 0, b: 0 }) => ({ w, h, crop })
+  // Varianten van de uitgever: de grootste variant telt, niet het kleine origineel uit de feed.
+  assert.equal(sourceWidth({ image: 'https://image.volkskrant.nl/1/feature-crop/320/320/a', imageMeta: meta(320, 320) }), 1360)
+  // Met gemeten randen toont MeasuredImg het origineel: dan telt dat.
+  assert.equal(sourceWidth({ image: 'https://images.fd.nl/a.jpeg?w=140&h=140', imageMeta: meta(140, 140, { l: 16, r: 12, t: 0, b: 0 }) }), 140)
+  // Geen varianten: de meting. Onbekend: null (dan past het, zoals altijd).
+  const ad = { image: 'https://images.ad.nl/x/fit-width/400/a.jpg', imageMeta: meta(400, 267) }
+  assert.equal(sourceWidth(ad), 400)
+  assert.equal(sourceWidth({ image: 'https://example.org/a.jpg' }), null)
+  assert.equal(sharpEnough(ad, 720, 2), false)
+  assert.equal(sharpEnough(ad, 358, 1), true)
+  // NOS levert hooguit 1024: dat blijft groot op 720, ook op een retinascherm.
+  assert.equal(sharpEnough({ image: 'https://images.cdn.nos.nl/8/D/x/4x209x2992x1683-1024x576.webp' }, 720, 2), true)
+  assert.equal(sharpEnough({ image: 'https://example.org/b.jpg', imageMeta: meta(840, 472) }, 720, 2), false)
+  assert.equal(sharpEnough({ image: 'https://example.org/b.jpg', imageMeta: meta(840, 472) }, 720, 1), true)
+})

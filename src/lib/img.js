@@ -1,4 +1,5 @@
 // Beeld op maat — pure functies (getest in tests/img.test.mjs).
+import { imageMeta } from './image-meta.js'
 // De feeds leveren vaak één (te) groot beeld. Waar de uitgever zelf kleinere varianten
 // aanbiedt vragen we die op (alleen patronen die op de echte CDN's zijn nagelopen, okt. 2026).
 // Andere bekende bronnen gaan via de beeld-CDN van Netlify: op maat en als AVIF/WebP.
@@ -48,7 +49,7 @@ export function fitsHero(url) {
 }
 
 // Geeft [[url, breedte], …] voor een beeld, of null als we geen varianten kennen.
-function candidates(url, kind) {
+export function candidates(url, kind) {
   let u
   try {
     u = new URL(url)
@@ -75,7 +76,8 @@ function candidates(url, kind) {
     const base = u.origin + u.pathname
     return widths.map((w) => [`${base}?quality=80&strip=all&w=${w}`, w])
   }
-  if (host === 'image.volkskrant.nl') {
+  if (host === 'image.volkskrant.nl' || host === 'image.demorgen.be') {
+    // Zelfde beeldserver (DPG): De Morgen levert dezelfde feature-crop-maten (nagelopen 5 november 2026).
     const m = url.match(/^(.*)\/feature-crop\/\d+\/\d+\/(.*)$/)
     if (!m) return null
     return widths.map((w) => [`${m[1]}/feature-crop/${w}/${kind === 'thumb' ? w : Math.round((w * 2) / 3)}/${m[2]}`, w])
@@ -94,6 +96,14 @@ function candidates(url, kind) {
     const m = url.match(/^(https:\/\/images\.nu\.nl\/m\/[a-z0-9]+)_sqr256\/\d+\/\d+\/\d+\/\d+\/(.+)$/)
     if (!m) return null
     return kind === 'thumb' ? [[url, 256]] : [640, 854, 1280].map((w) => [`${m[1]}_wd${w}/0/0/0/0/${m[2]}`, w])
+  }
+  if (host === 'images.fd.nl') {
+    // Het FD (imgix) zet in de feed een vierkant van 140 px of een beeld van 640 breed. Op elke breedte
+    // te vragen (nagelopen 5 november 2026): we laten de uitsnede van de feed weg (w, h, fit, crop) en
+    // vragen de breedte zelf, in de verhouding van het beeld. Overige parameters (achtergrond) blijven.
+    const keep = new URLSearchParams([...u.searchParams].filter(([k]) => !['w', 'h', 'fit', 'crop'].includes(k)))
+    const at = (w) => { const q = new URLSearchParams(keep); q.set('w', String(w)); return [`${u.origin}${u.pathname}?${q}`, w] }
+    return widths.map(at)
   }
   if (isBingThumb(u)) {
     // Beeld uit de zoekindex: Bing snijdt zelf bij op de gevraagde maat (c=7). Groter dan het
@@ -132,3 +142,45 @@ export function avatarUrl(url) {
   if (!url) return url
   return url.replace('//cdn.bsky.app/img/avatar/plain/', '//cdn.bsky.app/img/avatar_thumbnail/plain/')
 }
+
+// ---- Scherp genoeg voor een groot beeld? (poetsbeurt 5 november: "Financieel Dagblad onscherpe foto") ----
+// Hoe breed we een beeld hooguit kunnen tonen zonder op te rekken: de grootste variant die de uitgever
+// levert (lib/img.js candidates), of anders de gemeten breedte (imageMeta, door de server) of wat het
+// adres verraadt (knownWidth). Via de beeld-CDN van Netlify telt de gemeten breedte: die rekt niet op.
+// Null: onbekend (dan nemen we aan dat het past, zoals altijd).
+// Toont MeasuredImg (components/Img.jsx) het gemeten origineel uit de feed? Ja als er egale randen zijn
+// gemeten: daar horen de meetgegevens bij. Zonder randen, of zonder meting, gaat het via de varianten
+// van de uitgever of de beeld-CDN (als die er zijn), op maat.
+export function measuredOriginal(item, kind = 'lead') {
+  const m = imageMeta(item)
+  if (!m) return false
+  const plain = !m.crop.l && !m.crop.r && !m.crop.t && !m.crop.b
+  return !(plain && candidates(item.image, kind))
+}
+
+export function sourceWidth(item) {
+  const url = item?.image
+  if (!url) return null
+  const measured = Number(item.imageMeta?.w) > 0 ? Number(item.imageMeta.w) : null
+  if (measuredOriginal(item)) return measured
+  const list = candidates(url, 'lead')
+  if (list?.length) {
+    const max = Math.max(...list.map(([, w]) => w))
+    return list[0][0].startsWith('/.netlify/images') ? (measured ? Math.min(measured, max) : max) : max
+  }
+  return measured ?? knownWidth(url)
+}
+
+// Een beeld is scherp genoeg als het minstens SHARP keer zo breed is als het vak waarin het staat, op een
+// scherm met hoge pixeldichtheid (devicePixelRatio, hooguit SHARP). 1,4 en niet 1,5: de NOS levert
+// hooguit 1024 breed, en dat moet op 720 nog groot mogen (1,42); een beeld van 700 of 840 op 720 niet.
+export const SHARP = 1.4
+export function sharpEnough(item, boxWidth, dpr = 1) {
+  const w = sourceWidth(item)
+  if (w == null) return true
+  return w >= boxWidth * Math.max(1, Math.min(dpr, SHARP))
+}
+
+// De breedte van een groot beeldvak (tijdlijn, kaart, hoofdverhaal): de kolom, hooguit 720 (--measure).
+export const largeBox = () => (typeof window === 'undefined' ? 720 : Math.min(720, Math.max(280, (window.innerWidth || 720) - 32)))
+export const sharpHere = (item) => sharpEnough(item, largeBox(), typeof window === 'undefined' ? 1 : window.devicePixelRatio || 1)

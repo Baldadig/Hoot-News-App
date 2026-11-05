@@ -10,7 +10,7 @@ import { shareLink } from '../lib/share.js'
 import { topicById } from '../lib/topics.js'
 import { savedKey, withLead } from '../lib/saved.js'
 import { isReadItem } from '../../shared/stroom.mjs'
-import { avatarUrl, fitsLarge, fitsHero } from '../lib/img.js'
+import { avatarUrl, fitsLarge, fitsHero, sharpHere } from '../lib/img.js'
 import { Beeld } from './Beeld.jsx'
 import { TermHelp } from './Terms.jsx'
 import { Img, MeasuredImg } from './Img.jsx'
@@ -244,6 +244,10 @@ const Summary = ({ item, className, fit = { max: Infinity, rek: Infinity } }) =>
   ) : null
 }
 
+// Het hoofdbeeld: groot genoeg voor het hoofdverhaal (fitsHero) én scherp op dit scherm (sharpHere,
+// src/lib/img.js). Anders het placeholderbeeld, zoals bij elk beeld dat te klein is voor zijn plek.
+const heroFits = (item) => (url) => fitsHero(url) && sharpHere(item)
+
 // ---- Vorm 1: hoofdverhaal ----
 // `priority`: dit is het eerste beeld dat je ziet (alleen het zichtbare hoofdverhaal).
 export function LeadStory({ item, story, note, n = null, why = null, followed = null, priority = false, taste = null, outside = false }) {
@@ -255,7 +259,7 @@ export function LeadStory({ item, story, note, n = null, why = null, followed = 
       <a className={`lead__link${portraitImage(item) ? ' lead__link--portrait' : ''}`} href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         {/* Overal beeld eerst, zoals de app: dan rubriek, kop en kern, zodat de bronregel bij zijn
             tekst blijft. Het waarom van de plek (jouw Editie) staat stil onder de rubriek, zie Why.js. */}
-        <Beeld item={item} kind="lead" fits={fitsHero} className={`media media--lead${portraitImage(item) ? ' media--portrait' : ''}${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+        <Beeld item={item} kind="lead" fits={heroFits(item)} className={`media media--lead${portraitImage(item) ? ' media--portrait' : ''}${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
           {(onFail) => <MeasuredImg item={item} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} onFail={onFail} />}
         </Beeld>
         <Kicker item={item} extra={note} followed={followed} n={n} />
@@ -286,7 +290,10 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
   const cls = `entry compact${isReadItem(read, item) ? ' is-read' : ''}`
   // Telefoon, Stroom in de tijdlijn: kaart A+ zonder nummer en waarom (zelfde kaart als in de Editie).
   if (phone && layout === 'tijdlijn' && !plain) return <KaartItem item={item} story={story} note={note} showSave={showSave} taste={taste} outside={outside} lines={lines} />
-  if (layout === 'tijdlijn' && !plain) {
+  // Een beeld dat te klein is voor de volle kolom (onscherp, zie sharpHere) staat klein rechts: de
+  // krant-vorm hieronder, in plaats van opgerekt over de hele breedte.
+  const small = !!item.image && (!fitsLarge(item.image) || !sharpHere(item))
+  if (layout === 'tijdlijn' && !plain && !small) {
     return (
       <article className={`${cls} compact--tl`} data-id={item.id}>
         {/* Zelfde volgorde als op de voorpagina: rubriek (met het waarom), kop, samenvatting, beeld, dan de bron. */}
@@ -304,7 +311,7 @@ export function CompactItem({ item, story, note, n = null, why = null, showSave 
     )
   }
   return (
-    <article className={cls} data-id={item.id}>
+    <article className={`${cls}${layout === 'tijdlijn' && !plain ? ' compact--klein' : ''}`} data-id={item.id}>
       <a className="compact__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
         <div className="compact__text">
           <Kicker item={item} extra={note} n={n} />
@@ -376,7 +383,7 @@ export function KaartItem({ item, story, note, n = null, why = null, followed = 
   const lineCount = lines ?? (n ? INTRO_LINES : prefs?.preview ?? INTRO_LINES)
   const fit = lead ? { max: 240, rek: 240 } : introMax(lineCount, 'kaartA')
   const beeld = lead ? (
-    <Beeld item={item} kind="lead" fits={fitsHero} className={`media kaart__beeld${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+    <Beeld item={item} kind="lead" fits={heroFits(item)} className={`media kaart__beeld${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
       {(onFail) => <MeasuredImg item={item} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} onFail={onFail} />}
     </Beeld>
   ) : (

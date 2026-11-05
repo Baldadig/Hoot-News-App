@@ -55,7 +55,8 @@ test('B11: de Stroom-rijen (tijdlijn en krant) en de Editie gebruiken dezelfde m
   assert.match(items, /media media--tl\$\{imageMeta\(item\) \? ' media--measured' : ''\}`\} style=\{cropStyle\(item\)\}>\s*\{\(onFail\) => <MeasuredImg item=\{item\} kind="lead"/)
   assert.match(items, /thumb\$\{imageMeta\(item\) \? ' media--measured' : ''\}`\} style=\{cropStyle\(item\)\}>[\s\S]*?<MeasuredImg item=\{item\} width="96"/)
   assert.match(items, /media--lead[\s\S]*?<MeasuredImg item=\{item\} kind="lead"/)
-  assert.match(img, /if \(!imageMeta\(item\)\) return <Img/)
+  // Zonder meting, of zonder randen en met varianten van de uitgever: de Img op maat (poetsbeurt 5 november).
+  assert.match(img, /if \(!measuredOriginal\(item, kind\)\) return <Img/)
 })
 test('B11: NOS-beeld met witte zijbalken in een 2:1-vak: balken vallen eruit, beeld vult het vak', () => {
   // Echte meting uit de live feed: 1024x576 met 223 px wit links en rechts.
