@@ -36,44 +36,53 @@ fs.copyFileSync(SF + '/newsreader-OFL.txt', path.join(OUT, 'fonts', 'OFL-Newsrea
 const dOf = f => fs.readFileSync(APP + '/public/brand/' + f, 'utf8').match(/<path[^>]* d="([^"]+)"/)[1];
 const WM_D = dOf('hoot-logo-ink.svg'), MARK_D = dOf('hoot-mark-ink.svg');
 
+// App Store: op true zodra https://apps.apple.com/nl/app/id6828037269 bereikbaar is (na Apples akkoord op de handelaarsstatus).
+const APP_STORE = false;
+const { appStore } = await import('./appstore.mjs');
+const AS = appStore(APP_STORE);
+
 // het kleine inline script: oude #/-links doorsturen, en de js-klasse
 const { INLINE } = await import('./inline.mjs');
 const HASH = 'sha256-' + crypto.createHash('sha256').update(INLINE).digest('base64');
 
-// de Stroom-lijsten
+// de Stroom-lijsten. De rubrieken in de vaste volgorde van de app (Alles, Binnenland, Wereld, Cultuur).
+// Een waarom-regel alleen waar hij iets zegt (Buiten je bubbel, Groot nieuws); nooit "Omdat je X volgt".
 const BR = { LD: ['c1', 'Landelijk Dagblad'], SK: ['c2', 'Stadskrant'], WW: ['c4', 'Weekblad Wereld'], CK: ['c3', 'Cultuurkrant'], ON: ['c5', 'Omroep Nieuws'] };
-const item = ([rub, waarom, kop, b, tijd]) => `<div class="sc-item"><div class="sc-rub">${rub}</div><div class="sc-waarom">${waarom}</div><div class="sc-k">${kop}</div><div class="sc-bron"><i class="${BR[b][0]}">${b}</i><span>${BR[b][1]}<small>${tijd}</small></span><svg class="sc-bm" viewBox="0 0 14 18"><use href="#i-bm"/></svg></div></div>`;
+const item = ([rub, waarom, kop, b, tijd]) => `<div class="sc-item"><div class="sc-rub">${rub}</div>${waarom ? `<div class="sc-waarom">${waarom}</div>` : ''}<div class="sc-k">${kop}</div><div class="sc-bron"><i class="${BR[b][0]}">${b}</i><span>${BR[b][1]}<small>${tijd}</small></span><svg class="sc-bm" viewBox="0 0 14 18"><use href="#i-bm"/></svg></div></div>`;
+// Een bericht van Bluesky, zoals in de Stroom van 1.1.0: wie, handle en tijd boven, dan de tekst.
+const BSKY = (naam, ini, handle, tijd, tekst) => `<div class="sc-item sc-bsky"><div class="sc-bron"><i class="c5">${ini}</i><span>${naam}<small>${handle} · ${tijd}</small></span><svg class="sc-bm" viewBox="0 0 14 18"><use href="#i-bm"/></svg></div><p class="sc-post">${tekst}</p></div>`;
 const L = {
   alles: [
-    ['Binnenland', 'Omdat je Binnenland volgt', 'Netbeheerders mogen eerder beginnen met bouwen, ook als de inspraak nog loopt', 'ON', '4 min geleden'],
-    ['Cultuur', 'Uit je eigen bronnen', 'Oude bioscoop in de binnenstad wordt weer filmhuis', 'SK', '11 min geleden'],
+    ['Binnenland', '', 'Netbeheerders mogen eerder beginnen met bouwen, ook als de inspraak nog loopt', 'ON', '4 min geleden'],
+    BSKY('Natuurdagboek', 'ND', '@natuurdagboek.example', '7 min', 'Vanochtend de eerste ijsvogel van het seizoen langs de Vecht. Rustig begin van de dag.'),
+    ['Cultuur', '', 'Oude bioscoop in de binnenstad wordt weer filmhuis', 'SK', '11 min geleden'],
     'HIER',
-    ['Buitenland', 'Buiten je bubbel', 'Zuid-Europese steden zoeken verkoeling met nieuwe stadsbossen', 'WW', '1 uur geleden'],
-    ['Binnenland', 'Uit je eigen bronnen', 'Treinreizigers vinden sneller een zitplaats dankzij de nieuwe dienstregeling', 'LD', '2 uur geleden'],
+    ['Wereld', 'Buiten je bubbel', 'Zuid-Europese steden zoeken verkoeling met nieuwe stadsbossen', 'WW', '1 uur geleden'],
+    ['Binnenland', '', 'Treinreizigers vinden sneller een zitplaats dankzij de nieuwe dienstregeling', 'LD', '2 uur geleden'],
   ],
   binnenland: [
-    ['Binnenland', 'Omdat je Binnenland volgt', 'Netbeheerders mogen eerder beginnen met bouwen, ook als de inspraak nog loopt', 'ON', '4 min geleden'],
-    ['Binnenland', 'Uit je eigen bronnen', 'Treinreizigers vinden sneller een zitplaats dankzij de nieuwe dienstregeling', 'LD', '2 uur geleden'],
-    ['Binnenland', 'Vervolg op wat je las', 'Fietsbrug verbindt twee wijken die jarenlang gescheiden waren', 'SK', '3 uur geleden'],
-    ['Binnenland', 'Uit je eigen bronnen', 'Bibliotheken openen in de avond extra uren voor wie rust zoekt', 'LD', '5 uur geleden'],
+    ['Binnenland', '', 'Netbeheerders mogen eerder beginnen met bouwen, ook als de inspraak nog loopt', 'ON', '4 min geleden'],
+    ['Binnenland', '', 'Treinreizigers vinden sneller een zitplaats dankzij de nieuwe dienstregeling', 'LD', '2 uur geleden'],
+    ['Binnenland', '', 'Fietsbrug verbindt twee wijken die jarenlang gescheiden waren', 'SK', '3 uur geleden'],
+    ['Binnenland', '', 'Bibliotheken openen in de avond extra uren voor wie rust zoekt', 'LD', '5 uur geleden'],
   ],
-  buitenland: [
-    ['Buitenland', 'Buiten je bubbel', 'Zuid-Europese steden zoeken verkoeling met nieuwe stadsbossen', 'WW', '1 uur geleden'],
-    ['Buitenland', 'Groot nieuws · 9 bronnen', 'Wereldleiders zoeken op de top naar een akkoord over scheepvaartroutes', 'ON', '2 uur geleden'],
-    ['Buitenland', 'Uit je eigen bronnen', 'Noorse haven laadt schepen voortaan op stroom van land', 'WW', '4 uur geleden'],
-    ['Buitenland', 'Buiten je bubbel', 'Een dorp in de Alpen deelt zijn elektrische bus met de buren', 'LD', '6 uur geleden'],
+  wereld: [
+    ['Wereld', 'Buiten je bubbel', 'Zuid-Europese steden zoeken verkoeling met nieuwe stadsbossen', 'WW', '1 uur geleden'],
+    ['Wereld', 'Groot nieuws · 9 bronnen', 'Wereldleiders zoeken op de top naar een akkoord over scheepvaartroutes', 'ON', '2 uur geleden'],
+    ['Wereld', '', 'Noorse haven laadt schepen voortaan op stroom van land', 'WW', '4 uur geleden'],
+    ['Wereld', '', 'Een dorp in de Alpen deelt zijn elektrische bus met de buren', 'LD', '6 uur geleden'],
   ],
   cultuur: [
-    ['Cultuur', 'Uit je eigen bronnen', 'Oude bioscoop in de binnenstad wordt weer filmhuis', 'SK', '11 min geleden'],
+    ['Cultuur', '', 'Oude bioscoop in de binnenstad wordt weer filmhuis', 'SK', '11 min geleden'],
     ['Cultuur', 'Buiten je bubbel', 'Debuutroman over een dorp aan de rivier verovert de boekenlijsten', 'CK', '1 uur geleden'],
-    ['Cultuur', 'Omdat je Cultuur volgt', 'Orkest speelt een gratis concert in een leegstaande hal', 'CK', '3 uur geleden'],
-    ['Cultuur', 'Uit je eigen bronnen', 'Museum zet de zaalteksten voortaan ook in eenvoudige taal', 'SK', '5 uur geleden'],
+    ['Cultuur', '', 'Orkest speelt een gratis concert in een leegstaande hal', 'CK', '3 uur geleden'],
+    ['Cultuur', '', 'Museum zet de zaalteksten voortaan ook in eenvoudige taal', 'SK', '5 uur geleden'],
   ],
 };
 const PANELEN = Object.entries(L).map(([k, arr]) =>
-  `<div class="sc-lijst" data-pan="${k}"${k === 'alles' ? '' : ' hidden'}>${arr.map(i => i === 'HIER' ? '<div class="sc-hier">Hier was je gebleven</div>' : item(i)).join('')}</div>`).join('');
+  `<div class="sc-lijst" data-pan="${k}"${k === 'alles' ? '' : ' hidden'}>${arr.map(i => i === 'HIER' ? '<div class="sc-hier">Hier was je gebleven</div>' : typeof i === 'string' ? i : item(i)).join('')}</div>`).join('');
 
-const fill = (t) => t.replace(/\{\{(\w+)\}\}/g, (_, k) => ({ CSSFILE, JSFILE, INLINE, WM_D, MARK_D, PANELEN })[k]).replace(/<!--[\s\S]*?-->\n?/g, '');
+const fill = (t) => t.replace(/\{\{(\w+)\}\}/g, (_, k) => ({ CSSFILE, JSFILE, INLINE, WM_D, MARK_D, PANELEN, ...AS })[k]).replace(/<!--[\s\S]*?-->\n?/g, '');
 fs.writeFileSync(path.join(OUT, 'index.html'), fill(rd('index.src.html')));
 fs.writeFileSync(path.join(OUT, '404.html'), fill(rd('404.src.html')));
 

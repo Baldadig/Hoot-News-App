@@ -8,7 +8,7 @@ export default function Privacy({ onBack, backLabel }) {
       <div className="col col--read prose">
         <ViewHeader title="Privacy" showSearch={false} onBack={onBack} backLabel={backLabel} />
 
-        <p>Hoot heeft geen advertenties, geen trackers en geen analytics. Er worden geen cookies gezet.</p>
+        <p>Hoot heeft geen advertenties, geen trackers en geen analytics. Er worden geen cookies gezet. Hoot volgt je niet.</p>
 
         <h2 className="label label--section sect">Op je toestel</h2>
         <p>Zonder account blijft alles op je toestel, in de opslag van je browser:</p>
@@ -22,14 +22,14 @@ export default function Privacy({ onBack, backLabel }) {
 
         <h2 className="label label--section sect">Met een account</h2>
         <p>
-          Inloggen gaat met Google, en in de app ook met Apple. Hoot krijgt daarbij je naam en e-mailadres (bij Google ook je profielfoto; bij Apple kun je je e-mailadres
+          Een account is voor iedereen en altijd een keuze: Hoot werkt ook zonder. Inloggen gaat met Apple of Google. Hoot krijgt daarbij je naam en e-mailadres (bij Google ook je profielfoto; bij Apple kun je je e-mailadres
           verbergen). Je account staat bij Supabase, in de EU. Daar bewaren we, alleen voor jou leesbaar: je instellingen,
           wat je bewaarde, wat je las en welke verhalen je zag. Zo gaan ze mee naar je andere toestellen.
         </p>
         <p>
           Log je uit, dan gaan die gegevens van dit toestel af; ze blijven in je account. Een ander account op hetzelfde toestel krijgt ze nooit te zien. Je account verwijder je zelf, in de app of op de website
           (Instellingen › Account › Account verwijderen), of je mailt naar <a href="mailto:info@gethoot.app">info@gethoot.app</a>. Dan verdwijnen je account, je instellingen en je
-          bewaarde stukken van de server.
+          bewaarde stukken van de server. Heb je ingelogd met Apple, dan trekt Hoot ook de koppeling bij Apple in.
         </p>
 
         <h2 className="label label--section sect">Wie we om iets vragen</h2>
@@ -48,7 +48,7 @@ export default function Privacy({ onBack, backLabel }) {
             <strong>Bluesky</strong> (als je dat aanzet): de openbare Bluesky-API, voor accounts die je zelf toevoegt.
           </li>
           <li>
-            <strong>De Editie in één minuut:</strong> de koppen en intro's van de Editie gaan naar Anthropic (Claude) om de samenvatting te schrijven. Daar zit niets van jou in.
+            <strong>De Editie in één minuut</strong> (alleen met een account): de koppen en intro's van de Editie gaan naar Anthropic (Claude) om de samenvatting te schrijven. Daar zit niets van jou in.
           </li>
         </ul>
         <p>Hoot draait bij Netlify. Zoals elke website ziet die host bij elk bezoek een IP-adres; Hoot zelf bewaart dat niet.</p>
@@ -93,7 +93,7 @@ export default function Privacy({ onBack, backLabel }) {
         <p>
           Vragen over je gegevens? Mail naar <a href="mailto:info@gethoot.app">info@gethoot.app</a>.
         </p>
-        <p>Bijgewerkt op 28 oktober 2026.</p>
+        <p>Bijgewerkt op 4 november 2026.</p>
       </div>
     </section>
   )

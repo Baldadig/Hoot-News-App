@@ -88,7 +88,8 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .actie{display:grid;gap:var(--s3);justify-items:start;margin-top:var(--s5)}
 .actie.mid{justify-items:center}
 .wacht{display:inline-flex;align-items:center;gap:var(--s3);min-height:56px;padding:var(--s2) var(--s5) var(--s2) var(--s3);border:1.5px solid color-mix(in srgb,var(--op-rood) 62%,transparent);border-radius:16px;color:inherit;text-decoration:none;transition:box-shadow .2s ease}
-@media (hover:hover){.wacht:hover{box-shadow:0 0 0 4px color-mix(in srgb,var(--op-rood) 32%,transparent)}}
+/* alleen als hij een link is (APP_STORE aan): de niet-klikbare pil krijgt geen hover-ring */
+@media (hover:hover){a.wacht:hover{box-shadow:0 0 0 4px color-mix(in srgb,var(--op-rood) 32%,transparent)}}
 .wacht-gratis u{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1.5px}
 .wacht-i{width:30px;height:27px;flex:none;fill:var(--op-rood);--wm-dot:var(--op-rood)}
 .wacht-i path{fill:var(--op-rood)}
@@ -108,10 +109,9 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .wm{display:block;width:88px;height:auto;fill:currentColor}
 .wm .wm-d,.sc-logo .wm-d,.sc-blok .wm-d{fill:var(--wm-dot,#1A1814)}
 @media (min-width:720px){.wm{width:104px}}
-.top nav,.voet nav{display:flex;gap:var(--s4);font:600 .9375rem/1 var(--tekst)}
-@media (min-width:720px){.top nav{gap:var(--s6);font-size:1rem}}
-.top nav a,.voet nav a{text-decoration:none;padding:var(--s3) 0}
-.top nav a:hover,.voet nav a:hover{text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:2px}
+.voet nav{display:flex;gap:var(--s4);font:600 .9375rem/1 var(--tekst)}
+.voet nav a{text-decoration:none;padding:var(--s3) 0}
+.voet nav a:hover{text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:2px}
 
 /* ---------- de scène: het toestel komt uit de onderrand op; de zon staat ernaast op een eigen korte horizon en zit voor een derde achter het toestel ----------
    --w breedte toestel, --vis zichtbare hoogte, --tp ruimte boven het toestel, --avail de breedte van de kolom.
@@ -192,8 +192,25 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .sc-lijst .sc-item:first-child{padding-top:.7em}
 .sc-hier{display:flex;align-items:center;gap:.6em;margin:.4em 0 .3em;font:700 .74em/1 var(--tekst);letter-spacing:.09em;text-transform:uppercase;color:var(--s-red)}
 .sc-hier::before,.sc-hier::after{content:"";flex:1;height:1px;background:var(--s-red);opacity:.5}
-.sc-chip{display:inline-flex;align-items:center;gap:.4em;margin-top:1em;padding:.4em .75em;border-radius:2em;background:color-mix(in srgb,var(--s-red) 10%,transparent);color:var(--s-red);font:700 .8em/1 var(--tekst)}
-.sc-chip svg{width:1.2em;height:1.2em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+/* zoals 1.1.0: de plek in de Editie als nummer in inkt (Newsreader, gelijke cijfers) vóór de rubriek; 04–10 als korte rijen; de bubbel apart erna, zonder nummer */
+.sc-nr{font:800 1.28em/1 var(--kop);letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--s-ink);text-transform:none}
+.sc-rub .sc-nr{margin-right:.35em}
+.sc-rub .sc-nr::after{content:"\00a0·";font:700 .78em/1 var(--tekst);color:var(--s-ink3)}
+.sc-rest{margin:1.1em 0 0;padding:0;list-style:none;border-top:1px solid var(--s-line)}
+.sc-rest li{display:flex;align-items:baseline;gap:.6em;padding:.6em 0;border-bottom:1px solid var(--s-line);font:800 .98em/1.2 var(--kop);letter-spacing:-.006em;white-space:nowrap;overflow:hidden}
+.sc-rest .sc-nr{font-size:1em}
+.sc-bubbel{margin-top:1.2em;padding:.2em .9em .9em;border-radius:.7em;background:var(--s-card);box-shadow:0 0 0 1px var(--s-line)}
+/* een bericht van Bluesky in de Stroom: wie boven, dan de tekst */
+.sc-bsky .sc-bron{margin-top:0}
+.sc-post{margin:.5em 0 0;font-size:.96em;line-height:1.35;color:var(--s-ink)}
+/* Selectie zoals 1.1.0 (index B): de week, wat je te lezen krijgt, dan de inhoud als lijst */
+.sc-week{margin-top:.9em;font:700 .74em/1 var(--tekst);letter-spacing:.09em;text-transform:uppercase;color:var(--s-ink3)}
+.sc-lede{margin-top:.35em;font:800 1.3em/1.12 var(--kop);letter-spacing:-.012em}
+.sc-inhoud{margin-top:.9em;border-top:1px solid var(--s-ink)}
+.sc-irij{display:flex;align-items:center;justify-content:space-between;gap:.6em;padding:.55em 0;border-bottom:1px solid var(--s-line)}
+.sc-irij b{display:block;font:800 1.02em/1.15 var(--kop)}
+.sc-irij small{display:block;font-size:.78em;color:var(--s-ink3);margin-top:.1em}
+.sc-irij svg{width:1.15em;height:1.15em;flex:none;fill:none;stroke:var(--s-red);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .sc-onderwerp{display:flex;align-items:center;gap:.6em;margin-top:1.1em;padding-top:.8em;border-top:1px solid var(--s-ink)}
 .sc-onderwerp i{width:1.9em;height:1.9em;border-radius:50%;flex:none;background:color-mix(in srgb,var(--s-red) 12%,transparent);display:grid;place-items:center}
 .sc-onderwerp i svg{width:1.05em;height:1.05em;fill:none;stroke:var(--s-red);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -239,6 +256,7 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 
 /* ---------- 04 De Redacteur: dezelfde Editie op een staande iPad (3:4, dunne rand, ronde hoeken, geen notch), de waarom-regels ernaast; op mobiel een telefoon ---------- */
 .rd-kop{padding-bottom:0}
+.rd-kop .lead{max-width:min(100%,38ch)}
 .redacteur{padding-bottom:var(--s6)}
 .podium{--w:min(58cqw,250px);position:relative;height:calc(var(--w) * 4 / 3);margin:var(--s6) var(--gutc) 0}
 .ipad{position:absolute;left:0;top:0;width:var(--w);height:calc(var(--w) * 4 / 3);border:max(2px,calc(var(--w) * .013)) solid var(--ring);border-radius:calc(var(--w) * .06)}
@@ -323,6 +341,15 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
   48.75%{transform:scale(1.12,.88);animation-timing-function:ease-out}
   58.75%,100%{transform:scale(1,1)}
 }
+/* het persvel onder de knop: een papieren halve zon op de horizon, dan twee lijnen die korter worden (2/3, 1/3).
+   Lijnen 2 en 1 px, maten op de schaal van 4; bewust breder dan de kop. Staat stil, ook zonder Verminder beweging. */
+.vel{--r:clamp(40px,6vw,56px);position:relative;width:100%;max-width:1080px;margin-top:var(--s7);padding-top:var(--r)}
+.vel i{display:block;height:1px;background:var(--hor)}
+.vel .vel-zon{position:absolute;left:50%;top:0;width:calc(var(--r) * 2);height:var(--r);translate:-50% 0;border-radius:var(--r) var(--r) 0 0;background:var(--zon)}
+.vel .vel-hor{height:2px}
+.vel .vel-r1{width:66.667%;margin-top:var(--s5)}
+.vel .vel-r2{width:33.333%;margin-top:var(--s2)}
+@media (min-width:900px){.vel{margin-top:var(--s8)}}
 .voet{border-top:1px solid color-mix(in srgb,var(--op-rood) 32%,transparent)}
 .voet-in{flex-wrap:wrap;gap:var(--s5) var(--s7);padding-top:var(--s6);padding-bottom:var(--s6);font-size:.9375rem;font-weight:600}
 .voet-in .wm{width:72px}
@@ -357,7 +384,6 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 @media (min-width:1280px){.scene,.sc-editie{--w:340px}}
 @media (min-width:1440px){.scene,.sc-editie{--w:360px}}
 @media (min-width:1280px){h1{font-size:5.75rem}h2{font-size:5.25rem}}
-@media (max-width:389px){.top nav{gap:var(--s3);font-size:.875rem}}
 
 /* held op desktop: toestel en zon prominenter, iets van de rand af (Alex 31-10) */
 @media (min-width:1100px){
@@ -372,7 +398,6 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 /* held op mobiel (Alex 31-10): één knop, App Store als kleine regel, geen menu, kleinere kop, telefoon in het eerste scherm */
 .wacht-gratis{display:none}
 @media (max-width:719px){
-  .top nav{display:none}
   .held h1{font-size:clamp(2.75rem,12vw,3.5rem)}
   .held .lead{margin-top:var(--s3)}
   .held .actie{margin-top:var(--s4);gap:var(--s3)}
@@ -396,7 +421,7 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 
 .podium .sc-vgl{flex:none;width:10.6em;text-align:right}
 
-/* Goedgekeurde landingsreview: drie voordelen als leesbare tekst onder de hero. */
+/* Vier voordelen onder de held: vergelijken, en de drie delen gelijkwaardig (Editie, Stroom, Selectie). Twee bij twee vanaf 720. */
 .voordelen .kol{padding-bottom:var(--s7)}
 .voordelen h2{font-size:clamp(1.875rem,3.3vw,2.5rem);line-height:1.12;max-width:32ch}
 .voordeel-lijst{display:grid;gap:var(--s5);margin-top:var(--s5)}
@@ -404,11 +429,15 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .voordeel-lijst h3{font:800 clamp(1.5rem,2.2vw,1.75rem)/1.12 var(--kop);letter-spacing:-.015em;text-wrap:balance}
 .voordeel-lijst h3 span{display:block}
 .voordeel-lijst p{max-width:34ch;font-family:var(--lees);font-weight:var(--lees-wght);font-variation-settings:var(--lees-vs);color:var(--inkt2)}
+/* Nacht in één regel, stil onder de voordelen */
+@media(min-width:720px){
+  .voordeel-lijst{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s6) var(--s6)}
+  .voordeel-lijst h3{min-height:2.24em;max-width:19ch}
+}
 @media(min-width:960px){
   .voordelen .kol{padding-bottom:var(--s8)}
-  .voordeel-lijst{grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s6);margin-top:calc(var(--s5) + var(--s4))}
-  .voordeel-lijst li{padding-top:var(--s5);row-gap:var(--s5)}
-  .voordeel-lijst h3{min-height:2.24em;max-width:19ch}
+  .voordeel-lijst{gap:var(--s7) var(--s7);margin-top:calc(var(--s5) + var(--s4))}
+  .voordeel-lijst li{padding-top:var(--s5);row-gap:var(--s4)}
 }
 .actie .knop{order:-1}
 @media(max-width:719px){
@@ -485,3 +514,6 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
   .voet nav{flex-wrap:wrap;justify-content:center;gap:var(--s2) var(--s5);margin-top:0}
   .voet-in p{flex-basis:auto;font-weight:500;font-size:.875rem;color:var(--op-rood);margin-top:0}
 }
+
+/* geen weeswoord onder aan een voordeel (keuring 4-11) */
+.voordeel-lijst p{text-wrap:pretty}

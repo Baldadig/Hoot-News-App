@@ -232,7 +232,7 @@
     /* ---- 02 Stroom: de voorbeeldrubrieken wisselen rustig en herhalen vanaf Alles. ---- */
     var scS = $('.sc-stroom'), rij = scS && $('.sc-tabrij', scS), ind = rij && $('.sc-ind', rij);
     if (scS) {
-      var RUB = ['alles', 'binnenland', 'buitenland', 'cultuur'], ri = 0, STAP = 6500;
+      var RUB = ['alles', 'binnenland', 'wereld', 'cultuur'], ri = 0, STAP = 6500;
       var toon = function (k, anim) {
         $$('[data-m]', rij).forEach(function (m) {
           var aan = m.getAttribute('data-m') === k; m.className = aan ? 'on' : '';
@@ -395,7 +395,7 @@
             var ns = lijst.map(function (x) { return Number(x.sourceCount) || 0; }), rd = redenen(ns);
             if (!rd) throw 0; /* geen drie verschillende redenen te geven: dan blijft het voorbeeld staan */
             $$('.toestel', pod).forEach(function (fig) { /* iPad (vanaf 720) en telefoon (mobiel) krijgen dezelfde verhalen */
-            var items = $$('.rd-item', fig);
+            var items = $$('.rd-item', fig).filter(function (it) { return $('mark', it); }); /* alleen de drie plekken met een waarom-markering */
             lijst.forEach(function (x, i) {
               var it = items[i]; if (!it) return;
               var desk = String(x.deskLabel || x.desk || 'Nieuws'); desk = desk.charAt(0).toUpperCase() + desk.slice(1);
