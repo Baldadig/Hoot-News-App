@@ -186,8 +186,11 @@
   font-size: 1.25rem;
   line-height: 1.875rem;
 }
+/* Het hoofdverhaal loopt tot de schermrand: de rij krijgt rechts ook de goot, en schuift daarna
+   --tap-inset de goot in, zodat de "…" op de kolomlijn staat zoals bij de andere kaarten en het
+   raakvlak binnen het scherm blijft (eindkeuring 48 web, P2-1: 11 px buiten beeld). */
 .kaart--lead .kmeta {
-  margin-inline: var(--gutter) var(--tap-inset);
+  margin-inline: var(--gutter) calc(var(--gutter) + var(--tap-inset));
 }
 /* Gestapeld: "N bronnen" vooraan, de knoppen rechts. */
 .kmeta[data-stack] > .kmeta__bronnen {
