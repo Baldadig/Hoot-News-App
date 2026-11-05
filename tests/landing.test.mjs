@@ -101,7 +101,7 @@ test('landing: de kleine tekstronde uit de review', () => {
   const t = tekst(vul(false))
   for (const zin of [
     'Elke maandag de mooiste stukken van de week, over je vak en wat je verder boeit.',
-    'De Redacteur kiest je verhalen en zegt erbij waarom. Klopt het niet? Zeg het met ‘Klopt dit niet?’.',
+    'De Redacteur kiest je verhalen en zet er in één regel bij waarom. Zit hij ernaast? Dat zeg je met één tik.',
     'Lees verder in de Stroom',
     'Lees mee in je browser.',
   ]) assert.ok(t.includes(zin), zin)
