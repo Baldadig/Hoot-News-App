@@ -20,7 +20,7 @@ test('kop 22/28 Newsreader 800, intro 18/28 in rem (schaalt mee met Tekstgrootte
   assert.match(kop, /font-family: var\(--serif\)/)
   assert.match(kop, /font-weight: var\(--fw-head\)/) // 800
   const sum = block('.kaart__sum')
-  assert.match(sum, /font-size: var\(--t4\)/) // 18
+  assert.match(sum, /font-size: 1\.125rem/) // 18
   assert.match(sum, /line-height: 1\.75rem/) // 28
   assert.match(sum, /font-family: var\(--lees\)/)
   assert.ok(!/\bpx\b/.test(kop + sum), 'geen vaste pixels: Tekstgrootte schaalt mee')
@@ -59,7 +59,7 @@ test('hoofdverhaal: beeld tot de rand 3:2, kop 30/36, intro 20/30, nummer in het
   assert.match(block('.kaart--lead .media'), /aspect-ratio: 3 \/ 2/)
   assert.match(block('.kaart--lead .media'), /border-radius: 0/)
   const kop = block('.kaart__title--lead')
-  assert.match(kop, /font-size: var\(--t6\)/) // 30 op een telefoon
+  assert.match(kop, /font-size: 1\.875rem/) // 30
   assert.match(kop, /line-height: 2\.25rem/) // 36
   const sum = block('.kaart--lead .kaart__sum')
   assert.match(sum, /font-size: 1\.25rem/)

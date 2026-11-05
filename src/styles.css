@@ -2704,6 +2704,9 @@ select.input {
 }
 
 /* Lopende tekst op een eigen pagina (Privacy) */
+.prose a {
+  overflow-wrap: anywhere; /* een lang e-mailadres breekt netjes, nooit afgekapt */
+}
 .prose p,
 .prose ul {
   max-inline-size: var(--measure-prose);

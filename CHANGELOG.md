@@ -4,6 +4,7 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 
 ## Onuitgebracht
 
+- Web, kaart A+ op de telefoon: hoofdverhaalkop 30/36 (was 34/36), kaartintro 18/28 (was 20/28), tijd in de bronregel 13; Bluesky-uitleg zegt "anderhalve dag" in plaats van "36 uur"; een lang e-mailadres breekt netjes af.
 - Web, grote tekst op touch: de schermtitel breekt niet meer midden in een woord zonder streepje ("Middageditie" blijft op één regel, een te breed woord krijgt zijn streepje), de zon valt onder de naam en de datumregel breekt tussen woorden in plaats van afgekapt te worden.
 - Web: uitleg- en hulpzinnen (lege staten, Welkom, Selectie, Over en Privacy) staan schreefloos in Schibsted Grotesk; Newsreader blijft voor koppen, intro's en artikeltekst. De grote kaart van de Selectie houdt zijn eigen beeldverhouding (2:1).
 

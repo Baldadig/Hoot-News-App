@@ -58,7 +58,7 @@
   font-family: var(--lees);
   font-weight: var(--fw-lees);
   font-optical-sizing: auto;
-  font-size: var(--t4);
+  font-size: 1.125rem;
   line-height: 1.75rem;
 }
 :is(.list--lines-1, .list--lines-2, .list--lines-3) .kaart__sum {
@@ -111,6 +111,9 @@
 .kmeta .srcmeta__name {
   font-size: var(--t2); /* 15/20 */
   line-height: var(--lh-2);
+}
+.kmeta .srcmeta__time {
+  font-size: var(--t1); /* 13 */
 }
 .kmeta__abo {
   color: var(--ink-2);
@@ -176,7 +179,7 @@
   color: var(--ink-3);
 }
 .kaart__title--lead {
-  font-size: var(--t6);
+  font-size: 1.875rem; /* 30/36, zoals kaart A+ */
   line-height: 2.25rem;
   letter-spacing: var(--ls-head-6);
 }
