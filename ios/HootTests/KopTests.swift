@@ -142,7 +142,8 @@ final class KopTests: XCTestCase {
         store.digestFields = []
         let suite = "hoot-kop-rust-" + UUID().uuidString, defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
-        let content = DigestView().modifier(HootLetterMaat()).environment(store).environment(account).environment(EditionAlerts.shared)
+        // De lezer erbij: de lege Selectie toont nu een voorproefje met echte kaarten (1.1.1, ronde 3).
+        let content = DigestView().modifier(HootLetterMaat()).environment(store).environment(account).environment(EditionAlerts.shared).environment(Reader())
             .tint(Theme.ink).toggleStyle(InkSwitch()).modifier(HootWeergave()).defaultAppStorage(defaults)
         let host = UIHostingController(rootView: content)
         host.traitOverrides.preferredContentSizeCategory = .accessibilityExtraExtraExtraLarge
@@ -150,9 +151,11 @@ final class KopTests: XCTestCase {
         let window = UIWindow(frame: host.view.frame); window.rootViewController = host; window.isHidden = false
         defer { window.isHidden = true }
         host.view.layoutIfNeeded()
-        try await Task.sleep(for: .milliseconds(800))
+        // Het voorproefje (ronde 3) laadt kaarten met beelden: die zetten hun kop één keer bij aankomst. Een lus
+        // blijft daarna doortellen; daarom eerst ruimer wachten, dan meten.
+        try await Task.sleep(for: .milliseconds(2000))
         let settled = KolomBreedte.meldingen
-        try await Task.sleep(for: .milliseconds(800))
+        try await Task.sleep(for: .milliseconds(1200))
         XCTAssertEqual(KolomBreedte.meldingen, settled, "de koppen op de lege Selectie blijven zich opnieuw zetten")
         let image = UIGraphicsImageRenderer(size: host.view.bounds.size).image { _ in host.view.drawHierarchy(in: host.view.bounds, afterScreenUpdates: true) }
         let a = XCTAttachment(image: image); a.name = "ios-se-ax5-lege-selectie"; a.lifetime = .keepAlways; add(a)
