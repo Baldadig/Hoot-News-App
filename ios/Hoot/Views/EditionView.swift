@@ -162,6 +162,7 @@ struct EditionView: View {
     @AppStorage("hoot.alertOffered") private var alertOffered = false // de seintje-vraag is één keer gesteld (zodra de kaart één keer in beeld is geweest)
     @State private var alertAsk = false // de vraag staat onder de Editie
     @State private var alertYes = false // net ja gezegd: even zeggen wat er komt
+    @AppStorage(KantenTip.key) private var kantenTipDone = false // de tip over meer kanten is gezien (gesloten of vergeleken)
     @State private var alertSlot = AlertOffer.standaard // het dagdeel in de kaart (keuze r5-seintje: de ochtend voorgekozen)
     @State private var printedIDs: Set<String> = []
     @State private var ruleDrawn = true
@@ -363,6 +364,18 @@ struct EditionView: View {
                             .tienBlock(tien, 0)
                         // Kon er niet ververst worden, dan zegt dat het onder de datum: titel en datum blijven bij elkaar.
                         StaleNotice(gap: Space.s4).loadLinesText(lines).tienBlock(tien, 0)
+                        // Meer kanten van één verhaal (keuze r5-kanten-welkom, gelijk aan .kantentip op het web): één
+                        // keer een stille tip onder de kop, bij het eerste verhaal met meer bronnen. Geen pop-up.
+                        if !tien.active, EditionLimits.hasMinimum(EditionNumbering.count(rows)), let tip = KantenTip.pick(rows.map { ($0.item, $0.story) }, done: kantenTipDone) {
+                            KantenTipView(count: tip.count, compare: {
+                                kantenTipDone = true
+                                var s = tip.story
+                                s.tappedId = tip.item.id
+                                path.append(s)
+                            }, close: { kantenTipDone = true })
+                            .padding(.bottom, Space.s1) // het tikvlak van Vergelijk (44) geeft de rest: samen 16 tot de lijn
+                            .loadLinesText(lines)
+                        }
                         // Na het eerste laden landt hier het bovenste vel van de laadstrepen (LoadLines.swift).
                         StrongRule(drawn: ruleDrawn).loadLinesRule(lines).tienBlock(tien, 1).padding(.bottom, Space.s4)
                         Group {
@@ -616,6 +629,7 @@ struct StoryView: View {
             }
         }
         .task { items = await store.storyItems(story) }
+        .onAppear { UserDefaults.standard.set(true, forKey: KantenTip.key) } // wie vergelijkt, kent het: geen tip meer
     }
 
     // Wie het eerst had, en wat uit een bron komt die je niet volgt.
@@ -669,6 +683,48 @@ struct MakeItYours: View {
 // Na de eerste Editie, één keer: een seintje als de volgende klaarligt? Een los moment onder de
 // Editie, in de vorm van MakeItYours; de eindkaart houdt zijn ene link. Ja vraagt iOS om toestemming.
 // Op het web is er geen seintje (web-push ligt stil).
+// De eenmalige tip "Meer kanten van één verhaal" (keuze r5-kanten-welkom; gelijk aan src/lib/kanten-tip.js):
+// het eerste verhaal van de Editie met meer dan één bron, zolang de tip niet gezien is.
+enum KantenTip {
+    static let key = "hoot.kantenTip"
+    static func pick(_ rows: [(item: Item, story: Story?)], done: Bool) -> (item: Item, story: Story, count: Int)? {
+        guard !done else { return nil }
+        for r in rows { if let s = r.story, let n = s.sourceCount, n > 1 { return (r.item, s, n) } }
+        return nil
+    }
+    static func line(_ count: Int) -> String { "Meer kanten van één verhaal: bij ‘\(SourceLine.label(count))’ zie je hoe elke bron het brengt." }
+}
+
+struct KantenTipView: View {
+    let count: Int
+    let compare: () -> Void
+    let close: () -> Void
+    var body: some View {
+        HStack(alignment: .top, spacing: Space.s2) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(KantenTip.line(count)).fixedSize(horizontal: false, vertical: true)
+                Button(action: compare) { Text("Vergelijk").underline() }
+                    .buttonStyle(.plain)
+                    .fontWeight(.semibold)
+                    .frame(minHeight: Space.tap)
+            }
+            .font(.ui(.footnote))
+            .foregroundStyle(Theme.ink2)
+            Spacer(minLength: 0)
+            Button(action: close) {
+                Image(systemName: "xmark").font(.caption.weight(.semibold)).foregroundStyle(Theme.ink3)
+                    .frame(width: Space.tap, height: Space.tap)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Tip sluiten")
+            .padding(.top, -Space.s3)
+            .padding(.trailing, -Space.s3)
+        }
+        .accessibilityElement(children: .contain)
+    }
+}
+
 // De seintje-vraag onder de eindkaart (1.1.1, keuzes r5-seintje en r5-einde-rust): één dagdeel kiezen, de
 // ochtend voorgekozen. Geen kloktijden, alleen de dagdelen. Een kaart in de lijst, geen zwevend blad.
 struct AlertOffer: View {

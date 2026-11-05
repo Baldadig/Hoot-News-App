@@ -40,3 +40,14 @@ test('r5-selectie-onderwerpen: de app toont bij een lege Selectie hetzelfde voor
   assert.ok(app.includes(`static let voorproef = "${VOORPROEF}"`))
   assert.match(app, /voorproef\(SelectionOverview\.voorproefje\(store\.digest\)\)/)
 })
+
+test('r5-kanten-welkom: dezelfde eenmalige tip in de app, met Vergelijk en sluiten', () => {
+  const web = read('src/views/Edition.jsx')
+  const app = read('ios/Hoot/Views/EditionView.swift')
+  assert.ok(web.includes('Meer kanten van één verhaal: bij ‘'))
+  assert.ok(app.includes('Meer kanten van één verhaal: bij ‘'))
+  assert.ok(web.includes('zie je hoe elke bron het brengt.') && app.includes('zie je hoe elke bron het brengt.'))
+  assert.match(app, /Text\("Vergelijk"\)\.underline\(\)/)
+  assert.match(app, /accessibilityLabel\("Tip sluiten"\)/)
+  assert.match(app, /UserDefaults\.standard\.set\(true, forKey: KantenTip\.key\)/, 'wie vergelijkt, ziet de tip niet meer')
+})

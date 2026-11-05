@@ -66,4 +66,20 @@ import SwiftUI
         XCTAssertTrue(SelectionOverview.voorproefje(nil).isEmpty)
         XCTAssertEqual(SelectionOverview.voorproef, "Zo ziet het eruit: per onderwerp de beste stukken van de week.")
     }
+
+    // r5-kanten-welkom: één keer een tip bij het eerste verhaal met meer bronnen (gelijk aan kantenTip() op het web).
+    func testKantenTip() throws {
+        func story(_ id: String, _ n: Int) throws -> Story {
+            try JSONDecoder().decode(Story.self, from: Data(#"{"id":"\#(id)","itemIds":["a"],"sourceCount":\#(n)}"#.utf8))
+        }
+        let a = Item(id: "a", source: "nos", title: "A", url: "https://nos.nl/a")
+        let b = Item(id: "b", source: "nos", title: "B", url: "https://nos.nl/b")
+        let rows: [(item: Item, story: Story?)] = [(a, try story("s1", 1)), (b, try story("s2", 7))]
+        let tip = KantenTip.pick(rows, done: false)
+        XCTAssertEqual(tip?.story.id, "s2")
+        XCTAssertEqual(tip?.count, 7)
+        XCTAssertNil(KantenTip.pick(rows, done: true), "daarna nooit meer")
+        XCTAssertNil(KantenTip.pick([(a, nil)], done: false))
+        XCTAssertEqual(KantenTip.line(7), "Meer kanten van één verhaal: bij ‘7 bronnen’ zie je hoe elke bron het brengt.")
+    }
 }
