@@ -45,13 +45,15 @@
    tijd) staat er altijd. Een bewaard verhaal houdt zijn gevulde bladwijzer, en een open menu (meer
    of minder, de melding daarna) blijft staan. Op touch verandert er niets: daar is geen hover. */
 @media (hover: hover) and (pointer: fine) {
+  /* Rustig (Alex 5-11): wegfaden langzaam en pas na een korte pauze, zodat langs de kaarten bewegen niet flikkert; verschijnen iets trager dan --dur-2 */
   :is(.meta, .kmeta) > :is(.morebtn, .kmeta__bronnen, .iconbtn) {
     opacity: 0;
-    transition: opacity var(--dur-2) var(--ease);
+    transition: opacity 560ms var(--ease) 140ms;
   }
   .entry:is(:hover, :focus-within) :is(.meta, .kmeta) > :is(.morebtn, .kmeta__bronnen, .iconbtn),
   :is(.meta, .kmeta) > .save.is-on {
     opacity: 1;
+    transition: opacity 380ms var(--ease) 60ms;
   }
 }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: reduce) {
@@ -166,7 +168,10 @@
 @media (hover: hover) and (pointer: fine) {
   .entry .terms__row {
     opacity: 0;
-    transition: opacity var(--dur-2) var(--ease);
+    transition: opacity 560ms var(--ease) 140ms;
+  }
+  .entry:is(:hover, :focus-within) .terms__row {
+    transition: opacity 380ms var(--ease) 60ms;
   }
   .entry:is(:hover, :focus-within) .terms__row,
   .entry .terms:has(.terms__box) .terms__row {
