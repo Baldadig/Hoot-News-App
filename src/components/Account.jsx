@@ -26,6 +26,40 @@ export function GoogleButton({ onClick, wide = false }) {
   )
 }
 
+// De profielfoto uit user_metadata (avatar_url van Supabase, of picture van Google), alleen https.
+export function avatarUrl(user) {
+  const raw = user?.user_metadata?.avatar_url || user?.user_metadata?.picture
+  if (typeof raw !== 'string') return null
+  try {
+    const u = new URL(raw.trim())
+    return u.protocol === 'https:' ? u.href : null
+  } catch {
+    return null
+  }
+}
+export const accountName = (user) => (user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || '').trim()
+
+// Rond: je profielfoto (Google), anders een monogram met de eerste letter van je naam of e-mail in de
+// stijl van .mark (zoals een bron), of het silhouet als je niet bent ingelogd. De foto zonder Referer;
+// de browser cachet hem. Gelijk aan AccountBadge in de app (AccountView.swift).
+export function Avatar({ user, size = 48 }) {
+  const [failed, setFailed] = useState(false)
+  const name = accountName(user)
+  const photo = failed ? null : avatarUrl(user)
+  if (!user) {
+    return (
+      <span className="acard__av" aria-hidden="true">
+        <AccountIcon />
+      </span>
+    )
+  }
+  return (
+    <span className="mark acard__mark" data-letter={(name || '?').charAt(0).toUpperCase()} style={{ width: size, height: size, fontSize: size * 0.5 }} role="img" aria-label={name || 'Je account'}>
+      {photo ? <img className="is-loaded" src={photo} alt="" width={size} height={size} referrerPolicy="no-referrer" decoding="async" onError={() => setFailed(true)} /> : null}
+    </span>
+  )
+}
+
 // Een melding met een zichtbare Annuleer en precies wat er verandert (zoals de .alert van de app).
 // `actions`: { label, kind: 'cancel' | 'danger' | 'plain', onClick }, in de volgorde van de app.
 export function ConfirmDialog({ open, title, message, actions, onClose, busy = false }) {
@@ -93,7 +127,100 @@ export function AccountSettings({ account, syncStatus, summary = null, manage = 
     setNote(DELETE_TEXT.stays)
   }
 
+  const dialogs = (
+    <>
+      <ConfirmDialog
+        open={ask === 'delete'}
+        title={DELETE_TEXT.title}
+        message={DELETE_TEXT.message}
+        busy={busy}
+        onClose={() => setAsk((a) => (a === 'delete' ? null : a))}
+        actions={[
+          { label: DELETE_TEXT.cancel, kind: 'cancel', onClick: () => setAsk(null) },
+          { label: DELETE_TEXT.confirm, kind: 'danger', onClick: () => remove(false) },
+        ]}
+      />
+      <ConfirmDialog
+        open={ask === 'apple'}
+        title={DELETE_TEXT.appleTitle}
+        message={DELETE_TEXT.appleMessageWeb}
+        busy={busy}
+        onClose={() => setAsk((a) => (a === 'apple' ? null : a))}
+        actions={[
+          { label: DELETE_TEXT.cancel, kind: 'cancel', onClick: keep },
+          { label: DELETE_TEXT.appleSkip, kind: 'danger', onClick: () => remove(true) },
+        ]}
+      />
+    </>
+  )
   if (status === 'loading') return <p className="hint">Even geduld…</p>
+  // Instellingen D › Account: de kaart, Synchroniseren, Uitloggen, en als laatste, apart en rood,
+  // Account verwijderen met een bevestiging. Gelijk aan AccountView in de app.
+  if (manage && status === 'out')
+    return (
+      <>
+        <div className="rows dset__card">
+          <div className="setrow">
+            <Avatar user={null} />
+            <span className="setrow__text dset__grow">
+              <span className="acard__name">Inloggen</span>
+              <span className="setrow__hint">Hoot op al je toestellen.</span>
+            </span>
+          </div>
+        </div>
+        <div className="dset__signin">
+          <GoogleButton onClick={signIn} wide />
+        </div>
+        <p className="hint setfoot">Lezen kan zonder account.</p>
+        {note ? (
+          <p className="acard__msg" role="status">
+            {note}
+          </p>
+        ) : null}
+      </>
+    )
+  if (manage) {
+    const waitingD = account.status === 'in' && !account.profile
+    return (
+      <>
+        <div className="rows dset__card">
+          <div className="setrow">
+            <Avatar user={user} size={56} />
+            <span className="setrow__text dset__grow">
+              <span className="acard__name">{accountName(user) || user?.email || 'Je account'}</span>
+              {user?.email && accountName(user) !== user.email ? <span className="setrow__hint">{user.email}</span> : null}
+              {summary ? <span className="setrow__hint acard__sum">{summary}</span> : null}
+            </span>
+          </div>
+        </div>
+        {pending ? <RetryRow account={account} /> : null}
+        {!waitingD ? (
+          <>
+            <div className="rows dset__group">
+              <div className="setrow">
+                <span className="setrow__label">Synchroniseren</span>
+                <span className="setrow__value">{pending ? PENDING_TEXT : syncLine(syncStatus, account.pulled)}</span>
+              </div>
+              <button type="button" className="setrow setrow--action" onClick={() => account.syncNow?.()} disabled={syncStatus === 'syncing'}>Nu synchroniseren</button>
+            </div>
+            <p className="hint setfoot">Weergave en lezen blijven per toestel.</p>
+          </>
+        ) : null}
+        <div className="rows dset__group">
+          <button type="button" className="setrow setrow--action" onClick={signOut}>Uitloggen</button>
+        </div>
+        <div className="rows dset__group">
+          <button type="button" className="setrow setrow--action setrow--danger" onClick={() => setAsk('delete')} disabled={busy}>Account verwijderen</button>
+        </div>
+        {note ? (
+          <p className="acard__msg" role="status">
+            {note}
+          </p>
+        ) : null}
+        {dialogs}
+      </>
+    )
+  }
   if (status === 'out')
     return (
       <div className="acard">
@@ -121,9 +248,7 @@ export function AccountSettings({ account, syncStatus, summary = null, manage = 
   return (
     <div className="acard">
       <div className="acard__row">
-        <span className="acard__av acard__av--in" aria-hidden="true">
-          {email.slice(0, 1).toUpperCase()}
-        </span>
+        <Avatar user={user} size={44} />
         <div className="setrow__text">
           <span className="acard__name">{email}</span>
           {summary ? <span className="setrow__hint acard__sum">{summary}</span> : null}
@@ -154,28 +279,7 @@ export function AccountSettings({ account, syncStatus, summary = null, manage = 
           {note}
         </p>
       ) : null}
-      <ConfirmDialog
-        open={ask === 'delete'}
-        title={DELETE_TEXT.title}
-        message={DELETE_TEXT.message}
-        busy={busy}
-        onClose={() => setAsk((a) => (a === 'delete' ? null : a))}
-        actions={[
-          { label: DELETE_TEXT.cancel, kind: 'cancel', onClick: () => setAsk(null) },
-          { label: DELETE_TEXT.confirm, kind: 'danger', onClick: () => remove(false) },
-        ]}
-      />
-      <ConfirmDialog
-        open={ask === 'apple'}
-        title={DELETE_TEXT.appleTitle}
-        message={DELETE_TEXT.appleMessageWeb}
-        busy={busy}
-        onClose={() => setAsk((a) => (a === 'apple' ? null : a))}
-        actions={[
-          { label: DELETE_TEXT.cancel, kind: 'cancel', onClick: keep },
-          { label: DELETE_TEXT.appleSkip, kind: 'danger', onClick: () => remove(true) },
-        ]}
-      />
+      {dialogs}
     </div>
   )
 }

@@ -50,7 +50,7 @@ struct IntroText: View {
     static func limit(lines: Int, style: Font.TextStyle, typeSize: DynamicTypeSize, size own: CGFloat? = nil, line ownLine: CGFloat? = nil) -> CGFloat {
         let traits = UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(typeSize))
         // Newsreader (leestekst): de letter staat op 1,193 van de maat, de rest is lineSpacing (Letters.leesSpacing).
-        let size = UIFontMetrics(forTextStyle: style.uiKit).scaledValue(for: own ?? Letters.size(style), compatibleWith: traits)
+        let size = UIFontMetrics(forTextStyle: style.uiKit).scaledValue(for: own.map(Letters.maat) ?? Letters.size(style), compatibleWith: traits)
         let line = size * 1.193 + Letters.leesSpacing(style, typeSize: typeSize, size: own, line: ownLine)
         return line * (CGFloat(lines) + 0.5)
     }

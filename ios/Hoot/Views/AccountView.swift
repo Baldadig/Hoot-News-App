@@ -31,23 +31,67 @@ struct AccountRow: View {
     }
 }
 
-// Rond: de eerste letter van je naam, of een silhouet als je niet bent ingelogd.
+// Rond: je profielfoto (Google), of een monogram met de eerste letter van je naam of e-mail in de stijl
+// van Monogram (bronnen), of een silhouet als je niet bent ingelogd. De foto komt zonder Referer en
+// zonder cookies, en blijft in de cache (AccountPhoto).
 struct AccountBadge: View {
-    @Environment(\.nachtActief) private var nacht
     @Environment(Account.self) private var account
     var size: CGFloat
     var body: some View {
-        let letter = (account.session?.name ?? account.session?.email)?.first.map { String($0).uppercased() }
+        let name = account.session?.name ?? account.session?.email
+        let photo = account.session?.avatar.flatMap(URL.init(string:))
         ZStack {
-            Circle().fill(letter == nil ? Theme.ink3.opacity(0.15) : Theme.accent)
-            if let letter {
-                Text(letter).font(.kop(size: size * 0.45)).foregroundStyle(nacht ? Theme.paper : .white)
+            if let name {
+                Monogram(name: name.uppercased(), size: size)
+                if let photo { AccountPhoto(url: photo) }
             } else {
+                Circle().fill(Theme.ink3.opacity(0.15))
                 Image(systemName: "person.fill").font(.system(size: size * 0.45)).foregroundStyle(Theme.ink3)
             }
         }
         .frame(width: size, height: size)
-        .accessibilityHidden(true)
+        .clipShape(Circle())
+        .overlay(Circle().strokeBorder(Theme.ink.opacity(0.12), lineWidth: 1))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(name ?? "Geen account")
+        .accessibilityHidden(name == nil)
+    }
+}
+
+// De profielfoto: één keer laden, daarna uit het geheugen of de URLCache. Zonder cookies en zonder
+// Referer (URLSession stuurt die niet; de sessie deelt ook geen cookies).
+struct AccountPhoto: View {
+    let url: URL
+    @State private var image: UIImage?
+    var body: some View {
+        Group {
+            if let image { Image(uiImage: image).resizable().scaledToFill().transition(.opacity) }
+        }
+        .task(id: url) { image = await Self.load(url) }
+    }
+
+    nonisolated(unsafe) private static let memory = NSCache<NSURL, UIImage>()
+    private static let session: URLSession = {
+        let c = URLSessionConfiguration.default
+        c.httpCookieAcceptPolicy = .never
+        c.httpShouldSetCookies = false
+        c.urlCache = URLCache.shared
+        c.requestCachePolicy = .returnCacheDataElseLoad
+        return URLSession(configuration: c)
+    }()
+    static func request(_ url: URL) -> URLRequest {
+        var r = URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 15)
+        r.httpShouldHandleCookies = false
+        r.setValue(nil, forHTTPHeaderField: "Referer")
+        return r
+    }
+    static func load(_ url: URL) async -> UIImage? {
+        if let hit = memory.object(forKey: url as NSURL) { return hit }
+        guard let (data, response) = try? await session.data(for: request(url)),
+              (response as? HTTPURLResponse)?.statusCode ?? 200 < 400,
+              let image = UIImage(data: data) else { return nil }
+        memory.setObject(image, forKey: url as NSURL)
+        return image
     }
 }
 
@@ -67,6 +111,7 @@ extension Account {
 // De pagina zelf: inloggen, of je account beheren.
 struct AccountView: View {
     @Environment(Account.self) private var account
+    @Environment(HootStore.self) private var store
     @Environment(\.webAuthenticationSession) private var webAuth
     @Environment(\.nachtActief) private var nacht
     @Environment(\.colorScheme) private var scheme
@@ -102,9 +147,10 @@ struct AccountView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .onChange(of: account.status) { _, now in if now == .member { onMember?() } }
-        .alert("Je account verwijderen?", isPresented: $confirmDelete) {
-            Button("Annuleer", role: .cancel) {}
+        // Instellingen D: een action sheet, de rode keuze bovenaan en Annuleer los eronder.
+        .confirmationDialog("Je account verwijderen?", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("Verwijder", role: .destructive) { Task { _ = await account.deleteAccount() } }
+            Button("Annuleer", role: .cancel) {}
         } message: {
             Text("Je account en Bewaard verdwijnen, ook op de website. Wat op deze iPhone staat, blijft. Dit kun je niet ongedaan maken.")
         }
@@ -205,7 +251,10 @@ struct AccountView: View {
                     VStack(alignment: .leading, spacing: Space.s0) {
                         Text(account.session?.name ?? "Je account").font(.ui(.headline))
                         if let email = account.session?.email { Text(email).font(.ui(.subheadline)).foregroundStyle(Theme.ink3) }
+                        // De samenvatting van je Hoot, gelijk aan hootSummary op het web.
+                        Text(SettingsAccountCard.summary(interests: store.interests.count, sources: store.followed.count)).font(.ui(.subheadline)).foregroundStyle(Theme.ink3)
                     }
+                    .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(.vertical, Space.s1)
             }
@@ -220,11 +269,17 @@ struct AccountView: View {
         }
     }
 
+    // Uitloggen in een eigen groep; Account verwijderen apart en als laatste, in rood (Instellingen D).
     private var manage: some View {
-        Section {
-            Button("Uitloggen") { Task { await account.signOut() } }
-            Button("Account verwijderen", role: .destructive) { confirmDelete = true }
-                .foregroundStyle(Theme.ink) // bediening in inkt; de melding erna heeft Verwijder in rood
+        Group {
+            Section {
+                Button("Uitloggen") { Task { await account.signOut() } }
+                    .foregroundStyle(Theme.ink)
+            }
+            Section {
+                Button("Account verwijderen", role: .destructive) { confirmDelete = true }
+                    .foregroundStyle(Theme.accent)
+            }
         }
     }
 

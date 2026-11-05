@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Observation
 
 // Letters van Hoot, gelijk aan het web (src/styles.css › Type): lezen in serif, bedienen in sans.
 //   Kop     Newsreader 800 (optische maat 16, zoals de statische Newsreader 800 van het web)
@@ -9,7 +10,8 @@ import UIKit
 //   Uitleg  uitleg- en hulpzinnen in de bediening zijn schreefloos: Schibsted 17/24 (.uitleg() = .zin()); Newsreader is er alleen voor kop, intro en artikeltekst
 // De letters staan in Resources/Fonts (scripts/build-fonts.py) en worden via UIAppFonts geladen.
 // Alles met `relativeTo:`, zodat Dynamische tekst blijft werken; maten zijn die van de tekststijl
-// bij de standaardgrootte (Large).
+// bij de standaardgrootte (Large), keer de eigen Tekstgrootte van Hoot (TekstSchaal, Instellingen D):
+// die telt op bij Dynamic Type, hij vervangt het niet.
 enum Letters {
     static let kop = "NewsreaderKop-ExtraBold"
     static let lees = "NewsreaderTekst-Regular"
@@ -27,8 +29,15 @@ enum Letters {
         }
     }
 
-    // De standaardmaat van een tekststijl (Large), zoals iOS die zelf gebruikt.
-    static func size(_ style: Font.TextStyle) -> CGFloat {
+    // De eigen Tekstgrootte (× 0,9 tot × 1,45). Wie dit leest in een `body`, tekent opnieuw als hij verandert.
+    static var schaal: CGFloat { TekstSchaal.shared.factor }
+    // Een eigen maat bij de standaardgrootte, met de Tekstgrootte erbij.
+    static func maat(_ size: CGFloat) -> CGFloat { size * schaal }
+
+    // De standaardmaat van een tekststijl (Large), zoals iOS die zelf gebruikt, keer de Tekstgrootte.
+    static func size(_ style: Font.TextStyle) -> CGFloat { basis(style) * schaal }
+    // Zonder de Tekstgrootte: de maat van iOS zelf.
+    static func basis(_ style: Font.TextStyle) -> CGFloat {
         switch style {
         case .largeTitle: 34
         case .title: 28
@@ -51,7 +60,7 @@ enum Letters {
     static func leesSpacing(_ style: Font.TextStyle, typeSize: DynamicTypeSize, size own: CGFloat? = nil, line: CGFloat? = nil) -> CGFloat {
         let traits = UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(typeSize))
         let metrics = UIFontMetrics(forTextStyle: style.uiKit)
-        if let own, let line { return metrics.scaledValue(for: max(0, line - own * 1.193), compatibleWith: traits).rounded() }
+        if let own, let line { return metrics.scaledValue(for: max(0, maat(line) - maat(own) * 1.193), compatibleWith: traits).rounded() }
         let size = metrics.scaledValue(for: Letters.size(style), compatibleWith: traits)
         return (size * ((typeSize.isAccessibilitySize ? 1.3 : 1.42) - 1.193)).rounded()
     }
@@ -93,7 +102,7 @@ struct Leestekst: ViewModifier {
     var line: CGFloat? = nil
     func body(content: Content) -> some View {
         content
-            .font(size.map { .custom(nacht ? Letters.leesNacht : Letters.lees, size: $0, relativeTo: style) } ?? .lees(style, nacht: nacht))
+            .font(size.map { .custom(nacht ? Letters.leesNacht : Letters.lees, size: Letters.maat($0), relativeTo: style) } ?? .lees(style, nacht: nacht))
             .lineSpacing(Letters.leesSpacing(style, typeSize: typeSize, size: size, line: line))
     }
 }
@@ -131,5 +140,60 @@ extension UIFont {
     static func hoot(_ name: String, _ style: UIFont.TextStyle, size: CGFloat, max: CGFloat = .greatestFiniteMagnitude) -> UIFont {
         let base = UIFont(name: name, size: size) ?? .preferredFont(forTextStyle: style)
         return UIFontMetrics(forTextStyle: style).scaledFont(for: base, maximumPointSize: max)
+    }
+}
+
+// De eigen Tekstgrootte van Hoot (Instellingen D › Tekstgrootte): vijf standen bovenop Dynamic Type.
+// Stand 1 is "Zoals je toestel" (× 1). Per toestel bewaard, zoals Weergave ("Weergave en lezen blijven
+// per toestel"): hij gaat niet mee met je account. Gelijk aan het web (src/lib/tekstgrootte.js).
+@Observable final class TekstSchaal: @unchecked Sendable {
+    static let namen = ["Kleiner", "Zoals je toestel", "Groter", "Nog groter", "Grootst"]
+    static let factoren: [CGFloat] = [0.9, 1, 1.15, 1.3, 1.45]
+    static let standaard = 1
+    static let key = "hoot.tekstgrootte"
+    static let shared = TekstSchaal()
+
+    var stand: Int {
+        didSet {
+            let geldig = Self.geldig(stand)
+            if geldig != stand { stand = geldig; return }
+            defaults.set(stand, forKey: Self.key)
+        }
+    }
+    // De factor die geldt. Groter dan × 1 nooit voorbij de grootste maat van iOS zelf (body bij
+    // AX5): bij de toegankelijkheidsmaten kreeg een woord als "Interesses" anders geen plek meer op een
+    // regel en brak het midden in het woord. Zo groeit Grootst bij AX3 nog een stap, en is het bij AX5
+    // gelijk aan Zoals je toestel; kleiner dan je toestel wordt het nooit.
+    var factor: CGFloat {
+        let f = Self.factoren[stand]
+        guard f > 1 else { return f }
+        return min(f, max(1, Self.plafond / systeemBody))
+    }
+    static let plafond: CGFloat = body(.accessibility5) // de grootste maat van iOS zelf
+    // De tekstgrootte van het toestel (Dynamic Type), gezet door HootLetterMaat.
+    var systeem: DynamicTypeSize = .large {
+        didSet { if systeem != oldValue { systeemBody = Self.body(systeem) } }
+    }
+    private(set) var systeemBody: CGFloat = 17
+    static func body(_ size: DynamicTypeSize) -> CGFloat {
+        UIFontMetrics(forTextStyle: .body).scaledValue(for: 17, compatibleWith: UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(size)))
+    }
+    var naam: String { Self.namen[stand] }
+    @ObservationIgnored private let defaults: UserDefaults
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        stand = Self.geldig(defaults.object(forKey: Self.key) as? Int ?? Self.standaard)
+    }
+    static func geldig(_ stand: Int) -> Int { min(max(stand, 0), factoren.count - 1) }
+}
+
+// De lettermaat van tekst zonder eigen rol, die meegroeit met de Tekstgrootte: een ViewModifier leest
+// de schaal in zijn eigen body, dus alles eronder tekent opnieuw als je schuift.
+struct HootLetterMaat: ViewModifier {
+    @Environment(\.dynamicTypeSize) private var typeSize
+    func body(content: Content) -> some View {
+        content.font(.ui(.body))
+            .onChange(of: typeSize, initial: true) { _, now in TekstSchaal.shared.systeem = now }
     }
 }

@@ -5,6 +5,7 @@ import { VAK_FIELD_IDS } from '../../shared/vak.mjs'
 import { currentTopics, currentTopicMap } from './topics.js'
 import { TASTE_CAP } from './affinity.js'
 import { INTRO_LINES } from '../../shared/zinnen.mjs'
+import { textSizePref } from './tekstgrootte.js'
 export const DEFAULT_PREFS = {
   theme: 'system',
   themeDark: 'dark',
@@ -13,7 +14,7 @@ export const DEFAULT_PREFS = {
   onboarded: true,
   layout: 'tijdlijn', // tijdlijn | krant
   palette: 'papier', // papier | blad | inkt — kleurverdeling van de pagina (styles.css)
-  textSize: 'normaal', // klein | normaal | groot
+  textSize: 'normaal', // kleiner | normaal (Zoals je toestel) | groter | nog-groter | grootst (lib/tekstgrootte.js); per toestel
   preview: INTRO_LINES, // 1 | 2 | 3 | 'alles' — regels voorvertoning in de Stroom (afgeleid van `regels`, zie normalizePrefs)
   images: 'aan', // aan | hoofd | uit
   bubble: true, // "Buiten je bubbel" in Editie en Stroom
@@ -44,7 +45,7 @@ export function normalizePrefs(raw) {
   const LINES = [1, 2, 3, 'alles']
   const old = p.preview == null && p.density ? (p.density === 'volledig' ? 'alles' : 2) : p.preview
   out.preview = LINES.includes(p.regels) ? p.regels : LINES.includes(old) && old !== 2 ? old : INTRO_LINES
-  if (!['klein', 'normaal', 'groot'].includes(out.textSize)) out.textSize = 'normaal'
+  out.textSize = textSizePref(out.textSize) // Klein en Groot (tot build 47) worden Kleiner en Groter
   if (!['aan', 'hoofd', 'uit'].includes(out.images)) out.images = 'aan'
   if (!['tijdlijn', 'krant'].includes(out.layout)) out.layout = 'tijdlijn'
   if (!['papier', 'blad', 'inkt'].includes(out.palette)) out.palette = 'papier'

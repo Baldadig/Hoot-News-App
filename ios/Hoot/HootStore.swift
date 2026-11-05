@@ -44,6 +44,13 @@ final class HootStore {
     // Waar artikelen openen: "lezer" (de Hoot-lezer) of "safari" (de Safari-app, waar je al bent ingelogd).
     var openWith: String { didSet { save("hoot.openWith", openWith) } }
     var preview: Int { didSet { save("hoot.regels", preview); synced() } } // regels intro bij een bericht; 0 = de hele intro
+    // Tekstgrootte (Instellingen D): 0 Kleiner · 1 Zoals je toestel · 2 Groter · 3 Nog groter · 4 Grootst,
+    // bovenop Dynamic Type. Per toestel, zoals Weergave: niet in de profielsync (geen synced()).
+    // De waarde zelf staat in TekstSchaal, want de letters (Letters.swift) lezen hem overal.
+    var tekstgrootte: Int {
+        get { TekstSchaal.shared.stand }
+        set { TekstSchaal.shared.stand = newValue }
+    }
     // Regels intro standaard (build 46): 3 in plaats van 2, zoals INTRO_LINES in shared/zinnen.mjs.
     static let introLines = 3
     // De oude sleutel (`hoot.preview`, `preview` in de sync) had 2 als standaard, en die ging ook mee

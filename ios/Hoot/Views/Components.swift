@@ -314,7 +314,7 @@ struct EditionNumber: View {
     var body: some View {
         if let number {
             Text(String(format: "%02d", number))
-                .font(lead ? .custom(Letters.kop, size: 20, relativeTo: .callout) : .kop(.callout)).monospacedDigit()
+                .font(lead ? .custom(Letters.kop, size: Letters.maat(20), relativeTo: .callout) : .kop(.callout)).monospacedDigit()
                 .frame(minWidth: wide ? 24 : nil, alignment: .leading)
                 .foregroundStyle(read ? Theme.ink3 : lead ? Theme.accent : Theme.ink) // minder rood (B): het cijfer in inkt; alleen 01 op de telefoon is rood
         }
