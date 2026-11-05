@@ -266,58 +266,88 @@ struct SourcesView: View {
     }
 }
 
+// Bronnen in Instellingen (1.1.1 ronde 2, gelijk aan src/views/Sources.jsx): bovenaan "Je bronnen" (wat aan staat),
+// daaronder "Meer bronnen" per rubriek, ingeklapt: de rubriek, het aantal en een pijl; tik om open te klappen.
+// Zet je een bron aan, dan schuift hij naar Je bronnen.
 struct SourcesList: View {
     @Environment(HootStore.self) private var store
+    @State private var open: Set<String> = []
     private static let cats: [(String, String)] = [("nl", "Nederland"), ("int", "Internationaal"), ("vl", "Vlaanderen"), ("regio", "Regio"), ("economie", "Economie"), ("tech", "Tech"), ("wetenschap", "Wetenschap"), ("sport", "Sport"), ("cultuur", "Cultuur"), ("games", "Games")]
 
     var body: some View {
-        let last = Self.cats.last { cat in store.newsSources.contains { $0.cat == cat.0 } }?.0
+        let mine = store.newsSources.filter { store.isOn($0) }
+        let more = store.newsSources.filter { !store.isOn($0) }
+        let last = Self.cats.last { cat in more.contains { $0.cat == cat.0 } }?.0
         ScrollViewReader { proxy in
         List {
             Section {
-                Text("Abonnement: hele artikelen alleen voor abonnees. Aanzetten kost niets.")
+                ForEach(mine) { s in row(s) }
+            } header: {
+                FormHeader("Je bronnen · \(mine.count)")
+            } footer: {
+                Text("Met de ster gaat een bron voor in je Editie en Stroom. Abonnement: hele artikelen alleen voor abonnees. Aanzetten kost niets.")
                     .font(.ui(.footnote))
                     .foregroundStyle(Theme.ink3)
             }
-            .listRowBackground(Color.clear)
-            ForEach(Self.cats, id: \.0) { cat, label in
-                let list = store.newsSources.filter { $0.cat == cat }
-                if !list.isEmpty {
-                    Section {
-                        ForEach(list) { s in
-                            HStack(spacing: Space.s1) {
-                            if store.isOn(s) {
-                                // Voorkeursbron: weegt zwaarder in je editie en staat vooraan in de Stroom.
-                                Button { store.setFavorite(s.id, !store.isFavorite(s.id)) } label: {
-                                    Image(systemName: store.isFavorite(s.id) ? "star.fill" : "star").foregroundStyle(store.isFavorite(s.id) ? Theme.accent : Theme.ink3).frame(width: Space.tap, height: Space.tap)
+            .hootRows()
+            if !more.isEmpty {
+                Section {
+                    ForEach(Self.cats, id: \.0) { cat, label in
+                        let list = more.filter { $0.cat == cat }
+                        if !list.isEmpty {
+                            let isOpen = open.contains(cat)
+                            Button {
+                                withAnimation(.easeOut(duration: 0.2)) { if isOpen { open.remove(cat) } else { open.insert(cat) } }
+                            } label: {
+                                HStack(spacing: Space.s2) {
+                                    Text(label).foregroundStyle(Theme.ink)
+                                    Spacer(minLength: Space.s2)
+                                    Text("\(list.count)").font(.ui(.subheadline)).foregroundStyle(Theme.ink3).monospacedDigit()
+                                    Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(Theme.ink3)
+                                        .rotationEffect(.degrees(isOpen ? 90 : 0)).accessibilityHidden(true)
                                 }
-                                .buttonStyle(.borderless)
-                                .accessibilityLabel(store.isFavorite(s.id) ? "\(s.name): voorkeursbron" : "Maak \(s.name) een voorkeursbron")
-                            } else {
-                                // Plek van de ster vrijhouden: alle namen op één lijn, aan of uit.
-                                Color.clear.frame(width: Space.tap, height: Space.tap).accessibilityHidden(true)
+                                .frame(minHeight: Space.tap)
+                                .contentShape(Rectangle())
                             }
-                            Toggle(isOn: Binding(get: { store.isOn(s) }, set: { store.setOn(s, $0) })) {
-                                VStack(alignment: .leading, spacing: Space.s0) {
-                                    HStack(spacing: Space.s2) {
-                                        Text(s.name)
-                                        if s.paid == true { Text("abonnement").font(.ui(.caption)).foregroundStyle(Theme.hint) } else { Text("gratis").font(.ui(.caption, .semibold)).foregroundStyle(Theme.accent) }
-                                    }
-                                    if let about = s.about { Text(about).font(.ui(.caption)).foregroundStyle(Theme.hint) }
-                                }
-                            }
-                            }
+                            .buttonStyle(.plain)
+                            .accessibilityValue(isOpen ? "Open" : "Dicht")
+                            .id(cat)
+                            if isOpen { ForEach(list) { s in row(s) } }
                         }
-                    } header: {
-                        FormHeader(label)
                     }
-                    .hootRows()
-                    .id(cat)
+                } header: {
+                    FormHeader("Meer bronnen")
                 }
+                .hootRows()
             }
         }
         .hootForm()
         .debugJump(proxy, to: last, when: store.newsSources.count)
+        }
+    }
+
+    @ViewBuilder private func row(_ s: Source) -> some View {
+        HStack(spacing: Space.s1) {
+            if store.isOn(s) {
+                // Voorkeursbron: weegt zwaarder in je editie en staat vooraan in de Stroom.
+                Button { store.setFavorite(s.id, !store.isFavorite(s.id)) } label: {
+                    Image(systemName: store.isFavorite(s.id) ? "star.fill" : "star").foregroundStyle(store.isFavorite(s.id) ? Theme.accent : Theme.ink3).frame(width: Space.tap, height: Space.tap)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel(store.isFavorite(s.id) ? "\(s.name): voorkeursbron" : "Maak \(s.name) een voorkeursbron")
+            } else {
+                // Plek van de ster vrijhouden: alle namen op één lijn, aan of uit.
+                Color.clear.frame(width: Space.tap, height: Space.tap).accessibilityHidden(true)
+            }
+            Toggle(isOn: Binding(get: { store.isOn(s) }, set: { store.setOn(s, $0) })) {
+                VStack(alignment: .leading, spacing: Space.s0) {
+                    HStack(spacing: Space.s2) {
+                        Text(s.name)
+                        if s.paid == true { Text("abonnement").font(.ui(.caption)).foregroundStyle(Theme.hint) } else { Text("gratis").font(.ui(.caption, .semibold)).foregroundStyle(Theme.accent) }
+                    }
+                    if let about = s.about { Text(about).font(.ui(.caption)).foregroundStyle(Theme.hint) }
+                }
+            }
         }
     }
 }
