@@ -167,8 +167,11 @@ struct StroomSettingsView: View {
 
 // Een Stroom-bericht als voorbeeld: bron en tijd, kop, intro (en bij Beeld en intro het beeld). Hij
 // gebruikt dezelfde letters als de Stroom, dus hij groeit mee met de Tekstgrootte en met Dynamic Type.
+// De intro gaat door IntroText, met dezelfde regels als de kaart in de Stroom: hij stopt na een hele
+// zin, nooit met "…" (eindkeuring 48, B4).
 struct StroomVoorbeeld: View {
     @Environment(HootStore.self) private var store
+    @Environment(\.dynamicTypeSize) private var typeSize
     var beeld = false
     static let kop = "Zeegras keert terug in de Waddenzee"
     static let intro = "Bij Texel en Ameland zet Rijkswaterstaat dit voorjaar nieuwe velden uit. Zeegras houdt slib vast en geeft jonge vis een plek om te schuilen."
@@ -184,11 +187,7 @@ struct StroomVoorbeeld: View {
             }
             Text("NOS · vanochtend").font(.ui(.footnote)).foregroundStyle(Theme.hint)
             Kop(Self.kop, .title3).foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
-            Text(Self.intro)
-                .leestekst(.body)
-                .foregroundStyle(Theme.ink2)
-                .lineLimit(store.preview == 0 ? nil : store.preview)
-                .fixedSize(horizontal: false, vertical: true)
+            IntroText(text: Self.intro, style: .body, lines: store.preview == 0 ? nil : typeSize > .large ? store.preview * 2 : store.preview + 1, size: 18, line: 28) // zoals ItemRow.kaartText
         }
         .padding(.vertical, Space.s2)
         .accessibilityElement(children: .combine)
