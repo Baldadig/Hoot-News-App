@@ -1,10 +1,9 @@
 # Hoot 1.1.0 · Build 46 · Wat is nieuw (App Store, Nederlands)
 
-Een nieuwe ochtend voor Hoot.
-• Begin bij je interesses: daar stelt Hoot je bronnen en je Editie op af.
-• Tien verhalen met beeld en intro, in een nieuwe letter.
-• Nacht is nu echt zwart, zacht voor je ogen in de avond.
-• Voeg je eigen Bluesky-accounts toe aan je Stroom.
-Rustig bijblijven.
+Nieuws met een einde, nu met beeld.
+• Kies je interesses, Hoot kiest je bronnen.
+• Elk verhaal in je Editie heeft een foto en een korte intro.
+• Nacht is nu echt zwart.
+Je bent bij.
 
-Toetsing aan de stijlgids (Hoot-design/RELEASENOTES-STIJLGIDS.md): ruim onder de 500 tekens; één idee per regel; positief; geen kloktijden; Editie, Stroom en Selectie met hoofdletter; geen uitroeptekens; geen emoji (App Store Connect weigert die, "invalid characters"). Herschreven na de keuring van 4 november: geen "bubbelverhaal" en geen "Verenigde Staten heeft een eigen plek" meer. Bluesky is persoonlijk (eigen accounts, uit tot je ze toevoegt).
+Concept A, "Kort en stil", gekozen door Alex op 5 november. Geschreven volgens Hoot-design/SCHRIJFWIJZE-HOOT.md (hoofdstuk Releasenotes): vijf regels, drie dingen, geen kloktijden, geen emoji (App Store Connect weigert ze), Editie met hoofdletter, rustig einde. Afgewezen: B (verhalend briefje, te zoet) en C (als een Editie 01-07, te lang).
