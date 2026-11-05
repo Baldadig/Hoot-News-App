@@ -23,3 +23,18 @@
   }
 }
 
+/* ---------- 3. Editie, breed: één kolommaat na het raster ----------
+   Een los laatste verhaal (10) blijft in het raster, één kolom breed zoals de andere, links. Wat
+   erna komt (Buiten je bubbel, De Editie in één minuut, de eindkaart) staat op precies die kolommaat
+   en op dezelfde linkerlijn. Zo is er onder de voorpagina één leeskolom met één rechterlijn; het
+   raam blijft links verankerd en de rechterbaan mag leeg zijn (zoals .col--read, audit §2). Een
+   eindkaart over de hele breedte zou het zwaarste blok van de pagina worden; de leesmaat (720)
+   paste op geen van beide rasterlijnen. */
+@container front (width > 48rem) {
+  .pairs > :last-child:nth-child(odd of :not(.pairs__label)) {
+    grid-column: auto;
+  }
+  .col--front > :is(.bubble, .briefcta--end, .endcap) {
+    max-inline-size: calc((100cqi - var(--s6)) / 2);
+  }
+}
