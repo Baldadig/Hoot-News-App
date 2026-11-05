@@ -33,6 +33,9 @@ struct ArticleReaderView: View {
         return source?.paid == true && article.length < 2500 && !signedIn && loginURL != nil
     }
 
+    static let failedTitle = "Dit artikel lukt even niet in de lezer"
+    static let failedText = "Soms laadt de pagina niet goed. Probeer het opnieuw, of lees het op de website."
+
     var body: some View {
         NavigationStack {
             Group {
@@ -65,12 +68,14 @@ struct ArticleReaderView: View {
                         .background(nacht ? AnyShapeStyle(Theme.paper) : AnyShapeStyle(.bar))
                     }
                 case .failed:
+                    // Na één stille nieuwe poging (ArticleLoader.temporaryFailure): vaak is het tijdelijk.
                     ContentUnavailableView {
-                        Label("Dit artikel lukt niet in de lezer", systemImage: "doc.text.magnifyingglass")
+                        Label(Self.failedTitle, systemImage: "doc.text.magnifyingglass")
                     } description: {
-                        Text("Sommige pagina's (video, liveblogs, puzzels) hebben geen leesbare tekst, of de uitgever laat de pagina niet zo openen.")
+                        Text(Self.failedText).zin()
                     } actions: {
-                        Button("Open op de website") { if let url = item.link { openURL(url) } }.buttonStyle(.ink)
+                        Button("Probeer opnieuw") { loader.reload() }.buttonStyle(.ink)
+                        Button("Open op de website") { if let url = item.link { openURL(url) } }.buttonStyle(.glass)
                         Button("Toon de pagina hier") { loader.showPage() }.buttonStyle(.glass)
                     }
                 }
