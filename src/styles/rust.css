@@ -38,3 +38,24 @@
     max-inline-size: calc((100cqi - var(--s6)) / 2);
   }
 }
+
+/* ---------- 2. Bediening op hover (muis) ----------
+   Met een muis staan "N bronnen", ⋯, delen en bewaren pas in beeld als je op het verhaal wijst of er
+   met het toetsenbord in komt (focus-within), met een zachte fade in en uit. De bron (logo, naam,
+   tijd) staat er altijd. Een bewaard verhaal houdt zijn gevulde bladwijzer, en een open menu (meer
+   of minder, de melding daarna) blijft staan. Op touch verandert er niets: daar is geen hover. */
+@media (hover: hover) and (pointer: fine) {
+  :is(.meta, .kmeta) > :is(.morebtn, .kmeta__bronnen, .iconbtn) {
+    opacity: 0;
+    transition: opacity var(--dur-2) var(--ease);
+  }
+  .entry:is(:hover, :focus-within) :is(.meta, .kmeta) > :is(.morebtn, .kmeta__bronnen, .iconbtn),
+  :is(.meta, .kmeta) > .save.is-on {
+    opacity: 1;
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: reduce) {
+  :is(.meta, .kmeta) > :is(.morebtn, .kmeta__bronnen, .iconbtn) {
+    transition: none;
+  }
+}
