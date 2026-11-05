@@ -85,3 +85,15 @@
 }
 /* 5. Een beeld dat te klein is voor de volle kolom staat in de Stroom klein rechts (.compact--klein,
    Items.jsx, sharpHere in src/lib/img.js), met dezelfde kop en intro als de rijen eromheen. */
+
+/* Editiekop zonder "Jouw Editie" (Edition.jsx): het weer kan nu het laatste deel zijn. Dan staat de punt
+   vóór het weer, zodat er zonder weer (of op de telefoon, waar het weer weg is) geen losse punt achter
+   de datum blijft hangen. */
+.edmeta > :has(+ .edmeta__wx:last-child)::after {
+  content: none;
+}
+.edmeta > .edmeta__wx:last-child::before {
+  content: '·\200B';
+  margin-inline: var(--s2);
+  white-space: normal;
+}
