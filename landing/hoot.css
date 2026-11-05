@@ -1,4 +1,4 @@
-/* gethoot.app · v4 · mobiel eerst. Vlakken in rood, wit en papier; zon en toestel zijn één beeld op dezelfde horizon.
+/* gethoot.app · v5 rustig (5 nov) · mobiel eerst. Vlakken in rood, wit en papier; geen toestellen, geen lijnen. Beelden: vlakken in Rubrica, papier en inkt, zonder tekst.
    Schaal: ruimte 4 8 12 16 24 32 48 64 96, letter 13 15 17 20 en daarboven vloeiend. Geen externe verzoeken.
    Letters: --kop Newsreader 800 · --lees Newsreader, lopende leestekst in intro variant 4 (optische maat 12, gewicht 450, ink-2; zie --lees-wght) · --tekst Schibsted Grotesk (bediening, labels, uitleg). Geen Inter, geen Source Sans, geen Google Fonts. */
 /* Lezen in Newsreader, bedienen in Schibsted Grotesk (tekstfont 4-11). Koppen: de statische Newsreader 800 (optische maat uit).
@@ -29,15 +29,15 @@
   :root:not([data-theme=light]){
     --papier:#151310;--wit:#1E1B17;--inkt:#F1ECE2;--inkt2:#CBC3B5;--inkt3:#A39B8D;--lijn:#34302A;--chip:#2A2621;
     --s-bg:#151310;--s-ink:#F1ECE2;--s-ink2:#CBC3B5;--s-ink3:#A39B8D;--s-red:#EC7A70;--s-line:#34302A;--s-card:#1E1B17;--s-blok:#8B3023;
-    --ring:#4A443B;--accent:#EC7A70;color-scheme:dark;
+    --ring:#4A443B;--accent:#EC7A70;--lees-wght:480;color-scheme:dark;
   }
 }
 :root[data-theme=dark]{
   --papier:#151310;--wit:#1E1B17;--inkt:#F1ECE2;--inkt2:#CBC3B5;--inkt3:#A39B8D;--lijn:#34302A;--chip:#2A2621;
   --s-bg:#151310;--s-ink:#F1ECE2;--s-ink2:#CBC3B5;--s-ink3:#A39B8D;--s-red:#EC7A70;--s-line:#34302A;--s-card:#1E1B17;--s-blok:#8B3023;
-  --ring:#4A443B;--accent:#EC7A70;color-scheme:dark;
+  --ring:#4A443B;--accent:#EC7A70;--lees-wght:480;color-scheme:dark;
 }
-:root.donker{--ring:#4A443B;--accent:#EC7A70}
+:root.donker{--ring:#4A443B;--accent:#EC7A70;--lees-wght:480} /* Nacht: de leesletter op 480, de dunne halen breken niet op zwart */
 @media (min-width:720px){:root{--rand:40px}}
 @media (min-width:1024px){:root{--rand:clamp(40px,5vw,72px)}}
 
@@ -57,7 +57,7 @@ button{font:inherit;color:inherit}
 h1,h2{font-family:var(--kop);font-weight:800;letter-spacing:-.028em;line-height:1;text-wrap:balance}
 
 /* kleur vloeit mee met het dagdeel, nooit een knipper */
-body,.band,.top,.voet,.scherm,.scherm *,.label,.lead,.zon,.rg,.dag span,.dag::before{transition:background-color var(--ga) ease,color var(--ga) ease,border-color var(--ga) ease,fill var(--ga) ease,stroke var(--ga) ease}
+body,.band,.top,.voet,.label,.lead,.beeld,.il *{transition:background-color var(--ga) ease,color var(--ga) ease,border-color var(--ga) ease,fill var(--ga) ease,stroke var(--ga) ease}
 .init *,.init body{transition:none!important}
 
 /* ---------- banden ---------- */
@@ -74,15 +74,17 @@ body,.band,.top,.voet,.scherm,.scherm *,.label,.lead,.zon,.rg,.dag span,.dag::be
 .label{display:flex;align-items:center;gap:var(--s2);margin-bottom:var(--s3);font:800 .9375rem/1 var(--tekst);letter-spacing:.06em;text-transform:uppercase;color:var(--label)}
 .label .nr::after{content:"\00a0·"}
 .kicker{margin-bottom:var(--s4);font:800 .8125rem/1.2 var(--tekst);letter-spacing:.06em;text-transform:uppercase}
+/* de tag boven de held in normale kast, zodat iPhone en iPad goed gespeld blijven (Alex 5-11) */
+.held .kicker{font-size:.9375rem;letter-spacing:.01em;text-transform:none}
 h1{font-size:clamp(3.25rem,14vw,6rem)}
 h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
-.lead{margin-top:var(--s3);max-width:min(100%,36ch);font-family:var(--lees);font-weight:var(--lees-wght);font-variation-settings:var(--lees-vs);font-size:1.1875rem;line-height:1.42;color:var(--dim);text-wrap:pretty}
-@media (min-width:440px){.lead{font-size:1.375rem}}
+.lead{margin-top:var(--s3);max-width:min(100%,36ch);font-family:var(--lees);font-weight:var(--lees-wght);font-variation-settings:var(--lees-vs);font-size:1.0625rem;line-height:1.5rem;color:var(--dim);text-wrap:pretty}
+@media (min-width:720px){.lead{font-size:1.25rem;line-height:1.875rem}} /* lead als de intro van het hoofdverhaal: 20/30 */
 .rood .lead{color:var(--op-rood)}
 @media (min-width:720px){.lead{margin-top:var(--s5);max-width:30ch}.label{margin-bottom:var(--s4)}}
 .punt{color:var(--accent)}
-.rood .punt{color:var(--op-rood)}
-.rood .punt{--p:var(--op-rood)}
+/* grote koppen op het rode vlak eindigen met een punt in inkt (Alex 5-11); het logo hoot. blijft papier op rood */
+.rood .punt{color:#1A1814}
 
 /* ---------- knoppen ---------- */
 .actie{display:grid;gap:var(--s3);justify-items:start;margin-top:var(--s5)}
@@ -107,210 +109,80 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .top-in,.voet-in{display:flex;justify-content:space-between;align-items:center;gap:var(--s4);max-width:none;padding:var(--s4) max(var(--rand),calc((100% - var(--max)) / 2))}
 .merk{display:block;color:inherit}
 .wm{display:block;width:88px;height:auto;fill:currentColor}
-.wm .wm-d,.sc-logo .wm-d,.sc-blok .wm-d{fill:var(--wm-dot,#1A1814)}
+.wm .wm-d{fill:var(--wm-dot,#1A1814)}
 @media (min-width:720px){.wm{width:104px}}
 .voet nav{display:flex;gap:var(--s4);font:600 .9375rem/1 var(--tekst)}
 .voet nav a{text-decoration:none;padding:var(--s3) 0}
 .voet nav a:hover{text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:2px}
 
-/* ---------- de scène: het toestel komt uit de onderrand op; de zon staat ernaast op een eigen korte horizon en zit voor een derde achter het toestel ----------
-   --w breedte toestel, --vis zichtbare hoogte, --tp ruimte boven het toestel, --avail de breedte van de kolom.
-   Eén familie: zelfde schijf (--R, in verhouding tot het toestel), zelfde lijn (1.5px), vaste afstand tussen ringen en lijnen (.3R),
-   horizon 4.5R zichtbaar, op dezelfde hoogte t.o.v. het toestel (--zb). Per functie één variatie: concentrische ringen (held en Selectie),
-   stroomlijnen (Stroom). Gespiegeld in .om. */
-.scene{--w:min(56cqw,240px);--tp:var(--s2);--avail:calc(100cqw - 2 * var(--gutc));--par:1;--lw:1.5px;
-  --R:calc(var(--w) * .16);--zb:calc(var(--vis) - var(--w) * .7);
-  position:relative;height:calc(var(--tp) + var(--vis));margin:var(--s6) calc(var(--gutc) * -1) 0;overflow:hidden}
-.zonplek{position:absolute;z-index:1;bottom:var(--zb);right:calc(var(--gutc) + var(--w) - var(--R));width:calc(var(--R) * 5.5);height:calc(var(--R) * 3);--fade:90deg}
-.om .zonplek{right:auto;left:calc(var(--gutc) + var(--w) - var(--R));--fade:270deg}
-.zonplek::after{content:"";position:absolute;left:0;right:0;bottom:0;height:var(--lw);background:var(--hor);opacity:.5;
-  -webkit-mask:linear-gradient(var(--fade),transparent,#000 35%);mask:linear-gradient(var(--fade),transparent,#000 35%)}
-.zonclip{position:absolute;inset:0;clip-path:inset(-400px -400px 0 -400px)}
-.zonwrap{position:absolute;left:calc(100% - var(--R) * 4 / 3);bottom:calc(var(--R) * .85);width:0;height:0;transform:translateY(calc((1 - var(--par)) * var(--R) * 2.2))}
-.om .zonwrap{left:calc(var(--R) * 4 / 3)}
-.zonwrap i{position:absolute;left:0;top:0;border-radius:50%;translate:-50% -50%}
-.zon{width:calc(var(--R) * 2);height:calc(var(--R) * 2);background:var(--zon)}
-/* held en Selectie: drie ringen op vaste afstand */
-.rg{border:var(--lw) solid var(--zon)}
-.rg1{width:calc(var(--R) * 2.6);height:calc(var(--R) * 2.6);opacity:.45}
-.rg2{width:calc(var(--R) * 3.2);height:calc(var(--R) * 3.2);opacity:.28}
-.rg3{width:calc(var(--R) * 3.8);height:calc(var(--R) * 3.8);opacity:.15}
-/* held: de zon komt één keer rustig op als de scène in beeld is (klasse .wacht-op en .op uit hoot.js; zonder script of met reduced motion staat hij stil) */
-.sc-held .zonwrap{transform:none}
-.sc-held.wacht-op .zonwrap{transform:translateY(calc(var(--R) * 2.4))}
-.sc-held.wacht-op.op .zonwrap{transform:none;transition:transform 3.4s cubic-bezier(.22,.6,.3,1) .25s}
-@media (prefers-reduced-motion:reduce){.sc-held.wacht-op .zonwrap{transform:none;transition:none}}
-/* Stroom: twee stroomlijnen onder de horizon, op dezelfde afstand */
-.water{position:absolute;left:0;right:0;top:calc(100% + var(--R) * .3);height:var(--lw);opacity:.42;
-  background:repeating-linear-gradient(90deg,var(--hor) 0 calc(var(--R) * .9),transparent 0 calc(var(--R) * 1.1));
-  -webkit-mask:linear-gradient(var(--fade),transparent,#000 35%);mask:linear-gradient(var(--fade),transparent,#000 35%)}
-.water.w2{top:calc(100% + var(--R) * .6);opacity:.24;background-position:calc(var(--R) * -.5) 0}
-/* beweging: alleen de zon die opkomt terwijl de band in beeld schuift (parallax in hoot.js; in de held één keer, op eigen tempo). Geen pulseren. */
 
-/* het toestel: een platte, gestileerde vorm, geen schaduw, een lichte rand (2,2% van de breedte). Het scherm komt uit de onderrand op.
-   Elk scherm dezelfde opbouw: merkbalk (hoot. + instellingen), paginatitel, korte toelichting, dan tabs of filters (1em), dan de inhoud. */
-.toestel{position:absolute;z-index:2;right:var(--gutc);top:var(--tp);width:var(--w);height:calc(var(--vis) + 60px);
-  container-type:inline-size;background:var(--s-bg);border:calc(var(--w) * .022) solid var(--ring);border-bottom:0;
-  border-radius:calc(var(--w) * .17) calc(var(--w) * .17) 0 0;overflow:hidden}
-.om .toestel{right:auto;left:var(--gutc)}
-.scherm{font-size:3.9cqw;line-height:1.3;color:var(--s-ink);font-family:var(--tekst);text-align:left;overflow:hidden;height:100%;border-radius:12cqw 12cqw 0 0}
-.sc-in{padding:1.7em 1.15em 0;transform:translateY(calc((1 - var(--par)) * 2.2em))}
-.sc-rij{display:flex;align-items:center;justify-content:space-between;height:2.4em}
-.sc-logo{height:1.3em;width:auto;display:block;fill:var(--s-ink);--wm-dot:var(--s-red)}
-.sc-ico{width:1.4em;height:1.4em;display:block;fill:none;stroke:var(--s-ink);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-.sc-titel{font:800 2.05em/1.05 var(--kop);letter-spacing:-.02em;margin-top:.3em}
-.sc-sub{font-size:.92em;color:var(--s-ink2);margin-top:.2em}
-.sc-ill{display:block;width:100%;aspect-ratio:2/1;margin-top:1em;border-radius:.55em;overflow:hidden}
-.il-h{fill:color-mix(in srgb,var(--s-red) 11%,var(--s-bg))}.il-z{fill:var(--s-red)}.il-1{fill:color-mix(in srgb,var(--s-ink) 20%,var(--s-bg))}.il-2{fill:color-mix(in srgb,var(--s-ink) 38%,var(--s-bg))}
-.sc-rub{margin-top:1em;font:700 .78em/1 var(--tekst);letter-spacing:.09em;text-transform:uppercase;color:var(--s-red)}
-.sc-waarom{font-size:.8em;color:var(--s-ink3);margin-top:.3em}
-.sc-k{font:800 1.12em/1.18 var(--kop);letter-spacing:-.008em;margin-top:.3em}
-.sc-kg{font:800 2.02em/1.06 var(--kop);letter-spacing:-.018em;margin-top:.3em}
-.sc-dek{font-family:var(--lees);font-weight:var(--lees-wght);font-variation-settings:var(--lees-vs);font-size:.96em;color:var(--s-ink2);margin-top:.4em;line-height:1.32}
-.sc-bron{display:flex;align-items:center;gap:.5em;margin-top:.75em;font-size:.92em}
-.sc-bron i{flex:none;width:1.6em;height:1.6em;border-radius:50%;display:grid;place-items:center;font:700 .62em/1 var(--tekst);font-style:normal;color:#fff;background:var(--c,#1A1814)}
-.sc-bron span{display:grid;line-height:1.15}
-.sc-bron small{font-size:.82em;color:var(--s-ink3)}
-.c1{--c:#2F4F8F}.c2{--c:#8C3B2F}.c3{--c:#2E6B5A}.c4{--c:#7A5A1E}.c5{--c:#5A3E7A}
-.sc-vgl{margin-left:auto;color:var(--s-red);font-weight:700}
-.sc-bm{width:1.05em;height:1.3em;flex:none;fill:none;stroke:var(--s-ink);stroke-width:1.6}
-.sc-bron span+.sc-bm{margin-left:auto}
-.sc-vgl+.sc-bm{margin-left:.3em}
-.sc-lijn{height:1px;background:var(--s-line);margin:1.1em 0 .2em}
-.sc-blok{margin-top:1.6em;border-radius:.9em;background:var(--s-blok);color:#F5F1E8;text-align:center;padding:1.8em 1.4em 1.8em}
-.sc-blok svg{height:2.4em;width:auto;display:block;margin:0 auto .5em;fill:#F5F1E8;--wm-dot:#F5F1E8}
-.sc-blok strong{display:block;font:800 1.9em/1.05 var(--kop);letter-spacing:-.015em}
-.sc-blok p{margin-top:.7em;font-size:.92em;line-height:1.4}
-.sc-blok u{display:inline-block;margin-top:1.1em;font-weight:700;text-underline-offset:.2em}
-.sc-tabrij{position:relative;display:flex;gap:1em;margin-top:1em;padding-bottom:.5em;border-bottom:1px solid var(--s-line);font:800 .98em/1 var(--kop);color:var(--s-ink3);white-space:nowrap;overflow:hidden}
-.sc-tabrij .on{color:var(--s-ink)}
-.sc-ind{position:absolute;left:0;bottom:-1px;width:2.6em;height:2px;border-radius:2px;background:var(--s-red);transform-origin:0 0}
-@media (prefers-reduced-motion:no-preference){.sc-ind{transition:transform .5s cubic-bezier(.45,0,.2,1),width .5s cubic-bezier(.45,0,.2,1)}.sc-tabrij span{transition:color .4s ease}}
-.sc-lijst{margin-top:.3em}
-.sc-lijst[hidden]{display:none}
-.sc-lijst .sc-item{padding:.95em 0;border-bottom:1px solid var(--s-line)}
-.sc-lijst .sc-item:first-child{padding-top:.7em}
-.sc-hier{display:flex;align-items:center;gap:.6em;margin:.4em 0 .3em;font:700 .74em/1 var(--tekst);letter-spacing:.09em;text-transform:uppercase;color:var(--s-red)}
-.sc-hier::before,.sc-hier::after{content:"";flex:1;height:1px;background:var(--s-red);opacity:.5}
-/* zoals 1.1.0: de plek in de Editie als nummer in inkt (Newsreader, gelijke cijfers) vóór de rubriek; 04–10 als korte rijen; de bubbel apart erna, zonder nummer */
-.sc-nr{font:800 1.28em/1 var(--kop);letter-spacing:0;font-variant-numeric:tabular-nums;color:var(--s-ink);text-transform:none}
-.sc-rub .sc-nr{margin-right:.35em}
-.sc-rub .sc-nr::after{content:"\00a0·";font:700 .78em/1 var(--tekst);color:var(--s-ink3)}
-.sc-rest{margin:1.1em 0 0;padding:0;list-style:none;border-top:1px solid var(--s-line)}
-.sc-rest li{display:flex;align-items:baseline;gap:.6em;padding:.6em 0;border-bottom:1px solid var(--s-line);font:800 .98em/1.2 var(--kop);letter-spacing:-.006em;white-space:nowrap;overflow:hidden}
-.sc-rest .sc-nr{font-size:1em}
-.sc-bubbel{margin-top:1.2em;padding:.2em .9em .9em;border-radius:.7em;background:var(--s-card);box-shadow:0 0 0 1px var(--s-line)}
-/* een bericht van Bluesky in de Stroom: wie boven, dan de tekst */
-.sc-bsky .sc-bron{margin-top:0}
-.sc-post{margin:.5em 0 0;font-size:.96em;line-height:1.35;color:var(--s-ink)}
-/* Selectie zoals 1.1.0 (index B): de week, wat je te lezen krijgt, dan de inhoud als lijst */
-.sc-week{margin-top:.9em;font:700 .74em/1 var(--tekst);letter-spacing:.09em;text-transform:uppercase;color:var(--s-ink3)}
-.sc-lede{margin-top:.35em;font:800 1.3em/1.12 var(--kop);letter-spacing:-.012em}
-.sc-inhoud{margin-top:.9em;border-top:1px solid var(--s-ink)}
-.sc-irij{display:flex;align-items:center;justify-content:space-between;gap:.6em;padding:.55em 0;border-bottom:1px solid var(--s-line)}
-.sc-irij b{display:block;font:800 1.02em/1.15 var(--kop)}
-.sc-irij small{display:block;font-size:.78em;color:var(--s-ink3);margin-top:.1em}
-.sc-irij svg{width:1.15em;height:1.15em;flex:none;fill:none;stroke:var(--s-red);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.sc-onderwerp{display:flex;align-items:center;gap:.6em;margin-top:1.1em;padding-top:.8em;border-top:1px solid var(--s-ink)}
-.sc-onderwerp i{width:1.9em;height:1.9em;border-radius:50%;flex:none;background:color-mix(in srgb,var(--s-red) 12%,transparent);display:grid;place-items:center}
-.sc-onderwerp i svg{width:1.05em;height:1.05em;fill:none;stroke:var(--s-red);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.sc-onderwerp b{display:block;font:800 1.1em/1.1 var(--kop)}
-.sc-onderwerp small{display:block;font-size:.78em;color:var(--s-ink3);margin-top:.15em}
-.sc-kaart{margin-top:.8em;border-radius:.7em;overflow:hidden;background:var(--s-card);box-shadow:0 0 0 1px var(--s-line)}
-.sc-kaart .sc-ill{margin:0;border-radius:0}
-.sc-kaart>div{padding:.8em .9em 1em}
-.sc-kaart .sc-k{margin-top:0}
-.pan-in{animation:fadein .45s ease both}
-@keyframes fadein{from{opacity:0;transform:translateY(.6em)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.pan-in{animation:none}}
+/* ---------- beelden (Alex 5-11): geen toestellen, geen schermtekst, geen lijnen ----------
+   Beeldtaal 01, 04, 06, 07 en 11 als vlakken: Rubrica, papier en inkt, één rood moment per beeld. Inline SVG, kleuren uit de tokens,
+   zodat Licht, vroege avond en Nacht meelopen. Het beeldvak: hoek 12 zoals het beeld in kaart A+, in de kleur van de andere band. */
+.il{display:block;width:100%;height:auto}
+.il-rood{fill:var(--rood)}
+.il-inkt{fill:var(--inkt)}
+.il-mat{fill:var(--lijn)}
+.il-zon{fill:color-mix(in srgb,var(--inkt) 16%,var(--beeldbg))}
+.il-grond{fill:var(--inkt)}
+.il-papier{fill:var(--op-rood)}
+.il-punt{fill:#1A1814}
+.il-stapel circle{stroke:var(--beeldbg);stroke-width:8}
+/* Nacht: alle grote vlakken zwart, ook de grond */
+:root.donker .il-grond{fill:#0B0A08}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .il-grond{fill:#0B0A08}}
+/* Editie: de zon van het dagdeel van nu is rood (data-dagdeel uit het ritueel); de andere twee staan stil in de lijnkleur */
+:root[data-dagdeel=ochtend] .il-z-ochtend,:root[data-dagdeel=middag] .il-z-middag,:root[data-dagdeel=avond] .il-z-avond{fill:var(--rood)}
+:root:not([data-dagdeel]) .il-z-ochtend{fill:var(--rood)}
+.wit{--beeldbg:var(--papier)}.papier{--beeldbg:var(--wit)}
+.beeld{position:relative;z-index:1;margin:var(--s6) 0 0;border-radius:12px;overflow:hidden;background:var(--beeldbg)}
+.editie,.stroom,.selectie,.redacteur{padding-bottom:var(--s7)}
 
-/* zichtbare hoogte per band, in verhouding tot de breedte van het toestel (de tekst in het scherm schaalt mee) */
-.sc-held{--vis:calc(var(--w) * 1.02)}.sc-held .sc-ill{display:none}
-.sc-stroom{--vis:calc(var(--w) * 1.12)}
-.sc-selectie{--vis:calc(var(--w) * 1.32)}
-/* 01 Editie: geen zon naast het toestel (die loopt boven zijn baan); het toestel staat midden in de kolom en leest zelf de Editie uit */
-.sc-editie{--vis:calc(var(--w) * 1.2);--w:min(60cqw,250px)}
-.sc-editie .toestel{right:auto;left:calc(var(--gutc) + (var(--avail) - var(--w)) / 2)}
-.sc-rol{will-change:transform}
-.sc-rol{padding-bottom:1.4em}
-@media (min-width:720px){
-  .band{padding-top:clamp(48px,4vw,64px)}
-  .scene{--w:300px;--tp:var(--s4);margin-top:var(--s7)}
-  .sc-editie{--w:300px}
-}
+/* held: de papieren zon komt op uit de onderrand van het rode vlak; de papieren band eronder is de horizon */
+.beeld-held{margin:var(--s7) calc(var(--gutc) * -1) 0;line-height:0}
+.beeld-held .il{max-width:640px;margin-inline:auto}
+.opkomst{transition:none}
+.beeld-held.wacht-op .opkomst{transform:translateY(46%)}
+.beeld-held.wacht-op.op .opkomst{transform:none;transition:transform 3.4s cubic-bezier(.22,.6,.3,1) .25s}
+@media (prefers-reduced-motion:reduce){.beeld-held.wacht-op .opkomst{transform:none;transition:none}}
 
-/* ---------- 01 Editie: de gang van de zon (ochtend, middag, avond) ---------- */
-.dagen{position:relative;width:min(380px,100%);height:124px;margin-top:var(--s5)}
-.boog{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-.boog path{fill:none;stroke:var(--inkt3);stroke-width:1.5;stroke-dasharray:2 6;stroke-linecap:round;vector-effect:non-scaling-stroke}
-.boog line{stroke:var(--inkt);stroke-width:1.5;stroke-opacity:.5;vector-effect:non-scaling-stroke}
-.dag{position:absolute;translate:-50% -50%;width:56px;height:56px;padding:0;border:0;background:none;cursor:pointer;display:grid;place-items:center;border-radius:50%}
-.dag::before{content:"";width:22px;height:22px;border-radius:50%;border:1.5px solid var(--accent);background:var(--bg);transition:background-color .3s ease}
-.dag span{position:absolute;top:100%;left:50%;translate:-50% 0;margin-top:-4px;font:700 .8125rem/1 var(--tekst);letter-spacing:.1em;text-transform:uppercase;color:var(--inkt2);white-space:nowrap}
-.dag[aria-pressed=true] span{color:var(--inkt)}
-.dag[data-dag=ochtend]{left:12%;top:62%}.dag[data-dag=middag]{left:50%;top:22%}.dag[data-dag=avond]{left:88%;top:62%}
-.dag[data-dag=middag] span{top:auto;bottom:100%;margin:0 0 -6px}
-@media (hover:hover){.dag:hover::before{background:color-mix(in srgb,var(--accent) 16%,var(--bg))}}
-.dagzon{position:absolute;z-index:1;left:0;top:0;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:var(--accent);pointer-events:none;
-  transform:translate(var(--x,45.6px),var(--y,84px));transition:opacity .5s ease,background-color var(--ga) ease}
+/* De Redacteur: de drie redenen als gewone tekst onder het beeld, drie naast elkaar vanaf 720 */
+.redenen{display:grid;gap:var(--s5);margin-top:var(--s7)}
+.redenen b{display:block;margin-bottom:var(--s2);font:800 .8125rem/1.2 var(--tekst);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.redenen p{max-width:34ch;font-family:var(--lees);font-weight:var(--lees-wght);font-variation-settings:var(--lees-vs);font-size:1.0625rem;line-height:1.5rem;color:var(--inkt2);text-wrap:pretty}
+.redacteur .kol{padding-bottom:0}
+@media (min-width:720px){.redenen{grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s6)}}
 
-/* ---------- 04 De Redacteur: dezelfde Editie op een staande iPad (3:4, dunne rand, ronde hoeken, geen notch), de waarom-regels ernaast; op mobiel een telefoon ---------- */
-.rd-kop{padding-bottom:0}
-.rd-kop .lead{max-width:min(100%,38ch)}
-.redacteur{padding-bottom:var(--s6)}
-.podium{--w:min(58cqw,250px);position:relative;height:calc(var(--w) * 4 / 3);margin:var(--s6) var(--gutc) 0}
-.ipad{position:absolute;left:0;top:0;width:var(--w);height:calc(var(--w) * 4 / 3);border:max(2px,calc(var(--w) * .013)) solid var(--ring);border-radius:calc(var(--w) * .06)}
-.ipad .scherm{font-size:2.9cqw;border-radius:0;-webkit-mask:linear-gradient(#000 84%,transparent 97%);mask:linear-gradient(#000 84%,transparent 97%)}
-.ipad .sc-in{padding:2em 2.4em 0;transform:none}
-.ipad .sc-bron span{white-space:nowrap}
-.ipad .sc-titel{font-size:2.4em}
-.ip-top{display:grid;grid-template-columns:1fr 1fr;gap:1.6em;align-items:start;margin-top:1em}
-.ip-top .sc-ill{margin-top:.2em;aspect-ratio:1/1;height:auto}
-.ip-top .sc-rub{margin-top:0}
-.ip-kol{display:grid;grid-template-columns:1fr 1fr;gap:2.2em}
-.ip-kol .sc-rub{margin-top:0}
-.ipad .sc-lijn{margin:1.4em 0 1.2em}
-.rd-item .sc-kg{font-size:1.75em;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.rd-item .sc-k,.ip-rest .sc-k{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-height: 2.3em}
-.rd-item .sc-dek{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.podium mark{display:inline-block;padding:.12em .4em;margin-left:-.4em;background:none;color:inherit;border-radius:.35em;box-shadow:0 0 0 .14em color-mix(in srgb,var(--s-red) 32%,transparent)}
-.uitleg li{position:absolute;z-index:5;top:0;right:0;width:calc(100% - var(--w) - 18px);font-size:.8125rem;line-height:1.35;color:var(--inkt2)}
-.uitleg b{display:block;margin-bottom:var(--s1);font:700 .6875rem/1.2 var(--tekst);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
-.uitleg li::after{content:"";position:absolute;top:7px;right:calc(100% + 6px);height:1px;width:var(--lijnw,24px);background:var(--accent);opacity:.6}
-.uitleg li::before{content:"";position:absolute;top:3px;right:calc(100% + 6px + var(--lijnw,24px));width:9px;height:9px;border-radius:50%;background:var(--accent)}
-/* smal: de twee regels rechts, bij de rechterkolom van de iPad */
-.uitleg li[data-bij=w2]{display:none}
-.podium:not(.klaar) .uitleg li{visibility:hidden}
-/* de telefoon: alleen op mobiel, in plaats van de iPad */
-.rd-tel{display:none}
-/* mobiel: de telefoon links in de kolom (iets smaller dan in 01), het scherm loopt onderaan uit.
-   De waarom-regels rechts ernaast, elk met een lijntje en een stip naar de regel in het scherm (zoals concept v3) */
-@media (max-width:719px){
-  .podium{--w:min(54cqw,230px);height:auto}
-  .podium .ipad{display:none}
-  .podium .rd-tel{display:block;position:relative;inset:auto;height:auto;
-    -webkit-mask:linear-gradient(#000 calc(100% - 4em),transparent);mask:linear-gradient(#000 calc(100% - 4em),transparent)}
-  .rd-tel .sc-in{transform:none;padding-bottom:3.4em}
-  .rd-tel .sc-rub{margin-top:0}
-  .rd-tel .sc-titel+.sc-sub+.rd-item{margin-top:1.2em}
-  .rd-tel .sc-lijn{margin:1.1em 0 1em}
-  .uitleg li,.uitleg li[data-bij=w2]{display:block;left:calc(var(--w) + 22px);right:auto;width:min(280px,calc(100% - var(--w) - 22px));font-size:.875rem;line-height:1.35}
-  .uitleg b{font-size:.75rem;letter-spacing:.08em}
-  .uitleg li.weg{display:none}
-}
-@media (min-width:720px){.podium{--w:340px}.uitleg li{width:min(300px,calc(100% - var(--w) - 40px));font-size:1rem}.uitleg b{font-size:.8125rem;letter-spacing:.1em}}
+/* ---------- 404 ---------- */
+.fout{min-height:70vh;display:grid;align-content:center;padding-bottom:var(--s8)}
+.fout h1{font-size:clamp(3rem,13vw,7rem)}
+
+/* ---------- desktop: twee kolommen vanaf 900 (held) en 1100 (de delen) ---------- */
+@media (min-width:720px){.band{padding-top:clamp(48px,4vw,64px)}}
 @media (min-width:900px){
-  .rd-kop{text-align:center;display:grid;justify-items:center}.rd-kop .label{justify-content:center}
-  .podium{--w:clamp(340px,36vw,500px);margin-top:var(--s7)}
-  .podium .ipad{left:50%;translate:-50% 0}
-  .uitleg li{width:clamp(180px,22vw,290px);font-size:1.0625rem;line-height:1.4}
-  .uitleg li.r{right:auto;left:calc(50% + var(--w) / 2 + 32px)}
-  .uitleg li.l{right:calc(50% + var(--w) / 2 + 64px);text-align:right}
-  .uitleg li.r::after{right:calc(100% + 10px)}.uitleg li.r::before{right:calc(100% + 10px + var(--lijnw,60px))}
-  .uitleg li.l::after{right:auto;left:calc(100% + 10px)}.uitleg li.l::before{right:auto;left:calc(100% + 10px + var(--lijnw,60px))}
-  .uitleg li[data-bij=w2]{display:block}
-  .redacteur{padding-bottom:var(--s8)}
+  .band{padding-top:var(--s7)}
+  .kol .tekst{max-width:720px}
+  .einde{padding-top:var(--s9)}
+  .einde .binnen{padding-bottom:var(--s8)}
+  .einde .lead{margin-top:var(--s6)}
+  .held .binnen{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s7);align-items:end}
+  .held .tekst{align-self:center;padding-bottom:var(--s8)}
+  .beeld-held{margin:0 calc(var(--gutc) * -1) 0 0}
+  .beeld-held .il{max-width:none}
+  .editie,.stroom,.selectie,.redacteur{padding-bottom:var(--s8)}
 }
+@media (min-width:900px) and (max-width:1099px){.held h1{font-size:clamp(3.5rem,7vw,4.75rem)}}
+@media (min-width:1100px){
+  .binnen:not(.kol){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s8);align-items:center}
+  .held .binnen{align-items:end}
+  .binnen.om .beeld{order:-1}
+  .beeld{margin:0}
+  .held .lead,.held .actie{margin-top:var(--s5)}
+  .held .lead{max-width:32ch}
+  .held .wacht b{white-space:nowrap}
+  .redenen{margin-top:var(--s8)}
+}
+@media (min-width:1280px){h1{font-size:5.75rem}h2{font-size:5.25rem}}
 
 /* ---------- einde ---------- */
 .einde{padding-top:var(--s8)}
@@ -341,16 +213,10 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
   48.75%{transform:scale(1.12,.88);animation-timing-function:ease-out}
   58.75%,100%{transform:scale(1,1)}
 }
-/* het persvel onder de knop: een papieren halve zon op de horizon, dan twee lijnen die korter worden (2/3, 1/3).
-   Lijnen 2 en 1 px, maten op de schaal van 4; bewust breder dan de kop. Staat stil, ook zonder Verminder beweging. */
+/* onder de knop een papieren halve zon, zonder horizonlijn of regels eronder (Alex 5-11: geen lijnen). Staat stil. */
 .vel{--r:clamp(40px,6vw,56px);position:relative;width:100%;max-width:1080px;margin-top:var(--s7);padding-top:var(--r)}
-.vel i{display:block;height:1px;background:var(--hor)}
 .vel .vel-zon{position:absolute;left:50%;top:0;width:calc(var(--r) * 2);height:var(--r);translate:-50% 0;border-radius:var(--r) var(--r) 0 0;background:var(--zon)}
-.vel .vel-hor{height:2px}
-.vel .vel-r1{width:66.667%;margin-top:var(--s5)}
-.vel .vel-r2{width:33.333%;margin-top:var(--s2)}
 @media (min-width:900px){.vel{margin-top:var(--s8)}}
-.voet{border-top:1px solid color-mix(in srgb,var(--op-rood) 32%,transparent)}
 .voet-in{flex-wrap:wrap;gap:var(--s5) var(--s7);padding-top:var(--s6);padding-bottom:var(--s6);font-size:.9375rem;font-weight:600}
 .voet-in .wm{width:72px}
 .voet-in p{flex-basis:100%}
@@ -360,42 +226,7 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 .fout{min-height:70vh;display:grid;align-content:center;padding-bottom:var(--s8)}
 .fout h1{font-size:clamp(3rem,13vw,7rem)}
 
-/* ---------- desktop: twee kolommen vanaf 1100, de scène loopt door tot de rand ---------- */
-@media (min-width:900px){
-  .band{padding-top:var(--s7)}
-  .kol .tekst{max-width:720px}
-  .einde{padding-top:var(--s9)}
-  .einde .binnen{padding-bottom:var(--s8)}
-  .einde .lead{margin-top:var(--s6)}
-}
-@media (min-width:1100px){
-  .binnen:not(.kol){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s7);align-items:end}
-  .binnen:not(.kol) .tekst{align-self:center;padding-bottom:var(--s7)}
-  .binnen:not(.kol) .scene{margin:0 calc(var(--gutc) * -1) 0 0}
-  .binnen.om .scene{order:-1;margin:0 0 0 calc(var(--gutc) * -1)}
-  .held .binnen{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-  .scene{--avail:calc((100cqw - 2 * var(--gutc) - 48px) / 2);--tp:var(--s7)}
-  .sc-held{--tp:var(--s8)}
-  /* banden 01 t/m 03 even hoog als in concept v3: zichtbaar toestel ongeveer 1,2 tot 1,3 keer zijn breedte */
-  .sc-stroom,.sc-selectie{--vis:calc(var(--w) * 1.22)}
-  .sc-editie{--vis:calc(var(--w) * 1.32)}
-  .binnen:not(.kol) .tekst .dagen{margin-bottom:0}
-}
-@media (min-width:1280px){.scene,.sc-editie{--w:340px}}
-@media (min-width:1440px){.scene,.sc-editie{--w:360px}}
-@media (min-width:1280px){h1{font-size:5.75rem}h2{font-size:5.25rem}}
-
-/* held op desktop: toestel en zon prominenter, iets van de rand af (Alex 31-10) */
-@media (min-width:1100px){
-  .held .sc-held{--w:min(520px,calc(var(--avail) * .84));--tp:var(--s5);--vis:min(466px,var(--w));--inz:calc((var(--avail) - var(--w)) * .3)}
-  .held .sc-held{overflow:visible;clip-path:inset(-400px 0 0 -600px)}
-  .held .sc-held .toestel{right:calc(var(--gutc) + var(--inz))}
-  .held .sc-held .zonplek{right:calc(var(--gutc) + var(--inz) + var(--w) - var(--R))}
-}
-@media (min-width:1200px){.held .sc-held{--w:min(520px,calc(var(--avail) * .84))}}
-@media (min-width:1440px){.held .sc-held{--w:min(560px,calc(var(--avail) * .86))}}
-
-/* held op mobiel (Alex 31-10): één knop, App Store als kleine regel, geen menu, kleinere kop, telefoon in het eerste scherm */
+/* held op mobiel (Alex 31-10): één knop, App Store als kleine regel, geen menu, kleinere kop */
 .wacht-gratis{display:none}
 @media (max-width:719px){
   .held h1{font-size:clamp(2.75rem,12vw,3.5rem)}
@@ -408,28 +239,16 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
   .held .wacht small,.held .wacht b{display:none}
   .held .wacht-gratis{display:block;font:500 .9375rem/1.45 var(--tekst);letter-spacing:0;text-transform:none;font-style:normal}
   .held .gratis{display:none}
-  .held .scene{margin-top:var(--s5)}
 }
-
-/* Live koppen houden hun plaats: drie kopregels, twee introregels en vaste bronregels. */
-.rd-item .sc-kg{height:3.18em}
-.rd-item .sc-k{height:2.36em;max-height:none}
-.rd-item .sc-dek{height:2.64em}
-.rd-item .sc-waarom{height:2.6em;overflow:hidden}
-.rd-item .sc-bron{height:2.2em}
-.rd-item .sc-bron span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-.podium .sc-vgl{flex:none;width:10.6em;text-align:right}
 
 /* Vier voordelen onder de held: vergelijken, en de drie delen gelijkwaardig (Editie, Stroom, Selectie). Twee bij twee vanaf 720. */
 .voordelen .kol{padding-bottom:var(--s7)}
 .voordelen h2{font-size:clamp(1.875rem,3.3vw,2.5rem);line-height:1.12;max-width:32ch}
 .voordeel-lijst{display:grid;gap:var(--s5);margin-top:var(--s5)}
-.voordeel-lijst li{min-width:0;border-top:1px solid var(--lijn);padding-top:var(--s4);display:grid;grid-template-rows:auto 1fr;row-gap:var(--s2);align-content:start}
+.voordeel-lijst li{min-width:0;display:grid;grid-template-rows:auto 1fr;row-gap:var(--s2);align-content:start}
 .voordeel-lijst h3{font:800 clamp(1.5rem,2.2vw,1.75rem)/1.12 var(--kop);letter-spacing:-.015em;text-wrap:balance}
 .voordeel-lijst h3 span{display:block}
-.voordeel-lijst p{max-width:34ch;font-family:var(--lees);font-weight:var(--lees-wght);font-variation-settings:var(--lees-vs);color:var(--inkt2)}
-/* Nacht in één regel, stil onder de voordelen */
+.voordeel-lijst p{max-width:34ch;font-family:var(--lees);font-weight:var(--lees-wght);font-variation-settings:var(--lees-vs);font-size:1.0625rem;line-height:1.5rem;color:var(--inkt2)}
 @media(min-width:720px){
   .voordeel-lijst{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s6) var(--s6)}
   .voordeel-lijst h3{min-height:2.24em;max-width:19ch}
@@ -437,66 +256,26 @@ h2{font-size:clamp(2.25rem,9.6vw,5.25rem)}
 @media(min-width:960px){
   .voordelen .kol{padding-bottom:var(--s8)}
   .voordeel-lijst{gap:var(--s7) var(--s7);margin-top:calc(var(--s5) + var(--s4))}
-  .voordeel-lijst li{padding-top:var(--s5);row-gap:var(--s4)}
+  .voordeel-lijst li{row-gap:var(--s3)}
 }
-.actie .knop{order:-1}
-@media(max-width:719px){
-  .podium{display:flex;flex-direction:column;gap:var(--s5)}
-  .podium .uitleg{position:static;order:2;display:grid;gap:var(--s4);padding:0}
-  .podium .uitleg li,.podium .uitleg li.weg,.podium .uitleg li[data-bij=w2]{position:static;display:block;visibility:visible;width:auto;text-align:left;inset:auto;font-size:1rem}
-  .podium .uitleg li::before,.podium .uitleg li::after{display:none}
-  .podium .rd-tel{margin-inline:auto}
-}
-@media(min-width:900px) and (max-width:1099px){
-  .held .binnen{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s6);align-items:end}
-  .held .tekst{align-self:center}
-  .held h1{font-size:clamp(3.5rem,7vw,4.75rem)}
-  .held .scene{--avail:calc((100cqw - 2 * var(--gutc) - 32px) / 2);--w:min(340px,var(--avail));margin-top:0}
-}
+
+/* Meer lucht rond leeswerk en acties */
 .actie .knop{flex:0 0 auto;white-space:nowrap}
-
-/* Kleine FAQ: native details werken met aanraking, toetsenbord en schermlezer. */
-.faq{padding-block:var(--s7)}
-.faq h2{font-size:clamp(2rem,5vw,3.5rem);max-width:20ch}
-.faq-lijst{max-width:48rem;margin-top:var(--s6)}
-.faq details{border-bottom:1px solid var(--lijn)}
-.faq details:first-child{border-top:1px solid var(--lijn)}
-.faq summary{cursor:pointer;min-height:56px;padding:var(--s4) 0;font:800 1.125rem/1.4 var(--tekst)}
-.faq summary::marker{color:var(--accent)}
-.faq details p{max-width:65ch;padding-bottom:var(--s5);font-family:var(--lees);font-weight:var(--lees-wght);font-variation-settings:var(--lees-vs);color:var(--inkt2)}
-
-/* Meer lucht rond leeswerk, acties en de drie signature-demo's. */
 .actie{margin-top:var(--s7)}
 .held .lead{margin-top:var(--s6)}
 @media (min-width:720px){.held .lead{max-width:min(100%,36ch)}}
-.dagen{margin-top:var(--s7)}
-@media(max-width:719px){
-  .held .actie{margin-top:var(--s6);gap:var(--s4)}
-  .held .scene{margin-top:var(--s7)}
-  .editie .scene,.stroom .scene,.selectie .scene{margin-top:var(--s7)}
-}
-/* ≥1100: de hero houdt zijn balans (telefoon gelijk met regel 2); alleen de drie demo's krijgen meer lucht. */
-@media(min-width:1100px){
-  .editie .binnen,.stroom .binnen,.selectie .binnen{gap:var(--s8)}
-  .editie .scene,.stroom .scene,.selectie .scene{--avail:calc((100cqw - 2 * var(--gutc) - 64px) / 2)}
-  .held .lead,.held .actie{margin-top:var(--s5)}
-  /* de langere lead blijft drie regels en de App Store-regel één, zodat de band (en dus het toestel) even hoog blijft:
-     in Newsreader 22 is dat 32ch (393 px, was 38ch Source Sans 21 = 397 px) */
-  .held .lead{max-width:32ch}
-  .held .wacht b{white-space:nowrap}
-}
-
-@media(min-width:900px) and (max-width:1099px){
-  .held .binnen{gap:var(--s7)}
-  .held .scene{--avail:calc((100cqw - 2 * var(--gutc) - 48px) / 2)}
-  .held .wacht b{white-space:nowrap}
-}
-/* de App Store-badge staat naast de webknop op de zon-scène: een dichte rode ondergrond houdt horizon en ringen erachter */
+@media(max-width:719px){.held .actie{margin-top:var(--s6);gap:var(--s4)}}
+/* de App Store-pil op het rode vlak: een dichte rode ondergrond */
 .held .wacht{background:var(--bg);transition:background-color var(--ga) ease,color var(--ga) ease,border-color var(--ga) ease}
 
-/* De preview zelf is te pauzeren; alleen toetsenbordfocus tekent een rand. */
-.scene[role="button"]{cursor:pointer}
-.scene[role="button"]:focus-visible{outline-offset:-4px}
+
+/* Kleine FAQ: native details werken met aanraking, toetsenbord en schermlezer. Geen scheidingslijnen: lucht scheidt de vragen. */
+.faq{padding-block:var(--s7)}
+.faq h2{font-size:clamp(2rem,5vw,3.5rem);max-width:20ch}
+.faq-lijst{max-width:48rem;margin-top:var(--s6)}
+.faq summary{cursor:pointer;min-height:56px;padding:var(--s4) 0;font:800 1.125rem/1.4 var(--tekst)}
+.faq summary::marker{color:var(--accent)}
+.faq details p{max-width:65ch;padding:0 0 var(--s5) 1.1em;font-family:var(--lees);font-weight:var(--lees-wght);font-variation-settings:var(--lees-vs);font-size:1.0625rem;line-height:1.5rem;color:var(--inkt2)}
 
 /* afsluiting en voet rustig (Alex 1-11): één knop, één stille regel, gelijke tussenruimtes, voet op mobiel gecentreerd */
 .einde .actie{margin-top:var(--s6)}

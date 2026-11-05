@@ -45,44 +45,20 @@ const AS = appStore(APP_STORE);
 const { INLINE } = await import('./inline.mjs');
 const HASH = 'sha256-' + crypto.createHash('sha256').update(INLINE).digest('base64');
 
-// de Stroom-lijsten. De rubrieken in de vaste volgorde van de app (Alles, Binnenland, Wereld, Cultuur).
-// Een waarom-regel alleen waar hij iets zegt (Buiten je bubbel, Groot nieuws); nooit "Omdat je X volgt".
-const BR = { LD: ['c1', 'Landelijk Dagblad'], SK: ['c2', 'Stadskrant'], WW: ['c4', 'Weekblad Wereld'], CK: ['c3', 'Cultuurkrant'], ON: ['c5', 'Omroep Nieuws'] };
-const item = ([rub, waarom, kop, b, tijd]) => `<div class="sc-item"><div class="sc-rub">${rub}</div>${waarom ? `<div class="sc-waarom">${waarom}</div>` : ''}<div class="sc-k">${kop}</div><div class="sc-bron"><i class="${BR[b][0]}">${b}</i><span>${BR[b][1]}<small>${tijd}</small></span><svg class="sc-bm" viewBox="0 0 14 18"><use href="#i-bm"/></svg></div></div>`;
-// Een bericht van Bluesky, zoals in de Stroom van 1.1.0: wie, handle en tijd boven, dan de tekst.
-const BSKY = (naam, ini, handle, tijd, tekst) => `<div class="sc-item sc-bsky"><div class="sc-bron"><i class="c5">${ini}</i><span>${naam}<small>${handle} · ${tijd}</small></span><svg class="sc-bm" viewBox="0 0 14 18"><use href="#i-bm"/></svg></div><p class="sc-post">${tekst}</p></div>`;
-const L = {
-  alles: [
-    ['Binnenland', '', 'Netbeheerders mogen eerder beginnen met bouwen, ook als de inspraak nog loopt', 'ON', '4 min geleden'],
-    BSKY('Natuurdagboek', 'ND', '@natuurdagboek.example', '7 min', 'Vanochtend de eerste ijsvogel van het seizoen langs de Vecht. Rustig begin van de dag.'),
-    ['Cultuur', '', 'Oude bioscoop in de binnenstad wordt weer filmhuis', 'SK', '11 min geleden'],
-    'HIER',
-    ['Wereld', 'Buiten je bubbel', 'Zuid-Europese steden zoeken verkoeling met nieuwe stadsbossen', 'WW', '1 uur geleden'],
-    ['Binnenland', '', 'Treinreizigers vinden sneller een zitplaats dankzij de nieuwe dienstregeling', 'LD', '2 uur geleden'],
-  ],
-  binnenland: [
-    ['Binnenland', '', 'Netbeheerders mogen eerder beginnen met bouwen, ook als de inspraak nog loopt', 'ON', '4 min geleden'],
-    ['Binnenland', '', 'Treinreizigers vinden sneller een zitplaats dankzij de nieuwe dienstregeling', 'LD', '2 uur geleden'],
-    ['Binnenland', '', 'Fietsbrug verbindt twee wijken die jarenlang gescheiden waren', 'SK', '3 uur geleden'],
-    ['Binnenland', '', 'Bibliotheken openen in de avond extra uren voor wie rust zoekt', 'LD', '5 uur geleden'],
-  ],
-  wereld: [
-    ['Wereld', 'Buiten je bubbel', 'Zuid-Europese steden zoeken verkoeling met nieuwe stadsbossen', 'WW', '1 uur geleden'],
-    ['Wereld', 'Groot nieuws · 9 bronnen', 'Wereldleiders zoeken op de top naar een akkoord over scheepvaartroutes', 'ON', '2 uur geleden'],
-    ['Wereld', '', 'Noorse haven laadt schepen voortaan op stroom van land', 'WW', '4 uur geleden'],
-    ['Wereld', '', 'Een dorp in de Alpen deelt zijn elektrische bus met de buren', 'LD', '6 uur geleden'],
-  ],
-  cultuur: [
-    ['Cultuur', '', 'Oude bioscoop in de binnenstad wordt weer filmhuis', 'SK', '11 min geleden'],
-    ['Cultuur', 'Buiten je bubbel', 'Debuutroman over een dorp aan de rivier verovert de boekenlijsten', 'CK', '1 uur geleden'],
-    ['Cultuur', '', 'Orkest speelt een gratis concert in een leegstaande hal', 'CK', '3 uur geleden'],
-    ['Cultuur', '', 'Museum zet de zaalteksten voortaan ook in eenvoudige taal', 'SK', '5 uur geleden'],
-  ],
-};
-const PANELEN = Object.entries(L).map(([k, arr]) =>
-  `<div class="sc-lijst" data-pan="${k}"${k === 'alles' ? '' : ' hidden'}>${arr.map(i => i === 'HIER' ? '<div class="sc-hier">Hier was je gebleven</div>' : typeof i === 'string' ? i : item(i)).join('')}</div>`).join('');
+// De illustraties zonder tekst (Alex 5-11, beeldtaal 04 en 07): alleen vlakken, geen lijnen.
+// Selectie: een raster van acht bij vijf inktpunten, één punt is groter en rood.
+const RASTER = Array.from({ length: 40 }, (_, i) => {
+  const k = i % 8, r = Math.floor(i / 8), x = 86 + k * 44, y = 62 + r * 44;
+  return k === 5 && r === 2 ? `<circle class="il-rood" cx="${x}" cy="${y}" r="12"/>` : `<circle class="il-inkt" cx="${x}" cy="${y}" r="5"/>`;
+}).join('');
+// De Redacteur: tien plekken op een kring; negen punten in inkt, de tiende stapt naar buiten en wordt rood (de bubbel).
+const TIEN = Array.from({ length: 10 }, (_, i) => {
+  const h = (-90 + i * 36) * Math.PI / 180, uit = i === 3, R = uit ? 156 : 92;
+  const x = (220 + R * Math.cos(h)).toFixed(1), y = (150 + R * Math.sin(h)).toFixed(1);
+  return `<circle class="${uit ? 'il-rood' : 'il-inkt'}" cx="${x}" cy="${y}" r="${uit ? 16 : 11}"/>`;
+}).join('');
 
-const fill = (t) => t.replace(/\{\{(\w+)\}\}/g, (_, k) => ({ CSSFILE, JSFILE, INLINE, WM_D, MARK_D, PANELEN, ...AS })[k]).replace(/<!--[\s\S]*?-->\n?/g, '');
+const fill = (t) => t.replace(/\{\{(\w+)\}\}/g, (_, k) => ({ CSSFILE, JSFILE, INLINE, WM_D, MARK_D, RASTER, TIEN, ...AS })[k]).replace(/<!--[\s\S]*?-->\n?/g, '');
 fs.writeFileSync(path.join(OUT, 'index.html'), fill(rd('index.src.html')));
 fs.writeFileSync(path.join(OUT, '404.html'), fill(rd('404.src.html')));
 
