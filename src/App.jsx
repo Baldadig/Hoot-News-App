@@ -22,7 +22,7 @@ import { useTheme } from './hooks/useTheme.js'
 import { useSocialSources } from './hooks/useSocialSources.js'
 import { useAccount } from './hooks/useAccount.js'
 import { useCloudSync } from './hooks/useCloudSync.js'
-import { useStored } from './lib/store.js'
+import { useStored, writeJSON } from './lib/store.js'
 import { MAIN, rememberLocation, hrefFor } from './lib/context.js'
 import { learn, forgetTopic, READ, SAVE, vote } from './lib/affinity.js'
 import { sourceStatus, statusLabel } from './lib/sourceStatus.js'
@@ -209,6 +209,8 @@ export default function App() {
   // ---- Handelingen ----
   const markRead = useCallback(
     (id) => {
+      // Het artikel opent in hetzelfde tabblad: meteen opslaan, niet pas na de volgende weergave.
+      if (!readIds.includes(id)) writeJSON('hoot:read', [...readIds, id].slice(-1500))
       setReadIds((prev) => (prev.includes(id) ? prev : [...prev, id].slice(-1500)))
       const item = itemsById.get(id)
       if (item && !readIds.includes(id)) setAffinity((a) => learn(a, item, READ))

@@ -52,14 +52,23 @@ export function useScrollMemory(ref, key, ready, stamp, active = true) {
     const onScroll = () => {
       if (st.current.armed && !timer) timer = setTimeout(save, 250)
     }
+    // Een artikel opent in hetzelfde tabblad (keuze r5-webreader): de plek meteen vastleggen als de
+    // pagina weggaat, ook als de vertraagde opslag nog niet liep. Terug brengt je dan precies hier.
+    const onLeave = () => {
+      if (!st.current.armed) return
+      if (timer) clearTimeout(timer)
+      save()
+    }
     const onUser = () => {
       st.current.user = true
       st.current.armed = true
     }
     el.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('pagehide', onLeave)
     for (const ev of USER_EVENTS) el.addEventListener(ev, onUser, { passive: true })
     return () => {
       el.removeEventListener('scroll', onScroll)
+      window.removeEventListener('pagehide', onLeave)
       for (const ev of USER_EVENTS) el.removeEventListener(ev, onUser)
       if (timer) clearTimeout(timer)
     }

@@ -57,7 +57,7 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
   return (
     <article className={`entry fitem${read.has(item.id) ? ' is-read' : ''}${boven ? ' fitem--boven' : ''}`} data-id={item.id} style={boven ? { '--boven-h': `${boven}px` } : undefined}>
       {boven && item.image ? (
-        <a className="fitem__boven" href={linkOf(item)} target="_blank" rel="noopener noreferrer" tabIndex={-1} aria-hidden="true" onClick={() => markRead(item.id)}>
+        <a className="fitem__boven" href={linkOf(item)} rel="noreferrer" tabIndex={-1} aria-hidden="true" onClick={() => markRead(item.id)}>
           <Img url={item.image} kind="lead" />
         </a>
       ) : null}
@@ -71,7 +71,7 @@ function FrontItem({ item, story, note, n = null, why = null, followed, taste, o
       ) : null}
       <Why why={why} />
       {whySpace && !whyLine(why) ? <p className="why why--leeg" aria-hidden="true">&nbsp;</p> : null}
-      <a className="fitem__link" href={linkOf(item)} target="_blank" rel="noopener noreferrer" onClick={() => markRead(item.id)}>
+      <a className="fitem__link" href={linkOf(item)} rel="noreferrer" onClick={() => markRead(item.id)}>
         <span className="fitem__text">
           <span className="head-4 fitem__title" role="heading" aria-level="3">
             {title}
