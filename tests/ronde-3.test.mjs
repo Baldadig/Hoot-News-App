@@ -33,3 +33,10 @@ test('r5-einde-rust en r5-seintje: de seintje-kaart staat onder het einde, met e
   assert.match(app, /store\.notifySlots = AlertOffer\.slots\(for: alertSlot\)/)
   assert.doesNotMatch(app, /store\.notifySlots = EditionAlerts\.slots\.map/)
 })
+
+test('r5-selectie-onderwerpen: de app toont bij een lege Selectie hetzelfde voorproefje als het web', async () => {
+  const { VOORPROEF } = await import('../src/lib/selection-index.js')
+  const app = read('ios/Hoot/Views/DigestView.swift')
+  assert.ok(app.includes(`static let voorproef = "${VOORPROEF}"`))
+  assert.match(app, /voorproef\(SelectionOverview\.voorproefje\(store\.digest\)\)/)
+})

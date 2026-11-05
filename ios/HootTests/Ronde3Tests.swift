@@ -46,4 +46,24 @@ import SwiftUI
         XCTAssertEqual(AlertOffer.doneLine("ochtend"), "Je krijgt een seintje als de Ochtendeditie klaarligt.")
         for k in AlertOffer.keuzes { XCTAssertNil(k.label.range(of: #"\d"#, options: .regularExpression), "geen kloktijd in \(k.label)") }
     }
+
+    // r5-selectie-onderwerpen: een lege Selectie toont een voorproefje (gelijk aan voorproefje() op het web).
+    func testSelectieVoorproefje() throws {
+        let json = #"""
+        {"id":"w45","fields":[
+          {"id":"merk","label":"Merk & reclame","top":[],"more":[]},
+          {"id":"seo","label":"SEO & content","top":[{"id":"a","source":"x","title":"Stuk A","url":"https://x.nl/a"}],"more":[]},
+          {"id":"ux","label":"UI/UX","top":[{"id":"b","source":"x","title":"Stuk B","url":"https://x.nl/b"},{"id":"c","source":"x","title":"Stuk C","url":"https://x.nl/c"}],"more":[]},
+          {"id":"ai","label":"AI","top":[{"id":"d","source":"x","title":"Stuk D","url":"https://x.nl/d"}],"more":[]},
+          {"id":"dev","label":"Development","top":[{"id":"e","source":"x","title":"Stuk E","url":"https://x.nl/e"}],"more":[]},
+          {"id":"economie","label":"Economie","top":[{"id":"f","source":"x","title":"Stuk F","url":"https://x.nl/f"}],"more":[]}
+        ]}
+        """#
+        let digest = try JSONDecoder().decode(Digest.self, from: Data(json.utf8))
+        let p = SelectionOverview.voorproefje(digest)
+        XCTAssertEqual(p.map(\.id), ["seo", "ux", "ai"], "per domein het eerste onderwerp met stukken, hooguit drie")
+        XCTAssertEqual(p.map(\.item.id), ["a", "b", "d"], "elk met zijn beste stuk")
+        XCTAssertTrue(SelectionOverview.voorproefje(nil).isEmpty)
+        XCTAssertEqual(SelectionOverview.voorproef, "Zo ziet het eruit: per onderwerp de beste stukken van de week.")
+    }
 }
