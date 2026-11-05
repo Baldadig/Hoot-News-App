@@ -431,3 +431,10 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
+
+/* Held: de datum van vandaag onder de Editie-titel in de telefoon (alleen in de held) */
+(function () {
+  var el = document.querySelector('.held .js-datum');
+  if (!el) return;
+  try { el.textContent = new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }); } catch (e) {}
+})();
