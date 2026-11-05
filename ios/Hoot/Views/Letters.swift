@@ -6,7 +6,7 @@ import UIKit
 //   Lees    Newsreader op tekstmaat (17) voor lopende tekst: intro's, de tekst van een post, de lezer;
 //           in Nacht op gewicht 430, zodat de dunne halen op zwart niet breken
 //   UI      Schibsted Grotesk 400 · 600 · 700 · 800 voor bediening, labels, metadata en knoppen
-//   Uitleg  een uitlegzin is lezen: Newsreader 17/24 (.uitleg()), zoals de landing en --uitleg op het web
+//   Uitleg  uitleg- en hulpzinnen in de bediening zijn schreefloos: Schibsted 17/24 (.uitleg() = .zin()); Newsreader is er alleen voor kop, intro en artikeltekst
 // De letters staan in Resources/Fonts (scripts/build-fonts.py) en worden via UIAppFonts geladen.
 // Alles met `relativeTo:`, zodat Dynamische tekst blijft werken; maten zijn die van de tekststijl
 // bij de standaardgrootte (Large).
@@ -93,9 +93,9 @@ struct Leestekst: ViewModifier {
 
 extension View {
     func leestekst(_ style: Font.TextStyle = .body) -> some View { modifier(Leestekst(style: style)) }
-    // Een uitlegzin (de zin onder een kop in het welkom, de tekst van een lege bladzijde, de kaart
-    // "Maak Hoot van jou"): lezen, dus Newsreader 17/24, zoals de landing en --uitleg op het web.
-    func uitleg() -> some View { leestekst(.body) }
+    // Een uitlegzin (de tekst van een lege bladzijde, de kaart "Maak Hoot van jou"): bediening, dus
+    // schreefloos, Schibsted 17/24 (besluit 4 november 2026). Newsreader blijft voor kop, intro en artikeltekst.
+    func uitleg() -> some View { zin() }
     // Een onboardingzin (Welkom: de zin onder het merk, de uitleg onder een kop, de lege staat van het zoeken):
     // schreefloos, Schibsted Grotesk 17/24. Geen lopende tekst om te lezen, maar de stem van de bediening.
     func zin() -> some View { font(.ui(.body)).lineSpacing(3) }

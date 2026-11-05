@@ -30,7 +30,7 @@ final class DeelKaartTests: XCTestCase {
         }
         // Newsreader is echt geladen; geen stilzwijgende systeemletter als vervanging.
         XCTAssertNotNil(UIFont(name: "Newsreader-ExtraBold", size: 48))
-        XCTAssertNotNil(UIFont(name: "Inter-SemiBold", size: 20)) // de deelkaart houdt Inter 600, geregistreerd door DeelKaartStyle
+        XCTAssertNotNil(UIFont(name: "SchibstedGrotesk-SemiBold", size: 20)) // de deelkaart gebruikt Schibsted Grotesk 600, net als de server
     }
     // Build 46: deellink op gethoot.app met de uitgeverslink erbij (zie netlify/functions/deel.mjs).
     func testDeellinkOpGethootMetUitgeverslink() {
