@@ -39,6 +39,10 @@ export default function Privacy({ onBack, backLabel }) {
             te geven vanaf welke pagina.
           </li>
           <li>
+            <strong>Beelden en logo's van elders:</strong> sommige nieuwsbeelden komen van Bing (Microsoft), de logo's van bronnen deels van Google (favicons) en van unavatar.io. Die laad je
+            daar rechtstreeks, zoals elk beeld op een website: zij zien dan je IP-adres en je browser, niet wie je bent of wat je leest.
+          </li>
+          <li>
             <strong>Artikelen</strong> open je bij de bron zelf. Daar gelden hun regels en hun cookies.
           </li>
           <li>
@@ -67,7 +71,8 @@ export default function Privacy({ onBack, backLabel }) {
           </li>
           <li>
             <strong>Je eigen Editie</strong> stelt De Redacteur samen, op je toestel. Je bronnen, interesses en wat je las verlaten het toestel daarvoor niet; er is geen leesprofiel op een server. Alleen als dat op je toestel
-            niet lukt, is de server de terugval: dan gaan je bronnen en interesses (zonder je naam, zonder een vast kenmerk van je toestel) naar de Hoot-server, die de Editie samenstelt, terugstuurt en niets bewaart van wat je stuurde.
+            niet lukt, is de server de terugval. Dan gaan naar de Hoot-server: je bronnen, interesses en Selectie-onderwerpen, wat je aangaf met ‘meer hiervan’ en ‘minder hiervan’, welke berichten
+            je al las en de koppen en intro's van je vorige drie Edities. Zonder je naam en zonder een vast kenmerk van je toestel. De server stelt de Editie samen, stuurt hem terug en bewaart niets van wat je stuurde.
           </li>
           <li>
             <strong>De Hoot-lezer</strong> laadt het artikel op je toestel bij de uitgever, zoals Safari dat doet, en toont alleen de tekst en beelden. Er gaat niets via de Hoot-server. Log je in de
@@ -93,7 +98,7 @@ export default function Privacy({ onBack, backLabel }) {
         <p>
           Vragen over je gegevens? Mail naar <a href="mailto:info@gethoot.app">info@gethoot.app</a>.
         </p>
-        <p>Bijgewerkt op 4 november 2026.</p>
+        <p>Bijgewerkt op 5 november 2026.</p>
       </div>
     </section>
   )
