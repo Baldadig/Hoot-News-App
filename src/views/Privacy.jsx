@@ -70,7 +70,7 @@ export default function Privacy({ onBack, backLabel }) {
             <strong>Het nieuws</strong> haalt de app op bij de Hoot-server, net als de website.
           </li>
           <li>
-            <strong>Je eigen Editie</strong> stelt De Redacteur samen, op je toestel. Je bronnen, interesses en wat je las verlaten het toestel daarvoor niet; er is geen leesprofiel op een server. Alleen als dat op je toestel
+            <strong>Je eigen Editie</strong> stelt Hoot samen, op je toestel. Je bronnen, interesses en wat je las verlaten het toestel daarvoor niet; er is geen leesprofiel op een server. Alleen als dat op je toestel
             niet lukt, is de server de terugval. Dan gaan naar de Hoot-server: je bronnen, interesses en Selectie-onderwerpen, wat je aangaf met ‘meer hiervan’ en ‘minder hiervan’, welke berichten
             je al las en de koppen en intro's van je vorige drie Edities. Zonder je naam en zonder een vast kenmerk van je toestel. De server stelt de Editie samen, stuurt hem terug en bewaart niets van wat je stuurde.
           </li>

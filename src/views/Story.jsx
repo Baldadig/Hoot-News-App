@@ -112,7 +112,7 @@ export default function Story({ story, items, tappedId = null, overlay, onClose,
       <header className="story__head">
         {overlay ? <BackButton onClick={onClose} ariaLabel="Terug" /> : null}
         <p className="label label--meta story__eyebrow" tabIndex={-1} ref={headRef}>
-          Verhaal
+          Vergelijken
         </p>
         <div className="story__acts">
           {/* In een smal paneel (of bij grote tekst) staat er alleen "Volg"; de naam blijft voluit. */}

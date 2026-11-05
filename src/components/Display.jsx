@@ -104,7 +104,7 @@ export function StreamLayoutRow() {
 export function DisplaySheet({ open, onClose, account, syncStatus }) {
   return (
     <Dialog open={open} onClose={onClose} className="sheet--display" labelledBy="display-title">
-      <DialogHeader id="display-title" title="Jij" onClose={onClose} />
+      <DialogHeader id="display-title" title="Instellingen" onClose={onClose} />
       {account ? <AccountSettings account={account} syncStatus={syncStatus} /> : null}
       <h3 className="sect sect--plain sheet__label">Lezen</h3>
       <DisplayControls />

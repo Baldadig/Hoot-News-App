@@ -688,7 +688,7 @@ export default function App() {
             {page === 'stijl' ? <StyleGuide stream={stream} /> : null}
           </Suspense>
         </main>
-        <aside className={`panel${story ? ' is-open' : ''}`} hidden={!story && !panelOpen} aria-label="Verhaal" role={overlay ? 'dialog' : undefined} aria-modal={overlay ? 'true' : undefined} inert={showWelcome ? '' : undefined}>
+        <aside className={`panel${story ? ' is-open' : ''}`} hidden={!story && !panelOpen} aria-label="Vergelijken" role={overlay ? 'dialog' : undefined} aria-modal={overlay ? 'true' : undefined} inert={showWelcome ? '' : undefined}>
           {story ? (
             <Story key={story.story.id} story={story.story} items={story.items} tappedId={tapped[storyParam] || null} overlay={overlay} onClose={overlay ? closeStory : closePanel} onBack={backToIndex} onSeen={markStorySeen} seenBefore={seenStories[story.story.id] || null} />
           ) : (

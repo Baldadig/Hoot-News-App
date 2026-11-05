@@ -73,7 +73,7 @@ test('landing: de voorbeelden zijn van 1.1.0 (nummers, bubbel apart, Selectie me
   assert.doesNotMatch(bubbel, /-nr"/)
   assert.ok(editie.indexOf('sc-bubbel') > editie.lastIndexOf('sc-nr'))
   assert.doesNotMatch(tekst(SRC), /Bluesky/)
-  const sel = SRC.slice(SRC.indexOf('id="demo-selectie"'), SRC.indexOf('<!-- 04 De Redacteur'))
+  const sel = SRC.slice(SRC.indexOf('id="demo-selectie"'), SRC.indexOf('<!-- 04 Hoot kiest'))
   assert.ok(sel.indexOf('sc-inhoud') > 0 && sel.indexOf('sc-inhoud') < sel.indexOf('sc-kaart'), 'de inhoud staat boven het eerste stuk')
   assert.doesNotMatch(sel, /sc-chip/)
 })
@@ -109,7 +109,7 @@ test('landing: de kleine tekstronde uit de review', () => {
   const t = tekst(vul(false))
   for (const zin of [
     'Elke maandag de mooiste stukken van de week, over je vak en wat je verder boeit.',
-    'De Redacteur kiest elke Editie',
+    'Hoot kiest elke Editie',
     'Bij elk verhaal zie je waarom.',
     'Lees verder in de Stroom',
     'Lees mee in je browser.',
