@@ -453,7 +453,7 @@ struct EditionView: View {
                                     if visible && risenAt == nil { risenAt = .now }
                                 }
                             Kop(EditionEnd.line(date: store.edition?.date, slot: store.edition?.slot), .title)
-                            Text("Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(endDate)").\(upNext)")
+                            Text(afgebroken: "Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(endDate)").\(upNext)", typeSize: typeSize) // AX: "morgen-/ochtend", niet "morgenochte/nd"
                                 .font(.ui(.subheadline))
                                 .multilineTextAlignment(.center)
                                 .frame(maxWidth: Layout.endcap) // ± 30 tekens per regel, zoals --measure-end

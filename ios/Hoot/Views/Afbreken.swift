@@ -14,6 +14,10 @@ enum Afbreken {
     static let lang = 11
     static let nl = Locale(identifier: "nl")
 
+    // Samenstellingen die op de naad breken, niet op elke lettergreep: "morgen-/ochtend", niet "mor-/genochtend"
+    // (de eindkaart van de Editie, EINDKEURING punt 10).
+    static let naden = ["morgenochtend": "morgen\u{00AD}ochtend"]
+
     static func tekst(_ s: String, typeSize: DynamicTypeSize) -> String {
         typeSize.isAccessibilitySize ? woorden(s) : s
     }
@@ -22,6 +26,7 @@ enum Afbreken {
         guard s.count >= lang else { return s }
         return s.split(separator: " ", omittingEmptySubsequences: false).map { token -> String in
             let word = String(token)
+            if let naad = naden[word] { return naad }
             guard word.count >= lang, !word.contains(KopZet.shy), !word.contains("/"), !word.contains("@") else { return word }
             return KopZet.hyphenate(word, locale: locale)
         }.joined(separator: " ")

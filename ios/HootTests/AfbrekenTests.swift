@@ -15,6 +15,18 @@ import SwiftUI
         }
     }
 
+    // De eindkaart van de Editie (EditionView): "De volgende staat morgenochtend klaar." breekt bij AX op de
+    // lettergreep. "vanmiddag" en "vanavond" zijn korter dan 11 letters en blijven heel.
+    func testEindkaartBreektMorgenochtendOpDeLettergreep() {
+        let zin = Afbreken.tekst("Dit was de Avondeditie van 5 november. De volgende staat morgenochtend klaar.", typeSize: .accessibility5)
+        XCTAssertTrue(zin.contains("morgen\(shy)ochtend"), zin)
+        XCTAssertFalse(zin.contains("mor\(shy)gen"), "alleen op de naad: \(zin)")
+        XCTAssertEqual(zin.replacingOccurrences(of: shy, with: ""), "Dit was de Avondeditie van 5 november. De volgende staat morgenochtend klaar.")
+        for dagdeel in ["vanmiddag", "vanavond"] {
+            XCTAssertEqual(Afbreken.tekst("De volgende staat \(dagdeel) klaar.", typeSize: .accessibility5), "De volgende staat \(dagdeel) klaar.")
+        }
+    }
+
     func testOnderAXEnKorteWoordenBlijvenHeel() {
         XCTAssertEqual(Afbreken.tekst("Rijkswaterstaat", typeSize: .xxxLarge), "Rijkswaterstaat")
         XCTAssertEqual(Afbreken.tekst("Het verkeer gaat om", typeSize: .accessibility5), "Het verkeer gaat om")
