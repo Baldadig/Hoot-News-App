@@ -225,8 +225,19 @@ final class OnboardingTests: XCTestCase {
 
     @MainActor func testNoStartingProfession() {
         // De standaard is leeg: een nieuwe lezer kiest zijn vak zelf (of later), nooit dat van een ander.
-        UserDefaults.standard.removeObject(forKey: "hoot.digestFields")
-        XCTAssertEqual(HootStore().digestFields, [])
+        // Los van het toestel: een eigen, lege UserDefaults-suite (de host-app of een andere test kan in
+        // .standard al een vak hebben gezet), en een import.json van het toestel even opzij (een nieuwe
+        // winkel leest en wist die).
+        let suite = "hoot-onboarding-" + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!
+        let importFile = Self.folder.appendingPathComponent("import.json")
+        let importData = try? Data(contentsOf: importFile)
+        try? FileManager.default.removeItem(at: importFile)
+        defer {
+            defaults.removePersistentDomain(forName: suite)
+            if let importData { try? importData.write(to: importFile, options: .atomic) }
+        }
+        XCTAssertEqual(HootStore(defaults: defaults).digestFields, [])
     }
 
     // ---- Uitloggen ----
