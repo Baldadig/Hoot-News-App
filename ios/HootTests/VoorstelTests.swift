@@ -13,6 +13,7 @@ final class VoorstelTests: XCTestCase {
      {"id":"nyt","name":"The New York Times","cat":"int","lang":"en","paid":true,"for":["politiek","wereld","economie"],"pick":true},
      {"id":"guardian","name":"The Guardian","cat":"int","lang":"en","for":["wereld"],"pick":true},
      {"id":"economist","name":"The Economist","cat":"int","lang":"en","paid":true,"for":["economie","wereld"],"pick":true},
+     {"id":"nos-economie","name":"NOS Economie","cat":"economie","lang":"nl","for":["economie"],"pick":true},
      {"id":"fd","name":"FD","cat":"economie","lang":"nl","paid":true,"for":["economie"],"pick":true},
      {"id":"tweakers","name":"Tweakers","cat":"tech","lang":"nl","for":["tech"],"pick":true},
      {"id":"theverge","name":"The Verge","cat":"tech","lang":"en","for":["tech"],"pick":true},
@@ -34,9 +35,23 @@ final class VoorstelTests: XCTestCase {
         let techWetenschap = try await ids(["tech", "wetenschap"])
         XCTAssertEqual(techWetenschap, ["nos", "tweakers", "quanta"])
         let wereldEconomie = try await ids(["wereld", "economie"])
-        XCTAssertEqual(wereldEconomie, ["nos", "nyt", "guardian"])
-        let why = try await EditionEngine.shared.voorstel(sources: sources, interests: ["wereld", "economie"], topics: [])?.first { $0.id == "nyt" }?.why
-        XCTAssertEqual(why, "Past bij Wereld en Economie")
+        XCTAssertEqual(wereldEconomie, ["nos", "guardian", "nos-economie", "nyt"])
+        let nyt = try await EditionEngine.shared.voorstel(sources: sources, interests: ["wereld", "economie"], topics: [])?.first { $0.id == "nyt" }
+        XCTAssertEqual(nyt?.why, "Past bij Wereld en Economie")
+        XCTAssertEqual(nyt?.on, false, "betaald: in Voor jou, niet alvast aan (r5-voorstel-betaald)")
+        // Alleen Economie: de gratis NOS Economie aan, FD erbij maar uit (r5-economiebron).
+        let economie = try await EditionEngine.shared.voorstel(sources: sources, interests: ["economie"], topics: [])
+        XCTAssertEqual(economie?.map(\.id), ["nos", "nos-economie", "fd"])
+        XCTAssertEqual(FollowList.alvast(economie), ["nos", "nos-economie"])
+        // Politiek: NU.nl erbij, RTL Nieuws alleen in het gratis begin (r5-politiek-rtl).
+        let politiek = try await ids(["politiek"])
+        XCTAssertEqual(politiek?.contains("nu"), true)
+        XCTAssertEqual(politiek?.contains("rtl"), false)
+    }
+
+    func testAlvastRegel() {
+        XCTAssertEqual(FollowList.alvastLine(withPaid: false), "Alvast gevolgd. Uitzetten kan met één tik.")
+        XCTAssertEqual(FollowList.alvastLine(withPaid: true), "De gratis bronnen volg je alvast. Uitzetten kan met één tik.")
     }
 
     func testGroepenZonderDubbelen() {

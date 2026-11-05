@@ -23,7 +23,7 @@ import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, 
 //                      gratis aanrader; de rest ingeklapt; zoeken vindt alles. Een voorbeeld-Editie
 //                      groeit mee (breed rechts, smal in een uitklapbalk boven de knop).
 // Eerst de interesses, dan de bronnen: zo staan de vak- en nichebronnen bij wat je koos, en niet
-// verstopt in één lange lijst. "Later kiezen" kan altijd. Daarna de Editie: het welkom vervaagt erover (crossPlan). Het seintje
+// verstopt in één lange lijst. De hoofdknop werkt altijd ("Later kiezen" is weg sinds 1.1.1, keuze r5-later-kiezen). Daarna de Editie: het welkom vervaagt erover (crossPlan). Het seintje
 // komt pas onder de eerste Editie (alleen in de app; web-push bestaat niet).
 // Van rood naar papier krimpt het rood als iris tot de punt van het kleine woordmerk (lib/motion.js);
 // terug speelt het omgekeerd. Bij Minder beweging één fade van 0,35 s. Tussen papieren schermen even
@@ -92,7 +92,8 @@ export default function Welcome({ sources, items = [], prefs, muted = new Set(),
   const plan = useMemo(() => voorstel(pickable, interests, picked), [pickable, interests, picked])
   // Je bronnen: je eigen keuze; opnieuw kiezen begint bij wat nu aan staat. De eerste keer staat het voorstel
   // alvast aan (review G2: anders merkt je Editie niets van je interesses); zonder interesses niets.
-  const initial = useMemo(() => (reopen ? sourcesOn(pickable, muted) : (plan || []).map((p) => p.id)), [reopen, pickable, muted, plan])
+  // Alleen gratis alvast aan (keuze r5-voorstel-betaald): een betaalde bron in Voor jou zet je zelf aan.
+  const initial = useMemo(() => (reopen ? sourcesOn(pickable, muted) : (plan || []).filter((p) => p.on).map((p) => p.id)), [reopen, pickable, muted, plan])
   const mine = edited ?? initial
 
   // Nieuwe pagina: de kop voorlezen (schermlezer) en bovenaan beginnen, pas als de overgang klaar is.
@@ -207,17 +208,6 @@ export default function Welcome({ sources, items = [], prefs, muted = new Set(),
   const finish = (choice = {}) => onDone({ interests, topics, sources: mine, all: pickable, vak, ...choice })
   // "Liever meteen lezen": de startset met gratis bronnen, zonder interesses, onderwerpen of vak.
   const startQuick = () => onDone({ interests: [], topics: [], sources: startIds(pickable), all: pickable, quick: true })
-  // Later kiezen bij de interesses: zoals het was (de eerste keer dus leeg), door naar de bronnen.
-  const laterInterests = () =>
-    go(() => {
-      setInterests(prefs.interests || [])
-      setVak(prefs.vak || [])
-      setView('bronnen')
-      setQuery('')
-      setPeekOpen(false)
-    })
-  // Later kiezen bij de bronnen: zoals het was, en de eerste keer zonder iets gevolgd het gratis begin.
-  const laterSources = () => finish({ sources: mine.length ? mine : reopen ? initial : startIds(pickable) })
 
   const previous = () => {
     if (view === 'uitleg') backToIntro(() => setView('intro'))
@@ -279,17 +269,11 @@ export default function Welcome({ sources, items = [], prefs, muted = new Set(),
                   <button type="button" className="btn btn--lg ob__cta" onClick={() => (mine.length ? finish() : finish({ sources: freeStart(pickable).map((s) => s.id) }))} disabled={!pickable.length}>
                     {mine.length ? 'Naar je Editie' : 'Begin met het gratis begin'}
                   </button>
-                  <button type="button" className="linkbtn linkbtn--plain ob__skip" onClick={laterSources} disabled={!pickable.length}>
-                    Later kiezen
-                  </button>
                 </>
               ) : (
                 <>
                   <button type="button" className="btn btn--lg ob__cta" onClick={() => show('bronnen')}>
                     Verder
-                  </button>
-                  <button type="button" className="linkbtn linkbtn--plain ob__skip" onClick={laterInterests}>
-                    Later kiezen
                   </button>
                 </>
               )}
@@ -375,6 +359,9 @@ function Bronnen({ head, sources, items, mine, interests, plan = null, preset = 
   const blocks = useMemo(() => interestBlocks(sources, interests, planIds), [sources, interests, planIds])
   const rest = useMemo(() => moreGroups(sources, interests, [...planIds, ...kranten.map((s) => s.id)]), [sources, interests, planIds, kranten])
   const startOn = start.length > 0 && start.every((s) => mine.includes(s.id))
+  // De regel boven de lijst van Voor jou (keuze r5-alvast-regel): de gratis bronnen staan alvast aan.
+  const planOn = (plan || []).filter((p) => p.on).map((p) => p.id)
+  const alvast = plan && preset && planOn.length > 0 && planOn.every((id) => mine.includes(id)) ? alvastLine(planOn.length < planIds.length) : null
   // Eén aanrader per blok: in de Basis het gratis begin, in een blok alleen zijn eigen aanrader.
   const row = (s, picks = new Set()) => <SourceRow key={s.id} s={s} on={mine.includes(s.id)} pick={picks.has(s.id)} why={why.get(s.id)} onPick={onPick} />
   const startIds = new Set(start.map((s) => s.id))
@@ -401,12 +388,12 @@ function Bronnen({ head, sources, items, mine, interests, plan = null, preset = 
     )
   } else if (filter === 'gevolgd') {
     const list = followedSources(sources, mine)
-    body = list.length ? <ul className="ob__list">{list.map((s) => row(s))}</ul> : <p className="ob__empty">{plan ? 'Je volgt nog niets. Begin bij het voorstel.' : 'Je volgt nog niets. Begin bij de Basis.'}</p>
+    body = list.length ? <ul className="ob__list">{list.map((s) => row(s))}</ul> : <p className="ob__empty">{plan ? 'Je volgt nog niets. Begin bij Voor jou.' : 'Je volgt nog niets. Begin bij de Basis.'}</p>
   } else {
     body = (
       <>
         {basis.length ? (
-          <Fold id="basis" label={plan ? 'Voorstel' : 'Basis'} list={basis} mine={mine} fold={fold} onToggle={toggle} row={(s) => row(s, startIds)} count={false}>
+          <Fold id="basis" label={plan ? 'Voor jou' : 'Basis'} list={basis} mine={mine} fold={fold} onToggle={toggle} row={(s) => row(s, startIds)} count={false} note={alvast}>
             {start.length > 1 ? (
               <button type="button" className="linkbtn ob__all" aria-pressed={startOn} onClick={() => onAll(start.map((s) => s.id), !startOn)}>
                 {startOn ? `Alle ${allWord(start.length)} gevolgd` : `Volg alle ${allWord(start.length)}`}
@@ -414,7 +401,6 @@ function Bronnen({ head, sources, items, mine, interests, plan = null, preset = 
             ) : null}
           </Fold>
         ) : null}
-        {plan && preset && startOn ? <p className="ob__alvast">Alvast gevolgd. Uitzetten kan met één tik.</p> : null}
         {kranten.length ? <Fold id="nl" label="Nederlands nieuws" list={kranten} mine={mine} fold={fold} onToggle={toggle} row={(s) => row(s)} /> : null}
         {blocks.map((b) => (
           <Fold key={b.id} id={`b-${b.id}`} label={b.label} list={b.sources} mine={mine} fold={fold} onToggle={toggle} row={(s) => row(s, new Set([b.pick]))} />
@@ -467,7 +453,8 @@ function Bronnen({ head, sources, items, mine, interests, plan = null, preset = 
 
 // Eén categorie van de bronnenstap, inklapbaar. De kop is een knop (naam, aantal gekozen bronnen, pijl);
 // ingeklapt staat alleen die kop. `children`: een actie naast de kop (Volg alle drie in de Basis).
-function Fold({ id, label, list, mine, fold, onToggle, row, count = true, children = null }) {
+// `note`: één stille regel direct onder de kop, boven de lijst (Alvast gevolgd).
+function Fold({ id, label, list, mine, fold, onToggle, row, count = true, children = null, note = null }) {
   const chosen = chosenIn(list, mine)
   if (!(id in fold.current)) fold.current[id] = startsOpen(id, chosen)
   const open = fold.current[id]
@@ -485,6 +472,7 @@ function Fold({ id, label, list, mine, fold, onToggle, row, count = true, childr
         </h2>
         {children}
       </div>
+      {open && note ? <p className="ob__alvast">{note}</p> : null}
       {open ? <ul className="ob__list" id={`ob-l-${id}`}>{list.map((s) => row(s))}</ul> : null}
     </section>
   )
@@ -493,6 +481,9 @@ function Fold({ id, label, list, mine, fold, onToggle, row, count = true, childr
 // Eén bron: logo, naam, omschrijving, gratis (of de gratis aanrader van zijn blok) of abonnement, en
 // Volg / Volgend. Alles in inkt: het enige accent op dit scherm is de punt van het woordmerk.
 // "Volg alle drie" tot "Volg alle vijf": het voorstel is drie tot vijf bronnen.
+// Alvast gevolgd (gelijk aan de app): staat er ook een betaalde bron in Voor jou, dan zegt de regel dat
+// alleen de gratis bronnen aan staan.
+const alvastLine = (withPaid) => (withPaid ? 'De gratis bronnen volg je alvast. Uitzetten kan met één tik.' : 'Alvast gevolgd. Uitzetten kan met één tik.')
 const allWord = (n) => ['twee', 'drie', 'vier', 'vijf'][n - 2] || String(n)
 
 // `why`: de reden in het voorstel ("Past bij Tech"), vóór gratis of abonnement.

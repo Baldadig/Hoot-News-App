@@ -172,9 +172,13 @@ test('opslaan gebruikt bestaande voorkeuren; een geannuleerd concept wijzigt ze 
 test('web en app: hetzelfde gratis begin en dezelfde schermen', () => {
   const swift = readFileSync(new URL('../ios/Hoot/Views/WelcomeView.swift', import.meta.url), 'utf8')
   const web = readFileSync(new URL('../src/views/Welcome.jsx', import.meta.url), 'utf8')
-  for (const text of ['Zo werkt Hoot', 'Volg je bronnen', 'Wat interesseert je?', 'Basis', 'Volg alle drie', 'Meer bronnen', 'Gratis aanrader', 'Later kiezen', 'Liever meteen lezen', 'Kies je interesses', 'Naar je Editie', 'Zo ziet je Editie eruit', 'Kies onderwerpen voor je Selectie']) {
+  for (const text of ['Zo werkt Hoot', 'Volg je bronnen', 'Wat interesseert je?', 'Basis', 'Volg alle drie', 'Meer bronnen', 'Gratis aanrader', 'Voor jou', 'Liever meteen lezen', 'Kies je interesses', 'Naar je Editie', 'Zo ziet je Editie eruit', 'Kies onderwerpen voor je Selectie']) {
     assert.ok(web.includes(text), `web: ${text}`)
     assert.ok(swift.includes(text), `app: ${text}`)
+  }
+  for (const gone of ['Later kiezen']) {
+    assert.ok(!web.includes(`>${gone}<`) && !new RegExp(`>\\s*${gone}\\s*<`).test(web), `web: ${gone} is weg`)
+    assert.ok(!swift.includes(`"${gone}"`), `app: ${gone} is weg`)
   }
   assert.match(swift, /freeStart = \["nos", "nu", "rtl"\]/)
   assert.match(swift, /basisKranten = \["volkskrant", "nrc", "trouw", "parool", "ad", "telegraaf"\]/)

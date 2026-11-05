@@ -6,7 +6,7 @@ import { keywordTopics } from '../netlify/lib/topics.mjs'
 
 // Expliciete uitgeverlanden; taal en het land in een artikel zijn nooit bewijs hiervoor.
 // Onbekende uitgevers leveren geen extra land op. Sectiefeeds blijven dezelfde uitgever.
-const ALIAS = { 'nos-sport':'nos', 'nos-cultuur':'nos', 'bbc-sport':'bbc', 'guardian-sport':'guardian', 'guardian-music':'guardian', 'guardian-culture':'guardian', 'npr-music':'npr' }
+const ALIAS = { 'nos-sport':'nos', 'nos-cultuur':'nos', 'nos-economie':'nos', 'bbc-sport':'bbc', 'guardian-sport':'guardian', 'guardian-music':'guardian', 'guardian-culture':'guardian', 'npr-music':'npr' }
 const COUNTRIES = Object.fromEntries(Object.entries({
   NL: [...NL_HOME, 'tweakers','vi','wielerflits','3voor12'],
   BE: [...VL_HOME],

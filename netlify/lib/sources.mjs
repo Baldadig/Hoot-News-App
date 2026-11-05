@@ -73,6 +73,9 @@ export const SOURCES = [
   S('independent', 'The Independent', 'int', 'en', 'Brits, liberaal, wereldnieuws.', 'https://www.independent.co.uk/news/world/rss', { login: 'https://www.independent.co.uk/login', color: '#EC1A2E' , bsky: 'the-independent.com' }),
   S('telegraph', 'The Telegraph', 'int', 'en', 'Brits, conservatief, wereldnieuws.', 'https://www.telegraph.co.uk/rss.xml', { login: 'https://secure.telegraph.co.uk/customer/secure/login/', paid: true, color: '#1A1A1A' , bsky: 'telegraph.co.uk' }),
   // Economie
+  // Gratis en Nederlands bij Economie (keuze r5-economiebron, 5 november): de economiefeed van de NOS,
+  // zoals NOS Sport en NOS Cultuur. Gecontroleerd op 5 november 2026 (bereikbaar, actueel, 20 berichten).
+  S('nos-economie', 'NOS Economie', 'economie', 'nl', 'Economie en werk van de NOS.', 'https://feeds.nos.nl/nosnieuwseconomie', { pick: true, for: ['economie'], color: '#B5121B', bsky: 'nos.nl' }),
   S('fd', 'Het Financieele Dagblad', 'economie', 'nl', 'Economie, bedrijven en financiën.', 'https://fd.nl/?rss', { login: 'https://fd.nl/login', paid: true, pick: true, for: ['economie'], color: '#F3A712' , bsky: 'fd.nl' }),
   S('bloomberg', 'Bloomberg', 'economie', 'en', 'Markten en bedrijfsnieuws.', 'https://feeds.bloomberg.com/markets/news.rss', { login: 'https://www.bloomberg.com/account/signin', paid: true, color: '#1A1A1A' , bsky: 'bloomberg.com' }),
   // Tech

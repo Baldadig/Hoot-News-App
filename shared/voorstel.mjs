@@ -11,25 +11,34 @@
 //    zo'n bron, de eerste in de catalogus. Het label Abonnement staat er gewoon bij (SourceRow).
 // 3. Per gekozen interesse de best passende bron: gratis en Nederlands als die er is, anders gratis (ook
 //    anderstalig). Is er geen gratis bron, dan een betaalde, behalve als de bron uit regel 2 de interesse
-//    al dekt.
-// 4. Kort maar niet kaal: minstens drie (aangevuld met de volgende gratis bron per interesse), hooguit vijf. Met nul interesses en nul onderwerpen: null (dan de vaste Basis).
+//    al dekt. Bij Politiek en Binnenland alleen NU.nl: RTL Nieuws blijft in het gratis begin (keuze
+//    r5-politiek-rtl, 5 november).
+// 4. Kort maar niet kaal: minstens drie (aangevuld met de volgende gratis bron per interesse, en is er
+//    geen gratis meer, een betaalde), hooguit vijf. Met nul interesses en nul onderwerpen: null (dan de
+//    vaste Basis).
+// 5. Alleen gratis alvast aan (keuze r5-voorstel-betaald): elke bron krijgt `on`, waar alleen bij een
+//    gratis bron. Een betaalde staat wel in de groep, met Abonnement, maar je zet hem zelf aan; zo leest
+//    je eerste Editie zonder betaalmuur. De gratis bronnen staan voorop.
 // Per bron een korte reden in de stijl van de waarom-regels, vanuit wat de lezer eraan heeft. Nooit
 // "Omdat je X volgt" (huisregel).
 import { INTERESTS } from '../src/lib/topics.js'
 
 export const VOORSTEL_MAX = 5
-const ALGEMEEN = ['nos', 'nu', 'rtl'] // het gratis Nederlandse nieuws: past bij Politiek en Binnenland
+const ALGEMEEN = ['nos', 'nu', 'rtl'] // het gratis Nederlandse nieuws (het gratis begin)
+const SNEL = 'nu' // past bij Politiek en Binnenland (RTL Nieuws niet: keuze r5-politiek-rtl)
 const NL_NIEUWS = new Set(['politiek', 'binnenland'])
 const EXTRA_CATS = { wereld: ['int'] } // gelijk aan fitsInterest in src/lib/follow-welcome.js
 
 const free = (s) => !s.paid
+// De catalogus raadt hem aan voor deze interesse (`for`) of voor een onderwerp ervan (`forTopic`).
+const aanrader = (s, i) => (s.for || []).includes(i.id) || (!!s.forTopic && i.topics.includes(s.forTopic))
 const dutch = (s) => s.lang === 'nl'
 
 // Hoe sterk past bron s bij interesse i? 0 is niet. De catalogus die hem aanraadt (`for`) telt het zwaarst,
 // dan een onderwerp dat je koos (`forTopic`), dan zijn rubriek, dan een onderwerp dat bij de interesse hoort.
 export function fit(s, i, topics = []) {
   if (!s || !i) return 0
-  if (NL_NIEUWS.has(i.id) && ALGEMEEN.includes(s.id)) return 2
+  if (NL_NIEUWS.has(i.id) && s.id === SNEL) return 2
   if (s.cat === 'nl' || s.cat === 'vl') return 0 // de kranten staan als eigen groep; Vlaams alleen via zoeken of Meer
   let n = 0
   if ((s.for || []).includes(i.id)) n += 4
@@ -45,7 +54,7 @@ const label = (ids) => {
 }
 
 // sources: de catalogus (id, name, cat, lang, paid, for, forTopic, pick); interests: ids; topics: de
-// onderwerpen die je zelf aantikte (mag leeg). Uitkomst: [{ id, why }] of null.
+// onderwerpen die je zelf aantikte (mag leeg). Uitkomst: [{ id, why, on }] of null; `on`: alvast gevolgd.
 export function voorstel(sources = [], interests = [], topics = []) {
   const chosen = INTERESTS.filter((i) => interests.includes(i.id) || i.topics.some((t) => topics.includes(t)))
   if (!chosen.length) return null
@@ -71,11 +80,11 @@ export function voorstel(sources = [], interests = [], topics = []) {
     const pick = best(fits.filter((s) => free(s) && dutch(s))) || best(fits.filter(free))
     if (pick) { picks.push({ s: pick, i }); continue }
     if (dominant && covers(dominant).includes(i.id)) continue // betaald, maar dat wijst al naar de bron van regel 2
-    const paid = best(fits)
+    const paid = best(fits.filter((s) => aanrader(s, i))) // betaald alleen als de catalogus hem aanraadt (FD, geen regionale krant)
     if (paid) picks.push({ s: paid, i })
   }
   if (dominant) add(dominant, `Past bij ${label(covers(dominant))}`)
-  const why = (s, i) => (ALGEMEEN.includes(s.id) ? `Snel het ${i.id === 'politiek' ? 'politieke' : 'binnenlandse'} nieuws` : `Past bij ${i.label}`)
+  const why = (s, i) => (s.id === SNEL ? `Snel het ${i.id === 'politiek' ? 'politieke' : 'binnenlandse'} nieuws` : `Past bij ${i.label}`)
   for (const { s, i } of picks) add(s, why(s, i))
 
   // 4. Minstens drie: vul aan met de volgende gratis bron per interesse (Nederlands eerst).
@@ -85,7 +94,16 @@ export function voorstel(sources = [], interests = [], topics = []) {
     const next = fits.sort((a, b) => (dutch(b) ? 1 : 0) - (dutch(a) ? 1 : 0) || fit(b, i, topics) - fit(a, i, topics) || (b.pick ? 1 : 0) - (a.pick ? 1 : 0))[0]
     if (next) add(next, why(next, i))
   }
-  return out
+  // Nog geen drie en geen gratis bron meer: een betaalde die past (Nederlands eerst), alleen te zien.
+  for (const i of chosen) {
+    if (out.length >= 3) break
+    const fits = news.filter((s) => fit(s, i, topics) > 0 && aanrader(s, i) && !has(s.id))
+    const next = fits.sort((a, b) => (dutch(b) ? 1 : 0) - (dutch(a) ? 1 : 0) || fit(b, i, topics) - fit(a, i, topics) || (b.pick ? 1 : 0) - (a.pick ? 1 : 0))[0]
+    if (next) add(next, why(next, i))
+  }
+  // 5. Alleen gratis alvast aan; de gratis bronnen voorop (de volgorde verder zoals hierboven).
+  const paidOf = new Set(news.filter((s) => s.paid).map((s) => s.id))
+  return out.map((o) => ({ ...o, on: !paidOf.has(o.id) })).sort((a, b) => (b.on ? 1 : 0) - (a.on ? 1 : 0))
 }
 
 // Voor de app (HootCore): JSON erin ({ sources, interests, topics }), JSON eruit ([{ id, why }] of null).

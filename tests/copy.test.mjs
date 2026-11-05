@@ -25,8 +25,8 @@ test('Welkom 1.1.0: vier schermen, Editie, Stroom en Selectie als gelijken, zond
   assert.match(s, /<SunArt kind=\{t\.kind\} className="ob__tart" \/>/)
   assert.ok(!/STEPS|Pagina \$\{/.test(s), 'geen stapteller of paginateller')
   assert.match(s, /ob__login[\s\S]{0,120}>\s*Account\s*</) // r5-namen: het Hoot-account heet Account
-  // Later kiezen kan altijd: bij de bronnen en bij de interesses.
-  assert.equal(s.match(/>\s*Later kiezen\s*</g)?.length, 2)
+  // Later kiezen is weg (1.1.1, keuze r5-later-kiezen): de hoofdknop werkt altijd, één knop, één weg.
+  assert.equal(s.match(/>\s*Later kiezen\s*</g), null)
   for (const old of ['Wat precies?', 'Overslaan', 'Veeg verder', 'PagedSourceGrid', 'Kies minstens één', 'Kies één bron']) assert.ok(!s.includes(old), old)
 })
 

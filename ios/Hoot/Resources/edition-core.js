@@ -1399,6 +1399,9 @@ var HootCore = (() => {
     S("independent", "The Independent", "int", "en", "Brits, liberaal, wereldnieuws.", "https://www.independent.co.uk/news/world/rss", { login: "https://www.independent.co.uk/login", color: "#EC1A2E", bsky: "the-independent.com" }),
     S("telegraph", "The Telegraph", "int", "en", "Brits, conservatief, wereldnieuws.", "https://www.telegraph.co.uk/rss.xml", { login: "https://secure.telegraph.co.uk/customer/secure/login/", paid: true, color: "#1A1A1A", bsky: "telegraph.co.uk" }),
     // Economie
+    // Gratis en Nederlands bij Economie (keuze r5-economiebron, 5 november): de economiefeed van de NOS,
+    // zoals NOS Sport en NOS Cultuur. Gecontroleerd op 5 november 2026 (bereikbaar, actueel, 20 berichten).
+    S("nos-economie", "NOS Economie", "economie", "nl", "Economie en werk van de NOS.", "https://feeds.nos.nl/nosnieuwseconomie", { pick: true, for: ["economie"], color: "#B5121B", bsky: "nos.nl" }),
     S("fd", "Het Financieele Dagblad", "economie", "nl", "Economie, bedrijven en financiën.", "https://fd.nl/?rss", { login: "https://fd.nl/login", paid: true, pick: true, for: ["economie"], color: "#F3A712", bsky: "fd.nl" }),
     S("bloomberg", "Bloomberg", "economie", "en", "Markten en bedrijfsnieuws.", "https://feeds.bloomberg.com/markets/news.rss", { login: "https://www.bloomberg.com/account/signin", paid: true, color: "#1A1A1A", bsky: "bloomberg.com" }),
     // Tech
@@ -1454,7 +1457,7 @@ var HootCore = (() => {
   var editionStoryCount = (entries = []) => Array.isArray(entries) ? entries.filter((e) => e.desk !== "bubbel").length : 0;
 
   // shared/edition-policy.mjs
-  var ALIAS = { "nos-sport": "nos", "nos-cultuur": "nos", "bbc-sport": "bbc", "guardian-sport": "guardian", "guardian-music": "guardian", "guardian-culture": "guardian", "npr-music": "npr" };
+  var ALIAS = { "nos-sport": "nos", "nos-cultuur": "nos", "nos-economie": "nos", "bbc-sport": "bbc", "guardian-sport": "guardian", "guardian-music": "guardian", "guardian-culture": "guardian", "npr-music": "npr" };
   var COUNTRIES2 = Object.fromEntries(Object.entries({
     NL: [...NL_HOME, "tweakers", "vi", "wielerflits", "3voor12"],
     BE: [...VL_HOME],
@@ -3061,13 +3064,15 @@ var HootCore = (() => {
   // shared/voorstel.mjs
   var VOORSTEL_MAX = 5;
   var ALGEMEEN = ["nos", "nu", "rtl"];
+  var SNEL = "nu";
   var NL_NIEUWS = /* @__PURE__ */ new Set(["politiek", "binnenland"]);
   var EXTRA_CATS = { wereld: ["int"] };
   var free = (s) => !s.paid;
+  var aanrader = (s, i) => (s.for || []).includes(i.id) || !!s.forTopic && i.topics.includes(s.forTopic);
   var dutch = (s) => s.lang === "nl";
   function fit(s, i, topics = []) {
     if (!s || !i) return 0;
-    if (NL_NIEUWS.has(i.id) && ALGEMEEN.includes(s.id)) return 2;
+    if (NL_NIEUWS.has(i.id) && s.id === SNEL) return 2;
     if (s.cat === "nl" || s.cat === "vl") return 0;
     let n = 0;
     if ((s.for || []).includes(i.id)) n += 4;
@@ -3101,11 +3106,11 @@ var HootCore = (() => {
         continue;
       }
       if (dominant && covers(dominant).includes(i.id)) continue;
-      const paid = best(fits);
+      const paid = best(fits.filter((s) => aanrader(s, i)));
       if (paid) picks.push({ s: paid, i });
     }
     if (dominant) add(dominant, `Past bij ${label(covers(dominant))}`);
-    const why = (s, i) => ALGEMEEN.includes(s.id) ? `Snel het ${i.id === "politiek" ? "politieke" : "binnenlandse"} nieuws` : `Past bij ${i.label}`;
+    const why = (s, i) => s.id === SNEL ? `Snel het ${i.id === "politiek" ? "politieke" : "binnenlandse"} nieuws` : `Past bij ${i.label}`;
     for (const { s, i } of picks) add(s, why(s, i));
     for (const i of chosen) {
       if (out.length >= 3) break;
@@ -3113,7 +3118,14 @@ var HootCore = (() => {
       const next = fits.sort((a, b) => (dutch(b) ? 1 : 0) - (dutch(a) ? 1 : 0) || fit(b, i, topics) - fit(a, i, topics) || (b.pick ? 1 : 0) - (a.pick ? 1 : 0))[0];
       if (next) add(next, why(next, i));
     }
-    return out;
+    for (const i of chosen) {
+      if (out.length >= 3) break;
+      const fits = news.filter((s) => fit(s, i, topics) > 0 && aanrader(s, i) && !has(s.id));
+      const next = fits.sort((a, b) => (dutch(b) ? 1 : 0) - (dutch(a) ? 1 : 0) || fit(b, i, topics) - fit(a, i, topics) || (b.pick ? 1 : 0) - (a.pick ? 1 : 0))[0];
+      if (next) add(next, why(next, i));
+    }
+    const paidOf = new Set(news.filter((s) => s.paid).map((s) => s.id));
+    return out.map((o) => ({ ...o, on: !paidOf.has(o.id) })).sort((a, b) => (b.on ? 1 : 0) - (a.on ? 1 : 0));
   }
   function voorstelJSON(jsonIn) {
     const { sources = [], interests = [], topics = [] } = JSON.parse(jsonIn || "{}");

@@ -10,8 +10,8 @@ import SwiftUI
 //      nieuws, het gratis begin voorop), dan per gekozen interesse een blok met een gratis aanrader;
 //      de rest ingeklapt; zoeken vindt alles. Een voorbeeld-Editie met echte koppen groeit mee
 //      (breed rechts, smal in een uitklapbalk boven de knop).
-// Eerst de interesses, dan de bronnen: zo staan de vak- en nichebronnen bij wat je koos. "Later
-// kiezen" kan altijd. Het seintje komt pas na de eerste Editie (EditionView, AlertOffer), niet hier.
+// Eerst de interesses, dan de bronnen: zo staan de vak- en nichebronnen bij wat je koos. De hoofdknop
+// werkt altijd (de knop Later kiezen is weg sinds 1.1.1, keuze r5-later-kiezen). Het seintje komt pas na de eerste Editie (EditionView, AlertOffer), niet hier.
 // Het merk loopt erdoorheen: het opstartscherm landt op "hoot." linksboven op de rode intro, en bij
 // het eerste papier sluit het rood zich als een iris tot de punt van "hoot." op papier.
 // Opnieuw kiezen (Instellingen, `reopen`) en na even rondkijken (een blad met `onCancel`): geen intro
@@ -157,19 +157,6 @@ struct WelcomeView: View {
     private func quickStart() {
         store.quickStart()
         onDone()
-    }
-
-    // Later kiezen bij de interesses: zoals het was (de eerste keer dus leeg), door naar de bronnen.
-    private func laterInterests() {
-        interests = again ? store.interests : []
-        vak = again ? store.digestFields : []
-        go(.bronnen)
-    }
-
-    // Later kiezen bij de bronnen: zoals het was, en de eerste keer zonder iets gevolgd de startset.
-    private func laterSources() {
-        if mine.isEmpty { chosen = again ? original : FollowList.startIds(store.newsSources) }
-        finish(interests: interests, vak: vak)
     }
 
     private func back() {
@@ -477,9 +464,10 @@ struct WelcomeView: View {
                         let next = try? await EditionEngine.shared.voorstel(sources: store.newsSources, interests: interests, topics: picked)
                         guard !Task.isCancelled else { return }
                         voorstel = next ?? nil
-                        // De eerste keer staat het voorstel alvast aan (review G2), zolang je zelf nog niets koos.
+                        // De eerste keer staat het gratis deel van Voor jou alvast aan (review G2, keuze
+                        // r5-voorstel-betaald), zolang je zelf nog niets koos.
                         fill()
-                        if !again && !sourcesEdited && chosen != nil { chosen = (next ?? nil)?.map(\.id) ?? [] }
+                        if !again && !sourcesEdited && chosen != nil { chosen = FollowList.alvast(next ?? nil) }
                     }
                 if !wide && typeSize.isAccessibilitySize {
                     VStack(alignment: .leading, spacing: 0) {
@@ -551,7 +539,7 @@ struct WelcomeView: View {
         } else if showFollowed {
             let list = FollowList.followed(all, mine)
             if list.isEmpty {
-                Text(voorstel == nil ? "Je volgt nog niets. Begin bij de Basis." : "Je volgt nog niets. Begin bij het voorstel.")
+                Text(voorstel == nil ? "Je volgt nog niets. Begin bij de Basis." : "Je volgt nog niets. Begin bij Voor jou.")
                     .zin().foregroundStyle(Theme.ink2).padding(.top, Space.s5)
             } else {
                 rows(list).padding(.top, Space.s3)
@@ -564,8 +552,12 @@ struct WelcomeView: View {
             let rest = groups.more
             let restCount = rest.reduce(0) { $0 + $1.sources.count }
             let basis = groups.basis
+            // De regel direct onder de kop van Voor jou (keuze r5-alvast-regel): waarom de vinkjes al staan.
+            let planOn = FollowList.alvast(voorstel)
+            let note: String? = voorstel != nil && !again && !sourcesEdited && !planOn.isEmpty && planOn.allSatisfy(mine.contains)
+                ? FollowList.alvastLine(withPaid: planOn.count < (voorstel?.count ?? 0)) : nil
             if !basis.isEmpty {
-                foldGroup(id: "basis", title: voorstel == nil ? "Basis" : "Voorstel", list: basis, picks: Set(start.map(\.id)), count: false) {
+                foldGroup(id: "basis", title: voorstel == nil ? "Basis" : "Voor jou", list: basis, picks: Set(start.map(\.id)), count: false, note: note) {
                     if start.count > 1 {
                         Button(startOn ? "Alle \(FollowList.allWord(start.count)) gevolgd" : "Volg alle \(FollowList.allWord(start.count))") {
                             let ids = start.map(\.id)
@@ -582,12 +574,6 @@ struct WelcomeView: View {
                         .accessibilityAddTraits(startOn ? .isSelected : [])
                     }
                 }
-            }
-            if voorstel != nil && !again && !sourcesEdited && startOn {
-                Text("Alvast gevolgd. Uitzetten kan met één tik.")
-                    .font(.ui(.footnote)).foregroundStyle(Theme.ink3)
-                    .padding(.top, Space.s2)
-                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             if !groups.kranten.isEmpty {
                 foldGroup(id: "nl", title: "Nederlands nieuws", list: groups.kranten) { EmptyView() }
@@ -620,8 +606,8 @@ struct WelcomeView: View {
 
     // Een inklapbare categorie (1.1.1, gelijk aan Fold in src/views/Welcome.jsx): de kop is een knop met de
     // naam, het aantal gekozen bronnen en een pijl (dicht naar rechts, open omlaag); ingeklapt alleen de kop.
-    // `action`: een knop naast de kop (Volg alle drie in de Basis).
-    @ViewBuilder private func foldGroup<Action: View>(id: String, title: String, list: [Source], picks: Set<String> = [], count: Bool = true, @ViewBuilder action: () -> Action) -> some View {
+    // `action`: een knop naast de kop (Volg alle drie in de Basis). `note`: één stille regel direct onder de kop.
+    @ViewBuilder private func foldGroup<Action: View>(id: String, title: String, list: [Source], picks: Set<String> = [], count: Bool = true, note: String? = nil, @ViewBuilder action: () -> Action) -> some View {
         let open = isOpen(id, list, in: mine)
         VStack(spacing: 0) {
             HStack(alignment: .center, spacing: 0) {
@@ -654,6 +640,12 @@ struct WelcomeView: View {
             Rectangle().fill(Theme.ink).frame(height: 2)
         }
         .padding(.top, Space.s5)
+        if open, let note {
+            Text(note)
+                .font(.ui(.footnote)).foregroundStyle(Theme.ink3)
+                .padding(.top, Space.s2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
         if open { rows(list, picks: picks) }
     }
 
@@ -873,7 +865,6 @@ struct WelcomeView: View {
                 linkButton("Liever meteen lezen", action: quickStart).disabled(store.newsSources.isEmpty)
             case .interesses:
                 ctaButton("Verder", onRed: false, off: false) { go(.bronnen) }
-                linkButton("Later kiezen", action: laterInterests)
             default:
                 if !typeSize.isAccessibilitySize { // bij heel grote tekst staat het aantal al in "Gevolgd · n"
                     Text(store.newsSources.isEmpty ? "Bronnen laden…" : FollowList.line(mine.count))
@@ -885,7 +876,6 @@ struct WelcomeView: View {
                     if mine.isEmpty { chosen = FollowList.freeStart(store.newsSources).map(\.id) }
                     finish(interests: interests, vak: vak)
                 }
-                linkButton("Later kiezen", action: laterSources).disabled(store.newsSources.isEmpty)
             }
         }
         .dynamicTypeSize(...DynamicTypeSize.accessibility1)
@@ -1022,6 +1012,12 @@ enum FollowList {
         return Groups(start: start, basis: start, kranten: kranten, blocks: blocks(all, interests, exclude: ids), more: more(all, interests, exclude: ids + kranten.map(\.id)))
     }
     // "Volg alle drie" tot "Volg alle vijf".
+    // Wat er de eerste keer alvast aan staat: alleen de gratis bronnen van Voor jou (keuze r5-voorstel-betaald).
+    static func alvast(_ voorstel: [EditionEngine.VoorstelBron]?) -> [String] { (voorstel ?? []).filter(\.on).map(\.id) }
+    // De regel onder de kop van Voor jou (gelijk aan alvastLine in src/views/Welcome.jsx).
+    static func alvastLine(withPaid: Bool) -> String {
+        withPaid ? "De gratis bronnen volg je alvast. Uitzetten kan met één tik." : "Alvast gevolgd. Uitzetten kan met één tik."
+    }
     static func allWord(_ n: Int) -> String { n >= 2 && n <= 5 ? ["twee", "drie", "vier", "vijf"][n - 2] : "\(n)" }
 
     // Inklapbare categorieën (1.1.1, gelijk aan src/lib/follow-welcome.js): hoeveel je in een categorie volgt,

@@ -49,7 +49,8 @@
   margin-inline-start: var(--s3);
 }
 
-/* Het voorstel staat de eerste keer alvast aan (1.1.1 ronde 2, review G2): één stille regel onder de lijst. */
+/* Voor jou staat de eerste keer alvast aan (1.1.1, review G2): één stille regel direct onder de kop, boven de
+   lijst (ronde 3, keuze r5-alvast-regel), zodat hij ook op een klein scherm in beeld is. */
 .ob__alvast {
   margin: var(--s2) 0 0;
   color: var(--ink-3);
