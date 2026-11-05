@@ -91,4 +91,9 @@ import SwiftUI
         XCTAssertTrue(HootApp.splashMayEnd(status: .ready, hasEdition: false, waited: 2))
         XCTAssertTrue(HootApp.splashMayEnd(status: .loading, hasEdition: false, waited: 5), "hooguit vijf seconden")
     }
+
+    // r5-apple-web: in de app eerlijk zeggen dat het web (nog) alleen Google kent.
+    func testAppleEnHetWeb() {
+        XCTAssertEqual(AccountView.webNote, "Op gethoot.app log je (nog) in met Google.")
+    }
 }

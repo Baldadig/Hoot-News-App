@@ -68,3 +68,10 @@ test('r5-namen: de app gebruikt dezelfde woordenlijst als web en landing', () =>
   const web = read('src/views/Welcome.jsx')
   for (const zin of ['Drie keer per dag tien verhalen. Dan ben je bij.', 'Elke maandag het beste over wat jou bezighoudt.', 'Elke maandag het beste over je werk of hobby.']) assert.ok(web.includes(zin), zin)
 })
+
+test('r5-apple-web: de inlogpagina van de app zegt dat je op gethoot.app (nog) met Google inlogt, en het web kent alleen Google', () => {
+  const app = read('ios/Hoot/Views/AccountView.swift')
+  assert.match(app, /static let webNote = "Op gethoot\.app log je \(nog\) in met Google\."/)
+  assert.match(app, /Text\(Self\.webNote\)/)
+  assert.doesNotMatch(read('src/components/Account.jsx'), /Inloggen met Apple/)
+})

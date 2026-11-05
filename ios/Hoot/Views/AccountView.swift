@@ -176,6 +176,8 @@ struct AccountView: View {
         }
     }
 
+    static let webNote = "Op gethoot.app log je (nog) in met Google."
+
     // Inloggen zoals je het kent: het merk, één korte kop en twee knoppen. Daaronder dezelfde zin als
     // op de website: lezen kan zonder account; met een account gaat je Hoot mee.
     private var signIn: some View {
@@ -226,6 +228,14 @@ struct AccountView: View {
             }
             .disabled(account.status == .loading)
             .overlay { if account.status == .loading { WaitingMark(size: 16, text: false) } }
+            // Eerlijk vooraf (keuze r5-apple-web, review D1): het web kent nog alleen Google. Wie hier met Apple
+            // inlogt, komt op gethoot.app niet in hetzelfde account.
+            Text(Self.webNote)
+                .font(.ui(.footnote))
+                .foregroundStyle(Theme.ink3)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, Space.s3)
             if let message = account.message {
                 Text(message)
                     .font(.ui(.footnote))
