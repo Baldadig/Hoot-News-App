@@ -14,7 +14,7 @@ struct SettingsView: View {
     @Environment(EditionAlerts.self) private var alerts
     @AppStorage("hoot.weergave") private var weergave = "system"
     @State private var icon = AppIconSelection()
-    @State private var path: [String] = DebugLaunch.screen("instellingen-bronnen") ? ["bronnen"] : DebugLaunch.screen("instellingen-interesses") ? ["interesses"] : DebugLaunch.screen("instellingen-vakken") ? ["vakken"] : DebugLaunch.screen("instellingen-abonnementen") ? ["abonnementen"] : DebugLaunch.screen("instellingen-wissen") ? ["toestel"] : []
+    @State private var path: [String] = DebugLaunch.screen("instellingen-bronnen") ? ["bronnen"] : DebugLaunch.screen("instellingen-bluesky") ? ["bluesky"] : DebugLaunch.screen("instellingen-interesses") ? ["interesses"] : DebugLaunch.screen("instellingen-vakken") ? ["vakken"] : DebugLaunch.screen("instellingen-abonnementen") ? ["abonnementen"] : DebugLaunch.screen("instellingen-wissen") ? ["toestel"] : []
 
     static var version: String {
         let v = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
