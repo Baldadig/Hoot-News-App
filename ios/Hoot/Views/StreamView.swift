@@ -391,30 +391,41 @@ struct SavedView: View {
 struct SearchView: View {
     @Environment(HootStore.self) private var store
     @State private var query = DebugLaunch.query ?? ""
+    @State private var scope: SearchHits.Scope = .mijn // standaard Mijn bronnen, zoals op het web
+    @State private var extra: [Item] = [] // Alle bronnen: ook wat alleen binnen een verhaal staat
     var body: some View {
         NavigationStack {
             // Breed zoeken, zoals het web: woord, bron en auteur, ook in Bewaard (SearchHits).
             let q = SearchHits.words(query)
-            let hits = q.isEmpty ? [] : Array(store.withoutCopies(SearchHits.hits(query: query, stream: store.stream, saved: store.saved, muted: store.muted)).prefix(SearchHits.limit))
+            let hits = q.isEmpty ? [] : Array(store.withoutCopies(SearchHits.hits(query: query, stream: store.stream, saved: store.saved, extra: scope == .alle ? extra : [], muted: store.muted)).prefix(SearchHits.limit))
             List {
                 Section {
+                    if !hits.isEmpty {
+                        Text(SearchHits.status(count: hits.count, scope: scope)).uitleg().foregroundStyle(Theme.ink2).listRowBackground(Color.clear)
+                    }
                     ForEach(hits) { item in
                         // Zonder "+N bronnen": een link in een lijstrij maakt de hele rij tot die link.
-                        ItemRow(item: item, story: nil, linkSource: false).listRowBackground(Theme.surface)
+                        ItemRow(item: item, outside: store.isOutside(item), story: nil, linkSource: false).listRowBackground(Theme.surface)
                     }
                 } header: {
                     // Dezelfde schermtitel als Bewaard, Stroom en Selectie (t5-screen), niet de grote
                     // systeemtitel: die stond groter en lager (B2).
-                    ScreenTitle("Zoeken").textCase(nil).listRowInsets(EdgeInsets())
+                    VStack(alignment: .leading, spacing: Space.s3) {
+                        ScreenTitle("Zoeken")
+                        Picker("Waar zoeken", selection: $scope) {
+                            ForEach(SearchHits.Scope.allCases) { Text($0.rawValue).tag($0) }
+                        }.pickerStyle(.segmented).padding(.horizontal, Space.s4)
+                    }.textCase(nil).listRowInsets(EdgeInsets())
                 }
             }
+            .task(id: scope) { extra = scope == .alle ? await store.searchPoolAll() : [] }
             .scrollContentBackground(.hidden)
             .background(Theme.paper)
             .overlay {
                 if q.isEmpty {
-                    EmptyState(title: "Zoek in je nieuws", systemImage: "magnifyingglass", text: "Op woord, bron of auteur, ook in wat je bewaarde.")
+                    EmptyState(title: "Zoek in je nieuws", systemImage: "magnifyingglass", text: SearchHits.emptyText)
                 } else if hits.isEmpty {
-                    EmptyState(title: "Niets gevonden voor ‘\(query.trimmingCharacters(in: .whitespaces))’", systemImage: "magnifyingglass", text: "Hoot zoekt op woord, bron en auteur, in je Stroom en in Bewaard.")
+                    EmptyState(title: "Niets gevonden voor ‘\(query.trimmingCharacters(in: .whitespaces))’", systemImage: "magnifyingglass", text: SearchHits.noHitsText, action: scope == .mijn ? (label: "Zoek in alle bronnen", systemImage: nil, run: { scope = .alle }) : nil)
                 }
             }
             .navigationTitle("Zoeken")
