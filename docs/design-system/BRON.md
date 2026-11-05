@@ -1,6 +1,6 @@
 # Design system van Hoot
 
-- **Versie 2.3 (5 november 2026):** [`brand-guide-v2.3.md`](brand-guide-v2.3.md): twee families (Newsreader om te lezen, Schibsted Grotesk om te bedienen, vervangt Inter), kaart A+ op de telefoon, beelden (witte randen weg, zes placeholders), beweging (Horizon, De stapel, Tien en de bubbel, opstart-iris) en de schrijfwijze. Gaat boven v2.2 waar ze verschillen.
+- **Versie 2.3 (5 november 2026):** [`brand-guide-v2.3.md`](brand-guide-v2.3.md): twee families (Newsreader om te lezen, Schibsted Grotesk om te bedienen, vervangt Inter), kaart A+ op de telefoon, beelden (witte randen weg, twaalf placeholders), beweging (Horizon, De stapel, Tien en de bubbel, opstart-iris) en de schrijfwijze. Gaat boven v2.2 waar ze verschillen.
 - **Versie 2.2 (4 november 2026):** [`brand-guide-v2.2.md`](brand-guide-v2.2.md): de keuzes voor 1.1.0, drie thema's (Licht, Donker, Nacht · Zacht papier), kleurverhouding 60 · 30 · 10, bewegingstaal (200 ms crossfade, 400 ms strook, iris), app-icoon (rood standaard en kiesbaar), leesbreedte (web 720, iOS 680), deelkaart, beeldtaal en stem en toon. Gaat boven v2.1 waar ze verschillen.
 - **Register:** `tokens.json` (versie 3): kleur in Licht, Donker en Nacht, type, ruimte, hoeken, maten, regelafstand, beweging, schaduw en het merk (app-iconen, kleurverhouding, beeldtaal).
 - **Beeldtaal:** de gekozen composities als SVG in [`beeldtaal/`](beeldtaal/) (01, 02, 04, 05, 06, 07, 09, 10, 11), plus de twee lijntekeningen van de lege bladzijde.
