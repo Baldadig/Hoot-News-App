@@ -15,7 +15,7 @@ Inhoud: [0 Wat is nieuw](#0--wat-is-nieuw-in-v23) · [1 Keuzes](#1--keuzes-voor-
 | Type | **Twee families.** Newsreader voor wat je leest, **Schibsted Grotesk** voor de bediening en elke uitleg- of hulpzin. Schibsted vervangt Inter overal: app, web, landing en deelkaart. Kickers op 800. Afbreken alleen met een streepje. Hints alleen in Nacht op `ink-2`. |
 | Lopende tekst (5 nov) | **Leestekst Newsreader Text op optische maat 12, gewicht 450, in `ink-2`** (Nacht: 480). Terugval als de maat niet beschikbaar is: opsz 11 en gewicht 400. **Over en Privacy staan schreefloos** (Schibsted). De accountkaart in Instellingen toont de profielfoto (Google) of een monogram. Tekstgrootte: vijf standen, ×0,9 tot ×1,45. De themakeuze heet **Zoals je toestel** (was Automatisch). |
 | Kaart A+ (nieuw) | Eén kaart voor Editie en Stroom op de telefoon (ook Bewaard, Zoeken en het bronscherm): kop 22/28, intro 18/28, beeld 2:1 onder de tekst; hoofdverhaal 01 met beeld 3:2 tot de rand, kop 30/36, intro 20/30 en het nummer als enige rood. iPad en desktop houden hun brede vormen. |
-| Beelden (nieuw) | Witte randen worden gemeten en weggesneden. Twaalf placeholders in vijf sets (Zonnestand, Iris, Horizonlijnen, Raster, De stapel), vast per artikel, buren nooit gelijk en nooit uit dezelfde set. |
+| Beelden (nieuw) | Witte randen worden gemeten en weggesneden. Tien placeholders in vijf sets (Zonnestand, Iris, Horizonlijnen, Raster, De stapel), vast per artikel, buren nooit gelijk en nooit uit dezelfde set. |
 | Beweging | Horizon sluit in 400 met `ease-iris`. Nieuw: **De stapel** (laadteken) en **Tien en de bubbel** (eerste Editie). Opstart: het logo staat stil, het rood sluit als iris naar de punt. Onboarding-iris met een vast middelpunt. |
 | Stem en toon | Verwijst naar `SCHRIJFWIJZE-HOOT.md`: altijd vanuit het voordeel voor de lezer, kort en stil. |
 | Register | `tokens.json` versie 3: Schibsted, `hint`, kaart A+, placeholders, De stapel, Tien, de leesstijl (opsz 12 / 450, Nacht 480, terugval 11 / 400), `textScale`, `account-mark`; waarden die achterliepen op de code zijn gelijkgetrokken (§11). |
@@ -45,7 +45,7 @@ Door Alex gemaakt op 4 november; norm vanaf v2.2. Nieuw in v2.3 staat onderaan d
 | Deelkaart | Papieren schijf achter het uitgeverslogo: ja. |
 | **Letters (v2.3)** | Twee families: Newsreader om te lezen, Schibsted Grotesk voor de bediening. Ook op de website, de landing en de deelkaart. |
 | **Kaart A+ (v2.3)** | Editie en Stroom delen op de telefoon één kaart (§4b). |
-| **Artikel zonder beeld (v2.3)** | Eerst het beeld van de artikelpagina; lukt dat niet, dan een van twaalf placeholders (§6c). Intro: drie regels, hele zinnen, geen beletselteken. |
+| **Artikel zonder beeld (v2.3)** | Eerst het beeld van de artikelpagina; lukt dat niet, dan een van tien placeholders (§6c). Intro: drie regels, hele zinnen, geen beletselteken. |
 | **Laadtekens (v2.3)** | De stapel bij laden en bij artikel openen; Tien en de bubbel eenmalig bij de eerste Editie (§5). |
 | **Lopende tekst (v2.3, 5 nov)** | Newsreader Text, optische maat 12, gewicht 450, `ink-2` (Nacht 480). Terugval: optische maat 11, gewicht 400. |
 | **Over en Privacy (v2.3, 5 nov)** | Schreefloos in Schibsted Grotesk: het is uitleg, dus bediening. |
@@ -283,9 +283,9 @@ Veel persfoto's hebben een witte of lichte rand. Hoot **meet die rand en snijdt 
 
 Eerst het beeld van de artikelpagina (ook bij betaalde bronnen). Lukt dat niet, of is het te klein, dan een **placeholder**:
 
-- **Twaalf beelden in vijf sets**: 1–3 **Zonnestand** (de zon op de horizon in drie standen), 4–6 **Iris** (uitsneden van de iris, steeds dichterbij), 7–8 **Horizonlijnen** (alleen lijnen, geen rood), 9–10 **Raster** (punten of haarlijnen, één rode punt) en 11–12 **De stapel** (vellen uit het laadteken, als haarlijnen of vlakken, met de rode kopstreep). Elk los, nooit gecombineerd. Per thema een eigen versie (Licht, Donker, Nacht), en elk beeld een eigen kleine tekening (96 × 64) voor het kleine vak rechts. Haarlijnen blijven 1 punt dik op elke maat.
-- **Deterministisch op artikel-id**: hetzelfde artikel krijgt overal hetzelfde beeld, web en iOS gelijk (FNV-1a, mod 12: door elkaar, niet op volgorde).
-- **Buren nooit gelijk**: twee beeldloze stukken direct onder elkaar krijgen nooit hetzelfde beeld en nooit een beeld uit dezelfde set; is de set gelijk, dan schuift het beeld drie door (altijd een andere set).
+- **Tien beelden in vijf sets**: 1–3 **Zonnestand** (de zon op de horizon in drie standen, steeds een vol rood vlak), 4–6 **Iris** (uitsneden van de iris, steeds dichterbij), 7 **Horizonlijnen** (alleen lijnen, geen rood), 8–9 **Raster** (punten of haarlijnen, één rode punt) en 10 **De stapel** (vier vellen als haarlijnen uit het laadteken, met de rode kopstreep). Elk los, nooit gecombineerd. Per thema een eigen versie (Licht, Donker, Nacht), en elk beeld een eigen kleine tekening (96 × 64) voor het kleine vak rechts. Haarlijnen blijven 1 punt dik op elke maat.
+- **Deterministisch op artikel-id**: hetzelfde artikel krijgt overal hetzelfde beeld, web en iOS gelijk (FNV-1a, mod 10: door elkaar, niet op volgorde).
+- **Buren nooit gelijk**: twee beeldloze stukken direct onder elkaar krijgen nooit hetzelfde beeld en nooit een beeld uit dezelfde set; is de set gelijk, dan schuift het beeld drie door; bij de volgorde van de sets (3 · 3 · 1 · 2 · 1) valt dat altijd in een andere set.
 - **De middagzon is klein**, en de beelden dragen **geen dagdeel-betekenis** (en geen rubriek).
 - Eén bron: `shared/placeholder.mjs` maakt de SVG's (`src/assets/placeholder/`), `src/placeholder.css` en `PlaceholderBeelden.swift`.
 

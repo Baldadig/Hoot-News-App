@@ -4,7 +4,7 @@ import SwiftUI
 // vult. Eén plek, voor de app; het web spiegelt hem in Beeldloos (src/components/Beeld.jsx). Hij staat waar
 // anders het beeld zou staan: het stuk heeft geen beeld, het beeld is te klein voor die plek, of het laadt
 // niet. Nooit een grijs vlak en nooit een beeld van een ander artikel.
-// Twaalf beelden in vijf sets (shared/placeholder.mjs, de tekening in PlaceholderBeelden.swift): welk, volgt
+// Tien beelden in vijf sets (shared/placeholder.mjs, de tekening in PlaceholderBeelden.swift): welk, volgt
 // uit de id van het artikel, en twee beeldloze rijen direct na elkaar krijgen nooit hetzelfde beeld en nooit
 // dezelfde set (Placeholder.plan, via de omgeving). Het is decoratie: verborgen voor VoiceOver.
 struct BeeldloosView: View {
@@ -45,7 +45,7 @@ struct BeeldloosView: View {
     }
 }
 
-// Beeld 1 tot 12 (index 0 tot 11), getekend op de echte maat. Het vult het vak als een foto (cover): de
+// Beeld 1 tot 10 (index 0 tot 9), getekend op de echte maat. Het vult het vak als een foto (cover): de
 // kortste kant past, de rest valt weg, gecentreerd. Zoals de SVG's met background-size: cover op het web.
 struct PlaceholderBeeld: View {
     @Environment(\.colorScheme) private var scheme
@@ -115,8 +115,8 @@ struct PHBeeld {
 
 // De keuze, gelijk aan shared/placeholder.mjs (tests/fixtures/placeholder.json draait op beide).
 enum Placeholder {
-    static let count = 12
-    // Doorschuiven: drie verder valt altijd in een andere set (zon 3 · iris 3 · lijn 2 · raster 2 · stapel 2).
+    static let count = 10
+    // Doorschuiven: drie verder valt altijd in een andere set (zon 0–2 · iris 3–5 · lijn 6 · raster 7–8 · stapel 9).
     static let shift = 3
     // De set van beeld k: zon, iris, lijn, raster of stapel.
     static func set(_ k: Int) -> String { PlaceholderBeelden.beelden[k].familie }

@@ -1,15 +1,15 @@
 // Placeholderbeeld (build 46, keuze van Alex): heeft een stuk geen beeld, is het te klein voor de plek
-// of laadt het niet, dan vult een Hoot-beeld het vak. Twaalf losse beelden in vijf sets: 1 tot 3
-// Zonnestand (de zon op de horizon in drie standen), 4 tot 6 Iris (uitsneden van de iris, steeds
-// dichterbij), 7 en 8 Horizonlijnen (alleen lijnen), 9 en 10 Raster (met één rode punt), 11 en 12 De
-// stapel (vellen uit het laadteken). Ze dragen geen betekenis: geen dagdeel, geen rubriek, geen tekst.
-// Intern heten ze beeld 1 tot 12. Elk beeld heeft een kleine tekening voor het kleine vak rechts.
+// of laadt het niet, dan vult een Hoot-beeld het vak. Tien losse beelden in vijf sets: 1 tot 3
+// Zonnestand (de zon op de horizon in drie standen, steeds vol), 4 tot 6 Iris (uitsneden van de iris,
+// steeds dichterbij), 7 Horizonlijnen (alleen lijnen), 8 en 9 Raster (met één rode punt) en 10 De stapel
+// (vellen uit het laadteken). Ze dragen geen betekenis: geen dagdeel, geen rubriek, geen tekst.
+// Intern heten ze beeld 1 tot 10. Elk beeld heeft een kleine tekening voor het kleine vak rechts.
 //
 // Eén bron voor web en app: scripts/placeholders.mjs maakt hieruit de SVG's (src/assets/placeholder/),
 // de CSS (src/placeholder.css) en de tabel voor SwiftUI (ios/Hoot/Views/PlaceholderBeelden.swift).
 // Dezelfde keuze voor hetzelfde artikel: tests/fixtures/placeholder.json draait op web en iOS.
 
-export const PLACEHOLDER_COUNT = 12
+export const PLACEHOLDER_COUNT = 10
 
 // FNV-1a (32 bit) over de UTF-8-bytes van de id. Dezelfde som in Beeldloos.swift.
 export function fnv1a(s) {
@@ -21,21 +21,23 @@ export function fnv1a(s) {
   return h >>> 0
 }
 
-// Het beeld van een artikel op zich: 0 tot 11 (beeld 1 tot 12). De hash strooit ze door elkaar.
+// Het beeld van een artikel op zich: 0 tot 9 (beeld 1 tot 10). De hash strooit ze door elkaar.
 export const placeholderBase = (id) => fnv1a(id) % PLACEHOLDER_COUNT
 
-// De set van een beeld (0 tot 11): zon, iris, lijn, raster of stapel.
+// De set van een beeld (0 tot 9): zon, iris, lijn, raster of stapel.
 export const placeholderSet = (k) => PLACEHOLDERS[k].family
 
-// Doorschuiven: drie verder (mod 12) valt altijd in een andere set. De sets liggen op volgorde
-// (3 · 3 · 2 · 2 · 2), dus 0–2 → 3–5, 3–5 → 6–8, 6–8 → 9–11 en 9–11 → 0–2.
+// Doorschuiven: drie verder (mod 10) valt altijd in een andere set. De sets liggen op volgorde
+// (zon 0–2 · iris 3–5 · lijn 6 · raster 7–8 · stapel 9): zon → iris (3–5), iris → lijn of raster (6–8),
+// lijn → stapel (9), raster → zon (0–1), stapel → zon (2). Van de geldige stappen geeft drie de gelijkste
+// verdeling; de tests lopen alle tien beelden na.
 export const PLACEHOLDER_SHIFT = 3
 
 // Een lijst van boven naar onder: `rows` is [{ id, bare }], `bare` of die rij het placeholderbeeld toont.
 // Twee beeldloze rijen direct na elkaar krijgen nooit hetzelfde beeld en nooit dezelfde set: zit het
 // beeld in dezelfde set als dat van de rij erboven, dan schuift het drie door, naar een andere set.
 // Alleen de directe buur telt, dus een nieuw stuk bovenaan verschuift hooguit de rij eronder. Geeft een
-// Map id → 0 tot 11 voor de beeldloze rijen.
+// Map id → 0 tot 9 voor de beeldloze rijen.
 export function placeholderPlan(rows) {
   const out = new Map()
   let prev = null
@@ -78,12 +80,12 @@ export const PALETTES = {
     donker: { bg: '#1E1B17', sun: '#EC7A70', dot: '#6E685E', grid: '#39352F' },
     nacht: { bg: '#12100E', sun: '#DF8276', dot: '#5B5448', grid: '#2A2721' },
   },
-  // De stapel: vellen als haarlijnen (zoals het laadteken) of als vlakken, achter donker, voor licht.
-  // Het bovenste vel draagt de rode kopstreep, zoals bij het landen van het laadteken.
+  // De stapel: vellen als haarlijnen, zoals het laadteken. Het bovenste vel draagt de rode kopstreep,
+  // zoals bij het landen van het laadteken.
   stapel: {
-    licht: { bg: '#EFE9DD', sun: '#9A3324', line: '#857F72', vel3: '#DFD7C7', vel2: '#E4DDCF', vel1: '#E9E3D7', vel0: '#F3EFE6' },
-    donker: { bg: '#1E1B17', sun: '#EC7A70', line: '#888175', vel3: '#221F1B', vel2: '#26231E', vel1: '#2A2722', vel0: '#2F2B25' },
-    nacht: { bg: '#12100E', sun: '#DF8276', line: '#746B5C', vel3: '#151310', vel2: '#181613', vel1: '#1C1916', vel0: '#201D19' },
+    licht: { bg: '#EFE9DD', sun: '#9A3324', line: '#857F72' },
+    donker: { bg: '#1E1B17', sun: '#EC7A70', line: '#888175' },
+    nacht: { bg: '#12100E', sun: '#DF8276', line: '#746B5C' },
   },
 }
 
@@ -118,38 +120,25 @@ const irisKlein = (g) => {
 // bovenkant (linkerkant) van de lijn.
 const h1 = (x, y, w, stroke) => ({ t: 'line', x1: x, y1: y + 0.5, x2: x + w, y2: y + 0.5, stroke, fixed: true })
 const v1 = (x, y, h, stroke) => ({ t: 'line', x1: x + 0.5, y1: y, x2: x + 0.5, y2: y + h, stroke, fixed: true })
-// Horizonlijnen 7: de horizon, eronder drie lijnen gecentreerd en steeds korter en zachter.
-const lijnen7 = (W, H, y, len, step, minus, x0) => ({
-  w: W, h: H,
-  shapes: [h1(x0, y, W - 2 * x0, 'line'), ...['soft', 'faint', 'fainter'].map((c, i) => { const l = len - i * minus; return h1((W - l) / 2, y + (i + 1) * step, l, c) })],
-})
-// Horizonlijnen 8: de horizon hoog, eronder lijnen over de volle breedte, de afstand groeit, de kleur zakt weg.
+// Horizonlijnen (7): de horizon hoog, eronder lijnen over de volle breedte, de afstand groeit, de kleur zakt weg.
 const lijnen8 = (W, H, x0, ys) => ({
   w: W, h: H,
   shapes: ys.map((y, i) => h1(x0, y, W - 2 * x0, ['line', 'soft', 'soft', 'faint', 'fainter'][i])),
 })
-// Raster 9: punten op een vaste steek, één punt is rood (en iets groter).
+// Raster 8: punten op een vaste steek, één punt is rood (en iets groter).
 const punten = (W, H, xs, ys, r, red, R) => ({
   w: W, h: H,
   shapes: [...ys.flatMap((y) => xs.filter((x) => !(x === red[0] && y === red[1])).map((x) => ({ t: 'circle', cx: x, cy: y, r, fill: 'dot' }))), { t: 'circle', cx: red[0], cy: red[1], r: R, fill: 'sun' }],
 })
-// Raster 10: haarlijnen van rand tot rand, de rode punt op een kruising.
+// Raster 9: haarlijnen van rand tot rand, de rode punt op een kruising.
 const lijnraster = (W, H, xs, ys, red, R) => ({
   w: W, h: H,
   shapes: [...xs.map((x) => v1(x, 0, H, 'grid')), ...ys.map((y) => h1(0, y, W, 'grid')), { t: 'circle', cx: red[0], cy: red[1], r: R, fill: 'sun' }],
 })
-// De stapel 11: vier vellen als haarlijnen (opzij −4 · 0 · +4 · −2, geschaald), het bovenste is de rode kopstreep.
+// De stapel 10: vier vellen als haarlijnen (opzij −4 · 0 · +4 · −2, geschaald), het bovenste is de rode kopstreep.
 const stapelLijnen = (W, H, len, step, offs, top, kop) => ({
   w: W, h: H,
   shapes: offs.map((o, i) => (i === 0 ? { t: 'rect', x: (W - len) / 2 + o, y: top - kop / 2, w: len, h: kop, fill: 'sun' } : h1((W - len) / 2 + o, top + i * step, len, 'line'))),
-})
-// De stapel 12: vier vellen als vlakken, van achter naar voor; de rode kopstreep op de bovenrand van het voorste.
-const stapelVlakken = (W, H, vw, vh, step, offs, top, kop) => ({
-  w: W, h: H,
-  shapes: [
-    ...offs.map((o, i) => ({ t: 'rect', x: (W - vw) / 2 + o, y: top + i * step, w: vw, h: vh, fill: ['vel3', 'vel2', 'vel1', 'vel0'][i] })),
-    { t: 'rect', x: (W - vw) / 2 + offs[3], y: top + 3 * step, w: vw, h: kop, fill: 'sun' },
-  ],
 })
 const steek = (from, n, step) => Array.from({ length: n }, (_, i) => from + i * step)
 
@@ -164,24 +153,22 @@ export const PLACEHOLDERS = [
   { family: 'zon', groot: zonGroot({ t: 'circle', cx: 88, cy: 120, r: 28, fill: 'sun', clip: true }), klein: zonKlein({ t: 'circle', cx: 24, cy: 44, r: 12, fill: 'sun', clip: true }) },
   // 2: de zon hoog in het midden, klein (r 16), zodat het rood een accent blijft.
   { family: 'zon', groot: zonGroot({ t: 'circle', cx: 179, cy: 56, r: 16, fill: 'sun', clip: true }), klein: zonKlein({ t: 'circle', cx: 48, cy: 20, r: 7, fill: 'sun', clip: true }) },
-  // 3: de zon rechts, half onder de horizon, als omtrek.
-  { family: 'zon', groot: zonGroot({ t: 'circle', cx: 270, cy: 111, r: 27, stroke: 'outline', sw: 2, clip: true }), klein: zonKlein({ t: 'circle', cx: 72, cy: 40, r: 11.5, stroke: 'outline', sw: 1, clip: true }) },
+  // 3: de zon rechts, half onder de horizon, vol (keuze Alex: niet meer als omtrek).
+  { family: 'zon', groot: zonGroot({ t: 'circle', cx: 270, cy: 111, r: 27, fill: 'sun', clip: true }), klein: zonKlein({ t: 'circle', cx: 72, cy: 40, r: 11.5, fill: 'sun', clip: true }) },
   // 4 tot 6: de iris, wijd, halverwege en dichtbij. In 3:2 valt x 50 tot 350 in beeld; klein is die uitsnede.
   ...IRIS.map((groot) => ({ family: 'iris', groot, klein: irisKlein(groot) })),
-  // 7 en 8: Horizonlijnen. Alleen lijnen, heel stil.
-  { family: 'lijn', groot: lijnen7(358, 179, 96, 232, 16, 76, 24), klein: lijnen7(96, 64, 32, 54, 8, 18, 12) },
+  // 7: Horizonlijnen. Alleen lijnen, heel stil.
   { family: 'lijn', groot: lijnen8(358, 179, 24, [72, 90, 110, 134, 162]), klein: lijnen8(96, 64, 12, [22, 30, 38, 47, 57]) },
-  // 9 en 10: Raster met één rode punt. Punten op steek 24 (klein 12), of haarlijnen op steek 32 (klein 16).
+  // 8 en 9: Raster met één rode punt. Punten op steek 24 (klein 12), of haarlijnen op steek 32 (klein 16).
   { family: 'raster', groot: punten(358, 179, steek(23, 14, 24), steek(17, 7, 24), 1.25, [215, 113], 4), klein: punten(96, 64, steek(12, 7, 12), steek(8, 5, 12), 0.9, [60, 44], 3) },
   { family: 'raster', groot: lijnraster(358, 179, steek(19, 11, 32), steek(9, 6, 32), [243.5, 73.5], 4), klein: lijnraster(96, 64, steek(8, 6, 16), steek(8, 4, 16), [56.5, 24.5], 3) },
-  // 11 en 12: De stapel, uit het laadteken. Vellen als haarlijnen, of als vlakken.
+  // 10: De stapel, uit het laadteken. Vier vellen als haarlijnen.
   { family: 'stapel', groot: stapelLijnen(358, 179, 128, 12, [-8, 0, 8, -4], 72, 2), klein: stapelLijnen(96, 64, 44, 7, [-3, 0, 3, -2], 22, 2) },
-  { family: 'stapel', groot: stapelVlakken(358, 179, 136, 64, 9, [-8, 0, 8, -4], 44, 2), klein: stapelVlakken(96, 64, 52, 28, 5, [-3, 0, 3, -2], 11, 2) },
 ]
 
 export const THEMES = ['licht', 'donker', 'nacht']
 
-// De SVG van beeld n (1 tot 12) in een weergave, groot of klein. Decoratie: aria-hidden.
+// De SVG van beeld n (1 tot 10) in een weergave, groot of klein. Decoratie: aria-hidden.
 export function placeholderSvg(n, theme = 'licht', klein = false) {
   const p = PLACEHOLDERS[n - 1]
   const L = (klein && p.klein) || p.groot

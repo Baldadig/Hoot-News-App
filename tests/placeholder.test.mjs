@@ -1,4 +1,4 @@
-// Placeholderbeeld (build 46, twaalf sinds placeholders-12): deterministisch per artikel, nooit twee
+// Placeholderbeeld (build 46, tien sinds placeholders-12): deterministisch per artikel, nooit twee
 // gelijke buren en nooit twee keer dezelfde set na elkaar.
 // Dezelfde gevallen draaien in de app (ios/HootTests/PlaceholderTests.swift).
 import { test } from 'node:test'
@@ -10,14 +10,14 @@ import { fnv1a, placeholderBase, placeholderPlan, placeholderSet, placeholderSvg
 const root = new URL('../', import.meta.url)
 const fixture = JSON.parse(readFileSync(new URL('tests/fixtures/placeholder.json', root), 'utf8'))
 
-test('placeholder: fnv1a(id) mod 12, op web en in de app dezelfde som', () => {
+test('placeholder: fnv1a(id) mod 10, op web en in de app dezelfde som', () => {
   assert.equal(fnv1a(''), 0x811c9dc5)
   assert.equal(fnv1a('a'), 0xe40c292c) // bekende FNV-1a-waarde
   for (const { id, fnv1a: h, beeld } of fixture.base) {
     assert.equal(fnv1a(id), h, id)
     assert.equal(placeholderBase(id) + 1, beeld, id)
   }
-  // Alle twaalf komen voor.
+  // Alle tien komen voor.
   assert.equal(new Set(fixture.base.map((b) => b.beeld)).size, PLACEHOLDER_COUNT)
 })
 
@@ -47,7 +47,7 @@ test('placeholder: twee beeldloze rijen direct na elkaar nooit hetzelfde beeld e
   }
 })
 
-test('placeholder: een lange reeks beeldloze rijen: nooit twee gelijke beelden of sets naast elkaar, alle twaalf door elkaar', () => {
+test('placeholder: een lange reeks beeldloze rijen: nooit twee gelijke beelden of sets naast elkaar, alle tien door elkaar', () => {
   const rows = Array.from({ length: 5000 }, (_, i) => ({ id: `https://www.nrc.nl/nieuws/2026/11/05/stuk-${i}-a${(i * 7919) % 1000}`, bare: true }))
   const plan = placeholderPlan(rows)
   buren(rows, plan, 'lange reeks')
@@ -79,9 +79,15 @@ test('placeholder: geen dagdeel in tekening of code; decoratie (aria-hidden); de
   assert.match(readFileSync(new URL('ios/Hoot/Views/Beeldloos.swift', root), 'utf8'), /accessibilityHidden\(true\)/)
 })
 
-test('placeholder: twaalf beelden in vijf sets, elk met een kleine tekening (96 × 64), even groot als de rest', () => {
-  assert.equal(PLACEHOLDERS.length, 12)
-  assert.deepEqual(PLACEHOLDERS.map((p) => p.family), ['zon', 'zon', 'zon', 'iris', 'iris', 'iris', 'lijn', 'lijn', 'raster', 'raster', 'stapel', 'stapel'])
+test('placeholder: tien beelden in vijf sets, elk met een kleine tekening (96 × 64), even groot als de rest', () => {
+  assert.equal(PLACEHOLDERS.length, 10)
+  assert.deepEqual(PLACEHOLDERS.map((p) => p.family), ['zon', 'zon', 'zon', 'iris', 'iris', 'iris', 'lijn', 'raster', 'raster', 'stapel'])
+  // Zonnestand: de zon is altijd een vol vlak in rood, ook in beeld 3 (keuze Alex), groot en klein.
+  for (const n of [1, 2, 3]) for (const L of [PLACEHOLDERS[n - 1].groot, PLACEHOLDERS[n - 1].klein]) {
+    const zon = L.shapes.find((s) => s.t === 'circle')
+    assert.equal(zon.fill, 'sun', `beeld ${n}`)
+    assert.equal(zon.stroke, undefined, `beeld ${n}`)
+  }
   for (const [i, p] of PLACEHOLDERS.entries()) {
     assert.ok(p.klein, `beeld ${i + 1} heeft een kleine tekening`)
     assert.deepEqual([p.klein.w, p.klein.h], [96, 64], `beeld ${i + 1} klein`)
@@ -93,8 +99,8 @@ test('placeholder: twaalf beelden in vijf sets, elk met een kleine tekening (96 
   }
   // Horizonlijnen: alleen lijnen, geen rood. Raster en De stapel: precies één rood accent.
   const rood = (p) => [...p.groot.shapes].filter((s) => s.fill === 'sun' || s.stroke === 'sun').length
-  for (const n of [7, 8]) assert.ok(PLACEHOLDERS[n - 1].groot.shapes.every((s) => s.t === 'line'), `beeld ${n}`)
-  for (const n of [9, 10, 11, 12]) assert.equal(rood(PLACEHOLDERS[n - 1]), 1, `beeld ${n}`)
+  for (const n of [7]) assert.ok(PLACEHOLDERS[n - 1].groot.shapes.every((s) => s.t === 'line'), `beeld ${n}`)
+  for (const n of [8, 9, 10]) assert.equal(rood(PLACEHOLDERS[n - 1]), 1, `beeld ${n}`)
   // Rood is Rubrica in Licht, de lichtere tinten uit tokens.json in Donker en Nacht.
   for (const fam of ['zon', 'iris', 'raster', 'stapel']) assert.deepEqual([PALETTES[fam].licht.sun, PALETTES[fam].donker.sun, PALETTES[fam].nacht.sun], ['#9A3324', '#EC7A70', '#DF8276'], fam)
 })
