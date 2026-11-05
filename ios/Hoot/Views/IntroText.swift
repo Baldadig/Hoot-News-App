@@ -18,7 +18,10 @@ struct IntroText: View {
 
     var body: some View {
         if let lines {
-            CapHeight(limit: Self.limit(lines: lines, style: style, typeSize: typeSize, size: size, line: line)) {
+            // Breekt een lang woord bij de toegankelijkheidsmaten op zijn lettergrepen (Afbreken), dan kost dat
+            // hooguit een regel extra: die krijgt de intro erbij, in plaats van een zin te laten vallen.
+            let afgebroken = typeSize.isAccessibilitySize && Afbreken.woorden(text) != text
+            CapHeight(limit: Self.limit(lines: lines + (afgebroken ? 1 : 0), style: style, typeSize: typeSize, size: size, line: line)) {
                 ViewThatFits(in: .vertical) {
                     ForEach(Array(Self.candidates(text).enumerated()), id: \.offset) { _, candidate in
                         line(candidate)
@@ -32,7 +35,7 @@ struct IntroText: View {
     }
 
     private func line(_ s: String) -> some View {
-        Text(suffix(s)).leestekst(style, size: size, line: line).foregroundStyle(color).fixedSize(horizontal: false, vertical: true)
+        Text(afgebroken: suffix(s), typeSize: typeSize).leestekst(style, size: size, line: line).foregroundStyle(color).fixedSize(horizontal: false, vertical: true)
     }
 
     // De hele intro, en dan steeds één hele zin minder (de kortste is de eerste zin).

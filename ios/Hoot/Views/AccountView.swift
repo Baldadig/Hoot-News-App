@@ -274,8 +274,8 @@ struct AccountView: View {
                 .padding(.vertical, Space.s1)
             }
             Section {
-                LabeledContent("Synchroniseren", value: account.syncLine)
-                Button("Nu synchroniseren") { Task { await account.pull() } }
+                LabeledContent { Text(afgebroken: account.syncLine, typeSize: typeSize) } label: { Text(afgebroken: "Synchroniseren", typeSize: typeSize) }
+                Button { Task { await account.pull() } } label: { Text(afgebroken: "Nu synchroniseren", typeSize: typeSize) }
                     .disabled(account.sync == .syncing)
             } footer: {
                 Text("Weergave en lezen blijven per toestel.").foregroundStyle(Theme.ink3)

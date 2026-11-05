@@ -28,7 +28,9 @@ final class IntroFitTests: XCTestCase {
             for size: DynamicTypeSize in [.large, .xxxLarge, .accessibility2] {
                 for lines in [1, 3, 4, 6] {
                     let h = height(nos, lines: lines, width: width, size: size)
-                    let limit = IntroText.limit(lines: lines, style: .body, typeSize: size)
+                    // 1.1.1: breekt een lang woord bij AX op zijn lettergrepen (Afbreken), dan krijgt de intro één regel extra.
+                    let extra = size.isAccessibilitySize && Afbreken.woorden(nos) != nos ? 1 : 0
+                    let limit = IntroText.limit(lines: lines + extra, style: .body, typeSize: size)
                     XCTAssertLessThanOrEqual(h, limit, "breedte \(width), \(size), \(lines) regels")
                 }
             }
