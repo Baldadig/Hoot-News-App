@@ -355,6 +355,8 @@ struct SourcesList: View {
 // Bewaard: wat je voor later bewaarde, op dit toestel. Verwijderen gaat meteen, met even de
 // mogelijkheid het ongedaan te maken (zoals op de website).
 struct SavedView: View {
+    // Gelijk aan het web (src/views/Saved.jsx, keuze r5-bewaard).
+    static let emptyText = "Tik op de bladwijzer bij een verhaal. Het blijft hier staan."
     @Environment(HootStore.self) private var store
     @Environment(\.openTab) private var openTab
     @State private var removed: (index: Int, item: Item)?
@@ -362,11 +364,16 @@ struct SavedView: View {
         NavigationStack {
             Group {
                 if store.saved.isEmpty {
-                    // Dezelfde woorden als op het web, met de Editie als vervolgstap.
+                    // Dezelfde woorden als op het web, met de Editie als vervolgstap. Bewaard is een archief
+                    // (keuze r5-bewaard): het blijft staan, en we beloven niets over offline (de lezer laadt
+                    // de uitgever). De titel krijgt de kolombreedte, links uitgelijnd: zonder die maat stond hij
+                    // half buiten beeld ("ewaard", review R1), net als het woordmerk.
                     VStack(alignment: .leading, spacing: 0) {
-                        ScreenTitle("Bewaard").padding(.horizontal)
-                        EmptyState(title: "Nog niets bewaard", systemImage: "bookmark", text: "Tik op de bladwijzer bij een verhaal. Het staat hier tot je het hebt gelezen, ook zonder verbinding.", action: (label: "Naar de Editie", systemImage: nil, run: { openTab(.editie) }))
+                        ScreenTitle("Bewaard").frame(maxWidth: .infinity, alignment: .leading)
+                        EmptyState(title: "Nog niets bewaard", systemImage: "bookmark", text: SavedView.emptyText, action: (label: "Naar de Editie", systemImage: nil, run: { openTab(.editie) }))
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
                     .column()
                 } else {
                     List {

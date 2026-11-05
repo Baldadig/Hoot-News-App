@@ -251,6 +251,10 @@ test('Bewaard belooft alleen wat het doet: het blijft hier staan', () => {
   const s = read('views/Saved.jsx')
   assert.match(s, /Tik op de bladwijzer bij een verhaal\. Het blijft hier staan\./)
   assert.doesNotMatch(s, /zonder verbinding|tot je het hebt gelezen|leeslijst/i)
+  // De app zegt hetzelfde (1.1.1, ronde 3).
+  const app = readFileSync(new URL('../ios/Hoot/Views/StreamView.swift', import.meta.url), 'utf8')
+  assert.match(app, /emptyText = "Tik op de bladwijzer bij een verhaal\. Het blijft hier staan\."/)
+  assert.doesNotMatch(app, /ook zonder verbinding|tot je het hebt gelezen/)
 })
 
 // Keuze r5-namen (5 november): één woordenlijst op web en landing.
