@@ -1,0 +1,20 @@
+/* Vergelijken (keuze r5-namen, 5 november): het label in de kop van het paneel heet nu "Vergelijken"
+   in plaats van "Verhaal" en is dus breder. Zodat sluiten (X) altijd in het paneel past, staat er bij
+   "Volg dit verhaal" eerder alleen "Volg" (eerst bij 21,25rem, nu tot 24rem); het volle label blijft
+   de naam van de knop. Zelfde regels als in styles.css, alleen de grens schuift. */
+@container panel (max-width: 24rem) {
+  .followbtn__short {
+    display: inline;
+  }
+  .followbtn__long {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+.story__eyebrow {
+  min-width: 0;
+}

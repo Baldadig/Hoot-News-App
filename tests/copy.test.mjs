@@ -267,3 +267,10 @@ test('woordenlijst: Vergelijken, Instellingen, Account, "Hoot kiest" en één ri
   assert.match(landing, /Hoot kiest elke Editie/)
   assert.doesNotMatch(landing.replace(/<!--[\s\S]*?-->/g, ''), /Redacteur/)
 })
+
+// "Vergelijken" is breder dan "Verhaal": de X van het paneel blijft erin doordat "Volg" eerder kort wordt.
+test('Vergelijken-kop: de korte "Volg" tot 24rem paneelbreedte', () => {
+  const css = read('styles/vergelijken.css')
+  assert.match(css, /@container panel \(max-width: 24rem\)/)
+  assert.match(read('main.jsx'), /import '\.\/styles\/vergelijken\.css'/)
+})
