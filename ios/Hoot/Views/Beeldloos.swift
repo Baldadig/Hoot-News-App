@@ -4,9 +4,9 @@ import SwiftUI
 // vult. Eén plek, voor de app; het web spiegelt hem in Beeldloos (src/components/Beeld.jsx). Hij staat waar
 // anders het beeld zou staan: het stuk heeft geen beeld, het beeld is te klein voor die plek, of het laadt
 // niet. Nooit een grijs vlak en nooit een beeld van een ander artikel.
-// Zes beelden (shared/placeholder.mjs, de tekening in PlaceholderBeelden.swift): welk, volgt uit de id van
-// het artikel, en twee beeldloze rijen direct na elkaar krijgen nooit hetzelfde (Placeholder.plan, via de
-// omgeving). Het is decoratie: verborgen voor VoiceOver.
+// Tien beelden in vijf sets (shared/placeholder.mjs, de tekening in PlaceholderBeelden.swift): welk, volgt
+// uit de id van het artikel, en twee beeldloze rijen direct na elkaar krijgen nooit hetzelfde beeld en nooit
+// dezelfde set (Placeholder.plan, via de omgeving). Het is decoratie: verborgen voor VoiceOver.
 struct BeeldloosView: View {
     enum Kind { case lead, tijdlijn, krant }
     @Environment(HootStore.self) private var store
@@ -45,7 +45,7 @@ struct BeeldloosView: View {
     }
 }
 
-// Beeld 1 tot 6 (index 0 tot 5), getekend op de echte maat. Het vult het vak als een foto (cover): de
+// Beeld 1 tot 10 (index 0 tot 9), getekend op de echte maat. Het vult het vak als een foto (cover): de
 // kortste kant past, de rest valt weg, gecentreerd. Zoals de SVG's met background-size: cover op het web.
 struct PlaceholderBeeld: View {
     @Environment(\.colorScheme) private var scheme
@@ -71,7 +71,7 @@ struct PlaceholderBeeld: View {
                     switch v.soort {
                     case .rect:
                         let o = p(v.a, v.b)
-                        layer.fill(Path(CGRect(x: o.x, y: o.y, width: v.c * s, height: max(1, v.d * s))), with: .color(kleur(v.fill)))
+                        layer.fill(Path(CGRect(x: o.x, y: o.y, width: max(1, v.c * s), height: max(1, v.d * s))), with: .color(kleur(v.fill)))
                     case .line:
                         var path = Path()
                         path.move(to: p(v.a, v.b))
@@ -115,7 +115,11 @@ struct PHBeeld {
 
 // De keuze, gelijk aan shared/placeholder.mjs (tests/fixtures/placeholder.json draait op beide).
 enum Placeholder {
-    static let count = 6
+    static let count = 10
+    // Doorschuiven: drie verder valt altijd in een andere set (zon 0–2 · iris 3–5 · lijn 6 · raster 7–8 · stapel 9).
+    static let shift = 3
+    // De set van beeld k: zon, iris, lijn, raster of stapel.
+    static func set(_ k: Int) -> String { PlaceholderBeelden.beelden[k].familie }
     // FNV-1a (32 bit) over de UTF-8-bytes van de id.
     static func fnv1a(_ s: String) -> UInt32 {
         var h: UInt32 = 0x811c9dc5
@@ -123,15 +127,15 @@ enum Placeholder {
         return h
     }
     static func base(_ id: String) -> Int { Int(fnv1a(id) % UInt32(count)) }
-    // Een lijst van boven naar onder: is het beeld gelijk aan dat van de beeldloze rij erboven, dan schuift
-    // het één door. Een rij met beeld breekt de reeks.
+    // Een lijst van boven naar onder: zit het beeld in dezelfde set als dat van de beeldloze rij erboven,
+    // dan schuift het drie door, naar een andere set. Een rij met beeld breekt de reeks.
     static func plan(ids rows: [(id: String, bare: Bool)]) -> [String: Int] {
         var out: [String: Int] = [:]
         var prev: Int?
         for r in rows {
             guard r.bare else { prev = nil; continue }
             var k = base(r.id)
-            if k == prev { k = (k + 1) % count }
+            if let prev, set(k) == set(prev) { k = (k + shift) % count }
             out[r.id] = k
             prev = k
         }

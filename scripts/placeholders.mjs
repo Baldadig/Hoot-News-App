@@ -43,7 +43,7 @@ function swiftVorm(s) {
 const swiftTekening = (L, pad) => `PHTekening(w: ${L.w}, h: ${L.h}, clipY: ${L.clipY ?? 'nil'}, vormen: [\n${L.shapes.map((s) => `${pad}    ${swiftVorm(s)},`).join('\n')}\n${pad}])`
 function swift() {
   let s = '// Gegenereerd door scripts/placeholders.mjs uit shared/placeholder.mjs. Niet met de hand aanpassen.\n'
-  s += '// De tekening van de zes placeholderbeelden; BeeldloosView (Beeldloos.swift) tekent ze, zoals de SVG\'s op het web.\n'
+  s += '// De tekening van de tien placeholderbeelden; BeeldloosView (Beeldloos.swift) tekent ze, zoals de SVG\'s op het web.\n'
   s += 'import CoreGraphics\n\nenum PlaceholderBeelden {\n'
   s += '    static let palettes: [String: [String: [String: UInt32]]] = [\n'
   for (const [fam, themes] of Object.entries(PALETTES)) {

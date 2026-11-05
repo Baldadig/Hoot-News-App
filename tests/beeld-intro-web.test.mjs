@@ -8,7 +8,7 @@ import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { wholeSentences, introMax, INTRO_LINES } from '../shared/zinnen.mjs'
 import { fitsLarge, fitsHero } from '../src/lib/img.js'
-import { placeholderBase } from '../shared/placeholder.mjs'
+import { placeholderBase, placeholderSet, PLACEHOLDER_COUNT, PLACEHOLDER_SHIFT } from '../shared/placeholder.mjs'
 
 const src = (p) => readFileSync(new URL('../' + p, import.meta.url), 'utf8')
 const fixture = JSON.parse(src('tests/fixtures/placeholder.json'))
@@ -62,7 +62,7 @@ test('beeldloos: zonder beeld, of te klein voor de plek, het placeholderbeeld in
   const n = placeholderBase('a') + 1
   assert.equal(render({ item, kind: 'tijdlijn', className: 'media' }), `<div class="media media--tl ph ph--${n}" data-ph="${n}" aria-hidden="true"></div>`)
   const klein = { ...item, image: 'https://www.bing.com/th?id=ONUT.k&pid=News&w=1200&h=675&c=7' }
-  assert.match(render({ item: klein, kind: 'tijdlijn', fits: fitsLarge, className: 'media', imgKind: 'lead' }), /^<div class="media media--tl ph ph--\d" data-ph="\d" aria-hidden="true"><\/div>$/)
+  assert.match(render({ item: klein, kind: 'tijdlijn', fits: fitsLarge, className: 'media', imgKind: 'lead' }), /^<div class="media media--tl ph ph--\d+" data-ph="\d+" aria-hidden="true"><\/div>$/)
   assert.match(render({ item: klein, kind: 'lead', fits: fitsHero, className: 'media' }), /^<div class="media media--lead ph ph--\d"/)
   // De miniatuur: hetzelfde element als het beeld (een span in de Editie), met de kleine tekening.
   assert.equal(render({ item, kind: 'krant', as: 'span', className: 'thumb' }), `<span class="thumb ph ph--${n} ph--klein" data-ph="${n}" aria-hidden="true"></span>`)
@@ -77,7 +77,7 @@ test('beeldloos: twee beeldloze rijen direct na elkaar krijgen nooit hetzelfde b
   const html = renderToStaticMarkup(
     React.createElement(PlaceholderList, { rows: ids.map((id) => ({ item: { id }, kind: 'tijdlijn' })) }, ids.map((id) => React.createElement(Beeld, { key: id, item: { id }, kind: 'tijdlijn' }))),
   )
-  assert.deepEqual([...html.matchAll(/data-ph="(\d)"/g)].map((m) => +m[1]), ids.map((id) => fixture.lijsten[0].beelden[id]))
+  assert.deepEqual([...html.matchAll(/data-ph="(\d+)"/g)].map((m) => +m[1]), ids.map((id) => fixture.lijsten[0].beelden[id]))
 })
 
 test('beeldloos: een beeld dat niet laadt wordt het placeholderbeeld (Img meldt het via onFail)', () => {
@@ -113,7 +113,8 @@ test('beeldloos: een beeld dat pas bij het laden mislukt, volgt ook de buurregel
   assert.equal(planFor(rows).has(b), false) // met beeld: geen placeholder
   const plan = planFor(rows, new Set([b]))
   assert.equal(plan.get('a'), placeholderBase('a'))
-  assert.equal(plan.get(b), (placeholderBase('a') + 1) % 6) // niet hetzelfde als de buur
+  assert.equal(plan.get(b), (placeholderBase('a') + PLACEHOLDER_SHIFT) % PLACEHOLDER_COUNT) // niet hetzelfde beeld en niet dezelfde set als de buur
+  assert.notEqual(placeholderSet(plan.get(b)), placeholderSet(plan.get('a')))
   // Beeld meldt het mislukken aan de lijst.
   assert.match(src('src/components/Beeld.jsx'), /markFailed\?\.\(item\?\.id\)/)
 })

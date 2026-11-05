@@ -13,8 +13,19 @@
 .ph--3 { background-image: url('./assets/placeholder/beeld-3.svg'); }
 .ph--3.ph--klein { background-image: url('./assets/placeholder/beeld-3-klein.svg'); }
 .ph--4 { background-image: url('./assets/placeholder/beeld-4.svg'); }
+.ph--4.ph--klein { background-image: url('./assets/placeholder/beeld-4-klein.svg'); }
 .ph--5 { background-image: url('./assets/placeholder/beeld-5.svg'); }
+.ph--5.ph--klein { background-image: url('./assets/placeholder/beeld-5-klein.svg'); }
 .ph--6 { background-image: url('./assets/placeholder/beeld-6.svg'); }
+.ph--6.ph--klein { background-image: url('./assets/placeholder/beeld-6-klein.svg'); }
+.ph--7 { background-image: url('./assets/placeholder/beeld-7.svg'); }
+.ph--7.ph--klein { background-image: url('./assets/placeholder/beeld-7-klein.svg'); }
+.ph--8 { background-image: url('./assets/placeholder/beeld-8.svg'); }
+.ph--8.ph--klein { background-image: url('./assets/placeholder/beeld-8-klein.svg'); }
+.ph--9 { background-image: url('./assets/placeholder/beeld-9.svg'); }
+.ph--9.ph--klein { background-image: url('./assets/placeholder/beeld-9-klein.svg'); }
+.ph--10 { background-image: url('./assets/placeholder/beeld-10.svg'); }
+.ph--10.ph--klein { background-image: url('./assets/placeholder/beeld-10-klein.svg'); }
 :root[data-theme='dark'] .ph--1 { background-image: url('./assets/placeholder/beeld-1-donker.svg'); }
 :root[data-theme='dark'] .ph--1.ph--klein { background-image: url('./assets/placeholder/beeld-1-donker-klein.svg'); }
 :root[data-theme='dark'] .ph--2 { background-image: url('./assets/placeholder/beeld-2-donker.svg'); }
@@ -22,8 +33,19 @@
 :root[data-theme='dark'] .ph--3 { background-image: url('./assets/placeholder/beeld-3-donker.svg'); }
 :root[data-theme='dark'] .ph--3.ph--klein { background-image: url('./assets/placeholder/beeld-3-donker-klein.svg'); }
 :root[data-theme='dark'] .ph--4 { background-image: url('./assets/placeholder/beeld-4-donker.svg'); }
+:root[data-theme='dark'] .ph--4.ph--klein { background-image: url('./assets/placeholder/beeld-4-donker-klein.svg'); }
 :root[data-theme='dark'] .ph--5 { background-image: url('./assets/placeholder/beeld-5-donker.svg'); }
+:root[data-theme='dark'] .ph--5.ph--klein { background-image: url('./assets/placeholder/beeld-5-donker-klein.svg'); }
 :root[data-theme='dark'] .ph--6 { background-image: url('./assets/placeholder/beeld-6-donker.svg'); }
+:root[data-theme='dark'] .ph--6.ph--klein { background-image: url('./assets/placeholder/beeld-6-donker-klein.svg'); }
+:root[data-theme='dark'] .ph--7 { background-image: url('./assets/placeholder/beeld-7-donker.svg'); }
+:root[data-theme='dark'] .ph--7.ph--klein { background-image: url('./assets/placeholder/beeld-7-donker-klein.svg'); }
+:root[data-theme='dark'] .ph--8 { background-image: url('./assets/placeholder/beeld-8-donker.svg'); }
+:root[data-theme='dark'] .ph--8.ph--klein { background-image: url('./assets/placeholder/beeld-8-donker-klein.svg'); }
+:root[data-theme='dark'] .ph--9 { background-image: url('./assets/placeholder/beeld-9-donker.svg'); }
+:root[data-theme='dark'] .ph--9.ph--klein { background-image: url('./assets/placeholder/beeld-9-donker-klein.svg'); }
+:root[data-theme='dark'] .ph--10 { background-image: url('./assets/placeholder/beeld-10-donker.svg'); }
+:root[data-theme='dark'] .ph--10.ph--klein { background-image: url('./assets/placeholder/beeld-10-donker-klein.svg'); }
 :root[data-theme='night'] .ph--1 { background-image: url('./assets/placeholder/beeld-1-nacht.svg'); }
 :root[data-theme='night'] .ph--1.ph--klein { background-image: url('./assets/placeholder/beeld-1-nacht-klein.svg'); }
 :root[data-theme='night'] .ph--2 { background-image: url('./assets/placeholder/beeld-2-nacht.svg'); }
@@ -31,5 +53,16 @@
 :root[data-theme='night'] .ph--3 { background-image: url('./assets/placeholder/beeld-3-nacht.svg'); }
 :root[data-theme='night'] .ph--3.ph--klein { background-image: url('./assets/placeholder/beeld-3-nacht-klein.svg'); }
 :root[data-theme='night'] .ph--4 { background-image: url('./assets/placeholder/beeld-4-nacht.svg'); }
+:root[data-theme='night'] .ph--4.ph--klein { background-image: url('./assets/placeholder/beeld-4-nacht-klein.svg'); }
 :root[data-theme='night'] .ph--5 { background-image: url('./assets/placeholder/beeld-5-nacht.svg'); }
+:root[data-theme='night'] .ph--5.ph--klein { background-image: url('./assets/placeholder/beeld-5-nacht-klein.svg'); }
 :root[data-theme='night'] .ph--6 { background-image: url('./assets/placeholder/beeld-6-nacht.svg'); }
+:root[data-theme='night'] .ph--6.ph--klein { background-image: url('./assets/placeholder/beeld-6-nacht-klein.svg'); }
+:root[data-theme='night'] .ph--7 { background-image: url('./assets/placeholder/beeld-7-nacht.svg'); }
+:root[data-theme='night'] .ph--7.ph--klein { background-image: url('./assets/placeholder/beeld-7-nacht-klein.svg'); }
+:root[data-theme='night'] .ph--8 { background-image: url('./assets/placeholder/beeld-8-nacht.svg'); }
+:root[data-theme='night'] .ph--8.ph--klein { background-image: url('./assets/placeholder/beeld-8-nacht-klein.svg'); }
+:root[data-theme='night'] .ph--9 { background-image: url('./assets/placeholder/beeld-9-nacht.svg'); }
+:root[data-theme='night'] .ph--9.ph--klein { background-image: url('./assets/placeholder/beeld-9-nacht-klein.svg'); }
+:root[data-theme='night'] .ph--10 { background-image: url('./assets/placeholder/beeld-10-nacht.svg'); }
+:root[data-theme='night'] .ph--10.ph--klein { background-image: url('./assets/placeholder/beeld-10-nacht-klein.svg'); }
