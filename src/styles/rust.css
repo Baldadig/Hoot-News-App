@@ -59,3 +59,27 @@
     transition: none;
   }
 }
+
+/* ---------- 4. Stroom: kop, intro en beeld in één kolom ----------
+   De Stroom stond op de leesmaat (720) met de intro op --measure-prose (± 490): de intro brak halverwege
+   de kaart af, onder een kop en een beeld die wél doorliepen. Nu is de hele Stroom (kop van het scherm,
+   rubriekenlijn en lijst) één kolom van 36rem (576): kop, intro en beeld zijn even breed, en de intro
+   (18/28, gelijk aan kaart A+ op de telefoon) houdt ± 75 tekens per regel. Kop 22/28, ook als kaart A+.
+   In rem, dus Tekstgrootte schaalt de kolom mee. Links blijft alles op de lijn van de titel. */
+.col--stroom {
+  --measure-stroom: 36rem;
+}
+.col--read.col--stroom > :where(:not(.vh)),
+.col--read.col--stroom > .vh > :where(:not(.vh__row)) {
+  max-inline-size: var(--measure-stroom);
+}
+.col--stroom .compact--tl .compact__title {
+  font-size: var(--t-head-lg);
+  line-height: 1.75rem;
+  letter-spacing: var(--ls-head-5);
+}
+.col--stroom .compact--tl .compact__sum {
+  max-inline-size: none;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}

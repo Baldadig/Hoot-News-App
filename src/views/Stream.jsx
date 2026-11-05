@@ -176,7 +176,7 @@ export default function Stream({ active, stream, params, go, bubble = [], previe
   return (
     <section className="view" hidden={!active} ref={ref} aria-label="Stroom" onScroll={(e) => setAtDepth(e.currentTarget.scrollTop > 900)}>
       {pull}
-      <div className={`col col--read${lines.hostClass}`} ref={hostRef}>
+      <div className={`col col--read col--stroom${lines.hostClass}`} ref={hostRef}>
         <LoadLinesLayer lines={lines} host={hostRef} />
         <ViewHeader title="Stroom" onRefresh={onRefresh} refreshing={refreshing} updatedAt={statusProps.meta?.updatedAt} tools={filterButton} compare>
           {/* De lijn: rubrieken links, je bronnen als stapel rechts. Wat je kiest staat in de URL
