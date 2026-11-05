@@ -27,3 +27,18 @@ export const summaryLine = (o) => `${pieces(o.picked)} in ${o.live.length === 1 
 export const EMPTY_FIELD = 'Deze week sprong er niets uit. Maandag kijkt Hoot opnieuw.'
 export const NO_SOURCES = 'Hoot heeft hier nog te weinig goede bronnen voor. Kies er een onderwerp bij, dan lees je maandag meer.'
 export const CHOOSE = 'Voor je werk of uit interesse: elke maandag per onderwerp de drie beste stukken van de week.'
+
+// Een voorproefje voor een lege Selectie (keuze r5-selectie-onderwerpen, 5 november; review G13): uit de
+// Selectie van deze week per domein het eerste onderwerp met stukken, hooguit `max`, elk met zijn beste stuk.
+// `domains`: vakByDomain() (de vaste volgorde); `fields`: digest.fields van de server.
+export function voorproefje(domains = [], fields = [], max = 3) {
+  const byId = new Map(fields.map((f) => [f.id, f]))
+  const out = []
+  for (const d of domains) {
+    const f = d.fields.map((x) => ({ ...x, ...byId.get(x.id) })).find((x) => x.top?.length)
+    if (f) out.push({ id: f.id, label: f.label, item: f.top[0] })
+    if (out.length >= max) break
+  }
+  return out
+}
+export const VOORPROEF = 'Zo ziet het eruit: per onderwerp de beste stukken van de week.'

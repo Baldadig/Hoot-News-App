@@ -11,7 +11,7 @@ import { useScrollMemory } from '../hooks/useScrollMemory.js'
 import { Dialog, DialogHeader } from '../components/Dialog.jsx'
 import { CaretIcon, JumpIcon, ICON_SM } from '../components/icons.jsx'
 import { reduced } from '../lib/motion.js'
-import { selectionOverview, summaryLine, pieces, EMPTY_FIELD, NO_SOURCES, CHOOSE } from '../lib/selection-index.js'
+import { selectionOverview, summaryLine, pieces, EMPTY_FIELD, NO_SOURCES, CHOOSE, voorproefje, VOORPROEF } from '../lib/selection-index.js'
 import { useSelectionFold } from '../hooks/useSelectionFold.js'
 import { vakByDomain, VAK_FIELDS } from '../../shared/vak.mjs'
 import { wholeSentences } from '../../shared/zinnen.mjs'
@@ -195,6 +195,7 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
     </nav>
   )
   const gekozen = `${chosen.length} gekozen`
+  const proef = chosen.length ? [] : voorproefje(vakByDomain(), digest?.fields || [])
   const how = seen > 0 ? (
     <Disclosure className="dhow" summaryClassName="linkbtn linkbtn--plain" summary="Hoe kiest Hoot deze stukken?">
       {howHootChooses(seen).map((line) => <p key={line}>{line}</p>)}
@@ -230,6 +231,23 @@ export default function Vak({ active, digest, status, refreshFailed = false, onR
             <h2 className="head-lg">Kies je onderwerpen</h2>
             <p className="dempty__text">{CHOOSE}</p>
             {pickRow('Kies onderwerpen', 'Nog niets gekozen')}
+            {/* Een voorproefje: wat je krijgt, uit de Selectie van deze week (echte stukken, gewoon te lezen). */}
+            {proef.length ? (
+              <section className="dproef" aria-labelledby="dproef-kop">
+                <h2 id="dproef-kop" className="label label--section dproef__kop">
+                  Voorproefje
+                </h2>
+                <p className="dproef__tekst">{VOORPROEF}</p>
+                <div className="dproef__rij">
+                  {proef.map((p) => (
+                    <div key={p.id} className="dproef__veld">
+                      <p className="label label--meta dproef__onderwerp">{p.label}</p>
+                      <Card item={p.item} rank={1} />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
           </div>
         ) : status === 'loading' && !digest ? (
           <LoadLinesBox />
