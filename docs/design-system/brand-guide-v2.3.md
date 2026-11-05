@@ -75,13 +75,44 @@ Warme, papierachtige inkt; niets koud of blauw; geen groot licht vlak. Alle grot
 | `ink-2` | `#4b453b` | `#cbc3b5` | `#bdb3a2` |
 | `ink-3` | `#6b6457` | `#a39b8d` | `#a79b87` |
 | `hint` (nieuw) | `#6b6457` (= ink-3) | `#a39b8d` (= ink-3) | `#bdb3a2` (= ink-2) |
-| `accent` | `#a3201b` | `#ec7a70` | `#df8276` |
+| `accent` | `#9a3324` | `#ec7a70` | `#df8276` |
+| `accent-soft` | `#f2e4df` | `#3a1e1b` | `#3a1e1b` |
 | `mark-bg` | `#ffffff` | `#f1ece2` | `#d8d0c2` (= ink) |
 | `band-ink` · `-2` · `-3` | `#f5f1e8` · `#ddd5c7` · `#b9b1a3` | ink · ink-2 · ink-3 | ink · ink-2 · ink-3 (Zacht papier) |
 
-Laagste tekstpaar in Nacht: 5,5:1. **Merkrood blijft `#A3201B`** in alle drie de thema's.
+Laagste tekstpaar in Nacht: 5,5:1. **Merkrood is Rubrica, `#9A3324`**, in alle drie de thema's (zie hieronder).
 
 **Hints alleen in Nacht op `ink-2`.** Schibsted is op 12 en 13 zachter dan Inter, en `ink-3` is op zwart te stil voor uitleg die je moet kunnen lezen. Daarom krijgen hints en hulpregels (Instellingen, panelen, de metaregel onder de schermtitel) in Nacht `ink-2`. Kickers en tijden blijven `ink-3`. In Licht en Donker blijven hints `ink-3`. iOS: `Theme.hint`.
+
+### Merkrood: Rubrica (PMS 484)
+
+Het merkrood heet **Rubrica**. *Rubriek* komt van het Latijnse *rubrica*, rode oker; de rubricator zette in handschriften de koppen in rood, en Hoot doet met één rood accent in een rustige pagina hetzelfde. Het is zachter dan het vorige rood `#A3201B` (16 % minder verzadigd, even donker) en trekt naar baksteen. Gekozen door Alex op 5 november 2026, onderzoek en advies in `rood-concept/`.
+
+| | waarde |
+|---|---|
+| Pantone | **484 C** (gecoat) · 484 U (ongecoat) |
+| Scherm (sRGB) | `#9A3324` · RGB 154 51 36 |
+| CMYK (benadering) | C28 M86 Y84 K29, uit het profiel Coated FOGRA39 (ongecoat FOGRA29: C23 M94 Y91 K22) |
+| HKS | K en N: nog te bepalen met de waaier |
+
+Pantone publiceert zijn schermwaarden niet openbaar; `#9A3324` is de waarde van 484 C uit openbare overzichten. De CMYK-waarde is zelf omgerekend: vervang haar door de waarde uit Pantone Color Bridge zodra de waaier erbij is gepakt, en leg 484 naast het papier voor de proefdruk. De U-versie op het scherm (`#A75247`) is een simulatie en wordt niet gebruikt: ze verliest als enig accent haar kracht.
+
+**Schermwaarden per thema**
+
+| Token | Licht | Donker | Nacht |
+|---|---|---|---|
+| `accent` | `#9A3324` | `#EC7A70` | `#DF8276` (ongewijzigd) |
+| `brand-red` | `#9A3324` | `#9A3324` | `#9A3324` |
+| `accent-soft` | `#F2E4DF` | `#3A1E1B` | `#3A1E1B` |
+| eindkaart in Nacht (merkrood op 42 % over zwart) | | | `#41150F` |
+
+**Contrast** (alles ≥ 4,5:1)
+- Rood op papier (nummer 01, de punt van "hoot.", kleine rode tekst): **6,5:1**; op `surface` 7,0:1; rood op `accent-soft` 5,9:1.
+- Papier op rood (opstartscherm, iris, deelkaart, app-icoon): **6,5:1**. Wit op rood 7,3:1, maar op merkrood staat altijd papier.
+- Nacht en Donker houden het lichte rood: `#DF8276` op zwart 7,6:1, op `#151310` 6,7:1. Een rood met de tint van 484 zou daar zalmroze worden; daarom blijft het zoals het was.
+- Landing: vroege avond `#933422`, blok in Nacht `#8B3023` (papier op rood 6,45:1, rood op papier 6,05:1).
+
+**Regel:** het rood blijft een detail. Kleine rode tekst, punt en `01` nooit lichter dan Rubrica op papier; nooit een rode punt op rood. Nieuwe uitingen gebruiken alleen `#9A3324` (of de lichte Donker/Nacht-waarde); `#A3201B` komt nergens meer voor behalve in vastgelegde oudere versies (v2.2).
 
 ### Kleurverhouding 60 · 30 · 10
 
