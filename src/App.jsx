@@ -304,8 +304,10 @@ export default function App() {
         return next
       })
       route.go(route.path, { ...route.params, verhaal: id })
+      // Wie vergelijkt, kent de meer-kanten-tip (Edition.jsx, kanten-tip.js): die hoeft niet meer.
+      setPrefs((p) => (p.kantenTip ? p : { ...p, kantenTip: true }))
     },
-    [route.go, route.path, route.params],
+    [route.go, route.path, route.params, setPrefs],
   )
   const closeStory = useCallback(() => {
     const { verhaal, ...rest } = route.params

@@ -1,4 +1,5 @@
 import { hasEditionMinimum } from '../../shared/edition-limits.mjs'
+import { kantenTip } from '../lib/kanten-tip.js'
 import MaakVanJou from '../components/MaakVanJou.jsx'
 import { pastThird } from '../lib/maak-van-jou.js'
 import { cleanIntro } from '../../shared/edition-display.mjs'
@@ -9,7 +10,7 @@ import { usePhone } from '../hooks/usePhone.js'
 import { ViewHeader, StatusLine, LoadError, Empty } from '../components/Shell.jsx'
 import { LoadLinesBox, LoadLinesLayer, useLoadLines } from '../components/LoadLines.jsx'
 import { TienLayer, TienSpace, useTien } from '../components/FirstEdition.jsx'
-import { LeadStory, CompactItem, KaartItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf, viaLength } from '../components/Items.jsx'
+import { LeadStory, CompactItem, KaartItem, Meta, useHoot, linkOf, itemsOfEntry, aboutOf, viaLength, bronnenLabel } from '../components/Items.jsx'
 import { Img } from '../components/Img.jsx'
 import { Beeld, PlaceholderList } from '../components/Beeld.jsx'
 import { EditionArt, SparkleIcon, CaretIcon, CloseIcon, ICON_SM } from '../components/icons.jsx'
@@ -111,7 +112,7 @@ function LessNote({ entryKey, item, story, n }) {
 const Slot = ({ less, row, children }) => (less.includes(row.key) ? <LessNote n={row.n} entryKey={row.key} item={row.item} story={row.story} /> : children)
 
 export default function Edition({ active, edition, bubble = [], brief = null, briefNote = null, briefForMembers = false, onJoin, hint = false, onHintDone, tien: tienStart = null, onTienDone, loading, failedLoad, statusProps, onRefresh, refreshing, browsing = false, onMakeYours, onLater }) {
-  const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account, prefs, sourcesById } = useHoot()
+  const { itemsById, storiesById, muted, followStories, newInStory, openStory, less, account, prefs, sourcesById, setPref } = useHoot()
   const following = followedNow(followStories, storiesById, newInStory)
   const ref = useRef(null)
   const phone = usePhone() // telefoon: de Stroom-vorm met kaart A+ (src/styles/kaart.css); breder houdt de krant-vormen
@@ -180,6 +181,12 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
   const lines = useLoadLines(loading && !tien.active, ready)
   const pull = usePullHorizon(ref, { onRefresh, busy: refreshing, failed: statusProps?.refreshError, label: 'Editie', enabled: ready })
   const sub = edition ? longDate(edition.date).replace(/^./, (c) => c.toUpperCase()) : null
+
+  // Meer kanten van één verhaal (keuze r5-kanten-welkom, 5 november; review G4): één keer een rustige
+  // tip bij het eerste verhaal met meer bronnen. Weg met de X of zodra je vergelijkt (App.jsx openStory);
+  // daarna nooit meer. Niet tegelijk met de uitleg na het eerste Welkom.
+  const kanten = kantenTip({ rows, done: !!prefs?.kantenTip })
+  const endKanten = () => setPref('kantenTip', true)
 
   // Eén keer na het eerste Welkom: wat "Jouw Editie" in de metaregel betekent (src/lib/welcome.js).
   // Hij gaat weg met de X, of vanzelf zodra je de Editie verlaat nadat je hem zag.
@@ -255,6 +262,19 @@ export default function Edition({ active, edition, bubble = [], brief = null, br
           <div className="edhint">
             <p className="hint">Jouw Editie: gekozen uit jouw bronnen en interesses.</p>
             <button type="button" className="iconbtn hit edhint__x" onClick={onHintDone} aria-label="Uitleg sluiten">
+              <CloseIcon size={ICON_SM} />
+            </button>
+          </div>
+        ) : null}
+        {ready && hasMinimum && !showHint && kanten ? (
+          <div className="edhint kantentip">
+            <p className="hint">
+              Meer kanten van één verhaal: bij ‘{bronnenLabel(kanten.n)}’ zie je hoe elke bron het brengt.{' '}
+              <button type="button" className="linkbtn linkbtn--inline kantentip__go" onClick={() => (endKanten(), openStory(kanten.story.id, kanten.item.id))}>
+                Vergelijk
+              </button>
+            </p>
+            <button type="button" className="iconbtn hit edhint__x" onClick={endKanten} aria-label="Tip sluiten">
               <CloseIcon size={ICON_SM} />
             </button>
           </div>
