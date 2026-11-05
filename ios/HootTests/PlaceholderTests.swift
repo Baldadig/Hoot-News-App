@@ -46,7 +46,7 @@ final class PlaceholderTests: XCTestCase {
         }
     }
 
-    // Een lange reeks: nooit twee gelijke beelden of sets naast elkaar, en alle twaalf komen geregeld voor.
+    // Een lange reeks: nooit twee gelijke beelden of sets naast elkaar, en alle tien komen geregeld voor.
     func testLangeReeksNooitTweeGelijkeNaastElkaar() {
         let rows = (0 ..< 5000).map { (id: "https://www.nrc.nl/nieuws/2026/11/05/stuk-\($0)-a\(($0 * 7919) % 1000)", bare: true) }
         let plan = Placeholder.plan(ids: rows)
@@ -56,13 +56,19 @@ final class PlaceholderTests: XCTestCase {
         for (k, n) in telling.enumerated() { XCTAssertTrue(n > 200 && n < 650, "beeld \(k + 1): \(n)") }
     }
 
-    func testTwaalfBeeldenElkMetKleineTekening() {
-        XCTAssertEqual(PlaceholderBeelden.beelden.count, 12)
-        XCTAssertEqual(PlaceholderBeelden.beelden.map(\.familie), ["zon", "zon", "zon", "iris", "iris", "iris", "lijn", "lijn", "raster", "raster", "stapel", "stapel"])
+    func testTienBeeldenElkMetKleineTekening() {
+        XCTAssertEqual(PlaceholderBeelden.beelden.count, 10)
+        XCTAssertEqual(PlaceholderBeelden.beelden.map(\.familie), ["zon", "zon", "zon", "iris", "iris", "iris", "lijn", "raster", "raster", "stapel"])
         for b in PlaceholderBeelden.beelden {
             XCTAssertNotNil(b.klein, b.familie)
             XCTAssertEqual(b.klein?.w, 96)
             XCTAssertEqual(b.klein?.h, 64)
+        }
+        // Zonnestand: de zon is altijd een vol vlak, ook in beeld 3.
+        for b in PlaceholderBeelden.beelden.prefix(3) {
+            XCTAssertEqual(b.groot.vormen.first?.fill, "sun")
+            XCTAssertNil(b.groot.vormen.first?.stroke)
+            XCTAssertEqual(b.klein?.vormen.first?.fill, "sun")
         }
         // Beeld 2: de zon klein (r 16), zodat het rood een accent blijft.
         XCTAssertEqual(PlaceholderBeelden.beelden[1].groot.vormen.first?.c, 16)
@@ -97,7 +103,7 @@ final class PlaceholderTests: XCTestCase {
 
     @MainActor
     func testTekentOpDeMaatVanHetVak() throws {
-        for (i, size) in [(0, CGSize(width: 344, height: 172)), (4, CGSize(width: 96, height: 64)), (2, CGSize(width: 96, height: 64)), (6, CGSize(width: 344, height: 172)), (9, CGSize(width: 96, height: 64)), (11, CGSize(width: 344, height: 229))] {
+        for (i, size) in [(0, CGSize(width: 344, height: 172)), (4, CGSize(width: 96, height: 64)), (2, CGSize(width: 96, height: 64)), (6, CGSize(width: 344, height: 172)), (8, CGSize(width: 96, height: 64)), (9, CGSize(width: 344, height: 229))] {
             let renderer = ImageRenderer(content: PlaceholderBeeld(index: i, klein: size.width < 100).frame(width: size.width, height: size.height))
             let image = try XCTUnwrap(renderer.uiImage)
             XCTAssertEqual(image.size, size)

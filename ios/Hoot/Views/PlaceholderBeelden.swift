@@ -1,5 +1,5 @@
 // Gegenereerd door scripts/placeholders.mjs uit shared/placeholder.mjs. Niet met de hand aanpassen.
-// De tekening van de twaalf placeholderbeelden; BeeldloosView (Beeldloos.swift) tekent ze, zoals de SVG's op het web.
+// De tekening van de tien placeholderbeelden; BeeldloosView (Beeldloos.swift) tekent ze, zoals de SVG's op het web.
 import CoreGraphics
 
 enum PlaceholderBeelden {
@@ -25,9 +25,9 @@ enum PlaceholderBeelden {
             "nacht": ["bg": 0x12100E, "sun": 0xDF8276, "dot": 0x5B5448, "grid": 0x2A2721],
         ],
         "stapel": [
-            "licht": ["bg": 0xEFE9DD, "sun": 0x9A3324, "line": 0x857F72, "vel3": 0xDFD7C7, "vel2": 0xE4DDCF, "vel1": 0xE9E3D7, "vel0": 0xF3EFE6],
-            "donker": ["bg": 0x1E1B17, "sun": 0xEC7A70, "line": 0x888175, "vel3": 0x221F1B, "vel2": 0x26231E, "vel1": 0x2A2722, "vel0": 0x2F2B25],
-            "nacht": ["bg": 0x12100E, "sun": 0xDF8276, "line": 0x746B5C, "vel3": 0x151310, "vel2": 0x181613, "vel1": 0x1C1916, "vel0": 0x201D19],
+            "licht": ["bg": 0xEFE9DD, "sun": 0x9A3324, "line": 0x857F72],
+            "donker": ["bg": 0x1E1B17, "sun": 0xEC7A70, "line": 0x888175],
+            "nacht": ["bg": 0x12100E, "sun": 0xDF8276, "line": 0x746B5C],
         ],
     ]
     static let beelden: [PHBeeld] = [
@@ -51,11 +51,11 @@ enum PlaceholderBeelden {
                 ])),
         PHBeeld(familie: "zon",
                 groot: PHTekening(w: 358, h: 179, clipY: 111, vormen: [
-                    .init(soort: .circle, a: 270, b: 111, c: 27, d: 0, fill: nil, stroke: "outline", sw: 2, clip: true),
+                    .init(soort: .circle, a: 270, b: 111, c: 27, d: 0, fill: "sun", stroke: nil, sw: 0, clip: true),
                     .init(soort: .rect, a: 24, b: 111, c: 310, d: 1, fill: "line"),
                 ]),
                 klein: PHTekening(w: 96, h: 64, clipY: 40, vormen: [
-                    .init(soort: .circle, a: 72, b: 40, c: 11.5, d: 0, fill: nil, stroke: "outline", sw: 1, clip: true),
+                    .init(soort: .circle, a: 72, b: 40, c: 11.5, d: 0, fill: "sun", stroke: nil, sw: 0, clip: true),
                     .init(soort: .rect, a: 12, b: 40, c: 72, d: 1, fill: "line"),
                 ])),
         PHBeeld(familie: "iris",
@@ -100,19 +100,6 @@ enum PlaceholderBeelden {
                     .init(soort: .circle, a: 82.6, b: -3.8, c: 26.9, d: 0, fill: "disc", stroke: nil, sw: 0, clip: false),
                     .init(soort: .circle, a: 48, b: 30.7, c: 13.4, d: 0, fill: "disc", stroke: nil, sw: 0, clip: false),
                     .init(soort: .circle, a: 28.8, b: 49.9, c: 3.8, d: 0, fill: "sun", stroke: nil, sw: 0, clip: false),
-                ])),
-        PHBeeld(familie: "lijn",
-                groot: PHTekening(w: 358, h: 179, clipY: nil, vormen: [
-                    .init(soort: .line, a: 24, b: 96.5, c: 334, d: 96.5, stroke: "line", sw: 1, fixed: true),
-                    .init(soort: .line, a: 63, b: 112.5, c: 295, d: 112.5, stroke: "soft", sw: 1, fixed: true),
-                    .init(soort: .line, a: 101, b: 128.5, c: 257, d: 128.5, stroke: "faint", sw: 1, fixed: true),
-                    .init(soort: .line, a: 139, b: 144.5, c: 219, d: 144.5, stroke: "fainter", sw: 1, fixed: true),
-                ]),
-                klein: PHTekening(w: 96, h: 64, clipY: nil, vormen: [
-                    .init(soort: .line, a: 12, b: 32.5, c: 84, d: 32.5, stroke: "line", sw: 1, fixed: true),
-                    .init(soort: .line, a: 21, b: 40.5, c: 75, d: 40.5, stroke: "soft", sw: 1, fixed: true),
-                    .init(soort: .line, a: 30, b: 48.5, c: 66, d: 48.5, stroke: "faint", sw: 1, fixed: true),
-                    .init(soort: .line, a: 39, b: 56.5, c: 57, d: 56.5, stroke: "fainter", sw: 1, fixed: true),
                 ])),
         PHBeeld(familie: "lijn",
                 groot: PHTekening(w: 358, h: 179, clipY: nil, vormen: [
@@ -313,21 +300,6 @@ enum PlaceholderBeelden {
                     .init(soort: .line, a: 26, b: 29.5, c: 70, d: 29.5, stroke: "line", sw: 1, fixed: true),
                     .init(soort: .line, a: 29, b: 36.5, c: 73, d: 36.5, stroke: "line", sw: 1, fixed: true),
                     .init(soort: .line, a: 24, b: 43.5, c: 68, d: 43.5, stroke: "line", sw: 1, fixed: true),
-                ])),
-        PHBeeld(familie: "stapel",
-                groot: PHTekening(w: 358, h: 179, clipY: nil, vormen: [
-                    .init(soort: .rect, a: 103, b: 44, c: 136, d: 64, fill: "vel3"),
-                    .init(soort: .rect, a: 111, b: 53, c: 136, d: 64, fill: "vel2"),
-                    .init(soort: .rect, a: 119, b: 62, c: 136, d: 64, fill: "vel1"),
-                    .init(soort: .rect, a: 107, b: 71, c: 136, d: 64, fill: "vel0"),
-                    .init(soort: .rect, a: 107, b: 71, c: 136, d: 2, fill: "sun"),
-                ]),
-                klein: PHTekening(w: 96, h: 64, clipY: nil, vormen: [
-                    .init(soort: .rect, a: 19, b: 11, c: 52, d: 28, fill: "vel3"),
-                    .init(soort: .rect, a: 22, b: 16, c: 52, d: 28, fill: "vel2"),
-                    .init(soort: .rect, a: 25, b: 21, c: 52, d: 28, fill: "vel1"),
-                    .init(soort: .rect, a: 20, b: 26, c: 52, d: 28, fill: "vel0"),
-                    .init(soort: .rect, a: 20, b: 26, c: 52, d: 2, fill: "sun"),
                 ])),
     ]
 }
