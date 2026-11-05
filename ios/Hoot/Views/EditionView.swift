@@ -137,6 +137,12 @@ extension HootStore {
 }
 
 struct EditionView: View {
+    // De metaregel onder de Editie-titel: de datum, en alleen wat afwijkt (gelijk aan Edition.jsx).
+    // Een eigen Editie zegt niets extra's: het is altijd jouw Editie.
+    static func metaLine(date: String, personalLabel: Bool, personal: Bool) -> String {
+        let extra: String? = personalLabel ? nil : personal ? "Om te beginnen" : "De Editie voor iedereen"
+        return [date, extra ?? ""].filter { !$0.isEmpty }.joined(separator: "\u{00A0}· ")
+    }
     // `-HootScroll slot`: het voorlaatste verhaal bovenaan, zodat het einde met twee verhalen erboven in beeld staat.
     static func slotTarget(_ rows: [EditionRowModel]) -> String? {
         #if DEBUG
@@ -340,9 +346,10 @@ struct EditionView: View {
                         }
                         .loadLinesError(lines)
                     } else {
-                        // Eén metaregel, zoals op het web. De vaste spatie vóór de punt houdt die bij de
-                        // datum als de regel bij grote tekst breekt ("oktober ·", niet "· Jouw Editie").
-                        Text([dateLine, store.isPersonal ? "Jouw Editie" : store.shownEdition?.personal == true ? "Om te beginnen" : "De Editie voor iedereen"].filter { !$0.isEmpty }.joined(separator: "\u{00A0}· "))
+                        // Eén metaregel, zoals op het web. Geen "Jouw Editie" meer (Alex, 5 november: dat is het
+                        // altijd); alleen wat afwijkt staat achter de datum. De vaste spatie vóór de punt houdt
+                        // die bij de datum als de regel bij grote tekst breekt ("oktober ·", niet "· Om te beginnen").
+                        Text(EditionView.metaLine(date: dateLine, personalLabel: store.isPersonal, personal: store.shownEdition?.personal == true))
                             .font(.ui(.footnote)) // Schibsted 13, gelijk aan .vh__sub op het web (t1)
                             .foregroundStyle(Theme.ink3)
                             .frame(minHeight: 20, alignment: .leading) // de regel blijft 20 hoog (lh-2), zoals op het web: de kop houdt zijn ritme
