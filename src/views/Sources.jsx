@@ -225,7 +225,7 @@ function SocialSources({ sources, muted, onToggle, ownHandles, onAdd, onRemove }
         <button type="button" className="linkbtn hit" onClick={()=>remove(s)} aria-label={`${s.name} ontvolgen`}>Ontvolgen</button>
       </div>)}
     </div>
-    <p className="hint">Posts van de afgelopen 36 uur, bij je nieuws in de Stroom.</p>
+    <p className="hint">Posts van de afgelopen anderhalve dag, bij je nieuws in de Stroom.</p>
     {onAdd ? <AddBluesky onAdd={onAdd} /> : null}
   </>
 }

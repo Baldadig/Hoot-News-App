@@ -4,8 +4,11 @@ import Observation
 
 // Letters van Hoot, gelijk aan het web (src/styles.css › Type): lezen in serif, bedienen in sans.
 //   Kop     Newsreader 800 (optische maat 16, zoals de statische Newsreader 800 van het web)
-//   Lees    Newsreader op tekstmaat (17) voor lopende tekst: intro's, de tekst van een post, de lezer;
-//           in Nacht op gewicht 430, zodat de dunne halen op zwart niet breken
+//   Lees    Newsreader voor lopende tekst: intro's, de tekst van een post, de lezer; intro variant 4 (keuze Alex,
+//           5 november 2026): optische maat 12, gewicht 450 (NewsreaderTekst-450.ttf), in Nacht 480, zodat de dunne
+//           halen op zwart niet breken. Op het web: --lees-wght / --lees-opsz in src/styles.css. De lezer (WKWebView,
+//           ReaderFonts) laadt dezelfde stand als woff. Terugvaloptie variant 3: opsz 11, wght 400 (Nacht 430):
+//           zie scripts/build-fonts.py, dan hier de twee namen en de bestandsnamen -400 / -430 terugzetten.
 //   UI      Schibsted Grotesk 400 · 600 · 700 · 800 voor bediening, labels, metadata en knoppen
 //   Uitleg  uitleg- en hulpzinnen in de bediening zijn schreefloos: Schibsted 17/24 (.uitleg() = .zin()); Newsreader is er alleen voor kop, intro en artikeltekst
 // De letters staan in Resources/Fonts (scripts/build-fonts.py) en worden via UIAppFonts geladen.
@@ -91,7 +94,7 @@ extension Font {
     }
 }
 
-// Lopende tekst: Newsreader, regelafstand 1,42 (toegankelijkheidsmaten 1,3), in Nacht gewicht 430.
+// Lopende tekst: Newsreader (opsz 12, gewicht 450), regelafstand 1,42 (toegankelijkheidsmaten 1,3), in Nacht gewicht 480.
 // `size` en `line`: een eigen maat en regelhoogte in punten bij de standaardgrootte (kaart A+: intro 18/28,
 // hoofdverhaal 20/30). Ze groeien mee met Dynamische tekst, relatief aan `style`.
 struct Leestekst: ViewModifier {

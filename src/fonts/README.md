@@ -32,3 +32,10 @@ met `scripts/build-fonts.py` uit de officiële variabele TTF's van github.com/go
 
 Licentie: SIL Open Font License 1.1 (`newsreader-OFL.txt`, `schibsted-OFL.txt`, `inter-OFL.txt`). Newsreader: Production
 Type. Schibsted Grotesk: Schibsted Media Group / Bakken & Bæck. Inter: Rasmus Andersson. Newsreader heeft geen ĳ-teken; Nederlands typt i+j.
+
+## Leesstijl (intro variant 4, 5 november 2026)
+
+`newsreader-latin-opsz-normal.woff2` (en de `-ext`) is het variabele bestand met opsz- én wght-as; het web en de landing zetten
+de optische maat vast met `font-variation-settings: 'opsz' 12` en het gewicht via `font-weight` (tokens `--lees-wght` 450,
+Nacht 480, en `--lees-vs`). Dit is hetzelfde bestand als `intro-letter/fonts/newsreader-latin-opsz-normal.woff2` in Hoot-design
+(zelfde SHA-256 als hierboven). iOS: vaste standen `NewsreaderTekst-450.ttf` en `-480.ttf` (opsz 12). Terugval variant 3: 400/430, opsz 11.
