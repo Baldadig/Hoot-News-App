@@ -593,6 +593,11 @@ struct EditionView: View {
                 .loadLines(lines, loading: loaderShown && !tien.active, ok: !store.editionRows.isEmpty, landing: true)
                 .firstEdition(tien, loading: loaderShown, failed: store.status == .failed && store.editionRows.isEmpty)
                 .coordinateSpace(.named(Self.inhoud)) // de inhoud zelf: schuift niet mee met scrollen
+                .plekInhoud() // je plek bij vouwen: de ankers meten zich in de inhoud (Krant.swift)
+                // Een ander raster (vouwen: dicht ↔ tabloid ↔ boek) is een nieuwe lijst. De lazy lijst hield anders de
+                // hoogtes van het oude raster vast: de Editie leek langer dan hij was, en je plek viel achter het einde
+                // (Duo 1.2, punt 3). PlekBewaren staat buiten de lijst en zet daarna het anker terug.
+                .id(tabloid == nil ? Grid?.none : grid) // alleen met een vouw: op iPhone en iPad blijft de lijst dezelfde
                 .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { contentWidth = $0 }
                 // Alleen x en breedte: verticaal scrollen meet hier niets (anders bij elke scrollstap een nieuwe staat).
                 .onGeometryChange(for: CGRect.self) { let f = $0.frame(in: .global); return CGRect(x: f.minX, y: 0, width: f.width, height: 0) } action: { inhoudKader = $0 }

@@ -538,7 +538,17 @@ struct KrantGekozen: ViewModifier {
     var boven: [AnyHashable: CGFloat] = [:]
     var anker: AnyHashable?
     var herstellen = false
+    var herstel: Task<Void, Never>?
+    var offset: CGFloat = 0 // de scroll (contentOffset.y), om stap voor stap te zoeken
+    var hoogte: CGFloat = 0 // de hoogte van het zichtbare deel
+    var raster = false // de ankers meten zich in de inhoud (de Editie): dan eerst naar boven en zoeken
+    var inhoud: [AnyHashable: CGFloat] = [:] // de bovenkant van elk anker in de inhoud (alleen met `plekInhoud`)
+    static let ruimte = "plek-inhoud"
     private var taak: Task<Void, Never>?
+    /// Na een vouw of draai: zo vaak (ms na elkaar) zet de lijst het anker terug bovenaan, tot de opmaak stilstaat.
+    static let herstelMomenten = [60, 32, 40, 80, 160]
+    /// Hoe vaak de lijst hooguit een scherm omlaag stapt om een anker in een lazy raster te vinden.
+    static let zoekStappen = 16
 
     /// Als de lijst even stilstaat: onthoud welk verhaal bovenaan staat. Niet meteen: beelden die binnenkomen en
     /// een nieuwe breedte verschuiven de rijen eerst; het anker is wat je zag vóór het vouwen.
@@ -574,36 +584,80 @@ extension View {
 
 struct PlekAnker: ViewModifier {
     @Environment(\.plekBoek) private var boek
+    @Environment(\.plekInhoud) private var inhoud
     let id: AnyHashable
     func body(content: Content) -> some View {
         content
             .onGeometryChange(for: CGFloat.self) { $0.frame(in: .scrollView).minY } action: { boek?.boven[id] = $0; boek?.plan() }
-            .onDisappear { boek?.boven[id] = nil }
+            // De plek in de inhoud zelf (schuift niet mee met scrollen): daarmee kan de lijst zelf terugscrollen.
+            .onGeometryChange(for: CGFloat.self) { inhoud ? $0.frame(in: .named(PlekBoek.ruimte)).minY : .nan } action: { if inhoud { boek?.inhoud[id] = $0; boek?.raster = true } }
+            .onDisappear { boek?.boven[id] = nil; boek?.inhoud[id] = nil }
     }
+}
+
+struct PlekInhoudKey: EnvironmentKey { static let defaultValue = false }
+extension EnvironmentValues {
+    /// De lijst heeft de coördinatenruimte `PlekBoek.ruimte` op zijn inhoud (de Editie).
+    var plekInhoud: Bool { get { self[PlekInhoudKey.self] } set { self[PlekInhoudKey.self] = newValue } }
+}
+
+extension View {
+    /// Op de inhoud van de ScrollView (niet op de ScrollView): de ruimte waarin de ankers hun plek meten.
+    func plekInhoud() -> some View { coordinateSpace(.named(PlekBoek.ruimte)).environment(\.plekInhoud, true) }
 }
 
 struct PlekBewaren: ViewModifier {
     let proxy: ScrollViewProxy
     @State private var boek = PlekBoek()
+    @State private var positie = ScrollPosition()
     func body(content: Content) -> some View {
         content
             .environment(\.plekBoek, boek)
             // Alleen scrollen telt, niet een nieuwe breedte: dan verschuift de inhoud vanzelf, en is het anker
             // juist wat we terug willen. (De breedte van het vlak zit daarom in de gemeten waarde.)
             .onScrollGeometryChange(for: CGSize.self) { CGSize(width: $0.containerSize.width, height: $0.contentOffset.y) } action: { oud, nieuw in
+                boek.offset = nieuw.height
                 guard oud.width == nieuw.width else { boek.stopPlan(); return }
                 boek.plan()
             }
+            .scrollPosition($positie)
+            .onScrollGeometryChange(for: CGFloat.self) { $0.containerSize.height } action: { _, h in boek.hoogte = h }
             .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { oud, nieuw in
                 boek.stopPlan()
                 guard oud != nieuw, oud > 0, let anker = boek.anker else { return }
                 boek.herstellen = true
-                Task { @MainActor in
+                boek.herstel?.cancel()
+                boek.herstel = Task { @MainActor in
                     // Eerst de nieuwe opmaak, dan terug naar hetzelfde verhaal. Zonder animatie: vouwen is geen beweging.
-                    try? await Task.sleep(for: .milliseconds(60))
+                    // Duo 1.2, punt 3: de lazy lijst onthoudt de hoogtes van de oude breedte. Van staand of dicht naar
+                    // boek wordt de Editie veel korter, maar de lijst denkt nog dat hij lang is: de scroll bleef op een
+                    // plek voorbij het einde, de ankers stonden op hun oude plek en scrollTo landde op het einde. Daarom
+                    // eerst naar het begin (de lijst meet dan opnieuw vanaf boven), en dan naar het anker, een paar keer
+                    // tot de opmaak stilstaat.
                     var t = Transaction(); t.disablesAnimations = true
-                    withTransaction(t) { proxy.scrollTo(anker, anchor: .top) }
+                    try? await Task.sleep(for: .milliseconds(PlekBoek.herstelMomenten[0]))
+                    guard !Task.isCancelled else { return }
+                    if boek.raster {
+                        // Alleen de Editie (rasters met paren): andere lijsten hebben elk anker direct in de lazy stapel.
+                        withTransaction(t) { positie.scrollTo(edge: .top) }
+                        try? await Task.sleep(for: .milliseconds(PlekBoek.herstelMomenten[1]))
+                    }
+                    // Staat het anker in een raster (de paren van de tabloid en het boek), dan bestaat het pas als dat
+                    // raster in beeld komt (lazy), en vindt scrollTo het niet. Dan stap voor stap omlaag tot het er is.
+                    var stap = 0
+                    while boek.raster && boek.inhoud[anker] == nil && boek.boven[anker] == nil && stap < PlekBoek.zoekStappen {
+                        guard !Task.isCancelled else { return }
+                        withTransaction(t) { positie.scrollTo(y: boek.offset + max(200, boek.hoogte * 0.8)) }
+                        try? await Task.sleep(for: .milliseconds(24))
+                        stap += 1
+                    }
+                    for wacht in PlekBoek.herstelMomenten.dropFirst(2) {
+                        guard !Task.isCancelled else { return }
+                        withTransaction(t) { proxy.scrollTo(anker, anchor: .top) }
+                        try? await Task.sleep(for: .milliseconds(wacht))
+                    }
                     try? await Task.sleep(for: .milliseconds(250))
+                    guard !Task.isCancelled else { return }
                     boek.anker = anker
                     boek.herstellen = false
                 }
