@@ -18,8 +18,8 @@ import SwiftUI
     func testMetEenVouwIsElkRasterEenNieuweLijstZonderVouwNiet() throws {
         let editie = try bron("Hoot/Views/EditionView.swift")
         XCTAssertTrue(editie.contains(".id(tabloid == nil ? Grid?.none : grid)"), "zonder vouw (tabloid nil) één vaste id")
-        XCTAssertTrue(editie.contains(".plekInhoud()"), "de ankers van de Editie meten zich in de inhoud")
-        XCTAssertFalse(try bron("Hoot/Views/StreamView.swift").contains(".plekInhoud()"), "de Stroom houdt het oude herstel")
+        XCTAssertTrue(editie.contains(".plekInhoud(tabloid != nil)"), "alleen met een vouw meten de ankers zich in de inhoud: op iPhone en iPad het oude herstel")
+        XCTAssertFalse(try bron("Hoot/Views/StreamView.swift").contains(".plekInhoud("), "de Stroom houdt het oude herstel")
     }
 
     func testHerstellenZoektAlleenInDeEditie() {

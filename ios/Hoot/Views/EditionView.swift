@@ -593,7 +593,7 @@ struct EditionView: View {
                 .loadLines(lines, loading: loaderShown && !tien.active, ok: !store.editionRows.isEmpty, landing: true)
                 .firstEdition(tien, loading: loaderShown, failed: store.status == .failed && store.editionRows.isEmpty)
                 .coordinateSpace(.named(Self.inhoud)) // de inhoud zelf: schuift niet mee met scrollen
-                .plekInhoud() // je plek bij vouwen: de ankers meten zich in de inhoud (Krant.swift)
+                .plekInhoud(tabloid != nil) // je plek bij vouwen: de ankers meten zich in de inhoud (Krant.swift); zonder vouw het oude herstel
                 // Een ander raster (vouwen: dicht ↔ tabloid ↔ boek) is een nieuwe lijst. De lazy lijst hield anders de
                 // hoogtes van het oude raster vast: de Editie leek langer dan hij was, en je plek viel achter het einde
                 // (Duo 1.2, punt 3). PlekBewaren staat buiten de lijst en zet daarna het anker terug.

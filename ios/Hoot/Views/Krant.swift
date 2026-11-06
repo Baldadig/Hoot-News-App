@@ -603,7 +603,8 @@ extension EnvironmentValues {
 
 extension View {
     /// Op de inhoud van de ScrollView (niet op de ScrollView): de ruimte waarin de ankers hun plek meten.
-    func plekInhoud() -> some View { coordinateSpace(.named(PlekBoek.ruimte)).environment(\.plekInhoud, true) }
+    /// `aan` alleen met een vouw: op iPhone en iPad blijft het herstel na draaien zoals het was (direct scrollTo).
+    func plekInhoud(_ aan: Bool = true) -> some View { coordinateSpace(.named(PlekBoek.ruimte)).environment(\.plekInhoud, aan) }
 }
 
 struct PlekBewaren: ViewModifier {
