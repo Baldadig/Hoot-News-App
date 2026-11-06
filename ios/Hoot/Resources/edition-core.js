@@ -254,6 +254,17 @@ var HootCore = (() => {
     if (a.countries.length && b.countries.length && !a.countries.some((c) => b.countries.includes(c))) return true;
     return a.cities.length > 0 && b.cities.length > 0 && !a.cities.some((c) => b.cities.includes(c));
   }
+  var OPINION_PATH = /\/(opinie|opinies|opinion|opinions|columns?[a-z-]*|columnisten|commentaar|commentisfree|opinion-and-essays|news-analysis)\//i;
+  var OPINION_LABEL = /^(opinie|opinion|column|columns|columnisten|commentaar|commentary|ingezonden)$/i;
+  var OPINION_TITLE = /^\W*(opinie|opinion|column|commentaar|ingezonden)\s*[:|]/i;
+  function isOpinion(item = {}) {
+    if (!item) return false;
+    if (item.type === "opinie") return true;
+    const url = String(item.url || "");
+    if (OPINION_PATH.test(url) || /theatlantic\.com\/ideas\//i.test(url)) return true;
+    return OPINION_LABEL.test(String(item.section || "").trim()) || OPINION_TITLE.test(item.title || "");
+  }
+  var verdictTitle = (item = {}) => /[.!?]\s+["“‘]?\p{Lu}[^.!?]*[.!]["”’]?$/u.test(String(item?.title || "").trim());
 
   // netlify/lib/topics.mjs
   var KW = [
@@ -2491,6 +2502,23 @@ var HootCore = (() => {
     xs = prefer(xs, (i) => !/\?/.test(i.title || ""));
     return dutchFirst(freshest(xs));
   }
+  function openWithNews(entries, { itemsOf, pick }) {
+    const news = (e2) => itemsOf(e2).some((i) => i && !isOpinion(i));
+    const k = entries.findIndex(news);
+    if (k < 0) return entries;
+    if (k > 0) entries.unshift(...entries.splice(k, 1));
+    const e = entries[0];
+    if (e.kind !== "story") return entries;
+    const items = itemsOf(e).filter(Boolean);
+    const lead = items.find((i) => i.id === e.leadId);
+    if (!lead || !isOpinion(lead) && !verdictTitle(lead)) return entries;
+    const fresh = items.filter((i) => !isOpinion(i));
+    const plain = fresh.filter((i) => !verdictTitle(i));
+    if (!isOpinion(lead) && !plain.length) return entries;
+    const next = pick(plain.length ? plain : fresh, items);
+    if (next && next.id !== lead.id) entries[0] = { ...e, leadId: next.id, ..."title" in e ? { title: next.title || null } : {} };
+    return entries;
+  }
   var textOrder = (a, b) => a < b ? -1 : a > b ? 1 : 0;
   function selectForReader(stories, pool, { mainIds = /* @__PURE__ */ new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = "", audit = null, allowLight = false } = {}) {
     const byId2 = new Map(pool.map((i) => [i.id, i]));
@@ -2955,13 +2983,16 @@ var HootCore = (() => {
       accept(bubbleEntry);
     }
     entries = accepted;
+    const knownOf = (e) => [...membersOf(e)].map((id) => itemAny.get(id)).filter(Boolean);
+    const hasNews = (e) => knownOf(e).some((i) => !isOpinion(i));
     if (prof.interests.has("binnenland")) {
       const first = entries.findIndex((e) => {
         const p = policyOf(e.leadId || e.id, e.kind === "story" ? e.id : null, e);
-        return e.desk !== "bubbel" && !p.abroad && ["binnenland", "regio"].includes(p.desk);
+        return e.desk !== "bubbel" && !p.abroad && ["binnenland", "regio"].includes(p.desk) && hasNews(e);
       });
       if (first > 0) entries.unshift(...entries.splice(first, 1));
     }
+    openWithNews(entries, { itemsOf: knownOf, pick: (xs, all) => leadPool(leadCandidates(xs, followed, preferred, now, { role: "front" }), all, now, (i) => followed.has(i.source))[0] });
     const poolById = new Map(pool.map((i) => [i.id, i]));
     const wideById = new Map([...(global.wide || []).map((w) => w?.item).filter(Boolean), ...wide ? [wide.item] : [], ...nearItem ? [nearItem] : []].map((i) => [i.id, i]));
     const itemOf = (id) => poolById.get(id) || wideById.get(id) || globalItems.get(id) || itemAny.get(id);

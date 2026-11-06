@@ -14,7 +14,8 @@ import { EDITOR_REVISION } from '../../shared/editor-version.mjs'
 //
 // Rekenregels als in shared/editor.mjs (web en iOS moeten bit-gelijk uitkomen): alleen + − × ÷,
 // Math.round/min/max/floor en Date.parse; elke sortering heeft een totale vergelijker.
-import { selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, seenBefore, developedSince, recentEditions } from '../../netlify/lib/stories.mjs'
+import { selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool } from '../../netlify/lib/stories.mjs'
+import { isOpinion } from '../../shared/article-signals.mjs'
 import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
 import { trustedTopics, OTHER_SPORT } from '../../netlify/lib/topics.mjs'
 import { INTERESTS } from './topics.js'
@@ -417,13 +418,18 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   if (bubbleEntry) { capacity = accepted.length + 1; accept(bubbleEntry) }
   entries = accepted
   // Binnenland blijft de opening, ook bij een combinatie met Wereld en bij serveraanvulling.
+  // De stukken van een plek die dit toestel kent (voor plek 01: openWithNews).
+  const knownOf = (e) => [...membersOf(e)].map((id) => itemAny.get(id)).filter(Boolean)
+  const hasNews = (e) => knownOf(e).some((i) => !isOpinion(i))
   if (prof.interests.has('binnenland')) {
     const first = entries.findIndex(e => {
       const p = policyOf(e.leadId || e.id, e.kind === 'story' ? e.id : null, e)
-      return e.desk !== 'bubbel' && !p.abroad && ['binnenland','regio'].includes(p.desk)
+      return e.desk !== 'bubbel' && !p.abroad && ['binnenland','regio'].includes(p.desk) && hasNews(e)
     })
     if (first > 0) entries.unshift(...entries.splice(first, 1))
   }
+  // Plek 01 opent met nieuws, met een nieuwskop; liefst uit je eigen bronnen (keuring 6 november 2026).
+  openWithNews(entries, { itemsOf: knownOf, pick: (xs, all) => leadPool(leadCandidates(xs, followed, preferred, now, { role: 'front' }), all, now, (i) => followed.has(i.source))[0] })
 
   // Vast: de berichten zoals ze nu zijn (eigen bronnen uit de feed, aanvulling uit de algemene editie).
   const poolById = new Map(pool.map((i) => [i.id, i]))

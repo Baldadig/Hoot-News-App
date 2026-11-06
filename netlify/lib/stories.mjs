@@ -1,6 +1,6 @@
 import { cleanIntro, headlineFit } from '../../shared/edition-display.mjs'
 import { EDITION_TARGET, coverageOf, majorNews, newsRejection, lightVideoFiller, allowedNews, cappedInternational, internationalNews, worldChosen, sportStory, exceptionalDutchSport, isGallery, lightNews, lightStory, majorGeneralNews, publisherOf } from '../../shared/edition-policy.mjs'
-import { eventScope, conflictingEvents, countriesIn, usPoliticsIn } from '../../shared/article-signals.mjs'
+import { eventScope, conflictingEvents, countriesIn, usPoliticsIn, isOpinion, verdictTitle } from '../../shared/article-signals.mjs'
 // Verhalen (bundels), hoofdbericht en editie — pure functies, los van het ophalen,
 // zodat ze te testen zijn (zie tests/).
 
@@ -1308,6 +1308,31 @@ export function leadPool(cands, items, now, own = null, total = items.length) {
   return dutchFirst(freshest(xs))
 }
 
+// Plek 01 opent met nieuws (keuring 6 november 2026: "Opinie is nooit een hoofdartikel"; de NYT-beschouwing "Trump
+// Tried to Undermine the Nation's Elections. It Didn't Work." was de kop van het hoofdverhaal). Na de volgorde:
+// - heeft de eerste plek alleen opinie (isOpinion), dan schuift de eerste plek met nieuws naar voren;
+// - is de kop van de eerste plek opinie of een beschouwende kop (verdictTitle), dan kiest `pick` een nieuwe kop uit
+//   de nieuwsstukken van het verhaal, liefst zonder beschouwende kop. Een opiniestuk blijft gewoon lid.
+// `itemsOf(e)`: de bekende stukken van een plek. `pick(kandidaten, alle stukken)`: de kop. Wijzigt `entries` (de plek
+// met een nieuwe kop is een kopie).
+export function openWithNews(entries, { itemsOf, pick }) {
+  const news = (e) => itemsOf(e).some((i) => i && !isOpinion(i))
+  const k = entries.findIndex(news)
+  if (k < 0) return entries
+  if (k > 0) entries.unshift(...entries.splice(k, 1))
+  const e = entries[0]
+  if (e.kind !== 'story') return entries
+  const items = itemsOf(e).filter(Boolean)
+  const lead = items.find((i) => i.id === e.leadId)
+  if (!lead || (!isOpinion(lead) && !verdictTitle(lead))) return entries
+  const fresh = items.filter((i) => !isOpinion(i))
+  const plain = fresh.filter((i) => !verdictTitle(i))
+  if (!isOpinion(lead) && !plain.length) return entries
+  const next = pick(plain.length ? plain : fresh, items)
+  if (next && next.id !== lead.id) entries[0] = { ...e, leadId: next.id, ...('title' in e ? { title: next.title || null } : {}) }
+  return entries
+}
+
 // Een verhaal of bericht uit een voorkeursbron weegt zwaarder (zo'n twee bronnen dekking).
 export const FAVORITE_BONUS = 8
 export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, bonus = null, strict = false, previous = null, preferred = null } = {}) {
@@ -1334,6 +1359,13 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
     const ownOnly = recent.filter((i) => mainIds.has(i.source))
     const from = ownOnly.length ? ownOnly : recent
     return from.find((i) => i.source !== prevLead && (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from.find((i) => (leadCount[i.source] || 0) < MAX_LEADS_PER_SOURCE) || from[0]
+  }
+  // De kop van plek 01 uit `xs` (een deel van de stukken van het verhaal), met de regels van pickLead voor de voorpagina.
+  const frontLead = (xs, items) => {
+    const all = leadCandidates(xs, mainIds, preferred, now, { role: 'front' })
+    const recent = leadPool(all.some((i) => !isGallery(i)) ? all.filter((i) => !isGallery(i)) : all, items, now)
+    const own = recent.filter((i) => mainIds.has(i.source))
+    return (own.length ? own : recent)[0]
   }
 
   // Kandidaten: verhalen (meerdere publicaties) en losse berichten uit je eigen bronnen.
@@ -1378,8 +1410,10 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
       prevLead = lead.source
       entries.push({ kind: 'story', id: c.st.id, leadId: lead.id, desk, w: c.w })
     } else entries.push({ kind: 'item', id: c.it.id, desk, w: c.w })
+    candOf.set(entries[entries.length - 1], c)
     return true
   }
+  const candOf = new Map()
   // 1. Per rubriek het belangrijkste verhaal.
   //    Eerst wat er vooral over gaat; alleen als dat er niet is, iets wat het ook raakt.
   for (const desk of DESKS) {
@@ -1394,6 +1428,8 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
   }
   // Volgorde: belangrijkste eerst (het hoofdverhaal is het zwaarste nieuws van het moment).
   entries.sort((a, b) => b.w - a.w)
+  // Plek 01 opent met nieuws, met een nieuwskop (openWithNews).
+  openWithNews(entries, { itemsOf: (e) => candOf.get(e)?.items || [], pick: (xs, items) => frontLead(xs, items) })
   return entries.map(({ w, ...e }) => e)
 }
 
