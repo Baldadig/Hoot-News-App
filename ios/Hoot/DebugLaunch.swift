@@ -6,7 +6,7 @@ import SwiftUI
 //   -HootScreen verhaal|lezer|bronnen|stroom-bronnen|video|instellingen|instellingen-bronnen|instellingen-bluesky|instellingen-interesses|instellingen-vakken|instellingen-abonnementen|instellingen-wissen
 //   -HootRubriek wereld|bubbel|…   -HootPicks nos,nrc   (de Stroom op een rubriek, met gekozen bronnen;
 //                                             met -HootScreen stroom-bronnen staat de stapel open)
-//   -HootScroll midden|onder|slot   -HootQuery <tekst>   -HootDark YES   -HootLargeText YES   -HootOffline YES
+//   -HootScroll midden|onder|slot|rijen   -HootQuery <tekst>   -HootDark YES   -HootLargeText YES   -HootOffline YES
 //   -HootLayout tijdlijn|krant   (de Stroom in die indeling, los van de instelling)
 //   -HootSeenMinutes <n>   (de Stroom alsof je er n minuten geleden was)
 //   -HootOnboarded YES   (zonder welkom, mét opstartscherm; met -HootStartTab stroom: de opstart naar de Stroom)
@@ -29,6 +29,7 @@ import SwiftUI
 //                            compacte breedteklasse; de rest van het scherm blijft leeg)
 //   -HootDuo buiten|buiten-liggend|binnen|binnen-liggend|binnen-boek|binnen-tafel   (iPhone Duo nabootsen
 //                            op een iOS 26-simulator: venstermaat, breedteklassen en de vouw; zie DuoEmulatie)
+//   -HootVoorpagina compact   (de compacte voorpagina van de Duo dicht, op elke iPhone: om te vergelijken)
 //   -HootBalkOpzij 1   (de bediening in de systeembalk, zoals bij een verticale balk op de iPhone Duo)
 //   -HootDuoReeks binnen-liggend,buiten,…   (daarna vouwen: zelfde venster, telkens een andere houding)
 //   -HootDuoNaam <naam>   -HootDuoWacht <s>   (de opname in Documents/duo-<naam>….png)
@@ -47,6 +48,7 @@ enum DebugLaunch {
     static var dark: Bool { defaults.bool(forKey: "HootDark") }
     static var largeText: Bool { defaults.bool(forKey: "HootLargeText") }
     static var balkOpzij: Bool { defaults.bool(forKey: "HootBalkOpzij") } // de systeembalk opzij, zoals op de iPhone Duo
+    static var voorpagina: Bool { defaults.string(forKey: "HootVoorpagina") == "compact" } // de compacte voorpagina op elke iPhone
     static var offline: Bool { defaults.bool(forKey: "HootOffline") }
     static var rubriek: String? { defaults.string(forKey: "HootRubriek") }
     static var layout: String? { defaults.string(forKey: "HootLayout").flatMap { ["tijdlijn", "krant"].contains($0) ? $0 : nil } }
@@ -67,6 +69,7 @@ enum DebugLaunch {
         case "midden": .center
         case "onder": .bottom
         case "slot": .top // de laatste twee verhalen en het einde, netjes onder de balk
+        case "rijen": .top // de Editie vanaf 02 (de dichte rijen van de Duo dicht)
         default: nil
         }
     }
@@ -82,6 +85,7 @@ enum DebugLaunch {
     static let dark = false
     static let largeText = false
     static let balkOpzij = false
+    static let voorpagina = false
     static let offline = false
     static let rubriek: String? = nil
     static let layout: String? = nil

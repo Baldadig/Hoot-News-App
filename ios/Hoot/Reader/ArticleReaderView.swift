@@ -13,6 +13,8 @@ struct ArticleReaderView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(Reader.self) private var reader: Reader? // het geladen artikel en je plek, voor vouwen (Duo)
     @Environment(\.krantPagina) private var opPagina // open op de Duo: de lezer staat op de rechterbladzijde
+    @Environment(KrantStaat.self) private var krant: KrantStaat? // de Duo open staand: een blad over de tabloid, met ruimere marge
+    @Environment(\.tafelLezer) private var tafel // de Duo liggend: de lezer boven op het tafelblad, de bediening staat onder (Tafel.swift)
     @State private var width: CGFloat = 0 // breedte van de lezer, om te zien welk woord in de kop niet past
     let item: Item
     @State private var loader = ArticleLoader()
@@ -45,7 +47,7 @@ struct ArticleReaderView: View {
                 case .loading:
                     ReaderLoadingView(title: item.title.isEmpty ? (item.summary ?? "") : typeset(item.title, lang: source?.lang), sourceName: sourceName, waiting: waiting)
                 case let .ready(article):
-                    ArticleWebView(html: ReaderHTML.page(article, item: item, sourceName: sourceName, size: size, lang: source?.lang, night: nacht, typeSize: typeSize, width: width, pagina: opPagina), baseURL: item.link,
+                    ArticleWebView(html: ReaderHTML.page(article, item: item, sourceName: sourceName, size: size, lang: source?.lang, night: nacht, typeSize: typeSize, width: width, pagina: opPagina, ruim: !opPagina && krant?.tabloid == true), baseURL: item.link,
                                    plek: reader?.plek(voor: item.id), bewaarPlek: { [reader, id = item.id] in reader?.bewaarPlek($0, voor: id) })
                         .ignoresSafeArea(edges: .bottom)
                         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
@@ -110,6 +112,8 @@ struct ArticleReaderView: View {
                     SaveToolbarButton(item: item)
                 }
             }
+            // Op het tafelblad staat de bediening onder, in de inhoudsopgave: boven alleen lezen (TT463).
+            .toolbar(tafel ? .hidden : .automatic, for: .navigationBar)
             // Na inloggen: bevestigen en het artikel opnieuw laden, nu met je abonnement.
             .sheet(item: $login, onDismiss: afterLogin) { target in LoginWebView(target: target) }
             .overlay(alignment: .top) {
@@ -212,13 +216,13 @@ enum ReaderFonts {
 enum ReaderHTML {
     static let scales = [0.9, 1.0, 1.15, 1.32]
 
-    static func page(_ a: Article, item: Item, sourceName: String, size: Int, lang: String? = nil, night: Bool = false, typeSize: DynamicTypeSize? = nil, width: CGFloat = 0, pagina: Bool = false) -> String {
+    static func page(_ a: Article, item: Item, sourceName: String, size: Int, lang: String? = nil, night: Bool = false, typeSize: DynamicTypeSize? = nil, width: CGFloat = 0, pagina: Bool = false, ruim: Bool = false) -> String {
         let scale = scales[min(max(size, 0), scales.count - 1)]
         // De tekstmaat komt uit de omgeving van de view (niet uit UITraitCollection.current, onbetrouwbaar in een body) en gaat als px in de pagina.
         let bodyPx = typeSize.map { KopZet.pointSize(.body, typeSize: $0) }
         let accessibilitySize = typeSize?.isAccessibilitySize ?? false
         // Op een bladzijde van de krant (Duo open, Krant.swift): dezelfde letter, een iets smallere marge (Leesmaat).
-        let marge = Int(Leesmaat.marge(pagina: pagina))
+        let marge = Int(Leesmaat.marge(pagina: pagina, ruim: ruim))
         var title = typeset(a.title.isEmpty ? item.title : a.title, lang: lang) // de lezer haalt de kop zelf: zetten zoals de server (T6)
         // Newsreader 800 is breed: een woord breder dan de kolom ("Rijksvoorlichtingsdienst" op een SE) krijgt zachte
         // afbreekstreepjes op de lettergrepen, zoals Kop. Woorden die passen blijven heel. Kopmaat en kolom als in de css hieronder.

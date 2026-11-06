@@ -45,6 +45,15 @@ enum KrantIndeling: Equatable {
     /// Half gevouwen als een laptop (tafelblad): boven het verhaal om naar te kijken, onder de lijst
     /// om te bedienen (TT463, TT466).
     case boven(verhaal: CGRect, lijst: CGRect)
+    /// De tabloid (stap 3, alleen de Editie): de lijst over het hele vlak, 01 als opening en daaronder twee kolommen
+    /// met de goot op de vouw (`KrantKolommen`). Open staand altijd; met een staande rug (open liggend, half
+    /// gevouwen als boek) zolang rechts niets open ligt: dan staat elke kolom op zijn eigen bladzijde. Tik je een
+    /// verhaal aan, dan komt de lezer op de rechterbladzijde (`naast`), zoals in een opengeslagen boek.
+    case tabloid(boek: Bool)
+    /// De tafelblad-Editie (stap 4, alleen de Editie): open liggend (vlak) en half gevouwen als laptop. Boven het
+    /// verhaal dat je leest, onder de Editie als inhoudsopgave (01–10 in één rij) en de bediening (TT463, TT466:
+    /// boven kijken, onder bedienen). Vlak liggend is er geen dwarse vouw: dan ligt de grens op `tafelOnder` van onder.
+    case tafel(boven: CGRect, onder: CGRect)
 
     /// Een bladzijde moet minstens zo breed zijn: zo smal als de kleinste iPhone (375) min wat lucht.
     /// Een verticale systeembalk opzij (iOS 27.1, binnen liggend) mag een bladzijde smaller maken.
@@ -53,13 +62,36 @@ enum KrantIndeling: Equatable {
     static let minHoogte: CGFloat = 280
     /// Eén bladzijde op een breed vlak met een vouw (open, staand): de breedte van een krantenpagina.
     static let enkelePagina: CGFloat = 560
+    /// De tabloid open staand: twee kolommen van minstens 284 (32 goot, 2 × 16 marge), dus vanaf 632 breed.
+    static let minTabloid: CGFloat = 632
+    /// De tafelblad-Editie vlak liggend: zo hoog is de inhoudsopgave onder (de rij en de bediening). Groeit mee met
+    /// de tekstgrootte (`@ScaledMetric` in KrantSpread); het verhaal boven houdt minstens `minHoogte`.
+    static let tafelOnder: CGFloat = 272
 
-    var spread: Bool { if case .enkel = self { false } else { true } }
+    /// De lezer en Vergelijken staan op een bladzijde, niet als blad. Ook in de tabloid als boek: tik je daar
+    /// een verhaal aan, dan opent het rechts.
+    var spread: Bool {
+        switch self {
+        case .enkel: false
+        case let .tabloid(boek): boek
+        case .naast, .boven, .tafel: true
+        }
+    }
+    /// Er staat nu een tweede bladzijde (het verhaal of de lezer) naast of boven de lijst.
+    var heeftPagina: Bool {
+        switch self {
+        case .naast, .boven: true
+        case .enkel, .tabloid, .tafel: false
+        }
+    }
+    var isTafel: Bool { if case .tafel = self { true } else { false } }
+    var isTabloid: Bool { if case .tabloid = self { true } else { false } }
 
     /// De breedte waarop de lijst staat (voor isWide en de kolommen).
     func lijstBreedte(in size: CGSize) -> CGFloat {
         switch self {
         case let .enkel(pagina): min(size.width, pagina ?? .infinity)
+        case .tabloid, .tafel: size.width
         case let .naast(lijst, _): lijst.width
         case let .boven(_, lijst): min(lijst.width, Self.enkelePagina)
         }
@@ -69,10 +101,17 @@ enum KrantIndeling: Equatable {
     /// beslist het venster zelf (WidthReader: breed vanaf 700), zodat iPhone, iPad en Split View gelijk blijven.
     /// Met een vouw beslist de breedte van de lijst op zijn eigen bladzijde.
     func breed(lijst: CGFloat) -> Bool? {
-        self == .enkel(pagina: nil) ? nil : lijst >= 700
+        if isTabloid { return true } // de tabloid is de brede Editie: de opening en de paren van de iPad
+        return self == .enkel(pagina: nil) ? nil : lijst >= 700
     }
 
-    static func kies(size: CGSize, horizontal: UserInterfaceSizeClass?, rug: Rug?) -> KrantIndeling {
+    /// - Parameters:
+    ///   - krant: dit tabblad kan een tabloid zijn (de Editie, en de tekst past in twee kolommen: geen heel grote tekst).
+    ///   - rechtsVrij: er ligt rechts niets open (geen lezer, geen Vergelijken).
+    ///   - tafel: dit tabblad kan een tafelblad zijn (de Editie, met verhalen, geen heel grote tekst).
+    ///   - tafelOnder: de hoogte van de inhoudsopgave vlak liggend (meegroeiend met de tekstgrootte).
+    static func kies(size: CGSize, horizontal: UserInterfaceSizeClass?, rug: Rug?, krant: Bool = false, rechtsVrij: Bool = true,
+                     tafel: Bool = false, tafelOnder: CGFloat = KrantIndeling.tafelOnder) -> KrantIndeling {
         // Compact (dicht, iPhone, smal venster): de iPhone-app.
         guard horizontal == .regular, size.width > 0, size.height > 0 else { return .enkel(pagina: nil) }
         // Geen vouw: iPad, Mac, een iPhone zonder rug. Daar blijft alles zoals het was.
@@ -81,7 +120,19 @@ enum KrantIndeling: Equatable {
         if rug.staand {
             let lijst = CGRect(x: 0, y: 0, width: max(0, vrij.minX), height: size.height)
             let verhaal = CGRect(x: vrij.maxX, y: 0, width: max(0, size.width - vrij.maxX), height: size.height)
-            if lijst.width >= minPagina && verhaal.width >= minPagina { return .naast(lijst: lijst, verhaal: verhaal) }
+            if lijst.width >= minPagina && verhaal.width >= minPagina {
+                // Open liggend en vlak: de tafelblad-Editie (besluit Alex, 6 november). Boven lezen, onder de rij.
+                // Half gevouwen als boek niet: dan zou de leeskolom boven over de vouw lopen (ONDERZOEK §6.4).
+                if tafel && !rug.actief {
+                    let onder = min(max(0, tafelOnder), size.height - minHoogte)
+                    if onder > 0 {
+                        return .tafel(boven: CGRect(x: 0, y: 0, width: size.width, height: size.height - onder),
+                                      onder: CGRect(x: 0, y: size.height - onder, width: size.width, height: onder))
+                    }
+                }
+                // Een opengeslagen boek: zolang rechts niets open ligt, loopt de Editie over beide bladzijden.
+                return krant && rechtsVrij ? .tabloid(boek: true) : .naast(lijst: lijst, verhaal: verhaal)
+            }
             return .enkel(pagina: min(size.width, enkelePagina))
         }
         // Een dwarse rug: alleen half gevouwen twee bladzijden. Vlak open is dat geen houding om boven
@@ -89,10 +140,61 @@ enum KrantIndeling: Equatable {
         if rug.actief {
             let verhaal = CGRect(x: 0, y: 0, width: size.width, height: max(0, vrij.minY))
             let lijst = CGRect(x: 0, y: vrij.maxY, width: size.width, height: max(0, size.height - vrij.maxY))
-            if verhaal.height >= minHoogte && lijst.height >= minHoogte { return .boven(verhaal: verhaal, lijst: lijst) }
+            if verhaal.height >= minHoogte && lijst.height >= minHoogte {
+                // De Editie: dezelfde tafelblad-opmaak als vlak liggend, met de grens op de vouw.
+                return tafel ? .tafel(boven: verhaal, onder: lijst) : .boven(verhaal: verhaal, lijst: lijst)
+            }
         }
+        // Open staand: de Editie als tabloid over de hele breedte (zo dicht mogelijk bij de iPad staand). De lezer is
+        // hier een blad, zoals dicht; de andere tabbladen houden één krantenpagina.
+        if krant && size.width >= minTabloid { return .tabloid(boek: false) }
         return .enkel(pagina: min(size.width, enkelePagina))
     }
+}
+
+// MARK: De kolommen van de tabloid
+
+/// Twee kolommen met de goot op de vouw (HIG: een even aantal kolommen; TT463: de buitenmarges houden, de ruimte
+/// rond het scharnier groter). Ligt er een staande rug in de inhoud, dan is de goot de zone plus Apples marge plus
+/// 32 lucht, en zijn de kolommen niet per se even breed (een verticale balk opzij maakt één bladzijde smaller).
+/// Zonder staande rug (open staand: de vouw ligt dwars) staat de goot in het midden. Pure rekensom, getoetst.
+struct KrantKolommen: Equatable {
+    var links: CGFloat
+    var goot: CGFloat
+    var rechts: CGFloat
+    /// De goot staat op een staande rug: links en rechts zijn twee bladzijden.
+    var opRug = false
+
+    static let lucht: CGFloat = Space.s6
+
+    /// - Parameters:
+    ///   - inhoud: het kader van de kolommen (binnen de marges), in de coördinaten van de krant.
+    ///   - rug: de vouw, in dezelfde coördinaten.
+    static func bereken(inhoud: CGRect, rug: Rug?) -> KrantKolommen {
+        guard inhoud.width > 0 else { return KrantKolommen(links: 0, goot: lucht, rechts: 0) }
+        if let rug, rug.staand {
+            let vrij = rug.vrij
+            let links = vrij.minX - lucht / 2 - inhoud.minX
+            let rechts = inhoud.maxX - (vrij.maxX + lucht / 2)
+            if links > 0, rechts > 0 { return KrantKolommen(links: links, goot: vrij.width + lucht, rechts: rechts, opRug: true) }
+        }
+        let k = max(0, (inhoud.width - lucht) / 2)
+        return KrantKolommen(links: k, goot: lucht, rechts: k)
+    }
+
+    /// De goot in de coördinaten van de inhoud: hier staat nooit tekst of een knop.
+    func goot(in inhoud: CGRect) -> ClosedRange<CGFloat> { (inhoud.minX + links)...(inhoud.minX + links + goot) }
+}
+
+/// De tabloid voor de Editie: de vouw in venstercoördinaten (`.global`, alleen x telt), of geen tabloid.
+struct TabloidKey: EnvironmentKey { static let defaultValue: Tabloid? = nil }
+struct Tabloid: Equatable {
+    var rug: Rug?
+    /// Een staande rug: de opening staat links, 02 en 03 rechts (nooit 01 over de vouw).
+    var boek: Bool
+}
+extension EnvironmentValues {
+    var tabloid: Tabloid? { get { self[TabloidKey.self] } set { self[TabloidKey.self] = newValue } }
 }
 
 // MARK: De leesmaat
@@ -107,8 +209,10 @@ enum Leesmaat {
     /// De lezer: lopende tekst is 1,12 × de tekstmaat.
     static let tekstFactor = 1.12
 
-    /// De zijmarge van de lezer: 16 op een blad (iPhone, iPad), 12 op een bladzijde van de krant.
-    static func marge(pagina: Bool) -> Double { pagina ? 12 : 16 }
+    /// De zijmarge van de lezer: 16 op een blad (iPhone, iPad), 12 op een bladzijde van de krant, 24 als blad over
+    /// de tabloid (de Duo open staand: 669 breed). Daar geeft 16 ± 72 tekens; met 24 is het één rustige kolom van
+    /// ± 70 tekens bij de standaardletter, en minder bij een grotere letter (letter boven regel).
+    static func marge(pagina: Bool, ruim: Bool = false) -> Double { pagina ? 12 : ruim ? 24 : 16 }
 
     /// Hoeveel tekens er op een regel gaan, bij deze kolom, lettermaat (px) en marge.
     static func tekens(kolom: Double, px: Double, marge: Double) -> Double { (min(kolom, 680) - 2 * marge) / (px * tekenEm) }
@@ -123,6 +227,8 @@ final class KrantStaat {
     var verhaal: [RootView.Destination: Story] = [:]
     /// De krant ligt open (twee bladzijden): de lezer staat op de rechterbladzijde, niet als blad.
     var spread = false
+    /// De Editie ligt als tabloid open staand: de lezer is een blad met een ruimere marge (Leesmaat).
+    var tabloid = false
 }
 
 struct KrantTabKey: EnvironmentKey { static let defaultValue: RootView.Destination = .editie }
@@ -203,8 +309,12 @@ struct KrantLayout: SwiftUI.Layout {
             subviews[i].place(at: CGPoint(x: bounds.minX + r.minX, y: bounds.minY + r.minY), proposal: ProposedViewSize(r.size))
         }
         switch indeling {
-        case .enkel:
+        case .enkel, .tabloid:
             zet(0, CGRect(origin: .zero, size: bounds.size))
+        case let .tafel(boven, onder):
+            // De lijst blijft in de boom (verborgen, op volle maat): zijn plek en zijn navigatie blijven, voor als je
+            // weer staand houdt of dichtvouwt. Daarboven het verhaal en de inhoudsopgave.
+            zet(0, CGRect(origin: .zero, size: bounds.size)); zet(1, boven); zet(2, onder)
         case let .naast(lijst, verhaal):
             zet(0, lijst); zet(1, verhaal)
         case let .boven(verhaal, lijst):
@@ -219,11 +329,24 @@ struct KrantSpread<Lijst: View>: View {
     @Environment(\.krantTab) private var tab
     @Environment(KrantStaat.self) private var staat: KrantStaat? // optioneel: buiten RootView (toetsen, voorbeelden) is er geen krant
     @Environment(Reader.self) private var reader: Reader?
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(HootStore.self) private var store: HootStore? // optioneel, zoals de krant: buiten RootView geen tafelblad
+    @ScaledMetric(relativeTo: .body) private var tafelOnder = KrantIndeling.tafelOnder
     @ViewBuilder var lijst: () -> Lijst
     @State private var rug: Rug?
     @State private var maat: CGSize = .zero
+    @State private var oorsprong: CGFloat = 0 // de linkerrand van de krant in het venster: de Editie meet zijn kolommen daartegen
 
-    private var indeling: KrantIndeling { KrantIndeling.kies(size: maat, horizontal: horizontal, rug: rug) }
+    private var indeling: KrantIndeling {
+        // De tabloid alleen voor de Editie, en niet bij heel grote tekst: dan past er geen tweede kolom, en loopt één
+        // kolom nooit over de vouw (dan blijft het de lijst op een bladzijde).
+        let krant = tab == .editie && !typeSize.isAccessibilitySize
+        let rechtsVrij = reader?.item == nil && staat?.verhaal[tab] == nil
+        // Het tafelblad pas als er verhalen zijn: tijdens het eerste laden de gewone Editie met de laadstrepen.
+        let tafel = krant && !(store.map { TafelEditie.rij($0.editionRows).isEmpty } ?? true)
+        return KrantIndeling.kies(size: maat, horizontal: horizontal, rug: rug, krant: krant, rechtsVrij: rechtsVrij,
+                                  tafel: tafel, tafelOnder: tafelOnder)
+    }
 
     var body: some View {
         let indeling = indeling
@@ -237,8 +360,22 @@ struct KrantSpread<Lijst: View>: View {
                 .transformEnvironment(\.horizontalSizeClass) { if case .naast = indeling { $0 = .compact } }
                 .environment(\.paginaMaat, { if case let .enkel(p) = indeling { return p }; if case .boven = indeling { return KrantIndeling.enkelePagina }; return nil }())
                 .environment(\.krantSpread, indeling.spread)
+                .environment(\.tabloid, { if case let .tabloid(boek) = indeling { return Tabloid(rug: rug.map { var r = $0; r.frame.origin.x += oorsprong; return r }, boek: boek) }; return nil }())
                 .environment(\.openStory) { story in openStory(story) }
-            if indeling.spread {
+                // Het tafelblad legt zich over de lijst: die blijft staan, onzichtbaar en buiten VoiceOver.
+                .opacity(indeling.isTafel ? 0 : 1)
+                .allowsHitTesting(!indeling.isTafel)
+                .accessibilityHidden(indeling.isTafel)
+            if indeling.isTafel {
+                TafelBoven(tab: tab)
+                    .environment(\.krantPagina, true)
+                    .environment(\.tafelLezer, true)
+                    .environment(\.horizontalSizeClass, .compact)
+                    .transition(.identity)
+                TafelOnder()
+                    .transition(.identity)
+            }
+            if indeling.heeftPagina {
                 KrantPagina(tab: tab)
                     .environment(\.krantPagina, true)
                     .environment(\.horizontalSizeClass, .compact)
@@ -246,6 +383,7 @@ struct KrantSpread<Lijst: View>: View {
             }
         }
         .background { RugMeter(nagebootst: DuoNabootsing.shared.rug, rug: $rug, maat: $maat) }
+        .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minX } action: { oorsprong = $0 }
         // De rug zelf is lucht: papier, geen lijn of kleur (merkregel). Ook in Nacht.
         .background(indeling.spread ? Theme.paper : .clear)
         .onChange(of: indeling.spread, initial: true) { _, open in
@@ -253,6 +391,11 @@ struct KrantSpread<Lijst: View>: View {
             guard let staat, staat.spread != open else { return }
             var t = Transaction(); t.disablesAnimations = true
             withTransaction(t) { staat.spread = open }
+        }
+        .onChange(of: indeling == .tabloid(boek: false), initial: true) { _, staand in
+            // Alleen het zichtbare tabblad zet de marge van de lezer (de lezer is één per venster).
+            guard let staat, tab == .editie, staat.tabloid != staand else { return }
+            staat.tabloid = staand
         }
     }
 

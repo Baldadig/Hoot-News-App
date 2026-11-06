@@ -147,6 +147,7 @@ struct EditionView: View {
     static func slotTarget(_ rows: [EditionRowModel]) -> String? {
         #if DEBUG
         if UserDefaults.standard.string(forKey: "HootScroll") == "slot", rows.count >= 2 { return rows[rows.count - 2].id }
+        if UserDefaults.standard.string(forKey: "HootScroll") == "rijen", rows.count >= 2 { return rows[1].id }
         #endif
         return nil
     }
@@ -154,6 +155,7 @@ struct EditionView: View {
     @Environment(\.openTab) private var openTab
     @Environment(\.openStory) private var openStory
     @Environment(\.isWide) private var wide
+    @Environment(\.tabloid) private var tabloid // de Duo open (Krant.swift): de Editie als tabloid, de goot op de vouw
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.brandHandoff) private var handoff
     @Environment(\.accessibilityReduceMotion) private var still
@@ -211,6 +213,12 @@ struct EditionView: View {
     private var hang: CGFloat { hangNumber + Space.s3 } // B: de kantlijn met het nummer; 36 bij standaardtekst
     private var phone: Bool { verticalClass == .compact } // een iPhone liggend; een iPad is altijd verticaal regulier
     @State private var contentWidth: CGFloat = 0 // de kolom binnen de marges
+    @State private var inhoudKader: CGRect = .zero // de tabloid: de kolom binnen de marges, in het venster (alleen x en breedte)
+    // De tabloid: twee kolommen met de goot op de vouw (KrantKolommen).
+    private var kolommen: KrantKolommen? {
+        guard let tabloid, inhoudKader.width > 0 else { return nil } // nog niet gemeten: even het gewone raster
+        return KrantKolommen.bereken(inhoud: inhoudKader, rug: tabloid.rug)
+    }
     @State private var leadImage: CGFloat = EditionPairs.leadMin // A: het beeld van het hoofdverhaal
     @State private var leadHeight: CGFloat = 0
     // Boven de vouw (Vouw.swift): de bovenkant van 01 in de inhoud en de maat van het zichtbare deel.
@@ -219,7 +227,7 @@ struct EditionView: View {
     private static let inhoud = "editie-inhoud"
     struct VouwMaat: Equatable { var hoogte: CGFloat = 0; var boven: CGFloat = 0; var onder: CGFloat = 0; var venster: CGFloat = 0 }
     private var vouwRuimte: VouwRuimte? {
-        guard !wide, vouwMaat.hoogte > 0, leadTop > 0, let profiel = Vouw.profiel(vensterHoogte: vouwMaat.venster, typeSize: typeSize) else { return nil }
+        guard !wide, vouwMaat.hoogte > 0, leadTop > 0, let profiel = Vouw.profiel(vensterHoogte: vouwMaat.venster, typeSize: typeSize, compacteVoorpagina: compact) else { return nil }
         // De maat van de ScrollView ligt al binnen de veilige zone (statusbalk boven, tabbalk onder): de inhoud
         // begint op 0 en de vouw ligt op zijn hoogte (gemeten op Hoot Pro Max: 956 = 62 + 811 + 83).
         let ruimte = vouwMaat.hoogte - leadTop
@@ -229,13 +237,30 @@ struct EditionView: View {
         return ruimte > 200 ? VouwRuimte(profiel: profiel, hoogte: ruimte) : nil
     }
     @State private var sideHeight: CGFloat = 0
+    // De compacte voorpagina (iPhone Duo dicht, Voorpagina.swift): 01 boven de vouw, 02 tot 10 als dichte rijen.
+    @State private var compact = false
 
     // A: de breedte van één kolom van de paren. Buiten je bubbel en het einde staan daarop, links, zodat
     // er onder de voorpagina één leeskolom met één rechterlijn is (gelijk aan src/styles/rust.css §3).
     private var pairColumn: CGFloat { contentWidth > 0 ? max(0, (contentWidth - Space.s6) / 2) : Layout.readable }
+    // De linkerkolom van de paren of de tabloid: daarop staan Buiten je bubbel en het einde.
+    private var linkerKolom: CGFloat? {
+        switch grid {
+        case .paren: pairColumn
+        case .tabloid, .boek: kolommen?.links ?? pairColumn
+        case .lijst, .kolom: nil
+        }
+    }
 
-    enum Grid { case lijst, kolom, paren }
+    /// `tabloid`: 01 als opening over de volle breedte, daaronder de paren (de Duo open staand).
+    /// `boek`: 01 op de linkerbladzijde, 02 en 03 rechts, daaronder de paren; de goot op de rug (open liggend, als boek).
+    enum Grid { case lijst, kolom, paren, tabloid, boek }
+    static func tabloidGrid(_ tabloid: Tabloid?, typeSize: DynamicTypeSize) -> Grid? {
+        guard let tabloid, !typeSize.isAccessibilitySize else { return nil }
+        return tabloid.boek ? .boek : .tabloid
+    }
     private var grid: Grid {
+        if let krant = Self.tabloidGrid(tabloid, typeSize: typeSize) { return krant }
         guard wide, !typeSize.isAccessibilitySize else { return .lijst }
         if let forced = DebugLaunch.grid { return forced == "paren" ? .paren : .kolom }
         // Een telefoon liggend (verticaal compact) houdt de oude regel: de iPhone blijft zoals hij is.
@@ -244,13 +269,15 @@ struct EditionView: View {
 
     // A: het hoofdverhaal links (1,9 deel), 02 en 03 in de zijkolom rechts met een lijn ervoor. Het beeld
     // van het hoofdverhaal rekt mee tot beide even hoog zijn (EditionPairs.leadImage).
-    @ViewBuilder private func front(_ rows: [EditionRowModel]) -> some View {
-        let sideWidth = max(256, (contentWidth - Space.s5) / 2.9)
-        HStack(alignment: .top, spacing: Space.s5) {
+    // Als boek (`kolommen`): twee even rechte kolommen, elk op een bladzijde, zonder lijn ertussen (de vouw is lucht).
+    @ViewBuilder private func front(_ rows: [EditionRowModel], kolommen k: KrantKolommen? = nil) -> some View {
+        let sideWidth = k?.rechts ?? max(256, (contentWidth - Space.s5) / 2.9)
+        HStack(alignment: .top, spacing: k?.goot ?? Space.s5) {
             slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story, imageHeight: leadImage) }
                 .environment(\.isSpacious, false)
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { leadHeight = $0; fitLead() }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(width: k?.links)
+                .frame(maxWidth: k == nil ? .infinity : nil, alignment: .leading)
             if rows.count > 1 {
                 VStack(alignment: .leading, spacing: 0) {
                     let side = Array(rows.dropFirst().prefix(2))
@@ -258,12 +285,12 @@ struct EditionView: View {
                         if i > 0 { Rule().padding(.vertical, Space.s2) }
                         // Tekst voorop: alleen het laatste verhaal van de zijkolom krijgt een klein beeld (gelijk aan
                         // .front__side op het web), zodat de koppen niet op twee woorden per regel breken.
-                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, narrow: true, thumbShown: phone || i == side.count - 1) }
+                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, narrow: k == nil, thumbShown: phone || k != nil || i == side.count - 1) }
                     }
                 }
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { sideHeight = $0; fitLead() }
-                .padding(.leading, Space.s5)
-                .overlay(alignment: .leading) { Rectangle().fill(Theme.rule).frame(width: 1).accessibilityHidden(true) }
+                .padding(.leading, k == nil ? Space.s5 : 0)
+                .overlay(alignment: .leading) { if k == nil { Rectangle().fill(Theme.rule).frame(width: 1).accessibilityHidden(true) } }
                 .frame(width: sideWidth, alignment: .leading)
             }
         }
@@ -343,7 +370,7 @@ struct EditionView: View {
         let numbered = EditionNumbering.rows(store.editionRows)
         let rows = numbered.filter { $0.desk != "bubbel" }
         let failed = MisluktBeeld.shared.ids // een beeld dat pas bij het laden mislukt, telt ook mee
-        var plan = Placeholder.plan(rows.enumerated().map { ($0.element.item, $0.offset == 0 ? BeeldloosView.Kind.lead : (wide ? .krant : .tijdlijn)) }, failed: failed)
+        var plan = Placeholder.plan(rows.enumerated().map { ($0.element.item, $0.offset == 0 ? BeeldloosView.Kind.lead : (wide || compact ? .krant : .tijdlijn)) }, failed: failed)
         plan.merge(Placeholder.plan(numbered.filter { $0.desk == "bubbel" }.map { ($0.item, wide ? BeeldloosView.Kind.krant : .tijdlijn) }, failed: failed)) { a, _ in a }
         return plan
     }
@@ -416,6 +443,33 @@ struct EditionView: View {
                         // elkaar. iPad staand (B): één leeskolom met de nummers in de kantlijn. iPad liggend
                         // (A): het hoofdverhaal met 02 en 03 ernaast, daarna paren die even hoog zijn.
                         switch grid {
+                        case .tabloid:
+                            // De Duo open staand: 01 als opening over de volle breedte (beeld, kop, intro), daaronder de
+                            // paren in twee kolommen, zoals de iPad. De goot staat op de vouw, of in het midden.
+                            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
+                                .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
+                                .tienBlock(tien, 2)
+                            if rows.count > 1 {
+                                EditionPairsGrid(rows: Array(rows.dropFirst()), width: contentWidth, kolommen: kolommen) { row, whySpace in
+                                    slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, pinSource: true, whySpace: whySpace) }
+                                }
+                                .padding(.top, Space.s4)
+                                .loadLinesRise(lines)
+                                .tienBlock(tien, 3)
+                            }
+                        case .boek:
+                            // Open liggend en als boek: 01 links, 02 en 03 rechts, dan de paren. Elke kolom op een bladzijde.
+                            front(rows, kolommen: kolommen)
+                                .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
+                                .tienBlock(tien, 2)
+                            if rows.count > 3 {
+                                EditionPairsGrid(rows: Array(rows.dropFirst(3)), width: contentWidth, kolommen: kolommen) { row, whySpace in
+                                    slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, pinSource: true, whySpace: whySpace) }
+                                }
+                                .padding(.top, Space.s4)
+                                .loadLinesRise(lines)
+                                .tienBlock(tien, 3)
+                            }
                         case .paren:
                             front(rows)
                                 .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
@@ -440,6 +494,21 @@ struct EditionView: View {
                                 .loadLinesRise(lines)
                                 .tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0))
                             }
+                        case .lijst where compact:
+                            // De compacte voorpagina (iPhone Duo dicht): 01 groot boven de vouw, dan dichte rijen met
+                            // een klein beeld rechts. De sterke lijn onder 01 komt uit LeadCard.
+                            slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
+                                .environment(\.vouw, vouwRuimte)
+                                .onGeometryChange(for: CGFloat.self) { $0.frame(in: .named(Self.inhoud)).minY } action: { leadTop = $0 }
+                                .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
+                                .tienBlock(tien, 2)
+                            ForEach(rows.dropFirst()) { row in
+                                if row.id != rows[1].id { Rule().padding(.vertical, Space.s2).loadLinesRise(lines).tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0)) }
+                                slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, dicht: true) }
+                                    .padding(.top, row.id == rows[1].id ? Space.s1 : 0)
+                                    .loadLinesRise(lines)
+                                    .tienBlock(tien, 2 + (rows.firstIndex { $0.id == row.id } ?? 0))
+                            }
                         case .lijst:
                             slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
                                 .environment(\.vouw, vouwRuimte) // 01 boven de vouw (Vouw.swift)
@@ -460,11 +529,11 @@ struct EditionView: View {
                                 StrongRule().padding(.top, Space.s5)
                                 Kop("Buiten je bubbel", .title2).accessibilityAddTraits(.isHeader).padding(.vertical,Space.s3)
                                 ForEach(outsideRows) { row in
-                                    slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,form:wide ? .krant : .tijdlijn) }
+                                    slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,form:wide || compact ? .krant : .tijdlijn,dicht:compact) }
                                 }
                             }
                             .padding(.leading, grid == .kolom ? hang : 0) // op de lijn van de tekst, niet van de nummers
-                            .frame(maxWidth: grid == .paren ? pairColumn : nil, alignment: .leading) // A: op de kolommaat van de paren (rust.css §3)
+                            .frame(maxWidth: linkerKolom, alignment: .leading) // A en de tabloid: op de linkerkolom (rust.css §3)
                             .tienBlock(tien, 8)
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,
@@ -502,7 +571,7 @@ struct EditionView: View {
                         .padding(.horizontal, Space.s5)
                         .padding(.vertical, Space.s7)
                         .background(nacht ? Self.nachtEndRed : Theme.brandRed, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-                        .frame(maxWidth: grid == .paren ? pairColumn : Layout.readable) // op de leesbreedte, niet over de hele iPad (E9); A: de kolommaat van de paren, links
+                        .frame(maxWidth: linkerKolom ?? Layout.readable) // op de leesbreedte, niet over de hele iPad (E9); A: de kolommaat van de paren, links
                         .padding(.leading, grid == .kolom ? hang : 0)
                         .padding(.top, Space.s6)
                         .padding(.bottom, Space.s4)
@@ -511,7 +580,7 @@ struct EditionView: View {
                         // kaart heen (keuze r5-einde-rust).
                         if alertAsk || alertYes {
                             AlertOffer(done: alertYes, slot: $alertSlot, yes: askAlerts, no: { answerAlerts(false) })
-                                .frame(maxWidth: grid == .paren ? pairColumn : Layout.readable)
+                                .frame(maxWidth: linkerKolom ?? Layout.readable)
                                 .padding(.leading, grid == .kolom ? hang : 0)
                                 .padding(.bottom, Space.s6)
                                 .transition(.opacity)
@@ -525,11 +594,14 @@ struct EditionView: View {
                 .firstEdition(tien, loading: loaderShown, failed: store.status == .failed && store.editionRows.isEmpty)
                 .coordinateSpace(.named(Self.inhoud)) // de inhoud zelf: schuift niet mee met scrollen
                 .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { contentWidth = $0 }
+                // Alleen x en breedte: verticaal scrollen meet hier niets (anders bij elke scrollstap een nieuwe staat).
+                .onGeometryChange(for: CGRect.self) { let f = $0.frame(in: .global); return CGRect(x: f.minX, y: 0, width: f.width, height: 0) } action: { inhoudKader = $0 }
                 .padding(.horizontal)
-                .column(grid == .paren ? Layout.wide : grid == .kolom ? Layout.readable + hang : Layout.readable)
+                .column(grid == .tabloid || grid == .boek ? .infinity : grid == .paren ? Layout.wide : grid == .kolom ? Layout.readable + hang : Layout.readable)
                 .offset(y: rising ? 8 : 0)
                 .environment(\.placeholderPlan, placeholderPlan)
             }
+            .compacteVoorpagina { compact = $0 }
             .debugJump(proxy, to: Self.slotTarget(store.editionRows), when: store.editionRows.count)
             .plekBewaren(proxy)
             .onGeometryChange(for: CGSize.self) { $0.size } action: { screen = $0 }

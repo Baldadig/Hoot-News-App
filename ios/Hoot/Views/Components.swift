@@ -574,6 +574,7 @@ struct SourceLine: View {
     var outside = false // het verhaal staat buiten de bronnen die je volgt
     var kaart = false // kaart A+ (iPhone): "Abonnement" stil, "N bronnen" als tekstknop, bewaren en het ⋯-menu met delen
     var narrow = false // smalle kolom (zijkolom van de voorpagina op de iPad): "N bronnen" klein achter de tijd
+    var dicht = false // de dichte rij (iPhone Duo dicht): past "tijd · N bronnen" niet op één regel, dan onder elkaar, nooit "3 uur / geleden"
     var body: some View {
         if kaart { kaartBody } else if narrow { narrowBody } else { regular }
     }
@@ -587,14 +588,14 @@ struct SourceLine: View {
             sourceLink { SourceMark(item: item) }
             VStack(alignment: .leading, spacing: 0) {
                 sourceLink { Text(item.sourceName ?? item.source).font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink) }
-                HStack(alignment: .firstTextBaseline, spacing: 0) {
-                    sourceLink { Text(narrowMeta) }
-                    if let story, let count = story.sourceCount, count > 1 {
-                        StoryLink(story: tapped(story)) {
-                            Text("\u{00A0}·\u{00A0}\(Self.label(count))").lineLimit(1).fixedSize().contentShape(Rectangle())
+                Group {
+                    if dicht {
+                        ViewThatFits(in: .horizontal) {
+                            narrowMetaRegel(stapel: false).fixedSize()
+                            narrowMetaRegel(stapel: true)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Vergelijk \(count) bronnen")
+                    } else {
+                        narrowMetaRegel(stapel: false)
                     }
                 }
                 .font(.ui(.caption)).monospacedDigit().foregroundStyle(Theme.hint)
@@ -604,6 +605,24 @@ struct SourceLine: View {
             SaveButton(item: item)
         }
         .frame(minHeight: Space.tap)
+    }
+
+    // "1 uur geleden · 7 bronnen" op één regel; `stapel`: de bronnen onder de tijd (dichte rij bij grote tekst).
+    @ViewBuilder private func narrowMetaRegel(stapel: Bool) -> some View {
+        let bronnen: some View = Group {
+            if let story, let count = story.sourceCount, count > 1 {
+                StoryLink(story: tapped(story)) {
+                    Text(stapel ? Self.label(count) : "\u{00A0}·\u{00A0}\(Self.label(count))").lineLimit(1).fixedSize().contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Vergelijk \(count) bronnen")
+            }
+        }
+        if stapel {
+            VStack(alignment: .leading, spacing: 0) { sourceLink { Text(narrowMeta) }; bronnen }
+        } else {
+            HStack(alignment: .firstTextBaseline, spacing: 0) { sourceLink { Text(narrowMeta) }; bronnen }
+        }
     }
 
     private var narrowMeta: String { [HootDate.ago(item.date), outside ? StoryLabel.outsideText : nil].compactMap { $0 }.joined(separator: " · ") }
@@ -1042,7 +1061,7 @@ struct LeadCard: View {
         let kandidaten = intro.isEmpty ? [] : IntroText.candidates(intro)
         let regels = Vouw.introRegels(ruimte.profiel)
         return VStack(alignment: .leading, spacing: 0) {
-            VouwStapel(ruimte: ruimte.hoogte, metBeeld: store.showsImage(lead: true)) {
+            VouwStapel(ruimte: ruimte.hoogte, profiel: ruimte.profiel, metBeeld: store.showsImage(lead: true)) {
                 Group {
                     if hasImage { FocusBeeld(item: item, onFail: mislukt) }
                     else { GeometryReader { g in BeeldloosView(item: item, kind: .lead, height: g.size.height, flat: true) } }
@@ -1056,7 +1075,13 @@ struct LeadCard: View {
                     ForEach(Array(kandidaten.enumerated()), id: \.offset) { _, kandidaat in
                         vouwTekst(kop: Vouw.kopKlein, intro: kandidaat, regels: regels)
                     }
-                    vouwTekst(kop: Vouw.kopKlein, intro: nil, regels: regels) // past ook dit niet: het loopt door
+                    if let kleinst = Vouw.kopKleinst(ruimte.profiel) {
+                        // Eigen id's: ViewThatFits eist dat geen twee varianten hetzelfde id hebben.
+                        ForEach(Array(kandidaten.enumerated()).map { ("kleinst-\($0.offset)", $0.element) }, id: \.0) { _, kandidaat in
+                            vouwTekst(kop: kleinst, intro: kandidaat, regels: regels)
+                        }
+                    }
+                    vouwTekst(kop: Vouw.kopKleinst(ruimte.profiel) ?? Vouw.kopKlein, intro: nil, regels: regels) // past ook dit niet: het loopt door
                 }
             }
             StrongRule().padding(.horizontal, -Space.s4).padding(.top, Space.s4 + Space.s1)
@@ -1065,7 +1090,7 @@ struct LeadCard: View {
 
     private var kaartLead: some View {
         Group {
-            if let vouw, !wide, typeSize <= .large { vouwKaart(vouw) } else { kaartLeadGewoon }
+            if let vouw, !wide, typeSize <= Vouw.maxTekst(vouw.profiel) { vouwKaart(vouw) } else { kaartLeadGewoon }
         }
     }
 
@@ -1151,6 +1176,7 @@ struct ItemRow: View {
     var whySpace = false // in een paar (A): een lege waarom-regel, omdat de buur er een heeft (koppen en beelden op één lijn)
     var narrow = false // de smalle zijkolom van de voorpagina (A): "N bronnen" klein achter de tijd
     var thumbShown = true // in de krant-vorm: het kleine beeld rechts (de zijkolom toont het alleen bij het laatste verhaal)
+    var dicht = false // de compacte voorpagina (iPhone Duo dicht, Voorpagina.swift): rubriek, kop en bronregel, klein beeld rechts
     @State private var beeldMislukt = false // het beeld laadt niet: dan de beeldloze vorm
 
     private var chosen: Form { form ?? (store.layout == "krant" ? .krant : .tijdlijn) }
@@ -1171,8 +1197,64 @@ struct ItemRow: View {
     // (poetsbeurt 5 november; gelijk aan .kaart__in--klein en .compact--klein op het web).
     private var klein: Bool { hasPicture && item.image != nil && (!ImageURL.fitsLarge(item.image) || !ImageURL.sharpHere(item)) }
 
+    // Dicht: niet bij heel grote tekst (dan krijgt de kop de hele breedte, zoals elders) en niet voor een post.
+    private var dichtVorm: Bool { dicht && !item.isPost && !typeSize.isAccessibilitySize && boven == nil }
+
     var body: some View {
-        if kaart { if klein { kaartKlein } else { kaartBody } } else { regular }
+        if dichtVorm { dichtBody } else if kaart { if klein { kaartKlein } else { kaartBody } } else { regular }
+    }
+
+    // De dichte rij (Voorpagina.swift): rubriek en waarom op één regel, de kop over de volle breedte (zo breekt hij
+    // in twee, hooguit drie regels), en onderaan de bronregel met rechts een klein beeld: die zijn even hoog (44 en
+    // 48), dus het beeld kost geen hoogte. Geen intro: zo staan er ± vijf verhalen in één scherm van 678 hoog. De
+    // intro staat in de lezer, één tik verder.
+    private var dichtBody: some View {
+        VStack(alignment: .leading, spacing: Space.s1) {
+            VStack(alignment: .leading, spacing: Space.s1) {
+                if number != nil || label != nil || why != nil {
+                    // Rubriek en waarom op één regel als dat past ("02 · VS · Groot nieuws"), anders onder elkaar.
+                    ViewThatFits(in: .horizontal) {
+                        HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
+                            Kicker(text: label, number: number, read: store.isRead(item)).fixedSize()
+                            if WhyLine.shows(why) {
+                                Text("·").font(.ui(.caption)).foregroundStyle(Theme.hint).accessibilityHidden(true)
+                                WhyLine(text: why, compact: true).fixedSize()
+                            }
+                        }
+                        VStack(alignment: .leading, spacing: 0) {
+                            Kicker(text: label, number: number, read: store.isRead(item))
+                            WhyLine(text: why, compact: true)
+                        }
+                    }
+                }
+                Kop(item.title, .title3, size: Layout.kopDicht)
+                    .lineSpacing(1)
+                    .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .opensArticle(item)
+            HStack(alignment: .center, spacing: Space.s3) {
+                SourceLine(item: item, story: story, linkSource: linkSource, outside: outside, narrow: true, dicht: true)
+                if store.showsImage(lead: false) {
+                    Group {
+                        if hasPicture {
+                            RemoteImage(url: picture(.thumb), measure: pictureMeasure, onFail: mislukt)
+                                .frame(width: Layout.thumbDicht, height: Layout.thumbDicht * 2 / 3)
+                                .clipShape(RoundedRectangle(cornerRadius: Radius.sm, style: .continuous))
+                                .overlay { if item.video != nil { PlayBadge(size: Space.s6) } }
+                        } else {
+                            BeeldloosView(item: item, kind: .krant, width: Layout.thumbDicht)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                    .opensArticle(item)
+                    .accessibilityHidden(true) // de kop opent het stuk al: geen tweede element voor VoiceOver
+                }
+            }
+        }
+        .padding(.vertical, Space.s1)
     }
 
     // Kaart A+ met een te klein beeld: rubriek over de hele breedte, dan kop en intro links en het beeld klein

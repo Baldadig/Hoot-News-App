@@ -10,6 +10,8 @@ enum Layout {
     // (beide op de 4-pt-schaal). Op het web is dat --thumb-size.
     static let thumb: CGFloat = 96
     static let thumbLarge: CGFloat = 108
+    static let thumbDicht: CGFloat = 72 // de dichte rij (iPhone Duo dicht): 72 × 48 (3:2, zoals de miniatuur), op de 4-pt-schaal
+    static let kopDicht: CGFloat = 19 // de kop van een dichte rij: 19 bij standaardtekst, groeit mee
     static let endcap: CGFloat = 300 // einde van de Editie, ± 30ch zoals --measure-end
     static let hang: CGFloat = 36 // het nummer in de kantlijn: 24 (twee cijfers) + s3, zoals 2ch + s3 op het web
     // Lege staat (K6): de lijntekening 96 (--art) en de uitleg op ± 34ch, zoals .empty op het web.

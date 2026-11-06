@@ -12,6 +12,7 @@ struct StreamView: View {
     @State private var showSources = DebugLaunch.screen("bronnen")
     @State private var categoryTask: Task<Void, Never>?
     @State private var viewportHeight: CGFloat = 0
+    @State private var compact = false // de compacte voorpagina (iPhone Duo dicht): dichte rijen
     @State private var headerHeight: CGFloat = 0
     // Het einde van de Stroom (StroomEinde.swift): de grens van dit bezoek, en hoeveel ouder nieuws je opende.
     @State private var grens: StroomEinde.Grens?
@@ -132,7 +133,7 @@ struct StreamView: View {
                                 if marker && i == bIdx { SeenMarker() }
                                 Group {
                                     if item.isPost { PostRow(item: item) }
-                                    else { ItemRow(item: item, story: store.story(of: item)) }
+                                    else { ItemRow(item: item, story: store.story(of: item), form: compact ? .krant : nil, dicht: compact) } // dicht op de Duo: dichte rijen
                                 }
                                     .transition(.identity)
                                     .plekAnker(item.id) // je plek bij vouwen en draaien (Krant.swift)
@@ -164,11 +165,12 @@ struct StreamView: View {
                     .padding(.horizontal)
                     .column()
                     // Welk placeholderbeeld een beeldloze rij krijgt, hangt af van de rij erboven (Beeldloos.swift).
-                    .environment(\.placeholderPlan, Placeholder.plan(items.prefix(cap).map { ($0, store.layout == "krant" ? BeeldloosView.Kind.krant : .tijdlijn) }, failed: MisluktBeeld.shared.ids))
+                    .environment(\.placeholderPlan, Placeholder.plan(items.prefix(cap).map { ($0, store.layout == "krant" || compact ? BeeldloosView.Kind.krant : .tijdlijn) }, failed: MisluktBeeld.shared.ids))
                     }
                 }
             }
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportHeight = $0 }
+            .compacteVoorpagina { compact = $0 } // iPhone Duo dicht (Voorpagina.swift)
             .plekBewaren(scroll)
             .debugScroll()
             .background(Theme.paper)
