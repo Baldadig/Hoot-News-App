@@ -14,7 +14,7 @@ import { EDITOR_REVISION } from '../../shared/editor-version.mjs'
 //
 // Rekenregels als in shared/editor.mjs (web en iOS moeten bit-gelijk uitkomen): alleen + − × ÷,
 // Math.round/min/max/floor en Date.parse; elke sortering heeft een totale vergelijker.
-import { selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, voteFamilyOf, FAMILY_MAX } from '../../netlify/lib/stories.mjs'
+import { selectForReader, EDITION_SIZE, signatures, sameEvent, sameSubject, seenBefore, developedSince, recentEditions, openWithNews, leadCandidates, leadPool, voteFamilyOf, FAMILY_MAX, previousHeads } from '../../netlify/lib/stories.mjs'
 import { isOpinion } from '../../shared/article-signals.mjs'
 import { deskOfStory, storyForeignOf, VL_HOME } from '../../netlify/lib/desks.mjs'
 import { trustedTopics, OTHER_SPORT } from '../../netlify/lib/topics.mjs'
@@ -254,7 +254,11 @@ export function composePersonal({ global, stories = [], items = [], sources = []
   //    profiel; anders het minst passende vrije verhaal (laagste fit, dan de meeste bronnen).
   //    Vóór het aanvullen gekozen, zodat het zijn eigen label krijgt in plaats van "Buiten je bronnen".
   const fitOf = (w) => Math.max(0, ...(w.topics || []).map((t) => Math.max(prof.topicP[t] || 0, prof.shareOf[t] || 0)))
-  const free = (w) => w?.item?.id && eligible(w.item.id, w.storyId, w) && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId)
+  // Ook geen breed verhaal over het onderwerp van een kop uit je vorige Editie (zoals selectForReader), tenzij het
+  // zich ontwikkelde: dan komt het als vervolg.
+  const prevHeads = previous ? previousHeads(sigAll, previous, now) : []
+  const sameAsPrevious = (id, sid) => !!prevHeads.length && sigAll.has(id) && prevHeads.some((s) => sameSubject(sigAll.get(id), s)) && !againOf(id, sid).vervolg
+  const free = (w) => w?.item?.id && eligible(w.item.id, w.storyId, w) && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !sameAsPrevious(wideLead(w)?.id || w.item.id, w.storyId)
   //    Groot nieuws dat er nog niet in staat, gaat voor (zie hierboven), ook daar eerst buiten je profiel.
   const wide0 =
     (global.wide || []).find((w) => free(w) && bigWide(w) && outsideProfile(w.topics, prof)) ||

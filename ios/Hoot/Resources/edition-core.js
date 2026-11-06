@@ -2233,6 +2233,12 @@ var HootCore = (() => {
     sigVocab.set(out, { vocab, extended, heads: /* @__PURE__ */ new Map() });
     return out;
   }
+  function previousHeads(sig, previous, now) {
+    const v = sigVocab.get(sig);
+    if (!v || !previous) return [];
+    const shown2 = previous.shown?.length ? previous.shown : [...previous.titles || []].map((title) => ({ title, publishedAt: new Date(previous.at || now).toISOString() }));
+    return shown2.map((a, k) => signature({ ...a, id: `vorige:${k}` }, v.vocab, v.extended));
+  }
   var sigVocab = /* @__PURE__ */ new WeakMap();
   function headSignature(sig, item) {
     const v = sigVocab.get(sig);
@@ -2553,6 +2559,7 @@ var HootCore = (() => {
     return entries;
   }
   var textOrder = (a, b) => a < b ? -1 : a > b ? 1 : 0;
+  var DESK_MIN_PUBS = 3;
   function selectForReader(stories, pool, { mainIds = /* @__PURE__ */ new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = "", audit = null, allowLight = false } = {}) {
     const byId2 = new Map(pool.map((i) => [i.id, i]));
     const prevShown = previous?.shown?.length ? previous.shown : [...previous?.titles || []].map((title) => ({ title, publishedAt: new Date(previous.at || now).toISOString() }));
@@ -2705,10 +2712,12 @@ var HootCore = (() => {
       }
       deskOrder = deskPlan(prof, size - entries.length, entries.map((e) => e.desk), entries.filter((e) => !e.front).map((e) => e.desk)).order;
       const kernShort = (d) => KERN.includes(d) && !entries.some((e) => e.desk === d) && new Set(entries.map((e) => e.desk).filter((x) => KERN.includes(x))).size < KERN_MIN;
+      const mine = chosenDesks(prof);
+      const strongEnough = (c, d) => mine.has(d) || (c.eff ?? c.sc ?? 1) >= DESK_MIN_PUBS;
       for (const d of deskOrder) {
         if (entries.length >= size) break;
         const force = kernShort(d) && !(strictInt && FOREIGN_DESKS.has(d) && counted.size >= INT_MAX);
-        cands.some((c) => c.home === d && !c.parts.seen && takeCapped(c, d, { planned: true }, force));
+        cands.some((c) => c.home === d && !c.parts.seen && (strongEnough(c, d) || kernShort(d)) && takeCapped(c, d, { planned: true }, force));
       }
     }
     for (const c of cands) {
@@ -2894,7 +2903,9 @@ var HootCore = (() => {
     const leads = own.map((e) => e.leadId || e.id);
     const sameAsPlaced = (id) => sigAll.has(id) && leads.some((x) => x !== id && sigAll.has(x) && sameSubject(sigAll.get(id), sigAll.get(x)));
     const fitOf = (w) => Math.max(0, ...(w.topics || []).map((t) => Math.max(prof.topicP[t] || 0, prof.shareOf[t] || 0)));
-    const free2 = (w) => w?.item?.id && eligible(w.item.id, w.storyId, w) && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId);
+    const prevHeads = previous ? previousHeads(sigAll, previous, now) : [];
+    const sameAsPrevious = (id, sid) => !!prevHeads.length && sigAll.has(id) && prevHeads.some((s) => sameSubject(sigAll.get(id), s)) && !againOf(id, sid).vervolg;
+    const free2 = (w) => w?.item?.id && eligible(w.item.id, w.storyId, w) && !taken.has(w.item.id) && !sameAsPlaced(w.item.id) && !sameAsPlaced(wideLead(w)?.id) && !(storyById.get(w.storyId)?.itemIds || []).some((id) => taken.has(id)) && (!covered(w) || bigWide(w)) && unread(w.item.id, w.storyId) && !sameAsPrevious(wideLead(w)?.id || w.item.id, w.storyId);
     const wide0 = (global.wide || []).find((w) => free2(w) && bigWide(w) && outsideProfile(w.topics, prof)) || (global.wide || []).find((w) => free2(w) && bigWide(w)) || (global.wide || []).find((w) => free2(w) && outsideProfile(w.topics, prof)) || (global.wide || []).filter(free2).sort((a, b) => fitOf(a) - fitOf(b) || b.sourceCount - a.sourceCount || byText(a.storyId, b.storyId))[0];
     let wide = wide0 ? { ...wide0, item: wideLead(wide0) } : null;
     let swapped = 0;

@@ -10,7 +10,7 @@ import { detectLang } from '../../shared/lang.mjs'
 import { hash } from '../../shared/util.mjs'
 import { SOURCES } from './sources.mjs'
 import { SLOT_START, hhmm, amsterdamClock } from '../../shared/slot-times.mjs'
-import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, KERN, KERN_MIN, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX, FOREIGN_DESKS, NL_OTHER_W, INT_MAX } from '../../shared/editor.mjs'
+import { profileOf, personalParts, sumParts, jitter, deskPlan, homeDesk, chosenDesks, KERN, KERN_MIN, TEMPO_MIN_H, FRONT, FRONT_MIN, FRONT_BIG, FRONT_MAX, FOREIGN_DESKS, NL_OTHER_W, INT_MAX } from '../../shared/editor.mjs'
 export { hash }
 
 // Een onleesbare tijd telt als heel oud (anders geeft de vergelijking NaN en raakt de sortering,
@@ -493,6 +493,14 @@ export function signatures(articles, extra = [], { extended = false } = {}) {
   const out = new Map([...articles, ...extra].map((a) => [a.id, signature(a, vocab, extended)]))
   sigVocab.set(out, { vocab, extended, heads: new Map() })
   return out
+}
+// De kenmerken van de getoonde koppen van de vorige Editie, met de woordenschat van `sig` (zoals selectForReader
+// ze rekent): voor wie na de selectie nog plekken kiest (composePersonal, het brede verhaal).
+export function previousHeads(sig, previous, now) {
+  const v = sigVocab.get(sig)
+  if (!v || !previous) return []
+  const shown = previous.shown?.length ? previous.shown : [...(previous.titles || [])].map((title) => ({ title, publishedAt: new Date(previous.at || now).toISOString() }))
+  return shown.map((a, k) => signature({ ...a, id: `vorige:${k}` }, v.vocab, v.extended))
 }
 // Het kenmerk van alleen de kop van een bericht, met de woordenschat van `sig` (zie subjectTaken). Pas
 // uitgerekend als het nodig is, één keer per bericht.
@@ -1500,6 +1508,7 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
 // Uitvoer: de plekken met `w` en `parts` (het waarom wordt daarna gezet), `itemIds`, `title` en de
 // `keys` van het verhaal (zodat previousOf de hele Editie van toen kent), plus `deskOrder`.
 const textOrder = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
+export const DESK_MIN_PUBS = 3
 export function selectForReader(stories, pool, { mainIds = new Set(), now = Date.now(), size = EDITION_SIZE, previous = null, preferred = null, prof = profileOf(), ctx = {}, plan = true, seed = '', audit = null, allowLight = false } = {}) {
   const byId = new Map(pool.map((i) => [i.id, i]))
   // De getoonde berichten van de vorige Editie (of, van een oudere Editie, alleen de koppen) krijgen
@@ -1665,10 +1674,16 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     const kernShort = (d) => KERN.includes(d) && !entries.some((e) => e.desk === d) && new Set(entries.map((e) => e.desk).filter((x) => KERN.includes(x))).size < KERN_MIN
     // Zonder Wereld gaat de kernregel niet langs de grens voor een buitenlandse rubriek als er al buitenland
     // zonder reden staat (feedback 31 oktober: de VS-verkiezingen naast Polen bij wie alleen Binnenland koos).
+    // Een rubriekplek is een voorkeur met een minimumgewicht (Redacteur 3b · 4, besluit van Alex): zonder
+    // persoonlijke reden voor de rubriek (chosenDesks) krijgt alleen een verhaal van minstens DESK_MIN_PUBS
+    // uitgevers de vaste plek; een zwakker verhaal kan daarna nog op gewicht binnenkomen (stap 3). Wie de
+    // rubriek koos, houdt zijn zetel zoals hij was.
+    const mine = chosenDesks(prof)
+    const strongEnough = (c, d) => mine.has(d) || (c.eff ?? c.sc ?? 1) >= DESK_MIN_PUBS
     for (const d of deskOrder) {
       if (entries.length >= size) break
       const force = kernShort(d) && !(strictInt && FOREIGN_DESKS.has(d) && counted.size >= INT_MAX)
-      cands.some((c) => c.home === d && !c.parts.seen && takeCapped(c, d, { planned: true }, force))
+      cands.some((c) => c.home === d && !c.parts.seen && (strongEnough(c, d) || kernShort(d)) && takeCapped(c, d, { planned: true }, force))
     }
   }
   // 3. Aanvullen op gewicht; ook de laatste terugval respecteert de harde nieuwsgrenzen.

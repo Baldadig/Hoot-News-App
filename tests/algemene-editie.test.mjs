@@ -73,3 +73,23 @@ test('Nederlandse ondergrens: minstens twee Nederlandse plekken voor echt nieuws
   const base = [...entries.slice(0, 6), loose]
   assert.deepEqual(dutchFloor([...base], { itemsOf, byId: items }).map((e) => e.id), base.map((e) => e.id))
 })
+
+test('rubriekplekken: een voorkeur met een minimumgewicht (3b · 4)', async () => {
+  const { DESK_MIN_PUBS } = await import('../netlify/lib/stories.mjs')
+  const { KERN, KERN_MIN } = await import('../shared/editor.mjs')
+  assert.equal(DESK_MIN_PUBS, 3)
+  const prof = profileOf({ followed: MAIN_IDS, sources: SOURCES })
+  for (const file of ['live-feed-2026-11-04-midterms.json.gz', 'snapshot-2026-10-31-1200.json.gz', 'snapshot-2026-10-30-avond.json.gz']) {
+    const f = JSON.parse(gunzipSync(readFileSync(new URL(`./fixtures/${file}`, import.meta.url))).toString('utf8'))
+    const at = Date.parse(f.edition?.builtAt || f.meta.updatedAt)
+    const arts = [...new Map([...(f.related || []), ...f.items, ...f.edition.items].map((i) => [i.id, i])).values()].filter((i) => i.kind === 'article' && Date.parse(i.publishedAt) <= at).map(({ storyId, ...i }) => i)
+    const sts = buildStories(arts, {}, { mainIds: MAIN_IDS, keys: true, extended: true })
+    const sel = selectForReader(sts, arts, { mainIds: MAIN_IDS, now: at, prof })
+    // Een vaste rubriekplek (planned) zonder persoonlijke reden: minstens DESK_MIN_PUBS uitgevers, of de kernregel
+    // (minstens KERN_MIN kernrubrieken) had hem nodig.
+    for (const e of sel.filter((x) => x.planned)) {
+      const others = new Set(sel.filter((x) => x !== e).map((x) => x.desk).filter((d) => KERN.includes(d)))
+      assert.ok(e.sourceCount >= DESK_MIN_PUBS || (KERN.includes(e.desk) && !others.has(e.desk) && others.size < KERN_MIN), `${file}: ${e.desk} ${e.title}`)
+    }
+  }
+})
