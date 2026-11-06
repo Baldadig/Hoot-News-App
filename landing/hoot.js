@@ -433,8 +433,12 @@
 })();
 
 /* Held: de datum van vandaag onder de Editie-titel in de telefoon (alleen in de held) */
+/* Het script staat in de <head>: pas na het inlezen van de pagina bestaat de held. */
 (function () {
-  var el = document.querySelector('.held .js-datum');
-  if (!el) return;
-  try { el.textContent = new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }); } catch (e) {}
+  function zet() {
+    var el = document.querySelector('.held .js-datum');
+    if (!el) return;
+    try { el.textContent = new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }); } catch (e) {}
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', zet); else zet();
 })();
