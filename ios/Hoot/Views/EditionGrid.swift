@@ -36,8 +36,14 @@ enum EditionPairs {
     // Het beeld van het hoofdverhaal naast zijn zijkolom: even hoog als die, en minstens leadMin.
     static func leadImage(side: CGFloat, text: CGFloat, min: CGFloat = leadMin) -> CGFloat { (max(min, side - text)).rounded() }
 
-    // Staand of liggend: B op een staande iPad, A op een liggende (en breder).
-    static func paired(_ size: CGSize) -> Bool { size.width > size.height }
+    // Staand of liggend: B op een staande iPad, A op een liggende (en breder). A alleen als de kolom er ook
+    // echt breed genoeg voor is (`room`: de breedte binnen de marges, hooguit Layout.wide): anders worden de
+    // zijkolom en de paren te krap. Zo valt de iPad mini liggend mét zijbalk (± 800) terug op B, en zonder
+    // zijbalk (968) niet. `minimum` groeit mee met de tekstgrootte, zoals de rem-grens op het web.
+    static let pairMin: CGFloat = 900
+    static func paired(_ size: CGSize, room: CGFloat = .infinity, minimum: CGFloat = pairMin) -> Bool {
+        size.width > size.height && room >= minimum
+    }
 }
 
 // Een verhaal met het nummer in de kantlijn (B): het nummer op de eerste regel van de rubriek.

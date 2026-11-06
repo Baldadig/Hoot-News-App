@@ -959,6 +959,7 @@ struct ItemRow: View {
     var pinSource = false // in een paar (A): de bronregel onderaan de rij
     var whySpace = false // in een paar (A): een lege waarom-regel, omdat de buur er een heeft (koppen en beelden op één lijn)
     var narrow = false // de smalle zijkolom van de voorpagina (A): "N bronnen" klein achter de tijd
+    var thumbShown = true // in de krant-vorm: het kleine beeld rechts (de zijkolom toont het alleen bij het laatste verhaal)
     @State private var beeldMislukt = false // het beeld laadt niet: dan de beeldloze vorm
 
     private var chosen: Form { form ?? (store.layout == "krant" ? .krant : .tijdlijn) }
@@ -1096,7 +1097,9 @@ struct ItemRow: View {
                         // Een vaste breedte (96; bij grotere tekst 108), zodat de tekstkolom op één lijn blijft,
                         // wat de verhouding van het beeld ook is. Bij heel grote tekst krijgt de kop de hele breedte.
                         let width = thumb >= Layout.thumbLarge ? Layout.thumbLarge : Layout.thumb
-                        if hasPicture, !typeSize.isAccessibilitySize {
+                        if !thumbShown {
+                            EmptyView()
+                        } else if hasPicture, !typeSize.isAccessibilitySize {
                             RemoteImage(url: picture(.thumb), measure: pictureMeasure, onFail: mislukt)
                                 .frame(width: width, height: width * 2 / 3)
                                 .clipShape(RoundedRectangle(cornerRadius: Radius.sm, style: .continuous))

@@ -204,6 +204,9 @@ struct EditionView: View {
 
     @State private var path = NavigationPath()
     @State private var screen: CGSize = .zero // het scherm: staand of liggend
+    @ScaledMetric(relativeTo: .body) private var pairMin = EditionPairs.pairMin // A vanaf deze kolombreedte; meer bij grotere tekst
+    @Environment(\.verticalSizeClass) private var verticalClass
+    private var phone: Bool { verticalClass == .compact } // een iPhone liggend; een iPad is altijd verticaal regulier
     @State private var contentWidth: CGFloat = 0 // de kolom binnen de marges
     @State private var leadImage: CGFloat = EditionPairs.leadMin // A: het beeld van het hoofdverhaal
     @State private var leadHeight: CGFloat = 0
@@ -217,7 +220,8 @@ struct EditionView: View {
     private var grid: Grid {
         guard wide, !typeSize.isAccessibilitySize else { return .lijst }
         if let forced = DebugLaunch.grid { return forced == "paren" ? .paren : .kolom }
-        return EditionPairs.paired(screen) ? .paren : .kolom
+        // Een telefoon liggend (verticaal compact) houdt de oude regel: de iPhone blijft zoals hij is.
+        return EditionPairs.paired(screen, room: min(screen.width, Layout.wide) - 2 * Space.s4, minimum: phone ? 0 : pairMin) ? .paren : .kolom
     }
 
     // A: het hoofdverhaal links (1,9 deel), 02 en 03 in de zijkolom rechts met een lijn ervoor. Het beeld
@@ -231,9 +235,12 @@ struct EditionView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             if rows.count > 1 {
                 VStack(alignment: .leading, spacing: 0) {
-                    ForEach(Array(rows.dropFirst().prefix(2).enumerated()), id: \.element.id) { i, row in
+                    let side = Array(rows.dropFirst().prefix(2))
+                    ForEach(Array(side.enumerated()), id: \.element.id) { i, row in
                         if i > 0 { Rule().padding(.vertical, Space.s2) }
-                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, narrow: true) }
+                        // Tekst voorop: alleen het laatste verhaal van de zijkolom krijgt een klein beeld (gelijk aan
+                        // .front__side op het web), zodat de koppen niet op twee woorden per regel breken.
+                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, narrow: true, thumbShown: phone || i == side.count - 1) }
                     }
                 }
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { sideHeight = $0; fitLead() }
