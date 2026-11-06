@@ -36,67 +36,67 @@ enum EditionPairs {
     // Het beeld van het hoofdverhaal naast zijn zijkolom: even hoog als die, en minstens leadMin.
     static func leadImage(side: CGFloat, text: CGFloat, min: CGFloat = leadMin) -> CGFloat { (max(min, side - text)).rounded() }
 
-    // Staand of liggend: B op een staande iPad, A op een liggende (en breder).
-    static func paired(_ size: CGSize) -> Bool { size.width > size.height }
+    // Staand of liggend: B op een staande iPad, A op een liggende (en breder). A alleen als de kolom er ook
+    // echt breed genoeg voor is (`room`: de breedte binnen de marges, hooguit Layout.wide): anders worden de
+    // zijkolom en de paren te krap. Zo valt de iPad mini liggend mét zijbalk (± 800) terug op B, en zonder
+    // zijbalk (968) niet. `minimum` groeit mee met de tekstgrootte, zoals de rem-grens op het web.
+    static let pairMin: CGFloat = 900
+    static func paired(_ size: CGSize, room: CGFloat = .infinity, minimum: CGFloat = pairMin) -> Bool {
+        size.width > size.height && room >= minimum
+    }
 }
 
 // Een verhaal met het nummer in de kantlijn (B): het nummer op de eerste regel van de rubriek.
 struct HangRow<Content: View>: View {
     let number: Int?
     var read = false
+    // De kantlijn groeit mee met de tekst: bij XXXL brak "01" anders in twee regels ("0" boven "1").
+    @ScaledMetric(relativeTo: .callout) private var numberWidth: CGFloat = Layout.hang - Space.s3
     @ViewBuilder var content: () -> Content
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: Space.s3) {
             EditionNumber(number: number, read: read)
-                .frame(width: Layout.hang - Space.s3, alignment: .leading)
+                .frame(width: numberWidth, alignment: .leading)
                 .accessibilityHidden(true) // het nummer staat ook in het label van het verhaal
             content()
         }
     }
 }
 
-// De paren (A): een Grid, zodat de twee verhalen van een rij even hoog zijn. Eerst meet het raster
-// elk verhaal in zijn gewone vorm; daarna krijgt een kort verhaal zijn beeld groot erboven en zakken
-// de bronregels naar de onderkant van de rij.
+// De paren (A): een Grid, zodat de twee verhalen van een rij even hoog zijn en de bronregels per rij
+// onderaan op één lijn staan. Poetsbeurt 5 november (gelijk aan src/styles/rust.css): geen groot beeld
+// meer boven het kortere verhaal; een rij is altijd kop links en een klein beeld rechts, op één hoogte.
+// Heeft het ene verhaal van een rij een waarom-regel en het andere niet, dan houdt het andere die regel
+// leeg vrij (`whySpace`), zodat beide koppen en beide beelden op één lijn beginnen. Een los laatste
+// verhaal blijft één kolom breed, links. (EditionPairs.plan blijft bestaan voor de toetsen, maar het
+// raster gebruikt hem niet meer.)
 struct EditionPairsGrid<Cell: View>: View {
     let rows: [EditionRowModel]
     let width: CGFloat
-    @ViewBuilder let cell: (EditionRowModel, CGFloat?, Bool) -> Cell // rij, beeld erboven, bronregel onderaan
+    @ViewBuilder let cell: (EditionRowModel, Bool) -> Cell // rij, waarom-regel vrijhouden
 
-    @State private var heights: [String: CGFloat] = [:]
-    @State private var plan: [String: CGFloat]? = nil
-    @State private var planKey = ""
-
-    private var key: String { "\(Int(width))|" + rows.map(\.id).joined(separator: ",") }
+    // Houdt dit verhaal een lege waarom-regel vrij? Alleen als het zelf geen waarom heeft en zijn buur wel.
+    static func whySpace(_ rows: [EditionRowModel], at i: Int) -> Bool {
+        let buur = i % 2 == 0 ? i + 1 : i - 1
+        guard rows.indices.contains(buur) else { return false }
+        return !WhyLine.shows(rows[i].why) && WhyLine.shows(rows[buur].why)
+    }
 
     var body: some View {
-        let measuring = plan == nil || planKey != key
-        let pairs = stride(from: 0, to: rows.count, by: 2).map { Array(rows[$0..<min($0 + 2, rows.count)]) }
+        let pairs = stride(from: 0, to: rows.count, by: 2).map { Array(rows.indices[$0..<min($0 + 2, rows.count)]) }
         Grid(alignment: .topLeading, horizontalSpacing: Space.s6, verticalSpacing: 0) {
-            ForEach(pairs, id: \.first!.id) { pair in
+            ForEach(pairs, id: \.first!) { pair in
                 GridRow(alignment: .top) {
-                    ForEach(pair) { row in
+                    ForEach(pair, id: \.self) { i in
                         VStack(alignment: .leading, spacing: 0) {
                             Rule().padding(.vertical, Space.s2)
-                            cell(row, measuring ? nil : plan?[row.id], !measuring)
-                                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { h in
-                                    if measuring { heights[row.id] = h; settle() }
-                                }
+                            cell(rows[i], Self.whySpace(rows, at: i))
                         }
-                        .frame(maxHeight: measuring ? nil : .infinity, alignment: .top)
-                        .gridCellColumns(pair.count == 1 ? 2 : 1) // een los laatste verhaal krijgt de hele rij
+                        .frame(maxHeight: .infinity, alignment: .top)
                     }
+                    if pair.count == 1 { Color.clear.gridCellUnsizedAxes([.horizontal, .vertical]) } // de rechterbaan blijft leeg
                 }
             }
         }
-        .onChange(of: key) { plan = nil }
-    }
-
-    private func settle() {
-        guard rows.allSatisfy({ heights[$0.id] != nil }) else { return }
-        let column = (width - Space.s6) / 2
-        let cells = rows.map { EditionPairs.Cell(key: $0.id, height: heights[$0.id] ?? 0, image: $0.item.image != nil) }
-        plan = EditionPairs.plan(cells, width: column)
-        planKey = key
     }
 }

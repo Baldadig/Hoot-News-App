@@ -104,25 +104,35 @@ struct PostRow: View {
         Self.withoutBareLinks(item.summary ?? "", domain: item.linkTitle != nil ? item.link?.host() : nil)
     }
 
-    // Op het raster van het artikel (Stroom-kaart B, keuze 1.1.0): de tekst zelf schreefloos, dan het
-    // beeld of de linkkaart over de hele kolom, en de bron onderaan op dezelfde plek als bij een
-    // artikel (logo 24, naam, en de @-naam waar bij een artikel de tijd staat), bewaren rechts. Geen
-    // hangende inspringing onder een grote avatar meer. 12 tussen tekst, beeld en bron.
+    // Bluesky-kaart A+ (1.1.1, wens van Alex; gelijk aan .social in src/styles/bluesky.css): op het ritme van
+    // kaart A+. Boven een stille rubriek "Bluesky" (12, ink-3, zoals de rubriek van een artikel), dan de tekst
+    // zelf in Schibsted Grotesk 17/24 in inkt (geen kop, geen Newsreader: een bericht is geen artikel), het beeld
+    // of de linkkaart 16 eronder over de hele kolom met een haarlijn binnenin, en de bronregel zoals bij een
+    // artikel (logo, naam, @-naam en tijd), bewaren rechts.
     var body: some View {
         VStack(alignment: .leading, spacing: Space.s3) {
-            VStack(alignment: .leading, spacing: Space.s3) {
+            VStack(alignment: .leading, spacing: 0) {
+                Kicker(text: "Bluesky")
+                    .padding(.bottom, Space.s2)
+                    .accessibilityHidden(true) // de bronregel zegt al van wie het is
                 if !text.isEmpty {
                     // Schreefloos (Alex, 6 november 2026): een post is een korte zin, geen artikeltekst.
-                    Text(text).zin().foregroundStyle(Theme.ink).fixedSize(horizontal: false, vertical: true)
+                    Text(text).zin()
+                        .foregroundStyle(store.isRead(item) ? Theme.ink3 : Theme.ink)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                if item.videoURL != nil {
-                    // de video staat hieronder, buiten de tik naar de post
-                } else if let title = item.linkTitle {
-                    LinkCard(item: item, title: title)
-                } else if item.image != nil, store.showsImage(lead: false) {
-                    FramedImage(url: item.image.flatMap(URL.init(string:)), ratio: CGFloat(min(max(item.imageRatio ?? 4 / 3, 0.8), 2.4)))
-                        .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                Group {
+                    if item.videoURL != nil {
+                        // de video staat hieronder, buiten de tik naar de post
+                    } else if let title = item.linkTitle {
+                        LinkCard(item: item, title: title)
+                    } else if item.image != nil, store.showsImage(lead: false) {
+                        FramedImage(url: item.image.flatMap(URL.init(string:)), ratio: CGFloat(min(max(item.imageRatio ?? 4 / 3, 0.8), 2.4)))
+                            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+                            .overlay { RoundedRectangle(cornerRadius: Radius.md, style: .continuous).strokeBorder(Theme.hairline, lineWidth: 1).accessibilityHidden(true) }
+                    }
                 }
+                .padding(.top, text.isEmpty ? 0 : Space.s4)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
@@ -133,7 +143,7 @@ struct PostRow: View {
                     SourceMark(item: item)
                     VStack(alignment: .leading, spacing: 0) {
                         Text(item.sourceName ?? item.source).font(.ui(.subheadline, .semibold)).foregroundStyle(Theme.ink)
-                        Text([item.handle, HootDate.ago(item.date)].compactMap { $0 }.joined(separator: " · ")).font(.ui(.caption)).monospacedDigit().foregroundStyle(Theme.hint)
+                        Text([item.handle, HootDate.ago(item.date)].compactMap { $0 }.joined(separator: " · ")).font(.ui(.footnote)).monospacedDigit().foregroundStyle(Theme.hint)
                     }
                     .fixedSize(horizontal: false, vertical: true)
                 }

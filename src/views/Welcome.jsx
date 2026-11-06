@@ -6,9 +6,10 @@ import { BrandLogo, useBrandBar } from '../components/Brand.jsx'
 import SunArt from '../components/SunArt.jsx'
 import { CaretIcon, CheckIcon, ICON_SM, SearchIcon } from '../components/icons.jsx'
 import { vakByDomain } from '../../shared/vak.mjs'
+import { voorstel } from '../../shared/voorstel.mjs'
 import { INTERESTS, resolveTopics } from '../lib/topics.js'
 import { sourcesOn, pickedFrom, sourceLine } from '../lib/welcome.js'
-import { toggleFollow, freeStart, startIds, basisSources, interestBlocks, moreGroups, findSources, followedSources, followedLine, previewLines } from '../lib/follow-welcome.js'
+import { toggleFollow, freeStart, startIds, basisSources, interestBlocks, moreGroups, findSources, followedSources, followedLine, previewLines, chosenIn, startsOpen, foldCount } from '../lib/follow-welcome.js'
 import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, waitFor, sleep, tintTimes, openTimes, reducedPlan, crossPlan, rootColor, IRIS, IRIS_BACK, IRIS_MS, STEP_OUT_MS, STEP_IN_MS } from '../lib/motion.js'
 
 // Welkom (1.1.0), gelijk aan de app (ios/Hoot/Views/WelcomeView.swift). Vier schermen:
@@ -22,7 +23,7 @@ import { reduced, irisClose, irisOpen, irisKeyframes, fade, tint, clear, dotAt, 
 //                      gratis aanrader; de rest ingeklapt; zoeken vindt alles. Een voorbeeld-Editie
 //                      groeit mee (breed rechts, smal in een uitklapbalk boven de knop).
 // Eerst de interesses, dan de bronnen: zo staan de vak- en nichebronnen bij wat je koos, en niet
-// verstopt in één lange lijst. "Later kiezen" kan altijd. Daarna de Editie: het welkom vervaagt erover (crossPlan). Het seintje
+// verstopt in één lange lijst. De hoofdknop werkt altijd ("Later kiezen" is weg sinds 1.1.1, keuze r5-later-kiezen). Daarna de Editie: het welkom vervaagt erover (crossPlan). Het seintje
 // komt pas onder de eerste Editie (alleen in de app; web-push bestaat niet).
 // Van rood naar papier krimpt het rood als iris tot de punt van het kleine woordmerk (lib/motion.js);
 // terug speelt het omgekeerd. Bij Minder beweging één fade van 0,35 s. Tussen papieren schermen even
@@ -87,8 +88,12 @@ export default function Welcome({ sources, items = [], prefs, muted = new Set(),
 
   const topics = useMemo(() => resolveTopics(interests, picked), [interests, picked])
   const pickable = useMemo(() => sources.filter((s) => s.followed && s.kind !== 'sociaal'), [sources])
-  // Je bronnen: je eigen keuze; opnieuw kiezen begint bij wat nu aan staat, de eerste keer bij niets.
-  const initial = useMemo(() => (reopen ? sourcesOn(pickable, muted) : []), [reopen, pickable, muted])
+  // Het voorstel bovenaan de bronnenstap (shared/voorstel.mjs): uit je interesses en je eigen onderwerpen.
+  const plan = useMemo(() => voorstel(pickable, interests, picked), [pickable, interests, picked])
+  // Je bronnen: je eigen keuze; opnieuw kiezen begint bij wat nu aan staat. De eerste keer staat het voorstel
+  // alvast aan (review G2: anders merkt je Editie niets van je interesses); zonder interesses niets.
+  // Alleen gratis alvast aan (keuze r5-voorstel-betaald): een betaalde bron in Voor jou zet je zelf aan.
+  const initial = useMemo(() => (reopen ? sourcesOn(pickable, muted) : (plan || []).filter((p) => p.on).map((p) => p.id)), [reopen, pickable, muted, plan])
   const mine = edited ?? initial
 
   // Nieuwe pagina: de kop voorlezen (schermlezer) en bovenaan beginnen, pas als de overgang klaar is.
@@ -203,17 +208,6 @@ export default function Welcome({ sources, items = [], prefs, muted = new Set(),
   const finish = (choice = {}) => onDone({ interests, topics, sources: mine, all: pickable, vak, ...choice })
   // "Liever meteen lezen": de startset met gratis bronnen, zonder interesses, onderwerpen of vak.
   const startQuick = () => onDone({ interests: [], topics: [], sources: startIds(pickable), all: pickable, quick: true })
-  // Later kiezen bij de interesses: zoals het was (de eerste keer dus leeg), door naar de bronnen.
-  const laterInterests = () =>
-    go(() => {
-      setInterests(prefs.interests || [])
-      setVak(prefs.vak || [])
-      setView('bronnen')
-      setQuery('')
-      setPeekOpen(false)
-    })
-  // Later kiezen bij de bronnen: zoals het was, en de eerste keer zonder iets gevolgd het gratis begin.
-  const laterSources = () => finish({ sources: mine.length ? mine : reopen ? initial : startIds(pickable) })
 
   const previous = () => {
     if (view === 'uitleg') backToIntro(() => setView('intro'))
@@ -248,7 +242,7 @@ export default function Welcome({ sources, items = [], prefs, muted = new Set(),
               {view === 'uitleg' ? (
                 <Uitleg head={head} />
               ) : view === 'bronnen' ? (
-                <Bronnen head={head} sources={pickable} items={items} mine={mine} interests={interests} onPick={pickSource} onAll={(ids, on) => setEdited(on ? [...new Set([...mine, ...ids])] : mine.filter((x) => !ids.includes(x)))} query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} more={more} setMore={setMore} />
+                <Bronnen head={head} sources={pickable} items={items} mine={mine} interests={interests} plan={plan} preset={!reopen && edited === null} onPick={pickSource} onAll={(ids, on) => setEdited(on ? [...new Set([...mine, ...ids])] : mine.filter((x) => !ids.includes(x)))} query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} more={more} setMore={setMore} />
               ) : (
                 <Interesses head={head} interests={interests} onInterest={(id) => setInterests((l) => toggleIn(l, id))} vak={vak} onVak={(id) => setVak((l) => toggleIn(l, id))} open={selOpen} setOpen={setSelOpen} />
               )}
@@ -271,20 +265,15 @@ export default function Welcome({ sources, items = [], prefs, muted = new Set(),
                   <p className="ob__status" role="status">
                     {pickable.length ? followedLine(mine.length) : 'Bronnen laden…'}
                   </p>
-                  <button type="button" className="btn btn--lg ob__cta" onClick={() => finish()} disabled={!mine.length}>
-                    Naar je Editie
-                  </button>
-                  <button type="button" className="linkbtn linkbtn--plain ob__skip" onClick={laterSources} disabled={!pickable.length}>
-                    Later kiezen
+                  {/* Review G3: de knop is nooit dood. Volg je niets, dan begin je met het gratis begin (en dat zegt hij). */}
+                  <button type="button" className="btn btn--lg ob__cta" onClick={() => (mine.length ? finish() : finish({ sources: freeStart(pickable).map((s) => s.id) }))} disabled={!pickable.length}>
+                    {mine.length ? 'Naar je Editie' : 'Begin met het gratis begin'}
                   </button>
                 </>
               ) : (
                 <>
                   <button type="button" className="btn btn--lg ob__cta" onClick={() => show('bronnen')}>
                     Verder
-                  </button>
-                  <button type="button" className="linkbtn linkbtn--plain ob__skip" onClick={laterInterests}>
-                    Later kiezen
                   </button>
                 </>
               )}
@@ -358,17 +347,34 @@ function Uitleg({ head }) {
 }
 
 // ---- 4. Volg je bronnen: de Basis, dan een blok per gekozen interesse ----
-function Bronnen({ head, sources, items, mine, interests, onPick, onAll, query, setQuery, filter, setFilter, more, setMore }) {
-  const start = useMemo(() => freeStart(sources), [sources])
-  const basis = useMemo(() => basisSources(sources), [sources])
-  const blocks = useMemo(() => interestBlocks(sources, interests), [sources, interests])
-  const rest = useMemo(() => moreGroups(sources, interests), [sources, interests])
+// Bovenaan het voorstel (shared/voorstel.mjs, 1.1.1): opgebouwd uit je interesses, met per bron een korte
+// reden. Zonder interesses de vaste Basis met het gratis begin. Met een voorstel staan de kranten van de Basis
+// als eigen groep "Nederlands nieuws" eronder (ingeklapt, tenzij je er iets in volgt).
+function Bronnen({ head, sources, items, mine, interests, plan = null, preset = false, onPick, onAll, query, setQuery, filter, setFilter, more, setMore }) {
+  const planIds = useMemo(() => (plan || []).map((p) => p.id), [plan])
+  const why = useMemo(() => new Map((plan || []).map((p) => [p.id, p.why])), [plan])
+  const start = useMemo(() => (plan ? planIds.map((id) => sources.find((s) => s.id === id)).filter(Boolean) : freeStart(sources)), [plan, planIds, sources])
+  const basis = useMemo(() => (plan ? start : basisSources(sources)), [plan, start, sources])
+  const kranten = useMemo(() => (plan ? basisSources(sources).filter((s) => !planIds.includes(s.id)) : []), [plan, planIds, sources])
+  const blocks = useMemo(() => interestBlocks(sources, interests, planIds), [sources, interests, planIds])
+  const rest = useMemo(() => moreGroups(sources, interests, [...planIds, ...kranten.map((s) => s.id)]), [sources, interests, planIds, kranten])
   const startOn = start.length > 0 && start.every((s) => mine.includes(s.id))
+  // De regel boven de lijst van Voor jou (keuze r5-alvast-regel): de gratis bronnen staan alvast aan.
+  const planOn = (plan || []).filter((p) => p.on).map((p) => p.id)
+  const alvast = plan && preset && planOn.length > 0 && planOn.every((id) => mine.includes(id)) ? alvastLine(planOn.length < planIds.length) : null
   // Eén aanrader per blok: in de Basis het gratis begin, in een blok alleen zijn eigen aanrader.
-  const row = (s, picks = new Set()) => <SourceRow key={s.id} s={s} on={mine.includes(s.id)} pick={picks.has(s.id)} onPick={onPick} />
+  const row = (s, picks = new Set()) => <SourceRow key={s.id} s={s} on={mine.includes(s.id)} pick={picks.has(s.id)} why={why.get(s.id)} onPick={onPick} />
   const startIds = new Set(start.map((s) => s.id))
   const restCount = rest.reduce((n, g) => n + g.sources.length, 0)
   const q = query.trim()
+  // Inklapbare categorieën: open of dicht per categorie, de eerste keer bepaald door startsOpen (de Basis, of
+  // er staat al iets gevolgd in), daarna door jou. Een ref, zodat ontvolgen een open categorie niet sluit.
+  const fold = useRef({})
+  const [, redraw] = useState(0)
+  const toggle = (id, open) => {
+    fold.current[id] = !open
+    redraw((n) => n + 1)
+  }
   let body
   if (!sources.length) body = null
   else if (q) {
@@ -382,49 +388,26 @@ function Bronnen({ head, sources, items, mine, interests, onPick, onAll, query, 
     )
   } else if (filter === 'gevolgd') {
     const list = followedSources(sources, mine)
-    body = list.length ? <ul className="ob__list">{list.map((s) => row(s))}</ul> : <p className="ob__empty">Je volgt nog niets. Begin bij de Basis.</p>
+    body = list.length ? <ul className="ob__list">{list.map((s) => row(s))}</ul> : <p className="ob__empty">{plan ? 'Je volgt nog niets. Begin bij Voor jou.' : 'Je volgt nog niets. Begin bij de Basis.'}</p>
   } else {
     body = (
       <>
         {basis.length ? (
-          <section className="ob__group" aria-labelledby="ob-basis">
-            <div className="ob__ghead">
-              <h2 id="ob-basis" className="label label--section">
-                Basis
-              </h2>
-              {start.length ? (
-                <button type="button" className="linkbtn ob__all" aria-pressed={startOn} onClick={() => onAll(start.map((s) => s.id), !startOn)}>
-                  {startOn ? 'Alle drie gevolgd' : 'Volg alle drie'}
-                </button>
-              ) : null}
-            </div>
-            <ul className="ob__list">{basis.map((s) => row(s, startIds))}</ul>
-          </section>
+          <Fold id="basis" label={plan ? 'Voor jou' : 'Basis'} list={basis} mine={mine} fold={fold} onToggle={toggle} row={(s) => row(s, startIds)} count={false} note={alvast}>
+            {start.length > 1 ? (
+              <button type="button" className="linkbtn ob__all" aria-pressed={startOn} onClick={() => onAll(start.map((s) => s.id), !startOn)}>
+                {startOn ? 'Alles gevolgd' : 'Volg alles'}
+              </button>
+            ) : null}
+          </Fold>
         ) : null}
+        {kranten.length ? <Fold id="nl" label="Nederlands nieuws" list={kranten} mine={mine} fold={fold} onToggle={toggle} row={(s) => row(s)} /> : null}
         {blocks.map((b) => (
-          <section key={b.id} className="ob__group" aria-labelledby={`ob-b-${b.id}`}>
-            <div className="ob__ghead">
-              <h2 id={`ob-b-${b.id}`} className="label label--section">
-                {b.label}
-              </h2>
-              <span className="ob__gcount">{b.sources.length}</span>
-            </div>
-            <ul className="ob__list">{b.sources.map((s) => row(s, new Set([b.pick])))}</ul>
-          </section>
+          <Fold key={b.id} id={`b-${b.id}`} label={b.label} list={b.sources} mine={mine} fold={fold} onToggle={toggle} row={(s) => row(s, new Set([b.pick]))} />
         ))}
         {restCount ? (
           more ? (
-            rest.map((g) => (
-              <section key={g.cat} className="ob__group" aria-labelledby={`ob-g-${g.cat}`}>
-                <div className="ob__ghead">
-                  <h2 id={`ob-g-${g.cat}`} className="label label--section">
-                    {g.label}
-                  </h2>
-                  <span className="ob__gcount">{g.sources.length}</span>
-                </div>
-                <ul className="ob__list">{g.sources.map((s) => row(s, new Set()))}</ul>
-              </section>
-            ))
+            rest.map((g) => <Fold key={g.cat} id={`g-${g.cat}`} label={g.label} list={g.sources} mine={mine} fold={fold} onToggle={toggle} row={(s) => row(s, new Set())} />)
           ) : (
             <button type="button" className="ob__more" aria-expanded="false" onClick={() => setMore(true)}>
               <span className="label label--section">Meer bronnen</span>
@@ -468,9 +451,41 @@ function Bronnen({ head, sources, items, mine, interests, onPick, onAll, query, 
   )
 }
 
+// Eén categorie van de bronnenstap, inklapbaar. De kop is een knop (naam, aantal gekozen bronnen, pijl);
+// ingeklapt staat alleen die kop. `children`: een actie naast de kop (Volg alles in de Basis).
+// `note`: één stille regel direct onder de kop, boven de lijst (Alvast gevolgd).
+function Fold({ id, label, list, mine, fold, onToggle, row, count = true, children = null, note = null }) {
+  const chosen = chosenIn(list, mine)
+  if (!(id in fold.current)) fold.current[id] = startsOpen(id, chosen)
+  const open = fold.current[id]
+  return (
+    <section className={`ob__group${open ? '' : ' ob__group--dicht'}`} aria-labelledby={`ob-${id}`}>
+      <div className="ob__ghead">
+        <h2 className="label label--section ob__gtitle">
+          <button type="button" id={`ob-${id}`} className="ob__gtoggle" aria-expanded={open} aria-controls={`ob-l-${id}`} onClick={() => onToggle(id, open)}>
+            <span className="ob__gname">{label}</span>
+            {count ? <span className="ob__gcount">{foldCount(chosen, list.length)}</span> : null}
+            <span className="ob__gcaret" aria-hidden="true">
+              <CaretIcon dir={open ? 'down' : 'right'} size={ICON_SM} />
+            </span>
+          </button>
+        </h2>
+        {children}
+      </div>
+      {open && note ? <p className="ob__alvast">{note}</p> : null}
+      {open ? <ul className="ob__list" id={`ob-l-${id}`}>{list.map((s) => row(s))}</ul> : null}
+    </section>
+  )
+}
+
 // Eén bron: logo, naam, omschrijving, gratis (of de gratis aanrader van zijn blok) of abonnement, en
 // Volg / Volgend. Alles in inkt: het enige accent op dit scherm is de punt van het woordmerk.
-function SourceRow({ s, on, pick = false, onPick }) {
+// Alvast gevolgd (gelijk aan de app): staat er ook een betaalde bron in Voor jou, dan zegt de regel dat
+// alleen de gratis bronnen aan staan.
+const alvastLine = (withPaid) => (withPaid ? 'De gratis bronnen volg je alvast. Uitzetten kan met één tik.' : 'Alvast gevolgd. Uitzetten kan met één tik.')
+
+// `why`: de reden in het voorstel ("Past bij Tech"), vóór gratis of abonnement.
+function SourceRow({ s, on, pick = false, why = null, onPick }) {
   return (
     <li className="ob__src">
       <SourceMark source={s} size={40} />
@@ -478,7 +493,8 @@ function SourceRow({ s, on, pick = false, onPick }) {
         <span className="ob__sname">{s.name}</span>
         {s.about ? <span className="ob__sabout">{s.about}</span> : null}
         <span className="ob__smeta">
-          {s.paid ? 'Abonnement' : pick ? 'Gratis aanrader' : 'Gratis'}
+          {why ? `${why} · ` : ''}
+          {s.paid ? 'Abonnement' : pick && !why ? 'Gratis aanrader' : 'Gratis'}
           {s.lang === 'en' ? ' · Engels' : ''}
         </span>
       </div>
@@ -494,6 +510,8 @@ function SourceRow({ s, on, pick = false, onPick }) {
 function Peek({ sources, items, mine, bare = false }) {
   const lines = useMemo(() => previewLines(items, sources, mine, 4), [items, sources, mine])
   const names = (mine.length ? followedSources(sources, mine) : freeStart(sources)).map((s) => s.name)
+  const shownNames = new Set(lines.map((l) => l.source.name))
+  const missing = lines.length < 4 ? names.filter((n) => !shownNames.has(n)) : []
   return (
     <>
       {bare ? null : (
@@ -519,6 +537,9 @@ function Peek({ sources, items, mine, bare = false }) {
       ) : (
         <p className="ob__peeknote">Uit {sourceLine(names)}.</p>
       )}
+      {/* Review G1: volg je meer bronnen dan er koppen in het voorbeeld staan (er is nog geen nieuws van die
+          bron in wat Hoot nu heeft), dan zegt het voorbeeld dat ook, in plaats van minder te beloven. */}
+      {lines.length && mine.length && missing.length ? <p className="ob__peeknote">Ook uit {sourceLine(missing)}.</p> : null}
       {mine.length ? null : <p className="ob__peeknote">Je volgt nog niets; dit is het gratis begin.</p>}
     </>
   )

@@ -22,6 +22,7 @@ import { safeHttpUrl } from '../../shared/util.mjs'
 import { wholeSentences, INTRO_LINES } from '../../shared/zinnen.mjs'
 import { useIntroMax } from '../lib/intro.js'
 import { EditionNumber } from './EditionNumber.jsx'
+import { useVouw } from '../lib/vouw.js'
 
 // Bewaarde berichten komen uit opslag (dit toestel, of je account), niet vers van de server:
 // ook daar alleen http(s) in een href. Zonder geldige link is het een link zonder doel.
@@ -278,8 +279,9 @@ export function aboutOf(items) {
 // line-clamp in de CSS staat precies die regel ruimer. `fit`: { max, rek }.
 // Een geleende intro krijgt " — via X" erachter: die tekens gaan van de maat af (Item.viaLength in de app).
 export const viaLength = (item) => (item.borrowedFrom ? item.borrowedFrom.length + 8 : 0)
-const Summary = ({ item, className, fit = { max: Infinity, rek: Infinity } }) => {
-  const text = wholeSentences(cleanIntro(item.summary, item.author), fit.max - viaLength(item), fit.rek - viaLength(item))
+// `tekst`: een al gekozen intro (de vouw van 01 kiest zelf een zin minder, src/lib/vouw.js).
+const Summary = ({ item, className, fit = { max: Infinity, rek: Infinity }, tekst }) => {
+  const text = tekst ?? wholeSentences(cleanIntro(item.summary, item.author), fit.max - viaLength(item), fit.rek - viaLength(item))
   return text ? (
     <p className={className}>
       {text}
@@ -429,12 +431,16 @@ export function KaartItem({ item, story, note, n = null, why = null, followed = 
   // Stroom op desktop. Het hoofdverhaal houdt dan het placeholderbeeld (heroFits).
   const klein = !lead && !!item.image && (!fitsLarge(item.image) || !sharpHere(item))
   const fit = lead ? { max: 240, rek: 240 } : introMax(lineCount, klein ? 'rij' : 'kaartA', klein)
+  // 01 boven de vouw (src/lib/vouw.js): alleen het hoofdverhaal op een telefoon.
+  const phone = usePhone()
+  const kaartRef = useRef(null)
+  const vouw = useVouw(kaartRef, { aan: lead && phone, introTekst: lead ? wholeSentences(cleanIntro(item.summary, item.author), 240 - viaLength(item), 240 - viaLength(item)) : '', key: item.id })
   const beeld = klein ? (
     <Beeld item={item} kind="krant" className={`thumb kaart__thumb${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
       {(onFail) => <MeasuredImg item={item} width="96" height="64" onFail={onFail} />}
     </Beeld>
   ) : lead ? (
-    <Beeld item={item} kind="lead" fits={heroFits(item)} className={`media kaart__beeld${imageMeta(item) ? ' media--measured' : ''}`} style={cropStyle(item)}>
+    <Beeld item={item} kind="lead" fits={heroFits(item)} className={`media kaart__beeld${imageMeta(item) ? ' media--measured' : ''}`} style={vouw?.beeld ? { ...cropStyle(item), '--vouw-beeld': `${vouw.beeld}px` } : cropStyle(item)}>
       {(onFail) => <MeasuredImg item={item} kind="lead" priority={priority} onLoad={priority ? rememberLead : undefined} onFail={onFail} />}
     </Beeld>
   ) : (
@@ -443,7 +449,7 @@ export function KaartItem({ item, story, note, n = null, why = null, followed = 
     </Beeld>
   )
   return (
-    <article className={`entry kaart${lead ? ' kaart--lead' : ''}${isReadItem(read, item) ? ' is-read' : ''}`} data-id={item.id}>
+    <article ref={kaartRef} className={`entry kaart${lead ? ' kaart--lead' : ''}${isReadItem(read, item) ? ' is-read' : ''}`} data-id={item.id} data-vouw={vouw ? vouw.profiel : undefined}>
       <a className="kaart__link" href={linkOf(item)} rel="noreferrer" onClick={() => markRead(item.id)}>
         {lead ? beeld : null}
         <div className={`kaart__in${klein ? ' kaart__in--klein' : ''}`}>
@@ -451,8 +457,8 @@ export function KaartItem({ item, story, note, n = null, why = null, followed = 
             <Kicker item={item} extra={note} followed={followed} n={n} />
             <Why why={why} />
           </div>
-          {lead ? <h2 className="kaart__title kaart__title--lead">{item.title}</h2> : <h3 className="kaart__title">{item.title}</h3>}
-          <Summary item={item} className="kaart__sum" fit={fit} />
+          {lead ? <h2 className={`kaart__title kaart__title--lead${vouw?.k26 ? ' kaart__title--26' : ''}`}>{item.title}</h2> : <h3 className="kaart__title">{item.title}</h3>}
+          <Summary item={item} className="kaart__sum" fit={fit} tekst={vouw ? vouw.intro : undefined} />
           {lead ? null : beeld}
         </div>
       </a>
@@ -479,6 +485,10 @@ export function SocialItem({ item }) {
   return (
     <article className={`entry social${isReadItem(read, item) ? ' is-read' : ''}`} data-id={item.id}>
       <a className="social__body" href={linkOf(item)} rel="noreferrer" onClick={() => markRead(item.id)}>
+        {/* Bluesky-kaart A+ (1.1.1): een stille rubriek, dan de tekst schreefloos (src/styles/bluesky.css). */}
+        <p className="label label--kicker social__kicker" aria-hidden="true">
+          Bluesky
+        </p>
         {text ? <p className="social__text">{text}</p> : null}
         {item.video && !playable ? (
           <div className="media media--social media--poster" style={{ aspectRatio: 16 / 9 }}>

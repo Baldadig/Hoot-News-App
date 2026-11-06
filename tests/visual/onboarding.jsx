@@ -7,7 +7,16 @@ import '@fontsource/source-sans-3/latin-400.css'
 import '@fontsource/source-sans-3/latin-600.css'
 import '@fontsource/source-sans-3/latin-800.css'
 import '../../src/styles.css'
-import sources from '../fixtures/onboarding-sources.json'
+// Dezelfde stijlen als de webapp (src/main.jsx), ook de eigen bestanden van 1.1.1 (inklap.css: de regel Alvast gevolgd).
+import '../../src/fonts/fonts.css'
+import '../../src/placeholder.css'
+import '../../src/staten.css'
+import '../../src/styles/rust.css'
+import '../../src/styles/inklap.css'
+import fixture from '../fixtures/onboarding-sources.json'
+import { SOURCES } from '../../netlify/lib/sources.mjs'
+// De aanbevelingen uit de echte catalogus erbij (pick, for, forTopic), zoals de server ze meestuurt (netlify/lib/build.mjs).
+const sources=fixture.map(s=>{const c=SOURCES.find(x=>x.id===s.id);return c?{...s,pick:!!c.pick,for:c.for||null,forTopic:c.forTopic||null}:s})
 const params=new URLSearchParams(location.search)
 const theme=params.get('theme')||'light'
 if(params.get('text')==='large')document.documentElement.style.fontSize='24px'

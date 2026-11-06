@@ -1,0 +1,22 @@
+/* ==========================================================================
+   01 boven de vouw, variant e (Alex, 6 november). Eigen bestand: styles.css is bevroren.
+   src/lib/vouw.js kiest de variant en zet data-vouw, --vouw-beeld en .kaart__title--26.
+   iOS spiegelt dit in ios/Hoot/Views/Vouw.swift.
+   ========================================================================== */
+
+/* Het beeld tussen 2:1 en 3:2: de hoogte komt uit de meting, tot die er is 3:2 (zoals nu). */
+.kaart--lead[data-vouw] .kaart__beeld {
+  aspect-ratio: auto;
+  height: var(--vouw-beeld, calc(100vw * 2 / 3));
+}
+
+/* Uitsnede op het bovenste derde (gezichten zitten meestal boven in een persfoto), niet op het midden. */
+.kaart--lead[data-vouw] .kaart__beeld {
+  --media-focus: 50% 33%;
+}
+
+/* Kop 26/32 als 30/36 niet past. */
+.kaart__title--lead.kaart__title--26 {
+  font-size: 1.625rem;
+  line-height: 2rem;
+}

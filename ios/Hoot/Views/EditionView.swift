@@ -1,6 +1,6 @@
 import SwiftUI
 
-// Editie: drie keer per dag hooguit tien genummerde verhalen. De redactionele volgorde blijft leidend;
+// Editie: drie keer per dag tien genummerde verhalen. De redactionele volgorde blijft leidend;
 // een optioneel bubbelverhaal staat los en ongenummerd na de gewone reeks.
 struct EditionRowModel: Identifiable {
     let id: String
@@ -137,6 +137,12 @@ extension HootStore {
 }
 
 struct EditionView: View {
+    // De metaregel onder de Editie-titel: de datum, en alleen wat afwijkt (gelijk aan Edition.jsx).
+    // Een eigen Editie zegt niets extra's: het is altijd jouw Editie.
+    static func metaLine(date: String, personalLabel: Bool, personal: Bool) -> String {
+        let extra: String? = personalLabel ? nil : personal ? "Om te beginnen" : "De Editie voor iedereen"
+        return [date, extra ?? ""].filter { !$0.isEmpty }.joined(separator: "\u{00A0}· ")
+    }
     // `-HootScroll slot`: het voorlaatste verhaal bovenaan, zodat het einde met twee verhalen erboven in beeld staat.
     static func slotTarget(_ rows: [EditionRowModel]) -> String? {
         #if DEBUG
@@ -156,6 +162,8 @@ struct EditionView: View {
     @AppStorage("hoot.alertOffered") private var alertOffered = false // de seintje-vraag is één keer gesteld (zodra de kaart één keer in beeld is geweest)
     @State private var alertAsk = false // de vraag staat onder de Editie
     @State private var alertYes = false // net ja gezegd: even zeggen wat er komt
+    @AppStorage(KantenTip.key) private var kantenTipDone = false // de tip over meer kanten is gezien (gesloten of vergeleken)
+    @State private var alertSlot = AlertOffer.standaard // het dagdeel in de kaart (keuze r5-seintje: de ochtend voorgekozen)
     @State private var printedIDs: Set<String> = []
     @State private var ruleDrawn = true
     @State private var storyShown = true
@@ -196,16 +204,41 @@ struct EditionView: View {
 
     @State private var path = NavigationPath()
     @State private var screen: CGSize = .zero // het scherm: staand of liggend
+    @ScaledMetric(relativeTo: .body) private var pairMin = EditionPairs.pairMin // A vanaf deze kolombreedte; meer bij grotere tekst
+    @Environment(\.verticalSizeClass) private var verticalClass
+    @ScaledMetric(relativeTo: .callout) private var hangNumber: CGFloat = Layout.hang - Space.s3 // gelijk aan HangRow
+    private var hang: CGFloat { hangNumber + Space.s3 } // B: de kantlijn met het nummer; 36 bij standaardtekst
+    private var phone: Bool { verticalClass == .compact } // een iPhone liggend; een iPad is altijd verticaal regulier
     @State private var contentWidth: CGFloat = 0 // de kolom binnen de marges
     @State private var leadImage: CGFloat = EditionPairs.leadMin // A: het beeld van het hoofdverhaal
     @State private var leadHeight: CGFloat = 0
+    // Boven de vouw (Vouw.swift): de bovenkant van 01 in de inhoud en de maat van het zichtbare deel.
+    @State private var leadTop: CGFloat = 0
+    @State private var vouwMaat = VouwMaat()
+    private static let inhoud = "editie-inhoud"
+    struct VouwMaat: Equatable { var hoogte: CGFloat = 0; var boven: CGFloat = 0; var onder: CGFloat = 0; var venster: CGFloat = 0 }
+    private var vouwRuimte: VouwRuimte? {
+        guard !wide, vouwMaat.hoogte > 0, leadTop > 0, let profiel = Vouw.profiel(vensterHoogte: vouwMaat.venster, typeSize: typeSize) else { return nil }
+        // De maat van de ScrollView ligt al binnen de veilige zone (statusbalk boven, tabbalk onder): de inhoud
+        // begint op 0 en de vouw ligt op zijn hoogte (gemeten op Hoot Pro Max: 956 = 62 + 811 + 83).
+        let ruimte = vouwMaat.hoogte - leadTop
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["HOOT_VOUW_LOG"] != nil { print("vouw", vouwMaat, "leadTop", leadTop, "ruimte", ruimte, profiel) }
+        #endif
+        return ruimte > 200 ? VouwRuimte(profiel: profiel, hoogte: ruimte) : nil
+    }
     @State private var sideHeight: CGFloat = 0
+
+    // A: de breedte van één kolom van de paren. Buiten je bubbel en het einde staan daarop, links, zodat
+    // er onder de voorpagina één leeskolom met één rechterlijn is (gelijk aan src/styles/rust.css §3).
+    private var pairColumn: CGFloat { contentWidth > 0 ? max(0, (contentWidth - Space.s6) / 2) : Layout.readable }
 
     enum Grid { case lijst, kolom, paren }
     private var grid: Grid {
         guard wide, !typeSize.isAccessibilitySize else { return .lijst }
         if let forced = DebugLaunch.grid { return forced == "paren" ? .paren : .kolom }
-        return EditionPairs.paired(screen) ? .paren : .kolom
+        // Een telefoon liggend (verticaal compact) houdt de oude regel: de iPhone blijft zoals hij is.
+        return EditionPairs.paired(screen, room: min(screen.width, Layout.wide) - 2 * Space.s4, minimum: phone ? 0 : pairMin) ? .paren : .kolom
     }
 
     // A: het hoofdverhaal links (1,9 deel), 02 en 03 in de zijkolom rechts met een lijn ervoor. Het beeld
@@ -219,9 +252,12 @@ struct EditionView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             if rows.count > 1 {
                 VStack(alignment: .leading, spacing: 0) {
-                    ForEach(Array(rows.dropFirst().prefix(2).enumerated()), id: \.element.id) { i, row in
+                    let side = Array(rows.dropFirst().prefix(2))
+                    ForEach(Array(side.enumerated()), id: \.element.id) { i, row in
                         if i > 0 { Rule().padding(.vertical, Space.s2) }
-                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant) }
+                        // Tekst voorop: alleen het laatste verhaal van de zijkolom krijgt een klein beeld (gelijk aan
+                        // .front__side op het web), zodat de koppen niet op twee woorden per regel breken.
+                        slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, narrow: true, thumbShown: phone || i == side.count - 1) }
                     }
                 }
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { sideHeight = $0; fitLead() }
@@ -266,13 +302,13 @@ struct EditionView: View {
         }
     }
 
-    // Ja op de seintje-vraag: de systeemvraag, en bij ja alle drie de dagdelen aan (in Instellingen
-    // per dagdeel aan te passen). Daarna even zeggen wat er komt, en weg.
+    // Ja op de seintje-vraag: de systeemvraag, en bij ja alleen het dagdeel dat je in de kaart koos
+    // (keuze r5-seintje; de andere twee zet je zelf aan in Instellingen). Daarna even zeggen wat er komt, en weg.
     private func askAlerts() {
         Task {
             let yes = await alerts.ask()
             if yes {
-                store.notifySlots = EditionAlerts.slots.map(\.id)
+                store.notifySlots = AlertOffer.slots(for: alertSlot)
                 store.notify = true
             }
             answerAlerts(yes)
@@ -340,9 +376,10 @@ struct EditionView: View {
                         }
                         .loadLinesError(lines)
                     } else {
-                        // Eén metaregel, zoals op het web. De vaste spatie vóór de punt houdt die bij de
-                        // datum als de regel bij grote tekst breekt ("oktober ·", niet "· Jouw Editie").
-                        Text([dateLine, store.isPersonal ? "Jouw Editie" : store.shownEdition?.personal == true ? "Om te beginnen" : "De Editie voor iedereen"].filter { !$0.isEmpty }.joined(separator: "\u{00A0}· "))
+                        // Eén metaregel, zoals op het web. Geen "Jouw Editie" meer (Alex, 5 november: dat is het
+                        // altijd); alleen wat afwijkt staat achter de datum. De vaste spatie vóór de punt houdt
+                        // die bij de datum als de regel bij grote tekst breekt ("oktober ·", niet "· Om te beginnen").
+                        Text(EditionView.metaLine(date: dateLine, personalLabel: store.isPersonal, personal: store.shownEdition?.personal == true))
                             .font(.ui(.footnote)) // Schibsted 13, gelijk aan .vh__sub op het web (t1)
                             .foregroundStyle(Theme.ink3)
                             .frame(minHeight: 20, alignment: .leading) // de regel blijft 20 hoog (lh-2), zoals op het web: de kop houdt zijn ritme
@@ -351,6 +388,18 @@ struct EditionView: View {
                             .tienBlock(tien, 0)
                         // Kon er niet ververst worden, dan zegt dat het onder de datum: titel en datum blijven bij elkaar.
                         StaleNotice(gap: Space.s4).loadLinesText(lines).tienBlock(tien, 0)
+                        // Meer kanten van één verhaal (keuze r5-kanten-welkom, gelijk aan .kantentip op het web): één
+                        // keer een stille tip onder de kop, bij het eerste verhaal met meer bronnen. Geen pop-up.
+                        if !tien.active, EditionLimits.hasMinimum(EditionNumbering.count(rows)), let tip = KantenTip.pick(rows.map { ($0.item, $0.story) }, done: kantenTipDone) {
+                            KantenTipView(count: tip.count, compare: {
+                                kantenTipDone = true
+                                var s = tip.story
+                                s.tappedId = tip.item.id
+                                path.append(s)
+                            }, close: { kantenTipDone = true })
+                            .padding(.bottom, Space.s1) // het tikvlak van Vergelijk (44) geeft de rest: samen 16 tot de lijn
+                            .loadLinesText(lines)
+                        }
                         // Na het eerste laden landt hier het bovenste vel van de laadstrepen (LoadLines.swift).
                         StrongRule(drawn: ruleDrawn).loadLinesRule(lines).tienBlock(tien, 1).padding(.bottom, Space.s4)
                         Group {
@@ -367,8 +416,8 @@ struct EditionView: View {
                                 .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
                                 .tienBlock(tien, 2)
                             if rows.count > 3 {
-                                EditionPairsGrid(rows: Array(rows.dropFirst(3)), width: contentWidth) { row, boven, pin in
-                                    slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, boven: boven, pinSource: pin) }
+                                EditionPairsGrid(rows: Array(rows.dropFirst(3)), width: contentWidth) { row, whySpace in
+                                    slot(row) { ItemRow(item: row.item, number: row.number, label: row.label, why: row.why, outside: row.outside, story: row.story, form: .krant, pinSource: true, whySpace: whySpace) }
                                 }
                                 .padding(.top, Space.s4)
                                 .loadLinesRise(lines)
@@ -388,6 +437,8 @@ struct EditionView: View {
                             }
                         case .lijst:
                             slot(rows[0]) { LeadCard(item: rows[0].item, number: rows[0].number, label: rows[0].label, why: rows[0].why, outside: rows[0].outside, story: rows[0].story) }
+                                .environment(\.vouw, vouwRuimte) // 01 boven de vouw (Vouw.swift)
+                                .onGeometryChange(for: CGFloat.self) { $0.frame(in: .named(Self.inhoud)).minY } action: { leadTop = $0 }
                                 .opacity(storyShown ? 1 : 0).offset(y: still || storyShown ? 0 : 10)
                                 .tienBlock(tien, 2)
                             ForEach(rows.dropFirst()) { row in
@@ -407,8 +458,8 @@ struct EditionView: View {
                                     slot(row) { ItemRow(item:row.item,label:row.label == "Buiten je bubbel" ? nil : row.label?.replacingOccurrences(of: "^Buiten je bubbel(?: · )?", with: "", options: .regularExpression),why:row.why,outside:row.outside,story:row.story,form:wide ? .krant : .tijdlijn) }
                                 }
                             }
-                            .padding(.leading, grid == .kolom ? Layout.hang : 0) // op de lijn van de tekst, niet van de nummers
-                            .frame(maxWidth: grid == .paren ? Layout.readable : nil, alignment: .leading)
+                            .padding(.leading, grid == .kolom ? hang : 0) // op de lijn van de tekst, niet van de nummers
+                            .frame(maxWidth: grid == .paren ? pairColumn : nil, alignment: .leading) // A: op de kolommaat van de paren (rust.css §3)
                             .tienBlock(tien, 8)
                         }
                         // Het einde: een merkmoment in merkrood, zoals op de website. Je bent bij,
@@ -428,7 +479,7 @@ struct EditionView: View {
                                     if visible && risenAt == nil { risenAt = .now }
                                 }
                             Kop(EditionEnd.line(date: store.edition?.date, slot: store.edition?.slot), .title)
-                            Text("Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(endDate)").\(upNext)")
+                            Text(afgebroken: "Dit was de \(title)\(dateLine.isEmpty ? "" : " van \(endDate)").\(upNext)", typeSize: typeSize) // AX: "morgen-/ochtend", niet "morgenochte/nd"
                                 .font(.ui(.subheadline))
                                 .multilineTextAlignment(.center)
                                 .frame(maxWidth: Layout.endcap) // ± 30 tekens per regel, zoals --measure-end
@@ -446,11 +497,20 @@ struct EditionView: View {
                         .padding(.horizontal, Space.s5)
                         .padding(.vertical, Space.s7)
                         .background(nacht ? Self.nachtEndRed : Theme.brandRed, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-                        .frame(maxWidth: Layout.readable) // op de leesbreedte, niet over de hele iPad (E9)
-                        .padding(.leading, grid == .kolom ? Layout.hang : 0)
+                        .frame(maxWidth: grid == .paren ? pairColumn : Layout.readable) // op de leesbreedte, niet over de hele iPad (E9); A: de kolommaat van de paren, links
+                        .padding(.leading, grid == .kolom ? hang : 0)
                         .padding(.top, Space.s6)
                         .padding(.bottom, Space.s4)
                         .tienBlock(tien, 8)
+                        // De seintje-vraag komt ná het einde, als eigen kaart eronder: nooit over de rode
+                        // kaart heen (keuze r5-einde-rust).
+                        if alertAsk || alertYes {
+                            AlertOffer(done: alertYes, slot: $alertSlot, yes: askAlerts, no: { answerAlerts(false) })
+                                .frame(maxWidth: grid == .paren ? pairColumn : Layout.readable)
+                                .padding(.leading, grid == .kolom ? hang : 0)
+                                .padding(.bottom, Space.s6)
+                                .transition(.opacity)
+                        }
                         }
                         }
                         .loadLinesText(lines)
@@ -458,14 +518,17 @@ struct EditionView: View {
                 }
                 .loadLines(lines, loading: loaderShown && !tien.active, ok: !store.editionRows.isEmpty, landing: true)
                 .firstEdition(tien, loading: loaderShown, failed: store.status == .failed && store.editionRows.isEmpty)
+                .coordinateSpace(.named(Self.inhoud)) // de inhoud zelf: schuift niet mee met scrollen
                 .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { contentWidth = $0 }
                 .padding(.horizontal)
-                .column(grid == .paren ? Layout.wide : grid == .kolom ? Layout.readable + Layout.hang : Layout.readable)
+                .column(grid == .paren ? Layout.wide : grid == .kolom ? Layout.readable + hang : Layout.readable)
                 .offset(y: rising ? 8 : 0)
                 .environment(\.placeholderPlan, placeholderPlan)
             }
             .debugJump(proxy, to: Self.slotTarget(store.editionRows), when: store.editionRows.count)
             .onGeometryChange(for: CGSize.self) { $0.size } action: { screen = $0 }
+            // De vouw: wat er zonder scrollen te zien is, tussen de kopregel en de tabbalk (Vouw.swift).
+            .onGeometryChange(for: VouwMaat.self) { VouwMaat(hoogte: $0.size.height, boven: $0.safeAreaInsets.top, onder: $0.safeAreaInsets.bottom, venster: $0.frame(in: .global).maxY + $0.safeAreaInsets.bottom) } action: { vouwMaat = $0 }
             // Wie eerst even rondkijkt: na ongeveer een derde van de editie één keer de vraag.
             .onScrollGeometryChange(for: Bool.self) { g in
                 let room = g.contentSize.height - g.containerSize.height
@@ -484,8 +547,6 @@ struct EditionView: View {
             .safeAreaInset(edge: .bottom) {
                 if nudge && store.browsing {
                     MakeItYours(choose: { setup = true }, later: { withAnimation { store.browsing = false } })
-                } else if alertAsk || alertYes {
-                    AlertOffer(done: alertYes, yes: askAlerts, no: { answerAlerts(false) })
                 }
             }
             // De stappen van het welkom vanaf de interesses, met Annuleer op de eerste.
@@ -597,6 +658,7 @@ struct StoryView: View {
             }
         }
         .task { items = await store.storyItems(story) }
+        .onAppear { UserDefaults.standard.set(true, forKey: KantenTip.key) } // wie vergelijkt, kent het: geen tip meer
     }
 
     // Wie het eerst had, en wat uit een bron komt die je niet volgt.
@@ -650,19 +712,78 @@ struct MakeItYours: View {
 // Na de eerste Editie, één keer: een seintje als de volgende klaarligt? Een los moment onder de
 // Editie, in de vorm van MakeItYours; de eindkaart houdt zijn ene link. Ja vraagt iOS om toestemming.
 // Op het web is er geen seintje (web-push ligt stil).
+// De eenmalige tip "Meer kanten van één verhaal" (keuze r5-kanten-welkom; gelijk aan src/lib/kanten-tip.js):
+// het eerste verhaal van de Editie met meer dan één bron, zolang de tip niet gezien is.
+enum KantenTip {
+    static let key = "hoot.kantenTip"
+    static func pick(_ rows: [(item: Item, story: Story?)], done: Bool) -> (item: Item, story: Story, count: Int)? {
+        guard !done else { return nil }
+        for r in rows { if let s = r.story, let n = s.sourceCount, n > 1 { return (r.item, s, n) } }
+        return nil
+    }
+    static func line(_ count: Int) -> String { "Meer kanten van één verhaal: bij ‘\(SourceLine.label(count))’ zie je hoe elke bron het brengt." }
+}
+
+struct KantenTipView: View {
+    let count: Int
+    let compare: () -> Void
+    let close: () -> Void
+    var body: some View {
+        HStack(alignment: .top, spacing: Space.s2) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(KantenTip.line(count)).fixedSize(horizontal: false, vertical: true)
+                Button(action: compare) { Text("Vergelijk").underline() }
+                    .buttonStyle(.plain)
+                    .fontWeight(.semibold)
+                    .frame(minHeight: Space.tap)
+            }
+            .font(.ui(.footnote))
+            .foregroundStyle(Theme.ink2)
+            Spacer(minLength: 0)
+            Button(action: close) {
+                Image(systemName: "xmark").font(.caption.weight(.semibold)).foregroundStyle(Theme.ink3)
+                    .frame(width: Space.tap, height: Space.tap)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Tip sluiten")
+            .padding(.top, -Space.s3)
+            .padding(.trailing, -Space.s3)
+        }
+        .accessibilityElement(children: .contain)
+    }
+}
+
+// De seintje-vraag onder de eindkaart (1.1.1, keuzes r5-seintje en r5-einde-rust): één dagdeel kiezen, de
+// ochtend voorgekozen. Geen kloktijden, alleen de dagdelen. Een kaart in de lijst, geen zwevend blad.
 struct AlertOffer: View {
     var done: Bool
+    @Binding var slot: String
     var yes: () -> Void
     var no: () -> Void
+
+    static let standaard = "ochtend"
+    static let keuzes: [(id: String, label: String)] = [("ochtend", "Ochtend"), ("middag", "Middag"), ("avond", "Vroege avond")]
+    // Wat "Ja, graag" aanzet: alleen het gekozen dagdeel.
+    static func slots(for slot: String) -> [String] { keuzes.contains { $0.id == slot } ? [slot] : [standaard] }
+    static func doneLine(_ slot: String) -> String { "Je krijgt een seintje als de \(Slots.naam(slot)) klaarligt." }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Space.s2) {
             if done {
-                Label("Je krijgt een seintje als de volgende klaarligt.", systemImage: "bell")
+                Label(Self.doneLine(slot), systemImage: "bell")
                     .font(.ui(.subheadline))
                     .frame(minHeight: Space.tap, alignment: .leading)
             } else {
                 Kop("Een seintje als de volgende klaarligt?", .title3).fixedSize(horizontal: false, vertical: true)
+                Flow {
+                    ForEach(Self.keuzes, id: \.id) { k in
+                        ChoiceChip(label: k.label, on: slot == k.id) { slot = k.id }
+                    }
+                }
+                .padding(.top, Space.s1)
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel("Wanneer")
                 HStack(spacing: Space.s4) {
                     Button("Ja, graag", action: yes).buttonStyle(.ink)
                     Button("Nu niet", action: no)
@@ -676,11 +797,6 @@ struct AlertOffer: View {
         .padding(Space.s4)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Theme.surface, in: RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
-        .shadow(color: .black.opacity(0.12), radius: 8, y: 2)
-        .padding(.horizontal)
-        .padding(.bottom, Space.s2)
-        .column()
-        .transition(.move(edge: .bottom).combined(with: .opacity))
         .accessibilityElement(children: .contain)
     }
 }

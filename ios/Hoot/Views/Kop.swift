@@ -135,6 +135,13 @@ enum KopZet {
 
     struct Fit: Equatable { var text: String; var scale: CGFloat }
 
+    // "Middageditie" → ("Middag", "editie"); nil voor elk ander woord.
+    static func editieNaad(_ word: String) -> (String, String)? {
+        guard let seam = word.range(of: "editie", options: [.caseInsensitive, .anchored, .backwards]),
+              word.distance(from: word.startIndex, to: seam.lowerBound) >= 3 else { return nil }
+        return (String(word[..<seam.lowerBound]), String(word[seam.lowerBound...]))
+    }
+
     // Zet de kop voor een kolom van `width` punten. Zonder breedte (eerste opbouw) ongewijzigd.
     static func fit(_ text: String, style: Font.TextStyle, typeSize: DynamicTypeSize, width: CGFloat, size: CGFloat? = nil) -> Fit {
         guard width > 0 else { return Fit(text: text, scale: 1) }
@@ -152,6 +159,12 @@ enum KopZet {
         var widest: CGFloat = 0
         let set = words.map { word -> String in
             guard measure(word, font: font) > room else { return word }
+            // De naam van een Editie breekt op de naad van de samenstelling: "Middag- / editie", niet zoals de
+            // eigen afbreking van iOS "Middagedi- / tie" (CONTROLE-48). Het woord past toch niet: hier breekt hij zeker.
+            if let naad = editieNaad(word) {
+                for part in [naad.0 + "-", naad.1] { widest = max(widest, measure(part, font: font)) }
+                return naad.0 + "-\n" + naad.1
+            }
             let split = hyphenate(word, locale: locale)
             // Het breedste stuk dat op een regel moet: elk stuk met zijn streepje, het laatste zonder.
             let parts = split.split(separator: shy)

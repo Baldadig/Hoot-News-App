@@ -637,6 +637,19 @@
     "followed": true
   },
   {
+    "id": "nos-economie",
+    "name": "NOS Economie",
+    "kind": "nieuws",
+    "cat": "economie",
+    "lang": "nl",
+    "about": "Economie en werk van de NOS.",
+    "paid": false,
+    "avatar": "https://www.google.com/s2/favicons?domain=nos.nl&sz=128",
+    "avatarContain": true,
+    "brandColor": "#B5121B",
+    "followed": true
+  },
+  {
     "id": "fd",
     "name": "Het Financieele Dagblad",
     "kind": "nieuws",

@@ -30,7 +30,7 @@ enum Tien {
     static let line1 = "Je eerste Editie"
     static let line2 = "Even kijken bij je bronnen"
     static let busy = "Hoot stelt je eerste Editie samen"
-    static let ready = "Je eerste Editie staat klaar. Tien verhalen, één buiten je bubbel."
+    static let ready = "Je eerste Editie staat klaar. Tien verhalen, en één buiten je bubbel."
     static let fail = "Je eerste Editie kon nog niet laden. Geen verbinding."
 
     static let glide = LoadLines.bezier(0.2, 0.8, 0.2, 1)
@@ -280,9 +280,10 @@ struct FirstEditionMark: View {
     var body: some View {
         VStack(spacing: 0) {
             TienArt(frame: frame)
-            Text(Tien.line1).font(.system(size: 17, weight: .semibold)).foregroundStyle(Theme.ink)
+            // Schibsted, zoals alle bediening (review A21); vaste maat, want het teken heeft een vaste hoogte.
+            Text(Tien.line1).font(.ui(size: 17, .semibold)).foregroundStyle(Theme.ink)
                 .frame(height: Tien.line).padding(.top, Tien.gap).opacity(frame.line1)
-            Text(Tien.line2).font(.system(size: 15)).foregroundStyle(Theme.ink3)
+            Text(Tien.line2).font(.ui(size: 15)).foregroundStyle(Theme.ink3)
                 .frame(height: Tien.line).opacity(frame.line2)
         }
         .fixedSize()

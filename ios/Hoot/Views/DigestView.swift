@@ -42,6 +42,7 @@ struct DigestView: View {
                     let o = overview
                     if store.digestFields.isEmpty {
                         empty(title: "Kies je onderwerpen", text: SelectionOverview.choose, row: "Kies onderwerpen", sub: "Nog niets gekozen")
+                        voorproef(SelectionOverview.voorproefje(store.digest))
                     } else if let d = store.digest {
                         Group {
                         if o.state == .empty {
@@ -158,6 +159,33 @@ struct DigestView: View {
         .padding(.top, Space.s5)
     }
 
+    // Een voorproefje onder "Kies onderwerpen" (keuze r5-selectie-onderwerpen, gelijk aan .dproef op het web):
+    // uit de Selectie van deze week per domein één onderwerp met zijn beste stuk, hooguit drie. Echte stukken.
+    @ViewBuilder private func voorproef(_ proef: [(id: String, label: String, item: DigestItem)]) -> some View {
+        if !proef.isEmpty {
+            VStack(alignment: .leading, spacing: Space.s3) {
+                VStack(alignment: .leading, spacing: Space.s2) {
+                    Text(typeSize.isAccessibilitySize ? "Voorproefje" : "VOORPROEFJE")
+                        .font(.ui(.caption, .heavy)).tracking(typeSize.isAccessibilitySize ? 0 : 0.6)
+                        .foregroundStyle(Theme.ink)
+                        .accessibilityAddTraits(.isHeader)
+                    Rectangle().fill(Theme.ink).frame(height: 2).accessibilityHidden(true)
+                }
+                Text(SelectionOverview.voorproef).font(.ui(.subheadline)).foregroundStyle(Theme.ink2)
+                    .fixedSize(horizontal: false, vertical: true)
+                ForEach(proef, id: \.id) { p in
+                    VStack(alignment: .leading, spacing: Space.s2) {
+                        Text(p.label).font(.ui(.caption, .semibold)).foregroundStyle(Theme.ink3)
+                        DigestCard(item: p.item, rank: 1, feature: false)
+                    }
+                    .padding(.top, Space.s2)
+                }
+            }
+            .padding(.top, Space.s7)
+            .padding(.bottom, Space.s6)
+        }
+    }
+
     private func how(_ seen: Int) -> some View {
         DisclosureGroup("Hoe kiest Hoot deze stukken?") {
             VStack(alignment: .leading, spacing: Space.s2) {
@@ -232,6 +260,20 @@ struct SelectionOverview {
     static let emptyField = "Deze week sprong er niets uit. Maandag kijkt Hoot opnieuw."
     static let noSources = "Hoot heeft hier nog te weinig goede bronnen voor. Kies er een onderwerp bij, dan lees je maandag meer."
     static let choose = "Voor je werk of uit interesse: elke maandag per onderwerp de drie beste stukken van de week."
+    // Het voorproefje bij een lege Selectie (gelijk aan voorproefje() in src/lib/selection-index.js): per domein
+    // (de vaste volgorde van shared/vak.mjs) het eerste onderwerp met stukken, hooguit `max`, met zijn beste stuk.
+    static let voorproef = "Zo ziet het eruit: per onderwerp de beste stukken van de week."
+    static func voorproefje(_ digest: Digest?, max: Int = 3) -> [(id: String, label: String, item: DigestItem)] {
+        let byId = Dictionary((digest?.fields ?? []).map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        var out: [(id: String, label: String, item: DigestItem)] = []
+        for d in DigestFieldsList.domains {
+            if let f = d.fields.lazy.compactMap({ byId[$0.id] }).first(where: { !$0.top.isEmpty }), let top = f.top.first {
+                out.append((f.id, f.label, top))
+            }
+            if out.count >= max { break }
+        }
+        return out
+    }
 }
 
 // Eén rijvorm voor springen, kiezen en in- of uitklappen (SE2): de naam, het aantal eronder, en rechts

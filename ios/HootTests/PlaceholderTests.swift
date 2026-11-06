@@ -76,6 +76,7 @@ final class PlaceholderTests: XCTestCase {
     }
 
     func testBeeldloosAlleenWaarGeenPassendBeeldIs() {
+        ImageURL.screen = (390, 3) // een iPhone: andere toetsen kunnen een breder venster hebben gemeten
         let leeg = Item(id: "a", source: "nos", title: "Kop", url: "https://nos.nl/a")
         var klein = leeg
         klein.image = "https://www.bing.com/th?id=ONUT.k&pid=News&w=300&h=200"
@@ -83,7 +84,7 @@ final class PlaceholderTests: XCTestCase {
         groot.image = "https://www.bing.com/th?id=ONUT.g&pid=News&w=700&h=393"
         XCTAssertTrue(Placeholder.isBare(leeg, .krant))
         XCTAssertFalse(Placeholder.isBare(klein, .krant))
-        XCTAssertTrue(Placeholder.isBare(klein, .tijdlijn))
+        XCTAssertFalse(Placeholder.isBare(klein, .tijdlijn)) // 1.1.1: een te klein beeld staat klein rechts, geen placeholder
         XCTAssertFalse(Placeholder.isBare(groot, .tijdlijn))
         XCTAssertFalse(Placeholder.isBare(groot, .lead))
     }

@@ -133,6 +133,18 @@ final class EditionEngine: @unchecked Sendable {
     }
     private static let queueKey = DispatchSpecificKey<Bool>()
 
+    // ---- Het voorstel van de bronnenstap (1.1.1, shared/voorstel.mjs) ----
+    // Uit je interesses (en je eigen onderwerpen) de drie tot vijf bronnen bovenaan de bronnenstap, met per bron
+    // een korte reden. Nil zonder interesses: dan de vaste Basis. Dezelfde regels als het web.
+    // `on`: alvast gevolgd. Alleen een gratis bron (keuze r5-voorstel-betaald); een betaalde staat erbij, uit.
+    struct VoorstelBron: Codable, Hashable, Sendable { let id: String; let why: String; var on: Bool = true }
+    func voorstel(sources: [Source], interests: [String], topics: [String]) async throws -> [VoorstelBron]? {
+        struct In: Encodable { let sources: [Source]; let interests: [String]; let topics: [String] }
+        let json = String(decoding: try JSONEncoder().encode(In(sources: sources, interests: interests, topics: topics)), as: UTF8.self)
+        let out = try await call("voorstelJSON", [json])
+        return try JSONDecoder().decode([VoorstelBron]?.self, from: Data(out.utf8))
+    }
+
     // ---- Hulpstappen uit dezelfde bundel ----
     // De afdruk van bronnen en interesses (editionBasis, djb2): precies die van de website.
     func basis(followed: [String], interests: [String], topics: [String], favorites: [String]) async throws -> String {

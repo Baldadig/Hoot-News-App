@@ -13,7 +13,9 @@ struct StreamView: View {
     @State private var categoryTask: Task<Void, Never>?
     @State private var viewportHeight: CGFloat = 0
     @State private var headerHeight: CGFloat = 0
-    @State private var limit = 60
+    // Het einde van de Stroom (StroomEinde.swift): de grens van dit bezoek, en hoeveel ouder nieuws je opende.
+    @State private var grens: StroomEinde.Grens?
+    @State private var older = 0
     @State private var picks: Set<String> = Set(DebugLaunch.picks) // de bronnen uit de stapel (leeg = alle)
     @State private var lijn = LijnStand()
     @State private var knopAs: CGFloat? // de knop rechtsboven: het voorste logo van de stapel ligt eronder
@@ -46,6 +48,11 @@ struct StreamView: View {
             let items = rub == "bubbel" ? bubble : store.withoutCopies(store.stream.filter { item in
                 (picks.isEmpty || picks.contains(item.source)) && (rub.isEmpty || Rubriek.past(item, rub, cat: cats[item.source] ?? nil))
             })
+            // De lijst houdt op bij je vorige bezoek (of na een dag); ouder nieuws alleen met de knop.
+            let eindGrens = rub == "bubbel" ? nil : grens
+            let bIdx = eindGrens.map { StroomEinde.index(items, at: $0.at) } ?? items.count
+            let cap = StroomEinde.cap(count: items.count, grensIndex: bIdx, older: older)
+            let eerder = eindGrens?.eerder == true
             ScrollViewReader { scroll in
             ScrollView {
                 VStack(spacing: 0) {
@@ -118,23 +125,35 @@ struct StreamView: View {
                             Group {
                             StaleNotice().padding(.top, Space.s2) // 16 onder de lijn, net als een bericht
                             if items.isEmpty { quiet(rub, sources: sources) }
-                            // Waar je de vorige keer was: alleen in de hele Stroom (die telt `newInStream`).
-                            let fresh = picks.isEmpty && rub.isEmpty ? store.newInStream : 0
-                            ForEach(Array(items.prefix(limit).enumerated()), id: \.element.id) { i, item in
-                                // Daaronder heb je alles al gezien.
-                                if fresh > 0 && i == fresh { SeenMarker() }
+                            // Waar je de vorige keer was (de grens): daaronder heb je alles al gezien. In de lijst
+                            // staat de streep pas als je ouder nieuws opende; anders staat hij bij het einde.
+                            let marker = older > 0 && eerder && bIdx < cap
+                            ForEach(Array(items.prefix(cap).enumerated()), id: \.element.id) { i, item in
+                                if marker && i == bIdx { SeenMarker() }
                                 Group {
                                     if item.isPost { PostRow(item: item) }
                                     else { ItemRow(item: item, story: store.story(of: item)) }
                                 }
                                     .transition(.identity)
-                                if !(fresh > 0 && i == fresh - 1) { Rule() }
+                                if !(marker && i == bIdx - 1) { Rule() }
                             }
-                            if items.count > limit {
-                                Button("Meer berichten") { limit += 60 }
-                                    .buttonStyle(.glass)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, Space.s5)
+                            if cap >= items.count {
+                                if !items.isEmpty { StroomEindRegel() }
+                            } else {
+                                // Het einde bij je vorige bezoek (keuze r5-stroom-einde, gelijk aan .stroomeinde op het web).
+                                VStack(spacing: 0) {
+                                    if older == 0 {
+                                        if eerder && cap > 0 { SeenMarker().padding(.top, Space.s2) }
+                                        StroomEindRegel(top: Space.s4, bottom: 0)
+                                    }
+                                    Button("Ouder nieuws tonen") { older += StroomEinde.page }
+                                        .buttonStyle(.plain)
+                                        .font(.ui(.footnote, .semibold)).foregroundStyle(Theme.ink2)
+                                        .frame(minHeight: Space.tap)
+                                        .padding(.top, Space.s2)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.bottom, Space.s6)
                             }
                             }
                             .loadLinesText(lines)
@@ -144,7 +163,7 @@ struct StreamView: View {
                     .padding(.horizontal)
                     .column()
                     // Welk placeholderbeeld een beeldloze rij krijgt, hangt af van de rij erboven (Beeldloos.swift).
-                    .environment(\.placeholderPlan, Placeholder.plan(items.prefix(limit).map { ($0, store.layout == "krant" ? BeeldloosView.Kind.krant : .tijdlijn) }, failed: MisluktBeeld.shared.ids))
+                    .environment(\.placeholderPlan, Placeholder.plan(items.prefix(cap).map { ($0, store.layout == "krant" ? BeeldloosView.Kind.krant : .tijdlijn) }, failed: MisluktBeeld.shared.ids))
                     }
                 }
             }
@@ -163,7 +182,11 @@ struct StreamView: View {
             }
         }
         .onAppear {
-            if behindReader { behindReader = false } else { store.openStream() }
+            if behindReader { behindReader = false } else {
+                store.openStream()
+                grens = StroomEinde.grens(mark: store.streamMark)
+                older = 0
+            }
             // Debug: het startargument gaat vóór de rubriek die iOS uit de vorige sessie terugzet.
             if debugStart, let r = DebugLaunch.startRubriek { rubriek = r }
             debugStart = false
@@ -174,8 +197,8 @@ struct StreamView: View {
             let kept = picks.intersection(ids)
             if kept != picks { picks = kept }
         }
-        .onChange(of: rubriek) { limit = 60 }
-        .onChange(of: picks) { categoryTask?.cancel(); limit = 60 }
+        .onChange(of: rubriek) { older = 0 }
+        .onChange(of: picks) { categoryTask?.cancel(); older = 0 }
         .onChange(of: phase) { _, now in if now == .background { store.leaveStream() } }
     }
 
@@ -231,6 +254,18 @@ extension HootStore {
 }
 
 // De grens tussen nieuw en al gezien.
+// "Je bent bij.", zoals .listend op het web (review G6): 13/16 in ink-3, midden.
+private struct StroomEindRegel: View {
+    var top: CGFloat = Space.s6
+    var bottom: CGFloat = Space.s2
+    var body: some View {
+        Text("Je bent bij.")
+            .font(.ui(.footnote)).foregroundStyle(Theme.ink3)
+            .frame(maxWidth: .infinity)
+            .padding(.top, top).padding(.bottom, bottom)
+    }
+}
+
 private struct SeenMarker: View {
     var body: some View {
         HStack(spacing: Space.s3) {
@@ -260,58 +295,88 @@ struct SourcesView: View {
     }
 }
 
+// Bronnen in Instellingen (1.1.1 ronde 2, gelijk aan src/views/Sources.jsx): bovenaan "Je bronnen" (wat aan staat),
+// daaronder "Meer bronnen" per rubriek, ingeklapt: de rubriek, het aantal en een pijl; tik om open te klappen.
+// Zet je een bron aan, dan schuift hij naar Je bronnen.
 struct SourcesList: View {
     @Environment(HootStore.self) private var store
+    @State private var open: Set<String> = []
     private static let cats: [(String, String)] = [("nl", "Nederland"), ("int", "Internationaal"), ("vl", "Vlaanderen"), ("regio", "Regio"), ("economie", "Economie"), ("tech", "Tech"), ("wetenschap", "Wetenschap"), ("sport", "Sport"), ("cultuur", "Cultuur"), ("games", "Games")]
 
     var body: some View {
-        let last = Self.cats.last { cat in store.newsSources.contains { $0.cat == cat.0 } }?.0
+        let mine = store.newsSources.filter { store.isOn($0) }
+        let more = store.newsSources.filter { !store.isOn($0) }
+        let last = Self.cats.last { cat in more.contains { $0.cat == cat.0 } }?.0
         ScrollViewReader { proxy in
         List {
             Section {
-                Text("Abonnement: hele artikelen alleen voor abonnees. Aanzetten kost niets.")
+                ForEach(mine) { s in row(s) }
+            } header: {
+                FormHeader("Je bronnen · \(mine.count)")
+            } footer: {
+                Text("Met de ster gaat een bron voor in je Editie en Stroom. Abonnement: hele artikelen alleen voor abonnees. Aanzetten kost niets.")
                     .font(.ui(.footnote))
                     .foregroundStyle(Theme.ink3)
             }
-            .listRowBackground(Color.clear)
-            ForEach(Self.cats, id: \.0) { cat, label in
-                let list = store.newsSources.filter { $0.cat == cat }
-                if !list.isEmpty {
-                    Section {
-                        ForEach(list) { s in
-                            HStack(spacing: Space.s1) {
-                            if store.isOn(s) {
-                                // Voorkeursbron: weegt zwaarder in je editie en staat vooraan in de Stroom.
-                                Button { store.setFavorite(s.id, !store.isFavorite(s.id)) } label: {
-                                    Image(systemName: store.isFavorite(s.id) ? "star.fill" : "star").foregroundStyle(store.isFavorite(s.id) ? Theme.accent : Theme.ink3).frame(width: Space.tap, height: Space.tap)
+            .hootRows()
+            if !more.isEmpty {
+                Section {
+                    ForEach(Self.cats, id: \.0) { cat, label in
+                        let list = more.filter { $0.cat == cat }
+                        if !list.isEmpty {
+                            let isOpen = open.contains(cat)
+                            Button {
+                                withAnimation(.easeOut(duration: 0.2)) { if isOpen { open.remove(cat) } else { open.insert(cat) } }
+                            } label: {
+                                HStack(spacing: Space.s2) {
+                                    Text(label).foregroundStyle(Theme.ink)
+                                    Spacer(minLength: Space.s2)
+                                    Text("\(list.count)").font(.ui(.subheadline)).foregroundStyle(Theme.ink3).monospacedDigit()
+                                    Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(Theme.ink3)
+                                        .rotationEffect(.degrees(isOpen ? 90 : 0)).accessibilityHidden(true)
                                 }
-                                .buttonStyle(.borderless)
-                                .accessibilityLabel(store.isFavorite(s.id) ? "\(s.name): voorkeursbron" : "Maak \(s.name) een voorkeursbron")
-                            } else {
-                                // Plek van de ster vrijhouden: alle namen op één lijn, aan of uit.
-                                Color.clear.frame(width: Space.tap, height: Space.tap).accessibilityHidden(true)
+                                .frame(minHeight: Space.tap)
+                                .contentShape(Rectangle())
                             }
-                            Toggle(isOn: Binding(get: { store.isOn(s) }, set: { store.setOn(s, $0) })) {
-                                VStack(alignment: .leading, spacing: Space.s0) {
-                                    HStack(spacing: Space.s2) {
-                                        Text(s.name)
-                                        if s.paid == true { Text("abonnement").font(.ui(.caption)).foregroundStyle(Theme.hint) } else { Text("gratis").font(.ui(.caption, .semibold)).foregroundStyle(Theme.accent) }
-                                    }
-                                    if let about = s.about { Text(about).font(.ui(.caption)).foregroundStyle(Theme.hint) }
-                                }
-                            }
-                            }
+                            .buttonStyle(.plain)
+                            .accessibilityValue(isOpen ? "Open" : "Dicht")
+                            .id(cat)
+                            if isOpen { ForEach(list) { s in row(s) } }
                         }
-                    } header: {
-                        FormHeader(label)
                     }
-                    .hootRows()
-                    .id(cat)
+                } header: {
+                    FormHeader("Meer bronnen")
                 }
+                .hootRows()
             }
         }
         .hootForm()
         .debugJump(proxy, to: last, when: store.newsSources.count)
+        }
+    }
+
+    @ViewBuilder private func row(_ s: Source) -> some View {
+        HStack(spacing: Space.s1) {
+            if store.isOn(s) {
+                // Voorkeursbron: weegt zwaarder in je editie en staat vooraan in de Stroom.
+                Button { store.setFavorite(s.id, !store.isFavorite(s.id)) } label: {
+                    Image(systemName: store.isFavorite(s.id) ? "star.fill" : "star").foregroundStyle(store.isFavorite(s.id) ? Theme.accent : Theme.ink3).frame(width: Space.tap, height: Space.tap)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel(store.isFavorite(s.id) ? "\(s.name): voorkeursbron" : "Maak \(s.name) een voorkeursbron")
+            } else {
+                // Plek van de ster vrijhouden: alle namen op één lijn, aan of uit.
+                Color.clear.frame(width: Space.tap, height: Space.tap).accessibilityHidden(true)
+            }
+            Toggle(isOn: Binding(get: { store.isOn(s) }, set: { store.setOn(s, $0) })) {
+                VStack(alignment: .leading, spacing: Space.s0) {
+                    HStack(spacing: Space.s2) {
+                        Text(s.name)
+                        if s.paid == true { Text("abonnement").font(.ui(.caption)).foregroundStyle(Theme.hint) } else { Text("gratis").font(.ui(.caption, .semibold)).foregroundStyle(Theme.accent) }
+                    }
+                    if let about = s.about { Text(about).font(.ui(.caption)).foregroundStyle(Theme.hint) }
+                }
+            }
         }
     }
 }
@@ -319,6 +384,8 @@ struct SourcesList: View {
 // Bewaard: wat je voor later bewaarde, op dit toestel. Verwijderen gaat meteen, met even de
 // mogelijkheid het ongedaan te maken (zoals op de website).
 struct SavedView: View {
+    // Gelijk aan het web (src/views/Saved.jsx, keuze r5-bewaard).
+    static let emptyText = "Tik op de bladwijzer bij een verhaal. Het blijft hier staan."
     @Environment(HootStore.self) private var store
     @Environment(\.openTab) private var openTab
     @State private var removed: (index: Int, item: Item)?
@@ -326,11 +393,16 @@ struct SavedView: View {
         NavigationStack {
             Group {
                 if store.saved.isEmpty {
-                    // Dezelfde woorden als op het web, met de Editie als vervolgstap.
+                    // Dezelfde woorden als op het web, met de Editie als vervolgstap. Bewaard is een archief
+                    // (keuze r5-bewaard): het blijft staan, en we beloven niets over offline (de lezer laadt
+                    // de uitgever). De titel krijgt de kolombreedte, links uitgelijnd: zonder die maat stond hij
+                    // half buiten beeld ("ewaard", review R1), net als het woordmerk.
                     VStack(alignment: .leading, spacing: 0) {
-                        ScreenTitle("Bewaard").padding(.horizontal)
-                        EmptyState(title: "Nog niets bewaard", systemImage: "bookmark", text: "Tik op de bladwijzer bij een verhaal. Het staat hier tot je het hebt gelezen, ook zonder verbinding.", action: (label: "Naar de Editie", systemImage: nil, run: { openTab(.editie) }))
+                        ScreenTitle("Bewaard").frame(maxWidth: .infinity, alignment: .leading)
+                        EmptyState(title: "Nog niets bewaard", systemImage: "bookmark", text: SavedView.emptyText, action: (label: "Naar de Editie", systemImage: nil, run: { openTab(.editie) }))
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
                     .column()
                 } else {
                     List {
@@ -348,6 +420,7 @@ struct SavedView: View {
                         }
                     }
                     .scrollContentBackground(.hidden)
+                    .readableList()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -390,6 +463,7 @@ struct SavedView: View {
 // Zoeken: in alles wat Hoot nu van je bronnen heeft, en in Bewaard.
 struct SearchView: View {
     @Environment(HootStore.self) private var store
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var query = DebugLaunch.query ?? ""
     @State private var scope: SearchHits.Scope = .mijn // standaard Mijn bronnen, zoals op het web
     @State private var extra: [Item] = [] // Alle bronnen: ook wat alleen binnen een verhaal staat
@@ -410,16 +484,24 @@ struct SearchView: View {
                 } header: {
                     // Dezelfde schermtitel als Bewaard, Stroom en Selectie (t5-screen), niet de grote
                     // systeemtitel: die stond groter en lager (B2).
+                    // Titel en keuze op één linkerlijn (review A2). Bij heel grote tekst een menu in plaats van
+                    // het segment: dat groeit niet mee en kapte "Mijn br…" af (review A18).
                     VStack(alignment: .leading, spacing: Space.s3) {
                         ScreenTitle("Zoeken")
-                        Picker("Waar zoeken", selection: $scope) {
+                        let picker = Picker("Waar zoeken", selection: $scope) {
                             ForEach(SearchHits.Scope.allCases) { Text($0.rawValue).tag($0) }
-                        }.pickerStyle(.segmented).padding(.horizontal, Space.s4)
+                        }
+                        if typeSize.isAccessibilitySize {
+                            picker.pickerStyle(.menu).tint(Theme.ink).font(.ui(.body, .semibold))
+                        } else {
+                            picker.pickerStyle(.segmented)
+                        }
                     }.textCase(nil).listRowInsets(EdgeInsets())
                 }
             }
             .task(id: scope) { extra = scope == .alle ? await store.searchPoolAll() : [] }
             .scrollContentBackground(.hidden)
+            .readableList()
             .background(Theme.paper)
             .overlay {
                 if q.isEmpty {

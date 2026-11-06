@@ -13,6 +13,14 @@ Alle noemenswaardige wijzigingen aan Hoot. Houdt [semver](https://semver.org/lan
 - Web: uitleg- en hulpzinnen (lege staten, Welkom, Selectie, Over en Privacy) staan schreefloos in Schibsted Grotesk; Newsreader blijft voor koppen, intro's en artikeltekst. De grote kaart van de Selectie houdt zijn eigen beeldverhouding (2:1).
 - **Landing naar 1.1.0:** de slotband is een persvel met een papieren halve zon onder de knop, en de Stroom staat op papier (minder rood). Overal "Gratis, met of zonder account.", een eigen voordeel voor de Selectie en nieuwe vragen over het account en de App Store. De voorbeelden zijn van 1.1.0: genummerd 01–10 met de bubbel apart, Bluesky in de Stroom, de Selectie met de inhoud bovenaan, zonder "Omdat je X volgt" en met Wereld in plaats van Buitenland. Nieuw deelbeeld. De App Store-link staat klaar achter één regel in `landing/build.mjs` (`APP_STORE`).
 
+## 1.1.1 · 6 november 2026 — de app in de App Store
+
+- **Volg alles:** in het Welkom volg je met één knop alle onderwerpen ("Volg alles" in plaats van "Volg alle drie").
+- **Hoofdverhaal boven de vouw:** het hoofdverhaal van de Editie staat met kop, beeld en intro in één blik op het eerste scherm.
+- **iPad mini:** de opmaak klopt op de iPad mini, met de intro tot vijf regels zoals op de Pro.
+- **De Redacteur:** een opiniestuk staat nooit op 01, en één gebeurtenis krijgt één plek in de Editie.
+- **Bluesky schreefloos op het web:** de tekst van een post staat in Schibsted Grotesk, net als in de app.
+
 ## 1.58.0 · 3 november 2026
 
 - Hoot staat in de App Store. De landingspagina linkt nu naar de App Store (knop in de opening, link in de afsluiting, smart app banner in Safari op iPhone) in plaats van "Binnenkort in de App Store".

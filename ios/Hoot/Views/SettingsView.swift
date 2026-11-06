@@ -146,7 +146,7 @@ struct SettingsAccountCard: View {
         switch account.status {
         case .member, .pending: return account.session?.name ?? account.session?.email ?? "Je account"
         case .loading: return "Je account"
-        case .out: return "Inloggen"
+        case .out: return "Account"
         }
     }
     private var status: String {
@@ -167,24 +167,25 @@ struct SettingsRow: View {
     var value: String? = nil
     var ink: Color = Theme.ink // rood (Theme.accent) alleen voor wissen en verwijderen
     init(_ title: String, value: String? = nil, ink: Color = Theme.ink) { self.title = title; self.value = value; self.ink = ink }
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         Group {
             if let value, !value.isEmpty {
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: Space.s3) {
-                        Text(title).foregroundStyle(ink).fixedSize()
+                        Text(afgebroken: title, typeSize: typeSize).foregroundStyle(ink).fixedSize()
                         Spacer(minLength: Space.s2)
-                        Text(value).foregroundStyle(Theme.ink3).fixedSize()
+                        Text(afgebroken: value, typeSize: typeSize).foregroundStyle(Theme.ink3).fixedSize()
                     }
                     VStack(alignment: .leading, spacing: Space.s0) {
-                        Text(title).foregroundStyle(ink)
-                        Text(value).foregroundStyle(Theme.ink3)
+                        Text(afgebroken: title, typeSize: typeSize).foregroundStyle(ink)
+                        Text(afgebroken: value, typeSize: typeSize).foregroundStyle(Theme.ink3)
                     }
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
             } else {
-                Text(title).foregroundStyle(ink).fixedSize(horizontal: false, vertical: true)
+                Text(afgebroken: title, typeSize: typeSize).foregroundStyle(ink).fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
