@@ -1479,8 +1479,9 @@ export function selectEdition(stories, pool, { mainIds = new Set(), now = Date.n
 }
 
 // De persoonlijke selectie (De Redacteur, Hoot-design/algoritme/bouwspec.md §3). Zelfde kandidaten,
-// hoofdbericht-regels, één plek per onderwerp en verhaalvenster als selectEdition (die blijft voor
-// de algemene Editie ongewijzigd), met vijf verschillen:
+// hoofdbericht-regels, één plek per onderwerp en verhaalvenster als selectEdition (sinds Redacteur 3b niet meer
+// de algemene Editie: die is selectForReader met een leeg profiel, generalEdition in build.mjs; selectEdition
+// blijft voor de meetlat en de toetsen), met vijf verschillen:
 // 1. "eigen bronnen" in het basisgewicht zijn die van de lezer (`mainIds`);
 // 2. persoonlijke punten uit het profiel (shared/editor.mjs), begrensd, plus een vast zaad dat
 //    alleen gelijke stand breekt;

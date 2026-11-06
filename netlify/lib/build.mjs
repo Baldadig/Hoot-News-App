@@ -4,7 +4,8 @@ import { EDITOR_REVISION, editionCacheKey } from '../../shared/editor-version.mj
 // vastleggen. Draait op een vast ritme (functions/feed-refresh.mjs); de app krijgt het
 // resultaat kant-en-klaar (functions/feed.mjs) en hoeft nooit op het ophalen te wachten.
 import Anthropic from '@anthropic-ai/sdk'
-import { byRecency, sigWords, sharedCount, buildStories, editionSlot, previousSlotId, previousOf, selectEdition, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
+import { byRecency, sigWords, sharedCount, buildStories, editionSlot, previousSlotId, previousOf, selectForReader, openWithNews, leadCandidates, leadPool, relinkEdition, widelyCovered, signatures, sameEvent, isLive } from './stories.mjs'
+import { profileOf } from '../../shared/editor.mjs'
 import { matchTrending, insertBubble, bubbleCandidates, areasOf, nearStories } from './bubble.mjs'
 import { createBrief, briefRows } from './brief.mjs'
 import { articleKey, mergeSnippets, isLiveblog, bingId, bingUnmeasured, bingOriginal, bingSized } from './snippets.mjs'
@@ -566,6 +567,22 @@ const compact = (o) => {
 }
 
 // ---------- 7. Editie ----------
+// De algemene Editie (Redacteur 3b, besluit van Alex 6 november): de persoonlijke Editie met een leeg profiel
+// (de basisbronnen, geen interesses), met dezelfde vangrails: de voorpagina met een Nederlandse plek, hooguit
+// INT_MAX buitenland zonder reden, de kernrubrieken en de toelating (selectForReader). Daarna opent plek 01 met
+// nieuws (openWithNews). Geen waarom, geen trends: alleen de plekken, in de vorm van de vastgelegde Editie.
+// `stories`/`pool`: alles; `newsStories`/`newsPool`: wat voor de Editie telt. `previous`: de vorige Editie.
+export function generalEdition({ stories = [], newsStories = stories, pool = [], newsPool = pool, now = Date.now(), mainIds = MAIN_IDS, sources = SOURCES, previous = null } = {}) {
+  const prof = profileOf({ followed: mainIds, sources })
+  const sel = selectForReader(newsStories, newsPool, { mainIds, now, previous, prof })
+  const byId = new Map(newsPool.map((i) => [i.id, i]))
+  const storyById = new Map(newsStories.map((st) => [st.id, st]))
+  const entries = sel.map((e) => (e.kind === 'story' ? { kind: 'story', id: e.id, leadId: e.leadId, desk: e.desk ?? null } : { kind: 'item', id: e.id, desk: e.desk ?? null }))
+  const itemsOf = (e) => (e.kind === 'story' ? storyById.get(e.id)?.itemIds || [] : [e.id]).map((id) => byId.get(id)).filter(Boolean)
+  openWithNews(entries, { itemsOf, pick: (xs, all) => leadPool(leadCandidates(xs, mainIds, null, now, { role: 'front' }), all, now)[0] })
+  return entries
+}
+
 // Per dagdeel één keer samengesteld en daarna vast: selectie en volgorde veranderen niet meer;
 // een verhaal dat nog loopt toont wel zijn nieuwe publicaties. Daarbij (één keer, dan vast):
 // "Buiten je bubbel" en het AI-overzicht.
@@ -583,7 +600,7 @@ async function composeEdition({ now, stories, articlePool, pool, anthropic }) {
     const newsStories = stories.filter((st) => st.itemIds.some((id) => newsIds.has(id)))
     // Wat in de vorige editie stond, komt alleen terug als het zich echt ontwikkelde.
     const previous = previousOf(await kvGet(editionCacheKey(previousSlotId(slot))).catch(() => null) || await kvGet('edition3-' + previousSlotId(slot)).catch(() => null))
-    const entries = selectEdition(newsStories, newsPool, { mainIds: MAIN_IDS, now, previous })
+    const entries = generalEdition({ stories, newsStories, pool, newsPool, now, mainIds: MAIN_IDS, sources: SOURCES, previous })
     const snapStories = entries.filter((e) => e.kind === 'story').map((e) => stories.find((st) => st.id === e.id))
     const snapIds = new Set([...snapStories.flatMap((st) => st.itemIds), ...entries.filter((e) => e.kind === 'item').map((e) => e.id)])
     stored = { id: slot.id, builtAt: new Date(now).toISOString(), entries, stories: snapStories, items: [...snapIds].map((id) => byId.get(id)).filter(Boolean) }

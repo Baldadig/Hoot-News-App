@@ -5,8 +5,8 @@
 //   node scripts/redacteur-live.mjs            tabellen in markdown
 //   node scripts/redacteur-live.mjs --json     ruwe uitvoer
 //
-// Algemene Editie: zoals build.mjs (selectEdition op alle berichten met de basisbronnen als eigen
-// bronnen), op de berichten die er bij het samenstellen al waren (publishedAt ≤ builtAt). Ook het
+// Algemene Editie: zoals build.mjs (generalEdition: de persoonlijke Editie met een leeg profiel, Redacteur 3b,
+// op alle berichten met de basisbronnen als eigen bronnen), op de berichten die er bij het samenstellen al waren (publishedAt ≤ builtAt). Ook het
 // bundelen gaat zoals op de server (uitgebreide stand, met `keys`): de gewone stand liet op de
 // verkiezingsnacht van 4 november de Nederlandse uitslagbundel uit elkaar vallen, wat de server niet doet. De feed
 // bevat alleen de basisbronnen plus de stukken van verhalen (`related`): losse stukken van andere
@@ -14,7 +14,8 @@
 // rekent (usePersonalEdition): de huidige feed, now = builtAt, de negen basisbronnen, geen keuzes.
 import { readFileSync } from 'node:fs'
 import { gunzipSync } from 'node:zlib'
-import { buildStories, selectEdition } from '../netlify/lib/stories.mjs'
+import { buildStories } from '../netlify/lib/stories.mjs'
+import { generalEdition } from '../netlify/lib/build.mjs'
 import { MAIN_IDS } from '../netlify/lib/sources.mjs'
 import { composePersonal } from '../src/lib/personal.js'
 
@@ -26,7 +27,7 @@ export function liveGeneral(feed = loadLive()) {
   const all = new Map([...feed.related, ...feed.items, ...feed.edition.items].map((i) => [i.id, i]))
   const articles = [...all.values()].filter((i) => i.kind === 'article' && Date.parse(i.publishedAt) <= now)
   const stories = buildStories(articles, {}, { mainIds: MAIN_IDS, keys: true, extended: true })
-  const entries = selectEdition(stories, articles, { mainIds: MAIN_IDS, now })
+  const entries = generalEdition({ stories, pool: articles, now, mainIds: MAIN_IDS })
   return { now, articles, stories, entries, byId: new Map(articles.map((i) => [i.id, i])) }
 }
 

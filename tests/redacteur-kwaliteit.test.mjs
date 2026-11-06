@@ -74,9 +74,13 @@ test('live, algemene Avondeditie 3 november: geen games- of cultuurverhaal in de
   // Plekken uit de aanvulling hebben hun eigen rubriek: geen VS-verhaal zonder rubriek.
   // Op het verhaal, niet op de kop: sinds H7 (4 november) is een vraag alleen de kop als er niets anders is.
   const nrc = general.stories.find((s) => s.itemIds.some((id) => /Accepteert president Trump/.test(titleOf(id))))
+  // Redacteur 3b: de algemene Editie is die van een leeg profiel (generalEdition); een VS-verhaal dat geen groot nieuws
+  // is, valt dan onder het plafond voor buitenland (INT_MAX). Staat het er, dan met rubriek en zonder vraag als kop.
   const accepteert = general.entries.find((e) => e.id === nrc?.id)
-  assert.equal(accepteert?.desk, 'vs')
-  assert.ok(!/\?/.test(titleOf(accepteert.leadId)), titleOf(accepteert.leadId))
+  if (accepteert) {
+    assert.equal(accepteert.desk, 'vs')
+    assert.ok(!/\?/.test(titleOf(accepteert.leadId)), titleOf(accepteert.leadId))
+  }
 })
 
 test('live, schone beginnerseditie: geen licht stuk, tien plekken, bubbel apart', () => {
