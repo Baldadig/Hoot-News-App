@@ -73,6 +73,10 @@ const ALIAS = {
   witte: 'whitehouse', white: 'whitehouse',
   koreaanse: 'korea', koreaans: 'korea', noordkoreaanse: 'northkorea', zuidkoreaanse: 'southkorea', koreanen: 'korea', korean: 'korea', koreans: 'korea',
   // Voornamen van wereldleiders tellen als die leider (anders is "Donald" een sterke naam).
+  // De twee Amerikaanse partijen in beide talen als één naam (keuring 6 november 2026). Geen eigen naam (NOT_A_NAME):
+  // ze tellen alleen in sameSubject (`parties` in het kenmerk), en als brede naam (BROAD) nooit alleen.
+  republikein: 'republicans', republikeinen: 'republicans', republikeinse: 'republicans', republikeins: 'republicans', republican: 'republicans', gop: 'republicans',
+  democraat: 'democrats', democraten: 'democrats', democrat: 'democrats',
   donald: 'trump', benjamin: 'netanyahu', vladimir: 'putin', volodymyr: 'zelensky', emmanuel: 'macron', keir: 'starmer', friedrich: 'merz', recep: 'erdogan', narendra: 'modi', giorgia: 'meloni', viktor: 'orban', kamala: 'harris', joe: 'biden', elon: 'musk', jinping: 'xi',
 }
 // H6 (iii), alleen in de uitgebreide stand (`extended`, zie buildStories): landen en adjectieven van
@@ -128,6 +132,7 @@ const WEAK = new Set(
     ' '
   )
 )
+const PARTIES = new Set(['republicans', 'democrats'])
 // Uitgebreide stand: de EU-sleutels (en Wall Street en Hongkong, plaatsen) zijn ook zwak.
 const WEAK_EXT = new Set([...WEAK, ...Object.values(EU), 'wallstreet', 'hongkong'])
 // H6 (iv), uitgebreide stand: een hoofdletterwoord van drie letters uit de woordenschat telt ook als
@@ -177,7 +182,9 @@ const CONCEPTS = [
   ['arrest', /\b(arrest\w*|gearresteerd|opgepakt|aangehouden|detained)\b/, false],
   ['court', /\b(rechter|rechtbank|rechtszaak|vonnis|veroordeeld|hooggerechtshof|court|judge|trial|convicted|sentenced|verdict)\b/, false],
   ['charged', /\b(aangeklaagd|aanklacht|indicted|charged|indictment)\b/, false],
-  ['election', /(\w*verkiezing\w*|\belection\w*|\bmidterm\w*|\bstembus|\bstemlokal\w*|\bhead to the polls)\b/, false],
+  // Ook de nederlaag of zege van een Amerikaanse partij (keuring 6 november 2026: "Het grote vingerwijzen naar de
+  // schuldigen van de Republikeinse nederlaag" noemde de verkiezing niet).
+  ['election', /(\w*verkiezing\w*|\belection\w*|\bmidterm\w*|\bstembus|\bstemlokal\w*|\bhead to the polls|\b(republikein\w*|republican|democratische|democratic) (nederlaag|zege|overwinning|defeat|loss|losses|victory|sweep))\b/, false],
   ['resign', /\b(aftreden|treedt af|stapt op|opgestapt|ontslagen|resign\w*|steps down|fired)\b/, false],
   ['fire', /\b(brand|branden|bosbrand\w*|wildfire\w*|blaze)\b/, false],
   ['protest', /\b(protest\w*|betoging\w*|demonstratie\w*|demonstrat\w*)\b/, false],
@@ -284,6 +291,7 @@ function signature(article, vocab, ext = false) {
   const strong = new Set()
   const weak = new Set()
   const known = new Set() // bekende algemene namen, ook uit koppen in Titelkast (alleen voor sameSubject)
+  const parties = new Set() // de Amerikaanse partijen (alleen voor sameSubject, niet voor de kop: centralItems)
   // De sleutel van een naam: de alias, in de uitgebreide stand ook in één spelling (translit).
   const aliasOf = (k) => (ext ? translit(alias[k] || k) : alias[k] || k)
   // De sterke sleutel van een woord, of null.
@@ -303,6 +311,7 @@ function signature(article, vocab, ext = false) {
     if (isCap(w) || acr(w)) {
       const k = aliasOf(norm(w))
       if (weakSet.has(k)) known.add(k)
+      if (PARTIES.has(k)) parties.add(k)
     }
     let key = null
     if (acr(w)) key = norm(w)
@@ -323,7 +332,7 @@ function signature(article, vocab, ext = false) {
     }
   }
   // `raw`: kop en tekst, alleen voor sameSubject regel E (subjectText, pas uitgerekend als het nodig is).
-  const out = { eventScope: eventScope(article), words: sigWords(article.title), strong, weak, known, concepts, rareIds: new Set(concepts_.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: timeOf(article), raw }
+  const out = { eventScope: eventScope(article), words: sigWords(article.title), strong, weak, known, parties, concepts, rareIds: new Set(concepts_.filter(([id, , r]) => r && concepts.has(id)).map(([id]) => id)), t: timeOf(article), raw }
   if (ext) {
     // Een samengesteld instituut is ook een rechtbank-begrip (het losse woord "court" is weg).
     if (strong.has('constitutionalcourt') || strong.has('supremecourt')) concepts.add('court')
@@ -435,7 +444,7 @@ export function sameEvent(a, b, ext = false) {
 // Strenger dan sameEvent: twee algemene namen ("Israël", "Netanyahu") plus hetzelfde soort
 // gebeurtenis ("verkiezingen") is genoeg om maar één plek te krijgen. Zo staan er geen drie stukken
 // over één verkiezingsdag in tien verhalen.
-const BROAD = new Set(['us', 'europe', 'un', 'nato', 'uk', 'trump', 'whitehouse', 'congress', 'nederland'])
+const BROAD = new Set(['us', 'europe', 'un', 'nato', 'uk', 'trump', 'whitehouse', 'congress', 'nederland', 'republicans', 'democrats'])
 const SUBJECT_WINDOW = 12 * 60 * 60 * 1000
 // De kernwoorden en getallen van kop en tekst samen, één keer per kenmerk.
 const textCache = new WeakMap()
@@ -464,6 +473,7 @@ export function sameSubject(a, b) {
     }
   }
   const shared = [...a.known].filter((k) => b.known.has(k))
+  for (const k of a.parties || []) if (b.parties?.has(k)) shared.push(k)
   const concepts = sharedCount(a.concepts, b.concepts)
   if (!concepts) return false
   // Twee gedeelde namen, of één met ook een gedeelde eigen naam: hetzelfde onderwerp.
