@@ -152,6 +152,7 @@ struct EditionView: View {
     }
     @Environment(HootStore.self) private var store
     @Environment(\.openTab) private var openTab
+    @Environment(\.openStory) private var openStory
     @Environment(\.isWide) private var wide
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.brandHandoff) private var handoff
@@ -278,7 +279,11 @@ struct EditionView: View {
 
     // Een plek in de Editie: het verhaal met meer of minder hiervan in het menu (lang drukken), of
     // ingeklapt tot één regel als je er minder van wilde.
-    @ViewBuilder private func slot<Content: View>(_ row: EditionRowModel, @ViewBuilder content: () -> Content) -> some View {
+    // Elk verhaal is een anker voor je plek bij vouwen en draaien (Krant.swift, PlekBewaren).
+    private func slot<Content: View>(_ row: EditionRowModel, @ViewBuilder content: () -> Content) -> some View {
+        slotKern(row, content: content).plekAnker(row.id)
+    }
+    @ViewBuilder private func slotKern<Content: View>(_ row: EditionRowModel, @ViewBuilder content: () -> Content) -> some View {
         let items = [row.item] + (row.story?.itemIds ?? []).filter { $0 != row.item.id }.compactMap { store.itemsById[$0] }
         if store.less.contains(row.id) {
             HStack(alignment: .firstTextBaseline, spacing: Space.s2) {
@@ -395,7 +400,7 @@ struct EditionView: View {
                                 kantenTipDone = true
                                 var s = tip.story
                                 s.tappedId = tip.item.id
-                                path.append(s)
+                                if let openStory { openStory(s) } else { path.append(s) }
                             }, close: { kantenTipDone = true })
                             .padding(.bottom, Space.s1) // het tikvlak van Vergelijk (44) geeft de rest: samen 16 tot de lijn
                             .loadLinesText(lines)
@@ -526,6 +531,7 @@ struct EditionView: View {
                 .environment(\.placeholderPlan, placeholderPlan)
             }
             .debugJump(proxy, to: Self.slotTarget(store.editionRows), when: store.editionRows.count)
+            .plekBewaren(proxy)
             .onGeometryChange(for: CGSize.self) { $0.size } action: { screen = $0 }
             // De vouw: wat er zonder scrollen te zien is, tussen de kopregel en de tabbalk (Vouw.swift).
             .onGeometryChange(for: VouwMaat.self) { VouwMaat(hoogte: $0.size.height, boven: $0.safeAreaInsets.top, onder: $0.safeAreaInsets.bottom, venster: $0.frame(in: .global).maxY + $0.safeAreaInsets.bottom) } action: { vouwMaat = $0 }
@@ -558,6 +564,7 @@ struct EditionView: View {
             .navigationTitle(title) // voor VoiceOver en de terugknop; je ziet de titel in de scroll
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
+            .krantVerhaal() // Vergelijken: hier als stap, open op de Duo op de rechterbladzijde
             .hootRefresh(indicator: !store.editionRows.isEmpty, label: "Editie", failed: { store.coreFailed }) { await store.load() }
             .hootKopScreen()
             .settingsButton()
@@ -596,7 +603,7 @@ struct EditionView: View {
             }
             .task(id: store.editionRows.count) {
                 // `-HootScreen verhaal`: het eerste verhaal met de meeste bronnen, om te vergelijken.
-                if DebugLaunch.screen("verhaal"), path.isEmpty, let story = store.editionRows.compactMap(\.story).max(by: { ($0.sourceCount ?? 1) < ($1.sourceCount ?? 1) }) { path.append(story) }
+                if DebugLaunch.screen("verhaal"), path.isEmpty, let story = store.editionRows.compactMap(\.story).max(by: { ($0.sourceCount ?? 1) < ($1.sourceCount ?? 1) }) { if let openStory { openStory(story) } else { path.append(story) } }
             }
         }
     }

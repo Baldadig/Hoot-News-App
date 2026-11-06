@@ -40,8 +40,17 @@ enum Radius {
 
 extension View {
     // Een kolom van hooguit `width` punten, gecentreerd.
+    // Op een krantenpagina (de Duo open en staand, KrantIndeling.enkel) nooit breder dan die pagina.
     func column(_ width: CGFloat = Layout.readable) -> some View {
-        frame(maxWidth: width).frame(maxWidth: .infinity)
+        modifier(Column(width: width))
+    }
+}
+
+struct Column: ViewModifier {
+    @Environment(\.paginaMaat) private var pagina
+    let width: CGFloat
+    func body(content: Content) -> some View {
+        content.frame(maxWidth: min(width, pagina ?? .infinity)).frame(maxWidth: .infinity)
     }
 }
 

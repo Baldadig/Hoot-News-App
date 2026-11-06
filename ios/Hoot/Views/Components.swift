@@ -42,6 +42,16 @@ enum Theme {
 final class Reader {
     var item: Item?
 
+    // Vouwen (iPhone Duo) zet de lezer van blad naar bladzijde en terug: een nieuwe view. Het geladen artikel
+    // en de alinea waar je was blijven hier, per venster, zodat hij niet opnieuw laadt en niet naar boven springt.
+    // Alleen het laatste artikel: genoeg voor vouwen en draaien, en geen geheugen dat groeit.
+    @ObservationIgnored private(set) var geladen: (id: Item.ID, artikel: Article)?
+    @ObservationIgnored private(set) var plek: (id: Item.ID, plek: LeesPlek)?
+    func artikel(voor id: Item.ID) -> Article? { geladen?.id == id ? geladen?.artikel : nil }
+    func bewaar(_ artikel: Article, voor id: Item.ID) { if geladen?.id != id || geladen?.artikel != artikel { geladen = (id, artikel) } }
+    func plek(voor id: Item.ID) -> LeesPlek? { plek?.id == id ? plek?.plek : nil }
+    func bewaarPlek(_ nieuw: LeesPlek, voor id: Item.ID) { plek = (id, nieuw) }
+
     // De Safari-weergave kan alleen http(s) tonen.
     static func canShow(_ url: URL) -> Bool { ["http", "https"].contains(url.scheme?.lowercased() ?? "") }
 
@@ -489,7 +499,7 @@ struct SourceLine: View {
                 HStack(alignment: .firstTextBaseline, spacing: 0) {
                     sourceLink { Text(narrowMeta) }
                     if let story, let count = story.sourceCount, count > 1 {
-                        NavigationLink(value: tapped(story)) {
+                        StoryLink(story: tapped(story)) {
                             Text("\u{00A0}·\u{00A0}\(Self.label(count))").lineLimit(1).fixedSize().contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
@@ -534,7 +544,7 @@ struct SourceLine: View {
 
     @ViewBuilder private var kaartCount: some View {
         if let story, let count = story.sourceCount, count > 1 {
-            NavigationLink(value: tapped(story)) {
+            StoryLink(story: tapped(story)) {
                 Text(Self.label(count)).monospacedDigit()
                     .font(.ui(.subheadline, .semibold))
                     .foregroundStyle(Theme.ink2)
@@ -609,7 +619,7 @@ struct SourceLine: View {
     @ViewBuilder private var more: some View {
         if let story, let count = story.sourceCount, count > 1 {
             // Het stuk waarop je tikte is de kop in Vergelijken, niet een ander stuk uit de bundel.
-            NavigationLink(value: tapped(story)) { moreLabel(Self.label(count)) }
+            StoryLink(story: tapped(story)) { moreLabel(Self.label(count)) }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Vergelijk \(count) bronnen")
         }
@@ -632,6 +642,20 @@ struct SourceLine: View {
             .fixedSize() // nooit afgekapt: dan liever twee regels
             .frame(minHeight: 44) // een aanraakvlak van 44 pt, los van het artikel erboven
             .contentShape(Rectangle())
+    }
+}
+
+// "N bronnen": vergelijken. Als stap in de lijst, of open op de Duo op de rechterbladzijde (Krant.swift).
+struct StoryLink<Label: View>: View {
+    @Environment(\.openStory) private var openStory
+    let story: Story
+    @ViewBuilder var label: () -> Label
+    var body: some View {
+        if let openStory {
+            Button { openStory(story) } label: { label() }
+        } else {
+            NavigationLink(value: story) { label() }
+        }
     }
 }
 
@@ -706,6 +730,7 @@ struct ArticleActions: ViewModifier {
     func body(content: Content) -> some View {
         Button { reader.open(item, store: store) } label: { content }
             .buttonStyle(.plain)
+            .krantGekozen(item) // open op de Duo: het stuk op de rechterbladzijde
             .hoverEffect(.highlight) // muis of trackpad op iPad
             .contextMenu { ArticleMenuContent(item: item) { noticeTitle = $0; noticeText = $1; noticeOpen = true } }
             .alert(noticeTitle,isPresented:$noticeOpen) { Button("Oké",role:.cancel) {} } message: { Text(noticeText) }

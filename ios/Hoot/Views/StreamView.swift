@@ -135,6 +135,7 @@ struct StreamView: View {
                                     else { ItemRow(item: item, story: store.story(of: item)) }
                                 }
                                     .transition(.identity)
+                                    .plekAnker(item.id) // je plek bij vouwen en draaien (Krant.swift)
                                 if !(marker && i == bIdx - 1) { Rule() }
                             }
                             if cap >= items.count {
@@ -168,6 +169,7 @@ struct StreamView: View {
                 }
             }
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportHeight = $0 }
+            .plekBewaren(scroll)
             .debugScroll()
             .background(Theme.paper)
             // Scrollen klapt de stapel dicht (ernaast tikken doet de lijn zelf).
@@ -175,6 +177,7 @@ struct StreamView: View {
             .navigationTitle("Stroom") // de rode streep zegt al welke rubriek
             .hootKopScreen()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
+            .krantVerhaal()
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .hootRefresh(indicator: !store.stream.isEmpty, label: "Stroom", failed: { store.coreFailed }) { await store.load() }
             .sheet(isPresented: $showSources) { SourcesView().debugAppearance() }
@@ -455,6 +458,7 @@ struct SavedView: View {
             .hootScreenTitle()
             .settingsButton(toolbar: true)
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
+            .krantVerhaal()
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
         }
     }
@@ -514,6 +518,7 @@ struct SearchView: View {
             .hootBrandHeader()
             .hootScreenTitle()
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
+            .krantVerhaal()
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
             .searchable(text: $query, prompt: "Zoek op woord of bron") // past ook op de SE; auteurs noemt de lege staat
         }

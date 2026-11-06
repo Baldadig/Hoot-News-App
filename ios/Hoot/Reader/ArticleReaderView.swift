@@ -11,6 +11,8 @@ struct ArticleReaderView: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.accessibilityReduceMotion) private var still
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(Reader.self) private var reader: Reader? // het geladen artikel en je plek, voor vouwen (Duo)
+    @Environment(\.krantPagina) private var opPagina // open op de Duo: de lezer staat op de rechterbladzijde
     @State private var width: CGFloat = 0 // breedte van de lezer, om te zien welk woord in de kop niet past
     let item: Item
     @State private var loader = ArticleLoader()
@@ -43,7 +45,8 @@ struct ArticleReaderView: View {
                 case .loading:
                     ReaderLoadingView(title: item.title.isEmpty ? (item.summary ?? "") : typeset(item.title, lang: source?.lang), sourceName: sourceName, waiting: waiting)
                 case let .ready(article):
-                    ArticleWebView(html: ReaderHTML.page(article, item: item, sourceName: sourceName, size: size, lang: source?.lang, night: nacht, typeSize: typeSize, width: width), baseURL: item.link)
+                    ArticleWebView(html: ReaderHTML.page(article, item: item, sourceName: sourceName, size: size, lang: source?.lang, night: nacht, typeSize: typeSize, width: width, pagina: opPagina), baseURL: item.link,
+                                   plek: reader?.plek(voor: item.id), bewaarPlek: { [reader, id = item.id] in reader?.bewaarPlek($0, voor: id) })
                         .ignoresSafeArea(edges: .bottom)
                         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
                         .safeAreaInset(edge: .bottom) {
@@ -85,7 +88,8 @@ struct ArticleReaderView: View {
             // De werkbalk is stil: iconen in ink3. Alleen bewaard springt eruit, in rood (SaveButton).
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Sluit", systemImage: "xmark") { dismiss() }.tint(Theme.ink3)
+                    // Op de bladzijde (Duo open) is de lezer geen blad: sluiten is de bladzijde leeg maken.
+                    Button("Sluit", systemImage: "xmark") { if opPagina { reader?.item = nil } else { dismiss() } }.tint(Theme.ink3)
                 }
                 ToolbarItemGroup(placement: .primaryAction) {
                     Menu {
@@ -122,7 +126,11 @@ struct ArticleReaderView: View {
                 }
             }
         }
-        .task { if let url = item.link { loader.load(url) } }
+        .task {
+            // Na vouwen of draaien: hetzelfde artikel meteen, zonder opnieuw te laden.
+            if let artikel = reader?.artikel(voor: item.id) { loader.toon(artikel, url: item.link) } else if let url = item.link { loader.load(url) }
+        }
+        .onChange(of: loader.state) { _, state in if case let .ready(a) = state { reader?.bewaar(a, voor: item.id) } }
         .task {
             signedIn = await isSignedIn()
             #if DEBUG
@@ -204,18 +212,22 @@ enum ReaderFonts {
 enum ReaderHTML {
     static let scales = [0.9, 1.0, 1.15, 1.32]
 
-    static func page(_ a: Article, item: Item, sourceName: String, size: Int, lang: String? = nil, night: Bool = false, typeSize: DynamicTypeSize? = nil, width: CGFloat = 0) -> String {
-        let scale = scales[min(max(size, 0), scales.count - 1)]
+    static func page(_ a: Article, item: Item, sourceName: String, size: Int, lang: String? = nil, night: Bool = false, typeSize: DynamicTypeSize? = nil, width: CGFloat = 0, pagina: Bool = false) -> String {
+        var scale = scales[min(max(size, 0), scales.count - 1)]
         // De tekstmaat komt uit de omgeving van de view (niet uit UITraitCollection.current, onbetrouwbaar in een body) en gaat als px in de pagina.
         let bodyPx = typeSize.map { KopZet.pointSize(.body, typeSize: $0) }
         let accessibilitySize = typeSize?.isAccessibilitySize ?? false
+        // Op een bladzijde van de krant (Duo open, Krant.swift): 60 tot 75 tekens per regel (Leesmaat).
+        let maat = Leesmaat.maat(kolom: Double(width), body: Double(bodyPx ?? UIFont.preferredFont(forTextStyle: .body).pointSize), keuze: scale, pagina: pagina, groteTekst: (typeSize ?? .large) > .large)
+        scale *= maat.schaal
+        let marge = Int(maat.marge)
         var title = typeset(a.title.isEmpty ? item.title : a.title, lang: lang) // de lezer haalt de kop zelf: zetten zoals de server (T6)
         // Newsreader 800 is breed: een woord breder dan de kolom ("Rijksvoorlichtingsdienst" op een SE) krijgt zachte
         // afbreekstreepjes op de lettergrepen, zoals Kop. Woorden die passen blijven heel. Kopmaat en kolom als in de css hieronder.
         if width > 0 {
             let body = bodyPx ?? UIFont.preferredFont(forTextStyle: .body).pointSize
             let headPx = min(1.75 * 1.12 * scale * body, 48)
-            let column = min(width, 680) - 32
+            let column = min(width, 680) - 2 * CGFloat(marge)
             title = KopZet.fit(title, font: UIFont(name: Letters.kop, size: headPx) ?? .systemFont(ofSize: headPx, weight: .heavy), width: column).text
         }
         title = escape(title)
@@ -233,7 +245,7 @@ enum ReaderHTML {
         @media (prefers-color-scheme: dark) { :root { --paper:#151310; --ink:#F1ECE2; --ink-3:#A39B8D; --rule:#34302A; --accent:#EC7A70; } }
         html { font: -apple-system-body;\(bodyPx.map { " font-size: \($0)px;" } ?? "") -webkit-text-size-adjust: 100%; }
         body { margin:0; background:var(--paper); color:var(--ink); }
-        main { max-width: 680px; margin: 0 auto; padding: 16px 16px 48px; /* s4, s7 */ font-family: "Newsreader Tekst", ui-serif, Georgia, serif; font-size: calc(1.12rem * \(scale)); line-height: 1.6; } /* lopende tekst: Newsreader op tekstmaat, in Nacht 430 (ReaderFonts); een stap groter dan New York (1.06), want Newsreader oogt op dezelfde maat kleiner */
+        main { max-width: 680px; margin: 0 auto; padding: 16px \(marge)px 48px; /* s4, s7 */ font-family: "Newsreader Tekst", ui-serif, Georgia, serif; font-size: calc(1.12rem * \(scale)); line-height: 1.6; } /* lopende tekst: Newsreader op tekstmaat, in Nacht 430 (ReaderFonts); een stap groter dan New York (1.06), want Newsreader oogt op dezelfde maat kleiner */
         .kicker { font-family: "Schibsted Grotesk", -apple-system, system-ui, sans-serif; font-size: .72em; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 .6em; }
         h1.title { font-family: "Newsreader Kop", ui-serif, Georgia, serif; font-size: min(1.75em, 48px); line-height: 1.15; font-weight: 800; margin: 0 0 .4em; } /* bij heel grote tekst niet een heel scherm kop */
         .meta { font-family: "Schibsted Grotesk", -apple-system, system-ui, sans-serif; font-size: .8em; color: var(--ink-3); margin: 0 0 1.6em; padding-bottom: 1em; border-bottom: 1px solid var(--rule); }
@@ -270,6 +282,9 @@ enum ReaderHTML {
 struct ArticleWebView: UIViewRepresentable {
     let html: String
     let baseURL: URL?
+    /// De alinea waar je was (vouwen, draaien), en waar je bewaart waar je nu bent.
+    var plek: LeesPlek? = nil
+    var bewaarPlek: ((LeesPlek) -> Void)? = nil
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -283,17 +298,68 @@ struct ArticleWebView: UIViewRepresentable {
         view.underPageBackgroundColor = NachtKleur.paper
         view.scrollView.backgroundColor = .clear
         view.navigationDelegate = context.coordinator
+        context.coordinator.volg(view)
         return view
     }
 
     func updateUIView(_ view: WKWebView, context: Context) {
+        context.coordinator.bewaar = bewaarPlek
         guard context.coordinator.shown != html else { return }
         context.coordinator.shown = html
+        // Een nieuwe opmaak van hetzelfde artikel (andere breedte): terug naar de alinea waar je was.
+        if context.coordinator.plek == nil { context.coordinator.plek = plek }
+        context.coordinator.terug = false
         view.loadHTMLString(html, baseURL: baseURL)
     }
 
+    static func dismantleUIView(_ view: WKWebView, coordinator: Coordinator) { coordinator.stop() }
+
+    @MainActor
     final class Coordinator: NSObject, WKNavigationDelegate {
         var shown = ""
+        var plek: LeesPlek?
+        var bewaar: ((LeesPlek) -> Void)?
+        var terug = false // de plek is teruggezet: vanaf nu telt scrollen
+        private var kijker: NSKeyValueObservation?
+        private var meten: Task<Void, Never>?
+
+        func volg(_ view: WKWebView) {
+            kijker = view.scrollView.observe(\.contentOffset, options: [.new]) { [weak self, weak view] _, _ in
+                Task { @MainActor in
+                    guard let self, let view, self.terug else { return }
+                    self.meten?.cancel()
+                    self.meten = Task { [weak self, weak view] in
+                        try? await Task.sleep(for: .milliseconds(250)) // als het scrollen stilvalt
+                        guard !Task.isCancelled, let self, let view else { return }
+                        await self.meet(view)
+                    }
+                }
+            }
+        }
+        func stop() { kijker?.invalidate(); kijker = nil; meten?.cancel() }
+
+        private func meet(_ view: WKWebView) async {
+            let top = Double(view.scrollView.contentOffset.y + view.scrollView.adjustedContentInset.top)
+            guard let uit = try? await view.callAsyncJavaScript(LeesPlek.meetJS, arguments: ["y": top], in: nil, contentWorld: .defaultClient) as? [Double], uit.count == 2 else { return }
+            let nieuw = LeesPlek(alinea: Int(uit[0]), binnen: uit[1])
+            plek = nieuw
+            bewaar?(nieuw)
+        }
+
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            guard let plek, plek.alinea > 0 || plek.binnen > 0 else { terug = true; return }
+            Task { @MainActor [weak webView] in
+                try? await Task.sleep(for: .milliseconds(120)) // de letters staan
+                guard let webView else { return }
+                if let y = try? await webView.callAsyncJavaScript(LeesPlek.zetJS, arguments: ["i": plek.alinea, "f": plek.binnen], in: nil, contentWorld: .defaultClient) as? Double {
+                    let s = webView.scrollView
+                    let max = s.contentSize.height - s.bounds.height + s.adjustedContentInset.bottom
+                    s.setContentOffset(CGPoint(x: 0, y: min(max, y) - s.adjustedContentInset.top), animated: false)
+                }
+                self.terug = true
+            }
+        }
+
         func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction) async -> WKNavigationActionPolicy {
             if action.navigationType == .linkActivated, let url = action.request.url {
                 await UIApplication.shared.open(url)
@@ -302,6 +368,27 @@ struct ArticleWebView: UIViewRepresentable {
             return .allow
         }
     }
+}
+
+// Waar je in een artikel bent: de hoeveelste alinea (een kind van <main>) bovenaan, en hoe ver daarin. Een
+// alinea en niet een aantal punten: na vouwen is de kolom anders breed en loopt de tekst anders, maar je
+// staat bij dezelfde zin. Het script draait in de eigen wereld van de app; JavaScript van de pagina blijft uit.
+struct LeesPlek: Equatable, Sendable {
+    var alinea: Int
+    var binnen: Double
+    static let meetJS = """
+    const els = document.querySelectorAll('main > *');
+    for (let i = 0; i < els.length; i++) {
+      const e = els[i], top = e.offsetTop, h = e.offsetHeight;
+      if (top + h > y) return [i, h > 0 ? Math.max(0, Math.min(1, (y - top) / h)) : 0];
+    }
+    return [0, 0];
+    """
+    static let zetJS = """
+    const els = document.querySelectorAll('main > *');
+    const e = els[Math.min(i, els.length - 1)];
+    return e ? e.offsetTop + f * e.offsetHeight : 0;
+    """
 }
 
 // Een bestaande web-weergave tonen (de pagina van de uitgever, voor toestemming of inloggen).

@@ -87,6 +87,7 @@ struct DigestView: View {
             .background(Theme.paper)
             .navigationTitle("Selectie")
             .hootKopScreen()
+            .krantVerhaal()
             .settingsButton()
             .hootRefresh(indicator: store.digest != nil, label: "Selectie", failed: { store.digestRefreshFailed || store.digestStatus == .failed }) { await store.loadDigest(force: true) }
             .sheet(isPresented: $choosing) {
