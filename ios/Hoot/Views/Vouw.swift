@@ -8,7 +8,7 @@ import Vision
 // Volgorde: eerst geeft het beeld ruimte (van 3:2 tot 2:1), dan de kop (30/36 naar 26/32), pas als laatste de
 // intro (een hele zin minder, IntroText). Past het dan nog niet (een heel lange kop), dan loopt het gewoon door.
 // Alleen bij tekstgrootte Large of kleiner, op de iPhone mini (812 hoog) en op schermen van Pro-formaat en groter.
-// Op de mini strakker: kop 26 al vanaf 4 regels op 30, en de intro hooguit 2 regels. De SE (667) en grotere
+// Op de mini strakker: kop 26 al vanaf 4 regels op 30. De intro hooguit 5 regels, net als op de Pro. De SE (667) en grotere
 // tekst houden de gewone kaart. Het web doet hetzelfde (src/lib/vouw.js, src/styles/vouw.css).
 enum Vouw {
     enum Profiel: Equatable { case mini, pro }
@@ -19,7 +19,7 @@ enum Vouw {
     }
 
     // Hoeveel regels intro hooguit (hele zinnen).
-    static func introRegels(_ p: Profiel) -> Int { p == .mini ? 2 : 5 }
+    static func introRegels(_ p: Profiel) -> Int { 5 } // mini gelijk aan de Pro (Alex, 6 november)
     // Vanaf hoeveel regels op 30 de kop meteen 26 wordt (nil: alleen als het anders niet past).
     static func kop26Vanaf(_ p: Profiel) -> Int? { p == .mini ? 4 : nil }
 

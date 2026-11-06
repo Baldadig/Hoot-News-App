@@ -5,13 +5,13 @@
 // (een hele zin minder). Past het dan nog niet (een heel lange kop), dan loopt het gewoon door. De bronregel van 01
 // eindigt boven de tabbalk, binnen het eerste scherm; daarna begint 02.
 // Alleen op een telefoon bij de standaard tekstgrootte, op de iPhone mini (812 hoog) en op schermen van Pro-formaat
-// en groter. Op de mini strakker: kop 26 al vanaf 4 regels op 30, en de intro hooguit 2 regels. De SE (667) en
+// en groter. Op de mini strakker: kop 26 al vanaf 4 regels op 30; de intro hooguit 5 regels, net als op de Pro. De SE (667) en
 // grotere tekst houden de gewone kaart.
 import { useLayoutEffect, useEffect, useRef, useState } from 'react'
 import { SENTENCE_END } from '../../shared/zinnen.mjs'
 
 export const VOUW = {
-  mini: { introRegels: 2, kop26Vanaf: 4 },
+  mini: { introRegels: 5, kop26Vanaf: 4 },
   pro: { introRegels: 5, kop26Vanaf: null },
 }
 

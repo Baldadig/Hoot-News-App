@@ -61,6 +61,10 @@ import UIKit
         XCTAssertNil(Vouw.profiel(vensterHoogte: 667, typeSize: .large), "SE: gewoon doorlopen")
         XCTAssertNil(Vouw.profiel(vensterHoogte: 874, typeSize: .xLarge), "grotere tekst: gewoon doorlopen")
         XCTAssertNil(Vouw.profiel(vensterHoogte: 874, typeSize: .accessibility3))
+        // De intro hooguit 5 regels, op de mini net als op de Pro (de oude mini-regel van 2 is vervallen).
+        XCTAssertEqual(Vouw.introRegels(.mini), 5)
+        XCTAssertEqual(Vouw.introRegels(.pro), 5)
+        XCTAssertEqual(Vouw.kop26Vanaf(.mini), 4)
     }
 
     func testBeeldTussen3op2En2op1() {
