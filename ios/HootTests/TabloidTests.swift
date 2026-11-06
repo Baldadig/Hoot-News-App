@@ -126,13 +126,20 @@ import SwiftUI
 
     // MARK: De lezer open staand: één rustige kolom
 
-    func testDeLezerOverDeTabloidHaaltZestigTotZeventigTekens() {
+    func testDeLezerOverDeTabloidHaaltZestigTekens() {
+        // Duo 1.2, punt 4: ± 58–62 tekens (ONDERZOEK §6.7), in dezelfde letter en met dezelfde marge 24.
         let px = Leesmaat.tekstFactor * 17 // de standaardletter
-        let tabloid = Leesmaat.tekens(kolom: 669, px: px, marge: Leesmaat.marge(pagina: false, ruim: true))
-        XCTAssertGreaterThanOrEqual(tabloid, 60)
-        XCTAssertLessThanOrEqual(tabloid, 70)
+        let tabloid = Leesmaat.tekens(kolom: 669, px: px, marge: Leesmaat.marge(pagina: false, ruim: true), ruim: true)
+        XCTAssertGreaterThanOrEqual(tabloid, 58)
+        XCTAssertLessThanOrEqual(tabloid, 62)
         // Een grotere letter geeft een kortere regel, nooit een kleinere letter.
-        XCTAssertLessThan(Leesmaat.tekens(kolom: 669, px: Leesmaat.tekstFactor * 21, marge: 24), tabloid)
+        XCTAssertLessThan(Leesmaat.tekens(kolom: 669, px: Leesmaat.tekstFactor * 21, marge: 24, ruim: true), tabloid)
+        // De pagina: de kolom is 580 breed, de marge blijft 24; elders 680 zoals altijd.
+        let a = Article(title: "Kop", content: "<p>Tekst</p>", length: 10)
+        let i = Item(id: "x", source: "nos", title: "Kop", url: "https://nos.nl/a")
+        XCTAssertTrue(ReaderHTML.page(a, item: i, sourceName: "NOS", size: 1, typeSize: .large, width: 669, ruim: true).contains("main { max-width: 580px; margin: 0 auto; padding: 16px 24px 48px"))
+        XCTAssertTrue(ReaderHTML.page(a, item: i, sourceName: "NOS", size: 1, typeSize: .large, width: 669).contains("main { max-width: 680px; margin: 0 auto; padding: 16px 16px 48px"))
+        XCTAssertTrue(ReaderHTML.page(a, item: i, sourceName: "NOS", size: 1, typeSize: .large, width: 475, pagina: true).contains("main { max-width: 680px; margin: 0 auto; padding: 16px 12px 48px"))
         // iPhone en iPad: de marge blijft 16.
         XCTAssertEqual(Leesmaat.marge(pagina: false), 16)
         let item = Item(id: "x", source: "nos", title: "Kop", url: "https://nos.nl/a")

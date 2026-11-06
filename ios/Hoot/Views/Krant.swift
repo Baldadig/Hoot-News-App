@@ -210,12 +210,21 @@ enum Leesmaat {
     static let tekstFactor = 1.12
 
     /// De zijmarge van de lezer: 16 op een blad (iPhone, iPad), 12 op een bladzijde van de krant, 24 als blad over
-    /// de tabloid (de Duo open staand: 669 breed). Daar geeft 16 ± 72 tekens; met 24 is het één rustige kolom van
-    /// ± 70 tekens bij de standaardletter, en minder bij een grotere letter (letter boven regel).
+    /// de tabloid (de Duo open staand: 669 breed).
     static func marge(pagina: Bool, ruim: Bool = false) -> Double { pagina ? 12 : ruim ? 24 : 16 }
 
+    /// De leeskolom (met marge) van het blad over de tabloid. Op 669 gaf de volle breedte met marge 24 nog ± 70
+    /// tekens; het onderzoek (§6.7) wil ± 58–62. Dezelfde letter en dezelfde marge, maar een smallere kolom in het
+    /// midden van het blad: ± 60 tekens bij de standaardletter, minder bij een grotere letter (letter boven regel).
+    static let ruimeKolom: Double = 580
+
+    /// De breedste kolom van de lezer (de `max-width` van de pagina): 680 (Layout.readable), over de tabloid 580.
+    static func kolom(ruim: Bool) -> Double { ruim ? ruimeKolom : 680 }
+
     /// Hoeveel tekens er op een regel gaan, bij deze kolom, lettermaat (px) en marge.
-    static func tekens(kolom: Double, px: Double, marge: Double) -> Double { (min(kolom, 680) - 2 * marge) / (px * tekenEm) }
+    static func tekens(kolom: Double, px: Double, marge: Double, ruim: Bool = false) -> Double {
+        (min(kolom, Self.kolom(ruim: ruim)) - 2 * marge) / (px * tekenEm)
+    }
 }
 
 // MARK: De staat van de krant
