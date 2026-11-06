@@ -70,7 +70,7 @@ final class BeeldIntroTests: XCTestCase {
         // mislukking geen grijs vlak staan.
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
         let components = try String(contentsOf: root.appending(path: "Hoot/Views/Components.swift"), encoding: .utf8)
-        XCTAssertEqual(components.components(separatedBy: "BeeldloosView(item: item, kind:").count - 1, 6) // hoofdverhaal (2), tijdlijn, krant, plus de kaart A+ van het hoofdverhaal en van de tijdlijn
+        XCTAssertEqual(components.components(separatedBy: "BeeldloosView(item: item, kind:").count - 1, 7) // hoofdverhaal (2), tijdlijn, krant, plus de kaart A+ van het hoofdverhaal en van de tijdlijn, en 01 boven de vouw
         XCTAssertTrue(components.contains("} else if loader.failed {\n                Color.clear"))
         XCTAssertTrue(components.contains("onFail: mislukt"))
     }
