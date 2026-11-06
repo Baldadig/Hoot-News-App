@@ -557,6 +557,52 @@ test('bovenaan de kop van een Nederlandse bron als het verhaal die heeft, ook bi
   assert.equal(items.get(entries[3].leadId).source, 'dw', 'alleen de top')
 })
 
+test('de Nederlandse kop geeft dezelfde actuele stand: niet veel ouder en geen ingehaalde vooruitblik (3b · ronde 7 · 1)', async () => {
+  const { dutchHeads, outlookTitle, staleOutlook } = await import('../netlify/lib/stories.mjs')
+  const T = Date.parse('2026-11-12T06:00:00Z')
+  const at = (h) => new Date(T - h * 36e5).toISOString()
+  let n = 0
+  const art = (source, title, h) => ({ id: `o${++n}`, kind: 'article', source, title, summary: `${title}.`, publishedAt: at(h), url: `https://example.com/nieuws/${n}` })
+  const members = new Map()
+  const story = (id, its, leadSource) => {
+    members.set(id, its)
+    return { kind: 'story', id, leadId: its.find((i) => i.source === leadSource).id, desk: 'buitenland' }
+  }
+  // De ochtend na een referendum in een verzonnen land: de Engelse kop meldt de uitkomst, het enige Nederlandse stuk is de
+  // vooruitblik van gisteravond (binnen het venster van DUTCH_HEAD_LAG).
+  const vote = story('vote', [
+    art('nyt', 'Velor Premier Hanno Kreisler Accepts Referendum Defeat', 1),
+    art('bbc', 'Hanno Kreisler concedes Velor referendum defeat', 2),
+    art('guardian', 'Velor rejects reform as Hanno Kreisler loses referendum', 3),
+    art('nos', 'Velor naar de stembus: Hanno Kreisler hoopt op ja, hier wordt het verschil gemaakt', 10),
+  ], 'nyt')
+  // Een beursval: het Nederlandse stuk is van de avond ervoor (19 uur), de Engelse kop van een uur geleden.
+  const stocks = story('stocks', [
+    art('nyt', 'Asian Markets Follow Nasdaq Lower as Nvidia Slides', 1),
+    art('ft', 'Nvidia slide drags Asian stocks after Nasdaq fall', 2),
+    art('bbc', 'Nvidia and Nasdaq fall hits markets in Asia', 2),
+    art('nos', 'Nvidia krijgt klappen op Wall Street, Nasdaq 4 procent omlaag', 19),
+  ], 'nyt')
+  // Een gewone gebeurtenis met een Nederlands stuk van een paar uur eerder: dat wordt de kop.
+  const quake = story('quake', [
+    art('nyt', 'Hackers Steal $2.1 Billion From Crypto Exchange Kraxa', 1),
+    art('bbc', 'Kraxa crypto exchange hacked, $2.1 billion stolen', 2),
+    art('guardian', 'Kraxa hack: $2.1bn in crypto stolen from exchange', 2),
+    art('tweakers', 'Cryptobeurs Kraxa gehackt: 2,1 miljard dollar aan crypto gestolen', 7),
+  ], 'nyt')
+  const itemsOf = (e) => members.get(e.id)
+  const of = (e) => itemsOf(e).find((i) => i.id === e.leadId)
+  assert.ok(outlookTitle(members.get('vote')[3]) && !outlookTitle(members.get('vote')[0]), 'een vooruitblik, en een uitkomst met "accepts" is er geen')
+  assert.ok(staleOutlook(members.get('vote')[3], members.get('vote')))
+  const entries = dutchHeads([vote, stocks, quake].map((e) => ({ ...e })), { itemsOf, mainIds: MAIN_IDS, now: T })
+  assert.equal(of(entries[0]).source, 'nyt', 'geen vooruitblik van gisteren boven de uitkomst')
+  assert.equal(of(entries[1]).source, 'nyt', 'geen Nederlands stuk van de vorige stand')
+  assert.equal(of(entries[2]).source, 'tweakers', 'een paar uur ouder over dezelfde gebeurtenis mag')
+  // Na de vorige Editie: een Nederlandse kop van daarvóór is geen nieuws meer.
+  const later = dutchHeads([quake].map((e) => ({ ...e })), { itemsOf, mainIds: MAIN_IDS, now: T, since: T - 3 * 36e5 })
+  assert.equal(of(later[0]).source, 'nyt')
+})
+
 test('nieuwsbelang boven sensatie: een verhaal over een bekend persoon opent niet naast even groot economisch nieuws (3b · ronde 6 · 2)', async () => {
   const { newsBeforePeople, peopleStory, weightyStory, curioStory } = await import('../netlify/lib/stories.mjs')
   const T = Date.parse('2026-11-06T17:00:00Z')

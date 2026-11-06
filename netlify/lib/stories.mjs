@@ -1599,16 +1599,31 @@ export function openWithNews(entries, { itemsOf, pick }) {
 //   zelden genoeg namen;
 // - de verste van die stukken (freshest: niet een stuk van gisteren als er een van vandaag is), daarbinnen de volgorde van
 //   leadCandidates (eigen bronnen, intro, beeld), liefst een bron die nog geen kop in de top heeft.
+// Ronde 7 · 1 (keuring ronde 6: op 4 november ochtend, na de uitslag van de midterms, werd "Amerikanen naar de stembus, hier
+// wordt het verschil gemaakt" van de dag ervoor de kop in plaats van "Trump zegt de uitslag te aanvaarden"): de Nederlandse
+// kop moet dezelfde actuele stand van het verhaal geven als de kop die hij vervangt.
+// - Niet veel ouder: hooguit DUTCH_HEAD_LAG vóór de kop die hij vervangt (dezelfde nieuwscyclus, het venster van freshest).
+//   Een Nederlands stuk van de avond ervoor is de vorige stand, ook al gaat het over hetzelfde verhaal.
+// - Geen vooruitblik als de uitkomst al bekend is (staleOutlook): een kop die vooruitkijkt of aankondigt (naar de stembus,
+//   in aanloop naar, ahead of …) gaat niet boven een verhaal dat een nieuwer stuk heeft dat dat niet doet.
+// - Na de vorige Editie (`since`, ronde 7 · 3): een kop van vóór de vorige Editie is geen nieuws meer.
 // Wijzigt `entries` (de plek met een nieuwe kop is een kopie). `itemsOf(e)`: de stukken van een plek.
 export const DUTCH_HEAD_TOP = 3
-export function dutchHeads(entries, { itemsOf, mainIds = new Set(), now = null, top = DUTCH_HEAD_TOP }) {
+export const DUTCH_HEAD_LAG = BACKGROUND_GAP
+// Een vooruitblik of aankondiging naar de kop: wat er gaat gebeuren, niet wat er gebeurde. Alleen vaste uitdrukkingen, geen
+// losse hulpwerkwoorden ("zal", "will": "Trump Says He Will Accept Election Results" meldt juist een uitkomst).
+const OUTLOOK = /\b(naar de stembus|naar de stembussen|gaat stemmen|gaan stemmen|stemt vandaag|stemmen vandaag|kiezers trekken|in (?:de )?aanloop naar|op weg naar|vooruitblik\w*|voorbeschouwing\w*|wat (?:je|u) moet weten|wat (?:we|je) kunnen verwachten|hier wordt het|wordt (?:vandaag|morgen|vanavond) beslist|vandaag beslist|morgen beslist|beslissende dag|spannende dag|ahead of|what to expect|preview|previewing|heads? to the polls|go(?:es)? to the polls|polls open|on the eve of|countdown to|set to vote|gears? up for)\b/
+export const outlookTitle = (i) => OUTLOOK.test(norm(i?.title || ''))
+// Een vooruitblik die al ingehaald is: het verhaal heeft een nieuwer stuk (met titel) dat geen vooruitblik is.
+export const staleOutlook = (i, items) => outlookTitle(i) && items.some((j) => j !== i && titled(j) && timeOf(j) > timeOf(i) && !outlookTitle(j))
+export function dutchHeads(entries, { itemsOf, mainIds = new Set(), now = null, top = DUTCH_HEAD_TOP, since = 0 }) {
   for (let k = 0; k < Math.min(top, entries.length); k++) {
     const e = entries[k]
     if (e.kind !== 'story' || e.desk === 'bubbel') continue
     const items = itemsOf(e).filter(Boolean)
     const lead = items.find((i) => i.id === e.leadId)
     if (!lead || dutchTier(lead) === 0) continue
-    const fit = items.filter((i) => dutchTier(i) === 0 && titled(i) && !isOpinion(i) && !isLive(i) && !isGallery(i) && !isStale(i, now) && !/\bpodcast\b/i.test(i.title) && !/\?/.test(i.title) && !(k === 0 && verdictTitle(i)))
+    const fit = items.filter((i) => dutchTier(i) === 0 && titled(i) && !isOpinion(i) && !isLive(i) && !isGallery(i) && !isStale(i, now) && !/\bpodcast\b/i.test(i.title) && !/\?/.test(i.title) && !(k === 0 && verdictTitle(i)) && timeOf(lead) - timeOf(i) <= DUTCH_HEAD_LAG && timeOf(i) > since && !staleOutlook(i, items))
     if (!fit.length) continue
     const core = new Set(centralItems(items))
     const inCore = fit.filter((i) => core.has(i))
