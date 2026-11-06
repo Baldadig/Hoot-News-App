@@ -177,23 +177,54 @@ test('één gebeurtenis, twee plekken alleen op een uitzonderlijke nieuwsdag (3b
   assert.equal(ids(build(20, 9), true).filter((id) => ['sHead', 'sTrump', 'sRace'].includes(id)).length, 1)
 })
 
-// Ronde 2, aanvulling op punt 1 (5 november): meer buitenland betekent ook meer kans op twee koppen over hetzelfde
-// onderwerp. De algemene Editie vergelijkt daarom ook kop met kop (sameSubject), zoals de lezer ze ziet.
-test('algemene Editie: geen twee koppen over hetzelfde onderwerp (3b · ronde 2)', async () => {
-  const { signatures, sameSubject } = await import('../netlify/lib/stories.mjs')
+// Ronde 2, aanvulling op punt 1, bijgesteld in ronde 3 · 1: de algemene Editie vergelijkt ook kop met kop, zoals de lezer
+// ze ziet, maar alleen op dezelfde gebeurtenis (sameHeadEvent: dezelfde partij, dezelfde handeling of hetzelfde feit, kort
+// na elkaar), niet op hetzelfde onderwerp (sameSubject). Keuring ronde 2: met sameSubject legde de vergelijking alles
+// rond een verkiezing uit als één onderwerp, en vielen een beurscrash en een stemmende kerkleider weg.
+const headCase = async () => {
+  const { signatures, sameSubject, sameHeadEvent } = await import('../netlify/lib/stories.mjs')
   const T = Date.parse('2026-11-05T04:30:00Z')
   const at = (h) => new Date(T - h * 36e5).toISOString()
   let n = 0
-  const art = (source, title, summary, h = 2) => ({ id: `m${++n}`, kind: 'article', source, title, summary, publishedAt: at(h), topics: ['vs-politiek'] })
-  const a = ['nyt', 'bbc', 'guardian', 'npr', 'aljazeera'].map((s, k) => art(s, k ? `Shares of Trump Media slide ${k}` : 'Trump Media’s Shares Fall to Record Low After Midterms', 'Trump Media & Technology Group’s stock plunged 24 percent a day after Democrats made huge gains in the midterm elections.'))
-  const b = ['nyt', 'bbc', 'guardian', 'npr', 'dw'].map((s, k) => art(s, k ? `A historic night for first-time candidates ${k}` : 'What Makes These Election Results So Historic', 'Democrats celebrated a seismic triumph in the midterm elections, winning control of the Senate and the House from President Trump’s party.'))
-  const nl = [['nos', 'nrc', 'volkskrant'], ['ad', 'nu', 'rtl']].map((ss, k) => ss.map((s) => ({ ...art(s, ['Kabinet presenteert stikstofwet', 'Inflatie stijgt naar 3,7 procent'][k], 'Het kabinet besloot.', 1), topics: ['nederland'] })))
-  const groups = [['sA', a, 'vs'], ['sB', b, 'vs'], ['sN0', nl[0], 'binnenland'], ['sN1', nl[1], 'binnenland']]
-  const stories = groups.map(([id, its, desk]) => ({ id, itemIds: its.map((i) => i.id), sourceCount: its.length, publisherCount: its.length, latestAt: its[0].publishedAt, desk }))
-  const pool = groups.flatMap((g) => g[1])
-  const sig = signatures(pool)
-  assert.ok(sameSubject(sig.get(a[0].id), sig.get(b[0].id)), 'de koppen gaan over hetzelfde onderwerp')
+  const art = (source, title, summary, h = 2, topics = ['vs-politiek']) => ({ id: `m${++n}`, kind: 'article', source, title, summary, publishedAt: at(h), topics })
+  const five = (sources, head, other, summary) => sources.map((s, k) => art(s, k ? `${other} ${k}` : head, summary))
+  const ctx = 'Na de verkiezingen van deze week reageerde President Trump; ook de Democrats en Republicans in het Congress keken naar de uitslag van de midterm elections.'
+  const groups = {
+    // Eén breed onderwerp (de verkiezingen), verschillende partijen en feiten: geen dubbel.
+    kerk: five(['nyt', 'bbc', 'guardian', 'npr', 'aljazeera'], 'Bishop Okafor Becomes First Church Leader to Cast a Ballot in US Election', 'Okafor votes by mail', `Bishop Okafor voted. ${ctx}`),
+    inmenging: five(['nyt', 'bbc', 'guardian', 'npr', 'dw'], 'The Real Threat of Foreign Interference in This Election', 'Interference warnings grow', `Officials warned about interference. ${ctx}`),
+    // Een beurscrash naast een burgemeestersverkiezing: andere partij, ander feit.
+    beurs: five(['nyt', 'bbc', 'guardian', 'npr', 'ft'], 'Wall Street Sheds $2.1tn as Stocks Slump', 'Markets tumble on Wall Street', `Stocks fell sharply on Wall Street. ${ctx}`),
+    stad: five(['nyt', 'bbc', 'guardian', 'npr', 'lemonde'], 'A Generational Upset in the Denver Mayoral Race', 'Denver mayor race upset', `Voters in Denver chose a newcomer. ${ctx}`),
+    // Dezelfde gebeurtenis in twee verhalen die niet gebundeld werden: één plek.
+    ontslag: five(['nyt', 'bbc', 'guardian', 'npr', 'independent'], 'Archbishop Mbeki Resigns After Abuse Report', 'Abuse report published', 'The report on Archbishop Mbeki was published by investigators on Tuesday.'),
+    ontslag2: five(['politico', 'economist', 'telegraph', 'scmp', 'bloomberg'], 'Mbeki Resigns as Archbishop Amid Abuse Inquiry', 'Inquiry continues', 'Investigators said Archbishop Mbeki stepped down.'),
+  }
+  const nl = [['nos', 'nrc', 'volkskrant'], ['ad', 'nu', 'rtl']].map((ss, k) => ss.map((s) => art(s, ['Kabinet presenteert stikstofwet', 'Inflatie stijgt naar 3,7 procent'][k], 'Het kabinet besloot.', 1, ['nederland'])))
+  const all = [...Object.entries(groups).map(([id, its]) => [id, its, 'vs']), ['n0', nl[0], 'binnenland'], ['n1', nl[1], 'binnenland']]
+  const stories = all.map(([id, its, desk]) => ({ id, itemIds: its.map((i) => i.id), sourceCount: its.length, publisherCount: its.length, latestAt: its[0].publishedAt, desk }))
+  const pool = all.flatMap((g) => g[1])
+  return { groups, stories, pool, T, sameSubject, sameHeadEvent, signatures }
+}
+test('kop met kop: één breed onderwerp is geen dubbel, dezelfde gebeurtenis wel (3b · ronde 3 · 1)', async () => {
+  const { groups, pool, sameSubject, sameHeadEvent, signatures } = await headCase()
+  const full = signatures(pool)
+  // Alleen de kop, met de woordenschat van de hele pool (zoals selectForReader het doet met headSignature).
+  const heads = signatures(pool, Object.values(groups).map((g) => ({ ...g[0], id: `kop:${g[0].id}`, summary: '', text: '' })))
+  const headOf = (g) => heads.get(`kop:${g[0].id}`)
+  // De oude val: hetzelfde onderwerp (sameSubject op kop en tekst), want de tekst noemt dezelfde verkiezingen.
+  assert.ok(sameSubject(full.get(groups.kerk[0].id), full.get(groups.inmenging[0].id)), 'zelfde onderwerp')
+  assert.ok(sameSubject(full.get(groups.beurs[0].id), full.get(groups.stad[0].id)), 'zelfde onderwerp')
+  // Maar niet dezelfde gebeurtenis.
+  assert.ok(!sameHeadEvent(headOf(groups.kerk), headOf(groups.inmenging)))
+  assert.ok(!sameHeadEvent(headOf(groups.beurs), headOf(groups.stad)))
+  // Wel dezelfde gebeurtenis: dezelfde partij, dezelfde handeling, kort na elkaar.
+  assert.ok(sameHeadEvent(headOf(groups.ontslag), headOf(groups.ontslag2)))
+})
+test('algemene Editie: twee koppen uit één breed onderwerp krijgen elk een plek, één gebeurtenis één plek (3b · ronde 3 · 1)', async () => {
+  const { stories, pool, T } = await headCase()
   const ed = generalEdition({ stories, pool, now: T })
-  const leads = ed.map((e) => e.leadId || e.id)
-  for (let i = 0; i < leads.length; i++) for (let j = i + 1; j < leads.length; j++) assert.ok(!sameSubject(sig.get(leads[i]), sig.get(leads[j])), `${leads[i]} ${leads[j]}`)
+  const ids = new Set(ed.map((e) => e.id))
+  for (const id of ['kerk', 'inmenging', 'beurs', 'stad']) assert.ok(ids.has(id), id)
+  assert.equal(['ontslag', 'ontslag2'].filter((id) => ids.has(id)).length, 1)
 })

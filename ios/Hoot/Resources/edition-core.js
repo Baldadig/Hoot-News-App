@@ -2256,6 +2256,17 @@ var HootCore = (() => {
     if (shared.length >= 2 || shared.length >= 1 && sharedCount(a.strong, b.strong) >= 1) return true;
     return dt <= SUBJECT_WINDOW && shared.some((k) => !BROAD.has(k));
   }
+  function sameHeadEvent(a, b) {
+    if (!a || !b || conflictingEvents(a.eventScope, b.eventScope)) return false;
+    if (Math.abs(a.t - b.t) > SUBJECT_WINDOW) return false;
+    const names = new Set([...a.strong].filter((k) => b.strong.has(k)));
+    for (const k of a.known) if (b.known.has(k)) names.add(k);
+    for (const k of a.parties || []) if (b.parties?.has(k)) names.add(k);
+    if (!names.size) return false;
+    const words2 = [...a.words].filter((w) => b.words.has(w) && !names.has(w) && !a.strong.has(w) && !b.strong.has(w) && !a.known.has(w) && !b.known.has(w)).length;
+    if ([...a.strong].some((k) => b.strong.has(k) && !BROAD.has(k))) return words2 >= 1 || sharedCount(a.concepts, b.concepts) >= 1;
+    return words2 >= 2;
+  }
   function signatures(articles, extra = [], { extended = false } = {}) {
     const vocab = nameVocabulary(articles, extended);
     const out = new Map([...articles, ...extra].map((a) => [a.id, signature(a, vocab, extended)]));
@@ -2771,9 +2782,10 @@ var HootCore = (() => {
       if (!admissible(c)) return false;
       if (general && spread(c) <= 1 && strongLeft()) return false;
       const second = general && wideSecond(c, placedC, now);
-      if (general && !second && c.kind === "story") {
-        const lead = pickLead(c.dev ? c.dev.fresh : c.items, c.dev ? c.dev.fresh.length : c.st.itemIds.length);
-        if (lead && sig.has(lead.id) && entries.some((e) => sig.has(e.leadId || e.id) && sameSubject(sig.get(lead.id), sig.get(e.leadId || e.id)))) return false;
+      const lead = c.kind === "story" ? pickLead(c.dev ? c.dev.fresh : c.items, c.dev ? c.dev.fresh.length : c.st.itemIds.length) : null;
+      if (general && !second && lead) {
+        const head = headSignature(sig, lead);
+        if (head && entries.some((e) => sameHeadEvent(head, headSignature(sig, byId2.get(e.leadId || e.id))))) return false;
       }
       if (second) relead(c);
       used.add(c);
@@ -2781,7 +2793,6 @@ var HootCore = (() => {
       place(c.ids, c);
       const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, big: majorNews(c.st || { sourceCount: 1 }, c.items), ...c.vervolg ? { vervolg: c.vervolg } : {}, ...extra };
       if (c.kind === "story") {
-        const lead = pickLead(c.dev ? c.dev.fresh : c.items, c.dev ? c.dev.fresh.length : c.st.itemIds.length);
         leadCount[lead.source] = (leadCount[lead.source] || 0) + 1;
         prevLead = lead.source;
         entries.push({ kind: "story", id: c.st.id, leadId: lead.id, itemIds: c.st.itemIds, title: lead.title || null, ...c.st.keys ? { keys: c.st.keys } : {}, ...base });
