@@ -84,27 +84,70 @@ import SwiftUI
         XCTAssertEqual(KrantIndeling.kies(size: CGSize(width: 951, height: 669), horizontal: .regular, rug: ver), .enkel(pagina: nil))
     }
 
-    // MARK: De leesmaat op een bladzijde: 60 tot 75 tekens
+    // MARK: De leesmaat: de letter die je koos, ± 50 tekens
 
-    func testLeesmaatOpEenBladzijde() {
+    func testLeesmaatHoudtDeLetter() {
         // De twee bladzijden van de Duo: vlak open (475,5) en half gevouwen (453,5, vouw 20 + 2 × 12 marge).
+        // De standaardletter blijft: ± 50 tekens, zoals dicht op het buitenscherm. Niet kleiner om 60 te halen.
         for kolom in [475.5, 453.5] {
-            let maat = Leesmaat.maat(kolom: kolom, body: 17, keuze: 1, pagina: true, groteTekst: false)
-            let tekens = Leesmaat.tekens(kolom: kolom, px: Leesmaat.tekstFactor * 17 * maat.schaal, marge: maat.marge)
-            XCTAssertGreaterThanOrEqual(tekens, 59.9, "kolom \(kolom)")
-            XCTAssertLessThanOrEqual(tekens, 75, "kolom \(kolom)")
-            XCTAssertGreaterThanOrEqual(maat.schaal, Leesmaat.ondergrens)
+            let tekens = Leesmaat.tekens(kolom: kolom, px: Leesmaat.tekstFactor * 17, marge: Leesmaat.marge(pagina: true))
+            XCTAssertGreaterThanOrEqual(tekens, 45, "kolom \(kolom)")
+            XCTAssertLessThanOrEqual(tekens, 55, "kolom \(kolom)")
         }
-        // Nog smaller (een verticale balk ernaast): nooit kleiner dan de ondergrens, dan liever wat minder tekens.
-        XCTAssertEqual(Leesmaat.maat(kolom: 400, body: 17, keuze: 1, pagina: true, groteTekst: false).schaal, Leesmaat.ondergrens)
+        XCTAssertEqual(Leesmaat.marge(pagina: false), 16)
+        XCTAssertEqual(Leesmaat.marge(pagina: true), 12)
     }
 
-    func testLeesmaatLaatDeIPhoneEnGroteTekstMetRust() {
-        XCTAssertEqual(Leesmaat.maat(kolom: 440, body: 17, keuze: 1, pagina: false, groteTekst: false), .init(schaal: 1, marge: 16))
-        XCTAssertEqual(Leesmaat.maat(kolom: 475, body: 23, keuze: 1, pagina: true, groteTekst: true).schaal, 1)
-        XCTAssertEqual(Leesmaat.maat(kolom: 475, body: 17, keuze: 1.32, pagina: true, groteTekst: false).schaal, 1, "de gekozen tekstgrootte van de lezer gaat voor")
-        // Breed genoeg (open staand, 669): geen kleinere letter.
-        XCTAssertEqual(Leesmaat.maat(kolom: 669, body: 17, keuze: 1, pagina: true, groteTekst: false).schaal, 1)
+    func testDeLetterOpEenBladzijdeIsDeLetterVanHetBlad() {
+        // Voor elke tekstgrootte van de lezer: op een bladzijde dezelfde font-size als op het blad.
+        let item = Item(id: "x", source: "nos", title: "Kop", url: "https://nos.nl/a")
+        let article = Article(title: "Kop", content: "<p>Tekst</p>", length: 10)
+        for size in 0..<ReaderHTML.scales.count {
+            let blad = ReaderHTML.page(article, item: item, sourceName: "NOS", size: size, typeSize: .large, width: 475)
+            let pagina = ReaderHTML.page(article, item: item, sourceName: "NOS", size: size, typeSize: .large, width: 475, pagina: true)
+            let maat = "font-size: calc(1.12rem * \(ReaderHTML.scales[size]));"
+            XCTAssertTrue(blad.contains(maat), "blad, grootte \(size)")
+            XCTAssertTrue(pagina.contains(maat), "bladzijde, grootte \(size)")
+        }
+    }
+
+    // MARK: De beveiliging: een andere opmaak alleen met een vouw
+
+    func testIPadEnSplitViewBlijvenGelijk() {
+        // Elk regulier venster zonder vouw, ook de Split View-maten van 640 tot 700 (waar concept C ging
+        // wisselen): altijd .enkel(nil), dus de oude WidthReader-regel (breed vanaf 700) blijft gelden.
+        for breedte in stride(from: 320.0, through: 1366, by: 2) {
+            for hoogte in [669.0, 744, 1024, 1133] {
+                XCTAssertEqual(KrantIndeling.kies(size: CGSize(width: breedte, height: hoogte), horizontal: .regular, rug: nil), .enkel(pagina: nil), "\(breedte) × \(hoogte)")
+            }
+        }
+        // Compact (iPhone, ook met een gemelde vouw): nooit iets anders.
+        XCTAssertEqual(KrantIndeling.kies(size: CGSize(width: 440, height: 956), horizontal: .compact, rug: Self.staandVlak), .enkel(pagina: nil))
+        XCTAssertNil(KrantIndeling.enkel(pagina: nil).breed(lijst: 1200), "zonder vouw beslist het venster, niet de krant")
+    }
+
+    func testBreedAlleenMetVouw() {
+        XCTAssertEqual(KrantIndeling.enkel(pagina: 560).breed(lijst: 560), false)
+        XCTAssertEqual(KrantIndeling.naast(lijst: .init(x: 0, y: 0, width: 475, height: 669), verhaal: .init(x: 475, y: 0, width: 475, height: 669)).breed(lijst: 475), false)
+    }
+
+    // MARK: Zonder krant in de omgeving (toetsen, voorbeelden): geen crash
+
+    func testKrantViewsZonderKrantStaat() {
+        // Vroeger: "No Observable object of type KrantStaat" zodra een rij buiten RootView stond (9 rendertoetsen).
+        let item = Item(id: "x", source: "nos", title: "Kop", url: "https://nos.nl/a")
+        let views: [AnyView] = [
+            AnyView(Text("rij").krantGekozen(item)),
+            AnyView(NavigationStack { Text("lijst").krantVerhaal() }),
+            AnyView(KrantPagina(tab: .editie).environment(HootStore())),
+            AnyView(KrantSpread { Text("lijst") }),
+        ]
+        for view in views {
+            let host = UIHostingController(rootView: view.frame(width: 466, height: 678))
+            host.view.frame = CGRect(x: 0, y: 0, width: 466, height: 678)
+            host.view.layoutIfNeeded()
+            XCTAssertNotNil(host.view)
+        }
     }
 
     func testDeBladzijdeLezerZetDeMaatInDePagina() {

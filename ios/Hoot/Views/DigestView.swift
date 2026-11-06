@@ -95,7 +95,7 @@ struct DigestView: View {
                     DigestFieldsList()
                         .navigationTitle("Onderwerpen")
                         .navigationBarTitleDisplayMode(.inline)
-                        .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Klaar") { choosing = false } } }
+                        .klaarKnop { choosing = false }
                 }
                 .debugAppearance()
             }

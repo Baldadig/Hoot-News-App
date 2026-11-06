@@ -107,7 +107,7 @@ struct ArticleReaderView: View {
                         ShareItemLink(item: item, link: link).tint(Theme.ink3)
                         Button("Open bij \(sourceName)", systemImage: "safari") { openURL(link) }.tint(Theme.ink3)
                     }
-                    SaveButton(item: item)
+                    SaveToolbarButton(item: item)
                 }
             }
             // Na inloggen: bevestigen en het artikel opnieuw laden, nu met je abonnement.
@@ -213,14 +213,12 @@ enum ReaderHTML {
     static let scales = [0.9, 1.0, 1.15, 1.32]
 
     static func page(_ a: Article, item: Item, sourceName: String, size: Int, lang: String? = nil, night: Bool = false, typeSize: DynamicTypeSize? = nil, width: CGFloat = 0, pagina: Bool = false) -> String {
-        var scale = scales[min(max(size, 0), scales.count - 1)]
+        let scale = scales[min(max(size, 0), scales.count - 1)]
         // De tekstmaat komt uit de omgeving van de view (niet uit UITraitCollection.current, onbetrouwbaar in een body) en gaat als px in de pagina.
         let bodyPx = typeSize.map { KopZet.pointSize(.body, typeSize: $0) }
         let accessibilitySize = typeSize?.isAccessibilitySize ?? false
-        // Op een bladzijde van de krant (Duo open, Krant.swift): 60 tot 75 tekens per regel (Leesmaat).
-        let maat = Leesmaat.maat(kolom: Double(width), body: Double(bodyPx ?? UIFont.preferredFont(forTextStyle: .body).pointSize), keuze: scale, pagina: pagina, groteTekst: (typeSize ?? .large) > .large)
-        scale *= maat.schaal
-        let marge = Int(maat.marge)
+        // Op een bladzijde van de krant (Duo open, Krant.swift): dezelfde letter, een iets smallere marge (Leesmaat).
+        let marge = Int(Leesmaat.marge(pagina: pagina))
         var title = typeset(a.title.isEmpty ? item.title : a.title, lang: lang) // de lezer haalt de kop zelf: zetten zoals de server (T6)
         // Newsreader 800 is breed: een woord breder dan de kolom ("Rijksvoorlichtingsdienst" op een SE) krijgt zachte
         // afbreekstreepjes op de lettergrepen, zoals Kop. Woorden die passen blijven heel. Kopmaat en kolom als in de css hieronder.
@@ -436,10 +434,11 @@ struct LoginWebView: View {
                     // "Klaar" als tekst in inkt; pas als je echt bent ingelogd is het de volgende stap: een inktknop.
                     ToolbarItem(placement: .topBarTrailing) {
                         if done {
-                            Button { dismiss() } label: { Text("Klaar").font(.ui(.body, .semibold)).foregroundStyle(Theme.paper) }
+                            Button("Klaar", systemImage: "checkmark") { dismiss() }
+                                .labelStyle(.titleOnly).font(.ui(.body, .semibold)).foregroundStyle(Theme.paper)
                                 .buttonStyle(.borderedProminent).tint(Theme.ink)
                         } else {
-                            Button("Klaar") { dismiss() }
+                            Button("Klaar", systemImage: "checkmark") { dismiss() }.labelStyle(.titleOnly)
                         }
                     }
                 }

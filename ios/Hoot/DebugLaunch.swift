@@ -29,6 +29,7 @@ import SwiftUI
 //                            compacte breedteklasse; de rest van het scherm blijft leeg)
 //   -HootDuo buiten|buiten-liggend|binnen|binnen-liggend|binnen-boek|binnen-tafel   (iPhone Duo nabootsen
 //                            op een iOS 26-simulator: venstermaat, breedteklassen en de vouw; zie DuoEmulatie)
+//   -HootBalkOpzij 1   (de bediening in de systeembalk, zoals bij een verticale balk op de iPhone Duo)
 //   -HootDuoReeks binnen-liggend,buiten,…   (daarna vouwen: zelfde venster, telkens een andere houding)
 //   -HootDuoNaam <naam>   -HootDuoWacht <s>   (de opname in Documents/duo-<naam>….png)
 // In Release doet dit allemaal niets.
@@ -45,6 +46,7 @@ enum DebugLaunch {
     static var query: String? { defaults.string(forKey: "HootQuery") }
     static var dark: Bool { defaults.bool(forKey: "HootDark") }
     static var largeText: Bool { defaults.bool(forKey: "HootLargeText") }
+    static var balkOpzij: Bool { defaults.bool(forKey: "HootBalkOpzij") } // de systeembalk opzij, zoals op de iPhone Duo
     static var offline: Bool { defaults.bool(forKey: "HootOffline") }
     static var rubriek: String? { defaults.string(forKey: "HootRubriek") }
     static var layout: String? { defaults.string(forKey: "HootLayout").flatMap { ["tijdlijn", "krant"].contains($0) ? $0 : nil } }
@@ -79,6 +81,7 @@ enum DebugLaunch {
     static let query: String? = nil
     static let dark = false
     static let largeText = false
+    static let balkOpzij = false
     static let offline = false
     static let rubriek: String? = nil
     static let layout: String? = nil

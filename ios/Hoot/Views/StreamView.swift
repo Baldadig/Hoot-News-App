@@ -175,7 +175,7 @@ struct StreamView: View {
             // Scrollen klapt de stapel dicht (ernaast tikken doet de lijn zelf).
             .onScrollPhaseChange { _, now in if now == .interacting, lijn.open { lijn.open = false } }
             .navigationTitle("Stroom") // de rode streep zegt al welke rubriek
-            .hootKopScreen()
+            .hootKopScreen(bronnen: { lijn.open = false; showSources = true }) // de bronnen: in de kopregel, of in de verticale balk
             .navigationDestination(for: Story.self) { StoryView(story: $0) }
             .krantVerhaal()
             .navigationDestination(for: SourceRoute.self) { SourceFeedView(id: $0.id) }
@@ -290,9 +290,7 @@ struct SourcesView: View {
             SourcesList()
                 .navigationTitle("Bronnen")
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) { Button("Klaar") { dismiss() } } // tekst in inkt, zoals Instellingen
-                }
+                .klaarKnop { dismiss() } // tekst in inkt, zoals Instellingen
         }
         .presentationDetents([.large]) // een rustig, dicht blad: geen feed die erdoorheen schijnt
     }

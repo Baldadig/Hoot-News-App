@@ -226,8 +226,12 @@ private struct WordmarkBody: View {
 // meer over de koppen en foto's. Het eerste en het laatste teken staan optisch op de kolomlijn: het
 // icoon is 24 in een raakvlak van 44, dus de rij schuift (44 − 24) / 2 de goot in, zoals --tap-inset
 // op het web. Gelijk aan de kop op het web (.edbrand en .vh__row).
+//
+// Staat de systeembalk opzij (iPhone Duo dicht, en open liggend: iOS 27.1), dan gaan het tandwiel en de
+// bronnen naar die balk (`hootKopScreen`), en blijft hier alleen het woordmerk: de bediening op één plek.
 struct HootKop<Extra: View>: View {
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.balkOpzij) private var balkOpzij
     var gearX: ((CGFloat) -> Void)? = nil // waar het tandwiel staat (de stapel van de Stroom eindigt eronder)
     @ViewBuilder var extra: () -> Extra
 
@@ -235,15 +239,17 @@ struct HootKop<Extra: View>: View {
         HStack(spacing: 0) {
             Wordmark(handoff: true)
             Spacer(minLength: Space.s3)
-            extra()
-            Button { openSettings() } label: {
-                Image(systemName: "gearshape").font(.title3).frame(width: Space.tap, height: Space.tap).contentShape(Rectangle())
+            if !balkOpzij {
+                extra()
+                Button { openSettings() } label: {
+                    Image(systemName: "gearshape").font(.title3).frame(width: Space.tap, height: Space.tap).contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(Theme.ink3) // bediening is stil: grijs, zonder glazen rondje
+                .accessibilityLabel("Instellingen")
+                .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midX } action: { gearX?($0) }
+                .padding(.trailing, -HootKop.inset)
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(Theme.ink3) // bediening is stil: grijs, zonder glazen rondje
-            .accessibilityLabel("Instellingen")
-            .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midX } action: { gearX?($0) }
-            .padding(.trailing, -HootKop.inset)
         }
         // Even begrensd als het woordmerk: bij heel grote tekst blijven tandwiel en bronnen 24 in hun
         // raakvlak van 44, en wordt de kopregel geen tweede titel.
@@ -277,9 +283,94 @@ extension View {
     // Een hoofdscherm met de kopregel in de scroll: geen navigatiebalk, en achter de statusbalk een
     // vlakke strook papier precies zo hoog als die balk (geen vervaging, geen verloop), zodat de
     // statusbalk ook boven een foto leesbaar blijft. In Nacht is het papier zwart.
-    func hootKopScreen() -> some View {
-        toolbar(.hidden, for: .navigationBar)
-            .overlay(alignment: .top) { StatusStrip() }
+    //
+    // Staat de systeembalk opzij (iPhone Duo, iOS 27.1), dan blijft de navigatiebalk en staan het tandwiel
+    // en (in de Stroom) de bronnen erin, met symbool én titel: alleen zo gaan ze mee in de verticale balk
+    // (ONDERZOEK §2.4). De kopregel houdt dan alleen het woordmerk. Eén structuur voor beide: vouwen
+    // wisselt de balk, en de scroll (je plek) mag daarbij niet opnieuw beginnen.
+    func hootKopScreen(bronnen: (@MainActor () -> Void)? = nil) -> some View {
+        modifier(HootKopScherm(bronnen: bronnen)).modifier(BalkOpzijLezer())
+    }
+}
+
+private struct HootKopScherm: ViewModifier {
+    let bronnen: (@MainActor () -> Void)?
+    @Environment(\.balkOpzij) private var opzij
+    @Environment(\.openSettings) private var openSettings
+    func body(content: Content) -> some View {
+        content
+            // De titel staat in de scroll; in een verticale balk niet nog eens (de navigationTitle blijft voor
+            // VoiceOver). Op iPhone en iPad is de balk verborgen: daar verandert dit niets.
+            .toolbar(removing: .title)
+            .toolbar(opzij ? .automatic : .hidden, for: .navigationBar)
+            .navigationBarTitleDisplayMode(opzij ? .inline : .automatic)
+            .toolbar {
+                if opzij {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button("Instellingen", systemImage: "gearshape") { openSettings() }.tint(Theme.ink3)
+                    }
+                    if let bronnen {
+                        ToolbarItem(placement: .primaryAction) {
+                            Button("Bronnen", systemImage: "dot.radiowaves.up.forward") { bronnen() }.tint(Theme.ink3)
+                        }
+                    }
+                }
+            }
+            .overlay(alignment: .top) { if !opzij { StatusStrip() } }
+    }
+}
+
+// "Klaar" rechtsboven in een blad, met symbool én titel. Op iPhone en iPad tekst in inkt (een bevestigingsknop
+// kleurt iOS vanzelf als een gevulde cirkel); staat de balk opzij (iPhone Duo dicht), dan het vinkje, want een
+// item dat alleen tekst toont gaat niet mee in de verticale balk (ONDERZOEK §2.4).
+extension View {
+    func klaarKnop(zichtbaar: Bool = true, _ action: @escaping @MainActor () -> Void) -> some View {
+        modifier(KlaarKnop(zichtbaar: zichtbaar, action: action)).modifier(BalkOpzijLezer())
+    }
+}
+
+private struct KlaarKnop: ViewModifier {
+    let zichtbaar: Bool
+    let action: @MainActor () -> Void
+    @Environment(\.balkOpzij) private var opzij
+    func body(content: Content) -> some View {
+        content.toolbar {
+            if zichtbaar {
+            ToolbarItem(placement: .topBarTrailing) {
+                if opzij {
+                    Button("Klaar", systemImage: "checkmark") { action() }
+                } else {
+                    Button("Klaar", systemImage: "checkmark") { action() }.labelStyle(.titleOnly)
+                }
+            }
+            }
+        }
+    }
+}
+
+// Staat de systeembalk opzij? Op de iPhone Duo (iOS 27.1) staan navigatie-, werk- en tabbalk verticaal op het
+// buitenscherm en op het binnenscherm liggend (`toolbarVerticalEdge`). Op iPhone en iPad is dit altijd onwaar:
+// daar verandert er niets. In Debug kan `-HootBalkOpzij 1` het nabootsen.
+struct BalkOpzijKey: EnvironmentKey { static let defaultValue = false }
+extension EnvironmentValues {
+    var balkOpzij: Bool { get { self[BalkOpzijKey.self] } set { self[BalkOpzijKey.self] = newValue } }
+}
+
+struct BalkOpzijLezer: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 27.1, *) {
+            content.modifier(BalkOpzij271())
+        } else {
+            content.environment(\.balkOpzij, DebugLaunch.balkOpzij)
+        }
+    }
+}
+
+@available(iOS 27.1, *)
+private struct BalkOpzij271: ViewModifier {
+    @Environment(\.toolbarVerticalEdge) private var rand
+    func body(content: Content) -> some View {
+        content.environment(\.balkOpzij, rand != nil || DebugLaunch.balkOpzij)
     }
 }
 
@@ -677,6 +768,20 @@ struct SaveButton: View {
         .foregroundStyle(on ? Theme.accent : Theme.ink3)
         .sensoryFeedback(.selection, trigger: on)
         .accessibilityLabel(on ? "Bewaard, tik om te verwijderen" : "Bewaar")
+    }
+}
+
+// Bewaren in de werkbalk van de lezer: een gewone knop met symbool én titel, zodat hij op de iPhone Duo
+// meegaat in de verticale balk (een eigen view gaat niet mee, ONDERZOEK §2.4). Rood als hij aan staat.
+struct SaveToolbarButton: View {
+    @Environment(HootStore.self) private var store
+    let item: Item
+    var body: some View {
+        let on = store.isSaved(item)
+        Button(on ? "Bewaard" : "Bewaar", systemImage: on ? "bookmark.fill" : "bookmark") { store.toggleSave(item) }
+            .tint(on ? Theme.accent : Theme.ink3)
+            .sensoryFeedback(.selection, trigger: on)
+            .accessibilityLabel(on ? "Bewaard, tik om te verwijderen" : "Bewaar")
     }
 }
 

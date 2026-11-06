@@ -65,6 +65,13 @@ enum KrantIndeling: Equatable {
         }
     }
 
+    /// De beveiliging (uit concept B): een bredere opmaak geldt alleen als er een vouw is. Zonder vouw (`nil`)
+    /// beslist het venster zelf (WidthReader: breed vanaf 700), zodat iPhone, iPad en Split View gelijk blijven.
+    /// Met een vouw beslist de breedte van de lijst op zijn eigen bladzijde.
+    func breed(lijst: CGFloat) -> Bool? {
+        self == .enkel(pagina: nil) ? nil : lijst >= 700
+    }
+
     static func kies(size: CGSize, horizontal: UserInterfaceSizeClass?, rug: Rug?) -> KrantIndeling {
         // Compact (dicht, iPhone, smal venster): de iPhone-app.
         guard horizontal == .regular, size.width > 0, size.height > 0 else { return .enkel(pagina: nil) }
@@ -90,34 +97,20 @@ enum KrantIndeling: Equatable {
 
 // MARK: De leesmaat
 
-/// De regellengte van de lezer: 60 tot 75 tekens. Op een bladzijde van de krant (± 450 tot 475 breed) haalt
-/// de lezer dat met de standaardletter niet (± 49 tekens); daar zet hij de letter hooguit een vijfde kleiner,
-/// tot 60 tekens. Grotere tekst (Dynamische tekst, de tekstgrootte van de lezer) gaat altijd voor.
+/// De regellengte van de lezer op een bladzijde van de krant. Hoot kiest de letter boven de regel: de lezer
+/// houdt de letter die jij koos (de tekstgrootte van de lezer, Dynamische tekst), ook op een bladzijde van
+/// ± 450 tot 475 breed. Liever een kortere regel (± 50 tekens, zoals dicht) dan een kleinere letter
+/// (KEURING.md, verbetering 3). Alleen de marge wordt op een bladzijde iets smaller.
 enum Leesmaat {
-    static let minTekens = 60.0
-    static let maxTekens = 75.0
     /// Gemiddelde breedte van een teken in Newsreader Tekst (450), in em, gemeten op Nederlandse tekst.
     static let tekenEm = 0.4675
-    /// Nooit kleiner dan dit deel van de gekozen letter.
-    static let ondergrens = 0.8
     /// De lezer: lopende tekst is 1,12 × de tekstmaat.
     static let tekstFactor = 1.12
 
-    struct Maat: Equatable { var schaal: Double; var marge: Double }
+    /// De zijmarge van de lezer: 16 op een blad (iPhone, iPad), 12 op een bladzijde van de krant.
+    static func marge(pagina: Bool) -> Double { pagina ? 12 : 16 }
 
-    /// `kolom`: de breedte van de lezer; `body`: de tekstmaat in px; `keuze`: de tekstgrootte uit het
-    /// menu van de lezer; `pagina`: de lezer staat op een bladzijde van de krant.
-    static func maat(kolom: Double, body: Double, keuze: Double, pagina: Bool, groteTekst: Bool) -> Maat {
-        let marge = pagina ? 12.0 : 16.0
-        guard pagina, !groteTekst, keuze <= 1.0, kolom > 0 else { return Maat(schaal: 1, marge: marge) }
-        let breedte = min(kolom, 680) - 2 * marge
-        let px = tekstFactor * keuze * body
-        let tekens = breedte / (px * tekenEm)
-        guard tekens < minTekens else { return Maat(schaal: 1, marge: marge) }
-        let nodig = breedte / (minTekens * tekenEm) / px
-        return Maat(schaal: max(ondergrens, min(1, nodig)), marge: marge)
-    }
-
+    /// Hoeveel tekens er op een regel gaan, bij deze kolom, lettermaat (px) en marge.
     static func tekens(kolom: Double, px: Double, marge: Double) -> Double { (min(kolom, 680) - 2 * marge) / (px * tekenEm) }
 }
 
@@ -224,8 +217,8 @@ struct KrantLayout: SwiftUI.Layout {
 struct KrantSpread<Lijst: View>: View {
     @Environment(\.horizontalSizeClass) private var horizontal
     @Environment(\.krantTab) private var tab
-    @Environment(KrantStaat.self) private var staat
-    @Environment(Reader.self) private var reader
+    @Environment(KrantStaat.self) private var staat: KrantStaat? // optioneel: buiten RootView (toetsen, voorbeelden) is er geen krant
+    @Environment(Reader.self) private var reader: Reader?
     @ViewBuilder var lijst: () -> Lijst
     @State private var rug: Rug?
     @State private var maat: CGSize = .zero
@@ -239,7 +232,7 @@ struct KrantSpread<Lijst: View>: View {
             lijst()
                 // De lijst op zijn eigen bladzijde: open is links dezelfde iPhone-lijst als dicht. Zonder vouw
                 // (iPhone, iPad) blijft de maat van het venster gelden (WidthReader).
-                .transformEnvironment(\.isWide) { if indeling != .enkel(pagina: nil) { $0 = breed >= 700 } }
+                .transformEnvironment(\.isWide) { if let krant = indeling.breed(lijst: breed) { $0 = krant } }
                 .transformEnvironment(\.isSpacious) { if indeling != .enkel(pagina: nil) { $0 = breed >= 1000 } }
                 .transformEnvironment(\.horizontalSizeClass) { if case .naast = indeling { $0 = .compact } }
                 .environment(\.paginaMaat, { if case let .enkel(p) = indeling { return p }; if case .boven = indeling { return KrantIndeling.enkelePagina }; return nil }())
@@ -257,7 +250,7 @@ struct KrantSpread<Lijst: View>: View {
         .background(indeling.spread ? Theme.paper : .clear)
         .onChange(of: indeling.spread, initial: true) { _, open in
             // Vouwen is geen nieuwe scène: de lezer wisselt zonder animatie van blad naar bladzijde.
-            guard staat.spread != open else { return }
+            guard let staat, staat.spread != open else { return }
             var t = Transaction(); t.disablesAnimations = true
             withTransaction(t) { staat.spread = open }
         }
@@ -265,16 +258,16 @@ struct KrantSpread<Lijst: View>: View {
 
     private func openStory(_ story: Story) {
         // Vergelijken vervangt de lezer op de rechterbladzijde; dicht is het een stap in de lijst.
-        if indeling.spread { reader.item = nil }
-        staat.verhaal[tab] = story
+        if indeling.spread { reader?.item = nil }
+        staat?.verhaal[tab] = story
     }
 }
 
 /// De rechterbladzijde: de lezer, het gekozen verhaal (Vergelijken), of rust.
 struct KrantPagina: View {
     @Environment(HootStore.self) private var store
-    @Environment(Reader.self) private var reader
-    @Environment(KrantStaat.self) private var staat
+    @Environment(Reader.self) private var reader: Reader?
+    @Environment(KrantStaat.self) private var staat: KrantStaat? // optioneel: buiten RootView (toetsen, voorbeelden) is er geen krant
     let tab: RootView.Destination
 
     /// Op de Editie ligt open het hoofdverhaal klaar, zoals een voorpagina: Vergelijken van 01.
@@ -289,15 +282,15 @@ struct KrantPagina: View {
 
     var body: some View {
         Group {
-            if let item = reader.item {
+            if let item = reader?.item {
                 LeesBlad(item: item).id(item.id)
-            } else if let story = staat.verhaal[tab] ?? voorpagina {
+            } else if let story = staat?.verhaal[tab] ?? voorpagina {
                 NavigationStack {
                     StoryView(story: story)
                         .toolbar {
-                            if staat.verhaal[tab] != nil {
+                            if staat?.verhaal[tab] != nil {
                                 ToolbarItem(placement: .cancellationAction) {
-                                    Button("Sluit", systemImage: "xmark") { staat.verhaal[tab] = nil }.tint(Theme.ink3)
+                                    Button("Sluit", systemImage: "xmark") { staat?.verhaal[tab] = nil }.tint(Theme.ink3)
                                 }
                             }
                         }
@@ -314,7 +307,7 @@ struct KrantPagina: View {
 /// Het artikel: in de Hoot-lezer, of een Bluesky-post zonder eigen link op bsky.app. Gedeeld door het
 /// blad (dicht) en de bladzijde (open).
 struct LeesBlad: View {
-    @Environment(Reader.self) private var reader
+    @Environment(Reader.self) private var reader: Reader?
     let item: Item
     var body: some View {
         if let url = item.link, Reader.canShow(url) {
@@ -324,7 +317,7 @@ struct LeesBlad: View {
                 ArticleReaderView(item: item).tint(Theme.ink) // niet het rood van de tabbalk
             }
         } else {
-            Color.clear.onAppear { reader.item = nil }
+            Color.clear.onAppear { reader?.item = nil }
         }
     }
 }
@@ -350,11 +343,11 @@ extension View {
 struct KrantVerhaal: ViewModifier {
     @Environment(\.krantTab) private var tab
     @Environment(\.krantSpread) private var spread
-    @Environment(KrantStaat.self) private var staat
+    @Environment(KrantStaat.self) private var staat: KrantStaat? // optioneel: buiten RootView (toetsen, voorbeelden) is er geen krant
     func body(content: Content) -> some View {
         content.navigationDestination(item: Binding(
-            get: { spread ? nil : staat.verhaal[tab] },
-            set: { nieuw in if !spread, nieuw == nil { staat.verhaal[tab] = nil } }
+            get: { spread ? nil : staat?.verhaal[tab] },
+            set: { nieuw in if !spread, nieuw == nil { staat?.verhaal[tab] = nil } }
         )) { StoryView(story: $0) }
     }
 }
@@ -362,13 +355,13 @@ struct KrantVerhaal: ViewModifier {
 struct KrantGekozen: ViewModifier {
     @Environment(\.krantSpread) private var spread
     @Environment(\.krantTab) private var tab
-    @Environment(Reader.self) private var reader
-    @Environment(KrantStaat.self) private var staat
+    @Environment(Reader.self) private var reader: Reader?
+    @Environment(KrantStaat.self) private var staat: KrantStaat? // optioneel: buiten RootView (toetsen, voorbeelden) is er geen krant
     let item: Item
     private var gekozen: Bool {
         guard spread else { return false }
-        if let open = reader.item { return open.id == item.id }
-        return staat.verhaal[tab]?.tappedId == item.id
+        if let open = reader?.item { return open.id == item.id }
+        return staat?.verhaal[tab]?.tappedId == item.id
     }
     func body(content: Content) -> some View {
         content

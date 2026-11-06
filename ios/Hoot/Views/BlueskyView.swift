@@ -239,9 +239,7 @@ struct BlueskyAccountsView: View {
             .hootForm()
             .navigationTitle("Bluesky-accounts")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                if !pushed { ToolbarItem(placement: .topBarTrailing) { Button("Klaar") { dismiss() } } } // tekst in inkt, zoals Instellingen
-            }
+            .klaarKnop(zichtbaar: !pushed) { dismiss() } // tekst in inkt, zoals Instellingen
     }
 
     private func row(_ s: Source) -> some View {
@@ -305,8 +303,8 @@ struct BlueskyPage: View {
         .task { if store.posts.isEmpty { await store.loadOwnPosts() } }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button { adding = true } label: { Image(systemName: "plus") }
-                    .accessibilityLabel("Bluesky-account toevoegen")
+                // Symbool én titel: zo gaat hij mee in een verticale balk (iPhone Duo dicht).
+                Button("Bluesky-account toevoegen", systemImage: "plus") { adding = true }
                     .tint(Theme.ink3)
             }
         }
