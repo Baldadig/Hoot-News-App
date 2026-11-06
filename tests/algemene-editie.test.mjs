@@ -323,3 +323,49 @@ test('algemene Editie: twee koppen uit één breed onderwerp krijgen elk een ple
   for (const id of ['kerk', 'inmenging', 'beurs', 'stad']) assert.ok(ids.has(id), id)
   assert.equal(['ontslag', 'ontslag2'].filter((id) => ids.has(id)).length, 1)
 })
+
+// Ronde 4 · 1 (keuring ronde 3): één verdwaald stuk in een geplaatste bundel drukt geen groot verhaal weg. Een bundel over
+// een burgemeestersverkiezing met één beursstuk erin hield een beurscrash van veel uitgevers buiten de Editie, omdat de
+// vergelijking per stuk (subjectTaken) al bij één stuk botste. Nu telt een botsing alleen als de botsende stukken de kern
+// van de plek zijn: haar kop, of stukken van meer dan één uitgever (of de helft van haar uitgevers).
+const strayCase = (strays = ['lemonde'], crashPubs = ['nyt', 'bbc', 'guardian', 'ft', 'nos', 'telegraaf']) => {
+  const T = Date.parse('2026-11-06T06:00:00Z')
+  const at = (h) => new Date(T - h * 36e5).toISOString()
+  let n = 0
+  const art = (source, title, summary, h = 2, topics = []) => ({ id: `w${++n}`, kind: 'article', source, title, summary, publishedAt: at(h), topics })
+  const crashHead = 'Wall Street sheds $3tn as chip stocks slump on AI fears'
+  const crashSum = 'Shares of Nvidia and other chipmakers tumbled on Wall Street as investors dumped AI stocks.'
+  const mayor = [
+    ...['nyt', 'npr', 'guardian', 'independent', 'aljazeera'].map((s) => art(s, 'Raman wins Denver mayoral race in generational upset', 'Voters in Denver elected Raman as mayor.', 3, ['vs-politiek'])),
+    // Het verdwaalde stuk: over de beurs, maar in de bundel van de burgemeester terechtgekomen.
+    ...strays.map((s) => art(s, 'On Wall Street, the AI bubble bursts as chip stocks slump', crashSum, 2)),
+  ]
+  const crash = crashPubs.map((s) => art(s, crashHead, crashSum, 1))
+  const nl = [['nos', 'nrc', 'volkskrant'], ['ad', 'nu', 'rtl']].map((ss, k) => ss.map((s) => art(s, ['Kabinet presenteert stikstofwet', 'Inflatie stijgt naar 3,7 procent'][k], 'Het kabinet besloot.', 1, ['nederland'])))
+  const all = [['mayor', mayor, 'vs'], ['crash', crash, null], ['n0', nl[0], 'binnenland'], ['n1', nl[1], 'binnenland']]
+  const pubsOf = (its) => new Set(its.map((i) => i.source)).size
+  // De burgemeester weegt zwaarder (meer uitgevers met de bundel erbij) en staat er dus eerst.
+  const stories = all.map(([id, its, desk]) => ({ id, itemIds: its.map((i) => i.id), sourceCount: pubsOf(its), publisherCount: pubsOf(its) + (id === 'mayor' ? 6 : 0), latestAt: its.map((i) => i.publishedAt).sort().at(-1), desk }))
+  return { stories, pool: all.flatMap((g) => g[1]), T }
+}
+test('één verdwaald stuk drukt geen groot verhaal weg (3b · ronde 4 · 1)', async () => {
+  const { signatures, sameSubject } = await import('../netlify/lib/stories.mjs')
+  const prof = profileOf({ followed: MAIN_IDS, sources: SOURCES })
+  const run = (w, general = true) => selectForReader(w.stories, w.pool, { mainIds: MAIN_IDS, now: w.T, prof, general }).map((e) => e.id)
+  const one = strayCase()
+  // Het verdwaalde stuk gaat wel over hetzelfde onderwerp als de crash (de oude botsing).
+  const sig = signatures(one.pool)
+  const stray = one.pool.find((i) => /bubble/.test(i.title))
+  assert.ok(one.pool.filter((i) => /sheds/.test(i.title)).some((i) => sameSubject(sig.get(i.id), sig.get(stray.id))))
+  // Toch krijgen beide een plek, in de algemene en in de persoonlijke Editie.
+  for (const general of [true, false]) {
+    const ids = run(one, general)
+    assert.ok(ids.includes('mayor') && ids.includes('crash'), ids.join())
+  }
+  // Komen de botsende stukken van twee uitgevers, dan is het geen verdwaald stuk meer: één plek.
+  const two = run(strayCase(['lemonde', 'dw']))
+  assert.ok(two.includes('mayor') && !two.includes('crash'), two.join())
+  // Een kleiner verhaal (drie uitgevers) botst zoals vroeger al bij één stuk.
+  const small = run(strayCase(['lemonde'], ['nyt', 'bbc', 'ft']))
+  assert.ok(small.includes('mayor') && !small.includes('crash'), small.join())
+})

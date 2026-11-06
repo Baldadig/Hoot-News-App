@@ -2316,19 +2316,36 @@ var HootCore = (() => {
     return h;
   }
   var OWN_STORY = 5;
-  function subjectTaken(sig, c, placed, items) {
+  function subjectTaken(sig, c, placed, items, meta = null) {
     let m = c.subj;
     if (!m || m.placed !== placed) m = c.subj = { placed, n: 0, hit: false };
     if (m.hit || m.n >= placed.length) return m.hit;
-    const fresh = placed.slice(m.n);
+    const from = m.n;
     m.n = placed.length;
-    return m.hit = subjectIn(sig, c, fresh, items);
+    return m.hit = subjectIn(sig, c, placed.slice(from), items, meta && meta.slice(from));
   }
-  function subjectIn(sig, c, list, items) {
-    const hit = (x) => !!x && list.some((s) => sameSubject(x, s));
+  var STRAY_MIN = 4;
+  function subjectIn(sig, c, list, items, meta = null) {
     const pubs = c.st ? c.st.publisherCount ?? c.st.sourceCount ?? 0 : 0;
-    if (c.kind === "story" && pubs >= OWN_STORY && items?.length) return items.some((i) => hit(headSignature(sig, i)));
-    return c.ids.some((id) => sig.has(id) && hit(sig.get(id)));
+    const own = c.kind === "story" && pubs >= OWN_STORY && items?.length ? items.map((i) => headSignature(sig, i)).filter(Boolean) : c.ids.map((id) => sig.get(id)).filter(Boolean);
+    if (!meta || c.kind !== "story" || pubs < STRAY_MIN) return own.some((x) => list.some((s) => sameSubject(x, s)));
+    const hits = /* @__PURE__ */ new Map();
+    for (let k = 0; k < list.length; k++) {
+      if (!own.some((x) => sameSubject(x, list[k]))) continue;
+      const p = meta[k];
+      if (!p?.owner) return true;
+      const got = hits.get(p.owner) || [];
+      got.push(p.item);
+      if (strayCore(p, got)) return true;
+      hits.set(p.owner, got);
+    }
+    return false;
+  }
+  var STRAY_PUBS = 2;
+  function strayCore(p, got) {
+    if (got.some((i) => i?.id === p.lead)) return true;
+    if (!(p.pubs > 1)) return true;
+    return coverageOf(got.filter(Boolean)).publisherCount >= Math.min(STRAY_PUBS, Math.ceil(p.pubs / 2));
   }
   var STALE_AFTER = 24 * 60 * 60 * 1e3;
   var isStale = (item, now) => !!now && now - timeOf(item) > STALE_AFTER;
@@ -2689,13 +2706,17 @@ var HootCore = (() => {
     const placedBy = [];
     let placedC = [];
     const clashes = (c) => {
-      if (general && wideSecond(c, placedC, now)) return subjectIn(sig, c, placed.filter((_, k) => placedBy[k]?.vote !== c.vote), c.items) || !c.vervolg && same(c.ids, vorige);
-      return subjectTaken(sig, c, placed, c.items) || !c.vervolg && same(c.ids, vorige);
+      if (general && wideSecond(c, placedC, now)) {
+        const keep = placed.map((_, k) => placedBy[k]?.owner?.vote !== c.vote);
+        return subjectIn(sig, c, placed.filter((_, k) => keep[k]), c.items, placedBy.filter((_, k) => keep[k])) || !c.vervolg && same(c.ids, vorige);
+      }
+      return subjectTaken(sig, c, placed, c.items, placedBy) || !c.vervolg && same(c.ids, vorige);
     };
-    const place = (ids, owner = null) => {
+    const place = (ids, owner = null, lead = null) => {
+      const pubs = owner ? owner.kind === "item" ? 1 : coverageOf(owner.items).publisherCount : 0;
       for (const id of ids) if (sig.has(id)) {
         placed.push(sig.get(id));
-        placedBy.push(owner);
+        placedBy.push({ owner, lead, pubs, item: byId2.get(id) });
       }
     };
     const leadFrom = (items, total, role) => {
@@ -2874,7 +2895,7 @@ var HootCore = (() => {
       if (second) relead(c);
       used.add(c);
       placedC.push(c);
-      place(c.ids, c);
+      place(c.ids, c, c.kind === "story" ? lead?.id : c.it.id);
       const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, big: majorNews(c.st || { sourceCount: 1 }, c.items), ...c.vervolg ? { vervolg: c.vervolg } : {}, ...extra };
       if (c.kind === "story") {
         leadCount[lead.source] = (leadCount[lead.source] || 0) + 1;

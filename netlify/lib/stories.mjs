@@ -609,19 +609,47 @@ function headSignature(sig, item) {
 export const OWN_STORY = 5
 // Rekentijd: `placed` groeit alleen, dus per kandidaat onthouden tot waar er vergeleken is (`c.subj`); een
 // afwijzing blijft een afwijzing, en daarna alleen de nieuwe plekken vergelijken.
-function subjectTaken(sig, c, placed, items) {
+// `meta` (optioneel, parallel aan `placed`): per kenmerk de plek waar het bij hoort ({ owner, lead, pubs, item }).
+// Dan telt een botsing alleen als de stukken die botsen een wezenlijk deel van die plek zijn (zie strayClash).
+function subjectTaken(sig, c, placed, items, meta = null) {
   let m = c.subj
   if (!m || m.placed !== placed) m = c.subj = { placed, n: 0, hit: false }
   if (m.hit || m.n >= placed.length) return m.hit
-  const fresh = placed.slice(m.n)
+  const from = m.n
   m.n = placed.length
-  return (m.hit = subjectIn(sig, c, fresh, items))
+  return (m.hit = subjectIn(sig, c, placed.slice(from), items, meta && meta.slice(from)))
 }
-function subjectIn(sig, c, list, items) {
-  const hit = (x) => !!x && list.some((s) => sameSubject(x, s))
+// Redacteur 3b · ronde 4 · 1: één verdwaald stuk drukt geen groot verhaal weg. Een geplaatste bundel kan een stuk bevatten
+// dat er niet bij hoort (een beursstuk in een bundel over een burgemeestersverkiezing, een losse analyse in een
+// verzameling verkiezingsstukken). Een kandidaat van minstens STRAY_MIN uitgevers botst daarom alleen met een plek als de
+// stukken van die plek die over hetzelfde onderwerp gaan, de kern van die plek zijn (strayCore). Kleinere kandidaten, en
+// een plek zonder `meta` (de koppen van de vorige Editie, selectEdition), botsen zoals vroeger: bij één stuk.
+const STRAY_MIN = 4
+function subjectIn(sig, c, list, items, meta = null) {
   const pubs = c.st ? c.st.publisherCount ?? c.st.sourceCount ?? 0 : 0
-  if (c.kind === 'story' && pubs >= OWN_STORY && items?.length) return items.some((i) => hit(headSignature(sig, i)))
-  return c.ids.some((id) => sig.has(id) && hit(sig.get(id)))
+  const own = c.kind === 'story' && pubs >= OWN_STORY && items?.length ? items.map((i) => headSignature(sig, i)).filter(Boolean) : c.ids.map((id) => sig.get(id)).filter(Boolean)
+  if (!meta || c.kind !== 'story' || pubs < STRAY_MIN) return own.some((x) => list.some((s) => sameSubject(x, s)))
+  const hits = new Map() // plek → de stukken van die plek die botsen
+  for (let k = 0; k < list.length; k++) {
+    if (!own.some((x) => sameSubject(x, list[k]))) continue
+    const p = meta[k]
+    if (!p?.owner) return true
+    const got = hits.get(p.owner) || []
+    got.push(p.item)
+    if (strayCore(p, got)) return true
+    hits.set(p.owner, got)
+  }
+  return false
+}
+// Zijn de botsende stukken `got` de kern van plek `p` ({ lead, pubs })? Ja als de kop van de plek erbij zit, of als ze
+// van STRAY_PUBS of meer uitgevers komen, of van minstens de helft van haar uitgevers (bij een plek van één of twee
+// uitgevers is één stuk al de helft). Alleen stukken van één uitgever in een plek van drie of meer uitgevers, zonder de
+// kop, zijn verdwaald.
+const STRAY_PUBS = 2
+function strayCore(p, got) {
+  if (got.some((i) => i?.id === p.lead)) return true
+  if (!(p.pubs > 1)) return true
+  return coverageOf(got.filter(Boolean)).publisherCount >= Math.min(STRAY_PUBS, Math.ceil(p.pubs / 2))
 }
 
 // Een bericht van meer dan een dag oud (een portret, een analyse van gisteren) is achtergrond:
@@ -1735,15 +1763,19 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
   const same = (ids, sigs) => ids.some((id) => sig.has(id) && sigs.some((s) => sameSubject(sig.get(id), s)))
   // Eén plek per onderwerp, ook tegenover de koppen van de vorige Editie; een ontwikkeld verhaal
   // gaat vanzelf over zijn eigen vorige kop en wordt daar niet op afgewezen.
-  const placedBy = [] // per kenmerk in `placed`: de kandidaat die de plek kreeg
+  const placedBy = [] // per kenmerk in `placed`: de plek ({ owner: de kandidaat, lead, pubs, item }; ronde 4 · 1)
   let placedC = []
   const clashes = (c) => {
     // Een tweede plek voor één gebeurtenis (alleen algemeen, wideSecond) mag over dezelfde namen gaan als zijn familie.
-    if (general && wideSecond(c, placedC, now)) return subjectIn(sig, c, placed.filter((_, k) => placedBy[k]?.vote !== c.vote), c.items) || (!c.vervolg && same(c.ids, vorige))
-    return subjectTaken(sig, c, placed, c.items) || (!c.vervolg && same(c.ids, vorige))
+    if (general && wideSecond(c, placedC, now)) {
+      const keep = placed.map((_, k) => placedBy[k]?.owner?.vote !== c.vote)
+      return subjectIn(sig, c, placed.filter((_, k) => keep[k]), c.items, placedBy.filter((_, k) => keep[k])) || (!c.vervolg && same(c.ids, vorige))
+    }
+    return subjectTaken(sig, c, placed, c.items, placedBy) || (!c.vervolg && same(c.ids, vorige))
   }
-  const place = (ids, owner = null) => {
-    for (const id of ids) if (sig.has(id)) { placed.push(sig.get(id)); placedBy.push(owner) }
+  const place = (ids, owner = null, lead = null) => {
+    const pubs = owner ? (owner.kind === 'item' ? 1 : coverageOf(owner.items).publisherCount) : 0
+    for (const id of ids) if (sig.has(id)) { placed.push(sig.get(id)); placedBy.push({ owner, lead, pubs, item: byId.get(id) }) }
   }
   // De kandidaten voor de kop, in volgorde; hangt alleen af van de stukken en de rol (de eerste drie plekken: voorpagina).
   const leadFrom = (items, total, role) => {
@@ -1933,7 +1965,7 @@ export function selectForReader(stories, pool, { mainIds = new Set(), now = Date
     if (second) relead(c)
     used.add(c)
     placedC.push(c)
-    place(c.ids, c)
+    place(c.ids, c, c.kind === 'story' ? lead?.id : c.it.id)
     const base = { desk, w: c.w, parts: c.parts, sourceCount: c.sc, big: majorNews(c.st || {sourceCount:1}, c.items), ...(c.vervolg ? { vervolg: c.vervolg } : {}), ...extra }
     if (c.kind === 'story') {
       // De kop van een ontwikkeld verhaal is het zwaarste nieuwe stuk, niet een oud stuk uit een andere bron (zie boven).
