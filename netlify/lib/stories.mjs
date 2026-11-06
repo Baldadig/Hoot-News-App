@@ -1584,6 +1584,47 @@ export function openWithNews(entries, { itemsOf, pick }) {
   return entries
 }
 
+// Een Nederlandse kop bovenaan (Redacteur 3b · ronde 6, blinde keuze van Alex: drie keer "Nederlands openen"). De
+// algemene Editie zet de eigen bronnen vóór de taal (leadPool met `own`): Binance kreeg de NYT als kop terwijl Tweakers en
+// het FD het brachten, Christa Pike de NYT naast NU.nl, de beurs de NYT naast de Volkskrant en het ND. De basislijn deed het
+// omgekeerd: eerst Nederlands, dan de eigen bronnen. Voor de eerste DUTCH_HEAD_TOP plekken krijgt een verhaal daarom de kop
+// van een Nederlandse bron (taal nl, niet Vlaams) als het verhaal er een heeft die als kop kan:
+// - een nieuwsstuk met titel: geen opinie, geen liveblog, podcast of galerij, geen vraag als kop, niet ouder dan het
+//   verhaalvenster (isStale) — ook als het een paar uur ouder is dan het nieuwste buitenlandse stuk: dezelfde gebeurtenis,
+//   eerder gemeld; op plek 01 ook geen beschouwende kop (verdictTitle, zoals openWithNews);
+// - uit de kern van een grote bundel (centralItems), en verbonden met minstens één ander stuk van het verhaal (sameSubject
+//   of sameEvent): een verdwaald stuk in de bundel (een ontvoering in de beursbundel, een miljardair in een
+//   burgemeestersbundel) wordt nooit de kop. Met de oude kop zelf vergelijken helpt niet: tussen talen delen koppen
+//   zelden genoeg namen;
+// - de verste van die stukken (freshest: niet een stuk van gisteren als er een van vandaag is), daarbinnen de volgorde van
+//   leadCandidates (eigen bronnen, intro, beeld), liefst een bron die nog geen kop in de top heeft.
+// Wijzigt `entries` (de plek met een nieuwe kop is een kopie). `itemsOf(e)`: de stukken van een plek.
+export const DUTCH_HEAD_TOP = 3
+export function dutchHeads(entries, { itemsOf, mainIds = new Set(), now = null, top = DUTCH_HEAD_TOP }) {
+  for (let k = 0; k < Math.min(top, entries.length); k++) {
+    const e = entries[k]
+    if (e.kind !== 'story' || e.desk === 'bubbel') continue
+    const items = itemsOf(e).filter(Boolean)
+    const lead = items.find((i) => i.id === e.leadId)
+    if (!lead || dutchTier(lead) === 0) continue
+    const fit = items.filter((i) => dutchTier(i) === 0 && titled(i) && !isOpinion(i) && !isLive(i) && !isGallery(i) && !isStale(i, now) && !/\bpodcast\b/i.test(i.title) && !/\?/.test(i.title) && !(k === 0 && verdictTitle(i)))
+    if (!fit.length) continue
+    const core = new Set(centralItems(items))
+    const inCore = fit.filter((i) => core.has(i))
+    if (!inCore.length) continue
+    const sig = signatures(items)
+    const sigX = signatures(items, [], { extended: true })
+    const linked = (i) => items.some((j) => j !== i && sig.has(i.id) && sig.has(j.id) && (sameSubject(sig.get(i.id), sig.get(j.id)) || sameEvent(sigX.get(i.id), sigX.get(j.id), true)))
+    const near = inCore.filter(linked)
+    if (!near.length) continue
+    const others = new Set(entries.slice(0, top).filter((x) => x !== e).map((x) => itemsOf(x).find((i) => i?.id === (x.leadId || x.id))?.source).filter(Boolean))
+    const order = leadCandidates(freshest(near), mainIds, null, now, { role: k < 3 ? 'front' : 'neutral' })
+    const next = order.find((i) => !others.has(i.source)) || order[0]
+    entries[k] = { ...e, leadId: next.id, ...('title' in e ? { title: next.title || null } : {}) }
+  }
+  return entries
+}
+
 // Curiosa nooit in de top 3 (Redacteur 3b · 5, besluit van Alex; keuring 6 november: "veel uitgevers bij een
 // kuriositeit (Oval Office) mag geen top 3 opleveren", liefst plek 6–10). Generiek herkend (ronde 2: geen woorden die
 // bij één dag horen, zoals "Oval Office" of "komiek"):

@@ -514,3 +514,45 @@ test('bij gelijke grootte gaat nieuws voor een luchtig verhaal (3b · ronde 4 ·
   const big = run(build(['bbc', 'guardian', 'nyt', 'lemonde', 'npr', 'dw']), 3)
   assert.ok(big.includes('luchtig'), big.join())
 })
+
+test('bovenaan de kop van een Nederlandse bron als het verhaal die heeft, ook bij buitenlands nieuws (3b · ronde 6 · 1)', async () => {
+  const { dutchHeads, DUTCH_HEAD_TOP } = await import('../netlify/lib/stories.mjs')
+  assert.equal(DUTCH_HEAD_TOP, 3)
+  const T = Date.parse('2026-11-06T17:00:00Z')
+  const at = (h) => new Date(T - h * 36e5).toISOString()
+  let n = 0
+  const art = (source, title, h, extra = {}) => ({ id: `d${++n}`, kind: 'article', source, title, summary: `${title}.`, publishedAt: at(h), url: `https://example.com/nieuws/${n}`, ...extra })
+  const items = new Map()
+  const story = (id, its, leadSource) => {
+    for (const i of its) items.set(i.id, i)
+    return { kind: 'story', id, leadId: its.find((i) => i.source === leadSource).id, desk: 'buitenland', members: its }
+  }
+  // Een buitenlandse gebeurtenis met een Engelse kop van een eigen bron; Nederlandse stukken: één over de gebeurtenis
+  // (een niet-eigen bron, ouder dan het nieuwste Engelse stuk), één met een vraag als kop en één verdwaald stuk.
+  const hack = story('hack', [
+    art('nyt', 'Hackers Steal $2.1 Billion From Crypto Exchange Kraxa', 1),
+    art('bbc', 'Kraxa crypto exchange hacked, $2.1 billion stolen', 2),
+    art('guardian', 'Kraxa hack: $2.1bn in crypto stolen from exchange', 2),
+    art('tweakers', 'Cryptobeurs Kraxa gehackt: 2,1 miljard dollar aan crypto gestolen', 7),
+    art('volkskrant', 'Hoe konden hackers 2,1 miljard dollar bij cryptobeurs Kraxa stelen?', 1),
+    art('rtl', 'Verdachte van ontvoering meisje in Ohio opgepakt', 1),
+  ], 'nyt')
+  // Een verhaal zonder Nederlandse kop die kan (alleen opinie) blijft zoals het was.
+  const vote = story('vote', [
+    art('bbc', 'Chile votes in pension referendum', 1),
+    art('guardian', 'Chileans vote on pension reform', 2),
+    art('nrc', 'Opinie: Chili kiest voor zijn ouderen', 1, { type: 'opinie' }),
+  ], 'bbc')
+  // Plek 4 hoort niet bij de top: daar blijft de kop.
+  const quake = story('quake', [
+    art('dw', 'Earthquake of 6.8 strikes off coast of Peru', 1),
+    art('nos', 'Aardbeving van 6,8 voor de kust van Peru', 2),
+  ], 'dw')
+  const filler = story('filler', [art('bbc', 'Senate passes budget bill', 1), art('npr', 'Senate passes budget', 1)], 'bbc')
+  const entries = [hack, vote, filler, quake].map(({ members, ...e }) => e)
+  const itemsOf = (e) => [hack, vote, quake, filler].find((x) => x.id === e.id).members
+  dutchHeads(entries, { itemsOf, mainIds: MAIN_IDS, now: T })
+  assert.equal(items.get(entries[0].leadId).source, 'tweakers', 'de Nederlandse kop over de gebeurtenis, niet de vraag of het verdwaalde stuk')
+  assert.equal(items.get(entries[1].leadId).source, 'bbc', 'geen opinie als kop')
+  assert.equal(items.get(entries[3].leadId).source, 'dw', 'alleen de top')
+})
